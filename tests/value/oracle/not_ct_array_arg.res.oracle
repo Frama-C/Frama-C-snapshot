@@ -4,41 +4,51 @@
 [value] Initial state computed
 [value:initial-state] Values of globals at initialization
   v ∈ [--..--]
-[value:initial-state] creating variable S_tb with imprecise size (type int [10][a])
-tests/value/not_ct_array_arg.i:9:[value] warning: during initialization of variable 'tb', size of type 'int [a]' cannot be
-    computed (Array with non-constant length.)
-tests/value/not_ct_array_arg.i:10:[value] warning: out of bounds write. assert \valid((int *)tb);
-tests/value/not_ct_array_arg.i:11:[value] Frama_C_dump_each:
-    # Cvalue domain:
-    v ∈ [--..--]
-    a ∈ [--..--]
-    tb ∈ {{ (int (*)[a])&S_tb }}
-    tc ∈ {{ NULL ; &S_tc[0] }}
-    S_tc[0..1][0..9] ∈ [--..--]
-    S_tb[bits 0 to 31] ∈ {1}
-        [bits 32 to ..] ∈ [--..--] or UNINITIALIZED
-    ==END OF DUMP==
-tests/value/not_ct_array_arg.i:12:[value] warning: out of bounds write. assert \valid(&(*(tb + 9))[100]);
-tests/value/not_ct_array_arg.i:13:[value] Frama_C_dump_each:
-    # Cvalue domain:
-    v ∈ [--..--]
-    a ∈ [--..--]
-    tb ∈ {{ (int (*)[a])&S_tb }}
-    tc ∈ {{ NULL ; &S_tc[0] }}
-    S_tc[0..1][0..9] ∈ [--..--]
-    S_tb[bits 0 to 31] ∈
-        {{ garbled mix of &{tb}
-         (origin: Misaligned {tests/value/not_ct_array_arg.i:12}) }}
-        [bits 32 to ..] ∈
-        {{ garbled mix of &{tb}
-         (origin: Misaligned {tests/value/not_ct_array_arg.i:12}) }} or UNINITIALIZED
-    ==END OF DUMP==
-tests/value/not_ct_array_arg.i:14:[value] warning: out of bounds write. assert \valid(&(*(tc + 1))[1]);
-tests/value/not_ct_array_arg.i:16:[value] warning: accessing out of bounds index. assert 16 < 10;
-tests/value/not_ct_array_arg.i:16:[kernel] warning: all target addresses were invalid. This path is assumed to be dead.
+[value:initial-state] 
+  creating variable S_tb with imprecise size (type int [10][a])
+[value] tests/value/not_ct_array_arg.i:9: Warning: 
+  during initialization of variable 'tb', size of type 'int [a]' cannot be
+  computed (Array with non-constant length.)
+[value:alarm] tests/value/not_ct_array_arg.i:10: Warning: 
+  out of bounds write. assert \valid((int *)tb);
+[value] tests/value/not_ct_array_arg.i:11: 
+  Frama_C_dump_each:
+  # Cvalue domain:
+  v ∈ [--..--]
+  a ∈ [--..--]
+  tb ∈ {{ (int (*)[a])&S_tb }}
+  tc ∈ {{ NULL ; &S_tc[0] }}
+  S_tc[0..1][0..9] ∈ [--..--]
+  S_tb[bits 0 to 31] ∈ {1}
+      [bits 32 to ..] ∈ [--..--] or UNINITIALIZED
+  ==END OF DUMP==
+[value:alarm] tests/value/not_ct_array_arg.i:12: Warning: 
+  out of bounds write. assert \valid(&(*(tb + 9))[100]);
+[value] tests/value/not_ct_array_arg.i:13: 
+  Frama_C_dump_each:
+  # Cvalue domain:
+  v ∈ [--..--]
+  a ∈ [--..--]
+  tb ∈ {{ (int (*)[a])&S_tb }}
+  tc ∈ {{ NULL ; &S_tc[0] }}
+  S_tc[0..1][0..9] ∈ [--..--]
+  S_tb[bits 0 to 31] ∈
+      {{ garbled mix of &{tb}
+       (origin: Misaligned {tests/value/not_ct_array_arg.i:12}) }}
+      [bits 32 to ..] ∈
+      {{ garbled mix of &{tb}
+       (origin: Misaligned {tests/value/not_ct_array_arg.i:12}) }} or UNINITIALIZED
+  ==END OF DUMP==
+[value:alarm] tests/value/not_ct_array_arg.i:14: Warning: 
+  out of bounds write. assert \valid(&(*(tc + 1))[1]);
+[value:alarm] tests/value/not_ct_array_arg.i:16: Warning: 
+  accessing out of bounds index. assert 16 < 10;
+[kernel] tests/value/not_ct_array_arg.i:16: Warning: 
+  all target addresses were invalid. This path is assumed to be dead.
 [value] Recording results for main
 [value] done for function main
-tests/value/not_ct_array_arg.i:16:[value] assertion 'Value,index_bound' got final status invalid.
+[value] tests/value/not_ct_array_arg.i:16: 
+  assertion 'Value,index_bound' got final status invalid.
 [value] ====== VALUES COMPUTED ======
 [value:final-states] Values at end of function main:
   S_tc{[0][0..9]; [1][0]} ∈ [--..--]
@@ -53,13 +63,13 @@ tests/value/not_ct_array_arg.i:16:[value] assertion 'Value,index_bound' got fina
 [from] Computing for function main
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
-    These dependencies hold at termination for the executions that terminate:
+  These dependencies hold at termination for the executions that terminate:
 [from] Function main:
   S_tc[1][1] FROM tc
   S_tb[bits 0 to 31] FROM tb
       [bits 32 to ..] FROM tb (and SELF)
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function main:
-      S_tc[1][1]; S_tb[bits 0 to ..]
+    S_tc[1][1]; S_tb[bits 0 to ..]
 [inout] Inputs for function main:
-      v
+    v

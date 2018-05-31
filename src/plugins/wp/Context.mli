@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2017                                               *)
+(*  Copyright (C) 2007-2018                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -37,6 +37,10 @@ val defined : 'a value -> bool
 val get : 'a value -> 'a
 (** Retrieves the current value of the context.
     Raise an exception if not bound. *)
+
+val get_opt : 'a value -> 'a option
+(** Retrieves the current value of the context.
+    Return [None] if not bound. *)
 
 val set : 'a value -> 'a -> unit
 (** Define the current value. Previous one is lost *)

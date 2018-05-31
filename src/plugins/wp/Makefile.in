@@ -2,7 +2,7 @@
 #                                                                        #
 #  This file is part of WP plug-in of Frama-C.                           #
 #                                                                        #
-#  Copyright (C) 2007-2017                                               #
+#  Copyright (C) 2007-2018                                               #
 #    CEA (Commissariat a l'energie atomique et aux energies              #
 #         alternatives)                                                  #
 #                                                                        #
@@ -64,9 +64,9 @@ PLUGIN_CMO:= \
 	cil2cfg normAtLabels wpPropId mcfg \
 	Context Warning Model Lang Repr Matrix Passive Splitter \
 	LogicBuiltins Definitions \
-	Cint Cfloat Vset Vlist Region Cstring Cvalues \
+	Cmath Cint Cfloat Vset Vlist Region Cstring Cvalues \
 	Letify Cleaning \
-	Memory Mstate Conditions \
+	Sigs Mstate Conditions \
 	Filtering \
 	Plang Pcfg Pcond \
 	CodeSemantics \
@@ -74,6 +74,7 @@ PLUGIN_CMO:= \
 	LogicSemantics LogicAssigns  \
 	Sigma MemEmpty MemZeroAlias MemVar MemTyped \
 	wpStrategy wpRTE wpAnnot \
+	CfgCompiler StmtSemantics \
 	VCS script proof wpo wpReport \
 	Footprint Tactical Strategy \
 	TacSplit TacChoice TacRange \
@@ -81,16 +82,16 @@ PLUGIN_CMO:= \
 	TacHavoc TacInstance TacLemma \
 	TacFilter TacCut WpTac TacNormalForm \
 	TacRewrite TacBitwised TacBitrange TacShift \
-	TacRatio TacOverflow Auto \
+	TacCongruence TacOverflow Auto \
 	ProofSession ProofScript ProofEngine \
 	why3_xml \
 	ProverTask ProverErgo ProverCoq ProverWhy3 ProverWhy3ide \
-	driver prover ProverScript ProverSearch \
+	driver prover ProverSearch ProverScript \
 	Generator Factory \
 	calculus cfgDump cfgWP \
 	register VC
 
-PLUGIN_CMI:= 
+PLUGIN_CMI:=
 
 PLUGIN_GENERATED:= \
    $(PLUGIN_DIR)/script.ml \
@@ -98,9 +99,8 @@ PLUGIN_GENERATED:= \
    $(PLUGIN_DIR)/driver.ml \
    $(PLUGIN_DIR)/why3_xml.ml \
    $(PLUGIN_DIR)/Wp.mli
-PLUGIN_DEPENDENCIES:= rtegen
+PLUGIN_DEPENDENCIES:= rtegen qed
 PLUGIN_UNDOC+=
-PLUGIN_DOCFLAGS+= -I $(PLUGIN_DIR)/qed/bin
 PLUGIN_INTRO:=$(PLUGIN_DIR)/intro_wp.txt
 PLUGIN_DISTRIBUTED:=$(PLUGIN_ENABLE)
 PLUGIN_DISTRIB_EXTERNAL:= \
@@ -114,35 +114,6 @@ PLUGIN_DISTRIB_EXTERNAL:= \
 	                    $(ALL_MODIFIED_WHY3_RESOURCES))
 
 CEA_WP_GENEREATED=why3_xml.ml script.ml rformat.ml driver.ml
-
-# --------------------------------------------------------------------------
-# --- Qed Dependencies                                                   ---
-# --------------------------------------------------------------------------
-
-QED_LIB := $(PLUGIN_DIR)/qed/bin
-QED_CMO = $(QED_LIB)/Qed.cmo
-QED_CMX = $(QED_LIB)/Qed.cmx
-
-QED_SRC := $(PLUGIN_DIR)/qed/src
-
-include $(QED_SRC)/Makefile.src
-
-QED_FILES = Makefile.src Makefile MakeOcaml ocamldoc.css \
-  $(addsuffix .mli,$(QED_LIB_ML) $(QED_SRC_ML) $(QED_SRC_MLI)) \
-  $(addsuffix .ml, \
-	$(filter-out $(QED_GENERATED), \
-		$(QED_LIB_ML) $(QED_SRC_ML)))
-QED_SOURCES:= $(addprefix $(QED_SRC)/,$(QED_FILES))
-
-PLUGIN_BFLAGS:= -I $(QED_LIB)
-PLUGIN_OFLAGS:= -I $(QED_LIB)
-
-PLUGIN_EXTRA_BYTE:=$(QED_CMO)
-PLUGIN_EXTRA_OPT:=$(QED_CMX)
-
-QED_DISTRIB_SRC:=$(addprefix qed/src/,$(QED_FILES))
-
-PLUGIN_DISTRIB_EXTERNAL+= $(QED_DISTRIB_SRC)
 
 # --------------------------------------------------------------------------
 # --- Tests                                                              ---
@@ -167,7 +138,7 @@ else
 CONFIG_STATUS_DIR=.
 endif
 
-$(Wp_DIR)/Makefile: $(Wp_DIR)/Makefile.in $(Wp_DIR)/share/Makefile.resources $(QED_SRC)/Makefile.src $(CONFIG_STATUS_DIR)/config.status
+$(Wp_DIR)/Makefile: $(Wp_DIR)/Makefile.in $(Wp_DIR)/share/Makefile.resources $(CONFIG_STATUS_DIR)/config.status
 	@cd $(CONFIG_STATUS_DIR) && ./config.status --file $@
 
 # --------------------------------------------------------------------------
@@ -175,6 +146,7 @@ $(Wp_DIR)/Makefile: $(Wp_DIR)/Makefile.in $(Wp_DIR)/share/Makefile.resources $(Q
 # --------------------------------------------------------------------------
 
 WP_API_BASE= \
+	wp_parameters.mli \
 	ctypes.mli clabels.mli \
 	Separation.mli \
 	LogicUsage.mli RefUsage.mli \
@@ -184,11 +156,14 @@ WP_API_BASE= \
 	Lang.mli Repr.mli Passive.mli Splitter.mli \
 	LogicBuiltins.mli Definitions.mli \
 	Cint.mli Cfloat.mli Vset.mli Cstring.mli \
-	Memory.ml Mstate.mli Conditions.mli \
-	CodeSemantics.mli LogicCompiler.mli LogicSemantics.mli \
+	Sigs.ml Mstate.mli Conditions.mli Filtering.mli \
+	Plang.mli Pcfg.mli Pcond.mli \
+	CodeSemantics.mli \
+	LogicCompiler.mli LogicSemantics.mli \
 	Sigma.mli MemVar.mli MemTyped.mli \
-	Factory.mli VCS.mli Tactical.mli Strategy.mli Auto.mli \
-	VC.mli
+	CfgCompiler.mli StmtSemantics.mli \
+	Factory.mli driver.mli VCS.mli Tactical.mli Strategy.mli Auto.mli \
+	VC.mli wpo.mli ProverTask.mli prover.mli
 
 define WP_capitalize
 $(shell printf "%s%s" \
@@ -198,90 +173,41 @@ endef
 
 define WP_export
 $(ECHO) "module $(call WP_capitalize, $(basename $(notdir $(1)))) : sig" >> $(2);
+$(ECHO) '# 1 "$(1)"' >> $(2);
 $(CAT) $(1) >> $(2);
 $(ECHO) "end" >> $(2);
 endef
 
 WP_MLI=$(addprefix $(Wp_DIR)/, $(WP_API_BASE))
 
-$(Wp_DIR)/Wp.mli: $(WP_MLI)
+$(Wp_DIR)/Wp.mli: $(Wp_DIR)/Makefile $(WP_MLI)
 	$(PRINT_MAKING) $@
 	$(RM) $@ $@.tmp
 	$(ECHO) "(* This file is generated. Do not edit. *)" > $@.tmp
+	$(ECHO) "(** {b WP Public API} *)" > $@.tmp
 	$(foreach file,$(WP_MLI),$(call WP_export,$(file),$@.tmp))
 	$(CHMOD_RO) $@.tmp
 	$(MV) $@.tmp $@
 
 .PHONY: wp-doc-api
 
-wp-doc-api: $(Wp_DIR)/Wp.mli $(Wp_DIR)/doc/ocamldoc.css $(Wp_DIR)/doc/wp-api.odoc
+wp-doc-api:
 	$(ECHO) "Generating WP documentation"
 	@mkdir -p $(Wp_DIR)/doc/html
 	$(RM) -fr $(Wp_DIR)/doc/html/*
 	$(CP) $(Wp_DIR)/doc/ocamldoc.css $(Wp_DIR)/doc/html/style.css
-	$(OCAMLDOC) -I lib/fc -I $(Wp_DIR) -I $(Wp_DIR)/qed/src -stars \
+	$(OCAMLDOC) \
+		-package zarith \
+		-I lib/fc -I lib/plugins -I $(Wp_DIR) -stars \
 		-html -d $(Wp_DIR)/doc/html -charset utf-8 \
 		-t "Frama-C/WP API Documentation" \
 		-intro $(Wp_DIR)/doc/wp-api.odoc \
 		-colorize-code -short-functors $(Wp_DIR)/Wp.mli
+	$(ECHO) "Generating $(Wp_DIR)/doc/html/index.html"
 
 clean::
 	$(RM) $(Wp_DIR)/Wp.mli
 	$(RM) -fr $(Wp_DIR)/doc/html
-
-# --------------------------------------------------------------------------
-# --- Qed Dependencies                                                   ---
-# --------------------------------------------------------------------------
-
-.PHONY: qed
-
-qed:
-	@echo "Cleaning     Qed"
-	@rm -f $(QED_LIB)/*
-	@rm -f $(Wp_DIR)/qed/src/*.cm?
-	$(MAKE) $(QED_CMO) $(QED_CMX)
-
-clean::
-	@echo "Cleaning     Qed"
-	@rm -f $(QED_LIB)/*
-	$(QUIET_MAKE) -C $(Wp_DIR)/qed/src clean
-
-$(Wp_DIR)/Memory.cmi: $(QED_CMO)
-$(Wp_DIR)/ctypes.cmi: $(QED_CMO)
-$(Wp_DIR)/ctypes.cmo: $(QED_CMO)
-$(Wp_DIR)/ctypes.cmx: $(QED_CMX)
-$(Wp_DIR)/RefUsage.cmi: $(QED_CMO)
-$(Wp_DIR)/RefUsage.cmo: $(QED_CMO)
-$(Wp_DIR)/RefUsage.cmx: $(QED_CMX)
-$(Wp_DIR)/Splitter.cmi: $(QED_CMO)
-$(Wp_DIR)/Splitter.cmo: $(QED_CMO)
-$(Wp_DIR)/Splitter.cmx: $(QED_CMX)
-$(Wp_DIR)/Lang.cmi:   $(QED_CMO)
-$(Wp_DIR)/Lang.cmo:   $(QED_CMO)
-$(Wp_DIR)/Lang.cmx:   $(QED_CMX)
-$(Wp_DIR)/Vset.cmo:   $(QED_CMO)
-$(Wp_DIR)/Vset.cmx:   $(QED_CMX)
-$(Wp_DIR)/Vlist.cmo:  $(QED_CMO)
-$(Wp_DIR)/Vlist.cmx:  $(QED_CMX)
-
-ifeq ($(OCAMLOPT),ocamlopt.opt)
-QEDOPT=.opt
-else
-QEDOPT=
-endif
-
-$(QED_CMO): $(QED_SOURCES)
-	@echo "Compiling    Qed (byte$(QEDOPT))"
-	$(QUIET_MAKE) -C $(Wp_DIR)/qed/src depend "OCAMLDEP=$(OCAMLDEP)"
-	$(QUIET_MAKE) "OPT=$(QEDOPT)" -C $(Wp_DIR)/qed/src byte \
-		"OCAMLC=$(OCAMLC)" \
-		"OCAMLLEX=$(OCAMLLEX)"
-
-$(QED_CMX): $(QED_CMO) #- To avoid parallel invocation of Qed makefile
-	@echo "Compiling    Qed (opt$(QEDOPT))"
-	$(QUIET_MAKE) "OPT=$(QEDOPT)" -C $(Wp_DIR)/qed/src opt \
-		"OCAMLOPT=$(OCAMLOPT)" \
-		"OCAMLLEX=$(OCAMLLEX)"
 
 # --------------------------------------------------------------------------
 # --- Installation Resources
@@ -383,17 +309,10 @@ install:: clean-install
 		-i $(Wp_DIR)/share \
 		-d $(FRAMAC_DATADIR)/wp \
 		$(ALL_RESOURCES) -f -b $(ALL_COQ_BINARIES)
-	$(PRINT_INSTALL) "Qed Library"
-	$(MKDIR) $(FRAMAC_LIBDIR)
-	$(CP) $(wildcard $(Wp_DIR)/qed/bin/Qed.*) $(FRAMAC_LIBDIR)
 
 uninstall::
 	$(PRINT_RM) WP shared files
 	$(RM) -r $(FRAMAC_DATADIR)/wp
-	$(PRINT_RM) "Qed Library"
-	$(RM) $(patsubst $(Wp_DIR)/qed/bin/%, \
-		         $(FRAMAC_LIBDIR)/%, \
-	                 $(wildcard $(Wp_DIR)/qed/bin/Qed.*))
 
 # --------------------------------------------------------------------------
 # --- WP Release Stuff (CEA-LIST Only)

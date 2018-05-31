@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2017                                               *)
+(*  Copyright (C) 2007-2018                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -494,14 +494,12 @@ and pp_block fmt _block = Format.fprintf fmt "pp_block_TODO" (*{
   mutable bstmts: stmt_list;
 }*)
 
-and pp_stmt fmt _stmt = Format.fprintf fmt "pp_stmt_TODO" (*{
-  mutable labels: label_list;
-  mutable skind: stmtkind;
-  mutable sid: int;
-  mutable succs: stmt_list;
-  mutable preds: stmt_list;
-  mutable ghost : bool
-}*)
+and pp_stmt fmt stmt = Format.fprintf fmt
+    "{sid=%a;labels=%a;skind=%a;ghost=%a;TODO}"
+    pp_int stmt.sid
+    (pp_list pp_label) stmt.labels
+    pp_stmtkind stmt.skind
+    pp_bool stmt.ghost
 
 and pp_label fmt = function
   | Label(string,location,bool) ->
@@ -759,12 +757,12 @@ and pp_logic_body fmt = function
       (pp_list (pp_tuple4 pp_string (pp_list pp_logic_label) (pp_list pp_string) pp_predicate))
       string_logic_label_list_string_list_predicate_list
 
-and pp_logic_type_info fmt _logic_type_info = Format.fprintf fmt "pp_logic_type_info_TODO" (*{
-  lt_name: string;
-  lt_params : string_list;
-  mutable lt_def: logic_type_def_option;
-  mutable lt_attr: attributes;
-}*)
+and pp_logic_type_info fmt logic_type_info =
+  Format.fprintf fmt "{lt_name=%a;lt_params=%a;lt_def=%a;lt_attr=%a}"
+    pp_string logic_type_info.lt_name
+    (pp_list pp_string) logic_type_info.lt_params
+    (pp_option pp_logic_type_def) logic_type_info.lt_def
+    pp_attributes logic_type_info.lt_attr
 
 and pp_logic_type_def fmt = function
   | LTsum(logic_ctor_info_list) -> Format.fprintf fmt "LTsum(%a)"  (pp_list pp_logic_ctor_info) logic_ctor_info_list
@@ -790,11 +788,12 @@ and pp_logic_var fmt logic_var =
   mutable lv_attr: attributes
 }*)
 
-and pp_logic_ctor_info fmt _logic_ctor_info = Format.fprintf fmt "pp_logic_ctor_info_TODO" (*{
-   ctor_name: string;
-   ctor_type: logic_type_info;
-   ctor_params: logic_type_list
-}*)
+and pp_logic_ctor_info fmt logic_ctor_info =
+  Format.fprintf fmt "{ctor_name=%a;ctor_type=TODO;ctor_params=%a}"
+    pp_string logic_ctor_info.ctor_name
+    (*note: printing ctor_type type may lead to infinite recursion*)
+    (*pp_logic_type_info logic_ctor_info.ctor_type*)
+    (pp_list pp_logic_type) logic_ctor_info.ctor_params
 
 and pp_quantifiers fmt = pp_list pp_logic_var fmt
 
@@ -877,7 +876,7 @@ and pp_spec fmt _spec = Format.fprintf fmt "pp_spec_TODO" (*{
   mutable spec_disjoint_behaviors: string_list_list;
 }*)
 
-and pp_acsl_extension fmt = pp_pair pp_string pp_acsl_extension_kind fmt
+and pp_acsl_extension fmt = pp_tuple3 pp_int pp_string pp_acsl_extension_kind fmt
 
 and pp_acsl_extension_kind fmt = function
   | Ext_id(int) -> Format.fprintf fmt "Ext_id(%a)"  pp_int int

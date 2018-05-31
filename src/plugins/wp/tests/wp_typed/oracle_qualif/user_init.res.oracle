@@ -2,8 +2,8 @@
 [kernel] Parsing tests/wp_typed/user_init.i (no preprocessing)
 [wp] Running WP plugin...
 [wp] Loading driver 'share/wp.driver'
-[wp] warning: Missing RTE guards
-[wp] 9 goals scheduled
+[wp] Warning: Missing RTE guards
+[wp] 8 goals scheduled
 [wp] [Alt-Ergo] Goal typed_init_post : Valid
 [wp] [Alt-Ergo] Goal typed_init_loop_inv_Partial_preserved : Valid
 [wp] [Qed] Goal typed_init_loop_inv_Partial_established : Valid
@@ -11,12 +11,12 @@
 [wp] [Qed] Goal typed_init_loop_inv_Range_established : Valid
 [wp] [Qed] Goal typed_init_loop_assign_part1 : Valid
 [wp] [Alt-Ergo] Goal typed_init_loop_assign_part2 : Valid
-[wp] [Alt-Ergo] Goal typed_init_loop_assign_part3 : Valid
-[wp] [Alt-Ergo] Goal typed_init_assign : Valid
-[wp] Proved goals:    9 / 9
-    Qed:             3 
-    Alt-Ergo:        6
-----------------------------------------------------------
-Functions           WP   Alt-Ergo    Total   Success
-init                 3      6 (77)     9       100%
-----------------------------------------------------------
+[wp] [Qed] Goal typed_init_assign : Valid
+[wp] Proved goals:    8 / 8
+  Qed:             4 
+  Alt-Ergo:        4
+[wp] Report 'tests/wp_typed/user_init.i.0.report.json'
+-------------------------------------------------------------
+Functions           WP     Alt-Ergo        Total   Success
+init                 4      4 (80..104)      8       100%
+-------------------------------------------------------------

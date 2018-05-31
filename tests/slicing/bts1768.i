@@ -12,7 +12,7 @@ int step =0;
 /*@
 ensures \result==0 || \result==1 || \result==2 ;
  */
-int choisir() ;
+int choisir(void) ;
 
 void lecture() {
 choix = choisir() ;

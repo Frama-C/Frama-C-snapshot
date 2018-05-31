@@ -10,128 +10,203 @@
   s3[0..9] ∈ {0}
   x ∈ {0}
   v ∈ [--..--]
+  t_T ∈ {0}
 [value] computing for function eq_tsets <- main.
-    Called from tests/value/logic.c:155.
-tests/value/logic.c:7:[value] cannot evaluate ACSL term, unsupported ACSL construct: == operation on non-supported type set<_#1>
-tests/value/logic.c:7:[value] warning: assertion got status unknown.
-tests/value/logic.c:9:[value] assertion got status valid.
-tests/value/logic.c:10:[value] warning: assertion got status unknown.
-tests/value/logic.c:11:[value] warning: assertion got status unknown.
-tests/value/logic.c:12:[value] warning: assertion got status unknown.
-tests/value/logic.c:13:[value] warning: assertion got status unknown.
-tests/value/logic.c:14:[value] assertion got status valid.
-tests/value/logic.c:15:[value] warning: assertion got status unknown.
-tests/value/logic.c:16:[value] warning: assertion got status unknown.
-tests/value/logic.c:17:[value] assertion got status valid.
-tests/value/logic.c:19:[value] assertion got status valid.
-tests/value/logic.c:21:[value] assertion got status valid.
-tests/value/logic.c:23:[value] assertion got status valid.
-tests/value/logic.c:24:[value] warning: assertion got status unknown.
-tests/value/logic.c:25:[value] assertion got status valid.
-tests/value/logic.c:26:[value] warning: assertion got status unknown.
-tests/value/logic.c:29:[value] warning: assertion got status unknown.
-tests/value/logic.c:30:[value] warning: assertion got status unknown.
-tests/value/logic.c:31:[value] warning: assertion got status unknown.
-tests/value/logic.c:32:[value] assertion got status valid.
-tests/value/logic.c:34:[value] assertion got status valid.
-tests/value/logic.c:35:[value] assertion got status valid.
-tests/value/logic.c:36:[value] warning: assertion got status unknown.
-tests/value/logic.c:38:[value] cannot evaluate ACSL term, unsupported ACSL construct: == operation on non-supported type struct ts
-tests/value/logic.c:38:[value] warning: assertion got status unknown.
-tests/value/logic.c:39:[value] cannot evaluate ACSL term, unsupported ACSL construct: != operation on non-supported type int [10]
-tests/value/logic.c:39:[value] warning: assertion got status unknown.
-tests/value/logic.c:41:[value] assertion got status valid.
-tests/value/logic.c:42:[value] assertion got status valid.
-tests/value/logic.c:43:[value] assertion got status valid.
-tests/value/logic.c:45:[value] assertion got status valid.
-tests/value/logic.c:47:[value] cannot evaluate ACSL term, unsupported ACSL construct: set intersection
-tests/value/logic.c:47:[value] warning: assertion got status unknown.
+  Called from tests/value/logic.c:260.
+[value] tests/value/logic.c:103: 
+  cannot evaluate ACSL term, unsupported ACSL construct: == operation on non-supported type set<_#7>
+[value:alarm] tests/value/logic.c:103: Warning: assertion got status unknown.
+[value] tests/value/logic.c:105: assertion got status valid.
+[value:alarm] tests/value/logic.c:106: Warning: assertion got status unknown.
+[value:alarm] tests/value/logic.c:107: Warning: assertion got status unknown.
+[value:alarm] tests/value/logic.c:108: Warning: assertion got status unknown.
+[value:alarm] tests/value/logic.c:109: Warning: assertion got status unknown.
+[value] tests/value/logic.c:110: assertion got status valid.
+[value:alarm] tests/value/logic.c:111: Warning: assertion got status unknown.
+[value:alarm] tests/value/logic.c:112: Warning: assertion got status unknown.
+[value] tests/value/logic.c:113: assertion got status valid.
+[value] tests/value/logic.c:115: assertion got status valid.
+[value] tests/value/logic.c:117: assertion got status valid.
+[value] tests/value/logic.c:119: assertion got status valid.
+[value:alarm] tests/value/logic.c:120: Warning: assertion got status unknown.
+[value] tests/value/logic.c:121: assertion got status valid.
+[value:alarm] tests/value/logic.c:122: Warning: assertion got status unknown.
+[value:alarm] tests/value/logic.c:125: Warning: assertion got status unknown.
+[value:alarm] tests/value/logic.c:126: Warning: assertion got status unknown.
+[value:alarm] tests/value/logic.c:127: Warning: assertion got status unknown.
+[value] tests/value/logic.c:128: assertion got status valid.
+[value] tests/value/logic.c:130: assertion got status valid.
+[value] tests/value/logic.c:131: assertion got status valid.
+[value:alarm] tests/value/logic.c:132: Warning: assertion got status unknown.
+[value] tests/value/logic.c:134: 
+  cannot evaluate ACSL term, unsupported ACSL construct: == operation on non-supported type struct ts
+[value:alarm] tests/value/logic.c:134: Warning: assertion got status unknown.
+[value] tests/value/logic.c:135: 
+  cannot evaluate ACSL term, unsupported ACSL construct: != operation on non-supported type int [10]
+[value:alarm] tests/value/logic.c:135: Warning: assertion got status unknown.
+[value] tests/value/logic.c:137: assertion got status valid.
+[value] tests/value/logic.c:138: assertion got status valid.
+[value] tests/value/logic.c:139: assertion got status valid.
+[value] tests/value/logic.c:141: assertion got status valid.
+[value] tests/value/logic.c:143: 
+  cannot evaluate ACSL term, unsupported ACSL construct: set intersection
+[value:alarm] tests/value/logic.c:143: Warning: assertion got status unknown.
 [value] Recording results for eq_tsets
 [value] Done for function eq_tsets
 [value] computing for function eq_char <- main.
-    Called from tests/value/logic.c:156.
-tests/value/logic.c:53:[value] Frama_C_show_each: {-126}
-tests/value/logic.c:54:[value] assertion got status valid.
-tests/value/logic.c:55:[value] assertion got status valid.
+  Called from tests/value/logic.c:261.
+[value] tests/value/logic.c:149: Frama_C_show_each: {-126}
+[value] tests/value/logic.c:150: assertion got status valid.
+[value] tests/value/logic.c:151: assertion got status valid.
 [value] Recording results for eq_char
 [value] Done for function eq_char
 [value] computing for function casts <- main.
-    Called from tests/value/logic.c:157.
-tests/value/logic.c:59:[value] assertion got status valid.
-tests/value/logic.c:60:[value] assertion got status valid.
+  Called from tests/value/logic.c:262.
+[value] tests/value/logic.c:155: assertion got status valid.
+[value] tests/value/logic.c:156: assertion got status valid.
 [value] Recording results for casts
 [value] Done for function casts
 [value] computing for function empty_tset <- main.
-    Called from tests/value/logic.c:158.
+  Called from tests/value/logic.c:263.
 [value] computing for function f_empty_tset <- empty_tset <- main.
-    Called from tests/value/logic.c:70.
+  Called from tests/value/logic.c:166.
 [value] using specification for function f_empty_tset
-tests/value/logic.c:63:[value] function f_empty_tset: precondition 'r1' got status valid.
-tests/value/logic.c:64:[value] function f_empty_tset: precondition 'r2' got status valid.
+[value] tests/value/logic.c:166: 
+  function f_empty_tset: precondition 'r1' got status valid.
+[value] tests/value/logic.c:166: 
+  function f_empty_tset: precondition 'r2' got status valid.
 [value] Done for function f_empty_tset
-tests/value/logic.c:71:[value] assertion got status valid.
+[value] tests/value/logic.c:167: assertion got status valid.
 [value] Recording results for empty_tset
 [value] Done for function empty_tset
 [value] computing for function reduce_by_equal <- main.
-    Called from tests/value/logic.c:159.
-tests/value/logic.c:76:[value] warning: accessing out of bounds index. assert 0 ≤ v;
-tests/value/logic.c:76:[value] warning: accessing out of bounds index. assert v < 10;
-tests/value/logic.c:77:[value] warning: assertion got status unknown.
-tests/value/logic.c:78:[value] warning: assertion got status unknown.
+  Called from tests/value/logic.c:264.
+[value:alarm] tests/value/logic.c:172: Warning: 
+  accessing out of bounds index. assert 0 ≤ v;
+[value:alarm] tests/value/logic.c:172: Warning: 
+  accessing out of bounds index. assert v < 10;
+[value:alarm] tests/value/logic.c:173: Warning: assertion got status unknown.
+[value:alarm] tests/value/logic.c:174: Warning: assertion got status unknown.
 [value] Recording results for reduce_by_equal
 [value] Done for function reduce_by_equal
 [value] computing for function alarms <- main.
-    Called from tests/value/logic.c:160.
-tests/value/logic.c:86:[value] warning: assertion 'ASSUME' got status unknown.
-tests/value/logic.c:88:[value] warning: assertion 'UNK' got status unknown.
-tests/value/logic.c:89:[value] Frama_C_show_each: {-1; 1}
-tests/value/logic.c:90:[value] warning: assertion 'UNK' got status unknown.
-tests/value/logic.c:91:[value] Frama_C_show_each: {-1; 1}
-tests/value/logic.c:93:[value] warning: assertion 'ASSUME' got status unknown.
-tests/value/logic.c:94:[value] assertion 'OK' got status valid.
-tests/value/logic.c:95:[value] Frama_C_show_each: {1}
-tests/value/logic.c:96:[value] assertion 'OK' got status valid.
-tests/value/logic.c:97:[value] Frama_C_show_each: {1}
-tests/value/logic.c:101:[value] warning: assertion 'ASSUME' got status unknown.
-tests/value/logic.c:102:[value] warning: assertion 'UNK' got status unknown.
-tests/value/logic.c:103:[value] Frama_C_show_each: {0; 1}
-tests/value/logic.c:104:[value] warning: assertion 'UNK' got status unknown.
-tests/value/logic.c:105:[value] Frama_C_show_each: {0; 1}
-tests/value/logic.c:107:[value] warning: assertion 'ASSUME' got status unknown.
-tests/value/logic.c:108:[value] assertion 'OK' got status valid.
-tests/value/logic.c:109:[value] Frama_C_show_each: {1}
-tests/value/logic.c:110:[value] assertion 'OK' got status valid.
-tests/value/logic.c:111:[value] Frama_C_show_each: {1}
+  Called from tests/value/logic.c:265.
+[value:alarm] tests/value/logic.c:182: Warning: 
+  assertion 'ASSUME' got status unknown.
+[value:alarm] tests/value/logic.c:184: Warning: 
+  assertion 'UNK' got status unknown.
+[value] tests/value/logic.c:185: Frama_C_show_each: {-1; 1}
+[value:alarm] tests/value/logic.c:186: Warning: 
+  assertion 'UNK' got status unknown.
+[value] tests/value/logic.c:187: Frama_C_show_each: {-1; 1}
+[value:alarm] tests/value/logic.c:189: Warning: 
+  assertion 'ASSUME' got status unknown.
+[value] tests/value/logic.c:190: assertion 'OK' got status valid.
+[value] tests/value/logic.c:191: Frama_C_show_each: {1}
+[value] tests/value/logic.c:192: assertion 'OK' got status valid.
+[value] tests/value/logic.c:193: Frama_C_show_each: {1}
+[value:alarm] tests/value/logic.c:197: Warning: 
+  assertion 'ASSUME' got status unknown.
+[value:alarm] tests/value/logic.c:198: Warning: 
+  assertion 'UNK' got status unknown.
+[value] tests/value/logic.c:199: Frama_C_show_each: {0; 1}
+[value:alarm] tests/value/logic.c:200: Warning: 
+  assertion 'UNK' got status unknown.
+[value] tests/value/logic.c:201: Frama_C_show_each: {0; 1}
+[value:alarm] tests/value/logic.c:203: Warning: 
+  assertion 'ASSUME' got status unknown.
+[value] tests/value/logic.c:204: assertion 'OK' got status valid.
+[value] tests/value/logic.c:205: Frama_C_show_each: {1}
+[value] tests/value/logic.c:206: assertion 'OK' got status valid.
+[value] tests/value/logic.c:207: Frama_C_show_each: {1}
 [value] Recording results for alarms
 [value] Done for function alarms
 [value] computing for function cond_in_lval <- main.
-    Called from tests/value/logic.c:161.
+  Called from tests/value/logic.c:266.
 [value] computing for function select_like <- cond_in_lval <- main.
-    Called from tests/value/logic.c:132.
+  Called from tests/value/logic.c:228.
 [value] using specification for function select_like
 [value] Done for function select_like
-tests/value/logic.c:133:[value] assertion got status valid.
+[value] tests/value/logic.c:229: assertion got status valid.
 [value] computing for function select_like <- cond_in_lval <- main.
-    Called from tests/value/logic.c:134.
+  Called from tests/value/logic.c:230.
 [value] Done for function select_like
-tests/value/logic.c:135:[value] assertion got status valid.
-tests/value/logic.c:136:[value] assertion got status valid.
-tests/value/logic.c:137:[value] assertion got status valid.
+[value] tests/value/logic.c:231: assertion got status valid.
+[value] tests/value/logic.c:232: assertion got status valid.
+[value] tests/value/logic.c:233: assertion got status valid.
 [value] computing for function select_like <- cond_in_lval <- main.
-    Called from tests/value/logic.c:138.
+  Called from tests/value/logic.c:234.
 [value] Done for function select_like
-tests/value/logic.c:139:[value] assertion got status valid.
-tests/value/logic.c:140:[value] assertion got status valid.
+[value] tests/value/logic.c:235: assertion got status valid.
+[value] tests/value/logic.c:236: assertion got status valid.
 [value] computing for function select_like <- cond_in_lval <- main.
-    Called from tests/value/logic.c:143.
+  Called from tests/value/logic.c:239.
 [value] Done for function select_like
-tests/value/logic.c:144:[value] assertion got status valid.
-tests/value/logic.c:145:[value] assertion got status valid.
-tests/value/logic.c:147:[value] assertion got status valid.
-tests/value/logic.c:149:[value] assertion got status valid.
-tests/value/logic.c:150:[value] warning: assertion got status unknown.
+[value] tests/value/logic.c:240: assertion got status valid.
+[value] tests/value/logic.c:241: assertion got status valid.
+[value] tests/value/logic.c:243: assertion got status valid.
+[value] tests/value/logic.c:245: assertion got status valid.
+[value:alarm] tests/value/logic.c:246: Warning: assertion got status unknown.
 [value] Recording results for cond_in_lval
 [value] Done for function cond_in_lval
+[value] computing for function pred <- main.
+  Called from tests/value/logic.c:267.
+[value] tests/value/logic.c:90: assertion got status valid.
+[value] tests/value/logic.c:91: assertion got status valid.
+[value] tests/value/logic.c:31: 
+  cannot evaluate ACSL term, \at() on a C label is unsupported
+[value:alarm] tests/value/logic.c:92: Warning: assertion got status unknown.
+[value] tests/value/logic.c:92: 
+  cannot evaluate ACSL term, \at() on a C label is unsupported
+[value] tests/value/logic.c:93: assertion got status valid.
+[value] computing for function f <- pred <- main.
+  Called from tests/value/logic.c:94.
+[value] tests/value/logic.c:46: assertion got status valid.
+[value] tests/value/logic.c:47: assertion got status valid.
+[value] Recording results for f
+[value] Done for function f
+[value] computing for function g <- pred <- main.
+  Called from tests/value/logic.c:95.
+[value] tests/value/logic.c:55: assertion got status valid.
+[value] tests/value/logic.c:56: assertion got status valid.
+[value] tests/value/logic.c:57: assertion got status valid.
+[value] tests/value/logic.c:35: 
+  cannot evaluate ACSL term, \at() on a C label is unsupported
+[value:alarm] tests/value/logic.c:58: Warning: assertion got status unknown.
+[value] tests/value/logic.c:58: 
+  cannot evaluate ACSL term, \at() on a C label is unsupported
+[value] Recording results for g
+[value] Done for function g
+[value] computing for function unsup <- pred <- main.
+  Called from tests/value/logic.c:96.
+[value:alarm] tests/value/logic.c:81: Warning: assertion got status unknown.
+[value] Recording results for unsup
+[value] Done for function unsup
+[value] computing for function h <- pred <- main.
+  Called from tests/value/logic.c:97.
+[value] tests/value/logic.c:69: 
+  cannot evaluate ACSL term, unsupported ACSL construct: logic function h_acsl
+[value:alarm] tests/value/logic.c:69: Warning: assertion got status unknown.
+[value:alarm] tests/value/logic.c:70: Warning: assertion got status unknown.
+[value] tests/value/logic.c:71: assertion got status valid.
+[value:alarm] tests/value/logic.c:72: Warning: 
+  assertion got status invalid (stopping propagation).
+[value] tests/value/logic.c:73: assertion got status valid.
+[value] tests/value/logic.c:75: assertion got status valid.
+[value] tests/value/logic.c:76: assertion got status valid.
+[value] Recording results for h
+[value] Done for function h
+[value] Recording results for pred
+[value] Done for function pred
+[value] computing for function float_sign <- main.
+  Called from tests/value/logic.c:268.
+[value] tests/value/logic.c:251: assertion got status valid.
+[value] tests/value/logic.c:252: assertion got status valid.
+[value] tests/value/logic.c:253: assertion got status valid.
+[value] tests/value/logic.c:254: assertion got status valid.
+[value:alarm] tests/value/logic.c:256: Warning: assertion got status unknown.
+[value] Recording results for float_sign
+[value] Done for function float_sign
 [value] Recording results for main
 [value] done for function main
 [scope:rm_asserts] removing 4 assertion(s)
@@ -144,8 +219,25 @@ tests/value/logic.c:150:[value] warning: assertion got status unknown.
   c ∈ {-126}
 [value:final-states] Values at end of function eq_tsets:
   
+[value:final-states] Values at end of function f:
+  temp_1 ∈ {0}
+  temp_2 ∈ {0}
 [value:final-states] Values at end of function empty_tset:
   T[0] ∈ {2}
+[value:final-states] Values at end of function float_sign:
+  d ∈ [-0. .. 0.]
+[value:final-states] Values at end of function g:
+  x_0 ∈ {0}
+  y ∈ {1}
+[value:final-states] Values at end of function h:
+  s1.f1 ∈ {1}
+    .f2 ∈ {0}
+  x_0 ∈ {0}
+  y ∈ {0}
+  k ∈ {5}
+  j ∈ {6}
+  p ∈ {{ &k }}
+  q ∈ {{ &j }}
 [value:final-states] Values at end of function reduce_by_equal:
   a[0..8] ∈ {1}
    [9] ∈ [--..--]
@@ -155,8 +247,18 @@ tests/value/logic.c:150:[value] warning: assertion got status unknown.
   b.i1 ∈ {6}
    .i2 ∈ {8}
   x_0 ∈ [-2147483648..0]
+[value:final-states] Values at end of function unsup:
+  t_T{.z; .t} ∈ {21}
+[value:final-states] Values at end of function pred:
+  s1.f1 ∈ {1}
+    .f2 ∈ {0}
+  t_T{.z; .t} ∈ {21}
+  x_0 ∈ {10}
+  y ∈ {11}
 [value:final-states] Values at end of function main:
-  
+  s1.f1 ∈ {1}
+    .f2 ∈ {0}
+  t_T{.z; .t} ∈ {21}
 [from] Computing for function alarms
 [from] Done for function alarms
 [from] Computing for function casts
@@ -165,20 +267,32 @@ tests/value/logic.c:150:[value] warning: assertion got status unknown.
 [from] Done for function eq_char
 [from] Computing for function eq_tsets
 [from] Done for function eq_tsets
+[from] Computing for function f
+[from] Done for function f
 [from] Computing for function empty_tset
 [from] Computing for function f_empty_tset <-empty_tset
 [from] Done for function f_empty_tset
 [from] Done for function empty_tset
+[from] Computing for function float_sign
+[from] Done for function float_sign
+[from] Computing for function g
+[from] Done for function g
+[from] Computing for function h
+[from] Done for function h
 [from] Computing for function reduce_by_equal
 [from] Done for function reduce_by_equal
 [from] Computing for function cond_in_lval
 [from] Computing for function select_like <-cond_in_lval
 [from] Done for function select_like
 [from] Done for function cond_in_lval
+[from] Computing for function unsup
+[from] Done for function unsup
+[from] Computing for function pred
+[from] Done for function pred
 [from] Computing for function main
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
-    These dependencies hold at termination for the executions that terminate:
+  These dependencies hold at termination for the executions that terminate:
 [from] Function alarms:
   NO EFFECTS
 [from] Function casts:
@@ -187,10 +301,18 @@ tests/value/logic.c:150:[value] warning: assertion got status unknown.
   NO EFFECTS
 [from] Function eq_tsets:
   NO EFFECTS
+[from] Function f:
+  NO EFFECTS
 [from] Function f_empty_tset:
   NO EFFECTS
 [from] Function empty_tset:
   NO EFFECTS
+[from] Function float_sign:
+  NO EFFECTS
+[from] Function g:
+  NO EFFECTS
+[from] Function h:
+  s1.f1 FROM \nothing
 [from] Function reduce_by_equal:
   NO EFFECTS
 [from] Function select_like:
@@ -199,38 +321,68 @@ tests/value/logic.c:150:[value] warning: assertion got status unknown.
   b FROM p; q; a; b (and SELF)
 [from] Function cond_in_lval:
   NO EFFECTS
+[from] Function unsup:
+  t_T FROM \nothing
+[from] Function pred:
+  s1.f1 FROM \nothing
+  t_T FROM \nothing
 [from] Function main:
-  NO EFFECTS
+  s1.f1 FROM \nothing
+  t_T FROM \nothing
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function alarms:
-      x_0
+    x_0
 [inout] Inputs for function alarms:
-      v
+    v
 [inout] Out (internal) for function casts:
-      \nothing
+    \nothing
 [inout] Inputs for function casts:
-      \nothing
+    \nothing
 [inout] Out (internal) for function eq_char:
-      c
+    c
 [inout] Inputs for function eq_char:
-      \nothing
+    \nothing
 [inout] Out (internal) for function eq_tsets:
-      \nothing
+    \nothing
 [inout] Inputs for function eq_tsets:
-      \nothing
+    \nothing
+[inout] Out (internal) for function f:
+    temp_1; temp_2
+[inout] Inputs for function f:
+    \nothing
 [inout] Out (internal) for function empty_tset:
-      T[0]
+    T[0]
 [inout] Inputs for function empty_tset:
-      \nothing
+    \nothing
+[inout] Out (internal) for function float_sign:
+    d; tmp
+[inout] Inputs for function float_sign:
+    v
+[inout] Out (internal) for function g:
+    x_0; y
+[inout] Inputs for function g:
+    \nothing
+[inout] Out (internal) for function h:
+    s1.f1; x_0; y; k; j; p; q
+[inout] Inputs for function h:
+    v
 [inout] Out (internal) for function reduce_by_equal:
-      a[0..9]
+    a[0..9]
 [inout] Inputs for function reduce_by_equal:
-      v
+    v
 [inout] Out (internal) for function cond_in_lval:
-      a; out; b; x_0
+    a; out; b; x_0
 [inout] Inputs for function cond_in_lval:
-      v
+    v
+[inout] Out (internal) for function unsup:
+    t_T
+[inout] Inputs for function unsup:
+    \nothing
+[inout] Out (internal) for function pred:
+    s1.f1; t_T; x_0; y
+[inout] Inputs for function pred:
+    v
 [inout] Out (internal) for function main:
-      \nothing
+    s1.f1; t_T
 [inout] Inputs for function main:
-      v
+    v

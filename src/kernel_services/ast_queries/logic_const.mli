@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2017                                               *)
+(*  Copyright (C) 2007-2018                                               *)
 (*    CEA   (Commissariat à l'énergie atomique et aux énergies            *)
 (*           alternatives)                                                *)
 (*    INRIA (Institut National de Recherche en Informatique et en         *)
@@ -49,6 +49,11 @@ val refresh_spec: funspec -> funspec
 (** creates a new identified predicate with a fresh id. *)
 val new_predicate: predicate -> identified_predicate
 
+(** creat a new acsl_extension with a fresh id. 
+    @since Chlorine-20180501
+*)
+val new_acsl_extension: string -> acsl_extension_kind -> acsl_extension
+
 (** Gives a new id to an existing predicate. 
     @since Oxygen-20120901
 *)
@@ -63,7 +68,7 @@ val pred_of_id_pred: identified_predicate -> predicate
 (** creates a new identified term with a fresh id*)
 val new_identified_term: term -> identified_term
 
-(** Gives a new id to an existing predicate 
+(** Gives a new id to an existing term.
     @since Oxygen-20120901 *)
 val refresh_identified_term: identified_term -> identified_term
 

@@ -2,7 +2,7 @@
 /*                                                                        */
 /*  This file is part of Frama-C.                                         */
 /*                                                                        */
-/*  Copyright (C) 2007-2017                                               */
+/*  Copyright (C) 2007-2018                                               */
 /*    CEA (Commissariat à l'énergie atomique et aux énergies              */
 /*         alternatives)                                                  */
 /*                                                                        */
@@ -28,6 +28,7 @@ __PUSH_FC_STDLIB
 #include "__fc_define_off_t.h"
 #include "__fc_define_pid_t.h"
 #include "__fc_define_mode_t.h"
+#include "__fc_string_axiomatic.h"
 
 // The values for the constants below are based on an x86 Linux,
 // declared in the order given by POSIX.1-2008.
@@ -103,41 +104,75 @@ struct flock
     pid_t l_pid;	/* Process holding the lock.  */
  };
 
-/*@ assigns \result \from filename[0..], mode ; */
+/*@
+  requires valid_filename: valid_read_string(filename);
+  assigns \result \from indirect:filename[0..], indirect:mode;
+*/
 extern int creat(const char *filename, mode_t mode);
+
 /*@ assigns \result \from fd, cmd ; */
 extern int fcntl(int fd, int cmd, ...);
-/*@ assigns \result \from filename[0..], flags ; */
+
+/*@
+  requires valid_filename: valid_read_string(filename);
+  assigns \result \from indirect:filename[0..], indirect:flags;
+*/
 extern int open(const char *filename, int flags, ...);
-/*@ assigns \result \from dirfd, filename[0..], flags ; */
+
+/*@
+  requires valid_filename: valid_read_string(filename);
+  assigns \result \from indirect:dirfd, indirect:filename[0..], indirect:flags;
+*/
 extern int openat(int dirfd, const char *filename, int flags, ...);
 
 /* The following functions are "fixed-argument" versions of open/fcntl. They
    are used when the translation of variadic function to fixed-adic is
    enabled */
 
-/*@ requires valid_cmd: cmd == F_GETFD || cmd == F_GETFL ||
-                        cmd == F_GETOWN ;
+/*@ requires cmd_has_void_arg: cmd == F_GETFD || cmd == F_GETFL ||
+                        cmd == F_GETOWN;
     assigns \result \from fd, cmd ; */
 extern int __va_fcntl_void(int fd, int cmd);
-/*@ requires valid_cmd: cmd == F_DUPFD || cmd == F_SETFD ||
-                        cmd == F_SETFL || cmd == F_SETOWN ;
+
+/*@ requires cmd_has_int_arg: cmd == F_DUPFD || cmd == F_DUPFD_CLOEXEC ||
+                        cmd == F_SETFL || cmd == F_SETOWN ||
+                        cmd == F_SETFD;
     assigns \result \from fd, cmd, arg ;*/
 extern int __va_fcntl_int(int fd, int cmd, int arg);
-/*@ requires valid_cmd: cmd == F_GETLK || cmd == F_SETLK ||
+
+/*@ requires cmd_as_flock_arg: cmd == F_GETLK || cmd == F_SETLK ||
                         cmd == F_SETLKW ;
     requires valid_arg: \valid(arg) ; 
     assigns \result, *arg \from fd, cmd, *arg ; */
 extern int __va_fcntl_flock(int fd, int cmd, struct flock *arg);
-/*@ requires valid_flag: !(flags & O_CREAT) ;
-    assigns \result \from filename[0..], flags ; */
+
+/*@
+  requires valid_filename: valid_read_string(filename);
+  requires flag_not_CREAT: !(flags & O_CREAT) ;
+  assigns \result \from indirect:filename[0..], indirect:flags;
+*/
 extern int __va_open_void(const char *filename, int flags);
-/*@ assigns \result \from filename[0..], flags, mode ; */
+
+/*@
+  requires valid_filename: valid_read_string(filename);
+  assigns \result \from indirect:filename[0..], indirect:flags,
+    indirect:mode;
+*/
 extern int __va_open_mode_t(const char *filename, int flags, mode_t mode);
-/*@ requires valid_flag: !(flags & O_CREAT) ;
-    assigns \result \from dirfd, filename[0..], flags ; */
+
+/*@
+  requires valid_filename: valid_read_string(filename);
+  requires flag_not_CREAT: !(flags & O_CREAT);
+  assigns \result \from indirect:dirfd, indirect:filename[0..],
+    indirect:flags;
+*/
 extern int __va_openat_void(int dirfd, const char *filename, int flags);
-/*@ assigns \result \from dirfd, filename[0..], flags, mode ; */
+
+/*@
+  requires valid_filename: valid_read_string(filename);
+  assigns \result \from indirect:dirfd, indirect:filename[0..], indirect:flags,
+    indirect:mode;
+*/
 extern int __va_openat_mode_t(int dirfd, const char *filename, int flags, mode_t mode);
 
 // The constants below are not in POSIX-1.2008, but are kept for compatibility

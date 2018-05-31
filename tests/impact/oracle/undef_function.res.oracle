@@ -6,8 +6,9 @@
 [value:initial-state] Values of globals at initialization
   y ∈ {0}
 [value] computing for function g <- main.
-    Called from tests/impact/undef_function.i:10.
-tests/impact/undef_function.i:10:[kernel] warning: Neither code nor specification for function g, generating default assigns from the prototype
+  Called from tests/impact/undef_function.i:10.
+[kernel:annot:missing-spec] tests/impact/undef_function.i:10: Warning: 
+  Neither code nor specification for function g, generating default assigns from the prototype
 [value] using specification for function g
 [value] Done for function g
 [value] Recording results for main
@@ -19,6 +20,6 @@ tests/impact/undef_function.i:10:[kernel] warning: Neither code nor specificatio
 [pdg] computing for function g
 [pdg] done for function g
 [impact] impacted statements of stmt(s) 2 are:
-      tests/impact/undef_function.i:10 (sid 3): g(y);
-      tests/impact/undef_function.i:11 (sid 5): return y;
+    tests/impact/undef_function.i:10 (sid 3): g(y);
+    tests/impact/undef_function.i:11 (sid 5): return y;
 [impact] analysis done

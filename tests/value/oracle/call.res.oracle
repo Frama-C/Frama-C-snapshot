@@ -8,21 +8,25 @@
   r ∈ {0}
   res ∈ {0}
   x ∈ {0}
-tests/value/call.i:19:[value] warning: out of bounds read. assert \valid_read(v + 1);
+[value:alarm] tests/value/call.i:19: Warning: 
+  out of bounds read. assert \valid_read(v + 1);
 [value] computing for function leaf_fun_int <- main.
-    Called from tests/value/call.i:19.
-tests/value/call.i:19:[kernel] warning: Neither code nor specification for function leaf_fun_int, generating default assigns from the prototype
+  Called from tests/value/call.i:19.
+[kernel:annot:missing-spec] tests/value/call.i:19: Warning: 
+  Neither code nor specification for function leaf_fun_int, generating default assigns from the prototype
 [value] using specification for function leaf_fun_int
 [value] Done for function leaf_fun_int
-tests/value/call.i:20:[value] warning: out of bounds read. assert \valid_read(v + 1);
+[value:alarm] tests/value/call.i:20: Warning: 
+  out of bounds read. assert \valid_read(v + 1);
 [value] computing for function leaf_fun_charp <- main.
-    Called from tests/value/call.i:20.
-tests/value/call.i:20:[kernel] warning: Neither code nor specification for function leaf_fun_charp, generating default assigns from the prototype
+  Called from tests/value/call.i:20.
+[kernel:annot:missing-spec] tests/value/call.i:20: Warning: 
+  Neither code nor specification for function leaf_fun_charp, generating default assigns from the prototype
 [value] using specification for function leaf_fun_charp
 [value] Done for function leaf_fun_charp
-tests/value/call.i:23:[value] entering loop for the first time
+[value] tests/value/call.i:23: entering loop for the first time
 [value] computing for function f <- main.
-    Called from tests/value/call.i:39.
+  Called from tests/value/call.i:39.
 [value] Recording results for f
 [value] Done for function f
 [value] Recording results for main
@@ -52,7 +56,7 @@ tests/value/call.i:23:[value] entering loop for the first time
 [from] Done for function leaf_fun_charp
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
-    These dependencies hold at termination for the executions that terminate:
+  These dependencies hold at termination for the executions that terminate:
 [from] Function f:
   res FROM p[5]; q[5]; t
 [from] Function leaf_fun_charp:
@@ -68,10 +72,10 @@ tests/value/call.i:23:[value] entering loop for the first time
   S_1_S_v[0..1] FROM c; S_1_S_v[0..1] (and SELF)
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function f:
-      res
+    res
 [inout] Inputs for function f:
-      p[5]; q[5]
+    p[5]; q[5]
 [inout] Out (internal) for function main:
-      p[0..6]; q[0..6]; res; lcount; tmp; S_1_S_v[0..1]
+    p[0..6]; q[0..6]; res; lcount; tmp; S_1_S_v[0..1]
 [inout] Inputs for function main:
-      p[5]; q[5]; S_v[1]; S_1_S_v[0..1]
+    p[5]; q[5]; S_v[1]; S_1_S_v[0..1]

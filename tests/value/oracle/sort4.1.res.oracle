@@ -1,5 +1,6 @@
 [kernel] Parsing tests/value/sort4.i (no preprocessing)
-tests/value/sort4.i:25:[kernel] warning: parsing obsolete ACSL construct '\valid_range(addr,min,max)'. '\valid(addr+(min..max))' should be used instead.
+[kernel] tests/value/sort4.i:25: Warning: 
+  parsing obsolete ACSL construct '\valid_range(addr,min,max)'. '\valid(addr+(min..max))' should be used instead.
 [value] Analyzing an incomplete application starting at sort4_4
 [value] Computing initial state
 [value] Initial state computed
@@ -8,32 +9,58 @@ tests/value/sort4.i:25:[kernel] warning: parsing obsolete ACSL construct '\valid
   b ∈ [--..--]
   c ∈ [--..--]
   d ∈ [--..--]
-tests/value/sort4.i:25:[value] warning: function sort4_4: precondition got status unknown.
-tests/value/sort4.i:29:[value] warning: out of bounds read. assert \valid_read(t + 1);
-tests/value/sort4.i:29:[value] warning: out of bounds read. assert \valid_read(t + 1);
-tests/value/sort4.i:29:[value] warning: out of bounds write. assert \valid(t + 1);
-tests/value/sort4.i:30:[value] warning: out of bounds read. assert \valid_read(t + 2);
-tests/value/sort4.i:30:[value] warning: out of bounds read. assert \valid_read(t + 3);
-tests/value/sort4.i:30:[value] warning: out of bounds read. assert \valid_read(t + 2);
-tests/value/sort4.i:30:[value] warning: out of bounds write. assert \valid(t + 2);
-tests/value/sort4.i:30:[value] warning: out of bounds read. assert \valid_read(t + 3);
-tests/value/sort4.i:30:[value] warning: out of bounds write. assert \valid(t + 3);
-tests/value/sort4.i:31:[value] warning: out of bounds read. assert \valid_read(t + 2);
-tests/value/sort4.i:31:[value] warning: out of bounds read. assert \valid_read(t + 2);
-tests/value/sort4.i:31:[value] warning: out of bounds write. assert \valid(t + 2);
-tests/value/sort4.i:32:[value] warning: out of bounds read. assert \valid_read(t + 1);
-tests/value/sort4.i:32:[value] warning: out of bounds read. assert \valid_read(t + 3);
-tests/value/sort4.i:32:[value] warning: out of bounds read. assert \valid_read(t + 1);
-tests/value/sort4.i:32:[value] warning: out of bounds write. assert \valid(t + 1);
-tests/value/sort4.i:32:[value] warning: out of bounds read. assert \valid_read(t + 3);
-tests/value/sort4.i:32:[value] warning: out of bounds write. assert \valid(t + 3);
-tests/value/sort4.i:33:[value] warning: out of bounds read. assert \valid_read(t + 1);
-tests/value/sort4.i:33:[value] warning: out of bounds read. assert \valid_read(t + 2);
-tests/value/sort4.i:33:[value] warning: out of bounds read. assert \valid_read(t + 1);
-tests/value/sort4.i:33:[value] warning: out of bounds write. assert \valid(t + 1);
-tests/value/sort4.i:33:[value] warning: out of bounds read. assert \valid_read(t + 2);
-tests/value/sort4.i:33:[value] warning: out of bounds write. assert \valid(t + 2);
-tests/value/sort4.i:26:[value] warning: function sort4_4: postcondition got status unknown.
+[value:alarm] tests/value/sort4.i:25: Warning: 
+  function sort4_4: precondition got status unknown.
+[value:alarm] tests/value/sort4.i:29: Warning: 
+  out of bounds read. assert \valid_read(t + 1);
+[value:alarm] tests/value/sort4.i:29: Warning: 
+  out of bounds read. assert \valid_read(t + 1);
+[value:alarm] tests/value/sort4.i:29: Warning: 
+  out of bounds write. assert \valid(t + 1);
+[value:alarm] tests/value/sort4.i:30: Warning: 
+  out of bounds read. assert \valid_read(t + 2);
+[value:alarm] tests/value/sort4.i:30: Warning: 
+  out of bounds read. assert \valid_read(t + 3);
+[value:alarm] tests/value/sort4.i:30: Warning: 
+  out of bounds read. assert \valid_read(t + 2);
+[value:alarm] tests/value/sort4.i:30: Warning: 
+  out of bounds write. assert \valid(t + 2);
+[value:alarm] tests/value/sort4.i:30: Warning: 
+  out of bounds read. assert \valid_read(t + 3);
+[value:alarm] tests/value/sort4.i:30: Warning: 
+  out of bounds write. assert \valid(t + 3);
+[value:alarm] tests/value/sort4.i:31: Warning: 
+  out of bounds read. assert \valid_read(t + 2);
+[value:alarm] tests/value/sort4.i:31: Warning: 
+  out of bounds read. assert \valid_read(t + 2);
+[value:alarm] tests/value/sort4.i:31: Warning: 
+  out of bounds write. assert \valid(t + 2);
+[value:alarm] tests/value/sort4.i:32: Warning: 
+  out of bounds read. assert \valid_read(t + 1);
+[value:alarm] tests/value/sort4.i:32: Warning: 
+  out of bounds read. assert \valid_read(t + 3);
+[value:alarm] tests/value/sort4.i:32: Warning: 
+  out of bounds read. assert \valid_read(t + 1);
+[value:alarm] tests/value/sort4.i:32: Warning: 
+  out of bounds write. assert \valid(t + 1);
+[value:alarm] tests/value/sort4.i:32: Warning: 
+  out of bounds read. assert \valid_read(t + 3);
+[value:alarm] tests/value/sort4.i:32: Warning: 
+  out of bounds write. assert \valid(t + 3);
+[value:alarm] tests/value/sort4.i:33: Warning: 
+  out of bounds read. assert \valid_read(t + 1);
+[value:alarm] tests/value/sort4.i:33: Warning: 
+  out of bounds read. assert \valid_read(t + 2);
+[value:alarm] tests/value/sort4.i:33: Warning: 
+  out of bounds read. assert \valid_read(t + 1);
+[value:alarm] tests/value/sort4.i:33: Warning: 
+  out of bounds write. assert \valid(t + 1);
+[value:alarm] tests/value/sort4.i:33: Warning: 
+  out of bounds read. assert \valid_read(t + 2);
+[value:alarm] tests/value/sort4.i:33: Warning: 
+  out of bounds write. assert \valid(t + 2);
+[value:alarm] tests/value/sort4.i:26: Warning: 
+  function sort4_4: postcondition got status unknown.
 [value] Recording results for sort4_4
 [value] done for function sort4_4
 [scope:rm_asserts] removing 13 assertion(s)
@@ -44,13 +71,13 @@ tests/value/sort4.i:26:[value] warning: function sort4_4: postcondition got stat
 [from] Computing for function sort4_4
 [from] Done for function sort4_4
 [from] ====== DEPENDENCIES COMPUTED ======
-    These dependencies hold at termination for the executions that terminate:
+  These dependencies hold at termination for the executions that terminate:
 [from] Function sort4_4:
   S_t[0] FROM t; S_t[0..3] (and SELF)
      [1..2] FROM t; S_t[0..3] (and SELF)
      [3] FROM t; S_t[0..3] (and SELF)
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function sort4_4:
-      tmp; S_t[0..3]
+    tmp; S_t[0..3]
 [inout] Inputs for function sort4_4:
-      S_t[0..3]
+    S_t[0..3]

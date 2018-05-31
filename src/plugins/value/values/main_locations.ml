@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2017                                               *)
+(*  Copyright (C) 2007-2018                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -77,7 +77,7 @@ module PLoc = struct
         let alarm = Alarms.Not_separated (lval1, lval2) in
         if Lazy.force exact1 && Lazy.force exact2
         then raise (AlwaysOverlap alarm)
-        else Alarmset.add alarm acc
+        else Alarmset.set alarm Abstract_interp.Unknown acc
       else acc
     in
     try
@@ -87,7 +87,8 @@ module PLoc = struct
           Alarmset.none
           l1
       in `Value (), alarms
-    with AlwaysOverlap alarm -> `Bottom, Alarmset.singleton alarm
+    with AlwaysOverlap alarm ->
+      `Bottom, Alarmset.singleton ~status:Alarmset.False alarm
 
   let partially_overlap loc1 loc2 =
     let loc1 = Precise_locs.imprecise_location loc1
@@ -139,24 +140,19 @@ module PLoc = struct
     try
       let index_ival = Cvalue.V.project_ival index in
       let open Abstract_interp in
-      let array_range =
-        Ival.inject_range (Some Int.zero) (Some (Integer.pred size))
-      in
+      let isize = Integer.pred size in
+      let array_range = Ival.inject_range (Some Int.zero) (Some isize) in
       let new_index = Ival.narrow index_ival array_range in
       if Ival.equal new_index index_ival
       then `Value index, Alarmset.none
       else
-        let positive = match Ival.min_int index_ival with
-          | None -> false
-          | Some min -> Int.ge min Int.zero
-        in
-        let alarms = Alarmset.singleton
-            (Alarms.Index_out_of_bound (index_expr, Some size_expr)) in
-        let alarms =
-          if not positive
-          then Alarmset.add (Alarms.Index_out_of_bound (index_expr, None)) alarms
-          else alarms
-        in
+        let isize_ival = Ival.inject_singleton isize in
+        let ok_pos = Ival.forward_comp_int Comp.Le index_ival isize_ival
+        and ok_neg = Ival.forward_comp_int Comp.Ge index_ival Ival.zero in
+        let alarm_pos = Alarms.Index_out_of_bound (index_expr, Some size_expr)
+        and alarm_neg = Alarms.Index_out_of_bound (index_expr, None) in
+        let alarms = Alarmset.set alarm_pos ok_pos Alarmset.none in
+        let alarms = Alarmset.set alarm_neg ok_neg alarms in
         if Ival.is_bottom new_index
         then `Bottom, alarms
         else `Value (Cvalue.V.inject_ival new_index), alarms
@@ -206,11 +202,11 @@ module PLoc = struct
   let is_valid ~for_writing loc =
     Locations.is_valid ~for_writing (Precise_locs.imprecise_location loc)
 
-  let memory_access_alarm ~for_writing lval =
+  let memory_access_alarm ~for_writing ~status lval =
     let access_kind =
       if for_writing then Alarms.For_writing else Alarms.For_reading
     in
-    Alarmset.singleton (Alarms.Memory_access (lval, access_kind))
+    Alarmset.singleton ~status (Alarms.Memory_access (lval, access_kind))
 
   let reduce_loc_by_validity ~for_writing ~bitfield lval loc =
     if not (is_valid ~for_writing loc)
@@ -218,8 +214,8 @@ module PLoc = struct
       let alarms = memory_access_alarm ~for_writing lval in
       let loc = Precise_locs.valid_part ~for_writing ~bitfield loc in
       if Precise_locs.is_bottom_loc loc
-      then `Bottom, alarms
-      else `Value loc, alarms
+      then `Bottom, alarms ~status:Alarmset.False
+      else `Value loc, alarms ~status:Alarmset.Unknown
     else `Value loc, Alarmset.none
 
 

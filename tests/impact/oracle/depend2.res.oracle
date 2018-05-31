@@ -6,17 +6,17 @@
 [value:initial-state] Values of globals at initialization
   
 [value] computing for function apply <- main.
-    Called from tests/impact/depend2.i:11.
+  Called from tests/impact/depend2.i:11.
 [value] computing for function find <- apply <- main.
-    Called from tests/impact/depend2.i:7.
+  Called from tests/impact/depend2.i:7.
 [value] Recording results for find
 [value] Done for function find
 [value] Recording results for apply
 [value] Done for function apply
 [value] computing for function apply <- main.
-    Called from tests/impact/depend2.i:13.
+  Called from tests/impact/depend2.i:13.
 [value] computing for function find <- apply <- main.
-    Called from tests/impact/depend2.i:7.
+  Called from tests/impact/depend2.i:7.
 [value] Recording results for find
 [value] Done for function find
 [value] Recording results for apply
@@ -32,6 +32,6 @@
 [pdg] computing for function apply
 [pdg] done for function apply
 [impact] impacted statements of stmt(s) 11 are:
-      tests/impact/depend2.i:14 (sid 13): __retres = a + b;
-      tests/impact/depend2.i:14 (sid 18): return __retres;
+    tests/impact/depend2.i:14 (sid 13): __retres = a + b;
+    tests/impact/depend2.i:14 (sid 18): return __retres;
 [impact] analysis done

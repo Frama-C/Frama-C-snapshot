@@ -9,14 +9,15 @@
   n ∈ {0}
   r ∈ {0}
   G ∈ {0}
-tests/value/loop.i:7:[value] entering loop for the first time
-tests/value/loop.i:8:[value] Frama_C_show_each_F: {0}
-tests/value/loop.i:8:[value] Frama_C_show_each_F: {0; 2}
-tests/value/loop.i:8:[value] Frama_C_show_each_F: {0; 2; 4}
-tests/value/loop.i:8:[value] Frama_C_show_each_F: [0..48],0%2
-tests/value/loop.i:8:[value] Frama_C_show_each_F: [0..48],0%2
-tests/value/loop.i:8:[value] Frama_C_show_each_F: [0..48],0%2
-tests/value/loop.i:9:[value] warning: signed overflow. assert i_0 + r ≤ 2147483647;
+[value] tests/value/loop.i:7: entering loop for the first time
+[value] tests/value/loop.i:8: Frama_C_show_each_F: {0}
+[value] tests/value/loop.i:8: Frama_C_show_each_F: {0; 2}
+[value] tests/value/loop.i:8: Frama_C_show_each_F: {0; 2; 4}
+[value] tests/value/loop.i:8: Frama_C_show_each_F: [0..48],0%2
+[value] tests/value/loop.i:8: Frama_C_show_each_F: [0..48],0%2
+[value] tests/value/loop.i:8: Frama_C_show_each_F: [0..48],0%2
+[value:alarm] tests/value/loop.i:9: Warning: 
+  signed overflow. assert i_0 + r ≤ 2147483647;
 [value] Recording results for main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======
@@ -27,12 +28,12 @@ tests/value/loop.i:9:[value] warning: signed overflow. assert i_0 + r ≤ 214748
 [from] Computing for function main
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
-    These dependencies hold at termination for the executions that terminate:
+  These dependencies hold at termination for the executions that terminate:
 [from] Function main:
   n FROM \nothing
   r FROM \nothing
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function main:
-      n; r; i_0
+    n; r; i_0
 [inout] Inputs for function main:
-      n; r
+    n; r

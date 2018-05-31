@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2017                                               *)
+(*  Copyright (C) 2007-2018                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -24,7 +24,7 @@ open Tactical
 open Strategy
 
 (* -------------------------------------------------------------------------- *)
-(** {2 Registered Strategies} 
+(** {2 Basic Strategies} 
     It is always safe to apply strategies to any goal. *)
 (* -------------------------------------------------------------------------- *)
 

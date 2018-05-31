@@ -22,7 +22,7 @@
 [from] Computing for function main
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
-    These dependencies hold at termination for the executions that terminate:
+  These dependencies hold at termination for the executions that terminate:
 [from] Function main:
   T[0] FROM c
   a FROM c
@@ -30,6 +30,6 @@
   \result FROM \nothing
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function main:
-      T[0]; a; d; __retres
+    T[0]; a; d; __retres
 [inout] Inputs for function main:
-      a[bits 0 to 15]; c; e
+    a[bits 0 to 15]; c; e

@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2017                                               *)
+(*  Copyright (C) 2007-2018                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -50,17 +50,17 @@ struct
   type t = access
   let is_bot = function NoAccess -> true | _ -> false
   let pretty x fmt = function
-    | NoAccess -> Format.fprintf fmt "-%a (unused)" Varinfo.pretty x
+    | NoAccess -> Format.fprintf fmt "-%a" Varinfo.pretty x
     | ByRef -> Format.fprintf fmt "*%a" Varinfo.pretty x
-    | ByArray -> Format.fprintf fmt " %a[_]" Varinfo.pretty x
-    | ByValue -> Format.fprintf fmt " %a" Varinfo.pretty x
+    | ByArray -> Format.fprintf fmt "%a[]" Varinfo.pretty x
+    | ByValue -> Format.fprintf fmt "%a" Varinfo.pretty x
     | ByAddr -> Format.fprintf fmt "&%a" Varinfo.pretty x
 
   let rank = function
     | NoAccess -> 0
     | ByRef -> 1
-    | ByArray -> 2
-    | ByValue -> 3
+    | ByValue -> 2
+    | ByArray -> 3
     | ByAddr -> 4
 
   let cup a b = if rank a < rank b then b else a
@@ -96,10 +96,16 @@ struct
   type t = access Xmap.t
 
   let pretty fmt m =
-    if (Xmap.is_empty m) then  Format.fprintf fmt "  Nothing@."
-    else Xmap.iter (fun x e -> Format.fprintf fmt "  %a@."
-                       (Access.pretty x) e) m
-
+    begin
+      Format.fprintf fmt "@[<hov 2>{" ;
+      Xmap.iter
+        (fun x e ->
+           if e <> NoAccess then
+             ( Format.pp_print_space fmt () ; Access.pretty x fmt e )
+        ) m ;
+      Format.fprintf fmt " }@]" ;
+    end
+    
   let bot = Xmap.empty
   let is_bot = Xmap.is_empty
   let cup = Xmap.union (fun _ -> Access.cup)
@@ -158,11 +164,9 @@ let e_value = function
   | Val_comp(x,e) | Val_shift(x,e) -> E.access x ByValue e
   | E e -> e
 
-let m_value = 
-  let m_value m = E (e_value m) in
-  function
-  | E _ as m -> m (* better sharing than E (e_value m) *)
-  | m -> m_value m
+let m_value = function
+  | E _ as m -> m
+  | m -> E (e_value m)
 
 let m_vcup = 
   let m_vcup m = vcup (e_value m) in
@@ -207,23 +211,13 @@ let load = function
 
 (* for \\valid, \\separated, \\block_length: no variable escape,
    excepts for shifts *)
-let v_unescape = function (* better than e_value (load m) *)
+let unescape = function (* better than e_value (load m) *)
   | Loc_var x -> E.access x ByValue E.bot
   | Loc_shift(x,e) -> E.access x ByValue e
   | Val_var x -> E.access x ByRef E.bot
   | Val_comp(x,e) -> E.access x ByRef e
   | Val_shift(x,e) -> E.access x ByArray e
   | E e -> e
-let _v_unescape m = e_value (load m)
-
-let m_unescape = function (* better sharing than m_value (v_unescape m) *)
-  | Loc_var x -> E (E.access x ByValue E.bot)
-  | Loc_shift(x,e) -> E (E.access x ByValue e)
-  | Val_var x -> E (E.access x ByRef E.bot)
-  | Val_comp(x,e) -> E (E.access x ByRef e)
-  | Val_shift(x,e) -> E (E.access x ByArray e)
-  | E _ as m -> m
-let _m_unescape m = E (v_unescape m)
 
 (* ---------------------------------------------------------------------- *)
 (* --- Casts                                                          --- *)
@@ -447,7 +441,8 @@ and term (env:ctx) (t:term) : model = match t.term_node with
       Wp_parameters.not_yet_implemented "unknown \\let construct"
 
   (* No escape *)
-  | Tblock_length(_, t) -> m_unescape ((term env) t)
+  | Tblock_length(_, t) ->
+      E (unescape ((term env) t))
 
   (* Call *)
   | Tapp({l_var_info=({lv_origin=None; lv_kind=LVLocal} as lvar)},[],[]) ->
@@ -523,11 +518,11 @@ and pred (env:ctx) p : value = match p.pred_content with
   | Pinitialized(_, t) | Pdangling(_,t)
   | Pallocable(_, t) | Pfreeable(_, t)
   | Pvalid(_,t) | Pvalid_read (_,t) | Pvalid_function t ->
-      v_unescape ((term env) t)
+      unescape ((term env) t)
   | Pseparated ts ->
-      E.fcup (fun t -> v_unescape ((term env) t)) ts
+      E.fcup (fun t -> unescape ((term env) t)) ts
   | Pfresh(_, _, t1, t2) ->
-      E.fcup (fun t -> v_unescape ((term env) t)) [t1;t2]
+      E.fcup (fun t -> unescape ((term env) t)) [t1;t2]
 
 (* --- Call to Logical functions/Predicates --- *)
 and v_lphi (env:ctx) (lphi:logic_info) ts : value =
@@ -604,7 +599,8 @@ let cfun_code env kf = (* Visits term/pred of code annotations and C exp *)
     | Return (None,_)
     | Instr(Asm _)
     | Instr(Skip _)
-    | Instr(Code_annot _) -> ()
+    | Instr(Code_annot _)
+      -> ()
 
     | Throw _ | TryCatch _ | TryExcept _ ->
         Wp_parameters.warning "RefUsage: throw/try-catch not implemented"
@@ -632,16 +628,16 @@ let cfun_code env kf = (* Visits term/pred of code annotations and C exp *)
   let visitor = object
     inherit Visitor.frama_c_inplace as super
     method! vstmt stmt = do_code stmt.skind; super#vstmt stmt
-    (*  method! vcode_annot _ =  Cil.SkipChildren via visitCilStmt *)
+    (* vpredicate and vterm are called from vcode_annot *)
     method !vpredicate p = do_pred p ; Cil.SkipChildren
     method !vterm t = do_term t ; Cil.SkipChildren
     (* speed up: skip non interesting subtrees *)
-    method! vloop_pragma _ =  Cil.SkipChildren (* via vcode_annot *)
-    method! vinst _ =  Cil.SkipChildren (* via visitCilStmt *)
-    method! vvdec _ = Cil.SkipChildren (* via visitCilFunction *)
-    method! vexpr _ = Cil.SkipChildren (* via stmt such as Return, IF, ...*)
-    method! vlval _ = Cil.SkipChildren (* via stmt such as Set, Call, ... *)
-    method! vattr _ = Cil.SkipChildren (* via Asm stmt *)
+    method! vloop_pragma _ =  Cil.SkipChildren (* no need *)
+    method! vvdec _ = Cil.SkipChildren (* done via stmt *)
+    method! vexpr _ = Cil.SkipChildren (* done via stmt *)
+    method! vlval _ = Cil.SkipChildren (* done via stmt *)
+    method! vattr _ = Cil.SkipChildren (* done via stmt *)
+    method! vinst _ =  Cil.SkipChildren (* done via stmt *)
   end
   in
   try
@@ -837,12 +833,12 @@ let dump () =
       Format.fprintf fmt ".................................................@\n" ;
 
       let a_init, a_usage = usage ()
-      in Format.fprintf fmt "... Initial state@.%a" E.pretty a_init ;
+      in Format.fprintf fmt "@[<hv 0>Init:@ %a@]@." E.pretty a_init ;
       KFmap.iter (fun kf m ->
           (* Do not dump results for frama-c builtins *)
           if not (Cil.is_builtin (Kernel_function.get_vi kf)) then
-            Format.fprintf fmt "............@.... Function %a@.%a"
-              Kernel_function.pretty kf E.pretty m;
+            Format.fprintf fmt "@[<hv 0>Function %a:@ %a@]@."
+              Kernel_function.pretty kf E.pretty m ;
         ) a_usage;
       Format.fprintf fmt ".................................................@\n" ;
     end

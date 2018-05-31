@@ -6,32 +6,33 @@
 [value:initial-state] Values of globals at initialization
   
 [value] computing for function f1 <- main.
-    Called from tests/pdg/variadic.c:37.
+  Called from tests/pdg/variadic.c:37.
 [value] computing for function lib_f <- f1 <- main.
-    Called from tests/pdg/variadic.c:23.
-tests/pdg/variadic.c:23:[kernel] warning: Neither code nor specification for function lib_f, generating default assigns from the prototype
+  Called from tests/pdg/variadic.c:23.
+[kernel:annot:missing-spec] tests/pdg/variadic.c:23: Warning: 
+  Neither code nor specification for function lib_f, generating default assigns from the prototype
 [value] using specification for function lib_f
 [value] Done for function lib_f
 [value] Recording results for f1
 [value] Done for function f1
 [value] computing for function f2 <- main.
-    Called from tests/pdg/variadic.c:38.
+  Called from tests/pdg/variadic.c:38.
 [value] computing for function lib_f <- f2 <- main.
-    Called from tests/pdg/variadic.c:27.
+  Called from tests/pdg/variadic.c:27.
 [value] Done for function lib_f
 [value] Recording results for f2
 [value] Done for function f2
 [value] computing for function f3 <- main.
-    Called from tests/pdg/variadic.c:39.
+  Called from tests/pdg/variadic.c:39.
 [value] computing for function lib_f <- f3 <- main.
-    Called from tests/pdg/variadic.c:31.
+  Called from tests/pdg/variadic.c:31.
 [value] Done for function lib_f
 [value] Recording results for f3
 [value] Done for function f3
 [value] computing for function f2 <- main.
-    Called from tests/pdg/variadic.c:40.
+  Called from tests/pdg/variadic.c:40.
 [value] computing for function lib_f <- f2 <- main.
-    Called from tests/pdg/variadic.c:27.
+  Called from tests/pdg/variadic.c:27.
 [value] Done for function lib_f
 [value] Recording results for f2
 [value] Done for function f2

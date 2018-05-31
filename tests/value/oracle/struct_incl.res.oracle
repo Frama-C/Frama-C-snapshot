@@ -22,11 +22,14 @@
   z ∈ {0}
   t ∈ {0}
   v ∈ [--..--]
-tests/value/struct_incl.i:48:[value] warning: accessing out of bounds index. assert 10 < 10;
-tests/value/struct_incl.i:48:[kernel] warning: all target addresses were invalid. This path is assumed to be dead.
+[value:alarm] tests/value/struct_incl.i:48: Warning: 
+  accessing out of bounds index. assert 10 < 10;
+[kernel] tests/value/struct_incl.i:48: Warning: 
+  all target addresses were invalid. This path is assumed to be dead.
 [value] Recording results for main
 [value] done for function main
-tests/value/struct_incl.i:48:[value] assertion 'Value,index_bound' got final status invalid.
+[value] tests/value/struct_incl.i:48: 
+  assertion 'Value,index_bound' got final status invalid.
 [value] ====== VALUES COMPUTED ======
 [value:final-states] Values at end of function main:
   s1{.a; .d[0..2]} ∈ {2}
@@ -43,7 +46,7 @@ tests/value/struct_incl.i:48:[value] assertion 'Value,index_bound' got final sta
 [from] Computing for function main
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
-    These dependencies hold at termination for the executions that terminate:
+  These dependencies hold at termination for the executions that terminate:
 [from] Function main:
   s1{{.a; .d[0..2]}; .d[5]; {.d[8..9]; .b.a}; .c} FROM \nothing
   x FROM \nothing
@@ -51,6 +54,6 @@ tests/value/struct_incl.i:48:[value] assertion 'Value,index_bound' got final sta
   z FROM \nothing
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function main:
-      s1{{.a; .d[0..2]}; .d[5]; {.d[8..9]; .b.a}; .c}; x; y; z
+    s1{{.a; .d[0..2]}; .d[5]; {.d[8..9]; .b.a}; .c}; x; y; z
 [inout] Inputs for function main:
-      v
+    v

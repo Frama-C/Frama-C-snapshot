@@ -5,18 +5,18 @@
 int global_x, global_y;
 
 //@ assigns \nothing;
-void g();
+void g(void);
 
 //@ assigns \nothing;
-int fnd1();
+int fnd1(void);
 
 //@ assigns global_x ;
-int fnd2();
+int fnd2(void);
 
 //@ assigns global_x; assigns global_y;
-int fnd3();
+int fnd3(void);
 
-int fnd4();
+int fnd4(void);
 
 /*@ assigns global_x;
   @ behavior normal : assumes cond; assigns \nothing ;
@@ -25,7 +25,7 @@ int fnd4();
 int fnd5(int cond);
 
 //@ assigns \nothing;
-int fnd6();
+int fnd6(void);
 
 //@ assigns *x \from *y ;
 int fnd7(int* x, int* y);

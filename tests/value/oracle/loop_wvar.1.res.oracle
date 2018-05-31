@@ -1,26 +1,31 @@
 [kernel] Parsing tests/value/loop_wvar.i (no preprocessing)
-tests/value/loop_wvar.i:38:[kernel] warning: invalid pragma '12'. Ignoring loop annotation
+[kernel:annot-error] tests/value/loop_wvar.i:38: Warning: 
+  invalid pragma '12'. Ignoring loop annotation
 [value] Analyzing a complete application starting at main3
 [value] Computing initial state
 [value] Initial state computed
 [value:initial-state] Values of globals at initialization
   
 [value] computing for function main_unhelpful <- main3.
-    Called from tests/value/loop_wvar.i:84.
-tests/value/loop_wvar.i:52:[value] entering loop for the first time
-tests/value/loop_wvar.i:57:[value] warning: signed overflow. assert next + 1 ≤ 2147483647;
+  Called from tests/value/loop_wvar.i:84.
+[value] tests/value/loop_wvar.i:52: entering loop for the first time
+[value:alarm] tests/value/loop_wvar.i:57: Warning: 
+  signed overflow. assert next + 1 ≤ 2147483647;
 [value] Recording results for main_unhelpful
 [value] Done for function main_unhelpful
 [value] computing for function main_multiple_hints <- main3.
-    Called from tests/value/loop_wvar.i:85.
-tests/value/loop_wvar.i:69:[value] entering loop for the first time
-tests/value/loop_wvar.i:71:[value] Frama_C_show_each: {0}, {0}, {0}
-tests/value/loop_wvar.i:71:[value] Frama_C_show_each: {0; 1}, {0; 1}, {0; 1}
-tests/value/loop_wvar.i:71:[value] Frama_C_show_each: {0; 1; 2}, {0; 1; 2}, {0; 1; 2}
-tests/value/loop_wvar.i:71:[value] Frama_C_show_each: [0..9], {0; 1; 2; 3}, {0; 1; 2; 3}
-tests/value/loop_wvar.i:71:[value] Frama_C_show_each: [0..9], {0; 1; 2; 3; 4}, {0; 1; 2; 3; 4}
-tests/value/loop_wvar.i:71:[value] Frama_C_show_each: [0..9], [0..17], [0..11]
-tests/value/loop_wvar.i:71:[value] Frama_C_show_each: [0..9], [0..18], [0..12]
+  Called from tests/value/loop_wvar.i:85.
+[value] tests/value/loop_wvar.i:69: entering loop for the first time
+[value] tests/value/loop_wvar.i:71: Frama_C_show_each: {0}, {0}, {0}
+[value] tests/value/loop_wvar.i:71: Frama_C_show_each: {0; 1}, {0; 1}, {0; 1}
+[value] tests/value/loop_wvar.i:71: 
+  Frama_C_show_each: {0; 1; 2}, {0; 1; 2}, {0; 1; 2}
+[value] tests/value/loop_wvar.i:71: 
+  Frama_C_show_each: [0..9], {0; 1; 2; 3}, {0; 1; 2; 3}
+[value] tests/value/loop_wvar.i:71: 
+  Frama_C_show_each: [0..9], {0; 1; 2; 3; 4}, {0; 1; 2; 3; 4}
+[value] tests/value/loop_wvar.i:71: Frama_C_show_each: [0..9], [0..17], [0..11]
+[value] tests/value/loop_wvar.i:71: Frama_C_show_each: [0..9], [0..18], [0..12]
 [value] Recording results for main_multiple_hints
 [value] Done for function main_multiple_hints
 [value] Recording results for main3

@@ -9,7 +9,7 @@
 [from] Computing for function main
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
-    These dependencies hold at termination for the executions that terminate:
+  These dependencies hold at termination for the executions that terminate:
 [from] Function main:
   \result FROM choix
 [from] ====== END OF DEPENDENCIES ======

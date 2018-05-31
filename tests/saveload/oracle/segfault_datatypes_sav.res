@@ -4,8 +4,9 @@
 [value] Initial state computed
 [value:initial-state] Values of globals at initialization
   
-tests/saveload/segfault_datatypes.i:13:[value] entering loop for the first time
-tests/saveload/segfault_datatypes.i:13:[value] warning: signed overflow. assert -2147483648 ≤ i - 1;
+[value] tests/saveload/segfault_datatypes.i:13: entering loop for the first time
+[value:alarm] tests/saveload/segfault_datatypes.i:13: Warning: 
+  signed overflow. assert -2147483648 ≤ i - 1;
 [value] Recording results for main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======
@@ -16,11 +17,11 @@ tests/saveload/segfault_datatypes.i:13:[value] warning: signed overflow. assert 
 [from] Computing for function main
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
-    These dependencies hold at termination for the executions that terminate:
+  These dependencies hold at termination for the executions that terminate:
 [from] Function main:
   \result FROM \nothing
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function main:
-      i; j; tmp; __retres
+    i; j; tmp; __retres
 [inout] Inputs for function main:
-      \nothing
+    \nothing

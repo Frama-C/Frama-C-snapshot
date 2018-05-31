@@ -1,0 +1,47 @@
+(**************************************************************************)
+(*                                                                        *)
+(*  The Why3 Verification Platform   /   The Why3 Development Team        *)
+(*  Copyright 2010-2013   --   INRIA - CNRS - Paris-Sud University        *)
+(*                                                                        *)
+(*  This software is distributed under the terms of the GNU Lesser        *)
+(*  General Public License version 2.1, with the special exception        *)
+(*  on linking described in file LICENSE.                                 *)
+(*                                                                        *)
+(*  File modified by CEA (Commissariat à l'énergie atomique et aux        *)
+(*                        énergies alternatives).                         *)
+(*                                                                        *)
+(**************************************************************************)
+
+(* this is the prelude for Alt-Ergo, version >= 0.95.2 *)
+(** The theory BuiltIn_ must be appended to this file*)
+(** The theory Bool_ must be appended to this file*)
+(** The theory real_Real_ must be appended to this file*)
+(** The theory real_Square_ must be appended to this file*)
+(** The theory real_ExpLog_ must be appended to this file*)
+logic pow : real, real -> real
+
+axiom Pow_def :
+  (forall x:real. forall y:real. ((0.0 <  x) -> (pow(x,
+  y) = exp((y * log(x))))))
+
+axiom Pow_pos :
+  (forall x:real. forall y:real. ((0.0 <  x) -> (0.0 <  pow(x, y))))
+
+axiom Pow_plus :
+  (forall x:real. forall y:real. forall z:real. ((0.0 <  z) -> (pow(z,
+  (x + y)) = (pow(z, x) * pow(z, y)))))
+
+axiom Pow_mult :
+  (forall x:real. forall y:real. forall z:real. ((0.0 <  x) -> (pow(pow(x,
+  y), z) = pow(x, (y * z)))))
+
+axiom Pow_x_zero : (forall x:real. ((0.0 <  x) -> (pow(x, 0.0) = 1.0)))
+
+axiom Pow_x_one : (forall x:real. ((0.0 <  x) -> (pow(x, 1.0) = x)))
+
+axiom Pow_one_y : (forall y:real. (pow(1.0, y) = 1.0))
+
+axiom Pow_x_two : (forall x:real. ((0.0 <  x) -> (pow(x, 2.0) = sqr(x))))
+
+axiom Pow_half : (forall x:real. ((0.0 <  x) -> (pow(x, 0.5) = sqrt(x))))
+

@@ -1,0 +1,28 @@
+{ "wp:global": { "alt-ergo": { "total": 3, "unknown": 3 },
+                 "wp:main": { "total": 3, "unknown": 3 } },
+  "wp:functions": { "modifies_y": { "modifies_y_post_qed_ko_H_KO": { "alt-ergo": 
+                                                                    { "total": 1,
+                                                                    "unknown": 1 },
+                                                                    "wp:main": 
+                                                                    { "total": 1,
+                                                                    "unknown": 1 } },
+                                    "wp:section": { "alt-ergo": { "total": 1,
+                                                                  "unknown": 1 },
+                                                    "wp:main": { "total": 1,
+                                                                 "unknown": 1 } } },
+                    "modifies_x": { "modifies_x_post_qed_ko_H_KO": { "alt-ergo": 
+                                                                    { "total": 1,
+                                                                    "unknown": 1 },
+                                                                    "wp:main": 
+                                                                    { "total": 1,
+                                                                    "unknown": 1 } },
+                                    "modifies_x_post_qed_ko_G_KO": { "alt-ergo": 
+                                                                    { "total": 1,
+                                                                    "unknown": 1 },
+                                                                    "wp:main": 
+                                                                    { "total": 1,
+                                                                    "unknown": 1 } },
+                                    "wp:section": { "alt-ergo": { "total": 2,
+                                                                  "unknown": 2 },
+                                                    "wp:main": { "total": 2,
+                                                                 "unknown": 2 } } } } }

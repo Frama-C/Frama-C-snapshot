@@ -6,11 +6,11 @@
 [value:initial-state] Values of globals at initialization
   X ∈ [--..--]
 [value] computing for function f <- h.
-    Called from tests/impact/called.i:25.
+  Called from tests/impact/called.i:25.
 [value] Recording results for f
 [value] Done for function f
 [value] computing for function f <- h.
-    Called from tests/impact/called.i:27.
+  Called from tests/impact/called.i:27.
 [value] Recording results for f
 [value] Done for function f
 [value] Recording results for h
@@ -22,6 +22,6 @@
 [pdg] computing for function f
 [pdg] done for function f
 [impact] impacted statements of stmt(s) 14 are:
-      tests/impact/called.i:8 (sid 3): return y;
-      tests/impact/called.i:25 (sid 16): c = f(a,b);
+    tests/impact/called.i:8 (sid 3): return y;
+    tests/impact/called.i:25 (sid 16): c = f(a,b);
 [impact] analysis done

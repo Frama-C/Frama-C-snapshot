@@ -5,14 +5,16 @@
 [value] Initial state computed
 [value:initial-state] Values of globals at initialization
   
-tests/sparecode/bts927.i:15:[value] warning: assertion got status unknown.
+[value:alarm] tests/sparecode/bts927.i:15: Warning: 
+  assertion got status unknown.
 [value] computing for function f <- main.
-    Called from tests/sparecode/bts927.i:17.
-tests/sparecode/bts927.i:10:[value] warning: 2's complement assumed for overflow
+  Called from tests/sparecode/bts927.i:17.
+[value] tests/sparecode/bts927.i:10: Warning: 
+  2's complement assumed for overflow
 [value] Recording results for f
 [value] Done for function f
 [value] computing for function f <- main.
-    Called from tests/sparecode/bts927.i:19.
+  Called from tests/sparecode/bts927.i:19.
 [value] Recording results for f
 [value] Done for function f
 [value] Recording results for main

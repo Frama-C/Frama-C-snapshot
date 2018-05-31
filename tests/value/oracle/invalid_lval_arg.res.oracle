@@ -5,15 +5,22 @@
 [value:initial-state] Values of globals at initialization
   X ∈ {0}
   p ∈ {0}
-tests/value/invalid_lval_arg.i:15:[value] warning: out of bounds read. assert \valid_read((int **)0);
-tests/value/invalid_lval_arg.i:17:[value] warning: out of bounds read. assert \valid_read((int **)0);
-tests/value/invalid_lval_arg.i:19:[value] warning: out of bounds read. assert \valid_read((int **)0);
+[value:alarm] tests/value/invalid_lval_arg.i:15: Warning: 
+  out of bounds read. assert \valid_read((int **)0);
+[value:alarm] tests/value/invalid_lval_arg.i:17: Warning: 
+  out of bounds read. assert \valid_read((int **)0);
+[value:alarm] tests/value/invalid_lval_arg.i:19: Warning: 
+  out of bounds read. assert \valid_read((int **)0);
 [value] Recording results for main
 [value] done for function main
-tests/value/invalid_lval_arg.i:15:[value] assertion 'Value,mem_access' got final status invalid.
-tests/value/invalid_lval_arg.i:17:[value] assertion 'Value,mem_access' got final status invalid.
-tests/value/invalid_lval_arg.i:19:[value] assertion 'Value,mem_access' got final status invalid.
-tests/value/invalid_lval_arg.i:15:[kernel] warning: Neither code nor specification for function f, generating default assigns from the prototype
+[value] tests/value/invalid_lval_arg.i:15: 
+  assertion 'Value,mem_access' got final status invalid.
+[value] tests/value/invalid_lval_arg.i:17: 
+  assertion 'Value,mem_access' got final status invalid.
+[value] tests/value/invalid_lval_arg.i:19: 
+  assertion 'Value,mem_access' got final status invalid.
+[kernel:annot:missing-spec] tests/value/invalid_lval_arg.i:15: Warning: 
+  Neither code nor specification for function f, generating default assigns from the prototype
 [value] ====== VALUES COMPUTED ======
 [value:final-states] Values at end of function main:
   NON TERMINATING FUNCTION
@@ -26,11 +33,11 @@ tests/value/invalid_lval_arg.i:15:[kernel] warning: Neither code nor specificati
 [from] Non-terminating function main (no dependencies)
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
-    These dependencies hold at termination for the executions that terminate:
+  These dependencies hold at termination for the executions that terminate:
 [from] Function main:
   NON TERMINATING - NO EFFECTS
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function main:
-      p
+    p
 [inout] Inputs for function main:
-      p
+    p

@@ -1,7 +1,10 @@
 [kernel] Parsing tests/spec/model.i (no preprocessing)
-tests/spec/model.i:9:[kernel] warning: Cannot add model field x for type struct S: it already exists. Ignoring global annotation
-tests/spec/model.i:13:[kernel] warning: Cannot add model field z for type T: it already exists. Ignoring global annotation
-tests/spec/model.i:14:[kernel] warning: Cannot add model field x for type T: it already exists. Ignoring global annotation
+[kernel:annot-error] tests/spec/model.i:9: Warning: 
+  Cannot add model field x for type struct S: it already exists. Ignoring global annotation
+[kernel:annot-error] tests/spec/model.i:13: Warning: 
+  Cannot add model field z for type T: it already exists. Ignoring global annotation
+[kernel:annot-error] tests/spec/model.i:14: Warning: 
+  Cannot add model field x for type T: it already exists. Ignoring global annotation
 Model fields for type T:
 z, t, 
 After adding field
@@ -22,7 +25,7 @@ model struct S { ℤ z }; */
 model T { ℤ t }; */
 /*@ type invariant t_invariant(T t) = t.t ≡ t.z * 2;
  */
-/*@ ensures (*\old(s)).z ≡ \result;
+/*@ ensures \old(s)->z ≡ \result;
     assigns *s; */
 int f(struct S *s);
 

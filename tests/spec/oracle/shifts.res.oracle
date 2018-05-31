@@ -5,10 +5,12 @@
 [value:initial-state] Values of globals at initialization
   e ∈ {0}
 [value] computing for function f <- main.
-    Called from tests/spec/shifts.c:19.
-tests/spec/shifts.c:13:[value] assertion got status valid.
-tests/spec/shifts.c:8:[value] function f, behavior a: postcondition got status valid.
-tests/spec/shifts.c:9:[value] function f, behavior b: postcondition got status valid.
+  Called from tests/spec/shifts.c:19.
+[value] tests/spec/shifts.c:13: assertion got status valid.
+[value] tests/spec/shifts.c:8: 
+  function f, behavior a: postcondition got status valid.
+[value] tests/spec/shifts.c:9: 
+  function f, behavior b: postcondition got status valid.
 [value] Recording results for f
 [value] Done for function f
 [value] Recording results for main
@@ -25,7 +27,7 @@ tests/spec/shifts.c:9:[value] function f, behavior b: postcondition got status v
 [from] Computing for function main
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
-    These dependencies hold at termination for the executions that terminate:
+  These dependencies hold at termination for the executions that terminate:
 [from] Function f:
   e FROM x
   \result FROM x

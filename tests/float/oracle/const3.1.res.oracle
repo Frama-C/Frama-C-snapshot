@@ -1,18 +1,21 @@
 [kernel] Parsing tests/float/const3.i (no preprocessing)
-tests/float/const3.i:6:[kernel] warning: Floating-point constant 1e-40f is not represented exactly. Will use 0x1.16c2000000000p-133
-tests/float/const3.i:7:[kernel] warning: Floating-point constant 1e-40 is not represented exactly. Will use 0x1.16c262777579cp-133
+[kernel:parser:decimal-float] tests/float/const3.i:6: Warning: 
+  Floating-point constant 1e-40f is not represented exactly. Will use 0x1.16c2000000000p-133.
+[kernel:parser:decimal-float] tests/float/const3.i:7: Warning: 
+  Floating-point constant 1e-40 is not represented exactly. Will use 0x1.16c262777579cp-133.
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
 [value] Initial state computed
 [value:initial-state] Values of globals at initialization
   f1 ∈ [0x1.16c2000000000p-133 .. 0x1.16c3000000000p-133]
   d0 ∈ [0x1.16c262777579cp-133 .. 0x1.16c262777579dp-133]
-tests/float/const3.i:11:[value] Frama_C_dump_each:
-    # Cvalue domain:
-    f1 ∈ [0x1.16c2000000000p-133 .. 0x1.16c3000000000p-133]
-    d0 ∈ [0x1.16c262777579cp-133 .. 0x1.16c262777579dp-133]
-    __retres ∈ UNINITIALIZED
-    ==END OF DUMP==
+[value] tests/float/const3.i:11: 
+  Frama_C_dump_each:
+  # Cvalue domain:
+  f1 ∈ [0x1.16c2000000000p-133 .. 0x1.16c3000000000p-133]
+  d0 ∈ [0x1.16c262777579cp-133 .. 0x1.16c262777579dp-133]
+  __retres ∈ UNINITIALIZED
+  ==END OF DUMP==
 [value] Recording results for main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======
@@ -22,11 +25,11 @@ tests/float/const3.i:11:[value] Frama_C_dump_each:
 [from] Computing for function main
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
-    These dependencies hold at termination for the executions that terminate:
+  These dependencies hold at termination for the executions that terminate:
 [from] Function main:
   \result FROM \nothing
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function main:
-      d1; __retres
+    d1; __retres
 [inout] Inputs for function main:
-      f1
+    f1

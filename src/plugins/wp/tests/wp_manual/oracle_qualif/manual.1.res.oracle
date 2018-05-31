@@ -15,9 +15,10 @@
 [wp] [Qed] Goal typed_swap_assign_part1 : Valid
 [wp] [Qed] Goal typed_swap_assign_part2 : Valid
 [wp] Proved goals:    8 / 8
-    Qed:             5 
-    Alt-Ergo:        3
-----------------------------------------------------------
-Functions           WP   Alt-Ergo    Total   Success
-swap                 5      3 (19)     8       100%
-----------------------------------------------------------
+  Qed:             5 
+  Alt-Ergo:        3
+[wp] Report 'tests/wp_manual/manual.i.1.report.json'
+-------------------------------------------------------------
+Functions           WP     Alt-Ergo        Total   Success
+swap                 5      3 (16..28)       8       100%
+-------------------------------------------------------------

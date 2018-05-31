@@ -60,7 +60,6 @@ module type S_Basic_Compare =
     val cardinal: t -> int
     val elements: t -> elt list
     val choose: t -> elt
-    val split: elt -> t -> t * bool * t
     val find: elt -> t -> elt
     val of_list: elt list -> t
   end
@@ -70,6 +69,7 @@ module type S =
     include S_Basic_Compare
     val min_elt: t -> elt
     val max_elt: t -> elt
+    val split: elt -> t -> t * bool * t
     val nearest_elt_le: elt -> t -> elt
     val nearest_elt_ge: elt -> t -> elt
   end

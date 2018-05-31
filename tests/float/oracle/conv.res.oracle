@@ -7,58 +7,71 @@
   d ∈ {0}
   v ∈ [--..--]
 [value] computing for function main1 <- main.
-    Called from tests/float/conv.i:105.
-tests/float/conv.i:15:[value] Frama_C_show_each: {0}
-tests/float/conv.i:18:[value] Frama_C_show_each: {1.40129846432e-45}
-tests/float/conv.i:22:[value] Frama_C_show_each: [1.40129846432e-43 .. 2.40330263757e+12]
-tests/float/conv.i:24:[value] warning: assertion got status unknown.
-tests/float/conv.i:28:[value] Frama_C_show_each: {3.40282346639e+38}
-tests/float/conv.i:29:[value] assertion got status valid.
-tests/float/conv.i:32:[value] warning: non-finite float value. assert \is_finite(*((float *)(&i)));
-tests/float/conv.i:33:[value] Frama_C_show_each: [-3.40282346639e+38 .. 3.40282346639e+38]
-tests/float/conv.i:37:[value] Frama_C_show_each: {-3.40282346639e+38}
-tests/float/conv.i:38:[value] assertion got status valid.
-tests/float/conv.i:41:[value] warning: non-finite float value. assert \is_finite(*((float *)(&i)));
-tests/float/conv.i:42:[value] Frama_C_show_each: [-3.40282346639e+38 .. 3.40282346639e+38]
-tests/float/conv.i:45:[value] Frama_C_show_each: [0. .. 1.40129846432e-45]
-tests/float/conv.i:48:[value] warning: assertion got status unknown.
-tests/float/conv.i:49:[value] Frama_C_show_each: [-3.40282346639e+38 .. 3.40282346639e+38]
-tests/float/conv.i:52:[value] Frama_C_show_each: [-3.40282346639e+38 .. 3.40282346639e+38]
-tests/float/conv.i:55:[value] Frama_C_show_each: [-3.40282346639e+38 .. 3.40282346639e+38]
+  Called from tests/float/conv.i:105.
+[value] tests/float/conv.i:15: Frama_C_show_each: {0}
+[value] tests/float/conv.i:18: Frama_C_show_each: {1.40129846432e-45}
+[value] tests/float/conv.i:22: 
+  Frama_C_show_each: [1.40129846432e-43 .. 2.40330263757e+12]
+[value:alarm] tests/float/conv.i:24: Warning: assertion got status unknown.
+[value] tests/float/conv.i:28: Frama_C_show_each: {3.40282346639e+38}
+[value] tests/float/conv.i:29: assertion got status valid.
+[value:alarm] tests/float/conv.i:32: Warning: 
+  non-finite float value. assert \is_finite(*((float *)(&i)));
+[value] tests/float/conv.i:37: Frama_C_show_each: {-3.40282346639e+38}
+[value] tests/float/conv.i:38: assertion got status valid.
+[value:alarm] tests/float/conv.i:41: Warning: 
+  non-finite float value. assert \is_finite(*((float *)(&i)));
+[value] tests/float/conv.i:45: Frama_C_show_each: [-0. .. 1.40129846432e-45]
+[value:alarm] tests/float/conv.i:48: Warning: assertion got status unknown.
+[value:alarm] tests/float/conv.i:49: Warning: 
+  non-finite float value. assert \is_finite(*((float *)(&i)));
+[value:alarm] tests/float/conv.i:52: Warning: 
+  non-finite float value. assert \is_finite(*((float *)(&i)));
+[value] tests/float/conv.i:52: Frama_C_show_each: {0}
+[value:alarm] tests/float/conv.i:55: Warning: 
+  non-finite float value. assert \is_finite(*((float *)(&ui)));
 [value] Recording results for main1
 [value] Done for function main1
 [value] computing for function main2 <- main.
-    Called from tests/float/conv.i:106.
-tests/float/conv.i:63:[value] Frama_C_show_each: {0}
-tests/float/conv.i:66:[value] Frama_C_show_each: {4.94065645841e-324}
-tests/float/conv.i:69:[value] Frama_C_show_each: [4.94065645841e-322 .. 9.22442153475e+159]
-tests/float/conv.i:73:[value] Frama_C_show_each: {1.79769313486e+308}
-tests/float/conv.i:74:[value] assertion got status valid.
-tests/float/conv.i:77:[value] Frama_C_show_each: [-1.79769313486e+308 .. 1.79769313486e+308]
-tests/float/conv.i:80:[value] Frama_C_show_each: [-1.79769313486e+308 .. 1.79769313486e+308]
-tests/float/conv.i:84:[value] Frama_C_show_each: {-1.79769313486e+308}
-tests/float/conv.i:85:[value] assertion got status valid.
-tests/float/conv.i:88:[value] Frama_C_show_each: [-1.79769313486e+308 .. 1.79769313486e+308]
-tests/float/conv.i:91:[value] Frama_C_show_each: [0. .. 4.94065645841e-324]
-tests/float/conv.i:94:[value] warning: assertion got status unknown.
-tests/float/conv.i:95:[value] Frama_C_show_each: [-1.79769313486e+308 .. 1.79769313486e+308]
-tests/float/conv.i:98:[value] Frama_C_show_each: [-1.79769313486e+308 .. 1.79769313486e+308]
-tests/float/conv.i:101:[value] Frama_C_show_each: [-1.79769313486e+308 .. 1.79769313486e+308]
+  Called from tests/float/conv.i:106.
+[value] tests/float/conv.i:63: Frama_C_show_each: {0}
+[value] tests/float/conv.i:66: Frama_C_show_each: {4.94065645841e-324}
+[value] tests/float/conv.i:69: 
+  Frama_C_show_each: [4.94065645841e-322 .. 9.22442153475e+159]
+[value] tests/float/conv.i:73: Frama_C_show_each: {1.79769313486e+308}
+[value] tests/float/conv.i:74: assertion got status valid.
+[value] tests/float/conv.i:77: Frama_C_show_each: Bottom
+[value] tests/float/conv.i:80: Frama_C_show_each: Bottom
+[value] tests/float/conv.i:84: Frama_C_show_each: {-1.79769313486e+308}
+[value] tests/float/conv.i:85: assertion got status valid.
+[value] tests/float/conv.i:88: Frama_C_show_each: Bottom
+[value] tests/float/conv.i:91: Frama_C_show_each: [0. .. 4.94065645841e-324]
+[value:alarm] tests/float/conv.i:94: Warning: assertion got status unknown.
+[value] tests/float/conv.i:95: Frama_C_show_each: Bottom
+[value] tests/float/conv.i:98: Frama_C_show_each: {0}
+[value] tests/float/conv.i:101: Frama_C_show_each: Bottom
 [value] Recording results for main2
 [value] Done for function main2
 [value] Recording results for main
 [value] done for function main
+[value] tests/float/conv.i:32: 
+  assertion 'Value,is_nan_or_infinite' got final status invalid.
+[value] tests/float/conv.i:41: 
+  assertion 'Value,is_nan_or_infinite' got final status invalid.
+[value] tests/float/conv.i:49: 
+  assertion 'Value,is_nan_or_infinite' got final status invalid.
+[value] tests/float/conv.i:55: 
+  assertion 'Value,is_nan_or_infinite' got final status invalid.
 [value] ====== VALUES COMPUTED ======
 [value:final-states] Values at end of function main1:
-  f ∈ [-3.40282346639e+38 .. 3.40282346639e+38]
-  i ∈ {0; 0x7FFFFFFF}
-  ui ∈ {0xFFFFFFFF}
+  f ∈ {0}
+  i ∈ {0}
 [value:final-states] Values at end of function main2:
   d ∈ {-1.79769313486e+308}
   i ∈ {-1; 0}
   ui ∈ {0xFFFFFFFFFFFFFFFF}
 [value:final-states] Values at end of function main:
-  f ∈ [-3.40282346639e+38 .. 3.40282346639e+38]
+  f ∈ {0}
   d ∈ {-1.79769313486e+308}
 [from] Computing for function main1
 [from] Done for function main1
@@ -67,24 +80,24 @@ tests/float/conv.i:101:[value] Frama_C_show_each: [-1.79769313486e+308 .. 1.7976
 [from] Computing for function main
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
-    These dependencies hold at termination for the executions that terminate:
+  These dependencies hold at termination for the executions that terminate:
 [from] Function main1:
-  f FROM \nothing
+  f FROM v
 [from] Function main2:
   d FROM \nothing
 [from] Function main:
-  f FROM \nothing
+  f FROM v
   d FROM \nothing
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function main1:
-      f; i; ui
+    f; i; ui
 [inout] Inputs for function main1:
-      f; v
+    f; v
 [inout] Out (internal) for function main2:
-      d; i; ui
+    d; i; ui
 [inout] Inputs for function main2:
-      d; v
+    d; v
 [inout] Out (internal) for function main:
-      f; d
+    f; d
 [inout] Inputs for function main:
-      f; d; v
+    f; d; v

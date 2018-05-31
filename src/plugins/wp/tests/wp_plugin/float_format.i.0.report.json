@@ -1,0 +1,10 @@
+{ "wp:global": { "coq": { "total": 1, "unknown": 1 },
+                 "wp:main": { "total": 1, "unknown": 1 } },
+  "wp:functions": { "output": { "output_post_KO": { "coq": { "total": 1,
+                                                             "unknown": 1 },
+                                                    "wp:main": { "total": 1,
+                                                                 "unknown": 1 } },
+                                "wp:section": { "coq": { "total": 1,
+                                                         "unknown": 1 },
+                                                "wp:main": { "total": 1,
+                                                             "unknown": 1 } } } } }

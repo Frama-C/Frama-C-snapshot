@@ -13,28 +13,56 @@
   S___fc_stdin[0..1] ∈ [--..--]
   S___fc_stdout[0..1] ∈ [--..--]
 [value] computing for function fopen <- main.
-    Called from tests/libc/stdio_h.c:6.
+  Called from tests/libc/stdio_h.c:6.
 [value] using specification for function fopen
+[value] tests/libc/stdio_h.c:6: 
+  function fopen: precondition 'valid_filename' got status valid.
 [value] Done for function fopen
 [value] computing for function fseek <- main.
-    Called from tests/libc/stdio_h.c:8.
+  Called from tests/libc/stdio_h.c:8.
 [value] using specification for function fseek
-share/libc/stdio.h:267:[value] function fseek: precondition got status valid.
-share/libc/stdio.h:268:[value] function fseek: precondition got status valid.
+[value] tests/libc/stdio_h.c:8: 
+  function fseek: precondition 'valid_stream' got status valid.
+[value] tests/libc/stdio_h.c:8: 
+  function fseek: precondition 'whence_enum' got status valid.
 [value] Done for function fseek
 [value] computing for function fseek <- main.
-    Called from tests/libc/stdio_h.c:10.
-share/libc/stdio.h:267:[value] warning: function fseek: precondition got status invalid.
+  Called from tests/libc/stdio_h.c:10.
+[value:alarm] tests/libc/stdio_h.c:10: Warning: 
+  function fseek: precondition 'valid_stream' got status invalid.
+[value] tests/libc/stdio_h.c:10: 
+  function fseek: no state left, precondition 'whence_enum' got status valid.
 [value] Done for function fseek
 [value] computing for function Frama_C_interval <- main.
-    Called from tests/libc/stdio_h.c:16.
+  Called from tests/libc/stdio_h.c:16.
 [value] using specification for function Frama_C_interval
-share/libc/__fc_builtin.h:52:[value] function Frama_C_interval: precondition got status valid.
+[value] tests/libc/stdio_h.c:16: 
+  function Frama_C_interval: precondition 'order' got status valid.
 [value] Done for function Frama_C_interval
 [value] computing for function fseek <- main.
-    Called from tests/libc/stdio_h.c:19.
-share/libc/stdio.h:268:[value] warning: function fseek: precondition got status invalid.
+  Called from tests/libc/stdio_h.c:19.
+[value] tests/libc/stdio_h.c:19: 
+  function fseek: precondition 'valid_stream' got status valid.
+[value:alarm] tests/libc/stdio_h.c:19: Warning: 
+  function fseek: precondition 'whence_enum' got status invalid.
 [value] Done for function fseek
+[value] computing for function tmpfile <- main.
+  Called from tests/libc/stdio_h.c:23.
+[value] using specification for function tmpfile
+[value] Done for function tmpfile
+[value] computing for function fseek <- main.
+  Called from tests/libc/stdio_h.c:25.
+[value] tests/libc/stdio_h.c:25: 
+  function fseek: precondition 'valid_stream' got status valid.
+[value] tests/libc/stdio_h.c:25: 
+  function fseek: precondition 'whence_enum' got status valid.
+[value] Done for function fseek
+[value] computing for function fclose <- main.
+  Called from tests/libc/stdio_h.c:26.
+[value] using specification for function fclose
+[value] tests/libc/stdio_h.c:26: 
+  function fclose: precondition 'valid_stream' got status valid.
+[value] Done for function fclose
 [value] Recording results for main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======
@@ -44,4 +72,5 @@ share/libc/stdio.h:268:[value] warning: function fseek: precondition got status 
   Frama_C_entropy_source ∈ [--..--]
   f ∈ {{ NULL ; &__fc_fopen + [0..120],0%8 }}
   r ∈ [--..--]
-  __retres ∈ {0; 1}
+  tmp_2 ∈ {{ NULL ; &__fc_fopen + [0..120],0%8 }}
+  __retres ∈ {0; 1; 2}

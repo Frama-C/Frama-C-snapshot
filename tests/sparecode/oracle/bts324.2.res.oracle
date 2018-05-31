@@ -9,18 +9,20 @@
   o0 ∈ {0}
   is_ko ∈ {-1}
 [value] computing for function init <- main_ter.
-    Called from tests/sparecode/bts324.i:35.
+  Called from tests/sparecode/bts324.i:35.
 [value] using specification for function init
-tests/sparecode/bts324.i:14:[value] warning: no \from part for clause 'assigns *p_res;'
+[value] tests/sparecode/bts324.i:14: Warning: 
+  no \from part for clause 'assigns *p_res;'
 [value] Done for function init
-tests/sparecode/bts324.i:37:[value] entering loop for the first time
+[value] tests/sparecode/bts324.i:37: entering loop for the first time
 [value] computing for function loop_body <- main_ter.
-    Called from tests/sparecode/bts324.i:39.
+  Called from tests/sparecode/bts324.i:39.
 [value] using specification for function loop_body
-tests/sparecode/bts324.i:11:[value] warning: no \from part for clause 'assigns i0, o0;'
+[value] tests/sparecode/bts324.i:11: Warning: 
+  no \from part for clause 'assigns i0, o0;'
 [value] Done for function loop_body
 [value] computing for function loop_body <- main_ter.
-    Called from tests/sparecode/bts324.i:39.
+  Called from tests/sparecode/bts324.i:39.
 [value] Done for function loop_body
 [value] Recording results for main_ter
 [value] done for function main_ter
@@ -41,12 +43,12 @@ tests/sparecode/bts324.i:11:[value] warning: no \from part for clause 'assigns i
 [pdg] done for function loop_body
 [sparecode] look for annotations in function main
 [pdg] computing for function main
-[pdg] warning: unreachable entry point (sid:1, function main)
+[pdg] Warning: unreachable entry point (sid:1, function main)
 [pdg] Bottom for function main
 [sparecode] pdg bottom: skip annotations
 [sparecode] look for annotations in function main_bis
 [pdg] computing for function main_bis
-[pdg] warning: unreachable entry point (sid:9, function main_bis)
+[pdg] Warning: unreachable entry point (sid:9, function main_bis)
 [pdg] Bottom for function main_bis
 [sparecode] pdg bottom: skip annotations
 [sparecode] look for annotations in function main_ter
@@ -60,7 +62,7 @@ tests/sparecode/bts324.i:11:[value] warning: no \from part for clause 'assigns i
 int i0;
 int o0;
 /*@ assigns i0, o0; */
-void loop_body();
+void loop_body(void);
 
 /*@ assigns *p_res; */
 void init(int *p_res);

@@ -1,0 +1,41 @@
+(**************************************************************************)
+(*                                                                        *)
+(*  The Why3 Verification Platform   /   The Why3 Development Team        *)
+(*  Copyright 2010-2013   --   INRIA - CNRS - Paris-Sud University        *)
+(*                                                                        *)
+(*  This software is distributed under the terms of the GNU Lesser        *)
+(*  General Public License version 2.1, with the special exception        *)
+(*  on linking described in file LICENSE.                                 *)
+(*                                                                        *)
+(*  File modified by CEA (Commissariat à l'énergie atomique et aux        *)
+(*                        énergies alternatives).                         *)
+(*                                                                        *)
+(**************************************************************************)
+
+(* this is the prelude for Alt-Ergo, version >= 0.95.2 *)
+(** The theory BuiltIn_ must be appended to this file*)
+(** The theory Bool_ must be appended to this file*)
+(** The theory real_Real_ must be appended to this file*)
+logic exp : real -> real
+
+axiom Exp_zero : (exp(0.0) = 1.0)
+
+axiom Exp_sum :
+  (forall x:real. forall y:real. (exp((x + y)) = (exp(x) * exp(y))))
+
+logic log : real -> real
+
+axiom Log_one : (log(1.0) = 0.0)
+
+axiom Log_mul :
+  (forall x:real. forall y:real. (((0.0 <  x) and (0.0 <  y)) ->
+  (log((x * y)) = (log(x) + log(y)))))
+
+axiom Log_exp : (forall x:real. (log(exp(x)) = x))
+
+axiom Exp_log : (forall x:real. ((0.0 <  x) -> (exp(log(x)) = x)))
+
+function log2(x: real) : real = (log(x) / log(2.0))
+
+function log10(x: real) : real = (log(x) / log(10.0))
+

@@ -1012,6 +1012,13 @@ and block = {
   (** variables that are local to the block. It is a subset of the slocals of
       the enclosing function. *)
 
+  mutable bstatics: varinfo list;
+  (** static variables whose syntactic scope is restricted to the block.
+      They are normalized as globals, since their lifetime is the whole program
+      execution, but we maintain a syntactic scope information here for better
+      traceability from the original source code.
+  *)
+
   mutable bstmts: stmt list;  (** The statements comprising the block. *)
 }
 
@@ -1316,7 +1323,7 @@ and logic_type =
   | Larrow of logic_type list * logic_type (** (n-ary) function type *)
 
 (** tsets with an unique identifier.
-    Use [Logic_const.new_location] to generate a new id. *)
+    Use {!Logic_const.new_identified_term} to generate a new id. *)
 and identified_term = {
   it_id: int; (** the identifier. *)
   it_content: term (** the term *)
@@ -1575,7 +1582,7 @@ and predicate_node =
   | Psubtype of term * term
       (** First term is a type tag that is a subtype of the second. *)
 
-(** predicate with an unique identifier.  Use [Logic_const.new_predicate] to
+(** predicate with an unique identifier.  Use {!Logic_const.new_predicate} to
     create fresh predicates *)
 and identified_predicate = {
   ip_id: int; (** identifier *)
@@ -1634,8 +1641,10 @@ and spec = {
 }
 
 
-(** extension to standard ACSL clause.
-    Each extension is associated to a keyword. An extension
+(** Extension to standard ACSL clause with an unique identifier.
+    Use {!Logic_const.new_acsl_extension} to create new acsl extension with
+    a fresh id.
+    Each extension is associated with a keyword. An extension
     can be registered through the following functions:
     - {!Logic_typing.register_behavior_extension} for parsing and type-checking
     - {!Cil_printer.register_behavior_extension} for pretty-printing an
@@ -1643,7 +1652,7 @@ and spec = {
     - {!Cil.register_behavior_extension} for visiting an extended clause
 
     @plugin development guide *)
-and acsl_extension = string * acsl_extension_kind
+and acsl_extension = int * string * acsl_extension_kind
 
 (** @plugin development guide *)
 and acsl_extension_kind =
@@ -1739,7 +1748,7 @@ and code_annotation_node =
 and funspec = spec
 
 (** code annotation with an unique identifier.
-    Use [Logic_const.new_code_annotation] to create new code annotations with
+    Use {!Logic_const.new_code_annotation} to create new code annotations with
     a fresh id. *)
 and code_annotation = { 
   annot_id: int; (** identifier. *) 
@@ -1803,11 +1812,26 @@ type kernel_function = {
 }
 
 (* [VP] TODO: VLocal should be attached to a particular block, not a whole
-   function. *)
+   function. It might be worth it to unify this type with the newer
+   syntactic_scope below.
+*)
 type localisation =
   | VGlobal
   | VLocal of kernel_function
   | VFormal of kernel_function
+
+(** Various syntactic scopes through which an identifier might be searched.
+    Note that for this purpose static variables are still tied to the block
+    where they were declared in the original source (see {!Cil_types.block}).
+    @since Chlorine-20180501
+*)
+type syntactic_scope =
+  | Program (** Only non-static global symbols. *)
+  | Translation_unit of string
+    (** Any global visible within the given C source file. *)
+  | Block_scope of stmt
+      (** same as above + all locals of the blocks to which the given statement
+          belongs. *)
 
 (** Definition of a machine model (architecture + compiler).
     @plugin development guide *)

@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2017                                               *)
+(*  Copyright (C) 2007-2018                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -29,9 +29,6 @@ module Project_name: Parameter_sig.String
 
 module Undo: Parameter_sig.Bool
 (** Option -undo. *)
-
-module Theme: Parameter_sig.String
-(** Option -gui-theme. *)
 
 (*
 Local Variables:

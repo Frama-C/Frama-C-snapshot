@@ -20,7 +20,7 @@ extern void gg(int* p);
 
 int X, Y ;
 //@ assigns \union(X, Y) ;
-void hh();
+void hh(void);
 
 int main() {
   int x,y,z;

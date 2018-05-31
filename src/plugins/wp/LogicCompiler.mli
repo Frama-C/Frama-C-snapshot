@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2017                                               *)
+(*  Copyright (C) 2007-2018                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -30,18 +30,19 @@ open Cil_datatype
 open Clabels
 open Lang
 open Lang.F
-open Memory
+open Sigs
 open Definitions
 
 type polarity = [ `Positive | `Negative | `NoPolarity ]
 
-module Make( M : Memory.Model ) :
+module Make( M : Sigs.Model ) :
 sig
 
   (** {3 Definitions} *)
 
-  type value = M.loc Memory.value
-  type logic = M.loc Memory.logic
+  type value = M.loc Sigs.value
+  type logic = M.loc Sigs.logic
+  type result = M.loc Sigs.result
   type sigma = M.Sigma.t
   type chunk = M.Chunk.t
 
@@ -49,22 +50,34 @@ sig
 
   type call
   type frame
+
   val pp_frame : Format.formatter -> frame -> unit
 
+  val local : descr:string -> frame
   val frame : kernel_function -> frame
-  val call : kernel_function -> value list -> call
+  val call : ?result:M.loc -> kernel_function -> value list -> call
   val call_pre   : sigma -> call -> sigma -> frame
   val call_post  : sigma -> call -> sigma sequence -> frame
 
+  val mk_frame :
+    ?kf:Cil_types.kernel_function ->
+    ?result:result ->
+    ?status:Lang.F.var ->
+    ?formals:value Varinfo.Map.t ->
+    ?labels:sigma Clabels.LabelMap.t ->
+    ?descr:string ->
+    unit -> frame
+
   val formal : varinfo -> value option
   val return : unit -> typ
-  val result : unit -> var
+  val result : unit -> result
   val status : unit -> var
   val trigger : trigger -> unit
 
   val guards : frame -> pred list
   val mem_frame : c_label -> sigma
   val mem_at_frame : frame -> c_label -> sigma
+  val set_at_frame : frame -> c_label -> sigma -> unit
 
   val in_frame : frame -> ('a -> 'b) -> 'a -> 'b
   val get_frame : unit -> frame
@@ -73,9 +86,9 @@ sig
 
   type env
 
-  val new_env : Logic_var.t list -> env
-  val move : env -> sigma -> env
-  val sigma : env -> sigma
+  val mk_env : ?here:sigma -> ?lvars:Logic_var.t list -> unit -> env
+  val current : env -> sigma
+  val move_at : env -> sigma -> env
   val env_at : env -> c_label -> env
   val mem_at : env -> c_label -> sigma
   val env_let : env -> logic_var -> logic -> env
@@ -87,12 +100,14 @@ sig
   val term : env -> Cil_types.term -> term
   val pred : polarity -> env -> predicate -> pred
   val logic : env -> Cil_types.term -> logic
-  val region : env -> Cil_types.term -> M.loc sloc list
+  val region : env -> unfold:bool -> Cil_types.term -> M.loc Sigs.region
+  (** When [~unfold:true], decompose compound regions field by field *)
 
   val bootstrap_term : (env -> Cil_types.term -> term) -> unit
   val bootstrap_pred : (polarity -> env -> predicate -> pred) -> unit
   val bootstrap_logic : (env -> Cil_types.term -> logic) -> unit
-  val bootstrap_region : (env -> Cil_types.term -> M.loc sloc list) -> unit
+  val bootstrap_region :
+    (env -> unfold:bool -> Cil_types.term -> M.loc Sigs.region) -> unit
 
   (** {3 Application} *)
 

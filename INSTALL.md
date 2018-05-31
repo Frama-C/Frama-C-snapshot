@@ -4,64 +4,63 @@
 
 - [Installing Frama-C](#installing-frama-c)
     - [Table of Contents](#table-of-contents)
-    - [Recommended mode: OPAM](#recommended-mode-opam)
-        - [Installing OPAM](#installing-opam)
-        - [Installing Frama-C from OPAM](#installing-frama-c-from-opam)
-        - [Installing Custom Versions of Frama-C via OPAM](#installing-custom-versions-of-frama-c-via-opam)
-        - [Installing Frama-C on Windows (via Cygwin + OPAM)](#installing-frama-c-on-windows-via-cygwin-opam)
-        - [Installing Frama-C on Mac OS X](#installing-frama-c-on-mac-os-x)
+    - [Installing Frama-C via opam](#installing-frama-c-via-opam)
+        - [Installing opam](#installing-opam)
+        - [Installing Custom Versions of Frama-C via opam](#installing-custom-versions-of-frama-c-via-opam)
+        - [Installing Frama-C on Windows (via Cygwin + opam)](#installing-frama-c-on-windows-via-cygwin--opam)
+        - [Installing Frama-C on macOS](#installing-frama-c-on-macos)
     - [Installing Frama-C via your Linux distribution (Debian/Ubuntu/Fedora)](#installing-frama-c-via-your-linux-distribution-debianubuntufedora)
     - [Compiling from source](#compiling-from-source)
         - [Quick Start](#quick-start)
         - [Full Compilation Guide](#full-compilation-guide)
     - [Available resources](#available-resources)
-        - [Executables: (in `/INSTALL_DIR/bin`)](#executables-in-installdirbin)
-        - [Shared files: (in `/INSTALL_DIR/share/frama-c` and subdirectories)](#shared-files-in-installdirshareframa-c-and-subdirectories)
-        - [Documentation files: (in `/INSTALL_DIR/share/frama-c/doc`)](#documentation-files-in-installdirshareframa-cdoc)
-        - [Object files: (in `/INSTALL_DIR/lib/frama-c`)](#object-files-in-installdirlibframa-c)
-        - [Plugin files: (in `/INSTALL_DIR/lib/frama-c/plugins`)](#plugin-files-in-installdirlibframa-cplugins)
-        - [Man files: (in `/INSTALL_DIR/man/man1`)](#man-files-in-installdirmanman1)
+        - [Executables: (in `/INSTALL_DIR/bin`)](#executables-in-install_dirbin)
+        - [Shared files: (in `/INSTALL_DIR/share/frama-c` and subdirectories)](#shared-files-in-install_dirshareframa-c-and-subdirectories)
+        - [Documentation files: (in `/INSTALL_DIR/share/frama-c/doc`)](#documentation-files-in-install_dirshareframa-cdoc)
+        - [Object files: (in `/INSTALL_DIR/lib/frama-c`)](#object-files-in-install_dirlibframa-c)
+        - [Plugin files: (in `/INSTALL_DIR/lib/frama-c/plugins`)](#plugin-files-in-install_dirlibframa-cplugins)
+        - [Man files: (in `/INSTALL_DIR/man/man1`)](#man-files-in-install_dirmanman1)
     - [Installing Additional Plugins](#installing-additional-plugins)
     - [HAVE FUN WITH FRAMA-C!](#have-fun-with-frama-c)
 
-## Recommended mode: OPAM
+## Installing Frama-C via opam
 
-The preferred method of installation for Frama-C is using
-[OPAM](http://opam.ocaml.org/) (v1.2.2 or newer).
+[opam](http://opam.ocaml.org/) is the OCaml package manager. Every Frama-C
+release is made available via an opam package.
 
-First you need to install OPAM, then you may install Frama-C using OPAM:
+First you need to install opam, then you may install Frama-C using opam:
 
     opam install frama-c
 
-**Note:** make sure your OPAM version is >= 1.2.2.
+**Note:** make sure your opam version is >= 1.2.2.
           Also, it is highly recommended that you install an external solver
-          for OPAM, such as `aspcud`, otherwise unexpected dependency errors
+          for opam, such as `aspcud`, otherwise unexpected dependency errors
           may occur during installation.
 
-### Installing OPAM
+### Installing opam
 
 Several Linux distributions already include an `opam` package.
 
-OSX has OPAM through Homebrew.
+OSX has opam through Homebrew.
 
-A [Cygwin-based OPAM](https://fdopen.github.io/opam-repository-mingw/installation)
+A [Cygwin-based opam](https://fdopen.github.io/opam-repository-mingw/installation)
 is available on Windows. It is less stable than it is for the other OSes, but should work.
 
-If your system does not have an OPAM package >= 1.2.2 you can compile it from source,
-or use the provided OPAM binaries available at:
+If your system does not have an opam package >= 1.2.2 you can compile it from source,
+or use the provided opam binaries available at:
 
 http://opam.ocaml.org/doc/Install.html
 
-### Installing Frama-C from OPAM
+### Installing Frama-C from opam
 
-Tha Frama-C package in OPAM is called `frama-c`, which includes both the
+The Frama-C package in opam is called `frama-c`, which includes both the
 command-line `frama-c` executable and the graphical interface `frama-c-gui`.
 
 (Note: before version 16 Sulfur, there were two packages, `frama-c-base` and
 `frama-c`, which were merged together.)
 
 `frama-c` includes non-OCaml dependencies, such as Gtk and GMP. In most
-systems, OPAM can take care of these external dependencies through
+systems, opam can take care of these external dependencies through
 its `depext` plug-in: issuing the two commands
 
     opam install depext
@@ -76,11 +75,11 @@ separately. If you do so, please consider providing the system name and list of
 packages (e.g. via a [Github issue](https://github.com/Frama-C/Frama-C-snapshot/issues/new))
 so that we can add it to the Frama-C `depext` package.
 
-### Installing Custom Versions of Frama-C via OPAM
+### Installing Custom Versions of Frama-C via opam
 
 If you have a **non-standard** version of Frama-C available
 (with proprietary extensions, custom plugins, etc.),
-you can use OPAM to install Frama-C's dependencies and compile your
+you can use opam to install Frama-C's dependencies and compile your
 own sources directly:
 
     # optional: remove the standard frama-c package if it was installed
@@ -100,7 +99,7 @@ See `opam pin` for more details.
 If your extensions require other libraries than the ones already used
 by Frama-C, they must of course be installed as well.
 
-### Installing Frama-C on Windows (via Cygwin + OPAM)
+### Installing Frama-C on Windows (via Cygwin + opam)
 
 Windows is not officially supported by the Frama-C team
 (as in, we may not have the time to fix all issues),
@@ -108,7 +107,7 @@ but Frama-C has been successfully compiled in Windows with the following tools:
 
 - Cygwin (for shell and installation support only;
           the compiled binaries do not depend on Cygwin)
-- OPAM for Windows (currently experimental)
+- opam for Windows (currently experimental)
 - OCaml MinGW-based compiler
 
 You may follow these instructions for installing OCaml for Windows:
@@ -118,7 +117,7 @@ https://fdopen.github.io/opam-repository-mingw/installation/
 Note that `lablgtk` (used by Frama-C) requires installing `depext` and
 `depext-cygwinports`, as indicated in the page.
 
-Once the Windows-based OPAM repository is configured, simply run:
+Once the Windows-based opam repository is configured, simply run:
 
     opam install frama-c
 
@@ -127,50 +126,64 @@ Windows are available on the Frama-C wiki:
 
 https://bts.frama-c.com/dokuwiki/doku.php?id=mantis:frama-c:compiling_from_source
 
-### Installing Frama-C on Mac OS X
+### Installing Frama-C on macOS
 
-[OPAM](https://opam.ocaml.org) works perfectly on Mac OS via
+[opam](https://opam.ocaml.org) works perfectly on macOS via
 [Homebrew](https://brew.sh).
 We recommend to rely on it for the installation of Frama-C.
 
 1. Install *required* general macOS tools for OCaml:
+
     ```shell
-    brew install autoconf opam
+    brew install autoconf pkg-config opam
     ```
-  Do not forget to `opam init` and ``eval `opam config env``` for
-  a proper OPAM installation (if not already done before on your machine).
+
+   Do not forget to `opam init` and ``eval `opam config env` `` for a proper
+   opam installation (if not already done before on your machine).
 
 2. Install *required* dependencies for Frama-C:
+
     ```shell
     brew install gmp gtk+ gtksourceview libgnomecanvas
     ```
 
 3. Install *recommended* dependencies for Frama-C:
+
     ```shell
     brew install graphviz
     opam install altgr-ergo why3
     ```
 
 4. Install *optional* dependencies for Frama-C/WP:
+
     ```shell
     opam install coq coqide
     ```
 
 5. Install Frama-C:
+
     ```shell
     opam install frama-c
     ```
 
 ## Installing Frama-C via your Linux distribution (Debian/Ubuntu/Fedora)
 
-**NOTE**: Distribution packages are not as up-to-date as OPAM packages.
-          We recommend using OPAM if at all possible.
+**NOTE**: Distribution packages are updated later than opam packages,
+          so if you want access to the most recent versions of Frama-C,
+          opam is currently the recommended approach.
 
 Also note that it is **not** recommended to mix OCaml packages installed by
-your distribution with packages installed via OPAM. When using OPAM,
+your distribution with packages installed via opam. When using opam,
 we recommend uninstalling all `ocaml-*` packages from your distribution, and
-then installing, exclusively via OPAM, an OCaml compiler and all the OCaml
+then installing, exclusively via opam, an OCaml compiler and all the OCaml
 packages you need. This ensures that only those versions will be in the PATH.
+
+The advantage of using distribution packages is that dependencies are almost
+always handled by the distribution's package manager. The disadvantage is that,
+if you need some optional OCaml package that has not been packaged in your
+distribution (e.g. `landmarks`, which is distributed via opam), it may be very
+hard to install it, since mixing opam and non-opam packages often fails
+(and is **strongly** discouraged).
 
 Debian/Ubuntu: `apt-get install frama-c`
 
@@ -322,7 +335,7 @@ available:
 - some `.rc` files used to configure Frama-C
 - some image files used by the Frama-C GUI
 - some files for Frama-C/plug-in development (autocomplete scripts,
-  Emacs settings, scripts for running EVA, ...)
+  Emacs settings, scripts for running Eva, ...)
 
 ### Documentation files: (in `/INSTALL_DIR/share/frama-c/doc`)
 

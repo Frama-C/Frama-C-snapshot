@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2017                                               *)
+(*  Copyright (C) 2007-2018                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -100,21 +100,56 @@ let describe s =
   with Not_found -> let w = descr_setup s in Hashtbl.add descriptions s w ; w
 
 (* -------------------------------------------------------------------------- *)
-(* --- Generator & Model                                                  --- *)
+(* --- Variable Proxy                                                     --- *)
 (* -------------------------------------------------------------------------- *)
 
-(* No implicit context for these AlterableVarUsage modules *) 
-module type AlterableVarUsage = sig
+module type Proxy = sig
   val datatype : string
-  val param : Cil_types.varinfo -> MemVar.param
-  val iter_inputs : ?kf:Kernel_function.t -> init:bool -> (Cil_types.varinfo -> unit) -> unit
+  val param : Cil_types.varinfo -> Separation.param
+  val iter : ?kf:Kernel_function.t -> init:bool ->
+    (Cil_types.varinfo -> unit) -> unit
 end
 
-module VarHoare : AlterableVarUsage =
+module MakeVarUsage(V : Proxy) : MemVar.VarUsage =
 struct
-  let datatype = "Value"
-  let param _x = MemVar.ByValue
-  let iter_inputs ?kf ~init f =
+  let datatype = "VarUsage." ^ V.datatype
+
+  let param x =
+    let get_addr = Wp_parameters.InHeap.get in
+    let get_ctxt = Wp_parameters.InCtxt.get in
+    let get_refs = Wp_parameters.ByRef.get in
+    let get_vars = Wp_parameters.ByValue.get in
+    let open Cil_types in
+    let module S = Datatype.String.Set in
+    let open Separation in
+    if S.mem x.vname (get_addr ()) then ByAddr else
+    if S.mem x.vname (get_ctxt ()) then InContext else
+    if S.mem x.vname (get_refs ()) then ByRef else
+    if S.mem x.vname (get_vars ()) then ByValue else
+      V.param x
+
+  (** A memory model context has to be set. *)
+  let separation () =
+    let kf = Model.get_scope () in
+    let init = match kf with
+      | None -> false
+      | Some f -> WpStrategy.is_main_init f in
+    let p = ref Separation.empty in
+    V.iter ?kf ~init (fun vi -> p := Separation.set vi (param vi) !p) ;
+    Separation.requires !p
+
+end
+
+(* -------------------------------------------------------------------------- *)
+(* --- Static Proxy (no preliminary analysis)                             --- *)
+(* -------------------------------------------------------------------------- *)
+
+module Raw : Proxy =
+struct
+  let datatype = "Raw"
+  let param _x = Separation.ByValue
+  (* if x.vaddrof then Separation.InHeap else Separation.ByValue *)
+  let iter ?kf ~init f =
     begin
       ignore init ;
       Globals.Vars.iter (fun x _initinfo -> f x) ;
@@ -124,125 +159,95 @@ struct
     end
 end
 
-module VarRefUsage =
+(* -------------------------------------------------------------------------- *)
+(* --- RefUsage-based Proxies                                             --- *)
+(* -------------------------------------------------------------------------- *)
+
+let is_formal_ptr x =
+  let open Cil_types in
+  x.vformal && Cil.isPointerType x.vtype
+    
+let refusage_param ~byref ~context x =
+  let kf = Model.get_scope () in
+  let init = match kf with
+    | None -> false
+    | Some f ->
+        WpStrategy.is_main_init f ||
+        Wp_parameters.InitAlias.get () ||
+        ( WpStrategy.isInitConst () &&
+          WpStrategy.isGlobalInitConst x ) in
+  match RefUsage.get ?kf ~init x with
+  | RefUsage.NoAccess -> Separation.NotUsed
+  | RefUsage.ByAddr -> Separation.ByAddr
+  | RefUsage.ByRef when byref -> Separation.ByRef
+  | RefUsage.ByArray when context && is_formal_ptr x -> Separation.InArray
+  | RefUsage.ByValue when context && is_formal_ptr x -> Separation.InContext
+  | RefUsage.ByRef | RefUsage.ByValue -> Separation.ByValue
+  | RefUsage.ByArray -> Separation.ByShift
+
+let refusage_iter ?kf ~init f = RefUsage.iter ?kf ~init (fun x _usage -> f x)
+
+module Var : Proxy =
 struct
-
-  let formal_ptr x =
-    let open Cil_types in
-    x.vformal && Cil.isPointerType x.vtype
-
-  let param ~byref ~context x =
-    let kf = Model.get_scope () in
-    let init = match kf with
-      | None -> false
-      | Some f ->
-          WpStrategy.is_main_init f ||
-          Wp_parameters.InitAlias.get () ||
-          ( WpStrategy.isInitConst () &&
-            WpStrategy.isGlobalInitConst x ) in
-    let open RefUsage in
-    match RefUsage.get ?kf ~init x with
-    | NoAccess -> MemVar.NotUsed
-    | ByAddr -> MemVar.InHeap
-    | ByRef when byref -> MemVar.ByRef
-    | ByArray when context && formal_ptr x -> MemVar.InArray
-    | ByValue when context && formal_ptr x -> MemVar.InContext
-    | ByRef | ByArray | ByValue -> MemVar.ByValue
-
-  let iter ?kf ~init f = RefUsage.iter ?kf ~init (fun x _usage -> f x)
-
+  let datatype = "Var"
+  let param = refusage_param ~byref:false ~context:false
+  let iter = refusage_iter
 end
 
-module VarRef0 : AlterableVarUsage =
+module Ref : Proxy =
 struct
-  let datatype = "Ref0"
-  let param = VarRefUsage.param ~byref:false ~context:false
-  let iter_inputs = VarRefUsage.iter
+  let datatype = "Ref"
+  let param = refusage_param ~byref:true ~context:false
+  let iter = refusage_iter
 end
 
-module VarRef2 : AlterableVarUsage =
-struct
-  let datatype = "Ref2"
-  let param = VarRefUsage.param ~byref:true ~context:false
-  let iter_inputs = VarRefUsage.iter
-end
-
-module VarCaveat : AlterableVarUsage =
+module Caveat : Proxy =
 struct
   let datatype = "Caveat"
-  let param = VarRefUsage.param ~byref:true ~context:true
-  let iter_inputs = VarRefUsage.iter
+  let param = refusage_param ~byref:true ~context:true
+  let iter = refusage_iter
 end
 
-module AltVarUsage(V : AlterableVarUsage) : MemVar.VarUsage =
-struct
-  let datatype = "VarUsage." ^ V.datatype
+(* -------------------------------------------------------------------------- *)
+(* --- Generator & Model                                                  --- *)
+(* -------------------------------------------------------------------------- *)
 
-  let param x =
-    let get_heap = Wp_parameters.InHeap.get in
-    let get_ctxt = Wp_parameters.InCtxt.get in
-    let get_refs = Wp_parameters.ByRef.get in
-    let get_vars = Wp_parameters.ByValue.get in
-    let open Cil_types in
-    let module S = Datatype.String.Set in
-    if S.mem x.vname (get_heap ()) then MemVar.InHeap else
-    if S.mem x.vname (get_ctxt ()) then MemVar.InContext else
-    if S.mem x.vname (get_refs ()) then MemVar.ByRef else
-    if S.mem x.vname (get_vars ()) then MemVar.ByValue else
-      V.param x
+(* Each model must be instanciated statically because of registered memory 
+   models identifiers and Frama-C states *)
 
-  (** A memory model context has to be set. *)
-  let separation () =
-    let kf = Model.get_scope () in
-    let init = match kf with
-      | None -> false
-      | Some f -> WpStrategy.is_main_init f in
-    let open Cil_types in
-    let open MemVar in
-    let r_mutex = ref [] in
-    let r_other = ref [] in
-    let s_mutex r = r_mutex := r::!r_mutex in
-    let s_other r = r_other := r::!r_other in
-    let s_partition x =
-      if (Cil.isPointerType x.vtype) || (Cil.isArrayType x.vtype) then
-        begin
-          match param x with
-          | ByValue   -> s_other (Separation.Arr x)
-          | ByRef     -> s_mutex (Separation.Ptr x)
-          | InHeap    -> s_other (Separation.Arr x)
-          | InContext -> s_mutex (Separation.Ptr x)
-          | InArray   -> s_mutex (Separation.Arr x)
-          | NotUsed   -> ()
-        end;
-    in
-    V.iter_inputs ?kf ~init
-      (fun vi ->
-         if vi.vglob then s_other (Separation.Var vi);
-         if vi.vformal then s_partition vi;
-      ) ;
-    let open Separation in
-    { mutex = List.rev !r_mutex ; other = List.rev !r_other }
+module Register(V : Proxy)(M : Sigs.Model) = MemVar.Make(MakeVarUsage(V))(M)
 
+module Model_Hoare_Raw = Register(Raw)(MemEmpty)
+module Model_Hoare_Ref = Register(Ref)(MemEmpty)
+module Model_Typed_Var = Register(Var)(MemTyped)
+module Model_Typed_Ref = Register(Ref)(MemTyped)
+module Model_Caveat = Register(Caveat)(MemTyped)
+
+module MakeCompiler(M:Sigs.Model) = struct
+  module M = M
+  module C = CodeSemantics.Make(M)
+  module L = LogicSemantics.Make(M)
+  module A = LogicAssigns.Make(M)(C)(L)
 end
 
-module AltMake(V : AlterableVarUsage)(M : Memory.Model) =
-  MemVar.Make( AltVarUsage(V) )(M)
+module Comp_MemZeroAlias = MakeCompiler(MemZeroAlias)
+module Comp_Hoare_Raw = MakeCompiler(Model_Hoare_Raw)
+module Comp_Hoare_Ref = MakeCompiler(Model_Hoare_Ref)
+module Comp_MemTyped = MakeCompiler(MemTyped)
+module Comp_Typed_Var = MakeCompiler(Model_Typed_Var)
+module Comp_Typed_Ref = MakeCompiler(Model_Typed_Ref)
+module Comp_Caveat = MakeCompiler(Model_Caveat)
 
-module MHoareVar = AltMake(VarHoare)(MemEmpty)
-module MHoareRef = AltMake(VarRef2)(MemEmpty)
-module MTypedVar = AltMake(VarRef0)(MemTyped)
-module MTypedRef = AltMake(VarRef2)(MemTyped)
-module MCaveat = AltMake(VarCaveat)(MemTyped)
 
-let memory mheap mvar : (module Memory.Model) =
+let compiler mheap mvar : (module Sigs.Compiler) =
   match mheap , mvar with
-  | ZeroAlias , _     -> (module MemZeroAlias)
-  | Hoare , (Raw|Var) -> (module MHoareVar)
-  | Hoare ,   Ref     -> (module MHoareRef)
-  | Typed _ , Raw     -> (module MemTyped)
-  | Typed _ , Var     -> (module MTypedVar)
-  | Typed _ , Ref     -> (module MTypedRef)
-  | _    , Caveat     -> (module MCaveat)
+  | ZeroAlias , _     -> (module Comp_MemZeroAlias)
+  | _    ,   Caveat   -> (module Comp_Caveat)
+  | Hoare , (Raw|Var) -> (module Comp_Hoare_Raw)
+  | Hoare ,   Ref     -> (module Comp_Hoare_Ref)
+  | Typed _ , Raw     -> (module Comp_MemTyped)
+  | Typed _ , Var     -> (module Comp_Typed_Var)
+  | Typed _ , Ref     -> (module Comp_Typed_Ref)
 
 (* -------------------------------------------------------------------------- *)
 (* --- Tuning                                                             --- *)
@@ -265,7 +270,7 @@ let configure (s:setup) (d:driver) () =
 (* --- Access                                                             --- *)
 (* -------------------------------------------------------------------------- *)
 
-module MODEL = FCMap.Make
+module COMPILERS = FCMap.Make
     (struct
       type t = setup * driver
       let compare (s,d) (s',d') =
@@ -273,15 +278,15 @@ module MODEL = FCMap.Make
         if cmp <> 0 then cmp else LogicBuiltins.compare d d'
     end)
 
-let instances = ref (MODEL.empty : Model.t MODEL.t)
+let instances = ref (COMPILERS.empty : Model.t COMPILERS.t)
 
 let instance (s:setup) (d:driver) =
-  try MODEL.find (s,d) !instances
+  try COMPILERS.find (s,d) !instances
   with Not_found ->
     let id,descr = describe s in
-    let module M = (val memory s.mheap s.mvar) in
+    let module CC = (val compiler s.mheap s.mvar) in
     let tuning = [configure s d] in
-    let separation kf = Model.on_scope (Some kf) M.separation () in
+    let separation kf = Model.on_scope (Some kf) CC.M.separation () in
     let id,descr =
       if LogicBuiltins.is_default d then id,descr
       else
@@ -289,7 +294,7 @@ let instance (s:setup) (d:driver) =
           descr ^ " (Driver " ^ LogicBuiltins.descr d ^ ")" )
     in
     let model = Model.register ~id ~descr ~tuning ~separation () in
-    instances := MODEL.add (s,d) model !instances ; model
+    instances := COMPILERS.add (s,d) model !instances ; model
 
 let ident s = fst (describe s)
 let descr s = snd (describe s)

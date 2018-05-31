@@ -7,10 +7,14 @@
   q ∈ {{ &x }}
   p ∈ {{ &x }}
   v ∈ [--..--]
-tests/value/init_const_guard.i:14:[value] function f: postcondition 'Const' got status valid.
-tests/value/init_const_guard.i:15:[value] function f: postcondition 'Pointed_Valid' got status valid.
-tests/value/init_const_guard.i:16:[value] function f: postcondition 'Q_ReadOnly' got status valid.
-tests/value/init_const_guard.i:17:[value] function f: postcondition 'Q_NotWrite' got status valid.
+[value] tests/value/init_const_guard.i:14: 
+  function f: postcondition 'Const' got status valid.
+[value] tests/value/init_const_guard.i:15: 
+  function f: postcondition 'Pointed_Valid' got status valid.
+[value] tests/value/init_const_guard.i:16: 
+  function f: postcondition 'Q_ReadOnly' got status valid.
+[value] tests/value/init_const_guard.i:17: 
+  function f: postcondition 'Q_NotWrite' got status valid.
 [value] Recording results for f
 [value] done for function f
 [value] ====== VALUES COMPUTED ======
@@ -19,14 +23,14 @@ tests/value/init_const_guard.i:17:[value] function f: postcondition 'Q_NotWrite'
 [from] Computing for function f
 [from] Done for function f
 [from] ====== DEPENDENCIES COMPUTED ======
-    These dependencies hold at termination for the executions that terminate:
+  These dependencies hold at termination for the executions that terminate:
 [from] Function f:
   \result FROM \nothing
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function f:
-      __retres
+    __retres
 [inout] Inputs for function f:
-      \nothing
+    \nothing
 [report] Computing properties status...
 
 --------------------------------------------------------------------------------
@@ -77,29 +81,29 @@ tests/value/init_const_guard.i:17:[value] function f: postcondition 'Q_NotWrite'
   q ∈ {{ &x }}
   p ∈ {{ &x }}
   v ∈ [--..--]
-tests/value/init_const_guard.i:32:[value] assertion 'Read' got status valid.
-tests/value/init_const_guard.i:33:[value] assertion 'Guard_against_Const' got status valid.
-tests/value/init_const_guard.i:35:[value] warning: out of bounds write. assert \valid(p);
-tests/value/init_const_guard.i:35:[kernel] warning: all target addresses were invalid. This path is assumed to be dead.
-tests/value/init_const_guard.i:27:[value] function g: postcondition 'P_not_Const' got status valid.
+[value] tests/value/init_const_guard.i:32: assertion 'Read' got status valid.
+[value] tests/value/init_const_guard.i:33: 
+  assertion 'Guard_against_Const' got status valid.
+[value] tests/value/init_const_guard.i:27: 
+  function g: postcondition 'P_not_Const' got status valid.
 [value] Recording results for g
 [value] done for function g
-tests/value/init_const_guard.i:35:[value] assertion 'Value,mem_access' got final status invalid.
 [value] ====== VALUES COMPUTED ======
 [value:final-states] Values at end of function g:
+  x ∈ {0; 2}
   p ∈ {{ &x }}
 [from] Computing for function g
 [from] Done for function g
 [from] ====== DEPENDENCIES COMPUTED ======
-    These dependencies hold at termination for the executions that terminate:
+  These dependencies hold at termination for the executions that terminate:
 [from] Function g:
   x FROM v (and SELF)
   p FROM \nothing
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function g:
-      p
+    x; p
 [inout] Inputs for function g:
-      p; v
+    p; v
 [report] Computing properties status...
 
 --------------------------------------------------------------------------------
@@ -123,9 +127,6 @@ tests/value/init_const_guard.i:35:[value] assertion 'Value,mem_access' got final
             by Value.
 [  Valid  ] Assertion 'Guard_against_Const' (file tests/value/init_const_guard.i, line 33)
             by Value.
-[  Alarm  ] Assertion 'Value,mem_access' (file tests/value/init_const_guard.i, line 35)
-            By Value, with pending:
-             - Unreachable instruction (file tests/value/init_const_guard.i, line 35)
 [  Valid  ] Default behavior
             by Frama-C kernel.
 
@@ -134,8 +135,7 @@ tests/value/init_const_guard.i:35:[value] assertion 'Value,mem_access' got final
 --------------------------------------------------------------------------------
      4 Completely validated
      1 Locally validated
-     1 Alarm emitted
-     6 Total
+     5 Total
 --------------------------------------------------------------------------------
 [value] Analyzing an incomplete application starting at f
 [value] Computing initial state
@@ -154,14 +154,14 @@ tests/value/init_const_guard.i:35:[value] assertion 'Value,mem_access' got final
 [from] Computing for function f
 [from] Done for function f
 [from] ====== DEPENDENCIES COMPUTED ======
-    These dependencies hold at termination for the executions that terminate:
+  These dependencies hold at termination for the executions that terminate:
 [from] Function f:
   \result FROM \nothing
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function f:
-      __retres
+    __retres
 [inout] Inputs for function f:
-      \nothing
+    \nothing
 [report] Computing properties status...
 
 --------------------------------------------------------------------------------
@@ -217,24 +217,24 @@ tests/value/init_const_guard.i:35:[value] assertion 'Value,mem_access' got final
   p ∈ {{ NULL ; &S_p_0[0] }}
   v ∈ [--..--]
   S_p_0[0..1] ∈ [--..--]
-tests/value/init_const_guard.i:35:[value] warning: out of bounds write. assert \valid(p);
 [value] Recording results for g
 [value] done for function g
 [value] ====== VALUES COMPUTED ======
 [value:final-states] Values at end of function g:
+  x ∈ [--..--]
   p ∈ {{ &x }}
 [from] Computing for function g
 [from] Done for function g
 [from] ====== DEPENDENCIES COMPUTED ======
-    These dependencies hold at termination for the executions that terminate:
+  These dependencies hold at termination for the executions that terminate:
 [from] Function g:
   x FROM v (and SELF)
   p FROM \nothing
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function g:
-      p
+    x; p
 [inout] Inputs for function g:
-      p; v
+    p; v
 [report] Computing properties status...
 
 --------------------------------------------------------------------------------
@@ -258,9 +258,6 @@ tests/value/init_const_guard.i:35:[value] warning: out of bounds write. assert \
             by Value.
 [  Valid  ] Assertion 'Guard_against_Const' (file tests/value/init_const_guard.i, line 33)
             by Value.
-[  Alarm  ] Assertion 'Value,mem_access' (file tests/value/init_const_guard.i, line 35)
-            By Value, with pending:
-             - Unreachable instruction (file tests/value/init_const_guard.i, line 35)
 [  Valid  ] Default behavior
             by Frama-C kernel.
 
@@ -269,6 +266,5 @@ tests/value/init_const_guard.i:35:[value] warning: out of bounds write. assert \
 --------------------------------------------------------------------------------
      4 Completely validated
      1 Locally validated
-     1 Alarm emitted
-     6 Total
+     5 Total
 --------------------------------------------------------------------------------

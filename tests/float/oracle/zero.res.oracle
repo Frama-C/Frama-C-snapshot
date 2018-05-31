@@ -3,60 +3,63 @@
 [value] Computing initial state
 [value] Initial state computed
 [value:initial-state] Values of globals at initialization
-  
-tests/float/zero.i:5:[value] warning: function main: precondition got status unknown.
-tests/float/zero.i:10:[value] Frama_C_show_each: {1}
-tests/float/zero.i:17:[value] Frama_C_show_each: {1}
-tests/float/zero.i:23:[value] Frama_C_show_each_1: [1.40129846432e-45 .. 3.40282346639e+38]
-tests/float/zero.i:25:[value] Frama_C_show_each_2: [-0. .. 0.]
-tests/float/zero.i:29:[value] Frama_C_show_each_3: [-3.40282346639e+38 .. -1.40129846432e-45]
-tests/float/zero.i:31:[value] Frama_C_show_each_4: [-0. .. 0.]
+  rand ∈ [--..--]
+[value] computing for function main1 <- main.
+  Called from tests/float/zero.i:55.
+[value:alarm] tests/float/zero.i:55: Warning: 
+  function main1: precondition got status unknown.
+[value] tests/float/zero.i:10: Frama_C_show_each: {1}
+[value] tests/float/zero.i:17: Frama_C_show_each: {1}
+[value] tests/float/zero.i:23: 
+  Frama_C_show_each_1: [1.40129846432e-45 .. 3.40282346639e+38]
+[value] tests/float/zero.i:25: Frama_C_show_each_2: [-0. .. 0.]
+[value] tests/float/zero.i:29: 
+  Frama_C_show_each_3: [-3.40282346639e+38 .. -1.40129846432e-45]
+[value] tests/float/zero.i:31: Frama_C_show_each_4: [-0. .. 0.]
+[value] Recording results for main1
+[value] Done for function main1
+[value] computing for function equality_between_zeros <- main.
+  Called from tests/float/zero.i:56.
+[value] Recording results for equality_between_zeros
+[value] Done for function equality_between_zeros
 [value] Recording results for main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======
-[value:final-states] Values at end of function main:
+[value:final-states] Values at end of function equality_between_zeros:
+  f1 ∈ [0. .. 10.]
+  f2 ∈ [-0. .. 10.]
+  r ∈ [-0. .. 10.]
+[value:final-states] Values at end of function main1:
   f ∈ {-0.}
   i1 ∈ {1}
   i2 ∈ {1}
   i3 ∈ {0}
-[from] Computing for function main
-[from] Done for function main
-[from] ====== DEPENDENCIES COMPUTED ======
-    These dependencies hold at termination for the executions that terminate:
-[from] Function main:
-  NO EFFECTS
-[from] ====== END OF DEPENDENCIES ======
-[inout] Out (internal) for function main:
-      f; i1; i2; i3
-[inout] Inputs for function main:
-      \nothing
-[value] Analyzing a complete application starting at main
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
-  
-tests/float/zero.i:10:[value] Frama_C_show_each: {1}
-tests/float/zero.i:17:[value] Frama_C_show_each: {1}
-tests/float/zero.i:23:[value] Frama_C_show_each_1: [-0. .. 3.40282346639e+38]
-tests/float/zero.i:25:[value] Frama_C_show_each_2: [-0. .. 0.]
-tests/float/zero.i:29:[value] Frama_C_show_each_3: [-3.40282346639e+38 .. 0.]
-tests/float/zero.i:31:[value] Frama_C_show_each_4: [-0. .. 0.]
-[value] Recording results for main
-[value] done for function main
-[value] ====== VALUES COMPUTED ======
 [value:final-states] Values at end of function main:
-  f ∈ {-0.}
-  i1 ∈ {1}
-  i2 ∈ {1}
-  i3 ∈ {0}
+  
+[from] Computing for function equality_between_zeros
+[from] Done for function equality_between_zeros
+[from] Computing for function main1
+[from] Done for function main1
 [from] Computing for function main
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
-    These dependencies hold at termination for the executions that terminate:
+  These dependencies hold at termination for the executions that terminate:
+[from] Function equality_between_zeros:
+  NO EFFECTS
+[from] Function main1:
+  NO EFFECTS
 [from] Function main:
   NO EFFECTS
 [from] ====== END OF DEPENDENCIES ======
+[inout] Out (internal) for function equality_between_zeros:
+    f1; tmp; f2; tmp_0; r
+[inout] Inputs for function equality_between_zeros:
+    rand
+[inout] Out (internal) for function main1:
+    f; i1; i2; i3
+[inout] Inputs for function main1:
+    \nothing
 [inout] Out (internal) for function main:
-      f; i1; i2; i3
+    \nothing
 [inout] Inputs for function main:
-      \nothing
+    rand

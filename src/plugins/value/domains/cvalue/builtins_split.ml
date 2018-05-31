@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2017                                               *)
+(*  Copyright (C) 2007-2018                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -80,7 +80,7 @@ let warning warn s =
   if warn then 
     Value_parameters.result ~current:true ~once:true s
   else
-    Log.nullprintf s
+    Pretty_utils.nullprintf s
 
 (* Split the contents of lv (by using multiple states), provided that [lv] is a
    singleton location with an arithmetic type, and that it contains no more than

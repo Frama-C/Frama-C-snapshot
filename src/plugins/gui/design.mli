@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2017                                               *)
+(*  Copyright (C) 2007-2018                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -263,12 +263,20 @@ val reactive_buffer : main_window_extension_points ->
 module Feedback :
 sig
 
-  val mark : GSourceView2.source_buffer 
+  val declare_markers: GSourceView2.source_view -> unit
+  (** Declares the icons used for the property status bullets, as marks in
+      the left-margin of the source buffer.
+      These icons depend on the GUI theme, and must be reset when the
+      theme is changed.
+      @since Chlorine-20180501 *)
+
+  val mark : GSourceView2.source_buffer
+    -> ?call_site:stmt
     -> offset:int
     -> Property_status.Feedback.t -> unit
     (** [offset] is the offset of the character in the source buffer. The
         mark is put in the left-margin of the line corresponding to said
-        character. *)
+        character. [call_site] is the statement marked, if it is a call. *)
 
 end
 

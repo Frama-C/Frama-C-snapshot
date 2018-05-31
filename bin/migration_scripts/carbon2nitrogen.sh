@@ -1,8 +1,9 @@
+#! /bin/sh
 ##########################################################################
 #                                                                        #
 #  This file is part of Frama-C.                                         #
 #                                                                        #
-#  Copyright (C) 2007-2017                                               #
+#  Copyright (C) 2007-2018                                               #
 #    CEA (Commissariat à l'énergie atomique et aux énergies              #
 #         alternatives)                                                  #
 #                                                                        #
@@ -20,7 +21,6 @@
 #                                                                        #
 ##########################################################################
 
-#! /bin/sh
 #
 # carbon2nitrogen:
 # convert a Frama-C plugin from Frama-C Carbon to Frama-C Nitrogen 

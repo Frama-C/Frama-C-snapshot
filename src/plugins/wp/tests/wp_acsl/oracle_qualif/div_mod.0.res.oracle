@@ -2,7 +2,7 @@
 [kernel] Parsing tests/wp_acsl/div_mod.i (no preprocessing)
 [wp] Running WP plugin...
 [wp] Loading driver 'share/wp.driver'
-[wp] warning: Missing RTE guards
+[wp] Warning: Missing RTE guards
 [wp] 22 goals scheduled
 [wp] [Alt-Ergo] Goal typed_f_post_d0_div_pos_pos : Valid
 [wp] [Alt-Ergo] Goal typed_f_post_d1_div_neg_pos : Valid
@@ -27,9 +27,10 @@
 [wp] [Alt-Ergo] Goal typed_f_post_sm2_mod_pos_neg : Valid
 [wp] [Alt-Ergo] Goal typed_f_post_sm3_mod_neg_neg : Valid
 [wp] Proved goals:   22 / 22
-    Qed:             0 
-    Alt-Ergo:       22
-----------------------------------------------------------
-Functions           WP   Alt-Ergo    Total   Success
-f                   -      22 (9)     22       100%
-----------------------------------------------------------
+  Qed:             0 
+  Alt-Ergo:       22
+[wp] Report 'tests/wp_acsl/div_mod.i.0.report.json'
+-------------------------------------------------------------
+Functions           WP     Alt-Ergo        Total   Success
+f                   -      22 (4..16)       22       100%
+-------------------------------------------------------------

@@ -377,362 +377,362 @@
            [4..9] ∈ {1}
   compressed[0..9] ∈ {0}
 [value] computing for function encode <- main.
-    Called from tests/test/adpcm.c:608.
+  Called from tests/test/adpcm.c:608.
 [value] computing for function filtez <- encode <- main.
-    Called from tests/test/adpcm.c:301.
+  Called from tests/test/adpcm.c:301.
 [value] Recording results for filtez
 [value] Done for function filtez
 [value] computing for function filtep <- encode <- main.
-    Called from tests/test/adpcm.c:304.
+  Called from tests/test/adpcm.c:304.
 [value] Recording results for filtep
 [value] Done for function filtep
 [value] computing for function quantl <- encode <- main.
-    Called from tests/test/adpcm.c:311.
+  Called from tests/test/adpcm.c:311.
 [value] computing for function abs <- quantl <- encode <- main.
-    Called from tests/test/adpcm.c:444.
+  Called from tests/test/adpcm.c:444.
 [value] Recording results for abs
 [value] Done for function abs
 [value] Recording results for quantl
 [value] Done for function quantl
 [value] computing for function logscl <- encode <- main.
-    Called from tests/test/adpcm.c:318.
+  Called from tests/test/adpcm.c:318.
 [value] Recording results for logscl
 [value] Done for function logscl
 [value] computing for function scalel <- encode <- main.
-    Called from tests/test/adpcm.c:322.
+  Called from tests/test/adpcm.c:322.
 [value] Recording results for scalel
 [value] Done for function scalel
 [value] computing for function upzero <- encode <- main.
-    Called from tests/test/adpcm.c:331.
+  Called from tests/test/adpcm.c:331.
 [value] Recording results for upzero
 [value] Done for function upzero
 [value] computing for function uppol2 <- encode <- main.
-    Called from tests/test/adpcm.c:335.
+  Called from tests/test/adpcm.c:335.
 [value] Recording results for uppol2
 [value] Done for function uppol2
 [value] computing for function uppol1 <- encode <- main.
-    Called from tests/test/adpcm.c:339.
+  Called from tests/test/adpcm.c:339.
 [value] Recording results for uppol1
 [value] Done for function uppol1
 [value] computing for function filtez <- encode <- main.
-    Called from tests/test/adpcm.c:352.
+  Called from tests/test/adpcm.c:352.
 [value] Recording results for filtez
 [value] Done for function filtez
 [value] computing for function filtep <- encode <- main.
-    Called from tests/test/adpcm.c:354.
+  Called from tests/test/adpcm.c:354.
 [value] Recording results for filtep
 [value] Done for function filtep
 [value] computing for function abs <- encode <- main.
-    Called from tests/test/adpcm.c:370.
+  Called from tests/test/adpcm.c:370.
 [value] Recording results for abs
 [value] Done for function abs
 [value] computing for function logsch <- encode <- main.
-    Called from tests/test/adpcm.c:376.
+  Called from tests/test/adpcm.c:376.
 [value] Recording results for logsch
 [value] Done for function logsch
 [value] computing for function scalel <- encode <- main.
-    Called from tests/test/adpcm.c:379.
+  Called from tests/test/adpcm.c:379.
 [value] Recording results for scalel
 [value] Done for function scalel
 [value] computing for function upzero <- encode <- main.
-    Called from tests/test/adpcm.c:387.
+  Called from tests/test/adpcm.c:387.
 [value] Recording results for upzero
 [value] Done for function upzero
 [value] computing for function uppol2 <- encode <- main.
-    Called from tests/test/adpcm.c:391.
+  Called from tests/test/adpcm.c:391.
 [value] Recording results for uppol2
 [value] Done for function uppol2
 [value] computing for function uppol1 <- encode <- main.
-    Called from tests/test/adpcm.c:394.
+  Called from tests/test/adpcm.c:394.
 [value] Recording results for uppol1
 [value] Done for function uppol1
-tests/test/adpcm.c:262:[value] function encode: postcondition got status valid.
+[value] tests/test/adpcm.c:262: function encode: postcondition got status valid.
 [value] Recording results for encode
 [value] Done for function encode
 [value] computing for function encode <- main.
-    Called from tests/test/adpcm.c:608.
+  Called from tests/test/adpcm.c:608.
 [value] computing for function filtez <- encode <- main.
-    Called from tests/test/adpcm.c:301.
+  Called from tests/test/adpcm.c:301.
 [value] Recording results for filtez
 [value] Done for function filtez
 [value] computing for function filtep <- encode <- main.
-    Called from tests/test/adpcm.c:304.
+  Called from tests/test/adpcm.c:304.
 [value] Recording results for filtep
 [value] Done for function filtep
 [value] computing for function quantl <- encode <- main.
-    Called from tests/test/adpcm.c:311.
+  Called from tests/test/adpcm.c:311.
 [value] computing for function abs <- quantl <- encode <- main.
-    Called from tests/test/adpcm.c:444.
+  Called from tests/test/adpcm.c:444.
 [value] Recording results for abs
 [value] Done for function abs
 [value] Recording results for quantl
 [value] Done for function quantl
 [value] computing for function logscl <- encode <- main.
-    Called from tests/test/adpcm.c:318.
+  Called from tests/test/adpcm.c:318.
 [value] Recording results for logscl
 [value] Done for function logscl
 [value] computing for function scalel <- encode <- main.
-    Called from tests/test/adpcm.c:322.
+  Called from tests/test/adpcm.c:322.
 [value] Recording results for scalel
 [value] Done for function scalel
 [value] computing for function upzero <- encode <- main.
-    Called from tests/test/adpcm.c:331.
+  Called from tests/test/adpcm.c:331.
 [value] Recording results for upzero
 [value] Done for function upzero
 [value] computing for function uppol2 <- encode <- main.
-    Called from tests/test/adpcm.c:335.
+  Called from tests/test/adpcm.c:335.
 [value] Recording results for uppol2
 [value] Done for function uppol2
 [value] computing for function uppol1 <- encode <- main.
-    Called from tests/test/adpcm.c:339.
+  Called from tests/test/adpcm.c:339.
 [value] Recording results for uppol1
 [value] Done for function uppol1
 [value] computing for function filtez <- encode <- main.
-    Called from tests/test/adpcm.c:352.
+  Called from tests/test/adpcm.c:352.
 [value] Recording results for filtez
 [value] Done for function filtez
 [value] computing for function filtep <- encode <- main.
-    Called from tests/test/adpcm.c:354.
+  Called from tests/test/adpcm.c:354.
 [value] Recording results for filtep
 [value] Done for function filtep
 [value] computing for function abs <- encode <- main.
-    Called from tests/test/adpcm.c:370.
+  Called from tests/test/adpcm.c:370.
 [value] Recording results for abs
 [value] Done for function abs
 [value] computing for function logsch <- encode <- main.
-    Called from tests/test/adpcm.c:376.
+  Called from tests/test/adpcm.c:376.
 [value] Recording results for logsch
 [value] Done for function logsch
 [value] computing for function scalel <- encode <- main.
-    Called from tests/test/adpcm.c:379.
+  Called from tests/test/adpcm.c:379.
 [value] Recording results for scalel
 [value] Done for function scalel
 [value] computing for function upzero <- encode <- main.
-    Called from tests/test/adpcm.c:387.
+  Called from tests/test/adpcm.c:387.
 [value] Recording results for upzero
 [value] Done for function upzero
 [value] computing for function uppol2 <- encode <- main.
-    Called from tests/test/adpcm.c:391.
+  Called from tests/test/adpcm.c:391.
 [value] Recording results for uppol2
 [value] Done for function uppol2
 [value] computing for function uppol1 <- encode <- main.
-    Called from tests/test/adpcm.c:394.
-[value] Recording results for uppol1
-[value] Done for function uppol1
-[value] Recording results for encode
-[value] Done for function encode
-[value] computing for function encode <- main.
-    Called from tests/test/adpcm.c:608.
-[value] computing for function filtez <- encode <- main.
-    Called from tests/test/adpcm.c:301.
-[value] Recording results for filtez
-[value] Done for function filtez
-[value] computing for function filtep <- encode <- main.
-    Called from tests/test/adpcm.c:304.
-[value] Recording results for filtep
-[value] Done for function filtep
-[value] computing for function quantl <- encode <- main.
-    Called from tests/test/adpcm.c:311.
-[value] computing for function abs <- quantl <- encode <- main.
-    Called from tests/test/adpcm.c:444.
-[value] Recording results for abs
-[value] Done for function abs
-[value] Recording results for quantl
-[value] Done for function quantl
-[value] computing for function logscl <- encode <- main.
-    Called from tests/test/adpcm.c:318.
-[value] Recording results for logscl
-[value] Done for function logscl
-[value] computing for function scalel <- encode <- main.
-    Called from tests/test/adpcm.c:322.
-[value] Recording results for scalel
-[value] Done for function scalel
-[value] computing for function upzero <- encode <- main.
-    Called from tests/test/adpcm.c:331.
-[value] Recording results for upzero
-[value] Done for function upzero
-[value] computing for function uppol2 <- encode <- main.
-    Called from tests/test/adpcm.c:335.
-[value] Recording results for uppol2
-[value] Done for function uppol2
-[value] computing for function uppol1 <- encode <- main.
-    Called from tests/test/adpcm.c:339.
-[value] Recording results for uppol1
-[value] Done for function uppol1
-[value] computing for function filtez <- encode <- main.
-    Called from tests/test/adpcm.c:352.
-[value] Recording results for filtez
-[value] Done for function filtez
-[value] computing for function filtep <- encode <- main.
-    Called from tests/test/adpcm.c:354.
-[value] Recording results for filtep
-[value] Done for function filtep
-[value] computing for function abs <- encode <- main.
-    Called from tests/test/adpcm.c:370.
-[value] Recording results for abs
-[value] Done for function abs
-[value] computing for function logsch <- encode <- main.
-    Called from tests/test/adpcm.c:376.
-[value] Recording results for logsch
-[value] Done for function logsch
-[value] computing for function scalel <- encode <- main.
-    Called from tests/test/adpcm.c:379.
-[value] Recording results for scalel
-[value] Done for function scalel
-[value] computing for function upzero <- encode <- main.
-    Called from tests/test/adpcm.c:387.
-[value] Recording results for upzero
-[value] Done for function upzero
-[value] computing for function uppol2 <- encode <- main.
-    Called from tests/test/adpcm.c:391.
-[value] Recording results for uppol2
-[value] Done for function uppol2
-[value] computing for function uppol1 <- encode <- main.
-    Called from tests/test/adpcm.c:394.
+  Called from tests/test/adpcm.c:394.
 [value] Recording results for uppol1
 [value] Done for function uppol1
 [value] Recording results for encode
 [value] Done for function encode
 [value] computing for function encode <- main.
-    Called from tests/test/adpcm.c:608.
+  Called from tests/test/adpcm.c:608.
 [value] computing for function filtez <- encode <- main.
-    Called from tests/test/adpcm.c:301.
+  Called from tests/test/adpcm.c:301.
 [value] Recording results for filtez
 [value] Done for function filtez
 [value] computing for function filtep <- encode <- main.
-    Called from tests/test/adpcm.c:304.
+  Called from tests/test/adpcm.c:304.
 [value] Recording results for filtep
 [value] Done for function filtep
 [value] computing for function quantl <- encode <- main.
-    Called from tests/test/adpcm.c:311.
+  Called from tests/test/adpcm.c:311.
 [value] computing for function abs <- quantl <- encode <- main.
-    Called from tests/test/adpcm.c:444.
+  Called from tests/test/adpcm.c:444.
 [value] Recording results for abs
 [value] Done for function abs
 [value] Recording results for quantl
 [value] Done for function quantl
 [value] computing for function logscl <- encode <- main.
-    Called from tests/test/adpcm.c:318.
+  Called from tests/test/adpcm.c:318.
 [value] Recording results for logscl
 [value] Done for function logscl
 [value] computing for function scalel <- encode <- main.
-    Called from tests/test/adpcm.c:322.
+  Called from tests/test/adpcm.c:322.
 [value] Recording results for scalel
 [value] Done for function scalel
 [value] computing for function upzero <- encode <- main.
-    Called from tests/test/adpcm.c:331.
+  Called from tests/test/adpcm.c:331.
 [value] Recording results for upzero
 [value] Done for function upzero
 [value] computing for function uppol2 <- encode <- main.
-    Called from tests/test/adpcm.c:335.
+  Called from tests/test/adpcm.c:335.
 [value] Recording results for uppol2
 [value] Done for function uppol2
 [value] computing for function uppol1 <- encode <- main.
-    Called from tests/test/adpcm.c:339.
+  Called from tests/test/adpcm.c:339.
 [value] Recording results for uppol1
 [value] Done for function uppol1
 [value] computing for function filtez <- encode <- main.
-    Called from tests/test/adpcm.c:352.
+  Called from tests/test/adpcm.c:352.
 [value] Recording results for filtez
 [value] Done for function filtez
 [value] computing for function filtep <- encode <- main.
-    Called from tests/test/adpcm.c:354.
+  Called from tests/test/adpcm.c:354.
 [value] Recording results for filtep
 [value] Done for function filtep
 [value] computing for function abs <- encode <- main.
-    Called from tests/test/adpcm.c:370.
+  Called from tests/test/adpcm.c:370.
 [value] Recording results for abs
 [value] Done for function abs
 [value] computing for function logsch <- encode <- main.
-    Called from tests/test/adpcm.c:376.
+  Called from tests/test/adpcm.c:376.
 [value] Recording results for logsch
 [value] Done for function logsch
 [value] computing for function scalel <- encode <- main.
-    Called from tests/test/adpcm.c:379.
+  Called from tests/test/adpcm.c:379.
 [value] Recording results for scalel
 [value] Done for function scalel
 [value] computing for function upzero <- encode <- main.
-    Called from tests/test/adpcm.c:387.
+  Called from tests/test/adpcm.c:387.
 [value] Recording results for upzero
 [value] Done for function upzero
 [value] computing for function uppol2 <- encode <- main.
-    Called from tests/test/adpcm.c:391.
+  Called from tests/test/adpcm.c:391.
 [value] Recording results for uppol2
 [value] Done for function uppol2
 [value] computing for function uppol1 <- encode <- main.
-    Called from tests/test/adpcm.c:394.
+  Called from tests/test/adpcm.c:394.
 [value] Recording results for uppol1
 [value] Done for function uppol1
 [value] Recording results for encode
 [value] Done for function encode
 [value] computing for function encode <- main.
-    Called from tests/test/adpcm.c:608.
+  Called from tests/test/adpcm.c:608.
 [value] computing for function filtez <- encode <- main.
-    Called from tests/test/adpcm.c:301.
+  Called from tests/test/adpcm.c:301.
 [value] Recording results for filtez
 [value] Done for function filtez
 [value] computing for function filtep <- encode <- main.
-    Called from tests/test/adpcm.c:304.
+  Called from tests/test/adpcm.c:304.
 [value] Recording results for filtep
 [value] Done for function filtep
 [value] computing for function quantl <- encode <- main.
-    Called from tests/test/adpcm.c:311.
+  Called from tests/test/adpcm.c:311.
 [value] computing for function abs <- quantl <- encode <- main.
-    Called from tests/test/adpcm.c:444.
+  Called from tests/test/adpcm.c:444.
 [value] Recording results for abs
 [value] Done for function abs
 [value] Recording results for quantl
 [value] Done for function quantl
 [value] computing for function logscl <- encode <- main.
-    Called from tests/test/adpcm.c:318.
+  Called from tests/test/adpcm.c:318.
 [value] Recording results for logscl
 [value] Done for function logscl
 [value] computing for function scalel <- encode <- main.
-    Called from tests/test/adpcm.c:322.
+  Called from tests/test/adpcm.c:322.
 [value] Recording results for scalel
 [value] Done for function scalel
 [value] computing for function upzero <- encode <- main.
-    Called from tests/test/adpcm.c:331.
+  Called from tests/test/adpcm.c:331.
 [value] Recording results for upzero
 [value] Done for function upzero
 [value] computing for function uppol2 <- encode <- main.
-    Called from tests/test/adpcm.c:335.
+  Called from tests/test/adpcm.c:335.
 [value] Recording results for uppol2
 [value] Done for function uppol2
 [value] computing for function uppol1 <- encode <- main.
-    Called from tests/test/adpcm.c:339.
+  Called from tests/test/adpcm.c:339.
 [value] Recording results for uppol1
 [value] Done for function uppol1
 [value] computing for function filtez <- encode <- main.
-    Called from tests/test/adpcm.c:352.
+  Called from tests/test/adpcm.c:352.
 [value] Recording results for filtez
 [value] Done for function filtez
 [value] computing for function filtep <- encode <- main.
-    Called from tests/test/adpcm.c:354.
+  Called from tests/test/adpcm.c:354.
 [value] Recording results for filtep
 [value] Done for function filtep
 [value] computing for function abs <- encode <- main.
-    Called from tests/test/adpcm.c:370.
+  Called from tests/test/adpcm.c:370.
 [value] Recording results for abs
 [value] Done for function abs
 [value] computing for function logsch <- encode <- main.
-    Called from tests/test/adpcm.c:376.
+  Called from tests/test/adpcm.c:376.
 [value] Recording results for logsch
 [value] Done for function logsch
 [value] computing for function scalel <- encode <- main.
-    Called from tests/test/adpcm.c:379.
+  Called from tests/test/adpcm.c:379.
 [value] Recording results for scalel
 [value] Done for function scalel
 [value] computing for function upzero <- encode <- main.
-    Called from tests/test/adpcm.c:387.
+  Called from tests/test/adpcm.c:387.
 [value] Recording results for upzero
 [value] Done for function upzero
 [value] computing for function uppol2 <- encode <- main.
-    Called from tests/test/adpcm.c:391.
+  Called from tests/test/adpcm.c:391.
 [value] Recording results for uppol2
 [value] Done for function uppol2
 [value] computing for function uppol1 <- encode <- main.
-    Called from tests/test/adpcm.c:394.
+  Called from tests/test/adpcm.c:394.
+[value] Recording results for uppol1
+[value] Done for function uppol1
+[value] Recording results for encode
+[value] Done for function encode
+[value] computing for function encode <- main.
+  Called from tests/test/adpcm.c:608.
+[value] computing for function filtez <- encode <- main.
+  Called from tests/test/adpcm.c:301.
+[value] Recording results for filtez
+[value] Done for function filtez
+[value] computing for function filtep <- encode <- main.
+  Called from tests/test/adpcm.c:304.
+[value] Recording results for filtep
+[value] Done for function filtep
+[value] computing for function quantl <- encode <- main.
+  Called from tests/test/adpcm.c:311.
+[value] computing for function abs <- quantl <- encode <- main.
+  Called from tests/test/adpcm.c:444.
+[value] Recording results for abs
+[value] Done for function abs
+[value] Recording results for quantl
+[value] Done for function quantl
+[value] computing for function logscl <- encode <- main.
+  Called from tests/test/adpcm.c:318.
+[value] Recording results for logscl
+[value] Done for function logscl
+[value] computing for function scalel <- encode <- main.
+  Called from tests/test/adpcm.c:322.
+[value] Recording results for scalel
+[value] Done for function scalel
+[value] computing for function upzero <- encode <- main.
+  Called from tests/test/adpcm.c:331.
+[value] Recording results for upzero
+[value] Done for function upzero
+[value] computing for function uppol2 <- encode <- main.
+  Called from tests/test/adpcm.c:335.
+[value] Recording results for uppol2
+[value] Done for function uppol2
+[value] computing for function uppol1 <- encode <- main.
+  Called from tests/test/adpcm.c:339.
+[value] Recording results for uppol1
+[value] Done for function uppol1
+[value] computing for function filtez <- encode <- main.
+  Called from tests/test/adpcm.c:352.
+[value] Recording results for filtez
+[value] Done for function filtez
+[value] computing for function filtep <- encode <- main.
+  Called from tests/test/adpcm.c:354.
+[value] Recording results for filtep
+[value] Done for function filtep
+[value] computing for function abs <- encode <- main.
+  Called from tests/test/adpcm.c:370.
+[value] Recording results for abs
+[value] Done for function abs
+[value] computing for function logsch <- encode <- main.
+  Called from tests/test/adpcm.c:376.
+[value] Recording results for logsch
+[value] Done for function logsch
+[value] computing for function scalel <- encode <- main.
+  Called from tests/test/adpcm.c:379.
+[value] Recording results for scalel
+[value] Done for function scalel
+[value] computing for function upzero <- encode <- main.
+  Called from tests/test/adpcm.c:387.
+[value] Recording results for upzero
+[value] Done for function upzero
+[value] computing for function uppol2 <- encode <- main.
+  Called from tests/test/adpcm.c:391.
+[value] Recording results for uppol2
+[value] Done for function uppol2
+[value] computing for function uppol1 <- encode <- main.
+  Called from tests/test/adpcm.c:394.
 [value] Recording results for uppol1
 [value] Done for function uppol1
 [value] Recording results for encode
@@ -934,7 +934,7 @@ tests/test/adpcm.c:262:[value] function encode: postcondition got status valid.
 [from] Computing for function main
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
-    These dependencies hold at termination for the executions that terminate:
+  These dependencies hold at termination for the executions that terminate:
 [from] Function abs:
   \result FROM x
 [from] Function filtep:
@@ -1734,100 +1734,100 @@ tests/test/adpcm.c:262:[value] function encode: postcondition got status valid.
                  rh1; rh2; test_data[0..7]
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function abs:
-      m
+    m
 [inout] Inputs for function abs:
-      \nothing
+    \nothing
 [inout] Out (internal) for function filtep:
-      pl; pl2; __retres
+    pl; pl2; __retres
 [inout] Inputs for function filtep:
-      \nothing
+    \nothing
 [inout] Out (internal) for function filtez:
-      bpl; dlt_0; i; zl; tmp; tmp_0; __retres; tmp_1_unroll_123;
-      tmp_2_unroll_123; tmp_1_unroll_126; tmp_2_unroll_126; tmp_1_unroll_129;
-      tmp_2_unroll_129; tmp_1_unroll_132; tmp_2_unroll_132; tmp_1_unroll_135;
-      tmp_2_unroll_135
+    bpl; dlt_0; i; zl; tmp; tmp_0; __retres; tmp_1_unroll_123;
+    tmp_2_unroll_123; tmp_1_unroll_126; tmp_2_unroll_126; tmp_1_unroll_129;
+    tmp_2_unroll_129; tmp_1_unroll_132; tmp_2_unroll_132; tmp_1_unroll_135;
+    tmp_2_unroll_135
 [inout] Inputs for function filtez:
-      delay_bpl[0..5]; delay_dltx[0..5]; delay_dhx[0..5]; delay_bph[0..5]
+    delay_bpl[0..5]; delay_dltx[0..5]; delay_dhx[0..5]; delay_bph[0..5]
 [inout] Out (internal) for function logsch:
-      nbh_0; wd
+    nbh_0; wd
 [inout] Inputs for function logsch:
-      wh_code_table[1..3]
+    wh_code_table[1..3]
 [inout] Out (internal) for function logscl:
-      nbl_0; wd
+    nbl_0; wd
 [inout] Inputs for function logscl:
-      wl_code_table{[1]; [8]; [15]}
+    wl_code_table{[1]; [8]; [15]}
 [inout] Out (internal) for function quantl:
-      ril; mil; wd; decis
+    ril; mil; wd; decis
 [inout] Inputs for function quantl:
-      decis_levl[0..29]; quant26bt_pos[29]; quant26bt_neg{[0]; [29]}
+    decis_levl[0..29]; quant26bt_pos[29]; quant26bt_neg{[0]; [29]}
 [inout] Out (internal) for function scalel:
-      wd1; wd2; wd3; __retres
+    wd1; wd2; wd3; __retres
 [inout] Inputs for function scalel:
-      ilb_table{[0]; [9..10]; [12]; [14..15]; [27]; [29]}
+    ilb_table{[0]; [9..10]; [12]; [14..15]; [27]; [29]}
 [inout] Out (internal) for function uppol1:
-      wd2; wd3; apl1
+    wd2; wd3; apl1
 [inout] Inputs for function uppol1:
-      \nothing
+    \nothing
 [inout] Out (internal) for function uppol2:
-      wd2; wd4; apl2
+    wd2; wd4; apl2
 [inout] Inputs for function uppol2:
-      \nothing
+    \nothing
 [inout] Out (internal) for function upzero:
-      delay_bpl[0..5]; delay_dltx{[0..1]; [3..5]}; delay_dhx{[0..1]; [3..5]};
-      delay_bph[0..5]; i; wd2; wd3
+    delay_bpl[0..5]; delay_dltx{[0..1]; [3..5]}; delay_dhx{[0..1]; [3..5]};
+    delay_bph[0..5]; i; wd2; wd3
 [inout] Inputs for function upzero:
-      delay_bpl[0..5]; delay_dltx[0..5]; delay_dhx[0..5]; delay_bph[0..5]
+    delay_bpl[0..5]; delay_dltx[0..5]; delay_dhx[0..5]; delay_bph[0..5]
 [inout] Out (internal) for function encode:
-      tqmf[0..23]; xl; xh; il; szl; spl; sl; el; delay_bpl[0..5];
-      delay_dltx{[0..1]; [3..5]}; nbl; al1; al2; plt; plt1; plt2; dlt; rlt; 
-      rlt1; rlt2; detl; deth; sh; eh; dh; ih; nbh; szh; sph; ph; yh;
-      delay_dhx{[0..1]; [3..5]}; delay_bph[0..5]; ah1; ah2; ph1; ph2; rh1; 
-      rh2; i; h_ptr; tqmf_ptr; tqmf_ptr1; xa; xb; decis; tmp; tmp_0; tmp_1;
-      tmp_2; tmp_7; tmp_8; tmp_9; tmp_12; tmp_13; __retres; tmp_3_unroll_8;
-      tmp_4_unroll_8; tmp_5_unroll_8; tmp_6_unroll_8; tmp_3_unroll_12;
-      tmp_4_unroll_12; tmp_5_unroll_12; tmp_6_unroll_12; tmp_3_unroll_16;
-      tmp_4_unroll_16; tmp_5_unroll_16; tmp_6_unroll_16; tmp_3_unroll_20;
-      tmp_4_unroll_20; tmp_5_unroll_20; tmp_6_unroll_20; tmp_3_unroll_24;
-      tmp_4_unroll_24; tmp_5_unroll_24; tmp_6_unroll_24; tmp_3_unroll_28;
-      tmp_4_unroll_28; tmp_5_unroll_28; tmp_6_unroll_28; tmp_3_unroll_32;
-      tmp_4_unroll_32; tmp_5_unroll_32; tmp_6_unroll_32; tmp_3_unroll_36;
-      tmp_4_unroll_36; tmp_5_unroll_36; tmp_6_unroll_36; tmp_3_unroll_40;
-      tmp_4_unroll_40; tmp_5_unroll_40; tmp_6_unroll_40; tmp_3_unroll_44;
-      tmp_4_unroll_44; tmp_5_unroll_44; tmp_6_unroll_44; tmp_10_unroll_51;
-      tmp_11_unroll_51; tmp_10_unroll_54; tmp_11_unroll_54; tmp_10_unroll_57;
-      tmp_11_unroll_57; tmp_10_unroll_60; tmp_11_unroll_60; tmp_10_unroll_63;
-      tmp_11_unroll_63; tmp_10_unroll_66; tmp_11_unroll_66; tmp_10_unroll_69;
-      tmp_11_unroll_69; tmp_10_unroll_72; tmp_11_unroll_72; tmp_10_unroll_75;
-      tmp_11_unroll_75; tmp_10_unroll_78; tmp_11_unroll_78; tmp_10_unroll_81;
-      tmp_11_unroll_81; tmp_10_unroll_84; tmp_11_unroll_84; tmp_10_unroll_87;
-      tmp_11_unroll_87; tmp_10_unroll_90; tmp_11_unroll_90; tmp_10_unroll_93;
-      tmp_11_unroll_93; tmp_10_unroll_96; tmp_11_unroll_96; tmp_10_unroll_99;
-      tmp_11_unroll_99; tmp_10_unroll_102; tmp_11_unroll_102; tmp_10_unroll_105;
-      tmp_11_unroll_105; tmp_10_unroll_108; tmp_11_unroll_108; tmp_10_unroll_111;
-      tmp_11_unroll_111; tmp_10_unroll_114; tmp_11_unroll_114
+    tqmf[0..23]; xl; xh; il; szl; spl; sl; el; delay_bpl[0..5];
+    delay_dltx{[0..1]; [3..5]}; nbl; al1; al2; plt; plt1; plt2; dlt; rlt; 
+    rlt1; rlt2; detl; deth; sh; eh; dh; ih; nbh; szh; sph; ph; yh;
+    delay_dhx{[0..1]; [3..5]}; delay_bph[0..5]; ah1; ah2; ph1; ph2; rh1; 
+    rh2; i; h_ptr; tqmf_ptr; tqmf_ptr1; xa; xb; decis; tmp; tmp_0; tmp_1;
+    tmp_2; tmp_7; tmp_8; tmp_9; tmp_12; tmp_13; __retres; tmp_3_unroll_8;
+    tmp_4_unroll_8; tmp_5_unroll_8; tmp_6_unroll_8; tmp_3_unroll_12;
+    tmp_4_unroll_12; tmp_5_unroll_12; tmp_6_unroll_12; tmp_3_unroll_16;
+    tmp_4_unroll_16; tmp_5_unroll_16; tmp_6_unroll_16; tmp_3_unroll_20;
+    tmp_4_unroll_20; tmp_5_unroll_20; tmp_6_unroll_20; tmp_3_unroll_24;
+    tmp_4_unroll_24; tmp_5_unroll_24; tmp_6_unroll_24; tmp_3_unroll_28;
+    tmp_4_unroll_28; tmp_5_unroll_28; tmp_6_unroll_28; tmp_3_unroll_32;
+    tmp_4_unroll_32; tmp_5_unroll_32; tmp_6_unroll_32; tmp_3_unroll_36;
+    tmp_4_unroll_36; tmp_5_unroll_36; tmp_6_unroll_36; tmp_3_unroll_40;
+    tmp_4_unroll_40; tmp_5_unroll_40; tmp_6_unroll_40; tmp_3_unroll_44;
+    tmp_4_unroll_44; tmp_5_unroll_44; tmp_6_unroll_44; tmp_10_unroll_51;
+    tmp_11_unroll_51; tmp_10_unroll_54; tmp_11_unroll_54; tmp_10_unroll_57;
+    tmp_11_unroll_57; tmp_10_unroll_60; tmp_11_unroll_60; tmp_10_unroll_63;
+    tmp_11_unroll_63; tmp_10_unroll_66; tmp_11_unroll_66; tmp_10_unroll_69;
+    tmp_11_unroll_69; tmp_10_unroll_72; tmp_11_unroll_72; tmp_10_unroll_75;
+    tmp_11_unroll_75; tmp_10_unroll_78; tmp_11_unroll_78; tmp_10_unroll_81;
+    tmp_11_unroll_81; tmp_10_unroll_84; tmp_11_unroll_84; tmp_10_unroll_87;
+    tmp_11_unroll_87; tmp_10_unroll_90; tmp_11_unroll_90; tmp_10_unroll_93;
+    tmp_11_unroll_93; tmp_10_unroll_96; tmp_11_unroll_96; tmp_10_unroll_99;
+    tmp_11_unroll_99; tmp_10_unroll_102; tmp_11_unroll_102; tmp_10_unroll_105;
+    tmp_11_unroll_105; tmp_10_unroll_108; tmp_11_unroll_108; tmp_10_unroll_111;
+    tmp_11_unroll_111; tmp_10_unroll_114; tmp_11_unroll_114
 [inout] Inputs for function encode:
-      tqmf[0..23]; h[0..23]; xl; xh; il; szl; spl; sl; el;
-      qq4_code4_table{[1]; [8]; [15]}; delay_bpl[0..5]; delay_dltx[0..5];
-      wl_code_table{[1]; [8]; [15]};
-      ilb_table{[0]; [9..10]; [12]; [14..15]; [27]; [29]}; nbl; al1; al2; 
-      plt; plt1; plt2; dlt; rlt; rlt1; rlt2; decis_levl[0..29]; detl;
-      quant26bt_pos[29]; quant26bt_neg{[0]; [29]}; deth; sh; eh;
-      qq2_code2_table[1..3]; wh_code_table[1..3]; dh; ih; nbh; szh; sph; 
-      ph; yh; delay_dhx[0..5]; delay_bph[0..5]; ah1; ah2; ph1; ph2; rh1; 
-      rh2
+    tqmf[0..23]; h[0..23]; xl; xh; il; szl; spl; sl; el;
+    qq4_code4_table{[1]; [8]; [15]}; delay_bpl[0..5]; delay_dltx[0..5];
+    wl_code_table{[1]; [8]; [15]};
+    ilb_table{[0]; [9..10]; [12]; [14..15]; [27]; [29]}; nbl; al1; al2; 
+    plt; plt1; plt2; dlt; rlt; rlt1; rlt2; decis_levl[0..29]; detl;
+    quant26bt_pos[29]; quant26bt_neg{[0]; [29]}; deth; sh; eh;
+    qq2_code2_table[1..3]; wh_code_table[1..3]; dh; ih; nbh; szh; sph; 
+    ph; yh; delay_dhx[0..5]; delay_bph[0..5]; ah1; ah2; ph1; ph2; rh1; 
+    rh2
 [inout] Out (internal) for function main:
-      tqmf[0..23]; xl; xh; il; szl; spl; sl; el; delay_bpl[0..5];
-      delay_dltx{[0..1]; [3..5]}; nbl; al1; al2; plt; plt1; plt2; dlt; rlt; 
-      rlt1; rlt2; detl; deth; sh; eh; dh; ih; nbh; szh; sph; ph; yh;
-      delay_dhx{[0..1]; [3..5]}; delay_bph[0..5]; ah1; ah2; ph1; ph2; rh1; 
-      rh2; compressed[0..4]; i
+    tqmf[0..23]; xl; xh; il; szl; spl; sl; el; delay_bpl[0..5];
+    delay_dltx{[0..1]; [3..5]}; nbl; al1; al2; plt; plt1; plt2; dlt; rlt; 
+    rlt1; rlt2; detl; deth; sh; eh; dh; ih; nbh; szh; sph; ph; yh;
+    delay_dhx{[0..1]; [3..5]}; delay_bph[0..5]; ah1; ah2; ph1; ph2; rh1; 
+    rh2; compressed[0..4]; i
 [inout] Inputs for function main:
-      tqmf[0..23]; h[0..23]; xl; xh; il; szl; spl; sl; el;
-      qq4_code4_table{[1]; [8]; [15]}; delay_bpl[0..5]; delay_dltx[0..5];
-      wl_code_table{[1]; [8]; [15]};
-      ilb_table{[0]; [9..10]; [12]; [14..15]; [27]; [29]}; nbl; al1; al2; 
-      plt; plt1; plt2; dlt; rlt; rlt1; rlt2; decis_levl[0..29]; detl;
-      quant26bt_pos[29]; quant26bt_neg{[0]; [29]}; deth; sh; eh;
-      qq2_code2_table[1..3]; wh_code_table[1..3]; dh; ih; nbh; szh; sph; 
-      ph; yh; delay_dhx[0..5]; delay_bph[0..5]; ah1; ah2; ph1; ph2; rh1; 
-      rh2; test_data[0..9]
+    tqmf[0..23]; h[0..23]; xl; xh; il; szl; spl; sl; el;
+    qq4_code4_table{[1]; [8]; [15]}; delay_bpl[0..5]; delay_dltx[0..5];
+    wl_code_table{[1]; [8]; [15]};
+    ilb_table{[0]; [9..10]; [12]; [14..15]; [27]; [29]}; nbl; al1; al2; 
+    plt; plt1; plt2; dlt; rlt; rlt1; rlt2; decis_levl[0..29]; detl;
+    quant26bt_pos[29]; quant26bt_neg{[0]; [29]}; deth; sh; eh;
+    qq2_code2_table[1..3]; wh_code_table[1..3]; dh; ih; nbh; szh; sph; 
+    ph; yh; delay_dhx[0..5]; delay_bph[0..5]; ah1; ah2; ph1; ph2; rh1; 
+    rh2; test_data[0..9]

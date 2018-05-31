@@ -26,7 +26,7 @@
 [from] Computing for function main1
 [from] Done for function main1
 [from] ====== DEPENDENCIES COMPUTED ======
-    These dependencies hold at termination for the executions that terminate:
+  These dependencies hold at termination for the executions that terminate:
 [from] Function main1:
   i FROM \nothing
   d FROM a; b; c
@@ -34,6 +34,6 @@
   q FROM c
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function main1:
-      i; d; p[0][0][0]; q
+    i; d; p[0][0][0]; q
 [inout] Inputs for function main1:
-      i; a; b; q
+    i; a; b; q

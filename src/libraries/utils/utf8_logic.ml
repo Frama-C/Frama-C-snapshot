@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2017                                               *)
+(*  Copyright (C) 2007-2018                                               *)
 (*    CEA   (Commissariat à l'énergie atomique et aux énergies            *)
 (*           alternatives)                                                *)
 (*    INRIA (Institut National de Recherche en Informatique et en         *)
@@ -71,10 +71,13 @@ let inset = from_unichar 0x2208
 let emptyset = from_unichar 0x2205
 let top = from_unichar 0x22A4
 let bottom = from_unichar 0x22A5
+let union = from_unichar 0x222A
 
 let boolean = from_unichar 0x1D539
 let integer = from_unichar 0x2124
 let real = from_unichar 0x211D
+
+let pi = from_unichar 0x3C0
 (*
 Local Variables:
 compile-command: "make -C ../../.."

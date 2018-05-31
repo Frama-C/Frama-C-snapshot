@@ -1,43 +1,44 @@
 [kernel] Parsing tests/metrics/func_ptr.c (with preprocessing)
-tests/metrics/func_ptr.c:28:[kernel] warning: Calling undeclared function exit. Old style K&R code?
+[kernel:typing:implicit-function-declaration] tests/metrics/func_ptr.c:28: Warning: 
+  Calling undeclared function exit. Old style K&R code?
 [metrics] Defined functions (4)
-    =====================
-     baz (address taken) (0 call); foo (address taken) (0 call); foobar (0 call);
-     main (0 call); 
-    
-    Undefined functions (1)
-    =======================
-     exit (1 call); 
-    
-    'Extern' global variables (1)
-    =============================
-     bar_extern
-    
-    Potential entry points (2)
-    ==========================
-     foobar; main; 
-    
-    Global metrics
-    ============== 
-    Sloc = 20
-    Decision point = 2
-    Global variables = 2
-    If = 2
-    Loop = 0
-    Goto = 2
-    Assignment = 7
-    Exit point = 4
-    Function = 5
-    Function call = 3
-    Pointer dereferencing = 2
-    Cyclomatic complexity = 6
+  =====================
+   baz (address taken) (0 call); foo (address taken) (0 call); foobar (0 call);
+   main (0 call); 
+  
+  Undefined functions (1)
+  =======================
+   exit (1 call); 
+  
+  'Extern' global variables (1)
+  =============================
+   bar_extern
+  
+  Potential entry points (2)
+  ==========================
+   foobar; main; 
+  
+  Global metrics
+  ============== 
+  Sloc = 20
+  Decision point = 2
+  Global variables = 2
+  If = 2
+  Loop = 0
+  Goto = 2
+  Assignment = 7
+  Exit point = 4
+  Function = 5
+  Function call = 3
+  Pointer dereferencing = 2
+  Cyclomatic complexity = 6
 [metrics] Functions syntactically reachable from main: 3
-    ----------------------------------------------
-    <tests/metrics/func_ptr.c>: exit; foo; main; 
-    
-    Functions syntactically unreachable from main: 2
-    ------------------------------------------------
-    <tests/metrics/func_ptr.c>: baz; foobar;
+  ----------------------------------------------
+  <tests/metrics/func_ptr.c>: exit; foo; main; 
+  
+  Functions syntactically unreachable from main: 2
+  ------------------------------------------------
+  <tests/metrics/func_ptr.c>: baz; foobar;
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
 [value] Initial state computed
@@ -46,18 +47,18 @@ tests/metrics/func_ptr.c:28:[kernel] warning: Calling undeclared function exit. 
   bar_extern ∈ {0}
 [value] done for function main
 [metrics] Value coverage statistics
-    =========================
-    Syntactically reachable functions = 3 (out of 5)
-    Semantically reached functions = 1
-    Coverage estimation = 33.3% 
-    
-    Unreached functions (2) =
-      <tests/metrics/func_ptr.c>: exit; foo;
+  =========================
+  Syntactically reachable functions = 3 (out of 5)
+  Semantically reached functions = 1
+  Coverage estimation = 33.3% 
+  
+  Unreached functions (2) =
+    <tests/metrics/func_ptr.c>: exit; foo;
 [metrics] References to non-analyzed functions
-    ------------------------------------
-    Function main calls exit (at tests/metrics/func_ptr.c:28)
-    Function main references foo (at tests/metrics/func_ptr.c:29)
+  ------------------------------------
+  Function main calls exit (at tests/metrics/func_ptr.c:28)
+  Function main references foo (at tests/metrics/func_ptr.c:29)
 [metrics] Statements analyzed by Value
-    ----------------------------
-    13 stmts in analyzed functions, 6 stmts analyzed (46.2%)
-    main: 6 stmts out of 13 (46.2%)
+  ----------------------------
+  13 stmts in analyzed functions, 6 stmts analyzed (46.2%)
+  main: 6 stmts out of 13 (46.2%)

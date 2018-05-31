@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2017                                               *)
+(*  Copyright (C) 2007-2018                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -58,6 +58,8 @@ let join join x y = match x, y with
   | `Bottom, (`Value _ as v)
   | (`Value _ as v), `Bottom
   | (`Bottom as v), `Bottom -> v
+
+let join_list j l = List.fold_left (join j) `Bottom l
 
 let narrow narrow x y = match x, y with
   | `Value vx, `Value vy    -> narrow vx vy

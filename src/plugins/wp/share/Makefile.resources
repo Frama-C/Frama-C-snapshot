@@ -2,7 +2,7 @@
 #                                                                        #
 #  This file is part of WP plug-in of Frama-C.                           #
 #                                                                        #
-#  Copyright (C) 2007-2017                                               #
+#  Copyright (C) 2007-2018                                               #
 #    CEA (Commissariat a l'energie atomique et aux energies              #
 #         alternatives)                                                  #
 #                                                                        #
@@ -32,6 +32,8 @@ WHY3_LIBS_CEA:=	\
  Cint.why 	\
  Cfloat.why 	\
  Cmath.why 	\
+ Square.why     \
+ ExpLog.why     \
  Memory.why 	\
  Qed.why 	\
  Vset.why	\
@@ -43,11 +45,14 @@ WHY3_LIBS_CEA:=	\
 
 ## Used in share/coqwp and share/why3
 COQ_LIBS_CEA:=	\
+ ArcTrigo.v     \
  Bits.v 	\
  Cbits.v 	\
  Cfloat.v 	\
  Cint.v 	\
  Cmath.v 	\
+ Square.v 	\
+ ExpLog.v       \
  Memory.v 	\
  Qed.v 		\
  Qedlib.v 	\
@@ -64,12 +69,16 @@ COQ_LIBS_INRIA:=\
  int/Int.v 	\
  int/MinMax.v 	\
  map/Map.v 	\
+ map/Const.v 	\
  real/Abs.v 	\
  real/FromInt.v \
  real/MinMax.v 	\
  real/Real.v 	\
  real/RealInfix.v \
- real/Square.v
+ real/Square.v \
+ real/ExpLog.v \
+ real/PowerReal.v \
+ real/Trigonometry.v
 
 # --------------------------------------------------------------------------
 # ---  Alt-Ergo Libraries
@@ -77,10 +86,13 @@ COQ_LIBS_INRIA:=\
 
 # Used in share/ergo
 ERGO_LIBS_CEA:= \
+ ArcTrigo.mlw   \
  Cbits.mlw 	\
  Cfloat.mlw 	\
  Cint.mlw 	\
  Cmath.mlw 	\
+ Square.mlw 	\
+ ExpLog.mlw     \
  Memory.mlw 	\
  Qed.mlw 	\
  Vset.mlw	\
@@ -94,12 +106,23 @@ ERGO_LIBS_INRIA:= \
  int.Int.mlw 	\
  int.MinMax.mlw \
  map.Map.mlw 	\
+ map.Const.mlw 	\
  real.Abs.mlw 	\
  real.FromInt.mlw \
  real.MinMax.mlw \
  real.Real.mlw 	\
  real.RealInfix.mlw \
- real.Square.mlw
+ real.Square.mlw \
+ real.Truncate.mlw \
+ real.ExpLog.mlw \
+ real.PowerReal.mlw \
+ real.Trigonometry.mlw \
+ real.Hyperbolic.mlw \
+ real.Polar.mlw
+
+# --------------------------------------------------------------------------
+# ---  LICENSES
+# --------------------------------------------------------------------------
 
 # Resource classes for license header files
 # These files are relatives to this directory
@@ -122,10 +145,6 @@ ALL_UNMODIFIED_WHY3_RESOURCES:= \
 
 ALL_MODIFIED_WHY3_RESOURCES:= \
 	$(addprefix ergo/,  $(ERGO_LIBS_INRIA))
-
-
-# End of file
-
 
 
 ##########################################################################

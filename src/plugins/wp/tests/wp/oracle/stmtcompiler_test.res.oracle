@@ -1,0 +1,729 @@
+# frama-c -wp [...]
+[kernel] Parsing tests/wp/stmtcompiler_test.i (no preprocessing)
+[kernel] tests/wp/stmtcompiler_test.i:136: Warning: 
+  Body of function if_assert falls-through. Adding a return statement
+[wp] Running WP plugin...
+[wp] Loading driver 'share/wp.driver'
+[kernel] tests/wp/stmtcompiler_test.i:145: Warning: 
+  No code nor implicit assigns clause for function behavior1, generating default assigns from the prototype
+[wp] Warning: Missing RTE guards
+[wp] tests/wp/stmtcompiler_test.i:81: Warning: 
+  Missing assigns clause (assigns 'everything' instead)
+------------------------------------------------------------
+  Function behavior2
+------------------------------------------------------------
+
+Goal Assertion (file tests/wp/stmtcompiler_test.i, line 109):
+Prove: true.
+
+------------------------------------------------------------
+------------------------------------------------------------
+  Function behavior3
+------------------------------------------------------------
+
+Goal Assertion (file tests/wp/stmtcompiler_test.i, line 116):
+Prove: true.
+
+------------------------------------------------------------
+------------------------------------------------------------
+  Function behavior4
+------------------------------------------------------------
+
+Goal Assertion (file tests/wp/stmtcompiler_test.i, line 123):
+Prove: true.
+
+------------------------------------------------------------
+------------------------------------------------------------
+  Function behavior5
+------------------------------------------------------------
+
+Goal Assertion 'bad' (file tests/wp/stmtcompiler_test.i, line 131):
+Assume { Type: is_sint32(x). (* Call 'behavior1' *) Have: 0 <= x. }
+Prove: false.
+
+------------------------------------------------------------
+------------------------------------------------------------
+  Function compare
+------------------------------------------------------------
+
+Goal Assertion (file tests/wp/stmtcompiler_test.i, line 154):
+Prove: true.
+
+------------------------------------------------------------
+------------------------------------------------------------
+  Function empty
+------------------------------------------------------------
+
+Goal Assertion (file tests/wp/stmtcompiler_test.i, line 6):
+Prove: true.
+
+------------------------------------------------------------
+------------------------------------------------------------
+  Function if_assert
+------------------------------------------------------------
+
+Goal Assertion (file tests/wp/stmtcompiler_test.i, line 137):
+Assume { Type: is_sint32(x) /\ is_sint32(y). (* Then *) Have: x < 0. }
+Prove: x < (y * y).
+
+------------------------------------------------------------
+
+Goal Assertion (file tests/wp/stmtcompiler_test.i, line 140):
+Assume {
+  Type: is_sint32(x) /\ is_sint32(y) /\ is_sint32(-x).
+  (* Else *)
+  Have: 0 <= x.
+}
+Prove: 0 < (x + (y * y)).
+
+------------------------------------------------------------
+
+Goal Assertion (file tests/wp/stmtcompiler_test.i, line 142):
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Assertion 'missing_return' (file tests/wp/stmtcompiler_test.i, line 143):
+Assume {
+  Type: is_sint32(x) /\ is_sint32(x_1) /\ is_sint32(x_2) /\ is_sint32(y).
+  If x_2 < 0
+  Then { Have: x_2 = x. }
+  Else { Have: x_2 = x_1. Have: (x + x_1) = 0. }
+  (* Assertion *)
+  Have: x < (y * y).
+}
+Prove: false.
+
+------------------------------------------------------------
+------------------------------------------------------------
+  Function main
+------------------------------------------------------------
+
+Goal Assertion (file tests/wp/stmtcompiler_test.i, line 50):
+Prove: true.
+
+------------------------------------------------------------
+------------------------------------------------------------
+  Function main_assigns_global
+------------------------------------------------------------
+
+Goal Assertion (file tests/wp/stmtcompiler_test.i, line 67):
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Assertion (file tests/wp/stmtcompiler_test.i, line 68):
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Assertion 'bad' (file tests/wp/stmtcompiler_test.i, line 69):
+Assume { Type: is_sint32(foo_0). }
+Prove: foo_0 = 1.
+
+------------------------------------------------------------
+------------------------------------------------------------
+  Function main_ensures_result
+------------------------------------------------------------
+
+Goal Assertion (file tests/wp/stmtcompiler_test.i, line 43):
+Prove: true.
+
+------------------------------------------------------------
+------------------------------------------------------------
+  Function not_main
+------------------------------------------------------------
+
+Goal Assertion 'bad' (file tests/wp/stmtcompiler_test.i, line 54):
+Assume { Type: is_sint32(foo_0). }
+Prove: foo_0 = 42.
+
+------------------------------------------------------------
+------------------------------------------------------------
+  Function one_assign
+------------------------------------------------------------
+
+Goal Assertion (file tests/wp/stmtcompiler_test.i, line 13):
+Prove: true.
+
+------------------------------------------------------------
+------------------------------------------------------------
+  Function one_if
+------------------------------------------------------------
+
+Goal Assertion (file tests/wp/stmtcompiler_test.i, line 18):
+Prove: true.
+
+------------------------------------------------------------
+------------------------------------------------------------
+  Function some_seq
+------------------------------------------------------------
+
+Goal Assertion (file tests/wp/stmtcompiler_test.i, line 28):
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Assertion (file tests/wp/stmtcompiler_test.i, line 29):
+Prove: true.
+
+------------------------------------------------------------
+------------------------------------------------------------
+  Function zloop
+------------------------------------------------------------
+
+Goal Post-condition (file tests/wp/stmtcompiler_test.i, line 74) in 'zloop':
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Preservation of Invariant (file tests/wp/stmtcompiler_test.i, line 80):
+Assume {
+  Type: is_sint32(i) /\ is_sint32(x) /\ is_sint32(1 + i) /\ is_sint32(2 + i).
+  (* Pre-condition *)
+  Have: 0 <= x.
+  (* Invariant *)
+  Have: i <= 10.
+  (* Then *)
+  Have: i <= 9.
+}
+Prove: i <= 8.
+
+------------------------------------------------------------
+
+Goal Establishment of Invariant (file tests/wp/stmtcompiler_test.i, line 80):
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Assertion (file tests/wp/stmtcompiler_test.i, line 84):
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Assertion (file tests/wp/stmtcompiler_test.i, line 85):
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Assertion (file tests/wp/stmtcompiler_test.i, line 86):
+Assume {
+  Type: is_sint32(x) /\ is_sint32(x_1).
+  (* Pre-condition *)
+  Have: 0 <= x_1.
+}
+Prove: 0 <= x.
+
+------------------------------------------------------------
+
+Goal Assertion 'bad' (file tests/wp/stmtcompiler_test.i, line 87):
+Assume {
+  Type: is_sint32(x) /\ is_sint32(x_1).
+  (* Pre-condition *)
+  Have: 0 <= x_1.
+  (* Assertion *)
+  Have: 0 <= x.
+}
+Prove: false.
+
+------------------------------------------------------------
+new way
+empty sequent: Assume { Have: foo_0 = 42. }
+Prove: true.
+
+Goal Assertion (file tests/wp/stmtcompiler_test.i, line 6):
+Prove: true.
+[Qed] Valid
+
+------------------------------------------------------------
+new way
+one_assign sequent:
+   Assume {
+     Have: foo_0 = 42.
+     Have: (ta_d_0=true) /\ (ta_d_1=false).
+     Have: d = c.
+   }
+Prove: d = c.
+
+Goal Assertion (file tests/wp/stmtcompiler_test.i, line 13):
+Prove: true.
+[Qed] Valid
+
+------------------------------------------------------------
+new way
+one_if sequent:
+   Assume {
+     Have: foo_0 = 42.
+     Have: (ta_retres_0=true) /\ (ta_retres_1=false).
+   }
+Prove: true.
+
+Goal Assertion (file tests/wp/stmtcompiler_test.i, line 18):
+Prove: true.
+[Qed] Valid
+
+------------------------------------------------------------
+new way
+some_seq sequent:
+   Assume {
+     Have: foo_0 = 42.
+     Have: (ta_d_0=true) /\ (ta_d_1=false).
+     Have: d_1 = 0.
+     If c != 0
+     Then { Have: d_1 = d_2. Have: d = 1. }
+     If c = 0
+     Then { Have: d_1 = d_3. Have: d = 2. }
+     Have: ((c != 0) -> (d = 1)).
+   }
+Prove: ((c = 0) -> (d = 2)).
+
+Goal Assertion (file tests/wp/stmtcompiler_test.i, line 29):
+Prove: true.
+[Qed] Valid
+
+------------------------------------------------------------
+some_seq sequent:
+   Assume {
+     Have: foo_0 = 42.
+     Have: (ta_d_0=true) /\ (ta_d_1=false).
+     Have: d_1 = 0.
+     If c != 0
+     Then { Have: d_1 = d_2. Have: d = 1. }
+     If c = 0
+     Then { Have: d_1 = d_3. Have: d = 2. }
+   }
+Prove: ((c != 0) -> (d = 1)).
+
+Goal Assertion (file tests/wp/stmtcompiler_test.i, line 28):
+Prove: true.
+[Qed] Valid
+
+------------------------------------------------------------
+new way
+main_ensures_result sequent:
+   Assume {
+     Have: foo_0 = 42.
+     Have: (ta_retres_0=true) /\ (ta_retres_1=false) /\ (ta_x_0=true) /\
+         (ta_x_1=false).
+     Have: result_0 = 0.
+     Have: x = result_0.
+   }
+Prove: x = 0.
+
+Goal Assertion (file tests/wp/stmtcompiler_test.i, line 43):
+Prove: true.
+[Qed] Valid
+
+------------------------------------------------------------
+[wp] tests/wp/stmtcompiler_test.i:145: Warning: void object
+new way
+main sequent: Assume { Have: foo_0 = 42. }
+Prove: foo_0 = 42.
+
+Goal Assertion (file tests/wp/stmtcompiler_test.i, line 50):
+Prove: true.
+[Qed] Valid
+
+------------------------------------------------------------
+[wp] tests/wp/stmtcompiler_test.i:145: Warning: void object
+new way
+not_main sequent: Assume { Have: foo_1 = 42. }
+Prove: foo_0 = 42.
+
+Goal Assertion 'bad' (file tests/wp/stmtcompiler_test.i, line 54):
+Prove: foo_0 = 42.
+[Qed] -
+
+------------------------------------------------------------
+[wp] tests/wp/stmtcompiler_test.i:145: Warning: void object
+new way
+main_assigns_global sequent:
+   Assume {
+     Have: foo_1 = 42.
+     Have: (ta_r_0=true) /\ (ta_r_1=false).
+     Have: foo_2 = 1.
+     Have: x = result_0.
+     Have: x = foo_0.
+     Have: result_0 = r.
+     Have: ((x = 2) -> (foo_0 = 2)).
+     Have: r = foo_0.
+   }
+Prove: foo_0 = 1.
+
+Goal Assertion 'bad' (file tests/wp/stmtcompiler_test.i, line 69):
+Prove: foo_0 = 1.
+[Qed] -
+
+------------------------------------------------------------
+main_assigns_global sequent:
+   Assume {
+     Have: foo_1 = 42.
+     Have: (ta_r_0=true) /\ (ta_r_1=false).
+     Have: foo_2 = 1.
+     Have: x = result_0.
+     Have: x = foo_0.
+     Have: result_0 = r.
+     Have: ((x = 2) -> (foo_0 = 2)).
+   }
+Prove: r = foo_0.
+
+Goal Assertion (file tests/wp/stmtcompiler_test.i, line 68):
+Prove: true.
+[Qed] Valid
+
+------------------------------------------------------------
+main_assigns_global sequent:
+   Assume {
+     Have: foo_1 = 42.
+     Have: (ta_r_0=true) /\ (ta_r_1=false).
+     Have: foo_2 = 1.
+     Have: x = result_0.
+     Have: x = foo_0.
+     Have: result_0 = r.
+   }
+Prove: ((x = 2) -> (foo_0 = 2)).
+
+Goal Assertion (file tests/wp/stmtcompiler_test.i, line 67):
+Prove: true.
+[Qed] Valid
+
+------------------------------------------------------------
+new way
+zloop sequent:
+   Assume {
+     Have: foo_0 = 42.
+     Have: 0 <= x.
+     Have: (ta_i_0=true) /\ (ta_i_1=false).
+     Have: i_1 = 0.
+     Have: (1 + i_1) = i_2.
+     Have: i_2 <= 10.
+     Have: i <= 10.
+     Have: 10 <= i.
+     Have: 10 <= i.
+     Have: i = 10.
+     Have: 0 <= x.
+     Have: foo_1 = 0.
+   }
+Prove: i = 1.
+
+Goal Assertion 'bad' (file tests/wp/stmtcompiler_test.i, line 87):
+Assume { Have: 0 <= x. }
+Prove: false.
+[Qed] -
+
+------------------------------------------------------------
+zloop sequent:
+   Assume {
+     Have: foo_0 = 42.
+     Have: 0 <= x.
+     Have: (ta_i_0=true) /\ (ta_i_1=false).
+     Have: i = 0.
+     Have: (1 + i) = i_1.
+     Have: i_1 <= 10.
+     Have: i_2 <= 10.
+     Have: 10 <= i_2.
+     Have: 10 <= i_2.
+     Have: i_2 = 10.
+   }
+Prove: 0 <= x.
+
+Goal Assertion (file tests/wp/stmtcompiler_test.i, line 86):
+Prove: true.
+[Qed] Valid
+
+------------------------------------------------------------
+zloop sequent:
+   Assume {
+     Have: foo_0 = 42.
+     Have: 0 <= x.
+     Have: (ta_i_0=true) /\ (ta_i_1=false).
+     Have: i_1 = 0.
+     Have: (1 + i_1) = i_2.
+     Have: i_2 <= 10.
+     Have: i <= 10.
+     Have: 10 <= i.
+     Have: 10 <= i.
+   }
+Prove: i = 10.
+
+Goal Assertion (file tests/wp/stmtcompiler_test.i, line 85):
+Prove: true.
+[Qed] Valid
+
+------------------------------------------------------------
+zloop sequent:
+   Assume {
+     Have: foo_0 = 42.
+     Have: 0 <= x.
+     Have: (ta_i_0=true) /\ (ta_i_1=false).
+     Have: i_1 = 0.
+     Have: (1 + i_1) = i_2.
+     Have: i_2 <= 10.
+     Have: i <= 10.
+     Have: 10 <= i.
+   }
+Prove: 10 <= i.
+
+Goal Assertion (file tests/wp/stmtcompiler_test.i, line 84):
+Prove: true.
+[Qed] Valid
+
+------------------------------------------------------------
+zloop sequent:
+   Assume {
+     Have: foo_0 = 42.
+     Have: 0 <= x.
+     Have: (ta_i_0=true) /\ (ta_i_1=false).
+     Have: i_1 = 0.
+     Have: (1 + i_1) = i.
+   }
+Prove: i <= 10.
+
+Goal Invariant (file tests/wp/stmtcompiler_test.i, line 80):
+Prove: true.
+[Qed] Valid
+
+------------------------------------------------------------
+zloop sequent:
+   Assume {
+     Have: foo_0 = 42.
+     Have: 0 <= x.
+     Have: (ta_i_0=true) /\ (ta_i_1=false).
+     Have: i_1 = 0.
+     Have: (1 + i_1) = i_2.
+     Have: i_2 <= 10.
+     Have: i_3 <= 10.
+     Have: i_3 <= 9.
+     Have: (1 + i_3) = i_4.
+     Have: (1 + i_4) = i.
+   }
+Prove: i <= 10.
+
+Goal Invariant (file tests/wp/stmtcompiler_test.i, line 80):
+Assume { Have: 0 <= x. Have: i <= 10. Have: i <= 9. }
+Prove: i <= 8.
+Prover Qed returns Valid
+------------------------------------------------------------
+zloop sequent:
+   Assume {
+     Have: foo_0 = 42.
+     Have: 0 <= x.
+     Have: (ta_i_0=true) /\ (ta_i_1=false).
+     Have: i = 0.
+     Have: (1 + i) = i_1.
+     Have: i_1 <= 10.
+     Have: i_2 <= 10.
+     Have: 10 <= i_2.
+     Have: 10 <= i_2.
+     Have: i_2 = 10.
+     Have: 0 <= x.
+     If foo_1 = 0
+     Then { Have: ((foo_1 = 0) -> (i_2 = 1)). }
+     Have: x = result_0.
+     Have: (ta_i_2=false) /\ (ta_i_0=true).
+   }
+Prove: 0 <= result_0.
+
+Goal Post-condition (file tests/wp/stmtcompiler_test.i, line 74) in 'zloop':
+Prove: true.
+[Qed] Valid
+
+------------------------------------------------------------
+new way
+behavior2 sequent:
+   Assume {
+     Have: foo_0 = 42.
+     Have: (ta_retres_0=true) /\ (ta_retres_1=false) /\ (ta_x_0=true) /\
+         (ta_x_1=false).
+     Have: result_0 < 0.
+     Have: x = result_0.
+   }
+Prove: x < 0.
+
+Goal Assertion (file tests/wp/stmtcompiler_test.i, line 109):
+Prove: true.
+[Qed] Valid
+
+------------------------------------------------------------
+new way
+behavior3 sequent:
+   Assume {
+     Have: foo_0 = 42.
+     Have: (ta_retres_0=true) /\ (ta_retres_1=false) /\ (ta_x_0=true) /\
+         (ta_x_1=false).
+     Have: 0 <= result_0.
+     Have: x = result_0.
+   }
+Prove: 0 <= x.
+
+Goal Assertion (file tests/wp/stmtcompiler_test.i, line 116):
+Prove: true.
+[Qed] Valid
+
+------------------------------------------------------------
+new way
+behavior4 sequent:
+   Assume {
+     Have: foo_0 = 42.
+     Have: (ta_retres_0=true) /\ (ta_retres_1=false) /\ (ta_x_0=true) /\
+         (ta_x_1=false).
+     Have: result_0 <= 0.
+     Have: 0 <= result_0.
+     Have: x = result_0.
+   }
+Prove: x = 0.
+
+Goal Assertion (file tests/wp/stmtcompiler_test.i, line 123):
+Prove: true.
+[Qed] Valid
+
+------------------------------------------------------------
+new way
+behavior5 sequent:
+   Assume {
+     Have: foo_0 = 42.
+     Have: (ta_retres_0=true) /\ (ta_retres_1=false) /\ (ta_x_0=true) /\
+         (ta_x_1=false).
+     Have: 0 <= result_0.
+     Have: x = result_0.
+   }
+Prove: x < 0.
+
+Goal Assertion 'bad' (file tests/wp/stmtcompiler_test.i, line 131):
+Assume { Have: 0 <= x. }
+Prove: false.
+[Qed] -
+
+------------------------------------------------------------
+new way
+if_assert sequent:
+   Assume {
+     Have: foo_0 = 42.
+     Have: (ta_retres_0=true) /\ (ta_retres_1=false).
+     If x < 0
+     Then { Have: x = x_1. Have: ((x < 0) -> (x_1 < (y * y))). }
+     If 0 <= x
+     Then {
+       Have: x = x_2.
+       Have: (x_1 + x_2) = 0.
+       Have: ((0 <= x) -> (x_1 < (y * y))).
+     }
+     Have: x_1 < (y * y).
+   }
+Prove: false.
+
+Goal Assertion 'missing_return' (file tests/wp/stmtcompiler_test.i, line 143):
+Assume {
+  If x < 0
+  Then { Have: x = x_1. }
+  If 0 <= x
+  Then { Have: x = x_2. Have: (x_1 + x_2) = 0. }
+  Have: x_1 < (y * y).
+}
+Prove: false.
+[Qed] -
+
+------------------------------------------------------------
+if_assert sequent:
+   Assume {
+     Have: foo_0 = 42.
+     Have: (ta_retres_0=true) /\ (ta_retres_1=false).
+     If x_1 < 0
+     Then { Have: x_1 = x. Have: ((x_1 < 0) -> (x < (y * y))). }
+     If 0 <= x_1
+     Then {
+       Have: x_1 = x_2.
+       Have: (x + x_2) = 0.
+       Have: ((0 <= x_1) -> (x < (y * y))).
+     }
+   }
+Prove: x < (y * y).
+
+Goal Assertion (file tests/wp/stmtcompiler_test.i, line 142):
+Prove: true.
+[Qed] Valid
+
+------------------------------------------------------------
+if_assert sequent:
+   Assume {
+     Have: foo_0 = 42.
+     Have: (ta_retres_0=true) /\ (ta_retres_1=false).
+     Have: 0 <= x_1.
+     Have: (x + x_1) = 0.
+   }
+Prove: x < (y * y).
+
+Goal Assertion (file tests/wp/stmtcompiler_test.i, line 140):
+Assume { Have: 0 <= x. }
+Prove: 0 < (x + (y * y)).
+[Qed] -
+
+------------------------------------------------------------
+if_assert sequent:
+   Assume {
+     Have: foo_0 = 42.
+     Have: (ta_retres_0=true) /\ (ta_retres_1=false).
+     Have: x < 0.
+   }
+Prove: x < (y * y).
+
+Goal Assertion (file tests/wp/stmtcompiler_test.i, line 137):
+Assume { Have: x < 0. }
+Prove: x < (y * y).
+[Qed] -
+
+------------------------------------------------------------
+new way
+compare sequent:
+   Assume {
+     Have: (b < a) \/ ((b = a) /\ (a <= b) /\ (c < d)) \/
+         ((b != a) /\ (a <= b) /\ ((b != a) \/ ((b = a) /\ (d <= c)))) \/
+         ((b = a) /\ (a <= b) /\ (c < d) /\
+          ((b != a) \/ ((b = a) /\ (d <= c)))) \/
+         ((b = a) /\ (a <= b) /\ (d <= c) /\
+          ((b != a) \/ ((b = a) /\ (d <= c)))).
+     Have: foo_0 = 42.
+     Have: (ta_r_0=true) /\ (ta_r_1=false).
+     If (b < a) \/ ((b = a) /\ (a <= b) /\ (c < d)) \/
+         ((b != a) /\ (a <= b) /\ ((b != a) \/ ((b = a) /\ (d <= c)))) \/
+         ((b = a) /\ (a <= b) /\ (c < d) /\
+          ((b != a) \/ ((b = a) /\ (d <= c)))) \/
+         ((b = a) /\ (a <= b) /\ (d <= c) /\
+          ((b != a) \/ ((b = a) /\ (d <= c))))
+     If b < a
+     Then { Have: r_1 = r_2. Have: r = (-1). }
+     If a <= b
+     Then {
+       Have: r_1 = r_3.
+       If (b != a) \/ ((b = a) /\ (d <= c))
+       Then {
+         If b = a
+         Then {
+           Have: r_4 = r_5.
+           If d <= c
+           Then { Have: r_5 = r_6. Have: r = 0. }
+           If c < d
+           Then { Have: r_5 = r_7. Have: r = 1. }
+         }
+         If b != a
+         Then { Have: r_4 = r_8. Have: r = 1. }
+       }
+       If b = a
+       Then {
+         Have: r_3 = r_9.
+         If c < d
+         Then { Have: r_9 = r_10. Have: r = (-1). }
+         If d <= c
+         Then { Have: r_9 = r_4. }
+       }
+       If b != a
+       Then { Have: r_3 = r_4. }
+     }
+   }
+Prove: ((a < b) -> (r = 1)).
+
+Goal Assertion (file tests/wp/stmtcompiler_test.i, line 154):
+Prove: true.
+[Qed] Valid
+
+------------------------------------------------------------

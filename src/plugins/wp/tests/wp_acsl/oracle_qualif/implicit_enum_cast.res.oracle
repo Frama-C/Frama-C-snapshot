@@ -2,7 +2,7 @@
 [kernel] Parsing tests/wp_acsl/implicit_enum_cast.i (no preprocessing)
 [wp] Running WP plugin...
 [wp] Loading driver 'share/wp.driver'
-[wp] warning: Missing RTE guards
+[wp] Warning: Missing RTE guards
 [wp] 9 goals scheduled
 [wp] [Qed] Goal typed_bar_post : Valid
 [wp] [Qed] Goal typed_bar_assign_exit_part1 : Valid
@@ -14,8 +14,9 @@
 [wp] [Qed] Goal typed_bar_assign_normal_part4 : Valid
 [wp] [Qed] Goal typed_bar_assign_normal_part5 : Valid
 [wp] Proved goals:    9 / 9
-    Qed:             9
-----------------------------------------------------------
-Functions           WP   Alt-Ergo    Total   Success
-bar                  9     -           9       100%
-----------------------------------------------------------
+  Qed:             9
+[wp] Report 'tests/wp_acsl/implicit_enum_cast.i.0.report.json'
+-------------------------------------------------------------
+Functions           WP     Alt-Ergo        Total   Success
+bar                  9     -                 9       100%
+-------------------------------------------------------------

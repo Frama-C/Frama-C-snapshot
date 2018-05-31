@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2017                                               *)
+(*  Copyright (C) 2007-2018                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -47,6 +47,8 @@ module type S = sig
     (* TODO *)
     (stmt * lval list * lval list * lval list * stmt ref list) list ->
     unit or_bottom
+
+  val enter_scope: kernel_function -> varinfo list -> state -> state
 
   type call_result = {
     states: state list or_bottom;

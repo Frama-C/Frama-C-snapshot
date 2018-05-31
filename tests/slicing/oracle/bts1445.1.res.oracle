@@ -5,13 +5,14 @@
 [value] Initial state computed
 [value:initial-state] Values of globals at initialization
   x ∈ {0}
-tests/slicing/bts1445.i:14:[value] entering loop for the first time
+[value] tests/slicing/bts1445.i:14: entering loop for the first time
 [value] Recording results for f
 [value] done for function f
 [slicing] initializing slicing ...
 [slicing] interpreting slicing requests from the command line...
 [pdg] computing for function f
-tests/slicing/bts1445.i:16:[pdg] warning: no final state. Probably unreachable...
+[pdg] tests/slicing/bts1445.i:16: Warning: 
+  no final state. Probably unreachable...
 [pdg] done for function f
 [slicing] Nothing to select for unreachable return stmt of f
 [slicing] applying all slicing requests...

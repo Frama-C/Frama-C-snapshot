@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2017                                               *)
+(*  Copyright (C) 2007-2018                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -314,7 +314,8 @@ end
 type bundle = Bundle.t
 type sequent = sequence * F.pred
 
-let pretty = ref (fun _ _ -> ())
+let pretty = ref (fun _fmt _seq -> ())
+
 let is_true = function { seq_catg = TRUE | EMPTY } -> true | _ -> false
 let is_empty = function { seq_catg = EMPTY } -> true | _ -> false
 
@@ -909,7 +910,7 @@ type outcome =
 
 and hsp = step list * pred
 
-let simplify (solvers : simplifier list) (hs,g) =
+let apply_simplifiers (solvers : simplifier list) (hs,g) =
   if solvers = [] then NoSimplification
   else
     try
@@ -939,6 +940,8 @@ let empty = {
   seq_catg = EMPTY ;
   seq_list = [] ;
 }
+
+let trivial = empty , F.p_true
 
 let append sa sb =
   if sa.seq_size = 0 then sb else
@@ -1100,19 +1103,19 @@ let rec fixpoint limit solvers sigma s0 =
   if modified || (limit > 0 && not (equal_list (fst s0) (fst s2)))
   then fixpoint (pred limit) solvers sigma1 s2
   else
-    match simplify solvers s2 with
+    match apply_simplifiers solvers s2 with
     | Simplified s3 -> fixpoint (pred limit) solvers sigma1 s3
     | Trivial -> [],p_true
     | NoSimplification -> s2
 
 let letify_hsp ?(solvers=[]) hsp = fixpoint 10 solvers Sigma.empty hsp
 
-let rec letify ?(solvers=[]) ?(intros=10) (seq,p) =
+let rec simplify ?(solvers=[]) ?(intros=10) (seq,p) =
   let hs,p = fixpoint 10 solvers Sigma.empty (seq.seq_list,p) in
   let sequent = sequence hs , p in
   let introduced = introduction sequent in
   if sequent != introduced && intros > 0 then
-    letify ~solvers ~intros:(pred intros) introduced
+    simplify ~solvers ~intros:(pred intros) introduced
   else
     introduced
 
@@ -1448,7 +1451,7 @@ struct
         match r with Used -> () | Def e -> walk_e w x e
     and walk_e w x e = Vars.iter (walk_y w x) (F.vars e) in
     try walk_e w x e ; false with Exit -> true
-      
+
 (*
   let pivots w a b =
     let rec collect xs e = 
@@ -1486,7 +1489,7 @@ struct
   let kind x w =
     try Some (Vmap.find x w)
     with Not_found -> None
-  
+
   let add_eq (w : domain) x y =
     match kind x w , kind y w with
     | None , None ->
@@ -1502,8 +1505,8 @@ struct
     | Some Used,Some Used -> w
     | Some(Def a),Some(Def b) ->
         let xs = Vars.union (F.vars a) (F.vars b) in
-         add_usedvar x (add_usedvar y (add_used w xs))
-  
+        add_usedvar x (add_usedvar y (add_used w xs))
+
   let branch p wa wb =
     let pool = ref (F.varsp p) in
     let w0 = Vmap.union
@@ -1515,7 +1518,7 @@ struct
                pool := Vars.union !pool (F.vars e) ; Used
         ) wa wb in
     add_used w0 !pool
-  
+
   let rec usage w p =
     match F.repr p with
     | And ps -> List.fold_left usage w ps
@@ -1546,7 +1549,7 @@ struct
     Vmap.fold
       (fun x u xs -> match u with Used -> xs | Def _ -> Vars.add x xs)
       w Vars.empty
-  
+
   let rec filter xs p =
     match F.p_expr p with
     | And ps -> p_all (filter xs) ps

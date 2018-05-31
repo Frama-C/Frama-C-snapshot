@@ -5,6 +5,7 @@ volatile int nondet;
 struct empty {};
 
 struct empty global_empty;
+struct empty *pg = &global_empty;
 
 typedef struct {
   int a;
@@ -31,10 +32,12 @@ comp f(comp s, comp *p) {
 }
 
 //@ assigns \result \from \nothing;
-struct empty ret_empty();
+struct empty ret_empty(void);
 
-/*@ allocates \result; ensures \fresh(\result, sizeof(struct empty)); */
-struct empty * ret_ptr_empty();
+/*@ assigns \result \from pg;
+  ensures \result == pg;
+*/
+struct empty * ret_ptr_empty(void);
 
 int main() {
   struct empty e1, e2;

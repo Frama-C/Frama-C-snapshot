@@ -5,8 +5,8 @@
 [value:initial-state] Values of globals at initialization
   x ∈ [--..--]
 [value] computing for function g <- main.
-    Called from tests/value/switch_cast.i:71.
-tests/value/switch_cast.i:67:[value] Frama_C_show_each: [1..241],1%2
+  Called from tests/value/switch_cast.i:71.
+[value] tests/value/switch_cast.i:67: Frama_C_show_each: [1..241],1%2
 [value] Recording results for g
 [value] Done for function g
 [value] Recording results for main
@@ -22,17 +22,17 @@ tests/value/switch_cast.i:67:[value] Frama_C_show_each: [1..241],1%2
 [from] Computing for function main
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
-    These dependencies hold at termination for the executions that terminate:
+  These dependencies hold at termination for the executions that terminate:
 [from] Function g:
   x FROM x
 [from] Function main:
   x FROM x
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function g:
-      x; y
+    x; y
 [inout] Inputs for function g:
-      x
+    x
 [inout] Out (internal) for function main:
-      x
+    x
 [inout] Inputs for function main:
-      x
+    x

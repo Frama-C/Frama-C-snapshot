@@ -2,7 +2,7 @@
 /*                                                                        */
 /*  This file is part of Frama-C.                                         */
 /*                                                                        */
-/*  Copyright (C) 2007-2017                                               */
+/*  Copyright (C) 2007-2018                                               */
 /*    CEA (Commissariat à l'énergie atomique et aux énergies              */
 /*         alternatives)                                                  */
 /*                                                                        */
@@ -40,13 +40,18 @@
 #define E_ACSL_STD_STRING_H
 
 #ifndef E_ACSL_NO_COMPILER_BUILTINS
-# define memset  __builtin_memset
-# define memcmp  __builtin_memcmp
-# define memcpy  __builtin_memcpy
-# define memmove __builtin_memmove
-# define strlen  __builtin_strlen
-# define strcmp  __builtin_strcmp
-# define strncmp __builtin_strncmp
+# define memset   __builtin_memset
+# define memcmp   __builtin_memcmp
+# define memcpy   __builtin_memcpy
+# define memmove  __builtin_memmove
+# define strncat  __builtin_strncat
+# define strcat   __builtin_strcat
+# define strlen   __builtin_strlen
+# define strcmp   __builtin_strcmp
+# define strncmp  __builtin_strncmp
+# define strcpy   __builtin_strcpy
+# define strncpy  __builtin_strncpy
+# define strchr   __builtin_strchr
 #else
 # include <string.h>
 #endif
@@ -127,5 +132,15 @@ static int zeroed_out(const void *p, size_t size) {
     pc += ZERO_BLOCK_SIZE;
   }
   return !memcmp(pc, &zeroblock, rem);
+}
+
+/** \brief Count the number of occurrences of char `c` in a string `s` */
+static int charcount(const char *s, char c) {
+  int count = 0;
+  while ((s = strchr(s,c)) != NULL) {
+    count++;
+    s++;
+  }
+  return count;
 }
 #endif

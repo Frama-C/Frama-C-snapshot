@@ -1,0 +1,22 @@
+[
+  {
+    "classid": "RTE",
+    "plugin": "wp",
+    "warning": "Missing RTE guards",
+    "descr": "Shall run Eva plug-in"
+  },
+  {
+    "classid": "GOAL",
+    "untried": "\([a-z]\)*_ensures[a-z_]*",
+    "title": "Postcondition '\1'",
+    "descr": "Property Untried",
+    "action": "ERROR"
+  },
+  {
+    "classid": "UNIT",
+    "untried": "\([a-z]\)*_requires[a-z_]*",
+    "title": "Precondition '\1'",
+    "descr": "Property Untried",
+    "action": "INFO"
+  }
+]

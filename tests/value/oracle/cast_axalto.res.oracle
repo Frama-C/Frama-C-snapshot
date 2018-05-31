@@ -10,7 +10,7 @@
    [3] ∈ {100}
    [4..9] ∈ {0}
 [value] computing for function f <- main.
-    Called from tests/value/cast_axalto.c:26.
+  Called from tests/value/cast_axalto.c:26.
 [value] Recording results for f
 [value] Done for function f
 [value] Recording results for main
@@ -40,7 +40,7 @@
 [from] Computing for function main
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
-    These dependencies hold at termination for the executions that terminate:
+  These dependencies hold at termination for the executions that terminate:
 [from] Function f:
   G{[1][bits 0 to 7]; [4]} FROM my_tab
 [from] Function main:
@@ -49,10 +49,10 @@
   \result FROM \nothing
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function f:
-      p; G{[1][bits 0 to 7]; [4]}
+    p; G{[1][bits 0 to 7]; [4]}
 [inout] Inputs for function f:
-      my_tab
+    my_tab
 [inout] Out (internal) for function main:
-      my_tab; G{[1][bits 0 to 7]; [4]}; __retres
+    my_tab; G{[1][bits 0 to 7]; [4]}; __retres
 [inout] Inputs for function main:
-      my_tab
+    my_tab

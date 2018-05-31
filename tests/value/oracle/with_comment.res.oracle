@@ -5,8 +5,9 @@
 [value:initial-state] Values of globals at initialization
   HHH ∈ {0}
   G ∈ {0}
-tests/value/with_comment.i:20:[value] entering loop for the first time
-tests/value/with_comment.i:21:[value] warning: signed overflow. assert G + 1 ≤ 2147483647;
+[value] tests/value/with_comment.i:20: entering loop for the first time
+[value:alarm] tests/value/with_comment.i:21: Warning: 
+  signed overflow. assert G + 1 ≤ 2147483647;
 [value] Recording results for main2
 [value] done for function main2
 [value] ====== VALUES COMPUTED ======
@@ -16,12 +17,12 @@ tests/value/with_comment.i:21:[value] warning: signed overflow. assert G + 1 ≤
 [from] Computing for function main2
 [from] Done for function main2
 [from] ====== DEPENDENCIES COMPUTED ======
-    These dependencies hold at termination for the executions that terminate:
+  These dependencies hold at termination for the executions that terminate:
 [from] Function main2:
   G FROM \nothing
   \result FROM \nothing
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function main2:
-      i; j; G
+    i; j; G
 [inout] Inputs for function main2:
-      G
+    G

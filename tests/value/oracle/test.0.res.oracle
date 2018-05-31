@@ -4,14 +4,19 @@
 [value] Initial state computed
 [value:initial-state] Values of globals at initialization
   
-tests/value/test.i:9:[value] entering loop for the first time
-tests/value/test.i:10:[value] entering loop for the first time
-tests/value/test.i:11:[value] entering loop for the first time
-tests/value/test.i:11:[value] warning: out of bounds read. assert \valid_read(v + j);
-tests/value/test.i:11:[value] warning: out of bounds read. assert \valid_read(v + (int)(j + ecart));
-tests/value/test.i:13:[value] warning: out of bounds read. assert \valid_read(v + (int)(j + ecart));
-tests/value/test.i:14:[value] warning: out of bounds write. assert \valid(v + (int)(j + ecart));
-tests/value/test.i:11:[value] warning: signed overflow. assert j + ecart ≤ 2147483647;
+[value] tests/value/test.i:9: entering loop for the first time
+[value] tests/value/test.i:10: entering loop for the first time
+[value] tests/value/test.i:11: entering loop for the first time
+[value:alarm] tests/value/test.i:11: Warning: 
+  out of bounds read. assert \valid_read(v + j);
+[value:alarm] tests/value/test.i:11: Warning: 
+  out of bounds read. assert \valid_read(v + (int)(j + ecart));
+[value:alarm] tests/value/test.i:13: Warning: 
+  out of bounds read. assert \valid_read(v + (int)(j + ecart));
+[value:alarm] tests/value/test.i:14: Warning: 
+  out of bounds write. assert \valid(v + (int)(j + ecart));
+[value:alarm] tests/value/test.i:11: Warning: 
+  signed overflow. assert j + ecart ≤ 2147483647;
 [value] Recording results for inst_F6
 [value] done for function inst_F6
 [scope:rm_asserts] removing 1 assertion(s)
@@ -28,11 +33,11 @@ tests/value/test.i:11:[value] warning: signed overflow. assert j + ecart ≤ 214
 [from] Computing for function inst_F6
 [from] Done for function inst_F6
 [from] ====== DEPENDENCIES COMPUTED ======
-    These dependencies hold at termination for the executions that terminate:
+  These dependencies hold at termination for the executions that terminate:
 [from] Function inst_F6:
   S_v[0..1] FROM v; n; S_v[0..1] (and SELF)
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function inst_F6:
-      t[1]; i; j; ecart; tmp; i_0; S_v[0..1]
+    t[1]; i; j; ecart; tmp; i_0; S_v[0..1]
 [inout] Inputs for function inst_F6:
-      S_v[0..1]
+    S_v[0..1]

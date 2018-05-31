@@ -3,12 +3,12 @@
 */
 
 
-int x;
+int* x;
 
-void f();
+void f(void);
 
 //@ allocates x;
-void g();
+void g(void);
 
 //@ behavior b: requires \false; allocates x;
 void main(int c) {

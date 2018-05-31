@@ -1,0 +1,8 @@
+[kernel] Parsing tests/syntax/no_prototype.i (no preprocessing)
+[kernel:typing:no-proto] tests/syntax/no_prototype.i:4: Warning: 
+  Calling function foo that is declared without prototype.
+  Its formals will be inferred from actual arguments
+[kernel] tests/syntax/no_prototype.i:6: User Error: 
+  Declaration of foo does not match previous declaration from tests/syntax/no_prototype.i:1 (different number of arguments).
+[kernel] User Error: stopping on file "tests/syntax/no_prototype.i" that has errors.
+[kernel] Frama-C aborted: invalid user input.

@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2017                                               *)
+(*  Copyright (C) 2007-2018                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -27,7 +27,7 @@
     are abstractions of the set of possible concrete states that may arise
     during any execution of the program.
 
-    In EVA, different abstract domains may communicate through alarms, values
+    In Eva, different abstract domains may communicate through alarms, values
     and locations.
     Alarms report undesirable behaviors that may occur during an execution
     of the program. They are defined in {!Alarmset}, while values and locations
@@ -66,7 +66,7 @@
     This structure enables automatic accessors to the domain when
     combined to others. See {!Structure} for details.
     {!S_with_Structure} is the interface to implement in order to introduce
-    a now domain in EVA.
+    a now domain in Eva.
 
     The module type {!Internal} contains some other functionalities needed by
     the analyzer, but that can be automatically generated from the previous
@@ -76,7 +76,7 @@
     {!Internal} modules can then be lifted on more general values and locations
     through {!Domain_lift.Make}, and be combined through {!Domain_product.Make}.
 
-    Finally, {!External} is the type of the final modules built and used by EVA.
+    Finally, {!External} is the type of the final modules built and used by Eva.
     It contains the generic accessors to specific domains, described in
     {!Interface}.
 *)
@@ -84,7 +84,7 @@
 (* The types of the Cil AST. *)
 open Cil_types
 
-(* Definition of the types frequently used in EVA. *)
+(* Definition of the types frequently used in Eva. *)
 open Eval
 
 
@@ -390,8 +390,8 @@ module type S_with_Structure = sig
   val structure : t structure
 
   (** Category for the messages about the domain.
-      Must be created through {Value_parameters.register_category}. *)
-  val log_category : Log.category
+      Must be created through {!Value_parameters.register_category}. *)
+  val log_category : Value_parameters.category
 end
 
 (** External interface of a domain, with accessors.
@@ -444,9 +444,15 @@ end
 module type Internal = sig
   include S_with_Structure
   module Store: Store with type state := state
+
+  (** This function is called after the analysis. The argument is the state
+      computed at the return statement of the main function. The function can
+      also access all states stored in the Store module during the analysis.
+      If the analysis aborted, this function is not called. *)
+  val post_analysis: t or_bottom -> unit
 end
 
-(** Final interface of domains, as generated and used by EVA, with generic
+(** Final interface of domains, as generated and used by Eva, with generic
     accessors for domains. *)
 module type External = sig
   include Internal

@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2017                                               *)
+(*  Copyright (C) 2007-2018                                               *)
 (*    CEA   (Commissariat à l'énergie atomique et aux énergies            *)
 (*           alternatives)                                                *)
 (*    INRIA (Institut National de Recherche en Informatique et en         *)
@@ -97,6 +97,8 @@ let isLogicType f t =
 let isLogicArrayType = isLogicType Cil.isArrayType
 
 let isLogicCharType = isLogicType Cil.isCharType
+
+let isLogicAnyCharType = isLogicType Cil.isAnyCharType
 
 let isLogicVoidType = isLogicType Cil.isVoidType
 
@@ -215,13 +217,16 @@ let rec mk_logic_StartOf t =
 (* Make an AddrOf. Given an lval of type T will give back an expression of
  * type ptr(T)  *)
 let mk_logic_AddrOf ?(loc=Cil_datatype.Location.unknown) lval typ =
+  let lift_set typ =
+    Logic_const.transform_element
+      (fun typ -> (Ctype (TPtr (logicCType typ,[])))) typ
+  in
   match lval with
     | TMem e, TNoOffset -> Logic_const.term ~loc e.term_node e.term_type
     | b, TIndex(z, TNoOffset) when isLogicZero z ->
-      Logic_const.term ~loc (TStartOf (b, TNoOffset))
-        (Ctype (TPtr (logicCType typ,[]))) (* array *)
+      Logic_const.term ~loc (TStartOf (b, TNoOffset)) (lift_set typ)
     | _ ->
-      Logic_const.term ~loc (TAddrOf lval) (Ctype (TPtr (logicCType typ,[])))
+      Logic_const.term ~loc (TAddrOf lval) (lift_set typ)
 
 let isLogicPointer t =
   isLogicPointerType t.term_type || (is_C_array t)
@@ -497,7 +502,7 @@ let array_with_range arr size =
   let loc = arr.eloc in
   let arr = Cil.stripCasts arr in
   let typ_arr = typeOf arr in
-  let no_cast = isCharPtrType typ_arr || isCharArrayType typ_arr in
+  let no_cast = isAnyCharPtrType typ_arr || isAnyCharArrayType typ_arr in
   let char_ptr = typ_to_logic_type Cil.charPtrType in
   let arr = expr_to_term ~cast:true arr in
   let arr =
@@ -1030,7 +1035,7 @@ let is_same_pragma p1 p2 =
       | Impact_pragma p1, Impact_pragma p2 -> is_same_impact_pragma p1 p2
       | (Loop_pragma _ | Slice_pragma _ | Impact_pragma _), _ -> false
 
-let is_same_extension (e1, c1) (e2, c2) =
+let is_same_extension (_,e1, c1) (_,e2, c2) =
   Datatype.String.equal e1 e2 &&
   match c1, c2 with
   | Ext_id i1, Ext_id i2 -> i1 = i2
@@ -1108,6 +1113,14 @@ let is_same_pl_constant c1 c2 =
       | (IntConstant _| FloatConstant _
         | StringConstant _ | WStringConstant _), _ -> false
 
+let is_same_pl_array_size c1 c2 =
+  let open Logic_ptree in
+  match c1,c2 with
+      | ASnone, ASnone -> true
+      | ASinteger s1, ASinteger s2
+      | ASidentifier s1, ASidentifier s2 -> s1 = s2
+      | (ASnone | ASinteger _| ASidentifier _), _ -> false
+
 let rec is_same_pl_type t1 t2 =
   let open Logic_ptree in
   match t1, t2 with
@@ -1137,7 +1150,7 @@ let rec is_same_pl_type t1 t2 =
           | FFloat, FFloat | FDouble, FDouble | FLongDouble, FLongDouble -> true
           | (FFloat | FDouble | FLongDouble),_ -> false)
       | LTarray (t1,c1), LTarray(t2,c2) ->
-        is_same_pl_type t1 t2 && is_same_opt is_same_pl_constant c1 c2
+        is_same_pl_type t1 t2 && is_same_pl_array_size c1 c2
       | LTpointer t1, LTpointer t2 -> is_same_pl_type t1 t2
       | LTenum s1, LTenum s2 | LTstruct s1, LTstruct s2
       | LTunion s1, LTunion s2 -> s1 = s2
@@ -2045,18 +2058,50 @@ let extract_contract l =
          AStmtSpec (l1,spec) -> (l1,spec) :: l | _ -> l) l []
 
 class complete_types =
-  object
+  object(self)
     inherit Cil.nopCilVisitor
+    method private insert_cast_app li args =
+      let rec insert_cast typs terms (changed, args') =
+        match typs, terms with
+        | [], [] -> if changed then List.rev args' else args
+        | [], rest -> if changed then List.rev args' @ rest else args
+        | _, [] -> if changed then List.rev args' else args
+        | { lv_type = typ } :: typs, t :: terms ->
+          let t' =
+            match unroll_type typ with
+              | Ctype typ -> mk_cast typ t
+              | _ -> t
+          in
+          insert_cast typs terms (changed || t != t', t' :: args')
+      in
+      insert_cast li.l_profile args (false, [])
+ 
+    method private insert_cast_term t =
+      match t.term_node with
+       | Tapp (li, labs, args) ->
+         let args' = self#insert_cast_app li args in
+         { t with term_node = Tapp(li,labs,args') }
+       | _ -> t
+
+    method private insert_cast_pred p =
+      match p.pred_content with
+       | Papp (li, labs, args) ->
+         let args' = self#insert_cast_app li args in
+         { p with pred_content = Papp(li,labs,args') }
+       | _ -> p
+
+    method! vpredicate _ = DoChildrenPost self#insert_cast_pred
+
     method! vterm t =
       match t.term_node with
-        | TLval (TVar v, TNoOffset) 
+        | TLval (TVar v, TNoOffset)
             when isLogicType Cil.isCompleteType v.lv_type &&
               not (isLogicType Cil.isCompleteType t.term_type) ->
           ChangeDoChildrenPost({ t with term_type = v.lv_type }, fun x -> x)
-        | _ -> DoChildren
+        | _ -> DoChildrenPost self#insert_cast_term
   end
 
-let complete_types f = Cil.visitCilFileSameGlobals (new complete_types) f
+let complete_types f = Cil.visitCilFile (new complete_types) f
 
 (* ************************************************************************* *)
 (** {2 Parsing utilities} *)
@@ -2371,7 +2416,7 @@ let const_fold_trange_bounds typ b e =
   b, e
 
 (** Find the value corresponding to the logic offset [loff] inside the
-    initialiser [init]. Zero is used as a default value when the initialiser is
+    initializer [init]. Zero is used as a default value when the initializer is
     incomplete. [loff] must have an integral type. Returns a set of values
     when [loff] contains ranges. *)
 let find_initial_value init loff =

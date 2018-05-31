@@ -4,10 +4,11 @@
 [value] Initial state computed
 [value:initial-state] Values of globals at initialization
   G ∈ {0}
-tests/value/infinite.i:6:[value] entering loop for the first time
+[value] tests/value/infinite.i:6: entering loop for the first time
 [value] computing for function pause <- main.
-    Called from tests/value/infinite.i:9.
-tests/value/infinite.i:9:[kernel] warning: Neither code nor specification for function pause, generating default assigns from the prototype
+  Called from tests/value/infinite.i:9.
+[kernel:annot:missing-spec] tests/value/infinite.i:9: Warning: 
+  Neither code nor specification for function pause, generating default assigns from the prototype
 [value] using specification for function pause
 [value] Done for function pause
 [value] Recording results for main
@@ -21,13 +22,13 @@ tests/value/infinite.i:9:[kernel] warning: Neither code nor specification for fu
 [from] Non-terminating function main (no dependencies)
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
-    These dependencies hold at termination for the executions that terminate:
+  These dependencies hold at termination for the executions that terminate:
 [from] Function pause:
   NO EFFECTS
 [from] Function main:
   NON TERMINATING - NO EFFECTS
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function main:
-      G
+    G
 [inout] Inputs for function main:
-      G
+    G

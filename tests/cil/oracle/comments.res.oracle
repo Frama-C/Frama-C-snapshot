@@ -16,6 +16,8 @@ void f(void)
 /*@ requires \true; */
 void g(void)
 {
+  /*@ ghost int x = 0; */
+  /*  ghost_comment  */
   return;
 }
 

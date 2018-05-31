@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2017                                               *)
+(*  Copyright (C) 2007-2018                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -25,7 +25,7 @@ open Cil_types
 module M = Alarms.Map
 
 type alarm = Alarms.t
-type status = True | False | Unknown
+type status = Abstract_interp.Comp.result = True | False | Unknown
 type s = status M.t
 type t = Just of s | AllBut of s
 
@@ -105,7 +105,8 @@ let is_empty = function
   | AllBut _ -> false
   | Just m -> M.is_empty m
 
-let singleton a = Just (M.singleton a Unknown)
+let singleton ?(status=Unknown) a =
+  if status = True then Just M.empty else Just (M.singleton a status)
 
 let set alarm status = function
   | Just m   ->
@@ -117,10 +118,6 @@ let set alarm status = function
     then AllBut (M.remove alarm m)
     else AllBut (M.add alarm status m)
 
-let add alarm = function
-  | Just m   -> Just (M.add alarm Unknown m)
-  | AllBut m -> AllBut (M.add alarm True m)
-
 let default = function
   | Just _ -> True
   | AllBut _ -> Unknown
@@ -131,7 +128,20 @@ let find alarm set =
     | AllBut m -> M.find alarm m
   with Not_found -> default set
 
-let merge merge_status s1 s2 =
+(* Merges two alarm maps [s1] and [s2], using [merge_status] to merge merge the
+   statuses bound to a same alarm.
+
+   If [combine] is true, both alarm maps [s1] and [s2] have been produced in
+   the same state but for different expressions [e1] and [e2]: they may contain
+   different alarms, but should always have the same status bound to a same
+   alarm. Do not use the default status for alarms in [s1] missing in [s2] (and
+   vice versa): such alarms may have no meaning for [e2], and should have the
+   same status in [s2] than in [s1] anyway.
+
+   If [combine] is false, both maps come from the evaluation of the same
+   expression in different states. In this case, use the default status for any
+   alarm missing in one side. *)
+let merge ~combine merge_status s1 s2 =
   let d1 = default s1 and d2 = default s2 in
   let m1 = get s1 and m2 = get s2 in
   let closed_set = match merge_status d1 d2 with
@@ -144,16 +154,16 @@ let merge merge_status s1 s2 =
     else function Unknown -> None | p -> Some p
   in
   let merge _ p1 p2 = match p1, p2 with
-    | None, None       -> assert false
-    | Some p, None     -> return (merge_status p d2)
-    | None, Some p     -> return (merge_status d1 p)
+    | None, None -> assert false
+    | Some p, None -> if combine then Some p else return (merge_status p d2)
+    | None, Some p -> if combine then Some p else return (merge_status d1 p)
     | Some p1, Some p2 -> return (merge_status p1 p2)
   in
   if closed_set
   then Just (M.merge merge m1 m2)
   else AllBut (M.merge merge m1 m2)
 
-let union = merge Status.join
+let union = merge ~combine:false Status.join
 
 exception Inconsistent
 let intersect status1 status2 = match Status.inter status1 status2 with
@@ -161,8 +171,18 @@ let intersect status1 status2 = match Status.inter status1 status2 with
   | `Inconsistent -> raise Inconsistent
 
 let inter s1 s2 =
-  try `Value (merge intersect s1 s2)
+  try `Value (merge ~combine:false intersect s1 s2)
   with Inconsistent -> `Inconsistent
+
+let combine s1 s2 =
+  (* [intersect] is only applied if both maps explicitely contain the same
+     alarm. As both maps have been produced in the same state, the statuses for
+     this alarm should be consistent. *)
+  try merge ~combine:true intersect s1 s2
+  with Inconsistent ->
+    Value_parameters.fatal ~current:true
+      "Inconsistent combination of two alarm maps %a and %a."
+      pretty s1 pretty s2
 
 let iter f = function
   | Just m -> M.iter f m
@@ -246,20 +266,26 @@ let loc = function
     Cil.CurrentLoc.get ()
   | Cil_types.Kstmt s -> Cil_datatype.Stmt.loc s
 
-let report_alarm ki annot str =
-  let loc = loc ki in
-  let str =
-    Format.kfprintf
-      (fun _fmt -> Format.flush_str_formatter ())
-      Format.str_formatter
-      "@[%s.@ %a@]%t" str pr_annot annot Value_util.pp_callstack
-  in
-  Value_util.alarm_report ~source:(fst loc) "%s" str
+let report_alarm ki annot msg =
+  Value_util.alarm_report ~source:(fst (loc ki)) "@[%s.@ @[<hov 2>%a@]@]%t"
+    msg pr_annot annot Value_util.pp_callstack
+
+let string_fkind = function
+  | Cil_types.FFloat -> "float"
+  | Cil_types.FDouble -> "double"
+  | Cil_types.FLongDouble -> "long double"
+
+(** Emitting alarms *)
 
 let register_alarm ki alarm status str =
   let status = match status with
     | True -> Property_status.True
-    | False -> Property_status.False_if_reachable
+    | False ->
+      (* We cannot soundly emit a red status on an alarm, because we may have
+         emitted a green status earlier on. Thus we store the information
+         for logging purposes, and emit an Unknown status. *)
+      Red_statuses.add_red_alarm ki alarm;
+      Property_status.Dont_know
     | Unknown -> Property_status.Dont_know
   in
   let annot, _is_new =
@@ -273,14 +299,7 @@ let register_alarm ki alarm status str =
 let emit_alarm kinstr alarm (status:status) =
   let register_alarm = register_alarm kinstr alarm status in
   match alarm with
-  | Alarms.Pointer_comparison (_, e) ->
-    let emit = match Value_parameters.WarnPointerComparison.get () with
-      | "none" -> false
-      | "all" -> true
-      | "pointer" -> Cil.isPointerType (Cil.typeOf e)
-      | _ -> assert false
-    in
-    if emit then register_alarm "pointer comparison"
+  | Alarms.Pointer_comparison (_, _) -> register_alarm "pointer comparison"
 
   | Alarms.Division_by_zero _ -> register_alarm "division by zero"
 
@@ -302,8 +321,7 @@ let emit_alarm kinstr alarm (status:status) =
   | Alarms.Invalid_shift (_, None) ->
     register_alarm "invalid LHS operand for left shift"
 
-  | Alarms.Memory_access (_, access_kind)
-  | Alarms.Logic_memory_access (_, access_kind) ->
+  | Alarms.Memory_access (_, access_kind) ->
     let access = match access_kind with
       | Alarms.For_reading -> "read"
       | Alarms.For_writing -> "write"
@@ -313,19 +331,16 @@ let emit_alarm kinstr alarm (status:status) =
   | Alarms.Index_out_of_bound _ ->
     register_alarm "accessing out of bounds index"
 
-  | Alarms.Valid_string _ ->
-    register_alarm "may not point to a valid string"
-
   | Alarms.Differing_blocks _ ->
     register_alarm "pointer subtraction"
 
   | Alarms.Is_nan_or_infinite (_, fkind) ->
-    let sfkind = match fkind with
-      | Cil_types.FFloat -> "float"
-      | Cil_types.FDouble -> "double"
-      | Cil_types.FLongDouble -> "long double"
-    in
+    let sfkind = string_fkind fkind in
     register_alarm (Format.sprintf "non-finite %s value" sfkind)
+
+  | Alarms.Is_nan (_, fkind) ->
+    let sfkind = string_fkind fkind in
+    register_alarm (Format.sprintf "NaN %s value" sfkind)
 
   | Alarms.Uninitialized _ ->
     register_alarm "accessing uninitialized left-value"
@@ -345,34 +360,13 @@ let emit_alarm kinstr alarm (status:status) =
   | Alarms.Uninitialized_union _ ->
     register_alarm "accessing uninitialized union"
 
-let rec height_expr expr =
-  match expr.enode with
-  | Const _ | SizeOf _ | SizeOfStr _ | AlignOf _ -> 0
-  | Lval lv | AddrOf lv | StartOf lv  -> height_lval lv + 1
-  | UnOp (_,e,_) | CastE (_, e) | Info (e,_) | SizeOfE e | AlignOfE e
-    -> height_expr e + 1
-  | BinOp (_,e1,e2,_) -> max (height_expr e1) (height_expr e2) + 1
-
-and height_lval (host, offset) =
-  let h1 = match host with
-    | Var _ -> 0
-    | Mem e -> height_expr e
-  in
-  max h1 (height_offset offset) + 1
-
-and height_offset = function
-  | NoOffset  -> 0
-  | Field (_,r) -> height_offset r + 1
-  | Index (e,r) -> max (height_expr e) (height_offset r) + 1
-
-let height_alarm = function
+let height_alarm = let open Value_util in function
   | Alarms.Division_by_zero e
   | Alarms.Index_out_of_bound (e,_)
   | Alarms.Invalid_shift (e,_)
   | Alarms.Overflow (_,e,_,_)
   | Alarms.Float_to_int (e,_,_)
-  | Alarms.Function_pointer e
-  | Alarms.Valid_string e -> height_expr e + 1
+  | Alarms.Function_pointer (e, _)
   | Alarms.Pointer_comparison (None,e) -> height_expr e + 2
   | Alarms.Memory_access (lv,_)
   | Alarms.Dangling lv -> height_lval lv + 1
@@ -381,8 +375,8 @@ let height_alarm = function
   | Alarms.Differing_blocks (e1,e2) -> max (height_expr e1) (height_expr e2) + 1
   | Alarms.Not_separated (lv1,lv2)
   | Alarms.Overlap (lv1,lv2) -> max (height_lval lv1) (height_lval lv2) + 1
-  | Alarms.Logic_memory_access (_,_) -> 0
-  | Alarms.Is_nan_or_infinite (e,fkind) ->
+  | Alarms.Is_nan_or_infinite (e, fkind)
+  | Alarms.Is_nan (e, fkind) ->
     let trivial = match Cil.typeOf e with
       | TFloat (fk, _) -> fk = fkind
       | _ -> false
@@ -416,7 +410,6 @@ let warn_alarm warn_mode = function
   | Alarms.Dangling _
     -> warn_mode.unspecified ()
   | Alarms.Pointer_comparison _
-  | Alarms.Valid_string _
   | Alarms.Differing_blocks _
     -> warn_mode.defined_logic ()
   | Alarms.Division_by_zero _
@@ -424,9 +417,9 @@ let warn_alarm warn_mode = function
   | Alarms.Float_to_int _
   | Alarms.Invalid_shift _
   | Alarms.Memory_access _
-  | Alarms.Logic_memory_access _
   | Alarms.Index_out_of_bound _
   | Alarms.Is_nan_or_infinite _
+  | Alarms.Is_nan _
   | Alarms.Not_separated _
   | Alarms.Overlap _
   | Alarms.Function_pointer _

@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2017                                               *)
+(*  Copyright (C) 2007-2018                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -230,6 +230,15 @@ let offset_ty t =
 let mk_ctx ~use_gmp_opt = function
   | Other | Gmp as c -> c
   | C_type _ as c -> if use_gmp_opt && Options.Gmp_only.get () then Gmp else c
+
+let infer_if_integer li =
+  let li_t = Misc.term_of_li li in
+  match ty_of_logic_ty li_t.term_type with
+  | C_type _ | Gmp ->
+    let i = Interval.infer li_t in
+    Interval.Env.add li.l_var_info i
+  | Other ->
+    ()
 
 (* type the term [t] in a context [ctx] by taking --e-acsl-gmp-only into account
    iff [use_gmp_opt] is true. *)
@@ -464,7 +473,11 @@ let rec type_term ~use_gmp_opt ?(arith_operand=false) ?ctx t =
     | Tinter _ -> Error.not_yet "tset intersection"
     | Tcomprehension (_,_,_) -> Error.not_yet "tset comprehension"
     | Trange (_,_) -> Error.not_yet "trange"
-    | Tlet (_,_) -> Error.not_yet "let binding"
+    | Tlet(li, t) ->
+      infer_if_integer li;
+      let li_t = Misc.term_of_li li in
+      ignore (type_term ~use_gmp_opt:true li_t);
+      dup (type_term ~use_gmp_opt:true ?ctx t).ty
     | Tlambda (_,_) -> Error.not_yet "lambda"
     | TDataCons (_,_) -> Error.not_yet "datacons"
     | TUpdate (_,_,_) -> Error.not_yet "update"
@@ -541,7 +554,11 @@ let rec type_predicate p =
       ignore (type_predicate p1);
       ignore (type_predicate p2);
       c_int
-    | Plet _ -> Error.not_yet "let _ = _ in _"
+    | Plet(li, p) ->
+      infer_if_integer li;
+      let li_t = Misc.term_of_li li in
+      ignore (type_term ~use_gmp_opt:true li_t);
+      (type_predicate p).ty
 
     | Pforall(bounded_vars, { pred_content = Pimplies(hyps, goal) })
     | Pexists(bounded_vars, { pred_content = Pand(hyps, goal) }) ->
@@ -641,13 +658,12 @@ let extract_typ t ty =
   try typ_of_integer_ty ty
   with Not_an_integer ->
     let lty = t.term_type in
-    if Cil.isLogicRealType lty then TFloat(FLongDouble, [])
-    else if Cil.isLogicFloatType lty then Logic_utils.logicCType lty
-    else
-      Kernel.fatal "unexpected types %a and %a for term %a"
-        Printer.pp_logic_type lty
-        pretty ty
-        Printer.pp_term t
+    match lty with
+    | Ctype _ -> Logic_utils.logicCType lty
+    | Ltype _ | Lvar _ | Linteger | Lreal | Larrow _ ->
+      if Cil.isLogicRealType lty then TFloat(FLongDouble, [])
+      else if Cil.isLogicFloatType lty then  Logic_utils.logicCType lty
+      else Error.not_yet "unsupported logic type"
 
 let get_typ t =
   let info = Memo.get t in

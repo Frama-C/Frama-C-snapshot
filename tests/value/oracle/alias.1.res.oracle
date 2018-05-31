@@ -56,13 +56,20 @@
   U ∈ {0}
   char1 ∈ {0}
   ll1 ∈ {0}
-tests/value/alias.i:97:[value] warning: signed overflow. assert c + 1 ≤ 2147483647;
-tests/value/alias.i:105:[value] warning: signed overflow. assert c + 1 ≤ 2147483647;
-tests/value/alias.i:105:[value] warning: signed overflow. assert c + 2 ≤ 2147483647;
-tests/value/alias.i:107:[value] warning: signed overflow. assert c + 10 ≤ 2147483647;
-tests/value/alias.i:107:[value] warning: signed overflow. assert c + 11 ≤ 2147483647;
-tests/value/alias.i:108:[value] warning: signed overflow. assert c + 3 ≤ 2147483647;
-tests/value/alias.i:108:[value] warning: signed overflow. assert c + 4 ≤ 2147483647;
+[value:alarm] tests/value/alias.i:97: Warning: 
+  signed overflow. assert c + 1 ≤ 2147483647;
+[value:alarm] tests/value/alias.i:105: Warning: 
+  signed overflow. assert c + 1 ≤ 2147483647;
+[value:alarm] tests/value/alias.i:105: Warning: 
+  signed overflow. assert c + 2 ≤ 2147483647;
+[value:alarm] tests/value/alias.i:107: Warning: 
+  signed overflow. assert c + 10 ≤ 2147483647;
+[value:alarm] tests/value/alias.i:107: Warning: 
+  signed overflow. assert c + 11 ≤ 2147483647;
+[value:alarm] tests/value/alias.i:108: Warning: 
+  signed overflow. assert c + 3 ≤ 2147483647;
+[value:alarm] tests/value/alias.i:108: Warning: 
+  signed overflow. assert c + 4 ≤ 2147483647;
 [value] Recording results for main3
 [value] done for function main3
 [value] ====== VALUES COMPUTED ======
@@ -92,7 +99,7 @@ tests/value/alias.i:108:[value] warning: signed overflow. assert c + 4 ≤ 21474
 [from] Computing for function main3
 [from] Done for function main3
 [from] ====== DEPENDENCIES COMPUTED ======
-    These dependencies hold at termination for the executions that terminate:
+  These dependencies hold at termination for the executions that terminate:
 [from] Function main3:
   p2{[0..2]; [4]} FROM c (and SELF)
   t FROM c
@@ -108,7 +115,7 @@ tests/value/alias.i:108:[value] warning: signed overflow. assert c + 4 ≤ 21474
   PTR4 FROM c
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function main3:
-      p2{[0..2]; [4]}; t; u; v; x; z; t2; v2; PTR1; PTR2; PTR3; PTR4; p_0; 
-      s1; s2; tmp; tmp_0; tmp_1; tmp_2; tmp_3
+    p2{[0..2]; [4]}; t; u; v; x; z; t2; v2; PTR1; PTR2; PTR3; PTR4; p_0; 
+    s1; s2; tmp; tmp_0; tmp_1; tmp_2; tmp_3
 [inout] Inputs for function main3:
-      p2[0..2]; u; v; w; PTR1; PTR2; PTR3; PTR4; c
+    p2[0..2]; u; v; w; PTR1; PTR2; PTR3; PTR4; c

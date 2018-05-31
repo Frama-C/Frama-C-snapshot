@@ -12,9 +12,9 @@
   p_t ∈ {{ &t[0] }}
   t17[0..9] ∈ {0}
 [value] computing for function main1 <- main.
-    Called from tests/value/assigns_from.i:224.
+  Called from tests/value/assigns_from.i:224.
 [value] computing for function f <- main1 <- main.
-    Called from tests/value/assigns_from.i:30.
+  Called from tests/value/assigns_from.i:30.
 [value] Recording results for f
 [from] Computing for function f
 [from] Done for function f
@@ -22,232 +22,290 @@
 [value] Recording results for main1
 [from] Computing for function main1
 [from] Done for function main1
-tests/value/assigns_from.i:12:[value] function main1: assigns got status valid.
-tests/value/assigns_from.i:15:[value] function main1, behavior true: assigns got status valid.
-tests/value/assigns_from.i:15:[value] function main1, behavior true: \from ... part in assign clause got status valid.
-tests/value/assigns_from.i:16:[value] function main1, behavior true: \from ... part in assign clause got status valid.
-tests/value/assigns_from.i:19:[value] function main1, behavior ok_too_large: assigns got status valid.
-tests/value/assigns_from.i:19:[value] function main1, behavior ok_too_large: \from ... part in assign clause got status valid.
-tests/value/assigns_from.i:20:[value] function main1, behavior ok_too_large: \from ... part in assign clause got status valid.
-tests/value/assigns_from.i:23:[value] function main1, behavior wrong: assigns got status valid.
-tests/value/assigns_from.i:23:[value] function main1, behavior wrong: \from ... part in assign clause got status valid.
-tests/value/assigns_from.i:24:[value] warning: function main1, behavior wrong: \from ... part in assign clause got status unknown (cannot validate direct dependencies).
+[value] tests/value/assigns_from.i:12: function main1: assigns got status valid.
+[value] tests/value/assigns_from.i:15: 
+  function main1, behavior true: assigns got status valid.
+[value] tests/value/assigns_from.i:15: 
+  function main1, behavior true: \from ... part in assign clause got status valid.
+[value] tests/value/assigns_from.i:16: 
+  function main1, behavior true: \from ... part in assign clause got status valid.
+[value] tests/value/assigns_from.i:19: 
+  function main1, behavior ok_too_large: assigns got status valid.
+[value] tests/value/assigns_from.i:19: 
+  function main1, behavior ok_too_large: \from ... part in assign clause got status valid.
+[value] tests/value/assigns_from.i:20: 
+  function main1, behavior ok_too_large: \from ... part in assign clause got status valid.
+[value] tests/value/assigns_from.i:23: 
+  function main1, behavior wrong: assigns got status valid.
+[value] tests/value/assigns_from.i:23: 
+  function main1, behavior wrong: \from ... part in assign clause got status valid.
+[value:alarm] tests/value/assigns_from.i:24: Warning: 
+  function main1, behavior wrong: \from ... part in assign clause got status unknown (cannot validate direct dependencies).
 [value] Done for function main1
 [value] computing for function main15 <- main.
-    Called from tests/value/assigns_from.i:225.
+  Called from tests/value/assigns_from.i:225.
 [value] Recording results for main15
 [from] Computing for function main15
 [from] Done for function main15
-tests/value/assigns_from.i:37:[value] function main15: assigns got status valid.
-tests/value/assigns_from.i:37:[value] function main15: \from ... part in assign clause got status valid.
-tests/value/assigns_from.i:37:[value] function main15: \from ... part in assign clause got status valid.
-tests/value/assigns_from.i:37:[value] function main15: \from ... part in assign clause got status valid.
+[value] tests/value/assigns_from.i:37: 
+  function main15: assigns got status valid.
+[value] tests/value/assigns_from.i:37: 
+  function main15: \from ... part in assign clause got status valid.
+[value] tests/value/assigns_from.i:37: 
+  function main15: \from ... part in assign clause got status valid.
+[value] tests/value/assigns_from.i:37: 
+  function main15: \from ... part in assign clause got status valid.
 [value] Done for function main15
 [value] computing for function main2 <- main.
-    Called from tests/value/assigns_from.i:226.
+  Called from tests/value/assigns_from.i:226.
 [value] Recording results for main2
 [from] Computing for function main2
 [from] Done for function main2
-tests/value/assigns_from.i:45:[value] function main2: assigns got status valid.
-tests/value/assigns_from.i:45:[value] function main2: \from ... part in assign clause got status valid.
-tests/value/assigns_from.i:48:[value] function main2, behavior true: assigns got status valid.
-tests/value/assigns_from.i:48:[value] function main2, behavior true: \from ... part in assign clause got status valid.
-tests/value/assigns_from.i:52:[value] warning: function main2, behavior wrongassigns: assigns got status unknown.
-tests/value/assigns_from.i:52:[value] function main2, behavior wrongassigns: \from ... part in assign clause got status valid.
-tests/value/assigns_from.i:56:[value] function main2, behavior true2: assigns got status valid.
-tests/value/assigns_from.i:56:[value] function main2, behavior true2: \from ... part in assign clause got status valid.
-tests/value/assigns_from.i:60:[value] function main2, behavior wrongfrom: assigns got status valid.
-tests/value/assigns_from.i:60:[value] warning: function main2, behavior wrongfrom: \from ... part in assign clause got status unknown (cannot validate direct dependencies).
+[value] tests/value/assigns_from.i:45: function main2: assigns got status valid.
+[value] tests/value/assigns_from.i:45: 
+  function main2: \from ... part in assign clause got status valid.
+[value] tests/value/assigns_from.i:48: 
+  function main2, behavior true: assigns got status valid.
+[value] tests/value/assigns_from.i:48: 
+  function main2, behavior true: \from ... part in assign clause got status valid.
+[value:alarm] tests/value/assigns_from.i:52: Warning: 
+  function main2, behavior wrongassigns: assigns got status unknown.
+[value] tests/value/assigns_from.i:52: 
+  function main2, behavior wrongassigns: \from ... part in assign clause got status valid.
+[value] tests/value/assigns_from.i:56: 
+  function main2, behavior true2: assigns got status valid.
+[value] tests/value/assigns_from.i:56: 
+  function main2, behavior true2: \from ... part in assign clause got status valid.
+[value] tests/value/assigns_from.i:60: 
+  function main2, behavior wrongfrom: assigns got status valid.
+[value:alarm] tests/value/assigns_from.i:60: Warning: 
+  function main2, behavior wrongfrom: \from ... part in assign clause got status unknown (cannot validate direct dependencies).
 [value] Done for function main2
 [value] computing for function Frama_C_interval <- main.
-    Called from tests/value/assigns_from.i:227.
+  Called from tests/value/assigns_from.i:227.
 [value] using specification for function Frama_C_interval
 [value] Done for function Frama_C_interval
 [value] computing for function main3 <- main.
-    Called from tests/value/assigns_from.i:228.
+  Called from tests/value/assigns_from.i:228.
 [value] Recording results for main3
 [from] Computing for function main3
 [from] Done for function main3
-tests/value/assigns_from.i:67:[value] function main3: assigns got status valid.
-tests/value/assigns_from.i:67:[value] function main3: \from ... part in assign clause got status valid.
+[value] tests/value/assigns_from.i:67: function main3: assigns got status valid.
+[value] tests/value/assigns_from.i:67: 
+  function main3: \from ... part in assign clause got status valid.
 [value] Done for function main3
 [value] computing for function main3 <- main.
-    Called from tests/value/assigns_from.i:229.
+  Called from tests/value/assigns_from.i:229.
 [value] Recording results for main3
 [from] Computing for function main3
 [from] Done for function main3
-tests/value/assigns_from.i:67:[value] warning: function main3: assigns got status unknown.
+[value:alarm] tests/value/assigns_from.i:67: Warning: 
+  function main3: assigns got status unknown.
 [value] Done for function main3
 [value] computing for function main4 <- main.
-    Called from tests/value/assigns_from.i:230.
+  Called from tests/value/assigns_from.i:230.
 [value] Recording results for main4
 [from] Computing for function main4
 [from] Done for function main4
-tests/value/assigns_from.i:78:[value] function main4, behavior true: assigns got status valid.
-tests/value/assigns_from.i:78:[value] function main4, behavior true: \from ... part in assign clause got status valid.
-tests/value/assigns_from.i:82:[value] function main4, behavior wrong: assigns got status valid.
-tests/value/assigns_from.i:82:[value] warning: function main4, behavior wrong: \from ... part in assign clause got status unknown (cannot validate direct dependencies).
+[value] tests/value/assigns_from.i:78: 
+  function main4, behavior true: assigns got status valid.
+[value] tests/value/assigns_from.i:78: 
+  function main4, behavior true: \from ... part in assign clause got status valid.
+[value] tests/value/assigns_from.i:82: 
+  function main4, behavior wrong: assigns got status valid.
+[value:alarm] tests/value/assigns_from.i:82: Warning: 
+  function main4, behavior wrong: \from ... part in assign clause got status unknown (cannot validate direct dependencies).
 [value] Done for function main4
 [value] computing for function main5 <- main.
-    Called from tests/value/assigns_from.i:231.
+  Called from tests/value/assigns_from.i:231.
 [value] Recording results for main5
 [from] Computing for function main5
 [from] Done for function main5
-tests/value/assigns_from.i:92:[value] function main5, behavior wrong: assigns got status valid.
-tests/value/assigns_from.i:92:[value] warning: function main5, behavior wrong: \from ... part in assign clause got status unknown (cannot validate direct dependencies).
-tests/value/assigns_from.i:95:[value] function main5, behavior true: assigns got status valid.
-tests/value/assigns_from.i:95:[value] function main5, behavior true: \from ... part in assign clause got status valid.
+[value] tests/value/assigns_from.i:92: 
+  function main5, behavior wrong: assigns got status valid.
+[value:alarm] tests/value/assigns_from.i:92: Warning: 
+  function main5, behavior wrong: \from ... part in assign clause got status unknown (cannot validate direct dependencies).
+[value] tests/value/assigns_from.i:95: 
+  function main5, behavior true: assigns got status valid.
+[value] tests/value/assigns_from.i:95: 
+  function main5, behavior true: \from ... part in assign clause got status valid.
 [value] Done for function main5
 [value] computing for function Frama_C_interval <- main.
-    Called from tests/value/assigns_from.i:232.
+  Called from tests/value/assigns_from.i:232.
 [value] Done for function Frama_C_interval
 [value] computing for function Frama_C_interval <- main.
-    Called from tests/value/assigns_from.i:233.
+  Called from tests/value/assigns_from.i:233.
 [value] Done for function Frama_C_interval
 [value] computing for function main6_right <- main.
-    Called from tests/value/assigns_from.i:234.
+  Called from tests/value/assigns_from.i:234.
 [value] Recording results for main6_right
 [from] Computing for function main6_right
 [from] Done for function main6_right
-tests/value/assigns_from.i:111:[value] function main6_right: assigns got status valid.
+[value] tests/value/assigns_from.i:111: 
+  function main6_right: assigns got status valid.
 [value] Done for function main6_right
 [value] computing for function main6_wrong <- main.
-    Called from tests/value/assigns_from.i:235.
+  Called from tests/value/assigns_from.i:235.
 [value] Recording results for main6_wrong
 [from] Computing for function main6_wrong
 [from] Done for function main6_wrong
-tests/value/assigns_from.i:102:[value] warning: function main6_wrong: assigns got status unknown.
+[value:alarm] tests/value/assigns_from.i:102: Warning: 
+  function main6_wrong: assigns got status unknown.
 [value] Done for function main6_wrong
 [value] computing for function main7 <- main.
-    Called from tests/value/assigns_from.i:236.
+  Called from tests/value/assigns_from.i:236.
 [value] Recording results for main7
 [from] Computing for function main7
 [from] Done for function main7
-tests/value/assigns_from.i:119:[value] function main7, behavior right: assigns got status valid.
-tests/value/assigns_from.i:122:[value] warning: function main7, behavior wrong: assigns got status unknown.
+[value] tests/value/assigns_from.i:119: 
+  function main7, behavior right: assigns got status valid.
+[value:alarm] tests/value/assigns_from.i:122: Warning: 
+  function main7, behavior wrong: assigns got status unknown.
 [value] Done for function main7
 [value] computing for function main8 <- main.
-    Called from tests/value/assigns_from.i:239.
+  Called from tests/value/assigns_from.i:239.
 [value] Recording results for main8
 [from] Computing for function main8
 [from] Done for function main8
-tests/value/assigns_from.i:130:[value] function main8: assigns got status valid.
-tests/value/assigns_from.i:130:[value] function main8: \from ... part in assign clause got status valid.
+[value] tests/value/assigns_from.i:130: 
+  function main8: assigns got status valid.
+[value] tests/value/assigns_from.i:130: 
+  function main8: \from ... part in assign clause got status valid.
 [value] Done for function main8
 [value] computing for function main8 <- main.
-    Called from tests/value/assigns_from.i:241.
+  Called from tests/value/assigns_from.i:241.
 [value] Recording results for main8
 [from] Computing for function main8
 [from] Done for function main8
-tests/value/assigns_from.i:130:[value] warning: function main8: assigns got status unknown.
+[value:alarm] tests/value/assigns_from.i:130: Warning: 
+  function main8: assigns got status unknown.
 [value] Done for function main8
 [value] computing for function main9 <- main.
-    Called from tests/value/assigns_from.i:243.
+  Called from tests/value/assigns_from.i:243.
 [value] Recording results for main9
 [from] Computing for function main9
 [from] Done for function main9
-tests/value/assigns_from.i:141:[kernel] warning: using size of 'void'
-tests/value/assigns_from.i:135:[value] function main9: assigns got status valid.
+[kernel] tests/value/assigns_from.i:141: Warning: using size of 'void'
+[value] tests/value/assigns_from.i:135: 
+  function main9: assigns got status valid.
 [value] Done for function main9
 [value] computing for function main10 <- main.
-    Called from tests/value/assigns_from.i:244.
-tests/value/assigns_from.i:152:[value] entering loop for the first time
+  Called from tests/value/assigns_from.i:244.
+[value] tests/value/assigns_from.i:152: entering loop for the first time
 [value] computing for function c <- main10 <- main.
-    Called from tests/value/assigns_from.i:152.
-tests/value/assigns_from.i:152:[kernel] warning: Neither code nor specification for function c, generating default assigns from the prototype
+  Called from tests/value/assigns_from.i:152.
+[kernel:annot:missing-spec] tests/value/assigns_from.i:152: Warning: 
+  Neither code nor specification for function c, generating default assigns from the prototype
 [value] using specification for function c
 [value] Done for function c
 [value] computing for function c <- main10 <- main.
-    Called from tests/value/assigns_from.i:152.
+  Called from tests/value/assigns_from.i:152.
 [value] Done for function c
 [value] computing for function c <- main10 <- main.
-    Called from tests/value/assigns_from.i:152.
+  Called from tests/value/assigns_from.i:152.
 [value] Done for function c
 [value] computing for function c <- main10 <- main.
-    Called from tests/value/assigns_from.i:152.
+  Called from tests/value/assigns_from.i:152.
 [value] Done for function c
 [value] computing for function c <- main10 <- main.
-    Called from tests/value/assigns_from.i:152.
+  Called from tests/value/assigns_from.i:152.
 [value] Done for function c
-tests/value/assigns_from.i:154:[value] warning: assertion got status unknown.
+[value:alarm] tests/value/assigns_from.i:154: Warning: 
+  assertion got status unknown.
 [value] Recording results for main10
 [from] Computing for function main10
 [from] Done for function main10
 [value] Done for function main10
 [value] computing for function main11 <- main.
-    Called from tests/value/assigns_from.i:245.
+  Called from tests/value/assigns_from.i:245.
 [value] Recording results for main11
 [from] Computing for function main11
 [from] Done for function main11
-tests/value/assigns_from.i:157:[value] function main11: assigns got status valid.
-tests/value/assigns_from.i:157:[value] function main11: \from ... part in assign clause got status valid.
+[value] tests/value/assigns_from.i:157: 
+  function main11: assigns got status valid.
+[value] tests/value/assigns_from.i:157: 
+  function main11: \from ... part in assign clause got status valid.
 [value] Done for function main11
 [value] computing for function main11 <- main.
-    Called from tests/value/assigns_from.i:246.
+  Called from tests/value/assigns_from.i:246.
 [value] Recording results for main11
 [from] Computing for function main11
 [from] Done for function main11
-tests/value/assigns_from.i:157:[value] warning: function main11: assigns got status unknown.
-tests/value/assigns_from.i:157:[value] warning: function main11: \from ... part in assign clause got status unknown (cannot validate direct dependencies).
+[value:alarm] tests/value/assigns_from.i:157: Warning: 
+  function main11: assigns got status unknown.
+[value:alarm] tests/value/assigns_from.i:157: Warning: 
+  function main11: \from ... part in assign clause got status unknown (cannot validate direct dependencies).
 [value] Done for function main11
 [value] computing for function Frama_C_interval <- main.
-    Called from tests/value/assigns_from.i:247.
+  Called from tests/value/assigns_from.i:247.
 [value] Done for function Frama_C_interval
 [value] computing for function main11 <- main.
-    Called from tests/value/assigns_from.i:247.
+  Called from tests/value/assigns_from.i:247.
 [value] Recording results for main11
 [from] Computing for function main11
 [from] Done for function main11
 [value] Done for function main11
 [value] computing for function main12 <- main.
-    Called from tests/value/assigns_from.i:248.
+  Called from tests/value/assigns_from.i:248.
 [value] Recording results for main12
 [from] Computing for function main12
 [from] Done for function main12
-tests/value/assigns_from.i:169:[value] function main12, behavior ok: assigns got status valid.
-tests/value/assigns_from.i:167:[value] function main12, behavior ok: \from ... part in assign clause got status valid.
+[value] tests/value/assigns_from.i:169: 
+  function main12, behavior ok: assigns got status valid.
+[value] tests/value/assigns_from.i:167: 
+  function main12, behavior ok: \from ... part in assign clause got status valid.
 [value] Done for function main12
 [value] computing for function main13 <- main.
-    Called from tests/value/assigns_from.i:249.
+  Called from tests/value/assigns_from.i:249.
 [value] Recording results for main13
 [from] Computing for function main13
 [from] Done for function main13
-tests/value/assigns_from.i:179:[value] function main13, behavior ok: assigns got status valid.
-tests/value/assigns_from.i:174:[value] function main13, behavior ok: \from ... part in assign clause got status valid.
-tests/value/assigns_from.i:179:[value] function main13, behavior bad: assigns got status valid.
-tests/value/assigns_from.i:177:[value] warning: function main13, behavior bad: \from ... part in assign clause got status unknown (cannot validate direct dependencies).
+[value] tests/value/assigns_from.i:179: 
+  function main13, behavior ok: assigns got status valid.
+[value] tests/value/assigns_from.i:174: 
+  function main13, behavior ok: \from ... part in assign clause got status valid.
+[value] tests/value/assigns_from.i:179: 
+  function main13, behavior bad: assigns got status valid.
+[value:alarm] tests/value/assigns_from.i:177: Warning: 
+  function main13, behavior bad: \from ... part in assign clause got status unknown (cannot validate direct dependencies).
 [value] Done for function main13
 [value] computing for function main14 <- main.
-    Called from tests/value/assigns_from.i:250.
-tests/value/assigns_from.i:183:[value] entering loop for the first time
+  Called from tests/value/assigns_from.i:250.
+[value] tests/value/assigns_from.i:183: entering loop for the first time
 [value] Recording results for main14
 [from] Computing for function main14
 [from] Done for function main14
-tests/value/assigns_from.i:181:[value] function main14: assigns got status valid.
-tests/value/assigns_from.i:181:[value] warning: function main14: \from ... part in assign clause got status unknown (cannot validate direct dependencies).
+[value] tests/value/assigns_from.i:181: 
+  function main14: assigns got status valid.
+[value:alarm] tests/value/assigns_from.i:181: Warning: 
+  function main14: \from ... part in assign clause got status unknown (cannot validate direct dependencies).
 [value] Done for function main14
 [value] computing for function main16 <- main.
-    Called from tests/value/assigns_from.i:251.
-tests/value/assigns_from.i:188:[value] entering loop for the first time
+  Called from tests/value/assigns_from.i:251.
+[value] tests/value/assigns_from.i:188: entering loop for the first time
 [value] Recording results for main16
 [from] Computing for function main16
 [from] Done for function main16
-tests/value/assigns_from.i:186:[value] function main16: assigns got status valid.
-tests/value/assigns_from.i:186:[value] warning: function main16: \from ... part in assign clause got status unknown (cannot validate direct dependencies).
+[value] tests/value/assigns_from.i:186: 
+  function main16: assigns got status valid.
+[value:alarm] tests/value/assigns_from.i:186: Warning: 
+  function main16: \from ... part in assign clause got status unknown (cannot validate direct dependencies).
 [value] Done for function main16
 [value] computing for function main17 <- main.
-    Called from tests/value/assigns_from.i:252.
-tests/value/assigns_from.i:195:[value] entering loop for the first time
+  Called from tests/value/assigns_from.i:252.
+[value] tests/value/assigns_from.i:195: entering loop for the first time
 [value] Recording results for main17
 [from] Computing for function main17
 [from] Done for function main17
-tests/value/assigns_from.i:193:[value] function main17: assigns got status valid.
-tests/value/assigns_from.i:193:[value] warning: function main17: \from ... part in assign clause got status unknown (cannot validate direct and indirect dependencies).
+[value] tests/value/assigns_from.i:193: 
+  function main17: assigns got status valid.
+[value:alarm] tests/value/assigns_from.i:193: Warning: 
+  function main17: \from ... part in assign clause got status unknown (cannot validate direct and indirect dependencies).
 [value] Done for function main17
 [value] computing for function main18 <- main.
-    Called from tests/value/assigns_from.i:253.
+  Called from tests/value/assigns_from.i:253.
 [value] computing for function f18 <- main18 <- main.
-    Called from tests/value/assigns_from.i:215.
+  Called from tests/value/assigns_from.i:215.
 [value] using specification for function f18
 [value] Done for function f18
 [value] Recording results for main18
@@ -467,7 +525,7 @@ tests/value/assigns_from.i:193:[value] warning: function main17: \from ... part 
 [from] Done for function Frama_C_interval
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
-    These dependencies hold at termination for the executions that terminate:
+  These dependencies hold at termination for the executions that terminate:
 [from] Function Frama_C_interval:
   \result FROM a; b
 [from] Function c:
@@ -612,92 +670,92 @@ tests/value/assigns_from.i:193:[value] warning: function main17: \from ... part 
      FROM \nothing (and SELF)
 [from] ====== END OF CALLWISE DEPENDENCIES ======
 [inout] Out (internal) for function f:
-      k
+    k
 [inout] Inputs for function f:
-      u
+    u
 [inout] Out (internal) for function main1:
-      u; k
+    u; k
 [inout] Inputs for function main1:
-      u; v
+    u; v
 [inout] Out (internal) for function main10:
-      t10[0..49]; i; tmp
+    t10[0..49]; i; tmp
 [inout] Inputs for function main10:
-      \nothing
+    \nothing
 [inout] Out (internal) for function main11:
-      a[2]
+    a[2]
 [inout] Inputs for function main11:
-      \nothing
+    \nothing
 [inout] Out (internal) for function main12:
-      __retres
+    __retres
 [inout] Inputs for function main12:
-      \nothing
+    \nothing
 [inout] Out (internal) for function main13:
-      \nothing
+    \nothing
 [inout] Inputs for function main13:
-      p_t
+    p_t
 [inout] Out (internal) for function main14:
-      t[2..38]; i
+    t[2..38]; i
 [inout] Inputs for function main14:
-      \nothing
+    \nothing
 [inout] Out (internal) for function main15:
-      a[3..5]
+    a[3..5]
 [inout] Inputs for function main15:
-      \nothing
+    \nothing
 [inout] Out (internal) for function main16:
-      t[1..19]; i
+    t[1..19]; i
 [inout] Inputs for function main16:
-      \nothing
+    \nothing
 [inout] Out (internal) for function main17:
-      t17{[0][bits 0 to 7]; [1][bits 0 to 7]; [2][bits 0 to 7]; [3][bits 0 to 7];
-          [4][bits 0 to 7]; [5][bits 0 to 7]; [6][bits 0 to 7]; [7][bits 0 to 7];
-          [8][bits 0 to 7]; [9][bits 0 to 7]}; j
+    t17{[0][bits 0 to 7]; [1][bits 0 to 7]; [2][bits 0 to 7]; [3][bits 0 to 7];
+        [4][bits 0 to 7]; [5][bits 0 to 7]; [6][bits 0 to 7]; [7][bits 0 to 7];
+        [8][bits 0 to 7]; [9][bits 0 to 7]}; j
 [inout] Inputs for function main17:
-      \nothing
+    \nothing
 [inout] Out (internal) for function main18:
-      base_a; a_0; base_b; b
+    base_a; a_0; base_b; b
 [inout] Inputs for function main18:
-      \nothing
+    \nothing
 [inout] Out (internal) for function main2:
-      a[3..5]
+    a[3..5]
 [inout] Inputs for function main2:
-      \nothing
+    \nothing
 [inout] Out (internal) for function main3:
-      a[0..9]
+    a[0..9]
 [inout] Inputs for function main3:
-      \nothing
+    \nothing
 [inout] Out (internal) for function main4:
-      a[2]
+    a[2]
 [inout] Inputs for function main4:
-      \nothing
+    \nothing
 [inout] Out (internal) for function main5:
-      a[2]
+    a[2]
 [inout] Inputs for function main5:
-      a[4]
+    a[4]
 [inout] Out (internal) for function main6_right:
-      a[3..5]
+    a[3..5]
 [inout] Inputs for function main6_right:
-      \nothing
+    \nothing
 [inout] Out (internal) for function main6_wrong:
-      a[2..6]
+    a[2..6]
 [inout] Inputs for function main6_wrong:
-      \nothing
+    \nothing
 [inout] Out (internal) for function main7:
-      a{[2]; [7..8]}
+    a{[2]; [7..8]}
 [inout] Inputs for function main7:
-      \nothing
+    \nothing
 [inout] Out (internal) for function main8:
-      c_0; d
+    c_0; d
 [inout] Inputs for function main8:
-      \nothing
+    \nothing
 [inout] Out (internal) for function main9:
-      \nothing
+    \nothing
 [inout] Inputs for function main9:
-      \nothing
+    \nothing
 [inout] Out (internal) for function main:
-      u; k; a[0..9]; constante; t[1..38];
-      t17{[0][bits 0 to 7]; [1][bits 0 to 7]; [2][bits 0 to 7]; [3][bits 0 to 7];
-          [4][bits 0 to 7]; [5][bits 0 to 7]; [6][bits 0 to 7]; [7][bits 0 to 7];
-          [8][bits 0 to 7]; [9][bits 0 to 7]}; j; a_0; b; c_0; d; p; tmp_2; 
-      tmp_3
+    u; k; a[0..9]; constante; t[1..38];
+    t17{[0][bits 0 to 7]; [1][bits 0 to 7]; [2][bits 0 to 7]; [3][bits 0 to 7];
+        [4][bits 0 to 7]; [5][bits 0 to 7]; [6][bits 0 to 7]; [7][bits 0 to 7];
+        [8][bits 0 to 7]; [9][bits 0 to 7]}; j; a_0; b; c_0; d; p; tmp_2; 
+    tmp_3
 [inout] Inputs for function main:
-      u; v; a[4]; p_t
+    u; v; a[4]; p_t

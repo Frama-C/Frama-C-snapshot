@@ -4,20 +4,32 @@
 [value] Initial state computed
 [value:initial-state] Values of globals at initialization
   v ∈ [--..--]
-tests/value/pointer_arg.i:4:[value] warning: out of bounds write. assert \valid(arg + 0);
-tests/value/pointer_arg.i:5:[value] warning: out of bounds write. assert \valid(arg + 1);
-tests/value/pointer_arg.i:6:[value] warning: out of bounds write. assert \valid(arg + 2);
-tests/value/pointer_arg.i:6:[kernel] warning: all target addresses were invalid. This path is assumed to be dead.
-tests/value/pointer_arg.i:7:[value] warning: out of bounds write. assert \valid(arg + 1000);
-tests/value/pointer_arg.i:7:[kernel] warning: all target addresses were invalid. This path is assumed to be dead.
-tests/value/pointer_arg.i:8:[value] warning: out of bounds write. assert \valid(arg + argc);
-tests/value/pointer_arg.i:11:[value] warning: out of bounds write. assert \valid(argv + 1);
-tests/value/pointer_arg.i:15:[value] warning: out of bounds read. assert \valid_read(argv + 0);
-tests/value/pointer_arg.i:15:[value] warning: out of bounds write. assert \valid(*(argv + 0) + 0);
+[value:alarm] tests/value/pointer_arg.i:4: Warning: 
+  out of bounds write. assert \valid(arg + 0);
+[value:alarm] tests/value/pointer_arg.i:5: Warning: 
+  out of bounds write. assert \valid(arg + 1);
+[value:alarm] tests/value/pointer_arg.i:6: Warning: 
+  out of bounds write. assert \valid(arg + 2);
+[kernel] tests/value/pointer_arg.i:6: Warning: 
+  all target addresses were invalid. This path is assumed to be dead.
+[value:alarm] tests/value/pointer_arg.i:7: Warning: 
+  out of bounds write. assert \valid(arg + 1000);
+[kernel] tests/value/pointer_arg.i:7: Warning: 
+  all target addresses were invalid. This path is assumed to be dead.
+[value:alarm] tests/value/pointer_arg.i:8: Warning: 
+  out of bounds write. assert \valid(arg + argc);
+[value:alarm] tests/value/pointer_arg.i:11: Warning: 
+  out of bounds write. assert \valid(argv + 1);
+[value:alarm] tests/value/pointer_arg.i:15: Warning: 
+  out of bounds read. assert \valid_read(argv + 0);
+[value:alarm] tests/value/pointer_arg.i:15: Warning: 
+  out of bounds write. assert \valid(*(argv + 0) + 0);
 [value] Recording results for main
 [value] done for function main
-tests/value/pointer_arg.i:6:[value] assertion 'Value,mem_access' got final status invalid.
-tests/value/pointer_arg.i:7:[value] assertion 'Value,mem_access' got final status invalid.
+[value] tests/value/pointer_arg.i:6: 
+  assertion 'Value,mem_access' got final status invalid.
+[value] tests/value/pointer_arg.i:7: 
+  assertion 'Value,mem_access' got final status invalid.
 [value] ====== VALUES COMPUTED ======
 [value:final-states] Values at end of function main:
   __retres ∈ {0}
@@ -30,7 +42,7 @@ tests/value/pointer_arg.i:7:[value] assertion 'Value,mem_access' got final statu
 [from] Computing for function main
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
-    These dependencies hold at termination for the executions that terminate:
+  These dependencies hold at termination for the executions that terminate:
 [from] Function main:
   S_argv[0..1] FROM v; argv (and SELF)
   S_0_S_argv[0] FROM v; argv; S_argv[0]
@@ -38,6 +50,6 @@ tests/value/pointer_arg.i:7:[value] assertion 'Value,mem_access' got final statu
   \result FROM \nothing
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function main:
-      __retres; S_argv[0..1]; S_0_S_argv[0]; S_arg[0..1]
+    __retres; S_argv[0..1]; S_0_S_argv[0]; S_arg[0..1]
 [inout] Inputs for function main:
-      v; S_argv[0]
+    v; S_argv[0]

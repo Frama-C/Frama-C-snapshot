@@ -12,9 +12,9 @@
   XX ∈ {0}
   Fmain ∈ {0}
 [value] computing for function f1 <- main.
-    Called from tests/value/call_deep.i:31.
+  Called from tests/value/call_deep.i:31.
 [value] computing for function f0 <- f1 <- main.
-    Called from tests/value/call_deep.i:17.
+  Called from tests/value/call_deep.i:17.
 [value] Recording results for f0
 [value] Done for function f0
 [value] Recording results for f1
@@ -50,7 +50,7 @@
 [from] Computing for function main
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
-    These dependencies hold at termination for the executions that terminate:
+  These dependencies hold at termination for the executions that terminate:
 [from] Function f0:
   G FROM R; p0
   F0 FROM R
@@ -73,14 +73,14 @@
   \result FROM \nothing
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function f0:
-      G; F0
+    G; F0
 [inout] Inputs for function f0:
-      R
+    R
 [inout] Out (internal) for function f1:
-      G; F0; F1; H; ph; __retres
+    G; F0; F1; H; ph; __retres
 [inout] Inputs for function f1:
-      R; G; pG; ph
+    R; G; pG; ph
 [inout] Out (internal) for function main:
-      G; pG; F0; F1; H; XX; Fmain; ph; pph; __retres
+    G; pG; F0; F1; H; XX; Fmain; ph; pph; __retres
 [inout] Inputs for function main:
-      R; G; pG
+    R; G; pG

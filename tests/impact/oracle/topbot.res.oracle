@@ -5,14 +5,15 @@
 [value:initial-state] Values of globals at initialization
   
 [value] computing for function f <- main.
-    Called from tests/impact/topbot.c:15.
-tests/impact/topbot.c:5:[value] warning: function f: precondition got status invalid.
+  Called from tests/impact/topbot.c:15.
+[value:alarm] tests/impact/topbot.c:15: Warning: 
+  function f: precondition got status invalid.
 [value] Recording results for f
 [value] Done for function f
 [value] Recording results for main
 [value] done for function main
 [pdg] computing for function f
-[pdg] warning: unreachable entry point (sid:14, function f)
+[pdg] Warning: unreachable entry point (sid:14, function f)
 [pdg] Bottom for function f
 [pdg] computing for function main
 [from] Computing for function f
@@ -56,6 +57,6 @@ tests/impact/topbot.c:5:[value] warning: function f: precondition got status inv
    -[-c-]-> 2
 [impact] beginning analysis
 [impact] impacted statements of stmt(s) 4 are:
-      tests/impact/topbot.c:14 (sid 7): y = x;
-      tests/impact/topbot.c:18 (sid 11): z = x;
+    tests/impact/topbot.c:14 (sid 7): y = x;
+    tests/impact/topbot.c:18 (sid 11): z = x;
 [impact] analysis done

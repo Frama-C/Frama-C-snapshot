@@ -3,7 +3,7 @@
 #                                                                        #
 #  This file is part of Frama-C.                                         #
 #                                                                        #
-#  Copyright (C) 2007-2017                                               #
+#  Copyright (C) 2007-2018                                               #
 #    CEA (Commissariat à l'énergie atomique et aux énergies              #
 #         alternatives)                                                  #
 #                                                                        #
@@ -78,7 +78,7 @@ function _frama_c () {
 
   local -a my_words
   my_words=($words)
-  my_words[1]=${my_words[1]//%-gui} # call frama-c instead of frama-c-gui
+  my_words[1]=${my_words[1]/-gui} # call frama-c instead of frama-c-gui
 
   # we do not waste our time on computation if we are not completing an option
   if [[ -prefix -* ]]; then # if the first character of the current word is a '-'

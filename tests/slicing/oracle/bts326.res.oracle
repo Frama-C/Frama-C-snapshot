@@ -6,15 +6,15 @@
   t[0..1] ∈ {0}
   r ∈ {0}
 [value] computing for function g <- main.
-    Called from tests/slicing/bts326.i:17.
+  Called from tests/slicing/bts326.i:17.
 [value] computing for function f <- g <- main.
-    Called from tests/slicing/bts326.i:12.
+  Called from tests/slicing/bts326.i:12.
 [value] Recording results for f
 [from] Computing for function f
 [from] Done for function f
 [value] Done for function f
 [value] computing for function f <- g <- main.
-    Called from tests/slicing/bts326.i:13.
+  Called from tests/slicing/bts326.i:13.
 [value] Recording results for f
 [from] Computing for function f
 [from] Done for function f

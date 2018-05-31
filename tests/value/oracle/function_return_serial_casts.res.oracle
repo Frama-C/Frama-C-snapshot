@@ -8,11 +8,11 @@
   z ∈ {0}
   t ∈ {0}
 [value] computing for function f <- main.
-    Called from tests/value/function_return_serial_casts.i:17.
+  Called from tests/value/function_return_serial_casts.i:17.
 [value] Recording results for f
 [value] Done for function f
 [value] computing for function g <- main.
-    Called from tests/value/function_return_serial_casts.i:18.
+  Called from tests/value/function_return_serial_casts.i:18.
 [value] Recording results for g
 [value] Done for function g
 [value] Recording results for main
@@ -34,7 +34,7 @@
 [from] Computing for function main
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
-    These dependencies hold at termination for the executions that terminate:
+  These dependencies hold at termination for the executions that terminate:
 [from] Function f:
   \result FROM x
 [from] Function g:
@@ -46,14 +46,14 @@
   \result FROM \nothing
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function f:
-      __retres
+    __retres
 [inout] Inputs for function f:
-      x
+    x
 [inout] Out (internal) for function g:
-      l
+    l
 [inout] Inputs for function g:
-      x
+    x
 [inout] Out (internal) for function main:
-      y; z; t; tmp; tmp_0; __retres
+    y; z; t; tmp; tmp_0; __retres
 [inout] Inputs for function main:
-      x
+    x

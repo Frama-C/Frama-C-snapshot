@@ -26,5 +26,5 @@ int main(void)
 
 [kernel] Registering machdep 'mach' as 'custom'
 [kernel] Trying to register machdep 'mach2' as 'custom'
-[kernel] user error: trying to register incompatible machdeps under name `custom'
+[kernel] User Error: trying to register incompatible machdeps under name `custom'
 [kernel] Frama-C aborted: invalid user input.

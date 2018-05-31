@@ -2,7 +2,7 @@
 [kernel] Parsing tests/wp_plugin/injector.c (with preprocessing)
 [wp] Running WP plugin...
 [wp] Loading driver 'share/wp.driver'
-[wp] warning: Missing RTE guards
+[wp] Warning: Missing RTE guards
 [wp] 13 goals scheduled
 [wp] [Qed] Goal typed_f_call_g_pre : Valid
 [wp] [Qed] Goal typed_f_call_g_pre_2 : Valid
@@ -18,8 +18,9 @@
 [wp] [Qed] Goal typed_f_SUCCESS_post_qed_ok_3 : Valid
 [wp] [Qed] Goal typed_f_SUCCESS_post_qed_ok_4 : Valid
 [wp] Proved goals:   13 / 13
-    Qed:            13
-----------------------------------------------------------
-Functions           WP   Alt-Ergo    Total   Success
-f                   13     -          13       100%
-----------------------------------------------------------
+  Qed:            13
+[wp] Report 'tests/wp_plugin/injector.c.0.report.json'
+-------------------------------------------------------------
+Functions           WP     Alt-Ergo        Total   Success
+f                   13     -                13       100%
+-------------------------------------------------------------

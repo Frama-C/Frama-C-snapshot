@@ -9,11 +9,12 @@
   X ∈ [--..--]
   Y ∈ [--..--]
   Z ∈ [--..--]
-tests/slicing/loops.i:66:[value] entering loop for the first time
-tests/slicing/loops.i:68:[value] assertion got status valid.
+[value] tests/slicing/loops.i:66: entering loop for the first time
+[value] tests/slicing/loops.i:68: assertion got status valid.
 [value] computing for function stop <- stop_f1.
-    Called from tests/slicing/loops.i:70.
-tests/slicing/loops.i:70:[kernel] warning: Neither code nor specification for function stop, generating default assigns from the prototype
+  Called from tests/slicing/loops.i:70.
+[kernel:annot:missing-spec] tests/slicing/loops.i:70: Warning: 
+  Neither code nor specification for function stop, generating default assigns from the prototype
 [value] using specification for function stop
 [value] Done for function stop
 [value] Recording results for stop_f1
@@ -23,7 +24,7 @@ tests/slicing/loops.i:70:[kernel] warning: Neither code nor specification for fu
 [from] Done for function stop
 [from] Done for function stop_f1
 [from] ====== DEPENDENCIES COMPUTED ======
-    These dependencies hold at termination for the executions that terminate:
+  These dependencies hold at termination for the executions that terminate:
 [from] Function stop:
   NO EFFECTS
 [from] Function stop_f1:

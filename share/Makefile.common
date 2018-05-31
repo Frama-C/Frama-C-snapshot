@@ -2,7 +2,7 @@
 #                                                                        #
 #  This file is part of Frama-C.                                         #
 #                                                                        #
-#  Copyright (C) 2007-2017                                               #
+#  Copyright (C) 2007-2018                                               #
 #    CEA (Commissariat à l'énergie atomique et aux énergies              #
 #         alternatives)                                                  #
 #                                                                        #
@@ -83,7 +83,7 @@ ifeq ($(DEVELOPMENT),yes)
 # - 6 (omit label in application) would make code clearer, but requires
 #   refactoring before being enabled.
 # - 9 (missing field in record pattern) is much too heavy. Most of the time
-#   not all fields are relevant in patter-matching Frama-C's AST.
+#   not all fields are relevant in pattern-matching Frama-C's AST.
 # - 41 (ambiguous constructor or label name) prevents type-based
 #   disambiguation, a feature which is seen as a good thing by many developers
 # - 44 (open shadows an identifier)
@@ -93,7 +93,9 @@ ifeq ($(DEVELOPMENT),yes)
 #   module.
 # - 48 (implicit elimination of optional arguments): makes use of functions
 #   with optional arguments heavier in higher-order context
-
+# - 50 (warning about ambiguously placed OCamldoc comments): while it would be
+#   useful to ensure OCamldoc understands comments correctly, some clean-up
+#   is needed before enabling this warning.
 WARNINGS ?= -w +a-4-6-9-41-44-45-48-50
 
 # - 3 (deprecated feature) cannot always be avoided for OCaml stdlib when
@@ -181,8 +183,12 @@ eval last=\$${$$\#}; \
 mv $$new_temp $$last' sed_inplace
 SED	= LC_ALL=C sed
 RM	= rm -f
-TAR	= tar
-TOUCH	= touch
+ifeq ($(shell uname -s 2> /dev/null),Darwin)
+TAR     = gtar
+else
+TAR     = tar
+endif
+TOUCH   = touch
 GIT	= git
 
 ##################

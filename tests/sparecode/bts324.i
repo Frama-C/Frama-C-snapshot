@@ -9,7 +9,7 @@
 int i0, o0;
 
 /*@ assigns i0, o0 ; */
-void loop_body () ;
+void loop_body (void) ;
 
 /*@ assigns *p_res; */
 void init (int * p_res) ;

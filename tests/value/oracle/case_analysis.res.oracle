@@ -1,0 +1,19 @@
+[kernel] Parsing tests/value/case_analysis.i (no preprocessing)
+[value] Analyzing a complete application starting at main
+[value] Computing initial state
+[value] Initial state computed
+[value:initial-state] Values of globals at initialization
+  sq ∈ {0}
+  s ∈ {0}
+  rq ∈ {0}
+  r ∈ {0}
+[value] tests/value/case_analysis.i:14: assertion got status valid.
+[value] tests/value/case_analysis.i:17: assertion got status valid.
+[value] Recording results for main
+[value] done for function main
+[value] ====== VALUES COMPUTED ======
+[value:final-states] Values at end of function main:
+  sq ∈ [0..100]
+  s ∈ [-10..10]
+  rq ∈ [-0.0000000000000000 .. 100.0000000000000000]
+  r ∈ [-10.0000000000000000 .. 10.0000000000000000]

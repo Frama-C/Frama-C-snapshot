@@ -1,57 +1,36 @@
-Only in tests/float/oracle: absorb.0.err.oracle
-Only in tests/float/oracle: absorb.0.res.oracle
-Only in tests/float/oracle: absorb.1.err.oracle
-Only in tests/float/oracle: absorb.1.res.oracle
-Only in tests/float/oracle_equalities: absorb.err.oracle
-Only in tests/float/oracle_equalities: absorb.res.oracle
+Only in tests/float/oracle: absorb.err.oracle
+Only in tests/float/oracle: absorb.res.oracle
 Only in tests/float/oracle: absorb_sav.err
 Only in tests/float/oracle: absorb_sav.res
 Only in tests/float/oracle: absorb_sav2.err
 Only in tests/float/oracle: absorb_sav2.res
+diff tests/float/oracle/alarms.0.res.oracle tests/float/oracle_equalities/alarms.0.res.oracle
+137,139c137,138
+<   u1{.l[bits 0 to 31]; .f; .d[bits 0 to 31]} ∈
+<     [-3.40282346639e+38 .. 3.40282346639e+38]
+<     {.l[bits 32 to 63]; .f[bits 32 to 63]; .d[bits 32 to 63]} ∈ [--..--]
+---
+>   u1{.l; .f[bits 0 to 63]; .d} ∈
+>     [-9223372036854775808..9218868437227405311]
+diff tests/float/oracle/alarms.1.res.oracle tests/float/oracle_equalities/alarms.1.res.oracle
+128,129c128,129
+<   u1{.l[bits 0 to 31]; .f; .d[bits 0 to 31]} ∈ [-inf .. inf]
+<     {.l[bits 32 to 63]; .f[bits 32 to 63]; .d[bits 32 to 63]} ∈ [--..--]
+---
+>   u1{.l; .f[bits 0 to 63]; .d} ∈
+>     [-9223372036854775808..9218868437227405312]
 diff tests/float/oracle/cond.res.oracle tests/float/oracle_equalities/cond.res.oracle
-36,37c36,37
+46,47c46,47
 <   dz ∈ [0x1.0000000000001p0 .. 0x1.4000000000000p3]
 <   dt ∈ [-0x1.4000000000000p3 .. 0x1.fffffffffffffp-1]
 ---
 >   dz ∈ [0x1.0000020000000p0 .. 0x1.4000000000000p3]
 >   dt ∈ [-0x1.4000000000000p3 .. 0x1.fffffe0000000p-1]
-diff tests/float/oracle/nonlin.0.res.oracle tests/float/oracle_equalities/nonlin.0.res.oracle
-191c191
-<       (origin: Arithmetic {tests/float/nonlin.c:87}) }}
----
->       (origin: Arithmetic {tests/float/nonlin.c:88}) }}
-250c250
-<       (origin: Arithmetic {tests/float/nonlin.c:87}) }}
----
->       (origin: Arithmetic {tests/float/nonlin.c:88}) }}
+Only in tests/float/oracle: fval_test.err.oracle
+Only in tests/float/oracle: fval_test.res.oracle
 diff tests/float/oracle/nonlin.1.res.oracle tests/float/oracle_equalities/nonlin.1.res.oracle
-53a54
-> tests/float/nonlin.c:42:[value:nonlin] subdividing on a
-211c212
-<       (origin: Arithmetic {tests/float/nonlin.c:87}) }}
----
->       (origin: Arithmetic {tests/float/nonlin.c:88}) }}
-270c271
-<       (origin: Arithmetic {tests/float/nonlin.c:87}) }}
----
->       (origin: Arithmetic {tests/float/nonlin.c:88}) }}
-diff tests/float/oracle/nonlin.2.res.oracle tests/float/oracle_equalities/nonlin.2.res.oracle
-191c191
-<       (origin: Arithmetic {tests/float/nonlin.c:87}) }}
----
->       (origin: Arithmetic {tests/float/nonlin.c:88}) }}
-250c250
-<       (origin: Arithmetic {tests/float/nonlin.c:87}) }}
----
->       (origin: Arithmetic {tests/float/nonlin.c:88}) }}
+61a62
+> [value:nonlin] tests/float/nonlin.c:42: subdividing on a
 diff tests/float/oracle/nonlin.3.res.oracle tests/float/oracle_equalities/nonlin.3.res.oracle
-53a54
-> tests/float/nonlin.c:42:[value:nonlin] subdividing on a
-211c212
-<       (origin: Arithmetic {tests/float/nonlin.c:87}) }}
----
->       (origin: Arithmetic {tests/float/nonlin.c:88}) }}
-270c271
-<       (origin: Arithmetic {tests/float/nonlin.c:87}) }}
----
->       (origin: Arithmetic {tests/float/nonlin.c:88}) }}
+61a62
+> [value:nonlin] tests/float/nonlin.c:42: subdividing on a

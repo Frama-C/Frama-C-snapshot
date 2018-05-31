@@ -6,6 +6,10 @@
 Called from tests/misc/log-file.i:17.
 [value] using specification for function f
 [value] Done for function f
-tests/misc/log-file.i:18:[value] entering loop for the first time
+[value] computing for function g <- main.
+Called from tests/misc/log-file.i:18.
+[value] using specification for function g
+[value] Done for function g
+tests/misc/log-file.i:19:[value] entering loop for the first time
 [value] Recording results for main
 [value] done for function main

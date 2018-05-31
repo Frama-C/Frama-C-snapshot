@@ -1,33 +1,18 @@
 # frama-c -wp -wp-model 'Typed (Caveat)' [...]
 [kernel] Parsing tests/wp_usage/caveat.i (no preprocessing)
-tests/wp_usage/caveat.i:41:[kernel] warning: parsing obsolete ACSL construct 'logic declaration'. 'an axiomatic block' should be used instead.
+[kernel] tests/wp_usage/caveat.i:41: Warning: 
+  parsing obsolete ACSL construct 'logic declaration'. 'an axiomatic block' should be used instead.
 [wp] Running WP plugin...
 .................................................
 ... Ref Usage
 .................................................
-... Initial state
-  Nothing
-............
-... Function implicit
-   a
-  *r
-   p
-   q
-............
-... Function explicit
-   a
-  *r
-   p
-   q
-............
-... Function observer
-   a
-  *r
-   p
-   q
+Init: { }
+Function implicit: { a *r p q }
+Function explicit: { a *r p q }
+Function observer: { a *r p q }
 .................................................
 [wp] Loading driver 'share/wp.driver'
-[wp] warning: Missing RTE guards
+[wp] Warning: Missing RTE guards
 ------------------------------------------------------------
   Function explicit
 ------------------------------------------------------------
@@ -84,3 +69,12 @@ Assume {
 Prove: P_OBS(x_2, x_3, x_4).
 
 ------------------------------------------------------------
+[wp] Warning: Separation hypotheses for function 'implicit':
+  /*@ behavior typed_caveat: requires \separated(a,r); */
+  void implicit(struct S *a, int *r);
+[wp] Warning: Separation hypotheses for function 'explicit':
+  /*@ behavior typed_caveat: requires \separated(a,r); */
+  void explicit(struct S *a, int *r);
+[wp] Warning: Separation hypotheses for function 'observer':
+  /*@ behavior typed_caveat: requires \separated(a,r); */
+  void observer(struct S *a, int *r);

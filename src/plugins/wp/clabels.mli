@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2017                                               *)
+(*  Copyright (C) 2007-2018                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -32,6 +32,7 @@
 type c_label
   
 val is_here : c_label -> bool
+val mem : c_label -> c_label list -> bool
 val equal : c_label -> c_label -> bool
 
 module T : sig type t = c_label val compare : t -> t -> int end
@@ -40,10 +41,20 @@ module LabelSet : FCSet.S with type elt = c_label
 
 val pre : c_label
 val here : c_label
+val next : c_label
 val init : c_label
 val post : c_label
+val break : c_label
+val continue : c_label
+val default : c_label
+val at_exit : c_label
+val loopentry : c_label
+val loopcurrent : c_label
+val old : c_label
+  
 val formal : string -> c_label
 
+val case : int64 -> c_label
 val stmt : Cil_types.stmt -> c_label
 val loop_entry : Cil_types.stmt -> c_label
 val loop_current : Cil_types.stmt -> c_label

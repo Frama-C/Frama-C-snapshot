@@ -4,8 +4,9 @@
 [value] Initial state computed
 [value:initial-state] Values of globals at initialization
   t[0..9] ∈ {0}
-tests/value/assert_builtin.i:6:[value] warning: Frama_C_assert: unknown
-tests/value/assert_builtin.i:6:[kernel] warning: Neither code nor specification for function Frama_C_assert, generating default assigns from the prototype
+[kernel:annot:missing-spec] tests/value/assert_builtin.i:6: Warning: 
+  Neither code nor specification for function Frama_C_assert, generating default assigns from the prototype
+[value] tests/value/assert_builtin.i:6: Warning: Frama_C_assert: unknown
 [value] Recording results for main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======
@@ -16,13 +17,13 @@ tests/value/assert_builtin.i:6:[kernel] warning: Neither code nor specification 
 [from] Done for function Frama_C_assert
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
-    These dependencies hold at termination for the executions that terminate:
+  These dependencies hold at termination for the executions that terminate:
 [from] Function Frama_C_assert:
   NO EFFECTS
 [from] Function main:
   \result FROM t[0..9]; c
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function main:
-      __retres
+    __retres
 [inout] Inputs for function main:
-      t[0..9]
+    t[0..9]

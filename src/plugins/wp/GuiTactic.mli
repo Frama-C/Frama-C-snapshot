@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2017                                               *)
+(*  Copyright (C) 2007-2018                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -46,7 +46,7 @@ class type browser =
     method title : string
     method descr : string
     method target : selection
-    method search : (unit named -> unit) -> int -> unit
+    method search : (unit named -> unit) -> int -> bool
     method choose : string option -> unit
   end
 
@@ -67,9 +67,11 @@ class tactic : Tactical.t -> (Format.formatter -> Tactical.selection -> unit) ->
       selection -> unit
   end
 
+type callback = depth:int -> width:int -> Strategy.heuristic list -> unit
+
 class strategies : unit ->
   object
     inherit Wpalette.tool
     method register : Strategy.heuristic -> unit
-    method connect : (Strategy.heuristic list -> unit) option -> unit
+    method connect : callback option -> unit
   end

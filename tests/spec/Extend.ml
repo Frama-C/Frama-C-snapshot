@@ -20,7 +20,7 @@ module Bar_table =
     (Datatype.List(Cil_datatype.Predicate))
     (struct
         let name = "Bar_table"
-        let dependencies = [ Ast.self; Count.self ]
+        let dependencies = [ Count.self ]
         let size = 3
      end)
 

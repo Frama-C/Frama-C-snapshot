@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2017                                               *)
+(*  Copyright (C) 2007-2018                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -42,6 +42,7 @@ val gui_loc_logic_env: gui_loc -> Logic_typing.Lenv.t
 
 type 'a gui_selection_data = {
   alarm: bool;
+  red: bool;
   before: 'a gui_res;
   before_string: string Lazy.t;
   after: 'a gui_after;
@@ -52,14 +53,14 @@ val gui_selection_data_empty: 'a gui_selection_data
 (** Default value. All the fields contain empty or dummy values *)
 
 (** The types and function below depend on the abstract domains and values
-    currently available in EVA. *)
+    currently available in Eva. *)
 module type S = sig
 
   module Analysis : Analysis.S
 
   (** This is the record that encapsulates all evaluation functions *)
   type ('env, 'expr, 'v) evaluation_functions = {
-    eval_and_warn: 'env -> 'expr -> 'v * bool;
+    eval_and_warn: 'env -> 'expr -> 'v * bool (* alarm *) * bool (* red *);
     env: Analysis.Dom.t -> Value_types.callstack -> 'env;
     equal: 'v -> 'v -> bool;
     bottom: 'v;
@@ -102,6 +103,13 @@ module type S = sig
     gui_loc ->
     (Eval_terms.eval_env,
      predicate,
+     Eval_terms.predicate_status Bottom.or_bottom
+    ) evaluation_functions
+
+  val predicate_with_red:
+    gui_loc ->
+    (Eval_terms.eval_env * (kinstr * Value_types.callstack),
+     Red_statuses.alarm_or_property * predicate,
      Eval_terms.predicate_status Bottom.or_bottom
     ) evaluation_functions
 

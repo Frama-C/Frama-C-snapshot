@@ -1,0 +1,30 @@
+# frama-c -wp -wp-model 'Typed (Raw)' [...]
+[kernel] Parsing tests/wp_usage/global.c (with preprocessing)
+[wp] Running WP plugin...
+[wp] Loading driver 'share/wp.driver'
+[wp] Warning: Missing RTE guards
+------------------------------------------------------------
+  Function foo
+------------------------------------------------------------
+
+Goal Assertion 'no_address_taken' (file tests/wp_usage/global.c, line 17):
+Let a = Mptr_0[global(P_a_21)].
+Assume {
+  (* Heap *)
+  Have: framed(Mptr_0) /\ linked(Malloc_0).
+  (* Pre-condition *)
+  Have: valid_rw(Malloc_0, a, 1).
+}
+Prove: a != global(G_GLOBAL_18).
+
+------------------------------------------------------------
+------------------------------------------------------------
+  Function main
+------------------------------------------------------------
+
+Goal Instance of 'Pre-condition (file tests/wp_usage/global.c, line 14) in 'foo'' in 'main' at call 'foo' (file tests/wp_usage/global.c, line 21)
+:
+Assume { (* Heap *) Have: linked(Malloc_0). }
+Prove: valid_rw(Malloc_0[L___retres_24 <- 1], global(G_GLOBAL_18), 1).
+
+------------------------------------------------------------

@@ -5,15 +5,20 @@
 [value] Initial state computed
 [value:initial-state] Values of globals at initialization
   
-tests/slicing/keep_annot.i:40:[value] warning: signed overflow. assert -2147483648 ≤ nn - 2;
-tests/slicing/keep_annot.i:39:[value] warning: loop invariant got status unknown.
-tests/slicing/keep_annot.i:40:[value] entering loop for the first time
-tests/slicing/keep_annot.i:41:[value] warning: out of bounds read. assert \valid_read(dabs + (int)(ii + 1));
-tests/slicing/keep_annot.i:41:[value] warning: non-finite float value.
-    assert
-    \is_finite((float)((double)((double)u -
-                                (double)((double)*(dabs + (int)(ii + 1)) * 2.0))));
-tests/slicing/keep_annot.i:42:[value] warning: assertion got status unknown.
+[value:alarm] tests/slicing/keep_annot.i:40: Warning: 
+  signed overflow. assert -2147483648 ≤ nn - 2;
+[value:alarm] tests/slicing/keep_annot.i:39: Warning: 
+  loop invariant got status unknown.
+[value] tests/slicing/keep_annot.i:40: entering loop for the first time
+[value:alarm] tests/slicing/keep_annot.i:41: Warning: 
+  out of bounds read. assert \valid_read(dabs + (int)(ii + 1));
+[value:alarm] tests/slicing/keep_annot.i:41: Warning: 
+  non-finite float value.
+  assert
+  \is_finite((float)((double)((double)u -
+                              (double)((double)*(dabs + (int)(ii + 1)) * 2.0))));
+[value:alarm] tests/slicing/keep_annot.i:42: Warning: 
+  assertion got status unknown.
 [value] Recording results for L
 [value] done for function L
 [slicing] initializing slicing ...

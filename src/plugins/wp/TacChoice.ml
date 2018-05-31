@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2017                                               *)
+(*  Copyright (C) 2007-2018                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -107,17 +107,17 @@ class contrapose =
 module Choice =
 struct
   let tactical = Tactical.export (new choice)
-  let strategy = Strategy.make tactical
+  let strategy = Strategy.make tactical ~arguments:[]
 end
 
 module Absurd =
 struct
   let tactical = Tactical.export (new absurd)
-  let strategy = Strategy.make tactical
+  let strategy = Strategy.make tactical ~arguments:[]
 end
 
 module Contrapose =
 struct
   let tactical = Tactical.export (new contrapose)
-  let strategy = Strategy.make tactical
+  let strategy = Strategy.make tactical ~arguments:[]
 end

@@ -1,5 +1,7 @@
 [kernel] Parsing tests/float/dr.i (no preprocessing)
-tests/float/dr.i:7:[kernel] warning: Floating-point constant 100e30f is not represented exactly. Will use 0x1.3b8b5c0000000p106. See documentation for option -warn-decimal-float
+[kernel:parser:decimal-float] tests/float/dr.i:7: Warning: 
+  Floating-point constant 100e30f is not represented exactly. Will use 0x1.3b8b5c0000000p106.
+  (warn-once: no further messages from category 'parser:decimal-float' will be emitted)
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
 [value] Initial state computed
@@ -20,7 +22,7 @@ tests/float/dr.i:7:[kernel] warning: Floating-point constant 100e30f is not repr
   d2 ∈ {1.01161128283}
   e1 ∈ {0}
   e2 ∈ {0}
-tests/float/dr.i:26:[value] Frama_C_show_each: {1}, {0}
+[value] tests/float/dr.i:26: Frama_C_show_each: {1}, {0}
 [value] Recording results for main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======
@@ -31,13 +33,13 @@ tests/float/dr.i:26:[value] Frama_C_show_each: {1}, {0}
 [from] Computing for function main
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
-    These dependencies hold at termination for the executions that terminate:
+  These dependencies hold at termination for the executions that terminate:
 [from] Function main:
   e1 FROM g1; f1
   e2 FROM g2; f2
   \result FROM \nothing
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function main:
-      e1; e2; __retres
+    e1; e2; __retres
 [inout] Inputs for function main:
-      g1; f1; g2; f2; e1; e2
+    g1; f1; g2; f2; e1; e2

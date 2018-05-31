@@ -5,44 +5,54 @@
 [value:initial-state] Values of globals at initialization
   
 [value] computing for function f_valid <- main.
-    Called from tests/value/assigns_from_direct.i:14.
+  Called from tests/value/assigns_from_direct.i:14.
 [value] Recording results for f_valid
 [from] Computing for function f_valid
 [from] Done for function f_valid
-tests/value/assigns_from_direct.i:21:[value] function f_valid: assigns got status valid.
-tests/value/assigns_from_direct.i:21:[value] function f_valid: \from ... part in assign clause got status valid.
+[value] tests/value/assigns_from_direct.i:21: 
+  function f_valid: assigns got status valid.
+[value] tests/value/assigns_from_direct.i:21: 
+  function f_valid: \from ... part in assign clause got status valid.
 [value] Done for function f_valid
 [value] computing for function f_invalid_direct <- main.
-    Called from tests/value/assigns_from_direct.i:15.
+  Called from tests/value/assigns_from_direct.i:15.
 [value] Recording results for f_invalid_direct
 [from] Computing for function f_invalid_direct
 [from] Done for function f_invalid_direct
-tests/value/assigns_from_direct.i:30:[value] function f_invalid_direct: assigns got status valid.
-tests/value/assigns_from_direct.i:30:[value] warning: function f_invalid_direct: \from ... part in assign clause got status unknown (cannot validate direct dependencies).
+[value] tests/value/assigns_from_direct.i:30: 
+  function f_invalid_direct: assigns got status valid.
+[value:alarm] tests/value/assigns_from_direct.i:30: Warning: 
+  function f_invalid_direct: \from ... part in assign clause got status unknown (cannot validate direct dependencies).
 [value] Done for function f_invalid_direct
 [value] computing for function f_invalid_address <- main.
-    Called from tests/value/assigns_from_direct.i:16.
+  Called from tests/value/assigns_from_direct.i:16.
 [value] Recording results for f_invalid_address
 [from] Computing for function f_invalid_address
 [from] Done for function f_invalid_address
-tests/value/assigns_from_direct.i:39:[value] function f_invalid_address: assigns got status valid.
-tests/value/assigns_from_direct.i:39:[value] warning: function f_invalid_address: \from ... part in assign clause got status unknown (cannot validate indirect dependencies).
+[value] tests/value/assigns_from_direct.i:39: 
+  function f_invalid_address: assigns got status valid.
+[value:alarm] tests/value/assigns_from_direct.i:39: Warning: 
+  function f_invalid_address: \from ... part in assign clause got status unknown (cannot validate indirect dependencies).
 [value] Done for function f_invalid_address
 [value] computing for function f_invalid_condition <- main.
-    Called from tests/value/assigns_from_direct.i:17.
+  Called from tests/value/assigns_from_direct.i:17.
 [value] Recording results for f_invalid_condition
 [from] Computing for function f_invalid_condition
 [from] Done for function f_invalid_condition
-tests/value/assigns_from_direct.i:48:[value] function f_invalid_condition: assigns got status valid.
-tests/value/assigns_from_direct.i:48:[value] warning: function f_invalid_condition: \from ... part in assign clause got status unknown (cannot validate indirect dependencies).
+[value] tests/value/assigns_from_direct.i:48: 
+  function f_invalid_condition: assigns got status valid.
+[value:alarm] tests/value/assigns_from_direct.i:48: Warning: 
+  function f_invalid_condition: \from ... part in assign clause got status unknown (cannot validate indirect dependencies).
 [value] Done for function f_invalid_condition
 [value] computing for function f_invalid_all <- main.
-    Called from tests/value/assigns_from_direct.i:18.
+  Called from tests/value/assigns_from_direct.i:18.
 [value] Recording results for f_invalid_all
 [from] Computing for function f_invalid_all
 [from] Done for function f_invalid_all
-tests/value/assigns_from_direct.i:57:[value] function f_invalid_all: assigns got status valid.
-tests/value/assigns_from_direct.i:57:[value] warning: function f_invalid_all: \from ... part in assign clause got status unknown (cannot validate direct and indirect dependencies).
+[value] tests/value/assigns_from_direct.i:57: 
+  function f_invalid_all: assigns got status valid.
+[value:alarm] tests/value/assigns_from_direct.i:57: Warning: 
+  function f_invalid_all: \from ... part in assign clause got status unknown (cannot validate direct and indirect dependencies).
 [value] Done for function f_invalid_all
 [value] Recording results for main
 [from] Computing for function main
@@ -75,7 +85,7 @@ tests/value/assigns_from_direct.i:57:[value] warning: function f_invalid_all: \f
 [from] Computing for function main
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
-    These dependencies hold at termination for the executions that terminate:
+  These dependencies hold at termination for the executions that terminate:
 [from] Function f_invalid_address:
   y FROM a; b; c
 [from] Function f_invalid_all:
@@ -104,26 +114,26 @@ tests/value/assigns_from_direct.i:57:[value] warning: function f_invalid_all: \f
   NO EFFECTS
 [from] ====== END OF CALLWISE DEPENDENCIES ======
 [inout] Out (internal) for function f_invalid_address:
-      y
+    y
 [inout] Inputs for function f_invalid_address:
-      \nothing
+    \nothing
 [inout] Out (internal) for function f_invalid_all:
-      y
+    y
 [inout] Inputs for function f_invalid_all:
-      \nothing
+    \nothing
 [inout] Out (internal) for function f_invalid_condition:
-      y
+    y
 [inout] Inputs for function f_invalid_condition:
-      \nothing
+    \nothing
 [inout] Out (internal) for function f_invalid_direct:
-      y
+    y
 [inout] Inputs for function f_invalid_direct:
-      \nothing
+    \nothing
 [inout] Out (internal) for function f_valid:
-      y
+    y
 [inout] Inputs for function f_valid:
-      \nothing
+    \nothing
 [inout] Out (internal) for function main:
-      x; y
+    x; y
 [inout] Inputs for function main:
-      \nothing
+    \nothing

@@ -5,6 +5,7 @@
    STDOPT: +" -cpp-extra-args=-DP1 -lib-entry"
    STDOPT: +" -cpp-extra-args=-DP1 -absolute-valid-range 0-1 -main main2"
    STDOPT: +"  -cpp-extra-args=\"-DP1 -DP5\" -machdep gcc_x86_32 -absolute-valid-range 0-1 -main main3"
+   STDOPT: +" -machdep gcc_x86_32 -cpp-extra-args=-DP1 -main main4"
 */
 
 // BTS 1416 and 1874
@@ -85,3 +86,16 @@ void main3(int n) {
   free(r);
 }
 #endif
+
+struct st {
+   int a;
+};
+struct s gs, *pgs = &gs;
+//@ assigns \result \from pgs;
+struct s *f(int);
+void g(struct s *array);
+void main4() {
+  struct s *r;
+  r = f(42);
+  g(r);
+}

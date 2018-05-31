@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2017                                               *)
+(*  Copyright (C) 2007-2018                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -102,7 +102,7 @@ class callableFunctionsVisitor ~libc = object(self)
     r
 
   method compute vi =
-    (* Initialisation *)
+    (* Initialization *)
     Stack.clear todo;
     Stack.push vi todo;
     Varinfo.Hashtbl.clear visited;

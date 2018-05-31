@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2017                                               *)
+(*  Copyright (C) 2007-2018                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -246,12 +246,14 @@ class vis flag = object(self)
 end
 
 let treat_one_function flag kf =
-  let my_flag = ref false in
-  let vis = new vis my_flag in
-  ignore (Visitor.visitFramacKf vis kf);
-  if !my_flag then begin
-    flag := true;
-    File.must_recompute_cfg (Kernel_function.get_definition kf)
+  if not (Cil.is_special_builtin (Kernel_function.get_name kf)) then begin
+    let my_flag = ref false in
+    let vis = new vis my_flag in
+    ignore (Visitor.visitFramacKf vis kf);
+    if !my_flag then begin
+      flag := true;
+      File.must_recompute_cfg (Kernel_function.get_definition kf)
+    end
   end
 
 let add_destructor _ast =

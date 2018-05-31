@@ -5,14 +5,18 @@
 [value:initial-state] Values of globals at initialization
   Frama_C_entropy_source ∈ [--..--]
 [value] computing for function __va_open_void <- main.
-    Called from tests/libc/termios.c:10.
+  Called from tests/libc/termios.c:10.
 [value] using specification for function __va_open_void
-share/libc/fcntl.h:132:[value] function __va_open_void: precondition 'valid_flag' got status valid.
+[value] tests/libc/termios.c:10: 
+  function __va_open_void: precondition 'valid_filename' got status valid.
+[value] tests/libc/termios.c:10: 
+  function __va_open_void: precondition 'flag_not_CREAT' got status valid.
 [value] Done for function __va_open_void
 [value] computing for function tcgetattr <- main.
-    Called from tests/libc/termios.c:11.
+  Called from tests/libc/termios.c:11.
 [value] using specification for function tcgetattr
-share/libc/termios.h:181:[value] function tcgetattr: precondition got status valid.
+[value] tests/libc/termios.c:11: 
+  function tcgetattr: precondition 'valid_termios_p' got status valid.
 [value] Done for function tcgetattr
 [value] Recording results for main
 [value] done for function main

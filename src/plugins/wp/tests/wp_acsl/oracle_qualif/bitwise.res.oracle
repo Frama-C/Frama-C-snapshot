@@ -2,7 +2,7 @@
 [kernel] Parsing tests/wp_acsl/bitwise.i (no preprocessing)
 [wp] Running WP plugin...
 [wp] Loading driver 'share/wp.driver'
-[wp] warning: Missing RTE guards
+[wp] Warning: Missing RTE guards
 [wp] 23 goals scheduled
 [wp] [Qed] Goal typed_band_post : Valid
 [wp] [Qed] Goal typed_band_post_band0 : Valid
@@ -28,13 +28,14 @@
 [wp] [Qed] Goal typed_rshift_post : Valid
 [wp] [Qed] Goal typed_rshift_shift1_post_lsr1 : Valid
 [wp] Proved goals:   23 / 23
-    Qed:            23
-----------------------------------------------------------
-Functions           WP   Alt-Ergo    Total   Success
-band                 8     -           8       100%
-bor                  5     -           5       100%
-bxor                 3     -           3       100%
-bnot                 1     -           1       100%
-lshift               4     -           4       100%
-rshift               2     -           2       100%
-----------------------------------------------------------
+  Qed:            23
+[wp] Report 'tests/wp_acsl/bitwise.i.0.report.json'
+-------------------------------------------------------------
+Functions           WP     Alt-Ergo        Total   Success
+band                 8     -                 8       100%
+bor                  5     -                 5       100%
+bxor                 3     -                 3       100%
+bnot                 1     -                 1       100%
+lshift               4     -                 4       100%
+rshift               2     -                 2       100%
+-------------------------------------------------------------

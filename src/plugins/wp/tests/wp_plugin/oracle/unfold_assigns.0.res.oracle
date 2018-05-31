@@ -1,0 +1,81 @@
+# frama-c -wp [...]
+[kernel] Parsing tests/wp_plugin/unfold_assigns.i (no preprocessing)
+[wp] Running WP plugin...
+[wp] Loading driver 'share/wp.driver'
+[wp] Warning: Missing RTE guards
+------------------------------------------------------------
+  Function NO_UNFOLD_KO
+------------------------------------------------------------
+
+Goal Assigns (file tests/wp_plugin/unfold_assigns.i, line 33) in 'NO_UNFOLD_KO':
+Call Effect at line 35
+Assume {
+  (* Goal *)
+  When: !invalid(Malloc_0, s, 2).
+  (* Heap *)
+  Have: (region(s.base) <= 0) /\ linked(Malloc_0).
+  (* Exit Effects *)
+  Have: havoc(Mint_0, Mint_1, s, 2).
+}
+Prove: false.
+
+------------------------------------------------------------
+
+Goal Assigns (file tests/wp_plugin/unfold_assigns.i, line 33) in 'NO_UNFOLD_KO':
+Call Effect at line 35
+Assume {
+  (* Goal *)
+  When: !invalid(Malloc_0, s, 2).
+  (* Heap *)
+  Have: (region(s.base) <= 0) /\ linked(Malloc_0).
+  (* Call Effects *)
+  Have: havoc(Mint_0, Mint_1, s, 2).
+}
+Prove: false.
+
+------------------------------------------------------------
+------------------------------------------------------------
+  Function NO_UNFOLD_OK_1
+------------------------------------------------------------
+
+Goal Assigns (file tests/wp_plugin/unfold_assigns.i, line 18) in 'NO_UNFOLD_OK_1':
+Call Effect at line 20
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Assigns (file tests/wp_plugin/unfold_assigns.i, line 18) in 'NO_UNFOLD_OK_1':
+Call Effect at line 20
+Prove: true.
+
+------------------------------------------------------------
+------------------------------------------------------------
+  Function NO_UNFOLD_OK_2
+------------------------------------------------------------
+
+Goal Assigns (file tests/wp_plugin/unfold_assigns.i, line 23) in 'NO_UNFOLD_OK_2':
+Call Effect at line 25
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Assigns (file tests/wp_plugin/unfold_assigns.i, line 23) in 'NO_UNFOLD_OK_2':
+Call Effect at line 25
+Prove: true.
+
+------------------------------------------------------------
+------------------------------------------------------------
+  Function NO_UNFOLD_OK_3
+------------------------------------------------------------
+
+Goal Assigns (file tests/wp_plugin/unfold_assigns.i, line 28) in 'NO_UNFOLD_OK_3':
+Call Effect at line 30
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Assigns (file tests/wp_plugin/unfold_assigns.i, line 28) in 'NO_UNFOLD_OK_3':
+Call Effect at line 30
+Prove: true.
+
+------------------------------------------------------------

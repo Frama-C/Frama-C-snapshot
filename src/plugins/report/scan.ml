@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2017                                               *)
+(*  Copyright (C) 2007-2018                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -154,8 +154,35 @@ let iter (inspector:inspector) =
       end
   end
 
-(*
-Local Variables:
-compile-command: "make -C ../../.."
-End:
-*)
+(* -------------------------------------------------------------------------- *)
+(* --- Source Visitor                                                     --- *)
+(* -------------------------------------------------------------------------- *)
+
+class visit_properties (phi : Property.t -> unit) =
+  object(self)
+    inherit Visitor.frama_c_inplace
+
+    (* --- Visits --- *)
+    
+    method! vspec fspec =
+      Property.ip_of_spec
+        (Extlib.the self#current_kf) self#current_kinstr ~active:[] fspec |>
+      List.iter phi ;
+      Cil.DoChildren
+        
+    method! vcode_annot ca =
+      Property.ip_of_code_annot
+        (Extlib.the self#current_kf) (Extlib.the self#current_stmt) ca |>
+      List.iter phi ;
+      Cil.DoChildren
+
+    method! vannotation ga =
+      Property.ip_of_global_annotation ga |> List.iter phi ;
+      Cil.DoChildren
+
+  end
+
+let source_properties phi =
+  let v = new visit_properties phi in
+  Visitor.visitFramacFile (v :> Visitor.frama_c_visitor) (Ast.get ())
+

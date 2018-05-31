@@ -7,9 +7,9 @@
   r1 ∈ {0}
   r2 ∈ {0}
 [value] computing for function g1 <- main.
-    Called from tests/impact/depend4.i:27.
+  Called from tests/impact/depend4.i:27.
 [value] computing for function aux <- g1 <- main.
-    Called from tests/impact/depend4.i:19.
+  Called from tests/impact/depend4.i:19.
 [value] Recording results for aux
 [from] Computing for function aux
 [from] Done for function aux
@@ -19,15 +19,15 @@
 [from] Done for function g1
 [value] Done for function g1
 [value] computing for function f <- main.
-    Called from tests/impact/depend4.i:29.
+  Called from tests/impact/depend4.i:29.
 [value] Recording results for f
 [from] Computing for function f
 [from] Done for function f
 [value] Done for function f
 [value] computing for function g2 <- main.
-    Called from tests/impact/depend4.i:30.
+  Called from tests/impact/depend4.i:30.
 [value] computing for function aux <- g2 <- main.
-    Called from tests/impact/depend4.i:23.
+  Called from tests/impact/depend4.i:23.
 [value] Recording results for aux
 [from] Computing for function aux
 [from] Done for function aux
@@ -66,8 +66,8 @@
 [pdg] computing for function aux
 [pdg] done for function aux
 [impact] impacted statements of stmt(s) 18 are:
-      tests/impact/depend4.i:13 (sid 6): r1 = *p;
-      tests/impact/depend4.i:15 (sid 7): r2 = *p;
-      tests/impact/depend4.i:23 (sid 13): aux(& a,1);
-      tests/impact/depend4.i:30 (sid 19): g2();
+    tests/impact/depend4.i:13 (sid 6): r1 = *p;
+    tests/impact/depend4.i:15 (sid 7): r2 = *p;
+    tests/impact/depend4.i:23 (sid 13): aux(& a,1);
+    tests/impact/depend4.i:30 (sid 19): g2();
 [impact] analysis done

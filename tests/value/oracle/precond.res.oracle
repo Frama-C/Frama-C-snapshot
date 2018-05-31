@@ -6,46 +6,60 @@
   x ∈ [--..--]
   pf2 ∈ {{ &f2 }}
 [value] computing for function f <- main.
-    Called from tests/value/precond.c:31.
-tests/value/precond.c:8:[value] function f: precondition got status valid.
-tests/value/precond.c:9:[value] function f: precondition got status valid.
+  Called from tests/value/precond.c:31.
+[value] tests/value/precond.c:31: 
+  function f: precondition 'i_plus_one' got status valid.
+[value] tests/value/precond.c:31: function f: precondition 'i' got status valid.
 [value] Recording results for f
 [value] Done for function f
 [value] computing for function f <- main.
-    Called from tests/value/precond.c:32.
+  Called from tests/value/precond.c:32.
+[value] tests/value/precond.c:32: 
+  function f: precondition 'i_plus_one' got status valid.
+[value] tests/value/precond.c:32: function f: precondition 'i' got status valid.
 [value] Recording results for f
 [value] Done for function f
 [value] computing for function g <- main.
-    Called from tests/value/precond.c:34.
-tests/value/precond.c:34:[kernel] warning: No code nor implicit assigns clause for function g, generating default assigns from the prototype
+  Called from tests/value/precond.c:34.
+[kernel] tests/value/precond.c:34: Warning: 
+  No code nor implicit assigns clause for function g, generating default assigns from the prototype
 [value] using specification for function g
-tests/value/precond.c:24:[value] warning: function g: precondition got status unknown.
+[value:alarm] tests/value/precond.c:34: Warning: 
+  function g: precondition got status unknown.
 [value] Done for function g
 [value] computing for function aux <- main.
-    Called from tests/value/precond.c:36.
+  Called from tests/value/precond.c:36.
 [value] computing for function f2 <- aux <- main.
-    Called from tests/value/precond.c:21.
-tests/value/precond.c:21:[kernel] warning: No code nor implicit assigns clause for function f2, generating default assigns from the prototype
+  Called from tests/value/precond.c:21.
+[kernel] tests/value/precond.c:21: Warning: 
+  No code nor implicit assigns clause for function f2, generating default assigns from the prototype
 [value] using specification for function f2
-tests/value/precond.c:15:[value] function f2: precondition got status valid.
+[value] tests/value/precond.c:21: function f2: precondition got status valid.
 [value] Done for function f2
 [value] Recording results for aux
 [value] Done for function aux
 [value] computing for function aux <- main.
-    Called from tests/value/precond.c:37.
+  Called from tests/value/precond.c:37.
 [value] computing for function f2 <- aux <- main.
-    Called from tests/value/precond.c:21.
-tests/value/precond.c:15:[value] warning: function f2: precondition got status unknown.
+  Called from tests/value/precond.c:21.
+[value:alarm] tests/value/precond.c:21: Warning: 
+  function f2: precondition got status unknown.
 [value] Done for function f2
 [value] Recording results for aux
 [value] Done for function aux
 [value] computing for function f <- main.
-    Called from tests/value/precond.c:39.
+  Called from tests/value/precond.c:39.
+[value] tests/value/precond.c:39: 
+  function f: precondition 'i_plus_one' got status valid.
+[value] tests/value/precond.c:39: function f: precondition 'i' got status valid.
 [value] Recording results for f
 [value] Done for function f
 [value] computing for function f <- main.
-    Called from tests/value/precond.c:40.
-tests/value/precond.c:9:[value] warning: function f: precondition got status invalid.
+  Called from tests/value/precond.c:40.
+[value] tests/value/precond.c:40: 
+  function f: precondition 'i_plus_one' got status valid.
+[value:alarm] tests/value/precond.c:40: Warning: 
+  function f: precondition 'i' got status invalid.
 [value] Recording results for f
 [value] Done for function f
 [value] Recording results for main
@@ -63,11 +77,11 @@ tests/value/precond.c:9:[value] warning: function f: precondition got status inv
 --- Properties of Function 'f'
 --------------------------------------------------------------------------------
 
-[  Valid  ] Pre-condition (file tests/value/precond.c, line 8)
-            requires i + 1 ≥ 0
+[  Valid  ] Pre-condition 'i_plus_one'
+            requires i_plus_one: i + 1 ≥ 0
             by Call Preconditions.
-[  Alarm  ] Pre-condition (file tests/value/precond.c, line 9)
-            requires i ≥ 0
+[  Alarm  ] Pre-condition 'i'
+            requires i: i ≥ 0
             By Call Preconditions, with pending:
              - Unreachable instruction (file tests/value/precond.c, line 40)
 
@@ -112,41 +126,41 @@ tests/value/precond.c:9:[value] warning: function f: precondition got status inv
 --- Properties of Function 'main'
 --------------------------------------------------------------------------------
 
-[  Valid  ] Instance of 'Pre-condition (file tests/value/precond.c, line 8)' at call 'f' (file tests/value/precond.c, line 31)
+[  Valid  ] Instance of 'Pre-condition 'i_plus_one'' at call 'f' (file tests/value/precond.c, line 31)
 
-            status of 'requires i + 1 ≥ 0' of f at stmt 10
+            status of 'requires i_plus_one: i + 1 ≥ 0' of f at stmt 10
             by Value.
-[  Valid  ] Instance of 'Pre-condition (file tests/value/precond.c, line 9)' at call 'f' (file tests/value/precond.c, line 31)
+[  Valid  ] Instance of 'Pre-condition 'i'' at call 'f' (file tests/value/precond.c, line 31)
 
-            status of 'requires i ≥ 0' of f at stmt 10
+            status of 'requires i: i ≥ 0' of f at stmt 10
             by Value.
-[  Valid  ] Instance of 'Pre-condition (file tests/value/precond.c, line 8)' at call 'f' (file tests/value/precond.c, line 32)
+[  Valid  ] Instance of 'Pre-condition 'i_plus_one'' at call 'f' (file tests/value/precond.c, line 32)
 
-            status of 'requires i + 1 ≥ 0' of f at stmt 13
+            status of 'requires i_plus_one: i + 1 ≥ 0' of f at stmt 13
             by Value.
-[  Valid  ] Instance of 'Pre-condition (file tests/value/precond.c, line 9)' at call 'f' (file tests/value/precond.c, line 32)
+[  Valid  ] Instance of 'Pre-condition 'i'' at call 'f' (file tests/value/precond.c, line 32)
 
-            status of 'requires i ≥ 0' of f at stmt 13
+            status of 'requires i: i ≥ 0' of f at stmt 13
             by Value.
 [    -    ] Instance of 'Pre-condition (file tests/value/precond.c, line 24)' at call 'g' (file tests/value/precond.c, line 34)
 
             status of 'requires x ≤ 8' of g at stmt 16
             tried with Value.
-[  Valid  ] Instance of 'Pre-condition (file tests/value/precond.c, line 8)' at instruction (file tests/value/precond.c, line 39)
+[  Valid  ] Instance of 'Pre-condition 'i_plus_one'' at instruction (file tests/value/precond.c, line 39)
 
-            status of 'requires i + 1 ≥ 0' of f at stmt 19
+            status of 'requires i_plus_one: i + 1 ≥ 0' of f at stmt 19
             by Value.
-[  Valid  ] Instance of 'Pre-condition (file tests/value/precond.c, line 9)' at instruction (file tests/value/precond.c, line 39)
+[  Valid  ] Instance of 'Pre-condition 'i'' at instruction (file tests/value/precond.c, line 39)
 
-            status of 'requires i ≥ 0' of f at stmt 19
+            status of 'requires i: i ≥ 0' of f at stmt 19
             by Value.
-[  Valid  ] Instance of 'Pre-condition (file tests/value/precond.c, line 8)' at instruction (file tests/value/precond.c, line 40)
+[  Valid  ] Instance of 'Pre-condition 'i_plus_one'' at instruction (file tests/value/precond.c, line 40)
 
-            status of 'requires i + 1 ≥ 0' of f at stmt 20
+            status of 'requires i_plus_one: i + 1 ≥ 0' of f at stmt 20
             by Value.
-[  Alarm  ] Instance of 'Pre-condition (file tests/value/precond.c, line 9)' at instruction (file tests/value/precond.c, line 40)
+[  Alarm  ] Instance of 'Pre-condition 'i'' at instruction (file tests/value/precond.c, line 40)
 
-            status of 'requires i ≥ 0' of f at stmt 20
+            status of 'requires i: i ≥ 0' of f at stmt 20
             By Value, with pending:
              - Unreachable instruction (file tests/value/precond.c, line 40)
 
@@ -164,11 +178,11 @@ tests/value/precond.c:9:[value] warning: function f: precondition got status inv
 --- Properties of Function 'f'
 --------------------------------------------------------------------------------
 
-[  Valid  ] Pre-condition (file tests/value/precond.c, line 8)
-            requires i + 1 ≥ 0
+[  Valid  ] Pre-condition 'i_plus_one'
+            requires i_plus_one: i + 1 ≥ 0
             by Call Preconditions.
-[  Alarm  ] Pre-condition (file tests/value/precond.c, line 9)
-            requires i ≥ 0
+[  Alarm  ] Pre-condition 'i'
+            requires i: i ≥ 0
             By Call Preconditions, with pending:
              - Unreachable instruction (file tests/value/precond.c, line 40)
 

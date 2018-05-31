@@ -1,0 +1,47 @@
+[kernel] Parsing tests/libc/unistd.c (with preprocessing)
+[kernel:typing:implicit-function-declaration] tests/libc/unistd.c:10: Warning: 
+  Calling undeclared function usleep. Old style K&R code?
+[value] Analyzing a complete application starting at main
+[value] Computing initial state
+[value] Initial state computed
+[value:initial-state] Values of globals at initialization
+  __fc_time ∈ [--..--]
+  __fc_tz ∈ [--..--]
+  __fc_fds_state ∈ [--..--]
+  optarg ∈ {{ NULL ; &S_optarg[0] }}
+  optind ∈ [--..--]
+  opterr ∈ [--..--]
+  optopt ∈ [--..--]
+  __fc_fds[0..1023] ∈ {0}
+  __fc_hostname[0..63] ∈ [--..--]
+  S_optarg[0..1] ∈ [--..--]
+[value] computing for function usleep <- main.
+  Called from tests/libc/unistd.c:10.
+[kernel:annot:missing-spec] tests/libc/unistd.c:10: Warning: 
+  Neither code nor specification for function usleep, generating default assigns from the prototype
+[value] using specification for function usleep
+[value] Done for function usleep
+[value] computing for function usleep <- main.
+  Called from tests/libc/unistd.c:11.
+[value] Done for function usleep
+[value] computing for function gethostname <- main.
+  Called from tests/libc/unistd.c:13.
+[value] using specification for function gethostname
+[value] tests/libc/unistd.c:13: 
+  function gethostname: precondition 'name_has_room' got status valid.
+[value] Done for function gethostname
+[value] computing for function execv <- main.
+  Called from tests/libc/unistd.c:15.
+[value] using specification for function execv
+[value] tests/libc/unistd.c:15: 
+  function execv: precondition 'valid_string_path' got status valid.
+[value] tests/libc/unistd.c:15: 
+  function execv: precondition 'valid_string_argv0' got status valid.
+[value] Done for function execv
+[value] Recording results for main
+[value] done for function main
+[value] ====== VALUES COMPUTED ======
+[value:final-states] Values at end of function main:
+  r ∈ {-1; 0}
+  hostname[0..255] ∈ [--..--] or UNINITIALIZED
+  __retres ∈ {0}

@@ -5,55 +5,71 @@
 [value:initial-state] Values of globals at initialization
   
 [value] computing for function main1 <- main.
-    Called from tests/value/loopinv.c:63.
+  Called from tests/value/loopinv.c:63.
 [value] computing for function init <- main1 <- main.
-    Called from tests/value/loopinv.c:22.
-tests/value/loopinv.c:5:[value] function init: precondition got status valid.
-tests/value/loopinv.c:6:[value] function init: precondition got status valid.
-tests/value/loopinv.c:9:[value] loop invariant got status valid.
-tests/value/loopinv.c:10:[value] entering loop for the first time
+  Called from tests/value/loopinv.c:22.
+[value] tests/value/loopinv.c:22: 
+  function init: precondition 'valid' got status valid.
+[value] tests/value/loopinv.c:22: 
+  function init: precondition 'c' got status valid.
+[value] tests/value/loopinv.c:9: loop invariant got status valid.
+[value] tests/value/loopinv.c:10: entering loop for the first time
 [value] Recording results for init
 [value] Done for function init
 [value] computing for function init <- main1 <- main.
-    Called from tests/value/loopinv.c:25.
+  Called from tests/value/loopinv.c:25.
+[value] tests/value/loopinv.c:25: 
+  function init: precondition 'valid' got status valid.
+[value] tests/value/loopinv.c:25: 
+  function init: precondition 'c' got status valid.
 [value] Recording results for init
 [value] Done for function init
 [value] Recording results for main1
 [value] Done for function main1
 [value] computing for function main2 <- main.
-    Called from tests/value/loopinv.c:64.
-tests/value/loopinv.c:32:[value] loop invariant got status valid.
-tests/value/loopinv.c:33:[value] loop invariant got status valid.
-tests/value/loopinv.c:32:[value] warning: loop invariant got status invalid (stopping propagation).
+  Called from tests/value/loopinv.c:64.
+[value] tests/value/loopinv.c:32: loop invariant got status valid.
+[value] tests/value/loopinv.c:33: loop invariant got status valid.
+[value:alarm] tests/value/loopinv.c:32: Warning: 
+  loop invariant got status invalid (stopping propagation).
+[value] tests/value/loopinv.c:33: 
+  no state left, loop invariant got status valid.
 [value] Recording results for main2
 [value] Done for function main2
 [value] computing for function main3 <- main.
-    Called from tests/value/loopinv.c:65.
-tests/value/loopinv.c:42:[value] loop invariant got status valid.
-tests/value/loopinv.c:43:[value] entering loop for the first time
-tests/value/loopinv.c:46:[value] Frama_C_show_each: {0}, {0}
-tests/value/loopinv.c:46:[value] Frama_C_show_each: {0; 1}, {0; 1}
-tests/value/loopinv.c:42:[value] warning: loop invariant got status unknown.
-tests/value/loopinv.c:46:[value] Frama_C_show_each: {0; 1; 2}, {0; 1; 2}
-tests/value/loopinv.c:46:[value] Frama_C_show_each: {0; 1; 2; 3; 4; 5}, {0; 1; 2; 3}
-tests/value/loopinv.c:46:[value] Frama_C_show_each: {0; 1; 2; 3; 4; 5; 6}, {0; 1; 2; 3; 4}
-tests/value/loopinv.c:46:[value] Frama_C_show_each: [0..9], {0; 1; 2; 3; 4; 5}
-tests/value/loopinv.c:46:[value] Frama_C_show_each: [0..10], {0; 1; 2; 3; 4; 5; 6}
-tests/value/loopinv.c:46:[value] Frama_C_show_each: [0..13], {0; 1; 2; 3; 4; 5; 6; 7}
-tests/value/loopinv.c:46:[value] Frama_C_show_each: [0..14], [0..8]
-tests/value/loopinv.c:46:[value] Frama_C_show_each: [0..17], [0..9]
-tests/value/loopinv.c:46:[value] Frama_C_show_each: [0..18], [0..10]
-tests/value/loopinv.c:46:[value] Frama_C_show_each: [0..21], [0..11]
-tests/value/loopinv.c:46:[value] Frama_C_show_each: [0..23], [0..12]
-tests/value/loopinv.c:45:[value] warning: signed overflow. assert j + 1 ≤ 2147483647;
-tests/value/loopinv.c:46:[value] Frama_C_show_each: [0..99], [0..2147483647]
+  Called from tests/value/loopinv.c:65.
+[value] tests/value/loopinv.c:42: loop invariant got status valid.
+[value] tests/value/loopinv.c:43: entering loop for the first time
+[value] tests/value/loopinv.c:46: Frama_C_show_each: {0}, {0}
+[value] tests/value/loopinv.c:46: Frama_C_show_each: {0; 1}, {0; 1}
+[value:alarm] tests/value/loopinv.c:42: Warning: 
+  loop invariant got status unknown.
+[value] tests/value/loopinv.c:46: Frama_C_show_each: {0; 1; 2}, {0; 1; 2}
+[value] tests/value/loopinv.c:46: 
+  Frama_C_show_each: {0; 1; 2; 3; 4; 5}, {0; 1; 2; 3}
+[value] tests/value/loopinv.c:46: 
+  Frama_C_show_each: {0; 1; 2; 3; 4; 5; 6}, {0; 1; 2; 3; 4}
+[value] tests/value/loopinv.c:46: Frama_C_show_each: [0..9], {0; 1; 2; 3; 4; 5}
+[value] tests/value/loopinv.c:46: 
+  Frama_C_show_each: [0..10], {0; 1; 2; 3; 4; 5; 6}
+[value] tests/value/loopinv.c:46: 
+  Frama_C_show_each: [0..13], {0; 1; 2; 3; 4; 5; 6; 7}
+[value] tests/value/loopinv.c:46: Frama_C_show_each: [0..14], [0..8]
+[value] tests/value/loopinv.c:46: Frama_C_show_each: [0..17], [0..9]
+[value] tests/value/loopinv.c:46: Frama_C_show_each: [0..18], [0..10]
+[value] tests/value/loopinv.c:46: Frama_C_show_each: [0..21], [0..11]
+[value] tests/value/loopinv.c:46: Frama_C_show_each: [0..23], [0..12]
+[value:alarm] tests/value/loopinv.c:45: Warning: 
+  signed overflow. assert j + 1 ≤ 2147483647;
+[value] tests/value/loopinv.c:46: Frama_C_show_each: [0..99], [0..2147483647]
 [value] Recording results for main3
 [value] Done for function main3
 [value] computing for function main4 <- main.
-    Called from tests/value/loopinv.c:66.
-tests/value/loopinv.c:58:[value] loop invariant got status valid.
-tests/value/loopinv.c:59:[value] entering loop for the first time
-tests/value/loopinv.c:58:[value] warning: loop invariant got status unknown.
+  Called from tests/value/loopinv.c:66.
+[value] tests/value/loopinv.c:58: loop invariant got status valid.
+[value] tests/value/loopinv.c:59: entering loop for the first time
+[value:alarm] tests/value/loopinv.c:58: Warning: 
+  loop invariant got status unknown.
 [value] Recording results for main4
 [value] Done for function main4
 [value] Recording results for main
@@ -85,9 +101,9 @@ tests/value/loopinv.c:58:[value] warning: loop invariant got status unknown.
 --- Properties of Function 'init'
 --------------------------------------------------------------------------------
 
-[  Valid  ] Pre-condition (file tests/value/loopinv.c, line 5)
+[  Valid  ] Pre-condition 'valid'
             by Call Preconditions.
-[  Valid  ] Pre-condition (file tests/value/loopinv.c, line 6)
+[  Valid  ] Pre-condition 'c'
             by Call Preconditions.
 [  Valid  ] Invariant (file tests/value/loopinv.c, line 9)
             by Value.
@@ -98,16 +114,16 @@ tests/value/loopinv.c:58:[value] warning: loop invariant got status unknown.
 --- Properties of Function 'main1'
 --------------------------------------------------------------------------------
 
-[  Valid  ] Instance of 'Pre-condition (file tests/value/loopinv.c, line 5)' at call 'init' (file tests/value/loopinv.c, line 22)
+[  Valid  ] Instance of 'Pre-condition 'valid'' at call 'init' (file tests/value/loopinv.c, line 22)
 
             by Value.
-[  Valid  ] Instance of 'Pre-condition (file tests/value/loopinv.c, line 6)' at call 'init' (file tests/value/loopinv.c, line 22)
+[  Valid  ] Instance of 'Pre-condition 'c'' at call 'init' (file tests/value/loopinv.c, line 22)
 
             by Value.
-[  Valid  ] Instance of 'Pre-condition (file tests/value/loopinv.c, line 5)' at call 'init' (file tests/value/loopinv.c, line 25)
+[  Valid  ] Instance of 'Pre-condition 'valid'' at call 'init' (file tests/value/loopinv.c, line 25)
 
             by Value.
-[  Valid  ] Instance of 'Pre-condition (file tests/value/loopinv.c, line 6)' at call 'init' (file tests/value/loopinv.c, line 25)
+[  Valid  ] Instance of 'Pre-condition 'c'' at call 'init' (file tests/value/loopinv.c, line 25)
 
             by Value.
 

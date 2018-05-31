@@ -1,4 +1,5 @@
 [kernel] Parsing tests/syntax/vla_switch.i (no preprocessing)
-tests/syntax/vla_switch.i:11:[kernel] warning: Body of function case3 falls-through. Adding a return statement
-[kernel] user error: tests/syntax/vla_switch.i:2, cannot jump from switch statement bypassing initialization of variable b, declared at tests/syntax/vla_switch.i:4
+[kernel] tests/syntax/vla_switch.i:11: Warning: 
+  Body of function case3 falls-through. Adding a return statement
+[kernel] User Error: tests/syntax/vla_switch.i:2, cannot jump from switch statement bypassing initialization of variable b, declared at tests/syntax/vla_switch.i:4
 [kernel] Frama-C aborted: invalid user input.

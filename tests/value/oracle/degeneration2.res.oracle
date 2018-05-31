@@ -4,18 +4,26 @@
 [value] Initial state computed
 [value:initial-state] Values of globals at initialization
   v ∈ [--..--]
-tests/value/degeneration2.i:14:[value] warning: accessing uninitialized left-value. assert \initialized(&A);
-tests/value/degeneration2.i:14:[value] warning: signed overflow. assert -2147483648 ≤ -((int)A);
-tests/value/degeneration2.i:14:[value] warning: signed overflow. assert -((int)A) ≤ 2147483647;
-tests/value/degeneration2.i:14:[value] Assigning imprecise value to A.
-    The imprecision originates from Arithmetic {tests/value/degeneration2.i:14}
-tests/value/degeneration2.i:16:[value] entering loop for the first time
-tests/value/degeneration2.i:17:[value] warning: accessing uninitialized left-value. assert \initialized((int *)A);
-tests/value/degeneration2.i:17:[value] warning: out of bounds read. assert \valid_read((int *)A);
-tests/value/degeneration2.i:25:[value] warning: accessing uninitialized left-value. assert \initialized(&offset_uninit);
+[value:alarm] tests/value/degeneration2.i:14: Warning: 
+  accessing uninitialized left-value. assert \initialized(&A);
+[value:alarm] tests/value/degeneration2.i:14: Warning: 
+  signed overflow. assert -2147483648 ≤ -((int)A);
+[value:alarm] tests/value/degeneration2.i:14: Warning: 
+  signed overflow. assert -((int)A) ≤ 2147483647;
+[value] tests/value/degeneration2.i:14: 
+  Assigning imprecise value to A.
+  The imprecision originates from Arithmetic {tests/value/degeneration2.i:14}
+[value] tests/value/degeneration2.i:16: entering loop for the first time
+[value:alarm] tests/value/degeneration2.i:17: Warning: 
+  accessing uninitialized left-value. assert \initialized((int *)A);
+[value:alarm] tests/value/degeneration2.i:17: Warning: 
+  out of bounds read. assert \valid_read((int *)A);
+[value:alarm] tests/value/degeneration2.i:25: Warning: 
+  accessing uninitialized left-value. assert \initialized(&offset_uninit);
 [value] Recording results for main
 [value] done for function main
-tests/value/degeneration2.i:25:[value] assertion 'Value,initialisation' got final status invalid.
+[value] tests/value/degeneration2.i:25: 
+  assertion 'Value,initialization' got final status invalid.
 [value] ====== VALUES COMPUTED ======
 [value:final-states] Values at end of function main:
   A ∈
@@ -28,11 +36,11 @@ tests/value/degeneration2.i:25:[value] assertion 'Value,initialisation' got fina
 [from] Computing for function main
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
-    These dependencies hold at termination for the executions that terminate:
+  These dependencies hold at termination for the executions that terminate:
 [from] Function main:
   NO EFFECTS
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function main:
-      A; B; C; D; x; tmp; tmp_0; vv
+    A; B; C; D; x; tmp; tmp_0; vv
 [inout] Inputs for function main:
-      v
+    v

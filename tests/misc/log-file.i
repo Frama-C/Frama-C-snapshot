@@ -8,13 +8,14 @@
    LOG: plugin-log-all.txt
    OPT: -load-module tests/misc/plugin_log.ml -kernel-msg-key foo-category -kernel-log=a:@PTEST_RESULT@/plugin-log-all.txt
  */
-volatile int a = 42; // generates value warning
+int f(void); // generates kernel warning (missing spec)
 
-int f(); // generates kernel warning
+//@ assigns \result;
+int g(void); // generates value warning (missing \from)
 
 int main() {
-  int i;
   f();
-  for (i = 0; i < 1; i++); // generates value feedback
+  int r = g();
+  for (int i = 0; i < 1; i++); // generates value feedback
   return 0;
 }

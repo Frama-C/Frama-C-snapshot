@@ -2,7 +2,7 @@
 /*                                                                        */
 /*  This file is part of Frama-C.                                         */
 /*                                                                        */
-/*  Copyright (C) 2007-2017                                               */
+/*  Copyright (C) 2007-2018                                               */
 /*    CEA (Commissariat à l'énergie atomique et aux énergies              */
 /*         alternatives)                                                  */
 /*                                                                        */
@@ -27,7 +27,12 @@ __PUSH_FC_STDLIB
 __BEGIN_DECLS
 // These types are defined as structs with a meaningless field just to provide
 // stronger typing constraints
+
+#ifndef __have_pthread_attr_t
 typedef struct { int _fc; } pthread_attr_t;
+#define __have_pthread_attr_t
+#endif
+
 typedef struct { int _fc; } pthread_barrier_t;
 typedef struct { int _fc; } pthread_barrierattr_t;
 typedef struct { int _fc; } pthread_cond_t;

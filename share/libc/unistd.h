@@ -2,7 +2,7 @@
 /*                                                                        */
 /*  This file is part of Frama-C.                                         */
 /*                                                                        */
-/*  Copyright (C) 2007-2017                                               */
+/*  Copyright (C) 2007-2018                                               */
 /*    CEA (Commissariat à l'énergie atomique et aux énergies              */
 /*         alternatives)                                                  */
 /*                                                                        */
@@ -37,6 +37,7 @@ __PUSH_FC_STDLIB
 #include "__fc_select.h"
 
 #include <getopt.h>
+#include <limits.h>
 
 extern volatile int Frama_C_entropy_source;
 
@@ -53,6 +54,16 @@ extern volatile int Frama_C_entropy_source;
 #define	STDERR_FILENO	2	/* Standard error output.  */
 
 #include "__fc_define_seek_macros.h"
+
+/* compatibility macros */
+
+#ifndef __FC_NO_MONOTONIC_CLOCK
+/* 0 indicates that the feature is supported at compile time, but might not
+   be supported at runtime. Frama-C can't make promises about the runtime
+   environment.
+*/
+#define _POSIX_MONOTONIC_CLOCK 0
+#endif
 
 __BEGIN_DECLS
 
@@ -728,9 +739,10 @@ extern int          chroot(const char *path);
 extern int          chown(const char *, uid_t, gid_t);
 
 /*@
-  requires 0 <= fd < __FC_MAX_OPEN_FILES;
-  assigns \result, __fc_fds[fd] \from fd, __fc_fds[fd];
-  ensures \result == 0 || \result == -1;
+  requires valid_fd: 0 <= fd < __FC_MAX_OPEN_FILES;
+  assigns __fc_fds[fd] \from fd, __fc_fds[fd];
+  assigns \result \from indirect:fd, indirect:__fc_fds[fd];
+  ensures result_ok_or_error: \result == 0 || \result == -1;
 */
 extern int          close(int fd);
 extern size_t       confstr(int, char *, size_t);
@@ -741,39 +753,33 @@ extern int          dup(int);
 extern int          dup2(int, int);
 extern void         encrypt(char[64], int);
 
-/*@ requires arg != \null;
-    requires valid_read_string(path);
-    requires valid_read_string(arg);
+/*@ requires valid_string_path: valid_read_string(path);
+    requires valid_string_arg: valid_read_string(arg);
     assigns \result \from path[0..], arg[0..];
 */
 extern int          execl(const char *path, const char *arg, ...);
-/*@ requires arg != \null;
-    requires valid_read_string(path);
-    requires valid_read_string(arg);
+/*@ requires valid_string_path: valid_read_string(path);
+    requires valid_string_arg: valid_read_string(arg);
     assigns \result \from path[0..], arg[0..];
 */
 extern int          execle(const char *path, const char *arg, ...);
-/*@ requires arg != \null;
-    requires valid_read_string(path);
-    requires valid_read_string(arg);
+/*@ requires valid_string_path: valid_read_string(path);
+    requires valid_string_arg: valid_read_string(arg);
     assigns \result \from path[0..], arg[0..];
 */
 extern int          execlp(const char *path, const char *arg, ...);
-/*@ requires argv[0] != \null;
-    requires valid_read_string(path);
-    requires valid_read_string(argv[0]);
+/*@ requires valid_string_path: valid_read_string(path);
+    requires valid_string_argv0: valid_read_string(argv[0]);
     assigns \result \from path[0..], argv[0..];
 */
 extern int          execv(const char *path, char *const argv[]);
-/*@ requires argv[0] != \null;
-    requires valid_read_string(path);
-    requires valid_read_string(argv[0]);
+/*@ requires valid_path: valid_read_string(path);
+    requires valid_argv0: valid_read_string(argv[0]);
     assigns \result \from path[0..], argv[0..];
 */
 extern int          execve(const char *path, char *const argv[], char *const env[]);
-/*@ requires argv[0] != \null;
-    requires valid_read_string(path);
-    requires valid_read_string(argv[0]);
+/*@ requires valid_string_path: valid_read_string(path);
+    requires valid_string_argv0: valid_read_string(argv[0]);
     assigns \result \from path[0..], argv[0..];
 */
 extern int          execvp(const char *path, char *const argv[]);
@@ -793,7 +799,27 @@ extern uid_t        geteuid(void);
 extern gid_t        getgid(void);
 extern int          getgroups(int, gid_t []);
 extern long         gethostid(void);
-extern int gethostname(char *, size_t);
+
+extern volatile char __fc_hostname[HOST_NAME_MAX];
+
+/*@
+  requires name_has_room: \valid(name + (0 .. len-1));
+  assigns \result, name[0 .. len-1]
+      \from indirect:__fc_hostname[0 .. len], indirect:len;
+  ensures result_ok_or_error: \result == 0 || \result == -1;
+*/
+extern int gethostname(char *name, size_t len);
+
+// Non-POSIX
+/*@
+  requires name_valid_string: valid_read_nstring(name, len);
+  requires bounded_len: len <= HOST_NAME_MAX;
+  assigns __fc_hostname[0 .. len] \from name[0 .. len-1], indirect:len;
+  assigns \result \from indirect:__fc_hostname[0 .. len];
+  ensures result_ok_or_error: \result == 0 || \result == -1;
+*/
+extern int sethostname(const char *name, size_t len);
+
 extern char        *getlogin(void);
 extern int          getlogin_r(char *, size_t);
 extern int          getpagesize(void);
@@ -814,19 +840,30 @@ extern off_t        lseek(int, off_t, int);
 extern int          nice(int);
 extern long int     pathconf(const char *, int);
 extern int          pause(void);
-extern int          pipe(int [2]);
+
+/*@
+  assigns pipefd[0..1] \from indirect:__fc_fds[0..];
+  assigns \result \from indirect:__fc_fds[0..];
+  ensures initialization:pipefd: \initialized(&pipefd[0..1]);
+  ensures valid_fd0: 0 <= pipefd[0] < __FC_MAX_OPEN_FILES;
+  ensures valid_fd1: 0 <= pipefd[1] < __FC_MAX_OPEN_FILES;
+  ensures result_ok_or_error: \result == 0 || \result == -1;
+ */
+extern int          pipe(int pipefd[2]);
+
 extern ssize_t      pread(int, void *, size_t, off_t);
 extern int          pthread_atfork(void (*)(void), void (*)(void),
                  void(*)(void));
 extern ssize_t      pwrite(int, const void *, size_t, off_t);
 
 /*@
-  requires 0 <= fd < __FC_MAX_OPEN_FILES;
-  requires \valid((char *)buf+(0..count-1));
-  assigns  \result, *((char *)buf+(0..count-1)), __fc_fds[fd]
-           \from __fc_fds[fd], count;
-  ensures  0 <= \result <= count || \result == -1;
-  ensures  \initialized(((char*)buf)+(0..\result-1));
+  requires valid_fd: 0 <= fd < __FC_MAX_OPEN_FILES;
+  requires buf_has_room: \valid((char *)buf+(0..count-1));
+  assigns __fc_fds[fd] \from __fc_fds[fd];
+  assigns \result, *((char *)buf+(0..count-1))
+          \from indirect:__fc_fds[fd], indirect:count;
+  ensures  result_error_or_read_length: 0 <= \result <= count || \result == -1;
+  ensures  initialization:buf: \initialized(((char*)buf)+(0..\result-1));
 */
 extern ssize_t      read(int fd, void *buf, size_t count);
 
@@ -862,7 +899,7 @@ extern int          unlink(const char *);
 /*@
   assigns \result \from indirect:usec, indirect:Frama_C_entropy_source;
   assigns Frama_C_entropy_source \from Frama_C_entropy_source;
-  ensures \result == 0 || \result == -1;
+  ensures result_ok_or_error: \result == 0 || \result == -1;
  */
 extern int          usleep(useconds_t usec);
 
@@ -871,12 +908,16 @@ extern int          usleep(useconds_t usec);
 extern pid_t        vfork(void);
 
 /*@
-  requires 0 <= fd < __FC_MAX_OPEN_FILES;
-  requires \valid_read(((char *)buf)+(0..count-1));
-  assigns  \result, __fc_fds[fd] \from fd, count, __fc_fds[fd];
-  ensures -1 <= \result <= count;
+  requires valid_fd: 0 <= fd < __FC_MAX_OPEN_FILES;
+  requires buf_has_room: \valid_read(((char *)buf)+(0..count-1));
+  assigns __fc_fds[fd] \from fd, count, __fc_fds[fd];
+  assigns \result \from indirect:fd, indirect:count, indirect:__fc_fds[fd];
+  ensures result_error_or_written_bytes: \result == -1 || 0 <= \result <= count;
 */
 extern ssize_t      write(int fd, const void *buf, size_t count);
+
+// setgroups() is not POSIX
+extern int setgroups(size_t size, const gid_t *list);
 
 __END_DECLS
 

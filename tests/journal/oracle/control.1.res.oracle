@@ -7,19 +7,20 @@
   y ∈ {0}
   c ∈ {0}
   d ∈ {0}
-tests/journal/control.i:18:[value] entering loop for the first time
-tests/journal/control.i:21:[value] warning: signed overflow. assert x + 1 ≤ 2147483647;
+[value] tests/journal/control.i:18: entering loop for the first time
+[value:alarm] tests/journal/control.i:21: Warning: 
+  signed overflow. assert x + 1 ≤ 2147483647;
 [value] Recording results for f
 [value] done for function f
-[from] Computing for function f
-[from] Done for function f
-[kernel] warning: ignoring source files specified on the command line while loading a global initial context.
 [value] ====== VALUES COMPUTED ======
 [value:final-states] Values at end of function f:
   x ∈ [0..2147483647]
   i ∈ {4}
+[from] Computing for function f
+[from] Done for function f
+[kernel] Warning: ignoring source files specified on the command line while loading a global initial context.
 [from] ====== DEPENDENCIES COMPUTED ======
-    These dependencies hold at termination for the executions that terminate:
+  These dependencies hold at termination for the executions that terminate:
 [from] Function f:
   x FROM x (and SELF)
 [from] ====== END OF DEPENDENCIES ======
@@ -31,14 +32,19 @@ tests/journal/control.i:21:[value] warning: signed overflow. assert x + 1 ≤ 21
   y ∈ {0}
   c ∈ {0}
   d ∈ {0}
-tests/journal/control.i:21:[value] warning: signed overflow. assert x + 1 ≤ 2147483647;
+[value:alarm] tests/journal/control.i:21: Warning: 
+  signed overflow. assert x + 1 ≤ 2147483647;
 [value] Recording results for f
 [from] Computing for function f
 [from] Done for function f
 [value] done for function f
+[value] ====== VALUES COMPUTED ======
+[value:final-states] Values at end of function f:
+  x ∈ [0..2147483647]
+  i ∈ {4}
 [from] ====== DISPLAYING CALLWISE DEPENDENCIES ======
 [from] entry point:
   x FROM x (and SELF)
 [from] ====== END OF CALLWISE DEPENDENCIES ======
 [inout] Out (internal) for function f:
-      x; i
+    x; i

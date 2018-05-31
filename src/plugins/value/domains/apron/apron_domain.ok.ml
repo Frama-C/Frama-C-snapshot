@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2017                                               *)
+(*  Copyright (C) 2007-2018                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -135,8 +135,7 @@ let expr_fits_in_range (expr: Apron.Texpr1.expr) range =
   | Var v ->
     let name = Apron.Var.to_string v in
     let range_v = VarRanges.find name in
-    let ok_l, ok_r = Eval_typ.range_inclusion range_v range in
-    ok_l && ok_r
+    Eval_typ.range_inclusion range_v range
   | Cst _ | Unop (_,_,_,_) | Binop (_,_,_,_,_) ->
     false (* TODO? Unclear whether those cases would add expressivity. *)
 
@@ -452,11 +451,11 @@ module Make
     let array = Tcons1.array_make env (List.length constraints) in
     List.iteri (fun i c -> Tcons1.array_set array i c) constraints;
     let st = Abstract1.meet_tcons_array man state array in
-    if Abstract1.is_bottom man st then(
-      Format.printf "Bottom with state %a and constraints %a@."
+    if debug && Abstract1.is_bottom man st then
+      Value_parameters.result ~current:true ~once:true
+        "Bottom with state %a and constraints %a@."
         Abstract1.print state (fun fmt a -> Tcons1.array_print fmt a) array;
-      st)
-    else st
+    st
 
   let _constraint_to_typ env state vars =
     let aux (var_apron, vi) =

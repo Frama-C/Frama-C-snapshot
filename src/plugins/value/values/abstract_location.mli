@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2017                                               *)
+(*  Copyright (C) 2007-2018                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -67,7 +67,8 @@ module type S = sig
       the value [index] to fit into the interval [0..(size-1)]. It also returns
       out-of-bound alarms if it was not already the case. [size_expr] and
       [index_expr] are the Cil expressions of the array size and the index,
-      needed to create the alarms. *)
+      needed to create the alarms.
+      The value returned by this function must be included in [index]. *)
   val reduce_index_by_array_size :
     size_expr: exp -> index_expr: exp -> Integer.t -> value -> value evaluated
 

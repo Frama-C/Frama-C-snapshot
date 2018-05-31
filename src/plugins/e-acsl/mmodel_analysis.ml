@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2017                                               *)
+(*  Copyright (C) 2007-2018                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -193,6 +193,13 @@ module rec Transfer
     let ty = Cil.typeOf e in
     is_ptr_or_array ty
 
+  let may_alias li = match li.l_var_info.lv_type with
+    | Ctype ty -> is_ptr_or_array ty
+    | Linteger | Lreal -> false
+    | Ltype _ -> Error.not_yet "user defined type"
+    | Lvar _ -> Error.not_yet "named type"
+    | Larrow _ -> Error.not_yet "functional type"
+
   let rec base_addr_node = function
     | Lval lv | AddrOf lv | StartOf lv ->
       (match lv with
@@ -276,8 +283,14 @@ module rec Transfer
   and register_term kf varinfos term = match term.term_node with
     | TLval tlv | TAddrOf tlv | TStartOf tlv ->
       register_term_lval kf varinfos tlv
-    | TCastE(_, t) | Tat(t, _) | Tlet(_, t) ->
+    | TCastE(_, t) | Tat(t, _) ->
       register_term kf varinfos t
+    | Tlet(li, t) ->
+      if may_alias li then Error.not_yet "let-binding on array or pointer"
+      else begin
+        let varinfos = register_term kf varinfos t in
+        register_body kf varinfos li.l_body
+      end
     | Tif(_, t1, t2) ->
       let varinfos = register_term kf varinfos t1 in
       register_term kf varinfos t2
@@ -308,6 +321,12 @@ module rec Transfer
     | Tcomprehension _ -> Error.not_yet "set comprehension"
     | Trange _ -> Error.not_yet "\\range"
 
+  and register_body kf varinfos = function
+    | LBnone | LBreads _ -> varinfos
+    | LBterm t -> register_term kf varinfos t
+    | LBpred _ -> Options.fatal "unexpected predicate"
+    | LBinductive _ -> Error.not_yet "inductive definitions"
+
   let register_object kf state_ref = object
     inherit Visitor.frama_c_inplace
     method !vpredicate_node = function
@@ -322,10 +341,16 @@ module rec Transfer
     | Pdangling _ -> Error.not_yet "\\dangling"
     | Ptrue | Pfalse | Papp _ | Prel _
     | Pand _ | Por _ | Pxor _ | Pimplies _ | Piff _ | Pnot _ | Pif _
-    | Plet _ | Pforall _ | Pexists _ | Pat _ | Psubtype _ ->
+    | Pforall _ | Pexists _ | Pat _ | Psubtype _ ->
       Cil.DoChildren
+    | Plet(li, _) ->
+      if may_alias li then Error.not_yet "let-binding on array or pointer"
+      else begin
+        state_ref := register_term kf !state_ref (Misc.term_of_li li);
+        Cil.DoChildren
+      end
     method !vterm term = match term.term_node with
-    | Tbase_addr(_, t) | Toffset(_, t) | Tblock_length(_, t) ->
+    | Tbase_addr(_, t) | Toffset(_, t) | Tblock_length(_, t) | Tlet(_, t) ->
       state_ref := register_term kf !state_ref t;
       Cil.DoChildren
     | TConst _ | TSizeOf _ | TSizeOfStr _ | TAlignOf _  | Tnull | Ttype _
@@ -336,7 +361,7 @@ module rec Transfer
     | TLval _ | TAlignOfE _ | TCastE _ | TAddrOf _
     | TStartOf _ | Tapp _ | Tlambda _ | TDataCons _ | Tif _ | Tat _
     | TCoerce _ | TCoerceE _ | TUpdate _ | Tunion _ | Tinter _
-    | Tcomprehension _ | Trange _ | Tlet _ | TLogic_coerce _ ->
+    | Tcomprehension _ | Trange _ | TLogic_coerce _ ->
       (* potential sub-term inside *)
       Cil.DoChildren
     method !vlogic_label _ = Cil.SkipChildren
@@ -400,7 +425,7 @@ let register_predicate kf pred state =
       (fun state ->
         let state = Env.default_varinfos state in
         let state =
-          if (is_first || is_last) && Misc.is_generated_kf kf then
+          if (is_first || is_last) && Functions.RTL.is_generated_kf kf then
             Annotations.fold_behaviors
               (fun _ bhv s ->
                 let handle_annot test f s =
@@ -710,7 +735,7 @@ and must_model_exp bhv ?kf ?stmt e = match e.enode with
     Options.fatal "[pre_analysis] unexpected expression %a" Exp.pretty e
 
 (* ************************************************************************** *)
-(** {Public API} {{{ *)
+(** {1 Public API} *)
 (* ************************************************************************** *)
 
 let must_model_vi ?bhv ?kf ?stmt vi =

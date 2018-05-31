@@ -2,7 +2,7 @@
 [kernel] Parsing tests/wp_typed/unit_hard.i (no preprocessing)
 [wp] Running WP plugin...
 [wp] Loading driver 'share/wp.driver'
-[wp] warning: Missing RTE guards
+[wp] Warning: Missing RTE guards
 ------------------------------------------------------------
   Function main
 ------------------------------------------------------------
@@ -18,7 +18,11 @@ Prove: true.
 ------------------------------------------------------------
 
 Goal Pre-condition 'r_is_q1_ko' in 'main':
-Assume { (* Heap *) Have: region(0) <= 0. }
-Prove: (1 + hardware(26352)) = hardware(26360).
+Let a = addr_of_int(26352).
+Assume {
+  (* Heap *)
+  Have: (region(addr_of_int(13311).base) <= 0) /\ (region(a.base) <= 0).
+}
+Prove: shift_sint32(a, 1) = addr_of_int(26360).
 
 ------------------------------------------------------------

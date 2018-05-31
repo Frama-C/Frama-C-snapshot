@@ -43,22 +43,114 @@
 
 module H = Hashtbl
 
-let debugAlpha (_prefix: string) = false
 (*** Alpha conversion ***)
-let alphaSeparator = "_"
-let alphaSeparatorLen = String.length alphaSeparator
+let alphaSeparator = '_'
 
-(** For each prefix we remember the next integer suffix to use and the list 
+(** For each prefix we remember the last integer suffix that has been used
+    (to start searching for a fresh name) and the list 
  * of suffixes, each with some data associated with the newAlphaName that 
  * created the suffix. *)
-type 'a alphaTableData = Integer.t * (string * 'a) list
+type 'a alphaTableData = Integer.t * (Integer.t * 'a) list
 
 type 'a undoAlphaElement = 
     AlphaChangedSuffix of 'a alphaTableData ref * 'a alphaTableData (* The 
                                              * reference that was changed and 
                                              * the old suffix *)
-  | AlphaAddedSuffix of string          (* We added this new entry to the 
-                                         * table *)
+  | AlphaAddedSuffix of string * string  (* We added this new entry to the 
+                                          * table *)
+
+type 'a alphaTable = (string, (string, 'a alphaTableData ref) H.t) H.t
+
+(* specify a behavior for renaming *)
+type rename_mode =
+  | Incr_last_suffix
+     (* increment the last suffix in the original id 
+        (adding _nnn if no suffix exists in the original id) *)
+  | Add_new_suffix
+      (* systematically adds a _nnn suffix even if the original name
+         ends with _mmm *)
+
+let has_generated_prefix n prefix =
+  let prefix_length = String.length prefix in
+  let real_name =
+    if String.contains n ' ' then begin
+      let i = String.rindex n ' ' in
+      String.sub n (i+1) (String.length n - i - 1)
+    end else n
+  in
+  String.length real_name >= prefix_length &&
+    String.sub real_name 0 prefix_length = prefix
+
+let generated_prefixes = [ "__anon"; "__constr_expr" ]
+
+let is_generated_name n =
+  List.exists (has_generated_prefix n) generated_prefixes
+
+(* Strip the suffix. Return the prefix, the suffix (including the separator 
+ * but not the numeric value, possibly empty), and the 
+ * numeric value of the suffix (possibly -1 if missing) *) 
+let splitNameForAlpha ~(lookupname: string) = 
+  let len = String.length lookupname in
+  (* Search backward for the numeric suffix. Return the first digit of the 
+   * suffix. Returns len if no numeric suffix *)
+  let rec skipSuffix seen_sep last_sep (i: int) =
+    if i = -1 then last_sep else
+    let c = lookupname.[i] in
+    (* we might start to use Str at some point. *)
+    if (Char.compare '0' c <= 0 && Char.compare c '9' <= 0) then
+      skipSuffix false last_sep (i - 1)
+    else if c = alphaSeparator then
+      if not seen_sep then
+         (* check whether we are in the middle of a multi-suffix ident 
+            e.g. x_0_2, where the prefix would be x. *)
+        skipSuffix true i (i-1)
+      else (* we have something like x__0. Consider x_ as the prefix. *)
+        i+1
+    else (* we have something like x1234_0. Consider x1234 as the prefix *)
+      last_sep
+  in
+  (* we start as if the next char of the identifier was _, so that
+     x123_ is seen as a prefix.
+   *)
+  let startSuffix = skipSuffix true len (len - 1) in
+  if startSuffix >= len
+  then
+    (lookupname, "")  (* No valid suffix in the name *)
+  else begin
+    (String.sub lookupname 0 startSuffix,
+     String.sub lookupname startSuffix (len - startSuffix))
+  end
+
+let make_suffix n = (String.make 1 alphaSeparator) ^ (Integer.to_string n)
+
+let make_full_suffix infix n = infix ^ make_suffix n
+
+(* find an unused suffix in l greater than or equal to min, knowing that all
+   elements of l are less than or equal to max.
+   returns the new suffix and a new bound to max in case the new suffix is
+   greater than max.
+ *)
+let find_unused_suffix min infix sibling l =
+  let rec aux v =
+    if List.exists (fun (n,_) -> Integer.equal n v) l
+      || H.mem sibling (make_full_suffix infix v)
+    then begin
+      Kernel.debug ~dkey:Kernel.dkey_alpha
+        "%s is already taken" (make_full_suffix infix v);
+      aux (Integer.succ v)
+    end else v
+  in aux min
+
+let get_suffix_idx rename_mode infix =
+  match rename_mode with
+    | Add_new_suffix -> infix, Integer.minus_one
+    | Incr_last_suffix when infix = "" -> infix, Integer.minus_one
+    | Incr_last_suffix ->
+      (* by construction there is at least one alphaSeparator in the infix *)
+      let idx = String.rindex infix alphaSeparator in
+      String.sub infix 0 idx,
+      Integer.of_string
+        (String.sub infix (idx + 1) (String.length infix - idx - 1))
 
 (* Create a new name based on a given name. The new name is formed from a 
  * prefix (obtained from the given name by stripping a suffix consisting of 
@@ -67,138 +159,108 @@ type 'a undoAlphaElement =
  * mapping name prefixes to the largest suffix used so far for that 
  * prefix. The largest suffix is one when only the version without suffix has 
  * been used. *)
-let rec newAlphaName ~(alphaTable: (string, 'a alphaTableData ref) H.t)
-                     ?undolist
-                     ~(lookupname: string) 
-                     ~(data: 'a) : string * 'a = 
-  alphaWorker ~alphaTable:alphaTable ?undolist
-              ~lookupname:lookupname ~data:data true
-  
 
-(** Just register the name so that we will not use in the future *)
-and registerAlphaName ~(alphaTable: (string, 'a alphaTableData ref) H.t)
-                      ?undolist
-                      ~(lookupname: string) 
-                      ~(data: 'a) : unit = 
-  ignore (alphaWorker ~alphaTable:alphaTable ?undolist
-                      ~lookupname:lookupname ~data:data false)
-
-
-and alphaWorker      ~(alphaTable: (string, 'a alphaTableData ref) H.t)
+let alphaWorker      ~(alphaTable: 'a alphaTable)
                      ?undolist
                      ~(lookupname: string) ~(data:'a)
                      (make_new: bool) : string * 'a = 
-  let prefix, suffix, (numsuffix: Integer.t) =
-    splitNameForAlpha ~lookupname
+  let prefix, infix = splitNameForAlpha ~lookupname in
+  let rename_mode =
+    if is_generated_name prefix then Incr_last_suffix else Add_new_suffix
   in
-  if debugAlpha prefix then
-    (Kernel.debug "Alpha worker: prefix=%s suffix=%s (%s) create=%b. " 
-              prefix suffix (Integer.to_string numsuffix) make_new);
-  let newname, (olddata: 'a) = 
+  let infix, curr_idx = get_suffix_idx rename_mode infix in
+  Kernel.debug ~dkey:Kernel.dkey_alpha
+    "Alpha worker: lookupname=%s prefix=%s infix=%s index=%s create=%B."
+    lookupname prefix infix (Integer.to_string curr_idx) make_new;
+  let newname, (olddata: 'a) =
     try
-      let rc = H.find alphaTable prefix in
-      let max, suffixes = !rc in 
+      let infixes = H.find alphaTable prefix in
+      let rc = H.find infixes infix in
+      let min, suffixes = !rc in
       (* We have seen this prefix *)
-      if debugAlpha prefix then
-        Kernel.debug " Old max %s. Old suffixes: @[%a@]" 
-          (Integer.to_string max)
-          (Pretty_utils.pp_list (fun fmt (s,_) -> Format.fprintf fmt "%s" s)) suffixes ;
+      Kernel.debug ~dkey:Kernel.dkey_alpha "Old min %s. Old suffixes: @[%a@]"
+	(Integer.to_string min)
+        (Pretty_utils.pp_list
+           (fun fmt (s,_) -> Format.fprintf fmt "%s" (Integer.to_string s)))
+        suffixes;
       (* Save the undo info *)
-      (match undolist with 
+      (match undolist with
         Some l -> l := AlphaChangedSuffix (rc, !rc) :: !l
       | _ -> ());
-
-      let newmax, newsuffix, (olddata: 'a), newsuffixes = 
-        if Integer.gt numsuffix max then begin
-          (* Clearly we have not seen it *)
-          numsuffix, suffix, data,
-          (suffix, data) :: suffixes 
-        end else begin 
-          match List.filter (fun (n, _) -> n = suffix) suffixes with 
-            [] -> (* Not found *)
-              max, suffix, data, (suffix, data) :: suffixes
-          | [(_, l) ] -> 
+      let newname, newmin, (olddata: 'a), newsuffixes =
+        match
+          List.filter (fun (n, _) -> Integer.equal n curr_idx) suffixes
+        with
+          | [] -> (* never seen this index before *)
+            lookupname, min, data, (curr_idx, data) :: suffixes
+          | [(_, l) ] ->
               (* We have seen this exact suffix before *)
-              if make_new then 
-                let newsuffix = 
-                  alphaSeparator ^ (Integer.to_string (Integer.succ max))
+              (* In Incr_last_suffix mode, we do not take curr_idx into account,
+                 but select the first available index available *)
+              if make_new then begin
+                let newmin =
+                  find_unused_suffix (Integer.succ min) infix infixes suffixes
                 in
-               Integer.succ max, newsuffix, l, (newsuffix, data) :: suffixes
-              else
-                max, suffix, data, suffixes
+                let newsuffix = make_suffix newmin in
+                let base =
+                  if is_generated_name prefix then prefix else lookupname
+                in
+                H.add
+                  infixes newsuffix
+                  (ref (Integer.minus_one, [(Integer.minus_one, data)]));
+                (match undolist with
+                  | Some l -> l:= AlphaAddedSuffix (prefix,newsuffix)::!l
+                  | None -> ());
+                base ^ newsuffix, newmin, l, (newmin, data) :: suffixes
+              end else lookupname, min, data, suffixes
           |  _ -> (Kernel.fatal "Cil.alphaWorker")
-        end
       in
-      rc := (newmax, newsuffixes);
-      prefix ^ newsuffix, olddata
+      rc := (newmin, newsuffixes);
+      newname, olddata
     with Not_found -> begin (* First variable with this prefix *)
       (match undolist with 
-        Some l -> l := AlphaAddedSuffix prefix :: !l
+        Some l -> l := AlphaAddedSuffix (prefix,infix) :: !l
       | _ -> ());
-      H.add alphaTable prefix (ref (numsuffix, [ (suffix, data) ]));
-      if debugAlpha prefix then (Kernel.debug " First seen. ");
+      let infixes =
+        try H.find alphaTable prefix
+        with Not_found ->
+          let h = H.create 3 in H.add alphaTable prefix h; h
+      in
+      H.add infixes infix
+        (ref (Integer.minus_one, [ (curr_idx, data) ]));
+      Kernel.debug ~dkey:Kernel.dkey_alpha " First seen. ";
       lookupname, data  (* Return the original name *)
     end
   in
-  if debugAlpha prefix then
-    (Kernel.debug " Res=: %s \n" newname (* d_loc oldloc *));
+  Kernel.debug ~dkey:Kernel.dkey_alpha "Res=: %s" newname;
   newname, olddata
 
-(* Strip the suffix. Return the prefix, the suffix (including the separator 
- * and the numeric value, possibly empty), and the 
- * numeric value of the suffix (possibly -1 if missing) *) 
-and splitNameForAlpha ~(lookupname: string) : (string * string * Integer.t) = 
-  let len = String.length lookupname in
-  (* Search backward for the numeric suffix. Return the first digit of the 
-   * suffix. Returns len if no numeric suffix *)
-  let rec skipSuffix (i: int) = 
-    if i = -1 then -1 else 
-    let c = Char.code (String.get lookupname i) - Char.code '0' in
-    if c >= 0 && c <= 9 then 
-      skipSuffix (i - 1)
-    else (i + 1)
-  in
-  let startSuffix = skipSuffix (len - 1) in
-
-  if startSuffix >= len (* No digits at all at the end *) ||
-     startSuffix <= alphaSeparatorLen     (* Not enough room for a prefix and 
-                                           * the separator before suffix *) ||
-     (* Suffix starts with a 0 and has more characters after that *) 
-     (startSuffix < len - 1 && String.get lookupname startSuffix = '0')  ||
-     alphaSeparator <> String.sub lookupname 
-                                 (startSuffix - alphaSeparatorLen)  
-                                 alphaSeparatorLen 
-  then
-    (lookupname, "", Integer.minus_one)  (* No valid suffix in the name *)
-  else
-    (String.sub lookupname 0 (startSuffix - alphaSeparatorLen), 
-     String.sub lookupname (startSuffix - alphaSeparatorLen) 
-                           (len - startSuffix + alphaSeparatorLen),
-     Integer.of_string (String.sub lookupname startSuffix (len - startSuffix)))
     
+let newAlphaName ~alphaTable ?undolist ~lookupname ~data =
+  alphaWorker ~alphaTable ?undolist ~lookupname ~data true
 
-let getAlphaPrefix ~(lookupname:string) : string = 
-  let p, _, _ = splitNameForAlpha ~lookupname:lookupname in
-  p
-      
+(** Just register the name so that we will not use in the future *)
+let registerAlphaName ~alphaTable ?undolist ~lookupname ~data =
+  ignore (alphaWorker ~alphaTable ?undolist ~lookupname ~data false)
+
+let getAlphaPrefix ~lookupname = splitNameForAlpha ~lookupname
+
 (* Undoes the changes as specified by the undolist *)
-let undoAlphaChanges ~(alphaTable: (string, 'a alphaTableData ref) H.t) 
-                     ~(undolist: 'a undoAlphaElement list) = 
+let undoAlphaChanges ~alphaTable ~undolist = 
   List.iter
     (function 
         AlphaChangedSuffix (where, old) -> 
           where := old
-      | AlphaAddedSuffix name -> 
-          if debugAlpha name then 
-            (Kernel.debug "Removing %s from alpha table\n" name);
-          H.remove alphaTable name)
+      | AlphaAddedSuffix (prefix, infix) ->
+        Kernel.debug ~dkey:Kernel.dkey_alpha_undo
+          "Removing %s%s from alpha table\n" prefix infix;
+        try
+          let infixes = H.find alphaTable prefix in
+          H.remove infixes infix;
+          if H.length infixes = 0 then H.remove alphaTable prefix
+        with Not_found ->
+          Kernel.warning
+            "prefix %s has no entry in the table. Inconsistent undo list"
+            prefix)
     undolist
-
-let docAlphaTable fmt (alphaTable: (string, 'a alphaTableData ref) H.t) = 
-  let acc = ref [] in
-  H.iter (fun k d -> acc := (k, !d) :: !acc) alphaTable;
-  Pretty_utils.pp_list ~sep:"@\n" 
-    (fun fmt (k, (d, _)) -> 
-       Format.fprintf fmt "  %s -> %s" k (Integer.to_string d))
-    fmt !acc
 

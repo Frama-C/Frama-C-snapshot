@@ -13,9 +13,139 @@
 # '#?nnn'  : OLD-BTS entry #nnn                                               #
 ###############################################################################
 
-##################################
-Open Source Release <next-release>
-##################################
+#####################################
+Open Source Release Chlorine-20180501
+#####################################
+
+-  Eva        [2018/04/25] Added scripts and templates to help automate case
+              studies (in $FRAMAC_SHARE/analysis-scripts)
+-* Typing     [2018/04/23] Stronger checks w.r.t. implicit conversions in
+              function pointers (must have compatible types) and assignments
+              (modifiable lvalues). Fixes #@479
+-  Kernel     [2018/04/23] Added option -inline-calls for syntactic inlining
+-* Kernel     [2018/04/19] Avoid crash when re-declaring a function with
+              formals after it has been called without any. Fixes #@454
+-  Kernel     [2018/04/13] Deprecate option -warn-decimal-float in favor of
+              warning category parser:decimal-float
+-  Kernel     [2018/04/13] More possible statuses for warning categories.
+              Fixes #@486
+o  Kernel     [2018/04/13] Change Cil.typeHasAttributeDeep into
+              Cil.typeHasAttributeMemoryBlock. Fixes #@489
+o* Logic      [2018/04/11] properly reset logic environment in case of typing
+              errors. Fixes #@326
+-  Eva        [2018/04/10] Interpret the logic constants \pi and \e.
+-  Eva        [2018/04/06] Initialization of volatile pointers now keeps the
+              base addresses of the pointer (with arbitrary offsets).
+-  Eva        [2018/04/06] Fix the initialization of local volatile variables,
+              which can always have any value.
+-  Eva        [2018/04/06] In the logic, interpret the ACSL function \sign and
+              the constructors \Positive and \Negative.
+-  Metrics    [2018/04/05] When the value coverage is computed, also shows the
+              total number of statements by function in the filetree of the Gui.
+-  Gui        [2018/04/04] Added Preferences menu (shortcut: Ctrl+P) to set
+              themes for property bullets and external source editor
+o  Lib        [2018/03/30] New Rich_text module to create message with tags
+o! Kernel     [2018/03/30] Never or rarely used Log functions have been
+              removed or deprecated
+-  Eva        [2018/03/15] Avoid enumeration on values with too many bases —
+              fixes a performance issue.
+-  Gui        [2018/03/07] The preconditions of a function call can now be
+              displayed before the call statement itself (click on status
+              bullets with '+' or '-' to unfold/fold them)
+-  Typing     [2018/03/02] Support for CERT EXP46-C
+-  Eva        [2018/03/01] Fix a soundness bug in the equality domain: do not
+              infer incorrect equalities between incomparable pointers,
+              or between -0. and +0.
+-  Eva        [2018/02/26] deprecate option -val-warn-on-alarms in favor of
+              warning category alarm
+-  Kernel     [2018/02/26] deprecate option -continue-annot-error in favor of
+              warning category annot-error
+-! Kernel     [2018/02/26] introduce warning categories, with various
+              possible behaviors. Refactor management of debug categories
+-* RTE        [2018/02/23] Do not emit spurious 'idx < 0' assert
+              on gcc-style FAM. Fixes #@393
+-* Kernel     [2018/02/23] Handle anonymous struct/union init. Fixes #@376
+-  Eva        [2018/02/22] Equalities can be propagated through function calls.
+              New options -eva-equality-through-calls[-function] to decide
+              (globally or by function) which ones are kept from the caller.
+-  Eva        [2018/02/21] When an lvalue lv is assigned or leaves the scope,
+              the equality domain tries to replace lv by an equal term (if any)
+              in the expressions depending on lv (instead of removing them).
+o! Occurrence [2018/02/20] Removing Db API for Occurrence plug-in. Calls to
+              !Db.Occurrence should be replaced by calls to Occurrence.Register.
+o! Impact     [2018/02/20] Removing Db API for Impact plug-in. Calls to
+              !Db.Impact should be replaced by calls to Impact.Register.
+o! Users      [2018/02/20] Removing Db API for Users plug-in. Calls to
+              !Db.Users should be replaced by calls to Users.Users_register.
+-  Eva        [2018/02/13] Removed *_alloced_return base created for functions
+              without body that return pointers. Such bases were imprecise
+              and could be unsound in corner cases.
+-  Eva        [2018/02/08] Shifts of addresses now create garbled mixes (as any
+              other arithmetic operation).
+-  Logic      [2018/02/07] Ghost code now supports /@ ... @/ annotations
+-  Eva        [2018/02/06] By default, do not emit pointer_comparable alarms for
+              non pointer operations. Always compute {0;1} for non pointer
+              comparisons involving incomparable addresses.
+-  Eva        [2018/02/01] Warn about unsupported allocates clauses.
+-  Eva        [2018/01/30] The subdivision of evaluations (through the option
+              -val-subdivide-non-linear) can subdivide the values of several
+              lvalues simultaneously (on expressions such as x*x - 2*x*y + y*y).
+-  Kernel     [2018/01/24] Better renaming of variables in case of name
+              collision.
+o! Kernel     [2018/01/24] Keep information about syntactic scope of local
+              static variables. Accessed through
+              Globals.Syntactic_search.find_in_scope.
+-! Eva        [2018/01/24] Renamed option -val-malloc-returns-null to
+              -val-alloc-returns-null, which also applies to realloc builtins.
+-  Kernel     [2018/01/16] Added option -json-compilation-database to help with
+              preprocessing. Requires yojson during Frama-C compilation.
+-  Eva        [2018/01/15] New function post_analysis in abstract domains,
+              called at the end of the analysis.
+-  Eva        [2018/01/11] The Simple_memory functor lets builtins interpret C
+              functions from the value of arguments to the result value.
+-  Eva        [2018/01/11] Evaluate the preconditions of the functions for which
+              a builtin is used; builtins do not emit alarms anymore.
+-! Kernel     [2018/01/11] Alarms Logic_memory_access and Valid_string, that
+              were only emitted by Eva builtins, are removed.
+-* ACSL       [2017/12/14] Reinforce rejection of void* pointer types in the
+              arguments of ACSL built-in constructs related to memory blocks
+              and pointer dereferencing.
+-* ACSL       [2017/12/14] Reinforce rejection of implicit casts from array
+              types to pointer types in the arguments of ACSL built-in
+              constructs related to memory blocks and pointer dereferencing.
+-* Kernel     [2017/12/13] Clean up typechecking environment when dropping
+              side-effects (in sizeof et al.). Fixes #@430
+o! Kernel     [2017/12/13] Old Cil.isCharType renamed as Cil.isAnyCharType.
+              New Cil.isCharType is now only true for plain char, neither signed
+              nor unsigned. Derived functions (isCharPtr et al.) also updated
+-  Eva        [2017/12/12] Fix a crash when using -val-stop-at-nth-alarm.
+-  Eva        [2017/12/07] Eva complies with option -warn-special-float, and
+              propagates or warns on NaN and infinite values accordingly.
+-! Kernel     [2017/12/07] Option -warn-not-finite-float renamed into
+              -warn-special-float and extended (accepts non-finite/nan/none).
+-  Kernel     [2017/12/07] Make some typechecking warnings controllable with
+              -kernel-msg-key keys.
+-  Eva        [2017/12/07] New option -val-skip-stdlib-specs, set by default.
+              When analyzing the body of a function from Frama-C's standard
+              library, specifications will be skipped.
+-  Eva        [2017/11/28] New builtins for the single-precision mathematical
+              functions fmodf, cosf, sinf and atan2f.
+-! Eva        [2017/11/16] In the log, messages on preconditions are now
+              reported with the location of the call site.
+o! Eva        [2017/11/09] The Fval module now supports NaN and infinite values.
+              Major API changes in Fval, Ival and Cvalue.V (regarding casts,
+              mostly)
+-o Eva        [2017/11/09] Option -all-rounding-modes has been removed
+-* Eva        [2017/11/09] Fix bugs in builtins for cos and sin. The results
+              may be less precise than previously
+-  Eva        [2017/11/09] Various improvements in the handling of
+              floating-point variables: evaluation of \is_finite, computation
+              of the bits of a floating-point range, etc
+-  Eva        [2017/11/09] New panel "Red alarms" in the GUI that shows all red
+              statuses emitted for some states during the analysis. They are not
+              completely invalid, but should often be investigated first.
+-* Eva        [2017/10/27] Fix bug in the handling of non-explicitly volatile
+              fields inside volatile structs or unions
 
 ###################################
 Open Source Release Sulfur-20171101
@@ -136,6 +266,7 @@ o  Eva        [2017/06/26] New functor in domains/simple_memory.ml to build a
 o! Eva        [2017/05/22] Abstract domains have to provide a log category and
               a function show_expr that prints the internal properties inferred
               about an expression.
+-  Kernel     [2017/05/18] Added option -print-return to inline gotos to return
 -  RTE        [2017/05/12] add -warn-not-finite-float for checking
               that infinite and NaN floats are not produced.
 -! Kernel     [2017/05/17] qualifiers are dropped from the return type of
@@ -146,7 +277,6 @@ o! Kernel     [2017/04/27] Remove needless repetition of declared logic labels
               in Tapp and Papp nodes. Fixes #@274
 o! Kernel     [2017/04/27] Completely separate types between Cil_types and
               Logic_ptree, removing needless polymorphism
--  Kernel     [2017/05/18] Added option -print-return to inline gotos to return
 -  Eva        [2017/04/06] More precise evaluation of \initialized and
               \dangling predicates.
 

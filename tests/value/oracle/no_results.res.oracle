@@ -5,7 +5,7 @@
 [value:initial-state] Values of globals at initialization
   t[0..2999] ∈ {0}
 [value] computing for function init <- main.
-    Called from tests/value/no_results.c:19.
+  Called from tests/value/no_results.c:19.
 [value] Semantic level unrolling superposing up to 100 states
 [value] Semantic level unrolling superposing up to 200 states
 [value] Semantic level unrolling superposing up to 300 states
@@ -39,7 +39,7 @@
 [value] Recording results for init
 [value] Done for function init
 [value] computing for function f <- main.
-    Called from tests/value/no_results.c:20.
+  Called from tests/value/no_results.c:20.
 [value] Recording results for f
 [from] Computing for function f
 [from] Done for function f
@@ -6057,7 +6057,7 @@ Cannot filter: dumping raw memory (including unchanged variables)
 [from] Computing for function main
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
-    These dependencies hold at termination for the executions that terminate:
+  These dependencies hold at termination for the executions that terminate:
 [from] Function f:
   t[1] FROM t[0]
 [from] Function init:
@@ -6074,35 +6074,35 @@ Cannot filter: dumping raw memory (including unchanged variables)
   FROMTOP
 [from] ====== END OF CALLWISE DEPENDENCIES ======
 [inout] Out (internal) for function f:
-      t[1]
+    t[1]
 [inout] Inputs for function f:
-      t[0]
+    t[0]
 [inout] InOut (internal) for function f:
-    Operational inputs:
-      t[0]
-    Operational inputs on termination:
-      t[0]
-    Sure outputs:
-      t[1]
+  Operational inputs:
+    t[0]
+  Operational inputs on termination:
+    t[0]
+  Sure outputs:
+    t[1]
 [inout] Out (internal) for function init:
-      ANYTHING(origin:Unknown)
+    ANYTHING(origin:Unknown)
 [inout] Inputs for function init:
-      \nothing
+    \nothing
 [inout] InOut (internal) for function init:
-    Operational inputs:
-      ANYTHING(origin:Unknown)
-    Operational inputs on termination:
-      ANYTHING(origin:Unknown)
-    Sure outputs:
-      \nothing
+  Operational inputs:
+    ANYTHING(origin:Unknown)
+  Operational inputs on termination:
+    ANYTHING(origin:Unknown)
+  Sure outputs:
+    \nothing
 [inout] Out (internal) for function main:
-      ANYTHING(origin:Unknown)
+    ANYTHING(origin:Unknown)
 [inout] Inputs for function main:
-      t[0]
+    t[0]
 [inout] InOut (internal) for function main:
-    Operational inputs:
-      ANYTHING(origin:Unknown)
-    Operational inputs on termination:
-      ANYTHING(origin:Unknown)
-    Sure outputs:
-      t[1]
+  Operational inputs:
+    ANYTHING(origin:Unknown)
+  Operational inputs on termination:
+    ANYTHING(origin:Unknown)
+  Sure outputs:
+    t[1]

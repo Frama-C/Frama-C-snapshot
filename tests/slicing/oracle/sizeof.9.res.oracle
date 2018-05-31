@@ -4,45 +4,45 @@
 [value] Initial state computed
 [value:initial-state] Values of globals at initialization
   st ∈ {0}
-tests/slicing/sizeof.i:93:[value] assertion got status valid.
+[value] tests/slicing/sizeof.i:93: assertion got status valid.
 [value] computing for function SizeOf_1 <- main.
-    Called from tests/slicing/sizeof.i:94.
+  Called from tests/slicing/sizeof.i:94.
 [value] Recording results for SizeOf_1
 [value] Done for function SizeOf_1
 [value] computing for function SizeOf_2 <- main.
-    Called from tests/slicing/sizeof.i:95.
+  Called from tests/slicing/sizeof.i:95.
 [value] Recording results for SizeOf_2
 [value] Done for function SizeOf_2
 [value] computing for function SizeOfE_pt1 <- main.
-    Called from tests/slicing/sizeof.i:96.
+  Called from tests/slicing/sizeof.i:96.
 [value] Recording results for SizeOfE_pt1
 [value] Done for function SizeOfE_pt1
 [value] computing for function SizeOfE_pt2 <- main.
-    Called from tests/slicing/sizeof.i:97.
+  Called from tests/slicing/sizeof.i:97.
 [value] Recording results for SizeOfE_pt2
 [value] Done for function SizeOfE_pt2
 [value] computing for function SizeOfE_pt3 <- main.
-    Called from tests/slicing/sizeof.i:98.
+  Called from tests/slicing/sizeof.i:98.
 [value] Recording results for SizeOfE_pt3
 [value] Done for function SizeOfE_pt3
 [value] computing for function SizeOfE_pt_deref_1 <- main.
-    Called from tests/slicing/sizeof.i:99.
+  Called from tests/slicing/sizeof.i:99.
 [value] Recording results for SizeOfE_pt_deref_1
 [value] Done for function SizeOfE_pt_deref_1
 [value] computing for function SizeOfE_tab_1 <- main.
-    Called from tests/slicing/sizeof.i:100.
+  Called from tests/slicing/sizeof.i:100.
 [value] Recording results for SizeOfE_tab_1
 [value] Done for function SizeOfE_tab_1
 [value] computing for function SizeOfE_pt_tab_1 <- main.
-    Called from tests/slicing/sizeof.i:101.
+  Called from tests/slicing/sizeof.i:101.
 [value] Recording results for SizeOfE_pt_tab_1
 [value] Done for function SizeOfE_pt_tab_1
 [value] computing for function SizeOfE_pt_tab_2 <- main.
-    Called from tests/slicing/sizeof.i:102.
+  Called from tests/slicing/sizeof.i:102.
 [value] Recording results for SizeOfE_pt_tab_2
 [value] Done for function SizeOfE_pt_tab_2
 [value] computing for function SizeOfE_tab_acces_1 <- main.
-    Called from tests/slicing/sizeof.i:103.
+  Called from tests/slicing/sizeof.i:103.
 [value] Recording results for SizeOfE_tab_acces_1
 [value] Done for function SizeOfE_tab_acces_1
 [value] Recording results for main
@@ -70,7 +70,7 @@ tests/slicing/sizeof.i:93:[value] assertion got status valid.
 [from] Computing for function main
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
-    These dependencies hold at termination for the executions that terminate:
+  These dependencies hold at termination for the executions that terminate:
 [from] Function SizeOfE_pt1:
   \result FROM \nothing
 [from] Function SizeOfE_pt2:

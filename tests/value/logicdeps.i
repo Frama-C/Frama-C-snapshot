@@ -7,7 +7,7 @@ int t[50];
 int *p;
 
 //@ assigns t[20..*p+20] \from t[0..*p];
-void f();
+void f(void);
 
 void g() {
   f();

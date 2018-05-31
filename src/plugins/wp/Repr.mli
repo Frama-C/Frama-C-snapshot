@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2017                                               *)
+(*  Copyright (C) 2007-2018                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -60,6 +60,7 @@ type repr =
   | Call of lfun * term list
   | Field of term * field
   | Record of (field * term) list
+  | Cst of tau * term
   | Get of term * term
   | Set of term * term * term
   | Abstract

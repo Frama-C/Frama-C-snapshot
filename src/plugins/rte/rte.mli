@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2017                                               *)
+(*  Copyright (C) 2007-2018                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -45,7 +45,7 @@ val signed_downcast_assertion: (typ * exp) alarm_gen
 val unsigned_downcast_assertion: (typ * exp) alarm_gen
 val float_to_int_assertion: (typ * exp) alarm_gen
 val finite_float_assertion: (fkind * exp) alarm_gen
-val pointer_call: exp alarm_gen
+val pointer_call: (exp * exp list) alarm_gen
 
 (*
 Local Variables:

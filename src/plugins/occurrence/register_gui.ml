@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2017                                               *)
+(*  Copyright (C) 2007-2018                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -33,15 +33,15 @@ let update_column = ref (fun _ -> ())
 module Enabled = State_builder.Ref
     (Datatype.Bool)
     (struct
-       let name = "Occrrence_gui.State"
-       let dependencies = [!Db.Occurrence.self]
+       let name = "Occurrence_gui.State"
+       let dependencies = [Register.self]
        let default () = false
      end)
 
 module ShowRead = State_builder.Ref
   (Datatype.Bool)
   (struct
-    let name = "Occrrence_gui.ShowRead"
+    let name = "Occurrence_gui.ShowRead"
     let dependencies = []
     let default () = true
    end)
@@ -49,7 +49,7 @@ module ShowRead = State_builder.Ref
 module ShowWrite = State_builder.Ref
   (Datatype.Bool)
   (struct
-    let name = "Occrrence_gui.ShowWrite"
+    let name = "Occurrence_gui.ShowWrite"
     let dependencies = []
     let default () = true
    end)
@@ -88,10 +88,15 @@ let _ =
     Enabled.get
 
 let find_occurrence (main_ui:Design.main_window_extension_points) vi () =
-  ignore (!Db.Occurrence.get vi);
-  Enabled.set true;
-  !update_column `Contents;
-  main_ui#rehighlight ()
+  try
+    ignore (Register.get vi);
+    Enabled.set true;
+    !update_column `Contents;
+    main_ui#rehighlight ()
+  with
+  | Globals.No_such_entry_point _ ->
+    GToolbox.message_box ~title:"Error"
+      "Error: Occurrence requires a main function"
 
 let apply_on_vi f localizable = match localizable with
   | PVDecl(_,_,vi)
@@ -103,7 +108,7 @@ let apply_on_vi f localizable = match localizable with
 
 let occurrence_highlighter buffer loc ~start ~stop =
   if Enabled.get () then
-    match !Db.Occurrence.get_last_result () with
+    match Register.get_last_result () with
     | None -> (* occurrence not computed *)
         ()
     | Some (result, vi) ->
@@ -189,7 +194,7 @@ let occurrence_panel main_ui =
        refresh_write ();
        refresh_followFocus ();
        refresh_enabled_button ();
-       let new_result = !Db.Occurrence.get_last_result () in
+       let new_result = Register.get_last_result () in
        (match new_result with
         | None when !old_vi<> -1 ->
             old_vi := -1; e#set_label "<i>None</i>"
@@ -217,7 +222,7 @@ let file_tree_decorate (file_tree:Filetree.t) =
     file_tree#append_pixbuf_column
       ~title:"Occurrence"
       (fun globs ->
-        match !Db.Occurrence.get_last_result () with
+        match Register.get_last_result () with
           | None -> (* occurrence not computed *)
             [`STOCK_ID ""]
           | Some (result, _) ->

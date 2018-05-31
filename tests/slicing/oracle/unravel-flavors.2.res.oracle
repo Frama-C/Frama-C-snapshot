@@ -6,74 +6,87 @@
 [value:initial-state] Values of globals at initialization
   nb_fetch ∈ {0}
 [value] computing for function fetch <- main.
-    Called from tests/slicing/unravel-flavors.i:46.
+  Called from tests/slicing/unravel-flavors.i:46.
 [value] computing for function scanf <- fetch <- main.
-    Called from tests/slicing/unravel-flavors.i:37.
+  Called from tests/slicing/unravel-flavors.i:37.
 [value] using specification for function scanf
 [value] Done for function scanf
-tests/slicing/unravel-flavors.i:38:[value] warning: accessing uninitialized left-value. assert \initialized(&value);
+[value:alarm] tests/slicing/unravel-flavors.i:38: Warning: 
+  accessing uninitialized left-value. assert \initialized(&value);
 [value] Recording results for fetch
 [value] Done for function fetch
 [value] computing for function fetch <- main.
-    Called from tests/slicing/unravel-flavors.i:47.
+  Called from tests/slicing/unravel-flavors.i:47.
 [value] computing for function scanf <- fetch <- main.
-    Called from tests/slicing/unravel-flavors.i:37.
+  Called from tests/slicing/unravel-flavors.i:37.
 [value] Done for function scanf
 [value] Recording results for fetch
 [value] Done for function fetch
 [value] computing for function fetch <- main.
-    Called from tests/slicing/unravel-flavors.i:48.
+  Called from tests/slicing/unravel-flavors.i:48.
 [value] computing for function scanf <- fetch <- main.
-    Called from tests/slicing/unravel-flavors.i:37.
+  Called from tests/slicing/unravel-flavors.i:37.
 [value] Done for function scanf
 [value] Recording results for fetch
 [value] Done for function fetch
 [value] computing for function fetch <- main.
-    Called from tests/slicing/unravel-flavors.i:49.
+  Called from tests/slicing/unravel-flavors.i:49.
 [value] computing for function scanf <- fetch <- main.
-    Called from tests/slicing/unravel-flavors.i:37.
+  Called from tests/slicing/unravel-flavors.i:37.
 [value] Done for function scanf
 [value] Recording results for fetch
 [value] Done for function fetch
-tests/slicing/unravel-flavors.i:51:[value] warning: signed overflow. assert -2147483648 ≤ 2 * red;
-tests/slicing/unravel-flavors.i:51:[value] warning: signed overflow. assert 2 * red ≤ 2147483647;
-tests/slicing/unravel-flavors.i:52:[value] warning: signed overflow. assert -2147483648 ≤ red * green;
-tests/slicing/unravel-flavors.i:52:[value] warning: signed overflow. assert red * green ≤ 2147483647;
-tests/slicing/unravel-flavors.i:54:[value] entering loop for the first time
-tests/slicing/unravel-flavors.i:55:[value] warning: signed overflow. assert -2147483648 ≤ sour + green;
-tests/slicing/unravel-flavors.i:55:[value] warning: signed overflow. assert sour + green ≤ 2147483647;
-tests/slicing/unravel-flavors.i:56:[value] warning: signed overflow. assert -2147483648 ≤ blue + yellow;
-tests/slicing/unravel-flavors.i:56:[value] warning: signed overflow. assert blue + yellow ≤ 2147483647;
-tests/slicing/unravel-flavors.i:57:[value] warning: signed overflow. assert green + 1 ≤ 2147483647;
-tests/slicing/unravel-flavors.i:58:[value] warning: signed overflow. assert -2147483648 ≤ yellow + green;
-tests/slicing/unravel-flavors.i:58:[value] warning: signed overflow. assert yellow + green ≤ 2147483647;
+[value:alarm] tests/slicing/unravel-flavors.i:51: Warning: 
+  signed overflow. assert -2147483648 ≤ 2 * red;
+[value:alarm] tests/slicing/unravel-flavors.i:51: Warning: 
+  signed overflow. assert 2 * red ≤ 2147483647;
+[value:alarm] tests/slicing/unravel-flavors.i:52: Warning: 
+  signed overflow. assert -2147483648 ≤ red * green;
+[value:alarm] tests/slicing/unravel-flavors.i:52: Warning: 
+  signed overflow. assert red * green ≤ 2147483647;
+[value] tests/slicing/unravel-flavors.i:54: entering loop for the first time
+[value:alarm] tests/slicing/unravel-flavors.i:55: Warning: 
+  signed overflow. assert -2147483648 ≤ sour + green;
+[value:alarm] tests/slicing/unravel-flavors.i:55: Warning: 
+  signed overflow. assert sour + green ≤ 2147483647;
+[value:alarm] tests/slicing/unravel-flavors.i:56: Warning: 
+  signed overflow. assert -2147483648 ≤ blue + yellow;
+[value:alarm] tests/slicing/unravel-flavors.i:56: Warning: 
+  signed overflow. assert blue + yellow ≤ 2147483647;
+[value:alarm] tests/slicing/unravel-flavors.i:57: Warning: 
+  signed overflow. assert green + 1 ≤ 2147483647;
+[value:alarm] tests/slicing/unravel-flavors.i:58: Warning: 
+  signed overflow. assert -2147483648 ≤ yellow + green;
+[value:alarm] tests/slicing/unravel-flavors.i:58: Warning: 
+  signed overflow. assert yellow + green ≤ 2147483647;
 [value] computing for function send1 <- main.
-    Called from tests/slicing/unravel-flavors.i:60.
+  Called from tests/slicing/unravel-flavors.i:60.
 [value] computing for function printf <- send1 <- main.
-    Called from tests/slicing/unravel-flavors.i:19.
-tests/slicing/unravel-flavors.i:19:[kernel] warning: Neither code nor specification for function printf, generating default assigns from the prototype
+  Called from tests/slicing/unravel-flavors.i:19.
+[kernel:annot:missing-spec] tests/slicing/unravel-flavors.i:19: Warning: 
+  Neither code nor specification for function printf, generating default assigns from the prototype
 [value] using specification for function printf
 [value] Done for function printf
 [value] Recording results for send1
 [value] Done for function send1
 [value] computing for function send2 <- main.
-    Called from tests/slicing/unravel-flavors.i:61.
+  Called from tests/slicing/unravel-flavors.i:61.
 [value] computing for function printf <- send2 <- main.
-    Called from tests/slicing/unravel-flavors.i:23.
+  Called from tests/slicing/unravel-flavors.i:23.
 [value] Done for function printf
 [value] Recording results for send2
 [value] Done for function send2
 [value] computing for function send3 <- main.
-    Called from tests/slicing/unravel-flavors.i:62.
+  Called from tests/slicing/unravel-flavors.i:62.
 [value] computing for function printf <- send3 <- main.
-    Called from tests/slicing/unravel-flavors.i:27.
+  Called from tests/slicing/unravel-flavors.i:27.
 [value] Done for function printf
 [value] Recording results for send3
 [value] Done for function send3
 [value] computing for function send4 <- main.
-    Called from tests/slicing/unravel-flavors.i:63.
+  Called from tests/slicing/unravel-flavors.i:63.
 [value] computing for function printf <- send4 <- main.
-    Called from tests/slicing/unravel-flavors.i:31.
+  Called from tests/slicing/unravel-flavors.i:31.
 [value] Done for function printf
 [value] Recording results for send4
 [value] Done for function send4

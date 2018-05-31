@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2017                                               *)
+(*  Copyright (C) 2007-2018                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -39,6 +39,6 @@ module Strict = Self.True
     let option_name = "-variadic-strict"
     let help = "display warnings about non-portable implicit casts in the \
                 calls of standard variadic functions, i.e. casts between \
-                distinct integral types which has the same size and \
+                distinct integral types which have the same size and \
                 signedness"
    end)

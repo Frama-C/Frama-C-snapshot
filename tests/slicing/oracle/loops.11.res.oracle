@@ -9,15 +9,16 @@
   X ∈ {0}
   Y ∈ {0}
   Z ∈ {0}
-tests/slicing/loops.i:176:[value] entering loop for the first time
-tests/slicing/loops.i:183:[value] assertion got status valid.
-tests/slicing/loops.i:179:[value] warning: signed overflow. assert X + 1 ≤ 2147483647;
+[value] tests/slicing/loops.i:176: entering loop for the first time
+[value] tests/slicing/loops.i:183: assertion got status valid.
+[value:alarm] tests/slicing/loops.i:179: Warning: 
+  signed overflow. assert X + 1 ≤ 2147483647;
 [value] Recording results for loop
 [value] done for function loop
 [from] Computing for function loop
 [from] Done for function loop
 [from] ====== DEPENDENCIES COMPUTED ======
-    These dependencies hold at termination for the executions that terminate:
+  These dependencies hold at termination for the executions that terminate:
 [from] Function loop:
   Z FROM Y
 [from] ====== END OF DEPENDENCIES ======

@@ -1,15 +1,21 @@
 [kernel] Parsing tests/syntax/copy_logic.i (no preprocessing)
-tests/syntax/copy_logic.i:5:[kernel] warning: parsing obsolete ACSL construct 'logic declaration'. 'an axiomatic block' should be used instead.
-tests/syntax/copy_logic.i:7:[kernel] warning: parsing obsolete ACSL construct 'logic declaration'. 'an axiomatic block' should be used instead.
+[kernel] tests/syntax/copy_logic.i:5: Warning: 
+  parsing obsolete ACSL construct 'logic declaration'. 'an axiomatic block' should be used instead.
+[kernel] tests/syntax/copy_logic.i:7: Warning: 
+  parsing obsolete ACSL construct 'logic declaration'. 'an axiomatic block' should be used instead.
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
 [value] Initial state computed
 [value:initial-state] Values of globals at initialization
   
-tests/syntax/copy_logic.i:16:[value] warning: assertion got status unknown.
-tests/syntax/copy_logic.i:17:[value] warning: signed overflow. assert y + x ≤ 2147483647;
-tests/syntax/copy_logic.i:18:[value] cannot evaluate ACSL term, unsupported ACSL construct: logic functions or predicates
-tests/syntax/copy_logic.i:18:[value] warning: assertion got status unknown.
+[value:alarm] tests/syntax/copy_logic.i:16: Warning: 
+  assertion got status unknown.
+[value:alarm] tests/syntax/copy_logic.i:17: Warning: 
+  signed overflow. assert y + x ≤ 2147483647;
+[value] tests/syntax/copy_logic.i:18: 
+  cannot evaluate ACSL term, unsupported ACSL construct: logic function f
+[value:alarm] tests/syntax/copy_logic.i:18: Warning: 
+  assertion got status unknown.
 [value] done for function main
 [value] ====== VALUES COMPUTED ======
 [value:final-states] Values at end of function main:

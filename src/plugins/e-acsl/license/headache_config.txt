@@ -33,6 +33,7 @@
 # Shell scripts #
 #################
 | ".*\.sh" -> frame open:"#"  line:"#" close:"#"
+| ".*\.sh" -> skip match:"#!.*"
 
 #########################
 # MS-Windows Ressources #

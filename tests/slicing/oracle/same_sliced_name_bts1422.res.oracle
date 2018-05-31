@@ -6,7 +6,8 @@
 [value:initial-state] Values of globals at initialization
   y ∈ {0}
   ptr ∈ {{ &foo }}
-tests/slicing/same_sliced_name_bts1422.i:9:[value] warning: signed overflow. assert x + 1 ≤ 2147483647;
+[value:alarm] tests/slicing/same_sliced_name_bts1422.i:9: Warning: 
+  signed overflow. assert x + 1 ≤ 2147483647;
 [value] Recording results for foo
 [value] done for function foo
 [slicing] initializing slicing ...

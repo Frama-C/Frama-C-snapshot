@@ -1,0 +1,24 @@
+[kernel] Parsing tests/value/equality.c (with preprocessing)
+[value] Analyzing a complete application starting at main
+[value] Computing initial state
+[value] Initial state computed
+[value:initial-state] Values of globals at initialization
+  rand ∈ [--..--]
+[value] Recording results for main
+[value] done for function main
+[value] ====== VALUES COMPUTED ======
+[value:final-states] Values at end of function main:
+  x ∈ [-2147483647..2147483647]
+  y ∈ [--..--]
+  z ∈ [-9..9]
+[from] Computing for function main
+[from] Done for function main
+[from] ====== DEPENDENCIES COMPUTED ======
+  These dependencies hold at termination for the executions that terminate:
+[from] Function main:
+  NO EFFECTS
+[from] ====== END OF DEPENDENCIES ======
+[inout] Out (internal) for function main:
+    x; y; z; tmp
+[inout] Inputs for function main:
+    rand

@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2017                                               *)
+(*  Copyright (C) 2007-2018                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -22,8 +22,6 @@
 
 open Cil_types
 open Cil_datatype
-
-let cat_blocks = Kernel.register_category "kf:blocks"
 
 (* ************************************************************************* *)
 (** {2 Getters} *)
@@ -68,6 +66,33 @@ include Cil_datatype.Kf
 (* ************************************************************************* *)
 (** {2 Searching} *)
 (* ************************************************************************* *)
+
+module Info = struct
+  let name = "Kernel_function.DefiningKf"
+  let dependencies = [Ast.self]
+  let size = 64
+end
+
+module DefiningKf = Cil_state_builder.Varinfo_hashtbl (Cil_datatype.Kf) (Info)
+
+let compute_defining_kf () =
+  let compute_by_fun kf =
+    let formals = get_formals kf
+    and locals = get_locals kf in
+    List.iter (fun var -> DefiningKf.replace var kf) formals;
+    List.iter (fun var -> DefiningKf.replace var kf) locals;
+  in
+  Globals.Functions.iter compute_by_fun
+
+let find_defining_kf vi =
+  if vi.vglob
+  then None
+  else begin
+    if not (DefiningKf.is_computed ()) then compute_defining_kf ();
+    try Some (DefiningKf.find vi)
+    with Not_found -> None
+  end
+
 
 module Kf =
   State_builder.Option_ref
@@ -123,6 +148,8 @@ let find_from_sid sid =
 
 let find_englobing_kf stmt = snd (find_from_sid stmt.sid)
 
+let () = Globals.find_englobing_kf := find_englobing_kf
+
 let blocks_closed_by_edge_aux s1 s2 =
   let table = compute () in
   try
@@ -131,7 +158,7 @@ let blocks_closed_by_edge_aux s1 s2 =
     let pp_block fmt b =
       Pretty_utils.pp_list ~sep:"@\n" Cil_printer.pp_block fmt b
     in
-    Kernel.debug ~dkey:cat_blocks
+    Kernel.debug ~dkey:Kernel.dkey_kf_blocks
       "Blocks opened for stmt %a@\n%a@\nblocks opened for stmt %a@\n%a"
       Cil_printer.pp_stmt s1 pp_block b1 Cil_printer.pp_stmt s2 pp_block b2;
     let rec aux acc = function
@@ -141,7 +168,7 @@ let blocks_closed_by_edge_aux s1 s2 =
         else aux (inner_block::acc) others
     in
     let res = aux [] b1 in
-    Kernel.debug ~dkey:cat_blocks "Result:@\n%a" pp_block res;
+    Kernel.debug ~dkey:Kernel.dkey_kf_blocks "Result:@\n%a" pp_block res;
     res
   with Not_found ->
     (* Invalid statement, or incorrectly filled table 'Kf' *)
@@ -168,6 +195,8 @@ let () = Globals.find_enclosing_block:= find_enclosing_block
 let find_all_enclosing_blocks s =
    let table = compute () in
   let (_,_,b) = Datatype.Int.Hashtbl.find table s.sid in b
+
+let () = Globals.find_all_enclosing_blocks := find_all_enclosing_blocks
 
 let stmt_in_loop kf stmt =
   let module Res = struct exception Found of bool end in
@@ -270,32 +299,44 @@ let find_first_stmt kf = match get_stmts kf with
 
 let () = Globals.find_first_stmt := find_first_stmt
 
-exception Found_label of stmt ref
-let find_label kf label =
+let label_table kf =
   match kf.fundec with
-  | Declaration _ -> raise Not_found
+  | Declaration _ -> Datatype.String.Map.empty
   | Definition (fundec,_) ->
-      let label_finder = object
-        inherit Cil.nopCilVisitor
-        method! vstmt s = begin
-          if List.exists
-            (fun lbl -> match lbl with
-             | Label (s,_,_) -> s = label
-             | Case _ -> false
-             | Default _ -> label="default")
-            s.labels then raise (Found_label (ref s));
-          Cil.DoChildren
-        end
-        method! vexpr _ = Cil.SkipChildren
-        method! vtype _ = Cil.SkipChildren
-        method! vinst _ = Cil.SkipChildren
-      end
-      in
-      try
-        ignore (Cil.visitCilFunction label_finder fundec);
-        (* Ok: this is not a code label *)
-        raise Not_found
-      with Found_label s -> s
+    let label_finder = object(self)
+      inherit Cil.nopCilVisitor
+      val mutable labels = Datatype.String.Map.empty
+      method all_labels = labels
+      method new_label stmt lbl =
+        match lbl with
+        | Label (l,_,_) ->
+          labels <- Datatype.String.Map.add l (ref stmt) labels
+        | Case _ -> ()
+        | Default _ ->
+          (* Kept for compatibility with old implementation of find_label,
+             but looks quite suspicious. *)
+          labels <- Datatype.String.Map.add "default" (ref stmt) labels
+
+      method! vstmt s =
+        List.iter (self#new_label s) s.labels;
+        Cil.DoChildren
+
+      method! vexpr _ = Cil.SkipChildren
+      method! vtype _ = Cil.SkipChildren
+      method! vinst _ = Cil.SkipChildren
+    end
+    in
+    ignore (Cil.visitCilFunction (label_finder:>Cil.cilVisitor) fundec);
+    label_finder#all_labels
+
+let find_all_labels kf =
+  let labels = label_table kf in
+  Datatype.String.(
+    Map.fold (fun lab _ acc -> Set.add lab acc) labels Set.empty)
+
+let find_label kf label =
+  let labels = label_table kf in
+  Datatype.String.Map.find label labels
 
 let get_called fct = match fct.enode with
   | Lval (Var vkf, NoOffset) -> 

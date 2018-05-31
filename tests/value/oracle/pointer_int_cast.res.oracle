@@ -16,12 +16,12 @@
 [from] Computing for function g
 [from] Done for function g
 [from] ====== DEPENDENCIES COMPUTED ======
-    These dependencies hold at termination for the executions that terminate:
+  These dependencies hold at termination for the executions that terminate:
 [from] Function g:
   q FROM y
   y FROM x; y
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function g:
-      q; y; i
+    q; y; i
 [inout] Inputs for function g:
-      q; x; y
+    q; x; y

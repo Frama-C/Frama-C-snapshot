@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2017                                               *)
+(*  Copyright (C) 2007-2018                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -248,7 +248,8 @@ let slicing_selector (popup_factory:GMenu.menu GMenu.factory)
         let get_lv lvopt text =
           match lvopt with
           | None ->
-            Gtk_helper.input_string ~title:"Enter an lvalue" text
+            Gtk_helper.input_string
+              ~parent:main_ui#main_window ~title:"Enter an lvalue" text
           | Some lv ->
             (* For probably dubious reasons, the functions in Api.Select
                require strings instead of directly a lvalue. Thus, we convert

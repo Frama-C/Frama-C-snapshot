@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2017                                               *)
+(*  Copyright (C) 2007-2018                                               *)
 (*    CEA   (Commissariat à l'énergie atomique et aux énergies            *)
 (*           alternatives)                                                *)
 (*    INRIA (Institut National de Recherche en Informatique et en         *)
@@ -92,6 +92,7 @@ type typing_context = {
   find_type : type_namespace -> string -> typ;
   find_label : string -> stmt ref;
   remove_logic_function : string -> unit;
+  remove_logic_info: logic_info -> unit;
   remove_logic_type: string -> unit;
   remove_logic_ctor: string -> unit;
   add_logic_function: logic_info -> unit;
@@ -106,6 +107,9 @@ type typing_context = {
   (**/**)
   silent: bool;
   (**/**)
+  logic_type:
+    typing_context -> location -> Lenv.t ->
+    Logic_ptree.logic_type -> Cil_types.logic_type ;
   type_predicate:
     typing_context -> Lenv.t -> Logic_ptree.lexpr -> predicate;
   (** typechecks a predicate. Note that the first argument is itself a
@@ -119,9 +123,17 @@ type typing_context = {
     typing_context -> Lenv.t -> Logic_ptree.lexpr -> term;
   type_assigns:
     typing_context ->
-    accept_formal:bool -> 
+    accept_formal:bool ->
     Lenv.t -> Logic_ptree.assigns -> assigns;
   error: 'a 'b. location -> ('a,Format.formatter,unit,'b) format4 -> 'a;
+
+  (** [on_error f rollback x] will attempt to evaluate [f x]. If this triggers
+      an error while in [-continue-annot-error] mode, [rollback ()] will be
+      executed and the exception re-raised.
+
+      @since Chlorine-20180501
+   *)
+  on_error: 'a 'b. ('a -> 'b) -> (unit -> unit) -> 'a -> 'b
 }
 
 (** [register_behavior_extension name f] registers a typing function [f] to
@@ -166,6 +178,7 @@ module Make
       val find_label : string -> stmt ref
 
       val remove_logic_function : string -> unit
+      val remove_logic_info: logic_info -> unit
       val remove_logic_type: string -> unit
       val remove_logic_ctor: string -> unit
 
@@ -187,6 +200,9 @@ module Make
       (** raises an error at the given location and with the given message.
           @since Magnesium-20151001 *)
       val error: location -> ('a,Format.formatter,unit, 'b) format4 -> 'a
+
+      (** see {!Logic_typing.typing_context}. *)
+      val on_error: ('a -> 'b) -> (unit -> unit) -> 'a -> 'b
 
     end) :
 sig

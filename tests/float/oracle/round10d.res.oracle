@@ -1,0 +1,37 @@
+[kernel] Parsing tests/float/round10d.i (no preprocessing)
+[kernel:parser:decimal-float] tests/float/round10d.i:9: Warning: 
+  Floating-point constant 0.1 is not represented exactly. Will use 0x1.999999999999ap-4.
+  (warn-once: no further messages from category 'parser:decimal-float' will be emitted)
+[value] Analyzing a complete application starting at main
+[value] Computing initial state
+[value] Initial state computed
+[value:initial-state] Values of globals at initialization
+  
+[value] tests/float/round10d.i:9: 
+  Frama_C_show_each_dixieme: {1.6000000000000000*2^-4}
+[value] tests/float/round10d.i:14: 
+  Frama_C_show_each_t: {1.6000000000000000*2^-4}
+[value] tests/float/round10d.i:14: 
+  Frama_C_show_each_t: {1.6000000000000000*2^-3}
+[value] tests/float/round10d.i:14: 
+  Frama_C_show_each_t: {1.2000000000000001*2^-2}
+[value] tests/float/round10d.i:14: 
+  Frama_C_show_each_t: {1.6000000000000000*2^-2}
+[value] tests/float/round10d.i:14: 
+  Frama_C_show_each_t: {1.0000000000000000*2^-1}
+[value] tests/float/round10d.i:14: 
+  Frama_C_show_each_t: {1.1999999999999999*2^-1}
+[value] tests/float/round10d.i:14: 
+  Frama_C_show_each_t: {1.3999999999999999*2^-1}
+[value] tests/float/round10d.i:14: 
+  Frama_C_show_each_t: {1.5999999999999998*2^-1}
+[value] tests/float/round10d.i:14: 
+  Frama_C_show_each_t: {1.7999999999999998*2^-1}
+[value] tests/float/round10d.i:14: 
+  Frama_C_show_each_t: {1.9999999999999998*2^-1}
+[value] tests/float/round10d.i:11: entering loop for the first time
+[value:alarm] tests/float/round10d.i:16: Warning: 
+  assertion got status invalid (stopping propagation).
+[value] Recording results for main
+[value] done for function main
+[value] ====== VALUES COMPUTED ======

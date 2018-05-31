@@ -38,56 +38,62 @@
   s7 ∈ {{ "hello\000 world" }}
   s8 ∈ {{ "hello" }}
 [value] computing for function u <- main6.
-    Called from tests/value/strings.i:72.
-tests/value/strings.i:72:[kernel] warning: Neither code nor specification for function u, generating default assigns from the prototype
+  Called from tests/value/strings.i:72.
+[kernel:annot:missing-spec] tests/value/strings.i:72: Warning: 
+  Neither code nor specification for function u, generating default assigns from the prototype
 [value] using specification for function u
 [value] Done for function u
-tests/value/strings.i:73:[value] warning: pointer comparison. assert \pointer_comparable((void *)s3, (void *)s4);
+[value:alarm] tests/value/strings.i:73: Warning: 
+  pointer comparison. assert \pointer_comparable((void *)s3, (void *)s4);
 [value] computing for function u <- main6.
-    Called from tests/value/strings.i:74.
+  Called from tests/value/strings.i:74.
 [value] Done for function u
 [value] computing for function u <- main6.
-    Called from tests/value/strings.i:76.
+  Called from tests/value/strings.i:76.
 [value] Done for function u
 [value] computing for function u <- main6.
-    Called from tests/value/strings.i:78.
+  Called from tests/value/strings.i:78.
 [value] Done for function u
-tests/value/strings.i:79:[value] warning: pointer comparison. assert \pointer_comparable((void *)s7, (void *)s8);
+[value:alarm] tests/value/strings.i:79: Warning: 
+  pointer comparison. assert \pointer_comparable((void *)s7, (void *)s8);
 [value] computing for function u <- main6.
-    Called from tests/value/strings.i:80.
-[value] Done for function u
-[value] computing for function u <- main6.
-    Called from tests/value/strings.i:82.
-[value] Done for function u
-tests/value/strings.i:83:[value] warning: pointer comparison.
-    assert \pointer_comparable((void *)(s7 + 1), (void *)(s8 + 1));
-[value] computing for function u <- main6.
-    Called from tests/value/strings.i:84.
+  Called from tests/value/strings.i:80.
 [value] Done for function u
 [value] computing for function u <- main6.
-    Called from tests/value/strings.i:86.
+  Called from tests/value/strings.i:82.
+[value] Done for function u
+[value:alarm] tests/value/strings.i:83: Warning: 
+  pointer comparison.
+  assert \pointer_comparable((void *)(s7 + 1), (void *)(s8 + 1));
+[value] computing for function u <- main6.
+  Called from tests/value/strings.i:84.
 [value] Done for function u
 [value] computing for function u <- main6.
-    Called from tests/value/strings.i:87.
+  Called from tests/value/strings.i:86.
 [value] Done for function u
 [value] computing for function u <- main6.
-    Called from tests/value/strings.i:88.
+  Called from tests/value/strings.i:87.
 [value] Done for function u
 [value] computing for function u <- main6.
-    Called from tests/value/strings.i:89.
+  Called from tests/value/strings.i:88.
 [value] Done for function u
 [value] computing for function u <- main6.
-    Called from tests/value/strings.i:89.
+  Called from tests/value/strings.i:89.
 [value] Done for function u
 [value] computing for function u <- main6.
-    Called from tests/value/strings.i:90.
+  Called from tests/value/strings.i:89.
 [value] Done for function u
-tests/value/strings.i:91:[value] warning: pointer comparison. assert \pointer_comparable((void *)s5, (void *)s6);
 [value] computing for function u <- main6.
-    Called from tests/value/strings.i:92.
+  Called from tests/value/strings.i:90.
 [value] Done for function u
-tests/value/strings.i:93:[value] warning: pointer comparison.
-    assert \pointer_comparable((void *)("oh, hello" + 4), (void *)s7);
+[value:alarm] tests/value/strings.i:91: Warning: 
+  pointer comparison. assert \pointer_comparable((void *)s5, (void *)s6);
+[value] computing for function u <- main6.
+  Called from tests/value/strings.i:92.
+[value] Done for function u
+[value:alarm] tests/value/strings.i:93: Warning: 
+  pointer comparison.
+  assert \pointer_comparable((void *)("oh, hello" + 4), (void *)s7);
 [value] Recording results for main6
 [value] done for function main6
 [value] ====== VALUES COMPUTED ======
@@ -112,7 +118,7 @@ tests/value/strings.i:93:[value] warning: pointer comparison.
 [from] Done for function u
 [from] Done for function main6
 [from] ====== DEPENDENCIES COMPUTED ======
-    These dependencies hold at termination for the executions that terminate:
+  These dependencies hold at termination for the executions that terminate:
 [from] Function u:
   \result FROM \nothing
 [from] Function main6:
@@ -132,8 +138,8 @@ tests/value/strings.i:93:[value] warning: pointer comparison.
   \result FROM "toto"[bits 0 to 7]
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function main6:
-      s5; s6; cc; Q; R; S; T; U; V; W; X; Y; Z; s; tmp; tmp_0; tmp_1; tmp_2;
-      tmp_3; tmp_4; tmp_5; tmp_6; tmp_7; tmp_8; tmp_9; tmp_10; tmp_11; tmp_12;
-      tmp_13; tmp_14; __retres
+    s5; s6; cc; Q; R; S; T; U; V; W; X; Y; Z; s; tmp; tmp_0; tmp_1; tmp_2;
+    tmp_3; tmp_4; tmp_5; tmp_6; tmp_7; tmp_8; tmp_9; tmp_10; tmp_11; tmp_12;
+    tmp_13; tmp_14; __retres
 [inout] Inputs for function main6:
-      s5; s6; cc; s3; s4; s7; s8; "toto"[bits 0 to 7]
+    s5; s6; cc; s3; s4; s7; s8; "toto"[bits 0 to 7]

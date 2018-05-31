@@ -145,19 +145,16 @@ let doDeclaration logic_spec (loc: cabsloc) (specs: spec_elem list) (nl: init_na
         match logic_spec with
         | None -> None
         | Some (loc, _ as ls) -> begin
-            try
-              let (loc',spec) = Logic_lexer.spec ls in
-              let name =
-                match nl with
-                | [ (n,_,_,_),_ ] -> n
-                | _ -> "unknown function"
-              in
-              check_funspec_abrupt_clauses name spec;
-              Some (spec, (loc, loc'))
-            with exn when Kernel.ContinueOnAnnotError.get () ->
-              Kernel.debug ~source:loc "Skipping annotation: %s"
-                (Printexc.to_string exn);
-              None
+            Extlib.opt_map
+              (fun (loc', spec) ->
+                 let name =
+                   match nl with
+                   | [ (n,_,_,_),_ ] -> n
+                   | _ -> "unknown function"
+                 in
+                 check_funspec_abrupt_clauses name spec;
+                 (spec, (loc, loc')))
+              (Logic_lexer.spec ls)
           end
       in
       !Lexerhack.pop_context ();
@@ -895,14 +892,11 @@ statement:
 |   SPEC annotated_statement
       {
         let bs = $2 in
-        try
-          let (loc',spec) = Logic_lexer.spec $1 in
+        match Logic_lexer.spec $1 with
+        | Some (loc',spec) ->
           let spec = no_ghost [Cabs.CODE_SPEC (spec, (fst $1, loc'))] in
           spec @ $2
-        with exn when Kernel.ContinueOnAnnotError.get () ->
-          Kernel.debug ~source:(fst $1) "skipping annotation: %s"
-            (Printexc.to_string exn);
-          bs
+        | None -> bs
       }
 |   comma_expression SEMICOLON
 	  { let loc = Parsing.symbol_start_pos (), Parsing.symbol_end_pos () in
@@ -1342,15 +1336,10 @@ function_def:  /* (* ISO 6.9.1 *) */
           {
             let (loc, specs, decl) = $2 in
             let spec_loc =
-              try
-                let loc = fst $1 in
-                let loc', spec = Logic_lexer.spec $1 in
-                Some (spec, (loc, loc'))
-              with exn when Kernel.ContinueOnAnnotError.get () ->
-                Kernel.debug ~source:(fst $1)
-                  "Ignoring specification of function %s: %s"
-                  !currentFunctionName (Printexc.to_string exn);
-                None
+              let loc = fst $1 in
+              Extlib.opt_map
+                (fun (loc', spec) -> spec, (loc, loc'))
+                (Logic_lexer.spec $1)
             in
             currentFunctionName := "<__FUNCTION__ used outside any functions>";
             !Lexerhack.pop_context (); (* The context pushed by

@@ -2,7 +2,7 @@
 [kernel] Parsing tests/wp_bts/bts0843.i (no preprocessing)
 [wp] Running WP plugin...
 [wp] Loading driver 'share/wp.driver'
-[wp] warning: Missing RTE guards
+[wp] Warning: Missing RTE guards
 ------------------------------------------------------------
   Function f3
 ------------------------------------------------------------
@@ -22,7 +22,7 @@ Let a = Mptr_0[global(G_p_18)].
 Let a_1 = shiftfield_F1_a(a).
 Assume {
   (* Goal *)
-  When: valid_rd(Malloc_0, a_1, 1).
+  When: !invalid(Malloc_0, a_1, 1).
   (* Heap *)
   Have: framed(Mptr_0) /\ linked(Malloc_0).
   (* Pre-condition *)
@@ -38,7 +38,7 @@ Let a = Mptr_0[global(G_p_18)].
 Let a_1 = shiftfield_F1_a(a).
 Assume {
   (* Goal *)
-  When: valid_rd(Malloc_0, a_1, 1).
+  When: !invalid(Malloc_0, a_1, 1).
   (* Heap *)
   Have: framed(Mptr_0) /\ linked(Malloc_0).
   (* Pre-condition *)

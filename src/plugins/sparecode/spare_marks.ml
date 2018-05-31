@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2017                                               *)
+(*  Copyright (C) 2007-2018                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -77,7 +77,7 @@ module KfTopVisi = struct
       add proj kf ();
       debug 1 "select '%a' as fully visible (top or called by top)"
         Kernel_function.pretty kf;
-      let callees = !Db.Users.get kf in
+      let callees = Users.Users_register.get kf in
         Kernel_function.Hptset.iter (set proj) callees
 
   let get proj kf = try find proj kf; true with Not_found -> false

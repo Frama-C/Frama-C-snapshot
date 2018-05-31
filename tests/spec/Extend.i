@@ -1,6 +1,6 @@
 /* run.config
 EXECNOW: make @PTEST_DIR@/@PTEST_NAME@.cmxs
-OPT: -load-module @PTEST_DIR@/@PTEST_NAME@ -copy -continue-annot-error
+OPT: -load-module @PTEST_DIR@/@PTEST_NAME@ -copy -kernel-warn-abort=-annot-error
 */
 
 /*@ foo x == 0;

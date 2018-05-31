@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2017                                               *)
+(*  Copyright (C) 2007-2018                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -45,13 +45,9 @@ let classify_pre_post kf ip =
   | IPPredicate (PKEnsures _,_,_,_) | IPAxiom _ | IPAxiomatic _ | IPLemma _
   | IPTypeInvariant _ | IPGlobalInvariant _
   | IPOther _ | IPCodeAnnot _ | IPAllocation _ | IPReachable _
-  | IPBehavior _ ->
-    None
-  (* TODO: instances are not shown as localizable, so they cannot be selected.
-     If it becomes possible, they should probably be evaluated in the
-     state corresponding to the statement they are at, except that the
-     formals are not yet in scope... *)
-  | IPPropertyInstance (_kfopt, _, _ip) -> None
+  | IPExtended _
+  | IPBehavior _ -> None
+  | IPPropertyInstance (kf, stmt, _, _ip) -> Some (GL_Stmt (kf, stmt))
   | IPPredicate (PKRequires _,_,_,_ | PKAssumes _,_,_,_ | PKTerminates ,_,_,_)
   | IPComplete _ | IPDisjoint _  | IPAssigns _ | IPFrom _ | IPDecrease _ ->
     Some (GL_Pre kf)
@@ -73,6 +69,7 @@ let gui_loc_logic_env lm =
 
 type 'a gui_selection_data = {
   alarm: bool;
+  red: bool;
   before: 'a gui_res;
   before_string: string Lazy.t;
   after: 'a gui_after;
@@ -81,6 +78,7 @@ type 'a gui_selection_data = {
 
 let gui_selection_data_empty = {
   alarm = false;
+  red = false;
   before = GR_Empty;
   before_string = lazy "";
   after = GA_NA;
@@ -98,7 +96,7 @@ module type S = sig
   module Analysis : Analysis.S
 
   type ('env, 'expr, 'v) evaluation_functions = {
-    eval_and_warn: 'env -> 'expr -> 'v * bool;
+    eval_and_warn: 'env -> 'expr -> 'v * bool (* alarm *) * bool (* red *);
     env: Analysis.Dom.t -> Value_types.callstack -> 'env;
     equal: 'v -> 'v -> bool;
     bottom: 'v;
@@ -128,6 +126,14 @@ module type S = sig
      Eval_terms.predicate_status Bottom.or_bottom
     ) evaluation_functions
 
+  val predicate_with_red:
+    gui_loc ->
+    (Eval_terms.eval_env * (kinstr * Value_types.callstack),
+     Red_statuses.alarm_or_property * predicate,
+     Eval_terms.predicate_status Bottom.or_bottom
+    ) evaluation_functions
+
+
   val make_data_all_callstacks:
     ('a, 'b, 'c) evaluation_functions -> gui_loc ->  'b ->
     (gui_callstack * Analysis.Val.t gui_selection_data) list * exn list
@@ -153,7 +159,7 @@ module Make (X: Analysis.S) = struct
   open AGui_types
 
   type ('env, 'expr, 'v) evaluation_functions = {
-    eval_and_warn: 'env -> 'expr -> 'v * bool;
+    eval_and_warn: 'env -> 'expr -> 'v * bool * bool;
     env: X.Dom.t -> Value_types.callstack -> 'env;
     equal: 'v -> 'v -> bool;
     bottom: 'v;
@@ -226,10 +232,11 @@ module Make (X: Analysis.S) = struct
         r, acc_ok && ok (* cannot happen, we should get Top everywhere *)
     in
     match loc with
-    | `Bottom -> GO_InvalidLoc, ok
+    | `Bottom -> GO_InvalidLoc, ok, false
     | `Value loc ->
       let ploc = get_precise_loc loc in
-      Precise_locs.fold aux ploc (GO_Bottom, ok)
+      let r, ok = Precise_locs.fold aux ploc (GO_Bottom, ok) in
+      r, ok, false
 
   let lv_offsetmap_res_to_gui_res lv offsm =
     let typ = Some (Cil.unrollType (Cil.typeOfLval lv)) in
@@ -251,11 +258,11 @@ module Make (X: Analysis.S) = struct
     let lv_to_zone state lv =
       let loc, _alarms = X.eval_lval_to_loc state lv in
       match loc with
-      | `Bottom -> Locations.Zone.bottom, false
+      | `Bottom -> Locations.Zone.bottom, false, false
       | `Value loc ->
         let ploc = get_precise_loc loc in
         let z = Precise_locs.enumerate_valid_bits ~for_writing:false ploc in
-        z, false
+        z, false, false
     in
     {eval_and_warn=lv_to_zone;
      env = id_env;
@@ -269,9 +276,9 @@ module Make (X: Analysis.S) = struct
   let null_to_offsetmap state (_:unit) =
     let state = get_cvalue_state state in
     match Cvalue.Model.find_base_or_default Base.null state with
-    | `Bottom -> GO_InvalidLoc, false
-    | `Top -> GO_Top, false
-    | `Value m -> GO_Offsetmap m, true
+    | `Bottom -> GO_InvalidLoc, false, false
+    | `Top -> GO_Top, false, false
+    | `Value m -> GO_Offsetmap m, true, false
 
   let null_ev =
     {eval_and_warn=null_to_offsetmap;
@@ -286,7 +293,7 @@ module Make (X: Analysis.S) = struct
   let exp_ev =
     let eval_exp_and_warn state e =
       let r = X.eval_expr state e in
-      fst r, Alarmset.is_empty (snd r)
+      fst r, Alarmset.is_empty (snd r), false
     in
     let res_to_gui_res e v =
       let flagged_value = Eval.{v; initialized=true; escaping=false; } in
@@ -308,7 +315,7 @@ module Make (X: Analysis.S) = struct
         | `Bottom -> Eval.Flagged_Value.bottom
         | `Value v -> v
       in
-      flagged_value, Alarmset.is_empty (snd r)
+      flagged_value, Alarmset.is_empty (snd r), false
     in
     {
       eval_and_warn;
@@ -417,7 +424,7 @@ module Make (X: Analysis.S) = struct
       let loc = Eval_terms.eval_tlval_as_location env ~alarm_mode tlv in
       let state = Eval_terms.env_current_state env in
       let offsm, ok = reduce_loc_and_eval state loc in
-      offsm, not !alarms && ok
+      offsm, not !alarms && ok, false
     in
     {eval_and_warn=tlval_to_offsetmap;
      env = env_gui_loc lm;
@@ -434,7 +441,7 @@ module Make (X: Analysis.S) = struct
       let alarm_mode = Eval_terms.Track alarms in
       let for_writing = false in
       let z = Eval_terms.eval_tlval_as_zone ~for_writing env ~alarm_mode tlv in
-      z, not !alarms
+      z, not !alarms, false
     in
     {eval_and_warn=tlv_to_zone;
      env = env_gui_loc gl;
@@ -450,7 +457,7 @@ module Make (X: Analysis.S) = struct
       let alarms = ref false in
       let alarm_mode = Eval_terms.Track alarms in
       let r = Eval_terms.(eval_term ~alarm_mode env t) in
-      `Value (from_cvalue r.Eval_terms.eover), not !alarms
+      `Value (from_cvalue r.Eval_terms.eover), not !alarms, false
     in
     let res_to_gui_res t v =
       let flagged_value = Eval.{v; initialized=true; escaping=false; } in
@@ -468,7 +475,7 @@ module Make (X: Analysis.S) = struct
   let predicate_ev lm =
     let eval_predicate_and_warn env t =
       let r = Eval_terms.eval_predicate env t in
-      `Value r, true (* TODO *)
+      `Value r, true (* TODO *), false
     in
     let to_status = function
       | `Bottom -> Eval_terms.True
@@ -483,8 +490,37 @@ module Make (X: Analysis.S) = struct
      res_to_gui_res = (fun _ s -> GR_Status (to_status s));
     }
 
-  let data ~ok ~before ~after = {
-    before; after; alarm = not ok;
+  (* Evaluation of a predicate, while tracking red alarms inside the dedicated
+     column. *)
+  let predicate_with_red lm =
+    (* We need the statement and the callstack in the environment to
+       determine whether a red status was emitted then during the analysis. *)
+    let env_alarm_loc lm state cs =
+      env_gui_loc lm state cs,
+      match lm with
+      | GL_Stmt (_, stmt) -> Kstmt stmt, cs
+      | GL_Pre _| GL_Post _ -> Kglobal, cs
+    in
+    let eval_alarm_and_warn (env, (kinstr, cs)) (ap, p) =
+      let r = Eval_terms.eval_predicate env p in
+      let red = Red_statuses.is_red_in_callstack kinstr ap cs in
+      `Value r, true (* TODO *), red
+    in
+    let to_status = function
+      | `Bottom -> Eval_terms.True
+      | `Value s -> s
+    in
+    {eval_and_warn = eval_alarm_and_warn;
+     env = env_alarm_loc lm;
+     equal = (=);
+     bottom = `Bottom;
+     join = Bottom.join Eval_terms.join_predicate_status;
+     expr_to_gui_selection = (fun (_, p) -> GS_Predicate p);
+     res_to_gui_res = (fun _ s -> GR_Status (to_status s));
+    }
+
+  let data ~ok ~before ~after ~red = {
+    before; after; alarm = not ok; red;
     before_string = lazy (Pretty_utils.to_string pretty_gui_res before);
     after_string = (match after with
         | GA_NA | GA_Unchanged | GA_Bottom -> lazy "" (* won't be used *)
@@ -498,18 +534,19 @@ module Make (X: Analysis.S) = struct
      will be done. *)
   let make_data ev set_ba ~before ~after exp =
     set_ba BABefore;
-    let vbefore, ok = ev.eval_and_warn before exp in
+    let vbefore, ok, red = ev.eval_and_warn before exp in
     let before = ev.res_to_gui_res exp vbefore in
     match after with
-    | `Top -> data ~before ~after:GA_NA ~ok
-    | `Bottom -> data ~before ~after:(GA_Bottom) ~ok
+    | `Top -> data ~before ~after:GA_NA ~ok ~red
+    | `Bottom -> data ~before ~after:(GA_Bottom) ~ok ~red
     | `Value after ->
       set_ba BAAfter;
       (* Currently, we do not warn for alarms in the post-state. *)
-      let vafter, _okafter = ev.eval_and_warn after exp in
-      if ev.equal vbefore vafter
-      then data ~before ~after:GA_Unchanged ~ok
-      else data ~before ~after:(GA_After (ev.res_to_gui_res exp vafter)) ~ok
+      let vafter, _okafter, _redafter = ev.eval_and_warn after exp in
+      if ev.equal vbefore vafter then
+        data ~before ~after:GA_Unchanged ~ok ~red
+      else
+        data ~before ~after:(GA_After (ev.res_to_gui_res exp vafter)) ~ok ~red
 
   let make_data_all_callstacks_from_states ev ~before ~after expr =
     let exn = ref [] in
@@ -517,15 +554,17 @@ module Make (X: Analysis.S) = struct
     let v_join_before = ref ev.bottom in
     let v_join_after = ref ev.bottom in
     let ok_join = ref true in
+    let red_join = ref false in
     let rba = ref BABefore in
     let set_ba ba = rba := ba in
     (* Change [ev] to store intermediate results for 'consolidated' line *)
     let eval_and_warn states e =
-      let v, ok as r = ev.eval_and_warn states e in
+      let v, ok, red as r = ev.eval_and_warn states e in
       begin match !rba with
         | BABefore ->
           v_join_before := ev.join !v_join_before v;
           ok_join := !ok_join && ok;
+          red_join := !red_join || red;
         | BAAfter ->
           v_join_after := ev.join !v_join_after v;
       end;
@@ -569,7 +608,7 @@ module Make (X: Analysis.S) = struct
             then GA_Unchanged
             else GA_After (ev.res_to_gui_res expr !v_join_after)
         in
-        (callstack, (data ~before ~after ~ok:!ok_join)) :: list
+        (callstack, (data ~before ~after ~ok:!ok_join ~red:!red_join)) :: list
     in
     list, !exn
 

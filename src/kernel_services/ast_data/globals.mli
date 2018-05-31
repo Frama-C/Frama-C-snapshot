@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2017                                               *)
+(*  Copyright (C) 2007-2018                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -36,6 +36,12 @@ module Vars: sig
   val find: varinfo -> initinfo
 
   val find_from_astinfo: string -> localisation -> varinfo
+  (** Finds a variable from its [vname] according to its localisation (which
+      might be a local). If you wish to search for a symbol according to its
+      original name in the source code and the syntactic scope in which
+      it should appear, use {! Globals.Syntactic_search} instead.
+      @raise Not_found if no such variable exists.
+  *)
 
   val get_astinfo: varinfo -> string * localisation
   (** Linear in the number of locals and formals of the program. *)
@@ -176,6 +182,19 @@ module FileIndex : sig
 
 end
 
+module Syntactic_search: sig
+  val self: State.t
+
+  val find_in_scope: string -> syntactic_scope -> varinfo option
+  (** [find_in_scope orig_name scope] finds a variable from its [orig_name],
+      according to the syntactic [scope] in which it should be searched.
+      @return [None] if there are no variables [orig_name] in [scope].
+      @return [Some vi] otherwise, with [vi] the [varinfo] associated to
+      [orig_name] in [scope] according to C lookup rules.
+      @since Chlorine-20180501
+  *)
+end
+
 (* ************************************************************************* *)
 (** {2 Types} *)
 (* ************************************************************************* *)
@@ -267,8 +286,8 @@ val get_comments_stmt: stmt -> string list
  *)
 val find_first_stmt: (kernel_function -> stmt) ref
 val find_enclosing_block: (stmt -> block) ref
-
-
+val find_all_enclosing_blocks: (stmt -> block list) ref
+val find_englobing_kf: (stmt -> kernel_function) ref
 (*
 Local Variables:
 compile-command: "make -C ../../.."

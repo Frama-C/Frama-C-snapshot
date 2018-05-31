@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2017                                               *)
+(*  Copyright (C) 2007-2018                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -21,8 +21,35 @@
 (**************************************************************************)
 
 open Abstract_interp
+open Bottom.Type
+
+[@@@ ocaml.warning "-32"]
+(* Those OCaml functions do not have the proper semantics w.r.t -0/+0. We
+   make them inoperative for this entire file. *)
+
+let min = ()
+let max = ()
+let compare = ()
+
+[@@@ ocaml.warning "+32"]
+
+type kind = Float32 | Float64 | Real (* Real with NaN *)
+
+let kind = function
+  | Cil_types.FFloat -> Float32
+  | Cil_types.FDouble -> Float64
+  | Cil_types.FLongDouble -> Real
+
+let pretty_kind fmt kind =
+  Format.pp_print_string fmt
+    (match kind with
+     | Float32 -> "Float32"
+     | Float64 -> "Float64"
+     | Real -> "Real")
 
 module F = struct
+  (** no NaN should be produced by function of this module
+      An exception, that should not be caught is returned instead. *)
 
   type t = float
 
@@ -53,116 +80,86 @@ module F = struct
         else compare m1 m2 *)
 
   let le f1 f2 = compare f1 f2 <= 0
+  let lt f1 f2 = compare f1 f2 < 0
+  let ge f1 f2 = compare f1 f2 >= 0
+  let gt f1 f2 = compare f1 f2 > 0
 
-  let min f1 f2 =
-    if le f1 f2 then f1 else f2
-
-  let max f1 f2 =
-    if le f1 f2 then f2 else f1
+  let min f1 f2 = if le f1 f2 then f1 else f2
+  let max f1 f2 = if le f1 f2 then f2 else f1
 
   let equal_ieee = ((=) : float -> float -> bool)
+  let le_ieee = ((<=) : float -> float -> bool)
+  let lt_ieee = ((<) : float -> float -> bool)
+  let ge_ieee = ((>=) : float -> float -> bool)
+  let gt_ieee = ((>) : float -> float -> bool)
 
   let hash = Hashtbl.hash
+  let pretty_normal = Floating_point.pretty_normal
+  let pretty = Floating_point.pretty
 
-
-  let zero = 0.0
+  let plus_zero = 0.0
   let minus_zero = -0.0
+  let is_a_zero x = equal_ieee x plus_zero
 
-  let max_single_precision_float = Floating_point.max_single_precision_float
-  let most_negative_single_precision_float =
-    Floating_point.most_negative_single_precision_float
-  let max_float = max_float
-  let infinity = infinity
   let neg_infinity = neg_infinity
-  let most_negative_float = -. max_float
+  let pos_infinity = Pervasives.infinity
+  (** To minimize ambiguity, and to use terms closer to those of the IEEE-754
+      standard, we use [pos_infinity] to denote OCaml's [Pervasives.infinity].
+      Functions that deal with (unspecified) infinity (e.g. [is_infinity])
+      consider both positive and negative infinities. *)
 
-  (* Maximum integer value M such that all 0 < n < M are exactly
-     representable as doubles. *)
-  let max_precise_integer = 2. ** 53.
+  let is_pos_infinity = (=) pos_infinity
+  let is_neg_infinity = (=) neg_infinity
 
   (* works but allocates:
      let is_negative f = Int64.bits_of_float f < Int64.zero *)
-(* replace "noalloc" with [@@noalloc] for OCaml version >= 4.03.0 *)
-[@@@ warning "-3"]
- external is_negative : float -> bool = "float_is_negative" "noalloc"
-[@@@ warning "+3"]
+  (* replace "noalloc" with [@@noalloc] for OCaml version >= 4.03.0 *)
+  [@@@ warning "-3"]
+  external is_negative : float -> bool = "float_is_negative" "noalloc"
+  [@@@ warning "+3"]
 
-  let zero_of_same_sign f =
-    if is_negative f then minus_zero else zero
+  let is_finite f = match classify_float f with
+    | FP_nan | FP_infinite -> false
+    | FP_normal | FP_subnormal | FP_zero -> true
 
-  let is_infinity = (=) infinity
-  let is_neg_infinity = (=) neg_infinity
+  let is_infinite f = classify_float f = FP_infinite
+
+  let is_nan a = classify_float a = FP_nan
 
   (* Must *not* be exported. All functions of this module should check the
      arguments with which they call the functions labelled "may raise Nan
      exception" *)
-  exception NaN
+  exception Invalid_NaN
 
   (* May raise NaN exception *)
   let ensure_not_nan r =
     match classify_float r with
-    | FP_nan -> raise NaN
+    | FP_nan -> raise Invalid_NaN
     | FP_normal | FP_subnormal | FP_infinite | FP_zero -> r
 
   let ensure_not_nan_unary f x = ensure_not_nan (f x)
-
   let ensure_not_nan_binary f x y = ensure_not_nan (f x y)
 
-  let add = ensure_not_nan_binary (+.)
+  let id = fun x -> x
+  let of_float = ensure_not_nan_unary id
+  let to_float = id
+
   let sub = ensure_not_nan_binary (-.)
   let neg = ensure_not_nan_unary (~-.)
-  let mult = ensure_not_nan_binary ( *.)
 
-  (* May raise NaN exception on zero divisor *)
-  let div = ensure_not_nan_binary (/.)
-
-  let pretty_normal = Floating_point.pretty_normal
-
-  let pretty = Floating_point.pretty
-
-  let avg x y =
-    let h = 0.5 in
-    let xp = x >= 0. in
-    let yp = y >= 0. in
-    if xp = yp
-    then
-      let d = x -. y in y +. h *. d
-    else
-      (x +. y) *. h
-
-  (* assumption: [0. <= x <= y]. returns the median of the range [x..y]
-     in number of double values. *)
-  let split_positive x y =
-    let ix = Int64.bits_of_float x in
-    let iy = Int64.bits_of_float y in
-    Int64.(float_of_bits (add ix (div (sub iy ix) 2L)))
-
-  (* assumption: [x <= y] *)
-  let _split x y =
-    match is_negative x, is_negative y with
-    | false, false -> split_positive x y
-    | true, true -> -. (split_positive (-.x) (-.y))
-    | true, false -> minus_zero
-    | false, true -> assert false
-
-
-  let le_ieee = ((<=) : float -> float -> bool)
-  let lt_ieee = ((<) : float -> float -> bool)
-
-  let sqrt = (* See bts #1396. We patch Pervasives function only when needed *)
-    if compare (sqrt minus_zero) minus_zero <> 0 then
-      fun v ->
-        if v = minus_zero
-        then v
-        else sqrt v
-    else
-      sqrt
+  (* See bts #1396. We patch Pervasives function only when needed *)
+  let sqrt =
+    if compare (sqrt minus_zero) minus_zero <> 0
+    then fun v -> if v = minus_zero then v else sqrt v
+    else sqrt
 
   (* May raise NaN exception on negative arguments *)
   let sqrt = ensure_not_nan_unary sqrt
 
   let cos = ensure_not_nan_unary cos
   let sin = ensure_not_nan_unary sin
+  let atan2 = ensure_not_nan_binary atan2
+
   let exp = ensure_not_nan_unary exp
 
   (* May raise NaN exception on negative or zero arguments *)
@@ -174,13 +171,12 @@ module F = struct
   let trunc = ensure_not_nan_unary Floating_point.trunc
   let fround = ensure_not_nan_unary Floating_point.fround
 
-  let atan2 = ensure_not_nan_binary atan2
-
   (* May raise NaN exception *)
   let pow = ensure_not_nan_binary ( ** )
 
   (* May raise NaN exception on zero second argument *)
   let fmod = ensure_not_nan_binary mod_float
+  let fmodf = ensure_not_nan_binary Floating_point.fmodf
 
   (* single-precision *)
   let expf = ensure_not_nan_unary Floating_point.expf
@@ -188,37 +184,90 @@ module F = struct
   let log10f = ensure_not_nan_unary Floating_point.log10f
   let powf = ensure_not_nan_binary Floating_point.powf
   let sqrtf = ensure_not_nan_unary Floating_point.sqrtf
+  let cosf = ensure_not_nan_unary Floating_point.cosf
+  let sinf = ensure_not_nan_unary Floating_point.sinf
+  let atan2f = ensure_not_nan_binary Floating_point.atan2f
 
   let minus_one = -1.0
   let one = 1.0
-  let minus_one_half = -0.5
   let ten = 10.
   let m_pi = 3.1415929794311523 (* single-precision *)
   let m_minus_pi = -. m_pi
   let m_pi_2 = 1.5707964897155761 (* single-precision *)
-  let m_minus_pi_2 = -. m_pi_2
-  let ff = 4.5
-  let minus_ff = -4.5
+
+  let max_single_precision_float = Floating_point.max_single_precision_float
+  let most_negative_single_precision_float =
+    Floating_point.most_negative_single_precision_float
+  let max_float = max_float
+
+  let most_negative_float = -. max_float
+
+  (* Maximum integer value M such that all 0 < n < M are exactly
+     representable as doubles. *)
+  let max_precise_integer = 2. ** 53.
+  let max_single_precise_integer = 2. ** 23.
+
+  let max_representable_float = function
+    | Float32 -> max_single_precision_float
+    | Real | Float64 -> max_float
+
+  let most_negative_representable_float = function
+    | Float32 -> most_negative_single_precision_float
+    | Real | Float64 -> most_negative_float
+
+  (* Maximum odd integer representable in float64 (2^53-1). *)
+  let max_double_odd_integer = 9007199254740991.0
+  (* Maximum odd integer representable in float32 (2^24-1). *)
+  let max_single_odd_integer = 16777215.0
+  (* Most negative odd integer representable in float64. *)
+  let most_negative_double_odd_integer = -.max_double_odd_integer
+  (* Most negative odd integer representable in float32. *)
+  let most_negative_single_odd_integer = -.max_single_odd_integer
+  (* Successor of the maximum non-integer representable in float64 (2^52) *)
+  let ceil_of_largest_representable_non_integer_double = 4503599627370496.0
+  (* Successor of the maximum non-integer representable in float32 (2^23) *)
+  let ceil_of_largest_representable_non_integer_single = 8388608.0
+  (* Predecessor of the most-negative non-integer representable in float64 -(2^52) *)
+  let floor_of_most_negative_representable_non_integer_double =
+    -. ceil_of_largest_representable_non_integer_double
+  (* Predecessor of the most-negative non-integer representable in float32 -(2^23) *)
+  let floor_of_most_negative_representable_non_integer_single =
+    -. ceil_of_largest_representable_non_integer_single
+
+  let max_odd_integer fkind =
+    match fkind with
+    | Real | Float64 -> max_double_odd_integer
+    | Float32 -> max_single_odd_integer
+
+  let most_negative_odd_integer fkind =
+    match fkind with
+    | Real | Float64 -> most_negative_double_odd_integer
+    | Float32 -> most_negative_single_odd_integer
+
+  let ceil_of_largest_representable_non_integer fkind =
+    match fkind with
+    | Real | Float64 -> ceil_of_largest_representable_non_integer_double
+    | Float32 -> ceil_of_largest_representable_non_integer_single
+
+  let floor_of_most_negative_representable_non_integer fkind =
+    match fkind with
+    | Real | Float64 -> floor_of_most_negative_representable_non_integer_double
+    | Float32 -> floor_of_most_negative_representable_non_integer_single
 
   let widen_up f =
-    if f <= zero then zero
-    else if f <= one then one
-    else if f <= m_pi_2 then m_pi_2
-    else if f <= m_pi then m_pi
-    else if f <= ten then ten
-    else if f <= 1e10 then 1e10
-    else if f <= max_single_precision_float then max_single_precision_float
-    else if f <= 1e80 then 1e80
-    else max_float
+    if le f minus_zero then minus_zero
+    else if le f plus_zero then plus_zero
+    else if le f one then one
+    else if le f m_pi_2 then m_pi_2
+    else if le f m_pi then m_pi
+    else if le f ten then ten
+    else if le f 1e10 then 1e10
+    else if le f max_single_precision_float then max_single_precision_float
+    else if le f 1e80 then 1e80
+    else if le f max_float then max_float
+    else pos_infinity
 
-  let widen_down f =
-    if f >= zero then zero
-    else if f >= minus_one_half then minus_one_half
-    else if f >= minus_one then minus_one
-    else if f >= m_minus_pi then m_minus_pi
-    else if f >=  most_negative_single_precision_float
-    then most_negative_single_precision_float
-    else most_negative_float
+  let widen_down f = -. (widen_up (-. f))
 
   let next_previous_normal int64fup int64fdown float =
     let r = Int64.bits_of_float float in
@@ -232,73 +281,96 @@ module F = struct
 
   let next_previous int64fup int64fdown float =
     match classify_float float with
-    | FP_nan -> raise NaN
+    | FP_nan -> raise Invalid_NaN
     | FP_infinite -> float
     | FP_normal | FP_subnormal -> begin
-      let f = next_previous_normal int64fup int64fdown float in
-      match classify_float f with
-      | FP_nan -> assert false (* can only be produced from an infinity *)
-      | FP_infinite | FP_normal | FP_subnormal | FP_zero -> f
+        let f = next_previous_normal int64fup int64fdown float in
+        match classify_float f with
+        | FP_nan -> assert false (* can only be produced from an infinity *)
+        | FP_infinite | FP_normal | FP_subnormal | FP_zero -> f
       end
     | FP_zero ->
       (next_previous_normal int64fup int64fdown (float +. min_float)) -. min_float
 
-  let next_float = next_previous Int64.succ Int64.pred
-  let prev_float = next_previous Int64.pred Int64.succ
+  let next_float fkind f' =
+    let f = next_previous Int64.succ Int64.pred f' in
+    match fkind with
+    | Real -> f'
+    | Float64 -> f
+    | Float32 ->
+      Floating_point.set_round_upward ();
+      let f = Floating_point.round_to_single_precision_float f in
+      Floating_point.set_round_nearest_even ();
+      f
 
-  let id = fun x -> x
-  let of_float = ensure_not_nan_unary id
-  let to_float = id
+  let prev_float fkind f' =
+    let f = next_previous Int64.pred Int64.succ f' in
+    match fkind with
+    | Real -> f'
+    | Float64 -> f
+    | Float32 ->
+      Floating_point.set_round_downward ();
+      let f = Floating_point.round_to_single_precision_float f in
+      Floating_point.set_round_nearest_even ();
+      f
 
-  let classify_float = Pervasives.classify_float
+  let pos_min_denormal fkind =
+    match fkind with
+    | Real -> plus_zero
+    | Float64 -> Floating_point.min_denormal
+    | Float32 -> Floating_point.min_single_precision_denormal
+
+  let neg_min_denormal fkind =
+    match fkind with
+    | Real -> minus_zero
+    | Float64 -> Floating_point.neg_min_denormal
+    | Float32 -> Floating_point.neg_min_single_precision_denormal
+
+  let next_float_ieee fkind b2 =
+    if equal_ieee plus_zero b2
+    then pos_min_denormal fkind
+    else if is_pos_infinity b2
+    then pos_infinity
+    else next_float fkind b2
+
+  let prev_float_ieee fkind b2 =
+    if equal_ieee plus_zero b2
+    then neg_min_denormal fkind
+    else if is_neg_infinity b2
+    then neg_infinity
+    else prev_float fkind b2
+
+  let round fkind f =
+    match fkind with
+    | Real | Float64 -> f
+    | Float32 -> Floating_point.round_to_single_precision_float f
+
 end
 
-type float_kind = Float32 | Float64
-
-exception Non_finite
-
-(* Alarms produced by built-ins. *)
-type builtin_alarm = APosInf | ANegInf | ANaN of string | AAssume of string
-module Builtin_alarms = Set.Make(struct
-    type t = builtin_alarm
-    let compare (x : t) (y : t) = Pervasives.compare x y
-  end)
-
-let no_alarm = Builtin_alarms.empty
-let an_alarm a = Builtin_alarms.singleton a
-
-let next_after fkind x y = match fkind with
-  | Float32 -> Floating_point.nextafterf x y
-  | Float64 -> Floating_point.nextafter x y
-
-let max_representable_float = function
-  | Float32 -> F.max_single_precision_float
-  | Float64 -> F.max_float
-
-let most_negative_representable_float = function
-  | Float32 -> F.most_negative_single_precision_float
-  | Float64 -> F.most_negative_float
-
-
-type denormal_treatment = Denormals | FTZ | DenormalsandFTZ
-
-let denormal_treatment = Denormals
-let _ = DenormalsandFTZ (* VP: silence warning about unused DenormalsandFTZ *)
-
 module FRange : sig
-  type t = private I of F.t * F.t
-  val inject : F.t -> F.t -> t
-  val inject_r_f : float_kind -> F.t -> F.t -> (bool * bool * t)
+  (* invariants for intervals I(b,e,has_nan):
+     - b and e are not NaN;
+     - b <= e *)
+  type t = private
+    | I of F.t * F.t * bool
+    | NaN
+  val inject_raw : ?nan:bool -> F.t -> F.t -> t
+  val inject : ?nan:bool -> kind -> F.t -> F.t -> t
+  val inject_rounded: kind -> ?nan:bool -> F.t -> F.t -> t
+  val nan: t
+  val add_nan: t -> t
 end =
 struct
 
-  type t = I of F.t * F.t
+  type t =
+    | I of F.t * F.t * bool
+    | NaN
 
-  let inject b e =
-    if not (F.le b e) then
+  let inject_raw ?(nan=false) b e =
+    if F.is_nan b || F.is_nan e || not (F.le b e) then
       Kernel.fatal "Invalid bounds for float interval@\n%a .. %a@."
         (F.pretty_normal ~use_hex:true) b (F.pretty_normal ~use_hex:true) e;
-    I(b, e)
+    I(b, e, nan)
 
   (* If [fkind] is [Float32], we check that [b] and [e] are valid
      32-bit representations: lower bits are 0, and the value fits inside
@@ -308,997 +380,539 @@ struct
        (Floating_point.round_to_single_precision_float b <> b ||
         Floating_point.round_to_single_precision_float e <> e)
     then
-      Kernel.fatal "Ival: invalid float32, b=%g (%a) e=%g (%a)"
+      let this_one fmt x =
+        if Floating_point.round_to_single_precision_float x <> x
+        then Format.pp_print_string fmt "->"
+      in
+      Kernel.fatal "Ival: invalid float32, %ab=%g (%a) %ae=%g (%a)"
+        this_one b
         b (Floating_point.pretty_normal ~use_hex:true) b
+        this_one e
         e (Floating_point.pretty_normal ~use_hex:true) e
 
-  let inject_r_f fkind b e =
-    if F.is_neg_infinity e || F.is_infinity b then raise Non_finite;
-    let infinite_e, e =
-      match F.classify_float e with
-      | FP_infinite ->
-        let pos = F.le_ieee F.zero e in
-        if pos then
-          true, max_representable_float fkind
-        else
-          raise Non_finite
-      | FP_subnormal ->
-        let pos = F.le_ieee F.zero e in begin
-          match pos with
-          | true when denormal_treatment = FTZ ->
-            false, F.zero
-          | false when denormal_treatment <> Denormals ->
-            false, F.minus_zero
-          | _ -> false, e
-        end
-      | FP_normal | FP_zero -> false, e
-      | FP_nan -> assert false
-    in
-    let infinite_b, b =
-      match F.classify_float b with
-      | FP_infinite ->
-        let pos = F.le_ieee F.zero b in
-        if pos then
-          raise Non_finite
-        else
-          true, most_negative_representable_float fkind
-      | FP_subnormal ->
-        let pos = F.le_ieee F.zero b in begin
-          match pos with
-          | false when denormal_treatment = FTZ ->
-            false, F.minus_zero
-          | true when denormal_treatment <> Denormals ->
-            false, F.zero
-          | _ -> false, b
-        end
-      | FP_normal | FP_zero -> false, b
-      | FP_nan -> assert false
-    in
+  let inject ?nan fkind b e =
     check_representability fkind b e;
-    infinite_b, infinite_e, inject b e
+    inject_raw ?nan b e
+
+  let inject_rounded fkind ?nan b e =
+    let b, e =
+      if fkind = Float32
+      then Floating_point.round_to_single_precision_float b,
+           Floating_point.round_to_single_precision_float e
+      else b, e
+    in
+    inject_raw ?nan b e
+
+  let nan = NaN
+
+  let add_nan f =
+    match f with
+    | NaN -> f
+    | I(_,_,true) -> f
+    | I(b,e,false) -> I(b,e,true)
 
 end
 
-type t = FRange.t
-(* open Private_Couple *) (* Workaround for Ocaml bug 5718 *)
+(* --------------------------------------------------------------------------
+                                    Datatype
+   -------------------------------------------------------------------------- *)
 
-type builtin_res = Builtin_alarms.t * FRange.t Bottom.or_bottom
+type t = FRange.t
 
 let structural_descr =
-  Structural_descr.t_sum [| [| F.packed_descr; F.packed_descr |] |]
+  Structural_descr.t_sum [|
+    [| F.packed_descr; F.packed_descr; Structural_descr.p_bool |];
+    [| |]
+  |]
 
 let packed_descr = Structural_descr.pack structural_descr
 
-let inject = FRange.inject
+let compare x y =
+  match x, y with
+  | FRange.I(b1,e1,n1), FRange.I(b2,e2,n2) ->
+    let c = Pervasives.compare n1 n2 in
+    if c <> 0 then c else
+      let r = F.compare b1 b2 in
+      if r <> 0 then r else F.compare e1 e2
+  | FRange.I(_,_,_), FRange.NaN -> -1
+  | FRange.NaN, FRange.I(_,_,_) -> 1
+  | FRange.NaN, FRange.NaN -> 0
 
-let inject_r_f = FRange.inject_r_f
+let equal x y =
+  match x,y with
+  | FRange.I(b1,e1,n1), FRange.I(b2,e2,n2) ->
+    F.equal b1 b2 && F.equal e1 e2 && n1 = n2
+  | FRange.NaN, FRange.NaN -> true
+  | _ -> false
 
-let inject_r b e =
-  let ib, ie, r = FRange.inject_r_f Float64 b e in
-  ib || ie, r
-
-let inject_f fkind b e = let _,_,r = (inject_r_f fkind b e) in r
-
-let min_and_max (FRange.I(b,e)) = b, e
-
-let top_f fkind = inject (most_negative_representable_float fkind)
-    (max_representable_float fkind)
-
-let top = top_f Float64
-
-let compare (FRange.I(b1,e1)) (FRange.I(b2,e2)) =
-  let r = F.compare b1 b2 in
-  if r <> 0 then r else F.compare e1 e2
-
-let equal (FRange.I(b1,e1)) (FRange.I(b2,e2)) =
-  F.equal b1 b2 && F.equal e1 e2
-
-let pretty_aux pp_min pp_max fmt (FRange.I(b,e)) =
-  if F.equal b e then
-    Format.fprintf fmt "{%a}" F.pretty b
-  else begin
-    if (Kernel.FloatRelative.get())
-    then begin
-      Floating_point.set_round_upward ();
-      let d = F.sub e b in
-      Floating_point.set_round_nearest_even ();
-      Format.fprintf fmt "[%a ++ %a]"
-        F.pretty b
-        F.pretty d
-    end
+let pretty_aux pp_min pp_max fmt = function
+  | FRange.I(b,e,nan) ->
+    if F.equal b e then
+      Format.fprintf fmt "{%a%t}" F.pretty b
+        (fun fmt -> if nan then Format.pp_print_string fmt ";NaN")
     else begin
-      Format.fprintf fmt "[%a .. %a]" pp_min b pp_max e
+      let print_nan fmt nan =
+        if nan then Format.fprintf fmt " %s {NaN}" (Unicode.union_string ())
+      in
+      if (Kernel.FloatRelative.get())
+      then begin
+        Floating_point.set_round_upward ();
+        let d = F.sub e b in
+        Floating_point.set_round_nearest_even ();
+        Format.fprintf fmt "[%a ++ %a]%a"
+          F.pretty b
+          F.pretty d
+          print_nan nan
+      end
+      else begin
+        Format.fprintf fmt "[%a .. %a]%a" pp_min b pp_max e print_nan nan
+      end
     end
-  end
+  | FRange.NaN -> Format.fprintf fmt "NaN"
 
 let pretty = pretty_aux F.pretty F.pretty
-let pretty_overflow =
-  let pp_aux bound fmt f =
-    if F.equal bound f
-    then Format.pp_print_string fmt "--."
-    else F.pretty fmt f
-  in
-  let pp_min = pp_aux F.most_negative_float in
-  let pp_max = pp_aux F.max_float in
-  pretty_aux pp_min pp_max
 
+let hash = function
+  | FRange.I(b,e,n) -> (2 * F.hash b) + (5 * F.hash e) + (7 * Hashtbl.hash n)
+  | FRange.NaN -> 3
 
-let hash (FRange.I(b,e)) =
-  F.hash b + (5 * F.hash e)
+(* --------------------------------------------------------------------------
+                       Constants, injections, projections
+   -------------------------------------------------------------------------- *)
 
-(* True only iff the interval contains at least one finite number. *)
-let has_finite (FRange.I(b, e)) =
-  let is_finite f = match classify_float f with
-    | FP_nan | FP_infinite -> false | _ -> true
-  in
-  match is_finite b, is_finite e with
-  | false, false -> (* check if the interval is not [-oo,+oo] *)
-    F.is_neg_infinity b && F.is_infinity e
-  | _, _ -> true
+let top_f ~nan = FRange.inject_raw ~nan F.neg_infinity F.pos_infinity
+let top = top_f ~nan:true
 
-let inject_singleton x = inject x x
+let top_finite = function
+  | Real -> top_f ~nan:false
+  | Float32 ->
+    FRange.inject_raw
+      F.most_negative_single_precision_float
+      F.max_single_precision_float
+  | Float64 ->
+    FRange.inject_raw
+      F.most_negative_float
+      F.max_float
+
+let inject = FRange.inject
+let inject_singleton x = FRange.inject_raw x x
 
 let one = inject_singleton F.one
-
-let zero = inject_singleton F.zero
+let plus_zero = inject_singleton F.plus_zero
 let minus_zero = inject_singleton F.minus_zero
-let zeros = inject F.minus_zero F.zero
+let zeros = FRange.inject_raw F.minus_zero F.plus_zero
+let pos_infinity = inject_singleton F.pos_infinity
+let neg_infinity = inject_singleton F.neg_infinity
+let nan = FRange.nan
 
-let compare_min (FRange.I(m1,_)) (FRange.I(m2,_)) =
-  F.compare m1 m2
+let pi =
+  (* [pi] is the nearest double to \pi, and is smaller than \pi. *)
+  let pi = 3.14159265358979323846 in
+  FRange.inject_raw ~nan:false pi (F.next_float Float64 pi)
 
-let compare_max (FRange.I(_, m1)) (FRange.I(_, m2)) =
-  F.compare m2 m1
+let e =
+  (* [e] is the nearest double to \e, and is smaller than \e. *)
+  let e = 2.7182818284590452354 in
+  FRange.inject_raw ~nan:false e (F.next_float Float64 e)
 
-let is_included (FRange.I(b1, e1)) (FRange.I(b2, e2)) =
-  F.le b2 b1 && F.le e1 e2
+let minus_one_one = FRange.inject_raw ~nan:false F.minus_one F.one
+let minus_pi_pi = FRange.inject_raw ~nan:false F.m_minus_pi F.m_pi
 
-let join (FRange.I(b1, e1)) (FRange.I(b2, e2)) =
-  inject (F.min b1 b2) (F.max e1 e2)
+let round_to_single_precision_float = function
+  | FRange.I(b, e, nan) ->
+    let b = Floating_point.round_to_single_precision_float b in
+    let e = Floating_point.round_to_single_precision_float e in
+    FRange.inject_raw ~nan b e
+  | FRange.NaN -> FRange.nan
 
-let join_or_bottom = Bottom.join join
+let inject_after_tighten kind ~nan b e =
+  match kind with
+  | Real | Float64 -> `Value (FRange.inject ~nan kind b e)
+  | Float32 ->
+    Floating_point.set_round_upward ();
+    let b = Floating_point.round_to_single_precision_float b in
+    Floating_point.set_round_downward ();
+    let e = Floating_point.round_to_single_precision_float e in
+    Floating_point.set_round_nearest_even ();
+    if F.le b e then `Value (FRange.inject_raw ~nan b e)
+    else if nan then `Value FRange.nan else `Bottom
 
-let meet (FRange.I(b1, e1)) (FRange.I(b2, e2)) =
-  if F.le b2 e1 && F.le b1 e2
-  then `Value (inject (F.max b1 b2) (F.min e1 e2))
-  else `Bottom
+let tighten_bound_by_rounding = function
+  | Real | Float64 -> fun f -> `Value f
+  | Float32 -> function
+    | FRange.I (b, e, nan) -> inject_after_tighten Float32 ~nan b e
+    | FRange.NaN -> `Value FRange.nan
+
+let min_and_max = function
+  | FRange.I(b,e,nan) -> Some (b, e), nan
+  | FRange.NaN -> None, true
+
+let is_negative = function
+  | FRange.I (b, e, false) ->
+    if F.is_negative e then Comp.True
+    else if not (F.is_negative b) then Comp.False
+    else Comp.Unknown
+  | FRange.I (_, _, true)
+  | FRange.NaN -> Comp.Unknown
+
+exception Not_Singleton_Float
+
+let project_float = function
+  | FRange.I(b, e,false) when F.equal b e -> b
+  | FRange.I(_, _,_) | FRange.NaN -> raise Not_Singleton_Float
+
+(* Splits the interval [b; e] into two intervals (neg, pos) such that [neg]
+   (resp. [pos]) contains only negative (resp. positive) floats. *)
+let split_by_sign ((b, e) as x) =
+  if F.le e F.minus_zero then `Value x, `Bottom
+  else if F.ge b F.plus_zero then `Bottom, `Value x
+  else `Value (b, F.minus_zero), `Value (F.plus_zero, e)
+
+(* Returns true iff [f] represents an odd integer. *)
+let is_odd f = abs_float (mod_float f 2.0) = 1.0
+
+(* [split_by_parity (b, e)] returns [even_bounds, odd_bounds], where:
+   - [even_bounds] are the min and max even integers enclosed between b and e
+     (or None if there is no such even integer).
+   - [odd_bounds] are the min and max odd integers (representable as floating-
+     point values) enclosed between b and e (or None if there is no such odd
+     integer). These bounds cannot be infinite.  *)
+let split_by_parity fkind (b, e) =
+  let b = ceil b
+  and e = floor e in
+  if b > e then None, None
+  else if b = e
+  then
+    let x = (b, e) in
+    if is_odd b then None, Some x else Some x, None
+  else
+    let min_even, min_odd =
+      if is_odd b
+      (* No rounding errors may happen below because odd numbers are bounded. *)
+      then b +. 1.0, b
+      else b, F.max (F.most_negative_odd_integer fkind) (b +. 1.0)
+    and max_even, max_odd =
+      if is_odd e
+      (* No rounding errors may happen below because odd numbers are bounded. *)
+      then e -. 1.0, e
+      else e, F.min (F.max_odd_integer fkind) (e -. 1.0)
+    in
+    let even = Some (min_even, max_even)
+    and odd = if max_odd < min_odd then None else Some (min_odd, max_odd) in
+    even, odd
+
+(* --------------------------------------------------------------------------
+                                    Lattice
+   -------------------------------------------------------------------------- *)
+
+let is_included x1 x2 =
+  match x1, x2 with
+  | FRange.I(b1, e1, n1), FRange.I(b2, e2, n2) ->
+    F.le b2 b1 && F.le e1 e2 && (not n1 || n2)
+  | FRange.NaN, FRange.I(_,_,true) -> true
+  | FRange.NaN, FRange.NaN -> true
+  | _ -> false
+
+let join f1 f2 =
+  match f1,f2 with
+  | FRange.I(b1, e1, n1), FRange.I(b2, e2, n2) ->
+    FRange.inject_raw ~nan:(n1 || n2) (F.min b1 b2) (F.max e1 e2)
+  | (FRange.I(b1, e1, _), FRange.NaN)
+  | (FRange.NaN, FRange.I(b1, e1, _)) -> FRange.inject_raw ~nan:true b1 e1
+  | FRange.NaN, FRange.NaN -> FRange.nan
+
+let widen f1 f2 =
+  assert (is_included f1 f2);
+  match f1, f2 with
+  | FRange.I(b1,e1,_), FRange.I(b2, e2,nan) ->
+    let b = if F.equal b2 b1 then b2 else F.widen_down b2 in
+    let e = if F.equal e2 e1 then e2 else F.widen_up e2 in
+    (** widen_up and down produce double only if the input is a double *)
+    FRange.inject_raw ~nan b e
+  | FRange.NaN, f2 -> f2
+  | FRange.I(_,_,_), FRange.NaN -> assert false
+
+let meet f1 f2 =
+  match f1, f2 with
+  | FRange.I(b1, e1, n1), FRange.I(b2, e2, n2) ->
+    let is_finite = F.le b2 e1 && F.le b1 e2 in
+    let is_nan = n1 && n2 in
+    if is_finite || is_nan
+    then
+      let v =
+        if is_finite then
+          FRange.inject_raw ~nan:is_nan (F.max b1 b2) (F.min e1 e2)
+        else FRange.nan
+      in
+      `Value v
+    else `Bottom
+  | (FRange.I(_,_,true) | FRange.NaN) , (FRange.I(_,_,true) | FRange.NaN) ->
+    `Value FRange.nan
+  | _ -> `Bottom
 
 let narrow = meet
 
-let contains_zero = is_included zero
+let has_greater_min_bound x1 x2 =
+  match x1,x2 with
+  | FRange.I (m1, _, _), FRange.I (m2, _, _) -> F.compare m1 m2
+  | FRange.NaN, FRange.I _ -> 1
+  | FRange.I _, FRange.NaN -> -1
+  | FRange.NaN, FRange.NaN -> 0
+
+let has_smaller_max_bound x1 x2 =
+  match x1, x2 with
+  | FRange.I (_, m1, _), FRange.I (_, m2, _) -> F.compare m2 m1
+  | FRange.NaN, FRange.I _ -> 1
+  | FRange.I _, FRange.NaN -> -1
+  | FRange.NaN, FRange.NaN -> 0
+
+(* --------------------------------------------------------------------------
+                                   Tests
+   -------------------------------------------------------------------------- *)
+
+let contains_plus_zero = is_included plus_zero
 let contains_minus_zero = is_included minus_zero
 
 (* Returns true if [f] is certainly a zero (positive, negative or both). *)
 let is_a_zero f = is_included f zeros
 
-let contains_a_zero (FRange.I(b, e)) =
-  F.le_ieee b F.zero && F.le_ieee F.zero e
+let contains_a_zero = function
+  | FRange.I(b, e, _) -> F.le_ieee b F.plus_zero && F.ge_ieee e F.plus_zero
+  | FRange.NaN -> false
 
-let is_zero f =
-  0 = compare zero f
+let contains_non_zero = function
+  | FRange.I(b, e, nan) ->
+    nan || F.lt_ieee b F.plus_zero || F.gt_ieee e F.plus_zero
+  | FRange.NaN -> true
 
-let is_singleton (FRange.I(b, e)) = F.equal b e
+let contains_strictly_pos = function
+  | FRange.I(_, e, _) -> F.gt_ieee e F.plus_zero
+  | FRange.NaN -> false
 
-exception Not_Singleton_Float
+let contains_strictly_neg = function
+  | FRange.I(b, _, _) -> F.lt_ieee b F.minus_zero
+  | FRange.NaN -> false
 
-let project_float (FRange.I(b, e)) =
-  if F.equal b e then b else raise Not_Singleton_Float
+let contains_strict_neg_finite (b, e) =
+  F.gt_ieee e F.neg_infinity && F.lt b F.minus_zero
 
-let neg (FRange.I(b, e)) =
-  inject (F.neg e) (F.neg b) (* do not round because exact operation *)
+let contains_finite_noninteger fkind (b, e) =
+  let ib = ceil b in
+  not ((F.equal_ieee ib b && F.equal_ieee b e)
+       || e <= F.floor_of_most_negative_representable_non_integer fkind
+       || b >= F.ceil_of_largest_representable_non_integer fkind)
 
-let abs (FRange.I(b, e) as f) =
-  if contains_zero f then
-    inject F.zero (F.max (abs_float b) (abs_float e))
-  else
-  if F.compare e F.zero < 0 then neg f else f
+let contains_pos_infinity = function
+  | FRange.I(_, e, _) -> F.equal_ieee F.pos_infinity e
+  | FRange.NaN  -> false
 
+let contains_neg_infinity = function
+  | FRange.I(b, _, _) -> F.equal_ieee F.neg_infinity b
+  | FRange.NaN  -> false
 
-type rounding_mode = Any | Nearest_Even
+let contains_infinity f =
+  contains_pos_infinity f || contains_neg_infinity f
 
+let contains_nan = function
+  | FRange.I(_, _, nan) -> nan
+  | FRange.NaN  -> true
 
-let top_single_precision_float =
-  inject
-    F.most_negative_single_precision_float
-    F.max_single_precision_float
+let is_singleton = function
+  | FRange.I(b, e,false) -> F.equal b e
+  | FRange.I(_, _,true) -> false
+  | FRange.NaN -> true (* intentional, see .mli *)
 
-let round_to_single_precision_float ~rounding_mode (FRange.I(b, e)) =
-  if rounding_mode = Any
-  then Floating_point.set_round_downward ()
-  else Floating_point.set_round_nearest_even ();
-  let b = Floating_point.round_to_single_precision_float b in
-  if rounding_mode = Any then Floating_point.set_round_upward ();
-  let e = Floating_point.round_to_single_precision_float e in
-  if rounding_mode = Any then Floating_point.set_round_nearest_even ();
-  let infb, b =
-    match classify_float b, denormal_treatment with
-    | FP_infinite, _ ->
-      if F.equal_ieee b F.infinity
-      then raise Non_finite;
-      true, F.most_negative_single_precision_float
-    | FP_subnormal, FTZ -> false, F.zero_of_same_sign b
-    | FP_subnormal, DenormalsandFTZ when not (F.is_negative b) ->
-      false, F.zero
-    | _ -> false, b
+let if_not_nan = function
+  | FRange.NaN -> assert false
+  | FRange.I(b,e,_) -> b,e
+
+let finite_values fkind = function
+  | FRange.NaN -> None
+  | FRange.I(b,e,_) ->
+    let min = F.max (F.most_negative_representable_float fkind) b in
+    let max = F.min (F.max_representable_float fkind) e in
+    if max < min then None else Some (min, max)
+
+let is_not_nan = function
+  | FRange.NaN -> Comp.False
+  | FRange.I (_b, _e, nan) -> if nan then Comp.Unknown else Comp.True
+
+let is_finite = function
+  | FRange.NaN -> Comp.False
+  | FRange.I (b, e, nan) ->
+    if F.equal e F.neg_infinity || F.equal b F.pos_infinity
+    then Comp.False
+    else if nan || F.equal b F.neg_infinity || F.equal e F.pos_infinity
+    then Comp.Unknown
+    else Comp.True
+
+let backward_is_not_nan = function
+  | FRange.NaN -> `Bottom
+  | FRange.I (b, e, _) -> `Value (FRange.inject_raw ~nan:false b e)
+
+let backward_is_finite fkind = function
+  | FRange.NaN -> `Bottom
+  | FRange.I (b, e, _) as f ->
+    if F.equal b e && F.is_infinite b
+    then `Bottom (* [f] is exactly an infinite, we can return `Bottom even
+                    in the [Real] case *)
+    else narrow (top_finite fkind) f
+
+(* --------------------------------------------------------------------------
+                                Comparisons
+   -------------------------------------------------------------------------- *)
+
+let forward_eq (b1,e1) (b2,e2) =
+  let not_intersects =
+    F.lt_ieee e2 b1 || F.lt_ieee e1 b2
   in
-  let infe, e =
-    match classify_float e, denormal_treatment with
-    | FP_infinite, _ ->
-      if F.equal_ieee e F.neg_infinity
-      then raise Non_finite;
-      true, F.max_single_precision_float
-    | FP_subnormal, FTZ -> false, F.zero_of_same_sign e
-    | FP_subnormal, DenormalsandFTZ when F.is_negative e ->
-      false, F.minus_zero
-    | _ -> false, e
-  in
-  infb || infe, inject b e
-(*  Format.printf "Casting double -> float %a -> %B %a@."
-     pretty _arg fl pretty _res; fl, _res *)
-
-
-(* Bitwise reinterpretation of a double to a 64-bit integer. signedness of the
-   integer is defined by ~signed *)
-let bits_of_float64 ~signed (FRange.I(l, u)) =
-  if F.is_negative u
-  then begin
-    if signed then
-      Int.of_int64 (Int64.bits_of_float u),
-      Int.of_int64 (Int64.bits_of_float l)
-    else
-      Int.(add_2_64 (of_int64 (Int64.bits_of_float u))),
-      Int.(add_2_64 (of_int64 (Int64.bits_of_float l)))
-  end
-  else if F.is_negative l
-  then begin
-    if signed then
-      Int.of_int64 Int64.min_int,
-      Int.of_int64 (Int64.bits_of_float u)
-    else
-      Int.zero,
-      Int.(add_2_64 (of_int64 (Int64.bits_of_float l)))
-  end
-  else
-    Int.of_int64 (Int64.bits_of_float l),
-    Int.of_int64 (Int64.bits_of_float u)
-
-(* Bitwise reinterpretation of a float to a 32-bit integer. signedness of the
-   integer is defined by ~signed *)
-let bits_of_float32 ~signed (FRange.I(l, u)) =
-  assert (F.equal l (Floating_point.round_to_single_precision_float l));
-  assert (F.equal u (Floating_point.round_to_single_precision_float u));
-  if F.is_negative u
-  then begin
-    if signed then
-      Int.of_int32 (Int32.bits_of_float u),
-      Int.of_int32 (Int32.bits_of_float l)
-    else
-      Int.(add_2_32 (of_int32 (Int32.bits_of_float u))),
-      Int.(add_2_32 (of_int32 (Int32.bits_of_float l)))
-  end
-  else
-  if F.is_negative l
-  then begin
-    if signed then
-      Int.of_int32 Int32.min_int,
-      Int.of_int32 (Int32.bits_of_float u)
-    else
-      Int.zero,
-      Int.(add_2_32 (of_int32 (Int32.bits_of_float l)))
-  end
-  else
-    Int.of_int32 (Int32.bits_of_float l),
-    Int.of_int32 (Int32.bits_of_float u)
-
-
-let add rounding_mode (FRange.I(b1, e1)) (FRange.I(b2, e2)) =
-  if rounding_mode = Any
-  then Floating_point.set_round_downward ()
-  else Floating_point.set_round_nearest_even ();
-  let bs = F.add b1 b2 in
-  if rounding_mode = Any then Floating_point.set_round_upward ();
-  let es = F.add e1 e2 in
-  if rounding_mode = Any then Floating_point.set_round_nearest_even ();
-  inject_r bs es
-
-let sub rounding_mode v1 v2 = add rounding_mode v1 (neg v2)
-
-let mul rounding_mode (FRange.I(b1, e1)) (FRange.I(b2, e2)) =
-  if rounding_mode = Any
-  then Floating_point.set_round_downward ()
-  else Floating_point.set_round_nearest_even ();
-  let a = F.mult b1 b2 in
-  let b = F.mult b1 e2 in
-  let c = F.mult e1 b2 in
-  let d = F.mult e1 e2 in
-  let min = F.min (F.min a b) (F.min c d) in
-  let max =
-    if rounding_mode = Any then begin
-      Floating_point.set_round_upward ();
-      let a = F.mult b1 b2 in
-      let b = F.mult b1 e2 in
-      let c = F.mult e1 b2 in
-      let d = F.mult e1 e2 in
-      Floating_point.set_round_nearest_even ();
-      F.max (F.max a b) (F.max c d);
-    end
-    else
-      F.max (F.max a b) (F.max c d)
-  in
-  inject_r min max
-
-(** Assumes that [v2] does not contain zero. No NaN can be created by
-    F.div in this case. *)
-let div_non_zero rounding_mode (FRange.I(b1, e1)) (FRange.I(b2, e2)) =
-  if rounding_mode = Any
-  then Floating_point.set_round_downward ()
-  else Floating_point.set_round_nearest_even ();
-  let c1 = F.div b1 b2 in
-  let c2 = F.div b1 e2 in
-  let c3 = F.div e1 b2 in
-  let c4 = F.div e1 e2 in
-  let min = F.min (F.min c1 c2) (F.min c3 c4) in
-  let max =
-    if rounding_mode = Any then begin
-      Floating_point.set_round_upward ();
-      let c1 = F.div b1 b2 in
-      let c2 = F.div b1 e2 in
-      let c3 = F.div e1 b2 in
-      let c4 = F.div e1 e2 in
-      Floating_point.set_round_nearest_even ();
-      F.max (F.max c1 c2) (F.max c3 c4)
-    end
-    else F.max (F.max c1 c2) (F.max c3 c4)
-  in
-  inject_r min max
-
-let div rounding_mode v1 v2 =
-  if is_a_zero v2 then
-    raise Non_finite
-  else
-  if contains_zero v2 then
-    true, top (* could be improved when v2 is strictly positive or negative.
-                 However, if it very difficult to produce +0. without
-                 -0. or the converse. Thus, this is not worth the effort. *)
-  else div_non_zero rounding_mode v1 v2
-
-let nan_sqrt = an_alarm (ANaN "negative argument")
-let nan_sqrt_assume =
-  Builtin_alarms.add (AAssume "non-negative argument") nan_sqrt
-
-(* [sqrt_f] is the actual function computing the (exact) square root,
-   in single precision (sqrtf) or double precision (sqrt). *)
-let sqrt' sqrt_f rounding_mode (FRange.I(b, e)) =
-  if F.lt_ieee e F.zero then
-    nan_sqrt, `Bottom
-  else
-    let alarm, min =
-      if F.le_ieee F.zero b
-      then begin
-        if rounding_mode = Any
-        then Floating_point.set_round_downward ()
-        else Floating_point.set_round_nearest_even ();
-        let min = sqrt_f b in
-        if rounding_mode = Any then Floating_point.set_round_nearest_even ();
-        no_alarm, min
-      end
-      else
-        (* case e < 0 treated above, some values are positive or zero *)
-        nan_sqrt_assume, F.minus_zero
-    in
-    if rounding_mode = Any then Floating_point.set_round_upward ();
-    let max = sqrt_f e in
-    if rounding_mode = Any then Floating_point.set_round_nearest_even ();
-    alarm, `Value (inject min max)
-
-let sqrt = sqrt' F.sqrt
-let sqrtf = sqrt' F.sqrtf
-
-let minus_one_one = inject F.minus_one F.one
-let minus_pi_pi = inject F.m_minus_pi F.m_pi
-
-let atan2 (FRange.I(b1, e1)) (FRange.I(b2, e2)) =
-  Floating_point.set_round_nearest_even ();
-  let res =
-    if F.equal b1 e1 && F.equal b2 e2 then begin
-      let c = F.atan2 b1 b2 in
-      inject c c
-    end
-    else
-      (* Unless y ([b1,e1]) crosses the x-axis, atan2 is continuous,
-         and its minimum/maximum are at the ends of the intervals of x and y.
-         Otherwise, the result is [-pi,+pi]. *)
-    if not (F.compare b1 F.zero < 0 && F.compare e1 F.minus_zero > 0) then
-      let a1, a2, a3, a4 = F.atan2 b1 b2, F.atan2 b1 e2,
-                           F.atan2 e1 b2, F.atan2 e1 e2
-      in
-      let b = F.min a1 (F.min a2 (F.min a3 a4)) in
-      let e = F.max a1 (F.max a2 (F.max a3 a4)) in
-      inject b e
-    else
-      minus_pi_pi
-  in (no_alarm(* never emits alarms *), `Value res)
-
-(* Returns true iff [f] represents an integer. *)
-let is_integer f = f = (F.trunc f)
-
-(* Returns true iff [f] represents an odd integer. *)
-let is_odd f = abs_float (mod_float f 2.0) = 1.0
-
-(* Maximum odd integer representable in float64 (2^53-1). *)
-let max_double_odd_integer = 9007199254740991.0
-(* Maximum odd integer representable in float32 (2^24-1). *)
-let max_single_odd_integer = 16777215.0
-(* Most negative odd integer representable in float64. *)
-let most_negative_double_odd_integer = -.max_double_odd_integer
-(* Most negative odd integer representable in float32. *)
-let most_negative_single_odd_integer = -.max_single_odd_integer
-
-let max_odd_integer fkind =
-  match fkind with
-  | Float64 -> max_double_odd_integer
-  | Float32 -> max_single_odd_integer
-
-let most_negative_odd_integer fkind =
-  match fkind with
-  | Float64 -> most_negative_double_odd_integer
-  | Float32 -> most_negative_single_odd_integer
-
-(* Returns [Some (⌈b⌉, ⌊e⌋), if ⌈b⌉ <= ⌊e⌋, or None otherwise. *)
-let enclosed_integer_range (FRange.I(b, e)) =
-  let ib, ie = ceil b, floor e in
-  if ib <= ie then Some (inject ib ie)
-  else None
-
-(* [fkind] is not used, but present for symmetry with odd function *)
-let min_and_max_enclosed_even _fkind (FRange.I(b, e)) =
-  assert (is_integer b);
-  assert (is_integer e);
-  let b_is_odd = is_odd b in
-  if b_is_odd && b = e then (* odd singleton *) None
-  else
-    (* note: no rounding errors may happen below because odd numbers are bounded *)
-    Some ((if b_is_odd then b +. 1.0 else b), if is_odd e then e -. 1.0 else e)
-
-(* large floating-point numbers are not symmetrical w.r.t. evenness *)
-let min_and_max_enclosed_odd fkind (FRange.I(b, e)) =
-  assert (is_integer b);
-  assert (is_integer e);
-  let min_odd =
-    if is_odd b then b else max (most_negative_odd_integer fkind) (b +. 1.0)
-  in
-  let max_odd =
-    if is_odd e then e else min (max_odd_integer fkind) (e -. 1.0)
-  in
-  if max_odd < min_odd then None else Some (min_odd, max_odd)
-
-(* Returns true iff [b..e] contains at least one odd positive integer. *)
-let contains_odd_positive_integer fkind (FRange.I(b, e)) =
-  if e < 1.0 || b > max_odd_integer fkind then false
-  else
-    let posb, pose = max 0.0 b, max 0.0 e in
-    let ib, ie = ceil posb, floor pose in
-    ib < ie || (ib = ie && is_odd ib)
-
-(* Splits [b..e] in (Some [b..f[, Some [f..e]).
-   An empty sub-interval is represented by None. *)
-let split_interval fkind (FRange.I(b, e) as x) f =
-  if F.compare b f > 0 || F.equal b f then (None, Some x)
-  else if F.compare e f < 0 then (Some x, None)
-  else
-    let pred_f = next_after fkind f neg_infinity in
-    (Some (inject b pred_f), Some (inject f e))
-
-let nan_pow = an_alarm (ANaN "negative base and noninteger exponent")
-let nan_pow_assume1 =
-  Builtin_alarms.add (AAssume ("non-negative base")) nan_pow
-let nan_pow_assume2 (FRange.I(b, e)) =
-  assert (is_integer b && is_integer e);
-  Builtin_alarms.add
-    (AAssume (Printf.sprintf
-                "integer exponent between %g and %g for negative bases" b e))
-    nan_pow
-
-(* Negative x => function is only defined for integer values of y. *)
-let pow_negative_x pow_f fkind ox y : builtin_res =
-  match ox with
-  | None -> no_alarm, `Bottom
-  | Some (FRange.I(x1, x2)) ->
-    match enclosed_integer_range y with
-    | None -> (* no integer values of y *)
-      nan_pow_assume1, `Bottom
-    | Some y_int ->
-      (* alert if y may contain non-integer values *)
-      let alarms =
-        if not (is_a_zero y) && (y <> y_int || not (is_singleton y)) then
-          nan_pow_assume2 y_int
-        else no_alarm
-      in
-      let compute_for_integer_y ~even min_and_max_f fkind y_int =
-        match min_and_max_f fkind y_int with
-        | None -> no_alarm, `Bottom
-        | Some (min_y, max_y) ->
-          let fx1, fx1' = pow_f x1 min_y, pow_f x1 max_y in
-          let fx2, fx2' = pow_f x2 min_y, pow_f x2 max_y in
-          let min_f = min fx1 (min fx1' (min fx2 fx2')) in
-          let min_f = if even && F.equal min_f F.zero &&
-                         contains_odd_positive_integer fkind y then
-              (* underflow: include minus zero *) F.minus_zero
-            else min_f
-          in
-          let max_f = max fx1 (max fx1' (max fx2 fx2')) in
-          let infb, infe, res = inject_r_f fkind min_f max_f in
-          let inf_alarms = Builtin_alarms.union
-              (if infb then an_alarm ANegInf else no_alarm)
-              (if infe then an_alarm APosInf else no_alarm)
-          in
-          Builtin_alarms.union alarms inf_alarms, `Value res
-      in
-      (* positive interval: even y *)
-      let even_alarms, pos_itv =
-        compute_for_integer_y ~even:true min_and_max_enclosed_even fkind y_int
-      in
-      let odd_alarms, neg_itv =
-        compute_for_integer_y ~even:false min_and_max_enclosed_odd fkind y_int
-      in
-      Builtin_alarms.union even_alarms odd_alarms,
-      join_or_bottom pos_itv neg_itv
-
-(* We compute the "actual" values to generate alarms, but also the "precise"
-   values (ignoring -inf/+inf). *)
-let compute_for_zero_x has_neg_inf has_minus_zero has_zero has_one has_pos_inf =
-  let min_f =
-    match has_minus_zero, has_zero, has_one with
-    | true, _, _ -> `Value minus_zero
-    | _, true, _ -> `Value zero
-    | _, _, true -> `Value one
-    | false, false, false -> `Bottom
-  in
-  let max_f =
-    match has_one, has_zero, has_minus_zero with
-    | true, _, _ -> `Value one
-    | _, true, _ -> `Value zero
-    | _, _, true -> `Value minus_zero
-    | false, false, false -> `Bottom
-  in
-  let alarms = Builtin_alarms.union
-      (if has_neg_inf then an_alarm ANegInf else no_alarm)
-      (if has_pos_inf then an_alarm APosInf else no_alarm)
-  in
-  alarms, join_or_bottom min_f max_f
-
-(* x equal to -0.0 or 0.0 *)
-let pow_zero_x fkind ox (FRange.I(y1, y2) as y) : builtin_res =
-  match ox with
-  | None -> no_alarm, `Bottom
-  | Some x ->
-    let has_zero = y2 > 0.0 in
-    let has_one = contains_a_zero y in
-    let has_pos_inf = y1 < -0.0 in
-    match Extlib.opt_bind (min_and_max_enclosed_odd fkind) (enclosed_integer_range y) with
-    | None -> (* no odd integers *)
-      let has_neg_inf = false in
-      let has_minus_zero = false in
-      compute_for_zero_x has_neg_inf has_minus_zero has_zero has_one has_pos_inf
-    | Some (min_odd_y, max_odd_y) ->
-      let has_neg_inf = contains_minus_zero x && min_odd_y < 0.0 in
-      let has_minus_zero = contains_minus_zero x && max_odd_y > 0.0 in
-      compute_for_zero_x has_neg_inf has_minus_zero has_zero has_one has_pos_inf
-
-(* x greater than 0.0 *)
-let pow_positive_x pow_f fkind ox (FRange.I(y1, y2)) : builtin_res =
-  match ox with
-  | None -> no_alarm, `Bottom
-  | Some (FRange.I(x1, x2)) ->
-    let fx1, fx1' = pow_f x1 y1, pow_f x1 y2 in
-    let fx2, fx2' = pow_f x2 y1, pow_f x2 y2 in
-    let min_f = min fx1 (min fx1' (min fx2 fx2')) in
-    let max_f = max fx1 (max fx1' (max fx2 fx2')) in
-    let infb, infe, res = inject_r_f fkind min_f max_f in
-    let alarms = Builtin_alarms.union
-        (if infb then an_alarm ANegInf else no_alarm)
-        (if infe then an_alarm APosInf else no_alarm)
-    in
-    alarms, `Value res
-
-(* [pow_f] is the actual function computing the exact power, according to the
-   desired precision: powf for single precision, pow for double precision. *)
-let pow' pow_f fkind (FRange.I(b1, e1) as x) (FRange.I(b2, e2) as y) =
-  Floating_point.set_round_nearest_even ();
-  (* deterministic case *)
-  if F.equal b1 e1 && F.equal b2 e2 then begin
-    try
-      let c = pow_f b1 b2 in
-      match classify_float c with
-      | FP_nan -> assert false
-      | FP_infinite ->
-        an_alarm (if c < 0. then ANegInf else APosInf), `Bottom
-      | _ -> no_alarm, `Value (inject_f fkind c c)
-    with F.NaN (* raised by pow_f *) ->
-      nan_pow, `Bottom
-  end
-  else
-    (* split analysis in 3 intervals for x:
-       negatives (]-oo..-0.0[), zero ([-0.0..0.0]) and positives (]0.0..+oo[) *)
-    let x_neg, x_pos_or_zero = split_interval fkind x (-0.0) in
-    let x_zero, x_pos = match x_pos_or_zero with
-      | None -> None, None
-      | Some x_pos_or_zero ->
-        let zero_succ = next_after fkind F.zero infinity in
-        split_interval fkind x_pos_or_zero zero_succ in
-    (* negative x is computed later because it may fail *)
-    let alarms1, itv_for_zero_x = pow_zero_x fkind x_zero y in
-    let alarms2, itv_for_pos_x = pow_positive_x pow_f fkind x_pos y in
-    let alarms3, itv_for_neg_x = pow_negative_x pow_f fkind x_neg y in
-    Builtin_alarms.union alarms1 (Builtin_alarms.union alarms2 alarms3),
-    join_or_bottom itv_for_neg_x
-      (join_or_bottom itv_for_zero_x itv_for_pos_x)
-
-let pow = pow' F.pow Float64
-let powf = pow' F.powf Float32
-
-let cos (FRange.I(b, e)) =
-  Floating_point.set_round_nearest_even ();
-  if F.equal b e
-  then
-    let c = F.cos b in
-    inject c c
-  else if F.le_ieee b F.minus_ff || F.le_ieee F.ff e
-  then minus_one_one
-  else begin
-    let allpos = F.le_ieee F.zero b in
-    let allneg = F.le_ieee e F.zero in
-    if F.le_ieee F.m_minus_pi b && F.le_ieee e F.m_pi
-    then begin
-      if allpos
-      then
-        inject (F.cos e) (F.cos b)
-      else if allneg
-      then
-        inject (F.cos b) (F.cos e)
-      else
-        inject (F.min (F.cos b) (F.cos e)) F.one
-    end
-    else if allpos || allneg
-    then inject F.minus_one (F.max (F.cos b) (F.cos e))
-    else minus_one_one
-  end
-
-let sin (FRange.I(b, e)) =
-  Floating_point.set_round_nearest_even ();
-  if F.equal b e
-  then let c = F.sin b in inject c c
-  else if F.le_ieee b F.minus_ff || F.le_ieee F.ff e
-  then minus_one_one
-  else if F.le_ieee e F.m_pi_2
-  then begin
-    if F.le_ieee F.m_minus_pi_2 b
-    then inject (F.sin b) (F.sin e)
-    else if F.le_ieee e F.m_minus_pi_2
-    then inject (F.sin e) (F.sin b)
-    else inject F.minus_one (F.max (F.sin b) (F.sin e))
-  end
-  else if F.le_ieee F.m_pi_2 b
-  then
-    inject (F.sin e) (F.sin b)
-  else if F.le_ieee F.m_minus_pi_2 b
-  then
-    inject (F.min (F.sin b) (F.sin e)) F.one
-  else minus_one_one
-
-(** See discussion in the .mli about [rounding_mode] *)
-(* [exp_f] is the actual underlying function computing the exponential,
-   according to the desired precision: expf for single precision,
-   exp for double precision. *)
-let exp' exp_f fkind rounding_mode (FRange.I(b, e)) =
-  if rounding_mode = Any
-  then Floating_point.set_round_downward ()
-  else Floating_point.set_round_nearest_even ();
-  let min = exp_f b in
-  if rounding_mode = Any then Floating_point.set_round_upward ();
-  let max = exp_f e in
-  if rounding_mode = Any then Floating_point.set_round_nearest_even ();
-  let infb, infe, r = inject_r_f fkind min max in
-  let alarms =
-    Builtin_alarms.union
-      (if infb then an_alarm ANegInf else no_alarm)
-      (if infe then an_alarm APosInf else no_alarm)
-  in
-  alarms, r
-
-let exp = exp' F.exp Float64
-let expf = exp' F.expf Float32
-
-let widen (FRange.I(b1,e1)) (FRange.I(b2, e2)) =
-  assert (F.le b2 b1);
-  assert (F.le e1 e2);
-  let b = if F.equal b2 b1 then b2 else F.widen_down b2 in
-  let e = if F.equal e2 e1 then e2 else F.widen_up e2 in
-  inject b e
-
-let forward_eq (FRange.I(b1, e1)) (FRange.I(b2, e2)) =
-  let intersects =
-    F.le_ieee b1 e2 && F.le_ieee b2 e1
-  in
-  if not intersects
+  if not_intersects
   then Comp.False
   else if F.equal_ieee b1 e1 && F.equal_ieee b2 e2
   then Comp.True
   else Comp.Unknown
 
-let forward_le (FRange.I(b1, e1)) (FRange.I(b2, e2)) =
+let forward_le (b1, e1) (b2, e2) =
   if F.le_ieee e1 b2 then Comp.True
   else if F.lt_ieee e2 b1 then Comp.False
   else Comp.Unknown
 
-let forward_lt (FRange.I(b1, e1)) (FRange.I(b2, e2)) =
+let forward_lt (b1, e1) (b2, e2) =
   if F.lt_ieee e1 b2 then Comp.True
   else if F.le_ieee e2 b1 then Comp.False
   else Comp.Unknown
 
-let forward_comp op f1 f2 =
-  let open Abstract_interp.Comp in
-  match op with
-  | Le -> forward_le f1 f2
-  | Ge -> forward_le f2 f1
-  | Lt -> forward_lt f1 f2
-  | Gt -> forward_lt f2 f1
-  | Eq -> forward_eq f1 f2
-  | Ne -> Comp.inv_result (forward_eq f1 f2)
+let forward_comp op f1 f2 = match f1, f2 with
+  | FRange.NaN, _ | _, FRange.NaN ->
+    if op = Comp.Ne then Comp.True else Comp.False
+  | FRange.I (b1, e1, nan1), FRange.I (b2, e2, nan2) ->
+    let r = match op with
+      | Comp.Le -> forward_le (b1, e1) (b2, e2)
+      | Comp.Ge -> forward_le (b2, e2) (b1, e1)
+      | Comp.Lt -> forward_lt (b1, e1) (b2, e2)
+      | Comp.Gt -> forward_lt (b2, e2) (b1, e1)
+      | Comp.Eq -> forward_eq (b1, e1) (b2, e2)
+      | Comp.Ne -> inv_truth (forward_eq (b1, e1) (b2, e2))
+    in
+    if nan1 || nan2
+    then
+      if op = Comp.Ne
+      then (match r with Comp.True -> Comp.True | _ -> Comp.Unknown)
+      else (match r with Comp.False -> Comp.False | _ -> Comp.Unknown)
+    else r
 
-let diff (FRange.I(b1, e1) as f1) (FRange.I(b2, e2)) =
-  if F.le b2 b1 && F.le e1 e2
-  then `Bottom
-  else if F.le b2 e1 && F.le e1 e2
-  then `Value (inject b1 b2)
-  else if F.le b1 e2 && F.le b2 b1
-  then `Value (inject e2 e1)
-  else `Value f1
-
-let backward_le_f allmodes fkind (FRange.I(b1, e1) as f1) e2 =
-  let e2 =
-    if F.equal_ieee F.zero e2
-    then F.zero
-    else
-      match fkind with
-      | Float32 ->
-        (* Preserve the invariant that the returned interval has 32bits
-           floating-point bounds *)
-        if allmodes then
-          Floating_point.set_round_upward () (* conservative direction *)
-        else
-          Floating_point.set_round_downward () (* precise direction *);
-        let r = Floating_point.round_to_single_precision_float e2 in
-        Floating_point.set_round_nearest_even ();
-        r
-      | Float64 -> e2
-  in
+(* This function intentionally returns different results with
+   [e2 = -0.] and [e2 = 0.] *)
+let backward_le_aux fkind (b1, e1) e2 =
   if not (F.le b1 e2)
   then `Bottom
   else if F.le e1 e2
-  then `Value f1
-  else `Value (inject b1 e2)
+  then `Value (FRange.inject fkind b1 e1)
+  else inject_after_tighten fkind ~nan:false b1 e2
 
-let backward_le allmodes fkind f1 (FRange.I(_b2, e2) as _f2) =
-  backward_le_f allmodes fkind f1 e2
+(* This is the "real" backward transformer for [le], which does not distinguish
+   [0.] and [-0.]. Thus we enlarge the bound in the "worst" direction. *)
+let backward_le fkind (b1, e1) e2 =
+  let e2 = if F.is_a_zero e2 then F.plus_zero else e2 in
+  backward_le_aux fkind (b1, e1) e2
 
-let backward_lt allmodes fkind (FRange.I(b1, _e1) as f1) (FRange.I(_b2, e2)) =
+let backward_lt fkind ((b1, e1) as f1) e2 =
   if F.le_ieee e2 b1
   then `Bottom
   else
-    let e2 =
-      if allmodes
-      then e2
-      else if F.equal_ieee F.zero e2
-      then Floating_point.neg_min_denormal
-      else F.prev_float e2 (* non-infinite because >= b1 *)
-    in
-    backward_le_f allmodes fkind f1 e2
+  if fkind = Real && not (F.equal b1 e1) then
+    (* On real we cannot be more precise than [le], except on zeros: at
+       least get rid of the "bad" zero *)
+    let e2 = if F.is_a_zero e2 then F.minus_zero else e2 in
+    backward_le_aux fkind f1 e2
+  else
+    backward_le fkind f1 (F.prev_float_ieee fkind e2)
 
-let backward_ge_f allmodes fkind (FRange.I(b1, e1) as f1) b2 =
-  let b2 =
-    if F.equal_ieee F.minus_zero b2
-    then F.minus_zero
-    else
-      match fkind with
-      | Float32 -> (* see comments in backward_le_f *)
-        if allmodes then
-          Floating_point.set_round_downward ()
-        else
-          Floating_point.set_round_upward ();
-        let r = Floating_point.round_to_single_precision_float b2 in
-        Floating_point.set_round_nearest_even ();
-        r
-      | Float64 -> b2
-  in
+(* see comments in {!backward_le_aux} *)
+let backward_ge_aux fkind (b1, e1) b2 =
   if not (F.le b2 e1)
   then `Bottom
   else if F.le b2 b1
-  then `Value f1
-  else `Value (inject b2 e1)
+  then `Value (FRange.inject fkind b1 e1)
+  else inject_after_tighten fkind ~nan:false b2 e1
 
-let backward_ge allmodes fkind f1 (FRange.I(b2, _e2)) =
-  backward_ge_f allmodes fkind f1 b2
+(* see comments in {!backward_le} *)
+let backward_ge fkind (b1, e1) b2 =
+  let b2 = if F.is_a_zero b2 then F.minus_zero else b2 in
+  backward_ge_aux fkind (b1, e1) b2
 
-let backward_gt allmodes fkind (FRange.I(_b1, e1) as f1) (FRange.I(b2, _e2)) =
+(* see comments in {!backward_gt} *)
+let backward_gt fkind ((b1, e1) as f1) b2 =
   if F.le_ieee e1 b2
   then `Bottom
   else
-    let b2 =
-      if allmodes
-      then b2
-      else if F.equal_ieee F.zero b2
-      then Floating_point.min_denormal
-      else F.next_float b2 (* non-infinite because <= e1 *)
-    in
-    backward_ge_f allmodes fkind f1 b2
+  if fkind = Real && not (F.equal b1 e1) then
+    let b2 = if F.is_a_zero b2 then F.plus_zero else b2 in
+    backward_ge_aux fkind f1 b2
+  else
+    backward_ge fkind f1 (F.next_float_ieee fkind b2)
 
-let backward_comp_left op allmodes fkind f1 f2 =
+(** The operands cannot be {!Nan} *)
+let backward_comp_left_true_finite op fkind f1' f2' =
+  let f1 = if_not_nan f1' in
+  let (b2,e2) = if_not_nan f2' in
   match op with
-  | Comp.Le -> backward_le allmodes fkind f1 f2
-  | Comp.Ge -> backward_ge allmodes fkind f1 f2
-  | Comp.Lt -> backward_lt allmodes fkind f1 f2
-  | Comp.Gt -> backward_gt allmodes fkind f1 f2
+  | Comp.Le -> backward_le fkind f1 e2
+  | Comp.Ge -> backward_ge fkind f1 b2
+  | Comp.Lt -> backward_lt fkind f1 e2
+  | Comp.Gt -> backward_gt fkind f1 b2
   | Comp.Eq ->
     (* -0 and +0 must not be distinguished here *)
-    let f2 = if contains_a_zero f2 then join f2 zeros else f2 in
-    narrow f1 f2
+    let f2 = if contains_a_zero f2' then join f2' zeros else f2' in
+    narrow f1' f2
   | Comp.Ne ->
-    (* compute ]-infty,min[ \cup ]max,infty[ *)
+    (* compute (f1 ∩ [-infty,min[ ) ∪ (f1 ∩ ]max,infty]) *)
     let before_or_after min max =
       Bottom.join join
-        (backward_lt allmodes fkind f1 min) (backward_gt allmodes fkind f1 max)
+        (backward_lt fkind f1 min) (backward_gt fkind f1 max)
     in
     (* As usual, we cannot reduce if [f2] is not a singleton, except that
        the two zeros are a kind of singleton. Checking whether [f2] is on
        a frontier of [f1] is not obvious because of the multiple cases
        (and [allmodes]) so we use the transformers for [lt] instead. *)
-    if is_a_zero f2 then before_or_after minus_zero zero
-    else if is_singleton f2 then before_or_after f2 f2
-    else `Value f1
+    if is_a_zero f2' then before_or_after F.minus_zero F.plus_zero
+    else if is_singleton f2' then before_or_after b2 b2
+    else `Value f1'
 
-let nan_fmod = an_alarm (ANaN "division by zero")
+(* Applies [backward f1 f2] and removes NaN from [f1] and [f2]. *)
+let backward_comp_no_nan backward_finite f1 f2 =
+  match f1, f2 with
+  | FRange.NaN, _ | _, FRange.NaN -> `Bottom
+  | FRange.I (b, e, nan), FRange.I _ ->
+    let f1 = if nan then FRange.inject_raw ~nan:false b e else f1 in
+    backward_finite f1 f2
 
-(* Emits a warning if there may be a division by zero.
-   Raises [Builtin_invalid_domain] if there must be a division by zero.
-   Evaluates the function for y ∉ {+0.0,-0.0}. *)
-let fmod (FRange.I(b1, e1) as x) (FRange.I(b2, e2) as y) =
-  let alarms = if contains_a_zero y then nan_fmod else no_alarm in
-  if is_a_zero y then
-    alarms, `Bottom
-  else begin
-    Floating_point.set_round_nearest_even ();
-    (* case analysis for extra precision *)
-    (* 1. deterministic case: y is a singleton and x ≠ 0 (already tested) *)
-    if F.equal b1 e1 && F.equal b2 e2 then
-      let c = F.fmod b1 b2 in
-      no_alarm, `Value (inject_f Float64 c c)
-    else
-      (* 2. [0 ∉ y] and [max_x < min_y] => [fmod(x,y) = x].
-            (i.e., x is too small w.r.t. y and unaffected by fmod *)
-    if not (contains_a_zero y) &&
-       F.compare (F.max (abs_float b1) (abs_float e1))
-         (F.min (abs_float b2) (abs_float e2)) < 0 then (alarms, `Value x)
-    else
-      (* 3. x and y are within the same continuous region.
-         (i.e. do not contain zero, do not cross any modulo boundaries, etc.)
-         Example: x=[6,7] and y=[4,5].
-         Restriction: [|x/y| < 2^53], otherwise truncation to an integer
-         (to test the above property) may return an incorrect result.
-         Note: to avoid issues with rounding, we conservatively set the
-         limit to 2^51 instead of 2^53. *)
-      let trunc x =
-        if F.compare x F.zero < 0 then ceil x else floor x
-      in
-      let max_i = F.max_precise_integer /. 4. in
-      let _ = Floating_point.set_round_toward_zero () in
-      let f1 = trunc (abs_float (b1 /. b2)) in
-      let f2 = trunc (abs_float (e1 /. e2)) in
-      let f3 = trunc (abs_float (b1 /. e2)) in
-      let f4 = trunc (abs_float (e1 /. b2)) in
-      Floating_point.set_round_nearest_even ();
-      if not (contains_zero x) && not (contains_zero y) &&
-         F.compare f1 f2 = 0 && F.compare f2 f3 = 0 && F.compare f3 f4 = 0 &&
-         F.compare f1 max_i < 0
-      then
-        (* normalize x and to positive intervals to minimize number of cases
-           (x and y do not contain 0).
-           The sign of x is forwarded to the result,
-           and the sign of y is ignored. *)
-        let x', y' = abs x, abs y in
-        let res_is_positive = F.compare e1 F.minus_zero > 0 in
-        match x', y' with
-        | FRange.I(x1, x2), FRange.I(y1, y2) ->
-          let r_min = mod_float x1 y2 in
-          let r_max = mod_float x2 y1 in
-          let res_abs = inject_f Float64 r_min r_max in
-          let res = if res_is_positive then res_abs else neg res_abs in
-          (alarms, `Value res)
-      else
-        (* General case: |fmod(x,y)| <= max(|b1|,|e1|) and
-                         |fmod(x,y)| < max(|b2|,|e2|),
-           e.g. (2.5 fmod 6) <= 2.5, and (6 fmod 2.5) < 2.5.
-           Also, if x > 0, then 0 <= fmod(x,y), and symmetrically for x < 0. *)
-        (* Auxiliary functions to filter interval extremities *)
-        let backward_lower_bound (FRange.I(b,_) as i) =
-          Bottom.non_bottom
-            (backward_gt false Float64 i (inject_f Float64 b b))
-        in
-        let backward_upper_bound (FRange.I(_,e) as i) =
-          Bottom.non_bottom
-            (backward_lt false Float64 i (inject_f Float64 e e))
-        in
-        (* remove zeroes from y, by normalizing it to [ay1,ay2],
-           where [ay1] and [ay2] are both positive.
-           This is valid because fmod is an even function w.r.t. y
-           (e.g. f(x,y) = f(x,-y)).
-           Compute fmod on ]0, max(|b2|,|e2|)] if y crosses the x-axis,
-           or on |[b2,e2]| otherwise. *)
-        let max (FRange.I(_,e)) = e in
-        let x', y' = abs x, abs y in
-        let y' = if contains_zero y' then
-            (* y crosses the x-axis, filter zero out (alarm already emitted) *)
-            backward_lower_bound (inject_f Float64 F.zero (max y')) else y'
-        in
-        let r_mod = F.min (max x') (max y') in
-        (* To know whether we can ignore the extremities of the interval,
-           we check if the result modulus is due to the y interval. *)
-        let strict_le = F.compare (max y') (max x') <= 0 in
-        (* The final result is [0, r_mod] if x is always non-negative,
-           [-r_mod, 0] if x is always negative, or [-r_mod, r_mod] otherwise.
-           The interval is closed or open according to [strict_le]. *)
-        let res =
-          if F.compare e1 F.zero < 0 then
-            (* x always negative *)
-            let r = inject_f Float64 (-.r_mod) F.minus_zero in
-            if strict_le then backward_lower_bound r else r
-          else if F.compare b1 F.minus_zero > 0 then
-            (* x always positive *)
-            let r = inject_f Float64 F.zero r_mod in
-            if strict_le then backward_upper_bound r else r
-          else
-            (* x may be negative or positive => intersect [-r_mod, r_mod]
-               with the original interval *)
-            let r = inject_f Float64 (-.r_mod) r_mod in
-            let r =
-              if strict_le
-              then backward_lower_bound (backward_upper_bound r)
-              else r
-            in
-            Bottom.non_bottom (meet x r)
-        in
-        (alarms, `Value res)
-  end
+(* Applies [backward f1 f2] but preserves NaN from [f1] and [f2]. *)
+let backward_comp_with_nan backward_finite f1 f2 =
+  if contains_nan f2
+  then `Value f1
+  else
+    match f1 with
+    | FRange.NaN -> `Value f1
+    | FRange.I (_, _, nan) ->
+      let nan = if nan then `Value FRange.nan else `Bottom in
+      Bottom.join join (backward_finite f1 f2) nan
 
+let backward_comp_left_true op kind =
+  let backward_finite = backward_comp_left_true_finite op kind in
+  if op = Comp.Ne
+  then backward_comp_with_nan backward_finite
+  else backward_comp_no_nan backward_finite
 
-let nan_log = an_alarm (ANaN "negative argument")
-let nan_log_assume =
-  Builtin_alarms.add (AAssume "argument greater than zero") nan_log
+let backward_comp_left_false op kind =
+  let backward_finite = backward_comp_left_true_finite (Comp.inv op) kind in
+  if op = Comp.Ne
+  then backward_comp_no_nan backward_finite
+  else backward_comp_with_nan backward_finite
 
-(** See discussion in the .mli about [rounding_mode] *)
-let log_float_aux fkind flog rounding_mode (FRange.I(_, e) as v) =
-  (* we want to compute the smallest denormal bigger than zero -> use
-     allroundingmodes=false. *)
-  match backward_gt false fkind v zero with
-  | `Bottom -> nan_log, `Bottom
-  | `Value (FRange.I(b_reduced, _) as reduced) ->
-    let alarm = if equal reduced v then no_alarm else nan_log_assume in
-    if rounding_mode = Any
-    then Floating_point.set_round_downward ()
-    else Floating_point.set_round_nearest_even ();
-    let min = flog b_reduced in
-    if rounding_mode = Any then Floating_point.set_round_upward ();
-    let max = flog e in
-    if rounding_mode = Any then Floating_point.set_round_nearest_even ();
-    let alm', alm'', r = inject_r_f fkind min max in
-    assert (not (alm'||alm'')); (* alm' and alm'' should always be false *)
-    alarm, `Value r
-
-let log = log_float_aux Float64 F.log
-let log10 = log_float_aux Float64 F.log10
-
-let logf = log_float_aux Float32 F.logf
-let log10f = log_float_aux Float32 F.log10f
+(* --------------------------------------------------------------------------
+                        Simple arithmetic operations
+   -------------------------------------------------------------------------- *)
 
 (* The functions defined using [exact_aux] below are, among other
    properties, (1) exact (the result as a real can always be
@@ -1306,80 +920,620 @@ let log10f = log_float_aux Float32 F.log10f
    particular, given a float 'x', 'ff x == (float)(f (double)x)'.
    Thus, in this module, the 'f' functions are also the non-f
    (since float32 are represented using double) *)
-let exact_aux fkind ff _rounding_mode (FRange.I(b, e)) =
-  let fb, fe = ff b, ff e in
-  no_alarm, inject_f fkind fb fe
+let exact_aux ff fkind = function
+  | FRange.NaN as f -> f
+  | FRange.I (b, e, nan) ->
+    (* [ff] returns NaN only if the argument is NaN. *)
+    FRange.inject fkind ~nan (ff b) (ff e)
 
-let floor = exact_aux Float64 F.floor
-let ceil = exact_aux Float64 F.ceil
-let trunc = exact_aux Float64 F.trunc
-let fround = exact_aux Float64 F.fround
+let floor = exact_aux F.floor
+let ceil = exact_aux F.ceil
+let trunc = exact_aux F.trunc
+let fround = exact_aux F.fround
 
-let floorf = exact_aux Float32 F.floor
-let ceilf = exact_aux Float32 F.ceil
-let truncf = exact_aux Float32 F.trunc
-let froundf = exact_aux Float32 F.fround
+let neg = function
+  | FRange.I(b, e, nan) ->
+    (* do not round because exact operation *)
+    FRange.inject_raw ~nan (F.neg e) (F.neg b)
+  | FRange.NaN -> FRange.nan
 
+let abs = function
+  | (FRange.I(b, e,nan) as f) ->
+    if contains_plus_zero f then
+      FRange.inject_raw ~nan F.plus_zero (F.max (abs_float b) (abs_float e))
+    else (* f is either strictly positive or strictly negative *)
+    if F.compare e F.plus_zero < 0 then neg f else f
+  | FRange.NaN as f -> f
 
-let subdiv_float_interval ~size (FRange.I(l, u) as i) =
-  let midpoint = F.avg l u in
-  let midpointl, midpointu =
-    match size with
-    | None (* all rounding modes *) -> midpoint, midpoint
-    | Some Float32 ->
-      if F.equal l F.minus_zero && F.equal u F.zero then l, u
-      else begin
-        let smidpoint = F.next_float midpoint in
-        Floating_point.set_round_upward ();
-        let midpointu =
-          Floating_point.round_to_single_precision_float smidpoint
-        in
-        Floating_point.set_round_downward ();
-        let midpointl =
-          Floating_point.round_to_single_precision_float midpoint
-        in
-        Floating_point.set_round_nearest_even ();
-        midpointl, midpointu
-      end
-    | Some Float64 ->
-      let smidpoint = F.next_float midpoint in
-      if F.le smidpoint u
-      then
-        if F.next_float l = u
-        then
-          l, u
-        else
-          midpoint, smidpoint
-      else midpoint, u
+(* This monad returns a NaN if one operand can only be NaN, and lets the second
+   function perform the computation if both operands contain a non-empty
+   floating-point interval. *)
+let ( >>% ) = fun (x,y) f -> match x, y with
+  | FRange.NaN, _ | _, FRange.NaN -> FRange.nan
+  | FRange.I (b1, e1, nan1), FRange.I (b2, e2, nan2) ->
+    let nan = nan1 || nan2 in
+    f ~nan (b1, e1) (b2, e2)
+
+(* Auxiliary function used for the forward semantics of add, mul and div.
+   For a monotonic function [op], the bounds of [[b1..e1] op [b2..e2]] are the
+   minimum and maximum of [b1 op b2], [b1 op e2], [e1 op b2] and [e1 op e2].
+   NaN can be created from \infty - \infty, 0 * \infty, 0/0 and \infty / \infty,
+   in which case the result contains NaN, and new operations are performed to
+   take into account the results of values near \infty and 0.
+   Beware that NaN and discontinuities occuring between the bounds of the
+   arguments (i.e. on zeros, as an infinity is always a bound) should be checked
+   and processed by the caller. *)
+let monotonic op fkind x y =
+  (x, y) >>% fun ~nan (b1, e1) (b2, e2) ->
+  let nan = ref nan in
+  (* Results of [op] applied to the bounds of the intervals, excluding NaN. *)
+  let results = ref [] in
+  (* When [a op b = NaN], performs new operations to take into account values
+     near [a] (and near [b] with the same reasoning). For such a NaN from add,
+     mul or div, [c op b] is constant for all values c <> a of the same sign.
+     Thus, we can replace [a] by any of these values.
+     - if [x] is a singleton or [-0 .. +0], there are no values other than the
+       bounds to take into account;
+     - otherwise, if [a] is infty, replace it by 1 with the sign of [a]
+       (no risk of NaN with 1 on add, mul and div);
+     - otherwise, if [a] is zero, the other bound [c] of the interval has the
+       same sign as the values near [a] in the interval; as [c op b] is also
+       computed, no need to perform a new operation. *)
+  let treat_nan_result a b =
+    nan := true;
+    if classify_float a = FP_infinite && not (F.equal b1 e1)
+    then results := op (copysign 1. a) b :: !results;
+    if classify_float b = FP_infinite && not (F.equal b2 e2)
+    then results := op a (copysign 1. b) :: !results;
   in
-  if F.le midpointu l || F.le u midpointl
-  then raise Can_not_subdiv;
-  (*    Format.printf "%a %a %a %a@."
-        (F.pretty_normal ~use_hex:true) l
-        (F.pretty_normal ~use_hex:true) midpointl
-        (F.pretty_normal ~use_hex:true) midpointu
-        (F.pretty_normal ~use_hex:true) u; *)
-  let i1 = inject l midpointl in
-  assert (is_included i1 i);
-  let i2 = inject midpointu u in
-  assert (is_included i2 i);
-  i1, i2
+  let op x y =
+    let r = op x y in
+    if F.is_nan r
+    then treat_nan_result x y
+    else results := r :: !results
+  in
+  let compute () =
+    results := [];
+    op e1 e2; op e1 b2; op b1 e2; op b1 b2;
+  in
+  if fkind = Real
+  then Floating_point.set_round_downward ()
+  else Floating_point.set_round_nearest_even ();
+  compute ();
+  let min = List.fold_left F.min F.pos_infinity !results in
+  if fkind = Real then begin
+    Floating_point.set_round_upward ();
+    compute ();
+    Floating_point.set_round_nearest_even ();
+  end;
+  let max = List.fold_left F.max F.neg_infinity !results in
+  if min > max
+  then (assert !nan; FRange.nan)
+  else FRange.inject_rounded fkind ~nan:!nan min max
 
-let cast_float_to_double_inverse (FRange.I(min, max)) =
-  Floating_point.set_round_upward ();
-  let min' = Floating_point.round_to_single_precision_float min in
-  Floating_point.set_round_downward ();
-  let max' = Floating_point.round_to_single_precision_float max in
+let add = monotonic ( +. )
+let sub = monotonic ( -. )
+
+let mul fkind x y =
+  let r = monotonic ( *. ) fkind x y in
+  (* A NaN may occur between the bounds of the intervals, on 0 * \infty. *)
+  if (contains_infinity x && contains_a_zero y) ||
+     (contains_infinity y && contains_a_zero x)
+  then FRange.add_nan r
+  else r
+
+let div fkind x y =
+  let r = monotonic ( /. ) fkind x y in
+  (* A NaN may occur between the bounds of the intervals, on 0/0. *)
+  let nan = (contains_a_zero x && contains_a_zero y) in
+  (* Treat the discontinuity around 0: divisions by 0 produce infinites. *)
+  let pos_inf =
+    contains_plus_zero y && contains_strictly_pos x ||
+    contains_minus_zero y && contains_strictly_neg x
+  and neg_inf =
+    contains_plus_zero y && contains_strictly_neg x ||
+    contains_minus_zero y && contains_strictly_pos x
+  in
+  let r = if pos_inf then join pos_infinity r else r in
+  let r = if neg_inf then join neg_infinity r else r in
+  if nan then FRange.add_nan r else r
+
+(* Could be improved a lot, cf [Marre10]. *)
+let backward_add_one fkind ~other ~result =
+  (* No reduction when the result contains an infinity, and when the result and
+     the other operand contain NaN (as x + NaN = NaN for any x). *)
+  if contains_infinity result || (contains_nan other && contains_nan result)
+  then `Value top
+  else
+    (* Values that can lead to NaN in the result. *)
+    let reduce_for_nan () =
+      match contains_pos_infinity other, contains_neg_infinity other with
+      | true, true   -> FRange.add_nan (join neg_infinity pos_infinity)
+      | true, false  -> FRange.add_nan neg_infinity
+      | false, true  -> FRange.add_nan pos_infinity
+      | false, false -> FRange.nan
+    in
+    let reduced_for_nan =
+      if contains_nan result then `Value (reduce_for_nan ()) else `Bottom
+    in
+    (* Values that can lead to finite values in the result. *)
+    let reduced_for_finite_values =
+      match finite_values fkind result, finite_values fkind other with
+      | None, _ | _, None  -> `Bottom
+      | Some (bres, eres), Some (bother, eother) ->
+        let bres = F.prev_float_ieee fkind bres in
+        let eres = F.next_float_ieee fkind eres in
+        if fkind <> Real then Floating_point.set_round_upward ();
+        let b = F.sub bres eother in
+        if fkind <> Real then Floating_point.set_round_downward ();
+        let e = F.sub eres bother in
+        if fkind <> Real then Floating_point.set_round_nearest_even ();
+        inject_after_tighten fkind ~nan:false b e
+    in
+    Bottom.join join reduced_for_nan reduced_for_finite_values
+
+let backward_add fkind ~left ~right ~result =
+  backward_add_one fkind ~other:right ~result >>- fun left' ->
+  backward_add_one fkind ~other:left ~result >>- fun right' ->
+  `Value (left', right')
+
+let backward_sub fk ~left ~right ~result =
+  let right = neg right in
+  backward_add fk ~left ~right ~result
+  >>-: fun (left, right) -> (left, neg right)
+
+(* --------------------------------------------------------------------------
+                           Exp Log Sqrt Pow Fmod
+   -------------------------------------------------------------------------- *)
+
+(* Used to generate the proper forward semantics of [fgen] for each fkind by
+   using the float [ff] and the double [df] functions. *)
+let gen_two_version_function fgen df ff fkind f =
+  match fkind with
+  | Float64 | Real -> fgen df fkind f
+  | Float32 -> fgen ff fkind f
+
+(** See discussion in the .mli about [fkind] *)
+(* [exp_f] is the actual underlying function computing the exponential,
+   according to the desired precision: expf for single precision,
+   exp for double precision. *)
+let exp' exp_f fkind = function
+  | FRange.NaN as f -> f
+  | FRange.I (b, e, nan) ->
+    if fkind = Real
+    then Floating_point.set_round_downward ()
+    else Floating_point.set_round_nearest_even ();
+    let min = exp_f b in
+    if fkind = Real then Floating_point.set_round_upward ();
+    let max = exp_f e in
+    if fkind = Real then Floating_point.set_round_nearest_even ();
+    FRange.inject fkind ~nan min max
+
+let exp = gen_two_version_function exp' F.exp F.expf
+
+(** See discussion in the .mli about [fkind] *)
+let log_float_aux flog fkind = function
+  | FRange.NaN as f -> f
+  | FRange.I (b, e, nan) ->
+    if F.(lt e minus_zero)
+    then FRange.nan
+    else
+      let nan = nan || F.(lt b minus_zero) in
+      let b_reduced = F.max F.minus_zero b in
+      if fkind = Real
+      then Floating_point.set_round_downward ()
+      else Floating_point.set_round_nearest_even ();
+      let min = flog b_reduced in
+      if fkind = Real then Floating_point.set_round_upward ();
+      let max = flog e in
+      if fkind = Real then Floating_point.set_round_nearest_even ();
+      FRange.inject fkind ~nan min max
+
+let log = gen_two_version_function log_float_aux F.log F.logf
+let log10 = gen_two_version_function log_float_aux F.log10 F.log10f
+
+(* [sqrt_f] is the actual function computing the (exact) square root,
+   in single precision (sqrtf) or double precision (sqrt). *)
+let sqrt' sqrt_f fkind = function
+  | FRange.NaN -> FRange.nan
+  | FRange.I(b,e,nan) ->
+    if F.lt_ieee e F.minus_zero then
+      FRange.nan
+    else
+      let nan, min =
+        if F.ge_ieee b F.minus_zero
+        then begin
+          if fkind = Real
+          then Floating_point.set_round_downward ()
+          else Floating_point.set_round_nearest_even ();
+          let min = sqrt_f b in
+          if fkind = Real then Floating_point.set_round_nearest_even ();
+          nan, min
+        end
+        else
+          (* case e < 0 treated above, some values are positive or zero *)
+          true, F.minus_zero
+      in
+      if fkind = Real then Floating_point.set_round_upward ();
+      let max = sqrt_f e in
+      if fkind = Real then Floating_point.set_round_nearest_even ();
+      FRange.inject_raw ~nan min max
+
+let sqrt = gen_two_version_function sqrt' F.sqrt F.sqrtf
+
+
+let value_if condition value = if condition then `Value value else `Bottom
+
+(* Returns the minimal or maximal (according to [min_or_max]) results of the
+   binary operation [op] applied to the bounds of the intervals [b1..e1] and
+   [b2..e2]. *)
+let extremum min_or_max op (b1, e1) (b2, e2) =
+  let extremum4 a b c d = min_or_max a (min_or_max b (min_or_max c d)) in
+  extremum4 (op b1 b2) (op b1 e2) (op e1 b2) (op e1 e2)
+
+(* Returns the minimum and maximum results of the binary operation [op] applied
+   to the bounds of the intervals [b1..e1] and [b2..e2]. *)
+let extrema op (b1, e1) (b2, e2) =
+  let a = op b1 b2 and b = op b1 e2 and c = op e1 b2 and d = op e1 e2 in
+  F.min a (F.min b (F.min c d)), F.max a (F.max b (F.max c d))
+
+(* Computes [pow_f] on a negative [bx; ex] interval (including infinites).
+   Processes by disjunction over even and odd integers enclosed within [by; ey].
+   [pow] is then monotonic on even integers (including zeros and infinities),
+   and on odd integers (except on infinities). *)
+let pow_negative_x pow_f fkind (bx, ex as x) (by, ey as y) =
+  let even, odd = split_by_parity fkind y in
+  (* Even integers [y] lead to positive results, while odd ones lead to negative
+     results.  When [y] contains both even and odd integers, the minimum result
+     is in odd integers, and the maximum in even integers. *)
+  let min, max = match even, odd with
+    | None, None -> F.pos_infinity, F.neg_infinity
+    | Some even, None -> extrema pow_f x even
+    | None, Some odd  -> extrema pow_f x odd
+    | Some even, Some odd ->
+      extremum F.min pow_f x odd, extremum F.max pow_f x even
+  in
+  let nonint_y = contains_finite_noninteger fkind y in
+  (* pow creates NaN when [x] is a negative non-zero finite value, and [y] a
+     non integer value. *)
+  let nan = contains_strict_neg_finite x && nonint_y in
+  (* Special cases of neg_infinity and minus_zero for [x], that do not produce
+     a NaN on non integer [y], unlike strictly negative finite values [x]. *)
+  let neg_nonint_y = nonint_y && F.(lt by minus_zero) in
+  let pos_nonint_y = nonint_y && F.(gt ey plus_zero) in
+  let neg_infinity_x = F.(equal neg_infinity bx) in
+  let zero_x = F.(equal minus_zero ex) in
+  Bottom.join_list join
+    [ if F.le min max then `Value (FRange.inject fkind min max) else `Bottom;
+      value_if nan FRange.nan;
+      value_if (neg_infinity_x && neg_nonint_y) plus_zero;
+      value_if (neg_infinity_x && pos_nonint_y) pos_infinity;
+      value_if (zero_x && neg_nonint_y) pos_infinity;
+      value_if (zero_x && pos_nonint_y) plus_zero ]
+
+(* Computes pow on a positive [bx; ex] interval (including infinites): the
+   function is continuous and monotonic. *)
+let pow_positive_x pow_f fkind x y =
+  let min, max = extrema pow_f x y in
+  FRange.inject fkind min max
+
+let pow' pow_f fkind x y =
   Floating_point.set_round_nearest_even ();
-  inject min' max'
+  if equal one x || is_a_zero y then one
+  else
+    (x, y) >>% fun ~nan itv_x itv_y ->
+    (* Split the x interval around zeros, as pow is discontinuous on zeros. *)
+    let neg_x, pos_x = split_by_sign itv_x in
+    let pos_x_res = pos_x >>-: fun x -> pow_positive_x pow_f fkind x itv_y in
+    let neg_x_res = neg_x >>- fun x -> pow_negative_x pow_f fkind x itv_y in
+    Bottom.non_bottom
+      (Bottom.join_list join [ pos_x_res; neg_x_res; value_if nan FRange.nan ])
 
-let enlarge_1ulp fk (FRange.I(b, e)) =
-  let b' = next_after fk b (-. infinity) in
-  let e' = next_after fk e infinity in
-  let ib, ie, r = inject_r_f fk b' e' in
-  if ib || ie then raise Non_finite;
-  r
+let pow = gen_two_version_function pow' F.pow F.powf
 
+(* Is [fmod] continuous on positive intervals [b1..e1] and [b2..e2]?
+   This is the case if for all x, y in these intervals, the rounded quotient
+   [floor(x/y)] is constant, as [fmod x y = x - floor(x/y) * y] when [x] and [y]
+   are positive.
+   Also checks that [x/y < 2^53], otherwise truncation to an integer may return
+   an incorrect result. Note: to avoid issues with rounding, we conservatively
+   set the limit to 2^51 instead of 2^53 (and to 2^21 instead of 2^23 in single
+   precision). *)
+let is_fmod_continuous fkind (b1, e1) (b2, e2) =
+  (* Discontinuity of [fmod x y] on infinite [x] and on zero [y]. *)
+  F.is_finite e1 && F.gt_ieee b2 F.plus_zero &&
+  let max_i = match fkind with
+    | Float32 -> F.max_single_precise_integer /. 4.
+    | Float64 | Real -> F.max_precise_integer /. 4.
+  in
+  Floating_point.set_round_toward_zero ();
+  let f1 = F.floor (F.round fkind (b1 /. e2)) in
+  let f2 = F.floor (F.round fkind (e1 /. b2)) in
+  Floating_point.set_round_nearest_even ();
+  F.equal f1 f2 && F.le f1 max_i
+
+(* Forward semantics of fmod on positive intervals. [x] must contain finite
+   values, and [y] must contain non-zero values, in which case finite values
+   are produced. This function does not check the creation of NaN. *)
+let positive_fmod fmod_f fkind (b1, e1 as x) (b2, e2 as y) =
+  Floating_point.set_round_nearest_even ();
+  (* Singleton case. [x] cannot be infinite, and [y] cannot be zero. *)
+  if F.equal b1 e1 && F.equal b2 e2
+  then let c = fmod_f b1 b2 in c, c
+  (* If all values of x are smaller than all values of [y], [x] is unchanged. *)
+  else if F.lt_ieee e1 b2
+  then x
+  (* If fmod is continuous on the intervals [x] and [y], it is also monotonic,
+     and the bounds of the result are the remainders of the bounds. *)
+  else if is_fmod_continuous fkind x y
+  then fmod_f b1 e2, fmod_f e1 b2
+  (* Otherwise, fmod always satisfies 0 <= [fmod x y] <= x and [fmod x y] < y. *)
+  else let max = F.min e1 (F.prev_float fkind e2) in (F.plus_zero, max)
+
+let fmod fmod_f fkind x y =
+  (* [fmod x (-y)] = [fmod x y], so use only positive [y]. *)
+  let y = abs y in
+  (x, y) >>% fun ~nan (b1, e1) (b2, e2) ->
+  (* If [x] is an infinite singleton, or if [y] contains only zero, only NaN
+     can be created. *)
+  if (F.equal b1 e1 && F.is_infinite b1) || (F.equal b2 e2 && F.is_a_zero b2)
+  then FRange.nan
+  else
+    let nan = nan || contains_infinity x || contains_a_zero y in
+    let positive_fmod x =
+      let b, e = positive_fmod fmod_f fkind x (b2, e2) in
+      FRange.inject_raw ~nan b e
+    in
+    (* Process by disjunction on the sign of [x], and join the results for
+       negative x and for positive x. *)
+    let neg_x, pos_x = split_by_sign (b1, e1) in
+    let neg_itv (b, e) = -.e, -.b in
+    let neg_r = neg_x >>-: neg_itv >>-: positive_fmod >>-: neg in
+    let pos_r = pos_x >>-: positive_fmod in
+    Bottom.non_bottom (Bottom.join join neg_r pos_r)
+
+let fmod = gen_two_version_function fmod F.fmod F.fmodf
+
+(* --------------------------------------------------------------------------
+                                Trigonometry
+   -------------------------------------------------------------------------- *)
+
+(* It is wrong to use m_pi as the local minimum as was previously done,
+   because:
+   A = 3.14159265358979312 and A < m_pi, cos A = 1. and cos m_pi = 0.999
+   Moreover it is not due to the imprecision in the value of pi:
+   A < pred m_pi in simple.
+
+   So we use a quarter of the interval [-pi:pi] to be safe. (But still,
+   nothing proves that cos or sin are monotonic on those ranges.) *)
+let cos_sin_security = F.m_pi /. 4.
+let cos_sin run _fkind = function
+  | FRange.NaN as f -> f
+  | FRange.I (b, e, nan) ->
+    Floating_point.set_round_nearest_even ();
+    (* Special case when at least a bound is infinite. *)
+    if F.is_infinite b || F.is_infinite e
+    then if F.equal b e then FRange.nan else FRange.add_nan minus_one_one
+    (* [b] and [e] are finite. Precise case for a singleton. *)
+    else if F.equal b e
+    then let c = run b in FRange.inject_raw ~nan c c
+    else if F.le_ieee b (-. cos_sin_security) || F.le_ieee cos_sin_security e
+    then FRange.inject_raw ~nan F.minus_one F.one
+    else
+      let xl = if F.lt b 0. && F.lt 0. e then [b; e; 0.] else [b; e] in
+      let l = List.map run xl in
+      let min_f = List.fold_left F.min F.pos_infinity l in
+      let max_f = List.fold_left F.max F.neg_infinity l in
+      FRange.inject_raw ~nan min_f max_f
+
+let cos = gen_two_version_function cos_sin F.cos F.cosf
+let sin = gen_two_version_function cos_sin F.sin F.sinf
+
+let atan2 atan2_f fkind x y =
+  match x,y with
+  | (FRange.NaN, _) | (_, FRange.NaN) -> FRange.nan
+  | FRange.I(b1,e1,nan1), FRange.I(b2,e2,nan2) ->
+    let nan = nan1 || nan2 in
+    Floating_point.set_round_nearest_even ();
+    let res =
+      if F.equal b1 e1 && F.equal b2 e2 then begin
+        let c = atan2_f b1 b2 in
+        FRange.inject_raw ~nan c c
+      end
+      else
+        (* Unless y ([b1,e1]) crosses the x-axis, atan2 is continuous,
+           and its minimum/maximum are at the ends of the intervals of x and y.
+           Otherwise, the result is [-pi,+pi]. *)
+      if not (F.compare b1 F.plus_zero < 0 && F.compare e1 F.minus_zero > 0) then
+        let a1, a2, a3, a4 = atan2_f b1 b2, atan2_f b1 e2,
+                             atan2_f e1 b2, atan2_f e1 e2
+        in
+        let b = F.min a1 (F.min a2 (F.min a3 a4)) in
+        let e = F.max a1 (F.max a2 (F.max a3 a4)) in
+        match fkind with
+        | Real | Float64 -> FRange.inject_raw ~nan b e
+        | Float32 ->
+          (* Rounding of atan2f in single-precision may go against monotony and
+             reach the next (previous) float after (before) the bounds. *)
+          FRange.inject_raw ~nan (F.prev_float fkind b) (F.next_float fkind e)
+      else
+      if nan then FRange.add_nan minus_pi_pi else minus_pi_pi
+    in res
+
+let atan2 = gen_two_version_function atan2 F.atan2 F.atan2f
+
+(* --------------------------------------------------------------------------
+                      Bitwise reinterpretation and casts
+   -------------------------------------------------------------------------- *)
+
+(* Bitwise reinterpretation of a floating-point value into consecutive
+   ranges of integer. (Thus, this operation is exact in terms of
+   concretization.) 'Parametric' in the number of bits. *)
+let bits_of_float_list ~bits_of_float ~succ ~minus_one ~max_int ~of_inti ?check () =
+  let itvs_nan =
+    let smallest_neg_nan = of_inti (succ (bits_of_float F.neg_infinity)) in
+    let biggest_neg_nan  = of_inti minus_one in
+    let smallest_pos_nan = of_inti (succ (bits_of_float F.pos_infinity)) in
+    let biggest_pos_nan  = of_inti max_int in
+    [(smallest_neg_nan, biggest_neg_nan);
+     (smallest_pos_nan, biggest_pos_nan)]
+  in
+  function
+  | FRange.NaN -> itvs_nan
+  | FRange.I(b, e, nan) ->
+    begin match check with
+      | None -> ()
+      | Some check ->
+        assert (check b);
+        assert (check e);
+    end;
+    let nan = if nan then itvs_nan else [] in
+    let neg, pos = split_by_sign (b, e) in
+    let neg =
+      neg >>-: fun (b, e) ->
+      of_inti (bits_of_float e), of_inti (bits_of_float b)
+    in
+    let pos =
+      pos >>-: fun (b, e) ->
+      of_inti (bits_of_float b), of_inti (bits_of_float e)
+    in
+    Bottom.add_to_list pos (Bottom.add_to_list neg nan)
+
+let bits_of_float64_list =
+  bits_of_float_list
+    ~bits_of_float:Int64.bits_of_float
+    ~succ:Int64.succ
+    ~minus_one:Int64.minus_one
+    ~max_int:Int64.max_int
+    ~of_inti:Int.of_int64
+    ?check:None
+    ()
+
+let bits_of_float32_list =
+  let check l = F.equal l (Floating_point.round_to_single_precision_float l) in
+  bits_of_float_list
+    ~bits_of_float:Int32.bits_of_float
+    ~succ:Int32.succ
+    ~minus_one:Int32.minus_one
+    ~max_int:Int32.max_int
+    ~of_inti:Int.of_int32
+    ~check
+    ()
+
+(* This function must make sure to return a result with float 32 bounds *)
+let backward_cast_float_to_double = tighten_bound_by_rounding Float32
+
+(** real are here not more precise than doubles *)
+let backward_cast_double_to_real f = f
+
+let cast_int_to_float fkind min max =
+  let min = match min with
+    | None -> F.neg_infinity
+    | Some v ->
+      if fkind = Real
+      then Floating_point.set_round_downward ();
+      F.round fkind (Int.to_float v)
+  in
+  let max = match max with
+    | None -> F.pos_infinity
+    | Some v ->
+      if fkind = Real
+      then Floating_point.set_round_upward ();
+      F.round fkind (Int.to_float v)
+  in
+  if fkind = Real then Floating_point.set_round_nearest_even ();
+  FRange.inject fkind min max
+
+(* --------------------------------------------------------------------------
+                                 Subdivision
+   -------------------------------------------------------------------------- *)
+
+let avg x y =
+  let h = 0.5 in
+  let xp = x >= 0. in
+  let yp = y >= 0. in
+  if xp = yp
+  then
+    let d = x -. y in y +. h *. d
+  else
+    (x +. y) *. h
+
+(* assumption: [0. <= x <= y]. returns the median of the range [x..y]
+   in number of double values. *)
+let split_positive x y =
+  let ix = Int64.bits_of_float x in
+  let iy = Int64.bits_of_float y in
+  Int64.(float_of_bits (add ix (div (sub iy ix) 2L)))
+
+(* assumption: [x <= y] *)
+let _split x y =
+  match F.is_negative x, F.is_negative y with
+  | false, false -> split_positive x y
+  | true, true -> -. (split_positive (-.x) (-.y))
+  | true, false -> F.minus_zero
+  | false, true -> assert false
+
+
+let subdiv_float_interval fkind = function
+  | FRange.NaN -> raise Can_not_subdiv
+  | FRange.I(l, u, true) -> FRange.inject_raw ~nan:false l u, FRange.nan
+  | (FRange.I(l, u, false) as i) ->
+    assert (fkind <> Real); (* See Value/Value#105 *)
+    let midpointl, midpointu =
+      (* infinities are interesting points to consider specially *)
+      if F.is_neg_infinity l
+      then F.neg_infinity, F.most_negative_representable_float fkind
+      else if F.is_pos_infinity u
+      then F.max_representable_float fkind, F.pos_infinity
+      else
+        let midpoint = avg l u in
+        match fkind with
+        | Real -> midpoint, midpoint
+        | Float64 | Float32 ->
+          let smidpoint = F.next_float Float64 midpoint in
+          match fkind with
+          | Real -> assert false
+          | Float64 ->
+            if F.le smidpoint u
+            then
+              if F.next_float Float64 l = u
+              then
+                l, u
+              else
+                midpoint, smidpoint
+            else midpoint, u
+          | Float32 ->
+            let i1 = Int64.bits_of_float l in
+            if i1 = Int64.min_int &&
+               (Int64.bits_of_float u) = Int64.zero
+            then
+              l ,u
+            else begin
+              Floating_point.set_round_upward ();
+              let midpointu =
+                Floating_point.round_to_single_precision_float smidpoint
+              in
+              Floating_point.set_round_downward ();
+              let midpointl =
+                Floating_point.round_to_single_precision_float midpoint
+              in
+              Floating_point.set_round_nearest_even ();
+              midpointl, midpointu
+            end
+    in
+    if ((not (F.is_neg_infinity l)) && F.le midpointu l)
+    || ((not (F.is_pos_infinity u)) && F.le u midpointl)
+    then raise Can_not_subdiv;
+    (*    Format.printf "%a %a %a %a@."
+          (F.pretty_normal ~use_hex:true) l
+          (F.pretty_normal ~use_hex:true) midpointl
+          (F.pretty_normal ~use_hex:true) midpointu
+          (F.pretty_normal ~use_hex:true) u; *)
+    let i1 = FRange.inject_raw l midpointl in
+    assert (is_included i1 i);
+    let i2 = FRange.inject_raw midpointu u in
+    assert (is_included i2 i);
+    i1, i2
 
 (*
 Local Variables:

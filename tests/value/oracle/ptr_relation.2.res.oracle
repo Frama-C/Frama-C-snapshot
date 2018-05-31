@@ -17,11 +17,11 @@
   tab_ptr_fct2[0] ∈ {{ &f2 }}
               [1] ∈ {{ &g2 }}
 [value] computing for function g2 <- main2.
-    Called from tests/value/ptr_relation.i:38.
+  Called from tests/value/ptr_relation.i:38.
 [value] Recording results for g2
 [value] Done for function g2
 [value] computing for function f2 <- main2.
-    Called from tests/value/ptr_relation.i:38.
+  Called from tests/value/ptr_relation.i:38.
 [value] Recording results for f2
 [value] Done for function f2
 [value] Recording results for main2
@@ -43,7 +43,7 @@
 [from] Computing for function main2
 [from] Done for function main2
 [from] ====== DEPENDENCIES COMPUTED ======
-    These dependencies hold at termination for the executions that terminate:
+  These dependencies hold at termination for the executions that terminate:
 [from] Function f2:
   a FROM m; arg
   b FROM l; arg
@@ -55,14 +55,14 @@
   b FROM l; tab_ptr_fct2[0..1]; c; arg (and SELF)
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function f2:
-      a; b
+    a; b
 [inout] Inputs for function f2:
-      l; m
+    l; m
 [inout] Out (internal) for function g2:
-      a
+    a
 [inout] Inputs for function g2:
-      n
+    n
 [inout] Out (internal) for function main2:
-      j; a; b
+    j; a; b
 [inout] Inputs for function main2:
-      j; l; m; n; tab_ptr_fct2[0..1]
+    j; l; m; n; tab_ptr_fct2[0..1]

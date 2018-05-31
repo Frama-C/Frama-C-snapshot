@@ -57,20 +57,20 @@ void main1(void)
 }
 
 //@ assigns \result;
-int ff1();
+int ff1(void);
 
-int* ff2();
+int* ff2(void);
 //@ assigns \nothing;
-int* ff2_bis();
+int* ff2_bis(void);
 
 int y1, y2, y3;
 
 /*@ assigns y1, y2, y3; assigns y2 \from y2;*/
-void ff3();
+void ff3(void);
 
-void ff4();
+void ff4(void);
 
-int ff5();
+int ff5(void);
 
 int main2() {
   int l = ff1();
@@ -98,7 +98,7 @@ ts u_main4[100];
 void f_main4_1(int i);
 
 //@ assigns t_main4[0..999].f1 \from \nothing; assigns u_main4[0..99].f1 \from \nothing;
-void f_main4_2();
+void f_main4_2(void);
 
 void main4() {
   f_main4_1(v);

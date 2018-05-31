@@ -2,7 +2,7 @@
 /*                                                                        */
 /*  This file is part of Frama-C.                                         */
 /*                                                                        */
-/*  Copyright (C) 2007-2017                                               */
+/*  Copyright (C) 2007-2018                                               */
 /*    CEA (Commissariat à l'énergie atomique et aux énergies              */
 /*         alternatives)                                                  */
 /*                                                                        */
@@ -37,7 +37,7 @@ extern size_t  iconv(iconv_t cd, char **restrict inbuf, size_t *restrict inbytes
             char **restrict outbuf, size_t *restrict outbytesleft);
 
 /*@ assigns __fc_errno;
-  ensures \result == 0 || \result == 1 ; */
+  ensures result_zero_or_neg: \result == 0 || \result == -1 ; */
 extern int     iconv_close(iconv_t);
 
 /*@ assigns \result \from tocode[..],fromcode[..];

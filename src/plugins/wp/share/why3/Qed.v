@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2017                                               *)
+(*  Copyright (C) 2007-2018                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -133,16 +133,8 @@ Proof.
   compute;destruct (Rle_dec x y);intuition;discriminate.
 Qed.
 
-(* Why3 goal *)
-Definition truncate: R -> Z.
-Admitted.
-
 (* Why3 assumption *)
-Definition real_of_int (x:Z): R := (Reals.Raxioms.IZR x).
-
-(* Why3 goal *)
-Lemma truncate_of_int : forall (x:Z), ((truncate (real_of_int x)) = x).
-Admitted.
+Definition real_of_int (x:Z): R := (BuiltIn.IZR x).
 
 (* Why3 comment *)
 (* pdiv is replaced with (ZArith.BinInt.Z.quot x x1) by the coq driver *)

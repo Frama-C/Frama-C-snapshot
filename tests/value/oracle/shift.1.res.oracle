@@ -1,4 +1,4 @@
-[value] warning: New option name for -no-val-left-shift-negative-alarms is -no-val-warn-left-shift-negative
+[value] Warning: New option name for -no-val-left-shift-negative-alarms is -no-val-warn-left-shift-negative
 [kernel] Parsing tests/value/shift.i (no preprocessing)
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
@@ -19,31 +19,47 @@
   uf ∈ {0}
   t[0..9] ∈ {0}
   v ∈ [--..--]
-tests/value/shift.i:21:[value] warning: invalid RHS operand for shift. assert 0 ≤ c < 32;
-tests/value/shift.i:22:[value] assertion got status valid.
-tests/value/shift.i:25:[value] warning: invalid RHS operand for shift. assert 0 ≤ c < 32;
-tests/value/shift.i:26:[value] assertion got status valid.
-tests/value/shift.i:29:[value] warning: invalid RHS operand for shift. assert 0 ≤ c < 32;
-tests/value/shift.i:32:[value] warning: assertion got status unknown.
-tests/value/shift.i:35:[value] warning: invalid RHS operand for shift. assert 0 ≤ 32 < 32;
-tests/value/shift.i:36:[value] warning: invalid RHS operand for shift. assert 0 ≤ 5555 < 32;
-tests/value/shift.i:40:[value] warning: invalid RHS operand for shift. assert 0 ≤ b < 32;
-tests/value/shift.i:48:[value] Frama_C_show_each: {{ "ua:%u\nub:%u\n" }}, {1401}, {1073741074}
-tests/value/shift.i:52:[value] Assigning imprecise value to r.
-    The imprecision originates from Arithmetic {tests/value/shift.i:52}
-tests/value/shift.i:53:[value] warning: signed overflow. assert -2147483648 ≤ (long)((char *)t) << 8;
-tests/value/shift.i:53:[value] warning: signed overflow. assert (long)((char *)t) << 8 ≤ 2147483647;
-tests/value/shift.i:53:[value] warning: signed overflow.
-    assert -2147483648 ≤ (long)r + (long)((long)((char *)t) << 8);
-tests/value/shift.i:53:[value] warning: signed overflow.
-    assert (long)r + (long)((long)((char *)t) << 8) ≤ 2147483647;
-tests/value/shift.i:53:[value] Assigning imprecise value to r.
-    The imprecision originates from Arithmetic
+[value:alarm] tests/value/shift.i:21: Warning: 
+  invalid RHS operand for shift. assert 0 ≤ c < 32;
+[value] tests/value/shift.i:22: assertion got status valid.
+[value:alarm] tests/value/shift.i:25: Warning: 
+  invalid RHS operand for shift. assert 0 ≤ c < 32;
+[value] tests/value/shift.i:26: assertion got status valid.
+[value:alarm] tests/value/shift.i:29: Warning: 
+  invalid RHS operand for shift. assert 0 ≤ c < 32;
+[value:alarm] tests/value/shift.i:32: Warning: assertion got status unknown.
+[value:alarm] tests/value/shift.i:35: Warning: 
+  invalid RHS operand for shift. assert 0 ≤ 32 < 32;
+[value:alarm] tests/value/shift.i:36: Warning: 
+  invalid RHS operand for shift. assert 0 ≤ 5555 < 32;
+[value:alarm] tests/value/shift.i:40: Warning: 
+  invalid RHS operand for shift. assert 0 ≤ b < 32;
+[value] tests/value/shift.i:48: 
+  Frama_C_show_each: {{ "ua:%u\nub:%u\n" }}, {1401}, {1073741074}
+[value] tests/value/shift.i:52: 
+  Assigning imprecise value to r.
+  The imprecision originates from Arithmetic {tests/value/shift.i:52}
+[value:alarm] tests/value/shift.i:53: Warning: 
+  signed overflow. assert -2147483648 ≤ (long)((char *)t) << 8;
+[value:alarm] tests/value/shift.i:53: Warning: 
+  signed overflow. assert (long)((char *)t) << 8 ≤ 2147483647;
+[value:alarm] tests/value/shift.i:53: Warning: 
+  signed overflow.
+  assert -2147483648 ≤ (long)r + (long)((long)((char *)t) << 8);
+[value:alarm] tests/value/shift.i:53: Warning: 
+  signed overflow.
+  assert (long)r + (long)((long)((char *)t) << 8) ≤ 2147483647;
+[value] tests/value/shift.i:53: 
+  Assigning imprecise value to r.
+  The imprecision originates from Arithmetic
 [value] Recording results for main
 [value] done for function main
-tests/value/shift.i:35:[value] assertion 'Value,shift' got final status invalid.
-tests/value/shift.i:36:[value] assertion 'Value,shift' got final status invalid.
-tests/value/shift.i:40:[value] assertion 'Value,shift' got final status invalid.
+[value] tests/value/shift.i:35: 
+  assertion 'Value,shift' got final status invalid.
+[value] tests/value/shift.i:36: 
+  assertion 'Value,shift' got final status invalid.
+[value] tests/value/shift.i:40: 
+  assertion 'Value,shift' got final status invalid.
 [value] ====== VALUES COMPUTED ======
 [value:final-states] Values at end of function main:
   a ∈ {314; 1256; 5024}
@@ -59,7 +75,7 @@ tests/value/shift.i:40:[value] assertion 'Value,shift' got final status invalid.
 [from] Computing for function main
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
-    These dependencies hold at termination for the executions that terminate:
+  These dependencies hold at termination for the executions that terminate:
 [from] Function main:
   a FROM v; c
   b FROM z (and SELF)
@@ -70,6 +86,6 @@ tests/value/shift.i:40:[value] assertion 'Value,shift' got final status invalid.
   \result FROM b; z
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function main:
-      a; b; d; f; ua; ub; c; z; zz; r; shl
+    a; b; d; f; ua; ub; c; z; zz; r; shl
 [inout] Inputs for function main:
-      b; d; f; ua; ub; v
+    b; d; f; ua; ub; v

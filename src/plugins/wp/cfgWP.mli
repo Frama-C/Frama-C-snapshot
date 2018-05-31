@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2017                                               *)
+(*  Copyright (C) 2007-2018                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -24,8 +24,8 @@
 (* --- WP Calculus                                                        --- *)
 (* -------------------------------------------------------------------------- *)
 
-module VC( M : Memory.Model ) : Mcfg.S
-module Computer( M : Memory.Model ) :
+module VC( M : Sigs.Compiler ) : Mcfg.S
+module Computer( M : Sigs.Compiler ) :
 sig
   class wp : Model.t -> Generator.computer
 end

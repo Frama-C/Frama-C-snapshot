@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2017                                               *)
+(*  Copyright (C) 2007-2018                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -577,7 +577,7 @@ let make (tree_view:GTree.view) =
     val mutable force_selection = false
 
     (* Forward reference to the first column. Always set *)
-    val mutable source_column = None
+    val mutable name_column = None
 
     (* Sort order for the rows in the filetree. Alphabetical order on names by
        default, can be changed for custom order by text columns. *)
@@ -618,6 +618,7 @@ let make (tree_view:GTree.view) =
       column#set_widget (Some label#coerce);
       column#set_alignment 0.5;
       column#set_reorderable true;
+      column#set_min_width 50;
       if fixed_height then (column#set_sizing `FIXED;
                             column#set_resizable false;
                             column#set_fixed_width 100)
@@ -869,7 +870,7 @@ let make (tree_view:GTree.view) =
       expand_to_path tree_view path;
       tree_view#selection#select_path path;
       (* set_cursor updates the keyboard cursor and scrolls to the element *)
-      tree_view#set_cursor path (Extlib.the source_column);
+      tree_view#set_cursor path (Extlib.the name_column);
       tree_view#misc#grab_focus ()
 
     (* TODO: keep the structure of the tree, ie. reexpand all the nodes that
@@ -913,15 +914,15 @@ let make (tree_view:GTree.view) =
       (MenusHide.hide key, mi)
 
     initializer
-      (* Source column *)
-      let source_renderer = GTree.cell_renderer_text [`YALIGN 0.0] in
+      (* Name column *)
+      let name_renderer = GTree.cell_renderer_text [`YALIGN 0.0] in
       let column = GTree.view_column
-          ~title:"Source file"
-          ~renderer:((source_renderer:>GTree.cell_renderer),[]) ()
+          ~title:"Name"
+          ~renderer:((name_renderer:>GTree.cell_renderer),[]) ()
       in
       let _ = tree_view#append_column column in
-      source_column <- Some column;
-      let m_source_renderer renderer (lmodel:GTree.model) iter =
+      name_column <- Some column;
+      let m_name_renderer renderer (lmodel:GTree.model) iter =
         self#set_sort_indicator column;
         let (path:Gtk.tree_path) = lmodel#get_path iter in
         match self#model#custom_get_iter path with
@@ -945,13 +946,13 @@ let make (tree_view:GTree.view) =
         | None -> ()
       in
       column#set_cell_data_func
-        source_renderer (m_source_renderer source_renderer);
+        name_renderer (m_name_renderer name_renderer);
       if fixed_height then column#set_sizing `FIXED;
       if fixed_height then ( column#set_resizable false;
                              column#set_fixed_width 100)
       else column#set_resizable true;
       column#set_clickable true;
-      let title = GMisc.label ~text:"Source file"  () in
+      let title = GMisc.label ~text:"Name"  () in
       column#set_widget (Some title#coerce);
 
       (* Filter menu when right-clicking on the column header. *)

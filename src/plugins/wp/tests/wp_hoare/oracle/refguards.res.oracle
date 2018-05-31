@@ -2,7 +2,7 @@
 [kernel] Parsing tests/wp_hoare/refguards.i (no preprocessing)
 [wp] Running WP plugin...
 [wp] Loading driver 'share/wp.driver'
-[wp] warning: Missing RTE guards
+[wp] Warning: Missing RTE guards
 ------------------------------------------------------------
   Function f
 ------------------------------------------------------------
@@ -69,3 +69,12 @@ Assume { (* Heap *) Have: (region(c.base) <= 0) /\ (region(d.base) <= 0). }
 Prove: d != c.
 
 ------------------------------------------------------------
+[wp] Warning: Separation hypotheses for function 'f':
+  /*@ behavior typed_ref: requires \separated(c,d,\union(a+(..),b+(..))); */
+  void f(int *a, int *b, int *c, int *d, int k);
+[wp] Warning: Separation hypotheses for function 'h':
+  /*@ behavior typed_ref: requires \separated(c,d); */
+  void h(int *c, int *d, int k);
+[wp] Warning: Separation hypotheses for function 's':
+  /*@ behavior typed_ref: requires \separated(c,d); */
+  void s(int **c, int **d, int k);

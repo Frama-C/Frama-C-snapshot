@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2017                                               *)
+(*  Copyright (C) 2007-2018                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -480,10 +480,12 @@ and context_insensitive_term_to_exp kf env t =
     mmodel_call ~loc kf "base_addr" Cil.voidPtrType env t
   | Tbase_addr _ -> not_yet env "labeled \\base_addr"
   | Toffset(BuiltinLabel Here, t) ->
-    mmodel_call ~loc kf "offset" Cil.intType env t
+    let size_t = Cil.theMachine.Cil.typeOfSizeOf in
+    mmodel_call ~loc kf "offset" size_t env t
   | Toffset _ -> not_yet env "labeled \\offset"
   | Tblock_length(BuiltinLabel Here, t) ->
-    mmodel_call ~loc kf "block_length" Cil.ulongType env t
+    let size_t = Cil.theMachine.Cil.typeOfSizeOf in
+    mmodel_call ~loc kf "block_length" size_t env t
   | Tblock_length _ -> not_yet env "labeled \\block_length"
   | Tnull -> Cil.mkCast (Cil.zero ~loc) (TPtr(TVoid [], [])), env, false, "null"
   | TCoerce _ -> Error.untypable "coercion" (* Jessie specific *)
@@ -496,7 +498,11 @@ and context_insensitive_term_to_exp kf env t =
   | Tinter _ -> not_yet env "intersection of tsets"
   | Tcomprehension _ -> not_yet env "tset comprehension"
   | Trange _ -> not_yet env "range"
-  | Tlet _ -> not_yet env "let binding"
+  | Tlet(li, t) ->
+    let env = env_of_li li kf env loc in
+    let e, env = term_to_exp kf env t in
+    Interval.Env.remove li.l_var_info;
+    e, env, false, ""
 
 (* Convert an ACSL term into a corresponding C expression (if any) in the given
    environment. Also extend this environment in order to include the generating
@@ -545,7 +551,7 @@ and comparison_to_exp
     in
     Cil.new_exp ~loc (BinOp(bop, e, Cil.zero ~loc, Cil.intType)), env
   | Typing.C_type _ | Typing.Other ->
-    Cil.new_exp ~loc (BinOp(bop, e1, e2, Cil.intType)), env
+    Cil.mkBinOp ~loc bop e1 e2, env
 
 (* \base_addr, \block_length and \freeable annotations *)
 and mmodel_call ~loc kf name ctx env t =
@@ -558,7 +564,8 @@ and mmodel_call ~loc kf name ctx env t =
       None
       ctx
       (fun v _ ->
-	[ Misc.mk_call ~loc ~result:(Cil.var v) (Misc.mk_api_name name) [ e ] ])
+        let name = Functions.RTL.mk_api_name name in
+        [ Misc.mk_call ~loc ~result:(Cil.var v) name [ e ] ])
   in
   res, env, false, name
 
@@ -584,7 +591,7 @@ and mmodel_call_with_size ~loc kf name ctx env t =
       (fun v _ ->
         let ty = get_c_term_type t.term_type in
         let sizeof = mk_ptr_sizeof ty loc in
-        let fname = Misc.mk_api_name name in
+        let fname = Functions.RTL.mk_api_name name in
         [ Misc.mk_call ~loc ~result:(Cil.var v) fname [ e; sizeof ] ])
   in
   res, env
@@ -607,7 +614,7 @@ and mmodel_call_valid ~loc kf name ctx env t =
       (fun v _ ->
         let ty = get_c_term_type t.term_type in
         let sizeof = mk_ptr_sizeof ty loc in
-        let fname = Misc.mk_api_name name in
+        let fname = Functions.RTL.mk_api_name name in
         let args = [ e; sizeof; base; base_addr ] in
         [ Misc.mk_call ~loc ~result:(Cil.var v) fname args ])
   in
@@ -659,6 +666,19 @@ and at_to_exp env t_opt label e =
   let new_stmt = Visitor.visitFramacStmt o (Cil.get_stmt bhv stmt) in
   Cil.set_stmt bhv stmt new_stmt;
   res, !env_ref, false
+
+and env_of_li li kf env loc =
+  let li_t = Misc.term_of_li li in
+  let ty = Typing.get_typ li_t in
+  let vi, vi_e, env = Env.Logic_binding.add ~ty env li.l_var_info in
+  let li_e, env = term_to_exp kf env li_t in
+  let stmt = match Typing.get_integer_ty li_t with
+  | Typing.C_type _ | Typing.Other ->
+    Cil.mkStmtOneInstr (Set (Cil.var vi, li_e, loc))
+  | Typing.Gmp ->
+    Gmpz.init_set ~loc (Cil.var vi) vi_e li_e
+  in
+  Env.add_stmt env stmt
 
 (* Convert an ACSL named predicate into a corresponding C expression (if
    any) in the given environment. Also extend this environment which includes
@@ -714,7 +734,11 @@ and named_predicate_content_to_exp ?name kf env p =
     let (_, env2 as res2) = named_predicate_to_exp kf (Env.push env1) p2 in
     let res3 = named_predicate_to_exp kf (Env.push env2) p3 in
     conditional_to_exp loc None e1 res2 res3
-  | Plet _ -> not_yet env "let _ = _ in _"
+  | Plet(li, p) ->
+    let env = env_of_li li kf env loc in
+    let e, env = named_predicate_to_exp kf env p in
+    Interval.Env.remove li.l_var_info;
+    e, env
   | Pforall _ | Pexists _ -> Quantif.quantif_to_exp kf env p
   | Pat(p, BuiltinLabel Here) ->
     named_predicate_to_exp kf env p
@@ -758,7 +782,7 @@ and named_predicate_content_to_exp ?name kf env p =
     (* optimisation when we know that the initialisation is ok *)
     | TAddrOf (TResult _, TNoOffset) -> Cil.one ~loc, env
     | TAddrOf (TVar { lv_origin = Some vi }, TNoOffset)
-	when vi.vformal || vi.vglob || Misc.is_generated_varinfo vi ->
+	when vi.vformal || vi.vglob || Functions.RTL.is_generated_name vi.vname ->
       Cil.one ~loc, env
     | _ -> mmodel_call_with_size ~loc kf "initialized" Cil.intType env t)
   | Pinitialized _ -> not_yet env "labeled \\initialized"
@@ -866,7 +890,10 @@ let term_to_exp typ t =
 
 (* ************************************************************************** *)
 (* [translate_*] translates a given ACSL annotation into the corresponding C
-   statement (if any) for runtime assertion checking *)
+   statement (if any) for runtime assertion checking.
+
+   IMPORTANT: the order of translation of pre-/post-spec must be consistent with
+   the pushes done in [Keep_status] *)
 (* ************************************************************************** *)
 
 let assumes_predicate bhv =
@@ -881,26 +908,14 @@ let assumes_predicate bhv =
 let original_project_ref = ref Project_skeleton.dummy
 let set_original_project p = original_project_ref := p
 
-let must_translate ppt =
-  let selection =
-    State_selection.of_list [ Property_status.self; Options.Valid.self ]
-  in
-  Project.on ~selection
-    !original_project_ref
-    (fun ppt ->
-      match Property_status.get ppt with
-      | Property_status.Best(Property_status.True, _) -> Options.Valid.get ()
-      | _ -> true)
-    ppt
-
-let translate_preconditions kf kinstr env behaviors =
+let translate_preconditions kf env behaviors =
   let env = Env.set_annotation_kind env Misc.Precondition in
   let do_behavior env b =
     let assumes_pred = assumes_predicate b in
     List.fold_left
       (fun env p ->
          let do_it env =
-           if must_translate (Property.ip_of_requires kf kinstr b p) then
+           if Keep_status.must_translate kf Keep_status.K_Requires then
              let loc = p.ip_content.pred_loc in
              let p =
                Logic_const.pimplies
@@ -918,24 +933,25 @@ let translate_preconditions kf kinstr env behaviors =
   in
   List.fold_left do_behavior env behaviors
 
-let translate_postconditions kf kinstr env behaviors =
+let translate_postconditions kf env behaviors =
   let env = Env.set_annotation_kind env Misc.Postcondition in
-      (* generate one guard by postcondition of each behavior *)
+  (* generate one guard by postcondition of each behavior *)
   let do_behavior env b =
+    let env =
+      handle_error
+        (fun env ->
+          (* test ordering does matter for keeping statuses consistent *)
+          if b.b_assigns <> WritesAny
+            && Keep_status.must_translate kf Keep_status.K_Assigns
+          then not_yet env "assigns clause in behavior";
+          (* ignore b.b_extended since we never translate them *)
+          env)
+        env
+    in
     let assumes_pred = assumes_predicate b in
     List.fold_left
-      (fun env (t, p as post) ->
-	if must_translate (Property.ip_of_ensures kf kinstr b post) then
-	  let env =
-	    handle_error
-	      (fun env ->
-		if b.b_assigns <> WritesAny then
-		  not_yet env "assigns clause in behavior";
-		if b.b_extended <> [] then
-		  not_yet env "grammar extensions in behavior";
-		env)
-	      env
-	  in
+      (fun env (t, p) ->
+        if Keep_status.must_translate kf Keep_status.K_Ensures then
 	  let do_it env =
 	    match t with
 	    | Normal ->
@@ -956,57 +972,62 @@ let translate_postconditions kf kinstr env behaviors =
       env
       b.b_post_cond
   in
-  List.fold_left do_behavior env behaviors
+  (* fix ordering of behaviors' iterations *)
+  let bhvs =
+    List.sort (fun b1 b2 -> String.compare b1.b_name b2.b_name) behaviors
+  in
+  List.fold_left do_behavior env bhvs
 
-let translate_pre_spec kf kinstr env spec =
+let translate_pre_spec kf env spec =
   let unsupported f x = ignore (handle_error (fun env -> f x; env) env) in
   let convert_unsupported_clauses env =
     unsupported
       (Extlib.may
-	 (fun v ->
-	   if must_translate (Property.ip_of_decreases kf kinstr v) then
-	     not_yet env "variant clause"))
+         (fun _ ->
+           if Keep_status.must_translate kf Keep_status.K_Decreases then
+             not_yet env "variant clause"))
       spec.spec_variant;
+    (* TODO: spec.spec_terminates is not part of the E-ACSL subset *)
     unsupported
       (Extlib.may
-	 (fun t ->
-	   if must_translate (Property.ip_of_terminates kf kinstr t) then
-	     not_yet env "terminates clause"))
+         (fun _ ->
+           if Keep_status.must_translate kf Keep_status.K_Terminates then
+             not_yet env "terminates clause"))
       spec.spec_terminates;
     (match spec.spec_complete_behaviors with
     | [] -> ()
     | l ->
       unsupported
         (List.iter
-           (fun l ->
-             if must_translate (Property.ip_of_complete kf kinstr ~active:[] l)
-             then not_yet env "complete behaviors"))
+           (fun _ ->
+             if Keep_status.must_translate kf Keep_status.K_Complete then
+               not_yet env "complete behaviors"))
         l);
     (match spec.spec_disjoint_behaviors with
     | [] -> ()
     | l ->
       unsupported
         (List.iter
-           (fun l ->
-             if must_translate (Property.ip_of_disjoint kf kinstr ~active:[] l)
-             then not_yet env "disjoint behaviors"))
+           (fun _ ->
+             if Keep_status.must_translate kf Keep_status.K_Disjoint then
+               not_yet env "disjoint behaviors"))
         l);
     env
   in
   let env = convert_unsupported_clauses env in
   handle_error
-    (fun env -> translate_preconditions kf kinstr env spec.spec_behavior)
+    (fun env -> translate_preconditions kf env spec.spec_behavior)
     env
 
-let translate_post_spec kf kinstr env spec =
+let translate_post_spec kf env spec =
   handle_error
-    (fun env -> translate_postconditions kf kinstr env spec.spec_behavior)
+    (fun env -> translate_postconditions kf env spec.spec_behavior)
     env
 
-let translate_pre_code_annotation kf stmt env annot =
+let translate_pre_code_annotation kf env annot =
   let convert env = match annot.annot_content with
     | AAssert(l, p) ->
-      if must_translate (Property.ip_of_code_annot_single kf stmt annot) then
+      if Keep_status.must_translate kf Keep_status.K_Assert then
 	let env = Env.set_annotation_kind env Misc.Assertion in
 	if l <> [] then
 	  not_yet env "@[assertion applied only on some behaviors@]";
@@ -1016,9 +1037,9 @@ let translate_pre_code_annotation kf stmt env annot =
     | AStmtSpec(l, spec) ->
       if l <> [] then
         not_yet env "@[statement contract applied only on some behaviors@]";
-      translate_pre_spec kf (Kstmt stmt) env spec ;
+      translate_pre_spec kf env spec ;
     | AInvariant(l, loop_invariant, p) ->
-      if must_translate (Property.ip_of_code_annot_single kf stmt annot) then
+      if Keep_status.must_translate kf Keep_status.K_Invariant then
 	let env = Env.set_annotation_kind env Misc.Invariant in
 	if l <> [] then
 	  not_yet env "@[invariant applied only on some behaviors@]";
@@ -1027,15 +1048,16 @@ let translate_pre_code_annotation kf stmt env annot =
       else
 	env
     | AVariant _ ->
-      if must_translate (Property.ip_of_code_annot_single kf stmt annot)
+      if Keep_status.must_translate kf Keep_status.K_Variant
       then not_yet env "variant"
       else env
     | AAssigns _ ->
-      if must_translate (Property.ip_of_code_annot_single kf stmt annot)
+      (* TODO: it is not a precondition *)
+      if Keep_status.must_translate kf Keep_status.K_Assigns
       then not_yet env "assigns"
       else env
     | AAllocation _ ->
-      if must_translate (Property.ip_of_code_annot_single kf stmt annot)
+      if Keep_status.must_translate kf Keep_status.K_Allocation
       then not_yet env "allocation"
       else env
     | APragma _ -> not_yet env "pragma"
@@ -1043,9 +1065,9 @@ let translate_pre_code_annotation kf stmt env annot =
   in
   handle_error convert env
 
-let translate_post_code_annotation kf stmt env annot =
+let translate_post_code_annotation kf env annot =
   let convert env = match annot.annot_content with
-    | AStmtSpec(_, spec) -> translate_post_spec kf (Kstmt stmt) env spec
+    | AStmtSpec(_, spec) -> translate_post_spec kf env spec
     | AAssert _
     | AInvariant _
     | AVariant _

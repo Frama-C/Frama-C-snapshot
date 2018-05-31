@@ -24,53 +24,53 @@
   c8 ∈ {0}
   c9 ∈ {0}
 [value] computing for function onze_0 <- test_onzes.
-    Called from tests/value/loop_test.i:43.
-tests/value/loop_test.i:9:[value] entering loop for the first time
+  Called from tests/value/loop_test.i:43.
+[value] tests/value/loop_test.i:9: entering loop for the first time
 [value] Recording results for onze_0
 [value] Done for function onze_0
 [value] computing for function onze_1 <- test_onzes.
-    Called from tests/value/loop_test.i:44.
-tests/value/loop_test.i:12:[value] entering loop for the first time
+  Called from tests/value/loop_test.i:44.
+[value] tests/value/loop_test.i:12: entering loop for the first time
 [value] Recording results for onze_1
 [value] Done for function onze_1
 [value] computing for function onze_2 <- test_onzes.
-    Called from tests/value/loop_test.i:45.
-tests/value/loop_test.i:15:[value] entering loop for the first time
+  Called from tests/value/loop_test.i:45.
+[value] tests/value/loop_test.i:15: entering loop for the first time
 [value] Recording results for onze_2
 [value] Done for function onze_2
 [value] computing for function onze_3 <- test_onzes.
-    Called from tests/value/loop_test.i:46.
-tests/value/loop_test.i:18:[value] entering loop for the first time
+  Called from tests/value/loop_test.i:46.
+[value] tests/value/loop_test.i:18: entering loop for the first time
 [value] Recording results for onze_3
 [value] Done for function onze_3
 [value] computing for function onze_4 <- test_onzes.
-    Called from tests/value/loop_test.i:47.
-tests/value/loop_test.i:21:[value] entering loop for the first time
+  Called from tests/value/loop_test.i:47.
+[value] tests/value/loop_test.i:21: entering loop for the first time
 [value] Recording results for onze_4
 [value] Done for function onze_4
 [value] computing for function onze_5 <- test_onzes.
-    Called from tests/value/loop_test.i:48.
-tests/value/loop_test.i:25:[value] entering loop for the first time
+  Called from tests/value/loop_test.i:48.
+[value] tests/value/loop_test.i:25: entering loop for the first time
 [value] Recording results for onze_5
 [value] Done for function onze_5
 [value] computing for function onze_6 <- test_onzes.
-    Called from tests/value/loop_test.i:49.
-tests/value/loop_test.i:28:[value] entering loop for the first time
+  Called from tests/value/loop_test.i:49.
+[value] tests/value/loop_test.i:28: entering loop for the first time
 [value] Recording results for onze_6
 [value] Done for function onze_6
 [value] computing for function onze_7 <- test_onzes.
-    Called from tests/value/loop_test.i:50.
-tests/value/loop_test.i:31:[value] entering loop for the first time
+  Called from tests/value/loop_test.i:50.
+[value] tests/value/loop_test.i:31: entering loop for the first time
 [value] Recording results for onze_7
 [value] Done for function onze_7
 [value] computing for function onze_8 <- test_onzes.
-    Called from tests/value/loop_test.i:51.
-tests/value/loop_test.i:34:[value] entering loop for the first time
+  Called from tests/value/loop_test.i:51.
+[value] tests/value/loop_test.i:34: entering loop for the first time
 [value] Recording results for onze_8
 [value] Done for function onze_8
 [value] computing for function onze_9 <- test_onzes.
-    Called from tests/value/loop_test.i:52.
-tests/value/loop_test.i:37:[value] entering loop for the first time
+  Called from tests/value/loop_test.i:52.
+[value] tests/value/loop_test.i:37: entering loop for the first time
 [value] Recording results for onze_9
 [value] Done for function onze_9
 [value] Recording results for test_onzes

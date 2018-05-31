@@ -12,7 +12,7 @@
   H ∈ {0}
   I ∈ {0}
 [value] computing for function incr <- main0.
-    Called from tests/value/call_alias.i:23.
+  Called from tests/value/call_alias.i:23.
 [value] Recording results for incr
 [value] Done for function incr
 [value] Recording results for main0
@@ -31,7 +31,7 @@
 [from] Computing for function main0
 [from] Done for function main0
 [from] ====== DEPENDENCIES COMPUTED ======
-    These dependencies hold at termination for the executions that terminate:
+  These dependencies hold at termination for the executions that terminate:
 [from] Function incr:
   G FROM G; a
   H FROM b; H
@@ -43,10 +43,10 @@
   \result FROM G; H
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function incr:
-      G; H; __retres
+    G; H; __retres
 [inout] Inputs for function incr:
-      G; H
+    G; H
 [inout] Out (internal) for function main0:
-      G; H; I
+    G; H; I
 [inout] Inputs for function main0:
-      G; H; I
+    G; H; I

@@ -2,7 +2,7 @@
 [kernel] Parsing tests/wp_typed/unit_labels.i (no preprocessing)
 [wp] Running WP plugin...
 [wp] Loading driver 'share/wp.driver'
-[wp] warning: Missing RTE guards
+[wp] Warning: Missing RTE guards
 ------------------------------------------------------------
   Function duplet
 ------------------------------------------------------------
@@ -27,3 +27,6 @@ Goal Assertion 'PJ' (file tests/wp_typed/unit_labels.i, line 10):
 Prove: true.
 
 ------------------------------------------------------------
+[wp] Warning: Separation hypotheses for function 'duplet':
+  /*@ behavior typed_ref: requires \separated(pi,pj,a+(..)); */
+  void duplet(int *a, int *pi, int *pj);

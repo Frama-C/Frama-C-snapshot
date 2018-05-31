@@ -1,0 +1,31 @@
+{ "wp:global": { "why3:alt-ergo": { "total": 3, "valid": 3 },
+                 "qed": { "total": 1, "valid": 1 },
+                 "wp:main": { "total": 4, "valid": 4 } },
+  "wp:axiomatics": { "Nth": { "lemma_eq_repeat_concat_3_ok": { "qed": 
+                                                                 { "total": 1,
+                                                                   "valid": 1 },
+                                                               "wp:main": 
+                                                                 { "total": 1,
+                                                                   "valid": 1 } },
+                              "lemma_access_repeat_concat_3_ok": { "why3:alt-ergo": 
+                                                                    { "total": 1,
+                                                                    "valid": 1 },
+                                                                   "wp:main": 
+                                                                    { "total": 1,
+                                                                    "valid": 1 } },
+                              "lemma_access_4_4_ok": { "why3:alt-ergo": 
+                                                         { "total": 1,
+                                                           "valid": 1 },
+                                                       "wp:main": { "total": 1,
+                                                                    "valid": 1 } },
+                              "lemma_access_16_16_ok": { "why3:alt-ergo": 
+                                                           { "total": 1,
+                                                             "valid": 1 },
+                                                         "wp:main": { "total": 1,
+                                                                    "valid": 1 } },
+                              "wp:section": { "why3:alt-ergo": { "total": 3,
+                                                                 "valid": 3 },
+                                              "qed": { "total": 1,
+                                                       "valid": 1 },
+                                              "wp:main": { "total": 4,
+                                                           "valid": 4 } } } } }

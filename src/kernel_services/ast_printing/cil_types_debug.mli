@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2017                                               *)
+(*  Copyright (C) 2007-2018                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -125,7 +125,7 @@ val pp_term_lhost : Cil_types.term_lhost Pretty_utils.formatter
 val pp_model_info : Format.formatter -> Cil_types.model_info -> unit
 val pp_term_offset : Cil_types.term_offset Pretty_utils.formatter
 val pp_logic_info : Format.formatter -> Cil_types.logic_info -> unit
-val pp_builtin_logic_info : Format.formatter -> 'a -> unit
+val pp_builtin_logic_info : Format.formatter -> Cil_types.builtin_logic_info -> unit
 val pp_logic_body : Format.formatter -> Cil_types.logic_body -> unit
 val pp_logic_type_info :
   Format.formatter -> Cil_types.logic_type_info -> unit
@@ -169,3 +169,4 @@ val pp_cil_function : Format.formatter -> Cil_types.cil_function -> unit
 val pp_kernel_function : Format.formatter -> 'a -> unit
 val pp_localisation : Format.formatter -> Cil_types.localisation -> unit
 val pp_mach : Format.formatter -> 'a -> unit
+                                         

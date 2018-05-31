@@ -1,5 +1,6 @@
 [kernel] Parsing tests/value/sort4.i (no preprocessing)
-tests/value/sort4.i:25:[kernel] warning: parsing obsolete ACSL construct '\valid_range(addr,min,max)'. '\valid(addr+(min..max))' should be used instead.
+[kernel] tests/value/sort4.i:25: Warning: 
+  parsing obsolete ACSL construct '\valid_range(addr,min,max)'. '\valid(addr+(min..max))' should be used instead.
 [value] Analyzing an incomplete application starting at sort4_3
 [value] Computing initial state
 [value] Initial state computed
@@ -8,8 +9,10 @@ tests/value/sort4.i:25:[kernel] warning: parsing obsolete ACSL construct '\valid
   b ∈ [--..--]
   c ∈ [--..--]
   d ∈ [--..--]
-tests/value/sort4.i:59:[value] warning: function sort4_3: precondition got status unknown.
-tests/value/sort4.i:61:[value] warning: function sort4_3: postcondition got status unknown.
+[value:alarm] tests/value/sort4.i:59: Warning: 
+  function sort4_3: precondition got status unknown.
+[value:alarm] tests/value/sort4.i:61: Warning: 
+  function sort4_3: postcondition got status unknown.
 [value] Recording results for sort4_3
 [value] done for function sort4_3
 [value] ====== VALUES COMPUTED ======
@@ -22,7 +25,7 @@ tests/value/sort4.i:61:[value] warning: function sort4_3: postcondition got stat
 [from] Computing for function sort4_3
 [from] Done for function sort4_3
 [from] ====== DEPENDENCIES COMPUTED ======
-    These dependencies hold at termination for the executions that terminate:
+  These dependencies hold at termination for the executions that terminate:
 [from] Function sort4_3:
   S_d_0[0]
        FROM a_0; b_0; c_0; d_0; S_d_0[0]; S_c_0[0]; S_b_0[0];
@@ -38,6 +41,6 @@ tests/value/sort4.i:61:[value] warning: function sort4_3: postcondition got stat
             S_a_0[0] (and SELF)
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function sort4_3:
-      tmp; S_d_0[0]; S_c_0[0]; S_b_0[0]; S_a_0[0]
+    tmp; S_d_0[0]; S_c_0[0]; S_b_0[0]; S_a_0[0]
 [inout] Inputs for function sort4_3:
-      S_d_0[0]; S_c_0[0]; S_b_0[0]; S_a_0[0]
+    S_d_0[0]; S_c_0[0]; S_b_0[0]; S_a_0[0]

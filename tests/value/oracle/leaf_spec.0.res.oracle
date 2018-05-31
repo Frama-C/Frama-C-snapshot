@@ -5,29 +5,35 @@
 [value:initial-state] Values of globals at initialization
   
 [value] computing for function f1 <- main.
-    Called from tests/value/leaf_spec.i:19.
-tests/value/leaf_spec.i:19:[kernel] warning: Neither code nor specification for function f1, generating default assigns from the prototype
+  Called from tests/value/leaf_spec.i:19.
+[kernel:annot:missing-spec] tests/value/leaf_spec.i:19: Warning: 
+  Neither code nor specification for function f1, generating default assigns from the prototype
 [value] using specification for function f1
 [value] Done for function f1
 [value] computing for function g <- main.
-    Called from tests/value/leaf_spec.i:20.
-tests/value/leaf_spec.i:20:[kernel] warning: Neither code nor specification for function g, generating default assigns from the prototype
+  Called from tests/value/leaf_spec.i:20.
+[kernel:annot:missing-spec] tests/value/leaf_spec.i:20: Warning: 
+  Neither code nor specification for function g, generating default assigns from the prototype
 [value] using specification for function g
 [value] Done for function g
 [value] computing for function h <- main.
-    Called from tests/value/leaf_spec.i:21.
-tests/value/leaf_spec.i:21:[kernel] warning: Neither code nor specification for function h, generating default assigns from the prototype
+  Called from tests/value/leaf_spec.i:21.
+[kernel:annot:missing-spec] tests/value/leaf_spec.i:21: Warning: 
+  Neither code nor specification for function h, generating default assigns from the prototype
 [value] using specification for function h
 [value] Done for function h
 [value] computing for function k <- main.
-    Called from tests/value/leaf_spec.i:22.
-tests/value/leaf_spec.i:22:[kernel] warning: Neither code nor specification for function k, generating default assigns from the prototype
+  Called from tests/value/leaf_spec.i:22.
+[kernel:annot:missing-spec] tests/value/leaf_spec.i:22: Warning: 
+  Neither code nor specification for function k, generating default assigns from the prototype
 [value] using specification for function k
-tests/value/leaf_spec.i:22:[value] warning: Completely invalid destination for assigns clause *l. Ignoring.
+[value] tests/value/leaf_spec.i:22: Warning: 
+  Completely invalid destination for assigns clause *l. Ignoring.
 [value] Done for function k
 [value] computing for function k0 <- main.
-    Called from tests/value/leaf_spec.i:22.
-tests/value/leaf_spec.i:22:[kernel] warning: Neither code nor specification for function k0, generating default assigns from the prototype
+  Called from tests/value/leaf_spec.i:22.
+[kernel:annot:missing-spec] tests/value/leaf_spec.i:22: Warning: 
+  Neither code nor specification for function k0, generating default assigns from the prototype
 [value] using specification for function k0
 [value] Done for function k0
 [value] Recording results for main
@@ -48,7 +54,7 @@ tests/value/leaf_spec.i:22:[kernel] warning: Neither code nor specification for 
 [from] Done for function k0
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
-    These dependencies hold at termination for the executions that terminate:
+  These dependencies hold at termination for the executions that terminate:
 [from] Function f1:
   NO EFFECTS
 [from] Function g:
@@ -63,6 +69,6 @@ tests/value/leaf_spec.i:22:[kernel] warning: Neither code nor specification for 
   NO EFFECTS
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function main:
-      \nothing
+    \nothing
 [inout] Inputs for function main:
-      \nothing
+    \nothing

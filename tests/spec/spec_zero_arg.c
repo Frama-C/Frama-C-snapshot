@@ -7,7 +7,7 @@ void f(void);
 
 // this spec is already lost after type-checking
 /*@ requires e > 0; */
-void g();
+void g(void);
 
 int x;
 

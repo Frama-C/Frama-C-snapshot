@@ -5,7 +5,7 @@
 */
 
 /*@ ensures \result == size_rec(busybits, 0); */
-int size(int busybits[0]) {
+int size(int *busybits) {
     return 0;
 }
 

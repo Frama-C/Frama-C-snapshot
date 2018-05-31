@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2017                                               *)
+(*  Copyright (C) 2007-2018                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -42,6 +42,7 @@ val non_bottom: 'a or_bottom -> 'a
 val equal:       ('a -> 'a -> bool) -> 'a or_bottom -> 'a or_bottom -> bool
 val is_included: ('a -> 'a -> bool) -> 'a or_bottom -> 'a or_bottom -> bool
 val join:        ('a -> 'a -> 'a) -> 'a or_bottom -> 'a or_bottom -> 'a or_bottom
+val join_list:   ('a -> 'a -> 'a) -> 'a or_bottom list -> 'a or_bottom
 val narrow:      ('a -> 'a -> 'a or_bottom) -> 'a or_bottom -> 'a or_bottom -> 'a or_bottom
 
 val pretty :

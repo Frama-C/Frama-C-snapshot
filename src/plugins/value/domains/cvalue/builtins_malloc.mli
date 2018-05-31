@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2017                                               *)
+(*  Copyright (C) 2007-2018                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -38,6 +38,12 @@ val free_automatic_bases: Value_types.Callstack.t -> Cvalue.Model.t -> Cvalue.Mo
 (** Performs the equivalent of [free] for each location that was allocated via
     [alloca()] in the current function (as per [Value_util.call_stack ()]).
     This function must be called during finalization of a function call. *)
+
+val freeable: Cvalue.V.t -> Abstract_interp.truth
+(** Evaluates the ACSL predicate \freeable(value): holds if and only if the
+    value points to an allocated memory block that can be safely released using
+    the C function free. Note that \freeable(\null) does not hold, despite NULL
+    being a valid argument to the C function free. *)
 
 (**/**)
 val register_malloced_base: ?stack:Value_types.Callstack.t -> Base.t -> unit

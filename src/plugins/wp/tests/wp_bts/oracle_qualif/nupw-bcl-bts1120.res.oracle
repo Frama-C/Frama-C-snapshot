@@ -8,7 +8,7 @@
 [wp] [CFG] Goal unreachable_smt_with_contract_stmt_pre_ok : Valid (Unreachable)
 [wp] [CFG] Goal unreachable_smt_with_contract_assert_ok : Valid (Unreachable)
 [wp] [CFG] Goal unreachable_smt_with_contract_call_f_with_precond_pre_ok : Valid (Unreachable)
-[wp] warning: Missing RTE guards
+[wp] Warning: Missing RTE guards
 [wp] 8 goals scheduled
 [wp] [Qed] Goal typed_g_exit_ok : Valid
 [wp] [Qed] Goal typed_g_loop_assign : Valid
@@ -19,9 +19,10 @@
 [wp] [Qed] Goal typed_unreachable_smt_with_contract_post_ok : Valid
 [wp] [Qed] Goal typed_unreachable_smt_with_contract_call_f_with_precond_pre_ok_2 : Valid
 [wp] Proved goals:    8 / 8
-    Qed:             8
-----------------------------------------------------------
-Functions           WP   Alt-Ergo    Total   Success
-g                    6     -           6       100%
-unreachable_smt_with_contract   2   -     2    100%
-----------------------------------------------------------
+  Qed:             8
+[wp] Report 'tests/wp_bts/nupw-bcl-bts1120.i.0.report.json'
+-------------------------------------------------------------
+Functions           WP     Alt-Ergo        Total   Success
+g                    6     -                 6       100%
+unreachable_smt_with_contract   2   -        2       100%
+-------------------------------------------------------------

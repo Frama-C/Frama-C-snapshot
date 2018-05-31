@@ -4,24 +4,28 @@
 [value] Initial state computed
 [value:initial-state] Values of globals at initialization
   
-tests/value/long_const.i:35:[value] Frama_C_show_each_f: {4}, {18446603611099103232}, {0}
+[value] tests/value/long_const.i:35: 
+  Frama_C_show_each_f: {4}, {18446603611099103232}, {0}
 [value] computing for function div64 <- main.
-    Called from tests/value/long_const.i:37.
-tests/value/long_const.i:11:[value] warning: function div64: precondition got status unknown.
-tests/value/long_const.i:12:[value] warning: function div64: precondition got status unknown.
+  Called from tests/value/long_const.i:37.
+[value:alarm] tests/value/long_const.i:37: Warning: 
+  function div64: precondition 'num' got status unknown.
+[value:alarm] tests/value/long_const.i:37: Warning: 
+  function div64: precondition 'denom' got status unknown.
 [value] computing for function LL_ABS <- div64 <- main.
-    Called from tests/value/long_const.i:24.
+  Called from tests/value/long_const.i:24.
 [value] Recording results for LL_ABS
 [value] Done for function LL_ABS
 [value] computing for function LL_ABS <- div64 <- main.
-    Called from tests/value/long_const.i:25.
+  Called from tests/value/long_const.i:25.
 [value] Recording results for LL_ABS
 [value] Done for function LL_ABS
-tests/value/long_const.i:26:[value] Frama_C_show_each:
-    [-9223372036854775807..9223372036854775807],
-    [0..9223372036854775807],
-    [-9223372036854775807..9223372036854775807],
-    [0..9223372036854775807]
+[value] tests/value/long_const.i:26: 
+  Frama_C_show_each:
+  [-9223372036854775807..9223372036854775807],
+  [0..9223372036854775807],
+  [-9223372036854775807..9223372036854775807],
+  [0..9223372036854775807]
 [value] Recording results for div64
 [value] Done for function div64
 [value] Recording results for main
@@ -44,7 +48,7 @@ tests/value/long_const.i:26:[value] Frama_C_show_each:
 [from] Computing for function main
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
-    These dependencies hold at termination for the executions that terminate:
+  These dependencies hold at termination for the executions that terminate:
 [from] Function LL_ABS:
   \result FROM a
 [from] Function div64:
@@ -53,14 +57,14 @@ tests/value/long_const.i:26:[value] Frama_C_show_each:
   NO EFFECTS
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function LL_ABS:
-      tmp
+    tmp
 [inout] Inputs for function LL_ABS:
-      \nothing
+    \nothing
 [inout] Out (internal) for function div64:
-      loc_num; loc_den; signe_negatif; __retres
+    loc_num; loc_den; signe_negatif; __retres
 [inout] Inputs for function div64:
-      \nothing
+    \nothing
 [inout] Out (internal) for function main:
-      i; j
+    i; j
 [inout] Inputs for function main:
-      \nothing
+    \nothing

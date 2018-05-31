@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2017                                               *)
+(*  Copyright (C) 2007-2018                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -67,15 +67,6 @@ let warn_unknown_size vi =
        computed@ (%s)@]" pp vi Printer.pp_typ t s;
     true
 
-let warn_on_volatile kinstr lval =
-  let is_local = match kinstr with Kglobal -> false | Kstmt _ -> true in
-  let is_var = match lval with (Var _, NoOffset) -> true | _ -> false in
-  Value_util.warning_once_current
-    "%sinitialization of volatile %s %a ignored"
-    (if is_local then "" else "global ")
-    (if is_var then "variable" else "zone")
-    Printer.pp_lval lval
-
 (* A bottom in any part of an initializer results in a bottom for the
    whole initialization. Thus, the following monad raises an exception on a
    bottom case; the exception is catched by the root initialization functions
@@ -128,7 +119,7 @@ module Make
       Domain.initialize_variable lval location ~initialized init_value state
 
   (* Initializes a volatile lvalue to top. *)
-  let initialize_volatile lval state =
+  let initialize_top_volatile lval state =
     let location = lval_to_loc lval in
     let init_value = Abstract_domain.Top in
     Domain.initialize_variable lval location ~initialized:true init_value state
@@ -139,36 +130,33 @@ module Make
     match Transfer.assign state kinstr lval expr with
     | `Bottom ->
       if kinstr = Kglobal then
-        Value_parameters.result ~source:(fst expr.eloc)
+        Value_parameters.warning ~once:true ~source:(fst expr.eloc)
           "evaluation of initializer '%a' failed@." Printer.pp_exp expr;
       raise Initialization_failed
     | `Value v -> v
 
-  (* Applies an initializer. Take volatile qualifiers into account.
-     If [warn] holds, warns when an initializer is ignored because it points
-     to a volatile location. *)
-  let rec apply_cil_initializer kinstr ~warn lval init state =
-    if Cil.typeHasQualifier "volatile" (Cil.typeOfLval lval)
-    then
-      if warn
-      then (warn_on_volatile kinstr lval; state)
-      else initialize_volatile lval state
+  (* Applies an initializer. If [top_volatile] is true, sets volatile locations
+     to top without applying the initializer. Otherwise, lets the standard
+     transfer function on assignments handle volatile locations. *)
+  let rec apply_cil_initializer ~top_volatile kinstr lval init state =
+    if top_volatile && Cil.typeHasQualifier "volatile" (Cil.typeOfLval lval)
+    then initialize_top_volatile lval state
     else
       match init with
       | SingleInit exp -> apply_cil_single_initializer kinstr state lval exp
       | CompoundInit (typ, l) ->
         let doinit off init _typ state =
           let lval = Cil.addOffsetLval off lval in
-          apply_cil_initializer kinstr ~warn lval init state
+          apply_cil_initializer ~top_volatile kinstr lval init state
         in
         Cil.foldLeftCompound ~implicit:false ~doinit ~ct:typ ~initl:l ~acc:state
 
-  (* Initialization of a variable to zero (or top if volatile), field by field.
+  (* Field by field initialization of a variable to zero, or top if volatile.
      Very inefficient. *)
   let initialize_var_zero_or_volatile kinstr vi state =
     let loc = Cil_datatype.Location.unknown in
     let zero_init = Cil.makeZeroInit ~loc vi.vtype in
-    apply_cil_initializer kinstr ~warn:false (Cil.var vi) zero_init state
+    apply_cil_initializer ~top_volatile:true kinstr (Cil.var vi) zero_init state
 
   (* ----------------------- Non Lib-entry mode ----------------------------- *)
 
@@ -178,30 +166,27 @@ module Make
     let typ = vi.vtype in
     let lval = Cil.var vi in
     let volatile_everywhere = Cil.typeHasQualifier "volatile" typ in
-    if volatile_everywhere && padding_initialization ~local = `Initialized
-    then
-      let () = if init <> None then warn_on_volatile kinstr lval in
-      initialize_volatile lval state
-    else
-      (* Initializes padding bits everywhere (non padding bits are overwritten
-         afterwards). *)
-      let state =
-        initialize_var_padding vi ~local ~lib_entry:false state
-      in
-      (* Initializes everything except padding bits: non-volatile locations
-         to zero, volatile locations to top. We only do so if the variable
-         must be different from zero somewhere. This is a not-so minor
-         optimization. *)
-      let state =
+    let state =
+      if volatile_everywhere && padding_initialization ~local = `Initialized
+      then initialize_top_volatile lval state
+      else
+        (* Initializes padding bits everywhere (non padding bits are overwritten
+           afterwards). *)
+        let state = initialize_var_padding vi ~local ~lib_entry:false state in
+        (* Initializes everything except padding bits: non-volatile locations
+           to zero, volatile locations to top. We only do so if the variable
+           must be different from zero somewhere. This is a not-so minor
+           optimization. *)
         if padding_initialization ~local = `Initialized &&
-           not (Cil.typeHasAttributeDeep "volatile" typ)
+           not (Cil.isVolatileType typ)
         then state
         else initialize_var_zero_or_volatile kinstr vi state
-      in
-      (* Applies the real initializer on top. *)
-      match init with
-      | None -> state
-      | Some init -> apply_cil_initializer kinstr ~warn:true lval init state
+    in
+    (* Applies the real initializer on top. *)
+    match init with
+    | None -> state
+    | Some init ->
+      apply_cil_initializer ~top_volatile:false kinstr lval init state
 
 
   (* --------------------------- Lib-entry mode ----------------------------- *)
@@ -216,8 +201,7 @@ module Make
       then apply_cil_single_initializer kinstr state lval exp
       else state
     | CompoundInit (typ, l) ->
-      if Cil.typeHasQualifier "volatile" typ ||
-         not (Cil.typeHasAttributeDeep "const" typ)
+      if Cil.typeHasQualifier "volatile" typ || not (Cil.isConstType typ)
       then state (* initializer is not useful *)
       else
         let doinit off init _typ state =
@@ -251,10 +235,10 @@ module Make
           let kind = Abstract_domain.Library_Global in
           Domain.initialize_variable_using_type kind vi state
       in
-      (* If needed, initializes const fields according to the initialiser
+      (* If needed, initializes const fields according to the initializer
          (or generate one if there are none). In the first phase, they have been
          set to generic values. *)
-      if Cil.typeHasAttributeDeep "const" vi.vtype && not (vi.vstorage = Extern)
+      if Cil.isConstType vi.vtype && not (vi.vstorage = Extern)
       then
         let init = match init with
           | None -> Cil.makeZeroInit ~loc:vi.vdecl vi.vtype
@@ -339,7 +323,7 @@ module Make
     with Initialization_failed -> `Bottom
 
   (* Dependencies for the Frama-C states containing the initial states
-     of EVA: all correctness parameters of EVA, plus the AST itself. We
+     of Eva: all correctness parameters of Eva, plus the AST itself. We
      cannot use [Db.Value.self] directly, because we do not want to
      depend on the tuning parameters. Previously, we use a more
      fine-grained list, but this lead to bugs. See mantis #2277. *)

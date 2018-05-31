@@ -30,59 +30,64 @@
   Ft ∈ {0}
   Gt ∈ {12}
   Ht ∈ {0}
-tests/value/period.c:49:[value] Frama_C_dump_each:
-    # Cvalue domain:
-    g[0..9] ∈ {0}
-    Frama_C_periodic_t_320[0] ∈ {1}
-                          [1..3] ∈ {0}
-                          [4] ∈ {24}
-                          [5..12] ∈ {0}
-                          [13] ∈ {2}
-                          [14..40] ∈ {0}
-                          [41] ∈ {6}
-                          [42..59] ∈ {0}
-    u[0] ∈ {-1}
-     [1] ∈ {-2}
-     [2] ∈ {-3}
-     [3] ∈ {0}
-     [4] ∈ {24}
-     [5..12] ∈ {0}
-     [13] ∈ {2}
-     [14..40] ∈ {0}
-     [41] ∈ {6}
-     [42..59] ∈ {0}
-    v[0] ∈ {-1}
-     [1] ∈ {1}
-     [2] ∈ {-3}
-    w[0].s1 ∈ {1}
-     {[0]{.s2; .s3}; [1].s1} ∈ {0}
-     [1].s2 ∈ {2}
-     {[1].s3; [2]{.s1; .s2}} ∈ {0}
-     [2].s3 ∈ {3}
-     [3..9] ∈ {0}
-    Au ∈ {-1}
-    Bu ∈ {0}
-    Cu ∈ {-3}
-    Du ∈ {0}
-    Eu ∈ {0}
-    Fu ∈ {2}
-    Gu ∈ {12}
-    Hu ∈ {1}
-    At ∈ {1}
-    Bt ∈ {0}
-    Ct ∈ {0}
-    Dt ∈ {0}
-    Et ∈ {0}
-    Ft ∈ {2}
-    Gt ∈ {12}
-    Ht ∈ {1}
-    ==END OF DUMP==
-tests/value/period.c:51:[value] Assigning imprecise value to p.
-    The imprecision originates from Arithmetic {tests/value/period.c:51}
-tests/value/period.c:52:[value] warning: out of bounds write. assert \valid(p);
-tests/value/period.c:53:[value] Assigning imprecise value to p.
-    The imprecision originates from Arithmetic {tests/value/period.c:53}
-tests/value/period.c:54:[value] warning: out of bounds read. assert \valid_read(p);
+[value] tests/value/period.c:49: 
+  Frama_C_dump_each:
+  # Cvalue domain:
+  g[0..9] ∈ {0}
+  Frama_C_periodic_t_320[0] ∈ {1}
+                        [1..3] ∈ {0}
+                        [4] ∈ {24}
+                        [5..12] ∈ {0}
+                        [13] ∈ {2}
+                        [14..40] ∈ {0}
+                        [41] ∈ {6}
+                        [42..59] ∈ {0}
+  u[0] ∈ {-1}
+   [1] ∈ {-2}
+   [2] ∈ {-3}
+   [3] ∈ {0}
+   [4] ∈ {24}
+   [5..12] ∈ {0}
+   [13] ∈ {2}
+   [14..40] ∈ {0}
+   [41] ∈ {6}
+   [42..59] ∈ {0}
+  v[0] ∈ {-1}
+   [1] ∈ {1}
+   [2] ∈ {-3}
+  w[0].s1 ∈ {1}
+   {[0]{.s2; .s3}; [1].s1} ∈ {0}
+   [1].s2 ∈ {2}
+   {[1].s3; [2]{.s1; .s2}} ∈ {0}
+   [2].s3 ∈ {3}
+   [3..9] ∈ {0}
+  Au ∈ {-1}
+  Bu ∈ {0}
+  Cu ∈ {-3}
+  Du ∈ {0}
+  Eu ∈ {0}
+  Fu ∈ {2}
+  Gu ∈ {12}
+  Hu ∈ {1}
+  At ∈ {1}
+  Bt ∈ {0}
+  Ct ∈ {0}
+  Dt ∈ {0}
+  Et ∈ {0}
+  Ft ∈ {2}
+  Gt ∈ {12}
+  Ht ∈ {1}
+  ==END OF DUMP==
+[value] tests/value/period.c:51: 
+  Assigning imprecise value to p.
+  The imprecision originates from Arithmetic {tests/value/period.c:51}
+[value:alarm] tests/value/period.c:52: Warning: 
+  out of bounds write. assert \valid(p);
+[value] tests/value/period.c:53: 
+  Assigning imprecise value to p.
+  The imprecision originates from Arithmetic {tests/value/period.c:53}
+[value:alarm] tests/value/period.c:54: Warning: 
+  out of bounds read. assert \valid_read(p);
 [value] Recording results for main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======
@@ -133,7 +138,7 @@ tests/value/period.c:54:[value] warning: out of bounds read. assert \valid_read(
 [from] Computing for function main
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
-    These dependencies hold at termination for the executions that terminate:
+  These dependencies hold at termination for the executions that terminate:
 [from] Function main:
   g[0..9] FROM \nothing (and SELF)
   Frama_C_periodic_t_320[4] FROM Gt
@@ -156,9 +161,9 @@ tests/value/period.c:54:[value] warning: out of bounds read. assert \valid_read(
   Ht FROM Frama_C_periodic_t_320[25]
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function main:
-      g[0..9]; Frama_C_periodic_t_320{[4]; [13]; [41]}; u{[4]; [13]; [41]}; 
-      v[1]; w{[0].s1; [1].s2; [2].s3}; Au; Bu; Cu; Eu; Fu; Hu; At; Bt; Ct; 
-      Et; Ft; Ht; p; vg
+    g[0..9]; Frama_C_periodic_t_320{[4]; [13]; [41]}; u{[4]; [13]; [41]}; 
+    v[1]; w{[0].s1; [1].s2; [2].s3}; Au; Bu; Cu; Eu; Fu; Hu; At; Bt; Ct; 
+    Et; Ft; Ht; p; vg
 [inout] Inputs for function main:
-      g[0..9]; Frama_C_periodic_t_320{[0]; [2]; [11..12]; [20]; [25]};
-      u{[0]; [2]; [11..12]; [22]; [25]}; w{[0].s1; [1].s2}; Fu; Gu; Ft; Gt
+    g[0..9]; Frama_C_periodic_t_320{[0]; [2]; [11..12]; [20]; [25]};
+    u{[0]; [2]; [11..12]; [22]; [25]}; w{[0].s1; [1].s2}; Fu; Gu; Ft; Gt

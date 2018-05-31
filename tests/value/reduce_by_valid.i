@@ -92,12 +92,12 @@ struct s {
 
 extern struct s *vs;
 
-/*@ requires \valid(p->f1);
-  requires \valid(p->f1);
-  requires \valid(p);
-  requires \valid(p);
-  requires \valid(p->f1);
-  requires \valid(p->f1);
+/*@ requires r1: \valid(p->f1);
+  requires r2: \valid(p->f1);
+  requires r3: \valid(p);
+  requires r4: \valid(p);
+  requires r5: \valid(p->f1);
+  requires r6: \valid(p->f1);
 */
 void main6(struct s *p) {
   *(p->f1)=1;

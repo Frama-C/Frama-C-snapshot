@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2017                                               *)
+(*  Copyright (C) 2007-2018                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -397,87 +397,6 @@ module Cfg (W : Mcfg.S) = struct
           Wp_error.unsupported
             "non-natural loop without invariant property."
 
-  (* Hypothesis for initialization of one variable *)
-  let rec init_variable wenv lv init obj =
-    match init with
-
-    | SingleInit exp ->
-        W.init_value wenv lv (Cil.typeOfLval lv) (Some exp) obj
-
-    | CompoundInit ( ct , initl ) ->
-
-        let len = List.length initl in
-        let implicit_defaults =
-          match ct with
-          | TArray (ty,Some {enode = (Const CInt64 (size,_,_))},_,_)
-            when Integer.lt (Integer.of_int len) size  ->
-              W.init_range wenv lv ty
-                (Integer.of_int len) size None obj
-
-          | TComp (cp,_,_) when len < (List.length cp.cfields) ->
-
-              List.fold_left
-                (fun obj f ->
-                   if List.exists
-                       (function (Field(g,_),_) -> Fieldinfo.equal f g | _ -> false)
-                       initl
-                   then obj
-                   else
-                     W.init_value wenv
-                       (Cil.addOffsetLval (Field(f, NoOffset)) lv)
-                       f.ftype None obj)
-                obj (List.rev cp.cfields)
-
-          | _ -> obj
-        in
-        match ct with
-        | TArray (ty,_,_,_)
-          when Wp_parameters.InitWithForall.get () ->
-            (** delayed: the last consecutive index have the same value
-                and are not yet initialized.
-                (i0,pred,il) =def \forall x. x \in [il;i0] t[x] == pred
-            *)
-            let make_quant obj = function
-              | None -> obj
-              | Some (Index({enode=Const (CInt64 (i0,_,_))}, NoOffset),exp,il)
-                when Integer.lt il i0 ->
-                  W.init_range wenv lv ty il (Integer.succ i0) (Some exp) obj
-              | Some (off,exp,_) ->
-                  let lv = Cil.addOffsetLval off lv in
-                  W.init_value wenv lv ty (Some exp) obj in
-            let obj, delayed =
-              List.fold_left
-                (fun (obj,delayed) (off,init) ->
-                   match delayed, off, init with
-                   | None, Index({enode=Const (CInt64 (i0,_,_))}, NoOffset),
-                     SingleInit curr ->
-                       (obj,Some(off,curr,i0))
-                   | Some (i0,prev,ip), Index({enode=Const (CInt64 (i,_,_))}, NoOffset),
-                     SingleInit curr
-                     when ExpStructEq.equal prev curr
-                          && Integer.equal (Integer.pred ip) i ->
-                       (obj,Some(i0,prev,i))
-                   | _, _,_ ->
-                       let obj = make_quant obj delayed in
-                       begin match off, init with
-                         | Index({enode=Const (CInt64 (i0,_,_))}, NoOffset),
-                           SingleInit curr ->
-                             obj, Some (off,curr,i0)
-                         | _ ->
-                             let lv = Cil.addOffsetLval off lv in
-                             init_variable wenv lv init obj, None
-                       end)
-                (implicit_defaults,None)
-                (** decreasing order *)
-                (List.rev initl) in
-            make_quant obj delayed
-        | _ ->
-            List.fold_left
-              (fun obj (off,init) ->
-                 let lv = Cil.addOffsetLval off lv in
-                 init_variable wenv lv init obj)
-              implicit_defaults (List.rev initl)
-
   type callenv = {
     pre_annots : WpStrategy.t_annots ;
     post_annots : WpStrategy.t_annots ;
@@ -549,8 +468,7 @@ module Cfg (W : Mcfg.S) = struct
     | Return (r, _) -> W.return wenv s r obj
     | Instr i ->
         begin match i with
-          | Local_init (vi, AssignInit i, _) ->
-              init_variable wenv (Cil.var vi) i obj
+          | Local_init (vi, AssignInit i, _) -> W.init wenv vi (Some i) obj
           | Local_init (_, ConsInit _, _) -> assert false
           | (Set (lv, e, _)) -> W.assign wenv s lv e obj
           | (Asm _) ->
@@ -709,26 +627,19 @@ module Cfg (W : Mcfg.S) = struct
            else
              let old_loc = Cil.CurrentLoc.get () in
              Cil.CurrentLoc.set var.vdecl ;
-             let obj =
-               match initinfo.init with
-               | None ->
-                   W.init_value
-                     wenv (Var var,NoOffset) var.vtype None obj
-               | Some init ->
-                   let lv = Var var, NoOffset in
-                   init_variable wenv lv init obj
-             in Cil.CurrentLoc.set old_loc ; obj
+             let obj = W.init wenv var initinfo.init obj in
+             Cil.CurrentLoc.set old_loc ; obj
       ) obj
 
   let process_global_const wenv obj =
     Globals.Vars.fold_in_file_order
       (fun var _initinfo obj ->
          if WpStrategy.isGlobalInitConst var
-         then W.init_const wenv var obj
+         then W.const wenv var obj
          else obj
       ) obj
 
-  (* WP of global initialisations. *)
+  (* WP of global initializations. *)
   let process_global_init wenv kf obj =
     if WpStrategy.is_main_init kf then
       begin

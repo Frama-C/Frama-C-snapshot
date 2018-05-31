@@ -1,5 +1,5 @@
 //@ assigns \result \from \nothing;
-int any_int();
+int any_int(void);
 int x=55,y=77,t[4];
 void main0() {
   int i = any_int ();

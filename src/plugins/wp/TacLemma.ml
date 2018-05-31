@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2017                                               *)
+(*  Copyright (C) 2007-2018                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -63,9 +63,12 @@ class browser ?on_cluster f cluster =
 
 let browse f s =
   if Model.is_model_defined () then
-    let main = Definitions.cluster ~id:"browser" () in
-    let visitor = new browser f main in
-    visitor#vterm (Tactical.selected s)
+    begin
+      let main = Definitions.cluster ~id:"browser" () in
+      let visitor = new browser f main in
+      let selection = Tactical.selected s in
+      visitor#vterm selection
+    end
 
 (* -------------------------------------------------------------------------- *)
 (* --- Search Lemma Tactical                                              --- *)

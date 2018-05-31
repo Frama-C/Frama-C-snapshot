@@ -57,9 +57,11 @@
   U ∈ {0}
   char1 ∈ {0}
   ll1 ∈ {0}
-tests/value/alias.i:185:[value] entering loop for the first time
-tests/value/alias.i:191:[value] warning: pointer comparison. assert \pointer_comparable((void *)PTR2, (void *)PTR1);
-tests/value/alias.i:199:[value] warning: signed overflow. assert c + 1 ≤ 2147483647;
+[value] tests/value/alias.i:185: entering loop for the first time
+[value:alarm] tests/value/alias.i:191: Warning: 
+  pointer comparison. assert \pointer_comparable((void *)PTR2, (void *)PTR1);
+[value:alarm] tests/value/alias.i:199: Warning: 
+  signed overflow. assert c + 1 ≤ 2147483647;
 [value] Recording results for main6
 [value] done for function main6
 [value] ====== VALUES COMPUTED ======
@@ -84,7 +86,7 @@ tests/value/alias.i:199:[value] warning: signed overflow. assert c + 1 ≤ 21474
 [from] Computing for function main6
 [from] Done for function main6
 [from] ====== DEPENDENCIES COMPUTED ======
-    These dependencies hold at termination for the executions that terminate:
+  These dependencies hold at termination for the executions that terminate:
 [from] Function main6:
   p[1] FROM c (and SELF)
   q[2] FROM c (and SELF)
@@ -98,6 +100,6 @@ tests/value/alias.i:199:[value] warning: signed overflow. assert c + 1 ≤ 21474
   PTR2 FROM NULL[0..3]; PTR2
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function main6:
-      p[1]; q[2]; u; v; w; x; y; z; PTR1; PTR2; i_0
+    p[1]; q[2]; u; v; w; x; y; z; PTR1; PTR2; i_0
 [inout] Inputs for function main6:
-      NULL[0..3]; p[1]; q[2]; u; v; PTR1; PTR2; c
+    NULL[0..3]; p[1]; q[2]; u; v; PTR1; PTR2; c

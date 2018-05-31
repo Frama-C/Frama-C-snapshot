@@ -4,7 +4,7 @@
 [value] Initial state computed
 [value:initial-state] Values of globals at initialization
   
-tests/value/div_strange.i:7:[value] Frama_C_show_each_F: {1073741823}
+[value] tests/value/div_strange.i:7: Frama_C_show_each_F: {1073741823}
 [value] Recording results for main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======
@@ -14,11 +14,11 @@ tests/value/div_strange.i:7:[value] Frama_C_show_each_F: {1073741823}
 [from] Computing for function main
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
-    These dependencies hold at termination for the executions that terminate:
+  These dependencies hold at termination for the executions that terminate:
 [from] Function main:
   \result FROM \nothing
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function main:
-      x; __retres
+    x; __retres
 [inout] Inputs for function main:
-      \nothing
+    \nothing

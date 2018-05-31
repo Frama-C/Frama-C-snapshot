@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2017                                               *)
+(*  Copyright (C) 2007-2018                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -39,6 +39,8 @@ function max_sint32 : int = 2147483648
 function max_uint64 : int = 18446744073709551616
 
 function max_sint64 : int = 9223372036854775808
+
+predicate is_bool (x:int) = ((x) = (0)) \/ ((x) = (1))
 
 predicate is_uint8 int
 
@@ -77,6 +79,8 @@ predicate is_sint64 int
 
 axiom is_sint64_def : forall x:int [is_sint64 x]. is_sint64 x <->
   (Int.(<=) ((Int.(-_) (max_sint64))) (x)) /\ (Int.(<) (x) (max_sint64))
+
+function to_bool (x:int) : int = if ((x) = (0)) then 0 else 1
 
 function to_uint8 int : int
 

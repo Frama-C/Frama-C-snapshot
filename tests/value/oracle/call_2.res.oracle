@@ -4,14 +4,19 @@
 [value] Initial state computed
 [value:initial-state] Values of globals at initialization
   
-tests/value/call_2.i:15:[value] warning: accessing uninitialized left-value. assert \initialized(&z);
-tests/value/call_2.i:15:[value] warning: non-finite float value. assert \is_finite(f);
-tests/value/call_2.i:15:[value] warning: signed overflow. assert -2147483648 ≤ i + j;
-tests/value/call_2.i:15:[value] warning: signed overflow. assert i + j ≤ 2147483647;
+[value:alarm] tests/value/call_2.i:15: Warning: 
+  accessing uninitialized left-value. assert \initialized(&z);
+[value:alarm] tests/value/call_2.i:15: Warning: 
+  non-finite float value. assert \is_finite(f);
+[value:alarm] tests/value/call_2.i:15: Warning: 
+  signed overflow. assert -2147483648 ≤ i + j;
+[value:alarm] tests/value/call_2.i:15: Warning: 
+  signed overflow. assert i + j ≤ 2147483647;
 [value] computing for function ff <- main.
-    Called from tests/value/call_2.i:15.
-tests/value/call_2.i:6:[value] Frama_C_show_each:
-    [-2147483648..2147483647], [-3.40282346639e+38 .. 3.40282346639e+38], {1}
+  Called from tests/value/call_2.i:15.
+[value] tests/value/call_2.i:6: 
+  Frama_C_show_each:
+  [-2147483648..2147483647], [-3.40282346639e+38 .. 3.40282346639e+38], {1}
 [value] Recording results for ff
 [value] Done for function ff
 [value] Recording results for main
@@ -28,17 +33,17 @@ tests/value/call_2.i:6:[value] Frama_C_show_each:
 [from] Computing for function main
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
-    These dependencies hold at termination for the executions that terminate:
+  These dependencies hold at termination for the executions that terminate:
 [from] Function ff:
   NO EFFECTS
 [from] Function main:
   NO EFFECTS
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function ff:
-      \nothing
+    \nothing
 [inout] Inputs for function ff:
-      \nothing
+    \nothing
 [inout] Out (internal) for function main:
-      f; z; p
+    f; z; p
 [inout] Inputs for function main:
-      \nothing
+    \nothing

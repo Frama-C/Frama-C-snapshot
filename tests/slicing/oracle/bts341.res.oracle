@@ -5,8 +5,8 @@
 [value] Initial state computed
 [value:initial-state] Values of globals at initialization
   
-tests/slicing/bts341.i:6:[value] entering loop for the first time
-tests/slicing/bts341.i:7:[value] assertion got status valid.
+[value] tests/slicing/bts341.i:6: entering loop for the first time
+[value] tests/slicing/bts341.i:7: assertion got status valid.
 [value] Recording results for main
 [value] done for function main
 [slicing] initializing slicing ...

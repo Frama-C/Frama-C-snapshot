@@ -1,4 +1,14 @@
 [kernel] Parsing tests/value/fptr.i (no preprocessing)
+[kernel:typing:incompatible-types-call] tests/value/fptr.i:44: Warning: 
+  implicit conversion between incompatible function types:
+  short (*)(void)
+  and
+  int (*)()
+[kernel:typing:incompatible-types-call] tests/value/fptr.i:45: Warning: 
+  implicit conversion between incompatible function types:
+  int (*)(void)
+  and
+  short (*)()
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
 [value] Initial state computed
@@ -13,83 +23,89 @@
   G ∈ {0}
   TA ∈ {0}
 [value] computing for function retshort <- main.
-    Called from tests/value/fptr.i:42.
+  Called from tests/value/fptr.i:42.
 [value] Recording results for retshort
 [value] Done for function retshort
 [value] computing for function retint <- main.
-    Called from tests/value/fptr.i:43.
+  Called from tests/value/fptr.i:43.
 [value] Recording results for retint
 [value] Done for function retint
-tests/value/fptr.i:44:[value] warning: pointer to function with incompatible type.
-    assert \valid_function((int (*)())(&retshort));
-tests/value/fptr.i:45:[value] warning: pointer to function with incompatible type.
-    assert \valid_function((short (*)())(&retint));
-tests/value/fptr.i:50:[value] entering loop for the first time
-tests/value/fptr.i:51:[value] Frama_C_show_each_F: {{ &h }}
+[value:alarm] tests/value/fptr.i:44: Warning: 
+  pointer to function with incompatible type.
+  assert \valid_function((int (*)(void))(&retshort));
+[value:alarm] tests/value/fptr.i:45: Warning: 
+  pointer to function with incompatible type.
+  assert \valid_function((short (*)(void))(&retint));
+[value] tests/value/fptr.i:50: entering loop for the first time
+[value] tests/value/fptr.i:51: Frama_C_show_each_F: {{ &h }}
 [value] computing for function f <- main.
-    Called from tests/value/fptr.i:52.
+  Called from tests/value/fptr.i:52.
 [value] computing for function h <- f <- main.
-    Called from tests/value/fptr.i:9.
+  Called from tests/value/fptr.i:9.
 [value] Recording results for h
 [value] Done for function h
 [value] Recording results for f
 [value] Done for function f
-tests/value/fptr.i:52:[value] Frama_C_show_each: {0}
-tests/value/fptr.i:51:[value] Frama_C_show_each_F: {{ &h ; &hh }}
+[value] tests/value/fptr.i:52: Frama_C_show_each: {0}
+[value] tests/value/fptr.i:51: Frama_C_show_each_F: {{ &h ; &hh }}
 [value] computing for function f <- main.
-    Called from tests/value/fptr.i:52.
+  Called from tests/value/fptr.i:52.
 [value] computing for function hh <- f <- main.
-    Called from tests/value/fptr.i:9.
+  Called from tests/value/fptr.i:9.
 [value] Recording results for hh
 [value] Done for function hh
 [value] computing for function h <- f <- main.
-    Called from tests/value/fptr.i:9.
+  Called from tests/value/fptr.i:9.
 [value] Recording results for h
 [value] Done for function h
 [value] Recording results for f
 [value] Done for function f
-tests/value/fptr.i:52:[value] Frama_C_show_each: {0; 1}
-tests/value/fptr.i:51:[value] Frama_C_show_each_F: {{ NULL ; &h ; &hh }}
+[value] tests/value/fptr.i:52: Frama_C_show_each: {0; 1}
+[value] tests/value/fptr.i:51: Frama_C_show_each_F: {{ NULL ; &h ; &hh }}
 [value] computing for function f <- main.
-    Called from tests/value/fptr.i:52.
-tests/value/fptr.i:9:[value] warning: pointer to function with incompatible type. assert \valid_function(ptr);
+  Called from tests/value/fptr.i:52.
+[value:alarm] tests/value/fptr.i:9: Warning: 
+  pointer to function with incompatible type. assert \valid_function(ptr);
 [value] computing for function hh <- f <- main.
-    Called from tests/value/fptr.i:9.
+  Called from tests/value/fptr.i:9.
 [value] Recording results for hh
 [value] Done for function hh
 [value] computing for function h <- f <- main.
-    Called from tests/value/fptr.i:9.
+  Called from tests/value/fptr.i:9.
 [value] Recording results for h
 [value] Done for function h
 [value] Recording results for f
 [value] Done for function f
-tests/value/fptr.i:52:[value] Frama_C_show_each: {0; 1}
-tests/value/fptr.i:51:[value] Frama_C_show_each_F: {{ NULL ; &h ; &hh }}
+[value] tests/value/fptr.i:52: Frama_C_show_each: {0; 1}
+[value] tests/value/fptr.i:51: Frama_C_show_each_F: {{ NULL ; &h ; &hh }}
 [value] computing for function f <- main.
-    Called from tests/value/fptr.i:52.
+  Called from tests/value/fptr.i:52.
 [value] computing for function hh <- f <- main.
-    Called from tests/value/fptr.i:9.
+  Called from tests/value/fptr.i:9.
 [value] Recording results for hh
 [value] Done for function hh
 [value] computing for function h <- f <- main.
-    Called from tests/value/fptr.i:9.
+  Called from tests/value/fptr.i:9.
 [value] Recording results for h
 [value] Done for function h
 [value] Recording results for f
 [value] Done for function f
-tests/value/fptr.i:56:[value] warning: division by zero. assert (int)(c & 64) ≢ 0;
+[value:alarm] tests/value/fptr.i:56: Warning: 
+  division by zero. assert (int)(c & 64) ≢ 0;
 [value] computing for function hh <- main.
-    Called from tests/value/fptr.i:56.
+  Called from tests/value/fptr.i:56.
 [value] Recording results for hh
 [value] Done for function hh
 [value] computing for function h <- main.
-    Called from tests/value/fptr.i:56.
+  Called from tests/value/fptr.i:56.
 [value] Recording results for h
 [value] Done for function h
 [value] Recording results for main
 [value] done for function main
-tests/value/fptr.i:44:[value] assertion 'Value,function_pointer' got final status invalid.
-tests/value/fptr.i:45:[value] assertion 'Value,function_pointer' got final status invalid.
+[value] tests/value/fptr.i:44: 
+  assertion 'Value,function_pointer' got final status invalid.
+[value] tests/value/fptr.i:45: 
+  assertion 'Value,function_pointer' got final status invalid.
 [value] ====== VALUES COMPUTED ======
 [value:final-states] Values at end of function h:
   X ∈ {0; 1}
@@ -137,7 +153,7 @@ tests/value/fptr.i:45:[value] assertion 'Value,function_pointer' got final statu
 [from] Computing for function main
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
-    These dependencies hold at termination for the executions that terminate:
+  These dependencies hold at termination for the executions that terminate:
 [from] Function h:
   X FROM y
   XH FROM y
@@ -168,15 +184,15 @@ tests/value/fptr.i:45:[value] assertion 'Value,function_pointer' got final statu
   TA FROM c (and SELF)
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function h:
-      X; XH
+    X; XH
 [inout] Out (internal) for function hh:
-      X; XHH
+    X; XHH
 [inout] Out (internal) for function f:
-      R; n; X; XH; XHH
+    R; n; X; XH; XHH
 [inout] Out (internal) for function retint:
-      __retres
+    __retres
 [inout] Out (internal) for function retshort:
-      __retres
+    __retres
 [inout] Out (internal) for function main:
-      R; n; X; XH; XHH; GLOBAL[0..1]; G; TA; in; pin; sh; psh; tmp; tmp_0; 
-      i; p; tmp_1
+    R; n; X; XH; XHH; GLOBAL[0..1]; G; TA; in; pin; sh; psh; tmp; tmp_0; 
+    i; p; tmp_1

@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2017                                               *)
+(*  Copyright (C) 2007-2018                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -39,7 +39,7 @@ let build_wto kf =
   let init = Kernel_function.find_first_stmt kf
   and succs = fun stmt -> List.rev stmt.succs
   in
-  Scheduler.partition ~init ~succs
+  Scheduler.partition ?pref:None ~init ~succs
 
 
 (* ********************************************************************** *)

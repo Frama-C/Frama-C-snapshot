@@ -6,11 +6,11 @@
 [value:initial-state] Values of globals at initialization
   
 [value] computing for function f0 <- main.
-    Called from tests/slicing/bts808.i:21.
+  Called from tests/slicing/bts808.i:21.
 [value] Recording results for f0
 [value] Done for function f0
 [value] computing for function f1 <- main.
-    Called from tests/slicing/bts808.i:21.
+  Called from tests/slicing/bts808.i:21.
 [value] Recording results for f1
 [value] Done for function f1
 [value] Recording results for main

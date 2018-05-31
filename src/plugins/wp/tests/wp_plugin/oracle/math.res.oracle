@@ -1,0 +1,249 @@
+# frama-c -wp [...]
+[kernel] Parsing tests/wp_plugin/math.i (no preprocessing)
+[wp] Running WP plugin...
+[wp] Loading driver 'share/wp.driver'
+[wp] Warning: Missing RTE guards
+------------------------------------------------------------
+  Global
+------------------------------------------------------------
+
+Lemma abs_neg:
+Assume: 'abs_pos'
+Prove: (y_0<=0) -> (x_0<y_0) -> ((\rabs y_0)<(\rabs x_0))
+
+------------------------------------------------------------
+
+Lemma abs_pos:
+Prove: (0<=x_0) -> (x_0<y_0) -> ((\rabs x_0)<(\rabs y_0))
+
+------------------------------------------------------------
+
+Lemma atan_sin_cos:
+Assume: 'pow_2' 'exp_log_add_mul' 'log_exp_mul_add' 'exp_pos' 'sqrt_mono'
+  'sqrt_pos' 'max_ac' 'min_ac' 'max_or' 'max_inf' 'min_or' 'min_inf'
+  'abs_neg' 'abs_pos'
+Prove: let r_0 = (\atan x_0) in ((\sin r_0) div (\cos r_0))=x_0
+
+------------------------------------------------------------
+
+Lemma cosh_opp:
+Assume: 'sinh_opp' 'atan_sin_cos' 'pow_2' 'exp_log_add_mul' 'log_exp_mul_add'
+  'exp_pos' 'sqrt_mono' 'sqrt_pos' 'max_ac' 'min_ac' 'max_or' 'max_inf'
+  'min_or' 'min_inf' 'abs_neg' 'abs_pos'
+Prove: (\cosh (-x_0))=(\cosh x_0)
+
+------------------------------------------------------------
+
+Lemma distance:
+Assume: 'tanh_opp' 'cosh_opp' 'sinh_opp' 'atan_sin_cos' 'pow_2'
+  'exp_log_add_mul' 'log_exp_mul_add' 'exp_pos' 'sqrt_mono' 'sqrt_pos'
+  'max_ac' 'min_ac' 'max_or' 'max_inf' 'min_or' 'min_inf' 'abs_neg' 'abs_pos'
+Prove: (\sqrt ((x_0*x_0)+(y_0*y_0)))=(\hypot x_0 y_0)
+
+------------------------------------------------------------
+
+Lemma exp_log_add_mul:
+Assume: 'log_exp_mul_add' 'exp_pos' 'sqrt_mono' 'sqrt_pos' 'max_ac' 'min_ac'
+  'max_or' 'max_inf' 'min_or' 'min_inf' 'abs_neg' 'abs_pos'
+Prove: (0<a_0) -> (0<b_0) -> ((a_0*b_0)=(\exp ((\log a_0)+(\log b_0))))
+
+------------------------------------------------------------
+
+Lemma exp_pos:
+Assume: 'sqrt_mono' 'sqrt_pos' 'max_ac' 'min_ac' 'max_or' 'max_inf' 'min_or'
+  'min_inf' 'abs_neg' 'abs_pos'
+Prove: true
+
+------------------------------------------------------------
+
+Lemma log_exp_mul_add:
+Assume: 'exp_pos' 'sqrt_mono' 'sqrt_pos' 'max_ac' 'min_ac' 'max_or' 'max_inf'
+  'min_or' 'min_inf' 'abs_neg' 'abs_pos'
+Prove: (a_0+b_0)=(\log ((\exp a_0)*(\exp b_0)))
+
+------------------------------------------------------------
+
+Lemma max_ac:
+Assume: 'min_ac' 'max_or' 'max_inf' 'min_or' 'min_inf' 'abs_neg' 'abs_pos'
+Prove: true
+
+------------------------------------------------------------
+
+Lemma max_inf:
+Assume: 'min_or' 'min_inf' 'abs_neg' 'abs_pos'
+Prove: let r_0 = (\max x_0 y_0) in (x_0<=r_0) /\ (y_0<=r_0)
+
+------------------------------------------------------------
+
+Lemma max_or:
+Assume: 'max_inf' 'min_or' 'min_inf' 'abs_neg' 'abs_pos'
+Prove: let r_0 = (\max x_0 y_0) in (r_0=x_0) \/ (r_0=y_0)
+
+------------------------------------------------------------
+
+Lemma min_ac:
+Assume: 'max_or' 'max_inf' 'min_or' 'min_inf' 'abs_neg' 'abs_pos'
+Prove: true
+
+------------------------------------------------------------
+
+Lemma min_inf:
+Assume: 'abs_neg' 'abs_pos'
+Prove: let r_0 = (\min x_0 y_0) in (r_0<=x_0) /\ (r_0<=y_0)
+
+------------------------------------------------------------
+
+Lemma min_or:
+Assume: 'min_inf' 'abs_neg' 'abs_pos'
+Prove: let r_0 = (\min x_0 y_0) in (r_0=x_0) \/ (r_0=y_0)
+
+------------------------------------------------------------
+
+Lemma pow_2:
+Assume: 'exp_log_add_mul' 'log_exp_mul_add' 'exp_pos' 'sqrt_mono' 'sqrt_pos'
+  'max_ac' 'min_ac' 'max_or' 'max_inf' 'min_or' 'min_inf' 'abs_neg' 'abs_pos'
+Prove: (0<a_0) -> ((a_0*a_0)=(\pow a_0 2))
+
+------------------------------------------------------------
+
+Lemma sinh_opp:
+Assume: 'atan_sin_cos' 'pow_2' 'exp_log_add_mul' 'log_exp_mul_add' 'exp_pos'
+  'sqrt_mono' 'sqrt_pos' 'max_ac' 'min_ac' 'max_or' 'max_inf' 'min_or'
+  'min_inf' 'abs_neg' 'abs_pos'
+Prove: ((\sinh x_0)+(\sinh (-x_0)))=0
+
+------------------------------------------------------------
+
+Lemma sqrt_mono:
+Assume: 'sqrt_pos' 'max_ac' 'min_ac' 'max_or' 'max_inf' 'min_or' 'min_inf'
+  'abs_neg' 'abs_pos'
+Prove: (0<=x_0) -> (x_0<y_0) -> ((\sqrt x_0)<(\sqrt y_0))
+
+------------------------------------------------------------
+
+Lemma sqrt_pos:
+Assume: 'max_ac' 'min_ac' 'max_or' 'max_inf' 'min_or' 'min_inf' 'abs_neg'
+  'abs_pos'
+Prove: (0<=x_0) -> (0<=(\sqrt x_0))
+
+------------------------------------------------------------
+
+Lemma tanh_opp:
+Assume: 'cosh_opp' 'sinh_opp' 'atan_sin_cos' 'pow_2' 'exp_log_add_mul'
+  'log_exp_mul_add' 'exp_pos' 'sqrt_mono' 'sqrt_pos' 'max_ac' 'min_ac'
+  'max_or' 'max_inf' 'min_or' 'min_inf' 'abs_neg' 'abs_pos'
+Prove: ((\tanh x_0)+(\tanh (-x_0)))=0
+
+------------------------------------------------------------
+------------------------------------------------------------
+  Function ko
+------------------------------------------------------------
+
+Goal Post-condition 'ko,sin_asin' in 'ko':
+Prove: sin(asin(r)) = r.
+
+------------------------------------------------------------
+
+Goal Post-condition 'ko,cos_acos' in 'ko':
+Prove: cos(acos(r)) = r.
+
+------------------------------------------------------------
+
+Goal Post-condition 'ko,asin_sin' in 'ko':
+Prove: asin(sin(r)) = r.
+
+------------------------------------------------------------
+
+Goal Post-condition 'ko,acos_cos' in 'ko':
+Prove: acos(cos(r)) = r.
+
+------------------------------------------------------------
+
+Goal Post-condition 'ko,atan_tan' in 'ko':
+Prove: atan(tan(r)) = r.
+
+------------------------------------------------------------
+
+Goal Post-condition 'ko,log_pow' in 'ko':
+Prove: (r * log(r_1)) = log(pow(r_1, r)).
+
+------------------------------------------------------------
+
+Goal Post-condition 'ko,exp_log' in 'ko':
+Prove: exp(log(r)) = r.
+
+------------------------------------------------------------
+
+Goal Post-condition 'ko,exp_log_add_mul' in 'ko':
+Prove: (r * r_1) = exp(log(r) + log(r_1)).
+
+------------------------------------------------------------
+
+Goal Post-condition 'ko,sqrt_pos' in 'ko':
+Prove: .0 <= sqrt(r).
+
+------------------------------------------------------------
+------------------------------------------------------------
+  Function ok
+------------------------------------------------------------
+
+Goal Post-condition 'sin_asin' in 'ok':
+Assume { (* Goal *) When: (r <= 1.0) /\ (-1.0 <= r). }
+Prove: sin(asin(r)) = r.
+
+------------------------------------------------------------
+
+Goal Post-condition 'sin_asin_in_range' in 'ok':
+Let r_1 = cos(r). Prove: sin(asin(r_1)) = r_1.
+
+------------------------------------------------------------
+
+Goal Post-condition 'cos_acos' in 'ok':
+Assume { (* Goal *) When: (r <= 1.0) /\ (-1.0 <= r). }
+Prove: cos(acos(r)) = r.
+
+------------------------------------------------------------
+
+Goal Post-condition 'cos_acos_in_range' in 'ok':
+Let r_1 = sin(r). Prove: cos(acos(r_1)) = r_1.
+
+------------------------------------------------------------
+
+Goal Post-condition 'tan_atan' in 'ok':
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Post-condition 'log_pow' in 'ok':
+Assume { (* Goal *) When: .0 < r_1. }
+Prove: (r * log(r_1)) = log(pow(r_1, r)).
+
+------------------------------------------------------------
+
+Goal Post-condition 'log_exp' in 'ok':
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Post-condition 'exp_log' in 'ok':
+Assume { (* Goal *) When: .0 < r. }
+Prove: exp(log(r)) = r.
+
+------------------------------------------------------------
+
+Goal Post-condition 'min_plus_distrib' in 'ok':
+Prove: (r + min_real(r_1, r_2)) = min_real(r_1 + r, r_2 + r).
+
+------------------------------------------------------------
+
+Goal Post-condition 'sqrt_pos' in 'ok':
+Assume { (* Goal *) When: .0 < r. }
+Prove: .0 < sqrt(r).
+
+------------------------------------------------------------
+
+Goal Post-condition 'sqrt_pos0' in 'ok':
+Assume { (* Goal *) When: .0 <= r. }
+Prove: .0 <= sqrt(r).
+
+------------------------------------------------------------

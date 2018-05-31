@@ -2,7 +2,7 @@
 [kernel] Parsing tests/wp_plugin/prenex.i (no preprocessing)
 [wp] Running WP plugin...
 [wp] Loading driver 'share/wp.driver'
-[wp] warning: Missing RTE guards
+[wp] Warning: Missing RTE guards
 [wp] 12 goals scheduled
 [wp] [Alt-Ergo] Goal typed_diag_post : Valid
 [wp] [Alt-Ergo] Goal typed_diag_loop_inv_I_preserved : Valid
@@ -17,9 +17,10 @@
 [wp] [Qed] Goal typed_diag_loop_assign_part2 : Valid
 [wp] [Qed] Goal typed_diag_loop_assign_2 : Valid
 [wp] Proved goals:   12 / 12
-    Qed:             7 
-    Alt-Ergo:        5
-----------------------------------------------------------
-Functions           WP   Alt-Ergo    Total   Success
-diag                 7      5 (65)    12       100%
-----------------------------------------------------------
+  Qed:             7 
+  Alt-Ergo:        5
+[wp] Report 'tests/wp_plugin/prenex.i.0.report.json'
+-------------------------------------------------------------
+Functions           WP     Alt-Ergo        Total   Success
+diag                 7      5 (56..80)      12       100%
+-------------------------------------------------------------

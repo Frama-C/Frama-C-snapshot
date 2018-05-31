@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2017                                               *)
+(*  Copyright (C) 2007-2018                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -27,20 +27,6 @@
 module CamlString = String
 module Fc_config = Config
 
-(* NOTE: every new WARNING category that is set by default (and all of its
-         subcategories) must be explictly added here. Whenever a new category
-         is added, include a comment referencing this note:
-         "See note in kernel.ml".
-         Also note that all messages emitted with WARNING message keys should
-         have Result kind. *)
-let () = Plugin.default_msg_keys [
-    "WARNING";
-    "WARNING:link";
-    "WARNING:link:drop-conflicting-unused";
-    "WARNING:typing";
-    "WARNING:typing:implicit-conv-void-ptr";
-  ]
-
 let () = Plugin.register_kernel ()
 
 module P = Plugin.Register
@@ -50,8 +36,128 @@ module P = Plugin.Register
      let help = "General options provided by the Frama-C kernel"
    end)
 
-include (P: Plugin.S)
+include (P: Plugin.S_no_log)
 include Cmdline.Kernel_log
+
+let dkey_alpha = register_category "alpha"
+
+let dkey_alpha_undo = register_category "alpha:undo"
+
+let dkey_asm_contracts = register_category "asm:contracts"
+
+let dkey_ast = register_category "ast"
+
+let dkey_check = register_category "check"
+
+let dkey_comments = register_category "parser:comments"
+
+let dkey_dataflow = register_category "dataflow"
+
+let dkey_dataflow_scc = register_category "dataflow:scc"
+
+let dkey_dominators = register_category "dominators"
+
+let dkey_emitter = register_category "emitter"
+let dkey_emitter_clear = register_category "emitter:clear"
+
+let dkey_exn_flow = register_category "exn_flow"
+
+let dkey_file_annot = register_category "file:annotation"
+
+let dkey_file_print_one = register_category "file:print-one"
+
+let dkey_file_transform = register_category "file:transformation"
+
+let dkey_filter = register_category "filter"
+
+let dkey_globals = register_category "globals"
+
+let dkey_kf_blocks = register_category "kf:blocks"
+
+let dkey_linker = register_category "linker"
+
+let dkey_linker_find = register_category "linker:find"
+
+let dkey_loops = register_category "natural-loops"
+
+let dkey_parser = register_category "parser"
+let dkey_rmtmps = register_category "parser:rmtmps"
+
+let dkey_pp = register_category "pp"
+let dkey_compilation_db = register_category "pp:compilation-db"
+
+let dkey_print_bitfields = register_category "printer:bitfields"
+
+let dkey_print_builtins = register_category "printer:builtins"
+
+let dkey_print_logic_coercions = register_category "printer:logic-coercions"
+
+let dkey_print_logic_types = register_category "printer:logic-types"
+
+let dkey_print_sid = register_category "printer:sid"
+
+let dkey_print_unspecified = register_category "printer:unspecified"
+
+let dkey_print_vid = register_category "printer:vid"
+
+let dkey_prop_status = register_category "prop-status"
+
+let dkey_prop_status_emit = register_category "prop-status:emit"
+
+let dkey_prop_status_merge = register_category "prop-status:merge"
+
+let dkey_prop_status_reg = register_category "prop-status:register"
+
+let dkey_prop_status_graph = register_category "prop-status:graph"
+
+let dkey_task = register_category "task"
+
+let dkey_typing_global = register_category "typing:global"
+
+let dkey_typing_init = register_category "typing:initializer"
+
+let dkey_typing_chunk = register_category "typing:chunk"
+
+let dkey_typing_cast = register_category "typing:cast"
+
+let dkey_typing_pragma = register_category "typing:pragma"
+
+let dkey_ulevel = register_category "ulevel"
+
+let dkey_visitor = register_category "visitor"
+
+let wkey_annot_error = register_warn_category "annot-error"
+let () = set_warn_status wkey_annot_error Log.Wabort
+
+let wkey_drop_unused = register_warn_category "linker:drop-conflicting-unused"
+
+let wkey_implicit_conv_void_ptr =
+  register_warn_category "typing:implicit-conv-void-ptr"
+
+let wkey_incompatible_types_call =
+  register_warn_category "typing:incompatible-types-call"
+
+let wkey_incompatible_pointer_types =
+  register_warn_category "typing:incompatible-pointer-types"
+
+let wkey_cert_exp_46 = register_warn_category "CERT:EXP:46"
+
+let wkey_cert_msc_38 = register_warn_category "CERT:MSC:38"
+let () = set_warn_status wkey_cert_msc_38 Log.Werror
+
+let wkey_check_volatile = register_warn_category "check:volatile"
+
+let wkey_jcdb = register_warn_category "pp:compilation-db"
+
+let wkey_implicit_function_declaration = register_warn_category
+    "typing:implicit-function-declaration"
+
+let wkey_no_proto = register_warn_category "typing:no-proto"
+
+let wkey_missing_spec = register_warn_category "annot:missing-spec"
+
+let wkey_decimal_float = register_warn_category "parser:decimal-float"
+let () = set_warn_status wkey_decimal_float Log.Wonce
 
 (* ************************************************************************* *)
 (** {2 Specialised functors for building kernel parameters} *)
@@ -123,6 +229,13 @@ module String_list(X: Input_with_arg) =
       let () = Parameter_customize.set_module_name X.module_name 
       include X 
      end)
+
+module Kernel_function_set(X: Input_with_arg) =
+  P.Kernel_function_set
+    (struct
+      let () = Parameter_customize.set_module_name X.module_name
+      include X
+    end)
 
 (* ************************************************************************* *)
 (** {2 Installation Information} *)
@@ -806,10 +919,19 @@ module ContinueOnAnnotError =
   False(struct
           let module_name = "ContinueOnAnnotError"
           let option_name = "-continue-annot-error"
-          let help = "When an annotation fails to type-check, emit \
-                         a warning and discard the annotation instead of \
-                         generating an error (errors in C are still fatal)"
+          let help =
+            "[DEPRECATED: Use -kernel-warn-error=-annot-error instead] \
+             When an annotation fails to type-check, emit a warning \
+             and discard the annotation instead of generating an error \
+             (errors in C are still fatal)"
         end)
+let () =
+  ContinueOnAnnotError.add_set_hook
+    (fun _ f ->
+       warning ~once:true
+         "-continue-annot-error is deprecated. \
+          Use -kernel-warn-error=-annot-error (or similar option) instead";
+       set_warn_status wkey_annot_error (if f then Log.Wactive else Log.Wabort))
 
 let () = Parameter_customize.set_group parsing
 module Orig_name =
@@ -825,12 +947,30 @@ module ImplicitFunctionDeclaration =
   String(struct
     let option_name = "-implicit-function-declaration"
     let arg_name = "action"
-    let help = "Warn or abort when a function is called before it has been declared \
+    let help =
+      "[DEPRECATED: Use \
+       -kernel-warn-error typing:implicit-function-declaration instead] \
+       Warn or abort when a function is called before it has been declared \
                 (non-C99 compliant); action must be ignore, warn, or error"
     let default = "warn"
     let module_name = "ImplicitFunctionDeclaration"
   end)
 let () = ImplicitFunctionDeclaration.set_possible_values ["ignore"; "warn"; "error"]
+let () =
+  ImplicitFunctionDeclaration.add_set_hook
+    (fun _ s ->
+       warning ~once:true
+         "-implicit-function-declaration is deprecated, \
+          use '-kernel-warn-key typing:implicit-function-declaration' \
+          (or similar options) instead.";
+       let status =
+         if s = "ignore" then Log.Winactive else
+         if s = "warn" then Log.Wactive else
+         if s = "error" then Log.Wabort
+         else fatal "invalid value: %s" s
+       in
+       set_warn_status wkey_implicit_function_declaration status)
+
 
 let () = Parameter_customize.set_group parsing
 let () = Parameter_customize.do_not_reset_on_copy ()
@@ -838,12 +978,23 @@ module WarnDecimalFloat =
   String(struct
     let option_name = "-warn-decimal-float"
     let arg_name = "freq"
-    let help = "Warn when floating-point constants cannot be exactly \
-              represented; freq must be one of none, once or all"
+    let help = "[DEPRECATED: Use -kernel-warn-key decimal-float \
+                (and similar options) instead] \
+                Warn when floating-point constants cannot be exactly \
+                represented; freq must be one of none, once or all"
     let default = "once"
     let module_name = "WarnDecimalFloat"
   end)
 let () = WarnDecimalFloat.set_possible_values ["none"; "once"; "all"]
+let () = WarnDecimalFloat.add_set_hook
+    (fun _ s ->
+       let status =
+         if s = "none" then Log.Winactive
+         else if s = "once" then Log.Wonce
+         else if s = "all" then Log.Wactive
+         else fatal "invalid value: %s" s
+       in
+       set_warn_status wkey_decimal_float status)
 
 let () = Parameter_customize.set_group parsing
 let () = Parameter_customize.do_not_reset_on_copy ()
@@ -853,6 +1004,50 @@ module C11 =
     let help = "allow C11 constructs (experimental; partial support only)"
     let module_name = "C11"
   end)
+
+let () = Parameter_customize.set_group parsing
+let () = Parameter_customize.do_not_reset_on_copy ()
+module JsonCompilationDatabaseOption =
+  String
+    (struct
+      let module_name = "JsonCompilationDatabaseOption"
+      let option_name = "-json-compilation-database"
+      let default = ""
+      let arg_name = "path"
+      let help =
+        if Fc_config.has_yojson then
+          "when set, preprocessing of each file will include corresponding \
+           flags (e.g. -I, -D) from the JSON compilation database \
+           specified by <path>. If <path> is a directory, use \
+           '<path>/compile_commands.json'. Disabled by default. \
+           NOTE: this requires Frama-C to be compiled with yojson support."
+        else
+          "Unsupported: recompile Frama-C with Yojson library to enable it"
+    end)
+
+(* This module holds the real value of the option. It is only updated
+   if Yojson support has been compiled. Otherwise, attempt to use
+   -json-compilation-database results in a warning.
+*)
+module JsonCompilationDatabase =
+  State_builder.Ref(Datatype.String)
+    (struct
+      let name = "JsonCompilationDatabase"
+      let dependencies = [ JsonCompilationDatabaseOption.self ]
+      let default () = ""
+    end)
+
+let () =
+  if Fc_config.has_yojson then
+    JsonCompilationDatabaseOption.add_set_hook
+      (fun _ new_opt -> JsonCompilationDatabase.set new_opt)
+  else begin
+      JsonCompilationDatabaseOption.add_set_hook
+        (fun _ _ ->
+           warning ~once:true
+             "trying to set -json-compilation-database even though Yojson \
+              is not available. Ignoring argument.")
+    end
 
 (* ************************************************************************* *)
 (** {2 Customizing Normalization} *)
@@ -882,6 +1077,21 @@ module UnrollingForce =
        let help =
          "ignore UNROLL loop pragmas disabling unrolling."
      end)
+
+let () = Parameter_customize.set_group normalisation
+let () = Parameter_customize.do_not_reset_on_copy ()
+let () = Parameter_customize.is_invisible ()
+module LogicalOperators =
+  Bool
+    (struct
+      let module_name = "LogicalOperators"
+      let option_name = "-keep-logical-operators"
+      let default = false
+      let help =
+        " UNSUPPORTED :  use it only if you really know what you are doing. \
+         Use logical operators (&& and ||) instead of conversion into \
+         conditional statements when possible."
+    end)
 
 let () = Parameter_customize.set_group normalisation
 let () = Parameter_customize.do_not_reset_on_copy ()
@@ -1035,18 +1245,11 @@ module DoCollapseCallCast =
                    and the lvalue it is assigned to."
   end)
 
-let normalization_parameters = [
-  UnrollingLevel.parameter;
-  Machdep.parameter;
-  CppCommand.parameter;
-  CppExtraArgs.parameter;
-  SimplifyCfg.parameter;
-  KeepSwitch.parameter;
-  Keep_unused_specified_functions.parameter;
-  Constfold.parameter;
-  AllowDuplication.parameter;
-  DoCollapseCallCast.parameter;
-]
+let normalization_parameters () =
+  let norm = Cmdline.Group.name normalisation in
+  let kernel = Plugin.get_from_name "" in
+  Hashtbl.find kernel.Plugin.p_parameters norm
+
 
 (* ************************************************************************* *)
 (** {2 Analysis Options} *)
@@ -1171,26 +1374,30 @@ destination range"
    wants. *)
 let () = Parameter_customize.set_group analysis_options
 let () = Parameter_customize.do_not_reset_on_copy ()
-module FiniteFloat =
-  False
+module SpecialFloat =
+  String
     (struct
-      let module_name = "FiniteFloat"
-      let option_name = "-warn-not-finite-float"
-      let help = "generate alarms when infinite floats or NaN  are produced"
-     end)
+      let module_name = "SpecialFloat"
+      let option_name = "-warn-special-float"
+      let default = "non-finite"
+      let arg_name = "none|nan|non-finite"
+      let help = "generate alarms when special floats are produced: \
+                  infinite floats or NaN (by default), only on NaN or never."
+    end)
+let () = SpecialFloat.set_possible_values ["none"; "nan"; "non-finite"]
 
 
 (* ************************************************************************* *)
 (** {2 Sequencing options} *)
 (* ************************************************************************* *)
 
-let misc = add_group "Sequencing Options"
+let seq = add_group "Sequencing Options"
 
 let () =
   Cmdline.add_option_without_action
     "-then"
     ~plugin:""
-    ~group:(misc :> Cmdline.Group.t)
+    ~group:seq
     ~help:"parse options before `-then' and execute Frama-C \
 accordingly, then parse options after `-then' and re-execute Frama-C"
     ~visible:true
@@ -1201,7 +1408,7 @@ let () =
   Cmdline.add_option_without_action
     "-then-last"
     ~plugin:""
-    ~group:(misc :> Cmdline.Group.t)
+    ~group:seq
     ~help:"like `-then', but the second group of actions is executed \
 on the last project created by a program transformer."
     ~visible:true
@@ -1212,7 +1419,7 @@ let () =
   Cmdline.add_option_without_action
     "-then-replace"
     ~plugin:""
-    ~group:(misc :> Cmdline.Group.t)
+    ~group:seq
     ~help:"like `-then-last', but also remove the previous current project."
     ~visible:true
     ~ext_help:""
@@ -1223,7 +1430,7 @@ let () =
     "-then-on"
     ~plugin:""
     ~argname:"p"
-    ~group:(misc :> Cmdline.Group.t)
+    ~group:seq
     ~help:"like `-then', but the second group of actions is executed \
 on project <p>"
     ~visible:true
@@ -1234,9 +1441,9 @@ on project <p>"
 (** {2 Project-related options} *)
 (* ************************************************************************* *)
 
-let misc = add_group "Project-related Options"
+let project = add_group "Project-related Options"
 
-let () = Parameter_customize.set_group misc
+let () = Parameter_customize.set_group project
 let () = Parameter_customize.do_not_projectify ()
 module Set_project_as_default =
   False(struct
@@ -1246,7 +1453,7 @@ module Set_project_as_default =
 (and so future '-then' sequences are applied on it)"
   end)
 
-let () = Parameter_customize.set_group misc
+let () = Parameter_customize.set_group project
 let () = Parameter_customize.do_not_projectify ()
 module Remove_projects =
   P.Make_set
@@ -1325,7 +1532,7 @@ module NoObj =
        let help = ""
      end)
 
-let () = Parameter_customize.set_group misc
+let () = Parameter_customize.set_group project
 let () = Parameter_customize.set_negative_option_name ""
 let () = Parameter_customize.set_cmdline_stage Cmdline.Early
 module Deterministic =

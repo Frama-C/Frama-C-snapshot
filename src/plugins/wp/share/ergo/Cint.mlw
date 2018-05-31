@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2017                                               *)
+(*  Copyright (C) 2007-2018                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -20,11 +20,13 @@
 (*                                                                        *)
 (**************************************************************************)
 
-(* this is the prelude for Alt-Ergo, any versions *)
+(* this is the prelude for Alt-Ergo, version >= 0.95.2 *)
 (** The theory BuiltIn_ must be appended to this file*)
 (** The theory Bool_ must be appended to this file*)
 (** The theory bool_Bool_ must be appended to this file*)
 (** The theory int_Int_ must be appended to this file*)
+predicate is_bool(x: int) = ((x = 0) or (x = 1))
+
 logic is_uint8 : int -> prop
 
 axiom is_uint8_def : (forall x:int [is_uint8(x)]. (is_uint8(x) -> (0 <= x)))
@@ -110,6 +112,12 @@ axiom is_sint64_def1 :
 axiom is_sint64_def2 :
   (forall x:int [is_sint64(x)]. ((((-9223372036854775808) <= x) and
   (x <  9223372036854775808)) -> is_sint64(x)))
+
+logic to_bool : int -> int
+
+axiom to_bool_def : (forall x:int. ((x = 0) -> (to_bool(x) = 0)))
+
+axiom to_bool_def1 : (forall x:int. ((not (x = 0)) -> (to_bool(x) = 1)))
 
 logic to_uint8 : int -> int
 

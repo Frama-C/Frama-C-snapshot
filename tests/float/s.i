@@ -1,6 +1,6 @@
 /* run.config*
-   STDOPT: #"-all-rounding-modes -float-hex"
    STDOPT: #"-float-hex"
+
 */
 
 typedef float T1;

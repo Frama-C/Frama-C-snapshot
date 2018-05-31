@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2017                                               *)
+(*  Copyright (C) 2007-2018                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -56,6 +56,9 @@ let conv_status = function
   | Alarmset.Unknown -> Property_status.Dont_know
 
 let emit_status ppt status =
+  if status = Property_status.False_if_reachable then begin
+    Red_statuses.add_red_property (Property.get_kinstr ppt) ppt;
+  end;
   Property_status.emit ~distinct:true Value_util.emitter ~hyps:[] ppt status
 
 (* Display the message as result/warning depending on [status] *)
@@ -70,22 +73,44 @@ let msg_status status ?current ?once ?source fmt =
 let behavior_inactive fmt =
   Format.fprintf fmt " (Behavior may be inactive, no reduction performed.)"
 
-let pp_bhv fmt b =
+let pp_behavior fmt b =
   if not (Cil.is_default_behavior b)
   then Format.fprintf fmt ", behavior %s" b.b_name
 
-let pp_header kf fmt b =
+let pp_header kf fmt behavior =
   Format.fprintf fmt "function %a%a"
-    Kernel_function.pretty kf pp_bhv b
+    Kernel_function.pretty kf pp_behavior behavior
 
-let emit_message_and_status kind kf behavior active property named_pred status =
-  let pp_header = pp_header kf in
-  let source = fst named_pred.Cil_types.pred_loc in
+(* The location displayed for a precondition is the call site.
+   To distinguish between different preconditions of a behavior, this function:
+   - prints the name of the precondition, if it exists;
+   - otherwise, inlines the precondition, if the behavior contains more than
+     one precondition. *)
+let pp_requires behavior fmt named_pred =
+  if named_pred.Cil_types.pred_name <> []
+  then Description.pp_named fmt named_pred
+  else if List.length behavior.b_requires > 1
+  then Format.fprintf fmt " %a" Printer.pp_predicate named_pred
+
+(* To identify a predicate, prints the function, the behavior (if non default),
+   the kind of predicate and the name of the predicate (if any). *)
+let pp_predicate behavior kind fmt named_pred =
+  let pp_predicate = match kind with
+    | Precondition -> pp_requires behavior
+    | _ -> Description.pp_named
+  in
+  Format.fprintf fmt "%a%a" pp_p_kind kind pp_predicate named_pred
+
+let emit_message_and_status kind kf behavior ~active ~empty property named_pred status =
+  let pp_predicate = pp_predicate behavior kind in
+  let source = fst (Property.location property) in
   match kind with
   | Precondition | Postcondition PostBody ->
     msg_status status ~once:true ~source
-      "%a: %a%a got status %a.%t%t"
-      pp_header behavior pp_p_kind kind Description.pp_named named_pred
+      "%a: %s%a got status %a.%t%t"
+      (pp_header kf) behavior
+      (if empty then "no state left, " else "")
+      pp_predicate named_pred
       Alarmset.Status.pretty status
       (if active then (fun _ -> ()) else behavior_inactive)
       Value_util.pp_callstack;
@@ -144,10 +169,14 @@ module ActiveBehaviors = struct
       (fun b -> is_active ab b != Alarmset.False)
       ab.funspec.spec_behavior
 
-  exception No_such_behavior
-  let behavior_from_name ab b =
-    try List.find (fun b' -> b'.b_name = b) ab.funspec.spec_behavior
-    with Not_found -> raise No_such_behavior
+  let is_active_from_name ab name =
+    try
+      let list = ab.funspec.spec_behavior in
+      let behavior = List.find (fun b' -> b'.b_name = name) list in
+      is_active ab behavior
+    (* This case happens for behaviors of statement contract, that are not
+       handled by this module. *)
+    with Not_found -> Alarmset.Unknown
 end
 
 let () =
@@ -363,12 +392,6 @@ module Make
     in
     status, reduced_states
 
-  let warn_inactive kf b pre_post ip =
-    let source = fst ip.ip_content.pred_loc in
-    Value_parameters.result ~once:true ~source ~level:2
-      "%a: assumes got status invalid; %a not evaluated.%t"
-      (pp_header kf) b pp_p_kind pre_post Value_util.pp_callstack
-
   (* Do not display anything for postconditions of leaf functions that
      receive status valid (very rare) or unknown: this brings no
      information. However, warn the user if the status is invalid.
@@ -415,20 +438,17 @@ module Make
        being evaluated.
      - [build_env] is used to build the environment evaluation, in particular
        the pre- and post-states. *)
-  let eval_and_reduce_p_kind kf behavior active kind ips states build_prop build_env =
-    let pp_header = pp_header kf in
+  let eval_and_reduce kf behavior active kind ips states build_prop build_env =
     let limit = Value_util.get_slevel kf in
+    let emit = emit_message_and_status kind kf behavior ~active in
     let aux_pred states pred =
       let pr = Logic_const.pred_of_id_pred pred in
-      let source = fst pr.Cil_types.pred_loc in
-      if States.is_empty states then
-        (Value_parameters.result ~once:true ~source ~level:2
-           "%a: no state left in which to evaluate %a, status%a not \
-            computed.%t" pp_header behavior pp_p_kind kind
-           Description.pp_named pr Value_util.pp_callstack;
-         states)
+      let ip = build_prop pred in
+      if States.is_empty states then begin
+        emit ~empty:true ip pr Alarmset.True;
+        states
+      end
       else
-        let property = build_prop pred in
         let (statuses, reduced_states) =
           States.fold
             (fun state (acc_status, acc_states) ->
@@ -439,26 +459,11 @@ module Make
                 fst (States.merge ~into:acc_states reduced_states)))
             states ([], States.empty)
         in
-        let () =
-          List.iter
-            (fun status ->
-               emit_message_and_status kind kf behavior active property pr status)
-            statuses
-        in
+        List.iter (fun status -> emit ~empty:false ip pr status) statuses;
         check_ensures_false kf behavior active pr kind statuses;
         States.reorder reduced_states
     in
     List.fold_left aux_pred states ips
-
-  let eval_and_reduce kf behavior refine kind ips states build_prop build_env =
-    match ips with
-    | [] -> states
-    | ip :: _ ->
-      match refine with
-      | None        -> warn_inactive kf behavior kind ip; states
-      | Some active ->
-        eval_and_reduce_p_kind
-          kf behavior active kind ips states build_prop build_env
 
   (** Check the postcondition of [kf] for the list of [behaviors].
       This may result in splitting [post_states] if the postconditions contain
@@ -470,11 +475,13 @@ module Make
       let build_env s = post_env ~pre:pre_state ~post:s ~result in
       let k = Postcondition (post_kind kf) in
       let check_one_behavior states b =
-        let posts = List.filter (fun (x, _) -> x = kind) b.b_post_cond in
-        let posts = List.map snd posts in
-        let refine = refine_active ~per_behavior b (is_active b) in
-        let build_prop p = Property.ip_of_ensures kf Kglobal b (kind, p) in
-        eval_and_reduce kf b refine k posts states build_prop build_env
+        match refine_active ~per_behavior b (is_active b) with
+        | None -> states
+        | Some active ->
+          let posts = List.filter (fun (x, _) -> x = kind) b.b_post_cond in
+          let posts = List.map snd posts in
+          let build_prop p = Property.ip_of_ensures kf Kglobal b (kind, p) in
+          eval_and_reduce kf b active k posts states build_prop build_env
       in
       List.fold_left check_one_behavior post_states behaviors
 
@@ -516,19 +523,20 @@ module Make
       let build_env pre = pre_env ~pre in
       let k = Precondition in
       let check_one_behavior states b =
-        let refine = refine_active ~per_behavior b (is_active b) in
-        let build_prop assume = Property.ip_of_assumes kf Kglobal b assume in
-        let states =
-          eval_and_reduce kf b refine Assumes b.b_assumes states build_prop build_env
-        in
-        if refine = None then process_inactive_behavior kf call_ki b;
-        let build_prop = ip_from_precondition kf call_ki b in
-        let states =
-          eval_and_reduce kf b refine k b.b_requires states build_prop build_env
-        in
-        if States.is_empty states
-        then process_inactive_postconds kf [b];
-        states
+        match refine_active ~per_behavior b (is_active b) with
+        | None -> process_inactive_behavior kf call_ki b; states
+        | Some active ->
+          let build_prop assume = Property.ip_of_assumes kf Kglobal b assume in
+          let states =
+            eval_and_reduce kf b active Assumes b.b_assumes states build_prop build_env
+          in
+          let build_prop = ip_from_precondition kf call_ki b in
+          let states =
+            eval_and_reduce kf b active k b.b_requires states build_prop build_env
+          in
+          if States.is_empty states
+          then process_inactive_postconds kf [b];
+          states
       in
       List.fold_left check_one_behavior states behaviors
 
@@ -586,8 +594,7 @@ module Make
         | [] -> `True
         | behavs ->
           let aux acc b =
-            let b = ActiveBehaviors.behavior_from_name ab b in
-            match ActiveBehaviors.is_active ab b with
+            match ActiveBehaviors.is_active_from_name ab b with
             | Alarmset.True -> `True
             | Alarmset.Unknown -> if acc = `True then `True else `Unknown
             | Alarmset.False -> acc
@@ -652,9 +659,10 @@ module Make
       if States.is_empty states then (
         if record then begin
           let text = code_annotation_text code_annot in
-          Value_parameters.result ~once:true ~source ~level:2
-            "no state left in which to evaluate %s, status not computed.%t"
-            (Transitioning.String.lowercase_ascii text) Value_util.pp_callstack;
+          List.iter (fun p -> emit_status p Property_status.True) ips;
+          msg_status Alarmset.True ~once:true ~source
+            "no state left, %s%a got status valid."
+            text Description.pp_named p;
         end;
         states
       ) else

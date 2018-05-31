@@ -21,12 +21,12 @@
 [from] Computing for function f
 [from] Done for function f
 [from] ====== DEPENDENCIES COMPUTED ======
-    These dependencies hold at termination for the executions that terminate:
+  These dependencies hold at termination for the executions that terminate:
 [from] Function f:
   i FROM \nothing
   x FROM c
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function f:
-      i; x; j_0
+    i; x; j_0
 [inout] Inputs for function f:
-      x
+    x

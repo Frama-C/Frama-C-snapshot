@@ -2,7 +2,7 @@
 /*                                                                        */
 /*  This file is part of Frama-C.                                         */
 /*                                                                        */
-/*  Copyright (C) 2007-2017                                               */
+/*  Copyright (C) 2007-2018                                               */
 /*    CEA (Commissariat à l'énergie atomique et aux énergies              */
 /*         alternatives)                                                  */
 /*                                                                        */
@@ -38,9 +38,9 @@ __BEGIN_DECLS
   allocates \result;
   assigns __fc_stack_status \from size, __fc_stack_status;
   assigns \result \from indirect:size, indirect:__fc_stack_status;
-  ensures \fresh(\result,size);
+  ensures allocation: \fresh(\result,size);
 */
-void *alloca(size_t size);
+extern void *alloca(size_t size);
 
 __END_DECLS
 __POP_FC_STDLIB

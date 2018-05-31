@@ -2,7 +2,7 @@
 /*                                                                        */
 /*  This file is part of Frama-C.                                         */
 /*                                                                        */
-/*  Copyright (C) 2007-2017                                               */
+/*  Copyright (C) 2007-2018                                               */
 /*    CEA (Commissariat à l'énergie atomique et aux énergies              */
 /*         alternatives)                                                  */
 /*                                                                        */
@@ -41,26 +41,61 @@
 #define __FC_INT_MIN (-2147483647 - 1)
 #define __FC_INT_MAX 2147483647
 #define __FC_UINT_MAX 4294967295U
+#define __FC_LONG_MIN (-2147483647L - 1L)
 #define __FC_LONG_MAX 2147483647L
 #define __FC_ULONG_MAX 4294967295UL
 #define __FC_SIZE_MAX __FC_UINT_MAX
 
 /* Optional */
 #define __INTPTR_T signed int
+#define __FC_INTPTR_MIN __FC_INT_MIN
+#define __FC_INTPTR_MAX __FC_INT_MAX
+
 #define __UINTPTR_T unsigned int
+#define __FC_UINTPTR_MAX __FC_UINT_MAX
+
 #define __INT32_T signed int
 #define __UINT32_T unsigned int
 #define __INT64_T signed long long
 #define __UINT64_T unsigned long long
 
+/* prefixes for inttypes */
+#define __PRI32_PREFIX ""
+#define __PRI64_PREFIX "ll"
+#define __PRIPTR_PREFIX ""
+
 /* Required */
 #define __INT_LEAST32_T signed int
+#define __INT_LEAST32_MIN __FC_INT_MIN
+#define __INT_LEAST32_MAX __FC_INT_MAX
+
 #define __UINT_LEAST32_T unsigned int
+#define __UINT_LEAST32_MAX __FC_UINT_MAX
+
+#define __INT_LEAST64_T signed long long
+#define __INT_LEAST64_MIN __FC_LLONG_MIN
+#define __INT_LEAST64_MAX __FC_LLONG_MAX
+
+#define __UINT_LEAST64_T unsigned long long
+#define __UINT_LEAST64_MAX __FC_ULLONG_MAX
+
 #define __INT_FAST32_T signed int
+#define __INT_FAST32_MIN __FC_INT_MIN
+#define __INT_FAST32_MAX __FC_INT_MAX
+
 #define __UINT_FAST32_T unsigned int
+#define __UINT_FAST32_MAX __FC_UINT_MAX
+
+#define __INT_FAST64_T signed long long
+#define __INT_FAST64_MIN __FC_LLONG_MIN
+#define __INT_FAST64_MAX __FC_LLONG_MAX
+
+#define __UINT_FAST64_T unsigned long long
+#define __UINT_FAST64_MAX __FC_ULLONG_MAX
 
 /* POSIX */
 #define __SSIZE_T int
+#define __SSIZE_MAX __FC_INT_MAX
 /* stdint.h */
 #define __FC_PTRDIFF_MIN __FC_INT_MIN
 #define __FC_PTRDIFF_MAX __FC_INT_MAX
@@ -90,26 +125,70 @@
 #define __FC_INT_MIN (-2147483647 - 1)
 #define __FC_INT_MAX 2147483647
 #define __FC_UINT_MAX 4294967295U
+#define __FC_LONG_MIN (-9223372036854775807L -1L)
 #define __FC_LONG_MAX 9223372036854775807L
 #define __FC_ULONG_MAX 18446744073709551615UL
 #define __FC_SIZE_MAX __FC_ULONG_MAX
 
 /* Optional */
 #define __INTPTR_T signed long
+#define __FC_INTPTR_MIN __FC_LONG_MIN
+#define __FC_INTPTR_MAX __FC_LONG_MAX
+
 #define __UINTPTR_T unsigned long
+#define __FC_UINTPTR_MAX __FC_ULONG_MAX
+
 #define __INT32_T signed int
+#define __INT32_MIN __FC_INT_MIN
+#define __INT32_MAX __FC_INT_MAX
+
 #define __UINT32_T unsigned int
-#define __INT64_T signed long long
-#define __UINT64_T unsigned long long
+#define __UINT32_MAX __FC_UINT_MAX
+
+#define __INT64_T signed long
+#define __INT64_MIN __FC_LONG_MIN
+#define __INT64_MAX __FC_LONG_MAX
+
+#define __UINT64_T unsigned long
+#define __UINT64_MAX __FC_ULONG_MAX
+
+/* prefixes for inttypes */
+#define __PRI32_PREFIX ""
+#define __PRI64_PREFIX "l"
+#define __PRIPTR_PREFIX "l"
 
 /* Required */
 #define __INT_LEAST32_T signed int
+#define __INT_LEAST32_MIN __FC_INT_MIN
+#define __INT_LEAST32_MAX __FC_INT_MAX
+
 #define __UINT_LEAST32_T unsigned int
+#define __UINT_LEAST32_MAX __FC_UINT_MAX
+
+#define __INT_LEAST64_T signed long
+#define __INT_LEAST64_MIN __FC_LONG_MIN
+#define __INT_LEAST64_MAX __FC_LONG_MAX
+
+#define __UINT_LEAST64_T unsigned long
+#define __UINT_LEAST64_MAX __FC_ULONG_MAX
+
 #define __INT_FAST32_T signed int
+#define __INT_FAST32_MIN __FC_INT_MIN
+#define __INT_FAST32_MAX __FC_INT_MAX
+
 #define __UINT_FAST32_T unsigned int
+#define __UINT_FAST32_MAX __FC_UINT_MAX
+
+#define __INT_FAST64_T signed long
+#define __INT_FAST64_MIN __FC_LONG_MIN
+#define __INT_FAST64_MAX __FC_LONG_MAX
+
+#define __UINT_FAST64_T unsigned long
+#define __UINT_FAST64_MAX __FC_ULONG_MAX
 
 /* POSIX */
 #define __SSIZE_T signed long
+#define __SSIZE_MAX __FC_LONG_MAX
 /* stdint.h */
 #define __FC_PTRDIFF_MIN __FC_LONG_MIN
 #define __FC_PTRDIFF_MAX __FC_LONG_MAX
@@ -139,26 +218,72 @@
 #define __FC_INT_MIN (-32768)
 #define __FC_INT_MAX 32767
 #define __FC_UINT_MAX 65535U
+#define __FC_LONG_MIN (-2147483647L -1L)
 #define __FC_LONG_MAX 2147483647L
 #define __FC_ULONG_MAX 4294967295UL
 #define __FC_SIZE_MAX 65535U
 
+
 /* Optional */
 #define __INTPTR_T signed long
+#define __FC_INTPTR_MIN __FC_LONG_MIN
+#define __FC_INTPTR_MAX __FC_LONG_MAX
+
 #define __UINTPTR_T unsigned long
+#define __FC_UINTPTR_MAX __FC_ULONG_MAX
+
 #define __INT32_T signed long
-#define __UINT32_T unsigned long
+#define __INT32_MIN __FC_LONG_MIN
+#define __INT32_MAX __FC_LONG_MAX
+
 #define __INT64_T signed long long
+#define __INT64_MIN __FC_LLONG_MIN
+#define __INT64_MAX __FC_LLONG_MAX
+
+#define __UINT32_T unsigned long
+#define __UINT32_MAX __FC_ULONG_MAX
+
 #define __UINT64_T unsigned long long
+#define __UINT64_MAX __FC_ULLONG_MAX
+
+/* inttypes */
+
+#define __PRI32_PREFIX "l"
+#define __PRI64_PREFIX "ll"
+#define __PRIPTR_PREFIX "l"
 
 /* Required */
 #define __INT_LEAST32_T signed long
+#define __INT_LEAST32_MIN __FC_LONG_MIN
+#define __INT_LEAST32_MAX __FC_LONG_MAX
+
 #define __UINT_LEAST32_T unsigned long
+#define __UINT_LEAST32_MAX __FC_ULONG_MAX
+
+#define __INT_LEAST64_T signed long long
+#define __INT_LEAST64_MIN __FC_LLONG_MIN
+#define __INT_LEAST64_MAX __FC_LLONG_MAX
+
+#define __UINT_LEAST64_T unsigned long long
+#define __UINT_LEAST64_MAX __FC_ULLONG_MAX
+
 #define __INT_FAST32_T signed long
+#define __INT_FAST32_MIN __FC_LONG_MIN
+#define __INT_FAST32_MAX __FC_LONG_MAX
+
 #define __UINT_FAST32_T unsigned long
+#define __UINT_FAST32_MAX __FC_ULONG_MAX
+
+#define __INT_FAST64_T signed long long
+#define __INT_FAST64_MIN __FC_LLONG_MIN
+#define __INT_FAST64_MAX __FC_LLONG_MAX
+
+#define __UINT_FAST64_T unsigned long long
+#define __UINT_FAST64_MAX __FC_ULLONG_MAX
 
 /* POSIX */
 #define __SSIZE_T signed long
+#define __SSIZE_MAX __FC_LONG_MAX
 /* stdint.h */
 #define __FC_PTRDIFF_MIN __FC_LONG_MIN
 #define __FC_PTRDIFF_MAX __FC_LONG_MAX
@@ -189,26 +314,71 @@
 #define __FC_INT_MIN (-2147483647 - 1)
 #define __FC_INT_MAX 2147483647
 #define __FC_UINT_MAX 4294967295U
+#define __FC_LONG_MIN (-2147483647L -1L)
 #define __FC_LONG_MAX 2147483647L
 #define __FC_ULONG_MAX 4294967295UL
 #define __FC_SIZE_MAX __FC_UINT_MAX
 
 /* Optional */
 #define __INTPTR_T signed int
+#define __FC_INTPTR_MIN __FC_LONG_MIN
+#define __FC_INTPTR_MAX __FC_LONG_MAX
+
 #define __UINTPTR_T unsigned int
+#define __FC_UINTPTR_MAX __FC_ULONG_MAX
+
 #define __INT32_T signed int
+#define __INT32_MIN __FC_INT_MIN
+#define __INT32_MAX __FC_INT_MAX
+
 #define __UINT32_T unsigned int
+#define __UINT32_MAX __FC_UINT_MAX
+
 #define __INT64_T signed long long
+#define __INT64_MIN __FC_LLONG_MIN
+#define __INT64_MAX __FC_LLONG_MAX
+
 #define __UINT64_T unsigned long long
+#define __UINT64_MAX __FC_ULLONG_MAX
+
+/* inttypes */
+
+#define __PRI32_PREFIX ""
+#define __PRI64_PREFIX "ll"
+#define __PRIPTR_PREFIX ""
 
 /* Required */
 #define __INT_LEAST32_T signed int
+#define __INT_LEAST32_MIN __FC_INT_MIN
+#define __INT_LEAST32_MAX __FC_INT_MAX
+
 #define __UINT_LEAST32_T unsigned int
+#define __UINT_LEAST32_MAX __FC_UINT_MAX
+
+#define __INT_LEAST64_T signed long long
+#define __INT_LEAST64_MIN __FC_LLONG_MIN
+#define __INT_LEAST64_MAX __FC_LLONG_MAX
+
+#define __UINT_LEAST64_T unsigned long long
+#define __UINT_LEAST64_MAX __FC_ULLONG_MAX
+
 #define __INT_FAST32_T signed int
+#define __INT_FAST32_MIN __FC_INT_MIN
+#define __INT_FAST32_MAX __FC_INT_MAX
+
 #define __UINT_FAST32_T unsigned int
+#define __UINT_FAST32_MAX __FC_UINT_MAX
+
+#define __INT_FAST64_T signed long long
+#define __INT_FAST64_MIN __FC_LLONG_MIN
+#define __INT_FAST64_MAX __FC_LLONG_MAX
+
+#define __UINT_FAST64_T unsigned long long
+#define __UINT_FAST64_MAX __FC_ULLONG_MAX
 
 /* POSIX */
 #define __SSIZE_T int
+#define __SSIZE_MAX __FC_INT_MAX
 /* stdint.h */
 #define __FC_PTRDIFF_MIN __FC_INT_MIN
 #define __FC_PTRDIFF_MAX __FC_INT_MAX
@@ -227,6 +397,8 @@
 #else
 #ifdef __FC_MACHDEP_MSVC_X86_64
 #define  __FC_BYTE_ORDER __LITTLE_ENDIAN
+
+// This machdep does NOT conform itself to POSIX.1-2008
 
 /* Required */
 #undef  __CHAR_UNSIGNED__
@@ -262,38 +434,113 @@
 #define __FC_ULLONG_MAX 18446744073709551615ULL
 #define __FC_PATH_MAX 256
 #define __FC_SIZE_MAX __FC_ULLONG_MAX
+// Note: SSIZE_T/SSIZE_MAX are not defined in this machdep!
+/* Note: MSVC does not define this constant, but because it is used in an ACSL
+   specification, it is safer to define it anyway. */
+#define __FC_HOST_NAME_MAX 255
 
 /* Optional */
 #define __INT8_T signed char
+#define __INT8_MIN __FC_SCHAR_MIN
+#define __INT8_MAX __FC_SCHAR_MAX
+
 #define __UINT8_T unsigned char
+#define __UINT8_MIN __FC_UCHAR_MAX
+
 #define __INT16_T signed short
+#define __INT16_MIN __FC_SHRT_MIN
+#define __INT16_MAX __FC_SHRT_MAX
+
 #define __UINT16_T unsigned short
+#define __UINT16_MAX __FC_USHRT_MAX
 
 #define __INTPTR_T signed long long
+#define __FC_INTPTR_MIN __FC_LLONG_MIN
+#define __FC_INTPTR_MAX __FC_LLONG_MAX
+
 #define __UINTPTR_T unsigned long long
+#define __FC_UINTPTR_MAX __FC_ULLONG_MAX
+
 #define __INT32_T signed int
+#define __INT32_MIN __FC_INT_MIN
+#define __INT32_MAX __FC_INT_MAX
+
 #define __UINT32_T unsigned int
+#define __UINT32_MAX __FC_UINT_MAX
+
 #define __INT64_T signed long long
+#define __INT64_MIN __FC_LLONG_MIN
+#define __INT64_MAX __FC_LLONG_MAX
+
 #define __UINT64_T unsigned long long
+#define __UINT64_MAX __FC_ULLONG_MAX
+
+/* inttypes */
+
+#define __PRI8_PREFIX "hh"
+#define __PRI16_PREFIX "h"
+#define __PRIFAST16_PREFIX ""
+#define __PRI32_PREFIX ""
+#define __PRI64_PREFIX "ll"
+#define __PRIPTR_PREFIX "ll"
+#define __PRIMAX_PREFIX "ll"
 
 /* Required */
 #define __INT_LEAST8_T signed char
+#define __INT_LEAST8_MIN __FC_SCHAR_MIN
+#define __INT_LEAST8_MAX __FC_SCHAR_MAX
+
 #define __UINT_LEAST8_T unsigned char
+#define __UINT_LEAST8_MAX __FC_UCHAR_MAX
+
 #define __INT_LEAST16_T signed short
+#define __INT_LEAST16_MIN __FC_SHRT_MIN
+#define __INT_LEAST16_MAX __FC_SHRT_MAX
+
 #define __UINT_LEAST16_T unsigned short
+#define __UINT_LEAST16_MAX __FC_USHRT_MAX
+
 #define __INT_LEAST32_T signed int
+#define __INT_LEAST32_MIN __FC_INT_MIN
+#define __INT_LEAST32_MAX __FC_INT_MAX
+
 #define __UINT_LEAST32_T unsigned int
+#define __UINT_LEAST32_MAX __FC_UINT_MAX
+
 #define __INT_LEAST64_T signed long long
+#define __INT_LEAST64_MIN __FC_LLONG_MIN
+#define __INT_LEAST64_MAX __FC_LLONG_MAX
+
 #define __UINT_LEAST64_T unsigned long long
+#define __UINT_LEAST64_MAX __FC_ULLONG_MAX
 
 #define __INT_FAST8_T signed char
+#define __INT_FAST8_MIN __FC_SCHAR_MIN
+#define __INT_FAST8_MAX __FC_SCHAR_MAX
+
 #define __UINT_FAST8_T unsigned char
+#define __UINT_FAST8_MAX __FC_UCHAR_MAX
+
 #define __INT_FAST16_T signed int
+#define __INT_FAST16_MIN __FC_INT_MIN
+#define __INT_FAST16_MAX __FC_INT_MAX
+
 #define __UINT_FAST16_T unsigned int
+#define __UINT_FAST16_MAX __FC_UINT_MAX
+
 #define __INT_FAST32_T signed int
+#define __INT_FAST32_MIN __FC_INT_MIN
+#define __INT_FAST32_MAX __FC_INT_MAX
+
 #define __UINT_FAST32_T unsigned int
+#define __UINT_FAST32_MAX __FC_UINT_MAX
+
 #define __INT_FAST64_T signed long long
+#define __INT_FAST64_MIN __FC_LLONG_MIN
+#define __INT_FAST64_MAX __FC_LLONG_MAX
+
 #define __UINT_FAST64_T unsigned long long
+#define __UINT_FAST64_MAX __FC_ULLONG_MAX
 
 /* Required */
 #define __INT_MAX_T signed long long

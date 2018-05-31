@@ -8,11 +8,11 @@
   B ∈ {0}
   C ∈ {0}
 [value] computing for function asgn_struct <- main.
-    Called from tests/pdg/calls_and_struct.c:23.
+  Called from tests/pdg/calls_and_struct.c:23.
 [value] Recording results for asgn_struct
 [value] Done for function asgn_struct
 [value] computing for function f <- main.
-    Called from tests/pdg/calls_and_struct.c:27.
+  Called from tests/pdg/calls_and_struct.c:27.
 [value] Recording results for f
 [value] Done for function f
 [value] Recording results for main
@@ -24,7 +24,7 @@
 [from] Computing for function main
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
-    These dependencies hold at termination for the executions that terminate:
+  These dependencies hold at termination for the executions that terminate:
 [from] Function asgn_struct:
   \result FROM S
 [from] Function f:
@@ -39,38 +39,38 @@
   \result FROM S
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function asgn_struct:
-      s; __retres
+    s; __retres
 [inout] Inputs for function asgn_struct:
-      S
+    S
 [inout] InOut (internal) for function asgn_struct:
-    Operational inputs:
-      S
-    Operational inputs on termination:
-      S
-    Sure outputs:
-      s; __retres
+  Operational inputs:
+    S
+  Operational inputs on termination:
+    S
+  Sure outputs:
+    s; __retres
 [inout] Out (internal) for function f:
-      S.a; A; __retres
+    S.a; A; __retres
 [inout] Inputs for function f:
-      S.b; A
+    S.b; A
 [inout] InOut (internal) for function f:
-    Operational inputs:
-      S.b; A; s{.a; .b}
-    Operational inputs on termination:
-      S.b; A; s{.a; .b}
-    Sure outputs:
-      S.a; A; __retres
+  Operational inputs:
+    S.b; A; s{.a; .b}
+  Operational inputs on termination:
+    S.b; A; s{.a; .b}
+  Sure outputs:
+    S.a; A; __retres
 [inout] Out (internal) for function main:
-      S.a; A; B; C; a; tmp_0
+    S.a; A; B; C; a; tmp_0
 [inout] Inputs for function main:
-      S; A
+    S; A
 [inout] InOut (internal) for function main:
-    Operational inputs:
-      S
-    Operational inputs on termination:
-      S
-    Sure outputs:
-      S.a; A; B; C; a; tmp_0
+  Operational inputs:
+    S
+  Operational inputs on termination:
+    S
+  Sure outputs:
+    S.a; A; B; C; a; tmp_0
 [pdg] computing for function asgn_struct
 [pdg] done for function asgn_struct
 [pdg] computing for function f

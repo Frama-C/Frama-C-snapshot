@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2017                                               *)
+(*  Copyright (C) 2007-2018                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -72,7 +72,7 @@ type fct_pointer_compatibility =
   | Incompatible
   | Incompatible_but_accepted
 
-let compatible_functions ~typ_pointed ~typ_fun =
+let is_compatible_function ~typ_pointed ~typ_fun =
   (* our own notion of weak compatibility:
      - attributes and qualifiers are always ignored
      - all pointers types are considered compatible
@@ -91,7 +91,7 @@ let compatible_functions ~typ_pointed ~typ_fun =
         Cil_datatype.Compinfo.equal ci1 ci2
       | _ -> false
   in
-  if Cabs2cil.areCompatibleTypes typ_pointed typ_fun then Compatible
+  if Cabs2cil.areCompatibleTypes typ_fun typ_pointed then Compatible
   else
     let continue = match Cil.unrollType typ_pointed, Cil.unrollType typ_fun with
       | TFun (ret1, args1, var1, _), TFun (ret2, args2, var2, _) ->
@@ -119,28 +119,28 @@ let compatible_functions ~typ_pointed ~typ_fun =
     in
     if continue then Incompatible_but_accepted else Incompatible
 
-let resolve_functions ~typ_pointer v =
-  let warn = ref false in
-  let aux base offs acc =
-    match base with
-    | Base.String (_,_) | Base.Null | Base.CLogic_Var _ | Base.Allocated _ ->
-      warn := true; acc
-    | Base.Var (v,_) ->
-      if Cil.isFunctionType v.vtype then (
-        if Ival.contains_non_zero offs then warn := true;
-        if Ival.contains_zero offs then
-          let compatible = compatible_functions typ_pointer v.vtype in
-          if compatible <> Compatible then warn := true;
-          if compatible = Incompatible then acc
-          else Kernel_function.Hptset.add (Globals.Functions.get v) acc
-        else (warn := true; acc)
-      ) else (warn := true; acc)
+let refine_fun_ptr typ args =
+  match Cil.unrollType typ, args with
+  | TFun (_, Some _, _, _), _ | _, None -> typ
+  | TFun (ret, None, var, attrs), Some l ->
+    let ltyps = List.map (fun arg -> "", Cil.typeOf arg, []) l in
+    TFun (ret, Some ltyps, var, attrs)
+  | _ -> assert false
+
+(* Filters the list of kernel function [kfs] to only keep functions compatible
+   with the type [typ_pointer]. *)
+let compatible_functions typ_pointer ?args kfs =
+  let typ_pointer = refine_fun_ptr typ_pointer args in
+  let check_pointer (list, alarm) kf =
+    let typ = Kernel_function.get_type kf in
+    if Cil.isFunctionType typ then
+      match is_compatible_function typ_pointer typ with
+      | Compatible -> kf :: list, alarm
+      | Incompatible_but_accepted -> kf :: list, true
+      | Incompatible -> list, true
+    else list, true
   in
-  try
-    let acc_init = Kernel_function.Hptset.empty in
-    let kfs = Locations.Location_Bytes.fold_topset_ok aux v acc_init in
-    `Value kfs, !warn
-  with Abstract_interp.Error_Top -> `Top, true
+  List.fold_left check_pointer ([], false) kfs
 
 
 let rec expr_contains_volatile expr =
@@ -215,10 +215,10 @@ let ik_attrs_range ik attrs =
 
 let range_inclusion r1 r2 =
   match r1.i_signed, r2.i_signed with
-  | true, true -> let r = r1.i_bits <= r2.i_bits in (r, r)
-  | false, false -> (true,  r1.i_bits <= r2.i_bits)
-  | true, false ->  (false, r1.i_bits <= r2.i_bits+1)
-  | false, true ->  (true,  r1.i_bits <= r2.i_bits-1)
+  | true, true
+  | false, false -> r1.i_bits <= r2.i_bits
+  | true, false ->  false
+  | false, true ->  r1.i_bits <= r2.i_bits-1
 
 let range_lower_bound r =
   if r.i_signed then Cil.min_signed_number r.i_bits else Integer.zero

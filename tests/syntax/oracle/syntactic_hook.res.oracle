@@ -1,42 +1,54 @@
 [kernel] Parsing tests/syntax/syntactic_hook.i (no preprocessing)
-tests/syntax/syntactic_hook.i:5:[kernel] New global node introducing identifier f(22)
+[kernel] tests/syntax/syntactic_hook.i:5: 
+  New global node introducing identifier f(22)
 [kernel] First occurrence of f
-tests/syntax/syntactic_hook.i:7:[kernel] New global node introducing identifier k(25)
+[kernel] tests/syntax/syntactic_hook.i:7: 
+  New global node introducing identifier k(25)
 [kernel] First occurrence of k
-tests/syntax/syntactic_hook.i:9:[kernel] New global node introducing identifier k(25)
+[kernel] tests/syntax/syntactic_hook.i:9: 
+  New global node introducing identifier k(25)
 [kernel] New occurrence of existing identifier k
-tests/syntax/syntactic_hook.i:11:[kernel] New global node introducing identifier main(31)
+[kernel] tests/syntax/syntactic_hook.i:11: 
+  New global node introducing identifier main(31)
 [kernel] First occurrence of main
-tests/syntax/syntactic_hook.i:13:[kernel] New global node introducing identifier t(35)
+[kernel] tests/syntax/syntactic_hook.i:13: 
+  New global node introducing identifier t(35)
 [kernel] First occurrence of t
-tests/syntax/syntactic_hook.i:13:[kernel] warning: [SH]: definition of local function t
-:0:[kernel] New global node introducing identifier g(37)
+[kernel] tests/syntax/syntactic_hook.i:13: Warning: 
+  [SH]: definition of local function t
+[kernel] :0: New global node introducing identifier g(37)
 [kernel] First occurrence of g
-tests/syntax/syntactic_hook.i:17:[kernel] warning: Calling undeclared function g. Old style K&R code?
-tests/syntax/syntactic_hook.i:17:[kernel] warning: [SH]: implicit declaration for prototype g
-tests/syntax/syntactic_hook.i:18:[kernel] Dropping side-effect in sizeof. Nothing to worry, this is by the book.
-tests/syntax/syntactic_hook.i:18:[kernel] warning: [SH]: dropping side effect in sizeof: x++ is converted to tmp
-tests/syntax/syntactic_hook.i:20:[kernel] warning: [SH]: side effect of expression x++ occurs in conditional part of expression x
-    &&
-    x++. It is not always executed
-tests/syntax/syntactic_hook.i:21:[kernel] warning: [SH]: side effect of expression x++ occurs in conditional part of expression x
-    &&
-    (x++ || x). It is not always executed
-tests/syntax/syntactic_hook.i:22:[kernel] warning: [SH]: side effect of expression x++ occurs in conditional part of expression x
-    ||
-    x++. It is not always executed
-tests/syntax/syntactic_hook.i:23:[kernel] warning: [SH]: side effect of expression x++ occurs in conditional part of expression x
-    ? x++ :
-    x++. It is not always executed
-tests/syntax/syntactic_hook.i:23:[kernel] warning: [SH]: side effect of expression x++ occurs in conditional part of expression x
-    ? x++ :
-    x++. It is not always executed
-tests/syntax/syntactic_hook.i:27:[kernel] user error: Declaration of f does not match previous declaration from tests/syntax/syntactic_hook.i:5 (different number of arguments).
-tests/syntax/syntactic_hook.i:27:[kernel] warning: [SH]: conflict with declaration of f at line 5: different number of arguments
-tests/syntax/syntactic_hook.i:27:[kernel] user error: Inconsistent formals
-    25    }
-    26    
-    27    int f(int); //error: conflicting decls
-          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-[kernel] user error: stopping on file "tests/syntax/syntactic_hook.i" that has errors.
+[kernel:typing:implicit-function-declaration] tests/syntax/syntactic_hook.i:17: Warning: 
+  Calling undeclared function g. Old style K&R code?
+[kernel] tests/syntax/syntactic_hook.i:17: Warning: 
+  [SH]: implicit declaration for prototype g
+[kernel] tests/syntax/syntactic_hook.i:18: Dropping side-effect in sizeof.
+[kernel] tests/syntax/syntactic_hook.i:18: Warning: 
+  [SH]: dropping side effect in sizeof: (x++) is converted to tmp
+[kernel] tests/syntax/syntactic_hook.i:20: Warning: 
+  [SH]: side effect of expression x++ occurs in conditional part of
+  expression x && x++. It is not always executed.
+[kernel] tests/syntax/syntactic_hook.i:21: Warning: 
+  [SH]: side effect of expression x++ occurs in conditional part of
+  expression x && (x++ || x). It is not always executed.
+[kernel] tests/syntax/syntactic_hook.i:22: Warning: 
+  [SH]: side effect of expression x++ occurs in conditional part of
+  expression x || x++. It is not always executed.
+[kernel] tests/syntax/syntactic_hook.i:23: Warning: 
+  [SH]: side effect of expression x++ occurs in conditional part of
+  expression x ? x++ : x++. It is not always executed.
+[kernel] tests/syntax/syntactic_hook.i:23: Warning: 
+  [SH]: side effect of expression x++ occurs in conditional part of
+  expression x ? x++ : x++. It is not always executed.
+[kernel] tests/syntax/syntactic_hook.i:27: User Error: 
+  Declaration of f does not match previous declaration from tests/syntax/syntactic_hook.i:5 (different number of arguments).
+[kernel] tests/syntax/syntactic_hook.i:27: Warning: 
+  [SH]: conflict with declaration of f at line 5: different number of arguments
+[kernel] tests/syntax/syntactic_hook.i:27: User Error: 
+  Inconsistent formals
+  25    }
+  26    
+  27    int f(int); //error: conflicting decls
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[kernel] User Error: stopping on file "tests/syntax/syntactic_hook.i" that has errors.
 [kernel] Frama-C aborted: invalid user input.

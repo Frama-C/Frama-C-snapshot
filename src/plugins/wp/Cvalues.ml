@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2017                                               *)
+(*  Copyright (C) 2007-2018                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -29,7 +29,7 @@ open Ctypes
 open Qed
 open Lang
 open Lang.F
-open Memory
+open Sigs
 open Definitions
 
 (* -------------------------------------------------------------------------- *)
@@ -39,6 +39,10 @@ open Definitions
 let ainf = Some e_zero
 let asup n = Some (e_int (n-1))
 let arange k n = p_and (p_leq e_zero k) (p_lt k (e_int n))
+
+let equation = function
+  | Set(a,b) -> p_equal a b
+  | Assert p -> p
 
 let rec constant = function
   | CInt64(z,_,_) -> e_bigint z
@@ -357,11 +361,12 @@ let negate = function
   | `Negative -> `Positive
   | `NoPolarity -> `NoPolarity
 
-module Logic(M : Memory.Model) =
+module Logic(M : Sigs.Model) =
 struct
 
-  type logic = M.loc Memory.logic
-  type region = M.loc Memory.sloc list
+  type logic = M.loc Sigs.logic
+  type segment = c_object * M.loc Sigs.sloc
+  type region = M.loc Sigs.region
 
   (* -------------------------------------------------------------------------- *)
   (* --- Projections                                                        --- *)
@@ -400,13 +405,13 @@ struct
             Vset.Descr( xs , M.pointer_val l , p )
       ) sloc
 
-  let sloc_of_vset vset =
+  let sloc_of_vset phi vset =
     List.map
       (function
-        | Vset.Singleton e -> Sloc (M.pointer_loc e)
+        | Vset.Singleton e -> phi (Sloc (M.pointer_loc e))
         | w ->
             let xs,t,p = Vset.descr w in
-            Sdescr(xs,M.pointer_loc t,p)
+            phi (Sdescr(xs,M.pointer_loc t,p))
       ) vset
 
   let vset = function
@@ -414,13 +419,16 @@ struct
     | Vloc l -> Vset.singleton (M.pointer_val l)
     | Vset s -> s
     | Lset sloc -> vset_of_sloc sloc
+  
+  let sloc_map phi = function
+    | Vexp e -> [phi (Sloc (M.pointer_loc e))]
+    | Vloc l -> [phi (Sloc l)]
+    | Lset locs -> List.map phi locs
+    | Vset vset -> sloc_of_vset phi vset
 
-  let sloc = function
-    | Vexp e -> [Sloc (M.pointer_loc e)]
-    | Vloc l -> [Sloc l]
-    | Lset ls -> ls
-    | Vset vset -> sloc_of_vset vset
-
+  let region obj logic = sloc_map (fun s -> obj , s) logic
+  let sloc logic = sloc_map (fun s -> s) logic
+  
   (* -------------------------------------------------------------------------- *)
   (* --- Morphisms                                                          --- *)
   (* -------------------------------------------------------------------------- *)
@@ -561,7 +569,7 @@ struct
     | { sloc=[] } -> Vset (List.rev a.vset)
     | _ ->
         if prefer_loc then
-          Lset (a.sloc @ sloc_of_vset a.vset)
+          Lset (a.sloc @ sloc_of_vset (fun r -> r) a.vset)
         else
           Vset (vset_of_sloc a.sloc @ a.vset)
 
@@ -589,7 +597,7 @@ struct
       | Loc l -> Vloc l
     else
       let a = { vset=[] ; sloc=[] } in
-      List.iter (loadsloc a sigma obj) (sloc lv) ;
+      List.iter (loadsloc a sigma obj) (sloc_map (fun r -> r) lv) ;
       flush (Ctypes.is_pointer obj) a
 
   let union t vs =
@@ -627,32 +635,32 @@ struct
   (* --- Separated                                                          --- *)
   (* -------------------------------------------------------------------------- *)
 
-  let separated_sloc w (obj1,sloc1) (obj2,sloc2) =
+  let separated_region w (r1 : region) (r2 : region) =
     List.fold_left
-      (fun w s1 ->
+      (fun w (o1,s1) ->
          List.fold_left
-           (fun w s2 ->
+           (fun w (o2,s2) ->
               let cond =
-                try M.separated (rloc obj1 s1) (rloc obj2 s2)
+                try M.separated (rloc o1 s1) (rloc o2 s2)
                 with Exit ->
                   let xs,l1,p1 = rdescr s1 in
                   let ys,l2,p2 = rdescr s2 in
-                  let se1 = Rloc(obj1,l1) in
-                  let se2 = Rloc(obj2,l2) in
+                  let se1 = Rloc(o1,l1) in
+                  let se2 = Rloc(o2,l2) in
                   p_forall (xs@ys) (p_hyps [p1;p2] (M.separated se1 se2))
               in cond::w
-           ) w sloc2
-      ) w sloc1
+           ) w r2
+      ) w r1
 
-  let rec separated_from w r1 = function
-    | r2::rs -> separated_from (separated_sloc w r1 r2) r1 rs
+  let rec separated_from w (r1 : region) = function
+    | r2::rs -> separated_from (separated_region w r1 r2) r1 rs
     | [] -> w
 
   let rec separated_regions w = function
     | r::rs -> separated_regions (separated_from w r rs) rs
     | [] -> w
 
-  let separated regions =
+  let separated (regions : region list) =
     (* forall i<j, (tau_i,R_i)#(tau_j,R_j) *)
     (* forall i<j, forall p in R_j, forall q in R_j, p#q *)
     p_conj (separated_regions [] regions)
@@ -661,7 +669,7 @@ struct
   (* --- Included                                                           --- *)
   (* -------------------------------------------------------------------------- *)
 
-  let included_sloc obj1 s1 obj2 s2 =
+  let included (obj1,s1) (obj2,s2) =
     try M.included (rloc obj1 s1) (rloc obj2 s2)
     with Exit ->
       let xs,l1,p1 = rdescr s1 in
@@ -670,21 +678,19 @@ struct
       let se2 = Rloc(obj2,l2) in
       p_forall xs (p_imply p1 (p_exists ys (p_and p2 (M.included se1 se2))))
 
-  let included obj1 r1 obj2 r2 =
-    p_all (fun s1 -> p_any (fun s2 -> included_sloc obj1 s1 obj2 s2) r2) r1
-
   (* -------------------------------------------------------------------------- *)
   (* --- Valid                                                              --- *)
   (* -------------------------------------------------------------------------- *)
 
-  let valid_sloc sigma acs obj = function
-    | Sloc l -> M.valid sigma acs (Rloc(obj,l))
-    | Sarray(l,t,n) -> M.valid sigma acs (Rrange(l,t,ainf,asup n))
-    | Srange(l,t,a,b) -> M.valid sigma acs (Rrange(l,t,a,b))
-    | Sdescr(xs,l,p) -> p_forall xs (p_imply p (M.valid sigma acs (Rloc(obj,l))))
-
-  let valid sigma acs obj = p_all (valid_sloc sigma acs obj)
-
+  let on_sloc phi (obj,sloc) = match sloc with
+    | Sloc l -> phi (Rloc(obj,l))
+    | Sarray(l,t,n) -> phi (Rrange(l,t,ainf,asup n))
+    | Srange(l,t,a,b) -> phi (Rrange(l,t,a,b))
+    | Sdescr(xs,l,p) -> p_forall xs (p_imply p (phi (Rloc(obj,l))))
+  
+  let valid sigma acs sloc = on_sloc (M.valid sigma acs) sloc
+  let invalid sigma sloc = on_sloc (M.invalid sigma) sloc
+  
   (* -------------------------------------------------------------------------- *)
   (* --- Subset                                                             --- *)
   (* -------------------------------------------------------------------------- *)
@@ -699,6 +705,8 @@ struct
     | Lset _ , _ | _ , Lset _ ->
         let ta = Ctypes.object_of_logic_pointed ta in
         let tb = Ctypes.object_of_logic_pointed tb in
-        included ta (sloc la) tb (sloc lb)
-
+        let ra = List.map (fun s -> ta,s) (sloc la) in
+        let rb = List.map (fun s -> tb,s) (sloc lb) in
+        p_all (fun s -> p_any (included s) rb) ra
+  
 end

@@ -13,11 +13,11 @@
 [from] Computing for function main
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
-    These dependencies hold at termination for the executions that terminate:
+  These dependencies hold at termination for the executions that terminate:
 [from] Function main:
   PTR FROM G
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function main:
-      PTR
+    PTR
 [inout] Inputs for function main:
-      G
+    G

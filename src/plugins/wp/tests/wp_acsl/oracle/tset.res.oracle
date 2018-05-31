@@ -8,10 +8,7 @@
 
 Lemma UNION_DESCR:
 Assume: 'UNION_RANGE' 'UNION_LIFT' 'UNION_EQ'
-Prove: forall i_0:int.
-       (i_0<=n_0) -> (0<=i_0)
-       -> (exists i_1:int.
-           ((i_1+i_0)=n_0) /\ (i_1<=n_0) /\ (0<=i_1))
+Prove: true
 
 ------------------------------------------------------------
 
@@ -29,7 +26,7 @@ Prove: true
 Lemma UNION_RANGE:
 Assume: 'UNION_LIFT' 'UNION_EQ'
 Prove: (0<=k_0) -> (k_0<=n_0)
-       -> ((-1<=k_0) /\ (k_0<=(1+n_0))
+       -> (((k_0<n_0) -> (-1<=k_0)) /\ ((0<k_0) -> (k_0<=(1+n_0)))
            /\ (forall i_0:int.
                (i_0<=n_0) -> (0<=i_0)
                -> ((i_0=k_0) \/ ((k_0<i_0) /\ (i_0<=n_0))

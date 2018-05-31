@@ -196,7 +196,7 @@ module TheMachine =
     (struct
        let name = "theMachine"
        let unique_name = name
-       let dependencies = [ Kernel.Machdep.self ]
+       let dependencies = [ Kernel.Machdep.self; Kernel.LogicalOperators.self ]
      end)
 
 let selfMachine = TheMachine.self
@@ -261,7 +261,7 @@ let rec addOffset (toadd: offset) (off: offset) : offset =
   | Index(e, offset) -> Index(e, addOffset toadd offset)
 
 let mkBlock (slst: stmt list) : block =
-  { battrs = []; bstmts = slst; blocals = []; bscoping = true }
+  { battrs = []; bstmts = slst; blocals = []; bstatics = []; bscoping = true }
 
 let mkBlockNonScoping l = let b = mkBlock l in b.bscoping <- false; b
 
@@ -1900,7 +1900,7 @@ class type cilVisitor = object
     (** Attribute parameters. *)
 
     (** Add here instructions while visiting to queue them to
-     * precede the current statement or instruction being processed *)
+     * precede the current statement being processed *)
   method queueInstr: instr list -> unit
 
     (** Gets the queue of instructions and resets the queue *)
@@ -2643,9 +2643,10 @@ and childrenLogicLabel vis l =
    let ctor_type = doVisitCil vis vis#behavior.get_logic_type_info
      vis#vlogic_type_info_use alphabetabeta ctor.ctor_type
    in
-   let ctor_params = mapNoCopy (visitCilLogicType vis) ctor.ctor_params in
-   if ctor_type != ctor.ctor_type || ctor_params != ctor.ctor_params then
-     { ctor with ctor_type = ctor_type; ctor_params = ctor_params }
+   let ctor_params = ctor.ctor_params in
+   let ctor_params' = mapNoCopy (visitCilLogicType vis) ctor_params in
+   if ctor_type != ctor.ctor_type || ctor_params != ctor_params' then
+     { ctor with ctor_type = ctor_type; ctor_params = ctor_params' }
    else ctor
 
  and visitCilLogicType vis t =
@@ -2684,29 +2685,31 @@ and childrenLogicLabel vis l =
 
  and visitCilLogicVarUse vis lv =
    if vis#behavior.is_copy_behavior &&
-     Logic_env.is_builtin_logic_function lv.lv_name then begin
+      (* In a copy visitor, there's always a project. Furthermore, if
+         we target the current project, builtins are by definition already
+         tied to logic_infos and should not be copied.
+      *)
+      not (Project.is_current (Extlib.the vis#project)) &&
+      Logic_env.is_builtin_logic_function lv.lv_name
+   then begin
        (* Do as if the variable has been declared.
 	  We'll fill the logic info table of the new project at the end.
 	  Behavior's logic_var table is filled as a side effect.
 	*)
        let siblings = Logic_env.find_all_logic_functions lv.lv_name in
        let siblings' = List.map (visitCilLogicInfo vis) siblings in
-       (*Format.printf "new vars:@.";
-       List.iter (fun x -> Format.printf "%s#%d@." x.l_var_info.lv_name x.l_var_info.lv_id) siblings';
+         (*Format.printf "new vars:@.";
+           List.iter (fun x -> Format.printf "%s#%d@." x.l_var_info.lv_name x.l_var_info.lv_id) siblings';
 	*)
-       Queue.add
-	 (fun () ->
-	    (* Add them to env only once *)
-	    List.iter
-	      (fun x ->
-		 if not (Logic_env.Logic_builtin_used.mem x) then begin
- (*                  Format.printf
+         Queue.add
+	   (fun () ->
+             if not (Logic_env.Logic_builtin_used.mem lv.lv_name) then begin
+               (*  Format.printf
 		     "Adding info for %s#%d@."
 		     x.l_var_info.lv_name x.l_var_info.lv_id; *)
-		   Logic_env.Logic_builtin_used.add x;
-		   Logic_env.Logic_info.add x.l_var_info.lv_name x
-		 end)
-	      siblings')
+	       Logic_env.Logic_builtin_used.add lv.lv_name siblings';
+	       Logic_env.Logic_info.add lv.lv_name siblings'
+	     end)
 	 vis#get_filling_actions;
    end;
    doVisitCil vis vis#behavior.get_logic_var vis#vlogic_var_use
@@ -2931,13 +2934,14 @@ and childrenBehavior vis b =
    b.b_extended <- mapNoCopy (visitCilExtended vis) b.b_extended;
    b
 
-and visitCilExtended vis (s,p as orig) =
+and visitCilExtended vis (i,s,p as orig) =
   let visit =
     try Hashtbl.find visitor_tbl s
     with Not_found -> (fun _ _ -> DoChildren)
   in
   let p' = doVisitCil vis id (visit vis) childrenCilExtended p in
-  if p == p' then orig else (s,p')
+  if is_fresh_behavior vis#behavior then Logic_const.new_acsl_extension s p
+  else if p == p' then orig else (i,s,p')
 
 and childrenCilExtended vis p =
   match p with
@@ -3277,12 +3281,10 @@ and childrenExp (vis: cilVisitor) (e: exp) : exp =
  and visitCilInstr (vis: cilVisitor) (i: instr) : instr list =
    let oldloc = CurrentLoc.get () in
    CurrentLoc.set (Cil_datatype.Instr.loc i);
-   assertEmptyQueue vis;
    let res =
      doVisitListCil vis id vis#vinst childrenInstr i in
    CurrentLoc.set oldloc;
-   (* See if we have accumulated some instructions *)
-   vis#unqueueInstr () @ res
+   res
 
  and childrenInstr (vis: cilVisitor) (i: instr) : instr =
    let fExp = visitCilExpr vis in
@@ -3312,25 +3314,27 @@ and childrenExp (vis: cilVisitor) (e: exp) : exp =
      (match ext_asm with
       | None -> i (* only strings and location, nothing to visit. *)
       | Some ext ->
+        let asm_outputs_pre = ext.asm_outputs in
         let asm_outputs =
           mapNoCopy
             (fun ((id,s,lv) as pair) ->
                let lv' = fLval lv in
-               if lv' != lv then (id,s,lv') else pair) ext.asm_outputs
+               if lv' != lv then (id,s,lv') else pair) asm_outputs_pre
         in
+        let asm_inputs_pre = ext.asm_inputs in
         let asm_inputs =
           mapNoCopy
             (fun ((id,s,e) as pair) ->
                let e' = fExp e in
-               if e' != e then (id,s,e') else pair) ext.asm_inputs
+               if e' != e then (id,s,e') else pair) asm_inputs_pre
         in
         let asm_gotos =
           if vis#behavior.is_copy_behavior then
             List.map (fun s -> ref (vis#behavior.memo_stmt !s)) ext.asm_gotos
           else ext.asm_gotos
         in
-        if asm_outputs != ext.asm_outputs
-        || asm_inputs != ext.asm_inputs
+        if asm_outputs != asm_outputs_pre
+        || asm_inputs != asm_inputs_pre
         || asm_gotos != ext.asm_gotos
         then
           begin
@@ -3527,14 +3531,17 @@ and childrenExp (vis: cilVisitor) (e: exp) : exp =
    doVisitCil vis id vis#vblock childrenBlock b'
  and childrenBlock (vis: cilVisitor) (b: block) : block =
    let fStmt s = visitCilStmt vis s in
-   let stmts' = mapNoCopy fStmt b.bstmts in
+   (* first visit locals and update the field. This way, statements visitors
+      that wish to create a local into the innermost scope can simply append
+      it to the current block.
+   *)
    let locals' = mapNoCopy (vis#behavior.get_varinfo) b.blocals in
-   let res =
-     if stmts' != b.bstmts || locals' != b.blocals then
-       { battrs=b.battrs; bstmts=stmts'; blocals=locals'; bscoping=b.bscoping }
-     else b
-   in
-   flatten_transient_sub_blocks res
+   let statics' = mapNoCopy (vis#behavior.get_varinfo) b.bstatics in
+   b.blocals <- locals';
+   b.bstatics <- statics';
+   let stmts' = mapNoCopy fStmt b.bstmts in
+   b.bstmts <- stmts';
+   flatten_transient_sub_blocks b
 
  and visitCilType (vis : cilVisitor) (t : typ) : typ =
    doVisitCil vis id vis#vtype childrenType t
@@ -4171,13 +4178,13 @@ let parseIntAux (str:string) =
     if octalhexbin && l >= 2 then 
       (match String.get str 1 with 
       | 'x' | 'X' (* Hexadecimal number *) -> 
-        toInt Integer.small_nums.(16) Integer.zero 2
+        toInt Integer.(of_int 16) Integer.zero 2
       | 'b' | 'B' ->  (* Binary number *)
-        toInt Integer.small_nums.(2) Integer.zero 2
+        toInt Integer.(of_int 2) Integer.zero 2
       | _ -> (* Octal number *)
-	toInt Integer.small_nums.(8) Integer.zero 1)
+	toInt Integer.(of_int 8) Integer.zero 1)
     else
-      toInt Integer.small_nums.(10) Integer.zero 0
+      toInt Integer.(of_int 10) Integer.zero 0
   in
   i,kinds
 
@@ -4402,9 +4409,14 @@ let map_under_info f e = match e.enode with
      TPtr(tau,_) when isVoidType tau -> true
    | _ -> false
 
- let isCharType t =
+ let isAnyCharType t =
    match unrollTypeSkel t with
      | TInt((IChar|ISChar|IUChar),_) -> true
+     | _ -> false
+
+ let isCharType t =
+   match unrollTypeSkel t with
+     | TInt(IChar,_) -> true
      | _ -> false
 
 let isShortType t =
@@ -4412,9 +4424,19 @@ let isShortType t =
     | TInt((IUShort|IShort),_) -> true
     | _ -> false
 
+let isAnyCharPtrType t =
+  match unrollTypeSkel t with
+    TPtr(tau,_) when isAnyCharType tau -> true
+  | _ -> false
+
 let isCharPtrType t =
   match unrollTypeSkel t with
     TPtr(tau,_) when isCharType tau -> true
+  | _ -> false
+
+let isCharConstPtrType t =
+  match unrollTypeSkel t with
+    TPtr(tau,attrs) when isCharType tau -> hasAttribute "const" attrs
   | _ -> false
 
  let isIntegralType t =
@@ -4696,7 +4718,7 @@ let isCharPtrType t =
      typeHasQualifier attr t || (* ill-formed type *) hasAttribute attr a
    | _ -> hasAttribute attr (typeAttrs typ)
 
- let typeHasAttributeDeep a (ty:typ): bool =
+ let typeHasAttributeMemoryBlock a (ty:typ): bool =
    let f attrs = if hasAttribute a attrs then raise Exit in
    let rec visit (t: typ) : unit =
     match t with
@@ -4715,9 +4737,13 @@ let isCharPtrType t =
    try visit ty; false
    with Exit -> true
 
+ (**** Check for const attribute ****)
+
+ let isConstType typ_lval = typeHasAttributeMemoryBlock "const" typ_lval
+
  (**** Check for volatile attribute ****)
 
- let isVolatileType typ_lval = typeHasAttributeDeep "volatile" typ_lval
+ let isVolatileType typ_lval = typeHasAttributeMemoryBlock "volatile" typ_lval
 
  let rec isVolatileLogicType = function
   | Ctype typ -> isVolatileType typ
@@ -5498,19 +5524,19 @@ and constFoldBinOp ~loc (machdep: bool) bop e1 e2 tres =
         when Integer.equal one Integer.one -> e1''
       | Div, Const(CInt64(i1,ik1,_)),Const(CInt64(i2,ik2,_)) when ik1 = ik2 ->
           begin
-            try kinteger64 ~loc ~kind:tk (Integer.div i1 i2)
+            try kinteger64 ~loc ~kind:tk (Integer.c_div i1 i2)
             with Division_by_zero -> new_exp ~loc (BinOp(bop, e1', e2', tres))
           end
       | Div, Const(CInt64(i1,ik1,_)),Const(CInt64(i2,ik2,_))
           when bytesSizeOfInt ik1 = bytesSizeOfInt ik2 -> begin
-            try kinteger64 ~loc ~kind:tk (Integer.div i1 i2)
+            try kinteger64 ~loc ~kind:tk (Integer.c_div i1 i2)
             with Division_by_zero -> new_exp ~loc (BinOp(bop, e1', e2', tres))
           end
       | Div, _, Const(CInt64(one,_,_)) 
          when Integer.equal one Integer.one -> e1''
       | Mod, Const(CInt64(i1,ik1,_)),Const(CInt64(i2,ik2,_)) when ik1 = ik2 ->
           begin
-            try kinteger64 ~loc ~kind:tk (Integer.rem i1 i2)
+            try kinteger64 ~loc ~kind:tk (Integer.c_rem i1 i2)
             with Division_by_zero -> new_exp ~loc (BinOp(bop, e1', e2', tres))
           end
       | BAnd, Const(CInt64(i1,ik1,_)),Const(CInt64(i2,ik2,_)) when ik1 = ik2 ->
@@ -6164,6 +6190,9 @@ let need_cast ?(force=false) oldt newt =
      end else
        current_name
 
+ let refresh_local_name fdec vi =
+   let new_name = findUniqueName fdec vi.vname in vi.vname <- new_name
+
  let makeLocal ?(temp=false) ?(formal=false) fdec name typ =
    (* a helper function *)
    let name = findUniqueName fdec name in
@@ -6174,6 +6203,7 @@ let need_cast ?(force=false) oldt newt =
  (* Make a local variable and add it to a function *)
  let makeLocalVar fdec ?scope ?(temp=false) ?(insert = true) name typ =
    let vi = makeLocal ~temp fdec name typ in
+   refresh_local_name fdec vi;
    if insert then
      begin
        fdec.slocals <- fdec.slocals @ [vi];
@@ -6272,11 +6302,11 @@ let need_cast ?(force=false) oldt newt =
    tmp.vdefined <- true;
    Local_init(tmp, AssignInit (SingleInit e), loc)
 
- let mkPureExpr ?(ghost:bool = false) ~(fundec:fundec) ?loc (e : exp) : stmt =
+ let mkPureExpr ?ghost ?valid_sid ~(fundec:fundec) ?loc (e : exp) : stmt =
    let scope = mkBlock [] in
    let instr = mkPureExprInstr ~fundec ~scope ?loc e in
-   scope.bstmts <- [ mkStmtOneInstr ~ghost instr];
-   mkStmt (Block scope)
+   scope.bstmts <- [ mkStmtOneInstr ?ghost ?valid_sid instr];
+   mkStmt ?ghost ?valid_sid (Block scope)
 
  let emptyFunctionFromVI vi =
    let r =
@@ -6427,11 +6457,11 @@ let childrenFileSameGlobals vis f =
   iterGlobals f
     (fun g ->
        match fGlob g with
-           [g'] when g' == g || Cil_datatype.Global.equal g' g -> ()
-             (* Try to do the pointer check first *)
+           [g'] when g' == g -> ()
          | gl ->
              Kernel.fatal ~current:true
-	       "You used visitCilFileSameGlobals but the global got changed:\n %a\nchanged to %a\n"
+	       "You used visitCilFileSameGlobals but \
+                the global got physically changed:\n %a\nchanged to %a\n"
 	       !pp_global_ref g
 	       (Pretty_utils.pp_list ~sep:"@\n" !pp_global_ref) gl ;
     );
@@ -6885,6 +6915,10 @@ let isArrayType t = match unrollTypeSkel t with
    | TArray _ -> true
    | _ -> false
 
+let isAnyCharArrayType t = match unrollTypeSkel t with
+  | TArray(tau,_,_,_) when isAnyCharType tau -> true
+  | _ -> false
+
 let isCharArrayType t = match unrollTypeSkel t with
   | TArray(tau,_,_,_) when isCharType tau -> true
   | _ -> false
@@ -6998,6 +7032,19 @@ let mkCastT ?(force=false) ~(e: exp) ~(oldt: typ) ~(newt: typ) =
      else 
        Kernel.fatal ~current:true "mkBinOp: %a" !pp_exp_ref (dummy_exp(BinOp(op,e1,e2,intType)))
    in
+   let compare_pointer op ?cast1 ?cast2 e1 e2 =
+     let do_cast e = function
+       | None -> e
+       | Some t' -> mkCastT ~force:false ~e ~oldt:(typeOf e) ~newt:t'
+     in
+     let e1, e2 =
+       if need_cast ~force:true (typeOf e1) (typeOf e2) then
+         do_cast e1 cast1, do_cast e2 cast2
+       else
+         e1, e2
+     in
+     constFoldBinOp ~loc machdep op e1 e2 intType
+   in
    match op with
        (Mult|Div) -> doArithmetic ()
      | (Mod|BAnd|BOr|BXor|LAnd|LOr) -> doIntegralArithmetic ()
@@ -7021,29 +7068,38 @@ let mkCastT ?(force=false) ~(e: exp) ~(oldt: typ) ~(newt: typ) =
      | (Eq|Ne|Lt|Le|Ge|Gt)
          when isArithmeticType t1 && isArithmeticType t2 ->
        doArithmeticComp ()
-     | (Le|Lt|Ge|Gt|Eq|Ne) when isPointerType t1 && isPointerType t2 ->
-       constFoldBinOp ~loc machdep op
-         (mkCastT e1 t1 theMachine.upointType)
-         (mkCastT e2 t2 theMachine.upointType)
-         intType
      | (Eq|Ne) when isPointerType t1 && isZero e2 ->
-       constFoldBinOp ~loc machdep op
-         e1 (mkCastT (zero ~loc)theMachine.upointType t1) intType
+       compare_pointer ~cast2:t1 op e1 (zero ~loc)
      | (Eq|Ne) when isPointerType t2 && isZero e1 ->
-       constFoldBinOp ~loc machdep op
-         (mkCastT (zero ~loc)theMachine.upointType t2) e2 intType
+       compare_pointer ~cast1:t2 op (zero ~loc) e2
      | (Eq|Ne) when isVariadicListType t1 && isZero e2 ->
        Kernel.debug ~level:3 "Comparison of va_list and zero";
-       constFoldBinOp ~loc machdep op e1
-         (mkCastT (zero ~loc)theMachine.upointType t1) intType
+       compare_pointer ~cast2:t1 op e1 (zero ~loc)
      | (Eq|Ne) when isVariadicListType t2 && isZero e1 ->
        Kernel.debug ~level:3 "Comparison of zero and va_list";
-       constFoldBinOp ~loc machdep op
-         (mkCastT (zero ~loc)theMachine.upointType t2) e2 intType
+       compare_pointer ~cast1:t2 op (zero ~loc) e2
+     | (Le|Lt|Ge|Gt|Eq|Ne) when isPointerType t1 && isPointerType t2 ->
+       compare_pointer ~cast1:theMachine.upointType ~cast2:theMachine.upointType
+         op e1 e2
      | _ ->
-       Kernel.fatal ~current:true "mkBinOp: %a" 
-	 !pp_exp_ref (dummy_exp(BinOp(op,e1,e2,intType)))
+       Kernel.fatal ~current:true "mkBinOp: %a"
+         !pp_exp_ref (dummy_exp(BinOp(op,e1,e2,intType)))
 
+ let mkBinOp_safe_ptr_cmp ~loc op e1 e2 =
+   let e1, e2 =
+     match op with
+     | (Eq | Ne | Lt | Le | Ge | Gt) ->
+       let t1 = typeOf e1 in
+       let t2 = typeOf e2 in
+       if isPointerType t1 && isPointerType t2
+          && not (isZero e1) && not (isZero e2)
+       then begin
+         mkCast ~force:true ~e:e1 ~newt:theMachine.upointType,
+         mkCast ~force:true ~e:e2 ~newt:theMachine.upointType
+       end else e1, e2
+     | _ -> e1, e2
+   in
+   mkBinOp ~loc op e1 e2
 
  type existsAction =
      ExistsTrue                          (* We have found it *)
@@ -7237,14 +7293,27 @@ let rec makeZeroInit ~loc (t: typ) : init =
 
  let rec isCompleteType ?(allowZeroSizeArrays=false) t =
    match unrollType t with
+   | TVoid _ -> false (* void is an incomplete type by definition (6.2.5§19) *)
    | TArray(_t, None, _, _) -> false
-   | TArray(_t, Some z, _, _) when isZero z -> allowZeroSizeArrays
+   | TArray(t, Some z, _, _) when isZero z ->
+     allowZeroSizeArrays && isCompleteType t
+   | TArray(t, Some _, _, _) -> isCompleteType t
    | TComp (comp, _, _) -> (* Struct or union *)
        comp.cdefined &&
        List.for_all
          (fun fi -> isCompleteType ~allowZeroSizeArrays fi.ftype) comp.cfields
-   | _ -> true
+   | TEnum({eitems = []},_) -> false
+   | TEnum _ -> true
+   | TInt _ | TFloat _ | TPtr _ | TBuiltin_va_list _ -> true
+   | TFun _ -> true (* only object types can be incomplete (6.2.5§1) *)
+   | TNamed _ -> assert false (* unroll should have removed it. *)
 
+ let is_modifiable_lval lv =
+   let t = typeOfLval lv in
+   match unrollType t with
+   | TArray _ -> false
+   | TFun _ -> false
+   | _ -> not (isConstType t) && isCompleteType t
 
  (* makes sure that the type of a C variable and the type of its associated
    logic variable -if any- stay synchronized. See bts 1538 *)
@@ -7257,9 +7326,7 @@ let rec makeZeroInit ~loc (t: typ) : init =
  (** Uniquefy the variable names *)
  let uniqueVarNames (f: file) : unit =
    (* Setup the alpha conversion table for globals *)
-   let gAlphaTable
-       : (string, location Alpha.alphaTableData ref) Hashtbl.t 
-       = Hashtbl.create 113 in
+   let gAlphaTable = Hashtbl.create 113 in
    (* Keep also track of the global names that we have used. Map them to the
       variable ID. We do this only to check that we do not have two globals
       with the same name. *)
@@ -7378,8 +7445,7 @@ let initCIL ~initLogicBuiltins machdep =
     theMachine.ptrdiffType <- TInt(theMachine.ptrdiffKind, []);
     theMachine.underscore_name <-
       theMachine.theMachine.Cil_types.underscore_name;
-    theMachine.useLogicalOperators <- false (* do not use lazy LAND and LOR *);
-
+    theMachine.useLogicalOperators <- Kernel.LogicalOperators.get() (* do not use lazy LAND and LOR *);
     (*nextGlobalVID <- 1 ;
     nextCompinfoKey <- 1;*)
 
@@ -7746,41 +7812,29 @@ let extract_free_logicvars_from_term t =
 let extract_free_logicvars_from_predicate p =
   free_vars_predicate Logic_var.Set.empty p
 
+class extract_labels = object
+  inherit nopCilVisitor
+  val mutable labels = Logic_label.Set.empty;
+  method labels = labels
+  method! vlogic_label label =
+    labels <- Logic_label.Set.add label labels;
+    SkipChildren
+end
+
 let extract_labels_from_annot annot =
-  let visitor = object
-    inherit nopCilVisitor
-    val mutable labels = Logic_label.Set.empty;
-    method labels = labels
-    method! vlogic_label (label:logic_label) =
-      labels <- Logic_label.Set.add label labels;
-      SkipChildren
-  end
-  in ignore (visitCilCodeAnnotation (visitor :> nopCilVisitor) annot) ;
-    visitor#labels
+  let visitor = new extract_labels in
+  ignore (visitCilCodeAnnotation (visitor :> nopCilVisitor) annot) ;
+  visitor#labels
 
 let extract_labels_from_term term =
-  let visitor = object
-    inherit nopCilVisitor
-    val mutable labels = Logic_label.Set.empty;
-    method labels = labels
-    method! vlogic_label (label:logic_label) =
-      labels <- Logic_label.Set.add label labels;
-      SkipChildren
-  end
-  in ignore (visitCilTerm (visitor :> nopCilVisitor) term) ;
-    visitor#labels
+  let visitor = new extract_labels in
+  ignore (visitCilTerm (visitor :> nopCilVisitor) term) ;
+  visitor#labels
 
 let extract_labels_from_pred pred =
-  let visitor = object
-    inherit nopCilVisitor
-    val mutable labels = Logic_label.Set.empty;
-    method labels = labels
-    method! vlogic_label (label:logic_label) =
-      labels <- Logic_label.Set.add label labels;
-      SkipChildren
-  end
-  in ignore (visitCilPredicate (visitor :> nopCilVisitor) pred) ;
-    visitor#labels
+  let visitor = new extract_labels in
+  ignore (visitCilPredicate (visitor :> nopCilVisitor) pred) ;
+  visitor#labels
 
 let extract_stmts_from_labels labels =
   Logic_label.Set.fold
@@ -7919,18 +7973,22 @@ class dropAttributes ?select () = object
     | TComp _ | TEnum _ | TBuiltin_va_list _ -> DoChildren
 end
 
-let typeDeepDropAttributes select t =
-  let vis = new dropAttributes ~select () in
-  visitCilType vis t
-
 let typeDeepDropAllAttributes t =
   let vis = new dropAttributes () in
   visitCilType vis t
 
 (** {1 Deprecated} *)
 
-(* currently empty, but keep this section for future use. *)
+let typeDeepDropAttributes =
+  Kernel.deprecated "Cil.typeDeepDropAttributes"
+    ~now:"Cil.typeRemoveAttributesDeep"
+    (fun select t ->
+       let vis = new dropAttributes ~select () in visitCilType vis t)
 
+let typeHasAttributeDeep t =
+  Kernel.deprecated "Cil.typeHasAttributeDeep"
+    ~now:"Cil.typeHasAttributeMemoryBlock"
+    typeHasAttributeMemoryBlock t
 (*
 Local Variables:
 compile-command: "make -C ../../.."

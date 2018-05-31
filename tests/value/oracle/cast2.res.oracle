@@ -5,25 +5,26 @@
 [value:initial-state] Values of globals at initialization
   G ∈ {255}
 [value] computing for function g <- main.
-    Called from tests/value/cast2.i:28.
+  Called from tests/value/cast2.i:28.
 [value] computing for function any_int <- g <- main.
-    Called from tests/value/cast2.i:7.
+  Called from tests/value/cast2.i:7.
 [value] using specification for function any_int
 [value] Done for function any_int
-tests/value/cast2.i:9:[value] warning: signed overflow. assert t + 1 ≤ 2147483647;
+[value:alarm] tests/value/cast2.i:9: Warning: 
+  signed overflow. assert t + 1 ≤ 2147483647;
 [value] Recording results for g
 [value] Done for function g
 [value] computing for function h <- main.
-    Called from tests/value/cast2.i:29.
+  Called from tests/value/cast2.i:29.
 [value] Recording results for h
 [value] Done for function h
 [value] computing for function passcast <- main.
-    Called from tests/value/cast2.i:30.
+  Called from tests/value/cast2.i:30.
 [value] computing for function any_int <- passcast <- main.
-    Called from tests/value/cast2.i:20.
+  Called from tests/value/cast2.i:20.
 [value] Done for function any_int
-tests/value/cast2.i:23:[value] Frama_C_show_each: [-128..100]
-tests/value/cast2.i:24:[value] entering loop for the first time
+[value] tests/value/cast2.i:23: Frama_C_show_each: [-128..100]
+[value] tests/value/cast2.i:24: entering loop for the first time
 [value] Recording results for passcast
 [value] Done for function passcast
 [value] Recording results for main
@@ -49,7 +50,7 @@ tests/value/cast2.i:24:[value] entering loop for the first time
 [from] Computing for function main
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
-    These dependencies hold at termination for the executions that terminate:
+  These dependencies hold at termination for the executions that terminate:
 [from] Function any_int:
   \result FROM \nothing
 [from] Function g:
@@ -62,18 +63,18 @@ tests/value/cast2.i:24:[value] entering loop for the first time
   G FROM \nothing
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function g:
-      t; G_0
+    t; G_0
 [inout] Inputs for function g:
-      \nothing
+    \nothing
 [inout] Out (internal) for function h:
-      G
+    G
 [inout] Inputs for function h:
-      \nothing
+    \nothing
 [inout] Out (internal) for function passcast:
-      i; tmp
+    i; tmp
 [inout] Inputs for function passcast:
-      \nothing
+    \nothing
 [inout] Out (internal) for function main:
-      G
+    G
 [inout] Inputs for function main:
-      \nothing
+    \nothing

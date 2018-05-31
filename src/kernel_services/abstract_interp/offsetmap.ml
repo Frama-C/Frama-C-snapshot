@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2017                                               *)
+(*  Copyright (C) 2007-2018                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -38,7 +38,6 @@ let ( %~ ) = Integer.pos_rem
 let succ = Integer.succ
 let pred = Integer.pred
 
-(*let dkey_caches = Kernel.register_category "offsetmap:caches"*)
 let msg_emitter = Lattice_messages.register "Offsetmap"
 
 (** Offsetmaps are unbalanced trees that map intervals to values, with
@@ -1044,12 +1043,15 @@ module Make (V : module type of Offsetmap_lattice_with_isotropy) = struct
  ;;
 
  let merge_bits ~topify ~conflate_bottom ~offset ~length ~value ~total_length acc =
-   assert (length +~ offset <=~ Integer.of_int total_length);
-   if Cil.theMachine.Cil.theMachine.Cil_types.little_endian then
-     V.little_endian_merge_bits ~topify ~conflate_bottom ~offset ~length ~value acc
-   else
-     V.big_endian_merge_bits
-       ~topify ~conflate_bottom ~offset ~value ~total_length ~length acc
+   assert (length +~ offset <=~ total_length);
+   let offset =
+     if Cil.theMachine.Cil.theMachine.Cil_types.little_endian then
+       offset
+     else
+       Int.sub (Int.sub total_length offset) length
+   in
+   let value = V.shift_bits ~topify ~size:length ~offset value in
+   V.merge_distinct_bits ~topify ~conflate_bottom value acc
  ;;
 
  (*
@@ -1096,7 +1098,7 @@ module Make (V : module type of Offsetmap_lattice_with_isotropy) = struct
        let result = 
 	 merge_bits ~topify ~conflate_bottom
            ~offset:interval_offset ~length:(Integer.length start stop)
-           ~value:read_bits ~total_length:(Integer.to_int size) acc
+           ~value:read_bits ~total_length:size acc
        in
        (* Format.printf "After merge_bits: result %a@." V.pretty result; *)
        read_end, result
@@ -1107,7 +1109,7 @@ module Make (V : module type of Offsetmap_lattice_with_isotropy) = struct
        let offset = start -~ offset in
        merge_bits ~topify ~conflate_bottom
          ~offset ~length:(Integer.length start stop)
-         ~value:v ~total_length:(Integer.to_int size) acc
+         ~value:v ~total_length:size acc
      else
        let start_point = ref start in
        let acc = ref acc in
@@ -2191,9 +2193,9 @@ module FullyIsotropic = struct
   let topify_with_origin _o v = v
 
   let extract_bits ~topify:_ ~start:_ ~stop:_ ~size:_ m = false, m
-  let little_endian_merge_bits ~topify:_ ~conflate_bottom:_ ~length:_ ~value:_ ~offset:_ v = v
-  let big_endian_merge_bits ~topify:_ ~conflate_bottom:_ ~total_length:_ ~length:_ ~value:_ ~offset:_ v = v
-
+  let merge_distinct_bits ~topify:_ ~conflate_bottom:_ _ _ =
+    assert false (* not called on isotropic values *)
+  let shift_bits ~topify:_ ~offset:_ ~size:_ v = v
   let cardinal_zero_or_one _ = false
 
   let widen _wh _ m = m

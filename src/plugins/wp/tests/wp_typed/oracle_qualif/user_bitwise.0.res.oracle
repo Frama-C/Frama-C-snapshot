@@ -2,7 +2,7 @@
 [kernel] Parsing tests/wp_typed/user_bitwise.i (no preprocessing)
 [wp] Running WP plugin...
 [wp] Loading driver 'share/wp.driver'
-[wp] warning: Missing RTE guards
+[wp] Warning: Missing RTE guards
 [wp] 12 goals scheduled
 [wp] [Qed] Goal typed_ref_rl1_post_b0 : Valid
 [wp] [Alt-Ergo] Goal typed_ref_rl1_post_bk : Valid
@@ -17,14 +17,15 @@
 [wp] [Alt-Ergo] Goal typed_ref_rrn64_post_b1 : Valid
 [wp] [Alt-Ergo] Goal typed_ref_rrn64_post_b2 : Valid
 [wp] Proved goals:   12 / 12
-    Qed:             1 
-    Alt-Ergo:       11
-----------------------------------------------------------
-Functions           WP   Alt-Ergo    Total   Success
-rl1                  1      1 (58)     2       100%
-rr1                 -       2 (53)     2       100%
-rln32               -       2 (64)     2       100%
-rrn32               -       2 (62)     2       100%
-rln64               -       2 (64)     2       100%
-rrn64               -       2 (62)     2       100%
-----------------------------------------------------------
+  Qed:             1 
+  Alt-Ergo:       11
+[wp] Report 'tests/wp_typed/user_bitwise.i.0.report.json'
+-------------------------------------------------------------
+Functions           WP     Alt-Ergo        Total   Success
+rl1                  1      1 (44..56)       2       100%
+rr1                 -       2 (40..52)       2       100%
+rln32               -       2 (48..60)       2       100%
+rrn32               -       2 (48..60)       2       100%
+rln64               -       2 (48..60)       2       100%
+rrn64               -       2 (48..60)       2       100%
+-------------------------------------------------------------

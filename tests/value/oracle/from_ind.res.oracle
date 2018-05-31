@@ -15,12 +15,12 @@
 [from] Computing for function main
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
-    These dependencies hold at termination for the executions that terminate:
+  These dependencies hold at termination for the executions that terminate:
 [from] Function main:
   r FROM indirect: p; direct: a[1]
   \result FROM \nothing
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function main:
-      r; __retres
+    r; __retres
 [inout] Inputs for function main:
-      a[1]; p
+    a[1]; p

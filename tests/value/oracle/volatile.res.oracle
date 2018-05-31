@@ -1,14 +1,6 @@
 [kernel] Parsing tests/value/volatile.c (with preprocessing)
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
-tests/value/volatile.c:5:[value] warning: global initialization of volatile variable G ignored
-tests/value/volatile.c:11:[value] warning: global initialization of volatile zone s2.b ignored
-tests/value/volatile.c:15:[value] warning: global initialization of volatile variable sv2 ignored
-tests/value/volatile.c:17:[value] warning: global initialization of volatile zone sv3.b ignored
-tests/value/volatile.c:18:[value] warning: global initialization of volatile zone sv4.b ignored
-tests/value/volatile.c:33:[value] warning: global initialization of volatile zone nested.__anonCompField1.b ignored
-tests/value/volatile.c:33:[value] warning: global initialization of volatile zone nested.__anonCompField2 ignored
-tests/value/volatile.c:33:[value] warning: global initialization of volatile zone nested.t ignored
 [value] Initial state computed
 [value:initial-state] Values of globals at initialization
   G ∈ [--..--]
@@ -52,192 +44,341 @@ tests/value/volatile.c:33:[value] warning: global initialization of volatile zon
   R1 ∈ {0}
   R2 ∈ {0}
 [value] computing for function main1 <- main.
-    Called from tests/value/volatile.c:161.
+  Called from tests/value/volatile.c:176.
 [value] computing for function fn1 <- main1 <- main.
-    Called from tests/value/volatile.c:39.
-tests/value/volatile.c:24:[value] Frama_C_show_each_1: [-2147483648..2147483647]
-tests/value/volatile.c:25:[value] Frama_C_show_each_2: [-2147483648..2147483647]
-tests/value/volatile.c:26:[value] warning: signed overflow. assert -2147483648 ≤ x_0 + y_0;
-tests/value/volatile.c:26:[value] warning: signed overflow. assert x_0 + y_0 ≤ 2147483647;
+  Called from tests/value/volatile.c:39.
+[value] tests/value/volatile.c:24: 
+  Frama_C_show_each_1: [-2147483648..2147483647]
+[value] tests/value/volatile.c:25: 
+  Frama_C_show_each_2: [-2147483648..2147483647]
+[value:alarm] tests/value/volatile.c:26: Warning: 
+  signed overflow. assert -2147483648 ≤ x_0 + y_0;
+[value:alarm] tests/value/volatile.c:26: Warning: 
+  signed overflow. assert x_0 + y_0 ≤ 2147483647;
 [value] Recording results for fn1
 [value] Done for function fn1
 [value] computing for function fn2 <- main1 <- main.
-    Called from tests/value/volatile.c:40.
-tests/value/volatile.c:40:[kernel] warning: Neither code nor specification for function fn2, generating default assigns from the prototype
+  Called from tests/value/volatile.c:40.
+[kernel:annot:missing-spec] tests/value/volatile.c:40: Warning: 
+  Neither code nor specification for function fn2, generating default assigns from the prototype
 [value] using specification for function fn2
 [value] Done for function fn2
-tests/value/volatile.c:41:[value] Frama_C_show_each_d: [-2147483648..2147483647]
-tests/value/volatile.c:52:[value] warning: signed overflow. assert -2147483648 ≤ b - c;
-tests/value/volatile.c:52:[value] warning: signed overflow. assert b - c ≤ 2147483647;
-tests/value/volatile.c:53:[value] warning: signed overflow. assert -2147483648 ≤ F - F;
-tests/value/volatile.c:53:[value] warning: signed overflow. assert F - F ≤ 2147483647;
-tests/value/volatile.c:55:[value] warning: signed overflow. assert -2147483648 ≤ F - g;
-tests/value/volatile.c:55:[value] warning: signed overflow. assert F - g ≤ 2147483647;
-tests/value/volatile.c:56:[value] warning: signed overflow. assert F + 1 ≤ 2147483647;
-tests/value/volatile.c:57:[value] warning: signed overflow. assert 2 + F ≤ 2147483647;
-tests/value/volatile.c:58:[value] warning: signed overflow. assert -2147483648 ≤ F - l;
-tests/value/volatile.c:58:[value] warning: signed overflow. assert F - l ≤ 2147483647;
-tests/value/volatile.c:59:[value] warning: signed overflow. assert -2147483648 ≤ m - l;
-tests/value/volatile.c:59:[value] warning: signed overflow. assert m - l ≤ 2147483647;
+[value] tests/value/volatile.c:41: 
+  Frama_C_show_each_d: [-2147483648..2147483647]
+[value:alarm] tests/value/volatile.c:52: Warning: 
+  signed overflow. assert -2147483648 ≤ b - c;
+[value:alarm] tests/value/volatile.c:52: Warning: 
+  signed overflow. assert b - c ≤ 2147483647;
+[value:alarm] tests/value/volatile.c:53: Warning: 
+  signed overflow. assert -2147483648 ≤ F - F;
+[value:alarm] tests/value/volatile.c:53: Warning: 
+  signed overflow. assert F - F ≤ 2147483647;
+[value:alarm] tests/value/volatile.c:55: Warning: 
+  signed overflow. assert -2147483648 ≤ F - g;
+[value:alarm] tests/value/volatile.c:55: Warning: 
+  signed overflow. assert F - g ≤ 2147483647;
+[value:alarm] tests/value/volatile.c:56: Warning: 
+  signed overflow. assert F + 1 ≤ 2147483647;
+[value:alarm] tests/value/volatile.c:57: Warning: 
+  signed overflow. assert 2 + F ≤ 2147483647;
+[value:alarm] tests/value/volatile.c:58: Warning: 
+  signed overflow. assert -2147483648 ≤ F - l;
+[value:alarm] tests/value/volatile.c:58: Warning: 
+  signed overflow. assert F - l ≤ 2147483647;
+[value:alarm] tests/value/volatile.c:59: Warning: 
+  signed overflow. assert -2147483648 ≤ m - l;
+[value:alarm] tests/value/volatile.c:59: Warning: 
+  signed overflow. assert m - l ≤ 2147483647;
 [value] Recording results for main1
 [value] Done for function main1
 [value] computing for function main2 <- main.
-    Called from tests/value/volatile.c:162.
+  Called from tests/value/volatile.c:177.
 [value] Recording results for main2
 [value] Done for function main2
 [value] computing for function main3 <- main.
-    Called from tests/value/volatile.c:163.
-tests/value/volatile.c:117:[value] warning: initialization of volatile variable v ignored
-tests/value/volatile.c:118:[value] warning: accessing out of bounds index. assert 0 ≤ v;
-tests/value/volatile.c:118:[value] warning: accessing out of bounds index. assert v < 1;
-tests/value/volatile.c:118:[value] Frama_C_show_each_v: [-2147483648..2147483647]
-tests/value/volatile.c:118:[value] warning: accessing out of bounds index. assert 0 ≤ (int)(v + 1);
-tests/value/volatile.c:118:[value] warning: accessing out of bounds index. assert (int)(v + 1) < 1;
-tests/value/volatile.c:118:[value] warning: signed overflow. assert v + 1 ≤ 2147483647;
-tests/value/volatile.c:118:[value] Frama_C_show_each_v_plus: [-2147483647..2147483647]
-tests/value/volatile.c:118:[value] warning: accessing out of bounds index. assert 0 ≤ v;
-tests/value/volatile.c:118:[value] warning: accessing out of bounds index. assert v < 2;
-tests/value/volatile.c:118:[value] warning: accessing out of bounds index. assert a_0[v] < 1;
-tests/value/volatile.c:118:[value] Frama_C_show_each_a: {0; 1}
-tests/value/volatile.c:118:[value] warning: accessing out of bounds index. assert 0 ≤ v;
-tests/value/volatile.c:118:[value] warning: accessing out of bounds index. assert v < 2;
-tests/value/volatile.c:118:[value] warning: accessing out of bounds index. assert 0 ≤ (int)(a_0[v] - 1);
-tests/value/volatile.c:118:[value] warning: accessing out of bounds index. assert (int)(a_0[v] - 1) < 1;
-tests/value/volatile.c:118:[value] Frama_C_show_each_a_minus: {-1; 0}
-tests/value/volatile.c:118:[value] warning: accessing out of bounds index. assert 0 ≤ v;
-tests/value/volatile.c:118:[value] warning: accessing out of bounds index. assert v < 2;
-tests/value/volatile.c:118:[value] warning: accessing out of bounds index. assert a_0[v] < 1;
-tests/value/volatile.c:118:[value] Frama_C_show_each_av: [-2147483648..2147483647]
-tests/value/volatile.c:119:[value] warning: assertion 'NORED' got status unknown.
-tests/value/volatile.c:123:[value] warning: accessing out of bounds index. assert 0 ≤ *v_ptr;
-tests/value/volatile.c:123:[value] warning: accessing out of bounds index. assert *v_ptr < 1;
-tests/value/volatile.c:123:[value] Frama_C_show_each_v: [-2147483648..2147483647]
-tests/value/volatile.c:123:[value] warning: accessing out of bounds index. assert 0 ≤ (int)(*v_ptr + 1);
-tests/value/volatile.c:123:[value] warning: accessing out of bounds index. assert (int)(*v_ptr + 1) < 1;
-tests/value/volatile.c:123:[value] warning: signed overflow. assert *v_ptr + 1 ≤ 2147483647;
-tests/value/volatile.c:123:[value] Frama_C_show_each_v_plus: [-2147483647..2147483647]
-tests/value/volatile.c:123:[value] warning: accessing out of bounds index. assert 0 ≤ *v_ptr;
-tests/value/volatile.c:123:[value] warning: accessing out of bounds index. assert *v_ptr < 2;
-tests/value/volatile.c:123:[value] warning: accessing out of bounds index. assert a_0[*v_ptr] < 1;
-tests/value/volatile.c:123:[value] Frama_C_show_each_a: {0; 1}
-tests/value/volatile.c:123:[value] warning: accessing out of bounds index. assert 0 ≤ *v_ptr;
-tests/value/volatile.c:123:[value] warning: accessing out of bounds index. assert *v_ptr < 2;
-tests/value/volatile.c:123:[value] warning: accessing out of bounds index. assert 0 ≤ (int)(a_0[*v_ptr] - 1);
-tests/value/volatile.c:123:[value] warning: accessing out of bounds index. assert (int)(a_0[*v_ptr] - 1) < 1;
-tests/value/volatile.c:123:[value] Frama_C_show_each_a_minus: {-1; 0}
-tests/value/volatile.c:123:[value] warning: accessing out of bounds index. assert 0 ≤ *v_ptr;
-tests/value/volatile.c:123:[value] warning: accessing out of bounds index. assert *v_ptr < 2;
-tests/value/volatile.c:123:[value] warning: accessing out of bounds index. assert a_0[*v_ptr] < 1;
-tests/value/volatile.c:123:[value] Frama_C_show_each_av: [-2147483648..2147483647]
-tests/value/volatile.c:124:[value] warning: assertion 'NORED' got status unknown.
-tests/value/volatile.c:131:[value] warning: accessing out of bounds index. assert 0 ≤ svol.f[0];
-tests/value/volatile.c:131:[value] warning: accessing out of bounds index. assert svol.f[0] < 1;
-tests/value/volatile.c:131:[value] Frama_C_show_each_v: [-2147483648..2147483647]
-tests/value/volatile.c:131:[value] warning: accessing out of bounds index. assert 0 ≤ (int)(svol.f[0] + 1);
-tests/value/volatile.c:131:[value] warning: accessing out of bounds index. assert (int)(svol.f[0] + 1) < 1;
-tests/value/volatile.c:131:[value] warning: signed overflow. assert svol.f[0] + 1 ≤ 2147483647;
-tests/value/volatile.c:131:[value] Frama_C_show_each_v_plus: [-2147483647..2147483647]
-tests/value/volatile.c:131:[value] warning: accessing out of bounds index. assert 0 ≤ svol.f[0];
-tests/value/volatile.c:131:[value] warning: accessing out of bounds index. assert svol.f[0] < 2;
-tests/value/volatile.c:131:[value] warning: accessing out of bounds index. assert a_0[svol.f[0]] < 1;
-tests/value/volatile.c:131:[value] Frama_C_show_each_a: {0; 1}
-tests/value/volatile.c:131:[value] warning: accessing out of bounds index. assert 0 ≤ svol.f[0];
-tests/value/volatile.c:131:[value] warning: accessing out of bounds index. assert svol.f[0] < 2;
-tests/value/volatile.c:131:[value] warning: accessing out of bounds index. assert 0 ≤ (int)(a_0[svol.f[0]] - 1);
-tests/value/volatile.c:131:[value] warning: accessing out of bounds index. assert (int)(a_0[svol.f[0]] - 1) < 1;
-tests/value/volatile.c:131:[value] Frama_C_show_each_a_minus: {-1; 0}
-tests/value/volatile.c:131:[value] warning: accessing out of bounds index. assert 0 ≤ svol.f[0];
-tests/value/volatile.c:131:[value] warning: accessing out of bounds index. assert svol.f[0] < 2;
-tests/value/volatile.c:131:[value] warning: accessing out of bounds index. assert a_0[svol.f[0]] < 1;
-tests/value/volatile.c:131:[value] Frama_C_show_each_av: [-2147483648..2147483647]
-tests/value/volatile.c:132:[value] warning: assertion 'NORED' got status unknown.
-tests/value/volatile.c:136:[value] warning: accessing out of bounds index. assert 0 ≤ svol_ptr->f[0];
-tests/value/volatile.c:136:[value] warning: accessing out of bounds index. assert svol_ptr->f[0] < 1;
-tests/value/volatile.c:136:[value] Frama_C_show_each_v: [-2147483648..2147483647]
-tests/value/volatile.c:136:[value] warning: accessing out of bounds index. assert 0 ≤ (int)(svol_ptr->f[0] + 1);
-tests/value/volatile.c:136:[value] warning: accessing out of bounds index. assert (int)(svol_ptr->f[0] + 1) < 1;
-tests/value/volatile.c:136:[value] warning: signed overflow. assert svol_ptr->f[0] + 1 ≤ 2147483647;
-tests/value/volatile.c:136:[value] Frama_C_show_each_v_plus: [-2147483647..2147483647]
-tests/value/volatile.c:136:[value] warning: accessing out of bounds index. assert 0 ≤ svol_ptr->f[0];
-tests/value/volatile.c:136:[value] warning: accessing out of bounds index. assert svol_ptr->f[0] < 2;
-tests/value/volatile.c:136:[value] warning: accessing out of bounds index. assert a_0[svol_ptr->f[0]] < 1;
-tests/value/volatile.c:136:[value] Frama_C_show_each_a: {0; 1}
-tests/value/volatile.c:136:[value] warning: accessing out of bounds index. assert 0 ≤ svol_ptr->f[0];
-tests/value/volatile.c:136:[value] warning: accessing out of bounds index. assert svol_ptr->f[0] < 2;
-tests/value/volatile.c:136:[value] warning: accessing out of bounds index. assert 0 ≤ (int)(a_0[svol_ptr->f[0]] - 1);
-tests/value/volatile.c:136:[value] warning: accessing out of bounds index. assert (int)(a_0[svol_ptr->f[0]] - 1) < 1;
-tests/value/volatile.c:136:[value] Frama_C_show_each_a_minus: {-1; 0}
-tests/value/volatile.c:136:[value] warning: accessing out of bounds index. assert 0 ≤ svol_ptr->f[0];
-tests/value/volatile.c:136:[value] warning: accessing out of bounds index. assert svol_ptr->f[0] < 2;
-tests/value/volatile.c:136:[value] warning: accessing out of bounds index. assert a_0[svol_ptr->f[0]] < 1;
-tests/value/volatile.c:136:[value] Frama_C_show_each_av: [-2147483648..2147483647]
-tests/value/volatile.c:137:[value] warning: assertion 'NORED' got status unknown.
-tests/value/volatile.c:144:[value] warning: accessing out of bounds index. assert 0 ≤ sdeepvol.g[0];
-tests/value/volatile.c:144:[value] warning: accessing out of bounds index. assert sdeepvol.g[0] < 1;
-tests/value/volatile.c:144:[value] Frama_C_show_each_v: [-2147483648..2147483647]
-tests/value/volatile.c:144:[value] warning: accessing out of bounds index. assert 0 ≤ (int)(sdeepvol.g[0] + 1);
-tests/value/volatile.c:144:[value] warning: accessing out of bounds index. assert (int)(sdeepvol.g[0] + 1) < 1;
-tests/value/volatile.c:144:[value] warning: signed overflow. assert sdeepvol.g[0] + 1 ≤ 2147483647;
-tests/value/volatile.c:144:[value] Frama_C_show_each_v_plus: [-2147483647..2147483647]
-tests/value/volatile.c:144:[value] warning: accessing out of bounds index. assert 0 ≤ sdeepvol.g[0];
-tests/value/volatile.c:144:[value] warning: accessing out of bounds index. assert sdeepvol.g[0] < 2;
-tests/value/volatile.c:144:[value] warning: accessing out of bounds index. assert a_0[sdeepvol.g[0]] < 1;
-tests/value/volatile.c:144:[value] Frama_C_show_each_a: {0; 1}
-tests/value/volatile.c:144:[value] warning: accessing out of bounds index. assert 0 ≤ sdeepvol.g[0];
-tests/value/volatile.c:144:[value] warning: accessing out of bounds index. assert sdeepvol.g[0] < 2;
-tests/value/volatile.c:144:[value] warning: accessing out of bounds index. assert 0 ≤ (int)(a_0[sdeepvol.g[0]] - 1);
-tests/value/volatile.c:144:[value] warning: accessing out of bounds index. assert (int)(a_0[sdeepvol.g[0]] - 1) < 1;
-tests/value/volatile.c:144:[value] Frama_C_show_each_a_minus: {-1; 0}
-tests/value/volatile.c:144:[value] warning: accessing out of bounds index. assert 0 ≤ sdeepvol.g[0];
-tests/value/volatile.c:144:[value] warning: accessing out of bounds index. assert sdeepvol.g[0] < 2;
-tests/value/volatile.c:144:[value] warning: accessing out of bounds index. assert a_0[sdeepvol.g[0]] < 1;
-tests/value/volatile.c:144:[value] Frama_C_show_each_av: [-2147483648..2147483647]
-tests/value/volatile.c:145:[value] warning: assertion 'NORED' got status unknown.
-tests/value/volatile.c:148:[value] warning: initialization of volatile variable volt ignored
-tests/value/volatile.c:149:[value] warning: accessing out of bounds index. assert 0 ≤ volt[0].f[0];
-tests/value/volatile.c:149:[value] warning: accessing out of bounds index. assert volt[0].f[0] < 1;
-tests/value/volatile.c:149:[value] Frama_C_show_each_v: [-2147483648..2147483647]
-tests/value/volatile.c:149:[value] warning: accessing out of bounds index. assert 0 ≤ (int)(volt[0].f[0] + 1);
-tests/value/volatile.c:149:[value] warning: accessing out of bounds index. assert (int)(volt[0].f[0] + 1) < 1;
-tests/value/volatile.c:149:[value] warning: signed overflow. assert volt[0].f[0] + 1 ≤ 2147483647;
-tests/value/volatile.c:149:[value] Frama_C_show_each_v_plus: [-2147483647..2147483647]
-tests/value/volatile.c:149:[value] warning: accessing out of bounds index. assert 0 ≤ volt[0].f[0];
-tests/value/volatile.c:149:[value] warning: accessing out of bounds index. assert volt[0].f[0] < 2;
-tests/value/volatile.c:149:[value] warning: accessing out of bounds index. assert a_0[volt[0].f[0]] < 1;
-tests/value/volatile.c:149:[value] Frama_C_show_each_a: {0; 1}
-tests/value/volatile.c:149:[value] warning: accessing out of bounds index. assert 0 ≤ volt[0].f[0];
-tests/value/volatile.c:149:[value] warning: accessing out of bounds index. assert volt[0].f[0] < 2;
-tests/value/volatile.c:149:[value] warning: accessing out of bounds index. assert 0 ≤ (int)(a_0[volt[0].f[0]] - 1);
-tests/value/volatile.c:149:[value] warning: accessing out of bounds index. assert (int)(a_0[volt[0].f[0]] - 1) < 1;
-tests/value/volatile.c:149:[value] Frama_C_show_each_a_minus: {-1; 0}
-tests/value/volatile.c:149:[value] warning: accessing out of bounds index. assert 0 ≤ volt[0].f[0];
-tests/value/volatile.c:149:[value] warning: accessing out of bounds index. assert volt[0].f[0] < 2;
-tests/value/volatile.c:149:[value] warning: accessing out of bounds index. assert a_0[volt[0].f[0]] < 1;
-tests/value/volatile.c:149:[value] Frama_C_show_each_av: [-2147483648..2147483647]
-tests/value/volatile.c:150:[value] warning: assertion 'NORED' got status unknown.
-tests/value/volatile.c:154:[value] warning: accessing out of bounds index. assert 0 ≤ deepvolt[0].g[0];
-tests/value/volatile.c:154:[value] warning: accessing out of bounds index. assert deepvolt[0].g[0] < 1;
-tests/value/volatile.c:154:[value] Frama_C_show_each_v: [-2147483648..2147483647]
-tests/value/volatile.c:154:[value] warning: accessing out of bounds index. assert 0 ≤ (int)(deepvolt[0].g[0] + 1);
-tests/value/volatile.c:154:[value] warning: accessing out of bounds index. assert (int)(deepvolt[0].g[0] + 1) < 1;
-tests/value/volatile.c:154:[value] warning: signed overflow. assert deepvolt[0].g[0] + 1 ≤ 2147483647;
-tests/value/volatile.c:154:[value] Frama_C_show_each_v_plus: [-2147483647..2147483647]
-tests/value/volatile.c:154:[value] warning: accessing out of bounds index. assert 0 ≤ deepvolt[0].g[0];
-tests/value/volatile.c:154:[value] warning: accessing out of bounds index. assert deepvolt[0].g[0] < 2;
-tests/value/volatile.c:154:[value] warning: accessing out of bounds index. assert a_0[deepvolt[0].g[0]] < 1;
-tests/value/volatile.c:154:[value] Frama_C_show_each_a: {0; 1}
-tests/value/volatile.c:154:[value] warning: accessing out of bounds index. assert 0 ≤ deepvolt[0].g[0];
-tests/value/volatile.c:154:[value] warning: accessing out of bounds index. assert deepvolt[0].g[0] < 2;
-tests/value/volatile.c:154:[value] warning: accessing out of bounds index. assert 0 ≤ (int)(a_0[deepvolt[0].g[0]] - 1);
-tests/value/volatile.c:154:[value] warning: accessing out of bounds index. assert (int)(a_0[deepvolt[0].g[0]] - 1) < 1;
-tests/value/volatile.c:154:[value] Frama_C_show_each_a_minus: {-1; 0}
-tests/value/volatile.c:154:[value] warning: accessing out of bounds index. assert 0 ≤ deepvolt[0].g[0];
-tests/value/volatile.c:154:[value] warning: accessing out of bounds index. assert deepvolt[0].g[0] < 2;
-tests/value/volatile.c:154:[value] warning: accessing out of bounds index. assert a_0[deepvolt[0].g[0]] < 1;
-tests/value/volatile.c:154:[value] Frama_C_show_each_av: [-2147483648..2147483647]
-tests/value/volatile.c:155:[value] warning: assertion 'NORED' got status unknown.
+  Called from tests/value/volatile.c:178.
+[value:alarm] tests/value/volatile.c:118: Warning: 
+  accessing out of bounds index. assert 0 ≤ v;
+[value:alarm] tests/value/volatile.c:118: Warning: 
+  accessing out of bounds index. assert v < 1;
+[value] tests/value/volatile.c:118: 
+  Frama_C_show_each_v: [-2147483648..2147483647]
+[value:alarm] tests/value/volatile.c:118: Warning: 
+  accessing out of bounds index. assert 0 ≤ (int)(v + 1);
+[value:alarm] tests/value/volatile.c:118: Warning: 
+  accessing out of bounds index. assert (int)(v + 1) < 1;
+[value:alarm] tests/value/volatile.c:118: Warning: 
+  signed overflow. assert v + 1 ≤ 2147483647;
+[value] tests/value/volatile.c:118: 
+  Frama_C_show_each_v_plus: [-2147483647..2147483647]
+[value:alarm] tests/value/volatile.c:118: Warning: 
+  accessing out of bounds index. assert 0 ≤ v;
+[value:alarm] tests/value/volatile.c:118: Warning: 
+  accessing out of bounds index. assert v < 2;
+[value:alarm] tests/value/volatile.c:118: Warning: 
+  accessing out of bounds index. assert a_0[v] < 1;
+[value] tests/value/volatile.c:118: Frama_C_show_each_a: {0; 1}
+[value:alarm] tests/value/volatile.c:118: Warning: 
+  accessing out of bounds index. assert 0 ≤ v;
+[value:alarm] tests/value/volatile.c:118: Warning: 
+  accessing out of bounds index. assert v < 2;
+[value:alarm] tests/value/volatile.c:118: Warning: 
+  accessing out of bounds index. assert 0 ≤ (int)(a_0[v] - 1);
+[value] tests/value/volatile.c:118: Frama_C_show_each_a_minus: {-1; 0}
+[value:alarm] tests/value/volatile.c:118: Warning: 
+  accessing out of bounds index. assert 0 ≤ v;
+[value:alarm] tests/value/volatile.c:118: Warning: 
+  accessing out of bounds index. assert v < 2;
+[value:alarm] tests/value/volatile.c:118: Warning: 
+  accessing out of bounds index. assert a_0[v] < 1;
+[value] tests/value/volatile.c:118: 
+  Frama_C_show_each_av: [-2147483648..2147483647]
+[value:alarm] tests/value/volatile.c:119: Warning: 
+  assertion 'NORED' got status unknown.
+[value:alarm] tests/value/volatile.c:123: Warning: 
+  accessing out of bounds index. assert 0 ≤ *v_ptr;
+[value:alarm] tests/value/volatile.c:123: Warning: 
+  accessing out of bounds index. assert *v_ptr < 1;
+[value] tests/value/volatile.c:123: 
+  Frama_C_show_each_v: [-2147483648..2147483647]
+[value:alarm] tests/value/volatile.c:123: Warning: 
+  accessing out of bounds index. assert 0 ≤ (int)(*v_ptr + 1);
+[value:alarm] tests/value/volatile.c:123: Warning: 
+  accessing out of bounds index. assert (int)(*v_ptr + 1) < 1;
+[value:alarm] tests/value/volatile.c:123: Warning: 
+  signed overflow. assert *v_ptr + 1 ≤ 2147483647;
+[value] tests/value/volatile.c:123: 
+  Frama_C_show_each_v_plus: [-2147483647..2147483647]
+[value:alarm] tests/value/volatile.c:123: Warning: 
+  accessing out of bounds index. assert 0 ≤ *v_ptr;
+[value:alarm] tests/value/volatile.c:123: Warning: 
+  accessing out of bounds index. assert *v_ptr < 2;
+[value:alarm] tests/value/volatile.c:123: Warning: 
+  accessing out of bounds index. assert a_0[*v_ptr] < 1;
+[value] tests/value/volatile.c:123: Frama_C_show_each_a: {0; 1}
+[value:alarm] tests/value/volatile.c:123: Warning: 
+  accessing out of bounds index. assert 0 ≤ *v_ptr;
+[value:alarm] tests/value/volatile.c:123: Warning: 
+  accessing out of bounds index. assert *v_ptr < 2;
+[value:alarm] tests/value/volatile.c:123: Warning: 
+  accessing out of bounds index. assert 0 ≤ (int)(a_0[*v_ptr] - 1);
+[value] tests/value/volatile.c:123: Frama_C_show_each_a_minus: {-1; 0}
+[value:alarm] tests/value/volatile.c:123: Warning: 
+  accessing out of bounds index. assert 0 ≤ *v_ptr;
+[value:alarm] tests/value/volatile.c:123: Warning: 
+  accessing out of bounds index. assert *v_ptr < 2;
+[value:alarm] tests/value/volatile.c:123: Warning: 
+  accessing out of bounds index. assert a_0[*v_ptr] < 1;
+[value] tests/value/volatile.c:123: 
+  Frama_C_show_each_av: [-2147483648..2147483647]
+[value:alarm] tests/value/volatile.c:124: Warning: 
+  assertion 'NORED' got status unknown.
+[value:alarm] tests/value/volatile.c:131: Warning: 
+  accessing out of bounds index. assert 0 ≤ svol.f[0];
+[value:alarm] tests/value/volatile.c:131: Warning: 
+  accessing out of bounds index. assert svol.f[0] < 1;
+[value] tests/value/volatile.c:131: 
+  Frama_C_show_each_v: [-2147483648..2147483647]
+[value:alarm] tests/value/volatile.c:131: Warning: 
+  accessing out of bounds index. assert 0 ≤ (int)(svol.f[0] + 1);
+[value:alarm] tests/value/volatile.c:131: Warning: 
+  accessing out of bounds index. assert (int)(svol.f[0] + 1) < 1;
+[value:alarm] tests/value/volatile.c:131: Warning: 
+  signed overflow. assert svol.f[0] + 1 ≤ 2147483647;
+[value] tests/value/volatile.c:131: 
+  Frama_C_show_each_v_plus: [-2147483647..2147483647]
+[value:alarm] tests/value/volatile.c:131: Warning: 
+  accessing out of bounds index. assert 0 ≤ svol.f[0];
+[value:alarm] tests/value/volatile.c:131: Warning: 
+  accessing out of bounds index. assert svol.f[0] < 2;
+[value:alarm] tests/value/volatile.c:131: Warning: 
+  accessing out of bounds index. assert a_0[svol.f[0]] < 1;
+[value] tests/value/volatile.c:131: Frama_C_show_each_a: {0; 1}
+[value:alarm] tests/value/volatile.c:131: Warning: 
+  accessing out of bounds index. assert 0 ≤ svol.f[0];
+[value:alarm] tests/value/volatile.c:131: Warning: 
+  accessing out of bounds index. assert svol.f[0] < 2;
+[value:alarm] tests/value/volatile.c:131: Warning: 
+  accessing out of bounds index. assert 0 ≤ (int)(a_0[svol.f[0]] - 1);
+[value] tests/value/volatile.c:131: Frama_C_show_each_a_minus: {-1; 0}
+[value:alarm] tests/value/volatile.c:131: Warning: 
+  accessing out of bounds index. assert 0 ≤ svol.f[0];
+[value:alarm] tests/value/volatile.c:131: Warning: 
+  accessing out of bounds index. assert svol.f[0] < 2;
+[value:alarm] tests/value/volatile.c:131: Warning: 
+  accessing out of bounds index. assert a_0[svol.f[0]] < 1;
+[value] tests/value/volatile.c:131: 
+  Frama_C_show_each_av: [-2147483648..2147483647]
+[value:alarm] tests/value/volatile.c:132: Warning: 
+  assertion 'NORED' got status unknown.
+[value:alarm] tests/value/volatile.c:136: Warning: 
+  accessing out of bounds index. assert 0 ≤ svol_ptr->f[0];
+[value:alarm] tests/value/volatile.c:136: Warning: 
+  accessing out of bounds index. assert svol_ptr->f[0] < 1;
+[value] tests/value/volatile.c:136: 
+  Frama_C_show_each_v: [-2147483648..2147483647]
+[value:alarm] tests/value/volatile.c:136: Warning: 
+  accessing out of bounds index. assert 0 ≤ (int)(svol_ptr->f[0] + 1);
+[value:alarm] tests/value/volatile.c:136: Warning: 
+  accessing out of bounds index. assert (int)(svol_ptr->f[0] + 1) < 1;
+[value:alarm] tests/value/volatile.c:136: Warning: 
+  signed overflow. assert svol_ptr->f[0] + 1 ≤ 2147483647;
+[value] tests/value/volatile.c:136: 
+  Frama_C_show_each_v_plus: [-2147483647..2147483647]
+[value:alarm] tests/value/volatile.c:136: Warning: 
+  accessing out of bounds index. assert 0 ≤ svol_ptr->f[0];
+[value:alarm] tests/value/volatile.c:136: Warning: 
+  accessing out of bounds index. assert svol_ptr->f[0] < 2;
+[value:alarm] tests/value/volatile.c:136: Warning: 
+  accessing out of bounds index. assert a_0[svol_ptr->f[0]] < 1;
+[value] tests/value/volatile.c:136: Frama_C_show_each_a: {0; 1}
+[value:alarm] tests/value/volatile.c:136: Warning: 
+  accessing out of bounds index. assert 0 ≤ svol_ptr->f[0];
+[value:alarm] tests/value/volatile.c:136: Warning: 
+  accessing out of bounds index. assert svol_ptr->f[0] < 2;
+[value:alarm] tests/value/volatile.c:136: Warning: 
+  accessing out of bounds index. assert 0 ≤ (int)(a_0[svol_ptr->f[0]] - 1);
+[value] tests/value/volatile.c:136: Frama_C_show_each_a_minus: {-1; 0}
+[value:alarm] tests/value/volatile.c:136: Warning: 
+  accessing out of bounds index. assert 0 ≤ svol_ptr->f[0];
+[value:alarm] tests/value/volatile.c:136: Warning: 
+  accessing out of bounds index. assert svol_ptr->f[0] < 2;
+[value:alarm] tests/value/volatile.c:136: Warning: 
+  accessing out of bounds index. assert a_0[svol_ptr->f[0]] < 1;
+[value] tests/value/volatile.c:136: 
+  Frama_C_show_each_av: [-2147483648..2147483647]
+[value:alarm] tests/value/volatile.c:137: Warning: 
+  assertion 'NORED' got status unknown.
+[value:alarm] tests/value/volatile.c:144: Warning: 
+  accessing out of bounds index. assert 0 ≤ sdeepvol.g[0];
+[value:alarm] tests/value/volatile.c:144: Warning: 
+  accessing out of bounds index. assert sdeepvol.g[0] < 1;
+[value] tests/value/volatile.c:144: 
+  Frama_C_show_each_v: [-2147483648..2147483647]
+[value:alarm] tests/value/volatile.c:144: Warning: 
+  accessing out of bounds index. assert 0 ≤ (int)(sdeepvol.g[0] + 1);
+[value:alarm] tests/value/volatile.c:144: Warning: 
+  accessing out of bounds index. assert (int)(sdeepvol.g[0] + 1) < 1;
+[value:alarm] tests/value/volatile.c:144: Warning: 
+  signed overflow. assert sdeepvol.g[0] + 1 ≤ 2147483647;
+[value] tests/value/volatile.c:144: 
+  Frama_C_show_each_v_plus: [-2147483647..2147483647]
+[value:alarm] tests/value/volatile.c:144: Warning: 
+  accessing out of bounds index. assert 0 ≤ sdeepvol.g[0];
+[value:alarm] tests/value/volatile.c:144: Warning: 
+  accessing out of bounds index. assert sdeepvol.g[0] < 2;
+[value:alarm] tests/value/volatile.c:144: Warning: 
+  accessing out of bounds index. assert a_0[sdeepvol.g[0]] < 1;
+[value] tests/value/volatile.c:144: Frama_C_show_each_a: {0; 1}
+[value:alarm] tests/value/volatile.c:144: Warning: 
+  accessing out of bounds index. assert 0 ≤ sdeepvol.g[0];
+[value:alarm] tests/value/volatile.c:144: Warning: 
+  accessing out of bounds index. assert sdeepvol.g[0] < 2;
+[value:alarm] tests/value/volatile.c:144: Warning: 
+  accessing out of bounds index. assert 0 ≤ (int)(a_0[sdeepvol.g[0]] - 1);
+[value] tests/value/volatile.c:144: Frama_C_show_each_a_minus: {-1; 0}
+[value:alarm] tests/value/volatile.c:144: Warning: 
+  accessing out of bounds index. assert 0 ≤ sdeepvol.g[0];
+[value:alarm] tests/value/volatile.c:144: Warning: 
+  accessing out of bounds index. assert sdeepvol.g[0] < 2;
+[value:alarm] tests/value/volatile.c:144: Warning: 
+  accessing out of bounds index. assert a_0[sdeepvol.g[0]] < 1;
+[value] tests/value/volatile.c:144: 
+  Frama_C_show_each_av: [-2147483648..2147483647]
+[value:alarm] tests/value/volatile.c:145: Warning: 
+  assertion 'NORED' got status unknown.
+[value:alarm] tests/value/volatile.c:149: Warning: 
+  accessing out of bounds index. assert 0 ≤ volt[0].f[0];
+[value:alarm] tests/value/volatile.c:149: Warning: 
+  accessing out of bounds index. assert volt[0].f[0] < 1;
+[value] tests/value/volatile.c:149: 
+  Frama_C_show_each_v: [-2147483648..2147483647]
+[value:alarm] tests/value/volatile.c:149: Warning: 
+  accessing out of bounds index. assert 0 ≤ (int)(volt[0].f[0] + 1);
+[value:alarm] tests/value/volatile.c:149: Warning: 
+  accessing out of bounds index. assert (int)(volt[0].f[0] + 1) < 1;
+[value:alarm] tests/value/volatile.c:149: Warning: 
+  signed overflow. assert volt[0].f[0] + 1 ≤ 2147483647;
+[value] tests/value/volatile.c:149: 
+  Frama_C_show_each_v_plus: [-2147483647..2147483647]
+[value:alarm] tests/value/volatile.c:149: Warning: 
+  accessing out of bounds index. assert 0 ≤ volt[0].f[0];
+[value:alarm] tests/value/volatile.c:149: Warning: 
+  accessing out of bounds index. assert volt[0].f[0] < 2;
+[value:alarm] tests/value/volatile.c:149: Warning: 
+  accessing out of bounds index. assert a_0[volt[0].f[0]] < 1;
+[value] tests/value/volatile.c:149: Frama_C_show_each_a: {0; 1}
+[value:alarm] tests/value/volatile.c:149: Warning: 
+  accessing out of bounds index. assert 0 ≤ volt[0].f[0];
+[value:alarm] tests/value/volatile.c:149: Warning: 
+  accessing out of bounds index. assert volt[0].f[0] < 2;
+[value:alarm] tests/value/volatile.c:149: Warning: 
+  accessing out of bounds index. assert 0 ≤ (int)(a_0[volt[0].f[0]] - 1);
+[value] tests/value/volatile.c:149: Frama_C_show_each_a_minus: {-1; 0}
+[value:alarm] tests/value/volatile.c:149: Warning: 
+  accessing out of bounds index. assert 0 ≤ volt[0].f[0];
+[value:alarm] tests/value/volatile.c:149: Warning: 
+  accessing out of bounds index. assert volt[0].f[0] < 2;
+[value:alarm] tests/value/volatile.c:149: Warning: 
+  accessing out of bounds index. assert a_0[volt[0].f[0]] < 1;
+[value] tests/value/volatile.c:149: 
+  Frama_C_show_each_av: [-2147483648..2147483647]
+[value:alarm] tests/value/volatile.c:150: Warning: 
+  assertion 'NORED' got status unknown.
+[value:alarm] tests/value/volatile.c:154: Warning: 
+  accessing out of bounds index. assert 0 ≤ deepvolt[0].g[0];
+[value:alarm] tests/value/volatile.c:154: Warning: 
+  accessing out of bounds index. assert deepvolt[0].g[0] < 1;
+[value] tests/value/volatile.c:154: 
+  Frama_C_show_each_v: [-2147483648..2147483647]
+[value:alarm] tests/value/volatile.c:154: Warning: 
+  accessing out of bounds index. assert 0 ≤ (int)(deepvolt[0].g[0] + 1);
+[value:alarm] tests/value/volatile.c:154: Warning: 
+  accessing out of bounds index. assert (int)(deepvolt[0].g[0] + 1) < 1;
+[value:alarm] tests/value/volatile.c:154: Warning: 
+  signed overflow. assert deepvolt[0].g[0] + 1 ≤ 2147483647;
+[value] tests/value/volatile.c:154: 
+  Frama_C_show_each_v_plus: [-2147483647..2147483647]
+[value:alarm] tests/value/volatile.c:154: Warning: 
+  accessing out of bounds index. assert 0 ≤ deepvolt[0].g[0];
+[value:alarm] tests/value/volatile.c:154: Warning: 
+  accessing out of bounds index. assert deepvolt[0].g[0] < 2;
+[value:alarm] tests/value/volatile.c:154: Warning: 
+  accessing out of bounds index. assert a_0[deepvolt[0].g[0]] < 1;
+[value] tests/value/volatile.c:154: Frama_C_show_each_a: {0; 1}
+[value:alarm] tests/value/volatile.c:154: Warning: 
+  accessing out of bounds index. assert 0 ≤ deepvolt[0].g[0];
+[value:alarm] tests/value/volatile.c:154: Warning: 
+  accessing out of bounds index. assert deepvolt[0].g[0] < 2;
+[value:alarm] tests/value/volatile.c:154: Warning: 
+  accessing out of bounds index. assert 0 ≤ (int)(a_0[deepvolt[0].g[0]] - 1);
+[value] tests/value/volatile.c:154: Frama_C_show_each_a_minus: {-1; 0}
+[value:alarm] tests/value/volatile.c:154: Warning: 
+  accessing out of bounds index. assert 0 ≤ deepvolt[0].g[0];
+[value:alarm] tests/value/volatile.c:154: Warning: 
+  accessing out of bounds index. assert deepvolt[0].g[0] < 2;
+[value:alarm] tests/value/volatile.c:154: Warning: 
+  accessing out of bounds index. assert a_0[deepvolt[0].g[0]] < 1;
+[value] tests/value/volatile.c:154: 
+  Frama_C_show_each_av: [-2147483648..2147483647]
+[value:alarm] tests/value/volatile.c:155: Warning: 
+  assertion 'NORED' got status unknown.
 [value] Recording results for main3
 [value] Done for function main3
+[value] computing for function main4 <- main.
+  Called from tests/value/volatile.c:179.
+[value:alarm] tests/value/volatile.c:162: Warning: 
+  accessing uninitialized left-value. assert \initialized(&v1);
+[value] tests/value/volatile.c:165: 
+  Frama_C_show_each_int_volatile:
+  [-2147483648..2147483647], [-2147483648..2147483647]
+[value:alarm] tests/value/volatile.c:167: Warning: 
+  accessing uninitialized left-value. assert \initialized(&p1);
+[value] tests/value/volatile.c:168: Frama_C_show_each_ptr: [0..4294967295]
+[value] tests/value/volatile.c:172: 
+  Frama_C_show_each_ptr_volatile: {{ &x_0 + [--..--] }}, {{ &x_0 + [--..--] }}
+[value] Recording results for main4
+[value] Done for function main4
 [value] Recording results for main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======
@@ -284,6 +425,12 @@ tests/value/volatile.c:155:[value] warning: assertion 'NORED' got status unknown
   sdeepvol ∈ [--..--]
   volt[0] ∈ [--..--]
   deepvolt[0] ∈ [--..--]
+[value:final-states] Values at end of function main4:
+  x_0 ∈ [--..--]
+  v2 ∈ [--..--]
+  p1 ∈ {{ &x_0 + [--..--] }}
+  q ∈ [--..--]
+  p2 ∈ {{ &x_0 + [--..--] }}
 [value:final-states] Values at end of function main:
   G ∈ [--..--]
   E ∈ [--..--]

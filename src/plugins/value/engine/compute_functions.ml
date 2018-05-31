@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2017                                               *)
+(*  Copyright (C) 2007-2018                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -44,6 +44,7 @@ let options_ok () =
   check Value_parameters.SplitReturnFunction.get;
   check Value_parameters.BuiltinsOverrides.get;
   check Value_parameters.SlevelFunction.get;
+  check Value_parameters.EqualityCallFunction.get;
   let check_assigns kf =
     if need_assigns kf then
       Value_parameters.error "@[no assigns@ specified@ for function '%a',@ for \
@@ -106,7 +107,7 @@ let post_analysis () =
   (* Mark unreachable and RTE statuses. Only do this there, not when the
      analysis was aborted (hence, not in post_cleanup), because the
      propagation is incomplete. Also do not mark unreachable statutes if
-     there is an alarm in the initialisers (bottom initial state), as we
+     there is an alarm in the initializers (bottom initial state), as we
      would end up marking the alarm as dead. *)
   Eval_annots.mark_unreachable ();
   (* Try to refine the 'Unknown' statuses that have been emitted during
@@ -245,7 +246,9 @@ module Make
         (* Evaluate the preconditions of kf, to update the statuses
            at this call. *)
         let spec = Annotations.funspec call.kf in
-        if Eval_annots.has_requires spec then begin
+        if not (Value_util.skip_specifications call.kf) &&
+           Eval_annots.has_requires spec
+        then begin
           let ab = Logic.create init_state call.kf in
           ignore (Logic.check_fct_preconditions
                     call_kinstr call.kf ab init_state);
@@ -279,10 +282,13 @@ module Make
       let call =
         {kf; arguments = []; rest = []; return = None; recursive = false}
       in
-      ignore (compute_using_spec_or_body Kglobal call init_state);
+      let final_result = compute_using_spec_or_body Kglobal call init_state in
+      let final_states = final_result.Transfer.states in
+      let final_state = PowersetDomain.(final_states >>-: of_list >>- join) in
       Value_util.pop_call_stack ();
       Value_parameters.feedback "done for function %a" Kernel_function.pretty kf;
-      post_analysis ()
+      post_analysis ();
+      Domain.post_analysis final_state;
     with
     | Db.Value.Aborted ->
       post_analysis_cleanup ~aborted:true;

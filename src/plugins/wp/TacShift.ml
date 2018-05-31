@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2017                                               *)
+(*  Copyright (C) 2007-2018                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -22,9 +22,26 @@
 
 open Lang
 
+
 let select_op f =
-  if f == Cint.f_lsl then F.e_mul else
-  if f == Cint.f_lsr then F.e_div else
+  let rewrite descr u v = Tactical.rewrite [ descr , F.p_true , u , v ]
+  in
+  let rewrite_lsl e a n =
+    (* from selection e='a<<n', rewrites the sequent 'Hs |- G' into:
+       - Hs[e := a*2^n] |- G[e := a*2^n)] *)
+    let b = F.e_mul a (F.e_int (1 lsl n)) in
+    rewrite "left shift into mult" e b
+  in
+  let rewrite_lsr e a n =
+    (* from selection e='a>>n', rewrites the sequent 'Hs |- G' into:
+       - Hs |- 0<=a
+       - Hs[e := a*2^n] |- G[e := a*2^n] *)
+    let b = F.e_div a (F.e_int (1 lsl n)) in
+    (fun seq -> ("positive" , (fst seq , F.p_leq F.e_zero a)) ::
+                rewrite "right shift into div" e b seq)
+  in
+  if f == Cint.f_lsl then rewrite_lsl else
+  if f == Cint.f_lsr then rewrite_lsr else
     raise Not_found
 
 let select_int n =
@@ -33,34 +50,72 @@ let select_int n =
       (try Integer.to_int n with Integer.Too_big -> raise Not_found)
   | _ -> raise Not_found
 
-let rewrite descr u v = Tactical.rewrite [ descr , F.p_true , u , v ]
-
 class shift =
   object
     inherit Tactical.make
         ~id:"Wp.shift"
         ~title:"Logical Shift"
-        ~descr:"Transform Shifting into Arithmetics"
+        ~descr:"Transform Shifts into Div/Mult"
         ~params:[]
-    
+
     method select feedback selection =
       let e = Tactical.selected selection in
       let open Qed.Logic in
       match F.repr e with
       | Fun( f , [a;n] ) ->
           begin
-            let op = select_op f in
+            let rewrite_shift = select_op f in
             let n = select_int n in
             if n > 64 then feedback#set_error "Too large shift (64 max.)" ;
             if n < 0 then feedback#set_error "Negative shift (0 min.)" ;
-            let b = op a (F.e_int (1 lsl n)) in
-            Tactical.Applicable
-              (fun seq ->
-                 ("positive" , (fst seq , F.p_leq F.e_zero a)) ::
-                 rewrite "shift" e b seq)
+            Tactical.Applicable (rewrite_shift e a n)
           end
       | _ -> Tactical.Not_applicable
 
   end
 
 let tactical = Tactical.export (new shift)
+let strategy = Strategy.make tactical ~arguments:[]
+
+(* -------------------------------------------------------------------------- *)
+(* --- Auto Shift                                                         --- *)
+(* -------------------------------------------------------------------------- *)
+
+let is_shift e =
+  try
+    let open Qed.Logic in
+    match F.repr e with
+    | Fun( f , [_;n] ) ->
+        let _ = select_op f in
+        let _ = select_int n in
+        true
+    | _ -> false
+  with Not_found -> false
+
+let rec scan m f e =
+  if not (F.Tset.mem e !m) then
+    begin
+      m := F.Tset.add e !m ;
+      if is_shift e then f e else
+        if F.lc_closed e then
+          F.lc_iter (scan m f) e
+    end
+
+class autoshift =
+  object
+    
+    method id = "wp:bitshift"
+    method title = "Auto Bit-Shift" 
+    method descr = "Apply Bit-Shift in Goal"
+
+    method search push (seq : Conditions.sequent) =
+      let goal = snd seq in
+      let apply e =
+        let selection = Tactical.(Inside(Goal goal,e)) in
+        push (strategy ~priority:0.5 selection)
+      in
+      scan (ref F.Tset.empty) apply (F.e_prop goal)
+      
+  end
+
+let () = Strategy.register (new autoshift)

@@ -5,11 +5,13 @@
 [value:initial-state] Values of globals at initialization
   t[0..0xFFFE] ∈ {0}
   i ∈ [--..--]
-tests/value/plevel.i:11:[value] warning: assertion got status unknown.
-tests/value/plevel.i:13:[value] warning: assertion got status unknown.
-tests/value/plevel.i:21:[kernel] more than 40(65) locations to update in array. Approximating.
+[value:alarm] tests/value/plevel.i:11: Warning: assertion got status unknown.
+[value:alarm] tests/value/plevel.i:13: Warning: assertion got status unknown.
+[kernel] tests/value/plevel.i:21: 
+  more than 40(65) locations to update in array. Approximating.
 [value] Recording results for main
-tests/value/plevel.i:21:[kernel] more than 40(65) elements to enumerate. Approximating.
+[kernel] tests/value/plevel.i:21: 
+  more than 40(65) elements to enumerate. Approximating.
 [value] done for function main
 [value] ====== VALUES COMPUTED ======
 [value:final-states] Values at end of function main:
@@ -102,10 +104,11 @@ tests/value/plevel.i:21:[kernel] more than 40(65) elements to enumerate. Approxi
   i2 ∈ [0..64]
   p ∈ {{ &t + [0x2000..0x2040] }}
 [from] Computing for function main
-tests/value/plevel.i:21:[kernel] more than 40(65) dependencies to update. Approximating.
+[kernel] tests/value/plevel.i:21: 
+  more than 40(65) dependencies to update. Approximating.
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
-    These dependencies hold at termination for the executions that terminate:
+  These dependencies hold at termination for the executions that terminate:
 [from] Function main:
   t{[0x100..0x120]; [0x200..0x240]; [0x300]; [0x302]; [0x304]; [0x306];
     [0x308]; [0x30A]; [0x30C]; [0x30E]; [0x310]; [0x312]; [0x314]; [0x316];
@@ -117,13 +120,13 @@ tests/value/plevel.i:21:[kernel] more than 40(65) dependencies to update. Approx
    FROM i (and SELF)
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function main:
-      t{[0x100..0x120]; [0x200..0x240]; [0x300]; [0x302]; [0x304]; [0x306];
-        [0x308]; [0x30A]; [0x30C]; [0x30E]; [0x310]; [0x312]; [0x314]; [0x316];
-        [0x318]; [0x31A]; [0x31C]; [0x31E]; [0x320]; [0x322]; [0x324]; [0x326];
-        [0x328]; [0x32A]; [0x32C]; [0x32E]; [0x330]; [0x332]; [0x334]; [0x336];
-        [0x338]; [0x33A]; [0x33C]; [0x33E]; [0x340]; [0x400..0x480];
-        {[0x500..0x520]; [0x521][bits 0 to 15]};
-        {[0x600..0x640]; [0x641][bits 0 to 15]}; [0x700..0x708]; [0x800..0x810]};
-      i1; i2; p
+    t{[0x100..0x120]; [0x200..0x240]; [0x300]; [0x302]; [0x304]; [0x306];
+      [0x308]; [0x30A]; [0x30C]; [0x30E]; [0x310]; [0x312]; [0x314]; [0x316];
+      [0x318]; [0x31A]; [0x31C]; [0x31E]; [0x320]; [0x322]; [0x324]; [0x326];
+      [0x328]; [0x32A]; [0x32C]; [0x32E]; [0x330]; [0x332]; [0x334]; [0x336];
+      [0x338]; [0x33A]; [0x33C]; [0x33E]; [0x340]; [0x400..0x480];
+      {[0x500..0x520]; [0x521][bits 0 to 15]};
+      {[0x600..0x640]; [0x641][bits 0 to 15]}; [0x700..0x708]; [0x800..0x810]};
+    i1; i2; p
 [inout] Inputs for function main:
-      i
+    i

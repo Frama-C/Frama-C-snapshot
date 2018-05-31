@@ -2,7 +2,7 @@
 /*                                                                        */
 /*  This file is part of Frama-C.                                         */
 /*                                                                        */
-/*  Copyright (C) 2007-2017                                               */
+/*  Copyright (C) 2007-2018                                               */
 /*    CEA   (Commissariat à l'énergie atomique et aux énergies            */
 /*           alternatives)                                                */
 /*    INRIA (Institut National de Recherche en Informatique et en         */
@@ -259,6 +259,8 @@
 %token INITIALIZED DANGLING
 %token CUSTOM
 %token LSQUAREPIPE RSQUAREPIPE
+%token IN
+%token PI
 
 %right prec_named
 %nonassoc TYPENAME
@@ -274,6 +276,7 @@
 %left PIPE
 %left HAT
 %left STARHAT
+%nonassoc IN
 %left AMP
 %left LT
 %left LTLT GTGT
@@ -349,6 +352,7 @@ lexpr:
 | lexpr HAT lexpr { info (PLbinop ($1, Bbw_xor, $3)) }
 | lexpr BIMPLIES lexpr { info (PLbinop (info (PLunop (Ubw_not, $1)), Bbw_or, $3)) }
 | lexpr BIFF lexpr { info (PLbinop (info (PLunop (Ubw_not, $1)), Bbw_xor, $3)) }
+| lexpr IN lexpr { info (PLapp ("\\subset", [], [info ((PLset [$1]));$3])) }
 | lexpr QUESTION lexpr COLON2 lexpr %prec prec_question
     { info (PLif ($1, $3, $5)) }
 /* both terms and predicates */
@@ -469,18 +473,13 @@ lexpr_inner:
 | OFFSET opt_label_1 LPAR lexpr RPAR { info (PLoffset ($2,$4)) }
 | ALLOCABLE opt_label_1 LPAR lexpr RPAR { info (PLallocable ($2,$4)) }
 | FREEABLE opt_label_1 LPAR lexpr RPAR { info (PLfreeable ($2,$4)) }
-| ALLOCATION opt_label_1 LPAR lexpr RPAR  { Format.eprintf "Warning: \\allocation not yet implemented." ;
-	   (* TODO: *) raise Parse_error }
-| AUTOMATIC { Format.eprintf "Warning: \\automatic not yet implemented." ;
-	   (* TODO: *) raise Parse_error }
-| DYNAMIC { Format.eprintf "Warning: \\dynamic not yet implemented." ;
-	   (* TODO: *) raise Parse_error }
-| REGISTER { Format.eprintf "Warning: \\register not yet implemented." ;
-	   (* TODO: *) raise Parse_error }
-| STATIC { Format.eprintf "Warning: \\static not yet implemented." ;
-	   (* TODO: *) raise Parse_error }
-| UNALLOCATED { Format.eprintf "Warning: \\unallocated not yet implemented." ;
-	   (* TODO: *) raise Parse_error }
+| ALLOCATION opt_label_1 LPAR lexpr RPAR
+  { Kernel.not_yet_implemented "\\allocation" }
+| AUTOMATIC { Kernel.not_yet_implemented "\\automatic" }
+| DYNAMIC { Kernel.not_yet_implemented "\\dynamic" }
+| REGISTER { Kernel.not_yet_implemented "\\register" }
+| STATIC { Kernel.not_yet_implemented "\\static" }
+| UNALLOCATED { Kernel.not_yet_implemented "\\unallocated" }
 | NULL { info PLnull }
 | constant { info (PLconstant $1) }
 | lexpr_inner PLUS lexpr_inner { info (PLbinop ($1, Badd, $3)) }
@@ -513,6 +512,7 @@ lexpr_inner:
 | identifier LBRACE ne_label_args RBRACE
       { info (PLapp ($1, $3, [])) }
 | identifier  { info (PLvar $1) }
+| PI  { info (PLvar "\\pi") }
 | lexpr_inner GTGT lexpr_inner { info (PLbinop ($1, Brshift, $3))}
 | lexpr_inner LTLT lexpr_inner { info (PLbinop ($1, Blshift, $3))}
 | LPAR lexpr RPAR { info $2.lexpr_node }
@@ -652,14 +652,15 @@ constant:
 | CONSTANT10 { IntConstant $1 }
 ;
 
-constant_option:
-|  constant { Some $1 }
-| /* empty */ { None }
+array_size:
+| CONSTANT10 { ASinteger $1 }
+| identifier { ASidentifier $1 }
+| /* empty */ { ASnone }
 ;
 
 var_spec_bis:
 | identifier     { ((fun x -> x),(fun x -> x), $1) }
-| var_spec_bis LSQUARE constant_option RSQUARE
+| var_spec_bis LSQUARE array_size RSQUARE
       { let (outer, inner, name) = $1 in
           (outer, (fun x -> inner (LTarray (x,$3))), name)
       }
@@ -675,8 +676,7 @@ abs_param_type_list:
 | /* empty */    { [ ] }
 | abs_param_list { $1 }
 | abs_param_list COMMA DOTDOTDOT {
-    Format.eprintf "Warning: elipsis type is not yet implemented." ;
-    (* TODO: *) raise Parse_error
+    Kernel.not_yet_implemented "variadic C function types"
   }
 ;
 
@@ -787,11 +787,11 @@ stars_cv:
 ;
 
 tabs:
-| LSQUARE constant_option RSQUARE %prec TYPENAME
+| LSQUARE array_size RSQUARE %prec TYPENAME
     {
       fun t -> LTarray (t,$2)
     }
-| LSQUARE constant_option RSQUARE tabs
+| LSQUARE array_size RSQUARE tabs
     {
       fun t -> (LTarray ($4 t,$2))
     }
@@ -1232,11 +1232,6 @@ ne_complete_or_disjoint:
 assigns:
 | zones { List.map (fun x -> (x,FromAny)) $1 }
 | ne_zones FROM zones {List.map (fun x -> (x, From $3)) $1}
-/* | ne_zones FROM zones EQUAL lexpr
-  { Format.eprintf
-      "Warning: functional expression of \\from clause is ignored (not yet implemented)." ;
-    List.map (fun x -> (x, $3)) $1
-  }*/
 ;
 
 zones:
@@ -1932,6 +1927,7 @@ wildcard:
 | NOT { () }
 | OR { () }
 | PERCENT { () }
+| PI { () }
 | PIPE { () }
 | PLUS { () }
 | QUESTION { () }
@@ -1945,6 +1941,7 @@ wildcard:
 | STARHAT { () }
 | STRING_LITERAL { () }
 | TILDE { () }
+| IN { () }
 ;
 
 any:

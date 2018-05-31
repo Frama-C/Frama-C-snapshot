@@ -7,7 +7,7 @@
   G2 ∈ [--..--]
   T[0..9] ∈ [--..--]
 [value] computing for function f <- g.
-    Called from tests/pdg/doc_dot.c:14.
+  Called from tests/pdg/doc_dot.c:14.
 [value] Recording results for f
 [value] Done for function f
 [value] Recording results for g

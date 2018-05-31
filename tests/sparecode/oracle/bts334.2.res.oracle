@@ -12,28 +12,34 @@
   si[0..1] ∈ {0}
   so[0..1] ∈ {0}
 [value] computing for function init <- main_init.
-    Called from tests/sparecode/bts334.i:66.
-tests/sparecode/bts334.i:66:[kernel] warning: No code nor explicit assigns clause for function init, generating default assigns from the specification
+  Called from tests/sparecode/bts334.i:66.
+[kernel] tests/sparecode/bts334.i:66: Warning: 
+  No code nor explicit assigns clause for function init, generating default assigns from the specification
 [value] using specification for function init
-tests/sparecode/bts334.i:61:[value] warning: no 'assigns \result \from ...' clause specified for function init
+[value] tests/sparecode/bts334.i:61: Warning: 
+  no 'assigns \result \from ...' clause specified for function init
 [value] Done for function init
-tests/sparecode/bts334.i:67:[value] warning: accessing uninitialized left-value. assert \initialized(&is_ok);
+[value:alarm] tests/sparecode/bts334.i:67: Warning: 
+  accessing uninitialized left-value. assert \initialized(&is_ok);
 [value] computing for function process <- main_init.
-    Called from tests/sparecode/bts334.i:67.
-tests/sparecode/bts334.i:53:[value] entering loop for the first time
+  Called from tests/sparecode/bts334.i:67.
+[value] tests/sparecode/bts334.i:53: entering loop for the first time
 [value] computing for function loop_body <- process <- main_init.
-    Called from tests/sparecode/bts334.i:53.
+  Called from tests/sparecode/bts334.i:53.
 [value] computing for function f <- loop_body <- process <- main_init.
-    Called from tests/sparecode/bts334.i:38.
-tests/sparecode/bts334.i:14:[value] warning: division by zero. assert kf ≢ 0;
-tests/sparecode/bts334.i:14:[value] warning: signed overflow. assert -2147483648 ≤ k[i] * (int)(vi - si[i]);
-tests/sparecode/bts334.i:14:[value] warning: signed overflow. assert k[i] * (int)(vi - si[i]) ≤ 2147483647;
+  Called from tests/sparecode/bts334.i:38.
+[value:alarm] tests/sparecode/bts334.i:14: Warning: 
+  division by zero. assert kf ≢ 0;
+[value:alarm] tests/sparecode/bts334.i:14: Warning: 
+  signed overflow. assert -2147483648 ≤ k[i] * (int)(vi - si[i]);
+[value:alarm] tests/sparecode/bts334.i:14: Warning: 
+  signed overflow. assert k[i] * (int)(vi - si[i]) ≤ 2147483647;
 [value] Recording results for f
 [from] Computing for function f
 [from] Done for function f
 [value] Done for function f
 [value] computing for function f <- loop_body <- process <- main_init.
-    Called from tests/sparecode/bts334.i:39.
+  Called from tests/sparecode/bts334.i:39.
 [value] Recording results for f
 [from] Computing for function f
 [from] Done for function f
@@ -43,21 +49,25 @@ tests/sparecode/bts334.i:14:[value] warning: signed overflow. assert k[i] * (int
 [from] Done for function loop_body
 [value] Done for function loop_body
 [value] computing for function loop_body <- process <- main_init.
-    Called from tests/sparecode/bts334.i:53.
+  Called from tests/sparecode/bts334.i:53.
 [value] computing for function f <- loop_body <- process <- main_init.
-    Called from tests/sparecode/bts334.i:38.
-tests/sparecode/bts334.i:14:[value] warning: signed overflow. assert -2147483648 ≤ vi - si[i];
-tests/sparecode/bts334.i:14:[value] warning: signed overflow. assert vi - si[i] ≤ 2147483647;
-tests/sparecode/bts334.i:14:[value] warning: signed overflow.
-    assert -2147483648 ≤ (int)(so[i] / kf) + (int)(k[i] * (int)(vi - si[i]));
-tests/sparecode/bts334.i:14:[value] warning: signed overflow.
-    assert (int)(so[i] / kf) + (int)(k[i] * (int)(vi - si[i])) ≤ 2147483647;
+  Called from tests/sparecode/bts334.i:38.
+[value:alarm] tests/sparecode/bts334.i:14: Warning: 
+  signed overflow. assert -2147483648 ≤ vi - si[i];
+[value:alarm] tests/sparecode/bts334.i:14: Warning: 
+  signed overflow. assert vi - si[i] ≤ 2147483647;
+[value:alarm] tests/sparecode/bts334.i:14: Warning: 
+  signed overflow.
+  assert -2147483648 ≤ (int)(so[i] / kf) + (int)(k[i] * (int)(vi - si[i]));
+[value:alarm] tests/sparecode/bts334.i:14: Warning: 
+  signed overflow.
+  assert (int)(so[i] / kf) + (int)(k[i] * (int)(vi - si[i])) ≤ 2147483647;
 [value] Recording results for f
 [from] Computing for function f
 [from] Done for function f
 [value] Done for function f
 [value] computing for function f <- loop_body <- process <- main_init.
-    Called from tests/sparecode/bts334.i:39.
+  Called from tests/sparecode/bts334.i:39.
 [value] Recording results for f
 [from] Computing for function f
 [from] Done for function f
@@ -67,16 +77,17 @@ tests/sparecode/bts334.i:14:[value] warning: signed overflow.
 [from] Done for function loop_body
 [value] Done for function loop_body
 [value] computing for function loop_body <- process <- main_init.
-    Called from tests/sparecode/bts334.i:53.
+  Called from tests/sparecode/bts334.i:53.
 [value] computing for function f <- loop_body <- process <- main_init.
-    Called from tests/sparecode/bts334.i:38.
-tests/sparecode/bts334.i:14:[value] warning: signed overflow. assert so[i] / kf ≤ 2147483647;
+  Called from tests/sparecode/bts334.i:38.
+[value:alarm] tests/sparecode/bts334.i:14: Warning: 
+  signed overflow. assert so[i] / kf ≤ 2147483647;
 [value] Recording results for f
 [from] Computing for function f
 [from] Done for function f
 [value] Done for function f
 [value] computing for function f <- loop_body <- process <- main_init.
-    Called from tests/sparecode/bts334.i:39.
+  Called from tests/sparecode/bts334.i:39.
 [value] Recording results for f
 [from] Computing for function f
 [from] Done for function f
@@ -129,7 +140,8 @@ tests/sparecode/bts334.i:14:[value] warning: signed overflow. assert so[i] / kf 
 [slicing] applying 1 actions...
 [slicing] applying actions: 1/1...
 [pdg] computing for function process
-tests/sparecode/bts334.i:55:[pdg] warning: no final state. Probably unreachable...
+[pdg] tests/sparecode/bts334.i:55: Warning: 
+  no final state. Probably unreachable...
 [pdg] done for function process
 [pdg] computing for function main_init
 [pdg] done for function main_init

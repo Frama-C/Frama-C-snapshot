@@ -1,5 +1,7 @@
 [kernel] Parsing tests/value/cond_integer_cast_of_float.i (no preprocessing)
-tests/value/cond_integer_cast_of_float.i:79:[kernel] warning: Floating-point constant 1.17 is not represented exactly. Will use 0x1.2b851eb851eb8p0. See documentation for option -warn-decimal-float
+[kernel:parser:decimal-float] tests/value/cond_integer_cast_of_float.i:79: Warning: 
+  Floating-point constant 1.17 is not represented exactly. Will use 0x1.2b851eb851eb8p0.
+  (warn-once: no further messages from category 'parser:decimal-float' will be emitted)
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
 [value] Initial state computed
@@ -14,88 +16,117 @@ tests/value/cond_integer_cast_of_float.i:79:[kernel] warning: Floating-point con
   i ∈ [--..--]
   c ∈ [--..--]
 [value] computing for function main1 <- main.
-    Called from tests/value/cond_integer_cast_of_float.i:121.
-tests/value/cond_integer_cast_of_float.i:13:[value] warning: function main1: precondition got status unknown.
-tests/value/cond_integer_cast_of_float.i:17:[value] Frama_C_show_each_float_: [2. .. 8.]
-tests/value/cond_integer_cast_of_float.i:20:[value] Frama_C_show_each_float_: [-0. .. 4.99999952316]
-tests/value/cond_integer_cast_of_float.i:23:[value] Frama_C_show_each_float_: [1. .. 8.]
-tests/value/cond_integer_cast_of_float.i:26:[value] Frama_C_show_each_float_: [3. .. 3.99999976158]
-tests/value/cond_integer_cast_of_float.i:29:[value] Frama_C_show_each_double: [2. .. 8.]
-tests/value/cond_integer_cast_of_float.i:32:[value] Frama_C_show_each_double: [-0. .. 5.]
-tests/value/cond_integer_cast_of_float.i:35:[value] Frama_C_show_each_double: [1. .. 8.]
-tests/value/cond_integer_cast_of_float.i:38:[value] Frama_C_show_each_double: [3. .. 4.]
-tests/value/cond_integer_cast_of_float.i:73:[value] Frama_C_show_each: [-0. .. 8.], [0..8]
+  Called from tests/value/cond_integer_cast_of_float.i:121.
+[value:alarm] tests/value/cond_integer_cast_of_float.i:121: Warning: 
+  function main1: precondition got status unknown.
+[value] tests/value/cond_integer_cast_of_float.i:17: 
+  Frama_C_show_each_float_: [2. .. 8.]
+[value] tests/value/cond_integer_cast_of_float.i:20: 
+  Frama_C_show_each_float_: [-0. .. 4.99999952316]
+[value] tests/value/cond_integer_cast_of_float.i:23: 
+  Frama_C_show_each_float_: [1. .. 8.]
+[value] tests/value/cond_integer_cast_of_float.i:26: 
+  Frama_C_show_each_float_: [3. .. 3.99999976158]
+[value] tests/value/cond_integer_cast_of_float.i:29: 
+  Frama_C_show_each_double: [2. .. 8.]
+[value] tests/value/cond_integer_cast_of_float.i:32: 
+  Frama_C_show_each_double: [-0. .. 5.]
+[value] tests/value/cond_integer_cast_of_float.i:35: 
+  Frama_C_show_each_double: [1. .. 8.]
+[value] tests/value/cond_integer_cast_of_float.i:38: 
+  Frama_C_show_each_double: [3. .. 4.]
+[value] tests/value/cond_integer_cast_of_float.i:73: 
+  Frama_C_show_each: [-0. .. 8.], [0..8]
 [value] Recording results for main1
 [value] Done for function main1
 [value] computing for function main2 <- main.
-    Called from tests/value/cond_integer_cast_of_float.i:123.
-tests/value/cond_integer_cast_of_float.i:78:[value] Frama_C_dump_each:
-    # Cvalue domain:
-    b ∈ {0}
-    f1 ∈ [1.17000007629 .. 3.40282346639e+38]
-    f2 ∈ [-3.40282346639e+38 .. 3.40282346639e+38]
-    f3 ∈ [-3.40282346639e+38 .. 3.40282346639e+38]
-    f4 ∈ [-3.40282346639e+38 .. 3.40282346639e+38]
-    d1 ∈ [-1.79769313486e+308 .. 1.79769313486e+308]
-    d2 ∈ [-1.79769313486e+308 .. 1.79769313486e+308]
-    i ∈ [--..--]
-    c ∈ [--..--]
-    ==END OF DUMP==
-tests/value/cond_integer_cast_of_float.i:81:[value] Frama_C_dump_each:
-    # Cvalue domain:
-    b ∈ {0}
-    f1 ∈ [-3.40282346639e+38 .. 1.16999995708]
-    f2 ∈ [-3.40282346639e+38 .. 3.40282346639e+38]
-    f3 ∈ [-3.40282346639e+38 .. 3.40282346639e+38]
-    f4 ∈ [-3.40282346639e+38 .. 3.40282346639e+38]
-    d1 ∈ [-1.79769313486e+308 .. 1.79769313486e+308]
-    d2 ∈ [-1.79769313486e+308 .. 1.79769313486e+308]
-    i ∈ [--..--]
-    c ∈ [--..--]
-    ==END OF DUMP==
-tests/value/cond_integer_cast_of_float.i:84:[value] Frama_C_show_each_double: [1.16999995708 .. 1.79769313486e+308]
-tests/value/cond_integer_cast_of_float.i:88:[value] Frama_C_show_each_double: [1.17 .. 1.79769313486e+308]
+  Called from tests/value/cond_integer_cast_of_float.i:123.
+[value] tests/value/cond_integer_cast_of_float.i:78: 
+  Frama_C_dump_each:
+  # Cvalue domain:
+  b ∈ {0}
+  f1 ∈ [1.17000007629 .. 3.40282346639e+38]
+  f2 ∈ [-3.40282346639e+38 .. 3.40282346639e+38]
+  f3 ∈ [-3.40282346639e+38 .. 3.40282346639e+38]
+  f4 ∈ [-3.40282346639e+38 .. 3.40282346639e+38]
+  d1 ∈ [-1.79769313486e+308 .. 1.79769313486e+308]
+  d2 ∈ [-1.79769313486e+308 .. 1.79769313486e+308]
+  i ∈ [--..--]
+  c ∈ [--..--]
+  ==END OF DUMP==
+[value] tests/value/cond_integer_cast_of_float.i:81: 
+  Frama_C_dump_each:
+  # Cvalue domain:
+  b ∈ {0}
+  f1 ∈ [-3.40282346639e+38 .. 1.16999995708]
+  f2 ∈ [-3.40282346639e+38 .. 3.40282346639e+38]
+  f3 ∈ [-3.40282346639e+38 .. 3.40282346639e+38]
+  f4 ∈ [-3.40282346639e+38 .. 3.40282346639e+38]
+  d1 ∈ [-1.79769313486e+308 .. 1.79769313486e+308]
+  d2 ∈ [-1.79769313486e+308 .. 1.79769313486e+308]
+  i ∈ [--..--]
+  c ∈ [--..--]
+  ==END OF DUMP==
+[value] tests/value/cond_integer_cast_of_float.i:84: 
+  Frama_C_show_each_double: [1.16999995708 .. 1.79769313486e+308]
+[value] tests/value/cond_integer_cast_of_float.i:88: 
+  Frama_C_show_each_double: [1.17 .. 1.79769313486e+308]
 [value] Recording results for main2
 [value] Done for function main2
 [value] computing for function main3 <- main.
-    Called from tests/value/cond_integer_cast_of_float.i:125.
-tests/value/cond_integer_cast_of_float.i:96:[value] warning: function main3: precondition got status unknown.
-tests/value/cond_integer_cast_of_float.i:97:[value] warning: function main3: precondition got status unknown.
-tests/value/cond_integer_cast_of_float.i:101:[value] warning: assertion got status unknown.
-tests/value/cond_integer_cast_of_float.i:102:[value] warning: assertion got status unknown.
-tests/value/cond_integer_cast_of_float.i:103:[value] warning: assertion got status unknown.
-tests/value/cond_integer_cast_of_float.i:106:[value] warning: assertion got status unknown.
-tests/value/cond_integer_cast_of_float.i:109:[value] warning: assertion got status unknown.
-tests/value/cond_integer_cast_of_float.i:112:[value] warning: assertion got status unknown.
-tests/value/cond_integer_cast_of_float.i:113:[value] warning: assertion got status unknown.
-tests/value/cond_integer_cast_of_float.i:115:[value] Frama_C_dump_each:
-    # Cvalue domain:
-    b ∈ {0}
-    f1 ∈ [10.0000009537 .. 3.40282346639e+38]
-    f2 ∈ [10.0000009537 .. 3.40282346639e+38]
-    f3 ∈ [10.0000009537 .. 3.40282346639e+38]
-    f4 ∈ [-1000. .. 1000.]
-    d1 ∈ [10. .. 1.79769313486e+308]
-    d2 ∈ [-1000. .. 1000.]
-    i ∈ [--..--]
-    c ∈ [--..--]
-    ==END OF DUMP==
+  Called from tests/value/cond_integer_cast_of_float.i:125.
+[value:alarm] tests/value/cond_integer_cast_of_float.i:125: Warning: 
+  function main3: precondition 'f4' got status unknown.
+[value:alarm] tests/value/cond_integer_cast_of_float.i:125: Warning: 
+  function main3: precondition 'd2' got status unknown.
+[value:alarm] tests/value/cond_integer_cast_of_float.i:101: Warning: 
+  assertion got status unknown.
+[value:alarm] tests/value/cond_integer_cast_of_float.i:102: Warning: 
+  assertion got status unknown.
+[value:alarm] tests/value/cond_integer_cast_of_float.i:103: Warning: 
+  assertion got status unknown.
+[value:alarm] tests/value/cond_integer_cast_of_float.i:106: Warning: 
+  assertion got status unknown.
+[value:alarm] tests/value/cond_integer_cast_of_float.i:109: Warning: 
+  assertion got status unknown.
+[value:alarm] tests/value/cond_integer_cast_of_float.i:112: Warning: 
+  assertion got status unknown.
+[value:alarm] tests/value/cond_integer_cast_of_float.i:113: Warning: 
+  assertion got status unknown.
+[value] tests/value/cond_integer_cast_of_float.i:115: 
+  Frama_C_dump_each:
+  # Cvalue domain:
+  b ∈ {0}
+  f1 ∈ [10.0000009537 .. 3.40282346639e+38]
+  f2 ∈ [10.0000009537 .. 3.40282346639e+38]
+  f3 ∈ [10.0000009537 .. 3.40282346639e+38]
+  f4 ∈ [-1000. .. 1000.]
+  d1 ∈ [10. .. 1.79769313486e+308]
+  d2 ∈ [-1000. .. 1000.]
+  i ∈ [--..--]
+  c ∈ [--..--]
+  ==END OF DUMP==
 [value] Recording results for main3
 [value] Done for function main3
 [value] computing for function main3 <- main.
-    Called from tests/value/cond_integer_cast_of_float.i:127.
-tests/value/cond_integer_cast_of_float.i:115:[value] Frama_C_dump_each:
-    # Cvalue domain:
-    b ∈ {0}
-    f1 ∈ [10.0000009537 .. 3.40282346639e+38]
-    f2 ∈ [10.0000009537 .. 3.40282346639e+38]
-    f3 ∈ [10.0000009537 .. 3.40282346639e+38]
-    f4 ∈ [-1000. .. 1000.]
-    d1 ∈ [10. .. 1.79769313486e+308]
-    d2 ∈ [-1000. .. 1000.]
-    i ∈ [--..--]
-    c ∈ [--..--]
-    ==END OF DUMP==
+  Called from tests/value/cond_integer_cast_of_float.i:127.
+[value:alarm] tests/value/cond_integer_cast_of_float.i:127: Warning: 
+  function main3: precondition 'f4' got status unknown.
+[value:alarm] tests/value/cond_integer_cast_of_float.i:127: Warning: 
+  function main3: precondition 'd2' got status unknown.
+[value] tests/value/cond_integer_cast_of_float.i:115: 
+  Frama_C_dump_each:
+  # Cvalue domain:
+  b ∈ {0}
+  f1 ∈ [10.0000009537 .. 3.40282346639e+38]
+  f2 ∈ [10.0000009537 .. 3.40282346639e+38]
+  f3 ∈ [10.0000009537 .. 3.40282346639e+38]
+  f4 ∈ [-1000. .. 1000.]
+  d1 ∈ [10. .. 1.79769313486e+308]
+  d2 ∈ [-1000. .. 1000.]
+  i ∈ [--..--]
+  c ∈ [--..--]
+  ==END OF DUMP==
 [value] Recording results for main3
 [value] Done for function main3
 [value] Recording results for main
@@ -115,80 +146,95 @@ tests/value/cond_integer_cast_of_float.i:115:[value] Frama_C_dump_each:
   i ∈ [--..--]
   c ∈ [--..--]
 [value] computing for function main <- mainbis.
-    Called from tests/value/cond_integer_cast_of_float.i:132.
+  Called from tests/value/cond_integer_cast_of_float.i:132.
 [value] computing for function main1 <- main <- mainbis.
-    Called from tests/value/cond_integer_cast_of_float.i:121.
-tests/value/cond_integer_cast_of_float.i:17:[value] Frama_C_show_each_float_: [0x1.0000000000000p1 .. 0x1.0000000000000p3]
-tests/value/cond_integer_cast_of_float.i:20:[value] Frama_C_show_each_float_: [-0x0.0000000000000p-1022 .. 0x1.3ffffe0000000p2]
-tests/value/cond_integer_cast_of_float.i:23:[value] Frama_C_show_each_float_: [0x1.0000000000000p0 .. 0x1.0000000000000p3]
-tests/value/cond_integer_cast_of_float.i:26:[value] Frama_C_show_each_float_: [0x1.8000000000000p1 .. 0x1.fffffe0000000p1]
-tests/value/cond_integer_cast_of_float.i:29:[value] Frama_C_show_each_double: [0x1.0000000000000p1 .. 0x1.0000000000000p3]
-tests/value/cond_integer_cast_of_float.i:32:[value] Frama_C_show_each_double: [-0x0.0000000000000p-1022 .. 0x1.3ffffffffffffp2]
-tests/value/cond_integer_cast_of_float.i:35:[value] Frama_C_show_each_double: [0x1.0000000000000p0 .. 0x1.0000000000000p3]
-tests/value/cond_integer_cast_of_float.i:38:[value] Frama_C_show_each_double: [0x1.8000000000000p1 .. 0x1.fffffffffffffp1]
-tests/value/cond_integer_cast_of_float.i:73:[value] Frama_C_show_each: [-0x0.0000000000000p-1022 .. 0x1.0000000000000p3], [0..8]
+  Called from tests/value/cond_integer_cast_of_float.i:121.
+[value] tests/value/cond_integer_cast_of_float.i:17: 
+  Frama_C_show_each_float_: [0x1.0000000000000p1 .. 0x1.0000000000000p3]
+[value] tests/value/cond_integer_cast_of_float.i:20: 
+  Frama_C_show_each_float_: [-0x0.0000000000000p-1022 .. 0x1.3ffffe0000000p2]
+[value] tests/value/cond_integer_cast_of_float.i:23: 
+  Frama_C_show_each_float_: [0x1.0000000000000p0 .. 0x1.0000000000000p3]
+[value] tests/value/cond_integer_cast_of_float.i:26: 
+  Frama_C_show_each_float_: [0x1.8000000000000p1 .. 0x1.fffffe0000000p1]
+[value] tests/value/cond_integer_cast_of_float.i:29: 
+  Frama_C_show_each_double: [0x1.0000000000000p1 .. 0x1.0000000000000p3]
+[value] tests/value/cond_integer_cast_of_float.i:32: 
+  Frama_C_show_each_double: [-0x0.0000000000000p-1022 .. 0x1.3ffffffffffffp2]
+[value] tests/value/cond_integer_cast_of_float.i:35: 
+  Frama_C_show_each_double: [0x1.0000000000000p0 .. 0x1.0000000000000p3]
+[value] tests/value/cond_integer_cast_of_float.i:38: 
+  Frama_C_show_each_double: [0x1.8000000000000p1 .. 0x1.fffffffffffffp1]
+[value] tests/value/cond_integer_cast_of_float.i:73: 
+  Frama_C_show_each: [-0x0.0000000000000p-1022 .. 0x1.0000000000000p3], [0..8]
 [value] Recording results for main1
 [value] Done for function main1
 [value] computing for function main2 <- main <- mainbis.
-    Called from tests/value/cond_integer_cast_of_float.i:123.
-tests/value/cond_integer_cast_of_float.i:78:[value] Frama_C_dump_each:
-    # Cvalue domain:
-    b ∈ {0}
-    f1 ∈ [0x1.2b85200000000p0 .. 0x1.fffffe0000000p127]
-    f2 ∈ [-0x1.fffffe0000000p127 .. 0x1.fffffe0000000p127]
-    f3 ∈ [-0x1.fffffe0000000p127 .. 0x1.fffffe0000000p127]
-    f4 ∈ [-0x1.fffffe0000000p127 .. 0x1.fffffe0000000p127]
-    d1 ∈ [-0x1.fffffffffffffp1023 .. 0x1.fffffffffffffp1023]
-    d2 ∈ [-0x1.fffffffffffffp1023 .. 0x1.fffffffffffffp1023]
-    i ∈ [--..--]
-    c ∈ [--..--]
-    ==END OF DUMP==
-tests/value/cond_integer_cast_of_float.i:81:[value] Frama_C_dump_each:
-    # Cvalue domain:
-    b ∈ {0}
-    f1 ∈ [-0x1.fffffe0000000p127 .. 0x1.2b851e0000000p0]
-    f2 ∈ [-0x1.fffffe0000000p127 .. 0x1.fffffe0000000p127]
-    f3 ∈ [-0x1.fffffe0000000p127 .. 0x1.fffffe0000000p127]
-    f4 ∈ [-0x1.fffffe0000000p127 .. 0x1.fffffe0000000p127]
-    d1 ∈ [-0x1.fffffffffffffp1023 .. 0x1.fffffffffffffp1023]
-    d2 ∈ [-0x1.fffffffffffffp1023 .. 0x1.fffffffffffffp1023]
-    i ∈ [--..--]
-    c ∈ [--..--]
-    ==END OF DUMP==
-tests/value/cond_integer_cast_of_float.i:84:[value] Frama_C_show_each_double: [0x1.2b851e0000001p0 .. 0x1.fffffffffffffp1023]
-tests/value/cond_integer_cast_of_float.i:88:[value] Frama_C_show_each_double: [0x1.2b851eb851eb9p0 .. 0x1.fffffffffffffp1023]
+  Called from tests/value/cond_integer_cast_of_float.i:123.
+[value] tests/value/cond_integer_cast_of_float.i:78: 
+  Frama_C_dump_each:
+  # Cvalue domain:
+  b ∈ {0}
+  f1 ∈ [0x1.2b85200000000p0 .. 0x1.fffffe0000000p127]
+  f2 ∈ [-0x1.fffffe0000000p127 .. 0x1.fffffe0000000p127]
+  f3 ∈ [-0x1.fffffe0000000p127 .. 0x1.fffffe0000000p127]
+  f4 ∈ [-0x1.fffffe0000000p127 .. 0x1.fffffe0000000p127]
+  d1 ∈ [-0x1.fffffffffffffp1023 .. 0x1.fffffffffffffp1023]
+  d2 ∈ [-0x1.fffffffffffffp1023 .. 0x1.fffffffffffffp1023]
+  i ∈ [--..--]
+  c ∈ [--..--]
+  ==END OF DUMP==
+[value] tests/value/cond_integer_cast_of_float.i:81: 
+  Frama_C_dump_each:
+  # Cvalue domain:
+  b ∈ {0}
+  f1 ∈ [-0x1.fffffe0000000p127 .. 0x1.2b851e0000000p0]
+  f2 ∈ [-0x1.fffffe0000000p127 .. 0x1.fffffe0000000p127]
+  f3 ∈ [-0x1.fffffe0000000p127 .. 0x1.fffffe0000000p127]
+  f4 ∈ [-0x1.fffffe0000000p127 .. 0x1.fffffe0000000p127]
+  d1 ∈ [-0x1.fffffffffffffp1023 .. 0x1.fffffffffffffp1023]
+  d2 ∈ [-0x1.fffffffffffffp1023 .. 0x1.fffffffffffffp1023]
+  i ∈ [--..--]
+  c ∈ [--..--]
+  ==END OF DUMP==
+[value] tests/value/cond_integer_cast_of_float.i:84: 
+  Frama_C_show_each_double: [0x1.2b851e0000001p0 .. 0x1.fffffffffffffp1023]
+[value] tests/value/cond_integer_cast_of_float.i:88: 
+  Frama_C_show_each_double: [0x1.2b851eb851eb9p0 .. 0x1.fffffffffffffp1023]
 [value] Recording results for main2
 [value] Done for function main2
 [value] computing for function main3 <- main <- mainbis.
-    Called from tests/value/cond_integer_cast_of_float.i:125.
-tests/value/cond_integer_cast_of_float.i:115:[value] Frama_C_dump_each:
-    # Cvalue domain:
-    b ∈ {0}
-    f1 ∈ [0x1.4000020000000p3 .. 0x1.fffffe0000000p127]
-    f2 ∈ [0x1.4000020000000p3 .. 0x1.fffffe0000000p127]
-    f3 ∈ [0x1.4000020000000p3 .. 0x1.fffffe0000000p127]
-    f4 ∈ [-0x1.f400000000000p9 .. 0x1.f400000000000p9]
-    d1 ∈ [0x1.4000000000001p3 .. 0x1.fffffffffffffp1023]
-    d2 ∈ [-0x1.f400000000000p9 .. 0x1.f400000000000p9]
-    i ∈ [--..--]
-    c ∈ [--..--]
-    ==END OF DUMP==
+  Called from tests/value/cond_integer_cast_of_float.i:125.
+[value] tests/value/cond_integer_cast_of_float.i:115: 
+  Frama_C_dump_each:
+  # Cvalue domain:
+  b ∈ {0}
+  f1 ∈ [0x1.4000020000000p3 .. 0x1.fffffe0000000p127]
+  f2 ∈ [0x1.4000020000000p3 .. 0x1.fffffe0000000p127]
+  f3 ∈ [0x1.4000020000000p3 .. 0x1.fffffe0000000p127]
+  f4 ∈ [-0x1.f400000000000p9 .. 0x1.f400000000000p9]
+  d1 ∈ [0x1.4000000000001p3 .. 0x1.fffffffffffffp1023]
+  d2 ∈ [-0x1.f400000000000p9 .. 0x1.f400000000000p9]
+  i ∈ [--..--]
+  c ∈ [--..--]
+  ==END OF DUMP==
 [value] Recording results for main3
 [value] Done for function main3
 [value] computing for function main3 <- main <- mainbis.
-    Called from tests/value/cond_integer_cast_of_float.i:127.
-tests/value/cond_integer_cast_of_float.i:115:[value] Frama_C_dump_each:
-    # Cvalue domain:
-    b ∈ {0}
-    f1 ∈ [0x1.4000020000000p3 .. 0x1.fffffe0000000p127]
-    f2 ∈ [0x1.4000020000000p3 .. 0x1.fffffe0000000p127]
-    f3 ∈ [0x1.4000020000000p3 .. 0x1.fffffe0000000p127]
-    f4 ∈ [-0x1.f400000000000p9 .. 0x1.f400000000000p9]
-    d1 ∈ [0x1.4000000000001p3 .. 0x1.fffffffffffffp1023]
-    d2 ∈ [-0x1.f400000000000p9 .. 0x1.f400000000000p9]
-    i ∈ [--..--]
-    c ∈ [--..--]
-    ==END OF DUMP==
+  Called from tests/value/cond_integer_cast_of_float.i:127.
+[value] tests/value/cond_integer_cast_of_float.i:115: 
+  Frama_C_dump_each:
+  # Cvalue domain:
+  b ∈ {0}
+  f1 ∈ [0x1.4000020000000p3 .. 0x1.fffffe0000000p127]
+  f2 ∈ [0x1.4000020000000p3 .. 0x1.fffffe0000000p127]
+  f3 ∈ [0x1.4000020000000p3 .. 0x1.fffffe0000000p127]
+  f4 ∈ [-0x1.f400000000000p9 .. 0x1.f400000000000p9]
+  d1 ∈ [0x1.4000000000001p3 .. 0x1.fffffffffffffp1023]
+  d2 ∈ [-0x1.f400000000000p9 .. 0x1.f400000000000p9]
+  i ∈ [--..--]
+  c ∈ [--..--]
+  ==END OF DUMP==
 [value] Recording results for main3
 [value] Done for function main3
 [value] Recording results for main

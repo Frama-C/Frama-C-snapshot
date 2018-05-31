@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2017                                               *)
+(*  Copyright (C) 2007-2018                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -183,6 +183,10 @@ val opt_conv: 'a -> 'a option -> 'a
   (** [opt_conv default v] returns [default] if [v] is [None] and [a] if
       [v] is [Some a] *)
 
+val opt_if: bool -> 'a -> 'a option
+(** [opt_if cond v] returns [Some v] if [cond] is [true] and
+    [None] otherwise *)
+
 val may_map: ('a -> 'b) -> ?dft:'b -> 'a option -> 'b
   (** [may_map f ?dft x] applies [f] to the value of [x] if exists. Otherwise
       returns the default value [dft].
@@ -279,6 +283,8 @@ val make_unique_name:
       otherwise returns [(n,new_string)] such that [new_string] is 
       derived from [(s,sep,start)] and [(mem new_string)=false] and [n<>0] 
       @since Oxygen-20120901 *)
+
+val html_escape: string -> string
 
 (* ************************************************************************* *)
 (** {2 Performance} *)

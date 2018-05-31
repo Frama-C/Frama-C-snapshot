@@ -1,16 +1,21 @@
 [kernel] Parsing tests/value/array_zero_length.i (no preprocessing)
-tests/value/array_zero_length.i:10:[kernel] warning: declaration of array of 'zero-length arrays' ('char [0]`);
-    zero-length arrays are a compiler extension
-tests/value/array_zero_length.i:15:[kernel] warning: declaration of array of 'zero-length arrays' ('char [0]`);
-    zero-length arrays are a compiler extension
+[kernel] tests/value/array_zero_length.i:10: Warning: 
+  declaration of array of 'zero-length arrays' ('char [0]`);
+  zero-length arrays are a compiler extension
+[kernel] tests/value/array_zero_length.i:15: Warning: 
+  declaration of array of 'zero-length arrays' ('char [0]`);
+  zero-length arrays are a compiler extension
 [value] Analyzing an incomplete application starting at main
 [value] Computing initial state
-tests/value/array_zero_length.i:7:[value] warning: during initialization of variable 'T', size of type 'char []' cannot be
-    computed (Size of array without number of elements.)
-tests/value/array_zero_length.i:9:[value] warning: during initialization of variable 'V', size of type 'char [][2]' cannot be
-    computed (Size of array without number of elements.)
-tests/value/array_zero_length.i:10:[value] warning: during initialization of variable 'W', size of type 'char [][0]' cannot be
-    computed (Size of array without number of elements.)
+[value] tests/value/array_zero_length.i:7: Warning: 
+  during initialization of variable 'T', size of type 'char []' cannot be
+  computed (Size of array without number of elements.)
+[value] tests/value/array_zero_length.i:9: Warning: 
+  during initialization of variable 'V', size of type 'char [][2]' cannot be
+  computed (Size of array without number of elements.)
+[value] tests/value/array_zero_length.i:10: Warning: 
+  during initialization of variable 'W', size of type 'char [][0]' cannot be
+  computed (Size of array without number of elements.)
 [value] Initial state computed
 [value:initial-state] Values of globals at initialization
   T[0..4294967295] ∈ [--..--] or UNINITIALIZED
@@ -19,23 +24,35 @@ tests/value/array_zero_length.i:10:[value] warning: during initialization of var
   W2[0..1][0] ∈ [--..--]
   pW ∈ {{ NULL ; &S_pW[0] }}
   S_pW[0..1] ∈ [--..--]
-tests/value/array_zero_length.i:24:[value] assertion got status valid.
-tests/value/array_zero_length.i:28:[value] assertion got status valid.
-tests/value/array_zero_length.i:30:[value] assertion got status valid.
-tests/value/array_zero_length.i:32:[value] assertion got status valid.
-tests/value/array_zero_length.i:34:[value] assertion got status valid.
-tests/value/array_zero_length.i:36:[value] warning: out of bounds write. assert \valid(&T[2]);
-tests/value/array_zero_length.i:37:[value] warning: out of bounds write. assert \valid(&T[1]);
-tests/value/array_zero_length.i:37:[value] warning: accessing uninitialized left-value. assert \initialized(&T[3]);
-tests/value/array_zero_length.i:37:[value] warning: out of bounds read. assert \valid_read(&T[3]);
-tests/value/array_zero_length.i:39:[value] warning: out of bounds write. assert \valid(&V[2][1]);
-tests/value/array_zero_length.i:40:[value] warning: out of bounds write. assert \valid(&V[1][1]);
-tests/value/array_zero_length.i:40:[value] warning: accessing uninitialized left-value. assert \initialized(&V[3][1]);
-tests/value/array_zero_length.i:40:[value] warning: out of bounds read. assert \valid_read(&V[3][1]);
-tests/value/array_zero_length.i:42:[value] warning: out of bounds write. assert \valid(&W[2][1]);
-tests/value/array_zero_length.i:43:[value] warning: out of bounds write. assert \valid(&W[1][1]);
-tests/value/array_zero_length.i:43:[value] warning: accessing uninitialized left-value. assert \initialized(&W[3][1]);
-tests/value/array_zero_length.i:43:[value] warning: out of bounds read. assert \valid_read(&W[3][1]);
+[value] tests/value/array_zero_length.i:24: assertion got status valid.
+[value] tests/value/array_zero_length.i:28: assertion got status valid.
+[value] tests/value/array_zero_length.i:30: assertion got status valid.
+[value] tests/value/array_zero_length.i:32: assertion got status valid.
+[value] tests/value/array_zero_length.i:34: assertion got status valid.
+[value:alarm] tests/value/array_zero_length.i:36: Warning: 
+  out of bounds write. assert \valid(&T[2]);
+[value:alarm] tests/value/array_zero_length.i:37: Warning: 
+  out of bounds write. assert \valid(&T[1]);
+[value:alarm] tests/value/array_zero_length.i:37: Warning: 
+  accessing uninitialized left-value. assert \initialized(&T[3]);
+[value:alarm] tests/value/array_zero_length.i:37: Warning: 
+  out of bounds read. assert \valid_read(&T[3]);
+[value:alarm] tests/value/array_zero_length.i:39: Warning: 
+  out of bounds write. assert \valid(&V[2][1]);
+[value:alarm] tests/value/array_zero_length.i:40: Warning: 
+  out of bounds write. assert \valid(&V[1][1]);
+[value:alarm] tests/value/array_zero_length.i:40: Warning: 
+  accessing uninitialized left-value. assert \initialized(&V[3][1]);
+[value:alarm] tests/value/array_zero_length.i:40: Warning: 
+  out of bounds read. assert \valid_read(&V[3][1]);
+[value:alarm] tests/value/array_zero_length.i:42: Warning: 
+  out of bounds write. assert \valid(&W[2][1]);
+[value:alarm] tests/value/array_zero_length.i:43: Warning: 
+  out of bounds write. assert \valid(&W[1][1]);
+[value:alarm] tests/value/array_zero_length.i:43: Warning: 
+  accessing uninitialized left-value. assert \initialized(&W[3][1]);
+[value:alarm] tests/value/array_zero_length.i:43: Warning: 
+  out of bounds read. assert \valid_read(&W[3][1]);
 [value] Recording results for main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======

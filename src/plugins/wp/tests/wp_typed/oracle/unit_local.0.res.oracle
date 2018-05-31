@@ -2,7 +2,7 @@
 [kernel] Parsing tests/wp_typed/unit_local.c (with preprocessing)
 [wp] Running WP plugin...
 [wp] Loading driver 'share/wp.driver'
-[wp] warning: Missing RTE guards
+[wp] Warning: Missing RTE guards
 ------------------------------------------------------------
   Function bar
 ------------------------------------------------------------
@@ -25,6 +25,6 @@ Prove: true.
 Goal Assigns nothing in 'foo' (2/2):
 Effect at line 19
 Assume { (* Heap *) Have: linked(Malloc_0). }
-Prove: !valid_rd(Malloc_0, global(L_a_21), 1).
+Prove: invalid(Malloc_0, global(L_a_21), 1).
 
 ------------------------------------------------------------

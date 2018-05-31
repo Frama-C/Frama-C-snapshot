@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2017                                               *)
+(*  Copyright (C) 2007-2018                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -73,8 +73,8 @@ let compute_using_prototype_for_state state kf assigns =
   let return_deps,deps =
     match assigns with
       | WritesAny ->
-          From_parameters.warning "no assigns clauses@ for function %a.@ \
-                                     Results@ will be@ imprecise."
+          From_parameters.warning "@[no assigns clauses@ for function %a.@]@ \
+                                   Results will be imprecise."
                                   Kernel_function.pretty kf;
           Function_Froms.Memory.(top_return, top)
       | Writes assigns ->

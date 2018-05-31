@@ -41,7 +41,7 @@ const Slot_t Slot[2] = {
 void f(void)
 {
   int i;
-  enum counter j; // specific test for pointer_loop.c:42: error: storage size of 'j' isn't known
+  int j;
   i=0;
   (Slot[i].Ctrl_p[0])->Status = 0;
   (Slot[i].Ctrl_p[1])->Status = 0;

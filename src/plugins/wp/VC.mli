@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2017                                               *)
+(*  Copyright (C) 2007-2018                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -73,16 +73,16 @@ val prove : t ->
   ?config:config ->
   ?mode:mode ->
   ?start:(t -> unit) ->
-  ?callin:(t -> prover -> unit) ->
-  ?callback:(t -> prover -> result -> unit) ->
+  ?progress:(t -> string -> unit) ->
+  ?result:(t -> prover -> result -> unit) ->
   prover -> bool Task.task
 (** Returns a ready-to-schedule task. *)
 
 val spawn : t ->
   ?config:config ->
   ?start:(t -> unit) ->
-  ?callin:(t -> prover -> unit) ->
-  ?callback:(t -> prover -> result -> unit) ->
+  ?progress:(t -> string -> unit) ->
+  ?result:(t -> prover -> result -> unit) ->
   ?success:(t -> prover option -> unit) ->
   ?pool:Task.pool ->
   (mode * prover) list -> unit

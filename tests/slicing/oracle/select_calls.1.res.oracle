@@ -7,8 +7,9 @@
   c ∈ [--..--]
   d ∈ [--..--]
 [value] computing for function nothing <- g.
-    Called from tests/slicing/select_calls.i:42.
-tests/slicing/select_calls.i:42:[kernel] warning: Neither code nor specification for function nothing, generating default assigns from the prototype
+  Called from tests/slicing/select_calls.i:42.
+[kernel:annot:missing-spec] tests/slicing/select_calls.i:42: Warning: 
+  Neither code nor specification for function nothing, generating default assigns from the prototype
 [value] using specification for function nothing
 [value] Done for function nothing
 [value] Recording results for g

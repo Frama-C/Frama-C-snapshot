@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2017                                               *)
+(*  Copyright (C) 2007-2018                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -38,7 +38,7 @@ class model =
     method get k = Windex.get k index
     method coerce = (self :> Wpo.t Wtable.listmodel)
   end
-      
+
 let render_prover_result p =
   let icn_stock name = [`STOCK_ID name] in
   let icn_status s = [`PIXBUF(Gtk_helper.Icon.get (Gtk_helper.Icon.Feedback s))] in

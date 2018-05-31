@@ -11,12 +11,15 @@
 Require Export ZArith.
 Require Export Rbase.
 
+Require Import ClassicalEpsilon.
+
 Class WhyType T := {
   why_inhabitant : T ;
   why_decidable_eq : forall x y : T, { x = y } + { x <> y }
 }.
 
 Notation int := Z.
+Notation IZR := IZR (only parsing).
 
 Global Instance int_WhyType : WhyType int.
 Proof.
@@ -67,4 +70,13 @@ Proof.
 split.
 exact false.
 exact Bool.bool_dec.
+Qed.
+
+Global Instance func_WhyType : forall (a:Type) {a_WT:WhyType a} (b:Type) {b_WT:WhyType b}, WhyType (a -> b).
+Proof.
+intros.
+repeat split.
+exact (fun _ => why_inhabitant).
+intros x y.
+apply excluded_middle_informative.
 Qed.

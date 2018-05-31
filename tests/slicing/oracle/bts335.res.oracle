@@ -5,9 +5,9 @@
 [value:initial-state] Values of globals at initialization
   T[0..1] ∈ {0}
 [value] computing for function g <- main.
-    Called from tests/slicing/bts335.i:12.
+  Called from tests/slicing/bts335.i:12.
 [value] computing for function f <- g <- main.
-    Called from tests/slicing/bts335.i:11.
+  Called from tests/slicing/bts335.i:11.
 [value] Recording results for f
 [from] Computing for function f
 [from] Done for function f
@@ -17,7 +17,7 @@
 [from] Done for function g
 [value] Done for function g
 [value] computing for function f <- main.
-    Called from tests/slicing/bts335.i:12.
+  Called from tests/slicing/bts335.i:12.
 [value] Recording results for f
 [from] Computing for function f
 [from] Done for function f

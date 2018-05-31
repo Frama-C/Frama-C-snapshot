@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2017                                               *)
+(*  Copyright (C) 2007-2018                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -148,35 +148,34 @@ let compute_pragmas () =
   stmts;
 ;;
 
+let compute_pragmas =
+  Journal.register
+    "Impact.compute_pragmas"
+    (Datatype.func Datatype.unit (Datatype.list Stmt.ty))
+    compute_pragmas
+
+let from_stmt =
+  Journal.register
+    "Impact.from_stmt"
+    (Datatype.func Stmt.ty (Datatype.list Stmt.ty))
+    compute_from_stmt
+
+let from_nodes =
+  Journal.register
+    "Impact.from_nodes"
+    (Datatype.func2 Kernel_function.ty
+       (Datatype.list PdgTypes.Node.ty)
+       (PdgTypes.NodeSet.ty))
+    compute_from_nodes
+
 let main () =
   if Options.is_on () then begin
     Options.feedback "beginning analysis";
     assert (not (Options.Pragma.is_empty ()));
-    ignore (!Db.Impact.compute_pragmas ());
+    ignore (compute_pragmas ());
     Options.feedback "analysis done"
   end
 let () = Db.Main.extend main
-
-let () =
-  (* compute_pragmas *)
-  Db.register
-    (Db.Journalize
-       ("Impact.compute_pragmas",
-        Datatype.func Datatype.unit (Datatype.list Stmt.ty)))
-    Db.Impact.compute_pragmas
-    compute_pragmas;
-  (* from_stmt *)
-  Db.register
-    (Db.Journalize
-       ("Impact.from_stmt", Datatype.func Stmt.ty (Datatype.list Stmt.ty)))
-    Db.Impact.from_stmt
-    compute_from_stmt;
-  (* from_nodes *)
-  Db.register
-    (Db.Journalize
-       ("Impact.from_nodes", Datatype.func2 Kernel_function.ty (Datatype.list PdgTypes.Node.ty) (PdgTypes.NodeSet.ty)))
-    Db.Impact.from_nodes
-    compute_from_nodes;
 
 (*
 Local Variables:

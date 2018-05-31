@@ -14,16 +14,16 @@
    [10..12] ∈ {1}
   nondet ∈ [--..--]
 [value] computing for function join_offsetmap <- main.
-    Called from tests/value/merge_bits.i:35.
+  Called from tests/value/merge_bits.i:35.
 [value] Recording results for join_offsetmap
 [value] Done for function join_offsetmap
 [value] computing for function merge_bits <- main.
-    Called from tests/value/merge_bits.i:36.
-tests/value/merge_bits.i:24:[value] Frama_C_show_each_F: {1}
-tests/value/merge_bits.i:25:[value] Frama_C_show_each_F: {16777216}
-tests/value/merge_bits.i:26:[value] Frama_C_show_each_F: {67305985}
-tests/value/merge_bits.i:27:[value] Frama_C_show_each_F: {16843008}
-tests/value/merge_bits.i:29:[value] Frama_C_show_each_F: {1048577}
+  Called from tests/value/merge_bits.i:36.
+[value] tests/value/merge_bits.i:24: Frama_C_show_each_F: {1}
+[value] tests/value/merge_bits.i:25: Frama_C_show_each_F: {16777216}
+[value] tests/value/merge_bits.i:26: Frama_C_show_each_F: {67305985}
+[value] tests/value/merge_bits.i:27: Frama_C_show_each_F: {16843008}
+[value] tests/value/merge_bits.i:29: Frama_C_show_each_F: {1048577}
 [value] Recording results for merge_bits
 [value] Done for function merge_bits
 [value] Recording results for main
@@ -60,7 +60,7 @@ tests/value/merge_bits.i:29:[value] Frama_C_show_each_F: {1048577}
 [from] Computing for function main
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
-    These dependencies hold at termination for the executions that terminate:
+  These dependencies hold at termination for the executions that terminate:
 [from] Function join_offsetmap:
   NO EFFECTS
 [from] Function merge_bits:
@@ -71,14 +71,14 @@ tests/value/merge_bits.i:29:[value] Frama_C_show_each_F: {1048577}
   \result FROM \nothing
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function join_offsetmap:
-      u; r
+    u; r
 [inout] Inputs for function join_offsetmap:
-      nondet
+    nondet
 [inout] Out (internal) for function merge_bits:
-      T[2..5]; __retres
+    T[2..5]; __retres
 [inout] Inputs for function merge_bits:
-      T{[0..7]; [9..12]}
+    T{[0..7]; [9..12]}
 [inout] Out (internal) for function main:
-      T[2..5]; __retres
+    T[2..5]; __retres
 [inout] Inputs for function main:
-      T{[0..7]; [9..12]}; nondet
+    T{[0..7]; [9..12]}; nondet

@@ -13,119 +13,170 @@
   S_f1_0_S_vs[0..1] ∈ [--..--]
   S_f1_1_S_vs[0..1] ∈ [--..--]
 [value] computing for function main1 <- main.
-    Called from tests/value/reduce_by_valid.i:260.
-tests/value/reduce_by_valid.i:14:[value] warning: assertion got status unknown.
-tests/value/reduce_by_valid.i:17:[value] warning: assertion got status unknown.
+  Called from tests/value/reduce_by_valid.i:260.
+[value:alarm] tests/value/reduce_by_valid.i:14: Warning: 
+  assertion got status unknown.
+[value:alarm] tests/value/reduce_by_valid.i:17: Warning: 
+  assertion got status unknown.
 [value] Recording results for main1
 [value] Done for function main1
 [value] computing for function main2 <- main.
-    Called from tests/value/reduce_by_valid.i:261.
-tests/value/reduce_by_valid.i:29:[value] warning: assertion got status unknown.
-tests/value/reduce_by_valid.i:31:[value] warning: assertion got status unknown.
-tests/value/reduce_by_valid.i:33:[value] warning: assertion got status unknown.
-tests/value/reduce_by_valid.i:35:[value] warning: assertion got status unknown.
+  Called from tests/value/reduce_by_valid.i:261.
+[value:alarm] tests/value/reduce_by_valid.i:29: Warning: 
+  assertion got status unknown.
+[value:alarm] tests/value/reduce_by_valid.i:31: Warning: 
+  assertion got status unknown.
+[value:alarm] tests/value/reduce_by_valid.i:33: Warning: 
+  assertion got status unknown.
+[value:alarm] tests/value/reduce_by_valid.i:35: Warning: 
+  assertion got status unknown.
 [value] Recording results for main2
 [value] Done for function main2
 [value] computing for function main3 <- main.
-    Called from tests/value/reduce_by_valid.i:262.
-tests/value/reduce_by_valid.i:48:[value] assertion got status valid.
-tests/value/reduce_by_valid.i:49:[value] warning: assertion got status unknown.
+  Called from tests/value/reduce_by_valid.i:262.
+[value] tests/value/reduce_by_valid.i:48: assertion got status valid.
+[value:alarm] tests/value/reduce_by_valid.i:49: Warning: 
+  assertion got status unknown.
 [value] Recording results for main3
 [value] Done for function main3
 [value] computing for function main4 <- main.
-    Called from tests/value/reduce_by_valid.i:263.
-tests/value/reduce_by_valid.i:54:[value] warning: assertion got status unknown.
-tests/value/reduce_by_valid.i:55:[value] warning: assertion got status unknown.
-tests/value/reduce_by_valid.i:57:[value] warning: assertion got status unknown.
-tests/value/reduce_by_valid.i:59:[value] warning: assertion got status unknown.
+  Called from tests/value/reduce_by_valid.i:263.
+[value:alarm] tests/value/reduce_by_valid.i:54: Warning: 
+  assertion got status unknown.
+[value:alarm] tests/value/reduce_by_valid.i:55: Warning: 
+  assertion got status unknown.
+[value:alarm] tests/value/reduce_by_valid.i:57: Warning: 
+  assertion got status unknown.
+[value:alarm] tests/value/reduce_by_valid.i:59: Warning: 
+  assertion got status unknown.
 [value] Recording results for main4
 [value] Done for function main4
 [value] computing for function main5 <- main.
-    Called from tests/value/reduce_by_valid.i:264.
-tests/value/reduce_by_valid.i:72:[value] warning: locals {x} escaping the scope of a block of main5 through p
-tests/value/reduce_by_valid.i:74:[value] assertion got status valid.
-tests/value/reduce_by_valid.i:75:[value] assertion got status valid.
-tests/value/reduce_by_valid.i:76:[value] assertion got status valid.
-tests/value/reduce_by_valid.i:80:[value] assertion got status valid.
-tests/value/reduce_by_valid.i:82:[value] assertion got status valid.
-tests/value/reduce_by_valid.i:85:[value] warning: assertion got status unknown.
+  Called from tests/value/reduce_by_valid.i:264.
+[value] tests/value/reduce_by_valid.i:72: Warning: 
+  locals {x} escaping the scope of a block of main5 through p
+[value] tests/value/reduce_by_valid.i:74: assertion got status valid.
+[value] tests/value/reduce_by_valid.i:75: assertion got status valid.
+[value] tests/value/reduce_by_valid.i:76: assertion got status valid.
+[value] tests/value/reduce_by_valid.i:80: assertion got status valid.
+[value] tests/value/reduce_by_valid.i:82: assertion got status valid.
+[value:alarm] tests/value/reduce_by_valid.i:85: Warning: 
+  assertion got status unknown.
 [value] Recording results for main5
 [value] Done for function main5
 [value] computing for function main6 <- main.
-    Called from tests/value/reduce_by_valid.i:265.
-tests/value/reduce_by_valid.i:95:[value] warning: function main6: precondition got status unknown.
-tests/value/reduce_by_valid.i:96:[value] warning: function main6: precondition got status unknown.
-tests/value/reduce_by_valid.i:97:[value] warning: function main6: precondition got status unknown.
-tests/value/reduce_by_valid.i:98:[value] function main6: precondition got status valid.
-tests/value/reduce_by_valid.i:99:[value] warning: function main6: precondition got status unknown.
-tests/value/reduce_by_valid.i:100:[value] function main6: precondition got status valid.
+  Called from tests/value/reduce_by_valid.i:265.
+[value:alarm] tests/value/reduce_by_valid.i:265: Warning: 
+  function main6: precondition 'r1' got status unknown.
+[value:alarm] tests/value/reduce_by_valid.i:265: Warning: 
+  function main6: precondition 'r2' got status unknown.
+[value:alarm] tests/value/reduce_by_valid.i:265: Warning: 
+  function main6: precondition 'r3' got status unknown.
+[value] tests/value/reduce_by_valid.i:265: 
+  function main6: precondition 'r4' got status valid.
+[value:alarm] tests/value/reduce_by_valid.i:265: Warning: 
+  function main6: precondition 'r5' got status unknown.
+[value] tests/value/reduce_by_valid.i:265: 
+  function main6: precondition 'r6' got status valid.
 [value] Recording results for main6
 [value] Done for function main6
 [value] computing for function main7 <- main.
-    Called from tests/value/reduce_by_valid.i:266.
-tests/value/reduce_by_valid.i:111:[value] assertion got status valid.
-tests/value/reduce_by_valid.i:112:[value] assertion got status valid.
-tests/value/reduce_by_valid.i:113:[value] assertion got status valid.
-tests/value/reduce_by_valid.i:117:[value] assertion got status valid.
-tests/value/reduce_by_valid.i:120:[value] warning: assertion got status unknown.
-tests/value/reduce_by_valid.i:121:[value] assertion got status valid.
+  Called from tests/value/reduce_by_valid.i:266.
+[value] tests/value/reduce_by_valid.i:111: assertion got status valid.
+[value] tests/value/reduce_by_valid.i:112: assertion got status valid.
+[value] tests/value/reduce_by_valid.i:113: assertion got status valid.
+[value] tests/value/reduce_by_valid.i:117: assertion got status valid.
+[value:alarm] tests/value/reduce_by_valid.i:120: Warning: 
+  assertion got status unknown.
+[value] tests/value/reduce_by_valid.i:121: assertion got status valid.
 [value] Recording results for main7
 [value] Done for function main7
 [value] computing for function main8 <- main.
-    Called from tests/value/reduce_by_valid.i:267.
-tests/value/reduce_by_valid.i:137:[value] warning: assertion got status unknown.
-tests/value/reduce_by_valid.i:138:[value] assertion got status valid.
-tests/value/reduce_by_valid.i:141:[value] warning: assertion got status unknown.
-tests/value/reduce_by_valid.i:142:[value] assertion got status valid.
-tests/value/reduce_by_valid.i:146:[value] warning: assertion got status unknown.
-tests/value/reduce_by_valid.i:147:[value] warning: assertion got status unknown.
+  Called from tests/value/reduce_by_valid.i:267.
+[value:alarm] tests/value/reduce_by_valid.i:137: Warning: 
+  assertion got status unknown.
+[value] tests/value/reduce_by_valid.i:138: assertion got status valid.
+[value:alarm] tests/value/reduce_by_valid.i:141: Warning: 
+  assertion got status unknown.
+[value] tests/value/reduce_by_valid.i:142: assertion got status valid.
+[value:alarm] tests/value/reduce_by_valid.i:146: Warning: 
+  assertion got status unknown.
+[value:alarm] tests/value/reduce_by_valid.i:147: Warning: 
+  assertion got status unknown.
 [value] Recording results for main8
 [value] Done for function main8
 [value] computing for function main9 <- main.
-    Called from tests/value/reduce_by_valid.i:268.
-tests/value/reduce_by_valid.i:162:[value] warning: assertion got status unknown.
-tests/value/reduce_by_valid.i:165:[value] assertion got status valid.
+  Called from tests/value/reduce_by_valid.i:268.
+[value:alarm] tests/value/reduce_by_valid.i:162: Warning: 
+  assertion got status unknown.
+[value] tests/value/reduce_by_valid.i:165: assertion got status valid.
 [value] Recording results for main9
 [value] Done for function main9
 [value] computing for function main10 <- main.
-    Called from tests/value/reduce_by_valid.i:269.
-tests/value/reduce_by_valid.i:176:[value] warning: out of bounds write. assert \valid((int *)p);
-tests/value/reduce_by_valid.i:177:[value] Frama_C_show_each_main10_1: {{ &t_0 + [0..36] }}
-tests/value/reduce_by_valid.i:178:[value] assertion got status valid.
-tests/value/reduce_by_valid.i:181:[value] warning: out of bounds write. assert \valid((int *)p + 2);
-tests/value/reduce_by_valid.i:182:[value] Frama_C_show_each_main10_2: {{ &t_0 + [-8..28] }}
-tests/value/reduce_by_valid.i:183:[value] assertion got status valid.
-tests/value/reduce_by_valid.i:186:[value] warning: out of bounds write. assert \valid((int *)(p + 2));
-tests/value/reduce_by_valid.i:187:[value] Frama_C_show_each_main10_3: {{ &t_0 + [-2..34] }}
-tests/value/reduce_by_valid.i:188:[value] assertion got status valid.
-tests/value/reduce_by_valid.i:197:[value] warning: out of bounds write. assert \valid(&((struct s_1 *)p)->b);
-tests/value/reduce_by_valid.i:198:[value] Frama_C_show_each_main10_4: {{ &t_0 + [-4..32] }}
-tests/value/reduce_by_valid.i:200:[value] assertion got status valid.
-tests/value/reduce_by_valid.i:203:[value] warning: out of bounds write. assert \valid(&((struct s_1 *)p + 2)->b);
-tests/value/reduce_by_valid.i:204:[value] Frama_C_show_each_main10_4: {{ &t_0 + [-20..16] }}
-tests/value/reduce_by_valid.i:206:[value] assertion got status valid.
-tests/value/reduce_by_valid.i:210:[value] warning: out of bounds write. assert \valid((char *)q);
-tests/value/reduce_by_valid.i:211:[value] Frama_C_show_each: {{ &u_0 + [0..79] }}
-tests/value/reduce_by_valid.i:213:[value] assertion got status valid.
-tests/value/reduce_by_valid.i:216:[value] warning: out of bounds write. assert \valid((char *)q + 2);
-tests/value/reduce_by_valid.i:217:[value] Frama_C_show_each: {{ &u_0 + [-2..77] }}
-tests/value/reduce_by_valid.i:219:[value] assertion got status valid.
+  Called from tests/value/reduce_by_valid.i:269.
+[value:alarm] tests/value/reduce_by_valid.i:176: Warning: 
+  out of bounds write. assert \valid((int *)p);
+[value] tests/value/reduce_by_valid.i:177: 
+  Frama_C_show_each_main10_1: {{ &t_0 + [0..36] }}
+[value] tests/value/reduce_by_valid.i:178: assertion got status valid.
+[value:alarm] tests/value/reduce_by_valid.i:181: Warning: 
+  out of bounds write. assert \valid((int *)p + 2);
+[value] tests/value/reduce_by_valid.i:182: 
+  Frama_C_show_each_main10_2: {{ &t_0 + [-8..28] }}
+[value] tests/value/reduce_by_valid.i:183: assertion got status valid.
+[value:alarm] tests/value/reduce_by_valid.i:186: Warning: 
+  out of bounds write. assert \valid((int *)(p + 2));
+[value] tests/value/reduce_by_valid.i:187: 
+  Frama_C_show_each_main10_3: {{ &t_0 + [-2..34] }}
+[value] tests/value/reduce_by_valid.i:188: assertion got status valid.
+[value:alarm] tests/value/reduce_by_valid.i:197: Warning: 
+  out of bounds write. assert \valid(&((struct s_1 *)p)->b);
+[value] tests/value/reduce_by_valid.i:198: 
+  Frama_C_show_each_main10_4: {{ &t_0 + [-4..32] }}
+[value] tests/value/reduce_by_valid.i:200: assertion got status valid.
+[value:alarm] tests/value/reduce_by_valid.i:203: Warning: 
+  out of bounds write. assert \valid(&((struct s_1 *)p + 2)->b);
+[value] tests/value/reduce_by_valid.i:204: 
+  Frama_C_show_each_main10_4: {{ &t_0 + [-20..16] }}
+[value] tests/value/reduce_by_valid.i:206: assertion got status valid.
+[value:alarm] tests/value/reduce_by_valid.i:210: Warning: 
+  out of bounds write. assert \valid((char *)q);
+[value] tests/value/reduce_by_valid.i:211: 
+  Frama_C_show_each: {{ &u_0 + [0..79] }}
+[value] tests/value/reduce_by_valid.i:213: assertion got status valid.
+[value:alarm] tests/value/reduce_by_valid.i:216: Warning: 
+  out of bounds write. assert \valid((char *)q + 2);
+[value] tests/value/reduce_by_valid.i:217: 
+  Frama_C_show_each: {{ &u_0 + [-2..77] }}
+[value] tests/value/reduce_by_valid.i:219: assertion got status valid.
 [value] Recording results for main10
 [value] Done for function main10
 [value] computing for function main11 <- main.
-    Called from tests/value/reduce_by_valid.i:270.
-tests/value/reduce_by_valid.i:228:[value] warning: assertion got status unknown.
-tests/value/reduce_by_valid.i:230:[value] Frama_C_show_each: {{ &TC + [10..410] }}
-tests/value/reduce_by_valid.i:231:[value] warning: assertion got status unknown.
-tests/value/reduce_by_valid.i:237:[value] warning: assertion got status unknown.
-tests/value/reduce_by_valid.i:239:[value] Frama_C_show_each: {{ &TU + [40..1640],0%4 }}
-tests/value/reduce_by_valid.i:240:[value] warning: assertion got status unknown.
-tests/value/reduce_by_valid.i:245:[value] warning: assertion got status unknown.
-tests/value/reduce_by_valid.i:247:[value] Frama_C_show_each: {{ &TU + [40..840] }}
-tests/value/reduce_by_valid.i:248:[value] warning: assertion got status unknown.
-tests/value/reduce_by_valid.i:253:[value] warning: assertion got status unknown.
-tests/value/reduce_by_valid.i:255:[value] Frama_C_show_each: {{ &TC + [10..410],2%4 }}
-tests/value/reduce_by_valid.i:256:[value] warning: assertion got status unknown.
+  Called from tests/value/reduce_by_valid.i:270.
+[value:alarm] tests/value/reduce_by_valid.i:228: Warning: 
+  assertion got status unknown.
+[value] tests/value/reduce_by_valid.i:230: 
+  Frama_C_show_each: {{ &TC + [10..410] }}
+[value:alarm] tests/value/reduce_by_valid.i:231: Warning: 
+  assertion got status unknown.
+[value:alarm] tests/value/reduce_by_valid.i:237: Warning: 
+  assertion got status unknown.
+[value] tests/value/reduce_by_valid.i:239: 
+  Frama_C_show_each: {{ &TU + [40..1640],0%4 }}
+[value:alarm] tests/value/reduce_by_valid.i:240: Warning: 
+  assertion got status unknown.
+[value:alarm] tests/value/reduce_by_valid.i:245: Warning: 
+  assertion got status unknown.
+[value] tests/value/reduce_by_valid.i:247: 
+  Frama_C_show_each: {{ &TU + [40..840] }}
+[value:alarm] tests/value/reduce_by_valid.i:248: Warning: 
+  assertion got status unknown.
+[value:alarm] tests/value/reduce_by_valid.i:253: Warning: 
+  assertion got status unknown.
+[value] tests/value/reduce_by_valid.i:255: 
+  Frama_C_show_each: {{ &TC + [10..410],2%4 }}
+[value:alarm] tests/value/reduce_by_valid.i:256: Warning: 
+  assertion got status unknown.
 [value] Recording results for main11
 [value] Done for function main11
 [value] Recording results for main
@@ -234,7 +285,7 @@ tests/value/reduce_by_valid.i:256:[value] warning: assertion got status unknown.
 [from] Computing for function main
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
-    These dependencies hold at termination for the executions that terminate:
+  These dependencies hold at termination for the executions that terminate:
 [from] Function main1:
   t[3] FROM v (and SELF)
    [4] FROM v
@@ -265,50 +316,50 @@ tests/value/reduce_by_valid.i:256:[value] warning: assertion got status unknown.
   S_f1_0_S_vs[0] FROM vs; S_vs[0]
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function main1:
-      t[3..4]; p; q
+    t[3..4]; p; q
 [inout] Inputs for function main1:
-      v
+    v
 [inout] Out (internal) for function main10:
-      t_0[0..39]; p; u_0[0..19]; q
+    t_0[0..39]; p; u_0[0..19]; q
 [inout] Inputs for function main10:
-      sv
+    sv
 [inout] Out (internal) for function main11:
-      p; off; len; q
+    p; off; len; q
 [inout] Inputs for function main11:
-      v
+    v
 [inout] Out (internal) for function main2:
-      u[0..4]; p; q; r; s
+    u[0..4]; p; q; r; s
 [inout] Inputs for function main2:
-      v
+    v
 [inout] Out (internal) for function main3:
-      p; q
+    p; q
 [inout] Inputs for function main3:
-      \nothing
+    \nothing
 [inout] Out (internal) for function main4:
-      c1; c2; c3; c4; p; q
+    c1; c2; c3; c4; p; q
 [inout] Inputs for function main4:
-      \nothing
+    \nothing
 [inout] Out (internal) for function main5:
-      q; p; r; x
+    q; p; r; x
 [inout] Inputs for function main5:
-      v
+    v
 [inout] Out (internal) for function main6:
-      S_f1_0_S_vs[0]
+    S_f1_0_S_vs[0]
 [inout] Inputs for function main6:
-      S_vs[0]
+    S_vs[0]
 [inout] Out (internal) for function main7:
-      p
+    p
 [inout] Inputs for function main7:
-      v
+    v
 [inout] Out (internal) for function main8:
-      tp[0..3]; p
+    tp[0..3]; p
 [inout] Inputs for function main8:
-      v
+    v
 [inout] Out (internal) for function main9:
-      tc{[0..58]; [99..157]}; p
+    tc{[0..58]; [99..157]}; p
 [inout] Inputs for function main9:
-      v
+    v
 [inout] Out (internal) for function main:
-      t[3..4]; u[0..4]; S_f1_0_S_vs[0]
+    t[3..4]; u[0..4]; S_f1_0_S_vs[0]
 [inout] Inputs for function main:
-      v; sv; vs; S_vs[0]
+    v; sv; vs; S_vs[0]

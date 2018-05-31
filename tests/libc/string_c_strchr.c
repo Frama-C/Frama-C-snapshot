@@ -1,5 +1,5 @@
 /* run.config
-   STDOPT: #"-cpp-extra-args=-includeshare/libc/string.c -slevel-function strchr:256,main:256 -val-builtin memcpy:Frama_C_memcpy -val-slevel-merge-after-loop main -no-val-builtins-auto"
+   STDOPT: #"-cpp-extra-args=-includeshare/libc/string.c -slevel-function strchr:256,main:256 -val-slevel-merge-after-loop main -no-val-builtins-auto -no-val-skip-stdlib-specs"
  */
 /* This file has been adapted from libc-test, which is licensed under the
    following standard MIT license:

@@ -4,11 +4,14 @@
 [value] Initial state computed
 [value:initial-state] Values of globals at initialization
   
-tests/value/buffer_overflow.i:18:[value] warning: accessing out of bounds index. assert loop_counter < 10;
-tests/value/buffer_overflow.i:18:[kernel] warning: all target addresses were invalid. This path is assumed to be dead.
+[value:alarm] tests/value/buffer_overflow.i:18: Warning: 
+  accessing out of bounds index. assert loop_counter < 10;
+[kernel] tests/value/buffer_overflow.i:18: Warning: 
+  all target addresses were invalid. This path is assumed to be dead.
 [value] Recording results for main
 [value] done for function main
-tests/value/buffer_overflow.i:18:[value] assertion 'Value,index_bound' got final status invalid.
+[value] tests/value/buffer_overflow.i:18: 
+  assertion 'Value,index_bound' got final status invalid.
 [value] ====== VALUES COMPUTED ======
 [value:final-states] Values at end of function main:
   NON TERMINATING FUNCTION
@@ -16,11 +19,11 @@ tests/value/buffer_overflow.i:18:[value] assertion 'Value,index_bound' got final
 [from] Non-terminating function main (no dependencies)
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
-    These dependencies hold at termination for the executions that terminate:
+  These dependencies hold at termination for the executions that terminate:
 [from] Function main:
   NON TERMINATING - NO EFFECTS
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function main:
-      test_value; loop_counter; buf[1..9]
+    test_value; loop_counter; buf[1..9]
 [inout] Inputs for function main:
-      \nothing
+    \nothing

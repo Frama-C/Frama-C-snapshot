@@ -7,11 +7,16 @@
   ppp ∈ {0}
   pp[0..1] ∈ {0}
   p ∈ {0}
-tests/value/mini_pointrer.i:6:[value] warning: accessing out of bounds index. assert 0 ≤ c1;
-tests/value/mini_pointrer.i:6:[value] warning: accessing out of bounds index. assert c1 < 2;
-tests/value/mini_pointrer.i:8:[value] warning: out of bounds read. assert \valid_read(ppp);
-tests/value/mini_pointrer.i:8:[value] warning: out of bounds write. assert \valid(*ppp);
-tests/value/mini_pointrer.i:10:[value] warning: accessing out of bounds index. assert c2 < 2;
+[value:alarm] tests/value/mini_pointrer.i:6: Warning: 
+  accessing out of bounds index. assert 0 ≤ c1;
+[value:alarm] tests/value/mini_pointrer.i:6: Warning: 
+  accessing out of bounds index. assert c1 < 2;
+[value:alarm] tests/value/mini_pointrer.i:8: Warning: 
+  out of bounds read. assert \valid_read(ppp);
+[value:alarm] tests/value/mini_pointrer.i:8: Warning: 
+  out of bounds write. assert \valid(*ppp);
+[value:alarm] tests/value/mini_pointrer.i:10: Warning: 
+  accessing out of bounds index. assert c2 < 2;
 [value] Recording results for main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======
@@ -23,13 +28,13 @@ tests/value/mini_pointrer.i:10:[value] warning: accessing out of bounds index. a
 [from] Computing for function main
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
-    These dependencies hold at termination for the executions that terminate:
+  These dependencies hold at termination for the executions that terminate:
 [from] Function main:
   T[0..1] FROM pp[0]; c1; c2 (and SELF)
   ppp FROM c2
   pp[0..1] FROM c1 (and SELF)
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function main:
-      T[0..1]; ppp; pp[0..1]
+    T[0..1]; ppp; pp[0..1]
 [inout] Inputs for function main:
-      ppp; pp[0]
+    ppp; pp[0]

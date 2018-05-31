@@ -1,5 +1,5 @@
 /* run.config*
-   STDOPT: +"-load-module variadic"
+   STDOPT:
 */
 
 /* These declarations are useful for the plugin 'variadic' */

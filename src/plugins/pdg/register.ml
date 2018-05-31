@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2017                                               *)
+(*  Copyright (C) 2007-2018                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -137,8 +137,10 @@ let compute () =
         !Db.Pdg.extract pdg (dot_basename ^ "." ^ fname ^ ".dot")
   in
   Callgraph.Uses.iter_in_rev_order do_kf_pdg;
-  Pdg_parameters.debug "Logging keys : %s"
-    (Pdg_parameters.Debug_category.As_string.get ());
+  let pp_sep fmt () = Format.pp_print_string fmt "," in
+  Pdg_parameters.(
+    debug "Logging keys : %a"
+    (Format.pp_print_list ~pp_sep pp_category) (get_debug_keys ()));
   if Pdg_parameters.BuildAll.get () then
     Pdg_parameters.feedback "====== PDG GRAPH COMPUTED ======"
 

@@ -2,7 +2,7 @@
 [kernel] Parsing tests/wp_typed/unit_bitwise.c (with preprocessing)
 [wp] Running WP plugin...
 [wp] Loading driver 'share/wp.driver'
-[wp] warning: Missing RTE guards
+[wp] Warning: Missing RTE guards
 [wp] 61 goals scheduled
 [wp] [Alt-Ergo] Goal typed_lemma_band_sint8 : Valid
 [wp] [Alt-Ergo] Goal typed_lemma_band_uint8 : Valid
@@ -66,40 +66,41 @@
 [wp] [Alt-Ergo] Goal typed_rshift_uchar_post_ok : Valid
 [wp] [Qed] Goal typed_rshift_uint_post_ok : Valid
 [wp] Proved goals:   61 / 61
-    Qed:            41 
-    Alt-Ergo:       20
-----------------------------------------------------------
-Axiomatics          WP   Alt-Ergo    Total   Success
-Lemma               10      8 (54)    18       100%
-----------------------------------------------------------
-Functions           WP   Alt-Ergo    Total   Success
-band_int             2     -           2       100%
-bor_int              1     -           1       100%
-bxor_int             1     -           1       100%
-bnot_int             1     -           1       100%
-lshift_int           1     -           1       100%
-rshift_int           1     -           1       100%
-band1_uint           1      1 (14)     2       100%
-band_uint            1     -           1       100%
-bor_uint             1     -           1       100%
-bxor_uint            1      1 (12)     2       100%
-bnot_uint            1     -           1       100%
-lshift_uint          1     -           1       100%
-rshift_uint          1     -           1       100%
-band_char           -       1 (12)     1       100%
-bor_char            -       1 (12)     1       100%
-bxor_char           -       1 (12)     1       100%
-bnot_char           -       1 (11)     1       100%
-lshift_char          1     -           1       100%
-rshift_char          1     -           1       100%
-band1_uchar          1      1 (14)     2       100%
-band_uchar          -       1 (12)     1       100%
-bor_uchar            1     -           1       100%
-bxor_uchar           1      1 (12)     2       100%
-bnot_uchar           1     -           1       100%
-lshift_uchar         1     -           1       100%
-rshift_uchar        -       1 (22)     1       100%
-band1_ushort         1      1 (14)     2       100%
-band1_ulong          1      1 (14)     2       100%
-cast                 8     -           8       100%
-----------------------------------------------------------
+  Qed:            41 
+  Alt-Ergo:       20
+[wp] Report 'tests/wp_typed/unit_bitwise.c.0.report.json'
+-------------------------------------------------------------
+Axiomatics          WP     Alt-Ergo        Total   Success
+Lemma               10      8 (28..40)      18       100%
+-------------------------------------------------------------
+Functions           WP     Alt-Ergo        Total   Success
+band_int             2     -                 2       100%
+bor_int              1     -                 1       100%
+bxor_int             1     -                 1       100%
+bnot_int             1     -                 1       100%
+lshift_int           1     -                 1       100%
+rshift_int           1     -                 1       100%
+band1_uint           1      1 (8..20)        2       100%
+band_uint            1     -                 1       100%
+bor_uint             1     -                 1       100%
+bxor_uint            1      1 (8..20)        2       100%
+bnot_uint            1     -                 1       100%
+lshift_uint          1     -                 1       100%
+rshift_uint          1     -                 1       100%
+band_char           -       1 (8..20)        1       100%
+bor_char            -       1 (8..20)        1       100%
+bxor_char           -       1 (8..20)        1       100%
+bnot_char           -       1 (8..20)        1       100%
+lshift_char          1     -                 1       100%
+rshift_char          1     -                 1       100%
+band1_uchar          1      1 (8..20)        2       100%
+band_uchar          -       1 (8..20)        1       100%
+bor_uchar            1     -                 1       100%
+bxor_uchar           1      1 (8..20)        2       100%
+bnot_uchar           1     -                 1       100%
+lshift_uchar         1     -                 1       100%
+rshift_uchar        -       1 (16..28)       1       100%
+band1_ushort         1      1 (8..20)        2       100%
+band1_ulong          1      1 (8..20)        2       100%
+cast                 8     -                 8       100%
+-------------------------------------------------------------

@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2017                                               *)
+(*  Copyright (C) 2007-2018                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -27,7 +27,7 @@
 let print () =
   Report_parameters.feedback "Computing properties status..." ;
   Log.print_on_output (fun fmt -> Scan.iter (Dump.create fmt))
-
+    
 let print =
   Dynamic.register
     ~plugin:"Report"
@@ -39,13 +39,13 @@ let print =
 let print, _ =
   State_builder.apply_once
     "Report.print_once"
-    [ Report_parameters.Enabled.self; (* reprint if we explicitly ask for *)
+    [ Report_parameters.Print.self;
       Report_parameters.PrintProperties.self;
       Report_parameters.Specialized.self;
       Property_status.self ]
     print
 
-let main () = if Report_parameters.Enabled.get () then print ()
+let main () = if Report_parameters.Print.get () then print ()
 
 let () =
   Db.Main.extend main;

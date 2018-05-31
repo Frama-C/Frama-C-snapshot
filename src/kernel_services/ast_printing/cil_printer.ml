@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2017                                               *)
+(*  Copyright (C) 2007-2018                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -27,13 +27,6 @@ open Cil_datatype
 open Printer_api
 open Format
 
-let debug_logic_types = Kernel.register_category "printer:logic-types"
-let debug_logic_coercions = Kernel.register_category "printer:logic-coercions"
-let debug_builtins = Kernel.register_category "printer:builtins"
-let debug_sid = Kernel.register_category "printer:sid"
-let debug_unspecified = Kernel.register_category "printer:unspecified"
-let debug_bitfields = Kernel.register_category "printer:bitfields"
-
 module Behavior_extensions = struct
 
   let printer_tbl = Hashtbl.create 5
@@ -49,7 +42,7 @@ module Behavior_extensions = struct
     | Ext_preds preds ->
       Pretty_utils.pp_list ~sep:",@ " printer#predicate fmt preds
 
-  let pp (printer:extensible_printer_type) fmt (name, ext) =
+  let pp (printer) fmt (_, name, ext) =
     let pp =
       try
         Hashtbl.find printer_tbl name
@@ -87,7 +80,8 @@ let print_global g =
     not (Cil.hasAttribute "fc_stdlib" attrs) || Kernel.PrintLibc.get()
   in
   let print_var v =
-    not (Cil.is_unused_builtin v) || Kernel.is_debug_key_enabled debug_builtins
+    not (Cil.is_unused_builtin v) ||
+    Kernel.is_debug_key_enabled Kernel.dkey_print_builtins
   in
   match g with
   | GVar (vi,_,_) | GFun ({svar = vi},_) | GVarDecl (vi,_) | GFunDecl (_,vi,_)->
@@ -171,10 +165,17 @@ module Precedence = struct
   let questionLevel = 100
   let upperLevel = 110
 
+  (* is this predicate the encoding of [\in]? If so, return its arguments. *)
+  let subset_is_backslash_in p = match p with
+    | Papp ({l_var_info = {lv_name = "\\subset"}},
+            [],
+            [{term_node = Tunion [tl]}; tr]) when not state.print_cil_as_is ->
+      Some (tl, tr)
+    | _ -> None
+
   let getParenthLevelPred = function
     | Pfalse
     | Ptrue
-    | Papp _
     | Pallocable _
     | Pfreeable _
     | Pvalid _
@@ -185,6 +186,7 @@ module Precedence = struct
     | Pseparated _
     | Pat _
     | Pfresh _ -> 0
+    | Papp _ as p -> if subset_is_backslash_in p = None then 0 else 36
     | Pnot _ -> 30
     | Psubtype _ -> 75
     | Pand _ -> and_level
@@ -1022,6 +1024,22 @@ class cil_printer () = object (self)
     | Case (e, _) -> fprintf fmt "@[%a %a:@]" self#pp_keyword "case" self#exp e
     | Default _ -> fprintf fmt "@[%a:@]" self#pp_keyword "default"
 
+  method compinfo fmt x = fprintf fmt "compinfo:%a" pp_print_bool x.cstruct
+
+  method builtin_logic_info fmt bli =
+    fprintf fmt "%a" self#varname bli.bl_name
+
+  method logic_type_info fmt s = fprintf fmt "%a" self#varname s.lt_name
+
+  method logic_ctor_info fmt ci =  fprintf fmt "%a" self#varname ci.ctor_name
+
+  method initinfo fmt io =
+    match io.init with
+      | None -> fprintf fmt "{}"
+      | Some i -> fprintf fmt "%a" self#init i
+
+  method fundec fmt fd =  fprintf fmt "%a" self#varinfo fd.svar
+
   (* number of opened ghost code *)
   val mutable is_ghost = false
   method private display_comment () = not is_ghost || verbose
@@ -1050,7 +1068,7 @@ class cil_printer () = object (self)
 
   method private require_braces ctxt blk =
     force_brace
-    || verbose || Kernel.is_debug_key_enabled debug_sid
+    || verbose || Kernel.is_debug_key_enabled Kernel.dkey_print_sid
     (* If one the of condition above is true, /* sid:... */ will be printed
        on its own line before s. Braces are needed *)
     || ctxt = Body (* function body is always between braces. *)
@@ -1211,7 +1229,9 @@ class cil_printer () = object (self)
       let inline_block = self#inline_block ctxt as_block in
       let print_stmt pstmt fmt (stmt, modifies, writes, reads,_) =
         pstmt fmt stmt;
-        if verbose || Kernel.is_debug_key_enabled debug_unspecified then
+        if verbose ||
+           Kernel.is_debug_key_enabled Kernel.dkey_print_unspecified
+        then
 	  Format.fprintf fmt "@ /*effects: @[(%a) %a@ <-@ %a@]*/"
             (Pretty_utils.pp_list ~sep:",@ " self#lval) modifies
 	    (Pretty_utils.pp_list ~sep:",@ " self#lval) writes
@@ -1901,9 +1921,10 @@ class cil_printer () = object (self)
          fprintf fmt "%a "
 	   (Pretty_utils.pp_list ~sep:" " self#attrparam) args;
          true
-       | s, _ when s = Cil.bitfield_attribute_name &&
-                   not state.print_cil_as_is &&
-                   not (Kernel.is_debug_key_enabled debug_bitfields) ->
+       | s, _ when
+           s = Cil.bitfield_attribute_name &&
+           not state.print_cil_as_is &&
+           not (Kernel.is_debug_key_enabled Kernel.dkey_print_bitfields) ->
          false
        | _ -> (* This is the default case *)
          (* Add underscores to the name *)
@@ -2070,7 +2091,7 @@ class cil_printer () = object (self)
       in
       Format.fprintf fmt "%s%t" res pname
     | Ltype (s,l) ->
-      fprintf fmt "%a%a%t" self#varname s.lt_name
+      fprintf fmt "%a%a%t" self#logic_type_info s
 	((* the space avoids the issue of list<list<int>> where the double >
 	    would be read as a shift. It could be optimized away in most of
 	    the cases. *)
@@ -2104,7 +2125,7 @@ class cil_printer () = object (self)
   method identified_term fmt t = self#term fmt t.it_content
 
   method term fmt t =
-    let debug = Kernel.is_debug_key_enabled debug_logic_types in
+    let debug = Kernel.is_debug_key_enabled Kernel.dkey_print_logic_types in
     if debug then
       fprintf fmt "/*(type:%a */" (self#logic_type None) t.term_type;
     begin match t.term_name with
@@ -2345,7 +2366,9 @@ class cil_printer () = object (self)
        pp_defn
        (self#term_prec current_level) body
    | TLogic_coerce(ty,t) ->
-     let debug = Kernel.is_debug_key_enabled debug_logic_coercions in
+     let debug =
+       Kernel.is_debug_key_enabled Kernel.dkey_print_logic_coercions
+     in
      if debug then
        fprintf fmt "/* (coercion to:%a */" (self#logic_type None) ty;
      self#term_prec current_level fmt t;
@@ -2358,15 +2381,19 @@ class cil_printer () = object (self)
       fprintf fmt "%a" self#term_lval lv
 
   method term_lval fmt lv = match lv with
+    | TVar vi ,TNoOffset
+      when vi.lv_name = "\\pi" ->
+      fprintf fmt "%s"
+        (if Kernel.Unicode.get () then Utf8_logic.pi else "\\pi")
     | TVar vi, o -> fprintf fmt "%a%a" self#logic_var vi self#term_offset o
     | TResult _, o ->
       fprintf fmt "%a%a" self#pp_acsl_keyword "\\result" self#term_offset o
-    | TMem e, TField(fi,o) ->
+    | TMem e, (TField({fname},o) | TModel ({mi_name = fname}, o)) ->
       fprintf fmt "%a->%a%a" (self#term_prec Precedence.arrowLevel) e
-        self#varname fi.fname self#term_offset o
+        self#varname fname self#term_offset o
     | TMem e, TNoOffset ->
       fprintf fmt "*%a" (self#term_prec Precedence.derefStarLevel) e
-    | TMem e, o ->
+    | TMem e, (TIndex _ as o) ->
       fprintf fmt "(*%a)%a"
         (self#term_prec Precedence.derefStarLevel) e self#term_offset o
 
@@ -2379,6 +2406,9 @@ class cil_printer () = object (self)
     | TModel (mi,o) ->
       fprintf fmt ".%a%a" self#model_field mi self#term_offset o
     | TIndex(e,o) -> fprintf fmt "[%a]%a" self#term e self#term_offset o
+
+  method term_lhost fmt (lh:term_lhost) =
+    self#term_lval fmt (lh, TNoOffset)
 
   method logic_info fmt li = self#logic_var fmt li.l_var_info
   method logic_var fmt v = self#varname fmt v.lv_name
@@ -2457,11 +2487,19 @@ class cil_printer () = object (self)
     match p with
     | Pfalse -> self#pp_acsl_keyword fmt "\\false"
     | Ptrue -> self#pp_acsl_keyword fmt "\\true"
-    | Papp (p,labels,l) -> 
-      fprintf fmt "@[%a%a%a@]"
-	self#logic_info p
-	self#labels labels
-	(Pretty_utils.pp_list ~pre:"@[(" ~suf:")@]" ~sep:",@ " self#term) l
+    | Papp (pi,labels,l) -> begin
+        match Precedence.subset_is_backslash_in p with
+        | Some (tl, tr) ->
+          fprintf fmt "@[%a %s@ %a@]"
+            self#term tl
+            (if Kernel.Unicode.get () then Utf8_logic.inset else "\\in")
+            self#term tr
+        | None ->
+            fprintf fmt "@[%a%a%a@]"
+              self#logic_info pi
+              self#labels labels
+              (Pretty_utils.pp_list ~pre:"@[(" ~suf:")@]" ~sep:",@ " self#term) l
+     end
     | Prel (rel,l,r) ->
       fprintf fmt "@[%a@ %a@ %a@]" term l self#relation rel term r
     | Pand (p1, p2) when not state.print_cil_as_is ->
@@ -2615,6 +2653,9 @@ class cil_printer () = object (self)
       self#pp_acsl_keyword "requires"
       self#identified_predicate p
 
+  method extended fmt (id, name, ext) =
+    Behavior_extensions.pp (self :> extensible_printer_type) fmt (id,name,ext)
+
   method post_cond fmt (k,p) =
     let kw = get_termination_kind_name k in
     fprintf fmt "@[<hov 2>%a@ %a;@]"
@@ -2731,8 +2772,7 @@ class cil_printer () = object (self)
       (self#terminates_decreases ~extra_nl:false nl_decreases)
       (terminates, variant)
       (pp_list nl_ensures self#post_cond) b.b_post_cond
-      (pp_list nl_extended
-         (Behavior_extensions.pp (self:>extensible_printer_type))) b.b_extended
+      (pp_list nl_extended self#extended) b.b_extended
       (self#assigns_deps "assigns") b.b_assigns
       (format_of_string
          (if nl_assigns && b.b_assigns != WritesAny

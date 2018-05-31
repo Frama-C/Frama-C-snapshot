@@ -5,10 +5,14 @@
 [value:initial-state] Values of globals at initialization
   t[0..1] ∈ {1}
    [2..99] ∈ {0}
-tests/value/array_degenerating_loop.i:8:[value] entering loop for the first time
-tests/value/array_degenerating_loop.i:9:[value] warning: accessing out of bounds index. assert i < 100;
-tests/value/array_degenerating_loop.i:9:[value] warning: signed overflow. assert G + t[i] ≤ 2147483647;
-tests/value/array_degenerating_loop.i:10:[value] Frama_C_show_each: [55..2147483647], [-2147483648..99]
+[value] tests/value/array_degenerating_loop.i:8: 
+  entering loop for the first time
+[value:alarm] tests/value/array_degenerating_loop.i:9: Warning: 
+  accessing out of bounds index. assert i < 100;
+[value:alarm] tests/value/array_degenerating_loop.i:9: Warning: 
+  signed overflow. assert G + t[i] ≤ 2147483647;
+[value] tests/value/array_degenerating_loop.i:10: 
+  Frama_C_show_each: [55..2147483647], [-2147483648..99]
 [value] Recording results for main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======
@@ -18,11 +22,11 @@ tests/value/array_degenerating_loop.i:10:[value] Frama_C_show_each: [55..2147483
 [from] Computing for function main
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
-    These dependencies hold at termination for the executions that terminate:
+  These dependencies hold at termination for the executions that terminate:
 [from] Function main:
   NO EFFECTS
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function main:
-      G; i
+    G; i
 [inout] Inputs for function main:
-      t[0..99]
+    t[0..99]

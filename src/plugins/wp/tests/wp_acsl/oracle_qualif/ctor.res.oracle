@@ -6,8 +6,9 @@
 [wp] [Qed] Goal typed_lemma_cons : Valid
 [wp] [Qed] Goal typed_lemma_diff : Valid
 [wp] Proved goals:    2 / 2
-    Qed:             2
-----------------------------------------------------------
-Axiomatics          WP   Alt-Ergo    Total   Success
-Axiomatic Event      2     -           2       100%
-----------------------------------------------------------
+  Qed:             2
+[wp] Report 'tests/wp_acsl/ctor.i.0.report.json'
+-------------------------------------------------------------
+Axiomatics          WP     Alt-Ergo        Total   Success
+Axiomatic Event      2     -                 2       100%
+-------------------------------------------------------------

@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2017                                               *)
+(*  Copyright (C) 2007-2018                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -97,25 +97,34 @@ class popup () =
     method on_click f = click <- f
     method on_prove f = prove <- f
 
-    method private add_rte
+    method private rte_generate kf =
+      let setup = Factory.parse (Wp_parameters.Model.get ()) in
+      let driver = Driver.load_driver () in
+      let model = Factory.instance setup driver in
+      WpRTE.generate kf model
+
+    method private rte_precond kf =
+      !Db.RteGen.do_precond kf
+    
+    method private rte_option
         (menu : GMenu.menu GMenu.factory)
         (main : Design.main_window_extension_points) title action kf =
       ignore (menu#add_item title
-                ~callback:(fun () -> !action kf ; main#redisplay ()))
+                ~callback:(fun () -> action kf ; main#redisplay ()))
 
     method private rte_popup menu main loc =
       match loc with
       | PVDecl (Some kf,_,{vglob=true}) ->
           if not (is_rte_generated kf) then
-            self#add_rte menu main "Insert WP-safety guards"
-              Db.RteGen.do_all_rte kf ;
+            self#rte_option menu main "Insert wp-rte guards"
+              self#rte_generate kf ;
           if not (is_rte_precond kf) then
-            self#add_rte menu main "Insert all callees contract"
-              Db.RteGen.do_precond kf;
+            self#rte_option menu main "Insert all callees contract"
+              self#rte_precond kf;
       | PStmt(kf,({ skind=Instr(Call _ | Local_init (_, ConsInit _, _)) })) ->
           if not (is_rte_precond kf) then
-            self#add_rte menu main "Insert callees contract (all calls)"
-              Db.RteGen.do_precond kf;
+            self#rte_option menu main "Insert callees contract (all calls)"
+              self#rte_precond kf;
       | _ -> ()
 
     method private wp_popup (menu : GMenu.menu GMenu.factory) = function

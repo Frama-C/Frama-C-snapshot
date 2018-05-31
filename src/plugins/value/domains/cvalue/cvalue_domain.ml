@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2017                                               *)
+(*  Copyright (C) 2007-2018                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -23,6 +23,7 @@
 open Eval
 
 let key = Structure.Key_Domain.create_key "cvalue_domain"
+let dkey_card = Value_parameters.register_category "cardinal"
 
 let extract get = match get key with
   | None -> fun _ -> Cvalue.Model.top
@@ -36,45 +37,70 @@ module Model = struct
   type value = Main_values.CVal.t
   type location = Main_locations.PLoc.location
 
-  (* The origin denotes whether the attached value has been reduced by
-     its reinterpretation. *)
-  type origin = bool
+  (* The origin is the value stored in the state for a lvalue, when this value
+     has a type incompatible with the type of the lvalue. This may happen on
+     union with fields of different types, or on code pattern such as
+       int x = v; float f = *(float* )&x
+     In this case, the value stored in the state and the value computed for the
+     lvalue can be incomparable. The origin is then used to store the value from
+     the state, to later choose which value to keep. This is done by the update
+     function in cvalue_transfer. *)
+  type origin = value option
 
-  let extract_expr _ _ _ = `Value (Cvalue.V.top, false), Alarmset.all
+  let extract_expr _ _ _ = `Value (Cvalue.V.top, None), Alarmset.all
 
-  let indeterminate_alarms lval = let open Cvalue.V_Or_Uninitialized in function
-      | C_uninit_esc _   -> Alarmset.add (Alarms.Dangling lval)
-                              (Alarmset.singleton (Alarms.Uninitialized lval))
-      | C_uninit_noesc _ -> Alarmset.singleton (Alarms.Uninitialized lval)
-      | C_init_esc _     -> Alarmset.singleton (Alarms.Dangling lval)
-      | C_init_noesc _   -> Alarmset.none
+  let indeterminate_alarms lval v =
+    let open Cvalue.V_Or_Uninitialized in
+    let status =
+      if Cvalue.V.is_bottom (get_v v) then Alarmset.False else Alarmset.Unknown
+    in
+    match v with
+    | C_uninit_noesc _ -> Alarmset.singleton ~status (Alarms.Uninitialized lval)
+    | C_init_esc _     -> Alarmset.singleton ~status (Alarms.Dangling lval)
+    | C_uninit_esc _   ->
+      (* Unknown alarms: [v] can be either dangling or uninit *)
+      Alarmset.(set (Alarms.Dangling lval) Unknown
+                  (set (Alarms.Uninitialized lval) Unknown none))
+    | C_init_noesc _   -> Alarmset.none
 
 
   let eval_one_loc state lval typ =
     let eval_one_loc single_loc =
-      (* ignore alarm, which will be emitted by warn_reduce_by_accessed_loc *)
       let v = Cvalue.Model.find_indeterminate state single_loc in
       Cvalue.V_Or_Uninitialized.get_v v, indeterminate_alarms lval v
+    in
+    (* We have no good neutral element for "no alarm emitted yet", so we use
+       [None] instead. *)
+    let join_alarms acc alarms =
+      match acc with
+      | None -> Some alarms
+      | Some acc -> Some (Alarmset.union alarms acc)
     in
     fun loc (acc_result, acc_alarms) ->
       let result, alarms = eval_one_loc loc in
       let result = Cvalue_forward.make_volatile ~typ:typ result in
-      Cvalue.V.join result acc_result, Alarmset.union alarms acc_alarms
+      Cvalue.V.join result acc_result, join_alarms acc_alarms alarms
+
+  (* The zero singleton is shared between float and integer representations in
+     ival, and is thus untyped. *)
+  let is_float v =
+    Cvalue.V.(is_included v top_float) && Cvalue.V.contains_non_zero v
 
   let extract_lval _oracle state lval typ loc =
     let process_one_loc = eval_one_loc state lval typ in
-    let acc = Cvalue.V.bottom, Alarmset.none in
-    let value1, alarms1 = Precise_locs.fold process_one_loc loc acc in
-    let expr = Value_util.lval_to_exp lval in
-    let value2, alarms2 = Cvalue_forward.reinterpret expr typ value1 in
-    let alarms = Alarmset.union alarms1 alarms2 in
-    (* The origin denotes whether the conversion has really improved the result.
-       In particular float that are top_int are reduced there. On the other hand,
-       we do not want to take into account conversions unsigned -> signed, etc. *)
-    let origin = Cvalue.V.(equal value1 top_int) && Cil.isFloatingType typ in
-    if Cvalue.V.is_bottom value2
+    let acc = Cvalue.V.bottom, None in
+    let value, alarms = Precise_locs.fold process_one_loc loc acc in
+    let alarms = match alarms with None -> Alarmset.none | Some a -> a in
+    (* The origin is set to false when the value stored in the memory has not
+       the same type as the read lvalue. In this case, we don't update the state
+       with the new value stemming from the evaluation, even if it has been
+       reduced, in order to not propagate incompatible type. *)
+    let incompatible_type = is_float value <> Cil.isFloatingType typ in
+    let origin = if incompatible_type then Some value else None in
+    let value = Cvalue_forward.reinterpret typ value in
+    if Cvalue.V.is_bottom value
     then `Bottom, alarms
-    else `Value (value2, origin), alarms
+    else `Value (value, origin), alarms
 
 
   let backward_location state _lval typ precise_loc value =
@@ -84,7 +110,7 @@ module Model = struct
     let eval_one_loc single_loc =
       let v = Cvalue.Model.find state single_loc in
       let v = Cvalue_forward.make_volatile ~typ v in
-      Cvalue_forward.unsafe_reinterpret typ v
+      Cvalue_forward.reinterpret typ v
     in
     let process_ival base ival (acc_loc, acc_val as acc) =
       let loc_bits = Locations.Location_Bits.inject base ival in
@@ -285,7 +311,7 @@ module State = struct
         List.fold_left one_from_contents Cvalue.V.top_int direct
       with Eval_terms.LogicEvalError e ->
         Value_util.warning_once_current
-          "cannot interpret@ 'from' clause@ '%a'%a"
+          "@[<hov 0>cannot interpret 'from'@ @[<hov 2>clause '%a'@]%a"
           Printer.pp_from assign pp_eval_error e;
         Cvalue.V.top
 
@@ -353,7 +379,7 @@ module State = struct
     | Abstract_domain.Library_Global ->
       Cvalue_init.initialize_var_using_type varinfo state, clob
     | Abstract_domain.Spec_Return kf ->
-      let value, state = Library_functions.returned_value kf state in
+      let value = Library_functions.returned_value kf in
       let loc = Locations.loc_of_varinfo varinfo in
       Model.add_binding ~exact:true state loc value, clob
 
@@ -446,8 +472,72 @@ module State = struct
       else `Top
 
   end
+
+  let display ?fmt kf =
+    let open Cil_types in
+    (* Do not pretty Cil-generated variables or out-of-scope local variables *)
+    let filter_generated_and_locals base =
+      match base with
+      | Base.Var (v, _) ->
+        if v.vtemp then v.vname = "__retres"
+        else
+          ((not (Kernel_function.is_local v kf))
+           (* only locals of outermost block *)
+           || List.exists (fun x -> x.vid = v.vid)
+             (Kernel_function.get_definition kf).sbody.blocals )
+      | _ -> true
+    in
+    try
+      let values = Db.Value.get_stmt_state (Kernel_function.find_return kf) in
+      let fst_values =
+        Db.Value.get_stmt_state (Kernel_function.find_first_stmt kf)
+      in
+      if Cvalue.Model.is_reachable fst_values
+      && not (Cvalue.Model.is_top fst_values)
+      then begin
+        let print_cardinal = Value_parameters.is_debug_key_enabled dkey_card in
+        let estimate =
+          if print_cardinal
+          then Cvalue.Model.cardinal_estimate values
+          else Cvalue.CardinalEstimate.one
+        in
+        let outs = !Db.Outputs.get_internal kf in
+        let outs = Locations.Zone.filter_base filter_generated_and_locals outs in
+        let header fmt =
+          Format.fprintf fmt "Values at end of function %a:%t"
+            Kernel_function.pretty kf
+            (fun fmt ->
+               if print_cardinal then
+                 Format.fprintf fmt " (~%a states)"
+                   Cvalue.CardinalEstimate.pretty estimate)
+        in
+        let body fmt =
+          Format.fprintf fmt "@[%t@]@[  %t@]"
+            (fun fmt ->
+               match outs with
+               | Locations.Zone.Top (Base.SetLattice.Top, _) ->
+                 Format.fprintf fmt "@[Cannot filter: dumping raw memory \
+                                     (including unchanged variables)@]@\n"
+               | _ -> ())
+            (fun fmt -> Cvalue.Model.pretty_filter fmt values outs) in
+        match fmt with
+        | None -> Value_parameters.printf
+                    ~dkey:Value_parameters.dkey_final_states ~header "%t" body
+        | Some fmt -> Format.fprintf fmt "%t@.%t@," header body
+      end
+    with Kernel_function.No_Statement -> ()
+
+  let display_results () =
+    Value_parameters.result "====== VALUES COMPUTED ======";
+    Callgraph.Uses.iter_in_rev_order display;
+    Value_parameters.result "%t" Value_perf.display
+
+  let post_analysis _state =
+    if Value_parameters.ForceValues.get () && Value_parameters.verbose_atleast 1
+    then Value_parameters.ForceValues.output display_results
 end
 
+let () = Db.Value.display := (fun fmt kf -> State.display ~fmt kf)
 
 let inject cvalue_model = cvalue_model, Locals_scoping.bottom ()
 let project (state, _) = state
@@ -465,6 +555,25 @@ let distinct_subpart a b =
     try Model.comp_prefixes a b; None
     with Model.Found_prefix (p, s1, s2) -> Some (p, s1, s2)
 let find_subpart s prefix = Model.find_prefix s prefix
+
+module PowersetDomainCvalue = Powerset.Make (State)
+module Transfer_logic_cvalue =
+  Transfer_logic.Make(State)(PowersetDomainCvalue)
+
+let eval_precond kf stmt state =
+  let ki = Cil_types.Kstmt stmt in
+  let state = state, Locals_scoping.bottom () in
+  let ab = Transfer_logic_cvalue.create state kf in
+  let states = Transfer_logic_cvalue.check_fct_preconditions ki kf ab state in
+  match states with
+  | `Bottom -> Cvalue.Model.bottom
+  | `Value states ->
+    match PowersetDomainCvalue.join states with
+    | `Bottom -> Cvalue.Model.bottom (* impossible *)
+    | `Value s -> project s
+  
+
+let () = Cvalue_transfer.eval_precond := eval_precond
 
 (*
 Local Variables:

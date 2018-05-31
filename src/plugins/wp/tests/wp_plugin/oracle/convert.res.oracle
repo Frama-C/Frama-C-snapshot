@@ -1,0 +1,20 @@
+# frama-c -wp [...]
+[kernel] Parsing tests/wp_plugin/convert.i (no preprocessing)
+[wp] Running WP plugin...
+[wp] Loading driver 'share/wp.driver'
+------------------------------------------------------------
+  Global
+------------------------------------------------------------
+
+Lemma ceil:
+Assume: 'floor'
+Prove: let x_1 = (\ceil x_0) in
+       (x_0<=(real_of_int x_1)) /\ ((real_of_int (x_1-1))<x_0)
+
+------------------------------------------------------------
+
+Lemma floor:
+Prove: let x_1 = (\floor x_0) in
+       ((real_of_int x_1)<=x_0) /\ (x_0<(real_of_int (1+x_1)))
+
+------------------------------------------------------------

@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2017                                               *)
+(*  Copyright (C) 2007-2018                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -25,8 +25,16 @@
 (* -------------------------------------------------------------------------- *)
 
 open ProofEngine
+open Conditions
 
-val first : tree -> anchor:node -> Strategy.t array -> fork option
-val backtrack : tree -> anchor:node -> loop:bool -> fork option
+val first : tree -> ?anchor:node -> Strategy.t array -> fork option
+
+val index : tree -> anchor:node -> index:int -> fork option
+
+val search : tree -> ?anchor:node -> ?sequent:sequent ->
+  Strategy.heuristic list -> fork option
+    
+val backtrack : tree -> ?anchor:node -> ?loop:bool -> ?width:int ->
+  unit -> fork option
 
 (* -------------------------------------------------------------------------- *)

@@ -6,8 +6,9 @@
 [value:initial-state] Values of globals at initialization
   r ∈ {1}
 [value] Semantic level unrolling superposing up to 100 states
-tests/slicing/if_many_values.i:8:[value] entering loop for the first time
-tests/slicing/if_many_values.i:11:[value] warning: signed overflow. assert r + 1 ≤ 2147483647;
+[value] tests/slicing/if_many_values.i:8: entering loop for the first time
+[value:alarm] tests/slicing/if_many_values.i:11: Warning: 
+  signed overflow. assert r + 1 ≤ 2147483647;
 [value] Recording results for main
 [value] done for function main
 [slicing] initializing slicing ...

@@ -6,20 +6,20 @@
   must_be_one ∈ {0}
   must_be_zero ∈ {0}
 [value] computing for function enum1_sgn1_inf_sgn0 <- main.
-    Called from tests/value/enum2.c:33.
-tests/value/enum2.c:27:[value] Frama_C_show_each_enum1_sgn1_inf_sgn0: {0}
+  Called from tests/value/enum2.c:33.
+[value] tests/value/enum2.c:27: Frama_C_show_each_enum1_sgn1_inf_sgn0: {0}
 [value] Recording results for enum1_sgn1_inf_sgn0
 [value] Done for function enum1_sgn1_inf_sgn0
 [value] computing for function enum1_sgn1_positif <- main.
-    Called from tests/value/enum2.c:34.
+  Called from tests/value/enum2.c:34.
 [value] computing for function f <- enum1_sgn1_positif <- main.
-    Called from tests/value/enum2.c:21.
+  Called from tests/value/enum2.c:21.
 [value] Recording results for f
 [value] Done for function f
-tests/value/enum2.c:22:[value] Frama_C_show_each_enum1_sgn1_positif: {1}
+[value] tests/value/enum2.c:22: Frama_C_show_each_enum1_sgn1_positif: {1}
 [value] Recording results for enum1_sgn1_positif
 [value] Done for function enum1_sgn1_positif
-tests/value/enum2.c:35:[value] Frama_C_show_each_sizeof_enum1: {8}
+[value] tests/value/enum2.c:35: Frama_C_show_each_sizeof_enum1: {8}
 [value] Recording results for main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======
@@ -42,7 +42,7 @@ tests/value/enum2.c:35:[value] Frama_C_show_each_sizeof_enum1: {8}
 [from] Computing for function main
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
-    These dependencies hold at termination for the executions that terminate:
+  These dependencies hold at termination for the executions that terminate:
 [from] Function enum1_sgn1_inf_sgn0:
   \result FROM \nothing
 [from] Function f:
@@ -55,18 +55,18 @@ tests/value/enum2.c:35:[value] Frama_C_show_each_sizeof_enum1: {8}
   \result FROM \nothing
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function enum1_sgn1_inf_sgn0:
-      res
+    res
 [inout] Inputs for function enum1_sgn1_inf_sgn0:
-      \nothing
+    \nothing
 [inout] Out (internal) for function f:
-      y
+    y
 [inout] Inputs for function f:
-      \nothing
+    \nothing
 [inout] Out (internal) for function enum1_sgn1_positif:
-      res; tmp
+    res; tmp
 [inout] Inputs for function enum1_sgn1_positif:
-      \nothing
+    \nothing
 [inout] Out (internal) for function main:
-      must_be_one; must_be_zero; res
+    must_be_one; must_be_zero; res
 [inout] Inputs for function main:
-      \nothing
+    \nothing

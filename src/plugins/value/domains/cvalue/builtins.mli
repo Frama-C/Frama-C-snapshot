@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2017                                               *)
+(*  Copyright (C) 2007-2018                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -34,10 +34,6 @@ val register_builtin: string -> ?replace:string -> Db.Value.builtin_sig -> unit
     @since Aluminium-20160501 *)
 val registered_builtins: unit -> (string * Db.Value.builtin_sig) list
 
-(** Find a previously registered builtin. Raises [Not_found] if no such
-    builtin exists. *)
-val find_builtin: string -> Db.Value.builtin_sig
-
 (** Does the builtin table contain an entry for [name]? *)
 val mem_builtin: string -> bool
 
@@ -49,21 +45,8 @@ val clobbered_set_from_ret: Cvalue.Model.t -> Cvalue.V.t -> Base.SetLattice.t
     a pointer to where they have written some data. It returns all the bases
     of [ret] whose contents may contain local variables. *)
 
-
-(** Emit an ACSL assert (using \warning predicate) to signal that the
-    builtin encountered an alarm described by the string.
-    [kind] is used to describe the alarm, similarly to [Alarms.get_name].
-    Identical alarms are not re-emitted. Returns [true] iff it is a new alarm.
-
-    @modify Silicon-20161101 change return type *)
-val emit_alarm: kind:string -> text:string -> bool
-
-(** Iteration on special assertions built by the builtins *)
-val fold_emitted_alarms:
-  (Cil_types.stmt -> Cil_datatype.Code_annotation.Set.t -> 'a -> 'a) -> 'a -> 'a
-
 (** Emits warnings for each function definition that will be overridden by an
-    EVA built-in.
+    Eva built-in.
     Does not include definitions in the Frama-C stdlib.
     @since Phosphorus-20170501-beta1 *)
 val warn_definitions_overridden_by_builtins: unit -> unit

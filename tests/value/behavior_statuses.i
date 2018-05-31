@@ -1,6 +1,6 @@
 /* run.config*
-   STDOPT: +"-kernel-msg-key property_status -kernel-verbose 3"
-   STDOPT: +"-kernel-msg-key property_status -kernel-verbose 3 -val-use-spec f"
+   STDOPT: +"-kernel-msg-key prop-status,-prop-status:register"
+   STDOPT: +"-kernel-msg-key prop-status,-prop-status:register -val-use-spec f"
 */
 
 struct s { int t; };

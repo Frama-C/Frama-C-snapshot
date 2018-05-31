@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2017                                               *)
+(*  Copyright (C) 2007-2018                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -142,6 +142,7 @@ let rename_project (main_ui: Design.main_window_extension_points) project =
   let old = Project.get_unique_name project in
   let s =
     Gtk_helper.input_string
+      ~parent:main_ui#main_window
       ~title:"Renaming project"
       (Format.sprintf "New name for project %S:" old)
   in

@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2017                                               *)
+(*  Copyright (C) 2007-2018                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -77,13 +77,6 @@ let to_string_no_break pp =
   Format.pp_print_flush fmt ();
   Buffer.contents b
 
-(* Special case. We want to fuse mem_access and logic_mem_access in the
-   report *)
-let alarm_get_name a =
-  match a with
-  | Alarms.Logic_memory_access _ -> "mem_access"
-  | _ -> Alarms.get_name a
-
 let to_string ip =
   let status = status_kind ip in
   let loc = Property.location ip in
@@ -104,7 +97,7 @@ let to_string ip =
         | AAssert (_, ({pred_content = p; pred_name} as named)) -> begin
           match Alarms.find ca with
           | Some alarm ->
-            (alarm_get_name alarm), (Printer.pp_predicate_node |> p)
+            (Alarms.get_name alarm), (Printer.pp_predicate_node |> p)
           | None -> begin
               (* Special hack for builtin "preconditions" in Value. Not
                  meant to stay forever, hopefully. *)
@@ -146,7 +139,7 @@ let to_string ip =
     | IPDisjoint (kf, _, _, _) -> default kf "disjoint behaviors"
 
     (* Add new cases if new IPPropertyInstance are added *)
-    | IPPropertyInstance (Some kf, Kstmt _stmt,
+    | IPPropertyInstance (kf, _, _,
                           IPPredicate (PKRequires _b, kf', Kglobal,p)) ->
       let kind = "precondition of " ^ Kernel_function.get_name kf' in
       let pp = Printer.pp_identified_predicate |> p in

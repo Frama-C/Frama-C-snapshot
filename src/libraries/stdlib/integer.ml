@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2017                                               *)
+(*  Copyright (C) 2007-2018                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -44,10 +44,6 @@ let two_power y =
 
 let popcount = Z.popcount
 
-(* To export *)
-
-  let small_nums = Array.init 33 (fun i -> Z.of_int i)
-
   let zero = Z.zero
   let one = Z.one
   let minus_one = Z.minus_one
@@ -63,7 +59,6 @@ let popcount = Z.popcount
   let two_power_64 = two_power_of_int 64
 
   let is_zero v = Z.equal v Z.zero
-
 
   let add = Z.add
   let sub = Z.sub
@@ -105,6 +100,8 @@ let popcount = Z.popcount
   (* Return the same exceptions as [Big_int] *)
   let to_int = Big_int_Z.int_of_big_int
   let to_int64 = Big_int_Z.int64_of_big_int
+  let to_int32 = Big_int_Z.int32_of_big_int
+
   let of_string s =
     try Z.of_string s
     with Invalid_argument _ ->
@@ -119,10 +116,9 @@ let popcount = Z.popcount
 
   let to_string = Z.to_string
   let to_float = Z.to_float
-  let of_float = Z.of_float
-
-  let add_2_64 x = add two_power_64 x
-  let add_2_32 x = add two_power_32 x
+  let of_float z =
+    try Z.of_float z
+    with Z.Overflow -> raise Too_big
 
   let pretty ?(hexa=false) fmt v =
     let rec aux v =
@@ -225,13 +221,9 @@ let popcount = Z.popcount
   let round_down_to_zero v modu =
     mul (pos_div v modu) modu
 
-  (** [round_up_to_r m r modu] is the smallest number [n] such that
-         [n]>=[m] and [n] = [r] modulo [modu] *)
   let round_up_to_r ~min:m ~r ~modu =
     add (add (round_down_to_zero (pred (sub m r)) modu) r) modu
 
-  (** [round_down_to_r m r modu] is the largest number [n] such that
-     [n]<=[m] and [n] = [r] modulo [modu] *)
   let round_down_to_r ~max:m ~r ~modu =
     add (round_down_to_zero (sub m r) modu) r
 

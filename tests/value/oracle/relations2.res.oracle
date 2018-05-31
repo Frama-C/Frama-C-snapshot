@@ -13,114 +13,124 @@
    [5] ∈ {41}
    [6] ∈ {42}
 [value] computing for function bts2166 <- main.
-    Called from tests/value/relations2.i:63.
-tests/value/relations2.i:6:[value] warning: function bts2166: precondition got status unknown.
-tests/value/relations2.i:7:[value] warning: function bts2166: precondition got status unknown.
-tests/value/relations2.i:15:[value] Frama_C_dump_each:
-    # Cvalue domain:
-    sv ∈ [--..--]
-    len ∈ [--..--]
-    n ∈ [1..64]
-    a[0..513] ∈ [--..--]
-    T[0] ∈ {0}
-     [1] ∈ {1}
-     [2] ∈ {42}
-     [3] ∈ {5}
-     [4] ∈ {6}
-     [5] ∈ {41}
-     [6] ∈ {42}
-    ==END OF DUMP==
-tests/value/relations2.i:17:[value] Frama_C_show_each_end: [0..4294967295], [0..64]
+  Called from tests/value/relations2.i:63.
+[value:alarm] tests/value/relations2.i:63: Warning: 
+  function bts2166: precondition 'len' got status unknown.
+[value:alarm] tests/value/relations2.i:63: Warning: 
+  function bts2166: precondition 'n' got status unknown.
+[value] tests/value/relations2.i:15: 
+  Frama_C_dump_each:
+  # Cvalue domain:
+  sv ∈ [--..--]
+  len ∈ [--..--]
+  n ∈ [1..64]
+  a[0..513] ∈ [--..--]
+  T[0] ∈ {0}
+   [1] ∈ {1}
+   [2] ∈ {42}
+   [3] ∈ {5}
+   [4] ∈ {6}
+   [5] ∈ {41}
+   [6] ∈ {42}
+  ==END OF DUMP==
+[value] tests/value/relations2.i:17: 
+  Frama_C_show_each_end: [0..4294967295], [0..64]
 [value] Recording results for bts2166
 [value] Done for function bts2166
 [value] computing for function main2 <- main.
-    Called from tests/value/relations2.i:64.
+  Called from tests/value/relations2.i:64.
 [value] computing for function unsigned_interval <- main2 <- main.
-    Called from tests/value/relations2.i:29.
+  Called from tests/value/relations2.i:29.
 [value] using specification for function unsigned_interval
 [value] Done for function unsigned_interval
 [value] computing for function unsigned_interval <- main2 <- main.
-    Called from tests/value/relations2.i:30.
+  Called from tests/value/relations2.i:30.
 [value] Done for function unsigned_interval
 [value] computing for function unsigned_interval <- main2 <- main.
-    Called from tests/value/relations2.i:31.
+  Called from tests/value/relations2.i:31.
 [value] Done for function unsigned_interval
-tests/value/relations2.i:32:[value] entering loop for the first time
-tests/value/relations2.i:33:[value] Frama_C_dump_each:
-    # Cvalue domain:
-    sv ∈ [--..--]
-    a[0..513] ∈ [--..--]
-    i ∈ [1..512]
-    t ∈ [0..511]
-    n ∈ [0..512]
-    s ∈ {0}
-    T[0] ∈ {0}
-     [1] ∈ {1}
-     [2] ∈ {42}
-     [3] ∈ {5}
-     [4] ∈ {6}
-     [5] ∈ {41}
-     [6] ∈ {42}
-    ==END OF DUMP==
-tests/value/relations2.i:34:[value] warning: accessing out of bounds index.
-    assert (unsigned int)(i - (unsigned int)(t + 1)) < 514;
-tests/value/relations2.i:33:[value] Frama_C_dump_each:
-    # Cvalue domain:
-    sv ∈ [--..--]
-    a[0..513] ∈ [--..--]
-    i ∈ [1..512]
-    t ∈ [0..511]
-    n ∈ [0..512]
-    s ∈ {0; 1}
-    T[0] ∈ {0}
-     [1] ∈ {1}
-     [2] ∈ {42}
-     [3] ∈ {5}
-     [4] ∈ {6}
-     [5] ∈ {41}
-     [6] ∈ {42}
-    ==END OF DUMP==
-tests/value/relations2.i:33:[value] Frama_C_dump_each:
-    # Cvalue domain:
-    sv ∈ [--..--]
-    a[0..513] ∈ [--..--]
-    i ∈ [1..512]
-    t ∈ [0..511]
-    n ∈ [0..512]
-    s ∈ {0; 1; 2}
-    T[0] ∈ {0}
-     [1] ∈ {1}
-     [2] ∈ {42}
-     [3] ∈ {5}
-     [4] ∈ {6}
-     [5] ∈ {41}
-     [6] ∈ {42}
-    ==END OF DUMP==
-tests/value/relations2.i:33:[value] Frama_C_dump_each:
-    # Cvalue domain:
-    sv ∈ [--..--]
-    a[0..513] ∈ [--..--]
-    i ∈ [1..512]
-    t ∈ [0..511]
-    n ∈ [0..512]
-    s ∈ [0..2147483647]
-    T[0] ∈ {0}
-     [1] ∈ {1}
-     [2] ∈ {42}
-     [3] ∈ {5}
-     [4] ∈ {6}
-     [5] ∈ {41}
-     [6] ∈ {42}
-    ==END OF DUMP==
-tests/value/relations2.i:35:[value] warning: signed overflow. assert s + b3 ≤ 2147483647;
+[value] tests/value/relations2.i:32: entering loop for the first time
+[value] tests/value/relations2.i:33: 
+  Frama_C_dump_each:
+  # Cvalue domain:
+  sv ∈ [--..--]
+  a[0..513] ∈ [--..--]
+  i ∈ [1..512]
+  t ∈ [0..511]
+  n ∈ [0..512]
+  s ∈ {0}
+  T[0] ∈ {0}
+   [1] ∈ {1}
+   [2] ∈ {42}
+   [3] ∈ {5}
+   [4] ∈ {6}
+   [5] ∈ {41}
+   [6] ∈ {42}
+  ==END OF DUMP==
+[value:alarm] tests/value/relations2.i:34: Warning: 
+  accessing out of bounds index.
+  assert (unsigned int)(i - (unsigned int)(t + 1)) < 514;
+[value] tests/value/relations2.i:33: 
+  Frama_C_dump_each:
+  # Cvalue domain:
+  sv ∈ [--..--]
+  a[0..513] ∈ [--..--]
+  i ∈ [1..512]
+  t ∈ [0..511]
+  n ∈ [0..512]
+  s ∈ {0; 1}
+  T[0] ∈ {0}
+   [1] ∈ {1}
+   [2] ∈ {42}
+   [3] ∈ {5}
+   [4] ∈ {6}
+   [5] ∈ {41}
+   [6] ∈ {42}
+  ==END OF DUMP==
+[value] tests/value/relations2.i:33: 
+  Frama_C_dump_each:
+  # Cvalue domain:
+  sv ∈ [--..--]
+  a[0..513] ∈ [--..--]
+  i ∈ [1..512]
+  t ∈ [0..511]
+  n ∈ [0..512]
+  s ∈ {0; 1; 2}
+  T[0] ∈ {0}
+   [1] ∈ {1}
+   [2] ∈ {42}
+   [3] ∈ {5}
+   [4] ∈ {6}
+   [5] ∈ {41}
+   [6] ∈ {42}
+  ==END OF DUMP==
+[value] tests/value/relations2.i:33: 
+  Frama_C_dump_each:
+  # Cvalue domain:
+  sv ∈ [--..--]
+  a[0..513] ∈ [--..--]
+  i ∈ [1..512]
+  t ∈ [0..511]
+  n ∈ [0..512]
+  s ∈ [0..2147483647]
+  T[0] ∈ {0}
+   [1] ∈ {1}
+   [2] ∈ {42}
+   [3] ∈ {5}
+   [4] ∈ {6}
+   [5] ∈ {41}
+   [6] ∈ {42}
+  ==END OF DUMP==
+[value:alarm] tests/value/relations2.i:35: Warning: 
+  signed overflow. assert s + b3 ≤ 2147483647;
 [value] Recording results for main2
 [value] Done for function main2
 [value] computing for function main3 <- main.
-    Called from tests/value/relations2.i:65.
-tests/value/relations2.i:47:[value] Frama_C_show_each_NO1:
-tests/value/relations2.i:49:[value] Frama_C_show_each_OK1:
-tests/value/relations2.i:55:[value] Frama_C_show_each_OK2:
-tests/value/relations2.i:57:[value] Frama_C_show_each_NO2:
+  Called from tests/value/relations2.i:65.
+[value] tests/value/relations2.i:47: Frama_C_show_each_NO1:
+[value] tests/value/relations2.i:49: Frama_C_show_each_OK1:
+[value] tests/value/relations2.i:55: Frama_C_show_each_OK2:
+[value] tests/value/relations2.i:57: Frama_C_show_each_NO2:
 [value] Recording results for main3
 [value] Done for function main3
 [value] Recording results for main
@@ -161,7 +171,7 @@ tests/value/relations2.i:57:[value] Frama_C_show_each_NO2:
 [from] Computing for function main
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
-    These dependencies hold at termination for the executions that terminate:
+  These dependencies hold at termination for the executions that terminate:
 [from] Function bts2166:
   NO EFFECTS
 [from] Function main3:
@@ -176,18 +186,18 @@ tests/value/relations2.i:57:[value] Frama_C_show_each_NO2:
    [5..6] FROM sv; T[3..4] (and SELF)
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function bts2166:
-      len; n
+    len; n
 [inout] Inputs for function bts2166:
-      \nothing
+    \nothing
 [inout] Out (internal) for function main3:
-      T{[0..1]; [5..6]}
+    T{[0..1]; [5..6]}
 [inout] Inputs for function main3:
-      T[0..6]
+    T[0..6]
 [inout] Out (internal) for function main2:
-      i; t; n; s; b3
+    i; t; n; s; b3
 [inout] Inputs for function main2:
-      a[0..513]
+    a[0..513]
 [inout] Out (internal) for function main:
-      T{[0..1]; [5..6]}
+    T{[0..1]; [5..6]}
 [inout] Inputs for function main:
-      sv; a[0..513]; T[0..6]
+    sv; a[0..513]; T[0..6]

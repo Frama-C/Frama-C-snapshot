@@ -6,17 +6,17 @@
   G ∈ {0}
   H ∈ {0}
 [value] computing for function f <- main.
-    Called from tests/value/deps_local.i:22.
+  Called from tests/value/deps_local.i:22.
 [value] computing for function h <- f <- main.
-    Called from tests/value/deps_local.i:17.
+  Called from tests/value/deps_local.i:17.
 [value] Recording results for h
 [value] Done for function h
 [value] Recording results for f
 [value] Done for function f
 [value] computing for function g <- main.
-    Called from tests/value/deps_local.i:23.
+  Called from tests/value/deps_local.i:23.
 [value] computing for function h <- g <- main.
-    Called from tests/value/deps_local.i:11.
+  Called from tests/value/deps_local.i:11.
 [value] Recording results for h
 [value] Done for function h
 [value] Recording results for g
@@ -44,7 +44,7 @@
 [from] Computing for function main
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
-    These dependencies hold at termination for the executions that terminate:
+  These dependencies hold at termination for the executions that terminate:
 [from] Function h:
   ga FROM H; argh (and SELF)
   fa FROM H; argh (and SELF)
@@ -57,18 +57,18 @@
   \result FROM \nothing
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function h:
-      ga; fa
+    ga; fa
 [inout] Inputs for function h:
-      H
+    H
 [inout] Out (internal) for function f:
-      fa; __retres
+    fa; __retres
 [inout] Inputs for function f:
-      H
+    H
 [inout] Out (internal) for function g:
-      ga; __retres
+    ga; __retres
 [inout] Inputs for function g:
-      H
+    H
 [inout] Out (internal) for function main:
-      __retres
+    __retres
 [inout] Inputs for function main:
-      H
+    H

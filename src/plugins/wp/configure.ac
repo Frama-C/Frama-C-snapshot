@@ -2,7 +2,7 @@
 #                                                                        #
 #  This file is part of WP plug-in of Frama-C.                           #
 #                                                                        #
-#  Copyright (C) 2007-2017                                               #
+#  Copyright (C) 2007-2018                                               #
 #    CEA (Commissariat a l'energie atomique et aux energies              #
 #         alternatives)                                                  #
 #                                                                        #
@@ -63,7 +63,7 @@ if test "$ENABLE_WP" != "no"; then
     if test "$COQC" = "yes" ; then
       COQVERSION=`coqc -v | sed -n -e 's|.*version* *\([[^ ]]*\) .*$|\1|p' `
       case $COQVERSION in
-        8.5*|8.6*|trunk)
+        8.5*|8.6*|8.7*|trunk)
           AC_MSG_RESULT(coqc version $COQVERSION found)
           ;;
         *) 
@@ -85,7 +85,7 @@ if test "$ENABLE_WP" != "no"; then
     if test "$WHY3COQC" = "yes" ; then
       WHY3VERSION=`why3 --version | sed -n -e 's|.*version *\([[^ ]]*\)$|\1|p' `
       case $WHY3VERSION in
-        0.86*|0.87*|0.88*)
+        0.88*)
           AC_MSG_RESULT(why3 version $WHY3VERSION found)
 	  WHY3LIB=`why3 --print-libdir`
 	  if test -f $WHY3LIB/coq/BuiltIn.vo ; then

@@ -6,37 +6,137 @@
   Frama_C_entropy_source ∈ [--..--]
   v ∈ [--..--]
   vs ∈ [--..--]
+  table[0..3] ∈ {66}
+       [4] ∈ {1}
+       [5] ∈ {8}
+       [6] ∈ {7}
+       [7] ∈ {2}
+       [8..11] ∈ {0}
+       [12..15] ∈ {66}
+       [16] ∈ {9}
+       [17] ∈ {3}
+       [18] ∈ {4}
+       [19] ∈ {5}
+       [20..23] ∈ {0}
+       [24..27] ∈ {66}
+       [28] ∈ {2}
+       [29] ∈ {3}
+       [30] ∈ {7}
+       [31] ∈ {5}
+       [32..35] ∈ {0}
 [value] computing for function subdivide_integer <- main.
-    Called from tests/value/nonlin.c:48.
-tests/value/nonlin.c:31:[value:nonlin] non-linear '((int)z + 675) * ((int)z + 675)', lv 'z'
-tests/value/nonlin.c:31:[value:nonlin] subdividing on z
-tests/value/nonlin.c:32:[value:nonlin] non-linear '((int)z + 17817) * ((int)z + 17817)', lv 'z'
-tests/value/nonlin.c:32:[value:nonlin] subdividing on z
-tests/value/nonlin.c:32:[value] warning: signed overflow.
-    assert (int)((int)z + 17817) * (int)((int)z + 17817) ≤ 2147483647;
-tests/value/nonlin.c:39:[value:nonlin] non-linear '(i2 + (long long)3) * (i2 + (long long)3)', lv 'i2'
-tests/value/nonlin.c:39:[value:nonlin] non-linear 'i1 * i1', lv 'i1'
-tests/value/nonlin.c:39:[value:nonlin] subdividing on i2
-tests/value/nonlin.c:39:[value:nonlin] subdividing on i1
-tests/value/nonlin.c:43:[value] warning: assertion got status unknown.
-tests/value/nonlin.c:44:[value:nonlin] non-linear '(int)idx * (int)idx', lv 'idx'
-tests/value/nonlin.c:44:[value:nonlin] subdividing on idx
+  Called from tests/value/nonlin.c:107.
+[value:nonlin] tests/value/nonlin.c:31: 
+  non-linear '((int)z + 675) * ((int)z + 675)', lv 'z'
+[value:nonlin] tests/value/nonlin.c:31: subdividing on z
+[value:nonlin] tests/value/nonlin.c:32: 
+  non-linear '((int)z + 17817) * ((int)z + 17817)', lv 'z'
+[value:nonlin] tests/value/nonlin.c:32: subdividing on z
+[value:alarm] tests/value/nonlin.c:32: Warning: 
+  signed overflow.
+  assert (int)((int)z + 17817) * (int)((int)z + 17817) ≤ 2147483647;
+[value:nonlin] tests/value/nonlin.c:39: 
+  non-linear '(i2 + (long long)3) * (i2 + (long long)3)', lv 'i2'
+[value:nonlin] tests/value/nonlin.c:39: non-linear 'i1 * i1', lv 'i1'
+[value:nonlin] tests/value/nonlin.c:39: subdividing on i2
+[value:nonlin] tests/value/nonlin.c:39: subdividing on i1
+[value:alarm] tests/value/nonlin.c:43: Warning: assertion got status unknown.
+[value:nonlin] tests/value/nonlin.c:44: 
+  non-linear '(int)idx * (int)idx', lv 'idx'
+[value:nonlin] tests/value/nonlin.c:44: subdividing on idx
 [value] Recording results for subdivide_integer
 [value] Done for function subdivide_integer
 [value] computing for function subdivide_pointer <- main.
-    Called from tests/value/nonlin.c:49.
+  Called from tests/value/nonlin.c:108.
 [value] computing for function Frama_C_interval <- subdivide_pointer <- main.
-    Called from tests/value/nonlin.c:13.
+  Called from tests/value/nonlin.c:12.
 [value] using specification for function Frama_C_interval
-share/libc/__fc_builtin.h:52:[value] function Frama_C_interval: precondition got status valid.
+[value] tests/value/nonlin.c:12: 
+  function Frama_C_interval: precondition 'order' got status valid.
 [value] Done for function Frama_C_interval
-tests/value/nonlin.c:20:[value:nonlin] non-linear '(p + i) - i', lv 'i'
-tests/value/nonlin.c:20:[value:nonlin] subdividing on i
-tests/value/nonlin.c:20:[value] warning: out of bounds read. assert \valid_read((p + i) - i);
-tests/value/nonlin.c:24:[value:nonlin] subdividing on i
-tests/value/nonlin.c:24:[value] warning: out of bounds read. assert \valid_read((p + i) - i);
+[value] computing for function Frama_C_interval <- subdivide_pointer <- main.
+  Called from tests/value/nonlin.c:14.
+[value] tests/value/nonlin.c:14: 
+  function Frama_C_interval: precondition 'order' got status valid.
+[value] Done for function Frama_C_interval
+[value:alarm] tests/value/nonlin.c:18: Warning: 
+  out of bounds read. assert \valid_read((&y + i) - i);
+[value:nonlin] tests/value/nonlin.c:21: non-linear '(p + i) - i', lv 'i'
+[value:nonlin] tests/value/nonlin.c:21: subdividing on i
+[value:alarm] tests/value/nonlin.c:21: Warning: 
+  out of bounds read. assert \valid_read((p + i) - i);
+[value:alarm] tests/value/nonlin.c:24: Warning: 
+  out of bounds read. assert \valid_read((p + i) - i);
 [value] Recording results for subdivide_pointer
 [value] Done for function subdivide_pointer
+[value] computing for function subdivide_several_variables <- main.
+  Called from tests/value/nonlin.c:109.
+[value] computing for function Frama_C_interval <- subdivide_several_variables <- 
+                          main.
+  Called from tests/value/nonlin.c:51.
+[value] tests/value/nonlin.c:51: 
+  function Frama_C_interval: precondition 'order' got status valid.
+[value] Done for function Frama_C_interval
+[value] computing for function Frama_C_interval <- subdivide_several_variables <- 
+                          main.
+  Called from tests/value/nonlin.c:52.
+[value] tests/value/nonlin.c:52: 
+  function Frama_C_interval: precondition 'order' got status valid.
+[value] Done for function Frama_C_interval
+[value] computing for function Frama_C_interval <- subdivide_several_variables <- 
+                          main.
+  Called from tests/value/nonlin.c:53.
+[value] tests/value/nonlin.c:53: 
+  function Frama_C_interval: precondition 'order' got status valid.
+[value] Done for function Frama_C_interval
+[value] computing for function Frama_C_interval <- subdivide_several_variables <- 
+                          main.
+  Called from tests/value/nonlin.c:54.
+[value] tests/value/nonlin.c:54: 
+  function Frama_C_interval: precondition 'order' got status valid.
+[value] Done for function Frama_C_interval
+[value:nonlin] tests/value/nonlin.c:56: non-linear 'x * x', lv 'x'
+[value:nonlin] tests/value/nonlin.c:56: non-linear 'y * y', lv 'y'
+[value:nonlin] tests/value/nonlin.c:56: subdividing on x
+[value:nonlin] tests/value/nonlin.c:56: subdividing on y
+[value:nonlin] tests/value/nonlin.c:62: non-linear 'x * x', lv 'x'
+[value:nonlin] tests/value/nonlin.c:62: non-linear '((x * x) * y) * y', lv 'y'
+[value:nonlin] tests/value/nonlin.c:62: subdividing on x
+[value:nonlin] tests/value/nonlin.c:62: subdividing on y
+[value:nonlin] tests/value/nonlin.c:64: non-linear 'x * y - y * x', lv 'y, x'
+[value:nonlin] tests/value/nonlin.c:64: subdividing on x, y
+[value:nonlin] tests/value/nonlin.c:67: 
+  non-linear '(x * x - (2 * x) * y) + y * y', lv 'y, x'
+[value:nonlin] tests/value/nonlin.c:67: subdividing on x, y
+[value:nonlin] tests/value/nonlin.c:68: 
+  non-linear '(x * x + y * y) - (2 * x) * y', lv 'y, x'
+[value:nonlin] tests/value/nonlin.c:68: subdividing on x, y
+[value:nonlin] tests/value/nonlin.c:70: 
+  non-linear '(z * x + x * y) + y * z', lv 'z, y, x'
+[value:nonlin] tests/value/nonlin.c:70: non-linear 'w * w', lv 'w'
+[value:nonlin] tests/value/nonlin.c:70: subdividing on x, y, z
+[value:nonlin] tests/value/nonlin.c:70: subdividing on w
+[value] Recording results for subdivide_several_variables
+[value] Done for function subdivide_several_variables
+[value] computing for function subdivide_table <- main.
+  Called from tests/value/nonlin.c:110.
+[value] tests/value/nonlin.c:89: loop invariant got status valid.
+[value] tests/value/nonlin.c:90: entering loop for the first time
+[value:nonlin] tests/value/nonlin.c:91: 
+  non-linear '(4 + ((x >> 2) * 3 << 2)) + x % 4', lv 'x'
+[value:nonlin] tests/value/nonlin.c:91: subdividing on x
+[value] Recording results for subdivide_table
+[value] Done for function subdivide_table
+[value] computing for function subdivide_reduced_value <- main.
+  Called from tests/value/nonlin.c:111.
+[value:nonlin] tests/value/nonlin.c:103: non-linear 't1[i] - t2[i]', lv 'i'
+[value:nonlin] tests/value/nonlin.c:103: subdividing on i
+[value:alarm] tests/value/nonlin.c:103: Warning: 
+  accessing out of bounds index. assert 0 ≤ i;
+[value:alarm] tests/value/nonlin.c:103: Warning: 
+  accessing out of bounds index. assert i < 2;
+[value] Recording results for subdivide_reduced_value
+[value] Done for function subdivide_reduced_value
 [value] Recording results for main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======
@@ -54,11 +154,32 @@ tests/value/nonlin.c:24:[value] warning: out of bounds read. assert \valid_read(
   idx ∈ [0..10]
 [value:final-states] Values at end of function subdivide_pointer:
   Frama_C_entropy_source ∈ [--..--]
-  y ∈ {17}
-  x ∈ {17}
+  y ∈ [-10..10]
+  x ∈ [-10..10]
   p ∈ {{ &x }}
   i ∈ {{ NULL + [0..100] ; (int)&x }}
   q ∈ {{ &x + [-400..400],0%4 }}
+[value:final-states] Values at end of function subdivide_reduced_value:
+  t1[0] ∈ {0}
+    [1] ∈ {1}
+  t2[0] ∈ {0}
+    [1] ∈ {1}
+  i ∈ {0; 1}
+  r ∈ {-1; 0; 1}
+[value:final-states] Values at end of function subdivide_several_variables:
+  Frama_C_entropy_source ∈ [--..--]
+  w ∈ [-10..10]
+  x ∈ [-10..10]
+  y ∈ [-10..10]
+  z ∈ [-10..10]
+  norm ∈ [0..200]
+  mult ∈ [-10000..10000]
+  zero ∈ [-26..26]
+  square ∈ [-48..400]
+  square2 ∈ [-48..400]
+  res ∈ [-144..400]
+[value:final-states] Values at end of function subdivide_table:
+  NON TERMINATING FUNCTION
 [value:final-states] Values at end of function main:
   Frama_C_entropy_source ∈ [--..--]
 [from] Computing for function subdivide_integer
@@ -67,10 +188,17 @@ tests/value/nonlin.c:24:[value] warning: out of bounds read. assert \valid_read(
 [from] Computing for function Frama_C_interval <-subdivide_pointer
 [from] Done for function Frama_C_interval
 [from] Done for function subdivide_pointer
+[from] Computing for function subdivide_reduced_value
+[from] Done for function subdivide_reduced_value
+[from] Computing for function subdivide_several_variables
+[from] Done for function subdivide_several_variables
+[from] Computing for function subdivide_table
+[from] Non-terminating function subdivide_table (no dependencies)
+[from] Done for function subdivide_table
 [from] Computing for function main
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
-    These dependencies hold at termination for the executions that terminate:
+  These dependencies hold at termination for the executions that terminate:
 [from] Function Frama_C_interval:
   Frama_C_entropy_source FROM Frama_C_entropy_source (and SELF)
   \result FROM Frama_C_entropy_source; min; max
@@ -78,18 +206,36 @@ tests/value/nonlin.c:24:[value] warning: out of bounds read. assert \valid_read(
   NO EFFECTS
 [from] Function subdivide_pointer:
   Frama_C_entropy_source FROM Frama_C_entropy_source (and SELF)
+[from] Function subdivide_reduced_value:
+  NO EFFECTS
+[from] Function subdivide_several_variables:
+  Frama_C_entropy_source FROM Frama_C_entropy_source (and SELF)
+[from] Function subdivide_table:
+  NON TERMINATING - NO EFFECTS
 [from] Function main:
   Frama_C_entropy_source FROM Frama_C_entropy_source (and SELF)
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function subdivide_integer:
-      z; k; l; x; p; i1; i2; r; t[0..100]; idx
+    z; k; l; x; p; i1; i2; r; t[0..100]; idx
 [inout] Inputs for function subdivide_integer:
-      v; vs
+    v; vs
 [inout] Out (internal) for function subdivide_pointer:
-      Frama_C_entropy_source; y; x; p; i; q
+    Frama_C_entropy_source; y; x; p; i; q
 [inout] Inputs for function subdivide_pointer:
-      Frama_C_entropy_source; v
+    Frama_C_entropy_source; v
+[inout] Out (internal) for function subdivide_reduced_value:
+    t1[0..1]; t2[0..1]; i; r
+[inout] Inputs for function subdivide_reduced_value:
+    v
+[inout] Out (internal) for function subdivide_several_variables:
+    Frama_C_entropy_source; w; x; y; z; norm; mult; zero; square; square2; res
+[inout] Inputs for function subdivide_several_variables:
+    Frama_C_entropy_source
+[inout] Out (internal) for function subdivide_table:
+    x
+[inout] Inputs for function subdivide_table:
+    table[4..29]
 [inout] Out (internal) for function main:
-      Frama_C_entropy_source
+    Frama_C_entropy_source
 [inout] Inputs for function main:
-      Frama_C_entropy_source; v; vs
+    Frama_C_entropy_source; v; vs; table[4..29]

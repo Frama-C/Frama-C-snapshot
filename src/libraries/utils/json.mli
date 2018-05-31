@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2017                                               *)
+(*  Copyright (C) 2007-2018                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -44,6 +44,7 @@ type t =
 val equal : t -> t -> bool (** Pervasives *)
 val compare : t -> t -> int (** Pervasives *)
 val pp : Format.formatter -> t -> unit
+val pp_dump : Format.formatter -> t -> unit (** without formatting *)
 
 exception Error of string * int * string
 (** file, line, message *)
@@ -61,7 +62,7 @@ val of_fields : (string * t) list -> t
 (** {2 Parsers} Parsing raise [Error] in case of error. *)
 
 val load_lexbuf : Lexing.lexbuf -> t (** Consumes the entire buffer. *)
-val load_channel : in_channel -> t (** Parses the stream until EOF. *)
+val load_channel : ?file:string -> in_channel -> t (** Parses the stream until EOF. *)
 val load_string : string -> t (** Parses the Json in the string. *)
 val load_file : string -> t (** May also raise system exception. *)
 
@@ -70,6 +71,7 @@ val load_file : string -> t (** May also raise system exception. *)
 val save_string : ?pretty:bool -> t -> string
 val save_buffer : ?pretty:bool -> Buffer.t -> t -> unit
 val save_channel : ?pretty:bool -> out_channel -> t -> unit
+val save_formatter : ?pretty:bool -> Format.formatter -> t -> unit
 val save_file : ?pretty:bool -> string -> t -> unit
 
 (** {2 Accessors}

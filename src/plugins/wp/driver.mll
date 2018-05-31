@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2017                                               *)
+(*  Copyright (C) 2007-2018                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -203,13 +203,20 @@ and bal = parse
 
   type input = {
     lexbuf : Lexing.lexbuf ;
+    mutable position : Lexing.position ;
     mutable current : token ;
   }
 
   let skip input =
-    if input.current <> EOF then input.current <- tok input.lexbuf
+    if input.current <> EOF then
+      begin
+        input.position <- input.lexbuf.lex_curr_p ;
+        input.current <- tok input.lexbuf ;
+      end
 
   let token input = input.current
+
+  let source input = input.position
 
   let value input =
     if input.current = EOF then failwith "Value expected"
@@ -328,10 +335,11 @@ and bal = parse
       | "\\true" -> E_true
       | "\\false" -> E_false
       | _ ->
-        match LogicBuiltins.constant op with
-        | ACSLDEF -> failwith (Printf.sprintf "Symbol '%s' not found" op)
-        | LFUN lfun -> E_const lfun
-
+          match LogicBuiltins.constant op with
+          | ACSLDEF -> failwith (Printf.sprintf "Symbol '%s' not found" op)
+          | HACK _ -> failwith (Printf.sprintf "Symbol '%s' hacked" op)
+          | LFUN lfun -> E_fun(lfun,[])
+                             
   let rec op_link op input =
     match token input with
       | LINK _ | RECLINK _ ->
@@ -380,53 +388,57 @@ and bal = parse
           parse ~driver_dir name input
       | KEY "type" ->
 	  skip input ;
-	  let name = ident input in
-	  noskipkey input "=" ;
-	  let link = linkstring input in
-	  add_type name ~library ~link () ;
+          let name = ident input in
+          let source = source input in
+          noskipkey input "=" ;
+          let link = linkstring input in
+          add_type ~source name ~library ~link () ;
 	  skipkey input ";" ;
 	  parse ~driver_dir library input
       | KEY "ctor" ->
 	  skip input ;
 	  let name = ident input in
+          let source = source input in
 	  let args = signature input in
 	  skipkey input "=" ;
 	  let link = link `Nary input in
-	  add_ctor name args ~library ~link () ;
+	  add_ctor ~source name args ~library ~link () ;
 	  skipkey input ";" ;
 	  parse ~driver_dir library input
       | KEY "logic" ->
 	  skip input ;
 	  let result = kind input in
 	  let name = ident input in
+          let source = source input in
 	  let args = signature input in
           if key input ":=" then
             begin
               let alias = ident input in
-              add_alias name args ~alias () ;
+              add_alias ~source name args ~alias () ;
             end
           else
             begin
 	      skipkey input "=" ;
               let category,link = logic_link input in
-              add_logic result name args ~library ~category ~link () ;
+              add_logic ~source result name args ~library ~category ~link () ;
             end ;
           skipkey input ";" ;
 	  parse ~driver_dir library input
       | KEY "predicate" ->
 	  skip input ;
 	  let name = ident input in
+          let source = source input in
 	  let args = signature input in
           if key input ":=" then
             begin
               let alias = ident input in
-              add_alias name args ~alias () ;
+              add_alias ~source name args ~alias () ;
             end
           else
             begin
 	      noskipkey input "=" ;
 	      let link = linkstring input in
-	      add_predicate name args ~library ~link () ;
+	      add_predicate ~source name args ~library ~link () ;
             end ;
           skipkey input ";" ;
           parse ~driver_dir library input
@@ -445,16 +457,16 @@ and bal = parse
         parse ~driver_dir library input
       | _ -> failwith "Unexpected entry"
 
-  let load ?(ontty=`Transient) file =
+  let load_file ?(ontty=`Transient) file =
     try
       Wp_parameters.feedback ~ontty "Loading driver '%s'" (Filepath.pretty file) ;
       let driver_dir = Filename.dirname file in
       let inc = open_in file in
       let lex = Lexing.from_channel inc in
-      lex.Lexing.lex_curr_p <-
-        { lex.Lexing.lex_curr_p with Lexing.pos_fname = file } ;
-      let input = { current = tok lex ; lexbuf = lex } in
+      let position = { lex.Lexing.lex_curr_p with Lexing.pos_fname = file } in
+      let input = { current = tok lex ; position = position ; lexbuf = lex } in
       try
+        lex.Lexing.lex_curr_p <- position ;
 	parse ~driver_dir "qed" input ;
 	close_in inc
       with Failure msg ->
@@ -512,8 +524,8 @@ and bal = parse
         let default = Wp_parameters.Share.file ~error:true "wp.driver" in
         let feedback = Wp_parameters.Share.Dir_name.is_set () in
         let ontty = if feedback then `Message else `Transient in
-        load ~ontty default;
-        List.iter load drivers;
+        load_file ~ontty default;
+        List.iter load_file drivers;
         Hashtbl.add loaded key (Context.get LogicBuiltins.driver);
         if Wp_parameters.has_dkey dkey_driver  then LogicBuiltins.dump ()
     end ; Context.get LogicBuiltins.driver

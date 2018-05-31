@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2017                                               *)
+(*  Copyright (C) 2007-2018                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -171,15 +171,21 @@ let sort_of_ltype t = match Logic_utils.unroll_type t with
 
 let tau_of_comp c = Logic.Data(Comp c,[])
 
-let array a = Logic.Array(Logic.Int,a)
-let farray a b = Logic.Array(a,b)
+let t_int = Logic.Int
+let t_bool = Logic.Bool
+let t_real = Logic.Real
+let t_prop = Logic.Prop
+let t_addr () = Context.get pointer (Cil_types.TVoid [])
+let t_array a = Logic.Array(Logic.Int,a)
+let t_farray a b = Logic.Array(a,b)
+let t_datatype adt ts = Logic.Data(adt,ts)
 
 let rec tau_of_object = function
   | C_int _ -> Logic.Int
   | C_float _ -> Logic.Real
   | C_pointer t -> Context.get pointer t
   | C_comp c -> tau_of_comp c
-  | C_array { arr_element = typ } -> array (tau_of_ctype typ)
+  | C_array { arr_element = typ } -> t_array (tau_of_ctype typ)
 
 and tau_of_ctype typ = tau_of_object (Ctypes.object_of typ)
 
@@ -261,15 +267,24 @@ end
 (* --- Datatypes                                                          --- *)
 (* -------------------------------------------------------------------------- *)
 
-let atype t =
-  try Mtype(Hashtbl.find builtins t.lt_name)
-  with Not_found -> Atype t
+let atype lt =
+  try Mtype(Hashtbl.find builtins lt.lt_name)
+  with Not_found -> Atype lt
 
-let builtin_type ~name ~link ~library =
+let get_builtin_type ~name ~link ~library =
   try Mtype (Hashtbl.find builtins name)
   with Not_found ->
     let m = new_extern ~link ~library ~debug:name in
     Hashtbl.add builtins name m ; Mtype m
+
+let set_builtin_type ~name ~link ~library =
+  let m = new_extern ~link ~library ~debug:name in
+  Hashtbl.add builtins name m
+
+let mem_builtin_type ~name =
+  Hashtbl.mem builtins name
+
+let is_builtin lt = Hashtbl.mem builtins lt.lt_name
 
 let is_builtin_type ~name = function
   | Data(Mtype m,_) ->
@@ -549,25 +564,25 @@ let parameters phi = Fun.parameters := phi
 
 class virtual idprinting =
   object(self)
-    method virtual basename  : string -> string
     method virtual infoprover: 'a. 'a infoprover -> 'a
+    method virtual sanitize : string -> string
 
-    method datatypename  = self#basename
-    method fieldname     = self#basename
-    method funname       = self#basename
+    method sanitize_type  = self#sanitize
+    method sanitize_field = self#sanitize
+    method sanitize_fun   = self#sanitize
 
     method datatype = function
       | Mtype a -> self#infoprover a.ext_link
       | Mrecord(a,_) -> self#infoprover a.ext_link
-      | Comp c -> self#datatypename (comp_id c)
-      | Atype lt -> self#datatypename (type_id lt)
+      | Comp c -> self#sanitize_type (comp_id c)
+      | Atype lt -> self#sanitize_type (type_id lt)
     method field = function
-      | Mfield(_,_,f,_) -> self#fieldname f
-      | Cfield f -> self#fieldname (field_id f)
+      | Mfield(_,_,f,_) -> self#sanitize_field f
+      | Cfield f -> self#sanitize_field (field_id f)
     method link = function
-      | ACSL f -> Engine.F_call (self#funname (logic_id f))
-      | CTOR c -> Engine.F_call (self#funname (ctor_id c))
-      | Model({m_source=Generated n}) -> Engine.F_call (self#funname n)
+      | ACSL f -> Engine.F_call (self#sanitize_fun (logic_id f))
+      | CTOR c -> Engine.F_call (self#sanitize_fun (ctor_id c))
+      | Model({m_source=Generated n}) -> Engine.F_call (self#sanitize_fun n)
       | Model({m_source=Extern e})    -> self#infoprover e.ext_link
   end
 
@@ -684,6 +699,7 @@ struct
   let e_zero = QED.constant (e_zint Z.zero)
   let e_one  = QED.constant (e_zint Z.one)
   let e_minus_one = QED.constant (e_zint Z.minus_one)
+  let e_minus_one_real  = QED.constant (e_real Q.minus_one)
   let e_one_real  = QED.constant (e_real Q.one)
   let e_zero_real = QED.constant (e_real Q.zero)
 
@@ -725,6 +741,7 @@ struct
   let is_equal a b = is_true (e_eq a b)
 
   let p_equal = e_eq
+  let p_equals = List.map (fun (x,y) -> p_equal x y)
   let p_neq = e_neq
   let p_leq = e_leq
   let p_lt = e_lt
@@ -772,18 +789,19 @@ struct
     | True | False | Kint _ | Kreal _ | Fvar _ | Bvar _ -> ()
     | Eq(a,b) | Neq(a,b) when is_prop a && is_prop b -> fp a ; fp b
     | Eq _ | Neq _ | Leq _ | Lt _ | Times _ | Add _ | Mul _ | Div _ | Mod _
-    | Aget _ | Aset _ | Rget _ | Rdef _ | Fun _ | Apply _ -> lc_iter fe p
+    | Acst _ | Aget _ | Aset _ | Rget _ | Rdef _ | Fun _ | Apply _ -> lc_iter fe p
     | And _ | Or _ | Imply _ | If _ | Not _ | Bind _ -> lc_iter fp p
   
   let pp_tau = Pretty.pp_tau
+  let context_pp = Context.create "Lang.F.pp"
   let pp_term fmt e =
     if Wp_parameters.has_dkey dkey_pretty
     then QED.debug fmt e
-    else Pretty.pp_term Pretty.empty fmt e
-  let pp_pred fmt p =
-    if Wp_parameters.has_dkey dkey_pretty
-    then QED.debug fmt p
-    else Pretty.pp_term Pretty.empty fmt p
+    else
+      match Context.get_opt context_pp with
+      | Some env -> Pretty.pp_term_env env  fmt e
+      | None -> Pretty.pp_term Pretty.empty fmt e
+  let pp_pred = pp_term
   let pp_var fmt x = pp_term fmt (e_var x)
   let pp_vars fmt xs =
     begin

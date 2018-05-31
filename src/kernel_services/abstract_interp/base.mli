@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2017                                               *)
+(*  Copyright (C) 2007-2018                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -176,6 +176,10 @@ val max_valid_absolute_address: unit -> Int.t
 (** {2 Size of a base} *)
 
 val bits_sizeof : t -> Int_Base.t
+
+val offset_is_in_validity : Int.t -> validity -> Ival.t -> bool
+(** [is_offset_in_validity size validity ival] checks that [ival] is a valid
+    offset for an access of size [size] according to [validity]. *)
 
 val is_valid_offset : for_writing:bool -> Int.t -> t -> Ival.t -> bool
 (** [is_valid_offset ~for_writing size b offset] checks that [offset]

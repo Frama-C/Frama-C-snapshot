@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2017                                               *)
+(*  Copyright (C) 2007-2018                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -64,6 +64,9 @@ module V : sig
   val project_ival : t -> Ival.t
   (** Raises [Not_based_on_null] if the value may be a pointer. *)
 
+  val project_float : t -> Fval.t
+  (** Raises [Not_based_on_null] if the value may be a pointer. *)
+
   val project_ival_bottom: t -> Ival.t
   (* Temporary API, will be merged with project_ival later *)
     
@@ -78,46 +81,42 @@ module V : sig
   val of_char : char -> t
   val of_int64: int64 -> t
 
-  val compare_min_float : t -> t -> int
-  val compare_max_float : t -> t -> int
-  val compare_min_int : t -> t -> int
-  val compare_max_int : t -> t -> int
-
   val backward_mult_int_left: right:t -> result:t -> t option Bottom.or_bottom
 
   val backward_comp_int_left: Comp.t -> t -> t -> t
-  val backward_comp_float_left: Comp.t -> bool -> Fval.float_kind -> t -> t -> t
+  val backward_comp_float_left_true: Comp.t -> Fval.kind -> t -> t -> t
+  val backward_comp_float_left_false: Comp.t -> Fval.kind -> t -> t -> t
 
   val forward_comp_int: signed:bool -> Comp.t -> t -> t -> Comp.result
 
   val inject_comp_result: Comp.result -> t
-  
+
   val inject_int : Int.t -> t
+  val inject_float : Fval.t -> t
   val interp_boolean : contains_zero:bool -> contains_non_zero:bool -> t
 
-(** [cast ~size ~signed v] applies to the abstract value [v] the conversion 
-    to the integer type described by [size] and [signed]. The results
+(** [cast_int_to_int ~size ~signed v] applies to the abstract value [v] the
+    conversion to the integer type described by [size] and [signed]. The results
     are [new_value, ok]. The boolean [ok], when true, indicates that the cast
     was the identity.
-    Offsets of bases other than Null are not clipped. If they were clipped,
+    Offsets of bases other than NULL are not clipped. If they were clipped,
     they should be clipped at the validity of the base. The C standard does
     not say that [p+(1ULL<<32+1)] is the same as [p+1], it says that 
     [p+(1ULL<<32+1)] is invalid. *)
-  val cast: size:Int.t -> signed:bool -> t -> t * bool
+  val cast_int_to_int: size:Int.t -> signed:bool -> t -> t * bool
 
-  val cast_float:
-    rounding_mode:Fval.rounding_mode -> t -> bool * bool * t
-  val cast_double: t -> bool * bool * t
+  val reinterpret_as_float: Cil_types.fkind -> t -> t
+  val reinterpret_as_int: signed:bool -> size:Integer.t -> t -> t
+  val cast_float_to_float: Fval.kind -> t -> t
   val cast_float_to_int :
     signed:bool -> size:int -> t ->
-    bool (** addresses *) *
-    bool (** non-finite *) *
-    (bool * bool) (** overflow, in both directions *) *
+    alarm (** non-finite *) *
+    (alarm * alarm) (** overflow, in both directions *) *
     t
   val cast_float_to_int_inverse :
     single_precision:bool -> t -> t option
   val cast_int_to_float :
-    Fval.rounding_mode -> t -> t * bool
+    Fval.kind -> t -> t
   val cast_int_to_float_inverse :
     single_precision:bool -> t -> t option
 
@@ -153,6 +152,10 @@ module V : sig
       representable in [size] bits. *)
   val all_values : size:Int.t -> t -> bool
   val create_all_values : signed:bool -> size:int -> t
+
+  (** [cardinal_estimate v ~size] returns an estimation of the cardinal
+      of [v], knowing that [v] fits in [size] bits. *)
+  val cardinal_estimate: t -> size:Int.t -> Int.t
 end
 
 (** Values with 'undefined' and 'escaping addresses' flags. *)

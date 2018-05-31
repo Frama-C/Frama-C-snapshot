@@ -2,7 +2,7 @@
 /*                                                                        */
 /*  This file is part of Frama-C.                                         */
 /*                                                                        */
-/*  Copyright (C) 2007-2017                                               */
+/*  Copyright (C) 2007-2018                                               */
 /*    CEA (Commissariat à l'énergie atomique et aux énergies              */
 /*         alternatives)                                                  */
 /*                                                                        */
@@ -29,6 +29,7 @@
 #include "inttypes.c"
 #include "locale.c"
 #include "math.c"
+#include "netdb.c"
 #include "stdio.c"
 #include "stdlib.c"
 #include "string.c"

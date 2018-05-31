@@ -8,8 +8,9 @@
   m ∈ {0}
   i ∈ {0}
   X ∈ {-992}
-tests/value/threat_if.i:14:[value] warning: out of bounds write. assert \valid(p);
-tests/value/threat_if.i:18:[value] Frama_C_show_each: {-126}
+[value:alarm] tests/value/threat_if.i:14: Warning: 
+  out of bounds write. assert \valid(p);
+[value] tests/value/threat_if.i:18: Frama_C_show_each: {-126}
 [value] Recording results for main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======
@@ -22,13 +23,13 @@ tests/value/threat_if.i:18:[value] Frama_C_show_each: {-126}
 [from] Computing for function main
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
-    These dependencies hold at termination for the executions that terminate:
+  These dependencies hold at termination for the executions that terminate:
 [from] Function main:
   p FROM i_0 (and SELF)
   l FROM p; i_0 (and SELF)
   \result FROM \nothing
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function main:
-      p; l; G; c; __retres
+    p; l; G; c; __retres
 [inout] Inputs for function main:
-      p
+    p

@@ -1,5 +1,7 @@
 [kernel] Parsing tests/float/math_builtins.c (with preprocessing)
-tests/float/math_builtins.c:248:[kernel] warning: Floating-point constant 5.8 is not represented exactly. Will use 0x1.7333333333333p2. See documentation for option -warn-decimal-float
+[kernel:parser:decimal-float] tests/float/math_builtins.c:248: Warning: 
+  Floating-point constant 5.8 is not represented exactly. Will use 0x1.7333333333333p2.
+  (warn-once: no further messages from category 'parser:decimal-float' will be emitted)
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
 [value] Initial state computed
@@ -7,985 +9,1724 @@ tests/float/math_builtins.c:248:[kernel] warning: Floating-point constant 5.8 is
   __fc_errno ∈ [--..--]
   nondet ∈ [--..--]
 [value] computing for function test_cos_det <- main.
-    Called from tests/float/math_builtins.c:656.
+  Called from tests/float/math_builtins.c:656.
+[value] tests/float/math_builtins.c:17: 
+  function cos: precondition 'finite_arg' got status valid.
+[value] tests/float/math_builtins.c:18: 
+  function cos: precondition 'finite_arg' got status valid.
+[value] tests/float/math_builtins.c:19: 
+  function cos: precondition 'finite_arg' got status valid.
 [value] Recording results for test_cos_det
 [value] Done for function test_cos_det
 [value] computing for function test_sin_det <- main.
-    Called from tests/float/math_builtins.c:657.
+  Called from tests/float/math_builtins.c:657.
+[value] tests/float/math_builtins.c:23: 
+  function sin: precondition 'finite_arg' got status valid.
+[value] tests/float/math_builtins.c:24: 
+  function sin: precondition 'finite_arg' got status valid.
+[value] tests/float/math_builtins.c:25: 
+  function sin: precondition 'finite_arg' got status valid.
 [value] Recording results for test_sin_det
 [value] Done for function test_sin_det
 [value] computing for function test_atan2_det <- main.
-    Called from tests/float/math_builtins.c:658.
+  Called from tests/float/math_builtins.c:658.
+[value] tests/float/math_builtins.c:29: 
+  function atan2: precondition 'finite_args' got status valid.
+[value] tests/float/math_builtins.c:29: 
+  function atan2: precondition 'finite_result' got status valid.
+[value] tests/float/math_builtins.c:30: 
+  function atan2: precondition 'finite_args' got status valid.
+[value] tests/float/math_builtins.c:30: 
+  function atan2: precondition 'finite_result' got status valid.
+[value] tests/float/math_builtins.c:31: 
+  function atan2: precondition 'finite_args' got status valid.
+[value] tests/float/math_builtins.c:31: 
+  function atan2: precondition 'finite_result' got status valid.
+[value] tests/float/math_builtins.c:32: 
+  function atan2: precondition 'finite_args' got status valid.
+[value] tests/float/math_builtins.c:32: 
+  function atan2: precondition 'finite_result' got status valid.
+[value] tests/float/math_builtins.c:33: 
+  function atan2: precondition 'finite_args' got status valid.
+[value] tests/float/math_builtins.c:33: 
+  function atan2: precondition 'finite_result' got status valid.
+[value] tests/float/math_builtins.c:34: 
+  function atan2: precondition 'finite_args' got status valid.
+[value] tests/float/math_builtins.c:34: 
+  function atan2: precondition 'finite_result' got status valid.
+[value] tests/float/math_builtins.c:35: 
+  function atan2: precondition 'finite_args' got status valid.
+[value] tests/float/math_builtins.c:35: 
+  function atan2: precondition 'finite_result' got status valid.
+[value] tests/float/math_builtins.c:36: 
+  function atan2: precondition 'finite_args' got status valid.
+[value] tests/float/math_builtins.c:36: 
+  function atan2: precondition 'finite_result' got status valid.
+[value] tests/float/math_builtins.c:37: 
+  function atan2: precondition 'finite_args' got status valid.
+[value] tests/float/math_builtins.c:37: 
+  function atan2: precondition 'finite_result' got status valid.
+[value] tests/float/math_builtins.c:38: 
+  function atan2: precondition 'finite_args' got status valid.
+[value] tests/float/math_builtins.c:38: 
+  function atan2: precondition 'finite_result' got status valid.
+[value] tests/float/math_builtins.c:39: 
+  function atan2: precondition 'finite_args' got status valid.
+[value] tests/float/math_builtins.c:39: 
+  function atan2: precondition 'finite_result' got status valid.
+[value] tests/float/math_builtins.c:40: 
+  function atan2: precondition 'finite_args' got status valid.
+[value] tests/float/math_builtins.c:40: 
+  function atan2: precondition 'finite_result' got status valid.
+[value] tests/float/math_builtins.c:41: 
+  function atan2: precondition 'finite_args' got status valid.
+[value] tests/float/math_builtins.c:41: 
+  function atan2: precondition 'finite_result' got status valid.
 [value] Recording results for test_atan2_det
 [value] Done for function test_atan2_det
 [value] computing for function test_atan2 <- main.
-    Called from tests/float/math_builtins.c:659.
+  Called from tests/float/math_builtins.c:659.
 [value] computing for function double_interval <- test_atan2 <- main.
-    Called from tests/float/math_builtins.c:46.
+  Called from tests/float/math_builtins.c:46.
 [value] Recording results for double_interval
 [value] Done for function double_interval
 [value] computing for function double_interval <- test_atan2 <- main.
-    Called from tests/float/math_builtins.c:47.
+  Called from tests/float/math_builtins.c:47.
+[value] Recording results for double_interval
+[value] Done for function double_interval
+[value] tests/float/math_builtins.c:48: 
+  function atan2: precondition 'finite_args' got status valid.
+[value] tests/float/math_builtins.c:48: 
+  function atan2: precondition 'finite_result' got status valid.
+[value] computing for function double_interval <- test_atan2 <- main.
+  Called from tests/float/math_builtins.c:49.
+[value] Recording results for double_interval
+[value] Done for function double_interval
+[value] tests/float/math_builtins.c:50: 
+  function atan2: precondition 'finite_args' got status valid.
+[value] tests/float/math_builtins.c:50: 
+  function atan2: precondition 'finite_result' got status valid.
+[value] computing for function double_interval <- test_atan2 <- main.
+  Called from tests/float/math_builtins.c:51.
+[value] Recording results for double_interval
+[value] Done for function double_interval
+[value] tests/float/math_builtins.c:52: 
+  function atan2: precondition 'finite_args' got status valid.
+[value] tests/float/math_builtins.c:52: 
+  function atan2: precondition 'finite_result' got status valid.
+[value] computing for function double_interval <- test_atan2 <- main.
+  Called from tests/float/math_builtins.c:53.
+[value] Recording results for double_interval
+[value] Done for function double_interval
+[value] tests/float/math_builtins.c:54: 
+  function atan2: precondition 'finite_args' got status valid.
+[value] tests/float/math_builtins.c:54: 
+  function atan2: precondition 'finite_result' got status valid.
+[value] computing for function double_interval <- test_atan2 <- main.
+  Called from tests/float/math_builtins.c:55.
+[value] Recording results for double_interval
+[value] Done for function double_interval
+[value] tests/float/math_builtins.c:56: 
+  function atan2: precondition 'finite_args' got status valid.
+[value] tests/float/math_builtins.c:56: 
+  function atan2: precondition 'finite_result' got status valid.
+[value] computing for function double_interval <- test_atan2 <- main.
+  Called from tests/float/math_builtins.c:57.
 [value] Recording results for double_interval
 [value] Done for function double_interval
 [value] computing for function double_interval <- test_atan2 <- main.
-    Called from tests/float/math_builtins.c:49.
+  Called from tests/float/math_builtins.c:58.
 [value] Recording results for double_interval
 [value] Done for function double_interval
+[value] tests/float/math_builtins.c:59: 
+  function atan2: precondition 'finite_args' got status valid.
+[value] tests/float/math_builtins.c:59: 
+  function atan2: precondition 'finite_result' got status valid.
 [value] computing for function double_interval <- test_atan2 <- main.
-    Called from tests/float/math_builtins.c:51.
+  Called from tests/float/math_builtins.c:60.
 [value] Recording results for double_interval
 [value] Done for function double_interval
+[value] tests/float/math_builtins.c:61: 
+  function atan2: precondition 'finite_args' got status valid.
+[value] tests/float/math_builtins.c:61: 
+  function atan2: precondition 'finite_result' got status valid.
 [value] computing for function double_interval <- test_atan2 <- main.
-    Called from tests/float/math_builtins.c:53.
+  Called from tests/float/math_builtins.c:62.
 [value] Recording results for double_interval
 [value] Done for function double_interval
+[value] tests/float/math_builtins.c:63: 
+  function atan2: precondition 'finite_args' got status valid.
+[value] tests/float/math_builtins.c:63: 
+  function atan2: precondition 'finite_result' got status valid.
 [value] computing for function double_interval <- test_atan2 <- main.
-    Called from tests/float/math_builtins.c:55.
+  Called from tests/float/math_builtins.c:64.
 [value] Recording results for double_interval
 [value] Done for function double_interval
+[value] tests/float/math_builtins.c:65: 
+  function atan2: precondition 'finite_args' got status valid.
+[value] tests/float/math_builtins.c:65: 
+  function atan2: precondition 'finite_result' got status valid.
 [value] computing for function double_interval <- test_atan2 <- main.
-    Called from tests/float/math_builtins.c:57.
+  Called from tests/float/math_builtins.c:66.
 [value] Recording results for double_interval
 [value] Done for function double_interval
-[value] computing for function double_interval <- test_atan2 <- main.
-    Called from tests/float/math_builtins.c:58.
-[value] Recording results for double_interval
-[value] Done for function double_interval
-[value] computing for function double_interval <- test_atan2 <- main.
-    Called from tests/float/math_builtins.c:60.
-[value] Recording results for double_interval
-[value] Done for function double_interval
-[value] computing for function double_interval <- test_atan2 <- main.
-    Called from tests/float/math_builtins.c:62.
-[value] Recording results for double_interval
-[value] Done for function double_interval
-[value] computing for function double_interval <- test_atan2 <- main.
-    Called from tests/float/math_builtins.c:64.
-[value] Recording results for double_interval
-[value] Done for function double_interval
-[value] computing for function double_interval <- test_atan2 <- main.
-    Called from tests/float/math_builtins.c:66.
-[value] Recording results for double_interval
-[value] Done for function double_interval
+[value] tests/float/math_builtins.c:67: 
+  function atan2: precondition 'finite_args' got status valid.
+[value] tests/float/math_builtins.c:67: 
+  function atan2: precondition 'finite_result' got status valid.
+[value] tests/float/math_builtins.c:68: 
+  function atan2: precondition 'finite_args' got status valid.
+[value] tests/float/math_builtins.c:68: 
+  function atan2: precondition 'finite_result' got status valid.
+[value] tests/float/math_builtins.c:69: 
+  function atan2: precondition 'finite_args' got status valid.
+[value] tests/float/math_builtins.c:69: 
+  function atan2: precondition 'finite_result' got status valid.
+[value] tests/float/math_builtins.c:70: 
+  function atan2: precondition 'finite_args' got status valid.
+[value] tests/float/math_builtins.c:70: 
+  function atan2: precondition 'finite_result' got status valid.
+[value] tests/float/math_builtins.c:71: 
+  function atan2: precondition 'finite_args' got status valid.
+[value] tests/float/math_builtins.c:71: 
+  function atan2: precondition 'finite_result' got status valid.
 [value] Recording results for test_atan2
 [value] Done for function test_atan2
 [value] computing for function test_pow_det <- main.
-    Called from tests/float/math_builtins.c:660.
+  Called from tests/float/math_builtins.c:660.
+[value] tests/float/math_builtins.c:75: 
+  function pow: precondition 'finite_args' got status valid.
+[value] tests/float/math_builtins.c:75: 
+  function pow: precondition 'finite_logic_res' got status valid.
+[value] tests/float/math_builtins.c:76: 
+  function pow: precondition 'finite_args' got status valid.
+[value] tests/float/math_builtins.c:76: 
+  function pow: precondition 'finite_logic_res' got status valid.
+[value] tests/float/math_builtins.c:77: 
+  function pow: precondition 'finite_args' got status valid.
+[value] tests/float/math_builtins.c:77: 
+  function pow: precondition 'finite_logic_res' got status valid.
+[value] tests/float/math_builtins.c:78: 
+  function pow: precondition 'finite_args' got status valid.
+[value] tests/float/math_builtins.c:78: 
+  function pow: precondition 'finite_logic_res' got status valid.
+[value] tests/float/math_builtins.c:79: 
+  function pow: precondition 'finite_args' got status valid.
+[value] tests/float/math_builtins.c:79: 
+  function pow: precondition 'finite_logic_res' got status valid.
+[value] tests/float/math_builtins.c:80: 
+  function pow: precondition 'finite_args' got status valid.
+[value] tests/float/math_builtins.c:80: 
+  function pow: precondition 'finite_logic_res' got status valid.
+[value] tests/float/math_builtins.c:81: 
+  function pow: precondition 'finite_args' got status valid.
+[value] tests/float/math_builtins.c:81: 
+  function pow: precondition 'finite_logic_res' got status valid.
+[value] tests/float/math_builtins.c:82: 
+  function pow: precondition 'finite_args' got status valid.
+[value] tests/float/math_builtins.c:82: 
+  function pow: precondition 'finite_logic_res' got status valid.
 [value] Recording results for test_pow_det
 [value] Done for function test_pow_det
 [value] computing for function test_pow_singleton_exp <- main.
-    Called from tests/float/math_builtins.c:661.
+  Called from tests/float/math_builtins.c:661.
 [value] computing for function double_interval <- test_pow_singleton_exp <- main.
-    Called from tests/float/math_builtins.c:98.
+  Called from tests/float/math_builtins.c:98.
 [value] Recording results for double_interval
 [value] Done for function double_interval
-tests/float/math_builtins.c:100:[value] warning: builtin Frama_C_pow: completely out-of-range arguments
-    ([-3.5000000000000000 .. -2.7500000000000000], {1.5000000000000000}):
-    negative base and noninteger exponent,
-    computation may result in NaN
-tests/float/math_builtins.c:102:[value] warning: builtin Frama_C_pow: completely out-of-range arguments
-    ([-3.5000000000000000 .. -2.7500000000000000], {-1.5000000000000000}):
-    negative base and noninteger exponent,
-    computation may result in NaN
+[value] tests/float/math_builtins.c:100: 
+  function pow: precondition 'finite_args' got status valid.
+[value:alarm] tests/float/math_builtins.c:100: Warning: 
+  function pow: precondition 'finite_logic_res' got status invalid.
+[value] tests/float/math_builtins.c:102: 
+  function pow: precondition 'finite_args' got status valid.
+[value:alarm] tests/float/math_builtins.c:102: Warning: 
+  function pow: precondition 'finite_logic_res' got status invalid.
 [value] computing for function double_interval <- test_pow_singleton_exp <- main.
-    Called from tests/float/math_builtins.c:105.
+  Called from tests/float/math_builtins.c:105.
 [value] Recording results for double_interval
 [value] Done for function double_interval
-tests/float/math_builtins.c:106:[value] warning: builtin Frama_C_pow: out-of-range arguments
-    ([-3.5000000000000000 .. 2.7500000000000000], {1.5000000000000000}):
-    negative base and noninteger exponent,
-    computation may result in NaN
-tests/float/math_builtins.c:107:[value] warning: builtin Frama_C_pow: out-of-range arguments
-    ([-3.5000000000000000 .. 2.7500000000000000], {-1.5000000000000000}):
-    negative base and noninteger exponent,
-    computation may result in +oo/NaN
-tests/float/math_builtins.c:110:[value] warning: builtin Frama_C_pow: out-of-range arguments
-    ([-3.5000000000000000 .. 2.7500000000000000], {-3.0000000000000000}),
-    computation may result in +oo/-oo
-tests/float/math_builtins.c:111:[value] warning: builtin Frama_C_pow: out-of-range arguments
-    ([-3.5000000000000000 .. 2.7500000000000000], {-2.0000000000000000}),
-    computation may result in +oo
+[value] tests/float/math_builtins.c:106: 
+  function pow: precondition 'finite_args' got status valid.
+[value:alarm] tests/float/math_builtins.c:106: Warning: 
+  function pow: precondition 'finite_logic_res' got status unknown.
+[value] tests/float/math_builtins.c:107: 
+  function pow: precondition 'finite_args' got status valid.
+[value:alarm] tests/float/math_builtins.c:107: Warning: 
+  function pow: precondition 'finite_logic_res' got status unknown.
+[value] tests/float/math_builtins.c:110: 
+  function pow: precondition 'finite_args' got status valid.
+[value:alarm] tests/float/math_builtins.c:110: Warning: 
+  function pow: precondition 'finite_logic_res' got status unknown.
+[value] tests/float/math_builtins.c:111: 
+  function pow: precondition 'finite_args' got status valid.
+[value:alarm] tests/float/math_builtins.c:111: Warning: 
+  function pow: precondition 'finite_logic_res' got status unknown.
 [value] computing for function double_interval <- test_pow_singleton_exp <- main.
-    Called from tests/float/math_builtins.c:114.
+  Called from tests/float/math_builtins.c:114.
 [value] Recording results for double_interval
 [value] Done for function double_interval
-tests/float/math_builtins.c:115:[value] warning: builtin Frama_C_pow: out-of-range arguments
-    ([1.0000000000000000*2^50 .. 1.0000000000000000*2^62], {19.5000000000000000})
-    ,
-    computation may result in +oo
+[value] tests/float/math_builtins.c:115: 
+  function pow: precondition 'finite_args' got status valid.
+[value:alarm] tests/float/math_builtins.c:115: Warning: 
+  function pow: precondition 'finite_logic_res' got status unknown.
 [value] computing for function double_interval <- test_pow_singleton_exp <- main.
-    Called from tests/float/math_builtins.c:116.
+  Called from tests/float/math_builtins.c:116.
 [value] Recording results for double_interval
 [value] Done for function double_interval
-tests/float/math_builtins.c:117:[value] warning: builtin Frama_C_pow: out-of-range arguments
-    ([-1.0000000000000000*2^49 .. -1.5000000000000000*2^-1], {23.0000000000000000})
-    ,
-    computation may result in -oo
+[value] tests/float/math_builtins.c:117: 
+  function pow: precondition 'finite_args' got status valid.
+[value:alarm] tests/float/math_builtins.c:117: Warning: 
+  function pow: precondition 'finite_logic_res' got status unknown.
 [value] computing for function double_interval <- test_pow_singleton_exp <- main.
-    Called from tests/float/math_builtins.c:120.
+  Called from tests/float/math_builtins.c:120.
 [value] Recording results for double_interval
 [value] Done for function double_interval
-tests/float/math_builtins.c:122:[value] Frama_C_show_each_i: [0.0000000000000000 .. 1.0000000000000000*2^-1000]
+[value] tests/float/math_builtins.c:121: 
+  function pow: precondition 'finite_args' got status valid.
+[value] tests/float/math_builtins.c:121: 
+  function pow: precondition 'finite_logic_res' got status valid.
+[value] tests/float/math_builtins.c:122: 
+  Frama_C_show_each_i: [0.0000000000000000 .. 1.0000000000000000*2^-1000]
 [value] computing for function double_interval <- test_pow_singleton_exp <- main.
-    Called from tests/float/math_builtins.c:123.
+  Called from tests/float/math_builtins.c:123.
 [value] Recording results for double_interval
 [value] Done for function double_interval
-tests/float/math_builtins.c:125:[value] Frama_C_show_each_j:
-    [0.2500000000000000*2^-1022 .. 1.2707064924076672*2^-330]
+[value] tests/float/math_builtins.c:124: 
+  function pow: precondition 'finite_args' got status valid.
+[value] tests/float/math_builtins.c:124: 
+  function pow: precondition 'finite_logic_res' got status valid.
+[value] tests/float/math_builtins.c:125: 
+  Frama_C_show_each_j:
+  [0.2500000000000000*2^-1022 .. 1.2707064924076672*2^-330]
+[value] tests/float/math_builtins.c:129: 
+  function pow: precondition 'finite_args' got status valid.
+[value] tests/float/math_builtins.c:129: 
+  function pow: precondition 'finite_logic_res' got status valid.
+[value] tests/float/math_builtins.c:130: 
+  function pow: precondition 'finite_args' got status valid.
+[value] tests/float/math_builtins.c:130: 
+  function pow: precondition 'finite_logic_res' got status valid.
 [value] computing for function double_interval <- test_pow_singleton_exp <- main.
-    Called from tests/float/math_builtins.c:132.
+  Called from tests/float/math_builtins.c:132.
 [value] Recording results for double_interval
 [value] Done for function double_interval
+[value] tests/float/math_builtins.c:133: 
+  function pow: precondition 'finite_args' got status valid.
+[value] tests/float/math_builtins.c:133: 
+  function pow: precondition 'finite_logic_res' got status valid.
+[value] tests/float/math_builtins.c:134: 
+  function pow: precondition 'finite_args' got status valid.
+[value] tests/float/math_builtins.c:134: 
+  function pow: precondition 'finite_logic_res' got status valid.
+[value] tests/float/math_builtins.c:135: 
+  function pow: precondition 'finite_args' got status valid.
+[value] tests/float/math_builtins.c:135: 
+  function pow: precondition 'finite_logic_res' got status valid.
+[value] tests/float/math_builtins.c:136: 
+  function pow: precondition 'finite_args' got status valid.
+[value] tests/float/math_builtins.c:136: 
+  function pow: precondition 'finite_logic_res' got status valid.
+[value] tests/float/math_builtins.c:137: 
+  function pow: precondition 'finite_args' got status valid.
+[value] tests/float/math_builtins.c:137: 
+  function pow: precondition 'finite_logic_res' got status valid.
 [value] computing for function double_interval <- test_pow_singleton_exp <- main.
-    Called from tests/float/math_builtins.c:139.
+  Called from tests/float/math_builtins.c:139.
 [value] Recording results for double_interval
 [value] Done for function double_interval
+[value] tests/float/math_builtins.c:140: 
+  function pow: precondition 'finite_args' got status valid.
+[value] tests/float/math_builtins.c:140: 
+  function pow: precondition 'finite_logic_res' got status valid.
+[value] tests/float/math_builtins.c:141: 
+  function pow: precondition 'finite_args' got status valid.
+[value] tests/float/math_builtins.c:141: 
+  function pow: precondition 'finite_logic_res' got status valid.
 [value] Recording results for test_pow_singleton_exp
 [value] Done for function test_pow_singleton_exp
 [value] computing for function test_pow <- main.
-    Called from tests/float/math_builtins.c:662.
+  Called from tests/float/math_builtins.c:662.
 [value] computing for function double_interval <- test_pow <- main.
-    Called from tests/float/math_builtins.c:147.
+  Called from tests/float/math_builtins.c:147.
+[value] Recording results for double_interval
+[value] Done for function double_interval
+[value] tests/float/math_builtins.c:148: 
+  function pow: precondition 'finite_args' got status valid.
+[value] tests/float/math_builtins.c:148: 
+  function pow: precondition 'finite_logic_res' got status valid.
+[value] computing for function double_interval <- test_pow <- main.
+  Called from tests/float/math_builtins.c:149.
+[value] Recording results for double_interval
+[value] Done for function double_interval
+[value] tests/float/math_builtins.c:150: 
+  function pow: precondition 'finite_args' got status valid.
+[value] tests/float/math_builtins.c:150: 
+  function pow: precondition 'finite_logic_res' got status valid.
+[value] computing for function double_interval <- test_pow <- main.
+  Called from tests/float/math_builtins.c:151.
+[value] Recording results for double_interval
+[value] Done for function double_interval
+[value] tests/float/math_builtins.c:152: 
+  function pow: precondition 'finite_args' got status valid.
+[value] tests/float/math_builtins.c:152: 
+  function pow: precondition 'finite_logic_res' got status valid.
+[value] computing for function double_interval <- test_pow <- main.
+  Called from tests/float/math_builtins.c:158.
 [value] Recording results for double_interval
 [value] Done for function double_interval
 [value] computing for function double_interval <- test_pow <- main.
-    Called from tests/float/math_builtins.c:149.
+  Called from tests/float/math_builtins.c:159.
+[value] Recording results for double_interval
+[value] Done for function double_interval
+[value] tests/float/math_builtins.c:160: 
+  function pow: precondition 'finite_args' got status valid.
+[value:alarm] tests/float/math_builtins.c:160: Warning: 
+  function pow: precondition 'finite_logic_res' got status unknown.
+[value] computing for function double_interval <- test_pow <- main.
+  Called from tests/float/math_builtins.c:161.
+[value] Recording results for double_interval
+[value] Done for function double_interval
+[value] tests/float/math_builtins.c:162: 
+  function pow: precondition 'finite_args' got status valid.
+[value:alarm] tests/float/math_builtins.c:162: Warning: 
+  function pow: precondition 'finite_logic_res' got status unknown.
+[value] computing for function double_interval <- test_pow <- main.
+  Called from tests/float/math_builtins.c:163.
+[value] Recording results for double_interval
+[value] Done for function double_interval
+[value] tests/float/math_builtins.c:164: 
+  function pow: precondition 'finite_args' got status valid.
+[value:alarm] tests/float/math_builtins.c:164: Warning: 
+  function pow: precondition 'finite_logic_res' got status unknown.
+[value] computing for function double_interval <- test_pow <- main.
+  Called from tests/float/math_builtins.c:165.
 [value] Recording results for double_interval
 [value] Done for function double_interval
 [value] computing for function double_interval <- test_pow <- main.
-    Called from tests/float/math_builtins.c:151.
+  Called from tests/float/math_builtins.c:166.
+[value] Recording results for double_interval
+[value] Done for function double_interval
+[value] tests/float/math_builtins.c:167: 
+  function pow: precondition 'finite_args' got status valid.
+[value] tests/float/math_builtins.c:167: 
+  function pow: precondition 'finite_logic_res' got status valid.
+[value] computing for function double_interval <- test_pow <- main.
+  Called from tests/float/math_builtins.c:170.
 [value] Recording results for double_interval
 [value] Done for function double_interval
 [value] computing for function double_interval <- test_pow <- main.
-    Called from tests/float/math_builtins.c:158.
+  Called from tests/float/math_builtins.c:171.
+[value] Recording results for double_interval
+[value] Done for function double_interval
+[value] tests/float/math_builtins.c:172: 
+  function pow: precondition 'finite_args' got status valid.
+[value] tests/float/math_builtins.c:172: 
+  function pow: precondition 'finite_logic_res' got status valid.
+[value] computing for function double_interval <- test_pow <- main.
+  Called from tests/float/math_builtins.c:175.
 [value] Recording results for double_interval
 [value] Done for function double_interval
 [value] computing for function double_interval <- test_pow <- main.
-    Called from tests/float/math_builtins.c:159.
+  Called from tests/float/math_builtins.c:176.
 [value] Recording results for double_interval
 [value] Done for function double_interval
-tests/float/math_builtins.c:160:[value] warning: builtin Frama_C_pow: out-of-range arguments
-    ([-4.0000000000000000 .. 7.5000000000000000], [2.1250000000000000 .. 2.8750000000000000])
-    : negative base and noninteger exponent,
-    computation may result in NaN
+[value] tests/float/math_builtins.c:177: 
+  function pow: precondition 'finite_args' got status valid.
+[value:alarm] tests/float/math_builtins.c:177: Warning: 
+  function pow: precondition 'finite_logic_res' got status unknown.
 [value] computing for function double_interval <- test_pow <- main.
-    Called from tests/float/math_builtins.c:161.
-[value] Recording results for double_interval
-[value] Done for function double_interval
-tests/float/math_builtins.c:162:[value] warning: builtin Frama_C_pow: out-of-range arguments
-    ([-4.0000000000000000 .. 7.5000000000000000], [2.1250000000000000 .. 4.8750000000000000])
-    : negative base and noninteger exponent,
-    computation may result in NaN
-[value] computing for function double_interval <- test_pow <- main.
-    Called from tests/float/math_builtins.c:163.
-[value] Recording results for double_interval
-[value] Done for function double_interval
-tests/float/math_builtins.c:164:[value] warning: builtin Frama_C_pow: out-of-range arguments
-    ([-4.0000000000000000 .. 7.5000000000000000], [2.0000000000000000 .. 3.0000000000000000])
-    : negative base and noninteger exponent,
-    computation may result in NaN
-[value] computing for function double_interval <- test_pow <- main.
-    Called from tests/float/math_builtins.c:165.
+  Called from tests/float/math_builtins.c:178.
 [value] Recording results for double_interval
 [value] Done for function double_interval
 [value] computing for function double_interval <- test_pow <- main.
-    Called from tests/float/math_builtins.c:166.
+  Called from tests/float/math_builtins.c:179.
+[value] Recording results for double_interval
+[value] Done for function double_interval
+[value] tests/float/math_builtins.c:180: 
+  function pow: precondition 'finite_args' got status valid.
+[value:alarm] tests/float/math_builtins.c:180: Warning: 
+  function pow: precondition 'finite_logic_res' got status unknown.
+[value] computing for function double_interval <- test_pow <- main.
+  Called from tests/float/math_builtins.c:184.
 [value] Recording results for double_interval
 [value] Done for function double_interval
 [value] computing for function double_interval <- test_pow <- main.
-    Called from tests/float/math_builtins.c:170.
+  Called from tests/float/math_builtins.c:185.
+[value] Recording results for double_interval
+[value] Done for function double_interval
+[value] tests/float/math_builtins.c:186: 
+  function pow: precondition 'finite_args' got status valid.
+[value:alarm] tests/float/math_builtins.c:186: Warning: 
+  function pow: precondition 'finite_logic_res' got status unknown.
+[value] computing for function double_interval <- test_pow <- main.
+  Called from tests/float/math_builtins.c:189.
 [value] Recording results for double_interval
 [value] Done for function double_interval
 [value] computing for function double_interval <- test_pow <- main.
-    Called from tests/float/math_builtins.c:171.
+  Called from tests/float/math_builtins.c:190.
+[value] Recording results for double_interval
+[value] Done for function double_interval
+[value] tests/float/math_builtins.c:191: 
+  function pow: precondition 'finite_args' got status valid.
+[value:alarm] tests/float/math_builtins.c:191: Warning: 
+  function pow: precondition 'finite_logic_res' got status unknown.
+[value] computing for function double_interval <- test_pow <- main.
+  Called from tests/float/math_builtins.c:194.
 [value] Recording results for double_interval
 [value] Done for function double_interval
 [value] computing for function double_interval <- test_pow <- main.
-    Called from tests/float/math_builtins.c:175.
+  Called from tests/float/math_builtins.c:195.
+[value] Recording results for double_interval
+[value] Done for function double_interval
+[value] tests/float/math_builtins.c:196: 
+  function pow: precondition 'finite_args' got status valid.
+[value] tests/float/math_builtins.c:196: 
+  function pow: precondition 'finite_logic_res' got status valid.
+[value] computing for function double_interval <- test_pow <- main.
+  Called from tests/float/math_builtins.c:199.
 [value] Recording results for double_interval
 [value] Done for function double_interval
 [value] computing for function double_interval <- test_pow <- main.
-    Called from tests/float/math_builtins.c:176.
+  Called from tests/float/math_builtins.c:200.
 [value] Recording results for double_interval
 [value] Done for function double_interval
-tests/float/math_builtins.c:177:[value] warning: builtin Frama_C_pow: out-of-range arguments
-    ([-1.0000000000000000 .. 1.0000000000000000], [-1.0000000000000000 .. 1.0000000000000000])
-    : negative base and noninteger exponent,
-    computation may result in +oo/-oo/NaN
+[value] tests/float/math_builtins.c:201: 
+  function pow: precondition 'finite_args' got status valid.
+[value:alarm] tests/float/math_builtins.c:201: Warning: 
+  function pow: precondition 'finite_logic_res' got status unknown.
 [value] computing for function double_interval <- test_pow <- main.
-    Called from tests/float/math_builtins.c:178.
-[value] Recording results for double_interval
-[value] Done for function double_interval
-[value] computing for function double_interval <- test_pow <- main.
-    Called from tests/float/math_builtins.c:179.
-[value] Recording results for double_interval
-[value] Done for function double_interval
-tests/float/math_builtins.c:180:[value] warning: builtin Frama_C_pow: out-of-range arguments
-    ([-1.0000000000000000 .. 1.0000000000000000], [-1.0000000000000000*2^-1 .. 1.0000000000000000])
-    : negative base and noninteger exponent,
-    computation may result in +oo/NaN
-[value] computing for function double_interval <- test_pow <- main.
-    Called from tests/float/math_builtins.c:184.
+  Called from tests/float/math_builtins.c:204.
 [value] Recording results for double_interval
 [value] Done for function double_interval
 [value] computing for function double_interval <- test_pow <- main.
-    Called from tests/float/math_builtins.c:185.
+  Called from tests/float/math_builtins.c:205.
 [value] Recording results for double_interval
 [value] Done for function double_interval
-tests/float/math_builtins.c:186:[value] warning: builtin Frama_C_pow: out-of-range arguments
-    ([-13.0000000000000000 .. 430.0000000000000000], [3.0000000000000000 .. 6.0000000000000000])
-    : negative base and noninteger exponent,
-    computation may result in NaN
+[value] tests/float/math_builtins.c:206: 
+  function pow: precondition 'finite_args' got status valid.
+[value:alarm] tests/float/math_builtins.c:206: Warning: 
+  function pow: precondition 'finite_logic_res' got status invalid.
 [value] computing for function double_interval <- test_pow <- main.
-    Called from tests/float/math_builtins.c:189.
+  Called from tests/float/math_builtins.c:207.
 [value] Recording results for double_interval
 [value] Done for function double_interval
+[value] tests/float/math_builtins.c:208: 
+  function pow: precondition 'finite_args' got status valid.
+[value:alarm] tests/float/math_builtins.c:208: Warning: 
+  function pow: precondition 'finite_logic_res' got status unknown.
 [value] computing for function double_interval <- test_pow <- main.
-    Called from tests/float/math_builtins.c:190.
+  Called from tests/float/math_builtins.c:209.
 [value] Recording results for double_interval
 [value] Done for function double_interval
-tests/float/math_builtins.c:191:[value] warning: builtin Frama_C_pow: out-of-range arguments
-    ([-4.0000000000000000 .. -2.0000000000000000], [3.0000000000000000 .. 5.0000000000000000])
-    : negative base and noninteger exponent,
-    computation may result in NaN
+[value] tests/float/math_builtins.c:210: 
+  function pow: precondition 'finite_args' got status valid.
+[value:alarm] tests/float/math_builtins.c:210: Warning: 
+  function pow: precondition 'finite_logic_res' got status unknown.
 [value] computing for function double_interval <- test_pow <- main.
-    Called from tests/float/math_builtins.c:194.
+  Called from tests/float/math_builtins.c:211.
 [value] Recording results for double_interval
 [value] Done for function double_interval
+[value] tests/float/math_builtins.c:212: 
+  function pow: precondition 'finite_args' got status valid.
+[value:alarm] tests/float/math_builtins.c:212: Warning: 
+  function pow: precondition 'finite_logic_res' got status unknown.
 [value] computing for function double_interval <- test_pow <- main.
-    Called from tests/float/math_builtins.c:195.
-[value] Recording results for double_interval
-[value] Done for function double_interval
-[value] computing for function double_interval <- test_pow <- main.
-    Called from tests/float/math_builtins.c:199.
-[value] Recording results for double_interval
-[value] Done for function double_interval
-[value] computing for function double_interval <- test_pow <- main.
-    Called from tests/float/math_builtins.c:200.
-[value] Recording results for double_interval
-[value] Done for function double_interval
-tests/float/math_builtins.c:201:[value] warning: builtin Frama_C_pow: out-of-range arguments
-    ([-0.0000000000000000 .. 10.0000000000000000], [-3.5000000000000000 .. 4.5000000000000000])
-    ,
-    computation may result in +oo/-oo
-[value] computing for function double_interval <- test_pow <- main.
-    Called from tests/float/math_builtins.c:204.
+  Called from tests/float/math_builtins.c:215.
 [value] Recording results for double_interval
 [value] Done for function double_interval
 [value] computing for function double_interval <- test_pow <- main.
-    Called from tests/float/math_builtins.c:205.
+  Called from tests/float/math_builtins.c:216.
 [value] Recording results for double_interval
 [value] Done for function double_interval
-tests/float/math_builtins.c:206:[value] warning: builtin Frama_C_pow: completely out-of-range arguments
-    ([-5.0000000000000000 .. -1.0000000000000000*2^-1], [-1.7500000000000000*2^-1 .. -1.0000000000000000*2^-3])
-    : negative base and noninteger exponent,
-    computation may result in NaN
+[value] tests/float/math_builtins.c:217: 
+  function pow: precondition 'finite_args' got status valid.
+[value:alarm] tests/float/math_builtins.c:217: Warning: 
+  function pow: precondition 'finite_logic_res' got status invalid.
 [value] computing for function double_interval <- test_pow <- main.
-    Called from tests/float/math_builtins.c:207.
-[value] Recording results for double_interval
-[value] Done for function double_interval
-tests/float/math_builtins.c:208:[value] warning: builtin Frama_C_pow: out-of-range arguments
-    ([-5.0000000000000000 .. -1.0000000000000000*2^-1], [-1.0000000000000000*2^-2 .. 1.0000000000000000*2^-2])
-    : negative base and noninteger exponent,
-    computation may result in NaN
-[value] computing for function double_interval <- test_pow <- main.
-    Called from tests/float/math_builtins.c:209.
-[value] Recording results for double_interval
-[value] Done for function double_interval
-tests/float/math_builtins.c:210:[value] warning: builtin Frama_C_pow: out-of-range arguments
-    ([-5.0000000000000000 .. -1.0000000000000000*2^-1], [10.0000000000000000 .. 11.5000000000000000])
-    : negative base and noninteger exponent,
-    computation may result in NaN
-[value] computing for function double_interval <- test_pow <- main.
-    Called from tests/float/math_builtins.c:211.
-[value] Recording results for double_interval
-[value] Done for function double_interval
-tests/float/math_builtins.c:212:[value] warning: builtin Frama_C_pow: out-of-range arguments
-    ([-5.0000000000000000 .. -1.0000000000000000*2^-1], [-1.2056274414062500*2^13 .. 1234.5000000000000000])
-    : negative base and noninteger exponent,
-    computation may result in +oo/-oo/NaN
-[value] computing for function double_interval <- test_pow <- main.
-    Called from tests/float/math_builtins.c:215.
+  Called from tests/float/math_builtins.c:220.
 [value] Recording results for double_interval
 [value] Done for function double_interval
 [value] computing for function double_interval <- test_pow <- main.
-    Called from tests/float/math_builtins.c:216.
+  Called from tests/float/math_builtins.c:221.
 [value] Recording results for double_interval
 [value] Done for function double_interval
-tests/float/math_builtins.c:217:[value] warning: builtin Frama_C_pow:
-    result is always non-finite
+[value] tests/float/math_builtins.c:222: 
+  function pow: precondition 'finite_args' got status valid.
+[value:alarm] tests/float/math_builtins.c:222: Warning: 
+  function pow: precondition 'finite_logic_res' got status unknown.
+[value] tests/float/math_builtins.c:222: Frama_C_show_each_unreachable:
 [value] computing for function double_interval <- test_pow <- main.
-    Called from tests/float/math_builtins.c:220.
+  Called from tests/float/math_builtins.c:224.
 [value] Recording results for double_interval
 [value] Done for function double_interval
-[value] computing for function double_interval <- test_pow <- main.
-    Called from tests/float/math_builtins.c:221.
-[value] Recording results for double_interval
-[value] Done for function double_interval
-tests/float/math_builtins.c:222:[value] warning: builtin Frama_C_pow:
-    result is always non-finite
-[value] computing for function double_interval <- test_pow <- main.
-    Called from tests/float/math_builtins.c:224.
-[value] Recording results for double_interval
-[value] Done for function double_interval
+[value] tests/float/math_builtins.c:225: 
+  function pow: precondition 'finite_args' got status valid.
+[value] tests/float/math_builtins.c:225: 
+  function pow: precondition 'finite_logic_res' got status valid.
 [value] Recording results for test_pow
 [value] Done for function test_pow
 [value] computing for function test_fmod_det <- main.
-    Called from tests/float/math_builtins.c:663.
-tests/float/math_builtins.c:341:[value] warning: builtin Frama_C_fmod: completely out-of-range arguments
-    ({1.0000000000000000*2^-3}, {0.0000000000000000}): division by zero,
-    computation may result in NaN
+  Called from tests/float/math_builtins.c:663.
+[value] tests/float/math_builtins.c:335: 
+  function fmod: precondition 'finite_args' got status valid.
+[value] tests/float/math_builtins.c:335: 
+  function fmod: precondition 'finite_logic_result' got status valid.
+[value] tests/float/math_builtins.c:336: 
+  function fmod: precondition 'finite_args' got status valid.
+[value] tests/float/math_builtins.c:336: 
+  function fmod: precondition 'finite_logic_result' got status valid.
+[value] tests/float/math_builtins.c:337: 
+  function fmod: precondition 'finite_args' got status valid.
+[value] tests/float/math_builtins.c:337: 
+  function fmod: precondition 'finite_logic_result' got status valid.
+[value] tests/float/math_builtins.c:338: 
+  function fmod: precondition 'finite_args' got status valid.
+[value] tests/float/math_builtins.c:338: 
+  function fmod: precondition 'finite_logic_result' got status valid.
+[value] tests/float/math_builtins.c:339: 
+  function fmod: precondition 'finite_args' got status valid.
+[value] tests/float/math_builtins.c:339: 
+  function fmod: precondition 'finite_logic_result' got status valid.
+[value] tests/float/math_builtins.c:340: 
+  function fmod: precondition 'finite_args' got status valid.
+[value] tests/float/math_builtins.c:340: 
+  function fmod: precondition 'finite_logic_result' got status valid.
+[value] tests/float/math_builtins.c:341: 
+  function fmod: precondition 'finite_args' got status valid.
+[value:alarm] tests/float/math_builtins.c:341: Warning: 
+  function fmod: precondition 'finite_logic_result' got status invalid.
 [value] Recording results for test_fmod_det
 [value] Done for function test_fmod_det
 [value] computing for function test_fmod <- main.
-    Called from tests/float/math_builtins.c:664.
+  Called from tests/float/math_builtins.c:664.
 [value] computing for function double_interval <- test_fmod <- main.
-    Called from tests/float/math_builtins.c:346.
+  Called from tests/float/math_builtins.c:346.
+[value] Recording results for double_interval
+[value] Done for function double_interval
+[value] tests/float/math_builtins.c:347: 
+  function fmod: precondition 'finite_args' got status valid.
+[value] tests/float/math_builtins.c:347: 
+  function fmod: precondition 'finite_logic_result' got status valid.
+[value] tests/float/math_builtins.c:348: 
+  function fmod: precondition 'finite_args' got status valid.
+[value] tests/float/math_builtins.c:348: 
+  function fmod: precondition 'finite_logic_result' got status valid.
+[value] tests/float/math_builtins.c:349: 
+  function fmod: precondition 'finite_args' got status valid.
+[value] tests/float/math_builtins.c:349: 
+  function fmod: precondition 'finite_logic_result' got status valid.
+[value] tests/float/math_builtins.c:350: 
+  function fmod: precondition 'finite_args' got status valid.
+[value] tests/float/math_builtins.c:350: 
+  function fmod: precondition 'finite_logic_result' got status valid.
+[value] computing for function double_interval <- test_fmod <- main.
+  Called from tests/float/math_builtins.c:351.
+[value] Recording results for double_interval
+[value] Done for function double_interval
+[value] tests/float/math_builtins.c:352: 
+  function fmod: precondition 'finite_args' got status valid.
+[value] tests/float/math_builtins.c:352: 
+  function fmod: precondition 'finite_logic_result' got status valid.
+[value] tests/float/math_builtins.c:353: 
+  function fmod: precondition 'finite_args' got status valid.
+[value] tests/float/math_builtins.c:353: 
+  function fmod: precondition 'finite_logic_result' got status valid.
+[value] computing for function double_interval <- test_fmod <- main.
+  Called from tests/float/math_builtins.c:354.
 [value] Recording results for double_interval
 [value] Done for function double_interval
 [value] computing for function double_interval <- test_fmod <- main.
-    Called from tests/float/math_builtins.c:351.
+  Called from tests/float/math_builtins.c:355.
+[value] Recording results for double_interval
+[value] Done for function double_interval
+[value] tests/float/math_builtins.c:356: 
+  function fmod: precondition 'finite_args' got status valid.
+[value] tests/float/math_builtins.c:356: 
+  function fmod: precondition 'finite_logic_result' got status valid.
+[value] computing for function double_interval <- test_fmod <- main.
+  Called from tests/float/math_builtins.c:357.
 [value] Recording results for double_interval
 [value] Done for function double_interval
 [value] computing for function double_interval <- test_fmod <- main.
-    Called from tests/float/math_builtins.c:354.
+  Called from tests/float/math_builtins.c:358.
+[value] Recording results for double_interval
+[value] Done for function double_interval
+[value] tests/float/math_builtins.c:359: 
+  function fmod: precondition 'finite_args' got status valid.
+[value] tests/float/math_builtins.c:359: 
+  function fmod: precondition 'finite_logic_result' got status valid.
+[value] tests/float/math_builtins.c:360: 
+  function fmod: precondition 'finite_args' got status valid.
+[value] tests/float/math_builtins.c:360: 
+  function fmod: precondition 'finite_logic_result' got status valid.
+[value] computing for function double_interval <- test_fmod <- main.
+  Called from tests/float/math_builtins.c:361.
 [value] Recording results for double_interval
 [value] Done for function double_interval
 [value] computing for function double_interval <- test_fmod <- main.
-    Called from tests/float/math_builtins.c:355.
+  Called from tests/float/math_builtins.c:362.
+[value] Recording results for double_interval
+[value] Done for function double_interval
+[value] tests/float/math_builtins.c:363: 
+  function fmod: precondition 'finite_args' got status valid.
+[value:alarm] tests/float/math_builtins.c:363: Warning: 
+  function fmod: precondition 'finite_logic_result' got status unknown.
+[value] computing for function double_interval <- test_fmod <- main.
+  Called from tests/float/math_builtins.c:364.
 [value] Recording results for double_interval
 [value] Done for function double_interval
 [value] computing for function double_interval <- test_fmod <- main.
-    Called from tests/float/math_builtins.c:357.
+  Called from tests/float/math_builtins.c:365.
+[value] Recording results for double_interval
+[value] Done for function double_interval
+[value] tests/float/math_builtins.c:366: 
+  function fmod: precondition 'finite_args' got status valid.
+[value:alarm] tests/float/math_builtins.c:366: Warning: 
+  function fmod: precondition 'finite_logic_result' got status unknown.
+[value] computing for function double_interval <- test_fmod <- main.
+  Called from tests/float/math_builtins.c:367.
+[value] Recording results for double_interval
+[value] Done for function double_interval
+[value] tests/float/math_builtins.c:368: 
+  function fmod: precondition 'finite_args' got status valid.
+[value:alarm] tests/float/math_builtins.c:368: Warning: 
+  function fmod: precondition 'finite_logic_result' got status invalid.
+[value] computing for function double_interval <- test_fmod <- main.
+  Called from tests/float/math_builtins.c:369.
+[value] Recording results for double_interval
+[value] Done for function double_interval
+[value] tests/float/math_builtins.c:370: 
+  function fmod: precondition 'finite_args' got status valid.
+[value:alarm] tests/float/math_builtins.c:370: Warning: 
+  function fmod: precondition 'finite_logic_result' got status unknown.
+[value] computing for function double_interval <- test_fmod <- main.
+  Called from tests/float/math_builtins.c:371.
+[value] Recording results for double_interval
+[value] Done for function double_interval
+[value] tests/float/math_builtins.c:372: 
+  function fmod: precondition 'finite_args' got status valid.
+[value:alarm] tests/float/math_builtins.c:372: Warning: 
+  function fmod: precondition 'finite_logic_result' got status unknown.
+[value] computing for function double_interval <- test_fmod <- main.
+  Called from tests/float/math_builtins.c:373.
+[value] Recording results for double_interval
+[value] Done for function double_interval
+[value] tests/float/math_builtins.c:374: 
+  function fmod: precondition 'finite_args' got status valid.
+[value] tests/float/math_builtins.c:374: 
+  function fmod: precondition 'finite_logic_result' got status valid.
+[value] computing for function double_interval <- test_fmod <- main.
+  Called from tests/float/math_builtins.c:375.
+[value] Recording results for double_interval
+[value] Done for function double_interval
+[value] tests/float/math_builtins.c:376: 
+  function fmod: precondition 'finite_args' got status valid.
+[value] tests/float/math_builtins.c:376: 
+  function fmod: precondition 'finite_logic_result' got status valid.
+[value] computing for function double_interval <- test_fmod <- main.
+  Called from tests/float/math_builtins.c:377.
+[value] Recording results for double_interval
+[value] Done for function double_interval
+[value] tests/float/math_builtins.c:378: 
+  function fmod: precondition 'finite_args' got status valid.
+[value] tests/float/math_builtins.c:378: 
+  function fmod: precondition 'finite_logic_result' got status valid.
+[value] computing for function double_interval <- test_fmod <- main.
+  Called from tests/float/math_builtins.c:379.
+[value] Recording results for double_interval
+[value] Done for function double_interval
+[value] tests/float/math_builtins.c:380: 
+  function fmod: precondition 'finite_args' got status valid.
+[value] tests/float/math_builtins.c:380: 
+  function fmod: precondition 'finite_logic_result' got status valid.
+[value] computing for function double_interval <- test_fmod <- main.
+  Called from tests/float/math_builtins.c:381.
+[value] Recording results for double_interval
+[value] Done for function double_interval
+[value] tests/float/math_builtins.c:382: 
+  function fmod: precondition 'finite_args' got status valid.
+[value] tests/float/math_builtins.c:382: 
+  function fmod: precondition 'finite_logic_result' got status valid.
+[value] computing for function double_interval <- test_fmod <- main.
+  Called from tests/float/math_builtins.c:383.
+[value] Recording results for double_interval
+[value] Done for function double_interval
+[value] tests/float/math_builtins.c:384: 
+  function fmod: precondition 'finite_args' got status valid.
+[value] tests/float/math_builtins.c:384: 
+  function fmod: precondition 'finite_logic_result' got status valid.
+[value] computing for function double_interval <- test_fmod <- main.
+  Called from tests/float/math_builtins.c:385.
+[value] Recording results for double_interval
+[value] Done for function double_interval
+[value] tests/float/math_builtins.c:386: 
+  function fmod: precondition 'finite_args' got status valid.
+[value] tests/float/math_builtins.c:386: 
+  function fmod: precondition 'finite_logic_result' got status valid.
+[value] computing for function double_interval <- test_fmod <- main.
+  Called from tests/float/math_builtins.c:387.
+[value] Recording results for double_interval
+[value] Done for function double_interval
+[value] tests/float/math_builtins.c:388: 
+  function fmod: precondition 'finite_args' got status valid.
+[value] tests/float/math_builtins.c:388: 
+  function fmod: precondition 'finite_logic_result' got status valid.
+[value] computing for function double_interval <- test_fmod <- main.
+  Called from tests/float/math_builtins.c:389.
 [value] Recording results for double_interval
 [value] Done for function double_interval
 [value] computing for function double_interval <- test_fmod <- main.
-    Called from tests/float/math_builtins.c:358.
+  Called from tests/float/math_builtins.c:390.
+[value] Recording results for double_interval
+[value] Done for function double_interval
+[value] tests/float/math_builtins.c:391: 
+  function fmod: precondition 'finite_args' got status valid.
+[value] tests/float/math_builtins.c:391: 
+  function fmod: precondition 'finite_logic_result' got status valid.
+[value] computing for function double_interval <- test_fmod <- main.
+  Called from tests/float/math_builtins.c:392.
+[value] Recording results for double_interval
+[value] Done for function double_interval
+[value] tests/float/math_builtins.c:393: 
+  function fmod: precondition 'finite_args' got status valid.
+[value] tests/float/math_builtins.c:393: 
+  function fmod: precondition 'finite_logic_result' got status valid.
+[value] computing for function double_interval <- test_fmod <- main.
+  Called from tests/float/math_builtins.c:394.
+[value] Recording results for double_interval
+[value] Done for function double_interval
+[value] tests/float/math_builtins.c:395: 
+  function fmod: precondition 'finite_args' got status valid.
+[value] tests/float/math_builtins.c:395: 
+  function fmod: precondition 'finite_logic_result' got status valid.
+[value] computing for function double_interval <- test_fmod <- main.
+  Called from tests/float/math_builtins.c:396.
+[value] Recording results for double_interval
+[value] Done for function double_interval
+[value] tests/float/math_builtins.c:397: 
+  function fmod: precondition 'finite_args' got status valid.
+[value] tests/float/math_builtins.c:397: 
+  function fmod: precondition 'finite_logic_result' got status valid.
+[value] computing for function double_interval <- test_fmod <- main.
+  Called from tests/float/math_builtins.c:398.
 [value] Recording results for double_interval
 [value] Done for function double_interval
 [value] computing for function double_interval <- test_fmod <- main.
-    Called from tests/float/math_builtins.c:361.
+  Called from tests/float/math_builtins.c:399.
 [value] Recording results for double_interval
 [value] Done for function double_interval
+[value] tests/float/math_builtins.c:400: 
+  function fmod: precondition 'finite_args' got status valid.
+[value:alarm] tests/float/math_builtins.c:400: Warning: 
+  function fmod: precondition 'finite_logic_result' got status unknown.
 [value] computing for function double_interval <- test_fmod <- main.
-    Called from tests/float/math_builtins.c:362.
+  Called from tests/float/math_builtins.c:401.
 [value] Recording results for double_interval
 [value] Done for function double_interval
-tests/float/math_builtins.c:363:[value] warning: builtin Frama_C_fmod: out-of-range arguments
-    ([-9.0000000000000000 .. 8.7500000000000000], [-2.0000000000000000 .. 4.5000000000000000])
-    : division by zero,
-    computation may result in NaN
+[value] tests/float/math_builtins.c:402: 
+  function fmod: precondition 'finite_args' got status valid.
+[value:alarm] tests/float/math_builtins.c:402: Warning: 
+  function fmod: precondition 'finite_logic_result' got status unknown.
 [value] computing for function double_interval <- test_fmod <- main.
-    Called from tests/float/math_builtins.c:364.
+  Called from tests/float/math_builtins.c:403.
 [value] Recording results for double_interval
 [value] Done for function double_interval
-[value] computing for function double_interval <- test_fmod <- main.
-    Called from tests/float/math_builtins.c:365.
-[value] Recording results for double_interval
-[value] Done for function double_interval
-tests/float/math_builtins.c:366:[value] warning: builtin Frama_C_fmod: out-of-range arguments
-    ([-2.0000000000000000 .. 4.5000000000000000], [-9.0000000000000000 .. 8.7500000000000000])
-    : division by zero,
-    computation may result in NaN
-[value] computing for function double_interval <- test_fmod <- main.
-    Called from tests/float/math_builtins.c:367.
-[value] Recording results for double_interval
-[value] Done for function double_interval
-tests/float/math_builtins.c:368:[value] warning: builtin Frama_C_fmod: completely out-of-range arguments
-    ([-2.0000000000000000 .. 4.5000000000000000], [-0.0000000000000000 .. 0.0000000000000000])
-    : division by zero,
-    computation may result in NaN
-[value] computing for function double_interval <- test_fmod <- main.
-    Called from tests/float/math_builtins.c:369.
-[value] Recording results for double_interval
-[value] Done for function double_interval
-tests/float/math_builtins.c:370:[value] warning: builtin Frama_C_fmod: out-of-range arguments
-    ([-2.0000000000000000 .. 4.5000000000000000], [0.0000000000000000 .. 1.0000000000000000*2^-3])
-    : division by zero,
-    computation may result in NaN
-[value] computing for function double_interval <- test_fmod <- main.
-    Called from tests/float/math_builtins.c:371.
-[value] Recording results for double_interval
-[value] Done for function double_interval
-tests/float/math_builtins.c:372:[value] warning: builtin Frama_C_fmod: out-of-range arguments
-    ([-2.0000000000000000 .. 4.5000000000000000], [-1.0000000000000000*2^-3 .. -0.0000000000000000])
-    : division by zero,
-    computation may result in NaN
-[value] computing for function double_interval <- test_fmod <- main.
-    Called from tests/float/math_builtins.c:373.
-[value] Recording results for double_interval
-[value] Done for function double_interval
-[value] computing for function double_interval <- test_fmod <- main.
-    Called from tests/float/math_builtins.c:375.
-[value] Recording results for double_interval
-[value] Done for function double_interval
-[value] computing for function double_interval <- test_fmod <- main.
-    Called from tests/float/math_builtins.c:377.
-[value] Recording results for double_interval
-[value] Done for function double_interval
-[value] computing for function double_interval <- test_fmod <- main.
-    Called from tests/float/math_builtins.c:379.
-[value] Recording results for double_interval
-[value] Done for function double_interval
-[value] computing for function double_interval <- test_fmod <- main.
-    Called from tests/float/math_builtins.c:381.
-[value] Recording results for double_interval
-[value] Done for function double_interval
-[value] computing for function double_interval <- test_fmod <- main.
-    Called from tests/float/math_builtins.c:383.
-[value] Recording results for double_interval
-[value] Done for function double_interval
-[value] computing for function double_interval <- test_fmod <- main.
-    Called from tests/float/math_builtins.c:385.
-[value] Recording results for double_interval
-[value] Done for function double_interval
-[value] computing for function double_interval <- test_fmod <- main.
-    Called from tests/float/math_builtins.c:387.
-[value] Recording results for double_interval
-[value] Done for function double_interval
-[value] computing for function double_interval <- test_fmod <- main.
-    Called from tests/float/math_builtins.c:389.
-[value] Recording results for double_interval
-[value] Done for function double_interval
-[value] computing for function double_interval <- test_fmod <- main.
-    Called from tests/float/math_builtins.c:390.
-[value] Recording results for double_interval
-[value] Done for function double_interval
-[value] computing for function double_interval <- test_fmod <- main.
-    Called from tests/float/math_builtins.c:392.
-[value] Recording results for double_interval
-[value] Done for function double_interval
-[value] computing for function double_interval <- test_fmod <- main.
-    Called from tests/float/math_builtins.c:394.
-[value] Recording results for double_interval
-[value] Done for function double_interval
-[value] computing for function double_interval <- test_fmod <- main.
-    Called from tests/float/math_builtins.c:396.
-[value] Recording results for double_interval
-[value] Done for function double_interval
-[value] computing for function double_interval <- test_fmod <- main.
-    Called from tests/float/math_builtins.c:398.
-[value] Recording results for double_interval
-[value] Done for function double_interval
-[value] computing for function double_interval <- test_fmod <- main.
-    Called from tests/float/math_builtins.c:399.
-[value] Recording results for double_interval
-[value] Done for function double_interval
-tests/float/math_builtins.c:400:[value] warning: builtin Frama_C_fmod: out-of-range arguments
-    ([2.0000000000000000 .. 3.0000000000000000], [-4.0000000000000000 .. 5.0000000000000000])
-    : division by zero,
-    computation may result in NaN
-[value] computing for function double_interval <- test_fmod <- main.
-    Called from tests/float/math_builtins.c:401.
-[value] Recording results for double_interval
-[value] Done for function double_interval
-tests/float/math_builtins.c:402:[value] warning: builtin Frama_C_fmod: out-of-range arguments
-    ([-2.0000000000000000 .. 3.0000000000000000], [-4.0000000000000000 .. 5.0000000000000000])
-    : division by zero,
-    computation may result in NaN
-[value] computing for function double_interval <- test_fmod <- main.
-    Called from tests/float/math_builtins.c:403.
-[value] Recording results for double_interval
-[value] Done for function double_interval
-tests/float/math_builtins.c:404:[value] warning: builtin Frama_C_fmod: out-of-range arguments
-    ([-3.0000000000000000 .. 2.0000000000000000], [-4.0000000000000000 .. 5.0000000000000000])
-    : division by zero,
-    computation may result in NaN
+[value] tests/float/math_builtins.c:404: 
+  function fmod: precondition 'finite_args' got status valid.
+[value:alarm] tests/float/math_builtins.c:404: Warning: 
+  function fmod: precondition 'finite_logic_result' got status unknown.
 [value] Recording results for test_fmod
 [value] Done for function test_fmod
 [value] computing for function test_sqrt_det <- main.
-    Called from tests/float/math_builtins.c:665.
-tests/float/math_builtins.c:410:[value] warning: builtin Frama_C_sqrt: completely out-of-range argument
-    ({-2.0000000000000000}): negative argument,
-    computation may result in NaN
+  Called from tests/float/math_builtins.c:665.
+[value] tests/float/math_builtins.c:408: 
+  function sqrt: precondition 'finite_arg' got status valid.
+[value] tests/float/math_builtins.c:408: 
+  function sqrt: precondition 'arg_positive' got status valid.
+[value] tests/float/math_builtins.c:409: 
+  function sqrt: precondition 'finite_arg' got status valid.
+[value] tests/float/math_builtins.c:409: 
+  function sqrt: precondition 'arg_positive' got status valid.
+[value] tests/float/math_builtins.c:410: 
+  function sqrt: precondition 'finite_arg' got status valid.
+[value:alarm] tests/float/math_builtins.c:410: Warning: 
+  function sqrt: precondition 'arg_positive' got status invalid.
+[value] tests/float/math_builtins.c:411: 
+  function sqrt: precondition 'finite_arg' got status valid.
+[value] tests/float/math_builtins.c:411: 
+  function sqrt: precondition 'arg_positive' got status valid.
+[value] tests/float/math_builtins.c:412: 
+  function sqrt: precondition 'finite_arg' got status valid.
+[value] tests/float/math_builtins.c:412: 
+  function sqrt: precondition 'arg_positive' got status valid.
 [value] Recording results for test_sqrt_det
 [value] Done for function test_sqrt_det
 [value] computing for function test_sqrt <- main.
-    Called from tests/float/math_builtins.c:666.
+  Called from tests/float/math_builtins.c:666.
 [value] computing for function double_interval <- test_sqrt <- main.
-    Called from tests/float/math_builtins.c:416.
+  Called from tests/float/math_builtins.c:416.
 [value] Recording results for double_interval
 [value] Done for function double_interval
+[value] tests/float/math_builtins.c:417: 
+  function sqrt: precondition 'finite_arg' got status valid.
+[value] tests/float/math_builtins.c:417: 
+  function sqrt: precondition 'arg_positive' got status valid.
 [value] computing for function double_interval <- test_sqrt <- main.
-    Called from tests/float/math_builtins.c:418.
+  Called from tests/float/math_builtins.c:418.
 [value] Recording results for double_interval
 [value] Done for function double_interval
-tests/float/math_builtins.c:419:[value] warning: builtin Frama_C_sqrt: out-of-range argument
-    ([-6.5000000000000000 .. 0.0000000000000000]): negative argument,
-    computation may result in NaN
+[value] tests/float/math_builtins.c:419: 
+  function sqrt: precondition 'finite_arg' got status valid.
+[value:alarm] tests/float/math_builtins.c:419: Warning: 
+  function sqrt: precondition 'arg_positive' got status unknown.
 [value] computing for function double_interval <- test_sqrt <- main.
-    Called from tests/float/math_builtins.c:420.
+  Called from tests/float/math_builtins.c:420.
 [value] Recording results for double_interval
 [value] Done for function double_interval
-tests/float/math_builtins.c:421:[value] warning: builtin Frama_C_sqrt: out-of-range argument
-    ([-6.5000000000000000 .. -0.0000000000000000]): negative argument,
-    computation may result in NaN
+[value] tests/float/math_builtins.c:421: 
+  function sqrt: precondition 'finite_arg' got status valid.
+[value:alarm] tests/float/math_builtins.c:421: Warning: 
+  function sqrt: precondition 'arg_positive' got status unknown.
 [value] computing for function double_interval <- test_sqrt <- main.
-    Called from tests/float/math_builtins.c:422.
+  Called from tests/float/math_builtins.c:422.
 [value] Recording results for double_interval
 [value] Done for function double_interval
-tests/float/math_builtins.c:423:[value] warning: builtin Frama_C_sqrt: completely out-of-range argument
-    ([-6.5000000000000000 .. -1.6000000000000000*2^-4]): negative argument,
-    computation may result in NaN
+[value] tests/float/math_builtins.c:423: 
+  function sqrt: precondition 'finite_arg' got status valid.
+[value:alarm] tests/float/math_builtins.c:423: Warning: 
+  function sqrt: precondition 'arg_positive' got status invalid.
 [value] Recording results for test_sqrt
 [value] Done for function test_sqrt
 [value] computing for function test_exp_det <- main.
-    Called from tests/float/math_builtins.c:667.
-tests/float/math_builtins.c:451:[value] warning: builtin Frama_C_exp:
-    result is always non-finite
+  Called from tests/float/math_builtins.c:667.
+[value] tests/float/math_builtins.c:446: 
+  function exp: precondition 'finite_arg' got status valid.
+[value] tests/float/math_builtins.c:446: 
+  function exp: precondition 'finite_domain' got status valid.
+[value] tests/float/math_builtins.c:447: 
+  function exp: precondition 'finite_arg' got status valid.
+[value] tests/float/math_builtins.c:447: 
+  function exp: precondition 'finite_domain' got status valid.
+[value] tests/float/math_builtins.c:448: 
+  function exp: precondition 'finite_arg' got status valid.
+[value] tests/float/math_builtins.c:448: 
+  function exp: precondition 'finite_domain' got status valid.
+[value] tests/float/math_builtins.c:449: 
+  function exp: precondition 'finite_arg' got status valid.
+[value] tests/float/math_builtins.c:449: 
+  function exp: precondition 'finite_domain' got status valid.
+[value] tests/float/math_builtins.c:450: 
+  function exp: precondition 'finite_arg' got status valid.
+[value] tests/float/math_builtins.c:450: 
+  function exp: precondition 'finite_domain' got status valid.
+[value] tests/float/math_builtins.c:451: 
+  function exp: precondition 'finite_arg' got status valid.
+[value:alarm] tests/float/math_builtins.c:451: Warning: 
+  function exp: precondition 'finite_domain' got status invalid.
 [value] Recording results for test_exp_det
 [value] Done for function test_exp_det
 [value] computing for function test_log_det <- main.
-    Called from tests/float/math_builtins.c:668.
-tests/float/math_builtins.c:465:[value] warning: builtin Frama_C_log: completely out-of-range argument ({-2.0000000000000000})
-    : negative argument,
-    computation may result in NaN
-tests/float/math_builtins.c:466:[value] warning: builtin Frama_C_log: completely out-of-range argument ({0.0000000000000000}):
-    negative argument,
-    computation may result in NaN
-tests/float/math_builtins.c:467:[value] warning: builtin Frama_C_log: completely out-of-range argument ({-0.0000000000000000})
-    : negative argument,
-    computation may result in NaN
-tests/float/math_builtins.c:468:[value] warning: builtin Frama_C_log: completely out-of-range argument ({-1.0000000000000000})
-    : negative argument,
-    computation may result in NaN
+  Called from tests/float/math_builtins.c:668.
+[value] tests/float/math_builtins.c:463: 
+  function log: precondition 'finite_arg' got status valid.
+[value] tests/float/math_builtins.c:463: 
+  function log: precondition 'arg_positive' got status valid.
+[value] tests/float/math_builtins.c:464: 
+  function log: precondition 'finite_arg' got status valid.
+[value] tests/float/math_builtins.c:464: 
+  function log: precondition 'arg_positive' got status valid.
+[value] tests/float/math_builtins.c:465: 
+  function log: precondition 'finite_arg' got status valid.
+[value:alarm] tests/float/math_builtins.c:465: Warning: 
+  function log: precondition 'arg_positive' got status invalid.
+[value] tests/float/math_builtins.c:466: 
+  function log: precondition 'finite_arg' got status valid.
+[value:alarm] tests/float/math_builtins.c:466: Warning: 
+  function log: precondition 'arg_positive' got status invalid.
+[value] tests/float/math_builtins.c:467: 
+  function log: precondition 'finite_arg' got status valid.
+[value:alarm] tests/float/math_builtins.c:467: Warning: 
+  function log: precondition 'arg_positive' got status invalid.
+[value] tests/float/math_builtins.c:468: 
+  function log: precondition 'finite_arg' got status valid.
+[value:alarm] tests/float/math_builtins.c:468: Warning: 
+  function log: precondition 'arg_positive' got status invalid.
 [value] Recording results for test_log_det
 [value] Done for function test_log_det
 [value] computing for function test_log10_det <- main.
-    Called from tests/float/math_builtins.c:669.
-tests/float/math_builtins.c:483:[value] warning: builtin Frama_C_log10: completely out-of-range argument
-    ({-2.0000000000000000}): negative argument,
-    computation may result in NaN
-tests/float/math_builtins.c:484:[value] warning: builtin Frama_C_log10: completely out-of-range argument
-    ({0.0000000000000000}): negative argument,
-    computation may result in NaN
-tests/float/math_builtins.c:485:[value] warning: builtin Frama_C_log10: completely out-of-range argument
-    ({-0.0000000000000000}): negative argument,
-    computation may result in NaN
-tests/float/math_builtins.c:486:[value] warning: builtin Frama_C_log10: completely out-of-range argument
-    ({-1.0000000000000000}): negative argument,
-    computation may result in NaN
+  Called from tests/float/math_builtins.c:669.
+[value] tests/float/math_builtins.c:481: 
+  function log10: precondition 'finite_arg' got status valid.
+[value] tests/float/math_builtins.c:481: 
+  function log10: precondition 'arg_positive' got status valid.
+[value] tests/float/math_builtins.c:482: 
+  function log10: precondition 'finite_arg' got status valid.
+[value] tests/float/math_builtins.c:482: 
+  function log10: precondition 'arg_positive' got status valid.
+[value] tests/float/math_builtins.c:483: 
+  function log10: precondition 'finite_arg' got status valid.
+[value:alarm] tests/float/math_builtins.c:483: Warning: 
+  function log10: precondition 'arg_positive' got status invalid.
+[value] tests/float/math_builtins.c:484: 
+  function log10: precondition 'finite_arg' got status valid.
+[value:alarm] tests/float/math_builtins.c:484: Warning: 
+  function log10: precondition 'arg_positive' got status invalid.
+[value] tests/float/math_builtins.c:485: 
+  function log10: precondition 'finite_arg' got status valid.
+[value:alarm] tests/float/math_builtins.c:485: Warning: 
+  function log10: precondition 'arg_positive' got status invalid.
+[value] tests/float/math_builtins.c:486: 
+  function log10: precondition 'finite_arg' got status valid.
+[value:alarm] tests/float/math_builtins.c:486: Warning: 
+  function log10: precondition 'arg_positive' got status invalid.
 [value] Recording results for test_log10_det
 [value] Done for function test_log10_det
 [value] computing for function test_powf_det <- main.
-    Called from tests/float/math_builtins.c:671.
+  Called from tests/float/math_builtins.c:671.
+[value] tests/float/math_builtins.c:86: 
+  function powf: precondition 'finite_args' got status valid.
+[value] tests/float/math_builtins.c:86: 
+  function powf: precondition 'finite_logic_res' got status valid.
+[value] tests/float/math_builtins.c:87: 
+  function powf: precondition 'finite_args' got status valid.
+[value] tests/float/math_builtins.c:87: 
+  function powf: precondition 'finite_logic_res' got status valid.
+[value] tests/float/math_builtins.c:88: 
+  function powf: precondition 'finite_args' got status valid.
+[value] tests/float/math_builtins.c:88: 
+  function powf: precondition 'finite_logic_res' got status valid.
+[value] tests/float/math_builtins.c:89: 
+  function powf: precondition 'finite_args' got status valid.
+[value] tests/float/math_builtins.c:89: 
+  function powf: precondition 'finite_logic_res' got status valid.
+[value] tests/float/math_builtins.c:90: 
+  function powf: precondition 'finite_args' got status valid.
+[value] tests/float/math_builtins.c:90: 
+  function powf: precondition 'finite_logic_res' got status valid.
+[value] tests/float/math_builtins.c:91: 
+  function powf: precondition 'finite_args' got status valid.
+[value] tests/float/math_builtins.c:91: 
+  function powf: precondition 'finite_logic_res' got status valid.
+[value] tests/float/math_builtins.c:92: 
+  function powf: precondition 'finite_args' got status valid.
+[value] tests/float/math_builtins.c:92: 
+  function powf: precondition 'finite_logic_res' got status valid.
+[value] tests/float/math_builtins.c:93: 
+  function powf: precondition 'finite_args' got status valid.
+[value] tests/float/math_builtins.c:93: 
+  function powf: precondition 'finite_logic_res' got status valid.
 [value] Recording results for test_powf_det
 [value] Done for function test_powf_det
 [value] computing for function test_powf_singleton_exp <- main.
-    Called from tests/float/math_builtins.c:672.
+  Called from tests/float/math_builtins.c:672.
 [value] computing for function double_interval <- test_powf_singleton_exp <- main.
-    Called from tests/float/math_builtins.c:231.
+  Called from tests/float/math_builtins.c:231.
 [value] Recording results for double_interval
 [value] Done for function double_interval
-tests/float/math_builtins.c:233:[value] warning: builtin Frama_C_powf: completely out-of-range arguments
-    ([-3.5000000000000000 .. -2.7500000000000000], {1.5000000000000000}):
-    negative base and noninteger exponent,
-    computation may result in NaN
-tests/float/math_builtins.c:235:[value] warning: builtin Frama_C_powf: completely out-of-range arguments
-    ([-3.5000000000000000 .. -2.7500000000000000], {-1.5000000000000000}):
-    negative base and noninteger exponent,
-    computation may result in NaN
+[value] tests/float/math_builtins.c:233: 
+  function powf: precondition 'finite_args' got status valid.
+[value:alarm] tests/float/math_builtins.c:233: Warning: 
+  function powf: precondition 'finite_logic_res' got status invalid.
+[value] tests/float/math_builtins.c:235: 
+  function powf: precondition 'finite_args' got status valid.
+[value:alarm] tests/float/math_builtins.c:235: Warning: 
+  function powf: precondition 'finite_logic_res' got status invalid.
 [value] computing for function double_interval <- test_powf_singleton_exp <- main.
-    Called from tests/float/math_builtins.c:238.
+  Called from tests/float/math_builtins.c:238.
 [value] Recording results for double_interval
 [value] Done for function double_interval
-tests/float/math_builtins.c:239:[value] warning: builtin Frama_C_powf: out-of-range arguments
-    ([-3.5000000000000000 .. 2.7500000000000000], {1.5000000000000000}):
-    negative base and noninteger exponent,
-    computation may result in NaN
-tests/float/math_builtins.c:240:[value] warning: builtin Frama_C_powf: out-of-range arguments
-    ([-3.5000000000000000 .. 2.7500000000000000], {-1.5000000000000000}):
-    negative base and noninteger exponent,
-    computation may result in +oo/NaN
-tests/float/math_builtins.c:243:[value] warning: builtin Frama_C_powf: out-of-range arguments
-    ([-3.5000000000000000 .. 2.7500000000000000], {-3.0000000000000000}),
-    computation may result in +oo/-oo
-tests/float/math_builtins.c:244:[value] warning: builtin Frama_C_powf: out-of-range arguments
-    ([-3.5000000000000000 .. 2.7500000000000000], {-2.0000000000000000}),
-    computation may result in +oo
+[value] tests/float/math_builtins.c:239: 
+  function powf: precondition 'finite_args' got status valid.
+[value:alarm] tests/float/math_builtins.c:239: Warning: 
+  function powf: precondition 'finite_logic_res' got status unknown.
+[value] tests/float/math_builtins.c:240: 
+  function powf: precondition 'finite_args' got status valid.
+[value:alarm] tests/float/math_builtins.c:240: Warning: 
+  function powf: precondition 'finite_logic_res' got status unknown.
+[value] tests/float/math_builtins.c:243: 
+  function powf: precondition 'finite_args' got status valid.
+[value:alarm] tests/float/math_builtins.c:243: Warning: 
+  function powf: precondition 'finite_logic_res' got status unknown.
+[value] tests/float/math_builtins.c:244: 
+  function powf: precondition 'finite_args' got status valid.
+[value:alarm] tests/float/math_builtins.c:244: Warning: 
+  function powf: precondition 'finite_logic_res' got status unknown.
 [value] computing for function double_interval <- test_powf_singleton_exp <- main.
-    Called from tests/float/math_builtins.c:247.
+  Called from tests/float/math_builtins.c:247.
 [value] Recording results for double_interval
 [value] Done for function double_interval
+[value] tests/float/math_builtins.c:248: 
+  function powf: precondition 'finite_args' got status valid.
+[value] tests/float/math_builtins.c:248: 
+  function powf: precondition 'finite_logic_res' got status valid.
 [value] computing for function double_interval <- test_powf_singleton_exp <- main.
-    Called from tests/float/math_builtins.c:249.
+  Called from tests/float/math_builtins.c:249.
 [value] Recording results for double_interval
 [value] Done for function double_interval
-tests/float/math_builtins.c:250:[value] warning: builtin Frama_C_powf: out-of-range arguments
-    ([-1.0000000000000000*2^49 .. -1.5000000000000000*2^-1], {23.0000000000000000})
-    ,
-    computation may result in -oo
+[value] tests/float/math_builtins.c:250: 
+  function powf: precondition 'finite_args' got status valid.
+[value:alarm] tests/float/math_builtins.c:250: Warning: 
+  function powf: precondition 'finite_logic_res' got status unknown.
 [value] computing for function double_interval <- test_powf_singleton_exp <- main.
-    Called from tests/float/math_builtins.c:253.
+  Called from tests/float/math_builtins.c:253.
 [value] Recording results for double_interval
 [value] Done for function double_interval
-tests/float/math_builtins.c:255:[value] Frama_C_show_each_i: [0.0000000000000000 .. 1.0000000000000000*2^-120]
+[value] tests/float/math_builtins.c:254: 
+  function powf: precondition 'finite_args' got status valid.
+[value] tests/float/math_builtins.c:254: 
+  function powf: precondition 'finite_logic_res' got status valid.
+[value] tests/float/math_builtins.c:255: 
+  Frama_C_show_each_i: [0.0000000000000000 .. 1.0000000000000000*2^-120]
 [value] computing for function double_interval <- test_powf_singleton_exp <- main.
-    Called from tests/float/math_builtins.c:256.
+  Called from tests/float/math_builtins.c:256.
 [value] Recording results for double_interval
 [value] Done for function double_interval
-tests/float/math_builtins.c:258:[value] Frama_C_show_each_j: {0}
+[value] tests/float/math_builtins.c:257: 
+  function powf: precondition 'finite_args' got status valid.
+[value] tests/float/math_builtins.c:257: 
+  function powf: precondition 'finite_logic_res' got status valid.
+[value] tests/float/math_builtins.c:258: Frama_C_show_each_j: {0}
+[value] tests/float/math_builtins.c:262: 
+  function powf: precondition 'finite_args' got status valid.
+[value] tests/float/math_builtins.c:262: 
+  function powf: precondition 'finite_logic_res' got status valid.
+[value] tests/float/math_builtins.c:263: 
+  function powf: precondition 'finite_args' got status valid.
+[value] tests/float/math_builtins.c:263: 
+  function powf: precondition 'finite_logic_res' got status valid.
 [value] computing for function double_interval <- test_powf_singleton_exp <- main.
-    Called from tests/float/math_builtins.c:265.
+  Called from tests/float/math_builtins.c:265.
 [value] Recording results for double_interval
 [value] Done for function double_interval
+[value] tests/float/math_builtins.c:266: 
+  function powf: precondition 'finite_args' got status valid.
+[value] tests/float/math_builtins.c:266: 
+  function powf: precondition 'finite_logic_res' got status valid.
+[value] tests/float/math_builtins.c:267: 
+  function powf: precondition 'finite_args' got status valid.
+[value] tests/float/math_builtins.c:267: 
+  function powf: precondition 'finite_logic_res' got status valid.
+[value] tests/float/math_builtins.c:268: 
+  function powf: precondition 'finite_args' got status valid.
+[value] tests/float/math_builtins.c:268: 
+  function powf: precondition 'finite_logic_res' got status valid.
+[value] tests/float/math_builtins.c:269: 
+  function powf: precondition 'finite_args' got status valid.
+[value] tests/float/math_builtins.c:269: 
+  function powf: precondition 'finite_logic_res' got status valid.
+[value] tests/float/math_builtins.c:270: 
+  function powf: precondition 'finite_args' got status valid.
+[value] tests/float/math_builtins.c:270: 
+  function powf: precondition 'finite_logic_res' got status valid.
 [value] computing for function double_interval <- test_powf_singleton_exp <- main.
-    Called from tests/float/math_builtins.c:272.
+  Called from tests/float/math_builtins.c:272.
 [value] Recording results for double_interval
 [value] Done for function double_interval
+[value] tests/float/math_builtins.c:273: 
+  function powf: precondition 'finite_args' got status valid.
+[value] tests/float/math_builtins.c:273: 
+  function powf: precondition 'finite_logic_res' got status valid.
+[value] tests/float/math_builtins.c:274: 
+  function powf: precondition 'finite_args' got status valid.
+[value] tests/float/math_builtins.c:274: 
+  function powf: precondition 'finite_logic_res' got status valid.
 [value] Recording results for test_powf_singleton_exp
 [value] Done for function test_powf_singleton_exp
 [value] computing for function test_powf <- main.
-    Called from tests/float/math_builtins.c:673.
+  Called from tests/float/math_builtins.c:673.
 [value] computing for function double_interval <- test_powf <- main.
-    Called from tests/float/math_builtins.c:280.
+  Called from tests/float/math_builtins.c:280.
+[value] Recording results for double_interval
+[value] Done for function double_interval
+[value] tests/float/math_builtins.c:281: 
+  function powf: precondition 'finite_args' got status valid.
+[value] tests/float/math_builtins.c:281: 
+  function powf: precondition 'finite_logic_res' got status valid.
+[value] computing for function double_interval <- test_powf <- main.
+  Called from tests/float/math_builtins.c:282.
+[value] Recording results for double_interval
+[value] Done for function double_interval
+[value] tests/float/math_builtins.c:283: 
+  function powf: precondition 'finite_args' got status valid.
+[value] tests/float/math_builtins.c:283: 
+  function powf: precondition 'finite_logic_res' got status valid.
+[value] computing for function double_interval <- test_powf <- main.
+  Called from tests/float/math_builtins.c:284.
+[value] Recording results for double_interval
+[value] Done for function double_interval
+[value] tests/float/math_builtins.c:285: 
+  function powf: precondition 'finite_args' got status valid.
+[value] tests/float/math_builtins.c:285: 
+  function powf: precondition 'finite_logic_res' got status valid.
+[value] computing for function double_interval <- test_powf <- main.
+  Called from tests/float/math_builtins.c:291.
 [value] Recording results for double_interval
 [value] Done for function double_interval
 [value] computing for function double_interval <- test_powf <- main.
-    Called from tests/float/math_builtins.c:282.
+  Called from tests/float/math_builtins.c:292.
+[value] Recording results for double_interval
+[value] Done for function double_interval
+[value] tests/float/math_builtins.c:293: 
+  function powf: precondition 'finite_args' got status valid.
+[value:alarm] tests/float/math_builtins.c:293: Warning: 
+  function powf: precondition 'finite_logic_res' got status unknown.
+[value] computing for function double_interval <- test_powf <- main.
+  Called from tests/float/math_builtins.c:294.
+[value] Recording results for double_interval
+[value] Done for function double_interval
+[value] tests/float/math_builtins.c:295: 
+  function powf: precondition 'finite_args' got status valid.
+[value:alarm] tests/float/math_builtins.c:295: Warning: 
+  function powf: precondition 'finite_logic_res' got status unknown.
+[value] computing for function double_interval <- test_powf <- main.
+  Called from tests/float/math_builtins.c:296.
+[value] Recording results for double_interval
+[value] Done for function double_interval
+[value] tests/float/math_builtins.c:297: 
+  function powf: precondition 'finite_args' got status valid.
+[value:alarm] tests/float/math_builtins.c:297: Warning: 
+  function powf: precondition 'finite_logic_res' got status unknown.
+[value] computing for function double_interval <- test_powf <- main.
+  Called from tests/float/math_builtins.c:298.
 [value] Recording results for double_interval
 [value] Done for function double_interval
 [value] computing for function double_interval <- test_powf <- main.
-    Called from tests/float/math_builtins.c:284.
+  Called from tests/float/math_builtins.c:299.
+[value] Recording results for double_interval
+[value] Done for function double_interval
+[value] tests/float/math_builtins.c:300: 
+  function powf: precondition 'finite_args' got status valid.
+[value] tests/float/math_builtins.c:300: 
+  function powf: precondition 'finite_logic_res' got status valid.
+[value] computing for function double_interval <- test_powf <- main.
+  Called from tests/float/math_builtins.c:303.
 [value] Recording results for double_interval
 [value] Done for function double_interval
 [value] computing for function double_interval <- test_powf <- main.
-    Called from tests/float/math_builtins.c:291.
+  Called from tests/float/math_builtins.c:304.
+[value] Recording results for double_interval
+[value] Done for function double_interval
+[value] tests/float/math_builtins.c:305: 
+  function powf: precondition 'finite_args' got status valid.
+[value] tests/float/math_builtins.c:305: 
+  function powf: precondition 'finite_logic_res' got status valid.
+[value] computing for function double_interval <- test_powf <- main.
+  Called from tests/float/math_builtins.c:308.
 [value] Recording results for double_interval
 [value] Done for function double_interval
 [value] computing for function double_interval <- test_powf <- main.
-    Called from tests/float/math_builtins.c:292.
+  Called from tests/float/math_builtins.c:309.
 [value] Recording results for double_interval
 [value] Done for function double_interval
-tests/float/math_builtins.c:293:[value] warning: builtin Frama_C_powf: out-of-range arguments
-    ([-4.0000000000000000 .. 7.5000000000000000], [2.1250000000000000 .. 2.8750000000000000])
-    : negative base and noninteger exponent,
-    computation may result in NaN
+[value] tests/float/math_builtins.c:310: 
+  function powf: precondition 'finite_args' got status valid.
+[value:alarm] tests/float/math_builtins.c:310: Warning: 
+  function powf: precondition 'finite_logic_res' got status unknown.
 [value] computing for function double_interval <- test_powf <- main.
-    Called from tests/float/math_builtins.c:294.
-[value] Recording results for double_interval
-[value] Done for function double_interval
-tests/float/math_builtins.c:295:[value] warning: builtin Frama_C_powf: out-of-range arguments
-    ([-4.0000000000000000 .. 7.5000000000000000], [2.1250000000000000 .. 4.8750000000000000])
-    : negative base and noninteger exponent,
-    computation may result in NaN
-[value] computing for function double_interval <- test_powf <- main.
-    Called from tests/float/math_builtins.c:296.
-[value] Recording results for double_interval
-[value] Done for function double_interval
-tests/float/math_builtins.c:297:[value] warning: builtin Frama_C_powf: out-of-range arguments
-    ([-4.0000000000000000 .. 7.5000000000000000], [2.0000000000000000 .. 3.0000000000000000])
-    : negative base and noninteger exponent,
-    computation may result in NaN
-[value] computing for function double_interval <- test_powf <- main.
-    Called from tests/float/math_builtins.c:298.
+  Called from tests/float/math_builtins.c:313.
 [value] Recording results for double_interval
 [value] Done for function double_interval
 [value] computing for function double_interval <- test_powf <- main.
-    Called from tests/float/math_builtins.c:299.
+  Called from tests/float/math_builtins.c:314.
+[value] Recording results for double_interval
+[value] Done for function double_interval
+[value] tests/float/math_builtins.c:315: 
+  function powf: precondition 'finite_args' got status valid.
+[value:alarm] tests/float/math_builtins.c:315: Warning: 
+  function powf: precondition 'finite_logic_res' got status unknown.
+[value] computing for function double_interval <- test_powf <- main.
+  Called from tests/float/math_builtins.c:319.
 [value] Recording results for double_interval
 [value] Done for function double_interval
 [value] computing for function double_interval <- test_powf <- main.
-    Called from tests/float/math_builtins.c:303.
+  Called from tests/float/math_builtins.c:320.
+[value] Recording results for double_interval
+[value] Done for function double_interval
+[value] tests/float/math_builtins.c:321: 
+  function powf: precondition 'finite_args' got status valid.
+[value:alarm] tests/float/math_builtins.c:321: Warning: 
+  function powf: precondition 'finite_logic_res' got status unknown.
+[value] computing for function double_interval <- test_powf <- main.
+  Called from tests/float/math_builtins.c:324.
 [value] Recording results for double_interval
 [value] Done for function double_interval
 [value] computing for function double_interval <- test_powf <- main.
-    Called from tests/float/math_builtins.c:304.
+  Called from tests/float/math_builtins.c:325.
+[value] Recording results for double_interval
+[value] Done for function double_interval
+[value] tests/float/math_builtins.c:326: 
+  function powf: precondition 'finite_args' got status valid.
+[value:alarm] tests/float/math_builtins.c:326: Warning: 
+  function powf: precondition 'finite_logic_res' got status unknown.
+[value] computing for function double_interval <- test_powf <- main.
+  Called from tests/float/math_builtins.c:329.
 [value] Recording results for double_interval
 [value] Done for function double_interval
 [value] computing for function double_interval <- test_powf <- main.
-    Called from tests/float/math_builtins.c:308.
+  Called from tests/float/math_builtins.c:330.
 [value] Recording results for double_interval
 [value] Done for function double_interval
-[value] computing for function double_interval <- test_powf <- main.
-    Called from tests/float/math_builtins.c:309.
-[value] Recording results for double_interval
-[value] Done for function double_interval
-tests/float/math_builtins.c:310:[value] warning: builtin Frama_C_powf: out-of-range arguments
-    ([-1.0000000000000000 .. 1.0000000000000000], [-1.0000000000000000 .. 1.0000000000000000])
-    : negative base and noninteger exponent,
-    computation may result in +oo/-oo/NaN
-[value] computing for function double_interval <- test_powf <- main.
-    Called from tests/float/math_builtins.c:313.
-[value] Recording results for double_interval
-[value] Done for function double_interval
-[value] computing for function double_interval <- test_powf <- main.
-    Called from tests/float/math_builtins.c:314.
-[value] Recording results for double_interval
-[value] Done for function double_interval
-tests/float/math_builtins.c:315:[value] warning: builtin Frama_C_powf: out-of-range arguments
-    ([-1.0000000000000000 .. 1.0000000000000000], [-1.0000000000000000*2^-1 .. 1.0000000000000000])
-    : negative base and noninteger exponent,
-    computation may result in +oo/NaN
-[value] computing for function double_interval <- test_powf <- main.
-    Called from tests/float/math_builtins.c:319.
-[value] Recording results for double_interval
-[value] Done for function double_interval
-[value] computing for function double_interval <- test_powf <- main.
-    Called from tests/float/math_builtins.c:320.
-[value] Recording results for double_interval
-[value] Done for function double_interval
-tests/float/math_builtins.c:321:[value] warning: builtin Frama_C_powf: out-of-range arguments
-    ([-13.0000000000000000 .. 430.0000000000000000], [3.0000000000000000 .. 6.0000000000000000])
-    : negative base and noninteger exponent,
-    computation may result in NaN
-[value] computing for function double_interval <- test_powf <- main.
-    Called from tests/float/math_builtins.c:324.
-[value] Recording results for double_interval
-[value] Done for function double_interval
-[value] computing for function double_interval <- test_powf <- main.
-    Called from tests/float/math_builtins.c:325.
-[value] Recording results for double_interval
-[value] Done for function double_interval
-tests/float/math_builtins.c:326:[value] warning: builtin Frama_C_powf: out-of-range arguments
-    ([-4.0000000000000000 .. -2.0000000000000000], [3.0000000000000000 .. 5.0000000000000000])
-    : negative base and noninteger exponent,
-    computation may result in NaN
-[value] computing for function double_interval <- test_powf <- main.
-    Called from tests/float/math_builtins.c:329.
-[value] Recording results for double_interval
-[value] Done for function double_interval
-[value] computing for function double_interval <- test_powf <- main.
-    Called from tests/float/math_builtins.c:330.
-[value] Recording results for double_interval
-[value] Done for function double_interval
+[value] tests/float/math_builtins.c:331: 
+  function powf: precondition 'finite_args' got status valid.
+[value] tests/float/math_builtins.c:331: 
+  function powf: precondition 'finite_logic_res' got status valid.
 [value] Recording results for test_powf
 [value] Done for function test_powf
 [value] computing for function test_sqrtf_det <- main.
-    Called from tests/float/math_builtins.c:674.
-tests/float/math_builtins.c:429:[value] warning: builtin Frama_C_sqrtf: completely out-of-range argument
-    ({-2.0000000000000000}): negative argument,
-    computation may result in NaN
+  Called from tests/float/math_builtins.c:674.
+[value] tests/float/math_builtins.c:427: 
+  function sqrtf: precondition 'finite_arg' got status valid.
+[value] tests/float/math_builtins.c:427: 
+  function sqrtf: precondition 'arg_positive' got status valid.
+[value] tests/float/math_builtins.c:428: 
+  function sqrtf: precondition 'finite_arg' got status valid.
+[value] tests/float/math_builtins.c:428: 
+  function sqrtf: precondition 'arg_positive' got status valid.
+[value] tests/float/math_builtins.c:429: 
+  function sqrtf: precondition 'finite_arg' got status valid.
+[value:alarm] tests/float/math_builtins.c:429: Warning: 
+  function sqrtf: precondition 'arg_positive' got status invalid.
+[value] tests/float/math_builtins.c:430: 
+  function sqrtf: precondition 'finite_arg' got status valid.
+[value] tests/float/math_builtins.c:430: 
+  function sqrtf: precondition 'arg_positive' got status valid.
+[value] tests/float/math_builtins.c:431: 
+  function sqrtf: precondition 'finite_arg' got status valid.
+[value] tests/float/math_builtins.c:431: 
+  function sqrtf: precondition 'arg_positive' got status valid.
 [value] Recording results for test_sqrtf_det
 [value] Done for function test_sqrtf_det
 [value] computing for function test_sqrtf <- main.
-    Called from tests/float/math_builtins.c:675.
+  Called from tests/float/math_builtins.c:675.
 [value] computing for function double_interval <- test_sqrtf <- main.
-    Called from tests/float/math_builtins.c:435.
+  Called from tests/float/math_builtins.c:435.
 [value] Recording results for double_interval
 [value] Done for function double_interval
+[value] tests/float/math_builtins.c:436: 
+  function sqrtf: precondition 'finite_arg' got status valid.
+[value] tests/float/math_builtins.c:436: 
+  function sqrtf: precondition 'arg_positive' got status valid.
 [value] computing for function double_interval <- test_sqrtf <- main.
-    Called from tests/float/math_builtins.c:437.
+  Called from tests/float/math_builtins.c:437.
 [value] Recording results for double_interval
 [value] Done for function double_interval
-tests/float/math_builtins.c:438:[value] warning: builtin Frama_C_sqrtf: out-of-range argument
-    ([-6.5000000000000000 .. 0.0000000000000000]): negative argument,
-    computation may result in NaN
+[value] tests/float/math_builtins.c:438: 
+  function sqrtf: precondition 'finite_arg' got status valid.
+[value:alarm] tests/float/math_builtins.c:438: Warning: 
+  function sqrtf: precondition 'arg_positive' got status unknown.
 [value] computing for function double_interval <- test_sqrtf <- main.
-    Called from tests/float/math_builtins.c:439.
+  Called from tests/float/math_builtins.c:439.
 [value] Recording results for double_interval
 [value] Done for function double_interval
-tests/float/math_builtins.c:440:[value] warning: builtin Frama_C_sqrtf: out-of-range argument
-    ([-6.5000000000000000 .. -0.0000000000000000]): negative argument,
-    computation may result in NaN
+[value] tests/float/math_builtins.c:440: 
+  function sqrtf: precondition 'finite_arg' got status valid.
+[value:alarm] tests/float/math_builtins.c:440: Warning: 
+  function sqrtf: precondition 'arg_positive' got status unknown.
 [value] computing for function double_interval <- test_sqrtf <- main.
-    Called from tests/float/math_builtins.c:441.
+  Called from tests/float/math_builtins.c:441.
 [value] Recording results for double_interval
 [value] Done for function double_interval
-tests/float/math_builtins.c:442:[value] warning: builtin Frama_C_sqrt: completely out-of-range argument
-    ([-6.5000000000000000 .. -1.6000000238418579*2^-4]): negative argument,
-    computation may result in NaN
+[value] tests/float/math_builtins.c:442: 
+  function sqrt: precondition 'finite_arg' got status valid.
+[value:alarm] tests/float/math_builtins.c:442: Warning: 
+  function sqrt: precondition 'arg_positive' got status invalid.
 [value] Recording results for test_sqrtf
 [value] Done for function test_sqrtf
 [value] computing for function test_expf_det <- main.
-    Called from tests/float/math_builtins.c:676.
+  Called from tests/float/math_builtins.c:676.
+[value] tests/float/math_builtins.c:455: 
+  function expf: precondition 'finite_arg' got status valid.
+[value] tests/float/math_builtins.c:455: 
+  function expf: precondition 'res_finite' got status valid.
+[value] tests/float/math_builtins.c:456: 
+  function expf: precondition 'finite_arg' got status valid.
+[value] tests/float/math_builtins.c:456: 
+  function expf: precondition 'res_finite' got status valid.
+[value] tests/float/math_builtins.c:457: 
+  function expf: precondition 'finite_arg' got status valid.
+[value] tests/float/math_builtins.c:457: 
+  function expf: precondition 'res_finite' got status valid.
+[value] tests/float/math_builtins.c:458: 
+  function expf: precondition 'finite_arg' got status valid.
+[value] tests/float/math_builtins.c:458: 
+  function expf: precondition 'res_finite' got status valid.
+[value] tests/float/math_builtins.c:459: 
+  function expf: precondition 'finite_arg' got status valid.
+[value] tests/float/math_builtins.c:459: 
+  function expf: precondition 'res_finite' got status valid.
 [value] Recording results for test_expf_det
 [value] Done for function test_expf_det
 [value] computing for function test_logf_det <- main.
-    Called from tests/float/math_builtins.c:677.
-tests/float/math_builtins.c:474:[value] warning: builtin Frama_C_logf: completely out-of-range argument
-    ({-2.0000000000000000}): negative argument,
-    computation may result in NaN
-tests/float/math_builtins.c:475:[value] warning: builtin Frama_C_logf: completely out-of-range argument ({0.0000000000000000})
-    : negative argument,
-    computation may result in NaN
-tests/float/math_builtins.c:476:[value] warning: builtin Frama_C_logf: completely out-of-range argument
-    ({-0.0000000000000000}): negative argument,
-    computation may result in NaN
-tests/float/math_builtins.c:477:[value] warning: builtin Frama_C_logf: completely out-of-range argument
-    ({-1.0000000000000000}): negative argument,
-    computation may result in NaN
+  Called from tests/float/math_builtins.c:677.
+[value] tests/float/math_builtins.c:472: 
+  function logf: precondition 'finite_arg' got status valid.
+[value] tests/float/math_builtins.c:472: 
+  function logf: precondition 'arg_positive' got status valid.
+[value] tests/float/math_builtins.c:473: 
+  function logf: precondition 'finite_arg' got status valid.
+[value] tests/float/math_builtins.c:473: 
+  function logf: precondition 'arg_positive' got status valid.
+[value] tests/float/math_builtins.c:474: 
+  function logf: precondition 'finite_arg' got status valid.
+[value:alarm] tests/float/math_builtins.c:474: Warning: 
+  function logf: precondition 'arg_positive' got status invalid.
+[value] tests/float/math_builtins.c:475: 
+  function logf: precondition 'finite_arg' got status valid.
+[value:alarm] tests/float/math_builtins.c:475: Warning: 
+  function logf: precondition 'arg_positive' got status invalid.
+[value] tests/float/math_builtins.c:476: 
+  function logf: precondition 'finite_arg' got status valid.
+[value:alarm] tests/float/math_builtins.c:476: Warning: 
+  function logf: precondition 'arg_positive' got status invalid.
+[value] tests/float/math_builtins.c:477: 
+  function logf: precondition 'finite_arg' got status valid.
+[value:alarm] tests/float/math_builtins.c:477: Warning: 
+  function logf: precondition 'arg_positive' got status invalid.
 [value] Recording results for test_logf_det
 [value] Done for function test_logf_det
 [value] computing for function test_log10f_det <- main.
-    Called from tests/float/math_builtins.c:678.
-tests/float/math_builtins.c:492:[value] warning: builtin Frama_C_log10f: completely out-of-range argument
-    ({-2.0000000000000000}): negative argument,
-    computation may result in NaN
-tests/float/math_builtins.c:493:[value] warning: builtin Frama_C_log10f: completely out-of-range argument
-    ({0.0000000000000000}): negative argument,
-    computation may result in NaN
-tests/float/math_builtins.c:494:[value] warning: builtin Frama_C_log10f: completely out-of-range argument
-    ({-0.0000000000000000}): negative argument,
-    computation may result in NaN
-tests/float/math_builtins.c:495:[value] warning: builtin Frama_C_log10f: completely out-of-range argument
-    ({-1.0000000000000000}): negative argument,
-    computation may result in NaN
+  Called from tests/float/math_builtins.c:678.
+[value] tests/float/math_builtins.c:490: 
+  function log10f: precondition 'finite_arg' got status valid.
+[value] tests/float/math_builtins.c:490: 
+  function log10f: precondition 'arg_positive' got status valid.
+[value] tests/float/math_builtins.c:491: 
+  function log10f: precondition 'finite_arg' got status valid.
+[value] tests/float/math_builtins.c:491: 
+  function log10f: precondition 'arg_positive' got status valid.
+[value] tests/float/math_builtins.c:492: 
+  function log10f: precondition 'finite_arg' got status valid.
+[value:alarm] tests/float/math_builtins.c:492: Warning: 
+  function log10f: precondition 'arg_positive' got status invalid.
+[value] tests/float/math_builtins.c:493: 
+  function log10f: precondition 'finite_arg' got status valid.
+[value:alarm] tests/float/math_builtins.c:493: Warning: 
+  function log10f: precondition 'arg_positive' got status invalid.
+[value] tests/float/math_builtins.c:494: 
+  function log10f: precondition 'finite_arg' got status valid.
+[value:alarm] tests/float/math_builtins.c:494: Warning: 
+  function log10f: precondition 'arg_positive' got status invalid.
+[value] tests/float/math_builtins.c:495: 
+  function log10f: precondition 'finite_arg' got status valid.
+[value:alarm] tests/float/math_builtins.c:495: Warning: 
+  function log10f: precondition 'arg_positive' got status invalid.
 [value] Recording results for test_log10f_det
 [value] Done for function test_log10f_det
 [value] computing for function test_diff_pow_powf <- main.
-    Called from tests/float/math_builtins.c:680.
+  Called from tests/float/math_builtins.c:680.
+[value] tests/float/math_builtins.c:499: 
+  function pow: precondition 'finite_args' got status valid.
+[value] tests/float/math_builtins.c:499: 
+  function pow: precondition 'finite_logic_res' got status valid.
+[value] tests/float/math_builtins.c:500: 
+  function powf: precondition 'finite_args' got status valid.
+[value] tests/float/math_builtins.c:500: 
+  function powf: precondition 'finite_logic_res' got status valid.
 [value] Recording results for test_diff_pow_powf
 [value] Done for function test_diff_pow_powf
 [value] computing for function test_floor_det <- main.
-    Called from tests/float/math_builtins.c:682.
+  Called from tests/float/math_builtins.c:682.
+[value] tests/float/math_builtins.c:504: 
+  function floor: precondition 'finite_arg' got status valid.
+[value] tests/float/math_builtins.c:505: 
+  function floor: precondition 'finite_arg' got status valid.
+[value] tests/float/math_builtins.c:506: 
+  function floor: precondition 'finite_arg' got status valid.
+[value] tests/float/math_builtins.c:507: 
+  function floor: precondition 'finite_arg' got status valid.
+[value] tests/float/math_builtins.c:508: 
+  function floor: precondition 'finite_arg' got status valid.
+[value] tests/float/math_builtins.c:509: 
+  function floor: precondition 'finite_arg' got status valid.
 [value] Recording results for test_floor_det
 [value] Done for function test_floor_det
 [value] computing for function test_ceil_det <- main.
-    Called from tests/float/math_builtins.c:683.
+  Called from tests/float/math_builtins.c:683.
+[value] tests/float/math_builtins.c:513: 
+  function ceil: precondition 'finite_arg' got status valid.
+[value] tests/float/math_builtins.c:514: 
+  function ceil: precondition 'finite_arg' got status valid.
+[value] tests/float/math_builtins.c:515: 
+  function ceil: precondition 'finite_arg' got status valid.
+[value] tests/float/math_builtins.c:516: 
+  function ceil: precondition 'finite_arg' got status valid.
+[value] tests/float/math_builtins.c:517: 
+  function ceil: precondition 'finite_arg' got status valid.
+[value] tests/float/math_builtins.c:518: 
+  function ceil: precondition 'finite_arg' got status valid.
 [value] Recording results for test_ceil_det
 [value] Done for function test_ceil_det
 [value] computing for function test_trunc_det <- main.
-    Called from tests/float/math_builtins.c:684.
+  Called from tests/float/math_builtins.c:684.
+[value] tests/float/math_builtins.c:522: 
+  function trunc: precondition 'finite_arg' got status valid.
+[value] tests/float/math_builtins.c:523: 
+  function trunc: precondition 'finite_arg' got status valid.
+[value] tests/float/math_builtins.c:524: 
+  function trunc: precondition 'finite_arg' got status valid.
+[value] tests/float/math_builtins.c:525: 
+  function trunc: precondition 'finite_arg' got status valid.
+[value] tests/float/math_builtins.c:526: 
+  function trunc: precondition 'finite_arg' got status valid.
+[value] tests/float/math_builtins.c:527: 
+  function trunc: precondition 'finite_arg' got status valid.
 [value] Recording results for test_trunc_det
 [value] Done for function test_trunc_det
 [value] computing for function test_round_det <- main.
-    Called from tests/float/math_builtins.c:685.
+  Called from tests/float/math_builtins.c:685.
+[value] tests/float/math_builtins.c:531: 
+  function round: precondition 'finite_arg' got status valid.
+[value] tests/float/math_builtins.c:532: 
+  function round: precondition 'finite_arg' got status valid.
+[value] tests/float/math_builtins.c:533: 
+  function round: precondition 'finite_arg' got status valid.
+[value] tests/float/math_builtins.c:534: 
+  function round: precondition 'finite_arg' got status valid.
+[value] tests/float/math_builtins.c:535: 
+  function round: precondition 'finite_arg' got status valid.
+[value] tests/float/math_builtins.c:536: 
+  function round: precondition 'finite_arg' got status valid.
 [value] Recording results for test_round_det
 [value] Done for function test_round_det
 [value] computing for function test_floor <- main.
-    Called from tests/float/math_builtins.c:686.
+  Called from tests/float/math_builtins.c:686.
 [value] computing for function double_interval <- test_floor <- main.
-    Called from tests/float/math_builtins.c:541.
+  Called from tests/float/math_builtins.c:541.
 [value] Recording results for double_interval
 [value] Done for function double_interval
+[value] tests/float/math_builtins.c:542: 
+  function floor: precondition 'finite_arg' got status valid.
 [value] computing for function double_interval <- test_floor <- main.
-    Called from tests/float/math_builtins.c:543.
+  Called from tests/float/math_builtins.c:543.
 [value] Recording results for double_interval
 [value] Done for function double_interval
+[value] tests/float/math_builtins.c:544: 
+  function floor: precondition 'finite_arg' got status valid.
 [value] computing for function double_interval <- test_floor <- main.
-    Called from tests/float/math_builtins.c:545.
+  Called from tests/float/math_builtins.c:545.
 [value] Recording results for double_interval
 [value] Done for function double_interval
+[value] tests/float/math_builtins.c:546: 
+  function floor: precondition 'finite_arg' got status valid.
 [value] Recording results for test_floor
 [value] Done for function test_floor
 [value] computing for function test_ceil <- main.
-    Called from tests/float/math_builtins.c:687.
+  Called from tests/float/math_builtins.c:687.
 [value] computing for function double_interval <- test_ceil <- main.
-    Called from tests/float/math_builtins.c:551.
+  Called from tests/float/math_builtins.c:551.
 [value] Recording results for double_interval
 [value] Done for function double_interval
+[value] tests/float/math_builtins.c:552: 
+  function ceil: precondition 'finite_arg' got status valid.
 [value] computing for function double_interval <- test_ceil <- main.
-    Called from tests/float/math_builtins.c:553.
+  Called from tests/float/math_builtins.c:553.
 [value] Recording results for double_interval
 [value] Done for function double_interval
+[value] tests/float/math_builtins.c:554: 
+  function ceil: precondition 'finite_arg' got status valid.
 [value] computing for function double_interval <- test_ceil <- main.
-    Called from tests/float/math_builtins.c:555.
+  Called from tests/float/math_builtins.c:555.
 [value] Recording results for double_interval
 [value] Done for function double_interval
+[value] tests/float/math_builtins.c:556: 
+  function ceil: precondition 'finite_arg' got status valid.
 [value] Recording results for test_ceil
 [value] Done for function test_ceil
 [value] computing for function test_trunc <- main.
-    Called from tests/float/math_builtins.c:688.
+  Called from tests/float/math_builtins.c:688.
 [value] computing for function double_interval <- test_trunc <- main.
-    Called from tests/float/math_builtins.c:561.
+  Called from tests/float/math_builtins.c:561.
 [value] Recording results for double_interval
 [value] Done for function double_interval
+[value] tests/float/math_builtins.c:562: 
+  function trunc: precondition 'finite_arg' got status valid.
 [value] computing for function double_interval <- test_trunc <- main.
-    Called from tests/float/math_builtins.c:563.
+  Called from tests/float/math_builtins.c:563.
 [value] Recording results for double_interval
 [value] Done for function double_interval
+[value] tests/float/math_builtins.c:564: 
+  function trunc: precondition 'finite_arg' got status valid.
 [value] computing for function double_interval <- test_trunc <- main.
-    Called from tests/float/math_builtins.c:565.
+  Called from tests/float/math_builtins.c:565.
 [value] Recording results for double_interval
 [value] Done for function double_interval
+[value] tests/float/math_builtins.c:566: 
+  function trunc: precondition 'finite_arg' got status valid.
 [value] Recording results for test_trunc
 [value] Done for function test_trunc
 [value] computing for function test_round <- main.
-    Called from tests/float/math_builtins.c:689.
+  Called from tests/float/math_builtins.c:689.
 [value] computing for function double_interval <- test_round <- main.
-    Called from tests/float/math_builtins.c:571.
+  Called from tests/float/math_builtins.c:571.
 [value] Recording results for double_interval
 [value] Done for function double_interval
+[value] tests/float/math_builtins.c:572: 
+  function round: precondition 'finite_arg' got status valid.
 [value] computing for function double_interval <- test_round <- main.
-    Called from tests/float/math_builtins.c:573.
+  Called from tests/float/math_builtins.c:573.
 [value] Recording results for double_interval
 [value] Done for function double_interval
+[value] tests/float/math_builtins.c:574: 
+  function round: precondition 'finite_arg' got status valid.
 [value] computing for function double_interval <- test_round <- main.
-    Called from tests/float/math_builtins.c:575.
+  Called from tests/float/math_builtins.c:575.
 [value] Recording results for double_interval
 [value] Done for function double_interval
+[value] tests/float/math_builtins.c:576: 
+  function round: precondition 'finite_arg' got status valid.
 [value] Recording results for test_round
 [value] Done for function test_round
 [value] computing for function test_floorf_det <- main.
-    Called from tests/float/math_builtins.c:691.
+  Called from tests/float/math_builtins.c:691.
+[value] tests/float/math_builtins.c:580: 
+  function floorf: precondition 'finite_arg' got status valid.
+[value] tests/float/math_builtins.c:581: 
+  function floorf: precondition 'finite_arg' got status valid.
+[value] tests/float/math_builtins.c:582: 
+  function floorf: precondition 'finite_arg' got status valid.
+[value] tests/float/math_builtins.c:583: 
+  function floorf: precondition 'finite_arg' got status valid.
+[value] tests/float/math_builtins.c:584: 
+  function floorf: precondition 'finite_arg' got status valid.
+[value] tests/float/math_builtins.c:585: 
+  function floorf: precondition 'finite_arg' got status valid.
 [value] Recording results for test_floorf_det
 [value] Done for function test_floorf_det
 [value] computing for function test_ceilf_det <- main.
-    Called from tests/float/math_builtins.c:692.
+  Called from tests/float/math_builtins.c:692.
+[value] tests/float/math_builtins.c:589: 
+  function ceilf: precondition 'finite_arg' got status valid.
+[value] tests/float/math_builtins.c:590: 
+  function ceilf: precondition 'finite_arg' got status valid.
+[value] tests/float/math_builtins.c:591: 
+  function ceilf: precondition 'finite_arg' got status valid.
+[value] tests/float/math_builtins.c:592: 
+  function ceilf: precondition 'finite_arg' got status valid.
+[value] tests/float/math_builtins.c:593: 
+  function ceilf: precondition 'finite_arg' got status valid.
+[value] tests/float/math_builtins.c:594: 
+  function ceilf: precondition 'finite_arg' got status valid.
 [value] Recording results for test_ceilf_det
 [value] Done for function test_ceilf_det
 [value] computing for function test_truncf_det <- main.
-    Called from tests/float/math_builtins.c:693.
+  Called from tests/float/math_builtins.c:693.
+[value] tests/float/math_builtins.c:598: 
+  function truncf: precondition 'finite_arg' got status valid.
+[value] tests/float/math_builtins.c:599: 
+  function truncf: precondition 'finite_arg' got status valid.
+[value] tests/float/math_builtins.c:600: 
+  function truncf: precondition 'finite_arg' got status valid.
+[value] tests/float/math_builtins.c:601: 
+  function truncf: precondition 'finite_arg' got status valid.
+[value] tests/float/math_builtins.c:602: 
+  function truncf: precondition 'finite_arg' got status valid.
+[value] tests/float/math_builtins.c:603: 
+  function truncf: precondition 'finite_arg' got status valid.
 [value] Recording results for test_truncf_det
 [value] Done for function test_truncf_det
 [value] computing for function test_roundf_det <- main.
-    Called from tests/float/math_builtins.c:694.
+  Called from tests/float/math_builtins.c:694.
+[value] tests/float/math_builtins.c:607: 
+  function roundf: precondition 'finite_arg' got status valid.
+[value] tests/float/math_builtins.c:608: 
+  function roundf: precondition 'finite_arg' got status valid.
+[value] tests/float/math_builtins.c:609: 
+  function roundf: precondition 'finite_arg' got status valid.
+[value] tests/float/math_builtins.c:610: 
+  function roundf: precondition 'finite_arg' got status valid.
+[value] tests/float/math_builtins.c:611: 
+  function roundf: precondition 'finite_arg' got status valid.
+[value] tests/float/math_builtins.c:612: 
+  function roundf: precondition 'finite_arg' got status valid.
 [value] Recording results for test_roundf_det
 [value] Done for function test_roundf_det
 [value] computing for function test_floorf <- main.
-    Called from tests/float/math_builtins.c:695.
+  Called from tests/float/math_builtins.c:695.
 [value] computing for function double_interval <- test_floorf <- main.
-    Called from tests/float/math_builtins.c:617.
+  Called from tests/float/math_builtins.c:617.
 [value] Recording results for double_interval
 [value] Done for function double_interval
+[value] tests/float/math_builtins.c:618: 
+  function floorf: precondition 'finite_arg' got status valid.
 [value] computing for function double_interval <- test_floorf <- main.
-    Called from tests/float/math_builtins.c:619.
+  Called from tests/float/math_builtins.c:619.
 [value] Recording results for double_interval
 [value] Done for function double_interval
+[value] tests/float/math_builtins.c:620: 
+  function floorf: precondition 'finite_arg' got status valid.
 [value] computing for function double_interval <- test_floorf <- main.
-    Called from tests/float/math_builtins.c:621.
+  Called from tests/float/math_builtins.c:621.
 [value] Recording results for double_interval
 [value] Done for function double_interval
+[value] tests/float/math_builtins.c:622: 
+  function floorf: precondition 'finite_arg' got status valid.
 [value] Recording results for test_floorf
 [value] Done for function test_floorf
 [value] computing for function test_ceilf <- main.
-    Called from tests/float/math_builtins.c:696.
+  Called from tests/float/math_builtins.c:696.
 [value] computing for function double_interval <- test_ceilf <- main.
-    Called from tests/float/math_builtins.c:627.
+  Called from tests/float/math_builtins.c:627.
 [value] Recording results for double_interval
 [value] Done for function double_interval
+[value] tests/float/math_builtins.c:628: 
+  function ceilf: precondition 'finite_arg' got status valid.
 [value] computing for function double_interval <- test_ceilf <- main.
-    Called from tests/float/math_builtins.c:629.
+  Called from tests/float/math_builtins.c:629.
 [value] Recording results for double_interval
 [value] Done for function double_interval
+[value] tests/float/math_builtins.c:630: 
+  function ceilf: precondition 'finite_arg' got status valid.
 [value] computing for function double_interval <- test_ceilf <- main.
-    Called from tests/float/math_builtins.c:631.
+  Called from tests/float/math_builtins.c:631.
 [value] Recording results for double_interval
 [value] Done for function double_interval
+[value] tests/float/math_builtins.c:632: 
+  function ceilf: precondition 'finite_arg' got status valid.
 [value] Recording results for test_ceilf
 [value] Done for function test_ceilf
 [value] computing for function test_truncf <- main.
-    Called from tests/float/math_builtins.c:697.
+  Called from tests/float/math_builtins.c:697.
 [value] computing for function double_interval <- test_truncf <- main.
-    Called from tests/float/math_builtins.c:637.
+  Called from tests/float/math_builtins.c:637.
 [value] Recording results for double_interval
 [value] Done for function double_interval
+[value] tests/float/math_builtins.c:638: 
+  function truncf: precondition 'finite_arg' got status valid.
 [value] computing for function double_interval <- test_truncf <- main.
-    Called from tests/float/math_builtins.c:639.
+  Called from tests/float/math_builtins.c:639.
 [value] Recording results for double_interval
 [value] Done for function double_interval
+[value] tests/float/math_builtins.c:640: 
+  function truncf: precondition 'finite_arg' got status valid.
 [value] computing for function double_interval <- test_truncf <- main.
-    Called from tests/float/math_builtins.c:641.
+  Called from tests/float/math_builtins.c:641.
 [value] Recording results for double_interval
 [value] Done for function double_interval
+[value] tests/float/math_builtins.c:642: 
+  function truncf: precondition 'finite_arg' got status valid.
 [value] Recording results for test_truncf
 [value] Done for function test_truncf
 [value] computing for function test_roundf <- main.
-    Called from tests/float/math_builtins.c:698.
+  Called from tests/float/math_builtins.c:698.
 [value] computing for function double_interval <- test_roundf <- main.
-    Called from tests/float/math_builtins.c:647.
+  Called from tests/float/math_builtins.c:647.
 [value] Recording results for double_interval
 [value] Done for function double_interval
+[value] tests/float/math_builtins.c:648: 
+  function roundf: precondition 'finite_arg' got status valid.
 [value] computing for function double_interval <- test_roundf <- main.
-    Called from tests/float/math_builtins.c:649.
+  Called from tests/float/math_builtins.c:649.
 [value] Recording results for double_interval
 [value] Done for function double_interval
+[value] tests/float/math_builtins.c:650: 
+  function roundf: precondition 'finite_arg' got status valid.
 [value] computing for function double_interval <- test_roundf <- main.
-    Called from tests/float/math_builtins.c:651.
+  Called from tests/float/math_builtins.c:651.
 [value] Recording results for double_interval
 [value] Done for function double_interval
+[value] tests/float/math_builtins.c:652: 
+  function roundf: precondition 'finite_arg' got status valid.
 [value] Recording results for test_roundf
 [value] Done for function test_roundf
 [value] Recording results for main
@@ -1153,11 +1894,11 @@ tests/float/math_builtins.c:495:[value] warning: builtin Frama_C_log10f: complet
   g ∈ [1.7652004904783322*2^-3 .. 4.7568284600108841]
   h ∈ [1.4142135623730951*2^-3 .. 1.7469281074217106]
   i ∈ [-1.9999999999999998*2^1023 .. 1.9999999999999998*2^1023]
-  j ∈ [-1.0000000000000000 .. 1.0000000000000000*2^537]
+  j ∈ [-1.0000000000000000 .. 1.9999999999999998*2^1023]
   k ∈ [-1.4163703918457031*2^18 .. 1.4036245608028963*2^52]
   l ∈ [-1024.0000000000000000 .. 256.0000000000000000]
   m ∈ [-0.0000000000000000 .. 1.5258789062500000*2^16]
-  n ∈ [-0.0000000000000000 .. 1.9999999999999998*2^1023]
+  n ∈ [1.0362151436839746*2^-15 .. 1.9999999999999998*2^1023]
   o ∈ {1.0000000000000000}
   p ∈ [-1.4551915228366852*2^25 .. 1.1641532182693481*2^23]
   q ∈ [-1.9999999999999998*2^1023 .. 1.9999999999999998*2^1023]
@@ -1202,7 +1943,7 @@ tests/float/math_builtins.c:495:[value] warning: builtin Frama_C_log10f: complet
   f32__g ∈ [1.765200*2^-3 .. 4.756828]
   f32__h ∈ [1.414213*2^-3 .. 1.746928]
   f32__i ∈ [-1.999999*2^127 .. 1.999999*2^127]
-  f32__j ∈ [-1.000000 .. 1.414213*2^74]
+  f32__j ∈ [-1.000000 .. 1.999999*2^127]
   f32__k ∈ [-1.416370*2^18 .. 1.403624*2^52]
   f32__l ∈ [-1024.000000 .. 256.000000]
   f32__m ∈ [-0.000000 .. 1.525878*2^16]
@@ -1435,7 +2176,7 @@ tests/float/math_builtins.c:495:[value] warning: builtin Frama_C_log10f: complet
 [from] Computing for function main
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
-    These dependencies hold at termination for the executions that terminate:
+  These dependencies hold at termination for the executions that terminate:
 [from] Function atan2:
   \result FROM y; x
 [from] Function ceil:
@@ -1564,175 +2305,175 @@ tests/float/math_builtins.c:495:[value] warning: builtin Frama_C_log10f: complet
   \result FROM \nothing
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function double_interval:
-      __retres
+    __retres
 [inout] Inputs for function double_interval:
-      nondet
+    nondet
 [inout] Out (internal) for function test_atan2:
-      x; y; a; b; c; d; e; f; g; h; i; j; k; l; m; n
+    x; y; a; b; c; d; e; f; g; h; i; j; k; l; m; n
 [inout] Inputs for function test_atan2:
-      nondet
+    nondet
 [inout] Out (internal) for function test_atan2_det:
-      a; b; c; d; e; f; g; h; i; j; k; l; m
+    a; b; c; d; e; f; g; h; i; j; k; l; m
 [inout] Inputs for function test_atan2_det:
-      \nothing
+    \nothing
 [inout] Out (internal) for function test_ceil:
-      x; a; b; c
+    x; a; b; c
 [inout] Inputs for function test_ceil:
-      nondet
+    nondet
 [inout] Out (internal) for function test_ceil_det:
-      a; b; c; d; e; f
+    a; b; c; d; e; f
 [inout] Inputs for function test_ceil_det:
-      \nothing
+    \nothing
 [inout] Out (internal) for function test_ceilf:
-      f32__x; tmp; f32__a; tmp_1; f32__b; tmp_3; f32__c
+    f32__x; tmp; f32__a; tmp_1; f32__b; tmp_3; f32__c
 [inout] Inputs for function test_ceilf:
-      nondet
+    nondet
 [inout] Out (internal) for function test_ceilf_det:
-      f32__a; f32__b; f32__c; f32__d; f32__e; f32__f
+    f32__a; f32__b; f32__c; f32__d; f32__e; f32__f
 [inout] Inputs for function test_ceilf_det:
-      \nothing
+    \nothing
 [inout] Out (internal) for function test_cos_det:
-      x; y; z
+    x; y; z
 [inout] Inputs for function test_cos_det:
-      \nothing
+    \nothing
 [inout] Out (internal) for function test_diff_pow_powf:
-      d; f32__f
+    d; f32__f
 [inout] Inputs for function test_diff_pow_powf:
-      \nothing
+    \nothing
 [inout] Out (internal) for function test_exp_det:
-      a; b; c; d; e
+    a; b; c; d; e
 [inout] Inputs for function test_exp_det:
-      nondet
+    nondet
 [inout] Out (internal) for function test_expf_det:
-      f32__a; f32__b; f32__c; f32__d; f32__e
+    f32__a; f32__b; f32__c; f32__d; f32__e
 [inout] Inputs for function test_expf_det:
-      \nothing
+    \nothing
 [inout] Out (internal) for function test_floor:
-      x; a; b; c
+    x; a; b; c
 [inout] Inputs for function test_floor:
-      nondet
+    nondet
 [inout] Out (internal) for function test_floor_det:
-      a; b; c; d; e; f
+    a; b; c; d; e; f
 [inout] Inputs for function test_floor_det:
-      \nothing
+    \nothing
 [inout] Out (internal) for function test_floorf:
-      f32__x; tmp; f32__a; tmp_1; f32__b; tmp_3; f32__c
+    f32__x; tmp; f32__a; tmp_1; f32__b; tmp_3; f32__c
 [inout] Inputs for function test_floorf:
-      nondet
+    nondet
 [inout] Out (internal) for function test_floorf_det:
-      f32__a; f32__b; f32__c; f32__d; f32__e; f32__f
+    f32__a; f32__b; f32__c; f32__d; f32__e; f32__f
 [inout] Inputs for function test_floorf_det:
-      \nothing
+    \nothing
 [inout] Out (internal) for function test_fmod:
-      x; y; a; b; c; d; e; f; g; h; i; j; k; l; m; n; o; p; q; r; s; tmp_18; 
-      t; u; v1; v2; v3; v4; w1; w2; w3
+    x; y; a; b; c; d; e; f; g; h; i; j; k; l; m; n; o; p; q; r; s; tmp_18; 
+    t; u; v1; v2; v3; v4; w1; w2; w3
 [inout] Inputs for function test_fmod:
-      nondet
+    nondet
 [inout] Out (internal) for function test_fmod_det:
-      a; b; c; d; e; f
+    a; b; c; d; e; f
 [inout] Inputs for function test_fmod_det:
-      nondet
+    nondet
 [inout] Out (internal) for function test_log10_det:
-      a; b
+    a; b
 [inout] Inputs for function test_log10_det:
-      nondet
+    nondet
 [inout] Out (internal) for function test_log10f_det:
-      f32__a; f32__b
+    f32__a; f32__b
 [inout] Inputs for function test_log10f_det:
-      nondet
+    nondet
 [inout] Out (internal) for function test_log_det:
-      a; b
+    a; b
 [inout] Inputs for function test_log_det:
-      nondet
+    nondet
 [inout] Out (internal) for function test_logf_det:
-      f32__a; f32__b
+    f32__a; f32__b
 [inout] Inputs for function test_logf_det:
-      nondet
+    nondet
 [inout] Out (internal) for function test_pow:
-      x; y; a; b; c; d; e; f; g; h; i; j; k; l; m; n; o; p; q; r
+    x; y; a; b; c; d; e; f; g; h; i; j; k; l; m; n; o; p; q; r
 [inout] Inputs for function test_pow:
-      nondet
+    nondet
 [inout] Out (internal) for function test_pow_det:
-      a; b; c; d; e; f; g; h
+    a; b; c; d; e; f; g; h
 [inout] Inputs for function test_pow_det:
-      \nothing
+    \nothing
 [inout] Out (internal) for function test_pow_singleton_exp:
-      x; c; d; e; f; g; h; i; j; k; l; m; n; o; p; q; r; s
+    x; c; d; e; f; g; h; i; j; k; l; m; n; o; p; q; r; s
 [inout] Inputs for function test_pow_singleton_exp:
-      nondet
+    nondet
 [inout] Out (internal) for function test_powf:
-      f32__x; f32__y; tmp; f32__a; tmp_1; f32__b; tmp_3; f32__c; tmp_5; tmp_6;
-      f32__d; tmp_8; f32__e; tmp_10; f32__f; tmp_12; tmp_13; f32__g; tmp_15;
-      tmp_16; f32__h; tmp_18; tmp_19; f32__i; tmp_21; tmp_22; f32__j; tmp_24;
-      tmp_25; f32__k; tmp_27; tmp_28; f32__l; tmp_30; tmp_31; f32__m
+    f32__x; f32__y; tmp; f32__a; tmp_1; f32__b; tmp_3; f32__c; tmp_5; tmp_6;
+    f32__d; tmp_8; f32__e; tmp_10; f32__f; tmp_12; tmp_13; f32__g; tmp_15;
+    tmp_16; f32__h; tmp_18; tmp_19; f32__i; tmp_21; tmp_22; f32__j; tmp_24;
+    tmp_25; f32__k; tmp_27; tmp_28; f32__l; tmp_30; tmp_31; f32__m
 [inout] Inputs for function test_powf:
-      nondet
+    nondet
 [inout] Out (internal) for function test_powf_det:
-      f32__a; f32__b; f32__c; f32__d; f32__e; f32__f; f32__g; f32__h
+    f32__a; f32__b; f32__c; f32__d; f32__e; f32__f; f32__g; f32__h
 [inout] Inputs for function test_powf_det:
-      \nothing
+    \nothing
 [inout] Out (internal) for function test_powf_singleton_exp:
-      f32__x; tmp; tmp_0; f32__c; f32__d; f32__e; f32__f; tmp_5; f32__g; 
-      tmp_7; f32__h; tmp_9; f32__i; tmp_11; f32__j; f32__k; f32__l; tmp_15;
-      f32__m; f32__n; f32__o; f32__p; f32__q; tmp_21; f32__r; f32__s
+    f32__x; tmp; tmp_0; f32__c; f32__d; f32__e; f32__f; tmp_5; f32__g; 
+    tmp_7; f32__h; tmp_9; f32__i; tmp_11; f32__j; f32__k; f32__l; tmp_15;
+    f32__m; f32__n; f32__o; f32__p; f32__q; tmp_21; f32__r; f32__s
 [inout] Inputs for function test_powf_singleton_exp:
-      nondet
+    nondet
 [inout] Out (internal) for function test_round:
-      x; a; b; c
+    x; a; b; c
 [inout] Inputs for function test_round:
-      nondet
+    nondet
 [inout] Out (internal) for function test_round_det:
-      a; b; c; d; e; f
+    a; b; c; d; e; f
 [inout] Inputs for function test_round_det:
-      \nothing
+    \nothing
 [inout] Out (internal) for function test_roundf:
-      f32__x; tmp; f32__a; tmp_1; f32__b; tmp_3; f32__c
+    f32__x; tmp; f32__a; tmp_1; f32__b; tmp_3; f32__c
 [inout] Inputs for function test_roundf:
-      nondet
+    nondet
 [inout] Out (internal) for function test_roundf_det:
-      f32__a; f32__b; f32__c; f32__d; f32__e; f32__f
+    f32__a; f32__b; f32__c; f32__d; f32__e; f32__f
 [inout] Inputs for function test_roundf_det:
-      \nothing
+    \nothing
 [inout] Out (internal) for function test_sin_det:
-      x; y; z
+    x; y; z
 [inout] Inputs for function test_sin_det:
-      \nothing
+    \nothing
 [inout] Out (internal) for function test_sqrt:
-      x; a; b; c
+    x; a; b; c
 [inout] Inputs for function test_sqrt:
-      nondet
+    nondet
 [inout] Out (internal) for function test_sqrt_det:
-      a; b; c; d
+    a; b; c; d
 [inout] Inputs for function test_sqrt_det:
-      nondet
+    nondet
 [inout] Out (internal) for function test_sqrtf:
-      f32__x; tmp; f32__a; tmp_1; b; tmp_3; c; tmp_5
+    f32__x; tmp; f32__a; tmp_1; b; tmp_3; c; tmp_5
 [inout] Inputs for function test_sqrtf:
-      nondet
+    nondet
 [inout] Out (internal) for function test_sqrtf_det:
-      f32__a; f32__b; f32__c; f32__d
+    f32__a; f32__b; f32__c; f32__d
 [inout] Inputs for function test_sqrtf_det:
-      nondet
+    nondet
 [inout] Out (internal) for function test_trunc:
-      x; a; b; c
+    x; a; b; c
 [inout] Inputs for function test_trunc:
-      nondet
+    nondet
 [inout] Out (internal) for function test_trunc_det:
-      a; b; c; d; e; f
+    a; b; c; d; e; f
 [inout] Inputs for function test_trunc_det:
-      \nothing
+    \nothing
 [inout] Out (internal) for function test_truncf:
-      f32__x; tmp; f32__a; tmp_1; f32__b; tmp_3; f32__c
+    f32__x; tmp; f32__a; tmp_1; f32__b; tmp_3; f32__c
 [inout] Inputs for function test_truncf:
-      nondet
+    nondet
 [inout] Out (internal) for function test_truncf_det:
-      f32__a; f32__b; f32__c; f32__d; f32__e; f32__f
+    f32__a; f32__b; f32__c; f32__d; f32__e; f32__f
 [inout] Inputs for function test_truncf_det:
-      \nothing
+    \nothing
 [inout] Out (internal) for function main:
-      __retres
+    __retres
 [inout] Inputs for function main:
-      nondet
+    nondet
 /* Generated by Frama-C */
 #include "errno.h"
 #include "math.h"
@@ -1844,6 +2585,8 @@ void test_powf_det(void)
   return;
 }
 
+/*@ assigns \result;
+    assigns \result \from \nothing; */
 extern int ( /* missing proto */ Frama_C_show_each_unreachable)();
 
 /*@ assigns \result;
@@ -1859,48 +2602,21 @@ void test_pow_singleton_exp(void)
   double x;
   x = double_interval(- 3.5,- 2.75);
   if (nondet) {
-    /*@ assert
-        Value: is_nan_or_infinite:
-          \warning("\\is_finite(Frama_C_pow(x,1.5))");
-    */
     pow(x,1.5);
     Frama_C_show_each_unreachable();
   }
   if (nondet) {
-    /*@ assert
-        Value: is_nan_or_infinite:
-          \warning("\\is_finite(Frama_C_pow(x,- 1.5))");
-    */
     pow(x,- 1.5);
     Frama_C_show_each_unreachable();
   }
   x = double_interval(- 3.5,2.75);
-  /*@ assert
-      Value: is_nan_or_infinite: \warning("\\is_finite(Frama_C_pow(x,1.5))");
-  */
   double c = pow(x,1.5);
-  /*@ assert
-      Value: is_nan_or_infinite:
-        \warning("\\is_finite(Frama_C_pow(x,- 1.5))");
-  */
   double d = pow(x,- 1.5);
-  /*@ assert
-      Value: is_nan_or_infinite: \warning("\\is_finite(Frama_C_pow(x,- 3.))");
-  */
   double e = pow(x,- 3.);
-  /*@ assert
-      Value: is_nan_or_infinite: \warning("\\is_finite(Frama_C_pow(x,- 2.))");
-  */
   double f = pow(x,- 2.);
   x = double_interval((double)(1LL << 50),(double)(1LL << 62));
-  /*@ assert
-      Value: is_nan_or_infinite: \warning("\\is_finite(Frama_C_pow(x,19.5))");
-  */
   double g = pow(x,19.5);
   x = double_interval((double)(- (1LL << 49)),- .75);
-  /*@ assert
-      Value: is_nan_or_infinite: \warning("\\is_finite(Frama_C_pow(x,23.0))");
-  */
   double h = pow(x,23.0);
   x = double_interval(0.125,0.25);
   double i = pow(x,500.);
@@ -1934,19 +2650,10 @@ void test_pow(void)
   double c = pow(x,y);
   x = double_interval(- 4.0,7.5);
   y = double_interval(2.125,2.875);
-  /*@ assert
-      Value: is_nan_or_infinite: \warning("\\is_finite(Frama_C_pow(x,y))");
-  */
   double d = pow(x,y);
   y = double_interval(2.125,4.875);
-  /*@ assert
-      Value: is_nan_or_infinite: \warning("\\is_finite(Frama_C_pow(x,y))");
-  */
   double e = pow(x,y);
   y = double_interval(2.0,3.0);
-  /*@ assert
-      Value: is_nan_or_infinite: \warning("\\is_finite(Frama_C_pow(x,y))");
-  */
   double f = pow(x,y);
   y = double_interval(- 0.75,- 0.);
   x = double_interval(0.125,7.5);
@@ -1956,76 +2663,43 @@ void test_pow(void)
   double h = pow(x,y);
   x = double_interval(- 1.0,1.0);
   y = double_interval(- 1.0,1.0);
-  /*@ assert
-      Value: is_nan_or_infinite: \warning("\\is_finite(Frama_C_pow(x,y))");
-  */
   double i = pow(x,y);
   x = double_interval(- 1.0,1.0);
   y = double_interval(- 0.5,1.0);
-  /*@ assert
-      Value: is_nan_or_infinite: \warning("\\is_finite(Frama_C_pow(x,y))");
-  */
   double j = pow(x,y);
   x = double_interval(- 13.,430.);
   y = double_interval(3.,6.);
-  /*@ assert
-      Value: is_nan_or_infinite: \warning("\\is_finite(Frama_C_pow(x,y))");
-  */
   double k = pow(x,y);
   x = double_interval(- 4.,- 2.);
   y = double_interval(3.,5.);
-  /*@ assert
-      Value: is_nan_or_infinite: \warning("\\is_finite(Frama_C_pow(x,y))");
-  */
   double l = pow(x,y);
   x = double_interval(- 0.,10.);
   y = double_interval(- 0.,5.);
   double m = pow(x,y);
   x = double_interval(- 0.0,10.0);
-  y = double_interval(- 3.5,4.5);
-  /*@ assert
-      Value: is_nan_or_infinite: \warning("\\is_finite(Frama_C_pow(x,y))");
-  */
+  y = double_interval(- 4.5,- 3.5);
   double n = pow(x,y);
   x = double_interval(- 5.,- 0.5);
   y = double_interval(- 0.875,- 0.125);
   if (nondet) {
-    /*@ assert
-        Value: is_nan_or_infinite: \warning("\\is_finite(Frama_C_pow(x,y))");
-    */
     pow(x,y);
     Frama_C_show_each_unreachable();
   }
   y = double_interval(- 0.25,0.25);
-  /*@ assert
-      Value: is_nan_or_infinite: \warning("\\is_finite(Frama_C_pow(x,y))");
-  */
   double o = pow(x,y);
   y = double_interval(10.,11.5);
-  /*@ assert
-      Value: is_nan_or_infinite: \warning("\\is_finite(Frama_C_pow(x,y))");
-  */
   double p = pow(x,y);
   y = double_interval(- 9876.5,1234.5);
-  /*@ assert
-      Value: is_nan_or_infinite: \warning("\\is_finite(Frama_C_pow(x,y))");
-  */
   double q = pow(x,y);
   x = double_interval(1e10,1e11);
   y = double_interval(1e14,1e15);
   if (nondet) {
-    /*@ assert
-        Value: is_nan_or_infinite: \warning("\\is_finite(Frama_C_pow(x,y))");
-    */
     pow(x,y);
     Frama_C_show_each_unreachable();
   }
   x = double_interval(- 1e11,- 1e10);
   y = double_interval(1e14,1e15);
   if (nondet) {
-    /*@ assert
-        Value: is_nan_or_infinite: \warning("\\is_finite(Frama_C_pow(x,y))");
-    */
     pow(x,y);
     Frama_C_show_each_unreachable();
   }
@@ -2048,52 +2722,24 @@ void test_powf_singleton_exp(void)
   tmp = double_interval(- 3.5,- 2.75);
   f32__x = (float)tmp;
   if (nondet) {
-    /*@ assert
-        Value: is_nan_or_infinite:
-          \warning("\\is_finite(Frama_C_powf(f32__x,(float)1.5))");
-    */
     powf(f32__x,(float)1.5);
     Frama_C_show_each_unreachable();
   }
   if (nondet) {
-    /*@ assert
-        Value: is_nan_or_infinite:
-          \warning("\\is_finite(Frama_C_powf(f32__x,(float)(- 1.5)))");
-    */
     powf(f32__x,(float)(- 1.5));
     Frama_C_show_each_unreachable();
   }
   tmp_0 = double_interval(- 3.5,2.75);
   f32__x = (float)tmp_0;
-  /*@ assert
-      Value: is_nan_or_infinite:
-        \warning("\\is_finite(Frama_C_powf(f32__x,(float)1.5))");
-  */
   float f32__c = powf(f32__x,(float)1.5);
-  /*@ assert
-      Value: is_nan_or_infinite:
-        \warning("\\is_finite(Frama_C_powf(f32__x,(float)(- 1.5)))");
-  */
   float f32__d = powf(f32__x,(float)(- 1.5));
-  /*@ assert
-      Value: is_nan_or_infinite:
-        \warning("\\is_finite(Frama_C_powf(f32__x,(float)(- 3.)))");
-  */
   float f32__e = powf(f32__x,(float)(- 3.));
-  /*@ assert
-      Value: is_nan_or_infinite:
-        \warning("\\is_finite(Frama_C_powf(f32__x,(float)(- 2.)))");
-  */
   float f32__f = powf(f32__x,(float)(- 2.));
   tmp_5 = double_interval((double)(1LL << 20),(double)(1LL << 21));
   f32__x = (float)tmp_5;
   float f32__g = powf(f32__x,(float)5.8);
   tmp_7 = double_interval((double)(- (1LL << 49)),- .75);
   f32__x = (float)tmp_7;
-  /*@ assert
-      Value: is_nan_or_infinite:
-        \warning("\\is_finite(Frama_C_powf(f32__x,(float)23.0))");
-  */
   float f32__h = powf(f32__x,(float)23.0);
   tmp_9 = double_interval(0.125,0.25);
   f32__x = (float)tmp_9;
@@ -2157,24 +2803,12 @@ void test_powf(void)
   f32__x = (float)tmp_5;
   tmp_6 = double_interval(2.125,2.875);
   f32__y = (float)tmp_6;
-  /*@ assert
-      Value: is_nan_or_infinite:
-        \warning("\\is_finite(Frama_C_powf(f32__x,f32__y))");
-  */
   float f32__d = powf(f32__x,f32__y);
   tmp_8 = double_interval(2.125,4.875);
   f32__y = (float)tmp_8;
-  /*@ assert
-      Value: is_nan_or_infinite:
-        \warning("\\is_finite(Frama_C_powf(f32__x,f32__y))");
-  */
   float f32__e = powf(f32__x,f32__y);
   tmp_10 = double_interval(2.0,3.0);
   f32__y = (float)tmp_10;
-  /*@ assert
-      Value: is_nan_or_infinite:
-        \warning("\\is_finite(Frama_C_powf(f32__x,f32__y))");
-  */
   float f32__f = powf(f32__x,f32__y);
   tmp_12 = double_interval(- 0.75,- 0.);
   f32__y = (float)tmp_12;
@@ -2190,37 +2824,21 @@ void test_powf(void)
   f32__x = (float)tmp_18;
   tmp_19 = double_interval(- 1.0,1.0);
   f32__y = (float)tmp_19;
-  /*@ assert
-      Value: is_nan_or_infinite:
-        \warning("\\is_finite(Frama_C_powf(f32__x,f32__y))");
-  */
   float f32__i = powf(f32__x,f32__y);
   tmp_21 = double_interval(- 1.0,1.0);
   f32__x = (float)tmp_21;
   tmp_22 = double_interval(- 0.5,1.0);
   f32__y = (float)tmp_22;
-  /*@ assert
-      Value: is_nan_or_infinite:
-        \warning("\\is_finite(Frama_C_powf(f32__x,f32__y))");
-  */
   float f32__j = powf(f32__x,f32__y);
   tmp_24 = double_interval(- 13.,430.);
   f32__x = (float)tmp_24;
   tmp_25 = double_interval(3.,6.);
   f32__y = (float)tmp_25;
-  /*@ assert
-      Value: is_nan_or_infinite:
-        \warning("\\is_finite(Frama_C_powf(f32__x,f32__y))");
-  */
   float f32__k = powf(f32__x,f32__y);
   tmp_27 = double_interval(- 4.,- 2.);
   f32__x = (float)tmp_27;
   tmp_28 = double_interval(3.,5.);
   f32__y = (float)tmp_28;
-  /*@ assert
-      Value: is_nan_or_infinite:
-        \warning("\\is_finite(Frama_C_powf(f32__x,f32__y))");
-  */
   float f32__l = powf(f32__x,f32__y);
   tmp_30 = double_interval(- 0.,10.);
   f32__x = (float)tmp_30;
@@ -2239,10 +2857,6 @@ void test_fmod_det(void)
   double e = fmod(0.0,0.0009765625);
   double f = fmod(1.25,0.0009765625);
   if (nondet) {
-    /*@ assert
-        Value: is_nan_or_infinite:
-          \warning("\\is_finite(Frama_C_fmod(0.125,0.0))");
-    */
     fmod(0.125,0.0);
     Frama_C_show_each_unreachable();
   }
@@ -2271,33 +2885,18 @@ void test_fmod(void)
   double i = fmod(x,- y);
   x = double_interval(- 9.,8.75);
   y = double_interval(- 2.,4.5);
-  /*@ assert
-      Value: is_nan_or_infinite: \warning("\\is_finite(Frama_C_fmod(x,y))");
-  */
   double j = fmod(x,y);
   x = double_interval(- 2.,4.5);
   y = double_interval(- 9.,8.75);
-  /*@ assert
-      Value: is_nan_or_infinite: \warning("\\is_finite(Frama_C_fmod(x,y))");
-  */
   double k = fmod(x,y);
   y = double_interval(- 0.0,0.0);
   if (nondet) {
-    /*@ assert
-        Value: is_nan_or_infinite: \warning("\\is_finite(Frama_C_fmod(x,y))");
-    */
     fmod(x,y);
     Frama_C_show_each_unreachable();
   }
   y = double_interval(0.0,0.125);
-  /*@ assert
-      Value: is_nan_or_infinite: \warning("\\is_finite(Frama_C_fmod(x,y))");
-  */
   double l = fmod(x,y);
   y = double_interval(- 0.125,- 0.0);
-  /*@ assert
-      Value: is_nan_or_infinite: \warning("\\is_finite(Frama_C_fmod(x,y))");
-  */
   double m = fmod(x,y);
   x = double_interval(1e308,1.1e308);
   double n = fmod(x,0.001953125);
@@ -2327,19 +2926,10 @@ void test_fmod(void)
   double v4 = fmod(x,y);
   x = double_interval((double)2,(double)3);
   y = double_interval((double)(-4),(double)5);
-  /*@ assert
-      Value: is_nan_or_infinite: \warning("\\is_finite(Frama_C_fmod(x,y))");
-  */
   double w1 = fmod(x,y);
   x = double_interval((double)(-2),(double)3);
-  /*@ assert
-      Value: is_nan_or_infinite: \warning("\\is_finite(Frama_C_fmod(x,y))");
-  */
   double w2 = fmod(x,y);
   x = double_interval((double)(-3),(double)2);
-  /*@ assert
-      Value: is_nan_or_infinite: \warning("\\is_finite(Frama_C_fmod(x,y))");
-  */
   double w3 = fmod(x,y);
   return;
 }
@@ -2349,10 +2939,6 @@ void test_sqrt_det(void)
   double a = sqrt(42.125);
   double b = sqrt(0.125);
   if (nondet) {
-    /*@ assert
-        Value: is_nan_or_infinite:
-          \warning("\\is_finite(Frama_C_sqrt(- 2.))");
-    */
     sqrt(- 2.);
     Frama_C_show_each_unreachable();
   }
@@ -2366,20 +2952,11 @@ void test_sqrt(void)
   double x = double_interval(- 0.0,5.0);
   double a = sqrt(x);
   x = double_interval(- 6.5,0.0);
-  /*@ assert
-      Value: is_nan_or_infinite: \warning("\\is_finite(Frama_C_sqrt(x))");
-  */
   double b = sqrt(x);
   x = double_interval(- 6.5,- 0.0);
-  /*@ assert
-      Value: is_nan_or_infinite: \warning("\\is_finite(Frama_C_sqrt(x))");
-  */
   double c = sqrt(x);
   x = double_interval(- 6.5,- 0.1);
   if (nondet) {
-    /*@ assert
-        Value: is_nan_or_infinite: \warning("\\is_finite(Frama_C_sqrt(x))");
-    */
     sqrt(x);
     Frama_C_show_each_unreachable();
   }
@@ -2391,10 +2968,6 @@ void test_sqrtf_det(void)
   float f32__a = sqrtf((float)42.125);
   float f32__b = sqrtf((float)0.125);
   if (nondet) {
-    /*@ assert
-        Value: is_nan_or_infinite:
-          \warning("\\is_finite(Frama_C_sqrtf((float)(- 2.)))");
-    */
     sqrtf((float)(- 2.));
     Frama_C_show_each_unreachable();
   }
@@ -2414,25 +2987,13 @@ void test_sqrtf(void)
   float f32__a = sqrtf(f32__x);
   tmp_1 = double_interval(- 6.5,0.0);
   f32__x = (float)tmp_1;
-  /*@ assert
-      Value: is_nan_or_infinite:
-        \warning("\\is_finite(Frama_C_sqrtf(f32__x))");
-  */
   float b = sqrtf(f32__x);
   tmp_3 = double_interval(- 6.5,- 0.0);
   f32__x = (float)tmp_3;
-  /*@ assert
-      Value: is_nan_or_infinite:
-        \warning("\\is_finite(Frama_C_sqrtf(f32__x))");
-  */
   float c = sqrtf(f32__x);
   tmp_5 = double_interval(- 6.5,- 0.1);
   f32__x = (float)tmp_5;
   if (nondet) {
-    /*@ assert
-        Value: is_nan_or_infinite:
-          \warning("\\is_finite(Frama_C_sqrt((double)f32__x))");
-    */
     sqrt((double)f32__x);
     Frama_C_show_each_unreachable();
   }
@@ -2447,10 +3008,6 @@ void test_exp_det(void)
   double d = exp(- 0.);
   double e = exp(- 1.);
   if (nondet) {
-    /*@ assert
-        Value: is_nan_or_infinite:
-          \warning("\\is_finite(Frama_C_exp(1e100))");
-    */
     exp(1e100);
     Frama_C_show_each_unreachable();
   }
@@ -2472,30 +3029,18 @@ void test_log_det(void)
   double a = log(42.125);
   double b = log(0.125);
   if (nondet) {
-    /*@ assert
-        Value: is_nan_or_infinite: \warning("\\is_finite(Frama_C_log(- 2.))");
-    */
     log(- 2.);
     Frama_C_show_each_unreachable();
   }
   if (nondet) {
-    /*@ assert
-        Value: is_nan_or_infinite: \warning("\\is_finite(Frama_C_log(0.))");
-    */
     log(0.);
     Frama_C_show_each_unreachable();
   }
   if (nondet) {
-    /*@ assert
-        Value: is_nan_or_infinite: \warning("\\is_finite(Frama_C_log(- 0.))");
-    */
     log(- 0.);
     Frama_C_show_each_unreachable();
   }
   if (nondet) {
-    /*@ assert
-        Value: is_nan_or_infinite: \warning("\\is_finite(Frama_C_log(- 1.))");
-    */
     log(- 1.);
     Frama_C_show_each_unreachable();
   }
@@ -2507,34 +3052,18 @@ void test_logf_det(void)
   float f32__a = logf((float)42.125);
   float f32__b = logf((float)0.125);
   if (nondet) {
-    /*@ assert
-        Value: is_nan_or_infinite:
-          \warning("\\is_finite(Frama_C_logf((float)(- 2.)))");
-    */
     logf((float)(- 2.));
     Frama_C_show_each_unreachable();
   }
   if (nondet) {
-    /*@ assert
-        Value: is_nan_or_infinite:
-          \warning("\\is_finite(Frama_C_logf((float)0.))");
-    */
     logf((float)0.);
     Frama_C_show_each_unreachable();
   }
   if (nondet) {
-    /*@ assert
-        Value: is_nan_or_infinite:
-          \warning("\\is_finite(Frama_C_logf((float)(- 0.)))");
-    */
     logf((float)(- 0.));
     Frama_C_show_each_unreachable();
   }
   if (nondet) {
-    /*@ assert
-        Value: is_nan_or_infinite:
-          \warning("\\is_finite(Frama_C_logf((float)(- 1.)))");
-    */
     logf((float)(- 1.));
     Frama_C_show_each_unreachable();
   }
@@ -2546,33 +3075,18 @@ void test_log10_det(void)
   double a = log10(42.125);
   double b = log10(0.125);
   if (nondet) {
-    /*@ assert
-        Value: is_nan_or_infinite:
-          \warning("\\is_finite(Frama_C_log10(- 2.))");
-    */
     log10(- 2.);
     Frama_C_show_each_unreachable();
   }
   if (nondet) {
-    /*@ assert
-        Value: is_nan_or_infinite: \warning("\\is_finite(Frama_C_log10(0.))");
-    */
     log10(0.);
     Frama_C_show_each_unreachable();
   }
   if (nondet) {
-    /*@ assert
-        Value: is_nan_or_infinite:
-          \warning("\\is_finite(Frama_C_log10(- 0.))");
-    */
     log10(- 0.);
     Frama_C_show_each_unreachable();
   }
   if (nondet) {
-    /*@ assert
-        Value: is_nan_or_infinite:
-          \warning("\\is_finite(Frama_C_log10(- 1.))");
-    */
     log10(- 1.);
     Frama_C_show_each_unreachable();
   }
@@ -2584,34 +3098,18 @@ void test_log10f_det(void)
   float f32__a = log10f((float)42.125);
   float f32__b = log10f((float)0.125);
   if (nondet) {
-    /*@ assert
-        Value: is_nan_or_infinite:
-          \warning("\\is_finite(Frama_C_log10f((float)(- 2.)))");
-    */
     log10f((float)(- 2.));
     Frama_C_show_each_unreachable();
   }
   if (nondet) {
-    /*@ assert
-        Value: is_nan_or_infinite:
-          \warning("\\is_finite(Frama_C_log10f((float)0.))");
-    */
     log10f((float)0.);
     Frama_C_show_each_unreachable();
   }
   if (nondet) {
-    /*@ assert
-        Value: is_nan_or_infinite:
-          \warning("\\is_finite(Frama_C_log10f((float)(- 0.)))");
-    */
     log10f((float)(- 0.));
     Frama_C_show_each_unreachable();
   }
   if (nondet) {
-    /*@ assert
-        Value: is_nan_or_infinite:
-          \warning("\\is_finite(Frama_C_log10f((float)(- 1.)))");
-    */
     log10f((float)(- 1.));
     Frama_C_show_each_unreachable();
   }

@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2017                                               *)
+(*  Copyright (C) 2007-2018                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -25,7 +25,11 @@ open Cil_types
 module type S = sig
   val is_computed: kernel_function -> bool
   val set: kernel_function -> bool -> unit
+  val accessor: Db.RteGen.status_accessor
 end
+
+let states : State.t list ref = ref []
+let accessors : Db.RteGen.status_accessor list ref = ref []
 
 module Make
   (M:sig
@@ -55,7 +59,11 @@ struct
     fun kf -> H.memo default kf
   let set = H.replace
   let self = H.self
-  let triple = M.name, set, is_computed
+  let accessor = M.name, set, is_computed
+
+  let () =
+    states := self :: !states;
+    accessors := accessor :: !accessors;
 
 end
 
@@ -64,7 +72,7 @@ module Initialized =
     (struct
        let name = "initialized"
        let parameter = Options.DoInitialized.parameter
-       let additional_parameters = [ Kernel.SafeArrays.parameter ]
+       let additional_parameters = [ ]
      end)
 
 module Mem_access =
@@ -144,7 +152,7 @@ module Finite_float =
   Make
     (struct
        let name = "finite_float"
-       let parameter = Kernel.FiniteFloat.parameter
+       let parameter = Kernel.SpecialFloat.parameter
        let additional_parameters = []
      end)
 
@@ -157,51 +165,15 @@ module Called_precond =
        let additional_parameters = []
      end)
 
+(** DO NOT CALL Make AFTER THIS POINT *)
+
 let proxy =
-  State_builder.Proxy.create
-    "RTE" 
-    State_builder.Proxy.Backward
-    [ Mem_access.self;
-      Pointer_call.self;
-      Div_mod.self;
-      Shift.self;
-      Signed_overflow.self;
-      Signed_downcast.self;
-      Unsigned_overflow.self;
-      Unsigned_downcast.self;
-      Float_to_int.self;
-      Called_precond.self ]
+  State_builder.Proxy.create "RTE" State_builder.Proxy.Backward !states
 
 let self = State_builder.Proxy.get proxy
 let () = Db.RteGen.self := self
 
-let precond_status = Called_precond.triple
-let div_mod_status = Div_mod.triple
-let shift_status = Shift.triple
-let signed_overflow_status = Signed_overflow.triple
-let signed_downcast_status = Signed_downcast.triple
-let initialized_status = Initialized.triple
-let mem_access_status = Mem_access.triple
-let pointer_call_status = Pointer_call.triple
-let float_to_int_status = Float_to_int.triple
-let unsigned_overflow_status = Unsigned_overflow.triple
-let unsigned_downcast_status = Unsigned_downcast.triple
-let float_to_int = Float_to_int.triple
-let finite_float = Finite_float.triple
-
-let all_status =
-  [ precond_status;
-    initialized_status;
-    mem_access_status;
-    pointer_call_status;
-    div_mod_status;
-    shift_status;
-    signed_overflow_status;
-    signed_downcast_status;
-    unsigned_overflow_status;
-    unsigned_downcast_status;
-    float_to_int_status;
-  ]
+let all_statuses = !accessors
 
 let emitter =
     Emitter.create

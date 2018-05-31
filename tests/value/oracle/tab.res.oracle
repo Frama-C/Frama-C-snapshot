@@ -20,11 +20,13 @@
      [2][0] ∈ {1}
      {[2][1..4]; [3..4][0..4]} ∈ {0}
 [value] computing for function any_int <- main.
-    Called from tests/value/tab.c:11.
+  Called from tests/value/tab.c:11.
 [value] using specification for function any_int
 [value] Done for function any_int
-tests/value/tab.c:12:[value] warning: accessing out of bounds index. assert 0 ≤ i;
-tests/value/tab.c:12:[value] warning: accessing out of bounds index. assert i < 4;
+[value:alarm] tests/value/tab.c:12: Warning: 
+  accessing out of bounds index. assert 0 ≤ i;
+[value:alarm] tests/value/tab.c:12: Warning: 
+  accessing out of bounds index. assert i < 4;
 [value] Recording results for main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======
@@ -38,7 +40,7 @@ tests/value/tab.c:12:[value] warning: accessing out of bounds index. assert i < 
 [from] Done for function any_int
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
-    These dependencies hold at termination for the executions that terminate:
+  These dependencies hold at termination for the executions that terminate:
 [from] Function any_int:
   \result FROM \nothing
 [from] Function main:
@@ -46,6 +48,6 @@ tests/value/tab.c:12:[value] warning: accessing out of bounds index. assert i < 
    [1] FROM y
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function main:
-      t[0..3]; i
+    t[0..3]; i
 [inout] Inputs for function main:
-      y
+    y

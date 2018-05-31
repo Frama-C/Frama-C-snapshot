@@ -2,7 +2,7 @@
 /*                                                                        */
 /*  This file is part of Frama-C.                                         */
 /*                                                                        */
-/*  Copyright (C) 2007-2017                                               */
+/*  Copyright (C) 2007-2018                                               */
 /*    CEA (Commissariat à l'énergie atomique et aux énergies              */
 /*         alternatives)                                                  */
 /*                                                                        */
@@ -45,11 +45,11 @@ extern int pselect(int nfds, fd_set * readfds,
 //@ ghost volatile int __fc_fds_state;
 
 /*@
-  requires nfds >= 0;
-  requires readfds == \null || \valid(readfds);
-  requires writefds == \null || \valid(writefds);
-  requires errorfds == \null || \valid(errorfds);
-  requires timeout == \null || \valid(timeout);
+  requires nfds: nfds >= 0;
+  requires readfs: readfds == \null || \valid(readfds);
+  requires writefds: writefds == \null || \valid(writefds);
+  requires errorfds: errorfds == \null || \valid(errorfds);
+  requires timeout: timeout == \null || \valid(timeout);
   assigns __fc_fds_state \from __fc_fds_state;
   assigns readfds  == \null ? \empty : *readfds,
           writefds == \null ? \empty : *writefds,
@@ -63,17 +63,17 @@ extern int pselect(int nfds, fd_set * readfds,
           indirect:timeout, indirect:*timeout,
           __fc_fds_state;
   behavior read_notnull:
-    assumes readfds != \null;
-    ensures \initialized(readfds);
+    assumes readfds_is_not_null: readfds != \null;
+    ensures initialization:readfds: \initialized(readfds);
   behavior write_notnull:
-    assumes writefds != \null;
-    ensures \initialized(writefds);
+    assumes writefds_is_not_null: writefds != \null;
+    ensures initialization:writefds: \initialized(writefds);
   behavior error_notnull:
-    assumes errorfds != \null;
-    ensures \initialized(errorfds);
+    assumes errorfds_is_not_null: errorfds != \null;
+    ensures initialization:errorfds: \initialized(errorfds);
   behavior timeout_notnull:
-    assumes timeout != \null;
-    ensures \initialized(timeout);
+    assumes timeout_is_not_null: timeout != \null;
+    ensures initialization:timeout: \initialized(timeout);
  */
 extern int select(int nfds, fd_set * readfds,
        fd_set * writefds, fd_set * errorfds,

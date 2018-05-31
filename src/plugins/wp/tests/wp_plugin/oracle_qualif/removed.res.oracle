@@ -4,7 +4,8 @@
 [value] Initial state computed
 [value:initial-state] Values of globals at initialization
   
-tests/wp_plugin/removed.i:10:[value] warning: signed overflow. assert 1 + i ≤ 2147483647;
+[value:alarm] tests/wp_plugin/removed.i:10: Warning: 
+  signed overflow. assert 1 + i ≤ 2147483647;
 [value] done for function main
 [value] ====== VALUES COMPUTED ======
 [value:final-states] Values at end of function main:
@@ -14,8 +15,8 @@ tests/wp_plugin/removed.i:10:[value] warning: signed overflow. assert 1 + i ≤ 
 [wp] 1 goal scheduled
 [wp] [Alt-Ergo] Goal typed_main_assert_Value_signed_overflow : Unknown
 [wp] Proved goals:    0 / 1
-    Alt-Ergo:        0  (unknown: 1)
+  Alt-Ergo:        0  (unknown: 1)
 [wp] Running WP plugin...
-[wp] warning: Missing RTE guards
+[wp] Warning: Missing RTE guards
 [wp] 0 goal scheduled
 [wp] Proved goals:    0 / 0

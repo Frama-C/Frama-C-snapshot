@@ -10,7 +10,7 @@
 
 extern int tab[5], x;
 
-//@ axiomatic A { axiom ax: 10 < \block_length(tab); }
+//@ axiomatic A { axiom ax: 10 < \block_length(&tab[0]); }
 
 //@ assigns x;
 extern void h(void);

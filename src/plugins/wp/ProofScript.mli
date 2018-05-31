@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2017                                               *)
+(*  Copyright (C) 2007-2018                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -28,7 +28,7 @@ class console : title:string -> Tactical.feedback
 type jscript = alternative list
 and alternative = private
   | Prover of VCS.prover * VCS.result
-  | Tactic of int * jtactic * jscript list (** With number of pending goals *)
+  | Tactic of int * jtactic * (string * jscript) list (** With number of pending goals *)
   | Error of string * Json.t
 and jtactic = {
   header : string ;
@@ -40,7 +40,7 @@ and jtactic = {
 val is_prover : alternative -> bool
 val is_tactic : alternative -> bool
 val a_prover : VCS.prover -> VCS.result -> alternative
-val a_tactic : jtactic -> jscript list -> alternative
+val a_tactic : jtactic -> (string * jscript) list -> alternative
 
 val pending : alternative -> int (** pending goals *)
 val status : jscript -> int (** minimum of pending goals *)
@@ -62,7 +62,7 @@ val param_of_json : tactical -> sequent -> Json.t -> parameter -> unit
 val json_of_parameters : tactical -> Json.t
 val parameters_of_json : tactical -> sequent -> Json.t -> unit
 
-val json_of_tactic : jtactic -> Json.t list -> Json.t
+val json_of_tactic : jtactic -> (string * Json.t) list -> Json.t
 val json_of_result : VCS.prover -> VCS.result -> Json.t
 
 val prover_of_json : Json.t -> VCS.prover option

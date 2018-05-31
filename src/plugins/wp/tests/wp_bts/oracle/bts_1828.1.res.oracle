@@ -1,0 +1,50 @@
+# frama-c -wp -wp-model 'Typed (Ref)' [...]
+[kernel] Parsing tests/wp_bts/bts_1828.i (no preprocessing)
+[wp] Running WP plugin...
+[wp] Loading driver 'share/wp.driver'
+[wp] Warning: Missing RTE guards
+------------------------------------------------------------
+  Function global_frame
+------------------------------------------------------------
+
+Goal Post-condition 'sep_iff_ref' in 'global_frame':
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Post-condition 'one_iff_ref' in 'global_frame':
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Post-condition 'zero_always' in 'global_frame':
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Assertion 'ok' (file tests/wp_bts/bts_1828.i, line 60):
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Assertion 'ok' (file tests/wp_bts/bts_1828.i, line 61):
+Prove: true.
+
+------------------------------------------------------------
+------------------------------------------------------------
+  Function local_frame
+------------------------------------------------------------
+
+Goal Assertion 'ok' (file tests/wp_bts/bts_1828.i, line 23):
+Assume {
+  (* Heap *)
+  Have: (region(one_0.base) <= 0) /\ linked(Malloc_0).
+  (* Pre-condition *)
+  Have: valid_rw(Malloc_0, one_0, 1).
+}
+Prove: global(L_two_22) != one_0.
+
+------------------------------------------------------------
+[wp] Warning: Separation hypotheses for function 'global_frame':
+  /*@ behavior typed_ref: requires \separated(zero,one); */
+  void global_frame(int *one, int arg);

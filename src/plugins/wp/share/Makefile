@@ -2,7 +2,7 @@
 #                                                                        #
 #  This file is part of WP plug-in of Frama-C.                           #
 #                                                                        #
-#  Copyright (C) 2007-2017                                               #
+#  Copyright (C) 2007-2018                                               #
 #    CEA (Commissariat a l'energie atomique et aux energies              #
 #         alternatives)                                                  #
 #                                                                        #
@@ -54,7 +54,7 @@ $(WPLSHARE)/why3/%.vo: $(WPLSHARE)/why3/%.v
 
 $(WPLSHARE)/why3/.depend: $(addprefix $(WPLSHARE)/, $(WHY3_COQ_SOURCES))
 	echo "Coqdep for $(WPLSHARE)/why3"
-	@coqdep $(WHY3INCLUDES) -slash $(WPLSHARE)/why3/*.v $(WPLSHARE)/why3/**/*.v > $@
+	@coqdep $(WHY3INCLUDES) $(WPLSHARE)/why3/*.v $(WPLSHARE)/why3/**/*.v > $@
 
 ifneq ($(MAKECMDGOALS),clean)
 ifneq ($(MAKECMDGOALS),distclean)
@@ -85,7 +85,7 @@ $(WPLSHARE)/coqwp/%.vo: $(WPLSHARE)/coqwp/%.v
 
 $(WPLSHARE)/coqwp/.depend: $(addprefix $(WPLSHARE)/, $(WP_COQ_SOURCES))
 	echo "Coqdep for $(WPLSHARE)/coqwp"
-	@coqdep $(COQWPINCLUDES) -slash $(WPLSHARE)/coqwp/*.v $(WPLSHARE)/coqwp/**/*.v > $@
+	@coqdep $(COQWPINCLUDES) $(WPLSHARE)/coqwp/*.v $(WPLSHARE)/coqwp/**/*.v > $@
 
 ifneq ($(MAKECMDGOALS),clean)
 ifneq ($(MAKECMDGOALS),distclean)

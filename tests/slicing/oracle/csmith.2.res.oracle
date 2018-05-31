@@ -6,8 +6,8 @@
   G1 ∈ {0}
   G1b ∈ {0}
   G2 ∈ {0}
-tests/slicing/csmith.i:189:[value] entering loop for the first time
-tests/slicing/csmith.i:190:[value] entering loop for the first time
+[value] tests/slicing/csmith.i:189: entering loop for the first time
+[value] tests/slicing/csmith.i:190: entering loop for the first time
 [value] Recording results for bts906c
 [value] done for function bts906c
 [pdg] computing for function bts906c

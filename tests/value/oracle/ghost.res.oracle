@@ -6,8 +6,9 @@
   G ∈ {0}
   GHOST ∈ {0}
   H ∈ {0}
-tests/value/ghost.i:16:[value] entering loop for the first time
-tests/value/ghost.i:17:[value] warning: signed overflow. assert G + 1 ≤ 2147483647;
+[value] tests/value/ghost.i:16: entering loop for the first time
+[value:alarm] tests/value/ghost.i:17: Warning: 
+  signed overflow. assert G + 1 ≤ 2147483647;
 [value] Recording results for main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======
@@ -18,13 +19,13 @@ tests/value/ghost.i:17:[value] warning: signed overflow. assert G + 1 ≤ 214748
 [from] Computing for function main
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
-    These dependencies hold at termination for the executions that terminate:
+  These dependencies hold at termination for the executions that terminate:
 [from] Function main:
   G FROM \nothing
   GHOST FROM \nothing
   \result FROM \nothing
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function main:
-      G; GHOST; i; j
+    G; GHOST; i; j
 [inout] Inputs for function main:
-      G
+    G

@@ -4,17 +4,16 @@
 [value] Computing initial state
 [value] Initial state computed
 [value:initial-state] Values of globals at initialization
+  __fc_heap_status ∈ [--..--]
+  __fc_strtok_ptr ∈ {0}
   __fc_random_counter ∈ [--..--]
   __fc_rand_max ∈ {32767}
-  __fc_heap_status ∈ [--..--]
   __fc_mblen_state ∈ [--..--]
   __fc_mbtowc_state ∈ [--..--]
   __fc_wctomb_state ∈ [--..--]
 [value] computing for function strlen <- main.
-    Called from tests/libc/coverage.c:9.
-share/libc/string.h:92:[value] function strlen: precondition 'valid_string_src' got status valid.
-share/libc/string.c:78:[value] entering loop for the first time
-share/libc/string.h:94:[value] function strlen: postcondition got status valid.
+  Called from tests/libc/coverage.c:9.
+[value] share/libc/string.c:79: entering loop for the first time
 [value] Recording results for strlen
 [value] Done for function strlen
 [value] Recording results for main
@@ -26,21 +25,21 @@ share/libc/string.h:94:[value] function strlen: postcondition got status valid.
   s ∈ {{ "blabli" }}
   l ∈ {6}
 [metrics] Value coverage statistics
-    =========================
-    Syntactically reachable functions = 1 (out of 1)
-    Semantically reached functions = 1
-    Coverage estimation = 100.0%
+  =========================
+  Syntactically reachable functions = 1 (out of 1)
+  Semantically reached functions = 1
+  Coverage estimation = 100.0%
 [metrics] Statements analyzed by Value
-    ----------------------------
-    4 stmts in analyzed functions, 4 stmts analyzed (100.0%)
-    main: 4 stmts out of 4 (100.0%)
+  ----------------------------
+  4 stmts in analyzed functions, 4 stmts analyzed (100.0%)
+  main: 4 stmts out of 4 (100.0%)
 [metrics] Value coverage statistics
-    =========================
-    Syntactically reachable functions = 2 (out of 70)
-    Semantically reached functions = 2
-    Coverage estimation = 100.0%
+  =========================
+  Syntactically reachable functions = 2 (out of 72)
+  Semantically reached functions = 2
+  Coverage estimation = 100.0%
 [metrics] Statements analyzed by Value
-    ----------------------------
-    10 stmts in analyzed functions, 10 stmts analyzed (100.0%)
-    main: 4 stmts out of 4 (100.0%)
-    strlen: 6 stmts out of 6 (100.0%)
+  ----------------------------
+  10 stmts in analyzed functions, 10 stmts analyzed (100.0%)
+  main: 4 stmts out of 4 (100.0%)
+  strlen: 6 stmts out of 6 (100.0%)

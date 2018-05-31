@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2017                                               *)
+(*  Copyright (C) 2007-2018                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -20,13 +20,14 @@
 (*                                                                        *)
 (**************************************************************************)
 
-(** Provided plug-general services for plug-ins.
-    @since Beryllium-20090601-beta1
-    @plugin development guide *)
 
-module type S = sig
-
-  include Log.Messages
+(** Special signature for Kernel services, whose messages are handled in
+    an ad'hoc manner. Should not be of any use for a standard plug-in,
+    who would rather rely on {!Plugin.S} below.
+    @since Chlorine-20180501
+    @plugin development guide
+*)
+module type S_no_log = sig
 
   val add_group: ?memo:bool -> string -> Cmdline.Group.t
   (** Create a new group inside the plug-in.
@@ -42,11 +43,6 @@ module type S = sig
 
   module Verbose: Parameter_sig.Int
   module Debug: Parameter_sig.Int
-  module Debug_category: Parameter_sig.String_set
-   (** prints debug messages having the corresponding key.
-       @since Oxygen-20120901
-       @modify Fluorine-20130401 Set instead of list
-    *)
 
   (** Handle the specific `share' directory of the plug-in.
       @since Oxygen-20120901 *)
@@ -68,6 +64,16 @@ module type S = sig
     (** The group containing options -*-debug and -*-verbose.
         @since Boron-20100401 *)
 
+end
+
+(** Provided plug-general services for plug-ins.
+    @since Beryllium-20090601-beta1
+    @modify Chlorine-20180501 removed programmatic access to [Debug_category]:
+    managing categories is now entirely done by Log.Messages
+    @plugin development guide *)
+module type S = sig
+    include Log.Messages
+    include S_no_log
 end
 
 type plugin = private
@@ -100,7 +106,7 @@ module Register
      val name: string (** Name of the module. Arbitrary non-empty string. *)
      val shortname: string (** Prefix for plugin options. No space allowed. *)
      val help: string (** description of the module. Free-form text. *)
-   end) :
+   end):
   General_services
 
 val is_share_visible: unit -> unit
@@ -126,7 +132,11 @@ val plugin_subpath: string -> unit
 
 val default_msg_keys: string list -> unit
 (** Debug message keys set by default for the plugin.
-    @since Silicon-20161101 *)
+    @since Silicon-20161101
+    @deprecated since Chlorine-20180501 use directly functions from Log
+     (add_debug_keys and del_debug_keys) to manage the default status of each
+     category
+ *)
 
 (* ************************************************************************* *)
 (** {2 Handling plugins} *)
@@ -146,6 +156,7 @@ val is_present: string -> bool
     @since Magnesium-20151001 *)
 
 val get: string -> plugin
+[@@ deprecated "Use Plugin.get_from_name"]
 (** Get a plug-in from its name.
     @deprecated since Oxygen-20120901 *)
 

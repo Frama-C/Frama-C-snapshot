@@ -8,11 +8,11 @@
   G3 ∈ [--..--]
   G4 ∈ [--..--]
 [value] computing for function fct2 <- appel_ptr_fct_bis.
-    Called from tests/pdg/multiple_calls.c:28.
+  Called from tests/pdg/multiple_calls.c:28.
 [value] Recording results for fct2
 [value] Done for function fct2
 [value] computing for function fct1 <- appel_ptr_fct_bis.
-    Called from tests/pdg/multiple_calls.c:28.
+  Called from tests/pdg/multiple_calls.c:28.
 [value] Recording results for fct1
 [value] Done for function fct1
 [value] Recording results for appel_ptr_fct_bis
@@ -24,7 +24,7 @@
 [from] Computing for function appel_ptr_fct_bis
 [from] Done for function appel_ptr_fct_bis
 [from] ====== DEPENDENCIES COMPUTED ======
-    These dependencies hold at termination for the executions that terminate:
+  These dependencies hold at termination for the executions that terminate:
 [from] Function fct1:
   G1 FROM z
   G3 FROM y
@@ -42,26 +42,26 @@
   \result FROM c; a; b
 [from] ====== END OF DEPENDENCIES ======
 [inout] InOut (internal) for function fct1:
-    Operational inputs:
-      x; y; z
-    Operational inputs on termination:
-      x; y; z
-    Sure outputs:
-      G1; G3; G4
+  Operational inputs:
+    x; y; z
+  Operational inputs on termination:
+    x; y; z
+  Sure outputs:
+    G1; G3; G4
 [inout] InOut (internal) for function fct2:
-    Operational inputs:
-      x; y; z
-    Operational inputs on termination:
-      x; y; z
-    Sure outputs:
-      G2; G3
+  Operational inputs:
+    x; y; z
+  Operational inputs on termination:
+    x; y; z
+  Sure outputs:
+    G2; G3
 [inout] InOut (internal) for function appel_ptr_fct_bis:
-    Operational inputs:
-      c; a; b; d
-    Operational inputs on termination:
-      c; a; b; d
-    Sure outputs:
-      G3; G4; pf; tmp
+  Operational inputs:
+    c; a; b; d
+  Operational inputs on termination:
+    c; a; b; d
+  Sure outputs:
+    G3; G4; pf; tmp
 [pdg] computing for function appel_ptr_fct_bis
 [pdg] done for function appel_ptr_fct_bis
 [pdg] PDG for appel_ptr_fct_bis

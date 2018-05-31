@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2017                                               *)
+(*  Copyright (C) 2007-2018                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -199,7 +199,7 @@ let destruct_value s =
   | Add es | Mul es | And es | Or es | Fun(_,es) -> subterms s es
   | Imply(hs,p) -> subterms s (hs @ [p])
   | If(a,b,c) | Aset(a,b,c) -> subterms s [a;b;c]
-  | Not a | Rget(a,_) -> subterms s [a]
+  | Not a | Rget(a,_) | Acst(_,a) -> subterms s [a]
   | Rdef fvs -> subterms s (List.map snd fvs)
   | Times(k,v) -> cint k :: subterms s [v]
   | Div(a,b) | Mod(a,b) | Eq(a,b) | Neq(a,b) | Lt(a,b) | Leq(a,b) | Aget(a,b) ->

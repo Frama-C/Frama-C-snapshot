@@ -5,10 +5,12 @@
 [value] Initial state computed
 [value:initial-state] Values of globals at initialization
   G ∈ {0}
-tests/slicing/undef-fun.i:16:[value] warning: signed overflow. assert x + 1 ≤ 2147483647;
-tests/slicing/undef-fun.i:17:[value] warning: signed overflow. assert y + 2 ≤ 2147483647;
+[value:alarm] tests/slicing/undef-fun.i:16: Warning: 
+  signed overflow. assert x + 1 ≤ 2147483647;
+[value:alarm] tests/slicing/undef-fun.i:17: Warning: 
+  signed overflow. assert y + 2 ≤ 2147483647;
 [value] computing for function f <- main.
-    Called from tests/slicing/undef-fun.i:18.
+  Called from tests/slicing/undef-fun.i:18.
 [value] using specification for function f
 [value] Done for function f
 [value] Recording results for main

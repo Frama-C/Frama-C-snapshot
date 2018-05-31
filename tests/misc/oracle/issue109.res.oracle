@@ -4,8 +4,8 @@
 [value] Initial state computed
 [value:initial-state] Values of globals at initialization
   
-tests/misc/issue109.i:7:[value] entering loop for the first time
-tests/misc/issue109.i:10:[value] assertion got status valid.
+[value] tests/misc/issue109.i:7: entering loop for the first time
+[value] tests/misc/issue109.i:10: assertion got status valid.
 [value] Recording results for main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======
@@ -18,7 +18,11 @@ tests/misc/issue109.i:10:[value] assertion got status valid.
 [value] Initial state computed
 [value:initial-state] Values of globals at initialization
   
-tests/misc/issue109.i:7:[value] entering loop for the first time
-tests/misc/issue109.i:10:[value] assertion got status valid.
+[value] tests/misc/issue109.i:7: entering loop for the first time
+[value] tests/misc/issue109.i:10: assertion got status valid.
 [value] Recording results for main
 [value] done for function main
+[value] ====== VALUES COMPUTED ======
+[value:final-states] Values at end of function main:
+  i ∈ {10}
+  j ∈ {10}

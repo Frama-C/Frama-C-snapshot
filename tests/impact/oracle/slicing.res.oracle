@@ -13,21 +13,27 @@
   z ∈ [--..--]
   f ∈ [--..--]
   w ∈ [--..--]
-tests/impact/slicing.i:13:[value] warning: signed overflow. assert -2147483648 ≤ b + c;
-tests/impact/slicing.i:13:[value] warning: signed overflow. assert b + c ≤ 2147483647;
-tests/impact/slicing.i:14:[value] warning: signed overflow. assert -2147483648 ≤ x + e;
-tests/impact/slicing.i:14:[value] warning: signed overflow. assert x + e ≤ 2147483647;
-tests/impact/slicing.i:18:[value] warning: signed overflow. assert -2147483648 ≤ y + f;
-tests/impact/slicing.i:18:[value] warning: signed overflow. assert y + f ≤ 2147483647;
+[value:alarm] tests/impact/slicing.i:13: Warning: 
+  signed overflow. assert -2147483648 ≤ b + c;
+[value:alarm] tests/impact/slicing.i:13: Warning: 
+  signed overflow. assert b + c ≤ 2147483647;
+[value:alarm] tests/impact/slicing.i:14: Warning: 
+  signed overflow. assert -2147483648 ≤ x + e;
+[value:alarm] tests/impact/slicing.i:14: Warning: 
+  signed overflow. assert x + e ≤ 2147483647;
+[value:alarm] tests/impact/slicing.i:18: Warning: 
+  signed overflow. assert -2147483648 ≤ y + f;
+[value:alarm] tests/impact/slicing.i:18: Warning: 
+  signed overflow. assert y + f ≤ 2147483647;
 [value] Recording results for impact
 [value] done for function impact
 [pdg] computing for function impact
 [pdg] done for function impact
 [impact] impacted statements of stmt(s) 6 are:
-      tests/impact/slicing.i:13 (sid 9): x = b + c;
-      tests/impact/slicing.i:14 (sid 10): y = x + e;
-      tests/impact/slicing.i:18 (sid 13): z = y + f;
-      tests/impact/slicing.i:19 (sid 14): w = b;
+    tests/impact/slicing.i:13 (sid 9): x = b + c;
+    tests/impact/slicing.i:14 (sid 10): y = x + e;
+    tests/impact/slicing.i:18 (sid 13): z = y + f;
+    tests/impact/slicing.i:19 (sid 14): w = b;
 [slicing] initializing slicing ...
 [slicing] applying all slicing requests...
 [slicing] applying 0 actions...

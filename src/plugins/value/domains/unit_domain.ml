@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2017                                               *)
+(*  Copyright (C) 2007-2018                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -95,6 +95,8 @@ module Make
 
   let filter_by_bases _ _ = ()
   let reuse ~current_input:_ ~previous_output:_ = ()
+
+  let post_analysis _ = ()
 end
 
 

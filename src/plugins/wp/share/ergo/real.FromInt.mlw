@@ -12,7 +12,7 @@
 (*                                                                        *)
 (**************************************************************************)
 
-(* this is the prelude for Alt-Ergo, any versions *)
+(* this is the prelude for Alt-Ergo, version >= 0.95.2 *)
 (** The theory BuiltIn_ must be appended to this file*)
 (** The theory Bool_ must be appended to this file*)
 (** The theory int_Int_ must be appended to this file*)
@@ -36,4 +36,7 @@ axiom Mul :
   (from_int((x * y)) = (from_int(x) * from_int(y))))
 
 axiom Neg : (forall x:int. (from_int((-x)) = (-from_int(x))))
+
+axiom Monotonic :
+  (forall x:int. forall y:int. ((x <= y) -> (from_int(x) <= from_int(y))))
 

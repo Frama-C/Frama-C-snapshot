@@ -12,5 +12,5 @@ void validB(void)
 {
   //@ assert OK: \valid_read( &A[1] );
   //@ assert KO: \valid( &B[2] );
-  B[2] = A[1] ;
+  *((int*)&B[2]) = A[1] ;
 }

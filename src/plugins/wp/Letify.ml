@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2017                                               *)
+(*  Copyright (C) 2007-2018                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -82,6 +82,10 @@ struct
         let cmp = frank f - frank g in
         if cmp < 0 then env.domain <- Tmap.add a b env.domain ;
         if cmp > 0 then env.domain <- Tmap.add b a env.domain ;
+    | Fun(f,_) , _ when frank f = 0 ->
+        env.domain <- Tmap.add a b env.domain
+    | _ , Fun(f,_) when frank f = 0 ->
+        env.domain <- Tmap.add b a env.domain
     | _ -> ()
   
   let rec walk env h =

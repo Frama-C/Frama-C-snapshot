@@ -12,41 +12,74 @@
 # '#?nnn'  : OLD-BTS entry #nnn                                               #
 ###############################################################################
 # Categories:
-#   E-ACSL: the Whole E-ACSL plug-in
+#   E-ACSL	monitor generation
+#   runtime	C runtime library (and memory model)
+#   e-acsl-gcc	launcher e-acsl-gcc.sh
+#   Makefile	Makefile
+#   configure	configure
 ###############################################################################
+
+###############################
+Plugin E-ACSL Chlorine-20180501
+###############################
+
+-  E-ACSL       [2018/03/30] Support for let binding.
+-  E-ACSL       [2018/02/21] New option -e-acsl-replace-libc-functions to
+	        replace a few libc functions by built-ins that efficiently
+	        detects when they are incorrectly called.
+-  E-ACSL       [2018/02/21] New option -e-acsl-validate-format-strings to
+	        detect format string errors in printf-like functions.
+-* E-ACSL       [2018/02/21] Correct support of variable-length array
+	        (fix bug #1834).
+-* runtime      [2018/02/16] Function __e_acsl_offset now returns size_t.
+-* E-ACSL       [2018/02/07] Fix incorrect typing in presence of
+	        comparison operators (may only be visible when directly
+	        analyzing the E-ACSL's generated code with Frama-C without
+	        pretty-printing it).
+-* runtime      [2018/01/30] E-ACSL aborted when run on a machine with a
+	        low hard limit on the stack size.
+-* E-ACSL       [2018/01/08] Fix a crash when translating a postcondition
+	        that should generate a local variable (bts #2339).
+-* e-acsl-gcc   [2017/11/28] Several files may be given to e-acsl-gcc.sh
+                (as specified).
+-* E-ACSL       [2017/11/27] Fix 'segmentation fault' of the generated monitor
+                whenever the main has a precondition depending on the memory
+                model.
+-* E-ACSL       [2017/11/27] Restore behavior of option -e-acsl-valid broken
+                since Phosphorus (included).
 
 #############################
 Plugin E-ACSL Sulfur-20171101
 #############################
 
 -* E-ACSL       [2017/10/25] Fix bug #2303 about unnamed formals in
-	        annotated functions.
--  E-ACSL       [2017/06/10] Add --free-valid-address option to e-acsl.gcc.sh
--  E-ACSL       [2017/05/29] Add --fail-with-code option to e-acsl.gcc.sh
--  E-ACSL       [2017/05/19] Add --temporal option to e-acsl.gcc.sh
+                annotated functions.
+-  e-acsl-gcc   [2017/06/10] Add --free-valid-address option to e-acsl.gcc.sh.
+-  e-acsl-gcc   [2017/05/29] Add --fail-with-code option to e-acsl.gcc.sh.
+-  e-acsl-gcc   [2017/05/19] Add --temporal option to e-acsl.gcc.sh.
 -  E-ACSL       [2017/05/19] New detection of temporal errors in E-ACSL
-	        through -e-acsl-temporal-validity (disabled by default)
--  E-ACSL       [2017/03/26] Add --weak-validity option to e-acsl.gcc.sh
--  E-ACSL       [2017/03/26] Add --rt-verbose option to e-acsl.gcc.sh
--  E-ACSL       [2017/03/26] Add --keep-going option to e-acsl.gcc.sh allowing
-	        a program to continue execution after an assertion failure
--  E-ACSL       [2017/03/26] Add --stack-size and --heap-size options to
-	        e-acsl-gcc.sh allowing to change the default sizes of the
-	        respective shadow spaces
+                through -e-acsl-temporal-validity (disabled by default).
+-  e-acsl-gcc   [2017/03/26] Add --weak-validity option to e-acsl.gcc.sh.
+-  e-acsl-gcc   [2017/03/26] Add --rt-verbose option to e-acsl.gcc.sh.
+-  e-acsl-gcc   [2017/03/26] Add --keep-going option to e-acsl.gcc.sh allowing
+                a program to continue execution after an assertion failure.
+-  e-acsl-gcc   [2017/03/26] Add --stack-size and --heap-size options to
+                e-acsl-gcc.sh allowing to change the default sizes of the
+                respective shadow spaces.
 
 #################################
 Plugin E-ACSL Phosphorus-20170515
 #################################
 
--  E-ACSL       [2017/03/29] The (much more efficient) shadow memory model is
+-  runtime      [2017/03/29] The (much more efficient) shadow memory model is
 	        now used by default.
--* E-ACSL       [2017/03/28] Fix backtrace when the failed instrumented programs
+-* runtime      [2017/03/28] Fix backtrace when the failed instrumented programs
 	        do not require memory model.
--! E-ACSL       [2017/03/19] Remove --print|-p option from e-acsl-gcc.sh
--  E-ACSL       [2017/03/16] Add --check option to e-acsl-gcc.sh which allows
+-! e-acsl-gcc   [2017/03/19] Remove --print|-p option from e-acsl-gcc.sh
+-  e-acsl-gcc   [2017/03/16] Add --check option to e-acsl-gcc.sh which allows
 	        to check the integrity of the generated AST before
 	        instrumentation.
--! E-ACSL       [2017/03/03] Remove precond rte option from e-acsl-gss.sh.
+-! e-acsl-gcc   [2017/03/03] Remove precond rte option from e-acsl-gss.sh.
 -* E-ACSL       [2017/03/02] Fix bts #1740 about incorrect monitoring of
 	        memory properties when early exiting a block through
 	        goto, break or continue.
@@ -66,21 +99,21 @@ Plugin E-ACSL Phosphorus-20170515
 Plugin E-ACSL 0.8 Silicon
 #########################
 
--* E-ACSL       [2016/11/07] Added --rte-select feature to e-acsl-gcc.sh.
--* E-ACSL       [2016/08/02] Added --rt-debug feature to e-acsl-gcc.sh.
+-* e-acsl-gcc   [2016/11/07] Added --rte-select feature to e-acsl-gcc.sh.
+-* e-acsl-gcc   [2016/08/02] Added --rt-debug feature to e-acsl-gcc.sh.
 	        --enable-optimized-rtl configure option removed
--* E-ACSL       [2016/08/02] Added --enable-optimized-rtl option to configure
--* E-ACSL       [2016/08/02] Removed --production|-P, --no-stdlib|-N and
+-* configure    [2016/08/02] Added --enable-optimized-rtl option to configure
+-* e-acsl-gcc   [2016/08/02] Removed --production|-P, --no-stdlib|-N and
 	        --debug-log|-D options of e-acsl-gcc.sh.
 -* E-ACSL       [2016/07/21] Enable reporting of stack traces during assertion
 	        failures in instrumented programs.
--* E-ACSL       [2016/07/13] Add an e-acsl-gcc.sh option (--print--models)
+-* e-acsl-gcc   [2016/07/13] Add an e-acsl-gcc.sh option (--print--models)
 	        allowing to print the names of the supported memory models.
 -* E-ACSL       [2016/07/01] Add monitoring support for aligned memory
 	        allocation via posix_memalign and aligned alloc functions.
--* E-ACSL       [2016/07/01] Add local version of GMP library customized for use
+-* runtime      [2016/07/01] Add local version of GMP library customized for use
 	        with E-ACSL runtime library.
--* E-ACSL       [2016/07/01] Add custom implementation of malloc for use with
+-* runtime      [2016/07/01] Add custom implementation of malloc for use with
 	        E-ACSL runtime library (via jemalloc library).
 -  E-ACSL       [2016/05/31] New option -e-acsl-builtins which allows to
 	        declare pure C functions which can be used in logic
@@ -89,31 +122,31 @@ Plugin E-ACSL 0.8 Silicon
 	        improves the efficiency of the generated code over integers.
 -* E-ACSL       [2016/05/23] Fix bug #2191 about complicate structs and
 	        literate string.
--* E-ACSL       [2016/05/22] Add an e-acsl-gcc.sh option (--rte|-a) allowing to
+-* e-acsl-gcc   [2016/05/22] Add an e-acsl-gcc.sh option (--rte|-a) allowing to
 	        annotate the source program with memory-safety assertions prior
 	        to instrumentation.
 -* E-ACSL       [2016/05/23] Fix bug #1395 about recursive functions.
--* E-ACSL       [2016/04/07] Fix 'make install' when executed within Frama-C.
--* E-ACSL       [2016/03/31] Improve performance of Patricia Trie memory model.
--* E-ACSL       [2016/02/25] Fix 'make clean' in tests.
--* E-ACSL       [2016/01/15] Fix several bugs related to incorrect partial
-	        initialization of tracked memory blocks in the E-ACSL runtime
-	        library.
+-* Makefile     [2016/04/07] Fix 'make install' when executed within Frama-C.
+-* runtime      [2016/03/31] Improve performance of Patricia Trie memory model.
+-* Makefile     [2016/02/25] Fix 'make clean' in tests.
+-* runtime      [2016/01/15] Fix several bugs related to incorrect partial
+	        initialization of tracked memory blocks in the E-ACSL
+	        memory model library.
 
 ###########################
 Plugin E-ACSL 0.6 Magnesium
 ###########################
 
--* E-ACSL       [2016/01/22] Add an e-acsl-gcc.sh option allowing to skip
+-* e-acsl-gcc   [2016/01/22] Add an e-acsl-gcc.sh option allowing to skip
 	        compilation of original sources.
--* E-ACSL       [2016/01/15] Fix installation with custom --prefix.
--* E-ACSL       [2016/01/05] Fix bug in the memory model that caused the
+-* Makefile     [2016/01/15] Fix installation with custom --prefix.
+-* runtime      [2016/01/05] Fix bug in the memory model that caused the
 	        tracked size of heap memory be computed incorrectly.
--  E-ACSL       [2015/12/15] Add a convenience script e-acsl-gcc.sh for
+-  e-acsl-gcc   [2015/12/15] Add a convenience script e-acsl-gcc.sh for
 	        small runs of the E-ACSL plugin.
 -* E-ACSL       [2015/12/08] Fix bug #1817 about incorrect initialization of
 	        literal strings in global arrays with compound initializers.
--* E-ACSL       [2015/11/06] Fix a crash occuring when using a recent libc
+-* runtime      [2015/11/06] Fix a crash occuring when using a recent libc
 	        while GMP headers provided by E-ACSL are used.
 
 ########################
@@ -179,7 +212,7 @@ Plugin E-ACSL 0.3 Fluorine_20130601
 	        clauses.
 -  E-ACSL       [2013/09/18] Use GMP still less often.
 -* E-ACSL       [2013/09/18] Fix bug which may occur with divisions and modulos.
--  E-ACSL       [2013/09/10] Improve ACSL contracts of the E-ACSL C library.
+-  runtime      [2013/09/10] Improve ACSL contracts of the E-ACSL C library.
 -  E-ACSL       [2013/09/06] Support of loop invariants.
 -* E-ACSL       [2013/09/04] Fix bug when monitored global variables have
 	        initializers (bts #1478).
@@ -216,15 +249,15 @@ Plugin E-ACSL 0.2 Fluorine_20130401
 -* E-ACSL       [2012/09/13] Fix bug with very long ACSL integer constants.
 -  E-ACSL       [2012/06/27] Continue to convert the other pre/post-conditions
 	        even if one fails.
--  E-ACSL       [2012/04/27] Improve ACSL spec of E-ACSL' C library.
--* E-ACSL       [2012/01/27] Fix compilation bug when configuring with
+-  runtime      [2012/04/27] Improve ACSL spec of E-ACSL' C library.
+-* Makefile     [2012/01/27] Fix compilation bug when configuring with
 	        --enable-external.
 -  E-ACSL	[2012/01/25] Nicer generated variable names.
 -* E-ACSL       [2012/01/24] Fix bug with lazy operators in term position.
 -* E-ACSL       [2012/01/24] Fix bug with boolean.
 -* E-ACSL       [2012/01/24] Fix bug with negation and GMP integers.
 -* E-ACSL       [2012/01/24] Fix bug with conditional and GMP integers.
--  E-ACSL       [2012/01/24] Function e_acsl_assert now consistent with
+-  runtime      [2012/01/24] Function e_acsl_assert now consistent with
 	        standard assert.
 -  E-ACSL	[2012/01/23] Support of bitwise complementation.
 -  E-ACSL	[2012/01/20] Use GMP arithmetics only when required

@@ -2,7 +2,7 @@
 /*                                                                        */
 /*  This file is part of Frama-C.                                         */
 /*                                                                        */
-/*  Copyright (C) 2007-2017                                               */
+/*  Copyright (C) 2007-2018                                               */
 /*    CEA (Commissariat à l'énergie atomique et aux énergies              */
 /*         alternatives)                                                  */
 /*                                                                        */
@@ -29,31 +29,65 @@
 #ifndef __FC_MACHDEP_LINUX_SHARED
 #define __FC_MACHDEP_LINUX_SHARED
 
+// These machdeps strive to conform themselves to POSIX.1-2008
+#define __FC_POSIX_VERSION 200809L
+
 /* Optional */
 #define __INT8_T signed char
+#define __INT8_MIN __FC_SCHAR_MIN
+#define __INT8_MAX __FC_SCHAR_MAX
+
 #define __UINT8_T unsigned char
+#define __UINT8_MIN __FC_UCHAR_MAX
+
 #define __INT16_T signed short
+#define __INT16_MIN __FC_SHRT_MIN
+#define __INT16_MAX __FC_SHRT_MAX
+
 #define __UINT16_T unsigned short
+#define __UINT16_MAX __FC_USHRT_MAX
+
+/* inttypes */
+
+#define __PRI8_PREFIX "hh"
+#define __PRI16_PREFIX "h"
 
 /* Required */
 #define __INT_LEAST8_T signed char
+#define __INT_LEAST8_MIN __FC_SCHAR_MIN
+#define __INT_LEAST8_MAX __FC_SCHAR_MAX
+
 #define __UINT_LEAST8_T unsigned char
+#define __UINT_LEAST8_MAX __FC_UCHAR_MAX
+
 #define __INT_LEAST16_T signed short
+#define __INT_LEAST16_MIN __FC_SHRT_MIN
+#define __INT_LEAST16_MAX __FC_SHRT_MAX
+
 #define __UINT_LEAST16_T unsigned short
-#define __INT_LEAST64_T signed long long
-#define __UINT_LEAST64_T unsigned long long
+#define __UINT_LEAST16_MAX __FC_USHRT_MAX
 
 /* Required */
 #define __INT_FAST8_T signed char
+#define __INT_FAST8_MIN __FC_SCHAR_MIN
+#define __INT_FAST8_MAX __FC_SCHAR_MAX
+
 #define __UINT_FAST8_T unsigned char
+#define __UINT_FAST8_MAX __FC_UCHAR_MAX
+
 #define __INT_FAST16_T signed int
+#define __INT_FAST16_MIN __FC_INT_MIN
+#define __INT_FAST16_MAX __FC_INT_MAX
+
 #define __UINT_FAST16_T unsigned int
-#define __INT_FAST64_T signed long long
-#define __UINT_FAST64_T unsigned long long
+#define __UINT_FAST16_MAX __FC_UINT_MAX
+#define __PRIFAST16_PREFIX ""
 
 /* Required */
 #define __INT_MAX_T signed long long
 #define __UINT_MAX_T unsigned long long
+
+#define __PRIMAX_PREFIX "ll"
 
 /* min and max values as specified in limits.h */
 #define __FC_SCHAR_MIN (-128)
@@ -62,11 +96,12 @@
 #define __FC_SHRT_MIN	(-32768)
 #define __FC_SHRT_MAX	32767
 #define __FC_USHRT_MAX	65535
-#define __FC_LONG_MIN (-2147483647L -1L)
 #define __FC_LLONG_MIN (-9223372036854775807LL -1LL)
 #define __FC_LLONG_MAX 9223372036854775807LL
 #define __FC_ULLONG_MAX 18446744073709551615ULL
 #define __FC_PATH_MAX 256
+// Note: POSIX requires HOST_NAME_MAX >= 255, but Linux uses 64
+#define __FC_HOST_NAME_MAX 64
 
 /* for stdarg.h */
 #define __FC_VA_LIST_T __builtin_va_list

@@ -41,13 +41,8 @@
 (*                          et Automatique).                                *)
 (****************************************************************************)
 
-let dkey = Kernel.register_category "dataflows"
-let dkeyscc = Kernel.register_category "dataflows_scc"
-
-
-
-open Ordered_stmt;;
-open Cil_types;;
+open Ordered_stmt
+open Cil_types
 
 (****************************************************************)
 
@@ -228,7 +223,7 @@ struct
        initial [next]. *)
   let current_scc = ref (Fenv.connected_component !next);;
 
-  Kernel.debug ~dkey:dkeyscc
+  Kernel.debug ~dkey:Kernel.dkey_dataflow_scc
     "First statement %d, first scc %d" !next !current_scc;;
 
     (* We normally iterate using the ordered_stmt order. The only
@@ -256,7 +251,7 @@ struct
 
     (* Remove i from the worklist, set up next for the next call, and return i.  *)
     let select i =
-      Kernel.debug ~dkey:dkeyscc "Selecting %d" i;
+      Kernel.debug ~dkey:Kernel.dkey_dataflow_scc "Selecting %d" i;
       Workqueue.clear i;
       next := get_next i;
       Some i
@@ -264,7 +259,7 @@ struct
 
     (* We reached the end of the current scc, and we need to further iterate on it. *)
     let select_restart_scc i =
-      Kernel.debug ~dkey:dkeyscc
+      Kernel.debug ~dkey:Kernel.dkey_dataflow_scc
         "Restarting to %d in same scc %d (current_scc = %d)"
         i (Fenv.connected_component i) !current_scc;
       assert((Fenv.connected_component i) == !current_scc);
@@ -274,7 +269,8 @@ struct
 
     (* We reached the end of the current scc, and we can switch to the next. *)
     let select_new_scc i =
-      Kernel.debug ~dkey:dkeyscc "Changing to %d in scc %d  (current_scc = %d)"
+      Kernel.debug ~dkey:Kernel.dkey_dataflow_scc
+        "Changing to %d in scc %d  (current_scc = %d)"
         i (Fenv.connected_component i) !current_scc;
       assert((Fenv.connected_component i) != !current_scc);
       current_scc := Fenv.connected_component i;
@@ -284,7 +280,7 @@ struct
 
     (* We did not reach the end of the current scc. *)
     let select_same_scc i =
-      Kernel.debug ~dkey:dkeyscc
+      Kernel.debug ~dkey:Kernel.dkey_dataflow_scc
         "Continuing to %d in scc %d  (current_scc = %d)"
         i (Fenv.connected_component i) !current_scc;
       assert((Fenv.connected_component i) == !current_scc);
@@ -398,7 +394,7 @@ module Simple_backward(Fenv:FUNCTION_ENV)(P:BACKWARD_MONOTONE_PARAMETER) = struc
     | Some(ord) ->
       let stmt = Fenv.to_stmt ord in
       let before_state = P.transfer_stmt stmt after.(ord) in
-      Kernel.debug ~dkey "backward: %d before_state = %a"
+      Kernel.debug ~dkey:Kernel.dkey_dataflow "backward: %d before_state = %a"
         stmt.sid P.pretty before_state;
       let to_update = List.map Fenv.to_ordered stmt.preds in
       let update_f upd =
@@ -415,14 +411,14 @@ module Simple_backward(Fenv:FUNCTION_ENV)(P:BACKWARD_MONOTONE_PARAMETER) = struc
             let (join,is_included) =
               P.join_and_is_included before_state after.(upd)
             in
-            Kernel.debug ~dkey "%a + %a -> %b, %a"
+            Kernel.debug ~dkey:Kernel.dkey_dataflow "%a + %a -> %b, %a"
               P.pretty after.(upd)
               P.pretty before_state
               is_included P.pretty join;
             if not is_included then W.insert upd;
             join
         in
-        Kernel.debug ~dkey "backward: updating %d,  %a"
+        Kernel.debug ~dkey:Kernel.dkey_dataflow "backward: updating %d,  %a"
           (Fenv.to_stmt upd).sid  P.pretty join;
         after.(upd) <- join
       in
@@ -513,7 +509,7 @@ struct
   let do_stmt ord =
     let cur_state = P.get_before ord  in
     let stmt = Fenv.to_stmt ord in
-    Kernel.debug ~dkey "forward: doing stmt %d" stmt.sid;
+    Kernel.debug ~dkey:Kernel.dkey_dataflow "forward: doing stmt %d" stmt.sid;
     CurrentLoc.set (Cil_datatype.Stmt.loc stmt);
     let l = P.transfer_stmt stmt cur_state in
     List.iter update_before l

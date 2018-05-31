@@ -7,15 +7,15 @@
 [value:initial-state] Values of globals at initialization
   X ∈ {0}
 [value] computing for function g <- main.
-    Called from tests/sparecode/issue_157.i:16.
+  Called from tests/sparecode/issue_157.i:16.
 [value] computing for function f <- g <- main.
-    Called from tests/sparecode/issue_157.i:11.
+  Called from tests/sparecode/issue_157.i:11.
 [value] Recording results for f
 [value] Done for function f
 [value] Recording results for g
 [value] Done for function g
 [value] computing for function f <- main.
-    Called from tests/sparecode/issue_157.i:17.
+  Called from tests/sparecode/issue_157.i:17.
 [value] Recording results for f
 [value] Done for function f
 [value] Recording results for main

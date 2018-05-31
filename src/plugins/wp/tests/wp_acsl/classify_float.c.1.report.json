@@ -1,0 +1,21 @@
+{ "wp:global": { "why3:alt-ergo": { "total": 3, "valid": 3 },
+                 "wp:main": { "total": 3, "valid": 3 } },
+  "wp:axiomatics": { "": { "lemma_NaN_not_finite": { "why3:alt-ergo": 
+                                                       { "total": 1,
+                                                         "valid": 1 },
+                                                     "wp:main": { "total": 1,
+                                                                  "valid": 1 } },
+                           "lemma_InfP_not_finite": { "why3:alt-ergo": 
+                                                        { "total": 1,
+                                                          "valid": 1 },
+                                                      "wp:main": { "total": 1,
+                                                                   "valid": 1 } },
+                           "lemma_InfN_not_finite": { "why3:alt-ergo": 
+                                                        { "total": 1,
+                                                          "valid": 1 },
+                                                      "wp:main": { "total": 1,
+                                                                   "valid": 1 } },
+                           "wp:section": { "why3:alt-ergo": { "total": 3,
+                                                              "valid": 3 },
+                                           "wp:main": { "total": 3,
+                                                        "valid": 3 } } } } }

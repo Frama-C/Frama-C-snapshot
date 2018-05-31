@@ -7,11 +7,11 @@ union __anonunion_un_1 {
    short s ;
 } __attribute__((__packed__, __aligned__(1)));
 typedef union __anonunion_un_1 un;
-struct __anonstruct_st_5 {
+struct __anonstruct_st_3 {
    char c  __attribute__((__aligned__(1)));
    un u  __attribute__((__aligned__(1)));
 } __attribute__((__packed__, __aligned__(1)));
-typedef struct __anonstruct_st_5 st_2;
+typedef struct __anonstruct_st_3 st_2;
 int f(un *u);
 
 #pragma noalign

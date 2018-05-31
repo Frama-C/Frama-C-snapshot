@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2017                                               *)
+(*  Copyright (C) 2007-2018                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -222,8 +222,13 @@ let is_hex s =
   let l = String.length s in
   l >= 2 && s.[0] = '0' && (s.[1] = 'x' || s.[1] = 'X')
 
-let single_precision_of_string s = 
-  if is_hex s
+let opp_parse_float f =
+  { f_lower = -. f.f_upper ; f_nearest = -. f.f_nearest ; f_upper = -. f.f_lower }
+
+let rec single_precision_of_string s =
+  if s.[0] = '-' then
+     opp_parse_float (single_precision_of_string (String.sub s 1 (String.length s - 1)))
+  else if is_hex s
   then
     try
       let f = sys_single_precision_of_string s in
@@ -233,8 +238,10 @@ let single_precision_of_string s =
   else (* decimal *)
     parse_float ~man_size:23 ~min_exp:(-126) ~max_exp:127 s
 
-let double_precision_of_string s = 
-  if is_hex s
+let rec double_precision_of_string s = 
+  if s.[0] = '-' then
+    opp_parse_float (double_precision_of_string (String.sub s 1 (String.length s - 1)))
+  else if is_hex s
   then 
     let f = float_of_string s in
     { f_lower = f ; f_nearest = f ; f_upper = f }
@@ -388,6 +395,10 @@ external logf: float -> float = "c_logf"
 external log10f: float -> float = "c_log10f"
 external powf: float -> float -> float = "c_powf"
 external sqrtf: float -> float = "c_sqrtf"
+external fmodf: float -> float -> float = "c_fmodf"
+external cosf: float -> float = "c_cosf"
+external sinf: float -> float = "c_sinf"
+external atan2f: float -> float -> float = "c_atan2f"
 
 
 (** C math-like functions *)

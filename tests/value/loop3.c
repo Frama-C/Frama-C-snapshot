@@ -1,6 +1,6 @@
 int i,j,k;
 //@ assigns \result \from \nothing;
-int any_int();
+int any_int(void);
 
 void main(void)
 {

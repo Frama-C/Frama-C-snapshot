@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2017                                               *)
+(*  Copyright (C) 2007-2018                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -52,7 +52,7 @@ and condition =
   | State of Mstate.state
 
 and sequence (** List of steps *)
-
+  
 type sequent = sequence * F.pred
 
 val pretty : (Format.formatter -> sequent -> unit) ref
@@ -78,6 +78,7 @@ val vars_hyp : sequence -> Vars.t
 val vars_seq : sequent -> Vars.t
 
 val empty : sequence
+val trivial : sequent
 val sequence : step list -> sequence
 val seq_branch : ?stmt:stmt -> F.pred -> sequence -> sequence -> sequence
 
@@ -146,7 +147,7 @@ val close : sequent -> pred (** With free variables {i quantified}. *)
 val at_closure : (sequent -> sequent ) -> unit (** register a transformation applied just before close *)
 
 (** {2 Bundles}
-
+    
     Bundles are {i mergeable} pre-sequences.
     This the key structure for merging hypotheses with linear complexity
     during backward weakest pre-condition calculus.
@@ -206,7 +207,6 @@ class type simplifier =
 val clean : sequent -> sequent
 val filter : sequent -> sequent
 val parasite : sequent -> sequent
-val letify : ?solvers:simplifier list -> ?intros:int -> sequent -> sequent
+val simplify : ?solvers:simplifier list -> ?intros:int -> sequent -> sequent
 val pruning : ?solvers:simplifier list -> sequent -> sequent
-
 (* -------------------------------------------------------------------------- *)

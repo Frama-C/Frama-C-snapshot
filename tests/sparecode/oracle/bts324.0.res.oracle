@@ -9,18 +9,20 @@
   o0 ∈ {0}
   is_ko ∈ {-1}
 [value] computing for function init <- main.
-    Called from tests/sparecode/bts324.i:19.
+  Called from tests/sparecode/bts324.i:19.
 [value] using specification for function init
-tests/sparecode/bts324.i:14:[value] warning: no \from part for clause 'assigns *p_res;'
+[value] tests/sparecode/bts324.i:14: Warning: 
+  no \from part for clause 'assigns *p_res;'
 [value] Done for function init
-tests/sparecode/bts324.i:21:[value] entering loop for the first time
+[value] tests/sparecode/bts324.i:21: entering loop for the first time
 [value] computing for function loop_body <- main.
-    Called from tests/sparecode/bts324.i:22.
+  Called from tests/sparecode/bts324.i:22.
 [value] using specification for function loop_body
-tests/sparecode/bts324.i:11:[value] warning: no \from part for clause 'assigns i0, o0;'
+[value] tests/sparecode/bts324.i:11: Warning: 
+  no \from part for clause 'assigns i0, o0;'
 [value] Done for function loop_body
 [value] computing for function loop_body <- main.
-    Called from tests/sparecode/bts324.i:22.
+  Called from tests/sparecode/bts324.i:22.
 [value] Done for function loop_body
 [value] Recording results for main
 [value] done for function main
@@ -42,12 +44,12 @@ tests/sparecode/bts324.i:11:[value] warning: no \from part for clause 'assigns i
 [sparecode] look for annotations in function main
 [sparecode] look for annotations in function main_bis
 [pdg] computing for function main_bis
-[pdg] warning: unreachable entry point (sid:9, function main_bis)
+[pdg] Warning: unreachable entry point (sid:9, function main_bis)
 [pdg] Bottom for function main_bis
 [sparecode] pdg bottom: skip annotations
 [sparecode] look for annotations in function main_ter
 [pdg] computing for function main_ter
-[pdg] warning: unreachable entry point (sid:19, function main_ter)
+[pdg] Warning: unreachable entry point (sid:19, function main_ter)
 [pdg] Bottom for function main_ter
 [sparecode] pdg bottom: skip annotations
 [sparecode] finalize call input propagation

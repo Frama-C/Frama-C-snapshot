@@ -11,40 +11,43 @@
   s2 ∈ {0}
   ull ∈ {0}
 [value] computing for function test_ull <- main.
-    Called from tests/constant_propagation/introduction_of_non_explicit_cast.c:68.
+  Called from tests/constant_propagation/introduction_of_non_explicit_cast.c:68.
 [value] Recording results for test_ull
 [value] Done for function test_ull
 [value] computing for function test_struct <- main.
-    Called from tests/constant_propagation/introduction_of_non_explicit_cast.c:69.
+  Called from tests/constant_propagation/introduction_of_non_explicit_cast.c:69.
 [value] Recording results for test_struct
 [value] Done for function test_struct
 [value] computing for function test_struct_ptr <- main.
-    Called from tests/constant_propagation/introduction_of_non_explicit_cast.c:70.
+  Called from tests/constant_propagation/introduction_of_non_explicit_cast.c:70.
 [value] Recording results for test_struct_ptr
 [value] Done for function test_struct_ptr
 [value] computing for function test_tab <- main.
-    Called from tests/constant_propagation/introduction_of_non_explicit_cast.c:71.
+  Called from tests/constant_propagation/introduction_of_non_explicit_cast.c:71.
 [value] Recording results for test_tab
 [value] Done for function test_tab
 [value] computing for function init <- main.
-    Called from tests/constant_propagation/introduction_of_non_explicit_cast.c:73.
+  Called from tests/constant_propagation/introduction_of_non_explicit_cast.c:73.
 [value] computing for function add3 <- init <- main.
-    Called from tests/constant_propagation/introduction_of_non_explicit_cast.c:57.
+  Called from tests/constant_propagation/introduction_of_non_explicit_cast.c:57.
 [value] Recording results for add3
 [value] Done for function add3
 [value] Recording results for init
 [value] Done for function init
 [value] computing for function add3 <- main.
-    Called from tests/constant_propagation/introduction_of_non_explicit_cast.c:74.
+  Called from tests/constant_propagation/introduction_of_non_explicit_cast.c:74.
 [value] Recording results for add3
 [value] Done for function add3
 [value] computing for function test_ptr <- main.
-    Called from tests/constant_propagation/introduction_of_non_explicit_cast.c:76.
+  Called from tests/constant_propagation/introduction_of_non_explicit_cast.c:76.
 [value] Recording results for test_ptr
 [value] Done for function test_ptr
-tests/constant_propagation/introduction_of_non_explicit_cast.c:77:[value] assertion got status valid.
-tests/constant_propagation/introduction_of_non_explicit_cast.c:80:[value] warning: assertion got status unknown.
-tests/constant_propagation/introduction_of_non_explicit_cast.c:81:[value] assertion got status valid.
+[value] tests/constant_propagation/introduction_of_non_explicit_cast.c:77: 
+  assertion got status valid.
+[value:alarm] tests/constant_propagation/introduction_of_non_explicit_cast.c:80: Warning: 
+  assertion got status unknown.
+[value] tests/constant_propagation/introduction_of_non_explicit_cast.c:81: 
+  assertion got status valid.
 [value] Recording results for main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======
@@ -120,7 +123,7 @@ tests/constant_propagation/introduction_of_non_explicit_cast.c:81:[value] assert
 [from] Computing for function main
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
-    These dependencies hold at termination for the executions that terminate:
+  These dependencies hold at termination for the executions that terminate:
 [from] Function add3:
   \result FROM v1; v2; v3
 [from] Function init:

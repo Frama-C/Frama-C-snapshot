@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2017                                               *)
+(*  Copyright (C) 2007-2018                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -323,9 +323,8 @@ let get_propid = Names.get_prop_id_name
 let pp_propid fmt pid =
   Format.pp_print_string fmt (get_propid pid)
 
-let pp_names fmt l =  match l with [] -> ()
-                                 | _ ->
-                                     Format.fprintf fmt "_%a" (Wp_error.pp_string_list ~empty:"" ~sep:"_") l
+let pp_names fmt l =  match l with [] -> () | _ ->
+  Format.fprintf fmt "_%a" (Wp_error.pp_string_list ~empty:"" ~sep:"_") l
 
 let ident_names names =
   List.filter (function "" -> true
@@ -345,6 +344,11 @@ let user_prop_names p = match p with
         Format.asprintf  "%c%a" '@' Property.pretty_predicate_kind kind
       in
       kind_name::idp.ip_content.pred_name
+  | Property.IPExtended(_,_,(_,name,_)) ->
+      let kind_name =
+        Format.asprintf  "%s_extension" name
+      in
+      [kind_name]
   | Property.IPCodeAnnot (_,_, ca) -> code_annot_names ca
   | Property.IPComplete (_, _,_,lb) ->
       let kind_name = "@complete_behaviors" in
@@ -522,6 +526,8 @@ let property_hints hs = function
       List.iter (add_required hs) ps
   | Property.IPPredicate(_,_,_,ipred) ->
       List.iter (add_hint hs) ipred.ip_content.pred_name
+  | Property.IPExtended(_,_,(_,name,_)) ->
+      List.iter (add_hint hs) [name]
   | Property.IPCodeAnnot(_,_,ca) -> annot_hints hs ca.annot_content
   | Property.IPAssigns(_,_,_,froms) -> assigns_hints hs froms
   | Property.IPAllocation _ (* TODO *)

@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2017                                               *)
+(*  Copyright (C) 2007-2018                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -55,10 +55,10 @@ struct
 end
 
 (* -------------------------------------------------------------------------- *)
-(* --- Running Tactical                                                   --- *)
+(* --- Running Json-Tactical                                              --- *)
 (* -------------------------------------------------------------------------- *)
 
-let configure (console : #Tactical.feedback) jtactic goal =
+let jconfigure (console : #Tactical.feedback) jtactic goal =
   let _ , sequent = Wpo.compute goal in
   match ProofScript.configure jtactic sequent with
   | None -> None
@@ -77,13 +77,13 @@ let configure (console : #Tactical.feedback) jtactic goal =
         | _ -> None
       end
 
-let fork tree ?node tactic =
-  let console = new ProofScript.console ~title:tactic.header in
+let jfork tree ?node jtactic =
+  let console = new ProofScript.console ~title:jtactic.header in
   try
     let anchor = ProofEngine.anchor tree ?node () in
     let goal = ProofEngine.goal anchor in
-    let model = ProofEngine.model anchor in
-    match Model.with_model model (configure console tactic) goal with
+    let model = ProofEngine.node_model anchor in
+    match Model.with_model model (jconfigure console jtactic) goal with
     | None -> None
     | Some (script,process) ->
         Some (ProofEngine.fork tree ~anchor script process)
@@ -107,12 +107,22 @@ struct
     valid : bool ; (* play valid provers *)
     failed : bool ; (* play failed provers *)
     provers : VCS.prover list ;
-    stuck : unit -> unit ;
-    proved : unit -> unit ;
-    callin : Wpo.t -> VCS.prover -> unit ;
-    callback : Wpo.t -> VCS.prover -> VCS.result -> unit ;
+    progress : Wpo.t -> string -> unit ;
+    result : Wpo.t -> VCS.prover -> VCS.result -> unit ;
     success : Wpo.t -> VCS.prover option -> unit ;
+    depth : int ;
+    width : int ;
+    auto : Strategy.heuristic list ;
     mutable signaled : bool ;
+    mutable backtrack : int ;
+    mutable backtracking : backtracking option ;
+  }
+  
+  and backtracking = {
+    bk_node : ProofEngine.node ;
+    bk_depth : int ; (* depth of search *)
+    mutable bk_best : int ;    (* best index, (-1) for none *)
+    mutable bk_pending : int ; (* best pending, max_int when none *)
   }
 
   let tree env = env.tree
@@ -120,14 +130,29 @@ struct
   let play env res =
     if VCS.is_valid res then env.valid else env.failed
 
+  let progress env msg = env.progress (ProofEngine.main env.tree) msg
+
   let stuck env =
     if not env.signaled then
-      (env.stuck () ; env.signaled <- true)
+      begin
+        ProofEngine.validate ~unknown:true env.tree ;
+        env.success (ProofEngine.main env.tree) None ;
+        env.signaled <- true ;
+      end
 
-  let signal env =
-    ProofEngine.validate env.tree ;
-    if not env.signaled && Wpo.is_proved (ProofEngine.main env.tree) then
-      (env.proved () ; env.signaled <- true)
+  let validate ?(finalize=false) env =
+    ProofEngine.validate ~unknown:true env.tree ;
+    if not env.signaled then
+      let wpo = ProofEngine.main env.tree in
+      let proved = Wpo.is_proved wpo in
+      if proved || finalize then
+        begin
+          env.signaled <- true ;
+          List.iter
+            (fun (prv,res) -> env.result wpo prv res)
+            (Wpo.get_results wpo) ;
+          env.success wpo (if proved then Some VCS.Tactical else None)
+        end
 
   let goal env = function
     | Some n -> ProofEngine.goal n
@@ -135,47 +160,166 @@ struct
 
   let prove env wpo ?config prover =
     Prover.prove wpo ?config ~mode:VCS.BatchMode
-      ~callin:env.callin ~callback:env.callback prover
+      ~progress:env.progress prover
 
-  let make tree ~valid ~failed ~provers ~callin ~callback ~success =
-    let wpo = ProofEngine.main tree in
-    let stuck () = success wpo None in
-    let proved () =
-      ProofEngine.set_saved tree true ;
-      success wpo (Some VCS.Tactical)
-    in
+  let pending env =
+    match ProofEngine.status env.tree with
+    | `Main | `Proved -> 0 | `Pending n -> n
+
+  let setup_backtrack env node depth =
+    if env.backtrack > 0 then
+      let is_nearer = match env.backtracking with
+        | None -> true
+        | Some { bk_depth } -> depth < bk_depth in
+      if is_nearer then
+        let _,hs = ProofEngine.get_strategies node in
+        if Array.length hs > 1 then
+          env.backtracking <- Some {
+              bk_node = node ;
+              bk_best = (-1) ;
+              bk_depth = depth ;
+              bk_pending = pending env ;
+            }
+  
+  let search env node ~depth =
+    if env.auto <> [] && depth < env.depth && pending env < env.width
+    then
+      match ProverSearch.search env.tree ~anchor:node env.auto with
+      | None -> None
+      | Some _ as fork -> setup_backtrack env node depth ; fork
+    else None
+
+  let backtrack env =
+    if env.backtrack <= 0 then None else
+      match env.backtracking with
+      | None -> None
+      | Some point ->
+          let n = pending env in
+          let anchor = point.bk_node in
+          if n < point.bk_pending then
+            begin
+              point.bk_best <- fst (ProofEngine.get_strategies anchor) ;
+              point.bk_pending <- n ;
+            end ;
+          match ProverSearch.backtrack env.tree ~anchor ~loop:false () with
+          | Some fork ->
+              env.backtracking <- None ; Some (point.bk_depth,fork)
+          | None -> (* end of backtrack *)
+              env.backtracking <- None ;
+              match ProverSearch.index env.tree ~anchor ~index:point.bk_best
+              with None -> None | Some fork -> Some (point.bk_depth,fork)
+
+  let provers env = env.provers
+  
+  let make tree
+      ~valid ~failed ~provers
+      ~depth ~width ~backtrack ~auto
+      ~progress ~result ~success =
     { tree ; valid ; failed ; provers ;
-      stuck ; callin ; callback ; success ; proved ;
+      depth ; width ; backtrack ; auto ;
+      progress ; result ; success ;
+      backtracking = None ;
       signaled = false }
 
 end
 
-let rec zip nodes scripts  =
+(* -------------------------------------------------------------------------- *)
+(* --- Choosing Alternatives                                              --- *)
+(* -------------------------------------------------------------------------- *)
+
+let fst_order _ _ = 0
+let key_order (a,_) (b,_) = String.compare a b
+
+let rec zip order nodes scripts =
   match nodes , scripts with
-  | _ , [] -> ()
-  | [] , _ -> (*TODO: saveback forgiven scripts *) ()
-  | n::wn , s::ws -> ProofEngine.bind n s ; zip wn ws
+  | _ , [] | [] , _ -> (*TODO: saveback forgiven scripts *) ()
+  | node :: o_nodes , script :: o_scripts ->
+      let cmp = order node script in
+      if cmp < 0 then zip order o_nodes scripts else
+      if cmp > 0 then zip order nodes o_scripts else
+        (ProofEngine.bind (snd node) (snd script) ;
+         zip order o_nodes o_scripts)
 
-let rec fallback env child node = function
-  | [] -> Env.stuck env ; Task.return ()
-  | prv :: prvs ->
-      let task =
-        let wpo = Env.goal env node in
-        if not (VCS.is_verdict (Wpo.get_result wpo prv)) then
-          Env.prove env wpo prv
-        else Task.return false in
-      let continue ok =
-        if ok
-        then (Env.signal env ; Task.return ())
-        else fallback env child node prvs
-      in task >>= continue
+let reconcile nodes scripts =
+  if List.for_all (fun (k,_) -> k = "") scripts 
+  then zip fst_order nodes scripts
+  else zip key_order
+      (List.stable_sort key_order nodes)
+      (List.stable_sort key_order scripts)
 
-let rec crawl env child node = function
-  | [] -> fallback env child node env.Env.provers
-  | Error(msg,json) :: script ->
-      Wp_parameters.error "@[<hov 2>SCRIPT ERROR %S: %a@]@." msg Json.pp json ;
-      crawl env child node script
-  | Prover( prv , res ) :: script ->
+let rec forall phi = function
+  | x::xs ->
+      phi x >>= fun ok ->
+      if ok then forall phi xs else Task.return false
+  | [] -> Task.return true
+
+let rec exists phi = function
+  | x::xs ->
+      phi x >>= fun ok ->
+      if ok then Task.return true else exists phi xs
+  | [] -> Task.return false
+
+let prove_node env node prv =
+  let wpo = Env.goal env (Some node) in
+  if not (VCS.is_verdict (Wpo.get_result wpo prv)) then
+    Env.prove env wpo prv
+  else Task.return false
+
+(* -------------------------------------------------------------------------- *)
+(* --- Auto & Seach Mode                                                  --- *)
+(* -------------------------------------------------------------------------- *)
+
+let rec auto env ?(depth=0) node : bool Task.task =
+  exists (prove_node env node) (Env.provers env) >>= fun ok ->
+  if ok then Task.return true else
+    if depth > 0 then
+      autosearch env ~depth node
+    else
+      begin
+        autosearch env ~depth node >>= fun ok ->
+        if ok then Task.return true else
+          match Env.backtrack env with
+          | Some (depth,fork) ->
+              Env.progress env "Backtracking" ;
+              autofork env ~depth fork
+  | None ->
+      Task.return false
+      end
+
+and autosearch env ~depth node : bool Task.task =
+  match Env.search env node ~depth with
+      | None -> Task.return false
+  | Some fork -> autofork env ~depth fork
+
+and autofork env ~depth fork =
+          let _,children = ProofEngine.commit ~resolve:true fork in
+          let pending = Env.pending env in
+          if pending > 0 then
+            begin
+              Env.progress env (Printf.sprintf "Auto %d" pending) ;
+              let depth = succ depth in
+              forall (auto env ~depth) (List.map snd children)
+            end
+          else
+    ( Env.validate env ; Task.return true )
+
+(* -------------------------------------------------------------------------- *)
+(* --- Script Crawling                                                    --- *)
+(* -------------------------------------------------------------------------- *)
+
+let rec crawl env on_child node = function
+  
+  | [] ->
+      let node = ProofEngine.anchor (Env.tree env) ?node () in
+      auto env node >>= fun ok ->
+      if ok then Env.validate env else Env.stuck env ;
+      Task.return ()
+        
+  | Error(msg,json) :: alternative ->
+      Wp_parameters.error "@[<hov 2>Script Error %S: %a@]@." msg Json.pp json ;
+      crawl env on_child node alternative
+
+  | Prover( prv , res ) :: alternative ->
       begin
         let task =
           if Env.play env res then
@@ -185,33 +329,38 @@ let rec crawl env child node = function
           else Task.return false in
         let continue ok =
           if ok
-          then (Env.signal env ; Task.return ())
-          else crawl env child node script
+          then (Env.validate env ; Task.return ())
+          else crawl env on_child node alternative
         in
         task >>= continue
       end
-  | Tactic( _ , tactic , subscripts ) :: script ->
+
+  | Tactic( _ , jtactic , subscripts ) :: alternative ->
       begin
-        match fork (Env.tree env) ?node tactic with
+        match jfork (Env.tree env) ?node jtactic with
         | None ->
             Wp_parameters.error
-              "SCRIPT ERROR: can not apply '%s'@\n\
+              "Script Error: can not apply '%s'@\n\
                @[<hov 2>Params: %a@]@\n\
                @[<hov 2>Select: %a@]@."
-              tactic.tactic
-              Json.pp tactic.params
-              Json.pp tactic.select ;
-            crawl env child node script
+              jtactic.tactic
+              Json.pp jtactic.params
+              Json.pp jtactic.select ;
+            crawl env on_child node alternative
         | Some fork ->
             (*TODO: saveback forgiven script *)
-            let _,children = ProofEngine.commit fork in
-            zip children subscripts ;
+            let _,children = ProofEngine.commit ~resolve:true fork in
+            reconcile children subscripts ;
             if children = [] then
-              Env.signal env
+              Env.validate env
             else
-              List.iter child children ;
+              List.iter (fun (_,n) -> on_child n) children ;
             Task.return ()
       end
+
+(* -------------------------------------------------------------------------- *)
+(* --- Main Process                                                       --- *)
+(* -------------------------------------------------------------------------- *)
 
 let schedule job =
   Task.spawn (ProverTask.server ()) (Task.thread (Task.todo job))
@@ -223,14 +372,21 @@ let rec process env node =
       crawl env (process env) (Some node) script
     end
 
-let task ~valid ~failed ~provers ~start ~callin ~callback ~success wpo =
+let task
+    ~valid ~failed ~provers
+    ~depth ~width ~backtrack ~auto
+    ~start ~progress ~result ~success wpo =
   begin fun () ->
     start wpo ;
     let json = ProofSession.load wpo in
     let script = Priority.sort (ProofScript.decode json) in
     let tree = ProofEngine.proof ~main:wpo in
-    let env = Env.make tree ~valid ~failed ~provers ~callin ~callback ~success in
-    crawl env (process env) None script >>? (fun _ -> ProofEngine.forward tree) ;
+    let env = Env.make tree
+        ~valid ~failed ~provers
+        ~depth ~width ~backtrack ~auto
+        ~progress ~result ~success in
+    crawl env (process env) None script >>?
+    (fun _ -> ProofEngine.forward tree) ;
   end
 
 (* -------------------------------------------------------------------------- *)
@@ -238,12 +394,12 @@ let task ~valid ~failed ~provers ~start ~callin ~callback ~success wpo =
 (* -------------------------------------------------------------------------- *)
 
 type 'a process =
-  ?valid:bool ->
-  ?failed:bool ->
-  ?provers:VCS.prover list ->
+  ?valid:bool -> ?failed:bool -> ?provers:VCS.prover list ->
+  ?depth:int -> ?width:int -> ?backtrack:int ->
+  ?auto:Strategy.heuristic list ->
   ?start:(Wpo.t -> unit) ->
-  ?callin:(Wpo.t -> VCS.prover -> unit) ->
-  ?callback:(Wpo.t -> VCS.prover -> VCS.result -> unit) ->
+  ?progress:(Wpo.t -> string -> unit) ->
+  ?result:(Wpo.t -> VCS.prover -> VCS.result -> unit) ->
   ?success:(Wpo.t -> VCS.prover option -> unit) ->
   Wpo.t -> 'a
 
@@ -251,26 +407,43 @@ let skip1 _ = ()
 let skip2 _ _ = ()
 let skip3 _ _ _ = ()
 let prove
-    ?(valid = true)
-    ?(failed = true)
-    ?(provers = [])
-    ?(start = skip1)
-    ?(callin = skip2)
-    ?(callback = skip3)
-    ?(success = skip2)
+    ?(valid = true) ?(failed = true) ?(provers = [])
+    ?(depth = 0) ?(width = 0) ?(backtrack = 0) ?(auto = [])
+    ?(start = skip1) ?(progress = skip2) ?(result = skip3) ?(success = skip2)
     wpo =
-  Task.todo (task ~valid ~failed ~provers ~start ~callin ~callback ~success wpo)
+  Task.todo (task
+               ~valid ~failed ~provers
+               ~depth ~width ~backtrack ~auto
+               ~start ~progress ~result ~success wpo)
 
 let spawn
-    ?(valid = true)
-    ?(failed = true)
-    ?(provers = [])
-    ?(start = skip1)
-    ?(callin = skip2)
-    ?(callback = skip3)
-    ?(success = skip2)
+    ?(valid = true) ?(failed = true) ?(provers = [])
+    ?(depth = 0) ?(width = 0) ?(backtrack = 0) ?(auto = [])
+    ?(start = skip1) ?(progress = skip2) ?(result = skip3) ?(success = skip2)
     wpo =
-  schedule (task ~valid ~failed ~provers ~start ~callin ~callback ~success wpo)
+  schedule (task
+              ~valid ~failed ~provers
+              ~depth ~width ~backtrack ~auto
+              ~start ~progress ~result ~success wpo)
+
+
+let search
+    ?(depth = 0) ?(width = 0) ?(backtrack = 0) ?(auto = []) ?(provers = [])
+    ?(progress = skip2) ?(result = skip3) ?(success = skip2)
+    tree node =
+  begin
+    let env = Env.make tree
+        ~valid:false ~failed:false ~provers
+        ~depth ~width ~backtrack ~auto
+        ~progress ~result ~success in
+    schedule
+      begin fun () ->
+        autosearch env ~depth:0 node >>=
+        fun ok ->
+        if ok then Env.validate ~finalize:true env else Env.stuck env ;
+        Task.return ()
+      end
+  end
 
 (* -------------------------------------------------------------------------- *)
 (* --- Save Session                                                       --- *)

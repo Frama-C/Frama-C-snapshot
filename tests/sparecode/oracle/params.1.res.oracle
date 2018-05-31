@@ -6,7 +6,7 @@
 [value:initial-state] Values of globals at initialization
   
 [value] computing for function main1 <- main.
-    Called from tests/sparecode/params.i:17.
+  Called from tests/sparecode/params.i:17.
 [value] Recording results for main1
 [value] Done for function main1
 [value] Recording results for main

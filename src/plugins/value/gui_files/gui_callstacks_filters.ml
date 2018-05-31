@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2017                                               *)
+(*  Copyright (C) 2007-2018                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -100,7 +100,7 @@ let register_to_zone_functions (module Eval: Gui_eval.S) =
            let rcs' = from_callstack cs in
            if callstack_matches csf rcs' then
              let env = ev.Eval.env state cs in
-             let r, _ = ev.Eval.eval_and_warn env v in
+             let r, _, _ = ev.Eval.eval_and_warn env v in
              ev.Eval.join acc r
            else acc
         ) h ev.Eval.bottom

@@ -15,37 +15,38 @@
   c ∈ {0}
   d ∈ {0}
 [value] computing for function main1 <- main.
-    Called from tests/value/output_leafs.i:45.
+  Called from tests/value/output_leafs.i:45.
 [value] computing for function crypt <- main1 <- main.
-    Called from tests/value/output_leafs.i:13.
+  Called from tests/value/output_leafs.i:13.
 [value] using specification for function crypt
 [value] Done for function crypt
 [value] Recording results for main1
 [value] Done for function main1
 [value] computing for function main2 <- main.
-    Called from tests/value/output_leafs.i:46.
+  Called from tests/value/output_leafs.i:46.
 [value] computing for function g1 <- main2 <- main.
-    Called from tests/value/output_leafs.i:31.
+  Called from tests/value/output_leafs.i:31.
 [value] computing for function g <- g1 <- main2 <- main.
-    Called from tests/value/output_leafs.i:23.
+  Called from tests/value/output_leafs.i:23.
 [value] using specification for function g
 [value] Done for function g
 [value] Recording results for g1
 [value] Done for function g1
 [value] computing for function g2 <- main2 <- main.
-    Called from tests/value/output_leafs.i:32.
+  Called from tests/value/output_leafs.i:32.
 [value] computing for function g <- g2 <- main2 <- main.
-    Called from tests/value/output_leafs.i:27.
+  Called from tests/value/output_leafs.i:27.
 [value] Done for function g
 [value] Recording results for g2
 [value] Done for function g2
 [value] Recording results for main2
 [value] Done for function main2
 [value] computing for function main3 <- main.
-    Called from tests/value/output_leafs.i:47.
+  Called from tests/value/output_leafs.i:47.
 [value] computing for function f <- main3 <- main.
-    Called from tests/value/output_leafs.i:40.
-tests/value/output_leafs.i:40:[kernel] warning: Neither code nor specification for function f, generating default assigns from the prototype
+  Called from tests/value/output_leafs.i:40.
+[kernel:annot:missing-spec] tests/value/output_leafs.i:40: Warning: 
+  Neither code nor specification for function f, generating default assigns from the prototype
 [value] using specification for function f
 [value] Done for function f
 [value] Recording results for main3
@@ -93,7 +94,7 @@ tests/value/output_leafs.i:40:[kernel] warning: Neither code nor specification f
 [from] Computing for function main
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
-    These dependencies hold at termination for the executions that terminate:
+  These dependencies hold at termination for the executions that terminate:
 [from] Function crypt:
   G FROM G; K (and SELF)
   K FROM P
@@ -128,26 +129,26 @@ tests/value/output_leafs.i:40:[kernel] warning: Neither code nor specification f
   d FROM a; c (and SELF)
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function g1:
-      b
+    b
 [inout] Inputs for function g1:
-      a
+    a
 [inout] Out (internal) for function g2:
-      d
+    d
 [inout] Inputs for function g2:
-      c
+    c
 [inout] Out (internal) for function main1:
-      H; G; K; L
+    H; G; K; L
 [inout] Inputs for function main1:
-      G; K; P
+    G; K; P
 [inout] Out (internal) for function main2:
-      b; d
+    b; d
 [inout] Inputs for function main2:
-      a; c
+    a; c
 [inout] Out (internal) for function main3:
-      x
+    x
 [inout] Inputs for function main3:
-      \nothing
+    \nothing
 [inout] Out (internal) for function main:
-      H; G; K; L; b; d
+    H; G; K; L; b; d
 [inout] Inputs for function main:
-      G; K; P; a; c
+    G; K; P; a; c

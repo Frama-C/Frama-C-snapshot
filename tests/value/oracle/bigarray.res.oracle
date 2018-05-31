@@ -7,22 +7,25 @@
    [1] ∈ {3}
    [2..8388607] ∈ {0}
   S ∈ {{ "uututututututu" }}
-tests/value/bigarray.c:7:[value] warning: out of bounds write. assert \valid(S);
-tests/value/bigarray.c:7:[kernel] warning: all target addresses were invalid. This path is assumed to be dead.
+[value:alarm] tests/value/bigarray.c:7: Warning: 
+  out of bounds write. assert \valid(S);
+[kernel] tests/value/bigarray.c:7: Warning: 
+  all target addresses were invalid. This path is assumed to be dead.
 [value] Recording results for main
 [value] done for function main
-tests/value/bigarray.c:7:[value] assertion 'Value,mem_access' got final status invalid.
+[value] tests/value/bigarray.c:7: 
+  assertion 'Value,mem_access' got final status invalid.
 [value] ====== VALUES COMPUTED ======
 [value:final-states] Values at end of function main:
   __retres ∈ {0}
 [from] Computing for function main
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
-    These dependencies hold at termination for the executions that terminate:
+  These dependencies hold at termination for the executions that terminate:
 [from] Function main:
   \result FROM \nothing
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function main:
-      __retres
+    __retres
 [inout] Inputs for function main:
-      S
+    S

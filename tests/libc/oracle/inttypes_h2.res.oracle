@@ -1,0 +1,39 @@
+[kernel] Parsing tests/libc/inttypes_h2.c (with preprocessing)
+[value] Analyzing a complete application starting at main
+[value] Computing initial state
+[value] Initial state computed
+[value:initial-state] Values of globals at initialization
+  __fc_errno ∈ [--..--]
+  nondet ∈ [--..--]
+[value] computing for function imaxdiv <- main.
+  Called from tests/libc/inttypes_h2.c:11.
+[value] using specification for function imaxdiv
+[value] tests/libc/inttypes_h2.c:11: 
+  function imaxdiv: precondition 'no_div_by_zero' got status valid.
+[value:alarm] tests/libc/inttypes_h2.c:11: Warning: 
+  function imaxdiv: precondition 'no_overflow' got status invalid.
+[value] Done for function imaxdiv
+[value] computing for function imaxdiv <- main.
+  Called from tests/libc/inttypes_h2.c:17.
+[value:alarm] tests/libc/inttypes_h2.c:17: Warning: 
+  function imaxdiv: precondition 'no_div_by_zero' got status invalid.
+[value] tests/libc/inttypes_h2.c:17: 
+  function imaxdiv: no state left, precondition 'no_overflow' got status valid.
+[value] Done for function imaxdiv
+[value] computing for function imaxdiv <- main.
+  Called from tests/libc/inttypes_h2.c:22.
+[value] tests/libc/inttypes_h2.c:22: 
+  function imaxdiv: precondition 'no_div_by_zero' got status valid.
+[value] tests/libc/inttypes_h2.c:22: 
+  function imaxdiv: precondition 'no_overflow' got status valid.
+[value] Done for function imaxdiv
+[value] tests/libc/inttypes_h2.c:23: assertion got status valid.
+[value] tests/libc/inttypes_h2.c:24: assertion got status valid.
+[value] Recording results for main
+[value] done for function main
+[value] ====== VALUES COMPUTED ======
+[value:final-states] Values at end of function main:
+  a ∈ {9223372036854775807}
+  b ∈ {4611686018427387903}
+  r.quot ∈ {2}
+   .rem ∈ {1}

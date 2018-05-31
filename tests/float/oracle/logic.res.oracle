@@ -1,11 +1,18 @@
 [kernel] Parsing tests/float/logic.i (no preprocessing)
-tests/float/logic.i:11:[kernel] warning: Floating-point constant 0.1 is not represented exactly. Will use 0x1.999999999999ap-4
-tests/float/logic.i:16:[kernel] warning: Floating-point constant 0.1 is not represented exactly. Will use 0x1.999999999999ap-4
-tests/float/logic.i:21:[kernel] warning: Floating-point constant 0.1 is not represented exactly. Will use 0x1.999999999999ap-4
-tests/float/logic.i:70:[kernel] warning: Floating-point constant 3.3 is not represented exactly. Will use 0x1.a666666666666p1
-tests/float/logic.i:71:[kernel] warning: Floating-point constant 3.3 is not represented exactly. Will use 0x1.a666666666666p1
-tests/float/logic.i:74:[kernel] warning: Floating-point constant 3.3 is not represented exactly. Will use 0x1.a666666666666p1
-tests/float/logic.i:77:[kernel] warning: Floating-point constant 3.3 is not represented exactly. Will use 0x1.a666666666666p1
+[kernel:parser:decimal-float] tests/float/logic.i:11: Warning: 
+  Floating-point constant 0.1 is not represented exactly. Will use 0x1.999999999999ap-4.
+[kernel:parser:decimal-float] tests/float/logic.i:16: Warning: 
+  Floating-point constant 0.1 is not represented exactly. Will use 0x1.999999999999ap-4.
+[kernel:parser:decimal-float] tests/float/logic.i:21: Warning: 
+  Floating-point constant 0.1 is not represented exactly. Will use 0x1.999999999999ap-4.
+[kernel:parser:decimal-float] tests/float/logic.i:70: Warning: 
+  Floating-point constant 3.3 is not represented exactly. Will use 0x1.a666666666666p1.
+[kernel:parser:decimal-float] tests/float/logic.i:71: Warning: 
+  Floating-point constant 3.3 is not represented exactly. Will use 0x1.a666666666666p1.
+[kernel:parser:decimal-float] tests/float/logic.i:74: Warning: 
+  Floating-point constant 3.3 is not represented exactly. Will use 0x1.a666666666666p1.
+[kernel:parser:decimal-float] tests/float/logic.i:77: Warning: 
+  Floating-point constant 3.3 is not represented exactly. Will use 0x1.a666666666666p1.
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
 [value] Initial state computed
@@ -13,34 +20,37 @@ tests/float/logic.i:77:[kernel] warning: Floating-point constant 3.3 is not repr
   v ∈ [--..--]
   undet ∈ [--..--]
   top_int ∈ [--..--]
-tests/float/logic.i:12:[value] warning: assertion got status unknown.
-tests/float/logic.i:17:[value] warning: assertion got status invalid (stopping propagation).
-tests/float/logic.i:22:[value] assertion got status valid.
+[value:alarm] tests/float/logic.i:12: Warning: assertion got status unknown.
+[value:alarm] tests/float/logic.i:17: Warning: 
+  assertion got status invalid (stopping propagation).
+[value] tests/float/logic.i:22: assertion got status valid.
 [value] computing for function test_is_finite <- main.
-    Called from tests/float/logic.i:27.
-tests/float/logic.i:50:[value] assertion got status valid.
-tests/float/logic.i:51:[value] warning: assertion got status unknown.
-tests/float/logic.i:59:[value] warning: assertion got status unknown.
-tests/float/logic.i:67:[value] warning: assertion got status unknown.
+  Called from tests/float/logic.i:27.
+[value] tests/float/logic.i:50: assertion got status valid.
+[value:alarm] tests/float/logic.i:59: Warning: assertion got status unknown.
+[value:alarm] tests/float/logic.i:67: Warning: assertion got status unknown.
 [value] computing for function my_fabs <- test_is_finite <- main.
-    Called from tests/float/logic.i:70.
+  Called from tests/float/logic.i:70.
 [value] using specification for function my_fabs
 [value] Done for function my_fabs
 [value] computing for function my_fabs <- test_is_finite <- main.
-    Called from tests/float/logic.i:71.
+  Called from tests/float/logic.i:71.
 [value] Done for function my_fabs
 [value] computing for function my_ratio <- test_is_finite <- main.
-    Called from tests/float/logic.i:74.
+  Called from tests/float/logic.i:74.
 [value] using specification for function my_ratio
-tests/float/logic.i:46:[value] warning: no 'assigns \result \from ...' clause specified for function my_ratio
+[value] tests/float/logic.i:46: Warning: 
+  no 'assigns \result \from ...' clause specified for function my_ratio
 [value] Done for function my_ratio
 [value] computing for function my_ratio_body <- test_is_finite <- main.
-    Called from tests/float/logic.i:77.
+  Called from tests/float/logic.i:77.
 [value] computing for function my_fabs <- my_ratio_body <- test_is_finite <- main.
-    Called from tests/float/logic.i:41.
+  Called from tests/float/logic.i:41.
 [value] Done for function my_fabs
-tests/float/logic.i:39:[value] function my_ratio_body: postcondition got status valid.
-tests/float/logic.i:40:[value] function my_ratio_body: postcondition got status valid.
+[value] tests/float/logic.i:39: 
+  function my_ratio_body: postcondition got status valid.
+[value] tests/float/logic.i:40: 
+  function my_ratio_body: postcondition got status valid.
 [value] Recording results for my_ratio_body
 [value] Done for function my_ratio_body
 [value] Recording results for test_is_finite
@@ -72,7 +82,7 @@ tests/float/logic.i:40:[value] function my_ratio_body: postcondition got status 
 [from] Computing for function main
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
-    These dependencies hold at termination for the executions that terminate:
+  These dependencies hold at termination for the executions that terminate:
 [from] Function my_fabs:
   \result FROM f
 [from] Function my_ratio:
@@ -85,14 +95,14 @@ tests/float/logic.i:40:[value] function my_ratio_body: postcondition got status 
   \result FROM \nothing
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function my_ratio_body:
-      tmp; __retres
+    tmp; __retres
 [inout] Inputs for function my_ratio_body:
-      \nothing
+    \nothing
 [inout] Out (internal) for function test_is_finite:
-      f1; f2; f3; p; g1; g2; g3; g4
+    f1; f2; f3; p; g1; g2; g3; g4
 [inout] Inputs for function test_is_finite:
-      undet; top_int
+    undet; top_int
 [inout] Out (internal) for function main:
-      d; d_0; f; __retres
+    d; d_0; f; __retres
 [inout] Inputs for function main:
-      v; undet; top_int
+    v; undet; top_int

@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2017                                               *)
+(*  Copyright (C) 2007-2018                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -44,63 +44,6 @@ let framac_logo, framac_icon =
       "Could not load Frama-C icon/logo: %s" errmsg;
     None, None
 
-module Icon = struct
-
-  type kind = Frama_C | Unmark
-            | Custom of string
-            | Feedback of Property_status.Feedback.t
-
-  module F = Property_status.Feedback
-
-  type theme_file =
-    | ThemeSpecific of string
-    | ThemeGeneric of string
-
-  let builtins =
-    [(Frama_C,                      ThemeGeneric "frama-c.ico");
-     (Unmark,                       ThemeGeneric "unmark.png");
-     (Feedback F.Never_tried,       ThemeSpecific "never_tried.png");
-     (Feedback F.Unknown,           ThemeSpecific "unknown.png");
-     (Feedback F.Valid,             ThemeSpecific "surely_valid.png");
-     (Feedback F.Invalid,           ThemeSpecific "surely_invalid.png");
-     (Feedback F.Considered_valid,  ThemeSpecific "considered_valid.png");
-     (Feedback F.Valid_under_hyp,   ThemeSpecific "valid_under_hyp.png");
-     (Feedback F.Invalid_under_hyp, ThemeSpecific "invalid_under_hyp.png");
-     (Feedback F.Invalid_but_dead,  ThemeSpecific "invalid_but_dead.png");
-     (Feedback F.Unknown_but_dead,  ThemeSpecific "unknown_but_dead.png");
-     (Feedback F.Valid_but_dead,    ThemeSpecific "valid_but_dead.png");
-     (Feedback F.Inconsistent,      ThemeSpecific "inconsistent.png");
-    ]
-
-  let get_file_in_theme = function
-    | ThemeSpecific x -> "theme/" ^ (Gui_parameters.Theme.get()) ^ "/" ^ x
-    | ThemeGeneric x -> x
-
-  type icon = Filename of theme_file | Pixbuf of GdkPixbuf.pixbuf
-
-  let h = Hashtbl.create 7
-
-  let () =
-    List.iter
-      (fun (k,f) -> Hashtbl.add h k (Filename f))
-      builtins
-
-  let get k =
-    try match Hashtbl.find h k with
-      | Filename f' ->
-          let f = get_file_in_theme f' in
-          let p = Widget.shared_icon f in
-          Hashtbl.replace h k (Pixbuf p); p
-      | Pixbuf p -> p
-    with Not_found -> assert false
-
-  let default = Widget.default_icon
-
-  let register ~name ~file = Hashtbl.replace h (Custom name)
-      (Filename (ThemeGeneric file))
-
-end
-
 module Configuration = struct
   include Cilconfig
   let configuration_file () =
@@ -120,8 +63,8 @@ module Configuration = struct
     with Not_found -> match default with
       | None -> raise Not_found
       | Some v ->
-          set key (ConfInt v);
-          v
+        set key (ConfInt v);
+        v
 
   let use_float = useConfigurationFloat
   let set_float key f = set key (ConfFloat f)
@@ -130,8 +73,8 @@ module Configuration = struct
     with Not_found -> match default with
       | None -> raise Not_found
       | Some v ->
-          set key (ConfFloat v);
-          v
+        set key (ConfFloat v);
+        v
 
   let use_bool = useConfigurationBool
   let set_bool key b = set key (ConfBool b)
@@ -140,33 +83,34 @@ module Configuration = struct
     with Not_found -> match default with
       | None -> raise Not_found
       | Some v ->
-          set key (ConfBool v);
-          v
-    
+        set key (ConfBool v);
+        v
+
   let use_string = useConfigurationString
   let set_string key s = set key (ConfString s)
-  let find_string ?default s = 
+  let find_string ?default s =
     try findConfigurationString s
     with Not_found -> match default with
       | None -> raise Not_found
-      | Some v -> set s (ConfString v);
-          v
+      | Some v ->
+        set s (ConfString v);
+        v
 
   let set_list key l = set key (ConfList l)
   let use_list = useConfigurationList
   let find_list = findConfigurationList
-  
+
   class type ['a] selector =
     object
       method set : 'a -> unit
       method connect : ('a -> unit) -> unit
     end
-    
+
   let config_string ~key ~default widget =
     let init = find_string ~default key in
     widget#set init ;
     widget#connect (set_string key)
-      
+
   let config_int ~key ~default widget =
     let init = find_int ~default key in
     widget#set init ;
@@ -183,7 +127,7 @@ module Configuration = struct
       let to_string v = snd (List.find (fun e -> fst e = v) values) in
       let init =
         try of_string (find_string key)
-      with Not_found -> default
+        with Not_found -> default
       in
       widget#set init ;
       widget#connect
@@ -192,6 +136,69 @@ module Configuration = struct
            with Not_found -> ())
     end
 
+end
+
+module Icon = struct
+
+  type kind = Frama_C | Unmark | Fold | Unfold
+            | Custom of string
+            | Feedback of Property_status.Feedback.t
+
+  module F = Property_status.Feedback
+
+  type theme_file =
+    | ThemeSpecific of string
+    | ThemeGeneric of string
+
+  let builtins =
+    [(Frama_C,                      ThemeGeneric "frama-c.ico");
+     (Unmark,                       ThemeGeneric "unmark.png");
+     (Fold,                         ThemeSpecific "fold.png");
+     (Unfold,                       ThemeSpecific "unfold.png");
+     (Feedback F.Never_tried,       ThemeSpecific "never_tried.png");
+     (Feedback F.Unknown,           ThemeSpecific "unknown.png");
+     (Feedback F.Valid,             ThemeSpecific "surely_valid.png");
+     (Feedback F.Invalid,           ThemeSpecific "surely_invalid.png");
+     (Feedback F.Considered_valid,  ThemeSpecific "considered_valid.png");
+     (Feedback F.Valid_under_hyp,   ThemeSpecific "valid_under_hyp.png");
+     (Feedback F.Invalid_under_hyp, ThemeSpecific "invalid_under_hyp.png");
+     (Feedback F.Invalid_but_dead,  ThemeSpecific "invalid_but_dead.png");
+     (Feedback F.Unknown_but_dead,  ThemeSpecific "unknown_but_dead.png");
+     (Feedback F.Valid_but_dead,    ThemeSpecific "valid_but_dead.png");
+     (Feedback F.Inconsistent,      ThemeSpecific "inconsistent.png");
+    ]
+
+  let theme_directory () =
+    Configuration.find_string ~default:"default" "theme"
+
+  let get_file_in_theme = function
+    | ThemeSpecific x -> "theme/" ^ (theme_directory ()) ^ "/" ^ x
+    | ThemeGeneric x -> x
+
+  type icon = Filename of theme_file | Pixbuf of GdkPixbuf.pixbuf
+
+  let h = Hashtbl.create 7
+
+  let clear () =
+    List.iter
+      (fun (k,f) -> Hashtbl.replace h k (Filename f))
+      builtins
+
+  let () = clear ()
+
+  let get k =
+    try match Hashtbl.find h k with
+      | Filename f' ->
+          let f = get_file_in_theme f' in
+          let p = Widget.shared_icon f in
+          Hashtbl.replace h k (Pixbuf p); p
+      | Pixbuf p -> p
+    with Not_found -> assert false
+
+  let default = Widget.default_icon
+
+  let register ~name ~file =
+    Hashtbl.replace h (Custom name) (Filename (ThemeGeneric file))
 end
 
 let apply_tag b tag pb pe =
@@ -648,10 +655,10 @@ end
 
 (* NOTE: this code has been copied from lablgtk's gToolbox.ml to
    allow binding the behavior of "keypad enter" to the "return" key *)
-let input_widget ~widget ~event ~get_text ~bind_ok ~expand
+let input_widget ~parent ~widget ~event ~get_text ~bind_ok ~expand
     ~title ?(ok="Ok") ?(cancel="Cancel") message =
   let retour = ref None in
-  let window = GWindow.dialog ~title ~modal:true () in
+  let window = GWindow.dialog ~parent ~title ~modal:false () in
   ignore (window#connect#destroy ~callback: GMain.Main.quit);
   let main_box = window#vbox in
   let hbox_boutons = window#action_area in
@@ -690,11 +697,11 @@ let input_widget ~widget ~event ~get_text ~bind_ok ~expand
 
 (* NOTE: this code has been copied from lablgtk's gToolbox.ml to
    allow binding the behavior of "keypad enter" to the "return" key *)
-let input_string ~title ?ok ?cancel ?(text="") message =
+let input_string ~parent ~title ?ok ?cancel ?(text="") message =
   let we_chaine = GEdit.entry ~text () in
   if text <> "" then
     we_chaine#select_region 0 (we_chaine#text_length);
-  input_widget ~widget:we_chaine#coerce ~event:we_chaine#event
+  input_widget ~parent ~widget:we_chaine#coerce ~event:we_chaine#event
     ~get_text:(fun () -> we_chaine#text) ~bind_ok:true
     ~expand: false
     ~title ?ok ?cancel message
@@ -842,15 +849,22 @@ let make_text_page ?pos (notebook:GPack.notebook) title =
   in
   reparent_page, w
 
-(* If [EDITOR] is undefined, uses [emacsclient -n] *)
+(* Converts the 'editor' string saved in the GUI configuration to the actual
+   command to be executed *)
+let prepare_editor_cmd s line file =
+  let s = Str.global_replace (Str.regexp "%s") file s in
+  let s = Str.global_replace (Str.regexp "%d") (string_of_int line) s in
+  (* always start in background, otherwise will freeze the GUI *)
+  s ^ " &"
+
 let open_in_external_viewer ?(line=1) file =
-  let viewer =
-    try Sys.getenv "EDITOR" with | Not_found -> "emacsclient -n"
-  in
-  let cmd_line = Format.sprintf "%s +%d %s" viewer line file in
-  Gui_parameters.feedback "opening external viewer, running command:\n%s"
-    cmd_line;
-  ignore (Sys.command cmd_line)
+  let editor = Configuration.find_string ~default:"emacs +%d %s" "editor" in
+  if editor = "" then
+    Gui_parameters.feedback "no external viewer configured in Preferences"
+  else
+    let cmd = prepare_editor_cmd editor line file in
+    Gui_parameters.feedback "opening external viewer, running command: %s" cmd;
+    ignore (Sys.command cmd)
 
 exception Too_many_events
 let refresh_gui () = 

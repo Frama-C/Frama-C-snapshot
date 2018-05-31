@@ -1,8 +1,8 @@
 /* run.config
-   STDOPT: +"-no-val-builtins-auto -load-module pdg -pdg -journal-disable  -pdg-print -pdg-verbose 2 -then -main main_asm"
+   STDOPT: +"-no-results-function no_results -no-val-builtins-auto -load-module pdg -pdg -journal-disable  -pdg-print -pdg-verbose 2 -then -main main_asm"
 */
-
-int ** top_input() ;
+volatile int nondet;
+int no_results() {return 1;}
 
 int tab[2] = {0, 7};
 typedef struct {int a; int t[5]; } Ts;
@@ -10,18 +10,18 @@ Ts S;
 int G;
 
 int f1 (void) {
-  int i = **top_input(); /* InTop element of PDG */
-  int v = tab[i];
+  int i = no_results(); /* InTop element of PDG */
+  int v = nondet ? tab[i] : i;
   G ++;
   return v;
 }
 
 int f2 (void) {
-  int i = **top_input(); /* InTop element of PDG */;
+  int i = no_results(); /* InTop element of PDG */;
   Ts s;
   S.a = 2;
   s = S;
-  return s.a + s.t[i];
+  return s.a + (nondet ? s.t[i] : i);
 }
 
 int strlen(char* p ) {
@@ -37,7 +37,7 @@ int strlen(char* p ) {
 int main (char *p_str[]) {
   int i = f1 ();
   i += f2 ();
-  return strlen (p_str[i]);
+  return strlen (nondet ? p_str[i] : p_str[0]);
 }
 
 

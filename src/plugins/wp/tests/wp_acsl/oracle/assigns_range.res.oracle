@@ -2,7 +2,7 @@
 [kernel] Parsing tests/wp_acsl/assigns_range.i (no preprocessing)
 [wp] Running WP plugin...
 [wp] Loading driver 'share/wp.driver'
-[wp] warning: Missing RTE guards
+[wp] Warning: Missing RTE guards
 ------------------------------------------------------------
   Function call_assigns_all
 ------------------------------------------------------------
@@ -152,9 +152,11 @@ Call Effect at line 57
 Assume {
   Type: is_sint32(i).
   (* Goal *)
-  When: (0 <= i) /\ (i <= 17).
+  When: ((-2) <= i) /\ (i <= 19).
   (* Pre-condition *)
   Have: (5 <= i) /\ (i <= 7).
+  (* Exit 'assigns_t2_bound' *)
+  Have: (0 <= i) /\ (i <= 17).
   (* Exit Effects *)
   Have: forall i_1 : Z. ((0 <= i_1) -> ((i_1 <= 19) ->
       (((i_1 < i) \/ ((3 + i) <= i_1)) -> (t2_0[i_1] = t2_1[i_1])))).
@@ -168,9 +170,11 @@ Call Effect at line 57
 Assume {
   Type: is_sint32(i).
   (* Goal *)
-  When: (0 <= i) /\ (i <= 17).
+  When: ((-2) <= i) /\ (i <= 19).
   (* Pre-condition *)
   Have: (5 <= i) /\ (i <= 7).
+  (* Call 'assigns_t2_bound' *)
+  Have: (0 <= i) /\ (i <= 17).
   (* Call Effects *)
   Have: forall i_1 : Z. ((0 <= i_1) -> ((i_1 <= 19) ->
       (((i_1 < i) \/ ((3 + i) <= i_1)) -> (t2_0[i_1] = t2_1[i_1])))).
@@ -194,10 +198,10 @@ Goal Assigns 'qed_ko' in 'call_assigns_t4':
 Call Effect at line 65
 Assume {
   Type: is_sint32(i) /\ is_sint32(j).
+  (* Goal *)
+  When: 0 <= j.
   (* Pre-condition *)
   Have: (0 <= i) /\ (i <= j) /\ (j <= 19).
-  (* Exit 'assigns_t4_sup_bound' *)
-  Have: 0 <= j.
   (* Exit Effects *)
   Have: forall i_1 : Z. ((0 <= i_1) -> ((i_1 <= 19) ->
       (((j < i_1) \/ (i_1 < 0)) -> (t4_0[i_1] = t4_1[i_1])))).
@@ -210,10 +214,10 @@ Goal Assigns 'qed_ko' in 'call_assigns_t4':
 Call Effect at line 65
 Assume {
   Type: is_sint32(i) /\ is_sint32(j).
+  (* Goal *)
+  When: 0 <= j.
   (* Pre-condition *)
   Have: (0 <= i) /\ (i <= j) /\ (j <= 19).
-  (* Call 'assigns_t4_sup_bound' *)
-  Have: 0 <= j.
   (* Call Effects *)
   Have: forall i_1 : Z. ((0 <= i_1) -> ((i_1 <= 19) ->
       (((j < i_1) \/ (i_1 < 0)) -> (t4_0[i_1] = t4_1[i_1])))).

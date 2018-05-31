@@ -9,32 +9,45 @@
   __fc_itimer_virtual ∈ [--..--]
   __fc_itimer_prof ∈ [--..--]
 [value] computing for function setitimer <- main.
-    Called from tests/libc/sys_time.c:6.
+  Called from tests/libc/sys_time.c:6.
 [value] using specification for function setitimer
-share/libc/sys/time.h:143:[value] function setitimer: precondition got status valid.
-share/libc/sys/time.h:144:[value] function setitimer: precondition got status valid.
+[value] tests/libc/sys_time.c:6: 
+  function setitimer: precondition 'valid_new_value' got status valid.
+[value] tests/libc/sys_time.c:6: 
+  function setitimer: precondition 'old_value_null_or_valid' got status valid.
 [value] Done for function setitimer
-tests/libc/sys_time.c:7:[value] assertion got status valid.
+[value] tests/libc/sys_time.c:7: assertion got status valid.
 [value] computing for function setitimer <- main.
-    Called from tests/libc/sys_time.c:9.
+  Called from tests/libc/sys_time.c:9.
+[value] tests/libc/sys_time.c:9: 
+  function setitimer: precondition 'valid_new_value' got status valid.
+[value] tests/libc/sys_time.c:9: 
+  function setitimer: precondition 'old_value_null_or_valid' got status valid.
 [value] Done for function setitimer
-tests/libc/sys_time.c:10:[value] assertion got status valid.
-tests/libc/sys_time.c:11:[value] assertion got status valid.
+[value] tests/libc/sys_time.c:10: assertion got status valid.
+[value] tests/libc/sys_time.c:11: assertion got status valid.
 [value] computing for function getitimer <- main.
-    Called from tests/libc/sys_time.c:12.
+  Called from tests/libc/sys_time.c:12.
 [value] using specification for function getitimer
-share/libc/sys/time.h:104:[value] function getitimer: precondition got status valid.
+[value] tests/libc/sys_time.c:12: 
+  function getitimer: precondition 'valid_curr_value' got status valid.
 [value] Done for function getitimer
-tests/libc/sys_time.c:13:[value] assertion got status valid.
-tests/libc/sys_time.c:14:[value] assertion got status valid.
+[value] tests/libc/sys_time.c:13: assertion got status valid.
+[value] tests/libc/sys_time.c:14: assertion got status valid.
 [value] computing for function getitimer <- main.
-    Called from tests/libc/sys_time.c:16.
+  Called from tests/libc/sys_time.c:16.
+[value] tests/libc/sys_time.c:16: 
+  function getitimer: precondition 'valid_curr_value' got status valid.
 [value] Done for function getitimer
-tests/libc/sys_time.c:17:[value] assertion got status valid.
+[value] tests/libc/sys_time.c:17: assertion got status valid.
 [value] computing for function setitimer <- main.
-    Called from tests/libc/sys_time.c:19.
+  Called from tests/libc/sys_time.c:19.
+[value] tests/libc/sys_time.c:19: 
+  function setitimer: precondition 'valid_new_value' got status valid.
+[value] tests/libc/sys_time.c:19: 
+  function setitimer: precondition 'old_value_null_or_valid' got status valid.
 [value] Done for function setitimer
-tests/libc/sys_time.c:20:[value] assertion got status valid.
+[value] tests/libc/sys_time.c:20: assertion got status valid.
 [value] Recording results for main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======

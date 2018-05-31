@@ -1,0 +1,30 @@
+{ "wp:global": { "alt-ergo": { "total": 2, "valid": 2, "rank": 1 },
+                 "wp:main": { "total": 2, "valid": 2, "rank": 1 } },
+  "wp:axiomatics": { "A": { "lemma_ok_because_inconsistent": { "alt-ergo": 
+                                                                 { "total": 1,
+                                                                   "valid": 1,
+                                                                   "rank": 1 },
+                                                               "wp:main": 
+                                                                 { "total": 1,
+                                                                   "valid": 1,
+                                                                   "rank": 1 } },
+                            "wp:section": { "alt-ergo": { "total": 1,
+                                                          "valid": 1,
+                                                          "rank": 1 },
+                                            "wp:main": { "total": 1,
+                                                         "valid": 1,
+                                                         "rank": 1 } } },
+                     "B": { "lemma_ok_because_consistent": { "alt-ergo": 
+                                                               { "total": 1,
+                                                                 "valid": 1,
+                                                                 "rank": 1 },
+                                                             "wp:main": 
+                                                               { "total": 1,
+                                                                 "valid": 1,
+                                                                 "rank": 1 } },
+                            "wp:section": { "alt-ergo": { "total": 1,
+                                                          "valid": 1,
+                                                          "rank": 1 },
+                                            "wp:main": { "total": 1,
+                                                         "valid": 1,
+                                                         "rank": 1 } } } } }

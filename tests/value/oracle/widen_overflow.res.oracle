@@ -1,31 +1,33 @@
 [kernel] Parsing tests/value/widen_overflow.i (no preprocessing)
-tests/value/widen_overflow.i:9:[kernel] warning: Calling undeclared function u. Old style K&R code?
+[kernel:typing:implicit-function-declaration] tests/value/widen_overflow.i:9: Warning: 
+  Calling undeclared function u. Old style K&R code?
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
 [value] Initial state computed
 [value:initial-state] Values of globals at initialization
   
-tests/value/widen_overflow.i:6:[value] Frama_C_show_each: {4}
-tests/value/widen_overflow.i:9:[value] entering loop for the first time
+[value] tests/value/widen_overflow.i:6: Frama_C_show_each: {4}
+[value] tests/value/widen_overflow.i:9: entering loop for the first time
 [value] computing for function u <- main.
-    Called from tests/value/widen_overflow.i:9.
-tests/value/widen_overflow.i:9:[kernel] warning: Neither code nor specification for function u, generating default assigns from the prototype
+  Called from tests/value/widen_overflow.i:9.
+[kernel:annot:missing-spec] tests/value/widen_overflow.i:9: Warning: 
+  Neither code nor specification for function u, generating default assigns from the prototype
 [value] using specification for function u
 [value] Done for function u
 [value] computing for function u <- main.
-    Called from tests/value/widen_overflow.i:9.
+  Called from tests/value/widen_overflow.i:9.
 [value] Done for function u
 [value] computing for function u <- main.
-    Called from tests/value/widen_overflow.i:9.
+  Called from tests/value/widen_overflow.i:9.
 [value] Done for function u
 [value] computing for function u <- main.
-    Called from tests/value/widen_overflow.i:9.
+  Called from tests/value/widen_overflow.i:9.
 [value] Done for function u
 [value] computing for function u <- main.
-    Called from tests/value/widen_overflow.i:9.
+  Called from tests/value/widen_overflow.i:9.
 [value] Done for function u
 [value] computing for function u <- main.
-    Called from tests/value/widen_overflow.i:9.
+  Called from tests/value/widen_overflow.i:9.
 [value] Done for function u
 [value] Recording results for main
 [value] done for function main

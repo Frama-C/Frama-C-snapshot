@@ -5,12 +5,15 @@
 [value:initial-state] Values of globals at initialization
   
 [value] computing for function f <- main.
-    Called from tests/value/dead_statuses.i:9.
+  Called from tests/value/dead_statuses.i:9.
 [value] using specification for function f
-tests/value/dead_statuses.i:5:[value] function f: precondition got status valid.
+[value] tests/value/dead_statuses.i:9: 
+  function f: precondition got status valid.
 [value] Done for function f
 [value] computing for function f <- main.
-    Called from tests/value/dead_statuses.i:11.
+  Called from tests/value/dead_statuses.i:11.
+[value] tests/value/dead_statuses.i:11: 
+  function f: precondition got status valid.
 [value] Done for function f
 [value] Recording results for main
 [value] done for function main
@@ -22,16 +25,16 @@ tests/value/dead_statuses.i:5:[value] function f: precondition got status valid.
 [from] Done for function f
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
-    These dependencies hold at termination for the executions that terminate:
+  These dependencies hold at termination for the executions that terminate:
 [from] Function f:
   NO EFFECTS
 [from] Function main:
   NO EFFECTS
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function main:
-      \nothing
+    \nothing
 [inout] Inputs for function main:
-      \nothing
+    \nothing
 [report] Computing properties status...
 
 --------------------------------------------------------------------------------

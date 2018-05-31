@@ -6,17 +6,22 @@
   u ∈ {0}
   v ∈ {0}
   w ∈ {0}
-tests/value/ai_annot.i:9:[value] warning: assertion got status unknown.
-tests/value/ai_annot.i:10:[value] warning: assertion got status unknown.
-tests/value/ai_annot.i:11:[value] warning: assertion got status unknown.
-tests/value/ai_annot.i:12:[value] warning: out of bounds write. assert \valid(p + 1);
-tests/value/ai_annot.i:14:[value] warning: out of bounds read. assert \valid_read(p + 2);
-tests/value/ai_annot.i:14:[value] warning: signed overflow. assert x + *(p + 2) ≤ 2147483647;
+[value:alarm] tests/value/ai_annot.i:9: Warning: assertion got status unknown.
+[value:alarm] tests/value/ai_annot.i:10: Warning: assertion got status unknown.
+[value:alarm] tests/value/ai_annot.i:11: Warning: assertion got status unknown.
+[value:alarm] tests/value/ai_annot.i:12: Warning: 
+  out of bounds write. assert \valid(p + 1);
+[value:alarm] tests/value/ai_annot.i:14: Warning: 
+  out of bounds read. assert \valid_read(p + 2);
+[value:alarm] tests/value/ai_annot.i:14: Warning: 
+  signed overflow. assert x + *(p + 2) ≤ 2147483647;
 [value] Recording results for main
 [value] done for function main
 [scope:rm_asserts] removing 2 assertion(s)
-tests/value/ai_annot.i:12:[scope:rm_asserts] removing redundant assert Value: mem_access: \valid(p + 1);
-tests/value/ai_annot.i:14:[scope:rm_asserts] removing redundant assert Value: mem_access: \valid_read(p + 2);
+[scope:rm_asserts] tests/value/ai_annot.i:12: 
+  removing redundant assert Value: mem_access: \valid(p + 1);
+[scope:rm_asserts] tests/value/ai_annot.i:14: 
+  removing redundant assert Value: mem_access: \valid_read(p + 2);
 [value] ====== VALUES COMPUTED ======
 [value:final-states] Values at end of function main:
   __retres ∈ [--..--]
@@ -26,12 +31,12 @@ tests/value/ai_annot.i:14:[scope:rm_asserts] removing redundant assert Value: me
 [from] Computing for function main
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
-    These dependencies hold at termination for the executions that terminate:
+  These dependencies hold at termination for the executions that terminate:
 [from] Function main:
   S_p[1] FROM x; p
   \result FROM x; p; S_p[2]
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function main:
-      __retres; S_p[1]
+    __retres; S_p[1]
 [inout] Inputs for function main:
-      S_p[2]
+    S_p[2]

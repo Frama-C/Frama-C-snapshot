@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2017                                               *)
+(*  Copyright (C) 2007-2018                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -38,7 +38,7 @@ type driver = LogicBuiltins.driver
 
 val ident : setup -> string
 val descr : setup -> string
-val memory : mheap -> mvar -> (module Memory.Model)
+val compiler : mheap -> mvar -> (module Sigs.Compiler)
 val configure : setup -> driver -> Model.tuning
 val instance : setup -> driver -> Model.t
 val default : setup (** ["Var,Typed,Nat,Real"] memory model. *)

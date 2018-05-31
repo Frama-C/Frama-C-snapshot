@@ -1,0 +1,71 @@
+# frama-c -wp [...]
+[kernel] Parsing tests/wp_bts/bts_1828.i (no preprocessing)
+[wp] Running WP plugin...
+[wp] Loading driver 'share/wp.driver'
+[wp] Warning: Missing RTE guards
+------------------------------------------------------------
+  Function global_frame
+------------------------------------------------------------
+
+Goal Post-condition 'sep_iff_ref' in 'global_frame':
+Assume {
+  (* Heap *)
+  Have: (region(one_0.base) <= 0) /\ (region(zero_0.base) <= 0) /\
+      linked(Malloc_0).
+  (* Pre-condition *)
+  Have: valid_rw(Malloc_0, one_0, 1) /\ valid_rw(Malloc_0, zero_0, 1).
+}
+Prove: zero_0 != one_0.
+
+------------------------------------------------------------
+
+Goal Post-condition 'one_iff_ref' in 'global_frame':
+Let x = Mint_0[one_0].
+Let x_1 = Mint_0[zero_0].
+Let x_2 = x + x_1 - 1.
+Let x_3 = 1 + x + x_1.
+Let x_4 = Mint_0[one_0 <- x_3][zero_0 <- x_2][one_0].
+Assume {
+  Type: is_sint32(x) /\ is_sint32(x_1) /\ is_sint32(x + x_1) /\
+      is_sint32(x_2) /\ is_sint32(x_4).
+  (* Heap *)
+  Have: (region(one_0.base) <= 0) /\ (region(zero_0.base) <= 0) /\
+      linked(Malloc_0).
+  (* Pre-condition *)
+  Have: valid_rw(Malloc_0, one_0, 1) /\ valid_rw(Malloc_0, zero_0, 1).
+}
+Prove: x_4 = x_3.
+
+------------------------------------------------------------
+
+Goal Post-condition 'zero_always' in 'global_frame':
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Assertion 'ok' (file tests/wp_bts/bts_1828.i, line 60):
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Assertion 'ok' (file tests/wp_bts/bts_1828.i, line 61):
+Prove: true.
+
+------------------------------------------------------------
+------------------------------------------------------------
+  Function local_frame
+------------------------------------------------------------
+
+Goal Assertion 'ok' (file tests/wp_bts/bts_1828.i, line 23):
+Assume {
+  (* Heap *)
+  Have: (region(one_0.base) <= 0) /\ linked(Malloc_0).
+  (* Pre-condition *)
+  Have: valid_rw(Malloc_0, one_0, 1).
+}
+Prove: global(L_two_22) != one_0.
+
+------------------------------------------------------------
+[wp] Warning: Separation hypotheses for function 'global_frame':
+  /*@ behavior typed: requires \separated(&zero,one); */
+  void global_frame(int *one, int arg);

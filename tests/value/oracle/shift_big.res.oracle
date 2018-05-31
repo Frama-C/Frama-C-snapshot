@@ -5,49 +5,54 @@
 [value:initial-state] Values of globals at initialization
   nondet ∈ [--..--]
 [value] computing for function t1 <- main.
-    Called from tests/value/shift_big.i:63.
-tests/value/shift_big.i:5:[value] warning: invalid RHS operand for shift. assert 0 ≤ j < 32;
-tests/value/shift_big.i:5:[value] warning: signed overflow. assert 1 << j ≤ 2147483647;
+  Called from tests/value/shift_big.i:63.
+[value:alarm] tests/value/shift_big.i:5: Warning: 
+  invalid RHS operand for shift. assert 0 ≤ j < 32;
+[value:alarm] tests/value/shift_big.i:5: Warning: 
+  signed overflow. assert 1 << j ≤ 2147483647;
 [value] Recording results for t1
 [value] Done for function t1
 [value] computing for function t2 <- main.
-    Called from tests/value/shift_big.i:64.
-tests/value/shift_big.i:15:[value] warning: invalid RHS operand for shift. assert 0 ≤ j < 32;
-tests/value/shift_big.i:15:[value] warning: signed overflow. assert 1 << j ≤ 2147483647;
+  Called from tests/value/shift_big.i:64.
+[value:alarm] tests/value/shift_big.i:15: Warning: 
+  invalid RHS operand for shift. assert 0 ≤ j < 32;
+[value:alarm] tests/value/shift_big.i:15: Warning: 
+  signed overflow. assert 1 << j ≤ 2147483647;
 [value] Recording results for t2
 [value] Done for function t2
-tests/value/shift_big.i:64:[value] warning: signed overflow. assert r + tmp_0 ≤ 2147483647;
-                     (tmp_0 from t2())
+[value:alarm] tests/value/shift_big.i:64: Warning: 
+  signed overflow. assert r + tmp_0 ≤ 2147483647;
+                   (tmp_0 from t2())
 [value] computing for function t3 <- main.
-    Called from tests/value/shift_big.i:65.
-tests/value/shift_big.i:22:[value] entering loop for the first time
-tests/value/shift_big.i:25:[value] assertion got status valid.
+  Called from tests/value/shift_big.i:65.
+[value] tests/value/shift_big.i:22: entering loop for the first time
+[value] tests/value/shift_big.i:25: assertion got status valid.
 [value] Recording results for t3
 [value] Done for function t3
 [value] computing for function t4 <- main.
-    Called from tests/value/shift_big.i:66.
-tests/value/shift_big.i:31:[value] assertion got status valid.
+  Called from tests/value/shift_big.i:66.
+[value] tests/value/shift_big.i:31: assertion got status valid.
 [value] Recording results for t4
 [value] Done for function t4
 [value] computing for function t5 <- main.
-    Called from tests/value/shift_big.i:67.
-tests/value/shift_big.i:37:[value] entering loop for the first time
-tests/value/shift_big.i:40:[value] assertion got status valid.
+  Called from tests/value/shift_big.i:67.
+[value] tests/value/shift_big.i:37: entering loop for the first time
+[value] tests/value/shift_big.i:40: assertion got status valid.
 [value] Recording results for t5
 [value] Done for function t5
 [value] computing for function t6 <- main.
-    Called from tests/value/shift_big.i:68.
-tests/value/shift_big.i:46:[value] assertion got status valid.
+  Called from tests/value/shift_big.i:68.
+[value] tests/value/shift_big.i:46: assertion got status valid.
 [value] Recording results for t6
 [value] Done for function t6
 [value] computing for function t7 <- main.
-    Called from tests/value/shift_big.i:69.
-tests/value/shift_big.i:52:[value] warning: assertion got status unknown.
+  Called from tests/value/shift_big.i:69.
+[value:alarm] tests/value/shift_big.i:52: Warning: assertion got status unknown.
 [value] Recording results for t7
 [value] Done for function t7
 [value] computing for function t8 <- main.
-    Called from tests/value/shift_big.i:70.
-tests/value/shift_big.i:58:[value] assertion got status valid.
+  Called from tests/value/shift_big.i:70.
+[value] tests/value/shift_big.i:58: assertion got status valid.
 [value] Recording results for t8
 [value] Done for function t8
 [value] Recording results for main
@@ -96,7 +101,7 @@ tests/value/shift_big.i:58:[value] assertion got status valid.
 [from] Computing for function main
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
-    These dependencies hold at termination for the executions that terminate:
+  These dependencies hold at termination for the executions that terminate:
 [from] Function t1:
   \result FROM nondet
 [from] Function t2:
@@ -117,38 +122,38 @@ tests/value/shift_big.i:58:[value] assertion got status valid.
   \result FROM nondet
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function t1:
-      j; i; __retres
+    j; i; __retres
 [inout] Inputs for function t1:
-      nondet
+    nondet
 [inout] Out (internal) for function t2:
-      j; i; __retres
+    j; i; __retres
 [inout] Inputs for function t2:
-      nondet
+    nondet
 [inout] Out (internal) for function t3:
-      x; i
+    x; i
 [inout] Inputs for function t3:
-      nondet
+    nondet
 [inout] Out (internal) for function t4:
-      x
+    x
 [inout] Inputs for function t4:
-      nondet
+    nondet
 [inout] Out (internal) for function t5:
-      x; i
+    x; i
 [inout] Inputs for function t5:
-      nondet
+    nondet
 [inout] Out (internal) for function t6:
-      x
+    x
 [inout] Inputs for function t6:
-      nondet
+    nondet
 [inout] Out (internal) for function t7:
-      x
+    x
 [inout] Inputs for function t7:
-      nondet
+    nondet
 [inout] Out (internal) for function t8:
-      x
+    x
 [inout] Inputs for function t8:
-      nondet
+    nondet
 [inout] Out (internal) for function main:
-      r; tmp; tmp_0
+    r; tmp; tmp_0
 [inout] Inputs for function main:
-      nondet
+    nondet

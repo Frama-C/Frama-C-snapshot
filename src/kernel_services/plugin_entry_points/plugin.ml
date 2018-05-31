@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2017                                               *)
+(*  Copyright (C) 2007-2018                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -34,18 +34,21 @@ let config_ref = Extlib.mk_fun "config_ref"
 (** {2 Signatures} *)
 (* ************************************************************************* *)
 
-module type S = sig
-  include Log.Messages
+module type S_no_log = sig
   val add_group: ?memo:bool -> string -> Cmdline.Group.t
   module Help: Parameter_sig.Bool
   module Verbose: Parameter_sig.Int
   module Debug: Parameter_sig.Int
-  module Debug_category: Parameter_sig.String_set
   module Share: Parameter_sig.Specific_dir
   module Session: Parameter_sig.Specific_dir
   module Config: Parameter_sig.Specific_dir
   val help: Cmdline.Group.t
   val messages: Cmdline.Group.t
+end
+
+module type S = sig
+  include Log.Messages
+  include S_no_log
 end
 
 module type General_services = sig
@@ -85,7 +88,9 @@ let plugin_subpath_ref = ref None
 let plugin_subpath s = plugin_subpath_ref := Some s
 
 let default_msg_keys_ref = ref []
+
 let default_msg_keys l = default_msg_keys_ref := l
+[@@ deprecated "Manage msg keys with Log interface"]
 
 let reset_plugin () =
   kernel := false;
@@ -126,6 +131,7 @@ let get_from_shortname s = List.find (fun p -> p.p_shortname = s) !plugins
 let get s = 
   Cmdline.Kernel_log.deprecated
     "Plugin.get" ~now:"Plugin.get_from_name" get_from_name s
+[@@ deprecated "Use Plugin.get_from_name"]
 
 (* ************************************************************************* *)
 (** {2 Global data structures} *)
@@ -188,19 +194,60 @@ struct
        let verbose_atleast level = !verbose_level () >= level
      end)
 
+  (* we can't directly make L a Log, since this would require making
+     Plugin.Register a generative functor. Instead, we provide a minimal
+     signature for internal usage. It can be extended as needed, provided
+     L.category is not exported. *)
+  module type Log_skeleton = sig
+    val warning: 'a Log.pretty_printer
+    val abort: ('a, 'b) Log.pretty_aborter
+    val register_and_add: string -> unit
+    val add_or_warn: string -> unit
+    val del_or_warn: string -> unit
+    val set_warn_status: string -> Log.warn_status -> unit
+    val is_registered_category: string -> bool
+    val pp_all_categories: unit -> unit
+    val pp_all_warn_categories_status: unit -> unit
+  end
+
+  module Auto_log(L: Log.Messages): Log_skeleton =
+    struct
+      include L
+      let register_and_add s = add_debug_keys (register_category s)
+
+      let warning ?current = let wkey = None in warning ?wkey ?current
+
+      let add_or_warn s =
+        match get_category s with
+        | Some c -> add_debug_keys c
+        | None -> warning "Unknown message key %s" s
+      let del_or_warn s =
+        match get_category s with
+        | Some c -> del_debug_keys c
+        | None -> warning "Unknown message key %s" s
+
+      let set_warn_status s status =
+        match get_warn_category s with
+        | Some c -> set_warn_status c status
+        | None -> warning "Unknown warning key %s" s
+
+      let pp_all_categories () =
+        (* level 0 just in case user ask to display all categories
+           in an otherwise quiet run *)
+        feedback ~level:0
+          "@[<v 2>Available message categories are:@;%a@]"
+          Format.(pp_print_list ~pp_sep:pp_print_cut pp_category)
+          (get_all_categories ())
+    end
+
   module L =
     (val if is_kernel ()
-      then (module Cmdline.Kernel_log)
-      else (module Plugin_log)
-      : Log.Messages)
+      then (module Auto_log(Cmdline.Kernel_log))
+      else (module Auto_log(Plugin_log))
+      : Log_skeleton)
 
   (* Add default message keys to the instance of Log.Messages *)
-  let () =
-    let add s =
-      let c = L.register_category s in
-      L.add_debug_keys (Log.Category_set.singleton c)
-    in
-    List.iter add !default_msg_keys_ref
+  let () = List.iter L.register_and_add !default_msg_keys_ref
 
   let plugin =
     let name = if is_kernel () then kernel_name else P.name in
@@ -483,7 +530,7 @@ struct
   (* Output must be synchronized with functions [prefix_*] in module Log. *)
   let pp_event_prefix fmt event =
     let pp_dkey fmt = (Pretty_utils.pp_opt ~pre:(format_of_string ":")
-                         Format.pp_print_string) fmt event.Log.evt_dkey
+                         Format.pp_print_string) fmt event.Log.evt_category
     in
     match event.Log.evt_kind with
     | Log.Error ->
@@ -580,9 +627,47 @@ struct
       end
   end
 
+  type action = Print_help | Change_category of (bool * string) list
+
+  let parse_category s =
+    let categories = Transitioning.String.split_on_char ',' s in
+    if List.mem "help" categories then Print_help
+    else begin
+      let parse_single s =
+        match CamlString.get s 0 with
+        | '-' -> false, CamlString.sub s 1 (CamlString.length s - 1)
+        | '+' -> true, CamlString.sub s 1 (CamlString.length s - 1)
+        | _ -> true, s
+      in
+      let non_empty s = s <> "" in
+      Change_category (Extlib.filter_map non_empty parse_single categories)
+    end
+
+  let warn_category_hook is_kernel status_set status_unset _ s =
+    match parse_category s with
+    | Print_help ->
+      Cmdline.run_after_exiting_stage
+        (fun () -> L.pp_all_warn_categories_status (); raise Cmdline.Exit)
+    | Change_category l ->
+      let set_status flag c () =
+        let status = if flag then status_set else status_unset in
+        L.set_warn_status c status
+      in
+      let action (to_add, c) =
+        (* Allow loaded modules to add categories to the kernel:
+           Only categories that exist will be considered in the early
+           stage where -kernel-msg-key is running. Of course, if
+           none of the loaded modules register the given category,
+           a warning will still be emitted. *)
+        if is_kernel && not (L.is_registered_category c) then begin
+          Cmdline.run_after_extended_stage (set_status to_add c)
+        end else set_status to_add c ()
+      in
+      List.iter action l
+
   let debug_category_optname = output_mode "Msg_key" "msg-key"
   module Debug_category =
-    Filled_string_set(struct
+    Empty_string(struct
       let option_name = debug_category_optname
       let arg_name="k1[,...,kn]"
       let help =
@@ -590,50 +675,151 @@ struct
         ^ debug_category_optname
         ^ " help to get a list of available categories, and * to enable \
               all categories"
-      let default = Datatype.String.Set.of_list !default_msg_keys_ref
     end)
 
-  let () = 
-    let module D = Datatype in
+  let () =
+    let is_kernel = is_kernel () in
     Debug_category.add_set_hook
-      (fun before after ->
-        if not (D.String.Set.mem "help" before)
-          && D.String.Set.mem "help" after then
-          (* level 0 just in case user ask to display all categories
-             in an otherwise quiet run *)
-          Cmdline.run_after_exiting_stage
-	    (fun () ->
-	      L.feedback ~level:0
-		"@[<v 2>Available message categories are:%a@]"
-                (fun fmt set ->
-                  Log.Category_set.iter
-		    (fun s -> 
-		      let s = (s:Log.category:>string) in
-		      if s <> empty_string then Format.fprintf fmt "@;%s" s)
-		    set)
-                (L.get_all_categories ());
-       raise Cmdline.Exit
-     );
-        let add_category c s = D.String.Set.add (c:Log.category:>string) s in
-        let subcategory_closure s =
-          D.String.Set.fold
-            (fun s acc -> Log.Category_set.union (L.get_category s) acc)
-            s 
-	    Log.Category_set.empty
-        in
-        let string_of_cat_set s =
-          Log.Category_set.fold add_category s D.String.Set.empty
-        in
-        let remove = D.String.Set.diff before after in
-        let added = D.String.Set.diff after before in
-        let added = subcategory_closure added in
-        let remove = subcategory_closure remove in
-        L.add_debug_keys added;
-        L.del_debug_keys remove;
-        (* we add the subcategories to ourselves *)
-        let after = D.String.Set.union after (string_of_cat_set added) in
-        let after = D.String.Set.diff after (string_of_cat_set remove) in
-        Debug_category.unsafe_set after)
+      (fun _ s ->
+         match parse_category s with
+         | Print_help ->
+           Cmdline.run_after_exiting_stage
+             (fun () -> L.pp_all_categories (); raise Cmdline.Exit)
+         | Change_category l ->
+           let add_or_del flag c () =
+             if flag then L.add_or_warn c else L.del_or_warn c
+           in
+           let action (to_add, c) =
+             (* Allow loaded modules to add categories to the kernel:
+                Only categories that exist will be considered in the early
+                stage where -kernel-msg-key is running. Of course, if
+                none of the loaded modules register the given category,
+                a warning will still be emitted. *)
+             if is_kernel && not (L.is_registered_category c) then begin
+               Cmdline.run_after_extended_stage (add_or_del to_add c)
+             end else add_or_del to_add c ()
+           in
+           List.iter action l)
+
+  let warn_category_optname = output_mode "Warn_key" "warn-key"
+  module Warn_category =
+    Empty_string(struct
+      let option_name = warn_category_optname
+      let arg_name="k1[,...,kn]"
+      let help =
+        "control warning display for categories <k1>,...,<kn>. Use "
+        ^ debug_category_optname
+        ^ " help to get a list of available categories, and * to enable \
+              all categories"
+    end)
+
+  let () =
+    let is_kernel = is_kernel () in
+    Warn_category.add_set_hook
+      (warn_category_hook is_kernel Log.Wactive Log.Winactive)
+
+ let warn_once_optname = output_mode "Warn_once" "warn-once"
+  module Warn_once =
+    Empty_string(struct
+      let option_name = warn_once_optname
+      let arg_name="k1[,...,kn]"
+      let help =
+        "control warning display for categories <k1>,...,<kn>. Use "
+        ^ warn_once_optname
+        ^ " help to get a list of available categories, and * to enable \
+              all categories"
+    end)
+
+  let () =
+    let is_kernel = is_kernel () in
+    Warn_once.add_set_hook
+      (warn_category_hook is_kernel Log.Wonce Log.Winactive)
+
+  let warn_error_optname = output_mode "Warn_error" "warn-error"
+  module Warn_error =
+    Empty_string(struct
+      let option_name = warn_error_optname
+      let arg_name="k1[,...,kn]"
+      let help =
+        "Warning categories <k1>,...,<kn> change Frama-C exit status. Use "
+        ^ warn_error_optname
+        ^ " help to get a list of available categories, and * to enable \
+              all categories"
+    end)
+
+  let () =
+    let is_kernel = is_kernel () in
+    Warn_error.add_set_hook
+      (warn_category_hook is_kernel Log.Werror Log.Wactive)
+
+let warn_err_once_optname = output_mode "Warn_err_once" "warn-err-once"
+  module Warn_err_once =
+    Empty_string(struct
+      let option_name = warn_err_once_optname
+      let arg_name="k1[,...,kn]"
+      let help =
+        "Warning categories <k1>,...,<kn> change Frama-C exit status. Use "
+        ^ warn_err_once_optname
+        ^ " help to get a list of available categories, and * to enable \
+              all categories"
+    end)
+
+  let () =
+    let is_kernel = is_kernel () in
+    Warn_err_once.add_set_hook
+      (warn_category_hook is_kernel Log.Werror_once Log.Wonce)
+
+  let warn_abort_optname = output_mode "Warn_abort" "warn-abort"
+  module Warn_abort =
+    Empty_string(struct
+      let option_name = warn_abort_optname
+      let arg_name="k1[,...,kn]"
+      let help =
+        "Warning categories <k1>,...,<kn> abort the execution. Use "
+        ^ debug_category_optname
+        ^ " help to get a list of available categories, and * to enable \
+              all categories"
+    end)
+
+  let () =
+    let is_kernel = is_kernel () in
+    Warn_abort.add_set_hook
+      (warn_category_hook is_kernel Log.Wabort Log.Wactive)
+
+  let warn_feedback_optname = output_mode "Warn_feedback" "warn-feedback"
+  module Warn_feedback =
+    Empty_string(struct
+      let option_name = warn_feedback_optname
+      let arg_name="k1[,...,kn]"
+      let help =
+        "Warning categories <k1>,...,<kn> only produce a feedback message. Use "
+        ^ debug_category_optname
+        ^ " help to get a list of available categories, and * to enable \
+              all categories"
+    end)
+
+  let () =
+    let is_kernel = is_kernel () in
+    Warn_feedback.add_set_hook
+      (warn_category_hook is_kernel Log.Wfeedback Log.Wactive)
+
+  let warn_feedback_once_optname =
+    output_mode "Warn_feedback_once" "warn-feedback-once"
+  module Warn_feedback_once =
+    Empty_string(struct
+      let option_name = warn_feedback_once_optname
+      let arg_name="k1[,...,kn]"
+      let help =
+        "Warning categories <k1>,...,<kn> only produce a feedback message. Use "
+        ^ warn_feedback_once_optname
+        ^ " help to get a list of available categories, and * to enable \
+              all categories"
+    end)
+
+  let () =
+    let is_kernel = is_kernel () in
+    Warn_feedback_once.add_set_hook
+      (warn_category_hook is_kernel Log.Wfeedback_once Log.Wonce)
 
   let () = reset_plugin ()
 

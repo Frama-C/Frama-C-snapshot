@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2017                                               *)
+(*  Copyright (C) 2007-2018                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -33,10 +33,15 @@ module Occurrences: sig
   val add: varinfo -> kernel_function option -> kinstr -> lval -> unit
   val get: varinfo -> (kernel_function option * kinstr * lval) list
   val self: State.t
-  val iter: (varinfo ->
-             (kernel_function option * kinstr * lval) list -> unit) -> unit
-  val iter_sorted: (varinfo ->
-             (kernel_function option * kinstr * lval) list -> unit) -> unit
+  val get_last_result: unit ->
+    ((Kernel_function.t option * Cil_types.kinstr *
+      (Cil_types.lhost * Cil_types.offset))
+       list * Cil_types.varinfo)
+      option
+  val iter:
+    (varinfo -> (kernel_function option * kinstr * lval) list -> unit) -> unit
+  val iter_sorted:
+    (varinfo -> (kernel_function option * kinstr * lval) list -> unit) -> unit
 end = struct
 
   module IState =
@@ -70,10 +75,6 @@ end = struct
       Some (unsafe_get vi, vi)
     with Not_found ->
       None
-
-  let () =
-    Db.register Db.Journalization_not_required
-      Db.Occurrence.get_last_result get_last_result
 
   let iter_aux fold f =
     let old, l =
@@ -237,28 +238,37 @@ let print_all () =
   compute ();
   result "%t" (fun fmt -> Occurrences.iter_sorted (print_one fmt))
 
-let main _fmt = if Print.get () then !Db.Occurrence.print_all ()
-let () = Db.Main.extend main
+(* ************************************************************************** *)
+(* Exported API *)
+(* ************************************************************************** *)
 
-let () =
-  Db.register
-    (Db.Journalize
-       ("Occurrence.get",
-        Datatype.func
-          Varinfo.ty
-        (* [JS 2011/04/01] Datatype.list buggy in presence of journalisation.
-           See comment in datatype.ml *)
-        (*(Datatype.list (Datatype.pair Kinstr.ty Lval.ty))*)
-          (let module L = Datatype.List(Occurrence_datatype) in L.ty)))
-    Db.Occurrence.get
-    get;
-  Db.register
-    (Db.Journalize
-       ("Occurrence.print_all", Datatype.func Datatype.unit Datatype.unit))
+let self = Occurrences.self
+let get_last_result = Occurrences.get_last_result
+
+let get =
+  Journal.register
+    "Occurrence.get"
+    (Datatype.func
+    Varinfo.ty
+    (* [JS 2011/04/01] Datatype.list buggy in presence of journalisation.
+       See comment in datatype.ml *)
+    (*(Datatype.list (Datatype.pair Kinstr.ty Lval.ty))*)
+    (let module L = Datatype.List(Occurrence_datatype) in L.ty))
+    get
+
+let print_all =
+  Journal.register
+    "Occurrence.print_all"
+    (Datatype.func Datatype.unit Datatype.unit)
     (* pb: print_all should take a formatter as argument *)
-    Db.Occurrence.print_all
-    print_all;
-  Db.Occurrence.self := Occurrences.self
+    print_all
+
+(* ************************************************************************** *)
+(* Main *)
+(* ************************************************************************** *)
+
+let main _fmt = if Print.get () then print_all ()
+let () = Db.Main.extend main
 
 (*
 Local Variables:

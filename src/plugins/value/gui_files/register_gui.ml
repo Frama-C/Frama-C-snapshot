@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2017                                               *)
+(*  Copyright (C) 2007-2018                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -107,7 +107,7 @@ let hide_unused_function_or_var g =
    | _ -> false
   )
 
-let value_panel (main_ui:main_ui) =
+let value_panel pack (main_ui:main_ui) =
   let box = GPack.vbox () in
   let run_button = GButton.button ~label:"Run" ~packing:(box#pack) () in
   let w =
@@ -139,6 +139,7 @@ let value_panel (main_ui:main_ui) =
                main_ui#protect ~cancelable:true
                  (fun () -> refresh (); !Db.Value.compute (); main_ui#reset ());
             ));
+  pack box;
   "Value", box#coerce, Some refresh
 
 (* ---------------------------- Highlighter --------------------------------- *)
@@ -310,6 +311,8 @@ module Select (Eval: Eval) = struct
     select_loc main_ui (Eval.tlval_ev loc) loc tlv
   let select_predicate main_ui loc p =
     select_loc main_ui (Eval.predicate_ev loc) loc p
+  let select_predicate_with_red main_ui loc a =
+    select_loc main_ui (Eval.predicate_with_red loc) loc a
 
   (* Evaluate the user-supplied term contained in the string [txt] *)
   let eval_user_term_predicate (main_ui:main_ui) loc tp txt =
@@ -353,6 +356,7 @@ module Select (Eval: Eval) = struct
   let eval_acsl_term_pred main_ui loc tp () =
     let txt =
       Gtk_helper.input_string ~title:"Evaluate"
+        ~parent:main_ui#main_window
         ~text:!last_evaluate_acsl_request
         (Format.asprintf "  Enter an ACSL %a to evaluate  "
            pp_term_or_pred tp)
@@ -451,14 +455,27 @@ module Select (Eval: Eval) = struct
         let lv = (Var vi, NoOffset) in
         select_lv main_ui (GL_Stmt (kf, stmt)) lv
       | PIP (IPCodeAnnot (kf, stmt,
-                          {annot_content = AAssert (_, p) | AInvariant (_, true, p)} )) ->
-        select_predicate main_ui (GL_Stmt (kf, stmt)) p
+                          ({annot_content = AAssert (_, p) | AInvariant (_, true, p)} as ca)) as ip) ->
+        begin
+          let loc = GL_Stmt (kf, stmt) in
+          let alarm_or_property =
+            match Alarms.find ca with
+            | None -> Red_statuses.Prop ip
+            | Some a -> Red_statuses.Alarm a
+          in
+          select_predicate_with_red main_ui loc (alarm_or_property, p)
+        end;
       | PIP (IPPredicate (_, kf, Kglobal, p) as ip) -> begin
           match Gui_eval.classify_pre_post kf ip with
           | None -> ()
           | Some loc ->
-            select_predicate main_ui loc (Logic_const.pred_of_id_pred p)
+            select_predicate_with_red
+              main_ui loc (Red_statuses.Prop ip, Logic_const.pred_of_id_pred p)
         end
+      | PIP (IPPropertyInstance (kf, stmt, Some pred, ip)) ->
+        let loc = GL_Stmt (kf, stmt) in
+        select_predicate_with_red main_ui loc
+          (Red_statuses.Prop ip, Logic_const.pred_of_id_pred pred)
       | PLval (None , _, _)
       | PExp ((_,Kglobal,_) | (None, Kstmt _, _))
       | PTermLval (None, _, _, _)-> ()
@@ -657,6 +674,23 @@ let reset (main_ui:main_ui) (module A: Analysis.S) =
   (* Stores the Responses module as a reference. *)
   responses_ref := (module Responses)
 
+(* Checkbox to display/hide the list of red alarms. [panel] is the panel
+   'Red alarms' created in {!Red}. [box] is the vbox in which the checkbox
+   will be added. *)
+let red_checkbox (panel: GObj.widget) (box: GPack.box) =
+  let tooltip =
+    "Panel listing the properties which were invalid for some states"
+  in
+  let chk = new Widget.checkbox ~label:"Show list of red alarms" ~tooltip () in
+  box#pack chk#coerce;
+  let key_red = "Value.show_red" in
+  chk#connect (fun b ->
+      Gtk_helper.Configuration.(set key_red (ConfBool b));
+      if b then panel#misc#show () else panel#misc#hide ()
+    );
+  chk#set (Gtk_helper.Configuration.find_bool ~default:true key_red);
+;;
+
 let main (main_ui:main_ui) =
   (* Hide unused functions and variables. Must be registered only once *)
   let hide, _filter_menu =
@@ -676,7 +710,8 @@ let main (main_ui:main_ui) =
   Design.register_reset_extension (fun _ -> Gui_callstacks_manager.reset ());
   main_ui#register_source_selector (to_do_on_select );
   main_ui#register_source_highlighter active_highlighter;
-  main_ui#register_panel value_panel;
+  let panel_red = Gui_red.make_panel main_ui in
+  main_ui#register_panel (value_panel (red_checkbox panel_red));
   add_keybord_shortcut_evaluate main_ui;
 ;;
 

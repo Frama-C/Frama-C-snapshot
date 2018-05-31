@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2017                                               *)
+(*  Copyright (C) 2007-2018                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -86,36 +86,33 @@ let wp_iter_model ?ip ?index job =
     Fmap.iter (fun kf ms -> Models.iter (fun m -> job kf m) ms) !pool
   end
 
-let wp_print_separation fmt =
+let wp_print_separation kf m sep fmt =
   begin
-    Format.fprintf fmt "//-------------------------------------------@\n" ;
-    Format.fprintf fmt "//--- Separation Hypotheses@\n" ;
-    Format.fprintf fmt "//-------------------------------------------@\n" ;
-    let k = ref 0 in
     let printer = new Printer.extensible_printer () in
     let pp_vdecl = printer#without_annot printer#vdecl in
+    Format.fprintf fmt
+      "@[<hv 0>@[<hv 3>/*@@@ behavior %s:" (Model.get_id m) ;
+    List.iter
+      (fun clause ->
+         Format.fprintf fmt "@ @[<hov 2>requires %a;@]"
+           Separation.pp_clause clause
+      ) sep ;
+    let vkf = Kernel_function.get_vi kf in
+    Format.fprintf fmt "@ @]*/@]@\n@[<hov 2>%a;@]@\n"
+      pp_vdecl vkf ;
+  end
+
+let wp_warn_separation () =
+  begin
     wp_iter_model
-      (fun kf m ->
-         let sep = Separation.requires (Model.get_separation m kf) in
-         let vkf = Kernel_function.get_vi kf in
-         if sep <> [] then
-           begin
-             incr k ;
-             Format.fprintf fmt
-               "@[<hv 0>(*@ behavior %s:" (Model.get_id m) ;
-             List.iter
-               (fun clause ->
-                  Format.fprintf fmt "@ @[<hov 2>requires %a;@]"
-                    Separation.pp_clause clause
-               ) sep ;
-             Format.fprintf fmt "@ *)@\n%a;@]@\n" pp_vdecl vkf ;
-             Format.fprintf fmt "//-------------------------------------------@." ;
-           end
-      ) ;
-    if !k>1 then
-      begin
-        Format.fprintf fmt "/* (%d hypotheses) */@\n" !k ;
-        Format.fprintf fmt "//-------------------------------------------@." ;
+      begin fun kf m ->
+        let sep = Separation.filter (Model.get_separation m kf) in
+        if sep <> [] then
+          Wp_parameters.warning
+            ~current:false
+            "@[<hv 0>Separation hypotheses for function '%s':@ %t@]"
+            (Kernel_function.get_name kf)
+            (wp_print_separation kf m sep)
       end
   end
 
@@ -150,10 +147,12 @@ let do_wp_report () =
     if rfiles <> [] then
       begin
         let stats = WpReport.fcstat () in
+        let jfile = Wp_parameters.ReportJson.get () in
+        if jfile <> "" then WpReport.export_json stats jfile ;
         List.iter (WpReport.export stats) rfiles ;
       end ;
     if Wp_parameters.Separation.get () then
-      Log.print_on_output wp_print_separation ;
+      wp_warn_separation ()
   end
 
 (* ------------------------------------------------------------------------ *)
@@ -262,7 +261,7 @@ let do_list_scheduled iter_on_goals =
     begin
       clear_scheduled () ;
       iter_on_goals
-        (fun goal -> if not (Wpo.is_proved goal) then
+        (fun goal ->
             begin
               incr scheduled ;
               if !spy then session := GOALS.add goal !session ;
@@ -285,12 +284,13 @@ let do_wpo_start goal =
 let do_wpo_wait () =
   Wp_parameters.feedback ~ontty:`Transient "[wp] Waiting provers..."
 
-let do_wpo_prover goal _prover =
+let do_progress goal msg =
   begin
     if !scheduled > 0 then
       let pp = int_of_float (100.0 *. float !exercised /. float !scheduled) in
       let pp = max 0 (min 100 pp) in
-      Wp_parameters.feedback ~ontty:`Transient "[%02d%%] %s" pp goal.Wpo.po_sid ;
+      Wp_parameters.feedback ~ontty:`Transient "[%02d%%] %s (%s)"
+        pp goal.Wpo.po_sid msg ;
   end
 
 let do_wpo_stat goal prover res =
@@ -324,7 +324,7 @@ let do_wpo_result goal prover res =
             VCS.pp_prover prover (Wpo.get_gid goal)
             VCS.pp_result res ;
         end ;
-      if prover = VCS.Qed then do_wpo_prover goal prover ;
+      if prover = VCS.Qed then do_progress goal "Qed" ;
       do_wpo_stat goal prover res ;
     end
 
@@ -366,24 +366,6 @@ let do_wpo_success goal s =
         if not (auto_check goal) then
           Wp_parameters.feedback ~ontty:`Silent
             "[%a] Goal %s : Valid" VCS.pp_prover prover (Wpo.get_gid goal)
-
-let do_tac_result goal prv res =
-  if VCS.is_verdict res then
-    begin
-      if res.VCS.verdict <> VCS.Valid then
-        Wp_parameters.result "[%a] Goal %s : %a"
-          VCS.pp_prover prv (Wpo.get_gid goal)
-          VCS.pp_result res ;
-      do_wpo_stat goal prv res ;
-    end
-
-let do_tac_success goal result =
-  begin
-    List.iter
-      (fun (p,r) -> if VCS.is_verdict r then do_wpo_stat goal p r)
-      (Wpo.get_results goal) ;
-    do_wpo_success goal result ;
-  end
 
 let do_report_prover_stats pp_prover fmt (p,s) =
   begin
@@ -456,34 +438,44 @@ type mode = {
   mutable why3ide : bool ;
   mutable tactical : bool ;
   mutable update : bool ;
+  mutable depth : int ;
+  mutable width : int ;
+  mutable backtrack : int ;
+  mutable auto : Strategy.heuristic list ;
+  mutable provers : (VCS.mode * VCS.prover) list ;
 }
 
-let spawn_wp_proofs_iter ~mode ~provers iter_on_goals =
-  if mode.tactical || provers<>[] then
+let spawn_wp_proofs_iter ~mode iter_on_goals =
+  if mode.tactical || mode.provers<>[] then
     begin
       let server = ProverTask.server () in
       ignore (Wp_parameters.Share.dir ()); (* To prevent further errors *)
       iter_on_goals
         (fun goal ->
-           if not (Wpo.is_proved goal) then
-             begin
-               if mode.tactical && ProofSession.exists goal then
+           if  mode.tactical
+            && not (Wpo.is_trivial goal)
+            && (mode.auto <> [] || ProofSession.exists goal)
+           then
                  ProverScript.spawn
                    ~failed:false
-                   ~provers:(List.map snd provers)
+               ~auto:mode.auto
+               ~depth:mode.depth
+               ~width:mode.width
+               ~backtrack:mode.backtrack
+               ~provers:(List.map snd mode.provers)
                    ~start:do_wpo_start
-                   ~callin:do_wpo_prover
-                   ~callback:do_tac_result
-                   ~success:do_tac_success
+               ~progress:do_progress
+               ~result:do_wpo_result
+               ~success:do_wpo_success
                    goal
                else
                  Prover.spawn goal
+               ~delayed:false
                    ~start:do_wpo_start
-                   ~callin:do_wpo_prover
-                   ~callback:do_wpo_result
+               ~progress:do_progress
+               ~result:do_wpo_result
                    ~success:do_wpo_success
-                   provers
-             end ;
+               mode.provers
         ) ;
       Task.on_server_wait server do_wpo_wait ;
       Task.launch server
@@ -492,8 +484,8 @@ let spawn_wp_proofs_iter ~mode ~provers iter_on_goals =
 let get_prover_names () =
   match Wp_parameters.Provers.get () with [] -> [ "alt-ergo" ] | pnames -> pnames
 
-let compute_provers ~mode () =
-  List.fold_right
+let compute_provers ~mode =
+  mode.provers <- List.fold_right
     (fun pname prvs ->
        match VCS.prover_of_name pname with
        | None -> prvs
@@ -506,6 +498,48 @@ let compute_provers ~mode () =
        | Some prover ->
            (VCS.mode_of_prover_name pname , prover) :: prvs)
     (get_prover_names ()) []
+
+let dump_strategies =
+  let once = ref true in
+  fun () ->
+    if !once then
+    ( once := false ;
+      Wp_parameters.result "Registered strategies for -wp-auto:%t"
+        (fun fmt ->
+           Strategy.iter (fun h ->
+               Format.fprintf fmt "@\n  '%s': %s" h#id h#title
+             )))
+
+let default_mode () = {
+  why3ide = false ; tactical = false ; update=false ; provers = [] ;
+  depth=0 ; width = 0 ; auto=[] ; backtrack = 0 ;
+}
+
+let compute_auto ~mode =
+  mode.auto <- [] ;
+  mode.width <- Wp_parameters.AutoWidth.get () ;
+  mode.depth <- Wp_parameters.AutoDepth.get () ;
+  mode.backtrack <- max 0 (Wp_parameters.BackTrack.get ()) ;
+  let auto = Wp_parameters.Auto.get () in
+  if mode.depth <= 0 || mode.width <= 0 then
+    ( if auto <> [] then
+        Wp_parameters.feedback
+          "Auto-search deactivated because of 0-depth or 0-width" )
+  else
+    begin
+      List.iter
+        (fun id ->
+           if id = "?" then dump_strategies ()
+           else
+             try mode.auto <- Strategy.lookup ~id :: mode.auto
+             with Not_found ->
+               Wp_parameters.error ~current:false
+                 "Strategy -wp-auto '%s' unknown (ignored)." id
+        ) auto ;
+      mode.auto <- List.rev mode.auto ;
+      if mode.auto <> [] then
+        ( mode.tactical <- true ; mode.update <- true ) ;
+    end
 
 let do_update_session mode iter =
   if mode.update then
@@ -562,28 +596,22 @@ let do_update_session mode iter =
     end
 
 let do_wp_proofs_iter iter =
-  let mode = {
-    why3ide=false ;
-    tactical=false ;
-    update=false ;
-  } in
-  let provers = compute_provers ~mode () in
-  let spawned = mode.why3ide || mode.tactical || provers <> [] in
+  let mode = default_mode () in
+  compute_provers ~mode ;
+  compute_auto ~mode ;
+  let spawned = mode.why3ide || mode.tactical || mode.provers <> [] in
   begin
     if spawned then do_list_scheduled iter ;
     if mode.why3ide then
       launch (ProverWhy3ide.prove ~callback:do_why3_result ~iter) ;
-    spawn_wp_proofs_iter ~mode ~provers iter ;
+    spawn_wp_proofs_iter ~mode iter ;
     if spawned then
       begin
         do_list_scheduled_result () ;
         do_update_session mode iter ;
       end
     else if not (Wp_parameters.Print.get ()) then
-      iter
-        (fun goal ->
-           if not (Wpo.is_proved goal) then
-             do_wpo_display goal)
+      iter do_wpo_display 
   end
 
 let do_wp_proofs () = do_wp_proofs_iter (fun f -> Wpo.iter ~on_goal:f ())
@@ -650,6 +678,7 @@ let cmdline_run () =
       end ;
     let bhv = Wp_parameters.Behaviors.get () in
     let prop = Wp_parameters.Properties.get () in
+    (** TODO entry point *)
     let computer = computer () in
     Generator.compute_selection computer ~fct ~bhv ~prop ()
   in
@@ -849,9 +878,13 @@ let sequence jobs () =
   else try_sequence jobs ()
 
 let tracelog () =
-  if Wp_parameters.Debug_category.is_empty () then
-    Wp_parameters.debug
-      "Logging keys: %s." (Wp_parameters.Debug_category.As_string.get ())
+  let active_keys = Wp_parameters.get_debug_keys () in
+  if active_keys <> [] then begin
+    let pp_sep fmt () = Format.pp_print_string fmt "," in
+    Wp_parameters.(
+      debug "Logging keys: %a."
+        (Format.pp_print_list ~pp_sep pp_category) active_keys)
+  end
 
 let main = sequence [
     (fun () -> Wp_parameters.debug ~dkey:job_key "Start WP plugin...@.") ;

@@ -1,4 +1,5 @@
 [kernel] Parsing tests/syntax/incomplete_array.i (no preprocessing)
-tests/syntax/incomplete_array.i:7:[kernel] user error: declaration of array of incomplete type 'struct S`
-[kernel] user error: stopping on file "tests/syntax/incomplete_array.i" that has errors.
+[kernel] tests/syntax/incomplete_array.i:7: User Error: 
+  declaration of array of incomplete type 'struct S`
+[kernel] User Error: stopping on file "tests/syntax/incomplete_array.i" that has errors.
 [kernel] Frama-C aborted: invalid user input.

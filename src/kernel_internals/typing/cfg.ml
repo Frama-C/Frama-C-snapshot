@@ -333,8 +333,7 @@ let computeFileCFG (f : file) =
     transforming switch statements and loops. It uses a *unit*
     alphaTableData ref because there isn't any information we need to
     carry around. *)
-let labelAlphaTable : (string, unit Alpha.alphaTableData ref) Hashtbl.t =
-  Hashtbl.create 11
+let labelAlphaTable : unit Alpha.alphaTable = Hashtbl.create 11
 
 let freshLabel (base:string) =
   fst (Alpha.newAlphaName labelAlphaTable base ())

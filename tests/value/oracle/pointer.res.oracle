@@ -12,25 +12,27 @@
   cc1 ∈ {0}
   cc2 ∈ {0}
 [value] computing for function k <- main.
-    Called from tests/value/pointer.i:37.
+  Called from tests/value/pointer.i:37.
 [value] computing for function l <- k <- main.
-    Called from tests/value/pointer.i:29.
+  Called from tests/value/pointer.i:29.
 [value] Recording results for l
 [value] Done for function l
 [value] Recording results for k
 [value] Done for function k
 [value] computing for function k <- main.
-    Called from tests/value/pointer.i:38.
+  Called from tests/value/pointer.i:38.
 [value] computing for function l <- k <- main.
-    Called from tests/value/pointer.i:29.
+  Called from tests/value/pointer.i:29.
 [value] Recording results for l
 [value] Done for function l
 [value] Recording results for k
 [value] Done for function k
-tests/value/pointer.i:40:[value] warning: pointer comparison.
-    assert \pointer_comparable((void *)((int *)T - 1), (void *)((int *)T));
-tests/value/pointer.i:41:[value] warning: pointer comparison.
-    assert \pointer_comparable((void *)((int *)T), (void *)(&T[12]));
+[value:alarm] tests/value/pointer.i:40: Warning: 
+  pointer comparison.
+  assert \pointer_comparable((void *)((int *)T - 1), (void *)((int *)T));
+[value:alarm] tests/value/pointer.i:41: Warning: 
+  pointer comparison.
+  assert \pointer_comparable((void *)((int *)T), (void *)(&T[12]));
 [value] Recording results for main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======
@@ -52,7 +54,7 @@ tests/value/pointer.i:41:[value] warning: pointer comparison.
 [from] Computing for function main
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
-    These dependencies hold at termination for the executions that terminate:
+  These dependencies hold at termination for the executions that terminate:
 [from] Function l:
   x FROM x; y_0 (and SELF)
   c FROM x; y_0 (and SELF)
@@ -66,14 +68,14 @@ tests/value/pointer.i:41:[value] warning: pointer comparison.
   cc2 FROM en
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function l:
-      x; c
+    x; c
 [inout] Inputs for function l:
-      x
+    x
 [inout] Out (internal) for function k:
-      x; c
+    x; c
 [inout] Inputs for function k:
-      x
+    x
 [inout] Out (internal) for function main:
-      x; c; cc1; cc2
+    x; c; cc1; cc2
 [inout] Inputs for function main:
-      x; cc2
+    x; cc2

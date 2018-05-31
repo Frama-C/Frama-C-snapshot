@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2017                                               *)
+(*  Copyright (C) 2007-2018                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -151,14 +151,19 @@ Definition havoc {a:Type} {a_WT:WhyType a} (m1:(map.Map.map addr a))
   (separated q 1%Z p a1) -> ((map.Map.get m1 q) = (map.Map.get m2 q)).
 
 (* Why3 assumption *)
-Definition valid_rd (m:(map.Map.map Z Z)) (p:addr) (n:Z): Prop :=
-  (0%Z < n)%Z -> ((0%Z <= (offset p))%Z /\
-  (((offset p) + n)%Z <= (map.Map.get m (base p)))%Z).
-
-(* Why3 assumption *)
 Definition valid_rw (m:(map.Map.map Z Z)) (p:addr) (n:Z): Prop :=
   (0%Z < n)%Z -> ((0%Z < (base p))%Z /\ ((0%Z <= (offset p))%Z /\
   (((offset p) + n)%Z <= (map.Map.get m (base p)))%Z)).
+
+(* Why3 assumption *)
+Definition valid_rd (m:(map.Map.map Z Z)) (p:addr) (n:Z): Prop :=
+  (0%Z < n)%Z -> ((~ (0%Z = (base p))) /\ ((0%Z <= (offset p))%Z /\
+  (((offset p) + n)%Z <= (map.Map.get m (base p)))%Z)).
+
+(* Why3 assumption *)
+Definition invalid (m:(map.Map.map Z Z)) (p:addr) (n:Z): Prop :=
+  (0%Z < n)%Z -> (((map.Map.get m (base p)) <= (offset p))%Z \/
+  (((offset p) + n)%Z <= 0%Z)%Z).
 
 (* Why3 goal *)
 Lemma valid_rw_rd : forall (m:(map.Map.map Z Z)), forall (p:addr),
@@ -310,21 +315,24 @@ Lemma havoc_sym : forall {a:Type} {a_WT:WhyType a}, forall (m1:(map.Map.map
 Admitted.
 
 (* Why3 goal *)
-Definition cast: addr -> Z.
+Definition int_of_addr: addr -> Z.
 Admitted.
 
 (* Why3 goal *)
-Lemma cast_injective : forall (p:addr) (q:addr), ((cast p) = (cast q)) ->
-  (p = q).
-Proof.
-  intros p q h1.
+Definition addr_of_int: Z -> addr.
 Admitted.
 
 (* Why3 goal *)
-Definition hardware: Z -> Z.
+Lemma int_of_addr_bijection : forall (a:Z),
+  ((int_of_addr (addr_of_int a)) = a).
 Admitted.
 
 (* Why3 goal *)
-Lemma hardnull : ((hardware 0%Z) = 0%Z).
+Lemma addr_of_int_bijection : forall (p:addr),
+  ((addr_of_int (int_of_addr p)) = p).
+Admitted.
+
+(* Why3 goal *)
+Lemma addr_of_null : ((int_of_addr null) = 0%Z).
 Admitted.
 

@@ -7,7 +7,7 @@
   pt ∈ {0}
   T[0..9] ∈ {0}
 [value] computing for function g <- main.
-    Called from tests/value/cast_hetero.i:16.
+  Called from tests/value/cast_hetero.i:16.
 [value] Recording results for g
 [value] Done for function g
 [value] Recording results for main
@@ -26,7 +26,7 @@
 [from] Computing for function main
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
-    These dependencies hold at termination for the executions that terminate:
+  These dependencies hold at termination for the executions that terminate:
 [from] Function g:
   pt FROM \nothing
   T[0] FROM X; c
@@ -35,10 +35,10 @@
   T[0] FROM X
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function g:
-      pt; T[0]
+    pt; T[0]
 [inout] Inputs for function g:
-      X
+    X
 [inout] Out (internal) for function main:
-      pt; T[0]
+    pt; T[0]
 [inout] Inputs for function main:
-      X
+    X

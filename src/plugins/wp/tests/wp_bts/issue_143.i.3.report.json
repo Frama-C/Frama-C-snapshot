@@ -1,0 +1,21 @@
+{ "wp:global": { "coq": { "total": 2, "failed": 2 },
+                 "wp:main": { "total": 2, "failed": 2 } },
+  "wp:axiomatics": { "A": { "lemma_ok_because_inconsistent": { "coq": 
+                                                                 { "total": 1,
+                                                                   "failed": 1 },
+                                                               "wp:main": 
+                                                                 { "total": 1,
+                                                                   "failed": 1 } },
+                            "wp:section": { "coq": { "total": 1,
+                                                     "failed": 1 },
+                                            "wp:main": { "total": 1,
+                                                         "failed": 1 } } },
+                     "B": { "lemma_ok_because_consistent": { "coq": { "total": 1,
+                                                                    "failed": 1 },
+                                                             "wp:main": 
+                                                               { "total": 1,
+                                                                 "failed": 1 } },
+                            "wp:section": { "coq": { "total": 1,
+                                                     "failed": 1 },
+                                            "wp:main": { "total": 1,
+                                                         "failed": 1 } } } } }

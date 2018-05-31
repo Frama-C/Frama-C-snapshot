@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2017                                               *)
+(*  Copyright (C) 2007-2018                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -117,7 +117,7 @@ let extract_slevel_directive s =
     | [] -> None
     | {annot_content =
         AStmtSpec (_, { spec_behavior =
-                          [{b_extended = ["slevel", Ext_terms lp]}]})}
+                          [{b_extended = [_,"slevel", Ext_terms lp]}]})}
       :: _ -> Some (retrieve_annot lp)
     | _ :: q -> find_one q
   in

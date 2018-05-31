@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2017                                               *)
+(*  Copyright (C) 2007-2018                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -84,6 +84,21 @@ module Temporal_validity =
       let help = "enable temporal analysis in valid annotations"
      end)
 
+module Validate_format_strings =
+  False
+    (struct
+      let option_name = "-e-acsl-validate-format-strings"
+      let help = "enable runtime validation of stdio.h format functions"
+     end)
+
+module Replace_libc_functions =
+  False
+    (struct
+      let option_name = "-e-acsl-replace-libc-functions"
+      let help = "replace some libc functions (such as strcpy) with built-in\
+ RTL alternatives"
+     end)
+
 module Full_mmodel =
   False
     (struct
@@ -118,6 +133,13 @@ let version () =
     raise Cmdline.Exit
   end
 let () = Cmdline.run_after_configuring_stage version
+
+let parameter_states =
+  [ Valid.self;
+    Gmp_only.self;
+    Full_mmodel.self;
+    Builtins.self;
+    Temporal_validity.self]
 
 let must_visit () = Run.get () || Check.get ()
 

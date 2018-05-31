@@ -4,20 +4,30 @@
 [value] Initial state computed
 [value:initial-state] Values of globals at initialization
   x ∈ {0}
-tests/value/disjoint_status.i:13:[value] warning: function main: precondition got status unknown.
-tests/value/disjoint_status.i:14:[value] warning: function main: precondition got status unknown.
+[value:alarm] tests/value/disjoint_status.i:13: Warning: 
+  function main: precondition c + 1 ≡ 2 got status unknown.
+[value:alarm] tests/value/disjoint_status.i:14: Warning: 
+  function main: precondition c + d ≡ 3 got status unknown.
 [value] computing for function f <- main.
-    Called from tests/value/disjoint_status.i:18.
-tests/value/disjoint_status.i:6:[value] function f: precondition 'ReqTrue' got status valid.
-tests/value/disjoint_status.i:8:[value] warning: assertion 'A1' got status invalid (stopping propagation).
+  Called from tests/value/disjoint_status.i:18.
+[value] tests/value/disjoint_status.i:18: 
+  function f: precondition 'ReqTrue' got status valid.
+[value:alarm] tests/value/disjoint_status.i:8: Warning: 
+  assertion 'A1' got status invalid (stopping propagation).
+[value] tests/value/disjoint_status.i:6: 
+  function f: no state left, postcondition 'PostTrue' got status valid.
 [value] Recording results for f
 [value] Done for function f
-tests/value/disjoint_status.i:19:[value] warning: assertion got status unknown.
+[value:alarm] tests/value/disjoint_status.i:19: Warning: 
+  assertion got status unknown.
 [value] computing for function f <- main.
-    Called from tests/value/disjoint_status.i:20.
-tests/value/disjoint_status.i:8:[value] assertion 'A1' got status valid.
-tests/value/disjoint_status.i:9:[value] assertion 'A2' got status valid.
-tests/value/disjoint_status.i:6:[value] function f: postcondition 'PostTrue' got status valid.
+  Called from tests/value/disjoint_status.i:20.
+[value] tests/value/disjoint_status.i:20: 
+  function f: precondition 'ReqTrue' got status valid.
+[value] tests/value/disjoint_status.i:8: assertion 'A1' got status valid.
+[value] tests/value/disjoint_status.i:9: assertion 'A2' got status valid.
+[value] tests/value/disjoint_status.i:6: 
+  function f: postcondition 'PostTrue' got status valid.
 [value] Recording results for f
 [value] Done for function f
 [value] Recording results for main
@@ -32,20 +42,20 @@ tests/value/disjoint_status.i:6:[value] function f: postcondition 'PostTrue' got
 [from] Computing for function main
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
-    These dependencies hold at termination for the executions that terminate:
+  These dependencies hold at termination for the executions that terminate:
 [from] Function f:
   x FROM c; d
 [from] Function main:
   x FROM c; d
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function f:
-      x
+    x
 [inout] Inputs for function f:
-      \nothing
+    \nothing
 [inout] Out (internal) for function main:
-      x
+    x
 [inout] Inputs for function main:
-      \nothing
+    \nothing
 [report] Computing properties status...
 
 --------------------------------------------------------------------------------

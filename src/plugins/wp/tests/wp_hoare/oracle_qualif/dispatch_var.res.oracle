@@ -2,7 +2,7 @@
 [kernel] Parsing tests/wp_hoare/dispatch_var.i (no preprocessing)
 [wp] Running WP plugin...
 [wp] Loading driver 'share/wp.driver'
-[wp] warning: Missing RTE guards
+[wp] Warning: Missing RTE guards
 [wp] 78 goals scheduled
 [wp] [Qed] Goal typed_ref_array_in_struct_param_post_Pload2 : Valid
 [wp] [Qed] Goal typed_ref_array_in_struct_param_assign : Valid
@@ -83,20 +83,21 @@
 [wp] [Qed] Goal typed_ref_ref_bd_post : Valid
 [wp] [Qed] Goal typed_ref_ref_bd_assign : Valid
 [wp] Proved goals:   78 / 78
-    Qed:            78
-----------------------------------------------------------
-Functions           WP   Alt-Ergo    Total   Success
-call_ref_ctr         4     -           4       100%
-call_ref_ctr2        8     -           8       100%
-ref_bd               2     -           2       100%
-call_ref_bd          4     -           4       100%
-call_ref_bd2         8     -           8       100%
-call_ref_valid      11     -          11       100%
-no_ref_bd            3     -           3       100%
-call_no_ref_bd       9     -           9       100%
-call_ref_ctr_nr     10     -          10       100%
-call_ref_ctr_nstars   6    -           6       100%
-call_two_ref         7     -           7       100%
-g                    4     -           4       100%
-array_in_struct_param   2   -          2       100%
-----------------------------------------------------------
+  Qed:            78
+[wp] Report 'tests/wp_hoare/dispatch_var.i.0.report.json'
+-------------------------------------------------------------
+Functions           WP     Alt-Ergo        Total   Success
+call_ref_ctr         4     -                 4       100%
+call_ref_ctr2        8     -                 8       100%
+ref_bd               2     -                 2       100%
+call_ref_bd          4     -                 4       100%
+call_ref_bd2         8     -                 8       100%
+call_ref_valid      11     -                11       100%
+no_ref_bd            3     -                 3       100%
+call_no_ref_bd       9     -                 9       100%
+call_ref_ctr_nr     10     -                10       100%
+call_ref_ctr_nstars   6    -                 6       100%
+call_two_ref         7     -                 7       100%
+g                    4     -                 4       100%
+array_in_struct_param   2   -                2       100%
+-------------------------------------------------------------

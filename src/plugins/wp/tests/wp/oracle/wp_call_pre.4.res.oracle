@@ -2,7 +2,7 @@
 [kernel] Parsing tests/wp/wp_call_pre.c (with preprocessing)
 [wp] Running WP plugin...
 [wp] Loading driver 'share/wp.driver'
-[wp] warning: Missing RTE guards
+[wp] Warning: Missing RTE guards
 
 Goal Pre-condition 'qed_ok,Rstmt' at instruction (file tests/wp/wp_call_pre.c, line 47):
 Prove: true.

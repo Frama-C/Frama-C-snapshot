@@ -8,23 +8,23 @@
   G2{.p1; .p2} ∈ {{ (? *)&G1 }}
     .p3 ∈ {{ &G1.c3 }}
 [value] computing for function h1 <- main.
-    Called from tests/constant_propagation/bts-1787-bis.i:50.
+  Called from tests/constant_propagation/bts-1787-bis.i:50.
 [value] Recording results for h1
 [value] Done for function h1
 [value] computing for function h2 <- main.
-    Called from tests/constant_propagation/bts-1787-bis.i:51.
+  Called from tests/constant_propagation/bts-1787-bis.i:51.
 [value] Recording results for h2
 [value] Done for function h2
 [value] computing for function h3 <- main.
-    Called from tests/constant_propagation/bts-1787-bis.i:52.
+  Called from tests/constant_propagation/bts-1787-bis.i:52.
 [value] Recording results for h3
 [value] Done for function h3
 [value] computing for function h4 <- main.
-    Called from tests/constant_propagation/bts-1787-bis.i:53.
+  Called from tests/constant_propagation/bts-1787-bis.i:53.
 [value] Recording results for h4
 [value] Done for function h4
 [value] computing for function h5 <- main.
-    Called from tests/constant_propagation/bts-1787-bis.i:54.
+  Called from tests/constant_propagation/bts-1787-bis.i:54.
 [value] Recording results for h5
 [value] Done for function h5
 [value] Recording results for main

@@ -2,7 +2,7 @@
 [kernel] Parsing tests/wp_bts/bts_2110.i (no preprocessing)
 [wp] Running WP plugin...
 [wp] Loading driver 'share/wp.driver'
-[wp] warning: Missing RTE guards
+[wp] Warning: Missing RTE guards
 [wp] 2 goals scheduled
 ---------------------------------------------
 --- File 'typed/myMain_stmt_assign.ergo' 
@@ -18,15 +18,14 @@ goal myMain_stmt_assign:
   forall a_1,a : addr.
   let a_2 = shiftfield_F1_FD_pos(a) : addr in
   let x = t_2[a_2] : int in
-  let x_1 = t_1[a_2] : int in
-  (x <> x_1) ->
+  (x <> i) ->
   (region(a.base) <= 0) ->
   (region(a_1.base) <= 0) ->
   linked(t) ->
-  is_sint32(x_1) ->
+  is_sint32(i) ->
+  havoc(t_2, t_1, a_1, 1) ->
   is_sint32(x) ->
-  valid_rd(t, a_2, 1) ->
-  havoc(t_2[a_2 <- i], t_1, a_1, 1) ->
+  (not invalid(t, a_2, 1)) ->
   (a_2 = a_1)
 
 ---------------------------------------------

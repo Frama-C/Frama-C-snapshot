@@ -5,9 +5,9 @@
 [value:initial-state] Values of globals at initialization
   T[0..9999] ∈ {0}
   U[0..9999] ∈ {0}
-tests/value/loop_array.i:5:[value] entering loop for the first time
-tests/value/loop_array.i:8:[value] entering loop for the first time
-tests/value/loop_array.i:12:[value] entering loop for the first time
+[value] tests/value/loop_array.i:5: entering loop for the first time
+[value] tests/value/loop_array.i:8: entering loop for the first time
+[value] tests/value/loop_array.i:12: entering loop for the first time
 [value] Recording results for main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======
@@ -23,12 +23,12 @@ tests/value/loop_array.i:12:[value] entering loop for the first time
 [from] Computing for function main
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
-    These dependencies hold at termination for the executions that terminate:
+  These dependencies hold at termination for the executions that terminate:
 [from] Function main:
   T{[0..4]; [6..9999]} FROM \nothing (and SELF)
   U[0..1000] FROM \nothing (and SELF)
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function main:
-      T{[0..4]; [6..9999]}; U[0..1000]; i; j
+    T{[0..4]; [6..9999]}; U[0..1000]; i; j
 [inout] Inputs for function main:
-      \nothing
+    \nothing

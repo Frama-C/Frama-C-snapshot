@@ -2,7 +2,7 @@
 [kernel] Parsing tests/wp_usage/caveat_range.i (no preprocessing)
 [wp] Running WP plugin...
 [wp] Loading driver 'share/wp.driver'
-[wp] warning: Missing RTE guards
+[wp] Warning: Missing RTE guards
 ------------------------------------------------------------
   Function reset
 ------------------------------------------------------------
@@ -81,7 +81,6 @@ Prove: true.
 
 Goal Preservation of Invariant (file tests/wp_usage/caveat_range.i, line 20):
 Let a = global(G_p_20).
-Let a_1 = shift_S(a, i).
 Assume {
   Type: is_sint32(i) /\ is_sint32(1 + i).
   (* Goal *)
@@ -99,7 +98,7 @@ Assume {
   (* Then *)
   Have: i <= 9.
 }
-Prove: Mint_0[shiftfield_F1_S_f(a_1) <- 1][shiftfield_F1_S_g(a_1) <- 2]
+Prove: Mint_0[shiftfield_F1_S_f(shift_S(a, i)) <- 1]
          [shiftfield_F1_S_f(shift_S(a, i_1))] = 1.
 
 ------------------------------------------------------------

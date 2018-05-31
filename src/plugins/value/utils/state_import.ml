@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2017                                               *)
+(*  Copyright (C) 2007-2018                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -47,18 +47,6 @@ let import_varinfo (vi : varinfo) ~importing_value =
     end
   with Not_found ->
     (* search in the state *)
-    (* alloced_return_* variables can have their kf restored via their name *)
-    if Extlib.string_prefix "alloced_return_" vi.vname then begin
-      let len = String.length "alloced_return_" in
-      let kf_name = String.sub vi.vname len (String.length vi.vname - len) in
-      try
-        let kf = Globals.Functions.find_by_name kf_name in
-        Value_parameters.feedback ~dkey "recreating alloced_return_%s" kf_name;
-        let base = Library_functions.create_alloced_return vi.vtype kf in
-        Base.to_varinfo base
-      with Not_found ->
-        Value_parameters.abort "alloced_return should have function: `%s'" kf_name
-    end else
     if importing_value then begin
       (* Variable may be an escaping local value *)
       Value_parameters.warning "variable `%a' is not global, \
@@ -118,20 +106,11 @@ let import_base (base : Base.t) ~importing_value =
 
 let import_base_setlattice (sl : Base.SetLattice.t) ~importing_value =
   Base.SetLattice.fold (fun base acc ->
-      let sl' = Base.SetLattice.inject_singleton (import_base base ~importing_value) in
-      Base.SetLattice.join acc sl'
-    ) sl Base.SetLattice.empty
+      let b' = import_base base ~importing_value in
+      Base.Hptset.add b' acc
+    ) sl Base.Hptset.empty
 
-let import_ival (ival : Ival.t) =
-  match ival with
-  | Ival.Set a ->
-    Array.fold_left
-      (fun acc i -> Ival.join (Ival.inject_singleton i) acc)
-      Ival.bottom a
-  | Ival.Float _ ->
-    let mn, mx = Ival.min_and_max_float ival in
-    Ival.inject_float_interval (Fval.F.to_float mn) (Fval.F.to_float mx)
-  | Ival.Top (mn,mx,m,u) -> Ival.inject_interval mn mx m u
+let import_ival = Ival.rehash
 
 let import_map (m : Cvalue.V.M.t) =
   let add base ival m =
@@ -147,8 +126,8 @@ let import_v (v : Cvalue.V.t) =
     Value_parameters.warning ~once:true
       "importing garbled mix, locations may have changed";
     (*let o' = import_origin o in*)
-    let sl' = import_base_setlattice sl ~importing_value:true in
-    Cvalue.V.Top (sl', o)
+    let s = import_base_setlattice sl ~importing_value:true in
+    Cvalue.V.inject_top_origin o s
   | Cvalue.V.Map m ->
     import_map m
 
@@ -215,7 +194,7 @@ let save_globals_to_file kf state_with_locals filename =
 let load_and_merge_function_state state : Model.t =
   let (kf, filename) = Value_parameters.get_LoadFunctionState () in
   Value_parameters.feedback
-    "Skipping call to %a,@ loading globals state from file:@ %s"
+    "@[<hov 0>Skipping call to %a,@ loading globals state from file:@ %s@]"
     Kernel_function.pretty kf filename;
   let saved_state = load_globals_from_file filename in
   Value_parameters.debug ~dkey "LOADED STATE:@.%a"

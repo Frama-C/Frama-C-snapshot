@@ -7,9 +7,16 @@ const FILE* _p__fc_fopen = __fc_fopen;
 
 /*@ 
   assigns \result \from filename[..],mode[..], _p__fc_fopen; 
-  ensures  \result==\null || (\subset(\result,&__fc_fopen[0 .. 512-1])) ;
+  ensures  \result==\null || \subset(\result, &__fc_fopen[0 .. 512-1]);
 */ 
 FILE *fopen(const char * restrict filename,
+     const char * restrict mode);
+
+/*@ 
+  assigns \result \from filename[..],mode[..], _p__fc_fopen; 
+  ensures  \result==\null || (\result \in &__fc_fopen[0 .. 512-1]) ;
+*/ 
+FILE *fopen2(const char * restrict filename,
      const char * restrict mode);
 
 void main1(int i, int j) {
@@ -23,6 +30,8 @@ void main1(int i, int j) {
   }
 
   FILE* p = fopen ("bla", 0);
+  //@ assert p == \null || \valid(p);
+  p = fopen2 ("bli", 0);
   //@ assert p == \null || \valid(p);
 }
 

@@ -8,7 +8,9 @@ void f() {}
 /*ABC
      */
 /*@ requires \true ; // FOO */
-void g() {}
+void g() {
+  /*@ ghost int x = 0; // ghost_comment */
+}
 
 int bts_2176() {
   int r=0;

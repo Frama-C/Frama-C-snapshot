@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2017                                               *)
+(*  Copyright (C) 2007-2018                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -28,6 +28,161 @@
 (* ************************************************************************* *)
 
 include Plugin.S
+
+(* ************************************************************************* *)
+(** {2 Message and warning categories} *)
+(* ************************************************************************* *)
+
+val dkey_alpha: category
+
+val dkey_alpha_undo: category
+
+val dkey_asm_contracts: category
+
+val dkey_ast: category
+
+val dkey_check: category
+
+val dkey_comments: category
+
+val dkey_compilation_db: category
+
+val dkey_dataflow: category
+
+val dkey_dataflow_scc: category
+
+val dkey_dominators: category
+
+val dkey_emitter: category
+
+val dkey_emitter_clear: category
+
+val dkey_exn_flow: category
+
+val dkey_file_transform: category
+
+val dkey_file_print_one: category
+
+val dkey_file_annot: category
+
+val dkey_filter: category
+
+val dkey_globals: category
+
+val dkey_kf_blocks: category
+
+val dkey_linker: category
+
+val dkey_linker_find: category
+
+val dkey_loops: category
+
+val dkey_parser: category
+
+val dkey_pp: category
+
+val dkey_print_bitfields: category
+
+val dkey_print_builtins: category
+
+val dkey_print_logic_coercions: category
+
+val dkey_print_logic_types: category
+
+val dkey_print_sid: category
+
+val dkey_print_unspecified: category
+
+val dkey_print_vid: category
+
+val dkey_prop_status: category
+
+val dkey_prop_status_emit: category
+
+val dkey_prop_status_merge: category
+
+val dkey_prop_status_graph: category
+
+val dkey_prop_status_reg: category
+
+val dkey_rmtmps: category
+
+val dkey_task: category
+
+val dkey_typing_global: category
+
+val dkey_typing_init: category
+
+val dkey_typing_chunk: category
+
+val dkey_typing_cast: category
+
+val dkey_typing_pragma: category
+
+val dkey_ulevel: category
+
+val dkey_visitor: category
+
+val wkey_annot_error: warn_category
+(** error in annotation. If only a warning, annotation will just be ignored. *)
+
+val wkey_drop_unused: warn_category
+
+val wkey_implicit_conv_void_ptr: warn_category
+
+val wkey_incompatible_types_call: warn_category
+
+val wkey_incompatible_pointer_types: warn_category
+
+val wkey_cert_exp_46: warn_category
+
+val wkey_cert_msc_38: warn_category
+
+val wkey_check_volatile: warn_category
+
+val wkey_jcdb: warn_category
+
+val wkey_implicit_function_declaration: warn_category
+
+val wkey_no_proto: warn_category
+
+val wkey_missing_spec: warn_category
+
+val wkey_decimal_float: warn_category
+
+(* ************************************************************************* *)
+(** {2 Functors for late option registration}                                *)
+(** Kernel_function-related options cannot be registered in this module:
+    They depend on [Globals], which is linked later. We provide here functors
+    to declare them after [Globals] *)
+(* ************************************************************************* *)
+
+module type Input_with_arg = sig
+  include Parameter_sig.Input_with_arg
+  val module_name: string
+end
+
+module Kernel_function_set(X:Input_with_arg): Parameter_sig.Kernel_function_set
+
+(* ************************************************************************* *)
+(** {2 Option groups} *)
+(* ************************************************************************* *)
+
+val inout_source: Cmdline.Group.t
+
+val saveload: Cmdline.Group.t
+
+val parsing: Cmdline.Group.t
+
+val normalisation: Cmdline.Group.t
+
+val analysis_options: Cmdline.Group.t
+
+val seq: Cmdline.Group.t
+
+val project: Cmdline.Group.t
+
+val checks: Cmdline.Group.t
 
 (* ************************************************************************* *)
 (** {2 Installation Information} *)
@@ -186,6 +341,14 @@ module UnrollingForce: Parameter_sig.Bool
     called for well preparing the AST. *)
 module Machdep: Parameter_sig.String
 
+(** Behavior of invisible option -keep-logical operator:
+    Tries to avoid converting && and || into conditional statements.
+    Note that this option is incompatible with many (most) plug-ins of the
+    platform and thus should only be enabled with great care and for very
+    specific analyses need.
+*)
+module LogicalOperators: Parameter_sig.Bool
+
 (** Behavior of option "-enums" *)
 module Enums: Parameter_sig.String
 
@@ -247,9 +410,12 @@ module Files: Parameter_sig.String_list
 module Orig_name: Parameter_sig.Bool
 (** Behavior of option "-orig-name" *)
 
-val normalization_parameters: Typed_parameter.t list
+val normalization_parameters: unit -> Typed_parameter.t list
 (** All the normalization options that influence the AST (in particular,
-    changing one will reset the AST entirely *)
+    changing one will reset the AST entirely.contents
+
+    @modify Chlorine-20180501 make it non-constant
+ *)
 
 module WarnDecimalFloat: Parameter_sig.String
   (** Behavior of option "-warn-decimal-float" *)
@@ -259,6 +425,9 @@ module ImplicitFunctionDeclaration: Parameter_sig.String
 
 module C11: Parameter_sig.Bool
   (** Behavior of option "-c11" *)
+
+module JsonCompilationDatabase: State_builder.Ref with type data = string
+  (** Behavior of option "-json-compilation-database" *)
 
 (* ************************************************************************* *)
 (** {3 Customizing cabs2cil options} *)
@@ -336,8 +505,8 @@ module SignedDowncast: Parameter_sig.Bool
 module UnsignedDowncast: Parameter_sig.Bool
   (** Behavior of option "-warn-unsigned-downcast" *)
 
-module FiniteFloat: Parameter_sig.Bool
-  (** Behavior of option "-warn-not-finite-float" *)
+module SpecialFloat: Parameter_sig.String
+  (** Behavior of option "-warn-special-float" *)
 
 module AbsoluteValidRange: Parameter_sig.String
   (** Behavior of option "-absolute-valid-range" *)

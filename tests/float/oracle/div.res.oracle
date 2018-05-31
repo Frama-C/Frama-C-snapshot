@@ -1,0 +1,28 @@
+[kernel] Parsing tests/float/div.i (no preprocessing)
+[value] Analyzing a complete application starting at main
+[value] Computing initial state
+[value] Initial state computed
+[value:initial-state] Values of globals at initialization
+  v ∈ [--..--]
+[value:alarm] tests/float/div.i:8: Warning: assertion got status unknown.
+[value:alarm] tests/float/div.i:9: Warning: assertion got status unknown.
+[value:alarm] tests/float/div.i:10: Warning: assertion got status unknown.
+[value:alarm] tests/float/div.i:11: Warning: 
+  assertion got status invalid (stopping propagation).
+[value] Recording results for main
+[value] done for function main
+[value] ====== VALUES COMPUTED ======
+[value:final-states] Values at end of function main:
+  d1 ∈ UNINITIALIZED
+  d2 ∈ UNINITIALIZED
+[from] Computing for function main
+[from] Done for function main
+[from] ====== DEPENDENCIES COMPUTED ======
+  These dependencies hold at termination for the executions that terminate:
+[from] Function main:
+  NO EFFECTS
+[from] ====== END OF DEPENDENCIES ======
+[inout] Out (internal) for function main:
+    d1; d2
+[inout] Inputs for function main:
+    v

@@ -9,8 +9,8 @@
    [1..4] ∈ {0}
   I[0] ∈ {1}
    [1..4] ∈ {0}
-tests/value/cast1.i:7:[value] entering loop for the first time
-tests/value/cast1.i:8:[value] entering loop for the first time
+[value] tests/value/cast1.i:7: entering loop for the first time
+[value] tests/value/cast1.i:8: entering loop for the first time
 [value] Recording results for main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======
@@ -25,7 +25,7 @@ tests/value/cast1.i:8:[value] entering loop for the first time
 [from] Computing for function main
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
-    These dependencies hold at termination for the executions that terminate:
+  These dependencies hold at termination for the executions that terminate:
 [from] Function main:
   si FROM \nothing
   i FROM \nothing
@@ -33,6 +33,6 @@ tests/value/cast1.i:8:[value] entering loop for the first time
   I[0..1] FROM \nothing (and SELF)
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function main:
-      si; i; S[0]; I[0..1]
+    si; i; S[0]; I[0..1]
 [inout] Inputs for function main:
-      si; i
+    si; i

@@ -12,53 +12,61 @@
   s0 ∈ {0}
   s1 ∈ {0}
   is_ok ∈ {0}
-  si[0..1] ∈ {0}
-  so[0..1] ∈ {0}
+  f_si[0..1] ∈ {0}
+  f_so[0..1] ∈ {0}
 [value] computing for function init <- main.
-    Called from tests/sparecode/bts324_bis.i:37.
+  Called from tests/sparecode/bts324_bis.i:37.
 [value] Recording results for init
 [value] Done for function init
-tests/sparecode/bts324_bis.i:39:[value] entering loop for the first time
+[value] tests/sparecode/bts324_bis.i:39: entering loop for the first time
 [value] computing for function loop_body <- main.
-    Called from tests/sparecode/bts324_bis.i:40.
+  Called from tests/sparecode/bts324_bis.i:40.
 [value] computing for function f <- loop_body <- main.
-    Called from tests/sparecode/bts324_bis.i:22.
-tests/sparecode/bts324_bis.i:10:[value] warning: signed overflow. assert -2147483648 ≤ ki[i] * (int)(vi - si[i]);
-tests/sparecode/bts324_bis.i:10:[value] warning: signed overflow. assert ki[i] * (int)(vi - si[i]) ≤ 2147483647;
+  Called from tests/sparecode/bts324_bis.i:22.
+[value:alarm] tests/sparecode/bts324_bis.i:10: Warning: 
+  signed overflow. assert -2147483648 ≤ ki[i] * (int)(vi - f_si[i]);
+[value:alarm] tests/sparecode/bts324_bis.i:10: Warning: 
+  signed overflow. assert ki[i] * (int)(vi - f_si[i]) ≤ 2147483647;
 [value] Recording results for f
 [value] Done for function f
 [value] computing for function f <- loop_body <- main.
-    Called from tests/sparecode/bts324_bis.i:23.
+  Called from tests/sparecode/bts324_bis.i:23.
 [value] Recording results for f
 [value] Done for function f
 [value] Recording results for loop_body
 [value] Done for function loop_body
 [value] computing for function loop_body <- main.
-    Called from tests/sparecode/bts324_bis.i:40.
+  Called from tests/sparecode/bts324_bis.i:40.
 [value] computing for function f <- loop_body <- main.
-    Called from tests/sparecode/bts324_bis.i:22.
-tests/sparecode/bts324_bis.i:10:[value] warning: signed overflow. assert -2147483648 ≤ vi - si[i];
-tests/sparecode/bts324_bis.i:10:[value] warning: signed overflow. assert vi - si[i] ≤ 2147483647;
-tests/sparecode/bts324_bis.i:10:[value] warning: signed overflow.
-    assert -2147483648 ≤ (int)(so[i] / k) + (int)(ki[i] * (int)(vi - si[i]));
-tests/sparecode/bts324_bis.i:10:[value] warning: signed overflow.
-    assert (int)(so[i] / k) + (int)(ki[i] * (int)(vi - si[i])) ≤ 2147483647;
+  Called from tests/sparecode/bts324_bis.i:22.
+[value:alarm] tests/sparecode/bts324_bis.i:10: Warning: 
+  signed overflow. assert -2147483648 ≤ vi - f_si[i];
+[value:alarm] tests/sparecode/bts324_bis.i:10: Warning: 
+  signed overflow. assert vi - f_si[i] ≤ 2147483647;
+[value:alarm] tests/sparecode/bts324_bis.i:10: Warning: 
+  signed overflow.
+  assert
+  -2147483648 ≤ (int)(f_so[i] / k) + (int)(ki[i] * (int)(vi - f_si[i]));
+[value:alarm] tests/sparecode/bts324_bis.i:10: Warning: 
+  signed overflow.
+  assert
+  (int)(f_so[i] / k) + (int)(ki[i] * (int)(vi - f_si[i])) ≤ 2147483647;
 [value] Recording results for f
 [value] Done for function f
 [value] computing for function f <- loop_body <- main.
-    Called from tests/sparecode/bts324_bis.i:23.
+  Called from tests/sparecode/bts324_bis.i:23.
 [value] Recording results for f
 [value] Done for function f
 [value] Recording results for loop_body
 [value] Done for function loop_body
 [value] computing for function loop_body <- main.
-    Called from tests/sparecode/bts324_bis.i:40.
+  Called from tests/sparecode/bts324_bis.i:40.
 [value] computing for function f <- loop_body <- main.
-    Called from tests/sparecode/bts324_bis.i:22.
+  Called from tests/sparecode/bts324_bis.i:22.
 [value] Recording results for f
 [value] Done for function f
 [value] computing for function f <- loop_body <- main.
-    Called from tests/sparecode/bts324_bis.i:23.
+  Called from tests/sparecode/bts324_bis.i:23.
 [value] Recording results for f
 [value] Done for function f
 [value] Recording results for loop_body
@@ -72,10 +80,11 @@ tests/sparecode/bts324_bis.i:10:[value] warning: signed overflow.
 [from] Computing for function f <-loop_body
 [from] Done for function f
 [from] Done for function loop_body
-tests/sparecode/bts324_bis.i:47:[pdg] warning: no final state. Probably unreachable...
+[pdg] tests/sparecode/bts324_bis.i:47: Warning: 
+  no final state. Probably unreachable...
 [pdg] done for function main
 [sparecode] add selection in function 'main'
-[sparecode] selecting output zones ki[0..1]; k; s0; s1; is_ok; si[0..1]; so[0..1]
+[sparecode] selecting output zones ki[0..1]; k; s0; s1; is_ok; f_si[0..1]; f_so[0..1]
 [sparecode] look for annotations in function f
 [pdg] computing for function f
 [pdg] done for function f
@@ -91,7 +100,7 @@ tests/sparecode/bts324_bis.i:47:[pdg] warning: no final state. Probably unreacha
 [sparecode] add selection in function 'main'
 [sparecode] look for annotations in function main_bis
 [pdg] computing for function main_bis
-[pdg] warning: unreachable entry point (sid:32, function main_bis)
+[pdg] Warning: unreachable entry point (sid:32, function main_bis)
 [pdg] Bottom for function main_bis
 [sparecode] pdg bottom: skip annotations
 [sparecode] finalize call input propagation
@@ -104,13 +113,13 @@ int ki[2];
 int k;
 int f(int vi, int i);
 
-static int si[2] = {0};
-static int so[2] = {0};
+static int f_si[2] = {0};
+static int f_so[2] = {0};
 int f(int vi, int i)
 {
-  int vo = so[i] / k + ki[i] * (vi - si[i]);
-  so[i] = vo;
-  si[i] = vi;
+  int vo = f_so[i] / k + ki[i] * (vi - f_si[i]);
+  f_so[i] = vo;
+  f_si[i] = vi;
   return vo;
 }
 

@@ -23,7 +23,7 @@
    [17] ∈ {8}
    [18] ∈ {9}
    [19] ∈ {0}
-tests/value/find_ivaltop.i:6:[value] entering loop for the first time
+[value] tests/value/find_ivaltop.i:6: entering loop for the first time
 [value] Recording results for main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======
@@ -34,11 +34,11 @@ tests/value/find_ivaltop.i:6:[value] entering loop for the first time
 [from] Computing for function main
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
-    These dependencies hold at termination for the executions that terminate:
+  These dependencies hold at termination for the executions that terminate:
 [from] Function main:
   \result FROM t[0..7]
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function main:
-      i; j; X
+    i; j; X
 [inout] Inputs for function main:
-      t[0..7]
+    t[0..7]

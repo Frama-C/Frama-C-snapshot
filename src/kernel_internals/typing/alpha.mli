@@ -53,6 +53,11 @@ type 'a undoAlphaElement
  * elements can carry some data associated with each occurrence of the name. *)
 type 'a alphaTableData
 
+(** type for alpha conversion table. We split the lookup in two to avoid
+    creating accidental collisions when converting x_0 into x_0_0 if the
+    original code contains both. *)
+type 'a alphaTable = 
+  (string, (string, 'a alphaTableData ref) Hashtbl.t) Hashtbl.t
 
 (** Create a new name based on a given name. The new name is formed from a 
  * prefix (obtained from the given name by stripping a suffix consisting of _ 
@@ -67,27 +72,23 @@ type 'a alphaTableData
  * the new name and, if different from the lookupname, the location of the 
  * previous occurrence. This function knows about the location implicitly 
  * from the [(Cil.CurrentLoc.get ())]. *)
-val newAlphaName: alphaTable:(string, 'a alphaTableData ref) Hashtbl.t ->
+val newAlphaName: alphaTable: 'a alphaTable ->
                   ?undolist: 'a undoAlphaElement list ref ->
                   lookupname:string -> data:'a -> string * 'a
 
 
 (** Register a name with an alpha conversion table to ensure that when later 
   * we call newAlphaName we do not end up generating this one *)
-val registerAlphaName: alphaTable:(string, 'a alphaTableData ref) Hashtbl.t -> 
+val registerAlphaName: alphaTable: 'a alphaTable ->
                        ?undolist: 'a undoAlphaElement list ref ->
                        lookupname:string -> data:'a -> unit
 
-(** Split the name in preparation for newAlphaName. The prefix returned is 
-    used to index into the hashtable. The next result value is a separator 
-    (either empty or the separator chosen to separate the original name from 
-     the index)  *)
-val docAlphaTable: Format.formatter -> 
-                  (string, 'a alphaTableData ref) Hashtbl.t -> unit
-
-
-val getAlphaPrefix: lookupname:string -> string
+(** Split the name in preparation for newAlphaName. Returns a pair 
+    [(prefix, infix)] where [prefix] is the index in the outer table, while
+    infix is the index in the inner table.
+*)
+val getAlphaPrefix: lookupname:string -> string * string
 
 (** Undo the changes to a table *)
-val undoAlphaChanges: alphaTable:(string, 'a alphaTableData ref) Hashtbl.t -> 
+val undoAlphaChanges: alphaTable:'a alphaTable -> 
                       undolist:'a undoAlphaElement list -> unit

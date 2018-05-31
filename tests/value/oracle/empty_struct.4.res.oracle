@@ -5,6 +5,7 @@
 [value:initial-state] Values of globals at initialization
   NULL[rbits 0 to 15] ∈ [--..--]
   s2 ∈ {0}
+  pgs ∈ {{ &gs }}
 [value] Recording results for main2
 [value] done for function main2
 [value] ====== VALUES COMPUTED ======
@@ -13,11 +14,11 @@
 [from] Computing for function main2
 [from] Done for function main2
 [from] ====== DEPENDENCIES COMPUTED ======
-    These dependencies hold at termination for the executions that terminate:
+  These dependencies hold at termination for the executions that terminate:
 [from] Function main2:
   NO EFFECTS
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function main2:
-      ptr_ret
+    ptr_ret
 [inout] Inputs for function main2:
-      \nothing
+    \nothing

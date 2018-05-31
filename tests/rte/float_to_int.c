@@ -1,5 +1,5 @@
 /* run.config
-   OPT: -rte -rte-float-to-int -print -machdep x86_32 -journal-disable
+   OPT: -rte -rte-float-to-int -warn-special-float none -print -machdep x86_32 -journal-disable
 */
 
 void main() {

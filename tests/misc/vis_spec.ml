@@ -5,7 +5,7 @@ class pathcrawlerVisitor prj =
 object(self)
   inherit Visitor.frama_c_copy prj
 
-  method vspec sp =
+  method! vspec sp =
     Format.printf "Considering spec of function %s@."
       (Kernel_function.get_name (Extlib.the self#current_kf));
     (match self#current_func with
@@ -25,7 +25,7 @@ object(self)
 end
 
 let startup () = 
-    let cil_file = Ast.get () in
+    ignore(Ast.get ());
     Format.printf "Starting visit@.";
     let prj = File.create_project_from_visitor "pcanalyzer" 
       (fun prj -> new pathcrawlerVisitor prj)

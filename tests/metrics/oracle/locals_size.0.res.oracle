@@ -5,5 +5,5 @@
 [metrics] level3	9	9	0	0
 [metrics] level2	8	12	9	9
 [metrics] level1	12	16	17	21
-[metrics] user error: in function main, cannot compute sizeof i (type incomplete)
+[metrics] User Error: in function main, cannot compute sizeof i (type incomplete)
 [metrics] main	12	28	29	37

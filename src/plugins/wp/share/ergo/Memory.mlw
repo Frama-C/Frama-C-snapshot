@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2017                                               *)
+(*  Copyright (C) 2007-2018                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -20,7 +20,7 @@
 (*                                                                        *)
 (**************************************************************************)
 
-(* this is the prelude for Alt-Ergo, any versions *)
+(* this is the prelude for Alt-Ergo, version >= 0.95.2 *)
 (** The theory BuiltIn_ must be appended to this file*)
 (** The theory Bool_ must be appended to this file*)
 (** The theory bool_Bool_ must be appended to this file*)
@@ -94,12 +94,16 @@ predicate havoc(m1: (addr,'a) farray, m2: (addr,'a) farray, p: addr,
   (forall q:addr [(m1[p])| (m2[q])]. (separated(q, 1, p, a1) ->
   ((m1[q]) = (m2[q]))))
 
-predicate valid_rd(m: (int,int) farray, p: addr, n: int) = ((0 <  n) ->
-  ((0 <= (p).offset) and (((p).offset + n) <= (m[(p).base]))))
-
 predicate valid_rw(m: (int,int) farray, p: addr, n: int) = ((0 <  n) ->
   ((0 <  (p).base) and ((0 <= (p).offset) and
   (((p).offset + n) <= (m[(p).base])))))
+
+predicate valid_rd(m: (int,int) farray, p: addr, n: int) = ((0 <  n) ->
+  ((not (0 = (p).base)) and ((0 <= (p).offset) and
+  (((p).offset + n) <= (m[(p).base])))))
+
+predicate invalid(m: (int,int) farray, p: addr, n: int) = ((0 <  n) ->
+  (((m[(p).base]) <= (p).offset) or (((p).offset + n) <= 0)))
 
 axiom valid_rw_rd :
   (forall m:(int,int) farray.
@@ -177,13 +181,15 @@ axiom havoc_sym :
   (forall p:addr.
   (forall a1:int. (havoc(m1, m2, p, a1) -> havoc(m2, m1, p, a1)))))
 
-logic cast : addr -> int
+logic int_of_addr : addr -> int
 
-axiom cast_injective :
-  (forall p:addr. forall q:addr [cast(p), cast(q)]. ((cast(p) = cast(q)) ->
-  (p = q)))
+logic addr_of_int : int -> addr
 
-logic hardware : int -> int
+axiom int_of_addr_bijection :
+  (forall a:int. (int_of_addr(addr_of_int(a)) = a))
 
-axiom hardnull : (hardware(0) = 0)
+axiom addr_of_int_bijection :
+  (forall p:addr. (addr_of_int(int_of_addr(p)) = p))
+
+axiom addr_of_null : (int_of_addr(null) = 0)
 

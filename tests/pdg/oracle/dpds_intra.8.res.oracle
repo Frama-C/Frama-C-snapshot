@@ -5,61 +5,78 @@
 [value:initial-state] Values of globals at initialization
   G ∈ [--..--]
   S ∈ [--..--]
-tests/pdg/dpds_intra.c:113:[value] warning: signed overflow. assert b + 1 ≤ 2147483647;
-tests/pdg/dpds_intra.c:113:[value] warning: signed overflow. assert tmp + s.a ≤ 2147483647;
-                     (tmp from b++)
-tests/pdg/dpds_intra.c:114:[value] warning: signed overflow. assert -2147483648 ≤ 2 * a;
-tests/pdg/dpds_intra.c:114:[value] warning: signed overflow. assert 2 * a ≤ 2147483647;
-tests/pdg/dpds_intra.c:124:[value] warning: signed overflow. assert *p + 1 ≤ 2147483647;
+[value:alarm] tests/pdg/dpds_intra.c:113: Warning: 
+  signed overflow. assert b + 1 ≤ 2147483647;
+[value:alarm] tests/pdg/dpds_intra.c:113: Warning: 
+  signed overflow. assert tmp + s.a ≤ 2147483647;
+                   (tmp from b++)
+[value:alarm] tests/pdg/dpds_intra.c:114: Warning: 
+  signed overflow. assert -2147483648 ≤ 2 * a;
+[value:alarm] tests/pdg/dpds_intra.c:114: Warning: 
+  signed overflow. assert 2 * a ≤ 2147483647;
+[value:alarm] tests/pdg/dpds_intra.c:124: Warning: 
+  signed overflow. assert *p + 1 ≤ 2147483647;
 [value] computing for function test_struct <- main.
-    Called from tests/pdg/dpds_intra.c:126.
+  Called from tests/pdg/dpds_intra.c:126.
 [value] Recording results for test_struct
 [value] Done for function test_struct
 [value] computing for function test_if_simple <- main.
-    Called from tests/pdg/dpds_intra.c:127.
-tests/pdg/dpds_intra.c:51:[value] warning: accessing uninitialized left-value. assert \initialized(&x);
+  Called from tests/pdg/dpds_intra.c:127.
+[value:alarm] tests/pdg/dpds_intra.c:51: Warning: 
+  accessing uninitialized left-value. assert \initialized(&x);
 [value] Recording results for test_if_simple
 [value] Done for function test_if_simple
 [value] computing for function test_goto_simple <- main.
-    Called from tests/pdg/dpds_intra.c:128.
+  Called from tests/pdg/dpds_intra.c:128.
 [value] Recording results for test_goto_simple
 [value] Done for function test_goto_simple
 [value] computing for function test_goto_arriere <- main.
-    Called from tests/pdg/dpds_intra.c:129.
-tests/pdg/dpds_intra.c:66:[value] warning: signed overflow. assert -2147483648 ≤ G - 1;
-tests/pdg/dpds_intra.c:65:[value] warning: signed overflow. assert x + 1 ≤ 2147483647;
+  Called from tests/pdg/dpds_intra.c:129.
+[value:alarm] tests/pdg/dpds_intra.c:66: Warning: 
+  signed overflow. assert -2147483648 ≤ G - 1;
+[value:alarm] tests/pdg/dpds_intra.c:65: Warning: 
+  signed overflow. assert x + 1 ≤ 2147483647;
 [value] Recording results for test_goto_arriere
 [value] Done for function test_goto_arriere
-tests/pdg/dpds_intra.c:129:[value] warning: signed overflow.
-    assert res + tmp_3 ≤ 2147483647;
-    (tmp_3 from test_goto_arriere())
+[value:alarm] tests/pdg/dpds_intra.c:129: Warning: 
+  signed overflow.
+  assert res + tmp_3 ≤ 2147483647;
+  (tmp_3 from test_goto_arriere())
 [value] computing for function test_goto_else <- main.
-    Called from tests/pdg/dpds_intra.c:130.
+  Called from tests/pdg/dpds_intra.c:130.
 [value] Recording results for test_goto_else
 [value] Done for function test_goto_else
-tests/pdg/dpds_intra.c:130:[value] warning: signed overflow.
-    assert res + tmp_4 ≤ 2147483647;
-    (tmp_4 from test_goto_else())
+[value:alarm] tests/pdg/dpds_intra.c:130: Warning: 
+  signed overflow.
+  assert res + tmp_4 ≤ 2147483647;
+  (tmp_4 from test_goto_else())
 [value] computing for function test_simple_loop <- main.
-    Called from tests/pdg/dpds_intra.c:131.
-tests/pdg/dpds_intra.c:99:[value] entering loop for the first time
-tests/pdg/dpds_intra.c:100:[value] warning: signed overflow. assert s + 1 ≤ 2147483647;
+  Called from tests/pdg/dpds_intra.c:131.
+[value] tests/pdg/dpds_intra.c:99: entering loop for the first time
+[value:alarm] tests/pdg/dpds_intra.c:100: Warning: 
+  signed overflow. assert s + 1 ≤ 2147483647;
 [value] Recording results for test_simple_loop
 [value] Done for function test_simple_loop
-tests/pdg/dpds_intra.c:131:[value] warning: signed overflow.
-    assert res + tmp_5 ≤ 2147483647;
-    (tmp_5 from test_simple_loop(G))
+[value:alarm] tests/pdg/dpds_intra.c:131: Warning: 
+  signed overflow.
+  assert res + tmp_5 ≤ 2147483647;
+  (tmp_5 from test_simple_loop(G))
 [value] computing for function multiple_global_inputs <- main.
-    Called from tests/pdg/dpds_intra.c:132.
-tests/pdg/dpds_intra.c:35:[value] warning: signed overflow. assert -2147483648 ≤ S.a + G;
-tests/pdg/dpds_intra.c:35:[value] warning: signed overflow. assert S.a + G ≤ 2147483647;
+  Called from tests/pdg/dpds_intra.c:132.
+[value:alarm] tests/pdg/dpds_intra.c:35: Warning: 
+  signed overflow. assert -2147483648 ≤ S.a + G;
+[value:alarm] tests/pdg/dpds_intra.c:35: Warning: 
+  signed overflow. assert S.a + G ≤ 2147483647;
 [value] Recording results for multiple_global_inputs
 [value] Done for function multiple_global_inputs
-tests/pdg/dpds_intra.c:132:[value] warning: signed overflow.
-    assert res + tmp_6 ≤ 2147483647;
-    (tmp_6 from multiple_global_inputs())
-tests/pdg/dpds_intra.c:134:[value] warning: signed overflow. assert -2147483648 ≤ *p + res;
-tests/pdg/dpds_intra.c:134:[value] warning: signed overflow. assert *p + res ≤ 2147483647;
+[value:alarm] tests/pdg/dpds_intra.c:132: Warning: 
+  signed overflow.
+  assert res + tmp_6 ≤ 2147483647;
+  (tmp_6 from multiple_global_inputs())
+[value:alarm] tests/pdg/dpds_intra.c:134: Warning: 
+  signed overflow. assert -2147483648 ≤ *p + res;
+[value:alarm] tests/pdg/dpds_intra.c:134: Warning: 
+  signed overflow. assert *p + res ≤ 2147483647;
 [value] Recording results for main
 [value] done for function main
 [pdg] computing for function multiple_global_inputs

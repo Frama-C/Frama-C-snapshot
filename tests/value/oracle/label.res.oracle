@@ -10,18 +10,22 @@
   i ∈ {0}
   p ∈ {0}
   q ∈ {0}
-tests/value/label.i:18:[value] Assigning imprecise value to *((char *)(& p) + i)
-    (pointing to p with offsets {0}).
-    The imprecision originates from Misaligned {tests/value/label.i:18}
-tests/value/label.i:18:[value] Assigning imprecise value to *((char *)(& p) + i)
-    (pointing to p with offsets {0; 8}).
-    The imprecision originates from Misaligned {tests/value/label.i:18}
-tests/value/label.i:18:[value] Assigning imprecise value to *((char *)(& p) + i)
-    (pointing to p with offsets {0; 8; 16}).
-    The imprecision originates from Misaligned {tests/value/label.i:18}
-tests/value/label.i:18:[value] Assigning imprecise value to *((char *)(& p) + i)
-    (pointing to p with offsets {0; 8; 16; 24}).
-    The imprecision originates from Misaligned {tests/value/label.i:18}
+[value] tests/value/label.i:18: 
+  Assigning imprecise value to *((char *)(& p) + i)
+  (pointing to p with offsets {0}).
+  The imprecision originates from Misaligned {tests/value/label.i:18}
+[value] tests/value/label.i:18: 
+  Assigning imprecise value to *((char *)(& p) + i)
+  (pointing to p with offsets {0; 8}).
+  The imprecision originates from Misaligned {tests/value/label.i:18}
+[value] tests/value/label.i:18: 
+  Assigning imprecise value to *((char *)(& p) + i)
+  (pointing to p with offsets {0; 8; 16}).
+  The imprecision originates from Misaligned {tests/value/label.i:18}
+[value] tests/value/label.i:18: 
+  Assigning imprecise value to *((char *)(& p) + i)
+  (pointing to p with offsets {0; 8; 16; 24}).
+  The imprecision originates from Misaligned {tests/value/label.i:18}
 [value] Recording results for main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======
@@ -35,7 +39,7 @@ tests/value/label.i:18:[value] Assigning imprecise value to *((char *)(& p) + i)
 [from] Computing for function main
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
-    These dependencies hold at termination for the executions that terminate:
+  These dependencies hold at termination for the executions that terminate:
 [from] Function main:
   a FROM \nothing
   b FROM c
@@ -44,6 +48,6 @@ tests/value/label.i:18:[value] Assigning imprecise value to *((char *)(& p) + i)
   q FROM \nothing
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function main:
-      a; b; i; p; q
+    a; b; i; p; q
 [inout] Inputs for function main:
-      i; p; q
+    i; p; q

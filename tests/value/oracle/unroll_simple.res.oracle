@@ -4,10 +4,12 @@
 [value] Initial state computed
 [value:initial-state] Values of globals at initialization
   
-tests/value/unroll_simple.i:8:[value] entering loop for the first time
-tests/value/unroll_simple.i:11:[value] warning: signed overflow. assert -2147483648 ≤ j - 1;
-tests/value/unroll_simple.i:9:[value] warning: signed overflow. assert G + i ≤ 2147483647;
-tests/value/unroll_simple.i:16:[value] entering loop for the first time
+[value] tests/value/unroll_simple.i:8: entering loop for the first time
+[value:alarm] tests/value/unroll_simple.i:11: Warning: 
+  signed overflow. assert -2147483648 ≤ j - 1;
+[value:alarm] tests/value/unroll_simple.i:9: Warning: 
+  signed overflow. assert G + i ≤ 2147483647;
+[value] tests/value/unroll_simple.i:16: entering loop for the first time
 [value] Recording results for main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======
@@ -21,13 +23,13 @@ tests/value/unroll_simple.i:16:[value] entering loop for the first time
 [from] Computing for function main
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
-    These dependencies hold at termination for the executions that terminate:
+  These dependencies hold at termination for the executions that terminate:
 [from] Function main:
   NO EFFECTS
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function main:
-      c; G; i; MAX; JMAX; j; tmp; tmp_unroll_774; tmp_unroll_782; tmp_unroll_790;
-      tmp_unroll_798; tmp_unroll_806; tmp_unroll_814; tmp_unroll_822;
-      tmp_unroll_830; tmp_unroll_838; tmp_unroll_846
+    c; G; i; MAX; JMAX; j; tmp; tmp_unroll_774; tmp_unroll_782; tmp_unroll_790;
+    tmp_unroll_798; tmp_unroll_806; tmp_unroll_814; tmp_unroll_822;
+    tmp_unroll_830; tmp_unroll_838; tmp_unroll_846
 [inout] Inputs for function main:
-      \nothing
+    \nothing

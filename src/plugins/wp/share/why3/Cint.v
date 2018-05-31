@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2017                                               *)
+(*  Copyright (C) 2007-2018                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -26,6 +26,9 @@ Require Import BuiltIn.
 Require BuiltIn.
 Require bool.Bool.
 Require int.Int.
+
+(* Why3 assumption *)
+Definition is_bool (x:Z): Prop := (x = 0%Z) \/ (x = 1%Z).
 
 Require Import Qedlib.
 
@@ -89,6 +92,18 @@ Definition is_uint64 (x:Z): Prop := (0%Z <= x)%Z /\
 (* Why3 assumption *)
 Definition is_sint64 (x:Z): Prop := ((-9223372036854775808%Z)%Z <= x)%Z /\
   (x < 9223372036854775808%Z)%Z.
+
+(* Why3 goal *)
+Definition to_bool: Z -> Z.
+exact (fun x => if ( x =? 0 ) then 0 else 1).
+Defined.
+
+(* Why3 goal *)
+Lemma to_bool_def : forall (x:Z), ((x = 0%Z) -> ((to_bool x) = 0%Z)) /\
+  ((~ (x = 0%Z)) -> ((to_bool x) = 1%Z)).
+Proof.
+intros x. unfold to_bool. induction (Z.eqb_spec x 0%Z) ; intuition.
+Qed.
 
 Open Local Scope Z_scope.
 

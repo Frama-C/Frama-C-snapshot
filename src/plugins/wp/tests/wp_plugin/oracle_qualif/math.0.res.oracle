@@ -1,0 +1,56 @@
+# frama-c -wp [...]
+[kernel] Parsing tests/wp_plugin/math.i (no preprocessing)
+[wp] Running WP plugin...
+[wp] Loading driver 'share/wp.driver'
+[wp] Warning: Missing RTE guards
+[wp] 39 goals scheduled
+[wp] [Alt-Ergo] Goal typed_lemma_abs_neg : Valid
+[wp] [Alt-Ergo] Goal typed_lemma_abs_pos : Valid
+[wp] [Alt-Ergo] Goal typed_lemma_atan_sin_cos : Valid
+[wp] [Alt-Ergo] Goal typed_lemma_cosh_opp : Valid
+[wp] [Alt-Ergo] Goal typed_lemma_distance : Valid
+[wp] [Alt-Ergo] Goal typed_lemma_exp_log_add_mul : Valid
+[wp] [Qed] Goal typed_lemma_exp_pos : Valid
+[wp] [Alt-Ergo] Goal typed_lemma_log_exp_mul_add : Valid
+[wp] [Qed] Goal typed_lemma_max_ac : Valid
+[wp] [Alt-Ergo] Goal typed_lemma_max_inf : Valid
+[wp] [Alt-Ergo] Goal typed_lemma_max_or : Valid
+[wp] [Qed] Goal typed_lemma_min_ac : Valid
+[wp] [Alt-Ergo] Goal typed_lemma_min_inf : Valid
+[wp] [Alt-Ergo] Goal typed_lemma_min_or : Valid
+[wp] [Alt-Ergo] Goal typed_lemma_pow_2 : Valid
+[wp] [Alt-Ergo] Goal typed_lemma_sinh_opp : Valid
+[wp] [Alt-Ergo] Goal typed_lemma_sqrt_mono : Valid
+[wp] [Alt-Ergo] Goal typed_lemma_sqrt_pos : Valid
+[wp] [Alt-Ergo] Goal typed_lemma_tanh_opp : Valid
+[wp] [Alt-Ergo] Goal typed_ko_post_ko_sin_asin : Timeout
+[wp] [Alt-Ergo] Goal typed_ko_post_ko_cos_acos : Timeout
+[wp] [Alt-Ergo] Goal typed_ko_post_ko_asin_sin : Timeout
+[wp] [Alt-Ergo] Goal typed_ko_post_ko_acos_cos : Timeout
+[wp] [Alt-Ergo] Goal typed_ko_post_ko_atan_tan : Timeout
+[wp] [Alt-Ergo] Goal typed_ko_post_ko_log_pow : Timeout
+[wp] [Alt-Ergo] Goal typed_ko_post_ko_exp_log : Timeout
+[wp] [Alt-Ergo] Goal typed_ko_post_ko_exp_log_add_mul : Timeout
+[wp] [Alt-Ergo] Goal typed_ko_post_ko_sqrt_pos : Timeout
+[wp] [Alt-Ergo] Goal typed_ok_post_sin_asin : Valid
+[wp] [Alt-Ergo] Goal typed_ok_post_sin_asin_in_range : Valid
+[wp] [Alt-Ergo] Goal typed_ok_post_cos_acos : Valid
+[wp] [Alt-Ergo] Goal typed_ok_post_cos_acos_in_range : Valid
+[wp] [Qed] Goal typed_ok_post_tan_atan : Valid
+[wp] [Alt-Ergo] Goal typed_ok_post_log_pow : Valid
+[wp] [Qed] Goal typed_ok_post_log_exp : Valid
+[wp] [Alt-Ergo] Goal typed_ok_post_exp_log : Valid
+[wp] [Alt-Ergo] Goal typed_ok_post_min_plus_distrib : Valid
+[wp] [Alt-Ergo] Goal typed_ok_post_sqrt_pos : Valid
+[wp] [Alt-Ergo] Goal typed_ok_post_sqrt_pos0 : Valid
+[wp] Proved goals:   30 / 39
+  Qed:             5 
+  Alt-Ergo:       25  (interrupted: 9)
+-------------------------------------------------------------
+Axiomatics          WP     Alt-Ergo        Total   Success
+Lemma                3     16               19       100%
+-------------------------------------------------------------
+Functions           WP     Alt-Ergo        Total   Success
+ok                   2      9               11       100%
+ko                  -      -                 9       0.0%
+-------------------------------------------------------------

@@ -5,10 +5,13 @@
 [value:initial-state] Values of globals at initialization
   p ∈ {0}
   t[0..89] ∈ {0}
-tests/value/logic_ptr_cast.i:8:[value] Assigning imprecise value to p.
-    The imprecision originates from Arithmetic {tests/value/logic_ptr_cast.i:8}
-tests/value/logic_ptr_cast.i:9:[value] warning: assertion got status unknown.
-tests/value/logic_ptr_cast.i:14:[value] Frama_C_show_each: {{ &t + {0; 1; 2; 3; 4; 5; 6; 7} }}
+[value] tests/value/logic_ptr_cast.i:8: 
+  Assigning imprecise value to p.
+  The imprecision originates from Arithmetic {tests/value/logic_ptr_cast.i:8}
+[value:alarm] tests/value/logic_ptr_cast.i:9: Warning: 
+  assertion got status unknown.
+[value] tests/value/logic_ptr_cast.i:14: 
+  Frama_C_show_each: {{ &t + {0; 1; 2; 3; 4; 5; 6; 7} }}
 [value] Recording results for main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======

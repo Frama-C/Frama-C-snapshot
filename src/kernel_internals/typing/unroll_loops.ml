@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2017                                               *)
+(*  Copyright (C) 2007-2018                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -26,7 +26,7 @@ open Cil_types
 open Cil
 open Visitor
 
-let dkey = Kernel.register_category "ulevel"
+let dkey = Kernel.dkey_ulevel
 
 type loop_pragmas_info =
   { unroll_number: int option;

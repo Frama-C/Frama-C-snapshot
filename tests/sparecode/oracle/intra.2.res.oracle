@@ -8,8 +8,8 @@
   X10 ∈ {0}
   Y10 ∈ {0}
 [value] computing for function f10 <- main2.
-    Called from tests/sparecode/intra.i:115.
-tests/sparecode/intra.i:109:[value] assertion got status valid.
+  Called from tests/sparecode/intra.i:115.
+[value] tests/sparecode/intra.i:109: assertion got status valid.
 [value] Recording results for f10
 [value] Done for function f10
 [value] Recording results for main2
@@ -21,33 +21,34 @@ tests/sparecode/intra.i:109:[value] assertion got status valid.
 [pdg] computing for function f10
 [pdg] done for function f10
 [pdg] computing for function assign
-[pdg] warning: unreachable entry point (sid:32, function assign)
+[pdg] Warning: unreachable entry point (sid:32, function assign)
 [pdg] Bottom for function assign
 [pdg] computing for function call_two_outputs
-[pdg] warning: unreachable entry point (sid:20, function call_two_outputs)
+[pdg] Warning: unreachable entry point (sid:20, function call_two_outputs)
 [pdg] Bottom for function call_two_outputs
 [pdg] computing for function loop
-[pdg] warning: unreachable entry point (sid:35, function loop)
+[pdg] Warning: unreachable entry point (sid:35, function loop)
 [pdg] Bottom for function loop
 [pdg] computing for function main
-[pdg] warning: unreachable entry point (sid:46, function main)
+[pdg] Warning: unreachable entry point (sid:46, function main)
 [pdg] Bottom for function main
 [pdg] computing for function param
-[pdg] warning: unreachable entry point (sid:11, function param)
+[pdg] Warning: unreachable entry point (sid:11, function param)
 [pdg] Bottom for function param
 [pdg] computing for function spare_called_fct
-[pdg] warning: unreachable entry point (sid:14, function spare_called_fct)
+[pdg] Warning: unreachable entry point (sid:14, function spare_called_fct)
 [pdg] Bottom for function spare_called_fct
 [pdg] computing for function stop
 [from] Computing for function stop
-tests/sparecode/intra.i:110:[kernel] warning: Neither code nor specification for function stop, generating default assigns from the prototype
+[kernel:annot:missing-spec] tests/sparecode/intra.i:110: Warning: 
+  Neither code nor specification for function stop, generating default assigns from the prototype
 [from] Done for function stop
 [pdg] done for function stop
 [pdg] computing for function tmp
-[pdg] warning: unreachable entry point (sid:1, function tmp)
+[pdg] Warning: unreachable entry point (sid:1, function tmp)
 [pdg] Bottom for function tmp
 [pdg] computing for function two_outputs
-[pdg] warning: unreachable entry point (sid:16, function two_outputs)
+[pdg] Warning: unreachable entry point (sid:16, function two_outputs)
 [pdg] Bottom for function two_outputs
 [sparecode] remove unused global declarations...
 [sparecode] result in new project 'default without sparecode'.

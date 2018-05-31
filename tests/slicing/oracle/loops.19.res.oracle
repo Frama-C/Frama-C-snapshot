@@ -10,14 +10,15 @@
   Y ∈ {0}
   Z ∈ {0}
 [value] computing for function may_write_Y_from_Z <- main.
-    Called from tests/slicing/loops.i:199.
+  Called from tests/slicing/loops.i:199.
 [value] using specification for function may_write_Y_from_Z
 [value] Done for function may_write_Y_from_Z
 [value] computing for function loop <- main.
-    Called from tests/slicing/loops.i:202.
-tests/slicing/loops.i:176:[value] entering loop for the first time
-tests/slicing/loops.i:183:[value] assertion got status valid.
-tests/slicing/loops.i:179:[value] warning: signed overflow. assert X + 1 ≤ 2147483647;
+  Called from tests/slicing/loops.i:202.
+[value] tests/slicing/loops.i:176: entering loop for the first time
+[value] tests/slicing/loops.i:183: assertion got status valid.
+[value:alarm] tests/slicing/loops.i:179: Warning: 
+  signed overflow. assert X + 1 ≤ 2147483647;
 [value] Recording results for loop
 [value] Done for function loop
 [value] Recording results for main
@@ -31,7 +32,7 @@ tests/slicing/loops.i:179:[value] warning: signed overflow. assert X + 1 ≤ 214
 [from] Non-terminating function main (no dependencies)
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
-    These dependencies hold at termination for the executions that terminate:
+  These dependencies hold at termination for the executions that terminate:
 [from] Function loop:
   NON TERMINATING - NO EFFECTS
 [from] Function may_write_Y_from_Z:
@@ -50,7 +51,8 @@ tests/slicing/loops.i:179:[value] warning: signed overflow. assert X + 1 ≤ 214
 [slicing] applying 1 actions...
 [slicing] applying actions: 1/1...
 [pdg] computing for function main
-tests/slicing/loops.i:204:[pdg] warning: no final state. Probably unreachable...
+[pdg] tests/slicing/loops.i:204: Warning: 
+  no final state. Probably unreachable...
 [pdg] done for function main
 [slicing] exporting project to 'Slicing export'...
 [slicing] applying all slicing requests...

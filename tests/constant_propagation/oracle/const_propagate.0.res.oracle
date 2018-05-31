@@ -19,44 +19,47 @@
   d2 ∈ {0}
   d3 ∈ {0}
 [value] computing for function test_ull <- main.
-    Called from tests/constant_propagation/const_propagate.c:78.
+  Called from tests/constant_propagation/const_propagate.c:78.
 [value] Recording results for test_ull
 [value] Done for function test_ull
 [value] computing for function test_struct <- main.
-    Called from tests/constant_propagation/const_propagate.c:79.
+  Called from tests/constant_propagation/const_propagate.c:79.
 [value] Recording results for test_struct
 [value] Done for function test_struct
 [value] computing for function test_struct_ptr <- main.
-    Called from tests/constant_propagation/const_propagate.c:80.
+  Called from tests/constant_propagation/const_propagate.c:80.
 [value] Recording results for test_struct_ptr
 [value] Done for function test_struct_ptr
 [value] computing for function test_tab <- main.
-    Called from tests/constant_propagation/const_propagate.c:81.
+  Called from tests/constant_propagation/const_propagate.c:81.
 [value] Recording results for test_tab
 [value] Done for function test_tab
 [value] computing for function test_float_double <- main.
-    Called from tests/constant_propagation/const_propagate.c:82.
+  Called from tests/constant_propagation/const_propagate.c:82.
 [value] Recording results for test_float_double
 [value] Done for function test_float_double
 [value] computing for function init <- main.
-    Called from tests/constant_propagation/const_propagate.c:84.
+  Called from tests/constant_propagation/const_propagate.c:84.
 [value] computing for function add3 <- init <- main.
-    Called from tests/constant_propagation/const_propagate.c:56.
+  Called from tests/constant_propagation/const_propagate.c:56.
 [value] Recording results for add3
 [value] Done for function add3
 [value] Recording results for init
 [value] Done for function init
 [value] computing for function add3 <- main.
-    Called from tests/constant_propagation/const_propagate.c:85.
+  Called from tests/constant_propagation/const_propagate.c:85.
 [value] Recording results for add3
 [value] Done for function add3
 [value] computing for function test_ptr <- main.
-    Called from tests/constant_propagation/const_propagate.c:87.
+  Called from tests/constant_propagation/const_propagate.c:87.
 [value] Recording results for test_ptr
 [value] Done for function test_ptr
-tests/constant_propagation/const_propagate.c:88:[value] assertion got status valid.
-tests/constant_propagation/const_propagate.c:91:[value] warning: assertion got status unknown.
-tests/constant_propagation/const_propagate.c:92:[value] assertion got status valid.
+[value] tests/constant_propagation/const_propagate.c:88: 
+  assertion got status valid.
+[value:alarm] tests/constant_propagation/const_propagate.c:91: Warning: 
+  assertion got status unknown.
+[value] tests/constant_propagation/const_propagate.c:92: 
+  assertion got status valid.
 [value] Recording results for main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======
@@ -276,7 +279,7 @@ void main(int a)
 [from] Computing for function main
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
-    These dependencies hold at termination for the executions that terminate:
+  These dependencies hold at termination for the executions that terminate:
 [from] Function add3:
   \result FROM v1; v2; v3
 [from] Function init:
@@ -322,39 +325,39 @@ void main(int a)
   d3 FROM d0
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function add3:
-      __retres
+    __retres
 [inout] Inputs for function add3:
-      \nothing
+    \nothing
 [inout] Out (internal) for function init:
-      x; y; z; zero; sept; z1
+    x; y; z; zero; sept; z1
 [inout] Inputs for function init:
-      x; y; z
+    x; y; z
 [inout] Out (internal) for function test_float_double:
-      f1; f2; f3; d1; d2; d3
+    f1; f2; f3; d1; d2; d3
 [inout] Inputs for function test_float_double:
-      f0; f1; f2; d0; d1; d2
+    f0; f1; f2; d0; d1; d2
 [inout] Out (internal) for function test_ptr:
-      x; p; s; decal; __retres
+    x; p; s; decal; __retres
 [inout] Inputs for function test_ptr:
-      \nothing
+    \nothing
 [inout] Out (internal) for function test_struct:
-      s1; s2; s
+    s1; s2; s
 [inout] Inputs for function test_struct:
-      s1.a
+    s1.a
 [inout] Out (internal) for function test_struct_ptr:
-      q; __retres
+    q; __retres
 [inout] Inputs for function test_struct_ptr:
-      \nothing
+    \nothing
 [inout] Out (internal) for function test_tab:
-      TAB{[1]; [4..5]}; s2.b; r; q; decal
+    TAB{[1]; [4..5]}; s2.b; r; q; decal
 [inout] Inputs for function test_tab:
-      TAB[2]; s1.b; s2.b
+    TAB[2]; s1.b; s2.b
 [inout] Out (internal) for function test_ull:
-      ull
+    ull
 [inout] Inputs for function test_ull:
-      ull
+    ull
 [inout] Out (internal) for function main:
-      x; y; z; TAB{[1]; [4..5]}; s1; s2; ull; f1; f2; f3; d1; d2; d3; b; 
-      p; q; tmp_1; yy
+    x; y; z; TAB{[1]; [4..5]}; s1; s2; ull; f1; f2; f3; d1; d2; d3; b; 
+    p; q; tmp_1; yy
 [inout] Inputs for function main:
-      x; y; z; TAB[2]; s1; s2.b; ull; f0; f1; f2; d0; d1; d2
+    x; y; z; TAB[2]; s1; s2.b; ull; f0; f1; f2; d0; d1; d2

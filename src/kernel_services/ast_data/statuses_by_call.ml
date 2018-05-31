@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2017                                               *)
+(*  Copyright (C) 2007-2018                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -72,43 +72,156 @@ let all_functions_with_preconditions stmt =
     with Not_found -> Kernel_function.Hptset.empty
 
 
+exception Non_Transposable
+
+let rec replace_formal_by_concrete vinfo = function
+  | [] -> raise Non_Transposable
+  | (formal, term) :: tl ->
+    if vinfo.vid = formal.vid
+    then term
+    else replace_formal_by_concrete vinfo tl
+
+(* Visitor to replace formal parameters by concrete arguments, given by the
+   association list [arguments]. Also replaces logic label Pre by Here (valid at
+   the call site).
+   Raises Non_Transposable if the address of a formal is used, or if a formal is
+   used under a label different from Pre and Here (the formal would be out of
+   scope, but possibly not the concrete argument). *)
+let replacement_visitor ~arguments = object (self)
+  inherit Visitor.frama_c_copy (Project.current ())
+
+  val mutable under_label = false
+
+  method private is_under_label = function
+    | BuiltinLabel (Pre | Here) -> false
+    | _ -> true
+
+  method private replace_tlval tlval =
+    let t_lhost, t_offset = tlval in
+    match t_lhost with
+    | TMem _ ->
+      let normalise_lval = function
+        | TLval ((TMem {term_node=TAddrOf lv}), ofs) ->
+          TLval (Logic_const.addTermOffsetLval ofs lv)
+        | TLval ((TMem {term_node=TStartOf lv}), ofs) ->
+          TLval (Logic_const.addTermOffsetLval (TIndex (Cil.lzero (), ofs)) lv)
+        | x -> x
+      in
+      Cil.DoChildrenPost normalise_lval
+    | TVar { lv_origin = Some vinfo } when vinfo.vformal ->
+      if under_label then raise Non_Transposable;
+      begin
+        let new_term = replace_formal_by_concrete vinfo arguments in
+        let add_offset lv = TLval (Logic_const.addTermOffsetLval t_offset lv) in
+        match new_term.term_node with
+        | TLval lv -> Cil.ChangeDoChildrenPost (add_offset lv, fun x -> x)
+        | _ ->
+          if t_offset = TNoOffset
+          then Cil.ChangeTo new_term.term_node
+          else
+            let ltyp = new_term.term_type in
+            let tmp_lvar = Cil.make_temp_logic_var ltyp in
+            let tmp_linfo =
+              { l_var_info = tmp_lvar; l_body = LBterm new_term;
+                l_type = None; l_tparams = []; l_labels = []; l_profile = [];  }
+            in
+            let lval_node = TLval (TVar tmp_lvar, t_offset) in
+            let lval_term = Tlet (tmp_linfo, Logic_const.term lval_node ltyp) in
+            Cil.ChangeDoChildrenPost (lval_term, fun x -> x)
+      end
+    | _ -> Cil.DoChildren
+
+  method! vterm_node = function
+    | TConst _ | TSizeOf _ | TSizeOfStr _
+    | TAlignOf _ | Tnull | Ttype _ | Tempty_set -> Cil.SkipChildren
+    | TLval tlval -> self#replace_tlval tlval
+    | TAddrOf tlval ->
+      begin
+        match fst tlval with
+        | TVar { lv_origin = Some vinfo } when vinfo.vformal ->
+          raise Non_Transposable
+        | _ -> Cil.DoChildren
+      end
+    | Tat (_, label) ->
+      let previous_label = under_label in
+      under_label <- self#is_under_label label;
+      Cil.DoChildrenPost (fun t -> under_label <- previous_label; t)
+    | _ -> Cil.DoChildren
+
+  method! vlogic_label = function
+    | BuiltinLabel Pre ->
+      Cil.ChangeDoChildrenPost (Logic_const.here_label, fun x -> x)
+    | _ -> Cil.DoChildren
+end
+
+(* Associates each formal to a term corresponding to the concrete argument. *)
+let rec associate acc ~formals ~concretes =
+  match formals, concretes with
+  | [], _ -> acc
+  | _, [] -> raise Non_Transposable
+  | formal :: formals, concrete :: concretes ->
+    let term = Logic_utils.expr_to_term ~cast:true concrete in
+    associate ((formal, term) :: acc) ~formals ~concretes
+
+let transpose_pred_at_callsite ~formals ~concretes pred =
+  let pred = Logic_const.pred_of_id_pred pred in
+  try
+    let arguments = associate [] ~formals ~concretes in
+    let visitor :> Cil.cilVisitor = replacement_visitor arguments in
+    let new_pred = Cil.visitCilPredicateNode visitor pred.pred_content in
+    let p_unnamed = Logic_const.unamed ~loc:pred.pred_loc new_pred in
+    let p_named = { p_unnamed with pred_name = pred.pred_name } in
+    Some (Logic_const.new_predicate p_named)
+  with Non_Transposable -> None
+
+
 (* Map from [requires * stmt] to the specialization of the requires
    at the statement. Only present if the kernel function that contains
    the requires can be called at the statement. *)
-module PreCondAt = 
+module PreCondAt =
   State_builder.Hashtbl(PropStmt.Hashtbl)(Property)
     (struct
       let size = 37
       let dependencies = [ Ast.self ]
       let name = "Statuses_by_call.PreCondAt"
-     end)
+    end)
 
-let rec precondition_at_call kf pid stmt =
+(* Transposes the precondition property [pid] of the called function [kf]
+   at call site [stmt], with arguments [args], result assigned in [result],
+   and function expression [funcexp]. *)
+let rec transpose_precondition stmt pid kf funcexp args =
+  let formals = Kernel_function.get_formals kf in
+  let ip = match pid with
+    | Property.IPPredicate (_, _, _, ip) -> ip
+    | _ -> assert false
+  in
+  let ip = transpose_pred_at_callsite ~formals ~concretes:args ip in
+  let kf_call = Kernel_function.find_englobing_kf stmt in
+  let p = Property.ip_property_instance kf_call stmt ip pid in
+  PreCondAt.add (pid, stmt) p;
+  (match funcexp.enode with
+   | Lval (Var vkf, NoOffset) ->
+     assert (Cil_datatype.Varinfo.equal vkf (Kernel_function.get_vi kf))
+   | _ ->
+     let loc = Cil_datatype.Stmt.loc stmt in
+     Kernel.debug ~source:(fst loc)
+       "Adding precondition for call to %a through pointer"
+       Kernel_function.pretty kf;
+     add_called_function stmt kf;
+     add_call_precondition pid p
+  );
+  p
+
+and precondition_at_call kf pid stmt =
   try PreCondAt.find (pid, stmt)
   with Not_found ->
-    let loc = (Cil_datatype.Stmt.loc stmt) in
-    let kf_call = Kernel_function.find_englobing_kf stmt in
-    let p = Property.ip_property_instance (Some kf_call) (Kstmt stmt) pid in
-    PreCondAt.add (pid, stmt) p;
-    (match stmt.skind with
-    | Instr(Call(_, e, _, _)) ->
-      (match e.enode with
-      | Lval (Var vkf, NoOffset) ->
-        assert
-          (Cil_datatype.Varinfo.equal vkf (Kernel_function.get_vi kf))
-      | _ ->
-        Kernel.debug ~source:(fst loc)
-          "Adding precondition for call to %a through pointer"
-          Kernel_function.pretty kf;
-        add_called_function stmt kf;
-        add_call_precondition pid p
-      )
-    | Instr (Local_init(_, ConsInit(vkf,_,_),_)) ->
-      assert
-        (Cil_datatype.Varinfo.equal vkf (Kernel_function.get_vi kf))
-    | _ -> assert false (* meaningless on a non-call statement *)
-    );
-    p
+    let do_call = transpose_precondition stmt pid kf in
+    match stmt.skind with
+    | Instr (Call (_, funcexp, args, _)) -> do_call funcexp args
+    | Instr (Local_init (v, ConsInit (f, args, kind), loc)) ->
+      let do_call _result funcexp args _loc = do_call funcexp args in
+      Cil.treat_constructor_as_func do_call v f args kind loc
+    | _ -> assert false
 
 and setup_precondition_proxy called_kf precondition =
   if not (PreCondProxyGenerated.mem precondition) then begin
@@ -132,14 +245,14 @@ and add_call_precondition precondition call_precondition =
 
 let fold_requires f kf acc =
   let bhvs = Annotations.behaviors ~populate:false kf in
-  List.fold_left
-    (fun acc bhv -> List.fold_left (f bhv) acc bhv.b_requires) acc bhvs
+  List.fold_right
+    (fun bhv acc -> List.fold_right (f bhv) bhv.b_requires acc) bhvs acc
 
 
 (* Properties for kf-preconditions at call-site stmt, if created.
    Returns both the initial property and its copy at call site. *)
 let all_call_preconditions_at ~warn_missing kf stmt =
-  let aux bhv properties precond =
+  let aux bhv precond properties =
     let pid_spec = Property.ip_of_requires kf Kglobal bhv precond in
     if PreCondAt.mem (pid_spec, stmt) then
       let pid_call = precondition_at_call kf pid_spec stmt in
@@ -154,7 +267,7 @@ let all_call_preconditions_at ~warn_missing kf stmt =
   fold_requires aux kf []
 
 let setup_all_preconditions_proxies kf =
-  let aux bhv () req =
+  let aux bhv req () =
     let ip = Property.ip_of_requires kf Kglobal bhv req in
     setup_precondition_proxy kf ip
   in

@@ -15,7 +15,7 @@
       [1] ∈ {0}
   ACtrl[0] ∈ {{ &Ctrl[0] }}
        [1] ∈ {{ &Ctrl[1] }}
-tests/value/pointer_loop.i:13:[value] entering loop for the first time
+[value] tests/value/pointer_loop.i:13: entering loop for the first time
 [value] Recording results for main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======
@@ -28,13 +28,13 @@ tests/value/pointer_loop.i:13:[value] entering loop for the first time
 [from] Computing for function main
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
-    These dependencies hold at termination for the executions that terminate:
+  These dependencies hold at termination for the executions that terminate:
 [from] Function main:
   base1 FROM base_p[0..1] (and SELF)
   base2 FROM base_p[0..1] (and SELF)
   Ctrl_p FROM base_p[0..1] (and SELF)
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function main:
-      base1; base2; Ctrl_p; i; Elements
+    base1; base2; Ctrl_p; i; Elements
 [inout] Inputs for function main:
-      base_p[0..1]; Ctrl_p
+    base_p[0..1]; Ctrl_p

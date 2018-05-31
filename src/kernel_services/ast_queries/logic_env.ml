@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2017                                               *)
+(*  Copyright (C) 2007-2018                                               *)
 (*    CEA   (Commissariat à l'énergie atomique et aux énergies            *)
 (*           alternatives)                                                *)
 (*    INRIA (Institut National de Recherche en Informatique et en         *)
@@ -34,7 +34,7 @@ let error (b,_e) fstring =
 module Logic_builtin =
   State_builder.Hashtbl
     (Datatype.String.Hashtbl)
-    (Cil_datatype.Builtin_logic_info)
+    (Datatype.List(Cil_datatype.Builtin_logic_info))
     (struct
        let name = "Logic_env.Logic_builtin"
        let dependencies = []
@@ -44,25 +44,22 @@ module Logic_builtin =
 module Logic_info =
   State_builder.Hashtbl
     (Datatype.String.Hashtbl)
-    (Cil_datatype.Logic_info)
+    (Datatype.List(Cil_datatype.Logic_info))
     (struct
        let name = "Logic_env.Logic_info"
        let dependencies = [ Logic_builtin.self ]
        let size = 17
      end)
 
-module Logic_builtin_used = struct
-  include State_builder.Ref
-    (Cil_datatype.Logic_info.Set)
+module Logic_builtin_used =
+  State_builder.Hashtbl
+    (Datatype.String.Hashtbl)
+    (Datatype.List(Cil_datatype.Logic_info))
     (struct
       let name = "Logic_env.Logic_builtin_used"
       let dependencies = [ Logic_builtin.self; Logic_info.self ]
-      let default () = Cil_datatype.Logic_info.Set.empty
+      let size = 17
      end)
-  let add li = set (Cil_datatype.Logic_info.Set.add li (get()))
-  let mem li = Cil_datatype.Logic_info.Set.mem li (get())
-  let iter f = Cil_datatype.Logic_info.Set.iter f (get())
-end
 
 module Logic_type_builtin =
   State_builder.Hashtbl
@@ -143,12 +140,15 @@ let builtin_to_logic b =
     List.map (fun (x, t) -> Cil_const.make_logic_var_formal x t) b.bl_profile
   in
   let li = Cil_const.make_logic_info b.bl_name in
+  (* In case we have a logic constant, we might use the lv_type field
+     as well as l_type. *)
+  (match b.bl_type, b.bl_profile with
+   | Some t, [] -> li.l_var_info.lv_type <- t;
+   | None, _ | Some _, _::_ -> ());
   li.l_type <- b.bl_type;
   li.l_tparams <- b.bl_params;
   li.l_profile <- params;
   li.l_labels <- b.bl_labels;
-  Logic_builtin_used.add li;
-  Logic_info.add b.bl_name li;
   li
 
 let is_builtin_logic_function = Logic_builtin.mem
@@ -156,23 +156,21 @@ let is_builtin_logic_function = Logic_builtin.mem
 let is_logic_function s = is_builtin_logic_function s || Logic_info.mem s
 
 let find_all_logic_functions s =
-  match Logic_info.find_all s with
-  | [] ->
-    let builtins = Logic_builtin.find_all s in
-    let res = List.map builtin_to_logic builtins in
-	(*        Format.printf "builtin func:@.";
-		  List.iter (fun x -> Format.printf "%s#%d@." x.l_var_info.lv_name x.l_var_info.lv_id) res;
-	 *)
-    res
-  | l ->
-	(*        Format.printf "func in env:@.";
-		  List.iter (fun x -> Format.printf "%s#%d@." x.l_var_info.lv_name x.l_var_info.lv_id) l; *)
-    l
+  match Logic_info.find s with
+    | l -> l
+    | exception Not_found ->
+      try
+        let builtins = Logic_builtin.find s in
+        let res = List.map builtin_to_logic builtins in
+        Logic_builtin_used.add s res;
+        Logic_info.add s res;
+        res
+      with Not_found -> []
 
 let find_logic_cons vi =
   List.find
     (fun x -> Cil_datatype.Logic_var.equal x.l_var_info vi)
-    (Logic_info.find_all vi.lv_name)
+    (Logic_info.find vi.lv_name)
 
 (* add_logic_function takes as argument a function eq_logic_info which
    decides whether two logic_info are identical. It is intended to be
@@ -181,22 +179,41 @@ let find_logic_cons vi =
    Logic_utils <- Cil <- Logic_env
 *)
 
-let add_logic_function_gen is_same_profile l =
-  if is_builtin_logic_function l.l_var_info.lv_name then
-    error (CurrentLoc.get())
-      "logic function or predicate %s is built-in. You can not redefine it"
-      l.l_var_info.lv_name
-  ;
-  List.iter
-    (fun li ->
-       if is_same_profile li l then
-	 error (CurrentLoc.get ())
-	   "already declared logic function or predicate %s with same profile"
-	   l.l_var_info.lv_name)
-    (Logic_info.find_all l.l_var_info.lv_name);
-  Logic_info.add l.l_var_info.lv_name l
+let add_logic_function_gen is_same_profile li =
+  let name = li.l_var_info.lv_name in
+  if is_builtin_logic_function name then
+    error
+      (CurrentLoc.get())
+      "logic function or predicate %s is built-in. You cannot redefine it"
+      name;
+  match Logic_info.find name with
+    | l ->
+        List.iter
+          (fun li' ->
+            if is_same_profile li li' then
+              error
+                (CurrentLoc.get ())
+                "already declared logic function or predicate %s \
+                 with same profile"
+                name)
+          l;
+        Logic_info.replace name (li::l)
+    | exception Not_found -> Logic_info.add name [li]
 
 let remove_logic_function = Logic_info.remove
+
+let remove_logic_info_gen is_same_profile li =
+  let name = li.l_var_info.lv_name in
+  if Logic_info.mem name then
+    begin
+      if is_builtin_logic_function name then Logic_info.remove name
+      else
+        begin
+          let l = Logic_info.find name in
+          let l' = List.filter (fun li' -> not (is_same_profile li li')) l in
+          Logic_info.replace name l'
+        end
+    end
 
 let is_logic_type = Logic_type_info.mem
 let find_logic_type = Logic_type_info.find
@@ -205,7 +222,6 @@ let add_logic_type t infos =
     (* type variables hide type definitions on their scope *)
   then error (CurrentLoc.get ()) "logic type %s already declared" t
   else Logic_type_info.add t infos
-let remove_logic_type = Logic_type_info.remove
 
 let is_logic_ctor = Logic_ctor_info.mem
 let find_logic_ctor = Logic_ctor_info.find
@@ -214,6 +230,16 @@ let add_logic_ctor c infos =
   then error (CurrentLoc.get ()) "logic constructor %s already declared" c
   else Logic_ctor_info.add c infos
 let remove_logic_ctor = Logic_ctor_info.remove
+
+let remove_logic_type s =
+  try
+    let info = Logic_type_info.find s in
+    (match info.lt_def with
+     | None | Some (LTsyn _) -> ()
+     | Some (LTsum cons) ->
+       List.iter (fun { ctor_name } -> remove_logic_ctor ctor_name) cons);
+    Logic_type_info.remove s
+  with Not_found -> ()
 
 let is_model_field = Model_info.mem
 
@@ -275,7 +301,7 @@ let prepare_tables () =
   Model_info.clear ();
   Logic_type_builtin.iter Logic_type_info.add;
   Logic_ctor_builtin.iter Logic_ctor_info.add;
-  Logic_builtin_used.iter (fun x -> Logic_info.add x.l_var_info.lv_name x)
+  Logic_builtin_used.iter Logic_info.add
 
 (** C typedefs *)
 (**
@@ -295,16 +321,20 @@ let typename_status t =
 let builtin_types_as_typenames () =
   Logic_type_builtin.iter (fun x _ -> add_typename x)
 
-let add_builtin_logic_function_gen is_same_profile l =
-  List.iter
-    (fun li ->
-       if is_same_profile li l then
-	 error (CurrentLoc.get ())
-	   "already declared builtin logic function or predicate \
-            %s with same profile"
-	   l.bl_name)
-    (Logic_builtin.find_all l.bl_name);
-  Logic_builtin.add l.bl_name l
+let add_builtin_logic_function_gen is_same_profile bl =
+  let name = bl.bl_name in
+  if Logic_builtin.mem name then begin
+      let l = Logic_builtin.find name in
+      List.iter
+        (fun bl' ->
+          if is_same_profile bl bl' then
+            error (CurrentLoc.get ())
+                  "already declared builtin logic function or predicate \
+                   %s with same profile"
+                  bl.bl_name)
+        l;
+      Logic_builtin.add name (bl::l)
+    end else Logic_builtin.add name [bl]
 
 let add_builtin_logic_type name infos =
   if not (Logic_type_builtin.mem name) then begin
@@ -319,7 +349,8 @@ let add_builtin_logic_ctor name infos =
     add_logic_ctor name infos
   end
 
-let iter_builtin_logic_function f = Logic_builtin.iter (fun _ info -> f info)
+let iter_builtin_logic_function f =
+  Logic_builtin.iter (fun _ info -> List.iter f info)
 let iter_builtin_logic_type f = Logic_type_builtin.iter (fun _ info -> f info)
 let iter_builtin_logic_ctor f = Logic_ctor_builtin.iter (fun _ info -> f info)
 

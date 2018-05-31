@@ -2,7 +2,7 @@
 /*                                                                        */
 /*  This file is part of Frama-C.                                         */
 /*                                                                        */
-/*  Copyright (C) 2007-2017                                               */
+/*  Copyright (C) 2007-2018                                               */
 /*    CEA (Commissariat à l'énergie atomique et aux énergies              */
 /*         alternatives)                                                  */
 /*                                                                        */
@@ -109,9 +109,11 @@ static void describe_run();
 # error "No E-ACSL memory model defined. Aborting compilation"
 #endif
 
-/* This header contains temporal analysis shared by both models.
-   It should be here as it uses differently defined macros */
-#include "e_acsl_temporal.h"
+/* Headers containing implementation of functions belonging to the E-ACSL
+   external API shared across different memory models */
+#include "e_acsl_libc_replacements.h" /* */
+#include "e_acsl_format.h" /* format functions with error checking */
+#include "e_acsl_temporal.h" /* temporal analysis */
 
 #ifdef E_ACSL_WEAK_VALIDITY
 # define E_ACSL_VALIDITY_DESC "weak"
@@ -121,7 +123,7 @@ static void describe_run();
 
 /* Print basic configuration before each run */
 static void describe_run() {
-#if defined(E_ACSL_VERBOSE) || defined(E_ACSL_DEBUG)
+#if defined(E_ACSL_VERBOSE)
   rtl_printf("/* ========================================================= */\n");
   rtl_printf(" * E-ACSL instrumented run\n" );
   rtl_printf(" * Memory tracking: %s\n", E_ACSL_MMODEL_DESC);
@@ -133,6 +135,7 @@ static void describe_run() {
   rtl_printf(" * Execution mode:  %s\n", E_ACSL_DEBUG_DESC);
   rtl_printf(" * Assertions mode: %s\n", E_ACSL_ASSERT_NO_FAIL_DESC);
   rtl_printf(" * Validity notion: %s\n", E_ACSL_VALIDITY_DESC);
+  rtl_printf(" * Format Checks:   %s\n", E_ACSL_FORMAT_VALIDITY_DESC);
   rtl_printf("/* ========================================================= */\n");
 #endif
 }

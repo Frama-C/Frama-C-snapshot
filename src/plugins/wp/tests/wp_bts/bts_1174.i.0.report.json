@@ -1,0 +1,10 @@
+{ "wp:global": { "coq": { "total": 1, "valid": 1 },
+                 "wp:main": { "total": 1, "valid": 1 } },
+  "wp:functions": { "job": { "job_assert_qed_ok": { "coq": { "total": 1,
+                                                             "valid": 1 },
+                                                    "wp:main": { "total": 1,
+                                                                 "valid": 1 } },
+                             "wp:section": { "coq": { "total": 1,
+                                                      "valid": 1 },
+                                             "wp:main": { "total": 1,
+                                                          "valid": 1 } } } } }

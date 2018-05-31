@@ -2,7 +2,7 @@
 [kernel] Parsing tests/wp_acsl/funvar_inv.i (no preprocessing)
 [wp] Running WP plugin...
 [wp] Loading driver 'share/wp.driver'
-[wp] warning: Missing RTE guards
+[wp] Warning: Missing RTE guards
 ------------------------------------------------------------
   Function f
 ------------------------------------------------------------
@@ -19,12 +19,7 @@ Assume {
   (* Initializer *)
   Init: Mint_0[global(L_i_23)] = 0.
   If v <= 3
-  Then {
-    Let a_2 = shift_sint32(a, v).
-    (* Else *)
-    Have: Mint_0[a_2] = 0.
-    Have: a_2 = f.
-  }
+  Then { (* Else *) Have: Mint_0[f] = 0. Have: shift_sint32(a, v) = f. }
   Else { Have: global(L_i_23) = f. }
 }
 Prove: a_1 = f.
@@ -44,12 +39,7 @@ Assume {
   (* Initializer *)
   Init: Mint_0[global(L_i_23)] = 0.
   If v <= 3
-  Then {
-    Let a_2 = shift_sint32(a, v).
-    (* Else *)
-    Have: Mint_0[a_2] = 0.
-    Have: a_2 = f.
-  }
+  Then { (* Else *) Have: Mint_0[f] = 0. Have: shift_sint32(a, v) = f. }
   Else { Have: global(L_i_23) = f. }
 }
 Prove: a_1 = f.
@@ -75,19 +65,10 @@ Assume {
   Have: linked(Malloc_0).
   (* Initializer *)
   Init: Mint_0[global(L_i_28)] = 0.
-  If (4 * v) <= 15
-  Then {
-    (* Else *)
-    Have: Mint_0[shift_sint32(a, v)] = 0.
-    If 4 <= v
-    Then { Have: global(L_i_28) = f2_0. }
-    Else { Have: shift_sint32(a, v) = f2_0. }
+  If v <= 3
+  Then { (* Else *) Have: Mint_0[f2_0] = 0. Have: shift_sint32(a, v) = f2_0.
   }
-  Else {
-    If 4 <= v
-    Then { Have: global(L_i_28) = f2_0. }
-    Else { Have: shift_sint32(a, v) = f2_0. }
-  }
+  Else { Have: global(L_i_28) = f2_0. }
 }
 Prove: a_1 = f2_0.
 
@@ -105,19 +86,10 @@ Assume {
   Have: linked(Malloc_0).
   (* Initializer *)
   Init: Mint_0[global(L_i_28)] = 0.
-  If (4 * v) <= 15
-  Then {
-    (* Else *)
-    Have: Mint_0[shift_sint32(a, v)] = 0.
-    If 4 <= v
-    Then { Have: global(L_i_28) = f2_0. }
-    Else { Have: shift_sint32(a, v) = f2_0. }
+  If v <= 3
+  Then { (* Else *) Have: Mint_0[f2_0] = 0. Have: shift_sint32(a, v) = f2_0.
   }
-  Else {
-    If 4 <= v
-    Then { Have: global(L_i_28) = f2_0. }
-    Else { Have: shift_sint32(a, v) = f2_0. }
-  }
+  Else { Have: global(L_i_28) = f2_0. }
 }
 Prove: a_1 = f2_0.
 
@@ -142,19 +114,9 @@ Assume {
   Have: linked(Malloc_0).
   (* Initializer *)
   Init: Mint_0[global(L_i_33)] = 0.
-  If (16 * v) <= 63
-  Then {
-    (* Else *)
-    Have: Mint_0[shift_sint32(a, v)] = 0.
-    If 4 <= v
-    Then { Have: global(L_i_33) = g. }
-    Else { Have: shift_sint32(a, v) = g. }
-  }
-  Else {
-    If 4 <= v
-    Then { Have: global(L_i_33) = g. }
-    Else { Have: shift_sint32(a, v) = g. }
-  }
+  If v <= 3
+  Then { (* Else *) Have: Mint_0[g] = 0. Have: shift_sint32(a, v) = g. }
+  Else { Have: global(L_i_33) = g. }
 }
 Prove: a_1 = g.
 
@@ -172,19 +134,9 @@ Assume {
   Have: linked(Malloc_0).
   (* Initializer *)
   Init: Mint_0[global(L_i_33)] = 0.
-  If (16 * v) <= 63
-  Then {
-    (* Else *)
-    Have: Mint_0[shift_sint32(a, v)] = 0.
-    If 4 <= v
-    Then { Have: global(L_i_33) = g. }
-    Else { Have: shift_sint32(a, v) = g. }
-  }
-  Else {
-    If 4 <= v
-    Then { Have: global(L_i_33) = g. }
-    Else { Have: shift_sint32(a, v) = g. }
-  }
+  If v <= 3
+  Then { (* Else *) Have: Mint_0[g] = 0. Have: shift_sint32(a, v) = g. }
+  Else { Have: global(L_i_33) = g. }
 }
 Prove: a_1 = g.
 

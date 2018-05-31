@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2017                                               *)
+(*  Copyright (C) 2007-2018                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -20,7 +20,7 @@
 (*                                                                        *)
 (**************************************************************************)
 
-(** Main memory locations of EVA: *)
+(** Main memory locations of Eva: *)
 
 (** Abstract locations built over Precise_locs. *)
 module PLoc : sig

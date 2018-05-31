@@ -2,7 +2,7 @@
 #                                                                        #
 #  This file is part of Frama-C.                                         #
 #                                                                        #
-#  Copyright (C) 2007-2017                                               #
+#  Copyright (C) 2007-2018                                               #
 #    CEA (Commissariat à l'énergie atomique et aux énergies              #
 #         alternatives)                                                  #
 #                                                                        #
@@ -140,7 +140,7 @@ PLUGIN_DISTRIB_EXTERNAL?= # list of files that should be distributed within the
 PLUGIN_RESET?=yes # Set it to no in order to NOT reset plug-in variable.
 
 
-# Except for their initialisation, all these variables should not be used
+# Except for their initialization, all these variables should not be used
 # outside of this Makefile.
 #
 # Instead, you can safely use the corresponding following variables.
@@ -712,7 +712,11 @@ $(PLUGIN_DOC_DIR)/@PLUGIN_NAME@.txt: $(DOC_INTRO) $(PLUGIN_INTRO)
 
 ifeq ($(FRAMAC_INTERNAL),yes)
 OCAMLDOC_GEN:=$(DOC_PLUGIN)
-ifneq ($(FRAMAC_INTERNAL),yes)
+OCAMLDOC_GEN+=$(DOC_DIR)/kernel-doc.ocamldoc
+
+else
+OCAMLDOC_GEN:=
+
 # not doing kernel documentation if just compiling plugin's one
 
 $(DOC_DIR)/docgen.cmo: $(DOC_DIR)/docgen.ml
@@ -723,11 +727,6 @@ $(DOC_DIR)/docgen.cmxs: $(DOC_DIR)/docgen.ml
 	$(PRINT_PACKING) $@
 	$(OCAMLOPT) -o $(call winpath,$@) -shared -I +ocamldoc \
 	  $(call winpath,$(DOC_DIR))/docgen.ml
-else
-OCAMLDOC_GEN+=$(DOC_DIR)/kernel-doc.ocamldoc
-endif
-else
-OCAMLDOC_GEN:=
 endif
 
 OCAMLDOC_DEPEND:= $(PLUGIN_CMO)

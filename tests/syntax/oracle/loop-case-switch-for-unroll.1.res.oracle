@@ -3,91 +3,134 @@
 [value] Computing initial state
 [value] Initial state computed
 [value:initial-state] Values of globals at initialization
-  vals[0] ∈ {1}
-      [1] ∈ {42}
-      [2] ∈ {5}
-      [3] ∈ {1}
-      [4] ∈ {43}
-      [5] ∈ {11}
-      [6] ∈ {0}
-      [7] ∈ {1}
-      [8] ∈ {0}
-      [9] ∈ {44}
-      [10] ∈ {12}
-      [11..12] ∈ {0}
-      [13..14] ∈ {1}
-      [15] ∈ {45}
-      [16] ∈ {11}
-      [17..20] ∈ {0}
-      [21] ∈ {46}
-      [22] ∈ {13}
-      [23..26] ∈ {0}
-      [27] ∈ {47}
-      [28] ∈ {12}
-      [29..31] ∈ {0}
-      [32] ∈ {48}
-      [33] ∈ {15}
-      [34..36] ∈ {0}
-  i ∈ {-1}
-tests/syntax/loop-case-switch-for-unroll.c:66:[kernel] warning: Non-natural loop detected.
-tests/syntax/loop-case-switch-for-unroll.c:74:[kernel] warning: Non-natural loop detected.
-tests/syntax/loop-case-switch-for-unroll.c:72:[kernel] warning: Non-natural loop detected.
-tests/syntax/loop-case-switch-for-unroll.c:76:[kernel] warning: Non-natural loop detected.
-tests/syntax/loop-case-switch-for-unroll.c:53:[value] Frama_C_show_each_nondet_: {1}
-tests/syntax/loop-case-switch-for-unroll.c:53:[value] Frama_C_show_each_nondet_: {42}
-tests/syntax/loop-case-switch-for-unroll.c:53:[value] Frama_C_show_each_nondet_: {5}
-tests/syntax/loop-case-switch-for-unroll.c:78:[value] Frama_C_show_each_i_: {0}
-tests/syntax/loop-case-switch-for-unroll.c:53:[value] Frama_C_show_each_nondet_: {1}
-tests/syntax/loop-case-switch-for-unroll.c:53:[value] Frama_C_show_each_nondet_: {43}
-tests/syntax/loop-case-switch-for-unroll.c:53:[value] Frama_C_show_each_nondet_: {11}
-tests/syntax/loop-case-switch-for-unroll.c:78:[value] Frama_C_show_each_i_: {10}
-tests/syntax/loop-case-switch-for-unroll.c:53:[value] Frama_C_show_each_nondet_: {0}
-tests/syntax/loop-case-switch-for-unroll.c:53:[value] Frama_C_show_each_nondet_: {1}
-tests/syntax/loop-case-switch-for-unroll.c:53:[value] Frama_C_show_each_nondet_: {0}
-tests/syntax/loop-case-switch-for-unroll.c:53:[value] Frama_C_show_each_nondet_: {44}
-tests/syntax/loop-case-switch-for-unroll.c:53:[value] Frama_C_show_each_nondet_: {12}
-tests/syntax/loop-case-switch-for-unroll.c:78:[value] Frama_C_show_each_i_: {10}
-tests/syntax/loop-case-switch-for-unroll.c:53:[value] Frama_C_show_each_nondet_: {0}
-tests/syntax/loop-case-switch-for-unroll.c:53:[value] Frama_C_show_each_nondet_: {0}
-tests/syntax/loop-case-switch-for-unroll.c:53:[value] Frama_C_show_each_nondet_: {1}
-tests/syntax/loop-case-switch-for-unroll.c:66:[value] Frama_C_show_each_n_: {3}
-tests/syntax/loop-case-switch-for-unroll.c:53:[value] Frama_C_show_each_nondet_: {1}
-tests/syntax/loop-case-switch-for-unroll.c:53:[value] Frama_C_show_each_nondet_: {45}
-tests/syntax/loop-case-switch-for-unroll.c:53:[value] Frama_C_show_each_nondet_: {11}
-tests/syntax/loop-case-switch-for-unroll.c:78:[value] Frama_C_show_each_i_: {10}
-tests/syntax/loop-case-switch-for-unroll.c:53:[value] Frama_C_show_each_nondet_: {0}
-tests/syntax/loop-case-switch-for-unroll.c:53:[value] Frama_C_show_each_nondet_: {0}
-tests/syntax/loop-case-switch-for-unroll.c:53:[value] Frama_C_show_each_nondet_: {0}
-tests/syntax/loop-case-switch-for-unroll.c:53:[value] Frama_C_show_each_nondet_: {0}
-tests/syntax/loop-case-switch-for-unroll.c:53:[value] Frama_C_show_each_nondet_: {46}
-tests/syntax/loop-case-switch-for-unroll.c:53:[value] Frama_C_show_each_nondet_: {13}
-tests/syntax/loop-case-switch-for-unroll.c:78:[value] Frama_C_show_each_i_: {10}
-tests/syntax/loop-case-switch-for-unroll.c:53:[value] Frama_C_show_each_nondet_: {0}
-tests/syntax/loop-case-switch-for-unroll.c:53:[value] Frama_C_show_each_nondet_: {0}
-tests/syntax/loop-case-switch-for-unroll.c:53:[value] Frama_C_show_each_nondet_: {0}
-tests/syntax/loop-case-switch-for-unroll.c:53:[value] Frama_C_show_each_nondet_: {0}
-tests/syntax/loop-case-switch-for-unroll.c:53:[value] Frama_C_show_each_nondet_: {47}
-tests/syntax/loop-case-switch-for-unroll.c:53:[value] Frama_C_show_each_nondet_: {12}
-tests/syntax/loop-case-switch-for-unroll.c:78:[value] Frama_C_show_each_i_: {10}
-tests/syntax/loop-case-switch-for-unroll.c:53:[value] Frama_C_show_each_nondet_: {0}
-tests/syntax/loop-case-switch-for-unroll.c:53:[value] Frama_C_show_each_nondet_: {0}
-tests/syntax/loop-case-switch-for-unroll.c:53:[value] Frama_C_show_each_nondet_: {0}
-tests/syntax/loop-case-switch-for-unroll.c:84:[value] Frama_C_show_each_y_: {32}
-tests/syntax/loop-case-switch-for-unroll.c:85:[value] Frama_C_show_each_x_: {32}
+  gen_nondet_vals[0] ∈ {1}
+                 [1] ∈ {42}
+                 [2] ∈ {5}
+                 [3] ∈ {1}
+                 [4] ∈ {43}
+                 [5] ∈ {11}
+                 [6] ∈ {0}
+                 [7] ∈ {1}
+                 [8] ∈ {0}
+                 [9] ∈ {44}
+                 [10] ∈ {12}
+                 [11..12] ∈ {0}
+                 [13..14] ∈ {1}
+                 [15] ∈ {45}
+                 [16] ∈ {11}
+                 [17..20] ∈ {0}
+                 [21] ∈ {46}
+                 [22] ∈ {13}
+                 [23..26] ∈ {0}
+                 [27] ∈ {47}
+                 [28] ∈ {12}
+                 [29..31] ∈ {0}
+                 [32] ∈ {48}
+                 [33] ∈ {15}
+                 [34..36] ∈ {0}
+  gen_nondet_i ∈ {-1}
+[kernel] tests/syntax/loop-case-switch-for-unroll.c:66: Warning: 
+  Non-natural loop detected.
+[kernel] tests/syntax/loop-case-switch-for-unroll.c:72: Warning: 
+  Non-natural loop detected.
+[kernel] tests/syntax/loop-case-switch-for-unroll.c:74: Warning: 
+  Non-natural loop detected.
+[kernel] tests/syntax/loop-case-switch-for-unroll.c:76: Warning: 
+  Non-natural loop detected.
+[value] tests/syntax/loop-case-switch-for-unroll.c:53: 
+  Frama_C_show_each_nondet_: {1}
+[value] tests/syntax/loop-case-switch-for-unroll.c:53: 
+  Frama_C_show_each_nondet_: {42}
+[value] tests/syntax/loop-case-switch-for-unroll.c:53: 
+  Frama_C_show_each_nondet_: {5}
+[value] tests/syntax/loop-case-switch-for-unroll.c:78: Frama_C_show_each_i_: {0}
+[value] tests/syntax/loop-case-switch-for-unroll.c:53: 
+  Frama_C_show_each_nondet_: {1}
+[value] tests/syntax/loop-case-switch-for-unroll.c:53: 
+  Frama_C_show_each_nondet_: {43}
+[value] tests/syntax/loop-case-switch-for-unroll.c:53: 
+  Frama_C_show_each_nondet_: {11}
+[value] tests/syntax/loop-case-switch-for-unroll.c:78: 
+  Frama_C_show_each_i_: {10}
+[value] tests/syntax/loop-case-switch-for-unroll.c:53: 
+  Frama_C_show_each_nondet_: {0}
+[value] tests/syntax/loop-case-switch-for-unroll.c:53: 
+  Frama_C_show_each_nondet_: {1}
+[value] tests/syntax/loop-case-switch-for-unroll.c:53: 
+  Frama_C_show_each_nondet_: {0}
+[value] tests/syntax/loop-case-switch-for-unroll.c:53: 
+  Frama_C_show_each_nondet_: {44}
+[value] tests/syntax/loop-case-switch-for-unroll.c:53: 
+  Frama_C_show_each_nondet_: {12}
+[value] tests/syntax/loop-case-switch-for-unroll.c:78: 
+  Frama_C_show_each_i_: {10}
+[value] tests/syntax/loop-case-switch-for-unroll.c:53: 
+  Frama_C_show_each_nondet_: {0}
+[value] tests/syntax/loop-case-switch-for-unroll.c:53: 
+  Frama_C_show_each_nondet_: {0}
+[value] tests/syntax/loop-case-switch-for-unroll.c:53: 
+  Frama_C_show_each_nondet_: {1}
+[value] tests/syntax/loop-case-switch-for-unroll.c:66: Frama_C_show_each_n_: {3}
+[value] tests/syntax/loop-case-switch-for-unroll.c:53: 
+  Frama_C_show_each_nondet_: {1}
+[value] tests/syntax/loop-case-switch-for-unroll.c:53: 
+  Frama_C_show_each_nondet_: {45}
+[value] tests/syntax/loop-case-switch-for-unroll.c:53: 
+  Frama_C_show_each_nondet_: {11}
+[value] tests/syntax/loop-case-switch-for-unroll.c:78: 
+  Frama_C_show_each_i_: {10}
+[value] tests/syntax/loop-case-switch-for-unroll.c:53: 
+  Frama_C_show_each_nondet_: {0}
+[value] tests/syntax/loop-case-switch-for-unroll.c:53: 
+  Frama_C_show_each_nondet_: {0}
+[value] tests/syntax/loop-case-switch-for-unroll.c:53: 
+  Frama_C_show_each_nondet_: {0}
+[value] tests/syntax/loop-case-switch-for-unroll.c:53: 
+  Frama_C_show_each_nondet_: {0}
+[value] tests/syntax/loop-case-switch-for-unroll.c:53: 
+  Frama_C_show_each_nondet_: {46}
+[value] tests/syntax/loop-case-switch-for-unroll.c:53: 
+  Frama_C_show_each_nondet_: {13}
+[value] tests/syntax/loop-case-switch-for-unroll.c:78: 
+  Frama_C_show_each_i_: {10}
+[value] tests/syntax/loop-case-switch-for-unroll.c:53: 
+  Frama_C_show_each_nondet_: {0}
+[value] tests/syntax/loop-case-switch-for-unroll.c:53: 
+  Frama_C_show_each_nondet_: {0}
+[value] tests/syntax/loop-case-switch-for-unroll.c:53: 
+  Frama_C_show_each_nondet_: {0}
+[value] tests/syntax/loop-case-switch-for-unroll.c:53: 
+  Frama_C_show_each_nondet_: {0}
+[value] tests/syntax/loop-case-switch-for-unroll.c:53: 
+  Frama_C_show_each_nondet_: {47}
+[value] tests/syntax/loop-case-switch-for-unroll.c:53: 
+  Frama_C_show_each_nondet_: {12}
+[value] tests/syntax/loop-case-switch-for-unroll.c:78: 
+  Frama_C_show_each_i_: {10}
+[value] tests/syntax/loop-case-switch-for-unroll.c:53: 
+  Frama_C_show_each_nondet_: {0}
+[value] tests/syntax/loop-case-switch-for-unroll.c:53: 
+  Frama_C_show_each_nondet_: {0}
+[value] tests/syntax/loop-case-switch-for-unroll.c:53: 
+  Frama_C_show_each_nondet_: {0}
+[value] tests/syntax/loop-case-switch-for-unroll.c:84: 
+  Frama_C_show_each_y_: {32}
+[value] tests/syntax/loop-case-switch-for-unroll.c:85: 
+  Frama_C_show_each_x_: {32}
 [value] done for function main
 [value] ====== VALUES COMPUTED ======
 [value:final-states] Values at end of function gen_nondet:
-  i ∈ [0..31]
+  gen_nondet_i ∈ [0..31]
   __retres ∈ [0..47]
 [value:final-states] Values at end of function main:
   y ∈ {32}
   x ∈ {32}
   n ∈ {0}
-  i ∈ {31}
+  gen_nondet_i ∈ {31}
 /* Generated by Frama-C */
 int gen_nondet(int line);
 
-static int vals[37] =
+static int gen_nondet_vals[37] =
   {1,
    42,
    5,
@@ -125,7 +168,7 @@ static int vals[37] =
    0,
    0,
    0};
-static int i = -1;
+static int gen_nondet_i = -1;
 /*@ assigns \result;
     assigns \result \from \nothing; */
 extern int ( /* missing proto */ Frama_C_show_each_nondet_)();
@@ -133,9 +176,9 @@ extern int ( /* missing proto */ Frama_C_show_each_nondet_)();
 int gen_nondet(int line)
 {
   int __retres;
-  i = (int)((unsigned int)(i + 1) % (sizeof(vals) / sizeof(int)));
-  Frama_C_show_each_nondet_(vals[i]);
-  __retres = vals[i];
+  gen_nondet_i = (int)((unsigned int)(gen_nondet_i + 1) % (sizeof(gen_nondet_vals) / sizeof(int)));
+  Frama_C_show_each_nondet_(gen_nondet_vals[gen_nondet_i]);
+  __retres = gen_nondet_vals[gen_nondet_i];
   return __retres;
 }
 
@@ -177,8 +220,8 @@ void main(void)
       case 2:
       {
         int j_unroll_40;
-        int i_0_unroll_40 = 0;
-        if (! (i_0_unroll_40 < 4)) goto unrolling_2_loop_unrolling_12_loop;
+        int i_unroll_40 = 0;
+        if (! (i_unroll_40 < 4)) goto unrolling_2_loop_unrolling_12_loop;
         {
           int tmp_2_unroll_12_unroll_26;
           int tmp_3_unroll_12_unroll_26;
@@ -186,9 +229,9 @@ void main(void)
           int tmp_5_unroll_12_unroll_26;
           L1_unrolling_4_loop_unrolling_9_loop: j_unroll_40 = gen_nondet(76);
           tmp_2_unroll_12_unroll_26 = gen_nondet(77);
-          if (tmp_2_unroll_12_unroll_26 > 10) i_0_unroll_40 = 10;
-          else i_0_unroll_40 = 0;
-          Frama_C_show_each_i_(i_0_unroll_40);
+          if (tmp_2_unroll_12_unroll_26 > 10) i_unroll_40 = 10;
+          else i_unroll_40 = 0;
+          Frama_C_show_each_i_(i_unroll_40);
           tmp_3_unroll_12_unroll_26 = gen_nondet(79);
           if (tmp_3_unroll_12_unroll_26) goto L_unrolling_8_loop;
           tmp_4_unroll_12_unroll_26 = gen_nondet(80);
@@ -196,10 +239,10 @@ void main(void)
           tmp_5_unroll_12_unroll_26 = gen_nondet(81);
           if (tmp_5_unroll_12_unroll_26) goto L3;
         }
-        i_0_unroll_40 ++;
+        i_unroll_40 ++;
         unrolling_3_loop_unrolling_10_loop: ;
         /*@ loop pragma UNROLL "done", 1; */
-        while (i_0_unroll_40 < 4) {
+        while (i_unroll_40 < 4) {
           {
             int tmp_2_unroll_37;
             int tmp_3_unroll_37;
@@ -207,9 +250,8 @@ void main(void)
             int tmp_5_unroll_37;
             L1_unrolling_11_loop: j_unroll_40 = gen_nondet(76);
             tmp_2_unroll_37 = gen_nondet(77);
-            if (tmp_2_unroll_37 > 10) i_0_unroll_40 = 10;
-            else i_0_unroll_40 = 0;
-            Frama_C_show_each_i_(i_0_unroll_40);
+            if (tmp_2_unroll_37 > 10) i_unroll_40 = 10; else i_unroll_40 = 0;
+            Frama_C_show_each_i_(i_unroll_40);
             tmp_3_unroll_37 = gen_nondet(79);
             if (tmp_3_unroll_37) goto L_unrolling_8_loop;
             tmp_4_unroll_37 = gen_nondet(80);
@@ -217,7 +259,7 @@ void main(void)
             tmp_5_unroll_37 = gen_nondet(81);
             if (tmp_5_unroll_37) goto L3;
           }
-          i_0_unroll_40 ++;
+          i_unroll_40 ++;
         }
         unrolling_2_loop_unrolling_12_loop: ;
       }
@@ -234,8 +276,8 @@ void main(void)
         L: x = y;
         {
           int j;
-          int i_0 = 0;
-          if (! (i_0 < 4)) goto unrolling_2_loop;
+          int i = 0;
+          if (! (i < 4)) goto unrolling_2_loop;
           {
             int tmp_2_unroll_12;
             int tmp_3_unroll_12;
@@ -243,8 +285,8 @@ void main(void)
             int tmp_5_unroll_12;
             L1_unrolling_4_loop: j = gen_nondet(76);
             tmp_2_unroll_12 = gen_nondet(77);
-            if (tmp_2_unroll_12 > 10) i_0 = 10; else i_0 = 0;
-            Frama_C_show_each_i_(i_0);
+            if (tmp_2_unroll_12 > 10) i = 10; else i = 0;
+            Frama_C_show_each_i_(i);
             tmp_3_unroll_12 = gen_nondet(79);
             if (tmp_3_unroll_12) goto L;
             tmp_4_unroll_12 = gen_nondet(80);
@@ -252,10 +294,10 @@ void main(void)
             tmp_5_unroll_12 = gen_nondet(81);
             if (tmp_5_unroll_12) goto L3;
           }
-          i_0 ++;
+          i ++;
           unrolling_3_loop: ;
           /*@ loop pragma UNROLL "done", 1; */
-          while (i_0 < 4) {
+          while (i < 4) {
             {
               int tmp_2;
               int tmp_3;
@@ -263,8 +305,8 @@ void main(void)
               int tmp_5;
               L1: j = gen_nondet(76);
               tmp_2 = gen_nondet(77);
-              if (tmp_2 > 10) i_0 = 10; else i_0 = 0;
-              Frama_C_show_each_i_(i_0);
+              if (tmp_2 > 10) i = 10; else i = 0;
+              Frama_C_show_each_i_(i);
               tmp_3 = gen_nondet(79);
               if (tmp_3) goto L;
               tmp_4 = gen_nondet(80);
@@ -272,7 +314,7 @@ void main(void)
               tmp_5 = gen_nondet(81);
               if (tmp_5) goto L3;
             }
-            i_0 ++;
+            i ++;
           }
           unrolling_2_loop: ;
         }

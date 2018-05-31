@@ -1,4 +1,4 @@
-[kernel] warning: ignoring source files specified on the command line while loading a global initial context.
+[kernel] Warning: ignoring source files specified on the command line while loading a global initial context.
 [wp] Running WP plugin...
 [wp] Loading driver 'share/wp.driver'
 ------------------------------------------------------------

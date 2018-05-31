@@ -2,7 +2,7 @@
 [kernel] Parsing tests/wp_hoare/byref.i (no preprocessing)
 [wp] Running WP plugin...
 [wp] Loading driver 'share/wp.driver'
-[wp] warning: Missing RTE guards
+[wp] Warning: Missing RTE guards
 [wp] 12 goals scheduled
 [wp] [Qed] Goal typed_ref_f_post : Valid
 [wp] [Qed] Goal typed_ref_f_assign : Valid
@@ -17,13 +17,14 @@
 [wp] [Qed] Goal typed_ref_wrong_without_ref_post : Valid
 [wp] [Qed] Goal typed_ref_wrong_without_ref_call_f_pre : Valid
 [wp] Proved goals:   12 / 12
-    Qed:            12
-----------------------------------------------------------
-Functions           WP   Alt-Ergo    Total   Success
-f                    2     -           2       100%
-wrong_without_ref    2     -           2       100%
-pointer              2     -           2       100%
-local                2     -           2       100%
-formal               2     -           2       100%
-global               2     -           2       100%
-----------------------------------------------------------
+  Qed:            12
+[wp] Report 'tests/wp_hoare/byref.i.1.report.json'
+-------------------------------------------------------------
+Functions           WP     Alt-Ergo        Total   Success
+f                    2     -                 2       100%
+wrong_without_ref    2     -                 2       100%
+pointer              2     -                 2       100%
+local                2     -                 2       100%
+formal               2     -                 2       100%
+global               2     -                 2       100%
+-------------------------------------------------------------

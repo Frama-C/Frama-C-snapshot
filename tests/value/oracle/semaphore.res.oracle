@@ -5,52 +5,54 @@
 [value:initial-state] Values of globals at initialization
   Sa ∈ {0}
   Sb ∈ {0}
-tests/value/semaphore.i:28:[value] entering loop for the first time
-tests/value/semaphore.i:29:[value] entering loop for the first time
+[value] tests/value/semaphore.i:28: entering loop for the first time
+[value] tests/value/semaphore.i:29: entering loop for the first time
 [value] computing for function V <- g.
-    Called from tests/value/semaphore.i:31.
-tests/value/semaphore.i:31:[kernel] warning: Neither code nor specification for function V, generating default assigns from the prototype
+  Called from tests/value/semaphore.i:31.
+[kernel:annot:missing-spec] tests/value/semaphore.i:31: Warning: 
+  Neither code nor specification for function V, generating default assigns from the prototype
 [value] using specification for function V
 [value] Done for function V
 [value] computing for function V <- g.
-    Called from tests/value/semaphore.i:31.
+  Called from tests/value/semaphore.i:31.
 [value] Done for function V
 [value] computing for function V <- g.
-    Called from tests/value/semaphore.i:31.
+  Called from tests/value/semaphore.i:31.
 [value] Done for function V
 [value] computing for function V <- g.
-    Called from tests/value/semaphore.i:31.
+  Called from tests/value/semaphore.i:31.
 [value] Done for function V
 [value] computing for function P <- g.
-    Called from tests/value/semaphore.i:34.
-tests/value/semaphore.i:34:[kernel] warning: Neither code nor specification for function P, generating default assigns from the prototype
+  Called from tests/value/semaphore.i:34.
+[kernel:annot:missing-spec] tests/value/semaphore.i:34: Warning: 
+  Neither code nor specification for function P, generating default assigns from the prototype
 [value] using specification for function P
 [value] Done for function P
 [value] computing for function P <- g.
-    Called from tests/value/semaphore.i:35.
+  Called from tests/value/semaphore.i:35.
 [value] Done for function P
 [value] computing for function V <- g.
-    Called from tests/value/semaphore.i:37.
+  Called from tests/value/semaphore.i:37.
 [value] Done for function V
 [value] computing for function V <- g.
-    Called from tests/value/semaphore.i:38.
+  Called from tests/value/semaphore.i:38.
 [value] Done for function V
 [value] computing for function f <- g.
-    Called from tests/value/semaphore.i:40.
+  Called from tests/value/semaphore.i:40.
 [value] computing for function P <- f <- g.
-    Called from tests/value/semaphore.i:14.
+  Called from tests/value/semaphore.i:14.
 [value] Done for function P
 [value] computing for function P <- f <- g.
-    Called from tests/value/semaphore.i:16.
+  Called from tests/value/semaphore.i:16.
 [value] Done for function P
 [value] computing for function P <- f <- g.
-    Called from tests/value/semaphore.i:17.
+  Called from tests/value/semaphore.i:17.
 [value] Done for function P
 [value] computing for function V <- f <- g.
-    Called from tests/value/semaphore.i:19.
+  Called from tests/value/semaphore.i:19.
 [value] Done for function V
 [value] computing for function V <- f <- g.
-    Called from tests/value/semaphore.i:20.
+  Called from tests/value/semaphore.i:20.
 [value] Done for function V
 [value] Recording results for f
 [value] Done for function f
@@ -70,7 +72,7 @@ tests/value/semaphore.i:34:[kernel] warning: Neither code nor specification for 
 [from] Computing for function g
 [from] Done for function g
 [from] ====== DEPENDENCIES COMPUTED ======
-    These dependencies hold at termination for the executions that terminate:
+  These dependencies hold at termination for the executions that terminate:
 [from] Function P:
   NO EFFECTS
 [from] Function V:
@@ -81,10 +83,10 @@ tests/value/semaphore.i:34:[kernel] warning: Neither code nor specification for 
   NO EFFECTS
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function f:
-      c
+    c
 [inout] Inputs for function f:
-      Sa; Sb
+    Sa; Sb
 [inout] Out (internal) for function g:
-      c; tmp
+    c; tmp
 [inout] Inputs for function g:
-      Sa; Sb
+    Sa; Sb

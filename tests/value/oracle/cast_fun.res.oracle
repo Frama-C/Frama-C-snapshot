@@ -1,69 +1,136 @@
 [kernel] Parsing tests/value/cast_fun.i (no preprocessing)
+[kernel:typing:incompatible-types-call] tests/value/cast_fun.i:64: Warning: 
+  implicit conversion between incompatible function types:
+  int (*)(void)
+  and
+  int (*)(int )
+[kernel:typing:incompatible-types-call] tests/value/cast_fun.i:79: Warning: 
+  implicit conversion between incompatible function types:
+  void (*)(int )
+  and
+  int (*)(int )
+[kernel:typing:incompatible-types-call] tests/value/cast_fun.i:94: Warning: 
+  implicit conversion between incompatible function types:
+  void (*)(struct s2 )
+  and
+  void (*)(struct s1 )
+[kernel:typing:incompatible-types-call] tests/value/cast_fun.i:99: Warning: 
+  implicit conversion between incompatible function types:
+  void (*)(struct s3 )
+  and
+  void (*)(struct s1 )
+[kernel:typing:incompatible-types-call] tests/value/cast_fun.i:125: Warning: 
+  implicit conversion between incompatible function types:
+  void (*)()
+  and
+  int (*)(int )
+[kernel:typing:incompatible-types-call] tests/value/cast_fun.i:130: Warning: 
+  implicit conversion between incompatible function types:
+  void (*)()
+  and
+  int (*)(int )
+[kernel:typing:incompatible-pointer-types] tests/value/cast_fun.i:140: Warning: 
+  casting function to int *
+[kernel:typing:incompatible-pointer-types] tests/value/cast_fun.i:141: Warning: 
+  casting function from int *
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
 [value] Initial state computed
 [value:initial-state] Values of globals at initialization
   
 [value] computing for function f1 <- main.
-    Called from tests/value/cast_fun.i:58.
+  Called from tests/value/cast_fun.i:60.
 [value] using specification for function f1
-tests/value/cast_fun.i:6:[value] warning: no 'assigns \result \from ...' clause specified for function f1
+[value] tests/value/cast_fun.i:6: Warning: 
+  no 'assigns \result \from ...' clause specified for function f1
 [value] Done for function f1
-tests/value/cast_fun.i:63:[value] warning: pointer to function with incompatible type. assert \valid_function(p1);
+[value:alarm] tests/value/cast_fun.i:65: Warning: 
+  pointer to function with incompatible type. assert \valid_function(p1);
 [value] computing for function f2 <- main.
-    Called from tests/value/cast_fun.i:63.
+  Called from tests/value/cast_fun.i:65.
 [value] using specification for function f2
-tests/value/cast_fun.i:8:[value] warning: no 'assigns \result \from ...' clause specified for function f2
+[value] tests/value/cast_fun.i:8: Warning: 
+  no 'assigns \result \from ...' clause specified for function f2
 [value] Done for function f2
 [value] computing for function f3 <- main.
-    Called from tests/value/cast_fun.i:68.
+  Called from tests/value/cast_fun.i:70.
 [value] using specification for function f3
-tests/value/cast_fun.i:10:[value] warning: no 'assigns \result \from ...' clause specified for function f3
+[value] tests/value/cast_fun.i:10: Warning: 
+  no 'assigns \result \from ...' clause specified for function f3
 [value] Done for function f3
-tests/value/cast_fun.i:73:[value] warning: pointer to function with incompatible type. assert \valid_function(p1);
-tests/value/cast_fun.i:78:[value] warning: pointer to function with incompatible type. assert \valid_function(p1);
+[value] computing for function f3 <- main.
+  Called from tests/value/cast_fun.i:75.
+[value] Done for function f3
+[value:alarm] tests/value/cast_fun.i:80: Warning: 
+  pointer to function with incompatible type. assert \valid_function(p1);
+[value:alarm] tests/value/cast_fun.i:85: Warning: 
+  pointer to function with incompatible type.
+  assert \valid_function((void (*)(int ))p4);
 [value] computing for function f6 <- main.
-    Called from tests/value/cast_fun.i:83.
+  Called from tests/value/cast_fun.i:90.
 [value] using specification for function f6
 [value] Done for function f6
-tests/value/cast_fun.i:88:[value] warning: pointer to function with incompatible type. assert \valid_function(p2);
-tests/value/cast_fun.i:93:[value] warning: pointer to function with incompatible type. assert \valid_function(p2);
+[value:alarm] tests/value/cast_fun.i:95: Warning: 
+  pointer to function with incompatible type. assert \valid_function(p2);
+[value:alarm] tests/value/cast_fun.i:100: Warning: 
+  pointer to function with incompatible type. assert \valid_function(p2);
 [value] computing for function f9 <- main.
-    Called from tests/value/cast_fun.i:98.
+  Called from tests/value/cast_fun.i:105.
 [value] using specification for function f9
 [value] Done for function f9
-tests/value/cast_fun.i:103:[value] warning: pointer to function with incompatible type. assert \valid_function(p3);
-tests/value/cast_fun.i:108:[value] warning: pointer to function with incompatible type. assert \valid_function(p4);
 [value] computing for function f10 <- main.
-    Called from tests/value/cast_fun.i:113.
+  Called from tests/value/cast_fun.i:110.
 [value] using specification for function f10
 [value] Done for function f10
-tests/value/cast_fun.i:118:[value] warning: pointer to function with incompatible type. assert \valid_function(p1);
-tests/value/cast_fun.i:123:[value] warning: pointer to function with incompatible type. assert \valid_function(p1);
-tests/value/cast_fun.i:128:[value] warning: pointer to function with incompatible type. assert \valid_function(p4);
+[value] computing for function f10 <- main.
+  Called from tests/value/cast_fun.i:121.
+[value] Done for function f10
+[value:alarm] tests/value/cast_fun.i:126: Warning: 
+  pointer to function with incompatible type. assert \valid_function(p1);
+[value:alarm] tests/value/cast_fun.i:131: Warning: 
+  pointer to function with incompatible type. assert \valid_function(p1);
+[value] computing for function f1 <- main.
+  Called from tests/value/cast_fun.i:136.
+[value] Done for function f1
+[value] computing for function f1 <- main.
+  Called from tests/value/cast_fun.i:142.
+[value] Done for function f1
 [value] Recording results for main
 [from] Computing for function main
-tests/value/cast_fun.i:58:[from] warning: variadic call detected. Using only 0 argument(s).
-tests/value/cast_fun.i:63:[from] warning: variadic call detected. Using only 0 argument(s).
-tests/value/cast_fun.i:98:[from] warning: variadic call detected. Using only 1 argument(s).
-tests/value/cast_fun.i:113:[from] warning: variadic call detected. Using only 0 argument(s).
+[from] tests/value/cast_fun.i:60: Warning: 
+  variadic call detected. Using only 0 argument(s).
+[from] tests/value/cast_fun.i:65: Warning: 
+  variadic call detected. Using only 0 argument(s).
+[from] tests/value/cast_fun.i:110: Warning: 
+  variadic call detected. Using only 0 argument(s).
+[from] tests/value/cast_fun.i:121: Warning: 
+  variadic call detected. Using only 0 argument(s).
+[from] tests/value/cast_fun.i:136: Warning: 
+  variadic call detected. Using only 0 argument(s).
+[from] tests/value/cast_fun.i:142: Warning: 
+  variadic call detected. Using only 0 argument(s).
 [from] Done for function main
 [value] done for function main
-tests/value/cast_fun.i:73:[value] assertion 'Value,function_pointer' got final status invalid.
-tests/value/cast_fun.i:78:[value] assertion 'Value,function_pointer' got final status invalid.
-tests/value/cast_fun.i:88:[value] assertion 'Value,function_pointer' got final status invalid.
-tests/value/cast_fun.i:93:[value] assertion 'Value,function_pointer' got final status invalid.
-tests/value/cast_fun.i:103:[value] assertion 'Value,function_pointer' got final status invalid.
-tests/value/cast_fun.i:108:[value] assertion 'Value,function_pointer' got final status invalid.
-tests/value/cast_fun.i:118:[value] assertion 'Value,function_pointer' got final status invalid.
-tests/value/cast_fun.i:123:[value] assertion 'Value,function_pointer' got final status invalid.
-tests/value/cast_fun.i:128:[value] assertion 'Value,function_pointer' got final status invalid.
+[value] tests/value/cast_fun.i:80: 
+  assertion 'Value,function_pointer' got final status invalid.
+[value] tests/value/cast_fun.i:85: 
+  assertion 'Value,function_pointer' got final status invalid.
+[value] tests/value/cast_fun.i:95: 
+  assertion 'Value,function_pointer' got final status invalid.
+[value] tests/value/cast_fun.i:100: 
+  assertion 'Value,function_pointer' got final status invalid.
+[value] tests/value/cast_fun.i:126: 
+  assertion 'Value,function_pointer' got final status invalid.
+[value] tests/value/cast_fun.i:131: 
+  assertion 'Value,function_pointer' got final status invalid.
 [value] ====== VALUES COMPUTED ======
 [value:final-states] Values at end of function main:
   p1 ∈ {{ &f1 ; (int (*)(int ))&f2 ; &f3 }} or UNINITIALIZED
   p2 ∈ {{ &f6 }} or UNINITIALIZED
   p3 ∈ {{ &f9 }} or UNINITIALIZED
-  p4 ∈ {{ &f10 }} or UNINITIALIZED
+  p4 ∈ {{ (void (*)())&f1 ; &f10 }} or UNINITIALIZED
+  p5 ∈ {{ (void (*)(int ))&f3 }} or UNINITIALIZED
+  y ∈ {{ (int *)&f1 }} or UNINITIALIZED
   x ∈ [--..--] or UNINITIALIZED
   s ∈ {0}
 [from] Computing for function main
@@ -73,6 +140,10 @@ tests/value/cast_fun.i:128:[value] assertion 'Value,function_pointer' got final 
 [from] Done for function f2
 [from] Computing for function f3 <-main
 [from] Done for function f3
+[from] Computing for function f5 <-main
+[from] Done for function f5
+[from] tests/value/cast_fun.i:85: Warning: 
+  variadic call detected. Using only 1 argument(s).
 [from] Computing for function f6 <-main
 [from] Done for function f6
 [from] Computing for function f9 <-main
@@ -81,7 +152,7 @@ tests/value/cast_fun.i:128:[value] assertion 'Value,function_pointer' got final 
 [from] Done for function f10
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
-    These dependencies hold at termination for the executions that terminate:
+  These dependencies hold at termination for the executions that terminate:
 [from] Function f1:
   \result FROM ANYTHING(origin:Unknown)
 [from] Function f10:
@@ -98,22 +169,30 @@ tests/value/cast_fun.i:128:[value] assertion 'Value,function_pointer' got final 
   NO EFFECTS
 [from] ====== END OF DEPENDENCIES ======
 [from] ====== DISPLAYING CALLWISE DEPENDENCIES ======
-[from] call to f1 at tests/value/cast_fun.i:58 (by main):
+[from] call to f1 at tests/value/cast_fun.i:60 (by main):
   \result FROM ANYTHING(origin:Unknown)
-[from] call to f2 at tests/value/cast_fun.i:63 (by main):
+[from] call to f2 at tests/value/cast_fun.i:65 (by main):
   \result FROM ANYTHING(origin:Unknown)
-[from] call to f3 at tests/value/cast_fun.i:68 (by main):
+[from] call to f3 at tests/value/cast_fun.i:70 (by main):
   \result FROM ANYTHING(origin:Unknown)
-[from] call to f6 at tests/value/cast_fun.i:83 (by main):
+[from] call to f3 at tests/value/cast_fun.i:75 (by main):
+  \result FROM ANYTHING(origin:Unknown)
+[from] call to f6 at tests/value/cast_fun.i:90 (by main):
   NO EFFECTS
-[from] call to f9 at tests/value/cast_fun.i:98 (by main):
+[from] call to f9 at tests/value/cast_fun.i:105 (by main):
   NO EFFECTS
-[from] call to f10 at tests/value/cast_fun.i:113 (by main):
+[from] call to f10 at tests/value/cast_fun.i:110 (by main):
   NO EFFECTS
+[from] call to f10 at tests/value/cast_fun.i:121 (by main):
+  NO EFFECTS
+[from] call to f1 at tests/value/cast_fun.i:136 (by main):
+  \result FROM ANYTHING(origin:Unknown)
+[from] call to f1 at tests/value/cast_fun.i:142 (by main):
+  \result FROM ANYTHING(origin:Unknown)
 [from] entry point:
   NO EFFECTS
 [from] ====== END OF CALLWISE DEPENDENCIES ======
 [inout] Out (internal) for function main:
-      p1; p2; p3; p4; x; s
+    p1; p2; p3; p4; p5; y; x; s; __va_arg0; __va_args[0]
 [inout] Inputs for function main:
-      \nothing
+    \nothing

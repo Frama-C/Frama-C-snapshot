@@ -41,7 +41,7 @@ void pointer (void) { return; }
 /* -------------------------------------------------------------------------- */
 
 
-/*@  requires \base_addr(p) == \base_addr(t) ;
+/*@  requires \base_addr(p) == \base_addr(&t[0]) ;
     ensures qed_ok: Lt:   p-t >  0 ==> p >  (int *) t ;
     ensures qed_ok: Le:   p-t >= 0 ==> p >= (int *) t ;
     ensures qed_ok: Eq:   p-t == 0 ==> p == (int *) t ;
@@ -66,7 +66,7 @@ void compare (int * q) { return; }
 /* --- Testing pointers comparison, base, and minus                       --- */
 /* -------------------------------------------------------------------------- */
 
-/*@ requires \base_addr(p) == \base_addr(t) ;
+/*@ requires \base_addr(p) == \base_addr(&t[0]) ;
     ensures qed_ko: Base_oracle_ko: p-q > 0 ==> p > q ; // missing base p == base q !
     ensures qed_ko: Comp_oracle_ko: ( \forall integer i, integer j; i <= j ==> t+i >= t+j );
 */

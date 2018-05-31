@@ -11,7 +11,7 @@
 [wp] [CFG] Goal h_stmt_assign : Valid (Unreachable)
 [wp] [CFG] Goal h_stmt_post : Valid (Unreachable)
 [wp] [CFG] Goal h_stmt_exit : Valid (Unreachable)
-[wp] warning: Missing RTE guards
+[wp] Warning: Missing RTE guards
 ------------------------------------------------------------
   Function f
 ------------------------------------------------------------

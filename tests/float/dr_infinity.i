@@ -36,4 +36,9 @@ void main(void)
           x = x / 0.001;
           Frama_C_show_each_dead_x_3(x); // dead;
         }
+        if (v) {
+          d = 0;
+          d = d / 0. ;
+          Frama_C_show_each_dead_d_4(x); // dead;
+        }
 }

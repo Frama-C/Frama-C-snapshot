@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2017                                               *)
+(*  Copyright (C) 2007-2018                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -604,13 +604,6 @@ module From : sig
   end
 end
 
-(** Functions used by another function.
-    @see <../users/index.html> internal documentation. *)
-module Users : sig
-  val get: (kernel_function -> Kernel_function.Hptset.t) ref
-end
-
-
 (* ************************************************************************* *)
 (** {2 Properties} *)
 (* ************************************************************************* *)
@@ -923,25 +916,6 @@ module Constant_Propagation: sig
         same way that {!get}. Then pretty print the resulting program.
         @since Beryllium-20090901 *)
 
-end
-
-
-(** Impact analysis.
-    @see <../impact/index.html> internal documentation. *)
-module Impact : sig
-  val compute_pragmas: (unit -> stmt list) ref
-    (** Compute the impact analysis from the impact pragma in the program.
-        Print and slice the results according to the parameters -impact-print
-        and -impact-slice.
-        @return the impacted statements *)
-  val from_stmt: (stmt -> stmt list) ref
-    (** Compute the impact analysis of the given statement.
-        @return the impacted statements *)
-  val from_nodes:
-    (kernel_function -> PdgTypes.Node.t list -> PdgTypes.NodeSet.t) ref
-    (** Compute the impact analysis of the given set of PDG nodes,
-        that come from the given function.
-        @return the impacted nodes *)
 end
 
 (** Security analysis.
@@ -1300,21 +1274,6 @@ module Sparecode : sig
       * The result is in the returned new project.
       * @modify Carbon-20110201 optional argument [new_proj_name] added
       * *)
-end
-
-(** Interface for the occurrence plugin.
-    @see <../occurrence/index.html> internal documentation. *)
-module Occurrence: sig
-  type t = (kernel_function option * kinstr * lval) list
-  val get: (varinfo -> t) ref
-    (** Return the occurrences of the given varinfo.
-        An occurrence [ki, lv] is a left-value [lv] which uses the location of
-        [vi] at the position [ki]. *)
-  val get_last_result: (unit -> (t * varinfo) option) ref
-    (** @return the last result computed by occurrence *)
-  val print_all: (unit -> unit) ref
-    (** Print all the occurrence of each variable declarations. *)
-  val self: State.t ref
 end
 
 (** Signature common to some Inout plugin options. The results of

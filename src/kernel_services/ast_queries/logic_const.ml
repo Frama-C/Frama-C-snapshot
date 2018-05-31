@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2017                                               *)
+(*  Copyright (C) 2007-2018                                               *)
 (*    CEA   (Commissariat à l'énergie atomique et aux énergies            *)
 (*           alternatives)                                                *)
 (*    INRIA (Institut National de Recherche en Informatique et en         *)
@@ -35,7 +35,8 @@ module PredicateId =
   State_builder.SharedCounter(struct let name = "predicate_counter" end)
 module TermId =
   State_builder.SharedCounter(struct let name = "term_counter" end)
-
+module ExtendedId =
+  State_builder.SharedCounter(struct let name = "extended_counter" end)
 
 let new_code_annotation annot =
   { annot_content = annot ; annot_id = AnnotId.next () }
@@ -53,6 +54,9 @@ let refresh_predicate p = { p with ip_id = PredicateId.next () }
 
 let new_identified_term t =
   { it_id = TermId.next (); it_content = t }
+
+let new_acsl_extension name p =
+  ExtendedId.next (),name ,p
 
 let fresh_term_id = TermId.next
 

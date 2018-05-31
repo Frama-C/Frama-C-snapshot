@@ -5,26 +5,30 @@
 [value:initial-state] Values of globals at initialization
   G ∈ [--..--]
 [value] computing for function f <- h.
-    Called from tests/slicing/slice_no_body.i:21.
-tests/slicing/slice_no_body.i:21:[kernel] warning: Neither code nor specification for function f, generating default assigns from the prototype
+  Called from tests/slicing/slice_no_body.i:21.
+[kernel:annot:missing-spec] tests/slicing/slice_no_body.i:21: Warning: 
+  Neither code nor specification for function f, generating default assigns from the prototype
 [value] using specification for function f
 [value] Done for function f
 [value] computing for function f <- h.
-    Called from tests/slicing/slice_no_body.i:22.
+  Called from tests/slicing/slice_no_body.i:22.
 [value] Done for function f
 [value] computing for function f <- h.
-    Called from tests/slicing/slice_no_body.i:23.
+  Called from tests/slicing/slice_no_body.i:23.
 [value] Done for function f
 [value] computing for function f <- h.
-    Called from tests/slicing/slice_no_body.i:24.
+  Called from tests/slicing/slice_no_body.i:24.
 [value] Done for function f
 [value] computing for function g <- h.
-    Called from tests/slicing/slice_no_body.i:26.
-tests/slicing/slice_no_body.i:12:[value] warning: signed overflow. assert c + 1 ≤ 2147483647;
-tests/slicing/slice_no_body.i:13:[value] warning: signed overflow. assert -2147483648 ≤ c * 2;
-tests/slicing/slice_no_body.i:13:[value] warning: signed overflow. assert c * 2 ≤ 2147483647;
+  Called from tests/slicing/slice_no_body.i:26.
+[value:alarm] tests/slicing/slice_no_body.i:12: Warning: 
+  signed overflow. assert c + 1 ≤ 2147483647;
+[value:alarm] tests/slicing/slice_no_body.i:13: Warning: 
+  signed overflow. assert -2147483648 ≤ c * 2;
+[value:alarm] tests/slicing/slice_no_body.i:13: Warning: 
+  signed overflow. assert c * 2 ≤ 2147483647;
 [value] computing for function f <- g <- h.
-    Called from tests/slicing/slice_no_body.i:15.
+  Called from tests/slicing/slice_no_body.i:15.
 [value] Done for function f
 [value] Recording results for g
 [value] Done for function g
@@ -37,7 +41,7 @@ tests/slicing/slice_no_body.i:13:[value] warning: signed overflow. assert c * 2 
 [from] Computing for function h
 [from] Done for function h
 [from] ====== DEPENDENCIES COMPUTED ======
-    These dependencies hold at termination for the executions that terminate:
+  These dependencies hold at termination for the executions that terminate:
 [from] Function f:
   \result FROM a
 [from] Function g:

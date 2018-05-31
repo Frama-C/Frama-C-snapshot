@@ -5,22 +5,32 @@
 [value:initial-state] Values of globals at initialization
   v ∈ [--..--]
 [value] computing for function main1 <- main.
-    Called from tests/value/bitwise_reduction.i:33.
-tests/value/bitwise_reduction.i:10:[value] warning: assertion got status unknown.
-tests/value/bitwise_reduction.i:11:[value] warning: assertion got status unknown.
-tests/value/bitwise_reduction.i:14:[value] warning: accessing out of bounds index. assert 0 ≤ i;
-tests/value/bitwise_reduction.i:14:[value] warning: accessing out of bounds index. assert i < 2;
-tests/value/bitwise_reduction.i:15:[value] Frama_C_show_each_then1: {1}, {0; 1}
-tests/value/bitwise_reduction.i:17:[value] Frama_C_show_each_else1:
-    {0; 1}, {0; 1; 0x3000; 0x3001; 0x3200; 0x3201; 0xF000; 0xFF00}
-tests/value/bitwise_reduction.i:19:[value] Frama_C_show_each_else_then1:
-    {0; 1}, {0; 1; 0x3000; 0x3001; 0x3200; 0x3201; 0xF000; 0xFF00}
-tests/value/bitwise_reduction.i:23:[value] warning: out of bounds read. assert \valid_read(p);
-tests/value/bitwise_reduction.i:24:[value] Frama_C_show_each_then2: {{ &t + {4} }}, {0; 1}
-tests/value/bitwise_reduction.i:26:[value] Frama_C_show_each_else2:
-    {{ &t + {0; 4} }}, {0; 1; 0x3000; 0x3001; 0x3200; 0x3201; 0xF000; 0xFF00}
-tests/value/bitwise_reduction.i:28:[value] Frama_C_show_each_else_then2:
-    {0; 1}, {0; 1; 0x3000; 0x3001; 0x3200; 0x3201; 0xF000; 0xFF00}
+  Called from tests/value/bitwise_reduction.i:33.
+[value:alarm] tests/value/bitwise_reduction.i:10: Warning: 
+  assertion got status unknown.
+[value:alarm] tests/value/bitwise_reduction.i:11: Warning: 
+  assertion got status unknown.
+[value:alarm] tests/value/bitwise_reduction.i:14: Warning: 
+  accessing out of bounds index. assert 0 ≤ i;
+[value:alarm] tests/value/bitwise_reduction.i:14: Warning: 
+  accessing out of bounds index. assert i < 2;
+[value] tests/value/bitwise_reduction.i:15: Frama_C_show_each_then1: {1}, {0; 1}
+[value] tests/value/bitwise_reduction.i:17: 
+  Frama_C_show_each_else1:
+  {0; 1}, {0; 1; 0x3000; 0x3001; 0x3200; 0x3201; 0xF000; 0xFF00}
+[value] tests/value/bitwise_reduction.i:19: 
+  Frama_C_show_each_else_then1:
+  {0; 1}, {0; 1; 0x3000; 0x3001; 0x3200; 0x3201; 0xF000; 0xFF00}
+[value:alarm] tests/value/bitwise_reduction.i:23: Warning: 
+  out of bounds read. assert \valid_read(p);
+[value] tests/value/bitwise_reduction.i:24: 
+  Frama_C_show_each_then2: {{ &t + {4} }}, {0; 1}
+[value] tests/value/bitwise_reduction.i:26: 
+  Frama_C_show_each_else2:
+  {{ &t + {0; 4} }}, {0; 1; 0x3000; 0x3001; 0x3200; 0x3201; 0xF000; 0xFF00}
+[value] tests/value/bitwise_reduction.i:28: 
+  Frama_C_show_each_else_then2:
+  {0; 1}, {0; 1; 0x3000; 0x3001; 0x3200; 0x3201; 0xF000; 0xFF00}
 [value] Recording results for main1
 [value] Done for function main1
 [value] Recording results for main
@@ -38,17 +48,17 @@ tests/value/bitwise_reduction.i:28:[value] Frama_C_show_each_else_then2:
 [from] Computing for function main
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
-    These dependencies hold at termination for the executions that terminate:
+  These dependencies hold at termination for the executions that terminate:
 [from] Function main1:
   NO EFFECTS
 [from] Function main:
   NO EFFECTS
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function main1:
-      t[0..1]; i; p
+    t[0..1]; i; p
 [inout] Inputs for function main1:
-      v
+    v
 [inout] Out (internal) for function main:
-      \nothing
+    \nothing
 [inout] Inputs for function main:
-      v
+    v

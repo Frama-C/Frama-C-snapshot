@@ -1,7 +1,7 @@
 /* run.config*
    GCC:
    STDOPT: #"-float-normal tests/value/CruiseControl_const.c -lib-entry -main CruiseControl -context-depth 10 -context-valid-pointers"
-   STDOPT: #"-float-hex -all-rounding-modes tests/value/CruiseControl_const.c -lib-entry -main CruiseControl -context-depth 10 -context-valid-pointers"
+
 */
 /*$************* SCADE_KCG KCG Version 5.1.1 (build i10) **************
 ** Command :
@@ -546,10 +546,10 @@ bool main(_C_CruiseControl * _C_){
 
   return false;
 }
-/* run.config*
-   GCC:
-   DONTRUN:
-*/
+
+
+
+
 /*$************* SCADE_KCG KCG Version 5.1.1 (build i10) **************
 ** Command :
 ** l2C        CruiseControl.lus -node CruiseControl

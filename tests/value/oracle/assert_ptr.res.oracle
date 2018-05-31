@@ -8,10 +8,11 @@
   s_q ∈ {0}
   a ∈ {0}
   r ∈ {0}
-tests/value/assert_ptr.i:8:[value] assertion got status valid.
-tests/value/assert_ptr.i:9:[value] Frama_C_show_each_ptr: {{ NULL ; &a }}
-tests/value/assert_ptr.i:12:[value] warning: assertion got status unknown.
-tests/value/assert_ptr.i:13:[value] Frama_C_show_each_q: {{ &a }}
+[value] tests/value/assert_ptr.i:8: assertion got status valid.
+[value] tests/value/assert_ptr.i:9: Frama_C_show_each_ptr: {{ NULL ; &a }}
+[value:alarm] tests/value/assert_ptr.i:12: Warning: 
+  assertion got status unknown.
+[value] tests/value/assert_ptr.i:13: Frama_C_show_each_q: {{ &a }}
 [value] Recording results for main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======
@@ -24,7 +25,7 @@ tests/value/assert_ptr.i:13:[value] Frama_C_show_each_q: {{ &a }}
 [from] Computing for function main
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
-    These dependencies hold at termination for the executions that terminate:
+  These dependencies hold at termination for the executions that terminate:
 [from] Function main:
   ptr FROM c (and SELF)
   q FROM \nothing
@@ -33,6 +34,6 @@ tests/value/assert_ptr.i:13:[value] Frama_C_show_each_q: {{ &a }}
   \result FROM \nothing
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function main:
-      ptr; q; s_q; a; __retres
+    ptr; q; s_q; a; __retres
 [inout] Inputs for function main:
-      ptr; q; s_q; a
+    ptr; q; s_q; a

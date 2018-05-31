@@ -5,95 +5,110 @@
 [value:initial-state] Values of globals at initialization
   w[0..9] ∈ {0}
   v ∈ [--..--]
-tests/value/initialized_copy.i:30:[value] Frama_C_show_each_unreached:
-tests/value/initialized_copy.i:38:[value] Frama_C_dump_each:
-    # Cvalue domain:
-    w[0..9] ∈ {0}
-    v ∈ [--..--]
-    b_0 ∈ {1} or UNINITIALIZED
-    a_0 ∈ {1} or UNINITIALIZED
-    __retres ∈ UNINITIALIZED
-    ==END OF DUMP==
-tests/value/initialized_copy.i:48:[value] Frama_C_show_each_unreached:
-tests/value/initialized_copy.i:65:[value] Frama_C_dump_each:
-    # Cvalue domain:
-    w[0..9] ∈ {0}
-    v ∈ [--..--]
-    c_0[bits 0 to 7] ∈ {1} or UNINITIALIZED
-       [bits 8 to 15] ∈ {2}
-       [bits 16 to 23] ∈ {3}
-       [bits 24 to 31] ∈ {4}
-    p_0 ∈ {{ &c_0 + {3} }}
-    a_2[bits 0 to 7] ∈ {1} or UNINITIALIZED
-       [bits 8 to 15] ∈ {2}
-       [bits 16 to 23] ∈ {3}
-       [bits 24 to 31] ∈ {4}
-    __retres ∈ UNINITIALIZED
-    ==END OF DUMP==
-tests/value/initialized_copy.i:73:[value] Frama_C_show_each: .c ∈ {1}
-                       .[bits 8 to 31] ∈ UNINITIALIZED
-                       .i ∈ {5}
-tests/value/initialized_copy.i:79:[value] Frama_C_show_each: UNINITIALIZED
-tests/value/initialized_copy.i:85:[value] Frama_C_show_each: .i1 ∈ {1}
-                       .i2 ∈ UNINITIALIZED
-tests/value/initialized_copy.i:90:[value] warning: assertion got status unknown.
-tests/value/initialized_copy.i:93:[value] Frama_C_show_each_unreached:
-tests/value/initialized_copy.i:98:[value] warning: assertion got status unknown.
-tests/value/initialized_copy.i:102:[value] Frama_C_dump_each:
-    # Cvalue domain:
-    w[0..9] ∈ {0}
-    v ∈ [--..--]
-    i_0 ∈ [0..9]
-    t_0[0..9] ∈ {1} or UNINITIALIZED
-    v_1[0] ∈ UNINITIALIZED
-       [1] ∈ {1}
-       [2..9] ∈ UNINITIALIZED
-    __retres ∈ UNINITIALIZED
-    ==END OF DUMP==
-tests/value/initialized_copy.i:108:[value] warning: assertion got status unknown.
-tests/value/initialized_copy.i:112:[value] Frama_C_dump_each:
-    # Cvalue domain:
-    w[0..9] ∈ {0; 12} or UNINITIALIZED
-    v ∈ [--..--]
-    i_1 ∈ [0..9]
-    v_2[0] ∈ UNINITIALIZED
-       [1] ∈ {12}
-       [2..9] ∈ UNINITIALIZED
-    __retres ∈ UNINITIALIZED
-    ==END OF DUMP==
+[value] tests/value/initialized_copy.i:30: Frama_C_show_each_unreached:
+[value] tests/value/initialized_copy.i:38: 
+  Frama_C_dump_each:
+  # Cvalue domain:
+  w[0..9] ∈ {0}
+  v ∈ [--..--]
+  b_0 ∈ {1} or UNINITIALIZED
+  a_0 ∈ {1} or UNINITIALIZED
+  __retres ∈ UNINITIALIZED
+  ==END OF DUMP==
+[value] tests/value/initialized_copy.i:48: Frama_C_show_each_unreached:
+[value] tests/value/initialized_copy.i:65: 
+  Frama_C_dump_each:
+  # Cvalue domain:
+  w[0..9] ∈ {0}
+  v ∈ [--..--]
+  c_0[bits 0 to 7] ∈ {1} or UNINITIALIZED
+     [bits 8 to 15] ∈ {2}
+     [bits 16 to 23] ∈ {3}
+     [bits 24 to 31] ∈ {4}
+  p_0 ∈ {{ &c_0 + {3} }}
+  a_2[bits 0 to 7] ∈ {1} or UNINITIALIZED
+     [bits 8 to 15] ∈ {2}
+     [bits 16 to 23] ∈ {3}
+     [bits 24 to 31] ∈ {4}
+  __retres ∈ UNINITIALIZED
+  ==END OF DUMP==
+[value] tests/value/initialized_copy.i:73: 
+  Frama_C_show_each: .c ∈ {1}
+                     .[bits 8 to 31] ∈ UNINITIALIZED
+                     .i ∈ {5}
+[value] tests/value/initialized_copy.i:79: Frama_C_show_each: UNINITIALIZED
+[value] tests/value/initialized_copy.i:85: 
+  Frama_C_show_each: .i1 ∈ {1}
+                     .i2 ∈ UNINITIALIZED
+[value:alarm] tests/value/initialized_copy.i:90: Warning: 
+  assertion got status unknown.
+[value] tests/value/initialized_copy.i:93: Frama_C_show_each_unreached:
+[value:alarm] tests/value/initialized_copy.i:98: Warning: 
+  assertion got status unknown.
+[value] tests/value/initialized_copy.i:102: 
+  Frama_C_dump_each:
+  # Cvalue domain:
+  w[0..9] ∈ {0}
+  v ∈ [--..--]
+  i_0 ∈ [0..9]
+  t_0[0..9] ∈ {1} or UNINITIALIZED
+  v_1[0] ∈ UNINITIALIZED
+     [1] ∈ {1}
+     [2..9] ∈ UNINITIALIZED
+  __retres ∈ UNINITIALIZED
+  ==END OF DUMP==
+[value:alarm] tests/value/initialized_copy.i:108: Warning: 
+  assertion got status unknown.
+[value] tests/value/initialized_copy.i:112: 
+  Frama_C_dump_each:
+  # Cvalue domain:
+  w[0..9] ∈ {0; 12} or UNINITIALIZED
+  v ∈ [--..--]
+  i_1 ∈ [0..9]
+  v_2[0] ∈ UNINITIALIZED
+     [1] ∈ {12}
+     [2..9] ∈ UNINITIALIZED
+  __retres ∈ UNINITIALIZED
+  ==END OF DUMP==
 [value] computing for function f <- main.
-    Called from tests/value/initialized_copy.i:129.
+  Called from tests/value/initialized_copy.i:129.
 [value] Recording results for f
 [value] Done for function f
-tests/value/initialized_copy.i:130:[value] Frama_C_show_each_unreached:
-tests/value/initialized_copy.i:135:[value] warning: accessing uninitialized left-value. assert \initialized(&a_6);
+[value] tests/value/initialized_copy.i:130: Frama_C_show_each_unreached:
+[value:alarm] tests/value/initialized_copy.i:135: Warning: 
+  accessing uninitialized left-value. assert \initialized(&a_6);
 [value] computing for function f <- main.
-    Called from tests/value/initialized_copy.i:143.
+  Called from tests/value/initialized_copy.i:143.
 [value] Recording results for f
 [value] Done for function f
-tests/value/initialized_copy.i:144:[value] Frama_C_dump_each:
-    # Cvalue domain:
-    w[0..9] ∈ {0; 12} or UNINITIALIZED
-    v ∈ [--..--]
-    a_7 ∈ {1} or UNINITIALIZED
-    __retres ∈ UNINITIALIZED
-    ==END OF DUMP==
-tests/value/initialized_copy.i:151:[value] warning: accessing uninitialized left-value. assert \initialized(&a_8);
+[value] tests/value/initialized_copy.i:144: 
+  Frama_C_dump_each:
+  # Cvalue domain:
+  w[0..9] ∈ {0; 12} or UNINITIALIZED
+  v ∈ [--..--]
+  a_7 ∈ {1} or UNINITIALIZED
+  __retres ∈ UNINITIALIZED
+  ==END OF DUMP==
+[value:alarm] tests/value/initialized_copy.i:151: Warning: 
+  accessing uninitialized left-value. assert \initialized(&a_8);
 [value] computing for function g <- main.
-    Called from tests/value/initialized_copy.i:151.
-tests/value/initialized_copy.i:151:[kernel] warning: Neither code nor specification for function g, generating default assigns from the prototype
+  Called from tests/value/initialized_copy.i:151.
+[kernel:annot:missing-spec] tests/value/initialized_copy.i:151: Warning: 
+  Neither code nor specification for function g, generating default assigns from the prototype
 [value] using specification for function g
 [value] Done for function g
-tests/value/initialized_copy.i:152:[value] Frama_C_dump_each:
-    # Cvalue domain:
-    w[0..9] ∈ {0; 12} or UNINITIALIZED
-    v ∈ [--..--]
-    a_8 ∈ {1}
-    __retres ∈ UNINITIALIZED
-    ==END OF DUMP==
+[value] tests/value/initialized_copy.i:152: 
+  Frama_C_dump_each:
+  # Cvalue domain:
+  w[0..9] ∈ {0; 12} or UNINITIALIZED
+  v ∈ [--..--]
+  a_8 ∈ {1}
+  __retres ∈ UNINITIALIZED
+  ==END OF DUMP==
 [value] Recording results for main
 [value] done for function main
-tests/value/initialized_copy.i:135:[value] assertion 'Value,initialisation' got final status invalid.
+[value] tests/value/initialized_copy.i:135: 
+  assertion 'Value,initialization' got final status invalid.
 [value] ====== VALUES COMPUTED ======
 [value:final-states] Values at end of function f:
   
@@ -107,7 +122,7 @@ tests/value/initialized_copy.i:135:[value] assertion 'Value,initialisation' got 
 [from] Done for function g
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
-    These dependencies hold at termination for the executions that terminate:
+  These dependencies hold at termination for the executions that terminate:
 [from] Function f:
   NO EFFECTS
 [from] Function g:
@@ -117,12 +132,12 @@ tests/value/initialized_copy.i:135:[value] assertion 'Value,initialisation' got 
   \result FROM v
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function f:
-      \nothing
+    \nothing
 [inout] Inputs for function f:
-      \nothing
+    \nothing
 [inout] Out (internal) for function main:
-      w[0..9]; a; b_0; a_0; c[bits 0 to 7]; p; a_1; c_0; p_0; a_2; s1{.c; .i};
-      s2; sv1; sv1_0; sv2_0.i1; i; t[0..9]; i_0; t_0[0..9]; v_1[1]; i_1; 
-      v_2[1]; a_4; a_7; a_8; __retres
+    w[0..9]; a; b_0; a_0; c[bits 0 to 7]; p; a_1; c_0; p_0; a_2; s1{.c; .i};
+    s2; sv1; sv1_0; sv2_0.i1; i; t[0..9]; i_0; t_0[0..9]; v_1[1]; i_1; 
+    v_2[1]; a_4; a_7; a_8; __retres
 [inout] Inputs for function main:
-      v
+    v

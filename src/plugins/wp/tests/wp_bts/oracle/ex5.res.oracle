@@ -2,12 +2,216 @@
 [kernel] Parsing tests/wp_bts/ex5.i (no preprocessing)
 [wp] Running WP plugin...
 [wp] Loading driver 'share/wp.driver'
-[wp] warning: Missing RTE guards
+[wp] Warning: Missing RTE guards
 ------------------------------------------------------------
   Function dummy
 ------------------------------------------------------------
 
 Goal Assertion (file tests/wp_bts/ex5.i, line 7):
-Prove: exists i_4,i_3,i_2,i_1,i : Z. (i + i_1 + i_2 + i_3 + i_4) = 7.
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Assertion (file tests/wp_bts/ex5.i, line 9):
+Prove: exists i_4,i_3,i_2,i_1,i : Z. 7 <= (i + i_1 + i_2 + i_3 + i_4).
+
+------------------------------------------------------------
+
+Goal Assertion (file tests/wp_bts/ex5.i, line 11):
+Assume { (* Assertion *) Have: 7 <= (i + i_1 + i_2 + i_3 + i_4). }
+Prove: exists i_5 : Z. 4 <= i_5.
+
+------------------------------------------------------------
+------------------------------------------------------------
+  Function exists
+------------------------------------------------------------
+
+Goal Post-condition 'ok11' in 'exists':
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Post-condition 'ok12' in 'exists':
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Post-condition 'ok21' in 'exists':
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Post-condition 'ok22' in 'exists':
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Post-condition 'ok31' in 'exists':
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Post-condition 'ok32' in 'exists':
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Post-condition 'ko0' in 'exists':
+Prove: exists i : Z. i != 1.
+
+------------------------------------------------------------
+
+Goal Post-condition 'ko1' in 'exists':
+Prove: exists i : Z. L_f(i) = i.
+
+------------------------------------------------------------
+
+Goal Post-condition 'ko2' in 'exists':
+Prove: exists i : Z. (b + L_f(i)) = (1 + i).
+
+------------------------------------------------------------
+
+Goal Post-condition 'ko3' in 'exists':
+Prove: exists i : Z. (i + L_f(i)) = b.
+
+------------------------------------------------------------
+
+Goal Post-condition 'ko4' in 'exists':
+Prove: exists i : Z. P_P(i) /\ (exists i_1 : Z. L_f(i_1) = i).
+
+------------------------------------------------------------
+
+Goal Post-condition 'ko5' in 'exists':
+Prove: exists i : Z. (i = 1) \/ P_P(i) \/ P_Q(i).
+
+------------------------------------------------------------
+
+Goal Post-condition 'p1' in 'exists':
+Prove: P_P(1) /\ P_Q(1).
+
+------------------------------------------------------------
+
+Goal Post-condition 'p2' in 'exists':
+Let x = b - 1. Prove: P_P(x) /\ P_Q(x).
+
+------------------------------------------------------------
+
+Goal Post-condition 'p3' in 'exists':
+Let x = b + L_f(b) - 1 - L_f(a). Prove: P_P(x) /\ P_Q(x).
+
+------------------------------------------------------------
+------------------------------------------------------------
+  Function forall
+------------------------------------------------------------
+
+Goal Post-condition 'ok11' in 'forall':
+Prove: false.
+
+------------------------------------------------------------
+
+Goal Post-condition 'ok12' in 'forall':
+Prove: false.
+
+------------------------------------------------------------
+
+Goal Post-condition 'ok21' in 'forall':
+Prove: false.
+
+------------------------------------------------------------
+
+Goal Post-condition 'ok22' in 'forall':
+Prove: false.
+
+------------------------------------------------------------
+
+Goal Post-condition 'ok31' in 'forall':
+Prove: false.
+
+------------------------------------------------------------
+
+Goal Post-condition 'ok32' in 'forall':
+Prove: false.
+
+------------------------------------------------------------
+
+Goal Post-condition 'ko0' in 'forall':
+Prove: L_f(i) = i.
+
+------------------------------------------------------------
+
+Goal Post-condition 'ko1' in 'forall':
+Prove: L_f(i) != i.
+
+------------------------------------------------------------
+
+Goal Post-condition 'ko2' in 'forall':
+Prove: (b + L_f(i)) != (1 + i).
+
+------------------------------------------------------------
+
+Goal Post-condition 'ko3' in 'forall':
+Prove: (i + L_f(i)) != b.
+
+------------------------------------------------------------
+
+Goal Post-condition 'ko4' in 'forall':
+Prove: P_P(i) \/ (forall i_1 : Z. L_f(i_1) != i).
+
+------------------------------------------------------------
+
+Goal Post-condition 'ko5' in 'forall':
+Prove: (i != 1) /\ P_P(i) /\ P_Q(i).
+
+------------------------------------------------------------
+
+Goal Post-condition 'p1' in 'forall':
+Prove: P_P(1) \/ P_Q(1).
+
+------------------------------------------------------------
+
+Goal Post-condition 'p2' in 'forall':
+Let x = b - 1. Prove: P_P(x) \/ P_Q(x).
+
+------------------------------------------------------------
+
+Goal Post-condition 'p3' in 'forall':
+Let x = b + L_f(b) - 1 - L_f(a). Prove: P_P(x) \/ P_Q(x).
+
+------------------------------------------------------------
+
+Goal Post-condition 'q1' in 'forall':
+Assume { (* Goal *) When: P_P(1) /\ P_Q(1). }
+Prove: false.
+
+------------------------------------------------------------
+
+Goal Post-condition 'q2' in 'forall':
+Let x = b - 1. Assume { (* Goal *) When: P_P(x) /\ P_Q(x). }
+Prove: false.
+
+------------------------------------------------------------
+
+Goal Post-condition 'q3' in 'forall':
+Let x = b + L_f(b) - 1 - L_f(a).
+Assume { (* Goal *) When: P_P(x) /\ P_Q(x). }
+Prove: false.
+
+------------------------------------------------------------
+
+Goal Post-condition 'r1' in 'forall':
+Assume { (* Goal *) When: P_P(1). }
+Prove: P_Q(1).
+
+------------------------------------------------------------
+
+Goal Post-condition 'r2' in 'forall':
+Let x = b - 1. Assume { (* Goal *) When: P_P(x). }
+Prove: P_Q(x).
+
+------------------------------------------------------------
+
+Goal Post-condition 'r3' in 'forall':
+Let x = b + L_f(b) - 1 - L_f(a). Assume { (* Goal *) When: P_P(x). }
+Prove: P_Q(x).
 
 ------------------------------------------------------------

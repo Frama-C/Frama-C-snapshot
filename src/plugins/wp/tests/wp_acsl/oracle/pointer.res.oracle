@@ -2,13 +2,13 @@
 [kernel] Parsing tests/wp_acsl/pointer.i (no preprocessing)
 [wp] Running WP plugin...
 [wp] Loading driver 'share/wp.driver'
-[wp] warning: Missing RTE guards
-tests/wp_acsl/pointer.i:50:[wp] warning: Uncomparable locations p_0 and mem:t
-tests/wp_acsl/pointer.i:49:[wp] warning: Uncomparable locations p_0 and mem:t
-tests/wp_acsl/pointer.i:48:[wp] warning: Uncomparable locations p_0 and mem:t
-tests/wp_acsl/pointer.i:47:[wp] warning: Uncomparable locations p_0 and mem:t
-tests/wp_acsl/pointer.i:46:[wp] warning: Uncomparable locations p_0 and mem:t
-tests/wp_acsl/pointer.i:45:[wp] warning: Uncomparable locations p_0 and mem:t
+[wp] Warning: Missing RTE guards
+[wp] tests/wp_acsl/pointer.i:50: Warning: Uncomparable locations p_0 and mem:t
+[wp] tests/wp_acsl/pointer.i:49: Warning: Uncomparable locations p_0 and mem:t
+[wp] tests/wp_acsl/pointer.i:48: Warning: Uncomparable locations p_0 and mem:t
+[wp] tests/wp_acsl/pointer.i:47: Warning: Uncomparable locations p_0 and mem:t
+[wp] tests/wp_acsl/pointer.i:46: Warning: Uncomparable locations p_0 and mem:t
+[wp] tests/wp_acsl/pointer.i:45: Warning: Uncomparable locations p_0 and mem:t
 ------------------------------------------------------------
   Function absurd
 ------------------------------------------------------------
@@ -35,7 +35,7 @@ Assume {
   (* Pre-condition *)
   Have: p.base = G_t_19.
 }
-Prove: (4 * i) <= (4 * i_1).
+Prove: i <= i_1.
 
 ------------------------------------------------------------
 ------------------------------------------------------------
@@ -43,14 +43,12 @@ Prove: (4 * i) <= (4 * i_1).
 ------------------------------------------------------------
 
 Goal Post-condition 'Lt' in 'array':
-Assume { (* Goal *) When: i < i_1. }
-Prove: (4 * i) < (4 * i_1).
+Prove: true.
 
 ------------------------------------------------------------
 
 Goal Post-condition 'Le' in 'array':
-Assume { (* Goal *) When: i <= i_1. }
-Prove: (4 * i) <= (4 * i_1).
+Prove: true.
 
 ------------------------------------------------------------
 
@@ -208,14 +206,14 @@ Prove: addr_le(p, shift_sint32(global(G_t_19), 0)).
 ------------------------------------------------------------
 
 Goal Post-condition 'qed_ok,Bool' in 'null':
-Let x = cast(p).
+Let x = int_of_addr(p).
 Assume { Type: is_sint32(x). (* Heap *) Have: region(p.base) <= 0. }
 Prove: (x != 0) <-> (null != p).
 
 ------------------------------------------------------------
 
 Goal Post-condition 'qed_ok,NotNull' in 'null':
-Let x = cast(p).
+Let x = int_of_addr(p).
 Assume {
   Type: is_sint32(x).
   (* Goal *)
@@ -228,8 +226,7 @@ Prove: x != 0.
 ------------------------------------------------------------
 
 Goal Post-condition 'qed_ok,IsNull' in 'null':
-Assume { (* Heap *) Have: region(0) <= 0. }
-Prove: cast(null) = 0.
+Prove: true.
 
 ------------------------------------------------------------
 ------------------------------------------------------------
@@ -272,3 +269,9 @@ Assume { (* Heap *) Have: region(p.base) <= 0. }
 Prove: false.
 
 ------------------------------------------------------------
+[wp] Warning: Separation hypotheses for function 'compare':
+  /*@ behavior typed: requires \separated(&p,q); */
+  void compare(int *q);
+[wp] Warning: Separation hypotheses for function 'absurd':
+  /*@ behavior typed: requires \separated(&p,q); */
+  void absurd(int *q);

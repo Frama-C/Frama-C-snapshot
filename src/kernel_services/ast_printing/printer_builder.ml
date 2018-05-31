@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2017                                               *)
+(*  Copyright (C) 2007-2018                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -119,7 +119,16 @@ struct
   let pp_loop_assigns fmt x = (printer ())#assigns "loop assigns" fmt x
   let pp_loop_allocation fmt x = (printer ())#allocation ~isloop:true fmt x
   let pp_post_cond fmt x = (printer ())#post_cond fmt x
-
+  let pp_compinfo fmt x = (printer ())#compinfo fmt x
+  let pp_builtin_logic_info fmt x = (printer ())#builtin_logic_info fmt x
+  let pp_logic_type_info fmt x = (printer ())#logic_type_info fmt x
+  let pp_logic_ctor_info fmt x = (printer ())#logic_ctor_info fmt x
+  let pp_extended fmt x = (printer())#extended fmt x
+  let pp_initinfo fmt x = (printer ())#initinfo fmt x
+  let pp_logic_info fmt x = (printer ())#logic_info fmt x
+  let pp_logic_constant fmt x = (printer ())#logic_constant fmt x
+  let pp_term_lhost fmt x = (printer ())#term_lhost fmt x
+  let pp_fundec fmt x = (printer ())#fundec fmt x
 end
 
 (*

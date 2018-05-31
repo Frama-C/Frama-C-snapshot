@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2017                                               *)
+(*  Copyright (C) 2007-2018                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -123,11 +123,14 @@ module Make_Dataflow
     and call_kinstr = AnalysisParam.call_kinstr
     and ab = active_behaviors in
     let locals = block_toplevel_locals (current_fundec.sbody) in
-    let state = Domain.enter_scope current_kf locals state in
-    (* Remark: the pre-condition cannot talk about the locals. BUT
-       check_fct_preconditions split the state into a stateset, hence
-       it is simpler to apply it to the (unique) state with locals *)
-    Logic.check_fct_preconditions call_kinstr kf ab state
+    let state = Transfer.enter_scope current_kf locals state in
+    if Value_util.skip_specifications kf then
+      `Value (States.singleton state)
+    else
+      (* Remark: the pre-condition cannot talk about the locals. BUT
+         check_fct_preconditions split the state into a stateset, hence
+         it is simpler to apply it to the (unique) state with locals *)
+      Logic.check_fct_preconditions call_kinstr kf ab state
 
   let initial_state =
     match initial_states with
@@ -574,7 +577,7 @@ module Make_Dataflow
          the two of them. *)
       let do_edge state =
         let enter_block state block =
-          Domain.enter_scope current_kf (block_toplevel_locals block) state
+          Transfer.enter_scope current_kf (block_toplevel_locals block) state
         in
         let close_block state block =
           Domain.leave_scope current_kf block.blocals state
@@ -735,10 +738,13 @@ module Make_Dataflow
       | Some (_, _, varinfo) -> Some varinfo
       | None -> None
     in
-    Logic.check_fct_postconditions
-      current_kf active_behaviors Normal
-      ~pre_state:initial_state ~post_states:final_states ~result
-    >>- fun states ->
+    (if Value_util.skip_specifications current_kf then
+       `Value final_states
+     else
+       Logic.check_fct_postconditions
+         current_kf active_behaviors Normal
+         ~pre_state:initial_state ~post_states:final_states ~result
+    ) >>- fun states ->
     join_final_states states >>- fun states ->
     (* copy return code into proper variable *)
     let states = States.map_or_bottom copy_return states in

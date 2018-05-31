@@ -12,12 +12,13 @@
   S___fc_stdin[0..1] ∈ [--..--]
   S___fc_stdout[0..1] ∈ [--..--]
 [value] computing for function poll <- main.
-    Called from tests/libc/poll.c:11.
+  Called from tests/libc/poll.c:11.
 [value] using specification for function poll
-share/libc/poll.h:51:[value] function poll: precondition got status valid.
+[value] tests/libc/poll.c:11: 
+  function poll: precondition 'valid_file_descriptors' got status valid.
 [value] Done for function poll
 [value] computing for function perror <- main.
-    Called from tests/libc/poll.c:12.
+  Called from tests/libc/poll.c:12.
 [value] using specification for function perror
 [value] Done for function perror
 [value] Recording results for main

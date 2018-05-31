@@ -10,16 +10,22 @@
   r ∈ {0}
   A ∈ {0}
   offs ∈ {0}
-tests/value/reduce_valid.i:9:[value] warning: out of bounds write. assert \valid(p);
-tests/value/reduce_valid.i:16:[value] Frama_C_show_each_ici: {0}
-tests/value/reduce_valid.i:17:[value] warning: out of bounds write. assert \valid(q);
-tests/value/reduce_valid.i:17:[kernel] warning: all target addresses were invalid. This path is assumed to be dead.
-tests/value/reduce_valid.i:24:[value] warning: out of bounds read. assert \valid_read(r + offs);
-tests/value/reduce_valid.i:25:[value] Frama_C_show_each_r: {{ &t }}
-tests/value/reduce_valid.i:26:[value] warning: accessing out of bounds index. assert (int)((int)h + 1) < 2;
+[value:alarm] tests/value/reduce_valid.i:9: Warning: 
+  out of bounds write. assert \valid(p);
+[value] tests/value/reduce_valid.i:16: Frama_C_show_each_ici: {0}
+[value:alarm] tests/value/reduce_valid.i:17: Warning: 
+  out of bounds write. assert \valid(q);
+[kernel] tests/value/reduce_valid.i:17: Warning: 
+  all target addresses were invalid. This path is assumed to be dead.
+[value:alarm] tests/value/reduce_valid.i:24: Warning: 
+  out of bounds read. assert \valid_read(r + offs);
+[value] tests/value/reduce_valid.i:25: Frama_C_show_each_r: {{ &t }}
+[value:alarm] tests/value/reduce_valid.i:26: Warning: 
+  accessing out of bounds index. assert (int)((int)h + 1) < 2;
 [value] Recording results for main
 [value] done for function main
-tests/value/reduce_valid.i:17:[value] assertion 'Value,mem_access' got final status invalid.
+[value] tests/value/reduce_valid.i:17: 
+  assertion 'Value,mem_access' got final status invalid.
 [value] ====== VALUES COMPUTED ======
 [value:final-states] Values at end of function main:
   t[0] ∈ {4}
@@ -34,7 +40,7 @@ tests/value/reduce_valid.i:17:[value] assertion 'Value,mem_access' got final sta
 [from] Computing for function main
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
-    These dependencies hold at termination for the executions that terminate:
+  These dependencies hold at termination for the executions that terminate:
 [from] Function main:
   t[0..1] FROM c
   u[1] FROM h
@@ -45,6 +51,6 @@ tests/value/reduce_valid.i:17:[value] assertion 'Value,mem_access' got final sta
   offs FROM g
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function main:
-      t[0..1]; u[1]; p; q; r; A; offs; tmp
+    t[0..1]; u[1]; p; q; r; A; offs; tmp
 [inout] Inputs for function main:
-      t[1]; p; q; r; offs
+    t[1]; p; q; r; offs

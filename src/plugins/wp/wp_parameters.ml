@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2017                                               *)
+(*  Copyright (C) 2007-2018                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -33,14 +33,14 @@ include Plugin.Register
 
 (* localize all warnings inside WP *)
 
-let warning ?current = match current with
-  | None -> warning ~current:true
-  | Some b -> warning ~current:b
+let warning ?wkey ?current = match current with
+  | None -> warning ?wkey ~current:true
+  | Some b -> warning ?wkey ~current:b
 
 let resetdemon = ref []
 let on_reset f = resetdemon := f :: !resetdemon
 let reset () = List.iter (fun f -> f ()) !resetdemon
-let has_dkey (k:Log.category) = Datatype.String.Set.mem (k :> string) (Debug_category.get())
+let has_dkey (k:category) = is_debug_key_enabled k
 
 (* ------------------------------------------------------------------------ *)
 (* ---  WP Generation                                                   --- *)
@@ -224,6 +224,13 @@ module ExtEqual =
   end)
 
 let () = Parameter_customize.set_group wp_model
+module BoolRange =
+  False(struct
+    let option_name = "-wp-bool-range"
+    let help = "Assumes _Bool values have no trap representations."
+  end)
+
+let () = Parameter_customize.set_group wp_model
 module Overflows =
   False(struct
     let option_name = "-wp-overflows"
@@ -284,6 +291,13 @@ module Split =
   False(struct
     let option_name = "-wp-split"
     let help = "Split conjunctions into sub-goals."
+  end)
+
+let () = Parameter_customize.set_group wp_strategy
+module UnfoldAssigns =
+  False(struct
+    let option_name = "-wp-unfold-assigns"
+    let help = "Unfold aggregates in assigns."
   end)
 
 let () = Parameter_customize.set_group wp_strategy
@@ -565,6 +579,50 @@ module ProofTrace =
 
 let wp_prover_options = add_group "Prover Options"
 
+let () = Parameter_customize.set_group wp_prover
+module Auto = String_list
+    (struct
+      let option_name = "-wp-auto"
+      let arg_name = "s"
+      let help =
+        "Activate auto-search with strategy <s>.\n\
+         Implies -wp-prover 'tip'.\n\
+         Use '-wp-prover ?' for listing strategies."
+    end)
+
+let () = Parameter_customize.set_group wp_prover
+module AutoDepth = Int
+    (struct
+      let option_name = "-wp-auto-depth"
+      let arg_name = "n"
+      let default = 5
+      let help =
+        "Depth of auto-search (-wp-auto only, default 5).\n\
+          Limits the number of nested level in strategies."
+    end)
+
+let () = Parameter_customize.set_group wp_prover
+module AutoWidth = Int
+    (struct
+      let option_name = "-wp-auto-width"
+      let arg_name = "n"
+      let default = 10
+      let help =
+        "Width of auto-search (-wp-auto only, default 10).\n\
+          Limits the number of pending goals in strategies."
+    end)
+
+let () = Parameter_customize.set_group wp_prover
+module BackTrack = Int
+    (struct
+      let option_name = "-wp-auto-backtrack"
+      let arg_name = "n"
+      let default = 0
+      let help =
+        "Backtracking limit (-wp-auto only, de-activated by default).\n\
+         Limits backtracking when applying strategies."
+    end)
+
 let () = Parameter_customize.set_group wp_prover_options
 module Script =
   String(struct
@@ -750,7 +808,11 @@ module TruncPropIdFileName =
     let option_name = "-wp-filename-truncation"
     let default = 60
     let arg_name = "n"
-    let help = "Truncate basename of proof obligation files after <n> characters. Since numbers can be added as suffixes to make theses names unique, filename lengths can be highter to <n>. No truncation is performed when the value equals to zero (default: 60)."
+    let help =
+      "Truncate basename of proof obligation files after <n> characters.\n\
+       Since numbers can be added as suffixes to make theses names unique,\n\
+       filename lengths can be highter to <n>. No truncation is performed\n\
+       when the value equals to zero (default: 60)."
   end)
 
 
@@ -775,21 +837,36 @@ module Report =
 
 let () = Parameter_customize.set_group wp_po
 let () = Parameter_customize.do_not_save ()
+module ReportJson =
+  String
+    (struct
+      let option_name = "-wp-report-json"
+      let arg_name = "file.json"
+      let default = ""
+      let help =
+        "Output report in json format into given file.\n\
+          If the file already exists, it is used for\n\
+          stabilizing range of steps in other reports."
+    end)
+
+let () = Parameter_customize.set_group wp_po
+let () = Parameter_customize.do_not_save ()
 module ReportName =
   String(struct
     let option_name = "-wp-report-basename"
     let arg_name = "file"
     let default = "wp-report"
-    let help = Printf.sprintf "Basename of generated reports (default %S)" default
+    let help = Printf.sprintf
+        "Basename of generated reports (default %S)" default
   end)
 
 let () = Parameter_customize.set_group wp_po
 let () = Parameter_customize.do_not_save ()
 module Separation =
-  False
+  True
     (struct
-      let option_name = "-wp-print-separation"
-      let help = "Print Separation Hypotheses"
+      let option_name = "-wp-warn-separation"
+      let help = "Warn Against Separation Hypotheses"
     end)
 
 let () = Parameter_customize.set_group wp_po

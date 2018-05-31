@@ -8,57 +8,66 @@
   S ∈ {0}
   S1 ∈ {0}
   S2 ∈ {0}
-tests/pdg/simple_intra_slice.c:96:[value] warning: initialization of volatile variable uninit ignored
-tests/pdg/simple_intra_slice.c:96:[value] warning: initialization of volatile variable uninit2 ignored
-tests/pdg/simple_intra_slice.c:98:[value] entering loop for the first time
-tests/pdg/simple_intra_slice.c:99:[value] warning: signed overflow. assert -2147483648 ≤ uninit - 1;
-tests/pdg/simple_intra_slice.c:99:[value] warning: signed overflow. assert Unknown + 1 ≤ 2147483647;
-tests/pdg/simple_intra_slice.c:99:[value] warning: signed overflow. assert -2147483648 ≤ Unknown - 1;
-tests/pdg/simple_intra_slice.c:100:[value] entering loop for the first time
-tests/pdg/simple_intra_slice.c:101:[value] warning: signed overflow. assert -2147483648 ≤ uninit2 - 1;
-tests/pdg/simple_intra_slice.c:101:[value] warning: signed overflow. assert S.a + 1 ≤ 2147483647;
-tests/pdg/simple_intra_slice.c:101:[value] warning: signed overflow. assert -2147483648 ≤ S.a - 1;
+[value] tests/pdg/simple_intra_slice.c:98: entering loop for the first time
+[value:alarm] tests/pdg/simple_intra_slice.c:99: Warning: 
+  signed overflow. assert -2147483648 ≤ uninit - 1;
+[value:alarm] tests/pdg/simple_intra_slice.c:99: Warning: 
+  signed overflow. assert Unknown + 1 ≤ 2147483647;
+[value:alarm] tests/pdg/simple_intra_slice.c:99: Warning: 
+  signed overflow. assert -2147483648 ≤ Unknown - 1;
+[value] tests/pdg/simple_intra_slice.c:100: entering loop for the first time
+[value:alarm] tests/pdg/simple_intra_slice.c:101: Warning: 
+  signed overflow. assert -2147483648 ≤ uninit2 - 1;
+[value:alarm] tests/pdg/simple_intra_slice.c:101: Warning: 
+  signed overflow. assert S.a + 1 ≤ 2147483647;
+[value:alarm] tests/pdg/simple_intra_slice.c:101: Warning: 
+  signed overflow. assert -2147483648 ≤ S.a - 1;
 [value] computing for function f2 <- main.
-    Called from tests/pdg/simple_intra_slice.c:103.
+  Called from tests/pdg/simple_intra_slice.c:103.
 [value] computing for function f1 <- f2 <- main.
-    Called from tests/pdg/simple_intra_slice.c:23.
+  Called from tests/pdg/simple_intra_slice.c:23.
 [value] Recording results for f1
 [value] Done for function f1
 [value] Recording results for f2
 [value] Done for function f2
 [value] computing for function f3 <- main.
-    Called from tests/pdg/simple_intra_slice.c:104.
+  Called from tests/pdg/simple_intra_slice.c:104.
 [value] Recording results for f3
 [value] Done for function f3
 [value] computing for function f4 <- main.
-    Called from tests/pdg/simple_intra_slice.c:105.
+  Called from tests/pdg/simple_intra_slice.c:105.
 [value] Recording results for f4
 [value] Done for function f4
 [value] computing for function f5 <- main.
-    Called from tests/pdg/simple_intra_slice.c:106.
+  Called from tests/pdg/simple_intra_slice.c:106.
 [value] Recording results for f5
 [value] Done for function f5
 [value] computing for function f6 <- main.
-    Called from tests/pdg/simple_intra_slice.c:107.
-tests/pdg/simple_intra_slice.c:59:[value] entering loop for the first time
-tests/pdg/simple_intra_slice.c:71:[value] warning: signed overflow. assert -2147483648 ≤ 10 * n;
-tests/pdg/simple_intra_slice.c:71:[value] warning: signed overflow. assert 10 * n ≤ 2147483647;
+  Called from tests/pdg/simple_intra_slice.c:107.
+[value] tests/pdg/simple_intra_slice.c:59: entering loop for the first time
+[value:alarm] tests/pdg/simple_intra_slice.c:71: Warning: 
+  signed overflow. assert -2147483648 ≤ 10 * n;
+[value:alarm] tests/pdg/simple_intra_slice.c:71: Warning: 
+  signed overflow. assert 10 * n ≤ 2147483647;
 [value] Recording results for f6
 [value] Done for function f6
-tests/pdg/simple_intra_slice.c:107:[value] warning: signed overflow. assert res + tmp_3 ≤ 2147483647;
-                     (tmp_3 from f6(Unknown))
+[value:alarm] tests/pdg/simple_intra_slice.c:107: Warning: 
+  signed overflow. assert res + tmp_3 ≤ 2147483647;
+                   (tmp_3 from f6(Unknown))
 [value] computing for function f7 <- main.
-    Called from tests/pdg/simple_intra_slice.c:108.
-tests/pdg/simple_intra_slice.c:79:[value] warning: signed overflow. assert S.a + 3 ≤ 2147483647;
-tests/pdg/simple_intra_slice.c:82:[value] warning: signed overflow. assert s0.a + 1 ≤ 2147483647;
+  Called from tests/pdg/simple_intra_slice.c:108.
+[value:alarm] tests/pdg/simple_intra_slice.c:79: Warning: 
+  signed overflow. assert S.a + 3 ≤ 2147483647;
+[value:alarm] tests/pdg/simple_intra_slice.c:82: Warning: 
+  signed overflow. assert s0.a + 1 ≤ 2147483647;
 [value] Recording results for f7
 [value] Done for function f7
 [value] computing for function f8 <- main.
-    Called from tests/pdg/simple_intra_slice.c:110.
+  Called from tests/pdg/simple_intra_slice.c:110.
 [value] Recording results for f8
 [value] Done for function f8
 [value] computing for function f8 <- main.
-    Called from tests/pdg/simple_intra_slice.c:112.
+  Called from tests/pdg/simple_intra_slice.c:112.
 [value] Recording results for f8
 [value] Done for function f8
 [value] Recording results for main

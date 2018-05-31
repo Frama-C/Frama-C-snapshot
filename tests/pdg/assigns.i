@@ -5,7 +5,7 @@
 unsigned int x, y;
 
 //@ assigns x \from x;
-void f();
+void f(void);
 
 int main() {
   x = 1U;
