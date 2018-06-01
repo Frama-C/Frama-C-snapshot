@@ -4,36 +4,16 @@
 .................................................
 ... Ref Usage
 .................................................
-... Initial state
-  Nothing
-............
-... Function f1
-   p1[_]
-   i
-............
-... Function call_f1
-   tt
-   tmp
-............
-... Function f2
-   p2[_]
-   j
-............
-... Function call_f2
-   tt
-   tmp
-   __retres
-............
-... Function f3
-   p3[_]
-   k
-............
-... Function call_f3
-   tp
-   tmp
+Init: { }
+Function f1: { p1[] i }
+Function call_f1: { tt tmp }
+Function f2: { p2[] j }
+Function call_f2: { tt tmp[] __retres }
+Function f3: { p3[] k }
+Function call_f3: { tp tmp }
 .................................................
 [wp] Loading driver 'share/wp.driver'
-[wp] warning: Missing RTE guards
+[wp] Warning: Missing RTE guards
 ------------------------------------------------------------
   Function call_f1
 ------------------------------------------------------------

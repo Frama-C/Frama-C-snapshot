@@ -4,9 +4,8 @@
 [value] Initial state computed
 [value:initial-state] Values of globals at initialization
   
-tests/value/goto.i:7:[value] warning: initialization of volatile variable c ignored
 [value] computing for function stop <- main.
-    Called from tests/value/goto.i:10.
+  Called from tests/value/goto.i:10.
 [value] Recording results for stop
 [value] Done for function stop
 [value] Recording results for main
@@ -23,17 +22,17 @@ tests/value/goto.i:7:[value] warning: initialization of volatile variable c igno
 [from] Computing for function main
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
-    These dependencies hold at termination for the executions that terminate:
+  These dependencies hold at termination for the executions that terminate:
 [from] Function stop:
   NON TERMINATING - NO EFFECTS
 [from] Function main:
   \result FROM \nothing
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function stop:
-      \nothing
+    \nothing
 [inout] Inputs for function stop:
-      \nothing
+    \nothing
 [inout] Out (internal) for function main:
-      c; __retres
+    c; __retres
 [inout] Inputs for function main:
-      \nothing
+    \nothing

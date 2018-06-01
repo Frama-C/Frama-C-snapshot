@@ -5,19 +5,31 @@
 [value:initial-state] Values of globals at initialization
   G ∈ [--..--]
   S ∈ [--..--]
-tests/pdg/decl_dpds.c:16:[value] warning: signed overflow. assert argc + 1 ≤ 2147483647;
-tests/pdg/decl_dpds.c:18:[value] warning: out of bounds read. assert \valid_read(argv + (int)(argc - 1));
-tests/pdg/decl_dpds.c:18:[value] warning: out of bounds read. assert \valid_read(*(argv + (int)(argc - 1)) + 0);
-tests/pdg/decl_dpds.c:19:[value] warning: out of bounds read. assert \valid_read(argv + (int)(argc - 1));
-tests/pdg/decl_dpds.c:19:[value] warning: out of bounds write. assert \valid(*(argv + (int)(argc - 1)) + 0);
-tests/pdg/decl_dpds.c:23:[value] warning: signed overflow. assert *p + 1 ≤ 2147483647;
-tests/pdg/decl_dpds.c:25:[value] warning: signed overflow. assert -2147483648 ≤ argc0 + argc1;
-tests/pdg/decl_dpds.c:25:[value] warning: signed overflow. assert argc0 + argc1 ≤ 2147483647;
-tests/pdg/decl_dpds.c:25:[value] warning: signed overflow. assert -2147483648 ≤ (int)(argc0 + argc1) + G;
-tests/pdg/decl_dpds.c:25:[value] warning: signed overflow. assert (int)(argc0 + argc1) + G ≤ 2147483647;
-tests/pdg/decl_dpds.c:25:[value] warning: signed overflow.
-    assert -2147483648 ≤ (int)((int)(argc0 + argc1) + G) + S.a;
-tests/pdg/decl_dpds.c:25:[value] warning: signed overflow. assert (int)((int)(argc0 + argc1) + G) + S.a ≤ 2147483647;
+[value:alarm] tests/pdg/decl_dpds.c:16: Warning: 
+  signed overflow. assert argc + 1 ≤ 2147483647;
+[value:alarm] tests/pdg/decl_dpds.c:18: Warning: 
+  out of bounds read. assert \valid_read(argv + (int)(argc - 1));
+[value:alarm] tests/pdg/decl_dpds.c:18: Warning: 
+  out of bounds read. assert \valid_read(*(argv + (int)(argc - 1)) + 0);
+[value:alarm] tests/pdg/decl_dpds.c:19: Warning: 
+  out of bounds read. assert \valid_read(argv + (int)(argc - 1));
+[value:alarm] tests/pdg/decl_dpds.c:19: Warning: 
+  out of bounds write. assert \valid(*(argv + (int)(argc - 1)) + 0);
+[value:alarm] tests/pdg/decl_dpds.c:23: Warning: 
+  signed overflow. assert *p + 1 ≤ 2147483647;
+[value:alarm] tests/pdg/decl_dpds.c:25: Warning: 
+  signed overflow. assert -2147483648 ≤ argc0 + argc1;
+[value:alarm] tests/pdg/decl_dpds.c:25: Warning: 
+  signed overflow. assert argc0 + argc1 ≤ 2147483647;
+[value:alarm] tests/pdg/decl_dpds.c:25: Warning: 
+  signed overflow. assert -2147483648 ≤ (int)(argc0 + argc1) + G;
+[value:alarm] tests/pdg/decl_dpds.c:25: Warning: 
+  signed overflow. assert (int)(argc0 + argc1) + G ≤ 2147483647;
+[value:alarm] tests/pdg/decl_dpds.c:25: Warning: 
+  signed overflow.
+  assert -2147483648 ≤ (int)((int)(argc0 + argc1) + G) + S.a;
+[value:alarm] tests/pdg/decl_dpds.c:25: Warning: 
+  signed overflow. assert (int)((int)(argc0 + argc1) + G) + S.a ≤ 2147483647;
 [value] Recording results for main
 [value] done for function main
 [scope:rm_asserts] removing 1 assertion(s)

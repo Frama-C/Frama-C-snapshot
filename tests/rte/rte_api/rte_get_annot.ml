@@ -15,7 +15,7 @@ let fetch_stmts_visitor () = object
   inherit nopCilVisitor
   val mutable stmts : stmt list = []
   method fetch_stmts () = List.rev stmts
-  method vstmt stmt = stmts <- stmt :: stmts ; DoChildren
+  method! vstmt stmt = stmts <- stmt :: stmts ; DoChildren
 end
 
 let get_stmts kf = 

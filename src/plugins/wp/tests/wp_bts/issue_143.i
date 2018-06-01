@@ -10,13 +10,13 @@
 */
  
 /*@
-  axiomatic With_inconsistent_antecedent {
-  lemma with_inconsistent_antecedent: ok: \forall integer x;  2*x > 0 ==> x < 0 ==> x==0 ;
+  axiomatic A {
+  lemma ok_because_inconsistent: \forall integer x;  x > 0 ==> x < 0 ==> x == 0 ;
   }
 */
 
 /*@
-  axiomatic With_consistent_antecedent {
-  lemma with_consistent_antecedent: ok: \forall integer x;  x > 0 ==> x*x>0 ;
+  axiomatic B {
+  lemma ok_because_consistent: \forall integer x;  x > 0 ==> x*x > 0 ;
   }
 */

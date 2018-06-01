@@ -2,7 +2,7 @@
 /*                                                                        */
 /*  This file is part of Frama-C.                                         */
 /*                                                                        */
-/*  Copyright (C) 2007-2017                                               */
+/*  Copyright (C) 2007-2018                                               */
 /*    CEA (Commissariat à l'énergie atomique et aux énergies              */
 /*         alternatives)                                                  */
 /*                                                                        */
@@ -40,16 +40,16 @@ void* memcpy(void* restrict dest, const void* restrict src, size_t n)
 /*@
   assigns \result \from indirect:p, indirect:q, indirect:n;
   behavior separated:
-    assumes  \separated(p + (0 .. n-1), q + (0 .. n-1));
-    ensures  \result == 0;
+    assumes separation:no_overlap: \separated(p + (0 .. n-1), q + (0 .. n-1));
+    ensures result_no_overlap: \result == 0;
   behavior not_separated_lt:
-    assumes !\separated(p + (0 .. n-1), q + (0 .. n-1));
-    assumes p <= q <  p + n;
-    ensures  \result == -1;
+    assumes separation:overlap: !\separated(p + (0 .. n-1), q + (0 .. n-1));
+    assumes p_before_q: p <= q <  p + n;
+    ensures result_p_before_q: \result == -1;
   behavior not_separated_gt:
-    assumes !\separated(p + (0 .. n-1), q + (0 .. n-1));
-    assumes q <  p <= q + n;
-    ensures  \result == 1;
+    assumes separation:overlap: !\separated(p + (0 .. n-1), q + (0 .. n-1));
+    assumes p_after_q: q <  p <= q + n;
+    ensures result_p_after_q: \result == 1;
   complete behaviors;
   disjoint behaviors;
 */
@@ -59,23 +59,31 @@ void* memmove(void* dest, const void* src, size_t n)
 {
   if (n == 0) return dest;
   char *s = (char*)src;
-  if (memoverlap(dest, src, n) <= 0) { /* default: copy up (use memcpy) */
-    return memcpy(dest, src, n);
+  char *d = (char*)dest;
+  if (memoverlap(dest, src, n) <= 0) { /* default: copy up */
+    for (size_t i = 0; i < n; i++)
+      d[i] = s[i];
   } else { // beginning of dest overlaps with src: copy down
-    char *d = (char*)dest;
     // to avoid unsigned overflow in the loop below, the '0' case is
     // done outside the loop (note: n == 0 has already been tested)
     for (size_t i = n-1; i > 0; i--)
       d[i] = s[i];
     d[0] = s[0];
-    return dest;
   }
+  return dest;
 }
 
 size_t strlen(const char *s)
 {
   size_t i;
   for (i = 0; s[i] != 0; i++);
+  return i;
+}
+
+size_t strnlen(const char *s, size_t maxlen)
+{
+  size_t i;
+  for (i = 0; i < maxlen && s[i] != 0; i++);
   return i;
 }
 

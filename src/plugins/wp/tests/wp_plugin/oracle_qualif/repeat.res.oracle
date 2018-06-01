@@ -2,8 +2,9 @@
 [kernel] Parsing tests/wp_plugin/repeat.c (with preprocessing)
 [wp] Running WP plugin...
 [wp] Loading driver 'share/wp.driver'
-[wp] warning: Missing RTE guards
-tests/wp_plugin/repeat.c:47:[wp] warning: Missing assigns clause (assigns 'everything' instead)
+[wp] Warning: Missing RTE guards
+[wp] tests/wp_plugin/repeat.c:47: Warning: 
+  Missing assigns clause (assigns 'everything' instead)
 [wp] 47 goals scheduled
 [wp] [Qed] Goal typed_induction_post : Valid
 [wp] [Alt-Ergo] Goal typed_induction_loop_inv_preserved : Valid
@@ -53,12 +54,13 @@ tests/wp_plugin/repeat.c:47:[wp] warning: Missing assigns clause (assigns 'every
 [wp] [Qed] Goal typed_unroll_assign_normal_part10 : Valid
 [wp] [Qed] Goal typed_unroll_assign_normal_part11 : Valid
 [wp] Proved goals:   47 / 47
-    Qed:            42 
-    Alt-Ergo:        5
-----------------------------------------------------------
-Functions           WP   Alt-Ergo    Total   Success
-master               3     -           3       100%
-unroll              25     -          25       100%
-induction            7      2 (47)     9       100%
-shifted              7      3 (48)    10       100%
-----------------------------------------------------------
+  Qed:            42 
+  Alt-Ergo:        5
+[wp] Report 'tests/wp_plugin/repeat.c.0.report.json'
+-------------------------------------------------------------
+Functions           WP     Alt-Ergo        Total   Success
+master               3     -                 3       100%
+unroll              25     -                25       100%
+induction            7      2 (44..56)       9       100%
+shifted              7      3 (44..56)      10       100%
+-------------------------------------------------------------

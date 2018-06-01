@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2017                                               *)
+(*  Copyright (C) 2007-2018                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -21,15 +21,15 @@
 (**************************************************************************)
 
 open Lang.F
-open Memory
+open Sigs
 
 (* -------------------------------------------------------------------------- *)
 (* --- L-Val Utility                                                      --- *)
 (* -------------------------------------------------------------------------- *)
 
-val index : lval -> term -> lval
-val field : lval -> Cil_types.fieldinfo -> lval
-val equal : lval -> lval -> bool
+val index : s_lval -> term -> s_lval
+val field : s_lval -> Cil_types.fieldinfo -> s_lval
+val equal : s_lval -> s_lval -> bool
 
 (* -------------------------------------------------------------------------- *)
 (* --- Memory State Pretty Printing Information                           --- *)

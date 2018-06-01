@@ -8,12 +8,14 @@
   k ∈ {0}
   n ∈ {0}
   r ∈ {0}
-tests/value/loop_simple.i:24:[value] entering loop for the first time
-tests/value/loop_simple.i:25:[value] entering loop for the first time
-tests/value/loop_simple.i:26:[value] entering loop for the first time
-tests/value/loop_simple.i:27:[value] warning: signed overflow. assert (int)((int)(i + j) + k) + r ≤ 2147483647;
-tests/value/loop_simple.i:27:[value] warning: signed overflow.
-    assert (int)((int)((int)(i + j) + k) + r) + 1 ≤ 2147483647;
+[value] tests/value/loop_simple.i:24: entering loop for the first time
+[value] tests/value/loop_simple.i:25: entering loop for the first time
+[value] tests/value/loop_simple.i:26: entering loop for the first time
+[value:alarm] tests/value/loop_simple.i:27: Warning: 
+  signed overflow. assert (int)((int)(i + j) + k) + r ≤ 2147483647;
+[value:alarm] tests/value/loop_simple.i:27: Warning: 
+  signed overflow.
+  assert (int)((int)((int)(i + j) + k) + r) + 1 ≤ 2147483647;
 [value] Recording results for main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======
@@ -26,7 +28,7 @@ tests/value/loop_simple.i:27:[value] warning: signed overflow.
 [from] Computing for function main
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
-    These dependencies hold at termination for the executions that terminate:
+  These dependencies hold at termination for the executions that terminate:
 [from] Function main:
   i FROM \nothing
   j FROM \nothing (and SELF)
@@ -36,6 +38,6 @@ tests/value/loop_simple.i:27:[value] warning: signed overflow.
   \result FROM \nothing
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function main:
-      i; j; k; n; r
+    i; j; k; n; r
 [inout] Inputs for function main:
-      i; j; k; n; r
+    i; j; k; n; r

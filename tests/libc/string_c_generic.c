@@ -1,5 +1,5 @@
 /* run.config
-   STDOPT: #"-no-val-builtins-auto -cpp-extra-args=-includeshare/libc/string.c -slevel-function strcpy:20,strncpy:5,strcmp:6,strchr:20,strrchr:20,strncat:4,memset:32,strlen:20,memcmp:8"
+   STDOPT: #"-no-val-builtins-auto -cpp-extra-args=-includeshare/libc/string.c -slevel-function strcpy:20,strncpy:5,strcmp:6,strchr:20,strrchr:20,strncat:4,memset:32,strlen:20,memcmp:8 -no-val-skip-stdlib-specs"
 */
 /* This file has been adapted from libc-test, which is licensed under the
    following standard MIT license:

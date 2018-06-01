@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2017                                               *)
+(*  Copyright (C) 2007-2018                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -1303,13 +1303,11 @@ module D_Impl : Abstract_domain.S_with_Structure
 
   let top = G.empty (* must not be used, not neutral w.r.t. join (because
                        join crashes...)!! *)
-
 end
 
-module D = struct
-  include D_Impl
-  module Store = Domain_store.Make (struct
+module D =
+  Domain_builder.Complete
+    (struct
       include D_Impl
       let storage = Value_parameters.GaugesStorage.get
     end)
-end

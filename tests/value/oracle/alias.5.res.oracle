@@ -57,80 +57,85 @@
   U ∈ {0}
   char1 ∈ {0}
   ll1 ∈ {0}
-tests/value/alias.i:260:[value] entering loop for the first time
+[value] tests/value/alias.i:260: entering loop for the first time
 [value] computing for function f2 <- main11.
-    Called from tests/value/alias.i:268.
-tests/value/alias.i:23:[value] Frama_C_dump_each:
-    # Cvalue domain:
-    NULL[rbits 0 to 2047] ∈ [--..--]
-    x_0 ∈ {{ (char *)&p2 }}
-    q_0 ∈ {{ &p2 + {1} }}
-    A ∈ {0}
-    B ∈ {0}
-    C ∈ {0}
-    D ∈ {33}
-    E ∈ {0}
-    F ∈ {0}
-    G ∈ {0}
-    p[0..4] ∈ {0}
-    q[0] ∈ {1}
-     [1] ∈ {2}
-     [2] ∈ {3}
-     [3] ∈ {4}
-     [4] ∈ {5}
-    p2[0][bits 0 to 15]# ∈ {1} repeated %8 
-      [0][bits 16 to 31] ∈ {0}
-      [1] ∈ {33}
-      [2..4] ∈ {0}
-    q2[0] ∈ {1}
-      [1] ∈ {2}
-      [2] ∈ {3}
-      [3] ∈ {4}
-      [4] ∈ {5}
-    p3[0..4] ∈ {0}
-    t ∈ {0}
-    u ∈ {0}
-    v ∈ {0}
-    w ∈ {0}
-    x ∈ {0}
-    y ∈ {0}
-    z ∈ {0}
-    t2 ∈ {0}
-    v2 ∈ {0}
-    PTR1 ∈ {0}
-    PTR2 ∈ {0}
-    PTR3 ∈ {{ &p2[1] }}
-    PTR4 ∈ {0}
-    PTR5 ∈ {0}
-    PTR6 ∈ {0}
-    c ∈ [--..--]
-    c1 ∈ [--..--]
-    c2 ∈ [--..--]
-    c3 ∈ [--..--]
-    c4 ∈ [--..--]
-    e ∈ {0}
-    g ∈ {0}
-    h ∈ {0}
-    i ∈ {0}
-    tz1 ∈ {0}
-    tz2 ∈ {0}
-    tz3 ∈ {0}
-    tx ∈ {0}
-    ty ∈ {0}
-    tz ∈ {0}
-    U ∈ {0}
-    char1 ∈ {0}
-    ll1 ∈ {0}
-    i_0 ∈ {0}
-    ==END OF DUMP==
+  Called from tests/value/alias.i:268.
+[value] tests/value/alias.i:23: 
+  Frama_C_dump_each:
+  # Cvalue domain:
+  NULL[rbits 0 to 2047] ∈ [--..--]
+  x_0 ∈ {{ (char *)&p2 }}
+  q_0 ∈ {{ &p2 + {1} }}
+  A ∈ {0}
+  B ∈ {0}
+  C ∈ {0}
+  D ∈ {33}
+  E ∈ {0}
+  F ∈ {0}
+  G ∈ {0}
+  p[0..4] ∈ {0}
+  q[0] ∈ {1}
+   [1] ∈ {2}
+   [2] ∈ {3}
+   [3] ∈ {4}
+   [4] ∈ {5}
+  p2[0][bits 0 to 15]# ∈ {1} repeated %8 
+    [0][bits 16 to 31] ∈ {0}
+    [1] ∈ {33}
+    [2..4] ∈ {0}
+  q2[0] ∈ {1}
+    [1] ∈ {2}
+    [2] ∈ {3}
+    [3] ∈ {4}
+    [4] ∈ {5}
+  p3[0..4] ∈ {0}
+  t ∈ {0}
+  u ∈ {0}
+  v ∈ {0}
+  w ∈ {0}
+  x ∈ {0}
+  y ∈ {0}
+  z ∈ {0}
+  t2 ∈ {0}
+  v2 ∈ {0}
+  PTR1 ∈ {0}
+  PTR2 ∈ {0}
+  PTR3 ∈ {{ &p2[1] }}
+  PTR4 ∈ {0}
+  PTR5 ∈ {0}
+  PTR6 ∈ {0}
+  c ∈ [--..--]
+  c1 ∈ [--..--]
+  c2 ∈ [--..--]
+  c3 ∈ [--..--]
+  c4 ∈ [--..--]
+  e ∈ {0}
+  g ∈ {0}
+  h ∈ {0}
+  i ∈ {0}
+  tz1 ∈ {0}
+  tz2 ∈ {0}
+  tz3 ∈ {0}
+  tx ∈ {0}
+  ty ∈ {0}
+  tz ∈ {0}
+  U ∈ {0}
+  char1 ∈ {0}
+  ll1 ∈ {0}
+  i_0 ∈ {0}
+  ==END OF DUMP==
 [value] Recording results for f2
 [value] Done for function f2
-tests/value/alias.i:271:[value] warning: signed overflow. assert c2 + 1 ≤ 2147483647;
-tests/value/alias.i:273:[value] warning: signed overflow. assert c2 + 2 ≤ 2147483647;
-tests/value/alias.i:279:[value] entering loop for the first time
-tests/value/alias.i:285:[value] warning: pointer comparison. assert \pointer_comparable((void *)PTR2, (void *)PTR1);
-tests/value/alias.i:292:[value] entering loop for the first time
-tests/value/alias.i:292:[value] warning: signed overflow. assert c1 + 1 ≤ 2147483647;
+[value:alarm] tests/value/alias.i:271: Warning: 
+  signed overflow. assert c2 + 1 ≤ 2147483647;
+[value:alarm] tests/value/alias.i:273: Warning: 
+  signed overflow. assert c2 + 2 ≤ 2147483647;
+[value] tests/value/alias.i:279: entering loop for the first time
+[value:alarm] tests/value/alias.i:285: Warning: 
+  pointer comparison. assert \pointer_comparable((void *)PTR2, (void *)PTR1);
+[value] tests/value/alias.i:292: entering loop for the first time
+[value:alarm] tests/value/alias.i:292: Warning: 
+  signed overflow. assert c1 + 1 ≤ 2147483647;
 [value] Recording results for main11
 [value] done for function main11
 [value] ====== VALUES COMPUTED ======
@@ -180,7 +185,7 @@ tests/value/alias.i:292:[value] warning: signed overflow. assert c1 + 1 ≤ 2147
 [from] Computing for function main11
 [from] Done for function main11
 [from] ====== DEPENDENCIES COMPUTED ======
-    These dependencies hold at termination for the executions that terminate:
+  These dependencies hold at termination for the executions that terminate:
 [from] Function f2:
   p2[0][bits 0 to 7] FROM x_0; p2[0][bits 0 to 7]
     [0][bits 8 to 15] FROM x_0; p2[0][bits 8 to 15]
@@ -209,12 +214,12 @@ tests/value/alias.i:292:[value] warning: signed overflow. assert c1 + 1 ≤ 2147
   ll1 FROM c2
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function f2:
-      q_0; p2[0][bits 0 to 15]
+    q_0; p2[0][bits 0 to 15]
 [inout] Inputs for function f2:
-      p2[0][bits 0 to 15]
+    p2[0][bits 0 to 15]
 [inout] Out (internal) for function main11:
-      A; B; D; p[1]; q[2]; p2{[0][bits 0 to 15]; [1..2]}; q2[0..1]; t; x; 
-      y; z; PTR1; PTR2; PTR3; PTR4; c1; U; ll1; i_0; tm; tmp
+    A; B; D; p[1]; q[2]; p2{[0][bits 0 to 15]; [1..2]}; q2[0..1]; t; x; 
+    y; z; PTR1; PTR2; PTR3; PTR4; c1; U; ll1; i_0; tm; tmp
 [inout] Inputs for function main11:
-      NULL[0..3]; A; p[1]; q[2]; p2{[0][bits 0 to 15]; [1..2]}; q2[0]; t; 
-      PTR1; PTR2; PTR3; PTR4; c; c1; c2; ll1
+    NULL[0..3]; A; p[1]; q[2]; p2{[0][bits 0 to 15]; [1..2]}; q2[0]; t; 
+    PTR1; PTR2; PTR3; PTR4; c; c1; c2; ll1

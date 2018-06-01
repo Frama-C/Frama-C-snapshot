@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2017                                               *)
+(*  Copyright (C) 2007-2018                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -169,8 +169,6 @@ class visitor fmt c =
       self#lines ;
       Format.fprintf fmt "Require Import %s.@\n" (cluster_id c) ;
       deps <- (D_cluster c) :: deps
-
-
 
     method on_type lt def =
       begin
@@ -671,8 +669,7 @@ let prove_annot wpo vcq ~mode =
   Task.todo
     begin fun () ->
       let prop =
-        Model.with_model wpo.po_model
-          GOAL.compute_proof vcq.VC_Annot.goal in
+        Model.with_model wpo.po_model GOAL.compute_proof vcq.VC_Annot.goal in
       prove_prop wpo ~mode ~axioms:None ~prop
     end
 

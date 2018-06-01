@@ -1,31 +1,31 @@
 [kernel] Parsing tests/metrics/variadic-stdlib-generated.c (with preprocessing)
 [metrics] Defined functions (2)
-    =====================
-     main (0 call); my_printf (1 call); 
-    
-    Undefined functions (1)
-    =======================
-     rand (1 call); 
-    
-    'Extern' global variables (0)
-    =============================
-     
-    
-    Potential entry points (1)
-    ==========================
-     main; 
-    
-    Global metrics
-    ============== 
-    Sloc = 5
-    Decision point = 0
-    Global variables = 0
-    If = 0
-    Loop = 0
-    Goto = 0
-    Assignment = 0
-    Exit point = 2
-    Function = 3
-    Function call = 3
-    Pointer dereferencing = 0
-    Cyclomatic complexity = 2
+  =====================
+   main (0 call); my_printf (1 call); 
+  
+  Undefined functions (1)
+  =======================
+   rand (1 call); 
+  
+  'Extern' global variables (0)
+  =============================
+   
+  
+  Potential entry points (1)
+  ==========================
+   main; 
+  
+  Global metrics
+  ============== 
+  Sloc = 5
+  Decision point = 0
+  Global variables = 0
+  If = 0
+  Loop = 0
+  Goto = 0
+  Assignment = 0
+  Exit point = 2
+  Function = 3
+  Function call = 3
+  Pointer dereferencing = 0
+  Cyclomatic complexity = 2

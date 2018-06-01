@@ -5,8 +5,9 @@
 [value:initial-state] Values of globals at initialization
   
 [value] computing for function f <- main.
-    Called from tests/value/f1.i:5.
-tests/value/f1.i:5:[kernel] warning: Neither code nor specification for function f, generating default assigns from the prototype
+  Called from tests/value/f1.i:5.
+[kernel:annot:missing-spec] tests/value/f1.i:5: Warning: 
+  Neither code nor specification for function f, generating default assigns from the prototype
 [value] using specification for function f
 [value] Done for function f
 [value] Recording results for main
@@ -19,13 +20,13 @@ tests/value/f1.i:5:[kernel] warning: Neither code nor specification for function
 [from] Done for function f
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
-    These dependencies hold at termination for the executions that terminate:
+  These dependencies hold at termination for the executions that terminate:
 [from] Function f:
   \result FROM x
 [from] Function main:
   NO EFFECTS
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function main:
-      \nothing
+    \nothing
 [inout] Inputs for function main:
-      \nothing
+    \nothing

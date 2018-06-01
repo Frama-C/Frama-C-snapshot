@@ -2,7 +2,7 @@
 [kernel] Parsing tests/wp_plugin/frame.i (no preprocessing)
 [wp] Running WP plugin...
 [wp] Loading driver 'share/wp.driver'
-[wp] warning: Missing RTE guards
+[wp] Warning: Missing RTE guards
 [wp] 6 goals scheduled
 [wp] [Alt-Ergo] Goal typed_alias_post_KO : Unknown
 [wp] [Alt-Ergo] Goal typed_global_post_KO : Unknown
@@ -11,12 +11,13 @@
 [wp] [Alt-Ergo] Goal typed_localref_post_KO : Unknown
 [wp] [Qed] Goal typed_localref_assert_FRAMED : Valid
 [wp] Proved goals:    2 / 6
-    Qed:             2 
-    Alt-Ergo:        0  (unknown: 4)
-----------------------------------------------------------
-Functions           WP   Alt-Ergo    Total   Success
-local                1     -           2      50.0%
-global              -      -           1       0.0%
-localref             1     -           2      50.0%
-alias               -      -           1       0.0%
-----------------------------------------------------------
+  Qed:             2 
+  Alt-Ergo:        0  (unknown: 4)
+[wp] Report 'tests/wp_plugin/frame.i.0.report.json'
+-------------------------------------------------------------
+Functions           WP     Alt-Ergo        Total   Success
+local                1     -                 2      50.0%
+global              -      -                 1       0.0%
+localref             1     -                 2      50.0%
+alias               -      -                 1       0.0%
+-------------------------------------------------------------

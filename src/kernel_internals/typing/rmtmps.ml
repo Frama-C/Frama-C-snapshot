@@ -41,7 +41,7 @@
 (*                          et Automatique).                                *)
 (****************************************************************************)
 
-let dkey = Kernel.register_category "parse:rmtmps"
+let dkey = Kernel.dkey_rmtmps
 
 open Extlib
 open Cil_types

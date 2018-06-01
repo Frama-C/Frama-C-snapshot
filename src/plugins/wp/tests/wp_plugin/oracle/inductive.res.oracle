@@ -3,156 +3,159 @@
 [wp] Running WP plugin...
 [wp] Loading driver 'share/wp.driver'
 [wp] 2 goals scheduled
-[wp:print-generated] "WPOUT/typed/Compound.v"
-    (* ---------------------------------------------------------- *)
-    (* --- Memory Compound Updates                            --- *)
-    (* ---------------------------------------------------------- *)
-    
-    Require Import ZArith.
-    Require Import Reals.
-    Require Import BuiltIn.
-    Require Import int.Int.
-    Require Import int.Abs.
-    Require Import int.ComputerDivision.
-    Require Import real.Real.
-    Require Import real.RealInfix.
-    Require Import real.FromInt.
-    Require Import map.Map.
-    Require Import Qedlib.
-    Require Import Qed.
-    Require Import Memory.
-    
-    Definition shift_sint32 (p : addr) (k : Z) : addr := (shift p k%Z).
-    
-    Definition shiftfield_F1__list_next (p : addr) : addr := (shift p 1%Z).
-[wp:print-generated] "WPOUT/typed/lemma_test_Coq.v"
-    (* ---------------------------------------------------------- *)
-    (* --- Lemma 'test'                                       --- *)
-    (* ---------------------------------------------------------- *)
-    Require Import ZArith.
-    Require Import Reals.
-    Require Import BuiltIn.
-    Require Import int.Int.
-    Require Import int.Abs.
-    Require Import int.ComputerDivision.
-    Require Import real.Real.
-    Require Import real.RealInfix.
-    Require Import real.FromInt.
-    Require Import map.Map.
-    Require Import Qedlib.
-    Require Import Qed.
-    
-    (* --- Global Definitions   --- *)
-    Require Import Memory.
-    
-    Require Import Compound.
-    
-    Inductive P_reachable : array Z -> farray addr addr -> addr -> addr ->
-        Prop :=
-        | Q_root_reachable: forall (t : array Z),
-            forall (t_1 : farray addr addr), forall (a : addr),
-            (P_reachable t t_1 a a)
-        | Q_next_reachable: forall (t : array Z),
-            forall (t_1 : farray addr addr), forall (a_1 a : addr),
-            ((valid_rw t a_1 2%Z)) ->
-            ((P_reachable t t_1 (t_1.[ (shiftfield_F1__list_next a_1) ]) a)) ->
-            ((P_reachable t t_1 a_1 a)).
-    
-    Goal
-      forall (t : array Z),
-      forall (t_1 : farray addr addr),
-      forall (a_1 a : addr),
-      ((P_reachable t t_1 a_1 a)) ->
-      ((a_1 = a) \/
-       (((valid_rw t a_1 2%Z)) /\
-        ((P_reachable t t_1 (t_1.[ (shiftfield_F1__list_next a_1) ]) a)))).
-    
-    Proof.
-      ...
-    Qed.
-[wp:print-generated] "WPOUT/typed/lemma_offset_Coq.v"
-    (* ---------------------------------------------------------- *)
-    (* --- Lemma 'offset'                                     --- *)
-    (* ---------------------------------------------------------- *)
-    Require Import ZArith.
-    Require Import Reals.
-    Require Import BuiltIn.
-    Require Import int.Int.
-    Require Import int.Abs.
-    Require Import int.ComputerDivision.
-    Require Import real.Real.
-    Require Import real.RealInfix.
-    Require Import real.FromInt.
-    Require Import map.Map.
-    Require Import Qedlib.
-    Require Import Qed.
-    
-    (* --- Global Definitions   --- *)
-    Require Import Memory.
-    
-    Require Import Compound.
-    
-    Inductive P_reachable : array Z -> farray addr addr -> addr -> addr ->
-        Prop :=
-        | Q_root_reachable: forall (t : array Z),
-            forall (t_1 : farray addr addr), forall (a : addr),
-            (P_reachable t t_1 a a)
-        | Q_next_reachable: forall (t : array Z),
-            forall (t_1 : farray addr addr), forall (a_1 a : addr),
-            ((valid_rw t a_1 2%Z)) ->
-            ((P_reachable t t_1 (t_1.[ (shiftfield_F1__list_next a_1) ]) a)) ->
-            ((P_reachable t t_1 a_1 a)).
-    
-    Hypothesis Q_test: forall (t : array Z), forall (t_1 : farray addr addr),
-      forall (a_1 a : addr), ((P_reachable t t_1 a_1 a)) ->
-      ((a_1 = a) \/
-       (((valid_rw t a_1 2%Z)) /\
-        ((P_reachable t t_1 (t_1.[ (shiftfield_F1__list_next a_1) ]) a)))).
-    
-    Definition P_same_array (Mint_0 : farray addr Z) (Mint_1 : farray addr Z)
-        (a : addr) (b : addr) (begin_0 : Z) (end_0 : Z) : Prop :=
-        forall (i : Z), ((begin_0 <= i)%Z) -> ((i < end_0)%Z) ->
-          (((Mint_1.[ (shift_sint32 a i%Z) ])
-            = (Mint_0.[ (shift_sint32 b i%Z) ]))%Z).
-    
-    Definition P_swap (Mint_0 : farray addr Z) (Mint_1 : farray addr Z)
-        (a : addr) (b : addr) (begin_0 : Z) (i : Z) (j : Z) (end_0 : Z) : Prop :=
+[wp:print-generated] 
+  "WPOUT/typed/Compound.v"
+  (* ---------------------------------------------------------- *)
+  (* --- Memory Compound Updates                            --- *)
+  (* ---------------------------------------------------------- *)
+  
+  Require Import ZArith.
+  Require Import Reals.
+  Require Import BuiltIn.
+  Require Import int.Int.
+  Require Import int.Abs.
+  Require Import int.ComputerDivision.
+  Require Import real.Real.
+  Require Import real.RealInfix.
+  Require Import real.FromInt.
+  Require Import map.Map.
+  Require Import Qedlib.
+  Require Import Qed.
+  Require Import Memory.
+  
+  Definition shift_sint32 (p : addr) (k : Z) : addr := (shift p k%Z).
+  
+  Definition shiftfield_F1__list_next (p : addr) : addr := (shift p 1%Z).
+[wp:print-generated] 
+  "WPOUT/typed/lemma_test_Coq.v"
+  (* ---------------------------------------------------------- *)
+  (* --- Lemma 'test'                                       --- *)
+  (* ---------------------------------------------------------- *)
+  Require Import ZArith.
+  Require Import Reals.
+  Require Import BuiltIn.
+  Require Import int.Int.
+  Require Import int.Abs.
+  Require Import int.ComputerDivision.
+  Require Import real.Real.
+  Require Import real.RealInfix.
+  Require Import real.FromInt.
+  Require Import map.Map.
+  Require Import Qedlib.
+  Require Import Qed.
+  
+  (* --- Global Definitions   --- *)
+  Require Import Memory.
+  
+  Require Import Compound.
+  
+  Inductive P_reachable : array Z -> farray addr addr -> addr -> addr ->
+      Prop :=
+      | Q_root_reachable: forall (t : array Z),
+          forall (t_1 : farray addr addr), forall (a : addr),
+          (P_reachable t t_1 a a)
+      | Q_next_reachable: forall (t : array Z),
+          forall (t_1 : farray addr addr), forall (a_1 a : addr),
+          ((valid_rw t a_1 2%Z)) ->
+          ((P_reachable t t_1 (t_1.[ (shiftfield_F1__list_next a_1) ]) a)) ->
+          ((P_reachable t t_1 a_1 a)).
+  
+  Goal
+    forall (t : array Z),
+    forall (t_1 : farray addr addr),
+    forall (a_1 a : addr),
+    ((P_reachable t t_1 a_1 a)) ->
+    ((a_1 = a) \/
+     (((valid_rw t a_1 2%Z)) /\
+      ((P_reachable t t_1 (t_1.[ (shiftfield_F1__list_next a_1) ]) a)))).
+  
+  Proof.
+    ...
+  Qed.
+[wp:print-generated] 
+  "WPOUT/typed/lemma_offset_Coq.v"
+  (* ---------------------------------------------------------- *)
+  (* --- Lemma 'offset'                                     --- *)
+  (* ---------------------------------------------------------- *)
+  Require Import ZArith.
+  Require Import Reals.
+  Require Import BuiltIn.
+  Require Import int.Int.
+  Require Import int.Abs.
+  Require Import int.ComputerDivision.
+  Require Import real.Real.
+  Require Import real.RealInfix.
+  Require Import real.FromInt.
+  Require Import map.Map.
+  Require Import Qedlib.
+  Require Import Qed.
+  
+  (* --- Global Definitions   --- *)
+  Require Import Memory.
+  
+  Require Import Compound.
+  
+  Inductive P_reachable : array Z -> farray addr addr -> addr -> addr ->
+      Prop :=
+      | Q_root_reachable: forall (t : array Z),
+          forall (t_1 : farray addr addr), forall (a : addr),
+          (P_reachable t t_1 a a)
+      | Q_next_reachable: forall (t : array Z),
+          forall (t_1 : farray addr addr), forall (a_1 a : addr),
+          ((valid_rw t a_1 2%Z)) ->
+          ((P_reachable t t_1 (t_1.[ (shiftfield_F1__list_next a_1) ]) a)) ->
+          ((P_reachable t t_1 a_1 a)).
+  
+  Hypothesis Q_test: forall (t : array Z), forall (t_1 : farray addr addr),
+    forall (a_1 a : addr), ((P_reachable t t_1 a_1 a)) ->
+    ((a_1 = a) \/
+     (((valid_rw t a_1 2%Z)) /\
+      ((P_reachable t t_1 (t_1.[ (shiftfield_F1__list_next a_1) ]) a)))).
+  
+  Definition P_same_array (Mint_0 : farray addr Z) (Mint_1 : farray addr Z)
+      (a : addr) (b : addr) (begin_0 : Z) (end_0 : Z) : Prop :=
+      forall (i : Z), ((begin_0 <= i)%Z) -> ((i < end_0)%Z) ->
         (((Mint_1.[ (shift_sint32 a i%Z) ])
-          = (Mint_0.[ (shift_sint32 b j%Z) ]))%Z) /\
-          (((Mint_1.[ (shift_sint32 a j%Z) ])
-            = (Mint_0.[ (shift_sint32 b i%Z) ]))%Z) /\ ((begin_0 <= i)%Z) /\
-          ((i < j)%Z) /\ ((j < end_0)%Z) /\
-          (forall (i_1 : Z), ((i_1 <> i)%Z) -> ((i_1 <> j)%Z) ->
-           ((begin_0 <= i_1)%Z) -> ((i_1 < end_0)%Z) ->
-           (((Mint_1.[ (shift_sint32 a i_1%Z) ])
-             = (Mint_0.[ (shift_sint32 b i_1%Z) ]))%Z)).
-    
-    Inductive P_same_elements : farray addr Z -> farray addr Z -> addr -> addr ->
-        Z -> Z -> Prop :=
-        | Q_refl: forall (i_1 i : Z), forall (t_1 t : farray addr Z),
-            forall (a_1 a : addr), ((P_same_array t_1 t a_1 a i_1%Z i%Z)) ->
-            ((P_same_elements t_1 t a_1 a i_1%Z i%Z))
-        | Q_swap: forall (i_3 i_2 i_1 i : Z), forall (t_1 t : farray addr Z),
-            forall (a_1 a : addr),
-            ((P_swap t_1 t a_1 a i_3%Z i_2%Z i_1%Z i%Z)) ->
-            ((P_same_elements t_1 t a_1 a i_3%Z i%Z))
-        | Q_trans: forall (i_1 i : Z), forall (t_2 t_1 t : farray addr Z),
-            forall (a_2 a_1 a : addr),
-            ((P_same_elements t_1 t a_2 a_1 i_1%Z i%Z)) ->
-            ((P_same_elements t_2 t_1 a_1 a i_1%Z i%Z)) ->
-            ((P_same_elements t_2 t a_2 a i_1%Z i%Z)).
-    
-    Goal
-      forall (i_2 i_1 i : Z),
-      forall (t_1 t : farray addr Z),
-      forall (a_1 a : addr),
-      ((P_same_elements t_1 t ((shift_sint32 a_1 i%Z)) ((shift_sint32 a i%Z))
-         i_2%Z i_1%Z)) ->
-      ((P_same_elements t_1 t a_1 a (i%Z + i_2%Z)%Z (i%Z + i_1%Z)%Z)).
-    
-    Proof.
-      ...
-    Qed.
+          = (Mint_0.[ (shift_sint32 b i%Z) ]))%Z).
+  
+  Definition P_swap (Mint_0 : farray addr Z) (Mint_1 : farray addr Z)
+      (a : addr) (b : addr) (begin_0 : Z) (i : Z) (j : Z) (end_0 : Z) : Prop :=
+      (((Mint_1.[ (shift_sint32 a i%Z) ])
+        = (Mint_0.[ (shift_sint32 b j%Z) ]))%Z) /\
+        (((Mint_1.[ (shift_sint32 a j%Z) ])
+          = (Mint_0.[ (shift_sint32 b i%Z) ]))%Z) /\ ((begin_0 <= i)%Z) /\
+        ((i < j)%Z) /\ ((j < end_0)%Z) /\
+        (forall (i_1 : Z), ((i_1 <> i)%Z) -> ((i_1 <> j)%Z) ->
+         ((begin_0 <= i_1)%Z) -> ((i_1 < end_0)%Z) ->
+         (((Mint_1.[ (shift_sint32 a i_1%Z) ])
+           = (Mint_0.[ (shift_sint32 b i_1%Z) ]))%Z)).
+  
+  Inductive P_same_elements : farray addr Z -> farray addr Z -> addr -> addr ->
+      Z -> Z -> Prop :=
+      | Q_refl: forall (i_1 i : Z), forall (t_1 t : farray addr Z),
+          forall (a_1 a : addr), ((P_same_array t_1 t a_1 a i_1%Z i%Z)) ->
+          ((P_same_elements t_1 t a_1 a i_1%Z i%Z))
+      | Q_swap: forall (i_3 i_2 i_1 i : Z), forall (t_1 t : farray addr Z),
+          forall (a_1 a : addr),
+          ((P_swap t_1 t a_1 a i_3%Z i_2%Z i_1%Z i%Z)) ->
+          ((P_same_elements t_1 t a_1 a i_3%Z i%Z))
+      | Q_trans: forall (i_1 i : Z), forall (t_2 t_1 t : farray addr Z),
+          forall (a_2 a_1 a : addr),
+          ((P_same_elements t_1 t a_2 a_1 i_1%Z i%Z)) ->
+          ((P_same_elements t_2 t_1 a_1 a i_1%Z i%Z)) ->
+          ((P_same_elements t_2 t a_2 a i_1%Z i%Z)).
+  
+  Goal
+    forall (i_2 i_1 i : Z),
+    forall (t_1 t : farray addr Z),
+    forall (a_1 a : addr),
+    ((P_same_elements t_1 t ((shift_sint32 a_1 i%Z)) ((shift_sint32 a i%Z))
+       i_2%Z i_1%Z)) ->
+    ((P_same_elements t_1 t a_1 a (i%Z + i_2%Z)%Z (i%Z + i_1%Z)%Z)).
+  
+  Proof.
+    ...
+  Qed.
 [wp] 2 goals generated
 ------------------------------------------------------------
   Global

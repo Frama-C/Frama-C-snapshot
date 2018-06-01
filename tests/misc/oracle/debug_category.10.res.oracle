@@ -1,0 +1,4 @@
+[kernel] Parsing tests/misc/debug_category.i (no preprocessing)
+[test] Warning: Uncategorized warning
+[test] User Error: warning  treated as fatal error.
+[kernel] Plug-in test aborted: invalid user input.

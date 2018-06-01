@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2017                                               *)
+(*  Copyright (C) 2007-2018                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -43,8 +43,6 @@ type t = private
     they will fail on an ival with constructor [Float]. Conversely, [_float]
     suffixed functions expect float arguments: the constructor [Float], or
     the singleton set [ [| Int.zero |] ], that can be tested by {!is_zero}.
-    The function {!force_float} forces a bit-level conversion from the integer
-    representation to the floating-point one.
 
   - see the comment in {!Lattice_type} about over- and under-approximations,
     and exact operations.
@@ -94,6 +92,12 @@ val min_max_r_mod :
 val min_and_max :
   t -> Integer.t option * Integer.t option
 
+val min_and_max_float : t -> (Fval.F.t * Fval.F.t) option * bool
+(** returns the bounds of the float interval, (or None if the argument is
+    exactly NaN), and a boolean indicating the possibility that the value
+    may be NaN. *)
+
+
 val bitwise_and : size:int -> signed:bool -> t -> t -> t
 val bitwise_or : t -> t -> t
 val bitwise_xor : t -> t -> t
@@ -102,10 +106,6 @@ val bitwise_not: t -> t
 val bitwise_not_size: size:int -> signed:bool -> t -> t
 (** bitwise negation on a finite integer type. The argument is assumed to
     fit within the type. *)
-
-
-val min_and_max_float : t -> Fval.F.t * Fval.F.t
-
 
 val zero : t
 (** The lattice element that contains only the integer 0. *)
@@ -130,20 +130,14 @@ val is_zero : t -> bool
 val is_one : t -> bool
 
 val contains_zero : t -> bool
+(** contains the zero value (including -0. for floating-point ranges) *)
 val contains_non_zero : t -> bool
 
 val top_float : t
 val top_single_precision_float : t
 
-exception Nan_or_infinite
-
 val project_float : t -> Fval.t
-(** @raise Nan_or_infinite when the float may be NaN or infinite. *)
-
-val force_float: Cil_types.fkind -> t -> bool * t
-  (** Reinterpret the given value as a float of the given kind. If the
-      returned boolean is [true], some of the values may not be representable
-      as finite floats. *)
+(** Should be used only when we know it is a float *)
 
 
 (** Building Ival *)
@@ -181,8 +175,8 @@ val cardinal: t -> Integer.t option
 (** [cardinal v] returns [n] if [v] has finite cardinal [n], or [None] if
     the cardinal is not finite. *)
 
-val cardinal_estimate: t -> Integer.t -> Integer.t
-(** [cardinal_estimate v size] returns an estimation of the cardinal
+val cardinal_estimate: t -> size:Integer.t -> Integer.t
+(** [cardinal_estimate v ~size] returns an estimation of the cardinal
     of [v], knowing that [v] fits in [size] bits. *)
 
 val cardinal_less_than : t -> int -> int
@@ -196,17 +190,17 @@ val cardinal_is_less_than: t -> int -> bool
 
 val fold_int : (Integer.t -> 'a -> 'a) -> t -> 'a -> 'a
 (** Iterate on the integer values of the ival in increasing order.
-    Raise {!Error_Top} if the argument is a float or a potentially
-    infinite integer. *)
+    Raise {!Abstract_interp.Error_Top} if the argument is a float or a
+    potentially infinite integer. *)
 
 val fold_int_decrease : (Integer.t -> 'a -> 'a) -> t -> 'a -> 'a
 (** Iterate on the integer values of the ival in decreasing order.
-    Raise {!Error_Top} if the argument is a float or a potentially
-    infinite integer. *)
+    Raise {!Abstract_Interp.Error_Top} if the argument is a float or a
+    potentially infinite integer. *)
 
 val fold_enum : (t -> 'a -> 'a) -> t -> 'a -> 'a
-(** Iterate on every value of the ival. Raise {!Error_Top} if the argument is a
-    non-singleton float or a potentially infinite integer. *)
+(** Iterate on every value of the ival. Raise {!Abstract_intrep.Error_Top} if
+    the argument is a non-singleton float or a potentially infinite integer. *)
 
 val fold_int_bounds: (t -> 'a -> 'a) -> t -> 'a -> 'a
 (** Given [i] an integer abstraction [min..max], [fold_int_bounds f i acc]
@@ -219,22 +213,19 @@ val apply_set: (Integer.t -> Integer.t -> Integer.t ) -> t -> t -> t
 val apply_set_unary: (Integer.t -> Integer.t ) -> t -> t
 
 
-val subdiv_float_interval : size:Fval.float_kind option -> t -> t * t
-val subdiv_int: t -> t * t
+(** Subdivisions into two intervals *)
+val subdivide: size:Integer.t -> t -> t * t
 
 
-(** [compare_min_float m1 m2] returns 1 if the float interval [m1] has a
-   better min bound (i.e. greater) than the float interval [m2]. *)
-val compare_min_float : t -> t -> int
-(** [compare_max_float m1 m2] returns 1 if the float interval [m1] has a
-   better max bound (i.e. lower) than the float interval [m2]. *)
-val compare_max_float : t -> t -> int
-(** [compare_min_int m1 m2] returns 1 if the int interval [m1] has a
-   better min bound (i.e. greater) than the int interval [m2]. *)
-val compare_min_int : t -> t -> int
-(** [compare_max_int m1 m2] returns 1 if the int interval [m1] has a
-   better max bound (i.e. lower) than the int interval [m2]. *)
-val compare_max_int : t -> t -> int
+(** [has_greater_min_bound i1 i2] returns 1 if the interval [i1] has a better
+    minimum bound (i.e. greater) than the interval [i2]. [i1] and [i2] should
+    not be bottom. *)
+val has_greater_min_bound : t -> t -> int
+
+(** [has_smaller_max_bound i1 i2] returns 1 if the interval [i1] has a better
+    maximum bound (i.e. lower) than the interval [i2]. [i1] and [i2] should not
+    be bottom. *)
+val has_smaller_max_bound : t -> t -> int
 
 val scale : Integer.t -> t -> t
 (** [scale f v] returns the interval of elements [x * f] for [x] in [v].
@@ -284,46 +275,57 @@ val backward_comp_int_left : Comp.t -> t -> t -> t
 (** [backward_comp_int op l r] reduces [l] into [l'] so that
     [l' op r] holds. [l] is assumed to be an integer *)
 
-val backward_comp_float_left : Comp.t -> bool -> Fval.float_kind -> t -> t -> t
+val backward_comp_float_left_true : Comp.t -> Fval.kind -> t -> t -> t
+val backward_comp_float_left_false : Comp.t -> Fval.kind -> t -> t -> t
 (** Same as {!backward_comp_int_left}, except that the arguments should now
     be floating-point values. *)
 
 val forward_comp_int: Comp.t -> t -> t -> Comp.result
 
-(** In the results of [min_int] and [max_int], [None] represents the
-corresponding infinity. [compare_max_min ma mi] compares [ma] to [mi],
-interpreting [None] for [ma] as +infinity and [None] for [mi] as
--infinity. *)
-val compare_max_min : Integer.t option -> Integer.t option -> int
-(** In the results of [min_int] and [max_int], [None] represents the
-corresponding infinity. [compare_min_max mi ma] compares [ma] to [ma],
-interpreting [None] for [ma] as +infinity and [None] for [mi] as
--infinity. *)
-val compare_min_max : Integer.t option -> Integer.t option -> int
-
 val scale_int_base : Int_Base.t -> t -> t
 
-val cast_float_to_int :
-    signed:bool -> size:int -> t -> (** non-finite *) bool * (** Overflow, in each direction *) (bool * bool) * t
-
-val cast_float_to_int_inverse:
-  single_precision:bool -> t (** floating-point *)-> t (** integer *)
-val cast_int_to_float_inverse:
-  single_precision:bool -> t (** floating-point *) -> t (** integer *)
 
 val of_int : int -> t
 val of_int64 : int64 -> t
-val cast_int_to_float : Fval.rounding_mode -> t -> bool * t
-val cast : size:Integer.t -> signed:bool -> value:t -> t
-val cast_float : rounding_mode:Fval.rounding_mode -> t -> bool * t
-val cast_double : t -> bool * t
+
+(** Casts *)
+
+val cast_int_to_int : size:Integer.t -> signed:bool -> t -> t
+
+val cast_int_to_float : Fval.kind -> t -> t
+
+val cast_float_to_int :
+    signed:bool -> size:int -> t -> (** NaN *) alarm * (** Overflow, in each direction *) (alarm * alarm) * t
+
+val cast_float_to_float : Fval.kind -> t -> t
+(** Cast the given float to the given size. *)
+
+val cast_float_to_int_inverse:
+  single_precision:bool -> t (** integer *) -> t (** floating-point *)
+val cast_int_to_float_inverse:
+  single_precision:bool -> t (** floating-point *) -> t (** integer *)
+
+
+val reinterpret_as_float: Cil_types.fkind -> t -> t
+(** Bitwise reinterpretation of the given value as a float of the
+    given kind. *)
+
+val reinterpret_as_int: size:Integer.t -> signed:bool -> t -> t
+(** Bitwise reinterpretation of the given value, of size [size], as an integer
+    of the given signedness (and size). *)
+
+
 val pretty_debug : Format.formatter -> t -> unit
 
 val get_small_cardinal: unit -> int
 (** Value of option -ilevel *)
 
-(**/**) (* This is automatically set by the Value plugin. Do not use. *)
+(**/**)
+
+(* This is used by the Value plugin. Do not use. *)
 val set_small_cardinal: int -> unit
+
+val rehash: t -> t (* Low-level operation for demarshalling *)
 (**/**)
 
 

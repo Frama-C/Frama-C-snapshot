@@ -1,42 +1,20 @@
 # frama-c -wp [...]
 [kernel] Parsing tests/wp_usage/reads.i (no preprocessing)
 [wp] Running WP plugin...
-tests/wp_usage/reads.i:86:[kernel] warning: No code nor implicit assigns clause for function recursive_usage, generating default assigns from the prototype
+[kernel] tests/wp_usage/reads.i:86: Warning: 
+  No code nor implicit assigns clause for function recursive_usage, generating default assigns from the prototype
 .................................................
 ... Ref Usage
 .................................................
-... Initial state
-  Nothing
-............
-... Function f
-   x
-   y
-............
-... Function g
-   u
-   v
-............
-... Function modifies_y
-   x
-   y
-............
-... Function modifies_x
-   x
-   y
-............
-... Function declared_equals_x
-   x
-   p
-............
-... Function defined_equals_x
-   x
-   p
-............
-... Function recursive_usage
-   x
-   y
-   b
+Init: { }
+Function f: { x y }
+Function g: { u v }
+Function modifies_y: { x y }
+Function modifies_x: { x y }
+Function declared_equals_x: { x p }
+Function defined_equals_x: { x p }
+Function recursive_usage: { x y b }
 .................................................
 [wp] Loading driver 'share/wp.driver'
-[wp] warning: Missing RTE guards
+[wp] Warning: Missing RTE guards
 [wp] No proof obligations

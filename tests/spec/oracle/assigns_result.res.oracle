@@ -6,15 +6,17 @@
   X ∈ {0}
   Y ∈ {0}
 [value] computing for function f <- main.
-    Called from tests/spec/assigns_result.i:16.
+  Called from tests/spec/assigns_result.i:16.
 [value] using specification for function f
 [value] Done for function f
 [value] computing for function g <- main.
-    Called from tests/spec/assigns_result.i:16.
-tests/spec/assigns_result.i:16:[inout] warning: failed to interpret assigns clause '\exit_status'
+  Called from tests/spec/assigns_result.i:16.
+[inout] tests/spec/assigns_result.i:16: Warning: 
+  failed to interpret assigns clause '\exit_status'
 [value] using specification for function g
-tests/spec/assigns_result.i:16:[value] warning: cannot interpret assigns \exit_status
-    (unsupported logic var \exit_status); effects will be ignored
+[value] tests/spec/assigns_result.i:16: Warning: 
+  cannot interpret assigns \exit_status (unsupported logic var \exit_status);
+  effects will be ignored
 [value] Done for function g
 [value] Recording results for main
 [value] done for function main
@@ -22,11 +24,11 @@ tests/spec/assigns_result.i:16:[value] warning: cannot interpret assigns \exit_s
 [from] Computing for function f <-main
 [from] Done for function f
 [from] Computing for function g <-main
-tests/spec/assigns_result.i:16:[from] Unable to extract assigns in g
+[from] tests/spec/assigns_result.i:16: Unable to extract assigns in g
 [from] Done for function g
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
-    These dependencies hold at termination for the executions that terminate:
+  These dependencies hold at termination for the executions that terminate:
 [from] Function f:
   \result FROM ANYTHING(origin:Unknown)
 [from] Function g:

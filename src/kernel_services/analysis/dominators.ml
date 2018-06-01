@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2017                                               *)
+(*  Copyright (C) 2007-2018                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -40,7 +40,6 @@ module Dom_tree = State_builder.Hashtbl
 (** Compute dominator information for the statements in a function *)
 open Cil_types
 
-let dkey = Kernel.register_category "dominators"
 (****************************************************************)
 
 module type DIRECTION = sig
@@ -76,7 +75,7 @@ module Compute(D:DIRECTION) = struct
 
 (* Computes the smallest common dominator between two statements. *)
 let nearest_common_ancestor find_domtree ord1 ord2 =
-  Kernel.debug ~dkey ~level:2 "computing common ancestor %d %d"
+  Kernel.debug ~dkey:Kernel.dkey_dominators "computing common ancestor %d %d"
     (D.to_stmt ord1).sid (D.to_stmt ord2).sid;
   let finger1 = ref ord1 in
   let finger2 = ref ord2 in
@@ -135,11 +134,11 @@ let domtree () =
 ;;
 
 let display domtree =
-  Kernel.debug ~dkey ~level:2 "Root is %d" (D.to_stmt 0).sid;
+  Kernel.debug ~dkey:Kernel.dkey_dominators "Root is %d" (D.to_stmt 0).sid;
   Array.iteri (fun orig dest -> match dest with
-  | Some(x) -> Kernel.debug ~dkey ~level:2 "%s of %d is %d"
+  | Some(x) -> Kernel.debug ~dkey:Kernel.dkey_dominators "%s of %d is %d"
     D.name (D.to_stmt orig).sid (D.to_stmt x).sid
-  | None -> Kernel.debug ~dkey ~level:2 "no %s for %d"
+  | None -> Kernel.debug ~dkey:Kernel.dkey_dominators "no %s for %d"
     D.name (D.to_stmt orig).sid)
     domtree
 ;;
@@ -175,7 +174,7 @@ let store_dom domtree to_stmt =
   Array.iteri( fun ord idom ->
     let idom = Extlib.opt_map to_stmt idom in
     let stmt = to_stmt ord in
-    Kernel.debug ~dkey ~level:2 "storing dom for %d: %s"
+    Kernel.debug ~dkey:Kernel.dkey_dominators "storing dom for %d: %s"
       stmt.sid (match idom with None -> "self" | Some s ->string_of_int s.sid);
     Dom_tree.add stmt idom
   ) domtree

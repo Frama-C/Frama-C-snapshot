@@ -1,17 +1,27 @@
 [kernel] Parsing tests/float/cte_overflow.i (no preprocessing)
-tests/float/cte_overflow.i:12:[kernel] warning: Floating-point constant 1e500 is not represented exactly. Will use inf
-tests/float/cte_overflow.i:12:[kernel] warning: Floating-point constant 1e500 is not represented exactly. Will use inf
-tests/float/cte_overflow.i:17:[kernel] warning: Floating-point constant 1e80f is not represented exactly. Will use inf
-tests/float/cte_overflow.i:17:[kernel] warning: Floating-point constant 1e500f is not represented exactly. Will use inf
+[kernel:parser:decimal-float] tests/float/cte_overflow.i:12: Warning: 
+  Floating-point constant 1e500 is not represented exactly. Will use inf.
+[kernel:parser:decimal-float] tests/float/cte_overflow.i:12: Warning: 
+  Floating-point constant 1e500 is not represented exactly. Will use inf.
+[kernel:parser:decimal-float] tests/float/cte_overflow.i:17: Warning: 
+  Floating-point constant 1e80f is not represented exactly. Will use inf.
+[kernel:parser:decimal-float] tests/float/cte_overflow.i:17: Warning: 
+  Floating-point constant 1e500f is not represented exactly. Will use inf.
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
 [value] Initial state computed
 [value:initial-state] Values of globals at initialization
   v ∈ [--..--]
-tests/float/cte_overflow.i:12:[value] warning: non-finite double value. assert \is_finite(1e500);
-tests/float/cte_overflow.i:17:[value] warning: non-finite float value. assert \is_finite(1e80f);
+[value:alarm] tests/float/cte_overflow.i:12: Warning: 
+  non-finite double value. assert \is_finite(1e500);
+[value:alarm] tests/float/cte_overflow.i:17: Warning: 
+  non-finite float value. assert \is_finite(1e80f);
 [value] Recording results for main
 [value] done for function main
+[value] tests/float/cte_overflow.i:12: 
+  assertion 'Value,is_nan_or_infinite' got final status invalid.
+[value] tests/float/cte_overflow.i:17: 
+  assertion 'Value,is_nan_or_infinite' got final status invalid.
 [value] ====== VALUES COMPUTED ======
 [value:final-states] Values at end of function main:
   t ∈ {0}
@@ -19,11 +29,11 @@ tests/float/cte_overflow.i:17:[value] warning: non-finite float value. assert \i
 [from] Computing for function main
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
-    These dependencies hold at termination for the executions that terminate:
+  These dependencies hold at termination for the executions that terminate:
 [from] Function main:
   \result FROM \nothing
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function main:
-      t; __retres
+    t; __retres
 [inout] Inputs for function main:
-      v
+    v

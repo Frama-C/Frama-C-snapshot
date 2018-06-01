@@ -38,42 +38,51 @@
   s7 ∈ {{ "hello\000 world" }}
   s8 ∈ {{ "hello" }}
 [value] computing for function u <- main1.
-    Called from tests/value/strings.i:39.
-tests/value/strings.i:39:[kernel] warning: Neither code nor specification for function u, generating default assigns from the prototype
+  Called from tests/value/strings.i:39.
+[kernel:annot:missing-spec] tests/value/strings.i:39: Warning: 
+  Neither code nor specification for function u, generating default assigns from the prototype
 [value] using specification for function u
 [value] Done for function u
-tests/value/strings.i:39:[value] warning: out of bounds read. assert \valid_read(p - 4);
+[value:alarm] tests/value/strings.i:39: Warning: 
+  out of bounds read. assert \valid_read(p - 4);
 [value] computing for function u <- main1.
-    Called from tests/value/strings.i:42.
+  Called from tests/value/strings.i:42.
 [value] Done for function u
-tests/value/strings.i:42:[value] warning: out of bounds read. assert \valid_read(p + 12);
+[value:alarm] tests/value/strings.i:42: Warning: 
+  out of bounds read. assert \valid_read(p + 12);
 [value] computing for function u <- main1.
-    Called from tests/value/strings.i:44.
+  Called from tests/value/strings.i:44.
 [value] Done for function u
 [value] computing for function u <- main1.
-    Called from tests/value/strings.i:48.
+  Called from tests/value/strings.i:48.
 [value] Done for function u
-tests/value/strings.i:48:[value] warning: out of bounds read. assert \valid_read(p - 4);
+[value:alarm] tests/value/strings.i:48: Warning: 
+  out of bounds read. assert \valid_read(p - 4);
 [value] computing for function u <- main1.
-    Called from tests/value/strings.i:53.
+  Called from tests/value/strings.i:53.
 [value] Done for function u
 [value] computing for function strcpy <- main1.
-    Called from tests/value/strings.i:53.
-tests/value/strings.i:21:[value] warning: out of bounds write.
-    assert \valid(tmp_unroll_46);
-    (tmp_unroll_46 from ldst++)
-tests/value/strings.i:21:[kernel] warning: all target addresses were invalid. This path is assumed to be dead.
+  Called from tests/value/strings.i:53.
+[value:alarm] tests/value/strings.i:21: Warning: 
+  out of bounds write.
+  assert \valid(tmp_unroll_46);
+  (tmp_unroll_46 from ldst++)
+[kernel] tests/value/strings.i:21: Warning: 
+  all target addresses were invalid. This path is assumed to be dead.
 [value] Recording results for strcpy
 [value] Done for function strcpy
 [value] computing for function strlen <- main1.
-    Called from tests/value/strings.i:58.
+  Called from tests/value/strings.i:58.
 [value] Recording results for strlen
 [value] Done for function strlen
 [value] Recording results for main1
 [value] done for function main1
-tests/value/strings.i:21:[value] assertion 'Value,mem_access' got final status invalid.
-tests/value/strings.i:39:[value] assertion 'Value,mem_access' got final status invalid.
-tests/value/strings.i:42:[value] assertion 'Value,mem_access' got final status invalid.
+[value] tests/value/strings.i:21: 
+  assertion 'Value,mem_access' got final status invalid.
+[value] tests/value/strings.i:39: 
+  assertion 'Value,mem_access' got final status invalid.
+[value] tests/value/strings.i:42: 
+  assertion 'Value,mem_access' got final status invalid.
 [value] ====== VALUES COMPUTED ======
 [value:final-states] Values at end of function strcpy:
   NON TERMINATING FUNCTION
@@ -109,7 +118,7 @@ tests/value/strings.i:42:[value] assertion 'Value,mem_access' got final status i
 [from] Done for function u
 [from] Done for function main1
 [from] ====== DEPENDENCIES COMPUTED ======
-    These dependencies hold at termination for the executions that terminate:
+  These dependencies hold at termination for the executions that terminate:
 [from] Function strcpy:
   NON TERMINATING - NO EFFECTS
 [from] Function strlen:
@@ -124,20 +133,20 @@ tests/value/strings.i:42:[value] assertion 'Value,mem_access' got final status i
   \result FROM s1{[0..2]; [4]}; cc
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function strcpy:
-      src; ldst; b[0..4]; tmp_unroll_46; tmp_1_unroll_46; tmp_0_unroll_46;
-      tmp_unroll_49; tmp_1_unroll_49; tmp_0_unroll_49; tmp_unroll_52;
-      tmp_1_unroll_52; tmp_0_unroll_52; tmp_unroll_55; tmp_1_unroll_55;
-      tmp_0_unroll_55; tmp_unroll_58; tmp_1_unroll_58; tmp_0_unroll_58;
-      tmp_unroll_61; tmp_1_unroll_61; tmp_0_unroll_61
+    src; ldst; b[0..4]; tmp_unroll_46; tmp_1_unroll_46; tmp_0_unroll_46;
+    tmp_unroll_49; tmp_1_unroll_49; tmp_0_unroll_49; tmp_unroll_52;
+    tmp_1_unroll_52; tmp_0_unroll_52; tmp_unroll_55; tmp_1_unroll_55;
+    tmp_0_unroll_55; tmp_unroll_58; tmp_1_unroll_58; tmp_0_unroll_58;
+    tmp_unroll_61; tmp_1_unroll_61; tmp_0_unroll_61
 [inout] Inputs for function strcpy:
-      a[0..5]
+    a[0..5]
 [inout] Out (internal) for function strlen:
-      s; l; tmp_unroll_106; tmp_unroll_109; tmp_unroll_112; tmp_unroll_115;
-      tmp_unroll_118; tmp_unroll_121
+    s; l; tmp_unroll_106; tmp_unroll_109; tmp_unroll_112; tmp_unroll_115;
+    tmp_unroll_118; tmp_unroll_121
 [inout] Inputs for function strlen:
-      s1[0..5]
+    s1[0..5]
 [inout] Out (internal) for function main1:
-      s1{[3]; [6]}; R; S; T; p; tmp; tmp_0; tmp_1; tmp_2; a[0..9]; b[0..4];
-      tmp_3; tmp_4; __retres
+    s1{[3]; [6]}; R; S; T; p; tmp; tmp_0; tmp_1; tmp_2; a[0..9]; b[0..4];
+    tmp_3; tmp_4; __retres
 [inout] Inputs for function main1:
-      s1[0..5]; cc
+    s1[0..5]; cc

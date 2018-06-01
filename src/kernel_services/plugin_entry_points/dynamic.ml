@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2017                                               *)
+(*  Copyright (C) 2007-2018                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -147,6 +147,10 @@ let mem_package pkg =
   try ignore (Findlib.package_directory pkg) ; true
   with Findlib.No_such_package _ -> false
 
+let is_virtual pkg =
+  try ignore (Findlib.package_property [] pkg "archive") ; false
+  with Not_found -> true
+
 let load_packages pkgs =
   Klog.debug ~dkey "trying to load %a"
     (Pretty_utils.pp_list ~sep:"@, " Format.pp_print_string) pkgs;
@@ -156,7 +160,7 @@ let load_packages pkgs =
       begin fun pkg ->
         if once pkg then
           let base = Findlib.package_directory pkg in
-          (** The way plugins are specified in META have been
+          (*  The way plugins are specified in META have been
               normalized late. So people started to
               specified it in different ways:
               - archive(byte,plugin)
@@ -184,24 +188,32 @@ let load_packages pkgs =
                 "archive", ["byte"]@gui;
               ]
           in
-          let rec find_package_property = function
+          let rec find_package_archives = function
+
+            (* Search by priority order *)
+            | (var,predicates)::others ->
+              begin
+                try Some (Findlib.package_property predicates pkg var)
+                with Not_found -> find_package_archives others
+              end
+
+            (* Look for virtual package *)
             | [] ->
-              let msg = Printf.sprintf
-                  "package '%s' doesn't contains any known \
-                   specification for dynamic linking"
-                  pkg
-              in
-              raise (ArchiveError msg)
-            | (var,predicates)::l ->
-              try Findlib.package_property predicates pkg var
-              with Not_found -> find_package_property l
-          in
-          let archive = find_package_property predicates in
-          let archives = split_word archive in
-          if archives = [] then
-            Klog.warning "no archive to load for package '%s'" pkg
-          else
-            List.iter (load_archive pkg base) archives
+              if is_virtual pkg then None else
+                let msg = Printf.sprintf
+                    "package '%s' doesn't contains any known \
+                     specification for dynamic linking"
+                    pkg
+                in raise (ArchiveError msg)
+
+          in match find_package_archives predicates with
+          | None -> (* virtual package *) ()
+          | Some archive ->
+            let archives = split_word archive in
+            if archives = [] then
+              Klog.warning "no archive to load for package '%s'" pkg
+            else
+              List.iter (load_archive pkg base) archives
       end
       (Findlib.package_deep_ancestors
          (if Dynlink.is_native then [ "native" ] else [ "byte" ])
@@ -232,7 +244,7 @@ let load_script base =
       Format.fprintf fmt "%s -shared -o %s.cmxs" Config.ocamlopt base
     else
       Format.fprintf fmt "%s -c" Config.ocamlc ;
-    Format.fprintf fmt " -w Ly -warn-error A -I %s" Config.libdir ;
+    Format.fprintf fmt " -g %s -warn-error a -I %s" Config.ocaml_wflags Config.libdir ;
     if !Config.is_gui then Format.pp_print_string fmt " -package lablgtk2" ;
     List.iter (fun p -> Format.fprintf fmt " -I %s" p) !load_path ;
     Format.fprintf fmt " %s.ml" base ;

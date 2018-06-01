@@ -149,6 +149,12 @@ val frama_c_keep_block: string
     when the corresponding variable exits its scope. *)
 val frama_c_destructor: string
 
+(** Name of the attribute used to indicate that a given static variable has a
+    local syntactic scope (despite a global lifetime).
+    @since Chlorine-20180501
+ *)
+val fc_local_static: string
+
 (** A hook into the code that creates temporary local vars.  By default this
   is the identity function, but you can overwrite it if you need to change the
   types of cabs2cil-introduced temp variables. *)
@@ -209,6 +215,10 @@ type local_env = private
       (** list of known behaviors at current point. *)
       is_ghost: bool;
       (** whether we're analyzing ghost code or not *)
+      is_paren: bool;
+      (** is the current expr a child of A.PAREN *)
+      inner_paren: bool;
+      (** used internally for normalizations of unop and binop. *)
     }
 
 (** an empty local environment. *)
@@ -247,10 +257,16 @@ val integral_cast: Cil_types.typ -> Cil_types.term -> Cil_types.term
 val allow_return_collapse: tlv:Cil_types.typ -> tf:Cil_types.typ -> bool
 
 val areCompatibleTypes: Cil_types.typ -> Cil_types.typ -> bool
-(** Check that the two given types are compatible (C99, 6.2.7)
+(** [areCompatibleTypes ot nt] checks that the two given types are
+    compatible (C99, 6.2.7). Note however that we use a slightly relaxed
+    notion of compatibility to cope with de-facto usages.
+    In particular, this function is *not* symmetric: in some cases, when objects
+    of type ot can safely be converted to objects of type nt, we accept them as
+    compatible to avoid spurious casts.
 
     @since Neon-20140301
     @modify Phosphorus-20170501-beta1
+    @modify Chlorine-20180501 refined notion
 *)
 
 val stmtFallsThrough: Cil_types.stmt -> bool

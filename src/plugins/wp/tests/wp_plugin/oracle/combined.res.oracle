@@ -2,7 +2,7 @@
 [kernel] Parsing tests/wp_plugin/combined.c (with preprocessing)
 [wp] Running WP plugin...
 [wp] Loading driver 'share/wp.driver'
-[wp] warning: Missing RTE guards
+[wp] Warning: Missing RTE guards
 ------------------------------------------------------------
   Function job
 ------------------------------------------------------------
@@ -161,33 +161,7 @@ Prove: true.
 
 Goal Loop assigns (file tests/wp_plugin/combined.c, line 35) (2/3):
 Effect at line 37
-Let a = shift_sint32(t, A).
-Let x = 100 - A.
-Assume {
-  Type: is_sint32(A) /\ is_sint32(i) /\ is_sint32(j).
-  (* Goal *)
-  When: valid_rd(Malloc_0, a, x).
-  (* Heap *)
-  Have: (region(t.base) <= 0) /\ linked(Malloc_0).
-  (* Assertion *)
-  Have: (50 <= A) /\ (A <= 100).
-  (* Loop assigns ... *)
-  Have: havoc(Mint_0, Mint_1, shift_sint32(t, 0), 50).
-  (* Invariant *)
-  Have: forall i_1 : Z. ((0 <= i_1) -> ((i_1 < i) ->
-      P_P(Mint_1[shift_sint32(t, i_1)]))).
-  (* Invariant *)
-  Have: (0 <= i) /\ (i <= 50).
-  (* Else *)
-  Have: 50 <= i.
-  (* Loop assigns ... *)
-  Have: havoc(Mint_1, Mint_2, a, x).
-  (* Invariant *)
-  Have: (A <= j) /\ (j <= 100).
-  (* Then *)
-  Have: j <= 99.
-}
-Prove: included(a, x, a, x).
+Prove: true.
 
 ------------------------------------------------------------
 
@@ -199,7 +173,7 @@ Let a_1 = shift_sint32(t, j).
 Assume {
   Type: is_sint32(A) /\ is_sint32(i) /\ is_sint32(j).
   (* Goal *)
-  When: valid_rd(Malloc_0, a_1, 1).
+  When: !invalid(Malloc_0, a_1, 1).
   (* Heap *)
   Have: (region(t.base) <= 0) /\ linked(Malloc_0).
   (* Assertion *)

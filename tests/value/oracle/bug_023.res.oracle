@@ -6,8 +6,9 @@
   i ∈ {0}
   x ∈ {0}
 [value] computing for function f <- main.
-    Called from tests/value/bug_023.i:8.
-tests/value/bug_023.i:8:[kernel] warning: Neither code nor specification for function f, generating default assigns from the prototype
+  Called from tests/value/bug_023.i:8.
+[kernel:annot:missing-spec] tests/value/bug_023.i:8: Warning: 
+  Neither code nor specification for function f, generating default assigns from the prototype
 [value] using specification for function f
 [value] Done for function f
 [value] Recording results for main
@@ -21,7 +22,7 @@ tests/value/bug_023.i:8:[kernel] warning: Neither code nor specification for fun
 [from] Done for function f
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
-    These dependencies hold at termination for the executions that terminate:
+  These dependencies hold at termination for the executions that terminate:
 [from] Function f:
   \result FROM \nothing
 [from] Function main:
@@ -29,6 +30,6 @@ tests/value/bug_023.i:8:[kernel] warning: Neither code nor specification for fun
   \result FROM \nothing
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function main:
-      i; tmp; __retres
+    i; tmp; __retres
 [inout] Inputs for function main:
-      i
+    i

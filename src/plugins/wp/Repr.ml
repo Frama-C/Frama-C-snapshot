@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2017                                               *)
+(*  Copyright (C) 2007-2018                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -55,6 +55,7 @@ type repr =
   | Call of lfun * term list
   | Field of term * field
   | Record of (field * term) list
+  | Cst of tau * term
   | Get of term * term
   | Set of term * term * term
   | Abstract
@@ -89,6 +90,7 @@ let term e : repr =
   | L.Fun(f,ts) -> Call(f,ts)
   | L.Rget(r,f) -> Field(r,f)
   | L.Rdef fvs -> Record fvs
+  | L.Acst(t,v) -> Cst(t,v)
   | L.Aget(a,k) -> Get(a,k)
   | L.Aset(a,k,v) -> Set(a,k,v)
   | L.Fvar x -> Var x

@@ -6,10 +6,11 @@
 [value:initial-state] Values of globals at initialization
   pf ∈ {0}
 [value] computing for function g <- main.
-    Called from tests/constant_propagation/fct_ptr.i:15.
+  Called from tests/constant_propagation/fct_ptr.i:15.
 [value] computing for function f <- g <- main.
-    Called from tests/constant_propagation/fct_ptr.i:8.
-tests/constant_propagation/fct_ptr.i:8:[kernel] warning: Neither code nor specification for function f, generating default assigns from the prototype
+  Called from tests/constant_propagation/fct_ptr.i:8.
+[kernel:annot:missing-spec] tests/constant_propagation/fct_ptr.i:8: Warning: 
+  Neither code nor specification for function f, generating default assigns from the prototype
 [value] using specification for function f
 [value] Done for function f
 [value] Recording results for g

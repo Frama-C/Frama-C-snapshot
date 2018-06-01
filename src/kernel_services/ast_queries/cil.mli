@@ -495,18 +495,41 @@ val arithmeticConversion : Cil_types.typ -> Cil_types.typ -> Cil_types.typ
 *)
 val integralPromotion : Cil_types.typ -> Cil_types.typ
 
-(** True if the argument is a character type (i.e. plain, signed or unsigned) *)
+(** True if the argument is a character type (i.e. plain, signed or unsigned)
+    @since Chlorine-20180501 *)
+val isAnyCharType: typ -> bool
+
+(** True if the argument is a plain character type
+    (but neither [signed char] nor [unsigned char]).
+    @modify Chlorine-20180501 old behavior renamed as [isAnyCharType] *)
 val isCharType: typ -> bool
 
 (** True if the argument is a short type (i.e. signed or unsigned) *)
 val isShortType: typ -> bool
 
 (** True if the argument is a pointer to a character type
-    (i.e. plain, signed or unsigned) *)
+    (i.e. plain, signed or unsigned).
+    @since Chlorine-20180501 *)
+val isAnyCharPtrType: typ -> bool
+
+(** True if the argument is a pointer to a plain character type
+    (but neither [signed char] nor [unsigned char]).
+    @modify Chlorine-20180501 old behavior renamed as [isAnyCharPtrType] *)
 val isCharPtrType: typ -> bool
 
+(** True if the argument is a pointer to a constant character type,
+    e.g. a string literal.
+    @since Chlorine-20180501 *)
+val isCharConstPtrType: typ -> bool
+
 (** True if the argument is an array of a character type
-    (i.e. plain, signed or unsigned) *)
+    (i.e. plain, signed or unsigned)
+    @since Chlorine-20180501 *)
+val isAnyCharArrayType: typ -> bool
+
+(** True if the argument is an array of a character type
+    (i.e. plain, signed or unsigned)
+    @modify Chlorine-20180501 old behavior renamed as [isAnyCharArrayType] *)
 val isCharArrayType: typ -> bool
 
 (** True if the argument is an integral type (i.e. integer or enum) *)
@@ -640,10 +663,21 @@ val makeFormalVar: fundec -> ?where:string -> string -> typ -> varinfo
     Make sure you know what you are doing if you set [insert=false].
     [temp] is passed to {!Cil.makeVarinfo}.
     The variable is attached to the toplevel block if [scope] is not specified.
+    If the name passed as argument already exists within the function,
+    a fresh name will be generated for the varinfo.
+
+    @modify Chlorine-20180501 the name of the variable is guaranteed to be fresh.
 *)
 val makeLocalVar:
   fundec -> ?scope:block -> ?temp:bool -> ?insert:bool
   -> string -> typ -> varinfo
+
+(** if needed, rename the given varinfo so that its [vname] does not
+    clash with the one of a local or formal variable of the given function.
+
+    @since Chlorine-20180501
+*)
+val refresh_local_name: fundec -> varinfo -> unit
 
 (** Make a temporary variable and add it to a function's slocals. The name of
     the temporary variable will be generated based on the given name hint so
@@ -711,6 +745,10 @@ val typeTermOffset: logic_type -> term_offset -> logic_type
 
 (** Compute the type of an initializer *)
 val typeOfInit: init -> typ
+
+(** indicates whether the given lval is a modifiable lvalue in the sense
+    of the C standard 6.3.2.1§1. *)
+val is_modifiable_lval: lval -> bool
 
 (* ************************************************************************* *)
 (** {2 Values for manipulating expressions} *)
@@ -857,8 +895,19 @@ val mkMem: addr:exp -> off:offset -> lval
 (** makes a binary operation and performs const folding.  Inserts
     casts between arithmetic types as needed, or between pointer
     types, but do not attempt to cast pointer to int or
-    vice-versa. Use appropriate binop (PlusPI & friends) for that.  *)
+    vice-versa. Use appropriate binop (PlusPI & friends) for that.
+    @modify Chlorine-20180501 no systematic cast to uintptr_t for ptr comparisons.
+*)
 val mkBinOp: loc:location -> binop -> exp -> exp -> exp
+
+(** same as {!mkBinOp}, but performs a systematic cast (unless one of the
+    arguments is [0]) of pointers into [uintptr_t] during comparisons,
+    making such operation defined even if the pointers do not share
+    the same base. This was the behavior of {!mkBinOp} prior to the
+    introduction of this function.
+    @since Chlorine-20180501
+ *)
+val mkBinOp_safe_ptr_cmp: loc:location -> binop -> exp -> exp -> exp
 
 (** Equivalent to [mkMem] for terms. *)
 val mkTermMem: addr:term -> off:term_offset -> term_lval
@@ -1003,10 +1052,15 @@ val mkPureExprInstr:
     of a single ([Instr]) statement, which will be the scope of the fresh
     variable holding the value of the expression.
 
-    As usual, [ghost] defaults to [false]. [loc] defaults to the location of
-    the expression itself.
+    See {!Cil.mkStmt} for information about [ghost] and [valid_sid], and
+    {!Cil.mkPureExprInstr} for information about [loc].
+
+    @modify Chlorine-20180501 lift optional arg valid_sid from [mkStmt] instead
+    of relying on ill-fated default.
 *)
-val mkPureExpr: ?ghost:bool -> fundec:fundec -> ?loc:location -> exp -> stmt
+val mkPureExpr:
+  ?ghost:bool -> ?valid_sid:bool -> fundec:fundec ->
+  ?loc:location -> exp -> stmt
 
 (** Make a while loop. Can contain Break or Continue *)
 val mkWhile: guard:exp -> body:stmt list -> stmt list
@@ -1103,8 +1157,13 @@ val dropAttributes: string list -> attributes -> attributes
 (** Remove attributes whose name appears in the first argument that are
     present anywhere in the fully expanded version of the type.
     @since Oxygen-20120901
+    @deprecated Chlorine-20180501 use {!Cil.typeRemoveAttributesDeep} instead,
+    which does not traverse pointers and function types, or
+    {!Cil.typeDeepDropAllAttributes}, which will give a pristine version of the
+    type, without any attributes.
 *)
 val typeDeepDropAttributes: string list -> typ -> typ
+  [@@ ocaml.deprecated "Use Cil.typeRemoveAttributesDeep"]
 
 (** Remove any attribute appearing somewhere in the fully expanded 
     version of the type.
@@ -1158,7 +1217,10 @@ val typeRemoveAttributes: string list -> typ -> typ
 val typeRemoveAllAttributes: typ -> typ
 
 (** Same as [typeRemoveAttributes], but recursively removes the given
-    attributes from inner types as well.
+    attributes from inner types as well. Mainly useful to check whether
+    two types are equal modulo some attributes. See also
+    [typeDeepDropAllAttributes], which will strip every single attribute
+    from a type.
 *)
 val typeRemoveAttributesDeep: string list -> typ -> typ
 
@@ -1178,7 +1240,19 @@ val typeHasQualifier: string -> typ -> bool
 val typeHasAttributeDeep: string -> typ -> bool
 (** Does the type or one of its subtypes have the given attribute. Does
     not recurse through pointer types, nor inside function prototypes.
-    @since Oxygen-20120901 *)
+    @since Oxygen-20120901
+    @deprecated Chlorine-20180501 see {!Cil.typeHasAttributeMemoryBlock}
+ *)
+[@@ deprecated "Use Cil.typeHasAttributeMemoryBlock instead"]
+
+val typeHasAttributeMemoryBlock: string -> typ -> bool
+(** [typeHasAttributeMemoryBlock attr t] is
+    [true] iff at least one component of an object of type [t] has attribute
+    [attr]. In other words, it searches for [attr] under aggregates, but not
+    under pointers.
+
+    @since Chlorine-20180501 replaces typeHasAttributeDeep (name too ambiguous)
+*)
 
 (** Remove all attributes relative to const, volatile and restrict attributes
     @since Nitrogen-20111001
@@ -1224,11 +1298,21 @@ val expToAttrParam: exp -> attrparam
 exception NotAnAttrParam of exp
 
 (* ************************************************************************* *)
+(** {2 Const Attribute} *)
+(* ************************************************************************* *)
+
+val isConstType : typ -> bool
+(** Check for ["const"] qualifier from the type of an l-value (do not follow pointer)
+    @return true iff a part of the related l-value has ["const"] qualifier
+    @since Chlorine-20180501 *)
+
+(* ************************************************************************* *)
 (** {2 Volatile Attribute} *)
 (* ************************************************************************* *)
 
 val isVolatileType : typ -> bool
 (** Check for ["volatile"] qualifier from the type of an l-value (do not follow pointer)
+    @return true iff a part of the related l-value has ["volatile"] qualifier
     @since Sulfur-20171101 *)
 
 val isVolatileLogicType : logic_type -> bool
@@ -1571,8 +1655,8 @@ val fold_visitor_fundec:
 (** A visitor interface for traversing CIL trees. Create instantiations of
   this type by specializing the class {!nopCilVisitor}. Each of the
   specialized visiting functions can also call the [queueInstr] to specify
-  that some instructions should be inserted before the current instruction
-  or statement. Use syntax like [self#queueInstr] to call a method
+  that some instructions should be inserted before the current statement.
+  Use syntax like [self#queueInstr] to call a method
   associated with the current object.
  
   {b Important Note for Frama-C Users:} Unless you really know what you are
@@ -1687,7 +1771,7 @@ class type cilVisitor = object
 
   method queueInstr: instr list -> unit
   (** Add here instructions while visiting to queue them to precede the
-      current statement or instruction being processed. Use this method only
+      current statement being processed. Use this method only
       when you are visiting an expression that is inside a function body, or a
       statement, because otherwise there will no place for the visitor to place
       your instructions. *)
@@ -1865,11 +1949,11 @@ val visitCilFileCopy: cilVisitor -> file -> file
     @plugin development guide *)
 val visitCilFile: cilVisitor -> file -> unit
 
-(** A visitor for the whole file that does not change the globals (but maybe
- * changes things inside the globals). Use this function instead of
- * {!Cil.visitCilFile} whenever appropriate because it is more efficient for
- * long files.
-    @plugin development guide *)
+(** A visitor for the whole file that does not *physically* change the
+   globals (but maybe changes things inside the globals through
+   side-effects). Use this function instead of {!Cil.visitCilFile}
+   whenever appropriate because it is more efficient for long files.
+   @plugin development guide *)
 val visitCilFileSameGlobals: cilVisitor -> file -> unit
 
 (** Visit a global *)

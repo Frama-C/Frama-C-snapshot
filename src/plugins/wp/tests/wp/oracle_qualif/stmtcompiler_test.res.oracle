@@ -1,0 +1,61 @@
+# frama-c -wp [...]
+[kernel] Parsing tests/wp/stmtcompiler_test.i (no preprocessing)
+[kernel] tests/wp/stmtcompiler_test.i:136: Warning: 
+  Body of function if_assert falls-through. Adding a return statement
+[wp] Running WP plugin...
+[wp] Loading driver 'share/wp.driver'
+[kernel] tests/wp/stmtcompiler_test.i:145: Warning: 
+  No code nor implicit assigns clause for function behavior1, generating default assigns from the prototype
+[wp] Warning: Missing RTE guards
+[wp] tests/wp/stmtcompiler_test.i:81: Warning: 
+  Missing assigns clause (assigns 'everything' instead)
+[wp] 27 goals scheduled
+[wp] [Qed] Goal typed_behavior2_assert : Valid
+[wp] [Qed] Goal typed_behavior3_assert : Valid
+[wp] [Qed] Goal typed_behavior4_assert : Valid
+[wp] [Alt-Ergo] Goal typed_behavior5_assert_bad : Unknown
+[wp] [Qed] Goal typed_compare_assert : Valid
+[wp] [Qed] Goal typed_empty_assert : Valid
+[wp] [Alt-Ergo] Goal typed_if_assert_assert : Valid
+[wp] [Alt-Ergo] Goal typed_if_assert_assert_2 : Unknown
+[wp] [Qed] Goal typed_if_assert_assert_3 : Valid
+[wp] [Alt-Ergo] Goal typed_if_assert_assert_missing_return : Unknown
+[wp] [Qed] Goal typed_main_assert : Valid
+[wp] [Qed] Goal typed_main_assigns_global_assert : Valid
+[wp] [Qed] Goal typed_main_assigns_global_assert_2 : Valid
+[wp] [Alt-Ergo] Goal typed_main_assigns_global_assert_bad : Unknown
+[wp] [Qed] Goal typed_main_ensures_result_assert : Valid
+[wp] [Alt-Ergo] Goal typed_not_main_assert_bad : Unknown
+[wp] [Qed] Goal typed_one_assign_assert : Valid
+[wp] [Qed] Goal typed_one_if_assert : Valid
+[wp] [Qed] Goal typed_some_seq_assert : Valid
+[wp] [Qed] Goal typed_some_seq_assert_2 : Valid
+[wp] [Qed] Goal typed_zloop_post : Valid
+[wp] [Alt-Ergo] Goal typed_zloop_loop_inv_preserved : Unknown
+[wp] [Qed] Goal typed_zloop_loop_inv_established : Valid
+[wp] [Qed] Goal typed_zloop_assert : Valid
+[wp] [Qed] Goal typed_zloop_assert_2 : Valid
+[wp] [Alt-Ergo] Goal typed_zloop_assert_3 : Unknown
+[wp] [Alt-Ergo] Goal typed_zloop_assert_bad : Unknown
+[wp] Proved goals:   19 / 27
+  Qed:            18 
+  Alt-Ergo:        1  (unknown: 8)
+[wp] Report 'tests/wp/stmtcompiler_test.i.0.report.json'
+-------------------------------------------------------------
+Functions           WP     Alt-Ergo        Total   Success
+empty                1     -                 1       100%
+one_assign           1     -                 1       100%
+one_if               1     -                 1       100%
+some_seq             2     -                 2       100%
+main_ensures_result   1    -                 1       100%
+main                 1     -                 1       100%
+not_main            -      -                 1       0.0%
+main_assigns_global   2    -                 3      66.7%
+zloop                4     -                 7      57.1%
+behavior2            1     -                 1       100%
+behavior3            1     -                 1       100%
+behavior4            1     -                 1       100%
+behavior5           -      -                 1       0.0%
+if_assert            1      1 (1..12)        4      50.0%
+compare              1     -                 1       100%
+-------------------------------------------------------------

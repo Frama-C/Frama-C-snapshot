@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2017                                               *)
+(*  Copyright (C) 2007-2018                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -88,11 +88,16 @@ let can_cast given expected =
   | exposed_given, exposed_expected ->
     Cil_datatype.Typ.equal exposed_given exposed_expected
 
+let does_fit exp typ =
+  match Cil.constFoldToInt exp, Cil.unrollType typ with
+  | Some i, (TInt (ekind,_) | TEnum({ekind},_)) ->
+    Cil.fitsInInt ekind i
+  | _ -> false
 
 (* cast the i-th argument exp to paramtyp *)
 let cast_arg i paramtyp exp =
   let argtyp = Cil.typeOf exp in
-  if not (can_cast argtyp paramtyp) then
+  if not (can_cast argtyp paramtyp) && not (does_fit exp paramtyp) then
     Self.warning ~current:true
       "Incorrect type for argument %d. \
        The argument will be cast from %a to %a."

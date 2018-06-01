@@ -5,57 +5,64 @@
 [value:initial-state] Values of globals at initialization
   g ∈ [--..--]
 [value] computing for function main1 <- main.
-    Called from tests/value/reduce_formals.i:69.
-tests/value/reduce_formals.i:2:[value] warning: assertion got status unknown.
-tests/value/reduce_formals.i:5:[value] entering loop for the first time
+  Called from tests/value/reduce_formals.i:69.
+[value:alarm] tests/value/reduce_formals.i:2: Warning: 
+  assertion got status unknown.
+[value] tests/value/reduce_formals.i:5: entering loop for the first time
 [value] Recording results for main1
 [value] Done for function main1
 [value] computing for function main2 <- main.
-    Called from tests/value/reduce_formals.i:70.
+  Called from tests/value/reduce_formals.i:70.
 [value] using specification for function main2
-tests/value/reduce_formals.i:8:[value] warning: function main2: precondition got status unknown.
+[value:alarm] tests/value/reduce_formals.i:70: Warning: 
+  function main2: precondition got status unknown.
 [value] Done for function main2
-tests/value/reduce_formals.i:72:[value] Frama_C_dump_each:
-    # Cvalue domain:
-    g ∈ [--..--]
-    v ∈ [--..--]
-    w ∈ [6..2147483647]
-    x ∈ [5..2147483647]
-    y ∈ [--..--]
-    z ∈ [8..2147483647]
-    ==END OF DUMP==
+[value] tests/value/reduce_formals.i:72: 
+  Frama_C_dump_each:
+  # Cvalue domain:
+  g ∈ [--..--]
+  v ∈ [--..--]
+  w ∈ [6..2147483647]
+  x ∈ [5..2147483647]
+  y ∈ [--..--]
+  z ∈ [8..2147483647]
+  ==END OF DUMP==
 [value] computing for function main3 <- main.
-    Called from tests/value/reduce_formals.i:75.
-tests/value/reduce_formals.i:18:[value] assertion got status valid.
+  Called from tests/value/reduce_formals.i:75.
+[value] tests/value/reduce_formals.i:18: assertion got status valid.
 [value] computing for function f_main3 <- main3 <- main.
-    Called from tests/value/reduce_formals.i:19.
+  Called from tests/value/reduce_formals.i:19.
 [value] Recording results for f_main3
 [value] Done for function f_main3
-tests/value/reduce_formals.i:20:[value] Frama_C_show_each: {6}
+[value] tests/value/reduce_formals.i:20: Frama_C_show_each: {6}
 [value] Recording results for main3
 [value] Done for function main3
 [value] computing for function main4 <- main.
-    Called from tests/value/reduce_formals.i:76.
+  Called from tests/value/reduce_formals.i:76.
 [value] computing for function f_main4_1 <- main4 <- main.
-    Called from tests/value/reduce_formals.i:33.
-tests/value/reduce_formals.i:24:[value] warning: assertion got status unknown.
+  Called from tests/value/reduce_formals.i:33.
+[value:alarm] tests/value/reduce_formals.i:24: Warning: 
+  assertion got status unknown.
 [value] Recording results for f_main4_1
 [value] Done for function f_main4_1
-tests/value/reduce_formals.i:34:[value] Frama_C_show_each_v: {10; 11; 12; 13; 14; 15}
+[value] tests/value/reduce_formals.i:34: 
+  Frama_C_show_each_v: {10; 11; 12; 13; 14; 15}
 [value] computing for function f_main4_2 <- main4 <- main.
-    Called from tests/value/reduce_formals.i:36.
-tests/value/reduce_formals.i:28:[value] warning: assertion got status unknown.
+  Called from tests/value/reduce_formals.i:36.
+[value:alarm] tests/value/reduce_formals.i:28: Warning: 
+  assertion got status unknown.
 [value] Recording results for f_main4_2
 [value] Done for function f_main4_2
-tests/value/reduce_formals.i:37:[value] Frama_C_show_each_v: {16; 17; 18; 19; 20}
+[value] tests/value/reduce_formals.i:37: 
+  Frama_C_show_each_v: {16; 17; 18; 19; 20}
 [value] Recording results for main4
 [value] Done for function main4
 [value] computing for function main5 <- main.
-    Called from tests/value/reduce_formals.i:77.
+  Called from tests/value/reduce_formals.i:77.
 [value] computing for function f_main_1 <- main5 <- main.
-    Called from tests/value/reduce_formals.i:52.
+  Called from tests/value/reduce_formals.i:52.
 [value] computing for function f_main_2 <- f_main_1 <- main5 <- main.
-    Called from tests/value/reduce_formals.i:47.
+  Called from tests/value/reduce_formals.i:47.
 [value] Recording results for f_main_2
 [value] Done for function f_main_2
 [value] Recording results for f_main_1
@@ -63,14 +70,16 @@ tests/value/reduce_formals.i:37:[value] Frama_C_show_each_v: {16; 17; 18; 19; 20
 [value] Recording results for main5
 [value] Done for function main5
 [value] computing for function main6 <- main.
-    Called from tests/value/reduce_formals.i:78.
-tests/value/reduce_formals.i:63:[value] warning: assertion got status unknown.
+  Called from tests/value/reduce_formals.i:78.
+[value:alarm] tests/value/reduce_formals.i:63: Warning: 
+  assertion got status unknown.
 [value] computing for function f_main6 <- main6 <- main.
-    Called from tests/value/reduce_formals.i:64.
-tests/value/reduce_formals.i:58:[value] warning: assertion got status unknown.
+  Called from tests/value/reduce_formals.i:64.
+[value:alarm] tests/value/reduce_formals.i:58: Warning: 
+  assertion got status unknown.
 [value] Recording results for f_main6
 [value] Done for function f_main6
-tests/value/reduce_formals.i:65:[value] Frama_C_show_each_6: {3}
+[value] tests/value/reduce_formals.i:65: Frama_C_show_each_6: {3}
 [value] Recording results for main6
 [value] Done for function main6
 [value] Recording results for main
@@ -128,7 +137,7 @@ tests/value/reduce_formals.i:65:[value] Frama_C_show_each_6: {3}
 [from] Done for function main2
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
-    These dependencies hold at termination for the executions that terminate:
+  These dependencies hold at termination for the executions that terminate:
 [from] Function f_main3:
   x FROM p; a; x
 [from] Function f_main4_1:
@@ -157,50 +166,50 @@ tests/value/reduce_formals.i:65:[value] Frama_C_show_each_6: {3}
   g FROM \nothing
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function f_main3:
-      x
+    x
 [inout] Inputs for function f_main3:
-      x
+    x
 [inout] Out (internal) for function f_main4_1:
-      \nothing
+    \nothing
 [inout] Inputs for function f_main4_1:
-      \nothing
+    \nothing
 [inout] Out (internal) for function f_main4_2:
-      \nothing
+    \nothing
 [inout] Inputs for function f_main4_2:
-      \nothing
+    \nothing
 [inout] Out (internal) for function f_main6:
-      g
+    g
 [inout] Inputs for function f_main6:
-      \nothing
+    \nothing
 [inout] Out (internal) for function f_main_2:
-      __retres
+    __retres
 [inout] Inputs for function f_main_2:
-      \nothing
+    \nothing
 [inout] Out (internal) for function f_main_1:
-      v
+    v
 [inout] Inputs for function f_main_1:
-      \nothing
+    \nothing
 [inout] Out (internal) for function main1:
-      j
+    j
 [inout] Inputs for function main1:
-      \nothing
+    \nothing
 [inout] Out (internal) for function main3:
-      x; p
+    x; p
 [inout] Inputs for function main3:
-      \nothing
+    \nothing
 [inout] Out (internal) for function main4:
-      \nothing
+    \nothing
 [inout] Inputs for function main4:
-      \nothing
+    \nothing
 [inout] Out (internal) for function main5:
-      l
+    l
 [inout] Inputs for function main5:
-      \nothing
+    \nothing
 [inout] Out (internal) for function main6:
-      g
+    g
 [inout] Inputs for function main6:
-      g
+    g
 [inout] Out (internal) for function main:
-      g
+    g
 [inout] Inputs for function main:
-      g
+    g

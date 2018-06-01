@@ -3,14 +3,15 @@
 [wp] Running WP plugin...
 [wp] Loading driver 'share/wp.driver'
 [wp] 2 goals scheduled
-[wp] [Alt-Ergo] Goal typed_lemma_with_consistent_antecedent_ok : Failed
-    Command './tests/inexistant-prover' not found
-[wp] [Alt-Ergo] Goal typed_lemma_with_inconsistent_antecedent_ok : Failed
-    Command './tests/inexistant-prover' not found
+[wp] [Alt-Ergo] Goal typed_lemma_ok_because_inconsistent : Failed
+  Command './tests/inexistant-prover' not found
+[wp] [Alt-Ergo] Goal typed_lemma_ok_because_consistent : Failed
+  Command './tests/inexistant-prover' not found
 [wp] Proved goals:    0 / 2
-    Alt-Ergo:        0  (failed: 2)
-----------------------------------------------------------
-Axiomatics          WP   Alt-Ergo    Total   Success
-Axiomatic With_consistent_antecedent  -    -     1  0.0%
-Axiomatic With_inconsistent_antecedent  -    -     1  0.0%
-----------------------------------------------------------
+  Alt-Ergo:        0  (failed: 2)
+[wp] Report 'tests/wp_bts/issue_143.i.2.report.json'
+-------------------------------------------------------------
+Axiomatics          WP     Alt-Ergo        Total   Success
+Axiomatic A         -      -                 1       0.0%
+Axiomatic B         -      -                 1       0.0%
+-------------------------------------------------------------

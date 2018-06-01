@@ -1,9 +1,10 @@
 # frama-c -wp [...]
 [kernel] Parsing tests/wp_typed/array_initialized.c (with preprocessing)
-tests/wp_typed/array_initialized.c:13:[kernel] warning: Too many initializers for array g
+[kernel] tests/wp_typed/array_initialized.c:13: Warning: 
+  Too many initializers for array g
 [wp] Running WP plugin...
 [wp] Loading driver 'share/wp.driver'
-[wp] warning: Missing RTE guards
+[wp] Warning: Missing RTE guards
 ------------------------------------------------------------
   Function main1
 ------------------------------------------------------------

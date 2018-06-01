@@ -12,8 +12,10 @@
   R1 ∈ {0}
   R2 ∈ {0}
   G ∈ {0}
-tests/value/struct.i:47:[value] warning: signed overflow. assert -2147483648 ≤ a + b;
-tests/value/struct.i:47:[value] warning: signed overflow. assert a + b ≤ 2147483647;
+[value:alarm] tests/value/struct.i:47: Warning: 
+  signed overflow. assert -2147483648 ≤ a + b;
+[value:alarm] tests/value/struct.i:47: Warning: 
+  signed overflow. assert a + b ≤ 2147483647;
 [value] Recording results for main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======
@@ -30,7 +32,7 @@ tests/value/struct.i:47:[value] warning: signed overflow. assert a + b ≤ 21474
 [from] Computing for function main
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
-    These dependencies hold at termination for the executions that terminate:
+  These dependencies hold at termination for the executions that terminate:
 [from] Function main:
   w FROM a; b
   v1.x FROM a; b
@@ -42,6 +44,6 @@ tests/value/struct.i:47:[value] warning: signed overflow. assert a + b ≤ 21474
   \result FROM a; b
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function main:
-      w; v1; v2.x; T[0][bits 0 to 7]; R1; R2
+    w; v1; v2.x; T[0][bits 0 to 7]; R1; R2
 [inout] Inputs for function main:
-      w; v1.x; v2; T{[0]; [1][bits 0 to 15]}
+    w; v1.x; v2; T{[0]; [1][bits 0 to 15]}

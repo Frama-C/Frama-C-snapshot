@@ -6,19 +6,19 @@
 [value:initial-state] Values of globals at initialization
   
 [value] computing for function find <- main.
-    Called from tests/impact/depend1.i:10.
+  Called from tests/impact/depend1.i:10.
 [value] Recording results for find
 [value] Done for function find
 [value] computing for function find <- main.
-    Called from tests/impact/depend1.i:12.
+  Called from tests/impact/depend1.i:12.
 [value] Recording results for find
 [value] Done for function find
 [value] computing for function find <- main.
-    Called from tests/impact/depend1.i:13.
+  Called from tests/impact/depend1.i:13.
 [value] Recording results for find
 [value] Done for function find
 [value] computing for function find <- main.
-    Called from tests/impact/depend1.i:14.
+  Called from tests/impact/depend1.i:14.
 [value] Recording results for find
 [value] Done for function find
 [value] Recording results for main
@@ -30,7 +30,7 @@
 [pdg] computing for function find
 [pdg] done for function find
 [impact] impacted statements of stmt(s) 6 are:
-      tests/impact/depend1.i:6 (sid 2): return x;
-      tests/impact/depend1.i:13 (sid 7): int c = find(b);
-      tests/impact/depend1.i:15 (sid 10): return c;
+    tests/impact/depend1.i:6 (sid 2): return x;
+    tests/impact/depend1.i:13 (sid 7): int c = find(b);
+    tests/impact/depend1.i:15 (sid 10): return c;
 [impact] analysis done

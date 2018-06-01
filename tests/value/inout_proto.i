@@ -23,7 +23,7 @@ void main(const MESSAGE_ADDR_TYPE msg)
 int a, b, c;
 
 //@ assigns a, b, c \from b;
-void f();
+void f(void);
 
 //@ assigns p[0..3] \from p[3..4];
 void g(int *p);

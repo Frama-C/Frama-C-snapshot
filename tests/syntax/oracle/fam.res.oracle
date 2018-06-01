@@ -1,8 +1,15 @@
 [kernel] Parsing tests/syntax/fam.i (no preprocessing)
-tests/syntax/fam.i:10:[kernel] user error: static initialization of flexible array members is an unsupported GNU extension
-tests/syntax/fam.i:22:[kernel] user error: static initialization of flexible array members is an unsupported GNU extension
-tests/syntax/fam.i:43:[kernel] user error: static initialization of flexible array members is an unsupported GNU extension
-tests/syntax/fam.i:57:[kernel] user error: static initialization of flexible array members is an unsupported GNU extension
-tests/syntax/fam.i:71:[kernel] user error: static initialization of flexible array members is an unsupported GNU extension
-[kernel] user error: stopping on file "tests/syntax/fam.i" that has errors.
+[kernel] tests/syntax/fam.i:10: User Error: 
+  static initialization of flexible array members is an unsupported GNU extension
+[kernel] tests/syntax/fam.i:22: User Error: 
+  field b is declared with incomplete type char []
+[kernel] tests/syntax/fam.i:22: User Error: 
+  static initialization of flexible array members is an unsupported GNU extension
+[kernel] tests/syntax/fam.i:43: User Error: 
+  static initialization of flexible array members is an unsupported GNU extension
+[kernel] tests/syntax/fam.i:57: User Error: 
+  static initialization of flexible array members is an unsupported GNU extension
+[kernel] tests/syntax/fam.i:71: User Error: 
+  static initialization of flexible array members is an unsupported GNU extension
+[kernel] User Error: stopping on file "tests/syntax/fam.i" that has errors.
 [kernel] Frama-C aborted: invalid user input.

@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2017                                               *)
+(*  Copyright (C) 2007-2018                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -53,7 +53,7 @@ let l_repeat = Lang.(E.({
 
 (*--- Typechecking ---*)
 
-let a_list = Lang.builtin_type ~library ~name:t_list ~link:l_list
+let a_list = Lang.get_builtin_type ~library ~name:t_list ~link:l_list
 
 let ty_nil = function _ -> L.Data(a_list,[L.Tvar 0])
 
@@ -94,7 +94,7 @@ let concatenation = L.(Operator {
     associative = true ;
     commutative = false ;
     idempotent = false ;
-    neutral = E_const f_nil ;
+    neutral = E_fun(f_nil,[]) ;
     absorbant = E_none ;
   })
 
@@ -108,7 +108,6 @@ let f_repeat = Lang.extern_f ~library ~typecheck:ty_repeat ~link:l_repeat "repea
 let () =
   let open LogicBuiltins in
   begin
-    add_type t_list ~library ~link:l_list () ;
     add_builtin "\\Nil" [] f_nil ;
     add_builtin "\\Cons" [A;A] f_cons ;
     add_builtin "\\nth" [A;Z] f_nth ;

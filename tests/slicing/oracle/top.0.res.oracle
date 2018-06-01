@@ -5,12 +5,15 @@
 [value] Initial state computed
 [value:initial-state] Values of globals at initialization
   
-tests/slicing/top.i:27:[value] warning: out of bounds read. assert \valid_read(p_str + i);
+[value:alarm] tests/slicing/top.i:27: Warning: 
+  out of bounds read. assert \valid_read(p_str + i);
 [value] computing for function strlen <- main.
-    Called from tests/slicing/top.i:27.
-tests/slicing/top.i:21:[value] entering loop for the first time
-tests/slicing/top.i:21:[value] warning: out of bounds read. assert \valid_read(q);
-tests/slicing/top.i:21:[value] warning: signed overflow. assert k + 1 ≤ 2147483647;
+  Called from tests/slicing/top.i:27.
+[value] tests/slicing/top.i:21: entering loop for the first time
+[value:alarm] tests/slicing/top.i:21: Warning: 
+  out of bounds read. assert \valid_read(q);
+[value:alarm] tests/slicing/top.i:21: Warning: 
+  signed overflow. assert k + 1 ≤ 2147483647;
 [value] Recording results for strlen
 [value] Done for function strlen
 [value] Recording results for main
@@ -24,7 +27,7 @@ tests/slicing/top.i:21:[value] warning: signed overflow. assert k + 1 ≤ 214748
 [slicing] applying 1 actions...
 [slicing] applying actions: 1/1...
 [pdg] computing for function uncalled
-[pdg] warning: unreachable entry point (sid:2, function uncalled)
+[pdg] Warning: unreachable entry point (sid:2, function uncalled)
 [pdg] Bottom for function uncalled
 [slicing] exporting project to 'Slicing export'...
 [slicing] applying all slicing requests...

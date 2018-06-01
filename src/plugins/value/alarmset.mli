@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2017                                               *)
+(*  Copyright (C) 2007-2018                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -39,7 +39,7 @@
 type s
 type t = private Just of s | AllBut of s
 type alarm = Alarms.t
-type status = True | False | Unknown
+type status = Abstract_interp.Comp.result = True | False | Unknown
 
 type 'a if_consistent = [ `Value of 'a | `Inconsistent ]
 
@@ -62,11 +62,6 @@ val all : t
 (** [set alarm status t] binds the [alarm] to the [status] in the map [t]. *)
 val set : alarm -> status -> t -> t
 
-(** ! Different semantics according to the kind of the alarm map.
-    [add alarm [Just s] = set alarm Unknown (Just s)]
-    [add alarm [AllBut s] = set alarm True (AllBut s)] *)
-val add : alarm -> t -> t
-
 (** Returns the status of a given alarm. *)
 val find : alarm -> t -> status
 
@@ -76,15 +71,27 @@ val equal : t -> t -> bool
 (** Is there an assertion with a non True status ? *)
 val is_empty : t -> bool
 
-(** [singleton alarm] creates the map [add alarm none]:
-    [alarm] has a Unknown status, and all others have a True status. *)
-val singleton : alarm -> t
+(** [singleton ?status alarm] creates the map [set alarm status none]:
+    [alarm] has a by default an unkown status (which can be overridden through
+    [status]), and all others have a True status. *)
+val singleton : ?status:status -> alarm -> t
 
-(** Pointwise union of property status: the least precise status is kept. *)
+(** Combines two alarm maps carrying different sets of alarms.  If [t1] and [t2]
+    are sound alarm maps for the evaluation in the same state of the expressions
+    [e1] and [e2] respectively, then [combine t1 t2] is a sound alarm map for
+    both evaluations of [e1] and [e2]. *)
+val combine: t -> t -> t
+
+(** Pointwise union of property status: the least precise status is kept.
+    If [t1] and [t2] are sound alarm maps for a same expression [e] in states
+    [s1] and [s2] respectively, then [union t1 t2] is a sound alarm map for [e]
+    in states [s1] and [s2]. *)
 val union: t -> t -> t
 
 (** Pointwise intersection of property status: the most precise status is kept.
-    May return Inconsistent in case of incompatible status bound to an alarm. *)
+    May return Inconsistent in case of incompatible status bound to an alarm.
+    If [t1] and [t2] are both sound alarm maps for a same expression [e] in the
+    same state, then [inter t1 t2] is also a sound alarm map for [e]. *)
 val inter: t -> t -> t if_consistent
 
 val exists: (alarm -> status -> bool) -> default:(status -> bool) -> t -> bool

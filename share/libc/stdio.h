@@ -2,7 +2,7 @@
 /*                                                                        */
 /*  This file is part of Frama-C.                                         */
 /*                                                                        */
-/*  Copyright (C) 2007-2017                                               */
+/*  Copyright (C) 2007-2018                                               */
 /*    CEA (Commissariat à l'énergie atomique et aux énergies              */
 /*         alternatives)                                                  */
 /*                                                                        */
@@ -72,8 +72,14 @@ extern int remove(const char *filename);
 /*@ assigns \nothing; */ 
 extern int rename(const char *old_name, const char *new_name);
 
-/*@ assigns \nothing; 
-  ensures \result==\null || (\valid(\result) && \fresh(\result,sizeof(FILE))) ; */ 
+FILE __fc_fopen[__FC_FOPEN_MAX];
+FILE* const __fc_p_fopen = __fc_fopen;
+
+/*@
+  assigns \result \from __fc_p_fopen;
+  ensures result_null_or_valid_fd:
+    \result == \null || (\subset(\result,&__fc_fopen[0 .. __FC_FOPEN_MAX-1]));
+*/
 extern FILE *tmpfile(void);
 
 /*@
@@ -84,41 +90,42 @@ extern FILE *tmpfile(void);
 extern char *tmpnam(char *s);
 
 /*@
-  requires \valid(stream);
+  requires valid_stream: \valid(stream);
   assigns \result \from stream, stream->__fc_FILE_id;
-  ensures \result == 0 || \result == EOF;
+  ensures result_zero_or_EOF: \result == 0 || \result == EOF;
   // TODO: more precise behaviors from ISO C 7.19.4.1 
 */
 extern int fclose(FILE *stream);
 
 /*@
-  requires stream == \null || \valid_read(stream);
+  requires null_or_valid_stream: stream == \null || \valid_read(stream);
   assigns \result \from stream, stream->__fc_FILE_id;
-  ensures \result == 0 || \result == EOF;
+  ensures result_zero_or_EOF: \result == 0 || \result == EOF;
   // TODO: more precise behaviors from ISO C 7.19.5.2
  */
 extern int fflush(FILE *stream);
 
-FILE __fc_fopen[__FC_FOPEN_MAX];
-FILE* const __fc_p_fopen = __fc_fopen;
-
-/*@ 
-  assigns \result \from filename[..],mode[..], __fc_p_fopen; 
-  ensures
-  \result==\null
-  || (\subset(\result,&__fc_fopen[0 .. __FC_FOPEN_MAX-1])) ;
+/*@
+  requires valid_filename: valid_read_string(filename);
+  assigns \result \from indirect:filename[..], indirect:mode[..], __fc_p_fopen;
+  ensures result_null_or_valid_fd:
+    \result==\null || (\subset(\result,&__fc_fopen[0 .. __FC_FOPEN_MAX-1])) ;
 */ 
 extern FILE *fopen(const char * restrict filename,
      const char * restrict mode);
 
-/*@ assigns \result \from fildes,mode[..]; 
-  ensures \result==\null || (\valid(\result) && \fresh(\result,sizeof(FILE)));
+/*@
+  assigns \result, __fc_fopen[fd] \from indirect:fd, indirect:mode[0..],
+    indirect:__fc_fopen[fd], __fc_p_fopen;
+  ensures result_null_or_valid_fd:
+    \result == \null || (\subset(\result,&__fc_fopen[0 .. __FC_FOPEN_MAX-1])) ;
  */
-extern FILE *fdopen(int fildes, const char *mode);
+extern FILE *fdopen(int fd, const char *mode);
 
 /*@ 
   assigns *stream; 
-  ensures \result==\null || \result==stream ; */ 
+  ensures result_null_or_same: \result==\null || \result==stream;
+*/ 
 extern FILE *freopen(const char * restrict filename,
               const char * restrict mode,
               FILE * restrict stream);
@@ -197,11 +204,15 @@ extern int vsscanf(const char * restrict s,
  */
 extern int fgetc(FILE *stream);
 
-/*@ assigns s[0..n-1],*stream \from *stream;
-  assigns \result \from s,n,*stream;
-  ensures \result == \null || \result==s;
+/*@
+  requires valid_stream: \valid(stream);
+  assigns s[0..size] \from indirect:size, indirect:*stream;
+  assigns \result \from s, indirect:size, indirect:*stream;
+  ensures result_null_or_same: \result == \null || \result == s;
+  ensures terminated_string_on_success:
+    \result != \null ==> valid_string(s);
  */
-extern char *fgets(char * restrict s, int n,
+extern char *fgets(char * restrict s, int size,
     FILE * restrict stream);
 
 /*@ assigns *stream ; */
@@ -217,9 +228,10 @@ extern int getc(FILE *stream);
 /*@ assigns \result \from *__fc_stdin ; */
 extern int getchar(void);
 
-/*@ assigns s[..] \from *__fc_stdin ;
+/*@
+  assigns s[..] \from *__fc_stdin ;
   assigns \result \from s, __fc_stdin;
-  ensures \result == s || \result == \null;
+  ensures result_null_or_same: \result == s || \result == \null;
  */
 extern char *gets(char *s);
 
@@ -236,12 +248,12 @@ extern int puts(const char *s);
 extern int ungetc(int c, FILE *stream);
 
 /*@
-  requires \valid(((char*)ptr)+(0..(nmemb*size)-1));
-  requires \valid(stream);
+  requires valid_ptr_block: \valid(((char*)ptr)+(0..(nmemb*size)-1));
+  requires valid_stream: \valid(stream);
   assigns *(((char*)ptr)+(0..(nmemb*size)-1)) \from size, nmemb, *stream;
   assigns \result \from size, *stream;
-  ensures \result <= nmemb;
-  ensures \initialized(((char*)ptr)+(0..(\result*size)-1));
+  ensures size_read: \result <= nmemb;
+  ensures initialization: \initialized(((char*)ptr)+(0..(\result*size)-1));
   //TODO: specify precise fields from struct FILE
 */
 extern size_t fread(void * restrict ptr,
@@ -249,10 +261,10 @@ extern size_t fread(void * restrict ptr,
      FILE * restrict stream);
 
 /*@
-  requires \valid_read(((char*)ptr)+(0..(nmemb*size)-1));
-  requires \valid(stream);
+  requires valid_ptr_block: \valid_read(((char*)ptr)+(0..(nmemb*size)-1));
+  requires valid_stream: \valid(stream);
   assigns *stream, \result \from *(((char*)ptr)+(0..(nmemb*size)-1));
-  ensures \result <= nmemb;
+  ensures size_written: \result <= nmemb;
   //TODO: specify precise fields from struct FILE
 */
 extern size_t fwrite(const void * restrict ptr,
@@ -264,17 +276,23 @@ extern int fgetpos(FILE * restrict stream,
      fpos_t * restrict pos);
 
 /*@
-  requires \valid(stream);
-  requires whence == SEEK_SET || whence == SEEK_CUR || whence == SEEK_END;
+  requires valid_stream: \valid(stream);
+  requires whence_enum: whence == SEEK_SET || whence == SEEK_CUR || whence == SEEK_END;
   assigns *stream \from *stream, indirect:offset, indirect:whence;
   assigns \result, __fc_errno \from indirect:*stream, indirect:offset,
-                                    indirect:whence; */
+                                    indirect:whence;
+*/
 extern int fseek(FILE *stream, long int offset, int whence);
 
 /*@ assigns *stream \from *pos; */
 extern int fsetpos(FILE *stream, const fpos_t *pos);
 
-/*@ assigns \result, __fc_errno \from *stream ;*/
+/*@
+  requires valid_stream: \valid(stream);
+  assigns \result, __fc_errno \from indirect:*stream ;
+  ensures success_or_error:
+    \result == -1 || (\result >= 0 && __fc_errno == \old(__fc_errno));
+*/
 extern long int ftell(FILE *stream);
 
 /*@  assigns *stream \from \nothing; */
@@ -333,6 +351,35 @@ extern char *fgets_unlocked(char *s, int n, FILE *stream);
 extern int fputs_unlocked(const char *s, FILE *stream);
 
 extern int dprintf(int fd, const char *restrict format, ...);
+
+/*@ axiomatic pipe_streams {
+  predicate is_open_pipe{L}(FILE *stream); // is stream an open pipe?
+  // Logic label L is not used, but must be present because the
+  // predicate depends on the memory state
+  }
+*/
+
+/*@
+  requires valid_command: valid_read_string(command);
+  requires valid_type: valid_read_string(type);
+  assigns \result \from indirect:*command, indirect:*type,
+    __fc_p_fopen;
+  assigns __fc_fopen[0..] \from indirect:*command, indirect:*type,
+    __fc_fopen[0..];
+  ensures result_error_or_valid_open_pipe:
+    \result == \null ||
+    (\subset(\result,&__fc_fopen[0 .. __FC_FOPEN_MAX-1]) &&
+     is_open_pipe(\result));
+*/
+extern FILE *popen(const char *command, const char *type);
+
+/*@
+  requires valid_stream: \valid(stream);
+  requires open_pipe: is_open_pipe(stream);
+  assigns \result \from indirect:*stream;
+  ensures closed_stream: !is_open_pipe(stream);
+*/
+extern int pclose(FILE *stream);
 
 __END_DECLS
 

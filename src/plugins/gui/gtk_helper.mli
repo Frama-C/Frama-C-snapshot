@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2017                                               *)
+(*  Copyright (C) 2007-2018                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -32,7 +32,7 @@ val framac_icon: GdkPixbuf.pixbuf option
     @since Carbon-20101201 *)
 module Icon: sig
 
-  type kind = Frama_C | Unmark
+  type kind = Frama_C | Unmark | Fold | Unfold
             | Custom of string
             | Feedback of Property_status.Feedback.t
   (** Generic icons available in every proper install of Frama-C.
@@ -55,6 +55,10 @@ module Icon: sig
 
   val default: unit -> GdkPixbuf.pixbuf
 
+  val clear: unit -> unit
+  (** Reloads the builtin icons from the theme specified in the configuration.
+      Used when the theme is changed.
+      @since Chlorine-20180501 *)
 end
 
 (** Configuration module for the GUI: all magic visual constants should
@@ -409,7 +413,7 @@ module MAKE_CUSTOM_LIST(A : sig type t end)
 (** Copied from lablgtk [GToolbox.input_string]. See the lablgtk API for more
     details. *)
 val input_string :
-    title:string ->
+    parent: GWindow.window -> title:string ->
     ?ok:string -> ?cancel:string -> ?text:string -> string -> string option
 
 (** Create a new window displaying a graph.

@@ -5,8 +5,8 @@
 
 int x;
 
-/*@ requires i+1 >= 0;
-  requires i >= 0;
+/*@ requires i_plus_one: i+1 >= 0;
+  requires i: i >= 0;
   assigns x; */
 void f (int i) {
   x = i;
@@ -22,7 +22,7 @@ void aux(int i) {
 }
 
 //@ requires x <= 8;
-void g();
+void g(void);
 
 void main (int c) {
   void (*p)(int) = f;

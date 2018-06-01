@@ -18,12 +18,12 @@
 [from] Computing for function main4bis
 [from] Done for function main4bis
 [from] ====== DEPENDENCIES COMPUTED ======
-    These dependencies hold at termination for the executions that terminate:
+  These dependencies hold at termination for the executions that terminate:
 [from] Function main4bis:
   T[0] FROM i; c
    [2] FROM j; c
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function main4bis:
-      T{[0]; [2]}
+    T{[0]; [2]}
 [inout] Inputs for function main4bis:
-      i; j; c
+    i; j; c

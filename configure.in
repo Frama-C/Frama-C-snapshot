@@ -2,7 +2,7 @@
 #                                                                        #
 #  This file is part of Frama-C.                                         #
 #                                                                        #
-#  Copyright (C) 2007-2017                                               #
+#  Copyright (C) 2007-2018                                               #
 #    CEA   (Commissariat à l'énergie atomique et aux énergies            #
 #           alternatives)                                                #
 #    INRIA (Institut National de Recherche en Informatique et en         #
@@ -111,6 +111,24 @@ case $OCAMLVERSION in
      AC_MSG_ERROR(Incompatible OCaml version; use 4.02.3+.);;
    *)
      OCAML_ANNOT_OPTION="-bin-annot";;
+esac
+
+AC_SUBST(SPLIT_ON_CHAR)
+AC_SUBST(STACK_FOLD)
+
+case $OCAMLVERSION in
+ 4.02.*)
+  SPLIT_ON_CHAR=split_on_char;
+  STACK_FOLD=stack_fold
+ ;;
+ 4.03.*)
+  SPLIT_ON_CHAR=split_on_char;
+  STACK_FOLD=Stack.fold
+ ;;
+ *)
+  SPLIT_ON_CHAR=String.split_on_char;
+  STACK_FOLD=Stack.fold
+ ;;
 esac
 
 # Ocaml library path
@@ -300,6 +318,21 @@ else
 fi
 
 AC_CHECK_PROG(OTAGS,otags,otags,)
+
+# yojson
+########
+
+AC_MSG_CHECKING(for Yojson)
+
+YOJSON_PATH=$($OCAMLFIND query yojson 2>/dev/null | tr -d '\r\n')
+if test -f "$YOJSON_PATH/yojson.$OBJ_SUFFIX"; then
+  HAS_YOJSON="yes";
+  AC_MSG_RESULT(found)
+else
+  HAS_YOJSON="no";
+  AC_MSG_RESULT(yojson not found. Kernel option -json-compilation-database won't be available.)
+fi;
+
 
 # apron
 ########
@@ -921,6 +954,7 @@ AC_SUBST(VERBOSEMAKE)
 AC_SUBST(DEVELOPMENT)
 AC_SUBST(DOT)
 AC_SUBST(HAS_DOT)
+AC_SUBST(HAS_YOJSON)
 AC_SUBST(HAS_APRON)
 AC_SUBST(HAS_LANDMARKS)
 AC_SUBST(OCAMLBEST)

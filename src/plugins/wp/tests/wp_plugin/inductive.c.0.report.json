@@ -1,0 +1,12 @@
+{ "wp:global": { "coq": { "total": 2, "valid": 2 },
+                 "wp:main": { "total": 2, "valid": 2 } },
+  "wp:axiomatics": { "": { "lemma_test": { "coq": { "total": 1, "valid": 1 },
+                                           "wp:main": { "total": 1,
+                                                        "valid": 1 } },
+                           "lemma_offset": { "coq": { "total": 1,
+                                                      "valid": 1 },
+                                             "wp:main": { "total": 1,
+                                                          "valid": 1 } },
+                           "wp:section": { "coq": { "total": 2, "valid": 2 },
+                                           "wp:main": { "total": 2,
+                                                        "valid": 2 } } } } }

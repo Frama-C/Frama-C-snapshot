@@ -10,7 +10,7 @@ include
 class check_float =
 object
 inherit Visitor.frama_c_inplace
-  method vterm t =
+  method! vterm t =
     result "term %a has type %a" 
       Printer.pp_term t Printer.pp_logic_type t.Cil_types.term_type;
     Cil.DoChildren

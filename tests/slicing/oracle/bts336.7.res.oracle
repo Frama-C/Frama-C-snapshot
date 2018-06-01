@@ -6,13 +6,13 @@
   T[0..9] ∈ {0}
   x5 ∈ {0}
 [value] computing for function f5 <- main5.
-    Called from tests/slicing/bts336.i:98.
+  Called from tests/slicing/bts336.i:98.
 [value] Recording results for f5
 [from] Computing for function f5
 [from] Done for function f5
 [value] Done for function f5
 [value] computing for function f5 <- main5.
-    Called from tests/slicing/bts336.i:99.
+  Called from tests/slicing/bts336.i:99.
 [value] Recording results for f5
 [from] Computing for function f5
 [from] Done for function f5
@@ -55,13 +55,13 @@
 [value:initial-state] Values of globals at initialization
   
 [value] computing for function f5_slice_1 <- main5.
-    Called from tests/slicing/bts336.i:98.
+  Called from tests/slicing/bts336.i:98.
 [value] Recording results for f5_slice_1
 [from] Computing for function f5_slice_1
 [from] Done for function f5_slice_1
 [value] Done for function f5_slice_1
 [value] computing for function f5_slice_1 <- main5.
-    Called from tests/slicing/bts336.i:99.
+  Called from tests/slicing/bts336.i:99.
 [value] Recording results for f5_slice_1
 [from] Computing for function f5_slice_1
 [from] Done for function f5_slice_1

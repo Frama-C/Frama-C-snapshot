@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2017                                               *)
+(*  Copyright (C) 2007-2018                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -26,12 +26,12 @@ open Cil_types
     statement (if any) for runtime assertion checking. This C statements are
     part of the resulting environment. *)
 
-val translate_pre_spec: kernel_function -> kinstr -> Env.t -> funspec -> Env.t
-val translate_post_spec: kernel_function -> kinstr -> Env.t -> funspec -> Env.t
-val translate_pre_code_annotation: 
-  kernel_function -> stmt -> Env.t -> code_annotation -> Env.t
-val translate_post_code_annotation: 
-  kernel_function -> stmt -> Env.t -> code_annotation -> Env.t
+val translate_pre_spec: kernel_function -> Env.t -> funspec -> Env.t
+val translate_post_spec: kernel_function -> Env.t -> funspec -> Env.t
+val translate_pre_code_annotation:
+  kernel_function -> Env.t -> code_annotation -> Env.t
+val translate_post_code_annotation:
+  kernel_function -> Env.t -> code_annotation -> Env.t
 val translate_named_predicate: 
   kernel_function -> Env.t -> predicate -> Env.t
 

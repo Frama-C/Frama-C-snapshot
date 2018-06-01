@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2017                                               *)
+(*  Copyright (C) 2007-2018                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -931,16 +931,16 @@ Proof.
     unfold bitwise_lsl; unfold btest.
   auto.
 Qed.
-						    
-Definition lsr_arithmetic_def (x:Z) (n:nat): Z := 
+
+Definition lsr_arithmetic_def (x:Z) (n:nat): Z :=
   x / (two_power_nat n).
 
-(** Note: [lsr_arithmetic_def x n] is different than [lsr_arithmetic_def x (two_power_nat n)] for negative [x]. *)
+(** Note: [lsr_arithmetic_def x n] and [Cdiv x (two_power_nat n)] differs for negative [x]. *)
 Remark lsr_differs_to_Cdiv: lsr_arithmetic_def (-1) 1%nat <> Cdiv (-1) (two_power_nat 1).
 Proof.
   by compute.
 Qed.
-							 
+
 Lemma lsr_arithmetic_shift:
   lsr_shift_def = lsr_arithmetic_def.
 Proof.

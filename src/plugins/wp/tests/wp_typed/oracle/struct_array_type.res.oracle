@@ -2,28 +2,29 @@
 [kernel] Parsing tests/wp_typed/struct_array_type.i (no preprocessing)
 [wp] Running WP plugin...
 [wp] Loading driver 'share/wp.driver'
-[wp] warning: Missing RTE guards
+[wp] Warning: Missing RTE guards
 [wp] 1 goal scheduled
-[wp:print-generated] "WPOUT/typed/f_post.ergo"
-    (* ---------------------------------------------------------- *)
-    (* --- Post-condition (file tests/wp_typed/struct_array_type.i, line 16) in 'f' --- *)
-    (* ---------------------------------------------------------- *)
-    
-    goal f_post:
-      forall i_1,i : int.
-      forall t : S1_s farray.
-      let a = t[i_1] : S1_s in
-      let a_1 = (a.F1_s_a)[0] : int in
-      let a_2 = (a.F1_s_b)[0] : int in
-      (0 <= i_1) ->
-      (i_1 <= 9) ->
-      is_uint32(i_1) ->
-      is_sint32(i) ->
-      is_sint32(a_1) ->
-      is_sint32(a_2) ->
-      (((a_2 < a_1) -> ((1 + (2 * a_1)) = (i + a_2))) and
-       ((a_1 <= a_2) -> ((1 + (2 * a_2)) = (i + a_1)))) ->
-      (a_2 < i)
+[wp:print-generated] 
+  "WPOUT/typed/f_post.ergo"
+  (* ---------------------------------------------------------- *)
+  (* --- Post-condition (file tests/wp_typed/struct_array_type.i, line 16) in 'f' --- *)
+  (* ---------------------------------------------------------- *)
+  
+  goal f_post:
+    forall i : int.
+    forall t : S1_s farray.
+    let a = t[i] : S1_s in
+    let a_1 = (a.F1_s_b)[0] : int in
+    let a_2 = (a.F1_s_a)[0] : int in
+    let a_3 = (2 * a_2) : int in
+    (0 <= i) ->
+    (a_1 < a_2) ->
+    (i <= 9) ->
+    is_uint32(i) ->
+    is_sint32(a_2) ->
+    is_sint32(a_1) ->
+    is_sint32(1 + a_3 - a_1) ->
+    ((2 * a_1) <= a_3)
 [wp] 1 goal generated
 ------------------------------------------------------------
   Function f
@@ -33,15 +34,15 @@ Goal Post-condition (file tests/wp_typed/struct_array_type.i, line 16) in 'f':
 Let a = t[SynchroId_0].
 Let a_1 = (a.F1_s_b)[0].
 Let a_2 = (a.F1_s_a)[0].
+Let a_3 = 2 * a_2.
 Assume {
-  Type: is_uint32(SynchroId_0) /\ is_sint32(f) /\ is_sint32(a_2) /\
-      is_sint32(a_1).
+  Type: is_uint32(SynchroId_0) /\ is_sint32(a_2) /\ is_sint32(a_1) /\
+      is_sint32(1 + a_3 - a_1).
+  (* Residual *)
+  When: a_1 < a_2.
   (* Pre-condition *)
   Have: (0 <= SynchroId_0) /\ (SynchroId_0 <= 9).
-  If a_1 < a_2
-  Then { Have: (1 + (2 * a_2)) = (f + a_1). }
-  Else { Have: (1 + (2 * a_1)) = (f + a_2). }
 }
-Prove: a_1 < f.
+Prove: (2 * a_1) <= a_3.
 
 ------------------------------------------------------------

@@ -1,4 +1,5 @@
 [kernel] Parsing tests/syntax/invalid_constant.i (no preprocessing)
-tests/syntax/invalid_constant.i:2:[kernel] failure: Invalid digit 8 in integer constant '0123456789' in base 8.
-[kernel] user error: stopping on file "tests/syntax/invalid_constant.i" that has errors.
+[kernel] tests/syntax/invalid_constant.i:2: Failure: 
+  Invalid digit 8 in integer constant '0123456789' in base 8.
+[kernel] User Error: stopping on file "tests/syntax/invalid_constant.i" that has errors.
 [kernel] Frama-C aborted: invalid user input.

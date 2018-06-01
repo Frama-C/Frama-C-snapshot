@@ -2,7 +2,7 @@
 [kernel] Parsing tests/wp_plugin/injector.c (with preprocessing)
 [wp] Running WP plugin...
 [wp] Loading driver 'share/wp.driver'
-[wp] warning: Missing RTE guards
+[wp] Warning: Missing RTE guards
 ------------------------------------------------------------
   Function f
 ------------------------------------------------------------

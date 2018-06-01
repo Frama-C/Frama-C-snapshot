@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2017                                               *)
+(*  Copyright (C) 2007-2018                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -61,7 +61,7 @@ let sdkey_alarm = "alarm"
 let sdkey_garbled_mix = "garbled-mix" (* not activated by default *)
 let sdkey_pointer_comparison = "pointer-comparison"
 let sdkey_cvalue_domain = "d-cvalue"
-
+let sdkey_incompatible_states = "incompatible-states"
 
 let () =
   Plugin.default_msg_keys
@@ -74,6 +74,8 @@ include Plugin.Register
        let help =
  "automatically computes variation domains for the variables of the program"
     end)
+
+let wkey_alarm = register_warn_category sdkey_alarm
 
 let () = Help.add_aliases [ "-val-h" ]
 
@@ -198,6 +200,48 @@ module BitwiseOffsmDomain = Domain_Parameter
       let help = "Use the bitwise abstractions of eva."
       let default = false
     end)
+
+module PrinterDomain = Domain_Parameter
+    (struct
+      let option_name = "-eva-printer-domain"
+      let help = "Use the printer domain of eva. Useful for the developpers \
+                  of new abstract domains, as it prints the domain functions \
+                  that are called by Eva during an analysis."
+      let default = false
+    end)
+
+let () = Parameter_customize.set_group domains
+module EqualityCall =
+  String
+    (struct
+      let option_name = "-eva-equality-through-calls"
+      let help = "Equalities propagated through function calls (from the caller \
+                  to the called function): none, only equalities between formal \
+                  parameters and concrete arguments, or all. "
+      let default = "formals"
+      let arg_name = "none|formals|all"
+    end)
+let () = add_precision_dep EqualityCall.parameter
+
+let () = Parameter_customize.set_group domains
+module EqualityCallFunction =
+  Kernel_function_map
+    (struct
+      include Datatype.String
+      type key = Cil_types.kernel_function
+      let of_string ~key:_ ~prev:_ = function
+        | None | Some ("none" | "formals" | "all") as x -> x
+        | _ -> raise (Cannot_build "must be 'none', 'formals' or 'all'.")
+      let to_string ~key:_ s = s
+    end)
+    (struct
+      let option_name = "-eva-equality-through-calls-function"
+      let help = "Equalities propagated through calls to specific functions. \
+                  Overrides -eva-equality-call."
+      let default = Kernel_function.Map.empty
+      let arg_name = "f:none|formals|all"
+    end)
+let () = add_precision_dep EqualityCallFunction.parameter
 
 
 let () = Parameter_customize.set_group domains
@@ -343,15 +387,6 @@ let () =
 (* ------------------------------------------------------------------------- *)
 (* --- Non-standard alarms                                               --- *)
 (* ------------------------------------------------------------------------- *)
-    
-let () = Parameter_customize.set_group alarms
-module AllRoundingModes =
-  False
-    (struct
-       let option_name = "-all-rounding-modes"
-       let help = "Take more target FPU and compiler behaviors into account"
-     end)
-let () = add_correctness_dep AllRoundingModes.parameter
 
 let () = Parameter_customize.set_group alarms
 module AllRoundingModesConstants =
@@ -378,7 +413,7 @@ module WarnPointerComparison =
       let option_name = "-val-warn-undefined-pointer-comparison"
       let help = "warn on all pointer comparisons (default), on comparisons \
                   where the arguments have pointer type, or never warn"
-      let default = "all"
+      let default = "pointer"
       let arg_name = "all|pointer|none"
     end)
 let () = WarnPointerComparison.set_possible_values ["all"; "pointer"; "none"]
@@ -792,6 +827,17 @@ module UsePrototype =
 let () = add_precision_dep UsePrototype.parameter
 
 let () = Parameter_customize.set_group precision_tuning
+module SkipLibcSpecs =
+  True
+    (struct
+      let option_name = "-val-skip-stdlib-specs"
+      let help = "skip ACSL specifications on functions originating from the \
+                  standard library of Frama-C, when their bodies are evaluated"
+    end)
+let () = add_precision_dep SkipLibcSpecs.parameter
+
+
+let () = Parameter_customize.set_group precision_tuning
 module RmAssert =
   True
     (struct
@@ -1000,15 +1046,33 @@ module AlarmsWarnings =
   True
     (struct
        let option_name = "-val-warn-on-alarms"
-       let help = "if set, possible alarms are printed in the analysis log as \
-                   warnings"
+       let help = "[DEPRECATED: use warning key alarm to manage alarms] \
+                   if set (default), possible alarms are printed in \
+                   the analysis log as warnings, otherwise as plain feedback"
      end)
+
+let () =
+  AlarmsWarnings.add_set_hook
+    (fun _ f ->
+       match get_warn_status wkey_alarm with
+       | Log.Wabort | Log.Werror | Log.Werror_once ->
+         warning "alarms already set to produce an error. \
+                  Ignoring -val-warn-on-alarms"
+       | Log.Winactive | Log.Wactive | Log.Wfeedback ->
+         set_warn_status wkey_alarm (if f then Log.Wactive else Log.Wfeedback)
+       | Log.Wonce | Log.Wfeedback_once ->
+         (* Keep the 'once' status. Note that this will only happen if user
+            is mixing old and new style of warning management, thus it becomes
+            difficult to interpret the desired action.
+         *)
+         set_warn_status wkey_alarm
+           (if f then Log.Wonce else Log.Wfeedback_once))
 
 let () = Parameter_customize.set_group alarms
 module WarnBuiltinOverride =
   True(struct
     let option_name = "-val-warn-builtin-override"
-    let help = "Warn when EVA built-ins will override function definitions"
+    let help = "Warn when Eva built-ins will override function definitions"
   end)
 let () = add_correctness_dep WarnBuiltinOverride.parameter
 
@@ -1137,12 +1201,12 @@ module MallocFunctions=
     end)
 
 let () = Parameter_customize.set_group malloc
-module MallocReturnsNull=
+module AllocReturnsNull=
   True
     (struct
-      let option_name = "-val-malloc-returns-null"
-      let help = "The allocation built-ins are modeled as nondeterministically \
-                  returning a null pointer"
+      let option_name = "-val-alloc-returns-null"
+      let help = "Memory allocation built-ins (malloc, calloc, realloc) are \
+                  modeled as nondeterministically returning a null pointer"
      end)
 
 let () = Parameter_customize.set_group malloc
@@ -1161,11 +1225,10 @@ module MallocLevel =
 
 let dkey_initial_state = register_category sdkey_initial_state 
 let dkey_final_states = register_category sdkey_final_states
-let dkey_alarm = register_category sdkey_alarm
 let dkey_garbled_mix = register_category sdkey_garbled_mix
 let dkey_pointer_comparison = register_category sdkey_pointer_comparison
 let dkey_cvalue_domain = register_category sdkey_cvalue_domain
-
+let dkey_incompatible_states = register_category sdkey_incompatible_states
 
 (* -------------------------------------------------------------------------- *)
 (* --- Freeze parameters. MUST GO LAST                                    --- *)

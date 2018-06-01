@@ -6,35 +6,57 @@
   x ∈ {0}
   y ∈ {0}
   p ∈ {0}
-tests/value/pointer_comparison.c:8:[value] Frama_C_show_each_1t: {{ &x + {4} }}
-tests/value/pointer_comparison.c:10:[value:pointer-comparison] invalid pointer comparison: invalid pointer(s)
-tests/value/pointer_comparison.c:10:[value:pointer-comparison] evaluating condition to {0; 1} instead of {1} because of UPCPA
-tests/value/pointer_comparison.c:10:[value:pointer-comparison] evaluating condition to {0; 1} instead of {0} because of UPCPA
-tests/value/pointer_comparison.c:10:[value] Frama_C_show_each_2: {{ &x + {8} }}
-tests/value/pointer_comparison.c:11:[value] Frama_C_show_each_2e: {{ &x + {8} }}
-tests/value/pointer_comparison.c:12:[value:pointer-comparison] invalid pointer comparison: invalid pointer(s)
-tests/value/pointer_comparison.c:12:[value:pointer-comparison] evaluating condition to {0; 1} instead of {1} because of UPCPA
-tests/value/pointer_comparison.c:12:[value:pointer-comparison] evaluating condition to {0; 1} instead of {0} because of UPCPA
-tests/value/pointer_comparison.c:12:[value] Frama_C_show_each_3: {{ &x + {12} }}
-tests/value/pointer_comparison.c:13:[value] Frama_C_show_each_3e: {{ &x + {12} }}
-tests/value/pointer_comparison.c:14:[value:pointer-comparison] invalid pointer comparison: invalid pointer(s)
-tests/value/pointer_comparison.c:14:[value:pointer-comparison] evaluating condition to {0; 1} instead of {1} because of UPCPA
-tests/value/pointer_comparison.c:14:[value:pointer-comparison] evaluating condition to {0; 1} instead of {0} because of UPCPA
-tests/value/pointer_comparison.c:14:[value] Frama_C_show_each_4: {{ &x + {16} }}
-tests/value/pointer_comparison.c:15:[value] Frama_C_show_each_4e: {{ &x + {16} }}
-tests/value/pointer_comparison.c:16:[value:pointer-comparison] invalid pointer comparison: invalid pointer(s)
-tests/value/pointer_comparison.c:16:[value:pointer-comparison] evaluating condition to {0; 1} instead of {1} because of UPCPA
-tests/value/pointer_comparison.c:16:[value:pointer-comparison] evaluating condition to {0; 1} instead of {0} because of UPCPA
-tests/value/pointer_comparison.c:16:[value] Frama_C_show_each_5: {{ &x + {16} }}
-tests/value/pointer_comparison.c:17:[value] Frama_C_show_each_5e: {{ &x + {16} }}
-tests/value/pointer_comparison.c:18:[value] entering loop for the first time
-tests/value/pointer_comparison.c:18:[value:pointer-comparison] invalid pointer comparison: invalid pointer(s)
-tests/value/pointer_comparison.c:18:[value:pointer-comparison] evaluating condition to {0; 1} instead of {1} because of UPCPA
-tests/value/pointer_comparison.c:18:[value:pointer-comparison] evaluating condition to {0; 1} instead of {0} because of UPCPA
-tests/value/pointer_comparison.c:18:[value] Frama_C_show_each_6: {{ &x + {20} }}
-tests/value/pointer_comparison.c:18:[value] Frama_C_show_each_6: {{ &x + {20; 24} }}
-tests/value/pointer_comparison.c:18:[value] Frama_C_show_each_6: {{ &x + {20; 24; 28} }}
-tests/value/pointer_comparison.c:18:[value] Frama_C_show_each_6: {{ &x + [20..--],0%4 }}
+[value] tests/value/pointer_comparison.c:8: Frama_C_show_each_1t: {{ &x + {4} }}
+[value:pointer-comparison] tests/value/pointer_comparison.c:10: 
+  invalid pointer comparison: invalid pointer(s)
+[value:pointer-comparison] tests/value/pointer_comparison.c:10: 
+  evaluating condition to {0; 1} instead of {1} because of UPCPA
+[value:pointer-comparison] tests/value/pointer_comparison.c:10: 
+  evaluating condition to {0; 1} instead of {0} because of UPCPA
+[value] tests/value/pointer_comparison.c:10: Frama_C_show_each_2: {{ &x + {8} }}
+[value] tests/value/pointer_comparison.c:11: 
+  Frama_C_show_each_2e: {{ &x + {8} }}
+[value:pointer-comparison] tests/value/pointer_comparison.c:12: 
+  invalid pointer comparison: invalid pointer(s)
+[value:pointer-comparison] tests/value/pointer_comparison.c:12: 
+  evaluating condition to {0; 1} instead of {1} because of UPCPA
+[value:pointer-comparison] tests/value/pointer_comparison.c:12: 
+  evaluating condition to {0; 1} instead of {0} because of UPCPA
+[value] tests/value/pointer_comparison.c:12: 
+  Frama_C_show_each_3: {{ &x + {12} }}
+[value] tests/value/pointer_comparison.c:13: 
+  Frama_C_show_each_3e: {{ &x + {12} }}
+[value:pointer-comparison] tests/value/pointer_comparison.c:14: 
+  invalid pointer comparison: invalid pointer(s)
+[value:pointer-comparison] tests/value/pointer_comparison.c:14: 
+  evaluating condition to {0; 1} instead of {1} because of UPCPA
+[value:pointer-comparison] tests/value/pointer_comparison.c:14: 
+  evaluating condition to {0; 1} instead of {0} because of UPCPA
+[value] tests/value/pointer_comparison.c:14: 
+  Frama_C_show_each_4: {{ &x + {16} }}
+[value] tests/value/pointer_comparison.c:15: 
+  Frama_C_show_each_4e: {{ &x + {16} }}
+[value:pointer-comparison] tests/value/pointer_comparison.c:16: 
+  invalid pointer comparison: invalid pointer(s)
+[value] tests/value/pointer_comparison.c:16: 
+  Frama_C_show_each_5: {{ &x + {16} }}
+[value] tests/value/pointer_comparison.c:17: 
+  Frama_C_show_each_5e: {{ &x + {16} }}
+[value] tests/value/pointer_comparison.c:18: entering loop for the first time
+[value:pointer-comparison] tests/value/pointer_comparison.c:18: 
+  invalid pointer comparison: invalid pointer(s)
+[value:pointer-comparison] tests/value/pointer_comparison.c:18: 
+  evaluating condition to {0; 1} instead of {1} because of UPCPA
+[value:pointer-comparison] tests/value/pointer_comparison.c:18: 
+  evaluating condition to {0; 1} instead of {0} because of UPCPA
+[value] tests/value/pointer_comparison.c:18: 
+  Frama_C_show_each_6: {{ &x + {20} }}
+[value] tests/value/pointer_comparison.c:18: 
+  Frama_C_show_each_6: {{ &x + {20; 24} }}
+[value] tests/value/pointer_comparison.c:18: 
+  Frama_C_show_each_6: {{ &x + {20; 24; 28} }}
+[value] tests/value/pointer_comparison.c:18: 
+  Frama_C_show_each_6: {{ &x + [20..--],0%4 }}
 [value] Recording results for main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======
@@ -44,15 +66,15 @@ tests/value/pointer_comparison.c:18:[value] Frama_C_show_each_6: {{ &x + [20..--
 [from] Computing for function main
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
-    These dependencies hold at termination for the executions that terminate:
+  These dependencies hold at termination for the executions that terminate:
 [from] Function main:
   p FROM \nothing
   \result FROM \nothing
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function main:
-      p; tmp; tmp_0; tmp_1; tmp_2; tmp_3; __retres
+    p; tmp; tmp_0; tmp_1; tmp_2; tmp_3; __retres
 [inout] Inputs for function main:
-      p
+    p
 [report] Computing properties status...
 --------------------------------------------------------------------------------
 --- No status to report
@@ -64,31 +86,46 @@ tests/value/pointer_comparison.c:18:[value] Frama_C_show_each_6: {{ &x + [20..--
   x ∈ {0}
   y ∈ {0}
   p ∈ {0}
-tests/value/pointer_comparison.c:8:[value] Frama_C_show_each_1t: {{ &x + {4} }}
-tests/value/pointer_comparison.c:10:[value] warning: pointer comparison.
-    assert \pointer_comparable((void *)tmp_0, (void *)(&y));
-    (tmp_0 from p++)
-tests/value/pointer_comparison.c:10:[value] Frama_C_show_each_2: {{ &x + {8} }}
-tests/value/pointer_comparison.c:11:[value] Frama_C_show_each_2e: {{ &x + {8} }}
-tests/value/pointer_comparison.c:12:[value] warning: pointer comparison.
-    assert \pointer_comparable((void *)tmp_1, (void *)(&y));
-    (tmp_1 from p++)
-tests/value/pointer_comparison.c:12:[value] Frama_C_show_each_3: {{ &x + {12} }}
-tests/value/pointer_comparison.c:13:[value] Frama_C_show_each_3e: {{ &x + {12} }}
-tests/value/pointer_comparison.c:14:[value] warning: pointer comparison.
-    assert \pointer_comparable((void *)tmp_2, (void *)(&y));
-    (tmp_2 from p++)
-tests/value/pointer_comparison.c:14:[value] Frama_C_show_each_4: {{ &x + {16} }}
-tests/value/pointer_comparison.c:15:[value] Frama_C_show_each_4e: {{ &x + {16} }}
-tests/value/pointer_comparison.c:16:[value] Frama_C_show_each_5: {{ &x + {16} }}
-tests/value/pointer_comparison.c:17:[value] Frama_C_show_each_5e: {{ &x + {16} }}
-tests/value/pointer_comparison.c:18:[value] warning: pointer comparison.
-    assert \pointer_comparable((void *)tmp_3, (void *)(&y));
-    (tmp_3 from p++)
-tests/value/pointer_comparison.c:18:[value] Frama_C_show_each_6: {{ &x + {20} }}
-tests/value/pointer_comparison.c:18:[value] Frama_C_show_each_6: {{ &x + {20; 24} }}
-tests/value/pointer_comparison.c:18:[value] Frama_C_show_each_6: {{ &x + {20; 24; 28} }}
-tests/value/pointer_comparison.c:18:[value] Frama_C_show_each_6: {{ &x + [20..--],0%4 }}
+[value] tests/value/pointer_comparison.c:8: Frama_C_show_each_1t: {{ &x + {4} }}
+[value:alarm] tests/value/pointer_comparison.c:10: Warning: 
+  pointer comparison.
+  assert \pointer_comparable((void *)tmp_0, (void *)(&y));
+  (tmp_0 from p++)
+[value] tests/value/pointer_comparison.c:10: Frama_C_show_each_2: {{ &x + {8} }}
+[value] tests/value/pointer_comparison.c:11: 
+  Frama_C_show_each_2e: {{ &x + {8} }}
+[value:alarm] tests/value/pointer_comparison.c:12: Warning: 
+  pointer comparison.
+  assert \pointer_comparable((void *)tmp_1, (void *)(&y));
+  (tmp_1 from p++)
+[value] tests/value/pointer_comparison.c:12: 
+  Frama_C_show_each_3: {{ &x + {12} }}
+[value] tests/value/pointer_comparison.c:13: 
+  Frama_C_show_each_3e: {{ &x + {12} }}
+[value:alarm] tests/value/pointer_comparison.c:14: Warning: 
+  pointer comparison.
+  assert \pointer_comparable((void *)tmp_2, (void *)(&y));
+  (tmp_2 from p++)
+[value] tests/value/pointer_comparison.c:14: 
+  Frama_C_show_each_4: {{ &x + {16} }}
+[value] tests/value/pointer_comparison.c:15: 
+  Frama_C_show_each_4e: {{ &x + {16} }}
+[value] tests/value/pointer_comparison.c:16: 
+  Frama_C_show_each_5: {{ &x + {16} }}
+[value] tests/value/pointer_comparison.c:17: 
+  Frama_C_show_each_5e: {{ &x + {16} }}
+[value:alarm] tests/value/pointer_comparison.c:18: Warning: 
+  pointer comparison.
+  assert \pointer_comparable((void *)tmp_3, (void *)(&y));
+  (tmp_3 from p++)
+[value] tests/value/pointer_comparison.c:18: 
+  Frama_C_show_each_6: {{ &x + {20} }}
+[value] tests/value/pointer_comparison.c:18: 
+  Frama_C_show_each_6: {{ &x + {20; 24} }}
+[value] tests/value/pointer_comparison.c:18: 
+  Frama_C_show_each_6: {{ &x + {20; 24; 28} }}
+[value] tests/value/pointer_comparison.c:18: 
+  Frama_C_show_each_6: {{ &x + [20..--],0%4 }}
 [value] Recording results for main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======
@@ -98,15 +135,15 @@ tests/value/pointer_comparison.c:18:[value] Frama_C_show_each_6: {{ &x + [20..--
 [from] Computing for function main
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
-    These dependencies hold at termination for the executions that terminate:
+  These dependencies hold at termination for the executions that terminate:
 [from] Function main:
   p FROM \nothing
   \result FROM \nothing
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function main:
-      p; tmp; tmp_0; tmp_1; tmp_2; tmp_3; __retres
+    p; tmp; tmp_0; tmp_1; tmp_2; tmp_3; __retres
 [inout] Inputs for function main:
-      p
+    p
 [report] Computing properties status...
 
 --------------------------------------------------------------------------------
@@ -147,32 +184,48 @@ tests/value/pointer_comparison.c:18:[value] Frama_C_show_each_6: {{ &x + [20..--
   x ∈ {0}
   y ∈ {0}
   p ∈ {0}
-tests/value/pointer_comparison.c:8:[value] Frama_C_show_each_1t: {{ &x + {4} }}
-tests/value/pointer_comparison.c:10:[value] warning: pointer comparison.
-    assert \pointer_comparable((void *)tmp_0, (void *)(&y));
-    (tmp_0 from p++)
-tests/value/pointer_comparison.c:10:[value] Frama_C_show_each_2: {{ &x + {8} }}
-tests/value/pointer_comparison.c:11:[value] Frama_C_show_each_2e: {{ &x + {8} }}
-tests/value/pointer_comparison.c:12:[value] warning: pointer comparison.
-    assert \pointer_comparable((void *)tmp_1, (void *)(&y));
-    (tmp_1 from p++)
-tests/value/pointer_comparison.c:12:[value] Frama_C_show_each_3: {{ &x + {12} }}
-tests/value/pointer_comparison.c:13:[value] Frama_C_show_each_3e: {{ &x + {12} }}
-tests/value/pointer_comparison.c:14:[value] warning: pointer comparison.
-    assert \pointer_comparable((void *)tmp_2, (void *)(&y));
-    (tmp_2 from p++)
-tests/value/pointer_comparison.c:14:[value] Frama_C_show_each_4: {{ &x + {16} }}
-tests/value/pointer_comparison.c:15:[value] Frama_C_show_each_4e: {{ &x + {16} }}
-tests/value/pointer_comparison.c:16:[value] warning: pointer comparison. assert \pointer_comparable((void *)p, (void *)(&y));
-tests/value/pointer_comparison.c:16:[value] Frama_C_show_each_5: {{ &x + {16} }}
-tests/value/pointer_comparison.c:17:[value] Frama_C_show_each_5e: {{ &x + {16} }}
-tests/value/pointer_comparison.c:18:[value] warning: pointer comparison.
-    assert \pointer_comparable((void *)tmp_3, (void *)(&y));
-    (tmp_3 from p++)
-tests/value/pointer_comparison.c:18:[value] Frama_C_show_each_6: {{ &x + {20} }}
-tests/value/pointer_comparison.c:18:[value] Frama_C_show_each_6: {{ &x + {20; 24} }}
-tests/value/pointer_comparison.c:18:[value] Frama_C_show_each_6: {{ &x + {20; 24; 28} }}
-tests/value/pointer_comparison.c:18:[value] Frama_C_show_each_6: {{ &x + [20..--],0%4 }}
+[value] tests/value/pointer_comparison.c:8: Frama_C_show_each_1t: {{ &x + {4} }}
+[value:alarm] tests/value/pointer_comparison.c:10: Warning: 
+  pointer comparison.
+  assert \pointer_comparable((void *)tmp_0, (void *)(&y));
+  (tmp_0 from p++)
+[value] tests/value/pointer_comparison.c:10: Frama_C_show_each_2: {{ &x + {8} }}
+[value] tests/value/pointer_comparison.c:11: 
+  Frama_C_show_each_2e: {{ &x + {8} }}
+[value:alarm] tests/value/pointer_comparison.c:12: Warning: 
+  pointer comparison.
+  assert \pointer_comparable((void *)tmp_1, (void *)(&y));
+  (tmp_1 from p++)
+[value] tests/value/pointer_comparison.c:12: 
+  Frama_C_show_each_3: {{ &x + {12} }}
+[value] tests/value/pointer_comparison.c:13: 
+  Frama_C_show_each_3e: {{ &x + {12} }}
+[value:alarm] tests/value/pointer_comparison.c:14: Warning: 
+  pointer comparison.
+  assert \pointer_comparable((void *)tmp_2, (void *)(&y));
+  (tmp_2 from p++)
+[value] tests/value/pointer_comparison.c:14: 
+  Frama_C_show_each_4: {{ &x + {16} }}
+[value] tests/value/pointer_comparison.c:15: 
+  Frama_C_show_each_4e: {{ &x + {16} }}
+[value:alarm] tests/value/pointer_comparison.c:16: Warning: 
+  pointer comparison. assert \pointer_comparable((void *)p, (void *)(&y));
+[value] tests/value/pointer_comparison.c:16: 
+  Frama_C_show_each_5: {{ &x + {16} }}
+[value] tests/value/pointer_comparison.c:17: 
+  Frama_C_show_each_5e: {{ &x + {16} }}
+[value:alarm] tests/value/pointer_comparison.c:18: Warning: 
+  pointer comparison.
+  assert \pointer_comparable((void *)tmp_3, (void *)(&y));
+  (tmp_3 from p++)
+[value] tests/value/pointer_comparison.c:18: 
+  Frama_C_show_each_6: {{ &x + {20} }}
+[value] tests/value/pointer_comparison.c:18: 
+  Frama_C_show_each_6: {{ &x + {20; 24} }}
+[value] tests/value/pointer_comparison.c:18: 
+  Frama_C_show_each_6: {{ &x + {20; 24; 28} }}
+[value] tests/value/pointer_comparison.c:18: 
+  Frama_C_show_each_6: {{ &x + [20..--],0%4 }}
 [value] Recording results for main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======
@@ -182,15 +235,15 @@ tests/value/pointer_comparison.c:18:[value] Frama_C_show_each_6: {{ &x + [20..--
 [from] Computing for function main
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
-    These dependencies hold at termination for the executions that terminate:
+  These dependencies hold at termination for the executions that terminate:
 [from] Function main:
   p FROM \nothing
   \result FROM \nothing
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function main:
-      p; tmp; tmp_0; tmp_1; tmp_2; tmp_3; __retres
+    p; tmp; tmp_0; tmp_1; tmp_2; tmp_3; __retres
 [inout] Inputs for function main:
-      p
+    p
 [report] Computing properties status...
 
 --------------------------------------------------------------------------------

@@ -3,45 +3,47 @@
 [value] Computing initial state
 [value] Initial state computed
 [value:initial-state] Values of globals at initialization
+  __fc_heap_status ∈ [--..--]
   __fc_random_counter ∈ [--..--]
   __fc_rand_max ∈ {32767}
-  __fc_heap_status ∈ [--..--]
   __fc_mblen_state ∈ [--..--]
   __fc_mbtowc_state ∈ [--..--]
   __fc_wctomb_state ∈ [--..--]
   __fc_stack_status ∈ [--..--]
   nondet ∈ [--..--]
-tests/libc/alloca_h.c:30:[value] allocating variable __alloca_main_l30
-tests/libc/alloca_h.c:31:[value] assertion got status valid.
-tests/libc/alloca_h.c:35:[value] allocating variable __alloca_main_l35
-tests/libc/alloca_h.c:40:[value] assertion got status valid.
+[value] tests/libc/alloca_h.c:30: allocating variable __alloca_main_l30
+[value] tests/libc/alloca_h.c:31: assertion got status valid.
+[value] tests/libc/alloca_h.c:35: allocating variable __alloca_main_l35
+[value] tests/libc/alloca_h.c:40: assertion got status valid.
 [value] computing for function f <- main.
-    Called from tests/libc/alloca_h.c:41.
-tests/libc/alloca_h.c:6:[value] allocating variable __alloca_f_l6
-tests/libc/alloca_h.c:7:[value] allocating variable __malloc_f_l7
-tests/libc/alloca_h.c:9:[value] warning: Wrong free: assert(pass a freeable address)
-tests/libc/alloca_h.c:10:[value] warning: accessing left-value that contains escaping addresses.
-    assert ¬\dangling(&p);
+  Called from tests/libc/alloca_h.c:41.
+[value] tests/libc/alloca_h.c:6: allocating variable __alloca_f_l6
+[value] tests/libc/alloca_h.c:7: allocating variable __malloc_f_l7
+[value:alarm] tests/libc/alloca_h.c:9: Warning: 
+  function free: precondition 'freeable' got status unknown.
+[value:alarm] tests/libc/alloca_h.c:10: Warning: 
+  accessing left-value that contains escaping addresses.
+  assert ¬\dangling(&p);
 [value] Recording results for f
 [value] Done for function f
-tests/libc/alloca_h.c:41:[value] freeing automatic bases: {__alloca_f_l6}
-tests/libc/alloca_h.c:42:[value] assertion got status valid.
+[value] tests/libc/alloca_h.c:41: freeing automatic bases: {__alloca_f_l6}
+[value] tests/libc/alloca_h.c:42: assertion got status valid.
 [value] computing for function loop <- main.
-    Called from tests/libc/alloca_h.c:43.
-tests/libc/alloca_h.c:22:[value] entering loop for the first time
-tests/libc/alloca_h.c:23:[value] allocating variable __alloca_loop_l23
+  Called from tests/libc/alloca_h.c:43.
+[value] tests/libc/alloca_h.c:22: entering loop for the first time
+[value] tests/libc/alloca_h.c:23: allocating variable __alloca_loop_l23
 [value] Recording results for loop
 [value] Done for function loop
-tests/libc/alloca_h.c:43:[value] freeing automatic bases: {__alloca_w_loop_l23}
-tests/libc/alloca_h.c:44:[value] warning: assertion got status unknown.
-tests/libc/alloca_h.c:45:[value] allocating variable __alloca_main_l45
+[value] tests/libc/alloca_h.c:43: freeing automatic bases: {__alloca_w_loop_l23}
+[value:alarm] tests/libc/alloca_h.c:44: Warning: assertion got status unknown.
+[value] tests/libc/alloca_h.c:45: allocating variable __alloca_main_l45
 [value] computing for function f2 <- main.
-    Called from tests/libc/alloca_h.c:46.
-tests/libc/alloca_h.c:16:[value] allocating variable __alloca_f2_l16
+  Called from tests/libc/alloca_h.c:46.
+[value] tests/libc/alloca_h.c:16: allocating variable __alloca_f2_l16
 [value] Recording results for f2
 [value] Done for function f2
-tests/libc/alloca_h.c:46:[value] freeing automatic bases: {__alloca_f2_l16}
-tests/libc/alloca_h.c:48:[value] assertion got status valid.
+[value] tests/libc/alloca_h.c:46: freeing automatic bases: {__alloca_f2_l16}
+[value] tests/libc/alloca_h.c:48: assertion got status valid.
 [value] Recording results for main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======

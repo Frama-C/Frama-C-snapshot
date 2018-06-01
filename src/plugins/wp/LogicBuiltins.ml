@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2017                                               *)
+(*  Copyright (C) 2007-2018                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -34,6 +34,7 @@ type category = Lang.lfun Qed.Logic.category
 type builtin =
   | ACSLDEF
   | LFUN of lfun
+  | HACK of (F.term list -> F.term)
 
 type kind =
   | Z (* integer *)
@@ -64,6 +65,11 @@ let rec lkind t =
   | Linteger -> Z
   | Ltype _ | Larrow _ | Lvar _ -> A
 
+let kind_of_tau = function
+  | Qed.Logic.Int -> Z
+  | Qed.Logic.Real -> R
+  | _ -> A
+
 let pp_kind fmt = function
   | I i -> Ctypes.pp_int fmt i
   | F f -> Ctypes.pp_float fmt f
@@ -86,6 +92,7 @@ let pp_libs fmt = function
 
 let pp_link fmt = function
   | ACSLDEF -> Format.pp_print_string fmt "(ACSL)"
+  | HACK _ -> Format.pp_print_string fmt "(HACK)"
   | LFUN f -> Fun.pretty fmt f
 
 (* -------------------------------------------------------------------------- *)
@@ -113,7 +120,7 @@ let compare d d' = String.compare d.driverid d'.driverid
 let driver = Context.create "driver"
 let cdriver () = Context.get driver
 
-let lookup name kinds =
+let lookup_driver name kinds =
   try
     let sigs = Hashtbl.find (cdriver ()).hlogic name in
     try List.assoc kinds sigs
@@ -130,14 +137,18 @@ let lookup name kinds =
     else
       ACSLDEF
 
-let register name kinds link =
+let hacks = Hashtbl.create 8
+let hack name phi = Hashtbl.replace hacks name phi
+
+let lookup name kinds =
+  try HACK (Hashtbl.find hacks name)
+  with Not_found -> lookup_driver name kinds
+
+let register ?source name kinds link =
   let sigs = try Hashtbl.find (cdriver ()).hlogic name with Not_found -> [] in
-  begin
-    if List.exists (fun (s,_) -> s = kinds) sigs then
-      let msg = Format.asprintf "Builtin %s%a already defined" name
-          pp_kinds kinds
-      in failwith msg ;
-  end ;
+  if List.exists (fun (s,_) -> s = kinds) sigs then
+    Wp_parameters.warning ?source "Redefinition of logic %s%a"
+      name pp_kinds kinds ;
   let entry = (kinds,link) in
   Hashtbl.add (cdriver ()).hlogic name (entry::sigs)
 
@@ -189,32 +200,36 @@ let dependencies lib =
   Hashtbl.find (cdriver ()).hdeps lib
 
 let add_library lib deps =
-  Hashtbl.add (cdriver ()).hdeps lib deps
+  let others = try dependencies lib with Not_found -> [] in
+  Hashtbl.add (cdriver ()).hdeps lib (others @ deps)
 
-let add_alias name kinds ~alias () =
-  register name kinds (lookup alias kinds)
+let add_alias ~source name kinds ~alias () =
+  register ~source name kinds (lookup alias kinds)
 
-let add_logic result name kinds ~library ?category ~link () =
+let add_logic ~source result name kinds ~library ?category ~link () =
   let sort = skind result in
   let params = List.map skind kinds in
   let lfun = Lang.extern_s ~library ?category ~sort ~params ~link name in
-  register name kinds (LFUN lfun)
+  register ~source name kinds (LFUN lfun)
 
-let add_predicate name kinds ~library ~link () =
+let add_predicate ~source name kinds ~library ~link () =
   let params = List.map skind kinds in
   let lfun = Lang.extern_fp ~library ~params ~link name in
-  register name kinds (LFUN lfun)
+  register ~source name kinds (LFUN lfun)
 
-let add_ctor name kinds ~library ~link () =
+let add_ctor ~source name kinds ~library ~link () =
   let category = Logic.Constructor in
   let params = List.map skind kinds in
   let lfun = Lang.extern_s ~library ~category ~params ~link name in
-  register name kinds (LFUN lfun)
+  register ~source name kinds (LFUN lfun)
 
-let add_type name ~library ?(link=Lang.infoprover name) () =
-  ignore (Lang.builtin_type ~name ~library ~link)
+let add_type ~source name ~library ?(link=Lang.infoprover name) () =
+  if Lang.mem_builtin_type ~name then
+    Wp_parameters.warning ~source "Redefinition of type '%s'" name ;
+  Lang.set_builtin_type ~name ~library ~link
 
-let sanitizers = Hashtbl.create 10
+type sanitizer = driver_dir:string -> string -> string
+let sanitizers : ( string * string , sanitizer ) Hashtbl.t = Hashtbl.create 10
 
 exception Unknown_option of string * string
 
@@ -225,9 +240,9 @@ let sanitize ~driver_dir group name v =
 
 type doption = string * string
 
-let create_option f group name =
+let create_option ~sanitizer group name =
   let option = (group,name) in
-  Hashtbl.replace sanitizers option f;
+  Hashtbl.replace sanitizers option sanitizer ;
   option
 
 let get_option (group,name) ~library =

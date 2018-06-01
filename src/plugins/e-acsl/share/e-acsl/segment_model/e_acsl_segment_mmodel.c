@@ -2,7 +2,7 @@
 /*                                                                        */
 /*  This file is part of Frama-C.                                         */
 /*                                                                        */
-/*  Copyright (C) 2007-2017                                               */
+/*  Copyright (C) 2007-2018                                               */
 /*    CEA (Commissariat à l'énergie atomique et aux énergies              */
 /*         alternatives)                                                  */
 /*                                                                        */
@@ -33,23 +33,21 @@
 
 #define E_ACSL_MMODEL_DESC "shadow memory"
 
-#define ALLOCATED(_ptr,_size) allocated((uintptr_t)_ptr, _size, (uintptr_t)_ptr)
-
-void * store_block(void * ptr, size_t size) {
+void * store_block(void *ptr, size_t size) {
   /* Only stack-global memory blocks are recorded explicitly via this function.
-   * Heap blocks should be tracked internally using memory allocation functions
-   * such as malloc or calloc. */
+     Heap blocks should be tracked internally using memory allocation functions
+     such as malloc or calloc. */
   shadow_alloca(ptr, size);
   return ptr;
 }
 
-void delete_block(void * ptr) {
+void delete_block(void *ptr) {
   /* Block deletion should be performed on stack/global addresses only,
    * heap blocks should be deallocated manually via free/cfree/realloc. */
   shadow_freea(ptr);
 }
 
-void * store_block_duplicate(void * ptr, size_t size) {
+void * store_block_duplicate(void *ptr, size_t size) {
   if (allocated((uintptr_t)ptr, size, (uintptr_t)ptr))
     delete_block(ptr);
   shadow_alloca(ptr, size);
@@ -66,11 +64,11 @@ void initialize(void *ptr, size_t n) {
   )
 }
 
-void full_init(void * ptr) {
+void full_init(void *ptr) {
   initialize(ptr, _block_length(ptr));
 }
 
-void mark_readonly(void * ptr) {
+void mark_readonly(void *ptr) {
   mark_readonly_region((uintptr_t)ptr, _block_length(ptr));
 }
 
@@ -78,13 +76,7 @@ void mark_readonly(void * ptr) {
 /* E-ACSL annotations {{{ */
 /* ********************** */
 
-/** \brief Return 1 if a given memory location is read-only and 0 otherwise */
-static int readonly (void *ptr) {
-  uintptr_t addr = (uintptr_t)ptr;
-  return IS_ON_GLOBAL(addr) && global_readonly(addr) ? 1 : 0;
-}
-
-int valid(void * ptr, size_t size, void *ptr_base, void *addrof_base) {
+int valid(void *ptr, size_t size, void *ptr_base, void *addrof_base) {
   return
     allocated((uintptr_t)ptr, size, (uintptr_t)ptr_base)
     && !readonly(ptr)
@@ -94,19 +86,18 @@ int valid(void * ptr, size_t size, void *ptr_base, void *addrof_base) {
   ;
 }
 
-int valid_read(void * ptr, size_t size, void *ptr_base, void *addrof_base) {
+int valid_read(void *ptr, size_t size, void *ptr_base, void *addrof_base) {
   return allocated((uintptr_t)ptr, size, (uintptr_t)ptr_base)
 #ifdef E_ACSL_TEMPORAL
     && temporal_valid(ptr_base, addrof_base)
 #endif
   ;
-
 }
 
 /*! NB: The implementation for this function can also be specified via
- * \p _base_addr macro that will eventually call ::TRY_SEGMENT. The following
- * implementation is preferred for performance reasons. */
-void * base_addr(void * ptr) {
+   \p _base_addr macro that will eventually call ::TRY_SEGMENT. The following
+   implementation is preferred for performance reasons. */
+void * base_addr(void *ptr) {
   TRY_SEGMENT(ptr,
     return (void*)heap_info((uintptr_t)ptr, 'B'),
     return (void*)static_info((uintptr_t)ptr, 'B'));
@@ -114,23 +105,23 @@ void * base_addr(void * ptr) {
 }
 
 /*! NB: Implementation of the following function can also be specified
- * via \p _block_length macro. A more direct approach via ::TRY_SEGMENT
- * is preferred for performance reasons. */
-size_t block_length(void * ptr) {
+   via \p _block_length macro. A more direct approach via ::TRY_SEGMENT
+   is preferred for performance reasons. */
+size_t block_length(void *ptr) {
   TRY_SEGMENT(ptr,
     return heap_info((uintptr_t)ptr, 'L'),
     return static_info((uintptr_t)ptr, 'L'))
   return 0;
 }
 
-int offset(void *ptr) {
+size_t offset(void *ptr) {
   TRY_SEGMENT(ptr,
     return heap_info((uintptr_t)ptr, 'O'),
     return static_info((uintptr_t)ptr, 'O'));
   return 0;
 }
 
-int initialized(void * ptr, size_t size) {
+int initialized(void *ptr, size_t size) {
   uintptr_t addr = (uintptr_t)ptr;
   TRY_SEGMENT_WEAK(addr,
     return heap_initialized(addr, size),
@@ -168,9 +159,9 @@ static void argv_alloca(int *argc_ref,  char *** argv_ref) {
        therefore more than welcome. */
     *argv = shadow_copy(*argv, arglen, 1);
     /* TODO: These heap allocations are never freed in fact. Not super
-     * important, but for completeness purposes it may be feasible to define
-     * a buffer of implicitly allocated memory locations which need to be
-     * freed before a program exists. */
+       important, but for completeness purposes it may be feasible to define
+       a buffer of implicitly allocated memory locations which need to be
+       freed before a program exists. */
 #else
     shadow_alloca(*argv, arglen);
     initialize_static_region((uintptr_t)*argv, arglen);

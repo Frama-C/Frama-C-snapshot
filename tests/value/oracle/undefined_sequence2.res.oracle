@@ -1,37 +1,42 @@
 [kernel] Parsing tests/value/undefined_sequence2.i (no preprocessing)
-tests/value/undefined_sequence2.i:11:[kernel] warning: Unspecified sequence with side effect:
-    /* *x <- x */
-    tmp = 0;
-    *x = tmp;
-    /* *x <- x */
-    tmp_0 = 0;
-    *x = tmp_0;
-tests/value/undefined_sequence2.i:18:[kernel] warning: Unspecified sequence with side effect:
-    /* i <-  */
-    i ++;
-    /* i <-  */
-    i ++;
-tests/value/undefined_sequence2.i:26:[kernel] warning: Unspecified sequence with side effect:
-    /*  <-  */
-    tmp = i;
-    /* i <-  */
-    i ++;
-    /* a[tmp] <- tmp i */
-    a[tmp] = i;
-tests/value/undefined_sequence2.i:34:[kernel] warning: Unspecified sequence with side effect:
-    /* *x <- x */
-    tmp = 0;
-    *x = tmp;
-    /* *y <- y */
-    tmp_0 = 0;
-    *y = tmp_0;
-tests/value/undefined_sequence2.i:47:[kernel] warning: Unspecified sequence with side effect:
-    /* *x <- x */
-    tmp = 0;
-    *x = tmp;
-    /* *y <- y */
-    tmp_0 = 0;
-    *y = tmp_0;
+[kernel] tests/value/undefined_sequence2.i:11: Warning: 
+  Unspecified sequence with side effect:
+  /* *x <- x */
+  tmp = 0;
+  *x = tmp;
+  /* *x <- x */
+  tmp_0 = 0;
+  *x = tmp_0;
+[kernel] tests/value/undefined_sequence2.i:18: Warning: 
+  Unspecified sequence with side effect:
+  /* i <-  */
+  i ++;
+  /* i <-  */
+  i ++;
+[kernel] tests/value/undefined_sequence2.i:26: Warning: 
+  Unspecified sequence with side effect:
+  /*  <-  */
+  tmp = i;
+  /* i <-  */
+  i ++;
+  /* a[tmp] <- tmp i */
+  a[tmp] = i;
+[kernel] tests/value/undefined_sequence2.i:34: Warning: 
+  Unspecified sequence with side effect:
+  /* *x <- x */
+  tmp = 0;
+  *x = tmp;
+  /* *y <- y */
+  tmp_0 = 0;
+  *y = tmp_0;
+[kernel] tests/value/undefined_sequence2.i:47: Warning: 
+  Unspecified sequence with side effect:
+  /* *x <- x */
+  tmp = 0;
+  *x = tmp;
+  /* *y <- y */
+  tmp_0 = 0;
+  *y = tmp_0;
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
 [value] Initial state computed
@@ -39,45 +44,52 @@ tests/value/undefined_sequence2.i:47:[kernel] warning: Unspecified sequence with
   a[0..1] ∈ {0}
   foo ∈ [--..--]
 [value] computing for function multiple_update_wrong_1 <- main.
-    Called from tests/value/undefined_sequence2.i:56.
-tests/value/undefined_sequence2.i:11:[value] warning: undefined multiple accesses in expression. assert \separated(x, x);
+  Called from tests/value/undefined_sequence2.i:56.
+[value:alarm] tests/value/undefined_sequence2.i:11: Warning: 
+  undefined multiple accesses in expression. assert \separated(x, x);
 [value] Recording results for multiple_update_wrong_1
 [value] Done for function multiple_update_wrong_1
 [value] computing for function multiple_update_wrong_2 <- main.
-    Called from tests/value/undefined_sequence2.i:58.
-tests/value/undefined_sequence2.i:18:[value] warning: undefined multiple accesses in expression. assert \separated(&i, &i);
+  Called from tests/value/undefined_sequence2.i:58.
+[value:alarm] tests/value/undefined_sequence2.i:18: Warning: 
+  undefined multiple accesses in expression. assert \separated(&i, &i);
 [value] Recording results for multiple_update_wrong_2
 [value] Done for function multiple_update_wrong_2
 [value] computing for function multiple_update_wrong_3 <- main.
-    Called from tests/value/undefined_sequence2.i:60.
-tests/value/undefined_sequence2.i:26:[value] warning: undefined multiple accesses in expression. assert \separated(&i, &i);
+  Called from tests/value/undefined_sequence2.i:60.
+[value:alarm] tests/value/undefined_sequence2.i:26: Warning: 
+  undefined multiple accesses in expression. assert \separated(&i, &i);
 [value] Recording results for multiple_update_wrong_3
 [value] Done for function multiple_update_wrong_3
 [value] computing for function multiple_update_unsafe <- main.
-    Called from tests/value/undefined_sequence2.i:62.
+  Called from tests/value/undefined_sequence2.i:62.
 [value] Recording results for multiple_update_unsafe
 [value] Done for function multiple_update_unsafe
-tests/value/undefined_sequence2.i:62:[value] Frama_C_show_each_passed4:
+[value] tests/value/undefined_sequence2.i:62: Frama_C_show_each_passed4:
 [value] computing for function multiple_update_unsafe <- main.
-    Called from tests/value/undefined_sequence2.i:64.
-tests/value/undefined_sequence2.i:34:[value] warning: undefined multiple accesses in expression. assert \separated(x, y);
+  Called from tests/value/undefined_sequence2.i:64.
+[value:alarm] tests/value/undefined_sequence2.i:34: Warning: 
+  undefined multiple accesses in expression. assert \separated(x, y);
 [value] Recording results for multiple_update_unsafe
 [value] Done for function multiple_update_unsafe
 [value] computing for function multiple_update_safe <- main.
-    Called from tests/value/undefined_sequence2.i:66.
+  Called from tests/value/undefined_sequence2.i:66.
 [value] Recording results for multiple_update_safe
 [value] Done for function multiple_update_safe
-tests/value/undefined_sequence2.i:66:[value] Frama_C_show_each_passed6:
+[value] tests/value/undefined_sequence2.i:66: Frama_C_show_each_passed6:
 [value] computing for function multiple_update_safe <- main.
-    Called from tests/value/undefined_sequence2.i:68.
+  Called from tests/value/undefined_sequence2.i:68.
 [value] Recording results for multiple_update_safe
 [value] Done for function multiple_update_safe
-tests/value/undefined_sequence2.i:68:[value] Frama_C_show_each_passed7:
+[value] tests/value/undefined_sequence2.i:68: Frama_C_show_each_passed7:
 [value] Recording results for main
 [value] done for function main
-tests/value/undefined_sequence2.i:11:[value] assertion 'Value,separation' got final status invalid.
-tests/value/undefined_sequence2.i:18:[value] assertion 'Value,separation' got final status invalid.
-tests/value/undefined_sequence2.i:26:[value] assertion 'Value,separation' got final status invalid.
+[value] tests/value/undefined_sequence2.i:11: 
+  assertion 'Value,separation' got final status invalid.
+[value] tests/value/undefined_sequence2.i:18: 
+  assertion 'Value,separation' got final status invalid.
+[value] tests/value/undefined_sequence2.i:26: 
+  assertion 'Value,separation' got final status invalid.
 [value] ====== VALUES COMPUTED ======
 [value:final-states] Values at end of function multiple_update_safe:
   b ∈ {0}
@@ -113,7 +125,7 @@ tests/value/undefined_sequence2.i:26:[value] assertion 'Value,separation' got fi
 [from] Computing for function main
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
-    These dependencies hold at termination for the executions that terminate:
+  These dependencies hold at termination for the executions that terminate:
 [from] Function multiple_update_safe:
   b FROM x; y (and SELF)
   c FROM x; y (and SELF)
@@ -132,26 +144,26 @@ tests/value/undefined_sequence2.i:26:[value] assertion 'Value,separation' got fi
   \result FROM \nothing
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function multiple_update_safe:
-      tmp; tmp_0; b; c; __retres
+    tmp; tmp_0; b; c; __retres
 [inout] Inputs for function multiple_update_safe:
-      \nothing
+    \nothing
 [inout] Out (internal) for function multiple_update_unsafe:
-      tmp; tmp_0; b; c; __retres
+    tmp; tmp_0; b; c; __retres
 [inout] Inputs for function multiple_update_unsafe:
-      \nothing
+    \nothing
 [inout] Out (internal) for function multiple_update_wrong_1:
-      \nothing
+    \nothing
 [inout] Inputs for function multiple_update_wrong_1:
-      \nothing
+    \nothing
 [inout] Out (internal) for function multiple_update_wrong_2:
-      \nothing
+    \nothing
 [inout] Inputs for function multiple_update_wrong_2:
-      \nothing
+    \nothing
 [inout] Out (internal) for function multiple_update_wrong_3:
-      \nothing
+    \nothing
 [inout] Inputs for function multiple_update_wrong_3:
-      \nothing
+    \nothing
 [inout] Out (internal) for function main:
-      b; c; __retres
+    b; c; __retres
 [inout] Inputs for function main:
-      foo
+    foo

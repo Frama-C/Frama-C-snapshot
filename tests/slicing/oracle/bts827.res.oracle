@@ -6,7 +6,7 @@
 [value:initial-state] Values of globals at initialization
   G ∈ {0}
 [value] computing for function f <- main.
-    Called from tests/slicing/bts827.i:16.
+  Called from tests/slicing/bts827.i:16.
 [value] Recording results for f
 [value] Done for function f
 [value] Recording results for main

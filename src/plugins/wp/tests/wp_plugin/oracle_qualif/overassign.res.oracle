@@ -1,0 +1,31 @@
+# frama-c -wp [...]
+[kernel] Parsing tests/wp_plugin/overassign.i (no preprocessing)
+[wp] Running WP plugin...
+[wp] Loading driver 'share/wp.driver'
+[wp] Warning: Missing RTE guards
+[wp] 12 goals scheduled
+[wp] [Qed] Goal typed_f1_ok_assign_exit : Valid
+[wp] [Qed] Goal typed_f1_ok_assign_normal : Valid
+[wp] [Qed] Goal typed_f2_ok_assign_exit : Valid
+[wp] [Qed] Goal typed_f2_ok_assign_normal : Valid
+[wp] [Alt-Ergo] Goal typed_f3_ok_assign_exit : Valid
+[wp] [Alt-Ergo] Goal typed_f3_ok_assign_normal : Valid
+[wp] [Alt-Ergo] Goal typed_f4_ok_assign_exit : Valid
+[wp] [Alt-Ergo] Goal typed_f4_ok_assign_normal : Valid
+[wp] [Alt-Ergo] Goal typed_f5_ko_assign_exit : Unknown
+[wp] [Alt-Ergo] Goal typed_f5_ko_assign_normal : Unknown
+[wp] [Alt-Ergo] Goal typed_f6_ko_assign_exit : Unknown
+[wp] [Alt-Ergo] Goal typed_f6_ko_assign_normal : Unknown
+[wp] Proved goals:    8 / 12
+  Qed:             4 
+  Alt-Ergo:        4  (unknown: 4)
+[wp] Report 'tests/wp_plugin/overassign.i.0.report.json'
+-------------------------------------------------------------
+Functions           WP     Alt-Ergo        Total   Success
+f1_ok                2     -                 2       100%
+f2_ok                2     -                 2       100%
+f3_ok               -       2 (20..32)       2       100%
+f4_ok               -       2 (20..32)       2       100%
+f5_ko               -      -                 2       0.0%
+f6_ko               -      -                 2       0.0%
+-------------------------------------------------------------

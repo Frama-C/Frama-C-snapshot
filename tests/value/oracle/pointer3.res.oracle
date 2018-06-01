@@ -9,11 +9,11 @@
   p ∈ {0}
   q ∈ {0}
 [value] computing for function f <- main.
-    Called from tests/value/pointer3.i:11.
+  Called from tests/value/pointer3.i:11.
 [value] Recording results for f
 [value] Done for function f
 [value] computing for function f <- main.
-    Called from tests/value/pointer3.i:12.
+  Called from tests/value/pointer3.i:12.
 [value] Recording results for f
 [value] Done for function f
 [value] Recording results for main
@@ -31,7 +31,7 @@
 [from] Computing for function main
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
-    These dependencies hold at termination for the executions that terminate:
+  These dependencies hold at termination for the executions that terminate:
 [from] Function f:
   c FROM \nothing
   \result FROM x_0
@@ -42,10 +42,10 @@
   q FROM \nothing
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function f:
-      c
+    c
 [inout] Inputs for function f:
-      \nothing
+    \nothing
 [inout] Out (internal) for function main:
-      x; c; p; q
+    x; c; p; q
 [inout] Inputs for function main:
-      c; p
+    c; p

@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2017                                               *)
+(*  Copyright (C) 2007-2018                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -206,7 +206,7 @@ struct
         apply Conditions.introduction g ;
         let fold acc (get,solver) = if get () then solver::acc else acc in
         let solvers = List.fold_left fold [] default_simplifiers in
-        apply (Conditions.letify ~solvers) g ;
+        apply (Conditions.simplify ~solvers) g ;
         if Wp_parameters.Prune.get ()
         then apply (Conditions.pruning ~solvers) g ;
         if Wp_parameters.Filter.get ()
@@ -219,6 +219,8 @@ struct
         if Wp_parameters.Clean.get ()
         then apply Conditions.clean g ;
       end ;
+    if Conditions.is_trivial g.sequent then
+      g.sequent <- Conditions.trivial ;
     g.obligation <- Conditions.close g.sequent
 
   let dkey = Wp_parameters.register_category "prover"
@@ -818,11 +820,12 @@ let compute g =
   | GoalCheck { VC_Check.goal = goal } ->
       None , Model.with_model g.po_model Conditions.lemma goal
 
-let is_proved g = List.exists (fun (_,r) -> VCS.is_valid r) (get_results g)
+let is_proved g =
+  is_trivial g || List.exists (fun (_,r) -> VCS.is_valid r) (get_results g)
 
 let is_unknown g = List.exists 
     (fun (_,r) -> VCS.is_verdict r && not (VCS.is_valid r))
-    ( get_results g)
+    ( get_results g )
 
 let get_result =
   Dynamic.register ~plugin:"Wp" "Wpo.get_result" ~journalize:false

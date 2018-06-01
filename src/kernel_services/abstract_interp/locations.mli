@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2017                                               *)
+(*  Copyright (C) 2007-2018                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -41,12 +41,10 @@ module Location_Bytes : sig
     val shape: t -> Ival.t Hptmap.Shape(Base.Base).t
   end
 
-  type t =
+  type t = private
     | Top of Base.SetLattice.t * Origin.t
        (** Garbled mix of the addresses in the set *)
     | Map of M.t (** Precise set of addresses+offsets *)
-  (** This type should be considered private *)
-  (* TODO: make it private when OCaml 4.01 is mandatory *)
 
   type size_widen_hint = Ival.size_widen_hint
   type generic_widen_hint = Base.t -> Ival.generic_widen_hint
@@ -233,8 +231,6 @@ module Zone : sig
 
   type map_t
 
-  (** This type should be considered private *)
-  (* TODO: make it private when OCaml 4.01 is mandatory *)
   type t = private Top of Base.SetLattice.t * Origin.t | Map of map_t
 
   include Datatype.S_with_collections with type t := t

@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2017                                               *)
+(*  Copyright (C) 2007-2018                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -28,9 +28,7 @@ let (>>=) (t, a) f = match t with
   | `Value t ->
     let t', a' = f t in
     match Alarmset.inter a a' with
-    | `Inconsistent ->
-      Value_parameters.abort ~current:true ~once:true
-        "Inconsistent status of alarms between value abstractions: unsound states."
+    | `Inconsistent -> `Bottom, Alarmset.none
     | `Value alarms -> t', alarms
 
 
@@ -64,8 +62,8 @@ module Make
   let inject_address vi = Left.inject_address vi, Right.inject_address vi
 
   let constant expr constant =
-    Left.constant expr constant >>= fun left ->
-    Right.constant expr constant >>=: fun right ->
+    let left = Left.constant expr constant
+    and right = Right.constant expr constant in
     left, right
 
   let forward_unop ~context typ unop (left, right) =
@@ -86,25 +84,25 @@ module Make
   let rewrap_integer range (left, right) =
     Left.rewrap_integer range left, Right.rewrap_integer range right
 
-  let cast_float expr fkind (left, right) =
-    Left.cast_float expr fkind left >>= fun left ->
-    Right.cast_float expr fkind right >>=: fun right ->
+  let restrict_float ~remove_infinite expr fkind (left, right) =
+    Left.restrict_float ~remove_infinite expr fkind left >>= fun left ->
+    Right.restrict_float ~remove_infinite expr fkind right >>=: fun right ->
     left, right
 
-  let do_promotion ~src_typ ~dst_typ expr (left, right) =
-    Left.do_promotion ~src_typ ~dst_typ expr left >>= fun left ->
-    Right.do_promotion ~src_typ ~dst_typ expr right >>=: fun right ->
+  let cast ~src_typ ~dst_typ expr (left, right) =
+    Left.cast ~src_typ ~dst_typ expr left >>= fun left ->
+    Right.cast ~src_typ ~dst_typ expr right >>=: fun right ->
     left, right
 
-  let resolve_functions ~typ_pointer (left, right) =
-    let set1, b1 = Left.resolve_functions ~typ_pointer left
-    and set2, b2 = Right.resolve_functions ~typ_pointer right in
-    let set = match set1, set2 with
-      | `Top, _              -> set2
-      | _, `Top              -> set1
-      | `Value s1, `Value s2 -> `Value (Kernel_function.Hptset.inter s1 s2)
+  let resolve_functions (left, right) =
+    let list1, b1 = Left.resolve_functions left
+    and list2, b2 = Right.resolve_functions right in
+    let list = match list1, list2 with
+      | `Top, _ -> list2
+      | _, `Top -> list1
+      | `Value s1, `Value s2 -> `Value (List.filter (fun f -> List.mem f s1) s2)
     in
-    set, b1 && b2
+    list, b1 && b2
 
   let reduce (orig_left, orig_right) left right = match left, right with
     | None, None            -> None

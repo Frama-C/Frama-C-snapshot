@@ -6,22 +6,22 @@
   i ∈ {0}
   j ∈ {0}
   k ∈ {0}
-tests/value/long.i:11:[value] entering loop for the first time
+[value] tests/value/long.i:11: entering loop for the first time
 [value] computing for function f <- main.
-    Called from tests/value/long.i:12.
-tests/value/long.i:6:[value] entering loop for the first time
+  Called from tests/value/long.i:12.
+[value] tests/value/long.i:6: entering loop for the first time
 [value] Recording results for f
 [value] Done for function f
 [value] computing for function f <- main.
-    Called from tests/value/long.i:12.
+  Called from tests/value/long.i:12.
 [value] Recording results for f
 [value] Done for function f
 [value] computing for function f <- main.
-    Called from tests/value/long.i:12.
+  Called from tests/value/long.i:12.
 [value] Recording results for f
 [value] Done for function f
 [value] computing for function f <- main.
-    Called from tests/value/long.i:12.
+  Called from tests/value/long.i:12.
 [value] Recording results for f
 [value] Done for function f
 [value] Recording results for main
@@ -37,7 +37,7 @@ tests/value/long.i:6:[value] entering loop for the first time
 [from] Computing for function main
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
-    These dependencies hold at termination for the executions that terminate:
+  These dependencies hold at termination for the executions that terminate:
 [from] Function f:
   i FROM \nothing
 [from] Function main:
@@ -45,10 +45,10 @@ tests/value/long.i:6:[value] entering loop for the first time
   j FROM \nothing
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function f:
-      i
+    i
 [inout] Inputs for function f:
-      i
+    i
 [inout] Out (internal) for function main:
-      i; j
+    i; j
 [inout] Inputs for function main:
-      i; j
+    i; j

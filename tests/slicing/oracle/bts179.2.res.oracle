@@ -8,7 +8,7 @@
   X ∈ {0}
   Y ∈ {0}
 [value] computing for function g <- main.
-    Called from tests/slicing/bts179.i:16.
+  Called from tests/slicing/bts179.i:16.
 [value] Recording results for g
 [value] Done for function g
 [value] Recording results for main

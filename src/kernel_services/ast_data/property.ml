@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2017                                               *)
+(*  Copyright (C) 2007-2018                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -87,6 +87,8 @@ type identified_type_invariant = string * typ * predicate * location
 
 type identified_global_invariant = string * predicate * location
 
+type identified_extended = kernel_function * kinstr * Cil_types.acsl_extension
+
 and identified_axiomatic = string * identified_property list
 
 and identified_lemma = 
@@ -95,10 +97,12 @@ and identified_lemma =
 and identified_axiom = identified_lemma
 
 and identified_instance =
-    kernel_function option * kinstr * identified_property
+  kernel_function * stmt * Cil_types.identified_predicate option
+  * identified_property
 
 and identified_property =
   | IPPredicate of identified_predicate
+  | IPExtended of identified_extended
   | IPAxiom of identified_axiom
   | IPAxiomatic of identified_axiomatic
   | IPLemma of identified_lemma
@@ -118,6 +122,7 @@ and identified_property =
 
 let get_kinstr = function
   | IPPredicate (_,_,ki,_) 
+  | IPExtended (_,ki,_)
   | IPBehavior(_, ki,_,_) 
   | IPComplete (_,ki,_,_)
   | IPDisjoint(_,ki,_,_) 
@@ -125,17 +130,18 @@ let get_kinstr = function
   | IPAssigns (_,ki,_,_) 
   | IPFrom(_,ki,_,_)
   | IPReachable (_, ki, _)
-  | IPDecrease (_,ki,_,_)
-  | IPPropertyInstance (_, ki, _) -> ki
+  | IPDecrease (_,ki,_,_) -> ki
   | IPAxiom _ 
   | IPAxiomatic _
   | IPLemma _  -> Kglobal
   | IPOther(_,_,ki) -> ki
-  | IPCodeAnnot (_,s,_) -> Kstmt s
+  | IPCodeAnnot (_,s,_)
+  | IPPropertyInstance (_, s, _, _) -> Kstmt s
   | IPTypeInvariant _ | IPGlobalInvariant _ -> Kglobal
 
 let get_kf = function
   | IPPredicate (_,kf,_,_)
+  | IPExtended (kf,_,_)
   | IPBehavior(kf,_,_,_)
   | IPCodeAnnot (kf,_,_)
   | IPComplete (kf,_,_,_) 
@@ -143,12 +149,12 @@ let get_kf = function
   | IPAllocation(kf,_,_,_)
   | IPAssigns(kf,_,_,_)
   | IPFrom(kf,_,_,_) 
-  | IPDecrease (kf,_,_,_) -> Some kf
+  | IPDecrease (kf,_,_,_)
+  | IPPropertyInstance (kf, _, _, _) -> Some kf
   | IPAxiom _ 
   | IPAxiomatic _
   | IPLemma _ -> None
   | IPReachable (kfopt, _, _)
-  | IPPropertyInstance (kfopt, _, _)
   | IPOther(_,kfopt,_) -> kfopt
   | IPTypeInvariant _ | IPGlobalInvariant _ -> None
 
@@ -158,18 +164,17 @@ let loc_of_kf_ki kf = function
 
 let rec location = function
   | IPPredicate (_,_,_,ip) -> ip.ip_content.pred_loc
+  | IPExtended (kf,ki,_) -> loc_of_kf_ki kf ki
   | IPBehavior(kf,ki, _,_) 
   | IPComplete (kf,ki,_,_) 
   | IPDisjoint(kf,ki,_,_)
-  | IPReachable(Some kf, ki, _)
-  | IPPropertyInstance (Some kf, ki, _) -> loc_of_kf_ki kf ki
-  | IPPropertyInstance (None, Kstmt s, _)
-  | IPReachable(None, Kstmt s, _) -> Cil_datatype.Stmt.loc s
+  | IPReachable(Some kf, ki, _) -> loc_of_kf_ki kf ki
+  | IPReachable(None, Kstmt s, _)
+  | IPPropertyInstance (_, s, _, _) -> Cil_datatype.Stmt.loc s
   | IPCodeAnnot (_,s,ca) -> (
     match Cil_datatype.Code_annotation.loc ca with
     | None -> Cil_datatype.Stmt.loc s
     | Some loc -> loc)
-  | IPPropertyInstance (None, Kglobal, _)
   | IPReachable(None, Kglobal, _) -> Cil_datatype.Location.unknown
   | IPAssigns(kf,ki,_,a) ->
     (match a with
@@ -194,20 +199,19 @@ let rec location = function
       | Some kf -> loc_of_kf_ki kf ki)
   | IPTypeInvariant(_,_,_,loc) | IPGlobalInvariant(_,_,loc) -> loc
 
+let source ip =
+  let loc = location ip in
+  if Cil_datatype.Location.equal loc Cil_datatype.Location.unknown
+  then None
+  else Some (fst loc)
+
 (* Pretty information about the localization of a IPPropertyInstance *)
-let pretty_instance_location fmt (kfopt, ki) =
-  match kfopt, ki with
-  | None, Kglobal -> Format.pp_print_string fmt "at global scope"
-  | Some kf, Kglobal ->
-    Format.fprintf fmt "in function %a" Kernel_function.pretty kf
-  | None, Kstmt stmt -> Format.fprintf fmt "at stmt %d" stmt.sid
-  | Some kf, Kstmt stmt
-    when Kernel_function.(equal kf (find_englobing_kf stmt)) ->
-    Format.fprintf fmt "at stmt %d" stmt.sid
-  | Some kf, Kstmt stmt ->
+let pretty_instance_location fmt (kf, stmt) =
+  if Kernel_function.(equal kf (find_englobing_kf stmt))
+  then Format.fprintf fmt "at stmt %d" stmt.sid
+  else
     Format.fprintf fmt "at stmt %d and function %a"
       stmt.sid Kernel_function.pretty kf
-
 
 let get_pk_behavior = function
   | PKRequires b | PKAssumes b | PKEnsures (b,_) -> Some b
@@ -224,6 +228,7 @@ let get_behavior = function
   | IPFrom(_,_,Id_loop _,_)
   | IPAxiom _ 
   | IPAxiomatic _
+  | IPExtended _
   | IPLemma _
   | IPCodeAnnot (_,_,_)
   | IPComplete (_,_,_,_)
@@ -267,9 +272,10 @@ include Datatype.Make_with_collections
         Datatype.String.Set.iter print_one active
 
       let rec pretty fmt = function
-	| IPPredicate (kind,_,_,p) -> 
+	| IPPredicate (kind,_,_,p) ->
           Format.fprintf fmt "%a@ %a"
             pretty_predicate_kind kind Cil_printer.pp_identified_predicate p
+        | IPExtended (_,_,e) -> Cil_printer.pp_extended fmt e
 	| IPAxiom (s,_,_,_,_) -> Format.fprintf fmt "axiom@ %s" s
 	| IPAxiomatic(s, _) -> Format.fprintf fmt "axiomatic@ %s" s
 	| IPLemma (s,_,_,_,_) -> Format.fprintf fmt "lemma@ %s" s
@@ -315,13 +321,13 @@ include Datatype.Make_with_collections
 	    (match ba with Before -> "of" | After -> "post")
 	    Cil_datatype.Location.pretty_line (Cil_datatype.Stmt.loc stmt)
 	    Kf.pretty kf
-	| IPPropertyInstance (kfopt, ki, ip) ->
+	| IPPropertyInstance (kf, ki, _, ip) ->
 	  Format.fprintf fmt "status of '%a'%t %a"
 	    pretty ip
 	    (fun fmt -> match get_kf ip with
 	    | Some kf -> Format.fprintf fmt " of %a" Kernel_function.pretty kf
 	    | None -> ())
-	    pretty_instance_location (kfopt, ki)
+	    pretty_instance_location (kf, ki)
 	| IPOther(s,_,_) -> Format.pp_print_string fmt s
 
       let rec hash =
@@ -363,12 +369,13 @@ include Datatype.Make_with_collections
                        Kinstr.hash ki, Hashtbl.hash ba)
 	| IPAllocation(f, ki, b, _fa) ->
 	  Hashtbl.hash (13, Kf.hash f, Kinstr.hash ki, hash_bhv_loop b)
-	| IPPropertyInstance (kf_caller, ki, ip) ->
-	  Hashtbl.hash (14, Extlib.opt_hash Kf.hash kf_caller,
-	                Kinstr.hash ki, hash ip)
+	| IPPropertyInstance (kf_caller, stmt, _, ip) ->
+	  Hashtbl.hash (14, Kf.hash kf_caller,
+	                Stmt.hash stmt, hash ip)
 	| IPOther(s,_,_) -> Hashtbl.hash (15, (s:string))
 	| IPTypeInvariant(s,_,_,_) -> Hashtbl.hash (16, (s:string))
 	| IPGlobalInvariant(s,_,_) -> Hashtbl.hash (17, (s:string))
+        | IPExtended (_,_,(i,_,_)) -> Hashtbl.hash (18, i)
 
       let rec equal p1 p2 =
 	let eq_bhv (f1,ki1,b1) (f2,ki2,b2) =
@@ -385,6 +392,7 @@ include Datatype.Make_with_collections
 	in
 	match p1, p2 with
 	| IPPredicate (_,_,_,s1), IPPredicate (_,_,_,s2) -> s1.ip_id = s2.ip_id
+	| IPExtended (_,_,(i1,_,_)), IPExtended (_,_,(i2,_,_)) -> Datatype.Int.equal i1 i2
 	| IPAxiom (s1,_,_,_,_), IPAxiom (s2,_,_,_,_)
 	| IPAxiomatic(s1, _), IPAxiomatic(s2, _)
 	| IPTypeInvariant(s1,_,_,_), IPTypeInvariant(s2,_,_,_)
@@ -415,15 +423,15 @@ include Datatype.Make_with_collections
 	    Datatype.String.equal s1 s2 
 	    && Kinstr.equal ki1 ki2
 	    && equal_opt Kf.equal kf1 kf2
-	| IPPropertyInstance (kf1, ki1, ip1),
-	  IPPropertyInstance (kf2, ki2, ip2) ->
-	  Extlib.opt_equal Kernel_function.equal kf1 kf2 &&
-	  Kinstr.equal ki1 ki2 && equal ip1 ip2
-	| (IPPredicate _ | IPAxiom _ | IPAxiomatic _ | IPLemma _ 
-	      | IPCodeAnnot _ | IPComplete _ | IPDisjoint _ | IPAssigns _ 
-	      | IPFrom _ | IPDecrease _ | IPBehavior _ | IPReachable _ 
-	      | IPAllocation _ | IPOther _ | IPPropertyInstance _
-	      | IPTypeInvariant _ | IPGlobalInvariant _), _ -> false
+	| IPPropertyInstance (kf1, s1, _, ip1),
+	  IPPropertyInstance (kf2, s2, _, ip2) ->
+	  Kernel_function.equal kf1 kf2 &&
+	  Stmt.equal s1 s2 && equal ip1 ip2
+	| (IPPredicate _ | IPAxiom _ | IPExtended _ | IPAxiomatic _ | IPLemma _
+	  | IPCodeAnnot _ | IPComplete _ | IPDisjoint _ | IPAssigns _
+	  | IPFrom _ | IPDecrease _ | IPBehavior _ | IPReachable _
+	  | IPAllocation _ | IPOther _ | IPPropertyInstance _
+	  | IPTypeInvariant _ | IPGlobalInvariant _), _ -> false
 
       let rec compare x y =
 	let cmp_bhv (f1,ki1,b1) (f2,ki2,b2) =
@@ -445,6 +453,7 @@ include Datatype.Make_with_collections
 	match x, y with
 	| IPPredicate (_,_,_,s1), IPPredicate (_,_,_,s2) ->
           Datatype.Int.compare s1.ip_id s2.ip_id
+	| IPExtended (_,_,(i1,_,_)), IPExtended (_,_,(i2,_,_)) -> Datatype.Int.compare i1 i2
 	| IPCodeAnnot(_,_,ca1), IPCodeAnnot(_,_,ca2) ->
           Datatype.Int.compare ca1.annot_id ca2.annot_id
 	| IPBehavior(f1, k1, a1, b1), IPBehavior(f2, k2, a2, b2) -> 
@@ -489,17 +498,17 @@ include Datatype.Make_with_collections
 		Kinstr.compare ki1 ki2
 	| IPAllocation (f1, ki1, b1, _), IPAllocation (f2, ki2, b2, _) ->
             cmp_bhv (f1,ki1,b1) (f2,ki2,b2)
-	| IPPropertyInstance (kf1, ki1, ip1),
-	  IPPropertyInstance (kf2, ki2, ip2) ->
-	  let c = Extlib.opt_compare Kernel_function.compare kf1 kf2 in
+	| IPPropertyInstance (kf1, s1, _, ip1),
+	  IPPropertyInstance (kf2, s2, _, ip2) ->
+	  let c = Kernel_function.compare kf1 kf2 in
 	  if c <> 0 then c else
-	    let c = Kinstr.compare ki1 ki2 in
+	    let c = Stmt.compare s1 s2 in
 	    if c <> 0 then c else compare ip1 ip2
-	| (IPPredicate _ | IPCodeAnnot _ | IPBehavior _ | IPComplete _ |
-            IPDisjoint _ | IPAssigns _ | IPFrom _ | IPDecrease _ |
-            IPReachable _ | IPAxiom _ | IPAxiomatic _ | IPLemma _ |
-            IPOther _ | IPAllocation _ | IPPropertyInstance _ |
-	    IPTypeInvariant _ | IPGlobalInvariant _) as x, y ->
+	| (IPPredicate _ | IPExtended _ | IPCodeAnnot _ | IPBehavior _ | IPComplete _ |
+           IPDisjoint _ | IPAssigns _ | IPFrom _ | IPDecrease _ |
+           IPReachable _ | IPAxiom _ | IPAxiomatic _ | IPLemma _ |
+           IPOther _ | IPAllocation _ | IPPropertyInstance _ |
+	   IPTypeInvariant _ | IPGlobalInvariant _) as x, y ->
           let nb = function
             | IPPredicate _ -> 1
             | IPAssigns _ -> 2
@@ -518,6 +527,7 @@ include Datatype.Make_with_collections
 	    | IPPropertyInstance _ -> 15
 	    | IPTypeInvariant _ -> 16
 	    | IPGlobalInvariant _ -> 17
+            | IPExtended _ -> 18
 	  in
 	  Datatype.Int.compare (nb x) (nb y)
 
@@ -527,6 +537,8 @@ let rec short_pretty fmt p = match p with
   | IPPredicate (_,_,_,{ ip_content = {pred_name = name :: _ }}) ->
     Format.pp_print_string fmt name
   | IPPredicate _ -> pretty fmt p
+  | IPExtended (_,_,(_,name,_)) ->
+    Format.pp_print_string fmt name
   | IPAxiom (name,_,_,_,_) | IPLemma(name,_,_,_,_)
   | IPTypeInvariant(name,_,_,_) -> Format.pp_print_string fmt name
   | IPGlobalInvariant(name,_,_) -> Format.pp_print_string fmt name
@@ -558,9 +570,9 @@ let rec short_pretty fmt p = match p with
   | IPDecrease(kf,_,_,_) ->
     Format.fprintf fmt "decrease clause in function %a"
       Kernel_function.pretty kf
-  | IPPropertyInstance (kfopt, ki, ip) ->
+  | IPPropertyInstance (kf, stmt, _, ip) ->
     Format.fprintf fmt "specialization of %a %a" short_pretty ip
-      pretty_instance_location (kfopt, ki)
+      pretty_instance_location (kf, stmt)
   | IPReachable _ | IPOther _ -> pretty fmt p
 
 module Names = struct
@@ -643,6 +655,9 @@ module Names = struct
         Format.asprintf "%s%s%a"
           (kf_prefix kf) (predicate_kind_txt pk ki)
           pp_names idp.ip_content.pred_name
+    | IPExtended (kf,ki,(_,name,_)) ->
+      Format.asprintf  "%s%sextended%a"
+        (kf_prefix kf) (ki_prefix ki) pp_names [name]
     | IPCodeAnnot (kf,_, ca) ->
         let name = match ca.annot_content with
           | AAssert _ -> "assert" 
@@ -690,14 +705,10 @@ module Names = struct
     | IPBehavior(kf, ki, a, b) ->
       Format.asprintf "%s%s%a%s"
         (kf_prefix kf) (ki_prefix ki) active_prefix a b.b_name
-    | IPPropertyInstance (kfopt, ki, ip) ->
+    | IPPropertyInstance (kf, stmt, _, ip) ->
       Format.asprintf "specialization_%s_at_%t" (id_prop_txt ip)
-        (fun fmt -> match kfopt, ki with
-        | None, Kglobal -> Format.pp_print_string fmt "global"
-        | Some kf, Kglobal -> Kernel_function.pretty fmt kf
-        | None, Kstmt s -> Format.fprintf fmt "stmt_%d" s.sid
-        | Some kf, Kstmt s ->
-          Format.fprintf fmt "%a_stmt_%d" Kernel_function.pretty kf s.sid)
+        (fun fmt ->
+           Format.fprintf fmt "%a_stmt_%d" Kernel_function.pretty kf stmt.sid)
     | IPOther(s,Some kf,ki) -> (kf_prefix kf) ^ (ki_prefix ki) ^ s
     | IPOther(s,None,ki) -> (ki_prefix ki) ^ s
 
@@ -769,6 +780,7 @@ let ip_reachable_ppt p =
     | IPTypeInvariant _ | IPGlobalInvariant _
       -> Before
     | IPPredicate(PKEnsures _, _, _, _) | IPAssigns _ | IPFrom _ 
+    | IPExtended _
     | IPBehavior _ 
       -> After
     | IPReachable _ -> Kernel.fatal "IPReachable(IPReachable _) is not possible"
@@ -776,6 +788,8 @@ let ip_reachable_ppt p =
   IPReachable(kf, ki, ba)
 
 let ip_of_ensures kf st b (k,p) = IPPredicate (PKEnsures(b,k),kf,st,p)
+
+let ip_of_extended kf st p = IPExtended (kf, st, p)
 
 let ip_ensures_of_behavior kf st b =
   List.map (ip_of_ensures kf st b) b.b_post_cond
@@ -867,6 +881,7 @@ let ip_all_of_behavior kf st ~active b =
   :: ip_requires_of_behavior kf st b
   @ ip_assumes_of_behavior kf st b
   @ ip_post_cond_of_behavior kf st ~active b
+  @ List.map (ip_of_extended kf st) b.b_extended
 
 let ip_of_complete kf st ~active bhvs =
   let a = Datatype.String.Set.of_list active in IPComplete(kf,st,a,bhvs)
@@ -907,26 +922,27 @@ let ip_lemma s = IPLemma s
 let ip_type_invariant s = IPTypeInvariant s
 let ip_global_invariant s = IPGlobalInvariant s
 
-let ip_property_instance kfopt ki ip = IPPropertyInstance (kfopt, ki, ip)
+let ip_property_instance kf stmt ipred iprop =
+  IPPropertyInstance (kf, stmt, ipred, iprop)
 
-let ip_of_code_annot kf ki ca =
-  let st = Kstmt ki in
+let ip_of_code_annot kf stmt ca =
+  let ki = Kstmt stmt in
   match ca.annot_content with
-  | AAssert _ | AInvariant _ -> [ IPCodeAnnot(kf, ki, ca) ]
-  | AStmtSpec (active,s) -> ip_of_spec kf st active s
-  | AVariant t -> [ IPDecrease (kf,st,(Some ca),t) ]
+  | AAssert _ | AInvariant _ -> [ IPCodeAnnot(kf, stmt, ca) ]
+  | AStmtSpec (active,s) -> ip_of_spec kf ki active s
+  | AVariant t -> [ IPDecrease (kf,ki,(Some ca),t) ]
   | AAllocation _ -> 
-      Extlib.list_of_opt (ip_allocation_of_code_annot kf st ca)
-    @ ip_from_of_code_annot kf st ca
+      Extlib.list_of_opt (ip_allocation_of_code_annot kf ki ca)
+    @ ip_from_of_code_annot kf ki ca
   | AAssigns _ -> 
-    Extlib.list_of_opt (ip_assigns_of_code_annot kf st ca)
-    @ ip_from_of_code_annot kf st ca
+    Extlib.list_of_opt (ip_assigns_of_code_annot kf ki ca)
+    @ ip_from_of_code_annot kf ki ca
   | APragma p when Logic_utils.is_property_pragma p ->
-    [ IPCodeAnnot (kf,ki,ca) ]
+    [ IPCodeAnnot (kf,stmt,ca) ]
   | APragma _ -> []
   | AExtended _ -> []
 
-let ip_of_code_annot_single kf ki ca = match ip_of_code_annot kf ki ca with
+let ip_of_code_annot_single kf stmt ca = match ip_of_code_annot kf stmt ca with
   | [] ->
     (* [JS 2011/06/07] using Kernel.error here seems very strange.
        Actually it is incorrect in case of pragma which is not a property (see

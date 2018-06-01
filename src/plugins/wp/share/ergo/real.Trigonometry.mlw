@@ -1,0 +1,75 @@
+(**************************************************************************)
+(*                                                                        *)
+(*  The Why3 Verification Platform   /   The Why3 Development Team        *)
+(*  Copyright 2010-2013   --   INRIA - CNRS - Paris-Sud University        *)
+(*                                                                        *)
+(*  This software is distributed under the terms of the GNU Lesser        *)
+(*  General Public License version 2.1, with the special exception        *)
+(*  on linking described in file LICENSE.                                 *)
+(*                                                                        *)
+(*  File modified by CEA (Commissariat à l'énergie atomique et aux        *)
+(*                        énergies alternatives).                         *)
+(*                                                                        *)
+(**************************************************************************)
+
+(* this is the prelude for Alt-Ergo, version >= 0.95.2 *)
+(** The theory BuiltIn_ must be appended to this file*)
+(** The theory Bool_ must be appended to this file*)
+(** The theory real_Real_ must be appended to this file*)
+(** The theory real_Abs_ must be appended to this file*)
+(** The theory real_Square_ must be appended to this file*)
+logic cos : real -> real
+
+logic sin : real -> real
+
+axiom Pythagorean_identity :
+  (forall x:real. ((sqr(cos(x)) + sqr(sin(x))) = 1.0))
+
+axiom Cos_le_one : (forall x:real. (abs_real(cos(x)) <= 1.0))
+
+axiom Sin_le_one : (forall x:real. (abs_real(sin(x)) <= 1.0))
+
+axiom Cos_0 : (cos(0.0) = 1.0)
+
+axiom Sin_0 : (sin(0.0) = 0.0)
+
+logic pi : real
+
+axiom Pi_double_precision_bounds : (0x1.921fb54442d18p1 <  pi)
+
+axiom Pi_double_precision_bounds1 : (pi <  0x1.921fb54442d19p1)
+
+axiom Cos_pi : (cos(pi) = (-1.0))
+
+axiom Sin_pi : (sin(pi) = 0.0)
+
+axiom Cos_pi2 : (cos((0.5 * pi)) = 0.0)
+
+axiom Sin_pi2 : (sin((0.5 * pi)) = 1.0)
+
+axiom Cos_plus_pi : (forall x:real. (cos((x + pi)) = (-cos(x))))
+
+axiom Sin_plus_pi : (forall x:real. (sin((x + pi)) = (-sin(x))))
+
+axiom Cos_plus_pi2 : (forall x:real. (cos((x + (0.5 * pi))) = (-sin(x))))
+
+axiom Sin_plus_pi2 : (forall x:real. (sin((x + (0.5 * pi))) = cos(x)))
+
+axiom Cos_neg : (forall x:real. (cos((-x)) = cos(x)))
+
+axiom Sin_neg : (forall x:real. (sin((-x)) = (-sin(x))))
+
+axiom Cos_sum :
+  (forall x:real. forall y:real.
+  (cos((x + y)) = ((cos(x) * cos(y)) - (sin(x) * sin(y)))))
+
+axiom Sin_sum :
+  (forall x:real. forall y:real.
+  (sin((x + y)) = ((sin(x) * cos(y)) + (cos(x) * sin(y)))))
+
+function tan(x: real) : real = (sin(x) / cos(x))
+
+logic atan : real -> real
+
+axiom Tan_atan : (forall x:real. (tan(atan(x)) = x))
+

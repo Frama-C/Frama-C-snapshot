@@ -2,7 +2,7 @@
 #                                                                        #
 #  This file is part of Frama-C.                                         #
 #                                                                        #
-#  Copyright (C) 2007-2017                                               #
+#  Copyright (C) 2007-2018                                               #
 #    CEA (Commissariat à l'énergie atomique et aux énergies              #
 #         alternatives)                                                  #
 #                                                                        #
@@ -62,6 +62,7 @@ PLUGIN_CMO:= local_config \
 	rte \
 	error \
 	builtins \
+	functions \
 	misc \
 	gmpz \
 	literal_strings \
@@ -69,6 +70,7 @@ PLUGIN_CMO:= local_config \
 	exit_points \
 	label \
 	env \
+	keep_status \
 	dup_functions \
 	interval \
 	typing \
@@ -82,7 +84,6 @@ PLUGIN_CMO:= local_config \
 
 PLUGIN_HAS_MLI:=yes
 PLUGIN_DISTRIBUTED:=yes
-
 
 # We "save" this variable so that it can be used once PLUGIN_DIR has been reset
 EACSL_PLUGIN_DIR:=$(PLUGIN_DIR)
@@ -129,7 +130,20 @@ $(EACSL_PLUGIN_DIR)/local_config.ml: $(EACSL_PLUGIN_DIR)/Makefile.in $(VERSION_F
 
 ifeq (@MAY_RUN_TESTS@,yes)
 
-PLUGIN_TESTS_DIRS := reject runtime bts gmp no-main full-mmodel temporal
+PLUGIN_TESTS_DIRS := \
+	format \
+	reject \
+	runtime \
+	bts \
+	gmp \
+	no-main \
+	full-mmodel \
+	temporal
+
+# the following test suite is deactivated for the time being:
+# uncompatible with OCI
+#	builtin
+
 PLUGIN_TESTS_LIB := $(EACSL_PLUGIN_DIR)/tests/print.ml
 E_ACSL_TESTS: $(EACSL_PLUGIN_DIR)/tests/test_config
 
@@ -263,7 +277,7 @@ EACSL_LICENSE_FILES = \
   license/headache_config.txt license/LGPLv2.1
 
 EACSL_MISC_FILES = \
-  configure.ac Makefile.in INSTALL README VERSION .depend
+  configure.ac Makefile.in INSTALL README VERSION
 
 EACSL_SHARE_FILES = share/e-acsl/*.[ch] share/e-acsl/*/*.[ch]
 
@@ -280,7 +294,7 @@ PLUGIN_DISTRIB_EXTERNAL:=\
 EACSL_DISTRIB_FILES:= $(PLUGIN_DISTRIB_EXTERNAL) $(EACSL_OCAML_FILES)
 
 # BE CAREFUL: manually remove all *.ml* files which should not be released!
-e-acsl-distrib: .depend
+e-acsl-distrib:
 	$(PRINT_TAR) tmp-distrib
 	$(TAR) cf tmp.tar $(EACSL_DISTRIB_FILES)
 	$(PRINT_MAKING) export directories

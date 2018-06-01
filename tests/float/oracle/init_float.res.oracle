@@ -13,8 +13,10 @@
   l ∈ [--..--]
   Ha[0..4] ∈ [-1.9999999999999998*2^1023 .. 1.9999999999999998*2^1023]
   THa[0..4] ∈ [-1.9999999999999998*2^1023 .. 1.9999999999999998*2^1023]
-tests/float/init_float.i:16:[value] warning: function main: precondition got status unknown.
-tests/float/init_float.i:17:[value] warning: function main: precondition got status unknown.
+[value:alarm] tests/float/init_float.i:16: Warning: 
+  function main: precondition -1000.0 ≤ x ≤ 1000.0 got status unknown.
+[value:alarm] tests/float/init_float.i:17: Warning: 
+  function main: precondition 0.0 ≤ s.y ≤ 0.0 got status unknown.
 [value] Recording results for main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======

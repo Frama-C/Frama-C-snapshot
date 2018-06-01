@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2017                                               *)
+(*  Copyright (C) 2007-2018                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -141,12 +141,21 @@ let load_lexbuf lexbuf =
   with Failure msg -> raise (error lexbuf msg)
 
 let load_string text = load_lexbuf (Lexing.from_string text)
-let load_channel inc = load_lexbuf (Lexing.from_channel inc)
+let load_channel ?file inc =
+  let lexbuf = Lexing.from_channel inc in
+  begin
+    match file with
+    | None -> ()
+    | Some pos_fname ->
+      let open Lexing in
+      lexbuf.lex_curr_p <- { lexbuf.lex_curr_p with pos_fname }
+  end ;
+  load_lexbuf lexbuf
 
 let load_file file =
   let inc = open_in file in
   try
-    let content = load_channel inc in
+    let content = load_channel ~file inc in
     close_in inc ; content
   with e ->
     close_in inc ; raise e
@@ -200,24 +209,28 @@ let rec dump f = function
 and dump_entry f (a,v) =
   dump_string f a ; f ":" ; dump f v
 
+let pp_dump fmt v =
+  dump (Format.pp_print_string fmt) v
+
 let save_buffer ?(pretty=true) buffer v =
   if pretty then
-    let fmt = Format.formatter_of_buffer buffer in
-    pp fmt v ; Format.pp_print_flush fmt ()
+    Format.fprintf (Format.formatter_of_buffer buffer) "@[%a@]@." pp v
   else
-    dump (Buffer.add_string buffer) v
-
-let save_channel ?(pretty=true) out v =
-  if pretty then
-    let fmt = Format.formatter_of_out_channel out in
-    pp fmt v ; Format.pp_print_flush fmt ()
-  else
-    dump (output_string out) v ; flush out
+    (dump (Buffer.add_string buffer) v ; Buffer.add_char buffer '\n' )
 
 let save_string ?(pretty=true) v =
   let buffer = Buffer.create 80 in
   save_buffer ~pretty buffer v ;
   Buffer.contents buffer
+
+let save_channel ?(pretty=true) out v =
+  if pretty then
+    Format.fprintf (Format.formatter_of_out_channel out) "@[%a@]@." pp v
+  else
+    (dump (output_string out) v ; output_char out '\n' ; flush out)
+
+let save_formatter ?(pretty=true) fmt v =
+  if pretty then pp fmt v else pp_dump fmt v
 
 let save_file ?(pretty=true) file v =
   let out = open_out file in

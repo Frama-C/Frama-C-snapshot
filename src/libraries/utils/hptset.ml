@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2017                                               *)
+(*  Copyright (C) 2007-2018                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -143,10 +143,6 @@ module Make(X: Hptmap.Id_Datatype)
     else
       Pretty_utils.pp_iter
         ~pre:"@[<hov 1>{" ~sep:",@ " ~suf:"}@]" iter X.pretty
-
-  let split key t =
-    let l, pres, r = split key t in
-    l, pres <> None, r
 
   let intersects =
     let name = Format.asprintf "Hptset(%s).intersects" X.name in

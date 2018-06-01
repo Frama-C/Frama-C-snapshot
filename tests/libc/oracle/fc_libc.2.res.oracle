@@ -1,0 +1,7 @@
+#include "__fc_define_clockid_t.h"
+#include "__fc_define_timer_t.h"
+#include "__fc_inet.h"
+#include "resolv.h"
+#include "sys/random.h"
+#include "sys/timex.h"
+Not included implementation 'glob.c'

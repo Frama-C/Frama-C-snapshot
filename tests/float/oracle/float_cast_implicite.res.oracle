@@ -35,7 +35,7 @@
 [from] Computing for function main
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
-    These dependencies hold at termination for the executions that terminate:
+  These dependencies hold at termination for the executions that terminate:
 [from] Function main:
   fic0 FROM C0
   fic1 FROM \nothing
@@ -50,6 +50,6 @@
   fecbn FROM CBP
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function main:
-      fic0; fic1; fic2; fic4; fec0; fec2; fec4; ficbp; ficbn; fecbp; fecbn
+    fic0; fic1; fic2; fic4; fec0; fec2; fec4; ficbp; ficbn; fecbp; fecbn
 [inout] Inputs for function main:
-      C0; C2; CBP
+    C0; C2; CBP

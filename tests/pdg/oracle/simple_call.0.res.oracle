@@ -8,8 +8,9 @@
   G2 ∈ [--..--]
   S ∈ [--..--]
 [value] computing for function call <- main.
-    Called from tests/pdg/simple_call.c:58.
-tests/pdg/simple_call.c:45:[value] warning: signed overflow. assert G + y ≤ 2147483647;
+  Called from tests/pdg/simple_call.c:58.
+[value:alarm] tests/pdg/simple_call.c:45: Warning: 
+  signed overflow. assert G + y ≤ 2147483647;
 [value] Recording results for call
 [value] Done for function call
 [value] Recording results for main

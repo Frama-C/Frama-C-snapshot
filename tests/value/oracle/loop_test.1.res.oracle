@@ -24,53 +24,53 @@
   c8 ∈ {0}
   c9 ∈ {0}
 [value] computing for function cent_onze_0 <- test_cent_onzes.
-    Called from tests/value/loop_test.i:101.
-tests/value/loop_test.i:57:[value] entering loop for the first time
+  Called from tests/value/loop_test.i:101.
+[value] tests/value/loop_test.i:57: entering loop for the first time
 [value] Recording results for cent_onze_0
 [value] Done for function cent_onze_0
 [value] computing for function cent_onze_1 <- test_cent_onzes.
-    Called from tests/value/loop_test.i:102.
-tests/value/loop_test.i:60:[value] entering loop for the first time
+  Called from tests/value/loop_test.i:102.
+[value] tests/value/loop_test.i:60: entering loop for the first time
 [value] Recording results for cent_onze_1
 [value] Done for function cent_onze_1
 [value] computing for function cent_onze_2 <- test_cent_onzes.
-    Called from tests/value/loop_test.i:103.
-tests/value/loop_test.i:64:[value] entering loop for the first time
+  Called from tests/value/loop_test.i:103.
+[value] tests/value/loop_test.i:64: entering loop for the first time
 [value] Recording results for cent_onze_2
 [value] Done for function cent_onze_2
 [value] computing for function cent_onze_3 <- test_cent_onzes.
-    Called from tests/value/loop_test.i:104.
-tests/value/loop_test.i:68:[value] entering loop for the first time
+  Called from tests/value/loop_test.i:104.
+[value] tests/value/loop_test.i:68: entering loop for the first time
 [value] Recording results for cent_onze_3
 [value] Done for function cent_onze_3
 [value] computing for function cent_onze_4 <- test_cent_onzes.
-    Called from tests/value/loop_test.i:105.
-tests/value/loop_test.i:72:[value] entering loop for the first time
+  Called from tests/value/loop_test.i:105.
+[value] tests/value/loop_test.i:72: entering loop for the first time
 [value] Recording results for cent_onze_4
 [value] Done for function cent_onze_4
 [value] computing for function cent_onze_5 <- test_cent_onzes.
-    Called from tests/value/loop_test.i:106.
-tests/value/loop_test.i:77:[value] entering loop for the first time
+  Called from tests/value/loop_test.i:106.
+[value] tests/value/loop_test.i:77: entering loop for the first time
 [value] Recording results for cent_onze_5
 [value] Done for function cent_onze_5
 [value] computing for function cent_onze_6 <- test_cent_onzes.
-    Called from tests/value/loop_test.i:107.
-tests/value/loop_test.i:80:[value] entering loop for the first time
+  Called from tests/value/loop_test.i:107.
+[value] tests/value/loop_test.i:80: entering loop for the first time
 [value] Recording results for cent_onze_6
 [value] Done for function cent_onze_6
 [value] computing for function cent_onze_7 <- test_cent_onzes.
-    Called from tests/value/loop_test.i:108.
-tests/value/loop_test.i:84:[value] entering loop for the first time
+  Called from tests/value/loop_test.i:108.
+[value] tests/value/loop_test.i:84: entering loop for the first time
 [value] Recording results for cent_onze_7
 [value] Done for function cent_onze_7
 [value] computing for function cent_onze_8 <- test_cent_onzes.
-    Called from tests/value/loop_test.i:109.
-tests/value/loop_test.i:88:[value] entering loop for the first time
+  Called from tests/value/loop_test.i:109.
+[value] tests/value/loop_test.i:88: entering loop for the first time
 [value] Recording results for cent_onze_8
 [value] Done for function cent_onze_8
 [value] computing for function cent_onze_9 <- test_cent_onzes.
-    Called from tests/value/loop_test.i:110.
-tests/value/loop_test.i:92:[value] entering loop for the first time
+  Called from tests/value/loop_test.i:110.
+[value] tests/value/loop_test.i:92: entering loop for the first time
 [value] Recording results for cent_onze_9
 [value] Done for function cent_onze_9
 [value] Recording results for test_cent_onzes

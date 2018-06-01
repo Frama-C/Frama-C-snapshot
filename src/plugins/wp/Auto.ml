@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2017                                               *)
+(*  Copyright (C) 2007-2018                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -182,7 +182,7 @@ end
 
 class autorange =
   object
-    method id = "Wp.autorange"
+    method id = "wp:range"
     method title = "Auto Range"
     method descr = "Iterate over term constrained by a finite interval"
 
@@ -203,11 +203,25 @@ let auto_range = Strategy.export (new autorange)
 (* -------------------------------------------------------------------------- *)
 
 class autosplit =
-  object
-    method id = "Wp.autosplit"
+  object(self)
+    method id = "wp:split"
     method title = "Auto Split"
-    method descr = "Split on any branch (priority to goal variables)"
-    method search push seq =
+    method descr = "Split on goal or any branch (priority to goal variables)"
+
+    method private search_goal push seq =
+      let goal = snd seq in
+      let is_split =
+        let open Qed.Logic in
+        match F.e_expr goal with
+        | And _ | If _ -> true
+        | Neq(x,y) | Eq(x,y) -> (F.is_prop x) && (F.is_prop y)
+        | _ -> false
+      in
+      if is_split then
+        let selection = Tactical.(Clause (Goal goal)) in
+        push (split ~priority:2.0 selection)
+    
+    method private search_branch push seq =
       let target = Lang.F.varsp (snd seq) in
       Conditions.iter
         (fun s ->
@@ -218,11 +232,16 @@ class autosplit =
                let priority =
                  if F.Vars.intersect target (Conditions.vars_hyp sa) ||
                     F.Vars.intersect target (Conditions.vars_hyp sb)
-                 then 2.0 else 0.5 in
+                 then 1.0 else 0.5 in
                let selection = Tactical.(Clause(Step s)) in
                push (split ~priority selection)
            | _ -> ()
         ) (fst seq)
+    
+    method search push seq =
+      self#search_goal push seq ;
+      self#search_branch push seq
+        
   end
 
 let auto_split = Strategy.export (new autosplit)

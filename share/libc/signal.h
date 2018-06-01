@@ -2,7 +2,7 @@
 /*                                                                        */
 /*  This file is part of Frama-C.                                         */
 /*                                                                        */
-/*  Copyright (C) 2007-2017                                               */
+/*  Copyright (C) 2007-2018                                               */
 /*    CEA (Commissariat à l'énergie atomique et aux énergies              */
 /*         alternatives)                                                  */
 /*                                                                        */
@@ -33,7 +33,11 @@ __PUSH_FC_STDLIB
 __BEGIN_DECLS
 
 /* TODO: put sig_atomic_t in machdep */
+#ifndef __sig_atomic_t_defined
 typedef volatile int sig_atomic_t;
+#define __sig_atomic_t_defined
+#endif
+
 typedef void (*__fc_sighandler_t) (int);
 
 #define sighandler_t __fc_sighandler_t
@@ -109,7 +113,7 @@ extern void (*signal(int sig, void (*func)(int)))(int);
 
 /*@ 
   assigns \nothing;
-  ensures \false; */
+  ensures never_terminates: \false; */
 extern int raise(int sig);
 #include "__fc_define_sigset_t.h"
 
@@ -117,6 +121,9 @@ union sigval {
 	int sival_int;
 	void *sival_ptr;
 };
+
+#ifndef __have_siginfo_t
+#define __have_siginfo_t
 typedef struct {
 	int si_signo;
 	int si_code;
@@ -128,6 +135,7 @@ typedef struct {
 	int si_status;
 	int si_band;
 } siginfo_t;
+#endif
 
 struct sigaction {
                void     (*sa_handler)(int);

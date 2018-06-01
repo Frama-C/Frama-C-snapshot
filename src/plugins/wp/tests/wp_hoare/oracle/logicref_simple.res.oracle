@@ -4,26 +4,14 @@
 .................................................
 ... Ref Usage
 .................................................
-... Initial state
-  Nothing
-............
-... Function fsimple
-   c
-   __retres
-............
-... Function fsimple_array
-  &t
-   __retres
-............
-... Function ftwo_star
-   d
-   __retres
-............
-... Function fvpositive
-   b
+Init: { }
+Function fsimple: { c __retres }
+Function fsimple_array: { &t __retres }
+Function ftwo_star: { d __retres }
+Function fvpositive: { b }
 .................................................
 [wp] Loading driver 'share/wp.driver'
-[wp] warning: Missing RTE guards
+[wp] Warning: Missing RTE guards
 ------------------------------------------------------------
   Function fsimple
 ------------------------------------------------------------

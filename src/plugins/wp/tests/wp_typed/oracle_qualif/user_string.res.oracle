@@ -2,9 +2,9 @@
 [kernel] Parsing tests/wp_typed/user_string.i (no preprocessing)
 [wp] Running WP plugin...
 [wp] Loading driver 'share/wp.driver'
-[wp] warning: Missing RTE guards
+[wp] Warning: Missing RTE guards
 [wp] 13 goals scheduled
-[wp] [Alt-Ergo] Goal typed_strlen_post : Valid
+[wp] [Qed] Goal typed_strlen_post : Valid
 [wp] [Qed] Goal typed_strlen_loop_inv_BASE_preserved : Valid
 [wp] [Qed] Goal typed_strlen_loop_inv_BASE_established : Valid
 [wp] [Alt-Ergo] Goal typed_strlen_loop_inv_RANGE_preserved : Valid
@@ -18,9 +18,10 @@
 [wp] [Qed] Goal typed_strlen_loop_term_decrease : Valid
 [wp] [Alt-Ergo] Goal typed_strlen_loop_term_positive : Valid
 [wp] Proved goals:   13 / 13
-    Qed:             7 
-    Alt-Ergo:        6
-----------------------------------------------------------
-Functions           WP   Alt-Ergo    Total   Success
-strlen               7      6 (209)   13       100%
-----------------------------------------------------------
+  Qed:             8 
+  Alt-Ergo:        5
+[wp] Report 'tests/wp_typed/user_string.i.0.report.json'
+-------------------------------------------------------------
+Functions           WP     Alt-Ergo        Total   Success
+strlen               8      5 (168..192)    13       100%
+-------------------------------------------------------------

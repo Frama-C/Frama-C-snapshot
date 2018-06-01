@@ -3,150 +3,121 @@
 [value] Computing initial state
 [value] Initial state computed
 [value:initial-state] Values of globals at initialization
+  __fc_heap_status ∈ [--..--]
   __fc_random_counter ∈ [--..--]
   __fc_rand_max ∈ {32767}
-  __fc_heap_status ∈ [--..--]
   __fc_mblen_state ∈ [--..--]
   __fc_mbtowc_state ∈ [--..--]
   __fc_wctomb_state ∈ [--..--]
   Frama_C_entropy_source ∈ [--..--]
+  __fc_strtok_ptr ∈ {0}
 [value] computing for function calloc <- main.
-    Called from tests/libc/stdlib_c.c:14.
-[value] computing for function malloc <- calloc <- main.
-    Called from share/libc/stdlib.c:104.
-share/libc/stdlib.c:84:[value] allocating variable __malloc_malloc_l84
-share/libc/stdlib.c:84:[kernel] warning: Neither code nor specification for function Frama_C_malloc_by_stack, generating default assigns from the prototype
-share/libc/stdlib.h:320:[value] warning: function malloc, behavior allocation: postcondition got status unknown. (Behavior may be inactive, no reduction performed.)
-share/libc/stdlib.h:325:[value] warning: function malloc, behavior no_allocation: postcondition got status invalid. (Behavior may be inactive, no reduction performed.)
-share/libc/stdlib.h:325:[value] function malloc, behavior no_allocation: postcondition got status valid. (Behavior may be inactive, no reduction performed.)
-[value] Recording results for malloc
-[value] Done for function malloc
-share/libc/stdlib.c:105:[value] Call to builtin memset(({{ (void *)&__malloc_malloc_l84 }},{0},{4}))
-share/libc/stdlib.h:299:[value] warning: function calloc, behavior allocation: postcondition got status unknown. (Behavior may be inactive, no reduction performed.)
-share/libc/stdlib.h:300:[value] warning: function calloc, behavior allocation: postcondition got status unknown. (Behavior may be inactive, no reduction performed.)
-share/libc/stdlib.h:301:[value] warning: function calloc, behavior allocation: postcondition got status unknown. (Behavior may be inactive, no reduction performed.)
-share/libc/stdlib.h:307:[value] warning: function calloc, behavior no_allocation: postcondition got status unknown. (Behavior may be inactive, no reduction performed.)
+  Called from tests/libc/stdlib_c.c:14.
+[value] share/libc/stdlib.c:68: allocating variable __malloc_calloc_l68
+[value] computing for function memset <- calloc <- main.
+  Called from share/libc/stdlib.c:69.
+[value] using specification for function memset
+[value] share/libc/stdlib.c:69: 
+  function memset: precondition 'valid_s' got status valid.
+[value] share/libc/string.h:104: 
+  cannot evaluate ACSL term, unsupported ACSL construct: logic function memset
+[value] Done for function memset
 [value] Recording results for calloc
 [value] Done for function calloc
-tests/libc/stdlib_c.c:16:[value] assertion got status valid.
+[value] tests/libc/stdlib_c.c:16: assertion got status valid.
 [value] computing for function Frama_C_size_t_interval <- main.
-    Called from tests/libc/stdlib_c.c:20.
+  Called from tests/libc/stdlib_c.c:20.
 [value] using specification for function Frama_C_size_t_interval
-share/libc/__fc_builtin.h:142:[value] function Frama_C_size_t_interval: precondition got status valid.
+[value] tests/libc/stdlib_c.c:20: 
+  function Frama_C_size_t_interval: precondition 'order' got status valid.
 [value] Done for function Frama_C_size_t_interval
 [value] computing for function calloc <- main.
-    Called from tests/libc/stdlib_c.c:21.
-[value] computing for function malloc <- calloc <- main.
-    Called from share/libc/stdlib.c:104.
-share/libc/stdlib.c:84:[value] allocating variable __malloc_malloc_l84_0
-[value] Recording results for malloc
-[value] Done for function malloc
-share/libc/stdlib.c:105:[value] Call to builtin memset(({{ (void *)&__malloc_malloc_l84_0 }},{0},
-                            [0..4294967292],0%4))
-share/libc/stdlib.c:105:[value] warning: out of bounds write. assert \valid(p + (0 .. l - 1));
-share/libc/stdlib.h:307:[value] function calloc, behavior no_allocation: postcondition got status valid. (Behavior may be inactive, no reduction performed.)
+  Called from tests/libc/stdlib_c.c:21.
+[value] share/libc/stdlib.c:68: allocating variable __malloc_calloc_l68_0
+[value] computing for function memset <- calloc <- main.
+  Called from share/libc/stdlib.c:69.
+[value:alarm] share/libc/stdlib.c:69: Warning: 
+  function memset: precondition 'valid_s' got status unknown.
+[value] Done for function memset
 [value] Recording results for calloc
 [value] Done for function calloc
-tests/libc/stdlib_c.c:23:[value] warning: assertion got status unknown.
+[value:alarm] tests/libc/stdlib_c.c:23: Warning: assertion got status unknown.
 [value] computing for function calloc <- main.
-    Called from tests/libc/stdlib_c.c:27.
-share/libc/stdlib.h:307:[value] function calloc, behavior no_allocation: postcondition got status valid.
+  Called from tests/libc/stdlib_c.c:27.
 [value] Recording results for calloc
 [value] Done for function calloc
-tests/libc/stdlib_c.c:28:[value] assertion got status valid.
-tests/libc/stdlib_c.c:31:[value] entering loop for the first time
+[value] tests/libc/stdlib_c.c:28: assertion got status valid.
+[value] tests/libc/stdlib_c.c:31: entering loop for the first time
 [value] computing for function calloc <- main.
-    Called from tests/libc/stdlib_c.c:32.
-[value] computing for function malloc <- calloc <- main.
-    Called from share/libc/stdlib.c:104.
-share/libc/stdlib.c:84:[value] allocating variable __malloc_malloc_l84_1
-[value] Recording results for malloc
-[value] Done for function malloc
-share/libc/stdlib.c:105:[value] Call to builtin memset(({{ (void *)&__malloc_malloc_l84_1 }},{0},{4}))
+  Called from tests/libc/stdlib_c.c:32.
+[value] share/libc/stdlib.c:68: allocating variable __malloc_calloc_l68_1
+[value] computing for function memset <- calloc <- main.
+  Called from share/libc/stdlib.c:69.
+[value] Done for function memset
 [value] Recording results for calloc
 [value] Done for function calloc
 [value] computing for function calloc <- main.
-    Called from tests/libc/stdlib_c.c:32.
-[value] computing for function malloc <- calloc <- main.
-    Called from share/libc/stdlib.c:104.
-[value] Recording results for malloc
-[value] Done for function malloc
-share/libc/stdlib.c:105:[value] Call to builtin memset(({{ (void *)&__malloc_w_malloc_l84_1 }},{0},{4; 8}))
+  Called from tests/libc/stdlib_c.c:32.
+[value] computing for function memset <- calloc <- main.
+  Called from share/libc/stdlib.c:69.
+[value] Done for function memset
 [value] Recording results for calloc
 [value] Done for function calloc
-tests/libc/stdlib_c.c:33:[value] warning: out of bounds write. assert \valid(s + (unsigned int)(i - 1));
+[value:alarm] tests/libc/stdlib_c.c:33: Warning: 
+  out of bounds write. assert \valid(s + (unsigned int)(i - 1));
 [value] computing for function calloc <- main.
-    Called from tests/libc/stdlib_c.c:32.
-[value] computing for function malloc <- calloc <- main.
-    Called from share/libc/stdlib.c:104.
-[value] Recording results for malloc
-[value] Done for function malloc
-share/libc/stdlib.c:105:[value] Call to builtin memset(({{ (void *)&__malloc_w_malloc_l84_1 }},{0},
-                            {4; 8; 12}))
+  Called from tests/libc/stdlib_c.c:32.
+[value] computing for function memset <- calloc <- main.
+  Called from share/libc/stdlib.c:69.
+[value] Done for function memset
 [value] Recording results for calloc
 [value] Done for function calloc
 [value] computing for function calloc <- main.
-    Called from tests/libc/stdlib_c.c:32.
-[value] computing for function malloc <- calloc <- main.
-    Called from share/libc/stdlib.c:104.
-[value] Recording results for malloc
-[value] Done for function malloc
-share/libc/stdlib.c:105:[value] Call to builtin memset(({{ (void *)&__malloc_w_malloc_l84_1 }},{0},
-                            [0..4294967292],0%4))
+  Called from tests/libc/stdlib_c.c:32.
+[value] computing for function memset <- calloc <- main.
+  Called from share/libc/stdlib.c:69.
+[value] Done for function memset
 [value] Recording results for calloc
 [value] Done for function calloc
 [value] computing for function calloc <- main.
-    Called from tests/libc/stdlib_c.c:32.
-[value] computing for function malloc <- calloc <- main.
-    Called from share/libc/stdlib.c:104.
-[value] Recording results for malloc
-[value] Done for function malloc
-share/libc/stdlib.c:105:[value] Call to builtin memset(({{ (void *)&__malloc_w_malloc_l84_1 }},{0},
-                            [0..4294967292],0%4))
+  Called from tests/libc/stdlib_c.c:32.
+[value] computing for function memset <- calloc <- main.
+  Called from share/libc/stdlib.c:69.
+[value] Done for function memset
 [value] Recording results for calloc
 [value] Done for function calloc
 [value] computing for function calloc <- main.
-    Called from tests/libc/stdlib_c.c:32.
-[value] computing for function malloc <- calloc <- main.
-    Called from share/libc/stdlib.c:104.
-[value] Recording results for malloc
-[value] Done for function malloc
-share/libc/stdlib.c:105:[value] Call to builtin memset(({{ (void *)&__malloc_w_malloc_l84_1 }},{0},
-                            [0..4294967292],0%4))
+  Called from tests/libc/stdlib_c.c:32.
+[value] computing for function memset <- calloc <- main.
+  Called from share/libc/stdlib.c:69.
+[value] Done for function memset
 [value] Recording results for calloc
 [value] Done for function calloc
 [value] Recording results for main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======
-[value:final-states] Values at end of function malloc:
-  
 [value:final-states] Values at end of function calloc:
+  __fc_heap_status ∈ [--..--]
   l ∈ [0..4294967292],0%4
   p ∈
-   {{ NULL ; &__malloc_malloc_l84[0] ; &__malloc_malloc_l84_0[0] ;
-      &__malloc_w_malloc_l84_1[0] }}
+   {{ NULL ; &__malloc_calloc_l68[0] ; &__malloc_calloc_l68_0[0] ;
+      &__malloc_w_calloc_l68_1[0] }}
   __retres ∈
-          {{ NULL ; (void *)&__malloc_malloc_l84 ;
-             (void *)&__malloc_malloc_l84_0 ;
-             (void *)&__malloc_w_malloc_l84_1 }}
-  __malloc_malloc_l84[0..3] ∈ {0} or UNINITIALIZED
-  __malloc_malloc_l84_0[0..4294967291] ∈ {0} or UNINITIALIZED
-  __malloc_w_malloc_l84_1[0]# ∈ {0; 42} or UNINITIALIZED%32, bits 0 to 7 
-                         [1]# ∈ {0; 42} or UNINITIALIZED%32, bits 8 to 15 
-                         [2]# ∈ {0; 42} or UNINITIALIZED%32, bits 16 to 23 
-                         [bits 24 to 34359738335]# ∈
-                         {0; 42} or UNINITIALIZED repeated %32, bits 24 to 34359738335 
+          {{ NULL ; (void *)&__malloc_calloc_l68 ;
+             (void *)&__malloc_calloc_l68_0 ;
+             (void *)&__malloc_w_calloc_l68_1 }}
+  __malloc_calloc_l68[0..3] ∈ [--..--] or UNINITIALIZED
+  __malloc_calloc_l68_0[0..4294967291] ∈ [--..--] or UNINITIALIZED
+  __malloc_w_calloc_l68_1[0..4294967291] ∈ [--..--] or UNINITIALIZED
 [value:final-states] Values at end of function main:
+  __fc_heap_status ∈ [--..--]
   Frama_C_entropy_source ∈ [--..--]
-  p ∈ {{ NULL ; (int *)&__malloc_malloc_l84 }}
+  p ∈ {{ NULL ; (int *)&__malloc_calloc_l68 }}
   nmemb ∈ [1..4294967295]
-  q ∈ {{ NULL ; (int *)&__malloc_malloc_l84_0 }}
+  q ∈ {{ NULL ; (int *)&__malloc_calloc_l68_0 }}
   r ∈ {0}
+  s ∈ {{ NULL ; (int *)&__malloc_w_calloc_l68_1 }} or UNINITIALIZED
   __retres ∈ {0}
-  __malloc_malloc_l84[0..3] ∈ {0} or UNINITIALIZED
-  __malloc_malloc_l84_0[0..4294967291] ∈ {0} or UNINITIALIZED
-  __malloc_w_malloc_l84_1[0]# ∈ {0; 42} or UNINITIALIZED%32, bits 0 to 7 
-                         [1]# ∈ {0; 42} or UNINITIALIZED%32, bits 8 to 15 
-                         [2]# ∈ {0; 42} or UNINITIALIZED%32, bits 16 to 23 
-                         [bits 24 to 34359738335]# ∈
-                         {0; 42} or UNINITIALIZED repeated %32, bits 24 to 34359738335 
+  __malloc_calloc_l68[0..3] ∈ [--..--] or UNINITIALIZED
+  __malloc_calloc_l68_0[0..4294967291] ∈ [--..--] or UNINITIALIZED
+  __malloc_w_calloc_l68_1[0..4294967291] ∈ [--..--] or UNINITIALIZED

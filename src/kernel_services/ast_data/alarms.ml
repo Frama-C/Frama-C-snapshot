@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2017                                               *)
+(*  Copyright (C) 2007-2018                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -36,8 +36,6 @@ let string_of_overflow_kind = function
 type alarm =
   | Division_by_zero of exp
   | Memory_access of lval * access_kind
-  | Logic_memory_access (* temporary? *) of 
-      term * access_kind
   | Index_out_of_bound of
       exp (* index *) 
     * exp option (* None = lower bound is zero; Some up = upper bound *) 
@@ -60,13 +58,13 @@ type alarm =
   | Uninitialized of lval
   | Dangling of lval
   | Is_nan_or_infinite of exp * fkind
-  | Valid_string of exp
-  | Function_pointer of exp
+  | Is_nan of exp * fkind
+  | Function_pointer of exp * exp list option
   | Uninitialized_union of lval list
 
 (* If you add one constructor to this type, make sure to add a dummy value
    in the 'reprs' value below, and increase 'nb_alarms' *)
-let nb_alarm_constructors = 17
+let nb_alarm_constructors = 16
 
 module D =
   Datatype.Make_with_collections
@@ -78,10 +76,8 @@ module D =
                      constructor) for introspection purposes. *)
         let e = List.hd Exp.reprs in
         let lv = List.hd Lval.reprs in
-        let t = List.hd Term.reprs in
         [ Division_by_zero e;
           Memory_access (lv, For_reading);
-          Logic_memory_access (t, For_writing);
           Index_out_of_bound (e, None);
           Invalid_shift (e, None);
           Pointer_comparison (None, e);
@@ -93,29 +89,28 @@ module D =
           Uninitialized lv;
           Dangling lv;
           Is_nan_or_infinite (e, FFloat);
-          Valid_string e;
-          Function_pointer e;
-          Uninitialized_union [ lv ] 
+          Is_nan (e, FFloat);
+          Function_pointer (e, None);
+          Uninitialized_union [ lv ];
         ]
 
       let nb = function
         | Division_by_zero _ -> 0
         | Memory_access _ -> 1
-        | Logic_memory_access _ -> 2
-        | Index_out_of_bound _ -> 3
-        | Invalid_shift _ -> 4
-        | Pointer_comparison _ -> 5
-        | Overflow _ -> 6
-        | Not_separated _ -> 7
-        | Overlap _ -> 8
-        | Uninitialized _ -> 9
-        | Is_nan_or_infinite _ -> 10
+        | Index_out_of_bound _ -> 2
+        | Invalid_shift _ -> 3
+        | Pointer_comparison _ -> 4
+        | Overflow _ -> 5
+        | Not_separated _ -> 6
+        | Overlap _ -> 7
+        | Uninitialized _ -> 8
+        | Is_nan_or_infinite _ -> 9
+        | Is_nan _ -> 10
         | Float_to_int _ -> 11
         | Differing_blocks _ -> 12
-        | Valid_string _ -> 13
-        | Dangling _ -> 14
-        | Function_pointer _ -> 15
-        | Uninitialized_union _ -> 16
+        | Dangling _ -> 13
+        | Function_pointer _ -> 14
+        | Uninitialized_union _ -> 15
 
       let () = (* Lightweight checks *)
         for i = 0 to nb_alarm_constructors - 1 do
@@ -127,12 +122,12 @@ module D =
         | Is_nan_or_infinite (e1, fk1), Is_nan_or_infinite (e2, fk2) ->
           let n = Exp.compare e1 e2 in
           if n = 0 then Extlib.compare_basic fk1 fk2 else n
+        | Is_nan (e1, fk1), Is_nan (e2, fk2) ->
+          let n = Exp.compare e1 e2 in
+          if n = 0 then Extlib.compare_basic fk1 fk2 else n
         | Memory_access(lv1, access_kind1), Memory_access(lv2, access_kind2) ->
           let n = Pervasives.compare access_kind1 access_kind2 in
           if n = 0 then Lval.compare lv1 lv2 else n
-        | Logic_memory_access(t1, b1), Logic_memory_access(t2, b2) ->
-          let n = Pervasives.compare b1 b2 in
-          if n = 0 then Term.compare t1 t2 else n
         | Index_out_of_bound(e11, e12), Index_out_of_bound(e21, e22) ->
           let n = Exp.compare e11 e21 in
           if n = 0 then Extlib.opt_compare Exp.compare e12 e22 else n
@@ -181,14 +176,15 @@ module D =
           | Differing_blocks (e11, e12), Differing_blocks (e21, e22) ->
             let n = Exp.compare e11 e21 in
             if n = 0 then Exp.compare e12 e22 else n
-          | Function_pointer e1, Function_pointer e2
-          | Valid_string(e1), Valid_string(e2) ->
-            Exp.compare e1 e2
-          | _, (Division_by_zero _ | Memory_access _ | Logic_memory_access _  |
+          | Function_pointer (e1, l1), Function_pointer (e2, l2) ->
+            let n = Exp.compare e1 e2 in
+            if n <> 0 then n
+            else Extlib.opt_compare (Extlib.list_compare Exp.compare) l1 l2
+          | _, (Division_by_zero _ | Memory_access _ |
                 Index_out_of_bound _ | Invalid_shift _ | Pointer_comparison _ |
                 Overflow _ | Not_separated _ | Overlap _ | Uninitialized _ |
-                Dangling _ | Is_nan_or_infinite _ | Float_to_int _ |
-                Differing_blocks _ | Valid_string _ | Function_pointer _ |
+                Dangling _ | Is_nan_or_infinite _ | Is_nan _ | Float_to_int _ |
+                Differing_blocks _ | Function_pointer _ |
                 Uninitialized_union _ )
             ->
             let n = nb a1 - nb a2 in
@@ -200,10 +196,10 @@ module D =
       let hash a = match a with
         | Division_by_zero e ->
           Hashtbl.hash (nb a, Exp.hash e)
-        | Is_nan_or_infinite (e, fk) -> 
+        | Is_nan_or_infinite (e, fk)
+        | Is_nan (e, fk) ->
           Hashtbl.hash (nb a, Exp.hash e, fk)
         | Memory_access(lv, b) -> Hashtbl.hash (nb a, Lval.hash lv, b)
-        | Logic_memory_access(t, b) -> Hashtbl.hash (nb a, Term.hash t, b)
         | Index_out_of_bound(e1, e2) -> 
           Hashtbl.hash
             (nb a, 
@@ -225,8 +221,7 @@ module D =
           Hashtbl.hash (nb a, Lval.hash lv1, Lval.hash lv2)
         | Uninitialized lv -> Hashtbl.hash (nb a, Lval.hash lv)
         | Dangling lv -> Hashtbl.hash (nb a, Lval.hash lv)
-        | Valid_string(e) -> Hashtbl.hash (nb a, Exp.hash e)
-        | Function_pointer e -> Hashtbl.hash (nb a, Exp.hash e)
+        | Function_pointer (e, _) -> Hashtbl.hash (nb a, Exp.hash e)
         | Uninitialized_union llv ->
           Hashtbl.hash (nb a, List.map Lval.hash llv)
 
@@ -240,13 +235,12 @@ module D =
         | Is_nan_or_infinite (e, fk) ->
           Format.fprintf fmt "Is_nan_or_infinite(@[(%a)%a@])"
             Printer.pp_fkind fk Printer.pp_exp e
+        | Is_nan (e, fk) ->
+          Format.fprintf fmt "Is_nan(@[(%a)%a@])"
+            Printer.pp_fkind fk Printer.pp_exp e
         | Memory_access(lv, read) ->
           Format.fprintf fmt "Memory_access(@[%a@],@ %s)" 
             Printer.pp_lval lv
-            (match read with For_reading -> "read" | For_writing -> "write")
-        | Logic_memory_access(t, read) ->
-          Format.fprintf fmt "Logic_memory_access(@[%a@],@ %s)" 
-            Printer.pp_term t 
             (match read with For_reading -> "read" | For_writing -> "write")
         | Index_out_of_bound(e1, e2) ->
           Format.fprintf fmt "Index_out_of_bound(@[%a@]@ %s@ @[%a@])" 
@@ -290,9 +284,7 @@ module D =
           Format.fprintf fmt "Uninitialized(@[%a@])" Lval.pretty lv
         | Dangling lv ->
           Format.fprintf fmt "Unspecified(@[%a@])" Lval.pretty lv
-        | Valid_string e ->
-          Format.fprintf fmt "Valid_string(@[%a@])" Exp.pretty e
-        | Function_pointer e ->
+        | Function_pointer (e, _) ->
           Format.fprintf fmt "Function_pointer(@[%a@])" Exp.pretty e
         | Uninitialized_union llv ->
           Format.fprintf fmt "Uninitialized_union(@[[%a]@])" 
@@ -391,7 +383,6 @@ let add_annotation tbl alarm emitter ?kf kinstr annot =
 let get_name = function
   | Division_by_zero _ -> "division_by_zero"
   | Memory_access _ -> "mem_access"
-  | Logic_memory_access _ -> "logic_mem_access"
   | Index_out_of_bound _ -> "index_bound"
   | Invalid_shift _ -> "shift"
   | Pointer_comparison _ -> "ptr_comparison"
@@ -399,13 +390,13 @@ let get_name = function
   | Overflow(s, _, _, _) -> string_of_overflow_kind s
   | Not_separated _ -> "separation"
   | Overlap _ -> "overlap"
-  | Uninitialized _ -> "initialisation"
+  | Uninitialized _ -> "initialization"
   | Dangling _ -> "dangling_pointer"
   | Is_nan_or_infinite _ -> "is_nan_or_infinite"
+  | Is_nan _ -> "is_nan"
   | Float_to_int _ -> "float_to_int"
-  | Valid_string _ -> "valid_string"
   | Function_pointer _ -> "function_pointer"
-  | Uninitialized_union _ -> "initialisation_of_union"
+  | Uninitialized_union _ -> "initialization_of_union"
 
 let get_short_name = function
   | Overflow _ -> "overflow"
@@ -414,7 +405,6 @@ let get_short_name = function
 let get_description = function
   | Division_by_zero _ -> "Integer division by zero"
   | Memory_access _ -> "Invalid pointer dereferencing"
-  | Logic_memory_access _ -> "Invalid range dereferencing"
   | Index_out_of_bound _ -> "Array access out of bounds"
   | Invalid_shift _ -> "Invalid shift"
   | Pointer_comparison _ -> "Invalid pointer comparison"
@@ -425,8 +415,8 @@ let get_description = function
   | Uninitialized _ -> "Uninitialized memory read"
   | Dangling _ -> "Read of a dangling pointer"
   | Is_nan_or_infinite _ -> "Non-finite (nan or infinite) floating-point value"
+  | Is_nan _ -> "NaN floating-point value"
   | Float_to_int _ -> "Overflow in float to int conversion"
-  | Valid_string _ -> "Invalid string argument"
   | Function_pointer _ -> "Pointer to a function with non-compatible type"
   | Uninitialized_union _ -> "Uninitialized memory read of union"
 
@@ -450,6 +440,30 @@ let overflowed_expr_to_term ~loc e =
     Logic_const.term ~loc (TBinOp(op, t1, t2)) ty
   | _ -> Logic_utils.expr_to_term ~cast:true e
 
+  (* Creates \is_finite((fkind)e) or \is_nan((fkind)e) according to
+     [predicate]. *)
+let create_special_float_predicate ~loc e fkind predicate =
+  let loc = best_loc ~loc e.eloc in
+  let t = Logic_utils.expr_to_term ~cast:true e in
+  let typ = match fkind with
+    | FFloat -> Cil.floatType
+    | FDouble -> Cil.doubleType
+    | FLongDouble -> Cil.longDoubleType
+  in
+  let t = Logic_utils.mk_cast ~loc typ t in
+  (* Different signatures, depending on the type of the argument *)
+  let all_predicates = Logic_env.find_all_logic_functions predicate in
+  let compatible li =
+    Logic_type.equal t.term_type (List.hd li.l_profile).lv_type
+  in
+  let pi =
+    try List.find compatible all_predicates
+    with Not_found ->
+      Kernel.fatal "Unexpected type %a for predicate %s"
+        Printer.pp_logic_type t.term_type predicate
+  in
+  Logic_const.unamed ~loc (Papp (pi, [], [ t ]))
+
 let create_predicate ?(loc=Location.unknown) alarm = 
   let aux = function
   | Division_by_zero e -> 
@@ -466,14 +480,6 @@ let create_predicate ?(loc=Location.unknown) alarm =
     in
     let e = Cil.mkAddrOrStartOf ~loc lv in
     let t = Logic_utils.expr_to_term ~cast:true e in
-    valid ~loc (Logic_const.here_label, t)
-
-  | Logic_memory_access(t, read) -> 
-    (* \valid(lv) or \valid_read(lv) according to read *)
-    let valid = match read with
-      | For_reading -> Logic_const.pvalid_read
-      | For_writing -> Logic_const.pvalid
-    in
     valid ~loc (Logic_const.here_label, t)
 
   | Index_out_of_bound(e1, e2) ->
@@ -514,11 +520,6 @@ let create_predicate ?(loc=Location.unknown) alarm =
     in
     let t2 = Logic_utils.expr_to_term ~cast:true e2 in
     Logic_utils.pointer_comparable ~loc t1 t2
-
-  | Valid_string(e) ->
-    let loc = best_loc ~loc e.eloc in
-    let t =  Logic_utils.expr_to_term ~cast:true e in
-    Logic_utils.points_to_valid_string ~loc t
 
   | Differing_blocks(e1, e2) ->
     (* \base_addr(e1) == \base_addr(e2) *)
@@ -586,31 +587,29 @@ let create_predicate ?(loc=Location.unknown) alarm =
     let t = Logic_utils.expr_to_term ~cast:false e in
     Logic_const.(pnot ~loc (pdangling ~loc (Logic_const.here_label, t)))
 
-  | Is_nan_or_infinite (e, fkind) -> 
-    (* \is_finite((fkind)e) *)
-    let loc = best_loc ~loc e.eloc in
-    let t = Logic_utils.expr_to_term ~cast:true e in
-    let typ = match fkind with
-      | FFloat -> Cil.floatType
-      | FDouble -> Cil.doubleType
-      | FLongDouble -> Cil.longDoubleType
-    in
-    let t = Logic_utils.mk_cast ~loc typ t in
-    (* Different signatures, depending on the type of the argument *)
-    let all_is_finite = Logic_env.find_all_logic_functions "\\is_finite" in
-    let compatible li =
-      Logic_type.equal t.term_type (List.hd li.l_profile).lv_type
-    in
-    let pi =
-      try List.find compatible all_is_finite
-      with Not_found ->
-        Kernel.fatal "Unexpected type %a for predicate \\is_finite"
-          Printer.pp_logic_type t.term_type
-    in
-    Logic_const.unamed ~loc (Papp (pi, [], [ t ]))
+  | Is_nan_or_infinite (e, fkind) ->
+    create_special_float_predicate ~loc e fkind "\\is_finite"
+  | Is_nan (e, fkind) ->
+    let pred = create_special_float_predicate ~loc e fkind "\\is_NaN" in
+    Logic_const.pnot ~loc pred
 
-  | Function_pointer e ->
+  | Function_pointer (e, args) ->
     let loc = e.eloc in
+    let t = Cil.typeOf e in
+    let e =
+      match Cil.unrollTypeDeep t, args with
+      | TPtr (TFun (_, Some _, _, _), _), _
+      | TPtr (TFun _, _), None -> e
+      | TPtr (TFun (ret, None, var, attrs), _), Some args ->
+        let ltyps = List.map (fun arg -> "", Cil.typeOf arg, []) args in
+        let typ = TFun (ret, Some ltyps, var, attrs) in
+        Cil.mkCast e (TPtr (typ, []))
+      | t', _ ->
+        Kernel.fatal
+          "Trying to emit a Function_pointer alarm over expression %a \
+           that has unexpected type %a (unrolled as %a)"
+          Printer.pp_exp e Printer.pp_typ t Printer.pp_typ t'
+    in
     let t = Logic_utils.expr_to_term ~cast:true e in
     Logic_const.(pvalid_function ~loc t)
 

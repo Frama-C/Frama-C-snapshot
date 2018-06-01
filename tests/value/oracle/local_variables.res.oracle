@@ -10,12 +10,13 @@
   R ∈ {0}
   S ∈ {0}
 [value] computing for function u <- main.
-    Called from tests/value/local_variables.i:30.
+  Called from tests/value/local_variables.i:30.
 [value] computing for function w <- u <- main.
-    Called from tests/value/local_variables.i:11.
+  Called from tests/value/local_variables.i:11.
 [value] computing for function unkn <- w <- u <- main.
-    Called from tests/value/local_variables.i:24.
-tests/value/local_variables.i:24:[kernel] warning: Neither code nor specification for function unkn, generating default assigns from the prototype
+  Called from tests/value/local_variables.i:24.
+[kernel:annot:missing-spec] tests/value/local_variables.i:24: Warning: 
+  Neither code nor specification for function unkn, generating default assigns from the prototype
 [value] using specification for function unkn
 [value] Done for function unkn
 [value] Recording results for w
@@ -23,21 +24,24 @@ tests/value/local_variables.i:24:[kernel] warning: Neither code nor specificatio
 [value] Recording results for u
 [value] Done for function u
 [value] computing for function v <- main.
-    Called from tests/value/local_variables.i:31.
+  Called from tests/value/local_variables.i:31.
 [value] computing for function w <- v <- main.
-    Called from tests/value/local_variables.i:18.
+  Called from tests/value/local_variables.i:18.
 [value] computing for function unkn <- w <- v <- main.
-    Called from tests/value/local_variables.i:24.
+  Called from tests/value/local_variables.i:24.
 [value] Done for function unkn
 [value] Recording results for w
 [value] Done for function w
 [value] Recording results for v
 [value] Done for function v
-tests/value/local_variables.i:35:[value] warning: locals {x} escaping the scope of a block of main through p
-tests/value/local_variables.i:43:[value] entering loop for the first time
-tests/value/local_variables.i:47:[value] warning: accessing left-value that contains escaping addresses.
-    assert ¬\dangling(&p);
-tests/value/local_variables.i:47:[value] warning: out of bounds read. assert \valid_read(p);
+[value] tests/value/local_variables.i:35: Warning: 
+  locals {x} escaping the scope of a block of main through p
+[value] tests/value/local_variables.i:43: entering loop for the first time
+[value:alarm] tests/value/local_variables.i:47: Warning: 
+  accessing left-value that contains escaping addresses.
+  assert ¬\dangling(&p);
+[value:alarm] tests/value/local_variables.i:47: Warning: 
+  out of bounds read. assert \valid_read(p);
 [value] Recording results for main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======
@@ -71,7 +75,7 @@ tests/value/local_variables.i:47:[value] warning: out of bounds read. assert \va
 [from] Computing for function main
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
-    These dependencies hold at termination for the executions that terminate:
+  These dependencies hold at termination for the executions that terminate:
 [from] Function unkn:
   \result FROM \nothing
 [from] Function w:
@@ -92,46 +96,46 @@ tests/value/local_variables.i:47:[value] warning: out of bounds read. assert \va
   \result FROM c; p; S_p[0]
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function w:
-      B; wu; wv; tmp; __retres
+    B; wu; wv; tmp; __retres
 [inout] Inputs for function w:
-      A; ru; rv
+    A; ru; rv
 [inout] InOut (internal) for function w:
-    Operational inputs:
-      A; ru; rv; pr; pw
-    Operational inputs on termination:
-      A; ru; rv; pr; pw
-    Sure outputs:
-      tmp; __retres
+  Operational inputs:
+    A; ru; rv; pr; pw
+  Operational inputs on termination:
+    A; ru; rv; pr; pw
+  Sure outputs:
+    tmp; __retres
 [inout] Out (internal) for function u:
-      B; ru; wu; tmp
+    B; ru; wu; tmp
 [inout] Inputs for function u:
-      A; C
+    A; C
 [inout] InOut (internal) for function u:
-    Operational inputs:
-      A; C
-    Operational inputs on termination:
-      A; C
-    Sure outputs:
-      ru; wu; tmp
+  Operational inputs:
+    A; C
+  Operational inputs on termination:
+    A; C
+  Sure outputs:
+    ru; wu; tmp
 [inout] Out (internal) for function v:
-      B; rv; wv; tmp
+    B; rv; wv; tmp
 [inout] Inputs for function v:
-      A; D
+    A; D
 [inout] InOut (internal) for function v:
-    Operational inputs:
-      A; D
-    Operational inputs on termination:
-      A; D
-    Sure outputs:
-      rv; wv; tmp
+  Operational inputs:
+    A; D
+  Operational inputs on termination:
+    A; D
+  Sure outputs:
+    rv; wv; tmp
 [inout] Out (internal) for function main:
-      B; R; S; p; x; y; z; t; i; a; __retres
+    B; R; S; p; x; y; z; t; i; a; __retres
 [inout] Inputs for function main:
-      A; C; D; S_p[0]
+    A; C; D; S_p[0]
 [inout] InOut (internal) for function main:
-    Operational inputs:
-      A; C; D; c; p; S_p[0]
-    Operational inputs on termination:
-      A; C; D; c; p; S_p[0]
-    Sure outputs:
-      R; S; y; z; t; i; __retres
+  Operational inputs:
+    A; C; D; c; p; S_p[0]
+  Operational inputs on termination:
+    A; C; D; c; p; S_p[0]
+  Sure outputs:
+    R; S; y; z; t; i; __retres

@@ -2,7 +2,7 @@
 /*                                                                        */
 /*  This file is part of Frama-C.                                         */
 /*                                                                        */
-/*  Copyright (C) 2007-2017                                               */
+/*  Copyright (C) 2007-2018                                               */
 /*    CEA (Commissariat à l'énergie atomique et aux énergies              */
 /*         alternatives)                                                  */
 /*                                                                        */
@@ -32,7 +32,9 @@
 /* Concatenation of 2 tokens */
 # define preconcat(x,y) x ## y
 # define concat(x,y) preconcat(x,y)
+/** Prefix of public functions */
 # define export_prefix __e_acsl_
+/** Add public prefix to an identifier */
 # define export_alias(_n) concat(export_prefix, _n)
 
 #endif

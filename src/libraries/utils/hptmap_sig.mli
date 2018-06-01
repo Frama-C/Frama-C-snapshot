@@ -56,6 +56,14 @@ module type S = sig
       a binding of the key [k] to the datum [d]. If a binding already exists
       for [k], it is overridden. *)
 
+  val replace : (v option -> v option) -> key -> t -> t
+  (** [replace f k m] returns a map whose bindings are all bindings in [m],
+      except for the key [k] which is:
+      - removed from the map if [f o] = None
+      - bound to v' if [f o] = Some v'
+      where [o] is (Some v) if [k] is bound to [v] in [m], or None if [k]
+      is not bound in [m]. *)
+
   val find : key -> t -> v
   val find_check_missing: key -> t -> v
   (** Both [find key m] and [find_check_missing key m] return the value
@@ -288,8 +296,6 @@ module type S = sig
 
   val min_binding: t -> key * v
   val max_binding: t -> key * v
-
-  val split: key -> t -> t * v option * t
 
   val compositional_bool: t -> bool
   (** Value of the compositional boolean associated to the tree, as computed

@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2017                                               *)
+(*  Copyright (C) 2007-2018                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -89,7 +89,10 @@ and source =
   | Generated of string
   | Extern of Engine.link extern
 
-val builtin_type : name:string -> link:string infoprover -> library:string -> adt
+val mem_builtin_type : name:string -> bool
+val set_builtin_type : name:string -> link:string infoprover -> library:string -> unit
+val get_builtin_type : name:string -> link:string infoprover -> library:string -> adt
+val is_builtin : logic_type_info -> bool
 val is_builtin_type : name:string -> tau -> bool
 val datatype : library:string -> string -> adt
 val record :
@@ -154,8 +157,14 @@ val tau_of_lfun : lfun -> tau option list -> tau
 val tau_of_field : field -> tau
 val tau_of_record : field -> tau
 
-val array : tau -> tau
-val farray : tau -> tau -> tau
+val t_int : tau
+val t_real : tau
+val t_bool : tau
+val t_prop : tau
+val t_addr : unit -> tau
+val t_array : tau -> tau
+val t_farray : tau -> tau -> tau
+val t_datatype : adt -> tau list -> tau
 
 val pointer : (typ -> tau) Context.value (** type of pointers *)
 val poly : string list Context.value (** polymorphism *)
@@ -172,15 +181,19 @@ module Fun : Logic.Function with type t = lfun
 
 class virtual idprinting :
   object
-    method virtual basename : string -> string
-    (** Allows to sanitize the basename used for generated or ACSL
-        name (not the one provided by the driver. *)
+    method virtual sanitize : string -> string
+    
     method virtual infoprover : 'a. 'a infoprover -> 'a
     (** Specify the field to use in an infoprover *)
 
-    method datatypename : string -> string
-    method fieldname    : string -> string
-    method funname      : string -> string
+    method sanitize_type : string -> string
+    (** Defaults to [self#sanitize] *)
+    
+    method sanitize_field : string -> string
+    (** Defulats to [self#sanitize] *)
+
+    method sanitize_fun : string -> string
+    (** Defulats to [self#sanitize] *)
 
     method datatype : ADT.t   -> string
     method field    : Field.t -> string
@@ -229,6 +242,7 @@ sig
   val e_zero : term
   val e_one : term
   val e_minus_one : term
+  val e_minus_one_real : term
   val e_one_real : term
   val e_zero_real : term
 
@@ -270,6 +284,7 @@ sig
   val e_or    : term list -> term
   val e_not   : term -> term
   val e_if    : term -> term -> term -> term
+  val e_const : tau -> term -> term
   val e_get   : term -> term -> term
   val e_set   : term -> term -> term -> term
   val e_getfield : term -> Field.t -> term
@@ -289,6 +304,7 @@ sig
   val p_false : pred
 
   val p_equal : term -> term -> pred
+  val p_equals : (term * term) list -> pred list
   val p_neq : term -> term -> pred
   val p_leq : term -> term -> pred
   val p_lt : term -> term -> pred
@@ -342,9 +358,14 @@ sig
   val pp_vars : Format.formatter -> Vars.t -> unit
   val pp_term : Format.formatter -> term -> unit
   val pp_pred : Format.formatter -> pred -> unit
+
   val debugp : Format.formatter -> pred -> unit
 
   type env
+  val context_pp : env Context.value
+  (** Context used by pp_term, pp_pred, pp_var, ppvars for printing
+     the term. Allows to keep the same disambiguation. *)
+
   type marks = QED.marks
 
   val env : Vars.t -> env

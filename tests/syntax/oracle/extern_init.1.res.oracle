@@ -1,5 +1,11 @@
 [kernel] Parsing tests/syntax/extern_init.i (no preprocessing)
 [kernel] Parsing tests/syntax/extern_init_2.i (no preprocessing)
+[kernel:typing:no-proto] tests/syntax/extern_init_2.i:10: Warning: 
+  Calling function f that is declared without prototype.
+  Its formals will be inferred from actual arguments
+[kernel:typing:no-proto] tests/syntax/extern_init_2.i:11: Warning: 
+  Calling function g that is declared without prototype.
+  Its formals will be inferred from actual arguments
 [kernel] Parsing tests/syntax/extern_init_1.i (no preprocessing)
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
@@ -11,11 +17,11 @@
    [3] ∈ {4}
    [4] ∈ {5}
 [value] computing for function f <- main.
-    Called from tests/syntax/extern_init_2.i:10.
+  Called from tests/syntax/extern_init_2.i:10.
 [value] Recording results for f
 [value] Done for function f
 [value] computing for function g <- main.
-    Called from tests/syntax/extern_init_2.i:11.
+  Called from tests/syntax/extern_init_2.i:11.
 [value] using specification for function g
 [value] Done for function g
 [value] Recording results for main

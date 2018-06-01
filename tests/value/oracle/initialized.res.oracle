@@ -14,180 +14,226 @@
   v1 ∈ {0}
   i6 ∈ [--..--]
 [value] computing for function g1 <- main.
-    Called from tests/value/initialized.c:158.
-tests/value/initialized.c:19:[value] entering loop for the first time
-tests/value/initialized.c:21:[value] warning: assertion got status unknown.
-tests/value/initialized.c:22:[value] warning: assertion got status unknown.
+  Called from tests/value/initialized.c:158.
+[value] tests/value/initialized.c:19: entering loop for the first time
+[value:alarm] tests/value/initialized.c:21: Warning: 
+  assertion got status unknown.
+[value:alarm] tests/value/initialized.c:22: Warning: 
+  assertion got status unknown.
 [value] computing for function Frama_C_interval <- g1 <- main.
-    Called from tests/value/initialized.c:24.
+  Called from tests/value/initialized.c:24.
 [value] using specification for function Frama_C_interval
-share/libc/__fc_builtin.h:52:[value] function Frama_C_interval: precondition got status valid.
+[value] tests/value/initialized.c:24: 
+  function Frama_C_interval: precondition 'order' got status valid.
 [value] Done for function Frama_C_interval
 [value] computing for function Frama_C_interval <- g1 <- main.
-    Called from tests/value/initialized.c:25.
+  Called from tests/value/initialized.c:25.
+[value] tests/value/initialized.c:25: 
+  function Frama_C_interval: precondition 'order' got status valid.
 [value] Done for function Frama_C_interval
-tests/value/initialized.c:26:[value] warning: assertion got status unknown.
+[value:alarm] tests/value/initialized.c:26: Warning: 
+  assertion got status unknown.
 [value] computing for function Frama_C_interval <- g1 <- main.
-    Called from tests/value/initialized.c:28.
-[value] Done for function Frama_C_interval
-[value] computing for function Frama_C_interval <- g1 <- main.
-    Called from tests/value/initialized.c:29.
-[value] Done for function Frama_C_interval
-tests/value/initialized.c:30:[value] warning: assertion got status unknown.
-[value] computing for function Frama_C_interval <- g1 <- main.
-    Called from tests/value/initialized.c:32.
+  Called from tests/value/initialized.c:28.
+[value] tests/value/initialized.c:28: 
+  function Frama_C_interval: precondition 'order' got status valid.
 [value] Done for function Frama_C_interval
 [value] computing for function Frama_C_interval <- g1 <- main.
-    Called from tests/value/initialized.c:33.
+  Called from tests/value/initialized.c:29.
+[value] tests/value/initialized.c:29: 
+  function Frama_C_interval: precondition 'order' got status valid.
 [value] Done for function Frama_C_interval
-tests/value/initialized.c:34:[value] assertion got status valid.
+[value:alarm] tests/value/initialized.c:30: Warning: 
+  assertion got status unknown.
 [value] computing for function Frama_C_interval <- g1 <- main.
-    Called from tests/value/initialized.c:36.
+  Called from tests/value/initialized.c:32.
+[value] tests/value/initialized.c:32: 
+  function Frama_C_interval: precondition 'order' got status valid.
 [value] Done for function Frama_C_interval
 [value] computing for function Frama_C_interval <- g1 <- main.
-    Called from tests/value/initialized.c:37.
+  Called from tests/value/initialized.c:33.
+[value] tests/value/initialized.c:33: 
+  function Frama_C_interval: precondition 'order' got status valid.
 [value] Done for function Frama_C_interval
-tests/value/initialized.c:38:[value] warning: assertion got status unknown.
+[value] tests/value/initialized.c:34: assertion got status valid.
+[value] computing for function Frama_C_interval <- g1 <- main.
+  Called from tests/value/initialized.c:36.
+[value] tests/value/initialized.c:36: 
+  function Frama_C_interval: precondition 'order' got status valid.
+[value] Done for function Frama_C_interval
+[value] computing for function Frama_C_interval <- g1 <- main.
+  Called from tests/value/initialized.c:37.
+[value] tests/value/initialized.c:37: 
+  function Frama_C_interval: precondition 'order' got status valid.
+[value] Done for function Frama_C_interval
+[value:alarm] tests/value/initialized.c:38: Warning: 
+  assertion got status unknown.
 [value] Recording results for g1
 [value] Done for function g1
 [value] computing for function g2 <- main.
-    Called from tests/value/initialized.c:159.
-tests/value/initialized.c:50:[value] warning: signed overflow. assert -2147483648 ≤ (int)(&b4) + (int)(&b4);
-tests/value/initialized.c:50:[value] warning: signed overflow. assert (int)(&b4) + (int)(&b4) ≤ 2147483647;
-tests/value/initialized.c:50:[value] Assigning imprecise value to t[6].
-    The imprecision originates from Arithmetic {tests/value/initialized.c:50}
-tests/value/initialized.c:51:[value] Assigning imprecise value to t[7].
-    The imprecision originates from Arithmetic {tests/value/initialized.c:50}
-tests/value/initialized.c:63:[value] Frama_C_dump_each:
-    # Cvalue domain:
-    Frama_C_entropy_source ∈ [--..--]
-    b1 ∈ [--..--]
-    b2 ∈ [--..--]
-    b3 ∈ [--..--]
-    b4 ∈ [--..--]
-    b5 ∈ [--..--]
-    b6 ∈ [--..--]
-    rand ∈ [--..--]
-    t[0..1] ∈ {0x11223344} or UNINITIALIZED
-     [2..3] ∈ {0x55667788} or UNINITIALIZED
-     [4..5] ∈ {0x12345678; 0x23456789} or UNINITIALIZED
-     [6..7] ∈
-     {{ garbled mix of &{b4}
-      (origin: Arithmetic {tests/value/initialized.c:50}) }} or UNINITIALIZED
-     [8..9] ∈ {1; 2} or UNINITIALIZED
-     [10][bits 0 to 23] ∈ {0} or UNINITIALIZED
-     {[10][bits 24 to 31]#; [11][bits 0 to 23]#} ∈
-     {0x11111111} or UNINITIALIZED
-     {[11][bits 24 to 31]; [12][bits 0 to 23]} ∈ {0} or UNINITIALIZED
-     {[12][bits 24 to 31]#; [13][bits 0 to 23]#} ∈
-     {0x11111111; 0x22222222} or UNINITIALIZED
-     [13][bits 24 to 31] ∈ {0} or UNINITIALIZED
-    v1 ∈ {0}
-    i6 ∈ [--..--]
-    __retres ∈ UNINITIALIZED
-    ==END OF DUMP==
-tests/value/initialized.c:66:[value] warning: assertion got status unknown.
-tests/value/initialized.c:68:[value] Frama_C_dump_each:
-    # Cvalue domain:
-    Frama_C_entropy_source ∈ [--..--]
-    b1 ∈ [--..--]
-    b2 ∈ [--..--]
-    b3 ∈ [--..--]
-    b4 ∈ [--..--]
-    b5 ∈ [--..--]
-    b6 ∈ [--..--]
-    rand ∈ [--..--]
-    t{[0]; [1][bits 0 to 23]#} ∈
-     {0x11223344} or UNINITIALIZED repeated %32, bits 0 to 55 
-     [1][bits 24 to 31]# ∈ {0x11223344}%32, bits 24 to 31 
-     [2][bits 0 to 23]# ∈ {0x55667788}%32, bits 0 to 23 
-     [bits 88 to 127]# ∈
-     {0x55667788} or UNINITIALIZED repeated %32, bits 24 to 63 
-     [4..5] ∈ {0x12345678; 0x23456789} or UNINITIALIZED
-     [6..7] ∈
-     {{ garbled mix of &{b4}
-      (origin: Arithmetic {tests/value/initialized.c:50}) }} or UNINITIALIZED
-     [8..9] ∈ {1; 2} or UNINITIALIZED
-     [10][bits 0 to 23] ∈ {0} or UNINITIALIZED
-     {[10][bits 24 to 31]#; [11][bits 0 to 23]#} ∈
-     {0x11111111} or UNINITIALIZED
-     {[11][bits 24 to 31]; [12][bits 0 to 23]} ∈ {0} or UNINITIALIZED
-     {[12][bits 24 to 31]#; [13][bits 0 to 23]#} ∈
-     {0x11111111; 0x22222222} or UNINITIALIZED
-     [13][bits 24 to 31] ∈ {0} or UNINITIALIZED
-    p_0 ∈ {{ &t + {7} }}
-    v1 ∈ {0}
-    i6 ∈ [--..--]
-    __retres ∈ UNINITIALIZED
-    ==END OF DUMP==
-tests/value/initialized.c:70:[value] Frama_C_show_each: {0x66778811}
-tests/value/initialized.c:72:[value] warning: assertion got status unknown.
-tests/value/initialized.c:74:[value] warning: assertion got status unknown.
-tests/value/initialized.c:76:[value] warning: assertion got status unknown.
-tests/value/initialized.c:78:[value] warning: assertion got status unknown.
-tests/value/initialized.c:80:[value] warning: assertion got status unknown.
+  Called from tests/value/initialized.c:159.
+[value:alarm] tests/value/initialized.c:50: Warning: 
+  signed overflow. assert -2147483648 ≤ (int)(&b4) + (int)(&b4);
+[value:alarm] tests/value/initialized.c:50: Warning: 
+  signed overflow. assert (int)(&b4) + (int)(&b4) ≤ 2147483647;
+[value] tests/value/initialized.c:50: 
+  Assigning imprecise value to t[6].
+  The imprecision originates from Arithmetic {tests/value/initialized.c:50}
+[value] tests/value/initialized.c:51: 
+  Assigning imprecise value to t[7].
+  The imprecision originates from Arithmetic {tests/value/initialized.c:50}
+[value] tests/value/initialized.c:63: 
+  Frama_C_dump_each:
+  # Cvalue domain:
+  Frama_C_entropy_source ∈ [--..--]
+  b1 ∈ [--..--]
+  b2 ∈ [--..--]
+  b3 ∈ [--..--]
+  b4 ∈ [--..--]
+  b5 ∈ [--..--]
+  b6 ∈ [--..--]
+  rand ∈ [--..--]
+  t[0..1] ∈ {0x11223344} or UNINITIALIZED
+   [2..3] ∈ {0x55667788} or UNINITIALIZED
+   [4..5] ∈ {0x12345678; 0x23456789} or UNINITIALIZED
+   [6..7] ∈
+   {{ garbled mix of &{b4}
+    (origin: Arithmetic {tests/value/initialized.c:50}) }} or UNINITIALIZED
+   [8..9] ∈ {1; 2} or UNINITIALIZED
+   [10][bits 0 to 23] ∈ {0} or UNINITIALIZED
+   {[10][bits 24 to 31]#; [11][bits 0 to 23]#} ∈
+   {0x11111111} or UNINITIALIZED
+   {[11][bits 24 to 31]; [12][bits 0 to 23]} ∈ {0} or UNINITIALIZED
+   {[12][bits 24 to 31]#; [13][bits 0 to 23]#} ∈
+   {0x11111111; 0x22222222} or UNINITIALIZED
+   [13][bits 24 to 31] ∈ {0} or UNINITIALIZED
+  v1 ∈ {0}
+  i6 ∈ [--..--]
+  __retres ∈ UNINITIALIZED
+  ==END OF DUMP==
+[value:alarm] tests/value/initialized.c:66: Warning: 
+  assertion got status unknown.
+[value] tests/value/initialized.c:68: 
+  Frama_C_dump_each:
+  # Cvalue domain:
+  Frama_C_entropy_source ∈ [--..--]
+  b1 ∈ [--..--]
+  b2 ∈ [--..--]
+  b3 ∈ [--..--]
+  b4 ∈ [--..--]
+  b5 ∈ [--..--]
+  b6 ∈ [--..--]
+  rand ∈ [--..--]
+  t{[0]; [1][bits 0 to 23]#} ∈
+   {0x11223344} or UNINITIALIZED repeated %32, bits 0 to 55 
+   [1][bits 24 to 31]# ∈ {0x11223344}%32, bits 24 to 31 
+   [2][bits 0 to 23]# ∈ {0x55667788}%32, bits 0 to 23 
+   [bits 88 to 127]# ∈
+   {0x55667788} or UNINITIALIZED repeated %32, bits 24 to 63 
+   [4..5] ∈ {0x12345678; 0x23456789} or UNINITIALIZED
+   [6..7] ∈
+   {{ garbled mix of &{b4}
+    (origin: Arithmetic {tests/value/initialized.c:50}) }} or UNINITIALIZED
+   [8..9] ∈ {1; 2} or UNINITIALIZED
+   [10][bits 0 to 23] ∈ {0} or UNINITIALIZED
+   {[10][bits 24 to 31]#; [11][bits 0 to 23]#} ∈
+   {0x11111111} or UNINITIALIZED
+   {[11][bits 24 to 31]; [12][bits 0 to 23]} ∈ {0} or UNINITIALIZED
+   {[12][bits 24 to 31]#; [13][bits 0 to 23]#} ∈
+   {0x11111111; 0x22222222} or UNINITIALIZED
+   [13][bits 24 to 31] ∈ {0} or UNINITIALIZED
+  p_0 ∈ {{ &t + {7} }}
+  v1 ∈ {0}
+  i6 ∈ [--..--]
+  __retres ∈ UNINITIALIZED
+  ==END OF DUMP==
+[value] tests/value/initialized.c:70: Frama_C_show_each: {0x66778811}
+[value:alarm] tests/value/initialized.c:72: Warning: 
+  assertion got status unknown.
+[value:alarm] tests/value/initialized.c:74: Warning: 
+  assertion got status unknown.
+[value:alarm] tests/value/initialized.c:76: Warning: 
+  assertion got status unknown.
+[value:alarm] tests/value/initialized.c:78: Warning: 
+  assertion got status unknown.
+[value:alarm] tests/value/initialized.c:80: Warning: 
+  assertion got status unknown.
 [value] Recording results for g2
 [value] Done for function g2
 [value] computing for function g3 <- main.
-    Called from tests/value/initialized.c:160.
-tests/value/initialized.c:89:[value] warning: assertion got status unknown.
-tests/value/initialized.c:93:[value] warning: accessing uninitialized left-value. assert \initialized(&r2);
-tests/value/initialized.c:96:[value] warning: accessing uninitialized left-value. assert \initialized(&x3);
+  Called from tests/value/initialized.c:160.
+[value:alarm] tests/value/initialized.c:89: Warning: 
+  assertion got status unknown.
+[value:alarm] tests/value/initialized.c:93: Warning: 
+  accessing uninitialized left-value. assert \initialized(&r2);
+[value:alarm] tests/value/initialized.c:96: Warning: 
+  accessing uninitialized left-value. assert \initialized(&x3);
 [value] computing for function f <- g3 <- main.
-    Called from tests/value/initialized.c:98.
-tests/value/initialized.c:11:[value] entering loop for the first time
-tests/value/initialized.c:8:[value] warning: function f: postcondition got status unknown.
+  Called from tests/value/initialized.c:98.
+[value] tests/value/initialized.c:11: entering loop for the first time
+[value:alarm] tests/value/initialized.c:8: Warning: 
+  function f: postcondition got status unknown.
 [value] Recording results for f
 [value] Done for function f
 [value] computing for function f <- g3 <- main.
-    Called from tests/value/initialized.c:99.
+  Called from tests/value/initialized.c:99.
 [value] Recording results for f
 [value] Done for function f
 [value] Recording results for g3
 [value] Done for function g3
 [value] computing for function g4 <- main.
-    Called from tests/value/initialized.c:161.
-tests/value/initialized.c:104:[value] warning: accessing uninitialized left-value. assert \initialized(&y);
+  Called from tests/value/initialized.c:161.
+[value:alarm] tests/value/initialized.c:104: Warning: 
+  accessing uninitialized left-value. assert \initialized(&y);
 [value] Recording results for g4
 [value] Done for function g4
 [value] computing for function g5 <- main.
-    Called from tests/value/initialized.c:162.
+  Called from tests/value/initialized.c:162.
 [value] computing for function wrong_assigns <- g5 <- main.
-    Called from tests/value/initialized.c:127.
+  Called from tests/value/initialized.c:127.
 [value] using specification for function wrong_assigns
-tests/value/initialized.c:114:[value] warning: function wrong_assigns: this postcondition evaluates to false in this
-    context. If it is valid, either a precondition was not verified for this
-    call, or some assigns/from clauses are incomplete (or incorrect).
+[value] tests/value/initialized.c:114: Warning: 
+  function wrong_assigns: this postcondition evaluates to false in this
+  context. If it is valid, either a precondition was not verified for this
+  call, or some assigns/from clauses are incomplete (or incorrect).
 [value] Done for function wrong_assigns
-tests/value/initialized.c:130:[value] assertion got status valid.
-tests/value/initialized.c:131:[value] assertion got status valid.
-tests/value/initialized.c:133:[value] warning: assertion got status unknown.
+[value] tests/value/initialized.c:130: assertion got status valid.
+[value] tests/value/initialized.c:131: assertion got status valid.
+[value:alarm] tests/value/initialized.c:133: Warning: 
+  assertion got status unknown.
 [value] Recording results for g5
 [value] Done for function g5
 [value] computing for function g6 <- main.
-    Called from tests/value/initialized.c:163.
-tests/value/initialized.c:143:[value] warning: assertion got status unknown.
-tests/value/initialized.c:144:[value] warning: assertion got status unknown.
-tests/value/initialized.c:145:[value] warning: assertion got status unknown.
-tests/value/initialized.c:146:[value] assertion got status valid.
-tests/value/initialized.c:147:[value] warning: assertion got status unknown.
-tests/value/initialized.c:148:[value] assertion got status valid.
+  Called from tests/value/initialized.c:163.
+[value:alarm] tests/value/initialized.c:143: Warning: 
+  assertion got status unknown.
+[value:alarm] tests/value/initialized.c:144: Warning: 
+  assertion got status unknown.
+[value:alarm] tests/value/initialized.c:145: Warning: 
+  assertion got status unknown.
+[value] tests/value/initialized.c:146: assertion got status valid.
+[value:alarm] tests/value/initialized.c:147: Warning: 
+  assertion got status unknown.
+[value] tests/value/initialized.c:148: assertion got status valid.
 [value] Recording results for g6
 [value] Done for function g6
 [value] computing for function g7 <- main.
-    Called from tests/value/initialized.c:164.
+  Called from tests/value/initialized.c:164.
 [value] computing for function Frama_C_make_unknown <- g7 <- main.
-    Called from tests/value/initialized.c:153.
+  Called from tests/value/initialized.c:153.
 [value] using specification for function Frama_C_make_unknown
-share/libc/__fc_builtin.h:33:[value] function Frama_C_make_unknown: precondition got status valid.
+[value] tests/value/initialized.c:153: 
+  function Frama_C_make_unknown: precondition 'valid_p' got status valid.
 [value] Done for function Frama_C_make_unknown
-tests/value/initialized.c:154:[value] assertion got status valid.
+[value] tests/value/initialized.c:154: assertion got status valid.
 [value] Recording results for g7
 [value] Done for function g7
 [value] Recording results for main
 [value] done for function main
-tests/value/initialized.c:93:[value] assertion 'Value,initialisation' got final status invalid.
-tests/value/initialized.c:104:[value] assertion 'Value,initialisation' got final status invalid.
+[value] tests/value/initialized.c:93: 
+  assertion 'Value,initialization' got final status invalid.
+[value] tests/value/initialized.c:104: 
+  assertion 'Value,initialization' got final status invalid.
 [scope:rm_asserts] removing 3 assertion(s)
 [value] ====== VALUES COMPUTED ======
 [value:final-states] Values at end of function f:
@@ -291,7 +337,7 @@ tests/value/initialized.c:104:[value] assertion 'Value,initialisation' got final
 [from] Computing for function main
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
-    These dependencies hold at termination for the executions that terminate:
+  These dependencies hold at termination for the executions that terminate:
 [from] Function Frama_C_interval:
   Frama_C_entropy_source FROM Frama_C_entropy_source (and SELF)
   \result FROM Frama_C_entropy_source; min; max
@@ -323,39 +369,39 @@ tests/value/initialized.c:104:[value] assertion 'Value,initialisation' got final
   \result FROM \nothing
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function f:
-      i; t1[1..4]; t2[1..248]
+    i; t1[1..4]; t2[1..248]
 [inout] Inputs for function f:
-      \nothing
+    \nothing
 [inout] Out (internal) for function g1:
-      Frama_C_entropy_source; t1[0..19]; t2[0..19]; t3[0..19]; t4[0..19];
-      t5[0..19]; t6[0..19]; i; j; i_0
+    Frama_C_entropy_source; t1[0..19]; t2[0..19]; t3[0..19]; t4[0..19];
+    t5[0..19]; t6[0..19]; i; j; i_0
 [inout] Inputs for function g1:
-      Frama_C_entropy_source; rand
+    Frama_C_entropy_source; rand
 [inout] Out (internal) for function g2:
-      t[0..13]; p; p_0
+    t[0..13]; p; p_0
 [inout] Inputs for function g2:
-      b4; b5
+    b4; b5
 [inout] Out (internal) for function g3:
-      r1; x1; x2; x3; r3; t1[1..2]; t2[1..248]
+    r1; x1; x2; x3; r3; t1[1..2]; t2[1..248]
 [inout] Inputs for function g3:
-      b1; b2; b3; b6
+    b1; b2; b3; b6
 [inout] Out (internal) for function g4:
-      x
+    x
 [inout] Inputs for function g4:
-      \nothing
+    \nothing
 [inout] Out (internal) for function g6:
-      i6
+    i6
 [inout] Inputs for function g6:
-      rand
+    rand
 [inout] Out (internal) for function g7:
-      Frama_C_entropy_source; key[0..63]
+    Frama_C_entropy_source; key[0..63]
 [inout] Inputs for function g7:
-      Frama_C_entropy_source
+    Frama_C_entropy_source
 [inout] Out (internal) for function g5:
-      v{.a; .b}; p; tmp
+    v{.a; .b}; p; tmp
 [inout] Inputs for function g5:
-      rand
+    rand
 [inout] Out (internal) for function main:
-      Frama_C_entropy_source; i6; __retres
+    Frama_C_entropy_source; i6; __retres
 [inout] Inputs for function main:
-      Frama_C_entropy_source; b1; b2; b3; b4; b5; b6; rand
+    Frama_C_entropy_source; b1; b2; b3; b4; b5; b6; rand

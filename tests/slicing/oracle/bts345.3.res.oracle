@@ -5,15 +5,20 @@
 [value] Initial state computed
 [value:initial-state] Values of globals at initialization
   
-[value:initial-state] creating variable S_0_S___va_params with imprecise size (type void)
-[value:initial-state] creating variable S_1_S___va_params with imprecise size (type void)
-tests/slicing/bts345.i:21:[value] warning: signed overflow. assert x + 1 ≤ 2147483647;
+[value:initial-state] 
+  creating variable S_0_S___va_params with imprecise size (type void)
+[value:initial-state] 
+  creating variable S_1_S___va_params with imprecise size (type void)
+[value:alarm] tests/slicing/bts345.i:21: Warning: 
+  signed overflow. assert x + 1 ≤ 2147483647;
 [value] computing for function called_by_top <- top.
-    Called from tests/slicing/bts345.i:22.
-tests/slicing/bts345.i:15:[value] warning: signed overflow. assert x + 1 ≤ 2147483647;
+  Called from tests/slicing/bts345.i:22.
+[value:alarm] tests/slicing/bts345.i:15: Warning: 
+  signed overflow. assert x + 1 ≤ 2147483647;
 [value] computing for function called_indirectly_by_top <- called_by_top <- top.
-    Called from tests/slicing/bts345.i:16.
-tests/slicing/bts345.i:10:[value] warning: signed overflow. assert x + 1 ≤ 2147483647;
+  Called from tests/slicing/bts345.i:16.
+[value:alarm] tests/slicing/bts345.i:10: Warning: 
+  signed overflow. assert x + 1 ≤ 2147483647;
 [value] Recording results for called_indirectly_by_top
 [value] Done for function called_indirectly_by_top
 [value] Recording results for called_by_top

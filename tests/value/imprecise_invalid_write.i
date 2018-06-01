@@ -6,8 +6,8 @@ int main1(int c)
 }
 
 int main2() {
-  int *p = &main1 + (int)&main1;
-  *p = 1;
+  void *p = &main1 + (int)&main1;
+  *((int *)p) = 1;
 }
 
 int *s = "abc";

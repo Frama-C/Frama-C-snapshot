@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2017                                               *)
+(*  Copyright (C) 2007-2018                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -27,9 +27,12 @@ open Eval
 type value = Main_values.CVal.t
 type location = Main_locations.PLoc.location
 
+val eval_precond:
+  (Cil_types.kernel_function -> Cil_types.stmt -> Cvalue.Model.t -> Cvalue.Model.t) ref
+
 module Transfer
     (Valuation: Abstract_domain.Valuation with type value = value
-                                           and type origin = bool
+                                           and type origin = value option
                                            and type loc = location)
   : sig
 

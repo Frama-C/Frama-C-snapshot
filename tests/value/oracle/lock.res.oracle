@@ -5,18 +5,23 @@
 [value:initial-state] Values of globals at initialization
   ghost_loctable[0..99] ∈ {0}
   pmutex ∈ {0}
-tests/value/lock.i:48:[value] warning: function locks0_good: precondition got status unknown.
+[value:alarm] tests/value/lock.i:48: Warning: 
+  function locks0_good: precondition got status unknown.
 [value] computing for function acquire_lock <- locks0_good.
-    Called from tests/value/lock.i:51.
+  Called from tests/value/lock.i:51.
 [value] using specification for function acquire_lock
-tests/value/lock.i:19:[value] warning: function acquire_lock: precondition got status unknown.
-tests/value/lock.i:21:[value] warning: no \from part for clause 'assigns ghost_loctable[0 .. 99];'
+[value:alarm] tests/value/lock.i:51: Warning: 
+  function acquire_lock: precondition got status unknown.
+[value] tests/value/lock.i:21: Warning: 
+  no \from part for clause 'assigns ghost_loctable[0 .. 99];'
 [value] Done for function acquire_lock
 [value] computing for function release_lock <- locks0_good.
-    Called from tests/value/lock.i:52.
+  Called from tests/value/lock.i:52.
 [value] using specification for function release_lock
-tests/value/lock.i:27:[value] warning: function release_lock: precondition got status unknown.
-tests/value/lock.i:29:[value] warning: no \from part for clause 'assigns ghost_loctable[..];'
+[value:alarm] tests/value/lock.i:52: Warning: 
+  function release_lock: precondition got status unknown.
+[value] tests/value/lock.i:29: Warning: 
+  no \from part for clause 'assigns ghost_loctable[..];'
 [value] Done for function release_lock
 [value] Recording results for locks0_good
 [value] done for function locks0_good
@@ -30,7 +35,7 @@ tests/value/lock.i:29:[value] warning: no \from part for clause 'assigns ghost_l
 [from] Done for function release_lock
 [from] Done for function locks0_good
 [from] ====== DEPENDENCIES COMPUTED ======
-    These dependencies hold at termination for the executions that terminate:
+  These dependencies hold at termination for the executions that terminate:
 [from] Function acquire_lock:
   ghost_loctable[0..99] FROM ANYTHING(origin:Unknown) (and SELF)
 [from] Function release_lock:
@@ -39,6 +44,6 @@ tests/value/lock.i:29:[value] warning: no \from part for clause 'assigns ghost_l
   ghost_loctable[0..99] FROM ANYTHING(origin:Unknown) (and SELF)
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function locks0_good:
-      ghost_loctable[0..99]
+    ghost_loctable[0..99]
 [inout] Inputs for function locks0_good:
-      ANYTHING(origin:Unknown)
+    ANYTHING(origin:Unknown)

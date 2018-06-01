@@ -32,14 +32,15 @@
    .T[10] ∈ {10}
    .T[11] ∈ {11}
    .b ∈ {20}
-tests/value/array_bounds.i:14:[value] entering loop for the first time
-tests/value/array_bounds.i:15:[value] Frama_C_show_each: {0}
-tests/value/array_bounds.i:15:[value] Frama_C_show_each: {0; 1}
-tests/value/array_bounds.i:15:[value] Frama_C_show_each: {0; 1; 2}
-tests/value/array_bounds.i:15:[value] Frama_C_show_each: [0..11]
-tests/value/array_bounds.i:15:[value] Frama_C_show_each: [0..11]
-tests/value/array_bounds.i:19:[value] entering loop for the first time
-tests/value/array_bounds.i:19:[value] warning: signed overflow. assert j + 5 ≤ 2147483647;
+[value] tests/value/array_bounds.i:14: entering loop for the first time
+[value] tests/value/array_bounds.i:15: Frama_C_show_each: {0}
+[value] tests/value/array_bounds.i:15: Frama_C_show_each: {0; 1}
+[value] tests/value/array_bounds.i:15: Frama_C_show_each: {0; 1; 2}
+[value] tests/value/array_bounds.i:15: Frama_C_show_each: [0..11]
+[value] tests/value/array_bounds.i:15: Frama_C_show_each: [0..11]
+[value] tests/value/array_bounds.i:19: entering loop for the first time
+[value:alarm] tests/value/array_bounds.i:19: Warning: 
+  signed overflow. assert j + 5 ≤ 2147483647;
 [value] Recording results for main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======
@@ -52,7 +53,7 @@ tests/value/array_bounds.i:19:[value] warning: signed overflow. assert j + 5 ≤
 [from] Computing for function main
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
-    These dependencies hold at termination for the executions that terminate:
+  These dependencies hold at termination for the executions that terminate:
 [from] Function main:
   s.a FROM \nothing
    .T[0..11] FROM c (and SELF)
@@ -61,6 +62,6 @@ tests/value/array_bounds.i:19:[value] warning: signed overflow. assert j + 5 ≤
    .T[0..11] FROM c (and SELF)
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function main:
-      s; u{.a; .T[0..11]}; i; j
+    s; u{.a; .T[0..11]}; i; j
 [inout] Inputs for function main:
-      c
+    c

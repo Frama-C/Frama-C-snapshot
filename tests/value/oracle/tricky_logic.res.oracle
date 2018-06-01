@@ -7,36 +7,39 @@
   str ∈ {{ "abc" }}
   x ∈ {0}
   y ∈ {0}
-tests/value/tricky_logic.i:56:[value] function main: precondition got status valid.
+[value] tests/value/tricky_logic.i:56: 
+  function main: precondition got status valid.
 [value] computing for function f1 <- main.
-    Called from tests/value/tricky_logic.i:58.
-tests/value/tricky_logic.i:15:[value] assertion got status valid.
-tests/value/tricky_logic.i:16:[value] assertion got status valid.
+  Called from tests/value/tricky_logic.i:58.
+[value] tests/value/tricky_logic.i:15: assertion got status valid.
+[value] tests/value/tricky_logic.i:16: assertion got status valid.
 [value] Recording results for f1
 [value] Done for function f1
 [value] computing for function f2 <- main.
-    Called from tests/value/tricky_logic.i:62.
-tests/value/tricky_logic.i:23:[value] assertion got status valid.
-tests/value/tricky_logic.i:24:[value] assertion got status valid.
+  Called from tests/value/tricky_logic.i:62.
+[value] tests/value/tricky_logic.i:23: assertion got status valid.
+[value] tests/value/tricky_logic.i:24: assertion got status valid.
 [value] Recording results for f2
 [value] Done for function f2
 [value] computing for function f3 <- main.
-    Called from tests/value/tricky_logic.i:65.
-tests/value/tricky_logic.i:29:[value] assertion got status valid.
-tests/value/tricky_logic.i:30:[value] assertion got status valid.
-tests/value/tricky_logic.i:31:[value] warning: assertion got status unknown.
+  Called from tests/value/tricky_logic.i:65.
+[value] tests/value/tricky_logic.i:29: assertion got status valid.
+[value] tests/value/tricky_logic.i:30: assertion got status valid.
+[value:alarm] tests/value/tricky_logic.i:31: Warning: 
+  assertion got status unknown.
 [value] Recording results for f3
 [value] Done for function f3
 [value] computing for function f4 <- main.
-    Called from tests/value/tricky_logic.i:67.
+  Called from tests/value/tricky_logic.i:67.
 [value] computing for function g4 <- f4 <- main.
-    Called from tests/value/tricky_logic.i:51.
-tests/value/tricky_logic.i:38:[value] assertion got status valid.
-tests/value/tricky_logic.i:39:[value] warning: assertion got status unknown.
+  Called from tests/value/tricky_logic.i:51.
+[value] tests/value/tricky_logic.i:38: assertion got status valid.
+[value:alarm] tests/value/tricky_logic.i:39: Warning: 
+  assertion got status unknown.
 [value] Recording results for g4
 [value] Done for function g4
-tests/value/tricky_logic.i:52:[value] assertion got status valid.
-tests/value/tricky_logic.i:53:[value] assertion got status valid.
+[value] tests/value/tricky_logic.i:52: assertion got status valid.
+[value] tests/value/tricky_logic.i:53: assertion got status valid.
 [value] Recording results for f4
 [value] Done for function f4
 [value] Recording results for main
@@ -74,7 +77,7 @@ tests/value/tricky_logic.i:53:[value] assertion got status valid.
 [from] Computing for function main
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
-    These dependencies hold at termination for the executions that terminate:
+  These dependencies hold at termination for the executions that terminate:
 [from] Function f1:
   NO EFFECTS
 [from] Function f2:
@@ -91,26 +94,26 @@ tests/value/tricky_logic.i:53:[value] assertion got status valid.
   y FROM \nothing
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function f1:
-      \nothing
+    \nothing
 [inout] Inputs for function f1:
-      \nothing
+    \nothing
 [inout] Out (internal) for function f2:
-      x; y
+    x; y
 [inout] Inputs for function f2:
-      \nothing
+    \nothing
 [inout] Out (internal) for function f3:
-      \nothing
+    \nothing
 [inout] Inputs for function f3:
-      \nothing
+    \nothing
 [inout] Out (internal) for function g4:
-      s.i1; x_0
+    s.i1; x_0
 [inout] Inputs for function g4:
-      \nothing
+    \nothing
 [inout] Out (internal) for function f4:
-      p; q; s
+    p; q; s
 [inout] Inputs for function f4:
-      vol
+    vol
 [inout] Out (internal) for function main:
-      x; y
+    x; y
 [inout] Inputs for function main:
-      vol
+    vol

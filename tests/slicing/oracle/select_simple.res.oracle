@@ -1,4 +1,4 @@
 [kernel] Parsing tests/slicing/select_simple.i (no preprocessing)
-[kernel] user error: cannot find entry point `main'.
-    Please use option `-main' for specifying a valid entry point.
+[kernel] User Error: cannot find entry point `main'.
+  Please use option `-main' for specifying a valid entry point.
 [kernel] Frama-C aborted: invalid user input.

@@ -7,12 +7,12 @@
   p ∈ {0}
   y ∈ [--..--]
   z ∈ [--..--]
-tests/value/logicdeps.i:19:[value] warning: assertion got status unknown.
-tests/value/logicdeps.i:20:[value] warning: assertion got status unknown.
+[value:alarm] tests/value/logicdeps.i:19: Warning: assertion got status unknown.
+[value:alarm] tests/value/logicdeps.i:20: Warning: assertion got status unknown.
 [value] computing for function g <- main.
-    Called from tests/value/logicdeps.i:23.
+  Called from tests/value/logicdeps.i:23.
 [value] computing for function f <- g <- main.
-    Called from tests/value/logicdeps.i:13.
+  Called from tests/value/logicdeps.i:13.
 [value] using specification for function f
 [value] Done for function f
 [value] Recording results for g
@@ -20,35 +20,35 @@ tests/value/logicdeps.i:20:[value] warning: assertion got status unknown.
 [from] Done for function g
 [value] Done for function g
 [value] computing for function g <- main.
-    Called from tests/value/logicdeps.i:24.
+  Called from tests/value/logicdeps.i:24.
 [value] computing for function f <- g <- main.
-    Called from tests/value/logicdeps.i:13.
+  Called from tests/value/logicdeps.i:13.
 [value] Done for function f
 [value] Recording results for g
 [from] Computing for function g
 [from] Done for function g
 [value] Done for function g
-tests/value/logicdeps.i:25:[value] Reusing old results for call to g
-tests/value/logicdeps.i:27:[value] assertion got status valid.
+[value] tests/value/logicdeps.i:25: Reusing old results for call to g
+[value] tests/value/logicdeps.i:27: assertion got status valid.
 [value] computing for function g <- main.
-    Called from tests/value/logicdeps.i:30.
+  Called from tests/value/logicdeps.i:30.
 [value] computing for function f <- g <- main.
-    Called from tests/value/logicdeps.i:13.
+  Called from tests/value/logicdeps.i:13.
 [value] Done for function f
 [value] Recording results for g
 [from] Computing for function g
 [from] Done for function g
 [value] Done for function g
 [value] computing for function g <- main.
-    Called from tests/value/logicdeps.i:31.
+  Called from tests/value/logicdeps.i:31.
 [value] computing for function f <- g <- main.
-    Called from tests/value/logicdeps.i:13.
+  Called from tests/value/logicdeps.i:13.
 [value] Done for function f
 [value] Recording results for g
 [from] Computing for function g
 [from] Done for function g
 [value] Done for function g
-tests/value/logicdeps.i:32:[value] Reusing old results for call to g
+[value] tests/value/logicdeps.i:32: Reusing old results for call to g
 [value] Recording results for main
 [from] Computing for function main
 [from] Done for function main
@@ -90,16 +90,16 @@ tests/value/logicdeps.i:32:[value] Reusing old results for call to g
   p FROM \nothing
 [from] ====== END OF CALLWISE DEPENDENCIES ======
 [inout] InOut (internal) for function g:
-    Operational inputs:
-      t[0..20]; p; y; z
-    Operational inputs on termination:
-      t[0..20]; p; y; z
-    Sure outputs:
-      \nothing
+  Operational inputs:
+    t[0..20]; p; y; z
+  Operational inputs on termination:
+    t[0..20]; p; y; z
+  Sure outputs:
+    \nothing
 [inout] InOut (internal) for function main:
-    Operational inputs:
-      t[0..19]; y; z
-    Operational inputs on termination:
-      t[0..19]; y; z
-    Sure outputs:
-      t[20..35]; p
+  Operational inputs:
+    t[0..19]; y; z
+  Operational inputs on termination:
+    t[0..19]; y; z
+  Sure outputs:
+    t[20..35]; p

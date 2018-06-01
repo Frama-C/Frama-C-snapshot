@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2017                                               *)
+(*  Copyright (C) 2007-2018                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -27,9 +27,7 @@ val get_retres_vi: kernel_function -> varinfo option
 (** Fake varinfo used by Value to store the result of functions. Returns
     [None] if the function has a void type. *)
 
-val create_alloced_return : Cil_types.typ -> Kernel_function.t -> Base.t
-
-val returned_value: kernel_function -> Model.t -> V.t * Model.t
+val returned_value: kernel_function -> V.t
 
 
 (*

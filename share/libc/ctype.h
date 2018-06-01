@@ -2,7 +2,7 @@
 /*                                                                        */
 /*  This file is part of Frama-C.                                         */
 /*                                                                        */
-/*  Copyright (C) 2007-2017                                               */
+/*  Copyright (C) 2007-2018                                               */
 /*    CEA (Commissariat à l'énergie atomique et aux énergies              */
 /*         alternatives)                                                  */
 /*                                                                        */
@@ -37,194 +37,208 @@ __BEGIN_DECLS
 /* Note: most functions use '\result < 0 || \result > 0' instead of
    of '\result != 0' for better precision if there is enough slevel. */
 
-/*@ requires 0 <= c <= 255 || c == EOF;
+/*@
+  requires c_uchar_or_eof_or_EOF: 0 <= c <= 255 || c == EOF;
   assigns \result \from c;
-  behavior definitely_not_match:
-    assumes c == EOF || 0 <= c <= 47 || 58 <= c <= 64 ||
-            91 <= c <= 96 || 123 <= c <= 127;
-    ensures \result == 0;
   behavior definitely_match:
-    assumes 'A' <= c <= 'Z' || 'a' <= c <= 'z' || '0' <= c <= '9';
-    ensures \result < 0 || \result > 0;
-  disjoint behaviors definitely_match, definitely_not_match;
+    assumes c_alnum: 'A' <= c <= 'Z' || 'a' <= c <= 'z' || '0' <= c <= '9';
+    ensures nonzero_result: \result < 0 || \result > 0;
+  behavior definitely_not_match:
+    assumes c_non_alnum: c == EOF || 0 <= c <= 47 || 58 <= c <= 64 ||
+            91 <= c <= 96 || 123 <= c <= 127;
+    ensures zero_result: \result == 0;
+  disjoint behaviors;
 */
 extern int isalnum(int c);
 
-/*@ requires 0 <= c <= 255 || c == EOF;
+/*@ 
+  requires c_uchar_or_eof: 0 <= c <= 255 || c == EOF;
   assigns \result \from c;
-  behavior definitely_not_match:
-    assumes c == EOF || 0 <= c <= 64 || 91 <= c <= 96 || 123 <= c <= 127;
-    ensures \result == 0;
   behavior definitely_match:
-    assumes 'A' <= c <= 'Z' || 'a' <= c <= 'z';
-    ensures \result < 0 || \result > 0;
-  disjoint behaviors definitely_match, definitely_not_match;
+    assumes c_alpha: 'A' <= c <= 'Z' || 'a' <= c <= 'z';
+    ensures nonzero_result: \result < 0 || \result > 0;
+  behavior definitely_not_match:
+    assumes c_non_alpha: c == EOF || 0 <= c <= 64 || 91 <= c <= 96 || 123 <= c <= 127;
+    ensures zero_result: \result == 0;
+  disjoint behaviors;
 */
 extern int isalpha(int c);
 
-/*@ requires 0 <= c <= 255 || c == EOF;
+/*@
+  requires c_uchar_or_eof: 0 <= c <= 255 || c == EOF;
   assigns \result \from c;
   behavior match:
-    assumes c == ' ' || c == '\t';
-    ensures \result < 0 || \result > 0;
+    assumes c_tab_or_space: c == ' ' || c == '\t';
+    ensures nonzero_result: \result < 0 || \result > 0;
   behavior no_match:
-    assumes c != ' ' && c != '\t';
-    ensures \result == 0;
-  disjoint behaviors match, no_match;
-  complete behaviors match, no_match;
+    assumes c_non_blank: c != ' ' && c != '\t';
+    ensures zero_result: \result == 0;
+  disjoint behaviors;
+  complete behaviors;
 */
 extern int isblank(int c);
 
-/*@ requires 0 <= c <= 255 || c == EOF;
+/*@
+  requires c_uchar_or_eof: 0 <= c <= 255 || c == EOF;
   assigns \result \from c;
   behavior definitely_match:
-    assumes 0 <= c <= 31 || c == 127;
-    ensures \result < 0 || \result > 0;
+    assumes c_control_char: 0 <= c <= 31 || c == 127;
+    ensures nonzero_result: \result < 0 || \result > 0;
   behavior definitely_not_match:
-    assumes c == EOF || 32 <= c <= 126;
-    ensures \result == 0;
-  disjoint behaviors definitely_match, definitely_not_match;
+    assumes c_non_control_char: c == EOF || 32 <= c <= 126;
+    ensures zero_result: \result == 0;
+  disjoint behaviors;
 */
 extern int iscntrl(int c);
 
-/*@ requires 0 <= c <= 255 || c == EOF;
+/*@ requires c_uchar_or_eof: 0 <= c <= 255 || c == EOF;
   assigns \result \from c;
   behavior match:
-    assumes '0' <= c <= '9';
-    ensures \result < 0 || \result > 0;
+    assumes c_digit: '0' <= c <= '9';
+    ensures nonzero_result: \result < 0 || \result > 0;
   behavior no_match:
-    assumes c < '0' || c > '9';
-    ensures \result == 0;
-  disjoint behaviors match, no_match;
-  complete behaviors match, no_match;
+    assumes c_non_digit: c < '0' || c > '9';
+    ensures zero_result: \result == 0;
+  disjoint behaviors;
+  complete behaviors;
 */
 extern int isdigit(int c);
 
-/*@ requires 0 <= c <= 255 || c == EOF;
+/*@
+  requires c_uchar_or_eof: 0 <= c <= 255 || c == EOF;
   assigns \result \from c;
   behavior definitely_match:
-    assumes 33 <= c <= 126;
-    ensures \result < 0 || \result > 0;
+    assumes c_graphical: 33 <= c <= 126;
+    ensures nonzero_result: \result < 0 || \result > 0;
   behavior definitely_not_match:
-    assumes c == EOF || 0 <= c <= 32 || c == 127;
-    ensures \result == 0;
-  disjoint behaviors definitely_match, definitely_not_match;
+    assumes c_non_graphical: c == EOF || 0 <= c <= 32 || c == 127;
+    ensures zero_result: \result == 0;
+  disjoint behaviors;
 */
 extern int isgraph(int c);
 
-/*@ requires 0 <= c <= 255 || c == EOF;
+/*@
+  requires c_uchar_or_eof: 0 <= c <= 255 || c == EOF;
   assigns \result \from c;
   behavior definitely_match:
-    assumes 'a' <= c <= 'z';
-    ensures \result < 0 || \result > 0;
+    assumes c_lower: 'a' <= c <= 'z';
+    ensures nonzero_result: \result < 0 || \result > 0;
   behavior definitely_not_match:
-    assumes c == EOF || 0 <= c < 'a' || 'z' < c < 127;
-    ensures \result == 0;
-  disjoint behaviors definitely_match, definitely_not_match;
+    assumes c_non_lower: c == EOF || 0 <= c < 'a' || 'z' < c < 127;
+    ensures zero_result: \result == 0;
+  disjoint behaviors;
 */
 extern int islower(int c);
 
-/*@ requires 0 <= c <= 255 || c == EOF;
+/*@
+  requires c_uchar_or_eof: 0 <= c <= 255 || c == EOF;
   assigns \result \from c;
   behavior definitely_match:
-    assumes 32 <= c <= 126;
-    ensures \result < 0 || \result > 0;
+    assumes c_printable: 32 <= c <= 126;
+    ensures nonzero_result: \result < 0 || \result > 0;
   behavior definitely_not_match:
-    assumes c == EOF || 0 <= c <= 31 || c == 127;
-    ensures \result == 0;
-  disjoint behaviors definitely_match, definitely_not_match;
+    assumes c_non_printable: c == EOF || 0 <= c <= 31 || c == 127;
+    ensures zero_result: \result == 0;
+  disjoint behaviors;
 */
 extern int isprint(int c);
 
-/*@ requires 0 <= c <= 255 || c == EOF;
+/*@
+  requires c_uchar_or_eof: 0 <= c <= 255 || c == EOF;
   assigns \result \from c;
   behavior definitely_match:
-    assumes 33 <= c <= 47 || 58 <= c <= 64 || 91 <= c <= 96 || 123 <= c <= 126;
-    ensures \result < 0 || \result > 0;
+    assumes c_punct: 33 <= c <= 47 || 58 <= c <= 64 || 91 <= c <= 96 || 123 <= c <= 126;
+    ensures nonzero_result: \result < 0 || \result > 0;
   behavior definitely_not_match:
-    assumes c == EOF || 0 <= c <= 32 || 48 <= c <= 57 || 65 <= c <= 90 ||
+    assumes c_non_punct: c == EOF || 0 <= c <= 32 || 48 <= c <= 57 || 65 <= c <= 90 ||
             97 <= c <= 122 || c == 127;
-    ensures \result == 0;
-  disjoint behaviors definitely_match, definitely_not_match;
+    ensures zero_result: \result == 0;
+  disjoint behaviors;
 */
 extern int ispunct(int c);
 
-/*@ requires 0 <= c <= 255 || c == EOF;
+/*@
+  requires c_uchar_or_eof: 0 <= c <= 255 || c == EOF;
   assigns \result \from c;
   behavior definitely_match:
-    assumes 9 <= c <= 13 || c == ' ';
-    ensures \result < 0 || \result > 0;
+    assumes c_space: 9 <= c <= 13 || c == ' ';
+    ensures nonzero_result: \result < 0 || \result > 0;
   behavior definitely_not_match:
-    assumes c == EOF || 0 <= c <= 8 || 14 <= c < ' ' || ' ' < c <= 127;
-    ensures \result == 0;
-  disjoint behaviors definitely_match, definitely_not_match;
+    assumes c_non_space: c == EOF || 0 <= c <= 8 || 14 <= c < ' ' || ' ' < c <= 127;
+    ensures zero_result: \result == 0;
+  disjoint behaviors;
 */
 extern int isspace(int c);
 
-/*@ requires 0 <= c <= 255 || c == EOF;
+/*@
+  requires c_uchar_or_eof: 0 <= c <= 255 || c == EOF;
   assigns \result \from c;
   behavior definitely_match:
-    assumes 'A' <= c <= 'Z';
-    ensures \result < 0 || \result > 0;
+    assumes c_upper: 'A' <= c <= 'Z';
+    ensures nonzero_result: \result < 0 || \result > 0;
   behavior definitely_not_match:
-    assumes c == EOF || 0 <= c < 'A' || 'Z' < c <= 127;
-    ensures \result == 0;
-  disjoint behaviors definitely_match, definitely_not_match;
+    assumes c_non_upper: c == EOF || 0 <= c < 'A' || 'Z' < c <= 127;
+    ensures zero_result: \result == 0;
+  disjoint behaviors;
 */
 extern int isupper(int c);
 
-/*@ requires 0 <= c <= 255 || c == EOF;
+/*@
+  requires c_uchar_or_eof: 0 <= c <= 255 || c == EOF;
   assigns \result \from c;
   behavior match:
-    assumes '0' <= c <= '9' || 'A' <= c <= 'F' || 'a' <= c <= 'f';
-    ensures \result < 0 || \result > 0;
+    assumes c_hexa_digit: '0' <= c <= '9' || 'A' <= c <= 'F' || 'a' <= c <= 'f';
+    ensures nonzero_result: \result < 0 || \result > 0;
   behavior no_match:
-    assumes !('0' <= c <= '9' || 'A' <= c <= 'F' || 'a' <= c <= 'f');
-    ensures \result == 0;
-  disjoint behaviors match, no_match;
-  complete behaviors match, no_match;
+    assumes c_non_hexa_digit: !('0' <= c <= '9' || 'A' <= c <= 'F' || 'a' <= c <= 'f');
+    ensures zero_result: \result == 0;
+  disjoint behaviors;
+  complete behaviors;
 */
 extern int isxdigit(int c);
 
 /* ISO C : 7.4.2 */
 
-/*@ requires 0 <= c <= 255 || c == EOF;
+/*@
+  requires c_uchar_or_eof: 0 <= c <= 255 || c == EOF;
   assigns \result \from c;
-  ensures 0 <= \result <= 255 || \result == EOF;
+  ensures result_uchar_of_eof: 0 <= \result <= 255 || \result == EOF;
   behavior definitely_changed:
-    assumes 'A' <= c <= 'Z';
-    ensures \result == c + 32;
+    assumes c_ascii_upper: 'A' <= c <= 'Z';
+    ensures result_ascii_lower: \result == c + 32;
   behavior definitely_not_changed:
-    assumes c == EOF || 0 <= c < 'A' || 'Z' < c <= 127;
-    ensures \result == c;
-  disjoint behaviors definitely_changed, definitely_not_changed;
+    assumes c_ascii_but_non_upper: c == EOF || 0 <= c < 'A' || 'Z' < c <= 127;
+    ensures result_unchanged: \result == c;
+  disjoint behaviors;
 */
 extern int tolower(int c);
 
-/*@ requires 0 <= c <= 255 || c == EOF;
+/*@
+  requires c_uchar_of_eof: 0 <= c <= 255 || c == EOF;
   assigns \result \from c;
-  ensures 0 <= \result <= 255 || \result == EOF;
+  ensures result_uchar_of_eof: 0 <= \result <= 255 || \result == EOF;
   behavior definitely_changed:
-    assumes 'a' <= c <= 'z';
-    ensures \result == c - 32;
+    assumes c_ascii_lower: 'a' <= c <= 'z';
+    ensures result_ascii_upper: \result == c - 32;
   behavior definitely_not_changed:
-    assumes c == EOF || 0 <= c < 'a' || 'z' < c <= 127;
-    ensures \result == c;
-  disjoint behaviors definitely_changed, definitely_not_changed;
+    assumes c_ascii_but_non_lower: c == EOF || 0 <= c < 'a' || 'z' < c <= 127;
+    ensures result_unchanged: \result == c;
+  disjoint behaviors;
 */
 extern int toupper(int c);
 
 /* POSIX */
-/*@ requires 0 <= c <= 255 || c == EOF;
+/*@
+  requires c_uchar_or_eof: 0 <= c <= 255 || c == EOF;
   assigns \result \from c;
   behavior match:
-    assumes 0 <= c <= 127;
-    ensures \result < 0 || \result > 0;
+    assumes c_ascii: 0 <= c <= 127;
+    ensures nonzero_result: \result < 0 || \result > 0;
   behavior no_match:
-    assumes !(0 <= c <= 127);
-    ensures \result == 0;
-  disjoint behaviors match, no_match;
-  complete behaviors match, no_match;
+    assumes c_non_ascii: !(0 <= c <= 127);
+    ensures zero_result: \result == 0;
+  disjoint behaviors;
+  complete behaviors;
 */
 extern int isascii(int c);
 

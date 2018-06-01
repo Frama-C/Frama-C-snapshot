@@ -2,7 +2,7 @@
 /*                                                                        */
 /*  This file is part of Frama-C.                                         */
 /*                                                                        */
-/*  Copyright (C) 2007-2017                                               */
+/*  Copyright (C) 2007-2018                                               */
 /*    CEA (Commissariat à l'énergie atomique et aux énergies              */
 /*         alternatives)                                                  */
 /*                                                                        */
@@ -31,7 +31,7 @@ __PUSH_FC_STDLIB
 
 __BEGIN_DECLS
 
-/*@ requires \valid_read( &iov[0..iovcnt-1] );
+/*@ requires valid_read_iov: \valid_read( &iov[0..iovcnt-1] );
 // Value cannot yet interpret the precise assigns clause; we use the weaker one as a fallback.
 //@ assigns { ((char *) iov[i].iov_base)[0..iov[i].iov_len - 1] | integer i; 0 <= i < iovcnt };
   @ assigns   ((char *) iov[0..iovcnt -1].iov_base)[0..];

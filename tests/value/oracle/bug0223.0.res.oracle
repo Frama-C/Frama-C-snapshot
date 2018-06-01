@@ -8,18 +8,20 @@
   S_ch1[0..1] ∈ [--..--]
   S_ch2[0..1] ∈ [--..--]
 [value] computing for function F <- main.
-    Called from tests/value/bug0223.i:33.
-tests/value/bug0223.i:33:[kernel] warning: Neither code nor specification for function F, generating default assigns from the prototype
+  Called from tests/value/bug0223.i:33.
+[kernel:annot:missing-spec] tests/value/bug0223.i:33: Warning: 
+  Neither code nor specification for function F, generating default assigns from the prototype
 [value] using specification for function F
 [value] Done for function F
 [value] computing for function F <- main.
-    Called from tests/value/bug0223.i:34.
+  Called from tests/value/bug0223.i:34.
 [value] Done for function F
 [value] computing for function h2 <- main.
-    Called from tests/value/bug0223.i:35.
+  Called from tests/value/bug0223.i:35.
 [value] computing for function my_strcnmp <- h2 <- main.
-    Called from tests/value/bug0223.i:16.
-tests/value/bug0223.i:16:[kernel] warning: Neither code nor specification for function my_strcnmp, generating default assigns from the prototype
+  Called from tests/value/bug0223.i:16.
+[kernel:annot:missing-spec] tests/value/bug0223.i:16: Warning: 
+  Neither code nor specification for function my_strcnmp, generating default assigns from the prototype
 [value] using specification for function my_strcnmp
 [value] Done for function my_strcnmp
 [value] Recording results for h2
@@ -44,7 +46,7 @@ tests/value/bug0223.i:16:[kernel] warning: Neither code nor specification for fu
 [from] Done for function F
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
-    These dependencies hold at termination for the executions that terminate:
+  These dependencies hold at termination for the executions that terminate:
 [from] Function F:
   \result FROM \nothing
 [from] Function my_strcnmp:
@@ -55,10 +57,10 @@ tests/value/bug0223.i:16:[kernel] warning: Neither code nor specification for fu
   NO EFFECTS
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function h2:
-      test; tmp
+    test; tmp
 [inout] Inputs for function h2:
-      ch1; ch2
+    ch1; ch2
 [inout] Out (internal) for function main:
-      i; j; k; l; p; tmp; tmp_0
+    i; j; k; l; p; tmp; tmp_0
 [inout] Inputs for function main:
-      ch1; ch2
+    ch1; ch2

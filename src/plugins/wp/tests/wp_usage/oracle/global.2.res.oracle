@@ -1,0 +1,25 @@
+# frama-c -wp -wp-model 'Typed (Ref)' [...]
+[kernel] Parsing tests/wp_usage/global.c (with preprocessing)
+[wp] Running WP plugin...
+[wp] Loading driver 'share/wp.driver'
+[wp] Warning: Missing RTE guards
+------------------------------------------------------------
+  Function foo
+------------------------------------------------------------
+
+Goal Assertion 'no_address_taken' (file tests/wp_usage/global.c, line 17):
+Prove: true.
+
+------------------------------------------------------------
+------------------------------------------------------------
+  Function main
+------------------------------------------------------------
+
+Goal Instance of 'Pre-condition (file tests/wp_usage/global.c, line 14) in 'foo'' in 'main' at call 'foo' (file tests/wp_usage/global.c, line 21)
+:
+Prove: true.
+
+------------------------------------------------------------
+[wp] Warning: Separation hypotheses for function 'foo':
+  /*@ behavior typed_ref: requires \separated(a,&GLOBAL); */
+  void foo(int *a);

@@ -1,0 +1,7 @@
+[
+  { "classid": "RTE", "action": "REVIEW", "title": "Missing RTE guards",
+    "descr": "Shall run Eva plug-in" },
+  { "classid": "UNIT", "action": "INFO", "title": "Precondition 'f'",
+    "descr": "Property Untried", "file": "tests/report/classify.c",
+    "line": 22 }
+]

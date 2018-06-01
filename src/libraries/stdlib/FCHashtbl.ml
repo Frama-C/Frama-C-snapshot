@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2017                                               *)
+(*  Copyright (C) 2007-2018                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -36,6 +36,11 @@ module type S = sig
     cmp:('a -> 'a -> int) -> (key -> 'a -> unit) -> 'a t -> unit
   val fold_sorted_by_value:
     cmp:('a -> 'a -> int) -> (key -> 'a -> 'b -> 'b) -> 'a t -> 'b -> 'b
+  val find_opt: 'a t -> key -> 'a option
+  val find_def: 'a t -> key -> 'a  -> 'a
+
+  val memo: 'a t -> key -> (key -> 'a) -> 'a
+
 end
 
 let hash = Hashtbl.hash
@@ -78,6 +83,23 @@ module Make(H: Hashtbl.HashedType) : S with type key = H.t  = struct
 
   let iter_sorted_by_value ~cmp f h =
     iter_sorted_by_entry ~cmp:(fun (_ka,va) (_kb,vb) -> cmp va vb) f h
+
+  let find_opt h k =
+    match find h k with
+    | exception Not_found -> None
+    | v -> Some v
+
+  let find_def h k v =
+    match find h k with
+    | exception Not_found -> v
+    | v -> v
+
+  let memo tbl k f =
+    try find tbl k
+    with Not_found ->
+      let v = f k in
+      add tbl k v;
+      v
 
 end
 

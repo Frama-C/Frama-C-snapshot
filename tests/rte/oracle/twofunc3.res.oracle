@@ -18,7 +18,7 @@ int f(int x, int y)
   }
   __retres = 1;
   return_label:
-  /*@ assert rte: initialisation: \initialized(&__retres); */
+  /*@ assert rte: initialization: \initialized(&__retres); */
   return __retres;
 }
 
@@ -31,41 +31,41 @@ int main(void)
   /*@ assert y > x; */ ;
   i = 0;
   while (1) {
-    /*@ assert rte: initialisation: \initialized(&i); */
+    /*@ assert rte: initialization: \initialized(&i); */
     if (! (i < 20)) break;
     {
-      /*@ assert rte: initialisation: \initialized(&x); */
-      /*@ assert rte: initialisation: \initialized(&y); */
+      /*@ assert rte: initialization: \initialized(&x); */
+      /*@ assert rte: initialization: \initialized(&y); */
       /*@ assert rte: signed_overflow: -2147483648 ≤ x + y; */
       /*@ assert rte: signed_overflow: x + y ≤ 2147483647; */
       int tmp = x + y;
-      /*@ assert rte: initialisation: \initialized(&x); */
-      /*@ assert rte: initialisation: \initialized(&y); */
+      /*@ assert rte: initialization: \initialized(&x); */
+      /*@ assert rte: initialization: \initialized(&y); */
       /*@ assert rte: signed_overflow: -2147483648 ≤ x - y; */
       /*@ assert rte: signed_overflow: x - y ≤ 2147483647; */
       y = x - y;
-      /*@ assert rte: initialisation: \initialized(&tmp); */
+      /*@ assert rte: initialization: \initialized(&tmp); */
       x = tmp;
     }
-    /*@ assert rte: initialisation: \initialized(&i); */
+    /*@ assert rte: initialization: \initialized(&i); */
     /*@ assert rte: signed_overflow: i + 1 ≤ 2147483647; */
     i ++;
   }
   /*@ assert i > 0; */ ;
-  /*@ assert rte: initialisation: \initialized(&x); */
+  /*@ assert rte: initialization: \initialized(&x); */
   if (x > 0) 
-    /*@ assert rte: initialisation: \initialized(&y); */
+    /*@ assert rte: initialization: \initialized(&y); */
     if (y > 0) {
       int tmp_0;
-      /*@ assert rte: initialisation: \initialized(&x); */
-      /*@ assert rte: initialisation: \initialized(&y); */
+      /*@ assert rte: initialization: \initialized(&x); */
+      /*@ assert rte: initialization: \initialized(&y); */
       tmp_0 = f(x,y);
       __retres = tmp_0;
       goto return_label;
     }
   __retres = 0;
   return_label:
-  /*@ assert rte: initialisation: \initialized(&__retres); */
+  /*@ assert rte: initialization: \initialized(&__retres); */
   return __retres;
 }
 
@@ -73,53 +73,53 @@ int main(void)
 [kernel] ================================
 [kernel] Rte-generated annotations for function f
 [kernel] For Statement if (x + y != 0) {
-                    if (x == 2147483647) 
-                      if (y == 1) {
-                        __retres = -1;
-                        goto return_label;
-                      }
-                    __retres = 0;
-                    goto return_label;
-                  }
+                  if (x == 2147483647) 
+                    if (y == 1) {
+                      __retres = -1;
+                      goto return_label;
+                    }
+                  __retres = 0;
+                  goto return_label;
+                }
 [kernel] assert rte: signed_overflow: -2147483648 ≤ x + y;
 [kernel] assert rte: signed_overflow: x + y ≤ 2147483647;
 [kernel] For Statement return_label: return __retres;
-[kernel] assert rte: initialisation: \initialized(&__retres);
+[kernel] assert rte: initialization: \initialized(&__retres);
 [kernel] Rte-generated annotations for function main
 [kernel] For Statement if (! (i < 20)) break;
-[kernel] assert rte: initialisation: \initialized(&i);
+[kernel] assert rte: initialization: \initialized(&i);
 [kernel] For Statement int tmp = x + y;
-[kernel] assert rte: initialisation: \initialized(&x);
-[kernel] assert rte: initialisation: \initialized(&y);
+[kernel] assert rte: initialization: \initialized(&x);
+[kernel] assert rte: initialization: \initialized(&y);
 [kernel] assert rte: signed_overflow: -2147483648 ≤ x + y;
 [kernel] assert rte: signed_overflow: x + y ≤ 2147483647;
 [kernel] For Statement y = x - y;
-[kernel] assert rte: initialisation: \initialized(&x);
-[kernel] assert rte: initialisation: \initialized(&y);
+[kernel] assert rte: initialization: \initialized(&x);
+[kernel] assert rte: initialization: \initialized(&y);
 [kernel] assert rte: signed_overflow: -2147483648 ≤ x - y;
 [kernel] assert rte: signed_overflow: x - y ≤ 2147483647;
 [kernel] For Statement x = tmp;
-[kernel] assert rte: initialisation: \initialized(&tmp);
+[kernel] assert rte: initialization: \initialized(&tmp);
 [kernel] For Statement i ++;
-[kernel] assert rte: initialisation: \initialized(&i);
+[kernel] assert rte: initialization: \initialized(&i);
 [kernel] assert rte: signed_overflow: i + 1 ≤ 2147483647;
 [kernel] For Statement if (x > 0) 
-                    if (y > 0) {
-                      int tmp_0;
-                      tmp_0 = f(x,y);
-                      __retres = tmp_0;
-                      goto return_label;
-                    }
-[kernel] assert rte: initialisation: \initialized(&x);
-[kernel] For Statement if (y > 0) {
+                  if (y > 0) {
                     int tmp_0;
                     tmp_0 = f(x,y);
                     __retres = tmp_0;
                     goto return_label;
                   }
-[kernel] assert rte: initialisation: \initialized(&y);
+[kernel] assert rte: initialization: \initialized(&x);
+[kernel] For Statement if (y > 0) {
+                  int tmp_0;
+                  tmp_0 = f(x,y);
+                  __retres = tmp_0;
+                  goto return_label;
+                }
+[kernel] assert rte: initialization: \initialized(&y);
 [kernel] For Statement tmp_0 = f(x,y);
-[kernel] assert rte: initialisation: \initialized(&x);
-[kernel] assert rte: initialisation: \initialized(&y);
+[kernel] assert rte: initialization: \initialized(&x);
+[kernel] assert rte: initialization: \initialized(&y);
 [kernel] For Statement return_label: return __retres;
-[kernel] assert rte: initialisation: \initialized(&__retres);
+[kernel] assert rte: initialization: \initialized(&__retres);

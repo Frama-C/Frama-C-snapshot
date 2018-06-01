@@ -5,9 +5,11 @@
 [value:initial-state] Values of globals at initialization
   i1 ∈ [--..--]
   i2 ∈ [--..--]
-tests/value/unsigned_overflow.c:4:[value] warning: assertion got status unknown.
-tests/value/unsigned_overflow.c:5:[value] warning: assertion got status unknown.
-tests/value/unsigned_overflow.c:10:[value] Frama_C_show_each_dead:
+[value:alarm] tests/value/unsigned_overflow.c:4: Warning: 
+  assertion got status unknown.
+[value:alarm] tests/value/unsigned_overflow.c:5: Warning: 
+  assertion got status unknown.
+[value] tests/value/unsigned_overflow.c:10: Frama_C_show_each_dead:
 [value] Recording results for main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======
@@ -17,11 +19,11 @@ tests/value/unsigned_overflow.c:10:[value] Frama_C_show_each_dead:
 [from] Computing for function main
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
-    These dependencies hold at termination for the executions that terminate:
+  These dependencies hold at termination for the executions that terminate:
 [from] Function main:
   \result FROM \nothing
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function main:
-      v; w; __retres
+    v; w; __retres
 [inout] Inputs for function main:
-      i1; i2
+    i1; i2

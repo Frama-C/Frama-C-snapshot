@@ -5,17 +5,21 @@
 [value] Initial state computed
 [value:initial-state] Values of globals at initialization
   
-tests/slicing/bts345.i:27:[value] warning: signed overflow. assert y + 1 ≤ 2147483647;
+[value:alarm] tests/slicing/bts345.i:27: Warning: 
+  signed overflow. assert y + 1 ≤ 2147483647;
 [value] computing for function top <- call_top.
-    Called from tests/slicing/bts345.i:28.
-tests/slicing/bts345.i:21:[value] warning: signed overflow. assert x + 1 ≤ 2147483647;
+  Called from tests/slicing/bts345.i:28.
+[value:alarm] tests/slicing/bts345.i:21: Warning: 
+  signed overflow. assert x + 1 ≤ 2147483647;
 [value] computing for function called_by_top <- top <- call_top.
-    Called from tests/slicing/bts345.i:22.
-tests/slicing/bts345.i:15:[value] warning: signed overflow. assert x + 1 ≤ 2147483647;
+  Called from tests/slicing/bts345.i:22.
+[value:alarm] tests/slicing/bts345.i:15: Warning: 
+  signed overflow. assert x + 1 ≤ 2147483647;
 [value] computing for function called_indirectly_by_top <- called_by_top <- top <- 
-                            call_top.
-    Called from tests/slicing/bts345.i:16.
-tests/slicing/bts345.i:10:[value] warning: signed overflow. assert x + 1 ≤ 2147483647;
+                          call_top.
+  Called from tests/slicing/bts345.i:16.
+[value:alarm] tests/slicing/bts345.i:10: Warning: 
+  signed overflow. assert x + 1 ≤ 2147483647;
 [value] Recording results for called_indirectly_by_top
 [value] Done for function called_indirectly_by_top
 [value] Recording results for called_by_top

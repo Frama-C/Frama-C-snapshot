@@ -6,7 +6,7 @@
   x ∈ {0}
   y ∈ {0}
 [value] computing for function f <- main.
-    Called from tests/pdg/assigns.i:13.
+  Called from tests/pdg/assigns.i:13.
 [value] using specification for function f
 [value] Done for function f
 [value] Recording results for main

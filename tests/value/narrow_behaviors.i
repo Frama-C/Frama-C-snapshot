@@ -26,7 +26,7 @@ typedef struct { int x, y; } pair;
   complete behaviors a, b;
   complete behaviors c, d;
  */
-pair f1();
+pair f1(void);
 
 /*@
   assigns \result \from nondet;
@@ -49,7 +49,7 @@ pair f1();
   complete behaviors a, b;
   complete behaviors c, d;
  */
-pair f2();
+pair f2(void);
 
 int main() {
   {

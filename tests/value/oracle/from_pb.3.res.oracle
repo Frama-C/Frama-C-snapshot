@@ -19,11 +19,11 @@
 [from] Computing for function main3
 [from] Done for function main3
 [from] ====== DEPENDENCIES COMPUTED ======
-    These dependencies hold at termination for the executions that terminate:
+  These dependencies hold at termination for the executions that terminate:
 [from] Function main3:
   T[1] FROM x; c
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function main3:
-      T[1]; p
+    T[1]; p
 [inout] Inputs for function main3:
-      x; c
+    x; c

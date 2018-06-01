@@ -5,10 +5,12 @@
 [value:initial-state] Values of globals at initialization
   
 [value] computing for function mxml <- main.
-    Called from tests/value/library_precond.i:9.
+  Called from tests/value/library_precond.i:9.
 [value] using specification for function mxml
-tests/value/library_precond.i:5:[value] warning: no 'assigns \result \from ...' clause specified for function mxml
-tests/value/library_precond.i:3:[value] warning: function mxml: precondition got status invalid.
+[value] tests/value/library_precond.i:5: Warning: 
+  no 'assigns \result \from ...' clause specified for function mxml
+[value:alarm] tests/value/library_precond.i:9: Warning: 
+  function mxml: precondition got status invalid.
 [value] Done for function mxml
 [value] Recording results for main
 [value] done for function main
@@ -21,13 +23,13 @@ tests/value/library_precond.i:3:[value] warning: function mxml: precondition got
 [from] Non-terminating function main (no dependencies)
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
-    These dependencies hold at termination for the executions that terminate:
+  These dependencies hold at termination for the executions that terminate:
 [from] Function mxml:
   \result FROM ANYTHING(origin:Unknown)
 [from] Function main:
   NON TERMINATING - NO EFFECTS
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function main:
-      p; a
+    p; a
 [inout] Inputs for function main:
-      \nothing
+    \nothing

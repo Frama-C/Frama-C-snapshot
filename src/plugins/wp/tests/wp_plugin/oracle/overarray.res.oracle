@@ -1,0 +1,107 @@
+# frama-c -wp [...]
+[kernel] Parsing tests/wp_plugin/overarray.i (no preprocessing)
+[wp] Running WP plugin...
+[wp] Loading driver 'share/wp.driver'
+[wp] Warning: Missing RTE guards
+------------------------------------------------------------
+  Function f1_ok
+------------------------------------------------------------
+
+Goal Assigns (file tests/wp_plugin/overarray.i, line 12) in 'f1_ok':
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Assigns (file tests/wp_plugin/overarray.i, line 12) in 'f1_ok':
+Prove: true.
+
+------------------------------------------------------------
+------------------------------------------------------------
+  Function f2_ok
+------------------------------------------------------------
+
+Goal Assigns (file tests/wp_plugin/overarray.i, line 15) in 'f2_ok':
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Assigns (file tests/wp_plugin/overarray.i, line 15) in 'f2_ok':
+Prove: true.
+
+------------------------------------------------------------
+------------------------------------------------------------
+  Function f3_ok
+------------------------------------------------------------
+
+Goal Assigns nothing in 'f3_ok':
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Assigns nothing in 'f3_ok':
+Prove: true.
+
+------------------------------------------------------------
+------------------------------------------------------------
+  Function f4_ok
+------------------------------------------------------------
+
+Goal Assigns nothing in 'f4_ok':
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Assigns nothing in 'f4_ok':
+Prove: true.
+
+------------------------------------------------------------
+------------------------------------------------------------
+  Function f5_ko
+------------------------------------------------------------
+
+Goal Assigns nothing in 'f5_ko':
+Call Effect at line 25
+Assume {
+  (* Exit Effects *)
+  Have: forall i : Z. let x = 15 + i in (((-15) <= i) -> ((i <= 4) ->
+      (((i < 0) \/ (10 <= i)) -> (A[x] = A_1[x])))).
+}
+Prove: false.
+
+------------------------------------------------------------
+
+Goal Assigns nothing in 'f5_ko':
+Call Effect at line 25
+Assume {
+  (* Call Effects *)
+  Have: forall i : Z. let x = 15 + i in (((-15) <= i) -> ((i <= 4) ->
+      (((i < 0) \/ (10 <= i)) -> (A[x] = A_1[x])))).
+}
+Prove: false.
+
+------------------------------------------------------------
+------------------------------------------------------------
+  Function f6_ko
+------------------------------------------------------------
+
+Goal Assigns nothing in 'f6_ko':
+Call Effect at line 28
+Assume {
+  (* Exit Effects *)
+  Have: forall i : Z. let x = i - 5 in ((5 <= i) -> ((i <= 24) ->
+      (((i < 0) \/ (10 <= i)) -> (A[x] = A_1[x])))).
+}
+Prove: false.
+
+------------------------------------------------------------
+
+Goal Assigns nothing in 'f6_ko':
+Call Effect at line 28
+Assume {
+  (* Call Effects *)
+  Have: forall i : Z. let x = i - 5 in ((5 <= i) -> ((i <= 24) ->
+      (((i < 0) \/ (10 <= i)) -> (A[x] = A_1[x])))).
+}
+Prove: false.
+
+------------------------------------------------------------

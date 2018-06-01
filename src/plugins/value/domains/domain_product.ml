@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2017                                               *)
+(*  Copyright (C) 2007-2018                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -71,9 +71,7 @@ module Make
 
   let merge (eval1, alarms1) (eval2, alarms2) =
     match Alarmset.inter alarms1 alarms2 with
-    | `Inconsistent ->
-      Value_parameters.abort ~current:true ~once:true
-        "Inconsistent status of alarms: unsound states."
+    | `Inconsistent -> `Bottom, Alarmset.none
     | `Value alarms ->
       let value =
         eval1 >>- fun (v1, o1) ->
@@ -215,14 +213,16 @@ module Make
           merge_results call.kf left_result right_result
         in
         Result (result, c1) (* TODO: c1 *)
-      | Result (left_result, c1), _ ->
+      | Result (left_result, c1), Compute right ->
+        Right.Store.register_initial_state (Value_util.call_stack ()) right;
         let result =
           Right_Transfer.approximate_call stmt call right >>- fun right_result ->
           left_result >>-: fun left_result ->
           merge_results call.kf left_result right_result
         in
         Result (result, c1)
-      | _, Result (right_result, c2) ->
+      | Compute left, Result (right_result, c2) ->
+        Left.Store.register_initial_state (Value_util.call_stack ()) left;
         let result =
           Left_Transfer.approximate_call stmt call left >>- fun left_result ->
           right_result >>-: fun right_result ->
@@ -306,8 +306,10 @@ module Make
     and right_status = Right.evaluate_predicate right_env right pred in
     match Alarmset.Status.inter left_status right_status with
     | `Inconsistent ->
-      Value_parameters.abort ~current:true ~once:true
-        "Inconsistent status of alarms: unsound states."
+      (* This may happen when the product of states has no concretization.
+         We would need an "Inconsistent" status to be precise, but it should
+         not be usable by the domains. *)
+      Abstract_interp.Comp.True
     | `Value status -> status
 
   let reduce_by_predicate logic_environment (left, right) pred positive =
@@ -346,7 +348,6 @@ module Make
       ~current_input:(fst current_input) ~previous_output:(fst previous_output),
     Right.reuse
       ~current_input:(snd current_input) ~previous_output:(snd previous_output)
-
 
   let merge_tbl left_tbl right_tbl =
     let open Value_types in
@@ -413,6 +414,12 @@ module Make
       merge_callstack_tbl left_tbl right_tbl
 
   end
+
+  let post_analysis = function
+    | `Bottom -> Left.post_analysis `Bottom; Right.post_analysis `Bottom
+    | `Value (left, right) ->
+      Left.post_analysis (`Value left);
+      Right.post_analysis (`Value right)
 
 end
 

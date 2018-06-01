@@ -4,7 +4,7 @@
 
 // if f() assigns i there might be a problem 
 //@ assigns \nothing;
-int f();
+int f(void);
 
 int main() {
   int i;

@@ -13,6 +13,14 @@ predicate bar(ℤ x, ℤ y, ℤ z, ℤ t) =
 predicate mixed(ℤ x, ℤ y, ℤ z, ℤ t) =
   x ≡ 0 ∨ y ≡ 0 ∨ z ≡ 0 ∨ t ≡ 0;
  */
+/*@ logic ℝ pi= π;
+ */
+/*@ logic ℝ pi_div_2= π / 2;
+ */
+/*@ logic ℝ e= \e;
+ */
+/*@ logic ℝ exp(ℝ n) = \pow(\e, n);
+ */
 
 [kernel] Parsing tests/pretty_printing/result/binary_logic_op.c (with preprocessing)
 [kernel] Parsing tests/pretty_printing/binary_logic_op.c (with preprocessing)
@@ -29,5 +37,13 @@ predicate bar(ℤ x, ℤ y, ℤ z, ℤ t) =
 /*@
 predicate mixed(ℤ x, ℤ y, ℤ z, ℤ t) =
   x ≡ 0 ∨ y ≡ 0 ∨ z ≡ 0 ∨ t ≡ 0;
+ */
+/*@ logic ℝ pi= π;
+ */
+/*@ logic ℝ pi_div_2= π / 2;
+ */
+/*@ logic ℝ e= \e;
+ */
+/*@ logic ℝ exp(ℝ n) = \pow(\e, n);
  */
 

@@ -37,16 +37,17 @@
   Ar[0] ∈ {{ (int)&AA }}
     [1] ∈ {0}
   Ap ∈ {{ &At[0] }}
-  previous ∈ {{ &a }}
+  f_previous ∈ {{ &a }}
 [value] computing for function f <- main.
-    Called from tests/value/from_call.i:81.
+  Called from tests/value/from_call.i:81.
 [value] computing for function h <- f <- main.
-    Called from tests/value/from_call.i:20.
-tests/value/from_call.i:20:[kernel] warning: Neither code nor specification for function h, generating default assigns from the prototype
+  Called from tests/value/from_call.i:20.
+[kernel:annot:missing-spec] tests/value/from_call.i:20: Warning: 
+  Neither code nor specification for function h, generating default assigns from the prototype
 [value] using specification for function h
 [value] Done for function h
 [value] computing for function g <- f <- main.
-    Called from tests/value/from_call.i:20.
+  Called from tests/value/from_call.i:20.
 [value] Recording results for g
 [from] Computing for function g
 [from] Done for function g
@@ -56,12 +57,12 @@ tests/value/from_call.i:20:[kernel] warning: Neither code nor specification for 
 [from] Done for function f
 [value] Done for function f
 [value] computing for function f <- main.
-    Called from tests/value/from_call.i:82.
+  Called from tests/value/from_call.i:82.
 [value] computing for function h <- f <- main.
-    Called from tests/value/from_call.i:20.
+  Called from tests/value/from_call.i:20.
 [value] Done for function h
 [value] computing for function g <- f <- main.
-    Called from tests/value/from_call.i:20.
+  Called from tests/value/from_call.i:20.
 [value] Recording results for g
 [from] Computing for function g
 [from] Done for function g
@@ -71,12 +72,12 @@ tests/value/from_call.i:20:[kernel] warning: Neither code nor specification for 
 [from] Done for function f
 [value] Done for function f
 [value] computing for function f <- main.
-    Called from tests/value/from_call.i:82.
+  Called from tests/value/from_call.i:82.
 [value] computing for function h <- f <- main.
-    Called from tests/value/from_call.i:20.
+  Called from tests/value/from_call.i:20.
 [value] Done for function h
 [value] computing for function g <- f <- main.
-    Called from tests/value/from_call.i:20.
+  Called from tests/value/from_call.i:20.
 [value] Recording results for g
 [from] Computing for function g
 [from] Done for function g
@@ -85,36 +86,38 @@ tests/value/from_call.i:20:[kernel] warning: Neither code nor specification for 
 [from] Computing for function f
 [from] Done for function f
 [value] Done for function f
-tests/value/from_call.i:82:[value] warning: signed overflow.
-    assert -2147483648 ≤ tmp + tmp_0;
-    (tmp from f(& c), tmp_0 from f(& d))
-tests/value/from_call.i:82:[value] warning: signed overflow.
-    assert tmp + tmp_0 ≤ 2147483647;
-    (tmp from f(& c), tmp_0 from f(& d))
+[value:alarm] tests/value/from_call.i:82: Warning: 
+  signed overflow.
+  assert -2147483648 ≤ tmp + tmp_0;
+  (tmp from f(& c), tmp_0 from f(& d))
+[value:alarm] tests/value/from_call.i:82: Warning: 
+  signed overflow.
+  assert tmp + tmp_0 ≤ 2147483647;
+  (tmp from f(& c), tmp_0 from f(& d))
 [value] computing for function dispatcher <- main.
-    Called from tests/value/from_call.i:83.
+  Called from tests/value/from_call.i:83.
 [value] Recording results for dispatcher
 [from] Computing for function dispatcher
 [from] Done for function dispatcher
 [value] Done for function dispatcher
 [value] computing for function dispatcher <- main.
-    Called from tests/value/from_call.i:84.
+  Called from tests/value/from_call.i:84.
 [value] Recording results for dispatcher
 [from] Computing for function dispatcher
 [from] Done for function dispatcher
 [value] Done for function dispatcher
 [value] computing for function dispatcher <- main.
-    Called from tests/value/from_call.i:85.
+  Called from tests/value/from_call.i:85.
 [value] Recording results for dispatcher
 [from] Computing for function dispatcher
 [from] Done for function dispatcher
 [value] Done for function dispatcher
 [value] computing for function call_dispatcher2_1 <- main.
-    Called from tests/value/from_call.i:86.
+  Called from tests/value/from_call.i:86.
 [value] computing for function dispatcher2 <- call_dispatcher2_1 <- main.
-    Called from tests/value/from_call.i:49.
+  Called from tests/value/from_call.i:49.
 [value] computing for function return_A1 <- dispatcher2 <- call_dispatcher2_1 <- main.
-    Called from tests/value/from_call.i:44.
+  Called from tests/value/from_call.i:44.
 [value] Recording results for return_A1
 [from] Computing for function return_A1
 [from] Done for function return_A1
@@ -128,11 +131,11 @@ tests/value/from_call.i:82:[value] warning: signed overflow.
 [from] Done for function call_dispatcher2_1
 [value] Done for function call_dispatcher2_1
 [value] computing for function call_dispatcher2_0 <- main.
-    Called from tests/value/from_call.i:87.
+  Called from tests/value/from_call.i:87.
 [value] computing for function dispatcher2 <- call_dispatcher2_0 <- main.
-    Called from tests/value/from_call.i:54.
+  Called from tests/value/from_call.i:54.
 [value] computing for function return_A2 <- dispatcher2 <- call_dispatcher2_0 <- main.
-    Called from tests/value/from_call.i:44.
+  Called from tests/value/from_call.i:44.
 [value] Recording results for return_A2
 [from] Computing for function return_A2
 [from] Done for function return_A2
@@ -146,17 +149,17 @@ tests/value/from_call.i:82:[value] warning: signed overflow.
 [from] Done for function call_dispatcher2_0
 [value] Done for function call_dispatcher2_0
 [value] computing for function call_dispatcher2 <- main.
-    Called from tests/value/from_call.i:88.
+  Called from tests/value/from_call.i:88.
 [value] computing for function dispatcher2 <- call_dispatcher2 <- main.
-    Called from tests/value/from_call.i:59.
+  Called from tests/value/from_call.i:59.
 [value] computing for function return_A1 <- dispatcher2 <- call_dispatcher2 <- main.
-    Called from tests/value/from_call.i:44.
+  Called from tests/value/from_call.i:44.
 [value] Recording results for return_A1
 [from] Computing for function return_A1
 [from] Done for function return_A1
 [value] Done for function return_A1
 [value] computing for function return_A2 <- dispatcher2 <- call_dispatcher2 <- main.
-    Called from tests/value/from_call.i:44.
+  Called from tests/value/from_call.i:44.
 [value] Recording results for return_A2
 [from] Computing for function return_A2
 [from] Done for function return_A2
@@ -170,25 +173,25 @@ tests/value/from_call.i:82:[value] warning: signed overflow.
 [from] Done for function call_dispatcher2
 [value] Done for function call_dispatcher2
 [value] computing for function access_tab <- main.
-    Called from tests/value/from_call.i:92.
+  Called from tests/value/from_call.i:92.
 [value] Recording results for access_tab
 [from] Computing for function access_tab
 [from] Done for function access_tab
 [value] Done for function access_tab
 [value] computing for function access_tab <- main.
-    Called from tests/value/from_call.i:93.
+  Called from tests/value/from_call.i:93.
 [value] Recording results for access_tab
 [from] Computing for function access_tab
 [from] Done for function access_tab
 [value] Done for function access_tab
 [value] computing for function access_tab <- main.
-    Called from tests/value/from_call.i:94.
+  Called from tests/value/from_call.i:94.
 [value] Recording results for access_tab
 [from] Computing for function access_tab
 [from] Done for function access_tab
 [value] Done for function access_tab
 [value] computing for function unavailable_f <- main.
-    Called from tests/value/from_call.i:96.
+  Called from tests/value/from_call.i:96.
 [value] using specification for function unavailable_f
 [value] Done for function unavailable_f
 [value] Recording results for main
@@ -206,7 +209,7 @@ tests/value/from_call.i:82:[value] warning: signed overflow.
   b ∈ {0}
   c ∈ {0}
   d ∈ {0}
-  previous ∈ {{ &b ; &c ; &d }}
+  f_previous ∈ {{ &b ; &c ; &d }}
 [value:final-states] Values at end of function return_A1:
   
 [value:final-states] Values at end of function return_A2:
@@ -241,7 +244,7 @@ tests/value/from_call.i:82:[value] warning: signed overflow.
   AS ∈
     {{ garbled mix of &{AA}
      (origin: Library function {tests/value/from_call.i:96}) }}
-  previous ∈ {{ &d }}
+  f_previous ∈ {{ &d }}
 [from] ====== DISPLAYING CALLWISE DEPENDENCIES ======
 [from] call to g at tests/value/from_call.i:20 (by f):
   \result FROM t; w
@@ -258,17 +261,17 @@ tests/value/from_call.i:82:[value] warning: signed overflow.
 [from] call to dispatcher2 at tests/value/from_call.i:49 (by call_dispatcher2_1):
   \result FROM A1; c_0
 [from] call to f at tests/value/from_call.i:81 (by main):
-  b FROM a; p; previous
-  previous FROM p
-  \result FROM a; t; p; previous
+  b FROM a; p; f_previous
+  f_previous FROM p
+  \result FROM a; t; p; f_previous
 [from] call to f at tests/value/from_call.i:82 (by main):
-  c FROM b; p; previous
-  previous FROM p
-  \result FROM b; t; p; previous
+  c FROM b; p; f_previous
+  f_previous FROM p
+  \result FROM b; t; p; f_previous
 [from] call to f at tests/value/from_call.i:82 (by main):
-  d FROM c; p; previous
-  previous FROM p
-  \result FROM c; t; p; previous
+  d FROM c; p; f_previous
+  f_previous FROM p
+  \result FROM c; t; p; f_previous
 [from] call to dispatcher at tests/value/from_call.i:83 (by main):
   \result FROM c_0; y_0
 [from] call to dispatcher at tests/value/from_call.i:84 (by main):
@@ -291,11 +294,11 @@ tests/value/from_call.i:82:[value] warning: signed overflow.
   AR FROM At[0..1]
   AS FROM Ar[0..1]
 [from] entry point:
-  b FROM a; previous
-  c FROM a; previous
-  d FROM a; previous
-  y FROM a; t; previous
-  z FROM a; t; previous
+  b FROM a; f_previous
+  c FROM a; f_previous
+  d FROM a; f_previous
+  y FROM a; t; f_previous
+  z FROM a; t; f_previous
   R1 FROM A1
   R2 FROM A4
   R3 FROM A4; A5; r
@@ -310,37 +313,37 @@ tests/value/from_call.i:82:[value] warning: signed overflow.
      [2] FROM A4
   AR FROM At[0..1]
   AS FROM Ar[0..1]
-  previous FROM \nothing
+  f_previous FROM \nothing
 [from] ====== END OF CALLWISE DEPENDENCIES ======
 [users] ====== DISPLAYING USERS ======
-    f: g h
-    dispatcher2: return_A1 return_A2
-    call_dispatcher2: return_A1 return_A2 dispatcher2
-    call_dispatcher2_0: return_A2 dispatcher2
-    call_dispatcher2_1: return_A1 dispatcher2
-    main: g h f dispatcher return_A1 return_A2 dispatcher2 call_dispatcher2_1
-        call_dispatcher2_0 call_dispatcher2 access_tab unavailable_f
-    ====== END OF USERS ==========
+  f: g h
+  dispatcher2: return_A1 return_A2
+  call_dispatcher2: return_A1 return_A2 dispatcher2
+  call_dispatcher2_0: return_A2 dispatcher2
+  call_dispatcher2_1: return_A1 dispatcher2
+  main: g h f dispatcher return_A1 return_A2 dispatcher2 call_dispatcher2_1
+      call_dispatcher2_0 call_dispatcher2 access_tab unavailable_f
+  ====== END OF USERS ==========
 [inout] Inputs for function access_tab:
-      tab[0..2]
+    tab[0..2]
 [inout] Inputs for function dispatcher:
-      \nothing
+    \nothing
 [inout] Inputs for function g:
-      t
+    t
 [inout] Inputs for function f:
-      a; b; c; d; x; t; previous
+    a; b; c; d; x; t; f_previous
 [inout] Inputs for function return_A1:
-      A1
+    A1
 [inout] Inputs for function return_A2:
-      A2
+    A2
 [inout] Inputs for function dispatcher2:
-      A1; A2
+    A1; A2
 [inout] Inputs for function call_dispatcher2:
-      A1; A2
+    A1; A2
 [inout] Inputs for function call_dispatcher2_0:
-      A1; A2
+    A1; A2
 [inout] Inputs for function call_dispatcher2_1:
-      A1; A2
+    A1; A2
 [inout] Inputs for function main:
-      a; b; c; d; x; t; A1; A2; A3; A4; A5; A6; A7; tab[0..2]; At[0..1];
-      Ar[0..1]; previous
+    a; b; c; d; x; t; A1; A2; A3; A4; A5; A6; A7; tab[0..2]; At[0..1];
+    Ar[0..1]; f_previous

@@ -6,9 +6,12 @@
 [value] Initial state computed
 [value:initial-state] Values of globals at initialization
   glob ∈ [--..--]
-tests/sparecode/se.i:8:[value] warning: out of bounds write. assert \valid(s1);
-tests/sparecode/se.i:12:[value] warning: out of bounds write. assert \valid(tab + e1);
-tests/sparecode/se.i:14:[value] warning: out of bounds read. assert \valid_read(es);
+[value:alarm] tests/sparecode/se.i:8: Warning: 
+  out of bounds write. assert \valid(s1);
+[value:alarm] tests/sparecode/se.i:12: Warning: 
+  out of bounds write. assert \valid(tab + e1);
+[value:alarm] tests/sparecode/se.i:14: Warning: 
+  out of bounds read. assert \valid_read(es);
 [value] Recording results for Se
 [value] done for function Se
 [pdg] computing for function Se

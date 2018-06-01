@@ -8,33 +8,33 @@
   u[0..9] ∈ [--..--]
   w[0..9] ∈ [--..--]
 [value] computing for function init <- main.
-    Called from tests/impact/loop2.i:24.
-tests/impact/loop2.i:11:[value] entering loop for the first time
+  Called from tests/impact/loop2.i:24.
+[value] tests/impact/loop2.i:11: entering loop for the first time
 [value] Recording results for init
 [from] Computing for function init
 [from] Done for function init
 [value] Done for function init
-tests/impact/loop2.i:25:[value] entering loop for the first time
+[value] tests/impact/loop2.i:25: entering loop for the first time
 [value] computing for function f <- main.
-    Called from tests/impact/loop2.i:27.
+  Called from tests/impact/loop2.i:27.
 [value] Recording results for f
 [from] Computing for function f
 [from] Done for function f
 [value] Done for function f
 [value] computing for function f <- main.
-    Called from tests/impact/loop2.i:27.
+  Called from tests/impact/loop2.i:27.
 [value] Recording results for f
 [from] Computing for function f
 [from] Done for function f
 [value] Done for function f
 [value] computing for function f <- main.
-    Called from tests/impact/loop2.i:27.
+  Called from tests/impact/loop2.i:27.
 [value] Recording results for f
 [from] Computing for function f
 [from] Done for function f
 [value] Done for function f
 [value] computing for function f <- main.
-    Called from tests/impact/loop2.i:27.
+  Called from tests/impact/loop2.i:27.
 [value] Recording results for f
 [from] Computing for function f
 [from] Done for function f
@@ -62,11 +62,11 @@ tests/impact/loop2.i:25:[value] entering loop for the first time
 [pdg] computing for function f
 [pdg] done for function f
 [impact] impacted statements of stmt(s) 17 are:
-      tests/impact/loop2.i:17 (sid 11): int v_0 = t[i];
-      tests/impact/loop2.i:18 (sid 12): w[i] = i;
-      tests/impact/loop2.i:19 (sid 13): t[i] = u[i];
-      tests/impact/loop2.i:26 (sid 26): if(t[i]) <..>
-      tests/impact/loop2.i:27 (sid 27): f(i);
+    tests/impact/loop2.i:17 (sid 11): int v_0 = t[i];
+    tests/impact/loop2.i:18 (sid 12): w[i] = i;
+    tests/impact/loop2.i:19 (sid 13): t[i] = u[i];
+    tests/impact/loop2.i:26 (sid 26): if(t[i]) <..>
+    tests/impact/loop2.i:27 (sid 27): f(i);
 [impact] analysis done
 [kernel] Parsing tests/impact/loop2.i (no preprocessing)
 [value] Analyzing an incomplete application starting at main
@@ -78,73 +78,73 @@ tests/impact/loop2.i:25:[value] entering loop for the first time
   u[0..9] ∈ [--..--]
   w[0..9] ∈ [--..--]
 [value] computing for function init <- main.
-    Called from tests/impact/loop2.i:24.
-tests/impact/loop2.i:11:[value] entering loop for the first time
+  Called from tests/impact/loop2.i:24.
+[value] tests/impact/loop2.i:11: entering loop for the first time
 [value] Recording results for init
 [from] Computing for function init
 [from] Done for function init
 [value] Done for function init
 [value] computing for function f <- main.
-    Called from tests/impact/loop2.i:27.
+  Called from tests/impact/loop2.i:27.
 [value] Recording results for f
 [from] Computing for function f
 [from] Done for function f
 [value] Done for function f
 [value] computing for function f <- main.
-    Called from tests/impact/loop2.i:27.
+  Called from tests/impact/loop2.i:27.
 [value] Recording results for f
 [from] Computing for function f
 [from] Done for function f
 [value] Done for function f
 [value] computing for function f <- main.
-    Called from tests/impact/loop2.i:27.
+  Called from tests/impact/loop2.i:27.
 [value] Recording results for f
 [from] Computing for function f
 [from] Done for function f
 [value] Done for function f
 [value] computing for function f <- main.
-    Called from tests/impact/loop2.i:27.
+  Called from tests/impact/loop2.i:27.
 [value] Recording results for f
 [from] Computing for function f
 [from] Done for function f
 [value] Done for function f
 [value] computing for function f <- main.
-    Called from tests/impact/loop2.i:27.
+  Called from tests/impact/loop2.i:27.
 [value] Recording results for f
 [from] Computing for function f
 [from] Done for function f
 [value] Done for function f
 [value] computing for function f <- main.
-    Called from tests/impact/loop2.i:27.
+  Called from tests/impact/loop2.i:27.
 [value] Recording results for f
 [from] Computing for function f
 [from] Done for function f
 [value] Done for function f
 [value] computing for function f <- main.
-    Called from tests/impact/loop2.i:27.
+  Called from tests/impact/loop2.i:27.
 [value] Recording results for f
 [from] Computing for function f
 [from] Done for function f
 [value] Done for function f
 [value] computing for function f <- main.
-    Called from tests/impact/loop2.i:27.
+  Called from tests/impact/loop2.i:27.
 [value] Recording results for f
 [from] Computing for function f
 [from] Done for function f
 [value] Done for function f
 [value] computing for function f <- main.
-    Called from tests/impact/loop2.i:27.
+  Called from tests/impact/loop2.i:27.
 [value] Recording results for f
 [from] Computing for function f
 [from] Done for function f
 [value] Done for function f
 [value] computing for function f <- main.
-    Called from tests/impact/loop2.i:27.
+  Called from tests/impact/loop2.i:27.
 [value] Recording results for f
 [from] Computing for function f
 [from] Done for function f
 [value] Done for function f
-tests/impact/loop2.i:25:[value] entering loop for the first time
+[value] tests/impact/loop2.i:25: entering loop for the first time
 [value] Recording results for main
 [from] Computing for function main
 [from] Done for function main
@@ -213,15 +213,15 @@ tests/impact/loop2.i:25:[value] entering loop for the first time
 [pdg] computing for function f
 [pdg] done for function f
 [impact] impacted statements of stmt(s) 57 are:
-      tests/impact/loop2.i:19 (sid 53): t[i] = u[i];
-      tests/impact/loop2.i:27 (sid 149): f(i);
-      tests/impact/loop2.i:27 (sid 156): f(i);
-      tests/impact/loop2.i:27 (sid 163): f(i);
-      tests/impact/loop2.i:27 (sid 170): f(i);
-      tests/impact/loop2.i:27 (sid 177): f(i);
-      tests/impact/loop2.i:27 (sid 184): f(i);
-      tests/impact/loop2.i:27 (sid 191): f(i);
-      tests/impact/loop2.i:27 (sid 198): f(i);
-      tests/impact/loop2.i:27 (sid 205): f(i);
-      tests/impact/loop2.i:27 (sid 212): f(i);
+    tests/impact/loop2.i:19 (sid 53): t[i] = u[i];
+    tests/impact/loop2.i:27 (sid 149): f(i);
+    tests/impact/loop2.i:27 (sid 156): f(i);
+    tests/impact/loop2.i:27 (sid 163): f(i);
+    tests/impact/loop2.i:27 (sid 170): f(i);
+    tests/impact/loop2.i:27 (sid 177): f(i);
+    tests/impact/loop2.i:27 (sid 184): f(i);
+    tests/impact/loop2.i:27 (sid 191): f(i);
+    tests/impact/loop2.i:27 (sid 198): f(i);
+    tests/impact/loop2.i:27 (sid 205): f(i);
+    tests/impact/loop2.i:27 (sid 212): f(i);
 [impact] analysis done

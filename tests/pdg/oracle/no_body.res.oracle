@@ -5,45 +5,48 @@
 [value:initial-state] Values of globals at initialization
   G ∈ {0}
 [value] computing for function f <- main.
-    Called from tests/pdg/no_body.c:24.
-tests/pdg/no_body.c:24:[kernel] warning: Neither code nor specification for function f, generating default assigns from the prototype
+  Called from tests/pdg/no_body.c:24.
+[kernel:annot:missing-spec] tests/pdg/no_body.c:24: Warning: 
+  Neither code nor specification for function f, generating default assigns from the prototype
 [value] using specification for function f
 [value] Done for function f
 [value] computing for function loop <- main.
-    Called from tests/pdg/no_body.c:25.
-tests/pdg/no_body.c:16:[value] entering loop for the first time
+  Called from tests/pdg/no_body.c:25.
+[value] tests/pdg/no_body.c:16: entering loop for the first time
 [value] computing for function f <- loop <- main.
-    Called from tests/pdg/no_body.c:16.
+  Called from tests/pdg/no_body.c:16.
 [value] Done for function f
-tests/pdg/no_body.c:18:[value] warning: signed overflow. assert G + 1 ≤ 2147483647;
+[value:alarm] tests/pdg/no_body.c:18: Warning: 
+  signed overflow. assert G + 1 ≤ 2147483647;
 [value] computing for function f <- loop <- main.
-    Called from tests/pdg/no_body.c:16.
-[value] Done for function f
-[value] computing for function f <- loop <- main.
-    Called from tests/pdg/no_body.c:16.
+  Called from tests/pdg/no_body.c:16.
 [value] Done for function f
 [value] computing for function f <- loop <- main.
-    Called from tests/pdg/no_body.c:16.
+  Called from tests/pdg/no_body.c:16.
 [value] Done for function f
-tests/pdg/no_body.c:17:[value] warning: signed overflow. assert x + 1 ≤ 2147483647;
+[value] computing for function f <- loop <- main.
+  Called from tests/pdg/no_body.c:16.
+[value] Done for function f
+[value:alarm] tests/pdg/no_body.c:17: Warning: 
+  signed overflow. assert x + 1 ≤ 2147483647;
 [value] Recording results for loop
 [value] Done for function loop
 [value] Recording results for main
 [value] done for function main
 [inout] InOut (internal) for function loop:
-    Operational inputs:
-      G; x
-    Operational inputs on termination:
-      G; x
-    Sure outputs:
-      tmp
+  Operational inputs:
+    G; x
+  Operational inputs on termination:
+    G; x
+  Sure outputs:
+    tmp
 [inout] InOut (internal) for function main:
-    Operational inputs:
-      \nothing
-    Operational inputs on termination:
-      \nothing
-    Sure outputs:
-      G; x
+  Operational inputs:
+    \nothing
+  Operational inputs on termination:
+    \nothing
+  Sure outputs:
+    G; x
 [pdg] computing for function main
 [from] Computing for function f
 [from] Done for function f

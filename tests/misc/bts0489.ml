@@ -3,7 +3,7 @@ open Cil_types
 class visitor =
 object
   inherit Visitor.frama_c_inplace
-  method vexpr e =
+  method! vexpr e =
     match e.enode with
       | Const(CInt64 (_,_,Some s)) ->
           Format.printf "Found representation %s@." s; Cil.SkipChildren

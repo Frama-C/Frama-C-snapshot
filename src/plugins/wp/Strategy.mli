@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2017                                               *)
+(*  Copyright (C) 2007-2018                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -76,6 +76,12 @@ val iter : (heuristic -> unit) -> unit
 
 type t = strategy
 val arg : 'a field -> 'a -> argument
+val make : tactical ->
+  ?priority:float -> ?arguments:argument list -> selection -> strategy
+
+(**/**)
+    
+(* To be used only when applying the tactical *)
+
 val set_arg : tactical -> argument -> unit
 val set_args : tactical -> argument list -> unit
-val make : tactical -> ?priority:float -> selection -> strategy

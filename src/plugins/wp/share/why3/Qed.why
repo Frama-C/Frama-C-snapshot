@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2017                                               *)
+(*  Copyright (C) 2007-2018                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -59,11 +59,7 @@ axiom rlt1 : forall x:real, y:real. ((rlt x y) = (Bool.True)) <->
 axiom rleq1 : forall x:real, y:real. ((rleq x y) = (Bool.True)) <->
   (Real.(<=) (x) (y))
 
-function truncate real : int
-
 function real_of_int (x:int) : real = FromInt.from_int x
-
-axiom truncate_of_int : forall x:int. ((truncate (real_of_int x)) = (x))
 
 axiom c_euclidian : forall n:int, d:int [ComputerDivision.div n d,
   ComputerDivision.mod n d]. not ((d) = (0)) ->

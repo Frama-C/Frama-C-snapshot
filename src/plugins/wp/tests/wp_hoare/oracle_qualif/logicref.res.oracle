@@ -2,7 +2,7 @@
 [kernel] Parsing tests/wp_hoare/logicref.i (no preprocessing)
 [wp] Running WP plugin...
 [wp] Loading driver 'share/wp.driver'
-[wp] warning: Missing RTE guards
+[wp] Warning: Missing RTE guards
 [wp] 5 goals scheduled
 [wp] [Qed] Goal typed_ref_fvrange_n_post : Valid
 [wp] [Alt-Ergo] Goal typed_ref_fvrange_n_assert : Valid
@@ -10,10 +10,11 @@
 [wp] [Qed] Goal typed_ref_gcd_post : Valid
 [wp] [Qed] Goal typed_ref_gcd_assign : Valid
 [wp] Proved goals:    5 / 5
-    Qed:             4 
-    Alt-Ergo:        1
-----------------------------------------------------------
-Functions           WP   Alt-Ergo    Total   Success
-fvrange_n            2      1 (83)     3       100%
-gcd                  2     -           2       100%
-----------------------------------------------------------
+  Qed:             4 
+  Alt-Ergo:        1
+[wp] Report 'tests/wp_hoare/logicref.i.0.report.json'
+-------------------------------------------------------------
+Functions           WP     Alt-Ergo        Total   Success
+fvrange_n            2      1 (88..112)      3       100%
+gcd                  2     -                 2       100%
+-------------------------------------------------------------

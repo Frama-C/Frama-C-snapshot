@@ -7,7 +7,7 @@
   c ∈ {0}
   d ∈ {0}
   e ∈ {0}
-tests/value/from_termin.i:8:[value] entering loop for the first time
+[value] tests/value/from_termin.i:8: entering loop for the first time
 [value] Recording results for main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======
@@ -17,11 +17,11 @@ tests/value/from_termin.i:8:[value] entering loop for the first time
 [from] Computing for function main
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
-    These dependencies hold at termination for the executions that terminate:
+  These dependencies hold at termination for the executions that terminate:
 [from] Function main:
   b FROM c
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function main:
-      b; d
+    b; d
 [inout] Inputs for function main:
-      c; e
+    c; e

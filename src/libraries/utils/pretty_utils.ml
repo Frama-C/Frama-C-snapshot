@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2017                                               *)
+(*  Copyright (C) 2007-2018                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -19,6 +19,10 @@
 (*  for more details (enclosed in the file licenses/LGPLv2.1).            *)
 (*                                                                        *)
 (**************************************************************************)
+
+let null = Format.make_formatter (fun _ _ _ -> ()) (fun _ -> ())
+let with_null k msg = Format.kfprintf (fun _ -> k ()) null msg
+let nullprintf msg = Format.ifprintf null msg
 
 let ksfprintf f fmt =
   let b = Buffer.create 20 in

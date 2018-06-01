@@ -11,7 +11,7 @@ object
   method! vexpr e =
     (match e.enode with
      | Const (CStr _ | CWStr _ as c) ->
-       Kernel.result "Constant %a location: %a"
+       Kernel.result "@[<hov 0>@[<h 0>Constant %a@]@ location: %a@]"
          Printer.pp_constant c print_loc e.eloc
      | _ -> ());
     Cil.DoChildren

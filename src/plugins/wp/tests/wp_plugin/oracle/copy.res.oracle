@@ -2,7 +2,7 @@
 [kernel] Parsing tests/wp_plugin/copy.i (no preprocessing)
 [wp] Running WP plugin...
 [wp] Loading driver 'share/wp.driver'
-[wp] warning: Missing RTE guards
+[wp] Warning: Missing RTE guards
 ------------------------------------------------------------
   Function copy
 ------------------------------------------------------------
@@ -166,46 +166,12 @@ Prove: m[a_2] = Mint_0[a_2].
 
 ------------------------------------------------------------
 
-Goal Loop assigns (file tests/wp_plugin/copy.i, line 12) (1/3):
+Goal Loop assigns (file tests/wp_plugin/copy.i, line 12) (1/2):
 Prove: true.
 
 ------------------------------------------------------------
 
-Goal Loop assigns (file tests/wp_plugin/copy.i, line 12) (2/3):
-Effect at line 14
-Let m = Mint_1[shift_sint32(a, i) <- Mint_1[shift_sint32(b, i)]].
-Let a_1 = shift_sint32(a, 0).
-Assume {
-  Type: is_sint32(i) /\ is_sint32(n).
-  (* Goal *)
-  When: valid_rd(Malloc_0, a_1, n).
-  (* Heap *)
-  Have: (region(a.base) <= 0) /\ (region(b.base) <= 0) /\ linked(Malloc_0).
-  (* Pre-condition *)
-  Have: 0 <= n.
-  (* Pre-condition *)
-  Have: separated(a_1, n, shift_sint32(b, 0), n).
-  (* Loop assigns ... *)
-  Have: havoc(Mint_0, Mint_1, a_1, n).
-  (* Invariant 'Copy' *)
-  Have: forall i_1 : Z. ((0 <= i_1) -> ((i_1 < i) ->
-      (Mint_1[shift_sint32(b, i_1)] = Mint_1[shift_sint32(a, i_1)]))).
-  (* Invariant 'Range' *)
-  Have: (0 <= i) /\ (i <= n).
-  (* Then *)
-  Have: i < n.
-  (* Assertion 'A' *)
-  Have: forall i_1 : Z. let a_2 = shift_sint32(a, i_1) in ((0 <= i_1) ->
-      ((i_1 < i) -> (m[a_2] = Mint_1[a_2]))).
-  (* Assertion 'B' *)
-  Have: forall i_1 : Z. let a_2 = shift_sint32(b, i_1) in ((0 <= i_1) ->
-      ((i_1 < i) -> (m[a_2] = Mint_1[a_2]))).
-}
-Prove: included(a_1, n, a_1, n).
-
-------------------------------------------------------------
-
-Goal Loop assigns (file tests/wp_plugin/copy.i, line 12) (3/3):
+Goal Loop assigns (file tests/wp_plugin/copy.i, line 12) (2/2):
 Effect at line 16
 Let a_1 = shift_sint32(a, i).
 Let m = Mint_1[a_1 <- Mint_1[shift_sint32(b, i)]].
@@ -213,7 +179,7 @@ Let a_2 = shift_sint32(a, 0).
 Assume {
   Type: is_sint32(i) /\ is_sint32(n).
   (* Goal *)
-  When: valid_rd(Malloc_0, a_1, 1).
+  When: !invalid(Malloc_0, a_1, 1).
   (* Heap *)
   Have: (region(a.base) <= 0) /\ (region(b.base) <= 0) /\ linked(Malloc_0).
   (* Pre-condition *)
@@ -242,19 +208,6 @@ Prove: included(a_1, 1, a_2, n).
 
 Goal Assigns (file tests/wp_plugin/copy.i, line 6) in 'copy':
 Effect at line 14
-Let a_1 = shift_sint32(a, 0).
-Assume {
-  Have: valid_rd(Malloc_0, a_1, n).
-  Type: is_sint32(n).
-  (* Heap *)
-  Have: (region(a.base) <= 0) /\ (region(b.base) <= 0) /\ linked(Malloc_0).
-  (* Pre-condition *)
-  Have: 0 <= n.
-  (* Pre-condition *)
-  Have: separated(a_1, n, shift_sint32(b, 0), n).
-  (* Loop assigns ... *)
-  Have: havoc(Mint_0, Mint_1, a_1, n).
-}
-Prove: included(a_1, n, a_1, n).
+Prove: true.
 
 ------------------------------------------------------------

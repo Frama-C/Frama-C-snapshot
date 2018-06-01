@@ -1,5 +1,5 @@
 /* run.config*
-   OPT: -print -cpp-extra-args='-nostdinc -Ishare/libc' -metrics -metrics-libc -load-script tests/libc/check_const.ml -load-module metrics -val @VALUECONFIG@ -then -lib-entry -no-print -metrics-no-libc
+   OPT: -load-script tests/libc/check_libc_naming_conventions.ml -print -cpp-extra-args='-nostdinc -Ishare/libc' -metrics -metrics-libc -load-script tests/libc/check_const.ml -load-module metrics -val @VALUECONFIG@ -then -lib-entry -no-print -metrics-no-libc
    OPT: -print -print-libc
    CMD: ./tests/libc/check_full_libc.sh
    OPT:
@@ -13,7 +13,7 @@
 #define _XOPEN_SOURCE 600
 #define _POSIX_C_SOURCE 200112L
 
-#define FRAMA_C_MALLOC_INDIVIDUAL
+
 #include "share/libc/fc_runtime.c"
 
 #include "alloca.h"
@@ -26,6 +26,7 @@
 #include "dlfcn.h"
 #include "endian.h"
 #include "errno.h"
+#include "__fc_alloc_axiomatic.h"
 #include "__fc_builtin.h"
 #include "__fc_define_blkcnt_t.h"
 #include "__fc_define_blksize_t.h"
@@ -84,6 +85,7 @@
 #include "linux/netlink.h"
 #include "linux/rtnetlink.h"
 #include "locale.h"
+#include "malloc.h"
 #include "math.h"
 #include "memory.h"
 #include "netdb.h"

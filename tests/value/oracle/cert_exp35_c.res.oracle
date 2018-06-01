@@ -6,13 +6,16 @@
   __fc_stdout ∈ {{ NULL ; &S___fc_stdout[0] }}
   S___fc_stdout[0..1] ∈ [--..--]
 [value] computing for function addressee <- main.
-    Called from tests/value/cert_exp35_c.i:24.
+  Called from tests/value/cert_exp35_c.i:24.
 [value] Recording results for addressee
 [value] Done for function addressee
 [value] computing for function printf_va_1 <- main.
-    Called from tests/value/cert_exp35_c.i:24.
+  Called from tests/value/cert_exp35_c.i:24.
 [value] using specification for function printf_va_1
-tests/value/cert_exp35_c.i:24:[value] function printf_va_1: precondition got status valid.
+[value:alarm] tests/value/cert_exp35_c.i:24: Warning: 
+  function printf_va_1: precondition valid_read_string(format) got status unknown.
+[value:alarm] tests/value/cert_exp35_c.i:24: Warning: 
+  function printf_va_1: precondition valid_read_string(param0) got status unknown.
 [value] Done for function printf_va_1
 [value] Recording results for main
 [value] done for function main
@@ -34,7 +37,7 @@ tests/value/cert_exp35_c.i:24:[value] function printf_va_1: precondition got sta
 [from] Done for function printf_va_1
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
-    These dependencies hold at termination for the executions that terminate:
+  These dependencies hold at termination for the executions that terminate:
 [from] Function addressee:
   \result FROM \nothing
 [from] Function printf_va_1:
@@ -48,10 +51,10 @@ tests/value/cert_exp35_c.i:24:[value] function printf_va_1: precondition got sta
   \result FROM \nothing
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function addressee:
-      result
+    result
 [inout] Inputs for function addressee:
-      \nothing
+    \nothing
 [inout] Out (internal) for function main:
-      tmp; __retres; S___fc_stdout[0].__fc_FILE_data
+    tmp; __retres; S___fc_stdout[0].__fc_FILE_data
 [inout] Inputs for function main:
-      S___fc_stdout[0]; "Hello, %s!\n"[bits 0 to 95]
+    S___fc_stdout[0]; "Hello, %s!\n"[bits 0 to 95]

@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2017                                               *)
+(*  Copyright (C) 2007-2018                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -169,7 +169,10 @@ class type extensible_printer_type = object
   (** Attribute lists *)
 
   method label:  Format.formatter -> label -> unit
-  (** Label *)
+  method compinfo:  Format.formatter -> compinfo -> unit
+  method initinfo: Format.formatter -> initinfo -> unit
+  method fundec: Format.formatter -> fundec -> unit
+                                                           
 
   method line_directive: 
     ?forcefile:bool ->  Format.formatter -> location -> unit
@@ -235,11 +238,15 @@ class type extensible_printer_type = object
   method term: Format.formatter -> term -> unit
   method term_node: Format.formatter -> term -> unit
   method term_lval: Format.formatter -> term_lval -> unit
+  method term_lhost: Format.formatter -> term_lhost -> unit
   method model_field: Format.formatter -> model_info -> unit
   method term_offset: Format.formatter -> term_offset -> unit
   method logic_builtin_label:  Format.formatter -> logic_builtin_label -> unit
   method logic_label:  Format.formatter -> logic_label -> unit
   method logic_info: Format.formatter -> logic_info -> unit
+  method builtin_logic_info: Format.formatter -> builtin_logic_info -> unit
+  method logic_type_info: Format.formatter -> logic_type_info -> unit
+  method logic_ctor_info: Format.formatter -> logic_ctor_info -> unit
   method logic_var: Format.formatter -> logic_var -> unit
   method quantifiers: Format.formatter -> quantifiers -> unit
   method predicate_node: Format.formatter -> predicate_node -> unit
@@ -258,6 +265,8 @@ class type extensible_printer_type = object
       @modify Boron-20100401 replaces [pEnsures] *)
 
   method assumes: Format.formatter -> identified_predicate -> unit
+
+  method extended: Format.formatter -> Cil_types.acsl_extension -> unit
 
   method funspec: Format.formatter -> funspec -> unit
 
@@ -390,6 +399,13 @@ module type S = sig
   val pp_block: Format.formatter -> block -> unit
   val pp_global: Format.formatter -> global -> unit
   val pp_file: Format.formatter -> file -> unit
+  val pp_compinfo: Format.formatter -> compinfo -> unit
+  val pp_logic_type_info: Format.formatter -> logic_type_info -> unit
+  val pp_logic_ctor_info: Format.formatter -> logic_ctor_info -> unit
+  val pp_initinfo: Format.formatter -> initinfo -> unit
+  val pp_logic_info: Format.formatter -> logic_info -> unit
+  val pp_logic_constant: Format.formatter -> logic_constant -> unit
+  val pp_fundec: Format.formatter -> fundec -> unit
 
   (* ********************************************************************* *)
   (** {3 Printer for ACSL constructs} *)
@@ -401,6 +417,7 @@ module type S = sig
   (** @since Oxygen-20120901 *)
 
   val pp_term_lval: Format.formatter -> term_lval -> unit
+  val pp_term_lhost: Format.formatter -> term_lhost -> unit                  
   val pp_logic_var: Format.formatter -> logic_var -> unit
   val pp_logic_type: Format.formatter -> logic_type -> unit
   val pp_identified_term:  Format.formatter -> identified_term -> unit
@@ -409,7 +426,8 @@ module type S = sig
   val pp_term_offset: Format.formatter -> term_offset -> unit
   val pp_logic_builtin_label: Format.formatter -> logic_builtin_label -> unit
   val pp_logic_label: Format.formatter -> logic_label -> unit
-
+  val pp_builtin_logic_info: Format.formatter -> builtin_logic_info -> unit
+  val pp_extended: Format.formatter -> acsl_extension -> unit
   val pp_predicate_node: Format.formatter -> predicate_node -> unit
   val pp_predicate: Format.formatter -> predicate -> unit
   val pp_identified_predicate: Format.formatter -> identified_predicate -> unit

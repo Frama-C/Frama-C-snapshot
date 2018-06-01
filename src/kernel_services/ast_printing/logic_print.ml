@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2017                                               *)
+(*  Copyright (C) 2007-2018                                               *)
 (*    CEA   (Commissariat à l'énergie atomique et aux énergies            *)
 (*           alternatives)                                                *)
 (*    INRIA (Institut National de Recherche en Informatique et en         *)
@@ -25,6 +25,11 @@
 open Format
 open Pretty_utils
 open Logic_ptree
+
+let print_array_size fmt = function
+  | ASidentifier s
+  | ASinteger s -> pp_print_string fmt s
+  | ASnone -> ()
 
 let print_constant fmt = function
   | IntConstant s -> pp_print_string fmt s
@@ -56,7 +61,7 @@ let rec print_logic_type name fmt typ =
     | LTfloat f -> fprintf fmt "%a%t" Cil_printer.pp_fkind f pname
     | LTarray (t,c) ->
         let pname fmt =
-          fprintf fmt "%t[@[%a@]]" pname (pp_opt print_constant) c
+          fprintf fmt "%t[@[%a@]]" pname print_array_size c
         in
         print_logic_type (Some pname) fmt t
     | LTpointer t ->

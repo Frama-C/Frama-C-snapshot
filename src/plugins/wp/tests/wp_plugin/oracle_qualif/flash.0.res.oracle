@@ -1,0 +1,20 @@
+# frama-c -wp [...]
+[kernel] Parsing tests/wp_plugin/flash.c (with preprocessing)
+[wp] Running WP plugin...
+[wp] Loading driver 'share/wp.driver'
+[wp] Warning: Missing RTE guards
+[wp] 6 goals scheduled
+[wp] [Qed] Goal typed_job_post_Events : Valid
+[wp] [Alt-Ergo] Goal typed_job_post_A_reads : Unknown
+[wp] [Alt-Ergo] Goal typed_job_post_B_reads : Unknown
+[wp] [Alt-Ergo] Goal typed_job_post_B_writes : Unknown
+[wp] [Alt-Ergo] Goal typed_job_post_ReadValues : Unknown
+[wp] [Alt-Ergo] Goal typed_job_post_WriteValues : Unknown
+[wp] Proved goals:    1 / 6
+  Qed:             1 
+  Alt-Ergo:        0  (unknown: 5)
+[wp] Report 'tests/wp_plugin/flash.c.0.report.json'
+-------------------------------------------------------------
+Functions           WP     Alt-Ergo        Total   Success
+job                  1     -                 6      16.7%
+-------------------------------------------------------------

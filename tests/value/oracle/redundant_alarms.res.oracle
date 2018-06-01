@@ -6,49 +6,68 @@
 [value:initial-state] Values of globals at initialization
   v ∈ [--..--]
 [value] computing for function main1 <- main.
-    Called from tests/value/redundant_alarms.c:62.
-tests/value/redundant_alarms.c:11:[value] warning: accessing uninitialized left-value. assert \initialized(p);
-tests/value/redundant_alarms.c:12:[value] warning: accessing uninitialized left-value. assert \initialized(p);
-tests/value/redundant_alarms.c:15:[value] warning: accessing uninitialized left-value. assert \initialized(p);
+  Called from tests/value/redundant_alarms.c:62.
+[value:alarm] tests/value/redundant_alarms.c:11: Warning: 
+  accessing uninitialized left-value. assert \initialized(p);
+[value:alarm] tests/value/redundant_alarms.c:12: Warning: 
+  accessing uninitialized left-value. assert \initialized(p);
+[value:alarm] tests/value/redundant_alarms.c:15: Warning: 
+  accessing uninitialized left-value. assert \initialized(p);
 [value] Recording results for main1
 [value] Done for function main1
 [value] computing for function main2 <- main.
-    Called from tests/value/redundant_alarms.c:63.
-tests/value/redundant_alarms.c:20:[value] warning: accessing out of bounds index. assert 0 ≤ i;
-tests/value/redundant_alarms.c:20:[value] warning: accessing out of bounds index. assert i < 10;
-tests/value/redundant_alarms.c:21:[value] warning: accessing uninitialized left-value. assert \initialized(&t[i]);
-tests/value/redundant_alarms.c:22:[value] warning: accessing uninitialized left-value. assert \initialized(&t[i]);
+  Called from tests/value/redundant_alarms.c:63.
+[value:alarm] tests/value/redundant_alarms.c:20: Warning: 
+  accessing out of bounds index. assert 0 ≤ i;
+[value:alarm] tests/value/redundant_alarms.c:20: Warning: 
+  accessing out of bounds index. assert i < 10;
+[value:alarm] tests/value/redundant_alarms.c:21: Warning: 
+  accessing uninitialized left-value. assert \initialized(&t[i]);
+[value:alarm] tests/value/redundant_alarms.c:22: Warning: 
+  accessing uninitialized left-value. assert \initialized(&t[i]);
 [value] Recording results for main2
 [value] Done for function main2
 [value] computing for function main3 <- main.
-    Called from tests/value/redundant_alarms.c:64.
-tests/value/redundant_alarms.c:25:[value] warning: function main3: precondition got status unknown.
-tests/value/redundant_alarms.c:31:[value] warning: accessing uninitialized left-value. assert \initialized(&t[i]);
-tests/value/redundant_alarms.c:31:[value] warning: accessing uninitialized left-value. assert \initialized(&t[j]);
-tests/value/redundant_alarms.c:32:[value] warning: accessing uninitialized left-value. assert \initialized(&t[j]);
-tests/value/redundant_alarms.c:33:[value] warning: accessing uninitialized left-value. assert \initialized(&t[i]);
+  Called from tests/value/redundant_alarms.c:64.
+[value:alarm] tests/value/redundant_alarms.c:64: Warning: 
+  function main3: precondition got status unknown.
+[value:alarm] tests/value/redundant_alarms.c:31: Warning: 
+  accessing uninitialized left-value. assert \initialized(&t[i]);
+[value:alarm] tests/value/redundant_alarms.c:31: Warning: 
+  accessing uninitialized left-value. assert \initialized(&t[j]);
+[value:alarm] tests/value/redundant_alarms.c:32: Warning: 
+  accessing uninitialized left-value. assert \initialized(&t[j]);
+[value:alarm] tests/value/redundant_alarms.c:33: Warning: 
+  accessing uninitialized left-value. assert \initialized(&t[i]);
 [value] Recording results for main3
 [value] Done for function main3
 [value] computing for function main4 <- main.
-    Called from tests/value/redundant_alarms.c:65.
-tests/value/redundant_alarms.c:39:[value] entering loop for the first time
-tests/value/redundant_alarms.c:41:[value] warning: assertion got status unknown.
+  Called from tests/value/redundant_alarms.c:65.
+[value] tests/value/redundant_alarms.c:39: entering loop for the first time
+[value:alarm] tests/value/redundant_alarms.c:41: Warning: 
+  assertion got status unknown.
 [value] Recording results for main4
 [value] Done for function main4
 [value] computing for function main5 <- main.
-    Called from tests/value/redundant_alarms.c:66.
-tests/value/redundant_alarms.c:55:[value] assertion got status valid.
-tests/value/redundant_alarms.c:55:[value] warning: locals {x} escaping the scope of a block of main5 through p
-tests/value/redundant_alarms.c:58:[value] warning: assertion got status unknown.
+  Called from tests/value/redundant_alarms.c:66.
+[value] tests/value/redundant_alarms.c:55: assertion got status valid.
+[value] tests/value/redundant_alarms.c:55: Warning: 
+  locals {x} escaping the scope of a block of main5 through p
+[value:alarm] tests/value/redundant_alarms.c:58: Warning: 
+  assertion got status unknown.
 [value] Recording results for main5
 [value] Done for function main5
 [value] Recording results for main
 [value] done for function main
-tests/value/redundant_alarms.c:15:[value] assertion 'Value,initialisation' got final status invalid.
+[value] tests/value/redundant_alarms.c:15: 
+  assertion 'Value,initialization' got final status invalid.
 [scope:rm_asserts] removing 3 assertion(s)
-tests/value/redundant_alarms.c:12:[scope:rm_asserts] removing redundant assert Value: initialisation: \initialized(p);
-tests/value/redundant_alarms.c:32:[scope:rm_asserts] removing redundant assert Value: initialisation: \initialized(&t[j]);
-tests/value/redundant_alarms.c:33:[scope:rm_asserts] removing redundant assert Value: initialisation: \initialized(&t[i]);
+[scope:rm_asserts] tests/value/redundant_alarms.c:12: 
+  removing redundant assert Value: initialization: \initialized(p);
+[scope:rm_asserts] tests/value/redundant_alarms.c:32: 
+  removing redundant assert Value: initialization: \initialized(&t[j]);
+[scope:rm_asserts] tests/value/redundant_alarms.c:33: 
+  removing redundant assert Value: initialization: \initialized(&t[i]);
 [slicing] initializing slicing ...
 [slicing] interpreting slicing requests from the command line...
 [pdg] computing for function main1
@@ -87,15 +106,15 @@ void main1(int c)
   if (c) tmp = & x; else tmp = & y;
   int *p = tmp;
   *p = 1;
-  /*@ assert Value: initialisation: \initialized(p); */
+  /*@ assert Value: initialization: \initialized(p); */
   int z = *p + 1;
-  /*@ assert Value: initialisation: \initialized(p); */
+  /*@ assert Value: initialization: \initialized(p); */
   int w = *p + 2;
   x = t;
   y = t;
   x = t;
   if (v) 
-    /*@ assert Value: initialisation: \initialized(p); */
+    /*@ assert Value: initialization: \initialized(p); */
     z = *p + 2;
   return;
 }
@@ -106,9 +125,9 @@ void main2(int i)
   /*@ assert Value: index_bound: 0 ≤ i; */
   /*@ assert Value: index_bound: i < 10; */
   t[i] = 1;
-  /*@ assert Value: initialisation: \initialized(&t[i]); */
+  /*@ assert Value: initialization: \initialized(&t[i]); */
   t[i] += 3;
-  /*@ assert Value: initialisation: \initialized(&t[i]); */
+  /*@ assert Value: initialization: \initialized(&t[i]); */
   t[i] += 5;
   return;
 }
@@ -118,12 +137,12 @@ void main3(unsigned int i, unsigned int j)
 {
   int t[10];
   if (v) t[i] = v;
-  /*@ assert Value: initialisation: \initialized(&t[i]); */
-  /*@ assert Value: initialisation: \initialized(&t[j]); */
+  /*@ assert Value: initialization: \initialized(&t[i]); */
+  /*@ assert Value: initialization: \initialized(&t[j]); */
   if (t[i] < t[j]) {
-    /*@ assert Value: initialisation: \initialized(&t[j]); */
+    /*@ assert Value: initialization: \initialized(&t[j]); */
     int tmp = t[j];
-    /*@ assert Value: initialisation: \initialized(&t[i]); */
+    /*@ assert Value: initialization: \initialized(&t[i]); */
     t[j] = t[i];
     t[i] = tmp;
   }

@@ -41,58 +41,65 @@
   s2 ∈ {0}
   s3 ∈ {0}
 [value] computing for function main1 <- main.
-    Called from tests/value/struct_array.i:56.
-tests/value/struct_array.i:35:[value] warning: accessing out of bounds index. assert 0 ≤ v;
-tests/value/struct_array.i:35:[value] warning: accessing out of bounds index. assert v < 22;
-tests/value/struct_array.i:36:[value] warning: out of bounds write. assert \valid(outp);
+  Called from tests/value/struct_array.i:56.
+[value:alarm] tests/value/struct_array.i:35: Warning: 
+  accessing out of bounds index. assert 0 ≤ v;
+[value:alarm] tests/value/struct_array.i:35: Warning: 
+  accessing out of bounds index. assert v < 22;
+[value:alarm] tests/value/struct_array.i:36: Warning: 
+  out of bounds write. assert \valid(outp);
 [value] Recording results for main1
 [value] Done for function main1
 [value] computing for function main2 <- main.
-    Called from tests/value/struct_array.i:57.
-tests/value/struct_array.i:41:[value] Frama_C_show_each:
-    .a ∈ {1}
-    .t[0] ∈ {2}
-    .t[1] ∈ {3}
-    .t[2] ∈ {4}
-    .t[3] ∈ {5}
-    .t[4] ∈ {6}
-    .t[5] ∈ {7}
-    .t[6] ∈ {8}
-    .b ∈ {9}
+  Called from tests/value/struct_array.i:57.
+[value] tests/value/struct_array.i:41: 
+  Frama_C_show_each:
+  .a ∈ {1}
+  .t[0] ∈ {2}
+  .t[1] ∈ {3}
+  .t[2] ∈ {4}
+  .t[3] ∈ {5}
+  .t[4] ∈ {6}
+  .t[5] ∈ {7}
+  .t[6] ∈ {8}
+  .b ∈ {9}
 [value] computing for function f1 <- main2 <- main.
-    Called from tests/value/struct_array.i:42.
+  Called from tests/value/struct_array.i:42.
 [value] using specification for function f1
 [value] Done for function f1
-tests/value/struct_array.i:43:[value] Frama_C_show_each:
-    .a ∈ {1}
-    .t[0] ∈ {2}
-    .t[1] ∈ {3}
-    .t[2] ∈ {4}
-    .t[3] ∈ {5}
-    .t[4] ∈ {6}
-    .t[5..6] ∈ [--..--]
-    .b ∈ {9}
+[value] tests/value/struct_array.i:43: 
+  Frama_C_show_each:
+  .a ∈ {1}
+  .t[0] ∈ {2}
+  .t[1] ∈ {3}
+  .t[2] ∈ {4}
+  .t[3] ∈ {5}
+  .t[4] ∈ {6}
+  .t[5..6] ∈ [--..--]
+  .b ∈ {9}
 [value] computing for function f2 <- main2 <- main.
-    Called from tests/value/struct_array.i:44.
+  Called from tests/value/struct_array.i:44.
 [value] using specification for function f2
 [value] Done for function f2
-tests/value/struct_array.i:45:[value] Frama_C_show_each:
-    .a ∈ {1}
-    .t[0..2] ∈ [--..--]
-    .t[3] ∈ {5}
-    .t[4] ∈ {6}
-    .t[5] ∈ {7}
-    .t[6] ∈ {8}
-    .b ∈ {9}
+[value] tests/value/struct_array.i:45: 
+  Frama_C_show_each:
+  .a ∈ {1}
+  .t[0..2] ∈ [--..--]
+  .t[3] ∈ {5}
+  .t[4] ∈ {6}
+  .t[5] ∈ {7}
+  .t[6] ∈ {8}
+  .b ∈ {9}
 [value] computing for function f3 <- main2 <- main.
-    Called from tests/value/struct_array.i:46.
+  Called from tests/value/struct_array.i:46.
 [value] using specification for function f3
 [value] Done for function f3
-tests/value/struct_array.i:47:[value] Frama_C_show_each: .a ∈ {1}
-                       .t[0..6] ∈ [--..--]
-                       .b ∈ {9}
-tests/value/struct_array.i:50:[value] assertion got status valid.
-tests/value/struct_array.i:51:[value] Frama_C_show_each_reach:
+[value] tests/value/struct_array.i:47: 
+  Frama_C_show_each: .a ∈ {1}
+                     .t[0..6] ∈ [--..--]
+                     .b ∈ {9}
+[value] tests/value/struct_array.i:50: assertion got status valid.
+[value] tests/value/struct_array.i:51: Frama_C_show_each_reach:
 [value] Recording results for main2
 [value] Done for function main2
 [value] Recording results for main
@@ -158,7 +165,7 @@ tests/value/struct_array.i:51:[value] Frama_C_show_each_reach:
 [from] Computing for function main
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
-    These dependencies hold at termination for the executions that terminate:
+  These dependencies hold at termination for the executions that terminate:
 [from] Function f1:
   s1.t[5..6] FROM \nothing
 [from] Function f2:
@@ -208,23 +215,23 @@ tests/value/struct_array.i:51:[value] Frama_C_show_each_reach:
     .t[0..6] FROM \nothing
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function main1:
-      outp; x; y; z1
+    outp; x; y; z1
 [inout] Inputs for function main1:
-      v; outp; z1;
-      T{[0].p; [1].p; [2].p; [3].p; [4].p; [5].p; [6].p; [7].p; [8].p; [9].p;
-        [10].p; [11].p; [12].p; [13].p; [14].p; [15].p; [16].p; [17].p; [18].p;
-        [19].p; [20].p; [21].p}
+    v; outp; z1;
+    T{[0].p; [1].p; [2].p; [3].p; [4].p; [5].p; [6].p; [7].p; [8].p; [9].p;
+      [10].p; [11].p; [12].p; [13].p; [14].p; [15].p; [16].p; [17].p; [18].p;
+      [19].p; [20].p; [21].p}
 [inout] Out (internal) for function main2:
-      s1; s2; s3
+    s1; s2; s3
 [inout] Inputs for function main2:
-      v; s; s1; s2; s3
+    v; s; s1; s2; s3
 [inout] Out (internal) for function main:
-      outp; x; y; z1; s1; s2; s3
+    outp; x; y; z1; s1; s2; s3
 [inout] Inputs for function main:
-      v; outp; z1;
-      T{[0].p; [1].p; [2].p; [3].p; [4].p; [5].p; [6].p; [7].p; [8].p; [9].p;
-        [10].p; [11].p; [12].p; [13].p; [14].p; [15].p; [16].p; [17].p; [18].p;
-        [19].p; [20].p; [21].p}; s; s1; s2; s3
+    v; outp; z1;
+    T{[0].p; [1].p; [2].p; [3].p; [4].p; [5].p; [6].p; [7].p; [8].p; [9].p;
+      [10].p; [11].p; [12].p; [13].p; [14].p; [15].p; [16].p; [17].p; [18].p;
+      [19].p; [20].p; [21].p}; s; s1; s2; s3
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
 [value] Initial state computed
@@ -267,49 +274,55 @@ tests/value/struct_array.i:51:[value] Frama_C_show_each_reach:
   s2 ∈ {0}
   s3 ∈ {0}
 [value] computing for function main1 <- main.
-    Called from tests/value/struct_array.i:56.
-tests/value/struct_array.i:35:[value] warning: out of bounds read. assert \valid_read(&T[v].p);
-tests/value/struct_array.i:36:[value] warning: out of bounds write. assert \valid(outp);
+  Called from tests/value/struct_array.i:56.
+[value:alarm] tests/value/struct_array.i:35: Warning: 
+  out of bounds read. assert \valid_read(&T[v].p);
+[value:alarm] tests/value/struct_array.i:36: Warning: 
+  out of bounds write. assert \valid(outp);
 [value] Recording results for main1
 [value] Done for function main1
 [value] computing for function main2 <- main.
-    Called from tests/value/struct_array.i:57.
-tests/value/struct_array.i:41:[value] Frama_C_show_each:
-    .a ∈ {1}
-    .t[0] ∈ {2}
-    .t[1] ∈ {3}
-    .t[2] ∈ {4}
-    .t[3] ∈ {5}
-    .t[4] ∈ {6}
-    .t[5] ∈ {7}
-    .t[6] ∈ {8}
-    .b ∈ {9}
+  Called from tests/value/struct_array.i:57.
+[value] tests/value/struct_array.i:41: 
+  Frama_C_show_each:
+  .a ∈ {1}
+  .t[0] ∈ {2}
+  .t[1] ∈ {3}
+  .t[2] ∈ {4}
+  .t[3] ∈ {5}
+  .t[4] ∈ {6}
+  .t[5] ∈ {7}
+  .t[6] ∈ {8}
+  .b ∈ {9}
 [value] computing for function f1 <- main2 <- main.
-    Called from tests/value/struct_array.i:42.
+  Called from tests/value/struct_array.i:42.
 [value] Done for function f1
-tests/value/struct_array.i:43:[value] Frama_C_show_each:
-    .a ∈ {1}
-    .t[0] ∈ {2}
-    .t[1] ∈ {3}
-    .t[2] ∈ {4}
-    .t[3] ∈ {5}
-    .t[4] ∈ {6}
-    {.t[5..6]; .b} ∈ [--..--]
+[value] tests/value/struct_array.i:43: 
+  Frama_C_show_each:
+  .a ∈ {1}
+  .t[0] ∈ {2}
+  .t[1] ∈ {3}
+  .t[2] ∈ {4}
+  .t[3] ∈ {5}
+  .t[4] ∈ {6}
+  {.t[5..6]; .b} ∈ [--..--]
 [value] computing for function f2 <- main2 <- main.
-    Called from tests/value/struct_array.i:44.
+  Called from tests/value/struct_array.i:44.
 [value] Done for function f2
-tests/value/struct_array.i:45:[value] Frama_C_show_each:
-    {.a; .t[0..2]} ∈ [--..--]
-    .t[3] ∈ {5}
-    .t[4] ∈ {6}
-    .t[5] ∈ {7}
-    .t[6] ∈ {8}
-    .b ∈ {9}
+[value] tests/value/struct_array.i:45: 
+  Frama_C_show_each:
+  {.a; .t[0..2]} ∈ [--..--]
+  .t[3] ∈ {5}
+  .t[4] ∈ {6}
+  .t[5] ∈ {7}
+  .t[6] ∈ {8}
+  .b ∈ {9}
 [value] computing for function f3 <- main2 <- main.
-    Called from tests/value/struct_array.i:46.
+  Called from tests/value/struct_array.i:46.
 [value] Done for function f3
-tests/value/struct_array.i:47:[value] Frama_C_show_each: [--..--]
-tests/value/struct_array.i:50:[value] warning: assertion got status invalid (stopping propagation).
+[value] tests/value/struct_array.i:47: Frama_C_show_each: [--..--]
+[value:alarm] tests/value/struct_array.i:50: Warning: 
+  assertion got status invalid (stopping propagation).
 [value] Recording results for main2
 [value] Done for function main2
 [value] Recording results for main
@@ -367,7 +380,7 @@ tests/value/struct_array.i:50:[value] warning: assertion got status invalid (sto
 [from] Computing for function main
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
-    These dependencies hold at termination for the executions that terminate:
+  These dependencies hold at termination for the executions that terminate:
 [from] Function f1:
   s1{.t[5..6]; .b} FROM \nothing
 [from] Function f2:
@@ -415,20 +428,20 @@ tests/value/struct_array.i:50:[value] warning: assertion got status invalid (sto
   s3 FROM \nothing
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function main1:
-      outp; x; y; z1
+    outp; x; y; z1
 [inout] Inputs for function main1:
-      v; outp; z1;
-      T{[0].p; [1].p; [2].p; [3].p; [4].p; [5].p; [6].p; [7].p; [8].p; [9].p;
-        [10].p; [11].p; [12].p; [13].p; [14].p; [15].p; [16].p; [17].p; [18].p;
-        [19].p; [20].p; [21].p}
+    v; outp; z1;
+    T{[0].p; [1].p; [2].p; [3].p; [4].p; [5].p; [6].p; [7].p; [8].p; [9].p;
+      [10].p; [11].p; [12].p; [13].p; [14].p; [15].p; [16].p; [17].p; [18].p;
+      [19].p; [20].p; [21].p}
 [inout] Out (internal) for function main2:
-      s1; s2; s3
+    s1; s2; s3
 [inout] Inputs for function main2:
-      v; s; s1; s2; s3
+    v; s; s1; s2; s3
 [inout] Out (internal) for function main:
-      outp; x; y; z1; s1; s2; s3
+    outp; x; y; z1; s1; s2; s3
 [inout] Inputs for function main:
-      v; outp; z1;
-      T{[0].p; [1].p; [2].p; [3].p; [4].p; [5].p; [6].p; [7].p; [8].p; [9].p;
-        [10].p; [11].p; [12].p; [13].p; [14].p; [15].p; [16].p; [17].p; [18].p;
-        [19].p; [20].p; [21].p}; s; s1; s2; s3
+    v; outp; z1;
+    T{[0].p; [1].p; [2].p; [3].p; [4].p; [5].p; [6].p; [7].p; [8].p; [9].p;
+      [10].p; [11].p; [12].p; [13].p; [14].p; [15].p; [16].p; [17].p; [18].p;
+      [19].p; [20].p; [21].p}; s; s1; s2; s3

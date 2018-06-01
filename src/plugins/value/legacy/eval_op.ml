@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2017                                               *)
+(*  Copyright (C) 2007-2018                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -67,16 +67,18 @@ let backward_comp_int_left positive comp l r =
     let binop = if positive then comp else Comp.inv comp in
     V.backward_comp_int_left binop l r
 
-let backward_comp_float_left round fkind positive comp l r =
-  let binop = if positive then comp else Comp.inv comp in
-  V.backward_comp_float_left binop round fkind l r
+let backward_comp_float_left fkind positive comp l r =
+  let back =
+    if positive
+    then V.backward_comp_float_left_true
+    else V.backward_comp_float_left_false in
+   back comp fkind l r
 
 let backward_comp_left_from_type t =
   match Cil.unrollType t with
   | TInt _ | TEnum _ | TPtr _ -> backward_comp_int_left
   | TFloat (fk, _) ->
-    backward_comp_float_left
-      (Value_parameters.AllRoundingModes.get ()) (Value_util.float_kind fk)
+    backward_comp_float_left (Fval.kind fk)
   | _ -> (fun _ _ v _ -> v) (* should never occur anyway *)
 
 exception Unchanged

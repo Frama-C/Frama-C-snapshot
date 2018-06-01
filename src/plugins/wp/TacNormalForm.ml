@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2017                                               *)
+(*  Copyright (C) 2007-2018                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -94,6 +94,6 @@ class normal_form =
   end
 
 let tactical = Tactical.export (new normal_form)
-let strategy = Strategy.make tactical
+let strategy = Strategy.make tactical ~arguments:[]
 
 (* -------------------------------------------------------------------------- *)

@@ -1,0 +1,20 @@
+[
+    { "directory": "tests/jcdb",
+      "arguments": [
+          "cc",
+          "-c",
+          "-DDOUBLE_SINGLE(a)=a \"macro with spaces and non-escaped '\"",
+          "-DEMPTY=",
+          "-DEMPTY2=",
+          "-DTEST=42",
+          "-DMACRO_FOR_INCR(s)=s+1",
+          "-DSINGLE_DOUBLE(a)=\"a \\\"with spaces and\ttab \"",
+          "-DMSG=\"a \\\" \\\"b\"",
+          "-o",
+          "a",
+          "-DTOUNDEF",
+          "-UTOUNDEF"
+      ],
+      "file": "jcdb.c"
+    }
+]

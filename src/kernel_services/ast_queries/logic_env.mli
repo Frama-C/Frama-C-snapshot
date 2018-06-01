@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2017                                               *)
+(*  Copyright (C) 2007-2018                                               *)
 (*    CEA   (Commissariat à l'énergie atomique et aux énergies            *)
 (*           alternatives)                                                *)
 (*    INRIA (Institut National de Recherche en Informatique et en         *)
@@ -28,7 +28,7 @@ open Cil_types
 
 (** {2 Global Tables} *)
 module Logic_info: State_builder.Hashtbl
-  with type key = string and type data = Cil_types.logic_info
+  with type key = string and type data = Cil_types.logic_info list
 
 module Logic_type_info: State_builder.Hashtbl
   with type key = string and type data = Cil_types.logic_type_info
@@ -85,9 +85,9 @@ end
 
 (** logic function/predicates that are effectively used in current project. *)
 module Logic_builtin_used: sig
-  val add: logic_info -> unit
-  val mem: logic_info -> bool
-  val iter: (logic_info -> unit) -> unit
+  val add: string -> logic_info list -> unit
+  val mem: string -> bool
+  val iter: (string -> logic_info list -> unit) -> unit
   val self: State.t
 end
 
@@ -140,8 +140,34 @@ val is_logic_ctor: string -> bool
 val is_model_field: string -> bool
 
 (** {3 removing} *)
+
+(** removes {i all} overloaded bindings to a given symbol. *)
 val remove_logic_function: string -> unit
+
+(** [remove_logic_info_gen is_same_profile li]
+    removes a specific logic info among all the overloaded ones.
+    If the name corresponds to built-ins, all overloaded functions are
+    removed at once (overloaded built-ins are always considered as a whole).
+    Otherwise, does nothing if no logic info with the same profile as [li]
+    is in the table.
+
+    See {!Logic_env.add_logic_info_gen} for more information about the
+    [is_same_profile] argument.
+
+    @since Chlorine-20180501
+*)
+val remove_logic_info_gen:
+  (logic_info -> logic_info -> bool) -> logic_info -> unit
+
+(** [remove_logic_type s] removes the definition of logic type [s]. If [s] is
+    a sum type, also removes the associated constructors. Does nothing in case
+    [s] is not a known logic type.
+
+*)
 val remove_logic_type: string -> unit
+
+(** removes the given logic constructor. Does nothing if no such constructor
+    exists. *)
 val remove_logic_ctor: string -> unit
 
 (** @since Oxygen-20120901 *)

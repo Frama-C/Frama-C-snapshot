@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2017                                               *)
+(*  Copyright (C) 2007-2018                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -398,7 +398,7 @@ let assemble_wpo wpo =
                 age_max := max (!age_max) (Wpo.age wpo);
                 match wpo.Wpo.po_formula with
                 | Wpo.GoalAnnot vcq ->
-                    let prop =  Wpo.GOAL.compute_proof vcq.Wpo.VC_Annot.goal in
+                    let prop = Wpo.GOAL.compute_proof vcq.Wpo.VC_Annot.goal in
                     if Lang.F.p_true != prop then
                       let id = WpPropId.get_propid pid in
                       let title = Pretty_utils.to_string WpPropId.pretty pid in

@@ -1,4 +1,5 @@
 [kernel] Parsing tests/cil/bts892.i (no preprocessing)
-tests/cil/bts892.i:11:[kernel] user error: Forbidden access to local variable i in static initializer
-[kernel] user error: stopping on file "tests/cil/bts892.i" that has errors.
+[kernel] tests/cil/bts892.i:11: User Error: 
+  Forbidden access to local variable i in static initializer
+[kernel] User Error: stopping on file "tests/cil/bts892.i" that has errors.
 [kernel] Frama-C aborted: invalid user input.

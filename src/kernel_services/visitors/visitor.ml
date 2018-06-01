@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2017                                               *)
+(*  Copyright (C) 2007-2018                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -23,8 +23,6 @@
 open Extlib
 open Cil
 open Cil_types
-
-let dkey = Kernel.register_category "visitor"
 
 (* ************************************************************************* *)
 (** {2 Visitors} *)
@@ -748,7 +746,7 @@ object(self)
                 let new_kf = Cil.get_kernel_function self#behavior kf in
                 Queue.add
                   (fun () ->
-                    Kernel.debug ~dkey
+                    Kernel.debug ~dkey:Kernel.dkey_visitor
                       "@[Adding definition %s (vid: %d) for project %s@\n\
                          body: %a@\n@]@."
                       f.svar.vname f.svar.vid

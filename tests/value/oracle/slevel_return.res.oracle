@@ -6,20 +6,23 @@
   x ∈ {0}
   y ∈ {0}
 [value] computing for function main1 <- main.
-    Called from tests/value/slevel_return.i:44.
-tests/value/slevel_return.i:7:[value] function main1: postcondition got status valid.
+  Called from tests/value/slevel_return.i:44.
+[value] tests/value/slevel_return.i:7: 
+  function main1: postcondition got status valid.
 [value] Recording results for main1
 [value] Done for function main1
 [value] computing for function main2 <- main.
-    Called from tests/value/slevel_return.i:45.
-tests/value/slevel_return.i:38:[value] Frama_C_dump_each:
-    # Cvalue domain:
-    x ∈ {-3}
-    y ∈ {0; 1; 6}
-    c ∈ [--..--]
-    c ∈ [--..--]
-    ==END OF DUMP==
-tests/value/slevel_return.i:23:[value] function main2: postcondition got status valid.
+  Called from tests/value/slevel_return.i:45.
+[value] tests/value/slevel_return.i:38: 
+  Frama_C_dump_each:
+  # Cvalue domain:
+  x ∈ {-3}
+  y ∈ {0; 1; 6}
+  c ∈ [--..--]
+  c ∈ [--..--]
+  ==END OF DUMP==
+[value] tests/value/slevel_return.i:23: 
+  function main2: postcondition got status valid.
 [value] Recording results for main2
 [value] Done for function main2
 [value] Recording results for main
@@ -41,7 +44,7 @@ tests/value/slevel_return.i:23:[value] function main2: postcondition got status 
 [from] Computing for function main
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
-    These dependencies hold at termination for the executions that terminate:
+  These dependencies hold at termination for the executions that terminate:
 [from] Function main1:
   x FROM c
   y FROM c (and SELF)
@@ -53,14 +56,14 @@ tests/value/slevel_return.i:23:[value] function main2: postcondition got status 
   y FROM c (and SELF)
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function main1:
-      x; y
+    x; y
 [inout] Inputs for function main1:
-      \nothing
+    \nothing
 [inout] Out (internal) for function main2:
-      x; y
+    x; y
 [inout] Inputs for function main2:
-      \nothing
+    \nothing
 [inout] Out (internal) for function main:
-      x; y
+    x; y
 [inout] Inputs for function main:
-      \nothing
+    \nothing

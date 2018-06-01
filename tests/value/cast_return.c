@@ -52,7 +52,7 @@ void main2() {
 }
 
 //@ assigns \result \from \nothing;
-float ret_float();
+float ret_float(void);
 
 void main3() {
   float f1 = ret_float ();

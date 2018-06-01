@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2017                                               *)
+(*  Copyright (C) 2007-2018                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -104,6 +104,10 @@ external logf: float -> float = "c_logf"
 external log10f: float -> float = "c_log10f"
 external powf: float -> float -> float = "c_powf"
 external sqrtf: float -> float = "c_sqrtf"
+external fmodf: float -> float -> float = "c_fmodf"
+external cosf: float -> float = "c_cosf"
+external sinf: float -> float = "c_sinf"
+external atan2f: float -> float -> float = "c_atan2f"
 
 
 (** Auxiliary functions similar to the ones in the C math library *)

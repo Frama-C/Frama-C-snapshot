@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2017                                               *)
+(*  Copyright (C) 2007-2018                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -82,6 +82,9 @@ end) =
       let add_logic_function =
         add_logic_function_gen Logic_utils.is_same_logic_profile
 
+      let remove_logic_info =
+        remove_logic_info_gen Logic_utils.is_same_logic_profile
+
       let integral_cast ty t =
         raise
           (Failure
@@ -94,6 +97,9 @@ end) =
       let error loc msg =
         Pretty_utils.ksfprintf (fun e -> raise (Error (loc, e))) msg
 
+      let on_error f rollback x =
+        try f x with Error _ as exn -> rollback (); raise exn
+
      end)
 
 (** Set up the parser for the infamous 'C hack' needed to parse typedefs *)
@@ -103,9 +109,10 @@ let sync_typedefs () =
     (fun name _ ns ->
       if ns = Logic_typing.Typedef then Logic_env.add_typename name)
 
-let wrap f loc =
-  try f ()
-  with Unbound s -> raise (Error (loc, s))
+let wrap f parsetree loc =
+  match parsetree with
+  | None -> raise (Error (loc, "Syntax error in annotation"))
+  | Some annot -> try f annot with Unbound s -> raise (Error (loc, s))
 
 let code_annot kf stmt s =
   sync_typedefs ();
@@ -114,19 +121,18 @@ let code_annot kf stmt s =
     let in_loop = Kernel_function.stmt_in_loop kf stmt
   end) in
   let loc = Stmt.loc stmt in
-  let pa = match snd (Logic_lexer.annot (fst loc, s)) with
-    | Logic_ptree.Acode_annot (_,a) -> a
-    | _ ->
-        raise (Error (Stmt.loc stmt,
-                      "Syntax error (expecting a code annotation)"))
+  let pa =
+    Extlib.opt_bind
+      (function (_, Logic_ptree.Acode_annot (_,a)) -> Some a | _ -> None)
+      (Logic_lexer.annot (fst loc,s))
   in
-  let parse () =
+  let parse pa =
     LT.code_annot
       (Stmt.loc stmt)
       (Logic_utils.get_behavior_names (Annotations.funspec kf))
       (Ctype (Kernel_function.get_return_type kf)) pa
   in
-  wrap parse loc
+  wrap parse pa loc
 
 let default_term_env () =
   Logic_typing.append_here_label (Logic_typing.Lenv.empty())
@@ -137,9 +143,9 @@ let term kf ?(loc=Location.unknown) ?(env=default_term_env ()) s =
     let kf = kf
     let in_loop = false (* unused *)
   end) in
-  let (_,pa_expr) = Logic_lexer.lexpr (fst loc, s) in
-  let parse () = LT.term env pa_expr in
-  wrap parse loc
+  let pa_expr = Extlib.opt_map snd (Logic_lexer.lexpr (fst loc, s)) in
+  let parse pa_expr = LT.term env pa_expr in
+  wrap parse pa_expr loc
 
 let term_lval kf ?(loc=Location.unknown) ?(env=default_term_env ()) s =
   match (term kf ~loc ~env s).term_node with
@@ -152,9 +158,9 @@ let predicate kf ?(loc=Location.unknown) ?(env=default_term_env ()) s =
     let kf = kf
     let in_loop = false (* unused *)
   end) in
-  let (_,pa_expr) = Logic_lexer.lexpr (fst loc, s) in
-  let parse () = LT.predicate env pa_expr in
-  wrap parse loc
+  let pa_expr = Extlib.opt_map snd (Logic_lexer.lexpr (fst loc, s)) in
+  let parse pa_expr = LT.predicate env pa_expr in
+  wrap parse pa_expr loc
 
 let error_lval () = raise Db.Properties.Interp.No_conversion
 

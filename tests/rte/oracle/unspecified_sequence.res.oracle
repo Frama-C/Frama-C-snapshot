@@ -4,17 +4,18 @@
 [value] Initial state computed
 [value:initial-state] Values of globals at initialization
   t[0..9] ∈ {0}
-tests/rte/unspecified_sequence.i:7:[value] warning: function main: precondition got status unknown.
+[value:alarm] tests/rte/unspecified_sequence.i:7: Warning: 
+  function main: precondition got status unknown.
 [value] computing for function f <- main.
-    Called from tests/rte/unspecified_sequence.i:10.
+  Called from tests/rte/unspecified_sequence.i:10.
 [value] Recording results for f
 [value] Done for function f
 [value] computing for function f <- main.
-    Called from tests/rte/unspecified_sequence.i:11.
+  Called from tests/rte/unspecified_sequence.i:11.
 [value] Recording results for f
 [value] Done for function f
 [value] computing for function f <- main.
-    Called from tests/rte/unspecified_sequence.i:11.
+  Called from tests/rte/unspecified_sequence.i:11.
 [value] Recording results for f
 [value] Done for function f
 [value] Recording results for main
@@ -30,17 +31,17 @@ tests/rte/unspecified_sequence.i:7:[value] warning: function main: precondition 
 [from] Computing for function main
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
-    These dependencies hold at termination for the executions that terminate:
+  These dependencies hold at termination for the executions that terminate:
 [from] Function f:
   \result FROM \nothing
 [from] Function main:
   NO EFFECTS
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function f:
-      __retres
+    __retres
 [inout] Inputs for function f:
-      \nothing
+    \nothing
 [inout] Out (internal) for function main:
-      y; tmp; z; tmp_0; tmp_1
+    y; tmp; z; tmp_0; tmp_1
 [inout] Inputs for function main:
-      t[0]
+    t[0]

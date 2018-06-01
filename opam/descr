@@ -4,7 +4,7 @@ Frama-C gathers several analysis techniques in a single collaborative
 framework, based on analyzers (called "plug-ins") that can build upon the
 results computed by other analyzers in the framework.
 Thanks to this approach, Frama-C provides sophisticated tools, including:
-- an analyzer based on abstract interpretation (EVA plug-in);
+- an analyzer based on abstract interpretation (Eva plug-in);
 - a program proof framework based on weakest precondition calculus (WP plug-in);
 - a program slicer (Slicing plug-in);
 - a tool for verification of temporal (LTL) properties (Aoraï plug-in);

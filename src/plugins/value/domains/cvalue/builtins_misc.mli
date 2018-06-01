@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2017                                               *)
+(*  Copyright (C) 2007-2018                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -20,9 +20,6 @@
 (*                                                                        *)
 (**************************************************************************)
 
-(** Builtins for normalization and dumping of values or state. Most builtins
+(** Builtins for normalization and dumping of values or state. Builtins
     are registered directly, and are not exported here. *)
 
-(** Builtins with multiple names; the lookup is done using a distinctive
-    prefix *)
-val dump_state_file: string -> Db.Value.builtin_sig

@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2017                                               *)
+(*  Copyright (C) 2007-2018                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -44,7 +44,6 @@ val pp_callstack : Format.formatter -> unit
 (** {2 Others} *)
 
 (* TODO: Document the rest of this file. *)
-val get_rounding_mode : unit -> Fval.rounding_mode
 val emitter : Emitter.t
 val get_slevel : Kernel_function.t -> Value_parameters.SlevelFunction.value
 val pretty_actuals :
@@ -53,8 +52,8 @@ val pretty_current_cfunction_name : Format.formatter -> unit
 val warning_once_current : ('a, Format.formatter, unit) format -> 'a
 
 (** Emit an alarm, either as warning or as a result, according to
-    option AlarmsWarnings. *)
-val alarm_report: ?level:int -> 'a Log.pretty_printer
+    status associated to {!Value_parameters.wkey_alarm} *)
+val alarm_report: 'a Log.pretty_printer
 
 (* Statements for which the analysis has degenerated. [true] means that this is
    the statement on which the degeneration occurred, or a statement above in
@@ -71,11 +70,6 @@ val create_new_var: string -> typ -> varinfo
 val is_const_write_invalid: typ -> bool
 (** Detect that the type is const, and that option [-global-const] is set. In
     this case, we forbid writing in a l-value that has this type. *)
-
-val float_kind: Cil_types.fkind -> Fval.float_kind
-(** Classify a [Cil_types.fkind] as either a 32 or 64 floating-point type.
-    Emit a warning when the argument is [long double], and [long double]
-    is not equal to [double] *)
 
 val postconditions_mention_result: Cil_types.funspec -> bool
 (** Does the post-conditions of this specification mention [\result]? *)
@@ -111,6 +105,17 @@ val indirect_zone_of_lval:
 (** Given a function computing the location of lvalues, computes the memory zone
     on which the offset and the pointer expression (if any) of an lvalue depend.
 *)
+
+(** Computes the height of an expression, that is the maximum number of nested
+    operations in this expression. *)
+val height_expr: exp -> int
+
+(** Computes the height of an lvalue. *)
+val height_lval: lval -> int
+
+val skip_specifications: kernel_function -> bool
+(** Should we skip the specifications of this function, according to
+    [-val-skip-stdlib-specs] *)
 
 (*
 Local Variables:

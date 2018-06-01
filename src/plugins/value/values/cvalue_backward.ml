@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2017                                               *)
+(*  Copyright (C) 2007-2018                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -23,11 +23,15 @@
 open Cil_types
 open Cvalue
 
-let backward_int_relation op v1 v2 =
+let propagate_all_comparison typ =
+  not (Cil.isPointerType typ) ||
+  Value_parameters.UndefinedPointerComparisonPropagateAll.get ()
+
+let backward_int_relation typ op v1 v2 =
   let v1' = V.backward_comp_int_left op v1 v2 in
   let op' = Abstract_interp.Comp.sym op in
   let v2' = V.backward_comp_int_left op' v2 v1 in
-  if Value_parameters.UndefinedPointerComparisonPropagateAll.get ()
+  if propagate_all_comparison typ
   && not (Cvalue_forward.are_comparable op v1 v2)
   then begin
     if not (Cvalue.V.equal v1 v1' || Cvalue.V.is_bottom v1') then
@@ -44,18 +48,24 @@ let backward_int_relation op v1 v2 =
   end
   else Some (v1', v2')
 
-let backward_float_relation round fkind op v1 v2 =
-  let v1' = V.backward_comp_float_left op round fkind v1 v2 in
+let backward_float_relation fkind ~positive op v1 v2 =
+  let backward_comp =
+    if positive
+    then V.backward_comp_float_left_true
+    else V.backward_comp_float_left_false
+  in
+  let v1' = backward_comp op fkind v1 v2 in
   let op' = Abstract_interp.Comp.sym op in
-  let v2' = V.backward_comp_float_left op' round fkind v2 v1 in
+  let v2' = backward_comp op' fkind v2 v1 in
   Some (v1', v2')
 
-let backward_relation t =
-  match Cil.unrollType t with
-  | TInt _ | TEnum _ | TPtr _ -> backward_int_relation
+let backward_relation typ ~positive op =
+  match Cil.unrollType typ with
+  | TInt _ | TEnum _ | TPtr _ ->
+    let op = if positive then op else Abstract_interp.Comp.inv op in
+    backward_int_relation typ op
   | TFloat (fk, _) ->
-    backward_float_relation
-      (Value_parameters.AllRoundingModes.get ()) (Value_util.float_kind fk)
+    backward_float_relation (Fval.kind fk) ~positive op
   | _ -> assert false (* should never occur anyway *)
 
 let backward_shift_rhs typ_e1 v1 v2 =
@@ -64,7 +74,7 @@ let backward_shift_rhs typ_e1 v1 v2 =
   let valid_range_rhs =
     V.inject_ival (Ival.inject_range (Some Integer.zero) (Some size_int))
   in
-  if V.is_included v2 valid_range_rhs
+  if not (V.is_arithmetic v2) || V.is_included v2 valid_range_rhs
   then None
   else Some (v1, V.narrow v2 valid_range_rhs)
 
@@ -82,7 +92,7 @@ let backward_shift_left typ_e1 v1 v2 =
     let valid_range_lhs =
       V.inject_ival (Ival.inject_range (Some Integer.zero) None)
     in
-    if V.is_included v1 valid_range_lhs
+    if not (V.is_arithmetic v1) || V.is_included v1 valid_range_lhs
     then res
     else Some (V.narrow v1 valid_range_lhs, v2)
   else res
@@ -98,27 +108,19 @@ let backward_add_int typ ~res_value ~v1 ~v2 pos =
     else V.add_untyped Int_Base.minus_one v1 res_value
   in
   (* TODO: no need for reinterpret if no overflow. *)
-  Some (Cvalue_forward.unsafe_reinterpret typ v1',
-        Cvalue_forward.unsafe_reinterpret typ v2')
+  Some (Cvalue_forward.reinterpret typ v1',
+        Cvalue_forward.reinterpret typ v2')
 
-let backward_add_float fk ~res_value ~v1 ~v2 pos =
+let backward_add_float fk ~res_value ~v1 ~v2 (pos: [`Add|`Sub]) =
   try
-    let f = Ival.project_float (V.project_ival res_value) in
-    let f_1ulp = Fval.enlarge_1ulp (Value_util.float_kind fk) f in
-    let res_1ulp = V.inject_ival (Ival.inject_float f_1ulp) in
-    let round = Value_util.get_rounding_mode () in
-    (* TODO: round *)
-    let add op v1 v2 =
-      fst (Cvalue_forward.forward_binop_float round v1 op v2)
-    in
-    let v1' = add (if pos then MinusA else PlusA) res_1ulp v2
-    and v2' =
-      if pos
-      then add MinusA res_1ulp v1
-      else add MinusA v1 res_1ulp
-    in
-    Some (v1', v2')
-  with V.Not_based_on_null | Ival.Nan_or_infinite | Fval.Non_finite ->
+    let left = V.project_float v1 in
+    let right = V.project_float v2 in
+    let result = V.project_float res_value in
+    let backward = if pos = `Add then Fval.backward_add else Fval.backward_sub in
+    match backward fk ~left ~right ~result with
+    | `Bottom -> Some (V.bottom, V.bottom)
+    | `Value (v1,v2) -> Some (V.inject_float v1, V.inject_float v2)
+  with V.Not_based_on_null ->
     None
 
 
@@ -221,8 +223,8 @@ let _backward_mult typ v1 v2 res_value =
   and v2' = Cvalue.V.backward_mult_int_left ~right:v1 ~result in
   let v1 = convert v1 v1'
   and v2 = convert v2 v2' in
-  Cvalue_forward.unsafe_reinterpret typ v1,
-  Cvalue_forward.unsafe_reinterpret typ v2
+  Cvalue_forward.reinterpret typ v1,
+  Cvalue_forward.reinterpret typ v2
 
 let backward_band ~v1 ~v2 ~res typ =
   let size = Cil.bitsSizeOf typ in
@@ -265,8 +267,8 @@ let backward_binop ~typ_res ~res_value ~typ_e1 v1 binop v2 =
   | PlusA, TInt _ ->  backward_add_int typ ~res_value ~v1 ~v2 true
   | MinusA, TInt _ -> backward_add_int typ ~res_value ~v1 ~v2 false
 
-  | PlusA, TFloat (fk, _) ->  backward_add_float fk ~res_value ~v1 ~v2 true
-  | MinusA, TFloat (fk, _) -> backward_add_float fk ~res_value ~v1 ~v2 false
+  | PlusA, TFloat (fk, _) ->  backward_add_float (Fval.kind fk) ~res_value ~v1 ~v2 `Add
+  | MinusA, TFloat (fk, _) -> backward_add_float (Fval.kind fk) ~res_value ~v1 ~v2 `Sub
 
   | (PlusPI | IndexPI), TPtr _ -> backward_add_ptr typ ~res_value ~v1 ~v2 true
   | MinusPI, TPtr _ ->            backward_add_ptr typ ~res_value ~v1 ~v2 false
@@ -280,7 +282,6 @@ let backward_binop ~typ_res ~res_value ~typ_e1 v1 binop v2 =
   (* comparison operators *)
   | (Eq | Ne | Le | Lt | Ge | Gt), _ -> begin
       let binop = Value_util.conv_comp binop in
-      let inv_binop = Abstract_interp.Comp.inv binop in
       match V.is_included V.singleton_zero res_value,
             V.is_included V.singleton_one  res_value with
       | true, true  ->
@@ -288,10 +289,10 @@ let backward_binop ~typ_res ~res_value ~typ_e1 v1 binop v2 =
         None
       | false, true ->
         (* comparison relation holds *)
-        backward_relation (Cil.unrollType typ_e1) binop v1 v2
+        backward_relation (Cil.unrollType typ_e1) ~positive:true binop v1 v2
       | true, false ->
         (* comparison relation does not hold *)
-        backward_relation (Cil.unrollType typ_e1) inv_binop v1 v2
+        backward_relation (Cil.unrollType typ_e1) ~positive:false binop v1 v2
       | _ ->
         assert false (* bottom *)
     end
@@ -351,7 +352,7 @@ let backward_unop ~typ_arg op ~arg:_ ~res =
         let f = Ival.project_float v in
         Some (V.inject_ival (Ival.inject_float (Fval.neg f)))
       end
-    with V.Not_based_on_null | Ival.Nan_or_infinite -> None
+    with V.Not_based_on_null -> None
 
 (* ikind of an (unrolled) integer type *)
 let ikind = function
@@ -365,15 +366,6 @@ let fits_in_ikind ik v =
   let signed = Cil.isSigned ik in
   let all_values = V.create_all_values ~size ~signed in
   V.is_included v all_values
-
-let cast_float_to_double_inverse v =
-  try
-    let i = V.project_ival v in
-    let f = Ival.project_float i in
-    let f' = Fval.cast_float_to_double_inverse f in
-    Some (V.inject_ival (Ival.inject_float f'))
-  with V.Not_based_on_null | Ival.Nan_or_infinite ->
-    None
 
 let downcast_enabled ~ik_src ~ik_dst =
   if Cil.isSigned ik_dst
@@ -402,22 +394,29 @@ let backward_cast ~src_typ ~dst_typ ~src_val ~dst_val =
     else None
 
   | TFloat (fk_dst, _), TFloat (fk_src, _) -> begin
-      let f_dst = Value_util.float_kind fk_dst in
-      let f_src = Value_util.float_kind fk_src in
-      match f_dst, f_src with
-      | Fval.Float64, Fval.Float64 | Fval.Float32, Fval.Float32 ->
-        (* dummy cast *)
-        Some (V.narrow src_val dst_val)
-      | Fval.Float32, Fval.Float64 ->
-        (* dst_val is in float32, hence less precise than src_val (or the
-           expected result) that are (and should be) in double. Simply
-           intersect both ranges, which will result in a float32. *)
-        Some dst_val
-      | Fval.Float64, Fval.Float32 ->
-        (* Cannot intersect, because this may create double bounds while
-           the result should be in float32. First, find the float32 that can
-           correspond to [dst_val], then refine [src_val] accordingly *)
-        cast_float_to_double_inverse dst_val
+      let f_dst = Fval.kind fk_dst in
+      let f_src = Fval.kind fk_src in
+      match V.project_float dst_val with
+      | exception V.Not_based_on_null -> None
+      | dst_f ->
+        match f_dst, f_src with
+        | Fval.Float64,  Fval.Float64
+        | Fval.Float32,  Fval.Float32
+        | Fval.Real,     Fval.Real (* the cases above are dummy casts *)
+        | Fval.Float32, (Fval.Float64 | Fval.Real)
+        | Fval.Float64,  Fval.Real (* these two cases are downcasts *)
+          ->
+          (* beware that we must return a float32 when f_src is float32, so
+             that the result remains "well-typed". This is the case here. *)
+          Some dst_val
+        | (Fval.Float64 | Fval.Real), Fval.Float32 ->
+          begin
+            match Fval.backward_cast_float_to_double dst_f with
+            | `Bottom -> Some V.bottom
+            | `Value fval ->  Some (V.inject_float fval)
+          end
+        | Fval.Real, Fval.Float64 ->
+          Some (V.inject_float (Fval.backward_cast_double_to_real dst_f))
     end
 
   | TInt _, TFloat (fkind, _) ->

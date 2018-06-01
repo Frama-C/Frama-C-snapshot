@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2017                                               *)
+(*  Copyright (C) 2007-2018                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -30,7 +30,7 @@ open Lang.F
 
 val of_real : c_int -> unop
 val convert : c_int -> unop (** Independent from model *)
-val integer_of_real : unop
+
 val to_integer : unop
 val of_integer : c_int -> unop
 
@@ -73,6 +73,8 @@ val f_lsl  : lfun
 val f_lsr  : lfun
 val f_bit  : lfun
 
+val f_bitwised : lfun list (** All except f_bit *)
+
 (** Simplifiers *)
 
 val is_cint_simplifier: Conditions.simplifier
@@ -82,3 +84,4 @@ val is_cint_simplifier: Conditions.simplifier
 val mask_simplifier: Conditions.simplifier
 
 val is_positive_or_null: term -> bool
+

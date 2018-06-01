@@ -1,0 +1,6 @@
+[kernel] Parsing tests/syntax/struct_with_function_field_invalid.i (no preprocessing)
+[kernel] tests/syntax/struct_with_function_field_invalid.i:2: User Error: 
+  field `f' declared as a function
+[kernel] User Error: stopping on file "tests/syntax/struct_with_function_field_invalid.i" that has
+  errors.
+[kernel] Frama-C aborted: invalid user input.

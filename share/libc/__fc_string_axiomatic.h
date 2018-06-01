@@ -2,7 +2,7 @@
 /*                                                                        */
 /*  This file is part of Frama-C.                                         */
 /*                                                                        */
-/*  Copyright (C) 2007-2017                                               */
+/*  Copyright (C) 2007-2018                                               */
 /*    CEA (Commissariat à l'énergie atomique et aux énergies              */
 /*         alternatives)                                                  */
 /*                                                                        */
@@ -49,6 +49,10 @@ __BEGIN_DECLS
   @ logic 𝔹 memchr{L}(char *s, ℤ c, ℤ n)
   @   reads s[0..n - 1];
   @ // Returns [true] iff array [s] contains character [c]
+  @
+  @ logic ℤ memchr_off{L}(char *s, ℤ c, ℤ n)
+  @   reads s[0..n - 1];
+  @ // Returns the offset at which [c] appears in [s]. // TODO: is n useful?
   @
   @ axiom memchr_def{L}:
   @   \forall char *s; \forall ℤ c; \forall ℤ n;
@@ -249,7 +253,8 @@ __BEGIN_DECLS
   @   0 <= strlen(s) && \valid_read(s+(0..strlen(s)));
   @
   @ predicate valid_read_nstring{L}(char *s, ℤ n) =
-  @   \valid_read(s+(0..n-1)) || valid_read_string{L}(s);
+  @   (\valid_read(s+(0..n-1)) && \initialized(s+(0..n-1)))
+  @   || valid_read_string{L}(s);
   @
   @ predicate valid_string_or_null{L}(char *s) =
   @   s == \null || valid_string(s);
@@ -261,7 +266,8 @@ __BEGIN_DECLS
   @   0 <= wcslen(s) && \valid_read(s+(0..wcslen(s)));
   @
   @ predicate valid_read_nwstring{L}(wchar_t *s, ℤ n) =
-  @   \valid_read(s+(0..n-1)) || valid_read_wstring{L}(s);
+  @   (\valid_read(s+(0..n-1)) && \initialized(s+(0..n-1)))
+  @   || valid_read_wstring{L}(s);
   @
   @ predicate valid_wstring_or_null{L}(wchar_t *s) =
   @   s == \null || valid_wstring(s);

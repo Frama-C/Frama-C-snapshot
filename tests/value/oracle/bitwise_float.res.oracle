@@ -4,8 +4,10 @@
 [value] Initial state computed
 [value:initial-state] Values of globals at initialization
   
-tests/value/bitwise_float.c:1:[value] warning: function main: precondition got status unknown.
-tests/value/bitwise_float.c:5:[value] Frama_C_show_each_x: [1028443341..1084227584]
+[value:alarm] tests/value/bitwise_float.c:1: Warning: 
+  function main: precondition got status unknown.
+[value] tests/value/bitwise_float.c:5: 
+  Frama_C_show_each_x: [1028443341..1084227584]
 [value] Recording results for main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======
@@ -14,11 +16,11 @@ tests/value/bitwise_float.c:5:[value] Frama_C_show_each_x: [1028443341..10842275
 [from] Computing for function main
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
-    These dependencies hold at termination for the executions that terminate:
+  These dependencies hold at termination for the executions that terminate:
 [from] Function main:
   \result FROM a
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function main:
-      x
+    x
 [inout] Inputs for function main:
-      \nothing
+    \nothing

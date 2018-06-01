@@ -5,12 +5,13 @@
 [value:initial-state] Values of globals at initialization
   t[0..9] ∈ {0}
   j ∈ [--..--]
-tests/value/forall.i:9:[value] warning: function main: precondition got status unknown.
-tests/value/forall.i:11:[value] assertion got status valid.
-tests/value/forall.i:12:[value] warning: assertion got status unknown.
-tests/value/forall.i:13:[value] assertion got status valid.
-tests/value/forall.i:15:[value] warning: assertion got status unknown.
-tests/value/forall.i:16:[value] warning: assertion got status unknown.
+[value:alarm] tests/value/forall.i:9: Warning: 
+  function main: precondition got status unknown.
+[value] tests/value/forall.i:11: assertion got status valid.
+[value:alarm] tests/value/forall.i:12: Warning: assertion got status unknown.
+[value] tests/value/forall.i:13: assertion got status valid.
+[value:alarm] tests/value/forall.i:15: Warning: assertion got status unknown.
+[value:alarm] tests/value/forall.i:16: Warning: assertion got status unknown.
 [value] Recording results for main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======
@@ -21,18 +22,18 @@ tests/value/forall.i:16:[value] warning: assertion got status unknown.
 [from] Computing for function main
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
-    These dependencies hold at termination for the executions that terminate:
+  These dependencies hold at termination for the executions that terminate:
 [from] Function main:
   t[1] FROM \nothing
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function main:
-      t[1]
+    t[1]
 [inout] Inputs for function main:
-      \nothing
+    \nothing
 [inout] InOut (internal) for function main:
-    Operational inputs:
-      \nothing
-    Operational inputs on termination:
-      \nothing
-    Sure outputs:
-      t[1]
+  Operational inputs:
+    \nothing
+  Operational inputs on termination:
+    \nothing
+  Sure outputs:
+    t[1]

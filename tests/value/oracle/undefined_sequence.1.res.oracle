@@ -7,56 +7,59 @@
   c ∈ [--..--]
   r ∈ {0}
   H ∈ {0}
-tests/value/undefined_sequence.i:36:[value] entering loop for the first time
-tests/value/undefined_sequence.i:38:[value] entering loop for the first time
-tests/value/undefined_sequence.i:40:[value] entering loop for the first time
-tests/value/undefined_sequence.i:40:[value] warning: signed overflow.
-    assert G[tmp_2] + G[tmp_3] ≤ 2147483647;
-    (tmp_2 from j++, tmp_3 from i++)
-tests/value/undefined_sequence.i:43:[value] entering loop for the first time
-tests/value/undefined_sequence.i:49:[value] entering loop for the first time
-tests/value/undefined_sequence.i:50:[value] warning: signed overflow. assert G[j] + G[tmp_6] ≤ 2147483647;
-                     (tmp_6 from j++)
-tests/value/undefined_sequence.i:51:[value] warning: signed overflow. assert G[tmp_7] + G[i] ≤ 2147483647;
-                     (tmp_7 from i++)
+[value] tests/value/undefined_sequence.i:36: entering loop for the first time
+[value] tests/value/undefined_sequence.i:38: entering loop for the first time
+[value] tests/value/undefined_sequence.i:40: entering loop for the first time
+[value:alarm] tests/value/undefined_sequence.i:40: Warning: 
+  signed overflow.
+  assert G[tmp_2] + G[tmp_3] ≤ 2147483647;
+  (tmp_2 from j++, tmp_3 from i++)
+[value] tests/value/undefined_sequence.i:43: entering loop for the first time
+[value] tests/value/undefined_sequence.i:49: entering loop for the first time
+[value:alarm] tests/value/undefined_sequence.i:50: Warning: 
+  signed overflow. assert G[j] + G[tmp_6] ≤ 2147483647;
+                   (tmp_6 from j++)
+[value:alarm] tests/value/undefined_sequence.i:51: Warning: 
+  signed overflow. assert G[tmp_7] + G[i] ≤ 2147483647;
+                   (tmp_7 from i++)
 [value] computing for function g <- main.
-    Called from tests/value/undefined_sequence.i:53.
+  Called from tests/value/undefined_sequence.i:53.
 [value] Recording results for g
 [value] Done for function g
 [value] computing for function f <- main.
-    Called from tests/value/undefined_sequence.i:53.
+  Called from tests/value/undefined_sequence.i:53.
 [value] Recording results for f
 [value] Done for function f
 [value] computing for function g <- main.
-    Called from tests/value/undefined_sequence.i:54.
+  Called from tests/value/undefined_sequence.i:54.
 [value] Recording results for g
 [value] Done for function g
 [value] computing for function f <- main.
-    Called from tests/value/undefined_sequence.i:54.
+  Called from tests/value/undefined_sequence.i:54.
 [value] Recording results for f
 [value] Done for function f
 [value] computing for function h <- main.
-    Called from tests/value/undefined_sequence.i:56.
+  Called from tests/value/undefined_sequence.i:56.
 [value] Recording results for h
 [value] Done for function h
 [value] computing for function h <- main.
-    Called from tests/value/undefined_sequence.i:56.
+  Called from tests/value/undefined_sequence.i:56.
 [value] Recording results for h
 [value] Done for function h
 [value] computing for function func <- main.
-    Called from tests/value/undefined_sequence.i:60.
+  Called from tests/value/undefined_sequence.i:60.
 [value] Recording results for func
 [value] Done for function func
 [value] computing for function ub_ret <- main.
-    Called from tests/value/undefined_sequence.i:65.
+  Called from tests/value/undefined_sequence.i:65.
 [value] Recording results for ub_ret
 [value] Done for function ub_ret
 [value] computing for function f <- main.
-    Called from tests/value/undefined_sequence.i:67.
+  Called from tests/value/undefined_sequence.i:67.
 [value] Recording results for f
 [value] Done for function f
 [value] computing for function g <- main.
-    Called from tests/value/undefined_sequence.i:67.
+  Called from tests/value/undefined_sequence.i:67.
 [value] Recording results for g
 [value] Done for function g
 [value] Recording results for main
@@ -99,7 +102,7 @@ tests/value/undefined_sequence.i:51:[value] warning: signed overflow. assert G[t
 [from] Computing for function main
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
-    These dependencies hold at termination for the executions that terminate:
+  These dependencies hold at termination for the executions that terminate:
 [from] Function f:
   \result FROM x
 [from] Function func:
@@ -120,28 +123,28 @@ tests/value/undefined_sequence.i:51:[value] warning: signed overflow. assert G[t
   \result FROM c
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function f:
-      __retres
+    __retres
 [inout] Inputs for function f:
-      \nothing
+    \nothing
 [inout] Out (internal) for function func:
-      __retres
+    __retres
 [inout] Inputs for function func:
-      \nothing
+    \nothing
 [inout] Out (internal) for function g:
-      __retres
+    __retres
 [inout] Inputs for function g:
-      \nothing
+    \nothing
 [inout] Out (internal) for function h:
-      r; H; i; tmp; tmp_0
+    r; H; i; tmp; tmp_0
 [inout] Inputs for function h:
-      c; r
+    c; r
 [inout] Out (internal) for function ub_ret:
-      d; __retres
+    d; __retres
 [inout] Inputs for function ub_ret:
-      \nothing
+    \nothing
 [inout] Out (internal) for function main:
-      G[0..9]; r; H; x; y; i; j; tmp; tmp_0; tmp_1; tmp_2; tmp_3; tmp_4; 
-      tmp_5; tmp_6; tmp_7; tmp_8; tmp_9; tmp_10; tmp_11; tmp_12; tmp_13; 
-      tmp_14; tmp_15; my_f; tmp_16; tmp_17; tmp_18
+    G[0..9]; r; H; x; y; i; j; tmp; tmp_0; tmp_1; tmp_2; tmp_3; tmp_4; 
+    tmp_5; tmp_6; tmp_7; tmp_8; tmp_9; tmp_10; tmp_11; tmp_12; tmp_13; 
+    tmp_14; tmp_15; my_f; tmp_16; tmp_17; tmp_18
 [inout] Inputs for function main:
-      G[0..9]; c; r
+    G[0..9]; c; r

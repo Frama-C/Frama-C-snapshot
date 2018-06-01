@@ -6,7 +6,8 @@
 [value:initial-state] Values of globals at initialization
   x ∈ {0}
   y ∈ {0}
-tests/slicing/slice_pragma_stmt.i:160:[value] warning: signed overflow. assert c2 + 1 ≤ 2147483647;
+[value:alarm] tests/slicing/slice_pragma_stmt.i:160: Warning: 
+  signed overflow. assert c2 + 1 ≤ 2147483647;
 [value] Recording results for test9
 [value] done for function test9
 [slicing] initializing slicing ...

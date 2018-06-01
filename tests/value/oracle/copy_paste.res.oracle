@@ -5,14 +5,14 @@
 [value:initial-state] Values of globals at initialization
   t[0..11] ∈ {0}
   G ∈ {0}
-tests/value/copy_paste.i:4:[value] warning: initialization of volatile variable l ignored
-tests/value/copy_paste.i:8:[value] warning: accessing out of bounds index. assert 0 ≤ j;
-tests/value/copy_paste.i:8:[value] warning: accessing out of bounds index. assert j < 12;
-tests/value/copy_paste.i:9:[value] warning: out of bounds read. assert \valid_read((int *)l);
+[value:alarm] tests/value/copy_paste.i:8: Warning: 
+  accessing out of bounds index. assert 0 ≤ j;
+[value:alarm] tests/value/copy_paste.i:9: Warning: 
+  out of bounds read. assert \valid_read((int *)l);
 [value] Recording results for main
 [value] done for function main
-tests/value/copy_paste.i:8:[value] assertion 'Value,index_bound' got final status valid.
-tests/value/copy_paste.i:9:[value] assertion 'Value,mem_access' got final status invalid.
+[value] tests/value/copy_paste.i:9: 
+  assertion 'Value,mem_access' got final status invalid.
 [value] ====== VALUES COMPUTED ======
 [value:final-states] Values at end of function main:
   t[0..2] ∈ {0}
@@ -26,13 +26,13 @@ tests/value/copy_paste.i:9:[value] assertion 'Value,mem_access' got final status
 [from] Computing for function main
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
-    These dependencies hold at termination for the executions that terminate:
+  These dependencies hold at termination for the executions that terminate:
 [from] Function main:
   t[3] FROM c (and SELF)
    [4] FROM c
   G FROM \nothing
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function main:
-      t[3..4]; G; l; i; tmp; j; tmp_0
+    t[3..4]; G; l; i; tmp; j; tmp_0
 [inout] Inputs for function main:
-      \nothing
+    \nothing

@@ -197,7 +197,7 @@ void test_pow() {
 
   // x contains -0.0, but y contains no odd integer
   x = double_interval(-0.0,10.0);
-  y = double_interval(-3.5,4.5);
+  y = double_interval(-4.5,-3.5);
   double n = pow(x,y);
 
   // negative x and non-integer y

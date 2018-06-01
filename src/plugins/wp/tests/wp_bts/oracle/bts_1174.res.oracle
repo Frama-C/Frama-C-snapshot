@@ -2,22 +2,22 @@
 [kernel] Parsing tests/wp_bts/bts_1174.i (no preprocessing)
 [wp] Running WP plugin...
 [wp] Loading driver 'share/wp.driver'
-[wp] warning: Missing RTE guards
+[wp] Warning: Missing RTE guards
 ------------------------------------------------------------
   Function job
 ------------------------------------------------------------
 
 Goal Assertion 'qed_ok' (file tests/wp_bts/bts_1174.i, line 11):
-Let r = mul_float64(x, (2)).
+Let r = mul_float64(x, 2.0).
 Assume {
   Type: is_sint32(a) /\ is_float64(x) /\ is_float64(r).
   (* Goal *)
-  When: 0 <= x.
+  When: .0 <= x.
   (* Pre-condition *)
-  Have: (x <= (10)) /\ ((-10) <= x).
+  Have: (x <= 10.0) /\ (-10.0 <= x).
   (* Then *)
   Have: a != 0.
 }
-Prove: 0 <= r.
+Prove: .0 <= r.
 
 ------------------------------------------------------------

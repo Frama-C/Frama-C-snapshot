@@ -1,6 +1,8 @@
 [kernel] Parsing tests/syntax/line_number.c (with preprocessing)
-[kernel] syntax error at tests/syntax/line_number.c:1
-    1     //@ assert \result == 0;
-          ^^^^^^^^^^^^^^^^^^^^^^^^
-    2     extern int p(void void);
+[kernel] tests/syntax/line_number.c:1: 
+  syntax error:
+  
+  1     //@ assert \result == 0;
+        ^^^^^^^^^^^^^^^^^^^^^^^^
+  2     extern int p(void void);
 [kernel] Frama-C aborted: invalid user input.

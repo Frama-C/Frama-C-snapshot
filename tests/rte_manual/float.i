@@ -1,5 +1,5 @@
 /* run.config
-   OPT: -rte -rte-float-to-int -then -print
+   OPT: -rte -rte-float-to-int -warn-special-float none -then -print
  */
 
 int f(float v) {

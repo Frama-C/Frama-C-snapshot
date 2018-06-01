@@ -18,11 +18,15 @@
   X9 ∈ [--..--]
   S_0_T[0..1] ∈ [--..--]
   S_1_T[0..1] ∈ [--..--]
-tests/value/reading_null.i:24:[value] entering loop for the first time
-tests/value/reading_null.i:25:[value] Frama_C_show_each_F: [-2147483648..2147483647], {0}
-tests/value/reading_null.i:25:[value] Frama_C_show_each_F: [-2147483648..2147483647], {0; 1}
-tests/value/reading_null.i:25:[value] Frama_C_show_each_F: [-2147483648..2147483647], {0; 1; 2}
-tests/value/reading_null.i:25:[value] Frama_C_show_each_F: [-2147483648..2147483647], [0..9]
+[value] tests/value/reading_null.i:24: entering loop for the first time
+[value] tests/value/reading_null.i:25: 
+  Frama_C_show_each_F: [-2147483648..2147483647], {0}
+[value] tests/value/reading_null.i:25: 
+  Frama_C_show_each_F: [-2147483648..2147483647], {0; 1}
+[value] tests/value/reading_null.i:25: 
+  Frama_C_show_each_F: [-2147483648..2147483647], {0; 1; 2}
+[value] tests/value/reading_null.i:25: 
+  Frama_C_show_each_F: [-2147483648..2147483647], [0..9]
 [value] Recording results for main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======
@@ -32,11 +36,11 @@ tests/value/reading_null.i:25:[value] Frama_C_show_each_F: [-2147483648..2147483
 [from] Computing for function main
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
-    These dependencies hold at termination for the executions that terminate:
+  These dependencies hold at termination for the executions that terminate:
 [from] Function main:
   X FROM X1; X2; X3; X4; X5; X6; X7; X8; X9 (and SELF)
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function main:
-      X; count
+    X; count
 [inout] Inputs for function main:
-      X; X1; X2; X3; X4; X5; X6; X7; X8; X9
+    X; X1; X2; X3; X4; X5; X6; X7; X8; X9

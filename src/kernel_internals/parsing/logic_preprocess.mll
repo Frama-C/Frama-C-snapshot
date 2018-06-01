@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2017                                               *)
+(*  Copyright (C) 2007-2018                                               *)
 (*    CEA   (Commissariat à l'énergie atomique et aux énergies            *)
 (*           alternatives)                                                *)
 (*    INRIA (Institut National de Recherche en Informatique et en         *)
@@ -26,6 +26,7 @@
   open Lexing
   type end_of_buffer = NEWLINE | SPACE | CHAR
   let preprocess_buffer = Buffer.create 1024
+
   let output_buffer = Buffer.create 1024
   (* Standard prohibits the predefined macros to be subject of a #define
      (or #undef) directive. We thus have to filter the definition of these
@@ -136,7 +137,7 @@
     if !has_annot then begin
       let debug =
         Kernel.debug_atleast 3 ||
-          Kernel.Debug_category.exists (fun x -> x = "parser")
+          Kernel.is_debug_key_enabled Kernel.dkey_parser
       in
       let ppname =
         try Extlib.temp_file_cleanup_at_exit ~debug "ppannot" suffix
@@ -364,7 +365,7 @@ and annot = parse
            annot_comment lexbuf }
   | '@' {
       if !is_newline = NEWLINE then is_newline:=SPACE;
-      Buffer.add_char preprocess_buffer ' ';
+      Buffer.add_char preprocess_buffer '@';
       annot lexbuf }
   | ' '  {
       if !is_newline = NEWLINE then is_newline:=SPACE;
@@ -492,7 +493,7 @@ parse
 {
   let file suffix cpp filename =
     reset ();
-    let debug = Kernel.Debug_category.exists (fun x -> x = "parser") in
+    let debug = Kernel.is_debug_key_enabled Kernel.dkey_parser in
     let inchan = open_in_bin filename in
     let lex = Lexing.from_channel inchan in
     let ppname =

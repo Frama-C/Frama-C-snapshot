@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2017                                               *)
+(*  Copyright (C) 2007-2018                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -164,6 +164,15 @@ sig
   val iter_sorted : (key -> data -> unit) -> unit
 end
 
+let types = Hashtbl.create 8
+let freetype a =
+  try
+    let n = Hashtbl.find types a in
+    Hashtbl.replace types a (succ n) ;
+    Printf.sprintf "%s#%d" a n
+  with Not_found ->
+    Hashtbl.add types a 1 ; a
+
 module Index(E : Entries) =
 struct
 
@@ -190,14 +199,14 @@ struct
         include Datatype.Undefined
         let mem_project = Datatype.never_any_project
         let reprs = [{index=MAP.empty;lock=SET.empty}]
-        let name = "Wp.Model.Index." ^ E.name
+        let name = freetype ("Wp.Model.Index." ^ E.name)
       end)
 
   module REGISTRY = State_builder.Hashtbl
       (Datatype.String.Hashtbl)
       (ENTRIES)
       (struct
-        let name = "Wp.Model." ^ E.name
+        let name = freetype ("Wp.Model." ^ E.name)
         let dependencies = [Ast.self]
         let size = 32
       end)

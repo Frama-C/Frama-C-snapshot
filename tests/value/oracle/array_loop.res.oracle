@@ -23,7 +23,7 @@
     [7] ∈ {24}
     [8..17] ∈ {1}
     [18..19] ∈ {0}
-tests/value/array_loop.i:7:[value] entering loop for the first time
+[value] tests/value/array_loop.i:7: entering loop for the first time
 [value] Recording results for main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======
@@ -35,11 +35,11 @@ tests/value/array_loop.i:7:[value] entering loop for the first time
 [from] Computing for function main
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
-    These dependencies hold at termination for the executions that terminate:
+  These dependencies hold at termination for the executions that terminate:
 [from] Function main:
   t[0..7] FROM tt[0..15] (and SELF)
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function main:
-      t[0..7]; i
+    t[0..7]; i
 [inout] Inputs for function main:
-      tt[0..15]
+    tt[0..15]

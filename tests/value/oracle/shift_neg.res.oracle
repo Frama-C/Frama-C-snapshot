@@ -4,11 +4,12 @@
 [value] Initial state computed
 [value:initial-state] Values of globals at initialization
   
-tests/value/shift_neg.i:5:[value] Frama_C_dump_each:
-    # Cvalue domain:
-    i ∈ {-1}
-    j ∈ {-6}
-    ==END OF DUMP==
+[value] tests/value/shift_neg.i:5: 
+  Frama_C_dump_each:
+  # Cvalue domain:
+  i ∈ {-1}
+  j ∈ {-6}
+  ==END OF DUMP==
 [value] Recording results for main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======
@@ -18,11 +19,11 @@ tests/value/shift_neg.i:5:[value] Frama_C_dump_each:
 [from] Computing for function main
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
-    These dependencies hold at termination for the executions that terminate:
+  These dependencies hold at termination for the executions that terminate:
 [from] Function main:
   NO EFFECTS
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function main:
-      i; j
+    i; j
 [inout] Inputs for function main:
-      \nothing
+    \nothing

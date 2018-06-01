@@ -8,18 +8,19 @@
   p ∈ {0}
   v ∈ [--..--]
 [value] computing for function main1 <- main.
-    Called from tests/value/changeret.i:31.
+  Called from tests/value/changeret.i:31.
 [value] computing for function f <- main1 <- main.
-    Called from tests/value/changeret.i:15.
+  Called from tests/value/changeret.i:15.
 [value] Recording results for f
 [value] Done for function f
 [value] Recording results for main1
 [value] Done for function main1
 [value] computing for function main2 <- main.
-    Called from tests/value/changeret.i:32.
+  Called from tests/value/changeret.i:32.
 [value] computing for function g <- main2 <- main.
-    Called from tests/value/changeret.i:27.
-tests/value/changeret.i:19:[value] warning: out of bounds read. assert \valid_read(p);
+  Called from tests/value/changeret.i:27.
+[value:alarm] tests/value/changeret.i:19: Warning: 
+  out of bounds read. assert \valid_read(p);
 [value] Recording results for g
 [value] Done for function g
 [value] Recording results for main2
@@ -54,7 +55,7 @@ tests/value/changeret.i:19:[value] warning: out of bounds read. assert \valid_re
 [from] Computing for function main
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
-    These dependencies hold at termination for the executions that terminate:
+  These dependencies hold at termination for the executions that terminate:
 [from] Function f:
   p FROM \nothing
   \result FROM \nothing
@@ -72,22 +73,22 @@ tests/value/changeret.i:19:[value] warning: out of bounds read. assert \valid_re
   p FROM v
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function f:
-      p; __retres
+    p; __retres
 [inout] Inputs for function f:
-      \nothing
+    \nothing
 [inout] Out (internal) for function g:
-      z; __retres
+    z; __retres
 [inout] Inputs for function g:
-      y; p
+    y; p
 [inout] Out (internal) for function main1:
-      x; p
+    x; p
 [inout] Inputs for function main1:
-      p
+    p
 [inout] Out (internal) for function main2:
-      y; p
+    y; p
 [inout] Inputs for function main2:
-      y; p; v
+    y; p; v
 [inout] Out (internal) for function main:
-      x; y; p
+    x; y; p
 [inout] Inputs for function main:
-      y; p; v
+    y; p; v

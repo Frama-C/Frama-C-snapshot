@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2017                                               *)
+(*  Copyright (C) 2007-2018                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -35,11 +35,19 @@ exception Not_less_than
 exception Can_not_subdiv
 (** Used by other modules e.g. {!Fval.subdiv_float_interval}. *)
 
+type truth = True | False | Unknown
+(** Truth values with a possibility for 'Unknown' *)
+
+val inv_truth: truth -> truth
+
+type alarm = SureAlarm | Alarm | NoAlarm
+(** Less ambiguous version of {!truth} for alarms. *)
+
 (** Signatures for comparison operators [==, !=, <, >, <=, >=]. *)
 module Comp: sig
   type t = Lt | Gt | Le | Ge | Eq | Ne (** comparison operators *)
 
-  type result = True | False | Unknown (** result of a comparison *)
+  type result = truth = True | False | Unknown (** result of a comparison *)
 
   val pretty_comp: t Pretty_utils.formatter
 
@@ -49,9 +57,6 @@ module Comp: sig
   val sym: t -> t
   (** Opposite relation: [a op b <==> b (sym op) a]. *)
 
-  val inv_result: result -> result
-  (** Given a result [r] for an operation [op], [inv_result r] is
-      the result that would have been obtained for [inv op]. *)
 end
 
 

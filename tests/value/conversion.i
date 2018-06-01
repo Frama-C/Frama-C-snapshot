@@ -36,7 +36,7 @@ void main() {
   Frama_C_dump_each();
 
   x = (int)&x;
-  f = *(float *)&x; // no cast, pointers;
+  f = *(float *)&x; // no cast, pointers. We produce a GM anyway;
   Frama_C_dump_each();
 
   *(short *)&x = 1;

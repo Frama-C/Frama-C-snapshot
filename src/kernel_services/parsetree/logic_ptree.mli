@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2017                                               *)
+(*  Copyright (C) 2007-2018                                               *)
 (*    CEA   (Commissariat à l'énergie atomique et aux énergies            *)
 (*           alternatives)                                                *)
 (*    INRIA (Institut National de Recherche en Informatique et en         *)
@@ -31,6 +31,12 @@ type constant =
   | StringConstant of string (** string constant *)
   | WStringConstant of string (** wide string constant *)
 
+(** size of logic array. *)
+type array_size =
+    ASinteger of string (** integer constant *)
+  | ASidentifier of string (** a variable or macro*)
+  | ASnone (**  none *)
+
 (** logic types. *)
 type logic_type =
   | LTvoid (** C void *)
@@ -38,7 +44,7 @@ type logic_type =
   | LTreal (** mathematical real. *)
   | LTint of Cil_types.ikind (** C integral type.*)
   | LTfloat of Cil_types.fkind (** C floating-point type *)
-  | LTarray of logic_type * constant option (** C array *)
+  | LTarray of logic_type * array_size (** C array *)
   | LTpointer of logic_type (** C pointer *)
   | LTenum of string (** C enum *)
   | LTstruct of string (** C struct *)

@@ -2,7 +2,7 @@
 #                                                                        #
 #  This file is part of Frama-C.                                         #
 #                                                                        #
-#  Copyright (C) 2007-2017                                               #
+#  Copyright (C) 2007-2018                                               #
 #    CEA (Commissariat à l'énergie atomique et aux énergies              #
 #         alternatives)                                                  #
 #                                                                        #
@@ -145,9 +145,9 @@ OPT_LIBS+= $(GEN_OPT_LIBS)
 
 ICONS:= $(addprefix share/,\
 		frama-c.ico frama-c.png unmark.png \
-		switch-on.png switch-off.png )
+		switch-on.png switch-off.png)
 
-FEEDBACK_ICONS_NAMES:= \
+THEME_ICON_NAMES:= \
 		never_tried.png \
 		unknown.png \
 		surely_valid.png \
@@ -158,12 +158,15 @@ FEEDBACK_ICONS_NAMES:= \
 		invalid_but_dead.png \
 		unknown_but_dead.png \
 		valid_but_dead.png \
-		inconsistent.png
+		inconsistent.png \
+		fold.png unfold.png
 
-FEEDBACK_ICONS_DEFAULT:= \
-	$(addprefix share/theme/default/,$(FEEDBACK_ICONS_NAMES))
-FEEDBACK_ICONS_COLORBLIND:= \
-	$(addprefix share/theme/colorblind/,$(FEEDBACK_ICONS_NAMES))
+THEME_ICONS_DEFAULT:= \
+  $(addprefix share/theme/default/,$(THEME_ICON_NAMES))
+THEME_ICONS_COLORBLIND:= \
+  $(addprefix share/theme/colorblind/,$(THEME_ICON_NAMES))
+THEME_ICONS_FLAT:= \
+  $(addprefix share/theme/flat/,$(THEME_ICON_NAMES))
 
 ROOT_LIBC_DIR:= share/libc
 LIBC_SUBDIRS:= sys netinet linux net arpa
@@ -212,7 +215,8 @@ DISTRIB_FILES:=\
       $(wildcard bin/migration_scripts/*2*.sh) bin/local_export.sh                        \
       bin/frama-c bin/frama-c.byte bin/frama-c-gui bin/frama-c-gui.byte \
       bin/frama-c-config share/frama-c.WIN32.rc share/frama-c.Unix.rc   \
-      $(ICONS) $(FEEDBACK_ICONS_DEFAULT) $(FEEDBACK_ICONS_COLORBLIND)	\
+      $(ICONS) $(THEME_ICONS_DEFAULT) $(THEME_ICONS_COLORBLIND)         \
+      $(THEME_ICONS_FLAT)                                               \
       man/frama-c.1 doc/README						\
       doc/code/docgen.ml                                                \
       doc/code/*.css doc/code/intro_plugin.txt				\
@@ -229,8 +233,10 @@ DISTRIB_FILES:=\
       $(LIBC_FILES)							\
       share/analysis-scripts/cmd-dep.sh                                 \
       share/analysis-scripts/frama-c.mk                                 \
+      share/analysis-scripts/list_files.py                              \
       share/analysis-scripts/parse-coverage.sh                          \
       share/analysis-scripts/README.md                                  \
+      share/analysis-scripts/template.mk                                \
       $(wildcard share/emacs/*.el) share/autocomplete_frama-c           \
       share/_frama-c                                                    \
       share/configure.ac                                                \
@@ -309,15 +315,24 @@ rebuild: config.status
 		 $(MAKE) depend $(FRAMAC_PARALLEL) && \
 		 $(MAKE) all $(FRAMAC_PARALLEL))
 
-sinclude .Makefile.user # Should defines FRAMAC_PARALLEL and FRAMAC_USER_FLAGS
+sinclude .Makefile.user # Should defines FRAMAC_PARALLEL, FRAMAC_USER_FLAGS, FRAMAC_USER_MERLIN_FLAGS
 
 #Create link in share for local execution if
 .PHONY:create_share_link
 create_share_link: share/.gitignore
 
+# note: when using opam pin path in a cloned Frama-C git, the symbolic links
+# become directories, so a different command is necessary for each situation
+
 share/.gitignore: share/Makefile.config
 	if test -f $@; then \
-	 for link in $$(cat $@); do rm -f share$$link; done; \
+	  for link in $$(cat $@); do \
+	    if test -L share$$link; then \
+	      rm -f share$$link \
+	    else \
+	      rm -rf share$$link; \
+	    fi; \
+	  done; \
 	fi
 	$(RM) $@.tmp
 	touch $@.tmp
@@ -335,8 +350,14 @@ endif
 
 clean::
 	if test -f share/.gitignore; then \
-	 for link in $$(cat share/.gitignore); do rm -f share$$link; done; \
-	 rm share/.gitignore; \
+	  for link in $$(cat share/.gitignore); do \
+	    if test -L share$$link; then \
+	      rm -f share$$link \
+	    else \
+	      rm -rf share$$link; \
+	    fi; \
+	  done; \
+	  rm share/.gitignore; \
 	fi
 
 ##############
@@ -392,9 +413,8 @@ LIB_CMO =\
 	src/libraries/utils/leftistheap \
 	src/libraries/stdlib/integer \
 	src/libraries/utils/filepath \
-	src/libraries/utils/json
-
-GENERATED+= src/libraries/utils/json.ml
+	src/libraries/utils/json \
+	src/libraries/utils/rich_text
 
 NON_OPAQUE_DEPS+=\
   src/libraries/datatype/unmarshal_z \
@@ -476,10 +496,10 @@ KERNEL_CMO=\
 	src/kernel_services/ast_queries/logic_typing.cmo             \
 	src/kernel_services/ast_queries/ast_info.cmo                 \
 	src/kernel_services/ast_data/ast.cmo                            \
-	src/kernel_services/ast_data/globals.cmo                        \
 	src/kernel_services/ast_printing/cprint.cmo                     \
 	src/kernel_services/visitors/cabsvisit.cmo                      \
 	src/kernel_internals/typing/cabs2cil.cmo                      \
+	src/kernel_services/ast_data/globals.cmo                        \
 	src/kernel_internals/typing/cfg.cmo                           \
 	src/kernel_services/ast_data/kernel_function.cmo                \
 	src/kernel_services/ast_data/property.cmo                       \
@@ -496,7 +516,6 @@ KERNEL_CMO=\
 	src/kernel_internals/typing/rmtmps.cmo                        \
 	src/kernel_internals/typing/oneret.cmo                        \
 	src/kernel_internals/typing/frontc.cmo                        \
-	src/kernel_services/ast_data/statuses_by_call.cmo               \
 	src/kernel_services/analysis/dataflow.cmo                       \
 	src/kernel_services/analysis/ordered_stmt.cmo                   \
 	src/kernel_services/analysis/wto_statement.cmo                  \
@@ -506,6 +525,7 @@ KERNEL_CMO=\
 	src/kernel_services/analysis/dominators.cmo                     \
 	src/kernel_services/analysis/service_graph.cmo                  \
 	src/kernel_services/analysis/undefined_sequence.cmo             \
+	src/kernel_services/analysis/interpreted_automata.cmo           \
 	src/kernel_services/ast_printing/description.cmo                \
 	src/kernel_services/ast_data/alarms.cmo                         \
 	src/kernel_services/abstract_interp/lattice_messages.cmo        \
@@ -525,11 +545,13 @@ KERNEL_CMO=\
 	src/kernel_services/abstract_interp/lmap.cmo                    \
 	src/kernel_services/abstract_interp/lmap_bitwise.cmo            \
 	src/kernel_services/visitors/visitor.cmo                        \
+	src/kernel_services/ast_data/statuses_by_call.cmo               \
 	$(PLUGIN_TYPES_CMO_LIST)                                        \
 	src/kernel_services/plugin_entry_points/db.cmo                  \
 	src/libraries/utils/command.cmo                                 \
 	src/libraries/utils/task.cmo                                    \
 	src/kernel_services/ast_queries/filecheck.cmo                \
+	src/kernel_services/ast_queries/json_compilation_database.cmo   \
 	src/kernel_services/ast_queries/file.cmo                     \
 	src/kernel_internals/typing/translate_lightweight.cmo         \
 	src/kernel_internals/typing/allocates.cmo                     \
@@ -542,6 +564,7 @@ KERNEL_CMO=\
 	src/kernel_internals/typing/infer_annotations.cmo             \
 	src/kernel_services/ast_transformations/clone.cmo                           \
 	src/kernel_services/ast_transformations/filter.cmo                          \
+	src/kernel_services/ast_transformations/inline.cmo              \
 	src/kernel_internals/runtime/special_hooks.cmo                  \
 	src/kernel_internals/runtime/messages.cmo
 
@@ -580,6 +603,21 @@ GENERATED += $(addprefix src/kernel_internals/parsing/,\
 		clexer.ml cparser.ml cparser.mli \
 		logic_lexer.ml logic_parser.ml \
 		logic_parser.mli logic_preprocess.ml)
+
+
+ifeq ($(HAS_YOJSON),yes)
+src/kernel_services/ast_queries/json_compilation_database.ml: \
+	src/kernel_services/ast_queries/json_compilation_database.ok.ml share/Makefile.config
+	$(CP_IF_DIFF) $< $@
+	$(CHMOD_RO) $@
+else
+src/kernel_services/ast_queries/json_compilation_database.ml: \
+	src/kernel_services/ast_queries/json_compilation_database.ko.ml share/Makefile.config
+	$(CP_IF_DIFF) $< $@
+	$(CHMOD_RO) $@
+endif
+GENERATED += src/kernel_services/ast_queries/json_compilation_database.ml
+
 
 .PHONY: check-logic-parser-wildcard
 check-logic-parser-wildcard:
@@ -686,7 +724,7 @@ PLUGIN_EXTRA_DIRS:=engine values domains domains/cvalue domains/apron \
 # General rules for ordering files within PLUGIN_CMO:
 # - try to keep the legacy Value before Eva
 PLUGIN_CMO:= slevel/split_strategy value_parameters \
-	utils/value_perf utils/value_util \
+	utils/value_perf utils/value_util utils/red_statuses \
 	utils/mark_noresults \
 	utils/widen_hints_ext utils/widen \
 	engine/split_return \
@@ -701,6 +739,7 @@ PLUGIN_CMO:= slevel/split_strategy value_parameters \
 	legacy/eval_op legacy/function_args \
 	domains/domain_store domains/domain_builder \
 	domains/domain_product domains/domain_lift domains/unit_domain \
+	domains/printer_domain \
 	domains/simple_memory \
 	domains/gauges/gauges_domain \
 	domains/apron/apron_domain \
@@ -728,7 +767,7 @@ PLUGIN_CMO:= slevel/split_strategy value_parameters \
 	engine/initialization engine/abstractions \
 	engine/compute_functions engine/analysis register
 PLUGIN_CMI:= values/abstract_value values/abstract_location \
-	domains/abstract_domain domains/simpler_domains domains/equality/equality_sig
+	domains/abstract_domain domains/simpler_domains
 PLUGIN_DEPENDENCIES:=Callgraph LoopAnalysis RteGen
 
 ifeq ($(HAS_APRON),yes)
@@ -749,8 +788,9 @@ PLUGIN_DISTRIB_EXTERNAL:=domains/apron/apron_domain.ok.ml domains/apron/apron_do
 
 # These files are used by the GUI, but do not depend on Lablgtk
 VALUE_GUI_AUX:=gui_files/gui_types gui_files/gui_eval \
-	gui_files/gui_callstacks_filters gui_files/gui_callstacks_manager
-PLUGIN_GUI_CMO:=$(VALUE_GUI_AUX) gui_files/register_gui
+		gui_files/gui_callstacks_filters
+PLUGIN_GUI_CMO:=$(VALUE_GUI_AUX) gui_files/gui_callstacks_manager \
+		gui_files/gui_red gui_files/register_gui
 PLUGIN_NO_TEST:=yes
 PLUGIN_DISTRIBUTED:=yes
 VALUE_TYPES:=$(addprefix src/plugins/value_types/,\
@@ -940,7 +980,7 @@ PLUGIN_CMO:= sparecode_params globs spare_marks transform register
 PLUGIN_INTRO:=doc/code/intro_sparecode.txt
 PLUGIN_DISTRIBUTED:=yes
 PLUGIN_INTERNAL_TEST:=yes
-PLUGIN_DEPENDENCIES:=Pdg Value
+PLUGIN_DEPENDENCIES:=Pdg Value Users
 
 $(eval $(call include_generic_plugin_Makefile,$(PLUGIN_NAME)))
 
@@ -1220,7 +1260,10 @@ acsl_tests: byte
 	find doc/speclang -name \*.c -exec ./bin/toplevel.byte$(EXE) {} \; > /dev/null
 
 # Non-plugin test directories containing some ML files to compile
-TEST_DIRS_AS_PLUGIN=dynamic dynamic_plugin journal saveload spec misc syntax pretty_printing non-free libc value callgraph
+TEST_DIRS_AS_PLUGIN=dynamic dynamic_plugin journal saveload spec misc syntax cil pretty_printing non-free libc value callgraph
+ifeq ("$(HAS_YOJSON)","yes")
+TEST_DIRS_AS_PLUGIN += jcdb
+endif
 PLUGIN_TESTS_LIST += $(TEST_DIRS_AS_PLUGIN)
 
 LONELY_TESTS_ML_FILES=$(wildcard $(TEST_DIRS_AS_PLUGIN:%=tests/%/*.ml))
@@ -1405,6 +1448,13 @@ dots: $(ALL_CMO)
 	$(QUIET_MAKE) doc/call_graph.svg
 	$(QUIET_MAKE) doc/call_graph.ps
 
+# pandoc is required to regenerate the manpage
+man/frama-c.1: man/frama-c.1.header man/frama-c.1.md
+	$(PRINT) 'generating $@'
+	$(RM) $@
+	pandoc -s -t man -H $^ | tail -n +5 > man/frama-c.1
+	$(CHMOD_RO) $@
+
 # Checking consistency with the current implementation
 ######################################################
 
@@ -1581,6 +1631,7 @@ install:: install-lib
 	$(MKDIR) $(FRAMAC_PLUGINDIR)/gui
 	$(MKDIR) $(FRAMAC_DATADIR)/theme/default
 	$(MKDIR) $(FRAMAC_DATADIR)/theme/colorblind
+	$(MKDIR) $(FRAMAC_DATADIR)/theme/flat
 	$(MKDIR) $(FRAMAC_DATADIR)/libc/sys
 	$(MKDIR) $(FRAMAC_DATADIR)/libc/netinet
 	$(MKDIR) $(FRAMAC_DATADIR)/libc/linux
@@ -1602,8 +1653,9 @@ install:: install-lib
 	$(MKDIR) $(FRAMAC_DATADIR)/emacs
 	$(CP) $(wildcard share/emacs/*.el) $(FRAMAC_DATADIR)/emacs
 	$(CP) share/frama-c.rc $(ICONS) $(FRAMAC_DATADIR)
-	$(CP) $(FEEDBACK_ICONS_DEFAULT) $(FRAMAC_DATADIR)/theme/default
-	$(CP) $(FEEDBACK_ICONS_COLORBLIND) $(FRAMAC_DATADIR)/theme/colorblind
+	$(CP) $(THEME_ICONS_DEFAULT) $(FRAMAC_DATADIR)/theme/default
+	$(CP) $(THEME_ICONS_COLORBLIND) $(FRAMAC_DATADIR)/theme/colorblind
+	$(CP) $(THEME_ICONS_FLAT) $(FRAMAC_DATADIR)/theme/flat
 	if [ -d $(EMACS_DATADIR) ]; then \
 	  $(CP) $(wildcard share/emacs/*.el) $(EMACS_DATADIR); \
 	fi
@@ -2049,15 +2101,12 @@ endif
 		-headache-config-file ./headers/headache_config.txt \
 		$(HEADER_SPEC_FILE)
 	$(PRINT_TAR) $(DISTRIB).tar.gz
-	# hdrck messes up timestamps, leading make to possibly consider that
-	# a configure file from a freshly extracted archive needs to be
-	# recomputed from configure.in (which would require autoconf on the
-	# host machine).
-	touch $(CLIENT_DIR)/configure
-	(cd $(DISTRIB_DIR); $(TAR) zcf ../$(DISTRIB).tar.gz \
+	(cd $(DISTRIB_DIR); $(TAR) cf - \
+			--numeric-owner --owner=0 --group=0 --sort=name \
+			--mtime="$$(date +"%F") Z" --mode='a+rw' \
 			$(DISTRIB_EXCLUDE) \
 			--exclude "*autom4te.cache*" \
-			$(DISTRIB) \
+			$(DISTRIB) | gzip -9 -n > ../$(DISTRIB).tar.gz \
 	)
 	$(PRINT_RM) $(DISTRIB_DIR)
 	$(RM) -r $(DISTRIB_DIR)

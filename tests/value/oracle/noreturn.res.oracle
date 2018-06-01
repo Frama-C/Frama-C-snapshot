@@ -1,47 +1,49 @@
 [kernel] Parsing tests/value/noreturn.i (no preprocessing)
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
-tests/value/noreturn.i:22:[value] warning: global initialization of volatile variable v ignored
 [value] Initial state computed
 [value:initial-state] Values of globals at initialization
   v ∈ [--..--]
 [value] computing for function warn_may_never_end <- main.
-    Called from tests/value/noreturn.i:26.
-tests/value/noreturn.i:20:[value] entering loop for the first time
+  Called from tests/value/noreturn.i:26.
+[value] tests/value/noreturn.i:20: entering loop for the first time
 [value] Recording results for warn_may_never_end
 [value] Done for function warn_may_never_end
 [value] computing for function warn_may_never_end <- main.
-    Called from tests/value/noreturn.i:27.
+  Called from tests/value/noreturn.i:27.
 [value] Recording results for warn_may_never_end
 [value] Done for function warn_may_never_end
 [value] computing for function warn_never_ends <- main.
-    Called from tests/value/noreturn.i:28.
-tests/value/noreturn.i:16:[value] entering loop for the first time
+  Called from tests/value/noreturn.i:28.
+[value] tests/value/noreturn.i:16: entering loop for the first time
 [value] Recording results for warn_never_ends
 [value] Done for function warn_never_ends
 [value] computing for function stop <- main.
-    Called from tests/value/noreturn.i:29.
-tests/value/noreturn.i:29:[kernel] warning: Neither code nor specification for function stop, generating default assigns from the prototype
+  Called from tests/value/noreturn.i:29.
+[kernel:annot:missing-spec] tests/value/noreturn.i:29: Warning: 
+  Neither code nor specification for function stop, generating default assigns from the prototype
 [value] using specification for function stop
 [value] Done for function stop
 [value] computing for function haltme <- main.
-    Called from tests/value/noreturn.i:30.
-tests/value/noreturn.i:30:[kernel] warning: Neither code nor specification for function haltme, generating default assigns from the prototype
+  Called from tests/value/noreturn.i:30.
+[kernel:annot:missing-spec] tests/value/noreturn.i:30: Warning: 
+  Neither code nor specification for function haltme, generating default assigns from the prototype
 [value] using specification for function haltme
 [value] Done for function haltme
 [value] computing for function never_ends <- main.
-    Called from tests/value/noreturn.i:31.
-tests/value/noreturn.i:7:[value] entering loop for the first time
+  Called from tests/value/noreturn.i:31.
+[value] tests/value/noreturn.i:7: entering loop for the first time
 [value] Recording results for never_ends
 [value] Done for function never_ends
 [value] computing for function should_never_end <- main.
-    Called from tests/value/noreturn.i:32.
-tests/value/noreturn.i:13:[value] entering loop for the first time
+  Called from tests/value/noreturn.i:32.
+[value] tests/value/noreturn.i:13: entering loop for the first time
 [value] Recording results for should_never_end
-tests/value/noreturn.i:13:[value] warning: function should_never_end may terminate but has the noreturn attribute
+[value] tests/value/noreturn.i:13: Warning: 
+  function should_never_end may terminate but has the noreturn attribute
 [value] Done for function should_never_end
 [value] computing for function should_never_end <- main.
-    Called from tests/value/noreturn.i:33.
+  Called from tests/value/noreturn.i:33.
 [value] Recording results for should_never_end
 [value] Done for function should_never_end
 [value] Recording results for main
@@ -74,7 +76,7 @@ tests/value/noreturn.i:13:[value] warning: function should_never_end may termina
 [from] Done for function haltme
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
-    These dependencies hold at termination for the executions that terminate:
+  These dependencies hold at termination for the executions that terminate:
 [from] Function haltme:
   \result FROM \nothing
 [from] Function never_ends:
@@ -91,22 +93,22 @@ tests/value/noreturn.i:13:[value] warning: function should_never_end may termina
   \result FROM \nothing
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function never_ends:
-      \nothing
+    \nothing
 [inout] Inputs for function never_ends:
-      \nothing
+    \nothing
 [inout] Out (internal) for function should_never_end:
-      \nothing
+    \nothing
 [inout] Inputs for function should_never_end:
-      \nothing
+    \nothing
 [inout] Out (internal) for function warn_may_never_end:
-      \nothing
+    \nothing
 [inout] Inputs for function warn_may_never_end:
-      \nothing
+    \nothing
 [inout] Out (internal) for function warn_never_ends:
-      \nothing
+    \nothing
 [inout] Inputs for function warn_never_ends:
-      \nothing
+    \nothing
 [inout] Out (internal) for function main:
-      x
+    x
 [inout] Inputs for function main:
-      v
+    v

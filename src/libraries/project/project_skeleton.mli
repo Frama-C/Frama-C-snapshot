@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2017                                               *)
+(*  Copyright (C) 2007-2018                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -30,7 +30,7 @@
 (** @since Carbon-20101201 *)
 module Output : sig
   include Log.Messages
-  val dkey: Log.category
+  val dkey: category
 (** @since Fluorine-20130401 *)
 end
 

@@ -1,0 +1,40 @@
+[kernel] Parsing tests/libc/wchar_h.c (with preprocessing)
+[value] Analyzing a complete application starting at main
+[value] Computing initial state
+[value] Initial state computed
+[value:initial-state] Values of globals at initialization
+  __fc_errno ∈ [--..--]
+  __fc_stdin ∈ {{ NULL ; &S___fc_stdin[0] }}
+  __fc_stdout ∈ {{ NULL ; &S___fc_stdout[0] }}
+  __fc_fopen[0..15] ∈ {0}
+  __fc_p_fopen ∈ {{ &__fc_fopen[0] }}
+  __fc_time ∈ [--..--]
+  __fc_time_tm ∈ {0}
+  __fc_p_time_tm ∈ {{ &__fc_time_tm }}
+  tzname[0] ∈ {{ NULL ; &S_0_tzname[0] }}
+        [1] ∈ {{ NULL ; &S_1_tzname[0] }}
+  S___fc_stdin[0..1] ∈ [--..--]
+  S___fc_stdout[0..1] ∈ [--..--]
+  S_0_tzname[0..1] ∈ [--..--]
+  S_1_tzname[0..1] ∈ [--..--]
+[value] computing for function fopen <- main.
+  Called from tests/libc/wchar_h.c:5.
+[value] using specification for function fopen
+[value] tests/libc/wchar_h.c:5: 
+  function fopen: precondition 'valid_filename' got status valid.
+[value] Done for function fopen
+[value] computing for function fgetws <- main.
+  Called from tests/libc/wchar_h.c:8.
+[value] using specification for function fgetws
+[value] tests/libc/wchar_h.c:8: 
+  function fgetws: precondition 'valid_stream' got status valid.
+[value] Done for function fgetws
+[value] tests/libc/wchar_h.c:10: assertion got status valid.
+[value] Recording results for main
+[value] done for function main
+[value] ====== VALUES COMPUTED ======
+[value:final-states] Values at end of function main:
+  fd ∈ {{ NULL ; &__fc_fopen + [0..120],0%8 }}
+  buf[0..29] ∈ [--..--] or UNINITIALIZED
+  res ∈ {{ NULL ; &buf[0] }}
+  __retres ∈ {0; 1}

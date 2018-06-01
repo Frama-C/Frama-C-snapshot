@@ -2,8 +2,9 @@
 [kernel] Parsing tests/wp_acsl/init_label.i (no preprocessing)
 [wp] Running WP plugin...
 [wp] Loading driver 'share/wp.driver'
-tests/wp_acsl/init_label.i:21:[kernel] warning: No code nor implicit assigns clause for function main, generating default assigns from the prototype
-[wp] warning: Missing RTE guards
+[kernel] tests/wp_acsl/init_label.i:21: Warning: 
+  No code nor implicit assigns clause for function main, generating default assigns from the prototype
+[wp] Warning: Missing RTE guards
 ------------------------------------------------------------
   Function extra
 ------------------------------------------------------------

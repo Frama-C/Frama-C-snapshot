@@ -14,7 +14,7 @@ let main () =
       ~plugin:"Abstract_cpt" "pretty" (Datatype.func T.ty Datatype.unit) 
   in
   let incr_and_pretty c = ignore (incr c); pretty c in
-  for i = 1 to 3 do incr_and_pretty c done
+  for _i = 1 to 3 do incr_and_pretty c done
 
 let () = Db.Main.extend main
   

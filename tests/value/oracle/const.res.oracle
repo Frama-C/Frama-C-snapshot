@@ -18,105 +18,105 @@
    [5] ∈ {6}
    [6..9] ∈ {0}
 [value] computing for function const_formal <- main.
-    Called from tests/value/const.i:102.
-tests/value/const.i:20:[value] Frama_C_show_each: [-2147483648..2147483647]
+  Called from tests/value/const.i:102.
+[value] tests/value/const.i:20: Frama_C_show_each: [-2147483648..2147483647]
 [value] Recording results for const_formal
 [value] Done for function const_formal
 [value] computing for function const_formal <- main.
-    Called from tests/value/const.i:103.
-tests/value/const.i:20:[value] Frama_C_show_each: {42}
+  Called from tests/value/const.i:103.
+[value] tests/value/const.i:20: Frama_C_show_each: {42}
 [value] Recording results for const_formal
 [value] Done for function const_formal
 [value] computing for function modify_I <- main.
-    Called from tests/value/const.i:105.
-tests/value/const.i:37:[value] Frama_C_show_each: {2}
+  Called from tests/value/const.i:105.
+[value] tests/value/const.i:37: Frama_C_show_each: {2}
 [value] computing for function pointer_to_const <- modify_I <- main.
-    Called from tests/value/const.i:39.
-tests/value/const.i:25:[value] Frama_C_show_each: {2; 3}
-tests/value/const.i:27:[value] Frama_C_show_each_dead:
+  Called from tests/value/const.i:39.
+[value] tests/value/const.i:25: Frama_C_show_each: {2; 3}
+[value] tests/value/const.i:27: Frama_C_show_each_dead:
 [value] Recording results for pointer_to_const
 [value] Done for function pointer_to_const
 [value] computing for function const_destination <- modify_I <- main.
-    Called from tests/value/const.i:40.
-tests/value/const.i:31:[value] Frama_C_show_each: {0; 2; 3}
-tests/value/const.i:33:[value] Frama_C_show_each: {{ &I }}
+  Called from tests/value/const.i:40.
+[value] tests/value/const.i:31: Frama_C_show_each: {0; 2; 3}
+[value] tests/value/const.i:33: Frama_C_show_each: {{ &I }}
 [value] Recording results for const_destination
 [value] Done for function const_destination
 [value] Recording results for modify_I
 [value] Done for function modify_I
 [value] computing for function modify_J <- main.
-    Called from tests/value/const.i:106.
-tests/value/const.i:44:[value] Frama_C_show_each: {8}
+  Called from tests/value/const.i:106.
+[value] tests/value/const.i:44: Frama_C_show_each: {8}
 [value] computing for function pointer_to_const <- modify_J <- main.
-    Called from tests/value/const.i:46.
-tests/value/const.i:25:[value] Frama_C_show_each: {8; 9}
-tests/value/const.i:27:[value] Frama_C_show_each_dead:
+  Called from tests/value/const.i:46.
+[value] tests/value/const.i:25: Frama_C_show_each: {8; 9}
+[value] tests/value/const.i:27: Frama_C_show_each_dead:
 [value] Recording results for pointer_to_const
 [value] Done for function pointer_to_const
 [value] computing for function const_destination <- modify_J <- main.
-    Called from tests/value/const.i:47.
-tests/value/const.i:31:[value] Frama_C_show_each: {0; 8; 9}
-tests/value/const.i:33:[value] Frama_C_show_each: {{ &J }}
+  Called from tests/value/const.i:47.
+[value] tests/value/const.i:31: Frama_C_show_each: {0; 8; 9}
+[value] tests/value/const.i:33: Frama_C_show_each: {{ &J }}
 [value] Recording results for const_destination
 [value] Done for function const_destination
 [value] Recording results for modify_J
 [value] Done for function modify_J
 [value] computing for function modify_s <- main.
-    Called from tests/value/const.i:107.
-tests/value/const.i:51:[value] Frama_C_show_each: {3}
+  Called from tests/value/const.i:107.
+[value] tests/value/const.i:51: Frama_C_show_each: {3}
 [value] computing for function pointer_to_const <- modify_s <- main.
-    Called from tests/value/const.i:53.
-tests/value/const.i:25:[value] Frama_C_show_each: {4}
-tests/value/const.i:27:[value] Frama_C_show_each_dead:
+  Called from tests/value/const.i:53.
+[value] tests/value/const.i:25: Frama_C_show_each: {4}
+[value] tests/value/const.i:27: Frama_C_show_each_dead:
 [value] Recording results for pointer_to_const
 [value] Done for function pointer_to_const
 [value] computing for function const_destination <- modify_s <- main.
-    Called from tests/value/const.i:54.
-tests/value/const.i:31:[value] Frama_C_show_each: {0; 4}
-tests/value/const.i:33:[value] Frama_C_show_each: {{ &s + {4} }}
+  Called from tests/value/const.i:54.
+[value] tests/value/const.i:31: Frama_C_show_each: {0; 4}
+[value] tests/value/const.i:33: Frama_C_show_each: {{ &s + {4} }}
 [value] Recording results for const_destination
 [value] Done for function const_destination
 [value] Recording results for modify_s
 [value] Done for function modify_s
 [value] computing for function modify_t <- main.
-    Called from tests/value/const.i:108.
-tests/value/const.i:58:[value] Frama_C_show_each: {6}
+  Called from tests/value/const.i:108.
+[value] tests/value/const.i:58: Frama_C_show_each: {6}
 [value] computing for function pointer_to_const <- modify_t <- main.
-    Called from tests/value/const.i:60.
-tests/value/const.i:25:[value] Frama_C_show_each: {4}
-tests/value/const.i:27:[value] Frama_C_show_each_dead:
+  Called from tests/value/const.i:60.
+[value] tests/value/const.i:25: Frama_C_show_each: {4}
+[value] tests/value/const.i:27: Frama_C_show_each_dead:
 [value] Recording results for pointer_to_const
 [value] Done for function pointer_to_const
 [value] computing for function const_destination <- modify_t <- main.
-    Called from tests/value/const.i:61.
-tests/value/const.i:31:[value] Frama_C_show_each: {3}
-tests/value/const.i:33:[value] Frama_C_show_each: {{ &t + {8} }}
+  Called from tests/value/const.i:61.
+[value] tests/value/const.i:31: Frama_C_show_each: {3}
+[value] tests/value/const.i:33: Frama_C_show_each: {{ &t + {8} }}
 [value] Recording results for const_destination
 [value] Done for function const_destination
 [value] Recording results for modify_t
 [value] Done for function modify_t
 [value] computing for function constrain_G <- main.
-    Called from tests/value/const.i:109.
-tests/value/const.i:71:[value] warning: assertion got status unknown.
-tests/value/const.i:74:[value] Frama_C_show_each: {1; 4}
+  Called from tests/value/const.i:109.
+[value:alarm] tests/value/const.i:71: Warning: assertion got status unknown.
+[value] tests/value/const.i:74: Frama_C_show_each: {1; 4}
 [value] Recording results for constrain_G
 [value] Done for function constrain_G
 [value] computing for function pointer_to_const_logic <- main.
-    Called from tests/value/const.i:111.
+  Called from tests/value/const.i:111.
 [value] Recording results for pointer_to_const_logic
 [value] Done for function pointer_to_const_logic
 [value] computing for function local_const <- main.
-    Called from tests/value/const.i:112.
+  Called from tests/value/const.i:112.
 [value] computing for function f <- local_const <- main.
-    Called from tests/value/const.i:88.
+  Called from tests/value/const.i:88.
 [value] Recording results for f
 [value] Done for function f
 [value] Recording results for local_const
 [value] Done for function local_const
 [value] computing for function ret_const <- main.
-    Called from tests/value/const.i:113.
+  Called from tests/value/const.i:113.
 [value] computing for function aux_ret_const <- ret_const <- main.
-    Called from tests/value/const.i:98.
+  Called from tests/value/const.i:98.
 [value] Recording results for aux_ret_const
 [value] Done for function aux_ret_const
 [value] Recording results for ret_const
@@ -219,7 +219,7 @@ tests/value/const.i:74:[value] Frama_C_show_each: {1; 4}
 [from] Computing for function main
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
-    These dependencies hold at termination for the executions that terminate:
+  These dependencies hold at termination for the executions that terminate:
 [from] Function aux_ret_const:
   \result FROM \nothing
 [from] Function const_destination:
@@ -275,61 +275,61 @@ tests/value/const.i:74:[value] Frama_C_show_each: {1; 4}
    [5] FROM v; t[5] (and SELF)
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function aux_ret_const:
-      __retres
+    __retres
 [inout] Inputs for function aux_ret_const:
-      \nothing
+    \nothing
 [inout] Out (internal) for function const_destination:
-      I; J; s.i2; t[2]
+    I; J; s.i2; t[2]
 [inout] Inputs for function const_destination:
-      I; J; s.i2; t[2]
+    I; J; s.i2; t[2]
 [inout] Out (internal) for function const_formal:
-      i
+    i
 [inout] Inputs for function const_formal:
-      v
+    v
 [inout] Out (internal) for function constrain_G:
-      r
+    r
 [inout] Inputs for function constrain_G:
-      G
+    G
 [inout] Out (internal) for function f:
-      __retres
+    __retres
 [inout] Inputs for function f:
-      \nothing
+    \nothing
 [inout] Out (internal) for function local_const:
-      x; y
+    x; y
 [inout] Inputs for function local_const:
-      \nothing
+    \nothing
 [inout] Out (internal) for function pointer_to_const:
-      I; J; s.i2; t[3]
+    I; J; s.i2; t[3]
 [inout] Inputs for function pointer_to_const:
-      I; J; s.i2; t[3]
+    I; J; s.i2; t[3]
 [inout] Out (internal) for function modify_I:
-      I
+    I
 [inout] Inputs for function modify_I:
-      I; J; v; s.i2; t[2..3]
+    I; J; v; s.i2; t[2..3]
 [inout] Out (internal) for function modify_J:
-      J
+    J
 [inout] Inputs for function modify_J:
-      I; J; v; s.i2; t[2..3]
+    I; J; v; s.i2; t[2..3]
 [inout] Out (internal) for function modify_s:
-      s
+    s
 [inout] Inputs for function modify_s:
-      I; J; v; s; t[2..3]
+    I; J; v; s; t[2..3]
 [inout] Out (internal) for function modify_t:
-      t{[2..3]; [5]}
+    t{[2..3]; [5]}
 [inout] Inputs for function modify_t:
-      I; J; v; s.i2; t{[2..3]; [5]}
+    I; J; v; s.i2; t{[2..3]; [5]}
 [inout] Out (internal) for function pointer_to_const_logic:
-      J
+    J
 [inout] Inputs for function pointer_to_const_logic:
-      v
+    v
 [inout] Out (internal) for function ret_const:
-      tmp
+    tmp
 [inout] Inputs for function ret_const:
-      \nothing
+    \nothing
 [inout] Out (internal) for function main:
-      I; J; s; t{[2..3]; [5]}
+    I; J; s; t{[2..3]; [5]}
 [inout] Inputs for function main:
-      G; I; J; v; s; t{[2..3]; [5]}
+    G; I; J; v; s; t{[2..3]; [5]}
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
 [value] Initial state computed
@@ -349,123 +349,136 @@ tests/value/const.i:74:[value] Frama_C_show_each: {1; 4}
    [5] ∈ {6}
    [6..9] ∈ {0}
 [value] computing for function const_formal <- main.
-    Called from tests/value/const.i:102.
-tests/value/const.i:20:[value] Frama_C_show_each: [-2147483648..2147483647]
-tests/value/const.i:21:[value] warning: out of bounds write. assert \valid(&i);
-tests/value/const.i:21:[kernel] warning: all target addresses were invalid. This path is assumed to be dead.
+  Called from tests/value/const.i:102.
+[value] tests/value/const.i:20: Frama_C_show_each: [-2147483648..2147483647]
+[value:alarm] tests/value/const.i:21: Warning: 
+  out of bounds write. assert \valid(&i);
+[kernel] tests/value/const.i:21: Warning: 
+  all target addresses were invalid. This path is assumed to be dead.
 [value] Recording results for const_formal
 [value] Done for function const_formal
 [value] computing for function const_formal <- main.
-    Called from tests/value/const.i:103.
-tests/value/const.i:20:[value] Frama_C_show_each: {42}
+  Called from tests/value/const.i:103.
+[value] tests/value/const.i:20: Frama_C_show_each: {42}
 [value] Recording results for const_formal
 [value] Done for function const_formal
 [value] computing for function modify_I <- main.
-    Called from tests/value/const.i:105.
-tests/value/const.i:37:[value] Frama_C_show_each: {2}
-tests/value/const.i:38:[value] warning: out of bounds write. assert \valid(&I);
-tests/value/const.i:38:[kernel] warning: all target addresses were invalid. This path is assumed to be dead.
+  Called from tests/value/const.i:105.
+[value] tests/value/const.i:37: Frama_C_show_each: {2}
+[value:alarm] tests/value/const.i:38: Warning: 
+  out of bounds write. assert \valid(&I);
+[kernel] tests/value/const.i:38: Warning: 
+  all target addresses were invalid. This path is assumed to be dead.
 [value] computing for function pointer_to_const <- modify_I <- main.
-    Called from tests/value/const.i:39.
-tests/value/const.i:25:[value] Frama_C_show_each: {2}
-tests/value/const.i:26:[value] warning: out of bounds write. assert \valid(p);
-tests/value/const.i:26:[kernel] warning: all target addresses were invalid. This path is assumed to be dead.
+  Called from tests/value/const.i:39.
+[value] tests/value/const.i:25: Frama_C_show_each: {2}
+[value:alarm] tests/value/const.i:26: Warning: 
+  out of bounds write. assert \valid(p);
+[kernel] tests/value/const.i:26: Warning: 
+  all target addresses were invalid. This path is assumed to be dead.
 [value] Recording results for pointer_to_const
 [value] Done for function pointer_to_const
 [value] computing for function const_destination <- modify_I <- main.
-    Called from tests/value/const.i:40.
-tests/value/const.i:31:[value] Frama_C_show_each: {2}
-tests/value/const.i:32:[value] warning: out of bounds write. assert \valid(p);
-tests/value/const.i:32:[kernel] warning: all target addresses were invalid. This path is assumed to be dead.
+  Called from tests/value/const.i:40.
+[value] tests/value/const.i:31: Frama_C_show_each: {2}
+[value:alarm] tests/value/const.i:32: Warning: 
+  out of bounds write. assert \valid(p);
+[kernel] tests/value/const.i:32: Warning: 
+  all target addresses were invalid. This path is assumed to be dead.
 [value] Recording results for const_destination
 [value] Done for function const_destination
 [value] Recording results for modify_I
 [value] Done for function modify_I
 [value] computing for function modify_J <- main.
-    Called from tests/value/const.i:106.
-tests/value/const.i:44:[value] Frama_C_show_each: {8}
+  Called from tests/value/const.i:106.
+[value] tests/value/const.i:44: Frama_C_show_each: {8}
 [value] computing for function pointer_to_const <- modify_J <- main.
-    Called from tests/value/const.i:46.
-tests/value/const.i:25:[value] Frama_C_show_each: {8; 9}
+  Called from tests/value/const.i:46.
+[value] tests/value/const.i:25: Frama_C_show_each: {8; 9}
+[value] tests/value/const.i:27: Frama_C_show_each_dead:
 [value] Recording results for pointer_to_const
 [value] Done for function pointer_to_const
 [value] computing for function const_destination <- modify_J <- main.
-    Called from tests/value/const.i:47.
-tests/value/const.i:31:[value] Frama_C_show_each: {8; 9}
-tests/value/const.i:33:[value] Frama_C_show_each: {{ &J }}
+  Called from tests/value/const.i:47.
+[value] tests/value/const.i:31: Frama_C_show_each: {0; 8; 9}
+[value] tests/value/const.i:33: Frama_C_show_each: {{ &J }}
 [value] Recording results for const_destination
 [value] Done for function const_destination
 [value] Recording results for modify_J
 [value] Done for function modify_J
 [value] computing for function modify_s <- main.
-    Called from tests/value/const.i:107.
-tests/value/const.i:51:[value] Frama_C_show_each: {3}
-tests/value/const.i:52:[value] warning: out of bounds write. assert \valid(&s.i1);
-tests/value/const.i:52:[kernel] warning: all target addresses were invalid. This path is assumed to be dead.
+  Called from tests/value/const.i:107.
+[value] tests/value/const.i:51: Frama_C_show_each: {3}
+[value:alarm] tests/value/const.i:52: Warning: 
+  out of bounds write. assert \valid(&s.i1);
+[kernel] tests/value/const.i:52: Warning: 
+  all target addresses were invalid. This path is assumed to be dead.
 [value] computing for function pointer_to_const <- modify_s <- main.
-    Called from tests/value/const.i:53.
-tests/value/const.i:25:[value] Frama_C_show_each: {4}
+  Called from tests/value/const.i:53.
+[value] tests/value/const.i:25: Frama_C_show_each: {4}
 [value] Recording results for pointer_to_const
 [value] Done for function pointer_to_const
 [value] computing for function const_destination <- modify_s <- main.
-    Called from tests/value/const.i:54.
-tests/value/const.i:31:[value] Frama_C_show_each: {4}
+  Called from tests/value/const.i:54.
+[value] tests/value/const.i:31: Frama_C_show_each: {4}
 [value] Recording results for const_destination
 [value] Done for function const_destination
 [value] Recording results for modify_s
 [value] Done for function modify_s
 [value] computing for function modify_t <- main.
-    Called from tests/value/const.i:108.
-tests/value/const.i:58:[value] Frama_C_show_each: {6}
-tests/value/const.i:59:[value] warning: out of bounds write. assert \valid(&t[5]);
-tests/value/const.i:59:[kernel] warning: all target addresses were invalid. This path is assumed to be dead.
+  Called from tests/value/const.i:108.
+[value] tests/value/const.i:58: Frama_C_show_each: {6}
+[value:alarm] tests/value/const.i:59: Warning: 
+  out of bounds write. assert \valid(&t[5]);
+[kernel] tests/value/const.i:59: Warning: 
+  all target addresses were invalid. This path is assumed to be dead.
 [value] computing for function pointer_to_const <- modify_t <- main.
-    Called from tests/value/const.i:60.
-tests/value/const.i:25:[value] Frama_C_show_each: {4}
+  Called from tests/value/const.i:60.
+[value] tests/value/const.i:25: Frama_C_show_each: {4}
 [value] Recording results for pointer_to_const
 [value] Done for function pointer_to_const
 [value] computing for function const_destination <- modify_t <- main.
-    Called from tests/value/const.i:61.
-tests/value/const.i:31:[value] Frama_C_show_each: {3}
+  Called from tests/value/const.i:61.
+[value] tests/value/const.i:31: Frama_C_show_each: {3}
 [value] Recording results for const_destination
 [value] Done for function const_destination
 [value] Recording results for modify_t
 [value] Done for function modify_t
 [value] computing for function constrain_G <- main.
-    Called from tests/value/const.i:109.
-tests/value/const.i:74:[value] Frama_C_show_each: {1; 4}
+  Called from tests/value/const.i:109.
+[value] tests/value/const.i:74: Frama_C_show_each: {1; 4}
 [value] Recording results for constrain_G
 [value] Done for function constrain_G
 [value] computing for function pointer_to_const_logic <- main.
-    Called from tests/value/const.i:111.
-tests/value/const.i:80:[value] warning: out of bounds write. assert \valid(p);
-tests/value/const.i:80:[kernel] warning: all target addresses were invalid. This path is assumed to be dead.
+  Called from tests/value/const.i:111.
 [value] Recording results for pointer_to_const_logic
 [value] Done for function pointer_to_const_logic
 [value] computing for function local_const <- main.
-    Called from tests/value/const.i:112.
+  Called from tests/value/const.i:112.
 [value] computing for function f <- local_const <- main.
-    Called from tests/value/const.i:88.
+  Called from tests/value/const.i:88.
 [value] Recording results for f
 [value] Done for function f
 [value] Recording results for local_const
 [value] Done for function local_const
 [value] computing for function ret_const <- main.
-    Called from tests/value/const.i:113.
+  Called from tests/value/const.i:113.
 [value] computing for function aux_ret_const <- ret_const <- main.
-    Called from tests/value/const.i:98.
+  Called from tests/value/const.i:98.
 [value] Recording results for aux_ret_const
 [value] Done for function aux_ret_const
 [value] Recording results for ret_const
 [value] Done for function ret_const
 [value] Recording results for main
 [value] done for function main
-tests/value/const.i:21:[value] assertion 'Value,mem_access' got final status invalid.
-tests/value/const.i:26:[value] assertion 'Value,mem_access' got final status invalid.
-tests/value/const.i:38:[value] assertion 'Value,mem_access' got final status invalid.
-tests/value/const.i:52:[value] assertion 'Value,mem_access' got final status invalid.
-tests/value/const.i:59:[value] assertion 'Value,mem_access' got final status invalid.
-tests/value/const.i:80:[value] assertion 'Value,mem_access' got final status invalid.
+[value] tests/value/const.i:21: 
+  assertion 'Value,mem_access' got final status invalid.
+[value] tests/value/const.i:38: 
+  assertion 'Value,mem_access' got final status invalid.
+[value] tests/value/const.i:52: 
+  assertion 'Value,mem_access' got final status invalid.
+[value] tests/value/const.i:59: 
+  assertion 'Value,mem_access' got final status invalid.
 [value] ====== VALUES COMPUTED ======
 [value:final-states] Values at end of function aux_ret_const:
   __retres ∈ {1}
@@ -481,7 +494,7 @@ tests/value/const.i:80:[value] assertion 'Value,mem_access' got final status inv
   x ∈ {5}
   y ∈ {7}
 [value:final-states] Values at end of function pointer_to_const:
-  NON TERMINATING FUNCTION
+  J ∈ {0}
 [value:final-states] Values at end of function modify_I:
   
 [value:final-states] Values at end of function modify_J:
@@ -491,11 +504,11 @@ tests/value/const.i:80:[value] assertion 'Value,mem_access' got final status inv
 [value:final-states] Values at end of function modify_t:
   
 [value:final-states] Values at end of function pointer_to_const_logic:
-  
+  J ∈ {0; 8; 9; 12}
 [value:final-states] Values at end of function ret_const:
   
 [value:final-states] Values at end of function main:
-  J ∈ {0; 8; 9}
+  J ∈ {0; 8; 9; 12}
 [from] Computing for function aux_ret_const
 [from] Done for function aux_ret_const
 [from] Computing for function const_destination
@@ -509,7 +522,6 @@ tests/value/const.i:80:[value] assertion 'Value,mem_access' got final status inv
 [from] Computing for function local_const
 [from] Done for function local_const
 [from] Computing for function pointer_to_const
-[from] Non-terminating function pointer_to_const (no dependencies)
 [from] Done for function pointer_to_const
 [from] Computing for function modify_I
 [from] Done for function modify_I
@@ -526,7 +538,7 @@ tests/value/const.i:80:[value] assertion 'Value,mem_access' got final status inv
 [from] Computing for function main
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
-    These dependencies hold at termination for the executions that terminate:
+  These dependencies hold at termination for the executions that terminate:
 [from] Function aux_ret_const:
   \result FROM \nothing
 [from] Function const_destination:
@@ -540,7 +552,7 @@ tests/value/const.i:80:[value] assertion 'Value,mem_access' got final status inv
 [from] Function local_const:
   NO EFFECTS
 [from] Function pointer_to_const:
-  NON TERMINATING - NO EFFECTS
+  J FROM p
 [from] Function modify_I:
   J FROM v (and SELF)
 [from] Function modify_J:
@@ -557,58 +569,58 @@ tests/value/const.i:80:[value] assertion 'Value,mem_access' got final status inv
   J FROM J; v (and SELF)
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function aux_ret_const:
-      __retres
+    __retres
 [inout] Inputs for function aux_ret_const:
-      \nothing
+    \nothing
 [inout] Out (internal) for function const_destination:
-      J
+    J
 [inout] Inputs for function const_destination:
-      I; J; s.i2; t[2]
+    I; J; s.i2; t[2]
 [inout] Out (internal) for function const_formal:
-      \nothing
+    \nothing
 [inout] Inputs for function const_formal:
-      v
+    v
 [inout] Out (internal) for function constrain_G:
-      r
+    r
 [inout] Inputs for function constrain_G:
-      G
+    G
 [inout] Out (internal) for function f:
-      __retres
+    __retres
 [inout] Inputs for function f:
-      \nothing
+    \nothing
 [inout] Out (internal) for function local_const:
-      x; y
+    x; y
 [inout] Inputs for function local_const:
-      \nothing
+    \nothing
 [inout] Out (internal) for function pointer_to_const:
-      \nothing
+    J
 [inout] Inputs for function pointer_to_const:
-      I; J; s.i2; t[3]
+    I; J; s.i2; t[3]
 [inout] Out (internal) for function modify_I:
-      \nothing
+    \nothing
 [inout] Inputs for function modify_I:
-      I; J; v; s.i2; t[2..3]
+    I; J; v; s.i2; t[2..3]
 [inout] Out (internal) for function modify_J:
-      J
+    J
 [inout] Inputs for function modify_J:
-      I; J; v; s.i2; t[2..3]
+    I; J; v; s.i2; t[2..3]
 [inout] Out (internal) for function modify_s:
-      \nothing
+    \nothing
 [inout] Inputs for function modify_s:
-      I; J; v; s; t[2..3]
+    I; J; v; s; t[2..3]
 [inout] Out (internal) for function modify_t:
-      \nothing
+    \nothing
 [inout] Inputs for function modify_t:
-      I; J; v; s.i2; t{[2..3]; [5]}
+    I; J; v; s.i2; t{[2..3]; [5]}
 [inout] Out (internal) for function pointer_to_const_logic:
-      \nothing
+    J
 [inout] Inputs for function pointer_to_const_logic:
-      v
+    v
 [inout] Out (internal) for function ret_const:
-      tmp
+    tmp
 [inout] Inputs for function ret_const:
-      \nothing
+    \nothing
 [inout] Out (internal) for function main:
-      J
+    J
 [inout] Inputs for function main:
-      G; I; J; v; s; t{[2..3]; [5]}
+    G; I; J; v; s; t{[2..3]; [5]}

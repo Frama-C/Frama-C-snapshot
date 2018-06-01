@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2017                                               *)
+(*  Copyright (C) 2007-2018                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -29,10 +29,19 @@ let msg_emitter = Lattice_messages.register "Abstract_interp"
 
 open Lattice_type
 
+type truth = True | False | Unknown
+
+let inv_truth = function
+  | Unknown -> Unknown
+  | True -> False
+  | False -> True
+
+type alarm = SureAlarm | Alarm | NoAlarm
+
 module Comp = struct
   type t = Lt | Gt | Le | Ge | Eq | Ne
 
-  type result = True | False | Unknown
+  type result = truth = True | False | Unknown
   
   let inv = function
     | Gt -> Le
@@ -58,10 +67,6 @@ module Comp = struct
     | Eq -> Format.pp_print_string fmt "=="
     | Ne -> Format.pp_print_string fmt "!="
 
-  let inv_result = function
-    | Unknown -> Unknown
-    | True -> False
-    | False -> True
 
 end
 

@@ -2,7 +2,7 @@
 /*                                                                        */
 /*  This file is part of Frama-C.                                         */
 /*                                                                        */
-/*  Copyright (C) 2007-2017                                               */
+/*  Copyright (C) 2007-2018                                               */
 /*    CEA (Commissariat à l'énergie atomique et aux énergies              */
 /*         alternatives)                                                  */
 /*                                                                        */
@@ -26,7 +26,10 @@
 #include "features.h"
 __PUSH_FC_STDLIB
 __BEGIN_DECLS
+#ifndef __useconds_t_defined
 typedef unsigned int useconds_t;
+#define __useconds_t_defined
+#endif
 __END_DECLS
 __POP_FC_STDLIB
 #endif

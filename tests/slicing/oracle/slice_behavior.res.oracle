@@ -5,9 +5,10 @@
 [value:initial-state] Values of globals at initialization
   
 [value] computing for function f <- main.
-    Called from tests/slicing/slice_behavior.i:12.
-tests/slicing/slice_behavior.i:4:[value] function f: precondition got status valid.
-tests/slicing/slice_behavior.i:7:[value] assertion got status valid.
+  Called from tests/slicing/slice_behavior.i:12.
+[value] tests/slicing/slice_behavior.i:12: 
+  function f: precondition got status valid.
+[value] tests/slicing/slice_behavior.i:7: assertion got status valid.
 [value] Recording results for f
 [value] Done for function f
 [value] Recording results for main

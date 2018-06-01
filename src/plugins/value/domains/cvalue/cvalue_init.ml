@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2017                                               *)
+(*  Copyright (C) 2007-2018                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -119,11 +119,9 @@ let initialize_var_using_type varinfo state =
       bind_entire_loc Cvalue.V.top_int
 
     | TFloat (fkind, _) -> begin
-        match Value_util.float_kind fkind with
-        | Fval.Float32 ->
-          bind_entire_loc Cvalue.V.top_single_precision_float
-        | Fval.Float64 ->
-          bind_entire_loc Cvalue.V.top_float
+        (** TODO: depend on the option for finitness *)
+        bind_entire_loc
+          (Cvalue.V.inject_float (Fval.top_finite (Fval.kind fkind)))
       end
 
     | TFun _ -> state

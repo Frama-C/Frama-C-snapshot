@@ -6,9 +6,9 @@
   NULL[rbits 1048576 to 2097151] ∈ [--..--]
   AutoTest[0..999] ∈ {0}
 [value] computing for function TstRomUcmm <- main.
-    Called from tests/value/abs_addr.i:46.
-tests/value/abs_addr.i:18:[value] entering loop for the first time
-tests/value/abs_addr.i:32:[value] entering loop for the first time
+  Called from tests/value/abs_addr.i:46.
+[value] tests/value/abs_addr.i:18: entering loop for the first time
+[value] tests/value/abs_addr.i:32: entering loop for the first time
 [value] Recording results for TstRomUcmm
 [value] Done for function TstRomUcmm
 [value] Recording results for main
@@ -31,7 +31,7 @@ tests/value/abs_addr.i:32:[value] entering loop for the first time
 [from] Computing for function main
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
-    These dependencies hold at termination for the executions that terminate:
+  These dependencies hold at termination for the executions that terminate:
 [from] Function TstRomUcmm:
   AutoTest[73] FROM NULL[131072..262143] (and SELF)
   \result FROM NULL[131072..262143]; AutoTest[73]
@@ -39,10 +39,10 @@ tests/value/abs_addr.i:32:[value] entering loop for the first time
   AutoTest[73] FROM NULL[131072..262143] (and SELF)
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function TstRomUcmm:
-      AutoTest[73]; rom; chkrom; ptrom; __retres
+    AutoTest[73]; rom; chkrom; ptrom; __retres
 [inout] Inputs for function TstRomUcmm:
-      NULL[131072..262143]; AutoTest[73]
+    NULL[131072..262143]; AutoTest[73]
 [inout] Out (internal) for function main:
-      AutoTest[73]
+    AutoTest[73]
 [inout] Inputs for function main:
-      NULL[131072..262143]; AutoTest[73]
+    NULL[131072..262143]; AutoTest[73]

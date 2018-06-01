@@ -4,17 +4,17 @@
 [value] Initial state computed
 [value:initial-state] Values of globals at initialization
   
-tests/slicing/horwitz.i:26:[value] entering loop for the first time
+[value] tests/slicing/horwitz.i:26: entering loop for the first time
 [value] computing for function A <- main.
-    Called from tests/slicing/horwitz.i:27.
+  Called from tests/slicing/horwitz.i:27.
 [value] computing for function add <- A <- main.
-    Called from tests/slicing/horwitz.i:18.
+  Called from tests/slicing/horwitz.i:18.
 [value] Recording results for add
 [value] Done for function add
 [value] computing for function incr <- A <- main.
-    Called from tests/slicing/horwitz.i:19.
+  Called from tests/slicing/horwitz.i:19.
 [value] computing for function add <- incr <- A <- main.
-    Called from tests/slicing/horwitz.i:15.
+  Called from tests/slicing/horwitz.i:15.
 [value] Recording results for add
 [value] Done for function add
 [value] Recording results for incr
@@ -22,15 +22,15 @@ tests/slicing/horwitz.i:26:[value] entering loop for the first time
 [value] Recording results for A
 [value] Done for function A
 [value] computing for function A <- main.
-    Called from tests/slicing/horwitz.i:27.
+  Called from tests/slicing/horwitz.i:27.
 [value] computing for function add <- A <- main.
-    Called from tests/slicing/horwitz.i:18.
+  Called from tests/slicing/horwitz.i:18.
 [value] Recording results for add
 [value] Done for function add
 [value] computing for function incr <- A <- main.
-    Called from tests/slicing/horwitz.i:19.
+  Called from tests/slicing/horwitz.i:19.
 [value] computing for function add <- incr <- A <- main.
-    Called from tests/slicing/horwitz.i:15.
+  Called from tests/slicing/horwitz.i:15.
 [value] Recording results for add
 [value] Done for function add
 [value] Recording results for incr
@@ -38,15 +38,15 @@ tests/slicing/horwitz.i:26:[value] entering loop for the first time
 [value] Recording results for A
 [value] Done for function A
 [value] computing for function A <- main.
-    Called from tests/slicing/horwitz.i:27.
+  Called from tests/slicing/horwitz.i:27.
 [value] computing for function add <- A <- main.
-    Called from tests/slicing/horwitz.i:18.
+  Called from tests/slicing/horwitz.i:18.
 [value] Recording results for add
 [value] Done for function add
 [value] computing for function incr <- A <- main.
-    Called from tests/slicing/horwitz.i:19.
+  Called from tests/slicing/horwitz.i:19.
 [value] computing for function add <- incr <- A <- main.
-    Called from tests/slicing/horwitz.i:15.
+  Called from tests/slicing/horwitz.i:15.
 [value] Recording results for add
 [value] Done for function add
 [value] Recording results for incr
@@ -54,15 +54,15 @@ tests/slicing/horwitz.i:26:[value] entering loop for the first time
 [value] Recording results for A
 [value] Done for function A
 [value] computing for function A <- main.
-    Called from tests/slicing/horwitz.i:27.
+  Called from tests/slicing/horwitz.i:27.
 [value] computing for function add <- A <- main.
-    Called from tests/slicing/horwitz.i:18.
+  Called from tests/slicing/horwitz.i:18.
 [value] Recording results for add
 [value] Done for function add
 [value] computing for function incr <- A <- main.
-    Called from tests/slicing/horwitz.i:19.
+  Called from tests/slicing/horwitz.i:19.
 [value] computing for function add <- incr <- A <- main.
-    Called from tests/slicing/horwitz.i:15.
+  Called from tests/slicing/horwitz.i:15.
 [value] Recording results for add
 [value] Done for function add
 [value] Recording results for incr
@@ -70,15 +70,15 @@ tests/slicing/horwitz.i:26:[value] entering loop for the first time
 [value] Recording results for A
 [value] Done for function A
 [value] computing for function A <- main.
-    Called from tests/slicing/horwitz.i:27.
+  Called from tests/slicing/horwitz.i:27.
 [value] computing for function add <- A <- main.
-    Called from tests/slicing/horwitz.i:18.
+  Called from tests/slicing/horwitz.i:18.
 [value] Recording results for add
 [value] Done for function add
 [value] computing for function incr <- A <- main.
-    Called from tests/slicing/horwitz.i:19.
+  Called from tests/slicing/horwitz.i:19.
 [value] computing for function add <- incr <- A <- main.
-    Called from tests/slicing/horwitz.i:15.
+  Called from tests/slicing/horwitz.i:15.
 [value] Recording results for add
 [value] Done for function add
 [value] Recording results for incr
@@ -86,16 +86,17 @@ tests/slicing/horwitz.i:26:[value] entering loop for the first time
 [value] Recording results for A
 [value] Done for function A
 [value] computing for function A <- main.
-    Called from tests/slicing/horwitz.i:27.
+  Called from tests/slicing/horwitz.i:27.
 [value] computing for function add <- A <- main.
-    Called from tests/slicing/horwitz.i:18.
-tests/slicing/horwitz.i:12:[value] warning: signed overflow. assert a + b ≤ 2147483647;
+  Called from tests/slicing/horwitz.i:18.
+[value:alarm] tests/slicing/horwitz.i:12: Warning: 
+  signed overflow. assert a + b ≤ 2147483647;
 [value] Recording results for add
 [value] Done for function add
 [value] computing for function incr <- A <- main.
-    Called from tests/slicing/horwitz.i:19.
+  Called from tests/slicing/horwitz.i:19.
 [value] computing for function add <- incr <- A <- main.
-    Called from tests/slicing/horwitz.i:15.
+  Called from tests/slicing/horwitz.i:15.
 [value] Recording results for add
 [value] Done for function add
 [value] Recording results for incr
@@ -113,7 +114,7 @@ tests/slicing/horwitz.i:12:[value] warning: signed overflow. assert a + b ≤ 21
 [from] Computing for function main
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
-    These dependencies hold at termination for the executions that terminate:
+  These dependencies hold at termination for the executions that terminate:
 [from] Function add:
   \result FROM a; b
 [from] Function incr:

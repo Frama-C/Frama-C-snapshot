@@ -7,12 +7,17 @@
   y ∈ {0}
   c ∈ {0}
   d ∈ {0}
-tests/journal/control2.c:12:[value] entering loop for the first time
-tests/journal/control2.c:15:[value] warning: signed overflow. assert x + 1 ≤ 2147483647;
+[value] tests/journal/control2.c:12: entering loop for the first time
+[value:alarm] tests/journal/control2.c:15: Warning: 
+  signed overflow. assert x + 1 ≤ 2147483647;
 [value] done for function f
+[value] ====== VALUES COMPUTED ======
+[value:final-states] Values at end of function f:
+  x ∈ [0..2147483647]
+  i ∈ {4}
 [from] Computing for function f
 [from] Done for function f
-[kernel] warning: ignoring source files specified on the command line while loading a global initial context.
+[kernel] Warning: ignoring source files specified on the command line while loading a global initial context.
 [value] Analyzing an incomplete application starting at f
 [value] Computing initial state
 [value] Initial state computed
@@ -21,9 +26,12 @@ tests/journal/control2.c:15:[value] warning: signed overflow. assert x + 1 ≤ 2
   y ∈ [--..--]
   c ∈ [--..--]
   d ∈ [--..--]
-tests/journal/control2.c:13:[value] warning: signed overflow. assert y + 1 ≤ 2147483647;
-tests/journal/control2.c:13:[value] warning: signed overflow. assert x + 1 ≤ 2147483647;
-tests/journal/control2.c:15:[value] warning: signed overflow. assert x + 1 ≤ 2147483647;
+[value:alarm] tests/journal/control2.c:13: Warning: 
+  signed overflow. assert y + 1 ≤ 2147483647;
+[value:alarm] tests/journal/control2.c:13: Warning: 
+  signed overflow. assert x + 1 ≤ 2147483647;
+[value:alarm] tests/journal/control2.c:15: Warning: 
+  signed overflow. assert x + 1 ≤ 2147483647;
 [value] done for function f
 [value] ====== VALUES COMPUTED ======
 [value:final-states] Values at end of function f:
@@ -33,11 +41,11 @@ tests/journal/control2.c:15:[value] warning: signed overflow. assert x + 1 ≤ 2
 [from] Computing for function f
 [from] Done for function f
 [from] ====== DEPENDENCIES COMPUTED ======
-    These dependencies hold at termination for the executions that terminate:
+  These dependencies hold at termination for the executions that terminate:
 [from] Function f:
   x FROM x; c; d (and SELF)
   y FROM y; c; d (and SELF)
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function f:
-      x; y; i
+    x; y; i
 [kernel] writing journal in file `tests/journal/result/control_journal_next2.ml'.

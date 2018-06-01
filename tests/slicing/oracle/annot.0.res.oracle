@@ -7,11 +7,15 @@
   x ∈ [--..--]
   z ∈ [--..--]
   t[0..9] ∈ {0}
-tests/slicing/annot.i:11:[value] warning: signed overflow. assert -2147483648 ≤ x + x;
-tests/slicing/annot.i:11:[value] warning: signed overflow. assert x + x ≤ 2147483647;
-tests/slicing/annot.i:11:[value] warning: signed overflow. assert -2147483648 ≤ (int)(x + x) - x;
-tests/slicing/annot.i:11:[value] warning: signed overflow. assert (int)(x + x) - x ≤ 2147483647;
-tests/slicing/annot.i:15:[value] warning: assertion got status unknown.
+[value:alarm] tests/slicing/annot.i:11: Warning: 
+  signed overflow. assert -2147483648 ≤ x + x;
+[value:alarm] tests/slicing/annot.i:11: Warning: 
+  signed overflow. assert x + x ≤ 2147483647;
+[value:alarm] tests/slicing/annot.i:11: Warning: 
+  signed overflow. assert -2147483648 ≤ (int)(x + x) - x;
+[value:alarm] tests/slicing/annot.i:11: Warning: 
+  signed overflow. assert (int)(x + x) - x ≤ 2147483647;
+[value:alarm] tests/slicing/annot.i:15: Warning: assertion got status unknown.
 [value] Recording results for f1
 [value] done for function f1
 [slicing] initializing slicing ...

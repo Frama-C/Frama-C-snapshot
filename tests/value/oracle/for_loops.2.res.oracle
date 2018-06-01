@@ -6,33 +6,38 @@
   Frama_C_entropy_source ∈ [--..--]
   x ∈ {0}
 [value] computing for function Frama_C_interval <- main_3.
-    Called from tests/value/for_loops.c:37.
+  Called from tests/value/for_loops.c:37.
 [value] using specification for function Frama_C_interval
-share/libc/__fc_builtin.h:52:[value] function Frama_C_interval: precondition got status valid.
+[value] tests/value/for_loops.c:37: 
+  function Frama_C_interval: precondition 'order' got status valid.
 [value] Done for function Frama_C_interval
-tests/value/for_loops.c:39:[value] Frama_C_dump_each:
-    # Cvalue domain:
-    Frama_C_entropy_source ∈ [--..--]
-    x ∈ {0}
-    j ∈ UNINITIALIZED
-    T[0..999] ∈ UNINITIALIZED
-    nSelectors ∈ [0..1000]
-    w ∈ {0}
-    ==END OF DUMP==
-tests/value/for_loops.c:40:[value] entering loop for the first time
-tests/value/for_loops.c:41:[value] Frama_C_dump_each:
-    # Cvalue domain:
-    Frama_C_entropy_source ∈ [--..--]
-    x ∈ {0}
-    j ∈ [0..1000]
-    T[0..999] ∈ {1} or UNINITIALIZED
-    nSelectors ∈ [0..1000]
-    w ∈ {0}
-    ==END OF DUMP==
-tests/value/for_loops.c:42:[value] entering loop for the first time
-tests/value/for_loops.c:42:[value] warning: accessing uninitialized left-value. assert \initialized(&T[j]);
-tests/value/for_loops.c:42:[value] warning: signed overflow. assert w + T[j] ≤ 2147483647;
-tests/value/for_loops.c:43:[value] Frama_C_show_each: [0..2147483647]
+[value] tests/value/for_loops.c:39: 
+  Frama_C_dump_each:
+  # Cvalue domain:
+  Frama_C_entropy_source ∈ [--..--]
+  x ∈ {0}
+  j ∈ UNINITIALIZED
+  T[0..999] ∈ UNINITIALIZED
+  nSelectors ∈ [0..1000]
+  w ∈ {0}
+  ==END OF DUMP==
+[value] tests/value/for_loops.c:40: entering loop for the first time
+[value] tests/value/for_loops.c:41: 
+  Frama_C_dump_each:
+  # Cvalue domain:
+  Frama_C_entropy_source ∈ [--..--]
+  x ∈ {0}
+  j ∈ [0..1000]
+  T[0..999] ∈ {1} or UNINITIALIZED
+  nSelectors ∈ [0..1000]
+  w ∈ {0}
+  ==END OF DUMP==
+[value] tests/value/for_loops.c:42: entering loop for the first time
+[value:alarm] tests/value/for_loops.c:42: Warning: 
+  accessing uninitialized left-value. assert \initialized(&T[j]);
+[value:alarm] tests/value/for_loops.c:42: Warning: 
+  signed overflow. assert w + T[j] ≤ 2147483647;
+[value] tests/value/for_loops.c:43: Frama_C_show_each: [0..2147483647]
 [value] Recording results for main_3
 [value] done for function main_3
 [value] ====== VALUES COMPUTED ======
@@ -47,7 +52,7 @@ tests/value/for_loops.c:43:[value] Frama_C_show_each: [0..2147483647]
 [from] Done for function Frama_C_interval
 [from] Done for function main_3
 [from] ====== DEPENDENCIES COMPUTED ======
-    These dependencies hold at termination for the executions that terminate:
+  These dependencies hold at termination for the executions that terminate:
 [from] Function Frama_C_interval:
   Frama_C_entropy_source FROM Frama_C_entropy_source (and SELF)
   \result FROM Frama_C_entropy_source; min; max
@@ -55,6 +60,6 @@ tests/value/for_loops.c:43:[value] Frama_C_show_each: [0..2147483647]
   Frama_C_entropy_source FROM Frama_C_entropy_source (and SELF)
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function main_3:
-      Frama_C_entropy_source; j; T[0..999]; nSelectors; w
+    Frama_C_entropy_source; j; T[0..999]; nSelectors; w
 [inout] Inputs for function main_3:
-      Frama_C_entropy_source
+    Frama_C_entropy_source

@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2017                                               *)
+(*  Copyright (C) 2007-2018                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -286,28 +286,25 @@ class virtual visitor main =
       if DC.mem c locals then true else
         (self#vcluster c ; false)
 
-    method private vtypedef = function
-      | None -> ()
-      | Some (LTsum cs) ->
-          List.iter (fun c -> self#vadt (Lang.atype c.ctor_type)) cs
-      | Some (LTsyn lt) -> self#vtau (Lang.tau_of_ltype lt)
-
+    method private vtau_of_ltype lt =
+      let tau = Lang.tau_of_ltype lt in
+      self#vtau tau ; tau
+      
     method vtype t =
       if not (DT.mem t types) then
         begin
           types <- DT.add t types ;
-          let c = section (LogicUsage.section_of_type t) in
-          if self#do_local c then
+          let cluster = section (LogicUsage.section_of_type t) in
+          if self#do_local cluster && not (Lang.is_builtin t) then
             begin
-              self#vtypedef t.lt_def ;
               let def = match t.lt_def with
                 | None -> Qed.Engine.Tabs
-                | Some (LTsyn lt) -> Qed.Engine.Tdef (Lang.tau_of_ltype lt)
+                | Some (LTsyn lt) -> Qed.Engine.Tdef (self#vtau_of_ltype lt)
                 | Some (LTsum cs) ->
                     let cases = List.map
-                        (fun ct ->
-                           Lang.CTOR ct ,
-                           List.map Lang.tau_of_ltype ct.ctor_params
+                        (fun c ->
+                           Lang.CTOR c ,
+                           List.map self#vtau_of_ltype c.ctor_params
                         ) cs in
                     Qed.Engine.Tsum cases
               in self#on_type t def ;
@@ -356,6 +353,7 @@ class virtual visitor main =
       | True | False | Kint _ | Kreal _ | Bvar _
       | Times _ | Add _ | Mul _ | Div _ | Mod _
       | Aget _ | Aset _ | Apply _ -> ()
+      | Acst _ -> self#on_library "const"
       | Eq _ | Neq _ | Leq _ | Lt _
       | And _ | Or _ | Not _ | Imply _ | If _ ->
           if bool then self#on_library "bool"

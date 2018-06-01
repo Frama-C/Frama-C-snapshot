@@ -1,4 +1,4 @@
 [kernel] Parsing tests/metrics/locals_size.i (no preprocessing)
 [metrics] function	locals_size_no_temps	locals_size_with_temps	max_call_size_no_temps	max_call_size_with_temps
-[metrics] user error: unsupported recursive call detected: recurse2 <- recurse1 <- recurse2
+[metrics] User Error: unsupported recursive call detected: recurse2 <- recurse1 <- recurse2
 [kernel] Plug-in metrics aborted: invalid user input.

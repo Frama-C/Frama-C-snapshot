@@ -6,7 +6,7 @@
   G[0..9] ∈ {0}
   X ∈ {0}
 [value] computing for function loop <- main.
-    Called from tests/value/termination.i:33.
+  Called from tests/value/termination.i:33.
 [value] Recording results for loop
 [value] Done for function loop
 [value] Recording results for main
@@ -21,17 +21,17 @@
 [from] Computing for function main
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
-    These dependencies hold at termination for the executions that terminate:
+  These dependencies hold at termination for the executions that terminate:
 [from] Function loop:
   X FROM \nothing
 [from] Function main:
   X FROM \nothing
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function loop:
-      X
+    X
 [inout] Inputs for function loop:
-      \nothing
+    \nothing
 [inout] Out (internal) for function main:
-      X; tmp
+    X; tmp
 [inout] Inputs for function main:
-      \nothing
+    \nothing

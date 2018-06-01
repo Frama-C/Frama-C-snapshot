@@ -9,7 +9,7 @@
   plein ∈ {0}
   NumFonct ∈ {0}
   NumSsPage ∈ {0}
-tests/value/branch2.i:14:[value] entering loop for the first time
+[value] tests/value/branch2.i:14: entering loop for the first time
 [value] Recording results for main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======
@@ -19,12 +19,12 @@ tests/value/branch2.i:14:[value] entering loop for the first time
 [from] Computing for function main
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
-    These dependencies hold at termination for the executions that terminate:
+  These dependencies hold at termination for the executions that terminate:
 [from] Function main:
   plein FROM \nothing
   NumSsPage FROM NumSsPage (and SELF)
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function main:
-      plein; NumSsPage
+    plein; NumSsPage
 [inout] Inputs for function main:
-      changepage; NumSsPage
+    changepage; NumSsPage

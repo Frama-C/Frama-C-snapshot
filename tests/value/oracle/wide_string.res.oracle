@@ -4,12 +4,16 @@
 [value] Initial state computed
 [value:initial-state] Values of globals at initialization
   
-tests/value/wide_string.c:16:[value] warning: accessing out of bounds index. assert 4 < 4;
-tests/value/wide_string.c:19:[value] warning: accessing out of bounds index. assert 4 < 4;
+[value:alarm] tests/value/wide_string.c:16: Warning: 
+  accessing out of bounds index. assert 4 < 4;
+[value:alarm] tests/value/wide_string.c:19: Warning: 
+  accessing out of bounds index. assert 4 < 4;
 [value] Recording results for main
 [value] done for function main
-tests/value/wide_string.c:16:[value] assertion 'Value,index_bound' got final status invalid.
-tests/value/wide_string.c:19:[value] assertion 'Value,index_bound' got final status invalid.
+[value] tests/value/wide_string.c:16: 
+  assertion 'Value,index_bound' got final status invalid.
+[value] tests/value/wide_string.c:19: 
+  assertion 'Value,index_bound' got final status invalid.
 [value] ====== VALUES COMPUTED ======
 [value:final-states] Values at end of function main:
   p ∈ {{ "bar" }}
@@ -18,13 +22,13 @@ tests/value/wide_string.c:19:[value] assertion 'Value,index_bound' got final sta
 [from] Computing for function main
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
-    These dependencies hold at termination for the executions that terminate:
+  These dependencies hold at termination for the executions that terminate:
 [from] Function main:
   \result FROM "bar"{[bits 8 to 15]; [bits 24 to 31]};
                L"foO"{[bits 32 to 63]; [bits 96 to 127]}
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function main:
-      p; q; c; wc; __retres
+    p; q; c; wc; __retres
 [inout] Inputs for function main:
-      "bar"{[bits 8 to 15]; [bits 24 to 31]};
-      L"foO"{[bits 32 to 63]; [bits 96 to 127]}
+    "bar"{[bits 8 to 15]; [bits 24 to 31]};
+    L"foO"{[bits 32 to 63]; [bits 96 to 127]}

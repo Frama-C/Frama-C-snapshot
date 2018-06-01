@@ -1,22 +1,29 @@
 [kernel] Parsing tests/float/builtins.c (with preprocessing)
-tests/float/builtins.c:55:[kernel] warning: Floating-point constant 2.72 is not represented exactly. Will use 0x1.5c28f5c28f5c3p1. See documentation for option -warn-decimal-float
+[kernel:parser:decimal-float] tests/float/builtins.c:55: Warning: 
+  Floating-point constant 2.72 is not represented exactly. Will use 0x1.5c28f5c28f5c3p1.
+  (warn-once: no further messages from category 'parser:decimal-float' will be emitted)
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
 [value] Initial state computed
 [value:initial-state] Values of globals at initialization
   Frama_C_entropy_source ∈ [--..--]
+  __fc_errno ∈ [--..--]
   v ∈ [--..--]
 [value] computing for function Frama_C_float_interval <- main.
-    Called from tests/float/builtins.c:11.
+  Called from tests/float/builtins.c:12.
 [value] using specification for function Frama_C_float_interval
-share/libc/__fc_builtin.h:149:[value] function Frama_C_float_interval: precondition got status valid.
-share/libc/__fc_builtin.h:150:[value] function Frama_C_float_interval: precondition got status valid.
+[value] tests/float/builtins.c:12: 
+  function Frama_C_float_interval: precondition 'finite' got status valid.
+[value] tests/float/builtins.c:12: 
+  function Frama_C_float_interval: precondition 'order' got status valid.
 [value] Done for function Frama_C_float_interval
 [value] computing for function Frama_C_double_interval <- main.
-    Called from tests/float/builtins.c:12.
+  Called from tests/float/builtins.c:13.
 [value] using specification for function Frama_C_double_interval
-share/libc/__fc_builtin.h:157:[value] function Frama_C_double_interval: precondition got status valid.
-share/libc/__fc_builtin.h:158:[value] function Frama_C_double_interval: precondition got status valid.
+[value] tests/float/builtins.c:13: 
+  function Frama_C_double_interval: precondition 'finite' got status valid.
+[value] tests/float/builtins.c:13: 
+  function Frama_C_double_interval: precondition 'order' got status valid.
 [value] Done for function Frama_C_double_interval
 [value] Recording results for main
 [value] done for function main
@@ -30,316 +37,111 @@ share/libc/__fc_builtin.h:158:[value] function Frama_C_double_interval: precondi
 [value] Initial state computed
 [value:initial-state] Values of globals at initialization
   Frama_C_entropy_source ∈ [--..--]
+  __fc_errno ∈ [--..--]
   v ∈ [--..--]
-[value] computing for function log <- main_log_exp.
-    Called from tests/float/builtins.c:51.
-tests/float/builtins.c:22:[value] function log: precondition got status valid.
-tests/float/builtins.c:23:[value] function log: precondition got status valid.
-tests/float/builtins.c:24:[value] function log: postcondition got status valid.
-[value] Recording results for log
-[value] Done for function log
-[value] computing for function log10 <- main_log_exp.
-    Called from tests/float/builtins.c:52.
-tests/float/builtins.c:29:[value] function log10: precondition got status valid.
-tests/float/builtins.c:30:[value] function log10: precondition got status valid.
-tests/float/builtins.c:31:[value] function log10: postcondition got status valid.
-[value] Recording results for log10
-[value] Done for function log10
-[value] computing for function log <- main_log_exp.
-    Called from tests/float/builtins.c:55.
-[value] Recording results for log
-[value] Done for function log
-[value] computing for function log10 <- main_log_exp.
-    Called from tests/float/builtins.c:56.
-[value] Recording results for log10
-[value] Done for function log10
-[value] computing for function log <- main_log_exp.
-    Called from tests/float/builtins.c:59.
-[value] Recording results for log
-[value] Done for function log
-[value] computing for function log10 <- main_log_exp.
-    Called from tests/float/builtins.c:60.
-[value] Recording results for log10
-[value] Done for function log10
-tests/float/builtins.c:63:[value] warning: assertion got status unknown.
-[value] computing for function log <- main_log_exp.
-    Called from tests/float/builtins.c:64.
-[value] Recording results for log
-[value] Done for function log
-tests/float/builtins.c:67:[value] warning: assertion got status unknown.
-[value] computing for function log10 <- main_log_exp.
-    Called from tests/float/builtins.c:68.
-[value] Recording results for log10
-[value] Done for function log10
-[value] computing for function log <- main_log_exp.
-    Called from tests/float/builtins.c:72.
-tests/float/builtins.c:23:[value] warning: function log: precondition got status unknown.
-[value] Recording results for log
-[value] Done for function log
-[value] computing for function log10 <- main_log_exp.
-    Called from tests/float/builtins.c:75.
-tests/float/builtins.c:30:[value] warning: function log10: precondition got status unknown.
-[value] Recording results for log10
-[value] Done for function log10
-[value] computing for function log <- main_log_exp.
-    Called from tests/float/builtins.c:78.
-tests/float/builtins.c:23:[value] warning: function log: precondition got status invalid.
-[value] Recording results for log
-[value] Done for function log
-[value] computing for function log10 <- main_log_exp.
-    Called from tests/float/builtins.c:81.
-tests/float/builtins.c:30:[value] warning: function log10: precondition got status invalid.
-[value] Recording results for log10
-[value] Done for function log10
-[value] computing for function exp <- main_log_exp.
-    Called from tests/float/builtins.c:85.
-tests/float/builtins.c:36:[value] function exp: precondition got status valid.
-tests/float/builtins.c:37:[value] function exp: precondition got status valid.
-tests/float/builtins.c:38:[value] function exp: postcondition got status valid.
-[value] Recording results for exp
-[value] Done for function exp
-[value] computing for function exp <- main_log_exp.
-    Called from tests/float/builtins.c:88.
-[value] Recording results for exp
-[value] Done for function exp
-[value] computing for function exp <- main_log_exp.
-    Called from tests/float/builtins.c:91.
-[value] Recording results for exp
-[value] Done for function exp
-tests/float/builtins.c:94:[value] warning: assertion got status unknown.
-[value] computing for function exp <- main_log_exp.
-    Called from tests/float/builtins.c:95.
-tests/float/builtins.c:37:[value] warning: function exp: precondition got status unknown.
-[value] Recording results for exp
-[value] Done for function exp
-[value] computing for function exp <- main_log_exp.
-    Called from tests/float/builtins.c:98.
-tests/float/builtins.c:37:[value] warning: function exp: precondition got status invalid.
-[value] Recording results for exp
-[value] Done for function exp
-[value] computing for function log <- main_log_exp.
-    Called from tests/float/builtins.c:102.
-[value] Recording results for log
-[value] Done for function log
-tests/float/builtins.c:103:[value] assertion got status valid.
-tests/float/builtins.c:107:[value] warning: non-finite double value. assert \is_finite((double)((int)(&d)));
-[value] computing for function log <- main_log_exp.
-    Called from tests/float/builtins.c:107.
-tests/float/builtins.c:22:[value] warning: function log: precondition got status unknown.
-tests/float/builtins.c:26:[value] warning: non-finite double value. assert \is_finite(d);
-tests/float/builtins.c:26:[value] Reading left-value d.
-    It contains a garbled mix of {d} because of Arithmetic
-    {tests/float/builtins.c:107}.
-tests/float/builtins.c:26:[value] warning: builtin Frama_C_log: out-of-range argument {{ garbled mix of &{d}
-    (origin: Arithmetic) }}
-tests/float/builtins.c:26:[value] function Frama_C_log applied to address
-tests/float/builtins.c:26:[value] Assigning imprecise value to tmp.
-    The imprecision originates from Arithmetic
-tests/float/builtins.c:24:[value] warning: function log: postcondition got status unknown.
-tests/float/builtins.c:26:[value] warning: non-finite double value. assert \is_finite(tmp);
-                             (tmp from Frama_C_log(d))
-tests/float/builtins.c:26:[value] Assigning imprecise value to \result<log>.
-    The imprecision originates from Arithmetic
-[value] Recording results for log
-[value] Done for function log
-tests/float/builtins.c:107:[value] Assigning imprecise value to l7.
-    The imprecision originates from Arithmetic
-tests/float/builtins.c:111:[value] warning: accessing uninitialized left-value. assert \initialized(&x);
+[value] tests/float/builtins.c:51: 
+  function log: precondition 'finite_arg' got status valid.
+[value] tests/float/builtins.c:51: 
+  function log: precondition 'arg_positive' got status valid.
+[value] tests/float/builtins.c:52: 
+  function log10: precondition 'finite_arg' got status valid.
+[value] tests/float/builtins.c:52: 
+  function log10: precondition 'arg_positive' got status valid.
+[value] tests/float/builtins.c:55: 
+  function log: precondition 'finite_arg' got status valid.
+[value] tests/float/builtins.c:55: 
+  function log: precondition 'arg_positive' got status valid.
+[value] tests/float/builtins.c:56: 
+  function log10: precondition 'finite_arg' got status valid.
+[value] tests/float/builtins.c:56: 
+  function log10: precondition 'arg_positive' got status valid.
+[value] tests/float/builtins.c:59: 
+  function log: precondition 'finite_arg' got status valid.
+[value] tests/float/builtins.c:59: 
+  function log: precondition 'arg_positive' got status valid.
+[value] tests/float/builtins.c:60: 
+  function log10: precondition 'finite_arg' got status valid.
+[value] tests/float/builtins.c:60: 
+  function log10: precondition 'arg_positive' got status valid.
+[value:alarm] tests/float/builtins.c:63: Warning: assertion got status unknown.
+[value] tests/float/builtins.c:64: 
+  function log: precondition 'finite_arg' got status valid.
+[value] tests/float/builtins.c:64: 
+  function log: precondition 'arg_positive' got status valid.
+[value:alarm] tests/float/builtins.c:67: Warning: assertion got status unknown.
+[value] tests/float/builtins.c:68: 
+  function log10: precondition 'finite_arg' got status valid.
+[value] tests/float/builtins.c:68: 
+  function log10: precondition 'arg_positive' got status valid.
+[value] tests/float/builtins.c:72: 
+  function log: precondition 'finite_arg' got status valid.
+[value:alarm] tests/float/builtins.c:72: Warning: 
+  function log: precondition 'arg_positive' got status unknown.
+[value] tests/float/builtins.c:75: 
+  function log10: precondition 'finite_arg' got status valid.
+[value:alarm] tests/float/builtins.c:75: Warning: 
+  function log10: precondition 'arg_positive' got status unknown.
+[value] tests/float/builtins.c:78: 
+  function log: precondition 'finite_arg' got status valid.
+[value:alarm] tests/float/builtins.c:78: Warning: 
+  function log: precondition 'arg_positive' got status invalid.
+[value] tests/float/builtins.c:81: 
+  function log10: precondition 'finite_arg' got status valid.
+[value:alarm] tests/float/builtins.c:81: Warning: 
+  function log10: precondition 'arg_positive' got status invalid.
+[value] tests/float/builtins.c:85: 
+  function exp: precondition 'finite_arg' got status valid.
+[value] tests/float/builtins.c:85: 
+  function exp: precondition 'finite_domain' got status valid.
+[value] tests/float/builtins.c:88: 
+  function exp: precondition 'finite_arg' got status valid.
+[value] tests/float/builtins.c:88: 
+  function exp: precondition 'finite_domain' got status valid.
+[value] tests/float/builtins.c:91: 
+  function exp: precondition 'finite_arg' got status valid.
+[value] tests/float/builtins.c:91: 
+  function exp: precondition 'finite_domain' got status valid.
+[value:alarm] tests/float/builtins.c:94: Warning: assertion got status unknown.
+[value] tests/float/builtins.c:95: 
+  function exp: precondition 'finite_arg' got status valid.
+[value:alarm] tests/float/builtins.c:95: Warning: 
+  function exp: precondition 'finite_domain' got status unknown.
+[value] tests/float/builtins.c:98: 
+  function exp: precondition 'finite_arg' got status valid.
+[value:alarm] tests/float/builtins.c:98: Warning: 
+  function exp: precondition 'finite_domain' got status invalid.
+[value] tests/float/builtins.c:102: 
+  function log: precondition 'finite_arg' got status valid.
+[value] tests/float/builtins.c:102: 
+  function log: precondition 'arg_positive' got status valid.
+[value] tests/float/builtins.c:103: assertion got status valid.
+[value] tests/float/builtins.c:104: 
+  function exp: precondition 'finite_arg' got status valid.
+[value] tests/float/builtins.c:104: 
+  function exp: precondition 'finite_domain' got status valid.
+[value:alarm] tests/float/builtins.c:107: Warning: 
+  non-finite double value. assert \is_finite((double)((int)(&d)));
+[value:alarm] tests/float/builtins.c:107: Warning: 
+  function log: precondition 'finite_arg' got status unknown.
+[value:alarm] tests/float/builtins.c:107: Warning: 
+  function log: precondition 'arg_positive' got status unknown.
+[value] tests/float/builtins.c:107: function Frama_C_log applied to address
+[value] tests/float/builtins.c:107: 
+  Assigning imprecise value to l7.
+  The imprecision originates from Arithmetic {tests/float/builtins.c:107}
+[value:alarm] tests/float/builtins.c:111: Warning: 
+  accessing uninitialized left-value. assert \initialized(&x);
 [value] Recording results for main_log_exp
 [value] done for function main_log_exp
-tests/float/builtins.c:111:[value] assertion 'Value,initialisation' got final status invalid.
-[value] ====== VALUES COMPUTED ======
-[value:final-states] Values at end of function exp:
-  
-[value:final-states] Values at end of function log:
-  
-[value:final-states] Values at end of function log10:
-  
-[value:final-states] Values at end of function main_log_exp:
-  l1 ∈ {0} or UNINITIALIZED
-  l2 ∈ {1.00063188031} or UNINITIALIZED
-  l3 ∈ {1.09861228867} or UNINITIALIZED
-  l4 ∈ [2.30258509299 .. 4.60517018599] or UNINITIALIZED
-  l5 ∈ [-744.440071921 .. 709.782712893] or UNINITIALIZED
-  l6 ∈ UNINITIALIZED
-  l7 ∈ {{ garbled mix of &{d} (origin: Arithmetic) }} or UNINITIALIZED
-  l8 ∈ UNINITIALIZED
-  m1 ∈ {0} or UNINITIALIZED
-  m2 ∈ {1.} or UNINITIALIZED
-  m3 ∈ {1.30102999566} or UNINITIALIZED
-  m4 ∈ [1. .. 2.00432137378] or UNINITIALIZED
-  m5 ∈ [-323.306215343 .. 308.25471556] or UNINITIALIZED
-  m6 ∈ UNINITIALIZED
-  e1 ∈ {1.} or UNINITIALIZED
-  e2 ∈ {0} or UNINITIALIZED
-  e3 ∈ {2.68811714182e+43} or UNINITIALIZED
-  e4 ∈ [2.68811714182e+43 .. 1.79769313486e+308] or UNINITIALIZED
-  e5 ∈ UNINITIALIZED
-  e6 ∈ {1.79769313486e+308} or UNINITIALIZED
-[value] Analyzing a complete application starting at main_log_exp
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
-  Frama_C_entropy_source ∈ [--..--]
-  v ∈ [--..--]
-[value] computing for function log <- main_log_exp.
-    Called from tests/float/builtins.c:51.
-[value] warning: builtin Frama_C_log: option -all-rounding-modes not supported by builtin
-[value] Recording results for log
-[value] Done for function log
-[value] computing for function log10 <- main_log_exp.
-    Called from tests/float/builtins.c:52.
-[value] warning: builtin Frama_C_log10: option -all-rounding-modes not supported by builtin
-[value] Recording results for log10
-[value] Done for function log10
-[value] computing for function log <- main_log_exp.
-    Called from tests/float/builtins.c:55.
-[value] Recording results for log
-[value] Done for function log
-[value] computing for function log10 <- main_log_exp.
-    Called from tests/float/builtins.c:56.
-[value] Recording results for log10
-[value] Done for function log10
-[value] computing for function log <- main_log_exp.
-    Called from tests/float/builtins.c:59.
-[value] Recording results for log
-[value] Done for function log
-[value] computing for function log10 <- main_log_exp.
-    Called from tests/float/builtins.c:60.
-[value] Recording results for log10
-[value] Done for function log10
-[value] computing for function log <- main_log_exp.
-    Called from tests/float/builtins.c:64.
-[value] Recording results for log
-[value] Done for function log
-[value] computing for function log10 <- main_log_exp.
-    Called from tests/float/builtins.c:68.
-[value] Recording results for log10
-[value] Done for function log10
-[value] computing for function log <- main_log_exp.
-    Called from tests/float/builtins.c:72.
-tests/float/builtins.c:26:[value] warning: builtin Frama_C_log: out-of-range argument ([-0. .. 1.79769313486e+308]):
-    negative argument,
-    computation may result in NaN
-[value] Recording results for log
-[value] Done for function log
-[value] computing for function log10 <- main_log_exp.
-    Called from tests/float/builtins.c:75.
-tests/float/builtins.c:33:[value] warning: builtin Frama_C_log10: out-of-range argument ([-0. .. 1.79769313486e+308]):
-    negative argument,
-    computation may result in NaN
-[value] Recording results for log10
-[value] Done for function log10
-[value] computing for function log <- main_log_exp.
-    Called from tests/float/builtins.c:78.
-[value] Recording results for log
-[value] Done for function log
-[value] computing for function log10 <- main_log_exp.
-    Called from tests/float/builtins.c:81.
-[value] Recording results for log10
-[value] Done for function log10
-[value] computing for function exp <- main_log_exp.
-    Called from tests/float/builtins.c:85.
-[value] warning: builtin Frama_C_exp: option -all-rounding-modes not supported by builtin
-[value] Recording results for exp
-[value] Done for function exp
-[value] computing for function exp <- main_log_exp.
-    Called from tests/float/builtins.c:88.
-[value] Recording results for exp
-[value] Done for function exp
-[value] computing for function exp <- main_log_exp.
-    Called from tests/float/builtins.c:91.
-[value] Recording results for exp
-[value] Done for function exp
-[value] computing for function exp <- main_log_exp.
-    Called from tests/float/builtins.c:95.
-[value] Recording results for exp
-[value] Done for function exp
-[value] computing for function exp <- main_log_exp.
-    Called from tests/float/builtins.c:98.
-[value] Recording results for exp
-[value] Done for function exp
-[value] computing for function log <- main_log_exp.
-    Called from tests/float/builtins.c:102.
-[value] Recording results for log
-[value] Done for function log
-tests/float/builtins.c:107:[value] warning: non-finite double value. assert \is_finite((double)((int)(&d)));
-[value] computing for function log <- main_log_exp.
-    Called from tests/float/builtins.c:107.
-tests/float/builtins.c:26:[value] warning: non-finite double value. assert \is_finite(d);
-tests/float/builtins.c:26:[value] warning: non-finite double value. assert \is_finite(tmp);
-                             (tmp from Frama_C_log(d))
-[value] Recording results for log
-[value] Done for function log
-tests/float/builtins.c:111:[value] warning: accessing uninitialized left-value. assert \initialized(&x);
-[value] Recording results for main_log_exp
-[value] done for function main_log_exp
-[value] ====== VALUES COMPUTED ======
-[value:final-states] Values at end of function exp:
-  
-[value:final-states] Values at end of function log:
-  
-[value:final-states] Values at end of function log10:
-  
-[value:final-states] Values at end of function main_log_exp:
-  l1 ∈ {0} or UNINITIALIZED
-  l2 ∈ {1.00063188031} or UNINITIALIZED
-  l3 ∈ {1.09861228867} or UNINITIALIZED
-  l4 ∈ [2.30258509299 .. 4.60517018599] or UNINITIALIZED
-  l5 ∈ [-744.440071921 .. 709.782712893] or UNINITIALIZED
-  l6 ∈ UNINITIALIZED
-  l7 ∈ {{ garbled mix of &{d} (origin: Arithmetic) }} or UNINITIALIZED
-  l8 ∈ UNINITIALIZED
-  m1 ∈ {0} or UNINITIALIZED
-  m2 ∈ {1.} or UNINITIALIZED
-  m3 ∈ {1.30102999566} or UNINITIALIZED
-  m4 ∈ [1. .. 2.00432137378] or UNINITIALIZED
-  m5 ∈ [-323.306215343 .. 308.25471556] or UNINITIALIZED
-  m6 ∈ UNINITIALIZED
-  e1 ∈ {1.} or UNINITIALIZED
-  e2 ∈ {0} or UNINITIALIZED
-  e3 ∈ {2.68811714182e+43} or UNINITIALIZED
-  e4 ∈ [2.68811714182e+43 .. 1.79769313486e+308] or UNINITIALIZED
-  e5 ∈ UNINITIALIZED
-  e6 ∈ {1.79769313486e+308} or UNINITIALIZED
-[value] Analyzing a complete application starting at main_log_exp
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
-  Frama_C_entropy_source ∈ [--..--]
-  v ∈ [--..--]
-tests/float/builtins.c:72:[value] warning: builtin Frama_C_log: out-of-range argument
-    ([-1.79769313486e+308 .. 1.79769313486e+308]): negative argument,
-    computation may result in NaN
-tests/float/builtins.c:75:[value] warning: builtin Frama_C_log10: out-of-range argument
-    ([-1.79769313486e+308 .. 1.79769313486e+308]): negative argument,
-    computation may result in NaN
-tests/float/builtins.c:78:[value] warning: builtin Frama_C_log: completely out-of-range argument ({-1.}):
-    negative argument,
-    computation may result in NaN
-tests/float/builtins.c:81:[value] warning: builtin Frama_C_log10: completely out-of-range argument ({-1.}):
-    negative argument,
-    computation may result in NaN
-tests/float/builtins.c:95:[value] warning: builtin Frama_C_exp: out-of-range argument ([100. .. 1000.]),
-    computation may result in +oo
-tests/float/builtins.c:98:[value] warning: builtin Frama_C_exp:
-    result is always non-finite
-tests/float/builtins.c:107:[value] warning: non-finite double value. assert \is_finite((double)((int)(&d)));
-tests/float/builtins.c:107:[value] warning: builtin Frama_C_log: out-of-range argument {{ garbled mix of &{d}
-    (origin: Arithmetic {tests/float/builtins.c:107}) }}
-tests/float/builtins.c:107:[value] function Frama_C_log applied to address
-tests/float/builtins.c:107:[value] Assigning imprecise value to l7.
-    The imprecision originates from Arithmetic {tests/float/builtins.c:107}
-tests/float/builtins.c:111:[value] warning: accessing uninitialized left-value. assert \initialized(&x);
-[value] Recording results for main_log_exp
-[value] done for function main_log_exp
+[value] tests/float/builtins.c:111: 
+  assertion 'Value,initialization' got final status invalid.
 [value] ====== VALUES COMPUTED ======
 [value:final-states] Values at end of function main_log_exp:
   l1 ∈ {0} or UNINITIALIZED
   l2 ∈ {1.00063188031} or UNINITIALIZED
   l3 ∈ {1.09861228867} or UNINITIALIZED
   l4 ∈ [2.30258509299 .. 4.60517018599] or UNINITIALIZED
-  l5 ∈ [-744.440071921 .. 709.782712893] or UNINITIALIZED
+  l5 ∈ [-1.79769313486e+308 .. 709.782712893] or UNINITIALIZED
   l6 ∈ UNINITIALIZED
   l7 ∈
     {{ garbled mix of &{d}
@@ -349,7 +151,7 @@ tests/float/builtins.c:111:[value] warning: accessing uninitialized left-value. 
   m2 ∈ {1.} or UNINITIALIZED
   m3 ∈ {1.30102999566} or UNINITIALIZED
   m4 ∈ [1. .. 2.00432137378] or UNINITIALIZED
-  m5 ∈ [-323.306215343 .. 308.25471556] or UNINITIALIZED
+  m5 ∈ [-1.79769313486e+308 .. 308.25471556] or UNINITIALIZED
   m6 ∈ UNINITIALIZED
   e1 ∈ {1.} or UNINITIALIZED
   e2 ∈ {0} or UNINITIALIZED

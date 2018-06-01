@@ -4,10 +4,13 @@
 [value] Initial state computed
 [value:initial-state] Values of globals at initialization
   
-tests/value/FP5.i:1:[value] warning: function main: precondition got status unknown.
-tests/value/FP5.i:2:[value] warning: function main: precondition got status unknown.
-tests/value/FP5.i:3:[value] function main: precondition got status valid.
-tests/value/FP5.i:23:[value] entering loop for the first time
+[value:alarm] tests/value/FP5.i:1: Warning: 
+  function main: precondition \valid(b) got status unknown.
+[value:alarm] tests/value/FP5.i:2: Warning: 
+  function main: precondition \valid(c) got status unknown.
+[value] tests/value/FP5.i:3: 
+  function main: precondition \valid(&a) got status valid.
+[value] tests/value/FP5.i:23: entering loop for the first time
 [value] Recording results for main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======
@@ -19,12 +22,12 @@ tests/value/FP5.i:23:[value] entering loop for the first time
 [from] Computing for function main
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
-    These dependencies hold at termination for the executions that terminate:
+  These dependencies hold at termination for the executions that terminate:
 [from] Function main:
   S_c[0] FROM a; c
   S_b[0] FROM a; b (and SELF)
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function main:
-      i; S_c[0]; S_b[0]
+    i; S_c[0]; S_b[0]
 [inout] Inputs for function main:
-      \nothing
+    \nothing

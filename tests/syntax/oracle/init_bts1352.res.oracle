@@ -1,8 +1,9 @@
 [kernel] Parsing tests/syntax/init_bts1352.i (no preprocessing)
-tests/syntax/init_bts1352.i:2:[kernel] user error: scalar value (of type int) initialized by compound initializer
-    1     int main(void) {
-    2       int t /* [5] missing */ = { 1, 2, 3, 4, 5 };
-          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-    3     }
-[kernel] user error: stopping on file "tests/syntax/init_bts1352.i" that has errors.
+[kernel] tests/syntax/init_bts1352.i:2: User Error: 
+  scalar value (of type int) initialized by compound initializer
+  1     int main(void) {
+  2       int t /* [5] missing */ = { 1, 2, 3, 4, 5 };
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  3     }
+[kernel] User Error: stopping on file "tests/syntax/init_bts1352.i" that has errors.
 [kernel] Frama-C aborted: invalid user input.

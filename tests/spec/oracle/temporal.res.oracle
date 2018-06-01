@@ -24,7 +24,7 @@ int g(int x);
 
 void h(void);
 
-extern int random();
+extern int random(void);
 
 extern int NB;
 

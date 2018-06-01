@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2017                                               *)
+(*  Copyright (C) 2007-2018                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -22,12 +22,6 @@
 
 open Cil_types
 open Eval_terms
-
-(* Statuses for code annotations and function contracts *)
-
-(* Emits a status, possibly multiple times. *)
-let emit_status ppt status =
-  Property_status.emit ~distinct:true Value_util.emitter ~hyps:[] ppt status
 
 let has_requires spec =
   let behav_has_requires b = b.b_requires <> [] in
@@ -55,11 +49,11 @@ let mark_unreachable () =
       Value_parameters.debug "Marking property %a as dead"
         Description.pp_property ppt;
       let emit =
-        Property_status.emit ~distinct:true Value_util.emitter ~hyps:[]
+        Property_status.emit ~distinct:false Value_util.emitter ~hyps:[]
       in
       let reach_p = Property.ip_reachable_ppt ppt in
       emit ppt Property_status.True;
-      emit_status reach_p Property_status.False_and_reachable
+      emit reach_p Property_status.False_and_reachable
     end
   in
   (* Mark standard code annotations *)
@@ -77,12 +71,10 @@ let mark_unreachable () =
     method! vstmt_aux stmt =
       if not (Db.Value.is_reachable_stmt stmt) then begin
         let mark_status kf =
-          (* Do not put "unreachable" statuses on preconditions of
-             functions overridden by builtins. We do not evaluate those
-             preconditions on reachable calls, and the consolidation
-             gives very bad results when reachable and unreachable calls
-             coexist (untried+dead -> unknown). *)
-          if Builtins.find_builtin_override kf = None
+          (* Do not mark preconditions as dead if they are not analyzed in
+             non-dead code. Otherwise, the consolidation does strange things. *)
+          if not (Value_util.skip_specifications kf) ||
+             Builtins.find_builtin_override kf <> None
           then begin
             (* Setup all precondition statuses for [kf]: maybe it has
                never been called anywhere. *)
@@ -264,6 +256,7 @@ let mark_invalid_initializers () =
         | False ->
           let status = Property_status.False_and_reachable in
           let distinct = false (* see comment in mark_green_and_red above *) in
+          Red_statuses.add_red_property Kglobal ip;
           Property_status.emit ~distinct Value_util.emitter ~hyps:[] ip status;
         end
       | _ -> ()

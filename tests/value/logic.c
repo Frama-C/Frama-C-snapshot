@@ -2,6 +2,102 @@ int t[10], u[11];
 struct ts { int f1; int f2; } s1, s2, s3[10];
 unsigned int x; volatile v;
 
+
+struct s1{
+  int x;
+};
+
+struct s2{
+  struct s1 str;
+};
+
+struct S { int x; int y; };
+
+struct T { int z; int t; };
+
+struct T t_T;
+
+/*@ axiomatic axio_1 {
+  @   logic integer f_acsl (integer x) = x + 1;
+  @   logic integer h_acsl (integer x) = 1 + h_acsl(x-1);
+  @   logic integer mutual1{L1, L2}(int* x, int *y) = \at(*x*2, L1) + \at(*y+3, L2);
+  @   logic integer mutual2{L1, L2}(int *v, int *w) = mutual1{L2, L1}(w, v);
+  @   logic integer mute{L}(int x) = \at(x,L); // The label is actually unused
+  @}
+*/
+
+
+/*@ predicate pred_1 (integer x) = 0 <= x < 100;*/
+/*@ predicate pred_2{L1,L2}(integer x) = \at(x,L1) == \at(x,L2);*/
+/*@ predicate pred_3{L1}(integer x) = \at(x,L1) == \at(x,L1);*/
+/*@ predicate pred_4(struct s1 s) = s.x ==0;*/
+/*@ predicate pred_5(integer a, integer b) = a + 1 == b;*/
+/*@ predicate pred_6{L1,L2}(integer a, integer b) = \at(a,L1) + 1 == \at(b,L2);*/
+/*@ predicate pred_7(integer a, integer b) = a == b && pred_7(a,b);*/
+/*@ predicate pred_8(int x) = x == 5;*/
+/*@ predicate pred_9(struct S s) = s.x + s.y == 42; */
+
+void f (){
+  struct s1 temp_1;
+  struct s2 temp_2;
+
+  temp_1.x = 0;
+  temp_2.str.x = 0;
+  /*@ assert pred_4(temp_1);*/
+  /*@ assert pred_4(temp_2.str);*/
+  return;
+}
+
+void g (){
+  int x = 0;
+  L:;
+  int y = 1;
+  /*@ assert pred_5(x,y);*/
+  /*@ assert pred_5(x,x+1);*/
+  /*@ assert pred_6{Here,Here}(x,y);*/
+  /*@ assert pred_6{L,Here}(x,y);*/
+  return;
+}
+
+void h (){
+  int x = 0;
+  int y = 0;
+  int k = 5;
+  int j = 6;
+  int *p = &k;
+  int *q = &j;
+  /*@ assert x == h_acsl(x);*/
+  /*@ assert pred_7(x,y);*/
+  /*@ assert pred_8(*p);*/
+  if (v) { /*@ assert pred_8(*q);*/ /* False */ }
+  //@ assert mutual2{Here, Here}(p, q) == 5+3 + 2*6;
+  // Make sure that k and s1.f1 are evaluated in Here despite the label!
+  //@ assert mute{Pre}(k) == 5;
+  s1.f1 = 1; //@ assert ! (mute{Pre}(s1.f1) == 0);
+}
+
+void unsup (){
+  t_T.z = 21; t_T.t = 21;
+  /*@ assert pred_9((struct S)t_T);*/
+  return;
+}
+
+void pred(){
+  int x = 10;
+  int y = 0;
+  L:;
+  y = x + 1;
+  /*@ assert y == f_acsl(x);*/
+  /*@ assert pred_1(y);*/
+  /*@ assert pred_2{L,Here}(x);*/
+  /*@ assert pred_3{Here}(x);*/
+  f();
+  g();
+  unsup();
+  h();
+  return;
+}
+
 void eq_tsets () {
 
  //@ assert \union() == \union();
@@ -151,6 +247,15 @@ void cond_in_lval() {
     ;
 }
 
+void float_sign() {
+  //@ assert \sign((float)0.0) == \Positive;
+  //@ assert \sign((double)-0.0) == \Negative;
+  //@ assert \sign((long double)0.0) != \Negative;
+  //@ assert \Positive == \sign((float)0.0);
+  double d = v ? 0.0 : -0.0;
+  //@ assert \sign(d) == \Positive && \sign(d) == \Negative; // must be unknown
+}
+
 void main () {
   eq_tsets();
   eq_char();
@@ -159,4 +264,6 @@ void main () {
   reduce_by_equal();
   alarms ();
   cond_in_lval();
+  pred();
+  float_sign();
 }

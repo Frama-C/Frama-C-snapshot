@@ -7,7 +7,7 @@ int x ;
 int f(void);
 
 //@ ensures \result > 0 ; assigns \nothing;
-int g();
+int g(void);
 
 //@ requires p > 0 ; ensures \result > 0 ; assigns \nothing;
 int h(int p);

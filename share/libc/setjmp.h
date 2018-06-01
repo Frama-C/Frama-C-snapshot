@@ -2,7 +2,7 @@
 /*                                                                        */
 /*  This file is part of Frama-C.                                         */
 /*                                                                        */
-/*  Copyright (C) 2007-2017                                               */
+/*  Copyright (C) 2007-2018                                               */
 /*    CEA (Commissariat à l'énergie atomique et aux énergies              */
 /*         alternatives)                                                  */
 /*                                                                        */
@@ -36,7 +36,7 @@ extern int setjmp(jmp_buf env);
 
 /*@
  assigns \nothing;
- ensures \false; // never terminates
+ ensures never_terminates: \false;
 */
 extern void longjmp(jmp_buf env, int val);
 
@@ -48,7 +48,7 @@ extern int sigsetjmp(sigjmp_buf env, int savesigs);
 
 /*@
  assigns \nothing;
- ensures \false; // never terminates
+ ensures never_terminates: \false;
 */
 extern void siglongjmp(sigjmp_buf env, int val);
 

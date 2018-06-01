@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2017                                               *)
+(*  Copyright (C) 2007-2018                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -26,10 +26,7 @@ module FC_file = File (* overwritten by Cil_datatype *)
 open Cil_datatype
 open Extlib
 
-let dkey = Kernel.register_category "filter"
-
-let debug1 fmt = Kernel.debug ~current:true ~dkey fmt
-let debug2 fmt = Kernel.debug ~current:true ~dkey ~level:2 fmt
+let debug fmt = Kernel.debug ~current:true ~dkey:Kernel.dkey_filter fmt
 
 module type RemoveInfo = sig
   type proj
@@ -78,6 +75,16 @@ end = struct
   let mk_skip loc = Instr (Skip loc)
   let mk_stmt_skip st = mk_skip (Stmt.loc st)
 
+  let static_from_kf kf =
+    let res = ref [] in
+    let vis = object
+      inherit Visitor.frama_c_inplace
+      method! vblock b = res := b.bstatics @ !res; DoChildren
+    end
+    in
+    ignore (Visitor.visitFramacKf (vis:>Visitor.frama_c_visitor) kf);
+    !res
+
   let make_new_kf tbl kf v =
     try
       Cil_datatype.Varinfo.Hashtbl.find tbl v
@@ -95,7 +102,7 @@ end = struct
     stmt.labels = [] &&
     match stmt.skind with
       | Instr (Skip _) ->
-          debug2 "@[Statement %d: can%s skip@]@." stmt.sid
+          debug "@[Statement %d: can%s skip@]@." stmt.sid
             (if Stmt.Set.mem stmt keep_stmts then "'t" else "");
           not (Stmt.Set.mem stmt keep_stmts)
       | Block b -> is_empty_block keep_stmts b
@@ -158,7 +165,7 @@ end = struct
       | Some _ -> None
       | None -> 
           let label = mk_label (Cil_datatype.Stmt.loc s) in
-            debug2 "add label to sid:%d : %a" s.sid Printer.pp_label label;
+            debug "add label to sid:%d : %a" s.sid Printer.pp_label label;
             s.labels <- label::s.labels;
             Some label
 
@@ -167,7 +174,7 @@ end = struct
       let dest = match s.succs with dest::_ -> dest | [] -> assert false in
       let new_l = add_label_if_needed mk_label finfo dest in
         mk_new_stmt s (Goto (ref dest, loc));
-        debug2 "changed break/continue into @[%a@]@."
+        debug "changed break/continue into @[%a@]@."
           Printer.pp_stmt s;
         new_l
     in
@@ -217,7 +224,7 @@ end = struct
     let name = Info.fct_name fct_var finfo in
       try
         let ff_var = Hashtbl.find fun_vars name in
-        debug2 "[ff_var] Use fct var %s:%d@." ff_var.vname ff_var.vid;
+        debug "[ff_var] Use fct var %s:%d@." ff_var.vname ff_var.vid;
           ff_var
       with Not_found ->
         let ff_var = Cil.copyVarinfo fct_var name in
@@ -225,7 +232,7 @@ end = struct
           Cil.setReturnTypeVI ff_var Cil.voidType;
         (* Notice that we don't have to filter the parameter types here :
          * they will be update by [Cil.setFormals] later on. *)
-        debug2 "[ff_var] Mem fct var %s:%d@."
+        debug "[ff_var] Mem fct var %s:%d@."
           ff_var.vname ff_var.vid;
         Hashtbl.add fun_vars name ff_var;
         ff_var
@@ -233,7 +240,7 @@ end = struct
   let optim_if fct keep_stmts s_orig s cond_opt bthen belse loc =
     let empty_then = is_empty_block keep_stmts bthen in
     let empty_else = is_empty_block keep_stmts belse in
-    debug2 "[optim_if] @[sid:%d (orig:%d)@ \
+    debug "[optim_if] @[sid:%d (orig:%d)@ \
             with %s cond, %s empty then, %s empty else@]@."
       s.sid s_orig.sid
       (if cond_opt = None then "no" else "")
@@ -246,7 +253,7 @@ end = struct
           mk_new_stmt s (If (cond, bthen, belse, loc))
     | None -> (* no cond *)
         let go_then, go_else = Info.cond_edge_visible fct s_orig in
-          debug2 
+          debug 
             "[condition_truth_value] can go in then = %b - can go in else =%b@."
             go_then go_else;
           match go_then, empty_then, go_else, empty_else with
@@ -405,7 +412,7 @@ end = struct
         | [] -> []
         | var :: locals ->
           let visible = Info.loc_var_visible (self#get_finfo ()) var in
-          debug2 "[local] %s -> %s@." var.vname
+          debug "[local] %s -> %s@." var.vname
             (if visible then "keep" else "remove");
           if visible
           then begin
@@ -429,14 +436,14 @@ end = struct
       let stmt =
         Cil.get_original_stmt self#behavior (Extlib.the self#current_stmt)
       in
-      debug1 "[annotation] stmt %d : %a @."
+      debug "[annotation] stmt %d : %a @."
         stmt.sid Printer.pp_code_annotation v;
       if Info.annotation_visible (self#get_finfo ()) stmt v
       then begin
         self#add_stmt_keep stmt;
         ChangeDoChildrenPost (v,Logic_const.refresh_code_annotation)
       end else begin
-        debug1 "\t-> ignoring annotation: %a@."
+        debug "\t-> ignoring annotation: %a@."
           Printer.pp_code_annotation v;
         ChangeTo
           (Logic_const.new_code_annotation
@@ -479,7 +486,7 @@ end = struct
           end
           else Call (new_lval, new_funcexp, new_args, loc)
         in
-        debug1 "[process_call] call %s@." var_slice.vname;
+        debug "[process_call] call %s@." var_slice.vname;
         Instr (new_call)
 
     method! vblock (b: block) =
@@ -518,11 +525,11 @@ end = struct
       Cil.set_stmt self#behavior orig s;
       Cil.set_orig_stmt self#behavior s orig;
       if keep then self#add_stmt_keep s;
-      debug2 "@[finalize sid:%d->sid:%d@]@\n@." old s.sid 
+      debug "@[finalize sid:%d->sid:%d@]@\n@." old s.sid 
 
     method private process_invisible_stmt s =
       let finfo = self#get_finfo () in
-      debug2 "[process_invisible_stmt] does sid:%d@." s.sid;
+      debug "[process_invisible_stmt] does sid:%d@." s.sid;
       (* invisible statement : but still have to visit the children if any *)
       let oldskind = s.skind in
       let do_after s =
@@ -559,15 +566,29 @@ end = struct
           end;
           mk_new_stmt s (mk_stmt_skip s)
         | _ -> mk_new_stmt s (mk_stmt_skip s));
-        debug2 "@[<hov 10>[process_invisible_stmt] gives sid:%d@ @[%a@]@]@." 
+        debug "@[<hov 10>[process_invisible_stmt] gives sid:%d@ @[%a@]@]@." 
           s.sid Printer.pp_stmt s;
         s
       in
       s.skind <- mk_stmt_skip s;
       ChangeDoChildrenPost(s, do_after)
 
+
+    (* We always keep global variables. However there are two cases where
+       we must remove the local static attr indicating that they in fact
+       come from a block:
+       - if the block in which they are in scope disappears completely,
+       or if the enclosing function itself disappears
+       (making the variable a good candidate to be removed altogether)
+       - or if we make multiple copies of the enclosing functions (otherwise,
+       we would have multiple syntactic scope for the same variable).
+    *)
+    method private remove_local_static_attr v =
+      let new_v = Cil.get_varinfo self#behavior v in
+      new_v.vattr <- Cil.dropAttribute Cabs2cil.fc_local_static new_v.vattr
+
     method private process_visible_stmt s =
-      debug2 "[process_visible_stmt] does sid:%d@." s.sid;
+      debug "[process_visible_stmt] does sid:%d@." s.sid;
       let finfo = self#get_finfo () in
       (match s.skind with
       | Instr (Call (lval, f, args, loc)) ->
@@ -602,8 +623,10 @@ end = struct
                 of the block itself (see comment in vblock) *)
           Queue.add
             (fun () ->
-              if b.bstmts = [] &&  b.battrs = [] then
-                s'.skind <- (Instr (Skip loc)))
+              if b.bstmts = [] &&  b.battrs = [] then begin
+                List.iter self#remove_local_static_attr b.bstatics;
+                s'.skind <- (Instr (Skip loc))
+            end)
             self#get_filling_actions
         | UnspecifiedSequence _ ->
           let loc = Stmt.loc s' in
@@ -636,7 +659,7 @@ end = struct
               | _ -> ())
             self#get_filling_actions
         | _ -> ());
-        debug2 "@[<hov 10>[process_visible_stmt] gives sid:%d@ @[%a@]@]@."
+        debug "@[<hov 10>[process_visible_stmt] gives sid:%d@ @[%a@]@]@."
           s'.sid Printer.pp_stmt s';
         s'
       in
@@ -648,7 +671,7 @@ end = struct
         | [] -> []
         | l :: labs ->
           let keep = Info.label_visible finfo s l || self#is_our_label l in
-          debug2 "[filter_labels] %svisible %a@." 
+          debug "[filter_labels] %svisible %a@." 
             (if keep then "" else "in") Printer.pp_label l;
           if keep then l::(filter_labels labs) else filter_labels labs
       in
@@ -660,7 +683,7 @@ end = struct
       | _ -> self#process_invisible_stmt s
 
     method! vfunc f =
-      debug1 "@[[vfunc] -> %s@\n@]@." f.svar.vname;
+      debug "@[[vfunc] -> %s@\n@]@." f.svar.vname;
       fi <- Some (Varinfo.Hashtbl.find fi_table f.svar);
       (* parameters *)
       let new_formals =
@@ -743,7 +766,7 @@ end = struct
       SkipChildren (* see the warning on [SkipChildren] in [vspec] ! *)
 
     method! vspec spec =
-      debug1 "@[[vspec] for %a @\n@]@."
+      debug "@[[vspec] for %a @\n@]@."
         Kernel_function.pretty (Extlib.the self#current_kf);
       let finfo = self#get_finfo () in
       let b = Cil.visitCilBehaviors (self:>Cil.cilVisitor) spec.spec_behavior in
@@ -784,7 +807,7 @@ end = struct
       new_var.vdefined <- false;
       let new_kf = make_new_kf my_kf kf new_var in
       Varinfo.Hashtbl.add fi_table new_var finfo;
-      debug1 "@[[build_cil_proto] -> %s@\n@]@." new_var.vname;
+      debug "@[[build_cil_proto] -> %s@\n@]@." new_var.vname;
       let action =
         let (rt,args,va,attrs) = Cil.splitFunctionType new_var.vtype in
         (match args with
@@ -858,7 +881,7 @@ end = struct
 
     method private compute_fct_prototypes (_fct_var,loc) =
       let finfo_list = Info.fct_info pinfo (Extlib.the self#current_kf) in
-      debug1 "@[[compute_fct_prototypes] for %a (x%d)@\n@]@."
+      debug "@[[compute_fct_prototypes] for %a (x%d)@\n@]@."
         Kernel_function.pretty (Extlib.the self#current_kf)
         (List.length finfo_list);
       let build_cil_proto finfo = self#build_proto finfo loc
@@ -866,15 +889,14 @@ end = struct
 
     method private compute_fct_definitions f loc =
       let fvar = f.Cil_types.svar in
-      let finfo_list = Info.fct_info pinfo (Extlib.the self#current_kf) in
-      debug1 "@[[compute_fct_definitions] for %a (x%d)@\n@]@."
-        Kernel_function.pretty
-        (Extlib.the self#current_kf) (List.length finfo_list);
+      let kf = Extlib.the self#current_kf in
+      let finfo_list = Info.fct_info pinfo kf in
+      debug "@[[compute_fct_definitions] for %a (x%d)@\n@]@."
+        Kernel_function.pretty kf (List.length finfo_list);
       let do_f finfo =
         if not (Info.body_visible finfo) then
           self#build_proto finfo loc
         else begin
-          let kf = Extlib.the self#current_kf in
           let new_fct_var = ff_var fun_vars kf finfo in
           new_fct_var.vdefined <- true;
           let new_kf = make_new_kf my_kf kf new_fct_var in
@@ -888,7 +910,7 @@ end = struct
             (fun () -> Globals.Functions.register new_kf)
             self#get_filling_actions;
           Varinfo.Hashtbl.add fi_table new_fct_var finfo;
-          debug1 "@[[build_cil_fct] -> %s@\n@]@."
+          debug "@[[build_cil_fct] -> %s@\n@]@."
             (Info.fct_name
                (Kernel_function.get_vi (Extlib.the self#current_kf)) finfo);
           let action () =
@@ -907,12 +929,17 @@ end = struct
              GFun (f,loc), action
         end
       in
+      (match List.filter Info.body_visible finfo_list with
+      | [ _ ] -> ()
+      | [] | _ :: _ :: _ ->
+       let vars = static_from_kf kf in
+       List.iter self#remove_local_static_attr vars);
       List.map do_f finfo_list
 
     method! vglob_aux g =
       let post action g =
         List.iter (fun x -> x()) action; fi <- None;
-        debug1 "[post action] done.@.";
+        debug "[post action] done.@.";
         g
       in
       match g with
@@ -922,7 +949,7 @@ end = struct
         in
         Cil.ChangeToPost (new_functions, post actions)
       | GFunDecl (_, v, loc) ->
-        debug1 "[vglob_aux] GFunDecl %s (TFun)@." v.vname;
+        debug "[vglob_aux] GFunDecl %s (TFun)@." v.vname;
         let var_decl = (v, loc) in
         let (new_decls,actions) =
           List.split (self#compute_fct_prototypes var_decl)
@@ -932,10 +959,10 @@ end = struct
   end
 
   let build_cil_file ?last new_proj_name pinfo =
-    debug1 "[build_cil_file] in %s@." new_proj_name;
+    debug "[build_cil_file] in %s@." new_proj_name;
     let visitor = new filter_visitor pinfo in
     let prj = FC_file.create_project_from_visitor ?last new_proj_name visitor in
-    debug1 "[build_cil_file] done.@.";
+    debug "[build_cil_file] done.@.";
     prj
 
 end

@@ -1,6 +1,5 @@
 open Cabsvisit
 open Cabshelper
-open Logic_ptree
 open Cil_types
 open Cil
 open Cabs
@@ -8,7 +7,8 @@ open Lexing
 
 class visit = object
   inherit nopCabsVisitor
-  method vstmt s =
+  method! vstmt s =
+    let open Logic_ptree in
     let loc = get_statementloc s in
     ChangeTo
       [{ stmt_ghost = false;
@@ -83,8 +83,9 @@ Cabs2cil.register_ignore_side_effect_hook warn_drop_effect
 let warn_cond_effect orig e =
   let source = fst e.expr_loc in
   Kernel.warning ~source
-    "[SH]: side effect of expression %a occurs in \
-     conditional part of expression %a. It is not always executed"
+    "@[<hov 0>[SH]: side effect of@ @[<hov 2>expression %a@]@ \
+     occurs in conditional part of@ @[<hov 2>expression %a@].@ \
+     It is not always executed.@]"
     Cprint.print_expression e Cprint.print_expression orig
 ;;
 

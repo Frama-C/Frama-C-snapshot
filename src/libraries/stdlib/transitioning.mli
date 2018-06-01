@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2017                                               *)
+(*  Copyright (C) 2007-2018                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -25,11 +25,13 @@
     the oldest OCaml version officially supported by Frama-C. Be sure to
     update it when support for a given version is dropped.
 
-    Functions are grouped according to the version in which the replacing
-    feature did appear.
+    Functions are grouped according to the module of the stdlib they
+    emulate. The mentioned OCaml version indicate when the function was
+    introduced in the stdlib (i.e. when Frama-C requires a version higher
+    than that, it can safely be removed from Transitioning).
 *)
 
-(** {1 4.03.0} *)
+(** {1 OCaml} *)
 
 (** In OCaml 4.03, many functions [f] from String have been deprecated
     in favor of [f_ascii], which operate only on the ASCII charset, while
@@ -39,19 +41,24 @@
     the stdlib version
 *)
 module String: sig
-  val uppercase_ascii: string -> string
-  val capitalize_ascii: string -> string
-  val uncapitalize_ascii: string -> string
-  val lowercase_ascii: string -> string
+  val uppercase_ascii: string -> string (** 4.03 *)
+  val capitalize_ascii: string -> string (** 4.03 *)
+  val uncapitalize_ascii: string -> string (** 4.03 *)
+  val lowercase_ascii: string -> string (** 4.03 *)
+  val split_on_char: char -> string -> string list (** 4.04 *)
 end
 
 (** See above documentation for [String] *)
 module Char: sig
-  val uppercase_ascii: char -> char
-  val lowercase_ascii: char -> char
+  val uppercase_ascii: char -> char (** 4.03 *)
+  val lowercase_ascii: char -> char (** 4.03 *)
 end
 
-(** {1 Zarith 1.5} *)
+module Stack: sig
+  val fold: ('a -> 'b -> 'a) -> 'a -> 'b Stack.t -> 'a (** 4.03 *)
+end
+
+(** {1 Zarith} *)
 
 (** Function [Q.to_float] was introduced in Zarith 1.5 *)
 module Q: sig

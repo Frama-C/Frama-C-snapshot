@@ -1,7 +1,3 @@
-/* run.config_equalities
-   STDOPT: +"-value-msg-key d-eqs -print -kernel-msg-key printer:bitfields"
-*/
-
 /* run.config*
    STDOPT: +"-print -kernel-msg-key printer:bitfields"
 */

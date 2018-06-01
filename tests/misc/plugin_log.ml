@@ -1,7 +1,8 @@
 open Kernel
 
+let dkey = register_category "foo-category"
+
 let main () =
-  let dkey = register_category "foo-category" in
   result ~dkey "result with dkey";
   result "result";
   feedback ~dkey "feedback with dkey";

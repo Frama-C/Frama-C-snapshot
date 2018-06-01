@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2017                                               *)
+(*  Copyright (C) 2007-2018                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -239,7 +239,7 @@ let guarded_feedback selection level fmt_msg =
     else
       let n = State_selection.cardinal selection in
       if n = 0 then
-        Log.nullprintf fmt_msg
+        Pretty_utils.nullprintf fmt_msg
       else
         let states fmt =
           if n > 1 then Format.fprintf fmt " (for %d states)" n
@@ -247,7 +247,7 @@ let guarded_feedback selection level fmt_msg =
 	in
         feedback ~dkey ~level ~append:states fmt_msg;
   else
-    Log.nullprintf fmt_msg
+    Pretty_utils.nullprintf fmt_msg
 
 let dft_sel () = State_selection.full
 

@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2017                                               *)
+(*  Copyright (C) 2007-2018                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -250,34 +250,32 @@ let is_weak = function
   | Allocated (_, _, Variable { weak }) -> weak
   | _ -> false
 
-let is_valid_offset ~for_writing size base offset =
-  let (>>) i f = match i with
-    | None, _
-    | _, None -> false
-    | Some min, Some max -> f min max
+let offset_is_in_validity size validity ival =
+  Ival.is_bottom ival ||
+  (* Special case. We stretch the truth and say that the address of the
+     base itself is valid for a size of 0. A size of 0 appears for:
+     - empty structs
+     - memory operations on a 0 size (e.g. memcpy (_, _ 0))
+     - internally, to emulate the semantics of "past-one" pointers (in
+       Cvalue_forward.are_comparable). *)
+  Int.(equal zero size) && Ival.(equal ival zero) ||
+  let is_valid_for_bounds min_bound max_bound =
+    match Ival.min_and_max ival with
+    | Some min, Some max ->
+      Int.ge min min_bound && Int.le (Int.add max (Int.pred size)) max_bound
+    | _, _ -> false
   in
+  match validity with
+  | Empty | Invalid -> false
+  | Known (min, max)
+  | Unknown (min, Some max, _) -> is_valid_for_bounds min max
+  | Unknown (_, None, _) -> false (* all accesses are possibly invalid *)
+  | Variable v -> is_valid_for_bounds Int.zero v.min_alloc
+
+let is_valid_offset ~for_writing size base offset =
   Ival.is_bottom offset ||
   not (for_writing && (is_read_only base)) &&
-  ((* Special case. We stretch the truth and say that the address of the
-      base itself is valid for a size of 0. A size of 0 appears for:
-      - empty structs
-      - memory operations on a 0 size (e.g. memcpy (_, _ 0))
-      - internally, to emulate the semantics of "past-one" pointers (in
-        Cvalue_forward.are_comparable). *)
-    (Int.(equal zero size) && Ival.(equal offset zero)) ||
-    match validity base with
-    | Empty | Invalid -> false
-    | Known (min_valid,max_valid)
-    | Unknown (min_valid, Some max_valid, _) ->
-      Ival.min_and_max offset >> fun min max ->
-      (* valid between min_valid .. max_valid inclusive *)
-      Int.ge min min_valid && Int.le (Int.pred (Int.add max size)) max_valid
-    | Variable {min_alloc = min_valid} ->
-      (* valid between 0 .. min_valid inclusive *)
-      Ival.min_and_max offset >> fun min max ->
-      Int.ge min Int.zero && Int.le (Int.pred (Int.add max size)) min_valid
-    | Unknown (_, None, _) -> false
-  )
+  offset_is_in_validity size (validity base) offset
 
 let is_function base =
   match base with

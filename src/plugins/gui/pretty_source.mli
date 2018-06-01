@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2017                                               *)
+(*  Copyright (C) 2007-2018                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -49,6 +49,13 @@ module Locs: sig
   val create: unit -> state
   val clear: state -> unit
 end
+
+(* Folds or unfolds the preconditions at callsite [stmt]. *)
+val fold_preconds_at_callsite: stmt -> unit
+
+(* Are the preconditions unfolded at statement [stmt]?
+   Used to know which folding or unfolding icon to display at [stmt]. *)
+val are_preconds_unfolded: stmt -> bool
 
 val display_source :
   global list ->

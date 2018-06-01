@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2017                                               *)
+(*  Copyright (C) 2007-2018                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -30,6 +30,60 @@ let ladder = [| 1.0 ; 2.0 ; 3.0 ; 5.0 ; 10.0 ; 15.0 ;
                 300.0 ; 600.0 ; 900.0 ; 1800.0 ; (* 5', 10', 15', 30' *)
                 3600.0 |]                        (* 1h *)
 
+
+(* -------------------------------------------------------------------------- *)
+(* --- Step Ranges                                                        --- *)
+(* -------------------------------------------------------------------------- *)
+
+let n0 = 16
+let d0 = 4
+
+(* 
+   Number of steps is divided into an infinite number of successive bundles.
+   Each bundle number k=0,... is divided into n0 small intervals 
+   of size 2^k * d0.
+
+   The rank r-th of a number n is the r-th interval in some bundle k.
+   A number of steps is stabilized to its original rank r is it still belongs
+   to the intervals that would be immediately before or after the original
+   interval (in the _same_ bundle).
+ *)
+
+let a0 = n0 * d0
+let ak k = a0 lsl k - a0 (* first index of bundle k *)
+let dk k = d0 lsl k      (* size of small intervals in bundle k *)
+
+(*
+   Compute the range of values for rank k. 
+   If ~limit:false, returns all the values n that have the rank k.
+   If ~limit:true, returns all the values n that are stabilized at rank k.
+*)
+let range ?(limit=true) r =
+  let k = r / n0 in
+  let i = r mod n0 in
+  let a = ak k in
+  let d = dk k in
+  let i1 = if limit then i-1 else i in
+  let i2 = if limit then i+2 else i+1 in
+  max 1 (a + i1*d) , a + i2*d
+
+(*
+   Compute the rank of number n
+*)
+
+let rank n =
+  (* invariant a == ak k and a <= n *)
+  let rec aux a k n =
+    let b = ak (succ k) - 1 in
+    if n <= b then
+      let d = dk k in
+      let i = (n-a) / d in
+      n0 * k + i
+    else aux b (succ k) n
+  in
+  let a = ak 0 in
+  if n < a then (-1) else aux a 0 n
+
 (* -------------------------------------------------------------------------- *)
 (* --- Statistics                                                         --- *)
 (* -------------------------------------------------------------------------- *)
@@ -55,9 +109,13 @@ type stats = {
   mutable total : int ; (* valid + unsuccess + inconclusive *)
   mutable steps : int ;
   mutable time : float ;
+  mutable rank : int ;
 }
 
-let stats () = { total=0 ; valid=0 ; unsuccess=0 ; inconclusive=0 ; steps=0 ; time=0.0 }
+let stats () = {
+  total=0 ; valid=0 ; unsuccess=0 ; inconclusive=0 ;
+  steps=0 ; rank=(-1) ; time=0.0 ;
+}
 
 let add_stat (r:res) (st:int) (tm:float) (s:stats) =
   begin
@@ -74,6 +132,39 @@ let add_stat (r:res) (st:int) (tm:float) (s:stats) =
 let add_qedstat (ts:float) (s:stats) =
   if ts > s.time then s.time <- ts
 
+let get_field js fd =
+  try Json.field fd js with Not_found | Invalid_argument _ -> Json.Null
+
+let json_assoc fields =
+  let fields = List.filter (fun (_,d) -> d<>Json.Null) fields in
+  if fields = [] then Json.Null else Json.Assoc fields
+
+let json_of_stats s =
+  let add fd v w = if v > 0 then (fd , Json.Int v)::w else w in
+  json_assoc
+    begin
+      add "total" s.total @@
+      add "valid" s.valid @@
+      add "failed" s.inconclusive @@
+      add "unknown" s.unsuccess @@
+      (if s.rank >= 0 then [ "rank" , Json.Int s.rank ] else [])
+    end
+    
+let rankify_stats s js =
+  let n = s.steps in
+  if n > 0 then
+    try
+      let r0 = Json.field "rank" js |> Json.int in
+      let a,b = range r0 in
+      if a <= n && n <= b then
+        s.rank <- r0
+      else
+        s.rank <- rank n
+    with Not_found | Invalid_argument _ ->
+      s.rank <- rank n
+  else
+    s.rank <- (-1)
+
 (* -------------------------------------------------------------------------- *)
 (* --- Stats by Prover                                                    --- *)
 (* -------------------------------------------------------------------------- *)
@@ -87,6 +178,24 @@ let pstats () = {
   main = stats () ;
   prover = Hashtbl.create 7 ;
 }
+
+let json_of_pstats p =
+  json_assoc
+    begin
+      Hashtbl.fold
+        (fun p s w ->
+           (VCS.name_of_prover p , json_of_stats s) :: w)
+        p.prover [ "wp:main" , json_of_stats p.main ]
+    end
+
+let rankify_pstats p js =
+  begin
+    rankify_stats p.main (get_field js "wp:main") ;
+    Hashtbl.iter
+      (fun p s ->
+         rankify_stats s (get_field js @@ VCS.name_of_prover p) ;
+      ) p.prover ;
+  end
 
 let get_prover fs prover =
   try Hashtbl.find fs.prover prover
@@ -149,6 +258,26 @@ let dstats () = {
   dmap = Property.Map.empty ;
 }
 
+let js_prop = Property.Names.get_prop_name_id
+
+let json_of_dstats d =
+  json_assoc
+    begin
+      Property.Map.fold
+        (fun prop ps w ->
+           (js_prop prop , json_of_pstats ps) :: w)
+        d.dmap [ "wp:section" , json_of_pstats d.dstats ]
+    end
+
+let rankify_dstats d js =
+  begin
+    rankify_pstats d.dstats (get_field js "wp:section") ;
+    Property.Map.iter
+      (fun prop ps ->
+         rankify_pstats ps (get_field js @@ js_prop prop)
+      ) d.dmap ;
+  end
+
 (* -------------------------------------------------------------------------- *)
 (* --- Stats WP                                                           --- *)
 (* -------------------------------------------------------------------------- *)
@@ -177,6 +306,39 @@ type fcstat = {
   gcoverage : coverage ;
   mutable dsmap : dstats Smap.t ;
 }
+
+let json_of_fcstat (fc : fcstat) =
+  begin
+    let functions = ref [] in
+    let axiomatics = ref [] in
+    Smap.iter
+      (fun entry ds ->
+         let acc , key = match entry with
+           | Axiom a -> axiomatics , a
+           | Fun kf -> functions , Kernel_function.get_name kf
+         in
+         acc := ( key , json_of_dstats ds ) :: !acc ;
+      ) fc.dsmap ;
+    json_assoc [
+      "wp:global" , json_of_pstats fc.global ;
+      "wp:axiomatics" , json_assoc (List.rev (!axiomatics)) ;
+      "wp:functions" , json_assoc (List.rev (!functions)) ;
+    ] ;
+  end
+
+let rankify_fcstat fc js =
+  begin
+    rankify_pstats fc.global (get_field js "wp:global") ;
+    let jfunctions = get_field js "wp:functions" in
+    let jaxiomatics = get_field js "wp:axiomatics" in
+    Smap.iter
+      (fun entry ds ->
+         let js = match entry with
+           | Axiom a -> get_field jaxiomatics a
+           | Fun kf -> get_field jfunctions (Kernel_function.get_name kf)
+         in rankify_dstats ds js
+      ) fc.dsmap ;
+  end
 
 (* -------------------------------------------------------------------------- *)
 (* --- Computing Statistics                                               --- *)
@@ -414,6 +576,10 @@ let stat ~config fmt s = function
         Format.fprintf fmt "(%a)" Rformat.pp_time s.time
   | "steps" ->
       if s.steps > 0 then Format.fprintf fmt "(%d)" s.steps
+  | "range" ->
+      if s.rank >= 0 then
+        let a,b = range s.rank in
+        Format.fprintf fmt "(%d..%d)" a b
   | _ -> raise Exit
 
 let pstats ~config fmt s cmd arg =
@@ -429,6 +595,8 @@ let pstats ~config fmt s cmd arg =
   | "cvc3" -> stat ~config fmt (get_prover s (VCS.Why3 "cvc3")) arg
   | "cvc4" -> stat ~config fmt (get_prover s (VCS.Why3 "cvc4")) arg
   | "yices" -> stat ~config fmt (get_prover s (VCS.Why3 "yices")) arg
+  | "why3-alt-ergo" | "why3-ergo" ->
+      stat ~config fmt (get_prover s (VCS.Why3 "alt-ergo")) arg
   | _ -> stat ~config fmt s.main cmd
 
 let pcstats ~config fmt (s,c) cmd arg =
@@ -694,4 +862,23 @@ let export gstat specfile =
         close_out cout ;
         raise err
 
+(* -------------------------------------------------------------------------- *)
+
+let export_json gstat jfile =
+  begin
+    Wp_parameters.feedback "Report '%s'" jfile ;
+    let js =
+      try
+        if Sys.file_exists jfile
+        then Json.load_file jfile else Json.Null
+      with Json.Error(file,line,msg) ->
+        let source = Log.source ~file ~line in
+        Wp_parameters.error ~source "Incorrect json file: %s" msg ;
+        Json.Null
+    in
+    rankify_fcstat gstat js ;
+    Json.save_file jfile (json_of_fcstat gstat) ;
+  end
+
+  
 (* -------------------------------------------------------------------------- *)

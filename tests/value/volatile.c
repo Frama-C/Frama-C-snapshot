@@ -1,5 +1,5 @@
 /* run.config*
-   OPT: -no-autoload-plugins -load-module from,inout,value -val @VALUECONFIG@ -val-initialization-padding-globals maybe
+   STDOPT: +"-no-deps -no-input -no-out -val-initialization-padding-globals maybe -c11"
 */
 
 int volatile G = 1;
@@ -155,10 +155,26 @@ void main3 () {
   //@ do_not_reduce_volatile_logic(deepvolt[0].g[0]);
 }
 
-
+/* Tests the initialization of volatile local variables. */
+void main4 () {
+  int x;
+  volatile int v1;
+  x = v1; /* Initialization alarm, and imprecise value. */
+  volatile int v2 = 17;
+  x = v2; /* No alarm, but imprecise value. */
+  Frama_C_show_each_int_volatile(v1, v2); /* Both variables should be top_int. */
+  int* volatile p1;
+  int *q = p1; /* Initialization alarm, and imprecise value. */
+  Frama_C_show_each_ptr(q);
+  p1 = &x;
+  int* volatile p2 = &x;
+  /* Both pointers should have the same imprecise value: &x + imprecise offset. */
+  Frama_C_show_each_ptr_volatile(p1, p2);
+}
 
 void main() {
   main1();
   main2();
   main3();
+  main4();
 }

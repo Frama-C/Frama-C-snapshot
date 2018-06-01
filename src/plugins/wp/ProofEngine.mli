@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2017                                               *)
+(*  Copyright (C) 2007-2018                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -31,7 +31,7 @@ val get : Wpo.t -> [ `Script | `Proof | `Saved | `None ]
 val proof : main:Wpo.t -> tree
 val reset : tree -> unit
 val remove : Wpo.t -> unit
-val validate : tree -> unit
+val validate : ?unknown:bool -> tree -> unit
 
 (** Leaves are numbered from 0 to n-1 *)
 
@@ -50,7 +50,8 @@ val goto : tree -> position -> unit
 val main : tree -> Wpo.t
 val head : tree -> Wpo.t
 val goal : node -> Wpo.t
-val model : node -> Model.t
+val tree_model : tree -> Model.t
+val node_model : node -> Model.t
 val opened : node -> bool (** not proved *)
 val proved : node -> bool (** not opened *)
 
@@ -58,7 +59,7 @@ val title : node -> string
 val state : node -> state
 val parent : node -> node option
 val pending : node -> int
-val children : node -> node list
+val children : node -> (string * node) list
 val tactical : node -> ProofScript.jtactic option
 val get_strategies : node -> int * Strategy.t array (* current index *)
 val set_strategies : node -> ?index:int -> Strategy.t array -> unit
@@ -69,7 +70,8 @@ type fork
 val anchor : tree -> ?node:node -> unit -> node
 val fork : tree -> anchor:node -> ProofScript.jtactic -> Tactical.process -> fork
 val iter : (Wpo.t -> unit) -> fork -> unit
-val commit : fork -> node * node list
+val commit : resolve:bool -> fork -> node * (string * node) list
+val pretty : Format.formatter -> fork -> unit
 
 val script : tree -> ProofScript.jscript
 val bind : node -> ProofScript.jscript -> unit

@@ -20,5 +20,9 @@ int main() {
       //@ assert \false;
     }
   }
+  FILE *tmp = tmpfile();
+  if (!tmp) return 2;
+  fseek(tmp, 0L, SEEK_SET);
+  fclose(tmp);
   return 0;
 }

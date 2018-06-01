@@ -8,50 +8,62 @@
   _p__fc_fopen ∈ {{ &__fc_fopen[0] }}
   v ∈ [--..--]
 [value] computing for function main1 <- main.
-    Called from tests/value/subset.c:71.
-tests/value/subset.c:16:[value] warning: assertion got status unknown.
-tests/value/subset.c:17:[value] assertion got status valid.
-tests/value/subset.c:18:[value] assertion got status valid.
-tests/value/subset.c:22:[value] warning: assertion got status unknown.
+  Called from tests/value/subset.c:80.
+[value:alarm] tests/value/subset.c:23: Warning: assertion got status unknown.
+[value] tests/value/subset.c:24: assertion got status valid.
+[value] tests/value/subset.c:25: assertion got status valid.
+[value:alarm] tests/value/subset.c:29: Warning: assertion got status unknown.
 [value] computing for function fopen <- main1 <- main.
-    Called from tests/value/subset.c:25.
+  Called from tests/value/subset.c:32.
 [value] using specification for function fopen
 [value] Done for function fopen
-tests/value/subset.c:26:[value] assertion got status valid.
+[value] tests/value/subset.c:33: assertion got status valid.
+[value] computing for function fopen2 <- main1 <- main.
+  Called from tests/value/subset.c:34.
+[value] using specification for function fopen2
+[value] Done for function fopen2
+[value] tests/value/subset.c:35: assertion got status valid.
 [value] Recording results for main1
 [value] Done for function main1
 [value] computing for function main2 <- main.
-    Called from tests/value/subset.c:72.
-tests/value/subset.c:35:[value] assertion got status valid.
+  Called from tests/value/subset.c:81.
+[value] tests/value/subset.c:44: assertion got status valid.
 [value] Recording results for main2
 [value] Done for function main2
 [value] computing for function main3 <- main.
-    Called from tests/value/subset.c:73.
-tests/value/subset.c:40:[value] warning: accessing out of bounds index. assert 0 ≤ v;
-tests/value/subset.c:40:[value] warning: accessing out of bounds index. assert v < 10;
-tests/value/subset.c:41:[value] warning: accessing out of bounds index. assert 0 ≤ v;
-tests/value/subset.c:41:[value] warning: accessing out of bounds index. assert v < 300;
-tests/value/subset.c:42:[value] warning: assertion got status unknown.
-tests/value/subset.c:43:[value] warning: assertion got status unknown.
-tests/value/subset.c:45:[value] warning: assertion got status unknown.
-tests/value/subset.c:48:[value] warning: assertion got status unknown.
-tests/value/subset.c:49:[value] warning: assertion got status unknown.
-tests/value/subset.c:50:[value] warning: assertion got status unknown.
+  Called from tests/value/subset.c:82.
+[value:alarm] tests/value/subset.c:49: Warning: 
+  accessing out of bounds index. assert 0 ≤ v;
+[value:alarm] tests/value/subset.c:49: Warning: 
+  accessing out of bounds index. assert v < 10;
+[value:alarm] tests/value/subset.c:50: Warning: 
+  accessing out of bounds index. assert 0 ≤ v;
+[value:alarm] tests/value/subset.c:50: Warning: 
+  accessing out of bounds index. assert v < 300;
+[value:alarm] tests/value/subset.c:51: Warning: assertion got status unknown.
+[value:alarm] tests/value/subset.c:52: Warning: assertion got status unknown.
+[value:alarm] tests/value/subset.c:54: Warning: assertion got status unknown.
+[value:alarm] tests/value/subset.c:57: Warning: assertion got status unknown.
+[value:alarm] tests/value/subset.c:58: Warning: assertion got status unknown.
+[value:alarm] tests/value/subset.c:59: Warning: assertion got status unknown.
 [value] Recording results for main3
 [value] Done for function main3
 [value] computing for function main4 <- main.
-    Called from tests/value/subset.c:74.
-tests/value/subset.c:55:[value] warning: accessing out of bounds index. assert 0 ≤ v;
-tests/value/subset.c:55:[value] warning: accessing out of bounds index. assert v < 10;
-tests/value/subset.c:56:[value] warning: assertion got status unknown.
-tests/value/subset.c:57:[value] warning: assertion got status unknown.
-tests/value/subset.c:59:[value] warning: assertion got status unknown.
-tests/value/subset.c:60:[value] warning: assertion got status unknown.
-tests/value/subset.c:61:[value] warning: assertion got status unknown.
-tests/value/subset.c:63:[value] warning: assertion got status unknown.
-tests/value/subset.c:64:[value] warning: assertion got status unknown.
-tests/value/subset.c:65:[value] assertion 'OK' got status valid.
-tests/value/subset.c:66:[value] warning: assertion 'KO' got status unknown.
+  Called from tests/value/subset.c:83.
+[value:alarm] tests/value/subset.c:64: Warning: 
+  accessing out of bounds index. assert 0 ≤ v;
+[value:alarm] tests/value/subset.c:64: Warning: 
+  accessing out of bounds index. assert v < 10;
+[value:alarm] tests/value/subset.c:65: Warning: assertion got status unknown.
+[value:alarm] tests/value/subset.c:66: Warning: assertion got status unknown.
+[value:alarm] tests/value/subset.c:68: Warning: assertion got status unknown.
+[value:alarm] tests/value/subset.c:69: Warning: assertion got status unknown.
+[value:alarm] tests/value/subset.c:70: Warning: assertion got status unknown.
+[value:alarm] tests/value/subset.c:72: Warning: assertion got status unknown.
+[value:alarm] tests/value/subset.c:73: Warning: assertion got status unknown.
+[value] tests/value/subset.c:74: assertion 'OK' got status valid.
+[value:alarm] tests/value/subset.c:75: Warning: 
+  assertion 'KO' got status unknown.
 [value] Recording results for main4
 [value] Done for function main4
 [value] Recording results for main
@@ -80,6 +92,8 @@ tests/value/subset.c:66:[value] warning: assertion 'KO' got status unknown.
 [from] Computing for function main1
 [from] Computing for function fopen <-main1
 [from] Done for function fopen
+[from] Computing for function fopen2 <-main1
+[from] Done for function fopen2
 [from] Done for function main1
 [from] Computing for function main2
 [from] Done for function main2
@@ -90,9 +104,11 @@ tests/value/subset.c:66:[value] warning: assertion 'KO' got status unknown.
 [from] Computing for function main
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
-    These dependencies hold at termination for the executions that terminate:
+  These dependencies hold at termination for the executions that terminate:
 [from] Function fopen:
   \result FROM _p__fc_fopen; "bla"
+[from] Function fopen2:
+  \result FROM _p__fc_fopen; "bli"
 [from] Function main1:
   NO EFFECTS
 [from] Function main2:
@@ -105,22 +121,22 @@ tests/value/subset.c:66:[value] warning: assertion 'KO' got status unknown.
   NO EFFECTS
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function main1:
-      p
+    p
 [inout] Inputs for function main1:
-      _p__fc_fopen; "bla"
+    _p__fc_fopen; "bla"; "bli"
 [inout] Out (internal) for function main2:
-      x; y; z
+    x; y; z
 [inout] Inputs for function main2:
-      \nothing
+    \nothing
 [inout] Out (internal) for function main3:
-      a[0..9]; b[0..299]; z
+    a[0..9]; b[0..299]; z
 [inout] Inputs for function main3:
-      v
+    v
 [inout] Out (internal) for function main4:
-      a[0..9]; k
+    a[0..9]; k
 [inout] Inputs for function main4:
-      v
+    v
 [inout] Out (internal) for function main:
-      \nothing
+    \nothing
 [inout] Inputs for function main:
-      _p__fc_fopen; v; "bla"
+    _p__fc_fopen; v; "bla"; "bli"

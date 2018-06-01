@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2017                                               *)
+(*  Copyright (C) 2007-2018                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -744,10 +744,6 @@ module From = struct
   end
 end
 
-module Users = struct
-  let get = mk_fun "Users.get"
-end
-
 (* ************************************************************************* *)
 (** {2 PDG} *)
 (* ************************************************************************* *)
@@ -996,24 +992,10 @@ end
 (** {2 Others plugins} *)
 (* ************************************************************************* *)
 
-module Impact = struct
-  let compute_pragmas = mk_fun "Impact.compute_pragmas"
-  let from_stmt = mk_fun "Impact.from_stmt"
-  let from_nodes = mk_fun "Impact.from_nodes"
-end
-
 module Security = struct
   let run_whole_analysis = mk_fun "Security.run_whole_analysis"
   let run_ai_analysis = mk_fun "Security.run_ai_analysis"
   let run_slicing_analysis = mk_fun "Security.run_slicing_analysis"
-  let self = ref State.dummy
-end
-
-module Occurrence = struct
-  type t = (kernel_function option * kinstr * lval) list
-  let get = mk_fun "Occurrence.get"
-  let get_last_result = mk_fun "Occurrence.get_last_result"
-  let print_all = mk_fun "Occurrence.print_all"
   let self = ref State.dummy
 end
 

@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2017                                               *)
+(*  Copyright (C) 2007-2018                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -330,7 +330,7 @@ val replace_option_setting:
 (* ************************************************************************** *)
 
     Frama-c parameters depending on the command line argument and set at the
-    very beginning of the Frama-C initialisation.
+    very beginning of the Frama-C initialization.
 
     They should not be used directly by a standard plug-in developer. *)
 

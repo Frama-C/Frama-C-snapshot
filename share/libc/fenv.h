@@ -2,7 +2,7 @@
 /*                                                                        */
 /*  This file is part of Frama-C.                                         */
 /*                                                                        */
-/*  Copyright (C) 2007-2017                                               */
+/*  Copyright (C) 2007-2018                                               */
 /*    CEA (Commissariat à l'énergie atomique et aux énergies              */
 /*         alternatives)                                                  */
 /*                                                                        */
@@ -76,7 +76,7 @@ fenv_t;
  *    corresponding to the currently set floating-point exceptions included in
  *    parameter excepts.
  */
-int fetestexcept( int excepts );
+extern int fetestexcept( int excepts );
 
 /** Saves the current floating-point environment in the object pointed to by
  *  envp, clears the floating-point status flags, and then installs a non-stop
@@ -84,7 +84,7 @@ int fetestexcept( int excepts );
  *  exceptions.
  *  \return Always returns zero.
  */
-int feholdexcept( fenv_t *envp );
+extern int feholdexcept( fenv_t *envp );
 
 /** Establishes the floating-point environment represented by the object pointed
  *  to by envp. The argument envp shall point to a valid floating-point
@@ -93,10 +93,10 @@ int feholdexcept( fenv_t *envp );
  *  exceptions: If envp contains a raised exception flag and at the same time
  *  unmasks that exception type, then this will cause an interrupt.
  */
-void fesetenv( const fenv_t *envp );
+extern void fesetenv( const fenv_t *envp );
 
 /** Clears the supported floating-point exceptions represented by argument. 
  */
-void feclearexcept( int excepts );
+extern void feclearexcept( int excepts );
 
 #endif /* __FC_FENV */

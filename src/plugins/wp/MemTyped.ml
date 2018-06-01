@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2017                                               *)
+(*  Copyright (C) 2007-2018                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -29,7 +29,7 @@ open Cil_datatype
 open Ctypes
 open Lang
 open Lang.F
-open Memory
+open Sigs
 open Definitions
 
 let dkey_layout = Wp_parameters.register_category "layout"
@@ -54,11 +54,12 @@ let f_offset = Lang.extern_f ~library ~result:L.Int
            coq     = Qed.Engine.F_subst("(offset %1)");
           } "offset"
 let f_shift  = Lang.extern_f ~library ~result:t_addr "shift"
-let f_global = Lang.extern_f ~library ~result:t_addr "global"
+let f_global = Lang.extern_f ~library ~result:t_addr ~category:L.Injection "global"
 let f_null   = Lang.extern_f ~library ~result:t_addr "null"
 
 let p_valid_rd = Lang.extern_fp ~library "valid_rd"
 let p_valid_rw = Lang.extern_fp ~library "valid_rw"
+let p_invalid = Lang.extern_fp ~library "invalid"
 let p_separated = Lang.extern_fp ~library "separated"
 let p_included = Lang.extern_fp ~library "included"
 let p_eqmem = Lang.extern_fp ~library "eqmem"
@@ -69,8 +70,14 @@ let p_linked = Lang.extern_fp ~library "linked" (* allocation-table -> prop *)
 let p_sconst = Lang.extern_fp ~library "sconst" (* int-memory -> prop *)
 let a_lt = Lang.extern_p ~library ~bool:"addr_lt_bool" ~prop:"addr_lt" ()
 let a_leq = Lang.extern_p ~library ~bool:"addr_le_bool" ~prop:"addr_le" ()
-let a_cast = Lang.extern_f ~result:L.Int ~category:L.Injection ~library "cast"
-let a_hardware = Lang.extern_f ~result:L.Int ~category:L.Injection ~library "hardware"
+
+let a_addr_of_int = Lang.extern_f
+    ~category:L.Injection
+    ~library ~result:t_addr "addr_of_int"
+
+let a_int_of_addr = Lang.extern_f
+    ~category:L.Injection
+    ~library ~result:L.Int "int_of_addr"
 
 (*
 
@@ -244,12 +251,20 @@ let r_separated = function
 (*
 logic a : int
 logic b : int
-logic S : prop
+
+predicate R =     p.base = q.base 
+              /\ (q.offset <= p.offset)
+              /\ (p.offset + a <= q.offset + b)
 
 predicate included = 0 < a -> ( 0 <= b and R )
-predicate a_negative = a <= 0
-predicate b_negative = b <= 0
+predicate a_empty = a <= 0
+predicate b_negative = b < 0
 
+lemma SAME_P: p=q -> (R <-> a<=b)
+lemma SAME_A: a=b -> (R <-> p=q)
+
+goal INC_P:  p=q -> (included <-> ( 0 < a -> a <= b )) (by SAME_P)
+goal INC_A:  a=b -> 0 < a -> (included <-> R) (by SAME_A)
 goal INC_1:  a_empty -> (included <-> true)
 goal INC_2:  b_negative -> (included <-> a_empty)
 goal INC_3:  not R -> (included <-> a_empty)
@@ -258,8 +273,11 @@ goal INC_4:  not a_empty -> not b_negative -> (included <-> R)
 
 let r_included = function
   | [p;a;q;b] ->
+      if F.e_eq p q == F.e_true
+      then F.e_imply [F.e_lt F.e_zero a] (F.e_leq a b) (* INC_P *)
+      else
       if (F.e_eq a b == F.e_true) && (F.e_lt F.e_zero a == F.e_true)
-      then F.e_eq p q
+      then F.e_eq p q (* INC_A *)
       else
         begin
           let a_empty = F.e_leq a F.e_zero in
@@ -284,6 +302,25 @@ let r_included = function
         end
   | _ -> raise Not_found
 
+(* -------------------------------------------------------------------------- *)
+(* --- Simplifier for int/addr conversion                                 --- *)
+(* -------------------------------------------------------------------------- *)
+
+let phi_int_of_addr p =
+  if p == a_null then F.e_zero else
+    match F.repr p with
+    | L.Fun(f,[a]) when f == a_addr_of_int -> a
+    | _ -> raise Not_found
+
+let phi_addr_of_int p =
+  if p == F.e_zero then a_null else
+    match F.repr p with
+    | L.Fun(f,[a]) when f == a_int_of_addr -> a
+    | _ -> raise Not_found
+
+(* -------------------------------------------------------------------------- *)
+(* --- Simplifier Registration                                            --- *)
+(* -------------------------------------------------------------------------- *)
 let () = Context.register
   begin fun () ->
     F.set_builtin_1   f_base   phi_base ;
@@ -293,6 +330,8 @@ let () = Context.register
     F.set_builtin_eqp f_global eq_shift ;
     F.set_builtin p_separated r_separated ;
     F.set_builtin p_included  r_included ;
+    F.set_builtin_1 a_addr_of_int phi_addr_of_int ;
+    F.set_builtin_1 a_int_of_addr phi_int_of_addr ;
   end
 
 (* -------------------------------------------------------------------------- *)
@@ -426,6 +465,7 @@ let offset_of_field f =
 (* -------------------------------------------------------------------------- *)
 
 type sigma = Sigma.t
+type domain = Sigma.domain
 type segment = loc rloc
 
 let pretty fmt l = F.pp_term fmt l
@@ -1135,16 +1175,8 @@ let cast s l =
               "%a" pp_mismatch s ; l
     end
 
-let loc_of_int _ v =
-  if F.is_zero v then null else
-    begin
-      match F.repr v with
-      | L.Kint _ -> a_addr e_zero (e_fun a_hardware [v])
-      | _ -> Warning.error ~source:"Typed Model"
-               "Forbidden cast of int to pointer"
-    end
-
-let int_of_loc _i loc = e_fun a_cast [pointer_val loc]
+let loc_of_int _ v = F.e_fun a_addr_of_int [v]
+let int_of_loc _ l = F.e_fun a_int_of_addr [l]
 
 (* -------------------------------------------------------------------------- *)
 (* --- Updates                                                            --- *)
@@ -1155,7 +1187,7 @@ let domain obj _l = footprint obj
 let updated s c l v =
   let m1 = Sigma.value s.pre c in
   let m2 = Sigma.value s.post c in
-  [p_equal m2 (F.e_set m1 l v)]
+  [Set(m2,F.e_set m1 l v)]
 
 let havoc_range s obj l n =
   let ps = ref [] in
@@ -1189,7 +1221,8 @@ let stored s obj l v =
   | C_float _ -> updated s M_float l v
   | C_pointer _ -> updated s M_pointer l v
   | C_comp _ | C_array _ ->
-      p_equal (loadvalue s.post obj l) v :: havoc s obj l
+      Set(loadvalue s.post obj l, v) :: 
+      (List.map (fun p -> Assert p) (havoc s obj l))
 
 let copied s obj p q = stored s obj p (loadvalue s.pre obj q)
 
@@ -1201,8 +1234,9 @@ let assigned_loc s obj l =
   match obj with
   | C_int _ | C_float _ | C_pointer _ ->
       let x = Lang.freshvar ~basename:"v" (Lang.tau_of_object obj) in
-      stored s obj l (e_var x)
-  | C_comp _ | C_array _ -> havoc s obj l
+      List.map Cvalues.equation (stored s obj l (e_var x))
+  | C_comp _ | C_array _ -> 
+      havoc s obj l
 
 let equal_loc s obj l =
   match obj with
@@ -1259,47 +1293,48 @@ let s_valid sigma acs p n =
   let p_valid = match acs with RW -> p_valid_rw | RD -> p_valid_rd in
   p_call p_valid [Sigma.value sigma T_alloc;p;n]
 
-let valid sigma acs = function
-  | Rloc(obj,l) -> s_valid sigma acs l (e_int (size_of_object obj))
+let s_invalid sigma p n =
+  p_call p_invalid [Sigma.value sigma T_alloc;p;n]
+
+let segment phi = function
+  | Rloc(obj,l) ->
+      phi l (e_int (size_of_object obj))
   | Rrange(l,obj,Some a,Some b) ->
       let l = shift l obj a in
       let n = e_fact (size_of_object obj) (e_range a b) in
-      s_valid sigma acs l n
+      phi l n
   | Rrange(l,_,a,b) ->
       Wp_parameters.abort ~current:true
         "Invalid infinite range @[<hov 2>%a+@,(%a@,..%a)@]"
         F.pp_term l Vset.pp_bound a Vset.pp_bound b
-      
-type alloc = ALLOC | FREE
 
-let allocates spost xs a =
-  if xs = [] then spost, [] else
-    let spre = Sigma.havoc_chunk spost T_alloc in
-    let alloc =
-      List.fold_left
-        (fun m x ->
-           let size = match a with
-             | FREE -> 0
-             | ALLOC -> size_of_typ x.vtype
-           in F.e_set m (BASE.get x) (e_int size))
-        (Sigma.value spre T_alloc) xs in
-    spre , [ p_equal (Sigma.value spost T_alloc) alloc ]
+let valid sigma acs = segment (s_valid sigma acs)
+let invalid sigma = segment (s_invalid sigma)
 
-let framed sigma =
-  let frame phi chunk =
+let frame sigma =
+  let wellformed_frame phi chunk =
     if Sigma.mem sigma chunk
     then [ p_call phi [Sigma.value sigma chunk] ]
     else []
   in
-  frame p_linked T_alloc @
-  frame p_sconst M_char @
-  frame p_framed M_pointer
+  wellformed_frame p_linked T_alloc @
+  wellformed_frame p_sconst M_char @
+  wellformed_frame p_framed M_pointer
 
-let scope sigma scope xs = match scope with
-  | Mcfg.SC_Global -> sigma , framed sigma
-  | Mcfg.SC_Function_in -> sigma , []
-  | Mcfg.SC_Function_frame | Mcfg.SC_Block_in -> allocates sigma xs ALLOC
-  | Mcfg.SC_Function_out | Mcfg.SC_Block_out -> allocates sigma xs FREE
+let alloc sigma xs =
+  if xs = [] then sigma else Sigma.havoc_chunk sigma T_alloc
+
+let scope seq scope xs =
+  if xs = [] then [] else
+    let alloc =
+      List.fold_left
+        (fun m x ->
+           let size = match scope with
+             | Sigs.Leave -> 0
+             | Sigs.Enter -> size_of_typ x.vtype
+           in F.e_set m (BASE.get x) (e_int size))
+        (Sigma.value seq.pre T_alloc) xs in
+    [ p_equal (Sigma.value seq.post T_alloc) alloc ]
 
 let global _sigma p = p_leq (e_fun f_region [a_base p]) e_zero
 
@@ -1341,7 +1376,9 @@ let r_included r1 r2 =
   | _ ->
       let base1,set1 = range_set r1 in
       let base2,set2 = range_set r2 in
-      p_and (p_equal base1 base2) (Vset.subset set1 set2)
+      p_if (p_equal base1 base2)
+        (Vset.subset set1 set2)
+        (Vset.is_empty set1)
 
 let r_disjoint r1 r2 =
   match r1 , r2 with
@@ -1373,20 +1410,20 @@ and lookup_f f es =
     | RS_Shift _ , [e;k] -> Mstate.index (lookup_lv e) k
     | _ -> raise Not_found
   with Not_found when es = [] -> 
-    Memory.(Mvar (RegisterBASE.find f),[])
+    Sigs.(Mvar (RegisterBASE.find f),[])
 
-and lookup_lv e = try lookup_a e with Not_found -> Memory.(Mmem e,[])
+and lookup_lv e = try lookup_a e with Not_found -> Sigs.(Mmem e,[])
 
-let mchunk c = Memory.Mchunk (Pretty_utils.to_string Chunk.pretty c)
+let mchunk c = Sigs.Mchunk (Pretty_utils.to_string Chunk.pretty c)
 
 let lookup s e =
   try mchunk (Tmap.find e s)
   with Not_found ->
   try match F.repr e with
-    | L.Fun( f , es ) -> Memory.Maddr (lookup_f f es)
-    | L.Aget( m , k ) when Tmap.find m s <> T_alloc -> Memory.Mlval (lookup_lv k)
-    | _ -> Memory.Mterm
-  with Not_found -> Memory.Mterm
+    | L.Fun( f , es ) -> Sigs.Maddr (lookup_f f es)
+    | L.Aget( m , k ) when Tmap.find m s <> T_alloc -> Sigs.Mlval (lookup_lv k)
+    | _ -> Sigs.Mterm
+  with Not_found -> Sigs.Mterm
 
 let apply f s =
   Tmap.fold (fun m c w -> Tmap.add (f m) c w) s Tmap.empty

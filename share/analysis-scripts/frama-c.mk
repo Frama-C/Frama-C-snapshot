@@ -2,7 +2,7 @@
 #                                                                        #
 #  This file is part of Frama-C.                                         #
 #                                                                        #
-#  Copyright (C) 2007-2017                                               #
+#  Copyright (C) 2007-2018                                               #
 #    CEA (Commissariat à l'énergie atomique et aux énergies              #
 #         alternatives)                                                  #
 #                                                                        #
@@ -21,7 +21,7 @@
 ##########################################################################
 
 # This file is intended to be included by a classic Makefile when doing
-# non-trivial analyses with Frama-C and its EVA plugin. For instance, you
+# non-trivial analyses with Frama-C and its Eva plugin. For instance, you
 # can start your Makefile with the following line:
 #
 # include path/to/frama-c.mk
@@ -33,12 +33,12 @@
 # CPPFLAGS      preprocessing flags
 # FCFLAGS       general flags to use with frama-c
 # FCGUIFLAGS    flags to use with frama-c-gui
-# EVAFLAGS      flags to use with the EVA plugin
+# EVAFLAGS      flags to use with the Eva plugin
 # SLEVEL        the part of the frama-c command line concerning slevel
 #               (you can use EVAFLAGS for this, if you don't intend
 #               to use slevel-tweaker.sh)
-# EVABUILTINS   EVA builtins to be set (via -val-builtin)
-# EVAUSESPECS   EVA functions to be overridden by specs (-val-use-spec)
+# EVABUILTINS   Eva builtins to be set (via -val-builtin)
+# EVAUSESPECS   Eva functions to be overridden by specs (-val-use-spec)
 #
 # FLAMEGRAPH    path to flamegraph.pl (github.com/brendangregg/FlameGraph)
 #
@@ -124,7 +124,7 @@ export LIBOVERLAY_SCROLLBAR=0
 
 .PHONY: clean
 clean::
-	$(RM) -r *.parse *.eva
+	$(RM) -r *.parse *.eva *.loop
 
 clean-backups:
 	find . -regextype posix-extended \
@@ -193,6 +193,7 @@ SHELL        := /bin/bash
 	      -value-log w:$@/warnings.log \
 	      -metrics-log a:$@/metrics.log \
 	      -metrics-value-cover \
+	      -then -nonterm -nonterm-log a:$@/nonterm.log \
 	    || ($(RM) $@/stats.txt && false) # Prevents having error code reporting in stats.txt
 	} 2>&1 |
 	  $(SED_UNBUFFERED) '/\[value\] Values at end of function/,999999d' |
@@ -219,7 +220,7 @@ SHELL        := /bin/bash
 	    sed -e '1,/Add this to your command line:/d'
 	} > $@
 
-# Produce an SVG from raw flamegraph data produced by EVA
+# Produce an SVG from raw flamegraph data produced by Eva
 %/flamegraph.svg: %/flamegraph.txt
 ifneq ($(FLAMEGRAPH),)
 	$(FLAMEGRAPH) $^ > $@

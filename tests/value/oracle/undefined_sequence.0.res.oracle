@@ -1,70 +1,79 @@
 [kernel] Parsing tests/value/undefined_sequence.i (no preprocessing)
-tests/value/undefined_sequence.i:16:[kernel] warning: Unspecified sequence with side effect:
-    /*  <-  */
-    tmp = r;
-    /* r <-  */
-    r ++;
-    /* r <- tmp */
-    r = tmp;
-tests/value/undefined_sequence.i:28:[kernel] warning: Unspecified sequence with side effect:
-    /* d <-  */
-    d = 0;
-    /*  <- d */
-tests/value/undefined_sequence.i:35:[kernel] warning: Unspecified sequence with side effect:
-    /* x <-  */
-    x = 0;
-    /* *y <- y */
-    tmp = 1;
-    *y = tmp;
-    /* i <-  */
-    i = x + tmp;
-tests/value/undefined_sequence.i:44:[kernel] warning: Unspecified sequence with side effect:
-    /*  <-  */
-    tmp_4 = j;
-    /* j <-  */
-    j ++;
-    /* G[j] <- j G[tmp_4] tmp_4 */
-    G[j] = G[tmp_4];
-tests/value/undefined_sequence.i:45:[kernel] warning: Unspecified sequence with side effect:
-    /*  <-  */
-    tmp_5 = i;
-    /* i <-  */
-    i ++;
-    /* G[tmp_5] <- tmp_5 G[i] i */
-    G[tmp_5] = G[i];
-tests/value/undefined_sequence.i:50:[kernel] warning: Unspecified sequence with side effect:
-    /*  <-  */
-    tmp_6 = j;
-    /* j <-  */
-    j ++;
-    /* G[j] <- j G[tmp_6] tmp_6 */
-    G[j] += G[tmp_6];
-tests/value/undefined_sequence.i:51:[kernel] warning: Unspecified sequence with side effect:
-    /*  <-  */
-    tmp_7 = i;
-    /* i <-  */
-    i ++;
-    /* G[tmp_7] <- tmp_7 G[i] i */
-    G[tmp_7] += G[i];
-tests/value/undefined_sequence.i:53:[kernel] warning: Unspecified sequence with side effect:
-    /*  <- x */
-    tmp_8 = g(3);
-    
-    tmp_9 = f(tmp_8 + x);
-    /*  <-  */
-    tmp_10 = x;
-    /* x <-  */
-    x ++;
-    /* i <- tmp_10 */
-    i = tmp_9 + tmp_10;
-tests/value/undefined_sequence.i:67:[kernel] warning: Unspecified sequence with side effect:
-    /* my_f <- g */
-    my_f = & g;
-    tmp_16 = f(1);
-    /*  <- my_f */
-    tmp_17 = (*my_f)(2);
-    /*  <-  */
-    tmp_18 = tmp_16 + tmp_17;
+[kernel] tests/value/undefined_sequence.i:16: Warning: 
+  Unspecified sequence with side effect:
+  /*  <-  */
+  tmp = r;
+  /* r <-  */
+  r ++;
+  /* r <- tmp */
+  r = tmp;
+[kernel] tests/value/undefined_sequence.i:28: Warning: 
+  Unspecified sequence with side effect:
+  /* d <-  */
+  d = 0;
+  /*  <- d */
+[kernel] tests/value/undefined_sequence.i:35: Warning: 
+  Unspecified sequence with side effect:
+  /* x <-  */
+  x = 0;
+  /* *y <- y */
+  tmp = 1;
+  *y = tmp;
+  /* i <-  */
+  i = x + tmp;
+[kernel] tests/value/undefined_sequence.i:44: Warning: 
+  Unspecified sequence with side effect:
+  /*  <-  */
+  tmp_4 = j;
+  /* j <-  */
+  j ++;
+  /* G[j] <- j G[tmp_4] tmp_4 */
+  G[j] = G[tmp_4];
+[kernel] tests/value/undefined_sequence.i:45: Warning: 
+  Unspecified sequence with side effect:
+  /*  <-  */
+  tmp_5 = i;
+  /* i <-  */
+  i ++;
+  /* G[tmp_5] <- tmp_5 G[i] i */
+  G[tmp_5] = G[i];
+[kernel] tests/value/undefined_sequence.i:50: Warning: 
+  Unspecified sequence with side effect:
+  /*  <-  */
+  tmp_6 = j;
+  /* j <-  */
+  j ++;
+  /* G[j] <- j G[tmp_6] tmp_6 */
+  G[j] += G[tmp_6];
+[kernel] tests/value/undefined_sequence.i:51: Warning: 
+  Unspecified sequence with side effect:
+  /*  <-  */
+  tmp_7 = i;
+  /* i <-  */
+  i ++;
+  /* G[tmp_7] <- tmp_7 G[i] i */
+  G[tmp_7] += G[i];
+[kernel] tests/value/undefined_sequence.i:53: Warning: 
+  Unspecified sequence with side effect:
+  /*  <- x */
+  tmp_8 = g(3);
+  
+  tmp_9 = f(tmp_8 + x);
+  /*  <-  */
+  tmp_10 = x;
+  /* x <-  */
+  x ++;
+  /* i <- tmp_10 */
+  i = tmp_9 + tmp_10;
+[kernel] tests/value/undefined_sequence.i:67: Warning: 
+  Unspecified sequence with side effect:
+  /* my_f <- g */
+  my_f = & g;
+  tmp_16 = f(1);
+  /*  <- my_f */
+  tmp_17 = (*my_f)(2);
+  /*  <-  */
+  tmp_18 = tmp_16 + tmp_17;
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
 [value] Initial state computed
@@ -73,58 +82,77 @@ tests/value/undefined_sequence.i:67:[kernel] warning: Unspecified sequence with 
   c ∈ [--..--]
   r ∈ {0}
   H ∈ {0}
-tests/value/undefined_sequence.i:35:[value] warning: undefined multiple accesses in expression. assert \separated(&x, y);
-tests/value/undefined_sequence.i:36:[value] entering loop for the first time
-tests/value/undefined_sequence.i:38:[value] entering loop for the first time
-tests/value/undefined_sequence.i:40:[value] entering loop for the first time
-tests/value/undefined_sequence.i:40:[value] warning: signed overflow.
-    assert G[tmp_2] + G[tmp_3] ≤ 2147483647;
-    (tmp_2 from j++, tmp_3 from i++)
-tests/value/undefined_sequence.i:43:[value] entering loop for the first time
-tests/value/undefined_sequence.i:44:[value] warning: undefined multiple accesses in expression. assert \separated(&j, &j);
-tests/value/undefined_sequence.i:45:[value] warning: undefined multiple accesses in expression. assert \separated(&i, &i);
-tests/value/undefined_sequence.i:49:[value] entering loop for the first time
-tests/value/undefined_sequence.i:50:[value] warning: undefined multiple accesses in expression. assert \separated(&j, &j);
-tests/value/undefined_sequence.i:51:[value] warning: undefined multiple accesses in expression. assert \separated(&i, &i);
-tests/value/undefined_sequence.i:53:[value] warning: undefined multiple accesses in expression. assert \separated(&x, &x);
+[value:alarm] tests/value/undefined_sequence.i:35: Warning: 
+  undefined multiple accesses in expression. assert \separated(&x, y);
+[value] tests/value/undefined_sequence.i:36: entering loop for the first time
+[value] tests/value/undefined_sequence.i:38: entering loop for the first time
+[value] tests/value/undefined_sequence.i:40: entering loop for the first time
+[value:alarm] tests/value/undefined_sequence.i:40: Warning: 
+  signed overflow.
+  assert G[tmp_2] + G[tmp_3] ≤ 2147483647;
+  (tmp_2 from j++, tmp_3 from i++)
+[value] tests/value/undefined_sequence.i:43: entering loop for the first time
+[value:alarm] tests/value/undefined_sequence.i:44: Warning: 
+  undefined multiple accesses in expression. assert \separated(&j, &j);
+[value:alarm] tests/value/undefined_sequence.i:45: Warning: 
+  undefined multiple accesses in expression. assert \separated(&i, &i);
+[value] tests/value/undefined_sequence.i:49: entering loop for the first time
+[value:alarm] tests/value/undefined_sequence.i:50: Warning: 
+  undefined multiple accesses in expression. assert \separated(&j, &j);
+[value:alarm] tests/value/undefined_sequence.i:51: Warning: 
+  undefined multiple accesses in expression. assert \separated(&i, &i);
+[value:alarm] tests/value/undefined_sequence.i:53: Warning: 
+  undefined multiple accesses in expression. assert \separated(&x, &x);
 [value] computing for function g <- main.
-    Called from tests/value/undefined_sequence.i:54.
+  Called from tests/value/undefined_sequence.i:54.
 [value] Recording results for g
 [value] Done for function g
 [value] computing for function f <- main.
-    Called from tests/value/undefined_sequence.i:54.
+  Called from tests/value/undefined_sequence.i:54.
 [value] Recording results for f
 [value] Done for function f
 [value] computing for function h <- main.
-    Called from tests/value/undefined_sequence.i:56.
-tests/value/undefined_sequence.i:16:[value] warning: undefined multiple accesses in expression. assert \separated(&r, &r);
+  Called from tests/value/undefined_sequence.i:56.
+[value:alarm] tests/value/undefined_sequence.i:16: Warning: 
+  undefined multiple accesses in expression. assert \separated(&r, &r);
 [value] Recording results for h
 [value] Done for function h
 [value] computing for function h <- main.
-    Called from tests/value/undefined_sequence.i:56.
+  Called from tests/value/undefined_sequence.i:56.
 [value] Recording results for h
 [value] Done for function h
 [value] computing for function func <- main.
-    Called from tests/value/undefined_sequence.i:60.
+  Called from tests/value/undefined_sequence.i:60.
 [value] Recording results for func
 [value] Done for function func
 [value] computing for function ub_ret <- main.
-    Called from tests/value/undefined_sequence.i:65.
-tests/value/undefined_sequence.i:28:[value] warning: undefined multiple accesses in expression. assert \separated(&d, &d);
+  Called from tests/value/undefined_sequence.i:65.
+[value:alarm] tests/value/undefined_sequence.i:28: Warning: 
+  undefined multiple accesses in expression. assert \separated(&d, &d);
 [value] Recording results for ub_ret
 [value] Done for function ub_ret
-tests/value/undefined_sequence.i:67:[value] warning: undefined multiple accesses in expression. assert \separated(&my_f, &my_f);
+[value:alarm] tests/value/undefined_sequence.i:67: Warning: 
+  undefined multiple accesses in expression. assert \separated(&my_f, &my_f);
 [value] Recording results for main
 [value] done for function main
-tests/value/undefined_sequence.i:16:[value] assertion 'Value,separation' got final status invalid.
-tests/value/undefined_sequence.i:28:[value] assertion 'Value,separation' got final status invalid.
-tests/value/undefined_sequence.i:35:[value] assertion 'Value,separation' got final status invalid.
-tests/value/undefined_sequence.i:44:[value] assertion 'Value,separation' got final status invalid.
-tests/value/undefined_sequence.i:45:[value] assertion 'Value,separation' got final status invalid.
-tests/value/undefined_sequence.i:50:[value] assertion 'Value,separation' got final status invalid.
-tests/value/undefined_sequence.i:51:[value] assertion 'Value,separation' got final status invalid.
-tests/value/undefined_sequence.i:53:[value] assertion 'Value,separation' got final status invalid.
-tests/value/undefined_sequence.i:67:[value] assertion 'Value,separation' got final status invalid.
+[value] tests/value/undefined_sequence.i:16: 
+  assertion 'Value,separation' got final status invalid.
+[value] tests/value/undefined_sequence.i:28: 
+  assertion 'Value,separation' got final status invalid.
+[value] tests/value/undefined_sequence.i:35: 
+  assertion 'Value,separation' got final status invalid.
+[value] tests/value/undefined_sequence.i:44: 
+  assertion 'Value,separation' got final status invalid.
+[value] tests/value/undefined_sequence.i:45: 
+  assertion 'Value,separation' got final status invalid.
+[value] tests/value/undefined_sequence.i:50: 
+  assertion 'Value,separation' got final status invalid.
+[value] tests/value/undefined_sequence.i:51: 
+  assertion 'Value,separation' got final status invalid.
+[value] tests/value/undefined_sequence.i:53: 
+  assertion 'Value,separation' got final status invalid.
+[value] tests/value/undefined_sequence.i:67: 
+  assertion 'Value,separation' got final status invalid.
 [value] ====== VALUES COMPUTED ======
 [value:final-states] Values at end of function f:
   __retres ∈ {6}
@@ -163,7 +191,7 @@ tests/value/undefined_sequence.i:67:[value] assertion 'Value,separation' got fin
 [from] Computing for function main
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
-    These dependencies hold at termination for the executions that terminate:
+  These dependencies hold at termination for the executions that terminate:
 [from] Function f:
   \result FROM x
 [from] Function func:
@@ -184,27 +212,27 @@ tests/value/undefined_sequence.i:67:[value] assertion 'Value,separation' got fin
   \result FROM c
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function f:
-      __retres
+    __retres
 [inout] Inputs for function f:
-      \nothing
+    \nothing
 [inout] Out (internal) for function func:
-      __retres
+    __retres
 [inout] Inputs for function func:
-      \nothing
+    \nothing
 [inout] Out (internal) for function g:
-      __retres
+    __retres
 [inout] Inputs for function g:
-      \nothing
+    \nothing
 [inout] Out (internal) for function h:
-      r; H; i; tmp_0
+    r; H; i; tmp_0
 [inout] Inputs for function h:
-      c; r
+    c; r
 [inout] Out (internal) for function ub_ret:
-      d
+    d
 [inout] Inputs for function ub_ret:
-      \nothing
+    \nothing
 [inout] Out (internal) for function main:
-      G[0..9]; r; H; x; y; i; j; tmp_0; tmp_1; tmp_2; tmp_3; tmp_11; tmp_12;
-      tmp_13; tmp_14; tmp_15; my_f; tmp_18
+    G[0..9]; r; H; x; y; i; j; tmp_0; tmp_1; tmp_2; tmp_3; tmp_11; tmp_12;
+    tmp_13; tmp_14; tmp_15; my_f; tmp_18
 [inout] Inputs for function main:
-      G[0..9]; c; r
+    G[0..9]; c; r

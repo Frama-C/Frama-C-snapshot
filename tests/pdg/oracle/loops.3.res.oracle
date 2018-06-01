@@ -4,12 +4,13 @@
 [value] Initial state computed
 [value:initial-state] Values of globals at initialization
   after ∈ [--..--]
-tests/pdg/loops.c:75:[value] entering loop for the first time
-tests/pdg/loops.c:76:[value] warning: signed overflow. assert s + 2 ≤ 2147483647;
+[value] tests/pdg/loops.c:75: entering loop for the first time
+[value:alarm] tests/pdg/loops.c:76: Warning: 
+  signed overflow. assert s + 2 ≤ 2147483647;
 [value] Recording results for infinite2
 [value] done for function infinite2
 [pdg] computing for function infinite2
-tests/pdg/loops.c:79:[pdg] warning: no final state. Probably unreachable...
+[pdg] tests/pdg/loops.c:79: Warning: no final state. Probably unreachable...
 [pdg] done for function infinite2
 [pdg] PDG for infinite2
  {n1}: InCtrl

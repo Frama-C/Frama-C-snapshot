@@ -5,15 +5,17 @@
 [value:initial-state] Values of globals at initialization
   
 [value] computing for function foo <- main.
-    Called from tests/value/strings_cond.i:8.
-tests/value/strings_cond.i:3:[value] Frama_C_dump_each:
-    # Cvalue domain:
-    s ∈ {{ "Bla" }}
-    ==END OF DUMP==
-tests/value/strings_cond.i:4:[value] entering loop for the first time
-tests/value/strings_cond.i:4:[value] Frama_C_show_each_s: {{ "Bla" }}
-tests/value/strings_cond.i:4:[value] Frama_C_show_each_s: {{ "Bla" + {0; 1} }}
-tests/value/strings_cond.i:4:[value] Frama_C_show_each_s: {{ "Bla" + {0; 1; 2} }}
+  Called from tests/value/strings_cond.i:8.
+[value] tests/value/strings_cond.i:3: 
+  Frama_C_dump_each:
+  # Cvalue domain:
+  s ∈ {{ "Bla" }}
+  ==END OF DUMP==
+[value] tests/value/strings_cond.i:4: entering loop for the first time
+[value] tests/value/strings_cond.i:4: Frama_C_show_each_s: {{ "Bla" }}
+[value] tests/value/strings_cond.i:4: Frama_C_show_each_s: {{ "Bla" + {0; 1} }}
+[value] tests/value/strings_cond.i:4: 
+  Frama_C_show_each_s: {{ "Bla" + {0; 1; 2} }}
 [value] Recording results for foo
 [value] Done for function foo
 [value] Recording results for main
@@ -28,17 +30,17 @@ tests/value/strings_cond.i:4:[value] Frama_C_show_each_s: {{ "Bla" + {0; 1; 2} }
 [from] Computing for function main
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
-    These dependencies hold at termination for the executions that terminate:
+  These dependencies hold at termination for the executions that terminate:
 [from] Function foo:
   NO EFFECTS
 [from] Function main:
   NO EFFECTS
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function foo:
-      s
+    s
 [inout] Inputs for function foo:
-      "Bla"
+    "Bla"
 [inout] Out (internal) for function main:
-      \nothing
+    \nothing
 [inout] Inputs for function main:
-      "Bla"
+    "Bla"

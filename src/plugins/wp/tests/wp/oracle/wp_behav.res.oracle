@@ -2,12 +2,17 @@
 [kernel] Parsing tests/wp/wp_behav.c (with preprocessing)
 [wp] Running WP plugin...
 [wp] Loading driver 'share/wp.driver'
-tests/wp/wp_behav.c:172:[wp] warning: Ignored specification 'for b1' (generalize to all behavior)
-[wp] warning: Missing RTE guards
-tests/wp/wp_behav.c:176:[wp] warning: Missing assigns clause (assigns 'everything' instead)
-tests/wp/wp_behav.c:154:[wp] warning: Missing assigns clause (assigns 'everything' instead)
-tests/wp/wp_behav.c:69:[wp] warning: Missing assigns clause (assigns 'everything' instead)
-tests/wp/wp_behav.c:81:[wp] warning: Missing assigns clause (assigns 'everything' instead)
+[wp] tests/wp/wp_behav.c:172: Warning: 
+  Ignored specification 'for b1' (generalize to all behavior)
+[wp] Warning: Missing RTE guards
+[wp] tests/wp/wp_behav.c:176: Warning: 
+  Missing assigns clause (assigns 'everything' instead)
+[wp] tests/wp/wp_behav.c:154: Warning: 
+  Missing assigns clause (assigns 'everything' instead)
+[wp] tests/wp/wp_behav.c:69: Warning: 
+  Missing assigns clause (assigns 'everything' instead)
+[wp] tests/wp/wp_behav.c:81: Warning: 
+  Missing assigns clause (assigns 'everything' instead)
 ------------------------------------------------------------
   Function assert_needed
 ------------------------------------------------------------

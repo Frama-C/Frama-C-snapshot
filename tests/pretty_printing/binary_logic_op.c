@@ -10,3 +10,15 @@
 /*@ predicate mixed(integer x, integer y, integer z, integer t) =
   x == 0 || ((y == 0 || z == 0) || t == 0);
 */
+
+/*@ logic real pi = \pi;
+*/
+
+/*@ logic real pi_div_2 = π/2;
+*/
+
+/*@ logic real e = \e;
+*/
+
+/*@ logic real exp(real n) = \pow(\e, n);
+*/

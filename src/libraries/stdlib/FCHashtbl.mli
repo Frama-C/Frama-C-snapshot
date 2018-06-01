@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2017                                               *)
+(*  Copyright (C) 2007-2018                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -63,6 +63,17 @@ module type S = sig
 (** Iter or fold on the hashtable, respecting the order on entries
     given by [cmp]. The relative order for entries whose values is
     equal according to cmp, is not specified. *)
+
+  val find_opt: 'a t -> key -> 'a option
+  val find_def: 'a t -> key -> 'a  -> 'a
+
+  val memo: 'a t -> key -> (key -> 'a) -> 'a
+  (** [memo tbl k f] returns the binding of [k] in [tbl]. If there is
+      no binding, add the binding [f k] associated to [k] in [tbl] and return
+      it.
+      @since Chlorine-20180501
+  *)
+
 end
 
 module Make(H: Hashtbl.HashedType) : S with type key = H.t

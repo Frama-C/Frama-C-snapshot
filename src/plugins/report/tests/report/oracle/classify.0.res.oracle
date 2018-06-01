@@ -1,0 +1,12 @@
+[kernel] Parsing tests/report/classify.c (with preprocessing)
+[wp] Running WP plugin...
+[wp] Warning: Missing RTE guards
+[wp] 2 goals scheduled
+[wp] [Qed] Goal typed_f_assign : Valid
+[wp] [Qed] Goal typed_f_post : Valid
+[wp] Proved goals:    2 / 2
+  Qed:             2
+[report] Classification
+[report] Output tests/report/result/classified.0.json
+[report] Reviews     :    1
+[report] Unclassified:    1

@@ -1,0 +1,20 @@
+# frama-c -wp [...]
+[kernel] Parsing tests/wp_gallery/loop-statement.c (with preprocessing)
+[wp] Running WP plugin...
+[wp] Loading driver 'share/wp.driver'
+[wp] Warning: Missing RTE guards
+[wp] Goal typed_lemma_Lb : not tried
+[wp] Goal typed_loop_statement_post_Scond : not tried
+[wp] Goal typed_loop_statement_post_Sloop : not tried
+[wp] Goal typed_loop_statement_loop_inv_Iloop_preserved : not tried
+[wp] Goal typed_loop_statement_loop_inv_Iloop_established : not tried
+[wp] Goal typed_loop_statement_loop_assign_part1 : trivial
+[wp] Goal typed_loop_statement_loop_assign_part2 : not tried
+[wp] Goal typed_loop_statement_assign_exit_part1 : trivial
+[wp] Goal typed_loop_statement_assign_exit_part2 : not tried
+[wp] Goal typed_loop_statement_assign_normal_part1 : trivial
+[wp] Goal typed_loop_statement_assign_normal_part2 : not tried
+[wp] Goal typed_loop_statement_stmt_pre_Rinv : not tried
+[wp] Goal typed_loop_statement_stmt_pre_Scond : not tried
+[wp] Goal typed_loop_statement_stmt_post_Sbody : not tried
+[wp] Goal typed_loop_statement_stmt_assign : trivial

@@ -16,9 +16,9 @@
   va ∈ [--..--]
 [value] Recording results for main
 [value] done for function main
-[value] warning: Garbled mix generated during analysis:
-    {{ garbled mix of &{t} (origin: Merge {tests/value/join_misaligned.i:42}) }}
-    {{ garbled mix of &{u} (origin: Merge {tests/value/join_misaligned.i:42}) }}
+[value] Warning: Garbled mix generated during analysis:
+  {{ garbled mix of &{t} (origin: Merge {tests/value/join_misaligned.i:42}) }}
+  {{ garbled mix of &{u} (origin: Merge {tests/value/join_misaligned.i:42}) }}
 [value] ====== VALUES COMPUTED ======
 [value:final-states] Values at end of function main:
   t{[0]; [1][bits 0 to 15]} ∈ {0}
@@ -60,7 +60,7 @@
 [from] Computing for function main
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
-    These dependencies hold at termination for the executions that terminate:
+  These dependencies hold at termination for the executions that terminate:
 [from] Function main:
   t[1][bits 16 to 23] FROM c
   u[1][bits 16 to 23] FROM c
@@ -75,9 +75,9 @@
   a FROM va; c
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function main:
-      t[1][bits 16 to 23]; u[1][bits 16 to 23];
-      v{[1][bits 16 to 31]; [2][bits 0 to 7]};
-      w{[1][bits 16 to 31]; [2][bits 0 to 7]}; x[0..2];
-      y{[1][bits 16 to 31]; [2][bits 0 to 23]}; z[3..4]; a
+    t[1][bits 16 to 23]; u[1][bits 16 to 23];
+    v{[1][bits 16 to 31]; [2][bits 0 to 7]};
+    w{[1][bits 16 to 31]; [2][bits 0 to 7]}; x[0..2];
+    y{[1][bits 16 to 31]; [2][bits 0 to 23]}; z[3..4]; a
 [inout] Inputs for function main:
-      a; va
+    a; va

@@ -29,16 +29,26 @@
   B7 ∈ {0}
   S8 ∈ {0}
   B8 ∈ {0}
-tests/value/relations.i:35:[value] warning: signed overflow. assert u[0] + 1 ≤ 2147483647;
-tests/value/relations.i:41:[value] warning: signed overflow. assert -2147483648 ≤ u[5] - u[0];
-tests/value/relations.i:41:[value] warning: signed overflow. assert u[5] - u[0] ≤ 2147483647;
-tests/value/relations.i:46:[value] warning: signed overflow. assert -2147483648 ≤ u[10] - u[11];
-tests/value/relations.i:46:[value] warning: signed overflow. assert u[10] - u[11] ≤ 2147483647;
-tests/value/relations.i:48:[value] warning: signed overflow. assert -2147483648 ≤ u[1] - u[0];
-tests/value/relations.i:48:[value] warning: signed overflow. assert u[1] - u[0] ≤ 2147483647;
-tests/value/relations.i:52:[value] warning: signed overflow. assert -2147483648 ≤ u[5] - u[1];
-tests/value/relations.i:52:[value] warning: signed overflow. assert u[5] - u[1] ≤ 2147483647;
-tests/value/relations.i:56:[value] warning: out of bounds read. assert \valid_read(&pCs->L0);
+[value:alarm] tests/value/relations.i:35: Warning: 
+  signed overflow. assert u[0] + 1 ≤ 2147483647;
+[value:alarm] tests/value/relations.i:41: Warning: 
+  signed overflow. assert -2147483648 ≤ u[5] - u[0];
+[value:alarm] tests/value/relations.i:41: Warning: 
+  signed overflow. assert u[5] - u[0] ≤ 2147483647;
+[value:alarm] tests/value/relations.i:46: Warning: 
+  signed overflow. assert -2147483648 ≤ u[10] - u[11];
+[value:alarm] tests/value/relations.i:46: Warning: 
+  signed overflow. assert u[10] - u[11] ≤ 2147483647;
+[value:alarm] tests/value/relations.i:48: Warning: 
+  signed overflow. assert -2147483648 ≤ u[1] - u[0];
+[value:alarm] tests/value/relations.i:48: Warning: 
+  signed overflow. assert u[1] - u[0] ≤ 2147483647;
+[value:alarm] tests/value/relations.i:52: Warning: 
+  signed overflow. assert -2147483648 ≤ u[5] - u[1];
+[value:alarm] tests/value/relations.i:52: Warning: 
+  signed overflow. assert u[5] - u[1] ≤ 2147483647;
+[value:alarm] tests/value/relations.i:56: Warning: 
+  out of bounds read. assert \valid_read(&pCs->L0);
 [value] Recording results for main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======
@@ -75,7 +85,7 @@ tests/value/relations.i:56:[value] warning: out of bounds read. assert \valid_re
 [from] Computing for function main
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
-    These dependencies hold at termination for the executions that terminate:
+  These dependencies hold at termination for the executions that terminate:
 [from] Function main:
   t[0..1] FROM \nothing
   p FROM \nothing
@@ -98,7 +108,7 @@ tests/value/relations.i:56:[value] warning: out of bounds read. assert \valid_re
   S_pCs[0]{.T13; .T; .L8} FROM pCs; S_pCs[0]{.L0; .L1}
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function main:
-      t[0..1]; p; x; u{[0..1]; [5]; [10..11]}; R1; R2; R3; R4; R5; R6; R7; 
-      A7; R8; A8; S1; S2; c; e; f; tmp; tmp_0; S_pCs[0]{.T13; .T; .L8}
+    t[0..1]; p; x; u{[0..1]; [5]; [10..11]}; R1; R2; R3; R4; R5; R6; R7; 
+    A7; R8; A8; S1; S2; c; e; f; tmp; tmp_0; S_pCs[0]{.T13; .T; .L8}
 [inout] Inputs for function main:
-      t[0..1]; p; x; u{[0..1]; [5]; [10..11]}; S_pCs[0]{.L0; .L1; .T13; .T}
+    t[0..1]; p; x; u{[0..1]; [5]; [10..11]}; S_pCs[0]{.L0; .L1; .T13; .T}

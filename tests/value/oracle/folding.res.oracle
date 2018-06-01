@@ -5,20 +5,19 @@
 [value:initial-state] Values of globals at initialization
   
 [value] computing for function g <- main.
-    Called from tests/value/folding.i:23.
+  Called from tests/value/folding.i:23.
 [value] computing for function f <- g <- main.
-    Called from tests/value/folding.i:11.
+  Called from tests/value/folding.i:11.
 [value] Recording results for f
 [value] Done for function f
 [value] Recording results for g
 [value] Done for function g
 [value] computing for function foo <- main.
-    Called from tests/value/folding.i:24.
-tests/value/folding.i:15:[value] warning: initialization of volatile variable unknown ignored
+  Called from tests/value/folding.i:24.
 [value] Recording results for foo
 [value] Done for function foo
 [value] computing for function foo <- main.
-    Called from tests/value/folding.i:24.
+  Called from tests/value/folding.i:24.
 [value] Recording results for foo
 [value] Done for function foo
 [value] Recording results for main
@@ -49,7 +48,7 @@ tests/value/folding.i:15:[value] warning: initialization of volatile variable un
 [from] Computing for function main
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
-    These dependencies hold at termination for the executions that terminate:
+  These dependencies hold at termination for the executions that terminate:
 [from] Function f:
   \result FROM x
 [from] Function foo:
@@ -60,18 +59,18 @@ tests/value/folding.i:15:[value] warning: initialization of volatile variable un
   \result FROM \nothing
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function f:
-      \nothing
+    \nothing
 [inout] Inputs for function f:
-      \nothing
+    \nothing
 [inout] Out (internal) for function foo:
-      unknown; __retres
+    unknown; __retres
 [inout] Inputs for function foo:
-      \nothing
+    \nothing
 [inout] Out (internal) for function g:
-      pfct; un; p; deux; trois; tmp
+    pfct; un; p; deux; trois; tmp
 [inout] Inputs for function g:
-      \nothing
+    \nothing
 [inout] Out (internal) for function main:
-      a; b; c; tmp; tmp_0; __retres
+    a; b; c; tmp; tmp_0; __retres
 [inout] Inputs for function main:
-      \nothing
+    \nothing

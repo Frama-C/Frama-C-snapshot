@@ -4,18 +4,16 @@
 .................................................
 ... Ref Usage
 .................................................
-... Initial state
-  Nothing
-............
-... Function f
-  *ptr
-   src
-   idx
+Init: { }
+Function f: { *ptr src[] idx }
 .................................................
 [wp] Loading driver 'share/wp.driver'
-[wp] warning: Missing RTE guards
-tests/wp_usage/issue-189.i:17:[wp] warning: forbidden write to variable 'src' considered in an isolated context.
-    Use model 'Typed' instead or specify '-wp-unalias-vars src'
-tests/wp_usage/issue-189.i:17:[wp] user error: forbidden assigns to variable 'src' considered in an isolated context.
-    Use model 'Typed' instead or specify '-wp-unalias-vars src'
+[wp] Warning: Missing RTE guards
+[wp] tests/wp_usage/issue-189.i:18: Warning: Undefined array-size (sint8[])
+[wp] tests/wp_usage/issue-189.i:17: Warning: 
+  forbidden write to variable 'src' considered in an isolated context.
+  Use model 'Typed' instead or specify '-wp-unalias-vars src'
+[wp] tests/wp_usage/issue-189.i:17: User Error: 
+  forbidden assigns to variable 'src' considered in an isolated context.
+  Use model 'Typed' instead or specify '-wp-unalias-vars src'
 [kernel] Plug-in wp aborted: invalid user input.

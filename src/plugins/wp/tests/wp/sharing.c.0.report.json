@@ -1,0 +1,12 @@
+{ "wp:global": { "alt-ergo": { "total": 1, "valid": 1, "rank": 12 },
+                 "wp:main": { "total": 1, "valid": 1, "rank": 12 } },
+  "wp:functions": { "f": { "f_post": { "alt-ergo": { "total": 1, "valid": 1,
+                                                     "rank": 12 },
+                                       "wp:main": { "total": 1, "valid": 1,
+                                                    "rank": 12 } },
+                           "wp:section": { "alt-ergo": { "total": 1,
+                                                         "valid": 1,
+                                                         "rank": 12 },
+                                           "wp:main": { "total": 1,
+                                                        "valid": 1,
+                                                        "rank": 12 } } } } }

@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2017                                               *)
+(*  Copyright (C) 2007-2018                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -146,8 +146,13 @@ Proof.
 Qed.
 
 (* Why3 goal *)
-Hypothesis length_cons : forall {a:Type} {a_WT:WhyType a}, forall (x:a)
-  (w:(list a)), ((length (cons x w)) = (1%Z + (length w))%Z).
+Lemma length_cons : forall {a:Type} {a_WT:WhyType a}, forall (x:a) (w:(list
+  a)), ((length (cons x w)) = (1%Z + (length w))%Z).
+Proof.
+  intros. unfold length.
+  replace (Datatypes.length (cons x w)) with (1 + (Datatypes.length w))%nat.
+  apply Nat2Z.inj_add. simpl. auto.
+Qed.
 
 (* Why3 goal *)
 Hypothesis length_concat : forall {a:Type} {a_WT:WhyType a}, forall (u:(list
@@ -326,40 +331,31 @@ Qed.
 Lemma rw_nil_repeat : forall {a:Type} {a_WT:WhyType a}, forall (n:Z),
   (0%Z <= n)%Z -> ((repeat (nil : (list a)) n) = (nil : (list a))).
 Proof.
-  intros a a_WT n h1.
-  apply length_nil_bis.
-  rewrite length_repeat.
-  + rewrite length_nil.
-    auto with zarith.
-  + omega.
+intros a a_WT n h1.
+induction n ; simpl ; auto.
+assert (R : forall n, repeat_nat a nil n = nil).
+ * intro n. induction n ; simpl ; auto.
+ * apply R.
 Qed.
-
-  (* -------------------------------------------------------------------- *)
-  (* --- repeat                                                       --- *)
-  (* -------------------------------------------------------------------- *)
 
 (* Why3 goal *)
 Lemma rw_repeat_zero : forall {a:Type} {a_WT:WhyType a}, forall (w:(list a)),
   ((repeat w 0%Z) = (nil : (list a))).
 Proof.
-  intros.
-  apply length_nil_bis.
-  rewrite length_repeat.
-  + auto with zarith.
-  + omega.
+intros a a_WT w. simpl. auto.
 Qed.
 
 (* Why3 goal *)
-Hypothesis eq_repeat_one : forall {a:Type} {a_WT:WhyType a}, forall (w:(list
-  a)), (vlist_eq (repeat w 1%Z) w).
+Lemma eq_repeat_one : forall {a:Type} {a_WT:WhyType a}, forall (w:(list a)),
+  (vlist_eq (repeat w 1%Z) w).
+intros a a_WT w. simpl. unfold vlist_eq. auto.
+Qed.
 
 (* Why3 goal *)
 Lemma rw_repeat_one : forall {a:Type} {a_WT:WhyType a}, forall (w:(list a)),
   ((repeat w 1%Z) = w).
 Proof.
-  intros.
-  apply extensionality.
-  apply eq_repeat_one; auto.
+intros a a_WT w. simpl. auto.
 Qed.
 
 (* Why3 goal *)
@@ -367,48 +363,52 @@ Lemma eq_repeat_concat : forall {a:Type} {a_WT:WhyType a}, forall (p:Z) (q:Z)
   (w:(list a)), (0%Z <= p)%Z -> ((0%Z <= q)%Z -> (vlist_eq (repeat w
   (p + q)%Z) (concat (repeat w p) (repeat w q)))).
 Proof.
-  intros a a_WT p q w h1 h2.
-  unfold vlist_eq. split.
-  - rewrite length_concat.
-    repeat (rewrite length_repeat) ; auto with zarith.
-  - intros i Rg.
-    induction (Z_lt_ge_dec 0 (length w)).
-    {
-    rewrite length_repeat in Rg ; auto with zarith.
-    rewrite nth_repeat ; auto with zarith.
-    elim (nth_concat (repeat w p) (repeat w q) i).
+intros a a_WT p q w h1 h2. unfold vlist_eq ; simpl ; split ; auto with zarith.
+ + repeat rewrite length_concat.
     repeat rewrite length_repeat ; auto with zarith.
-    intros Left Right.
-    induction (Z_lt_dec i (p * length w)) as [left|right].
-    + rewrite Left ; auto.
-      rewrite nth_repeat ; auto with zarith.
-    + rewrite Right ; auto.
-      replace ((p+q) * length w)%Z with (p*length w + q*length w)%Z
-      in Rg by ring.
-      rewrite nth_repeat ; auto with zarith.
-      pose (j := (i - p * length w)%Z). fold j.
-      replace i with (p * length w + j)%Z by (unfold j ; auto with zarith).
-      replace (p * length w)%Z with (length w * p)%Z by ring.
-      rewrite ComputerDivision.Mod_mult. auto.
-      unfold j.
-      intuition auto with zarith.
-    }
-    {
-    generalize (length_pos w). intro Pos.
-    assert (Zero: length w = 0%Z) by auto with zarith.
-    rewrite length_repeat in Rg ; auto with zarith.
-    rewrite Zero in Rg ; apply False_ind. omega.
-    }
+ + rewrite length_repeat ; auto with zarith.
+   intros.
+   induction w.
+   * replace ([]) with (@nil a a_WT) ; auto.
+     repeat rewrite rw_nil_repeat ; auto with zarith.
+   * pose (A := (a0 :: w)). fold A. fold A in H.
+     assert (L : 0 < length A).
+     { unfold A.
+       replace (a0 :: w) with (cons a0 w) by auto.
+       rewrite length_cons.
+       assert (0 <= length w).
+       apply length_pos.
+       auto with zarith. }
+     rewrite nth_repeat ; auto with zarith.
+     generalize (nth_concat (repeat A p) (repeat A q) i).
+     intros [ POS NEG ].
+     induction (Z_lt_le_dec i (length (repeat A p))).
+     rewrite length_repeat in a1; auto with zarith.
+      - rewrite POS ; auto with zarith.
+        rewrite nth_repeat ; auto with zarith.
+        rewrite length_repeat ; auto with zarith.
+      - rewrite length_repeat in b ; auto with zarith.
+        assert ( I_pos: 0 <= i ) ; auto with zarith.
+        rewrite Int.Mul_distr_r in H.
+        rewrite NEG ; auto with zarith.
+        rewrite nth_repeat ; auto with zarith ; 
+        rewrite length_repeat ; auto with zarith.
+        replace (i - p * length A) with (i + (-p) * length A).
+        rewrite Z.rem_add ; auto with zarith.
+        apply Z.mul_nonneg_nonneg ; auto with zarith.
+        replace (i + -p * length A) with (i - p * length A) ; auto with zarith.
+        rewrite Z.mul_opp_l. rewrite Z.add_opp_r. auto.
+        rewrite Z.mul_opp_l. rewrite Z.add_opp_r. auto.
+        rewrite length_repeat ; auto with zarith.
 Qed.
 
 (* Why3 goal *)
 Lemma rw_repeat_concat : forall {a:Type} {a_WT:WhyType a}, forall (p:Z) (q:Z)
   (w:(list a)), (0%Z <= p)%Z -> ((0%Z <= q)%Z -> ((repeat w
   (p + q)%Z) = (concat (repeat w p) (repeat w q)))).
-Proof.
-  intros.
-  apply extensionality.
-  apply eq_repeat_concat; auto.
+intros a a_WT p q w h1 h2.
+apply extensionality.
+apply eq_repeat_concat ; auto with zarith.
 Qed.
 
 (* Why3 goal *)
@@ -416,9 +416,8 @@ Lemma rw_repeat_after : forall {a:Type} {a_WT:WhyType a}, forall (p:Z)
   (w:(list a)), (0%Z <= p)%Z -> ((concat (repeat w p) w) = (repeat w
   (p + 1%Z)%Z)).
 Proof.
-  intros.
-  rewrite (rw_repeat_concat p 1) by omega.
-  rewrite rw_repeat_one. auto.
+  intros a a_WT p w h1.
+  rewrite (rw_repeat_concat p 1 w) ; auto with zarith.
 Qed.
 
 (* Why3 goal *)
@@ -426,35 +425,33 @@ Lemma rw_repeat_before : forall {a:Type} {a_WT:WhyType a}, forall (p:Z)
   (w:(list a)), (0%Z <= p)%Z -> ((concat w (repeat w p)) = (repeat w
   (p + 1%Z)%Z)).
 Proof.
-  intros.
-  replace (p + 1)%Z with (1 + p)%Z by ring.
-  rewrite (rw_repeat_concat 1 p) by omega.
-  rewrite rw_repeat_one.
-  auto.
+  intros a a_WT p w h1.
+  replace (p+1) with (1+p) ; auto with zarith.
+  rewrite (rw_repeat_concat 1 p w) ; auto with zarith.
 Qed.
 
 (* Why3 goal *)
 Definition repeat_box: forall {a:Type} {a_WT:WhyType a}, (list a) -> Z ->
   (list a).
-  exact(@repeat).
+intros a w l n.
+exact (repeat l n).
 Defined.
 
 (* Why3 goal *)
 Lemma rw_repeat_box_unfold : forall {a:Type} {a_WT:WhyType a},
   forall (w:(list a)) (n:Z), ((repeat_box w n) = (repeat w n)).
 Proof.
-  intros a a_WT w n.
-  unfold repeat_box. auto.
+intros.
+unfold repeat_box. auto.
 Qed.
 
 (* Why3 goal *)
 Lemma rw_repeat_plus_box_unfold : forall {a:Type} {a_WT:WhyType a},
   forall (w:(list a)) (a1:Z) (b:Z), (0%Z <= a1)%Z -> ((0%Z <= b)%Z ->
   ((repeat_box w (a1 + b)%Z) = (concat (repeat w a1) (repeat w b)))).
-Proof. 
-  intros a a_WT w a1 b h1 h2.
-  rewrite rw_repeat_box_unfold.
-  apply rw_repeat_concat; auto.
+Proof.
+intros.
+unfold repeat_box. rewrite rw_repeat_concat ; auto.
 Qed.
 
 (* Why3 goal *)
@@ -463,19 +460,9 @@ Lemma rw_repeat_plus_one_box_unfold : forall {a:Type} {a_WT:WhyType a},
   n) = (concat (repeat w (n - 1%Z)%Z) w)) /\ ((repeat_box w
   (n + 1%Z)%Z) = (concat (repeat w n) w))).
 Proof.
-  intros a a_WT w n h1.
-  split.
-  + replace n with ((n - 1)+1)%Z by ring.
-    rewrite rw_repeat_plus_box_unfold.
-    - replace (n - 1 + 1 -1)%Z with (n - 1)%Z by ring.
-      rewrite rw_repeat_one.
-      auto.
-    - omega.
-    - omega.
-  + rewrite rw_repeat_plus_box_unfold.
-    rewrite rw_repeat_one.
-    - auto.
-    - omega.
-    - omega.
+ intros. split.
+ + generalize (rw_repeat_concat (n-1) 1 w).
+   replace (n-1+1) with n ; auto with zarith.
+ + rewrite (rw_repeat_concat n 1 w) ; auto with zarith.
 Qed.
 

@@ -1,7 +1,7 @@
 int i;
 int x;
 
-int f();
+int f(void);
 
 int main() {
   if (i == 0 || i == 1) {

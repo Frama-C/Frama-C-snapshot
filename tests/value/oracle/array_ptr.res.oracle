@@ -7,7 +7,7 @@
   l[0] ∈ {1}
    [1..19] ∈ {0}
 [value] computing for function f <- main.
-    Called from tests/value/array_ptr.i:15.
+  Called from tests/value/array_ptr.i:15.
 [value] Recording results for f
 [value] Done for function f
 [value] Recording results for main
@@ -29,7 +29,7 @@
 [from] Computing for function main
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
-    These dependencies hold at termination for the executions that terminate:
+  These dependencies hold at termination for the executions that terminate:
 [from] Function f:
   G FROM x; l[0]; g
   l[0] FROM x; g
@@ -40,10 +40,10 @@
   \result FROM \nothing
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function f:
-      G; l[0]; __retres
+    G; l[0]; __retres
 [inout] Inputs for function f:
-      l[0]; g
+    l[0]; g
 [inout] Out (internal) for function main:
-      G; l[0]; g; __retres
+    G; l[0]; g; __retres
 [inout] Inputs for function main:
-      l[0]
+    l[0]

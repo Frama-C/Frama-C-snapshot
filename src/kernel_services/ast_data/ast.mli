@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2017                                               *)
+(*  Copyright (C) 2007-2018                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -52,7 +52,7 @@ end
 
 val get: unit -> Cil_types.file
   (** Get the cil file representation.
-      One of the initialisation function of module {!File} has to be called
+      One of the initialization function of module {!File} has to be called
       before using this function.
       @raise Bad_Initialization if neither {!File.init_from_c_files}
       nor {!File.init_project_from_cil_file} nor {!File.init_from_cmdline} was

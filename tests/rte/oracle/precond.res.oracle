@@ -1,5 +1,6 @@
 [kernel] Parsing tests/rte/precond.c (with preprocessing)
-tests/rte/precond.c:27:[kernel] warning: parsing obsolete ACSL construct '\valid_range(addr,min,max)'. '\valid(addr+(min..max))' should be used instead.
+[kernel] tests/rte/precond.c:27: Warning: 
+  parsing obsolete ACSL construct '\valid_range(addr,min,max)'. '\valid(addr+(min..max))' should be used instead.
 [rte] annotating function f
 [rte] annotating function g
 [rte] annotating function h

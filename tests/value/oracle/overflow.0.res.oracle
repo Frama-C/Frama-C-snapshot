@@ -4,10 +4,14 @@
 [value] Initial state computed
 [value:initial-state] Values of globals at initialization
   
-tests/value/overflow.i:20:[value] warning: signed overflow. assert 60000 * y ≤ 2147483647;
-tests/value/overflow.i:21:[value] warning: signed overflow. assert (int)(y * 1000) * 1000 ≤ 2147483647;
-tests/value/overflow.i:22:[value] warning: signed overflow. assert -2147483648 ≤ (int)(-y) * 10000000;
-tests/value/overflow.i:31:[value] warning: signed overflow. assert -c ≤ 2147483647;
+[value:alarm] tests/value/overflow.i:20: Warning: 
+  signed overflow. assert 60000 * y ≤ 2147483647;
+[value:alarm] tests/value/overflow.i:21: Warning: 
+  signed overflow. assert (int)(y * 1000) * 1000 ≤ 2147483647;
+[value:alarm] tests/value/overflow.i:22: Warning: 
+  signed overflow. assert -2147483648 ≤ (int)(-y) * 10000000;
+[value:alarm] tests/value/overflow.i:31: Warning: 
+  signed overflow. assert -c ≤ 2147483647;
 [value] Recording results for main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======
@@ -28,11 +32,11 @@ tests/value/overflow.i:31:[value] warning: signed overflow. assert -c ≤ 214748
 [from] Computing for function main
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
-    These dependencies hold at termination for the executions that terminate:
+  These dependencies hold at termination for the executions that terminate:
 [from] Function main:
   \result FROM \nothing
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function main:
-      i; j; is; js; minjs; maxjs; i1; j1; y; tmp; x; z; t; __retres
+    i; j; is; js; minjs; maxjs; i1; j1; y; tmp; x; z; t; __retres
 [inout] Inputs for function main:
-      \nothing
+    \nothing

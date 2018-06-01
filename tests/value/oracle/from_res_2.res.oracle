@@ -14,19 +14,19 @@
   y2 ∈ {0}
   y3 ∈ {0}
 [value] computing for function f <- main.
-    Called from tests/value/from_res_2.i:26.
+  Called from tests/value/from_res_2.i:26.
 [value] Recording results for f
 [value] Done for function f
 [value] computing for function g1 <- main.
-    Called from tests/value/from_res_2.i:30.
+  Called from tests/value/from_res_2.i:30.
 [value] Recording results for g1
 [value] Done for function g1
 [value] computing for function g2 <- main.
-    Called from tests/value/from_res_2.i:34.
+  Called from tests/value/from_res_2.i:34.
 [value] Recording results for g2
 [value] Done for function g2
 [value] computing for function g3 <- main.
-    Called from tests/value/from_res_2.i:38.
+  Called from tests/value/from_res_2.i:38.
 [value] Recording results for g3
 [value] Done for function g3
 [value] Recording results for main
@@ -60,7 +60,7 @@
 [from] Computing for function main
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
-    These dependencies hold at termination for the executions that terminate:
+  These dependencies hold at termination for the executions that terminate:
 [from] Function f:
   \result FROM left; right
 [from] Function g1:
@@ -82,22 +82,22 @@
   y3 FROM B; C; x3.a
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function f:
-      __retres
+    __retres
 [inout] Inputs for function f:
-      \nothing
+    \nothing
 [inout] Out (internal) for function g1:
-      \nothing
+    \nothing
 [inout] Inputs for function g1:
-      x1
+    x1
 [inout] Out (internal) for function g2:
-      \nothing
+    \nothing
 [inout] Inputs for function g2:
-      x2
+    x2
 [inout] Out (internal) for function g3:
-      \nothing
+    \nothing
 [inout] Inputs for function g3:
-      x3
+    x3
 [inout] Out (internal) for function main:
-      G; x1{.a; .c}; x2{.a; .b}; x3{.b; .c}; y1; y2; y3; p; tmp
+    G; x1{.a; .c}; x2{.a; .b}; x3{.b; .c}; y1; y2; y3; p; tmp
 [inout] Inputs for function main:
-      G; A; B; C; x1; x2; x3
+    G; A; B; C; x1; x2; x3

@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2017                                               *)
+(*  Copyright (C) 2007-2018                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -37,6 +37,10 @@ val ocamlc: string
 val ocamlopt: string
   (** Name of the native compiler.
       @since Boron-20100401 *)
+
+val ocaml_wflags: string
+  (** Warning flags used when compiling Frama-C.
+      @since Chlorine-20180501 *)
 
 val datadir: string
   (** Directory where architecture independent files are. *)
@@ -99,6 +103,11 @@ val dot: string option
 (** Dot command name.
     @return [None] if `dot' is not installed.
     @since Carbon-20101201 *)
+
+val has_yojson: bool
+(** [true] if Frama-C has been compiled with yojson support.
+    @since Chlorine-20180501
+*)
 
 (*
   Local Variables:

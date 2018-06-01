@@ -5,8 +5,8 @@
 [value:initial-state] Values of globals at initialization
   A ∈ {0}
   B ∈ {0}
-tests/value/implies.i:6:[value] warning: assertion got status unknown.
-tests/value/implies.i:8:[value] warning: assertion got status unknown.
+[value:alarm] tests/value/implies.i:6: Warning: assertion got status unknown.
+[value:alarm] tests/value/implies.i:8: Warning: assertion got status unknown.
 [value] Recording results for main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======
@@ -16,12 +16,12 @@ tests/value/implies.i:8:[value] warning: assertion got status unknown.
 [from] Computing for function main
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
-    These dependencies hold at termination for the executions that terminate:
+  These dependencies hold at termination for the executions that terminate:
 [from] Function main:
   A FROM d
   \result FROM c
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function main:
-      A; __retres
+    A; __retres
 [inout] Inputs for function main:
-      \nothing
+    \nothing

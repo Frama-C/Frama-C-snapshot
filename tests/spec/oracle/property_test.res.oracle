@@ -1,11 +1,16 @@
 [kernel] Parsing tests/spec/property_test.i (no preprocessing)
 In project project "default":
 Status of assert X ≥ \at(X,Pre);: no verification attempted
+Status of default behavior for statement 7: no verification attempted
 Status of default behavior: no verification attempted
 Status of ensures
 X ≥ 0: no verification attempted
+Status of ensures
+\false: no verification attempted
 Status of requires
 X ≥ 0: no verification attempted
+Status of requires
+\true: no verification attempted
 In project project "property_test":
 Status of assert X ≥ \at(X,Pre);: no verification attempted
 Status of assigns X \from X, c;: no verification attempted

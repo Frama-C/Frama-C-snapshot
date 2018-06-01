@@ -23,9 +23,9 @@ void main (int c1, int c2) {
   //@ assert !\separated(&t1[0]+2, &t1[0]+2);
   //@ assert \separated(&t1[0]+2, &t1[0]+3);
 
-  //@ assert \separated(&t1[0], &t2[0]);
-  //@ assert \separated(t1, t2);
-  //@ assert \separated(t1, &t1[1]);
+  //@ assert \separated(&t1[0], &t2[0]); // first cells are separated
+  //@ assert \separated(&t1, &t2); // all arrays are separated
+  //@ assert \separated(&t1[0], &t1[1]);
 
   //@ assert \separated(&t1[0]+(0..3), &t1[0]+(4..5));
   //@ assert !\separated(&t1[0]+(0..3), &t1[0]+(3..5));

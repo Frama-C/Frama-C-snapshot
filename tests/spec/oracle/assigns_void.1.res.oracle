@@ -5,8 +5,9 @@
 [value:initial-state] Values of globals at initialization
   
 [value] computing for function f <- g.
-    Called from tests/spec/assigns_void.c:11.
-tests/spec/assigns_void.c:11:[kernel] warning: Neither code nor specification for function f, generating default assigns from the prototype
+  Called from tests/spec/assigns_void.c:11.
+[kernel:annot:missing-spec] tests/spec/assigns_void.c:11: Warning: 
+  Neither code nor specification for function f, generating default assigns from the prototype
 [value] using specification for function f
 [value] Done for function f
 [value] Recording results for g

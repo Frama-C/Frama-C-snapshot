@@ -7,7 +7,7 @@
   x ∈ [--..--]
   z ∈ [--..--]
   t[0..9] ∈ {0}
-tests/slicing/annot.i:23:[value] assertion got status valid.
+[value] tests/slicing/annot.i:23: assertion got status valid.
 [value] Recording results for f2
 [value] done for function f2
 [slicing] initializing slicing ...

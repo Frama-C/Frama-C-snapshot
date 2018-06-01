@@ -14,18 +14,24 @@
   s ∈ {0}
   t ∈ {0}
   u ∈ {0}
-tests/value/cond2.i:52:[value] entering loop for the first time
-tests/value/cond2.i:52:[value] warning: signed overflow. assert x + 2 ≤ 2147483647;
-tests/value/cond2.i:53:[value] entering loop for the first time
-tests/value/cond2.i:53:[value] warning: signed overflow. assert y + 2 ≤ 2147483647;
-tests/value/cond2.i:59:[value] entering loop for the first time
-tests/value/cond2.i:59:[value] warning: signed overflow. assert x + 4 ≤ 2147483647;
-tests/value/cond2.i:60:[value] entering loop for the first time
-tests/value/cond2.i:60:[value] warning: signed overflow. assert y + 4 ≤ 2147483647;
-tests/value/cond2.i:66:[value] entering loop for the first time
-tests/value/cond2.i:66:[value] warning: out of bounds write. assert \valid(px);
-tests/value/cond2.i:67:[value] entering loop for the first time
-tests/value/cond2.i:67:[value] warning: out of bounds write. assert \valid(py);
+[value] tests/value/cond2.i:52: entering loop for the first time
+[value:alarm] tests/value/cond2.i:52: Warning: 
+  signed overflow. assert x + 2 ≤ 2147483647;
+[value] tests/value/cond2.i:53: entering loop for the first time
+[value:alarm] tests/value/cond2.i:53: Warning: 
+  signed overflow. assert y + 2 ≤ 2147483647;
+[value] tests/value/cond2.i:59: entering loop for the first time
+[value:alarm] tests/value/cond2.i:59: Warning: 
+  signed overflow. assert x + 4 ≤ 2147483647;
+[value] tests/value/cond2.i:60: entering loop for the first time
+[value:alarm] tests/value/cond2.i:60: Warning: 
+  signed overflow. assert y + 4 ≤ 2147483647;
+[value] tests/value/cond2.i:66: entering loop for the first time
+[value:alarm] tests/value/cond2.i:66: Warning: 
+  out of bounds write. assert \valid(px);
+[value] tests/value/cond2.i:67: entering loop for the first time
+[value:alarm] tests/value/cond2.i:67: Warning: 
+  out of bounds write. assert \valid(py);
 [value] Recording results for un_1
 [value] done for function un_1
 [value] ====== VALUES COMPUTED ======
@@ -115,7 +121,7 @@ tests/value/cond2.i:67:[value] warning: out of bounds write. assert \valid(py);
 [from] Computing for function un_1
 [from] Done for function un_1
 [from] ====== DEPENDENCIES COMPUTED ======
-    These dependencies hold at termination for the executions that terminate:
+  These dependencies hold at termination for the executions that terminate:
 [from] Function un_1:
   px FROM Gx
   py FROM Gy
@@ -133,16 +139,16 @@ tests/value/cond2.i:67:[value] warning: out of bounds write. assert \valid(py);
   \result FROM Gx; Gy
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function un_1:
-      px; py; x; y;
-      T{[4..5]; [8..9]; [12..13]; [16..17]; [20..21]; [24..25]; [28..29];
-        [32..33]; [36..37]; [40..41]; [44..45]; [48..49]; [52..53]; [56..57];
-        [60..61]; [64..65]; [68..69]; [72..73]; [76..77]; [80..81]; [84..85];
-        [88..89]; [92..93]; [96..97]}; s; t; u; r_0; i
+    px; py; x; y;
+    T{[4..5]; [8..9]; [12..13]; [16..17]; [20..21]; [24..25]; [28..29];
+      [32..33]; [36..37]; [40..41]; [44..45]; [48..49]; [52..53]; [56..57];
+      [60..61]; [64..65]; [68..69]; [72..73]; [76..77]; [80..81]; [84..85];
+      [88..89]; [92..93]; [96..97]}; s; t; u; r_0; i
 [inout] Out (external) for function un_1:
-      px; py; x; y;
-      T{[4..5]; [8..9]; [12..13]; [16..17]; [20..21]; [24..25]; [28..29];
-        [32..33]; [36..37]; [40..41]; [44..45]; [48..49]; [52..53]; [56..57];
-        [60..61]; [64..65]; [68..69]; [72..73]; [76..77]; [80..81]; [84..85];
-        [88..89]; [92..93]; [96..97]}; s; t; u
+    px; py; x; y;
+    T{[4..5]; [8..9]; [12..13]; [16..17]; [20..21]; [24..25]; [28..29];
+      [32..33]; [36..37]; [40..41]; [44..45]; [48..49]; [52..53]; [56..57];
+      [60..61]; [64..65]; [68..69]; [72..73]; [76..77]; [80..81]; [84..85];
+      [88..89]; [92..93]; [96..97]}; s; t; u
 [inout] Inputs for function un_1:
-      Gx; Gy; px; py; x; y; u
+    Gx; Gy; px; py; x; y; u

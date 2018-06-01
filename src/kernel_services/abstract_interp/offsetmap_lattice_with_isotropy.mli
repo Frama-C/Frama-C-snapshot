@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2017                                               *)
+(*  Copyright (C) 2007-2018                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -33,8 +33,18 @@ include With_Cardinal_One with type t := t
 
 val pretty_typ: Cil_types.typ option -> t Pretty_utils.formatter
 
+
+(** {1 Isotropy} *)
+
 (** Are the bits independent? *)
 val is_isotropic : t -> bool
+
+val topify_with_origin : Origin.t -> t -> t
+(** Force a value to be isotropic, when a loss of imprecision occurs.
+    The resulting value must verify {!is_isotropic}. *)
+
+
+(** {1 Reading bits of values} *)
 
 val extract_bits :
   topify:Origin.kind ->
@@ -45,29 +55,43 @@ val extract_bits :
     assuming this value has {!size} bits. Return the corresponding value, and
     a boolean indicating that an imprecision occurred during the operation.
     In the latter case, the origin of the imprecision is flagged as having kind
-    [topify] *)
+    [topify]. *)
 
-val little_endian_merge_bits :
+val shift_bits:
+  topify:Origin.kind ->
+  offset:Integer.t ->
+  size:Integer.t ->
+  t -> t
+(** Left-shift the given value, of size [size], by [offset] bits.
+    [topify] indicates which operation caused this shift to take place,
+    for imprecision tracking. *)
+
+val merge_distinct_bits:
   topify:Origin.kind ->
   conflate_bottom:bool ->
-  length:Integer.t -> value:t -> offset:Integer.t -> t -> t
+  t -> t -> t
+(** Merge the bits of the two given values, that span disjoint bit ranges
+    by construction. (So either an abstraction of [+] or [|] are correct
+    implementations.)
 
-val big_endian_merge_bits :
-  topify:Origin.kind ->
-  conflate_bottom:bool ->
-  total_length:int -> length:Integer.t -> value:t -> offset:Integer.t -> t -> t
+    The [conflate_bottom] argument deals with {!bottom}
+    values in either of the arguments. If [conflate_bottom] holds, any
+    pre-existing {!bottom} value must result in {!bottom}. Otherwise,
+    the {!bottom} value is ignored.
+
+    [topify] indicates which operation caused this merge to take place,
+    for imprecision tracking.
+*)
 
 val merge_neutral_element: t
-(** Value that can be passed to {!little_endian_merge_bits} or
-    {!big_endian_merge_bits} as the starting value. This value must
-    be neutral wrt. concatenation of values. *)
-
-val topify_with_origin : Origin.t -> t -> t
-(** Force a value to be isotropic, when a loss of imprecision occurs.
-    The resulting value must verify {!is_isotropic}. *)
+(** Value that can be passed to {!merge_distinct_bits} as the starting value.
+    This value must be neutral wrt. merging of values. *)
 
 val anisotropic_cast : size:Integer.t -> t -> t
-(** Convert the given value so that it fits in [size] bits. *)
+(** Optionnally change the representation of the given value, under the
+    assumption that it fits in [size] bits. Returning the value argument
+    is alwas correct. *)
+
 
 (*
 Local Variables:

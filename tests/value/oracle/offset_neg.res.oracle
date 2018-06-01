@@ -7,21 +7,23 @@
   addr ∈ {{ &mem[0] }}
   off ∈ {18446744073709551615}
   G[0..4] ∈ {0}
-tests/value/offset_neg.i:8:[value] Frama_C_dump_each:
-    # Cvalue domain:
-    mem[0] ∈ {0}
-    addr ∈ {{ &mem + {18446744073709551616} }}
-    off ∈ {18446744073709551615}
-    G[0..4] ∈ {0}
-    __retres ∈ UNINITIALIZED
-    ==END OF DUMP==
-tests/value/offset_neg.i:9:[value] warning: accessing out of bounds index. assert 0 ≤ (int)(-1);
-tests/value/offset_neg.i:9:[value] warning: accessing out of bounds index. assert (int)(-1) < 5;
-tests/value/offset_neg.i:9:[kernel] warning: all target addresses were invalid. This path is assumed to be dead.
+[value] tests/value/offset_neg.i:8: 
+  Frama_C_dump_each:
+  # Cvalue domain:
+  mem[0] ∈ {0}
+  addr ∈ {{ &mem + {18446744073709551616} }}
+  off ∈ {18446744073709551615}
+  G[0..4] ∈ {0}
+  __retres ∈ UNINITIALIZED
+  ==END OF DUMP==
+[value:alarm] tests/value/offset_neg.i:9: Warning: 
+  accessing out of bounds index. assert 0 ≤ (int)(-1);
+[kernel] tests/value/offset_neg.i:9: Warning: 
+  all target addresses were invalid. This path is assumed to be dead.
 [value] Recording results for main
 [value] done for function main
-tests/value/offset_neg.i:9:[value] assertion 'Value,index_bound' got final status valid.
-tests/value/offset_neg.i:9:[value] assertion 'Value,index_bound' got final status invalid.
+[value] tests/value/offset_neg.i:9: 
+  assertion 'Value,index_bound' got final status invalid.
 [value] ====== VALUES COMPUTED ======
 [value:final-states] Values at end of function main:
   NON TERMINATING FUNCTION
@@ -29,11 +31,11 @@ tests/value/offset_neg.i:9:[value] assertion 'Value,index_bound' got final statu
 [from] Non-terminating function main (no dependencies)
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
-    These dependencies hold at termination for the executions that terminate:
+  These dependencies hold at termination for the executions that terminate:
 [from] Function main:
   NON TERMINATING - NO EFFECTS
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function main:
-      addr
+    addr
 [inout] Inputs for function main:
-      addr; off
+    addr; off

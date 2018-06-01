@@ -1,7 +1,10 @@
 [kernel] Parsing tests/float/extract_bits.i (no preprocessing)
-tests/float/extract_bits.i:6:[kernel] warning: Floating-point constant 3.14 is not represented exactly. Will use 0x1.91eb851eb851fp1
-tests/float/extract_bits.i:7:[kernel] warning: Floating-point constant 2.71 is not represented exactly. Will use 0x1.5ae147ae147aep1
-tests/float/extract_bits.i:9:[kernel] warning: Floating-point constant 1.8254370818746402660437411213933955878019332885742187 is not represented exactly. Will use 0x1.d34fd8378ea83p0
+[kernel:parser:decimal-float] tests/float/extract_bits.i:6: Warning: 
+  Floating-point constant 3.14 is not represented exactly. Will use 0x1.91eb851eb851fp1.
+[kernel:parser:decimal-float] tests/float/extract_bits.i:7: Warning: 
+  Floating-point constant 2.71 is not represented exactly. Will use 0x1.5ae147ae147aep1.
+[kernel:parser:decimal-float] tests/float/extract_bits.i:9: Warning: 
+  Floating-point constant 1.8254370818746402660437411213933955878019332885742187 is not represented exactly. Will use 0x1.d34fd8378ea83p0.
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
 [value] Initial state computed
@@ -11,9 +14,7 @@ tests/float/extract_bits.i:9:[kernel] warning: Floating-point constant 1.8254370
   stdtod_bug ∈ {1.8254370818746401}
   fr[0..0x3] ∈ {0}
   dr[0..0x7] ∈ {0}
-[value] user error: type long double wider than 64 bits not supported.
-    Using double instead for the remainder of the analysis.
-tests/float/extract_bits.i:25:[value] Frama_C_show_each: [0..0xFF]
+[value] tests/float/extract_bits.i:25: Frama_C_show_each: [0..0xFF]
 [value] Recording results for main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======

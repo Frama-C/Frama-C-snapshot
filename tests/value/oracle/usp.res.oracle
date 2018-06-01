@@ -11,20 +11,21 @@
   Y ∈ {0}
   Z ∈ {0}
   T ∈ {0}
-tests/value/usp.i:17:[value] Frama_C_show_each: {-1; 5}
-tests/value/usp.i:18:[value] Frama_C_dump_each:
-    # Cvalue domain:
-    a ∈ {-12}
-    b ∈ {5; 4294967295}
-    p ∈ {{ (unsigned int *)&a }}
-    q ∈ {{ (unsigned int *)&b }}
-    X ∈ {0}
-    Y ∈ {-12}
-    Z ∈ {-1; 0}
-    T ∈ {0; 5}
-    c ∈ [--..--]
-    __retres ∈ UNINITIALIZED
-    ==END OF DUMP==
+[value] tests/value/usp.i:17: Frama_C_show_each: {-1; 5}
+[value] tests/value/usp.i:18: 
+  Frama_C_dump_each:
+  # Cvalue domain:
+  a ∈ {-12}
+  b ∈ {5; 4294967295}
+  p ∈ {{ (unsigned int *)&a }}
+  q ∈ {{ (unsigned int *)&b }}
+  X ∈ {0}
+  Y ∈ {-12}
+  Z ∈ {-1; 0}
+  T ∈ {0; 5}
+  c ∈ [--..--]
+  __retres ∈ UNINITIALIZED
+  ==END OF DUMP==
 [value] Recording results for main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======
@@ -37,7 +38,7 @@ tests/value/usp.i:18:[value] Frama_C_dump_each:
 [from] Computing for function main
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
-    These dependencies hold at termination for the executions that terminate:
+  These dependencies hold at termination for the executions that terminate:
 [from] Function main:
   b FROM c
   Y FROM a; p
@@ -46,6 +47,6 @@ tests/value/usp.i:18:[value] Frama_C_dump_each:
   \result FROM \nothing
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function main:
-      b; Y; Z; T; __retres
+    b; Y; Z; T; __retres
 [inout] Inputs for function main:
-      a; b; p; q
+    a; b; p; q

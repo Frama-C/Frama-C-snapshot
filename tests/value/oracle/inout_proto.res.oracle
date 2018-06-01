@@ -9,38 +9,38 @@
   t[0..9] ∈ {0}
   u[0..19] ∈ {0}
 [value] computing for function main <- main_main.
-    Called from tests/value/inout_proto.i:54.
+  Called from tests/value/inout_proto.i:54.
 [value] computing for function SendBuffer <- main <- main_main.
-    Called from tests/value/inout_proto.i:19.
+  Called from tests/value/inout_proto.i:19.
 [value] using specification for function SendBuffer
 [value] Done for function SendBuffer
 [value] Recording results for main
 [value] Done for function main
 [value] computing for function main2 <- main_main.
-    Called from tests/value/inout_proto.i:55.
+  Called from tests/value/inout_proto.i:55.
 [value] computing for function f <- main2 <- main_main.
-    Called from tests/value/inout_proto.i:46.
+  Called from tests/value/inout_proto.i:46.
 [value] using specification for function f
 [value] Done for function f
 [value] computing for function g1 <- main2 <- main_main.
-    Called from tests/value/inout_proto.i:47.
+  Called from tests/value/inout_proto.i:47.
 [value] computing for function g <- g1 <- main2 <- main_main.
-    Called from tests/value/inout_proto.i:34.
+  Called from tests/value/inout_proto.i:34.
 [value] using specification for function g
 [value] Done for function g
 [value] Recording results for g1
 [value] Done for function g1
 [value] computing for function g2 <- main2 <- main_main.
-    Called from tests/value/inout_proto.i:48.
+  Called from tests/value/inout_proto.i:48.
 [value] computing for function g <- g2 <- main2 <- main_main.
-    Called from tests/value/inout_proto.i:38.
+  Called from tests/value/inout_proto.i:38.
 [value] Done for function g
 [value] Recording results for g2
 [value] Done for function g2
 [value] computing for function g3 <- main2 <- main_main.
-    Called from tests/value/inout_proto.i:50.
+  Called from tests/value/inout_proto.i:50.
 [value] computing for function g <- g3 <- main2 <- main_main.
-    Called from tests/value/inout_proto.i:42.
+  Called from tests/value/inout_proto.i:42.
 [value] Done for function g
 [value] Recording results for g3
 [value] Done for function g3
@@ -49,98 +49,98 @@
 [value] Recording results for main_main
 [value] done for function main_main
 [inout] InOut (internal) for function g1:
-    Operational inputs:
-      t[6..7]
-    Operational inputs on termination:
-      t[6..7]
-    Sure outputs:
-      t[3..5]
+  Operational inputs:
+    t[6..7]
+  Operational inputs on termination:
+    t[6..7]
+  Sure outputs:
+    t[3..5]
 [inout] InOut (with formals) for function g1:
-    Operational inputs:
-      t[6..7]
-    Operational inputs on termination:
-      t[6..7]
-    Sure outputs:
-      t[3..5]
+  Operational inputs:
+    t[6..7]
+  Operational inputs on termination:
+    t[6..7]
+  Sure outputs:
+    t[3..5]
 [inout] Inputs (with formals) for function g1:
-      t[6..7]
+    t[6..7]
 [inout] InOut (internal) for function g2:
-    Operational inputs:
-      t[3..4]
-    Operational inputs on termination:
-      t[3..4]
-    Sure outputs:
-      t[0..2]
+  Operational inputs:
+    t[3..4]
+  Operational inputs on termination:
+    t[3..4]
+  Sure outputs:
+    t[0..2]
 [inout] InOut (with formals) for function g2:
-    Operational inputs:
-      t[3..4]
-    Operational inputs on termination:
-      t[3..4]
-    Sure outputs:
-      t[0..2]
+  Operational inputs:
+    t[3..4]
+  Operational inputs on termination:
+    t[3..4]
+  Sure outputs:
+    t[0..2]
 [inout] Inputs (with formals) for function g2:
-      t[3..4]
+    t[3..4]
 [inout] InOut (internal) for function g3:
-    Operational inputs:
-      u[8..10]; p
-    Operational inputs on termination:
-      u[8..10]; p
-    Sure outputs:
-      \nothing
+  Operational inputs:
+    u[8..10]; p
+  Operational inputs on termination:
+    u[8..10]; p
+  Sure outputs:
+    \nothing
 [inout] InOut (with formals) for function g3:
-    Operational inputs:
-      u[8..10]; p
-    Operational inputs on termination:
-      u[8..10]; p
-    Sure outputs:
-      \nothing
+  Operational inputs:
+    u[8..10]; p
+  Operational inputs on termination:
+    u[8..10]; p
+  Sure outputs:
+    \nothing
 [inout] Inputs (with formals) for function g3:
-      u[8..10]; p
+    u[8..10]; p
 [inout] InOut (internal) for function main:
-    Operational inputs:
-      msg
-    Operational inputs on termination:
-      msg
-    Sure outputs:
-      ret
+  Operational inputs:
+    msg
+  Operational inputs on termination:
+    msg
+  Sure outputs:
+    ret
 [inout] InOut (with formals) for function main:
-    Operational inputs:
-      msg
-    Operational inputs on termination:
-      msg
-    Sure outputs:
-      \nothing
+  Operational inputs:
+    msg
+  Operational inputs on termination:
+    msg
+  Sure outputs:
+    \nothing
 [inout] Inputs (with formals) for function main:
-      msg
+    msg
 [inout] InOut (internal) for function main2:
-    Operational inputs:
-      b; t[6..7]; u[8..10]; i
-    Operational inputs on termination:
-      b; t[6..7]; u[8..10]; i
-    Sure outputs:
-      a; c; t[0..5]
+  Operational inputs:
+    b; t[6..7]; u[8..10]; i
+  Operational inputs on termination:
+    b; t[6..7]; u[8..10]; i
+  Sure outputs:
+    a; c; t[0..5]
 [inout] InOut (with formals) for function main2:
-    Operational inputs:
-      b; t[6..7]; u[8..10]; i
-    Operational inputs on termination:
-      b; t[6..7]; u[8..10]; i
-    Sure outputs:
-      a; c; t[0..5]
+  Operational inputs:
+    b; t[6..7]; u[8..10]; i
+  Operational inputs on termination:
+    b; t[6..7]; u[8..10]; i
+  Sure outputs:
+    a; c; t[0..5]
 [inout] Inputs (with formals) for function main2:
-      b; t{[3..4]; [6..7]}; u[8..10]; i
+    b; t{[3..4]; [6..7]}; u[8..10]; i
 [inout] InOut (internal) for function main_main:
-    Operational inputs:
-      b; t[6..7]; u[8..10]; msg; i
-    Operational inputs on termination:
-      b; t[6..7]; u[8..10]; msg; i
-    Sure outputs:
-      a; c; t[0..5]
+  Operational inputs:
+    b; t[6..7]; u[8..10]; msg; i
+  Operational inputs on termination:
+    b; t[6..7]; u[8..10]; msg; i
+  Sure outputs:
+    a; c; t[0..5]
 [inout] InOut (with formals) for function main_main:
-    Operational inputs:
-      b; t[6..7]; u[8..10]; msg; i
-    Operational inputs on termination:
-      b; t[6..7]; u[8..10]; msg; i
-    Sure outputs:
-      a; c; t[0..5]
+  Operational inputs:
+    b; t[6..7]; u[8..10]; msg; i
+  Operational inputs on termination:
+    b; t[6..7]; u[8..10]; msg; i
+  Sure outputs:
+    a; c; t[0..5]
 [inout] Inputs (with formals) for function main_main:
-      b; t{[3..4]; [6..7]}; u[8..10]; msg; i
+    b; t{[3..4]; [6..7]}; u[8..10]; msg; i

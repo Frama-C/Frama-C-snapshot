@@ -14,10 +14,12 @@
   s ∈ {0}
   t ∈ {0}
   u ∈ {0}
-tests/value/cond2.i:26:[value] entering loop for the first time
-tests/value/cond2.i:26:[value] warning: signed overflow. assert x + 2 ≤ 2147483647;
-tests/value/cond2.i:27:[value] entering loop for the first time
-tests/value/cond2.i:27:[value] warning: signed overflow. assert y + 5 ≤ 2147483647;
+[value] tests/value/cond2.i:26: entering loop for the first time
+[value:alarm] tests/value/cond2.i:26: Warning: 
+  signed overflow. assert x + 2 ≤ 2147483647;
+[value] tests/value/cond2.i:27: entering loop for the first time
+[value:alarm] tests/value/cond2.i:27: Warning: 
+  signed overflow. assert y + 5 ≤ 2147483647;
 [value] Recording results for zero_ou_un_0
 [value] done for function zero_ou_un_0
 [value] ====== VALUES COMPUTED ======
@@ -32,7 +34,7 @@ tests/value/cond2.i:27:[value] warning: signed overflow. assert y + 5 ≤ 214748
 [from] Computing for function zero_ou_un_0
 [from] Done for function zero_ou_un_0
 [from] ====== DEPENDENCIES COMPUTED ======
-    These dependencies hold at termination for the executions that terminate:
+  These dependencies hold at termination for the executions that terminate:
 [from] Function zero_ou_un_0:
   x FROM Gx
   y FROM Gy
@@ -42,8 +44,8 @@ tests/value/cond2.i:27:[value] warning: signed overflow. assert y + 5 ≤ 214748
   u FROM Gx
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function zero_ou_un_0:
-      x; y; r; s; t; u; i
+    x; y; r; s; t; u; i
 [inout] Out (external) for function zero_ou_un_0:
-      x; y; r; s; t; u
+    x; y; r; s; t; u
 [inout] Inputs for function zero_ou_un_0:
-      Gx; Gy; x; y
+    Gx; Gy; x; y

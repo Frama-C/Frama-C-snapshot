@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2017                                               *)
+(*  Copyright (C) 2007-2018                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -23,6 +23,8 @@
 open Cil_types
 open Eval
 
+type 'value builtin = 'value list -> 'value or_bottom
+
 module type Value = sig
   include Datatype.S
   val top : t
@@ -32,6 +34,7 @@ module type Value = sig
   val is_included : t -> t -> bool
   val track_variable: Cil_types.varinfo -> bool
   val pretty_debug: t Pretty_utils.formatter
+  val builtins: (string * t builtin) list
 end
 
 module type S = sig
@@ -166,6 +169,14 @@ end
 
 module Make_Internal (Info: sig val name: string end) (Value: Value) = struct
 
+  let table = Hashtbl.create 17
+  let () =
+    List.iter (fun (name, f) -> Hashtbl.replace table name f) Value.builtins
+
+  let find_builtin name =
+    try Some (Hashtbl.find table name)
+    with Not_found -> None
+
   include Make_Memory (Value)
 
   let name = Info.name
@@ -228,7 +239,7 @@ module Make_Internal (Info: sig val name: string end) (Value: Value) = struct
       | _ -> state
 
     (* This function fills [state] according to the information available
-       in [valuation]. This information is computed by EVA's engine for
+       in [valuation]. This information is computed by Eva's engine for
        all the expressions involved in the current statement. *)
     let update valuation state =
       Valuation.fold (assume_exp valuation) valuation state
@@ -250,10 +261,38 @@ module Make_Internal (Info: sig val name: string end) (Value: Value) = struct
     let assume _stmt _expr _pos valuation state =
       `Value (update valuation state)
 
-    let start_call _stmt _call _valuation state =
+    let start_call _stmt call _valuation state =
+      let bind_argument state argument =
+        let typ = argument.formal.vtype in
+        let loc = Main_locations.PLoc.eval_varinfo argument.formal in
+        let value = Eval.value_assigned argument.avalue in
+        bind_loc loc typ value state
+      in
+      let state =
+        List.fold_left bind_argument state call.arguments
+      in
       Eval.Compute state
 
-    let finalize_call _stmt _call ~pre:_ ~post = `Value post
+    let finalize_call _stmt call ~pre:_ ~post =
+      let kf_name = Kernel_function.get_name call.kf in
+      match find_builtin kf_name, call.return with
+      | None, _ | _, None   -> `Value post
+      | Some f, Some return ->
+        (* If a builtin exists for this function, replaces the value of the
+           return variable by the result of the builtin in the post state. *)
+        let extract_value arg = Eval.value_assigned arg.avalue in
+        let args = List.map extract_value call.arguments in
+        if List.exists (function `Bottom -> true | `Value _ -> false) args
+        then
+          (* If an argument has a bottom value, then it is a copy of an
+             indeterminate value that cannot be represented in this domain.
+             Use the state previously computed without applying the builtin. *)
+          `Value post
+        else
+          let args = List.map Bottom.non_bottom args in
+          f args >>-: fun result ->
+          let return_loc = Main_locations.PLoc.eval_varinfo return in
+          bind_loc return_loc return.vtype (`Value result) post
 
     let approximate_call _stmt call state =
       let state =

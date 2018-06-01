@@ -3,8 +3,8 @@ typedef unsigned long size_t;
 
 volatile size_t sv;
 
-/*@ requires len > 0 && len <= 1024;
-    requires n < 64; */
+/*@ requires len: len > 0 && len <= 1024;
+    requires n: n < 64; */
 void bts2166(size_t len, size_t n)
 {
   if (len > 0 && len <= 1024 && n < 64) { // logic reductions do not work in the Apron domain. We use this 'if' for now

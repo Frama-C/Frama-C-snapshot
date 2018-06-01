@@ -1,31 +1,42 @@
 [kernel] Parsing tests/value/extern.i (no preprocessing)
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
-tests/value/extern.i:4:[value] warning: during initialization of variable 'T3', size of type 'int []' cannot be
-    computed (Size of array without number of elements.)
-tests/value/extern.i:5:[value] warning: during initialization of variable 'T4', size of type 'int const []' cannot be
-    computed (Size of array without number of elements.)
-tests/value/extern.i:14:[value] no size specified for array, assuming 0
+[value] tests/value/extern.i:6: Warning: 
+  during initialization of variable 'T3', size of type 'int []' cannot be
+  computed (Size of array without number of elements.)
+[value] tests/value/extern.i:7: Warning: 
+  during initialization of variable 'T4', size of type 'int const []' cannot be
+  computed (Size of array without number of elements.)
+[value] tests/value/extern.i:16: no size specified for array, assuming 0
 [value] Initial state computed
 [value:initial-state] Values of globals at initialization
   T1 ∈ [--..--]
   T2 ∈ [--..--]
+  pT2 ∈ {{ &T2 }}
   T3[0..1073741823] ∈ [--..--] or UNINITIALIZED
   T4[0..1073741823] ∈ [--..--] or UNINITIALIZED
   T5[0..2] ∈ [--..--]
   T6[0..2] ∈ [--..--]
   c ∈ [--..--]
   s ∈ [--..--]
-tests/value/extern.i:19:[value] warning: accessing uninitialized left-value. assert \initialized(&T3[3]);
-tests/value/extern.i:19:[value] warning: out of bounds read. assert \valid_read(&T3[3]);
-tests/value/extern.i:20:[value] warning: out of bounds write. assert \valid(&T2);
-tests/value/extern.i:20:[kernel] warning: all target addresses were invalid. This path is assumed to be dead.
-tests/value/extern.i:22:[value] warning: out of bounds write. assert \valid(&T2);
-tests/value/extern.i:22:[kernel] warning: all target addresses were invalid. This path is assumed to be dead.
+[value:alarm] tests/value/extern.i:19: Warning: 
+  accessing uninitialized left-value. assert \initialized(&T3[3]);
+[value:alarm] tests/value/extern.i:19: Warning: 
+  out of bounds read. assert \valid_read(&T3[3]);
+[value:alarm] tests/value/extern.i:20: Warning: 
+  out of bounds write. assert \valid(pT2);
+[kernel] tests/value/extern.i:20: Warning: 
+  all target addresses were invalid. This path is assumed to be dead.
+[value:alarm] tests/value/extern.i:22: Warning: 
+  out of bounds write. assert \valid(pT2);
+[kernel] tests/value/extern.i:22: Warning: 
+  all target addresses were invalid. This path is assumed to be dead.
 [value] Recording results for main
 [value] done for function main
-tests/value/extern.i:20:[value] assertion 'Value,mem_access' got final status invalid.
-tests/value/extern.i:22:[value] assertion 'Value,mem_access' got final status invalid.
+[value] tests/value/extern.i:20: 
+  assertion 'Value,mem_access' got final status invalid.
+[value] tests/value/extern.i:22: 
+  assertion 'Value,mem_access' got final status invalid.
 [value] ====== VALUES COMPUTED ======
 [value:final-states] Values at end of function main:
   NON TERMINATING FUNCTION
@@ -33,11 +44,11 @@ tests/value/extern.i:22:[value] assertion 'Value,mem_access' got final status in
 [from] Non-terminating function main (no dependencies)
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
-    These dependencies hold at termination for the executions that terminate:
+  These dependencies hold at termination for the executions that terminate:
 [from] Function main:
   NON TERMINATING - NO EFFECTS
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function main:
-      T1
+    T1
 [inout] Inputs for function main:
-      T3[3]; T4[3]; T5[1]; T6[1]; c
+    pT2; T3[3]; T4[3]; T5[1]; T6[1]; c

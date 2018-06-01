@@ -17,13 +17,13 @@
 [from] Computing for function main
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
-    These dependencies hold at termination for the executions that terminate:
+  These dependencies hold at termination for the executions that terminate:
 [from] Function main:
   G FROM p
   H FROM \nothing
   p FROM \nothing
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function main:
-      G; H; p
+    G; H; p
 [inout] Inputs for function main:
-      p
+    p

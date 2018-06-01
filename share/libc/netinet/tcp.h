@@ -2,7 +2,7 @@
 /*                                                                        */
 /*  This file is part of Frama-C.                                         */
 /*                                                                        */
-/*  Copyright (C) 2007-2017                                               */
+/*  Copyright (C) 2007-2018                                               */
 /*    CEA (Commissariat à l'énergie atomique et aux énergies              */
 /*         alternatives)                                                  */
 /*                                                                        */
@@ -97,15 +97,15 @@ __PUSH_FC_STDLIB
 # include <sys/types.h>
 # include <sys/socket.h>
 
-// typedefs to compensate for the non-standard types used here
+// macros to compensate for the non-standard types used here
 #ifndef u_int8_t
-typedef uint8_t u_int8_t;
+#define u_int8_t uint8_t
 #endif
 #ifndef u_int16_t
-typedef uint16_t u_int16_t;
+#define u_int16_t uint16_t
 #endif
 #ifndef u_int32_t
-typedef uint32_t u_int32_t;
+#define u_int32_t uint32_t
 #endif
 
 typedef	u_int32_t tcp_seq;

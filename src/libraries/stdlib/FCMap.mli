@@ -177,6 +177,10 @@ module type S =
     (** [find x m] returns the current binding of [x] in [m],
        or raises [Not_found] if no such binding exists. *)
 
+    val find_opt: key -> 'a t -> 'a option
+    (** [find x m] returns the current binding of [x] in [m],
+       or return [None] if no such binding exists. *)
+
     val map: ('a -> 'b) -> 'a t -> 'b t
     (** [map f m] returns a map with same domain as [m], where the
        associated value [a] of all bindings of [m] has been

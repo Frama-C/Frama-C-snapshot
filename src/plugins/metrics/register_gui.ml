@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2017                                               *)
+(*  Copyright (C) 2007-2018                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -254,6 +254,7 @@ module ValueCoverageGUI = struct
     in
     let percentage (_, _, pct_covered) = truncate (100. -. pct_covered) in
     let number (total, value, _) = total - value in
+    let number_total (total, _, _) = total in
     let text get =
       fun g -> let i = compute get g in if i < 0 then "" else string_of_int i
     in
@@ -268,7 +269,7 @@ module ValueCoverageGUI = struct
         ~text:(text percentage)
         ~sort:(sort percentage)
     in
-    let refresh_number =
+    let refresh_dead_stmts =
       main_ui#file_tree#append_text_column
         ~title:"Dead stmts"
         ~tooltip:"Number of dead statements in each function"
@@ -276,7 +277,17 @@ module ValueCoverageGUI = struct
         ~text:(text number)
         ~sort:(sort number)
     in
-    let refresh x = refresh_percentage x; refresh_number x in
+    let refresh_nb_stmts =
+      main_ui#file_tree#append_text_column
+        ~title:"Total stmts"
+        ~tooltip:"Number of statements in each function"
+        ~visible:filetree_visible
+        ~text:(text number_total)
+        ~sort:(sort number_total)
+    in
+    let refresh x =
+      refresh_percentage x; refresh_dead_stmts x; refresh_nb_stmts x
+    in
     update_filetree := refresh
 
   let () =

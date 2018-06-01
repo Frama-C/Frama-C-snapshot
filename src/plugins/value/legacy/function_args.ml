@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2017                                               *)
+(*  Copyright (C) 2007-2018                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -73,7 +73,7 @@ let () =
        try
          let actuals =  List.map (fun e -> compute_actual state e) exps in
          actualize_formals kf state actuals
-       with Actual_is_bottom -> Cvalue.Model.bottom)
+       with Actual_is_bottom | WrongFunctionType -> Cvalue.Model.bottom)
 
 (*
 Local Variables:

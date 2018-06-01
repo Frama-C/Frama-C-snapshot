@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2017                                               *)
+(*  Copyright (C) 2007-2018                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -253,7 +253,7 @@ let annotate_from_options () = {
   signed_downcast = Kernel.SignedDowncast.get ();
   unsigned_downcast = Kernel.UnsignedDowncast.get ();
   float_to_int = Options.DoFloatToInt.get ();
-  finite_float = Kernel.FiniteFloat.get ();
+  finite_float = Kernel.SpecialFloat.get () <> "none";
   pointer_call = Options.DoPointerCall.get ();
   precond = Options.DoCalledPrecond.get ();
 }
@@ -703,16 +703,30 @@ class annot_visitor kf to_annot on_alarm = object (self)
 	lval
     end;
     Cil.DoChildren
-  | Call (ret_opt,funcexp,argl,_) -> self#treat_call ret_opt funcexp argl;
-    (* Alarm if the call is through a pointer. Done in DoChildrenPost to get a
-       more pleasant ordering of annotations. *)
-    let do_ptr () =
-      if self#do_pointer_call () then
-        match funcexp.enode with
-        | Lval (Mem e, _) -> self#generate_assertion Rte.pointer_call e
-        | _ -> ()
+  | Call (ret_opt,funcexp,argl,_) ->
+    (* Do not emit alarms on Eva builtins such as Frama_C_show_each, that should
+       have no effect on analyses. *)
+    let is_builtin =
+      match funcexp.enode with
+      | Lval (Var vinfo, NoOffset) ->
+        let kf = Globals.Functions.get vinfo in
+        Ast_info.is_frama_c_builtin (Kernel_function.get_name kf)
+      | _ -> false
     in
-    Cil.DoChildrenPost (fun res -> do_ptr (); res)
+    if is_builtin
+    then Cil.SkipChildren
+    else begin
+      self#treat_call ret_opt funcexp argl;
+      (* Alarm if the call is through a pointer. Done in DoChildrenPost to get a
+         more pleasant ordering of annotations. *)
+      let do_ptr () =
+        if self#do_pointer_call () then
+          match funcexp.enode with
+          | Lval (Mem e, _) -> self#generate_assertion Rte.pointer_call (e, argl)
+          | _ -> ()
+      in
+      Cil.DoChildrenPost (fun res -> do_ptr (); res)
+    end
   | Local_init (v,ConsInit(f,args,kind),loc) ->
     let do_call lv e args _loc = self#treat_call lv e args in
     Cil.treat_constructor_as_func do_call v f args kind loc;
@@ -911,17 +925,19 @@ let annotate_kf_aux to_annot kf =
     in
     (* Strict version of ||, because [comp] has side-effects *)
     let (|||) a b = a || b in
-    if comp Generator.initialized_status to_annot.initialized |||
-       comp Generator.mem_access_status to_annot.mem_access |||
-       comp Generator.pointer_call_status to_annot.pointer_call |||
-       comp Generator.div_mod_status to_annot.div_mod |||
-       comp Generator.shift_status to_annot.shift |||
-       comp Generator.signed_overflow_status to_annot.signed_ov |||
-       comp Generator.signed_downcast_status to_annot.signed_downcast |||
-       comp Generator.unsigned_overflow_status to_annot.unsigned_ov |||
-       comp Generator.unsigned_downcast_status to_annot.unsigned_downcast |||
-       comp Generator.float_to_int_status to_annot.float_to_int |||
-       comp Generator.precond_status to_annot.precond
+    let open Generator in
+    if comp Initialized.accessor to_annot.initialized |||
+       comp Mem_access.accessor to_annot.mem_access |||
+       comp Pointer_call.accessor to_annot.pointer_call |||
+       comp Div_mod.accessor to_annot.div_mod |||
+       comp Shift.accessor to_annot.shift |||
+       comp Signed_overflow.accessor to_annot.signed_ov |||
+       comp Signed_downcast.accessor to_annot.signed_downcast |||
+       comp Unsigned_overflow.accessor to_annot.unsigned_ov |||
+       comp Unsigned_downcast.accessor to_annot.unsigned_downcast |||
+       comp Float_to_int.accessor to_annot.float_to_int |||
+       comp Finite_float.accessor to_annot.finite_float |||
+       comp Called_precond.accessor to_annot.precond
     then begin
       Options.feedback "annotating function %a" Kernel_function.pretty kf;
       let warn = Options.Warn.get () in

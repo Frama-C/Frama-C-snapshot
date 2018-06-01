@@ -5,8 +5,9 @@
 [value:initial-state] Values of globals at initialization
   
 [value] computing for function f <- main.
-    Called from tests/value/resolve.i:12.
-tests/value/resolve.i:12:[kernel] warning: Neither code nor specification for function f, generating default assigns from the prototype
+  Called from tests/value/resolve.i:12.
+[kernel:annot:missing-spec] tests/value/resolve.i:12: Warning: 
+  Neither code nor specification for function f, generating default assigns from the prototype
 [value] using specification for function f
 [value] Done for function f
 [value] Recording results for main
@@ -19,13 +20,13 @@ tests/value/resolve.i:12:[kernel] warning: Neither code nor specification for fu
 [from] Done for function f
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
-    These dependencies hold at termination for the executions that terminate:
+  These dependencies hold at termination for the executions that terminate:
 [from] Function f:
   \result FROM \nothing
 [from] Function main:
   \result FROM \nothing
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function main:
-      tmp
+    tmp
 [inout] Inputs for function main:
-      \nothing
+    \nothing

@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2017                                               *)
+(*  Copyright (C) 2007-2018                                               *)
 (*    CEA   (Commissariat à l'énergie atomique et aux énergies            *)
 (*           alternatives)                                                *)
 (*    INRIA (Institut National de Recherche en Informatique et en         *)
@@ -63,7 +63,9 @@
         Utf8_logic.minus, MINUS;
         Utf8_logic.boolean, BOOLEAN;
         Utf8_logic.integer, INTEGER;
-        Utf8_logic.real, REAL
+        Utf8_logic.real, REAL;
+        Utf8_logic.inset, IN;
+        Utf8_logic.pi, PI;
       ];
 
     fun s -> try Hashtbl.find h s
@@ -177,6 +179,7 @@
         "\\from", FROM;
         "\\initialized", INITIALIZED;
         "\\dangling", DANGLING;
+        "\\in", IN;
         "\\inter", INTER;
         "\\lambda", LAMBDA;
         "\\let", LET;
@@ -184,6 +187,7 @@
         "\\null", NULL;
         "\\offset", OFFSET;
         "\\old", OLD;
+        "\\pi", PI;
         "\\register", REGISTER;
         "\\result", RESULT;
         "\\separated", SEPARATED;
@@ -456,31 +460,25 @@ and comment = parse
     )
 
   let parse_from_location f (loc, s : Lexing.position * string) =
-    let output = 
-      if Kernel.ContinueOnAnnotError.get() then Kernel.warning ~once:true
-      else Kernel.error ~once:false
-    in
+    let emitwith _ = Logic_utils.exit_kw_c_mode () in
+    let output = Kernel.warning ~wkey:Kernel.wkey_annot_error ~emitwith in
     let lb = from_string s in
     set_initial_location lb loc;
     try
       let res = f token lb in
-      lb.Lexing.lex_curr_p, res
+      Some (lb.Lexing.lex_curr_p, res)
     with
-      | Failure _ (* raised by the lexer itself, through [f] *)
+      | Failure s -> (* raised by the lexer itself, through [f] *)
+          output ~source:lb.lex_curr_p "lexing error: %s" s; None
       | Parsing.Parse_error ->
-        output
-	  ~source:lb.lex_curr_p
-          "unexpected token '%s'" (Lexing.lexeme lb);
-        Logic_utils.exit_kw_c_mode ();
-        raise Parsing.Parse_error
-      | Error (_, m) ->
-        output ~source:lb.lex_curr_p "%s" m;
-        Logic_utils.exit_kw_c_mode ();
-        raise Parsing.Parse_error
+        output ~source:lb.lex_curr_p "unexpected token '%s'" (Lexing.lexeme lb);
+        None
+      | Error (_, m) -> output ~source:lb.lex_curr_p "%s" m; None
       | Logic_utils.Not_well_formed (loc, m) ->
         output ~source:(fst loc) "%s" m;
-        Logic_utils.exit_kw_c_mode ();
-        raise Parsing.Parse_error
+        None
+      | Log.FeatureRequest(_,msg) ->
+        output ~source:lb.lex_curr_p "unimplemented ACSL feature: %s" msg; None
       | exn ->
         Kernel.fatal ~source:lb.lex_curr_p "Unknown error (%s)"
           (Printexc.to_string exn)
@@ -500,7 +498,7 @@ and comment = parse
       accept_c_comments_into_acsl_spec := false ;
       raise exn
 
-  type 'a parse = Lexing.position * string -> Lexing.position * 'a
+  type 'a parse = Lexing.position * string -> (Lexing.position * 'a) option
 
   let chr lexbuf =
     let buf = Buffer.create 16 in

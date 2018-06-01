@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2017                                               *)
+(*  Copyright (C) 2007-2018                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -39,17 +39,12 @@ let pretty_logic_var_kind fmt = function
   | LVQuant -> Format.pp_print_string fmt "quantified variable"
   | LVLocal -> Format.pp_print_string fmt "local parameter"
 
-
-let dkey_check = Kernel.register_category "check"
-(* Use category "check:strict" to enable stricter tests *)
-let dkey_check_volatile = Kernel.register_category "check:strict:volatile"
-
 module Base_checker = struct
 class check ?(is_normalized=true) what : Visitor.frama_c_visitor =
   let check_abort fmt =
     Kernel.fatal ~current:true ("[AST Integrity Check]@ %s@ " ^^ fmt) what
   in
-  let abort_if cond = if cond then check_abort else Log.nullprintf in
+  let abort_if cond = if cond then check_abort else Pretty_utils.nullprintf in
   object(self)
     inherit Visitor.frama_c_inplace as plain
     val known_enuminfos = Enuminfo.Hashtbl.create 7
@@ -68,16 +63,43 @@ class check ?(is_normalized=true) what : Visitor.frama_c_visitor =
     val mutable labelled_stmt = []
     val mutable logic_labels = []
     val mutable globals_functions = Varinfo.Set.empty
+    val mutable local_statics = Varinfo.Set.empty
     val mutable globals_vars = Varinfo.Set.empty
     val mutable return_stmt = None
 
     val quant_orig = Stack.create ()
+
+    val behavior_stack = Stack.create ()
+
+    method private push_behavior_stack () =
+      Stack.push (Datatype.String.Set.empty) behavior_stack
+    method private pop_behavior_stack () = ignore (Stack.pop behavior_stack)
+    method private add_behavior_stack_name b =
+      let current = Stack.pop behavior_stack in
+      Stack.push (Datatype.String.Set.add b current) behavior_stack
+    method private add_spec_behavior_names spec =
+      List.iter
+        (fun b -> self#add_behavior_stack_name b.b_name) spec.spec_behavior
+
+    method private mem_behavior_stack_name b =
+      try
+        Stack.iter
+          (fun s -> if Datatype.String.Set.mem b s then raise Exit)
+          behavior_stack;
+        false
+      with Exit -> true
 
     method private remove_globals_function vi =
       globals_functions <- Varinfo.Set.remove vi globals_functions
 
     method private remove_globals_var vi =
       globals_vars <- Varinfo.Set.remove vi globals_vars
+
+    method private add_local_static vi =
+      local_statics <- Varinfo.Set.add vi local_statics
+
+    method private remove_local_static vi =
+      local_statics <- Varinfo.Set.remove vi local_statics
 
     method! venuminfo ei =
       Enuminfo.Hashtbl.add known_enuminfos ei ei;
@@ -101,7 +123,8 @@ class check ?(is_normalized=true) what : Visitor.frama_c_visitor =
         unspecified_sequence_calls
 
     method! vvdec v =
-      Kernel.debug ~dkey:dkey_check "Declaration of %s(%d)" v.vname v.vid;
+      Kernel.debug
+        ~dkey:Kernel.dkey_check "Declaration of %s(%d)" v.vname v.vid;
       if Varinfo.Hashtbl.mem known_vars v then
         (let v' = Varinfo.Hashtbl.find known_vars v in
          if v != v' then (* we can see the declaration twice
@@ -116,7 +139,7 @@ class check ?(is_normalized=true) what : Visitor.frama_c_visitor =
       match v.vlogic_var_assoc with
       | None -> Cil.DoChildren
       | Some ({ lv_origin = Some v'} as lv) when v == v' ->
-        Kernel.debug ~dkey:dkey_check
+        Kernel.debug ~dkey:Kernel.dkey_check
           "var %s(%d) has an associated %s(%d)"
           v.vname v.vid lv.lv_name lv.lv_id;
         (match lv.lv_type with
@@ -197,14 +220,15 @@ class check ?(is_normalized=true) what : Visitor.frama_c_visitor =
     method! vlogic_var_use v =
       if v.lv_name <> "\\exit_status" then begin
         if Logic_env.is_builtin_logic_function v.lv_name then begin
-          if not
-              (List.exists (fun x -> x.l_var_info == v)
-                 (Logic_env.find_all_logic_functions v.lv_name))
-          then
-            check_abort
-              "Built-in logic variable %s information is not shared \
-               between environment and use"
-              v.lv_name
+          match Logic_env.find_all_logic_functions v.lv_name with
+          | [] ->
+            check_abort "No logic variable registered for built-in %s" v.lv_name
+          | _ :: _ as l ->
+            if not (List.exists (fun x -> x.l_var_info == v) l) then
+              check_abort
+                "Built-in logic variable %s information is not shared \
+                 between environment and use"
+                v.lv_name
         end else begin
           let unknown () =
             check_abort "logic variable %s (%d) is not declared" v.lv_name v.lv_id
@@ -222,6 +246,7 @@ class check ?(is_normalized=true) what : Visitor.frama_c_visitor =
       Cil.DoChildren
 
     method! vfunc f =
+      self#push_behavior_stack ();
       (* Initial AST does not have kf *)
       if is_normalized then begin
         let kf = Extlib.the self#current_kf in
@@ -233,8 +258,10 @@ class check ?(is_normalized=true) what : Visitor.frama_c_visitor =
           check_abort
             "Body of %a is not shared between kernel function and AST"
             Kernel_function.pretty kf;
-        return_stmt <- Some (Kernel_function.find_return kf)
-      end;
+        return_stmt <- Some (Kernel_function.find_return kf);
+        let spec = Annotations.funspec ~populate:false kf in
+        self#add_spec_behavior_names spec;
+      end else begin self#add_spec_behavior_names f.sspec; end;
       labelled_stmt <- [];
       Stmt.Hashtbl.clear known_stmts;
       Stmt.Hashtbl.clear switch_cases;
@@ -348,6 +375,7 @@ class check ?(is_normalized=true) what : Visitor.frama_c_visitor =
             (Varinfo.Set.elements local_vars)
             Printer.pp_varinfo f.svar
         end;
+        self#pop_behavior_stack ();
         f
       in
       Cil.ChangeDoChildrenPost(f,check)
@@ -369,12 +397,53 @@ class check ?(is_normalized=true) what : Visitor.frama_c_visitor =
     method! vstmt_aux s =
       Stmt.Hashtbl.add known_stmts s s;
       Stmt.Hashtbl.remove switch_cases s;
+      self#push_behavior_stack ();
       self#remove_unspecified_sequence_calls s;
+      if is_normalized then begin
+        let contracts =
+          Annotations.code_annot ~filter:Logic_utils.is_contract s
+        in
+        List.iter
+          (function
+               | {annot_content = AStmtSpec(_,spec)} ->
+                 self#add_spec_behavior_names spec
+               | _ -> assert false (* filter should prevent anything else. *))
+          contracts;
+        let kf = Extlib.the self#current_kf in
+        let s',kf' =
+          try
+            Kernel_function.find_from_sid s.sid
+          with Not_found ->
+            check_abort
+              "Statement %a of function %s  is unknown in internal tables"
+              Printer.pp_stmt s (Kernel_function.get_name kf)
+        in
+        if s != s' then
+          check_abort
+            "Statement %a of function %s \
+             is not shared with internal tables"
+            Printer.pp_stmt s (Kernel_function.get_name kf);
+        if kf != kf' then
+          check_abort
+            "Statement %a of function %s is registered with a wrong kf"
+            Printer.pp_stmt s (Kernel_function.get_name kf);
+        let blocks = Kernel_function.find_all_enclosing_blocks s in
+        let b = Extlib.last blocks in
+        let body = Kernel_function.get_definition kf in
+        if b != body.sbody then
+          check_abort
+            "In function %s, statement %a is supposed to belong \
+             to an outermost block different from function's body"
+            (Kernel_function.get_name kf)
+            Printer.pp_stmt s
+      end;
+      let post_action s = self#pop_behavior_stack (); s in
       (match s.skind with
-       | Goto (s,_) -> self#check_label s; Cil.DoChildren
+       | Goto (l,_) ->
+         self#check_label l; Cil.ChangeDoChildrenPost(s,post_action)
        | Switch(_,_,cases,loc) ->
          List.iter (fun s -> Stmt.Hashtbl.add switch_cases s loc) cases;
-         Cil.DoChildren
+         Cil.ChangeDoChildrenPost(s,post_action)
        | UnspecifiedSequence seq ->
          let calls =
            List.fold_left
@@ -386,7 +455,7 @@ class check ?(is_normalized=true) what : Visitor.frama_c_visitor =
          Stack.push (ref calls) unspecified_sequence_calls;
          let f s =
            let calls = Stack.pop unspecified_sequence_calls in
-           if Stmt.Set.is_empty !calls then s
+           if Stmt.Set.is_empty !calls then post_action s
            else
              check_abort
                "@[Calls referenced in unspecified sequence \
@@ -407,7 +476,7 @@ class check ?(is_normalized=true) what : Visitor.frama_c_visitor =
                 | se' :: _ ->
                   abort_if (not (se == se')) "Invalid 'else' successor for If"
                 | _ -> ());
-               Cil.DoChildren
+               Cil.ChangeDoChildrenPost(s,post_action)
              end
            | l -> check_abort "If with %d successors" (List.length l)
          end
@@ -415,10 +484,11 @@ class check ?(is_normalized=true) what : Visitor.frama_c_visitor =
          let old_labels = logic_labels in
          logic_labels <-
            Logic_const.(loop_current_label :: loop_entry_label :: logic_labels);
-         Cil.DoChildrenPost (fun s -> logic_labels <- old_labels; s)
+         Cil.ChangeDoChildrenPost
+           (s, fun s -> logic_labels <- old_labels; post_action s)
        | TryCatch(_,c,_) ->
          List.iter self#check_try_catch_decl c;
-         Cil.DoChildren
+         Cil.ChangeDoChildrenPost(s, post_action)
        | Return _ ->
          if is_normalized then begin
            match return_stmt with
@@ -435,8 +505,8 @@ class check ?(is_normalized=true) what : Visitor.frama_c_visitor =
                s.sid Printer.pp_stmt s
            | Some _ -> return_stmt <- None
          end;
-         Cil.DoChildren
-       | _ -> Cil.DoChildren);
+         Cil.ChangeDoChildrenPost(s,post_action)
+       | _ -> Cil.ChangeDoChildrenPost (s,post_action));
 
     method private check_local_var v =
       if Varinfo.Set.mem v local_vars then begin
@@ -449,6 +519,25 @@ class check ?(is_normalized=true) what : Visitor.frama_c_visitor =
           (Extlib.the self#current_func).svar
           Printer.pp_varinfo v v.vid
       end
+
+    method private check_local_static v =
+      let prefix fmt =
+        Format.fprintf fmt
+          "Local variable %a(%d) in function %a"
+          Printer.pp_varinfo v v.vid
+          Printer.pp_varinfo (Extlib.the self#current_func).svar
+      in
+      if not v.vglob then
+        check_abort
+          "%t is supposed to be static, but varinfo has automatic storage."
+          prefix;
+      if not (Cil.hasAttribute Cabs2cil.fc_local_static v.vattr) then
+        check_abort "%t is declared as a global static." prefix;
+      ignore (self#vvrbl v);
+      (* Ensure that the variable was not already claimed by another block. *)
+      if not (Cil_datatype.Varinfo.Set.mem v local_statics) then
+        check_abort "%t is supposed to be in scope in two blocks" prefix;
+      self#remove_local_static v
 
     (* Stack of local variables that are supposed to be initialized in
        each currently opened block (with [bscoping=true]), the top of the
@@ -470,6 +559,7 @@ class check ?(is_normalized=true) what : Visitor.frama_c_visitor =
         b
       in
       List.iter self#check_local_var b.blocals;
+      List.iter self#check_local_static b.bstatics;
       if b.bscoping then begin
         Stack.push b.blocals current_block_vars;
         Cil.DoChildrenPost check_locals
@@ -519,6 +609,21 @@ class check ?(is_normalized=true) what : Visitor.frama_c_visitor =
       let old_labels = logic_labels in
       logic_labels <-
         Logic_const.(init_label :: here_label :: pre_label :: logic_labels);
+      (* on non-normalized code, we can't really check the scope of behavior
+         names of statement contracts. *)
+      if is_normalized then begin
+        match ca.annot_content with
+        | AAssert(bhvs,_) | AStmtSpec(bhvs,_) | AInvariant (bhvs,_,_)
+        | AAssigns(bhvs,_) | AAllocation(bhvs,_) | AExtended (bhvs,_) ->
+          List.iter
+            (fun b ->
+               if not (self#mem_behavior_stack_name b) then
+                 check_abort
+                   "code annotation %a is restricted to unknown behavior %s"
+                   Printer.pp_code_annotation ca b)
+            bhvs
+        | _ -> ()
+      end;
       Cil.DoChildrenPost (fun ca -> logic_labels <- old_labels; ca)
 
     method! voffs = function
@@ -653,12 +758,39 @@ class check ?(is_normalized=true) what : Visitor.frama_c_visitor =
 
     method! vterm t =
       match t.term_node with
-      | TLval _ ->
+      | TLval lv ->
+        (match lv with
+         | TVar lvi, TNoOffset ->
+           if lvi.lv_kind = LVGlobal && not (Logic_const.is_exit_status t)
+           then begin
+             try
+               let li = Logic_env.find_logic_cons lvi in
+               (match li.l_type with
+                | None ->
+                  check_abort "Trying to use predicate %a as a term"
+                    Printer.pp_logic_var lvi
+                | Some typ ->
+                  if
+                    not
+                      (Logic_utils.is_instance_of li.l_tparams t.term_type typ)
+                  then
+                    check_abort
+                      "%a is declared with type %a. It cannot be used as \
+                      a term of type %a"
+                      Printer.pp_logic_var lvi
+                      Printer.pp_logic_type typ
+                      Printer.pp_logic_type t.term_type)
+             with Not_found ->
+               check_abort
+                 "%a is supposed to be a global logic constant, \
+                  but cannot be found in the logic environment."
+                 Printer.pp_logic_var lvi
+           end
+         | _ -> ());
         begin match t.term_type with
           | Ctype ty ->
-            ignore
-              (Kernel.verify (not (Cil.isVoidType ty))
-                 "logic term with void type:%a" Printer.pp_term t);
+            if (Cil.isVoidType ty) then
+              check_abort "logic term with void type: %a" Printer.pp_term t;
             Cil.DoChildren
           | _ -> Cil.DoChildren
         end
@@ -720,16 +852,16 @@ class check ?(is_normalized=true) what : Visitor.frama_c_visitor =
 
     method! vcompinfo c =
       Kernel.debug
-        ~dkey:dkey_check "Checking composite type %s(%d)" c.cname c.ckey;
+        ~dkey:Kernel.dkey_check "Checking composite type %s(%d)" c.cname c.ckey;
       Compinfo.Hashtbl.add known_compinfos c c;
       Kernel.debug
-        ~dkey:dkey_check "Adding fields for type %s(%d)" c.cname c.ckey;
+        ~dkey:Kernel.dkey_check "Adding fields for type %s(%d)" c.cname c.ckey;
       List.iter (fun x -> Fieldinfo.Hashtbl.add known_fields x x) c.cfields;
       Cil.DoChildren
 
     method! vfieldinfo f =
-      Kernel.debug
-        ~dkey:dkey_check "Check field %s of type %s" f.fname f.fcomp.cname;
+      Kernel.debug ~dkey:Kernel.dkey_check
+        "Check field %s of type %s" f.fname f.fcomp.cname;
       try
         let c = Compinfo.Hashtbl.find known_compinfos f.fcomp in
         if f.fcomp != c then
@@ -806,6 +938,8 @@ class check ?(is_normalized=true) what : Visitor.frama_c_visitor =
         if Cil.isFunctionType v.vtype then
           check_abort "Variable %a has function type" Printer.pp_varinfo v;
         self#remove_globals_var v;
+        if (Cil.hasAttribute Cabs2cil.fc_local_static v.vattr) then
+          self#add_local_static v;
         Cil.DoChildren
       | GFun (f,_) ->
         if not (Cil.isFunctionType f.svar.vtype) then
@@ -815,24 +949,53 @@ class check ?(is_normalized=true) what : Visitor.frama_c_visitor =
           check_abort
             "Function %s has a definition, but is considered as not defined"
             f.svar.vname;
-        self#remove_globals_function f.svar; Cil.DoChildren
+        self#remove_globals_function f.svar;
+        if is_normalized then begin
+          try
+            let kf = Globals.Functions.get f.svar in
+            if not (Kernel_function.is_definition kf) then
+              check_abort
+                "Function %s has a definition in the AST, but is not defined \
+                 according to Globals.Functions"
+                f.svar.vname;
+            let f' = Kernel_function.get_definition kf in
+            if f != f' then
+              check_abort
+                "Definition of function %s is not shared \
+                 between AST and Globals.Functions"
+                f.svar.vname;
+          with Not_found ->
+            check_abort
+              "Function %s is present in the AST but not in Globals.Functions"
+              f.svar.vname
+        end;
+        Cil.DoChildren
       | _ -> Cil.DoChildren
 
     method! vfile _ =
+      let print_var_vid fmt vi =
+        Format.fprintf fmt "%a(%d)" Printer.pp_varinfo vi vi.vid
+      in
       let check_end f =
         if not (Cil_datatype.Varinfo.Set.is_empty globals_functions)
-           || not (Cil_datatype.Varinfo.Set.is_empty globals_vars)
+        || not (Cil_datatype.Varinfo.Set.is_empty globals_vars)
         then begin
-          let print_var_vid fmt vi =
-            Format.fprintf fmt "%a(%d)" Printer.pp_varinfo vi vi.vid
-          in
           check_abort
-            "Following functions and variables are present in global tables but \
-             not in AST:%a%a"
-            (Pretty_utils.pp_list ~pre:"@\nFunctions:@\n" ~sep:"@ " print_var_vid)
+            "Following functions and variables are present \
+             in global tables but not in AST:%a%a"
+            (Pretty_utils.pp_list
+               ~pre:"@\nFunctions:@\n" ~sep:"@ " print_var_vid)
             (Cil_datatype.Varinfo.Set.elements globals_functions)
-            (Pretty_utils.pp_list ~pre:"@\nVariables:@\n" ~sep:"@ " print_var_vid)
+            (Pretty_utils.pp_list
+               ~pre:"@\nVariables:@\n" ~sep:"@ " print_var_vid)
             (Cil_datatype.Varinfo.Set.elements globals_vars)
+        end;
+        if not (Cil_datatype.Varinfo.Set.is_empty local_statics) then begin
+          check_abort
+            "Following variables are supposed to be local static variables, \
+             but haven't been found in any block:@\n%a"
+            (Pretty_utils.pp_list ~sep:"@ " print_var_vid)
+            (Cil_datatype.Varinfo.Set.elements local_statics)
         end;
         f
       in
@@ -853,6 +1016,16 @@ class check ?(is_normalized=true) what : Visitor.frama_c_visitor =
           check_abort
             "Global logic function %a is flagged with a wrong origin"
             Printer.pp_logic_var li.l_var_info;
+        (match li.l_type, li.l_profile with
+         | Some ty, [] ->
+           if not (Cil_datatype.Logic_type.equal ty li.l_var_info.lv_type) then
+             check_abort
+               "Logic constant %a is declared with type %a, but \
+                its logic_var has type %a"
+               Printer.pp_logic_var li.l_var_info
+               Printer.pp_logic_type ty
+               Printer.pp_logic_type li.l_var_info.lv_type
+         | None, _ | Some _, _::_ -> ());
         Cil.DoChildren
       | Dmodel_annot (mi, _) ->
         (try
@@ -993,13 +1166,8 @@ class check ?(is_normalized=true) what : Visitor.frama_c_visitor =
 
     method! vexpr e =
       if Cil.typeHasAttribute "volatile" (Cil.typeOf e) then begin
-        let volatile_problem : (_, _, _) format =
-          "Expression with volatile qualification %a"
-        in
-        if Kernel.is_debug_key_enabled dkey_check_volatile then
-          check_abort volatile_problem Printer.pp_exp e
-        else
-          Kernel.warning ~current:true volatile_problem Printer.pp_exp e
+        Kernel.warning ~wkey:Kernel.wkey_check_volatile ~current:true
+          "Expression with volatile qualification %a" Printer.pp_exp e
       end;
       match e.enode with
       | Const (CEnum ei) -> self#check_ei ei
@@ -1147,9 +1315,10 @@ let extend_checker f = current_checker := f !current_checker
 
 let check_ast ?is_normalized ?(ast = Ast.get()) what =
   let module M = (val !current_checker : Extensible_checker) in
-  Kernel.debug ~dkey:dkey_check
-    "Checking integrity of AST:@\n%a"
-    (if Extlib.opt_conv true is_normalized
+  Kernel.debug ~dkey:Kernel.dkey_check
+    "Checking integrity of %s (%snormalized):@\n%a"
+    what (if Extlib.opt_conv true is_normalized then "" else "not ")
+   (if Extlib.opt_conv true is_normalized
      then Printer.pp_file else Cil_printer.pp_file)
     ast;
   Cil.visitCilFileSameGlobals

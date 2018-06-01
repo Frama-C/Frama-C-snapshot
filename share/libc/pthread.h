@@ -2,7 +2,7 @@
 /*                                                                        */
 /*  This file is part of Frama-C.                                         */
 /*                                                                        */
-/*  Copyright (C) 2007-2017                                               */
+/*  Copyright (C) 2007-2018                                               */
 /*    CEA (Commissariat à l'énergie atomique et aux énergies              */
 /*         alternatives)                                                  */
 /*                                                                        */
@@ -25,6 +25,8 @@
 
 #include "features.h"
 __PUSH_FC_STDLIB
+
+#include "errno.h"
 
 // The values for the constants below are based on an x86 Linux,
 // declared in the order given by POSIX.1-2008.
@@ -166,16 +168,46 @@ extern int pthread_barrierattr_getpshared(const pthread_barrierattr_t *restrict,
 extern int pthread_barrierattr_init(pthread_barrierattr_t *);
 extern int pthread_barrierattr_setpshared(pthread_barrierattr_t *, int);
 extern int pthread_cancel(pthread_t);
-extern int pthread_cond_broadcast(pthread_cond_t *);
-extern int pthread_cond_destroy(pthread_cond_t *);
-extern int pthread_cond_init(pthread_cond_t *restrict,
-                             const pthread_condattr_t *restrict);
+
+/*@ requires valid_cond: \valid(cond);
+    assigns \result \from \nothing;
+    ensures sucess: \result == 0;
+*/
+extern int pthread_cond_broadcast(pthread_cond_t *cond);
+
+/*@
+  requires valid_cond: \valid(cond);
+  assigns \result \from indirect:*cond;
+  ensures success_or_error: \result == 0 || \result == EBUSY;
+*/
+extern int pthread_cond_destroy(pthread_cond_t * cond);
+
+/*@
+  requires valid_cond: \valid(cond);
+  requires valid_null_attr: attr == \null || \valid_read(attr);
+  assigns *cond \from *attr;
+  assigns \result \from \nothing;
+  ensures initialization:cond: \initialized(cond);
+  ensures success: \result == 0; // at least on Linux
+  // Note: "never returns an error" comes from the French manpage for pthreads
+  //       (http://manpagesfr.free.fr/man/man3/pthread_cond_init.3.html)
+*/
+extern int pthread_cond_init(pthread_cond_t *restrict cond,
+                             const pthread_condattr_t *restrict attr);
+
 extern int pthread_cond_signal(pthread_cond_t *);
 extern int pthread_cond_timedwait(pthread_cond_t *restrict,
                                   pthread_mutex_t *restrict,
                                   const struct timespec *restrict);
-extern int pthread_cond_wait(pthread_cond_t *restrict,
-                             pthread_mutex_t *restrict);
+/*@ requires valid_cond: \valid(cond);
+    requires valid_mutex: \valid(mutex);
+    assigns \result \from \nothing;
+    ensures success: \result == 0;
+  // Note: "never returns an error" comes from the French manpage for pthreads
+  //       (http://manpagesfr.free.fr/man/man3/pthread_cond_init.3.html)
+*/
+extern int pthread_cond_wait(pthread_cond_t *restrict cond,
+                             pthread_mutex_t *restrict mutex);
 extern int pthread_condattr_destroy(pthread_condattr_t *);
 //clockid_t not available yet
 //extern int pthread_condattr_getclock(const pthread_condattr_t *restrict,
@@ -186,8 +218,21 @@ extern int pthread_condattr_init(pthread_condattr_t *);
 //clockid_t not available yet
 //extern int pthread_condattr_setclock(pthread_condattr_t *, clockid_t);
 extern int pthread_condattr_setpshared(pthread_condattr_t *, int);
-extern int pthread_create(pthread_t *restrict, const pthread_attr_t *restrict,
-                          void *(*)(void*), void *restrict);
+
+/*@ requires valid_thread: \valid(thread);
+    requires valid_null_attr: attr == \null || \valid_read(attr);
+    requires valid_routine: \valid_function(start_routine);
+    requires valid_null_arg: arg == \null || \valid((char*)arg);
+    assigns *thread \from *attr;
+    assigns \result \from indirect:*attr;
+    ensures success_or_error:
+      \result == 0 ||
+      \result == EAGAIN || \result == EINVAL || \result == EPERM;
+ */
+extern int pthread_create(pthread_t *restrict thread,
+                          const pthread_attr_t *restrict attr,
+                          void *(*start_routine)(void*),
+                          void *restrict arg);
 extern int pthread_detach(pthread_t);
 extern int pthread_equal(pthread_t, pthread_t);
 extern void pthread_exit(void *);
@@ -197,22 +242,79 @@ extern int pthread_getconcurrency(void);
 extern int pthread_getschedparam(pthread_t, int *restrict,
                                  struct sched_param *restrict);
 extern void *pthread_getspecific(pthread_key_t);
-extern int pthread_join(pthread_t, void **);
+
+/*@ requires valid_or_null_retval: retval == \null || \valid(retval);
+    assigns *retval \from thread;
+    assigns \result \from indirect:thread;
+    ensures success_or_error:
+      \result == 0 ||
+      \result == EDEADLK || \result == EINVAL || \result == ESRCH;
+
+    behavior ignore_retval:
+      assumes null_retval: retval == \null;
+      assigns \result \from indirect:thread;
+
+    behavior use_retval:
+      assumes valid_retval: \valid(retval);
+      assigns *retval \from thread;
+      assigns \result \from indirect:thread;
+*/
+extern int pthread_join(pthread_t thread, void **retval);
+
 extern int pthread_key_create(pthread_key_t *, void (*)(void*));
 extern int pthread_key_delete(pthread_key_t);
 extern int pthread_mutex_consistent(pthread_mutex_t *);
-extern int pthread_mutex_destroy(pthread_mutex_t *);
+
+/*@ requires mutex_valid: \valid(mutex);
+  assigns *mutex \from *mutex;
+  assigns \result \from indirect:*mutex;
+  ensures init_or_busy: \result == 0 || \result == EBUSY;
+*/
+extern int pthread_mutex_destroy(pthread_mutex_t *mutex);
+
 extern int pthread_mutex_getprioceiling(const pthread_mutex_t *restrict,
                                         int *restrict);
-extern int pthread_mutex_init(pthread_mutex_t *restrict,
-                              const pthread_mutexattr_t *restrict);
-extern int pthread_mutex_lock(pthread_mutex_t *);
+/*@
+  requires mutex_valid: \valid(mutex);
+  requires attrs_valid_or_null: attrs == \null || \valid_read(attrs);
+  assigns *mutex \from *mutex, *attrs;
+  assigns \result \from indirect:*mutex, indirect:*attrs;
+  // NB: under Linux, \result is guaranteed to be 0.
+  ensures initialization:success_or_error:
+  (\result == 0 && \initialized(mutex))
+  || \result == EAGAIN
+  || \result == ENOMEM
+  || \result == EPERM
+  || \result == EINVAL;
+*/
+extern int pthread_mutex_init(pthread_mutex_t *restrict mutex,
+                              const pthread_mutexattr_t *restrict attrs);
+
+/*@
+  requires mutex_valid: \valid(mutex);
+  assigns *mutex \from *mutex;
+  assigns \result \from indirect:*mutex;
+  ensures success_or_error:
+  \result == 0
+  || \result == EAGAIN
+  || \result == EINVAL
+  || \result == EDEADLK;
+  // NB: more error codes are specified in POSIX, but they are not
+  // exported by our version of errno.h
+ */
+extern int pthread_mutex_lock(pthread_mutex_t * mutex);
 extern int pthread_mutex_setprioceiling(pthread_mutex_t *restrict, int,
                                         int *restrict);
 extern int pthread_mutex_timedlock(pthread_mutex_t *restrict,
                                    const struct timespec *restrict);
 extern int pthread_mutex_trylock(pthread_mutex_t *);
-extern int pthread_mutex_unlock(pthread_mutex_t *);
+/*@
+  requires mutex_valid: \valid(mutex);
+  assigns *mutex \from *mutex;
+  assigns \result \from indirect:*mutex;
+  ensures success_or_error: \result == 0 || \result == EPERM;
+*/
+extern int pthread_mutex_unlock(pthread_mutex_t *mutex);
 extern int pthread_mutexattr_destroy(pthread_mutexattr_t *);
 extern int pthread_mutexattr_getprioceiling(const pthread_mutexattr_t *restrict,
                                             int *restrict);

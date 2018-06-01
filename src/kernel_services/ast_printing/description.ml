@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2017                                               *)
+(*  Copyright (C) 2007-2018                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -187,6 +187,9 @@ let pp_active fmt active =
     ~pre:" under active behaviors" ~sep:"," Format.pp_print_string fmt
     (Datatype.String.Set.elements active)
 
+let pp_acsl_extension fmt (_,s,_) =
+  Format.fprintf fmt "%s"  s
+
 let rec pp_prop kfopt kiopt kloc fmt = function
   | IPAxiom (s,_,_,_,_) -> Format.fprintf fmt "Axiom '%s'" s
   | IPLemma (s,_,_,_,_) -> Format.fprintf fmt "Lemma '%s'" s
@@ -205,6 +208,11 @@ let rec pp_prop kfopt kiopt kloc fmt = function
       pp_predicate kind 
       (pp_idpred kloc) idpred 
       (pp_kinstr kloc) ki
+  | IPExtended(kf,ki,pred) ->
+    Format.fprintf fmt "%a%a%a"
+      pp_acsl_extension pred
+      (pp_kinstr kloc) ki
+      (pp_context kfopt) (Some kf)
   | IPBehavior(_,ki, active, bhv) ->
     if Cil.is_default_behavior bhv then
       Format.fprintf fmt "Default behavior%a%a"
@@ -294,12 +302,12 @@ let rec pp_prop kfopt kiopt kloc fmt = function
   | IPReachable (Some kf, Kglobal, _) ->
     (* print "Unreachable": it seems that it is what the user want to see *)
     Format.fprintf fmt "Unreachable %a" Kernel_function.pretty kf
-  | IPPropertyInstance (kfo, ki, ip) ->
+  | IPPropertyInstance (kf, stmt, _, ip) ->
     Format.fprintf fmt "Instance of '%a'%a%a@."
-      (pp_prop kfopt kiopt kloc) ip      
-      (pp_context kfopt) kfo
-      (pp_opt kiopt (pp_kinstr kloc)) ki
-      
+      (pp_prop kfopt kiopt kloc) ip
+      (pp_context kfopt) (Some kf)
+      (pp_opt kiopt (pp_kinstr kloc)) (Kstmt stmt)
+
 
 
 type kf = [ `Always | `Never | `Context of kernel_function ]
@@ -394,10 +402,10 @@ let rec ip_order = function
   | IPDecrease(kf,ki,Some a,_) -> [I 14;F kf;K ki] @ annot_order a
   | IPReachable(None,_,_) -> [I 15]
   | IPReachable(Some kf,ki,_) -> [I 16;F kf;K ki]
-  | IPPropertyInstance (None,ki,ip) -> [I 17; K ki] @ ip_order ip
-  | IPPropertyInstance (Some kf,ki,ip) -> [I 17; F kf; K ki] @ ip_order ip
+  | IPPropertyInstance (kf, s, _, ip) -> [I 17; F kf; K (Kstmt s)] @ ip_order ip
   | IPTypeInvariant(a,_,_,_) -> [I 18; S a]
   | IPGlobalInvariant(a,_,_) -> [I 19; S a]
+  | IPExtended(kf,ki,_) -> [I 20;F kf;K ki]
 
 let pp_compare p q = cmp (ip_order p) (ip_order q)
 

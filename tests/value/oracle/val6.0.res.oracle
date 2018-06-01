@@ -26,7 +26,7 @@
 [from] Computing for function f
 [from] Done for function f
 [from] ====== DEPENDENCIES COMPUTED ======
-    These dependencies hold at termination for the executions that terminate:
+  These dependencies hold at termination for the executions that terminate:
 [from] Function f:
   NULL[18..21] FROM \nothing
   c FROM \nothing
@@ -37,6 +37,6 @@
   \result FROM \nothing
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function f:
-      NULL[18..21]; c; a; b; y; x; __retres
+    NULL[18..21]; c; a; b; y; x; __retres
 [inout] Inputs for function f:
-      NULL[18..21]; c; x
+    NULL[18..21]; c; x

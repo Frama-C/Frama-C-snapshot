@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2017                                               *)
+(*  Copyright (C) 2007-2018                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -45,3 +45,6 @@ val iter : inspector -> unit
 val report_ip: Property.t -> bool
 (** Should this property be part of the final report according to the users
     filters. *)
+
+val source_properties : (Property.t -> unit) -> unit
+(** Visit all source properties from the AST *)

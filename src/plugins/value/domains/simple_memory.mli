@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2017                                               *)
+(*  Copyright (C) 2007-2018                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -23,6 +23,11 @@
 (** Simple memory abstraction for scalar non-volatile variables, built upon a
     value abstraction. Basically a map from variable to values. *)
 
+(** A builtin is an ocaml function for the interpretation of a whole C function:
+    it takes the value of the arguments as a list, and returns the result (that
+    can be bottom). *)
+type 'value builtin = 'value list -> 'value Eval.or_bottom
+
 (** Abstraction of the values variables are mapped to. *)
 module type Value = sig
   include Datatype.S
@@ -42,6 +47,10 @@ module type Value = sig
 
   (** Can be equal to {!pretty} *)
   val pretty_debug: t Pretty_utils.formatter
+
+  (** A list of builtins for the domain: each builtin is associated with the
+      name of the C function it interprets. *)
+  val builtins: (string * t builtin) list
 end
 
 (** Signature of a simple memory abstraction for scalar variables.  *)

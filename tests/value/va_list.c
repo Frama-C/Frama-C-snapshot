@@ -1,3 +1,7 @@
+/*run.config*
+  STDOPT:
+  STDOPT: #"-variadic-no-translation"
+*/
 typedef void *va_list;
 
 #define va_start(AP, LASTARG) \

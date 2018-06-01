@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2017                                               *)
+(*  Copyright (C) 2007-2018                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -111,7 +111,8 @@ class autofocus =
            | `Visible -> Env.unfold env t
            | `Shared ->
                let base = F.basename t in
-               Env.define env (Env.fresh env base) t
+               let sanitizer = Plang.sanitizer in
+               Env.define env (Env.fresh env ~sanitizer base) t
            | `Name x ->
                Env.define env x t)
         vterm ; env
@@ -205,7 +206,7 @@ class autofocus =
     method is_focused e = List.memq e focusring
     method is_visible e = if autofocus then self#occurs_term e else true
     method is_targeted e = autofocus && self#occurs_term e
-    
+
     method set_autofocus flag =
       autofocus <- flag ;
       if flag then self#clear_cache else self#reset
@@ -300,7 +301,7 @@ class plang
     inherit Pcond.state as super
 
     method! shareable e = autofocus#is_targeted e || super#shareable e
-    
+
     val mutable tgt = F.e_true
     method set_target t = tgt <- t
     method clear_target = tgt <- F.e_true
@@ -347,10 +348,10 @@ class pcond
     val mutable ellipsed = false
     val mutable parts : part Wtext.entry list = []
     val mutable tgt : part = Term (* empty *)
-      
+
     (* Register displayed entries *)
     initializer part#on_add (fun entry -> parts <- entry :: parts)
-    
+
     method set_target p = tgt <- p
 
     method part p q =
@@ -518,7 +519,7 @@ class focused (wtext : Wtext.text) =
              | _ -> false
           ) targeted
       with Not_found -> 0,0
-        
+
     method get_focus_mode = autofocus#get_autofocus
     method set_focus_mode = autofocus#set_autofocus
 
@@ -530,7 +531,7 @@ class focused (wtext : Wtext.text) =
         self#set_target self#selection ;
         List.iter (fun f -> f ()) demon ;
       end
-        
+
     method on_selection f =
       demon <- demon @ [f]
 
@@ -701,7 +702,7 @@ class focused (wtext : Wtext.text) =
         end ;
       targeted <- [] ;
       let env = autofocus#env in
-      if pcond#get_state then Env.force_index env ;
+      if pcond#get_state then Env.set_indexed_vars env ;
       pcond#pp_esequent env fmt s ;
       let p,q = self#target_zone in
       if p > 0 && q > p then

@@ -23,7 +23,7 @@
 [from] Computing for function f2
 [from] Done for function f2
 [from] ====== DEPENDENCIES COMPUTED ======
-    These dependencies hold at termination for the executions that terminate:
+  These dependencies hold at termination for the executions that terminate:
 [from] Function f2:
   i FROM \nothing
   j FROM d; c
@@ -32,6 +32,6 @@
   l FROM \nothing
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function f2:
-      i; j; x; k; l
+    i; j; x; k; l
 [inout] Inputs for function f2:
-      x; d
+    x; d

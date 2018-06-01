@@ -4,8 +4,9 @@
 [value] Initial state computed
 [value:initial-state] Values of globals at initialization
   after ∈ [--..--]
-tests/pdg/loops.c:84:[value] entering loop for the first time
-tests/pdg/loops.c:88:[value] warning: signed overflow. assert i + 2 ≤ 2147483647;
+[value] tests/pdg/loops.c:84: entering loop for the first time
+[value:alarm] tests/pdg/loops.c:88: Warning: 
+  signed overflow. assert i + 2 ≤ 2147483647;
 [value] Recording results for maybe_infinite
 [value] done for function maybe_infinite
 [pdg] computing for function maybe_infinite

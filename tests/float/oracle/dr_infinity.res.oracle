@@ -1,27 +1,53 @@
 [kernel] Parsing tests/float/dr_infinity.i (no preprocessing)
-tests/float/dr_infinity.i:8:[kernel] warning: Floating-point constant 3.4028235677973366e+38f is not represented exactly. Will use 0x1.fffffe0000000p127
-tests/float/dr_infinity.i:11:[kernel] warning: Floating-point constant 3.402823567797366e+38 is not represented exactly. Will use 0x1.ffffff000004ep127
-tests/float/dr_infinity.i:15:[kernel] warning: Floating-point constant 3.4e38 is not represented exactly. Will use 0x1.ff933c78cdfadp127
-tests/float/dr_infinity.i:20:[kernel] warning: Floating-point constant 1e308 is not represented exactly. Will use 0x1.1ccf385ebc8a0p1023
-tests/float/dr_infinity.i:30:[kernel] warning: Floating-point constant 1e308 is not represented exactly. Will use 0x1.1ccf385ebc8a0p1023
-tests/float/dr_infinity.i:31:[kernel] warning: Floating-point constant 0.01 is not represented exactly. Will use 0x1.47ae147ae147bp-7
-tests/float/dr_infinity.i:35:[kernel] warning: Floating-point constant 1e38 is not represented exactly. Will use 0x1.2ced32a16a1b1p126
-tests/float/dr_infinity.i:36:[kernel] warning: Floating-point constant 0.001 is not represented exactly. Will use 0x1.0624dd2f1a9fcp-10
+[kernel:parser:decimal-float] tests/float/dr_infinity.i:8: Warning: 
+  Floating-point constant 3.4028235677973366e+38f is not represented exactly. Will use 0x1.fffffe0000000p127.
+[kernel:parser:decimal-float] tests/float/dr_infinity.i:11: Warning: 
+  Floating-point constant 3.402823567797366e+38 is not represented exactly. Will use 0x1.ffffff000004ep127.
+[kernel:parser:decimal-float] tests/float/dr_infinity.i:15: Warning: 
+  Floating-point constant 3.4e38 is not represented exactly. Will use 0x1.ff933c78cdfadp127.
+[kernel:parser:decimal-float] tests/float/dr_infinity.i:20: Warning: 
+  Floating-point constant 1e308 is not represented exactly. Will use 0x1.1ccf385ebc8a0p1023.
+[kernel:parser:decimal-float] tests/float/dr_infinity.i:30: Warning: 
+  Floating-point constant 1e308 is not represented exactly. Will use 0x1.1ccf385ebc8a0p1023.
+[kernel:parser:decimal-float] tests/float/dr_infinity.i:31: Warning: 
+  Floating-point constant 0.01 is not represented exactly. Will use 0x1.47ae147ae147bp-7.
+[kernel:parser:decimal-float] tests/float/dr_infinity.i:35: Warning: 
+  Floating-point constant 1e38 is not represented exactly. Will use 0x1.2ced32a16a1b1p126.
+[kernel:parser:decimal-float] tests/float/dr_infinity.i:36: Warning: 
+  Floating-point constant 0.001 is not represented exactly. Will use 0x1.0624dd2f1a9fcp-10.
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
 [value] Initial state computed
 [value:initial-state] Values of globals at initialization
   v ∈ [--..--]
-tests/float/dr_infinity.i:9:[value] Frama_C_show_each: {0x1.fffffe0000000p127}
-tests/float/dr_infinity.i:11:[value] warning: non-finite float value. assert \is_finite((float)3.402823567797366e+38);
-tests/float/dr_infinity.i:16:[value] warning: non-finite float value. assert \is_finite((float)(x * x));
-tests/float/dr_infinity.i:21:[value] warning: non-finite double value. assert \is_finite((double)(d * (double)10));
-tests/float/dr_infinity.i:26:[value] warning: non-finite double value. assert \is_finite((double)((double)2 / d));
-tests/float/dr_infinity.i:31:[value] warning: non-finite double value. assert \is_finite((double)(d / 0.01));
-tests/float/dr_infinity.i:36:[value] warning: non-finite float value.
-    assert \is_finite((float)((double)((double)x / 0.001)));
+[value] tests/float/dr_infinity.i:9: Frama_C_show_each: {0x1.fffffe0000000p127}
+[value:alarm] tests/float/dr_infinity.i:11: Warning: 
+  non-finite float value. assert \is_finite((float)3.402823567797366e+38);
+[value:alarm] tests/float/dr_infinity.i:16: Warning: 
+  non-finite float value. assert \is_finite((float)(x * x));
+[value:alarm] tests/float/dr_infinity.i:21: Warning: 
+  non-finite double value. assert \is_finite((double)(d * (double)10));
+[value:alarm] tests/float/dr_infinity.i:26: Warning: 
+  non-finite double value. assert \is_finite((double)((double)2 / d));
+[value:alarm] tests/float/dr_infinity.i:31: Warning: 
+  non-finite double value. assert \is_finite((double)(d / 0.01));
+[value:alarm] tests/float/dr_infinity.i:36: Warning: 
+  non-finite float value.
+  assert \is_finite((float)((double)((double)x / 0.001)));
+[value:alarm] tests/float/dr_infinity.i:41: Warning: 
+  non-finite double value. assert \is_finite((double)(d / 0.));
 [value] Recording results for main
 [value] done for function main
+[value] tests/float/dr_infinity.i:11: 
+  assertion 'Value,is_nan_or_infinite' got final status invalid.
+[value] tests/float/dr_infinity.i:16: 
+  assertion 'Value,is_nan_or_infinite' got final status invalid.
+[value] tests/float/dr_infinity.i:26: 
+  assertion 'Value,is_nan_or_infinite' got final status invalid.
+[value] tests/float/dr_infinity.i:36: 
+  assertion 'Value,is_nan_or_infinite' got final status invalid.
+[value] tests/float/dr_infinity.i:41: 
+  assertion 'Value,is_nan_or_infinite' got final status invalid.
 [value] ====== VALUES COMPUTED ======
 [value:final-states] Values at end of function main:
   x ∈ {0x1.fffffe0000000p127}
@@ -29,11 +55,11 @@ tests/float/dr_infinity.i:36:[value] warning: non-finite float value.
 [from] Computing for function main
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
-    These dependencies hold at termination for the executions that terminate:
+  These dependencies hold at termination for the executions that terminate:
 [from] Function main:
   NO EFFECTS
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function main:
-      x; d
+    x; d
 [inout] Inputs for function main:
-      v
+    v

@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2017                                               *)
+(*  Copyright (C) 2007-2018                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -45,16 +45,6 @@ module Undo =
     (struct
       let option_name = "-gui-undo"
       let help = "possible to click on the `undo' button (set by default)"
-    end)
-
-module Theme =
-  String
-    (struct
-      let option_name = "-gui-theme"
-      let arg_name = "s"
-      let help =
-        "choose the theme <s> of the GUI (available: 'default', 'colorblind')"
-      let default = "default"
     end)
 
 (*

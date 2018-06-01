@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2017                                               *)
+(*  Copyright (C) 2007-2018                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -20,7 +20,7 @@
 (*                                                                        *)
 (**************************************************************************)
 
-(** Constructions of the abstractions used by EVA. *)
+(** Constructions of the abstractions used by Eva. *)
 
 (** Configuration of the abstract domain. *)
 type config = {
@@ -36,12 +36,13 @@ type config = {
   polka_equalities : bool;
   inout: bool;
   signs: bool;
+  printer: bool;
 }
 
-(** Default configuration of EVA. *)
+(** Default configuration of Eva. *)
 val default_config : config
 
-(** Legacy configuration of EVA, with only the cvalue domain enabled.
+(** Legacy configuration of Eva, with only the cvalue domain enabled.
     May be the default config as well. *)
 val legacy_config : config
 

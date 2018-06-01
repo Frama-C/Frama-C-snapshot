@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2017                                               *)
+(*  Copyright (C) 2007-2018                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -56,9 +56,12 @@ let offsetmap_contains_imprecision offs =
     None
   with Got_imprecise v -> Some v
 
+let eval_precond =
+  ref (fun _kf _stmt state -> state)
+
 module Transfer
     (Valuation: Abstract_domain.Valuation with type value = value
-                                           and type origin = bool
+                                           and type origin = value option
                                            and type loc = location)
 = struct
 
@@ -81,15 +84,33 @@ module Transfer
         else t
       | `Top -> t (* Cannot reduce without the location of the lvalue. *)
 
+  let is_smaller_value typ v1 v2 =
+    let size = Integer.of_int (Cil.bitsSizeOf typ) in
+    let card1 = Cvalue.V.cardinal_estimate v1 ~size
+    and card2 = Cvalue.V.cardinal_estimate v2 ~size in
+    Integer.lt card1 card2
+
   (* Update the state according to a Valuation. *)
   let update valuation t =
     let process exp record t =
       match exp.enode with
       | Lval lv ->
-        if record.reductness = Reduced || record.origin = Some true
+        if record.reductness = Reduced
         then
           let {v; initialized; escaping} = record.value in
           let v = unbottomize v in
+          let v =
+            (* The origin contains the value already stored in the state, when
+               its type is incompatible with the lvalue [lv]. The precision of
+               this previous value and [v] are then incomparable (none is
+               included in the other). We use some notion of cardinality of
+               abstract values to choose the best value to keep. *)
+            match record.origin with
+            | Some (Some previous_v) ->
+              let typ = Cil.typeOfLval lv in
+              if is_smaller_value typ v previous_v then v else previous_v
+            | _ -> v
+          in
           let value = Cvalue.V_Or_Uninitialized.make ~initialized ~escaping v in
           reduce valuation lv value t
         else t
@@ -223,44 +244,7 @@ module Transfer
   (*                               Builtins                                 *)
   (* ---------------------------------------------------------------------- *)
 
-  let va_start valuation state args =
-    match args with
-    | [{enode = Lval lv}, _, _] ->
-      let loc = match Valuation.find_loc valuation lv with
-        | `Value record -> Precise_locs.imprecise_location record.loc
-        | `Top -> assert false
-      in
-      let state = add_binding ~exact:true state loc Cvalue.V.top_int in
-      { Value_types.c_values = [ None, state] ;
-        c_clobbered = Base.SetLattice.bottom;
-        c_cacheable = Value_types.Cacheable;
-        c_from = None;
-      }
-    | _ -> assert false
-
-  let va_arg _valuation state args =
-    match args with
-    | [_; (_, vsize, _); (_, locbytes, _)] ->
-      let size =
-        try
-          let i = Cvalue.V.project_ival vsize in
-          let i = Ival.project_int i in
-          let ibytes = Integer.mul i (Bit_utils.sizeofchar ()) in
-          Int_Base.inject ibytes
-        with Cvalue.V.Not_based_on_null | Ival.Not_Singleton_Int ->
-          Int_Base.top
-      in
-      let locbits = Locations.loc_bytes_to_loc_bits locbytes in
-      let loc = Locations.make_loc locbits size in
-      let state = add_binding ~exact:true state loc Cvalue.V.top_int in
-      { Value_types.c_values = [ None, state] ;
-        c_clobbered = Base.SetLattice.bottom;
-        c_cacheable = Value_types.Cacheable;
-        c_from = None;
-      }
-    | _ -> assert false
-
-  let apply_abstract_builtin builtin state actuals =
+  let apply_abstract_builtin builtin name (state: Cvalue.Model.t) actuals =
     try Some (builtin state actuals)
     with
     | Builtins.Invalid_nb_of_args n ->
@@ -273,25 +257,10 @@ module Transfer
         "Call to builtin %s failed, aborting." name;
       raise Db.Value.Aborted
 
-  (* Apply special builtins, such as Frama_C_show_each_foo *)
-  let apply_special_builtins valuation name state actuals =
-    if Ast_info.can_be_cea_function name then
-      (* One special function that is not registered in the builtin table *)
-      if Ast_info.is_cea_dump_file_function name then
-        Some (Builtins_misc.dump_state_file name state actuals)
-      else
-        None
-    else if name = "__builtin_va_start" || name = "__builtin_va_end" then
-      Some (va_start valuation state actuals)
-    else if name = "__builtin_va_arg" then
-      Some (va_arg valuation state actuals)
-    else
-      None
-
   (* Compute a call to a possible builtin [kf] in state [state]. [actuals] are
      the arguments of [kf], and have not been bound to its formals. Returns
      [None] if the call must be computed using the Cil function for [kf]. *)
-  let compute_maybe_builtin call valuation state actuals rest =
+  let compute_maybe_builtin call stmt state actuals rest =
     let actuals = actuals @ rest in
     let name = Kernel_function.get_name call.kf in
     match Builtins.find_builtin_override call.kf with
@@ -299,9 +268,21 @@ module Transfer
       (* This is an interesting C function. Mark it as called, otherwise
          it would get skipped, eg. from the Gui. *)
       Value_results.mark_kf_as_called call.kf;
-      apply_abstract_builtin abstract_function state actuals
-    | None ->
-      apply_special_builtins valuation name state actuals
+      let state = !eval_precond call.kf stmt state in
+      (* If the preconditions lead to bottom, do *not* call the Caml builtin.
+         Most assume that their arguments are not bottom. *)
+      if Cvalue.Model.(equal state bottom) then
+        let bot_res = {
+          Value_types.c_values = [];
+          c_clobbered = Base.SetLattice.empty;
+          c_cacheable = Value_types.Cacheable;
+          c_from = None;
+        }
+        in
+        Some bot_res
+      else
+        apply_abstract_builtin abstract_function name state actuals
+    | None -> None
 
 
   (* ---------------------------------------------------------------------- *)
@@ -321,16 +302,15 @@ module Transfer
       | `Top -> assert false
     in
     let offsm =
-      try Eval_op.offsetmap_of_loc record.loc state
+      try Bottom.non_bottom (Eval_op.offsetmap_of_loc record.loc state)
       with Abstract_interp.Error_Top ->
         (* Subsumed by check_arg_size? *)
         Value_parameters.abort ~current:true
           "Function argument %a has unknown size. Aborting"
           Printer.pp_lval lval;
     in
-    match offsm with
-    | `Value offsm -> warn_if_imprecise lval record.loc offsm; offsm
-    | `Bottom -> raise InvalidCall
+    warn_if_imprecise lval record.loc offsm;
+    offsm
 
   let offsetmap_of_formal valuation state typ = function
     | Copy (lval, _value) -> offsetmap_of_lval valuation state lval
@@ -355,14 +335,14 @@ module Transfer
     let rest = List.fold_right treat_one_rest rest [] in
     state, list, rest
 
-  let start_call _stmt call valuation state =
+  let start_call stmt call valuation state =
     let state = update valuation state in
     let with_formals, list, rest =
       actualize_formals valuation state call.arguments call.rest
     in
     let stack_with_call = Value_util.call_stack () in
     Db.Value.Call_Value_Callbacks.apply (with_formals, stack_with_call);
-    match compute_maybe_builtin call valuation state list rest with
+    match compute_maybe_builtin call stmt with_formals list rest with
     | None -> Compute with_formals, Base.SetLattice.bottom
     | Some res ->
       (* Store the initial state, but do not called mark_as_called. Uninteresting

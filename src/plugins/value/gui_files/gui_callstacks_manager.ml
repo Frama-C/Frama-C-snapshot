@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2017                                               *)
+(*  Copyright (C) 2007-2018                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -109,6 +109,7 @@ let add_data_to_rows rows callstack expr data =
 
 type 'value filter_column =
   | FilterAlarm of bool
+  | FilterRed of bool
   | FilterBefore of 'value gui_res
   | FilterAfter of 'value gui_after
 
@@ -136,13 +137,16 @@ type column_type =
   | CBefore of gui_selection
   | CAfter of gui_selection
   | CAlarm of gui_selection
+  | CRed of gui_selection
   | CEmpty (* empty column at the end, for aesthetic purposes *)
 
 let equal_column_type ct1 ct2 = match ct1, ct2 with
   | CCallstack, CCallstack | CEmpty, CEmpty -> true
-  | CBefore e1, CBefore e2 | CAfter e1, CAfter e2 | CAlarm e1, CAlarm e2 ->
+  | CBefore e1, CBefore e2 | CAfter e1, CAfter e2 | CAlarm e1, CAlarm e2
+  | CRed e1, CRed e2 ->
     gui_selection_equal e1 e2
-  | _ -> false
+  | (CCallstack | CBefore _ | CAfter _ | CAlarm _ | CRed _ | CEmpty), _ ->
+    false
 
 (* This is an hybrid between the model and the view. *)
 type 'value model = {
@@ -173,12 +177,12 @@ let column_has_filter model col_type =
   match col_type with
   | CEmpty -> false
   | CCallstack -> model.focused_rev_callstacks <> None
-  | CBefore e | CAfter e | CAlarm e ->
+  | CBefore e | CAfter e | CAlarm e | CRed e ->
     let has (e', _, f) =
       gui_selection_equal e e' &&
       (match f, col_type with
        | FilterBefore _, CBefore _ | FilterAfter _, CAfter _
-       | FilterAlarm _, CAlarm _ -> true
+       | FilterAlarm _, CAlarm _ | FilterRed _, CRed _ -> true
        | _ -> false)
     in
     List.exists has model.filters
@@ -230,6 +234,7 @@ module Make (Input: Input) = struct
   type value = Input.value
 
   let pretty_filter_column fmt = function
+    | FilterRed b -> Format.fprintf fmt "%s" (if b then "red" else " ")
     | FilterAlarm b -> Format.fprintf fmt "%s" (if b then "!" else " ")
     | FilterBefore r -> Format.fprintf fmt "%a" Input.pretty_gui_res r
     | FilterAfter r -> Format.fprintf fmt "%a" Input.pretty_gui_after r
@@ -237,6 +242,7 @@ module Make (Input: Input) = struct
   let data_matches_filter data pos col =
     let ok =
       match col with
+      | FilterRed r -> data.Gui_eval.red = r
       | FilterAlarm a -> data.Gui_eval.alarm = a
       | FilterBefore r -> Input.equal_gui_res r data.Gui_eval.before
       | FilterAfter r -> Input.equal_gui_after r data.Gui_eval.after
@@ -312,6 +318,8 @@ module Make (Input: Input) = struct
               Format.asprintf "'%a'  (after)" pretty_gui_selection e
             | CAlarm e ->
               Format.asprintf "'%a'  (alarms)" pretty_gui_selection e
+            | CRed e ->
+              Format.asprintf "'%a'  (red)" pretty_gui_selection e
             | CCallstack | CEmpty -> raise Not_found
           in
           if column#visible ||
@@ -463,6 +471,29 @@ module Make (Input: Input) = struct
       let tip_alarm =
         Printf.sprintf "Does evaluation of '%s' always succeed?" expr_string
       in
+      (* 'Red' column *)
+      let show_red_col = ref (fun () -> ()) in
+      let col_red =
+        w#add_column_pixbuf [`YALIGN 0.0;`XALIGN 0.5]
+          (fun (_, row) ->
+             let data = find_data row expr in
+             if data.Gui_eval.red then begin
+               !show_red_col ();
+               let i =
+                 Gtk_helper.Icon.Feedback Property_status.Feedback.Invalid
+               in
+               [`PIXBUF (Gtk_helper.Icon.get i)]
+             end else [`STOCK_ID  ""])
+      in
+      show_red_col := (fun () ->
+          let ct = CRed expr in
+          if not (list_mem equal_column_type ct model.hidden_columns) then
+            col_red#set_visible true);
+      col_red#set_visible false;
+      let tip_red =
+        Printf.sprintf "Did evaluation of '%s' entirely failed once?"
+          expr_string
+      in
       (* 'After column *)
       let show_after_col = ref (fun () -> ()) in
       let col_after = w#add_column_text [`YALIGN 0.0]
@@ -510,7 +541,7 @@ module Make (Input: Input) = struct
           HColumns.iter
             (fun col (col_type, _) ->
                match col_type with
-               | CBefore e | CAfter e | CAlarm e
+               | CBefore e | CAfter e | CAlarm e | CRed e
                  when gui_selection_equal expr e ->
                  ignore (w#view#remove_column col);
                  HColumns.remove model.columns_type col;
@@ -537,6 +568,7 @@ module Make (Input: Input) = struct
       in
       aux_expr_column col_before (CBefore expr) expr_string tip_before;
       aux_expr_column col_alarm (CAlarm expr) "  " tip_alarm;
+      aux_expr_column col_red (CRed expr) "  " tip_red;
       aux_expr_column col_after (CAfter expr) title_after tip_after;
     and add_data expr callstack data =
       (* If the expression has never been displayed before, create the
@@ -725,7 +757,7 @@ module Make (Input: Input) = struct
              | GA_After after -> dump "Value after" Input.pretty_gui_res after
              | GA_NA | GA_Unchanged | GA_Bottom -> ()
            end
-         | CAlarm _, _ | CEmpty, _ -> ()
+         | CAlarm _, _ | CEmpty, _ | CRed _, _ -> ()
       );
     let gui_res_of_after f after =
       match after with
@@ -767,6 +799,10 @@ module Make (Input: Input) = struct
            let data = find_data row expr in
            if data.Gui_eval.before <> GR_Empty then
              popup_menu_filter expr (FilterAlarm data.Gui_eval.alarm) icon []
+         | CRed expr, icon ->
+           let data = find_data row expr in
+           if data.Gui_eval.before <> GR_Empty then
+             popup_menu_filter expr (FilterRed data.Gui_eval.red) icon []
          | CEmpty, _ -> ()
       );
     frame,

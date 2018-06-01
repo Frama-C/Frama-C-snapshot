@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2017                                               *)
+(*  Copyright (C) 2007-2018                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -148,6 +148,7 @@ let base_path = Filename.current_dir_name
 type behavior = Examine | Update | Run | Show | Gui
 let behavior = ref Run
 let verbosity = ref 0
+let dry_run = ref false
 let use_byte = ref false
 let use_diff_as_cmp = ref (Sys.os_type = "Win32")
 let do_diffs = ref (if Sys.os_type = "Win32" then "diff --strip-trailing-cr -u"
@@ -260,6 +261,8 @@ let rec argspec =
   oracles.";
   "-v", Arg.Unit (fun () -> incr verbosity),
   " Increase verbosity (up to  twice)" ;
+  "-dry-run", Arg.Unit (fun () -> dry_run := true),
+  " Do not run commands (use with -v to print all commands which would be run)" ;
   "-diff", Arg.String (fun s -> do_diffs := s;
     if !use_diff_as_cmp then do_cmp := s),
   "<command>  Use command for diffs" ;
@@ -489,9 +492,6 @@ type config =
        of output files to monitor beyond stdout and stderr. *)
       dc_dont_run   : bool;
       dc_default_log: string list;
-      dc_is_explicit_test: bool
-        (** set to true for single test files that are explicitly
-            mentioned on the command line. Overrides dc_dont_run. *)
     }
 
 let default_macros () =
@@ -505,28 +505,29 @@ let default_config () =
     dc_default_toplevel = !toplevel_path;
     dc_toplevels = [ !toplevel_path, default_options, [] ];
     dc_dont_run = false;
-    dc_is_explicit_test = false;
     dc_default_log = []
   }
 
 let launch command_string =
-  let result = system command_string in
-  match result with
-  | Unix.WEXITED 127 ->
+  if !dry_run then 0 (* do not run command; return as if no error *)
+  else
+    let result = system command_string in
+    match result with
+    | Unix.WEXITED 127 ->
       lock_printf "%% Couldn't execute command. Retrying once.@.";
       Thread.delay 0.125;
       ( match system command_string with
-        Unix.WEXITED r when r <> 127 -> r
-      | _ -> lock_printf "%% Retry failed with command:@\n%s@\nStopping@."
-          command_string ;
+          Unix.WEXITED r when r <> 127 -> r
+        | _ -> lock_printf "%% Retry failed with command:@\n%s@\nStopping@."
+                 command_string ;
           exit 1 )
-  | Unix.WEXITED r -> r
-  | Unix.WSIGNALED s ->
+    | Unix.WEXITED r -> r
+    | Unix.WSIGNALED s ->
       lock_printf
         "%% SIGNAL %d received while executing command:@\n%s@\nStopping@."
         s command_string ;
       exit 1
-  | Unix.WSTOPPED s ->
+    | Unix.WSTOPPED s ->
       lock_printf
         "%% STOP %d received while executing command:@\n%s@\nStopping@."
         s command_string;
@@ -688,9 +689,7 @@ let config_options =
     (fun _ _ acc -> acc);
 
     "DONTRUN",
-    (fun _ s current ->
-       if current.dc_is_explicit_test then current
-       else { current with dc_dont_run = true });
+    (fun _ s current -> { current with dc_dont_run = true });
 
     "EXECNOW",
     (fun dir s current ->
@@ -1014,7 +1013,7 @@ let command_string command =
   let command_string = match filter with
     | None -> command_string
     | Some filter ->
-        Printf.sprintf "%s && %s < %s > %s && rm -f %s"
+        Printf.sprintf "%s && %s < %s >%s && rm -f %s"
           command_string filter stderr errlog stderr
   in
   command_string
@@ -1501,8 +1500,7 @@ let () =
        if interpret_as_file
        then begin
          if not (List.mem suite exclude_file) then
-           Queue.push (Filename.basename suite, directory,
-                       { dir_config with dc_is_explicit_test = true}) files
+           Queue.push (Filename.basename suite, directory, dir_config) files
        end
        else begin
          if not (List.mem suite exclude_suite) then begin

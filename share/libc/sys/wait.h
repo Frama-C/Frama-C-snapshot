@@ -2,7 +2,7 @@
 /*                                                                        */
 /*  This file is part of Frama-C.                                         */
 /*                                                                        */
-/*  Copyright (C) 2007-2017                                               */
+/*  Copyright (C) 2007-2018                                               */
 /*    CEA (Commissariat à l'énergie atomique et aux énergies              */
 /*         alternatives)                                                  */
 /*                                                                        */
@@ -50,7 +50,10 @@ __BEGIN_DECLS
 #include "../__fc_define_uid_and_gid.h"
 #include "../signal.h"
 
+# ifndef __ENUM_IDTYPE_T
+# define __ENUM_IDTYPE_T 1
 typedef enum __FC_IDTYPE_T { P_ALL, P_PID, P_PGID } idtype_t;
+#endif
 
 extern pid_t wait(int *stat_loc);
 extern int waitid(idtype_t idt, id_t id, siginfo_t * sig, int options);

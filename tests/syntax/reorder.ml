@@ -1,7 +1,7 @@
 open Cil_types
 
 let run () =
-  let file = Ast.get () in
+  ignore(Ast.get ());
   let kf = Globals.Functions.find_by_name "f" in
   let li = Cil_const.make_logic_info "i" in
   let lj = Cil_const.make_logic_info "j" in

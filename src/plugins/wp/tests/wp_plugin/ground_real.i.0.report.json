@@ -1,0 +1,12 @@
+{ "wp:global": { "alt-ergo": { "total": 1, "valid": 1, "rank": 0 },
+                 "wp:main": { "total": 1, "valid": 1, "rank": 0 } },
+  "wp:axiomatics": { "": { "lemma_R": { "alt-ergo": { "total": 1, "valid": 1,
+                                                      "rank": 0 },
+                                        "wp:main": { "total": 1, "valid": 1,
+                                                     "rank": 0 } },
+                           "wp:section": { "alt-ergo": { "total": 1,
+                                                         "valid": 1,
+                                                         "rank": 0 },
+                                           "wp:main": { "total": 1,
+                                                        "valid": 1,
+                                                        "rank": 0 } } } } }

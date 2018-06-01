@@ -1,29 +1,35 @@
 [kernel] Parsing tests/float/parse.i (no preprocessing)
-tests/float/parse.i:25:[kernel] warning: Floating-point constant 0.00000000000000000000000000000000000000001e310 is not represented exactly. Will use 0x1.83a99c3ec7eb0p893
-tests/float/parse.i:30:[kernel] warning: Floating-point constant 0.0000001E9999999999999999999 is not represented exactly. Will use inf
+[kernel:parser:decimal-float] tests/float/parse.i:25: Warning: 
+  Floating-point constant 0.00000000000000000000000000000000000000001e310 is not represented exactly. Will use 0x1.83a99c3ec7eb0p893.
+[kernel:parser:decimal-float] tests/float/parse.i:30: Warning: 
+  Floating-point constant 0.0000001E9999999999999999999 is not represented exactly. Will use inf.
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
 [value] Initial state computed
 [value:initial-state] Values of globals at initialization
   v ∈ [--..--]
-tests/float/parse.i:10:[value] Frama_C_show_each: {0}, {{ "reached" }}
-tests/float/parse.i:15:[value] Frama_C_show_each: {0}, {{ "reached" }}
-tests/float/parse.i:21:[value] Frama_C_show_each: {0}, {0}, {{ "reached" }}
-tests/float/parse.i:26:[value] Frama_C_show_each: {0x1.83a99c3ec7eb0p893}, {{ "reached" }}
-tests/float/parse.i:30:[value] warning: non-finite double value. assert \is_finite(0.0000001E9999999999999999999);
+[value] tests/float/parse.i:10: Frama_C_show_each: {0}, {{ "reached" }}
+[value] tests/float/parse.i:15: Frama_C_show_each: {0}, {{ "reached" }}
+[value] tests/float/parse.i:21: Frama_C_show_each: {0}, {0}, {{ "reached" }}
+[value] tests/float/parse.i:26: 
+  Frama_C_show_each: {0x1.83a99c3ec7eb0p893}, {{ "reached" }}
+[value:alarm] tests/float/parse.i:30: Warning: 
+  non-finite double value. assert \is_finite(0.0000001E9999999999999999999);
 [value] Recording results for main
 [value] done for function main
+[value] tests/float/parse.i:30: 
+  assertion 'Value,is_nan_or_infinite' got final status invalid.
 [value] ====== VALUES COMPUTED ======
 [value:final-states] Values at end of function main:
   __retres ∈ {0}
 [from] Computing for function main
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
-    These dependencies hold at termination for the executions that terminate:
+  These dependencies hold at termination for the executions that terminate:
 [from] Function main:
   \result FROM \nothing
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function main:
-      d; d_0; d1; d2; d_1; d_2; __retres
+    d; d_0; d1; d2; d_1; d_2; __retres
 [inout] Inputs for function main:
-      v
+    v

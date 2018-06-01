@@ -22,40 +22,42 @@
   ugg ∈ {0}
   S___fc_stdout[0..1] ∈ [--..--]
 [value] computing for function main1 <- main.
-    Called from tests/value/cast.i:73.
+  Called from tests/value/cast.i:73.
 [value] computing for function any_int_4 <- main1 <- main.
-    Called from tests/value/cast.i:33.
-tests/value/cast.i:27:[value] warning: initialization of volatile variable i_0 ignored
+  Called from tests/value/cast.i:33.
 [value] Recording results for any_int_4
 [value] Done for function any_int_4
 [value] computing for function printf_va_1 <- main1 <- main.
-    Called from tests/value/cast.i:46.
+  Called from tests/value/cast.i:46.
 [value] using specification for function printf_va_1
-tests/value/cast.i:46:[value] function printf_va_1: precondition got status valid.
+[value:alarm] tests/value/cast.i:46: Warning: 
+  function printf_va_1: precondition got status unknown.
 [value] Done for function printf_va_1
 [value] Recording results for main1
 [value] Done for function main1
 [value] computing for function main2 <- main.
-    Called from tests/value/cast.i:74.
-tests/value/cast.i:64:[value] entering loop for the first time
+  Called from tests/value/cast.i:74.
+[value] tests/value/cast.i:64: entering loop for the first time
 [value] computing for function printf_va_2 <- main2 <- main.
-    Called from tests/value/cast.i:67.
+  Called from tests/value/cast.i:67.
 [value] using specification for function printf_va_2
-tests/value/cast.i:67:[value] function printf_va_2: precondition got status valid.
+[value:alarm] tests/value/cast.i:67: Warning: 
+  function printf_va_2: precondition got status unknown.
 [value] Done for function printf_va_2
 [value] computing for function printf_va_2 <- main2 <- main.
-    Called from tests/value/cast.i:67.
+  Called from tests/value/cast.i:67.
 [value] Done for function printf_va_2
 [value] computing for function printf_va_2 <- main2 <- main.
-    Called from tests/value/cast.i:67.
+  Called from tests/value/cast.i:67.
 [value] Done for function printf_va_2
 [value] computing for function printf_va_2 <- main2 <- main.
-    Called from tests/value/cast.i:67.
+  Called from tests/value/cast.i:67.
 [value] Done for function printf_va_2
 [value] computing for function printf_va_3 <- main2 <- main.
-    Called from tests/value/cast.i:69.
+  Called from tests/value/cast.i:69.
 [value] using specification for function printf_va_3
-tests/value/cast.i:69:[value] function printf_va_3: precondition got status valid.
+[value:alarm] tests/value/cast.i:69: Warning: 
+  function printf_va_3: precondition got status unknown.
 [value] Done for function printf_va_3
 [value] Recording results for main2
 [value] Done for function main2
@@ -110,7 +112,7 @@ tests/value/cast.i:69:[value] function printf_va_3: precondition got status vali
 [from] Computing for function main
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
-    These dependencies hold at termination for the executions that terminate:
+  These dependencies hold at termination for the executions that terminate:
 [from] Function any_int_4:
   \result FROM \nothing
 [from] Function printf_va_1:
@@ -163,20 +165,20 @@ tests/value/cast.i:69:[value] function printf_va_3: precondition got status vali
                     "usc: %ud"[bits 0 to 71] (and SELF)
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function any_int_4:
-      i_0; __retres
+    i_0; __retres
 [inout] Inputs for function any_int_4:
-      \nothing
+    \nothing
 [inout] Out (internal) for function main1:
-      G; H; K; L; I; c; d; e; uc; ull; S___fc_stdout[0].__fc_FILE_data
+    G; H; K; L; I; c; d; e; uc; ull; S___fc_stdout[0].__fc_FILE_data
 [inout] Inputs for function main1:
-      G; H; K; L; I; c; S___fc_stdout[0]; "%ud\n"[bits 0 to 39]
+    G; H; K; L; I; c; S___fc_stdout[0]; "%ud\n"[bits 0 to 39]
 [inout] Out (internal) for function main2:
-      min; max; i_0; G_0; S___fc_stdout[0].__fc_FILE_data
+    min; max; i_0; G_0; S___fc_stdout[0].__fc_FILE_data
 [inout] Inputs for function main2:
-      S___fc_stdout[0]; "cast:%d formule:%d\n"[bits 0 to 159];
-      "usc: %ud"[bits 0 to 71]
+    S___fc_stdout[0]; "cast:%d formule:%d\n"[bits 0 to 159];
+    "usc: %ud"[bits 0 to 71]
 [inout] Out (internal) for function main:
-      G; H; K; L; I; c; d; e; uc; ull; S___fc_stdout[0].__fc_FILE_data
+    G; H; K; L; I; c; d; e; uc; ull; S___fc_stdout[0].__fc_FILE_data
 [inout] Inputs for function main:
-      G; H; K; L; I; c; S___fc_stdout[0]; "%ud\n"[bits 0 to 39];
-      "cast:%d formule:%d\n"[bits 0 to 159]; "usc: %ud"[bits 0 to 71]
+    G; H; K; L; I; c; S___fc_stdout[0]; "%ud\n"[bits 0 to 39];
+    "cast:%d formule:%d\n"[bits 0 to 159]; "usc: %ud"[bits 0 to 71]

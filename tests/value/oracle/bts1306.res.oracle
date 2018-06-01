@@ -5,8 +5,9 @@
 [value:initial-state] Values of globals at initialization
   
 [value] computing for function g <- main.
-    Called from tests/value/bts1306.i:9.
-tests/value/bts1306.i:5:[value] warning: non-finite double value. assert \is_finite((double)(x * x));
+  Called from tests/value/bts1306.i:9.
+[value:alarm] tests/value/bts1306.i:5: Warning: 
+  non-finite double value. assert \is_finite((double)(x * x));
 [value] Recording results for g
 [value] Done for function g
 [value] Recording results for main
@@ -39,8 +40,9 @@ int main(double x)
 [value:initial-state] Values of globals at initialization
   
 [value] computing for function g <- main.
-    Called from tests/value/bts1306.i:9.
-tests/value/bts1306.i:5:[value] warning: non-finite double value. assert \is_finite((double)(x * x));
+  Called from tests/value/bts1306.i:9.
+[value:alarm] tests/value/bts1306.i:5: Warning: 
+  non-finite double value. assert \is_finite((double)(x * x));
 [value] Recording results for g
 [value] Done for function g
 [value] Recording results for main

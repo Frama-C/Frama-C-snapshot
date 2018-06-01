@@ -4,13 +4,16 @@
 [value] Initial state computed
 [value:initial-state] Values of globals at initialization
   G ∈ [--..--]
-tests/pdg/pb_infinite_loop.c:32:[value] entering loop for the first time
-tests/pdg/pb_infinite_loop.c:34:[value] warning: signed overflow. assert G + 1 ≤ 2147483647;
-tests/pdg/pb_infinite_loop.c:35:[value] warning: signed overflow. assert i + 1 ≤ 2147483647;
+[value] tests/pdg/pb_infinite_loop.c:32: entering loop for the first time
+[value:alarm] tests/pdg/pb_infinite_loop.c:34: Warning: 
+  signed overflow. assert G + 1 ≤ 2147483647;
+[value:alarm] tests/pdg/pb_infinite_loop.c:35: Warning: 
+  signed overflow. assert i + 1 ≤ 2147483647;
 [value] Recording results for test_infinite_loop_2
 [value] done for function test_infinite_loop_2
 [pdg] computing for function test_infinite_loop_2
-tests/pdg/pb_infinite_loop.c:37:[pdg] warning: no final state. Probably unreachable...
+[pdg] tests/pdg/pb_infinite_loop.c:37: Warning: 
+  no final state. Probably unreachable...
 [pdg] done for function test_infinite_loop_2
 [pdg] PDG for test_infinite_loop_2
  {n1}: InCtrl

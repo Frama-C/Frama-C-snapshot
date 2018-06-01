@@ -7,37 +7,40 @@
   c ∈ [--..--]
   d ∈ [--..--]
 [value] computing for function send <- f.
-    Called from tests/slicing/select_calls.i:22.
-tests/slicing/select_calls.i:22:[kernel] warning: Neither code nor specification for function send, generating default assigns from the prototype
+  Called from tests/slicing/select_calls.i:22.
+[kernel:annot:missing-spec] tests/slicing/select_calls.i:22: Warning: 
+  Neither code nor specification for function send, generating default assigns from the prototype
 [value] using specification for function send
 [value] Done for function send
 [value] computing for function send <- f.
-    Called from tests/slicing/select_calls.i:23.
+  Called from tests/slicing/select_calls.i:23.
 [value] Done for function send
 [value] computing for function crypt <- f.
-    Called from tests/slicing/select_calls.i:24.
-tests/slicing/select_calls.i:24:[kernel] warning: Neither code nor specification for function crypt, generating default assigns from the prototype
+  Called from tests/slicing/select_calls.i:24.
+[kernel:annot:missing-spec] tests/slicing/select_calls.i:24: Warning: 
+  Neither code nor specification for function crypt, generating default assigns from the prototype
 [value] using specification for function crypt
 [value] Done for function crypt
 [value] computing for function send <- f.
-    Called from tests/slicing/select_calls.i:25.
+  Called from tests/slicing/select_calls.i:25.
 [value] Done for function send
 [value] computing for function send <- f.
-    Called from tests/slicing/select_calls.i:28.
+  Called from tests/slicing/select_calls.i:28.
 [value] Done for function send
 [value] computing for function uncrypt <- f.
-    Called from tests/slicing/select_calls.i:30.
-tests/slicing/select_calls.i:30:[kernel] warning: Neither code nor specification for function uncrypt, generating default assigns from the prototype
+  Called from tests/slicing/select_calls.i:30.
+[kernel:annot:missing-spec] tests/slicing/select_calls.i:30: Warning: 
+  Neither code nor specification for function uncrypt, generating default assigns from the prototype
 [value] using specification for function uncrypt
 [value] Done for function uncrypt
 [value] computing for function send <- f.
-    Called from tests/slicing/select_calls.i:31.
+  Called from tests/slicing/select_calls.i:31.
 [value] Done for function send
 [value] computing for function crypt <- f.
-    Called from tests/slicing/select_calls.i:33.
+  Called from tests/slicing/select_calls.i:33.
 [value] Done for function crypt
 [value] computing for function send <- f.
-    Called from tests/slicing/select_calls.i:35.
+  Called from tests/slicing/select_calls.i:35.
 [value] Done for function send
 [value] Recording results for f
 [value] done for function f

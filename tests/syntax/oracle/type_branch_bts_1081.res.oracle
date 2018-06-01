@@ -1,4 +1,5 @@
 [kernel] Parsing tests/syntax/type_branch_bts_1081.i (no preprocessing)
-tests/syntax/type_branch_bts_1081.i:5:[kernel] failure: invalid implicit conversion from void to signed char
-[kernel] user error: stopping on file "tests/syntax/type_branch_bts_1081.i" that has errors.
+[kernel] tests/syntax/type_branch_bts_1081.i:5: Failure: 
+  invalid implicit conversion from void to signed char
+[kernel] User Error: stopping on file "tests/syntax/type_branch_bts_1081.i" that has errors.
 [kernel] Frama-C aborted: invalid user input.

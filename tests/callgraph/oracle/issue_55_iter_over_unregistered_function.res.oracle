@@ -4,13 +4,15 @@
 [value] Initial state computed
 [value:initial-state] Values of globals at initialization
   
-tests/callgraph/issue_55_iter_over_unregistered_function.i:12:[value] warning: accessing uninitialized left-value. assert \initialized(&q);
+[value:alarm] tests/callgraph/issue_55_iter_over_unregistered_function.i:12: Warning: 
+  accessing uninitialized left-value. assert \initialized(&q);
 [value] done for function main
-tests/callgraph/issue_55_iter_over_unregistered_function.i:12:[value] assertion 'Value,initialisation' got final status invalid.
+[value] tests/callgraph/issue_55_iter_over_unregistered_function.i:12: 
+  assertion 'Value,initialization' got final status invalid.
 [inout] InOut (internal) for function main:
-    Operational inputs:
-      q
-    Operational inputs on termination:
-      \nothing
-    Sure outputs:
-      ANYTHING(origin:Unknown)
+  Operational inputs:
+    q
+  Operational inputs on termination:
+    \nothing
+  Sure outputs:
+    ANYTHING(origin:Unknown)

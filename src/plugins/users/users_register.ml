@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2017                                               *)
+(*  Copyright (C) 2007-2018                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -91,11 +91,10 @@ let get kf =
     find kf
   end
 
-let () =
-  Db.register
-    (Db.Journalize("Users.get",
-                   Datatype.func Kernel_function.ty Kernel_function.Hptset.ty))
-    Db.Users.get
+let get =
+  Journal.register
+    "Users.get"
+    (Datatype.func Kernel_function.ty Kernel_function.Hptset.ty)
     get
 
 let print () =
@@ -105,7 +104,7 @@ let print () =
         (fun fmt ->
            Callgraph.Uses.iter_in_rev_order
              (fun kf ->
-               let callees = !Db.Users.get kf in
+               let callees = get kf in
                if not (Kernel_function.Hptset.is_empty callees) then
                  Format.fprintf fmt "@[<hov 4>%a: %a@]@ "
                    Kernel_function.pretty kf

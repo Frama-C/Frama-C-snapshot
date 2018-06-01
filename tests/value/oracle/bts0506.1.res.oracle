@@ -5,84 +5,94 @@
 [value:initial-state] Values of globals at initialization
   
 [value] computing for function f <- main.
-    Called from tests/value/bts0506.i:47.
+  Called from tests/value/bts0506.i:47.
 [value] Recording results for f
 [value] Done for function f
 [value] computing for function main2 <- main.
-    Called from tests/value/bts0506.i:49.
+  Called from tests/value/bts0506.i:49.
 [value] computing for function f1 <- main2 <- main.
-    Called from tests/value/bts0506.i:15.
-tests/value/bts0506.i:15:[kernel] warning: Neither code nor specification for function f1, generating default assigns from the prototype
+  Called from tests/value/bts0506.i:15.
+[kernel:annot:missing-spec] tests/value/bts0506.i:15: Warning: 
+  Neither code nor specification for function f1, generating default assigns from the prototype
 [value] using specification for function f1
 [value] Done for function f1
 [value] computing for function f1 <- main2 <- main.
-    Called from tests/value/bts0506.i:16.
+  Called from tests/value/bts0506.i:16.
 [value] Done for function f1
 [value] computing for function f1 <- main2 <- main.
-    Called from tests/value/bts0506.i:17.
+  Called from tests/value/bts0506.i:17.
 [value] Done for function f1
 [value] computing for function f1 <- main2 <- main.
-    Called from tests/value/bts0506.i:18.
+  Called from tests/value/bts0506.i:18.
 [value] Done for function f1
 [value] computing for function f2 <- main2 <- main.
-    Called from tests/value/bts0506.i:20.
-tests/value/bts0506.i:20:[kernel] warning: Neither code nor specification for function f2, generating default assigns from the prototype
+  Called from tests/value/bts0506.i:20.
+[kernel:annot:missing-spec] tests/value/bts0506.i:20: Warning: 
+  Neither code nor specification for function f2, generating default assigns from the prototype
 [value] using specification for function f2
 [value] Done for function f2
 [value] computing for function f2 <- main2 <- main.
-    Called from tests/value/bts0506.i:21.
+  Called from tests/value/bts0506.i:21.
 [value] Done for function f2
 [value] computing for function f2 <- main2 <- main.
-    Called from tests/value/bts0506.i:22.
+  Called from tests/value/bts0506.i:22.
 [value] Done for function f2
 [value] computing for function f3 <- main2 <- main.
-    Called from tests/value/bts0506.i:24.
-tests/value/bts0506.i:24:[kernel] warning: Neither code nor specification for function f3, generating default assigns from the prototype
+  Called from tests/value/bts0506.i:24.
+[kernel:annot:missing-spec] tests/value/bts0506.i:24: Warning: 
+  Neither code nor specification for function f3, generating default assigns from the prototype
 [value] using specification for function f3
 [value] Done for function f3
 [value] computing for function f3 <- main2 <- main.
-    Called from tests/value/bts0506.i:25.
+  Called from tests/value/bts0506.i:25.
 [value] Done for function f3
 [value] computing for function f4 <- main2 <- main.
-    Called from tests/value/bts0506.i:27.
-tests/value/bts0506.i:27:[kernel] warning: Neither code nor specification for function f4, generating default assigns from the prototype
+  Called from tests/value/bts0506.i:27.
+[kernel:annot:missing-spec] tests/value/bts0506.i:27: Warning: 
+  Neither code nor specification for function f4, generating default assigns from the prototype
 [value] using specification for function f4
 [value] Done for function f4
 [value] computing for function f4 <- main2 <- main.
-    Called from tests/value/bts0506.i:28.
+  Called from tests/value/bts0506.i:28.
 [value] Done for function f4
-tests/value/bts0506.i:28:[value] warning: non-finite float value. assert \is_finite(tmp_9);
-                            (tmp_9 from f4())
+[value:alarm] tests/value/bts0506.i:28: Warning: 
+  non-finite float value. assert \is_finite(tmp_9);
+                          (tmp_9 from f4())
 [value] computing for function f5 <- main2 <- main.
-    Called from tests/value/bts0506.i:30.
-tests/value/bts0506.i:30:[kernel] warning: Neither code nor specification for function f5, generating default assigns from the prototype
+  Called from tests/value/bts0506.i:30.
+[kernel:annot:missing-spec] tests/value/bts0506.i:30: Warning: 
+  Neither code nor specification for function f5, generating default assigns from the prototype
 [value] using specification for function f5
 [value] Done for function f5
-tests/value/bts0506.i:30:[value] warning: non-finite double value. assert \is_finite(tmp_10);
-                             (tmp_10 from f5())
-tests/value/bts0506.i:30:[value] warning: non-finite float value. assert \is_finite((float)tmp_10);
-                            (tmp_10 from f5())
+[value:alarm] tests/value/bts0506.i:30: Warning: 
+  non-finite double value. assert \is_finite(tmp_10);
+                           (tmp_10 from f5())
+[value:alarm] tests/value/bts0506.i:30: Warning: 
+  non-finite float value. assert \is_finite((float)tmp_10);
+                          (tmp_10 from f5())
 [value] computing for function f5 <- main2 <- main.
-    Called from tests/value/bts0506.i:31.
+  Called from tests/value/bts0506.i:31.
 [value] Done for function f5
 [value] computing for function f6 <- main2 <- main.
-    Called from tests/value/bts0506.i:33.
-tests/value/bts0506.i:33:[kernel] warning: Neither code nor specification for function f6, generating default assigns from the prototype
+  Called from tests/value/bts0506.i:33.
+[kernel:annot:missing-spec] tests/value/bts0506.i:33: Warning: 
+  Neither code nor specification for function f6, generating default assigns from the prototype
 [value] using specification for function f6
 [value] Done for function f6
 [value] computing for function f6 <- main2 <- main.
-    Called from tests/value/bts0506.i:34.
+  Called from tests/value/bts0506.i:34.
 [value] Done for function f6
 [value] computing for function f6 <- main2 <- main.
-    Called from tests/value/bts0506.i:35.
+  Called from tests/value/bts0506.i:35.
 [value] Done for function f6
 [value] computing for function f7 <- main2 <- main.
-    Called from tests/value/bts0506.i:37.
-tests/value/bts0506.i:37:[kernel] warning: Neither code nor specification for function f7, generating default assigns from the prototype
+  Called from tests/value/bts0506.i:37.
+[kernel:annot:missing-spec] tests/value/bts0506.i:37: Warning: 
+  Neither code nor specification for function f7, generating default assigns from the prototype
 [value] using specification for function f7
 [value] Done for function f7
 [value] computing for function f7 <- main2 <- main.
-    Called from tests/value/bts0506.i:38.
+  Called from tests/value/bts0506.i:38.
 [value] Done for function f7
 [value] Recording results for main2
 [value] Done for function main2
@@ -101,15 +111,15 @@ tests/value/bts0506.i:37:[kernel] warning: Neither code nor specification for fu
   r7 ∈ [--..--]
   r8 ∈ [--..--]
   r8bis ∈ [--..--]
-  r9 ∈ [--..--]
+  r9 ∈ [-inf .. inf] ∪ {NaN}
   r10 ∈ [-3.40282346639e+38 .. 3.40282346639e+38]
   r11 ∈ [-3.40282346639e+38 .. 3.40282346639e+38]
-  r12 ∈ [--..--]
-  r13 ∈ {{ NULL + [--..--] ; &alloced_return_f6 + [0..2147483644],0%4 }}
-  r14 ∈ {{ NULL + [--..--] ; &alloced_return_f6 + [0..2147483644],0%4 }}
-  r15 ∈ {{ NULL + [--..--] ; &alloced_return_f6 + [0..2147483644],0%4 }}
-  r16 ∈ {{ NULL + [--..--] ; &alloced_return_f7 + [0..2147483647] }}
-  r17 ∈ {{ NULL + [--..--] ; &alloced_return_f7 + [0..2147483647] }}
+  r12 ∈ [-inf .. inf] ∪ {NaN}
+  r13 ∈ [--..--]
+  r14 ∈ [--..--]
+  r15 ∈ [--..--]
+  r16 ∈ [--..--]
+  r17 ∈ [--..--]
 [value:final-states] Values at end of function main:
   x ∈ {43}
 [from] Computing for function f
@@ -133,7 +143,7 @@ tests/value/bts0506.i:37:[kernel] warning: Neither code nor specification for fu
 [from] Computing for function main
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
-    These dependencies hold at termination for the executions that terminate:
+  These dependencies hold at termination for the executions that terminate:
 [from] Function f:
   \result FROM x
 [from] Function f1:
@@ -156,46 +166,46 @@ tests/value/bts0506.i:37:[kernel] warning: Neither code nor specification for fu
   NO EFFECTS
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function f:
-      __retres
+    __retres
 [inout] Inputs for function f:
-      \nothing
+    \nothing
 [inout] Out (internal) for function main2:
-      r1; r2; tmp_0; r3; r4; tmp_2; r5; r6; r7; tmp_5; r8; r8bis; tmp_7; 
-      r9; r10; tmp_9; r11; tmp_10; r12; r13; r14; r15; r16; r17
+    r1; r2; tmp_0; r3; r4; tmp_2; r5; r6; r7; tmp_5; r8; r8bis; tmp_7; 
+    r9; r10; tmp_9; r11; tmp_10; r12; r13; r14; r15; r16; r17
 [inout] Inputs for function main2:
-      \nothing
+    \nothing
 [inout] Out (internal) for function main:
-      x; tmp
+    x; tmp
 [inout] Inputs for function main:
-      \nothing
+    \nothing
 /* Generated by Frama-C */
 /*@ assigns \result;
     assigns \result \from \nothing; */
-int f1();
+int f1(void);
 
 /*@ assigns \result;
     assigns \result \from \nothing; */
-long f2();
+long f2(void);
 
 /*@ assigns \result;
     assigns \result \from \nothing; */
-unsigned int f3();
+unsigned int f3(void);
 
 /*@ assigns \result;
     assigns \result \from \nothing; */
-float f4();
+float f4(void);
 
 /*@ assigns \result;
     assigns \result \from \nothing; */
-double f5();
+double f5(void);
 
 /*@ assigns \result;
     assigns \result \from \nothing; */
-int *f6();
+int *f6(void);
 
 /*@ assigns \result;
     assigns \result \from \nothing; */
-void *f7();
+void *f7(void);
 
 void main2(void)
 {

@@ -643,6 +643,7 @@ OCAMLLIB
 OCAMLBEST
 HAS_LANDMARKS
 HAS_APRON
+HAS_YOJSON
 DEVELOPMENT
 VERBOSEMAKE
 DOT
@@ -660,6 +661,7 @@ ENABLE_VARIADIC
 ENABLE_STUDIA
 ENABLE_SECURITY_SLICING
 ENABLE_REPORT
+ENABLE_QED
 ENABLE_PRINT_API
 ENABLE_OBFUSCATOR
 ENABLE_NONTERM
@@ -713,6 +715,8 @@ OCAMLLEX
 OCAMLDEP
 OCAMLFIND
 OCAMLOPT
+STACK_FOLD
+SPLIT_ON_CHAR
 OCAMLC
 MAKE
 FRAMAC_VERSION
@@ -787,6 +791,7 @@ enable_loop_analysis
 enable_nonterm
 enable_obfuscator
 enable_print_api
+enable_qed
 enable_report
 enable_security_slicing
 enable_studia
@@ -1443,6 +1448,7 @@ Optional Features:
   --enable-nonterm        support for nonterm plug-in (default: yes)
   --enable-obfuscator     support for Obfuscator plug-in (default: yes)
   --enable-print_api      support for print_api plug-in (default: yes)
+  --enable-qed            support for qed plug-in (default: yes)
   --enable-report         support for report plug-in (default: yes)
   --enable-security_slicing
                           support for Security_slicing plug-in (default: yes)
@@ -2241,7 +2247,7 @@ ac_compiler_gnu=$ac_cv_c_compiler_gnu
 #                                                                        #
 #  This file is part of Frama-C.                                         #
 #                                                                        #
-#  Copyright (C) 2007-2017                                               #
+#  Copyright (C) 2007-2018                                               #
 #    CEA (Commissariat à l'énergie atomique et aux énergies              #
 #         alternatives)                                                  #
 #                                                                        #
@@ -2713,6 +2719,24 @@ case $OCAMLVERSION in
      as_fn_error $? "Incompatible OCaml version; use 4.02.3+." "$LINENO" 5;;
    *)
      OCAML_ANNOT_OPTION="-bin-annot";;
+esac
+
+
+
+
+case $OCAMLVERSION in
+ 4.02.*)
+  SPLIT_ON_CHAR=split_on_char;
+  STACK_FOLD=stack_fold
+ ;;
+ 4.03.*)
+  SPLIT_ON_CHAR=split_on_char;
+  STACK_FOLD=Stack.fold
+ ;;
+ *)
+  SPLIT_ON_CHAR=String.split_on_char;
+  STACK_FOLD=Stack.fold
+ ;;
 esac
 
 # Ocaml library path
@@ -3286,6 +3310,24 @@ else
 $as_echo "no" >&6; }
 fi
 
+
+
+# yojson
+########
+
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for Yojson" >&5
+$as_echo_n "checking for Yojson... " >&6; }
+
+YOJSON_PATH=$($OCAMLFIND query yojson 2>/dev/null | tr -d '\r\n')
+if test -f "$YOJSON_PATH/yojson.$OBJ_SUFFIX"; then
+  HAS_YOJSON="yes";
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: found" >&5
+$as_echo "found" >&6; }
+else
+  HAS_YOJSON="no";
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: yojson not found. Kernel option -json-compilation-database won't be available." >&5
+$as_echo "yojson not found. Kernel option -json-compilation-database won't be available." >&6; }
+fi;
 
 
 # apron
@@ -6840,7 +6882,7 @@ fi
 #                                                                        #
 #  This file is part of Aorai plug-in of Frama-C.                        #
 #                                                                        #
-#  Copyright (C) 2007-2017                                               #
+#  Copyright (C) 2007-2018                                               #
 #    CEA (Commissariat à l'énergie atomique et aux énergies              #
 #         alternatives)                                                  #
 #    INRIA (Institut National de Recherche en Informatique et en         #
@@ -7041,7 +7083,7 @@ fi
 #                                                                        #
 #  This file is part of Frama-C.                                         #
 #                                                                        #
-#  Copyright (C) 2007-2017                                               #
+#  Copyright (C) 2007-2018                                               #
 #    CEA (Commissariat à l'énergie atomique et aux énergies              #
 #         alternatives)                                                  #
 #                                                                        #
@@ -8684,7 +8726,7 @@ fi
 #                                                                        #
 #  This file is part of Frama-C.                                         #
 #                                                                        #
-#  Copyright (C) 2007-2017                                               #
+#  Copyright (C) 2007-2018                                               #
 #    CEA (Commissariat à l'énergie atomique et aux énergies              #
 #         alternatives)                                                  #
 #                                                                        #
@@ -8818,7 +8860,7 @@ echo "loop_analysis... $ENABLE"
 #                                                                        #
 #  This file is part of Frama-C.                                         #
 #                                                                        #
-#  Copyright (C) 2007-2017                                               #
+#  Copyright (C) 2007-2018                                               #
 #    CEA (Commissariat à l'énergie atomique et aux énergies              #
 #         alternatives)                                                  #
 #                                                                        #
@@ -8963,7 +9005,7 @@ echo "nonterm... $ENABLE"
 #                                                                        #
 #  This file is part of Frama-C.                                         #
 #                                                                        #
-#  Copyright (C) 2007-2017                                               #
+#  Copyright (C) 2007-2018                                               #
 #    CEA (Commissariat à l'énergie atomique et aux énergies              #
 #         alternatives)                                                  #
 #                                                                        #
@@ -9171,11 +9213,94 @@ echo "print_api... $ENABLE"
 
 
 
+
+
+
+
+
+
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for src/plugins/qed" >&5
+$as_echo_n "checking for src/plugins/qed... " >&6; }
+if ${ac_cv_file_src_plugins_qed+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  test "$cross_compiling" = yes &&
+  as_fn_error $? "cannot check for file existence when cross compiling" "$LINENO" 5
+if test -r "src/plugins/qed"; then
+  ac_cv_file_src_plugins_qed=yes
+else
+  ac_cv_file_src_plugins_qed=no
+fi
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_file_src_plugins_qed" >&5
+$as_echo "$ac_cv_file_src_plugins_qed" >&6; }
+if test "x$ac_cv_file_src_plugins_qed" = xyes; then :
+  default=yes;plugin_present=yes
+else
+  plugin_present=no;default=no
+fi
+
+
+FORCE=no
+
+# Check whether --enable-qed was given.
+if test "${enable_qed+set}" = set; then :
+  enableval=$enable_qed; ENABLE=$enableval;FORCE=$enableval
+else
+  ENABLE=$default
+
+fi
+
+
+if test "$ONLY_KERNEL" = "yes" -a "$FORCE" = "no"; then
+  ENABLE=no
+fi
+
+
+
+if test "$plugin_present" = "no" -a "$FORCE" = "yes"; then
+  as_fn_error $? "qed is not available" "$LINENO" 5
+fi
+
+FORCE_QED=$FORCE
+PLUGINS_FORCE_LIST=${PLUGINS_FORCE_LIST}" "FORCE_QED
+
+ENABLE_QED=$ENABLE
+NAME_QED=qed
+if test "$default" = "no" -a "$FORCE" = "no"; then
+  INFO_QED=" (not available by default)"
+fi
+
+
+echo "qed... $ENABLE"
+# kept defined for write_plugin_config. A bit ugly, but not more than
+# usual autoconf stuff.
+# m4_undefine([PLUGIN_NAME])
+
+
+
+
+
+
+                      if test "$ENABLE_QED" != "no"; then
+                         EXTERNAL_PLUGINS="$EXTERNAL_PLUGINS src/plugins/qed";
+                      fi
+
+
+
+
+
+
+
+
+
+
+
                 ##########################################################################
 #                                                                        #
 #  This file is part of Frama-C.                                         #
 #                                                                        #
-#  Copyright (C) 2007-2017                                               #
+#  Copyright (C) 2007-2018                                               #
 #    CEA (Commissariat à l'énergie atomique et aux énergies              #
 #         alternatives)                                                  #
 #                                                                        #
@@ -9310,7 +9435,7 @@ echo "report... $ENABLE"
 #                                                                        #
 #  This file is part of Frama-C.                                         #
 #                                                                        #
-#  Copyright (C) 2007-2017                                               #
+#  Copyright (C) 2007-2018                                               #
 #    CEA (Commissariat à l'énergie atomique et aux énergies              #
 #         alternatives)                                                  #
 #                                                                        #
@@ -9575,7 +9700,7 @@ echo "studia... $ENABLE"
 #                                                                        #
 #  This file is part of Frama-C.                                         #
 #                                                                        #
-#  Copyright (C) 2007-2017                                               #
+#  Copyright (C) 2007-2018                                               #
 #    CEA (Commissariat à l'énergie atomique et aux énergies              #
 #         alternatives)                                                  #
 #                                                                        #
@@ -9708,7 +9833,7 @@ echo "variadic... $ENABLE"
 #                                                                        #
 #  This file is part of WP plug-in of Frama-C.                           #
 #                                                                        #
-#  Copyright (C) 2007-2017                                               #
+#  Copyright (C) 2007-2018                                               #
 #    CEA (Commissariat a l'energie atomique et aux energies              #
 #         alternatives)                                                  #
 #                                                                        #
@@ -10246,7 +10371,7 @@ fi
     if test "$COQC" = "yes" ; then
       COQVERSION=`coqc -v | sed -n -e 's|.*version* *\([^ ]*\) .*$|\1|p' `
       case $COQVERSION in
-        8.5*|8.6*|trunk)
+        8.5*|8.6*|8.7*|trunk)
           { $as_echo "$as_me:${as_lineno-$LINENO}: result: coqc version $COQVERSION found" >&5
 $as_echo "coqc version $COQVERSION found" >&6; }
           ;;
@@ -10308,7 +10433,7 @@ fi
     if test "$WHY3COQC" = "yes" ; then
       WHY3VERSION=`why3 --version | sed -n -e 's|.*version *\([^ ]*\)$|\1|p' `
       case $WHY3VERSION in
-        0.86*|0.87*|0.88*)
+        0.88*)
           { $as_echo "$as_me:${as_lineno-$LINENO}: result: why3 version $WHY3VERSION found" >&5
 $as_echo "why3 version $WHY3VERSION found" >&6; }
 	  WHY3LIB=`why3 --print-libdir`
@@ -10541,8 +10666,10 @@ EXTERNAL_PLUGINS="${EXTERNAL_PLUGINS} ${EXTRA_EXTERNAL_PLUGINS}"
 
 
 
+
 # m4_foreach_w is not supported in some old autoconf versions.
 # Sadly AC_FOREACH is deprecated now...
+
 
 
 
@@ -11893,7 +12020,7 @@ fi
 
 new_section "summary: plug-ins available"
 
-for plugin in  CALLGRAPH SEMANTIC_CONSTANT_FOLDING FROM_ANALYSIS GUI IMPACT INOUT METRICS OCCURRENCE PDG POSTDOMINATORS RTEGEN SCOPE SLICING SPARECODE USERS VALUE_ANALYSIS AORAI E_ACSL LOOP_ANALYSIS NONTERM OBFUSCATOR PRINT_API REPORT SECURITY_SLICING STUDIA VARIADIC WP; do
+for plugin in  CALLGRAPH SEMANTIC_CONSTANT_FOLDING FROM_ANALYSIS GUI IMPACT INOUT METRICS OCCURRENCE PDG POSTDOMINATORS RTEGEN SCOPE SLICING SPARECODE USERS VALUE_ANALYSIS AORAI E_ACSL LOOP_ANALYSIS NONTERM OBFUSCATOR PRINT_API QED REPORT SECURITY_SLICING STUDIA VARIADIC WP; do
   n=NAME_$plugin
   e=ENABLE_$plugin
   i=INFO_$plugin

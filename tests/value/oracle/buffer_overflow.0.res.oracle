@@ -4,8 +4,9 @@
 [value] Initial state computed
 [value:initial-state] Values of globals at initialization
   
-tests/value/buffer_overflow.i:15:[value] entering loop for the first time
-tests/value/buffer_overflow.i:18:[value] warning: accessing out of bounds index. assert loop_counter < 10;
+[value] tests/value/buffer_overflow.i:15: entering loop for the first time
+[value:alarm] tests/value/buffer_overflow.i:18: Warning: 
+  accessing out of bounds index. assert loop_counter < 10;
 [value] Recording results for main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======
@@ -15,11 +16,11 @@ tests/value/buffer_overflow.i:18:[value] warning: accessing out of bounds index.
 [from] Non-terminating function main (no dependencies)
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
-    These dependencies hold at termination for the executions that terminate:
+  These dependencies hold at termination for the executions that terminate:
 [from] Function main:
   NON TERMINATING - NO EFFECTS
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function main:
-      test_value; loop_counter; buf[1..9]
+    test_value; loop_counter; buf[1..9]
 [inout] Inputs for function main:
-      \nothing
+    \nothing

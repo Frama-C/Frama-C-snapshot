@@ -8,9 +8,10 @@
 [wp] [alt-ergo] Goal typed_lemma_access_repeat_concat_3_ok : Valid
 [wp] [Qed] Goal typed_lemma_eq_repeat_concat_3_ok : Valid
 [wp] Proved goals:    4 / 4
-    Qed:             1 
-    alt-ergo:        3
-----------------------------------------------------------
-Axiomatics          WP   Alt-Ergo    Total   Success
-Axiomatic Nth        1     -           4       100%
-----------------------------------------------------------
+  Qed:             1 
+  alt-ergo:        3
+[wp] Report 'tests/wp_plugin/nth.i.1.report.json'
+-------------------------------------------------------------
+Axiomatics          WP     Alt-Ergo        Total   Success
+Axiomatic Nth        1     -                 4       100%
+-------------------------------------------------------------

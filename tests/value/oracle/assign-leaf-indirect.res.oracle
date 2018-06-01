@@ -7,11 +7,11 @@
   y ∈ {0}
   z ∈ {0}
 [value] computing for function f <- main.
-    Called from tests/value/assign-leaf-indirect.i:8.
+  Called from tests/value/assign-leaf-indirect.i:8.
 [value] using specification for function f
 [value] Done for function f
 [value] computing for function g <- main.
-    Called from tests/value/assign-leaf-indirect.i:9.
+  Called from tests/value/assign-leaf-indirect.i:9.
 [value] using specification for function g
 [value] Done for function g
 [value] Recording results for main
@@ -29,7 +29,7 @@
 [from] Done for function g
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
-    These dependencies hold at termination for the executions that terminate:
+  These dependencies hold at termination for the executions that terminate:
 [from] Function f:
   y FROM x; p
 [from] Function g:
@@ -39,6 +39,6 @@
   z FROM x
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function main:
-      y; z
+    y; z
 [inout] Inputs for function main:
-      x
+    x

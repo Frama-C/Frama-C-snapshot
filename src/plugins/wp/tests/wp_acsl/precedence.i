@@ -1,13 +1,13 @@
 /* run.config
-   OPT: -continue-annot-error -print
+   OPT: -kernel-warn-abort=-annot-error -print
 */
 /* run.config_qualif
-   OPT: -continue-annot-error -wp -wp-model Typed -wp-par 1 -wp-prop="-ko"
-   OPT: -continue-annot-error -wp -wp-model Typed -wp-par 1 -wp-prop="ko" -wp-timeout 2
+   OPT: -kernel-warn-abort=-annot-error -wp -wp-model Typed -wp-par 1 -wp-prop="-ko"
+   OPT: -kernel-warn-abort=-annot-error -wp -wp-model Typed -wp-par 1 -wp-prop="ko" -wp-timeout 2
 */
 
 /* Test of operator precedence and associativity.
- * - The option -continue-annot-error allow to skip contracts that contain a 'badly_formed' term.
+ * - The option -kernel-warn-abort=-annot-error allow to skip contracts that contain a 'badly_formed' term.
  *   Since the whole contract is rejected in a such case, these contracts must content only one property.
  *   So, they are put inside a statement contract. 
  */

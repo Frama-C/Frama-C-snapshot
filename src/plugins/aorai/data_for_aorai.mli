@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Aorai plug-in of Frama-C.                        *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2017                                               *)
+(*  Copyright (C) 2007-2018                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*    INRIA (Institut National de Recherche en Informatique et en         *)
@@ -399,7 +399,7 @@ val get_loop_init_state: Cil_types.stmt -> state
 
 val get_loop_invariant_state: Cil_types.stmt -> state
 
-val debug_computed_state: ?dkey:Log.category -> unit -> unit
+val debug_computed_state: ?dkey:Aorai_option.category -> unit -> unit
 (** Pretty-prints all computed states. Default key is dataflow. *) 
 
 (* ************************************************************************* *)

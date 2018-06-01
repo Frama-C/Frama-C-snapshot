@@ -1,0 +1,5 @@
+[kernel] Parsing tests/misc/debug_category.i (no preprocessing)
+[test] Warning: Uncategorized warning
+[test:a] Warning: 
+  Warning A
+  (warn-once: no further messages from category 'a' will be emitted)

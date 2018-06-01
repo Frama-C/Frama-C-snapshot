@@ -83,7 +83,7 @@ let main () =
   let invalid ?(g=g) ?(i=i) () = 
     let _i = i in set_status g [] Property_status.False_and_reachable 
   in
-  let invalid_under_hyp ?(g=g) ?(i=i) () = 
+  let invalid_under_hyp ?(g=g) ?i:_ () = 
     set_status g [ ] Property_status.False_and_reachable 
   in
   let invalid_but_dead ?(g=g) ?(i=i) () =

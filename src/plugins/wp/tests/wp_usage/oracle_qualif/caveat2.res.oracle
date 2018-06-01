@@ -2,8 +2,8 @@
 [kernel] Parsing tests/wp_usage/caveat2.i (no preprocessing)
 [wp] Running WP plugin...
 [wp] Loading driver 'share/wp.driver'
-[wp] warning: Missing RTE guards
-tests/wp_usage/caveat2.i:22:[wp] warning: Undefined array-size (sint32[])
+[wp] Warning: Missing RTE guards
+[wp] tests/wp_usage/caveat2.i:22: Warning: Undefined array-size (sint32[])
 [wp] 9 goals scheduled
 [wp] [Qed] Goal typed_caveat_job_post_N : Valid
 [wp] [Alt-Ergo] Goal typed_caveat_job_post_A : Valid
@@ -15,9 +15,13 @@ tests/wp_usage/caveat2.i:22:[wp] warning: Undefined array-size (sint32[])
 [wp] [Qed] Goal typed_caveat_job_assign_part1 : Valid
 [wp] [Qed] Goal typed_caveat_job_assign_part2 : Valid
 [wp] Proved goals:    9 / 9
-    Qed:             6 
-    Alt-Ergo:        3
-----------------------------------------------------------
-Functions           WP   Alt-Ergo    Total   Success
-job                  6      3 (22)     9       100%
-----------------------------------------------------------
+  Qed:             6 
+  Alt-Ergo:        3
+[wp] Report 'tests/wp_usage/caveat2.i.0.report.json'
+-------------------------------------------------------------
+Functions           WP     Alt-Ergo        Total   Success
+job                  6      3 (16..28)       9       100%
+-------------------------------------------------------------
+[wp] Warning: Separation hypotheses for function 'job':
+  /*@ behavior typed_caveat: requires \separated(p,b+(..)); */
+  void job(struct S *p, int n, int *b);

@@ -36,19 +36,6 @@ apply refl_equal.
 Qed.
 
 (* Why3 goal *)
-Lemma xorb_def : forall (x:bool) (y:bool),
-  ((Init.Datatypes.xorb x y) = match (x,
-  y) with
-  | (true, false) => true
-  | (false, true) => true
-  | (_, _) => false
-  end).
-Proof.
-intros x y.
-apply refl_equal.
-Qed.
-
-(* Why3 goal *)
 Lemma notb_def : forall (x:bool),
   ((Init.Datatypes.negb x) = match x with
   | false => true
@@ -60,11 +47,21 @@ apply refl_equal.
 Qed.
 
 (* Why3 goal *)
+Lemma xorb_def : forall (x:bool) (y:bool),
+  ((Init.Datatypes.xorb x y) = match x with
+  | false => y
+  | true => (Init.Datatypes.negb y)
+  end).
+Proof.
+intros x y.
+destruct x; destruct y; auto.
+Qed.
+
+(* Why3 goal *)
 Lemma implb_def : forall (x:bool) (y:bool),
-  ((Init.Datatypes.implb x y) = match (x,
-  y) with
-  | (true, false) => false
-  | (_, _) => true
+  ((Init.Datatypes.implb x y) = match x with
+  | false => true
+  | true => y
   end).
 Proof.
 now intros [|] [|].

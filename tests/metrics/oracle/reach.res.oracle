@@ -1,80 +1,80 @@
 [kernel] Parsing tests/metrics/reach.c (with preprocessing)
 [metrics] Cil AST
-    
-    Stats for function <tests/metrics/reach.c/baz>
-    ============================================== 
-    Sloc = 1
-    Decision point = 0
-    Global variables = 0
-    If = 0
-    Loop = 0
-    Goto = 0
-    Assignment = 0
-    Exit point = 1
-    Function = 1
-    Function call = 0
-    Pointer dereferencing = 0
-    Cyclomatic complexity = 1
-    
-    Stats for function <tests/metrics/reach.c/foo>
-    ============================================== 
-    Sloc = 2
-    Decision point = 0
-    Global variables = 0
-    If = 0
-    Loop = 0
-    Goto = 0
-    Assignment = 1
-    Exit point = 1
-    Function = 1
-    Function call = 0
-    Pointer dereferencing = 0
-    Cyclomatic complexity = 1
-    
-    Stats for function <tests/metrics/reach.c/main>
-    =============================================== 
-    Sloc = 12
-    Decision point = 1
-    Global variables = 0
-    If = 1
-    Loop = 0
-    Goto = 2
-    Assignment = 5
-    Exit point = 1
-    Function = 1
-    Function call = 1
-    Pointer dereferencing = 1
-    Cyclomatic complexity = 2
+  
+  Stats for function <tests/metrics/reach.c/baz>
+  ============================================== 
+  Sloc = 1
+  Decision point = 0
+  Global variables = 0
+  If = 0
+  Loop = 0
+  Goto = 0
+  Assignment = 0
+  Exit point = 1
+  Function = 1
+  Function call = 0
+  Pointer dereferencing = 0
+  Cyclomatic complexity = 1
+  
+  Stats for function <tests/metrics/reach.c/foo>
+  ============================================== 
+  Sloc = 2
+  Decision point = 0
+  Global variables = 0
+  If = 0
+  Loop = 0
+  Goto = 0
+  Assignment = 1
+  Exit point = 1
+  Function = 1
+  Function call = 0
+  Pointer dereferencing = 0
+  Cyclomatic complexity = 1
+  
+  Stats for function <tests/metrics/reach.c/main>
+  =============================================== 
+  Sloc = 12
+  Decision point = 1
+  Global variables = 0
+  If = 1
+  Loop = 0
+  Goto = 2
+  Assignment = 5
+  Exit point = 1
+  Function = 1
+  Function call = 1
+  Pointer dereferencing = 1
+  Cyclomatic complexity = 2
 [metrics] Defined functions (3)
-    =====================
-     baz (address taken) (0 call); foo (address taken) (0 call); main (0 call); 
-    
-    Undefined functions (0)
-    =======================
-     
-    
-    'Extern' global variables (0)
-    =============================
-     
-    
-    Potential entry points (1)
-    ==========================
-     main; 
-    
-    Global metrics
-    ============== 
-    Sloc = 15
-    Decision point = 1
-    Global variables = 2
-    If = 1
-    Loop = 0
-    Goto = 2
-    Assignment = 6
-    Exit point = 3
-    Function = 3
-    Function call = 1
-    Pointer dereferencing = 1
-    Cyclomatic complexity = 4
+  =====================
+   baz (address taken) (0 call); foo (address taken) (0 call); main (0 call); 
+  
+  Undefined functions (0)
+  =======================
+   
+  
+  'Extern' global variables (0)
+  =============================
+   
+  
+  Potential entry points (1)
+  ==========================
+   main; 
+  
+  Global metrics
+  ============== 
+  Sloc = 15
+  Decision point = 1
+  Global variables = 2
+  If = 1
+  Loop = 0
+  Goto = 2
+  Assignment = 6
+  Exit point = 3
+  Function = 3
+  Function call = 1
+  Pointer dereferencing = 1
+  Cyclomatic complexity = 4
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
 [value] Initial state computed
@@ -84,18 +84,18 @@
    [1] ∈ {0}
 [value] done for function main
 [metrics] Value coverage statistics
-    =========================
-    Syntactically reachable functions = 3 (out of 3)
-    Semantically reached functions = 1
-    Coverage estimation = 33.3% 
-    
-    Unreached functions (2) =
-      <tests/metrics/reach.c>: baz; foo;
+  =========================
+  Syntactically reachable functions = 3 (out of 3)
+  Semantically reached functions = 1
+  Coverage estimation = 33.3% 
+  
+  Unreached functions (2) =
+    <tests/metrics/reach.c>: baz; foo;
 [metrics] References to non-analyzed functions
-    ------------------------------------
-    Function main references foo (at tests/metrics/reach.c:26)
-    Initializer of t references baz (at tests/metrics/reach.c:10)
+  ------------------------------------
+  Function main references foo (at tests/metrics/reach.c:26)
+  Initializer of t references baz (at tests/metrics/reach.c:10)
 [metrics] Statements analyzed by Value
-    ----------------------------
-    12 stmts in analyzed functions, 7 stmts analyzed (58.3%)
-    main: 7 stmts out of 12 (58.3%)
+  ----------------------------
+  12 stmts in analyzed functions, 7 stmts analyzed (58.3%)
+  main: 7 stmts out of 12 (58.3%)

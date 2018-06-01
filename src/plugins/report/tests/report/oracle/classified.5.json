@@ -1,0 +1,13 @@
+[
+  { "classid": "RTE", "action": "REVIEW", "title": "Missing RTE guards",
+    "descr": "Shall run Eva plug-in" },
+  { "classid": "UNIT", "action": "INFO", "title": "Precondition 'f'",
+    "descr": "Property Untried", "file": "tests/report/classify.c",
+    "line": 22 },
+  { "classid": "GOAL", "action": "ERROR", "title": "Postcondition 'f'",
+    "descr": "Property Untried", "file": "tests/report/classify.c",
+    "line": 23 },
+  { "classid": "unclassified.untried", "action": "REVIEW",
+    "title": "f_assigns", "descr": "Untried status",
+    "file": "tests/report/classify.c", "line": 24 }
+]

@@ -2,7 +2,7 @@
 /*                                                                        */
 /*  This file is part of Frama-C.                                         */
 /*                                                                        */
-/*  Copyright (C) 2007-2017                                               */
+/*  Copyright (C) 2007-2018                                               */
 /*    CEA (Commissariat à l'énergie atomique et aux énergies              */
 /*         alternatives)                                                  */
 /*                                                                        */
@@ -80,5 +80,16 @@
    null character. (Minimum is 256.) */
 #define PATH_MAX  __FC_PATH_MAX
 
-#endif
+/* Maximum length of a host name (not including the terminating null)
+   as returned from the gethostname() function.
+   Note: Mac OS does not define this constant. */
+#define HOST_NAME_MAX __FC_HOST_NAME_MAX
 
+/* Maximum length of argument to the exec functions including environment data.
+   Minimum Acceptable Value: {_POSIX_ARG_MAX} (4096 in POSIX.1-2008)
+   "... the total space used to store the environment and the arguments to the
+    process is limited to {ARG_MAX} bytes."
+ */
+#define ARG_MAX 4096
+
+#endif

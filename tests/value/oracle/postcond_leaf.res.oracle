@@ -1,53 +1,70 @@
 [kernel] Parsing tests/value/postcond_leaf.c (with preprocessing)
-[value] user error: no assigns specified for function 'g1', for which a builtin
-    or the specification will be used. Potential unsoundness.
-[value] user error: no assigns specified for function 'g2', for which a builtin
-    or the specification will be used. Potential unsoundness.
-[value] user error: no assigns specified for function 'g3', for which a builtin
-    or the specification will be used. Potential unsoundness.
-[value] warning: Generating potentially incorrect assigns for function 'g1' for which option -val-use-spec is set
-tests/value/postcond_leaf.c:37:[kernel] warning: No code nor implicit assigns clause for function g1, generating default assigns from the prototype
-[value] warning: Generating potentially incorrect assigns for function 'g2' for which option -val-use-spec is set
-tests/value/postcond_leaf.c:44:[kernel] warning: No code nor implicit assigns clause for function g2, generating default assigns from the prototype
-[value] warning: Generating potentially incorrect assigns for function 'g3' for which option -val-use-spec is set
-tests/value/postcond_leaf.c:48:[kernel] warning: No code nor implicit assigns clause for function g3, generating default assigns from the prototype
+[value] User Error: no assigns specified for function 'g1', for which a builtin
+  or the specification will be used. Potential unsoundness.
+[value] User Error: no assigns specified for function 'g2', for which a builtin
+  or the specification will be used. Potential unsoundness.
+[value] User Error: no assigns specified for function 'g3', for which a builtin
+  or the specification will be used. Potential unsoundness.
+[value] Warning: Generating potentially incorrect assigns for function 'g1' for which option -val-use-spec is set
+[kernel] tests/value/postcond_leaf.c:37: Warning: 
+  No code nor implicit assigns clause for function g1, generating default assigns from the prototype
+[value] Warning: Generating potentially incorrect assigns for function 'g2' for which option -val-use-spec is set
+[kernel] tests/value/postcond_leaf.c:44: Warning: 
+  No code nor implicit assigns clause for function g2, generating default assigns from the prototype
+[value] Warning: Generating potentially incorrect assigns for function 'g3' for which option -val-use-spec is set
+[kernel] tests/value/postcond_leaf.c:48: Warning: 
+  No code nor implicit assigns clause for function g3, generating default assigns from the prototype
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
 [value] Initial state computed
 [value:initial-state] Values of globals at initialization
   i ∈ [--..--]
-tests/value/postcond_leaf.c:77:[kernel] warning: No code nor implicit assigns clause for function f1, generating default assigns from the prototype
+[kernel] tests/value/postcond_leaf.c:77: Warning: 
+  No code nor implicit assigns clause for function f1, generating default assigns from the prototype
 [value] using specification for function f1
-tests/value/postcond_leaf.c:21:[value] warning: function f1: this postcondition evaluates to false in this context.
-    If it is valid, either a precondition was not verified for this call,
-    or some assigns/from clauses are incomplete (or incorrect).
-tests/value/postcond_leaf.c:80:[kernel] warning: No code nor implicit assigns clause for function f2, generating default assigns from the prototype
+[value] tests/value/postcond_leaf.c:21: Warning: 
+  function f1: this postcondition evaluates to false in this context.
+  If it is valid, either a precondition was not verified for this call,
+  or some assigns/from clauses are incomplete (or incorrect).
+[kernel] tests/value/postcond_leaf.c:80: Warning: 
+  No code nor implicit assigns clause for function f2, generating default assigns from the prototype
 [value] using specification for function f2
-tests/value/postcond_leaf.c:26:[value] warning: function f2, behavior b: this postcondition evaluates to false in this
-    context. If it is valid, either a precondition was not verified for this
-    call, or some assigns/from clauses are incomplete (or incorrect).
-tests/value/postcond_leaf.c:83:[kernel] warning: No code nor implicit assigns clause for function f3, generating default assigns from the prototype
+[value] tests/value/postcond_leaf.c:26: Warning: 
+  function f2, behavior b: this postcondition evaluates to false in this
+  context. If it is valid, either a precondition was not verified for this
+  call, or some assigns/from clauses are incomplete (or incorrect).
+[kernel] tests/value/postcond_leaf.c:83: Warning: 
+  No code nor implicit assigns clause for function f3, generating default assigns from the prototype
 [value] using specification for function f3
-tests/value/postcond_leaf.c:86:[kernel] warning: No code nor implicit assigns clause for function f4, generating default assigns from the prototype
+[kernel] tests/value/postcond_leaf.c:86: Warning: 
+  No code nor implicit assigns clause for function f4, generating default assigns from the prototype
 [value] using specification for function f4
 [value] using specification for function g1
-tests/value/postcond_leaf.c:36:[value] warning: function g1: this postcondition evaluates to false in this context.
-    If it is valid, either a precondition was not verified for this call,
-    or some assigns/from clauses are incomplete (or incorrect).
+[value] tests/value/postcond_leaf.c:36: Warning: 
+  function g1: this postcondition evaluates to false in this context.
+  If it is valid, either a precondition was not verified for this call,
+  or some assigns/from clauses are incomplete (or incorrect).
 [value] using specification for function g2
-tests/value/postcond_leaf.c:42:[value] warning: function g2, behavior b: this postcondition evaluates to false in this
-    context. If it is valid, either a precondition was not verified for this
-    call, or some assigns/from clauses are incomplete (or incorrect).
+[value] tests/value/postcond_leaf.c:42: Warning: 
+  function g2, behavior b: this postcondition evaluates to false in this
+  context. If it is valid, either a precondition was not verified for this
+  call, or some assigns/from clauses are incomplete (or incorrect).
 [value] using specification for function g3
-tests/value/postcond_leaf.c:51:[value] warning: function h1: postcondition got status invalid.
-tests/value/postcond_leaf.c:57:[value] warning: function h2, behavior b: postcondition got status invalid. (Behavior may be inactive, no reduction performed.)
-tests/value/postcond_leaf.c:62:[value] warning: function h3: postcondition got status unknown.
-tests/value/postcond_leaf.c:66:[value] warning: function h4: postcondition got status invalid.
-tests/value/postcond_leaf.c:111:[kernel] warning: No code nor implicit assigns clause for function k, generating default assigns from the prototype
+[value:alarm] tests/value/postcond_leaf.c:51: Warning: 
+  function h1: postcondition got status invalid.
+[value:alarm] tests/value/postcond_leaf.c:57: Warning: 
+  function h2, behavior b: postcondition got status invalid. (Behavior may be inactive, no reduction performed.)
+[value:alarm] tests/value/postcond_leaf.c:62: Warning: 
+  function h3: postcondition got status unknown.
+[value:alarm] tests/value/postcond_leaf.c:66: Warning: 
+  function h4: postcondition got status invalid.
+[kernel] tests/value/postcond_leaf.c:111: Warning: 
+  No code nor implicit assigns clause for function k, generating default assigns from the prototype
 [value] using specification for function k
-tests/value/postcond_leaf.c:71:[value] warning: function k: this postcondition evaluates to false in this context.
-    If it is valid, either a precondition was not verified for this call,
-    or some assigns/from clauses are incomplete (or incorrect).
+[value] tests/value/postcond_leaf.c:71: Warning: 
+  function k: this postcondition evaluates to false in this context.
+  If it is valid, either a precondition was not verified for this call,
+  or some assigns/from clauses are incomplete (or incorrect).
 [value] done for function main
 [value] ====== VALUES COMPUTED ======
 [value:final-states] Values at end of function h1:

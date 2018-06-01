@@ -4,10 +4,10 @@
 [value] Initial state computed
 [value:initial-state] Values of globals at initialization
   
-tests/value/overflow.i:20:[value] warning: 2's complement assumed for overflow
-tests/value/overflow.i:21:[value] warning: 2's complement assumed for overflow
-tests/value/overflow.i:22:[value] warning: 2's complement assumed for overflow
-tests/value/overflow.i:31:[value] warning: 2's complement assumed for overflow
+[value] tests/value/overflow.i:20: Warning: 2's complement assumed for overflow
+[value] tests/value/overflow.i:21: Warning: 2's complement assumed for overflow
+[value] tests/value/overflow.i:22: Warning: 2's complement assumed for overflow
+[value] tests/value/overflow.i:31: Warning: 2's complement assumed for overflow
 [value] Recording results for main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======
@@ -28,11 +28,11 @@ tests/value/overflow.i:31:[value] warning: 2's complement assumed for overflow
 [from] Computing for function main
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
-    These dependencies hold at termination for the executions that terminate:
+  These dependencies hold at termination for the executions that terminate:
 [from] Function main:
   \result FROM \nothing
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function main:
-      i; j; is; js; minjs; maxjs; i1; j1; y; tmp; x; z; t; __retres
+    i; j; is; js; minjs; maxjs; i1; j1; y; tmp; x; z; t; __retres
 [inout] Inputs for function main:
-      \nothing
+    \nothing

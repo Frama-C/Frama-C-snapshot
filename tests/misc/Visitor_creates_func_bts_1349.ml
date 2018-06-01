@@ -22,7 +22,7 @@ class test prj = object(self)
     [GFunDecl(Cil.empty_funspec(),f.svar,Cil_datatype.Location.unknown);
      GFun(f,Cil_datatype.Location.unknown)]
 
-  method vglob_aux = function
+  method! vglob_aux = function
     | GVar (v,i,loc) ->
         let v'=
           Visitor.visitFramacVarDecl (self:>Visitor.frama_c_visitor) v

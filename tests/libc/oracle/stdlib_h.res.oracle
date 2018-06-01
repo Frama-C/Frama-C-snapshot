@@ -3,118 +3,241 @@
 [value] Computing initial state
 [value] Initial state computed
 [value:initial-state] Values of globals at initialization
+  __fc_heap_status ∈ [--..--]
   __fc_random_counter ∈ [--..--]
   __fc_rand_max ∈ {32767}
-  __fc_heap_status ∈ [--..--]
   __fc_mblen_state ∈ [--..--]
   __fc_mbtowc_state ∈ [--..--]
   __fc_wctomb_state ∈ [--..--]
   nondet ∈ [--..--]
 [value] computing for function strtol <- main.
-    Called from tests/libc/stdlib_h.c:15.
+  Called from tests/libc/stdlib_h.c:20.
 [value] using specification for function strtol
-share/libc/stdlib.h:152:[value] function strtol: precondition got status valid.
-share/libc/stdlib.h:153:[value] function strtol: precondition got status valid.
-share/libc/stdlib.h:154:[value] function strtol: precondition got status valid.
-share/libc/stdlib.h:162:[value] function strtol, behavior nonnull_endptr: precondition got status valid.
+[value] tests/libc/stdlib_h.c:20: 
+  function strtol: precondition 'valid_nptr' got status valid.
+[value] tests/libc/stdlib_h.c:20: 
+  function strtol: precondition 'separation' got status valid.
+[value] tests/libc/stdlib_h.c:20: 
+  function strtol: precondition 'base_range' got status valid.
+[value] tests/libc/stdlib_h.c:20: 
+  function strtol, behavior store_position: precondition 'valid_endptr' got status valid.
 [value] Done for function strtol
 [value] computing for function strtol <- main.
-    Called from tests/libc/stdlib_h.c:16.
-share/libc/stdlib.h:152:[value] warning: function strtol: precondition got status unknown.
+  Called from tests/libc/stdlib_h.c:21.
+[value:alarm] tests/libc/stdlib_h.c:21: Warning: 
+  function strtol: precondition 'valid_nptr' got status unknown.
+[value] tests/libc/stdlib_h.c:21: 
+  function strtol: precondition 'separation' got status valid.
+[value] tests/libc/stdlib_h.c:21: 
+  function strtol: precondition 'base_range' got status valid.
+[value] tests/libc/stdlib_h.c:21: 
+  function strtol, behavior store_position: precondition 'valid_endptr' got status valid.
 [value] Done for function strtol
 [value] computing for function strtol <- main.
-    Called from tests/libc/stdlib_h.c:17.
+  Called from tests/libc/stdlib_h.c:22.
+[value:alarm] tests/libc/stdlib_h.c:22: Warning: 
+  function strtol: precondition 'valid_nptr' got status unknown.
+[value] tests/libc/stdlib_h.c:22: 
+  function strtol: precondition 'separation' got status valid.
+[value] tests/libc/stdlib_h.c:22: 
+  function strtol: precondition 'base_range' got status valid.
 [value] Done for function strtol
 [value] computing for function strtol <- main.
-    Called from tests/libc/stdlib_h.c:18.
+  Called from tests/libc/stdlib_h.c:23.
+[value] tests/libc/stdlib_h.c:23: 
+  function strtol: precondition 'valid_nptr' got status valid.
+[value] tests/libc/stdlib_h.c:23: 
+  function strtol: precondition 'separation' got status valid.
+[value] tests/libc/stdlib_h.c:23: 
+  function strtol: precondition 'base_range' got status valid.
 [value] Done for function strtol
 [value] computing for function strtoll <- main.
-    Called from tests/libc/stdlib_h.c:22.
+  Called from tests/libc/stdlib_h.c:27.
 [value] using specification for function strtoll
-share/libc/stdlib.h:177:[value] function strtoll: precondition got status valid.
-share/libc/stdlib.h:178:[value] function strtoll: precondition got status valid.
-share/libc/stdlib.h:179:[value] function strtoll: precondition got status valid.
-share/libc/stdlib.h:187:[value] function strtoll, behavior nonnull_endptr: precondition got status valid.
+[value] tests/libc/stdlib_h.c:27: 
+  function strtoll: precondition 'valid_nptr' got status valid.
+[value] tests/libc/stdlib_h.c:27: 
+  function strtoll: precondition 'separation' got status valid.
+[value] tests/libc/stdlib_h.c:27: 
+  function strtoll: precondition 'base_range' got status valid.
+[value] tests/libc/stdlib_h.c:27: 
+  function strtoll, behavior store_position: precondition 'valid_endptr' got status valid.
 [value] Done for function strtoll
 [value] computing for function strtoll <- main.
-    Called from tests/libc/stdlib_h.c:23.
-share/libc/stdlib.h:177:[value] warning: function strtoll: precondition got status unknown.
+  Called from tests/libc/stdlib_h.c:28.
+[value:alarm] tests/libc/stdlib_h.c:28: Warning: 
+  function strtoll: precondition 'valid_nptr' got status unknown.
+[value] tests/libc/stdlib_h.c:28: 
+  function strtoll: precondition 'separation' got status valid.
+[value] tests/libc/stdlib_h.c:28: 
+  function strtoll: precondition 'base_range' got status valid.
+[value] tests/libc/stdlib_h.c:28: 
+  function strtoll, behavior store_position: precondition 'valid_endptr' got status valid.
 [value] Done for function strtoll
 [value] computing for function strtoll <- main.
-    Called from tests/libc/stdlib_h.c:24.
+  Called from tests/libc/stdlib_h.c:29.
+[value:alarm] tests/libc/stdlib_h.c:29: Warning: 
+  function strtoll: precondition 'valid_nptr' got status unknown.
+[value] tests/libc/stdlib_h.c:29: 
+  function strtoll: precondition 'separation' got status valid.
+[value] tests/libc/stdlib_h.c:29: 
+  function strtoll: precondition 'base_range' got status valid.
 [value] Done for function strtoll
 [value] computing for function strtoul <- main.
-    Called from tests/libc/stdlib_h.c:28.
+  Called from tests/libc/stdlib_h.c:33.
 [value] using specification for function strtoul
-share/libc/stdlib.h:202:[value] function strtoul: precondition got status valid.
-share/libc/stdlib.h:203:[value] function strtoul: precondition got status valid.
-share/libc/stdlib.h:204:[value] function strtoul: precondition got status valid.
-share/libc/stdlib.h:212:[value] function strtoul, behavior nonnull_endptr: precondition got status valid.
+[value] tests/libc/stdlib_h.c:33: 
+  function strtoul: precondition 'valid_nptr' got status valid.
+[value] tests/libc/stdlib_h.c:33: 
+  function strtoul: precondition 'separation' got status valid.
+[value] tests/libc/stdlib_h.c:33: 
+  function strtoul: precondition 'base_range' got status valid.
+[value] tests/libc/stdlib_h.c:33: 
+  function strtoul, behavior store_position: precondition 'valid_endptr' got status valid.
 [value] Done for function strtoul
 [value] computing for function strtoul <- main.
-    Called from tests/libc/stdlib_h.c:29.
-share/libc/stdlib.h:202:[value] warning: function strtoul: precondition got status unknown.
+  Called from tests/libc/stdlib_h.c:34.
+[value:alarm] tests/libc/stdlib_h.c:34: Warning: 
+  function strtoul: precondition 'valid_nptr' got status unknown.
+[value] tests/libc/stdlib_h.c:34: 
+  function strtoul: precondition 'separation' got status valid.
+[value] tests/libc/stdlib_h.c:34: 
+  function strtoul: precondition 'base_range' got status valid.
+[value] tests/libc/stdlib_h.c:34: 
+  function strtoul, behavior store_position: precondition 'valid_endptr' got status valid.
 [value] Done for function strtoul
 [value] computing for function strtoul <- main.
-    Called from tests/libc/stdlib_h.c:30.
+  Called from tests/libc/stdlib_h.c:35.
+[value:alarm] tests/libc/stdlib_h.c:35: Warning: 
+  function strtoul: precondition 'valid_nptr' got status unknown.
+[value] tests/libc/stdlib_h.c:35: 
+  function strtoul: precondition 'separation' got status valid.
+[value] tests/libc/stdlib_h.c:35: 
+  function strtoul: precondition 'base_range' got status valid.
 [value] Done for function strtoul
 [value] computing for function strtoull <- main.
-    Called from tests/libc/stdlib_h.c:34.
+  Called from tests/libc/stdlib_h.c:39.
 [value] using specification for function strtoull
-share/libc/stdlib.h:227:[value] function strtoull: precondition got status valid.
-share/libc/stdlib.h:228:[value] function strtoull: precondition got status valid.
-share/libc/stdlib.h:229:[value] function strtoull: precondition got status valid.
-share/libc/stdlib.h:237:[value] function strtoull, behavior nonnull_endptr: precondition got status valid.
+[value] tests/libc/stdlib_h.c:39: 
+  function strtoull: precondition 'valid_nptr' got status valid.
+[value] tests/libc/stdlib_h.c:39: 
+  function strtoull: precondition 'separation' got status valid.
+[value] tests/libc/stdlib_h.c:39: 
+  function strtoull: precondition 'base_range' got status valid.
+[value] tests/libc/stdlib_h.c:39: 
+  function strtoull, behavior store_position: precondition 'valid_endptr' got status valid.
 [value] Done for function strtoull
 [value] computing for function strtoull <- main.
-    Called from tests/libc/stdlib_h.c:35.
-share/libc/stdlib.h:227:[value] warning: function strtoull: precondition got status unknown.
+  Called from tests/libc/stdlib_h.c:40.
+[value:alarm] tests/libc/stdlib_h.c:40: Warning: 
+  function strtoull: precondition 'valid_nptr' got status unknown.
+[value] tests/libc/stdlib_h.c:40: 
+  function strtoull: precondition 'separation' got status valid.
+[value] tests/libc/stdlib_h.c:40: 
+  function strtoull: precondition 'base_range' got status valid.
+[value] tests/libc/stdlib_h.c:40: 
+  function strtoull, behavior store_position: precondition 'valid_endptr' got status valid.
 [value] Done for function strtoull
 [value] computing for function strtoull <- main.
-    Called from tests/libc/stdlib_h.c:36.
+  Called from tests/libc/stdlib_h.c:41.
+[value:alarm] tests/libc/stdlib_h.c:41: Warning: 
+  function strtoull: precondition 'valid_nptr' got status unknown.
+[value] tests/libc/stdlib_h.c:41: 
+  function strtoull: precondition 'separation' got status valid.
+[value] tests/libc/stdlib_h.c:41: 
+  function strtoull: precondition 'base_range' got status valid.
 [value] Done for function strtoull
 [value] computing for function strtod <- main.
-    Called from tests/libc/stdlib_h.c:41.
+  Called from tests/libc/stdlib_h.c:46.
 [value] using specification for function strtod
-share/libc/stdlib.h:86:[value] function strtod: precondition got status valid.
-share/libc/stdlib.h:87:[value] function strtod: precondition got status valid.
-share/libc/stdlib.h:95:[value] function strtod, behavior nonnull_endptr: precondition got status valid.
+[value] tests/libc/stdlib_h.c:46: 
+  function strtod: precondition 'valid_nptr' got status valid.
+[value] tests/libc/stdlib_h.c:46: 
+  function strtod: precondition 'separation' got status valid.
+[value] tests/libc/stdlib_h.c:46: 
+  function strtod, behavior store_position: precondition 'valid_endptr' got status valid.
 [value] Done for function strtod
 [value] computing for function strtod <- main.
-    Called from tests/libc/stdlib_h.c:42.
-share/libc/stdlib.h:86:[value] warning: function strtod: precondition got status unknown.
+  Called from tests/libc/stdlib_h.c:47.
+[value:alarm] tests/libc/stdlib_h.c:47: Warning: 
+  function strtod: precondition 'valid_nptr' got status unknown.
+[value] tests/libc/stdlib_h.c:47: 
+  function strtod: precondition 'separation' got status valid.
+[value] tests/libc/stdlib_h.c:47: 
+  function strtod, behavior store_position: precondition 'valid_endptr' got status valid.
 [value] Done for function strtod
 [value] computing for function strtod <- main.
-    Called from tests/libc/stdlib_h.c:43.
+  Called from tests/libc/stdlib_h.c:48.
+[value:alarm] tests/libc/stdlib_h.c:48: Warning: 
+  function strtod: precondition 'valid_nptr' got status unknown.
+[value] tests/libc/stdlib_h.c:48: 
+  function strtod: precondition 'separation' got status valid.
 [value] Done for function strtod
 [value] computing for function strtold <- main.
-    Called from tests/libc/stdlib_h.c:47.
+  Called from tests/libc/stdlib_h.c:52.
 [value] using specification for function strtold
-share/libc/stdlib.h:129:[value] function strtold: precondition got status valid.
-share/libc/stdlib.h:130:[value] function strtold: precondition got status valid.
-share/libc/stdlib.h:138:[value] function strtold, behavior nonnull_endptr: precondition got status valid.
+[value] tests/libc/stdlib_h.c:52: 
+  function strtold: precondition 'valid_nptr' got status valid.
+[value] tests/libc/stdlib_h.c:52: 
+  function strtold: precondition 'separation' got status valid.
+[value] tests/libc/stdlib_h.c:52: 
+  function strtold, behavior store_position: precondition 'valid_endptr' got status valid.
 [value] Done for function strtold
 [value] computing for function strtold <- main.
-    Called from tests/libc/stdlib_h.c:48.
-share/libc/stdlib.h:129:[value] warning: function strtold: precondition got status unknown.
+  Called from tests/libc/stdlib_h.c:53.
+[value:alarm] tests/libc/stdlib_h.c:53: Warning: 
+  function strtold: precondition 'valid_nptr' got status unknown.
+[value] tests/libc/stdlib_h.c:53: 
+  function strtold: precondition 'separation' got status valid.
+[value] tests/libc/stdlib_h.c:53: 
+  function strtold, behavior store_position: precondition 'valid_endptr' got status valid.
 [value] Done for function strtold
 [value] computing for function strtold <- main.
-    Called from tests/libc/stdlib_h.c:49.
+  Called from tests/libc/stdlib_h.c:54.
+[value:alarm] tests/libc/stdlib_h.c:54: Warning: 
+  function strtold: precondition 'valid_nptr' got status unknown.
+[value] tests/libc/stdlib_h.c:54: 
+  function strtold: precondition 'separation' got status valid.
 [value] Done for function strtold
 [value] computing for function strtof <- main.
-    Called from tests/libc/stdlib_h.c:53.
+  Called from tests/libc/stdlib_h.c:58.
 [value] using specification for function strtof
-share/libc/stdlib.h:107:[value] function strtof: precondition got status valid.
-share/libc/stdlib.h:108:[value] function strtof: precondition got status valid.
-share/libc/stdlib.h:116:[value] function strtof, behavior nonnull_endptr: precondition got status valid.
+[value] tests/libc/stdlib_h.c:58: 
+  function strtof: precondition 'valid_nptr' got status valid.
+[value] tests/libc/stdlib_h.c:58: 
+  function strtof: precondition 'separation' got status valid.
+[value] tests/libc/stdlib_h.c:58: 
+  function strtof, behavior store_position: precondition 'valid_endptr' got status valid.
 [value] Done for function strtof
 [value] computing for function strtof <- main.
-    Called from tests/libc/stdlib_h.c:54.
-share/libc/stdlib.h:107:[value] warning: function strtof: precondition got status unknown.
+  Called from tests/libc/stdlib_h.c:59.
+[value:alarm] tests/libc/stdlib_h.c:59: Warning: 
+  function strtof: precondition 'valid_nptr' got status unknown.
+[value] tests/libc/stdlib_h.c:59: 
+  function strtof: precondition 'separation' got status valid.
+[value] tests/libc/stdlib_h.c:59: 
+  function strtof, behavior store_position: precondition 'valid_endptr' got status valid.
 [value] Done for function strtof
 [value] computing for function strtof <- main.
-    Called from tests/libc/stdlib_h.c:55.
+  Called from tests/libc/stdlib_h.c:60.
+[value:alarm] tests/libc/stdlib_h.c:60: Warning: 
+  function strtof: precondition 'valid_nptr' got status unknown.
+[value] tests/libc/stdlib_h.c:60: 
+  function strtof: precondition 'separation' got status valid.
 [value] Done for function strtof
+[value] computing for function bsearch <- main.
+  Called from tests/libc/stdlib_h.c:64.
+[value] using specification for function bsearch
+[value] tests/libc/stdlib_h.c:64: 
+  function bsearch: precondition 'valid_function_compar' got status valid.
+[value] Done for function bsearch
+[value:alarm] tests/libc/stdlib_h.c:65: Warning: assertion got status unknown.
+[value] computing for function bsearch <- main.
+  Called from tests/libc/stdlib_h.c:67.
+[value] tests/libc/stdlib_h.c:67: 
+  function bsearch: precondition 'valid_function_compar' got status valid.
+[value] Done for function bsearch
+[value:alarm] tests/libc/stdlib_h.c:68: Warning: assertion got status unknown.
 [value] Recording results for main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======
@@ -133,9 +256,15 @@ share/libc/stdlib.h:107:[value] warning: function strtof: precondition got statu
   ull ∈ [--..--]
   sd ∈ {{ " 3.14 0x1.2p2" }}
   pd ∈ {{ " 3.14 0x1.2p2" + [0..--] }}
-  d ∈ [--..--]
+  d ∈ [-inf .. inf] ∪ {NaN}
   pld ∈ {{ " 3.14 0x1.2p2" + [0..--] }}
-  ld ∈ [--..--]
+  ld ∈ [-inf .. inf] ∪ {NaN}
   pf ∈ {{ " 3.14 0x1.2p2" + [0..--] }}
-  f ∈ [--..--]
+  f ∈ [-inf .. inf] ∪ {NaN}
+  ai[0] ∈ {1}
+    [1] ∈ {-1}
+    [2] ∈ {50000}
+    [3] ∈ {20}
+  key ∈ {-1}
+  p ∈ {{ &ai[1] }}
   __retres ∈ {0}

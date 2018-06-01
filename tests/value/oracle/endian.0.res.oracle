@@ -7,11 +7,11 @@
   UU ∈ {0}
   undet ∈ [--..--]
 [value] computing for function main0 <- main.
-    Called from tests/value/endian.i:101.
+  Called from tests/value/endian.i:101.
 [value] Recording results for main0
 [value] Done for function main0
 [value] computing for function interpret_bits <- main.
-    Called from tests/value/endian.i:102.
+  Called from tests/value/endian.i:102.
 [value] Recording results for interpret_bits
 [value] Done for function interpret_bits
 [value] Recording results for main
@@ -54,7 +54,7 @@
 [from] Computing for function main
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
-    These dependencies hold at termination for the executions that terminate:
+  These dependencies hold at termination for the executions that terminate:
 [from] Function interpret_bits:
   NO EFFECTS
 [from] Function main0:
@@ -63,15 +63,15 @@
   NO EFFECTS
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function interpret_bits:
-      x; a; b; c; d; e; f
+    x; a; b; c; d; e; f
 [inout] Inputs for function interpret_bits:
-      undet
+    undet
 [inout] Out (internal) for function main0:
-      b0; b1; b2; b3; f; data0; G0; G1; G2; G3;
-      G{.f0; .f1[bits 0 to 15]; .f2[bits 0 to 15]; .f3[bits 0 to 15]}
+    b0; b1; b2; b3; f; data0; G0; G1; G2; G3;
+    G{.f0; .f1[bits 0 to 15]; .f2[bits 0 to 15]; .f3[bits 0 to 15]}
 [inout] Inputs for function main0:
-      \nothing
+    \nothing
 [inout] Out (internal) for function main:
-      \nothing
+    \nothing
 [inout] Inputs for function main:
-      undet
+    undet

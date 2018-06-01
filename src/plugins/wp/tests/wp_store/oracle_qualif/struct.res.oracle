@@ -2,7 +2,7 @@
 [kernel] Parsing tests/wp_store/struct.i (no preprocessing)
 [wp] Running WP plugin...
 [wp] Loading driver 'share/wp.driver'
-[wp] warning: Missing RTE guards
+[wp] Warning: Missing RTE guards
 [wp] 6 goals scheduled
 [wp] [Qed] Goal typed_f_assert_qed_ok : Valid
 [wp] [Alt-Ergo] Goal typed_f_call_g_pre : Valid
@@ -11,11 +11,12 @@
 [wp] [Alt-Ergo] Goal typed_main_post_P_qed_ok : Valid
 [wp] [Alt-Ergo] Goal typed_main_post_Q_qed_ok : Valid
 [wp] Proved goals:    6 / 6
-    Qed:             3 
-    Alt-Ergo:        3
-----------------------------------------------------------
-Functions           WP   Alt-Ergo    Total   Success
-g                    2     -           2       100%
-f                    1      1 (18)     2       100%
-main                -       2 (31)     2       100%
-----------------------------------------------------------
+  Qed:             3 
+  Alt-Ergo:        3
+[wp] Report 'tests/wp_store/struct.i.0.report.json'
+-------------------------------------------------------------
+Functions           WP     Alt-Ergo        Total   Success
+g                    2     -                 2       100%
+f                    1      1 (12..24)       2       100%
+main                -       2 (32..44)       2       100%
+-------------------------------------------------------------

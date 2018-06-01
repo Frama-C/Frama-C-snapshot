@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2017                                               *)
+(*  Copyright (C) 2007-2018                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -20,7 +20,7 @@
 (*                                                                        *)
 (**************************************************************************)
 
-(* this is the prelude for Alt-Ergo, any versions *)
+(* this is the prelude for Alt-Ergo, version >= 0.95.2 *)
 (** The theory BuiltIn_ must be appended to this file*)
 (** The theory Bool_ must be appended to this file*)
 (** The theory bool_Bool_ must be appended to this file*)
@@ -77,84 +77,78 @@ axiom rleq1 :
 axiom rleq2 :
   (forall x:real. forall y:real. ((x <= y) -> (rleq(x, y) = true)))
 
-logic truncate : real -> int
-
 function real_of_int(x: int) : real = from_int(x)
 
-axiom truncate_of_int : (forall x:int. (truncate(real_of_int(x)) = x))
-
 axiom c_euclidian :
-  (forall n:int. forall d:int [safe_comp_div(n,d), safe_comp_mod(n,d)].
-  ((not (d = 0)) -> (n = ((safe_comp_div(n,d) * d) + safe_comp_mod(n,d)))))
+  (forall n:int. forall d:int [comp_div(n,d), comp_mod(n,d)].
+  ((not (d = 0)) -> (n = ((comp_div(n,d) * d) + comp_mod(n,d)))))
 
 axiom cdiv_cases :
-  (forall n:int. forall d:int [safe_comp_div(n,d)]. ((0 <= n) -> ((0 <  d) ->
-  (safe_comp_div(n,d) = (n / d)))))
+  (forall n:int. forall d:int [comp_div(n,d)]. ((0 <= n) -> ((0 <  d) ->
+  (comp_div(n,d) = (n / d)))))
 
 axiom cdiv_cases1 :
-  (forall n:int. forall d:int [safe_comp_div(n,d)]. ((n <= 0) -> ((0 <  d) ->
-  (safe_comp_div(n,d) = (-((-n) / d))))))
+  (forall n:int. forall d:int [comp_div(n,d)]. ((n <= 0) -> ((0 <  d) ->
+  (comp_div(n,d) = (-((-n) / d))))))
 
 axiom cdiv_cases2 :
-  (forall n:int. forall d:int [safe_comp_div(n,d)]. ((0 <= n) -> ((d <  0) ->
-  (safe_comp_div(n,d) = (-(n / (-d)))))))
+  (forall n:int. forall d:int [comp_div(n,d)]. ((0 <= n) -> ((d <  0) ->
+  (comp_div(n,d) = (-(n / (-d)))))))
 
 axiom cdiv_cases3 :
-  (forall n:int. forall d:int [safe_comp_div(n,d)]. ((n <= 0) -> ((d <  0) ->
-  (safe_comp_div(n,d) = ((-n) / (-d))))))
+  (forall n:int. forall d:int [comp_div(n,d)]. ((n <= 0) -> ((d <  0) ->
+  (comp_div(n,d) = ((-n) / (-d))))))
 
 axiom cmod_cases :
-  (forall n:int. forall d:int [safe_comp_mod(n,d)]. ((0 <= n) -> ((0 <  d) ->
-  (safe_comp_mod(n,d) = (n % d)))))
+  (forall n:int. forall d:int [comp_mod(n,d)]. ((0 <= n) -> ((0 <  d) ->
+  (comp_mod(n,d) = (n % d)))))
 
 axiom cmod_cases1 :
-  (forall n:int. forall d:int [safe_comp_mod(n,d)]. ((n <= 0) -> ((0 <  d) ->
-  (safe_comp_mod(n,d) = (-((-n) % d))))))
+  (forall n:int. forall d:int [comp_mod(n,d)]. ((n <= 0) -> ((0 <  d) ->
+  (comp_mod(n,d) = (-((-n) % d))))))
 
 axiom cmod_cases2 :
-  (forall n:int. forall d:int [safe_comp_mod(n,d)]. ((0 <= n) -> ((d <  0) ->
-  (safe_comp_mod(n,d) = (n % (-d))))))
+  (forall n:int. forall d:int [comp_mod(n,d)]. ((0 <= n) -> ((d <  0) ->
+  (comp_mod(n,d) = (n % (-d))))))
 
 axiom cmod_cases3 :
-  (forall n:int. forall d:int [safe_comp_mod(n,d)]. ((n <= 0) -> ((d <  0) ->
-  (safe_comp_mod(n,d) = (-((-n) % (-d)))))))
+  (forall n:int. forall d:int [comp_mod(n,d)]. ((n <= 0) -> ((d <  0) ->
+  (comp_mod(n,d) = (-((-n) % (-d)))))))
 
 axiom cmod_remainder :
-  (forall n:int. forall d:int [safe_comp_mod(n,d)]. ((0 <= n) -> ((0 <  d) ->
-  (0 <= safe_comp_mod(n,d)))))
+  (forall n:int. forall d:int [comp_mod(n,d)]. ((0 <= n) -> ((0 <  d) ->
+  (0 <= comp_mod(n,d)))))
 
 axiom cmod_remainder1 :
-  (forall n:int. forall d:int [safe_comp_mod(n,d)]. ((0 <= n) -> ((0 <  d) ->
-  (safe_comp_mod(n,d) <  d))))
+  (forall n:int. forall d:int [comp_mod(n,d)]. ((0 <= n) -> ((0 <  d) ->
+  (comp_mod(n,d) <  d))))
 
 axiom cmod_remainder2 :
-  (forall n:int. forall d:int [safe_comp_mod(n,d)]. ((n <= 0) -> ((0 <  d) ->
-  ((-d) <  safe_comp_mod(n,d)))))
+  (forall n:int. forall d:int [comp_mod(n,d)]. ((n <= 0) -> ((0 <  d) ->
+  ((-d) <  comp_mod(n,d)))))
 
 axiom cmod_remainder3 :
-  (forall n:int. forall d:int [safe_comp_mod(n,d)]. ((n <= 0) -> ((0 <  d) ->
-  (safe_comp_mod(n,d) <= 0))))
+  (forall n:int. forall d:int [comp_mod(n,d)]. ((n <= 0) -> ((0 <  d) ->
+  (comp_mod(n,d) <= 0))))
 
 axiom cmod_remainder4 :
-  (forall n:int. forall d:int [safe_comp_mod(n,d)]. ((0 <= n) -> ((d <  0) ->
-  (0 <= safe_comp_mod(n,d)))))
+  (forall n:int. forall d:int [comp_mod(n,d)]. ((0 <= n) -> ((d <  0) ->
+  (0 <= comp_mod(n,d)))))
 
 axiom cmod_remainder5 :
-  (forall n:int. forall d:int [safe_comp_mod(n,d)]. ((0 <= n) -> ((d <  0) ->
-  (safe_comp_mod(n,d) <  (-d)))))
+  (forall n:int. forall d:int [comp_mod(n,d)]. ((0 <= n) -> ((d <  0) ->
+  (comp_mod(n,d) <  (-d)))))
 
 axiom cmod_remainder6 :
-  (forall n:int. forall d:int [safe_comp_mod(n,d)]. ((n <= 0) -> ((d <  0) ->
-  (d <  safe_comp_mod(n,d)))))
+  (forall n:int. forall d:int [comp_mod(n,d)]. ((n <= 0) -> ((d <  0) ->
+  (d <  comp_mod(n,d)))))
 
 axiom cmod_remainder7 :
-  (forall n:int. forall d:int [safe_comp_mod(n,d)]. ((n <= 0) -> ((d <  0) ->
-  (safe_comp_mod(n,d) <= 0))))
+  (forall n:int. forall d:int [comp_mod(n,d)]. ((n <= 0) -> ((d <  0) ->
+  (comp_mod(n,d) <= 0))))
 
-axiom cdiv_neutral :
-  (forall a:int [safe_comp_div(a,1)]. (safe_comp_div(a,1) = a))
+axiom cdiv_neutral : (forall a:int [comp_div(a,1)]. (comp_div(a,1) = a))
 
 axiom cdiv_inv :
-  (forall a:int [safe_comp_div(a,a)]. ((not (a = 0)) ->
-  (safe_comp_div(a,a) = 1)))
+  (forall a:int [comp_div(a,a)]. ((not (a = 0)) -> (comp_div(a,a) = 1)))
 

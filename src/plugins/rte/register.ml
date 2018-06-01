@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2017                                               *)
+(*  Copyright (C) 2007-2018                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -50,24 +50,21 @@ let () =
     ~comment:"Generate all RTE annotations except pre-conditions \
     in the given function."
     "do_rte" Kernel_function.ty Db.RteGen.do_rte Visit.do_rte;
-  nojournal_register Db.RteGen.get_precond_status Generator.precond_status;
-  nojournal_register
-    Db.RteGen.get_signedOv_status Generator.signed_overflow_status;
-  nojournal_register Db.RteGen.get_divMod_status Generator.div_mod_status;
-  nojournal_register
-    Db.RteGen.get_initialized_status Generator.initialized_status;
-  nojournal_register
-    Db.RteGen.get_signed_downCast_status Generator.signed_downcast_status;
-  nojournal_register Db.RteGen.get_memAccess_status Generator.mem_access_status;
-  nojournal_register
-    Db.RteGen.get_pointerCall_status Generator.pointer_call_status;
-  nojournal_register 
-    Db.RteGen.get_unsignedOv_status Generator.unsigned_overflow_status;
-  nojournal_register
-    Db.RteGen.get_unsignedDownCast_status Generator.unsigned_downcast_status;
-  nojournal_register Db.RteGen.get_all_status Generator.all_status;
-  nojournal_register Db.RteGen.get_float_to_int_status Generator.float_to_int;
-  nojournal_register Db.RteGen.get_finite_float_status Generator.finite_float
+  let open Generator in
+  let open Db.RteGen in
+  nojournal_register get_precond_status Called_precond.accessor;
+  nojournal_register get_signedOv_status Signed_overflow.accessor;
+  nojournal_register get_divMod_status Div_mod.accessor;
+  nojournal_register get_initialized_status Initialized.accessor;
+  nojournal_register get_signed_downCast_status Signed_downcast.accessor;
+  nojournal_register get_memAccess_status Mem_access.accessor;
+  nojournal_register get_pointerCall_status Pointer_call.accessor;
+  nojournal_register get_unsignedOv_status Unsigned_overflow.accessor;
+  nojournal_register get_unsignedDownCast_status Unsigned_downcast.accessor;
+  nojournal_register get_float_to_int_status Float_to_int.accessor;
+  nojournal_register get_finite_float_status Finite_float.accessor;
+  nojournal_register get_all_status all_statuses;
+;;
 
 (* dynamic registration *)
 

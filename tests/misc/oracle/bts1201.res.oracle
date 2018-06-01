@@ -4,7 +4,7 @@
 [value] Initial state computed
 [value:initial-state] Values of globals at initialization
   
-tests/misc/bts1201.i:5:[value] assertion got status valid.
+[value] tests/misc/bts1201.i:5: assertion got status valid.
 [value] done for function main
 [value] Analyzing a complete application starting at main2
 [value] Computing initial state

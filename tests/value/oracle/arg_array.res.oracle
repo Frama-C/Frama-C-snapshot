@@ -4,9 +4,12 @@
 [value] Initial state computed
 [value:initial-state] Values of globals at initialization
   
-tests/value/arg_array.i:2:[value] warning: out of bounds write. assert \valid(T);
-tests/value/arg_array.i:4:[value] warning: out of bounds write. assert \valid(ptr + 1);
-tests/value/arg_array.i:5:[value] warning: out of bounds write. assert \valid(ptr + 2);
+[value:alarm] tests/value/arg_array.i:2: Warning: 
+  out of bounds write. assert \valid(T);
+[value:alarm] tests/value/arg_array.i:4: Warning: 
+  out of bounds write. assert \valid(ptr + 1);
+[value:alarm] tests/value/arg_array.i:5: Warning: 
+  out of bounds write. assert \valid(ptr + 2);
 [value] Recording results for main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======
@@ -20,11 +23,11 @@ tests/value/arg_array.i:5:[value] warning: out of bounds write. assert \valid(pt
 [from] Computing for function main
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
-    These dependencies hold at termination for the executions that terminate:
+  These dependencies hold at termination for the executions that terminate:
 [from] Function main:
   S_T[0..2] FROM T
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function main:
-      ptr; T; S_T[0..2]
+    ptr; T; S_T[0..2]
 [inout] Inputs for function main:
-      \nothing
+    \nothing

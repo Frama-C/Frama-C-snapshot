@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2017                                               *)
+(*  Copyright (C) 2007-2018                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -24,7 +24,7 @@
 
 open Cil_types
 
-val dkey: Log.category
+val dkey: Value_parameters.category
 
 type hint_vars =
   | HintAllVars (* "all" vars: static hint *)

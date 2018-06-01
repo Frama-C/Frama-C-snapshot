@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2017                                               *)
+(*  Copyright (C) 2007-2018                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -27,7 +27,6 @@ module ActiveBehaviors : sig
   type t
   val is_active: t -> behavior -> Alarmset.status
   val active_behaviors: t -> behavior list
-  val behavior_from_name: t -> string -> behavior
   val create: (predicate -> Alarmset.status) -> spec -> t
 end
 

@@ -9,16 +9,17 @@
   y ∈ [--..--]
   z ∈ [--..--]
   t ∈ [--..--]
-tests/pdg/sets.c:15:[value] warning: signed overflow. assert b + y ≤ 2147483647;
+[value:alarm] tests/pdg/sets.c:15: Warning: 
+  signed overflow. assert b + y ≤ 2147483647;
 [value] Recording results for f
 [value] done for function f
 [inout] InOut (internal) for function f:
-    Operational inputs:
-      a
-    Operational inputs on termination:
-      a
-    Sure outputs:
-      b; c; x; y; z; t
+  Operational inputs:
+    a
+  Operational inputs on termination:
+    a
+  Sure outputs:
+    b; c; x; y; z; t
 [pdg] computing for function f
 [pdg] done for function f
 [pdg] ====== PDG GRAPH COMPUTED ======

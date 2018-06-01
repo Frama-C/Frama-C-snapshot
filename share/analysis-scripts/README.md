@@ -1,6 +1,6 @@
 This directory contains a set of a Makefile and several bash scripts which
 can be used to simplify non-trivial analyses with Frama-C and some of its
-plugins, in particular EVA.
+plugins, in particular Eva.
 This Makefile can be included in your own Makefile for the following advantages.
 
 1.  It ensures that no unnecessary work is done. If you change the Makefile,
@@ -10,12 +10,12 @@ This Makefile can be included in your own Makefile for the following advantages.
     you can still append new parameters or completely redefine them.
 3.  It splits between parsing and analysis, storing outputs in separate
     repositories: <target>.parse for parsing-related outputs, and
-    <target>.eva for EVA-related outputs.
-4.  It produces several additional outputs after parsing and after an EVA
+    <target>.eva for Eva-related outputs.
+4.  It produces several additional outputs after parsing and after an Eva
     analysis:
     *   `<target>.parse/parse.log`, or `<target>.eva/eva.log`:
         contain the entire output of the parsing/analysis command,
-    *   `warnings.log`: only the warnings emitted by Frama-C/EVA,
+    *   `warnings.log`: only the warnings emitted by Frama-C/Eva,
     *   `alarms.csv`: list of emitted alarms in csv form,
     *   `metrics.log`: various metrics about the analysis,
     *   `stats.txt`: stats about the analysis, such as user time,
@@ -37,16 +37,22 @@ repository: https://github.com/Frama-C/open-source-case-studies
 (If you have access to Frama-C's development repositories, you can also use
 the examples in `analysis-scripts/examples`.)
 
-Including fcscripts
+Including analysis-scripts
 -------------------
 
 This folder contains several shell scripts and, most importantly,
 the `frama-c.mk` file. This file is intended to be included at the top of your
-`Makefile`:
+`GNUmakefile`:
 
 ````
-include fcscripts/frama-c.mk
+include $(shell frama-c -print-share-path)/analysis-scripts/frama-c.mk
 ````
+
+The file is named `GNUmakefile` instead of `Makefile` for pragmatic reasons:
+in GNU Make, the file `GNUmakefile`, if it exists, takes precedence over a
+`Makefile`, which avoid having to rename existing Makefiles and having to
+manually specify the Makefile to use when running make (e.g. via `-f`).
+The analysis-scripts Makefile relies on GNU-specific features anyway.
 
 By default, the scripts use the frama-c binaries located in your `$PATH`
 environment variable. You may want to specify different binaries, but, if you
@@ -152,7 +158,7 @@ example.eva:   EVAFLAGS += -slevel 500
 Full example
 ------------
 
-### `Makefile`
+### `GNUmakefile`
 
 ````
 # optional include, in case frama-c-path.mk does not exist (frama-c in the PATH)

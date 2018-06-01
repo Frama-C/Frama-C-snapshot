@@ -2,9 +2,11 @@
 [kernel] Parsing tests/wp/wp_call_pre.c (with preprocessing)
 [wp] Running WP plugin...
 [wp] Loading driver 'share/wp.driver'
-tests/wp/wp_call_pre.c:53:[kernel] warning: No code nor implicit assigns clause for function g, generating default assigns from the prototype
-tests/wp/wp_call_pre.c:53:[kernel] warning: No code nor implicit assigns clause for function f, generating default assigns from the prototype
-[wp] warning: Missing RTE guards
+[kernel] tests/wp/wp_call_pre.c:53: Warning: 
+  No code nor implicit assigns clause for function g, generating default assigns from the prototype
+[kernel] tests/wp/wp_call_pre.c:53: Warning: 
+  No code nor implicit assigns clause for function f, generating default assigns from the prototype
+[wp] Warning: Missing RTE guards
 [wp] 10 goals scheduled
 [wp] [Qed] Goal typed_call_g_call_g_pre_qed_ok_Rga : Valid
 [wp] [Qed] Goal typed_call_g_call_g_pre_Rgb : Valid
@@ -17,13 +19,14 @@ tests/wp/wp_call_pre.c:53:[kernel] warning: No code nor implicit assigns clause 
 [wp] [Qed] Goal typed_main_call_f_pre_qed_ok_Rf : Valid
 [wp] [Qed] Goal typed_stmt_pre_stmt_pre_qed_ok_Rstmt : Valid
 [wp] Proved goals:   10 / 10
-    Qed:             9 
-    Alt-Ergo:        1
-----------------------------------------------------------
-Functions           WP   Alt-Ergo    Total   Success
-double_call          1      1 (7)      2       100%
-main                 3     -           3       100%
-call_main            2     -           2       100%
-stmt_pre             1     -           1       100%
-call_g               2     -           2       100%
-----------------------------------------------------------
+  Qed:             9 
+  Alt-Ergo:        1
+[wp] Report 'tests/wp/wp_call_pre.c.0.report.json'
+-------------------------------------------------------------
+Functions           WP     Alt-Ergo        Total   Success
+double_call          1      1 (4..16)        2       100%
+main                 3     -                 3       100%
+call_main            2     -                 2       100%
+stmt_pre             1     -                 1       100%
+call_g               2     -                 2       100%
+-------------------------------------------------------------

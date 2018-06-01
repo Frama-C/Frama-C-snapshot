@@ -6,449 +6,121 @@
   __fc_time ∈ [--..--]
   __fc_time_tm ∈ {0}
   __fc_p_time_tm ∈ {{ &__fc_time_tm }}
+  tzname[0] ∈ {{ NULL ; &S_0_tzname[0] }}
+        [1] ∈ {{ NULL ; &S_1_tzname[0] }}
   wc ∈ {-1}
   wi ∈ {4294967295}
   t ∈ {0}
   nondet ∈ [--..--]
-[value] computing for function wmemchr <- main.
-    Called from tests/libc/wchar_c_h.c:29.
-[value] using specification for function wmemchr
-[value] Done for function wmemchr
+  S_0_tzname[0..1] ∈ [--..--]
+  S_1_tzname[0..1] ∈ [--..--]
+[value] tests/libc/wchar_c_h.c:31: 
+  Call to builtin Frama_C_wmemchr(({{ L"Needle" }},[-2147483648..2147483647],
+                                   {5}))
 [value] computing for function wmemcmp <- main.
-    Called from tests/libc/wchar_c_h.c:30.
+  Called from tests/libc/wchar_c_h.c:32.
 [value] using specification for function wmemcmp
 [value] Done for function wmemcmp
-[value] computing for function wmemcmp <- main.
-    Called from tests/libc/wchar_c_h.c:30.
-[value] Done for function wmemcmp
 [value] computing for function wmemcpy <- main.
-    Called from tests/libc/wchar_c_h.c:31.
-share/libc/wchar.h:59:[value] function wmemcpy: precondition got status valid.
-share/libc/wchar.h:62:[value] function wmemcpy: postcondition got status valid.
-[value] Recording results for wmemcpy
-[value] Done for function wmemcpy
-[value] computing for function wmemcpy <- main.
-    Called from tests/libc/wchar_c_h.c:31.
+  Called from tests/libc/wchar_c_h.c:33.
 [value] Recording results for wmemcpy
 [value] Done for function wmemcpy
 [value] computing for function wmemmove <- main.
-    Called from tests/libc/wchar_c_h.c:32.
+  Called from tests/libc/wchar_c_h.c:34.
 [value] using specification for function wmemmove
 [value] Done for function wmemmove
-[value] computing for function wmemmove <- main.
-    Called from tests/libc/wchar_c_h.c:32.
-[value] Done for function wmemmove
-[value] computing for function wmemmove <- main.
-    Called from tests/libc/wchar_c_h.c:32.
-[value] Done for function wmemmove
 [value] computing for function wmemset <- main.
-    Called from tests/libc/wchar_c_h.c:33.
-share/libc/wchar.h:76:[value] function wmemset: postcondition got status valid.
-share/libc/wchar.h:77:[value] function wmemset: postcondition got status valid.
-share/libc/wchar.h:78:[value] warning: function wmemset: postcondition got status unknown.
+  Called from tests/libc/wchar_c_h.c:35.
 [value] Recording results for wmemset
 [value] Done for function wmemset
-[value] computing for function wmemset <- main.
-    Called from tests/libc/wchar_c_h.c:33.
-[value] Recording results for wmemset
-[value] Done for function wmemset
-[value] computing for function wmemset <- main.
-    Called from tests/libc/wchar_c_h.c:33.
-[value] Recording results for wmemset
-[value] Done for function wmemset
-[value] computing for function wcschr <- main.
-    Called from tests/libc/wchar_c_h.c:34.
-[value] using specification for function wcschr
-[value] Done for function wcschr
-[value] computing for function wcschr <- main.
-    Called from tests/libc/wchar_c_h.c:34.
-[value] Done for function wcschr
-[value] computing for function wcschr <- main.
-    Called from tests/libc/wchar_c_h.c:34.
-[value] Done for function wcschr
+[value] tests/libc/wchar_c_h.c:36: 
+  function wcschr: precondition 'valid_wstring_src' got status valid.
+[value] tests/libc/wchar_c_h.c:36: 
+  Call to builtin Frama_C_wcschr(({{ L"Needle" }},[-2147483648..2147483647]))
 [value] computing for function wcscmp <- main.
-    Called from tests/libc/wchar_c_h.c:35.
+  Called from tests/libc/wchar_c_h.c:37.
 [value] using specification for function wcscmp
 [value] Done for function wcscmp
-[value] computing for function wcscmp <- main.
-    Called from tests/libc/wchar_c_h.c:35.
-[value] Done for function wcscmp
-[value] computing for function wcscmp <- main.
-    Called from tests/libc/wchar_c_h.c:35.
-[value] Done for function wcscmp
 [value] computing for function wcscpy <- main.
-    Called from tests/libc/wchar_c_h.c:36.
-share/libc/wchar.h:101:[value] function wcscpy: postcondition got status valid.
-[value] Recording results for wcscpy
-[value] Done for function wcscpy
-[value] computing for function wcscpy <- main.
-    Called from tests/libc/wchar_c_h.c:36.
-[value] Recording results for wcscpy
-[value] Done for function wcscpy
-[value] computing for function wcscpy <- main.
-    Called from tests/libc/wchar_c_h.c:36.
+  Called from tests/libc/wchar_c_h.c:38.
 [value] Recording results for wcscpy
 [value] Done for function wcscpy
 [value] computing for function wcscspn <- main.
-    Called from tests/libc/wchar_c_h.c:37.
+  Called from tests/libc/wchar_c_h.c:39.
 [value] using specification for function wcscspn
 [value] Done for function wcscspn
-[value] computing for function wcscspn <- main.
-    Called from tests/libc/wchar_c_h.c:37.
-[value] Done for function wcscspn
-[value] computing for function wcscspn <- main.
-    Called from tests/libc/wchar_c_h.c:37.
-[value] Done for function wcscspn
-[value] computing for function wcscspn <- main.
-    Called from tests/libc/wchar_c_h.c:37.
-[value] Done for function wcscspn
 [value] computing for function wcslcat <- main.
-    Called from tests/libc/wchar_c_h.c:38.
+  Called from tests/libc/wchar_c_h.c:40.
 [value] using specification for function wcslcat
 [value] Done for function wcslcat
-[value] computing for function wcslcat <- main.
-    Called from tests/libc/wchar_c_h.c:38.
-[value] Done for function wcslcat
-[value] computing for function wcslcat <- main.
-    Called from tests/libc/wchar_c_h.c:38.
-[value] Done for function wcslcat
-[value] computing for function wcslcat <- main.
-    Called from tests/libc/wchar_c_h.c:38.
-[value] Done for function wcslcat
-[value] computing for function wcslcat <- main.
-    Called from tests/libc/wchar_c_h.c:38.
-[value] Done for function wcslcat
-[value] computing for function wcslcat <- main.
-    Called from tests/libc/wchar_c_h.c:38.
-[value] Done for function wcslcat
-[value] computing for function wcslcat <- main.
-    Called from tests/libc/wchar_c_h.c:38.
-[value] Done for function wcslcat
-[value] computing for function wcslcat <- main.
-    Called from tests/libc/wchar_c_h.c:38.
-[value] Done for function wcslcat
 [value] computing for function wcslcpy <- main.
-    Called from tests/libc/wchar_c_h.c:39.
+  Called from tests/libc/wchar_c_h.c:41.
 [value] using specification for function wcslcpy
-share/libc/wchar.h:117:[value] function wcslcpy: precondition got status valid.
+[value] tests/libc/wchar_c_h.c:41: 
+  function wcslcpy: precondition 'separation,dest,src' got status valid.
 [value] Done for function wcslcpy
-[value] computing for function wcslcpy <- main.
-    Called from tests/libc/wchar_c_h.c:39.
-[value] Done for function wcslcpy
-[value] computing for function wcslcpy <- main.
-    Called from tests/libc/wchar_c_h.c:39.
-[value] Done for function wcslcpy
-[value] computing for function wcslcpy <- main.
-    Called from tests/libc/wchar_c_h.c:39.
-[value] Done for function wcslcpy
-[value] computing for function wcslcpy <- main.
-    Called from tests/libc/wchar_c_h.c:39.
-[value] Done for function wcslcpy
-[value] computing for function wcslcpy <- main.
-    Called from tests/libc/wchar_c_h.c:39.
-[value] Done for function wcslcpy
-[value] computing for function wcslcpy <- main.
-    Called from tests/libc/wchar_c_h.c:39.
-[value] Done for function wcslcpy
-[value] computing for function wcslcpy <- main.
-    Called from tests/libc/wchar_c_h.c:39.
-[value] Done for function wcslcpy
-tests/libc/wchar_c_h.c:40:[value] Call to builtin Frama_C_wcslen(({{ L"Needle" }}))
-tests/libc/wchar_c_h.c:40:[value] Call to builtin Frama_C_wcslen(({{ L"Needle" }}))
-tests/libc/wchar_c_h.c:40:[value] Call to builtin Frama_C_wcslen(({{ L"Needle" }}))
-tests/libc/wchar_c_h.c:40:[value] Call to builtin Frama_C_wcslen(({{ L"Needle" }}))
-tests/libc/wchar_c_h.c:40:[value] Call to builtin Frama_C_wcslen(({{ L"Needle" }}))
-tests/libc/wchar_c_h.c:40:[value] Call to builtin Frama_C_wcslen(({{ L"Needle" }}))
-tests/libc/wchar_c_h.c:40:[value] Call to builtin Frama_C_wcslen(({{ L"Needle" }}))
-tests/libc/wchar_c_h.c:40:[value] Call to builtin Frama_C_wcslen(({{ L"Needle" }}))
+[value] tests/libc/wchar_c_h.c:42: 
+  function wcslen: precondition 'valid_string_s' got status valid.
+[value] tests/libc/wchar_c_h.c:42: 
+  Call to builtin Frama_C_wcslen(({{ L"Needle" }}))
 [value] computing for function wcsncmp <- main.
-    Called from tests/libc/wchar_c_h.c:41.
+  Called from tests/libc/wchar_c_h.c:43.
 [value] using specification for function wcsncmp
 [value] Done for function wcsncmp
-[value] computing for function wcsncmp <- main.
-    Called from tests/libc/wchar_c_h.c:41.
-[value] Done for function wcsncmp
-[value] computing for function wcsncmp <- main.
-    Called from tests/libc/wchar_c_h.c:41.
-[value] Done for function wcsncmp
-[value] computing for function wcsncmp <- main.
-    Called from tests/libc/wchar_c_h.c:41.
-[value] Done for function wcsncmp
-[value] computing for function wcsncmp <- main.
-    Called from tests/libc/wchar_c_h.c:41.
-[value] Done for function wcsncmp
-[value] computing for function wcsncmp <- main.
-    Called from tests/libc/wchar_c_h.c:41.
-[value] Done for function wcsncmp
-[value] computing for function wcsncmp <- main.
-    Called from tests/libc/wchar_c_h.c:41.
-[value] Done for function wcsncmp
-[value] computing for function wcsncmp <- main.
-    Called from tests/libc/wchar_c_h.c:41.
-[value] Done for function wcsncmp
 [value] computing for function wcsncpy <- main.
-    Called from tests/libc/wchar_c_h.c:42.
-share/libc/wchar.h:137:[value] function wcsncpy: precondition got status valid.
-share/libc/wchar.h:140:[value] function wcsncpy: postcondition got status valid.
-[value] Recording results for wcsncpy
-[value] Done for function wcsncpy
-[value] computing for function wcsncpy <- main.
-    Called from tests/libc/wchar_c_h.c:42.
-[value] Recording results for wcsncpy
-[value] Done for function wcsncpy
-[value] computing for function wcsncpy <- main.
-    Called from tests/libc/wchar_c_h.c:42.
-[value] Recording results for wcsncpy
-[value] Done for function wcsncpy
-[value] computing for function wcsncpy <- main.
-    Called from tests/libc/wchar_c_h.c:42.
-[value] Recording results for wcsncpy
-[value] Done for function wcsncpy
-[value] computing for function wcsncpy <- main.
-    Called from tests/libc/wchar_c_h.c:42.
-[value] Recording results for wcsncpy
-[value] Done for function wcsncpy
-[value] computing for function wcsncpy <- main.
-    Called from tests/libc/wchar_c_h.c:42.
-[value] Recording results for wcsncpy
-[value] Done for function wcsncpy
-[value] computing for function wcsncpy <- main.
-    Called from tests/libc/wchar_c_h.c:42.
-[value] Recording results for wcsncpy
-[value] Done for function wcsncpy
-[value] computing for function wcsncpy <- main.
-    Called from tests/libc/wchar_c_h.c:42.
+  Called from tests/libc/wchar_c_h.c:44.
 [value] Recording results for wcsncpy
 [value] Done for function wcsncpy
 [value] computing for function wcspbrk <- main.
-    Called from tests/libc/wchar_c_h.c:43.
+  Called from tests/libc/wchar_c_h.c:45.
 [value] using specification for function wcspbrk
 [value] Done for function wcspbrk
-[value] computing for function wcspbrk <- main.
-    Called from tests/libc/wchar_c_h.c:43.
-[value] Done for function wcspbrk
-[value] computing for function wcspbrk <- main.
-    Called from tests/libc/wchar_c_h.c:43.
-[value] Done for function wcspbrk
-[value] computing for function wcspbrk <- main.
-    Called from tests/libc/wchar_c_h.c:43.
-[value] Done for function wcspbrk
-[value] computing for function wcspbrk <- main.
-    Called from tests/libc/wchar_c_h.c:43.
-[value] Done for function wcspbrk
-[value] computing for function wcspbrk <- main.
-    Called from tests/libc/wchar_c_h.c:43.
-[value] Done for function wcspbrk
-[value] computing for function wcspbrk <- main.
-    Called from tests/libc/wchar_c_h.c:43.
-[value] Done for function wcspbrk
-[value] computing for function wcspbrk <- main.
-    Called from tests/libc/wchar_c_h.c:43.
-[value] Done for function wcspbrk
-[value] computing for function wcspbrk <- main.
-    Called from tests/libc/wchar_c_h.c:43.
-[value] Done for function wcspbrk
-[value] computing for function wcspbrk <- main.
-    Called from tests/libc/wchar_c_h.c:43.
-[value] Done for function wcspbrk
 [value] computing for function wcsrchr <- main.
-    Called from tests/libc/wchar_c_h.c:44.
+  Called from tests/libc/wchar_c_h.c:46.
 [value] using specification for function wcsrchr
 [value] Done for function wcsrchr
-[value] computing for function wcsrchr <- main.
-    Called from tests/libc/wchar_c_h.c:44.
-[value] Done for function wcsrchr
-[value] computing for function wcsrchr <- main.
-    Called from tests/libc/wchar_c_h.c:44.
-[value] Done for function wcsrchr
-[value] computing for function wcsrchr <- main.
-    Called from tests/libc/wchar_c_h.c:44.
-[value] Done for function wcsrchr
-[value] computing for function wcsrchr <- main.
-    Called from tests/libc/wchar_c_h.c:44.
-[value] Done for function wcsrchr
-[value] computing for function wcsrchr <- main.
-    Called from tests/libc/wchar_c_h.c:44.
-[value] Done for function wcsrchr
-[value] computing for function wcsrchr <- main.
-    Called from tests/libc/wchar_c_h.c:44.
-[value] Done for function wcsrchr
-[value] computing for function wcsrchr <- main.
-    Called from tests/libc/wchar_c_h.c:44.
-[value] Done for function wcsrchr
-[value] computing for function wcsrchr <- main.
-    Called from tests/libc/wchar_c_h.c:44.
-[value] Done for function wcsrchr
-[value] computing for function wcsrchr <- main.
-    Called from tests/libc/wchar_c_h.c:44.
-[value] Done for function wcsrchr
-[value] computing for function wcsrchr <- main.
-    Called from tests/libc/wchar_c_h.c:44.
-[value] Done for function wcsrchr
-[value] computing for function wcsrchr <- main.
-    Called from tests/libc/wchar_c_h.c:44.
-[value] Done for function wcsrchr
 [value] computing for function wcsspn <- main.
-    Called from tests/libc/wchar_c_h.c:45.
+  Called from tests/libc/wchar_c_h.c:47.
 [value] using specification for function wcsspn
 [value] Done for function wcsspn
-[value] computing for function wcsspn <- main.
-    Called from tests/libc/wchar_c_h.c:45.
-[value] Done for function wcsspn
-[value] computing for function wcsspn <- main.
-    Called from tests/libc/wchar_c_h.c:45.
-[value] Done for function wcsspn
-[value] computing for function wcsspn <- main.
-    Called from tests/libc/wchar_c_h.c:45.
-[value] Done for function wcsspn
-[value] computing for function wcsspn <- main.
-    Called from tests/libc/wchar_c_h.c:45.
-[value] Done for function wcsspn
-[value] computing for function wcsspn <- main.
-    Called from tests/libc/wchar_c_h.c:45.
-[value] Done for function wcsspn
-[value] computing for function wcsspn <- main.
-    Called from tests/libc/wchar_c_h.c:45.
-[value] Done for function wcsspn
-[value] computing for function wcsspn <- main.
-    Called from tests/libc/wchar_c_h.c:45.
-[value] Done for function wcsspn
-[value] computing for function wcsspn <- main.
-    Called from tests/libc/wchar_c_h.c:45.
-[value] Done for function wcsspn
-[value] computing for function wcsspn <- main.
-    Called from tests/libc/wchar_c_h.c:45.
-[value] Done for function wcsspn
-[value] computing for function wcsspn <- main.
-    Called from tests/libc/wchar_c_h.c:45.
-[value] Done for function wcsspn
-[value] computing for function wcsspn <- main.
-    Called from tests/libc/wchar_c_h.c:45.
-[value] Done for function wcsspn
 [value] computing for function wcsstr <- main.
-    Called from tests/libc/wchar_c_h.c:46.
+  Called from tests/libc/wchar_c_h.c:48.
 [value] using specification for function wcsstr
 [value] Done for function wcsstr
-[value] computing for function wcsstr <- main.
-    Called from tests/libc/wchar_c_h.c:46.
-[value] Done for function wcsstr
-[value] computing for function wcsstr <- main.
-    Called from tests/libc/wchar_c_h.c:46.
-[value] Done for function wcsstr
-[value] computing for function wcsstr <- main.
-    Called from tests/libc/wchar_c_h.c:46.
-[value] Done for function wcsstr
-[value] computing for function wcsstr <- main.
-    Called from tests/libc/wchar_c_h.c:46.
-[value] Done for function wcsstr
-[value] computing for function wcsstr <- main.
-    Called from tests/libc/wchar_c_h.c:46.
-[value] Done for function wcsstr
-[value] computing for function wcsstr <- main.
-    Called from tests/libc/wchar_c_h.c:46.
-[value] Done for function wcsstr
-[value] computing for function wcsstr <- main.
-    Called from tests/libc/wchar_c_h.c:46.
-[value] Done for function wcsstr
-[value] computing for function wcsstr <- main.
-    Called from tests/libc/wchar_c_h.c:46.
-[value] Done for function wcsstr
-[value] computing for function wcsstr <- main.
-    Called from tests/libc/wchar_c_h.c:46.
-[value] Done for function wcsstr
-[value] computing for function wcsstr <- main.
-    Called from tests/libc/wchar_c_h.c:46.
-[value] Done for function wcsstr
-[value] computing for function wcsstr <- main.
-    Called from tests/libc/wchar_c_h.c:46.
-[value] Done for function wcsstr
 [value] computing for function wcscat <- main.
-    Called from tests/libc/wchar_c_h.c:50.
-share/libc/wchar.c:73:[value] Call to builtin Frama_C_wcslen(({{ &buf[0] }}))
-share/libc/wchar.h:85:[value] function wcscat: postcondition got status valid.
-[value] Recording results for wcscat
-[value] Done for function wcscat
-[value] computing for function wcscat <- main.
-    Called from tests/libc/wchar_c_h.c:50.
-share/libc/wchar.c:73:[value] Call to builtin Frama_C_wcslen(({{ &buf[0] }}))
-[value] Recording results for wcscat
-[value] Done for function wcscat
-[value] computing for function wcscat <- main.
-    Called from tests/libc/wchar_c_h.c:50.
-share/libc/wchar.c:73:[value] Call to builtin Frama_C_wcslen(({{ &buf[0] }}))
-[value] Recording results for wcscat
-[value] Done for function wcscat
-[value] computing for function wcscat <- main.
-    Called from tests/libc/wchar_c_h.c:50.
-share/libc/wchar.c:73:[value] Call to builtin Frama_C_wcslen(({{ &buf[0] }}))
-[value] Recording results for wcscat
-[value] Done for function wcscat
-[value] computing for function wcscat <- main.
-    Called from tests/libc/wchar_c_h.c:50.
-share/libc/wchar.c:73:[value] Call to builtin Frama_C_wcslen(({{ &buf[0] }}))
-[value] Recording results for wcscat
-[value] Done for function wcscat
-[value] computing for function wcscat <- main.
-    Called from tests/libc/wchar_c_h.c:50.
-share/libc/wchar.c:73:[value] Call to builtin Frama_C_wcslen(({{ &buf[0] }}))
-[value] Recording results for wcscat
-[value] Done for function wcscat
-[value] computing for function wcscat <- main.
-    Called from tests/libc/wchar_c_h.c:50.
-share/libc/wchar.c:73:[value] Call to builtin Frama_C_wcslen(({{ &buf[0] }}))
-[value] Recording results for wcscat
-[value] Done for function wcscat
-[value] computing for function wcscat <- main.
-    Called from tests/libc/wchar_c_h.c:50.
-share/libc/wchar.c:73:[value] Call to builtin Frama_C_wcslen(({{ &buf[0] }}))
-[value] Recording results for wcscat
-[value] Done for function wcscat
-[value] computing for function wcscat <- main.
-    Called from tests/libc/wchar_c_h.c:50.
-share/libc/wchar.c:73:[value] Call to builtin Frama_C_wcslen(({{ &buf[0] }}))
+  Called from tests/libc/wchar_c_h.c:52.
+[value] share/libc/wchar.c:73: 
+  function wcslen: precondition 'valid_string_s' got status valid.
+[value] share/libc/wchar.c:73: Call to builtin Frama_C_wcslen(({{ &buf[0] }}))
 [value] Recording results for wcscat
 [value] Done for function wcscat
 [value] computing for function wcsncat <- main.
-    Called from tests/libc/wchar_c_h.c:52.
-share/libc/wchar.c:83:[value] Call to builtin Frama_C_wcslen(({{ &buf[0] }}))
-share/libc/wchar.h:129:[value] function wcsncat: postcondition got status valid.
+  Called from tests/libc/wchar_c_h.c:54.
+[value] share/libc/wchar.c:83: 
+  function wcslen: precondition 'valid_string_s' got status valid.
+[value] share/libc/wchar.c:83: Call to builtin Frama_C_wcslen(({{ &buf[0] }}))
 [value] Recording results for wcsncat
 [value] Done for function wcsncat
-[value] computing for function wcsncat <- main.
-    Called from tests/libc/wchar_c_h.c:52.
-share/libc/wchar.c:83:[value] Call to builtin Frama_C_wcslen(({{ &buf[0] }}))
-[value] Recording results for wcsncat
-[value] Done for function wcsncat
-[value] computing for function wcsncat <- main.
-    Called from tests/libc/wchar_c_h.c:52.
-share/libc/wchar.c:83:[value] Call to builtin Frama_C_wcslen(({{ &buf[0] }}))
-[value] Recording results for wcsncat
-[value] Done for function wcsncat
-[value] computing for function wcsncat <- main.
-    Called from tests/libc/wchar_c_h.c:52.
-share/libc/wchar.c:83:[value] Call to builtin Frama_C_wcslen(({{ &buf[0] }}))
-[value] Recording results for wcsncat
-[value] Done for function wcsncat
-[value] computing for function wcsncat <- main.
-    Called from tests/libc/wchar_c_h.c:52.
-share/libc/wchar.c:83:[value] Call to builtin Frama_C_wcslen(({{ &buf[0] }}))
-[value] Recording results for wcsncat
-[value] Done for function wcsncat
-[value] computing for function wcsncat <- main.
-    Called from tests/libc/wchar_c_h.c:52.
-share/libc/wchar.c:83:[value] Call to builtin Frama_C_wcslen(({{ &buf[0] }}))
-[value] Recording results for wcsncat
-[value] Done for function wcsncat
-[value] computing for function wcsncat <- main.
-    Called from tests/libc/wchar_c_h.c:52.
-share/libc/wchar.c:83:[value] Call to builtin Frama_C_wcslen(({{ &buf[0] }}))
-[value] Recording results for wcsncat
-[value] Done for function wcsncat
-[value] computing for function wcsncat <- main.
-    Called from tests/libc/wchar_c_h.c:52.
-share/libc/wchar.c:83:[value] Call to builtin Frama_C_wcslen(({{ &buf[0] }}))
-[value] Recording results for wcsncat
-[value] Done for function wcsncat
+[value:alarm] tests/libc/wchar_c_h.c:57: Warning: 
+  function wcslen: precondition 'valid_string_s' got status invalid.
+[value:alarm] tests/libc/wchar_c_h.c:58: Warning: 
+  function wcslen: precondition 'valid_string_s' got status invalid.
+[value:alarm] tests/libc/wchar_c_h.c:59: Warning: 
+  function wcslen: precondition 'valid_string_s' got status invalid.
+[value:alarm] tests/libc/wchar_c_h.c:61: Warning: 
+  function wcschr: precondition 'valid_wstring_src' got status invalid.
+[value:alarm] tests/libc/wchar_c_h.c:62: Warning: 
+  function wcschr: precondition 'valid_wstring_src' got status invalid.
+[value:alarm] tests/libc/wchar_c_h.c:63: Warning: 
+  function wcschr: precondition 'valid_wstring_src' got status invalid.
+[value] tests/libc/wchar_c_h.c:68: 
+  function wcschr: precondition 'valid_wstring_src' got status valid.
+[value] tests/libc/wchar_c_h.c:68: 
+  Call to builtin Frama_C_wcschr(({{ L"ABC" + {4} }},{67}))
+[value] tests/libc/wchar_c_h.c:69: 
+  Call to builtin Frama_C_wmemchr(({{ L"ABC" }},{67},{2}))
+[value] tests/libc/wchar_c_h.c:70: 
+  Call to builtin Frama_C_wmemchr(({{ L"ABC" + {4} }},{67},{2}))
 [value] Recording results for main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======
@@ -469,13 +141,26 @@ share/libc/wchar.c:83:[value] Call to builtin Frama_C_wcslen(({{ &buf[0] }}))
   n ∈ {0; 1; 2; 3; 4; 5}
   buf[0..4] ∈ [--..--]
      [5] ∈ {0; 72; 97; 115; 116; 121}
-     [6..19] ∈ [--..--] or UNINITIALIZED
+     [6] ∈ {97; 99; 115; 116; 121} or UNINITIALIZED
+     [7] ∈ {97; 99; 107; 115; 116; 121} or UNINITIALIZED
+     [8] ∈ {0; 97; 99; 107; 115; 116} or UNINITIALIZED
+     [9] ∈ {0; 97; 99; 107; 116} or UNINITIALIZED
+     [10] ∈ {0; 97; 99; 107} or UNINITIALIZED
+     [11] ∈ {0; 99; 107} or UNINITIALIZED
+     [12] ∈ {0; 107} or UNINITIALIZED
+     [13] ∈ {0} or UNINITIALIZED
+     [14..19] ∈ UNINITIALIZED
 [value:final-states] Values at end of function wcsncat:
   dest_len ∈ {0; 1; 2; 3; 4; 5}
   i ∈ {5}
   buf[0..4] ∈ [--..--]
      [5] ∈ {0; 72; 97; 115; 116; 121}
-     [6..19] ∈ [--..--] or UNINITIALIZED
+     [6] ∈ {0; 97; 115; 116; 121} or UNINITIALIZED
+     [7] ∈ {0; 115; 116; 121} or UNINITIALIZED
+     [8] ∈ {0; 115; 116} or UNINITIALIZED
+     [9] ∈ {0; 116} or UNINITIALIZED
+     [10] ∈ {0} or UNINITIALIZED
+     [11..19] ∈ UNINITIALIZED
 [value:final-states] Values at end of function wcsncpy:
   i ∈ {5}
   buf[0] ∈ {72}
@@ -483,7 +168,7 @@ share/libc/wchar.c:83:[value] Call to builtin Frama_C_wcslen(({{ &buf[0] }}))
      [2] ∈ {121}
      [3] ∈ {115}
      [4] ∈ {116}
-     [5..19] ∈ [--..--] or UNINITIALIZED
+     [5..19] ∈ UNINITIALIZED
 [value:final-states] Values at end of function wmemcpy:
   buf[0] ∈ {72}
      [1] ∈ {97}
@@ -497,12 +182,15 @@ share/libc/wchar.c:83:[value] Call to builtin Frama_C_wcslen(({{ &buf[0] }}))
 [value:final-states] Values at end of function main:
   sc1 ∈ {{ L"Needle" }}
   sc2 ∈ {{ L"Haystack" }}
-  buf[0..4] ∈ [--..--]
-     [5] ∈ {0; 72; 97; 115; 116; 121}
-     [6..19] ∈ [--..--] or UNINITIALIZED
+  buf[0..19] ∈ [--..--] or UNINITIALIZED
   c ∈ [--..--]
   n ∈ {5}
   r ∈ [--..--] or UNINITIALIZED
-  i ∈ {5}
+  i ∈ [--..--]
   res ∈ {{ NULL ; &buf[0] ; L"Needle" + [0..--],0%4 }}
+  wc_0 ∈ {{ L"ABC" }}
+  p ∈ {{ L"ABC" + {4} }}
+  wcr ∈ {{ L"ABC" + {8} }}
+  wmr1 ∈ {0}
+  wmr2 ∈ {{ L"ABC" + {8} }}
   __retres ∈ {0}

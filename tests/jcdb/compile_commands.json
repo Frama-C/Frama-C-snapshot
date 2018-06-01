@@ -1,0 +1,14 @@
+[
+    { "directory": "tests/jcdb",
+      "command": "g++ -DDUPLICATE_FLAGS_THAT_WILL_BE_OVERWRITTEN",
+      "file": "jcdb.c"
+    },
+    { "directory": "tests/jcdb",
+      "command": "g++ -DDUPLICATE_FLAGS_THAT_WILL_BE_OVERWRITTEN",
+      "file": "jcdb.c"
+    },
+    { "directory": "tests/jcdb",
+      "command": "/usr/bin/clang++ -D'MSG=\"a \\\" \\\"b\"'  -D'SINGLE_DOUBLE(a)=\"a \\\"with spaces and	tab \"' -DSOMEDEF=\"With spaces, quotes and \\-es.\" -D\"DOUBLE_SINGLE(a)=a \\\"macro with spaces and non-escaped \\\\'\\\"\"   -DEMPTY=''  -DEMPTY2= -DTEST=42	 -D'MACRO_FOR_INCR(s)=s+1' -DTOUNDEF -UTOUNDEF",
+      "file": "jcdb.c"
+    }
+]

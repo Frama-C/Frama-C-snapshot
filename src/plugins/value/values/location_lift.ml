@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2017                                               *)
+(*  Copyright (C) 2007-2018                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -27,6 +27,7 @@ module type Conversion = sig
   type internal_value
 
   val extend_val : internal_value -> extended_value
+  val replace_val : internal_value -> extended_value -> extended_value
   val restrict_val : extended_value -> internal_value
 end
 
@@ -52,22 +53,20 @@ module Make
   let reduce_index_by_array_size ~size_expr ~index_expr size value =
     let v = Convert.restrict_val value in
     Loc.reduce_index_by_array_size ~size_expr ~index_expr size v >>=: fun v ->
-    Convert.extend_val v
+    Convert.replace_val v value
 
   let forward_pointer typ value offset =
     Loc.forward_pointer typ (Convert.restrict_val value) offset
 
   let backward_pointer value offset loc =
     let v = Convert.restrict_val value in
-    Loc.backward_pointer v offset loc >>-: fun (value, off) ->
-    Convert.extend_val value, off
+    Loc.backward_pointer v offset loc >>-: fun (v, off) ->
+    Convert.replace_val v value, off
 
-  let backward_index typ ~index ~remaining offset =
-    let index = Convert.restrict_val index in
-    Loc.backward_index typ ~index ~remaining offset >>-: fun (value, off) ->
-    Convert.extend_val value, off
-
-
+  let backward_index typ ~index:value ~remaining offset =
+    let index = Convert.restrict_val value in
+    Loc.backward_index typ ~index ~remaining offset >>-: fun (v, off) ->
+    Convert.replace_val v value, off
 end
 
 

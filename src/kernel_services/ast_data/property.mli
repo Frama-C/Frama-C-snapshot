@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2017                                               *)
+(*  Copyright (C) 2007-2018                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -99,6 +99,11 @@ type identified_reachable = kernel_function option * kinstr * program_point
     [Some kf, Kstmt stmt] --> reachability of the given stmt (and the attached
     properties) *)
 
+type identified_extended =
+  kernel_function *
+  kinstr *
+  Cil_types.acsl_extension
+
 and identified_axiomatic = string * identified_property list
 
 and identified_lemma = 
@@ -106,8 +111,12 @@ and identified_lemma =
 
 and identified_axiom = identified_lemma
 
-(** Specialization of a property at a given point. *)
-and identified_instance = kernel_function option * kinstr * identified_property
+(** Specialization of a property at a given point, identified by a statement
+    and a function, along with the predicate transposed at this point (if it
+    can be) and the original property. *)
+and identified_instance =
+  kernel_function * stmt * Cil_types.identified_predicate option
+  * identified_property
 
 and identified_type_invariant = string * typ * predicate * location
 
@@ -115,6 +124,7 @@ and identified_global_invariant = string * predicate * location
 
 and identified_property = private
   | IPPredicate of identified_predicate
+  | IPExtended of identified_extended
   | IPAxiom of identified_axiom
   | IPAxiomatic of identified_axiomatic
   | IPLemma of identified_lemma
@@ -186,6 +196,11 @@ val ip_assumes_of_behavior:
 val ip_of_ensures:
   kernel_function -> kinstr -> funbehavior ->
   (termination_kind * Cil_types.identified_predicate) -> identified_property
+
+(** Test test*)
+val ip_of_extended:
+  Cil_types.kernel_function ->
+  Cil_types.kinstr -> Cil_types.acsl_extension -> identified_property
 
 (** Builds the IPPredicate PKEnsures corresponding to a behavior.
     @since Carbon-20110201 *)
@@ -356,9 +371,11 @@ val ip_of_spec:
   funspec -> identified_property list
 
 (** Build a specialization of the given property at the given function and
-    stmt *)
+    stmt. The predicate is the property predicate transposed at the given
+    statement, or None if it can't be. *)
 val ip_property_instance:
-  kernel_function option -> kinstr -> identified_property -> identified_property
+  kernel_function -> stmt -> Cil_types.identified_predicate option ->
+  identified_property -> identified_property
 
 (** Builds an IPAxiom.
     @since Carbon-20110201 
@@ -410,6 +427,10 @@ val get_behavior: identified_property -> funbehavior option
 val location: identified_property -> location
 (** returns the location of the property.
     @since Oxygen-20120901 *)
+
+val source: identified_property -> Lexing.position option
+(** returns the location of the property, if not unknown.
+    @since Chlorine-20180501 *)
 
 (**************************************************************************)
 (** {2 names} *)

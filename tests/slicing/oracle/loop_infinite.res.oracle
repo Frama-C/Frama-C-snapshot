@@ -4,15 +4,15 @@
 [value] Initial state computed
 [value:initial-state] Values of globals at initialization
   
-tests/slicing/loop_infinite.i:5:[value] warning: initialization of volatile variable a ignored
-tests/slicing/loop_infinite.i:9:[value] entering loop for the first time
-tests/slicing/loop_infinite.i:10:[value] warning: signed overflow. assert a + 1 ≤ 2147483647;
+[value] tests/slicing/loop_infinite.i:9: entering loop for the first time
+[value:alarm] tests/slicing/loop_infinite.i:10: Warning: 
+  signed overflow. assert a + 1 ≤ 2147483647;
 [value] Recording results for main
 [value] done for function main
 [from] Computing for function main
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
-    These dependencies hold at termination for the executions that terminate:
+  These dependencies hold at termination for the executions that terminate:
 [from] Function main:
   \result FROM \nothing
 [from] ====== END OF DEPENDENCIES ======

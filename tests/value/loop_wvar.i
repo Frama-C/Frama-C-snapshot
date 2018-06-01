@@ -1,8 +1,8 @@
 /* run.config*
-   OPT: -no-autoload-plugins -load-module value,inout -no-annot -val @VALUECONFIG@ -then -continue-annot-error -annot -val -journal-disable
-   OPT: -no-autoload-plugins -load-module from,inout,value -continue-annot-error  -val @VALUECONFIG@ -main main3 -journal-disable
-   OPT: -no-autoload-plugins -load-module value,inout -continue-annot-error  -val @VALUECONFIG@ -main main_err1 -journal-disable
-   OPT: -no-autoload-plugins -load-module value,inout -continue-annot-error -val @VALUECONFIG@ -main main_err2 -journal-disable
+   OPT: -no-autoload-plugins -load-module value,inout -no-annot -val @VALUECONFIG@ -then -kernel-warn-abort=-annot-error -annot -val -journal-disable
+   OPT: -no-autoload-plugins -load-module from,inout,value -kernel-warn-abort=-annot-error  -val @VALUECONFIG@ -main main3 -journal-disable
+   OPT: -no-autoload-plugins -load-module value,inout -kernel-warn-abort=-annot-error  -val @VALUECONFIG@ -main main_err1 -journal-disable
+   OPT: -no-autoload-plugins -load-module value,inout -kernel-warn-abort=-annot-error -val @VALUECONFIG@ -main main_err2 -journal-disable
 */
 
 

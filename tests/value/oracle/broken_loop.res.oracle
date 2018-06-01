@@ -12,11 +12,11 @@
 [from] Computing for function loop
 [from] Done for function loop
 [from] ====== DEPENDENCIES COMPUTED ======
-    These dependencies hold at termination for the executions that terminate:
+  These dependencies hold at termination for the executions that terminate:
 [from] Function loop:
   X FROM \nothing
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function loop:
-      X
+    X
 [inout] Inputs for function loop:
-      \nothing
+    \nothing

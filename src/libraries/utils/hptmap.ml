@@ -575,6 +575,38 @@ struct
       try add m
       with Unchanged -> m
 
+    let replace f k m =
+      let id = Key.id k in
+      let replace_empty () = match f None with
+        | None -> raise Unchanged
+        | Some d -> wrap_Leaf k d
+      in
+      let rec add t =
+        match t with
+        | Empty -> replace_empty ()
+        | Leaf (k0, d0, _) ->
+          if Key.equal k k0 then
+            match f (Some d0) with
+            | None -> Empty
+            | Some d ->
+              if d == d0 then
+                raise Unchanged
+              else
+                wrap_Leaf k d
+          else
+            let new_leaf = replace_empty () in
+            join id new_leaf (Key.id k0) t
+        | Branch (p, m, t0, t1, _) ->
+          if match_prefix id p m then
+            if (id land m) = 0 then wrap_Branch p m (add t0) t1
+            else wrap_Branch p m t0 (add t1)
+          else
+            let new_leaf = replace_empty () in
+            join id new_leaf p t
+      in
+      try add m
+      with Unchanged -> m
+
     let singleton k d =
       wrap_Leaf k d
 
@@ -1434,37 +1466,9 @@ struct
 	in
 	traverse m
 
-  (** [union m1 m2] returns the union of the maps [m1] and [m2]. Bindings in
-      [m2] take precedence over those in [m1]. *)
-  let union =
-    join ~cache:Hptmap_sig.NoCache ~symmetric:false
-      ~idempotent:true ~decide:(fun _ _ d -> d)
+  let shape x = ((x : t) :> V.t shape)
 
-
-    let split key htr =
-      let id = Key.id key in
-      let rec aux = function
-        | Empty ->
-            (Empty, None, Empty)
-        | Leaf (key', data, _) ->
-            if Key.equal key key' then
-              (Empty, Some data, Empty)
-            else
-              (Empty, None, Empty)
-      | Branch(_, mask, l, r, _) ->
-          (* TODO: this function is suboptimal because it recurses even when
-             the key will never be found: missing
-             [if match_prefix id prefix mask then] *)
-          if (id land mask) = 0 then
-            let (ll, pres, rl) = aux l in (ll, pres, union rl r)
-          else
-            let (lr, pres, rr) = aux r in (union l lr, pres, rr)
-      in
-      aux htr
-
-    let shape x = ((x : t) :> V.t shape)
-
-    let clear_caches () = List.iter (fun f -> f ()) !clear_caches
+  let clear_caches () = List.iter (fun f -> f ()) !clear_caches
 
 end
 

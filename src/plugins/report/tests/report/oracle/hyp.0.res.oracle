@@ -3,7 +3,8 @@
 --------------------------------------------------------------------------------
 --- No status to report
 --------------------------------------------------------------------------------
-tests/report/hyp.i:25:[kernel] warning: Neither code nor specification for function f, generating default assigns from the prototype
+[kernel:annot:missing-spec] tests/report/hyp.i:25: Warning: 
+  Neither code nor specification for function f, generating default assigns from the prototype
 [kernel] SETTING STATUS OF assert \false; TO unknown
 [report] Computing properties status...
 

@@ -17,7 +17,7 @@ struct s g() {
 
 void main1() {
   g(); // We used to not stop on this line because the return code was not used, but now we do
-  struct s r; r = g();
+  // struct s r; r = g(); // now syntactically rejected
 }
 
 void main2() {

@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Aorai plug-in of Frama-C.                        *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2017                                               *)
+(*  Copyright (C) 2007-2018                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*    INRIA (Institut National de Recherche en Informatique et en         *)
@@ -665,12 +665,18 @@ struct
   let add_logic_function =
     add_logic_function_gen Logic_utils.is_same_logic_profile
 
+  let remove_logic_info =
+    remove_logic_info_gen Logic_utils.is_same_logic_profile
+
   let integral_cast ty t =
     Aorai_option.abort
       "term %a has type %a, but %a is expected."
       Printer.pp_term t Printer.pp_logic_type Linteger Printer.pp_typ ty
 
   let error (source,_) msg = Aorai_option.abort ~source msg
+
+  (* we never attempt to recover on an error. *)
+  let on_error f _ x = f x
 
 end
 

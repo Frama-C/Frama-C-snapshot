@@ -5,7 +5,7 @@
 [value:initial-state] Values of globals at initialization
   
 [value] computing for function f <- main.
-    Called from tests/value/from_ptr2.i:7.
+  Called from tests/value/from_ptr2.i:7.
 [value] Recording results for f
 [value] Done for function f
 [value] Recording results for main
@@ -20,17 +20,17 @@
 [from] Computing for function main
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
-    These dependencies hold at termination for the executions that terminate:
+  These dependencies hold at termination for the executions that terminate:
 [from] Function f:
   \result FROM ps; s.a
 [from] Function main:
   \result FROM x
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function f:
-      __retres
+    __retres
 [inout] Inputs for function f:
-      s.a
+    s.a
 [inout] Out (internal) for function main:
-      s; tmp
+    s; tmp
 [inout] Inputs for function main:
-      \nothing
+    \nothing

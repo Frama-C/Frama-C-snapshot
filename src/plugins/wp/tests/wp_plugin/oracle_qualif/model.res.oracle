@@ -1,9 +1,10 @@
 # frama-c -wp [...]
 [kernel] Parsing tests/wp_plugin/model.i (no preprocessing)
-tests/wp_plugin/model.i:11:[kernel] warning: parsing obsolete ACSL construct 'logic declaration'. 'an axiomatic block' should be used instead.
+[kernel] tests/wp_plugin/model.i:11: Warning: 
+  parsing obsolete ACSL construct 'logic declaration'. 'an axiomatic block' should be used instead.
 [wp] Running WP plugin...
 [wp] Loading driver 'share/wp.driver'
-[wp] warning: Missing RTE guards
+[wp] Warning: Missing RTE guards
 [wp] 1 goal scheduled
 ---------------------------------------------
 --- File 'typed/f_post.ergo' 
@@ -42,9 +43,27 @@ logic P_P : int -> prop
 
 [wp] [Alt-Ergo] Goal typed_f_post : Typechecked
 [wp] Proved goals:    0 / 1
-    Alt-Ergo:        0  (unknown: 1)
+  Alt-Ergo:        0  (unknown: 1)
 [wp] Running WP plugin...
 [wp] 2 goals scheduled
+---------------------------------------------
+--- File 'typed/f_post.ergo' 
+---------------------------------------------
+(* ---------------------------------------------------------- *)
+(* --- Post-condition (file tests/wp_plugin/model.i, line 13) in 'f' --- *)
+(* ---------------------------------------------------------- *)
+
+goal f_post:
+  forall i : int.
+  forall t : (addr,int) farray.
+  forall a : addr.
+  let x = t[shift_sint32(a, i)] : int in
+  (region(a.base) <= 0) ->
+  is_sint32(i) ->
+  is_sint32(x) ->
+  P_P(x)
+
+[wp] [Alt-Ergo] Goal typed_f_post : Typechecked
 ---------------------------------------------
 --- File 'typed_ref/f_post.ergo' 
 ---------------------------------------------
@@ -80,24 +99,6 @@ function shift_sint32(p:addr, k:int) : addr = shift(p, k)
 
 logic P_P : int -> prop
 
----------------------------------------------
---- File 'typed/f_post.ergo' 
----------------------------------------------
-(* ---------------------------------------------------------- *)
-(* --- Post-condition (file tests/wp_plugin/model.i, line 13) in 'f' --- *)
-(* ---------------------------------------------------------- *)
-
-goal f_post:
-  forall i : int.
-  forall t : (addr,int) farray.
-  forall a : addr.
-  let x = t[shift_sint32(a, i)] : int in
-  (region(a.base) <= 0) ->
-  is_sint32(i) ->
-  is_sint32(x) ->
-  P_P(x)
-
 [wp] [Alt-Ergo] Goal typed_ref_f_post : Typechecked
-[wp] [Alt-Ergo] Goal typed_f_post : Typechecked
 [wp] Proved goals:    0 / 2
-    Alt-Ergo:        0  (unknown: 2)
+  Alt-Ergo:        0  (unknown: 2)

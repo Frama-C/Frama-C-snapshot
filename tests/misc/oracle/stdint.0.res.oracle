@@ -1,11 +1,16 @@
 [kernel] Parsing tests/misc/stdint.i (no preprocessing)
-tests/misc/stdint.i:10:[kernel] warning: bad type 'int' (16 bits) for typedef 'int8_t';
-    check for mismatch between -machdep flag and headers used
-tests/misc/stdint.i:11:[kernel] warning: bad type 'unsigned char' (8 bits) for typedef 'uint_least64_t';
-    check for mismatch between -machdep flag and headers used
-tests/misc/stdint.i:12:[kernel] warning: bad type 'short' (16 bits) for typedef 'int_fast32_t';
-    check for mismatch between -machdep flag and headers used
-tests/misc/stdint.i:13:[kernel] warning: bad type 'char' (8 bits) for typedef 'intptr_t';
-    check for mismatch between -machdep flag and headers used
-tests/misc/stdint.i:14:[kernel] warning: bad type 'unsigned short' (16 bits) for typedef 'uintmax_t';
-    check for mismatch between -machdep flag and headers used
+[kernel] tests/misc/stdint.i:10: Warning: 
+  bad type 'int' (16 bits) for typedef 'int8_t';
+  check for mismatch between -machdep flag and headers used
+[kernel] tests/misc/stdint.i:11: Warning: 
+  bad type 'unsigned char' (8 bits) for typedef 'uint_least64_t';
+  check for mismatch between -machdep flag and headers used
+[kernel] tests/misc/stdint.i:12: Warning: 
+  bad type 'short' (16 bits) for typedef 'int_fast32_t';
+  check for mismatch between -machdep flag and headers used
+[kernel] tests/misc/stdint.i:13: Warning: 
+  bad type 'char' (8 bits) for typedef 'intptr_t';
+  check for mismatch between -machdep flag and headers used
+[kernel] tests/misc/stdint.i:14: Warning: 
+  bad type 'unsigned short' (16 bits) for typedef 'uintmax_t';
+  check for mismatch between -machdep flag and headers used

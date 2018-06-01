@@ -1,0 +1,2 @@
+library INDEX: const
+logic index INDEX_init = "const(0)" ;

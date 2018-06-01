@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2017                                               *)
+(*  Copyright (C) 2007-2018                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -24,12 +24,6 @@ open Cil_types
 open Cil
 open Visitor
 open Cil_datatype
-
-let dkey_print_one = Kernel.register_category "file"
-let dkey_transform = Kernel.register_category "file:transformation"
-let dkey_annot = Kernel.register_category "file:annotation"
-
-let dkey_pp = Kernel.register_category "pp"
 
 type cpp_opt_kind = Gnu | Not_gnu | Unknown
 
@@ -113,9 +107,17 @@ let get_preprocessor_command () =
 
 let from_filename ?cpp f =
   let cpp, is_gnu_like =
-    match cpp with
-      | None -> get_preprocessor_command ()
-      | Some s -> s, cpp_opt_kind ()
+    let cmdline = Kernel.CppCommand.get() in
+    if cmdline <> "" then
+      cmdline, cpp_opt_kind ()
+    else
+      let flags = Json_compilation_database.get_flags f in
+      let cpp, gnu =
+        match cpp with
+        | None -> get_preprocessor_command ()
+        | Some cpp -> cpp, cpp_opt_kind ()
+      in
+      (if flags = "" then cpp else cpp ^ " " ^ flags), gnu
   in
   if Filename.check_suffix f ".i" then begin
     NoCPP f
@@ -158,6 +160,7 @@ end = struct
          let dependencies =
            [ Kernel.CppCommand.self;
              Kernel.CppExtraArgs.self;
+             Kernel.JsonCompilationDatabase.self;
              Kernel.Files.self ]
          let name = "Files for preprocessing"
        end)
@@ -375,11 +378,11 @@ let pretty_machdep ?fmt ?machdep () =
   | Some fmt -> print_machdep fmt machine
 
 (* ************************************************************************* *)
-(** {2 Initialisations} *)
+(** {2 Initializations} *)
 (* ************************************************************************* *)
 
 let safe_remove_file f =
-  if not (Kernel.Debug_category.exists (fun x -> x = "parser")) then
+  if not (Kernel.is_debug_key_enabled Kernel.dkey_parser) then
     Extlib.safe_remove f
 
 let build_cpp_cmd cmdl supp_args in_file out_file =
@@ -439,7 +442,7 @@ let parse_cabs = function
   | NeedCPP (f, cmdl, is_gnu_like) ->
       if not (Sys.file_exists  f) then
         Kernel.abort "source file %S does not exist" f;
-      let debug = Kernel.Debug_category.exists (fun x -> x = "parser") in
+      let debug = Kernel.is_debug_key_enabled Kernel.dkey_parser in
       let add_if_gnu opt =
         match is_gnu_like with
           | Gnu -> [opt]
@@ -508,19 +511,19 @@ let parse_cabs = function
         else extra_args
       in
       let pp_str = Format.pp_print_string in
-      let string_of_supp_args includes defines extra =
+      let string_of_supp_args extra includes defines =
         Format.asprintf "%a%a%a"
           (Pretty_utils.pp_list ~pre:" -I" ~sep:" -I" ~empty:"" pp_str) includes
           (Pretty_utils.pp_list ~pre:" -D" ~sep:" -D" ~empty:"" pp_str) defines
           (Pretty_utils.pp_list ~pre:" " ~sep:" " ~empty:"" pp_str) extra
       in
       let supp_args =
-        string_of_supp_args include_args define_args
-          (extra_args @ Kernel.CppExtraArgs.get () @ supported_cpp_arch_args)
+        string_of_supp_args
+          (Kernel.CppExtraArgs.get () @ extra_args @ supported_cpp_arch_args)
+          include_args define_args
       in
-      if Kernel.is_debug_key_enabled dkey_pp then
-        Kernel.feedback ~dkey:dkey_pp
-          "@{<i>preprocessing@} with \"%s %s %s\"" cmdl supp_args f;
+      Kernel.feedback ~dkey:Kernel.dkey_pp
+        "@{<i>preprocessing@} with \"%s %s %s\"" cmdl supp_args f;
       Kernel.feedback "Parsing %s (with preprocessing)" (Filepath.pretty f);
       let cpp_command = build_cpp_cmd cmdl supp_args f ppf in
       if Sys.command cpp_command <> 0 then begin
@@ -575,7 +578,7 @@ preprocessor command or use the option \"-cpp-command\"." cpp_command
 let to_cil_cabs f =
   try
     let a,c = parse_cabs f in
-    Kernel.debug ~dkey:dkey_print_one "result of parsing %s:@\n%a"
+    Kernel.debug ~dkey:Kernel.dkey_file_print_one "result of parsing %s:@\n%a"
       (get_name f) Cil_printer.pp_file a;
     if Errorloc.had_errors () then raise Exit;
     a, c
@@ -586,7 +589,7 @@ let to_cil_cabs f =
         (get_name f)
         (fun fmt ->
            if Filename.check_suffix (get_name f) ".c" &&
-              not (Kernel.is_debug_key_enabled dkey_pp)
+              not (Kernel.is_debug_key_enabled Kernel.dkey_pp)
            then
              Format.fprintf fmt "@ Add@ '-kernel-msg-key pp'@ \
                                  for preprocessing command.")
@@ -647,7 +650,6 @@ let files_to_cabs_cil files =
   if Kernel.UnspecifiedAccess.get () then
     Undefined_sequence.check_sequences merged_file;
   merged_file, cabs_files
-
 (* "Implicit" annotations are those added by the kernel with ACSL name
    'Frama_C_implicit_init'. Currently, this concerns statements that are
    generated to initialize local variables. *)
@@ -666,19 +668,18 @@ let () =
   Property_status.register_property_remove_hook
     (fun p ->
        if Implicit_annotations.mem p then begin
-         Kernel.debug ~dkey:dkey_annot "Removing implicit property %a"
-           Property.pretty p;
+         Kernel.debug ~dkey:Kernel.dkey_file_annot
+           "Removing implicit property %a" Property.pretty p;
          Implicit_annotations.remove p
        end)
 
 let emit_status p hyps =
-  Kernel.debug
-    ~dkey:dkey_annot "Marking implicit property %a as true"
-    Property.pretty p;
+  Kernel.debug ~dkey:Kernel.dkey_file_annot
+    "Marking implicit property %a as true" Property.pretty p;
   Property_status.emit Emitter.kernel ~hyps p Property_status.True
 
 let emit_all_statuses _ =
-  Kernel.debug ~dkey:dkey_annot "Marking properties";
+  Kernel.debug ~dkey:Kernel.dkey_file_annot "Marking properties";
   Implicit_annotations.iter emit_status
 
 let () = Ast.apply_after_computed emit_all_statuses
@@ -886,16 +887,14 @@ let cleanup file =
       if Annotations.has_code_annot st || st.labels <> [] then
         keep_stmt <- Stmt.Set.add st keep_stmt;
       match st.skind with
-          Block b ->
-            (* queue is flushed afterwards*)
-            let b' = Cil.visitCilBlock (self:>cilVisitor) b in
-            (match b'.bstmts with
-                 [] ->
-                   changed <- true;
-                   st.skind <- (Instr (Skip loc));
-                   SkipChildren
-               | _ -> if b != b' then st.skind <- Block b'; SkipChildren)
-        | _ -> DoChildren
+      | Block b ->
+        (* queue is flushed afterwards*)
+        let b' = Cil.visitCilBlock (self:>cilVisitor) b in
+        (match b'.bstmts, b'.blocals, b'.bstatics with
+         | [], [], [] -> changed <- true; st.skind <- (Instr (Skip loc))
+         | _ -> if b != b' then st.skind <- Block b');
+        SkipChildren
+      | _ -> DoChildren
 
     method! vblock b =
       let optim b =
@@ -983,7 +982,7 @@ let add_transform_parameter
     (* hook is launched if AST already exists and the apply was triggered by
        the corresponding option change *)
     if State.equal self P.self && Ast.is_computed () then begin
-      Kernel.feedback ~dkey:dkey_transform
+      Kernel.feedback ~dkey:Kernel.dkey_file_transform
         "applying %s to current AST, after option %s changed"
         name.name P.option_name;
       f (Ast.get());
@@ -1026,8 +1025,12 @@ let recompute_cfg _ =
   Cfg_recomputation_queue.clear ()
 
 let transform_and_check name is_normalized f ast =
+  let printer =
+    if is_normalized then Printer.pp_file else Cil_printer.pp_file
+  in
   Kernel.feedback
-    ~dkey:dkey_transform "applying %s to file:@\n%a" name Printer.pp_file ast;
+    ~dkey:Kernel.dkey_file_transform
+    "applying %s to file:@\n%a" name printer ast;
   f ast;
   recompute_cfg ();
   if Kernel.Check.get () then begin
@@ -1117,6 +1120,9 @@ let prepare_cil_file ast =
      Filecheck.check_ast ~ast "AST after normalization";
   end;
   Globals.Functions.iter Annotations.register_funspec;
+  if Kernel.Check.get () then begin
+    Filecheck.check_ast ~ast "AST after annotation registration"
+  end;
   Transform_after_cleanup.apply ast;
   (* reset tables depending on AST in case they have been computed during
      the transformation. *)
@@ -1473,8 +1479,7 @@ module Remove_spurious = struct
         enuminfos: Enuminfo.Set.t;
         varinfos: Varinfo.Set.t;
         logic_infos: Logic_info.Set.t;
-        typs: global list;
-        others: global list
+        kept: global list;
       }
 
 let treat_one_global acc g =
@@ -1483,27 +1488,27 @@ let treat_one_global acc g =
     | GType (ty,_) ->
         { acc with
           typeinfos = Typeinfo.Set.add ty acc.typeinfos;
-          typs = g :: acc.typs }
-    | GCompTag _ -> { acc with typs = g :: acc.typs }
+          kept = g :: acc.kept }
+    | GCompTag _ -> { acc with kept = g :: acc.kept }
     | GCompTagDecl(ci,_) when Compinfo.Set.mem ci acc.compinfos -> acc
     | GCompTagDecl(ci,_) ->
         { acc with
           compinfos = Compinfo.Set.add ci acc.compinfos;
-          typs = g :: acc.typs }
-    | GEnumTag _ -> { acc with typs = g :: acc.typs }
+          kept = g :: acc.kept }
+    | GEnumTag _ -> { acc with kept = g :: acc.kept }
     | GEnumTagDecl(ei,_) when Enuminfo.Set.mem ei acc.enuminfos -> acc
     | GEnumTagDecl(ei,_) ->
         { acc with
           enuminfos = Enuminfo.Set.add ei acc.enuminfos;
-          typs = g :: acc.typs }
+          kept = g :: acc.kept }
     | GVarDecl(vi,_) | GFunDecl (_, vi, _)
         when Varinfo.Set.mem vi acc.varinfos -> acc
     | GVarDecl(vi,_) ->
         { acc with
           varinfos = Varinfo.Set.add vi acc.varinfos;
-          others = g :: acc.others }
-    | GVar _ | GFun _ | GFunDecl _ -> { acc with others = g :: acc.others }
-    | GAsm _ | GPragma _ | GText _ -> { acc with others = g :: acc.others }
+          kept = g :: acc.kept }
+    | GVar _ | GFun _ | GFunDecl _ -> { acc with kept = g :: acc.kept }
+    | GAsm _ | GPragma _ | GText _ -> { acc with kept = g :: acc.kept }
     | GAnnot (a,_) ->
         let lis = extract_logic_infos a in
         if List.exists (fun x -> Logic_info.Set.mem x acc.logic_infos) lis
@@ -1513,7 +1518,7 @@ let treat_one_global acc g =
             List.fold_left (Extlib.swap Logic_info.Set.add) acc.logic_infos lis
           in
           { acc with 
-            others = g::acc.others;
+            kept = g::acc.kept;
             logic_infos = known_li;
           }
         end
@@ -1524,13 +1529,12 @@ let empty =
     enuminfos = Enuminfo.Set.empty;
     varinfos = Varinfo.Set.empty;
     logic_infos = Logic_info.Set.empty;
-    typs = [];
-    others = [];
+    kept = [];
   }
 
 let process file =
   let env = List.fold_left treat_one_global empty file.globals in
-  file.globals <- List.rev_append env.typs (List.rev env.others)
+  file.globals <- List.rev env.kept
 
 end
 
@@ -1575,7 +1579,6 @@ let init_project_from_visitor ?(reorder=false) prj
   if reorder then Project.on prj reorder_ast ();
   if Kernel.Check.get() then begin
     let name = prj.Project.name in
-    Kernel.debug ~dkey:dkey_print_one "Check for project %s" name;
     Project.on prj (Filecheck.check_ast ~ast) ("AST of " ^ name);
     assert
       (Kernel.verify (old_ast == Ast.get())

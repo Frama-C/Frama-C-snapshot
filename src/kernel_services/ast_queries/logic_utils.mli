@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2017                                               *)
+(*  Copyright (C) 2007-2018                                               *)
 (*    CEA   (Commissariat à l'énergie atomique et aux énergies            *)
 (*           alternatives)                                                *)
 (*    INRIA (Institut National de Recherche en Informatique et en         *)
@@ -65,7 +65,12 @@ val isLogicType : (typ -> bool) -> logic_type -> bool
 
 (** {3 Predefined tests over types} *)
 val isLogicArrayType : logic_type -> bool
+
+(** @modify Chlorine-20180501 old behavior renamed as [isLogicAnyCharType] *)
 val isLogicCharType : logic_type -> bool
+
+(** @since Chlorine-20180501 *)
+val isLogicAnyCharType : logic_type -> bool
 val isLogicVoidType : logic_type -> bool
 val isLogicPointerType : logic_type -> bool
 val isLogicVoidPointerType : logic_type -> bool

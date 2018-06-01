@@ -5,11 +5,11 @@
 [value:initial-state] Values of globals at initialization
   x ∈ {0}
   t[0..12] ∈ {0}
-tests/value/addr2.i:13:[value] entering loop for the first time
-tests/value/addr2.i:19:[value] Frama_C_show_each_F: {0}
-tests/value/addr2.i:19:[value] Frama_C_show_each_F: {0; 1}
-tests/value/addr2.i:19:[value] Frama_C_show_each_F: {0; 1; 2}
-tests/value/addr2.i:19:[value] Frama_C_show_each_F: [0..12]
+[value] tests/value/addr2.i:13: entering loop for the first time
+[value] tests/value/addr2.i:19: Frama_C_show_each_F: {0}
+[value] tests/value/addr2.i:19: Frama_C_show_each_F: {0; 1}
+[value] tests/value/addr2.i:19: Frama_C_show_each_F: {0; 1; 2}
+[value] tests/value/addr2.i:19: Frama_C_show_each_F: [0..12]
 [value] Recording results for main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======
@@ -18,11 +18,11 @@ tests/value/addr2.i:19:[value] Frama_C_show_each_F: [0..12]
 [from] Computing for function main
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
-    These dependencies hold at termination for the executions that terminate:
+  These dependencies hold at termination for the executions that terminate:
 [from] Function main:
   NO EFFECTS
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function main:
-      i
+    i
 [inout] Inputs for function main:
-      \nothing
+    \nothing

@@ -30,5 +30,5 @@ void g(void)
   p = &x ;
   //@ assert Read: \valid_read(p);
   //@ assert Guard_against_Const: !\valid(p);
-  *p = 2 ; // SHOULD BE A RUNTIME ERROR
+  *((int *)p) = 2 ;
 }

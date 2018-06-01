@@ -17,28 +17,29 @@
   rn4 ∈ {-3}
   rn5 ∈ {0}
   vic ∈ {0}
-tests/value/divneg.i:13:[value] Frama_C_show_each: [-185..-5],4%9, [1..61],1%3
-tests/value/divneg.i:42:[value] Frama_C_dump_each:
-    # Cvalue domain:
-    i ∈ [-100..100]
-    r0 ∈ [-100..100],0%5
-    r1 ∈ [1..96],1%5
-    r2 ∈ [-98..-3],2%5
-    r6 ∈ {0}
-    r7 ∈ [-100..100]
-    r8 ∈ [-100..100]
-    r9 ∈ {0}
-    rn1 ∈ [-99..99],1%2
-    rn2 ∈ [-100..100],0%2
-    rn3 ∈ [-100..100],0%2
-    rn4 ∈ [-99..99],1%2
-    rn5 ∈ [-100..99]
-    vic ∈ {0}
-    c ∈ [-185..-5],4%9
-    rc ∈ [-176..-14],4%18 or UNINITIALIZED
-    __retres ∈ UNINITIALIZED
-    ==END OF DUMP==
-tests/value/divneg.i:52:[value] Frama_C_show_each_should: {-1}
+[value] tests/value/divneg.i:13: Frama_C_show_each: [-185..-5],4%9, [1..61],1%3
+[value] tests/value/divneg.i:42: 
+  Frama_C_dump_each:
+  # Cvalue domain:
+  i ∈ [-100..100]
+  r0 ∈ [-100..100],0%5
+  r1 ∈ [1..96],1%5
+  r2 ∈ [-98..-3],2%5
+  r6 ∈ {0}
+  r7 ∈ [-100..100]
+  r8 ∈ [-100..100]
+  r9 ∈ {0}
+  rn1 ∈ [-99..99],1%2
+  rn2 ∈ [-100..100],0%2
+  rn3 ∈ [-100..100],0%2
+  rn4 ∈ [-99..99],1%2
+  rn5 ∈ [-100..99]
+  vic ∈ {0}
+  c ∈ [-185..-5],4%9
+  rc ∈ [-176..-14],4%18 or UNINITIALIZED
+  __retres ∈ UNINITIALIZED
+  ==END OF DUMP==
+[value] tests/value/divneg.i:52: Frama_C_show_each_should: {-1}
 [value] Recording results for main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======
@@ -60,7 +61,7 @@ tests/value/divneg.i:52:[value] Frama_C_show_each_should: {-1}
 [from] Computing for function main
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
-    These dependencies hold at termination for the executions that terminate:
+  These dependencies hold at termination for the executions that terminate:
 [from] Function main:
   r0 FROM i (and SELF)
   r1 FROM i (and SELF)
@@ -76,6 +77,6 @@ tests/value/divneg.i:52:[value] Frama_C_show_each_should: {-1}
   \result FROM \nothing
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function main:
-      r0; r1; r2; r7; r8; rn1; rn2; rn3; rn4; rn5; vic; c; rc; __retres
+    r0; r1; r2; r7; r8; rn1; rn2; rn3; rn4; rn5; vic; c; rc; __retres
 [inout] Inputs for function main:
-      i; vic
+    i; vic

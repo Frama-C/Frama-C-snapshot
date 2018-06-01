@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2017                                               *)
+(*  Copyright (C) 2007-2018                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -535,8 +535,6 @@ struct
 
   module H_datatype = H.Make(Tbl)
 
-  let dkey = Kernel.register_category "emitter"
-
   (* standard projectified hashtbl, but an ad-hoc function 'clear' *)
   include State_builder.Register
   (H_datatype)
@@ -548,14 +546,14 @@ struct
        (*       Kernel.feedback "SELECT: %a" State_selection.pretty sel;*)
        if must_clear_all sel then begin
 	 (* someone explicitly requires to fully reset the table *)
-	 Kernel.debug ~dkey ~level:3 "FULL CLEAR of %s in %a" 
+	 Kernel.debug ~dkey:Kernel.dkey_emitter_clear "FULL CLEAR of %s in %a" 
 	   Info.name Project.pretty (Project.current ());
 	 H.clear tbl
        end else 
 	 (* AST is unchanged *)
 	 if must_local_clear sel then begin
 	   (* one have to clear the table, but we have to keep the keys *)
-	   Kernel.debug ~dkey ~level:3 "LOCAL CLEAR of %s in %a"
+	   Kernel.debug ~dkey:Kernel.dkey_emitter_clear "LOCAL CLEAR of %s in %a"
 	     Info.name Project.pretty (Project.current ());
 	   H.iter 
 	     (fun k h ->
@@ -584,7 +582,8 @@ struct
 	     (fun (k, e, x) -> 
 	       try 
 		 let h = H.find tbl k in
-		 Kernel.debug ~dkey ~level:3 "CLEARING binding %a of %s in %a" 
+		 Kernel.debug ~dkey:Kernel.dkey_emitter_clear
+                   "CLEARING binding %a of %s in %a" 
 		   ED.pretty (E.get e)
 		   Info.name
 		   Project.pretty (Project.current ());

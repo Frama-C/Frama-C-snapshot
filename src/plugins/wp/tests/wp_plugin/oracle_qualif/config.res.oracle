@@ -1,0 +1,7 @@
+----------------------------------------------------------
+WP Requirements for Qualif Tests (3)
+----------------------------------------------------------
+1. The Alt-Ergo theorem prover, version 2.0.0
+2. The Why3 platform, version 0.88.3
+3. The Coq Proof Assistant, version 8.7.1
+----------------------------------------------------------

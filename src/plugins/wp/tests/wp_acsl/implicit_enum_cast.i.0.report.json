@@ -1,0 +1,13 @@
+{ "wp:global": { "qed": { "total": 9, "valid": 9 },
+                 "wp:main": { "total": 9, "valid": 9 } },
+  "wp:functions": { "bar": { "bar_assign": { "qed": { "total": 8,
+                                                      "valid": 8 },
+                                             "wp:main": { "total": 8,
+                                                          "valid": 8 } },
+                             "bar_post": { "qed": { "total": 1, "valid": 1 },
+                                           "wp:main": { "total": 1,
+                                                        "valid": 1 } },
+                             "wp:section": { "qed": { "total": 9,
+                                                      "valid": 9 },
+                                             "wp:main": { "total": 9,
+                                                          "valid": 9 } } } } }

@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2017                                               *)
+(*  Copyright (C) 2007-2018                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -20,23 +20,22 @@
 (*                                                                        *)
 (**************************************************************************)
 
-open Log
-
 let scope = function
   | None -> "Global"
   | Some s ->
       Printf.sprintf "%s:%d"
         (Filepath.pretty s.Lexing.pos_fname) s.Lexing.pos_lnum
 
-type w = Log.event
+type row = Log.event
+
 type t =
-  { widget: (int*w) Wtable.columns;
-    append : event -> unit;
+  { widget: (int*row) Wtable.columns;
+    append : row -> unit;
     clear : unit -> unit;}
 
 module Data = Indexer.Make(
   struct
-    type t = int*w
+    type t = int*row
     let compare (x,_) (y,_) = Pervasives.compare x y
   end)
 
@@ -50,7 +49,7 @@ let make ~packing ~callback =
     method get i = Data.get i m
     method add i = age<-age+1; m <- Data.add (age,i) m;age,i
     method reload = age<-0; m <- Data.empty
-    method coerce = (self:> (int*w) Wtable.listmodel)
+    method coerce = (self:> (int*row) Wtable.listmodel)
   end
   in
   let w = new Wtable.list
@@ -64,6 +63,7 @@ let make ~packing ~callback =
        must be deleted. *)
     w#reload ;
   in
+  let open Log in
   let _ = w#add_column_pixbuf ~title:"Kind" [`YALIGN 0.0;`XALIGN 0.5]
       (fun (_,e) -> match e with
          | {evt_kind=Error} -> [`STOCK_ID "gtk-dialog-error"]

@@ -1,0 +1,59 @@
+[kernel] Parsing tests/float/widen.c (with preprocessing)
+[value] Analyzing a complete application starting at main
+[value] Computing initial state
+[value] Initial state computed
+[value:initial-state] Values of globals at initialization
+  rand ∈ [--..--]
+[value] computing for function main1 <- main.
+  Called from tests/float/widen.c:50.
+[value] tests/float/widen.c:13: entering loop for the first time
+[value] tests/float/widen.c:16: entering loop for the first time
+[value] tests/float/widen.c:24: Frama_C_show_each_double_inf: [1. .. inf]
+[value] tests/float/widen.c:25: entering loop for the first time
+[value] tests/float/widen.c:34: Frama_C_show_each_float_inf: [1. .. inf]
+[value] Recording results for main1
+[value] Done for function main1
+[value] computing for function main2 <- main.
+  Called from tests/float/widen.c:51.
+[value] tests/float/widen.c:40: entering loop for the first time
+[value] tests/float/widen.c:45: Frama_C_show_each: [-0. .. 0.]
+[value] Recording results for main2
+[value] Done for function main2
+[value] Recording results for main
+[value] done for function main
+[value] ====== VALUES COMPUTED ======
+[value:final-states] Values at end of function main1:
+  max ∈ [1. .. inf]
+  f ∈ [1. .. inf]
+  d ∈ [1. .. inf]
+[value:final-states] Values at end of function main2:
+  d ∈ [-0. .. 0.]
+[value:final-states] Values at end of function main:
+  
+[from] Computing for function main1
+[from] Done for function main1
+[from] Computing for function main2
+[from] Done for function main2
+[from] Computing for function main
+[from] Done for function main
+[from] ====== DEPENDENCIES COMPUTED ======
+  These dependencies hold at termination for the executions that terminate:
+[from] Function main1:
+  NO EFFECTS
+[from] Function main2:
+  NO EFFECTS
+[from] Function main:
+  NO EFFECTS
+[from] ====== END OF DEPENDENCIES ======
+[inout] Out (internal) for function main1:
+    max; f; d
+[inout] Inputs for function main1:
+    rand
+[inout] Out (internal) for function main2:
+    d
+[inout] Inputs for function main2:
+    \nothing
+[inout] Out (internal) for function main:
+    \nothing
+[inout] Inputs for function main:
+    rand

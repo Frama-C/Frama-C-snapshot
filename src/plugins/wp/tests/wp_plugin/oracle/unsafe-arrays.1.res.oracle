@@ -2,6 +2,7 @@
 [kernel] Parsing tests/wp_plugin/unsafe-arrays.i (no preprocessing)
 [wp] Running WP plugin...
 [wp] Loading driver 'share/wp.driver'
-[wp] warning: Missing RTE guards
-tests/wp_plugin/unsafe-arrays.i:13:[wp] user error: Invalid infinite range (shiftfield_F1_f p_0)+(..)
+[wp] Warning: Missing RTE guards
+[wp] tests/wp_plugin/unsafe-arrays.i:13: User Error: 
+  Invalid infinite range (shiftfield_F1_f p_0)+(..)
 [kernel] Plug-in wp aborted: invalid user input.

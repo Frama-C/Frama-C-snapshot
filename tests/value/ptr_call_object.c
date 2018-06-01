@@ -18,7 +18,7 @@ int next_0(struct obj *p, struct obj s) {
 }
 
 //@ assigns \result \from \nothing;
-int rand();
+int rand(void);
 
 int main() {
   struct obj o1, o0;

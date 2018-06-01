@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2017                                               *)
+(*  Copyright (C) 2007-2018                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -45,26 +45,6 @@ let make_fun_float name f =
 let make_pred_float name f =
   extern_f ~library ~result:Logic.Prop ~params "%s_%a" name Ctypes.pp_float f
 
-let f_int =
-  extern_f ~library:"qed" ~result ~params:[Logic.Sint] "real_of_int"
-
-let f_sqrt =
-  extern_f ~library:"cmath" ~result ~params ~link:(link "sqrt") "\\sqrt"
-
-let f_iabs =
-  extern_f ~library:"cmath" ~link:{altergo = Qed.Engine.F_call "abs_int";
-                                   why3     = Qed.Engine.F_call "IAbs.abs";
-                                   coq      = Qed.Engine.F_call "Z.abs";
-                                  } "\\iabs"
-
-let f_rabs =
-  extern_f ~library:"cmath"
-    ~result ~params
-    ~link:{altergo = Qed.Engine.F_call "abs_real";
-           why3     = Qed.Engine.F_call "RAbs.abs";
-           coq      = Qed.Engine.F_call "R.abs";
-          } "\\rabs"
-
 let f_model =
   extern_f ~library ~result ~params ~link:(link "model") "\\model"
 
@@ -73,14 +53,6 @@ let f_delta =
 
 let f_epsilon =
   extern_f ~library ~result ~params ~link:(link "epsilon") "\\epsilon"
-
-let () =
-  let open LogicBuiltins in
-  begin
-    LogicBuiltins.add_builtin "\\abs" [Z] f_iabs ;
-    LogicBuiltins.add_builtin "\\abs" [R] f_rabs ;
-    LogicBuiltins.add_builtin "\\sqrt" [R] f_sqrt ;
-  end
 
 (* -------------------------------------------------------------------------- *)
 (* --- Model Setting                                                      --- *)
@@ -120,76 +92,6 @@ let real_of_literal l =
 let acsl_lit l = F.e_real (real_of_literal l)
 
 (* -------------------------------------------------------------------------- *)
-(* --- Maths                                                              --- *)
-(* -------------------------------------------------------------------------- *)
-
-let is_lt0 z b = QED.eval_lt  b z
-let is_le0 z b = QED.eval_leq b z
-let is_eq0 z b = QED.eval_eq  b z
-
-let builtin_positive_eq lfun z a b =
-  let open Qed.Logic in
-  begin match F.repr a , F.repr b with
-    | Fun(f,[_]) , _ when f == lfun && is_lt0 z b -> e_false
-    | Fun(f,[a]) , _ when f == lfun && is_eq0 z b -> e_eq a b
-    | _ -> raise Not_found
-  end
-
-let builtin_positive_leq lfun z a b =
-  let open Qed.Logic in
-  begin match F.repr a , F.repr b with
-    | Fun(f,[_]) , _ when f == lfun && is_lt0 z b -> e_false
-    | Fun(f,[a]) , _ when f == lfun && is_eq0 z b -> e_eq a b
-    | _ , Fun(f,[_]) when f == lfun && is_le0 z a -> e_true
-    | _ -> raise Not_found
-  end
-
-(* -a is \model(m) *)
-let is_model a m = F.eval_eq a (e_fun f_model [m])
-
-(* a is \delta(m) *)
-let is_delta a m = F.eval_eq a (e_fun f_delta [m])
-
-let builtin_abs f z = function
-  | [e] ->
-      let open Qed.Logic in
-      begin match F.repr e with
-        | Times(k,a) -> e_times (Integer.abs k) (e_fun f [a])
-        | Kint k -> e_zint (Integer.abs k)
-        | Kreal r when Q.lt r Q.zero -> e_real (Q.neg r)
-        | Add [a;m] when is_model (e_opp a) m -> e_fun f_delta [m]
-        | Add [m;a] when is_model (e_opp a) m -> e_fun f_delta [m]
-        | Div (a,m) when is_delta a m -> e_fun f_epsilon [m]
-        | _ ->
-            match is_true (e_leq z e) with
-            | Yes -> e
-            | No -> e_opp e
-            | Maybe -> raise Not_found
-      end
-  | _ -> raise Not_found
-
-let builtin_sqrt = function
-  | [e] ->
-      let open Qed.Logic in
-      begin match F.repr e with
-        | Mul[a;b] when eval_eq a b -> e_fun f_rabs [a] (* a is smaller *)
-        | _ when is_eq0 e_zero_real e -> e_zero_real
-        | _ when is_eq0 e_zero e -> e_zero
-        | _ -> raise Not_found
-      end
-  | _ -> raise Not_found
-
-let builtin_of_int = function
-  | [e] ->
-      begin
-        match F.repr e with
-        | Qed.Logic.Kint k -> F.e_real (Q.of_bigint k)
-        | _ -> raise Not_found
-      end
-  | _ -> raise Not_found
-
-
-(* -------------------------------------------------------------------------- *)
 (* --- Operators                                                          --- *)
 (* -------------------------------------------------------------------------- *)
 
@@ -197,7 +99,6 @@ let flt_rnd  = Ctypes.f_memo (make_fun_float "to")
 let flt_add  = Ctypes.f_memo (make_fun_float "add")
 let flt_mul  = Ctypes.f_memo (make_fun_float "mul")
 let flt_div  = Ctypes.f_memo (make_fun_float "div")
-let flt_sqrt = Ctypes.f_memo (make_fun_float "sqrt")
 
 let () =
   begin
@@ -261,7 +162,6 @@ let builtin_round ulp = function
         | Div(x,y) -> e_fun (flt_div ulp) [x;y]
         | Add ([_;_] as xs) -> e_fun (flt_add ulp) xs
         | Mul ([_;_] as xs) -> e_fun (flt_mul ulp) xs
-        | Fun(s,([_] as xs)) when s == f_sqrt -> e_fun (flt_sqrt ulp) xs
         | Kreal r when Q.equal r Q.zero -> e
         | Kreal r when Q.equal r Q.one -> e
         | Kreal r ->
@@ -293,8 +193,7 @@ let float_of_real f a =
     | Real -> a
     | Float -> e_fun (flt_rnd f) [a]
 
-let real_of_int a = e_fun f_int [a]
-let float_of_int f a = float_of_real f (real_of_int a)
+let float_of_int f a = float_of_real f (Cmath.real_of_int a)
 let real_of_float _f a = a
 
 let range =
@@ -323,16 +222,6 @@ let fsub f x y = fadd f x (e_opp y)
 
 let () = Context.register
     begin fun () ->
-      F.set_builtin     f_iabs (builtin_abs f_iabs e_zero) ;
-      F.set_builtin     f_rabs (builtin_abs f_rabs e_zero_real) ;
-      F.set_builtin     f_sqrt  builtin_sqrt ;
-      F.set_builtin     f_int   builtin_of_int ;
-      F.set_builtin_eq  f_iabs (builtin_positive_eq  f_iabs e_zero) ;
-      F.set_builtin_eq  f_rabs (builtin_positive_eq  f_rabs e_zero_real) ;
-      F.set_builtin_eq  f_sqrt (builtin_positive_eq  f_sqrt e_zero_real) ;
-      F.set_builtin_leq f_iabs (builtin_positive_leq f_iabs e_zero) ;
-      F.set_builtin_leq f_rabs (builtin_positive_leq f_rabs e_zero_real) ;
-      F.set_builtin_leq f_sqrt (builtin_positive_leq f_sqrt e_zero_real) ;
 
       F.set_builtin f_model builtin_model ;
       F.set_builtin f_delta builtin_error ;
@@ -344,7 +233,6 @@ let () = Context.register
       define_fmodel_of flt_add e_sum ;  (* only 2 params in flt_add *)
       define_fmodel_of flt_mul e_prod ; (* only 2 params in flt_mul *)
       define_fmodel_of flt_div (function [x;y] -> e_div x y | _ -> raise Not_found) ;
-      define_fmodel_of flt_sqrt (e_fun f_sqrt) (* only 1 param *) ;
     end
 
 let configure m = Context.set model m

@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2017                                               *)
+(*  Copyright (C) 2007-2018                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -38,7 +38,8 @@ module type Results = sig
   val eval_expr : state -> exp -> value evaluated
   val copy_lvalue: state -> lval -> value flagged_value evaluated
   val eval_lval_to_loc: state -> lval -> location evaluated
-  val eval_function_exp: state -> exp -> kernel_function list evaluated
+  val eval_function_exp:
+    state -> ?args:exp list -> exp ->  kernel_function list evaluated
 end
 
 module type S = sig
@@ -89,8 +90,8 @@ module Make (Abstract: Abstractions.S) = struct
     let for_writing = false in
     Eval.lvaluate ~for_writing state lv >>=: get_loc
 
-  let eval_function_exp state e =
-    Eval.eval_function_exp e state >>=: (List.map fst)
+  let eval_function_exp state ?args e =
+    Eval.eval_function_exp e ?args state >>=: (List.map fst)
 
 end
 

@@ -4,26 +4,38 @@
 [value] Initial state computed
 [value:initial-state] Values of globals at initialization
   G ∈ {0}
-tests/value/annot_valid.i:8:[value] assertion got status valid.
-tests/value/annot_valid.i:11:[value] warning: assertion got status invalid (stopping propagation).
-tests/value/annot_valid.i:14:[value] assertion got status valid.
-tests/value/annot_valid.i:17:[value] assertion got status valid.
-tests/value/annot_valid.i:20:[value] assertion got status valid.
-tests/value/annot_valid.i:23:[value] warning: assertion got status invalid (stopping propagation).
-tests/value/annot_valid.i:26:[value] warning: assertion got status invalid (stopping propagation).
-tests/value/annot_valid.i:29:[value] warning: assertion got status unknown.
-tests/value/annot_valid.i:32:[value] warning: assertion got status invalid (stopping propagation).
-tests/value/annot_valid.i:35:[value] assertion got status valid.
-tests/value/annot_valid.i:38:[value] warning: assertion got status unknown.
-tests/value/annot_valid.i:41:[value] assertion got status valid.
-tests/value/annot_valid.i:44:[value] warning: assertion got status invalid (stopping propagation).
-tests/value/annot_valid.i:47:[value] assertion got status valid.
-tests/value/annot_valid.i:50:[value] warning: assertion got status invalid (stopping propagation).
-tests/value/annot_valid.i:53:[value] assertion got status valid.
-tests/value/annot_valid.i:56:[value] assertion got status valid.
-tests/value/annot_valid.i:57:[value] cannot evaluate ACSL term, \at() on a C label is unsupported
-tests/value/annot_valid.i:57:[value] warning: assertion got status unknown.
-tests/value/annot_valid.i:62:[value] warning: assertion got status invalid (stopping propagation).
+[value] tests/value/annot_valid.i:8: assertion got status valid.
+[value:alarm] tests/value/annot_valid.i:11: Warning: 
+  assertion got status invalid (stopping propagation).
+[value] tests/value/annot_valid.i:14: assertion got status valid.
+[value] tests/value/annot_valid.i:17: assertion got status valid.
+[value] tests/value/annot_valid.i:20: assertion got status valid.
+[value:alarm] tests/value/annot_valid.i:23: Warning: 
+  assertion got status invalid (stopping propagation).
+[value:alarm] tests/value/annot_valid.i:26: Warning: 
+  assertion got status invalid (stopping propagation).
+[value:alarm] tests/value/annot_valid.i:29: Warning: 
+  assertion got status unknown.
+[value:alarm] tests/value/annot_valid.i:32: Warning: 
+  assertion got status unknown.
+[value:alarm] tests/value/annot_valid.i:35: Warning: 
+  assertion got status unknown.
+[value:alarm] tests/value/annot_valid.i:38: Warning: 
+  assertion got status unknown.
+[value] tests/value/annot_valid.i:41: assertion got status valid.
+[value:alarm] tests/value/annot_valid.i:44: Warning: 
+  assertion got status invalid (stopping propagation).
+[value] tests/value/annot_valid.i:47: assertion got status valid.
+[value:alarm] tests/value/annot_valid.i:50: Warning: 
+  assertion got status invalid (stopping propagation).
+[value] tests/value/annot_valid.i:53: assertion got status valid.
+[value] tests/value/annot_valid.i:56: assertion got status valid.
+[value] tests/value/annot_valid.i:57: 
+  cannot evaluate ACSL term, \at() on a C label is unsupported
+[value:alarm] tests/value/annot_valid.i:57: Warning: 
+  assertion got status unknown.
+[value:alarm] tests/value/annot_valid.i:62: Warning: 
+  assertion got status invalid (stopping propagation).
 [value] Recording results for main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======
@@ -34,11 +46,11 @@ tests/value/annot_valid.i:62:[value] warning: assertion got status invalid (stop
 [from] Computing for function main
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
-    These dependencies hold at termination for the executions that terminate:
+  These dependencies hold at termination for the executions that terminate:
 [from] Function main:
   \result FROM \nothing
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function main:
-      p; c; __retres
+    p; c; __retres
 [inout] Inputs for function main:
-      \nothing
+    \nothing

@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2017                                               *)
+(*  Copyright (C) 2007-2018                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -150,13 +150,9 @@ let () = Cmdline.run_after_loading_stage load_binary
 let on_call_to_undeclared_function vi =
   let name = vi.Cil_types.vname in
   if not (Ast_info.is_frama_c_builtin name) then
-    let action = Kernel.ImplicitFunctionDeclaration.get () in
-    if action = "warn" then
-      Kernel.warning ~current:true ~once:true
-        "Calling undeclared function %s. Old style K&R code?" name
-    else if action = "error" then
-      Kernel.abort ~current:true
-        "calling undeclared function %s." name
+    Kernel.warning ~wkey:Kernel.wkey_implicit_function_declaration
+      ~current:true ~once:true
+      "Calling undeclared function %s. Old style K&R code?" name
 
 let () =
   Cabs2cil.register_implicit_prototype_hook on_call_to_undeclared_function

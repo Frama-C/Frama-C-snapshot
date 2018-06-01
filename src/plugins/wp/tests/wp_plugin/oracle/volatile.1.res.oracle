@@ -2,14 +2,21 @@
 [kernel] Parsing tests/wp_plugin/volatile.i (no preprocessing)
 [wp] Running WP plugin...
 [wp] Loading driver 'share/wp.driver'
-[wp] warning: Missing RTE guards
-tests/wp_plugin/volatile.i:15:[wp] warning: unsafe volatile access to (term) l-value
-tests/wp_plugin/volatile.i:14:[wp] warning: unsafe write-access to volatile l-value
-tests/wp_plugin/volatile.i:21:[wp] warning: unsafe volatile access to (term) l-value
-tests/wp_plugin/volatile.i:20:[wp] warning: unsafe read-access to volatile l-value
-tests/wp_plugin/volatile.i:35:[wp] warning: unsafe volatile access to (term) l-value
-tests/wp_plugin/volatile.i:35:[wp] warning: unsafe volatile access to (term) l-value
-tests/wp_plugin/volatile.i:34:[wp] warning: unsafe write-access to volatile l-value
+[wp] Warning: Missing RTE guards
+[wp] tests/wp_plugin/volatile.i:15: Warning: 
+  unsafe volatile access to (term) l-value
+[wp] tests/wp_plugin/volatile.i:14: Warning: 
+  unsafe write-access to volatile l-value
+[wp] tests/wp_plugin/volatile.i:21: Warning: 
+  unsafe volatile access to (term) l-value
+[wp] tests/wp_plugin/volatile.i:20: Warning: 
+  unsafe read-access to volatile l-value
+[wp] tests/wp_plugin/volatile.i:35: Warning: 
+  unsafe volatile access to (term) l-value
+[wp] tests/wp_plugin/volatile.i:35: Warning: 
+  unsafe volatile access to (term) l-value
+[wp] tests/wp_plugin/volatile.i:34: Warning: 
+  unsafe write-access to volatile l-value
 ------------------------------------------------------------
   Function job_assigns
 ------------------------------------------------------------
@@ -63,3 +70,6 @@ tests/wp_plugin/volatile.i:35: warning from wp:
 Prove: true.
 
 ------------------------------------------------------------
+[wp] Warning: Separation hypotheses for function 'job_struct_assigns':
+  /*@ behavior typed: requires \separated(&sv,p); */
+  void job_struct_assigns(struct st_v *p);

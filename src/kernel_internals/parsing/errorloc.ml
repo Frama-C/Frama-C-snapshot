@@ -191,17 +191,16 @@ let pretty_pos_between fmt (pos_start, pos_end) =
   if pos_start.Lexing.pos_fname = pos_end.Lexing.pos_fname then
     if pos_start.Lexing.pos_lnum = pos_end.Lexing.pos_lnum then
       (* single file, single line *)
-      Format.fprintf fmt "at %s:%d:%d-%d"
-        (Filepath.pretty pos_start.Lexing.pos_fname) pos_start.Lexing.pos_lnum
+      Format.fprintf fmt "Location: line %d, between columns %d and %d"
+        pos_start.Lexing.pos_lnum
         (pos_start.Lexing.pos_cnum - pos_start.Lexing.pos_bol)
         (pos_end.Lexing.pos_cnum - pos_end.Lexing.pos_bol)
     else
       (* single file, multiple lines *)
-      Format.fprintf fmt "at %s, between lines %d and %d"
-        (Filepath.pretty pos_start.Lexing.pos_fname)
+      Format.fprintf fmt "Location: between lines %d and %d"
         pos_start.Lexing.pos_lnum pos_end.Lexing.pos_lnum
   else (* multiple files (very rare) *)
-    Format.fprintf fmt "between %a and %a"
+    Format.fprintf fmt "Location: between %a and %a"
       pretty_pos pos_start pretty_pos pos_end
 
 let parse_error ?(source=Lexing.lexeme_start_p !current.lexbuf) msg =
@@ -218,9 +217,8 @@ let parse_error ?(source=Lexing.lexeme_start_p !current.lexbuf) msg =
   match start_pos with
   | None ->
     Pretty_utils.ksfprintf (fun str ->
-        Kernel.feedback "%s" str ~append:(fun fmt ->
-            Format.fprintf fmt " at %s:%d%a\n"
-              (Filepath.pretty source.Lexing.pos_fname) source.Lexing.pos_lnum
+        Kernel.feedback ~source "%s:@." str ~append:(fun fmt ->
+            Format.fprintf fmt "%a\n"
               pretty_token (Lexing.lexeme !current.lexbuf);
             Format.fprintf fmt "%a@."
               (pp_context_from_file ?start_line:None ~ctx:2) source);
@@ -228,8 +226,8 @@ let parse_error ?(source=Lexing.lexeme_start_p !current.lexbuf) msg =
       msg
   | Some start_pos ->
     Pretty_utils.ksfprintf (fun str ->
-        Kernel.feedback "%s" str ~append:(fun fmt ->
-            Format.fprintf fmt " %a%a\n"
+        Kernel.feedback ~source:start_pos "%s:@." str ~append:(fun fmt ->
+            Format.fprintf fmt "%a%a\n"
               pretty_pos_between (start_pos, source)
               pretty_token (Lexing.lexeme !current.lexbuf);
             Format.fprintf fmt "%a@."

@@ -8,7 +8,7 @@ logic ℤ size_rec{L}(int *busybits, ℤ capa) =
       L);
  */
 /*@ ensures \result ≡ size_rec(\old(busybits), 0); */
-int size(int * /*[0]*/ busybits)
+int size(int *busybits)
 {
   int __retres;
   __retres = 0;

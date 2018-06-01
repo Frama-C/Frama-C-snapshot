@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2017                                               *)
+(*  Copyright (C) 2007-2018                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -60,6 +60,11 @@ val find_label : t -> string -> stmt ref
   (** Find a given label in a kernel function.
       @raise Not_found if the label does not exist in the given function. *)
 
+val find_all_labels: t -> Datatype.String.Set.t
+  (** returns all labels present in a given function.
+      @since Chlorine-20180501
+  *)
+
 val clear_sid_info: unit -> unit
 (** removes any information related to statements in kernel functions.
     ({i.e.} the table used by the function below).
@@ -67,6 +72,11 @@ val clear_sid_info: unit -> unit
     (e.g. with an in-place visitor) before calling one of
     the functions below
     - Use with caution, as it is very expensive to re-populate the table. *)
+
+val find_defining_kf: varinfo -> t option
+(** Finds the kernel function defining the given varinfo as a local or a formal.
+    Returns None if no such function exists.
+    @since Chlorine-20180501 *)
 
 val find_from_sid : int -> stmt * t
   (** @return the stmt and its kernel function from its identifier.
@@ -97,7 +107,6 @@ val blocks_opened_by_edge: stmt -> stmt -> block list
       list of blocks that are opened when going from [s1] to [s2].
       @raise Invalid_argument if [s2] is not a successor of [s1] in the cfg.
       @since Magnesium-20151001 *)
-
 
 val stmt_in_loop: t -> stmt -> bool
   (** [stmt_in_loop kf stmt] is [true] iff [stmt] strictly 

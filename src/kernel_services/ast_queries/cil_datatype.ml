@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2017                                               *)
+(*  Copyright (C) 2007-2018                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -125,20 +125,19 @@ let rank_term = function
 (** {3 Cabs types} *)
 (**************************************************************************)
 
-module Cabs_file =struct
-
+module Cabs_file = struct
   let pretty_ref = ref (fun _ _ -> assert false)
-  include  Make
+  include Make
     (struct
       type t = Cabs.file
       let name = "Cabs_file"
       let reprs = [ "", []; "", [ true, Cabs.GLOBANNOT [] ] ]
       let varname (s, _) = "cabs_" ^ s
       let internal_pretty_code = Datatype.undefined
-      let pretty = !pretty_ref
+      let pretty fmt cabs = !pretty_ref fmt cabs
      end)
 end
-                    
+
 (**************************************************************************)
 (** {3 C types} *)
 (**************************************************************************)
@@ -317,7 +316,10 @@ module Kinstr = struct
 	      (Stmt.internal_pretty_code Type.Call) s
 	  in
 	  Type.par p Type.Call fmt pp
-      let pretty = Datatype.from_pretty_code
+      let pretty fmt = function
+	| Kglobal ->
+	  Format.fprintf fmt "Kglobal"
+	| Kstmt s -> Stmt.pretty fmt s
       let varname _ = "ki"
      end)
 
@@ -1026,7 +1028,8 @@ module Block = struct
       type t = block
       let name = "Block"
       let reprs =
-        [{battrs=[]; blocals=Varinfo.reprs; bstmts=Stmt.reprs; bscoping=true}]
+        [{battrs=[]; blocals=Varinfo.reprs; bstatics = [];
+          bstmts=Stmt.reprs; bscoping=true}]
       let internal_pretty_code = Datatype.undefined
       let pretty fmt b = !pretty_ref fmt b
       let varname = Datatype.undefined
@@ -2197,7 +2200,7 @@ module Funbehavior =
 	       List.map (fun x -> Normal, x) Identified_predicate.reprs;
 	     b_assigns = WritesAny;
 	     b_allocation = FreeAllocAny;
-	     b_extended = [ "toto", Ext_preds Predicate.reprs ]; } ]
+	     b_extended = []; } ]
       let mem_project = Datatype.never_any_project
      end)
 
@@ -2262,19 +2265,16 @@ end
     Sorted by alphabetic order. *)
 (**************************************************************************)
 
-module Lexpr =  struct
-  let pretty_ref = ref (fun _ _ -> assert false)
-  include Make
+module Lexpr = Make
     (struct
       open Logic_ptree
       type t = lexpr
       let name = "Lexpr"
       let reprs = [ { lexpr_node = PLvar ""; lexpr_loc = Location.unknown } ]
       let internal_pretty_code = Datatype.undefined
-      let pretty = !pretty_ref
+      let pretty = Datatype.undefined (* TODO *)
       let varname = Datatype.undefined
     end)
-end
 
 (**************************************************************************)
 (** {3 Other types} *)
@@ -2302,6 +2302,37 @@ module Localisation =
 	| VFormal kf -> pp "Cil_types.VFormal" kf
       let mem_project = Datatype.never_any_project
      end)
+
+module Syntactic_scope =
+  Datatype.Make_with_collections
+    (struct
+      include Datatype.Serializable_undefined
+      type t = syntactic_scope
+      let name = "Syntactic_scope"
+      let reprs = [ Program ]
+      let compare s1 s2 =
+        match s1, s2 with
+        | Program, Program -> 0
+        | Program, _ -> 1
+        | _, Program -> -1
+        | Translation_unit s1, Translation_unit s2 ->
+          Datatype.String.compare s1 s2
+        | Translation_unit _, _ -> 1
+        | _, Translation_unit _ -> -1
+        | Block_scope s1, Block_scope s2 -> Stmt_Id.compare s1 s2
+      let equal = Datatype.from_compare
+      let hash s =
+        match s with
+        | Program -> 5
+        | Translation_unit s -> 7 * Datatype.String.hash s + 11
+        | Block_scope s -> 13 * Stmt_Id.hash s  + 17
+      let pretty fmt = function
+        | Program -> Format.pp_print_string fmt "<Whole Program>"
+        | Translation_unit s -> Format.fprintf fmt "File %s" s
+        | Block_scope s ->
+          Format.fprintf fmt "Statement at %a:@\n@[%a@]"
+            Location.pretty (Stmt.loc s) Stmt.pretty s
+    end)
 
 (* -------------------------------------------------------------------------- *)
 (* --- Internal                                                           --- *)

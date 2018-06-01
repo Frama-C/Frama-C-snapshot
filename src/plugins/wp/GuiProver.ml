@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2017                                               *)
+(*  Copyright (C) 2007-2018                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -103,10 +103,8 @@ class prover ~(console:Wtext.text) ~prover =
           VCS.stepout = spinner stepout ;
           VCS.depth = spinner depth ;
         } in
-        let callback wpo prv res =
-          Wpo.set_result wpo prv res ;
-          self#update wpo in
-        let task = Prover.prove ~config ~callback wpo prover in
+        let result wpo _prv _res = self#update wpo in
+        let task = Prover.prove ~config ~result wpo prover in
         let thread = Task.thread task in
         let kill () =
           Wpo.set_result wpo prover VCS.no_result ;
@@ -116,7 +114,7 @@ class prover ~(console:Wtext.text) ~prover =
         Task.spawn server thread ;
         Task.launch server ;
         Wutil.later (fun () -> self#update wpo) ;
-          end
+      end
 
     method clear =
       begin
@@ -128,33 +126,33 @@ class prover ~(console:Wtext.text) ~prover =
 
     method update wpo =
       begin
-      let res = Wpo.get_result wpo prover in
+        let res = Wpo.get_result wpo prover in
         result#set_text (Pretty_utils.to_string VCS.pp_result_perf res) ;
-      match res.VCS.verdict with
-      | VCS.NoResult ->
-          let callback () = self#run wpo in
-          self#set_status no_status ;
+        match res.VCS.verdict with
+        | VCS.NoResult ->
+            let callback () = self#run wpo in
+            self#set_status no_status ;
             self#set_action ~icon:`MEDIA_PLAY ~tooltip:"Run Prover" ~callback () ;
         | VCS.Computing callback ->
-          self#set_status `EXECUTE ;
-            self#set_action ~tooltip:"Interrupt Prover" ~icon:`STOP ~callback () ;
-          Pretty_utils.ksfprintf self#set_label "%a (...)" VCS.pp_prover prover ;
-      | VCS.Valid | VCS.Checked ->
+            self#set_status `EXECUTE ;
+            self#set_action ~tooltip:"Interrrupt Prover" ~icon:`STOP ~callback () ;
+            Pretty_utils.ksfprintf self#set_label "%a (...)" VCS.pp_prover prover ;
+        | VCS.Valid | VCS.Checked ->
             let callback () = self#run wpo in
-          self#set_status ok_status ;
+            self#set_status ok_status ;
             self#set_action ~tooltip:"Run Prover" ~icon:`MEDIA_PLAY ~callback () ;
-          Pretty_utils.ksfprintf self#set_label "%a (%a)" VCS.pp_prover prover
-            Rformat.pp_time res.VCS.prover_time ;
+            Pretty_utils.ksfprintf self#set_label "%a (%a)" VCS.pp_prover prover
+              Rformat.pp_time res.VCS.prover_time ;
         | VCS.Invalid | VCS.Unknown | VCS.Timeout | VCS.Stepout ->
             let callback () = self#run wpo in
             self#set_status ko_status ;
             self#set_action ~tooltip:"Run Prover" ~icon:`MEDIA_PLAY ~callback () ;
             Pretty_utils.ksfprintf self#set_label "%a (?)" VCS.pp_prover prover ;
-      | VCS.Failed ->
+        | VCS.Failed ->
             let callback () = self#log wpo res in
-          self#set_status `DIALOG_WARNING ;
-          self#set_action ~tooltip:"Dump Logs" ~icon:`FILE ~callback () ;
-          Pretty_utils.ksfprintf self#set_label "%a (failed)" VCS.pp_prover prover ;
+            self#set_status `DIALOG_WARNING ;
+            self#set_action ~tooltip:"Dump Logs" ~icon:`FILE ~callback () ;
+            Pretty_utils.ksfprintf self#set_label "%a (failed)" VCS.pp_prover prover ;
       end
 
   end

@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2017                                               *)
+(*  Copyright (C) 2007-2018                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -21,7 +21,11 @@
 (**************************************************************************)
 
 (* $Id: Users.mli,v 1.5 2008-04-01 09:25:22 uid568 Exp $ *)
-
+open Cil_types
 (** Users analysis. *)
 
-(** No function is directly exported: they are registered in {!Db.Users}. *)
+(** Functions used by another function.
+    @see <../users/index.html> internal documentation. *)
+module Users_register : sig
+  val get: (kernel_function -> Kernel_function.Hptset.t)
+end

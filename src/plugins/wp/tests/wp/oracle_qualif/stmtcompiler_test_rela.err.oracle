@@ -1,0 +1,9 @@
+File "tests/wp/stmtcompiler_test_rela.ml", line 37, characters 23-31:
+Error: The function applied to this argument has type
+         ?config:Wp.VCS.config ->
+         ?start:(Wp.Wpo.t -> unit) ->
+         ?progress:(Wp.Wpo.t -> string -> unit) ->
+         ?result:(Wp.Wpo.t -> Wp.VCS.prover -> Wp.VCS.result -> unit) ->
+         ?success:(Wp.Wpo.t -> Wp.VCS.prover option -> unit) ->
+         ?pool:Task.pool -> delayed:bool -> unit
+This argument cannot be applied with label ~callback

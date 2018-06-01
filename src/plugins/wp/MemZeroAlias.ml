@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2017                                               *)
+(*  Copyright (C) 2007-2018                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -28,7 +28,7 @@ open Cil_types
 open Cil_datatype
 open Lang
 open Lang.F
-open Memory
+open Sigs
 
 module Logic = Qed.Logic
 
@@ -122,6 +122,7 @@ type loc =
   | Field of loc * fieldinfo
 
 type sigma = Sigma.t
+type domain = Sigma.domain
 type segment = loc rloc
 
 let rec pretty fmt = function
@@ -192,7 +193,7 @@ let load sigma obj l =
 let stored seq _obj l e =
   let m,ks = access l in
   let x = F.e_var (Sigma.get seq.post m) in
-  [ F.p_equal x (set seq.pre m ks e) ]
+  [Set( x , set seq.pre m ks e )]
 
 let copied seq obj a b =
   stored seq obj a (value seq.pre b)
@@ -204,7 +205,7 @@ let state (s:sigma) =
   let m = ref Tmap.empty in
   Sigma.iter (fun c x -> m := Tmap.add (F.e_var x) c !m) s ; !m
 
-let imval c = Memory.Mchunk (Pretty_utils.to_string Chunk.pretty c)
+let imval c = Sigs.Mchunk (Pretty_utils.to_string Chunk.pretty c)
 let iter f s = Tmap.iter (fun v c -> f (imval c) v) s
 let lookup (s : state) (e : Lang.F.term) = imval (F.Tmap.find e s)
 let apply f s =
@@ -254,8 +255,11 @@ let loc_leq _ _ = no_pointer ()
 let loc_neq _ _ = no_pointer ()
 let loc_diff _ _ _ = no_pointer ()
 
-let valid _sigma _l = Warning.error ~source "No validity"
-let scope sigma _s _xs = sigma , []
+let frame _sigma = []
+let alloc sigma _xs = sigma
+let scope _seq _s _xs = []
+let valid _sigma _acs _l = Warning.error ~source "No validity"
+let invalid _sigma _l = Warning.error ~source "No validity"
 let global _sigma _p = p_true
 
 let included _s1 _s2 = no_pointer ()

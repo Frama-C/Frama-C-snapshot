@@ -21,13 +21,20 @@
   S_PG1[0..1] ∈ [--..--]
   S_GPs[0..1] ∈ [--..--]
   S_PX[0..1] ∈ [--..--]
-tests/sparecode/glob_decls.i:42:[value] warning: function main: precondition got status unknown.
-tests/sparecode/glob_decls.i:46:[value] warning: signed overflow. assert y + Y ≤ 2147483647;
-tests/sparecode/glob_decls.i:47:[value] warning: out of bounds read. assert \valid_read(PX);
-tests/sparecode/glob_decls.i:47:[value] warning: signed overflow. assert -2147483648 ≤ y + *PX;
-tests/sparecode/glob_decls.i:47:[value] warning: signed overflow. assert y + *PX ≤ 2147483647;
-tests/sparecode/glob_decls.i:48:[value] warning: assertion got status unknown.
-tests/sparecode/glob_decls.i:49:[value] warning: signed overflow. assert X + x ≤ 2147483647;
+[value:alarm] tests/sparecode/glob_decls.i:42: Warning: 
+  function main: precondition got status unknown.
+[value:alarm] tests/sparecode/glob_decls.i:46: Warning: 
+  signed overflow. assert y + Y ≤ 2147483647;
+[value:alarm] tests/sparecode/glob_decls.i:47: Warning: 
+  out of bounds read. assert \valid_read(PX);
+[value:alarm] tests/sparecode/glob_decls.i:47: Warning: 
+  signed overflow. assert -2147483648 ≤ y + *PX;
+[value:alarm] tests/sparecode/glob_decls.i:47: Warning: 
+  signed overflow. assert y + *PX ≤ 2147483647;
+[value:alarm] tests/sparecode/glob_decls.i:48: Warning: 
+  assertion got status unknown.
+[value:alarm] tests/sparecode/glob_decls.i:49: Warning: 
+  signed overflow. assert X + x ≤ 2147483647;
 [value] Recording results for main
 [value] done for function main
 [pdg] computing for function main
@@ -37,7 +44,7 @@ tests/sparecode/glob_decls.i:49:[value] warning: signed overflow. assert X + x �
 [sparecode] add selection in function 'main'
 [sparecode] look for annotations in function f
 [pdg] computing for function f
-[pdg] warning: unreachable entry point (sid:2, function f)
+[pdg] Warning: unreachable entry point (sid:2, function f)
 [pdg] Bottom for function f
 [sparecode] pdg bottom: skip annotations
 [sparecode] look for annotations in function main

@@ -1,0 +1,39 @@
+[kernel] Parsing tests/libc/limits_h.c (with preprocessing)
+[value] Analyzing a complete application starting at main
+[value] Computing initial state
+[value] Initial state computed
+[value:initial-state] Values of globals at initialization
+  
+[value] tests/libc/limits_h.c:16: assertion got status valid.
+[value] tests/libc/limits_h.c:18: assertion got status valid.
+[value] tests/libc/limits_h.c:19: assertion got status valid.
+[value] tests/libc/limits_h.c:20: assertion got status valid.
+[value] tests/libc/limits_h.c:21: assertion got status valid.
+[value] tests/libc/limits_h.c:22: assertion got status valid.
+[value] tests/libc/limits_h.c:23: assertion got status valid.
+[value] tests/libc/limits_h.c:24: assertion got status valid.
+[value] tests/libc/limits_h.c:25: assertion got status valid.
+[value] tests/libc/limits_h.c:26: assertion got status valid.
+[value] tests/libc/limits_h.c:27: assertion got status valid.
+[value] tests/libc/limits_h.c:28: assertion got status valid.
+[value] tests/libc/limits_h.c:29: assertion got status valid.
+[value] tests/libc/limits_h.c:30: assertion got status valid.
+[value] tests/libc/limits_h.c:31: assertion got status valid.
+[value] tests/libc/limits_h.c:32: assertion got status valid.
+[value] tests/libc/limits_h.c:33: assertion got status valid.
+[value] tests/libc/limits_h.c:34: assertion got status valid.
+[value] tests/libc/limits_h.c:35: assertion got status valid.
+[value] tests/libc/limits_h.c:36: assertion got status valid.
+[value] tests/libc/limits_h.c:37: assertion got status valid.
+[value] tests/libc/limits_h.c:38: assertion got status valid.
+[value] Recording results for main
+[value] done for function main
+[scope:rm_asserts] removing 7 assertion(s)
+[value] ====== VALUES COMPUTED ======
+[value:final-states] Values at end of function main:
+  size_max ∈ {18446744073709551615}
+  ssize_max ∈ {9223372036854775807}
+  intptr_max ∈ {9223372036854775807}
+  intptr_min ∈ {-9223372036854775808}
+  uintptr_max ∈ {18446744073709551615}
+  uintmax_max ∈ {18446744073709551615}

@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2017                                               *)
+(*  Copyright (C) 2007-2018                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -23,9 +23,6 @@
 (**************************************************************************)
 (** {3 Datatypes} *)
 (**************************************************************************)
-
-let dkey = Kernel.register_category "property_status"
-let dkey_graph = Kernel.register_category "property_status:graph"
 
 module Caml_hashtbl = Hashtbl
 open Emitter
@@ -344,7 +341,9 @@ module Register_hook = Hook.Build (struct type t = Property.t end)
 let register_property_add_hook = Register_hook.extend
 
 let rec register ppt =
-  Kernel.debug ~dkey ~level:5 "REGISTERING %a in %a" Property.pretty ppt
+  Kernel.debug ~dkey:Kernel.dkey_prop_status_reg
+    "REGISTERING %a in %a"
+    Property.pretty ppt
     Project.pretty (Project.current ());
   if Status.mem ppt then
     Kernel.fatal "trying to register twice property `%a'.\n\
@@ -381,6 +380,7 @@ and register_as_kernel_logical_consequence ppt = match ppt with
       (* main is always reachable *)
     then emit_valid ppt
   | Property.IPOther _  | Property.IPReachable _
+  | Property.IPExtended _
   | Property.IPPredicate _ | Property.IPCodeAnnot _ | Property.IPComplete _ 
   | Property.IPDisjoint _ | Property.IPAssigns _ | Property.IPFrom _ 
   | Property.IPAllocation _ | Property.IPDecrease _ | Property.IPLemma _
@@ -402,6 +402,7 @@ and is_kernel_logical_consequence ppt = match ppt with
     let f = kf.Cil_types.fundec in (* main is always reachable *)
     Ast_info.Function.get_name f = Kernel.MainFunction.get_plain_string ()
   | Property.IPAxiom _
+  | Property.IPExtended _
   | Property.IPAxiomatic _
   | Property.IPOther _  | Property.IPReachable _
   | Property.IPPredicate _ | Property.IPCodeAnnot _ | Property.IPComplete _
@@ -412,8 +413,8 @@ and is_kernel_logical_consequence ppt = match ppt with
     false
 
 and unsafe_emit_and_get e ~hyps ~auto ppt ?(distinct=false) s =
-  Kernel.feedback ~dkey ~level:3 "@[%a emits status@ %a for property@ %a@ \
-under %d hypothesis@]"
+  Kernel.feedback ~dkey:Kernel.dkey_prop_status_emit
+    "@[%a emits status@ %a for property@ %a@ under %d hypothesis@]"
     Emitter.pretty e
     Emitted_status.pretty s
     Property.pretty ppt
@@ -518,7 +519,7 @@ hypotheses: unsound!" Emitter.pretty e Property.pretty ppt));
     | Property.IPDisjoint _ | Property.IPAssigns _ | Property.IPFrom _ 
     | Property.IPAllocation _ | Property.IPDecrease _ | Property.IPBehavior _
     | Property.IPAxiom _ | Property.IPAxiomatic _ | Property.IPLemma _
-    | Property.IPTypeInvariant _ | Property.IPGlobalInvariant _ ->
+    | Property.IPTypeInvariant _ | Property.IPGlobalInvariant _ | Property.IPExtended _ ->
       Kernel.fatal "unregistered property %a" Property.pretty ppt
 
 and logical_consequence e ppt hyps = 
@@ -544,6 +545,7 @@ let emit_and_get e ~hyps ppt ?distinct s =
   | Property.IPDecrease _ | Property.IPLemma _ | Property.IPReachable _
   | Property.IPAllocation _ | Property.IPOther _
   | Property.IPPropertyInstance _
+  | Property.IPExtended _
   | Property.IPTypeInvariant _ | Property.IPGlobalInvariant _ -> ()
   end;
   unsafe_emit_and_get e ~hyps ~auto:false ppt ?distinct s
@@ -581,7 +583,7 @@ module Remove_hook = Hook.Build(struct type t = Property.t end)
 let register_property_remove_hook = Remove_hook.extend
 
 let remove ppt =
-  Kernel.debug ~dkey ~level:5 "REMOVING %a in %a" 
+  Kernel.debug ~dkey:Kernel.dkey_prop_status_reg "REMOVING %a in %a" 
     Property.pretty ppt
     Project.pretty (Project.current ());
   remove_when_used_as_hypothesis ppt;
@@ -590,12 +592,14 @@ let remove ppt =
   Remove_hook.apply ppt
 
 let merge ~old l =
+  let dkey = Kernel.dkey_prop_status_merge in
   let property_id fmt p = 
     Format.fprintf fmt "%a(%d)" Property.pretty p (Property.hash p)
   in
-  (*Kernel.feedback ~dkey "MERGING ###%a###@\nWITH ###%a###"
+  Kernel.feedback ~dkey
+    "MERGING ###%a###@\nWITH ###%a###"
     (Pretty_utils.pp_list ~sep:"\n###" property_id) old
-    (Pretty_utils.pp_list ~sep:"\n###" property_id) l; *)
+    (Pretty_utils.pp_list ~sep:"\n###" property_id) l;
   let old_h = Property.Hashtbl.create 17 in
   List.iter
     (fun p ->
@@ -607,21 +611,21 @@ let merge ~old l =
     (fun p -> 
       if Property.Hashtbl.mem old_h p then begin
         (* [p] belongs to both lists *)
-	(*Kernel.feedback ~dkey "UNCHANGED %a" Property.pretty p;*)
+	Kernel.feedback ~dkey "UNCHANGED %a" Property.pretty p;
         Property.Hashtbl.remove old_h p;
 	(* if [p] was a logical consequence, its dependencies may change *)
 	register_as_kernel_logical_consequence p
       end else begin
         (* [p] belongs only to the new list *)
-	(*Kernel.feedback ~dkey "ADD %a" Property.pretty p;*)
+	Kernel.feedback ~dkey "ADD %a" Property.pretty p;
         register p
       end)
     l;
   (* remove the properties which are not in the new list *)
   Property.Hashtbl.iter
     (fun p () ->
-(*      Kernel.feedback ~dkey "REMOVE BY MERGE %a" Property.pretty p;*)
-      remove p) 
+       Kernel.feedback ~dkey "REMOVE BY MERGE %a" Property.pretty p;
+       remove p)
     old_h
 
 let conjunction s1 s2 = match s1, s2 with
@@ -712,6 +716,7 @@ and get_status ?(must_register=true) ppt =
       end else
 	Never_tried
     | Property.IPBehavior _ 
+    | Property.IPExtended _
     | Property.IPPredicate _ | Property.IPCodeAnnot _ | Property.IPComplete _ 
     | Property.IPDisjoint _ | Property.IPAssigns _ | Property.IPFrom _ 
     | Property.IPDecrease _ | Property.IPAllocation _ 
@@ -1154,6 +1159,7 @@ either status %a or %a not allowed when merging status@]"
 	assert false
 
   let consolidate ppt compute_deps_status =
+    let dkey = Kernel.dkey_prop_status_merge in
     consolidate_reachable ppt;
     let local_status = get ppt in
     if is_not_verifiable_but_valid ppt local_status then 
@@ -1163,13 +1169,13 @@ either status %a or %a not allowed when merging status@]"
       | Local.Never_tried -> Never_tried
       | Best(_, l) as local -> 
 	let status = compute_deps_status l in
-(*	Kernel.feedback ~dkey "status of hypotheses of %a: %a" 
+        Kernel.feedback ~dkey "status of hypotheses of %a: %a" 
 	  Property.pretty ppt
-	  pretty status;*)
+	  pretty status;
 	let s = merge_hypotheses_and_local_status ppt status local in
-(*	Kernel.feedback ~dkey "consolidated status of %a: %a" 
+        Kernel.feedback ~dkey "consolidated status of %a: %a" 
 	  Property.pretty ppt
-	  pretty s;*)
+	  pretty s;
 	s
       | Local.Inconsistent { valid = valid; invalid = invalid } as local -> 
 	let hyps_status = compute_deps_status (valid @ invalid) in
@@ -1216,7 +1222,7 @@ either status %a or %a not allowed when merging status@]"
 		     Usable_emitter.Map.empty))*)
 	end else begin
 	  Property.Hashtbl.add visited_ppt ppt ();
-	  consolidate ppt (consolidated_emitters e (ppt :: path))
+	  consolidate ppt (consolidated_emitters ppt e (ppt :: path))
 (* [JS 2011/11/04] think about that when uncommenting the code above *)
 (*	  try 
 	    (* was previously added during its own calculus 
@@ -1227,7 +1233,8 @@ either status %a or %a not allowed when merging status@]"
 	end)
       ppt
 
-  and consolidated_emitters current_e path l = 
+  and consolidated_emitters ppt current_e path l =
+    let dkey = Kernel.dkey_prop_status_merge in
     (* [l] is the list of the best emitters of the local status of [ppt]. 
        As they emit the same local status, we only choose the best one according
        to the status of their hypotheses. *)
@@ -1246,10 +1253,10 @@ either status %a or %a not allowed when merging status@]"
 	      (fun (status, issues) h -> 
 		  let s = memo_consolidated current_e path h in
 		  let s = reduce_hypothesis_status h s in
-		(*	      		Kernel.feedback ~dkey "status of hypothesis %a (for %a): %a" 
-					Property.pretty h
-					Property.pretty ppt
-					pretty s;*)
+		  Kernel.feedback ~dkey "status of hypothesis %a (for %a): %a" 
+                    Property.pretty h
+		    Property.pretty ppt
+		    pretty s;
 		  hypotheses_conjunction issues h status s)
 	      (Never_tried, Usable_emitter.Map.empty)
 	      e.properties
@@ -1270,10 +1277,9 @@ broken:@ status %a not allowed when simplifying hypothesis status@]"
 	  let cur =
 	    choose_best_emitter current_status e.emitter (hyps_status, issues)
 	  in
-	  (*	  Kernel.feedback ~dkey
-		  "status of hypotheses for emitter `%a': %a" 
-		  Usable_emitter.pretty e.emitter pretty s;
-		  Kernel.feedback ~dkey "current best status: %a" pretty cur;*)
+	  Kernel.feedback ~dkey "status of hypotheses for emitter `%a': %a" 
+            Usable_emitter.pretty e.emitter pretty s;
+	  Kernel.feedback ~dkey "current best status: %a" pretty cur;
 	  cur)
 	Never_tried
 	l
@@ -1422,15 +1428,16 @@ module Consolidation_graph = struct
   let already_done = Property.Hashtbl.create 17
 
   let rec get ppt =
+    let dkey = Kernel.dkey_prop_status_graph in
     let compute ppt =
-      Kernel.debug ~dkey:dkey_graph "BUILDING GRAPH of %a" Property.pretty ppt;
+      Kernel.debug ~dkey "BUILDING GRAPH of %a" Property.pretty ppt;
 	(* [JS 2011/07/21] Only the better proof is added on the graph. For
 	   instance, if the consolidated status is valid thanks to WP, it does
 	   not show the dont_know proof tried by Value. *)
       if Property.Hashtbl.mem already_done ppt then
 	G.empty, true
       else begin
-	Kernel.debug ~dkey:dkey_graph "MARK %a" Property.pretty ppt;
+	Kernel.debug ~dkey "MARK %a" Property.pretty ppt;
 	Property.Hashtbl.add already_done ppt ();
 	let v_ppt = Property ppt in
 	  (* adding the property *)
@@ -1460,7 +1467,7 @@ module Consolidation_graph = struct
 	let v_e = Emitter (Usable_emitter.get_unique_name emitter) in
 	(* adding the emitter with its computed status *)
 	let g = G.add_edge_e g (v_ppt, Some s, v_e) in
-	Kernel.debug ~dkey:dkey_graph "%a --> %a (%a)" 
+	Kernel.debug ~dkey:Kernel.dkey_prop_status_graph "%a --> %a (%a)" 
 	  Property.pretty (match v_ppt with Property p -> p | _ -> assert false)
 	  Usable_emitter.pretty emitter
 	  Emitted_status.pretty s;
@@ -1497,7 +1504,8 @@ module Consolidation_graph = struct
       l
 
   let get ppt =
-    Kernel.debug ~dkey:dkey_graph "GET %a" Property.pretty ppt;
+    Kernel.debug ~dkey:Kernel.dkey_prop_status_graph
+      "GET %a" Property.pretty ppt;
     let g, truncated = get ppt in
     if truncated then Graph_by_property.replace ppt (g, false);
     Property.Hashtbl.clear already_done;

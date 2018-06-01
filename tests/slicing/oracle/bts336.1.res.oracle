@@ -6,13 +6,13 @@
   T[0..9] ∈ {0}
   x5 ∈ {0}
 [value] computing for function f2 <- main2.
-    Called from tests/slicing/bts336.i:35.
+  Called from tests/slicing/bts336.i:35.
 [value] Recording results for f2
 [from] Computing for function f2
 [from] Done for function f2
 [value] Done for function f2
 [value] computing for function f2 <- main2.
-    Called from tests/slicing/bts336.i:36.
+  Called from tests/slicing/bts336.i:36.
 [value] Recording results for f2
 [from] Computing for function f2
 [from] Done for function f2

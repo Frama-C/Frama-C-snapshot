@@ -8,20 +8,21 @@
   v2 ∈ {0}
   v ∈ {0}
 [value] computing for function f <- main.
-    Called from tests/value/deps_unitialized_locals.i:33.
+  Called from tests/value/deps_unitialized_locals.i:33.
 [value] Recording results for f
 [from] Computing for function f
 [from] Done for function f
 [value] Done for function f
 [value] computing for function g <- main.
-    Called from tests/value/deps_unitialized_locals.i:36.
-tests/value/deps_unitialized_locals.i:23:[value] warning: accessing uninitialized left-value. assert \initialized(&i);
+  Called from tests/value/deps_unitialized_locals.i:36.
+[value:alarm] tests/value/deps_unitialized_locals.i:23: Warning: 
+  accessing uninitialized left-value. assert \initialized(&i);
 [value] Recording results for g
 [from] Computing for function g
 [from] Done for function g
 [value] Done for function g
 [value] computing for function h <- main.
-    Called from tests/value/deps_unitialized_locals.i:39.
+  Called from tests/value/deps_unitialized_locals.i:39.
 [value] Recording results for h
 [from] Computing for function h
 [from] Done for function h
@@ -62,7 +63,7 @@ tests/value/deps_unitialized_locals.i:23:[value] warning: accessing uninitialize
 [from] Computing for function main
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
-    These dependencies hold at termination for the executions that terminate:
+  These dependencies hold at termination for the executions that terminate:
 [from] Function f:
   v1 FROM \nothing
 [from] Function g:
@@ -87,18 +88,18 @@ tests/value/deps_unitialized_locals.i:23:[value] warning: accessing uninitialize
   v FROM maybe
 [from] ====== END OF CALLWISE DEPENDENCIES ======
 [inout] Out (internal) for function f:
-      v1; ty{.ts; .ti}
+    v1; ty{.ts; .ti}
 [inout] Inputs for function f:
-      \nothing
+    \nothing
 [inout] Out (internal) for function g:
-      v; i
+    v; i
 [inout] Inputs for function g:
-      maybe
+    maybe
 [inout] Out (internal) for function h:
-      v; i
+    v; i
 [inout] Inputs for function h:
-      maybe
+    maybe
 [inout] Out (internal) for function main:
-      v1; v2; v; x
+    v1; v2; v; x
 [inout] Inputs for function main:
-      maybe; v1
+    maybe; v1

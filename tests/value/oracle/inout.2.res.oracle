@@ -20,21 +20,21 @@
       [6] ∈ {25}
       [7] ∈ {40}
   I5_nt ∈ {0}
-tests/value/inout.i:50:[value] entering loop for the first time
+[value] tests/value/inout.i:50: entering loop for the first time
 [value] Recording results for never_terminate
 [value] done for function never_terminate
 [from] Computing for function never_terminate
 [from] Non-terminating function never_terminate (no dependencies)
 [from] Done for function never_terminate
 [from] ====== DEPENDENCIES COMPUTED ======
-    These dependencies hold at termination for the executions that terminate:
+  These dependencies hold at termination for the executions that terminate:
 [from] Function never_terminate:
   NON TERMINATING - NO EFFECTS
 [from] ====== END OF DEPENDENCIES ======
 [inout] InOut (internal) for function never_terminate:
-    Operational inputs:
-      i1_nt; i2_nt; i3_nt
-    Operational inputs on termination:
-      \nothing
-    Sure outputs:
-      ANYTHING(origin:Unknown)
+  Operational inputs:
+    i1_nt; i2_nt; i3_nt
+  Operational inputs on termination:
+    \nothing
+  Sure outputs:
+    ANYTHING(origin:Unknown)
