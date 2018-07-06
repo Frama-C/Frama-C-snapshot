@@ -1,6 +1,6 @@
 opam-version: "1.2"
 name: "frama-c"
-version: "20180501"
+version: "20180502"
 maintainer: "francois.bobot@cea.fr"
 authors: [
   "Michele Alberti"
@@ -93,13 +93,9 @@ build-doc: [
    [make "-C" "doc" "install"]
 ]
 
-build-test: [
-  [make "-j%{jobs}%" "PTESTS_OPTS=-error-code" "tests"]
-]
-
 depends: [
   "ocamlgraph" { >= "1.8.8" & < "1.9~" }
-  "ocamlfind"
+  "ocamlfind" # needed beyond build stage, used by -load-module
   "zarith"
   "conf-autoconf"
   "lablgtk" { >= "2.18.2" } #for ocaml >= 4.02.1
@@ -112,6 +108,7 @@ depopts: [
   "coq" { build }
   "why3" { build }
   "altgr-ergo" { build }
+  "yojson" { build }
 ]
 
 messages: [

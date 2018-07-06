@@ -28,6 +28,8 @@
 __PUSH_FC_STDLIB
 #include <time.h>
 
+__BEGIN_DECLS
+
 typedef union {
   char __size[16];
 } sem_t;

@@ -42,5 +42,7 @@ __BEGIN_DECLS
   @ }
 */
 
+__END_DECLS
+
 __POP_FC_STDLIB
 #endif

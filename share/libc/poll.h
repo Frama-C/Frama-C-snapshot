@@ -25,6 +25,8 @@
 #include "features.h"
 __PUSH_FC_STDLIB
 
+__BEGIN_DECLS
+
 struct pollfd {
   int fd; // input parameter in poll()
   short events; // input parameter in poll()

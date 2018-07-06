@@ -25,6 +25,8 @@
 #include "features.h"
 __PUSH_FC_STDLIB
 
+__BEGIN_DECLS
+
 // The values for the constants below are based on those
 // of the glibc, declared in the order given by POSIX.1-2008.
 

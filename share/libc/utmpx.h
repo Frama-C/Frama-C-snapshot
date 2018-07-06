@@ -28,6 +28,8 @@ __PUSH_FC_STDLIB
 #include "__fc_define_pid_t.h"
 #include <sys/time.h>
 
+__BEGIN_DECLS
+
 // The sizes of arrays and values for the constants below are based on those
 // of the glibc, declared in the order given by POSIX.1-2008.
 

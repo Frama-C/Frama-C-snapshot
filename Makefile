@@ -1649,6 +1649,8 @@ install:: install-lib
 	  share/analysis-scripts/frama-c.mk \
 	  share/analysis-scripts/parse-coverage.sh \
 	  share/analysis-scripts/README.md \
+	  share/analysis-scripts/list_files.py \
+	  share/analysis-scripts/template.mk \
 	  $(FRAMAC_DATADIR)/analysis-scripts
 	$(MKDIR) $(FRAMAC_DATADIR)/emacs
 	$(CP) $(wildcard share/emacs/*.el) $(FRAMAC_DATADIR)/emacs
