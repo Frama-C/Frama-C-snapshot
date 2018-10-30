@@ -147,8 +147,10 @@ int countOne(char *argv)
   tmp = countOne(argv + 1);
   r += tmp;
   __retres = r;
-  return_label: countOne_post_func(__retres);
-  return __retres;
+  return_label: {
+                  countOne_post_func(__retres);
+                  return __retres;
+                }
 }
 
 /*@ ensures aorai_CurOpStatus ≡ aorai_Called;

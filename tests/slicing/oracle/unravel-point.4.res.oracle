@@ -1,84 +1,84 @@
 [kernel] Parsing tests/slicing/unravel-point.i (no preprocessing)
-[value] Analyzing a complete application starting at main
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing a complete application starting at main
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   
-[value] computing for function scanf <- main.
+[eva] computing for function scanf <- main.
   Called from tests/slicing/unravel-point.i:59.
-[value] using specification for function scanf
-[value] Done for function scanf
-[value:alarm] tests/slicing/unravel-point.i:60: Warning: 
+[eva] using specification for function scanf
+[eva] Done for function scanf
+[eva:alarm] tests/slicing/unravel-point.i:60: Warning: 
   accessing uninitialized left-value. assert \initialized(&input1);
-[value] computing for function scanf <- main.
+[eva] computing for function scanf <- main.
   Called from tests/slicing/unravel-point.i:61.
-[value] Done for function scanf
-[value:alarm] tests/slicing/unravel-point.i:62: Warning: 
+[eva] Done for function scanf
+[eva:alarm] tests/slicing/unravel-point.i:62: Warning: 
   accessing uninitialized left-value. assert \initialized(&input2);
-[value] computing for function scanf <- main.
+[eva] computing for function scanf <- main.
   Called from tests/slicing/unravel-point.i:63.
-[value] Done for function scanf
-[value:alarm] tests/slicing/unravel-point.i:64: Warning: 
+[eva] Done for function scanf
+[eva:alarm] tests/slicing/unravel-point.i:64: Warning: 
   accessing uninitialized left-value. assert \initialized(&input3);
-[value] computing for function scanf <- main.
+[eva] computing for function scanf <- main.
   Called from tests/slicing/unravel-point.i:65.
-[value] Done for function scanf
-[value] computing for function scanf <- main.
+[eva] Done for function scanf
+[eva] computing for function scanf <- main.
   Called from tests/slicing/unravel-point.i:66.
-[value] Done for function scanf
-[value:alarm] tests/slicing/unravel-point.i:68: Warning: 
+[eva] Done for function scanf
+[eva:alarm] tests/slicing/unravel-point.i:68: Warning: 
   accessing uninitialized left-value. assert \initialized(&cond1);
-[value:alarm] tests/slicing/unravel-point.i:71: Warning: 
+[eva:alarm] tests/slicing/unravel-point.i:71: Warning: 
   signed overflow. assert *z + 1 ≤ 2147483647;
-[value:alarm] tests/slicing/unravel-point.i:72: Warning: 
+[eva:alarm] tests/slicing/unravel-point.i:72: Warning: 
   signed overflow. assert -2147483648 ≤ *y + *x;
-[value:alarm] tests/slicing/unravel-point.i:72: Warning: 
+[eva:alarm] tests/slicing/unravel-point.i:72: Warning: 
   signed overflow. assert *y + *x ≤ 2147483647;
-[value] computing for function send1 <- main.
+[eva] computing for function send1 <- main.
   Called from tests/slicing/unravel-point.i:75.
-[value] computing for function printf <- send1 <- main.
+[eva] computing for function printf <- send1 <- main.
   Called from tests/slicing/unravel-point.i:36.
 [kernel:annot:missing-spec] tests/slicing/unravel-point.i:36: Warning: 
   Neither code nor specification for function printf, generating default assigns from the prototype
-[value] using specification for function printf
-[value] Done for function printf
-[value] Recording results for send1
+[eva] using specification for function printf
+[eva] Done for function printf
+[eva] Recording results for send1
 [from] Computing for function send1
 [from] Done for function send1
-[value] Done for function send1
-[value] computing for function send2 <- main.
+[eva] Done for function send1
+[eva] computing for function send2 <- main.
   Called from tests/slicing/unravel-point.i:76.
-[value] computing for function printf <- send2 <- main.
+[eva] computing for function printf <- send2 <- main.
   Called from tests/slicing/unravel-point.i:40.
-[value] Done for function printf
-[value] Recording results for send2
+[eva] Done for function printf
+[eva] Recording results for send2
 [from] Computing for function send2
 [from] Done for function send2
-[value] Done for function send2
-[value] computing for function send3 <- main.
+[eva] Done for function send2
+[eva] computing for function send3 <- main.
   Called from tests/slicing/unravel-point.i:77.
-[value] computing for function printf <- send3 <- main.
+[eva] computing for function printf <- send3 <- main.
   Called from tests/slicing/unravel-point.i:44.
-[value] Done for function printf
-[value] Recording results for send3
+[eva] Done for function printf
+[eva] Recording results for send3
 [from] Computing for function send3
 [from] Done for function send3
-[value] Done for function send3
-[value:alarm] tests/slicing/unravel-point.i:78: Warning: 
+[eva] Done for function send3
+[eva:alarm] tests/slicing/unravel-point.i:78: Warning: 
   accessing uninitialized left-value. assert \initialized(&cond2);
-[value] computing for function send4 <- main.
+[eva] computing for function send4 <- main.
   Called from tests/slicing/unravel-point.i:78.
-[value] computing for function printf <- send4 <- main.
+[eva] computing for function printf <- send4 <- main.
   Called from tests/slicing/unravel-point.i:48.
-[value] Done for function printf
-[value] Recording results for send4
+[eva] Done for function printf
+[eva] Recording results for send4
 [from] Computing for function send4
 [from] Done for function send4
-[value] Done for function send4
-[value] Recording results for main
+[eva] Done for function send4
+[eva] Recording results for main
 [from] Computing for function main
 [from] Done for function main
-[value] done for function main
+[eva] done for function main
 [from] ====== DISPLAYING CALLWISE DEPENDENCIES ======
 [from] call to printf at tests/slicing/unravel-point.i:36 (by send1):
   \result FROM \nothing
@@ -134,59 +134,59 @@
 [slicing] applying 0 actions...
 [sparecode] remove unused global declarations from project 'Slicing export tmp'
 [sparecode] removed unused global declarations in new project 'Slicing export'
-[value] Analyzing a complete application starting at main
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing a complete application starting at main
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   
-[value] computing for function scanf <- main.
+[eva] computing for function scanf <- main.
   Called from tests/slicing/unravel-point.i:59.
 [kernel:annot:missing-spec] tests/slicing/unravel-point.i:59: Warning: 
   Neither code nor specification for function scanf, generating default assigns from the prototype
-[value] using specification for function scanf
-[value] Done for function scanf
-[value:alarm] tests/slicing/unravel-point.i:60: Warning: 
+[eva] using specification for function scanf
+[eva] Done for function scanf
+[eva:alarm] tests/slicing/unravel-point.i:60: Warning: 
   accessing uninitialized left-value. assert \initialized(&input1);
-[value] computing for function scanf <- main.
+[eva] computing for function scanf <- main.
   Called from tests/slicing/unravel-point.i:61.
-[value] Done for function scanf
-[value:alarm] tests/slicing/unravel-point.i:62: Warning: 
+[eva] Done for function scanf
+[eva:alarm] tests/slicing/unravel-point.i:62: Warning: 
   accessing uninitialized left-value. assert \initialized(&input2);
-[value] computing for function scanf <- main.
+[eva] computing for function scanf <- main.
   Called from tests/slicing/unravel-point.i:63.
-[value] Done for function scanf
-[value:alarm] tests/slicing/unravel-point.i:64: Warning: 
+[eva] Done for function scanf
+[eva:alarm] tests/slicing/unravel-point.i:64: Warning: 
   accessing uninitialized left-value. assert \initialized(&input3);
-[value] computing for function scanf <- main.
+[eva] computing for function scanf <- main.
   Called from tests/slicing/unravel-point.i:65.
-[value] Done for function scanf
-[value] computing for function scanf <- main.
+[eva] Done for function scanf
+[eva] computing for function scanf <- main.
   Called from tests/slicing/unravel-point.i:66.
-[value] Done for function scanf
-[value:alarm] tests/slicing/unravel-point.i:68: Warning: 
+[eva] Done for function scanf
+[eva:alarm] tests/slicing/unravel-point.i:68: Warning: 
   accessing uninitialized left-value. assert \initialized(&cond1);
-[value:alarm] tests/slicing/unravel-point.i:72: Warning: 
+[eva:alarm] tests/slicing/unravel-point.i:72: Warning: 
   signed overflow. assert -2147483648 ≤ *y + *x;
-[value:alarm] tests/slicing/unravel-point.i:72: Warning: 
+[eva:alarm] tests/slicing/unravel-point.i:72: Warning: 
   signed overflow. assert *y + *x ≤ 2147483647;
-[value] computing for function send1_slice_1 <- main.
+[eva] computing for function send1_slice_1 <- main.
   Called from tests/slicing/unravel-point.i:75.
-[value] Recording results for send1_slice_1
+[eva] Recording results for send1_slice_1
 [from] Computing for function send1_slice_1
 [from] Done for function send1_slice_1
-[value] Done for function send1_slice_1
-[value:alarm] tests/slicing/unravel-point.i:78: Warning: 
+[eva] Done for function send1_slice_1
+[eva:alarm] tests/slicing/unravel-point.i:78: Warning: 
   accessing uninitialized left-value. assert \initialized(&cond2);
-[value] computing for function send4_slice_1 <- main.
+[eva] computing for function send4_slice_1 <- main.
   Called from tests/slicing/unravel-point.i:78.
-[value] Recording results for send4_slice_1
+[eva] Recording results for send4_slice_1
 [from] Computing for function send4_slice_1
 [from] Done for function send4_slice_1
-[value] Done for function send4_slice_1
-[value] Recording results for main
+[eva] Done for function send4_slice_1
+[eva] Recording results for main
 [from] Computing for function main
 [from] Done for function main
-[value] done for function main
+[eva] done for function main
 [from] ====== DISPLAYING CALLWISE DEPENDENCIES ======
 [from] call to scanf at tests/slicing/unravel-point.i:59 (by main):
   input1 FROM input1 (and SELF)
@@ -258,27 +258,27 @@ void main(void)
   int *z;
   int output1;
   scanf("%d",& input1);
-  /*@ assert Value: initialization: \initialized(&input1); */
+  /*@ assert Eva: initialization: \initialized(&input1); */
   a = input1;
   scanf("%d",& input2);
-  /*@ assert Value: initialization: \initialized(&input2); */
+  /*@ assert Eva: initialization: \initialized(&input2); */
   b = input2;
   scanf("%d",& input3);
-  /*@ assert Value: initialization: \initialized(&input3); */
+  /*@ assert Eva: initialization: \initialized(&input3); */
   c = input3;
   scanf("%d",& cond1);
   scanf("%d",& cond2);
   x = & a;
-  /*@ assert Value: initialization: \initialized(&cond1); */
+  /*@ assert Eva: initialization: \initialized(&cond1); */
   if (cond1) x = & b;
   y = & c;
   z = & b;
-  /*@ assert Value: signed_overflow: -2147483648 ≤ *y + *x; */
-  /*@ assert Value: signed_overflow: *y + *x ≤ 2147483647; */
+  /*@ assert Eva: signed_overflow: -2147483648 ≤ *y + *x; */
+  /*@ assert Eva: signed_overflow: *y + *x ≤ 2147483647; */
   *z = *y + *x;
   output1 = *z;
   send1_slice_1(output1);
-  /*@ assert Value: initialization: \initialized(&cond2); */
+  /*@ assert Eva: initialization: \initialized(&cond2); */
   send4_slice_1(cond2);
   return;
 }

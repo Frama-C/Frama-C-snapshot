@@ -1,0 +1,1403 @@
+[kernel] Parsing tests/builtins/linked_list.c (with preprocessing)
+[eva] Analyzing a complete application starting at main
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
+  MEMORY[0..1023] ∈ {0}
+  malloc_next_free ∈ {0}
+[eva] tests/builtins/linked_list.c:40: 
+  Frama_C_dump_each:
+  # Cvalue domain:
+  MEMORY[0..1023] ∈ {0}
+  __fc_errno ∈ [--..--]
+  __fc_stderr ∈ {{ &__fc_initial_stderr }}
+  __fc_stdin ∈ {{ &__fc_initial_stdin }}
+  __fc_stdout ∈ {{ &__fc_initial_stdout }}
+  __fc_fopen[0..15] ∈ {0}
+  __fc_p_fopen ∈ {{ &__fc_fopen[0] }}
+  __fc_heap_status ∈ [--..--]
+  __fc_random_counter ∈ [--..--]
+  __fc_rand_max ∈ {32767}
+  __fc_env[0] ∈ {{ NULL ; &S_0___fc_env[0] }}
+          [1] ∈ {{ NULL ; &S_1___fc_env[0] }}
+          [2..4095] ∈ {{ NULL ; &S_0___fc_env[0] ; &S_1___fc_env[0] }}
+  __fc_mblen_state ∈ [--..--]
+  __fc_mbtowc_state ∈ [--..--]
+  __fc_wctomb_state ∈ [--..--]
+  __fc_initial_stdout.__fc_FILE_id ∈ {1}
+                     .__fc_FILE_data ∈ {0}
+  __fc_initial_stderr.__fc_FILE_id ∈ {2}
+                     .__fc_FILE_data ∈ {0}
+  __fc_initial_stdin ∈ {0}
+  curr ∈ UNINITIALIZED
+  head ∈ {0}
+  i ∈ {1}
+  malloc_next_free ∈ {0}
+  S_0___fc_env[0..1] ∈ [--..--]
+  S_1___fc_env[0..1] ∈ [--..--]
+  ==END OF DUMP==
+[eva] computing for function malloc <- main.
+  Called from tests/builtins/linked_list.c:41.
+[eva:alarm] share/libc/stdlib.h:331: Warning: 
+  function malloc, behavior allocation: postcondition 'allocation' got status unknown.
+[eva] Recording results for malloc
+[eva] Done for function malloc
+[eva] tests/builtins/linked_list.c:42: 
+  Frama_C_dump_each:
+  # Cvalue domain:
+  MEMORY[0..1023] ∈ {0}
+  __fc_errno ∈ [--..--]
+  __fc_stderr ∈ {{ &__fc_initial_stderr }}
+  __fc_stdin ∈ {{ &__fc_initial_stdin }}
+  __fc_stdout ∈ {{ &__fc_initial_stdout }}
+  __fc_fopen[0..15] ∈ {0}
+  __fc_p_fopen ∈ {{ &__fc_fopen[0] }}
+  __fc_heap_status ∈ [--..--]
+  __fc_random_counter ∈ [--..--]
+  __fc_rand_max ∈ {32767}
+  __fc_env[0] ∈ {{ NULL ; &S_0___fc_env[0] }}
+          [1] ∈ {{ NULL ; &S_1___fc_env[0] }}
+          [2..4095] ∈ {{ NULL ; &S_0___fc_env[0] ; &S_1___fc_env[0] }}
+  __fc_mblen_state ∈ [--..--]
+  __fc_mbtowc_state ∈ [--..--]
+  __fc_wctomb_state ∈ [--..--]
+  __fc_initial_stdout.__fc_FILE_id ∈ {1}
+                     .__fc_FILE_data ∈ {0}
+  __fc_initial_stderr.__fc_FILE_id ∈ {2}
+                     .__fc_FILE_data ∈ {0}
+  __fc_initial_stdin ∈ {0}
+  curr ∈ {{ (item *)&MEMORY }}
+  head ∈ {0}
+  i ∈ {1}
+  malloc_next_free ∈ {8}
+  S_0___fc_env[0..1] ∈ [--..--]
+  S_1___fc_env[0..1] ∈ [--..--]
+  ==END OF DUMP==
+[eva] tests/builtins/linked_list.c:39: starting to merge loop iterations
+[eva] tests/builtins/linked_list.c:40: 
+  Frama_C_dump_each:
+  # Cvalue domain:
+  MEMORY[bits 0 to 31] ∈ {0; 1}
+        [4..1023] ∈ {0}
+  __fc_errno ∈ [--..--]
+  __fc_stderr ∈ {{ &__fc_initial_stderr }}
+  __fc_stdin ∈ {{ &__fc_initial_stdin }}
+  __fc_stdout ∈ {{ &__fc_initial_stdout }}
+  __fc_fopen[0..15] ∈ {0}
+  __fc_p_fopen ∈ {{ &__fc_fopen[0] }}
+  __fc_heap_status ∈ [--..--]
+  __fc_random_counter ∈ [--..--]
+  __fc_rand_max ∈ {32767}
+  __fc_env[0] ∈ {{ NULL ; &S_0___fc_env[0] }}
+          [1] ∈ {{ NULL ; &S_1___fc_env[0] }}
+          [2..4095] ∈ {{ NULL ; &S_0___fc_env[0] ; &S_1___fc_env[0] }}
+  __fc_mblen_state ∈ [--..--]
+  __fc_mbtowc_state ∈ [--..--]
+  __fc_wctomb_state ∈ [--..--]
+  __fc_initial_stdout.__fc_FILE_id ∈ {1}
+                     .__fc_FILE_data ∈ {0}
+  __fc_initial_stderr.__fc_FILE_id ∈ {2}
+                     .__fc_FILE_data ∈ {0}
+  __fc_initial_stdin ∈ {0}
+  curr ∈ {{ (item *)&MEMORY }} or UNINITIALIZED
+  head ∈ {{ NULL ; (item *)&MEMORY }}
+  i ∈ {1; 2}
+  malloc_next_free ∈ {0; 8}
+  S_0___fc_env[0..1] ∈ [--..--]
+  S_1___fc_env[0..1] ∈ [--..--]
+  ==END OF DUMP==
+[eva] computing for function malloc <- main.
+  Called from tests/builtins/linked_list.c:41.
+[eva] Recording results for malloc
+[eva] Done for function malloc
+[eva] tests/builtins/linked_list.c:42: 
+  Frama_C_dump_each:
+  # Cvalue domain:
+  MEMORY[bits 0 to 31] ∈ {0; 1}
+        [4..1023] ∈ {0}
+  __fc_errno ∈ [--..--]
+  __fc_stderr ∈ {{ &__fc_initial_stderr }}
+  __fc_stdin ∈ {{ &__fc_initial_stdin }}
+  __fc_stdout ∈ {{ &__fc_initial_stdout }}
+  __fc_fopen[0..15] ∈ {0}
+  __fc_p_fopen ∈ {{ &__fc_fopen[0] }}
+  __fc_heap_status ∈ [--..--]
+  __fc_random_counter ∈ [--..--]
+  __fc_rand_max ∈ {32767}
+  __fc_env[0] ∈ {{ NULL ; &S_0___fc_env[0] }}
+          [1] ∈ {{ NULL ; &S_1___fc_env[0] }}
+          [2..4095] ∈ {{ NULL ; &S_0___fc_env[0] ; &S_1___fc_env[0] }}
+  __fc_mblen_state ∈ [--..--]
+  __fc_mbtowc_state ∈ [--..--]
+  __fc_wctomb_state ∈ [--..--]
+  __fc_initial_stdout.__fc_FILE_id ∈ {1}
+                     .__fc_FILE_data ∈ {0}
+  __fc_initial_stderr.__fc_FILE_id ∈ {2}
+                     .__fc_FILE_data ∈ {0}
+  __fc_initial_stdin ∈ {0}
+  curr ∈ {{ (item *)&MEMORY{[0], [8]} }}
+  head ∈ {{ NULL ; (item *)&MEMORY }}
+  i ∈ {1; 2}
+  malloc_next_free ∈ {8; 16}
+  S_0___fc_env[0..1] ∈ [--..--]
+  S_1___fc_env[0..1] ∈ [--..--]
+  ==END OF DUMP==
+[eva] tests/builtins/linked_list.c:40: 
+  Frama_C_dump_each:
+  # Cvalue domain:
+  MEMORY[bits 0 to 31] ∈ {0; 1; 2}
+        [bits 32 to 63] ∈ {{ NULL ; (? *)&MEMORY }}
+        [bits 64 to 95] ∈ {0; 1; 2}
+        [bits 96 to 127] ∈ {{ NULL ; (? *)&MEMORY }}
+        [16..1023] ∈ {0}
+  __fc_errno ∈ [--..--]
+  __fc_stderr ∈ {{ &__fc_initial_stderr }}
+  __fc_stdin ∈ {{ &__fc_initial_stdin }}
+  __fc_stdout ∈ {{ &__fc_initial_stdout }}
+  __fc_fopen[0..15] ∈ {0}
+  __fc_p_fopen ∈ {{ &__fc_fopen[0] }}
+  __fc_heap_status ∈ [--..--]
+  __fc_random_counter ∈ [--..--]
+  __fc_rand_max ∈ {32767}
+  __fc_env[0] ∈ {{ NULL ; &S_0___fc_env[0] }}
+          [1] ∈ {{ NULL ; &S_1___fc_env[0] }}
+          [2..4095] ∈ {{ NULL ; &S_0___fc_env[0] ; &S_1___fc_env[0] }}
+  __fc_mblen_state ∈ [--..--]
+  __fc_mbtowc_state ∈ [--..--]
+  __fc_wctomb_state ∈ [--..--]
+  __fc_initial_stdout.__fc_FILE_id ∈ {1}
+                     .__fc_FILE_data ∈ {0}
+  __fc_initial_stderr.__fc_FILE_id ∈ {2}
+                     .__fc_FILE_data ∈ {0}
+  __fc_initial_stdin ∈ {0}
+  curr ∈ {{ (item *)&MEMORY{[0], [8]} }} or UNINITIALIZED
+  head ∈ {{ NULL ; (item *)&MEMORY{[0], [8]} }}
+  i ∈ {1; 2; 3}
+  malloc_next_free ∈ {0; 8; 16}
+  S_0___fc_env[0..1] ∈ [--..--]
+  S_1___fc_env[0..1] ∈ [--..--]
+  ==END OF DUMP==
+[eva] computing for function malloc <- main.
+  Called from tests/builtins/linked_list.c:41.
+[eva] Recording results for malloc
+[eva] Done for function malloc
+[eva] tests/builtins/linked_list.c:42: 
+  Frama_C_dump_each:
+  # Cvalue domain:
+  MEMORY[bits 0 to 31] ∈ {0; 1; 2}
+        [bits 32 to 63] ∈ {{ NULL ; (? *)&MEMORY }}
+        [bits 64 to 95] ∈ {0; 1; 2}
+        [bits 96 to 127] ∈ {{ NULL ; (? *)&MEMORY }}
+        [16..1023] ∈ {0}
+  __fc_errno ∈ [--..--]
+  __fc_stderr ∈ {{ &__fc_initial_stderr }}
+  __fc_stdin ∈ {{ &__fc_initial_stdin }}
+  __fc_stdout ∈ {{ &__fc_initial_stdout }}
+  __fc_fopen[0..15] ∈ {0}
+  __fc_p_fopen ∈ {{ &__fc_fopen[0] }}
+  __fc_heap_status ∈ [--..--]
+  __fc_random_counter ∈ [--..--]
+  __fc_rand_max ∈ {32767}
+  __fc_env[0] ∈ {{ NULL ; &S_0___fc_env[0] }}
+          [1] ∈ {{ NULL ; &S_1___fc_env[0] }}
+          [2..4095] ∈ {{ NULL ; &S_0___fc_env[0] ; &S_1___fc_env[0] }}
+  __fc_mblen_state ∈ [--..--]
+  __fc_mbtowc_state ∈ [--..--]
+  __fc_wctomb_state ∈ [--..--]
+  __fc_initial_stdout.__fc_FILE_id ∈ {1}
+                     .__fc_FILE_data ∈ {0}
+  __fc_initial_stderr.__fc_FILE_id ∈ {2}
+                     .__fc_FILE_data ∈ {0}
+  __fc_initial_stdin ∈ {0}
+  curr ∈ {{ (item *)&MEMORY{[0], [8], [16]} }}
+  head ∈ {{ NULL ; (item *)&MEMORY{[0], [8]} }}
+  i ∈ {1; 2; 3}
+  malloc_next_free ∈ {8; 16; 24}
+  S_0___fc_env[0..1] ∈ [--..--]
+  S_1___fc_env[0..1] ∈ [--..--]
+  ==END OF DUMP==
+[eva] tests/builtins/linked_list.c:40: 
+  Frama_C_dump_each:
+  # Cvalue domain:
+  MEMORY[bits 0 to 31] ∈ {0; 1; 2; 3}
+        [bits 32 to 63] ∈ {{ NULL ; (? *)&MEMORY{[0], [8]} }}
+        [bits 64 to 95] ∈ {0; 1; 2; 3}
+        [bits 96 to 127] ∈ {{ NULL ; (? *)&MEMORY{[0], [8]} }}
+        [bits 128 to 159] ∈ {0; 1; 2; 3}
+        [bits 160 to 191] ∈ {{ NULL ; (? *)&MEMORY{[0], [8]} }}
+        [24..1023] ∈ {0}
+  __fc_errno ∈ [--..--]
+  __fc_stderr ∈ {{ &__fc_initial_stderr }}
+  __fc_stdin ∈ {{ &__fc_initial_stdin }}
+  __fc_stdout ∈ {{ &__fc_initial_stdout }}
+  __fc_fopen[0..15] ∈ {0}
+  __fc_p_fopen ∈ {{ &__fc_fopen[0] }}
+  __fc_heap_status ∈ [--..--]
+  __fc_random_counter ∈ [--..--]
+  __fc_rand_max ∈ {32767}
+  __fc_env[0] ∈ {{ NULL ; &S_0___fc_env[0] }}
+          [1] ∈ {{ NULL ; &S_1___fc_env[0] }}
+          [2..4095] ∈ {{ NULL ; &S_0___fc_env[0] ; &S_1___fc_env[0] }}
+  __fc_mblen_state ∈ [--..--]
+  __fc_mbtowc_state ∈ [--..--]
+  __fc_wctomb_state ∈ [--..--]
+  __fc_initial_stdout.__fc_FILE_id ∈ {1}
+                     .__fc_FILE_data ∈ {0}
+  __fc_initial_stderr.__fc_FILE_id ∈ {2}
+                     .__fc_FILE_data ∈ {0}
+  __fc_initial_stdin ∈ {0}
+  curr ∈ {{ (item *)&MEMORY{[0], [8], [16]} }} or UNINITIALIZED
+  head ∈ {{ NULL ; (item *)&MEMORY{[0], [8], [16]} }}
+  i ∈ [1..10]
+  malloc_next_free ∈ {0; 8; 16; 24}
+  S_0___fc_env[0..1] ∈ [--..--]
+  S_1___fc_env[0..1] ∈ [--..--]
+  ==END OF DUMP==
+[eva] computing for function malloc <- main.
+  Called from tests/builtins/linked_list.c:41.
+[eva] Recording results for malloc
+[eva] Done for function malloc
+[eva] tests/builtins/linked_list.c:42: 
+  Frama_C_dump_each:
+  # Cvalue domain:
+  MEMORY[bits 0 to 31] ∈ {0; 1; 2; 3}
+        [bits 32 to 63] ∈ {{ NULL ; (? *)&MEMORY{[0], [8]} }}
+        [bits 64 to 95] ∈ {0; 1; 2; 3}
+        [bits 96 to 127] ∈ {{ NULL ; (? *)&MEMORY{[0], [8]} }}
+        [bits 128 to 159] ∈ {0; 1; 2; 3}
+        [bits 160 to 191] ∈ {{ NULL ; (? *)&MEMORY{[0], [8]} }}
+        [24..1023] ∈ {0}
+  __fc_errno ∈ [--..--]
+  __fc_stderr ∈ {{ &__fc_initial_stderr }}
+  __fc_stdin ∈ {{ &__fc_initial_stdin }}
+  __fc_stdout ∈ {{ &__fc_initial_stdout }}
+  __fc_fopen[0..15] ∈ {0}
+  __fc_p_fopen ∈ {{ &__fc_fopen[0] }}
+  __fc_heap_status ∈ [--..--]
+  __fc_random_counter ∈ [--..--]
+  __fc_rand_max ∈ {32767}
+  __fc_env[0] ∈ {{ NULL ; &S_0___fc_env[0] }}
+          [1] ∈ {{ NULL ; &S_1___fc_env[0] }}
+          [2..4095] ∈ {{ NULL ; &S_0___fc_env[0] ; &S_1___fc_env[0] }}
+  __fc_mblen_state ∈ [--..--]
+  __fc_mbtowc_state ∈ [--..--]
+  __fc_wctomb_state ∈ [--..--]
+  __fc_initial_stdout.__fc_FILE_id ∈ {1}
+                     .__fc_FILE_data ∈ {0}
+  __fc_initial_stderr.__fc_FILE_id ∈ {2}
+                     .__fc_FILE_data ∈ {0}
+  __fc_initial_stdin ∈ {0}
+  curr ∈ {{ (item *)&MEMORY{[0], [8], [16], [24]} }}
+  head ∈ {{ NULL ; (item *)&MEMORY{[0], [8], [16]} }}
+  i ∈ [1..10]
+  malloc_next_free ∈ {8; 16; 24; 32}
+  S_0___fc_env[0..1] ∈ [--..--]
+  S_1___fc_env[0..1] ∈ [--..--]
+  ==END OF DUMP==
+[eva] tests/builtins/linked_list.c:40: 
+  Frama_C_dump_each:
+  # Cvalue domain:
+  MEMORY[bits 0 to 31] ∈ [0..10]
+        [bits 32 to 63] ∈ {{ NULL ; (? *)&MEMORY{[0], [8], [16]} }}
+        [bits 64 to 95] ∈ [0..10]
+        [bits 96 to 127] ∈ {{ NULL ; (? *)&MEMORY{[0], [8], [16]} }}
+        [bits 128 to 159] ∈ [0..10]
+        [bits 160 to 191] ∈ {{ NULL ; (? *)&MEMORY{[0], [8], [16]} }}
+        [bits 192 to 223] ∈ [0..10]
+        [bits 224 to 255] ∈ {{ NULL ; (? *)&MEMORY{[0], [8], [16]} }}
+        [32..1023] ∈ {0}
+  __fc_errno ∈ [--..--]
+  __fc_stderr ∈ {{ &__fc_initial_stderr }}
+  __fc_stdin ∈ {{ &__fc_initial_stdin }}
+  __fc_stdout ∈ {{ &__fc_initial_stdout }}
+  __fc_fopen[0..15] ∈ {0}
+  __fc_p_fopen ∈ {{ &__fc_fopen[0] }}
+  __fc_heap_status ∈ [--..--]
+  __fc_random_counter ∈ [--..--]
+  __fc_rand_max ∈ {32767}
+  __fc_env[0] ∈ {{ NULL ; &S_0___fc_env[0] }}
+          [1] ∈ {{ NULL ; &S_1___fc_env[0] }}
+          [2..4095] ∈ {{ NULL ; &S_0___fc_env[0] ; &S_1___fc_env[0] }}
+  __fc_mblen_state ∈ [--..--]
+  __fc_mbtowc_state ∈ [--..--]
+  __fc_wctomb_state ∈ [--..--]
+  __fc_initial_stdout.__fc_FILE_id ∈ {1}
+                     .__fc_FILE_data ∈ {0}
+  __fc_initial_stderr.__fc_FILE_id ∈ {2}
+                     .__fc_FILE_data ∈ {0}
+  __fc_initial_stdin ∈ {0}
+  curr ∈ {{ (item *)&MEMORY{[0], [8], [16], [24]} }} or UNINITIALIZED
+  head ∈ {{ NULL ; (item *)&MEMORY{[0], [8], [16], [24]} }}
+  i ∈ [1..10]
+  malloc_next_free ∈ {0; 8; 16; 24; 32}
+  S_0___fc_env[0..1] ∈ [--..--]
+  S_1___fc_env[0..1] ∈ [--..--]
+  ==END OF DUMP==
+[eva] computing for function malloc <- main.
+  Called from tests/builtins/linked_list.c:41.
+[eva] Recording results for malloc
+[eva] Done for function malloc
+[eva] tests/builtins/linked_list.c:42: 
+  Frama_C_dump_each:
+  # Cvalue domain:
+  MEMORY[bits 0 to 31] ∈ [0..10]
+        [bits 32 to 63] ∈ {{ NULL ; (? *)&MEMORY{[0], [8], [16]} }}
+        [bits 64 to 95] ∈ [0..10]
+        [bits 96 to 127] ∈ {{ NULL ; (? *)&MEMORY{[0], [8], [16]} }}
+        [bits 128 to 159] ∈ [0..10]
+        [bits 160 to 191] ∈ {{ NULL ; (? *)&MEMORY{[0], [8], [16]} }}
+        [bits 192 to 223] ∈ [0..10]
+        [bits 224 to 255] ∈ {{ NULL ; (? *)&MEMORY{[0], [8], [16]} }}
+        [32..1023] ∈ {0}
+  __fc_errno ∈ [--..--]
+  __fc_stderr ∈ {{ &__fc_initial_stderr }}
+  __fc_stdin ∈ {{ &__fc_initial_stdin }}
+  __fc_stdout ∈ {{ &__fc_initial_stdout }}
+  __fc_fopen[0..15] ∈ {0}
+  __fc_p_fopen ∈ {{ &__fc_fopen[0] }}
+  __fc_heap_status ∈ [--..--]
+  __fc_random_counter ∈ [--..--]
+  __fc_rand_max ∈ {32767}
+  __fc_env[0] ∈ {{ NULL ; &S_0___fc_env[0] }}
+          [1] ∈ {{ NULL ; &S_1___fc_env[0] }}
+          [2..4095] ∈ {{ NULL ; &S_0___fc_env[0] ; &S_1___fc_env[0] }}
+  __fc_mblen_state ∈ [--..--]
+  __fc_mbtowc_state ∈ [--..--]
+  __fc_wctomb_state ∈ [--..--]
+  __fc_initial_stdout.__fc_FILE_id ∈ {1}
+                     .__fc_FILE_data ∈ {0}
+  __fc_initial_stderr.__fc_FILE_id ∈ {2}
+                     .__fc_FILE_data ∈ {0}
+  __fc_initial_stdin ∈ {0}
+  curr ∈ {{ (item *)&MEMORY{[0], [8], [16], [24], [32]} }}
+  head ∈ {{ NULL ; (item *)&MEMORY{[0], [8], [16], [24]} }}
+  i ∈ [1..10]
+  malloc_next_free ∈ {8; 16; 24; 32; 40}
+  S_0___fc_env[0..1] ∈ [--..--]
+  S_1___fc_env[0..1] ∈ [--..--]
+  ==END OF DUMP==
+[eva] tests/builtins/linked_list.c:40: 
+  Frama_C_dump_each:
+  # Cvalue domain:
+  MEMORY[bits 0 to 31] ∈ [0..10]
+        [bits 32 to 63] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 64 to 95] ∈ [0..10]
+        [bits 96 to 127] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 128 to 159] ∈ [0..10]
+        [bits 160 to 191] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 192 to 223] ∈ [0..10]
+        [bits 224 to 255] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 256 to 287] ∈ [0..10]
+        [bits 288 to 319] ∈ {{ NULL ; (? *)&MEMORY{[0], [8], [16], [24]} }}
+        [40..1023] ∈ {0}
+  __fc_errno ∈ [--..--]
+  __fc_stderr ∈ {{ &__fc_initial_stderr }}
+  __fc_stdin ∈ {{ &__fc_initial_stdin }}
+  __fc_stdout ∈ {{ &__fc_initial_stdout }}
+  __fc_fopen[0..15] ∈ {0}
+  __fc_p_fopen ∈ {{ &__fc_fopen[0] }}
+  __fc_heap_status ∈ [--..--]
+  __fc_random_counter ∈ [--..--]
+  __fc_rand_max ∈ {32767}
+  __fc_env[0] ∈ {{ NULL ; &S_0___fc_env[0] }}
+          [1] ∈ {{ NULL ; &S_1___fc_env[0] }}
+          [2..4095] ∈ {{ NULL ; &S_0___fc_env[0] ; &S_1___fc_env[0] }}
+  __fc_mblen_state ∈ [--..--]
+  __fc_mbtowc_state ∈ [--..--]
+  __fc_wctomb_state ∈ [--..--]
+  __fc_initial_stdout.__fc_FILE_id ∈ {1}
+                     .__fc_FILE_data ∈ {0}
+  __fc_initial_stderr.__fc_FILE_id ∈ {2}
+                     .__fc_FILE_data ∈ {0}
+  __fc_initial_stdin ∈ {0}
+  curr ∈ {{ &MEMORY + [0..1016],0%8 }} or UNINITIALIZED
+  head ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+  i ∈ [1..10]
+  malloc_next_free ∈ [0..2147483640],0%8
+  S_0___fc_env[0..1] ∈ [--..--]
+  S_1___fc_env[0..1] ∈ [--..--]
+  ==END OF DUMP==
+[eva] computing for function malloc <- main.
+  Called from tests/builtins/linked_list.c:41.
+[eva] Recording results for malloc
+[eva] Done for function malloc
+[eva] tests/builtins/linked_list.c:42: 
+  Frama_C_dump_each:
+  # Cvalue domain:
+  MEMORY[bits 0 to 31] ∈ [0..10]
+        [bits 32 to 63] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 64 to 95] ∈ [0..10]
+        [bits 96 to 127] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 128 to 159] ∈ [0..10]
+        [bits 160 to 191] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 192 to 223] ∈ [0..10]
+        [bits 224 to 255] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 256 to 287] ∈ [0..10]
+        [bits 288 to 319] ∈ {{ NULL ; (? *)&MEMORY{[0], [8], [16], [24]} }}
+        [40..1023] ∈ {0}
+  __fc_errno ∈ [--..--]
+  __fc_stderr ∈ {{ &__fc_initial_stderr }}
+  __fc_stdin ∈ {{ &__fc_initial_stdin }}
+  __fc_stdout ∈ {{ &__fc_initial_stdout }}
+  __fc_fopen[0..15] ∈ {0}
+  __fc_p_fopen ∈ {{ &__fc_fopen[0] }}
+  __fc_heap_status ∈ [--..--]
+  __fc_random_counter ∈ [--..--]
+  __fc_rand_max ∈ {32767}
+  __fc_env[0] ∈ {{ NULL ; &S_0___fc_env[0] }}
+          [1] ∈ {{ NULL ; &S_1___fc_env[0] }}
+          [2..4095] ∈ {{ NULL ; &S_0___fc_env[0] ; &S_1___fc_env[0] }}
+  __fc_mblen_state ∈ [--..--]
+  __fc_mbtowc_state ∈ [--..--]
+  __fc_wctomb_state ∈ [--..--]
+  __fc_initial_stdout.__fc_FILE_id ∈ {1}
+                     .__fc_FILE_data ∈ {0}
+  __fc_initial_stderr.__fc_FILE_id ∈ {2}
+                     .__fc_FILE_data ∈ {0}
+  __fc_initial_stdin ∈ {0}
+  curr ∈ {{ NULL ; &MEMORY + [0..4294967288],0%8 }}
+  head ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+  i ∈ [1..10]
+  malloc_next_free ∈ [-2147483648..2147483640],0%8
+  S_0___fc_env[0..1] ∈ [--..--]
+  S_1___fc_env[0..1] ∈ [--..--]
+  ==END OF DUMP==
+[eva:alarm] tests/builtins/linked_list.c:43: Warning: 
+  out of bounds write. assert \valid(&curr->val);
+[eva] tests/builtins/linked_list.c:40: 
+  Frama_C_dump_each:
+  # Cvalue domain:
+  MEMORY[bits 0 to 31] ∈ [0..10]
+        [bits 32 to 63] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 64 to 95] ∈ [0..10]
+        [bits 96 to 127] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 128 to 159] ∈ [0..10]
+        [bits 160 to 191] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 192 to 223] ∈ [0..10]
+        [bits 224 to 255] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 256 to 287] ∈ [0..10]
+        [bits 288 to 319] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 320 to 351] ∈ [0..10]
+        [bits 352 to 383] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 384 to 415] ∈ [0..10]
+        [bits 416 to 447] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 448 to 479] ∈ [0..10]
+        [bits 480 to 511] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 512 to 543] ∈ [0..10]
+        [bits 544 to 575] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 576 to 607] ∈ [0..10]
+        [bits 608 to 639] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 640 to 671] ∈ [0..10]
+        [bits 672 to 703] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 704 to 735] ∈ [0..10]
+        [bits 736 to 767] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 768 to 799] ∈ [0..10]
+        [bits 800 to 831] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 832 to 863] ∈ [0..10]
+        [bits 864 to 895] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 896 to 927] ∈ [0..10]
+        [bits 928 to 959] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 960 to 991] ∈ [0..10]
+        [bits 992 to 1023] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 1024 to 1055] ∈ [0..10]
+        [bits 1056 to 1087] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 1088 to 1119] ∈ [0..10]
+        [bits 1120 to 1151] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 1152 to 1183] ∈ [0..10]
+        [bits 1184 to 1215] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 1216 to 1247] ∈ [0..10]
+        [bits 1248 to 1279] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 1280 to 1311] ∈ [0..10]
+        [bits 1312 to 1343] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 1344 to 1375] ∈ [0..10]
+        [bits 1376 to 1407] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 1408 to 1439] ∈ [0..10]
+        [bits 1440 to 1471] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 1472 to 1503] ∈ [0..10]
+        [bits 1504 to 1535] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 1536 to 1567] ∈ [0..10]
+        [bits 1568 to 1599] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 1600 to 1631] ∈ [0..10]
+        [bits 1632 to 1663] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 1664 to 1695] ∈ [0..10]
+        [bits 1696 to 1727] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 1728 to 1759] ∈ [0..10]
+        [bits 1760 to 1791] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 1792 to 1823] ∈ [0..10]
+        [bits 1824 to 1855] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 1856 to 1887] ∈ [0..10]
+        [bits 1888 to 1919] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 1920 to 1951] ∈ [0..10]
+        [bits 1952 to 1983] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 1984 to 2015] ∈ [0..10]
+        [bits 2016 to 2047] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 2048 to 2079] ∈ [0..10]
+        [bits 2080 to 2111] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 2112 to 2143] ∈ [0..10]
+        [bits 2144 to 2175] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 2176 to 2207] ∈ [0..10]
+        [bits 2208 to 2239] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 2240 to 2271] ∈ [0..10]
+        [bits 2272 to 2303] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 2304 to 2335] ∈ [0..10]
+        [bits 2336 to 2367] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 2368 to 2399] ∈ [0..10]
+        [bits 2400 to 2431] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 2432 to 2463] ∈ [0..10]
+        [bits 2464 to 2495] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 2496 to 2527] ∈ [0..10]
+        [bits 2528 to 2559] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 2560 to 2591] ∈ [0..10]
+        [bits 2592 to 2623] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 2624 to 2655] ∈ [0..10]
+        [bits 2656 to 2687] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 2688 to 2719] ∈ [0..10]
+        [bits 2720 to 2751] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 2752 to 2783] ∈ [0..10]
+        [bits 2784 to 2815] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 2816 to 2847] ∈ [0..10]
+        [bits 2848 to 2879] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 2880 to 2911] ∈ [0..10]
+        [bits 2912 to 2943] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 2944 to 2975] ∈ [0..10]
+        [bits 2976 to 3007] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 3008 to 3039] ∈ [0..10]
+        [bits 3040 to 3071] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 3072 to 3103] ∈ [0..10]
+        [bits 3104 to 3135] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 3136 to 3167] ∈ [0..10]
+        [bits 3168 to 3199] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 3200 to 3231] ∈ [0..10]
+        [bits 3232 to 3263] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 3264 to 3295] ∈ [0..10]
+        [bits 3296 to 3327] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 3328 to 3359] ∈ [0..10]
+        [bits 3360 to 3391] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 3392 to 3423] ∈ [0..10]
+        [bits 3424 to 3455] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 3456 to 3487] ∈ [0..10]
+        [bits 3488 to 3519] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 3520 to 3551] ∈ [0..10]
+        [bits 3552 to 3583] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 3584 to 3615] ∈ [0..10]
+        [bits 3616 to 3647] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 3648 to 3679] ∈ [0..10]
+        [bits 3680 to 3711] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 3712 to 3743] ∈ [0..10]
+        [bits 3744 to 3775] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 3776 to 3807] ∈ [0..10]
+        [bits 3808 to 3839] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 3840 to 3871] ∈ [0..10]
+        [bits 3872 to 3903] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 3904 to 3935] ∈ [0..10]
+        [bits 3936 to 3967] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 3968 to 3999] ∈ [0..10]
+        [bits 4000 to 4031] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 4032 to 4063] ∈ [0..10]
+        [bits 4064 to 4095] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 4096 to 4127] ∈ [0..10]
+        [bits 4128 to 4159] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 4160 to 4191] ∈ [0..10]
+        [bits 4192 to 4223] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 4224 to 4255] ∈ [0..10]
+        [bits 4256 to 4287] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 4288 to 4319] ∈ [0..10]
+        [bits 4320 to 4351] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 4352 to 4383] ∈ [0..10]
+        [bits 4384 to 4415] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 4416 to 4447] ∈ [0..10]
+        [bits 4448 to 4479] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 4480 to 4511] ∈ [0..10]
+        [bits 4512 to 4543] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 4544 to 4575] ∈ [0..10]
+        [bits 4576 to 4607] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 4608 to 4639] ∈ [0..10]
+        [bits 4640 to 4671] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 4672 to 4703] ∈ [0..10]
+        [bits 4704 to 4735] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 4736 to 4767] ∈ [0..10]
+        [bits 4768 to 4799] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 4800 to 4831] ∈ [0..10]
+        [bits 4832 to 4863] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 4864 to 4895] ∈ [0..10]
+        [bits 4896 to 4927] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 4928 to 4959] ∈ [0..10]
+        [bits 4960 to 4991] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 4992 to 5023] ∈ [0..10]
+        [bits 5024 to 5055] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 5056 to 5087] ∈ [0..10]
+        [bits 5088 to 5119] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 5120 to 5151] ∈ [0..10]
+        [bits 5152 to 5183] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 5184 to 5215] ∈ [0..10]
+        [bits 5216 to 5247] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 5248 to 5279] ∈ [0..10]
+        [bits 5280 to 5311] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 5312 to 5343] ∈ [0..10]
+        [bits 5344 to 5375] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 5376 to 5407] ∈ [0..10]
+        [bits 5408 to 5439] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 5440 to 5471] ∈ [0..10]
+        [bits 5472 to 5503] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 5504 to 5535] ∈ [0..10]
+        [bits 5536 to 5567] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 5568 to 5599] ∈ [0..10]
+        [bits 5600 to 5631] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 5632 to 5663] ∈ [0..10]
+        [bits 5664 to 5695] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 5696 to 5727] ∈ [0..10]
+        [bits 5728 to 5759] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 5760 to 5791] ∈ [0..10]
+        [bits 5792 to 5823] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 5824 to 5855] ∈ [0..10]
+        [bits 5856 to 5887] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 5888 to 5919] ∈ [0..10]
+        [bits 5920 to 5951] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 5952 to 5983] ∈ [0..10]
+        [bits 5984 to 6015] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 6016 to 6047] ∈ [0..10]
+        [bits 6048 to 6079] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 6080 to 6111] ∈ [0..10]
+        [bits 6112 to 6143] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 6144 to 6175] ∈ [0..10]
+        [bits 6176 to 6207] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 6208 to 6239] ∈ [0..10]
+        [bits 6240 to 6271] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 6272 to 6303] ∈ [0..10]
+        [bits 6304 to 6335] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 6336 to 6367] ∈ [0..10]
+        [bits 6368 to 6399] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 6400 to 6431] ∈ [0..10]
+        [bits 6432 to 6463] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 6464 to 6495] ∈ [0..10]
+        [bits 6496 to 6527] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 6528 to 6559] ∈ [0..10]
+        [bits 6560 to 6591] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 6592 to 6623] ∈ [0..10]
+        [bits 6624 to 6655] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 6656 to 6687] ∈ [0..10]
+        [bits 6688 to 6719] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 6720 to 6751] ∈ [0..10]
+        [bits 6752 to 6783] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 6784 to 6815] ∈ [0..10]
+        [bits 6816 to 6847] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 6848 to 6879] ∈ [0..10]
+        [bits 6880 to 6911] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 6912 to 6943] ∈ [0..10]
+        [bits 6944 to 6975] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 6976 to 7007] ∈ [0..10]
+        [bits 7008 to 7039] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 7040 to 7071] ∈ [0..10]
+        [bits 7072 to 7103] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 7104 to 7135] ∈ [0..10]
+        [bits 7136 to 7167] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 7168 to 7199] ∈ [0..10]
+        [bits 7200 to 7231] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 7232 to 7263] ∈ [0..10]
+        [bits 7264 to 7295] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 7296 to 7327] ∈ [0..10]
+        [bits 7328 to 7359] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 7360 to 7391] ∈ [0..10]
+        [bits 7392 to 7423] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 7424 to 7455] ∈ [0..10]
+        [bits 7456 to 7487] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 7488 to 7519] ∈ [0..10]
+        [bits 7520 to 7551] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 7552 to 7583] ∈ [0..10]
+        [bits 7584 to 7615] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 7616 to 7647] ∈ [0..10]
+        [bits 7648 to 7679] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 7680 to 7711] ∈ [0..10]
+        [bits 7712 to 7743] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 7744 to 7775] ∈ [0..10]
+        [bits 7776 to 7807] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 7808 to 7839] ∈ [0..10]
+        [bits 7840 to 7871] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 7872 to 7903] ∈ [0..10]
+        [bits 7904 to 7935] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 7936 to 7967] ∈ [0..10]
+        [bits 7968 to 7999] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 8000 to 8031] ∈ [0..10]
+        [bits 8032 to 8063] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 8064 to 8095] ∈ [0..10]
+        [bits 8096 to 8127] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 8128 to 8159] ∈ [0..10]
+        [bits 8160 to 8191] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+  __fc_errno ∈ [--..--]
+  __fc_stderr ∈ {{ &__fc_initial_stderr }}
+  __fc_stdin ∈ {{ &__fc_initial_stdin }}
+  __fc_stdout ∈ {{ &__fc_initial_stdout }}
+  __fc_fopen[0..15] ∈ {0}
+  __fc_p_fopen ∈ {{ &__fc_fopen[0] }}
+  __fc_heap_status ∈ [--..--]
+  __fc_random_counter ∈ [--..--]
+  __fc_rand_max ∈ {32767}
+  __fc_env[0] ∈ {{ NULL ; &S_0___fc_env[0] }}
+          [1] ∈ {{ NULL ; &S_1___fc_env[0] }}
+          [2..4095] ∈ {{ NULL ; &S_0___fc_env[0] ; &S_1___fc_env[0] }}
+  __fc_mblen_state ∈ [--..--]
+  __fc_mbtowc_state ∈ [--..--]
+  __fc_wctomb_state ∈ [--..--]
+  __fc_initial_stdout.__fc_FILE_id ∈ {1}
+                     .__fc_FILE_data ∈ {0}
+  __fc_initial_stderr.__fc_FILE_id ∈ {2}
+                     .__fc_FILE_data ∈ {0}
+  __fc_initial_stdin ∈ {0}
+  curr ∈ {{ &MEMORY + [0..1016],0%8 }} or UNINITIALIZED
+  head ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+  i ∈ [1..10]
+  malloc_next_free ∈ [-2147483648..2147483640],0%8
+  S_0___fc_env[0..1] ∈ [--..--]
+  S_1___fc_env[0..1] ∈ [--..--]
+  ==END OF DUMP==
+[eva] computing for function malloc <- main.
+  Called from tests/builtins/linked_list.c:41.
+[eva] Recording results for malloc
+[eva] Done for function malloc
+[eva] tests/builtins/linked_list.c:42: 
+  Frama_C_dump_each:
+  # Cvalue domain:
+  MEMORY[bits 0 to 31] ∈ [0..10]
+        [bits 32 to 63] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 64 to 95] ∈ [0..10]
+        [bits 96 to 127] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 128 to 159] ∈ [0..10]
+        [bits 160 to 191] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 192 to 223] ∈ [0..10]
+        [bits 224 to 255] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 256 to 287] ∈ [0..10]
+        [bits 288 to 319] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 320 to 351] ∈ [0..10]
+        [bits 352 to 383] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 384 to 415] ∈ [0..10]
+        [bits 416 to 447] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 448 to 479] ∈ [0..10]
+        [bits 480 to 511] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 512 to 543] ∈ [0..10]
+        [bits 544 to 575] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 576 to 607] ∈ [0..10]
+        [bits 608 to 639] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 640 to 671] ∈ [0..10]
+        [bits 672 to 703] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 704 to 735] ∈ [0..10]
+        [bits 736 to 767] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 768 to 799] ∈ [0..10]
+        [bits 800 to 831] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 832 to 863] ∈ [0..10]
+        [bits 864 to 895] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 896 to 927] ∈ [0..10]
+        [bits 928 to 959] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 960 to 991] ∈ [0..10]
+        [bits 992 to 1023] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 1024 to 1055] ∈ [0..10]
+        [bits 1056 to 1087] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 1088 to 1119] ∈ [0..10]
+        [bits 1120 to 1151] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 1152 to 1183] ∈ [0..10]
+        [bits 1184 to 1215] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 1216 to 1247] ∈ [0..10]
+        [bits 1248 to 1279] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 1280 to 1311] ∈ [0..10]
+        [bits 1312 to 1343] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 1344 to 1375] ∈ [0..10]
+        [bits 1376 to 1407] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 1408 to 1439] ∈ [0..10]
+        [bits 1440 to 1471] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 1472 to 1503] ∈ [0..10]
+        [bits 1504 to 1535] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 1536 to 1567] ∈ [0..10]
+        [bits 1568 to 1599] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 1600 to 1631] ∈ [0..10]
+        [bits 1632 to 1663] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 1664 to 1695] ∈ [0..10]
+        [bits 1696 to 1727] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 1728 to 1759] ∈ [0..10]
+        [bits 1760 to 1791] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 1792 to 1823] ∈ [0..10]
+        [bits 1824 to 1855] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 1856 to 1887] ∈ [0..10]
+        [bits 1888 to 1919] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 1920 to 1951] ∈ [0..10]
+        [bits 1952 to 1983] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 1984 to 2015] ∈ [0..10]
+        [bits 2016 to 2047] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 2048 to 2079] ∈ [0..10]
+        [bits 2080 to 2111] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 2112 to 2143] ∈ [0..10]
+        [bits 2144 to 2175] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 2176 to 2207] ∈ [0..10]
+        [bits 2208 to 2239] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 2240 to 2271] ∈ [0..10]
+        [bits 2272 to 2303] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 2304 to 2335] ∈ [0..10]
+        [bits 2336 to 2367] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 2368 to 2399] ∈ [0..10]
+        [bits 2400 to 2431] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 2432 to 2463] ∈ [0..10]
+        [bits 2464 to 2495] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 2496 to 2527] ∈ [0..10]
+        [bits 2528 to 2559] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 2560 to 2591] ∈ [0..10]
+        [bits 2592 to 2623] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 2624 to 2655] ∈ [0..10]
+        [bits 2656 to 2687] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 2688 to 2719] ∈ [0..10]
+        [bits 2720 to 2751] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 2752 to 2783] ∈ [0..10]
+        [bits 2784 to 2815] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 2816 to 2847] ∈ [0..10]
+        [bits 2848 to 2879] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 2880 to 2911] ∈ [0..10]
+        [bits 2912 to 2943] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 2944 to 2975] ∈ [0..10]
+        [bits 2976 to 3007] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 3008 to 3039] ∈ [0..10]
+        [bits 3040 to 3071] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 3072 to 3103] ∈ [0..10]
+        [bits 3104 to 3135] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 3136 to 3167] ∈ [0..10]
+        [bits 3168 to 3199] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 3200 to 3231] ∈ [0..10]
+        [bits 3232 to 3263] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 3264 to 3295] ∈ [0..10]
+        [bits 3296 to 3327] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 3328 to 3359] ∈ [0..10]
+        [bits 3360 to 3391] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 3392 to 3423] ∈ [0..10]
+        [bits 3424 to 3455] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 3456 to 3487] ∈ [0..10]
+        [bits 3488 to 3519] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 3520 to 3551] ∈ [0..10]
+        [bits 3552 to 3583] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 3584 to 3615] ∈ [0..10]
+        [bits 3616 to 3647] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 3648 to 3679] ∈ [0..10]
+        [bits 3680 to 3711] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 3712 to 3743] ∈ [0..10]
+        [bits 3744 to 3775] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 3776 to 3807] ∈ [0..10]
+        [bits 3808 to 3839] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 3840 to 3871] ∈ [0..10]
+        [bits 3872 to 3903] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 3904 to 3935] ∈ [0..10]
+        [bits 3936 to 3967] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 3968 to 3999] ∈ [0..10]
+        [bits 4000 to 4031] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 4032 to 4063] ∈ [0..10]
+        [bits 4064 to 4095] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 4096 to 4127] ∈ [0..10]
+        [bits 4128 to 4159] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 4160 to 4191] ∈ [0..10]
+        [bits 4192 to 4223] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 4224 to 4255] ∈ [0..10]
+        [bits 4256 to 4287] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 4288 to 4319] ∈ [0..10]
+        [bits 4320 to 4351] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 4352 to 4383] ∈ [0..10]
+        [bits 4384 to 4415] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 4416 to 4447] ∈ [0..10]
+        [bits 4448 to 4479] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 4480 to 4511] ∈ [0..10]
+        [bits 4512 to 4543] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 4544 to 4575] ∈ [0..10]
+        [bits 4576 to 4607] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 4608 to 4639] ∈ [0..10]
+        [bits 4640 to 4671] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 4672 to 4703] ∈ [0..10]
+        [bits 4704 to 4735] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 4736 to 4767] ∈ [0..10]
+        [bits 4768 to 4799] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 4800 to 4831] ∈ [0..10]
+        [bits 4832 to 4863] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 4864 to 4895] ∈ [0..10]
+        [bits 4896 to 4927] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 4928 to 4959] ∈ [0..10]
+        [bits 4960 to 4991] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 4992 to 5023] ∈ [0..10]
+        [bits 5024 to 5055] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 5056 to 5087] ∈ [0..10]
+        [bits 5088 to 5119] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 5120 to 5151] ∈ [0..10]
+        [bits 5152 to 5183] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 5184 to 5215] ∈ [0..10]
+        [bits 5216 to 5247] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 5248 to 5279] ∈ [0..10]
+        [bits 5280 to 5311] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 5312 to 5343] ∈ [0..10]
+        [bits 5344 to 5375] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 5376 to 5407] ∈ [0..10]
+        [bits 5408 to 5439] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 5440 to 5471] ∈ [0..10]
+        [bits 5472 to 5503] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 5504 to 5535] ∈ [0..10]
+        [bits 5536 to 5567] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 5568 to 5599] ∈ [0..10]
+        [bits 5600 to 5631] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 5632 to 5663] ∈ [0..10]
+        [bits 5664 to 5695] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 5696 to 5727] ∈ [0..10]
+        [bits 5728 to 5759] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 5760 to 5791] ∈ [0..10]
+        [bits 5792 to 5823] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 5824 to 5855] ∈ [0..10]
+        [bits 5856 to 5887] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 5888 to 5919] ∈ [0..10]
+        [bits 5920 to 5951] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 5952 to 5983] ∈ [0..10]
+        [bits 5984 to 6015] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 6016 to 6047] ∈ [0..10]
+        [bits 6048 to 6079] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 6080 to 6111] ∈ [0..10]
+        [bits 6112 to 6143] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 6144 to 6175] ∈ [0..10]
+        [bits 6176 to 6207] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 6208 to 6239] ∈ [0..10]
+        [bits 6240 to 6271] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 6272 to 6303] ∈ [0..10]
+        [bits 6304 to 6335] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 6336 to 6367] ∈ [0..10]
+        [bits 6368 to 6399] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 6400 to 6431] ∈ [0..10]
+        [bits 6432 to 6463] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 6464 to 6495] ∈ [0..10]
+        [bits 6496 to 6527] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 6528 to 6559] ∈ [0..10]
+        [bits 6560 to 6591] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 6592 to 6623] ∈ [0..10]
+        [bits 6624 to 6655] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 6656 to 6687] ∈ [0..10]
+        [bits 6688 to 6719] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 6720 to 6751] ∈ [0..10]
+        [bits 6752 to 6783] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 6784 to 6815] ∈ [0..10]
+        [bits 6816 to 6847] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 6848 to 6879] ∈ [0..10]
+        [bits 6880 to 6911] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 6912 to 6943] ∈ [0..10]
+        [bits 6944 to 6975] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 6976 to 7007] ∈ [0..10]
+        [bits 7008 to 7039] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 7040 to 7071] ∈ [0..10]
+        [bits 7072 to 7103] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 7104 to 7135] ∈ [0..10]
+        [bits 7136 to 7167] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 7168 to 7199] ∈ [0..10]
+        [bits 7200 to 7231] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 7232 to 7263] ∈ [0..10]
+        [bits 7264 to 7295] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 7296 to 7327] ∈ [0..10]
+        [bits 7328 to 7359] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 7360 to 7391] ∈ [0..10]
+        [bits 7392 to 7423] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 7424 to 7455] ∈ [0..10]
+        [bits 7456 to 7487] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 7488 to 7519] ∈ [0..10]
+        [bits 7520 to 7551] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 7552 to 7583] ∈ [0..10]
+        [bits 7584 to 7615] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 7616 to 7647] ∈ [0..10]
+        [bits 7648 to 7679] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 7680 to 7711] ∈ [0..10]
+        [bits 7712 to 7743] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 7744 to 7775] ∈ [0..10]
+        [bits 7776 to 7807] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 7808 to 7839] ∈ [0..10]
+        [bits 7840 to 7871] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 7872 to 7903] ∈ [0..10]
+        [bits 7904 to 7935] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 7936 to 7967] ∈ [0..10]
+        [bits 7968 to 7999] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 8000 to 8031] ∈ [0..10]
+        [bits 8032 to 8063] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 8064 to 8095] ∈ [0..10]
+        [bits 8096 to 8127] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 8128 to 8159] ∈ [0..10]
+        [bits 8160 to 8191] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+  __fc_errno ∈ [--..--]
+  __fc_stderr ∈ {{ &__fc_initial_stderr }}
+  __fc_stdin ∈ {{ &__fc_initial_stdin }}
+  __fc_stdout ∈ {{ &__fc_initial_stdout }}
+  __fc_fopen[0..15] ∈ {0}
+  __fc_p_fopen ∈ {{ &__fc_fopen[0] }}
+  __fc_heap_status ∈ [--..--]
+  __fc_random_counter ∈ [--..--]
+  __fc_rand_max ∈ {32767}
+  __fc_env[0] ∈ {{ NULL ; &S_0___fc_env[0] }}
+          [1] ∈ {{ NULL ; &S_1___fc_env[0] }}
+          [2..4095] ∈ {{ NULL ; &S_0___fc_env[0] ; &S_1___fc_env[0] }}
+  __fc_mblen_state ∈ [--..--]
+  __fc_mbtowc_state ∈ [--..--]
+  __fc_wctomb_state ∈ [--..--]
+  __fc_initial_stdout.__fc_FILE_id ∈ {1}
+                     .__fc_FILE_data ∈ {0}
+  __fc_initial_stderr.__fc_FILE_id ∈ {2}
+                     .__fc_FILE_data ∈ {0}
+  __fc_initial_stdin ∈ {0}
+  curr ∈ {{ NULL ; &MEMORY + [0..4294967288],0%8 }}
+  head ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+  i ∈ [1..10]
+  malloc_next_free ∈ [-2147483648..2147483640],0%8
+  S_0___fc_env[0..1] ∈ [--..--]
+  S_1___fc_env[0..1] ∈ [--..--]
+  ==END OF DUMP==
+[eva] computing for function printf_va_1 <- main.
+  Called from tests/builtins/linked_list.c:51.
+[eva] using specification for function printf_va_1
+[eva] tests/builtins/linked_list.c:51: 
+  function printf_va_1: precondition got status valid.
+[eva] Done for function printf_va_1
+[eva] tests/builtins/linked_list.c:50: starting to merge loop iterations
+[eva] computing for function printf_va_1 <- main.
+  Called from tests/builtins/linked_list.c:51.
+[eva] Done for function printf_va_1
+[eva] Recording results for main
+[eva] done for function main
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function malloc:
+  malloc_next_free ∈ [-2147483648..2147483640],0%8
+  __retres ∈ {{ NULL ; &MEMORY + [0..4294967288],0%8 }}
+[eva:final-states] Values at end of function main:
+  MEMORY[bits 0 to 31] ∈ [0..10]
+        [bits 32 to 63] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 64 to 95] ∈ [0..10]
+        [bits 96 to 127] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 128 to 159] ∈ [0..10]
+        [bits 160 to 191] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 192 to 223] ∈ [0..10]
+        [bits 224 to 255] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 256 to 287] ∈ [0..10]
+        [bits 288 to 319] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 320 to 351] ∈ [0..10]
+        [bits 352 to 383] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 384 to 415] ∈ [0..10]
+        [bits 416 to 447] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 448 to 479] ∈ [0..10]
+        [bits 480 to 511] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 512 to 543] ∈ [0..10]
+        [bits 544 to 575] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 576 to 607] ∈ [0..10]
+        [bits 608 to 639] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 640 to 671] ∈ [0..10]
+        [bits 672 to 703] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 704 to 735] ∈ [0..10]
+        [bits 736 to 767] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 768 to 799] ∈ [0..10]
+        [bits 800 to 831] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 832 to 863] ∈ [0..10]
+        [bits 864 to 895] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 896 to 927] ∈ [0..10]
+        [bits 928 to 959] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 960 to 991] ∈ [0..10]
+        [bits 992 to 1023] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 1024 to 1055] ∈ [0..10]
+        [bits 1056 to 1087] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 1088 to 1119] ∈ [0..10]
+        [bits 1120 to 1151] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 1152 to 1183] ∈ [0..10]
+        [bits 1184 to 1215] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 1216 to 1247] ∈ [0..10]
+        [bits 1248 to 1279] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 1280 to 1311] ∈ [0..10]
+        [bits 1312 to 1343] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 1344 to 1375] ∈ [0..10]
+        [bits 1376 to 1407] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 1408 to 1439] ∈ [0..10]
+        [bits 1440 to 1471] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 1472 to 1503] ∈ [0..10]
+        [bits 1504 to 1535] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 1536 to 1567] ∈ [0..10]
+        [bits 1568 to 1599] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 1600 to 1631] ∈ [0..10]
+        [bits 1632 to 1663] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 1664 to 1695] ∈ [0..10]
+        [bits 1696 to 1727] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 1728 to 1759] ∈ [0..10]
+        [bits 1760 to 1791] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 1792 to 1823] ∈ [0..10]
+        [bits 1824 to 1855] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 1856 to 1887] ∈ [0..10]
+        [bits 1888 to 1919] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 1920 to 1951] ∈ [0..10]
+        [bits 1952 to 1983] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 1984 to 2015] ∈ [0..10]
+        [bits 2016 to 2047] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 2048 to 2079] ∈ [0..10]
+        [bits 2080 to 2111] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 2112 to 2143] ∈ [0..10]
+        [bits 2144 to 2175] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 2176 to 2207] ∈ [0..10]
+        [bits 2208 to 2239] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 2240 to 2271] ∈ [0..10]
+        [bits 2272 to 2303] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 2304 to 2335] ∈ [0..10]
+        [bits 2336 to 2367] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 2368 to 2399] ∈ [0..10]
+        [bits 2400 to 2431] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 2432 to 2463] ∈ [0..10]
+        [bits 2464 to 2495] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 2496 to 2527] ∈ [0..10]
+        [bits 2528 to 2559] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 2560 to 2591] ∈ [0..10]
+        [bits 2592 to 2623] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 2624 to 2655] ∈ [0..10]
+        [bits 2656 to 2687] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 2688 to 2719] ∈ [0..10]
+        [bits 2720 to 2751] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 2752 to 2783] ∈ [0..10]
+        [bits 2784 to 2815] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 2816 to 2847] ∈ [0..10]
+        [bits 2848 to 2879] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 2880 to 2911] ∈ [0..10]
+        [bits 2912 to 2943] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 2944 to 2975] ∈ [0..10]
+        [bits 2976 to 3007] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 3008 to 3039] ∈ [0..10]
+        [bits 3040 to 3071] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 3072 to 3103] ∈ [0..10]
+        [bits 3104 to 3135] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 3136 to 3167] ∈ [0..10]
+        [bits 3168 to 3199] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 3200 to 3231] ∈ [0..10]
+        [bits 3232 to 3263] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 3264 to 3295] ∈ [0..10]
+        [bits 3296 to 3327] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 3328 to 3359] ∈ [0..10]
+        [bits 3360 to 3391] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 3392 to 3423] ∈ [0..10]
+        [bits 3424 to 3455] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 3456 to 3487] ∈ [0..10]
+        [bits 3488 to 3519] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 3520 to 3551] ∈ [0..10]
+        [bits 3552 to 3583] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 3584 to 3615] ∈ [0..10]
+        [bits 3616 to 3647] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 3648 to 3679] ∈ [0..10]
+        [bits 3680 to 3711] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 3712 to 3743] ∈ [0..10]
+        [bits 3744 to 3775] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 3776 to 3807] ∈ [0..10]
+        [bits 3808 to 3839] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 3840 to 3871] ∈ [0..10]
+        [bits 3872 to 3903] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 3904 to 3935] ∈ [0..10]
+        [bits 3936 to 3967] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 3968 to 3999] ∈ [0..10]
+        [bits 4000 to 4031] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 4032 to 4063] ∈ [0..10]
+        [bits 4064 to 4095] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 4096 to 4127] ∈ [0..10]
+        [bits 4128 to 4159] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 4160 to 4191] ∈ [0..10]
+        [bits 4192 to 4223] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 4224 to 4255] ∈ [0..10]
+        [bits 4256 to 4287] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 4288 to 4319] ∈ [0..10]
+        [bits 4320 to 4351] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 4352 to 4383] ∈ [0..10]
+        [bits 4384 to 4415] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 4416 to 4447] ∈ [0..10]
+        [bits 4448 to 4479] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 4480 to 4511] ∈ [0..10]
+        [bits 4512 to 4543] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 4544 to 4575] ∈ [0..10]
+        [bits 4576 to 4607] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 4608 to 4639] ∈ [0..10]
+        [bits 4640 to 4671] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 4672 to 4703] ∈ [0..10]
+        [bits 4704 to 4735] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 4736 to 4767] ∈ [0..10]
+        [bits 4768 to 4799] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 4800 to 4831] ∈ [0..10]
+        [bits 4832 to 4863] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 4864 to 4895] ∈ [0..10]
+        [bits 4896 to 4927] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 4928 to 4959] ∈ [0..10]
+        [bits 4960 to 4991] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 4992 to 5023] ∈ [0..10]
+        [bits 5024 to 5055] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 5056 to 5087] ∈ [0..10]
+        [bits 5088 to 5119] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 5120 to 5151] ∈ [0..10]
+        [bits 5152 to 5183] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 5184 to 5215] ∈ [0..10]
+        [bits 5216 to 5247] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 5248 to 5279] ∈ [0..10]
+        [bits 5280 to 5311] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 5312 to 5343] ∈ [0..10]
+        [bits 5344 to 5375] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 5376 to 5407] ∈ [0..10]
+        [bits 5408 to 5439] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 5440 to 5471] ∈ [0..10]
+        [bits 5472 to 5503] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 5504 to 5535] ∈ [0..10]
+        [bits 5536 to 5567] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 5568 to 5599] ∈ [0..10]
+        [bits 5600 to 5631] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 5632 to 5663] ∈ [0..10]
+        [bits 5664 to 5695] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 5696 to 5727] ∈ [0..10]
+        [bits 5728 to 5759] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 5760 to 5791] ∈ [0..10]
+        [bits 5792 to 5823] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 5824 to 5855] ∈ [0..10]
+        [bits 5856 to 5887] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 5888 to 5919] ∈ [0..10]
+        [bits 5920 to 5951] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 5952 to 5983] ∈ [0..10]
+        [bits 5984 to 6015] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 6016 to 6047] ∈ [0..10]
+        [bits 6048 to 6079] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 6080 to 6111] ∈ [0..10]
+        [bits 6112 to 6143] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 6144 to 6175] ∈ [0..10]
+        [bits 6176 to 6207] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 6208 to 6239] ∈ [0..10]
+        [bits 6240 to 6271] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 6272 to 6303] ∈ [0..10]
+        [bits 6304 to 6335] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 6336 to 6367] ∈ [0..10]
+        [bits 6368 to 6399] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 6400 to 6431] ∈ [0..10]
+        [bits 6432 to 6463] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 6464 to 6495] ∈ [0..10]
+        [bits 6496 to 6527] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 6528 to 6559] ∈ [0..10]
+        [bits 6560 to 6591] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 6592 to 6623] ∈ [0..10]
+        [bits 6624 to 6655] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 6656 to 6687] ∈ [0..10]
+        [bits 6688 to 6719] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 6720 to 6751] ∈ [0..10]
+        [bits 6752 to 6783] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 6784 to 6815] ∈ [0..10]
+        [bits 6816 to 6847] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 6848 to 6879] ∈ [0..10]
+        [bits 6880 to 6911] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 6912 to 6943] ∈ [0..10]
+        [bits 6944 to 6975] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 6976 to 7007] ∈ [0..10]
+        [bits 7008 to 7039] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 7040 to 7071] ∈ [0..10]
+        [bits 7072 to 7103] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 7104 to 7135] ∈ [0..10]
+        [bits 7136 to 7167] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 7168 to 7199] ∈ [0..10]
+        [bits 7200 to 7231] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 7232 to 7263] ∈ [0..10]
+        [bits 7264 to 7295] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 7296 to 7327] ∈ [0..10]
+        [bits 7328 to 7359] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 7360 to 7391] ∈ [0..10]
+        [bits 7392 to 7423] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 7424 to 7455] ∈ [0..10]
+        [bits 7456 to 7487] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 7488 to 7519] ∈ [0..10]
+        [bits 7520 to 7551] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 7552 to 7583] ∈ [0..10]
+        [bits 7584 to 7615] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 7616 to 7647] ∈ [0..10]
+        [bits 7648 to 7679] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 7680 to 7711] ∈ [0..10]
+        [bits 7712 to 7743] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 7744 to 7775] ∈ [0..10]
+        [bits 7776 to 7807] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 7808 to 7839] ∈ [0..10]
+        [bits 7840 to 7871] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 7872 to 7903] ∈ [0..10]
+        [bits 7904 to 7935] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 7936 to 7967] ∈ [0..10]
+        [bits 7968 to 7999] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 8000 to 8031] ∈ [0..10]
+        [bits 8032 to 8063] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 8064 to 8095] ∈ [0..10]
+        [bits 8096 to 8127] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+        [bits 8128 to 8159] ∈ [0..10]
+        [bits 8160 to 8191] ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+  __fc_initial_stdout.__fc_FILE_id ∈ {1}
+                     .__fc_FILE_data ∈ [--..--]
+  curr ∈ {0}
+  head ∈ {{ NULL ; &MEMORY + [0..1016],0%8 }}
+  i ∈ {11}
+  malloc_next_free ∈ [-2147483648..2147483640],0%8
+[from] Computing for function malloc
+[from] Done for function malloc
+[from] Computing for function main
+[from] Computing for function printf_va_1 <-main
+[from] Done for function printf_va_1
+[from] Done for function main
+[from] ====== DEPENDENCIES COMPUTED ======
+  These dependencies hold at termination for the executions that terminate:
+[from] Function malloc:
+  malloc_next_free FROM size; malloc_next_free
+  \result FROM size; malloc_next_free
+[from] Function printf_va_1:
+  __fc_initial_stdout.__fc_FILE_data
+                     FROM __fc_initial_stdout; param0; "%d\n" (and SELF)
+  \result FROM __fc_initial_stdout; param0; "%d\n"
+[from] Function main:
+  MEMORY{[0..3]; [8..11]; [16..19]; [24..27]; [32..35]; [40..43]; [48..51];
+         [56..59]; [64..67]; [72..75]; [80..83]; [88..91]; [96..99];
+         [104..107]; [112..115]; [120..123]; [128..131]; [136..139];
+         [144..147]; [152..155]; [160..163]; [168..171]; [176..179];
+         [184..187]; [192..195]; [200..203]; [208..211]; [216..219];
+         [224..227]; [232..235]; [240..243]; [248..251]; [256..259];
+         [264..267]; [272..275]; [280..283]; [288..291]; [296..299];
+         [304..307]; [312..315]; [320..323]; [328..331]; [336..339];
+         [344..347]; [352..355]; [360..363]; [368..371]; [376..379];
+         [384..387]; [392..395]; [400..403]; [408..411]; [416..419];
+         [424..427]; [432..435]; [440..443]; [448..451]; [456..459];
+         [464..467]; [472..475]; [480..483]; [488..491]; [496..499];
+         [504..507]; [512..515]; [520..523]; [528..531]; [536..539];
+         [544..547]; [552..555]; [560..563]; [568..571]; [576..579];
+         [584..587]; [592..595]; [600..603]; [608..611]; [616..619];
+         [624..627]; [632..635]; [640..643]; [648..651]; [656..659];
+         [664..667]; [672..675]; [680..683]; [688..691]; [696..699];
+         [704..707]; [712..715]; [720..723]; [728..731]; [736..739];
+         [744..747]; [752..755]; [760..763]; [768..771]; [776..779];
+         [784..787]; [792..795]; [800..803]; [808..811]; [816..819];
+         [824..827]; [832..835]; [840..843]; [848..851]; [856..859];
+         [864..867]; [872..875]; [880..883]; [888..891]; [896..899];
+         [904..907]; [912..915]; [920..923]; [928..931]; [936..939];
+         [944..947]; [952..955]; [960..963]; [968..971]; [976..979];
+         [984..987]; [992..995]; [1000..1003]; [1008..1011]; [1016..1019]}
+        FROM malloc_next_free (and SELF)
+        {[4..7]; [12..15]; [20..23]; [28..31]; [36..39]; [44..47]; [52..55];
+         [60..63]; [68..71]; [76..79]; [84..87]; [92..95]; [100..103];
+         [108..111]; [116..119]; [124..127]; [132..135]; [140..143];
+         [148..151]; [156..159]; [164..167]; [172..175]; [180..183];
+         [188..191]; [196..199]; [204..207]; [212..215]; [220..223];
+         [228..231]; [236..239]; [244..247]; [252..255]; [260..263];
+         [268..271]; [276..279]; [284..287]; [292..295]; [300..303];
+         [308..311]; [316..319]; [324..327]; [332..335]; [340..343];
+         [348..351]; [356..359]; [364..367]; [372..375]; [380..383];
+         [388..391]; [396..399]; [404..407]; [412..415]; [420..423];
+         [428..431]; [436..439]; [444..447]; [452..455]; [460..463];
+         [468..471]; [476..479]; [484..487]; [492..495]; [500..503];
+         [508..511]; [516..519]; [524..527]; [532..535]; [540..543];
+         [548..551]; [556..559]; [564..567]; [572..575]; [580..583];
+         [588..591]; [596..599]; [604..607]; [612..615]; [620..623];
+         [628..631]; [636..639]; [644..647]; [652..655]; [660..663];
+         [668..671]; [676..679]; [684..687]; [692..695]; [700..703];
+         [708..711]; [716..719]; [724..727]; [732..735]; [740..743];
+         [748..751]; [756..759]; [764..767]; [772..775]; [780..783];
+         [788..791]; [796..799]; [804..807]; [812..815]; [820..823];
+         [828..831]; [836..839]; [844..847]; [852..855]; [860..863];
+         [868..871]; [876..879]; [884..887]; [892..895]; [900..903];
+         [908..911]; [916..919]; [924..927]; [932..935]; [940..943];
+         [948..951]; [956..959]; [964..967]; [972..975]; [980..983];
+         [988..991]; [996..999]; [1004..1007]; [1012..1015]; [1020..1023]}
+        FROM malloc_next_free (and SELF)
+  __fc_initial_stdout.__fc_FILE_data
+                     FROM MEMORY[0..1023]; __fc_initial_stdout;
+                          malloc_next_free; "%d\n" (and SELF)
+  malloc_next_free FROM malloc_next_free (and SELF)
+[from] ====== END OF DEPENDENCIES ======
+[inout] Out (internal) for function malloc:
+    malloc_next_free; __retres
+[inout] Inputs for function malloc:
+    malloc_next_free
+[inout] Out (internal) for function main:
+    MEMORY[0..1023]; __fc_initial_stdout.__fc_FILE_data; curr; head; i;
+    malloc_next_free
+[inout] Inputs for function main:
+    MEMORY[0..1023]; __fc_initial_stdout; malloc_next_free; "%d\n"

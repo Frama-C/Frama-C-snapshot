@@ -1,8 +1,8 @@
 [kernel] Parsing tests/value/call_alias.i (no preprocessing)
-[value] Analyzing a complete application starting at main2
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing a complete application starting at main2
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   X ∈ {0}
   c ∈ {0}
   u ∈ {0}
@@ -11,16 +11,16 @@
   G ∈ {0}
   H ∈ {0}
   I ∈ {0}
-[value] computing for function sum <- main2.
+[eva] computing for function sum <- main2.
   Called from tests/value/call_alias.i:33.
-[value] Recording results for sum
-[value] Done for function sum
-[value] Recording results for main2
-[value] done for function main2
-[value] ====== VALUES COMPUTED ======
-[value:final-states] Values at end of function sum:
+[eva] Recording results for sum
+[eva] Done for function sum
+[eva] Recording results for main2
+[eva] done for function main2
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function sum:
   __retres ∈ {0}
-[value:final-states] Values at end of function main2:
+[eva:final-states] Values at end of function main2:
   I ∈ {0}
 [from] Computing for function sum
 [from] Done for function sum

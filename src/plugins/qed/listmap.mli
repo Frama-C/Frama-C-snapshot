@@ -40,7 +40,7 @@ sig
 
   val compare : ('a -> 'a -> int) -> 'a t -> 'a t -> int
   val equal : ('a -> 'a -> bool) -> 'a t -> 'a t -> bool
-  
+
   val empty : 'a t
   val add : key -> 'a -> 'a t -> 'a t
   val mem : key -> 'a t -> bool

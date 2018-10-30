@@ -1,17 +1,17 @@
 [kernel] Parsing tests/slicing/slice_pragma_stmt.i (no preprocessing)
 [slicing] slicing requests in progress...
-[value] Analyzing a complete application starting at test7
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing a complete application starting at test7
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   x ∈ {0}
   y ∈ {0}
-[value:alarm] tests/slicing/slice_pragma_stmt.i:144: Warning: 
+[eva:alarm] tests/slicing/slice_pragma_stmt.i:144: Warning: 
   signed overflow. assert c1 + 1 ≤ 2147483647;
-[value:alarm] tests/slicing/slice_pragma_stmt.i:144: Warning: 
+[eva:alarm] tests/slicing/slice_pragma_stmt.i:144: Warning: 
   signed overflow. assert c2 + 1 ≤ 2147483647;
-[value] Recording results for test7
-[value] done for function test7
+[eva] Recording results for test7
+[eva] done for function test7
 [slicing] initializing slicing ...
 [slicing] interpreting slicing requests from the command line...
 [pdg] computing for function test7
@@ -32,14 +32,14 @@ void test7(int c1, int c2)
 {
   if (c1 < c2) goto L;
   c1 = c2;
-  L: /*@ slice pragma stmt; */
-  {
-    int tmp;
-    tmp = c1;
-    c1 ++;
-    x = tmp;
-    c2 ++;
-  }
+  /*@ slice pragma stmt; */
+  L: {
+       int tmp;
+       tmp = c1;
+       c1 ++;
+       x = tmp;
+       c2 ++;
+     }
   return;
 }
 

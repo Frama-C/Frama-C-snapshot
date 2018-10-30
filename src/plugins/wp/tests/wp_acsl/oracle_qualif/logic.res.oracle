@@ -1,15 +1,73 @@
-# frama-c -wp [...]
+# frama-c -wp -wp-timeout 90 -wp-steps 1500 [...]
 [kernel] Parsing tests/wp_acsl/logic.i (no preprocessing)
 [wp] Running WP plugin...
 [wp] Loading driver 'share/wp.driver'
-[kernel] tests/wp_acsl/logic.i:10: Warning: 
-  No code nor implicit assigns clause for function main, generating default assigns from the prototype
-[wp] 1 goal scheduled
-[wp] [Qed] Goal typed_main_pre : Valid
-[wp] Proved goals:    1 / 1
-  Qed:             1
+[wp] Warning: Missing RTE guards
+[wp] tests/wp_acsl/logic.i:16: Warning: 
+  Cast with incompatible pointers types (source: __anonstruct_Point_1*)
+     (target: __anonstruct_Point_1[3]*)
+[wp] tests/wp_acsl/logic.i:65: Warning: 
+  Cast with incompatible pointers types (source: __anonstruct_Buint_4*)
+     (target: uint32*)
+[wp] tests/wp_acsl/logic.i:48: Warning: 
+  Cast with incompatible pointers types (source: __anonstruct_Point_1*)
+     (target: __anonstruct_Point_1[3]*)
+[wp] tests/wp_acsl/logic.i:49: Warning: 
+  Logic cast from struct (Tint2) not implemented yet
+[wp] tests/wp_acsl/logic.i:50: Warning: 
+  Logic cast from struct (Point) not implemented yet
+[wp] tests/wp_acsl/logic.i:51: Warning: 
+  Logic cast to struct (Point) from (int [2]) not implemented yet
+[wp] tests/wp_acsl/logic.i:52: Warning: 
+  Logic cast from struct (Point) not implemented yet
+[wp] tests/wp_acsl/logic.i:53: Warning: 
+  Logic cast from struct (Tint2) not implemented yet
+[wp] tests/wp_acsl/logic.i:54: Warning: 
+  Logic cast from struct (Buint) not implemented yet
+[wp] tests/wp_acsl/logic.i:55: Warning: 
+  Logic cast to struct (Buint) from (unsigned int) not implemented yet
+[wp] tests/wp_acsl/logic.i:56: Warning: 
+  Logic cast from struct (Tint6) not implemented yet
+[wp] tests/wp_acsl/logic.i:57: Warning: 
+  Logic cast to sized array (Triangle) from (int [6]) not implemented yet
+[wp] tests/wp_acsl/logic.i:58: Warning: 
+  Logic cast from struct (Tint6) not implemented yet
+[wp] tests/wp_acsl/logic.i:59: Warning: 
+  Logic cast from struct (Tint6) not implemented yet
+[wp] tests/wp_acsl/logic.i:60: Warning: 
+  Logic cast to sized array (int [2]) from (int [6]) not implemented yet
+[wp] tests/wp_acsl/logic.i:61: Warning: 
+  Logic cast from struct (Tint6) not implemented yet
+[wp] tests/wp_acsl/logic.i:62: Warning: 
+  Logic cast to struct (Tint2) from (int [6]) not implemented yet
+[wp] 21 goals scheduled
+[wp] [Alt-Ergo] Goal typed_h_post : Unknown (Stronger)
+[wp] [Qed] Goal typed_h_assign_exit : Valid
+[wp] [Qed] Goal typed_h_assign_normal : Valid
+[wp] [Qed] Goal typed_main_pre_qed_ok : Valid
+[wp] [Alt-Ergo] Goal typed_main_pre_qed_ok_2 : Valid
+[wp] [Alt-Ergo] Goal typed_main_pre_qed_ok_3 : Valid
+[wp] [Alt-Ergo] Goal typed_main_pre_qed_ok_4 : Unknown (Stronger)
+[wp] [Alt-Ergo] Goal typed_main_pre_qed_ok_5 : Unknown (Stronger)
+[wp] [Alt-Ergo] Goal typed_main_pre_qed_ok_6 : Unknown (Stronger)
+[wp] [Alt-Ergo] Goal typed_main_pre_qed_ok_7 : Unknown (Stronger)
+[wp] [Alt-Ergo] Goal typed_main_pre_qed_ok_8 : Unknown (Stronger)
+[wp] [Alt-Ergo] Goal typed_main_pre_qed_ok_9 : Unknown (Stronger)
+[wp] [Alt-Ergo] Goal typed_main_pre_qed_ok_10 : Unknown (Stronger)
+[wp] [Alt-Ergo] Goal typed_main_pre_qed_ok_11 : Unknown (Stronger)
+[wp] [Alt-Ergo] Goal typed_main_pre_qed_ok_12 : Unknown (Stronger)
+[wp] [Alt-Ergo] Goal typed_main_pre_qed_ok_13 : Unknown (Stronger)
+[wp] [Alt-Ergo] Goal typed_main_pre_qed_ok_14 : Unknown (Stronger)
+[wp] [Alt-Ergo] Goal typed_main_pre_qed_ok_15 : Unknown (Stronger)
+[wp] [Alt-Ergo] Goal typed_main_pre_qed_ok_16 : Unknown (Stronger)
+[wp] [Alt-Ergo] Goal typed_main_pre_qed_ok_17 : Unknown (Stronger)
+[wp] [Alt-Ergo] Goal typed_main_pre_qed_ok_18 : Unknown (Stronger)
+[wp] Proved goals:    5 / 21
+  Qed:             3 
+  Alt-Ergo:        2  (unknown: 16)
 [wp] Report 'tests/wp_acsl/logic.i.0.report.json'
 -------------------------------------------------------------
 Functions           WP     Alt-Ergo        Total   Success
-main                 1     -                 1       100%
+h                    2     -                 3      66.7%
+main                 1      2 (56..68)      18      16.7%
 -------------------------------------------------------------

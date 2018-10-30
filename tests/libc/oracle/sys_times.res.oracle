@@ -1,25 +1,19 @@
 [kernel] Parsing tests/libc/sys_times.c (with preprocessing)
-[value] Analyzing a complete application starting at main
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
-  __fc_time ∈ [--..--]
-  __fc_time_tm ∈ {0}
-  __fc_p_time_tm ∈ {{ &__fc_time_tm }}
-  tzname[0] ∈ {{ NULL ; &S_0_tzname[0] }}
-        [1] ∈ {{ NULL ; &S_1_tzname[0] }}
-  S_0_tzname[0..1] ∈ [--..--]
-  S_1_tzname[0..1] ∈ [--..--]
-[value] computing for function times <- main.
+[eva] Analyzing a complete application starting at main
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
+  
+[eva] computing for function times <- main.
   Called from tests/libc/sys_times.c:6.
-[value] using specification for function times
-[value] tests/libc/sys_times.c:6: 
+[eva] using specification for function times
+[eva] tests/libc/sys_times.c:6: 
   function times: precondition 'valid_buffer' got status valid.
-[value] Done for function times
-[value] Recording results for main
-[value] done for function main
-[value] ====== VALUES COMPUTED ======
-[value:final-states] Values at end of function main:
+[eva] Done for function times
+[eva] Recording results for main
+[eva] done for function main
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function main:
   t ∈ [--..--] or UNINITIALIZED
   ck ∈ [--..--]
   __retres ∈ {0}

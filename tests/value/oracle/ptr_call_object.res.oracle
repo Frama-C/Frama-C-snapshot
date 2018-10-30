@@ -1,38 +1,38 @@
 [kernel] Parsing tests/value/ptr_call_object.c (with preprocessing)
-[value] Analyzing a complete application starting at main
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing a complete application starting at main
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   
-[value] computing for function rand <- main.
+[eva] computing for function rand <- main.
   Called from tests/value/ptr_call_object.c:30.
-[value] using specification for function rand
-[value] Done for function rand
-[value] computing for function next_0 <- main.
+[eva] using specification for function rand
+[eva] Done for function rand
+[eva] computing for function next_0 <- main.
   Called from tests/value/ptr_call_object.c:34.
-[value] tests/value/ptr_call_object.c:16: 
+[eva] tests/value/ptr_call_object.c:16: 
   Frama_C_show_each_p_in_next_0:
   {{ &o0 }}, .next ∈ {{ &next_0 }}
              .i ∈ UNINITIALIZED
-[value] Recording results for next_0
-[value] Done for function next_0
-[value] computing for function next_1 <- main.
+[eva] Recording results for next_0
+[eva] Done for function next_0
+[eva] computing for function next_1 <- main.
   Called from tests/value/ptr_call_object.c:34.
-[value] tests/value/ptr_call_object.c:11: 
+[eva] tests/value/ptr_call_object.c:11: 
   Frama_C_show_each_p_in_next_1:
   {{ &o1 }}, .next ∈ {{ &next_1 }}
              .i ∈ UNINITIALIZED
-[value] Recording results for next_1
-[value] Done for function next_1
-[value] tests/value/ptr_call_object.c:35: Frama_C_show_each_x: {{ &o1 }}
-[value] Recording results for main
-[value] done for function main
-[value] ====== VALUES COMPUTED ======
-[value:final-states] Values at end of function next_0:
+[eva] Recording results for next_1
+[eva] Done for function next_1
+[eva] tests/value/ptr_call_object.c:35: Frama_C_show_each_x: {{ &o1 }}
+[eva] Recording results for main
+[eva] done for function main
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function next_0:
   __retres ∈ {0}
-[value:final-states] Values at end of function next_1:
+[eva:final-states] Values at end of function next_1:
   __retres ∈ {1}
-[value:final-states] Values at end of function main:
+[eva:final-states] Values at end of function main:
   o1.next ∈ {{ &next_1 }}
     .i ∈ UNINITIALIZED
   o0.next ∈ {{ &next_0 }}

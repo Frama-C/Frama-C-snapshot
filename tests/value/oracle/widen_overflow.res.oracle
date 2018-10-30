@@ -1,37 +1,37 @@
 [kernel] Parsing tests/value/widen_overflow.i (no preprocessing)
 [kernel:typing:implicit-function-declaration] tests/value/widen_overflow.i:9: Warning: 
   Calling undeclared function u. Old style K&R code?
-[value] Analyzing a complete application starting at main
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing a complete application starting at main
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   
-[value] tests/value/widen_overflow.i:6: Frama_C_show_each: {4}
-[value] tests/value/widen_overflow.i:9: entering loop for the first time
-[value] computing for function u <- main.
+[eva] tests/value/widen_overflow.i:6: Frama_C_show_each: {4}
+[eva] computing for function u <- main.
   Called from tests/value/widen_overflow.i:9.
 [kernel:annot:missing-spec] tests/value/widen_overflow.i:9: Warning: 
   Neither code nor specification for function u, generating default assigns from the prototype
-[value] using specification for function u
-[value] Done for function u
-[value] computing for function u <- main.
+[eva] using specification for function u
+[eva] Done for function u
+[eva] tests/value/widen_overflow.i:9: starting to merge loop iterations
+[eva] computing for function u <- main.
   Called from tests/value/widen_overflow.i:9.
-[value] Done for function u
-[value] computing for function u <- main.
+[eva] Done for function u
+[eva] computing for function u <- main.
   Called from tests/value/widen_overflow.i:9.
-[value] Done for function u
-[value] computing for function u <- main.
+[eva] Done for function u
+[eva] computing for function u <- main.
   Called from tests/value/widen_overflow.i:9.
-[value] Done for function u
-[value] computing for function u <- main.
+[eva] Done for function u
+[eva] computing for function u <- main.
   Called from tests/value/widen_overflow.i:9.
-[value] Done for function u
-[value] computing for function u <- main.
+[eva] Done for function u
+[eva] computing for function u <- main.
   Called from tests/value/widen_overflow.i:9.
-[value] Done for function u
-[value] Recording results for main
-[value] done for function main
-[value] ====== VALUES COMPUTED ======
-[value:final-states] Values at end of function main:
+[eva] Done for function u
+[eva] Recording results for main
+[eva] done for function main
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function main:
   i ∈ [0..4294967294],0%2
   __retres ∈ {0}

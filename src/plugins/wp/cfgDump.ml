@@ -216,7 +216,7 @@ struct
                 Printer.pp_predicate p) pre
       end ;
     ignore pre ; merge env u k
-  
+
   let call env stmt _r kf _es ~pre ~post ~pexit ~assigns ~p_post ~p_exit =
     let u_post = List.fold_right (add_hyp env) post p_post in
     let u_exit = List.fold_right (add_hyp env) pexit p_exit in

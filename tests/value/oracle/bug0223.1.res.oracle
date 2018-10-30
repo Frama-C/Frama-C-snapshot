@@ -1,37 +1,37 @@
 [kernel] Parsing tests/value/bug0223.i (no preprocessing)
-[value] Analyzing a complete application starting at main
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing a complete application starting at main
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   ch1 ∈ {{ NULL ; &S_ch1[0] }}
   ch2 ∈ {{ NULL ; &S_ch2[0] }}
   S_ch1[0..1] ∈ [--..--]
   S_ch2[0..1] ∈ [--..--]
-[value] computing for function F <- main.
+[eva] computing for function F <- main.
   Called from tests/value/bug0223.i:33.
 [kernel:annot:missing-spec] tests/value/bug0223.i:33: Warning: 
   Neither code nor specification for function F, generating default assigns from the prototype
-[value] using specification for function F
-[value] Done for function F
-[value] computing for function F <- main.
+[eva] using specification for function F
+[eva] Done for function F
+[eva] computing for function F <- main.
   Called from tests/value/bug0223.i:34.
-[value] Done for function F
-[value] computing for function h2 <- main.
+[eva] Done for function F
+[eva] computing for function h2 <- main.
   Called from tests/value/bug0223.i:35.
-[value] computing for function my_strcnmp <- h2 <- main.
+[eva] computing for function my_strcnmp <- h2 <- main.
   Called from tests/value/bug0223.i:16.
 [kernel:annot:missing-spec] tests/value/bug0223.i:16: Warning: 
   Neither code nor specification for function my_strcnmp, generating default assigns from the prototype
-[value] using specification for function my_strcnmp
-[value] Done for function my_strcnmp
-[value] Recording results for h2
-[value] Done for function h2
-[value] Recording results for main
-[value] done for function main
-[value] ====== VALUES COMPUTED ======
-[value:final-states] Values at end of function h2:
+[eva] using specification for function my_strcnmp
+[eva] Done for function my_strcnmp
+[eva] Recording results for h2
+[eva] Done for function h2
+[eva] Recording results for main
+[eva] done for function main
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function h2:
   test ∈ {0; 1}
-[value:final-states] Values at end of function main:
+[eva:final-states] Values at end of function main:
   i ∈ {0}
   j ∈ {0; 1}
   k ∈ {0}

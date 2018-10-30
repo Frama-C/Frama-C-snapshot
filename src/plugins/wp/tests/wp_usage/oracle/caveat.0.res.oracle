@@ -166,7 +166,7 @@ Assume {
       is_sint32(x_4) /\ is_sint32(x_5) /\ is_sint32(x_6) /\ is_sint32(x_7).
   (* Heap *)
   Have: (region(a.base) <= 0) /\ (region(r.base) <= 0).
-  (* Pre-condition 'KO' *)
+  (* Pre-condition *)
   Have: P_OBS(x, x_1, x_2).
 }
 Prove: P_OBS(x_5, x_6, x_7).

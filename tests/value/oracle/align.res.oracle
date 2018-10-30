@@ -1,13 +1,13 @@
 [kernel] Parsing tests/value/align.i (no preprocessing)
-[value] Analyzing a complete application starting at main
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing a complete application starting at main
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   c[0..4][0..9] ∈ {0}
-[value] Recording results for main
-[value] done for function main
-[value] ====== VALUES COMPUTED ======
-[value:final-states] Values at end of function main:
+[eva] Recording results for main
+[eva] done for function main
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function main:
   c[0][0] ∈ {120}
    {[0][1..9]; [1][0..9]; [2][0][bits 0 to 7]} ∈ {0}
    [2][0][bits 8 to 15] ∈ {121}

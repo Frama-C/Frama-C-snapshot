@@ -1,35 +1,35 @@
 [kernel] Parsing tests/value/enum2.c (with preprocessing)
-[value] Analyzing a complete application starting at main
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing a complete application starting at main
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   must_be_one ∈ {0}
   must_be_zero ∈ {0}
-[value] computing for function enum1_sgn1_inf_sgn0 <- main.
+[eva] computing for function enum1_sgn1_inf_sgn0 <- main.
   Called from tests/value/enum2.c:33.
-[value] tests/value/enum2.c:27: Frama_C_show_each_enum1_sgn1_inf_sgn0: {0}
-[value] Recording results for enum1_sgn1_inf_sgn0
-[value] Done for function enum1_sgn1_inf_sgn0
-[value] computing for function enum1_sgn1_positif <- main.
+[eva] tests/value/enum2.c:27: Frama_C_show_each_enum1_sgn1_inf_sgn0: {0}
+[eva] Recording results for enum1_sgn1_inf_sgn0
+[eva] Done for function enum1_sgn1_inf_sgn0
+[eva] computing for function enum1_sgn1_positif <- main.
   Called from tests/value/enum2.c:34.
-[value] computing for function f <- enum1_sgn1_positif <- main.
+[eva] computing for function f <- enum1_sgn1_positif <- main.
   Called from tests/value/enum2.c:21.
-[value] Recording results for f
-[value] Done for function f
-[value] tests/value/enum2.c:22: Frama_C_show_each_enum1_sgn1_positif: {1}
-[value] Recording results for enum1_sgn1_positif
-[value] Done for function enum1_sgn1_positif
-[value] tests/value/enum2.c:35: Frama_C_show_each_sizeof_enum1: {8}
-[value] Recording results for main
-[value] done for function main
-[value] ====== VALUES COMPUTED ======
-[value:final-states] Values at end of function enum1_sgn1_inf_sgn0:
+[eva] Recording results for f
+[eva] Done for function f
+[eva] tests/value/enum2.c:22: Frama_C_show_each_enum1_sgn1_positif: {1}
+[eva] Recording results for enum1_sgn1_positif
+[eva] Done for function enum1_sgn1_positif
+[eva] tests/value/enum2.c:35: Frama_C_show_each_sizeof_enum1: {8}
+[eva] Recording results for main
+[eva] done for function main
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function enum1_sgn1_inf_sgn0:
   res ∈ {0}
-[value:final-states] Values at end of function f:
+[eva:final-states] Values at end of function f:
   y ∈ {2557891634}
-[value:final-states] Values at end of function enum1_sgn1_positif:
+[eva:final-states] Values at end of function enum1_sgn1_positif:
   res ∈ {1}
-[value:final-states] Values at end of function main:
+[eva:final-states] Values at end of function main:
   must_be_one ∈ {1}
   must_be_zero ∈ {0}
   res ∈ {8}

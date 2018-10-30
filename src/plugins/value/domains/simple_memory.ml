@@ -220,9 +220,9 @@ module Make_Internal (Info: sig val name: string end) (Value: Value) = struct
        to be indeterminate (e.g. unitialized data). *)
     let bind_loc loc typ v state =
       match v with
-        (* We are adding a "good" value. Store it in the state. *)
+      (* We are adding a "good" value. Store it in the state. *)
       | `Value v -> add loc typ v state
-        (* Indeterminate value. Drop the information known for loc. *)
+      (* Indeterminate value. Drop the information known for loc. *)
       | `Bottom -> remove loc state
 
     (* This function updates [state] with information for [expr], only possible
@@ -268,44 +268,23 @@ module Make_Internal (Info: sig val name: string end) (Value: Value) = struct
         let value = Eval.value_assigned argument.avalue in
         bind_loc loc typ value state
       in
-      let state =
-        List.fold_left bind_argument state call.arguments
-      in
-      Eval.Compute state
+      let state = List.fold_left bind_argument state call.arguments in
+      `Value state
 
     let finalize_call _stmt call ~pre:_ ~post =
       let kf_name = Kernel_function.get_name call.kf in
       match find_builtin kf_name, call.return with
       | None, _ | _, None   -> `Value post
       | Some f, Some return ->
-        (* If a builtin exists for this function, replaces the value of the
-           return variable by the result of the builtin in the post state. *)
         let extract_value arg = Eval.value_assigned arg.avalue in
         let args = List.map extract_value call.arguments in
         if List.exists (function `Bottom -> true | `Value _ -> false) args
-        then
-          (* If an argument has a bottom value, then it is a copy of an
-             indeterminate value that cannot be represented in this domain.
-             Use the state previously computed without applying the builtin. *)
-          `Value post
+        then `Bottom
         else
           let args = List.map Bottom.non_bottom args in
           f args >>-: fun result ->
           let return_loc = Main_locations.PLoc.eval_varinfo return in
           bind_loc return_loc return.vtype (`Value result) post
-
-    let approximate_call _stmt call state =
-      let state =
-        if Ast_info.is_frama_c_builtin (Kernel_function.get_name call.kf) ||
-           (* Frama-C standard library uses volatile variables to model flow
-              information about e.g. the filesystem, but this domain does not
-              track them. So it is always correct to skip calls to functions that
-              only influence such variables.  *)
-           Eval_typ.kf_assigns_only_result_or_volatile call.kf
-        then state
-        else top
-      in
-      `Value [state]
 
     let show_expr valuation state fmt expr =
       match expr.enode with
@@ -334,8 +313,20 @@ module Make_Internal (Info: sig val name: string end) (Value: Value) = struct
   let initialize_variable _lval _location ~initialized:_ _value state = state
   let initialize_variable_using_type _kind _varinfo state = state
 
-  let filter_by_bases _bases state = state
-  let reuse ~current_input:_ ~previous_output:state = state
+  let relate _kf _bases _state = Base.SetLattice.empty
+
+  let filter _kf _kind bases state =
+    filter (fun elt -> Base.Hptset.mem elt bases) state
+
+  let reuse _kf bases ~current_input ~previous_output =
+    let cache = Hptmap_sig.NoCache in
+    let decide_both _key _v1 v2 = Some v2 in
+    let decide_left key v1 =
+      if Base.Hptset.mem key bases then None else Some v1
+    in
+    merge ~cache ~symmetric:false ~idempotent:true
+      ~decide_both ~decide_left:(Traversing decide_left) ~decide_right:Neutral
+      current_input previous_output
 
   let storage () = true
 end

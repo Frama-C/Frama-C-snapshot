@@ -36,38 +36,63 @@ let extract_default_behavior =
   in
   extract []
 
+let find_default_behavior spec =
+  List.find (fun b' -> b'.b_name = Cil.default_behavior_name) spec.spec_behavior
+
+let warn_empty_assigns () =
+  Value_util.warning_once_current
+    "Cannot handle empty assigns clause. Assuming assigns \\nothing: \
+     be aware this is probably incorrect."
+
+(* Warn for assigns clauses without \from. *)
+let warn_empty_from list =
+  let no_from = List.filter (fun (_, from) -> from = FromAny) list in
+  match no_from with
+  | [] -> ()
+  | (out, _) :: _ ->
+    let source = fst out.it_content.term_loc in
+    Value_parameters.warning ~source ~once:true
+      "@[no \\from part@ for clause '%a'@]"
+      Printer.pp_assigns (Writes no_from)
+
+let treat_assigns = function
+  | WritesAny -> warn_empty_assigns (); []
+  | Writes list -> warn_empty_from list; List.map (fun a -> Assigns a) list
+
 (* Returns the assigns clause to be used during per-behavior processing.
    The specification states that, if a behavior has no assigns clause,
    then the assigns clause of the default behavior must be used instead. *)
 let get_assigns_for_behavior spec b =
-  match b.b_assigns with
-  | WritesAny -> (* no assigns clause, using the default behavior's *)
-    let behaviors = spec.spec_behavior in
-    let name = Cil.default_behavior_name in
-    let def_b =  List.find (fun b' -> b'.b_name = name) behaviors in
-    def_b.b_assigns
-  | _ -> b.b_assigns
+  let assigns =
+    match b.b_assigns with
+    | WritesAny -> (find_default_behavior spec).b_assigns
+    | assigns -> assigns
+  in
+  treat_assigns assigns
+
+(* Returns the allocation clause for the behavior [b]. *)
+let get_allocation_for_behavior spec b =
+  let allocations =
+    match b.b_allocation with
+    | FreeAllocAny -> (find_default_behavior spec).b_allocation
+    | allocation -> allocation
+  in
+  match allocations with
+  | FreeAllocAny -> [] (* TODO: warning. *)
+  | FreeAlloc (free, alloc) ->
+    List.map (fun f -> Frees f) free @ List.map (fun a -> Allocates a) alloc
 
 let pp_eval_error fmt e =
   if e <> Eval_terms.CAlarm then
     Format.fprintf fmt "@ (%a)" Eval_terms.pretty_logic_evaluation_error e
 
-let warn_on_imprecise_assigns assigns =
-  match assigns with
-  | WritesAny ->
-    Value_util.warning_once_current
-      "Cannot handle empty assigns clause. Assuming assigns \\nothing: \
-       be aware this is probably incorrect."
-  | Writes l ->
-    (* Warn for clauses without \from *)
-    let no_from = List.filter (fun (_, from) -> from = FromAny) l in
-    match no_from with
-    | [] -> ()
-    | (out, _) :: _ ->
-      let source = fst out.it_content.term_loc in
-      Value_parameters.warning ~source ~once:true
-        "@[no \\from part@ for clause '%a'@]"
-        Printer.pp_assigns (Writes no_from)
+let pp_assign_free_alloc fmt = function
+  | Assigns (term, _) ->
+    Format.fprintf fmt "assigns clause %a" Printer.pp_term term.it_content
+  | Frees term ->
+    Format.fprintf fmt "frees clause %a" Printer.pp_term term.it_content
+  | Allocates term ->
+    Format.fprintf fmt "allocates clause %a" Printer.pp_term term.it_content
 
 (* Warns in case the 'assigns \result' clause is missing in a behavior
    (only if the return is used at the call site). *)
@@ -94,38 +119,49 @@ let warn_on_missing_result_assigns kinstr kf spec =
       "@[no 'assigns \\result@ \\from ...'@ clause@ specified for@ function %a@]"
       Kernel_function.pretty kf
 
+let is_assigns = function
+  | Assigns _ -> true
+  | Frees _ | Allocates _ -> false
+
 let reduce_to_valid_location out loc =
   if Locations.(Location_Bits.(equal top loc.loc)) then
     begin
       Value_parameters.error ~once:true ~current:true
-        "Cannot@ handle@ assigns@ for %a,@ location@ is@ too@ imprecise@ \
+        "Cannot@ handle@ %a,@ location@ is@ too@ imprecise@ \
          (%a).@ Assuming@ it@ is@ not@ assigned,@ but@ be@ aware@ this\
-         @ is@ incorrect." Printer.pp_term out Locations.pretty loc;
-      `Ignored
+         @ is@ incorrect." pp_assign_free_alloc out Locations.pretty loc;
+      None
     end
   else
     let valid = Locations.valid_part ~for_writing:true loc in
     if Locations.is_bottom_loc valid then
       begin
-        if not (Locations.is_bottom_loc loc) then
+        if is_assigns out && not (Locations.is_bottom_loc loc) then
           Value_parameters.warning ~current:true ~once:true
-            "@[Completely invalid destination@ for assigns@ clause %a.@ \
-             Ignoring.@]" Printer.pp_term out;
-        `Ignored
+            "@[Completely invalid destination@ for %a.@ \
+             Ignoring.@]" pp_assign_free_alloc out;
+        None
       end
-    else `Result loc
+    else Some loc
 
-let precise_loc_of_from_clause env out =
+let precise_loc_of_assign env assign_or_allocation =
   try
     (* TODO: warn about errors during evaluation. *)
     let alarm_mode = Eval_terms.Ignore in
-    let loc = Eval_terms.eval_tlval_as_location ~alarm_mode env out in
-    reduce_to_valid_location out loc
+    let loc = match assign_or_allocation with
+      | Assigns (term, _) ->
+        Eval_terms.eval_tlval_as_location ~alarm_mode env term.it_content
+      | Frees term | Allocates term ->
+        let result = Eval_terms.eval_term ~alarm_mode env term.it_content in
+        let loc_bits = Locations.loc_bytes_to_loc_bits result.Eval_terms.eover in
+        Locations.make_loc loc_bits Int_Base.top
+    in
+    reduce_to_valid_location assign_or_allocation loc
   with Eval_terms.LogicEvalError e ->
     Value_util.warning_once_current
-      "@[<hov 0>@[<hov 2>cannot interpret assigns %a@]%a;@ effects will be ignored@]"
-      Printer.pp_term out pp_eval_error e;
-    `Ignored
+      "@[<hov 0>@[<hov 2>cannot interpret %a@]%a;@ effects will be ignored@]"
+      pp_assign_free_alloc assign_or_allocation pp_eval_error e;
+    None
 
 
 module Make
@@ -190,6 +226,9 @@ module Make
 
   (* Extraction of the precise location and of the cvalue domain:
      needed to evaluate the location of an assigns clause. *)
+  let get_ploc = match Location.get Main_locations.ploc_key with
+    | None -> fun _ -> Main_locations.PLoc.top
+    | Some get -> get
   let set_ploc = Location.set Main_locations.ploc_key
   let set_location loc = set_ploc (Main_locations.PLoc.make loc)
   let get_cvalue_state = match Domain.get Cvalue_domain.key with
@@ -198,61 +237,100 @@ module Make
 
   let make_env state = Eval_terms.env_assigns (get_cvalue_state state)
 
-  (* Applies one assign clause. Returns the updated state, and a boolean
-     indicating whether the clause has really been processed (it is false if
-     the clause has been ignored because too imprecise). *)
-  let treat_assign env ~pre state ({it_content = out}, _ as assigns) =
-    (* Treats the output part of the assigns clause. *)
-    match precise_loc_of_from_clause env out with
-    | `Ignored -> state
-    | `Result location ->
-      let froms_locations = set_location location Location.top in
-      Domain.logic_assign assigns froms_locations ~pre state
+  let is_result = function
+    | Assigns (term, _)
+    | Allocates term -> Logic_utils.is_result term.it_content
+    | Frees _ -> false
+
+  (* Evaluates the location affected by an assigns, allocates or frees clause.
+     Returns None if the clause cannot be interpreted. *)
+  let evaluate_location env retres_loc logic_assign =
+    if is_result logic_assign
+    then retres_loc
+    else
+      let ploc = precise_loc_of_assign env logic_assign in
+      Extlib.opt_map (fun ploc -> set_location ploc Location.top) ploc
+
+  (* From a list of assigns, allocates or frees clauses, builds a list
+     associating each clause to the location it affects. Removes clauses that
+     cannot be interpreted. *)
+  let evaluate_locations env retres_loc list =
+    let process acc logic_assign =
+      match evaluate_location env retres_loc logic_assign with
+      | None -> acc
+      | Some location -> (logic_assign, location) :: acc
+    in
+    List.rev (List.fold_left process [] list)
+
+  (* Applies the [assigns] list of assigns, allocates and frees clauses to
+     the state [state]. *)
+  let apply_assigns_and_allocations retres_loc assigns state =
+    let pre = state in
+    let env = make_env state in
+    let assigns_with_locations = evaluate_locations env retres_loc assigns in
+    let transfer state (logic_assign, location) =
+      Domain.logic_assign logic_assign location ~pre state
+    in
+    List.fold_left transfer state assigns_with_locations
 
   let treat_statement_assigns assigns state =
-    warn_on_imprecise_assigns assigns;
-    match assigns with
-    | WritesAny -> state (* The assign is ignored; a warning has been emitted. *)
-    | Writes l ->
-      let env = make_env state in
-      List.fold_left (treat_assign env ~pre:state) state l
+    let assigns = treat_assigns assigns in
+    apply_assigns_and_allocations None assigns state
 
-  let is_result ({it_content = out}, _) = Logic_utils.is_result out
+  (* After reduction by the postconditions, checks that the locations assigned
+     by assigns clauses are not garbled mixes — and warn otherwise. *)
+  let check_post_assigns kf retres_loc spec behavior ~pre states =
+    let env = make_env pre in
+    let assigns = get_assigns_for_behavior spec behavior in
+    let assigns = evaluate_locations env retres_loc assigns in
+    let check_one_assign cvalue_state (assign, location) =
+      let loc = Precise_locs.imprecise_location (get_ploc location) in
+      let cvalue = Cvalue.Model.find cvalue_state loc in
+      if Cvalue.V.is_imprecise cvalue
+      then
+        begin
+          ignore (Locations.Location_Bytes.track_garbled_mix cvalue);
+          Value_parameters.warning ~current:true ~once:true
+            ~wkey:Value_parameters.wkey_garbled_mix
+            "The specification of function %a has generated a garbled mix \
+             for assigns clause %a."
+            Kernel_function.pretty kf pp_assign_free_alloc assign
+        end
+    in
+    let check_one_state state =
+      let cvalue_state = get_cvalue_state state in
+      List.iter (check_one_assign cvalue_state) assigns
+    in
+    States.iter check_one_state states
 
-  (* Interprets one function assign, with a special case for assigns \result. *)
-  let treat_function_assign retres_loc env ~pre state assigns =
-    if is_result assigns
-    then
-      match retres_loc with
-      | None -> state
-      | Some loc -> Domain.logic_assign assigns loc ~pre state
-    else treat_assign env state ~pre assigns
-
-  (* Interprets all the assigns of a function. *)
-  let treat_function_assigns retres_vi assigns state =
-    warn_on_imprecise_assigns assigns;
-    match assigns with
-    | WritesAny -> state
-    | Writes l ->
-      let env = make_env state in
-      let retres_loc = Extlib.opt_map Location.eval_varinfo retres_vi in
-      List.fold_left (treat_function_assign retres_loc env ~pre:state) state l
-
+  (* Computes the effects of a list of [behaviors] as one: apply the assigns and
+     allocations clauses of the first behavior, and reduces the resulting states
+     by the ensures clauses of all [behaviors]. [kf] is the called function,
+     [spec] is its specification, [result] is the \result varinfo it returns,
+     and [status] the status of the behaviors. *)
+  let compute_effects ~warn kf spec result behaviors status states =
+    States.join states >>- fun pre_state ->
+    Locations.Location_Bytes.do_track_garbled_mix false;
+    let behavior = List.hd behaviors in
+    let retres_loc = Extlib.opt_map Location.eval_varinfo result in
+    let assigns = get_assigns_for_behavior spec behavior in
+    let allocs = get_allocation_for_behavior spec behavior in
+    let compute = apply_assigns_and_allocations retres_loc (assigns @ allocs) in
+    let states = States.map compute states in
+    let states =
+      Logic.check_fct_postconditions_for_behaviors kf behaviors status
+        ~result ~pre_state ~post_states:states
+    in
+    (* Warn on garbled mixes created by specifications, except on builtins. *)
+    if warn
+    then check_post_assigns kf retres_loc spec behavior ~pre:pre_state states;
+    Locations.Location_Bytes.do_track_garbled_mix true;
+    states
 
   (* Reduces the [states] by the assumes and requires clauses of the [behavior]
      of function [kf]. Warns about inactive postconditions if [states] are
      reduced to bottom. *)
   let reduce_by_preconditions = Logic.check_fct_preconditions_for_behaviors
-
-  (* Computes the effects of the assigns clauses of the [behavior] and reduces
-     the resulting states by its ensures clauses. [kf) is the called function,
-     and [result] is the \result varinfo it returns, if any. *)
-  let compute_effects kf spec result behavior status states =
-    States.join states >>- fun pre_state ->
-    let assigns = get_assigns_for_behavior spec behavior in
-    let states = States.map (treat_function_assigns result assigns) states in
-    Logic.check_fct_postconditions_for_behaviors kf [behavior] status
-      ~result ~pre_state ~post_states:states
 
   module Behaviors = struct
     type t = funbehavior
@@ -269,7 +347,7 @@ module Make
      All behaviors in [behaviors] must have an Unknown status. False behaviors
      should have been removed, and true behaviors should be interpreted by
      [compute_true_behaviors]. *)
-  let compute_complete_behaviors kinstr kf spec result behaviors states =
+  let compute_complete_behaviors ~warn kinstr kf spec result behaviors states =
     (* As a behavior may be included in several complete sets, we use a local
        cache for the interpretation of each behavior. *)
     let cache = HashBehaviors.create 3 in
@@ -278,7 +356,7 @@ module Make
       with Not_found ->
         let s = Alarmset.Unknown in
         let states = reduce_by_preconditions kinstr kf [behavior] s states in
-        let states = compute_effects kf spec result behavior s states in
+        let states = compute_effects ~warn kf spec result [behavior] s states in
         HashBehaviors.add cache behavior states;
         states
     in
@@ -293,15 +371,10 @@ module Make
      behavior. Uses all the preconditions and postconditinos at once to
      reduce the states, and uses the assigns clauses of the first behavior
      only (ideally, we want the intersection of assigns clauses). *)
-  let compute_true_behaviors kinstr kf spec result behaviors states =
+  let compute_true_behaviors ~warn kinstr kf spec result behaviors states =
     let status = Alarmset.True in
     let states = reduce_by_preconditions kinstr kf behaviors status states in
-    States.join states >>- fun pre_state ->
-    let assigns = get_assigns_for_behavior spec (List.hd behaviors) in
-    let states = States.map (treat_function_assigns result assigns) states in
-    Logic.check_fct_postconditions_for_behaviors kf behaviors Alarmset.True
-      ~result ~pre_state ~post_states:states
-
+    compute_effects ~warn kf spec result behaviors status states
 
   (* Auxiliary function for promote_complete_behaviors. Replaces the status of
      a behavior in an association list binding behaviors to statuses. *)
@@ -404,8 +477,8 @@ module Make
      To obtain the highest precision, the states resulting from the
      interpretation of any true behavior and of any complete set should be
      intersected. *)
-  let compute_specification kinstr kf result spec state =
-    warn_allocates kf spec.spec_behavior;
+  let compute_specification ~warn kinstr kf result spec state =
+    if warn then warn_allocates kf spec.spec_behavior;
     (* The default behavior, and the list of other behaviors. *)
     let default_bhv, behaviors = extract_default_behavior spec.spec_behavior in
     let find_behavior name = List.find (fun b -> b.b_name = name) behaviors in
@@ -428,7 +501,7 @@ module Make
     (* Without any true behaviors or complete sets, compute the effects of
        the default behavior. *)
     if true_behaviors = [] && spec.spec_complete_behaviors = []
-    then compute_effects kf spec result default_bhv Alarmset.True states
+    then compute_effects ~warn kf spec result [default_bhv] Alarmset.True states
     else
       (* Remove complete sets that contain a true behavior: such behaviors are
          treated afterwards. *)
@@ -441,7 +514,7 @@ module Make
          approximation at the end of the function call. *)
       let complete_states =
         compute_complete_behaviors
-          kinstr kf spec result complete_behaviors states
+          ~warn kinstr kf spec result complete_behaviors states
       in
       (* If there is some true behaviors, interpret them and add the resulting
          state set to the list. All true behaviors have their clauses computed
@@ -451,7 +524,8 @@ module Make
         then complete_states
         else
           let true_states =
-            compute_true_behaviors kinstr kf spec result true_behaviors states
+            compute_true_behaviors
+              ~warn kinstr kf spec result true_behaviors states
           in
           true_states :: complete_states
       in
@@ -460,12 +534,10 @@ module Make
 
   (* Interprets the [call] at [kinstr] in [state], using the specification
      [spec] of the called function. It first reduces by the preconditions, then
-     evaluates the assigns, and finally reduces by the post-conditions. *)
-  let compute_using_specification kinstr call spec state =
-    if Value_parameters.InterpreterMode.get ()
-    then Value_parameters.abort "Library function call. Stopping.";
-    Value_parameters.feedback ~once:true
-      "@[using specification for function %a@]" Kernel_function.pretty call.kf;
+     evaluates the assigns, and finally reduces by the post-conditions.
+     [warn] is false for the specification of cvalue builtins — in this case,
+     some warnings are disabled, such as warnings about new garbled mixes. *)
+  let compute_using_specification ~warn kinstr call spec state =
     let vi = Kernel_function.get_vi call.kf in
     if Cil.hasAttribute "noreturn" vi.vattr
     then `Bottom
@@ -475,13 +547,13 @@ module Make
         | None -> state
         | Some retres_vi ->
           (* Notify the user about missing assigns \result. *)
-          warn_on_missing_result_assigns kinstr call.kf spec;
+          if warn then warn_on_missing_result_assigns kinstr call.kf spec;
           let state = Domain.enter_scope call.kf [retres_vi] state in
           let init_kind = Abstract_domain.Spec_Return call.kf  in
           Domain.initialize_variable_using_type init_kind retres_vi state
       in
       let states =
-        compute_specification kinstr call.kf call.return spec state
+        compute_specification ~warn kinstr call.kf call.return spec state
       in
       if States.is_empty states
       then `Bottom

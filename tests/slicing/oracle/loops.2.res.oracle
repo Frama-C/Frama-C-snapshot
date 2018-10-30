@@ -1,22 +1,22 @@
 [kernel] Parsing tests/slicing/loops.i (no preprocessing)
-[value] Analyzing an incomplete application starting at f2
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing an incomplete application starting at f2
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   G ∈ [--..--]
   C1 ∈ [--..--]
   C2 ∈ [--..--]
   X ∈ [--..--]
   Y ∈ [--..--]
   Z ∈ [--..--]
-[value] tests/slicing/loops.i:50: entering loop for the first time
-[value:alarm] tests/slicing/loops.i:56: Warning: assertion got status unknown.
-[value:alarm] tests/slicing/loops.i:52: Warning: 
+[eva:alarm] tests/slicing/loops.i:56: Warning: assertion got status unknown.
+[eva] tests/slicing/loops.i:50: starting to merge loop iterations
+[eva:alarm] tests/slicing/loops.i:52: Warning: 
   signed overflow. assert x1 + 1 ≤ 2147483647;
-[value:alarm] tests/slicing/loops.i:54: Warning: 
+[eva:alarm] tests/slicing/loops.i:54: Warning: 
   signed overflow. assert x2 + 1 ≤ 2147483647;
-[value] Recording results for f2
-[value] done for function f2
+[eva] Recording results for f2
+[eva] done for function f2
 [from] Computing for function f2
 [from] Non-terminating function f2 (no dependencies)
 [from] Done for function f2

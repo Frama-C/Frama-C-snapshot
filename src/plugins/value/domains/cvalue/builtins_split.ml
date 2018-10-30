@@ -42,7 +42,7 @@ let frama_c_cardinal state actuals =
         c_from = None;
       }
     end
-  | _ -> 
+  | _ ->
     Kernel.abort ~current:true "Incorrect argument for Frama_C_cardinal"
 
 let () =
@@ -77,7 +77,7 @@ let () =
 (** Splitting values *)
 
 let warning warn s =
-  if warn then 
+  if warn then
     Value_parameters.result ~current:true ~once:true s
   else
     Pretty_utils.nullprintf s
@@ -109,7 +109,7 @@ let split_v ~warn lv state max_card =
           V.fold_enum aux_v v []
         with Not_less_than ->
           warning warn "Location %a points to too many values (%a). \
-              Cannot split." Printer.pp_lval lv V.pretty v;
+                        Cannot split." Printer.pp_lval lv V.pretty v;
           [state]
     else begin
       warning warn "Location %a is not a singleton (%a). Cannot split."
@@ -227,4 +227,3 @@ let () =
   !Db.Value.register_builtin "Frama_C_builtin_split_pointer" (aux_split split_pointer)
 let () =
   !Db.Value.register_builtin "Frama_C_builtin_split_all" (aux_split split_all)
-

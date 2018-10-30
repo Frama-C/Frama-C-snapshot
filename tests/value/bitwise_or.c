@@ -1,5 +1,5 @@
 /* run.config*
-   OPT: -no-autoload-plugins -load-module inout,value -big-ints-hex 256 -val @VALUECONFIG@ -journal-disable
+   OPT: -no-autoload-plugins -load-module inout,eva -big-ints-hex 256 -val @VALUECONFIG@ -journal-disable
 */
 #include "__fc_builtin.h"
 
@@ -9,7 +9,7 @@ unsigned int uand1, uand2, uand3, uand4, uand5;
 int a,b,c,d,e;
 extern unsigned short s;
 
-main(){
+int main(){
   a = Frama_C_interval(3,17);
   b = Frama_C_interval(-3,17);
   c = Frama_C_interval(13,27);

@@ -163,9 +163,9 @@ let findhead (s:selection) e =
       if v == e then Some s else None
 
 let rec lookup (s:selection) e q =
-    match findhead s e with
-    | Some _ as result -> result
-    | None -> lookup_inner s e q
+  match findhead s e with
+  | Some _ as result -> result
+  | None -> lookup_inner s e q
 
 and lookup_inner (s:selection) e q =
   begin match s with
@@ -403,10 +403,10 @@ let tacticals = ref Tmap.empty
 
 let register t =
   let id = t#id in
-    if Tmap.mem id !tacticals then
-      Wp_parameters.error "Tactical #%s already registered (skipped)" id
-    else
-      tacticals := Tmap.add id (t :> t) !tacticals
+  if Tmap.mem id !tacticals then
+    Wp_parameters.error "Tactical #%s already registered (skipped)" id
+  else
+    tacticals := Tmap.add id (t :> t) !tacticals
 
 let export t = register t ; (t :> t)
 let iter f = Tmap.iter (fun _id t -> f t) !tacticals

@@ -22,13 +22,8 @@
 
 (** Transfer functions for the main domain of the Value analysis. *)
 
-open Eval
-
 type value = Main_values.CVal.t
 type location = Main_locations.PLoc.location
-
-val eval_precond:
-  (Cil_types.kernel_function -> Cil_types.stmt -> Cvalue.Model.t -> Cvalue.Model.t) ref
 
 module Transfer
     (Valuation: Abstract_domain.Valuation with type value = value
@@ -41,11 +36,6 @@ module Transfer
        and type value := value
        and type location := location
        and type valuation := Valuation.t
-
-
-    val start_call:
-      Cil_types.stmt -> value call -> Valuation.t -> state ->
-      state call_action * Base.SetLattice.t
 
   end
 

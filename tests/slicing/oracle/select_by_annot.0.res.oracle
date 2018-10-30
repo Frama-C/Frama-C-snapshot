@@ -1,82 +1,81 @@
 [kernel] Parsing tests/slicing/select_by_annot.i (no preprocessing)
-[value] Analyzing an incomplete application starting at main
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing an incomplete application starting at main
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   S ∈ [--..--]
   Sa ∈ [--..--]
   X9 ∈ [--..--]
   Y9 ∈ [--..--]
   Z9 ∈ [--..--]
   d ∈ [--..--]
-[value] tests/slicing/select_by_annot.i:133: assertion got status valid.
-[value:alarm] tests/slicing/select_by_annot.i:137: Warning: 
+[eva] tests/slicing/select_by_annot.i:133: assertion got status valid.
+[eva:alarm] tests/slicing/select_by_annot.i:137: Warning: 
   signed overflow. assert (int)((int)(a + b) + c) + d ≤ 2147483647;
-[value] computing for function modifS <- main.
+[eva] computing for function modifS <- main.
   Called from tests/slicing/select_by_annot.i:138.
-[value:alarm] tests/slicing/select_by_annot.i:122: Warning: 
+[eva:alarm] tests/slicing/select_by_annot.i:122: Warning: 
   signed overflow. assert S.a + a ≤ 2147483647;
-[value] Recording results for modifS
-[value] Done for function modifS
-[value] computing for function new_int <- main.
+[eva] Recording results for modifS
+[eva] Done for function modifS
+[eva] computing for function new_int <- main.
   Called from tests/slicing/select_by_annot.i:140.
 [kernel:annot:missing-spec] tests/slicing/select_by_annot.i:140: Warning: 
   Neither code nor specification for function new_int, generating default assigns from the prototype
-[value] using specification for function new_int
-[value] Done for function new_int
-[value] computing for function f1 <- main.
+[eva] using specification for function new_int
+[eva] Done for function new_int
+[eva] computing for function f1 <- main.
   Called from tests/slicing/select_by_annot.i:141.
-[value:alarm] tests/slicing/select_by_annot.i:29: Warning: 
+[eva:alarm] tests/slicing/select_by_annot.i:29: Warning: 
   assertion got status unknown.
-[value] Recording results for f1
-[value] Done for function f1
-[value] computing for function f2 <- main.
+[eva] Recording results for f1
+[eva] Done for function f1
+[eva] computing for function f2 <- main.
   Called from tests/slicing/select_by_annot.i:142.
-[value:alarm] tests/slicing/select_by_annot.i:39: Warning: 
+[eva:alarm] tests/slicing/select_by_annot.i:39: Warning: 
   assertion got status unknown.
-[value] Recording results for f2
-[value] Done for function f2
-[value] computing for function f3 <- main.
+[eva] Recording results for f2
+[eva] Done for function f2
+[eva] computing for function f3 <- main.
   Called from tests/slicing/select_by_annot.i:143.
-[value] Recording results for f3
-[value] Done for function f3
-[value] computing for function f4 <- main.
+[eva] Recording results for f3
+[eva] Done for function f3
+[eva] computing for function f4 <- main.
   Called from tests/slicing/select_by_annot.i:144.
-[value] Recording results for f4
-[value] Done for function f4
-[value] computing for function f5 <- main.
+[eva] Recording results for f4
+[eva] Done for function f4
+[eva] computing for function f5 <- main.
   Called from tests/slicing/select_by_annot.i:145.
-[value] Recording results for f5
-[value] Done for function f5
-[value] computing for function f6 <- main.
+[eva] Recording results for f5
+[eva] Done for function f5
+[eva] computing for function f6 <- main.
   Called from tests/slicing/select_by_annot.i:146.
-[value:alarm] tests/slicing/select_by_annot.i:77: Warning: 
+[eva:alarm] tests/slicing/select_by_annot.i:77: Warning: 
   signed overflow. assert Sa + 1 ≤ 2147483647;
-[value] Recording results for f6
-[value] Done for function f6
-[value] computing for function f7 <- main.
+[eva] Recording results for f6
+[eva] Done for function f6
+[eva] computing for function f7 <- main.
   Called from tests/slicing/select_by_annot.i:147.
-[value:alarm] tests/slicing/select_by_annot.i:88: Warning: 
+[eva:alarm] tests/slicing/select_by_annot.i:88: Warning: 
   signed overflow. assert Sa + 1 ≤ 2147483647;
-[value] Recording results for f7
-[value] Done for function f7
-[value] computing for function f8 <- main.
+[eva] Recording results for f7
+[eva] Done for function f7
+[eva] computing for function f8 <- main.
   Called from tests/slicing/select_by_annot.i:148.
-[value:alarm] tests/slicing/select_by_annot.i:97: Warning: 
+[eva:alarm] tests/slicing/select_by_annot.i:97: Warning: 
   loop invariant got status unknown.
-[value] tests/slicing/select_by_annot.i:99: entering loop for the first time
-[value:alarm] tests/slicing/select_by_annot.i:100: Warning: 
+[eva:alarm] tests/slicing/select_by_annot.i:100: Warning: 
   assertion got status unknown.
-[value:alarm] tests/slicing/select_by_annot.i:104: Warning: 
+[eva:alarm] tests/slicing/select_by_annot.i:104: Warning: 
   signed overflow. assert S.a + 1 ≤ 2147483647;
-[value] Recording results for f8
-[value] Done for function f8
-[value] computing for function f9 <- main.
+[eva] Recording results for f8
+[eva] Done for function f8
+[eva] computing for function f9 <- main.
   Called from tests/slicing/select_by_annot.i:149.
-[value] Recording results for f9
-[value] Done for function f9
-[value] Recording results for main
-[value] done for function main
+[eva] Recording results for f9
+[eva] Done for function f9
+[eva] Recording results for main
+[eva] done for function main
 [from] Computing for function f1
 [from] Done for function f1
 [from] Computing for function f2
@@ -402,7 +401,7 @@ modifS_slice_1:
 
 /**/void modifS(/* <[--d], [---]> */ int a, /* <[---], [---]> */ int b)
 {
-  /*@ assert Value: signed_overflow: S.a + a ≤ 2147483647; */
+  /*@ assert Eva: signed_overflow: S.a + a ≤ 2147483647; */
   /* <[--d], [---]> */
   S.a += a;
   /* <[---], [---]> */
@@ -442,7 +441,7 @@ main_slice_1:
   /*@ slice pragma expr a + b; */ /* <[ S ], [---]> */
                                   ;
   /*@ assert
-      Value: signed_overflow: (int)((int)(a + b) + c) + d ≤ 2147483647;
+      Eva: signed_overflow: (int)((int)(a + b) + c) + d ≤ 2147483647;
   */
   /* <[---], [---]> */
   /* <[---], [---]> */ int x = ((a + b) + c) + d;
@@ -534,7 +533,7 @@ modifS_slice_1:
 
 /**/void modifS(/* <[--d], [---]> */ int a, /* <[---], [---]> */ int b)
 {
-  /*@ assert Value: signed_overflow: S.a + a ≤ 2147483647; */
+  /*@ assert Eva: signed_overflow: S.a + a ≤ 2147483647; */
   /* <[--d], [---]> */
   S.a += a;
   /* <[---], [---]> */
@@ -574,7 +573,7 @@ main_slice_1:
   /*@ slice pragma expr a + b; */ /* <[ S ], [---]> */
                                   ;
   /*@ assert
-      Value: signed_overflow: (int)((int)(a + b) + c) + d ≤ 2147483647;
+      Eva: signed_overflow: (int)((int)(a + b) + c) + d ≤ 2147483647;
   */
   /* <[---], [---]> */
   /* <[---], [---]> */ int x = ((a + b) + c) + d;

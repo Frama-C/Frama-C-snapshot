@@ -1,16 +1,16 @@
 [kernel] Parsing tests/sparecode/params.i (no preprocessing)
 [slicing] slicing requests in progress...
-[value] Analyzing a complete application starting at main
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing a complete application starting at main
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   
-[value] computing for function main1 <- main.
+[eva] computing for function main1 <- main.
   Called from tests/sparecode/params.i:17.
-[value] Recording results for main1
-[value] Done for function main1
-[value] Recording results for main
-[value] done for function main
+[eva] Recording results for main1
+[eva] Done for function main1
+[eva] Recording results for main
+[eva] done for function main
 [slicing] initializing slicing ...
 [slicing] interpreting slicing requests from the command line...
 [pdg] computing for function main

@@ -24,11 +24,10 @@ Assume {
   Have: (region(t.base) <= 0) /\ linked(Malloc_0).
   (* Assertion *)
   Have: (50 <= A) /\ (A <= 100).
-  (* Loop assigns ... *)
-  Have: havoc(Mint_0, Mint_1, shift_sint32(t, 0), 50).
   (* Invariant *)
   Have: forall i_1 : Z. ((0 <= i_1) -> ((i_1 < i) ->
-      P_P(Mint_1[shift_sint32(t, i_1)]))).
+      P_P(havoc(Mint_undef_0, Mint_0, shift_sint32(t, 0), 50)
+            [shift_sint32(t, i_1)]))).
   (* Invariant *)
   Have: (0 <= i) /\ (i <= 50).
   (* Then *)
@@ -46,6 +45,7 @@ Prove: true.
 ------------------------------------------------------------
 
 Goal Preservation of Invariant (file tests/wp_plugin/combined.c, line 29):
+Let a = havoc(Mint_undef_0, Mint_0, shift_sint32(t, 0), 50).
 Assume {
   Type: is_sint32(A) /\ is_sint32(i) /\ is_sint32(v) /\ is_sint32(1 + i).
   (* Goal *)
@@ -54,11 +54,9 @@ Assume {
   Have: (region(t.base) <= 0) /\ linked(Malloc_0).
   (* Assertion *)
   Have: (50 <= A) /\ (A <= 100).
-  (* Loop assigns ... *)
-  Have: havoc(Mint_1, Mint_0, shift_sint32(t, 0), 50).
   (* Invariant *)
   Have: forall i_2 : Z. ((0 <= i_2) -> ((i_2 < i) ->
-      P_P(Mint_0[shift_sint32(t, i_2)]))).
+      P_P(a[shift_sint32(t, i_2)]))).
   (* Invariant *)
   Have: (0 <= i) /\ (i <= 50).
   (* Then *)
@@ -66,7 +64,7 @@ Assume {
   (* Call 'f' *)
   Have: P_P(v).
 }
-Prove: P_P(Mint_0[shift_sint32(t, i) <- v][shift_sint32(t, i_1)]).
+Prove: P_P(a[shift_sint32(t, i) <- v][shift_sint32(t, i_1)]).
 
 ------------------------------------------------------------
 
@@ -83,17 +81,14 @@ Assume {
   Have: (region(t.base) <= 0) /\ linked(Malloc_0).
   (* Assertion *)
   Have: (50 <= A) /\ (A <= 100).
-  (* Loop assigns ... *)
-  Have: havoc(Mint_0, Mint_1, shift_sint32(t, 0), 50).
   (* Invariant *)
   Have: forall i_1 : Z. ((0 <= i_1) -> ((i_1 < i) ->
-      P_P(Mint_1[shift_sint32(t, i_1)]))).
+      P_P(havoc(Mint_undef_0, Mint_0, shift_sint32(t, 0), 50)
+            [shift_sint32(t, i_1)]))).
   (* Invariant *)
   Have: (0 <= i) /\ (i <= 50).
   (* Else *)
   Have: 50 <= i.
-  (* Loop assigns ... *)
-  Have: havoc(Mint_1, Mint_2, shift_sint32(t, A), 100 - A).
   (* Invariant *)
   Have: (A <= j) /\ (j <= 100).
   (* Then *)
@@ -109,6 +104,7 @@ Prove: true.
 ------------------------------------------------------------
 
 Goal Assertion (file tests/wp_plugin/combined.c, line 39):
+Let a = havoc(Mint_undef_1, Mint_0, shift_sint32(t, 0), 50).
 Assume {
   Type: is_sint32(A) /\ is_sint32(i_1) /\ is_sint32(j).
   (* Goal *)
@@ -117,23 +113,20 @@ Assume {
   Have: (region(t.base) <= 0) /\ linked(Malloc_0).
   (* Assertion *)
   Have: (50 <= A) /\ (A <= 100).
-  (* Loop assigns ... *)
-  Have: havoc(Mint_1, Mint_2, shift_sint32(t, 0), 50).
   (* Invariant *)
   Have: forall i_2 : Z. ((0 <= i_2) -> ((i_2 < i_1) ->
-      P_P(Mint_2[shift_sint32(t, i_2)]))).
+      P_P(a[shift_sint32(t, i_2)]))).
   (* Invariant *)
   Have: (0 <= i_1) /\ (i_1 <= 50).
   (* Else *)
   Have: 50 <= i_1.
-  (* Loop assigns ... *)
-  Have: havoc(Mint_2, Mint_0, shift_sint32(t, A), 100 - A).
   (* Invariant *)
   Have: (A <= j) /\ (j <= 100).
   (* Else *)
   Have: 100 <= j.
 }
-Prove: P_P(Mint_0[shift_sint32(t, i)]).
+Prove: P_P(havoc(Mint_undef_0, a, shift_sint32(t, A), 100 - A)
+             [shift_sint32(t, i)]).
 
 ------------------------------------------------------------
 
@@ -167,33 +160,28 @@ Prove: true.
 
 Goal Loop assigns (file tests/wp_plugin/combined.c, line 35) (3/3):
 Call Result at line 37
-Let a = shift_sint32(t, A).
-Let x = 100 - A.
-Let a_1 = shift_sint32(t, j).
+Let a = shift_sint32(t, j).
 Assume {
   Type: is_sint32(A) /\ is_sint32(i) /\ is_sint32(j).
   (* Goal *)
-  When: !invalid(Malloc_0, a_1, 1).
+  When: !invalid(Malloc_0, a, 1).
   (* Heap *)
   Have: (region(t.base) <= 0) /\ linked(Malloc_0).
   (* Assertion *)
   Have: (50 <= A) /\ (A <= 100).
-  (* Loop assigns ... *)
-  Have: havoc(Mint_0, Mint_1, shift_sint32(t, 0), 50).
   (* Invariant *)
   Have: forall i_1 : Z. ((0 <= i_1) -> ((i_1 < i) ->
-      P_P(Mint_1[shift_sint32(t, i_1)]))).
+      P_P(havoc(Mint_undef_0, Mint_0, shift_sint32(t, 0), 50)
+            [shift_sint32(t, i_1)]))).
   (* Invariant *)
   Have: (0 <= i) /\ (i <= 50).
   (* Else *)
   Have: 50 <= i.
-  (* Loop assigns ... *)
-  Have: havoc(Mint_1, Mint_2, a, x).
   (* Invariant *)
   Have: (A <= j) /\ (j <= 100).
   (* Then *)
   Have: j <= 99.
 }
-Prove: included(a_1, 1, a, x).
+Prove: included(a, 1, shift_sint32(t, A), 100 - A).
 
 ------------------------------------------------------------

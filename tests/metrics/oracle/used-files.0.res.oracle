@@ -1,0 +1,37 @@
+[kernel] Parsing tests/metrics/used-files.i (no preprocessing)
+[kernel] Parsing tests/metrics/used-files1.i (no preprocessing)
+[kernel] Parsing tests/metrics/used-files2.i (no preprocessing)
+[kernel] Parsing tests/metrics/used-files3.i (no preprocessing)
+[kernel] Parsing tests/metrics/used-files4.i (no preprocessing)
+[kernel] Parsing tests/metrics/used-files5.i (no preprocessing)
+[kernel] Parsing tests/metrics/used-files6.i (no preprocessing)
+[kernel] Parsing tests/metrics/used-files7.i (no preprocessing)
+[kernel] Parsing tests/metrics/used-files8.i (no preprocessing)
+[kernel] Parsing tests/metrics/used-files9.c (with preprocessing)
+[kernel] Parsing tests/metrics/used-files1.h (with preprocessing)
+[kernel] Parsing tests/metrics/used-files2.h (with preprocessing)
+[metrics] Used files starting at function 'main':
+  - command line has 8 out of 12 file(s) being used
+  - 1 used file(s) inside #include directives, of which 1 '.c' file(s).
+  
+  Used command-line files (8)
+  ===========================
+  tests/metrics/used-files.i \
+  tests/metrics/used-files1.h \
+  tests/metrics/used-files1.i \
+  tests/metrics/used-files2.i \
+  tests/metrics/used-files3.i \
+  tests/metrics/used-files6.i \
+  tests/metrics/used-files7.i \
+  tests/metrics/used-files8.i \
+  
+  Unused command-line files (4)
+  =============================
+  tests/metrics/used-files2.h \
+  tests/metrics/used-files4.i \
+  tests/metrics/used-files5.i \
+  tests/metrics/used-files9.c \
+  
+  Used, but implicitly included C files (1)
+  =========================================
+  tests/metrics/used-files10.c \

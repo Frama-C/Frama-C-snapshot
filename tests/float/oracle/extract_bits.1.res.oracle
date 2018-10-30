@@ -5,20 +5,20 @@
   Floating-point constant 2.71 is not represented exactly. Will use 0x1.5ae147ae147aep1.
 [kernel:parser:decimal-float] tests/float/extract_bits.i:9: Warning: 
   Floating-point constant 1.8254370818746402660437411213933955878019332885742187 is not represented exactly. Will use 0x1.d34fd8378ea83p0.
-[value] Analyzing a complete application starting at main
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing a complete application starting at main
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   f ∈ {3.1400001049041748}
   d ∈ {2.7099999999999999}
   stdtod_bug ∈ {1.8254370818746401}
   fr[0..0x3] ∈ {0}
   dr[0..0x7] ∈ {0}
-[value] tests/float/extract_bits.i:25: Frama_C_show_each: [0..0xFF]
-[value] Recording results for main
-[value] done for function main
-[value] ====== VALUES COMPUTED ======
-[value:final-states] Values at end of function main:
+[eva] tests/float/extract_bits.i:25: Frama_C_show_each: [0..0xFF]
+[eva] Recording results for main
+[eva] done for function main
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function main:
   fr[0] ∈ {0xC3}
     [0x1] ∈ {0xF5}
     [0x2] ∈ {0x48}

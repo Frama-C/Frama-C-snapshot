@@ -215,13 +215,6 @@ val getFormalsDecl: varinfo -> varinfo list
 (** A dummy file *)
 val dummyFile: file
 
-(** Get the global initializer and create one if it does not already exist.
-    When it creates a global initializer it attempts to place a call to it in
-    the main function named by the optional argument (default "main").
-    @deprecated using this function is incorrect since it modifies the
-    current AST (see Plug-in Development Guide, Section "Using Projects"). *)
-val getGlobInit: ?main_name:string -> file -> fundec
-
 (** Iterate over all globals, including the global initializer *)
 val iterGlobals: file -> (global -> unit) -> unit
 
@@ -466,11 +459,20 @@ val compFullName: compinfo -> string
 (** Returns true if this is a complete type.
    This means that sizeof(t) makes sense.
    Incomplete types are not yet defined
-   structures and empty arrays. 
-   @param allowZeroSizeArrays defaults to [false]. When [true], arrays of
-   size 0 (a gcc extension) are considered as complete
+   structures and empty arrays.
+   @param allowZeroSizeArrays indicates whether arrays of
+   size 0 (a gcc extension) are considered as complete. Default value
+   depends on the current machdep.
 *)
 val isCompleteType: ?allowZeroSizeArrays:bool -> typ -> bool
+
+(** [true] iff the given type is a [struct] whose last field is a flexible
+    array member. When in gcc mode, a zero-sized array is identified with a
+    FAM for this purpose.
+
+    @since Frama-C+dev
+*)
+val has_flexible_array_member: typ -> bool
 
 (** Unroll a type until it exposes a non
  * [TNamed]. Will collect all attributes appearing in [TNamed]!!! *)
@@ -539,19 +541,28 @@ val isIntegralType: typ -> bool
 val isIntegralOrPointerType: typ -> bool
 
 (** True if the argument is an integral type (i.e. integer or enum), either
-    C or mathematical one *)
+    C or mathematical one.
+    @modify Frama-C+dev expands the logic type definition if necessary. *)
 val isLogicIntegralType: logic_type -> bool
 
-(** True if the argument is a floating point type *)
+(** True if the argument is a boolean type, either integral C type or
+    mathematical boolean one.
+    @modify Frama-C+dev expands the logic type definition if necessary. *)
+val isLogicBooleanType: logic_type -> bool
+
+(** True if the argument is a floating point type. *)
 val isFloatingType: typ -> bool
 
-(** True if the argument is a floating point type *)
+(** True if the argument is a floating point type.
+    @modify Frama-C+dev expands the logic type definition if necessary. *)
 val isLogicFloatType: logic_type -> bool
 
-(** True if the argument is a C floating point type or logic 'real' type *)
+(** True if the argument is a C floating point type or logic 'real' type.
+    @modify Frama-C+dev expands the logic type definition if necessary. *)
 val isLogicRealOrFloatType: logic_type -> bool
 
-(** True if the argument is the logic 'real' type *)
+(** True if the argument is the logic 'real' type.
+    @modify Frama-C+dev expands the logic type definition if necessary. *)
 val isLogicRealType: logic_type -> bool
 
 (** True if the argument is an arithmetic type (i.e. integer, enum or
@@ -563,17 +574,33 @@ val isArithmeticType: typ -> bool
 val isArithmeticOrPointerType: typ -> bool
 
 (** True if the argument is a logic arithmetic type (i.e. integer, enum or
-    floating point, either C or mathematical one *)
+    floating point, either C or mathematical one.
+    @modify Frama-C+dev expands the logic type definition if necessary. *)
 val isLogicArithmeticType: logic_type -> bool
 
-(** True if the argument is a pointer type *)
+(** True if the argument is a function type *)
+val isFunctionType: typ -> bool
+
+(** True if the argument is the logic function type.
+    Expands the logic type definition if necessary.
+    @since Frama-C+dev *)
+val isLogicFunctionType: logic_type -> bool
+
+(** True if the argument is a pointer type. *)
 val isPointerType: typ -> bool
 
-(** True if the argument is the type for reified C types *)
-val isTypeTagType: logic_type -> bool
+(** True if the argument is a function pointer type.
+    @since Frama-C+dev *)
+val isFunPtrType: typ -> bool
 
-(** True if the argument is a function type. *)
-val isFunctionType: typ -> bool
+(** True if the argument is the logic function pointer type.
+    Expands the logic type definition if necessary.
+    @since Frama-C+dev *)
+val isLogicFunPtrType: logic_type -> bool
+
+(** True if the argument is the type for reified C types.
+    @modify Frama-C+dev expands the logic type definition if necessary. *)
+val isTypeTagType: logic_type -> bool
 
 (** True if the argument denotes the type of ... in a variadic function.
     @since Nitrogen-20111001 moved from cabs2cil *)
@@ -1153,6 +1180,26 @@ val dropAttribute: string -> attributes -> attributes
 (** Remove all attributes with names appearing in the string list.
  *  Maintains the attributes in sorted order *)
 val dropAttributes: string list -> attributes -> attributes
+
+(** a field struct marked with this attribute is known to be mutable, i.e.
+    it can be modified even on a const object.
+
+    @since Frama-C+dev
+*)
+val frama_c_mutable: string
+
+(** a formal marked with this attribute is known to be a pointer to an
+    object being initialized by the current function, which can thus assign
+    any sub-object regardless of const status.
+
+    @since Frama-C+dev
+ *)
+val frama_c_init_obj: string
+
+(** [true] if the given lval is allowed to be assigned to thanks to
+    a [frama_c_init_obj] or a [frama_c_mutable] attribute.
+*)
+val is_mutable_or_initialized: lval -> bool
 
 (** Remove attributes whose name appears in the first argument that are
     present anywhere in the fully expanded version of the type.

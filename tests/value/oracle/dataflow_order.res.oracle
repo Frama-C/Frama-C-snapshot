@@ -1,127 +1,126 @@
 [kernel] Parsing tests/value/dataflow_order.i (no preprocessing)
-[value] Analyzing a complete application starting at main
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing a complete application starting at main
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   c ∈ [--..--]
   j ∈ {0}
   k ∈ {0}
-[value] tests/value/dataflow_order.i:17: entering loop for the first time
-[value] tests/value/dataflow_order.i:18: Frama_C_show_each_1: {0}, {0}
-[value] tests/value/dataflow_order.i:21: Frama_C_show_each_then: {1}, {0}
-[value] computing for function f <- main.
+[eva] tests/value/dataflow_order.i:18: Frama_C_show_each_1: {0}, {0}
+[eva] tests/value/dataflow_order.i:21: Frama_C_show_each_then: {1}, {0}
+[eva] computing for function f <- main.
   Called from tests/value/dataflow_order.i:22.
-[value] Recording results for f
-[value] Done for function f
-[value] tests/value/dataflow_order.i:24: Frama_C_show_each_else: {1}, {0}
-[value] computing for function g <- main.
+[eva] Recording results for f
+[eva] Done for function f
+[eva] tests/value/dataflow_order.i:24: Frama_C_show_each_else: {1}, {0}
+[eva] computing for function g <- main.
   Called from tests/value/dataflow_order.i:25.
-[value] Recording results for g
-[value] Done for function g
-[value] tests/value/dataflow_order.i:18: Frama_C_show_each_1: {0; 1}, {0; 1}
-[value] tests/value/dataflow_order.i:21: Frama_C_show_each_then: {1; 2}, {0; 1}
-[value] computing for function f <- main.
+[eva] Recording results for g
+[eva] Done for function g
+[eva] tests/value/dataflow_order.i:17: starting to merge loop iterations
+[eva] tests/value/dataflow_order.i:18: Frama_C_show_each_1: {0; 1}, {0; 1}
+[eva] tests/value/dataflow_order.i:21: Frama_C_show_each_then: {1; 2}, {0; 1}
+[eva] computing for function f <- main.
   Called from tests/value/dataflow_order.i:22.
-[value] Recording results for f
-[value] Done for function f
-[value] tests/value/dataflow_order.i:24: Frama_C_show_each_else: {1; 2}, {0; 1}
-[value] computing for function g <- main.
+[eva] Recording results for f
+[eva] Done for function f
+[eva] tests/value/dataflow_order.i:24: Frama_C_show_each_else: {1; 2}, {0; 1}
+[eva] computing for function g <- main.
   Called from tests/value/dataflow_order.i:25.
-[value] Recording results for g
-[value] Done for function g
-[value] tests/value/dataflow_order.i:18: 
-  Frama_C_show_each_1: {0; 1; 2}, {0; 1; 2}
-[value] tests/value/dataflow_order.i:21: 
+[eva] Recording results for g
+[eva] Done for function g
+[eva] tests/value/dataflow_order.i:18: Frama_C_show_each_1: {0; 1; 2}, {0; 1; 2}
+[eva] tests/value/dataflow_order.i:21: 
   Frama_C_show_each_then: {1; 2; 3}, {0; 1; 2}
-[value] computing for function f <- main.
+[eva] computing for function f <- main.
   Called from tests/value/dataflow_order.i:22.
-[value] Recording results for f
-[value] Done for function f
-[value] tests/value/dataflow_order.i:24: 
+[eva] Recording results for f
+[eva] Done for function f
+[eva] tests/value/dataflow_order.i:24: 
   Frama_C_show_each_else: {1; 2; 3}, {0; 1; 2}
-[value] computing for function g <- main.
+[eva] computing for function g <- main.
   Called from tests/value/dataflow_order.i:25.
-[value] Recording results for g
-[value] Done for function g
-[value] tests/value/dataflow_order.i:18: 
+[eva] Recording results for g
+[eva] Done for function g
+[eva] tests/value/dataflow_order.i:18: 
   Frama_C_show_each_1: [0..64999], {0; 1; 2; 3}
-[value] tests/value/dataflow_order.i:21: 
+[eva] tests/value/dataflow_order.i:21: 
   Frama_C_show_each_then: [1..65000], {0; 1; 2; 3}
-[value] computing for function f <- main.
+[eva] computing for function f <- main.
   Called from tests/value/dataflow_order.i:22.
-[value] Recording results for f
-[value] Done for function f
-[value] tests/value/dataflow_order.i:24: 
+[eva] Recording results for f
+[eva] Done for function f
+[eva] tests/value/dataflow_order.i:24: 
   Frama_C_show_each_else: [1..65000], {0; 1; 2; 3}
-[value] computing for function g <- main.
+[eva] computing for function g <- main.
   Called from tests/value/dataflow_order.i:25.
-[value] Recording results for g
-[value] Done for function g
-[value] tests/value/dataflow_order.i:18: 
+[eva] Recording results for g
+[eva] Done for function g
+[eva] tests/value/dataflow_order.i:18: 
   Frama_C_show_each_1: [0..64999], {0; 1; 2; 3; 4}
-[value] tests/value/dataflow_order.i:21: 
+[eva] tests/value/dataflow_order.i:21: 
   Frama_C_show_each_then: [1..65000], {0; 1; 2; 3; 4}
-[value] computing for function f <- main.
+[eva] computing for function f <- main.
   Called from tests/value/dataflow_order.i:22.
-[value] Recording results for f
-[value] Done for function f
-[value] tests/value/dataflow_order.i:24: 
+[eva] Recording results for f
+[eva] Done for function f
+[eva] tests/value/dataflow_order.i:24: 
   Frama_C_show_each_else: [1..65000], {0; 1; 2; 3; 4}
-[value] computing for function g <- main.
+[eva] computing for function g <- main.
   Called from tests/value/dataflow_order.i:25.
-[value] Recording results for g
-[value] Done for function g
-[value] tests/value/dataflow_order.i:18: 
+[eva] Recording results for g
+[eva] Done for function g
+[eva] tests/value/dataflow_order.i:18: 
   Frama_C_show_each_1: [0..64999], [0..2147483647]
-[value] tests/value/dataflow_order.i:21: 
+[eva] tests/value/dataflow_order.i:21: 
   Frama_C_show_each_then: [1..65000], [0..2147483647]
-[value] computing for function f <- main.
+[eva] computing for function f <- main.
   Called from tests/value/dataflow_order.i:22.
-[value] Recording results for f
-[value] Done for function f
-[value] tests/value/dataflow_order.i:24: 
+[eva] Recording results for f
+[eva] Done for function f
+[eva] tests/value/dataflow_order.i:24: 
   Frama_C_show_each_else: [1..65000], [0..2147483647]
-[value] computing for function g <- main.
+[eva] computing for function g <- main.
   Called from tests/value/dataflow_order.i:25.
-[value] Recording results for g
-[value] Done for function g
-[value] tests/value/dataflow_order.i:18: 
+[eva] Recording results for g
+[eva] Done for function g
+[eva] tests/value/dataflow_order.i:18: 
   Frama_C_show_each_1: [0..64999], [0..2147483648]
-[value] tests/value/dataflow_order.i:21: 
+[eva] tests/value/dataflow_order.i:21: 
   Frama_C_show_each_then: [1..65000], [0..2147483648]
-[value] computing for function f <- main.
+[eva] computing for function f <- main.
   Called from tests/value/dataflow_order.i:22.
-[value] Recording results for f
-[value] Done for function f
-[value] tests/value/dataflow_order.i:24: 
+[eva] Recording results for f
+[eva] Done for function f
+[eva] tests/value/dataflow_order.i:24: 
   Frama_C_show_each_else: [1..65000], [0..2147483648]
-[value] computing for function g <- main.
+[eva] computing for function g <- main.
   Called from tests/value/dataflow_order.i:25.
-[value] Recording results for g
-[value] Done for function g
-[value] tests/value/dataflow_order.i:18: 
+[eva] Recording results for g
+[eva] Done for function g
+[eva] tests/value/dataflow_order.i:18: 
   Frama_C_show_each_1: [0..64999], [0..4294967295]
-[value] tests/value/dataflow_order.i:21: 
+[eva] tests/value/dataflow_order.i:21: 
   Frama_C_show_each_then: [1..65000], [0..4294967295]
-[value] computing for function f <- main.
+[eva] computing for function f <- main.
   Called from tests/value/dataflow_order.i:22.
-[value] Recording results for f
-[value] Done for function f
-[value] tests/value/dataflow_order.i:24: 
+[eva] Recording results for f
+[eva] Done for function f
+[eva] tests/value/dataflow_order.i:24: 
   Frama_C_show_each_else: [1..65000], [0..4294967295]
-[value] computing for function g <- main.
+[eva] computing for function g <- main.
   Called from tests/value/dataflow_order.i:25.
-[value] Recording results for g
-[value] Done for function g
-[value] tests/value/dataflow_order.i:28: Frama_C_show_each_end:
-[value] Recording results for main
-[value] done for function main
-[value] ====== VALUES COMPUTED ======
-[value:final-states] Values at end of function f:
+[eva] Recording results for g
+[eva] Done for function g
+[eva] tests/value/dataflow_order.i:28: Frama_C_show_each_end:
+[eva] Recording results for main
+[eva] done for function main
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function f:
   j ∈ [--..--]
-[value:final-states] Values at end of function g:
+[eva:final-states] Values at end of function g:
   k ∈ [--..--]
-[value:final-states] Values at end of function main:
+[eva:final-states] Values at end of function main:
   j ∈ [--..--]
   k ∈ [--..--]
   i ∈ {65000}

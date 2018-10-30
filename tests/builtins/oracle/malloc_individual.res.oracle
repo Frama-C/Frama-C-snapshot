@@ -1,0 +1,46 @@
+[kernel] Parsing tests/builtins/malloc_individual.c (with preprocessing)
+[eva] Analyzing a complete application starting at main
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
+  p ∈ {0}
+  A ∈ {0}
+  B ∈ {0}
+  C ∈ {0}
+[eva] tests/builtins/malloc_individual.c:12: 
+  Call to builtin Frama_C_malloc_fresh
+[eva] tests/builtins/malloc_individual.c:12: 
+  allocating variable __malloc_main_l12
+[eva:alarm] tests/builtins/malloc_individual.c:15: Warning: 
+  accessing uninitialized left-value. assert \initialized(p);
+[eva] Recording results for main
+[eva] done for function main
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function main:
+  __fc_heap_status ∈ [--..--]
+  p ∈ {{ &__malloc_main_l12 }}
+  A ∈ {3}
+  B ∈ {3}
+  C ∈ {4}
+  __malloc_main_l12 ∈ {3}
+[from] Computing for function main
+[from] Computing for function Frama_C_malloc_fresh <-main
+[from] Done for function Frama_C_malloc_fresh
+[from] Done for function main
+[from] ====== DEPENDENCIES COMPUTED ======
+  These dependencies hold at termination for the executions that terminate:
+[from] Function Frama_C_malloc_fresh:
+  __fc_heap_status FROM __fc_heap_status; size (and SELF)
+  \result FROM __fc_heap_status; size
+[from] Function main:
+  __fc_heap_status FROM __fc_heap_status (and SELF)
+  p FROM __fc_heap_status
+  A FROM __fc_heap_status; c; __malloc_main_l12
+  B FROM __fc_heap_status; c; __malloc_main_l12
+  C FROM __fc_heap_status; c; __malloc_main_l12
+  __malloc_main_l12 FROM __fc_heap_status; c (and SELF)
+[from] ====== END OF DEPENDENCIES ======
+[inout] Out (internal) for function main:
+    __fc_heap_status; p; A; B; C; __malloc_main_l12
+[inout] Inputs for function main:
+    __fc_heap_status; p; A; __malloc_main_l12

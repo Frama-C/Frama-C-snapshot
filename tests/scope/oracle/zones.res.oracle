@@ -1,8 +1,8 @@
 [kernel] Parsing tests/scope/zones.c (with preprocessing)
-[value] Analyzing a complete application starting at main
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing a complete application starting at main
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   T[0..9] ∈ {0}
   S ∈ {0}
   X ∈ {0}
@@ -12,74 +12,74 @@
   Xg ∈ {0}
   Yf ∈ {0}
   Yg ∈ {0}
-[value] computing for function simple <- main.
+[eva] computing for function simple <- main.
   Called from tests/scope/zones.c:73.
-[value:alarm] tests/scope/zones.c:15: Warning: 
+[eva:alarm] tests/scope/zones.c:15: Warning: 
   signed overflow. assert x + 1 ≤ 2147483647;
-[value:alarm] tests/scope/zones.c:16: Warning: 
+[eva:alarm] tests/scope/zones.c:16: Warning: 
   signed overflow. assert y + z ≤ 2147483647;
-[value] Recording results for simple
-[value] Done for function simple
-[value] computing for function array1 <- main.
+[eva] Recording results for simple
+[eva] Done for function simple
+[eva] computing for function array1 <- main.
   Called from tests/scope/zones.c:74.
-[value:alarm] tests/scope/zones.c:21: Warning: 
+[eva:alarm] tests/scope/zones.c:21: Warning: 
   accessing out of bounds index. assert 0 ≤ x;
-[value:alarm] tests/scope/zones.c:21: Warning: 
+[eva:alarm] tests/scope/zones.c:21: Warning: 
   accessing out of bounds index. assert x < 10;
-[value:alarm] tests/scope/zones.c:22: Warning: 
+[eva:alarm] tests/scope/zones.c:22: Warning: 
   signed overflow. assert T[0] + y ≤ 2147483647;
-[value] Recording results for array1
-[value] Done for function array1
-[value] computing for function struct1 <- main.
+[eva] Recording results for array1
+[eva] Done for function array1
+[eva] computing for function struct1 <- main.
   Called from tests/scope/zones.c:75.
-[value] Recording results for struct1
-[value] Done for function struct1
-[value] computing for function ctrl1 <- main.
+[eva] Recording results for struct1
+[eva] Done for function struct1
+[eva] computing for function ctrl1 <- main.
   Called from tests/scope/zones.c:76.
-[value] Recording results for ctrl1
-[value] Done for function ctrl1
-[value] computing for function caller <- main.
+[eva] Recording results for ctrl1
+[eva] Done for function ctrl1
+[eva] computing for function caller <- main.
   Called from tests/scope/zones.c:78.
-[value] computing for function f <- caller <- main.
+[eva] computing for function f <- caller <- main.
   Called from tests/scope/zones.c:66.
-[value] Recording results for f
-[value] Done for function f
-[value] computing for function g <- caller <- main.
+[eva] Recording results for f
+[eva] Done for function f
+[eva] computing for function g <- caller <- main.
   Called from tests/scope/zones.c:67.
-[value] Recording results for g
-[value] Done for function g
-[value] computing for function g <- caller <- main.
+[eva] Recording results for g
+[eva] Done for function g
+[eva] computing for function g <- caller <- main.
   Called from tests/scope/zones.c:68.
-[value:alarm] tests/scope/zones.c:60: Warning: 
+[eva:alarm] tests/scope/zones.c:60: Warning: 
   signed overflow. assert a + b ≤ 2147483647;
-[value] Recording results for g
-[value] Done for function g
-[value] computing for function f <- caller <- main.
+[eva] Recording results for g
+[eva] Done for function g
+[eva] computing for function f <- caller <- main.
   Called from tests/scope/zones.c:68.
-[value:alarm] tests/scope/zones.c:54: Warning: 
+[eva:alarm] tests/scope/zones.c:54: Warning: 
   signed overflow. assert x + y ≤ 2147483647;
-[value] Recording results for f
-[value] Done for function f
-[value] Recording results for caller
-[value] Done for function caller
-[value] Recording results for main
-[value] done for function main
-[value] ====== VALUES COMPUTED ======
-[value:final-states] Values at end of function array1:
+[eva] Recording results for f
+[eva] Done for function f
+[eva] Recording results for caller
+[eva] Done for function caller
+[eva] Recording results for main
+[eva] done for function main
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function array1:
   T[0] ∈ [--..--]
    [1..9] ∈ {0; 3}
   __retres ∈ [--..--]
-[value:final-states] Values at end of function ctrl1:
+[eva:final-states] Values at end of function ctrl1:
   a ∈ [--..--]
-[value:final-states] Values at end of function f:
+[eva:final-states] Values at end of function f:
   Xf ∈ [0..9]
   Yf ∈ [-2147483648..2147483644]
   __retres ∈ [--..--]
-[value:final-states] Values at end of function g:
+[eva:final-states] Values at end of function g:
   Xg ∈ [--..--]
   Yg ∈ [-2147483648..2147483644]
   __retres ∈ [--..--]
-[value:final-states] Values at end of function caller:
+[eva:final-states] Values at end of function caller:
   Xf ∈ [0..9]
   Xg ∈ [--..--]
   Yf ∈ [-2147483648..2147483644]
@@ -91,14 +91,14 @@
   b1 ∈ {0}
   c1 ∈ {0}
   pf ∈ {{ &f ; &g }}
-[value:final-states] Values at end of function simple:
+[eva:final-states] Values at end of function simple:
   x ∈ [-2147483645..2147483647]
   y ∈ {3}
-[value:final-states] Values at end of function struct1:
+[eva:final-states] Values at end of function struct1:
   s.a ∈ [0..9]
    .b ∈ [--..--]
   __retres ∈ [0..9]
-[value:final-states] Values at end of function main:
+[eva:final-states] Values at end of function main:
   T[0] ∈ [--..--]
    [1..9] ∈ {0; 3}
   Xf ∈ [0..9]

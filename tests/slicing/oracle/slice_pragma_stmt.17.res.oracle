@@ -1,15 +1,15 @@
 [kernel] Parsing tests/slicing/slice_pragma_stmt.i (no preprocessing)
 [slicing] slicing requests in progress...
-[value] Analyzing a complete application starting at test4
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing a complete application starting at test4
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   x ∈ {0}
   y ∈ {0}
-[value:alarm] tests/slicing/slice_pragma_stmt.i:120: Warning: 
+[eva:alarm] tests/slicing/slice_pragma_stmt.i:120: Warning: 
   signed overflow. assert c2 + 1 ≤ 2147483647;
-[value] Recording results for test4
-[value] done for function test4
+[eva] Recording results for test4
+[eva] done for function test4
 [slicing] initializing slicing ...
 [slicing] interpreting slicing requests from the command line...
 [pdg] computing for function test4

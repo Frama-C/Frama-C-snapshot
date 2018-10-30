@@ -88,18 +88,10 @@ module Make_Minimal
       Domain.assume stmt expr positive state
 
     let start_call stmt call _valuation state =
-      Eval.Compute (Domain.start_call stmt (simplify_call call) state)
+      `Value (Domain.start_call stmt (simplify_call call) state)
 
     let finalize_call stmt call ~pre ~post =
       Domain.finalize_call stmt (simplify_call call) ~pre ~post
-
-    let approximate_call stmt call state =
-      let call = simplify_call call in
-      let name = Kernel_function.get_name call.kf in
-      if Ast_info.is_frama_c_builtin name ||
-         (name <> "free" && Eval_typ.kf_assigns_only_result_or_volatile call.kf)
-      then `Value [ state ]
-      else Domain.approximate_call stmt call state
 
     let show_expr _valuation = Domain.show_expr
   end
@@ -120,8 +112,9 @@ module Make_Minimal
   let evaluate_predicate _ _ _ = Alarmset.Unknown
   let reduce_by_predicate _ t _ _ = `Value t
 
-  let filter_by_bases _bases state = state
-  let reuse ~current_input:_ ~previous_output = previous_output
+  let relate _kf _bases _state = Base.SetLattice.top
+  let filter _kf _ _bases state = state
+  let reuse _kf _bases ~current_input:_ ~previous_output = previous_output
 end
 
 
@@ -240,14 +233,8 @@ module Complete_Simple_Cvalue (Domain: Simpler_domains.Simple_Cvalue)
       let assume stmt expr positive valuation state =
         Domain.assume stmt expr positive (record valuation) state
       let start_call stmt call valuation state =
-        Compute (Domain.start_call stmt call (record valuation) state)
+        `Value (Domain.start_call stmt call (record valuation) state)
       let finalize_call = Domain.finalize_call
-
-      let approximate_call stmt call state =
-        let name = Kernel_function.get_name call.kf in
-        if Ast_info.is_frama_c_builtin name
-        then `Value [ state ]
-        else Domain.approximate_call stmt call state
 
       let show_expr _valuation = Domain.show_expr
 
@@ -269,8 +256,9 @@ module Complete_Simple_Cvalue (Domain: Simpler_domains.Simple_Cvalue)
     let evaluate_predicate _ _ _ = Alarmset.Unknown
     let reduce_by_predicate _ t _ _ = `Value t
 
-    let filter_by_bases _bases state = state
-    let reuse ~current_input:_ ~previous_output = previous_output
+    let relate _kf _bases _state = Base.SetLattice.top
+    let filter _kf _ _bases state = state
+    let reuse _kf _bases ~current_input:_ ~previous_output = previous_output
 
     let storage () = false
   end

@@ -20,40 +20,13 @@
 (*                                                                        *)
 (**************************************************************************)
 
-(** Value builtins related to functions in string.h. *)
-
-(** The actual builtins are registered through {!Builtins.register_builtin}.
-    The functions below are also  used for the evaluation of logical predicates
-    [valid_string] and [valid_read_string]. *)
-
-(** Alarms are pairs (assertion, warning_msg):
-    - ACSL "assertion"
-    - Informative message on why the evaluation raised an alarm
-*)
-module String_alarms:
-  Datatype.S_with_collections with type t = string * string
-
-type expterm =
-  | Exp of Cil_types.exp
-  | Term of Cil_types.term
-
+(** A builtin takes the state and a list of values for the arguments, and
+    returns the offsetmap of the return value (None if bottom), and a boolean
+    indicating the possibility of alarms.  *)
 type str_builtin_sig =
-  Cvalue.Model.t (*state*) ->
-  (expterm * Cvalue.V.t) list (*args*) ->
-  Value_types.call_result * String_alarms.Set.t (*res,alarms*)
+  Cvalue.Model.t -> Cvalue.V.t list -> Cvalue.V_Offsetmap.t option * bool
 
 val frama_c_strlen_wrapper: str_builtin_sig
-
-val frama_c_strnlen_wrapper: str_builtin_sig
-
-val frama_c_rawmemchr_wrapper: str_builtin_sig
-
-val frama_c_memchr_wrapper: str_builtin_sig
-
+val frama_c_wcslen_wrapper: str_builtin_sig
 val frama_c_strchr_wrapper: str_builtin_sig
-
-val frama_c_wcslen_wrapper: unit -> str_builtin_sig
-
-val frama_c_wcschr_wrapper: unit -> str_builtin_sig
-
-val frama_c_wmemchr_wrapper: unit -> str_builtin_sig
+val frama_c_wcschr_wrapper: str_builtin_sig

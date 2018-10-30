@@ -1,21 +1,21 @@
 [kernel] Parsing tests/sparecode/top.i (no preprocessing)
 [sparecode] remove unused code...
 [sparecode] selecting function main_top outputs and entry point
-[value] Analyzing a complete application starting at main_top
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing a complete application starting at main_top
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   
-[value:initial-state] 
+[eva:initial-state] 
   creating variable S_0_S___va_params with imprecise size (type void)
-[value:initial-state] 
+[eva:initial-state] 
   creating variable S_1_S___va_params with imprecise size (type void)
-[value] computing for function f <- main_top.
+[eva] computing for function f <- main_top.
   Called from tests/sparecode/top.i:21.
-[value] Recording results for f
-[value] Done for function f
-[value] Recording results for main_top
-[value] done for function main_top
+[eva] Recording results for f
+[eva] Done for function f
+[eva] Recording results for main_top
+[eva] done for function main_top
 [pdg] computing for function main_top
 [from] Computing for function f
 [from] Done for function f

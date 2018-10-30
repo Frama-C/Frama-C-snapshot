@@ -224,6 +224,7 @@ module ExtEqual =
   end)
 
 let () = Parameter_customize.set_group wp_model
+let () = Parameter_customize.is_invisible () (* experimental option *)
 module BoolRange =
   False(struct
     let option_name = "-wp-bool-range"
@@ -307,7 +308,7 @@ module SplitDepth =
     let default = 0
     let arg_name = "p"
     let help = "Set depth of exploration for splitting conjunctions into sub-goals.\n\
-Value `-1` means an unlimited depth."
+                Value `-1` means an unlimited depth."
   end)
 
 let () = Parameter_customize.set_group wp_strategy
@@ -315,6 +316,13 @@ module DynCall =
   False(struct
     let option_name = "-wp-dynamic"
     let help = "Handle dynamic calls with specific annotations."
+  end)
+
+let () = Parameter_customize.set_group wp_strategy
+module PrecondWeakening =
+  False(struct
+    let option_name = "-wp-precond-weakening"
+    let help = "Discard pre-conditions of side behaviours (sound but incomplete optimisation)."
   end)
 
 (* ------------------------------------------------------------------------ *)
@@ -598,7 +606,7 @@ module AutoDepth = Int
       let default = 5
       let help =
         "Depth of auto-search (-wp-auto only, default 5).\n\
-          Limits the number of nested level in strategies."
+         Limits the number of nested level in strategies."
     end)
 
 let () = Parameter_customize.set_group wp_prover
@@ -609,7 +617,7 @@ module AutoWidth = Int
       let default = 10
       let help =
         "Width of auto-search (-wp-auto only, default 10).\n\
-          Limits the number of pending goals in strategies."
+         Limits the number of pending goals in strategies."
     end)
 
 let () = Parameter_customize.set_group wp_prover
@@ -735,7 +743,7 @@ let () = Parameter_customize.set_group wp_prover_options
 module Why3 =
   String(struct
     let option_name = "-wp-why3"
-    let default = "why3" 
+    let default = "why3"
     let arg_name = "cmd"
     let help = "Command to run Why-3 (default: 'why3')"
   end)
@@ -763,7 +771,7 @@ let () = Parameter_customize.set_group wp_prover_options
 module AltErgo =
   String(struct
     let option_name = "-wp-alt-ergo"
-    let default = "alt-ergo" 
+    let default = "alt-ergo"
     let arg_name = "<cmd>"
     let help = "Command to run alt-ergo (default: 'alt-ergo')"
   end)
@@ -772,7 +780,7 @@ let () = Parameter_customize.set_group wp_prover_options
 module AltGrErgo =
   String(struct
     let option_name = "-wp-altgr-ergo"
-    let default = "altgr-ergo" 
+    let default = "altgr-ergo"
     let arg_name = "<cmd>"
     let help = "Command to run alt-ergo user interface (default: 'altgr-ergo')"
   end)
@@ -845,8 +853,8 @@ module ReportJson =
       let default = ""
       let help =
         "Output report in json format into given file.\n\
-          If the file already exists, it is used for\n\
-          stabilizing range of steps in other reports."
+         If the file already exists, it is used for\n\
+         stabilizing range of steps in other reports."
     end)
 
 let () = Parameter_customize.set_group wp_po
@@ -862,11 +870,11 @@ module ReportName =
 
 let () = Parameter_customize.set_group wp_po
 let () = Parameter_customize.do_not_save ()
-module Separation =
+module MemoryContext =
   True
     (struct
-      let option_name = "-wp-warn-separation"
-      let help = "Warn Against Separation Hypotheses"
+      let option_name = "-wp-warn-memory-model"
+      let help = "Warn Against Memory Model Hypotheses"
     end)
 
 let () = Parameter_customize.set_group wp_po
@@ -889,9 +897,30 @@ module Check =
   end)
 let () = on_reset Print.clear
 
+let () = Parameter_customize.set_group wp_po
+let () = Parameter_customize.do_not_save ()
+let () = Parameter_customize.is_invisible ()
+module Assert_check_only =
+  False (struct
+    let option_name = "-wp-assert-check-only"
+    let help =
+      "Turns assertions into labels."
+  end)
+let () = on_reset Print.clear
+
 (* -------------------------------------------------------------------------- *)
 (* --- OS environment variables                                           --- *)
 (* -------------------------------------------------------------------------- *)
+
+let active_unless_rte option =
+  if RTE.get () || Dynamic.Parameter.Bool.get "-rte" () then
+    ( warning ~once:true
+        "Option %s incompatiable with RTE (ignored)" option ;
+      false )
+  else true
+
+let get_overflows () = Overflows.get () && active_unless_rte "-wp-overflows"
+let get_bool_range () = BoolRange.get () && active_unless_rte "-wp-bool-range"
 
 let dkey = register_category "env"
 
@@ -949,8 +978,8 @@ let make_gui_dir () =
   try
     let home =
       try Sys.getenv "USERPROFILE" (*Win32*) with Not_found ->
-        try Sys.getenv "HOME" (*Unix like*) with Not_found ->
-          "." in
+      try Sys.getenv "HOME" (*Unix like*) with Not_found ->
+        "." in
     let dir = home ^ "/" ^ ".frama-c-wp" in
     if Sys.file_exists dir && Sys.is_directory dir then
       Extlib.safe_remove_dir dir;
@@ -1013,7 +1042,7 @@ let has_print_generated () = has_dkey cat_print_generated
 
 let print_generated ?header file =
   let header = match header with
-    | None -> Filepath.pretty file
+    | None -> Filepath.Normalized.to_pretty_string (Datatype.Filepath.of_string file)
     | Some head -> head in
   debug ~dkey:cat_print_generated "%S@\n%t@." header
     begin fun fmt ->

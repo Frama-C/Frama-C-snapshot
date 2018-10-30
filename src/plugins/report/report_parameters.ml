@@ -21,18 +21,18 @@
 (**************************************************************************)
 
 include Plugin.Register
-  (struct
-     let name = "report"
-     let shortname = "report"
-     let help = "Properties Status Report (experimental)"
-   end)
+    (struct
+      let name = "report"
+      let shortname = "report"
+      let help = "Properties Status Report (experimental)"
+    end)
 
 module Print =
   False
     (struct
       let option_name = "-report"
       let help = "display a summary of properties status"
-     end)
+    end)
 
 let printing = add_group "Printing Property Report"
 
@@ -42,8 +42,8 @@ module PrintProperties =
     (struct
       let option_name = "-report-print-properties"
       let help = "print not only the locations, but also the \
-                             properties themselves"
-     end)
+                  properties themselves"
+    end)
 
 let () = Parameter_customize.set_group printing
 module Untried =
@@ -51,7 +51,7 @@ module Untried =
     (struct
       let option_name = "-report-untried"
       let help = "display properties which no plug-in tried to prove"
-     end)
+    end)
 
 let () = Parameter_customize.set_group printing
 module Specialized =
@@ -59,8 +59,8 @@ module Specialized =
     (struct
       let option_name = "-report-specialized"
       let help = "display properties that are auxiliary instances of other \
-          properties."
-     end)
+                  properties."
+    end)
 
 let () = Parameter_customize.set_group printing
 module Proven =
@@ -68,8 +68,8 @@ module Proven =
     (struct
       let option_name = "-report-proven"
       let help = "if set, output proven properties. Otherwise, only unproven \
-                   ones are shown."
-     end)
+                  ones are shown."
+    end)
 
 let () = Parameter_customize.set_group printing
 module CSVFile =
@@ -79,7 +79,7 @@ module CSVFile =
       let arg_name = "name"
       let default = ""
       let help = "if set, output properties as a csv file of the given name"
-     end)
+    end)
 
 let monitoring = add_group "Monitoring of Properties, Errors and Warnings"
 
@@ -234,4 +234,4 @@ module Exit =
     (struct
       let option_name = "-report-exit"
       let help = "Exit on error"
-     end)
+    end)

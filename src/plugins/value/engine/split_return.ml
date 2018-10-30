@@ -47,36 +47,36 @@ module ReturnUsage = struct
   let find_or_default uf lv =
     try MapLval.find lv uf
     with Not_found -> {
-      ret_callees = Kernel_function.Hptset.empty;
-      ret_compared = Datatype.Integer.Set.empty;
-    }
+        ret_callees = Kernel_function.Hptset.empty;
+        ret_compared = Datatype.Integer.Set.empty;
+      }
 
   (* Treat a [Call] instruction. Immediate calls (no functions pointers)
      are added to the current usage store *)
   let add_call (uf: return_usage_per_fun) lv_opt e_fun =
     match e_fun.enode, lv_opt with
-      | Lval (Var vi, NoOffset), Some lv
-        when Cil.isIntegralOrPointerType (Cil.typeOfLval lv) ->
-          let kf = Globals.Functions.get vi in
-          let u = find_or_default uf lv in
-          let funs = Kernel_function.Hptset.add kf u.ret_callees in
-          let u = { u with ret_callees = funs } in
-          if debug then Format.printf
-            "[Usage] %a returns %a@." Kernel_function.pretty kf Printer.pp_lval lv;
-          MapLval.add lv u uf
-      | _ -> uf
+    | Lval (Var vi, NoOffset), Some lv
+      when Cil.isIntegralOrPointerType (Cil.typeOfLval lv) ->
+      let kf = Globals.Functions.get vi in
+      let u = find_or_default uf lv in
+      let funs = Kernel_function.Hptset.add kf u.ret_callees in
+      let u = { u with ret_callees = funs } in
+      if debug then Format.printf
+          "[Usage] %a returns %a@." Kernel_function.pretty kf Printer.pp_lval lv;
+      MapLval.add lv u uf
+    | _ -> uf
 
   (* Treat a [Set] instruction [lv = (cast) lv']. Useful for return codes
      that are stored inside values of a slightly different type *)
   let add_alias (uf: return_usage_per_fun) lv_dest e =
     match e.enode with
-      | CastE (typ, { enode = Lval lve })
-          when Cil.isIntegralOrPointerType typ &&
-            Cil.isIntegralOrPointerType (Cil.typeOfLval lve)
-        ->
-          let u = find_or_default uf lve in
-          MapLval.add lv_dest u uf
-      | _ -> uf
+    | CastE (typ, { enode = Lval lve })
+      when Cil.isIntegralOrPointerType typ &&
+           Cil.isIntegralOrPointerType (Cil.typeOfLval lve)
+      ->
+      let u = find_or_default uf lve in
+      MapLval.add lv_dest u uf
+    | _ -> uf
 
   (* add a comparison with the integer [i] to the lvalue [lv] *)
   let add_compare_ct uf i lv =
@@ -85,7 +85,7 @@ module ReturnUsage = struct
       let v = Datatype.Integer.Set.add i u.ret_compared in
       let u = { u with ret_compared = v } in
       if debug then Format.printf
-        "[Usage] Comparing %a to %a@." Printer.pp_lval lv Int.pretty i;
+          "[Usage] Comparing %a to %a@." Printer.pp_lval lv Int.pretty i;
       MapLval.add lv u uf
     else
       uf
@@ -97,27 +97,27 @@ module ReturnUsage = struct
     (* if [ct] is an integer constant, memoize it is compared to [lv] *)
     let add ct lv =
       (match Cil.constFoldToInt ct with
-        | Some i -> add_compare_ct uf i lv
-        | _ -> uf)
+       | Some i -> add_compare_ct uf i lv
+       | _ -> uf)
     in
     (match cond.enode with
-      | BinOp ((Eq | Ne), {enode = Lval lv}, ct, _)
-      | BinOp ((Eq | Ne), ct, {enode = Lval lv}, _) -> add ct lv
-      | BinOp ((Eq | Ne), {enode = CastE (typ, {enode = Lval lv})}, ct, _)
-      | BinOp ((Eq | Ne), ct, {enode = CastE (typ, {enode = Lval lv})}, _) ->
-        if Cil.isIntegralOrPointerType typ &&
+     | BinOp ((Eq | Ne), {enode = Lval lv}, ct, _)
+     | BinOp ((Eq | Ne), ct, {enode = Lval lv}, _) -> add ct lv
+     | BinOp ((Eq | Ne), {enode = CastE (typ, {enode = Lval lv})}, ct, _)
+     | BinOp ((Eq | Ne), ct, {enode = CastE (typ, {enode = Lval lv})}, _) ->
+       if Cil.isIntegralOrPointerType typ &&
           Cil.isIntegralOrPointerType (Cil.typeOfLval lv)
-        then add ct lv
-        else uf
-      | UnOp (LNot, {enode = Lval lv}, _) ->
-          add_compare_ct uf Int.zero lv
+       then add ct lv
+       else uf
+     | UnOp (LNot, {enode = Lval lv}, _) ->
+       add_compare_ct uf Int.zero lv
 
-      | UnOp (LNot, {enode = CastE (typ, {enode = Lval lv})}, _)
-        when Cil.isIntegralOrPointerType typ &&
-          Cil.isIntegralOrPointerType (Cil.typeOfLval lv) ->
-        add_compare_ct uf Int.zero lv
+     | UnOp (LNot, {enode = CastE (typ, {enode = Lval lv})}, _)
+       when Cil.isIntegralOrPointerType typ &&
+            Cil.isIntegralOrPointerType (Cil.typeOfLval lv) ->
+       add_compare_ct uf Int.zero lv
 
-      | _ -> uf)
+     | _ -> uf)
 
   (* Treat an expression [v] or [e1 && e2] or [e1 || e2]. This expression is
      supposed to be just inside an [if(...)], so that we may recognize patterns
@@ -130,8 +130,8 @@ module ReturnUsage = struct
       add_compare_ct uf Int.zero lv
 
     | CastE (typ, {enode = Lval lv})
-        when Cil.isIntegralOrPointerType typ &&
-          Cil.isIntegralOrPointerType (Cil.typeOfLval lv) ->
+      when Cil.isIntegralOrPointerType typ &&
+           Cil.isIntegralOrPointerType (Cil.typeOfLval lv) ->
       add_compare_ct uf Int.zero lv
 
     | BinOp ((LAnd | LOr), e1, e2, _) ->
@@ -174,31 +174,31 @@ module ReturnUsage = struct
 
     method! vinst i =
       (match i with
-        | Set (lv, e, _) ->
-            usage <- add_alias usage lv e
-        | Call (lv_opt, e, _, _) ->
-            usage <- add_call usage lv_opt e
-        | Local_init(v, AssignInit i, _) ->
-          let rec aux lv i =
-            match i with
-            | SingleInit e -> usage <- add_alias usage lv e
-            | CompoundInit (_, l) ->
-              List.iter (fun (o,i) -> aux (Cil.addOffsetLval o lv) i) l
-          in
-          aux (Cil.var v) i
-        | Local_init(v, ConsInit(f,_,Plain_func), _) ->
-          usage <- add_call usage (Some (Cil.var v)) (Cil.evar f)
-        | Local_init(_, ConsInit _,_) -> () (* not a real assignment. *)
-        | Asm _ | Skip _ | Code_annot _ -> ()
+       | Set (lv, e, _) ->
+         usage <- add_alias usage lv e
+       | Call (lv_opt, e, _, _) ->
+         usage <- add_call usage lv_opt e
+       | Local_init(v, AssignInit i, _) ->
+         let rec aux lv i =
+           match i with
+           | SingleInit e -> usage <- add_alias usage lv e
+           | CompoundInit (_, l) ->
+             List.iter (fun (o,i) -> aux (Cil.addOffsetLval o lv) i) l
+         in
+         aux (Cil.var v) i
+       | Local_init(v, ConsInit(f,_,Plain_func), _) ->
+         usage <- add_call usage (Some (Cil.var v)) (Cil.evar f)
+       | Local_init(_, ConsInit _,_) -> () (* not a real assignment. *)
+       | Asm _ | Skip _ | Code_annot _ -> ()
       );
       Cil.DoChildren
 
     method! vstmt_aux s =
       (match s.skind with
-      | If (e, _, _, _)
-      | Switch (e, _, _, _) ->
-          usage <- add_direct_comparison usage e
-      | _ -> ()
+       | If (e, _, _, _)
+       | Switch (e, _, _, _) ->
+         usage <- add_direct_comparison usage e
+       | _ -> ()
       );
       Cil.DoChildren
 
@@ -231,11 +231,11 @@ module ReturnUsage = struct
 end
 
 module AutoStrategy = State_builder.Option_ref
-  (ReturnUsage.RUDatatype)
-  (struct
-    let name = "Value.Split_return.Autostrategy"
-    let dependencies = [Ast.self]
-   end)
+    (ReturnUsage.RUDatatype)
+    (struct
+      let name = "Value.Split_return.Autostrategy"
+      let dependencies = [Ast.self]
+    end)
 let () = Ast.add_monotonic_state AutoStrategy.self
 
 let compute_auto () =
@@ -256,26 +256,26 @@ let find_auto_strategy kf =
   with Not_found -> Split_strategy.NoSplit
 
 module KfStrategy = Kernel_function.Make_Table(Split_strategy)
-  (struct
-    let size = 17
-    let dependencies = [Value_parameters.SplitReturnFunction.self;
-                        Value_parameters.SplitGlobalStrategy.self;
-                        AutoStrategy.self]
-    let name = "Value.Split_return.Kfstrategy"
-   end)
+    (struct
+      let size = 17
+      let dependencies = [Value_parameters.SplitReturnFunction.self;
+                          Value_parameters.SplitGlobalStrategy.self;
+                          AutoStrategy.self]
+      let name = "Value.Split_return.Kfstrategy"
+    end)
 
 (* Invariant: this function never returns Split_strategy.SplitAuto *)
 let kf_strategy =
   KfStrategy.memo
     (fun kf ->
-      try (* User strategies take precedence *)
-        match Value_parameters.SplitReturnFunction.find kf with
-        | Split_strategy.SplitAuto -> find_auto_strategy kf
-        | s -> s
-      with Not_found ->
-        match Value_parameters.SplitGlobalStrategy.get () with
-        | Split_strategy.SplitAuto -> find_auto_strategy kf
-        | s -> s
+       try (* User strategies take precedence *)
+         match Value_parameters.SplitReturnFunction.find kf with
+         | Split_strategy.SplitAuto -> find_auto_strategy kf
+         | s -> s
+       with Not_found ->
+       match Value_parameters.SplitGlobalStrategy.get () with
+       | Split_strategy.SplitAuto -> find_auto_strategy kf
+       | s -> s
     )
 
 let pretty_strategies fmt =
@@ -318,7 +318,7 @@ let pretty_strategies fmt =
 
 let pretty_strategies () =
   if not (Value_parameters.SplitReturnFunction.is_empty ()) ||
-    (Value_parameters.SplitGlobalStrategy.get () != Split_strategy.NoSplit)
+     (Value_parameters.SplitGlobalStrategy.get () != Split_strategy.NoSplit)
   then
     Value_parameters.result "Splitting return states on:@.%t" pretty_strategies
 

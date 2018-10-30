@@ -1,123 +1,124 @@
 [kernel] Parsing tests/libc/stdlib_c.c (with preprocessing)
-[value] Analyzing a complete application starting at main
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
-  __fc_heap_status ∈ [--..--]
-  __fc_random_counter ∈ [--..--]
-  __fc_rand_max ∈ {32767}
-  __fc_mblen_state ∈ [--..--]
-  __fc_mbtowc_state ∈ [--..--]
-  __fc_wctomb_state ∈ [--..--]
-  Frama_C_entropy_source ∈ [--..--]
-  __fc_strtok_ptr ∈ {0}
-[value] computing for function calloc <- main.
+[eva] Analyzing a complete application starting at main
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
+  
+[eva] computing for function calloc <- main.
   Called from tests/libc/stdlib_c.c:14.
-[value] share/libc/stdlib.c:68: allocating variable __malloc_calloc_l68
-[value] computing for function memset <- calloc <- main.
-  Called from share/libc/stdlib.c:69.
-[value] using specification for function memset
-[value] share/libc/stdlib.c:69: 
+[eva] share/libc/stdlib.c:72: Call to builtin Frama_C_malloc_by_stack
+[eva] share/libc/stdlib.c:72: allocating variable __malloc_calloc_l72
+[eva] computing for function memset <- calloc <- main.
+  Called from share/libc/stdlib.c:73.
+[eva] using specification for function memset
+[eva] share/libc/stdlib.c:73: 
   function memset: precondition 'valid_s' got status valid.
-[value] share/libc/string.h:104: 
+[eva] share/libc/string.h:118: 
   cannot evaluate ACSL term, unsupported ACSL construct: logic function memset
-[value] Done for function memset
-[value] Recording results for calloc
-[value] Done for function calloc
-[value] tests/libc/stdlib_c.c:16: assertion got status valid.
-[value] computing for function Frama_C_size_t_interval <- main.
+[eva] Done for function memset
+[eva] Recording results for calloc
+[eva] Done for function calloc
+[eva] tests/libc/stdlib_c.c:16: assertion got status valid.
+[eva] computing for function Frama_C_size_t_interval <- main.
   Called from tests/libc/stdlib_c.c:20.
-[value] using specification for function Frama_C_size_t_interval
-[value] tests/libc/stdlib_c.c:20: 
+[eva] using specification for function Frama_C_size_t_interval
+[eva] tests/libc/stdlib_c.c:20: 
   function Frama_C_size_t_interval: precondition 'order' got status valid.
-[value] Done for function Frama_C_size_t_interval
-[value] computing for function calloc <- main.
+[eva] Done for function Frama_C_size_t_interval
+[eva] computing for function calloc <- main.
   Called from tests/libc/stdlib_c.c:21.
-[value] share/libc/stdlib.c:68: allocating variable __malloc_calloc_l68_0
-[value] computing for function memset <- calloc <- main.
-  Called from share/libc/stdlib.c:69.
-[value:alarm] share/libc/stdlib.c:69: Warning: 
+[eva] share/libc/stdlib.c:72: Call to builtin Frama_C_malloc_by_stack
+[eva] share/libc/stdlib.c:72: allocating variable __malloc_calloc_l72_0
+[eva] computing for function memset <- calloc <- main.
+  Called from share/libc/stdlib.c:73.
+[eva:alarm] share/libc/stdlib.c:73: Warning: 
   function memset: precondition 'valid_s' got status unknown.
-[value] Done for function memset
-[value] Recording results for calloc
-[value] Done for function calloc
-[value:alarm] tests/libc/stdlib_c.c:23: Warning: assertion got status unknown.
-[value] computing for function calloc <- main.
+[eva] Done for function memset
+[eva] Recording results for calloc
+[eva] Done for function calloc
+[eva:alarm] tests/libc/stdlib_c.c:23: Warning: assertion got status unknown.
+[eva] computing for function calloc <- main.
   Called from tests/libc/stdlib_c.c:27.
-[value] Recording results for calloc
-[value] Done for function calloc
-[value] tests/libc/stdlib_c.c:28: assertion got status valid.
-[value] tests/libc/stdlib_c.c:31: entering loop for the first time
-[value] computing for function calloc <- main.
+[eva] Recording results for calloc
+[eva] Done for function calloc
+[eva] tests/libc/stdlib_c.c:28: assertion got status valid.
+[eva] computing for function calloc <- main.
   Called from tests/libc/stdlib_c.c:32.
-[value] share/libc/stdlib.c:68: allocating variable __malloc_calloc_l68_1
-[value] computing for function memset <- calloc <- main.
-  Called from share/libc/stdlib.c:69.
-[value] Done for function memset
-[value] Recording results for calloc
-[value] Done for function calloc
-[value] computing for function calloc <- main.
+[eva] share/libc/stdlib.c:72: Call to builtin Frama_C_malloc_by_stack
+[eva] share/libc/stdlib.c:72: allocating variable __malloc_calloc_l72_1
+[eva] computing for function memset <- calloc <- main.
+  Called from share/libc/stdlib.c:73.
+[eva] Done for function memset
+[eva] Recording results for calloc
+[eva] Done for function calloc
+[eva] tests/libc/stdlib_c.c:31: starting to merge loop iterations
+[eva] computing for function calloc <- main.
   Called from tests/libc/stdlib_c.c:32.
-[value] computing for function memset <- calloc <- main.
-  Called from share/libc/stdlib.c:69.
-[value] Done for function memset
-[value] Recording results for calloc
-[value] Done for function calloc
-[value:alarm] tests/libc/stdlib_c.c:33: Warning: 
+[eva] share/libc/stdlib.c:72: Call to builtin Frama_C_malloc_by_stack
+[eva] computing for function memset <- calloc <- main.
+  Called from share/libc/stdlib.c:73.
+[eva] Done for function memset
+[eva] Recording results for calloc
+[eva] Done for function calloc
+[eva:alarm] tests/libc/stdlib_c.c:33: Warning: 
   out of bounds write. assert \valid(s + (unsigned int)(i - 1));
-[value] computing for function calloc <- main.
+[eva] computing for function calloc <- main.
   Called from tests/libc/stdlib_c.c:32.
-[value] computing for function memset <- calloc <- main.
-  Called from share/libc/stdlib.c:69.
-[value] Done for function memset
-[value] Recording results for calloc
-[value] Done for function calloc
-[value] computing for function calloc <- main.
+[eva] share/libc/stdlib.c:72: Call to builtin Frama_C_malloc_by_stack
+[eva] computing for function memset <- calloc <- main.
+  Called from share/libc/stdlib.c:73.
+[eva] Done for function memset
+[eva] Recording results for calloc
+[eva] Done for function calloc
+[eva] computing for function calloc <- main.
   Called from tests/libc/stdlib_c.c:32.
-[value] computing for function memset <- calloc <- main.
-  Called from share/libc/stdlib.c:69.
-[value] Done for function memset
-[value] Recording results for calloc
-[value] Done for function calloc
-[value] computing for function calloc <- main.
+[eva] share/libc/stdlib.c:72: Call to builtin Frama_C_malloc_by_stack
+[eva] computing for function memset <- calloc <- main.
+  Called from share/libc/stdlib.c:73.
+[eva] Done for function memset
+[eva] Recording results for calloc
+[eva] Done for function calloc
+[eva] computing for function calloc <- main.
   Called from tests/libc/stdlib_c.c:32.
-[value] computing for function memset <- calloc <- main.
-  Called from share/libc/stdlib.c:69.
-[value] Done for function memset
-[value] Recording results for calloc
-[value] Done for function calloc
-[value] computing for function calloc <- main.
+[eva] share/libc/stdlib.c:72: Call to builtin Frama_C_malloc_by_stack
+[eva] computing for function memset <- calloc <- main.
+  Called from share/libc/stdlib.c:73.
+[eva] Done for function memset
+[eva] Recording results for calloc
+[eva] Done for function calloc
+[eva] computing for function calloc <- main.
   Called from tests/libc/stdlib_c.c:32.
-[value] computing for function memset <- calloc <- main.
-  Called from share/libc/stdlib.c:69.
-[value] Done for function memset
-[value] Recording results for calloc
-[value] Done for function calloc
-[value] Recording results for main
-[value] done for function main
-[value] ====== VALUES COMPUTED ======
-[value:final-states] Values at end of function calloc:
+[eva] share/libc/stdlib.c:72: Call to builtin Frama_C_malloc_by_stack
+[eva] computing for function memset <- calloc <- main.
+  Called from share/libc/stdlib.c:73.
+[eva] Done for function memset
+[eva] Recording results for calloc
+[eva] Done for function calloc
+[eva] Recording results for main
+[eva] done for function main
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function calloc:
   __fc_heap_status ∈ [--..--]
   l ∈ [0..4294967292],0%4
   p ∈
-   {{ NULL ; &__malloc_calloc_l68[0] ; &__malloc_calloc_l68_0[0] ;
-      &__malloc_w_calloc_l68_1[0] }}
+   {{ NULL ; &__malloc_calloc_l72[0] ; &__malloc_calloc_l72_0[0] ;
+      &__malloc_w_calloc_l72_1[0] }}
   __retres ∈
-          {{ NULL ; (void *)&__malloc_calloc_l68 ;
-             (void *)&__malloc_calloc_l68_0 ;
-             (void *)&__malloc_w_calloc_l68_1 }}
-  __malloc_calloc_l68[0..3] ∈ [--..--] or UNINITIALIZED
-  __malloc_calloc_l68_0[0..4294967291] ∈ [--..--] or UNINITIALIZED
-  __malloc_w_calloc_l68_1[0..4294967291] ∈ [--..--] or UNINITIALIZED
-[value:final-states] Values at end of function main:
+          {{ NULL ; (void *)&__malloc_calloc_l72 ;
+             (void *)&__malloc_calloc_l72_0 ;
+             (void *)&__malloc_w_calloc_l72_1 }}
+  __malloc_calloc_l72[0..3] ∈ [--..--] or UNINITIALIZED
+  __malloc_calloc_l72_0[0..4294967291] ∈ [--..--] or UNINITIALIZED
+  __malloc_w_calloc_l72_1[0..4294967291] ∈ [--..--] or UNINITIALIZED
+[eva:final-states] Values at end of function main:
   __fc_heap_status ∈ [--..--]
   Frama_C_entropy_source ∈ [--..--]
-  p ∈ {{ NULL ; (int *)&__malloc_calloc_l68 }}
+  p ∈ {{ NULL ; (int *)&__malloc_calloc_l72 }}
   nmemb ∈ [1..4294967295]
-  q ∈ {{ NULL ; (int *)&__malloc_calloc_l68_0 }}
+  q ∈ {{ NULL ; (int *)&__malloc_calloc_l72_0 }}
   r ∈ {0}
-  s ∈ {{ NULL ; (int *)&__malloc_w_calloc_l68_1 }} or UNINITIALIZED
+  s ∈ {{ NULL ; (int *)&__malloc_w_calloc_l72_1 }} or UNINITIALIZED
   __retres ∈ {0}
-  __malloc_calloc_l68[0..3] ∈ [--..--] or UNINITIALIZED
-  __malloc_calloc_l68_0[0..4294967291] ∈ [--..--] or UNINITIALIZED
-  __malloc_w_calloc_l68_1[0..4294967291] ∈ [--..--] or UNINITIALIZED
+  __malloc_calloc_l72[0..3] ∈ [--..--] or UNINITIALIZED
+  __malloc_calloc_l72_0[0..4294967291] ∈ [--..--] or UNINITIALIZED
+  __malloc_w_calloc_l72_1[0..4294967291] ∈ [--..--] or UNINITIALIZED

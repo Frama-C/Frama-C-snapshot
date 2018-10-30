@@ -1,14 +1,14 @@
 [kernel] Parsing tests/pdg/annot.c (with preprocessing)
-[value] Analyzing a complete application starting at f1
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing a complete application starting at f1
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   G ∈ {0}
-[value:alarm] tests/pdg/annot.c:12: Warning: 
+[eva:alarm] tests/pdg/annot.c:12: Warning: 
   signed overflow. assert x + 1 ≤ 2147483647;
-[value] tests/pdg/annot.c:13: assertion got status valid.
-[value] Recording results for f1
-[value] done for function f1
+[eva] tests/pdg/annot.c:13: assertion got status valid.
+[eva] Recording results for f1
+[eva] done for function f1
 [pdg] computing for function f1
 [pdg] done for function f1
 [pdg] PDG for f1

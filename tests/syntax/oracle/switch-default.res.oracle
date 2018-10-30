@@ -10,8 +10,10 @@ int main(void)
     int i = 0;
     while (i < 4) {
       switch (x) {
-        default: Frama_C_show_each_i(i);
-                 break;
+        default: {
+                   Frama_C_show_each_i(i);
+                   break;
+                 }
       }
       i ++;
     }
@@ -24,8 +26,10 @@ void f(void)
 {
   int i;
   switch (0) {
-    case 0: i = 1;
-            break;
+    case 0: {
+              i = 1;
+              break;
+            }
     default: i = 9;
   }
   return;

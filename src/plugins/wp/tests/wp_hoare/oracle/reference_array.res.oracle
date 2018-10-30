@@ -357,6 +357,7 @@ Prove: true.
 Goal Post-condition (file tests/wp_hoare/reference_array.i, line 36) in 'reset_1_5':
 Let a = shift_A5_sint32(rp_0, 0).
 Let a_1 = shift_sint32(a, 0).
+Let a_2 = havoc(Mint_undef_0, Mint_0, a_1, 5).
 Assume {
   (* Goal *)
   When: (0 <= i) /\ (i <= 4).
@@ -366,11 +367,9 @@ Assume {
   Have: valid_rw(Malloc_0, a_1, 5).
   (* Call 'reset_5' *)
   Have: forall i_1 : Z. ((0 <= i_1) -> ((i_1 <= 4) ->
-      (Mint_0[shift_sint32(a, i_1)] = 0))).
-  (* Call Effects *)
-  Have: havoc(Mint_1, Mint_0, a_1, 5).
+      (a_2[shift_sint32(a, i_1)] = 0))).
 }
-Prove: Mint_0[shift_sint32(a, i)] = 0.
+Prove: a_2[shift_sint32(a, i)] = 0.
 
 ------------------------------------------------------------
 
@@ -391,10 +390,10 @@ Goal Instance of 'Pre-condition (file tests/wp_hoare/reference_array.i, line 9) 
 Prove: true.
 
 ------------------------------------------------------------
-[wp] Warning: Separation hypotheses for function 'load_1_5':
+[wp] Warning: Memory model hypotheses for function 'load_1_5':
   /*@ behavior typed_ref: requires \separated(reg_load+(..),lp+(..)); */
   void load_1_5(int (*lp)[5]);
-[wp] Warning: Separation hypotheses for function 'add_1_5':
+[wp] Warning: Memory model hypotheses for function 'add_1_5':
   /*@
      behavior typed_ref:
      requires \separated(\union(reg_load+(..),reg_add+(..)),ap+(..));

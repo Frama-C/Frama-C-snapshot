@@ -1,19 +1,19 @@
 [kernel] Parsing tests/pdg/simple_call.c (with preprocessing)
-[value] Analyzing a complete application starting at call_multiple_global_outputs
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing a complete application starting at call_multiple_global_outputs
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   G ∈ [--..--]
   G1 ∈ [--..--]
   G2 ∈ [--..--]
   S ∈ [--..--]
-[value] computing for function multiple_global_outputs <- 
+[eva] computing for function multiple_global_outputs <- 
                           call_multiple_global_outputs.
   Called from tests/pdg/simple_call.c:39.
-[value] Recording results for multiple_global_outputs
-[value] Done for function multiple_global_outputs
-[value] Recording results for call_multiple_global_outputs
-[value] done for function call_multiple_global_outputs
+[eva] Recording results for multiple_global_outputs
+[eva] Done for function multiple_global_outputs
+[eva] Recording results for call_multiple_global_outputs
+[eva] done for function call_multiple_global_outputs
 [pdg] computing for function call_multiple_global_outputs
 [from] Computing for function multiple_global_outputs
 [from] Done for function multiple_global_outputs

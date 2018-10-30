@@ -14,7 +14,7 @@ typedef unsigned long long uint64_t ;
   @ lemma sizeof_uint64_t: ok: sizeof(uint64_t) == 8; // 8 bytes: 64 bits
   @
   @ lemma ax1: lack: \forall integer x, y; 0<=x && 0< y ==> 0 <= x <= x*y;
-  @ lemma ax2:   ok: \forall integer x, y; 0<=x && 0<=y ==> 0 <= 2*x*(y/2) <= x*y;
+  @ lemma ax2: lack: \forall integer x, y; 0<=x && 0<=y ==> 0 <= 2*x*(y/2) <= x*y;
   @ lemma ax3: lack: \forall integer x, y; (uint64_t)(x * ((uint64_t)y)) == (uint64_t)(x*y) ;
   @ lemma ax4: lack: \forall integer x, y; (uint64_t)(x + ((uint64_t)y)) == (uint64_t)(x+y) ;
   @ lemma ax5:   ok: \forall integer x, y; (uint64_t)(((uint64_t)x) * y) == (uint64_t)(x*y) ;
@@ -29,8 +29,8 @@ uint64_t BinaryMultiplication (uint32_t a, uint32_t b) {
   uint64_t x=a;
   if (b != 0) {
     /*@ loop assigns r, x, b;
-      @ loop invariant inv1: ok: r+x*b == \at(a*b, LoopEntry);
-      @ loop invariant inv2: ok: r+x == (uint64_t)(r+x);
+      @ loop invariant inv1: lack: r+x*b == \at(a*b, LoopEntry);
+      @ loop invariant inv2: lack: r+x == (uint64_t)(r+x);
       @ loop variant ok: b ;
       @*/
     while (1) {

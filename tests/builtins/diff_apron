@@ -1,0 +1,46 @@
+diff tests/builtins/oracle/Longinit_sequencer.res.oracle tests/builtins/oracle_apron/Longinit_sequencer.res.oracle
+320c320
+<   tests/builtins/result/Longinit_sequencer.sav
+---
+>   tests/builtins/result_apron/Longinit_sequencer.sav
+556c556
+<   tests/builtins/result/Longinit_sequencer.sav
+---
+>   tests/builtins/result_apron/Longinit_sequencer.sav
+diff tests/builtins/oracle/allocated.0.res.oracle tests/builtins/oracle_apron/allocated.0.res.oracle
+243c243
+< [eva] tests/builtins/allocated.c:131: Frama_C_show_each: {0; 1; 2; 3; 4}
+---
+> [eva] tests/builtins/allocated.c:131: Frama_C_show_each: [0..2147483647]
+250c250
+< [eva] tests/builtins/allocated.c:131: Frama_C_show_each: {0; 1; 2; 3; 4; 5}
+---
+> [eva] tests/builtins/allocated.c:131: Frama_C_show_each: [0..2147483647]
+257c257
+< [eva] tests/builtins/allocated.c:131: Frama_C_show_each: [0..9]
+---
+> [eva] tests/builtins/allocated.c:131: Frama_C_show_each: [0..2147483647]
+276c276
+<   j ∈ [1..2147483647]
+---
+>   j ∈ [1..12]
+282,283c282
+<   __malloc_w_main_l82[0..1] ∈ [7..2147483647] or UNINITIALIZED
+<                      [2] ∈ [7..27] or UNINITIALIZED
+---
+>   __malloc_w_main_l82[0..2] ∈ [7..27] or UNINITIALIZED
+diff tests/builtins/oracle/memexec-malloc.res.oracle tests/builtins/oracle_apron/memexec-malloc.res.oracle
+20c20,23
+< [eva] tests/builtins/memexec-malloc.c:25: Reusing old results for call to f
+---
+> [eva] computing for function f <- main.
+>   Called from tests/builtins/memexec-malloc.c:25.
+> [eva] Recording results for f
+> [eva] Done for function f
+24c27,30
+< [eva] tests/builtins/memexec-malloc.c:29: Reusing old results for call to f
+---
+> [eva] computing for function f <- main.
+>   Called from tests/builtins/memexec-malloc.c:29.
+> [eva] Recording results for f
+> [eva] Done for function f

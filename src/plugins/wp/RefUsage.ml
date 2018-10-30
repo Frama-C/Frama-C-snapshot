@@ -105,14 +105,14 @@ struct
         ) m ;
       Format.fprintf fmt " }@]" ;
     end
-    
+
   let bot = Xmap.empty
   let is_bot = Xmap.is_empty
   let cup = Xmap.union (fun _ -> Access.cup)
   let cup_differ e1 e2 =
     let r = cup e1 e2 in
     let is_modified = not (r==e1) in
-    (* Format.printf "cup_differ %a %a = %a,%b@." 
+    (* Format.printf "cup_differ %a %a = %a,%b@."
                      pretty e1 pretty e2 pretty r is_modified; *)
     r, is_modified
   (* unused for now *)
@@ -120,7 +120,7 @@ struct
 
   (* unused for now *)
   (* let rec lcup = function [] -> bot |[x] -> x |x::xs -> cup x (lcup xs)*)
-  let rec fcup f = function 
+  let rec fcup f = function
       [] -> bot | [x] -> f x | x::xs -> cup (f x) (fcup f xs)
 
   let get vi e = try Xmap.find vi e with Not_found -> NoAccess
@@ -168,14 +168,14 @@ let m_value = function
   | E _ as m -> m
   | m -> E (e_value m)
 
-let m_vcup = 
+let m_vcup =
   let m_vcup m = vcup (e_value m) in
   function
   | E old as m -> (* better sharing than vcup (e_value m) b *)
       share_vcup m ~old
   | _ as m -> m_vcup m
 
-let m_fcup f = 
+let m_fcup f =
   let m_fcup f = E.fcup (fun x -> e_value (f x)) in
   function  (* better sharing than E.fcup (fun x -> e_value (f x)) *)
   | [] -> nothing
@@ -186,7 +186,7 @@ let cval x = Val_var x
 let cvar x = Loc_var x
 let shift (m:model) (k:value) =
   let share ~old mk e = (* for a better sharing between maps *)
-    if e == old then m else mk e 
+    if e == old then m else mk e
   in
   match m with
   | Loc_var x -> Loc_shift(x,k)
@@ -245,7 +245,8 @@ let cast_obj tgt src =
 
 let cast_ctyp tgt src =
   cast_obj (Ctypes.object_of tgt) (Ctypes.object_of src)
-let cast_ltyp tgt src = match Logic_utils.unroll_type src with
+let cast_ltyp tgt src =
+  match Logic_utils.unroll_type ~unroll_typedef:false src with
   | Ctype src -> cast_ctyp tgt src
   | _ -> Cast
 
@@ -273,12 +274,12 @@ type global_ctx = {
       to a list of models for each arg_exp of the call to the kf. *)
   mutable cphi : (model list list) KFmap.t ;
 
-  (** Logical function/predicate used directly and indirectly by 
+  (** Logical function/predicate used directly and indirectly by
       specs/annots of a C function *)
-  mutable lphi : LFset.t ; 
+  mutable lphi : LFset.t ;
 }
 let mk_global_ctx () =
-  { code = E.bot ; spec_formals = E.bot ; spec_globals = E.bot ; 
+  { code = E.bot ; spec_formals = E.bot ; spec_globals = E.bot ;
     cphi = KFmap.empty ; lphi = LFset.empty }
 
 (* Temporary local context *)
@@ -286,7 +287,7 @@ type local_ctx = {
 
   mutable tlet : model LVmap.t; (* for \\let var bound to a term *)
   mutable plet : value LVmap.t; (* for \\let var bound to a predicate *)
-  mutable spec : value; (* for formals and globals of of spec, 
+  mutable spec : value; (* for formals and globals of of spec,
                            before partitioning the result *)
 }
 let mk_local_ctx () = { tlet=LVmap.empty ; plet=LVmap.empty ; spec=E.bot }
@@ -526,7 +527,7 @@ and pred (env:ctx) p : value = match p.pred_content with
 
 (* --- Call to Logical functions/Predicates --- *)
 and v_lphi (env:ctx) (lphi:logic_info) ts : value =
-  let not_yet_implemented s = 
+  let not_yet_implemented s =
     Wp_parameters.not_yet_implemented "unknown construct with %s" s
   in
   match lphi.l_var_info.lv_kind with
@@ -698,7 +699,7 @@ let call_kf (env:global_ctx) (formals:access list) (models:model list) (reached:
   let rec call xs ms = match xs, ms with
     | [] , _ | _ , [] -> ()
     | x::xs , m::ms ->
-        if update_call_env env (param x m) then unmodified := false; 
+        if update_call_env env (param x m) then unmodified := false;
         call xs ms
   in call formals models;
   !unmodified
@@ -728,7 +729,7 @@ let compute_usage () =
   in
   (* extract kf map to be fixed (the callers). *)
   let callers = KFmap.mapq
-      (fun _kf v -> if KFmap.is_empty v.cphi then None else Some v) usage 
+      (fun _kf v -> if KFmap.is_empty v.cphi then None else Some v) usage
   in
   (* extract it as a working list to be fixed *)
   let todo = KFmap.map (fun _ -> ()) callers in
@@ -736,11 +737,11 @@ let compute_usage () =
   let kf_fp state_fp kf env _ =
     let kf_calls called_kf calls (reached:bool) =
       let called =
-        try KFmap.find called_kf usage with Not_found -> assert false 
+        try KFmap.find called_kf usage with Not_found -> assert false
       in
       (* update from accesses of globals of the called spec *)
       let reached =
-        if update_call_env env called.spec_globals then false else reached 
+        if update_call_env env called.spec_globals then false else reached
       in
       (* update from accesses of formals of the called spec for each calls*)
       let specs_formals = called.spec_formals in
@@ -752,7 +753,7 @@ let compute_usage () =
     let cphi = env.cphi in
     let reached = KFmap.fold kf_calls cphi true in
     if not reached then begin
-      let callers = try KFmap.find kf callees with Not_found -> KFset.empty 
+      let callers = try KFmap.find kf callees with Not_found -> KFset.empty
       in
       KFset.iter (fun kf_caller ->
           try ignore (KFmap.find kf_caller todo)
@@ -774,7 +775,7 @@ let compute_usage () =
   let usage =
     KFmap.map
       (fun ctx -> E.cup (E.cup ctx.code ctx.spec_globals) ctx.spec_formals)
-      usage 
+      usage
   in u_init, usage
 
 (* ---------------------------------------------------------------------- *)

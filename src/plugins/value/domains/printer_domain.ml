@@ -97,20 +97,14 @@ module Simple : Simpler_domains.Simple_Cvalue = struct
     feedback  "finalize call to %s" (Kernel_function.get_name call.kf);
     `Value post
 
-  let approximate_call _stmt call state =
-    feedback "approxmate call %s(%a)"
-      (Kernel_function.get_name call.kf)
-      (pp_list pp_arg) call.arguments;
-    `Value [state]
-
   (* --- Initialization of variables --- *)
 
   let pp_vi_list fmt l =
     pp_list Printer.pp_varinfo fmt l
 
   let pp_init_val fmt = function
-   | Abstract_domain.Zero -> Format.fprintf fmt "0"
-   | Abstract_domain.Top  -> Format.fprintf fmt "Top"
+    | Abstract_domain.Zero -> Format.fprintf fmt "0"
+    | Abstract_domain.Top  -> Format.fprintf fmt "Top"
 
   let empty () =
     feedback "empty";
@@ -141,4 +135,3 @@ module Simple : Simpler_domains.Simple_Cvalue = struct
 end
 
 include Domain_builder.Complete_Simple_Cvalue (Simple)
-

@@ -1,5 +1,5 @@
 /* run.config
-   OPT: -rte -rte-precond -print
+   OPT: -rte -print
 */
 
 typedef int (*fptr)(int);

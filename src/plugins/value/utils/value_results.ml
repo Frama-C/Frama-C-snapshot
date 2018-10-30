@@ -28,10 +28,10 @@ module Is_Called =
   Kernel_function.Make_Table
     (Datatype.Bool)
     (struct
-       let name = "Value.Value_results.is_called"
-       let dependencies = [ Db.Value.self ]
-       let size = 17
-     end)
+      let name = "Value.Value_results.is_called"
+      let dependencies = [ Db.Value.self ]
+      let size = 17
+    end)
 
 let is_called =
   Is_Called.memo
@@ -49,10 +49,10 @@ module Callers =
   Kernel_function.Make_Table
     (Kernel_function.Map.Make(Stmt.Set))
     (struct
-       let name = "Value.Value_results.Callers"
-       let dependencies = [ Db.Value.self ]
-       let size = 17
-     end)
+      let name = "Value.Value_results.Callers"
+      let dependencies = [ Db.Value.self ]
+      let size = 17
+    end)
 
 let add_kf_caller ~caller:(caller_kf, call_site) kf =
   let add m = Kernel_function.Map.add caller_kf (Stmt.Set.singleton call_site) m
@@ -92,9 +92,9 @@ let partition_terminating_instr stmt =
     let non_terminating = ref [] in
     let add x xs = xs := x :: !xs in
     Value_types.Callstack.Hashtbl.iter (fun cs state ->
-      if Db.Value.is_reachable state
-      then add cs terminating
-      else add cs non_terminating) h;
+        if Db.Value.is_reachable state
+        then add cs terminating
+        else add cs non_terminating) h;
     (!terminating, !non_terminating)
 
 let is_non_terminating_instr stmt =
@@ -129,8 +129,8 @@ type results = {
   initial_args: Cvalue.V.t list option;
   alarms: Property_status.emitted_status AlarmsStmt.Hashtbl.t;
   statuses: Property_status.emitted_status Property.Hashtbl.t
-    (** alarms are _not_ present here *);
-(* conditions then/else *)
+(** alarms are _not_ present here *);
+  (* conditions then/else *)
 }
 
 let get_results () =
@@ -282,7 +282,7 @@ struct
     h
 
   include H
-  
+
 end
 
 module CallstackH = HExt(Value_types.Callstack.Hashtbl)

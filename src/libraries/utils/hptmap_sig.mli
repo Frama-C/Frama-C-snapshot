@@ -182,6 +182,12 @@ module type S = sig
       efficient than successive calls to {!remove} or {!add} to build the
       resulting map. *)
 
+  val diff_with_shape: 'a shape -> t -> t
+  (** [diff_with_shape s m] keeps only the elements of [m] that are not
+      bound in the map [s]. No caching is used, but this function is more
+      efficient than successive calls to {!remove} or {!add} to build the
+      resulting map. *)
+
   (** {2 Binary predicates} *)
 
   type decide_fast = Done | Unknown

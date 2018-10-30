@@ -1,5 +1,5 @@
 /* run.config*
-   STDOPT: #"-big-ints-hex 257 -val-warn-copy-indeterminate=-g6"
+   STDOPT: #"-big-ints-hex 257 -eva-warn-copy-indeterminate=-g6"
 */
 #include "__fc_builtin.h"
 

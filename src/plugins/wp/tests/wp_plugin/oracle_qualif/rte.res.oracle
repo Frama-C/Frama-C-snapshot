@@ -1,16 +1,27 @@
-# frama-c -wp [...]
+# frama-c -wp -wp-rte -wp-timeout 90 -wp-steps 1500 [...]
 [kernel] Parsing tests/wp_plugin/rte.i (no preprocessing)
 [wp] Running WP plugin...
 [wp] Loading driver 'share/wp.driver'
-[wp] Warning: Missing RTE guards
-[wp] 2 goals scheduled
-[wp] [Alt-Ergo] Goal typed_job_post : Unknown
-[wp] [Alt-Ergo] Goal typed_job2_post : Unknown
-[wp] Proved goals:    0 / 2
-  Alt-Ergo:        0  (unknown: 2)
+[rte] annotating function job
+[rte] annotating function job2
+[rte] annotating function job3
+[wp] tests/wp_plugin/rte.i:34: Warning: 
+  Option -wp-bool-range incompatiable with RTE (ignored)
+[wp] tests/wp_plugin/rte.i:34: Warning: 
+  Option -wp-bool-range incompatiable with RTE (ignored)
+[wp] 6 goals scheduled
+[wp] [Alt-Ergo] Goal typed_job_assert_rte_mem_access : Unknown
+[wp] [Alt-Ergo] Goal typed_job_assert_rte_mem_access_2 : Unknown
+[wp] [Alt-Ergo] Goal typed_job_assert_rte_signed_overflow : Unknown
+[wp] [Alt-Ergo] Goal typed_job_assert_rte_signed_overflow_2 : Unknown
+[wp] [Qed] Goal typed_job_assert_rte_mem_access_3 : Valid
+[wp] [Alt-Ergo] Goal typed_job3_assert_rte_bool_value : Unknown
+[wp] Proved goals:    1 / 6
+  Qed:             1 
+  Alt-Ergo:        0  (unknown: 5)
 [wp] Report 'tests/wp_plugin/rte.i.0.report.json'
 -------------------------------------------------------------
 Functions           WP     Alt-Ergo        Total   Success
-job                 -      -                 1       0.0%
-job2                -      -                 1       0.0%
+job                  1     -                 5      20.0%
+job3                -      -                 1       0.0%
 -------------------------------------------------------------

@@ -1,6 +1,6 @@
 /* run.config
    LOG: csv.csv
-   OPT: -no-autoload-plugins -load-module from,inout,report,scope,value -val-warn-copy-indeterminate=-main4 -val -val-show-progress -remove-redundant-alarms -value-warn-key=-alarm -then -report-csv @PTEST_RESULT@/csv.csv -report-no-proven -then -report-csv= -value-warn-key=alarm -slevel 1
+   OPT: -no-autoload-plugins -load-module from,inout,report,scope,eva -eva-warn-copy-indeterminate=-main4 -eva -eva-show-progress -remove-redundant-alarms -eva-warn-key=alarm=inactive -then -report-csv @PTEST_RESULT@/csv.csv -report-no-proven -then -report-csv= -eva-warn-key=alarm -slevel 1
    COMMENT: first, do an analysis without any message, but check that the .csv is complete. Then, redo the analysis with value warnings. slevel 1 is just there to force Value to restart
 */
 volatile v;

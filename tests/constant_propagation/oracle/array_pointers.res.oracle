@@ -1,15 +1,15 @@
 [kernel] Parsing tests/constant_propagation/array_pointers.i (no preprocessing)
-[value] Analyzing a complete application starting at main
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing a complete application starting at main
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   p ∈ {0}
 [kernel] tests/constant_propagation/array_pointers.i:10: Warning: 
   using size of 'void'
-[value] Recording results for main
-[value] done for function main
-[value] ====== VALUES COMPUTED ======
-[value:final-states] Values at end of function main:
+[eva] Recording results for main
+[eva] done for function main
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function main:
   q ∈ {{ &p + {4} }}
   r ∈ {{ &p + {8} }}
   s ∈ {1}

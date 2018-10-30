@@ -9,62 +9,59 @@
 
 Goal Post-condition (file tests/wp_usage/caveat_range.i, line 12) in 'reset':
 Let a = global(G_p_20).
+Let a_1 = havoc(Mint_undef_0, Mint_0, shift_S(a, 0), 20).
 Assume {
   Type: is_sint32(i_1).
   (* Goal *)
   When: (0 <= i) /\ (i <= 9).
-  (* Loop assigns ... *)
-  Have: havoc(Mint_1, Mint_0, shift_S(a, 0), 20).
   (* Invariant *)
   Have: forall i_2 : Z. ((0 <= i_2) -> ((i_2 < i_1) ->
-      (Mint_0[shiftfield_F1_S_g(shift_S(a, i_2))] = 2))).
+      (a_1[shiftfield_F1_S_g(shift_S(a, i_2))] = 2))).
   (* Invariant *)
   Have: forall i_2 : Z. ((0 <= i_2) -> ((i_2 < i_1) ->
-      (Mint_0[shiftfield_F1_S_f(shift_S(a, i_2))] = 1))).
+      (a_1[shiftfield_F1_S_f(shift_S(a, i_2))] = 1))).
   (* Invariant *)
   Have: (0 <= i_1) /\ (i_1 <= 10).
   (* Else *)
   Have: 10 <= i_1.
 }
-Prove: Mint_0[shiftfield_F1_S_f(shift_S(a, i))] = 1.
+Prove: a_1[shiftfield_F1_S_f(shift_S(a, i))] = 1.
 
 ------------------------------------------------------------
 
 Goal Post-condition (file tests/wp_usage/caveat_range.i, line 13) in 'reset':
 Let a = global(G_p_20).
+Let a_1 = havoc(Mint_undef_0, Mint_0, shift_S(a, 0), 20).
 Assume {
   Type: is_sint32(i_1).
   (* Goal *)
   When: (0 <= i) /\ (i <= 9).
-  (* Loop assigns ... *)
-  Have: havoc(Mint_1, Mint_0, shift_S(a, 0), 20).
   (* Invariant *)
   Have: forall i_2 : Z. ((0 <= i_2) -> ((i_2 < i_1) ->
-      (Mint_0[shiftfield_F1_S_g(shift_S(a, i_2))] = 2))).
+      (a_1[shiftfield_F1_S_g(shift_S(a, i_2))] = 2))).
   (* Invariant *)
   Have: forall i_2 : Z. ((0 <= i_2) -> ((i_2 < i_1) ->
-      (Mint_0[shiftfield_F1_S_f(shift_S(a, i_2))] = 1))).
+      (a_1[shiftfield_F1_S_f(shift_S(a, i_2))] = 1))).
   (* Invariant *)
   Have: (0 <= i_1) /\ (i_1 <= 10).
   (* Else *)
   Have: 10 <= i_1.
 }
-Prove: Mint_0[shiftfield_F1_S_g(shift_S(a, i))] = 2.
+Prove: a_1[shiftfield_F1_S_g(shift_S(a, i))] = 2.
 
 ------------------------------------------------------------
 
 Goal Preservation of Invariant (file tests/wp_usage/caveat_range.i, line 19):
 Let a = global(G_p_20).
+Let a_1 = havoc(Mint_undef_0, Mint_0, shift_S(a, 0), 20).
 Assume {
   Type: is_sint32(i) /\ is_sint32(1 + i).
-  (* Loop assigns ... *)
-  Have: havoc(Mint_0, Mint_1, shift_S(a, 0), 20).
   (* Invariant *)
   Have: forall i_1 : Z. ((0 <= i_1) -> ((i_1 < i) ->
-      (Mint_1[shiftfield_F1_S_g(shift_S(a, i_1))] = 2))).
+      (a_1[shiftfield_F1_S_g(shift_S(a, i_1))] = 2))).
   (* Invariant *)
   Have: forall i_1 : Z. ((0 <= i_1) -> ((i_1 < i) ->
-      (Mint_1[shiftfield_F1_S_f(shift_S(a, i_1))] = 1))).
+      (a_1[shiftfield_F1_S_f(shift_S(a, i_1))] = 1))).
   (* Invariant *)
   Have: (0 <= i) /\ (i <= 10).
   (* Then *)
@@ -81,24 +78,23 @@ Prove: true.
 
 Goal Preservation of Invariant (file tests/wp_usage/caveat_range.i, line 20):
 Let a = global(G_p_20).
+Let a_1 = havoc(Mint_undef_0, Mint_0, shift_S(a, 0), 20).
 Assume {
   Type: is_sint32(i) /\ is_sint32(1 + i).
   (* Goal *)
   When: (0 <= i_1) /\ (i_1 <= i).
-  (* Loop assigns ... *)
-  Have: havoc(Mint_1, Mint_0, shift_S(a, 0), 20).
   (* Invariant *)
   Have: forall i_2 : Z. ((0 <= i_2) -> ((i_2 < i) ->
-      (Mint_0[shiftfield_F1_S_g(shift_S(a, i_2))] = 2))).
+      (a_1[shiftfield_F1_S_g(shift_S(a, i_2))] = 2))).
   (* Invariant *)
   Have: forall i_2 : Z. ((0 <= i_2) -> ((i_2 < i) ->
-      (Mint_0[shiftfield_F1_S_f(shift_S(a, i_2))] = 1))).
+      (a_1[shiftfield_F1_S_f(shift_S(a, i_2))] = 1))).
   (* Invariant *)
   Have: (0 <= i) /\ (i <= 10).
   (* Then *)
   Have: i <= 9.
 }
-Prove: Mint_0[shiftfield_F1_S_f(shift_S(a, i)) <- 1]
+Prove: a_1[shiftfield_F1_S_f(shift_S(a, i)) <- 1]
          [shiftfield_F1_S_f(shift_S(a, i_1))] = 1.
 
 ------------------------------------------------------------
@@ -110,25 +106,24 @@ Prove: true.
 
 Goal Preservation of Invariant (file tests/wp_usage/caveat_range.i, line 21):
 Let a = global(G_p_20).
-Let a_1 = shift_S(a, i).
+Let a_1 = havoc(Mint_undef_0, Mint_0, shift_S(a, 0), 20).
+Let a_2 = shift_S(a, i).
 Assume {
   Type: is_sint32(i) /\ is_sint32(1 + i).
   (* Goal *)
   When: (0 <= i_1) /\ (i_1 <= i).
-  (* Loop assigns ... *)
-  Have: havoc(Mint_1, Mint_0, shift_S(a, 0), 20).
   (* Invariant *)
   Have: forall i_2 : Z. ((0 <= i_2) -> ((i_2 < i) ->
-      (Mint_0[shiftfield_F1_S_g(shift_S(a, i_2))] = 2))).
+      (a_1[shiftfield_F1_S_g(shift_S(a, i_2))] = 2))).
   (* Invariant *)
   Have: forall i_2 : Z. ((0 <= i_2) -> ((i_2 < i) ->
-      (Mint_0[shiftfield_F1_S_f(shift_S(a, i_2))] = 1))).
+      (a_1[shiftfield_F1_S_f(shift_S(a, i_2))] = 1))).
   (* Invariant *)
   Have: (0 <= i) /\ (i <= 10).
   (* Then *)
   Have: i <= 9.
 }
-Prove: Mint_0[shiftfield_F1_S_f(a_1) <- 1][shiftfield_F1_S_g(a_1) <- 2]
+Prove: a_1[shiftfield_F1_S_f(a_2) <- 1][shiftfield_F1_S_g(a_2) <- 2]
          [shiftfield_F1_S_g(shift_S(a, i_1))] = 2.
 
 ------------------------------------------------------------
@@ -160,3 +155,6 @@ Effect at line 24
 Prove: true.
 
 ------------------------------------------------------------
+[wp] Warning: Memory model hypotheses for function 'reset':
+  /*@ behavior typed_caveat: requires \valid(p+(..)); */
+  void reset(struct S *p);

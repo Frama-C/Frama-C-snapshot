@@ -1,5 +1,5 @@
 /* run.config
-   OPT: -print -then -no-print -rte -warn-signed-overflow -rte-precond -then -print
+   OPT: -print -then -no-print -rte -warn-signed-overflow -then -print
 */
 //@ assigns *p;
 float g(float* p);

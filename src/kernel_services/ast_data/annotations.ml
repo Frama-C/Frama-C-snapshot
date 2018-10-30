@@ -1057,7 +1057,7 @@ let add_extended e kf ?stmt ?active ?behavior ext =
   let set_bhv _ e_bhv =
     e_bhv.b_extended <- ext :: e_bhv.b_extended;
     Property_status.register
-      (Property.ip_of_extended kf (kinstr stmt) ext)
+      (Property.(ip_of_extended (e_loc_of_stmt kf (kinstr stmt)) ext))
   in
   extend_behavior e kf ?stmt ?active ?behavior set_bhv
 
@@ -1301,7 +1301,8 @@ let dependencies_of_global annot =
 let rec remove_declared_global_annot logic_vars = function
   | Dfun_or_pred(li,_) | Dinvariant(li,_) | Dtype_annot(li,_) ->
     Cil_datatype.Logic_info.Set.remove li logic_vars
-  | Dvolatile _ | Dtype _ | Dlemma _ | Dmodel_annot _ | Dcustom_annot _ ->
+  | Dvolatile _ | Dtype _ | Dlemma _ | Dmodel_annot _ | Dcustom_annot _
+  | Dextended _ ->
     logic_vars
   | Daxiomatic (_,l,_, _) ->
     List.fold_left remove_declared_global_annot logic_vars l
@@ -1543,7 +1544,8 @@ let remove_extended e kf ext =
     List.iter
       (fun b ->
            b.b_extended <- Extlib.filter_out ((==) ext) b.b_extended;
-           Property_status.remove (Property.ip_of_extended kf Kglobal ext))
+           Property_status.remove
+             (Property.(ip_of_extended (ELContract kf) ext)))
       spec.spec_behavior
   in
   remove_in_funspec e kf set_spec
@@ -1626,6 +1628,7 @@ let logic_info_of_global s =
       check_logic_info li acc
     | Daxiomatic (_,l, _, _) -> List.fold_left check_one acc l
     | Dtype _ | Dvolatile _ | Dlemma _ | Dmodel_annot _ | Dcustom_annot _
+    | Dextended _
       -> acc
   in
   fold_global (fun _ g acc -> check_one acc g) []

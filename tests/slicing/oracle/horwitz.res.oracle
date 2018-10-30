@@ -1,110 +1,96 @@
 [kernel] Parsing tests/slicing/horwitz.i (no preprocessing)
-[value] Analyzing a complete application starting at main
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing a complete application starting at main
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   
-[value] tests/slicing/horwitz.i:26: entering loop for the first time
-[value] computing for function A <- main.
+[eva] computing for function A <- main.
   Called from tests/slicing/horwitz.i:27.
-[value] computing for function add <- A <- main.
+[eva] computing for function add <- A <- main.
   Called from tests/slicing/horwitz.i:18.
-[value] Recording results for add
-[value] Done for function add
-[value] computing for function incr <- A <- main.
+[eva] Recording results for add
+[eva] Done for function add
+[eva] computing for function incr <- A <- main.
   Called from tests/slicing/horwitz.i:19.
-[value] computing for function add <- incr <- A <- main.
+[eva] computing for function add <- incr <- A <- main.
   Called from tests/slicing/horwitz.i:15.
-[value] Recording results for add
-[value] Done for function add
-[value] Recording results for incr
-[value] Done for function incr
-[value] Recording results for A
-[value] Done for function A
-[value] computing for function A <- main.
+[eva] Recording results for add
+[eva] Done for function add
+[eva] Recording results for incr
+[eva] Done for function incr
+[eva] Recording results for A
+[eva] Done for function A
+[eva] tests/slicing/horwitz.i:26: starting to merge loop iterations
+[eva] computing for function A <- main.
   Called from tests/slicing/horwitz.i:27.
-[value] computing for function add <- A <- main.
+[eva] computing for function add <- A <- main.
   Called from tests/slicing/horwitz.i:18.
-[value] Recording results for add
-[value] Done for function add
-[value] computing for function incr <- A <- main.
+[eva] Recording results for add
+[eva] Done for function add
+[eva] computing for function incr <- A <- main.
   Called from tests/slicing/horwitz.i:19.
-[value] computing for function add <- incr <- A <- main.
+[eva] computing for function add <- incr <- A <- main.
   Called from tests/slicing/horwitz.i:15.
-[value] Recording results for add
-[value] Done for function add
-[value] Recording results for incr
-[value] Done for function incr
-[value] Recording results for A
-[value] Done for function A
-[value] computing for function A <- main.
+[eva] Recording results for add
+[eva] Done for function add
+[eva] Recording results for incr
+[eva] Done for function incr
+[eva] Recording results for A
+[eva] Done for function A
+[eva] computing for function A <- main.
   Called from tests/slicing/horwitz.i:27.
-[value] computing for function add <- A <- main.
+[eva] computing for function add <- A <- main.
   Called from tests/slicing/horwitz.i:18.
-[value] Recording results for add
-[value] Done for function add
-[value] computing for function incr <- A <- main.
+[eva] Recording results for add
+[eva] Done for function add
+[eva] computing for function incr <- A <- main.
   Called from tests/slicing/horwitz.i:19.
-[value] computing for function add <- incr <- A <- main.
+[eva] computing for function add <- incr <- A <- main.
   Called from tests/slicing/horwitz.i:15.
-[value] Recording results for add
-[value] Done for function add
-[value] Recording results for incr
-[value] Done for function incr
-[value] Recording results for A
-[value] Done for function A
-[value] computing for function A <- main.
+[eva] Recording results for add
+[eva] Done for function add
+[eva] Recording results for incr
+[eva] Done for function incr
+[eva] Recording results for A
+[eva] Done for function A
+[eva] computing for function A <- main.
   Called from tests/slicing/horwitz.i:27.
-[value] computing for function add <- A <- main.
+[eva] computing for function add <- A <- main.
   Called from tests/slicing/horwitz.i:18.
-[value] Recording results for add
-[value] Done for function add
-[value] computing for function incr <- A <- main.
+[eva] Recording results for add
+[eva] Done for function add
+[eva] computing for function incr <- A <- main.
   Called from tests/slicing/horwitz.i:19.
-[value] computing for function add <- incr <- A <- main.
+[eva] computing for function add <- incr <- A <- main.
   Called from tests/slicing/horwitz.i:15.
-[value] Recording results for add
-[value] Done for function add
-[value] Recording results for incr
-[value] Done for function incr
-[value] Recording results for A
-[value] Done for function A
-[value] computing for function A <- main.
+[eva] Recording results for add
+[eva] Done for function add
+[eva] Recording results for incr
+[eva] Done for function incr
+[eva] Recording results for A
+[eva] Done for function A
+[eva] computing for function A <- main.
   Called from tests/slicing/horwitz.i:27.
-[value] computing for function add <- A <- main.
+[eva] computing for function add <- A <- main.
   Called from tests/slicing/horwitz.i:18.
-[value] Recording results for add
-[value] Done for function add
-[value] computing for function incr <- A <- main.
-  Called from tests/slicing/horwitz.i:19.
-[value] computing for function add <- incr <- A <- main.
-  Called from tests/slicing/horwitz.i:15.
-[value] Recording results for add
-[value] Done for function add
-[value] Recording results for incr
-[value] Done for function incr
-[value] Recording results for A
-[value] Done for function A
-[value] computing for function A <- main.
+[eva] Recording results for add
+[eva] Done for function add
+[eva] tests/slicing/horwitz.i:19: Reusing old results for call to incr
+[eva] Recording results for A
+[eva] Done for function A
+[eva] computing for function A <- main.
   Called from tests/slicing/horwitz.i:27.
-[value] computing for function add <- A <- main.
+[eva] computing for function add <- A <- main.
   Called from tests/slicing/horwitz.i:18.
-[value:alarm] tests/slicing/horwitz.i:12: Warning: 
+[eva:alarm] tests/slicing/horwitz.i:12: Warning: 
   signed overflow. assert a + b ≤ 2147483647;
-[value] Recording results for add
-[value] Done for function add
-[value] computing for function incr <- A <- main.
-  Called from tests/slicing/horwitz.i:19.
-[value] computing for function add <- incr <- A <- main.
-  Called from tests/slicing/horwitz.i:15.
-[value] Recording results for add
-[value] Done for function add
-[value] Recording results for incr
-[value] Done for function incr
-[value] Recording results for A
-[value] Done for function A
-[value] Recording results for main
-[value] done for function main
+[eva] Recording results for add
+[eva] Done for function add
+[eva] tests/slicing/horwitz.i:19: Reusing old results for call to incr
+[eva] Recording results for A
+[eva] Done for function A
+[eva] Recording results for main
+[eva] done for function main
 [from] Computing for function add
 [from] Done for function add
 [from] Computing for function incr

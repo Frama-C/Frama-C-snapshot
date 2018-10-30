@@ -1,0 +1,203 @@
+[kernel] Parsing tests/value/exit_paths.i (no preprocessing)
+[eva] Analyzing a complete application starting at main
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
+  
+[eva] computing for function test1 <- main.
+  Called from tests/value/exit_paths.i:71.
+[eva] tests/value/exit_paths.i:11: 
+  Frama_C_show_each_1: {{ "On exit path" }}, {0}
+[eva] tests/value/exit_paths.i:16: 
+  Frama_C_show_each_3: {{ "Not on exit path" }}, {0}
+[eva] tests/value/exit_paths.i:10: starting to merge loop iterations
+[eva] tests/value/exit_paths.i:11: 
+  Frama_C_show_each_1: {{ "On exit path" }}, {0; 1}
+[eva] tests/value/exit_paths.i:16: 
+  Frama_C_show_each_3: {{ "Not on exit path" }}, {0; 1}
+[eva] tests/value/exit_paths.i:11: 
+  Frama_C_show_each_1: {{ "On exit path" }}, {0; 1; 2}
+[eva] tests/value/exit_paths.i:16: 
+  Frama_C_show_each_3: {{ "Not on exit path" }}, {0; 1; 2}
+[eva] tests/value/exit_paths.i:11: 
+  Frama_C_show_each_1: {{ "On exit path" }}, [0..2147483647]
+[eva] tests/value/exit_paths.i:16: 
+  Frama_C_show_each_3: {{ "Not on exit path" }}, [0..9]
+[eva] tests/value/exit_paths.i:13: 
+  Frama_C_show_each_2: {{ "On exit path" }}, [10..2147483647]
+[eva] Recording results for test1
+[eva] Done for function test1
+[eva] computing for function test2 <- main.
+  Called from tests/value/exit_paths.i:72.
+[eva] tests/value/exit_paths.i:25: 
+  Frama_C_show_each_4: {{ "On exit path" }}, {0}
+[eva] tests/value/exit_paths.i:28: 
+  Frama_C_show_each_5: {{ "On exit path" }}, {0}, {0}
+[eva] tests/value/exit_paths.i:37: 
+  Frama_C_show_each_8: {{ "Not on exit path" }}, {0}, {0}
+[eva] tests/value/exit_paths.i:27: starting to merge loop iterations
+[eva] tests/value/exit_paths.i:28: 
+  Frama_C_show_each_5: {{ "On exit path" }}, {0}, {0; 1}
+[eva] tests/value/exit_paths.i:37: 
+  Frama_C_show_each_8: {{ "Not on exit path" }}, {0}, {0; 1}
+[eva] tests/value/exit_paths.i:28: 
+  Frama_C_show_each_5: {{ "On exit path" }}, {0}, {0; 1; 2}
+[eva] tests/value/exit_paths.i:37: 
+  Frama_C_show_each_8: {{ "Not on exit path" }}, {0}, {0; 1; 2}
+[eva] tests/value/exit_paths.i:28: 
+  Frama_C_show_each_5: {{ "On exit path" }}, {0}, [0..2147483647]
+[eva] tests/value/exit_paths.i:37: 
+  Frama_C_show_each_8: {{ "Not on exit path" }}, {0}, [0..9]
+[eva] tests/value/exit_paths.i:30: 
+  Frama_C_show_each_6: {{ "Not on exit path" }}, {0}, [10..2147483647]
+[eva] tests/value/exit_paths.i:40: 
+  Frama_C_show_each_9: {{ "Not on exit path" }}, {0}
+[eva] tests/value/exit_paths.i:24: starting to merge loop iterations
+[eva] tests/value/exit_paths.i:25: 
+  Frama_C_show_each_4: {{ "On exit path" }}, {0; 1}
+[eva] tests/value/exit_paths.i:28: 
+  Frama_C_show_each_5: {{ "On exit path" }}, {0; 1}, [0..2147483647]
+[eva] tests/value/exit_paths.i:37: 
+  Frama_C_show_each_8: {{ "Not on exit path" }}, {0; 1}, [0..9]
+[eva] tests/value/exit_paths.i:30: 
+  Frama_C_show_each_6: {{ "Not on exit path" }}, {0; 1}, [10..2147483647]
+[eva] tests/value/exit_paths.i:40: 
+  Frama_C_show_each_9: {{ "Not on exit path" }}, {0; 1}
+[eva] tests/value/exit_paths.i:25: 
+  Frama_C_show_each_4: {{ "On exit path" }}, {0; 1; 2}
+[eva] tests/value/exit_paths.i:28: 
+  Frama_C_show_each_5: {{ "On exit path" }}, {0; 1; 2}, [0..2147483647]
+[eva] tests/value/exit_paths.i:37: 
+  Frama_C_show_each_8: {{ "Not on exit path" }}, {0; 1; 2}, [0..9]
+[eva] tests/value/exit_paths.i:30: 
+  Frama_C_show_each_6: {{ "Not on exit path" }}, {0; 1; 2}, [10..2147483647]
+[eva] tests/value/exit_paths.i:40: 
+  Frama_C_show_each_9: {{ "Not on exit path" }}, {0; 1; 2}
+[eva] tests/value/exit_paths.i:25: 
+  Frama_C_show_each_4: {{ "On exit path" }}, [0..2147483647]
+[eva] tests/value/exit_paths.i:28: 
+  Frama_C_show_each_5: {{ "On exit path" }}, [0..2147483647], [0..2147483647]
+[eva:alarm] tests/value/exit_paths.i:33: Warning: 
+  signed overflow. assert i + j ≤ 2147483647;
+[eva] tests/value/exit_paths.i:37: 
+  Frama_C_show_each_8: {{ "Not on exit path" }}, [0..19], [0..9]
+[eva] tests/value/exit_paths.i:30: 
+  Frama_C_show_each_6:
+  {{ "Not on exit path" }}, [0..2147483647], [10..2147483647]
+[eva] tests/value/exit_paths.i:40: 
+  Frama_C_show_each_9: {{ "Not on exit path" }}, [0..2147483647]
+[eva:alarm] tests/value/exit_paths.i:41: Warning: 
+  signed overflow. assert i + 1 ≤ 2147483647;
+[eva] tests/value/exit_paths.i:34: 
+  Frama_C_show_each_7: {{ "On exit path" }}, [11..2147483647], [0..9]
+[eva] Recording results for test2
+[eva] Done for function test2
+[eva] computing for function test3 <- main.
+  Called from tests/value/exit_paths.i:73.
+[eva] tests/value/exit_paths.i:49: 
+  Frama_C_show_each_10: {{ "On exit path" }}, {0}
+[eva] tests/value/exit_paths.i:52: 
+  Frama_C_show_each_11: {{ "On exit path" }}, {0}, {0}
+[eva] tests/value/exit_paths.i:57: 
+  Frama_C_show_each_13: {{ "On exit path" }}, {0}, {0}
+[eva] tests/value/exit_paths.i:51: starting to merge loop iterations
+[eva] tests/value/exit_paths.i:52: 
+  Frama_C_show_each_11: {{ "On exit path" }}, {0}, {0; 1}
+[eva] tests/value/exit_paths.i:57: 
+  Frama_C_show_each_13: {{ "On exit path" }}, {0}, {0; 1}
+[eva] tests/value/exit_paths.i:52: 
+  Frama_C_show_each_11: {{ "On exit path" }}, {0}, {0; 1; 2}
+[eva] tests/value/exit_paths.i:57: 
+  Frama_C_show_each_13: {{ "On exit path" }}, {0}, {0; 1; 2}
+[eva] tests/value/exit_paths.i:52: 
+  Frama_C_show_each_11: {{ "On exit path" }}, {0}, [0..2147483647]
+[eva] tests/value/exit_paths.i:57: 
+  Frama_C_show_each_13: {{ "On exit path" }}, {0}, [0..9]
+[eva] tests/value/exit_paths.i:54: 
+  Frama_C_show_each_12: {{ "On exit path" }}, {0}, [10..2147483647]
+[eva] tests/value/exit_paths.i:64: 
+  Frama_C_show_each_15: {{ "Not on exit path" }}, {0}
+[eva] tests/value/exit_paths.i:48: starting to merge loop iterations
+[eva] tests/value/exit_paths.i:49: 
+  Frama_C_show_each_10: {{ "On exit path" }}, {0; 1}
+[eva] tests/value/exit_paths.i:52: 
+  Frama_C_show_each_11: {{ "On exit path" }}, {0; 1}, [0..2147483647]
+[eva] tests/value/exit_paths.i:57: 
+  Frama_C_show_each_13: {{ "On exit path" }}, {0; 1}, [0..9]
+[eva] tests/value/exit_paths.i:54: 
+  Frama_C_show_each_12: {{ "On exit path" }}, {0; 1}, [10..2147483647]
+[eva] tests/value/exit_paths.i:64: 
+  Frama_C_show_each_15: {{ "Not on exit path" }}, {0; 1}
+[eva] tests/value/exit_paths.i:49: 
+  Frama_C_show_each_10: {{ "On exit path" }}, {0; 1; 2}
+[eva] tests/value/exit_paths.i:52: 
+  Frama_C_show_each_11: {{ "On exit path" }}, {0; 1; 2}, [0..2147483647]
+[eva] tests/value/exit_paths.i:57: 
+  Frama_C_show_each_13: {{ "On exit path" }}, {0; 1; 2}, [0..9]
+[eva] tests/value/exit_paths.i:54: 
+  Frama_C_show_each_12: {{ "On exit path" }}, {0; 1; 2}, [10..2147483647]
+[eva] tests/value/exit_paths.i:64: 
+  Frama_C_show_each_15: {{ "Not on exit path" }}, {0; 1; 2}
+[eva] tests/value/exit_paths.i:49: 
+  Frama_C_show_each_10: {{ "On exit path" }}, [0..2147483647]
+[eva] tests/value/exit_paths.i:52: 
+  Frama_C_show_each_11: {{ "On exit path" }}, [0..2147483647], [0..2147483647]
+[eva] tests/value/exit_paths.i:57: 
+  Frama_C_show_each_13: {{ "On exit path" }}, [0..2147483647], [0..9]
+[eva] tests/value/exit_paths.i:54: 
+  Frama_C_show_each_12: {{ "On exit path" }}, [0..2147483647], [10..2147483647]
+[eva] tests/value/exit_paths.i:64: 
+  Frama_C_show_each_15: {{ "Not on exit path" }}, [0..9]
+[eva] tests/value/exit_paths.i:61: 
+  Frama_C_show_each_14: {{ "On exit path" }}, [10..2147483647]
+[eva] Recording results for test3
+[eva] Done for function test3
+[eva] Recording results for main
+[eva] done for function main
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function test1:
+  i ∈ [10..2147483647]
+  __retres ∈ [10..2147483647]
+[eva:final-states] Values at end of function test2:
+  i ∈ [11..2147483647]
+  __retres ∈ [11..2147483647]
+[eva:final-states] Values at end of function test3:
+  i ∈ [10..2147483647]
+  __retres ∈ [10..2147483647]
+[eva:final-states] Values at end of function main:
+  
+[from] Computing for function test1
+[from] Done for function test1
+[from] Computing for function test2
+[from] Done for function test2
+[from] Computing for function test3
+[from] Done for function test3
+[from] Computing for function main
+[from] Done for function main
+[from] ====== DEPENDENCIES COMPUTED ======
+  These dependencies hold at termination for the executions that terminate:
+[from] Function test1:
+  \result FROM n
+[from] Function test2:
+  \result FROM n
+[from] Function test3:
+  \result FROM n
+[from] Function main:
+  NO EFFECTS
+[from] ====== END OF DEPENDENCIES ======
+[inout] Out (internal) for function test1:
+    i; __retres
+[inout] Inputs for function test1:
+    \nothing
+[inout] Out (internal) for function test2:
+    i; j; __retres
+[inout] Inputs for function test2:
+    \nothing
+[inout] Out (internal) for function test3:
+    i; j; __retres
+[inout] Inputs for function test3:
+    \nothing
+[inout] Out (internal) for function main:
+    \nothing
+[inout] Inputs for function main:
+    \nothing

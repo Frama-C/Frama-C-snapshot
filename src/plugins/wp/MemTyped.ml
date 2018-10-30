@@ -38,7 +38,7 @@ let dkey_layout = Wp_parameters.register_category "layout"
 module L = Qed.Logic
 
 let datatype = "MemTyped"
-let separation () = []
+let hypotheses () = []
 let library = "memory"
 
 let a_addr = Lang.datatype ~library "addr"
@@ -56,6 +56,17 @@ let f_offset = Lang.extern_f ~library ~result:L.Int
 let f_shift  = Lang.extern_f ~library ~result:t_addr "shift"
 let f_global = Lang.extern_f ~library ~result:t_addr ~category:L.Injection "global"
 let f_null   = Lang.extern_f ~library ~result:t_addr "null"
+let f_base_offset = Lang.extern_f ~library ~category:Qed.Logic.Injection ~result:L.Int "base_offset"
+
+let ty_havoc = function
+  | Some l :: _ -> l
+  | _ -> raise Not_found
+
+let l_havoc = Qed.Engine.{
+    coq = F_call "fhavoc" ;
+    altergo = F_call "havoc" ;
+    why3 = F_call "havoc" ;
+  }
 
 let p_valid_rd = Lang.extern_fp ~library "valid_rd"
 let p_valid_rw = Lang.extern_fp ~library "valid_rw"
@@ -63,7 +74,7 @@ let p_invalid = Lang.extern_fp ~library "invalid"
 let p_separated = Lang.extern_fp ~library "separated"
 let p_included = Lang.extern_fp ~library "included"
 let p_eqmem = Lang.extern_fp ~library "eqmem"
-let p_havoc = Lang.extern_fp ~library "havoc"
+let f_havoc = Lang.extern_f ~library ~typecheck:ty_havoc ~link:l_havoc "havoc"
 let f_region = Lang.extern_f ~library ~result:L.Int "region" (* base -> region *)
 let p_framed = Lang.extern_fp ~library "framed" (* m-pointer -> prop *)
 let p_linked = Lang.extern_fp ~library "linked" (* allocation-table -> prop *)
@@ -130,6 +141,7 @@ let a_null = F.constant (e_fun f_null [])
 let a_base p = e_fun f_base [p]
 let a_offset p = e_fun f_offset [p]
 let a_global b = e_fun f_global [b]
+let a_base_offset k = e_fun f_base_offset [k]
 let a_shift l k = e_fun f_shift [l;k]
 let a_addr b k = a_shift (a_global b) k
 
@@ -244,6 +256,8 @@ let r_separated = function
         end
   | _ -> raise Not_found
 
+let is_separated args = F.is_true (r_separated args)
+
 (* -------------------------------------------------------------------------- *)
 (* --- Simplifier for 'included'                                          --- *)
 (* -------------------------------------------------------------------------- *)
@@ -252,7 +266,7 @@ let r_separated = function
 logic a : int
 logic b : int
 
-predicate R =     p.base = q.base 
+predicate R =     p.base = q.base
               /\ (q.offset <= p.offset)
               /\ (p.offset + a <= q.offset + b)
 
@@ -303,6 +317,38 @@ let r_included = function
   | _ -> raise Not_found
 
 (* -------------------------------------------------------------------------- *)
+(* --- Simplifier for 'havoc'                                             --- *)
+(* -------------------------------------------------------------------------- *)
+
+(* havoc(m_undef, havoc(_undef,m0,p0,a0), p1,a1) =
+   - havoc(m_undef, m0, p1,a1) WHEN included (p1,a1,p0,a0) *)
+let r_havoc = function
+  | [undef1;m1;p1;a1] -> begin
+      match F.repr m1 with
+      | L.Fun( f , [_undef0;m0;p0;a0] ) when f == f_havoc -> begin
+          let open Qed.Logic in
+          match F.is_true (r_included [p0;a0;p1;a1]) with
+          | Yes -> F.e_fun f_havoc [undef1;m0;p1;a1]
+          | _ -> raise Not_found
+        end
+      | _ -> raise Not_found
+    end
+  | _ -> raise Not_found
+
+(* havoc(undef,m,p,a)[k] =
+   - undef[k]      WHEN separated (p,a,k,1)
+   - m[k]  WHEN NOT separated (p,a,k,1)
+*)
+let r_get_havoc = function
+  | [undef;m;p;a] ->
+      (fun k ->
+         match is_separated [p;a;k;e_one] with
+         | L.Yes -> F.e_get m k
+         | L.No  -> F.e_get undef k
+         | _ -> raise Not_found)
+  | _ -> raise Not_found
+
+(* -------------------------------------------------------------------------- *)
 (* --- Simplifier for int/addr conversion                                 --- *)
 (* -------------------------------------------------------------------------- *)
 
@@ -322,17 +368,19 @@ let phi_addr_of_int p =
 (* --- Simplifier Registration                                            --- *)
 (* -------------------------------------------------------------------------- *)
 let () = Context.register
-  begin fun () ->
-    F.set_builtin_1   f_base   phi_base ;
-    F.set_builtin_1   f_offset phi_offset ;
-    F.set_builtin_2   f_shift  (phi_shift f_shift) ;
-    F.set_builtin_eqp f_shift  eq_shift ;
-    F.set_builtin_eqp f_global eq_shift ;
-    F.set_builtin p_separated r_separated ;
-    F.set_builtin p_included  r_included ;
-    F.set_builtin_1 a_addr_of_int phi_addr_of_int ;
-    F.set_builtin_1 a_int_of_addr phi_int_of_addr ;
-  end
+    begin fun () ->
+      F.set_builtin_1   f_base   phi_base ;
+      F.set_builtin_1   f_offset phi_offset ;
+      F.set_builtin_2   f_shift  (phi_shift f_shift) ;
+      F.set_builtin_eqp f_shift  eq_shift ;
+      F.set_builtin_eqp f_global eq_shift ;
+      F.set_builtin p_separated r_separated ;
+      F.set_builtin p_included  r_included ;
+      F.set_builtin f_havoc r_havoc ;
+      F.set_builtin_get f_havoc r_get_havoc ;
+      F.set_builtin_1 a_addr_of_int phi_addr_of_int ;
+      F.set_builtin_1 a_int_of_addr phi_int_of_addr ;
+    end
 
 (* -------------------------------------------------------------------------- *)
 (* --- Model Parameters                                                   --- *)
@@ -659,7 +707,7 @@ module STRING = Model.Generator(LITERAL)
       let fresh () =
         let eid = succ (EID.get ()) in
         EID.set eid ; eid
-      
+
       let compile (_,cst) =
         let eid = fresh () in
         let lfun = Lang.generated_f ~result:L.Int "Str_%d" eid in
@@ -827,7 +875,7 @@ struct
         [Trigger.of_pred eqmem ; Trigger.of_term phi ] ;
         [Trigger.of_pred eqmem ; Trigger.of_term phi'] ;
       ] ;
-      l_forall = F.p_vars lemma ; 
+      l_forall = F.p_vars lemma ;
       l_lemma = lemma ;
       l_cluster = cluster_memory () ;
     }
@@ -839,8 +887,9 @@ struct
     let phi = e_fun env.lfun (env.params @ env.memories) in
     let mem = Sigma.value env.sigma c in
     let mem' = e_var (Lang.freshen (Sigma.get env.sigma c)) in
+    let m_undef = e_var (Lang.freshen (Sigma.get env.sigma c)) in
     let phi' = e_fun env.lfun (env.params @ update env c mem') in
-    let havoc = F.p_call p_havoc [mem;mem';q;k] in
+    let havoc = p_equal mem' (F.e_fun f_havoc [m_undef;mem;q;k]) in
     let lemma = p_hyps [separated env q k;havoc] (p_equal phi' phi) in
     Definitions.define_lemma {
       l_assumed = true ;
@@ -993,6 +1042,7 @@ let get_alloc sigma l = F.e_get (Sigma.value sigma T_alloc) (a_base l)
 let get_last sigma l = e_add (get_alloc sigma l) e_minus_one
 
 let base_addr l = a_addr (a_base l) e_zero
+let base_offset l = a_base_offset (a_offset l)
 let block_length sigma obj l =
   e_fact (Ctypes.sizeof_object obj) (get_alloc sigma l)
 
@@ -1111,7 +1161,7 @@ struct
             begin
               match compare u v with
               | Mismatch -> Mismatch
-              | Fit -> if n=1 then Fit else Mismatch
+              | Fit -> Mismatch
               | Equal ->
                   if n < m then
                     let w2 = add_array v (m-n) w2 in
@@ -1193,9 +1243,12 @@ let havoc_range s obj l n =
   let ps = ref [] in
   Heap.Set.iter
     (fun c ->
+       let basename = (Chunk.basename_of_chunk c)^"_undef" in
+       let tau = Chunk.tau_of_chunk c in
+       let m_undef = e_var (Lang.freshvar ~basename tau) in
        let m1 = Sigma.value s.pre c in
        let m2 = Sigma.value s.post c in
-       ps := F.p_call p_havoc [m1;m2;l;n] :: !ps
+       ps := (p_equal m2 (F.e_fun f_havoc [m_undef;m1;l;n])) :: !ps
     ) (footprint obj) ; !ps
 
 let havoc s obj l = havoc_range s obj l (e_int (size_of_object obj))
@@ -1221,7 +1274,7 @@ let stored s obj l v =
   | C_float _ -> updated s M_float l v
   | C_pointer _ -> updated s M_pointer l v
   | C_comp _ | C_array _ ->
-      Set(loadvalue s.post obj l, v) :: 
+      Set(loadvalue s.post obj l, v) ::
       (List.map (fun p -> Assert p) (havoc s obj l))
 
 let copied s obj p q = stored s obj p (loadvalue s.pre obj q)
@@ -1235,7 +1288,7 @@ let assigned_loc s obj l =
   | C_int _ | C_float _ | C_pointer _ ->
       let x = Lang.freshvar ~basename:"v" (Lang.tau_of_object obj) in
       List.map Cvalues.equation (stored s obj l (e_var x))
-  | C_comp _ | C_array _ -> 
+  | C_comp _ | C_array _ ->
       havoc s obj l
 
 let equal_loc s obj l =
@@ -1409,7 +1462,7 @@ and lookup_f f es =
     | RS_Field(fd,_) , [e] -> Mstate.field (lookup_lv e) fd
     | RS_Shift _ , [e;k] -> Mstate.index (lookup_lv e) k
     | _ -> raise Not_found
-  with Not_found when es = [] -> 
+  with Not_found when es = [] ->
     Sigs.(Mvar (RegisterBASE.find f),[])
 
 and lookup_lv e = try lookup_a e with Not_found -> Sigs.(Mmem e,[])

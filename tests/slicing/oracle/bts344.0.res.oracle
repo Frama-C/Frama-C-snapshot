@@ -1,30 +1,30 @@
 [kernel] Parsing tests/slicing/bts344.i (no preprocessing)
 [slicing] slicing requests in progress...
-[value] Analyzing a complete application starting at main
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing a complete application starting at main
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   X ∈ {0}
   Y ∈ {0}
-[value] computing for function f <- main.
+[eva] computing for function f <- main.
   Called from tests/slicing/bts344.i:24.
-[value] computing for function h <- f <- main.
+[eva] computing for function h <- f <- main.
   Called from tests/slicing/bts344.i:21.
-[value] Recording results for h
-[value] Done for function h
-[value] Recording results for f
-[value] Done for function f
-[value] computing for function h <- main.
+[eva] Recording results for h
+[eva] Done for function h
+[eva] Recording results for f
+[eva] Done for function f
+[eva] computing for function h <- main.
   Called from tests/slicing/bts344.i:25.
-[value] Recording results for h
-[value] Done for function h
-[value] computing for function k <- main.
+[eva] Recording results for h
+[eva] Done for function h
+[eva] computing for function k <- main.
   Called from tests/slicing/bts344.i:26.
-[value] tests/slicing/bts344.i:9: function k: postcondition got status valid.
-[value] Recording results for k
-[value] Done for function k
-[value] Recording results for main
-[value] done for function main
+[eva] tests/slicing/bts344.i:9: function k: postcondition got status valid.
+[eva] Recording results for k
+[eva] Done for function k
+[eva] Recording results for main
+[eva] done for function main
 [slicing] initializing slicing ...
 [slicing] interpreting slicing requests from the command line...
 [pdg] computing for function main

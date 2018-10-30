@@ -413,17 +413,38 @@ extern void exit(int status) __attribute__ ((__noreturn__));
 */
 extern void _Exit(int status) __attribute__ ((__noreturn__));
 
+extern char *__fc_env[ARG_MAX] __attribute__((FRAMA_C_MODEL));
+
 /*@
   requires valid_name: valid_read_string(name);
-  assigns \result \from indirect:name, name[0 ..];
+  assigns \result \from __fc_env[0..], indirect:name, name[0 ..];
   ensures null_or_valid_result: \result == \null || \valid(\result);
  */
 extern char *getenv(const char *name);
 
+/*@
+  requires valid_string: valid_read_string(string);
+  assigns __fc_env[0..] \from __fc_env[0..], string;
+  assigns \result \from indirect:__fc_env[0..], indirect:string;
+*/
 extern int putenv(char *string);
 
+/*@
+  requires valid_name: valid_read_string(name);
+  requires valid_value: valid_read_string(value);
+  assigns \result, __fc_env[0..]
+    \from __fc_env[0..], indirect:name, indirect:name[0 ..],
+          indirect:value, indirect:value[0 ..], indirect:overwrite;
+  ensures result_ok_or_error: \result == 0 || \result == -1;
+*/
 extern int setenv(const char *name, const char *value, int overwrite);
 
+/*@
+  requires valid_name: valid_read_string(name);
+  assigns \result, __fc_env[0..]
+    \from __fc_env[0..], indirect:name, indirect:name[0 ..];
+  ensures result_ok_or_error: \result == 0 || \result == -1;
+*/
 extern int unsetenv(const char *name);
 
 /*@

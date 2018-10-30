@@ -49,8 +49,9 @@ AC_ARG_ENABLE(
   WPWHY3COQ=yes
 )
 
+plugin_require(wp,qed)
+plugin_require(wp,rtegen)
 plugin_use(wp,gui)
-plugin_use(wp,rtegen)
 
 check_plugin_dependencies
 
@@ -95,13 +96,13 @@ if test "$ENABLE_WP" != "no"; then
 	    WHY3COQC="no"
           fi
           ;;
-        *) 
-          AC_MSG_RESULT(why3 unsupported version $WHY3VERSION) 
+        *)
+          AC_MSG_RESULT(why3 unsupported version $WHY3VERSION)
           WHY3COQC="no"
           ;;
       esac
     else
-      AC_MSG_NOTICE(rerun configure to make wp using why3 0.87)
+      AC_MSG_NOTICE(rerun configure to make wp using why3 0.88)
     fi
   else
     WHY3COQC="no"
@@ -111,4 +112,3 @@ if test "$ENABLE_WP" != "no"; then
 fi
 
 write_plugin_config(Makefile)
-

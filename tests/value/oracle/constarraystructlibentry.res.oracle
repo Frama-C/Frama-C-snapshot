@@ -1,8 +1,8 @@
 [kernel] Parsing tests/value/constarraystructlibentry.i (no preprocessing)
-[value] Analyzing an incomplete application starting at main
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing an incomplete application starting at main
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   t[0] ∈ {1}
    [1] ∈ {2}
    [2] ∈ {3}
@@ -72,15 +72,15 @@
   s2 ∈ {0}
   s3.a{.b; .c} ∈ {0}
     {.a.[bits 40 to 63]; .c; .[bits 72 to 95]} ∈ [--..--]
-[value] Recording results for main
-[value] done for function main
-[value] ====== VALUES COMPUTED ======
-[value:final-states] Values at end of function main:
+[eva] Recording results for main
+[eva] done for function main
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function main:
   x ∈ {{ &t7[0] }}
-[value] Analyzing an incomplete application starting at main
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing an incomplete application starting at main
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   t[0] ∈ {1}
    [1] ∈ {2}
    [2] ∈ {3}
@@ -161,8 +161,8 @@
     .a.[bits 40 to 63] ∈ UNINITIALIZED
     .c ∈ [--..--]
     .[bits 72 to 95] ∈ UNINITIALIZED
-[value] Recording results for main
-[value] done for function main
-[value] ====== VALUES COMPUTED ======
-[value:final-states] Values at end of function main:
+[eva] Recording results for main
+[eva] done for function main
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function main:
   x ∈ {{ &t7[0] }}

@@ -37,7 +37,7 @@ type prop_id
 *)
 val property_of_id : prop_id -> Property.t
 
-val source_of_id : prop_id -> Lexing.position
+val source_of_id : prop_id -> Filepath.position
 
 (*----------------------------------------------------------------------------*)
 
@@ -130,7 +130,7 @@ val mk_bhv_from_id :
 val mk_fct_from_id : kernel_function -> funbehavior ->
   termination_kind -> from -> prop_id
 
-(** disjoint behaviors property. 
+(** disjoint behaviors property.
     See {!Property.ip_of_disjoint} for more information
 *)
 val mk_disj_bhv_id :
@@ -138,7 +138,7 @@ val mk_disj_bhv_id :
 
 (** complete behaviors property.
     See {!Property.ip_of_complete} for more information
- *)
+*)
 val mk_compl_bhv_id :
   kernel_function * kinstr * string list * string list -> prop_id
 
@@ -252,4 +252,3 @@ val subproof_idx : prop_id -> int
 val get_induction : prop_id -> stmt option
 
 (*----------------------------------------------------------------------------*)
-

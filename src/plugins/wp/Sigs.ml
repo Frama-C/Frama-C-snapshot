@@ -83,7 +83,7 @@ type 'a result =
 type polarity = [ `Positive | `Negative | `NoPolarity ]
 
 (* -------------------------------------------------------------------------- *)
-(** {1 Reversing Models} 
+(** {1 Reversing Models}
 
     It is sometimes possible to reverse memory models abstractions
     into ACSL left-values via the definitions below. *)
@@ -122,31 +122,31 @@ type update = Mstore of s_lval * term
 
     Remark: memory chunks are not required to be independant from each other,
     provided the memory model implementation is consistent with the chosen
-    representation. Conversely, a given object might be represented by 
+    representation. Conversely, a given object might be represented by
     several memory chunks. See {!Model.domain}.
 
 *)
 module type Chunk =
 sig
-  
+
   type t
   val self : string (** Chunk names, for pretty-printing. *)
   val hash : t -> int
   val compare : t -> t -> int
   val pretty : Format.formatter -> t -> unit
-    
+
   val tau_of_chunk : t -> tau
   (** The type of data hold in a chunk. *)
-  
+
   val basename_of_chunk : t -> string
   (** Used when generating fresh variables for a chunk. *)
 
   val is_framed : t -> bool
   (** Whether the chunk is local to a function call.
-      
-      Means the chunk is separated from anyother call side-effects. 
+
+      Means the chunk is separated from anyother call side-effects.
       If [true], entails that a function assigning everything can not modify
-      the chunk. Only used for optimisation, it would be safe to always 
+      the chunk. Only used for optimisation, it would be safe to always
       return [false]. *)
 
 end
@@ -165,25 +165,25 @@ sig
   (** Memory footprint. *)
   type domain = Chunk.Set.t
 
-  (** Environment assigning logic variables to chunk. 
-      
+  (** Environment assigning logic variables to chunk.
+
       Memory chunk variables are assigned lazily. Hence, the vector is
       empty unless a chunk is accessed. Pay attention to this
-      when you merge or havoc chunks. 
-      
-      New chunks are generated from the context pool of {!Lang.freshvar}. 
+      when you merge or havoc chunks.
+
+      New chunks are generated from the context pool of {!Lang.freshvar}.
   *)
-  type t 
+  type t
 
   val pretty : Format.formatter -> t -> unit
   (** For debugging purpose *)
-  
+
   val create : unit -> t (** Initially empty environment. *)
 
   val mem : t -> chunk -> bool (** Whether a chunk has been assigned. *)
   val get : t -> chunk -> var (** Lazily get the variable for a chunk. *)
   val value : t -> chunk -> term (** Same as [Lang.F.e_var] of [get]. *)
-  
+
   val copy : t -> t (** Duplicate the environment. Fresh chunks in the copy
                         are {i not} duplicated into the source environment. *)
 
@@ -194,24 +194,24 @@ sig
       variable of the other environment. When both environments don't agree
       on a chunk, their variables are added to the passive form. *)
 
-  val assigned : t -> t -> domain -> pred Bag.t
+  val assigned : pre:t -> post:t -> domain -> pred Bag.t
   (** Make chunks equal outside of some domain.
 
       This is similar to [join], but outside the given footprint of an
       assigns clause. Although, the function returns the equality
-      predicates instead of a passive form. 
+      predicates instead of a passive form.
 
       Like in [join], missing chunks are reported from one side to the
       other one, and common chunks are added to the equality bag. *)
 
   val choose : t -> t -> t
   (** Make the union of each sigma, choosing the minimal variable
-      in case of conflict. 
+      in case of conflict.
       Both initial environments are kept unchanged. *)
 
   val merge : t -> t -> t * Passive.t * Passive.t
   (** Make the union of each sigma, choosing a {i new} variable for
-      each conflict, and returns the corresponding joins. 
+      each conflict, and returns the corresponding joins.
       Both initial environments are kept unchanged. *)
 
   val merge_list : t list -> t * Passive.t list
@@ -221,34 +221,34 @@ sig
   val iter : (chunk -> var -> unit) -> t -> unit
   (** Iterates over the chunks and associated variables already
       accessed so far in the environment. *)
-  
+
   val iter2 : (chunk -> var option -> var option -> unit) -> t -> t -> unit
   (** Same as [iter] for both environments. *)
 
   val havoc_chunk : t -> chunk -> t
   (** Generate a new fresh variable for the given chunk. *)
-  
+
   val havoc : t -> domain -> t
   (** All the chunks in the provided footprint are generated and made fresh.
 
       Existing chunk variables {i outside} the footprint are copied into the new
       environment. The original environement itself is kept unchanged. More
-      efficient than iterating [havoc_chunk] over the footprint. 
+      efficient than iterating [havoc_chunk] over the footprint.
   *)
-  
+
   val havoc_any : call:bool -> t -> t
-  (** All the chunks are made fresh. As an optimisation, 
+  (** All the chunks are made fresh. As an optimisation,
       when [~call:true] is set, only non-local chunks are made fresh.
       Local chunks are those for which [Chunk.is_frame] returns [true]. *)
-  
+
   val remove_chunks : t -> domain -> t
   (** Return a copy of the environment where chunks in the footprint
       have been removed. Keep the original environment unchanged. *)
-  
+
   val domain : t -> domain
-  (** Footprint of a memory environment. 
+  (** Footprint of a memory environment.
       That is, the set of accessed chunks so far in the environment. *)
-  
+
   val union : domain -> domain -> domain (** Same as [Chunk.Set.union] *)
   val empty : domain (** Same as [Chunk.Set.empty] *)
 
@@ -264,14 +264,15 @@ sig
   (** {2 Model Definition} *)
 
   val configure : Model.tuning
-  (** Initializers to be run before using the model. 
+  (** Initializers to be run before using the model.
       Typically sets {!Context} values. *)
-  
+
   val datatype : string
   (** For projectification. Must be unique among models. *)
 
-  val separation : unit -> Separation.clause list
-  (** Computes the separation clauses to be verified for this model. *)
+  val hypotheses : unit -> MemoryContext.clause list
+  (** Computes the memory model hypotheses including separation and validity
+      clauses to be verified for this model. *)
 
   module Chunk : Chunk
   (** Memory model chunks. *)
@@ -284,7 +285,7 @@ sig
     with type chunk = Chunk.t
      and module Chunk = Heap
   (** Model Environments. *)
-  
+
   type loc
   (** Representation of the memory location in the model. *)
 
@@ -294,7 +295,7 @@ sig
   type segment = loc rloc
 
   (** {2 Reversing the Model} *)
-  
+
   type state
   (** Internal (private) memory state description for later reversing the model. *)
 
@@ -328,7 +329,7 @@ sig
   (** pretty printing of memory location *)
 
   (** {2 Memory Model API} *)
-  
+
   val vars : loc -> Vars.t
   (** Return the logic variables from which the given location depend on. *)
 
@@ -346,7 +347,7 @@ sig
   (** Return the location of a C variable. *)
 
   val pointer_loc : term -> loc
-  (** Interpret an address value (a pointer) as an abstract location. 
+  (** Interpret an address value (a pointer) as an abstract location.
       Might fail on memory models not supporting pointers. *)
 
   val pointer_val : loc -> term
@@ -366,6 +367,9 @@ sig
   (** Return the memory location of the base address of a given memory
       location. *)
 
+  val base_offset : loc -> term
+  (** Return the offset of the location, in bytes, from its base_addr. *)
+
   val block_length : sigma -> c_object -> loc -> term
   (**  Returns the length (in bytes) of the allocated block containing
        the given location. *)
@@ -380,7 +384,7 @@ sig
       given as an integer, into an abstract memory location. *)
 
   val int_of_loc : c_int -> loc -> term
-  (** Cast a memory location into its absolute memory address, 
+  (** Cast a memory location into its absolute memory address,
       given as an integer with the given C-type. *)
 
   val domain : c_object -> loc -> domain
@@ -390,7 +394,7 @@ sig
 
   val load : sigma -> c_object -> loc -> loc value
   (** Return the value of the object of the given type at the given location in
-     the given memory state. *)
+      the given memory state. *)
 
   val copied : sigma sequence -> c_object -> loc -> loc -> equation list
   (**
@@ -408,11 +412,11 @@ sig
 
      [copied sigma ty loc t] returns a set of formula expressing that
      [sigma.pre] and [sigma.post] are identical except for an object [ty] at
-     location [loc] which is represented by [t] in [sigma.post].  
+     location [loc] which is represented by [t] in [sigma.post].
   *)
 
   val assigned : sigma sequence -> c_object -> loc sloc -> pred list
-  (** 
+  (**
      Return a set of formula that express that two memory state are the same
      except at the given set of memory location.
 
@@ -482,36 +486,36 @@ sig
   type sigma = M.Sigma.t
 
   val pp_value : Format.formatter -> value -> unit
-  
+
   val cval : value -> term
   (** Evaluate an abstract value. May fail because of [M.pointer_val]. *)
-    
+
   val cloc : value -> loc
   (** Interpret a value as a location. May fail because of [M.pointer_loc]. *)
 
   val cast : typ -> typ -> value -> value
-  (** Applies a pointer cast or a conversion. 
-      
-      [cast tr te ve] transforms a value [ve] with type [te] into a value 
+  (** Applies a pointer cast or a conversion.
+
+      [cast tr te ve] transforms a value [ve] with type [te] into a value
       with type [tr]. *)
 
   val equal_typ : typ -> value -> value -> pred
-  (** Computes the value of [(a==b)] provided both [a] and [b] are values 
+  (** Computes the value of [(a==b)] provided both [a] and [b] are values
       with the given type. *)
-  
+
   val not_equal_typ : typ -> value -> value -> pred
-  (** Computes the value of [(a==b)] provided both [a] and [b] are values 
+  (** Computes the value of [(a==b)] provided both [a] and [b] are values
       with the given type. *)
-  
+
   val equal_obj : c_object -> value -> value -> pred
   (** Same as [equal_typ] with an object type. *)
-  
+
   val not_equal_obj : c_object -> value -> value -> pred
   (** Same as [not_equal_typ] with an object type. *)
 
   val exp : sigma -> exp -> value
   (** Evaluate the expression on the given memory state. *)
-  
+
   val cond : sigma -> exp -> pred
   (** Evaluate the conditional expression on the given memory state. *)
 
@@ -523,23 +527,23 @@ sig
       Handles [AddrOf], [StartOf] and [Lval] as usual. *)
 
   val instance_of : loc -> kernel_function -> pred
-  (** Check whether a function pointer is (an instance of) 
-      some kernel function. Currently, the meaning 
+  (** Check whether a function pointer is (an instance of)
+      some kernel function. Currently, the meaning
       of "{i being an instance of}" is simply equality. *)
-  
+
   val loc_of_exp : sigma -> exp -> loc
-  (** Compile an expression as a location. 
+  (** Compile an expression as a location.
       May (also) fail because of [M.pointer_val]. *)
-  
+
   val val_of_exp : sigma -> exp -> term
-  (** Compile an expression as a term. 
+  (** Compile an expression as a term.
       May (also) fail because of [M.pointer_loc]. *)
-  
+
   val result : sigma -> typ -> result -> term
   (** Value of an abstract result container. *)
-    
+
   val return : sigma -> typ -> exp -> term
-  (** Return an expression with a given type. 
+  (** Return an expression with a given type.
       Short cut for compiling the expression, cast into the desired type,
       and finally converted to a term. *)
 
@@ -547,11 +551,11 @@ sig
   (** Express that the object (of specified type) at the given location
       is filled with zeroes. *)
 
-  (** 
+  (**
      Express that all objects in a range of locations have a given value.
-     
+
      More precisely, [is_exp_range sigma loc ty a b v] express that
-     value at [( ty* )loc + k] equals [v], forall [a <= k < b]. 
+     value at [( ty* )loc + k] equals [v], forall [a <= k < b].
      Value [v=None] stands for zero.
   *)
   val is_exp_range :
@@ -563,13 +567,13 @@ sig
   (** Express that a given variable has the same value in two memory states. *)
 
   type warned_hyp = Warning.Set.t * pred
-  
+
   val init : sigma:M.sigma -> varinfo -> init option -> warned_hyp list
-  (** Express that some variable has some initial value at the 
-      given memory state. 
+  (** Express that some variable has some initial value at the
+      given memory state.
 
       Remark: [None] initializer are interpreted as zeroes. This is consistent
-      with the [init option] associated with global variables in CIL, 
+      with the [init option] associated with global variables in CIL,
       for which the default initializer are zeroes. There is no
       [init option] value associated with local initializers.
   *)
@@ -595,10 +599,10 @@ sig
   val pp_sloc : Format.formatter -> loc sloc -> unit
   val pp_region : Format.formatter -> region -> unit
 
-  (** {2 Frames} 
-      
+  (** {2 Frames}
+
       Frames are compilation environment for ACSL. A frame typically
-      manages the current function, formal paramters, the memory environments 
+      manages the current function, formal paramters, the memory environments
       at different labels and the [\result] and [\exit_status] values.
 
       The frame also holds the {i gamma} environment responsible for
@@ -606,7 +610,7 @@ sig
       fresh logic variables.
 
       Notice that a [frame] is not responsible for holding the environment
-      at label [Here], since this is managed by a specific compilation 
+      at label [Here], since this is managed by a specific compilation
       environment, see {!env} below.
   *)
 
@@ -616,12 +620,12 @@ sig
   (** Get the current frame, or raise a fatal error if none. *)
   val get_frame : unit -> frame
 
-  (** Execute the given closure with the specified current frame. 
+  (** Execute the given closure with the specified current frame.
       The [Lang.gamma] and [Lang.pool] contexts are also set accordingly. *)
   val in_frame : frame -> ('a -> 'b) -> 'a -> 'b
 
   (** Get the memory environment at the given label.
-      A fresh environment is created lazily if required. 
+      A fresh environment is created lazily if required.
       The label must {i not} be [Here]. *)
   val mem_at_frame : frame -> Clabels.c_label -> sigma
 
@@ -688,10 +692,10 @@ sig
      [\at(e,L)] the current memory state when compiling [e] is the one at [L].
   *)
 
-  (** Create a new environment. 
-      
+  (** Create a new environment.
+
       Current and [Here] memory points are initialized to [~here], if
-      provided. 
+      provided.
 
       The logic variables stand for
       formal parameters of ACSL logic function and ACSL predicates. *)
@@ -700,11 +704,11 @@ sig
     ?lvars:logic_var list ->
     unit -> env
 
-  (** The {i current} memory state. Must be propertly initialized 
+  (** The {i current} memory state. Must be propertly initialized
       with a specific {!move} before. *)
   val current : env -> sigma
 
-  (** Move the compilation environment to the specified [Here] memory state. 
+  (** Move the compilation environment to the specified [Here] memory state.
       This memory state becomes also the new {i current} one. *)
   val move_at : env -> sigma -> env
 
@@ -713,7 +717,7 @@ sig
       otherwize. *)
   val mem_at : env -> Clabels.c_label -> sigma
 
-  (** Returns a new environment where the current memory state is 
+  (** Returns a new environment where the current memory state is
       moved to to the corresponding label. Suitable for compiling [e] inside
       [\at(e,L)] ACSL construct. *)
   val env_at : env -> Clabels.c_label -> env
@@ -747,7 +751,7 @@ sig
 
   (** Same as [term] above but reject any set of locations. *)
   val val_of_term : env -> Cil_types.term -> term
-  
+
   (** Same as [term] above but expects a single loc or a single
       pointer value. *)
   val loc_of_term : env -> Cil_types.term -> loc
@@ -759,13 +763,13 @@ sig
 
   (** Qed variables appearing in a region expression. *)
   val vars : region -> Vars.t
-  
+
   (** Member of vars. *)
   val occurs : var -> region -> bool
-  
+
   (** Check assigns inclusion.
       Compute a formula that checks whether written locations are either
-      invalid (at the given memory location) 
+      invalid (at the given memory location)
       or included in some assignable region. *)
   val check_assigns : sigma -> written:region -> assignable:region -> pred
 

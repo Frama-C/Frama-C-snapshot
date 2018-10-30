@@ -23,7 +23,7 @@
 module R = Report_parameters
 module T = Transitioning
 
-type action = SKIP | INFO | ERROR | REVIEW 
+type action = SKIP | INFO | ERROR | REVIEW
 
 let action s =
   match T.String.uppercase_ascii s with
@@ -46,6 +46,7 @@ let pp_source fmt =
 type rule = {
   r_id: string ;
   r_plugin: string ;
+  r_category: string ;
   r_regexp: Str.regexp ;
   r_action: action ;
   r_title: string ;
@@ -93,17 +94,29 @@ let failwith msg =
   Pretty_utils.ksfprintf (fun s -> raise (WrongFormat s)) msg
 
 let default = `NONE , {
-  r_id = "unclassified" ;
-  r_plugin = "kernel" ;
-  r_title = "\\0" ;
-  r_descr = "\\*" ;
-  r_action = REVIEW ;
-  r_regexp = Str.regexp ""
-}
+    r_id = "unclassified" ;
+    r_plugin = "kernel" ;
+    r_category = "*" ; (* all *)
+    r_title = "\\0" ;
+    r_descr = "\\*" ;
+    r_action = REVIEW ;
+    r_regexp = Str.regexp ""
+  }
+
+let has_pattern = function
+  | `NONE | `CATEGORY -> false
+  | _ -> true
 
 let rule_of_regexp t0 r t value =
-  if t0 <> `NONE then failwith "Duplicate regexp" ;
+  if has_pattern t0 then failwith "Duplicate rule pattern" ;
   t , { r with r_regexp = value |> Str.regexp }
+
+let rule_of_category t0 r =
+  match t0 with
+  | `NONE -> `CATEGORY , r
+  | `CATEGORY -> failwith "Duplicate category"
+  | `ERROR | `WARNING -> t0 , r
+  | _ -> failwith "No category for status rule"
 
 let rule_of_fields (t,r) (field,jvalue) =
   try
@@ -114,6 +127,7 @@ let rule_of_fields (t,r) (field,jvalue) =
     | "title" -> t,{ r with r_title = value }
     | "descr" -> t,{ r with r_descr = value }
     | "action" -> t,{ r with r_action = value |> action }
+    | "category" -> rule_of_category t { r with r_category = value }
     | "error" -> rule_of_regexp t r `ERROR value
     | "warning" -> rule_of_regexp t r `WARNING value
     | "unknown" -> rule_of_regexp t r `UNKNOWN value
@@ -142,11 +156,12 @@ let add_rule jvalue =
         if rule.r_plugin <> (snd default).r_plugin then
           failwith "Unexpected 'plugin' for property-rule" ;
         p.ps_rules in
-      let queues = 
+      let queues =
         match tgt with
         | `NONE -> failwith "Missing pattern"
         | `ERROR -> [get_queue errors rule.r_plugin]
-        | `WARNING -> [get_queue warnings rule.r_plugin]
+        | `WARNING | `CATEGORY ->
+          [get_queue errors rule.r_plugin ; get_queue warnings rule.r_plugin]
         | `UNTRIED -> [properties untried]
         | `UNKNOWN -> [properties unknown]
         | `INVALID -> [properties invalid]
@@ -158,7 +173,8 @@ let add_rule jvalue =
 
 let configure file =
   begin
-    R.feedback "Loading '%s'" (Filepath.pretty file) ;
+    let path = Datatype.Filepath.of_string file in
+    R.feedback "Loading '%a'" Datatype.Filepath.pretty path;
     try
       match Json.load_file file with
       | Json.Array values -> List.iter add_rule values
@@ -168,6 +184,7 @@ let configure file =
       let source = Log.source ~file ~line in
       R.abort ~source "%s" msg
     | WrongFormat msg ->
+      let file = Datatype.Filepath.of_string file in
       let source = Log.source ~file ~line:1 in
       R.abort ~source "%s" msg
     | Sys_error msg ->
@@ -187,7 +204,7 @@ type event = {
   e_action : action ;
   e_title : string ;
   e_descr : string ;
-  e_source : Lexing.position option ;
+  e_source : Filepath.position option ;
 }
 
 let unclassified = {
@@ -201,15 +218,15 @@ let unclassified = {
 
 let json_of_source = function
   | None -> []
-  | Some lex ->
+  | Some pos ->
     let file =
       if R.AbsolutePath.get ()
-      then Filepath.normalize lex.Lexing.pos_fname
-      else Filepath.relativize lex.Lexing.pos_fname
+      then (pos.Filepath.pos_path :> string)
+      else Filepath.Normalized.to_pretty_string pos.Filepath.pos_path
     in
     [
       "file" , Json.of_string file ;
-      "line" , Json.of_int lex.Lexing.pos_lnum ;
+      "line" , Json.of_int pos.Filepath.pos_lnum ;
     ]
 
 let json_of_event e =
@@ -261,7 +278,10 @@ let clear_events () =
 (* --- Matching a Rule                                                    --- *)
 (* -------------------------------------------------------------------------- *)
 
-let matches ~msg r = Str.string_match r.r_regexp msg 0
+let matches ~category ~msg r =
+  (Log.is_subcategory category (Log.split_category r.r_category)) &&
+  (Str.string_match r.r_regexp msg 0)
+
 let replace ~msg text =
   let buffer = Buffer.create 80 in
   let rec scan k n =
@@ -284,10 +304,10 @@ let replace ~msg text =
 
 exception FOUND of rule
 
-let find queue msg =
+let find queue ~category ~msg =
   try
     Queue.iter
-      (fun r -> if matches ~msg r then raise (FOUND r))
+      (fun r -> if matches ~category ~msg r then raise (FOUND r))
       queue ;
     raise Not_found
   with FOUND r -> r
@@ -296,9 +316,9 @@ let find queue msg =
 (* --- Monitoring                                                         --- *)
 (* -------------------------------------------------------------------------- *)
 
-let monitor ~lookup ~msg ~source ~unclassified =
+let monitor ~lookup ~category ~msg ~source unclassified =
   try
-    let rule = lookup msg in
+    let rule = lookup ~category ~msg in
     if keep rule.r_action then
       let title = replace ~msg rule.r_title in
       let descr = replace ~msg rule.r_descr in
@@ -330,16 +350,18 @@ let monitor_log_event (evt : Log.event) =
       | Result | Feedback | Debug -> raise Exit in
     let msg = evt.evt_message in
     let source = evt.evt_source in
-    let lookup msg = find (Hashtbl.find env.rs_rules evt.evt_plugin) msg in
+    let category = Log.evt_category evt in
+    let lookup ~category ~msg =
+      find (Hashtbl.find env.rs_rules evt.evt_plugin) ~category ~msg in
     let unclassified () =
       let e_id =
         Printf.sprintf "%s.unclassified.%s" evt.evt_plugin env.rs_name in
       let e_title =
         Printf.sprintf "Unclassified %s (Plugin '%s')"
           (T.String.capitalize_ascii env.rs_name) evt.evt_plugin in
-      let e_action = action (env.rs_action ()) in 
+      let e_action = action (env.rs_action ()) in
       { unclassified with e_id ; e_title ; e_action } in
-    monitor ~lookup ~msg ~source ~unclassified
+    monitor ~lookup ~category ~msg ~source unclassified
   with Exit -> ()
 
 let hooked = ref false
@@ -371,7 +393,7 @@ let status ip =
   match Status.get ip with
   | Never_tried -> `UNTRIED
   | Unknown _ -> `UNKNOWN
-  | Considered_valid | Valid _ 
+  | Considered_valid | Valid _
   | Valid_but_dead _ | Unknown_but_dead _ | Invalid_but_dead _
     -> `PROVED
   | Valid_under_hyp pending
@@ -383,7 +405,7 @@ let status ip =
 let pending f pending =
   E.Map.iter
     (fun _ m -> E.Map.iter
-	(fun _ ips -> Property.Set.iter f ips) m)
+        (fun _ ips -> Property.Set.iter f ips) m)
     pending
 
 let monitor_status properties ip =
@@ -398,7 +420,7 @@ let monitor_status properties ip =
       let e_action = properties.ps_action () |> action in
       let e_descr = T.String.capitalize_ascii properties.ps_name ^ " status" in
       { unclassified with e_id ; e_action ; e_title ; e_descr }
-    in monitor ~lookup ~msg ~source ~unclassified
+    in monitor ~lookup ~category:[] ~msg ~source unclassified
 
 let monitor_property pool push ip =
   begin
@@ -410,7 +432,7 @@ let monitor_property pool push ip =
     | `UNKNOWN -> monitor_status unknown ip
     | `INVALID -> monitor_status invalid ip
   end
-    
+
 let consolidate () =
   let pool = ref Pset.empty in
   let queue = Queue.create () in
@@ -423,7 +445,7 @@ let consolidate () =
         monitor_property pool push ip
     done
   end
-  
+
 (* -------------------------------------------------------------------------- *)
 (* --- Run Classification                                                 --- *)
 (* -------------------------------------------------------------------------- *)
@@ -512,14 +534,14 @@ let classify, _ =
     ] classify
 
 let register () =
-  if R.Rules.is_set () || 
+  if R.Rules.is_set () ||
      R.Warning.is_set () ||
      R.Error.is_set ()
   then monitor_log ()
 
 let main () =
   if R.Classify.get () then classify ()
-  
+
 let () =
   begin
     Cmdline.run_after_configuring_stage register ;

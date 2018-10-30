@@ -1,49 +1,48 @@
 [kernel] Parsing tests/value/for_loops.c (with preprocessing)
-[value] Analyzing a complete application starting at main_2
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
-  Frama_C_entropy_source ∈ [--..--]
+[eva] Analyzing a complete application starting at main_2
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   x ∈ {0}
-[value] computing for function Frama_C_interval <- main_2.
+[eva] computing for function Frama_C_interval <- main_2.
   Called from tests/value/for_loops.c:13.
-[value] using specification for function Frama_C_interval
-[value] tests/value/for_loops.c:13: 
+[eva] using specification for function Frama_C_interval
+[eva] tests/value/for_loops.c:13: 
   function Frama_C_interval: precondition 'order' got status valid.
-[value] Done for function Frama_C_interval
-[value] tests/value/for_loops.c:16: entering loop for the first time
-[value] computing for function Frama_C_interval <- main_2.
+[eva] Done for function Frama_C_interval
+[eva] computing for function Frama_C_interval <- main_2.
   Called from tests/value/for_loops.c:16.
-[value] tests/value/for_loops.c:16: 
+[eva] tests/value/for_loops.c:16: 
   function Frama_C_interval: precondition 'order' got status valid.
-[value] Done for function Frama_C_interval
-[value] tests/value/for_loops.c:17: Frama_C_show_each_F: {0; 1}
-[value] computing for function Frama_C_interval <- main_2.
+[eva] Done for function Frama_C_interval
+[eva] tests/value/for_loops.c:17: Frama_C_show_each_F: {0; 1}
+[eva] tests/value/for_loops.c:16: starting to merge loop iterations
+[eva] computing for function Frama_C_interval <- main_2.
   Called from tests/value/for_loops.c:16.
-[value] Done for function Frama_C_interval
-[value] tests/value/for_loops.c:17: Frama_C_show_each_F: {0; 1; 2}
-[value] computing for function Frama_C_interval <- main_2.
+[eva] Done for function Frama_C_interval
+[eva] tests/value/for_loops.c:17: Frama_C_show_each_F: {0; 1; 2}
+[eva] computing for function Frama_C_interval <- main_2.
   Called from tests/value/for_loops.c:16.
-[value] Done for function Frama_C_interval
-[value] tests/value/for_loops.c:17: Frama_C_show_each_F: {0; 1; 2; 3}
-[value] computing for function Frama_C_interval <- main_2.
+[eva] Done for function Frama_C_interval
+[eva] tests/value/for_loops.c:17: Frama_C_show_each_F: {0; 1; 2; 3}
+[eva] computing for function Frama_C_interval <- main_2.
   Called from tests/value/for_loops.c:16.
-[value] Done for function Frama_C_interval
-[value] tests/value/for_loops.c:17: Frama_C_show_each_F: {0; 1; 2; 3; 4}
-[value] computing for function Frama_C_interval <- main_2.
+[eva] Done for function Frama_C_interval
+[eva] tests/value/for_loops.c:17: Frama_C_show_each_F: {0; 1; 2; 3; 4}
+[eva] computing for function Frama_C_interval <- main_2.
   Called from tests/value/for_loops.c:16.
-[value] Done for function Frama_C_interval
-[value] tests/value/for_loops.c:17: Frama_C_show_each_F: {0; 1; 2; 3; 4; 5}
-[value] computing for function Frama_C_interval <- main_2.
+[eva] Done for function Frama_C_interval
+[eva] tests/value/for_loops.c:17: Frama_C_show_each_F: {0; 1; 2; 3; 4; 5}
+[eva] computing for function Frama_C_interval <- main_2.
   Called from tests/value/for_loops.c:16.
-[value] Done for function Frama_C_interval
-[value:alarm] tests/value/for_loops.c:16: Warning: 
+[eva] Done for function Frama_C_interval
+[eva:alarm] tests/value/for_loops.c:16: Warning: 
   signed overflow. assert w + 1 ≤ 2147483647;
-[value] tests/value/for_loops.c:17: Frama_C_show_each_F: [0..2147483647]
-[value] Recording results for main_2
-[value] done for function main_2
-[value] ====== VALUES COMPUTED ======
-[value:final-states] Values at end of function main_2:
+[eva] tests/value/for_loops.c:17: Frama_C_show_each_F: [0..2147483647]
+[eva] Recording results for main_2
+[eva] done for function main_2
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function main_2:
   Frama_C_entropy_source ∈ [--..--]
   j ∈ [0..2147483647]
   nSelectors ∈ [0..100]

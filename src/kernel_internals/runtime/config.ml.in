@@ -23,6 +23,8 @@
 # 24 "src/kernel_internals/runtime/config.ml.in"
 
 let version = "@VERSION@"
+let codename = "@VERSION_CODENAME@"
+let version_and_codename = version ^ " (" ^ codename ^ ")"
 
 let is_gui = ref false
 

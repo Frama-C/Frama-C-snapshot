@@ -1,0 +1,55 @@
+[kernel] Parsing tests/builtins/malloc_bug_tr.c (with preprocessing)
+[eva] Analyzing a complete application starting at main
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
+  
+[eva] computing for function Frama_C_interval <- main.
+  Called from tests/builtins/malloc_bug_tr.c:12.
+[eva] using specification for function Frama_C_interval
+[eva] tests/builtins/malloc_bug_tr.c:12: 
+  function Frama_C_interval: precondition 'order' got status valid.
+[eva] Done for function Frama_C_interval
+[eva] tests/builtins/malloc_bug_tr.c:12: Call to builtin malloc
+[eva] tests/builtins/malloc_bug_tr.c:12: allocating variable __malloc_main_l12
+[eva] tests/builtins/malloc_bug_tr.c:13: Call to builtin memcpy
+[eva] tests/builtins/malloc_bug_tr.c:13: 
+  function memcpy: precondition 'valid_dest' got status valid.
+[eva] tests/builtins/malloc_bug_tr.c:13: 
+  function memcpy: precondition 'valid_src' got status valid.
+[eva] tests/builtins/malloc_bug_tr.c:13: 
+  function memcpy: precondition 'separation' got status valid.
+[eva] share/libc/string.h:98: 
+  cannot evaluate ACSL term, unsupported ACSL construct: logic function memcmp
+[eva] tests/builtins/malloc_bug_tr.c:14: Call to builtin memcpy
+[eva:alarm] tests/builtins/malloc_bug_tr.c:14: Warning: 
+  function memcpy: precondition 'valid_dest' got status unknown.
+[eva] tests/builtins/malloc_bug_tr.c:14: 
+  function memcpy: precondition 'valid_src' got status valid.
+[eva] tests/builtins/malloc_bug_tr.c:14: 
+  function memcpy: precondition 'separation' got status valid.
+[eva] tests/builtins/malloc_bug_tr.c:15: Call to builtin memcpy
+[eva] tests/builtins/malloc_bug_tr.c:15: 
+  function memcpy: precondition 'valid_dest' got status valid.
+[eva:alarm] tests/builtins/malloc_bug_tr.c:15: Warning: 
+  function memcpy: precondition 'valid_src' got status unknown.
+[eva] tests/builtins/malloc_bug_tr.c:15: 
+  function memcpy: precondition 'separation' got status valid.
+[eva:alarm] tests/builtins/malloc_bug_tr.c:16: Warning: 
+  out of bounds write. assert \valid(p + 5);
+[eva:alarm] tests/builtins/malloc_bug_tr.c:17: Warning: 
+  out of bounds read. assert \valid_read(p + 5);
+[eva] tests/builtins/malloc_bug_tr.c:18: Call to builtin free
+[eva] tests/builtins/malloc_bug_tr.c:18: 
+  function free: precondition 'freeable' got status valid.
+[eva:malloc] tests/builtins/malloc_bug_tr.c:18: 
+  strong free on bases: {__malloc_main_l12}
+[eva] Recording results for main
+[eva] done for function main
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function main:
+  __fc_heap_status ∈ [--..--]
+  Frama_C_entropy_source ∈ [--..--]
+  p ∈ ESCAPINGADDR
+  r ∈ {120}
+  __retres ∈ {0}

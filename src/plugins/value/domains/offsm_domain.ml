@@ -46,7 +46,7 @@ module Default_offsetmap = struct
       match V_Offsetmap.size_from_validity validity with
       | `Bottom -> `Bottom
       | `Value size ->
-         `Value (V_Offsetmap.create_isotropic ~size V_Or_Uninitialized.top)
+        `Value (V_Offsetmap.create_isotropic ~size V_Or_Uninitialized.top)
 
   let default_contents = Lmap.Top V_Or_Uninitialized.top
 
@@ -171,21 +171,7 @@ module Internal  : Domain_builder.InputDomain
 
     let finalize_call _stmt _call ~pre:_ ~post = `Value post
 
-    let start_call _stmt _call valuation state =
-      let state = update valuation state in
-      Compute state
-
-    let approximate_call _stmt call state =
-      let kf = call.kf in
-      let post_state =
-        try
-          ignore (Kernel_function.find_return kf);
-          top
-        with Kernel_function.No_Statement ->
-          let name = Kernel_function.get_name kf in
-          if Ast_info.is_frama_c_builtin name then state else top
-      in
-      `Value [post_state]
+    let start_call _stmt _call valuation state = `Value (update valuation state)
 
     let show_expr _valuation _state _fmt _expr = ()
   end
@@ -226,9 +212,10 @@ module Internal  : Domain_builder.InputDomain
   let reduce_further _state _expr _value = []
 
   (* Memexec *)
-  let filter_by_bases bases state =
+  let relate _kf _bases _state = Base.SetLattice.empty
+  let filter _kf _kind bases state =
     Memory.filter_by_shape (Base.Hptset.shape bases) state
-  let reuse ~current_input:state ~previous_output:output =
+  let reuse _kf _bases ~current_input:state ~previous_output:output =
     let state =
       match output with
       | Memory.Bottom | Memory.Top as state -> state

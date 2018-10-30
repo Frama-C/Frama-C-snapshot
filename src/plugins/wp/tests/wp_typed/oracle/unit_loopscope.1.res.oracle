@@ -18,3 +18,6 @@ Goal Establishment of Invariant (file tests/wp_typed/unit_loopscope.i, line 13):
 Prove: false.
 
 ------------------------------------------------------------
+[wp] Warning: Memory model hypotheses for function 'f':
+  /*@ behavior typed_ref: requires \valid(written); */
+  void f(unsigned int *written);

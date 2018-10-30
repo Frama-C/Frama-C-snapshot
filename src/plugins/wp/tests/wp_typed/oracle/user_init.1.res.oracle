@@ -10,31 +10,28 @@
 Goal Post-condition (file tests/wp_typed/user_init.i, line 3) in 'init':
 Let a_1 = shift_sint32(a, 0).
 Assume {
-  Type: is_sint32(i_1) /\ is_sint32(n).
+  Type: is_sint32(i) /\ is_sint32(n).
   (* Goal *)
-  When: (0 <= i) /\ (i < n) /\ is_sint32(i).
+  When: (0 <= i_1) /\ (i_1 < n) /\ is_sint32(i_1).
   (* Heap *)
   Have: (region(a.base) <= 0) /\ linked(Malloc_0).
   (* Pre-condition *)
-  Have: valid_rw(Malloc_0, a_1, n).
-  (* Pre-condition *)
-  Have: 0 <= n.
-  (* Loop assigns ... *)
-  Have: havoc(Mint_1, Mint_0, a_1, n).
+  Have: (0 <= n) /\ valid_rw(Malloc_0, a_1, n).
   (* Invariant 'Partial' *)
-  Have: forall i_2 : Z. ((0 <= i_2) -> ((i_2 < i_1) ->
-      (Mint_0[shift_sint32(a, i_2)] = v))).
+  Have: forall i_2 : Z. ((0 <= i_2) -> ((i_2 < i) ->
+      (havoc(Mint_undef_0, Mint_0, a_1, n)[shift_sint32(a, i_2)] = v))).
   (* Invariant 'Range' *)
-  Have: (0 <= i_1) /\ (i_1 <= n).
+  Have: (0 <= i) /\ (i <= n).
   (* Else *)
-  Have: n <= i_1.
+  Have: n <= i.
 }
-Prove: Mint_0[shift_sint32(a, i)] = v.
+Prove: havoc(Mint_undef_0, Mint_0, a_1, i)[shift_sint32(a, i_1)] = v.
 
 ------------------------------------------------------------
 
 Goal Preservation of Invariant 'Partial' (file tests/wp_typed/user_init.i, line 9):
 Let a_1 = shift_sint32(a, 0).
+Let a_2 = havoc(Mint_undef_0, Mint_0, a_1, n).
 Assume {
   Type: is_sint32(i) /\ is_sint32(n) /\ is_sint32(1 + i).
   (* Goal *)
@@ -42,20 +39,16 @@ Assume {
   (* Heap *)
   Have: (region(a.base) <= 0) /\ linked(Malloc_0).
   (* Pre-condition *)
-  Have: valid_rw(Malloc_0, a_1, n).
-  (* Pre-condition *)
-  Have: 0 <= n.
-  (* Loop assigns ... *)
-  Have: havoc(Mint_1, Mint_0, a_1, n).
+  Have: (0 <= n) /\ valid_rw(Malloc_0, a_1, n).
   (* Invariant 'Partial' *)
   Have: forall i_2 : Z. ((0 <= i_2) -> ((i_2 < i) ->
-      (Mint_0[shift_sint32(a, i_2)] = v))).
+      (a_2[shift_sint32(a, i_2)] = v))).
   (* Invariant 'Range' *)
   Have: (0 <= i) /\ (i <= n).
   (* Then *)
   Have: i < n.
 }
-Prove: Mint_0[shift_sint32(a, i) <- v][shift_sint32(a, i_1)] = v.
+Prove: a_2[shift_sint32(a, i) <- v][shift_sint32(a, i_1)] = v.
 
 ------------------------------------------------------------
 
@@ -71,14 +64,10 @@ Assume {
   (* Heap *)
   Have: (region(a.base) <= 0) /\ linked(Malloc_0).
   (* Pre-condition *)
-  Have: valid_rw(Malloc_0, a_1, n).
-  (* Pre-condition *)
-  Have: 0 <= n.
-  (* Loop assigns ... *)
-  Have: havoc(Mint_0, Mint_1, a_1, n).
+  Have: (0 <= n) /\ valid_rw(Malloc_0, a_1, n).
   (* Invariant 'Partial' *)
   Have: forall i_1 : Z. ((0 <= i_1) -> ((i_1 < i) ->
-      (Mint_1[shift_sint32(a, i_1)] = v))).
+      (havoc(Mint_undef_0, Mint_0, a_1, n)[shift_sint32(a, i_1)] = v))).
   (* Invariant 'Range' *)
   Have: (0 <= i) /\ (i <= n).
   (* Then *)
@@ -109,14 +98,10 @@ Assume {
   (* Heap *)
   Have: (region(a.base) <= 0) /\ linked(Malloc_0).
   (* Pre-condition *)
-  Have: valid_rw(Malloc_0, a_1, n).
-  (* Pre-condition *)
-  Have: 0 <= n.
-  (* Loop assigns ... *)
-  Have: havoc(Mint_0, Mint_1, a_1, n).
+  Have: (0 <= n) /\ valid_rw(Malloc_0, a_1, n).
   (* Invariant 'Partial' *)
   Have: forall i_1 : Z. ((0 <= i_1) -> ((i_1 < i) ->
-      (Mint_1[shift_sint32(a, i_1)] = v))).
+      (havoc(Mint_undef_0, Mint_0, a_1, n)[shift_sint32(a, i_1)] = v))).
   (* Invariant 'Range' *)
   Have: (0 <= i) /\ (i <= n).
   (* Then *)

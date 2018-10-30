@@ -29,27 +29,31 @@ exception Invalid_nb_of_args of int
     instead of the Cil C function of the same name *)
 val register_builtin: string -> ?replace:string -> Db.Value.builtin_sig -> unit
 
-(** Returns a list of the pairs (name, builtin_sig) registered via
-    [register_builtin].
-    @since Aluminium-20160501 *)
-val registered_builtins: unit -> (string * Db.Value.builtin_sig) list
-
-(** Does the builtin table contain an entry for [name]? *)
-val mem_builtin: string -> bool
-
-(** Should the given function be replaced by a call to a builtin *)
-val find_builtin_override: Kernel_function.t -> Db.Value.builtin_sig option
-
-val clobbered_set_from_ret: Cvalue.Model.t -> Cvalue.V.t -> Base.SetLattice.t
 (** [clobbered_set_from_ret state ret] can be used for functions that return
     a pointer to where they have written some data. It returns all the bases
     of [ret] whose contents may contain local variables. *)
+val clobbered_set_from_ret: Cvalue.Model.t -> Cvalue.V.t -> Base.SetLattice.t
 
 (** Emits warnings for each function definition that will be overridden by an
     Eva built-in.
     Does not include definitions in the Frama-C stdlib.
     @since Phosphorus-20170501-beta1 *)
 val warn_definitions_overridden_by_builtins: unit -> unit
+
+type builtin
+type call = (Precise_locs.precise_location, Cvalue.V.t) Eval.call
+type result = Cvalue.Model.t * Locals_scoping.clobbered_set
+
+(** Returns the cvalue builtin for a function, if any. Also returns the name of
+    the builtin and the specification of the function; the preconditions must be
+    evaluated along with the builtin. *)
+val find_builtin_override:
+  Cil_types.kernel_function -> (string * builtin * Cil_types.funspec) option
+
+(* Applies a cvalue builtin for the given call, in the given cvalue state. *)
+val apply_builtin:
+  builtin -> call -> Cvalue.Model.t -> result list * Value_types.cacheable
+
 
 (*
 Local Variables:

@@ -67,7 +67,7 @@ val pp_mode : Format.formatter -> mode -> unit
 
 val cmp_prover : prover -> prover -> int
 
-(** {2 Config} 
+(** {2 Config}
     [None] means current WP option default.
     [Some 0] means prover default. *)
 

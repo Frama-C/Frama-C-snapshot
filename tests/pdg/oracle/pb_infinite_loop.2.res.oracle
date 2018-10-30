@@ -1,17 +1,17 @@
 [kernel] Parsing tests/pdg/pb_infinite_loop.c (with preprocessing)
-[value] Analyzing a complete application starting at test_exit
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing a complete application starting at test_exit
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   G ∈ [--..--]
-[value] computing for function exit <- test_exit.
+[eva] computing for function exit <- test_exit.
   Called from tests/pdg/pb_infinite_loop.c:48.
 [kernel:annot:missing-spec] tests/pdg/pb_infinite_loop.c:48: Warning: 
   Neither code nor specification for function exit, generating default assigns from the prototype
-[value] using specification for function exit
-[value] Done for function exit
-[value] Recording results for test_exit
-[value] done for function test_exit
+[eva] using specification for function exit
+[eva] Done for function exit
+[eva] Recording results for test_exit
+[eva] done for function test_exit
 [pdg] computing for function test_exit
 [from] Computing for function exit
 [from] Done for function exit

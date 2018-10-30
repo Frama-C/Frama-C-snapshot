@@ -99,7 +99,7 @@ struct
       method pp_int amode fmt z = match amode with
         | Aint -> pp_print_string fmt (Z.to_string z)
         | Areal -> fprintf fmt "%s.0" (Z.to_string z)
-      
+
       method pp_real fmt r =
         if Z.equal r.Q.den Z.one then
           self#pp_int Areal fmt r.Q.num

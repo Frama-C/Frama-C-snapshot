@@ -28,19 +28,16 @@ Let x_3 = OBSERVER_time_0 - 1.
 Let x_4 = RD_time_0 - 1.
 Let a_8 = L_RD_current(x_4).
 Let x_5 = OBSERVER_time_0 - 2.
-Let x_6 = RD_time_0 - 2.
-Let x_7 = OBSERVER_time_0 - 3.
+Let x_6 = OBSERVER_time_0 - 3.
+Let x_7 = RD_time_0 - 2.
 Assume {
   Type: is_sint32(OBSERVER_time_0) /\ is_sint32(RD_time_0) /\
-      is_sint32(WR_time_0) /\ is_sint32(x_7) /\ is_sint32(x_5) /\
-      is_sint32(x_6) /\ is_sint32(x_3) /\ is_sint32(x_4) /\ is_sint32(x) /\
+      is_sint32(WR_time_0) /\ is_sint32(x_6) /\ is_sint32(x_5) /\
+      is_sint32(x_7) /\ is_sint32(x_3) /\ is_sint32(x_4) /\ is_sint32(x) /\
       is_sint32(x_1) /\ is_sint32(x_2).
   (* Pre-condition *)
-  Have: L_OBSERVER(x_7) = nil.
-  (* Pre-condition *)
-  Have: L_RD_current(x_6) = L_INDEX_init.
-  (* Pre-condition *)
-  Have: L_WR_current(WR_time_0) = L_INDEX_init.
+  Have: (L_WR_current(WR_time_0) = L_INDEX_init) /\
+      (L_OBSERVER(x_6) = nil) /\ (L_RD_current(x_7) = L_INDEX_init).
   (* Call 'RD' *)
   Have: (a_5 = a_8) /\ (L_OBSERVER(x_5) = [ a_1 ]) /\
       ((L_RD_value(a, L_RD_access(L_INDEX_init, a))
@@ -75,19 +72,16 @@ Let x_3 = OBSERVER_time_0 - 1.
 Let x_4 = RD_time_0 - 1.
 Let a_8 = L_RD_current(x_4).
 Let x_5 = OBSERVER_time_0 - 2.
-Let x_6 = RD_time_0 - 2.
-Let x_7 = OBSERVER_time_0 - 3.
+Let x_6 = OBSERVER_time_0 - 3.
+Let x_7 = RD_time_0 - 2.
 Assume {
   Type: is_sint32(OBSERVER_time_0) /\ is_sint32(RD_time_0) /\
-      is_sint32(WR_time_0) /\ is_sint32(x_7) /\ is_sint32(x_5) /\
-      is_sint32(x_6) /\ is_sint32(x_3) /\ is_sint32(x_4) /\ is_sint32(x) /\
+      is_sint32(WR_time_0) /\ is_sint32(x_6) /\ is_sint32(x_5) /\
+      is_sint32(x_7) /\ is_sint32(x_3) /\ is_sint32(x_4) /\ is_sint32(x) /\
       is_sint32(x_1) /\ is_sint32(x_2).
   (* Pre-condition *)
-  Have: L_OBSERVER(x_7) = nil.
-  (* Pre-condition *)
-  Have: L_RD_current(x_6) = L_INDEX_init.
-  (* Pre-condition *)
-  Have: L_WR_current(WR_time_0) = L_INDEX_init.
+  Have: (L_WR_current(WR_time_0) = L_INDEX_init) /\
+      (L_OBSERVER(x_6) = nil) /\ (L_RD_current(x_7) = L_INDEX_init).
   (* Call 'RD' *)
   Have: (a_5 = a_8) /\ (L_OBSERVER(x_5) = [ a_1 ]) /\
       ((L_RD_value(a, L_RD_access(L_INDEX_init, a))
@@ -122,19 +116,16 @@ Let x_3 = OBSERVER_time_0 - 1.
 Let x_4 = RD_time_0 - 2.
 Let a_8 = L_RD_current(x_4).
 Let x_5 = OBSERVER_time_0 - 2.
-Let x_6 = RD_time_0 - 3.
-Let x_7 = OBSERVER_time_0 - 3.
+Let x_6 = OBSERVER_time_0 - 3.
+Let x_7 = RD_time_0 - 3.
 Assume {
   Type: is_sint32(OBSERVER_time_0) /\ is_sint32(RD_time_0) /\
-      is_sint32(WR_time_0) /\ is_sint32(x_7) /\ is_sint32(x_6) /\
+      is_sint32(WR_time_0) /\ is_sint32(x_6) /\ is_sint32(x_7) /\
       is_sint32(x_5) /\ is_sint32(x_4) /\ is_sint32(x_3) /\ is_sint32(x_2) /\
       is_sint32(x) /\ is_sint32(x_1).
   (* Pre-condition *)
-  Have: L_OBSERVER(x_7) = nil.
-  (* Pre-condition *)
-  Have: L_RD_current(x_6) = L_INDEX_init.
-  (* Pre-condition *)
-  Have: L_WR_current(WR_time_0) = L_INDEX_init.
+  Have: (L_WR_current(WR_time_0) = L_INDEX_init) /\
+      (L_OBSERVER(x_6) = nil) /\ (L_RD_current(x_7) = L_INDEX_init).
   (* Call 'RD' *)
   Have: (a_5 = a_8) /\ (L_OBSERVER(x_5) = [ a_1 ]) /\
       ((L_RD_value(a, L_RD_access(L_INDEX_init, a))
@@ -169,19 +160,16 @@ Let x_4 = RD_time_0 - 2.
 Let a_7 = L_RD_current(x_4).
 Let x_5 = OBSERVER_time_0 - 2.
 Let x_6 = L_RD_value(a, L_RD_access(L_INDEX_init, a)).
-Let x_7 = RD_time_0 - 3.
-Let x_8 = OBSERVER_time_0 - 3.
+Let x_7 = OBSERVER_time_0 - 3.
+Let x_8 = RD_time_0 - 3.
 Assume {
   Type: is_sint32(OBSERVER_time_0) /\ is_sint32(RD_time_0) /\
-      is_sint32(WR_time_0) /\ is_sint32(x_8) /\ is_sint32(x_7) /\
+      is_sint32(WR_time_0) /\ is_sint32(x_7) /\ is_sint32(x_8) /\
       is_sint32(x_5) /\ is_sint32(x_4) /\ is_sint32(x_3) /\ is_sint32(x_2) /\
       is_sint32(x) /\ is_sint32(x_1).
   (* Pre-condition *)
-  Have: L_OBSERVER(x_8) = nil.
-  (* Pre-condition *)
-  Have: L_RD_current(x_7) = L_INDEX_init.
-  (* Pre-condition *)
-  Have: L_WR_current(WR_time_0) = L_INDEX_init.
+  Have: (L_WR_current(WR_time_0) = L_INDEX_init) /\
+      (L_OBSERVER(x_7) = nil) /\ (L_RD_current(x_8) = L_INDEX_init).
   (* Call 'RD' *)
   Have: (a_5 = a_7) /\ (L_OBSERVER(x_5) = [ a_1 ]) /\
       ((x_6 + L_RD_value(a_2, L_RD_access(a_7, a_2)))
@@ -216,19 +204,16 @@ Let x_3 = OBSERVER_time_0 - 1.
 Let x_4 = RD_time_0 - 2.
 Let a_7 = L_RD_current(x_4).
 Let x_5 = OBSERVER_time_0 - 2.
-Let x_6 = RD_time_0 - 3.
-Let x_7 = OBSERVER_time_0 - 3.
+Let x_6 = OBSERVER_time_0 - 3.
+Let x_7 = RD_time_0 - 3.
 Assume {
   Type: is_sint32(OBSERVER_time_0) /\ is_sint32(RD_time_0) /\
-      is_sint32(WR_time_0) /\ is_sint32(x_7) /\ is_sint32(x_6) /\
+      is_sint32(WR_time_0) /\ is_sint32(x_6) /\ is_sint32(x_7) /\
       is_sint32(x_5) /\ is_sint32(x_4) /\ is_sint32(x_3) /\ is_sint32(x_2) /\
       is_sint32(x) /\ is_sint32(x_1).
   (* Pre-condition *)
-  Have: L_OBSERVER(x_7) = nil.
-  (* Pre-condition *)
-  Have: L_RD_current(x_6) = L_INDEX_init.
-  (* Pre-condition *)
-  Have: L_WR_current(WR_time_0) = L_INDEX_init.
+  Have: (L_WR_current(WR_time_0) = L_INDEX_init) /\
+      (L_OBSERVER(x_6) = nil) /\ (L_RD_current(x_7) = L_INDEX_init).
   (* Call 'RD' *)
   Have: (a_5 = a_7) /\ (L_OBSERVER(x_5) = [ a_1 ]) /\
       ((L_RD_value(a, L_RD_access(L_INDEX_init, a))

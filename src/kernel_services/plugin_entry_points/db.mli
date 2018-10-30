@@ -871,10 +871,6 @@ module RteGen : sig
   *)
   val annotate_kf : (kernel_function -> unit) ref
 
-  (** Only generates precond RTE for a given function
-      (see [-rte-precond] for more information). *)
-  val do_precond : (kernel_function -> unit) ref
-
   (** Generates all possible RTE for a given function. *)
   val do_all_rte : (kernel_function -> unit) ref
 
@@ -890,7 +886,6 @@ module RteGen : sig
       * (kernel_function -> bool) (* is this kind of annotation generated in
                                      kf? *)
   val get_all_status : (unit -> status_accessor list) ref
-  val get_precond_status : (unit -> status_accessor) ref
   val get_divMod_status : (unit -> status_accessor) ref
   val get_initialized_status: (unit -> status_accessor) ref
   val get_memAccess_status : (unit -> status_accessor) ref
@@ -903,20 +898,6 @@ module RteGen : sig
   val get_finite_float_status : (unit -> status_accessor) ref
 end
 
-(** Constant propagation plugin.
-    @see <../constant_propagation/index.html> internal documentation. *)
-module Constant_Propagation: sig
-  val get : (Cil_datatype.Fundec.Set.t -> cast_intro:bool -> Project.t) ref
-    (** Propagate constant into the functions given by name.
-        note: the propagation is performed into all functions when the set is
-        empty; and casts can be introduced when [cast_intro] is true. *)
-
-  val compute: (unit -> unit) ref
-    (** Propagate constant into the functions given by the parameters (in the
-        same way that {!get}. Then pretty print the resulting program.
-        @since Beryllium-20090901 *)
-
-end
 
 (** Security analysis.
     @see <../security/index.html> internal documentation. *)

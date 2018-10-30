@@ -1,0 +1,9 @@
+[e-acsl] beginning translation.
+[e-acsl] translation done in project "e-acsl".
+[kernel:annot:missing-spec] tests/runtime/memalign.c:12: Warning: 
+  Neither code nor specification for function posix_memalign, generating default assigns from the prototype
+[eva:alarm] tests/runtime/memalign.c:14: Warning: 
+  accessing uninitialized left-value. assert \initialized(memptr);
+[eva:alarm] tests/runtime/memalign.c:14: Warning: 
+  out of bounds read. assert \valid_read(memptr);
+[scope:rm_asserts] removing 2 assertion(s)

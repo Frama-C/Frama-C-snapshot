@@ -3,10 +3,10 @@
   Calling undeclared function fn1. Old style K&R code?
 [kernel:typing:implicit-function-declaration] tests/value/widen_on_non_monotonic.i:58: Warning: 
   Calling undeclared function fn2. Old style K&R code?
-[value] Analyzing a complete application starting at main
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing a complete application starting at main
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   a ∈ {0}
   b ∈ {0}
   c ∈ {0}
@@ -16,24 +16,20 @@
   i ∈ {0}
   j ∈ {0}
   k ∈ {0}
-[value] computing for function main1 <- main.
+[eva] computing for function main1 <- main.
   Called from tests/value/widen_on_non_monotonic.i:71.
-[value] tests/value/widen_on_non_monotonic.i:25: 
-  entering loop for the first time
-[value] tests/value/widen_on_non_monotonic.i:23: 
-  entering loop for the first time
-[value] tests/value/widen_on_non_monotonic.i:26: 
-  entering loop for the first time
-[value:alarm] tests/value/widen_on_non_monotonic.i:27: Warning: 
+[eva] tests/value/widen_on_non_monotonic.i:25: starting to merge loop iterations
+[eva] tests/value/widen_on_non_monotonic.i:23: starting to merge loop iterations
+[eva:alarm] tests/value/widen_on_non_monotonic.i:27: Warning: 
   signed overflow. assert -2147483648 ≤ b - 1;
-[value] Recording results for main1
-[value] Done for function main1
-[value] Recording results for main
-[value] done for function main
-[value] ====== VALUES COMPUTED ======
-[value:final-states] Values at end of function main1:
+[eva] Recording results for main1
+[eva] Done for function main1
+[eva] Recording results for main
+[eva] done for function main
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function main1:
   NON TERMINATING FUNCTION
-[value:final-states] Values at end of function main:
+[eva:final-states] Values at end of function main:
   NON TERMINATING FUNCTION
 [from] Computing for function main1
 [from] Non-terminating function main1 (no dependencies)

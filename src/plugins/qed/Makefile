@@ -32,7 +32,9 @@ FRAMAC_LIBDIR :=$(shell frama-c -journal-disable -print-libpath)
 endif
 PLUGIN_DIR ?=.
 
+ifneq ("$(FRAMAC_INTERNAL)","yes")
 include $(FRAMAC_SHARE)/Makefile.config
+endif
 
 # --------------------------------------------------------------------------
 # ---  Plugin Config

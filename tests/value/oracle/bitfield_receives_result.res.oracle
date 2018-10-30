@@ -1,14 +1,14 @@
 [kernel] Parsing tests/value/bitfield_receives_result.i (no preprocessing)
-[value] Analyzing a complete application starting at main
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing a complete application starting at main
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   s ∈ {0}
-[value] computing for function f <- main.
+[eva] computing for function f <- main.
   Called from tests/value/bitfield_receives_result.i:9.
-[value] Recording results for f
-[value] Done for function f
-[value] tests/value/bitfield_receives_result.i:10: 
+[eva] Recording results for f
+[eva] Done for function f
+[eva] tests/value/bitfield_receives_result.i:10: 
   Frama_C_dump_each:
   # Cvalue domain:
   s.b ∈ {-1}
@@ -16,12 +16,12 @@
   tmp ∈ {-1}
   __retres ∈ UNINITIALIZED
   ==END OF DUMP==
-[value] Recording results for main
-[value] done for function main
-[value] ====== VALUES COMPUTED ======
-[value:final-states] Values at end of function f:
+[eva] Recording results for main
+[eva] done for function main
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function f:
   __retres ∈ {-1}
-[value:final-states] Values at end of function main:
+[eva:final-states] Values at end of function main:
   s.b ∈ {-1}
    .[bits 31 to 31] ∈ {0}
   __retres ∈ {0}

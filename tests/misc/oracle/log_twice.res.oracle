@@ -1,41 +1,41 @@
 [kernel] Parsing tests/misc/log_twice.i (no preprocessing)
-[value] Analyzing a complete application starting at main
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing a complete application starting at main
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   
-[value] computing for function f <- main.
+[eva] computing for function f <- main.
   Called from tests/misc/log_twice.i:11.
-[value] Recording results for f
-[value] Done for function f
-[value] tests/misc/log_twice.i:11: Warning: 
+[eva] Recording results for f
+[eva] Done for function f
+[eva:locals-escaping] tests/misc/log_twice.i:11: Warning: 
   locals {x} escaping the scope of f through \result<f>
-[value:alarm] tests/misc/log_twice.i:12: Warning: 
+[eva:alarm] tests/misc/log_twice.i:12: Warning: 
   accessing left-value that contains escaping addresses.
   assert ¬\dangling(&p);
 [kernel] tests/misc/log_twice.i:12: Warning: 
   all target addresses were invalid. This path is assumed to be dead.
-[value] Recording results for main
-[value] done for function main
-[value] tests/misc/log_twice.i:12: 
-  assertion 'Value,dangling_pointer' got final status invalid.
-[value] Analyzing a complete application starting at main
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Recording results for main
+[eva] done for function main
+[eva] tests/misc/log_twice.i:12: 
+  assertion 'Eva,dangling_pointer' got final status invalid.
+[eva] Analyzing a complete application starting at main
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   
-[value] computing for function f <- main.
+[eva] computing for function f <- main.
   Called from tests/misc/log_twice.i:11.
-[value] Recording results for f
-[value] Done for function f
-[value] tests/misc/log_twice.i:11: Warning: 
+[eva] Recording results for f
+[eva] Done for function f
+[eva:locals-escaping] tests/misc/log_twice.i:11: Warning: 
   locals {x} escaping the scope of f through \result<f>
-[value:alarm] tests/misc/log_twice.i:12: Warning: 
+[eva:alarm] tests/misc/log_twice.i:12: Warning: 
   accessing left-value that contains escaping addresses.
   assert ¬\dangling(&p);
 [kernel] tests/misc/log_twice.i:12: Warning: 
   all target addresses were invalid. This path is assumed to be dead.
-[value] Recording results for main
-[value] done for function main
-[value] tests/misc/log_twice.i:12: 
-  assertion 'Value,dangling_pointer' got final status invalid.
+[eva] Recording results for main
+[eva] done for function main
+[eva] tests/misc/log_twice.i:12: 
+  assertion 'Eva,dangling_pointer' got final status invalid.

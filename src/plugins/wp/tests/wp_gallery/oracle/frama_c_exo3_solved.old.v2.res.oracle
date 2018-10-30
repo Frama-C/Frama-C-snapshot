@@ -54,6 +54,11 @@
 [wp] Goal typed_ref_equal_elements_loop_term_positive : not tried
 [wp] Goal typed_ref_equal_elements_loop_term_2_decrease : not tried
 [wp] Goal typed_ref_equal_elements_loop_term_2_positive : not tried
-[wp] Warning: Separation hypotheses for function 'equal_elements':
-  /*@ behavior typed_ref: requires \separated(v1,v2,a+(..)); */
+[wp] Warning: Memory model hypotheses for function 'equal_elements':
+  /*@
+     behavior typed_ref:
+     requires \separated(v1,v2,a+(..));
+     requires \valid(v1);
+     requires \valid(v2);
+     */
   void equal_elements(int *a, int *v1, int *v2);

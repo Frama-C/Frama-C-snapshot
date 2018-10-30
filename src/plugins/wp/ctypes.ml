@@ -74,11 +74,11 @@ let is_char = function
   | UInt16 | SInt16
   | UInt32 | SInt32
   | UInt64 | SInt64 | Bool -> false
-    
+
 let c_int ikind =
   let mach = Cil.theMachine.Cil.theMachine in
   match ikind with
-  | IBool -> if Wp_parameters.BoolRange.get () then Bool else UInt8
+  | IBool -> if Wp_parameters.get_bool_range () then Bool else UInt8
   | IChar -> if mach.char_is_unsigned then UInt8 else SInt8
   | ISChar -> SInt8
   | IUChar -> UInt8
@@ -90,9 +90,6 @@ let c_int ikind =
   | IULong -> make_c_int false mach.sizeof_long
   | ILongLong -> make_c_int true mach.sizeof_longlong
   | IULongLong -> make_c_int false mach.sizeof_longlong
-
-let c_int_all =
-  [ UInt8 ; SInt8 ; UInt16 ; SInt16 ; UInt32 ; SInt32 ; UInt64 ; SInt64 ]
 
 let c_bool () = c_int IBool
 let c_char () = c_int IChar
@@ -243,7 +240,7 @@ let get_int e =
 
 let dimension t =
   let rec flat k d = function
-    | TNamed _ as t -> flat k d (Cil.unrollType t)
+    | TNamed (r,_) -> flat k d r.ttype
     | TArray(ty,Some e,_,_) ->
         flat (succ k) (Int64.mul d (constant e)) ty
     | te -> k , d , te
@@ -257,21 +254,13 @@ let is_pointer = function
   | C_pointer _ -> true
   | C_int _ | C_float _ | C_array _ | C_comp _ -> false
 
-let is_void typ =
-  match Cil.unrollType typ with
-  | TVoid _ -> true
-  | _ -> false
+let is_void = Cil.isVoidType
 
-let object_of typ =
-  match Cil.unrollType typ with
+let rec object_of typ =
+  match typ with
   | TInt(i,_) -> C_int (c_int i)
   | TFloat(f,_) -> C_float (c_float f)
-  | TPtr(typ,_) ->
-      begin
-        match Cil.unrollType typ with
-        | TVoid _ -> C_pointer (TInt (IChar,[]))
-        | _ -> C_pointer typ
-      end
+  | TPtr(typ,_) -> C_pointer (if is_void typ then TInt (IChar,[]) else typ)
   | TFun _ -> C_pointer (TVoid [])
   | TEnum ({ekind=i},_) -> C_int (c_int i)
   | TComp (comp,_,_) -> C_comp comp
@@ -302,8 +291,7 @@ let object_of typ =
   | TVoid _ ->
       WpLog.warning ~current:true "void object" ;
       C_int (c_int IInt)
-  | TNamed _  ->
-      WpLog.fatal "non-unrolled named type (%a)" Printer.pp_typ typ
+  | TNamed (r,_)  -> object_of r.ttype
 
 (* ------------------------------------------------------------------------ *)
 (* --- Comparable                                                       --- *)
@@ -392,7 +380,7 @@ let object_of_array_elem = function
            "object_of_array_elem called on non-array %a." pp_object o
 
 let rec object_of_logic_type t =
-  match Logic_utils.unroll_type t with
+  match Logic_utils.unroll_type ~unroll_typedef:false t with
   | Ctype ty -> object_of ty
   | Ltype({lt_name="set"},[t]) -> object_of_logic_type t
   | t -> Wp_parameters.fatal ~current:true
@@ -400,7 +388,7 @@ let rec object_of_logic_type t =
            Printer.pp_logic_type t
 
 let rec object_of_logic_pointed t =
-  match Logic_utils.unroll_type t with
+  match Logic_utils.unroll_type ~unroll_typedef:false t with
   | Ctype ty -> object_of_pointed (object_of ty)
   | Ltype({lt_name="set"},[t]) -> object_of_logic_pointed t
   | t -> Wp_parameters.fatal ~current:true
@@ -434,7 +422,7 @@ let array_size = function
   | { arr_flat = Some { arr_size=s } } -> Some s
   | { arr_flat = None } ->
       if Wp_parameters.ExternArrays.get () then Some max_int else None
-        
+
 let get_array_size = function
   | C_array a -> array_size a
   | _ -> None

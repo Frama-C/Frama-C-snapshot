@@ -7,12 +7,9 @@
                                                                "wp:main": 
                                                                  { "total": 1,
                                                                    "valid": 1 } },
-                              "lemma_access_repeat_concat_3_ok": { "why3:alt-ergo": 
-                                                                    { "total": 1,
-                                                                    "valid": 1 },
-                                                                   "wp:main": 
-                                                                    { "total": 1,
-                                                                    "valid": 1 } },
+                              "lemma_access_repeat_concat_3_ok_lack": 
+                                { "why3:alt-ergo": { "total": 1, "valid": 1 },
+                                  "wp:main": { "total": 1, "valid": 1 } },
                               "lemma_access_4_4_ok": { "why3:alt-ergo": 
                                                          { "total": 1,
                                                            "valid": 1 },

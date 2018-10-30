@@ -144,12 +144,12 @@ let init =
             "\\gt_float", [], [], ["x", float_type; "y", float_type];
             "\\eq_float", [], [], ["x", float_type; "y", float_type];
             "\\ne_float", [], [], ["x", float_type; "y", float_type];
-            "\\le_float", [], [], ["x", double_type; "y", double_type];
-            "\\lt_float", [], [], ["x", double_type; "y", double_type];
-            "\\ge_float", [], [], ["x", double_type; "y", double_type];
-            "\\gt_float", [], [], ["x", double_type; "y", double_type];
-            "\\eq_float", [], [], ["x", double_type; "y", double_type];
-            "\\ne_float", [], [], ["x", double_type; "y", double_type];
+            "\\le_double", [], [], ["x", double_type; "y", double_type];
+            "\\lt_double", [], [], ["x", double_type; "y", double_type];
+            "\\ge_double", [], [], ["x", double_type; "y", double_type];
+            "\\gt_double", [], [], ["x", double_type; "y", double_type];
+            "\\eq_double", [], [], ["x", double_type; "y", double_type];
+            "\\ne_double", [], [], ["x", double_type; "y", double_type];
             "\\no_overflow_single", [], [], ["m", rounding_mode; "x", Lreal] ;
             "\\no_overflow_double", [], [], ["m", rounding_mode; "x", Lreal] ;
             "\\subset", [a_name], [], ["s1", set_of_a_type;
@@ -162,7 +162,6 @@ let init =
                                          ("p2", object_ptr)];
             "\\pointer_comparable", [], [], [("p1", object_ptr);
                                          ("p2", fun_ptr)];
-            "\\points_to_valid_string", [], [], ["p", object_ptr];
           ];
         (* functions *)
         List.iter
@@ -184,6 +183,7 @@ let init =
 
             "\\ceil", [], ["x",Lreal], Linteger ;
             "\\floor", [], ["x",Lreal], Linteger ;
+            "\\truncate", [], ["x",Lreal], Linteger ;
 
             (* transcendental functions *)
             "\\exp", [], ["x",Lreal], Lreal ;

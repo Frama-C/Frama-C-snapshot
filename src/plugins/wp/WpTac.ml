@@ -36,7 +36,7 @@ let s_bool p = [p; e_not p]
 
 (* is it an atom for CNF/DNF *)
 let is_cnf_dnf_atom_repr = function
-  | If(_,x,y) | Eq(x,y) | Neq(x,y) -> 
+  | If(_,x,y) | Eq(x,y) | Neq(x,y) ->
       not (is_prop x && is_prop y)
   | And _   | Or  _
   | Imply _ | Not _ -> false
@@ -58,7 +58,7 @@ let is_disj0_literal_repr = function
 let is_disj0_literal e = is_disj0_literal_repr (repr e)
 
 (* is it already into a Conjunctive Normal Form *)
-let is_cnf_repr = 
+let is_cnf_repr =
   function
   | And xs ->  List.for_all is_disj0_literal xs
   | _ as repr -> is_disj0_literal_repr repr
@@ -79,7 +79,7 @@ type xf_t = term list
 type xnf_t = xf_t list
 type xNf_t = xf_t * xnf_t
 
-let is_true_repr = function | True -> true | _ -> false 
+let is_true_repr = function | True -> true | _ -> false
 let is_false_repr = function | False -> true | _ -> false
 
 let is_conj_literal_repr = function
@@ -114,7 +114,7 @@ let normalize_df ts =
   | Or cf -> cf
   | _ -> [ c ]
 
-(*** one step of CNF/DNF ***) 
+(*** one step of CNF/DNF ***)
 
 let s_cnf_ite c p q = [e_imply [c] p; e_imply [e_not c] q]
 let s_dnf_ite c p q = [e_and [c;p]; e_and [e_not c;e_not q]]
@@ -125,7 +125,7 @@ let s_dnf_xor p q = [e_and [e_not p; q]; e_and [e_not q; p]]
 
 type repr = QED.repr
 
-type cnf_dnt_tools = { 
+type cnf_dnt_tools = {
   normalize_xf: xf_t -> xf_t ;
   is_neutral_repr: repr -> bool ;
   is_absorbant_repr: repr -> bool ;
@@ -142,7 +142,7 @@ type cnf_dnt_tools = {
 
 let cnf_record = {
   normalize_xf=normalize_cf;
-  is_neutral_repr=is_true_repr; 
+  is_neutral_repr=is_true_repr;
   is_absorbant_repr=is_false_repr;
   neutral=e_true;
   absorbant=e_false;
@@ -158,7 +158,7 @@ let cnf_record = {
 let dnf_record = {
   normalize_xf=normalize_df;
   is_neutral_repr=is_false_repr;
-  is_absorbant_repr=is_true_repr; 
+  is_absorbant_repr=is_true_repr;
   neutral=e_false;
   absorbant=e_true;
   mk_top=e_or;
@@ -172,7 +172,7 @@ let dnf_record = {
 
 let neutral:xNf_t = [],[]
 
-(*** Pretty ***) 
+(*** Pretty ***)
 
 let pp_indent ~pol fmt = function
   | x when x <= 0 -> Format.fprintf fmt "xxx * "
@@ -185,7 +185,7 @@ let pp_xf ~pol fmt = function
       List.iter (fun x -> Format.fprintf fmt "%s %a " (if pol then "&&" else "||") Lang.F.pp_term x) xf;
       Format.printf "]"
 
-let pp_xNf ~pol ~depth fmt xNf = 
+let pp_xNf ~pol ~depth fmt xNf =
   let pp_xNf fmt = function
     | [] -> Format.fprintf fmt " (%sNF %s absorbant);@?"
               (if pol then "C" else "D") (if pol then "FALSE" else "TRUE ")
@@ -212,13 +212,13 @@ let cnf_dnf ~pol ~depth e =
       match repr e with
       | Eq(x,y) when (F.is_prop x) && (F.is_prop y) ->
           flatten acc (tool.s_iff x y)
-      | Neq(x,y) when (F.is_prop x) && (F.is_prop y) -> 
+      | Neq(x,y) when (F.is_prop x) && (F.is_prop y) ->
           flatten acc (tool.s_xor x y)
       | If(c,p,q) ->
           flatten acc (tool.s_ite c p q)
 
-      | Imply _ when pol -> unnormalized acc e 
-      | Imply (xe,x)  -> 
+      | Imply _ when pol -> unnormalized acc e
+      | Imply (xe,x)  ->
           flatten acc (x::(List.map (fun x -> e_not x) xe))
 
       | Or  xs when not pol -> flatten acc xs
@@ -228,33 +228,33 @@ let cnf_dnf ~pol ~depth e =
       | repr when is_cnf_dnf_literal_repr repr -> literal acc e
       | repr when tool.is_sub_repr        repr -> normalized acc e
 
-      | And _ 
+      | And _
       | Or  _ -> unnormalized acc e
 
       | _ -> unnormalized acc e
     in flat ([],[],[])
-  in 
+  in
   let c_cNf_cNf2cNf ~tool ~pol ~depth ((cf1,cnf1):xNf_t) ((cf2,cnf2):xNf_t) : xNf_t =
     (*[LC] TODO: check ignored variables *)
     ignore pol ;
     ignore depth ;
     match cnf2 with
-    | ([]::_) -> raise Absorbant (* @absorbant @ _ = @absorbant *) 
-    | _ ->   
+    | ([]::_) -> raise Absorbant (* @absorbant @ _ = @absorbant *)
+    | _ ->
         (* TODO: uses Qed.Term.consequence_style *)
-        let cf,cnf = List.fold_left 
+        let cf,cnf = List.fold_left
             (fun (cf,cnf) -> function | [] -> raise Absorbant | [x] -> (x::cf),cnf | df -> cf,(df::cnf))
-            neutral cnf1 
-        in 
+            neutral cnf1
+        in
         let cf = if cf1=[] && cf=[] then cf2 else tool.normalize_xf cf@cf1@cf2 in
-        cf, (cnf@cnf2) 
+        cf, (cnf@cnf2)
 
   in
   (* distribution for CNF/DNF as literal list list *)
   let dNf2cNf ~tool ~pol ~depth (dNf:xNf_t) : xNf_t =
     let pp_i fmt () = (pp_indent ~pol) fmt depth in
     let df2cNf (df:xf_t) : xNf_t = match df with
-      | []  -> raise Absorbant (* #neutral = @absorbant *) 
+      | []  -> raise Absorbant (* #neutral = @absorbant *)
       | [_]  -> df,[]
       | _ -> [],[df]
     in
@@ -275,7 +275,7 @@ let cnf_dnf ~pol ~depth e =
     in
     (* (c1@...@cn) # (c1'@...@ck'@D1@...@Dm) = ((c1@...@cn)#c1') @ ... @ ((c1@...@cn)#c1k') @ ((c1@...@cn)#D1) @ ...@ ((c1@...@cn)#Dm)
        (c1@...@cn) # @neutral/#absorbant = @neutral *)
-    let d_cf_cNf2cNf (cf:xf_t) (cNf':xNf_t) : xNf_t = 
+    let d_cf_cNf2cNf (cf:xf_t) (cNf':xNf_t) : xNf_t =
       let r = match cf,cNf' with
         | _,([],[]) -> debugN 4 "%a> d_cf_cNf2cNf cas1/4@." pp_i ();
             cNf'     (* (c1@...@cn) # @neutral/#absorbant= @neutral *)
@@ -290,18 +290,18 @@ let cnf_dnf ~pol ~depth e =
             List.fold_left (fun (acc:xNf_t) (df:xf_t) -> c_cNf_cNf2cNf ~tool ~pol ~depth (d_df_cf2cNf df cf) acc) cNf1 cnf'
       in
       debugN 4 "%a> d_cf_cNf2cNf %sNf(%d,%b) %a %a =@.%a> d_cf_cNf2cNf = %a@." pp_i ()
-        (if pol then "C" else "D") depth pol (pp_xf ~pol) cf (pp_xNf ~pol ~depth) cNf' 
+        (if pol then "C" else "D") depth pol (pp_xf ~pol) cf (pp_xNf ~pol ~depth) cNf'
         pp_i () (pp_xNf ~pol ~depth) r;
       r
     in
     (* (c1@...@ck@D1@...@Dn) # (C1#...#Cm) = (C1#(c1@...@ck@D1@...@Dn)) # (C2#...#Cm)  *)
-    let rec d_cNf_dnf2cNf (cNf:xNf_t) (dnf:xnf_t) : xNf_t = 
+    let rec d_cNf_dnf2cNf (cNf:xNf_t) (dnf:xnf_t) : xNf_t =
       debugN 3 "%a> d_cNf_dnff2cNf cNf(%d,%d) dnf(%d)=...@." pp_i ()
         (List.length (fst cNf)) (List.length (snd cNf)) (List.length dnf);
       match dnf with
       | [] -> cNf        (* (c1@...@ck@D1@...@Dn) # @absorbant/#neutral = (D1@...@Dn) *)
       | []::_ -> neutral (* (c1@...@ck@D1@...@Dn) # @neutral/#absorbant = @neutral *)
-      | cf::[]-> d_cf_cNf2cNf cf cNf (* (c1@...@ck@D1@...@Dn) # (c11@...@c1k) = (c11@...@c1k) # (c1@...@ck@D1@...@Dn) *)          
+      | cf::[]-> d_cf_cNf2cNf cf cNf (* (c1@...@ck@D1@...@Dn) # (c11@...@c1k) = (c11@...@c1k) # (c1@...@ck@D1@...@Dn) *)
       | cf::dnf -> (* (c1@...@ck@D1@...@Dn) # ((c11@...@c1k)#C2#...#Cm) =
                       ((c11@...@c1k)#(c1@...@ck@D1@...#@n)) @ (C2#...#Cm) *)
           d_cNf_dnf2cNf (d_cf_cNf2cNf cf cNf) dnf
@@ -314,18 +314,18 @@ let cnf_dnf ~pol ~depth e =
       | ([_] as df),dnf -> d_cNf_dnf2cNf (df,[])   dnf
       | df,dnf          -> d_cNf_dnf2cNf ([],[df]) dnf
     in
-    debugN 3 "%a> %sNf->%sNf(%d,%b) %a =@.%a> %a@." 
-      pp_i () (if pol then "D" else "C") (if pol then "C" else "D") depth pol (pp_xNf ~pol:(not pol) ~depth) dNf 
+    debugN 3 "%a> %sNf->%sNf(%d,%b) %a =@.%a> %a@."
+      pp_i () (if pol then "D" else "C") (if pol then "C" else "D") depth pol (pp_xNf ~pol:(not pol) ~depth) dNf
       pp_i () (pp_xNf ~pol ~depth) r;
     r
   in
   let rec cnf_dnf ~depth ~pol e =
-    debugN 2 "@.%a%sNf(%d,%b) %a@." (pp_indent ~pol) depth 
+    debugN 2 "@.%a%sNf(%d,%b) %a@." (pp_indent ~pol) depth
       (if pol then "C" else "D") depth pol pp_term e;
     if depth <> -1 && depth <= 0 then [e],[]
-    else 
+    else
       let tool = tools ~pol in
-      try 
+      try
         let c_cf_cnf2cNf (cf:xf_t) (cnf:xf_t) : xNf_t =
           (* TODO: uses Qed.Term.consequence_style *)
           (tool.normalize_xf cf), (List.map tool.sub_args cnf)
@@ -336,23 +336,23 @@ let cnf_dnf ~pol ~depth e =
         *)
         let (cf,cnf) as cNf = c_cf_cnf2cNf cf cnf in
         let depth = if depth <> -1 && (not pol) then depth-1 else depth in
-        try 
+        try
           let c_cNf_cdf2cNf cNf xf =
             let dNf = cnf_dnf ~depth ~pol:(not pol) xf in
-            c_cNf_cNf2cNf ~tool ~pol ~depth cNf (dNf2cNf ~tool ~pol ~depth dNf) 
+            c_cNf_cNf2cNf ~tool ~pol ~depth cNf (dNf2cNf ~tool ~pol ~depth dNf)
           in
           List.fold_left c_cNf_cdf2cNf cNf cxf
-        with | TooBig -> debug "Too big CNF/DNF@." ; 
+        with | TooBig -> debug "Too big CNF/DNF@." ;
           (cf@cxf),cnf
       with | Absorbant -> [],[[]]
-  in 
+  in
   let tool = tools pol in
   let cNf = cnf_dnf ~depth ~pol e in
-  try 
+  try
     match cNf with
     | [],[] -> tool.neutral
-    | cf,cnf -> 
-        let mk_sub = function 
+    | cf,cnf ->
+        let mk_sub = function
           | [] -> raise Absorbant
           | df ->
               let r = tool.mk_sub df in
@@ -370,20 +370,19 @@ let e_dnf = cnf_dnf ~pol:false
 (** Register new available transformation at Conditions.closure **)
 
 (* feature at Conditions.closure and also for debugging purposes *)
-let () = Conditions.at_closure (fun ((step,goal) as sequent) -> 
+let () = Conditions.at_closure (fun ((step,goal) as sequent) ->
     match Wp_parameters.SplitDepth.get () with
     | 0 ->  sequent
-    | depth when depth < -1  -> 
+    | depth when depth < -1  ->
         (* Unspecified debug mode checking the correctness of CNF algo:
            `H |- P` is replaced by `H |- P <-> CNF(P)` *)
         let cnf = e_cnf ~depth:(-(depth+3)) (e_prop goal) in
         debug " CNF=%a@." pp_term cnf;
         step, p_equiv goal (F.p_bool cnf)
 
-    | depth ->  
+    | depth ->
         (* `H |- P` is replaced by `H |- CNF(P)` *)
         let cnf = e_cnf ~depth (e_prop goal) in
         debug " CNF=%a@." pp_term cnf;
         step, p_bool cnf
   )
-

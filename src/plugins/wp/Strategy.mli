@@ -80,7 +80,7 @@ val make : tactical ->
   ?priority:float -> ?arguments:argument list -> selection -> strategy
 
 (**/**)
-    
+
 (* To be used only when applying the tactical *)
 
 val set_arg : tactical -> argument -> unit

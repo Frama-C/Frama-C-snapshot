@@ -1,37 +1,37 @@
 [kernel] Parsing tests/pdg/const.i (no preprocessing)
-[value] Analyzing a complete application starting at main
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing a complete application starting at main
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   G1 ∈ {0}
   G2 ∈ {0}
   G3 ∈ {0}
   G4.M5 ∈ {{ &G1 }}
   G5.M3 ∈ {{ &G2 }}
     .M4 ∈ {{ &G3 }}
-[value] computing for function F2 <- main.
+[eva] computing for function F2 <- main.
   Called from tests/pdg/const.i:39.
-[value] Recording results for F2
+[eva] Recording results for F2
 [from] Computing for function F2
 [from] Done for function F2
-[value] Done for function F2
-[value] computing for function F1 <- main.
+[eva] Done for function F2
+[eva] computing for function F1 <- main.
   Called from tests/pdg/const.i:41.
-[value] Recording results for F1
+[eva] Recording results for F1
 [from] Computing for function F1
 [from] Done for function F1
-[value] Done for function F1
-[value] Recording results for main
+[eva] Done for function F1
+[eva] Recording results for main
 [from] Computing for function main
 [from] Done for function main
-[value] done for function main
-[value] ====== VALUES COMPUTED ======
-[value:final-states] Values at end of function F1:
+[eva] done for function main
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function F1:
   G3 ∈ {0}
-[value:final-states] Values at end of function F2:
+[eva:final-states] Values at end of function F2:
   G1 ∈ {0}
   V1 ∈ {1}
-[value:final-states] Values at end of function main:
+[eva:final-states] Values at end of function main:
   G1 ∈ {0}
   G2 ∈ {0}
   G3 ∈ {0}

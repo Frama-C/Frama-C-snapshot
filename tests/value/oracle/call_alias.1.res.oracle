@@ -1,8 +1,8 @@
 [kernel] Parsing tests/value/call_alias.i (no preprocessing)
-[value] Analyzing a complete application starting at main1
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing a complete application starting at main1
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   X ∈ {0}
   c ∈ {0}
   u ∈ {0}
@@ -11,17 +11,17 @@
   G ∈ {0}
   H ∈ {0}
   I ∈ {0}
-[value] computing for function incr <- main1.
+[eva] computing for function incr <- main1.
   Called from tests/value/call_alias.i:28.
-[value] Recording results for incr
-[value] Done for function incr
-[value] Recording results for main1
-[value] done for function main1
-[value] ====== VALUES COMPUTED ======
-[value:final-states] Values at end of function incr:
+[eva] Recording results for incr
+[eva] Done for function incr
+[eva] Recording results for main1
+[eva] done for function main1
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function incr:
   G ∈ {2}
   __retres ∈ {4}
-[value:final-states] Values at end of function main1:
+[eva:final-states] Values at end of function main1:
   G ∈ {2}
   I ∈ {4}
 [from] Computing for function incr

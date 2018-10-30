@@ -23,4 +23,4 @@
 (** [get_flags f] returns the preprocessing flags associated to file [f]
     in the JSON compilation database (when enabled), or the empty string
     otherwise. If not empty, the flags always start with a space. *)
-val get_flags : string -> string
+val get_flags : Datatype.Filepath.t -> string

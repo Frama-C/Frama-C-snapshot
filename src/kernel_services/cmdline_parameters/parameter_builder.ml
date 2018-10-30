@@ -136,20 +136,22 @@ struct
 	stage
 	(Cmdline.Unit (fun () -> set value))
 
+    let negate_name name =
+      (* do we match '-shortname-'? (one dash before, one after) *)
+      let len = String.length P.shortname + 2  in
+      if String.length name <= len || P.shortname = empty_string then
+        "-no" ^ name
+      else
+        let bef = Str.string_before name len in
+        if bef = "-" ^ P.shortname ^ "-" then
+          bef ^ "no-" ^ Str.string_after name len
+        else
+          "-no" ^ name
+
     let negative_option_name name =
       let s = !Parameter_customize.negative_option_name_ref in
       match s with
-      | None ->
-      (* do we match '-shortname-'? (one dash before, one after) *)
-	let len = String.length P.shortname + 2  in
-	if String.length name <= len || P.shortname = empty_string then
-          "-no" ^ name
-	else
-          let bef = Str.string_before name len in
-          if bef = "-" ^ P.shortname ^ "-" then
-            bef ^ "no-" ^ Str.string_after name len
-          else
-            "-no" ^ name
+      | None -> negate_name name
       | Some s ->
 	assert (s <> empty_string);
 	s
@@ -191,6 +193,8 @@ struct
       generic_add_option neg_name neg_help neg_visible false;
       neg_name
 
+    let negative_option_ref = ref None
+
     let parameter =
       let negative_option =
 	match !Parameter_customize.negative_option_name_ref, stage with
@@ -201,6 +205,7 @@ struct
           add_option true X.option_name;
           Some (add_negative_option X.option_name)
       in
+      negative_option_ref := negative_option;
       let accessor =
 	Typed_parameter.Bool
           ({ Typed_parameter.get = get; set = set;
@@ -217,6 +222,15 @@ struct
 	Dynamic.register
           ~plugin X.option_name Typed_parameter.ty ~journalize:false p
       else p
+
+    let add_aliases list =
+      add_aliases list;
+      match !negative_option_ref with
+      | None -> ()
+      | Some negative_option ->
+        let negative_list = List.map negate_name list in
+        let plugin = P.shortname in
+        Cmdline.add_aliases negative_option ~plugin ~group stage negative_list
 
   end
 
@@ -1399,6 +1413,11 @@ now bound to '%a'.@]"
       exception Found of V.t list
 
       let of_singleton_string =
+        let k_of_singleton_string =
+          if (K.of_singleton_string==no_element_of_string) 
+          then (fun x -> K.Set.singleton (K.of_string x)) 
+          else K.of_singleton_string
+        in
         let r = Str.regexp "[^:]:[^:]" in
         let split_delim d =
           (Pervasives_string.sub d 0 1, Pervasives_string.sub d 2 1)
@@ -1429,7 +1448,7 @@ now bound to '%a'.@]"
         fun s ->
           let (keys, values) =
             let get_pairing k v l =
-              let keys = K.of_singleton_string k in
+              let keys = k_of_singleton_string k in
               let key = ref None in
               let prev =
                 try
@@ -1450,7 +1469,7 @@ now bound to '%a'.@]"
             in
             match Str.full_split r s with
             | [] -> cannot_build ("cannot interpret '" ^ s ^ "'")
-            | [Str.Text t] -> K.of_singleton_string t, []
+            | [Str.Text t] -> k_of_singleton_string t, []
             | Str.Delim d :: l ->
               let (f,s) = split_delim d in
               get_pairing f s l
@@ -1563,6 +1582,10 @@ now bound to '%a'.@]"
 	ShouldOutput.set false;
 	f ();
       end
+
+    let add_aliases list =
+      add_aliases list;
+      Output.add_aliases (List.map (fun alias -> alias ^ "-print") list)
 
   end
 

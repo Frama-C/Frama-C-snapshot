@@ -1,5 +1,5 @@
 /* run.config
-   OPT: -wp-extern-arrays -wp-model Caveat -wp-warn-separation
+   OPT: -wp-extern-arrays -wp-model Caveat
  */
 
 /* run.config_qualif

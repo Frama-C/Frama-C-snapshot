@@ -25,17 +25,17 @@
 open Cil_types
 
 type slevel =
-| Global of int (** Same slevel i in the entire function *)
-| PerStmt of (stmt -> int) (** Different slevel for different statements *)
+  | Global of int (** Same slevel i in the entire function *)
+  | PerStmt of (stmt -> int) (** Different slevel for different statements *)
 
 (** Slevel to use in this function *)
 val local: kernel_function -> slevel
 
 
 type merge =
-| NoMerge (** Propagate states according to slevel in the entire function. *)
-| Merge of (stmt -> bool) (** Statements on which multiple states should be
-                              merged (instead of being propagated separately) *)
+  | NoMerge (** Propagate states according to slevel in the entire function. *)
+  | Merge of (stmt -> bool) (** Statements on which multiple states should be
+                                merged (instead of being propagated separately) *)
 
 (** Slevel merge strategy for this function *)
 val merge: kernel_function -> merge

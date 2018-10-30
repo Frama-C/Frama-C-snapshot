@@ -1,5 +1,10 @@
 [
   {
+    "classid": "Parsing",
+    "category": "annot-error",
+    "action": "ERROR"
+  },
+  {
     "classid": "RTE",
     "plugin": "wp",
     "warning": "Missing RTE guards",

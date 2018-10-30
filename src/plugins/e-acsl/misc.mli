@@ -1,8 +1,8 @@
 (**************************************************************************)
 (*                                                                        *)
-(*  This file is part of Frama-C.                                         *)
+(*  This file is part of the Frama-C's E-ACSL plug-in.                    *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2018                                               *)
+(*  Copyright (C) 2012-2018                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -103,6 +103,26 @@ pointer and integer parts. *)
 val term_of_li: logic_info -> term
 (* [term_of_li li] assumes that [li.l_body] matches [LBterm t]
    and returns [t]. *)
+
+val is_set_of_ptr_or_array: logic_type -> bool
+(* Checks whether the given logic type is a set of pointers. *)
+
+val is_range_free: term -> bool
+(* Returns [true] iff the given term does not contain any range. *)
+
+val is_bitfield_pointers: logic_type -> bool
+(* Returns [true] iff the given logic type is a bitfield pointer or a
+   set of bitfield pointers. *)
+
+val term_has_lv_from_vi: term -> bool
+(* Return [true] iff the given term contains a variables that originates from
+  a C varinfo, that is a non-purely logic variable. *)
+
+type pred_or_term = PoT_pred of predicate | PoT_term of term
+
+val mk_ptr_sizeof: typ -> location -> exp
+(* [mk_ptr_sizeof ptr_typ loc] takes the pointer typ [ptr_typ] that points
+   to a [typ] typ and returns [sizeof(typ)]. *)
 
 (*
 Local Variables:

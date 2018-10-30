@@ -1,14 +1,24 @@
-# frama-c -wp -wp-no-let [...]
+# frama-c -wp -wp-no-let -wp-timeout 90 -wp-steps 1500 [...]
 [kernel] Parsing tests/wp_plugin/bool.i (no preprocessing)
 [wp] Running WP plugin...
 [wp] Loading driver 'share/wp.driver'
 [wp] Warning: Missing RTE guards
-[wp] 1 goal scheduled
+[wp] 7 goals scheduled
+[wp] [Alt-Ergo] Goal typed_band_bool_false_post : Unknown
+[wp] [Qed] Goal typed_band_bool_true_post : Valid
+[wp] [Alt-Ergo] Goal typed_bor_bool_false_post : Unknown
+[wp] [Alt-Ergo] Goal typed_bor_bool_true_post : Valid
+[wp] [Alt-Ergo] Goal typed_bxor_bool_false_post : Unknown
+[wp] [Qed] Goal typed_bxor_bool_true_post : Valid
 [wp] [Alt-Ergo] Goal typed_job_post : Unknown
-[wp] Proved goals:    0 / 1
-  Alt-Ergo:        0  (unknown: 1)
+[wp] Proved goals:    3 / 7
+  Qed:             2 
+  Alt-Ergo:        1  (unknown: 4)
 [wp] Report 'tests/wp_plugin/bool.i.0.report.json'
 -------------------------------------------------------------
 Functions           WP     Alt-Ergo        Total   Success
 job                 -      -                 1       0.0%
+bor_bool            -       1 (4..16)        2      50.0%
+band_bool            1     -                 2      50.0%
+bxor_bool            1     -                 2      50.0%
 -------------------------------------------------------------

@@ -79,8 +79,6 @@ let pp_if_list_not_empty prefix suffix pp_l fmt l =
   if l <> [] then Format.fprintf fmt "%s%a%s" prefix pp_l l suffix
   else ()
 
-let pp_variant pp_term = pp_pair pp_term (pp_option pp_string)
-
 let rec pp_allocation fmt = function
   | FreeAlloc(locs_list1,locs_list2) ->
     Format.fprintf fmt "FreeAlloc(%a,%a)"
@@ -100,7 +98,7 @@ and pp_assigns pp_locs fmt = function
 
 
 and pp_file fmt file = Format.fprintf fmt "{fileName=%a;globals=%a;globinit=%a;globinitcalled=%a}"
-    pp_string file.fileName (pp_list pp_global) file.globals (pp_option pp_fundec) file.globinit pp_bool file.globinitcalled
+    Filepath.Normalized.pp_abs file.fileName (pp_list pp_global) file.globals (pp_option pp_fundec) file.globinit pp_bool file.globinitcalled
 
 and pp_global fmt = function
   | GType(typeinfo,location) -> Format.fprintf fmt "GType(%a,%a)"  pp_typeinfo typeinfo  pp_location location
@@ -579,6 +577,11 @@ and pp_extended_asm fmt _extended_asm = Format.fprintf fmt "pp_extended_asm_TODO
     asm_gotos: (stmt ref)_list;
 }*)
 
+and pp_filepath_position fmt filepath_position =
+  Format.fprintf fmt "{pos_path=%s;pos_lnum=%d;pos_bol=%d;pos_cnum=%d}"
+    (filepath_position.Filepath.pos_path :> string) filepath_position.Filepath.pos_lnum
+    filepath_position.Filepath.pos_bol filepath_position.Filepath.pos_cnum
+
 and pp_lexing_position fmt lexing_position =
   Format.fprintf fmt "{pos_fname=%s;pos_lnum=%d;pos_bol=%d;pos_cnum=%d}"
     lexing_position.Lexing.pos_fname lexing_position.Lexing.pos_lnum
@@ -586,7 +589,7 @@ and pp_lexing_position fmt lexing_position =
 
 and pp_location fmt (pos_start,pos_end) =
   let p = if print_locations then Format.fprintf else Format.ifprintf in
-  p fmt "(%a,%a)" pp_lexing_position pos_start pp_lexing_position pos_end
+  p fmt "(%a,%a)" pp_filepath_position pos_start pp_filepath_position pos_end
 
 and pp_if_loc_known prefix suffix fmt loc =
   if print_locations && loc <> Cil_datatype.Location.unknown
@@ -876,7 +879,7 @@ and pp_spec fmt _spec = Format.fprintf fmt "pp_spec_TODO" (*{
   mutable spec_disjoint_behaviors: string_list_list;
 }*)
 
-and pp_acsl_extension fmt = pp_tuple3 pp_int pp_string pp_acsl_extension_kind fmt
+and pp_acsl_extension fmt = pp_tuple4 pp_int pp_string pp_location pp_acsl_extension_kind fmt
 
 and pp_acsl_extension_kind fmt = function
   | Ext_id(int) -> Format.fprintf fmt "Ext_id(%a)"  pp_int int
@@ -927,7 +930,7 @@ and pp_code_annotation_node fmt = function
   | AInvariant(string_list,bool,predicate) ->
     Format.fprintf fmt "AInvariant(%a,%a,%a)"  (pp_list pp_string) string_list  pp_bool bool  pp_predicate predicate
   | AVariant(term_variant) ->
-    Format.fprintf fmt "AVariant(%a)" (pp_variant pp_term) term_variant
+    Format.fprintf fmt "AVariant(%a)" pp_variant term_variant
   | AAssigns(string_list,assigns) ->
     Format.fprintf fmt "AAssigns(%a,%a)"  (pp_list pp_string) string_list
       (pp_assigns pp_from) assigns
@@ -936,8 +939,9 @@ and pp_code_annotation_node fmt = function
       pp_allocation allocation
   | APragma(pragma) ->
     Format.fprintf fmt "APragma(%a)" (pp_pragma pp_term) pragma
-  | AExtended(string_list,acsl_extension) ->
-    Format.fprintf fmt "AExtended(%a,%a)"  (pp_list pp_string) string_list  pp_acsl_extension acsl_extension
+  | AExtended(string_list,is_loop,acsl_extension) ->
+    Format.fprintf fmt "AExtended(%a,%B,%a)"
+      (pp_list pp_string) string_list  is_loop pp_acsl_extension acsl_extension
 
 and pp_funspec fmt _funspec = Format.fprintf fmt "pp_funspec_TODO"
 
@@ -974,8 +978,13 @@ and pp_global_annotation fmt = function
   | Dcustom_annot(custom_tree,string,attributes,location) ->
     Format.fprintf fmt "Dcustom_annot(%a,%a,%a,%a)"  pp_custom_tree custom_tree  pp_string string
       pp_attributes attributes  pp_location location
+  | Dextended (e,attr,loc) ->
+    Format.fprintf fmt "Dextended(%a,%a,%a)"
+      pp_acsl_extension e pp_attributes attr pp_location loc
 
 and pp_custom_tree fmt _custom_tree = Format.fprintf fmt "CustomDummy"
+
+and pp_variant fmt = pp_pair pp_term (pp_option pp_string) fmt
 
 let pp_kinstr fmt = function
   | Kstmt(stmt) -> Format.fprintf fmt "Kstmt(%a)"  pp_stmt stmt

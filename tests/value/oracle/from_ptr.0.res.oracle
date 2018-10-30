@@ -1,8 +1,8 @@
 [kernel] Parsing tests/value/from_ptr.i (no preprocessing)
-[value] Analyzing a complete application starting at main
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing a complete application starting at main
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   i ∈ {0}
   j ∈ {0}
   x ∈ {0}
@@ -15,16 +15,16 @@
   b ∈ {0}
   p[0..9][0..9][0..9] ∈ {0}
   q ∈ {0}
-[value:alarm] tests/value/from_ptr.i:17: Warning: 
+[eva:alarm] tests/value/from_ptr.i:17: Warning: 
   out of bounds write. assert \valid((int *)i);
 [kernel] tests/value/from_ptr.i:17: Warning: 
   all target addresses were invalid. This path is assumed to be dead.
-[value] Recording results for main
-[value] done for function main
-[value] tests/value/from_ptr.i:17: 
-  assertion 'Value,mem_access' got final status invalid.
-[value] ====== VALUES COMPUTED ======
-[value:final-states] Values at end of function main:
+[eva] Recording results for main
+[eva] done for function main
+[eva] tests/value/from_ptr.i:17: 
+  assertion 'Eva,mem_access' got final status invalid.
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function main:
   i ∈ {{ (long)&p[10] }}
   d ∈ {0}
   q ∈ {{ &b }}

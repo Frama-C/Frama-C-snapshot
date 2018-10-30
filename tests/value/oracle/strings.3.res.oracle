@@ -1,8 +1,8 @@
 [kernel] Parsing tests/value/strings.i (no preprocessing)
-[value] Analyzing a complete application starting at main8
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing a complete application starting at main8
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   s1[0] ∈ {104}
     [1] ∈ {101}
     [2..3] ∈ {108}
@@ -37,27 +37,27 @@
   s4 ∈ {{ "tutu" }}
   s7 ∈ {{ "hello\000 world" }}
   s8 ∈ {{ "hello" }}
-[value] computing for function assigns <- main8.
+[eva] computing for function assigns <- main8.
   Called from tests/value/strings.i:127.
-[value] using specification for function assigns
-[value] tests/value/strings.i:121: Warning: 
+[eva] using specification for function assigns
+[eva] tests/value/strings.i:121: Warning: 
   no \from part for clause 'assigns *(p + (0 .. s - 1));'
-[value] Done for function assigns
-[value] computing for function strcmp <- main8.
+[eva] Done for function assigns
+[eva] computing for function strcmp <- main8.
   Called from tests/value/strings.i:128.
-[value:alarm] tests/value/strings.i:114: Warning: 
+[eva:alarm] tests/value/strings.i:114: Warning: 
   out of bounds read. assert \valid_read(tmp_0);
                       (tmp_0 from s2_0++)
-[value] Recording results for strcmp
-[value] Done for function strcmp
-[value] Recording results for main8
-[value] done for function main8
-[value] ====== VALUES COMPUTED ======
-[value:final-states] Values at end of function strcmp:
+[eva] Recording results for strcmp
+[eva] Done for function strcmp
+[eva] Recording results for main8
+[eva] done for function main8
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function strcmp:
   s1_0 ∈ {{ &long_chain + [0..29] }}
   s2_0 ∈ {{ &tc + [0..29] }}
   __retres ∈ [-223..121]
-[value:final-states] Values at end of function main8:
+[eva:final-states] Values at end of function main8:
   tc[0..29] ∈ [--..--]
   long_chain[0] ∈ {114}
             [1] ∈ {101}

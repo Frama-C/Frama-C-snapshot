@@ -1,0 +1,60 @@
+[kernel] Parsing tests/builtins/malloc.c (with preprocessing)
+[kernel:annot:missing-spec] tests/builtins/malloc.c:8: Warning: 
+  Neither code nor specification for function Frama_C_malloc_fresh, generating default assigns from the prototype
+[kernel:annot:missing-spec] tests/builtins/malloc.c:8: Warning: 
+  Neither code nor specification for function Frama_C_malloc_by_stack, generating default assigns from the prototype
+[eva] Analyzing a complete application starting at main
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
+  
+[eva] tests/builtins/malloc.c:13: Call to builtin Frama_C_malloc_by_stack
+[eva] tests/builtins/malloc.c:13: allocating variable __malloc_main_l13
+[eva] tests/builtins/malloc.c:19: Call to builtin Frama_C_malloc_by_stack
+[eva] tests/builtins/malloc.c:19: allocating variable __malloc_main_l19
+[eva] tests/builtins/malloc.c:19: Call to builtin Frama_C_malloc_by_stack
+[eva:malloc] tests/builtins/malloc.c:19: 
+  resizing variable `__malloc_main_l19' (0..-1/34359738359) to fit 0..-1
+[eva] tests/builtins/malloc.c:20: Call to builtin Frama_C_malloc_by_stack
+[eva] tests/builtins/malloc.c:20: allocating variable __malloc_main_l20
+[eva] tests/builtins/malloc.c:20: Call to builtin Frama_C_malloc_by_stack
+[eva] tests/builtins/malloc.c:21: Call to builtin Frama_C_malloc_fresh
+[eva] tests/builtins/malloc.c:21: allocating variable __malloc_main_l21
+[eva] tests/builtins/malloc.c:21: Call to builtin Frama_C_malloc_fresh
+[eva] tests/builtins/malloc.c:21: allocating variable __malloc_main_l21_0
+[eva:alarm] tests/builtins/malloc.c:22: Warning: 
+  out of bounds write. assert \valid(p);
+[eva:alarm] tests/builtins/malloc.c:23: Warning: 
+  out of bounds write. assert \valid(p + 2);
+[eva:alarm] tests/builtins/malloc.c:24: Warning: 
+  out of bounds write. assert \valid(p + 24999);
+[eva] tests/builtins/malloc.c:27: 
+  Frama_C_show_each: {{ &__malloc_main_l20 + {8} }}
+[eva] tests/builtins/malloc.c:27: 
+  Frama_C_show_each: {{ &__malloc_main_l20 + {8} }}
+[eva] Recording results for main
+[eva] done for function main
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function main:
+  x ∈ {1; 2}
+  s ∈ {{ NULL ; &__malloc_main_l13[0] }}
+  p ∈ {{ (int *)&__malloc_main_l19 }}
+  q ∈ {{ &__malloc_main_l20[0] }}
+  r ∈ {{ &__malloc_main_l21[0] ; &__malloc_main_l21_0[0] }}
+  __malloc_main_l19[bits 0 to 31] ∈ {1}
+                   [4..7] ∈ UNINITIALIZED
+                   [bits 64 to 95] ∈ {3}
+                   [12..99995] ∈ UNINITIALIZED
+                   [bits 799968 to 799999] ∈ {4}
+                   [100000..4294967294] ∈ UNINITIALIZED
+  __malloc_main_l20[0] ∈ {1}
+                   [1] ∈ UNINITIALIZED
+                   [2] ∈ {3}
+  __malloc_main_l21[0] ∈ {1}
+                   [1] ∈ UNINITIALIZED
+                   [2] ∈ {3}
+                   [3..24] ∈ UNINITIALIZED
+  __malloc_main_l21_0[0] ∈ {1}
+                     [1] ∈ UNINITIALIZED
+                     [2] ∈ {3}
+                     [3..24] ∈ UNINITIALIZED

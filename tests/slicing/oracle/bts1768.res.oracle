@@ -1,205 +1,115 @@
 [kernel] Parsing tests/slicing/bts1768.i (no preprocessing)
 [slicing] slicing requests in progress...
-[value] Analyzing a complete application starting at main
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing a complete application starting at main
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   choix ∈ {0}
   state ∈ {1}
   cumul ∈ {0}
   step ∈ {0}
-[value] computing for function lecture <- main.
+[eva] computing for function lecture <- main.
   Called from tests/slicing/bts1768.i:45.
-[value] computing for function choisir <- lecture <- main.
+[eva] computing for function choisir <- lecture <- main.
   Called from tests/slicing/bts1768.i:18.
 [kernel] tests/slicing/bts1768.i:18: Warning: 
   No code nor implicit assigns clause for function choisir, generating default assigns from the prototype
-[value] using specification for function choisir
-[value] Done for function choisir
-[value] Recording results for lecture
-[value] Done for function lecture
-[value] computing for function fsm_transition <- main.
+[eva] using specification for function choisir
+[eva] Done for function choisir
+[eva] Recording results for lecture
+[eva] Done for function lecture
+[eva] computing for function fsm_transition <- main.
   Called from tests/slicing/bts1768.i:46.
-[value] Recording results for fsm_transition
-[value] Done for function fsm_transition
-[value] computing for function lecture <- main.
-  Called from tests/slicing/bts1768.i:45.
-[value] computing for function choisir <- lecture <- main.
-  Called from tests/slicing/bts1768.i:18.
-[value] Done for function choisir
-[value] Recording results for lecture
-[value] Done for function lecture
-[value] computing for function fsm_transition <- main.
+[eva] Recording results for fsm_transition
+[eva] Done for function fsm_transition
+[eva] tests/slicing/bts1768.i:45: Reusing old results for call to lecture
+[eva] computing for function fsm_transition <- main.
   Called from tests/slicing/bts1768.i:46.
-[value] Recording results for fsm_transition
-[value] Done for function fsm_transition
-[value] computing for function lecture <- main.
-  Called from tests/slicing/bts1768.i:45.
-[value] computing for function choisir <- lecture <- main.
-  Called from tests/slicing/bts1768.i:18.
-[value] Done for function choisir
-[value] Recording results for lecture
-[value] Done for function lecture
-[value] computing for function fsm_transition <- main.
+[eva] Recording results for fsm_transition
+[eva] Done for function fsm_transition
+[eva] tests/slicing/bts1768.i:45: Reusing old results for call to lecture
+[eva] computing for function fsm_transition <- main.
   Called from tests/slicing/bts1768.i:46.
-[value] Recording results for fsm_transition
-[value] Done for function fsm_transition
-[value] computing for function lecture <- main.
-  Called from tests/slicing/bts1768.i:45.
-[value] computing for function choisir <- lecture <- main.
-  Called from tests/slicing/bts1768.i:18.
-[value] Done for function choisir
-[value] Recording results for lecture
-[value] Done for function lecture
-[value] computing for function fsm_transition <- main.
+[eva] Recording results for fsm_transition
+[eva] Done for function fsm_transition
+[eva] tests/slicing/bts1768.i:45: Reusing old results for call to lecture
+[eva] computing for function fsm_transition <- main.
   Called from tests/slicing/bts1768.i:46.
-[value] Recording results for fsm_transition
-[value] Done for function fsm_transition
-[value] computing for function lecture <- main.
-  Called from tests/slicing/bts1768.i:45.
-[value] computing for function choisir <- lecture <- main.
-  Called from tests/slicing/bts1768.i:18.
-[value] Done for function choisir
-[value] Recording results for lecture
-[value] Done for function lecture
-[value] computing for function fsm_transition <- main.
+[eva] Recording results for fsm_transition
+[eva] Done for function fsm_transition
+[eva] tests/slicing/bts1768.i:45: Reusing old results for call to lecture
+[eva] computing for function fsm_transition <- main.
   Called from tests/slicing/bts1768.i:46.
-[value] Recording results for fsm_transition
-[value] Done for function fsm_transition
-[value] computing for function lecture <- main.
-  Called from tests/slicing/bts1768.i:45.
-[value] computing for function choisir <- lecture <- main.
-  Called from tests/slicing/bts1768.i:18.
-[value] Done for function choisir
-[value] Recording results for lecture
-[value] Done for function lecture
-[value] computing for function fsm_transition <- main.
+[eva] Recording results for fsm_transition
+[eva] Done for function fsm_transition
+[eva] tests/slicing/bts1768.i:45: Reusing old results for call to lecture
+[eva] computing for function fsm_transition <- main.
   Called from tests/slicing/bts1768.i:46.
-[value] Recording results for fsm_transition
-[value] Done for function fsm_transition
-[value] computing for function lecture <- main.
-  Called from tests/slicing/bts1768.i:45.
-[value] computing for function choisir <- lecture <- main.
-  Called from tests/slicing/bts1768.i:18.
-[value] Done for function choisir
-[value] Recording results for lecture
-[value] Done for function lecture
-[value] computing for function fsm_transition <- main.
+[eva] Recording results for fsm_transition
+[eva] Done for function fsm_transition
+[eva] tests/slicing/bts1768.i:45: Reusing old results for call to lecture
+[eva] computing for function fsm_transition <- main.
   Called from tests/slicing/bts1768.i:46.
-[value] Recording results for fsm_transition
-[value] Done for function fsm_transition
-[value] computing for function lecture <- main.
-  Called from tests/slicing/bts1768.i:45.
-[value] computing for function choisir <- lecture <- main.
-  Called from tests/slicing/bts1768.i:18.
-[value] Done for function choisir
-[value] Recording results for lecture
-[value] Done for function lecture
-[value] computing for function fsm_transition <- main.
+[eva] Recording results for fsm_transition
+[eva] Done for function fsm_transition
+[eva] tests/slicing/bts1768.i:45: Reusing old results for call to lecture
+[eva] computing for function fsm_transition <- main.
   Called from tests/slicing/bts1768.i:46.
-[value] Recording results for fsm_transition
-[value] Done for function fsm_transition
-[value] computing for function lecture <- main.
-  Called from tests/slicing/bts1768.i:45.
-[value] computing for function choisir <- lecture <- main.
-  Called from tests/slicing/bts1768.i:18.
-[value] Done for function choisir
-[value] Recording results for lecture
-[value] Done for function lecture
-[value] computing for function fsm_transition <- main.
+[eva] Recording results for fsm_transition
+[eva] Done for function fsm_transition
+[eva] tests/slicing/bts1768.i:45: Reusing old results for call to lecture
+[eva] computing for function fsm_transition <- main.
   Called from tests/slicing/bts1768.i:46.
-[value] Recording results for fsm_transition
-[value] Done for function fsm_transition
-[value] computing for function lecture <- main.
-  Called from tests/slicing/bts1768.i:45.
-[value] computing for function choisir <- lecture <- main.
-  Called from tests/slicing/bts1768.i:18.
-[value] Done for function choisir
-[value] Recording results for lecture
-[value] Done for function lecture
-[value] computing for function fsm_transition <- main.
+[eva] Recording results for fsm_transition
+[eva] Done for function fsm_transition
+[eva] tests/slicing/bts1768.i:45: Reusing old results for call to lecture
+[eva] computing for function fsm_transition <- main.
   Called from tests/slicing/bts1768.i:46.
-[value] Recording results for fsm_transition
-[value] Done for function fsm_transition
-[value] tests/slicing/bts1768.i:44: entering loop for the first time
-[value] computing for function lecture <- main.
-  Called from tests/slicing/bts1768.i:45.
-[value] computing for function choisir <- lecture <- main.
-  Called from tests/slicing/bts1768.i:18.
-[value] Done for function choisir
-[value] Recording results for lecture
-[value] Done for function lecture
-[value] computing for function fsm_transition <- main.
+[eva] Recording results for fsm_transition
+[eva] Done for function fsm_transition
+[eva] tests/slicing/bts1768.i:45: Reusing old results for call to lecture
+[eva] computing for function fsm_transition <- main.
   Called from tests/slicing/bts1768.i:46.
-[value] Recording results for fsm_transition
-[value] Done for function fsm_transition
-[value] computing for function lecture <- main.
-  Called from tests/slicing/bts1768.i:45.
-[value] computing for function choisir <- lecture <- main.
-  Called from tests/slicing/bts1768.i:18.
-[value] Done for function choisir
-[value] Recording results for lecture
-[value] Done for function lecture
-[value] computing for function fsm_transition <- main.
+[eva] Recording results for fsm_transition
+[eva] Done for function fsm_transition
+[eva] tests/slicing/bts1768.i:44: starting to merge loop iterations
+[eva] tests/slicing/bts1768.i:45: Reusing old results for call to lecture
+[eva] computing for function fsm_transition <- main.
   Called from tests/slicing/bts1768.i:46.
-[value] Recording results for fsm_transition
-[value] Done for function fsm_transition
-[value] computing for function lecture <- main.
-  Called from tests/slicing/bts1768.i:45.
-[value] computing for function choisir <- lecture <- main.
-  Called from tests/slicing/bts1768.i:18.
-[value] Done for function choisir
-[value] Recording results for lecture
-[value] Done for function lecture
-[value] computing for function fsm_transition <- main.
+[eva] Recording results for fsm_transition
+[eva] Done for function fsm_transition
+[eva] tests/slicing/bts1768.i:45: Reusing old results for call to lecture
+[eva] computing for function fsm_transition <- main.
   Called from tests/slicing/bts1768.i:46.
-[value] Recording results for fsm_transition
-[value] Done for function fsm_transition
-[value] computing for function lecture <- main.
-  Called from tests/slicing/bts1768.i:45.
-[value] computing for function choisir <- lecture <- main.
-  Called from tests/slicing/bts1768.i:18.
-[value] Done for function choisir
-[value] Recording results for lecture
-[value] Done for function lecture
-[value] computing for function fsm_transition <- main.
+[eva] Recording results for fsm_transition
+[eva] Done for function fsm_transition
+[eva] tests/slicing/bts1768.i:45: Reusing old results for call to lecture
+[eva] computing for function fsm_transition <- main.
   Called from tests/slicing/bts1768.i:46.
-[value] Recording results for fsm_transition
-[value] Done for function fsm_transition
-[value:alarm] tests/slicing/bts1768.i:51: Warning: 
+[eva] Recording results for fsm_transition
+[eva] Done for function fsm_transition
+[eva:alarm] tests/slicing/bts1768.i:51: Warning: 
   signed overflow. assert step + 1 ≤ 2147483647;
-[value] computing for function lecture <- main.
-  Called from tests/slicing/bts1768.i:45.
-[value] computing for function choisir <- lecture <- main.
-  Called from tests/slicing/bts1768.i:18.
-[value] Done for function choisir
-[value] Recording results for lecture
-[value] Done for function lecture
-[value] computing for function fsm_transition <- main.
+[eva] tests/slicing/bts1768.i:45: Reusing old results for call to lecture
+[eva] computing for function fsm_transition <- main.
   Called from tests/slicing/bts1768.i:46.
-[value] Recording results for fsm_transition
-[value] Done for function fsm_transition
-[value] computing for function lecture <- main.
-  Called from tests/slicing/bts1768.i:45.
-[value] computing for function choisir <- lecture <- main.
-  Called from tests/slicing/bts1768.i:18.
-[value] Done for function choisir
-[value] Recording results for lecture
-[value] Done for function lecture
-[value] computing for function fsm_transition <- main.
+[eva] Recording results for fsm_transition
+[eva] Done for function fsm_transition
+[eva] tests/slicing/bts1768.i:45: Reusing old results for call to lecture
+[eva] computing for function fsm_transition <- main.
   Called from tests/slicing/bts1768.i:46.
-[value:alarm] tests/slicing/bts1768.i:25: Warning: 
+[eva:alarm] tests/slicing/bts1768.i:25: Warning: 
   signed overflow. assert cumul + 2 ≤ 2147483647;
-[value:alarm] tests/slicing/bts1768.i:29: Warning: 
+[eva:alarm] tests/slicing/bts1768.i:29: Warning: 
   signed overflow. assert cumul + 1 ≤ 2147483647;
-[value:alarm] tests/slicing/bts1768.i:35: Warning: 
+[eva:alarm] tests/slicing/bts1768.i:35: Warning: 
   signed overflow. assert cumul + 1 ≤ 2147483647;
-[value:alarm] tests/slicing/bts1768.i:35: Warning: 
+[eva:alarm] tests/slicing/bts1768.i:35: Warning: 
   signed overflow. assert cumul + 1 ≤ 2147483647;
-[value] Recording results for fsm_transition
-[value] Done for function fsm_transition
-[value] Recording results for main
-[value] done for function main
+[eva] Recording results for fsm_transition
+[eva] Done for function fsm_transition
+[eva] Recording results for main
+[eva] done for function main
 [slicing] initializing slicing ...
 [slicing] interpreting slicing requests from the command line...
 [pdg] computing for function main

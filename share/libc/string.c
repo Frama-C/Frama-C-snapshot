@@ -20,18 +20,24 @@
 /*                                                                        */
 /**************************************************************************/
 
-#include <string.h>
-#include <stdint.h> // for uintptr_t
-#include <stdlib.h> // for malloc()
+#include "string.h"
+#include "stdint.h" // for uintptr_t
+#include "stdlib.h" // for malloc()
+#include "errno.h"
 __PUSH_FC_STDLIB
 
 void* memcpy(void* restrict dest, const void* restrict src, size_t n)
 {
-  char* res = (char*)dest;
+  /*@
+    loop invariant no_eva: 0 <= i <= n;
+    loop invariant no_eva: \forall ℤ k; 0 <= k < i ==> ((char*)dest)[k] == ((char*)src)[k];
+    loop assigns i, ((char*)dest)[0 .. n-1];
+    loop variant n - i;
+   */
   for (size_t i = 0; i < n; i++) {
     ((char*)dest)[i] = ((char*)src)[i];
   }
-  return res;
+  return dest;
 }
 
 // memoverlap: auxiliary function that returns
@@ -61,11 +67,25 @@ void* memmove(void* dest, const void* src, size_t n)
   char *s = (char*)src;
   char *d = (char*)dest;
   if (memoverlap(dest, src, n) <= 0) { /* default: copy up */
+    /*@
+      loop invariant no_eva: 0 <= i <= n;
+      loop invariant no_eva: \forall ℤ k; 0 <= k < i ==> ((char*)dest)[k] == \at(((char*)src)[k],LoopEntry);
+      loop invariant no_eva: \forall ℤ k; i <= k < n ==> ((char*)src)[k] == \at(((char*)src)[k],LoopEntry);
+      loop assigns i, ((char*)dest)[0 .. n-1];
+      loop variant n - i;
+    */
     for (size_t i = 0; i < n; i++)
       d[i] = s[i];
   } else { // beginning of dest overlaps with src: copy down
     // to avoid unsigned overflow in the loop below, the '0' case is
     // done outside the loop (note: n == 0 has already been tested)
+    /*@
+      loop invariant no_eva: 0 <= i < n;
+      loop invariant no_eva: \forall ℤ k; i < k < n ==> ((char*)dest)[k] == \at(((char*)src)[k],LoopEntry);
+      loop invariant no_eva: \forall ℤ k; 0 <= k <= i ==> ((char*)src)[k] == \at(((char*)src)[k],LoopEntry);
+      loop assigns i, ((char*)dest)[0 .. n-1];
+      loop variant i;
+    */
     for (size_t i = n-1; i > 0; i--)
       d[i] = s[i];
     d[0] = s[0];
@@ -253,6 +273,10 @@ char *strdup(const char *s)
 {
   size_t l = strlen(s) + 1;
   char *p = malloc(l);
+  if (!p) {
+    errno = ENOMEM;
+    return 0;
+  }
   memcpy(p, s, l);
   return p;
 }
@@ -266,6 +290,10 @@ char *strndup(const char *s, size_t n)
     if (s[l] == 0) break;
   }
   char *p = malloc(l+1); /* include terminating '\0' */
+  if (!p) {
+    errno = ENOMEM;
+    return 0;
+  }
   memcpy(p, s, l);
   p[l] = 0;
   return p;

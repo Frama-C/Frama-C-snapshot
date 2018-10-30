@@ -229,7 +229,6 @@ Prove: length(a) = 0.
 
 Goal Post-condition for 'g_not_called' 'ok,v2' in 'loops':
 Let a = ([ y ] *^ i).
-Let a_1 = [ x ] ^ a.
 Assume {
   Type: is_sint32(i) /\ is_sint32(n) /\ is_sint32(x) /\ is_sint32(y) /\
       is_sint32(z).
@@ -240,7 +239,7 @@ Assume {
   (* Call 'f' *)
   Have: L_call_obs(call_seq_1) = [ x ].
   (* Invariant 'ok,inv' *)
-  Have: L_call_obs(call_seq_2) = a_1.
+  Have: L_call_obs(call_seq_2) = [ x ] ^ a.
   (* Invariant 'ok,id_max' *)
   Have: if (0 <= n) then (i <= n) else (i <= 0).
   (* Invariant 'ok,id_min' *)
@@ -250,7 +249,7 @@ Assume {
   (* Call 'f' *)
   Have: L_call_obs(call_seq_3) = [ x ] ^ a ^ [ z ].
 }
-Prove: [ x ] = a_1.
+Prove: i <= 0.
 
 ------------------------------------------------------------
 ------------------------------------------------------------
@@ -263,7 +262,7 @@ Prove: true.
 ------------------------------------------------------------
 
 Goal Post-condition 'ok,m2' in 'no_calls':
-Assume { (* Pre-condition 'init' *) Have: L_call_obs(call_seq_0) = nil. }
+Assume { (* Pre-condition *) Have: L_call_obs(call_seq_0) = nil. }
 Prove: length(L_call_nil) = 0.
 
 ------------------------------------------------------------
@@ -274,13 +273,13 @@ Prove: true.
 ------------------------------------------------------------
 
 Goal Post-condition 'ok,n2' in 'no_calls':
-Assume { (* Pre-condition 'init' *) Have: L_call_obs(call_seq_0) = nil. }
+Assume { (* Pre-condition *) Have: L_call_obs(call_seq_0) = nil. }
 Prove: L_call_nil = nil.
 
 ------------------------------------------------------------
 
 Goal Post-condition 'ok,n3' in 'no_calls':
-Assume { (* Pre-condition 'init' *) Have: L_call_obs(call_seq_0) = nil. }
+Assume { (* Pre-condition *) Have: L_call_obs(call_seq_0) = nil. }
 Prove: L_call_nil = nil.
 
 ------------------------------------------------------------
@@ -290,7 +289,7 @@ Assume {
   Type: is_sint32(a).
   (* Goal *)
   When: 0 <= a.
-  (* Pre-condition 'init' *)
+  (* Pre-condition *)
   Have: L_call_obs(call_seq_0) = nil.
 }
 Prove: (L_call_nil = nil) \/ (a <= 0).
@@ -305,7 +304,7 @@ Prove: true.
 Goal Post-condition 'ok,bug_why3,n5_ok' in 'no_calls':
 Assume {
   Type: is_sint32(a).
-  (* Pre-condition 'init' *)
+  (* Pre-condition *)
   Have: L_call_obs(call_seq_0) = nil.
 }
 Prove: (L_call_nil = nil) \/ (a <= 0).
@@ -399,6 +398,6 @@ Assume {
   (* Call 'f' *)
   Have: L_call_obs(call_seq_2) = [ x, z ].
 }
-Prove: [ x ] = [ x ] ^ L_call_nil.
+Prove: L_call_nil = nil.
 
 ------------------------------------------------------------

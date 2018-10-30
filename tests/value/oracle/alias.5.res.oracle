@@ -1,8 +1,8 @@
 [kernel] Parsing tests/value/alias.i (no preprocessing)
-[value] Analyzing a complete application starting at main11
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing a complete application starting at main11
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   NULL[rbits 0 to 2047] ∈ [--..--]
   A ∈ {0}
   B ∈ {0}
@@ -57,10 +57,9 @@
   U ∈ {0}
   char1 ∈ {0}
   ll1 ∈ {0}
-[value] tests/value/alias.i:260: entering loop for the first time
-[value] computing for function f2 <- main11.
+[eva] computing for function f2 <- main11.
   Called from tests/value/alias.i:268.
-[value] tests/value/alias.i:23: 
+[eva] tests/value/alias.i:23: 
   Frama_C_dump_each:
   # Cvalue domain:
   NULL[rbits 0 to 2047] ∈ [--..--]
@@ -124,28 +123,28 @@
   ll1 ∈ {0}
   i_0 ∈ {0}
   ==END OF DUMP==
-[value] Recording results for f2
-[value] Done for function f2
-[value:alarm] tests/value/alias.i:271: Warning: 
+[eva] Recording results for f2
+[eva] Done for function f2
+[eva:alarm] tests/value/alias.i:271: Warning: 
   signed overflow. assert c2 + 1 ≤ 2147483647;
-[value:alarm] tests/value/alias.i:273: Warning: 
+[eva:alarm] tests/value/alias.i:273: Warning: 
   signed overflow. assert c2 + 2 ≤ 2147483647;
-[value] tests/value/alias.i:279: entering loop for the first time
-[value:alarm] tests/value/alias.i:285: Warning: 
+[eva] tests/value/alias.i:279: starting to merge loop iterations
+[eva:alarm] tests/value/alias.i:285: Warning: 
   pointer comparison. assert \pointer_comparable((void *)PTR2, (void *)PTR1);
-[value] tests/value/alias.i:292: entering loop for the first time
-[value:alarm] tests/value/alias.i:292: Warning: 
+[eva:alarm] tests/value/alias.i:292: Warning: 
   signed overflow. assert c1 + 1 ≤ 2147483647;
-[value] Recording results for main11
-[value] done for function main11
-[value] ====== VALUES COMPUTED ======
-[value:final-states] Values at end of function f2:
+[eva] tests/value/alias.i:292: starting to merge loop iterations
+[eva] Recording results for main11
+[eva] done for function main11
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function f2:
   q_0 ∈ {{ &p2 + {1} }}
   p2[0][bits 0 to 15]# ∈ {1} repeated %8 
     [0][bits 16 to 31] ∈ {0}
     [1] ∈ {33}
     [2..4] ∈ {0}
-[value:final-states] Values at end of function main11:
+[eva:final-states] Values at end of function main11:
   A ∈ {1; 33}
   B ∈ {-32; 0; 32}
   D ∈ {33}

@@ -58,7 +58,7 @@ type prop_id = {
 let tactical ~gid =
   let ip = "Wp.Tactical." ^ gid in
   { p_kind = PKTactic ;
-    p_prop = Property.ip_other ip None Kglobal ;
+    p_prop = Property.(ip_other ip (OLGlob Cil_datatype.Location.unknown));
     p_part = None }
 
 (* -------------------------------------------------------------------------- *)
@@ -344,11 +344,8 @@ let user_prop_names p = match p with
         Format.asprintf  "%c%a" '@' Property.pretty_predicate_kind kind
       in
       kind_name::idp.ip_content.pred_name
-  | Property.IPExtended(_,_,(_,name,_)) ->
-      let kind_name =
-        Format.asprintf  "%s_extension" name
-      in
-      [kind_name]
+  | Property.IPExtended(_,(_,name,_,_)) ->
+      let kind_name = Format.asprintf "%s_extension" name in [kind_name]
   | Property.IPCodeAnnot (_,_, ca) -> code_annot_names ca
   | Property.IPComplete (_, _,_,lb) ->
       let kind_name = "@complete_behaviors" in
@@ -515,7 +512,7 @@ let annot_hints hs = function
   | AAssigns(bs,Writes froms) ->
       List.iter (add_hint hs) bs ;
       assigns_hints hs froms
-  | AAllocation _ | AAssigns(_,WritesAny) | AStmtSpec _ 
+  | AAllocation _ | AAssigns(_,WritesAny) | AStmtSpec _
   | AVariant _ | APragma _ | AExtended _ -> ()
 
 let property_hints hs = function
@@ -526,8 +523,7 @@ let property_hints hs = function
       List.iter (add_required hs) ps
   | Property.IPPredicate(_,_,_,ipred) ->
       List.iter (add_hint hs) ipred.ip_content.pred_name
-  | Property.IPExtended(_,_,(_,name,_)) ->
-      List.iter (add_hint hs) [name]
+  | Property.IPExtended(_,(_,name,_,_)) -> List.iter (add_hint hs) [name]
   | Property.IPCodeAnnot(_,_,ca) -> annot_hints hs ca.annot_content
   | Property.IPAssigns(_,_,_,froms) -> assigns_hints hs froms
   | Property.IPAllocation _ (* TODO *)

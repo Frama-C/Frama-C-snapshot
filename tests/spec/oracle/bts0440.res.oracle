@@ -5,12 +5,13 @@ int fact(int n)
   int r = 1;
   while (n > 0) {
     int tmp;
-    before:
     /*@ ensures n ≥ 0; */
-    { /* sequence */
-      tmp = n;
-      n --;
-      r *= tmp;
+    {
+      before: { /* sequence */
+                tmp = n;
+                n --;
+                r *= tmp;
+              }
     }
     /*@ assert r ≡ \at(r * n,before); */ ;
   }

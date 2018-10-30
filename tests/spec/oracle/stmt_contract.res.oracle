@@ -35,6 +35,9 @@ int main(int c)
     __retres = x;
     goto return_label;
   }
+  /*@ requires before_label: \true; */
+  label: /*@ requires after_label: \true; */
+  y = 8;
   /*@ requires x ≡ 7; */
   /*@ ensures x ≡ 7; */
   {

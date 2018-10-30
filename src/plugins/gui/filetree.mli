@@ -23,7 +23,8 @@
 (** The tree containing the list of modules and functions together with dynamic columns *)
 
 type filetree_node =
-    File of string * Cil_types.global list | Global of Cil_types.global
+  | File of Datatype.Filepath.t * Cil_types.global list
+  | Global of Cil_types.global
 (** Caml type for the infos on a node of the tree. Not all globals appear
     in the filetree. Currently, the visible ones are:
     - functions definitions, or declarations if no definition exists
@@ -43,7 +44,7 @@ class type t =  object
         @since Nitrogen-20111001  *)
 
   method set_file_attribute:
-    ?strikethrough:bool -> ?text:string -> string -> unit
+    ?strikethrough:bool -> ?text:string -> Datatype.Filepath.t -> unit
     (** Manually set some attributes of the given filename. *)
 
   method set_global_attribute:
@@ -69,7 +70,7 @@ class type t =  object
     *)
 
   method get_file_globals:
-    string -> (string * bool) list
+    Datatype.Filepath.t -> (string * bool) list
     (** Return the names and the attributes (currently only the strikethrough
         property) of the globals in the file passed as argument *)
 

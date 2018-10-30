@@ -1,8 +1,8 @@
 [kernel] Parsing tests/value/assigns_from.i (no preprocessing)
-[value] Analyzing a complete application starting at main
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing a complete application starting at main
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   u ∈ {0}
   v ∈ {0}
   k ∈ {0}
@@ -11,349 +11,341 @@
   t[0..99] ∈ {0}
   p_t ∈ {{ &t[0] }}
   t17[0..9] ∈ {0}
-[value] computing for function main1 <- main.
+[eva] computing for function main1 <- main.
   Called from tests/value/assigns_from.i:224.
-[value] computing for function f <- main1 <- main.
+[eva] computing for function f <- main1 <- main.
   Called from tests/value/assigns_from.i:30.
-[value] Recording results for f
+[eva] Recording results for f
 [from] Computing for function f
 [from] Done for function f
-[value] Done for function f
-[value] Recording results for main1
+[eva] Done for function f
+[eva] Recording results for main1
 [from] Computing for function main1
 [from] Done for function main1
-[value] tests/value/assigns_from.i:12: function main1: assigns got status valid.
-[value] tests/value/assigns_from.i:15: 
+[eva] tests/value/assigns_from.i:12: function main1: assigns got status valid.
+[eva] tests/value/assigns_from.i:15: 
   function main1, behavior true: assigns got status valid.
-[value] tests/value/assigns_from.i:15: 
+[eva] tests/value/assigns_from.i:15: 
   function main1, behavior true: \from ... part in assign clause got status valid.
-[value] tests/value/assigns_from.i:16: 
+[eva] tests/value/assigns_from.i:16: 
   function main1, behavior true: \from ... part in assign clause got status valid.
-[value] tests/value/assigns_from.i:19: 
+[eva] tests/value/assigns_from.i:19: 
   function main1, behavior ok_too_large: assigns got status valid.
-[value] tests/value/assigns_from.i:19: 
+[eva] tests/value/assigns_from.i:19: 
   function main1, behavior ok_too_large: \from ... part in assign clause got status valid.
-[value] tests/value/assigns_from.i:20: 
+[eva] tests/value/assigns_from.i:20: 
   function main1, behavior ok_too_large: \from ... part in assign clause got status valid.
-[value] tests/value/assigns_from.i:23: 
+[eva] tests/value/assigns_from.i:23: 
   function main1, behavior wrong: assigns got status valid.
-[value] tests/value/assigns_from.i:23: 
+[eva] tests/value/assigns_from.i:23: 
   function main1, behavior wrong: \from ... part in assign clause got status valid.
-[value:alarm] tests/value/assigns_from.i:24: Warning: 
+[eva:alarm] tests/value/assigns_from.i:24: Warning: 
   function main1, behavior wrong: \from ... part in assign clause got status unknown (cannot validate direct dependencies).
-[value] Done for function main1
-[value] computing for function main15 <- main.
+[eva] Done for function main1
+[eva] computing for function main15 <- main.
   Called from tests/value/assigns_from.i:225.
-[value] Recording results for main15
+[eva] Recording results for main15
 [from] Computing for function main15
 [from] Done for function main15
-[value] tests/value/assigns_from.i:37: 
-  function main15: assigns got status valid.
-[value] tests/value/assigns_from.i:37: 
+[eva] tests/value/assigns_from.i:37: function main15: assigns got status valid.
+[eva] tests/value/assigns_from.i:37: 
   function main15: \from ... part in assign clause got status valid.
-[value] tests/value/assigns_from.i:37: 
+[eva] tests/value/assigns_from.i:37: 
   function main15: \from ... part in assign clause got status valid.
-[value] tests/value/assigns_from.i:37: 
+[eva] tests/value/assigns_from.i:37: 
   function main15: \from ... part in assign clause got status valid.
-[value] Done for function main15
-[value] computing for function main2 <- main.
+[eva] Done for function main15
+[eva] computing for function main2 <- main.
   Called from tests/value/assigns_from.i:226.
-[value] Recording results for main2
+[eva] Recording results for main2
 [from] Computing for function main2
 [from] Done for function main2
-[value] tests/value/assigns_from.i:45: function main2: assigns got status valid.
-[value] tests/value/assigns_from.i:45: 
+[eva] tests/value/assigns_from.i:45: function main2: assigns got status valid.
+[eva] tests/value/assigns_from.i:45: 
   function main2: \from ... part in assign clause got status valid.
-[value] tests/value/assigns_from.i:48: 
+[eva] tests/value/assigns_from.i:48: 
   function main2, behavior true: assigns got status valid.
-[value] tests/value/assigns_from.i:48: 
+[eva] tests/value/assigns_from.i:48: 
   function main2, behavior true: \from ... part in assign clause got status valid.
-[value:alarm] tests/value/assigns_from.i:52: Warning: 
+[eva:alarm] tests/value/assigns_from.i:52: Warning: 
   function main2, behavior wrongassigns: assigns got status unknown.
-[value] tests/value/assigns_from.i:52: 
+[eva] tests/value/assigns_from.i:52: 
   function main2, behavior wrongassigns: \from ... part in assign clause got status valid.
-[value] tests/value/assigns_from.i:56: 
+[eva] tests/value/assigns_from.i:56: 
   function main2, behavior true2: assigns got status valid.
-[value] tests/value/assigns_from.i:56: 
+[eva] tests/value/assigns_from.i:56: 
   function main2, behavior true2: \from ... part in assign clause got status valid.
-[value] tests/value/assigns_from.i:60: 
+[eva] tests/value/assigns_from.i:60: 
   function main2, behavior wrongfrom: assigns got status valid.
-[value:alarm] tests/value/assigns_from.i:60: Warning: 
+[eva:alarm] tests/value/assigns_from.i:60: Warning: 
   function main2, behavior wrongfrom: \from ... part in assign clause got status unknown (cannot validate direct dependencies).
-[value] Done for function main2
-[value] computing for function Frama_C_interval <- main.
+[eva] Done for function main2
+[eva] computing for function Frama_C_interval <- main.
   Called from tests/value/assigns_from.i:227.
-[value] using specification for function Frama_C_interval
-[value] Done for function Frama_C_interval
-[value] computing for function main3 <- main.
+[eva] using specification for function Frama_C_interval
+[eva] Done for function Frama_C_interval
+[eva] computing for function main3 <- main.
   Called from tests/value/assigns_from.i:228.
-[value] Recording results for main3
+[eva] Recording results for main3
 [from] Computing for function main3
 [from] Done for function main3
-[value] tests/value/assigns_from.i:67: function main3: assigns got status valid.
-[value] tests/value/assigns_from.i:67: 
+[eva] tests/value/assigns_from.i:67: function main3: assigns got status valid.
+[eva] tests/value/assigns_from.i:67: 
   function main3: \from ... part in assign clause got status valid.
-[value] Done for function main3
-[value] computing for function main3 <- main.
+[eva] Done for function main3
+[eva] computing for function main3 <- main.
   Called from tests/value/assigns_from.i:229.
-[value] Recording results for main3
+[eva] Recording results for main3
 [from] Computing for function main3
 [from] Done for function main3
-[value:alarm] tests/value/assigns_from.i:67: Warning: 
+[eva:alarm] tests/value/assigns_from.i:67: Warning: 
   function main3: assigns got status unknown.
-[value] Done for function main3
-[value] computing for function main4 <- main.
+[eva] Done for function main3
+[eva] computing for function main4 <- main.
   Called from tests/value/assigns_from.i:230.
-[value] Recording results for main4
+[eva] Recording results for main4
 [from] Computing for function main4
 [from] Done for function main4
-[value] tests/value/assigns_from.i:78: 
+[eva] tests/value/assigns_from.i:78: 
   function main4, behavior true: assigns got status valid.
-[value] tests/value/assigns_from.i:78: 
+[eva] tests/value/assigns_from.i:78: 
   function main4, behavior true: \from ... part in assign clause got status valid.
-[value] tests/value/assigns_from.i:82: 
+[eva] tests/value/assigns_from.i:82: 
   function main4, behavior wrong: assigns got status valid.
-[value:alarm] tests/value/assigns_from.i:82: Warning: 
+[eva:alarm] tests/value/assigns_from.i:82: Warning: 
   function main4, behavior wrong: \from ... part in assign clause got status unknown (cannot validate direct dependencies).
-[value] Done for function main4
-[value] computing for function main5 <- main.
+[eva] Done for function main4
+[eva] computing for function main5 <- main.
   Called from tests/value/assigns_from.i:231.
-[value] Recording results for main5
+[eva] Recording results for main5
 [from] Computing for function main5
 [from] Done for function main5
-[value] tests/value/assigns_from.i:92: 
+[eva] tests/value/assigns_from.i:92: 
   function main5, behavior wrong: assigns got status valid.
-[value:alarm] tests/value/assigns_from.i:92: Warning: 
+[eva:alarm] tests/value/assigns_from.i:92: Warning: 
   function main5, behavior wrong: \from ... part in assign clause got status unknown (cannot validate direct dependencies).
-[value] tests/value/assigns_from.i:95: 
+[eva] tests/value/assigns_from.i:95: 
   function main5, behavior true: assigns got status valid.
-[value] tests/value/assigns_from.i:95: 
+[eva] tests/value/assigns_from.i:95: 
   function main5, behavior true: \from ... part in assign clause got status valid.
-[value] Done for function main5
-[value] computing for function Frama_C_interval <- main.
+[eva] Done for function main5
+[eva] computing for function Frama_C_interval <- main.
   Called from tests/value/assigns_from.i:232.
-[value] Done for function Frama_C_interval
-[value] computing for function Frama_C_interval <- main.
+[eva] Done for function Frama_C_interval
+[eva] computing for function Frama_C_interval <- main.
   Called from tests/value/assigns_from.i:233.
-[value] Done for function Frama_C_interval
-[value] computing for function main6_right <- main.
+[eva] Done for function Frama_C_interval
+[eva] computing for function main6_right <- main.
   Called from tests/value/assigns_from.i:234.
-[value] Recording results for main6_right
+[eva] Recording results for main6_right
 [from] Computing for function main6_right
 [from] Done for function main6_right
-[value] tests/value/assigns_from.i:111: 
+[eva] tests/value/assigns_from.i:111: 
   function main6_right: assigns got status valid.
-[value] Done for function main6_right
-[value] computing for function main6_wrong <- main.
+[eva] Done for function main6_right
+[eva] computing for function main6_wrong <- main.
   Called from tests/value/assigns_from.i:235.
-[value] Recording results for main6_wrong
+[eva] Recording results for main6_wrong
 [from] Computing for function main6_wrong
 [from] Done for function main6_wrong
-[value:alarm] tests/value/assigns_from.i:102: Warning: 
+[eva:alarm] tests/value/assigns_from.i:102: Warning: 
   function main6_wrong: assigns got status unknown.
-[value] Done for function main6_wrong
-[value] computing for function main7 <- main.
+[eva] Done for function main6_wrong
+[eva] computing for function main7 <- main.
   Called from tests/value/assigns_from.i:236.
-[value] Recording results for main7
+[eva] Recording results for main7
 [from] Computing for function main7
 [from] Done for function main7
-[value] tests/value/assigns_from.i:119: 
+[eva] tests/value/assigns_from.i:119: 
   function main7, behavior right: assigns got status valid.
-[value:alarm] tests/value/assigns_from.i:122: Warning: 
+[eva:alarm] tests/value/assigns_from.i:122: Warning: 
   function main7, behavior wrong: assigns got status unknown.
-[value] Done for function main7
-[value] computing for function main8 <- main.
+[eva] Done for function main7
+[eva] computing for function main8 <- main.
   Called from tests/value/assigns_from.i:239.
-[value] Recording results for main8
+[eva] Recording results for main8
 [from] Computing for function main8
 [from] Done for function main8
-[value] tests/value/assigns_from.i:130: 
-  function main8: assigns got status valid.
-[value] tests/value/assigns_from.i:130: 
+[eva] tests/value/assigns_from.i:130: function main8: assigns got status valid.
+[eva] tests/value/assigns_from.i:130: 
   function main8: \from ... part in assign clause got status valid.
-[value] Done for function main8
-[value] computing for function main8 <- main.
+[eva] Done for function main8
+[eva] computing for function main8 <- main.
   Called from tests/value/assigns_from.i:241.
-[value] Recording results for main8
+[eva] Recording results for main8
 [from] Computing for function main8
 [from] Done for function main8
-[value:alarm] tests/value/assigns_from.i:130: Warning: 
+[eva:alarm] tests/value/assigns_from.i:130: Warning: 
   function main8: assigns got status unknown.
-[value] Done for function main8
-[value] computing for function main9 <- main.
+[eva] Done for function main8
+[eva] computing for function main9 <- main.
   Called from tests/value/assigns_from.i:243.
-[value] Recording results for main9
+[eva] Recording results for main9
 [from] Computing for function main9
 [from] Done for function main9
-[kernel] tests/value/assigns_from.i:141: Warning: using size of 'void'
-[value] tests/value/assigns_from.i:135: 
-  function main9: assigns got status valid.
-[value] Done for function main9
-[value] computing for function main10 <- main.
+[eva] tests/value/assigns_from.i:135: function main9: assigns got status valid.
+[eva] Done for function main9
+[eva] computing for function main10 <- main.
   Called from tests/value/assigns_from.i:244.
-[value] tests/value/assigns_from.i:152: entering loop for the first time
-[value] computing for function c <- main10 <- main.
+[eva] computing for function c <- main10 <- main.
   Called from tests/value/assigns_from.i:152.
 [kernel:annot:missing-spec] tests/value/assigns_from.i:152: Warning: 
   Neither code nor specification for function c, generating default assigns from the prototype
-[value] using specification for function c
-[value] Done for function c
-[value] computing for function c <- main10 <- main.
+[eva] using specification for function c
+[eva] Done for function c
+[eva] tests/value/assigns_from.i:152: starting to merge loop iterations
+[eva] computing for function c <- main10 <- main.
   Called from tests/value/assigns_from.i:152.
-[value] Done for function c
-[value] computing for function c <- main10 <- main.
+[eva] Done for function c
+[eva] computing for function c <- main10 <- main.
   Called from tests/value/assigns_from.i:152.
-[value] Done for function c
-[value] computing for function c <- main10 <- main.
+[eva] Done for function c
+[eva] computing for function c <- main10 <- main.
   Called from tests/value/assigns_from.i:152.
-[value] Done for function c
-[value] computing for function c <- main10 <- main.
+[eva] Done for function c
+[eva] computing for function c <- main10 <- main.
   Called from tests/value/assigns_from.i:152.
-[value] Done for function c
-[value:alarm] tests/value/assigns_from.i:154: Warning: 
+[eva] Done for function c
+[eva:alarm] tests/value/assigns_from.i:154: Warning: 
   assertion got status unknown.
-[value] Recording results for main10
+[eva] Recording results for main10
 [from] Computing for function main10
 [from] Done for function main10
-[value] Done for function main10
-[value] computing for function main11 <- main.
+[eva] Done for function main10
+[eva] computing for function main11 <- main.
   Called from tests/value/assigns_from.i:245.
-[value] Recording results for main11
+[eva] Recording results for main11
 [from] Computing for function main11
 [from] Done for function main11
-[value] tests/value/assigns_from.i:157: 
-  function main11: assigns got status valid.
-[value] tests/value/assigns_from.i:157: 
+[eva] tests/value/assigns_from.i:157: function main11: assigns got status valid.
+[eva] tests/value/assigns_from.i:157: 
   function main11: \from ... part in assign clause got status valid.
-[value] Done for function main11
-[value] computing for function main11 <- main.
+[eva] Done for function main11
+[eva] computing for function main11 <- main.
   Called from tests/value/assigns_from.i:246.
-[value] Recording results for main11
+[eva] Recording results for main11
 [from] Computing for function main11
 [from] Done for function main11
-[value:alarm] tests/value/assigns_from.i:157: Warning: 
+[eva:alarm] tests/value/assigns_from.i:157: Warning: 
   function main11: assigns got status unknown.
-[value:alarm] tests/value/assigns_from.i:157: Warning: 
+[eva:alarm] tests/value/assigns_from.i:157: Warning: 
   function main11: \from ... part in assign clause got status unknown (cannot validate direct dependencies).
-[value] Done for function main11
-[value] computing for function Frama_C_interval <- main.
+[eva] Done for function main11
+[eva] computing for function Frama_C_interval <- main.
   Called from tests/value/assigns_from.i:247.
-[value] Done for function Frama_C_interval
-[value] computing for function main11 <- main.
+[eva] Done for function Frama_C_interval
+[eva] computing for function main11 <- main.
   Called from tests/value/assigns_from.i:247.
-[value] Recording results for main11
+[eva] Recording results for main11
 [from] Computing for function main11
 [from] Done for function main11
-[value] Done for function main11
-[value] computing for function main12 <- main.
+[eva] Done for function main11
+[eva] computing for function main12 <- main.
   Called from tests/value/assigns_from.i:248.
-[value] Recording results for main12
+[eva] Recording results for main12
 [from] Computing for function main12
 [from] Done for function main12
-[value] tests/value/assigns_from.i:169: 
+[eva] tests/value/assigns_from.i:169: 
   function main12, behavior ok: assigns got status valid.
-[value] tests/value/assigns_from.i:167: 
+[eva] tests/value/assigns_from.i:167: 
   function main12, behavior ok: \from ... part in assign clause got status valid.
-[value] Done for function main12
-[value] computing for function main13 <- main.
+[eva] Done for function main12
+[eva] computing for function main13 <- main.
   Called from tests/value/assigns_from.i:249.
-[value] Recording results for main13
+[eva] Recording results for main13
 [from] Computing for function main13
 [from] Done for function main13
-[value] tests/value/assigns_from.i:179: 
+[eva] tests/value/assigns_from.i:179: 
   function main13, behavior ok: assigns got status valid.
-[value] tests/value/assigns_from.i:174: 
+[eva] tests/value/assigns_from.i:174: 
   function main13, behavior ok: \from ... part in assign clause got status valid.
-[value] tests/value/assigns_from.i:179: 
+[eva] tests/value/assigns_from.i:179: 
   function main13, behavior bad: assigns got status valid.
-[value:alarm] tests/value/assigns_from.i:177: Warning: 
+[eva:alarm] tests/value/assigns_from.i:177: Warning: 
   function main13, behavior bad: \from ... part in assign clause got status unknown (cannot validate direct dependencies).
-[value] Done for function main13
-[value] computing for function main14 <- main.
+[eva] Done for function main13
+[eva] computing for function main14 <- main.
   Called from tests/value/assigns_from.i:250.
-[value] tests/value/assigns_from.i:183: entering loop for the first time
-[value] Recording results for main14
+[eva] tests/value/assigns_from.i:183: starting to merge loop iterations
+[eva] Recording results for main14
 [from] Computing for function main14
 [from] Done for function main14
-[value] tests/value/assigns_from.i:181: 
-  function main14: assigns got status valid.
-[value:alarm] tests/value/assigns_from.i:181: Warning: 
+[eva] tests/value/assigns_from.i:181: function main14: assigns got status valid.
+[eva:alarm] tests/value/assigns_from.i:181: Warning: 
   function main14: \from ... part in assign clause got status unknown (cannot validate direct dependencies).
-[value] Done for function main14
-[value] computing for function main16 <- main.
+[eva] Done for function main14
+[eva] computing for function main16 <- main.
   Called from tests/value/assigns_from.i:251.
-[value] tests/value/assigns_from.i:188: entering loop for the first time
-[value] Recording results for main16
+[eva] tests/value/assigns_from.i:188: starting to merge loop iterations
+[eva] Recording results for main16
 [from] Computing for function main16
 [from] Done for function main16
-[value] tests/value/assigns_from.i:186: 
-  function main16: assigns got status valid.
-[value:alarm] tests/value/assigns_from.i:186: Warning: 
+[eva] tests/value/assigns_from.i:186: function main16: assigns got status valid.
+[eva:alarm] tests/value/assigns_from.i:186: Warning: 
   function main16: \from ... part in assign clause got status unknown (cannot validate direct dependencies).
-[value] Done for function main16
-[value] computing for function main17 <- main.
+[eva] Done for function main16
+[eva] computing for function main17 <- main.
   Called from tests/value/assigns_from.i:252.
-[value] tests/value/assigns_from.i:195: entering loop for the first time
-[value] Recording results for main17
+[eva] tests/value/assigns_from.i:195: starting to merge loop iterations
+[eva] Recording results for main17
 [from] Computing for function main17
 [from] Done for function main17
-[value] tests/value/assigns_from.i:193: 
-  function main17: assigns got status valid.
-[value:alarm] tests/value/assigns_from.i:193: Warning: 
+[eva] tests/value/assigns_from.i:193: function main17: assigns got status valid.
+[eva:alarm] tests/value/assigns_from.i:193: Warning: 
   function main17: \from ... part in assign clause got status unknown (cannot validate direct and indirect dependencies).
-[value] Done for function main17
-[value] computing for function main18 <- main.
+[eva] Done for function main17
+[eva] computing for function main18 <- main.
   Called from tests/value/assigns_from.i:253.
-[value] computing for function f18 <- main18 <- main.
+[eva] computing for function f18 <- main18 <- main.
   Called from tests/value/assigns_from.i:215.
-[value] using specification for function f18
-[value] Done for function f18
-[value] Recording results for main18
+[eva] using specification for function f18
+[eva] Done for function f18
+[eva] Recording results for main18
 [from] Computing for function main18
 [from] Done for function main18
-[value] Done for function main18
-[value] Recording results for main
+[eva] Done for function main18
+[eva] Recording results for main
 [from] Computing for function main
 [from] Done for function main
-[value] done for function main
-[value] ====== VALUES COMPUTED ======
-[value:final-states] Values at end of function f:
+[eva] done for function main
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function f:
   k ∈ {0}
-[value:final-states] Values at end of function main1:
+[eva:final-states] Values at end of function main1:
   u ∈ {0}
   k ∈ {3}
-[value:final-states] Values at end of function main10:
+[eva:final-states] Values at end of function main10:
   t10[0..13] ∈ {3} or UNINITIALIZED
      [14..37] ∈ {3}
      [38..49] ∈ {3} or UNINITIALIZED
   i ∈ {50}
-[value:final-states] Values at end of function main11:
+[eva:final-states] Values at end of function main11:
   a[0..1] ∈ {0; 3}
    [2] ∈ {3}
    [3..8] ∈ {0}
    [9] ∈ {0; 3}
-[value:final-states] Values at end of function main12:
+[eva:final-states] Values at end of function main12:
   __retres ∈ {{ &t[0] }}
-[value:final-states] Values at end of function main13:
+[eva:final-states] Values at end of function main13:
   
-[value:final-states] Values at end of function main14:
+[eva:final-states] Values at end of function main14:
   t[0..1] ∈ {0}
    [2..38] ∈ [0..38]
    [39..99] ∈ {0}
   i ∈ {39}
-[value:final-states] Values at end of function main15:
+[eva:final-states] Values at end of function main15:
   a[0..2] ∈ {0}
    [3] ∈ {2}
    [4] ∈ {3}
    [5] ∈ {4}
    [6..9] ∈ {0}
-[value:final-states] Values at end of function main16:
+[eva:final-states] Values at end of function main16:
   t[0] ∈ {0}
    [1] ∈ [0..19]
    [2..38] ∈ [0..38]
    [39..99] ∈ {0}
   i ∈ {20}
-[value:final-states] Values at end of function main17:
+[eva:final-states] Values at end of function main17:
   t17[0][bits 0 to 7] ∈ [0..9]
      [0][bits 8 to 31] ∈ {0}
      [1][bits 0 to 7] ∈ [0..9]
@@ -375,7 +367,7 @@
      [9][bits 0 to 7] ∈ [0..9]
      [9][bits 8 to 31] ∈ {0}
   j ∈ [10..2147483647]
-[value:final-states] Values at end of function main18:
+[eva:final-states] Values at end of function main18:
   base_a ∈ {17}
   a_0.addr ∈
      {{ garbled mix of &{base_a; base_b}
@@ -390,20 +382,20 @@
    .i ∈
    {{ garbled mix of &{base_a; base_b}
     (origin: Misaligned {tests/value/assigns_from.i:215}) }} or UNINITIALIZED
-[value:final-states] Values at end of function main2:
+[eva:final-states] Values at end of function main2:
   a[0..2] ∈ {0}
    [3] ∈ {2}
    [4] ∈ {3}
    [5] ∈ {4}
    [6..9] ∈ {0}
-[value:final-states] Values at end of function main3:
+[eva:final-states] Values at end of function main3:
   a[0..2] ∈ {0; 3}
    [3] ∈ {2; 3}
    [4] ∈ {3}
    [5] ∈ {3; 4}
    [6] ∈ {3}
    [7..9] ∈ {0; 3}
-[value:final-states] Values at end of function main4:
+[eva:final-states] Values at end of function main4:
   a[0..1] ∈ {0; 3}
    [2] ∈ {3}
    [3] ∈ {2; 3}
@@ -411,7 +403,7 @@
    [5] ∈ {3; 4}
    [6] ∈ {3}
    [7..9] ∈ {0; 3}
-[value:final-states] Values at end of function main5:
+[eva:final-states] Values at end of function main5:
   a[0..1] ∈ {0; 3}
    [2] ∈ {3}
    [3] ∈ {2; 3}
@@ -419,26 +411,26 @@
    [5] ∈ {3; 4}
    [6] ∈ {3}
    [7..9] ∈ {0; 3}
-[value:final-states] Values at end of function main6_right:
+[eva:final-states] Values at end of function main6_right:
   a[0..1] ∈ {0; 3}
    [2] ∈ {3}
    [3..5] ∈ {0}
    [6] ∈ {3}
    [7..9] ∈ {0; 3}
-[value:final-states] Values at end of function main6_wrong:
+[eva:final-states] Values at end of function main6_wrong:
   a[0..1] ∈ {0; 3}
    [2..6] ∈ {0}
    [7..9] ∈ {0; 3}
-[value:final-states] Values at end of function main7:
+[eva:final-states] Values at end of function main7:
   a[0..1] ∈ {0; 3}
    [2..8] ∈ {0}
    [9] ∈ {0; 3}
-[value:final-states] Values at end of function main8:
+[eva:final-states] Values at end of function main8:
   c_0 ∈ {4}
   d ∈ {4} or UNINITIALIZED
-[value:final-states] Values at end of function main9:
+[eva:final-states] Values at end of function main9:
   
-[value:final-states] Values at end of function main:
+[eva:final-states] Values at end of function main:
   u ∈ {0}
   k ∈ {3}
   a[0..1] ∈ {0; 3}

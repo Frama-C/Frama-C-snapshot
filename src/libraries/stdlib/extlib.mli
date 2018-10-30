@@ -135,11 +135,13 @@ val opt_of_list: 'a list -> 'a option
       @since Oxygen-20120901 *)
 
 val find_opt : ('a -> 'b option) -> 'a list -> 'b
+[@@deprecated "Use Transitioning.List.find_opt instead."]
   (** [find_option p l] returns the value [p e], [e] being the first
       element of [l] such that [p e] is not [None]. Raise [Not_found] if there
       is no such value the list l.
 
-      @since Nitrogen-20111001 *)
+      @since Nitrogen-20111001
+      @deprecated Frama-C+dev use [Transitioning.List.find_opt] instead *)
 
 val iteri: (int -> 'a -> unit) -> 'a list -> unit
   (** Same as iter, but the function to be applied take also as argument the
@@ -160,6 +162,23 @@ val subsets: int -> 'a list -> 'a list list
       This function preserves the order of the elements in [l] when
       computing the sublists. [l] should not contain duplicates.
       @since Aluminium-20160501 *)
+
+val list_first_n : int -> 'a list -> 'a list
+(** [list_first_n n l] returns the first [n] elements of the list. Tail
+    recursive.
+    It returns an empty list if [n] is nonpositive and the whole list if [n] is
+    greater than [List.length l].
+    It is equivalent to [list_slice ~last:n l]. *)
+
+val list_slice: ?first:int -> ?last:int -> 'a list -> 'a list
+(** [list_slice ?first ?last l] is equivalent to Python's slice operator
+    (l[first:last]): returns the range of the list between [first] (inclusive)
+    and [last] (exclusive), starting from 0.
+    If omitted, [first] defaults to 0 and [last] to [List.length l].
+    Negative indices are allowed, and count from the end of the list.
+    [list_slice] never raises exceptions: out-of-bounds arguments are clipped,
+    and inverted ranges result in empty lists.
+    @since Frama-C+dev *)
 
 (* ************************************************************************* *)
 (** {2 Arrays} *)
@@ -284,6 +303,13 @@ val make_unique_name:
       derived from [(s,sep,start)] and [(mem new_string)=false] and [n<>0] 
       @since Oxygen-20120901 *)
 
+val strip_underscore: string -> string
+(** remove underscores at the beginning and end of a string. If a string
+    is composed solely of underscores, return the empty string
+
+    @since Frama-C+dev
+  *)
+
 val html_escape: string -> string
 
 (* ************************************************************************* *)
@@ -336,9 +362,6 @@ val safe_remove: string -> unit
   (** Tries to delete a file and never fails. *)
 
 val safe_remove_dir: string -> unit
-
-val terminate_process: int -> unit
-  (** Terminate a process id. *)
 
 val usleep: int -> unit
   (** Unix function that sleep for [n] microseconds.

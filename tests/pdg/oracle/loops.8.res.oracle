@@ -1,11 +1,11 @@
 [kernel] Parsing tests/pdg/loops.c (with preprocessing)
-[value] Analyzing an incomplete application starting at dead_code
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing an incomplete application starting at dead_code
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   after ∈ [--..--]
-[value] Recording results for dead_code
-[value] done for function dead_code
+[eva] Recording results for dead_code
+[eva] done for function dead_code
 [pdg] computing for function dead_code
 [pdg] done for function dead_code
 [pdg] PDG for dead_code

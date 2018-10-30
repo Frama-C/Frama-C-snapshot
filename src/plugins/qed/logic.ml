@@ -180,11 +180,11 @@ sig
 
   module Term : Symbol with type t = term
 
-  (** Non-structural, machine dependent, 
+  (** Non-structural, machine dependent,
       but fast comparison and efficient merges *)
   module Tset : Idxset.S with type elt = term
 
-  (** Non-structural, machine dependent, 
+  (** Non-structural, machine dependent,
       but fast comparison and efficient merges *)
   module Tmap : Idxmap.S with type key = term
 
@@ -193,7 +193,7 @@ sig
 
   (** Structuraly ordered, but less efficient access and non-linear merges *)
   module STmap : Map.S with type key = term
-  
+
   (** {3 Variables} *)
 
   type var = Var.t
@@ -346,14 +346,14 @@ sig
 
   val set_builtin : Fun.t -> (term list -> term) -> unit
   (** Register a simplifier for function [f]. The computation code
-      	may raise [Not_found], in which case the symbol is not interpreted.
+        may raise [Not_found], in which case the symbol is not interpreted.
 
-      	If [f] is an operator with algebraic rules (see type
-      	[operator]), the children are normalized {i before} builtin
-      	call.
+        If [f] is an operator with algebraic rules (see type
+        [operator]), the children are normalized {i before} builtin
+        call.
 
-      	Highest priority is [0].
-      	Recursive calls must be performed on strictly smaller terms.
+        Highest priority is [0].
+        Recursive calls must be performed on strictly smaller terms.
   *)
 
   val set_builtin_map : Fun.t -> (term list -> term list) -> unit
@@ -363,23 +363,28 @@ sig
       to run into an infinite loop.
   *)
 
+  val set_builtin_get : Fun.t -> (term list -> term -> term) -> unit
+  (** [set_builtin_get f rewrite] register a builtin
+      for rewriting [(f a1..an)[k]] into [rewrite (a1..an) k].
+  *)
+
   val set_builtin_eq : Fun.t -> (term -> term -> term) -> unit
   (** Register a builtin equality for comparing any term with head-symbol.
-      	{b Must} only use recursive comparison for strictly smaller terms.
-      	The recognized term with head function symbol is passed first.
+        {b Must} only use recursive comparison for strictly smaller terms.
+        The recognized term with head function symbol is passed first.
 
-      	Highest priority is [0].
-      	Recursive calls must be performed on strictly smaller terms.
+        Highest priority is [0].
+        Recursive calls must be performed on strictly smaller terms.
   *)
 
   val set_builtin_leq : Fun.t -> (term -> term -> term) -> unit
   (** Register a builtin for comparing any term with head-symbol.
-      	{b Must} only use recursive comparison for strictly smaller terms.
-      	The recognized term with head function symbol can be on both sides.
-      	Strict comparison is automatically derived from the non-strict one.
+        {b Must} only use recursive comparison for strictly smaller terms.
+        The recognized term with head function symbol can be on both sides.
+        Strict comparison is automatically derived from the non-strict one.
 
-      	Highest priority is [0].
-      	Recursive calls must be performed on strictly smaller terms.
+        Highest priority is [0].
+        Recursive calls must be performed on strictly smaller terms.
   *)
 
   (** {3 Specific Patterns} *)
@@ -431,15 +436,15 @@ sig
     ?subterms:((term -> unit) -> term -> unit) ->
     term list -> term list
   (** Computes the sub-terms that appear several times.
-      	[shared marked linked e] returns the shared subterms of [e].
+        [shared marked linked e] returns the shared subterms of [e].
 
-      	The list of shared subterms is consistent with
-      	order of definition: each trailing terms only depend on heading ones.
+        The list of shared subterms is consistent with
+        order of definition: each trailing terms only depend on heading ones.
 
-      	The traversal is controlled by two optional arguments:
-      	- [shared] those terms are not traversed (considered as atomic, default to none)
-      	- [shareable] those terms ([is_simple] excepted) that can be shared (default to all)
-      	- [subterms] those sub-terms a term to be considered during
+        The traversal is controlled by two optional arguments:
+        - [shared] those terms are not traversed (considered as atomic, default to none)
+        - [shareable] those terms ([is_simple] excepted) that can be shared (default to all)
+        - [subterms] those sub-terms a term to be considered during
           traversal ([lc_iter] by default)
   *)
 

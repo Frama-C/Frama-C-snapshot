@@ -47,7 +47,7 @@ let rec merge a b =
   | Sint , Sint -> Sint
   | Sint , Sreal | Sreal , Sint -> Sreal
   | Sreal , Sreal -> Sreal
-  | Sdata , _ | _ , Sdata -> Sdata 
+  | Sdata , _ | _ , Sdata -> Sdata
 
 let image = function Sarray s -> s | _ -> Sdata
 

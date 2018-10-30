@@ -1,5 +1,5 @@
 /* run.config*
-   OPT: -no-autoload-plugins -load-module inout,value -val @VALUECONFIG@ -warn-signed-overflow
+   OPT: -no-autoload-plugins -load-module inout,eva -eva @VALUECONFIG@ -warn-signed-overflow
 */
 
 #include <limits.h>
@@ -11,7 +11,7 @@ unsigned long ulu;
 long long lll, llu;
 unsigned long long ullu;
 
-main()
+int main()
 {
   cl = CHAR_MIN;
   cu = CHAR_MAX;
@@ -28,4 +28,5 @@ main()
   lll = LLONG_MIN;
   llu = LLONG_MAX;
   ullu = ULLONG_MAX;
+  return 0;
 }

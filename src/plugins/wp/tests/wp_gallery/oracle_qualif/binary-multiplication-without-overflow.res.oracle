@@ -1,42 +1,36 @@
-# frama-c -wp -warn-unsigned-overflow [...]
+# frama-c -wp -wp-timeout 90 -wp-steps 1500 -warn-unsigned-overflow [...]
 [kernel] Parsing tests/wp_gallery/binary-multiplication-without-overflow.c (with preprocessing)
 [wp] Running WP plugin...
 [wp] Loading driver 'share/wp.driver'
 [wp] Warning: Missing RTE guards
-[wp] 12 goals scheduled
-[wp] [Alt-Ergo] Goal typed_lemma_ax2_ok : Unknown
+[wp] 9 goals scheduled
 [wp] [Qed] Goal typed_lemma_sizeof_uint32_t_ok : Valid
 [wp] [Qed] Goal typed_lemma_sizeof_uint64_t_ok : Valid
 [wp] [Alt-Ergo] Goal typed_BinaryMultiplication_post_product : Valid
 [wp] [Alt-Ergo] Goal typed_BinaryMultiplication_assert_a1_ok_deductible : Valid
-[wp] [Alt-Ergo] Goal typed_BinaryMultiplication_loop_inv_inv1_ok_preserved : Timeout
-[wp] [Qed] Goal typed_BinaryMultiplication_loop_inv_inv1_ok_established : Valid
 [wp] [Alt-Ergo] Goal typed_BinaryMultiplication_loop_inv_inv2_ok_deductible_preserved : Valid
 [wp] [Alt-Ergo] Goal typed_BinaryMultiplication_loop_inv_inv2_ok_deductible_established : Valid
 [wp] [Qed] Goal typed_BinaryMultiplication_loop_assign : Valid
 [wp] [Alt-Ergo] Goal typed_BinaryMultiplication_loop_term_decrease : Valid
 [wp] [Alt-Ergo] Goal typed_BinaryMultiplication_loop_term_positive : Valid
-[wp] Proved goals:   10 / 12
-  Qed:             4 
-  Alt-Ergo:        6  (interrupted: 1) (unknown: 1)
+[wp] Proved goals:    9 / 9
+  Qed:             3 
+  Alt-Ergo:        6
 [wp] Report 'tests/wp_gallery/binary-multiplication-without-overflow.c.0.report.json'
 -------------------------------------------------------------
 Axiomatics          WP     Alt-Ergo        Total   Success
-Axiomatic mult       2     -                 3      66.7%
+Axiomatic mult       2     -                 2       100%
 -------------------------------------------------------------
 Functions           WP     Alt-Ergo        Total   Success
-BinaryMultiplication   2    6 (56..80)       9      88.9%
+BinaryMultiplication   1    6 (56..80)       7       100%
 -------------------------------------------------------------
 [wp] Running WP plugin...
 [rte] annotating function BinaryMultiplication
-[wp] 16 goals scheduled
-[wp] [Alt-Ergo] Goal typed_lemma_ax2_ok : Unknown
+[wp] 13 goals scheduled
 [wp] [Qed] Goal typed_lemma_sizeof_uint32_t_ok : Valid
 [wp] [Qed] Goal typed_lemma_sizeof_uint64_t_ok : Valid
 [wp] [Alt-Ergo] Goal typed_BinaryMultiplication_post_product : Valid
 [wp] [Alt-Ergo] Goal typed_BinaryMultiplication_assert_a1_ok_deductible : Valid
-[wp] [Alt-Ergo] Goal typed_BinaryMultiplication_loop_inv_inv1_ok_preserved : Timeout
-[wp] [Qed] Goal typed_BinaryMultiplication_loop_inv_inv1_ok_established : Valid
 [wp] [Alt-Ergo] Goal typed_BinaryMultiplication_loop_inv_inv2_ok_deductible_preserved : Valid
 [wp] [Alt-Ergo] Goal typed_BinaryMultiplication_loop_inv_inv2_ok_deductible_established : Valid
 [wp] [Alt-Ergo] Goal typed_BinaryMultiplication_assert_rte_unsigned_overflow : Valid
@@ -46,14 +40,14 @@ BinaryMultiplication   2    6 (56..80)       9      88.9%
 [wp] [Qed] Goal typed_BinaryMultiplication_loop_assign : Valid
 [wp] [Alt-Ergo] Goal typed_BinaryMultiplication_loop_term_decrease : Valid
 [wp] [Alt-Ergo] Goal typed_BinaryMultiplication_loop_term_positive : Valid
-[wp] Proved goals:   11 / 16
-  Qed:             1 
-  Alt-Ergo:       10  (interrupted: 1) (unknown: 1)
+[wp] Proved goals:   10 / 13
+  Qed:             0 
+  Alt-Ergo:       10
 [wp] Report 'tests/wp_gallery/binary-multiplication-without-overflow.c.0.report.json'
 -------------------------------------------------------------
 Axiomatics          WP     Alt-Ergo        Total   Success
-Axiomatic mult       2     -                 3      66.7%
+Axiomatic mult       2     -                 2       100%
 -------------------------------------------------------------
 Functions           WP     Alt-Ergo        Total   Success
-BinaryMultiplication   2   10 (56..80)      13      92.3%
+BinaryMultiplication   1   10 (56..80)      11       100%
 -------------------------------------------------------------

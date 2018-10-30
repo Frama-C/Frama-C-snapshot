@@ -1,110 +1,110 @@
 [kernel] Parsing tests/slicing/callwise.i (no preprocessing)
-[value] Analyzing a complete application starting at main
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing a complete application starting at main
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   a ∈ {1}
   b ∈ {1}
   c ∈ {1}
   d ∈ {1}
   p ∈ {0}
-[value] computing for function f <- main.
+[eva] computing for function f <- main.
   Called from tests/slicing/callwise.i:39.
-[value] Recording results for f
+[eva] Recording results for f
 [from] Computing for function f
 [from] Done for function f
-[value] Done for function f
-[value] computing for function f <- main.
+[eva] Done for function f
+[eva] computing for function f <- main.
   Called from tests/slicing/callwise.i:40.
-[value] Recording results for f
+[eva] Recording results for f
 [from] Computing for function f
 [from] Done for function f
-[value] Done for function f
-[value] computing for function choose <- main.
+[eva] Done for function f
+[eva] computing for function choose <- main.
   Called from tests/slicing/callwise.i:42.
-[value] Recording results for choose
+[eva] Recording results for choose
 [from] Computing for function choose
 [from] Done for function choose
-[value] Done for function choose
-[value] computing for function choose <- main.
+[eva] Done for function choose
+[eva] computing for function choose <- main.
   Called from tests/slicing/callwise.i:43.
-[value] Recording results for choose
+[eva] Recording results for choose
 [from] Computing for function choose
 [from] Done for function choose
-[value] Done for function choose
-[value] computing for function fs163_main <- main.
+[eva] Done for function choose
+[eva] computing for function fs163_main <- main.
   Called from tests/slicing/callwise.i:45.
-[value] computing for function fs163_f <- fs163_main <- main.
+[eva] computing for function fs163_f <- fs163_main <- main.
   Called from tests/slicing/callwise.i:24.
-[value] Recording results for fs163_f
+[eva] Recording results for fs163_f
 [from] Computing for function fs163_f
 [from] Done for function fs163_f
-[value] Done for function fs163_f
-[value] computing for function fs163_f <- fs163_main <- main.
+[eva] Done for function fs163_f
+[eva] computing for function fs163_f <- fs163_main <- main.
   Called from tests/slicing/callwise.i:25.
-[value] Recording results for fs163_f
+[eva] Recording results for fs163_f
 [from] Computing for function fs163_f
 [from] Done for function fs163_f
-[value] Done for function fs163_f
-[value] computing for function fs163_f <- fs163_main <- main.
+[eva] Done for function fs163_f
+[eva] computing for function fs163_f <- fs163_main <- main.
   Called from tests/slicing/callwise.i:26.
-[value] Recording results for fs163_f
+[eva] Recording results for fs163_f
 [from] Computing for function fs163_f
 [from] Done for function fs163_f
-[value] Done for function fs163_f
-[value] computing for function fs163_f <- fs163_main <- main.
+[eva] Done for function fs163_f
+[eva] computing for function fs163_f <- fs163_main <- main.
   Called from tests/slicing/callwise.i:27.
-[value] Recording results for fs163_f
+[eva] Recording results for fs163_f
 [from] Computing for function fs163_f
 [from] Done for function fs163_f
-[value] Done for function fs163_f
-[value] computing for function fs163_f <- fs163_main <- main.
+[eva] Done for function fs163_f
+[eva] computing for function fs163_f <- fs163_main <- main.
   Called from tests/slicing/callwise.i:28.
-[value] Recording results for fs163_f
+[eva] Recording results for fs163_f
 [from] Computing for function fs163_f
 [from] Done for function fs163_f
-[value] Done for function fs163_f
-[value] tests/slicing/callwise.i:29: entering loop for the first time
-[value] computing for function fs163_f <- fs163_main <- main.
+[eva] Done for function fs163_f
+[eva] computing for function fs163_f <- fs163_main <- main.
   Called from tests/slicing/callwise.i:30.
-[value] Recording results for fs163_f
+[eva] Recording results for fs163_f
 [from] Computing for function fs163_f
 [from] Done for function fs163_f
-[value] Done for function fs163_f
-[value] computing for function fs163_f <- fs163_main <- main.
+[eva] Done for function fs163_f
+[eva] tests/slicing/callwise.i:29: starting to merge loop iterations
+[eva] computing for function fs163_f <- fs163_main <- main.
   Called from tests/slicing/callwise.i:30.
-[value] Recording results for fs163_f
+[eva] Recording results for fs163_f
 [from] Computing for function fs163_f
 [from] Done for function fs163_f
-[value] Done for function fs163_f
-[value] computing for function fs163_f <- fs163_main <- main.
+[eva] Done for function fs163_f
+[eva] computing for function fs163_f <- fs163_main <- main.
   Called from tests/slicing/callwise.i:30.
-[value] Recording results for fs163_f
+[eva] Recording results for fs163_f
 [from] Computing for function fs163_f
 [from] Done for function fs163_f
-[value] Done for function fs163_f
-[value] computing for function fs163_f <- fs163_main <- main.
+[eva] Done for function fs163_f
+[eva] computing for function fs163_f <- fs163_main <- main.
   Called from tests/slicing/callwise.i:30.
-[value] Recording results for fs163_f
+[eva] Recording results for fs163_f
 [from] Computing for function fs163_f
 [from] Done for function fs163_f
-[value] Done for function fs163_f
-[value] computing for function fs163_f <- fs163_main <- main.
+[eva] Done for function fs163_f
+[eva] computing for function fs163_f <- fs163_main <- main.
   Called from tests/slicing/callwise.i:30.
-[value] Recording results for fs163_f
+[eva] Recording results for fs163_f
 [from] Computing for function fs163_f
 [from] Done for function fs163_f
-[value] Done for function fs163_f
-[value:alarm] tests/slicing/callwise.i:32: Warning: 
+[eva] Done for function fs163_f
+[eva:alarm] tests/slicing/callwise.i:32: Warning: 
   accessing uninitialized left-value. assert \initialized(&T[3]);
-[value] Recording results for fs163_main
+[eva] Recording results for fs163_main
 [from] Computing for function fs163_main
 [from] Done for function fs163_main
-[value] Done for function fs163_main
-[value] Recording results for main
+[eva] Done for function fs163_main
+[eva] Recording results for main
 [from] Computing for function main
 [from] Done for function main
-[value] done for function main
+[eva] done for function main
 [from] ====== DISPLAYING CALLWISE DEPENDENCIES ======
 [from] call to fs163_f at tests/slicing/callwise.i:24 (by fs163_main):
   A FROM p_0; n

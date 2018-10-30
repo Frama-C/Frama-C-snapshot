@@ -5,60 +5,60 @@
   Body of function main2 falls-through. Adding a return statement
 [kernel] tests/value/imprecise_invalid_write.i:17: Warning: 
   Body of function main3 falls-through. Adding a return statement
-[value] Analyzing a complete application starting at main
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing a complete application starting at main
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   x ∈ {0}
   s ∈ {{ "abc" }}
-[value] computing for function main1 <- main.
+[eva] computing for function main1 <- main.
   Called from tests/value/imprecise_invalid_write.i:22.
-[value:alarm] tests/value/imprecise_invalid_write.i:5: Warning: 
+[eva:alarm] tests/value/imprecise_invalid_write.i:5: Warning: 
   out of bounds write. assert \valid((int *)c);
 [kernel] tests/value/imprecise_invalid_write.i:5: Warning: 
   all target addresses were invalid. This path is assumed to be dead.
-[value] Recording results for main1
-[value] Done for function main1
-[value] computing for function main2 <- main.
+[eva] Recording results for main1
+[eva] Done for function main1
+[eva] computing for function main2 <- main.
   Called from tests/value/imprecise_invalid_write.i:25.
-[value] tests/value/imprecise_invalid_write.i:9: 
+[eva] tests/value/imprecise_invalid_write.i:9: 
   Assigning imprecise value to p.
   The imprecision originates from Arithmetic
   {tests/value/imprecise_invalid_write.i:9}
-[value:alarm] tests/value/imprecise_invalid_write.i:10: Warning: 
+[eva:alarm] tests/value/imprecise_invalid_write.i:10: Warning: 
   out of bounds write. assert \valid((int *)p);
 [kernel] tests/value/imprecise_invalid_write.i:10: Warning: 
   all target addresses were invalid. This path is assumed to be dead.
-[value] Recording results for main2
-[value] Done for function main2
-[value] computing for function main3 <- main.
+[eva] Recording results for main2
+[eva] Done for function main2
+[eva] computing for function main3 <- main.
   Called from tests/value/imprecise_invalid_write.i:28.
-[value] tests/value/imprecise_invalid_write.i:16: 
+[eva] tests/value/imprecise_invalid_write.i:16: 
   Assigning imprecise value to p.
   The imprecision originates from Arithmetic
   {tests/value/imprecise_invalid_write.i:16}
-[value:alarm] tests/value/imprecise_invalid_write.i:17: Warning: 
+[eva:alarm] tests/value/imprecise_invalid_write.i:17: Warning: 
   out of bounds write. assert \valid(p);
 [kernel] tests/value/imprecise_invalid_write.i:17: Warning: 
   all target addresses were invalid. This path is assumed to be dead.
-[value] Recording results for main3
-[value] Done for function main3
-[value] Recording results for main
-[value] done for function main
-[value] tests/value/imprecise_invalid_write.i:5: 
-  assertion 'Value,mem_access' got final status invalid.
-[value] tests/value/imprecise_invalid_write.i:10: 
-  assertion 'Value,mem_access' got final status invalid.
-[value] tests/value/imprecise_invalid_write.i:17: 
-  assertion 'Value,mem_access' got final status invalid.
-[value] ====== VALUES COMPUTED ======
-[value:final-states] Values at end of function main1:
+[eva] Recording results for main3
+[eva] Done for function main3
+[eva] Recording results for main
+[eva] done for function main
+[eva] tests/value/imprecise_invalid_write.i:5: 
+  assertion 'Eva,mem_access' got final status invalid.
+[eva] tests/value/imprecise_invalid_write.i:10: 
+  assertion 'Eva,mem_access' got final status invalid.
+[eva] tests/value/imprecise_invalid_write.i:17: 
+  assertion 'Eva,mem_access' got final status invalid.
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function main1:
   NON TERMINATING FUNCTION
-[value:final-states] Values at end of function main2:
+[eva:final-states] Values at end of function main2:
   NON TERMINATING FUNCTION
-[value:final-states] Values at end of function main3:
+[eva:final-states] Values at end of function main3:
   NON TERMINATING FUNCTION
-[value:final-states] Values at end of function main:
+[eva:final-states] Values at end of function main:
   
 [from] Computing for function main1
 [from] Non-terminating function main1 (no dependencies)

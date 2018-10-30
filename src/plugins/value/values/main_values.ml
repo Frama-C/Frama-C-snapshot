@@ -30,14 +30,11 @@ module CVal = struct
   let structure = Structure.Key_Value.Leaf cvalue_key
 
   let zero = Cvalue.V.singleton_zero
-  let float_zeros = Cvalue.V.inject_ival Ival.float_zeros
+  let one = Cvalue.V.singleton_one
 
   let top = Cvalue.V.top
   let top_int = Cvalue.V.top_int
   let inject_int _typ = Cvalue.V.inject_int
-  let inject_address vi =
-    let base = Base.of_varinfo vi in
-    Cvalue.V.inject base Ival.zero
 
   let equal = Cvalue.V.equal
   let is_included = Cvalue.V.is_included
@@ -48,6 +45,11 @@ module CVal = struct
     then `Bottom
     else `Value n
 
+  let assume_non_zero = Cvalue_forward.assume_non_zero
+  let assume_bounded = Cvalue_forward.assume_bounded
+  let assume_not_nan = Cvalue_forward.assume_not_nan
+  let assume_comparable = Cvalue_forward.assume_comparable
+
   let constant exp = function
     | CInt64 (i,_k,_s) -> Cvalue.V.inject_int i
     | CChr c           -> Cvalue.V.inject_int (Cil.charConstToInt c)
@@ -56,42 +58,28 @@ module CVal = struct
       Cvalue_forward.eval_float_constant f fkind fstring
     | CEnum _ -> assert false
 
-  let forward_unop ~context typ unop value =
-    let value, alarms = Cvalue_forward.forward_unop ~context typ unop value in
+  let forward_unop typ unop value =
+    let value = Cvalue_forward.forward_unop typ unop value in
     (* TODO: `Bottom must be in CValue and Cvalue_forward. *)
-    if Cvalue.V.is_bottom value
-    then `Bottom, alarms
-    else `Value value, alarms
+    if Cvalue.V.is_bottom value then `Bottom else `Value value
 
-  let forward_binop ~context typ binop v1 v2 =
-    let value, alarms =
+  let forward_binop typ binop v1 v2 =
+    let value =
       match typ with
       | TFloat (fkind, _) ->
-        Cvalue_forward.forward_binop_float (Fval.kind fkind) v1 binop v2,
-        Alarmset.none
+        Cvalue_forward.forward_binop_float (Fval.kind fkind) v1 binop v2
       | TInt _ | TPtr _ | _ as typ ->
-        Cvalue_forward.forward_binop_int ~context ~typ ~logic:false v1 binop v2
+        Cvalue_forward.forward_binop_int ~typ v1 binop v2
     in
     if Cvalue.V.is_bottom value
-    then `Bottom, alarms
-    else `Value value, alarms
-
-  let truncate_integer expr range value =
-    let v, alarms = Cvalue_forward.truncate_integer expr range value in
-    if Cvalue.V.is_bottom v then `Bottom, alarms else `Value v, alarms
+    then `Bottom
+    else `Value value
 
   let rewrap_integer = Cvalue_forward.rewrap_integer
 
-  let restrict_float ~remove_infinite exp fkind value =
-    let v, alarms =
-      Cvalue_forward.restrict_float ~remove_infinite fkind exp value
-    in
-    if Cvalue.V.is_bottom v then `Bottom, alarms else `Value v, alarms
-
-  let cast ~src_typ ~dst_typ exp v =
-    let v, alarms = Cvalue_forward.cast ~src_typ ~dst_typ exp v in
-    if Cvalue.V.is_bottom v then `Bottom, alarms else `Value v, alarms
-
+  let forward_cast ~src_type ~dst_type v =
+    let v = Cvalue_forward.forward_cast ~src_type ~dst_type v in
+    if Cvalue.V.is_bottom v then `Bottom else `Value v
 
   let backward_binop ~input_type ~resulting_type binop ~left ~right ~result =
     let reduction =
@@ -174,21 +162,21 @@ module Interval = struct
       if Ival.is_bottom res then `Bottom else `Value (Some res)
 
   let zero = None
-  let float_zeros = None
+  let one = None
   let top_int = None
   let inject_int _typ _i = None
-  let inject_address _ = None
 
-  let top_eval = `Value top, Alarmset.all
+  let assume_non_zero v = `Unknown v
+  let assume_bounded _ _ v = `Unknown v
+  let assume_not_nan ~assume_finite:_ _ v = `Unknown v
+  let assume_comparable _ v1 v2 = `Unknown (v1, v2)
+
   let constant _ _ = top
-  let forward_unop ~context:_ _ _ _ = top_eval
-  let forward_binop ~context:_ _ _ _ _ = top_eval
-  let cast ~src_typ:_ ~dst_typ:_ _ _ = top_eval
+  let forward_unop _ _ _ = `Value top
+  let forward_binop _ _ _ _ = `Value top
+  let forward_cast ~src_type:_ ~dst_type:_ _ = `Value top
 
   let resolve_functions _ = `Top, true
-
-  (* TODO *)
-  let truncate_integer _expr _range value = `Value value, Alarmset.all
 
   let rewrap_integer range value =
     match value with
@@ -197,10 +185,6 @@ module Interval = struct
       let size = Integer.of_int range.Eval_typ.i_bits in
       let signed = range.Eval_typ.i_signed in
       Some (Ival.cast_int_to_int ~signed ~size value)
-
-  (* TODO *)
-  let restrict_float ~remove_infinite:_ _exp _fkind value =
-    `Value value, Alarmset.all
 
   let backward_unop ~typ_arg:_ _unop ~arg:_ ~res:_ = `Value None
   let backward_binop ~input_type:_ ~resulting_type:_ _binop ~left:_ ~right:_ ~result:_ =

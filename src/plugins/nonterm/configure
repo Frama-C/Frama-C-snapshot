@@ -2090,8 +2090,8 @@ echo "nonterm... $ENABLE"
 
 
 
-        REQUIRE_VALUE_ANALYSIS=$REQUIRE_VALUE_ANALYSIS" "nonterm
-        REQUIRED_NONTERM=$REQUIRED_NONTERM" "value_analysis
+        REQUIRE_EVA=$REQUIRE_EVA" "nonterm
+        REQUIRED_NONTERM=$REQUIRED_NONTERM" "eva
 
 
 

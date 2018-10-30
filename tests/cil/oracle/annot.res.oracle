@@ -6,9 +6,11 @@ int fact(int n)
   while (n > 0) {
     int tmp;
     /*@ assert n > 0; */ ;
-    before: tmp = n;
-            n --;
-            r *= tmp;
+    before: { /* sequence */
+              tmp = n;
+              n --;
+              r *= tmp;
+            }
     /*@ assert r ≡ \at(r * n,before); */ ;
   }
   return r;

@@ -1,0 +1,2007 @@
+[kernel] Parsing tests/builtins/realloc2.c (with preprocessing)
+[eva] Analyzing a complete application starting at main
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
+  nondet ∈ [--..--]
+[eva] computing for function test_exact_null <- main.
+  Called from tests/builtins/realloc2.c:194.
+[eva] tests/builtins/realloc2.c:27: 
+  Call to builtin Frama_C_realloc for function realloc
+[eva] tests/builtins/realloc2.c:27: 
+  function realloc: precondition 'freeable' got status valid.
+[eva:malloc] bases_to_realloc: {}
+[eva] tests/builtins/realloc2.c:27: 
+  allocating variable __realloc_test_exact_null_l27
+[eva:malloc] tests/builtins/realloc2.c:27: strong free on bases: {}
+[eva] computing for function fill <- test_exact_null <- main.
+  Called from tests/builtins/realloc2.c:28.
+[eva] Recording results for fill
+[eva] Done for function fill
+[eva] Recording results for test_exact_null
+[eva] Done for function test_exact_null
+[eva] computing for function test_exact_null_free <- main.
+  Called from tests/builtins/realloc2.c:195.
+[eva] tests/builtins/realloc2.c:32: 
+  Call to builtin Frama_C_realloc for function realloc
+[eva] tests/builtins/realloc2.c:32: 
+  function realloc: precondition 'freeable' got status valid.
+[eva:malloc] bases_to_realloc: {}
+[eva] tests/builtins/realloc2.c:32: 
+  allocating variable __realloc_test_exact_null_free_l32
+[eva:malloc] tests/builtins/realloc2.c:32: strong free on bases: {}
+[eva] Recording results for test_exact_null_free
+[eva] Done for function test_exact_null_free
+[eva] computing for function test_exact_nonnull_expand <- main.
+  Called from tests/builtins/realloc2.c:196.
+[eva] tests/builtins/realloc2.c:36: Call to builtin malloc
+[eva] tests/builtins/realloc2.c:36: 
+  allocating variable __malloc_test_exact_nonnull_expand_l36
+[eva] computing for function fill <- test_exact_nonnull_expand <- main.
+  Called from tests/builtins/realloc2.c:37.
+[eva] Recording results for fill
+[eva] Done for function fill
+[eva] tests/builtins/realloc2.c:38: 
+  Call to builtin Frama_C_realloc for function realloc
+[eva] tests/builtins/realloc2.c:38: 
+  function realloc: precondition 'freeable' got status valid.
+[eva:malloc] bases_to_realloc: {__malloc_test_exact_nonnull_expand_l36}
+[eva] tests/builtins/realloc2.c:38: 
+  allocating variable __realloc_test_exact_nonnull_expand_l38
+[eva:malloc] tests/builtins/realloc2.c:38: 
+  strong free on bases: {__malloc_test_exact_nonnull_expand_l36}
+[eva] computing for function fill <- test_exact_nonnull_expand <- main.
+  Called from tests/builtins/realloc2.c:39.
+[eva] Recording results for fill
+[eva] Done for function fill
+[eva] Recording results for test_exact_nonnull_expand
+[eva] Done for function test_exact_nonnull_expand
+[eva] computing for function test_exact_nonnull_shrink <- main.
+  Called from tests/builtins/realloc2.c:197.
+[eva] tests/builtins/realloc2.c:44: Call to builtin malloc
+[eva] tests/builtins/realloc2.c:44: 
+  allocating variable __malloc_test_exact_nonnull_shrink_l44
+[eva] computing for function fill <- test_exact_nonnull_shrink <- main.
+  Called from tests/builtins/realloc2.c:45.
+[eva] Recording results for fill
+[eva] Done for function fill
+[eva] tests/builtins/realloc2.c:46: 
+  Call to builtin Frama_C_realloc for function realloc
+[eva] tests/builtins/realloc2.c:46: 
+  function realloc: precondition 'freeable' got status valid.
+[eva:malloc] bases_to_realloc: {__malloc_test_exact_nonnull_shrink_l44}
+[eva] tests/builtins/realloc2.c:46: 
+  allocating variable __realloc_test_exact_nonnull_shrink_l46
+[eva:malloc] tests/builtins/realloc2.c:46: 
+  strong free on bases: {__malloc_test_exact_nonnull_shrink_l44}
+[eva] computing for function fill <- test_exact_nonnull_shrink <- main.
+  Called from tests/builtins/realloc2.c:47.
+[eva] Recording results for fill
+[eva] Done for function fill
+[eva] Recording results for test_exact_nonnull_shrink
+[eva] Done for function test_exact_nonnull_shrink
+[eva] computing for function test_exact_nonnull_free <- main.
+  Called from tests/builtins/realloc2.c:198.
+[eva] tests/builtins/realloc2.c:51: Call to builtin malloc
+[eva] tests/builtins/realloc2.c:51: 
+  allocating variable __malloc_test_exact_nonnull_free_l51
+[eva] computing for function fill <- test_exact_nonnull_free <- main.
+  Called from tests/builtins/realloc2.c:52.
+[eva] Recording results for fill
+[eva] Done for function fill
+[eva] tests/builtins/realloc2.c:53: 
+  Call to builtin Frama_C_realloc for function realloc
+[eva] tests/builtins/realloc2.c:53: 
+  function realloc: precondition 'freeable' got status valid.
+[eva:malloc] bases_to_realloc: {__malloc_test_exact_nonnull_free_l51}
+[eva] tests/builtins/realloc2.c:53: 
+  allocating variable __realloc_test_exact_nonnull_free_l53
+[eva:malloc] tests/builtins/realloc2.c:53: 
+  strong free on bases: {__malloc_test_exact_nonnull_free_l51}
+[eva] Recording results for test_exact_nonnull_free
+[eva] Done for function test_exact_nonnull_free
+[eva] computing for function test_maybe_nonnull <- main.
+  Called from tests/builtins/realloc2.c:199.
+[eva] tests/builtins/realloc2.c:57: Call to builtin malloc
+[eva] tests/builtins/realloc2.c:57: 
+  allocating variable __malloc_test_maybe_nonnull_l57
+[eva] tests/builtins/realloc2.c:58: 
+  Call to builtin Frama_C_realloc for function realloc
+[eva] tests/builtins/realloc2.c:58: 
+  function realloc: precondition 'freeable' got status valid.
+[eva:malloc] bases_to_realloc: {__malloc_test_maybe_nonnull_l57}
+[eva] tests/builtins/realloc2.c:58: 
+  allocating variable __realloc_test_maybe_nonnull_l58
+[eva:malloc] tests/builtins/realloc2.c:58: 
+  weak free on bases: {__malloc_test_maybe_nonnull_l57}
+[eva] computing for function fill <- test_maybe_nonnull <- main.
+  Called from tests/builtins/realloc2.c:59.
+[eva] Recording results for fill
+[eva] Done for function fill
+[eva] Recording results for test_maybe_nonnull
+[eva] Done for function test_maybe_nonnull
+[eva] computing for function test_same_size <- main.
+  Called from tests/builtins/realloc2.c:200.
+[eva] tests/builtins/realloc2.c:63: Call to builtin malloc
+[eva] tests/builtins/realloc2.c:63: 
+  allocating variable __malloc_test_same_size_l63
+[eva] computing for function fill <- test_same_size <- main.
+  Called from tests/builtins/realloc2.c:64.
+[eva] Recording results for fill
+[eva] Done for function fill
+[eva] tests/builtins/realloc2.c:65: 
+  Call to builtin Frama_C_realloc for function realloc
+[eva] tests/builtins/realloc2.c:65: 
+  function realloc: precondition 'freeable' got status valid.
+[eva:malloc] bases_to_realloc: {__malloc_test_same_size_l63}
+[eva] tests/builtins/realloc2.c:65: 
+  allocating variable __realloc_test_same_size_l65
+[eva:malloc] tests/builtins/realloc2.c:65: 
+  strong free on bases: {__malloc_test_same_size_l63}
+[eva] Recording results for test_same_size
+[eva] Done for function test_same_size
+[eva] computing for function test_imprecise_size <- main.
+  Called from tests/builtins/realloc2.c:201.
+[eva] tests/builtins/realloc2.c:70: 
+  Call to builtin Frama_C_realloc for function realloc
+[eva] tests/builtins/realloc2.c:70: 
+  function realloc: precondition 'freeable' got status valid.
+[eva:malloc] bases_to_realloc: {}
+[eva] tests/builtins/realloc2.c:70: 
+  allocating variable __realloc_test_imprecise_size_l70
+[eva:malloc] tests/builtins/realloc2.c:70: strong free on bases: {}
+[eva] computing for function fill <- test_imprecise_size <- main.
+  Called from tests/builtins/realloc2.c:71.
+[eva:alarm] tests/builtins/realloc2.c:11: Warning: 
+  out of bounds write. assert \valid(b + i);
+[eva] Recording results for fill
+[eva] Done for function fill
+[eva] Recording results for test_imprecise_size
+[eva] Done for function test_imprecise_size
+[eva] computing for function test_imprecise_size_but_precise_fill <- main.
+  Called from tests/builtins/realloc2.c:202.
+[eva] tests/builtins/realloc2.c:76: 
+  Call to builtin Frama_C_realloc for function realloc
+[eva] tests/builtins/realloc2.c:76: 
+  function realloc: precondition 'freeable' got status valid.
+[eva:malloc] bases_to_realloc: {}
+[eva] tests/builtins/realloc2.c:76: 
+  allocating variable __realloc_test_imprecise_size_but_precise_fill_l76
+[eva:malloc] tests/builtins/realloc2.c:76: strong free on bases: {}
+[eva] computing for function fill <- test_imprecise_size_but_precise_fill <- main.
+  Called from tests/builtins/realloc2.c:77.
+[eva] Recording results for fill
+[eva] Done for function fill
+[eva] Recording results for test_imprecise_size_but_precise_fill
+[eva] Done for function test_imprecise_size_but_precise_fill
+[eva] computing for function test_imprecise_size_free <- main.
+  Called from tests/builtins/realloc2.c:203.
+[eva] tests/builtins/realloc2.c:81: Call to builtin malloc
+[eva] tests/builtins/realloc2.c:81: 
+  allocating variable __malloc_test_imprecise_size_free_l81
+[eva] computing for function fill <- test_imprecise_size_free <- main.
+  Called from tests/builtins/realloc2.c:82.
+[eva] Recording results for fill
+[eva] Done for function fill
+[eva] tests/builtins/realloc2.c:84: 
+  Call to builtin Frama_C_realloc for function realloc
+[eva] tests/builtins/realloc2.c:84: 
+  function realloc: precondition 'freeable' got status valid.
+[eva:malloc] bases_to_realloc: {__malloc_test_imprecise_size_free_l81}
+[eva] tests/builtins/realloc2.c:84: 
+  allocating variable __realloc_test_imprecise_size_free_l84
+[eva:malloc] tests/builtins/realloc2.c:84: 
+  strong free on bases: {__malloc_test_imprecise_size_free_l81}
+[eva] computing for function fill <- test_imprecise_size_free <- main.
+  Called from tests/builtins/realloc2.c:85.
+[eva] Recording results for fill
+[eva] Done for function fill
+[eva] Recording results for test_imprecise_size_free
+[eva] Done for function test_imprecise_size_free
+[eva] computing for function test_imprecise_both <- main.
+  Called from tests/builtins/realloc2.c:204.
+[eva] tests/builtins/realloc2.c:89: Call to builtin malloc
+[eva] tests/builtins/realloc2.c:89: 
+  allocating variable __malloc_test_imprecise_both_l89
+[eva] tests/builtins/realloc2.c:91: 
+  Call to builtin Frama_C_realloc for function realloc
+[eva] tests/builtins/realloc2.c:91: 
+  function realloc: precondition 'freeable' got status valid.
+[eva:malloc] bases_to_realloc: {__malloc_test_imprecise_both_l89}
+[eva] tests/builtins/realloc2.c:91: 
+  allocating variable __realloc_test_imprecise_both_l91
+[eva:malloc] tests/builtins/realloc2.c:91: 
+  weak free on bases: {__malloc_test_imprecise_both_l89}
+[eva] computing for function fill <- test_imprecise_both <- main.
+  Called from tests/builtins/realloc2.c:92.
+[eva] Recording results for fill
+[eva] Done for function fill
+[eva] Recording results for test_imprecise_both
+[eva] Done for function test_imprecise_both
+[eva] computing for function test_possibly_invalid_realloc <- main.
+  Called from tests/builtins/realloc2.c:205.
+[eva] tests/builtins/realloc2.c:96: Call to builtin malloc
+[eva] tests/builtins/realloc2.c:96: 
+  allocating variable __malloc_test_possibly_invalid_realloc_l96
+[eva] tests/builtins/realloc2.c:99: 
+  Call to builtin Frama_C_realloc for function realloc
+[eva:alarm] tests/builtins/realloc2.c:99: Warning: 
+  function realloc: precondition 'freeable' got status unknown.
+[eva:malloc] bases_to_realloc: {__malloc_test_possibly_invalid_realloc_l96}
+[eva] tests/builtins/realloc2.c:99: 
+  allocating variable __realloc_test_possibly_invalid_realloc_l99
+[eva:malloc] tests/builtins/realloc2.c:99: 
+  strong free on bases: {__malloc_test_possibly_invalid_realloc_l96}
+[eva] computing for function fill <- test_possibly_invalid_realloc <- main.
+  Called from tests/builtins/realloc2.c:100.
+[eva] Recording results for fill
+[eva] Done for function fill
+[eva] Recording results for test_possibly_invalid_realloc
+[eva] Done for function test_possibly_invalid_realloc
+[eva] computing for function test_invalid_realloc <- main.
+  Called from tests/builtins/realloc2.c:206.
+[eva] tests/builtins/realloc2.c:104: Call to builtin malloc
+[eva] tests/builtins/realloc2.c:104: 
+  allocating variable __malloc_test_invalid_realloc_l104
+[eva] tests/builtins/realloc2.c:106: 
+  Call to builtin Frama_C_realloc for function realloc
+[eva:alarm] tests/builtins/realloc2.c:106: Warning: 
+  function realloc: precondition 'freeable' got status invalid.
+[eva] Recording results for test_invalid_realloc
+[eva] Done for function test_invalid_realloc
+[eva] computing for function test_invalid_realloc2 <- main.
+  Called from tests/builtins/realloc2.c:207.
+[eva] tests/builtins/realloc2.c:111: 
+  Call to builtin Frama_C_realloc for function realloc
+[eva:alarm] tests/builtins/realloc2.c:111: Warning: 
+  function realloc: precondition 'freeable' got status invalid.
+[eva] Recording results for test_invalid_realloc2
+[eva] Done for function test_invalid_realloc2
+[eva] computing for function test_invalid_realloc3 <- main.
+  Called from tests/builtins/realloc2.c:208.
+[eva] tests/builtins/realloc2.c:116: Call to builtin malloc
+[eva] tests/builtins/realloc2.c:116: 
+  allocating variable __malloc_test_invalid_realloc3_l116
+[eva] tests/builtins/realloc2.c:119: 
+  Call to builtin Frama_C_realloc for function realloc
+[eva:alarm] tests/builtins/realloc2.c:119: Warning: 
+  function realloc: precondition 'freeable' got status invalid.
+[eva] Recording results for test_invalid_realloc3
+[eva] Done for function test_invalid_realloc3
+[eva] computing for function test_realloc_sequence <- main.
+  Called from tests/builtins/realloc2.c:209.
+[eva] tests/builtins/realloc2.c:124: Call to builtin malloc
+[eva] tests/builtins/realloc2.c:124: 
+  allocating variable __malloc_test_realloc_sequence_l124
+[eva] tests/builtins/realloc2.c:125: 
+  Call to builtin Frama_C_realloc for function realloc
+[eva] tests/builtins/realloc2.c:125: 
+  function realloc: precondition 'freeable' got status valid.
+[eva:malloc] bases_to_realloc: {__malloc_test_realloc_sequence_l124}
+[eva] tests/builtins/realloc2.c:125: 
+  allocating variable __realloc_test_realloc_sequence_l125
+[eva:malloc] tests/builtins/realloc2.c:125: 
+  strong free on bases: {__malloc_test_realloc_sequence_l124}
+[eva] tests/builtins/realloc2.c:126: 
+  Call to builtin Frama_C_realloc for function realloc
+[eva] tests/builtins/realloc2.c:126: 
+  function realloc: precondition 'freeable' got status valid.
+[eva:malloc] bases_to_realloc: {__realloc_test_realloc_sequence_l125}
+[eva] tests/builtins/realloc2.c:126: 
+  allocating variable __realloc_test_realloc_sequence_l126
+[eva:malloc] tests/builtins/realloc2.c:126: 
+  strong free on bases: {__realloc_test_realloc_sequence_l125}
+[eva] computing for function fill <- test_realloc_sequence <- main.
+  Called from tests/builtins/realloc2.c:127.
+[eva] Recording results for fill
+[eva] Done for function fill
+[eva] Recording results for test_realloc_sequence
+[eva] Done for function test_realloc_sequence
+[eva] computing for function test_realloc_loop <- main.
+  Called from tests/builtins/realloc2.c:210.
+[eva] tests/builtins/realloc2.c:131: Call to builtin malloc
+[eva] tests/builtins/realloc2.c:131: 
+  allocating variable __malloc_test_realloc_loop_l131
+[eva] computing for function fill <- test_realloc_loop <- main.
+  Called from tests/builtins/realloc2.c:134.
+[eva] Recording results for fill
+[eva] Done for function fill
+[eva] tests/builtins/realloc2.c:138: 
+  Call to builtin Frama_C_realloc for function realloc
+[eva] tests/builtins/realloc2.c:138: 
+  function realloc: precondition 'freeable' got status valid.
+[eva:malloc] bases_to_realloc: {__malloc_test_realloc_loop_l131}
+[eva] tests/builtins/realloc2.c:138: 
+  allocating variable __realloc_test_realloc_loop_l138
+[eva:malloc] tests/builtins/realloc2.c:138: 
+  strong free on bases: {__malloc_test_realloc_loop_l131}
+[eva] computing for function fill <- test_realloc_loop <- main.
+  Called from tests/builtins/realloc2.c:142.
+[eva] Recording results for fill
+[eva] Done for function fill
+[eva] tests/builtins/realloc2.c:138: 
+  Call to builtin Frama_C_realloc for function realloc
+[eva:malloc] bases_to_realloc: {__realloc_test_realloc_loop_l138}
+[eva:malloc:weak] tests/builtins/realloc2.c:138: 
+  marking variable `__realloc_test_realloc_loop_l138' as weak
+[eva:malloc] tests/builtins/realloc2.c:138: 
+  resizing variable `__realloc_w_test_realloc_loop_l138' (0..79) to fit 0..119
+[eva:malloc] tests/builtins/realloc2.c:138: 
+  weak free on bases: {__realloc_w_test_realloc_loop_l138}
+[eva] computing for function fill <- test_realloc_loop <- main.
+  Called from tests/builtins/realloc2.c:142.
+[eva] Recording results for fill
+[eva] Done for function fill
+[eva] tests/builtins/realloc2.c:138: 
+  Call to builtin Frama_C_realloc for function realloc
+[eva:malloc] bases_to_realloc: {__realloc_w_test_realloc_loop_l138}
+[eva:malloc] tests/builtins/realloc2.c:138: 
+  resizing variable `__realloc_w_test_realloc_loop_l138'
+  (0..79/119) to fit 0..159
+[eva:malloc] tests/builtins/realloc2.c:138: 
+  weak free on bases: {__realloc_w_test_realloc_loop_l138}
+[eva] computing for function fill <- test_realloc_loop <- main.
+  Called from tests/builtins/realloc2.c:142.
+[eva] Recording results for fill
+[eva] Done for function fill
+[eva] tests/builtins/realloc2.c:138: 
+  Call to builtin Frama_C_realloc for function realloc
+[eva:malloc] bases_to_realloc: {__realloc_w_test_realloc_loop_l138}
+[eva:malloc] tests/builtins/realloc2.c:138: 
+  resizing variable `__realloc_w_test_realloc_loop_l138'
+  (0..79/159) to fit 0..199
+[eva:malloc] tests/builtins/realloc2.c:138: 
+  weak free on bases: {__realloc_w_test_realloc_loop_l138}
+[eva] computing for function fill <- test_realloc_loop <- main.
+  Called from tests/builtins/realloc2.c:142.
+[eva] Recording results for fill
+[eva] Done for function fill
+[eva] tests/builtins/realloc2.c:138: 
+  Call to builtin Frama_C_realloc for function realloc
+[eva:malloc] bases_to_realloc: {__realloc_w_test_realloc_loop_l138}
+[eva:malloc] tests/builtins/realloc2.c:138: 
+  resizing variable `__realloc_w_test_realloc_loop_l138'
+  (0..79/199) to fit 0..239
+[eva:malloc] tests/builtins/realloc2.c:138: 
+  weak free on bases: {__realloc_w_test_realloc_loop_l138}
+[eva] computing for function fill <- test_realloc_loop <- main.
+  Called from tests/builtins/realloc2.c:142.
+[eva] Recording results for fill
+[eva] Done for function fill
+[eva] Recording results for test_realloc_loop
+[eva] Done for function test_realloc_loop
+[eva] computing for function test_realloc_multiple_bases <- main.
+  Called from tests/builtins/realloc2.c:211.
+[eva] tests/builtins/realloc2.c:151: Call to builtin malloc
+[eva] tests/builtins/realloc2.c:151: 
+  allocating variable __malloc_test_realloc_multiple_bases_l151
+[eva] tests/builtins/realloc2.c:154: Call to builtin malloc
+[eva] tests/builtins/realloc2.c:154: 
+  allocating variable __malloc_test_realloc_multiple_bases_l154
+[eva] tests/builtins/realloc2.c:156: 
+  Call to builtin Frama_C_realloc for function realloc
+[eva] tests/builtins/realloc2.c:156: 
+  function realloc: precondition 'freeable' got status valid.
+[eva:malloc] bases_to_realloc: {__malloc_test_realloc_multiple_bases_l151}
+[eva] tests/builtins/realloc2.c:156: 
+  allocating variable __realloc_test_realloc_multiple_bases_l156
+[eva:malloc] tests/builtins/realloc2.c:156: 
+  strong free on bases: {__malloc_test_realloc_multiple_bases_l151}
+[eva] tests/builtins/realloc2.c:158: 
+  Call to builtin Frama_C_realloc for function realloc
+[eva] tests/builtins/realloc2.c:158: 
+  function realloc: precondition 'freeable' got status valid.
+[eva:malloc] 
+  bases_to_realloc: {__malloc_test_realloc_multiple_bases_l154,
+                     __realloc_test_realloc_multiple_bases_l156}
+[eva] tests/builtins/realloc2.c:158: 
+  allocating variable __realloc_test_realloc_multiple_bases_l158
+[eva:malloc] tests/builtins/realloc2.c:158: 
+  weak free on bases: {__malloc_test_realloc_multiple_bases_l154,
+                       __realloc_test_realloc_multiple_bases_l156}
+[eva] computing for function fill <- test_realloc_multiple_bases <- main.
+  Called from tests/builtins/realloc2.c:159.
+[eva] Recording results for fill
+[eva] Done for function fill
+[eva] Recording results for test_realloc_multiple_bases
+[eva] Done for function test_realloc_multiple_bases
+[eva] computing for function test_realloc_multiple_bases2 <- main.
+  Called from tests/builtins/realloc2.c:212.
+[eva] tests/builtins/realloc2.c:163: Call to builtin malloc
+[eva] tests/builtins/realloc2.c:163: 
+  allocating variable __malloc_test_realloc_multiple_bases2_l163
+[eva] computing for function fill <- test_realloc_multiple_bases2 <- main.
+  Called from tests/builtins/realloc2.c:165.
+[eva] Recording results for fill
+[eva] Done for function fill
+[eva] tests/builtins/realloc2.c:166: 
+  Call to builtin Frama_C_realloc for function realloc
+[eva] tests/builtins/realloc2.c:166: 
+  function realloc: precondition 'freeable' got status valid.
+[eva:malloc] bases_to_realloc: {__malloc_test_realloc_multiple_bases2_l163}
+[eva] tests/builtins/realloc2.c:166: 
+  allocating variable __realloc_test_realloc_multiple_bases2_l166
+[eva:malloc] tests/builtins/realloc2.c:166: 
+  strong free on bases: {__malloc_test_realloc_multiple_bases2_l163}
+[eva] tests/builtins/realloc2.c:166: Call to builtin malloc
+[eva] tests/builtins/realloc2.c:166: 
+  allocating variable __malloc_test_realloc_multiple_bases2_l166
+[eva] computing for function fill2 <- test_realloc_multiple_bases2 <- main.
+  Called from tests/builtins/realloc2.c:168.
+[eva] Recording results for fill2
+[eva] Done for function fill2
+[eva] tests/builtins/realloc2.c:169: 
+  Call to builtin Frama_C_realloc for function realloc
+[eva] tests/builtins/realloc2.c:169: 
+  function realloc: precondition 'freeable' got status valid.
+[eva:malloc] 
+  bases_to_realloc: {__realloc_test_realloc_multiple_bases2_l166,
+                     __malloc_test_realloc_multiple_bases2_l166}
+[eva] tests/builtins/realloc2.c:169: 
+  allocating variable __realloc_test_realloc_multiple_bases2_l169
+[eva:malloc] tests/builtins/realloc2.c:169: 
+  weak free on bases: {__realloc_test_realloc_multiple_bases2_l166,
+                       __malloc_test_realloc_multiple_bases2_l166}
+[eva] tests/builtins/realloc2.c:171: 
+  Call to builtin Frama_C_realloc for function realloc
+[eva] tests/builtins/realloc2.c:171: 
+  function realloc: precondition 'freeable' got status valid.
+[eva:malloc] bases_to_realloc: {__realloc_test_realloc_multiple_bases2_l169}
+[eva] tests/builtins/realloc2.c:171: 
+  allocating variable __realloc_test_realloc_multiple_bases2_l171
+[eva:malloc] tests/builtins/realloc2.c:171: 
+  strong free on bases: {__realloc_test_realloc_multiple_bases2_l169}
+[eva] computing for function fill <- test_realloc_multiple_bases2 <- main.
+  Called from tests/builtins/realloc2.c:173.
+[eva] Recording results for fill
+[eva] Done for function fill
+[eva] tests/builtins/realloc2.c:174: Call to builtin malloc
+[eva] tests/builtins/realloc2.c:174: 
+  allocating variable __malloc_test_realloc_multiple_bases2_l174
+[eva] computing for function fill2 <- test_realloc_multiple_bases2 <- main.
+  Called from tests/builtins/realloc2.c:176.
+[eva] Recording results for fill2
+[eva] Done for function fill2
+[eva] tests/builtins/realloc2.c:177: 
+  Call to builtin Frama_C_realloc for function realloc
+[eva] tests/builtins/realloc2.c:177: 
+  function realloc: precondition 'freeable' got status valid.
+[eva:malloc] 
+  bases_to_realloc: {__realloc_test_realloc_multiple_bases2_l171,
+                     __malloc_test_realloc_multiple_bases2_l174}
+[eva] tests/builtins/realloc2.c:177: 
+  allocating variable __realloc_test_realloc_multiple_bases2_l177
+[eva:malloc] tests/builtins/realloc2.c:177: 
+  weak free on bases: {__realloc_test_realloc_multiple_bases2_l171,
+                       __malloc_test_realloc_multiple_bases2_l174}
+[eva] computing for function fill <- test_realloc_multiple_bases2 <- main.
+  Called from tests/builtins/realloc2.c:179.
+[eva] Recording results for fill
+[eva] Done for function fill
+[eva] Recording results for test_realloc_multiple_bases2
+[eva] Done for function test_realloc_multiple_bases2
+[eva] computing for function test_realloc_multiple_bases_loop <- main.
+  Called from tests/builtins/realloc2.c:213.
+[eva] tests/builtins/realloc2.c:184: Call to builtin malloc
+[eva] tests/builtins/realloc2.c:184: 
+  allocating variable __malloc_test_realloc_multiple_bases_loop_l184
+[eva] tests/builtins/realloc2.c:187: 
+  Call to builtin Frama_C_realloc for function realloc
+[eva] tests/builtins/realloc2.c:187: 
+  function realloc: precondition 'freeable' got status valid.
+[eva:malloc] bases_to_realloc: {__malloc_test_realloc_multiple_bases_loop_l184}
+[eva] tests/builtins/realloc2.c:187: 
+  allocating variable __realloc_test_realloc_multiple_bases_loop_l187
+[eva:malloc] tests/builtins/realloc2.c:187: 
+  strong free on bases: {__malloc_test_realloc_multiple_bases_loop_l184}
+[eva] computing for function fill <- test_realloc_multiple_bases_loop <- main.
+  Called from tests/builtins/realloc2.c:189.
+[eva] Recording results for fill
+[eva] Done for function fill
+[eva] tests/builtins/realloc2.c:185: starting to merge loop iterations
+[eva] tests/builtins/realloc2.c:187: 
+  Call to builtin Frama_C_realloc for function realloc
+[eva:malloc] 
+  bases_to_realloc: {__malloc_test_realloc_multiple_bases_loop_l184,
+                     __realloc_test_realloc_multiple_bases_loop_l187}
+[eva:malloc:weak] tests/builtins/realloc2.c:187: 
+  marking variable `__realloc_test_realloc_multiple_bases_loop_l187' as weak
+[eva:malloc] tests/builtins/realloc2.c:187: 
+  resizing variable `__realloc_w_test_realloc_multiple_bases_loop_l187'
+  (0..79) to fit 0..79/95
+[eva:malloc] tests/builtins/realloc2.c:187: 
+  weak free on bases: {__malloc_test_realloc_multiple_bases_loop_l184,
+                       __realloc_w_test_realloc_multiple_bases_loop_l187}
+[eva] computing for function fill <- test_realloc_multiple_bases_loop <- main.
+  Called from tests/builtins/realloc2.c:189.
+[eva] Recording results for fill
+[eva] Done for function fill
+[eva] tests/builtins/realloc2.c:187: 
+  Call to builtin Frama_C_realloc for function realloc
+[eva:malloc] 
+  bases_to_realloc: {__malloc_test_realloc_multiple_bases_loop_l184,
+                     __realloc_w_test_realloc_multiple_bases_loop_l187}
+[eva:malloc] tests/builtins/realloc2.c:187: 
+  resizing variable `__realloc_w_test_realloc_multiple_bases_loop_l187'
+  (0..79/95) to fit 0..79/111
+[eva:malloc] tests/builtins/realloc2.c:187: 
+  weak free on bases: {__malloc_test_realloc_multiple_bases_loop_l184,
+                       __realloc_w_test_realloc_multiple_bases_loop_l187}
+[eva] computing for function fill <- test_realloc_multiple_bases_loop <- main.
+  Called from tests/builtins/realloc2.c:189.
+[eva] Recording results for fill
+[eva] Done for function fill
+[eva] tests/builtins/realloc2.c:187: 
+  Call to builtin Frama_C_realloc for function realloc
+[eva:malloc] 
+  bases_to_realloc: {__malloc_test_realloc_multiple_bases_loop_l184,
+                     __realloc_w_test_realloc_multiple_bases_loop_l187}
+[eva:malloc] tests/builtins/realloc2.c:187: 
+  resizing variable `__realloc_w_test_realloc_multiple_bases_loop_l187'
+  (0..79/111) to fit 0..79/223
+[eva:malloc] tests/builtins/realloc2.c:187: 
+  weak free on bases: {__malloc_test_realloc_multiple_bases_loop_l184,
+                       __realloc_w_test_realloc_multiple_bases_loop_l187}
+[eva] computing for function fill <- test_realloc_multiple_bases_loop <- main.
+  Called from tests/builtins/realloc2.c:189.
+[eva] Recording results for fill
+[eva] Done for function fill
+[eva] tests/builtins/realloc2.c:187: 
+  Call to builtin Frama_C_realloc for function realloc
+[eva:malloc] 
+  bases_to_realloc: {__malloc_test_realloc_multiple_bases_loop_l184,
+                     __realloc_w_test_realloc_multiple_bases_loop_l187}
+[eva:malloc] tests/builtins/realloc2.c:187: 
+  weak free on bases: {__malloc_test_realloc_multiple_bases_loop_l184,
+                       __realloc_w_test_realloc_multiple_bases_loop_l187}
+[eva] computing for function fill <- test_realloc_multiple_bases_loop <- main.
+  Called from tests/builtins/realloc2.c:189.
+[eva] Recording results for fill
+[eva] Done for function fill
+[eva] Recording results for test_realloc_multiple_bases_loop
+[eva] Done for function test_realloc_multiple_bases_loop
+[eva] Recording results for main
+[eva] done for function main
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function fill:
+  __realloc_test_exact_null_l27[0] ∈ {0}
+                               [1] ∈ {1}
+                               [2] ∈ {2}
+                               [3] ∈ {3}
+                               [4] ∈ {4}
+                               [5] ∈ {5}
+                               [6] ∈ {6}
+                               [7] ∈ {7}
+                               [8] ∈ {8}
+                               [9] ∈ {9}
+  __malloc_test_exact_nonnull_expand_l36[0] ∈ {0}
+                                        [1] ∈ {1}
+                                        [2] ∈ {2}
+                                        [3] ∈ {3}
+                                        [4] ∈ {4}
+  __realloc_test_exact_nonnull_expand_l38[0] ∈ {0}
+                                         [1] ∈ {1}
+                                         [2] ∈ {2}
+                                         [3] ∈ {3}
+                                         [4] ∈ {4}
+                                         [5] ∈ {5}
+                                         [6] ∈ {6}
+                                         [7] ∈ {7}
+                                         [8] ∈ {8}
+                                         [9] ∈ {9}
+  __malloc_test_exact_nonnull_shrink_l44[0] ∈ {0}
+                                        [1] ∈ {1}
+                                        [2] ∈ {2}
+                                        [3] ∈ {3}
+                                        [4] ∈ {4}
+  __realloc_test_exact_nonnull_shrink_l46[0] ∈ {0}
+                                         [1] ∈ {1}
+  __malloc_test_exact_nonnull_free_l51[0] ∈ {0}
+                                      [1] ∈ {1}
+                                      [2] ∈ {2}
+                                      [3] ∈ {3}
+                                      [4] ∈ {4}
+  __realloc_test_maybe_nonnull_l58[0] ∈ {0}
+                                  [1] ∈ {1}
+  __malloc_test_same_size_l63[0] ∈ {0}
+                             [1] ∈ {1}
+                             [2] ∈ {2}
+                             [3] ∈ {3}
+                             [4] ∈ {4}
+  __realloc_test_imprecise_size_l70[0] ∈ {0}
+                                   [1] ∈ {1} or UNINITIALIZED
+  __realloc_test_imprecise_size_but_precise_fill_l76[0] ∈ {0}
+                                                    [1] ∈ UNINITIALIZED
+  __malloc_test_imprecise_size_free_l81[0] ∈ {0}
+                                       [1] ∈ {1}
+                                       [2] ∈ {2}
+                                       [3] ∈ {3}
+                                       [4] ∈ {4}
+  __realloc_test_imprecise_size_free_l84[0] ∈ {0}
+                                        [1] ∈ {1}
+  __realloc_test_imprecise_both_l91[0] ∈ {0} or UNINITIALIZED
+                                   [1] ∈ {1} or UNINITIALIZED
+  __realloc_test_possibly_invalid_realloc_l99[0] ∈ {0}
+                                             [1] ∈ {1}
+  __realloc_test_realloc_sequence_l126[0] ∈ {0}
+                                      [1] ∈ {1}
+                                      [2] ∈ {2}
+                                      [3] ∈ {3}
+                                      [4] ∈ {4}
+  __malloc_test_realloc_loop_l131[0] ∈ {0}
+                                 [1] ∈ {1}
+                                 [2] ∈ {2}
+                                 [3] ∈ {3}
+                                 [4] ∈ {4}
+                                 [5..9] ∈ UNINITIALIZED
+  __realloc_w_test_realloc_loop_l138[0] ∈ {0}
+                                    [1] ∈ {1}
+                                    [2] ∈ {2}
+                                    [3] ∈ {3}
+                                    [4] ∈ {4}
+                                    [5] ∈ {0}
+                                    [6] ∈ {1}
+                                    [7] ∈ {2}
+                                    [8] ∈ {3}
+                                    [9] ∈ {4}
+                                    [10] ∈ {0} or UNINITIALIZED
+                                    [11] ∈ {1} or UNINITIALIZED
+                                    [12] ∈ {2} or UNINITIALIZED
+                                    [13] ∈ {3} or UNINITIALIZED
+                                    [14] ∈ {4} or UNINITIALIZED
+                                    [15] ∈ {0} or UNINITIALIZED
+                                    [16] ∈ {1} or UNINITIALIZED
+                                    [17] ∈ {2} or UNINITIALIZED
+                                    [18] ∈ {3} or UNINITIALIZED
+                                    [19] ∈ {4} or UNINITIALIZED
+                                    [20] ∈ {0} or UNINITIALIZED
+                                    [21] ∈ {1} or UNINITIALIZED
+                                    [22] ∈ {2} or UNINITIALIZED
+                                    [23] ∈ {3} or UNINITIALIZED
+                                    [24] ∈ {4} or UNINITIALIZED
+                                    [25] ∈ {0} or UNINITIALIZED
+                                    [26] ∈ {1} or UNINITIALIZED
+                                    [27] ∈ {2} or UNINITIALIZED
+                                    [28] ∈ {3} or UNINITIALIZED
+                                    [29] ∈ {4} or UNINITIALIZED
+  __realloc_test_realloc_multiple_bases_l158[0] ∈ {0}
+                                            [1] ∈ {1}
+                                            [2] ∈ {2}
+                                            [3] ∈ {3}
+                                            [4] ∈ {4}
+  __malloc_test_realloc_multiple_bases2_l163[0] ∈ {0}
+                                            [1] ∈ {1}
+                                            [2] ∈ {2}
+                                            [3] ∈ {3}
+  __realloc_test_realloc_multiple_bases2_l171[0] ∈ {0}
+                                             [1] ∈ {1}
+                                             [2] ∈ {2}
+                                             [3] ∈ {3}
+                                             [4] ∈ {4}
+  __realloc_test_realloc_multiple_bases2_l177[0] ∈ {0}
+                                             [1] ∈ {1}
+                                             [2] ∈ {2}
+                                             [3] ∈ {3}
+  __malloc_test_realloc_multiple_bases_loop_l184[0] ∈ {0} or UNINITIALIZED
+                                                [1] ∈ {1} or UNINITIALIZED
+                                                [2] ∈ {2} or UNINITIALIZED
+                                                [3] ∈ {3} or UNINITIALIZED
+                                                [4] ∈ {4} or UNINITIALIZED
+                                                [5] ∈ {5} or UNINITIALIZED
+                                                [6] ∈ {6} or UNINITIALIZED
+                                                [7] ∈ {7} or UNINITIALIZED
+                                                [8] ∈ {8} or UNINITIALIZED
+                                                [9] ∈ {9} or UNINITIALIZED
+  __realloc_w_test_realloc_multiple_bases_loop_l187[0] ∈
+                                                   {0} or UNINITIALIZED
+                                                   [1] ∈
+                                                   {1} or UNINITIALIZED
+                                                   [2] ∈
+                                                   {2} or UNINITIALIZED
+                                                   [3] ∈
+                                                   {3} or UNINITIALIZED
+                                                   [4] ∈
+                                                   {4} or UNINITIALIZED
+                                                   [5] ∈
+                                                   {5} or UNINITIALIZED
+                                                   [6] ∈
+                                                   {6} or UNINITIALIZED
+                                                   [7] ∈
+                                                   {7} or UNINITIALIZED
+                                                   [8] ∈
+                                                   {8} or UNINITIALIZED
+                                                   [9] ∈
+                                                   {9} or UNINITIALIZED
+                                                   [10] ∈
+                                                   {10} or UNINITIALIZED
+                                                   [11] ∈
+                                                   {11} or UNINITIALIZED
+                                                   [12] ∈
+                                                   {12} or UNINITIALIZED
+                                                   [13] ∈
+                                                   {13} or UNINITIALIZED
+                                                   [14] ∈
+                                                   {14} or UNINITIALIZED
+                                                   [15] ∈
+                                                   {15} or UNINITIALIZED
+                                                   [16] ∈
+                                                   {16} or UNINITIALIZED
+                                                   [17] ∈
+                                                   {17} or UNINITIALIZED
+                                                   [18] ∈
+                                                   {18} or UNINITIALIZED
+                                                   [19] ∈
+                                                   {19} or UNINITIALIZED
+                                                   [20] ∈
+                                                   {20} or UNINITIALIZED
+                                                   [21] ∈
+                                                   {21} or UNINITIALIZED
+                                                   [22] ∈
+                                                   {22} or UNINITIALIZED
+                                                   [23] ∈
+                                                   {23} or UNINITIALIZED
+                                                   [24] ∈
+                                                   {24} or UNINITIALIZED
+                                                   [25] ∈
+                                                   {25} or UNINITIALIZED
+                                                   [26] ∈
+                                                   {26} or UNINITIALIZED
+                                                   [27] ∈
+                                                   {27} or UNINITIALIZED
+[eva:final-states] Values at end of function fill2:
+  __realloc_test_realloc_multiple_bases2_l166[0] ∈ {0}
+                                             [1] ∈ {1; 10}
+                                             [2] ∈ {2}
+                                             [3] ∈ {3}
+                                             [4..5] ∈ UNINITIALIZED
+  __malloc_test_realloc_multiple_bases2_l166[0] ∈ {0} or UNINITIALIZED
+                                            [1] ∈ {10} or UNINITIALIZED
+  __malloc_test_realloc_multiple_bases2_l174[0] ∈ {0}
+                                            [1] ∈ {10}
+                                            [2] ∈ {20}
+                                            [3..5] ∈ UNINITIALIZED
+[eva:final-states] Values at end of function test_exact_nonnull_expand:
+  __fc_heap_status ∈ [--..--]
+  p1 ∈ ESCAPINGADDR
+  p2 ∈ {{ &__realloc_test_exact_nonnull_expand_l38[0] }}
+  __realloc_test_exact_nonnull_expand_l38[0] ∈ {0}
+                                         [1] ∈ {1}
+                                         [2] ∈ {2}
+                                         [3] ∈ {3}
+                                         [4] ∈ {4}
+                                         [5] ∈ {5}
+                                         [6] ∈ {6}
+                                         [7] ∈ {7}
+                                         [8] ∈ {8}
+                                         [9] ∈ {9}
+[eva:final-states] Values at end of function test_exact_nonnull_free:
+  __fc_heap_status ∈ [--..--]
+  p1 ∈ ESCAPINGADDR
+  p2 ∈ {{ &__realloc_test_exact_nonnull_free_l53[0] }}
+[eva:final-states] Values at end of function test_exact_nonnull_shrink:
+  __fc_heap_status ∈ [--..--]
+  p1 ∈ ESCAPINGADDR
+  p2 ∈ {{ &__realloc_test_exact_nonnull_shrink_l46[0] }}
+  __realloc_test_exact_nonnull_shrink_l46[0] ∈ {0}
+                                         [1] ∈ {1}
+[eva:final-states] Values at end of function test_exact_null:
+  p ∈ {{ &__realloc_test_exact_null_l27[0] }}
+  __realloc_test_exact_null_l27[0] ∈ {0}
+                               [1] ∈ {1}
+                               [2] ∈ {2}
+                               [3] ∈ {3}
+                               [4] ∈ {4}
+                               [5] ∈ {5}
+                               [6] ∈ {6}
+                               [7] ∈ {7}
+                               [8] ∈ {8}
+                               [9] ∈ {9}
+[eva:final-states] Values at end of function test_exact_null_free:
+  p ∈ {{ &__realloc_test_exact_null_free_l32[0] }}
+[eva:final-states] Values at end of function test_imprecise_both:
+  __fc_heap_status ∈ [--..--]
+  p1 ∈
+    {{ NULL ; (void *)&__malloc_test_imprecise_both_l89 }} or ESCAPINGADDR
+  s ∈ {0; 2}
+  p2 ∈ {{ &__realloc_test_imprecise_both_l91[0] }}
+  __realloc_test_imprecise_both_l91[0] ∈ {0} or UNINITIALIZED
+                                   [1] ∈ {1} or UNINITIALIZED
+[eva:final-states] Values at end of function test_imprecise_size:
+  s ∈ {1; 2}
+  p ∈ {{ &__realloc_test_imprecise_size_l70[0] }}
+  __realloc_test_imprecise_size_l70[0] ∈ {0}
+                                   [1] ∈ {1} or UNINITIALIZED
+[eva:final-states] 
+  Values at end of function test_imprecise_size_but_precise_fill:
+  s ∈ {1; 2}
+  p ∈ {{ &__realloc_test_imprecise_size_but_precise_fill_l76[0] }}
+  __realloc_test_imprecise_size_but_precise_fill_l76[0] ∈ {0}
+                                                    [1] ∈ UNINITIALIZED
+[eva:final-states] Values at end of function test_imprecise_size_free:
+  __fc_heap_status ∈ [--..--]
+  p1 ∈ ESCAPINGADDR
+  s ∈ {0; 2}
+  p2 ∈ {{ &__realloc_test_imprecise_size_free_l84[0] }}
+  __realloc_test_imprecise_size_free_l84[0] ∈ {0}
+                                        [1] ∈ {1}
+[eva:final-states] Values at end of function test_invalid_realloc:
+  NON TERMINATING FUNCTION
+[eva:final-states] Values at end of function test_invalid_realloc2:
+  NON TERMINATING FUNCTION
+[eva:final-states] Values at end of function test_invalid_realloc3:
+  NON TERMINATING FUNCTION
+[eva:final-states] Values at end of function test_maybe_nonnull:
+  __fc_heap_status ∈ [--..--]
+  p1 ∈
+    {{ NULL ; (void *)&__malloc_test_maybe_nonnull_l57 }} or ESCAPINGADDR
+  p2 ∈ {{ &__realloc_test_maybe_nonnull_l58[0] }}
+  __realloc_test_maybe_nonnull_l58[0] ∈ {0}
+                                  [1] ∈ {1}
+[eva:final-states] Values at end of function test_possibly_invalid_realloc:
+  __fc_heap_status ∈ [--..--]
+  p1 ∈ ESCAPINGADDR
+  offset ∈ {0; 10; 20}
+  p2 ∈ {{ &__realloc_test_possibly_invalid_realloc_l99[0] }}
+  __realloc_test_possibly_invalid_realloc_l99[0] ∈ {0}
+                                             [1] ∈ {1}
+[eva:final-states] Values at end of function test_realloc_loop:
+  __fc_heap_status ∈ [--..--]
+  p1 ∈ ESCAPINGADDR
+  p2 ∈ {{ &__realloc_w_test_realloc_loop_l138[0] }}
+  __realloc_w_test_realloc_loop_l138[0] ∈ {0}
+                                    [1] ∈ {1}
+                                    [2] ∈ {2}
+                                    [3] ∈ {3}
+                                    [4] ∈ {4}
+                                    [5] ∈ {0}
+                                    [6] ∈ {1}
+                                    [7] ∈ {2}
+                                    [8] ∈ {3}
+                                    [9] ∈ {4}
+                                    [10] ∈ {0} or UNINITIALIZED
+                                    [11] ∈ {1} or UNINITIALIZED
+                                    [12] ∈ {2} or UNINITIALIZED
+                                    [13] ∈ {3} or UNINITIALIZED
+                                    [14] ∈ {4} or UNINITIALIZED
+                                    [15] ∈ {0} or UNINITIALIZED
+                                    [16] ∈ {1} or UNINITIALIZED
+                                    [17] ∈ {2} or UNINITIALIZED
+                                    [18] ∈ {3} or UNINITIALIZED
+                                    [19] ∈ {4} or UNINITIALIZED
+                                    [20] ∈ {0} or UNINITIALIZED
+                                    [21] ∈ {1} or UNINITIALIZED
+                                    [22] ∈ {2} or UNINITIALIZED
+                                    [23] ∈ {3} or UNINITIALIZED
+                                    [24] ∈ {4} or UNINITIALIZED
+                                    [25] ∈ {0} or UNINITIALIZED
+                                    [26] ∈ {1} or UNINITIALIZED
+                                    [27] ∈ {2} or UNINITIALIZED
+                                    [28] ∈ {3} or UNINITIALIZED
+                                    [29] ∈ {4} or UNINITIALIZED
+[eva:final-states] Values at end of function test_realloc_multiple_bases:
+  __fc_heap_status ∈ [--..--]
+  p1 ∈
+    {{ (void *)&__malloc_test_realloc_multiple_bases_l151 }} or ESCAPINGADDR
+  p2 ∈
+    {{ &__malloc_test_realloc_multiple_bases_l154[0] ;
+       &__realloc_test_realloc_multiple_bases_l156[0] }} or ESCAPINGADDR
+  p3 ∈ {{ &__realloc_test_realloc_multiple_bases_l158[0] }}
+  __realloc_test_realloc_multiple_bases_l158[0] ∈ {0}
+                                            [1] ∈ {1}
+                                            [2] ∈ {2}
+                                            [3] ∈ {3}
+                                            [4] ∈ {4}
+[eva:final-states] Values at end of function test_realloc_multiple_bases2:
+  __fc_heap_status ∈ [--..--]
+  p1 ∈
+    {{ (void *)&__malloc_test_realloc_multiple_bases2_l163 }} or ESCAPINGADDR
+  p2 ∈
+    {{ &__realloc_test_realloc_multiple_bases2_l166[0] ;
+       &__malloc_test_realloc_multiple_bases2_l166[0] }} or ESCAPINGADDR
+  p3 ∈ ESCAPINGADDR
+  p4 ∈
+    {{ &__realloc_test_realloc_multiple_bases2_l171[0] }} or ESCAPINGADDR
+  p5 ∈ {{ &__malloc_test_realloc_multiple_bases2_l174[0] }} or ESCAPINGADDR
+  p6 ∈ {{ &__realloc_test_realloc_multiple_bases2_l177[0] }}
+  __malloc_test_realloc_multiple_bases2_l163[0] ∈ {0}
+                                            [1] ∈ {1}
+                                            [2] ∈ {2}
+                                            [3] ∈ {3}
+  __realloc_test_realloc_multiple_bases2_l166[0] ∈ {0}
+                                             [1] ∈ {1; 10}
+                                             [2] ∈ {2}
+                                             [3] ∈ {3}
+                                             [4..5] ∈ UNINITIALIZED
+  __malloc_test_realloc_multiple_bases2_l166[0] ∈ {0} or UNINITIALIZED
+                                            [1] ∈ {10} or UNINITIALIZED
+  __realloc_test_realloc_multiple_bases2_l171[0] ∈ {0}
+                                             [1] ∈ {1}
+                                             [2] ∈ {2}
+                                             [3] ∈ {3}
+                                             [4] ∈ {4}
+  __malloc_test_realloc_multiple_bases2_l174[0] ∈ {0}
+                                            [1] ∈ {10}
+                                            [2] ∈ {20}
+                                            [3..5] ∈ UNINITIALIZED
+  __realloc_test_realloc_multiple_bases2_l177[0] ∈ {0}
+                                             [1] ∈ {1}
+                                             [2] ∈ {2}
+                                             [3] ∈ {3}
+[eva:final-states] Values at end of function test_realloc_multiple_bases_loop:
+  __fc_heap_status ∈ [--..--]
+  size ∈ {10}
+  p ∈
+   {{ &__malloc_test_realloc_multiple_bases_loop_l184[0] ;
+      &__realloc_w_test_realloc_multiple_bases_loop_l187[0] }}
+  __malloc_test_realloc_multiple_bases_loop_l184[0] ∈ {0} or UNINITIALIZED
+                                                [1] ∈ {1} or UNINITIALIZED
+                                                [2] ∈ {2} or UNINITIALIZED
+                                                [3] ∈ {3} or UNINITIALIZED
+                                                [4] ∈ {4} or UNINITIALIZED
+                                                [5] ∈ {5} or UNINITIALIZED
+                                                [6] ∈ {6} or UNINITIALIZED
+                                                [7] ∈ {7} or UNINITIALIZED
+                                                [8] ∈ {8} or UNINITIALIZED
+                                                [9] ∈ {9} or UNINITIALIZED
+  __realloc_w_test_realloc_multiple_bases_loop_l187[0] ∈
+                                                   {0} or UNINITIALIZED
+                                                   [1] ∈
+                                                   {1} or UNINITIALIZED
+                                                   [2] ∈
+                                                   {2} or UNINITIALIZED
+                                                   [3] ∈
+                                                   {3} or UNINITIALIZED
+                                                   [4] ∈
+                                                   {4} or UNINITIALIZED
+                                                   [5] ∈
+                                                   {5} or UNINITIALIZED
+                                                   [6] ∈
+                                                   {6} or UNINITIALIZED
+                                                   [7] ∈
+                                                   {7} or UNINITIALIZED
+                                                   [8] ∈
+                                                   {8} or UNINITIALIZED
+                                                   [9] ∈
+                                                   {9} or UNINITIALIZED
+                                                   [10] ∈
+                                                   {10} or UNINITIALIZED
+                                                   [11] ∈
+                                                   {11} or UNINITIALIZED
+                                                   [12] ∈
+                                                   {12} or UNINITIALIZED
+                                                   [13] ∈
+                                                   {13} or UNINITIALIZED
+                                                   [14] ∈
+                                                   {14} or UNINITIALIZED
+                                                   [15] ∈
+                                                   {15} or UNINITIALIZED
+                                                   [16] ∈
+                                                   {16} or UNINITIALIZED
+                                                   [17] ∈
+                                                   {17} or UNINITIALIZED
+                                                   [18] ∈
+                                                   {18} or UNINITIALIZED
+                                                   [19] ∈
+                                                   {19} or UNINITIALIZED
+                                                   [20] ∈
+                                                   {20} or UNINITIALIZED
+                                                   [21] ∈
+                                                   {21} or UNINITIALIZED
+                                                   [22] ∈
+                                                   {22} or UNINITIALIZED
+                                                   [23] ∈
+                                                   {23} or UNINITIALIZED
+                                                   [24] ∈
+                                                   {24} or UNINITIALIZED
+                                                   [25] ∈
+                                                   {25} or UNINITIALIZED
+                                                   [26] ∈
+                                                   {26} or UNINITIALIZED
+                                                   [27] ∈
+                                                   {27} or UNINITIALIZED
+[eva:final-states] Values at end of function test_realloc_sequence:
+  __fc_heap_status ∈ [--..--]
+  p1 ∈ ESCAPINGADDR
+  p2 ∈ ESCAPINGADDR
+  p3 ∈ {{ &__realloc_test_realloc_sequence_l126[0] }}
+  __realloc_test_realloc_sequence_l126[0] ∈ {0}
+                                      [1] ∈ {1}
+                                      [2] ∈ {2}
+                                      [3] ∈ {3}
+                                      [4] ∈ {4}
+[eva:final-states] Values at end of function test_same_size:
+  __fc_heap_status ∈ [--..--]
+  p1 ∈ ESCAPINGADDR
+  p2 ∈ {{ &__realloc_test_same_size_l65[0] }}
+  __realloc_test_same_size_l65[0] ∈ {0}
+                              [1] ∈ {1}
+                              [2] ∈ {2}
+                              [3] ∈ {3}
+                              [4] ∈ {4}
+[eva:final-states] Values at end of function main:
+  __fc_heap_status ∈ [--..--]
+  __retres ∈ {0}
+  __realloc_test_exact_null_l27[0] ∈ {0}
+                               [1] ∈ {1}
+                               [2] ∈ {2}
+                               [3] ∈ {3}
+                               [4] ∈ {4}
+                               [5] ∈ {5}
+                               [6] ∈ {6}
+                               [7] ∈ {7}
+                               [8] ∈ {8}
+                               [9] ∈ {9}
+  __realloc_test_exact_nonnull_expand_l38[0] ∈ {0}
+                                         [1] ∈ {1}
+                                         [2] ∈ {2}
+                                         [3] ∈ {3}
+                                         [4] ∈ {4}
+                                         [5] ∈ {5}
+                                         [6] ∈ {6}
+                                         [7] ∈ {7}
+                                         [8] ∈ {8}
+                                         [9] ∈ {9}
+  __realloc_test_exact_nonnull_shrink_l46[0] ∈ {0}
+                                         [1] ∈ {1}
+  __realloc_test_maybe_nonnull_l58[0] ∈ {0}
+                                  [1] ∈ {1}
+  __realloc_test_same_size_l65[0] ∈ {0}
+                              [1] ∈ {1}
+                              [2] ∈ {2}
+                              [3] ∈ {3}
+                              [4] ∈ {4}
+  __realloc_test_imprecise_size_l70[0] ∈ {0}
+                                   [1] ∈ {1} or UNINITIALIZED
+  __realloc_test_imprecise_size_but_precise_fill_l76[0] ∈ {0}
+                                                    [1] ∈ UNINITIALIZED
+  __realloc_test_imprecise_size_free_l84[0] ∈ {0}
+                                        [1] ∈ {1}
+  __realloc_test_imprecise_both_l91[0] ∈ {0} or UNINITIALIZED
+                                   [1] ∈ {1} or UNINITIALIZED
+  __realloc_test_possibly_invalid_realloc_l99[0] ∈ {0}
+                                             [1] ∈ {1}
+  __realloc_test_realloc_sequence_l126[0] ∈ {0}
+                                      [1] ∈ {1}
+                                      [2] ∈ {2}
+                                      [3] ∈ {3}
+                                      [4] ∈ {4}
+  __realloc_w_test_realloc_loop_l138[0] ∈ {0}
+                                    [1] ∈ {1}
+                                    [2] ∈ {2}
+                                    [3] ∈ {3}
+                                    [4] ∈ {4}
+                                    [5] ∈ {0}
+                                    [6] ∈ {1}
+                                    [7] ∈ {2}
+                                    [8] ∈ {3}
+                                    [9] ∈ {4}
+                                    [10] ∈ {0} or UNINITIALIZED
+                                    [11] ∈ {1} or UNINITIALIZED
+                                    [12] ∈ {2} or UNINITIALIZED
+                                    [13] ∈ {3} or UNINITIALIZED
+                                    [14] ∈ {4} or UNINITIALIZED
+                                    [15] ∈ {0} or UNINITIALIZED
+                                    [16] ∈ {1} or UNINITIALIZED
+                                    [17] ∈ {2} or UNINITIALIZED
+                                    [18] ∈ {3} or UNINITIALIZED
+                                    [19] ∈ {4} or UNINITIALIZED
+                                    [20] ∈ {0} or UNINITIALIZED
+                                    [21] ∈ {1} or UNINITIALIZED
+                                    [22] ∈ {2} or UNINITIALIZED
+                                    [23] ∈ {3} or UNINITIALIZED
+                                    [24] ∈ {4} or UNINITIALIZED
+                                    [25] ∈ {0} or UNINITIALIZED
+                                    [26] ∈ {1} or UNINITIALIZED
+                                    [27] ∈ {2} or UNINITIALIZED
+                                    [28] ∈ {3} or UNINITIALIZED
+                                    [29] ∈ {4} or UNINITIALIZED
+  __realloc_test_realloc_multiple_bases_l158[0] ∈ {0}
+                                            [1] ∈ {1}
+                                            [2] ∈ {2}
+                                            [3] ∈ {3}
+                                            [4] ∈ {4}
+  __malloc_test_realloc_multiple_bases2_l163[0] ∈ {0}
+                                            [1] ∈ {1}
+                                            [2] ∈ {2}
+                                            [3] ∈ {3}
+  __realloc_test_realloc_multiple_bases2_l166[0] ∈ {0}
+                                             [1] ∈ {1; 10}
+                                             [2] ∈ {2}
+                                             [3] ∈ {3}
+                                             [4..5] ∈ UNINITIALIZED
+  __malloc_test_realloc_multiple_bases2_l166[0] ∈ {0} or UNINITIALIZED
+                                            [1] ∈ {10} or UNINITIALIZED
+  __realloc_test_realloc_multiple_bases2_l171[0] ∈ {0}
+                                             [1] ∈ {1}
+                                             [2] ∈ {2}
+                                             [3] ∈ {3}
+                                             [4] ∈ {4}
+  __malloc_test_realloc_multiple_bases2_l174[0] ∈ {0}
+                                            [1] ∈ {10}
+                                            [2] ∈ {20}
+                                            [3..5] ∈ UNINITIALIZED
+  __realloc_test_realloc_multiple_bases2_l177[0] ∈ {0}
+                                             [1] ∈ {1}
+                                             [2] ∈ {2}
+                                             [3] ∈ {3}
+  __malloc_test_realloc_multiple_bases_loop_l184[0] ∈ {0} or UNINITIALIZED
+                                                [1] ∈ {1} or UNINITIALIZED
+                                                [2] ∈ {2} or UNINITIALIZED
+                                                [3] ∈ {3} or UNINITIALIZED
+                                                [4] ∈ {4} or UNINITIALIZED
+                                                [5] ∈ {5} or UNINITIALIZED
+                                                [6] ∈ {6} or UNINITIALIZED
+                                                [7] ∈ {7} or UNINITIALIZED
+                                                [8] ∈ {8} or UNINITIALIZED
+                                                [9] ∈ {9} or UNINITIALIZED
+  __realloc_w_test_realloc_multiple_bases_loop_l187[0] ∈
+                                                   {0} or UNINITIALIZED
+                                                   [1] ∈
+                                                   {1} or UNINITIALIZED
+                                                   [2] ∈
+                                                   {2} or UNINITIALIZED
+                                                   [3] ∈
+                                                   {3} or UNINITIALIZED
+                                                   [4] ∈
+                                                   {4} or UNINITIALIZED
+                                                   [5] ∈
+                                                   {5} or UNINITIALIZED
+                                                   [6] ∈
+                                                   {6} or UNINITIALIZED
+                                                   [7] ∈
+                                                   {7} or UNINITIALIZED
+                                                   [8] ∈
+                                                   {8} or UNINITIALIZED
+                                                   [9] ∈
+                                                   {9} or UNINITIALIZED
+                                                   [10] ∈
+                                                   {10} or UNINITIALIZED
+                                                   [11] ∈
+                                                   {11} or UNINITIALIZED
+                                                   [12] ∈
+                                                   {12} or UNINITIALIZED
+                                                   [13] ∈
+                                                   {13} or UNINITIALIZED
+                                                   [14] ∈
+                                                   {14} or UNINITIALIZED
+                                                   [15] ∈
+                                                   {15} or UNINITIALIZED
+                                                   [16] ∈
+                                                   {16} or UNINITIALIZED
+                                                   [17] ∈
+                                                   {17} or UNINITIALIZED
+                                                   [18] ∈
+                                                   {18} or UNINITIALIZED
+                                                   [19] ∈
+                                                   {19} or UNINITIALIZED
+                                                   [20] ∈
+                                                   {20} or UNINITIALIZED
+                                                   [21] ∈
+                                                   {21} or UNINITIALIZED
+                                                   [22] ∈
+                                                   {22} or UNINITIALIZED
+                                                   [23] ∈
+                                                   {23} or UNINITIALIZED
+                                                   [24] ∈
+                                                   {24} or UNINITIALIZED
+                                                   [25] ∈
+                                                   {25} or UNINITIALIZED
+                                                   [26] ∈
+                                                   {26} or UNINITIALIZED
+                                                   [27] ∈
+                                                   {27} or UNINITIALIZED
+[from] Computing for function fill
+[from] Done for function fill
+[from] Computing for function fill2
+[from] Done for function fill2
+[from] Computing for function test_exact_nonnull_expand
+[from] Computing for function malloc <-test_exact_nonnull_expand
+[from] Done for function malloc
+[from] Computing for function realloc <-test_exact_nonnull_expand
+[from] Done for function realloc
+[from] Done for function test_exact_nonnull_expand
+[from] Computing for function test_exact_nonnull_free
+[from] Done for function test_exact_nonnull_free
+[from] Computing for function test_exact_nonnull_shrink
+[from] Done for function test_exact_nonnull_shrink
+[from] Computing for function test_exact_null
+[from] Done for function test_exact_null
+[from] Computing for function test_exact_null_free
+[from] Done for function test_exact_null_free
+[from] Computing for function test_imprecise_both
+[from] Done for function test_imprecise_both
+[from] Computing for function test_imprecise_size
+[from] Done for function test_imprecise_size
+[from] Computing for function test_imprecise_size_but_precise_fill
+[from] Done for function test_imprecise_size_but_precise_fill
+[from] Computing for function test_imprecise_size_free
+[from] Done for function test_imprecise_size_free
+[from] Computing for function test_invalid_realloc
+[from] Non-terminating function test_invalid_realloc (no dependencies)
+[from] Done for function test_invalid_realloc
+[from] Computing for function test_invalid_realloc2
+[from] Non-terminating function test_invalid_realloc2 (no dependencies)
+[from] Done for function test_invalid_realloc2
+[from] Computing for function test_invalid_realloc3
+[from] Non-terminating function test_invalid_realloc3 (no dependencies)
+[from] Done for function test_invalid_realloc3
+[from] Computing for function test_maybe_nonnull
+[from] Done for function test_maybe_nonnull
+[from] Computing for function test_possibly_invalid_realloc
+[from] Done for function test_possibly_invalid_realloc
+[from] Computing for function test_realloc_loop
+[from] Done for function test_realloc_loop
+[from] Computing for function test_realloc_multiple_bases
+[from] Done for function test_realloc_multiple_bases
+[from] Computing for function test_realloc_multiple_bases2
+[from] Done for function test_realloc_multiple_bases2
+[from] Computing for function test_realloc_multiple_bases_loop
+[from] Done for function test_realloc_multiple_bases_loop
+[from] Computing for function test_realloc_sequence
+[from] Done for function test_realloc_sequence
+[from] Computing for function test_same_size
+[from] Done for function test_same_size
+[from] Computing for function main
+[from] Done for function main
+[from] ====== DEPENDENCIES COMPUTED ======
+  These dependencies hold at termination for the executions that terminate:
+[from] Function fill:
+  __realloc_test_exact_null_l27[0..9] FROM b; n (and SELF)
+  __malloc_test_exact_nonnull_expand_l36[0..4] FROM b; n (and SELF)
+  __realloc_test_exact_nonnull_expand_l38[0..9] FROM b; n (and SELF)
+  __malloc_test_exact_nonnull_shrink_l44[0..4] FROM b; n (and SELF)
+  __realloc_test_exact_nonnull_shrink_l46[0..1] FROM b; n (and SELF)
+  __malloc_test_exact_nonnull_free_l51[0..4] FROM b; n (and SELF)
+  __realloc_test_maybe_nonnull_l58[0..1] FROM b; n (and SELF)
+  __malloc_test_same_size_l63[0..4] FROM b; n (and SELF)
+  __realloc_test_imprecise_size_l70[0..1] FROM b; n (and SELF)
+  __realloc_test_imprecise_size_but_precise_fill_l76[0..1]
+                                                    FROM b; n (and SELF)
+  __malloc_test_imprecise_size_free_l81[0..4] FROM b; n (and SELF)
+  __realloc_test_imprecise_size_free_l84[0..1] FROM b; n (and SELF)
+  __realloc_test_imprecise_both_l91[0..1] FROM b; n (and SELF)
+  __realloc_test_possibly_invalid_realloc_l99[0..1] FROM b; n (and SELF)
+  __realloc_test_realloc_sequence_l126[0..4] FROM b; n (and SELF)
+  __malloc_test_realloc_loop_l131[0..9] FROM b; n (and SELF)
+  __realloc_w_test_realloc_loop_l138[5..29] FROM b; n (and SELF)
+  __realloc_test_realloc_multiple_bases_l158[0..4] FROM b; n (and SELF)
+  __malloc_test_realloc_multiple_bases2_l163[0..3] FROM b; n (and SELF)
+  __realloc_test_realloc_multiple_bases2_l171[0..4] FROM b; n (and SELF)
+  __realloc_test_realloc_multiple_bases2_l177[0..3] FROM b; n (and SELF)
+  __malloc_test_realloc_multiple_bases_loop_l184[0..9] FROM b; n (and SELF)
+  __realloc_w_test_realloc_multiple_bases_loop_l187[0..27]
+                                                   FROM b; n (and SELF)
+[from] Function fill2:
+  __realloc_test_realloc_multiple_bases2_l166[0..2] FROM b; n (and SELF)
+  __malloc_test_realloc_multiple_bases2_l166[0..1] FROM b; n (and SELF)
+  __malloc_test_realloc_multiple_bases2_l174[0..2] FROM b; n (and SELF)
+[from] Function malloc:
+  __fc_heap_status FROM __fc_heap_status; size (and SELF)
+  \result FROM __fc_heap_status; size
+[from] Function realloc:
+  __fc_heap_status FROM __fc_heap_status (and SELF)
+  \result FROM __fc_heap_status; ptr; size
+[from] Function test_exact_nonnull_expand:
+  __fc_heap_status FROM __fc_heap_status (and SELF)
+  __realloc_test_exact_null_l27[0..9] FROM __fc_heap_status (and SELF)
+  __malloc_test_exact_nonnull_expand_l36[0..4] FROM __fc_heap_status (and SELF)
+  __realloc_test_exact_nonnull_expand_l38[0..9] FROM __fc_heap_status (and SELF)
+  __malloc_test_exact_nonnull_shrink_l44[0..4] FROM __fc_heap_status (and SELF)
+  __realloc_test_exact_nonnull_shrink_l46[0..1] FROM __fc_heap_status (and SELF)
+  __malloc_test_exact_nonnull_free_l51[0..4] FROM __fc_heap_status (and SELF)
+  __realloc_test_maybe_nonnull_l58[0..1] FROM __fc_heap_status (and SELF)
+  __malloc_test_same_size_l63[0..4] FROM __fc_heap_status (and SELF)
+  __realloc_test_imprecise_size_l70[0..1] FROM __fc_heap_status (and SELF)
+  __realloc_test_imprecise_size_but_precise_fill_l76[0..1]
+                                                    FROM __fc_heap_status (and SELF)
+  __malloc_test_imprecise_size_free_l81[0..4] FROM __fc_heap_status (and SELF)
+  __realloc_test_imprecise_size_free_l84[0..1]
+                                        FROM __fc_heap_status (and SELF)
+  __realloc_test_imprecise_both_l91[0..1] FROM __fc_heap_status (and SELF)
+  __realloc_test_possibly_invalid_realloc_l99[0..1] FROM __fc_heap_status (and SELF)
+  __realloc_test_realloc_sequence_l126[0..4] FROM __fc_heap_status (and SELF)
+  __malloc_test_realloc_loop_l131[0..9] FROM __fc_heap_status (and SELF)
+  __realloc_w_test_realloc_loop_l138[5..29] FROM __fc_heap_status (and SELF)
+  __realloc_test_realloc_multiple_bases_l158[0..4] FROM __fc_heap_status (and SELF)
+  __malloc_test_realloc_multiple_bases2_l163[0..3] FROM __fc_heap_status (and SELF)
+  __realloc_test_realloc_multiple_bases2_l171[0..4] FROM __fc_heap_status (and SELF)
+  __realloc_test_realloc_multiple_bases2_l177[0..3] FROM __fc_heap_status (and SELF)
+  __malloc_test_realloc_multiple_bases_loop_l184[0..9] FROM __fc_heap_status (and SELF)
+  __realloc_w_test_realloc_multiple_bases_loop_l187[0..27]
+                                                   FROM __fc_heap_status (and SELF)
+[from] Function test_exact_nonnull_free:
+  __fc_heap_status FROM __fc_heap_status (and SELF)
+  __realloc_test_exact_null_l27[0..9] FROM __fc_heap_status (and SELF)
+  __malloc_test_exact_nonnull_expand_l36[0..4] FROM __fc_heap_status (and SELF)
+  __realloc_test_exact_nonnull_expand_l38[0..9] FROM __fc_heap_status (and SELF)
+  __malloc_test_exact_nonnull_shrink_l44[0..4] FROM __fc_heap_status (and SELF)
+  __realloc_test_exact_nonnull_shrink_l46[0..1] FROM __fc_heap_status (and SELF)
+  __malloc_test_exact_nonnull_free_l51[0..4] FROM __fc_heap_status (and SELF)
+  __realloc_test_maybe_nonnull_l58[0..1] FROM __fc_heap_status (and SELF)
+  __malloc_test_same_size_l63[0..4] FROM __fc_heap_status (and SELF)
+  __realloc_test_imprecise_size_l70[0..1] FROM __fc_heap_status (and SELF)
+  __realloc_test_imprecise_size_but_precise_fill_l76[0..1]
+                                                    FROM __fc_heap_status (and SELF)
+  __malloc_test_imprecise_size_free_l81[0..4] FROM __fc_heap_status (and SELF)
+  __realloc_test_imprecise_size_free_l84[0..1]
+                                        FROM __fc_heap_status (and SELF)
+  __realloc_test_imprecise_both_l91[0..1] FROM __fc_heap_status (and SELF)
+  __realloc_test_possibly_invalid_realloc_l99[0..1] FROM __fc_heap_status (and SELF)
+  __realloc_test_realloc_sequence_l126[0..4] FROM __fc_heap_status (and SELF)
+  __malloc_test_realloc_loop_l131[0..9] FROM __fc_heap_status (and SELF)
+  __realloc_w_test_realloc_loop_l138[5..29] FROM __fc_heap_status (and SELF)
+  __realloc_test_realloc_multiple_bases_l158[0..4] FROM __fc_heap_status (and SELF)
+  __malloc_test_realloc_multiple_bases2_l163[0..3] FROM __fc_heap_status (and SELF)
+  __realloc_test_realloc_multiple_bases2_l171[0..4] FROM __fc_heap_status (and SELF)
+  __realloc_test_realloc_multiple_bases2_l177[0..3] FROM __fc_heap_status (and SELF)
+  __malloc_test_realloc_multiple_bases_loop_l184[0..9] FROM __fc_heap_status (and SELF)
+  __realloc_w_test_realloc_multiple_bases_loop_l187[0..27]
+                                                   FROM __fc_heap_status (and SELF)
+[from] Function test_exact_nonnull_shrink:
+  __fc_heap_status FROM __fc_heap_status (and SELF)
+  __realloc_test_exact_null_l27[0..9] FROM __fc_heap_status (and SELF)
+  __malloc_test_exact_nonnull_expand_l36[0..4] FROM __fc_heap_status (and SELF)
+  __realloc_test_exact_nonnull_expand_l38[0..9] FROM __fc_heap_status (and SELF)
+  __malloc_test_exact_nonnull_shrink_l44[0..4] FROM __fc_heap_status (and SELF)
+  __realloc_test_exact_nonnull_shrink_l46[0..1] FROM __fc_heap_status (and SELF)
+  __malloc_test_exact_nonnull_free_l51[0..4] FROM __fc_heap_status (and SELF)
+  __realloc_test_maybe_nonnull_l58[0..1] FROM __fc_heap_status (and SELF)
+  __malloc_test_same_size_l63[0..4] FROM __fc_heap_status (and SELF)
+  __realloc_test_imprecise_size_l70[0..1] FROM __fc_heap_status (and SELF)
+  __realloc_test_imprecise_size_but_precise_fill_l76[0..1]
+                                                    FROM __fc_heap_status (and SELF)
+  __malloc_test_imprecise_size_free_l81[0..4] FROM __fc_heap_status (and SELF)
+  __realloc_test_imprecise_size_free_l84[0..1]
+                                        FROM __fc_heap_status (and SELF)
+  __realloc_test_imprecise_both_l91[0..1] FROM __fc_heap_status (and SELF)
+  __realloc_test_possibly_invalid_realloc_l99[0..1] FROM __fc_heap_status (and SELF)
+  __realloc_test_realloc_sequence_l126[0..4] FROM __fc_heap_status (and SELF)
+  __malloc_test_realloc_loop_l131[0..9] FROM __fc_heap_status (and SELF)
+  __realloc_w_test_realloc_loop_l138[5..29] FROM __fc_heap_status (and SELF)
+  __realloc_test_realloc_multiple_bases_l158[0..4] FROM __fc_heap_status (and SELF)
+  __malloc_test_realloc_multiple_bases2_l163[0..3] FROM __fc_heap_status (and SELF)
+  __realloc_test_realloc_multiple_bases2_l171[0..4] FROM __fc_heap_status (and SELF)
+  __realloc_test_realloc_multiple_bases2_l177[0..3] FROM __fc_heap_status (and SELF)
+  __malloc_test_realloc_multiple_bases_loop_l184[0..9] FROM __fc_heap_status (and SELF)
+  __realloc_w_test_realloc_multiple_bases_loop_l187[0..27]
+                                                   FROM __fc_heap_status (and SELF)
+[from] Function test_exact_null:
+  __fc_heap_status FROM __fc_heap_status (and SELF)
+  __realloc_test_exact_null_l27[0..9] FROM __fc_heap_status (and SELF)
+  __malloc_test_exact_nonnull_expand_l36[0..4] FROM __fc_heap_status (and SELF)
+  __realloc_test_exact_nonnull_expand_l38[0..9] FROM __fc_heap_status (and SELF)
+  __malloc_test_exact_nonnull_shrink_l44[0..4] FROM __fc_heap_status (and SELF)
+  __realloc_test_exact_nonnull_shrink_l46[0..1] FROM __fc_heap_status (and SELF)
+  __malloc_test_exact_nonnull_free_l51[0..4] FROM __fc_heap_status (and SELF)
+  __realloc_test_maybe_nonnull_l58[0..1] FROM __fc_heap_status (and SELF)
+  __malloc_test_same_size_l63[0..4] FROM __fc_heap_status (and SELF)
+  __realloc_test_imprecise_size_l70[0..1] FROM __fc_heap_status (and SELF)
+  __realloc_test_imprecise_size_but_precise_fill_l76[0..1]
+                                                    FROM __fc_heap_status (and SELF)
+  __malloc_test_imprecise_size_free_l81[0..4] FROM __fc_heap_status (and SELF)
+  __realloc_test_imprecise_size_free_l84[0..1]
+                                        FROM __fc_heap_status (and SELF)
+  __realloc_test_imprecise_both_l91[0..1] FROM __fc_heap_status (and SELF)
+  __realloc_test_possibly_invalid_realloc_l99[0..1] FROM __fc_heap_status (and SELF)
+  __realloc_test_realloc_sequence_l126[0..4] FROM __fc_heap_status (and SELF)
+  __malloc_test_realloc_loop_l131[0..9] FROM __fc_heap_status (and SELF)
+  __realloc_w_test_realloc_loop_l138[5..29] FROM __fc_heap_status (and SELF)
+  __realloc_test_realloc_multiple_bases_l158[0..4] FROM __fc_heap_status (and SELF)
+  __malloc_test_realloc_multiple_bases2_l163[0..3] FROM __fc_heap_status (and SELF)
+  __realloc_test_realloc_multiple_bases2_l171[0..4] FROM __fc_heap_status (and SELF)
+  __realloc_test_realloc_multiple_bases2_l177[0..3] FROM __fc_heap_status (and SELF)
+  __malloc_test_realloc_multiple_bases_loop_l184[0..9] FROM __fc_heap_status (and SELF)
+  __realloc_w_test_realloc_multiple_bases_loop_l187[0..27]
+                                                   FROM __fc_heap_status (and SELF)
+[from] Function test_exact_null_free:
+  __fc_heap_status FROM __fc_heap_status (and SELF)
+[from] Function test_imprecise_both:
+  __fc_heap_status FROM __fc_heap_status; nondet (and SELF)
+  __realloc_test_exact_null_l27[0..9] FROM __fc_heap_status;
+                                           nondet (and SELF)
+  __malloc_test_exact_nonnull_expand_l36[0..4] FROM __fc_heap_status;
+                                                    nondet (and SELF)
+  __realloc_test_exact_nonnull_expand_l38[0..9] FROM __fc_heap_status;
+                                                     nondet (and SELF)
+  __malloc_test_exact_nonnull_shrink_l44[0..4] FROM __fc_heap_status;
+                                                    nondet (and SELF)
+  __realloc_test_exact_nonnull_shrink_l46[0..1] FROM __fc_heap_status;
+                                                     nondet (and SELF)
+  __malloc_test_exact_nonnull_free_l51[0..4] FROM __fc_heap_status;
+                                                  nondet (and SELF)
+  __realloc_test_maybe_nonnull_l58[0..1] FROM __fc_heap_status;
+                                              nondet (and SELF)
+  __malloc_test_same_size_l63[0..4] FROM __fc_heap_status; nondet (and SELF)
+  __realloc_test_imprecise_size_l70[0..1]
+                                   FROM __fc_heap_status; nondet (and SELF)
+  __realloc_test_imprecise_size_but_precise_fill_l76[0..1]
+                                                    FROM __fc_heap_status;
+                                                         nondet (and SELF)
+  __malloc_test_imprecise_size_free_l81[0..4] FROM __fc_heap_status;
+                                                   nondet (and SELF)
+  __realloc_test_imprecise_size_free_l84[0..1]
+                                        FROM __fc_heap_status;
+                                             nondet (and SELF)
+  __realloc_test_imprecise_both_l91[0..1]
+                                   FROM __fc_heap_status; nondet (and SELF)
+  __realloc_test_possibly_invalid_realloc_l99[0..1] FROM __fc_heap_status;
+                                                         nondet (and SELF)
+  __realloc_test_realloc_sequence_l126[0..4] FROM __fc_heap_status;
+                                                  nondet (and SELF)
+  __malloc_test_realloc_loop_l131[0..9] FROM __fc_heap_status;
+                                             nondet (and SELF)
+  __realloc_w_test_realloc_loop_l138[5..29]
+                                    FROM __fc_heap_status; nondet (and SELF)
+  __realloc_test_realloc_multiple_bases_l158[0..4] FROM __fc_heap_status;
+                                                        nondet (and SELF)
+  __malloc_test_realloc_multiple_bases2_l163[0..3] FROM __fc_heap_status;
+                                                        nondet (and SELF)
+  __realloc_test_realloc_multiple_bases2_l171[0..4] FROM __fc_heap_status;
+                                                         nondet (and SELF)
+  __realloc_test_realloc_multiple_bases2_l177[0..3] FROM __fc_heap_status;
+                                                         nondet (and SELF)
+  __malloc_test_realloc_multiple_bases_loop_l184[0..9] FROM __fc_heap_status;
+                                                            nondet (and SELF)
+  __realloc_w_test_realloc_multiple_bases_loop_l187[0..27]
+                                                   FROM __fc_heap_status;
+                                                        nondet (and SELF)
+[from] Function test_imprecise_size:
+  __fc_heap_status FROM __fc_heap_status (and SELF)
+  __realloc_test_exact_null_l27[0..9] FROM __fc_heap_status;
+                                           nondet (and SELF)
+  __malloc_test_exact_nonnull_expand_l36[0..4] FROM __fc_heap_status;
+                                                    nondet (and SELF)
+  __realloc_test_exact_nonnull_expand_l38[0..9] FROM __fc_heap_status;
+                                                     nondet (and SELF)
+  __malloc_test_exact_nonnull_shrink_l44[0..4] FROM __fc_heap_status;
+                                                    nondet (and SELF)
+  __realloc_test_exact_nonnull_shrink_l46[0..1] FROM __fc_heap_status;
+                                                     nondet (and SELF)
+  __malloc_test_exact_nonnull_free_l51[0..4] FROM __fc_heap_status;
+                                                  nondet (and SELF)
+  __realloc_test_maybe_nonnull_l58[0..1] FROM __fc_heap_status;
+                                              nondet (and SELF)
+  __malloc_test_same_size_l63[0..4] FROM __fc_heap_status; nondet (and SELF)
+  __realloc_test_imprecise_size_l70[0..1]
+                                   FROM __fc_heap_status; nondet (and SELF)
+  __realloc_test_imprecise_size_but_precise_fill_l76[0..1]
+                                                    FROM __fc_heap_status;
+                                                         nondet (and SELF)
+  __malloc_test_imprecise_size_free_l81[0..4] FROM __fc_heap_status;
+                                                   nondet (and SELF)
+  __realloc_test_imprecise_size_free_l84[0..1]
+                                        FROM __fc_heap_status;
+                                             nondet (and SELF)
+  __realloc_test_imprecise_both_l91[0..1]
+                                   FROM __fc_heap_status; nondet (and SELF)
+  __realloc_test_possibly_invalid_realloc_l99[0..1] FROM __fc_heap_status;
+                                                         nondet (and SELF)
+  __realloc_test_realloc_sequence_l126[0..4] FROM __fc_heap_status;
+                                                  nondet (and SELF)
+  __malloc_test_realloc_loop_l131[0..9] FROM __fc_heap_status;
+                                             nondet (and SELF)
+  __realloc_w_test_realloc_loop_l138[5..29]
+                                    FROM __fc_heap_status; nondet (and SELF)
+  __realloc_test_realloc_multiple_bases_l158[0..4] FROM __fc_heap_status;
+                                                        nondet (and SELF)
+  __malloc_test_realloc_multiple_bases2_l163[0..3] FROM __fc_heap_status;
+                                                        nondet (and SELF)
+  __realloc_test_realloc_multiple_bases2_l171[0..4] FROM __fc_heap_status;
+                                                         nondet (and SELF)
+  __realloc_test_realloc_multiple_bases2_l177[0..3] FROM __fc_heap_status;
+                                                         nondet (and SELF)
+  __malloc_test_realloc_multiple_bases_loop_l184[0..9] FROM __fc_heap_status;
+                                                            nondet (and SELF)
+  __realloc_w_test_realloc_multiple_bases_loop_l187[0..27]
+                                                   FROM __fc_heap_status;
+                                                        nondet (and SELF)
+[from] Function test_imprecise_size_but_precise_fill:
+  __fc_heap_status FROM __fc_heap_status (and SELF)
+  __realloc_test_exact_null_l27[0..9] FROM __fc_heap_status;
+                                           nondet (and SELF)
+  __malloc_test_exact_nonnull_expand_l36[0..4] FROM __fc_heap_status;
+                                                    nondet (and SELF)
+  __realloc_test_exact_nonnull_expand_l38[0..9] FROM __fc_heap_status;
+                                                     nondet (and SELF)
+  __malloc_test_exact_nonnull_shrink_l44[0..4] FROM __fc_heap_status;
+                                                    nondet (and SELF)
+  __realloc_test_exact_nonnull_shrink_l46[0..1] FROM __fc_heap_status;
+                                                     nondet (and SELF)
+  __malloc_test_exact_nonnull_free_l51[0..4] FROM __fc_heap_status;
+                                                  nondet (and SELF)
+  __realloc_test_maybe_nonnull_l58[0..1] FROM __fc_heap_status;
+                                              nondet (and SELF)
+  __malloc_test_same_size_l63[0..4] FROM __fc_heap_status; nondet (and SELF)
+  __realloc_test_imprecise_size_l70[0..1]
+                                   FROM __fc_heap_status; nondet (and SELF)
+  __realloc_test_imprecise_size_but_precise_fill_l76[0..1]
+                                                    FROM __fc_heap_status;
+                                                         nondet (and SELF)
+  __malloc_test_imprecise_size_free_l81[0..4] FROM __fc_heap_status;
+                                                   nondet (and SELF)
+  __realloc_test_imprecise_size_free_l84[0..1]
+                                        FROM __fc_heap_status;
+                                             nondet (and SELF)
+  __realloc_test_imprecise_both_l91[0..1]
+                                   FROM __fc_heap_status; nondet (and SELF)
+  __realloc_test_possibly_invalid_realloc_l99[0..1] FROM __fc_heap_status;
+                                                         nondet (and SELF)
+  __realloc_test_realloc_sequence_l126[0..4] FROM __fc_heap_status;
+                                                  nondet (and SELF)
+  __malloc_test_realloc_loop_l131[0..9] FROM __fc_heap_status;
+                                             nondet (and SELF)
+  __realloc_w_test_realloc_loop_l138[5..29]
+                                    FROM __fc_heap_status; nondet (and SELF)
+  __realloc_test_realloc_multiple_bases_l158[0..4] FROM __fc_heap_status;
+                                                        nondet (and SELF)
+  __malloc_test_realloc_multiple_bases2_l163[0..3] FROM __fc_heap_status;
+                                                        nondet (and SELF)
+  __realloc_test_realloc_multiple_bases2_l171[0..4] FROM __fc_heap_status;
+                                                         nondet (and SELF)
+  __realloc_test_realloc_multiple_bases2_l177[0..3] FROM __fc_heap_status;
+                                                         nondet (and SELF)
+  __malloc_test_realloc_multiple_bases_loop_l184[0..9] FROM __fc_heap_status;
+                                                            nondet (and SELF)
+  __realloc_w_test_realloc_multiple_bases_loop_l187[0..27]
+                                                   FROM __fc_heap_status;
+                                                        nondet (and SELF)
+[from] Function test_imprecise_size_free:
+  __fc_heap_status FROM __fc_heap_status (and SELF)
+  __realloc_test_exact_null_l27[0..9] FROM __fc_heap_status;
+                                           nondet (and SELF)
+  __malloc_test_exact_nonnull_expand_l36[0..4] FROM __fc_heap_status;
+                                                    nondet (and SELF)
+  __realloc_test_exact_nonnull_expand_l38[0..9] FROM __fc_heap_status;
+                                                     nondet (and SELF)
+  __malloc_test_exact_nonnull_shrink_l44[0..4] FROM __fc_heap_status;
+                                                    nondet (and SELF)
+  __realloc_test_exact_nonnull_shrink_l46[0..1] FROM __fc_heap_status;
+                                                     nondet (and SELF)
+  __malloc_test_exact_nonnull_free_l51[0..4] FROM __fc_heap_status;
+                                                  nondet (and SELF)
+  __realloc_test_maybe_nonnull_l58[0..1] FROM __fc_heap_status;
+                                              nondet (and SELF)
+  __malloc_test_same_size_l63[0..4] FROM __fc_heap_status; nondet (and SELF)
+  __realloc_test_imprecise_size_l70[0..1]
+                                   FROM __fc_heap_status; nondet (and SELF)
+  __realloc_test_imprecise_size_but_precise_fill_l76[0..1]
+                                                    FROM __fc_heap_status;
+                                                         nondet (and SELF)
+  __malloc_test_imprecise_size_free_l81[0..4] FROM __fc_heap_status;
+                                                   nondet (and SELF)
+  __realloc_test_imprecise_size_free_l84[0..1]
+                                        FROM __fc_heap_status;
+                                             nondet (and SELF)
+  __realloc_test_imprecise_both_l91[0..1]
+                                   FROM __fc_heap_status; nondet (and SELF)
+  __realloc_test_possibly_invalid_realloc_l99[0..1] FROM __fc_heap_status;
+                                                         nondet (and SELF)
+  __realloc_test_realloc_sequence_l126[0..4] FROM __fc_heap_status;
+                                                  nondet (and SELF)
+  __malloc_test_realloc_loop_l131[0..9] FROM __fc_heap_status;
+                                             nondet (and SELF)
+  __realloc_w_test_realloc_loop_l138[5..29]
+                                    FROM __fc_heap_status; nondet (and SELF)
+  __realloc_test_realloc_multiple_bases_l158[0..4] FROM __fc_heap_status;
+                                                        nondet (and SELF)
+  __malloc_test_realloc_multiple_bases2_l163[0..3] FROM __fc_heap_status;
+                                                        nondet (and SELF)
+  __realloc_test_realloc_multiple_bases2_l171[0..4] FROM __fc_heap_status;
+                                                         nondet (and SELF)
+  __realloc_test_realloc_multiple_bases2_l177[0..3] FROM __fc_heap_status;
+                                                         nondet (and SELF)
+  __malloc_test_realloc_multiple_bases_loop_l184[0..9] FROM __fc_heap_status;
+                                                            nondet (and SELF)
+  __realloc_w_test_realloc_multiple_bases_loop_l187[0..27]
+                                                   FROM __fc_heap_status;
+                                                        nondet (and SELF)
+[from] Function test_invalid_realloc:
+  NON TERMINATING - NO EFFECTS
+[from] Function test_invalid_realloc2:
+  NON TERMINATING - NO EFFECTS
+[from] Function test_invalid_realloc3:
+  NON TERMINATING - NO EFFECTS
+[from] Function test_maybe_nonnull:
+  __fc_heap_status FROM __fc_heap_status; nondet (and SELF)
+  __realloc_test_exact_null_l27[0..9] FROM __fc_heap_status;
+                                           nondet (and SELF)
+  __malloc_test_exact_nonnull_expand_l36[0..4] FROM __fc_heap_status;
+                                                    nondet (and SELF)
+  __realloc_test_exact_nonnull_expand_l38[0..9] FROM __fc_heap_status;
+                                                     nondet (and SELF)
+  __malloc_test_exact_nonnull_shrink_l44[0..4] FROM __fc_heap_status;
+                                                    nondet (and SELF)
+  __realloc_test_exact_nonnull_shrink_l46[0..1] FROM __fc_heap_status;
+                                                     nondet (and SELF)
+  __malloc_test_exact_nonnull_free_l51[0..4] FROM __fc_heap_status;
+                                                  nondet (and SELF)
+  __realloc_test_maybe_nonnull_l58[0..1] FROM __fc_heap_status;
+                                              nondet (and SELF)
+  __malloc_test_same_size_l63[0..4] FROM __fc_heap_status; nondet (and SELF)
+  __realloc_test_imprecise_size_l70[0..1]
+                                   FROM __fc_heap_status; nondet (and SELF)
+  __realloc_test_imprecise_size_but_precise_fill_l76[0..1]
+                                                    FROM __fc_heap_status;
+                                                         nondet (and SELF)
+  __malloc_test_imprecise_size_free_l81[0..4] FROM __fc_heap_status;
+                                                   nondet (and SELF)
+  __realloc_test_imprecise_size_free_l84[0..1]
+                                        FROM __fc_heap_status;
+                                             nondet (and SELF)
+  __realloc_test_imprecise_both_l91[0..1]
+                                   FROM __fc_heap_status; nondet (and SELF)
+  __realloc_test_possibly_invalid_realloc_l99[0..1] FROM __fc_heap_status;
+                                                         nondet (and SELF)
+  __realloc_test_realloc_sequence_l126[0..4] FROM __fc_heap_status;
+                                                  nondet (and SELF)
+  __malloc_test_realloc_loop_l131[0..9] FROM __fc_heap_status;
+                                             nondet (and SELF)
+  __realloc_w_test_realloc_loop_l138[5..29]
+                                    FROM __fc_heap_status; nondet (and SELF)
+  __realloc_test_realloc_multiple_bases_l158[0..4] FROM __fc_heap_status;
+                                                        nondet (and SELF)
+  __malloc_test_realloc_multiple_bases2_l163[0..3] FROM __fc_heap_status;
+                                                        nondet (and SELF)
+  __realloc_test_realloc_multiple_bases2_l171[0..4] FROM __fc_heap_status;
+                                                         nondet (and SELF)
+  __realloc_test_realloc_multiple_bases2_l177[0..3] FROM __fc_heap_status;
+                                                         nondet (and SELF)
+  __malloc_test_realloc_multiple_bases_loop_l184[0..9] FROM __fc_heap_status;
+                                                            nondet (and SELF)
+  __realloc_w_test_realloc_multiple_bases_loop_l187[0..27]
+                                                   FROM __fc_heap_status;
+                                                        nondet (and SELF)
+[from] Function test_possibly_invalid_realloc:
+  __fc_heap_status FROM __fc_heap_status (and SELF)
+  __realloc_test_exact_null_l27[0..9] FROM __fc_heap_status;
+                                           nondet (and SELF)
+  __malloc_test_exact_nonnull_expand_l36[0..4] FROM __fc_heap_status;
+                                                    nondet (and SELF)
+  __realloc_test_exact_nonnull_expand_l38[0..9] FROM __fc_heap_status;
+                                                     nondet (and SELF)
+  __malloc_test_exact_nonnull_shrink_l44[0..4] FROM __fc_heap_status;
+                                                    nondet (and SELF)
+  __realloc_test_exact_nonnull_shrink_l46[0..1] FROM __fc_heap_status;
+                                                     nondet (and SELF)
+  __malloc_test_exact_nonnull_free_l51[0..4] FROM __fc_heap_status;
+                                                  nondet (and SELF)
+  __realloc_test_maybe_nonnull_l58[0..1] FROM __fc_heap_status;
+                                              nondet (and SELF)
+  __malloc_test_same_size_l63[0..4] FROM __fc_heap_status; nondet (and SELF)
+  __realloc_test_imprecise_size_l70[0..1]
+                                   FROM __fc_heap_status; nondet (and SELF)
+  __realloc_test_imprecise_size_but_precise_fill_l76[0..1]
+                                                    FROM __fc_heap_status;
+                                                         nondet (and SELF)
+  __malloc_test_imprecise_size_free_l81[0..4] FROM __fc_heap_status;
+                                                   nondet (and SELF)
+  __realloc_test_imprecise_size_free_l84[0..1]
+                                        FROM __fc_heap_status;
+                                             nondet (and SELF)
+  __realloc_test_imprecise_both_l91[0..1]
+                                   FROM __fc_heap_status; nondet (and SELF)
+  __realloc_test_possibly_invalid_realloc_l99[0..1] FROM __fc_heap_status;
+                                                         nondet (and SELF)
+  __realloc_test_realloc_sequence_l126[0..4] FROM __fc_heap_status;
+                                                  nondet (and SELF)
+  __malloc_test_realloc_loop_l131[0..9] FROM __fc_heap_status;
+                                             nondet (and SELF)
+  __realloc_w_test_realloc_loop_l138[5..29]
+                                    FROM __fc_heap_status; nondet (and SELF)
+  __realloc_test_realloc_multiple_bases_l158[0..4] FROM __fc_heap_status;
+                                                        nondet (and SELF)
+  __malloc_test_realloc_multiple_bases2_l163[0..3] FROM __fc_heap_status;
+                                                        nondet (and SELF)
+  __realloc_test_realloc_multiple_bases2_l171[0..4] FROM __fc_heap_status;
+                                                         nondet (and SELF)
+  __realloc_test_realloc_multiple_bases2_l177[0..3] FROM __fc_heap_status;
+                                                         nondet (and SELF)
+  __malloc_test_realloc_multiple_bases_loop_l184[0..9] FROM __fc_heap_status;
+                                                            nondet (and SELF)
+  __realloc_w_test_realloc_multiple_bases_loop_l187[0..27]
+                                                   FROM __fc_heap_status;
+                                                        nondet (and SELF)
+[from] Function test_realloc_loop:
+  __fc_heap_status FROM __fc_heap_status (and SELF)
+  __realloc_test_exact_null_l27[0..9] FROM __fc_heap_status (and SELF)
+  __malloc_test_exact_nonnull_expand_l36[0..4] FROM __fc_heap_status (and SELF)
+  __realloc_test_exact_nonnull_expand_l38[0..9] FROM __fc_heap_status (and SELF)
+  __malloc_test_exact_nonnull_shrink_l44[0..4] FROM __fc_heap_status (and SELF)
+  __realloc_test_exact_nonnull_shrink_l46[0..1] FROM __fc_heap_status (and SELF)
+  __malloc_test_exact_nonnull_free_l51[0..4] FROM __fc_heap_status (and SELF)
+  __realloc_test_maybe_nonnull_l58[0..1] FROM __fc_heap_status (and SELF)
+  __malloc_test_same_size_l63[0..4] FROM __fc_heap_status (and SELF)
+  __realloc_test_imprecise_size_l70[0..1] FROM __fc_heap_status (and SELF)
+  __realloc_test_imprecise_size_but_precise_fill_l76[0..1]
+                                                    FROM __fc_heap_status (and SELF)
+  __malloc_test_imprecise_size_free_l81[0..4] FROM __fc_heap_status (and SELF)
+  __realloc_test_imprecise_size_free_l84[0..1]
+                                        FROM __fc_heap_status (and SELF)
+  __realloc_test_imprecise_both_l91[0..1] FROM __fc_heap_status (and SELF)
+  __realloc_test_possibly_invalid_realloc_l99[0..1] FROM __fc_heap_status (and SELF)
+  __realloc_test_realloc_sequence_l126[0..4] FROM __fc_heap_status (and SELF)
+  __malloc_test_realloc_loop_l131[0..9] FROM __fc_heap_status (and SELF)
+  __realloc_w_test_realloc_loop_l138[5..29] FROM __fc_heap_status (and SELF)
+  __realloc_test_realloc_multiple_bases_l158[0..4] FROM __fc_heap_status (and SELF)
+  __malloc_test_realloc_multiple_bases2_l163[0..3] FROM __fc_heap_status (and SELF)
+  __realloc_test_realloc_multiple_bases2_l171[0..4] FROM __fc_heap_status (and SELF)
+  __realloc_test_realloc_multiple_bases2_l177[0..3] FROM __fc_heap_status (and SELF)
+  __malloc_test_realloc_multiple_bases_loop_l184[0..9] FROM __fc_heap_status (and SELF)
+  __realloc_w_test_realloc_multiple_bases_loop_l187[0..27]
+                                                   FROM __fc_heap_status (and SELF)
+[from] Function test_realloc_multiple_bases:
+  __fc_heap_status FROM __fc_heap_status; nondet (and SELF)
+  __realloc_test_exact_null_l27[0..9] FROM __fc_heap_status;
+                                           nondet (and SELF)
+  __malloc_test_exact_nonnull_expand_l36[0..4] FROM __fc_heap_status;
+                                                    nondet (and SELF)
+  __realloc_test_exact_nonnull_expand_l38[0..9] FROM __fc_heap_status;
+                                                     nondet (and SELF)
+  __malloc_test_exact_nonnull_shrink_l44[0..4] FROM __fc_heap_status;
+                                                    nondet (and SELF)
+  __realloc_test_exact_nonnull_shrink_l46[0..1] FROM __fc_heap_status;
+                                                     nondet (and SELF)
+  __malloc_test_exact_nonnull_free_l51[0..4] FROM __fc_heap_status;
+                                                  nondet (and SELF)
+  __realloc_test_maybe_nonnull_l58[0..1] FROM __fc_heap_status;
+                                              nondet (and SELF)
+  __malloc_test_same_size_l63[0..4] FROM __fc_heap_status; nondet (and SELF)
+  __realloc_test_imprecise_size_l70[0..1]
+                                   FROM __fc_heap_status; nondet (and SELF)
+  __realloc_test_imprecise_size_but_precise_fill_l76[0..1]
+                                                    FROM __fc_heap_status;
+                                                         nondet (and SELF)
+  __malloc_test_imprecise_size_free_l81[0..4] FROM __fc_heap_status;
+                                                   nondet (and SELF)
+  __realloc_test_imprecise_size_free_l84[0..1]
+                                        FROM __fc_heap_status;
+                                             nondet (and SELF)
+  __realloc_test_imprecise_both_l91[0..1]
+                                   FROM __fc_heap_status; nondet (and SELF)
+  __realloc_test_possibly_invalid_realloc_l99[0..1] FROM __fc_heap_status;
+                                                         nondet (and SELF)
+  __realloc_test_realloc_sequence_l126[0..4] FROM __fc_heap_status;
+                                                  nondet (and SELF)
+  __malloc_test_realloc_loop_l131[0..9] FROM __fc_heap_status;
+                                             nondet (and SELF)
+  __realloc_w_test_realloc_loop_l138[5..29]
+                                    FROM __fc_heap_status; nondet (and SELF)
+  __realloc_test_realloc_multiple_bases_l158[0..4] FROM __fc_heap_status;
+                                                        nondet (and SELF)
+  __malloc_test_realloc_multiple_bases2_l163[0..3] FROM __fc_heap_status;
+                                                        nondet (and SELF)
+  __realloc_test_realloc_multiple_bases2_l171[0..4] FROM __fc_heap_status;
+                                                         nondet (and SELF)
+  __realloc_test_realloc_multiple_bases2_l177[0..3] FROM __fc_heap_status;
+                                                         nondet (and SELF)
+  __malloc_test_realloc_multiple_bases_loop_l184[0..9] FROM __fc_heap_status;
+                                                            nondet (and SELF)
+  __realloc_w_test_realloc_multiple_bases_loop_l187[0..27]
+                                                   FROM __fc_heap_status;
+                                                        nondet (and SELF)
+[from] Function test_realloc_multiple_bases2:
+  __fc_heap_status FROM __fc_heap_status; nondet (and SELF)
+  __realloc_test_exact_null_l27[0..9] FROM __fc_heap_status;
+                                           nondet (and SELF)
+  __malloc_test_exact_nonnull_expand_l36[0..4] FROM __fc_heap_status;
+                                                    nondet (and SELF)
+  __realloc_test_exact_nonnull_expand_l38[0..9] FROM __fc_heap_status;
+                                                     nondet (and SELF)
+  __malloc_test_exact_nonnull_shrink_l44[0..4] FROM __fc_heap_status;
+                                                    nondet (and SELF)
+  __realloc_test_exact_nonnull_shrink_l46[0..1] FROM __fc_heap_status;
+                                                     nondet (and SELF)
+  __malloc_test_exact_nonnull_free_l51[0..4] FROM __fc_heap_status;
+                                                  nondet (and SELF)
+  __realloc_test_maybe_nonnull_l58[0..1] FROM __fc_heap_status;
+                                              nondet (and SELF)
+  __malloc_test_same_size_l63[0..4] FROM __fc_heap_status; nondet (and SELF)
+  __realloc_test_imprecise_size_l70[0..1]
+                                   FROM __fc_heap_status; nondet (and SELF)
+  __realloc_test_imprecise_size_but_precise_fill_l76[0..1]
+                                                    FROM __fc_heap_status;
+                                                         nondet (and SELF)
+  __malloc_test_imprecise_size_free_l81[0..4] FROM __fc_heap_status;
+                                                   nondet (and SELF)
+  __realloc_test_imprecise_size_free_l84[0..1]
+                                        FROM __fc_heap_status;
+                                             nondet (and SELF)
+  __realloc_test_imprecise_both_l91[0..1]
+                                   FROM __fc_heap_status; nondet (and SELF)
+  __realloc_test_possibly_invalid_realloc_l99[0..1] FROM __fc_heap_status;
+                                                         nondet (and SELF)
+  __realloc_test_realloc_sequence_l126[0..4] FROM __fc_heap_status;
+                                                  nondet (and SELF)
+  __malloc_test_realloc_loop_l131[0..9] FROM __fc_heap_status;
+                                             nondet (and SELF)
+  __realloc_w_test_realloc_loop_l138[5..29]
+                                    FROM __fc_heap_status; nondet (and SELF)
+  __realloc_test_realloc_multiple_bases_l158[0..4] FROM __fc_heap_status;
+                                                        nondet (and SELF)
+  __malloc_test_realloc_multiple_bases2_l163[0..3] FROM __fc_heap_status;
+                                                        nondet (and SELF)
+  __realloc_test_realloc_multiple_bases2_l166[0..2]
+                                             FROM __fc_heap_status;
+                                                  nondet (and SELF)
+  __malloc_test_realloc_multiple_bases2_l166[0..1] FROM __fc_heap_status;
+                                                        nondet (and SELF)
+  __realloc_test_realloc_multiple_bases2_l171[0..4] FROM __fc_heap_status;
+                                                         nondet (and SELF)
+  __malloc_test_realloc_multiple_bases2_l174[0..2]
+                                            FROM __fc_heap_status;
+                                                 nondet (and SELF)
+  __realloc_test_realloc_multiple_bases2_l177[0..3] FROM __fc_heap_status;
+                                                         nondet (and SELF)
+  __malloc_test_realloc_multiple_bases_loop_l184[0..9] FROM __fc_heap_status;
+                                                            nondet (and SELF)
+  __realloc_w_test_realloc_multiple_bases_loop_l187[0..27]
+                                                   FROM __fc_heap_status;
+                                                        nondet (and SELF)
+[from] Function test_realloc_multiple_bases_loop:
+  __fc_heap_status FROM __fc_heap_status; nondet (and SELF)
+  __realloc_test_exact_null_l27[0..9] FROM __fc_heap_status;
+                                           nondet (and SELF)
+  __malloc_test_exact_nonnull_expand_l36[0..4] FROM __fc_heap_status;
+                                                    nondet (and SELF)
+  __realloc_test_exact_nonnull_expand_l38[0..9] FROM __fc_heap_status;
+                                                     nondet (and SELF)
+  __malloc_test_exact_nonnull_shrink_l44[0..4] FROM __fc_heap_status;
+                                                    nondet (and SELF)
+  __realloc_test_exact_nonnull_shrink_l46[0..1] FROM __fc_heap_status;
+                                                     nondet (and SELF)
+  __malloc_test_exact_nonnull_free_l51[0..4] FROM __fc_heap_status;
+                                                  nondet (and SELF)
+  __realloc_test_maybe_nonnull_l58[0..1] FROM __fc_heap_status;
+                                              nondet (and SELF)
+  __malloc_test_same_size_l63[0..4] FROM __fc_heap_status; nondet (and SELF)
+  __realloc_test_imprecise_size_l70[0..1]
+                                   FROM __fc_heap_status; nondet (and SELF)
+  __realloc_test_imprecise_size_but_precise_fill_l76[0..1]
+                                                    FROM __fc_heap_status;
+                                                         nondet (and SELF)
+  __malloc_test_imprecise_size_free_l81[0..4] FROM __fc_heap_status;
+                                                   nondet (and SELF)
+  __realloc_test_imprecise_size_free_l84[0..1]
+                                        FROM __fc_heap_status;
+                                             nondet (and SELF)
+  __realloc_test_imprecise_both_l91[0..1]
+                                   FROM __fc_heap_status; nondet (and SELF)
+  __realloc_test_possibly_invalid_realloc_l99[0..1] FROM __fc_heap_status;
+                                                         nondet (and SELF)
+  __realloc_test_realloc_sequence_l126[0..4] FROM __fc_heap_status;
+                                                  nondet (and SELF)
+  __malloc_test_realloc_loop_l131[0..9] FROM __fc_heap_status;
+                                             nondet (and SELF)
+  __realloc_w_test_realloc_loop_l138[5..29]
+                                    FROM __fc_heap_status; nondet (and SELF)
+  __realloc_test_realloc_multiple_bases_l158[0..4] FROM __fc_heap_status;
+                                                        nondet (and SELF)
+  __malloc_test_realloc_multiple_bases2_l163[0..3] FROM __fc_heap_status;
+                                                        nondet (and SELF)
+  __realloc_test_realloc_multiple_bases2_l171[0..4] FROM __fc_heap_status;
+                                                         nondet (and SELF)
+  __realloc_test_realloc_multiple_bases2_l177[0..3] FROM __fc_heap_status;
+                                                         nondet (and SELF)
+  __malloc_test_realloc_multiple_bases_loop_l184[0..9] FROM __fc_heap_status;
+                                                            nondet (and SELF)
+  __realloc_w_test_realloc_multiple_bases_loop_l187[0..27]
+                                                   FROM __fc_heap_status;
+                                                        nondet (and SELF)
+[from] Function test_realloc_sequence:
+  __fc_heap_status FROM __fc_heap_status (and SELF)
+  __realloc_test_exact_null_l27[0..9] FROM __fc_heap_status (and SELF)
+  __malloc_test_exact_nonnull_expand_l36[0..4] FROM __fc_heap_status (and SELF)
+  __realloc_test_exact_nonnull_expand_l38[0..9] FROM __fc_heap_status (and SELF)
+  __malloc_test_exact_nonnull_shrink_l44[0..4] FROM __fc_heap_status (and SELF)
+  __realloc_test_exact_nonnull_shrink_l46[0..1] FROM __fc_heap_status (and SELF)
+  __malloc_test_exact_nonnull_free_l51[0..4] FROM __fc_heap_status (and SELF)
+  __realloc_test_maybe_nonnull_l58[0..1] FROM __fc_heap_status (and SELF)
+  __malloc_test_same_size_l63[0..4] FROM __fc_heap_status (and SELF)
+  __realloc_test_imprecise_size_l70[0..1] FROM __fc_heap_status (and SELF)
+  __realloc_test_imprecise_size_but_precise_fill_l76[0..1]
+                                                    FROM __fc_heap_status (and SELF)
+  __malloc_test_imprecise_size_free_l81[0..4] FROM __fc_heap_status (and SELF)
+  __realloc_test_imprecise_size_free_l84[0..1]
+                                        FROM __fc_heap_status (and SELF)
+  __realloc_test_imprecise_both_l91[0..1] FROM __fc_heap_status (and SELF)
+  __realloc_test_possibly_invalid_realloc_l99[0..1] FROM __fc_heap_status (and SELF)
+  __realloc_test_realloc_sequence_l126[0..4] FROM __fc_heap_status (and SELF)
+  __malloc_test_realloc_loop_l131[0..9] FROM __fc_heap_status (and SELF)
+  __realloc_w_test_realloc_loop_l138[5..29] FROM __fc_heap_status (and SELF)
+  __realloc_test_realloc_multiple_bases_l158[0..4] FROM __fc_heap_status (and SELF)
+  __malloc_test_realloc_multiple_bases2_l163[0..3] FROM __fc_heap_status (and SELF)
+  __realloc_test_realloc_multiple_bases2_l171[0..4] FROM __fc_heap_status (and SELF)
+  __realloc_test_realloc_multiple_bases2_l177[0..3] FROM __fc_heap_status (and SELF)
+  __malloc_test_realloc_multiple_bases_loop_l184[0..9] FROM __fc_heap_status (and SELF)
+  __realloc_w_test_realloc_multiple_bases_loop_l187[0..27]
+                                                   FROM __fc_heap_status (and SELF)
+[from] Function test_same_size:
+  __fc_heap_status FROM __fc_heap_status (and SELF)
+  __realloc_test_exact_null_l27[0..9] FROM __fc_heap_status (and SELF)
+  __malloc_test_exact_nonnull_expand_l36[0..4] FROM __fc_heap_status (and SELF)
+  __realloc_test_exact_nonnull_expand_l38[0..9] FROM __fc_heap_status (and SELF)
+  __malloc_test_exact_nonnull_shrink_l44[0..4] FROM __fc_heap_status (and SELF)
+  __realloc_test_exact_nonnull_shrink_l46[0..1] FROM __fc_heap_status (and SELF)
+  __malloc_test_exact_nonnull_free_l51[0..4] FROM __fc_heap_status (and SELF)
+  __realloc_test_maybe_nonnull_l58[0..1] FROM __fc_heap_status (and SELF)
+  __malloc_test_same_size_l63[0..4] FROM __fc_heap_status (and SELF)
+  __realloc_test_same_size_l65[0] FROM __fc_heap_status
+  __realloc_test_imprecise_size_l70[0..1] FROM __fc_heap_status (and SELF)
+  __realloc_test_imprecise_size_but_precise_fill_l76[0..1]
+                                                    FROM __fc_heap_status (and SELF)
+  __malloc_test_imprecise_size_free_l81[0..4] FROM __fc_heap_status (and SELF)
+  __realloc_test_imprecise_size_free_l84[0..1]
+                                        FROM __fc_heap_status (and SELF)
+  __realloc_test_imprecise_both_l91[0..1] FROM __fc_heap_status (and SELF)
+  __realloc_test_possibly_invalid_realloc_l99[0..1] FROM __fc_heap_status (and SELF)
+  __realloc_test_realloc_sequence_l126[0..4] FROM __fc_heap_status (and SELF)
+  __malloc_test_realloc_loop_l131[0..9] FROM __fc_heap_status (and SELF)
+  __realloc_w_test_realloc_loop_l138[5..29] FROM __fc_heap_status (and SELF)
+  __realloc_test_realloc_multiple_bases_l158[0..4] FROM __fc_heap_status (and SELF)
+  __malloc_test_realloc_multiple_bases2_l163[0..3] FROM __fc_heap_status (and SELF)
+  __realloc_test_realloc_multiple_bases2_l171[0..4] FROM __fc_heap_status (and SELF)
+  __realloc_test_realloc_multiple_bases2_l177[0..3] FROM __fc_heap_status (and SELF)
+  __malloc_test_realloc_multiple_bases_loop_l184[0..9] FROM __fc_heap_status (and SELF)
+  __realloc_w_test_realloc_multiple_bases_loop_l187[0..27]
+                                                   FROM __fc_heap_status (and SELF)
+[from] Function main:
+  __fc_heap_status FROM __fc_heap_status; nondet (and SELF)
+  __realloc_test_exact_null_l27[0..9] FROM __fc_heap_status;
+                                           nondet (and SELF)
+  __malloc_test_exact_nonnull_expand_l36[0..4] FROM __fc_heap_status;
+                                                    nondet (and SELF)
+  __realloc_test_exact_nonnull_expand_l38[0..9] FROM __fc_heap_status;
+                                                     nondet (and SELF)
+  __malloc_test_exact_nonnull_shrink_l44[0..4] FROM __fc_heap_status;
+                                                    nondet (and SELF)
+  __realloc_test_exact_nonnull_shrink_l46[0..1] FROM __fc_heap_status;
+                                                     nondet (and SELF)
+  __malloc_test_exact_nonnull_free_l51[0..4] FROM __fc_heap_status;
+                                                  nondet (and SELF)
+  __realloc_test_maybe_nonnull_l58[0..1] FROM __fc_heap_status;
+                                              nondet (and SELF)
+  __malloc_test_same_size_l63[0..4] FROM __fc_heap_status; nondet (and SELF)
+  __realloc_test_same_size_l65[0] FROM __fc_heap_status; nondet
+  __realloc_test_imprecise_size_l70[0..1]
+                                   FROM __fc_heap_status; nondet (and SELF)
+  __realloc_test_imprecise_size_but_precise_fill_l76[0..1]
+                                                    FROM __fc_heap_status;
+                                                         nondet (and SELF)
+  __malloc_test_imprecise_size_free_l81[0..4] FROM __fc_heap_status;
+                                                   nondet (and SELF)
+  __realloc_test_imprecise_size_free_l84[0..1]
+                                        FROM __fc_heap_status;
+                                             nondet (and SELF)
+  __realloc_test_imprecise_both_l91[0..1]
+                                   FROM __fc_heap_status; nondet (and SELF)
+  __realloc_test_possibly_invalid_realloc_l99[0..1] FROM __fc_heap_status;
+                                                         nondet (and SELF)
+  __realloc_test_realloc_sequence_l126[0..4] FROM __fc_heap_status;
+                                                  nondet (and SELF)
+  __malloc_test_realloc_loop_l131[0..9] FROM __fc_heap_status;
+                                             nondet (and SELF)
+  __realloc_w_test_realloc_loop_l138[5..29]
+                                    FROM __fc_heap_status; nondet (and SELF)
+  __realloc_test_realloc_multiple_bases_l158[0..4] FROM __fc_heap_status;
+                                                        nondet (and SELF)
+  __malloc_test_realloc_multiple_bases2_l163[0..3] FROM __fc_heap_status;
+                                                        nondet (and SELF)
+  __realloc_test_realloc_multiple_bases2_l166[0..2]
+                                             FROM __fc_heap_status;
+                                                  nondet (and SELF)
+  __malloc_test_realloc_multiple_bases2_l166[0..1] FROM __fc_heap_status;
+                                                        nondet (and SELF)
+  __realloc_test_realloc_multiple_bases2_l171[0..4] FROM __fc_heap_status;
+                                                         nondet (and SELF)
+  __malloc_test_realloc_multiple_bases2_l174[0..2]
+                                            FROM __fc_heap_status;
+                                                 nondet (and SELF)
+  __realloc_test_realloc_multiple_bases2_l177[0..3] FROM __fc_heap_status;
+                                                         nondet (and SELF)
+  __malloc_test_realloc_multiple_bases_loop_l184[0..9] FROM __fc_heap_status;
+                                                            nondet (and SELF)
+  __realloc_w_test_realloc_multiple_bases_loop_l187[0..27]
+                                                   FROM __fc_heap_status;
+                                                        nondet (and SELF)
+  \result FROM \nothing
+[from] ====== END OF DEPENDENCIES ======

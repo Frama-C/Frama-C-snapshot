@@ -480,7 +480,7 @@ let get_call_out_edges cfg v =
   | _, _ -> assert false
   in en, ee
 
-let get_edge_stmt e = 
+let get_edge_stmt e =
   match node_type (edge_dst e) with
   | Vstart | VfctIn | Vexit | VfctOut -> None
   | VblkIn (Bstmt s, _) | Vstmt s
@@ -620,11 +620,11 @@ let rec get_edge_next_stmt cfg e =
 
 let get_post_label cfg v =
   match get_post_edges cfg v with
-    | [] -> None
-    | e::_ -> (* TODO: is this ok to consider only one edge ? *)
-        match get_edge_next_stmt cfg e with
-        | None -> None
-        | Some s -> Some (Clabels.stmt s)
+  | [] -> None
+  | e::_ -> (* TODO: is this ok to consider only one edge ? *)
+      match get_edge_next_stmt cfg e with
+      | None -> None
+      | Some s -> Some (Clabels.stmt s)
 
 let blocks_closed_by_edge cfg e =
   debug "[blocks_closed_by_edge] for %a...@." pp_edge e;
@@ -632,7 +632,7 @@ let blocks_closed_by_edge cfg e =
   let blocks = match node_type v_before with
     | Vstmt s | Vtest (true, s, _) | Vloop (_, s) | Vswitch (s,_) ->
         ignore (Ast.get ()); (* Since CIL Cfg computation is required and
-                                				Ast.get () have to do this well. *)
+                                                                Ast.get () have to do this well. *)
         begin match s.succs with
           | [s'] -> (try Kernel_function.blocks_closed_by_edge s s'
                      with Not_found as e -> debug "[blocks_closed_by_edge] not found sid:%d -> sid:%d@."

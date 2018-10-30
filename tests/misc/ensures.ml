@@ -1,7 +1,7 @@
 open Cil_types
 
 let run () =
-  Dynamic.Parameter.Bool.set "-context-valid-pointers" true;
+  Dynamic.Parameter.Bool.set "-eva-context-valid-pointers" true;
   !Db.Value.compute ();
   Globals.Functions.iter
     (fun kf ->

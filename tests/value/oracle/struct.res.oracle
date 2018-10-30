@@ -1,8 +1,8 @@
 [kernel] Parsing tests/value/struct.i (no preprocessing)
-[value] Analyzing a complete application starting at main
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing a complete application starting at main
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   GG ∈ {0}
   w ∈ {0}
   v1 ∈ {0}
@@ -12,14 +12,14 @@
   R1 ∈ {0}
   R2 ∈ {0}
   G ∈ {0}
-[value:alarm] tests/value/struct.i:47: Warning: 
+[eva:alarm] tests/value/struct.i:47: Warning: 
   signed overflow. assert -2147483648 ≤ a + b;
-[value:alarm] tests/value/struct.i:47: Warning: 
+[eva:alarm] tests/value/struct.i:47: Warning: 
   signed overflow. assert a + b ≤ 2147483647;
-[value] Recording results for main
-[value] done for function main
-[value] ====== VALUES COMPUTED ======
-[value:final-states] Values at end of function main:
+[eva] Recording results for main
+[eva] done for function main
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function main:
   w ∈ [--..--]
   v1.x ∈ [--..--]
     .y ∈ {0}

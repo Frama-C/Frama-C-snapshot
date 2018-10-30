@@ -142,3 +142,12 @@ Goal Assigns (file tests/wp_hoare/reference.i, line 57) in 'write':
 Prove: true.
 
 ------------------------------------------------------------
+[wp] Warning: Memory model hypotheses for function 'call_f2':
+  /*@ behavior typed_ref: requires \valid(ptr); */
+  int call_f2(int *ptr, int y);
+[wp] Warning: Memory model hypotheses for function 'call_global':
+  /*@ behavior typed_ref: requires \valid(gl); */
+  int call_global(void);
+[wp] Warning: Memory model hypotheses for function 'write':
+  /*@ behavior typed_ref: requires \valid(pa); */
+  void write(int kb, int *pa);

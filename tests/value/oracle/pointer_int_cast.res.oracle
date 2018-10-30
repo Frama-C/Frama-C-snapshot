@@ -1,15 +1,15 @@
 [kernel] Parsing tests/value/pointer_int_cast.i (no preprocessing)
-[value] Analyzing a complete application starting at g
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing a complete application starting at g
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   q ∈ {0}
   x ∈ {0}
   y ∈ {0}
-[value] Recording results for g
-[value] done for function g
-[value] ====== VALUES COMPUTED ======
-[value:final-states] Values at end of function g:
+[eva] Recording results for g
+[eva] done for function g
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function g:
   q ∈ {{ &y }}
   y ∈ {0}
   i ∈ {{ (int)&y }}

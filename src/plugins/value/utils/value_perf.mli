@@ -21,11 +21,11 @@
 (**************************************************************************)
 
 (** Call [start_doing] when starting analyzing a new function. The new
-   function is on the top of the call stack.*)
+    function is on the top of the call stack.*)
 val start_doing: Value_types.callstack -> unit
 
 (** Call [start_doing] when finishing analyzing a function. The
-   function must still be on the top of the call stack. *)
+    function must still be on the top of the call stack. *)
 val stop_doing: Value_types.callstack -> unit
 
 (** Display a complete summary of performance informations. Can be

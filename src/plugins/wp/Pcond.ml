@@ -307,7 +307,7 @@ class engine (lang : #Plang.engine) =
     (* --- Scope Management --- *)
 
     method mark m s = mark_step m s
-    method name env e = Env.fresh env ~sanitizer:lang#sanitize (F.basename e) 
+    method name env e = Env.fresh env ~sanitizer:lang#sanitize (F.basename e)
 
     method private define env fmt e =
       let name = self#name env e in

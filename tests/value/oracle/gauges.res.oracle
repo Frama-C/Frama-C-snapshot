@@ -1,355 +1,367 @@
-[kernel] Parsing tests/value/gauges.i (no preprocessing)
-[value] Analyzing a complete application starting at main
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[kernel] Parsing tests/value/gauges.c (with preprocessing)
+[eva] Analyzing a complete application starting at main
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   v ∈ [--..--]
   t[0..37] ∈ {0}
   u[0..99] ∈ {0}
   T[0..99] ∈ [--..--]
-[value] computing for function main0 <- main.
-  Called from tests/value/gauges.i:336.
-[value] tests/value/gauges.i:14: entering loop for the first time
-[value] tests/value/gauges.i:16: entering loop for the first time
-[value] tests/value/gauges.i:17: Frama_C_show_each_0: {{ "in" }}
-[value] tests/value/gauges.i:19: Frama_C_show_each_1: {{ "in" }}
-[value] tests/value/gauges.i:17: Frama_C_show_each_0: {{ "in" }}
-[value] tests/value/gauges.i:19: Frama_C_show_each_1: {{ "in" }}
-[value] tests/value/gauges.i:17: Frama_C_show_each_0: {{ "in" }}
-[value] tests/value/gauges.i:19: Frama_C_show_each_1: {{ "in" }}
-[value] tests/value/gauges.i:17: Frama_C_show_each_0: {{ "in" }}
-[value] tests/value/gauges.i:19: Frama_C_show_each_1: {{ "in" }}
-[value] tests/value/gauges.i:17: Frama_C_show_each_0: {{ "in" }}
-[value] tests/value/gauges.i:19: Frama_C_show_each_1: {{ "in" }}
-[value] tests/value/gauges.i:17: Frama_C_show_each_0: {{ "in" }}
-[value] tests/value/gauges.i:19: Frama_C_show_each_1: {{ "in" }}
-[value:alarm] tests/value/gauges.i:21: Warning: 
+[eva] computing for function main0 <- main.
+  Called from tests/value/gauges.c:350.
+[eva] tests/value/gauges.c:19: Frama_C_show_each_0: {{ "in" }}
+[eva] tests/value/gauges.c:21: Frama_C_show_each_1: {{ "in" }}
+[eva] tests/value/gauges.c:18: starting to merge loop iterations
+[eva] tests/value/gauges.c:19: Frama_C_show_each_0: {{ "in" }}
+[eva] tests/value/gauges.c:21: Frama_C_show_each_1: {{ "in" }}
+[eva] tests/value/gauges.c:19: Frama_C_show_each_0: {{ "in" }}
+[eva] tests/value/gauges.c:21: Frama_C_show_each_1: {{ "in" }}
+[eva] tests/value/gauges.c:19: Frama_C_show_each_0: {{ "in" }}
+[eva] tests/value/gauges.c:21: Frama_C_show_each_1: {{ "in" }}
+[eva] tests/value/gauges.c:19: Frama_C_show_each_0: {{ "in" }}
+[eva] tests/value/gauges.c:21: Frama_C_show_each_1: {{ "in" }}
+[eva] tests/value/gauges.c:19: Frama_C_show_each_0: {{ "in" }}
+[eva] tests/value/gauges.c:21: Frama_C_show_each_1: {{ "in" }}
+[eva:alarm] tests/value/gauges.c:23: Warning: 
   signed overflow. assert -2147483648 ≤ j - 4;
-[value] tests/value/gauges.i:17: Frama_C_show_each_0: {{ "in" }}
-[value] tests/value/gauges.i:19: Frama_C_show_each_1: {{ "in" }}
-[value] tests/value/gauges.i:17: Frama_C_show_each_0: {{ "in" }}
-[value] tests/value/gauges.i:19: Frama_C_show_each_1: {{ "in" }}
-[value:alarm] tests/value/gauges.i:24: Warning: 
+[eva] tests/value/gauges.c:16: starting to merge loop iterations
+[eva] tests/value/gauges.c:19: Frama_C_show_each_0: {{ "in" }}
+[eva] tests/value/gauges.c:21: Frama_C_show_each_1: {{ "in" }}
+[eva] tests/value/gauges.c:19: Frama_C_show_each_0: {{ "in" }}
+[eva] tests/value/gauges.c:21: Frama_C_show_each_1: {{ "in" }}
+[eva] tests/value/gauges.c:19: Frama_C_show_each_0: {{ "in" }}
+[eva] tests/value/gauges.c:21: Frama_C_show_each_1: {{ "in" }}
+[eva:alarm] tests/value/gauges.c:26: Warning: 
   signed overflow. assert l + 1 ≤ 2147483647;
-[value] Recording results for main0
-[value] Done for function main0
-[value] computing for function main0_bis <- main.
-  Called from tests/value/gauges.i:337.
-[value] tests/value/gauges.i:36: entering loop for the first time
-[value] tests/value/gauges.i:38: entering loop for the first time
-[value] tests/value/gauges.i:39: Frama_C_show_each_0: {{ "in" }}
-[value] tests/value/gauges.i:41: Frama_C_show_each_1: {{ "in" }}
-[value] tests/value/gauges.i:39: Frama_C_show_each_0: {{ "in" }}
-[value] tests/value/gauges.i:41: Frama_C_show_each_1: {{ "in" }}
-[value] tests/value/gauges.i:39: Frama_C_show_each_0: {{ "in" }}
-[value] tests/value/gauges.i:41: Frama_C_show_each_1: {{ "in" }}
-[value] tests/value/gauges.i:39: Frama_C_show_each_0: {{ "in" }}
-[value] tests/value/gauges.i:41: Frama_C_show_each_1: {{ "in" }}
-[value] tests/value/gauges.i:39: Frama_C_show_each_0: {{ "in" }}
-[value] tests/value/gauges.i:41: Frama_C_show_each_1: {{ "in" }}
-[value] tests/value/gauges.i:39: Frama_C_show_each_0: {{ "in" }}
-[value] tests/value/gauges.i:41: Frama_C_show_each_1: {{ "in" }}
-[value:alarm] tests/value/gauges.i:43: Warning: 
+[eva] Recording results for main0
+[eva] Done for function main0
+[eva] computing for function main0_bis <- main.
+  Called from tests/value/gauges.c:351.
+[eva] tests/value/gauges.c:41: Frama_C_show_each_0: {{ "in" }}
+[eva] tests/value/gauges.c:43: Frama_C_show_each_1: {{ "in" }}
+[eva] tests/value/gauges.c:40: starting to merge loop iterations
+[eva] tests/value/gauges.c:41: Frama_C_show_each_0: {{ "in" }}
+[eva] tests/value/gauges.c:43: Frama_C_show_each_1: {{ "in" }}
+[eva] tests/value/gauges.c:41: Frama_C_show_each_0: {{ "in" }}
+[eva] tests/value/gauges.c:43: Frama_C_show_each_1: {{ "in" }}
+[eva] tests/value/gauges.c:41: Frama_C_show_each_0: {{ "in" }}
+[eva] tests/value/gauges.c:43: Frama_C_show_each_1: {{ "in" }}
+[eva] tests/value/gauges.c:41: Frama_C_show_each_0: {{ "in" }}
+[eva] tests/value/gauges.c:43: Frama_C_show_each_1: {{ "in" }}
+[eva] tests/value/gauges.c:41: Frama_C_show_each_0: {{ "in" }}
+[eva] tests/value/gauges.c:43: Frama_C_show_each_1: {{ "in" }}
+[eva:alarm] tests/value/gauges.c:45: Warning: 
   signed overflow. assert -2147483648 ≤ j - 4;
-[value] tests/value/gauges.i:39: Frama_C_show_each_0: {{ "in" }}
-[value] tests/value/gauges.i:41: Frama_C_show_each_1: {{ "in" }}
-[value] tests/value/gauges.i:39: Frama_C_show_each_0: {{ "in" }}
-[value] tests/value/gauges.i:41: Frama_C_show_each_1: {{ "in" }}
-[value:alarm] tests/value/gauges.i:46: Warning: 
+[eva] tests/value/gauges.c:38: starting to merge loop iterations
+[eva] tests/value/gauges.c:41: Frama_C_show_each_0: {{ "in" }}
+[eva] tests/value/gauges.c:43: Frama_C_show_each_1: {{ "in" }}
+[eva] tests/value/gauges.c:41: Frama_C_show_each_0: {{ "in" }}
+[eva] tests/value/gauges.c:43: Frama_C_show_each_1: {{ "in" }}
+[eva] tests/value/gauges.c:41: Frama_C_show_each_0: {{ "in" }}
+[eva] tests/value/gauges.c:43: Frama_C_show_each_1: {{ "in" }}
+[eva:alarm] tests/value/gauges.c:48: Warning: 
   signed overflow. assert l + 1 ≤ 2147483647;
-[value] Recording results for main0_bis
-[value] Done for function main0_bis
-[value] computing for function main1 <- main.
-  Called from tests/value/gauges.i:338.
-[value] tests/value/gauges.i:55: entering loop for the first time
-[value] tests/value/gauges.i:57: Frama_C_show_each: {{ "in" }}
-[value] tests/value/gauges.i:57: Frama_C_show_each: {{ "in" }}
-[value] tests/value/gauges.i:57: Frama_C_show_each: {{ "in" }}
-[value] tests/value/gauges.i:57: Frama_C_show_each: {{ "in" }}
-[value] tests/value/gauges.i:57: Frama_C_show_each: {{ "in" }}
-[value] tests/value/gauges.i:57: Frama_C_show_each: {{ "in" }}
-[value:alarm] tests/value/gauges.i:56: Warning: 
+[eva] Recording results for main0_bis
+[eva] Done for function main0_bis
+[eva] computing for function main1 <- main.
+  Called from tests/value/gauges.c:352.
+[eva] tests/value/gauges.c:59: Frama_C_show_each: {{ "in" }}
+[eva] tests/value/gauges.c:57: starting to merge loop iterations
+[eva] tests/value/gauges.c:59: Frama_C_show_each: {{ "in" }}
+[eva] tests/value/gauges.c:59: Frama_C_show_each: {{ "in" }}
+[eva] tests/value/gauges.c:59: Frama_C_show_each: {{ "in" }}
+[eva] tests/value/gauges.c:59: Frama_C_show_each: {{ "in" }}
+[eva] tests/value/gauges.c:59: Frama_C_show_each: {{ "in" }}
+[eva:alarm] tests/value/gauges.c:58: Warning: 
   accessing out of bounds index. assert j < 38;
-[value] tests/value/gauges.i:60: Frama_C_show_each: {{ "out" }}
-[value] Recording results for main1
-[value] Done for function main1
-[value] computing for function main2 <- main.
-  Called from tests/value/gauges.i:339.
-[value] tests/value/gauges.i:68: entering loop for the first time
-[value] tests/value/gauges.i:70: Frama_C_show_each:
-[value] tests/value/gauges.i:70: Frama_C_show_each:
-[value] tests/value/gauges.i:70: Frama_C_show_each:
-[value] tests/value/gauges.i:70: Frama_C_show_each:
-[value] tests/value/gauges.i:70: Frama_C_show_each:
-[value] tests/value/gauges.i:70: Frama_C_show_each:
-[value:alarm] tests/value/gauges.i:69: Warning: 
+[eva] tests/value/gauges.c:62: Frama_C_show_each: {{ "out" }}
+[eva] Recording results for main1
+[eva] Done for function main1
+[eva] computing for function main2 <- main.
+  Called from tests/value/gauges.c:353.
+[eva] tests/value/gauges.c:72: Frama_C_show_each:
+[eva] tests/value/gauges.c:70: starting to merge loop iterations
+[eva] tests/value/gauges.c:72: Frama_C_show_each:
+[eva] tests/value/gauges.c:72: Frama_C_show_each:
+[eva] tests/value/gauges.c:72: Frama_C_show_each:
+[eva] tests/value/gauges.c:72: Frama_C_show_each:
+[eva] tests/value/gauges.c:72: Frama_C_show_each:
+[eva:alarm] tests/value/gauges.c:71: Warning: 
   out of bounds write. assert \valid(tmp);
                        (tmp from p++)
-[value] tests/value/gauges.i:70: Frama_C_show_each:
-[value] tests/value/gauges.i:70: Frama_C_show_each:
-[value] Recording results for main2
-[value] Done for function main2
-[value] computing for function main3 <- main.
-  Called from tests/value/gauges.i:340.
-[value] tests/value/gauges.i:76: entering loop for the first time
-[value] tests/value/gauges.i:77: entering loop for the first time
-[value] tests/value/gauges.i:78: Frama_C_show_each: {{ "inner" }}
-[value] tests/value/gauges.i:78: Frama_C_show_each: {{ "inner" }}
-[value] tests/value/gauges.i:78: Frama_C_show_each: {{ "inner" }}
-[value] tests/value/gauges.i:78: Frama_C_show_each: {{ "inner" }}
-[value] tests/value/gauges.i:78: Frama_C_show_each: {{ "inner" }}
-[value] tests/value/gauges.i:78: Frama_C_show_each: {{ "inner" }}
-[value:alarm] tests/value/gauges.i:79: Warning: 
+[eva] tests/value/gauges.c:72: Frama_C_show_each:
+[eva] tests/value/gauges.c:72: Frama_C_show_each:
+[eva] Recording results for main2
+[eva] Done for function main2
+[eva] computing for function main3 <- main.
+  Called from tests/value/gauges.c:354.
+[eva] tests/value/gauges.c:80: Frama_C_show_each: {{ "inner" }}
+[eva] tests/value/gauges.c:79: starting to merge loop iterations
+[eva] tests/value/gauges.c:80: Frama_C_show_each: {{ "inner" }}
+[eva] tests/value/gauges.c:80: Frama_C_show_each: {{ "inner" }}
+[eva] tests/value/gauges.c:80: Frama_C_show_each: {{ "inner" }}
+[eva] tests/value/gauges.c:80: Frama_C_show_each: {{ "inner" }}
+[eva] tests/value/gauges.c:80: Frama_C_show_each: {{ "inner" }}
+[eva:alarm] tests/value/gauges.c:81: Warning: 
   signed overflow. assert k + 1 ≤ 2147483647;
-[value] tests/value/gauges.i:81: Frama_C_show_each: {{ "outer" }}
-[value:alarm] tests/value/gauges.i:82: Warning: 
+[eva] tests/value/gauges.c:83: Frama_C_show_each: {{ "outer" }}
+[eva:alarm] tests/value/gauges.c:84: Warning: 
   signed overflow. assert k + 1 ≤ 2147483647;
-[value] tests/value/gauges.i:78: Frama_C_show_each: {{ "inner" }}
-[value] tests/value/gauges.i:81: Frama_C_show_each: {{ "outer" }}
-[value] tests/value/gauges.i:78: Frama_C_show_each: {{ "inner" }}
-[value] tests/value/gauges.i:81: Frama_C_show_each: {{ "outer" }}
-[value] tests/value/gauges.i:84: Frama_C_show_each: [0..2147483647]
-[value] Recording results for main3
-[value] Done for function main3
-[value] computing for function main4 <- main.
-  Called from tests/value/gauges.i:341.
-[value] computing for function main4_search <- main4 <- main.
-  Called from tests/value/gauges.i:105.
-[value] tests/value/gauges.i:94: entering loop for the first time
-[value] tests/value/gauges.i:95: Frama_C_show_each:
-[value] tests/value/gauges.i:95: Frama_C_show_each:
-[value] tests/value/gauges.i:95: Frama_C_show_each:
-[value] tests/value/gauges.i:95: Frama_C_show_each:
-[value] tests/value/gauges.i:95: Frama_C_show_each:
-[value] tests/value/gauges.i:95: Frama_C_show_each:
-[value:alarm] tests/value/gauges.i:97: Warning: 
+[eva] tests/value/gauges.c:78: starting to merge loop iterations
+[eva] tests/value/gauges.c:80: Frama_C_show_each: {{ "inner" }}
+[eva] tests/value/gauges.c:83: Frama_C_show_each: {{ "outer" }}
+[eva] tests/value/gauges.c:80: Frama_C_show_each: {{ "inner" }}
+[eva] tests/value/gauges.c:83: Frama_C_show_each: {{ "outer" }}
+[eva] tests/value/gauges.c:80: Frama_C_show_each: {{ "inner" }}
+[eva] tests/value/gauges.c:83: Frama_C_show_each: {{ "outer" }}
+[eva] tests/value/gauges.c:86: Frama_C_show_each: [0..2147483647]
+[eva] Recording results for main3
+[eva] Done for function main3
+[eva] computing for function main4 <- main.
+  Called from tests/value/gauges.c:355.
+[eva] computing for function main4_search <- main4 <- main.
+  Called from tests/value/gauges.c:107.
+[eva] tests/value/gauges.c:97: Frama_C_show_each:
+[eva] tests/value/gauges.c:96: starting to merge loop iterations
+[eva] tests/value/gauges.c:97: Frama_C_show_each:
+[eva] tests/value/gauges.c:97: Frama_C_show_each:
+[eva] tests/value/gauges.c:97: Frama_C_show_each:
+[eva] tests/value/gauges.c:97: Frama_C_show_each:
+[eva] tests/value/gauges.c:97: Frama_C_show_each:
+[eva:alarm] tests/value/gauges.c:99: Warning: 
   signed overflow. assert c + 1 ≤ 2147483647;
-[value] Recording results for main4_search
-[value] Done for function main4_search
-[value] Recording results for main4
-[value] Done for function main4
-[value] computing for function main5 <- main.
-  Called from tests/value/gauges.i:342.
-[value] tests/value/gauges.i:111: entering loop for the first time
-[value] tests/value/gauges.i:114: Frama_C_show_each: {{ &x }}
-[value] tests/value/gauges.i:114: Frama_C_show_each: {{ &x + {0; 4} }}
-[value] tests/value/gauges.i:114: Frama_C_show_each: {{ &x + {0; 4; 8} }}
-[value] tests/value/gauges.i:114: 
-  Frama_C_show_each: {{ &x + {0; 4; 8; 12} ; &y }}
-[value] tests/value/gauges.i:114: 
+[eva] Recording results for main4_search
+[eva] Done for function main4_search
+[eva] Recording results for main4
+[eva] Done for function main4
+[eva] computing for function main5 <- main.
+  Called from tests/value/gauges.c:356.
+[eva] tests/value/gauges.c:116: Frama_C_show_each: {{ &x }}
+[eva] tests/value/gauges.c:113: starting to merge loop iterations
+[eva] tests/value/gauges.c:116: Frama_C_show_each: {{ &x + {0; 4} }}
+[eva] tests/value/gauges.c:116: Frama_C_show_each: {{ &x + {0; 4; 8} }}
+[eva] tests/value/gauges.c:116: Frama_C_show_each: {{ &x + {0; 4; 8; 12} ; &y }}
+[eva] tests/value/gauges.c:116: 
   Frama_C_show_each: {{ &x + {0; 4; 8; 12; 16} ; &y + {0; 4} }}
-[value] tests/value/gauges.i:114: 
+[eva] tests/value/gauges.c:116: 
   Frama_C_show_each: {{ &x + {0; 4; 8; 12; 16; 20} ; &y + {0; 4; 8} }}
-[value] tests/value/gauges.i:114: 
+[eva] tests/value/gauges.c:116: 
   Frama_C_show_each: {{ &x + {0; 4; 8; 12; 16; 20; 24} ; &y + {0; 4; 8; 12} }}
-[value] tests/value/gauges.i:114: 
+[eva] tests/value/gauges.c:116: 
   Frama_C_show_each: {{ &x + [0..36],0%4 ; &y + [0..36],0%4 }}
-[value] tests/value/gauges.i:114: 
+[eva] tests/value/gauges.c:116: 
   Frama_C_show_each: {{ &x + [0..40],0%4 ; &y + [0..40],0%4 }}
-[value:alarm] tests/value/gauges.i:115: Warning: 
+[eva:alarm] tests/value/gauges.c:117: Warning: 
   out of bounds write. assert \valid(p);
-[value] Recording results for main5
-[value] Done for function main5
-[value] computing for function main5_bis <- main.
-  Called from tests/value/gauges.i:343.
-[value] tests/value/gauges.i:127: Frama_C_show_each: {{ &x }}
-[value] tests/value/gauges.i:127: Frama_C_show_each: {{ &x + {4} }}
-[value] tests/value/gauges.i:127: Frama_C_show_each: {{ &x + {8} }}
-[value] tests/value/gauges.i:127: Frama_C_show_each: {{ &y }}
-[value] tests/value/gauges.i:124: entering loop for the first time
-[value] tests/value/gauges.i:127: Frama_C_show_each: {{ &y + {4} }}
-[value] tests/value/gauges.i:127: Frama_C_show_each: {{ &y + {4; 8} }}
-[value] tests/value/gauges.i:127: Frama_C_show_each: {{ &y + {4; 8; 12} }}
-[value] tests/value/gauges.i:127: Frama_C_show_each: {{ &y + {4; 8; 12; 16} }}
-[value] tests/value/gauges.i:127: 
-  Frama_C_show_each: {{ &y + {4; 8; 12; 16; 20} }}
-[value] tests/value/gauges.i:127: Frama_C_show_each: {{ &y + [4..36],0%4 }}
-[value] tests/value/gauges.i:127: Frama_C_show_each: {{ &y + [4..40],0%4 }}
-[value:alarm] tests/value/gauges.i:128: Warning: 
+[eva] Recording results for main5
+[eva] Done for function main5
+[eva] computing for function main5_bis <- main.
+  Called from tests/value/gauges.c:357.
+[eva] tests/value/gauges.c:129: Frama_C_show_each: {{ &x }}
+[eva] tests/value/gauges.c:129: Frama_C_show_each: {{ &x + {4} }}
+[eva] tests/value/gauges.c:129: Frama_C_show_each: {{ &x + {8} }}
+[eva] tests/value/gauges.c:129: Frama_C_show_each: {{ &y }}
+[eva] tests/value/gauges.c:129: Frama_C_show_each: {{ &y + {4} }}
+[eva] tests/value/gauges.c:126: starting to merge loop iterations
+[eva] tests/value/gauges.c:129: Frama_C_show_each: {{ &y + {4; 8} }}
+[eva] tests/value/gauges.c:129: Frama_C_show_each: {{ &y + {4; 8; 12} }}
+[eva] tests/value/gauges.c:129: Frama_C_show_each: {{ &y + {4; 8; 12; 16} }}
+[eva] tests/value/gauges.c:129: Frama_C_show_each: {{ &y + {4; 8; 12; 16; 20} }}
+[eva] tests/value/gauges.c:129: Frama_C_show_each: {{ &y + [4..36],0%4 }}
+[eva] tests/value/gauges.c:129: Frama_C_show_each: {{ &y + [4..40],0%4 }}
+[eva:alarm] tests/value/gauges.c:130: Warning: 
   out of bounds write. assert \valid(p);
-[value] Recording results for main5_bis
-[value] Done for function main5_bis
-[value] computing for function main6 <- main.
-  Called from tests/value/gauges.i:344.
-[value] tests/value/gauges.i:136: entering loop for the first time
-[value:alarm] tests/value/gauges.i:138: Warning: 
+[eva] Recording results for main5_bis
+[eva] Done for function main5_bis
+[eva] computing for function main6 <- main.
+  Called from tests/value/gauges.c:358.
+[eva] tests/value/gauges.c:138: starting to merge loop iterations
+[eva:alarm] tests/value/gauges.c:140: Warning: 
   signed overflow. assert j + 1 ≤ 2147483647;
-[value] Recording results for main6
-[value] Done for function main6
-[value] computing for function main7 <- main.
-  Called from tests/value/gauges.i:345.
-[value] computing for function main7_aux <- main7 <- main.
-  Called from tests/value/gauges.i:162.
-[value] tests/value/gauges.i:143: Frama_C_show_each:
-[value] tests/value/gauges.i:145: entering loop for the first time
-[value:alarm] tests/value/gauges.i:147: Warning: 
+[eva] Recording results for main6
+[eva] Done for function main6
+[eva] computing for function main7 <- main.
+  Called from tests/value/gauges.c:359.
+[eva] computing for function main7_aux <- main7 <- main.
+  Called from tests/value/gauges.c:164.
+[eva] tests/value/gauges.c:145: Frama_C_show_each:
+[eva] tests/value/gauges.c:147: starting to merge loop iterations
+[eva:alarm] tests/value/gauges.c:149: Warning: 
   out of bounds write. assert \valid(tmp);
                        (tmp from p--)
-[value] Recording results for main7_aux
-[value] Done for function main7_aux
-[value] computing for function main7_aux2 <- main7 <- main.
-  Called from tests/value/gauges.i:163.
-[value] tests/value/gauges.i:152: Frama_C_show_each:
-[value] tests/value/gauges.i:154: entering loop for the first time
-[value:alarm] tests/value/gauges.i:156: Warning: 
+[eva] Recording results for main7_aux
+[eva] Done for function main7_aux
+[eva] computing for function main7_aux2 <- main7 <- main.
+  Called from tests/value/gauges.c:165.
+[eva] tests/value/gauges.c:154: Frama_C_show_each:
+[eva] tests/value/gauges.c:156: starting to merge loop iterations
+[eva:alarm] tests/value/gauges.c:158: Warning: 
   out of bounds write. assert \valid(tmp);
                        (tmp from p--)
-[value:alarm] tests/value/gauges.i:154: Warning: 
+[eva:alarm] tests/value/gauges.c:156: Warning: 
   signed overflow. assert -2147483648 ≤ toCopy - 1;
-[value] Recording results for main7_aux2
-[value] Done for function main7_aux2
-[value] Recording results for main7
-[value] Done for function main7
-[value] computing for function main8 <- main.
-  Called from tests/value/gauges.i:346.
-[value] computing for function main8_aux <- main8 <- main.
-  Called from tests/value/gauges.i:176.
-[value] tests/value/gauges.i:170: Frama_C_show_each: {0}
-[value] tests/value/gauges.i:170: Frama_C_show_each: {4294967295}
-[value] tests/value/gauges.i:169: entering loop for the first time
-[value] tests/value/gauges.i:170: Frama_C_show_each: {4294967294}
-[value] tests/value/gauges.i:170: Frama_C_show_each: {4294967293; 4294967294}
-[value] tests/value/gauges.i:170: 
+[eva] Recording results for main7_aux2
+[eva] Done for function main7_aux2
+[eva] Recording results for main7
+[eva] Done for function main7
+[eva] computing for function main8 <- main.
+  Called from tests/value/gauges.c:360.
+[eva] computing for function main8_aux <- main8 <- main.
+  Called from tests/value/gauges.c:178.
+[eva] tests/value/gauges.c:172: Frama_C_show_each: {0}
+[eva] tests/value/gauges.c:172: Frama_C_show_each: {4294967295}
+[eva] tests/value/gauges.c:172: Frama_C_show_each: {4294967294}
+[eva] tests/value/gauges.c:171: starting to merge loop iterations
+[eva] tests/value/gauges.c:172: Frama_C_show_each: {4294967293; 4294967294}
+[eva] tests/value/gauges.c:172: 
   Frama_C_show_each: {4294967292; 4294967293; 4294967294}
-[value] tests/value/gauges.i:170: Frama_C_show_each: [2147483647..4294967294]
-[value] tests/value/gauges.i:170: Frama_C_show_each: [2147483646..4294967294]
-[value] tests/value/gauges.i:170: Frama_C_show_each: [1..4294967294]
-[value] tests/value/gauges.i:170: Frama_C_show_each: [1..4294967294]
-[value] tests/value/gauges.i:170: Frama_C_show_each: [1..4294967294]
-[value] tests/value/gauges.i:170: Frama_C_show_each: [1..4294967294]
-[value:alarm] tests/value/gauges.i:171: Warning: 
+[eva] tests/value/gauges.c:172: Frama_C_show_each: [2147483647..4294967294]
+[eva] tests/value/gauges.c:172: Frama_C_show_each: [2147483646..4294967294]
+[eva] tests/value/gauges.c:172: Frama_C_show_each: [1..4294967294]
+[eva] tests/value/gauges.c:172: Frama_C_show_each: [1..4294967294]
+[eva] tests/value/gauges.c:172: Frama_C_show_each: [1..4294967294]
+[eva] tests/value/gauges.c:172: Frama_C_show_each: [1..4294967294]
+[eva:alarm] tests/value/gauges.c:173: Warning: 
   out of bounds write. assert \valid(tmp);
                        (tmp from p++)
-[value] tests/value/gauges.i:170: Frama_C_show_each: [1..4294967294]
-[value] Recording results for main8_aux
-[value] Done for function main8_aux
-[value] Recording results for main8
-[value] Done for function main8
-[value] computing for function main9 <- main.
-  Called from tests/value/gauges.i:347.
-[value] tests/value/gauges.i:184: entering loop for the first time
-[value:alarm] tests/value/gauges.i:186: Warning: 
+[eva] tests/value/gauges.c:172: Frama_C_show_each: [1..4294967294]
+[eva] Recording results for main8_aux
+[eva] Done for function main8_aux
+[eva] Recording results for main8
+[eva] Done for function main8
+[eva] computing for function main9 <- main.
+  Called from tests/value/gauges.c:361.
+[eva] tests/value/gauges.c:186: starting to merge loop iterations
+[eva:alarm] tests/value/gauges.c:188: Warning: 
   signed overflow. assert -2147483648 ≤ (int)p + (int)q;
-[value:alarm] tests/value/gauges.i:186: Warning: 
+[eva:alarm] tests/value/gauges.c:188: Warning: 
   signed overflow. assert (int)p + (int)q ≤ 2147483647;
-[value] tests/value/gauges.i:186: 
+[eva] tests/value/gauges.c:188: 
   Assigning imprecise value to z.
-  The imprecision originates from Arithmetic {tests/value/gauges.i:186}
-[value] tests/value/gauges.i:187: 
+  The imprecision originates from Arithmetic {tests/value/gauges.c:188}
+[eva] tests/value/gauges.c:189: 
   Assigning imprecise value to r.
-  The imprecision originates from Arithmetic {tests/value/gauges.i:186}
-[value:alarm] tests/value/gauges.i:188: Warning: 
+  The imprecision originates from Arithmetic {tests/value/gauges.c:188}
+[eva:alarm] tests/value/gauges.c:190: Warning: 
   out of bounds write. assert \valid(r);
-[value:alarm] tests/value/gauges.i:190: Warning: 
+[eva:alarm] tests/value/gauges.c:192: Warning: 
   out of bounds write. assert \valid(p);
-[value:alarm] tests/value/gauges.i:191: Warning: 
+[eva:alarm] tests/value/gauges.c:193: Warning: 
   out of bounds write. assert \valid(q);
-[value] Recording results for main9
-[value] Done for function main9
-[value] computing for function main10 <- main.
-  Called from tests/value/gauges.i:348.
-[value] computing for function main10_aux <- main10 <- main.
-  Called from tests/value/gauges.i:209.
-[value] tests/value/gauges.i:199: entering loop for the first time
-[value:alarm] tests/value/gauges.i:200: Warning: 
+[eva] Recording results for main9
+[eva] Done for function main9
+[eva] computing for function main10 <- main.
+  Called from tests/value/gauges.c:362.
+[eva] computing for function main10_aux <- main10 <- main.
+  Called from tests/value/gauges.c:211.
+[eva] tests/value/gauges.c:201: starting to merge loop iterations
+[eva:alarm] tests/value/gauges.c:202: Warning: 
   out of bounds read. assert \valid_read(tmp);
                       (tmp from A++)
-[value:alarm] tests/value/gauges.i:200: Warning: 
+[eva:alarm] tests/value/gauges.c:202: Warning: 
   out of bounds read. assert \valid_read(tmp_0);
                       (tmp_0 from B++)
-[value:alarm] tests/value/gauges.i:199: Warning: 
+[eva:alarm] tests/value/gauges.c:201: Warning: 
   signed overflow. assert -2147483648 ≤ numNonZero - 1;
-[value:alarm] tests/value/gauges.i:200: Warning: 
+[eva:alarm] tests/value/gauges.c:202: Warning: 
   non-finite float value.
   assert \is_finite((float)(*p * (float)(*tmp * *tmp_0)));
   (tmp from A++, tmp_0 from B++)
-[value] Recording results for main10_aux
-[value] Done for function main10_aux
-[value:alarm] tests/value/gauges.i:209: Warning: 
+[eva] Recording results for main10_aux
+[eva] Done for function main10_aux
+[eva:alarm] tests/value/gauges.c:211: Warning: 
   overflow in conversion from floating-point to integer.
   assert tmp < 2147483648;
   (tmp from main10_aux(& p, (float const *)(A), (float const *)(B), 10))
-[value] Recording results for main10
-[value] Done for function main10
-[value] computing for function main11 <- main.
-  Called from tests/value/gauges.i:349.
-[value] tests/value/gauges.i:215: entering loop for the first time
-[value] tests/value/gauges.i:216: Frama_C_show_each:
-[value] tests/value/gauges.i:216: Frama_C_show_each:
-[value] tests/value/gauges.i:216: Frama_C_show_each:
-[value] tests/value/gauges.i:216: Frama_C_show_each:
-[value:alarm] tests/value/gauges.i:217: Warning: 
+[eva] Recording results for main10
+[eva] Done for function main10
+[eva] computing for function main11 <- main.
+  Called from tests/value/gauges.c:363.
+[eva] tests/value/gauges.c:218: Frama_C_show_each:
+[eva] tests/value/gauges.c:217: starting to merge loop iterations
+[eva] tests/value/gauges.c:218: Frama_C_show_each:
+[eva] tests/value/gauges.c:218: Frama_C_show_each:
+[eva] tests/value/gauges.c:218: Frama_C_show_each:
+[eva:alarm] tests/value/gauges.c:219: Warning: 
   signed overflow. assert i + 1 ≤ 2147483647;
-[value] tests/value/gauges.i:216: Frama_C_show_each:
-[value] tests/value/gauges.i:216: Frama_C_show_each:
-[value] tests/value/gauges.i:216: Frama_C_show_each:
-[value] tests/value/gauges.i:216: Frama_C_show_each:
-[value:alarm] tests/value/gauges.i:218: Warning: 
+[eva] tests/value/gauges.c:218: Frama_C_show_each:
+[eva] tests/value/gauges.c:218: Frama_C_show_each:
+[eva] tests/value/gauges.c:218: Frama_C_show_each:
+[eva] tests/value/gauges.c:218: Frama_C_show_each:
+[eva:alarm] tests/value/gauges.c:220: Warning: 
   signed overflow. assert -2147483648 ≤ n - 1;
-[value] Recording results for main11
-[value] Done for function main11
-[value] computing for function main12 <- main.
-  Called from tests/value/gauges.i:350.
-[value] tests/value/gauges.i:223: entering loop for the first time
-[value:alarm] tests/value/gauges.i:223: Warning: 
+[eva] Recording results for main11
+[eva] Done for function main11
+[eva] computing for function main12 <- main.
+  Called from tests/value/gauges.c:364.
+[eva] tests/value/gauges.c:225: starting to merge loop iterations
+[eva:alarm] tests/value/gauges.c:225: Warning: 
   signed overflow. assert i + 1 ≤ 2147483647;
-[value] Recording results for main12
-[value] Done for function main12
-[value] computing for function main13 <- main.
-  Called from tests/value/gauges.i:351.
-[value] computing for function main13_1 <- main13 <- main.
-  Called from tests/value/gauges.i:278.
-[value] tests/value/gauges.i:236: entering loop for the first time
-[value:alarm] tests/value/gauges.i:238: Warning: 
+[eva] Recording results for main12
+[eva] Done for function main12
+[eva] computing for function main13 <- main.
+  Called from tests/value/gauges.c:365.
+[eva] computing for function main13_1 <- main13 <- main.
+  Called from tests/value/gauges.c:280.
+[eva] tests/value/gauges.c:238: starting to merge loop iterations
+[eva:alarm] tests/value/gauges.c:240: Warning: 
   signed overflow. assert j + 1 ≤ 2147483647;
-[value] tests/value/gauges.i:240: 
+[eva] tests/value/gauges.c:242: 
   Frama_C_show_each: {45; 46; 47; 48; 49; 50; 51}, [0..2147483647]
-[value] Recording results for main13_1
-[value] Done for function main13_1
-[value] computing for function main13_2 <- main13 <- main.
-  Called from tests/value/gauges.i:279.
-[value] tests/value/gauges.i:247: entering loop for the first time
-[value:alarm] tests/value/gauges.i:249: Warning: 
+[eva] Recording results for main13_1
+[eva] Done for function main13_1
+[eva] computing for function main13_2 <- main13 <- main.
+  Called from tests/value/gauges.c:281.
+[eva] tests/value/gauges.c:249: starting to merge loop iterations
+[eva:alarm] tests/value/gauges.c:251: Warning: 
   signed overflow. assert j + 1 ≤ 2147483647;
-[value] tests/value/gauges.i:252: 
+[eva] tests/value/gauges.c:254: 
   Frama_C_show_each: {48; 49; 50; 51; 52; 53; 54}, [0..2147483647]
-[value] Recording results for main13_2
-[value] Done for function main13_2
-[value] computing for function main13_3 <- main13 <- main.
-  Called from tests/value/gauges.i:280.
-[value] tests/value/gauges.i:259: entering loop for the first time
-[value:alarm] tests/value/gauges.i:261: Warning: 
+[eva] Recording results for main13_2
+[eva] Done for function main13_2
+[eva] computing for function main13_3 <- main13 <- main.
+  Called from tests/value/gauges.c:282.
+[eva] tests/value/gauges.c:261: starting to merge loop iterations
+[eva:alarm] tests/value/gauges.c:263: Warning: 
   signed overflow. assert j + 1 ≤ 2147483647;
-[value] tests/value/gauges.i:263: 
+[eva] tests/value/gauges.c:265: 
   Frama_C_show_each: {-59; -58; -57; -56; -55; -54; -53}, [0..2147483647]
-[value] Recording results for main13_3
-[value] Done for function main13_3
-[value] computing for function main13_4 <- main13 <- main.
-  Called from tests/value/gauges.i:281.
-[value] tests/value/gauges.i:270: entering loop for the first time
-[value:alarm] tests/value/gauges.i:272: Warning: 
+[eva] Recording results for main13_3
+[eva] Done for function main13_3
+[eva] computing for function main13_4 <- main13 <- main.
+  Called from tests/value/gauges.c:283.
+[eva] tests/value/gauges.c:272: starting to merge loop iterations
+[eva:alarm] tests/value/gauges.c:274: Warning: 
   signed overflow. assert j + 1 ≤ 2147483647;
-[value] tests/value/gauges.i:274: 
+[eva] tests/value/gauges.c:276: 
   Frama_C_show_each: {-64; -63; -62; -61; -60; -59; -58}, [0..2147483647]
-[value] Recording results for main13_4
-[value] Done for function main13_4
-[value] Recording results for main13
-[value] Done for function main13
-[value] computing for function main14 <- main.
-  Called from tests/value/gauges.i:352.
-[value] tests/value/gauges.i:289: entering loop for the first time
-[value:alarm] tests/value/gauges.i:291: Warning: 
+[eva] Recording results for main13_4
+[eva] Done for function main13_4
+[eva] Recording results for main13
+[eva] Done for function main13
+[eva] computing for function main14 <- main.
+  Called from tests/value/gauges.c:366.
+[eva] tests/value/gauges.c:291: starting to merge loop iterations
+[eva:alarm] tests/value/gauges.c:293: Warning: 
   signed overflow. assert j + 1 ≤ 2147483647;
-[value] tests/value/gauges.i:295: 
+[eva] tests/value/gauges.c:297: 
   Frama_C_show_each: {-593; -592; -591; -590; -589; -588}, [0..2147483647]
-[value] Recording results for main14
-[value] Done for function main14
-[value] computing for function main15 <- main.
-  Called from tests/value/gauges.i:353.
-[value] tests/value/gauges.i:302: entering loop for the first time
-[value] tests/value/gauges.i:304: 
+[eva] Recording results for main14
+[eva] Done for function main14
+[eva] computing for function main15 <- main.
+  Called from tests/value/gauges.c:367.
+[eva] tests/value/gauges.c:306: 
   Frama_C_dump_each:
   # Cvalue domain:
+  __fc_heap_status ∈ [--..--]
+  __fc_random_counter ∈ [--..--]
+  __fc_rand_max ∈ {32767}
+  __fc_env[0] ∈ {{ NULL ; &S_0___fc_env[0] }}
+          [1] ∈ {{ NULL ; &S_1___fc_env[0] }}
+          [2..4095] ∈ {{ NULL ; &S_0___fc_env[0] ; &S_1___fc_env[0] }}
+  __fc_mblen_state ∈ [--..--]
+  __fc_mbtowc_state ∈ [--..--]
+  __fc_wctomb_state ∈ [--..--]
   v ∈ [--..--]
   t[0..4] ∈ {0}
    [5] ∈ [0..48],0%3
@@ -391,10 +403,22 @@
   y ∈ UNINITIALIZED
   p ∈ {{ &x }}
   i ∈ {1}
+  S_0___fc_env[0..1] ∈ [--..--]
+  S_1___fc_env[0..1] ∈ [--..--]
   ==END OF DUMP==
-[value] tests/value/gauges.i:304: 
+[eva] tests/value/gauges.c:304: starting to merge loop iterations
+[eva] tests/value/gauges.c:306: 
   Frama_C_dump_each:
   # Cvalue domain:
+  __fc_heap_status ∈ [--..--]
+  __fc_random_counter ∈ [--..--]
+  __fc_rand_max ∈ {32767}
+  __fc_env[0] ∈ {{ NULL ; &S_0___fc_env[0] }}
+          [1] ∈ {{ NULL ; &S_1___fc_env[0] }}
+          [2..4095] ∈ {{ NULL ; &S_0___fc_env[0] ; &S_1___fc_env[0] }}
+  __fc_mblen_state ∈ [--..--]
+  __fc_mbtowc_state ∈ [--..--]
+  __fc_wctomb_state ∈ [--..--]
   v ∈ [--..--]
   t[0..4] ∈ {0}
    [5] ∈ [0..48],0%3
@@ -436,10 +460,21 @@
   y ∈ UNINITIALIZED
   p ∈ {{ &x ; &y }}
   i ∈ {1; 2}
+  S_0___fc_env[0..1] ∈ [--..--]
+  S_1___fc_env[0..1] ∈ [--..--]
   ==END OF DUMP==
-[value] tests/value/gauges.i:304: 
+[eva] tests/value/gauges.c:306: 
   Frama_C_dump_each:
   # Cvalue domain:
+  __fc_heap_status ∈ [--..--]
+  __fc_random_counter ∈ [--..--]
+  __fc_rand_max ∈ {32767}
+  __fc_env[0] ∈ {{ NULL ; &S_0___fc_env[0] }}
+          [1] ∈ {{ NULL ; &S_1___fc_env[0] }}
+          [2..4095] ∈ {{ NULL ; &S_0___fc_env[0] ; &S_1___fc_env[0] }}
+  __fc_mblen_state ∈ [--..--]
+  __fc_mbtowc_state ∈ [--..--]
+  __fc_wctomb_state ∈ [--..--]
   v ∈ [--..--]
   t[0..4] ∈ {0}
    [5] ∈ [0..48],0%3
@@ -481,10 +516,21 @@
   y ∈ UNINITIALIZED
   p ∈ {{ &x ; &y }}
   i ∈ {1; 2; 3}
+  S_0___fc_env[0..1] ∈ [--..--]
+  S_1___fc_env[0..1] ∈ [--..--]
   ==END OF DUMP==
-[value] tests/value/gauges.i:304: 
+[eva] tests/value/gauges.c:306: 
   Frama_C_dump_each:
   # Cvalue domain:
+  __fc_heap_status ∈ [--..--]
+  __fc_random_counter ∈ [--..--]
+  __fc_rand_max ∈ {32767}
+  __fc_env[0] ∈ {{ NULL ; &S_0___fc_env[0] }}
+          [1] ∈ {{ NULL ; &S_1___fc_env[0] }}
+          [2..4095] ∈ {{ NULL ; &S_0___fc_env[0] ; &S_1___fc_env[0] }}
+  __fc_mblen_state ∈ [--..--]
+  __fc_mbtowc_state ∈ [--..--]
+  __fc_wctomb_state ∈ [--..--]
   v ∈ [--..--]
   t[0..4] ∈ {0}
    [5] ∈ [0..48],0%3
@@ -526,17 +572,27 @@
   y ∈ UNINITIALIZED
   p ∈ {{ &x ; &y }}
   i ∈ [1..11]
+  S_0___fc_env[0..1] ∈ [--..--]
+  S_1___fc_env[0..1] ∈ [--..--]
   ==END OF DUMP==
-[value] Recording results for main15
-[value] Done for function main15
-[value] computing for function main16 <- main.
-  Called from tests/value/gauges.i:354.
-[value] tests/value/gauges.i:319: entering loop for the first time
-[value] tests/value/gauges.i:321: entering loop for the first time
-[value] tests/value/gauges.i:322: entering loop for the first time
-[value] tests/value/gauges.i:323: 
+[eva] Recording results for main15
+[eva] Done for function main15
+[eva] computing for function main16 <- main.
+  Called from tests/value/gauges.c:368.
+[eva] tests/value/gauges.c:323: starting to merge loop iterations
+[eva] tests/value/gauges.c:324: starting to merge loop iterations
+[eva] tests/value/gauges.c:325: 
   Frama_C_dump_each:
   # Cvalue domain:
+  __fc_heap_status ∈ [--..--]
+  __fc_random_counter ∈ [--..--]
+  __fc_rand_max ∈ {32767}
+  __fc_env[0] ∈ {{ NULL ; &S_0___fc_env[0] }}
+          [1] ∈ {{ NULL ; &S_1___fc_env[0] }}
+          [2..4095] ∈ {{ NULL ; &S_0___fc_env[0] ; &S_1___fc_env[0] }}
+  __fc_mblen_state ∈ [--..--]
+  __fc_mbtowc_state ∈ [--..--]
+  __fc_wctomb_state ∈ [--..--]
   v ∈ [--..--]
   t[0..4] ∈ {0}
    [5] ∈ [0..48],0%3
@@ -578,12 +634,23 @@
   b ∈ {0}
   p ∈ {{ &a }}
   i ∈ {2}
+  S_0___fc_env[0..1] ∈ [--..--]
+  S_1___fc_env[0..1] ∈ [--..--]
   ==END OF DUMP==
-[value] tests/value/gauges.i:324: entering loop for the first time
-[value] tests/value/gauges.i:325: entering loop for the first time
-[value] tests/value/gauges.i:323: 
+[eva] tests/value/gauges.c:326: starting to merge loop iterations
+[eva] tests/value/gauges.c:321: starting to merge loop iterations
+[eva] tests/value/gauges.c:325: 
   Frama_C_dump_each:
   # Cvalue domain:
+  __fc_heap_status ∈ [--..--]
+  __fc_random_counter ∈ [--..--]
+  __fc_rand_max ∈ {32767}
+  __fc_env[0] ∈ {{ NULL ; &S_0___fc_env[0] }}
+          [1] ∈ {{ NULL ; &S_1___fc_env[0] }}
+          [2..4095] ∈ {{ NULL ; &S_0___fc_env[0] ; &S_1___fc_env[0] }}
+  __fc_mblen_state ∈ [--..--]
+  __fc_mbtowc_state ∈ [--..--]
+  __fc_wctomb_state ∈ [--..--]
   v ∈ [--..--]
   t[0..4] ∈ {0}
    [5] ∈ [0..48],0%3
@@ -625,23 +692,34 @@
   b ∈ {0}
   p ∈ {{ &a ; &b }}
   i ∈ {2}
+  S_0___fc_env[0..1] ∈ [--..--]
+  S_1___fc_env[0..1] ∈ [--..--]
   ==END OF DUMP==
-[value] Recording results for main16
-[value] Done for function main16
-[value] Recording results for main
-[value] done for function main
-[value] ====== VALUES COMPUTED ======
-[value:final-states] Values at end of function main0:
+[eva] tests/value/gauges.c:327: starting to merge loop iterations
+[eva] Recording results for main16
+[eva] Done for function main16
+[eva] computing for function main17 <- main.
+  Called from tests/value/gauges.c:369.
+[eva] tests/value/gauges.c:343: Call to builtin malloc
+[eva] tests/value/gauges.c:343: allocating variable __malloc_main17_l343
+[eva] tests/value/gauges.c:342: starting to merge loop iterations
+[eva] tests/value/gauges.c:343: Call to builtin malloc
+[eva] Recording results for main17
+[eva] Done for function main17
+[eva] Recording results for main
+[eva] done for function main
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function main0:
   i ∈ {1; 162}
   j ∈ [-2147483646..2],2%4
   k ∈ {101}
   l ∈ [4..2147483647]
-[value:final-states] Values at end of function main0_bis:
+[eva:final-states] Values at end of function main0_bis:
   i ∈ {1; 163}
   j ∈ [-2147483646..2],2%4
   k ∈ {101}
   l ∈ [4..2147483647]
-[value:final-states] Values at end of function main1:
+[eva:final-states] Values at end of function main1:
   t[0..4] ∈ {0}
    [5] ∈ [0..48],0%3
    [6] ∈ {0}
@@ -677,65 +755,65 @@
    [36] ∈ {0}
    [37] ∈ [0..48],0%3
   j ∈ [5..39],1%2
-[value:final-states] Values at end of function main10_aux:
+[eva:final-states] Values at end of function main10_aux:
   A ∈ {{ &A + [0..--],0%4 }}
   B ∈ {{ &B + [0..--],0%4 }}
   numNonZero ∈ [-2147483648..8]
   p ∈ [0. .. 3.40282346639e+38]
   __retres ∈ [0. .. 3.40282346639e+38]
-[value:final-states] Values at end of function main10:
+[eva:final-states] Values at end of function main10:
   p ∈ [0. .. 3.40282346639e+38]
   A[0] ∈ {1.}
    [1..9] ∈ {0}
   B[0] ∈ {2.}
    [1..9] ∈ {0}
-  __retres ∈ [0..2147483647]
-[value:final-states] Values at end of function main11:
+  __retres ∈ [0..2147483520]
+[eva:final-states] Values at end of function main11:
   n ∈ [-2147483648..99]
   i ∈ [1..2147483647]
-[value:final-states] Values at end of function main12:
+[eva:final-states] Values at end of function main12:
   i ∈ [0..2147483647]
   j ∈ {10}
-[value:final-states] Values at end of function main13_1:
+[eva:final-states] Values at end of function main13_1:
   i ∈ {45; 46; 47; 48; 49; 50; 51}
   j ∈ [0..2147483647]
-[value:final-states] Values at end of function main13_2:
+[eva:final-states] Values at end of function main13_2:
   i ∈ {48; 49; 50; 51; 52; 53; 54}
   j ∈ [0..2147483647]
-[value:final-states] Values at end of function main13_3:
+[eva:final-states] Values at end of function main13_3:
   i ∈ {-59; -58; -57; -56; -55; -54; -53}
   j ∈ [0..2147483647]
-[value:final-states] Values at end of function main13_4:
+[eva:final-states] Values at end of function main13_4:
   i ∈ {-64; -63; -62; -61; -60; -59; -58}
   j ∈ [0..2147483647]
-[value:final-states] Values at end of function main13:
+[eva:final-states] Values at end of function main13:
   
-[value:final-states] Values at end of function main14:
+[eva:final-states] Values at end of function main14:
   i ∈ {-593; -592; -591; -590; -589; -588}
   s ∈ {5; 6}
   j ∈ [0..2147483647]
-[value:final-states] Values at end of function main15:
+[eva:final-states] Values at end of function main15:
   p ∈ {{ &x ; &y }}
   i ∈ {11}
-[value:final-states] Values at end of function main16:
+[eva:final-states] Values at end of function main16:
   a ∈ {1}
   b ∈ {0}
   p ∈ {{ &b }}
-[value:final-states] Values at end of function main2:
+[eva:final-states] Values at end of function main2:
   u[0..99] ∈ [0..100]
   p ∈ {{ &u + [0..--],0%4 }}
-[value:final-states] Values at end of function main3:
+[eva:final-states] Values at end of function main3:
   k ∈ [0..2147483647]
-[value:final-states] Values at end of function main4_search:
+[eva:final-states] Values at end of function main4_search:
   c ∈ [0..2147483647]
   i ∈ {21}
-[value:final-states] Values at end of function main4:
+[eva:final-states] Values at end of function main4:
   i ∈ [0..2147483647]
-[value:final-states] Values at end of function main5:
+[eva:final-states] Values at end of function main5:
   x[0..9] ∈ [0..9] or UNINITIALIZED
   y[0..9] ∈ [0..9] or UNINITIALIZED
   p ∈ {{ &x + [0..40],0%4 ; &y + [4..40],0%4 }}
-[value:final-states] Values at end of function main5_bis:
+[eva:final-states] Values at end of function main5_bis:
   x[0] ∈ {0}
    [1] ∈ {1}
    [2] ∈ {2}
@@ -743,37 +821,42 @@
   y[0] ∈ {3}
    [1..9] ∈ {4; 5; 6; 7; 8; 9} or UNINITIALIZED
   p ∈ {{ &y + [4..40],0%4 }}
-[value:final-states] Values at end of function main6:
+[eva:final-states] Values at end of function main6:
   i ∈ {13}
   j ∈ [0..2147483647]
-[value:final-states] Values at end of function main7_aux:
+[eva:final-states] Values at end of function main7_aux:
   T[0..99] ∈ [--..--]
   toCopy ∈ [--..--]
   p ∈ {{ &T + [--..396],0%4 }}
-[value:final-states] Values at end of function main7_aux2:
+[eva:final-states] Values at end of function main7_aux2:
   T[0..99] ∈ [--..--]
   toCopy ∈ [-2147483648..99]
   p ∈ {{ &T + [--..396],0%4 }}
-[value:final-states] Values at end of function main7:
+[eva:final-states] Values at end of function main7:
   T[0..99] ∈ [--..--]
   toCopy ∈ {100}
-[value:final-states] Values at end of function main8_aux:
+[eva:final-states] Values at end of function main8_aux:
   n ∈ {0}
   arr[0] ∈ {0}
      [1] ∈ {-1}
      [2..65535] ∈ [--..--] or UNINITIALIZED
   p ∈ {{ &arr + [12..--],0%4 }}
-[value:final-states] Values at end of function main8:
+[eva:final-states] Values at end of function main8:
   
-[value:final-states] Values at end of function main9:
+[eva:final-states] Values at end of function main9:
   x[0..9] ∈ [--..--] or UNINITIALIZED
   y[0..9] ∈ [--..--] or UNINITIALIZED
   p ∈ {{ &x + [0..40],0%4 }}
   q ∈ {{ &y + [0..40],0%4 }}
   z ∈
    {{ garbled mix of &{x; y}
-    (origin: Arithmetic {tests/value/gauges.i:186}) }} or UNINITIALIZED
-[value:final-states] Values at end of function main:
+    (origin: Arithmetic {tests/value/gauges.c:188}) }} or UNINITIALIZED
+[eva:final-states] Values at end of function main17:
+  __fc_heap_status ∈ [--..--]
+  q ∈ {0}
+  p ∈ {{ &x ; &__malloc_w_main17_l343 }}
+[eva:final-states] Values at end of function main:
+  __fc_heap_status ∈ [--..--]
   t[0..4] ∈ {0}
    [5] ∈ [0..48],0%3
    [6] ∈ {0}
@@ -866,6 +949,10 @@
 [from] Done for function main8
 [from] Computing for function main9
 [from] Done for function main9
+[from] Computing for function main17
+[from] Computing for function malloc <-main17
+[from] Done for function malloc
+[from] Done for function main17
 [from] Computing for function main
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
@@ -929,7 +1016,13 @@
   NO EFFECTS
 [from] Function main9:
   NO EFFECTS
+[from] Function malloc:
+  __fc_heap_status FROM __fc_heap_status; size (and SELF)
+  \result FROM __fc_heap_status; size
+[from] Function main17:
+  __fc_heap_status FROM __fc_heap_status (and SELF)
 [from] Function main:
+  __fc_heap_status FROM __fc_heap_status (and SELF)
   t{[5]; [7]; [9]; [11]; [13]; [15]; [17]; [19]; [21]; [23]; [25]; [27];
     [29]; [31]; [33]; [35]; [37]}
    FROM \nothing (and SELF)
@@ -1049,8 +1142,13 @@
     x[0..9]; y[0..9]; p; q; z; i; r
 [inout] Inputs for function main9:
     \nothing
+[inout] Out (internal) for function main17:
+    __fc_heap_status; q; p
+[inout] Inputs for function main17:
+    __fc_heap_status
 [inout] Out (internal) for function main:
+    __fc_heap_status;
     t{[5]; [7]; [9]; [11]; [13]; [15]; [17]; [19]; [21]; [23]; [25]; [27];
       [29]; [31]; [33]; [35]; [37]}; u[0..99]; T[0..99]
 [inout] Inputs for function main:
-    v; T[0..20]
+    __fc_heap_status; v; T[0..20]

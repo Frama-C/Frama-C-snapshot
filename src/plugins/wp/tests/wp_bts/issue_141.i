@@ -1,5 +1,5 @@
 /* run.config
-   OPT: -wp-rte -wp -wp-timeout 2
+   OPT: -wp-rte -wp -wp-steps 50
 */
 /* run.config_qualif
    DONTRUN:

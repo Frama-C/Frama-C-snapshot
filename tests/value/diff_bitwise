@@ -1,15 +1,15 @@
 diff tests/value/oracle/addition.res.oracle tests/value/oracle_bitwise/addition.res.oracle
 90,92c90
-< [value] tests/value/addition.i:52: 
+< [eva] tests/value/addition.i:52: 
 <   Assigning imprecise value to p10.
 <   The imprecision originates from Arithmetic {tests/value/addition.i:52}
 ---
-> [value] tests/value/addition.i:52: Assigning imprecise value to p10.
-127a126
+> [eva] tests/value/addition.i:52: Assigning imprecise value to p10.
+128a127
 >   {{ garbled mix of &{p1} (origin: Misaligned {tests/value/addition.i:52}) }}
-129a129
+130a130
 >   {{ garbled mix of &{p2} (origin: Misaligned {tests/value/addition.i:56}) }}
-165,168c165,166
+166,169c166,167
 <   p10 ∈
 <      {{ garbled mix of &{p1}
 <       (origin: Arithmetic {tests/value/addition.i:52}) }}
@@ -17,9 +17,9 @@ diff tests/value/oracle/addition.res.oracle tests/value/oracle_bitwise/addition.
 ---
 >   p10 ∈ {{ garbled mix of &{p1} }}
 >   p11 ∈ [-2147483648..0],0%4
-356a355
+358a357
 >   {{ garbled mix of &{p1} (origin: Misaligned {tests/value/addition.i:52}) }}
-395,398c394,395
+397,400c396,397
 <   p10 ∈
 <      {{ garbled mix of &{p1}
 <       (origin: Arithmetic {tests/value/addition.i:52}) }}
@@ -28,11 +28,11 @@ diff tests/value/oracle/addition.res.oracle tests/value/oracle_bitwise/addition.
 >   p10 ∈ {{ garbled mix of &{p1} }}
 >   p11 ∈ [-2147483648..0],0%4
 diff tests/value/oracle/bitwise_or.res.oracle tests/value/oracle_bitwise/bitwise_or.res.oracle
-58c58
+57c57
 <   uand4 ∈ [8..24]
 ---
 >   uand4 ∈ {8; 16; 24}
-64,65c64,65
+63,64c63,64
 <   v1 ∈ [0..0x1FFFE],0%2
 <   v2 ∈ [0..0x3FFFF]
 ---
@@ -40,17 +40,17 @@ diff tests/value/oracle/bitwise_or.res.oracle tests/value/oracle_bitwise/bitwise
 >   v2 ∈ [0..0x3FFFE],0%2
 diff tests/value/oracle/bitwise_pointer.res.oracle tests/value/oracle_bitwise/bitwise_pointer.res.oracle
 32,34c32
-< [value] tests/value/bitwise_pointer.i:18: 
+< [eva] tests/value/bitwise_pointer.i:18: 
 <   Assigning imprecise value to p.
 <   The imprecision originates from Arithmetic {tests/value/bitwise_pointer.i:18}
 ---
-> [value] tests/value/bitwise_pointer.i:18: Assigning imprecise value to p.
+> [eva] tests/value/bitwise_pointer.i:18: Assigning imprecise value to p.
 37,39c35
-< [value] tests/value/bitwise_pointer.i:22: 
+< [eva] tests/value/bitwise_pointer.i:22: 
 <   Assigning imprecise value to p1.
 <   The imprecision originates from Arithmetic {tests/value/bitwise_pointer.i:22}
 ---
-> [value] tests/value/bitwise_pointer.i:22: Assigning imprecise value to p1.
+> [eva] tests/value/bitwise_pointer.i:22: Assigning imprecise value to p1.
 diff tests/value/oracle/cast.res.oracle tests/value/oracle_bitwise/cast.res.oracle
 71c71
 <   G ∈ [0..12]
@@ -62,8 +62,8 @@ diff tests/value/oracle/cast.res.oracle tests/value/oracle_bitwise/cast.res.orac
 >   G ∈ [2..12]
 diff tests/value/oracle/logic_ptr_cast.res.oracle tests/value/oracle_bitwise/logic_ptr_cast.res.oracle
 8,10c8
-< [value] tests/value/logic_ptr_cast.i:8: 
+< [eva] tests/value/logic_ptr_cast.i:8: 
 <   Assigning imprecise value to p.
 <   The imprecision originates from Arithmetic {tests/value/logic_ptr_cast.i:8}
 ---
-> [value] tests/value/logic_ptr_cast.i:8: Assigning imprecise value to p.
+> [eva] tests/value/logic_ptr_cast.i:8: Assigning imprecise value to p.

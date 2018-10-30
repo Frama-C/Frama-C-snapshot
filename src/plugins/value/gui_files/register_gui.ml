@@ -82,12 +82,11 @@ let sync_filetree (filetree:Filetree.t) =
        List.iter
          (fun file ->
             (* the display name removes the path *)
-            let name, _globals = Globals.FileIndex.find file in
-            let globals_state = filetree#get_file_globals name in
+            let globals_state = filetree#get_file_globals file in
             filetree#set_file_attribute
               ~strikethrough:(Db.Value.is_computed () &&
                               List.for_all snd globals_state)
-              name
+              file
          )
          (Globals.FileIndex.get_files ())
     )
@@ -140,7 +139,7 @@ let value_panel pack (main_ui:main_ui) =
                  (fun () -> refresh (); !Db.Value.compute (); main_ui#reset ());
             ));
   pack box;
-  "Value", box#coerce, Some refresh
+  "Eva", box#coerce, Some refresh
 
 (* ---------------------------- Highlighter --------------------------------- *)
 
@@ -562,6 +561,17 @@ let add_keybord_shortcut_evaluate main_ui =
      to activate it. [None] means that there is no selection or the selected
      element is not part of a statement. *)
   let selected_loc_for_acsl = ref None in
+  (* If we happen to go to another project that happens to share vids with
+     the previous one, comparing the new loc with the cached one might lead
+     to a crash dialog when the kernel will detect that we're trying to
+     use two distinct globals with the same id. Thus, changing project will
+     clear the selection once and for all.
+  *)
+  let () =
+    Project.register_after_set_current_hook
+      ~user_only:false
+      (fun _ -> selected_loc_for_acsl := None)
+  in
   (* This function must be maintained synchronized with
      [left_click_values_computed] above. *)
   let can_eval_acsl_expr_selector _menu _main ~button:_ selected =

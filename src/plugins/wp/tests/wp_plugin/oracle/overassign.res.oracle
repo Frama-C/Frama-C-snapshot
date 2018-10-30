@@ -39,27 +39,15 @@ Prove: true.
 
 Goal Assigns nothing in 'f3_ok':
 Call Effect at line 20
-Let a = shift_sint32(global(G_A_28), 20).
-Assume {
-  (* Heap *)
-  Have: (region(G_A_28) <= 0) /\ linked(Malloc_0).
-  (* Exit Effects *)
-  Have: havoc(Mint_0, Mint_1, a, 10).
-}
-Prove: invalid(Malloc_0, a, 10).
+Assume { (* Heap *) Have: (region(G_A_28) <= 0) /\ linked(Malloc_0). }
+Prove: invalid(Malloc_0, shift_sint32(global(G_A_28), 20), 10).
 
 ------------------------------------------------------------
 
 Goal Assigns nothing in 'f3_ok':
 Call Effect at line 20
-Let a = shift_sint32(global(G_A_28), 20).
-Assume {
-  (* Heap *)
-  Have: (region(G_A_28) <= 0) /\ linked(Malloc_0).
-  (* Call Effects *)
-  Have: havoc(Mint_0, Mint_1, a, 10).
-}
-Prove: invalid(Malloc_0, a, 10).
+Assume { (* Heap *) Have: (region(G_A_28) <= 0) /\ linked(Malloc_0). }
+Prove: invalid(Malloc_0, shift_sint32(global(G_A_28), 20), 10).
 
 ------------------------------------------------------------
 ------------------------------------------------------------
@@ -68,27 +56,15 @@ Prove: invalid(Malloc_0, a, 10).
 
 Goal Assigns nothing in 'f4_ok':
 Call Effect at line 23
-Let a = shift_sint32(global(G_A_28), -10).
-Assume {
-  (* Heap *)
-  Have: (region(G_A_28) <= 0) /\ linked(Malloc_0).
-  (* Exit Effects *)
-  Have: havoc(Mint_0, Mint_1, a, 10).
-}
-Prove: invalid(Malloc_0, a, 10).
+Assume { (* Heap *) Have: (region(G_A_28) <= 0) /\ linked(Malloc_0). }
+Prove: invalid(Malloc_0, shift_sint32(global(G_A_28), -10), 10).
 
 ------------------------------------------------------------
 
 Goal Assigns nothing in 'f4_ok':
 Call Effect at line 23
-Let a = shift_sint32(global(G_A_28), -10).
-Assume {
-  (* Heap *)
-  Have: (region(G_A_28) <= 0) /\ linked(Malloc_0).
-  (* Call Effects *)
-  Have: havoc(Mint_0, Mint_1, a, 10).
-}
-Prove: invalid(Malloc_0, a, 10).
+Assume { (* Heap *) Have: (region(G_A_28) <= 0) /\ linked(Malloc_0). }
+Prove: invalid(Malloc_0, shift_sint32(global(G_A_28), -10), 10).
 
 ------------------------------------------------------------
 ------------------------------------------------------------
@@ -97,27 +73,15 @@ Prove: invalid(Malloc_0, a, 10).
 
 Goal Assigns nothing in 'f5_ko':
 Call Effect at line 26
-Let a = shift_sint32(global(G_A_28), 15).
-Assume {
-  (* Heap *)
-  Have: (region(G_A_28) <= 0) /\ linked(Malloc_0).
-  (* Exit Effects *)
-  Have: havoc(Mint_0, Mint_1, a, 10).
-}
-Prove: invalid(Malloc_0, a, 10).
+Assume { (* Heap *) Have: (region(G_A_28) <= 0) /\ linked(Malloc_0). }
+Prove: invalid(Malloc_0, shift_sint32(global(G_A_28), 15), 10).
 
 ------------------------------------------------------------
 
 Goal Assigns nothing in 'f5_ko':
 Call Effect at line 26
-Let a = shift_sint32(global(G_A_28), 15).
-Assume {
-  (* Heap *)
-  Have: (region(G_A_28) <= 0) /\ linked(Malloc_0).
-  (* Call Effects *)
-  Have: havoc(Mint_0, Mint_1, a, 10).
-}
-Prove: invalid(Malloc_0, a, 10).
+Assume { (* Heap *) Have: (region(G_A_28) <= 0) /\ linked(Malloc_0). }
+Prove: invalid(Malloc_0, shift_sint32(global(G_A_28), 15), 10).
 
 ------------------------------------------------------------
 ------------------------------------------------------------
@@ -126,26 +90,14 @@ Prove: invalid(Malloc_0, a, 10).
 
 Goal Assigns nothing in 'f6_ko':
 Call Effect at line 29
-Let a = shift_sint32(global(G_A_28), -5).
-Assume {
-  (* Heap *)
-  Have: (region(G_A_28) <= 0) /\ linked(Malloc_0).
-  (* Exit Effects *)
-  Have: havoc(Mint_0, Mint_1, a, 10).
-}
-Prove: invalid(Malloc_0, a, 10).
+Assume { (* Heap *) Have: (region(G_A_28) <= 0) /\ linked(Malloc_0). }
+Prove: invalid(Malloc_0, shift_sint32(global(G_A_28), -5), 10).
 
 ------------------------------------------------------------
 
 Goal Assigns nothing in 'f6_ko':
 Call Effect at line 29
-Let a = shift_sint32(global(G_A_28), -5).
-Assume {
-  (* Heap *)
-  Have: (region(G_A_28) <= 0) /\ linked(Malloc_0).
-  (* Call Effects *)
-  Have: havoc(Mint_0, Mint_1, a, 10).
-}
-Prove: invalid(Malloc_0, a, 10).
+Assume { (* Heap *) Have: (region(G_A_28) <= 0) /\ linked(Malloc_0). }
+Prove: invalid(Malloc_0, shift_sint32(global(G_A_28), -5), 10).
 
 ------------------------------------------------------------

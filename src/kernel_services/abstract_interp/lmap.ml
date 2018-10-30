@@ -362,6 +362,11 @@ struct
 
     end
 
+    let merge =
+      let cache = Hptmap_sig.NoCache in
+      let decide _ _v1 v2 = v2 in
+      M.join ~cache ~symmetric:false ~idempotent:true ~decide
+
     let pretty_diff_aux fmt m1 m2 =
       let print base m1 m2 = match m1, m2 with
         | None, None -> ()
@@ -695,6 +700,11 @@ struct
           try Map (narrow_internal m1 m2)
           with NarrowReturnsBottom -> Bottom
   end
+
+  let merge ~into t = match into, t with
+    | Bottom, _ | _, Bottom
+    | Top, _ | _, Top -> t
+    | Map into, Map m -> Map (M.merge into m)
 
   let pretty_diff fmt m1 m2 =
     match m1, m2 with

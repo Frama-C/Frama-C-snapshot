@@ -851,18 +851,19 @@ let make_text_page ?pos (notebook:GPack.notebook) title =
 
 (* Converts the 'editor' string saved in the GUI configuration to the actual
    command to be executed *)
-let prepare_editor_cmd s line file =
-  let s = Str.global_replace (Str.regexp "%s") file s in
+let prepare_editor_cmd s line filename =
+  let s = Str.global_replace (Str.regexp "%s") filename s in
   let s = Str.global_replace (Str.regexp "%d") (string_of_int line) s in
   (* always start in background, otherwise will freeze the GUI *)
   s ^ " &"
 
-let open_in_external_viewer ?(line=1) file =
+let open_in_external_viewer ?(line=1) (file : Datatype.Filepath.t) =
+  let filename = Format.asprintf "%S" (file :> string) in
   let editor = Configuration.find_string ~default:"emacs +%d %s" "editor" in
   if editor = "" then
     Gui_parameters.feedback "no external viewer configured in Preferences"
   else
-    let cmd = prepare_editor_cmd editor line file in
+    let cmd = prepare_editor_cmd editor line filename in
     Gui_parameters.feedback "opening external viewer, running command: %s" cmd;
     ignore (Sys.command cmd)
 

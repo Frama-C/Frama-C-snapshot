@@ -1,58 +1,56 @@
 [kernel] Parsing tests/value/empty_struct2.c (with preprocessing)
-[value] Analyzing a complete application starting at main
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
-  __fc_heap_status ∈ [--..--]
-  __fc_strtok_ptr ∈ {0}
+[eva] Analyzing a complete application starting at main
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   nondet ∈ [--..--]
   pg ∈ {{ &global_empty }}
-[value] tests/value/empty_struct2.c:44: assertion got status valid.
-[value] tests/value/empty_struct2.c:46: Frama_C_show_each_global_empty: ∅
-[value] tests/value/empty_struct2.c:47: Frama_C_show_each_e1: ∅
-[value] tests/value/empty_struct2.c:48: 
+[eva] tests/value/empty_struct2.c:44: assertion got status valid.
+[eva] tests/value/empty_struct2.c:46: Frama_C_show_each_global_empty: ∅
+[eva] tests/value/empty_struct2.c:47: Frama_C_show_each_e1: ∅
+[eva] tests/value/empty_struct2.c:48: Call to builtin memcpy
+[eva] tests/value/empty_struct2.c:48: 
   function memcpy: precondition 'valid_dest' got status valid.
-[value] tests/value/empty_struct2.c:48: 
+[eva] tests/value/empty_struct2.c:48: 
   function memcpy: precondition 'valid_src' got status valid.
-[value] tests/value/empty_struct2.c:48: 
+[eva] tests/value/empty_struct2.c:48: 
   function memcpy: precondition 'separation' got status valid.
-[value] tests/value/empty_struct2.c:48: 
-  Call to builtin memcpy(({{ (void *)&e2 }},{{ (void const *)&e1 }},{0}))
-[value] tests/value/empty_struct2.c:53: 
+[eva] share/libc/string.h:98: 
+  cannot evaluate ACSL term, unsupported ACSL construct: logic function memcmp
+[eva] tests/value/empty_struct2.c:53: Call to builtin memcpy
+[eva] tests/value/empty_struct2.c:53: 
   function memcpy: precondition 'valid_dest' got status valid.
-[value] tests/value/empty_struct2.c:53: 
+[eva] tests/value/empty_struct2.c:53: 
   function memcpy: precondition 'valid_src' got status valid.
-[value] tests/value/empty_struct2.c:53: 
+[eva] tests/value/empty_struct2.c:53: 
   function memcpy: precondition 'separation' got status valid.
-[value] tests/value/empty_struct2.c:53: 
-  Call to builtin memcpy(({{ (void *)&c2 }},{{ (void const *)&c1 }},{8}))
-[value] tests/value/empty_struct2.c:54: 
+[eva] tests/value/empty_struct2.c:54: 
   Frama_C_show_each_c2: .a ∈ {42}
                         .b ∈ {77}
-[value] tests/value/empty_struct2.c:55: Frama_C_show_each_c2_e: ∅
-[value] computing for function f <- main.
+[eva] tests/value/empty_struct2.c:55: Frama_C_show_each_c2_e: ∅
+[eva] computing for function f <- main.
   Called from tests/value/empty_struct2.c:56.
-[value] Recording results for f
-[value] Done for function f
-[value] tests/value/empty_struct2.c:58: 
+[eva] Recording results for f
+[eva] Done for function f
+[eva] tests/value/empty_struct2.c:58: 
   Frama_C_show_each_res: .a ∈ {87}
                          .b ∈ {39}
-[value] tests/value/empty_struct2.c:62: assertion got status valid.
-[value] computing for function ret_empty <- main.
+[eva] tests/value/empty_struct2.c:62: assertion got status valid.
+[eva] computing for function ret_empty <- main.
   Called from tests/value/empty_struct2.c:64.
-[value] using specification for function ret_empty
-[value] Done for function ret_empty
-[value] computing for function ret_ptr_empty <- main.
+[eva] using specification for function ret_empty
+[eva] Done for function ret_empty
+[eva] computing for function ret_ptr_empty <- main.
   Called from tests/value/empty_struct2.c:65.
-[value] using specification for function ret_ptr_empty
-[value] Done for function ret_ptr_empty
-[value] Recording results for main
-[value] done for function main
-[value] ====== VALUES COMPUTED ======
-[value:final-states] Values at end of function f:
+[eva] using specification for function ret_ptr_empty
+[eva] Done for function ret_ptr_empty
+[eva] Recording results for main
+[eva] done for function main
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function f:
   res.a ∈ {87}
      .b ∈ {39}
-[value:final-states] Values at end of function main:
+[eva:final-states] Values at end of function main:
   c1.a ∈ {42}
     .b ∈ {77}
   c2.a ∈ {42}

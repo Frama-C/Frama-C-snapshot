@@ -1,5 +1,5 @@
 /* run.config
-   OPT: -rte -warn-signed-overflow -print -rte-precond -journal-disable
+   OPT: -rte -warn-signed-overflow -print -journal-disable
 */
 
 int global_x, global_y;

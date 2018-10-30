@@ -36,8 +36,6 @@ let inv_truth = function
   | True -> False
   | False -> True
 
-type alarm = SureAlarm | Alarm | NoAlarm
-
 module Comp = struct
   type t = Lt | Gt | Le | Ge | Eq | Ne
 

@@ -68,8 +68,10 @@ int main(int argc, char **argv)
     __lengthof_c = (unsigned int)argc;
     int *c = __fc_vla_alloc(sizeof(int) * __lengthof_c);
     switch (argc) {
-      case 1: p = (int *)(& c);
-              break;
+      case 1: {
+                p = (int *)(& c);
+                break;
+              }
     }
     ;
     __fc_vla_free((void *)c);

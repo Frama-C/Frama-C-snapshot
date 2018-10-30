@@ -1,17 +1,17 @@
 [kernel] Parsing tests/value/strucval.c (with preprocessing)
-[value] Analyzing a complete application starting at main
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing a complete application starting at main
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   
-[value] computing for function h <- main.
+[eva] computing for function h <- main.
   Called from tests/value/strucval.c:27.
-[value] using specification for function h
-[value] Done for function h
-[value] Recording results for main
-[value] done for function main
-[value] ====== VALUES COMPUTED ======
-[value:final-states] Values at end of function main:
+[eva] using specification for function h
+[eva] Done for function h
+[eva] Recording results for main
+[eva] done for function main
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function main:
   SharedData.FunctionCode ∈ {0}
             .MachineNumber ∈ {1456}
             .[bits 48 to 63] ∈ UNINITIALIZED

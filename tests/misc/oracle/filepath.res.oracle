@@ -5,5 +5,8 @@
 [kernel] normalize(//tmp//): //tmp/
 [kernel] normalize(/../tmp/../..): /
 [kernel] normalize(/tmp/inexistent_directory/..): /tmp
-[kernel] caught the expected exception
+[kernel] normalize():
+[kernel] relativize(.): .
+[kernel] relativize(./tests/..): .
+[kernel] relativize(/a/bc/d,base_name:/a/b/): /a/bc/d
 [kernel] Parsing tests/misc/filepath.i (no preprocessing)

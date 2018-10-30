@@ -1,8 +1,8 @@
 [kernel] Parsing tests/value/align_char_array.c (with preprocessing)
-[value] Analyzing a complete application starting at main
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing a complete application starting at main
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   S ∈ {0}
   t[0][0..1] ∈ {0}
    [0][2..6] ∈ {1}
@@ -15,27 +15,27 @@
   overlapread2 ∈ {0}
   overlapread3 ∈ {0}
   overlapread4 ∈ {0}
-[value:alarm] tests/value/align_char_array.c:25: Warning: 
+[eva:alarm] tests/value/align_char_array.c:25: Warning: 
   signed overflow. assert -2147483648 ≤ (int)((char (*)[10])t) + 3;
-[value:alarm] tests/value/align_char_array.c:25: Warning: 
+[eva:alarm] tests/value/align_char_array.c:25: Warning: 
   signed overflow. assert (int)((char (*)[10])t) + 3 ≤ 2147483647;
-[value:alarm] tests/value/align_char_array.c:26: Warning: 
+[eva:alarm] tests/value/align_char_array.c:26: Warning: 
   signed overflow. assert -2147483648 ≤ (int)((char (*)[10])t) + 3;
-[value:alarm] tests/value/align_char_array.c:26: Warning: 
+[eva:alarm] tests/value/align_char_array.c:26: Warning: 
   signed overflow. assert (int)((char (*)[10])t) + 3 ≤ 2147483647;
-[value:alarm] tests/value/align_char_array.c:27: Warning: 
+[eva:alarm] tests/value/align_char_array.c:27: Warning: 
   signed overflow. assert -2147483648 ≤ (int)((char (*)[10])t) + 2;
-[value:alarm] tests/value/align_char_array.c:27: Warning: 
+[eva:alarm] tests/value/align_char_array.c:27: Warning: 
   signed overflow. assert (int)((char (*)[10])t) + 2 ≤ 2147483647;
-[value:alarm] tests/value/align_char_array.c:28: Warning: 
+[eva:alarm] tests/value/align_char_array.c:28: Warning: 
   signed overflow. assert -2147483648 ≤ (int)((char (*)[10])t) + 2;
-[value:alarm] tests/value/align_char_array.c:28: Warning: 
+[eva:alarm] tests/value/align_char_array.c:28: Warning: 
   signed overflow. assert (int)((char (*)[10])t) + 2 ≤ 2147483647;
-[value] Recording results for main
-[value] done for function main
+[eva] Recording results for main
+[eva] done for function main
 [scope:rm_asserts] removing 4 assertion(s)
-[value] ====== VALUES COMPUTED ======
-[value:final-states] Values at end of function main:
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function main:
   d1 ∈ {1}
   s1 ∈ {3}
   d2 ∈ {22}

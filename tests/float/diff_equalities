@@ -1,4 +1,3 @@
-Only in tests/float/oracle: absorb.err.oracle
 Only in tests/float/oracle: absorb.res.oracle
 Only in tests/float/oracle: absorb_sav.err
 Only in tests/float/oracle: absorb_sav.res
@@ -13,24 +12,27 @@ diff tests/float/oracle/alarms.0.res.oracle tests/float/oracle_equalities/alarms
 >   u1{.l; .f[bits 0 to 63]; .d} ∈
 >     [-9223372036854775808..9218868437227405311]
 diff tests/float/oracle/alarms.1.res.oracle tests/float/oracle_equalities/alarms.1.res.oracle
-128,129c128,129
+126,127c126,127
 <   u1{.l[bits 0 to 31]; .f; .d[bits 0 to 31]} ∈ [-inf .. inf]
 <     {.l[bits 32 to 63]; .f[bits 32 to 63]; .d[bits 32 to 63]} ∈ [--..--]
 ---
 >   u1{.l; .f[bits 0 to 63]; .d} ∈
 >     [-9223372036854775808..9218868437227405312]
 diff tests/float/oracle/cond.res.oracle tests/float/oracle_equalities/cond.res.oracle
-46,47c46,47
+45,46c45,46
 <   dz ∈ [0x1.0000000000001p0 .. 0x1.4000000000000p3]
 <   dt ∈ [-0x1.4000000000000p3 .. 0x1.fffffffffffffp-1]
 ---
 >   dz ∈ [0x1.0000020000000p0 .. 0x1.4000000000000p3]
 >   dt ∈ [-0x1.4000000000000p3 .. 0x1.fffffe0000000p-1]
-Only in tests/float/oracle: fval_test.err.oracle
 Only in tests/float/oracle: fval_test.res.oracle
 diff tests/float/oracle/nonlin.1.res.oracle tests/float/oracle_equalities/nonlin.1.res.oracle
-61a62
-> [value:nonlin] tests/float/nonlin.c:42: subdividing on a
+60a61
+> [eva:nonlin] tests/float/nonlin.c:42: subdividing on a
 diff tests/float/oracle/nonlin.3.res.oracle tests/float/oracle_equalities/nonlin.3.res.oracle
-61a62
-> [value:nonlin] tests/float/nonlin.c:42: subdividing on a
+60a61
+> [eva:nonlin] tests/float/nonlin.c:42: subdividing on a
+diff tests/float/oracle/parse.res.oracle tests/float/oracle_equalities/parse.res.oracle
+21a22,23
+> [eva] tests/float/parse.i:37: Warning: 
+>   cannot parse floating-point constant, returning imprecise result

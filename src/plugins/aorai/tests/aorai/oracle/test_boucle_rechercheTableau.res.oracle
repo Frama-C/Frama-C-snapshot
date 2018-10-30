@@ -154,8 +154,10 @@ int isPresent(int *t, int max, int val)
     goto return_label;
   }
   __retres = -1;
-  return_label: isPresent_post_func(__retres);
-  return __retres;
+  return_label: {
+                  isPresent_post_func(__retres);
+                  return __retres;
+                }
 }
 
 /*@ ensures aorai_CurOpStatus ≡ aorai_Called;

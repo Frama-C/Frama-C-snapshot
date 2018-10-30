@@ -32,7 +32,7 @@ int g(void)
 
 /*@ predicate foo(ℤ x) = x ≢ 0;
  */
-/*@ predicate totology_1{L}= ¬\valid(\null);
+/*@ predicate totology_1{L}= ¬\valid((char *)\null);
  */
 /*@ predicate totology_2{L1, L2}= ¬\fresh{L1, L2}(\null,1);
 

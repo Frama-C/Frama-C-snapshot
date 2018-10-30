@@ -1,8 +1,8 @@
 [kernel] Parsing tests/float/float_cast_implicite.i (no preprocessing)
-[value] Analyzing a complete application starting at main
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing a complete application starting at main
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   C0 ∈ {0}
   C2 ∈ {2}
   CBP ∈ {2000000000}
@@ -17,10 +17,10 @@
   ficbn ∈ {0}
   fecbp ∈ {0}
   fecbn ∈ {0}
-[value] Recording results for main
-[value] done for function main
-[value] ====== VALUES COMPUTED ======
-[value:final-states] Values at end of function main:
+[eva] Recording results for main
+[eva] done for function main
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function main:
   fic0 ∈ {0}
   fic1 ∈ {1.}
   fic2 ∈ {2.}

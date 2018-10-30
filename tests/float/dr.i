@@ -20,7 +20,7 @@ double d2 = 1.01161128282547 ;
 
 int e1, e2;
 
-main(){
+int main(){
   e1 = f1 == g1;
   e2 = f2 == g2;
   Frama_C_show_each(e1, e2);

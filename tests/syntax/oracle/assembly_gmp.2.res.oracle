@@ -109,4 +109,20 @@ mp_limb_t mpn_mod_1_1p(mp_srcptr ap, mp_size_t n, mp_limb_t b,
   return __retres;
 }
 
+int loc[10];
+void f(void)
+{
+  unsigned long ulValue;
+  unsigned long *pulValue = & ulValue;
+  /*@ assigns loc[0 .. 9];
+      assigns loc[0 .. 9] \from loc[0 .. 9]; */
+  __asm__ ("sidt %0\n" :  : "m" (loc));
+  /*@ assigns *(pulValue + (..));
+      assigns *(pulValue + (..))
+        \from (indirect: pulValue), *(pulValue + (..));
+  */
+  __asm__ ("movq $36, (%0)" :  : "r" (pulValue));
+  return;
+}
+
 

@@ -57,47 +57,14 @@ module PLoc = struct
 
   let top = make (Locations.make_loc Locations.Location_Bits.top Int_Base.Top)
 
-
-  exception AlwaysOverlap of Alarms.alarm
-
-  let check_non_overlapping lvs1 lvs2 =
-    let conv (lval, loc) =
-      let for_writing = false in
-      let zone = Precise_locs.enumerate_valid_bits ~for_writing loc in
-      let exact =
-        lazy (Precise_locs.valid_cardinal_zero_or_one ~for_writing loc)
-      in
-      lval, zone, exact
-    in
-    let l1 = List.map conv lvs1
-    and l2 = List.map conv lvs2 in
-    let check (lval1, zone1, exact1) (lval2, zone2, exact2) acc =
-      if Locations.Zone.intersects zone1 zone2
-      then
-        let alarm = Alarms.Not_separated (lval1, lval2) in
-        if Lazy.force exact1 && Lazy.force exact2
-        then raise (AlwaysOverlap alarm)
-        else Alarmset.set alarm Abstract_interp.Unknown acc
-      else acc
-    in
-    try
-      let alarms =
-        List.fold_left
-          (fun acc x1 -> List.fold_left (fun acc x2 -> check x1 x2 acc) acc l2)
-          Alarmset.none
-          l1
-      in `Value (), alarms
-    with AlwaysOverlap alarm ->
-      `Bottom, Alarmset.singleton ~status:Alarmset.False alarm
-
-  let partially_overlap loc1 loc2 =
-    let loc1 = Precise_locs.imprecise_location loc1
-    and loc2 = Precise_locs.imprecise_location loc2 in
-    match loc1.Locations.size with
-    | Int_Base.Value size ->
-      Locations.(Location_Bits.partially_overlaps size loc1.loc loc2.loc)
-    | _ -> false
-
+  let assume_no_overlap ~partial l1 l2 =
+    let loc1 = Precise_locs.imprecise_location l1
+    and loc2 = Precise_locs.imprecise_location l2 in
+    if Locations.overlaps ~partial loc1 loc2
+    then if Locations.(cardinal_zero_or_one loc1 && cardinal_zero_or_one loc2)
+      then `False
+      else `Unknown (l1, l2)
+    else `True
 
   (* ------------------------------------------------------------------------ *)
   (*                              Offsets                                     *)
@@ -132,34 +99,6 @@ module PLoc = struct
         (* result will be a garbled mix: collect all the bases involved in
            the evaluation of [offset], and raise an exception *)
         Imprecise (Cvalue.V.topify_arith_origin index)
-
-  (* We are accessing an array of size [size] at indexes [index].
-     If index causes an out-of-bounds access, emit an informative
-     alarm, and reduce [index]. *)
-  let reduce_index_by_array_size ~size_expr ~index_expr size index =
-    try
-      let index_ival = Cvalue.V.project_ival index in
-      let open Abstract_interp in
-      let isize = Integer.pred size in
-      let array_range = Ival.inject_range (Some Int.zero) (Some isize) in
-      let new_index = Ival.narrow index_ival array_range in
-      if Ival.equal new_index index_ival
-      then `Value index, Alarmset.none
-      else
-        let isize_ival = Ival.inject_singleton isize in
-        let ok_pos = Ival.forward_comp_int Comp.Le index_ival isize_ival
-        and ok_neg = Ival.forward_comp_int Comp.Ge index_ival Ival.zero in
-        let alarm_pos = Alarms.Index_out_of_bound (index_expr, Some size_expr)
-        and alarm_neg = Alarms.Index_out_of_bound (index_expr, None) in
-        let alarms = Alarmset.set alarm_pos ok_pos Alarmset.none in
-        let alarms = Alarmset.set alarm_neg ok_neg alarms in
-        if Ival.is_bottom new_index
-        then `Bottom, alarms
-        else `Value (Cvalue.V.inject_ival new_index), alarms
-    with
-    | Cvalue.V.Not_based_on_null -> `Value index, Alarmset.none
-  (* TODO: reduce the numeric part, and emits the alarms. *)
-
 
   (* ------------------------------------------------------------------------ *)
   (*                             Locations                                    *)
@@ -202,21 +141,12 @@ module PLoc = struct
   let is_valid ~for_writing loc =
     Locations.is_valid ~for_writing (Precise_locs.imprecise_location loc)
 
-  let memory_access_alarm ~for_writing ~status lval =
-    let access_kind =
-      if for_writing then Alarms.For_writing else Alarms.For_reading
-    in
-    Alarmset.singleton ~status (Alarms.Memory_access (lval, access_kind))
-
-  let reduce_loc_by_validity ~for_writing ~bitfield lval loc =
+  let assume_valid_location ~for_writing ~bitfield loc =
     if not (is_valid ~for_writing loc)
     then
-      let alarms = memory_access_alarm ~for_writing lval in
       let loc = Precise_locs.valid_part ~for_writing ~bitfield loc in
-      if Precise_locs.is_bottom_loc loc
-      then `Bottom, alarms ~status:Alarmset.False
-      else `Value loc, alarms ~status:Alarmset.Unknown
-    else `Value loc, Alarmset.none
+      if Precise_locs.is_bottom_loc loc then `False else `Unknown loc
+    else `True
 
 
   (* ------------------------------------------------------------------------ *)

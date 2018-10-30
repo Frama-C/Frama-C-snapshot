@@ -41,6 +41,14 @@ let has_type t e =
   try F.Tau.equal t (F.typeof e)
   with Not_found -> false
 
+let match_havoc =
+  let havoc m1 = function
+    | L.Fun( f , [m_undef;m0;a;n] ) when f == MemTyped.f_havoc -> m1,(m_undef,m0,a,n)
+    | _ -> raise Not_found
+  in function
+    | L.Eq (m,m') -> (try havoc m' (F.repr m) with | Not_found -> havoc m (F.repr m'))
+    | _ -> raise Not_found
+
 class havoc =
   object(self)
     inherit Tactical.make ~id:"Wp.havoc"
@@ -54,30 +62,27 @@ class havoc =
           begin
             match s.condition with
             | Have p | When p ->
-                begin match F.e_expr p with
-                  | L.Fun( f , [m;m';a;n] ) when f == MemTyped.p_havoc ->
-                      (try
-                         let tp = F.typeof a in
-                         feedback#update_field ~filter:(has_type tp) field ;
-                         let sel = self#get_field field in
-                         if not (Tactical.is_empty sel) then
-                           let ptr = Tactical.selected sel in
-                           if has_type tp ptr then
-                             let separated =
-                               F.p_call MemTyped.p_separated
-                                 [ ptr ; F.e_int 1 ; a ; n ] in
-                             let equal =
-                               F.p_equal (F.e_get m ptr) (F.e_get m' ptr) in
-                             let process = Tactical.insert ~at:s.id
-                                 [ "Havoc",F.p_imply separated equal ] in
-                             Applicable process
-                           else
-                             ( feedback#set_error "Not a pointer type" ;
-                               Not_configured )
-                         else Not_configured
-                       with Not_found -> Not_applicable)
-                  | _ -> Not_applicable
-                end
+                let m1,(m_undef,m0,a,n) = match_havoc (F.e_expr p) in
+                let tp = F.typeof a in
+                feedback#update_field ~filter:(has_type tp) field ;
+                let sel = self#get_field field in
+                if not (Tactical.is_empty sel) then
+                  let ptr = Tactical.selected sel in
+                  if has_type tp ptr then
+                    let separated =
+                      F.p_call MemTyped.p_separated
+                        [ ptr ; F.e_int 1 ; a ; n ] in
+                    let equal_unassigned =
+                      F.p_equal (F.e_get m1 ptr) (F.e_get m0 ptr) in
+                    let equal_assigned =
+                      F.p_equal (F.e_get m1 ptr) (F.e_get m_undef ptr) in
+                    let process = Tactical.insert ~at:s.id
+                        [ "Havoc",F.p_if separated equal_unassigned equal_assigned  ] in
+                    Applicable process
+                  else
+                    ( feedback#set_error "Not a pointer type" ;
+                      Not_configured )
+                else Not_configured
             | _ -> Not_applicable
           end
       | _ -> Not_applicable
@@ -192,7 +197,7 @@ let unfold ?at e f es =
 
 class validity =
   object
-    
+
     inherit Tactical.make ~id:"Wp.valid"
         ~title:"Validity Range"
         ~descr:"Unfold validity and range definitions"
@@ -204,7 +209,7 @@ class validity =
       match F.repr e with
       | Qed.Logic.Fun(f,es) -> unfold ?at e f es
       | _ -> Not_applicable
-    
+
   end
 
 

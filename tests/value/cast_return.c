@@ -1,6 +1,6 @@
 /* run.config*
-   STDOPT: +"-val-warn-copy-indeterminate=-@all -print -then -val-warn-copy-indeterminate @all -no-print"
-   STDOPT: #"-val-warn-copy-indeterminate=-g,-fl1,-fl2 -print -no-collapse-call-cast"
+   STDOPT: +"-eva-warn-copy-indeterminate=-@all -print -then -eva-warn-copy-indeterminate @all -no-print"
+   STDOPT: #"-eva-warn-copy-indeterminate=-g,-fl1,-fl2 -print -no-collapse-call-cast"
 */
 
 extern int i;

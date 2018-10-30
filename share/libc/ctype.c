@@ -22,6 +22,7 @@
 
 #include "ctype.h"
 #include "__fc_builtin.h"
+__PUSH_FC_STDLIB
 
 // This file assumes a simple, C-like locale, with no extra characters
 // or special cases.
@@ -124,3 +125,5 @@ int toupper (int c)
     return c - 0x20;
   return c;
 }
+
+__POP_FC_STDLIB

@@ -23,6 +23,10 @@
 /* ISO C: 7.6 */
 #ifndef __FC_FENV
 #define __FC_FENV
+#include "features.h"
+__PUSH_FC_STDLIB
+
+__BEGIN_DECLS
 
 /* Define bits representing the exception.  We use the bit positions
    of the appropriate bits in the FPU control word.  */
@@ -99,4 +103,7 @@ extern void fesetenv( const fenv_t *envp );
  */
 extern void feclearexcept( int excepts );
 
+__END_DECLS
+
+__POP_FC_STDLIB
 #endif /* __FC_FENV */

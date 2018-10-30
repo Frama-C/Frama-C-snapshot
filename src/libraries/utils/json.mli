@@ -46,7 +46,7 @@ val compare : t -> t -> int (** Pervasives *)
 val pp : Format.formatter -> t -> unit
 val pp_dump : Format.formatter -> t -> unit (** without formatting *)
 
-exception Error of string * int * string
+exception Error of Filepath.Normalized.t * int * string
 (** file, line, message *)
 
 (** {2 Constructors} *)

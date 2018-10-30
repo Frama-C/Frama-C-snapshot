@@ -12,8 +12,9 @@ unsigned short g(void)
   return l;
 }
 
-main(){
+int main(){
   y = *(unsigned short*)&x;
   z = f();
   t = g();
-} 
+  return 0;
+}

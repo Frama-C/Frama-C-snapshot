@@ -1,24 +1,24 @@
 [kernel] Parsing tests/value/any_int.c (with preprocessing)
-[value] Analyzing a complete application starting at main
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing a complete application starting at main
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   
-[value] tests/value/any_int.c:9: entering loop for the first time
-[value:alarm] tests/value/any_int.c:9: Warning: 
+[eva:alarm] tests/value/any_int.c:9: Warning: 
   signed overflow. assert y + 1 ≤ 2147483647;
-[value:alarm] tests/value/any_int.c:9: Warning: 
+[eva:alarm] tests/value/any_int.c:9: Warning: 
   signed overflow. assert y + 1 ≤ 2147483647;
-[value:alarm] tests/value/any_int.c:9: Warning: 
+[eva:alarm] tests/value/any_int.c:9: Warning: 
   signed overflow. assert -2147483648 ≤ y - 1;
-[value:alarm] tests/value/any_int.c:9: Warning: 
+[eva] tests/value/any_int.c:9: starting to merge loop iterations
+[eva:alarm] tests/value/any_int.c:9: Warning: 
   signed overflow. assert x + 1 ≤ 2147483647;
-[value:alarm] tests/value/any_int.c:9: Warning: 
+[eva:alarm] tests/value/any_int.c:9: Warning: 
   signed overflow. assert -2147483648 ≤ x - 1;
-[value] Recording results for main
-[value] done for function main
-[value] ====== VALUES COMPUTED ======
-[value:final-states] Values at end of function main:
+[eva] Recording results for main
+[eva] done for function main
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function main:
   y ∈ [--..--]
   x ∈ [--..--]
 [from] Computing for function main

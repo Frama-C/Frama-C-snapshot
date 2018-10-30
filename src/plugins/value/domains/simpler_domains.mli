@@ -66,7 +66,6 @@ module type Minimal = sig
   val assume: stmt -> exp -> bool -> t -> t or_bottom
   val start_call: stmt -> simple_call -> t -> t
   val finalize_call: stmt -> simple_call -> pre:t -> post:t -> t or_bottom
-  val approximate_call: stmt -> simple_call -> t -> t list or_bottom
 
   (** Initialization of variables. *)
 
@@ -97,6 +96,9 @@ type cvalue_valuation = {
   find_loc: lval -> Precise_locs.precise_location or_top
 }
 
+type precise_loc = Precise_locs.precise_location
+type cvalue = Cvalue.V.t
+
 (** A simple interface allowing the abstract domain to use the value and
     location abstractions computed by the other domains. Only the {!Cvalue.V}
     and the the {!Precise_locs} abstractions are available in this interface, on
@@ -116,22 +118,22 @@ module type Simple_Cvalue = sig
 
   (** Query functions. *)
 
-  val extract_expr: t -> exp -> Cvalue.V.t or_bottom
-  val extract_lval:
-    t -> lval -> typ -> Precise_locs.precise_location -> Cvalue.V.t or_bottom
+  val extract_expr: t -> exp -> cvalue or_bottom
+  val extract_lval: t -> lval -> typ -> precise_loc -> cvalue or_bottom
 
   (** Transfer functions. *)
 
   val assign:
     kinstr -> Precise_locs.precise_location left_value -> exp ->
-    Cvalue.V.t assigned -> cvalue_valuation -> t -> t or_bottom
+    (precise_loc, cvalue) assigned -> cvalue_valuation -> t -> t or_bottom
 
   val assume: stmt -> exp -> bool -> cvalue_valuation -> t -> t or_bottom
 
-  val start_call: stmt -> Cvalue.V.t call -> cvalue_valuation -> t -> t
+  val start_call:
+    stmt -> (precise_loc, cvalue) call -> cvalue_valuation -> t -> t
 
-  val finalize_call: stmt -> Cvalue.V.t call ->  pre:t -> post:t -> t or_bottom
-  val approximate_call: stmt -> Cvalue.V.t call -> t -> t list or_bottom
+  val finalize_call:
+    stmt -> (precise_loc, cvalue) call ->  pre:t -> post:t -> t or_bottom
 
   (** Initialization of variables. *)
 

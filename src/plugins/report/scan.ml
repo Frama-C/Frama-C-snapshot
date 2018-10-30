@@ -28,27 +28,27 @@ open Property_status
 module E = Emitter.Usable_emitter
 
 class type inspector =
-object
+  object
 
-  method empty : unit
-  method started : unit
-  method global_section : unit
-  method function_section : Kernel_function.t -> unit
-  method property : Property.t -> Consolidation.t -> unit
-  method finished : unit
-    
-end
+    method empty : unit
+    method started : unit
+    method global_section : unit
+    method function_section : Kernel_function.t -> unit
+    method property : Property.t -> Consolidation.t -> unit
+    method finished : unit
+
+  end
 
 let dead_reasons (ps:Consolidation.pending) =
-  E.Map.fold 
+  E.Map.fold
     (fun _ -> E.Map.fold (fun _ -> Property.Set.union))
     ps Property.Set.empty
 
 let partial_pending (ps:Consolidation.pending) =
   E.Map.map
-    (fun best -> E.Map.fold 
-       (fun _ -> Property.Set.union)
-       best Property.Set.empty)
+    (fun best -> E.Map.fold
+        (fun _ -> Property.Set.union)
+        best Property.Set.empty)
     ps
 
 
@@ -64,18 +64,18 @@ let report_untried ip =
    be shown.  *)
 let report_specialized ip =
   (Report_parameters.Specialized.get ()) ||
-    (match ip with Property.IPPropertyInstance _ -> false | _ -> true)
+  (match ip with Property.IPPropertyInstance _ -> false | _ -> true)
 
 let report_proven ip =
   let open Consolidation in
   Report_parameters.Proven.get () ||
-    match get ip with
-    | Considered_valid | Valid _
-    | Invalid_but_dead _ | Valid_but_dead _ | Unknown_but_dead _
-    | Valid_under_hyp _ -> false
+  match get ip with
+  | Considered_valid | Valid _
+  | Invalid_but_dead _ | Valid_but_dead _ | Unknown_but_dead _
+  | Valid_under_hyp _ -> false
 
-    | Never_tried | Unknown _ | Invalid _ | Invalid_under_hyp _ | Inconsistent _
-      -> true
+  | Never_tried | Unknown _ | Invalid _ | Invalid_under_hyp _ | Inconsistent _
+    -> true
 
 
 let report_ip ip =
@@ -88,29 +88,29 @@ let rec add_property ips ip =
       ips := Property.Set.add ip !ips ;
       add_consolidation ips (Consolidation.get ip)
     end
-    
+
 and add_consolidation ips = function
-  | Consolidation.Never_tried 
-  | Consolidation.Considered_valid 
-  | Consolidation.Valid _ 
-  | Consolidation.Invalid _ 
+  | Consolidation.Never_tried
+  | Consolidation.Considered_valid
+  | Consolidation.Valid _
+  | Consolidation.Invalid _
   | Consolidation.Inconsistent _ -> ()
 
-  | Consolidation.Valid_under_hyp ps 
-  | Consolidation.Unknown ps 
-  | Consolidation.Invalid_under_hyp ps 
+  | Consolidation.Valid_under_hyp ps
+  | Consolidation.Unknown ps
+  | Consolidation.Invalid_under_hyp ps
   | Consolidation.Valid_but_dead ps
   | Consolidation.Invalid_but_dead ps
-  | Consolidation.Unknown_but_dead ps -> 
-      add_pending ips ps
+  | Consolidation.Unknown_but_dead ps ->
+    add_pending ips ps
 
 and add_pending ipref (ps:Consolidation.pending) =
   E.Map.iter
     (fun _ m ->
        E.Map.iter
-	 (fun _ ips -> 
-	    Property.Set.iter (add_property ipref) ips
-	 ) m
+         (fun _ ips ->
+            Property.Set.iter (add_property ipref) ips
+         ) m
     ) ps
 
 let iter (inspector:inspector) =
@@ -123,34 +123,34 @@ let iter (inspector:inspector) =
     (* Dispatch properties into globals and per-function map *)
     Property.Set.iter
       (fun ip ->
-	 match Property.get_kf ip with
-	   | None -> globals := Property.Set.add ip !globals
-	   | Some kf ->
-	       if not (Ast_info.is_frama_c_builtin (Kernel_function.get_name kf))
-		 then try
- 		   let fips = Kernel_function.Map.find kf !functions in
-		   fips := Property.Set.add ip !fips
-		 with Not_found ->
-		   let ips = Property.Set.singleton ip in
-		   functions := Kernel_function.Map.add kf (ref ips) !functions)
+         match Property.get_kf ip with
+         | None -> globals := Property.Set.add ip !globals
+         | Some kf ->
+           if not (Ast_info.is_frama_c_builtin (Kernel_function.get_name kf))
+           then try
+               let fips = Kernel_function.Map.find kf !functions in
+               fips := Property.Set.add ip !fips
+             with Not_found ->
+               let ips = Property.Set.singleton ip in
+               functions := Kernel_function.Map.add kf (ref ips) !functions)
       !properties ;
     (* Report a set of ip in a section *)
     let report s f ips = if not (Property.Set.is_empty ips) then
-      ( s () ; Property.Set.iter (fun ip -> f ip (Consolidation.get ip)) ips ) 
+        ( s () ; Property.Set.iter (fun ip -> f ip (Consolidation.get ip)) ips )
     in
     if Property.Set.is_empty !globals && Kernel_function.Map.is_empty !functions then
       inspector#empty
     else
       begin
-	inspector#started ;
-	report (fun () -> inspector#global_section) inspector#property !globals ;
-	Kernel_function.Map.iter
-	  (fun kf ips ->
-            let vi = Kernel_function.get_vi kf in
-            if not (Cil.is_unused_builtin vi) then
-	      report (fun () -> inspector#function_section kf) inspector#property !ips) 
-	  !functions ;
-	inspector#finished ;
+        inspector#started ;
+        report (fun () -> inspector#global_section) inspector#property !globals ;
+        Kernel_function.Map.iter
+          (fun kf ips ->
+             let vi = Kernel_function.get_vi kf in
+             if not (Cil.is_unused_builtin vi) then
+               report (fun () -> inspector#function_section kf) inspector#property !ips)
+          !functions ;
+        inspector#finished ;
       end
   end
 
@@ -163,13 +163,13 @@ class visit_properties (phi : Property.t -> unit) =
     inherit Visitor.frama_c_inplace
 
     (* --- Visits --- *)
-    
+
     method! vspec fspec =
       Property.ip_of_spec
         (Extlib.the self#current_kf) self#current_kinstr ~active:[] fspec |>
       List.iter phi ;
       Cil.DoChildren
-        
+
     method! vcode_annot ca =
       Property.ip_of_code_annot
         (Extlib.the self#current_kf) (Extlib.the self#current_stmt) ca |>
@@ -185,4 +185,3 @@ class visit_properties (phi : Property.t -> unit) =
 let source_properties phi =
   let v = new visit_properties phi in
   Visitor.visitFramacFile (v :> Visitor.frama_c_visitor) (Ast.get ())
-

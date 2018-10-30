@@ -28,4 +28,4 @@ end
 
 module Make
     (Domain : InputDomain)
-    : Abstract_domain.Store with type state := Domain.state
+  : Abstract_domain.Store with type state := Domain.state

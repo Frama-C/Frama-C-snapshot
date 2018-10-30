@@ -11,11 +11,7 @@ Goal Post-condition 'qed_ok' in 'f':
 Assume {
   Type: is_sint32(x) /\ is_sint32(y).
   (* Pre-condition *)
-  Have: P_Q(y, x).
-  (* Pre-condition *)
-  Have: (0 <= x) /\ (x <= 10).
-  (* Pre-condition *)
-  Have: (0 <= y) /\ (y <= 10).
+  Have: (0 <= x) /\ (0 <= y) /\ (x <= 10) /\ (y <= 10) /\ P_Q(y, x).
 }
 Prove: P_Q(1 + y, 1 + x).
 
@@ -25,20 +21,17 @@ Prove: P_Q(1 + y, 1 + x).
 ------------------------------------------------------------
 
 Goal Post-condition 'qed_ok' in 'g':
-Let x = Mint_0[v].
-Let x_1 = Mint_0[u].
-Let m = Mint_0[u <- 1 + x_1].
+Let x = Mint_0[u].
+Let x_1 = Mint_0[v].
+Let m = Mint_0[u <- 1 + x].
 Let x_2 = m[v].
 Assume {
-  Type: is_sint32(x_1) /\ is_sint32(x) /\ is_sint32(x_2).
+  Type: is_sint32(x) /\ is_sint32(x_1) /\ is_sint32(x_2).
   (* Heap *)
   Have: (region(u.base) <= 0) /\ (region(v.base) <= 0).
   (* Pre-condition *)
-  Have: P_P(Mint_0, u, v).
-  (* Pre-condition *)
-  Have: (0 <= x_1) /\ (x_1 <= 10).
-  (* Pre-condition *)
-  Have: (0 <= x) /\ (x <= 10).
+  Have: (0 <= x) /\ (0 <= x_1) /\ (x <= 10) /\ (x_1 <= 10) /\
+      P_P(Mint_0, u, v).
 }
 Prove: P_P(m[v <- 1 + x_2], u, v).
 
@@ -55,7 +48,7 @@ Prove: true.
 Goal Post-condition 'qed_ko,G_KO' in 'modifies_x':
 Assume {
   Type: is_sint32(x).
-  (* Pre-condition 'H' *)
+  (* Pre-condition *)
   Have: P_f /\ P_g(x) /\ P_h(y, x) /\ P_w(y, x).
 }
 Prove: P_g(1 + x).
@@ -65,7 +58,7 @@ Prove: P_g(1 + x).
 Goal Post-condition 'qed_ko,H_KO' in 'modifies_x':
 Assume {
   Type: is_sint32(x).
-  (* Pre-condition 'H' *)
+  (* Pre-condition *)
   Have: P_f /\ P_g(x) /\ P_h(y, x) /\ P_w(y, x).
 }
 Prove: P_h(y, 1 + x).
@@ -75,7 +68,7 @@ Prove: P_h(y, 1 + x).
 Goal Post-condition 'qed_ok,W_OK,todo' in 'modifies_x':
 Assume {
   Type: is_sint32(x).
-  (* Pre-condition 'H' *)
+  (* Pre-condition *)
   Have: P_f /\ P_g(x) /\ P_h(y, x) /\ P_w(y, x).
 }
 Prove: P_w(y, 1 + x).
@@ -98,7 +91,7 @@ Prove: true.
 Goal Post-condition 'qed_ko,H_KO' in 'modifies_y':
 Assume {
   Type: is_sint32(y).
-  (* Pre-condition 'H' *)
+  (* Pre-condition *)
   Have: P_f /\ P_g(x) /\ P_h(y, x) /\ P_w(y, x).
 }
 Prove: P_h(1 + y, x).
@@ -108,7 +101,7 @@ Prove: P_h(1 + y, x).
 Goal Post-condition 'qed_ok,W_OK,todo' in 'modifies_y':
 Assume {
   Type: is_sint32(y).
-  (* Pre-condition 'H' *)
+  (* Pre-condition *)
   Have: P_f /\ P_g(x) /\ P_h(y, x) /\ P_w(y, x).
 }
 Prove: P_w(1 + y, x).

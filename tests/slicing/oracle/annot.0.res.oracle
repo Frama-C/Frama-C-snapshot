@@ -1,23 +1,23 @@
 [kernel] Parsing tests/slicing/annot.i (no preprocessing)
 [slicing] slicing requests in progress...
-[value] Analyzing a complete application starting at f1
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing a complete application starting at f1
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   x ∈ [--..--]
   z ∈ [--..--]
   t[0..9] ∈ {0}
-[value:alarm] tests/slicing/annot.i:11: Warning: 
+[eva:alarm] tests/slicing/annot.i:11: Warning: 
   signed overflow. assert -2147483648 ≤ x + x;
-[value:alarm] tests/slicing/annot.i:11: Warning: 
+[eva:alarm] tests/slicing/annot.i:11: Warning: 
   signed overflow. assert x + x ≤ 2147483647;
-[value:alarm] tests/slicing/annot.i:11: Warning: 
+[eva:alarm] tests/slicing/annot.i:11: Warning: 
   signed overflow. assert -2147483648 ≤ (int)(x + x) - x;
-[value:alarm] tests/slicing/annot.i:11: Warning: 
+[eva:alarm] tests/slicing/annot.i:11: Warning: 
   signed overflow. assert (int)(x + x) - x ≤ 2147483647;
-[value:alarm] tests/slicing/annot.i:15: Warning: assertion got status unknown.
-[value] Recording results for f1
-[value] done for function f1
+[eva:alarm] tests/slicing/annot.i:15: Warning: assertion got status unknown.
+[eva] Recording results for f1
+[eva] done for function f1
 [slicing] initializing slicing ...
 [slicing] interpreting slicing requests from the command line...
 [pdg] computing for function f1

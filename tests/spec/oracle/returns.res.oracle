@@ -23,7 +23,7 @@ int g(int *a)
   tmp = a;
   a ++;
   ;
-  __sid_13_label: ;
+  __sid_13_label:
   /*@ behavior neg:
         assumes *a < 0;
         returns \old(*a) ≡ -*a; */

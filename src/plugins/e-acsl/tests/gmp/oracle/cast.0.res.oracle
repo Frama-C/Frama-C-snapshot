@@ -1,0 +1,16 @@
+[e-acsl] beginning translation.
+[e-acsl] Warning: possibly unsafe cast from term '0.1' to type 'int'.
+[e-acsl] tests/gmp/cast.i:23: Warning: approximating a real number by a float
+[e-acsl] translation done in project "e-acsl".
+[eva] Analyzing a complete application starting at main
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
+  __e_acsl_init ∈ [--..--]
+  __e_acsl_heap_allocation_size ∈ [--..--]
+  __e_acsl_math_HUGE_VAL ∈ [-1.79769313486e+308 .. 1.79769313486e+308]
+  __e_acsl_math_HUGE_VALF ∈ [-3.40282346639e+38 .. 3.40282346639e+38]
+  __e_acsl_math_INFINITY ∈ [-1.79769313486e+308 .. 1.79769313486e+308]
+[eva] using specification for function __e_acsl_memory_init
+[eva] using specification for function __e_acsl_assert
+[eva] done for function main

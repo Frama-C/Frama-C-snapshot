@@ -1,27 +1,27 @@
 [kernel] Parsing tests/spec/statement_behavior.c (with preprocessing)
-[value] Analyzing a complete application starting at main
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing a complete application starting at main
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   
-[value] computing for function pfsqopfc <- main.
+[eva] computing for function pfsqopfc <- main.
   Called from tests/spec/statement_behavior.c:23.
-[value] tests/spec/statement_behavior.c:10: Warning: 
+[eva] tests/spec/statement_behavior.c:10: Warning: 
   no \from part for clause 'assigns five_times;'
-[value:alarm] tests/spec/statement_behavior.c:17: Warning: 
+[eva:alarm] tests/spec/statement_behavior.c:17: Warning: 
   assertion got status unknown.
-[value:alarm] tests/spec/statement_behavior.c:4: Warning: 
+[eva:alarm] tests/spec/statement_behavior.c:4: Warning: 
   function pfsqopfc: postcondition got status unknown.
-[value:alarm] tests/spec/statement_behavior.c:18: Warning: 
+[eva:alarm] tests/spec/statement_behavior.c:18: Warning: 
   accessing uninitialized left-value. assert \initialized(&five_times);
-[value] Recording results for pfsqopfc
-[value] Done for function pfsqopfc
-[value] Recording results for main
-[value] done for function main
-[value] ====== VALUES COMPUTED ======
-[value:final-states] Values at end of function pfsqopfc:
+[eva] Recording results for pfsqopfc
+[eva] Done for function pfsqopfc
+[eva] Recording results for main
+[eva] done for function main
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function pfsqopfc:
   
-[value:final-states] Values at end of function main:
+[eva:final-states] Values at end of function main:
   x ∈ {1}
   y ∈ [--..--]
   __retres ∈ {0}

@@ -10,11 +10,10 @@ let update = function
 let access = function
   | [ m ; a ] -> F.e_get m a
   | _ -> assert false
-    
+
 let () =
   begin
     Wp.LogicBuiltins.hack "INDEX_init" init ;
     Wp.LogicBuiltins.hack "INDEX_access" access ;
     Wp.LogicBuiltins.hack "INDEX_update" update ;
   end
-    

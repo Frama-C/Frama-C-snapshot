@@ -36,9 +36,7 @@ Assume {
   (* Heap *)
   Have: (region(a.base) <= 0) /\ (region(b.base) <= 0) /\ linked(Malloc_0).
   (* Pre-condition *)
-  Have: valid_rw(Malloc_0, a, 1).
-  (* Pre-condition *)
-  Have: valid_rw(Malloc_0, b, 1).
+  Have: valid_rw(Malloc_0, a, 1) /\ valid_rw(Malloc_0, b, 1).
 }
 Prove: x_2 = x_1.
 

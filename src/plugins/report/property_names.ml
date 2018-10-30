@@ -68,16 +68,16 @@ let rec parts_of_property ip : part list =
     [ K kf ; B bhv ; A "allocates" ]
   | IPAllocation(kf,_,Id_loop _,_) ->
     [ K kf ; A "loop_allocates" ]
-                             
+
   | IPAssigns(kf,_,Id_contract(_,bhv),_) ->
     [ K kf ; B bhv ; A "assigns" ]
-                             
+
   | IPAssigns(kf,_,Id_loop _,_) ->
     [ K kf ; A "loop_assigns" ]
 
   | IPFrom(kf,_,Id_contract(_,bhv),_) ->
     [ K kf ; B bhv ; A "assigns_from" ]
-                             
+
   | IPFrom(kf,_,Id_loop _,_) ->
     [ K kf ; A "loop_assigns_from" ]
 
@@ -101,7 +101,7 @@ let rec parts_of_property ip : part list =
     [K kf ; A "loop_assigns" ]
   | IPCodeAnnot (kf,_, { annot_content = AAllocation _ } ) ->
     [K kf ; A "loop_allocates" ]
-    
+
   | IPComplete (kf,_,_,cs) ->
     (K kf :: A "complete" :: List.map (fun a -> A a) cs)
   | IPDisjoint(kf,_,_,cs) ->
@@ -116,26 +116,16 @@ let rec parts_of_property ip : part list =
     [ K kf ; S s ; A "reachable" ]
   | IPReachable (Some kf,Kstmt s,After) ->
     [ K kf ; S s ; A "reachable_after" ]
-    
-  | IPAxiomatic _
-  | IPAxiom _ -> []
-  | IPLemma(name,_,_,_,_) ->
-    [ A "lemma" ; A name ]
-
+  | IPAxiomatic _ | IPAxiom _ -> []
+  | IPLemma(name,_,_,_,_) -> [ A "lemma" ; A name ]
   | IPTypeInvariant(name,_,_,_)
-  | IPGlobalInvariant(name,_,_) ->
-    [ A "invariant" ; A name]
-    
-  | IPOther(name,Some kf,_) ->
-    [ K kf ; A name ]
-
-  | IPOther(name,None,_) ->
-    [ A name ]
-
-  | IPPropertyInstance (_, _, _, ip) ->
-    parts_of_property ip
-
-  | IPExtended(kf,Kglobal,(_,name,_)) -> [ K kf ; A name ]
-  | IPExtended(kf,Kstmt s,(_,name,_)) -> [ K kf ; S s ; A name ]
+  | IPGlobalInvariant(name,_,_) -> [ A "invariant" ; A name]
+  | IPOther(name, OLContract kf) -> [ K kf ; A name ]
+  | IPOther(name, OLStmt (kf, s)) -> [K kf; S s; A name]
+  | IPOther(name,OLGlob _) -> [ A name ]
+  | IPPropertyInstance (_, _, _, ip) -> parts_of_property ip
+  | IPExtended(ELContract kf,(_,name,_,_)) -> [ K kf ; A name ]
+  | IPExtended(ELStmt (kf, s),(_,name,_,_)) -> [ K kf ; S s ; A name ]
+  | IPExtended(ELGlob, (_,name,_,_)) -> [ A name ]
 
 (**************************************************************************)

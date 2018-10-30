@@ -182,13 +182,13 @@ module Fun : Logic.Function with type t = lfun
 class virtual idprinting :
   object
     method virtual sanitize : string -> string
-    
+
     method virtual infoprover : 'a. 'a infoprover -> 'a
     (** Specify the field to use in an infoprover *)
 
     method sanitize_type : string -> string
     (** Defaults to [self#sanitize] *)
-    
+
     method sanitize_field : string -> string
     (** Defulats to [self#sanitize] *)
 
@@ -364,7 +364,7 @@ sig
   type env
   val context_pp : env Context.value
   (** Context used by pp_term, pp_pred, pp_var, ppvars for printing
-     the term. Allows to keep the same disambiguation. *)
+      the term. Allows to keep the same disambiguation. *)
 
   type marks = QED.marks
 
@@ -424,7 +424,7 @@ sig
   val intersect : term -> term -> bool
   val intersectp : pred -> pred -> bool
   val is_subterm : term -> term -> bool
-  
+
   (** Try to extract a type of term.
       Parameterized by optional extractors for field and functions.
       Extractors may raise [Not_found] ; however, they are only used when
@@ -451,6 +451,7 @@ sig
       smaller terms. *)
 
   val set_builtin : lfun -> (term list -> term) -> unit
+  val set_builtin_get : lfun -> (term list -> term-> term) -> unit
   val set_builtin_1 : lfun -> unop -> unit
   val set_builtin_2 : lfun -> binop -> unit
   val set_builtin_eq : lfun -> binop -> unit
@@ -541,13 +542,13 @@ end
 
 module Subst :
 sig
-  
+
   type sigma
 
   val sigma : F.var list -> F.term list -> sigma
   val e_apply : sigma -> F.term -> F.term
   val p_apply : sigma -> F.pred -> F.pred
-  
+
 end
 
 (* -------------------------------------------------------------------------- *)

@@ -1,8 +1,8 @@
 [kernel] Parsing tests/value/downcast.i (no preprocessing)
-[value] Analyzing an incomplete application starting at main
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing an incomplete application starting at main
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   sx ∈ [--..--]
   sy ∈ [--..--]
   sz ∈ [--..--]
@@ -13,174 +13,174 @@
   uz ∈ [--..--]
   s ∈ [--..--]
   v ∈ [--..--]
-[value] computing for function main1 <- main.
+[eva] computing for function main1 <- main.
   Called from tests/value/downcast.i:152.
-[value:alarm] tests/value/downcast.i:19: Warning: 
+[eva:alarm] tests/value/downcast.i:19: Warning: 
   signed downcast. assert -128 ≤ (int)sx + (int)sy;
-[value:alarm] tests/value/downcast.i:19: Warning: 
+[eva:alarm] tests/value/downcast.i:19: Warning: 
   signed downcast. assert (int)sx + (int)sy ≤ 127;
-[value:alarm] tests/value/downcast.i:22: Warning: 
+[eva:alarm] tests/value/downcast.i:22: Warning: 
   signed downcast. assert uy + uz ≤ 2147483647;
-[value] Recording results for main1
-[value] Done for function main1
-[value] computing for function main2_bitfield <- main.
+[eva] Recording results for main1
+[eva] Done for function main1
+[eva] computing for function main2_bitfield <- main.
   Called from tests/value/downcast.i:153.
-[value:alarm] tests/value/downcast.i:32: Warning: 
+[eva:alarm] tests/value/downcast.i:32: Warning: 
   signed downcast. assert i ≤ 15;
-[value] Recording results for main2_bitfield
-[value] Done for function main2_bitfield
-[value] computing for function main3_reduction <- main.
+[eva] Recording results for main2_bitfield
+[eva] Done for function main2_bitfield
+[eva] computing for function main3_reduction <- main.
   Called from tests/value/downcast.i:154.
-[value:alarm] tests/value/downcast.i:38: Warning: 
+[eva:alarm] tests/value/downcast.i:38: Warning: 
   signed downcast. assert -128 ≤ x_0;
-[value:alarm] tests/value/downcast.i:38: Warning: 
+[eva:alarm] tests/value/downcast.i:38: Warning: 
   signed downcast. assert x_0 ≤ 127;
-[value] Recording results for main3_reduction
-[value] Done for function main3_reduction
-[value] computing for function main4_pointer <- main.
+[eva] Recording results for main3_reduction
+[eva] Done for function main3_reduction
+[eva] computing for function main4_pointer <- main.
   Called from tests/value/downcast.i:155.
-[value:alarm] tests/value/downcast.i:50: Warning: 
+[eva:alarm] tests/value/downcast.i:50: Warning: 
   signed overflow. assert -9223372036854775808 ≤ p + (long long)100;
-[value:alarm] tests/value/downcast.i:50: Warning: 
+[eva:alarm] tests/value/downcast.i:50: Warning: 
   signed overflow. assert p + (long long)100 ≤ 9223372036854775807;
-[value:alarm] tests/value/downcast.i:52: Warning: 
+[eva:alarm] tests/value/downcast.i:52: Warning: 
   signed downcast. assert -2147483648 ≤ p;
-[value:alarm] tests/value/downcast.i:52: Warning: 
+[eva:alarm] tests/value/downcast.i:52: Warning: 
   signed downcast. assert p ≤ 2147483647;
-[value] Recording results for main4_pointer
-[value] Done for function main4_pointer
-[value] computing for function main5_wrap_signed <- main.
+[eva] Recording results for main4_pointer
+[eva] Done for function main4_pointer
+[eva] computing for function main5_wrap_signed <- main.
   Called from tests/value/downcast.i:156.
-[value:alarm] tests/value/downcast.i:58: Warning: 
+[eva:alarm] tests/value/downcast.i:58: Warning: 
   assertion 'ASSUME' got status unknown.
-[value] tests/value/downcast.i:59: assertion got status valid.
-[value:alarm] tests/value/downcast.i:62: Warning: 
+[eva] tests/value/downcast.i:59: assertion got status valid.
+[eva:alarm] tests/value/downcast.i:62: Warning: 
   signed downcast. assert y ≤ 2147483647;
-[value] tests/value/downcast.i:63: 
+[eva] tests/value/downcast.i:63: 
   Frama_C_show_each:
   [100000..2147483647], [100145..2147483647], [100145..2147483647]
-[value] tests/value/downcast.i:64: assertion got status valid.
-[value] Recording results for main5_wrap_signed
-[value] Done for function main5_wrap_signed
-[value] computing for function main6_val_warn_converted_signed <- main.
+[eva] tests/value/downcast.i:64: assertion got status valid.
+[eva] Recording results for main5_wrap_signed
+[eva] Done for function main5_wrap_signed
+[eva] computing for function main6_val_warn_converted_signed <- main.
   Called from tests/value/downcast.i:157.
-[value:alarm] tests/value/downcast.i:71: Warning: 
+[eva:alarm] tests/value/downcast.i:71: Warning: 
   signed downcast. assert 65300u ≤ 32767;
-[value:alarm] tests/value/downcast.i:82: Warning: 
+[eva:alarm] tests/value/downcast.i:82: Warning: 
   signed downcast. assert e_0 ≤ 32767;
-[value:alarm] tests/value/downcast.i:87: Warning: 
+[eva:alarm] tests/value/downcast.i:87: Warning: 
   signed downcast. assert e_1 ≤ 32767;
-[value:alarm] tests/value/downcast.i:91: Warning: 
+[eva:alarm] tests/value/downcast.i:91: Warning: 
   signed downcast. assert p ≤ 2147483647;
-[value:alarm] tests/value/downcast.i:92: Warning: 
+[eva:alarm] tests/value/downcast.i:92: Warning: 
   signed downcast. assert p ≤ 32767;
-[value] tests/value/downcast.i:93: 
+[eva] tests/value/downcast.i:93: 
   Assigning imprecise value to z.
   The imprecision originates from Arithmetic {tests/value/downcast.i:93}
-[value] Recording results for main6_val_warn_converted_signed
-[value] Done for function main6_val_warn_converted_signed
-[value] computing for function main7_signed_upcast <- main.
+[eva] Recording results for main6_val_warn_converted_signed
+[eva] Done for function main6_val_warn_converted_signed
+[eva] computing for function main7_signed_upcast <- main.
   Called from tests/value/downcast.i:158.
-[value] Recording results for main7_signed_upcast
-[value] Done for function main7_signed_upcast
-[value] computing for function main8_bitfields <- main.
+[eva] Recording results for main7_signed_upcast
+[eva] Done for function main7_signed_upcast
+[eva] computing for function main8_bitfields <- main.
   Called from tests/value/downcast.i:159.
-[value:alarm] tests/value/downcast.i:114: Warning: 
+[eva:alarm] tests/value/downcast.i:114: Warning: 
   signed downcast. assert S.i1 ≤ 31;
-[value:alarm] tests/value/downcast.i:115: Warning: 
+[eva:alarm] tests/value/downcast.i:115: Warning: 
   signed downcast. assert S.i1 ≤ 127;
-[value:alarm] tests/value/downcast.i:119: Warning: 
+[eva:alarm] tests/value/downcast.i:119: Warning: 
   signed downcast. assert S.i1 ≤ 31;
-[value:alarm] tests/value/downcast.i:120: Warning: 
+[eva:alarm] tests/value/downcast.i:120: Warning: 
   signed downcast. assert S.i1 ≤ 127;
-[value:alarm] tests/value/downcast.i:124: Warning: 
+[eva:alarm] tests/value/downcast.i:124: Warning: 
   signed downcast. assert S.i1 ≤ 31;
-[value] Recording results for main8_bitfields
-[value] Done for function main8_bitfields
-[value] computing for function main9_bitfield <- main.
+[eva] Recording results for main8_bitfields
+[eva] Done for function main8_bitfields
+[eva] computing for function main9_bitfield <- main.
   Called from tests/value/downcast.i:160.
-[value:alarm] tests/value/downcast.i:133: Warning: 
+[eva:alarm] tests/value/downcast.i:133: Warning: 
   signed downcast. assert bf.a ≤ 1023;
-[value:alarm] tests/value/downcast.i:137: Warning: 
+[eva:alarm] tests/value/downcast.i:137: Warning: 
   signed downcast. assert bf.a ≤ 127;
-[value] Recording results for main9_bitfield
-[value] Done for function main9_bitfield
-[value] computing for function main10_loop <- main.
+[eva] Recording results for main9_bitfield
+[eva] Done for function main9_bitfield
+[eva] computing for function main10_loop <- main.
   Called from tests/value/downcast.i:161.
-[value] tests/value/downcast.i:145: entering loop for the first time
-[value:alarm] tests/value/downcast.i:147: Warning: 
+[eva:alarm] tests/value/downcast.i:147: Warning: 
   signed downcast. assert bf.b ≤ 127;
-[value] Recording results for main10_loop
-[value] Done for function main10_loop
-[value] Recording results for main
-[value] done for function main
-[value] tests/value/downcast.i:32: 
-  assertion 'Value,signed_downcast' got final status invalid.
-[value] tests/value/downcast.i:71: 
-  assertion 'Value,signed_downcast' got final status invalid.
-[value] tests/value/downcast.i:82: 
-  assertion 'Value,signed_downcast' got final status invalid.
-[value] tests/value/downcast.i:87: 
-  assertion 'Value,signed_downcast' got final status invalid.
-[value] tests/value/downcast.i:114: 
-  assertion 'Value,signed_downcast' got final status invalid.
-[value] tests/value/downcast.i:115: 
-  assertion 'Value,signed_downcast' got final status invalid.
-[value] tests/value/downcast.i:119: 
-  assertion 'Value,signed_downcast' got final status invalid.
-[value] tests/value/downcast.i:120: 
-  assertion 'Value,signed_downcast' got final status invalid.
-[value] tests/value/downcast.i:124: 
-  assertion 'Value,signed_downcast' got final status invalid.
-[value] tests/value/downcast.i:133: 
-  assertion 'Value,signed_downcast' got final status invalid.
-[value] tests/value/downcast.i:137: 
-  assertion 'Value,signed_downcast' got final status invalid.
-[value] ====== VALUES COMPUTED ======
-[value:final-states] Values at end of function main1:
+[eva] tests/value/downcast.i:145: starting to merge loop iterations
+[eva] Recording results for main10_loop
+[eva] Done for function main10_loop
+[eva] Recording results for main
+[eva] done for function main
+[eva] tests/value/downcast.i:32: 
+  assertion 'Eva,signed_downcast' got final status invalid.
+[eva] tests/value/downcast.i:71: 
+  assertion 'Eva,signed_downcast' got final status invalid.
+[eva] tests/value/downcast.i:82: 
+  assertion 'Eva,signed_downcast' got final status invalid.
+[eva] tests/value/downcast.i:87: 
+  assertion 'Eva,signed_downcast' got final status invalid.
+[eva] tests/value/downcast.i:114: 
+  assertion 'Eva,signed_downcast' got final status invalid.
+[eva] tests/value/downcast.i:115: 
+  assertion 'Eva,signed_downcast' got final status invalid.
+[eva] tests/value/downcast.i:119: 
+  assertion 'Eva,signed_downcast' got final status invalid.
+[eva] tests/value/downcast.i:120: 
+  assertion 'Eva,signed_downcast' got final status invalid.
+[eva] tests/value/downcast.i:124: 
+  assertion 'Eva,signed_downcast' got final status invalid.
+[eva] tests/value/downcast.i:133: 
+  assertion 'Eva,signed_downcast' got final status invalid.
+[eva] tests/value/downcast.i:137: 
+  assertion 'Eva,signed_downcast' got final status invalid.
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function main1:
   sz ∈ [--..--]
   uc ∈ [--..--]
   x ∈ [0..2147483647]
   ux ∈ [--..--]
   s ∈ [--..--]
-[value:final-states] Values at end of function main10_loop:
+[eva:final-states] Values at end of function main10_loop:
   c ∈ [0..127] or UNINITIALIZED
   bf.b ∈ [--..--] or UNINITIALIZED
     .[bits 10 to 31] ∈ UNINITIALIZED
   k ∈ {10}
-[value:final-states] Values at end of function main2_bitfield:
+[eva:final-states] Values at end of function main2_bitfield:
   i ∈ {117}
   j ∈ {254}
   ss.i ∈ UNINITIALIZED
     .j ∈ {30} or UNINITIALIZED
     .[bits 10 to 31] ∈ UNINITIALIZED
-[value:final-states] Values at end of function main3_reduction:
+[eva:final-states] Values at end of function main3_reduction:
   x_0 ∈ [-128..127]
   c ∈ [--..--]
   y ∈ [--..--]
   d ∈ [--..--]
-[value:final-states] Values at end of function main4_pointer:
+[eva:final-states] Values at end of function main4_pointer:
   p ∈ {{ &x_0 + {100} }}
   q ∈ {{ &x_0 + {100} }}
   r ∈ {{ &x_0 + {100} }}
-[value:final-states] Values at end of function main5_wrap_signed:
+[eva:final-states] Values at end of function main5_wrap_signed:
   x_0 ∈ [100000..2147483647]
   y ∈ [100145..2147483647]
   z ∈ [100145..2147483647]
-[value:final-states] Values at end of function main6_val_warn_converted_signed:
+[eva:final-states] Values at end of function main6_val_warn_converted_signed:
   
-[value:final-states] Values at end of function main7_signed_upcast:
+[eva:final-states] Values at end of function main7_signed_upcast:
   c ∈ {240}
   i ∈ {240}
-[value:final-states] Values at end of function main8_bitfields:
+[eva:final-states] Values at end of function main8_bitfields:
   S.i1 ∈ {65}
    {.i2; .[bits 24 to 31]} ∈ UNINITIALIZED
   c ∈ {65} or UNINITIALIZED
-[value:final-states] Values at end of function main9_bitfield:
+[eva:final-states] Values at end of function main9_bitfield:
   bf.a ∈ {1648}
     .[bits 11 to 31] ∈ UNINITIALIZED
   c ∈ UNINITIALIZED
-[value:final-states] Values at end of function main:
+[eva:final-states] Values at end of function main:
   sz ∈ [--..--]
   uc ∈ [--..--]
   x ∈ [0..2147483647]
@@ -291,92 +291,92 @@
 --- Properties of Function 'main1'
 --------------------------------------------------------------------------------
 
-[    -    ] Assertion 'Value,signed_downcast' (file tests/value/downcast.i, line 19)
-            tried with Value.
-[    -    ] Assertion 'Value,signed_downcast' (file tests/value/downcast.i, line 19)
-            tried with Value.
-[    -    ] Assertion 'Value,signed_downcast' (file tests/value/downcast.i, line 22)
-            tried with Value.
+[    -    ] Assertion 'Eva,signed_downcast' (file tests/value/downcast.i, line 19)
+            tried with Eva.
+[    -    ] Assertion 'Eva,signed_downcast' (file tests/value/downcast.i, line 19)
+            tried with Eva.
+[    -    ] Assertion 'Eva,signed_downcast' (file tests/value/downcast.i, line 22)
+            tried with Eva.
 
 --------------------------------------------------------------------------------
 --- Properties of Function 'main2_bitfield'
 --------------------------------------------------------------------------------
 
-[  Alarm  ] Assertion 'Value,signed_downcast' (file tests/value/downcast.i, line 32)
-            By Value, with pending:
+[  Alarm  ] Assertion 'Eva,signed_downcast' (file tests/value/downcast.i, line 32)
+            By Eva, with pending:
              - Unreachable instruction (file tests/value/downcast.i, line 32)
 
 --------------------------------------------------------------------------------
 --- Properties of Function 'main3_reduction'
 --------------------------------------------------------------------------------
 
-[    -    ] Assertion 'Value,signed_downcast' (file tests/value/downcast.i, line 38)
-            tried with Value.
-[    -    ] Assertion 'Value,signed_downcast' (file tests/value/downcast.i, line 38)
-            tried with Value.
+[    -    ] Assertion 'Eva,signed_downcast' (file tests/value/downcast.i, line 38)
+            tried with Eva.
+[    -    ] Assertion 'Eva,signed_downcast' (file tests/value/downcast.i, line 38)
+            tried with Eva.
 
 --------------------------------------------------------------------------------
 --- Properties of Function 'main4_pointer'
 --------------------------------------------------------------------------------
 
-[    -    ] Assertion 'Value,signed_overflow' (file tests/value/downcast.i, line 50)
-            tried with Value.
-[    -    ] Assertion 'Value,signed_overflow' (file tests/value/downcast.i, line 50)
-            tried with Value.
-[    -    ] Assertion 'Value,signed_downcast' (file tests/value/downcast.i, line 52)
-            tried with Value.
-[    -    ] Assertion 'Value,signed_downcast' (file tests/value/downcast.i, line 52)
-            tried with Value.
+[    -    ] Assertion 'Eva,signed_overflow' (file tests/value/downcast.i, line 50)
+            tried with Eva.
+[    -    ] Assertion 'Eva,signed_overflow' (file tests/value/downcast.i, line 50)
+            tried with Eva.
+[    -    ] Assertion 'Eva,signed_downcast' (file tests/value/downcast.i, line 52)
+            tried with Eva.
+[    -    ] Assertion 'Eva,signed_downcast' (file tests/value/downcast.i, line 52)
+            tried with Eva.
 
 --------------------------------------------------------------------------------
 --- Properties of Function 'main5_wrap_signed'
 --------------------------------------------------------------------------------
 
 [    -    ] Assertion 'ASSUME' (file tests/value/downcast.i, line 58)
-            tried with Value.
+            tried with Eva.
 [  Valid  ] Assertion (file tests/value/downcast.i, line 59)
-            by Value.
+            by Eva.
 [  Valid  ] Assertion (file tests/value/downcast.i, line 64)
-            by Value.
-[    -    ] Assertion 'Value,signed_downcast' (file tests/value/downcast.i, line 62)
-            tried with Value.
+            by Eva.
+[    -    ] Assertion 'Eva,signed_downcast' (file tests/value/downcast.i, line 62)
+            tried with Eva.
 
 --------------------------------------------------------------------------------
 --- Properties of Function 'main6_val_warn_converted_signed'
 --------------------------------------------------------------------------------
 
-[  Alarm  ] Assertion 'Value,signed_downcast' (file tests/value/downcast.i, line 71)
-            By Value, with pending:
+[  Alarm  ] Assertion 'Eva,signed_downcast' (file tests/value/downcast.i, line 71)
+            By Eva, with pending:
              - Unreachable initialization of 's_0' (file tests/value/downcast.i, line 71)
-[  Alarm  ] Assertion 'Value,signed_downcast' (file tests/value/downcast.i, line 82)
-            By Value, with pending:
+[  Alarm  ] Assertion 'Eva,signed_downcast' (file tests/value/downcast.i, line 82)
+            By Eva, with pending:
              - Unreachable initialization of 'b_0' (file tests/value/downcast.i, line 82)
-[  Alarm  ] Assertion 'Value,signed_downcast' (file tests/value/downcast.i, line 87)
-            By Value, with pending:
+[  Alarm  ] Assertion 'Eva,signed_downcast' (file tests/value/downcast.i, line 87)
+            By Eva, with pending:
              - Unreachable initialization of 'b_1' (file tests/value/downcast.i, line 87)
-[    -    ] Assertion 'Value,signed_downcast' (file tests/value/downcast.i, line 91)
-            tried with Value.
-[    -    ] Assertion 'Value,signed_downcast' (file tests/value/downcast.i, line 92)
-            tried with Value.
+[    -    ] Assertion 'Eva,signed_downcast' (file tests/value/downcast.i, line 91)
+            tried with Eva.
+[    -    ] Assertion 'Eva,signed_downcast' (file tests/value/downcast.i, line 92)
+            tried with Eva.
 
 --------------------------------------------------------------------------------
 --- Properties of Function 'main8_bitfields'
 --------------------------------------------------------------------------------
 
-[  Alarm  ] Assertion 'Value,signed_downcast' (file tests/value/downcast.i, line 114)
-            By Value, with pending:
+[  Alarm  ] Assertion 'Eva,signed_downcast' (file tests/value/downcast.i, line 114)
+            By Eva, with pending:
              - Unreachable instruction (file tests/value/downcast.i, line 114)
-[  Alarm  ] Assertion 'Value,signed_downcast' (file tests/value/downcast.i, line 115)
-            By Value, with pending:
+[  Alarm  ] Assertion 'Eva,signed_downcast' (file tests/value/downcast.i, line 115)
+            By Eva, with pending:
              - Unreachable instruction (file tests/value/downcast.i, line 115)
-[  Alarm  ] Assertion 'Value,signed_downcast' (file tests/value/downcast.i, line 119)
-            By Value, with pending:
+[  Alarm  ] Assertion 'Eva,signed_downcast' (file tests/value/downcast.i, line 119)
+            By Eva, with pending:
              - Unreachable instruction (file tests/value/downcast.i, line 119)
-[  Alarm  ] Assertion 'Value,signed_downcast' (file tests/value/downcast.i, line 120)
-            By Value, with pending:
+[  Alarm  ] Assertion 'Eva,signed_downcast' (file tests/value/downcast.i, line 120)
+            By Eva, with pending:
              - Unreachable instruction (file tests/value/downcast.i, line 120)
-[  Alarm  ] Assertion 'Value,signed_downcast' (file tests/value/downcast.i, line 124)
-            By Value, with pending:
+[  Alarm  ] Assertion 'Eva,signed_downcast' (file tests/value/downcast.i, line 124)
+            By Eva, with pending:
              - Unreachable instruction (file tests/value/downcast.i, line 124)
 
 --------------------------------------------------------------------------------
@@ -385,23 +385,23 @@
 
 [  Dead   ] Assertion (file tests/value/downcast.i, line 134)
             Locally valid, but unreachable.
-            By Value because:
+            By Eva because:
              - Unreachable program point (file tests/value/downcast.i, line 134)
-[  Alarm  ] Assertion 'Value,signed_downcast' (file tests/value/downcast.i, line 133)
-            By Value, with pending:
+[  Alarm  ] Assertion 'Eva,signed_downcast' (file tests/value/downcast.i, line 133)
+            By Eva, with pending:
              - Unreachable initialization of 'signed_a' (file tests/value/downcast.i, line 133)
-[  Alarm  ] Assertion 'Value,signed_downcast' (file tests/value/downcast.i, line 137)
-            By Value, with pending:
+[  Alarm  ] Assertion 'Eva,signed_downcast' (file tests/value/downcast.i, line 137)
+            By Eva, with pending:
              - Unreachable instruction (file tests/value/downcast.i, line 137)
 [Unreachable] Unreachable program point (file tests/value/downcast.i, line 134)
-            by Value.
+            by Eva.
 
 --------------------------------------------------------------------------------
 --- Properties of Function 'main10_loop'
 --------------------------------------------------------------------------------
 
-[    -    ] Assertion 'Value,signed_downcast' (file tests/value/downcast.i, line 147)
-            tried with Value.
+[    -    ] Assertion 'Eva,signed_downcast' (file tests/value/downcast.i, line 147)
+            tried with Eva.
 
 --------------------------------------------------------------------------------
 --- Status Report Summary
@@ -440,12 +440,12 @@ unsigned short s;
 int volatile v;
 void main1(void)
 {
-  /*@ assert Value: signed_downcast: -128 ≤ (int)sx + (int)sy; */
-  /*@ assert Value: signed_downcast: (int)sx + (int)sy ≤ 127; */
+  /*@ assert Eva: signed_downcast: -128 ≤ (int)sx + (int)sy; */
+  /*@ assert Eva: signed_downcast: (int)sx + (int)sy ≤ 127; */
   sz = (signed char)((int)sx + (int)sy);
   uc = (unsigned char)((int)sx + (int)sy);
   uc = (unsigned char)x;
-  /*@ assert Value: signed_downcast: uy + uz ≤ 2147483647; */
+  /*@ assert Eva: signed_downcast: uy + uz ≤ 2147483647; */
   x = (int)(uy + uz);
   ux = uy + uz;
   s = (unsigned short)(uy + uz);
@@ -458,7 +458,7 @@ void main2_bitfield(void)
   int i = 117;
   unsigned int j = (unsigned int)254;
   if (v) 
-    /*@ assert Value: signed_downcast: i ≤ 15; */
+    /*@ assert Eva: signed_downcast: i ≤ 15; */
     ss.i = (int)i;
   if (v) ss.j = (unsigned int)j;
   return;
@@ -467,8 +467,8 @@ void main2_bitfield(void)
 void main3_reduction(void)
 {
   int x_0 = v;
-  /*@ assert Value: signed_downcast: -128 ≤ x_0; */
-  /*@ assert Value: signed_downcast: x_0 ≤ 127; */
+  /*@ assert Eva: signed_downcast: -128 ≤ x_0; */
+  /*@ assert Eva: signed_downcast: x_0 ≤ 127; */
   char c = (char)x_0;
   unsigned int y = (unsigned int)v;
   unsigned char d = (unsigned char)y;
@@ -480,15 +480,15 @@ void main4_pointer(void)
   int x_0;
   long long p = (long long)(& x_0);
   /*@ assert
-      Value: signed_overflow: -9223372036854775808 ≤ p + (long long)100;
+      Eva: signed_overflow: -9223372036854775808 ≤ p + (long long)100;
   */
   /*@ assert
-      Value: signed_overflow: p + (long long)100 ≤ 9223372036854775807;
+      Eva: signed_overflow: p + (long long)100 ≤ 9223372036854775807;
   */
   p += (long long)100;
   unsigned int q = (unsigned int)p;
-  /*@ assert Value: signed_downcast: -2147483648 ≤ p; */
-  /*@ assert Value: signed_downcast: p ≤ 2147483647; */
+  /*@ assert Eva: signed_downcast: -2147483648 ≤ p; */
+  /*@ assert Eva: signed_downcast: p ≤ 2147483647; */
   int r = (int)p;
   return;
 }
@@ -504,7 +504,7 @@ void main5_wrap_signed(void)
   /*@ assert x_0 > 0x7FFFFFFF - 145 ∨ x_0 ≤ 0x7FFFFFFF - 145; */ ;
   unsigned int y = (unsigned int)x_0;
   y += (unsigned int)145;
-  /*@ assert Value: signed_downcast: y ≤ 2147483647; */
+  /*@ assert Eva: signed_downcast: y ≤ 2147483647; */
   int z = (int)y;
   Frama_C_show_each(x_0,y,z);
   /*@ assert z ≥ 100000 + 145 ∨ z ≤ (int)(0x7FFFFFFF + 145); */ ;
@@ -514,7 +514,7 @@ void main5_wrap_signed(void)
 void main6_val_warn_converted_signed(void)
 {
   if (v) {
-    /*@ assert Value: signed_downcast: 65300u ≤ 32767; */
+    /*@ assert Eva: signed_downcast: 65300u ≤ 32767; */
     short s_0 = (short)65300u;
   }
   if (v) {
@@ -526,19 +526,19 @@ void main6_val_warn_converted_signed(void)
   }
   if (v) {
     unsigned long e_0 = (unsigned long)(-12);
-    /*@ assert Value: signed_downcast: e_0 ≤ 32767; */
+    /*@ assert Eva: signed_downcast: e_0 ≤ 32767; */
     short b_0 = (short)e_0;
   }
   if (v) {
     unsigned int e_1 = (unsigned int)(-64000);
-    /*@ assert Value: signed_downcast: e_1 ≤ 32767; */
+    /*@ assert Eva: signed_downcast: e_1 ≤ 32767; */
     short b_1 = (short)e_1;
   }
   if (v) {
     int *p = (int *)(& v);
-    /*@ assert Value: signed_downcast: p ≤ 2147483647; */
+    /*@ assert Eva: signed_downcast: p ≤ 2147483647; */
     int x_0 = (int)p;
-    /*@ assert Value: signed_downcast: p ≤ 32767; */
+    /*@ assert Eva: signed_downcast: p ≤ 32767; */
     short y = (short)p;
     unsigned short z = (unsigned short)p;
   }
@@ -558,21 +558,21 @@ void main8_bitfields(void)
   signed char c;
   S.i1 = (unsigned int)0x3FFFF;
   if (v) 
-    /*@ assert Value: signed_downcast: S.i1 ≤ 31; */
+    /*@ assert Eva: signed_downcast: S.i1 ≤ 31; */
     S.i2 = (int)S.i1;
   if (v) 
-    /*@ assert Value: signed_downcast: S.i1 ≤ 127; */
+    /*@ assert Eva: signed_downcast: S.i1 ≤ 127; */
     c = (signed char)S.i1;
   S.i1 = (unsigned int)257u;
   if (v) 
-    /*@ assert Value: signed_downcast: S.i1 ≤ 31; */
+    /*@ assert Eva: signed_downcast: S.i1 ≤ 31; */
     S.i2 = (int)S.i1;
   if (v) 
-    /*@ assert Value: signed_downcast: S.i1 ≤ 127; */
+    /*@ assert Eva: signed_downcast: S.i1 ≤ 127; */
     c = (signed char)S.i1;
   S.i1 = (unsigned int)65u;
   if (v) 
-    /*@ assert Value: signed_downcast: S.i1 ≤ 31; */
+    /*@ assert Eva: signed_downcast: S.i1 ≤ 31; */
     S.i2 = (int)S.i1;
   if (v) c = (signed char)S.i1;
   return;
@@ -584,12 +584,12 @@ void main9_bitfield(void)
   signed char c;
   bf.a = (unsigned int)1648;
   if (v) {
-    /*@ assert Value: signed_downcast: bf.a ≤ 1023; */
+    /*@ assert Eva: signed_downcast: bf.a ≤ 1023; */
     int signed_a = (int)((int)bf.a);
     /*@ assert signed_a ≡ -400; */ ;
   }
   if (v) 
-    /*@ assert Value: signed_downcast: bf.a ≤ 127; */
+    /*@ assert Eva: signed_downcast: bf.a ≤ 127; */
     c = (signed char)bf.a;
   return;
 }
@@ -602,7 +602,7 @@ void main10_loop(void)
   while (k < 10) {
     bf.b = (unsigned int)v;
     if (v) 
-      /*@ assert Value: signed_downcast: bf.b ≤ 127; */
+      /*@ assert Eva: signed_downcast: bf.b ≤ 127; */
       c = (signed char)bf.b;
     k ++;
   }
@@ -625,10 +625,10 @@ void main(void)
 }
 
 
-[value] Analyzing an incomplete application starting at main
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing an incomplete application starting at main
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   sx ∈ [--..--]
   sy ∈ [--..--]
   sz ∈ [--..--]
@@ -639,139 +639,139 @@ void main(void)
   uz ∈ [--..--]
   s ∈ [--..--]
   v ∈ [--..--]
-[value] computing for function main1 <- main.
+[eva] computing for function main1 <- main.
   Called from tests/value/downcast.i:152.
-[value:alarm] tests/value/downcast.i:20: Warning: 
+[eva:alarm] tests/value/downcast.i:20: Warning: 
   unsigned downcast. assert 0 ≤ (int)sx + (int)sy;
-[value:alarm] tests/value/downcast.i:21: Warning: 
+[eva:alarm] tests/value/downcast.i:21: Warning: 
   unsigned downcast. assert 0 ≤ x;
-[value:alarm] tests/value/downcast.i:21: Warning: 
+[eva:alarm] tests/value/downcast.i:21: Warning: 
   unsigned downcast. assert x ≤ 255;
-[value:alarm] tests/value/downcast.i:24: Warning: 
+[eva:alarm] tests/value/downcast.i:24: Warning: 
   unsigned downcast. assert uy + uz ≤ 65535;
-[value] Recording results for main1
-[value] Done for function main1
-[value] computing for function main2_bitfield <- main.
+[eva] Recording results for main1
+[eva] Done for function main1
+[eva] computing for function main2_bitfield <- main.
   Called from tests/value/downcast.i:153.
-[value:alarm] tests/value/downcast.i:33: Warning: 
+[eva:alarm] tests/value/downcast.i:33: Warning: 
   unsigned downcast. assert j ≤ 31;
-[value] Recording results for main2_bitfield
-[value] Done for function main2_bitfield
-[value] computing for function main3_reduction <- main.
+[eva] Recording results for main2_bitfield
+[eva] Done for function main2_bitfield
+[eva] computing for function main3_reduction <- main.
   Called from tests/value/downcast.i:154.
-[value:alarm] tests/value/downcast.i:40: Warning: 
+[eva:alarm] tests/value/downcast.i:40: Warning: 
   unsigned downcast. assert 0 ≤ v;
-[value:alarm] tests/value/downcast.i:41: Warning: 
+[eva:alarm] tests/value/downcast.i:41: Warning: 
   unsigned downcast. assert y ≤ 255;
-[value] Recording results for main3_reduction
-[value] Done for function main3_reduction
-[value] computing for function main4_pointer <- main.
+[eva] Recording results for main3_reduction
+[eva] Done for function main3_reduction
+[eva] computing for function main4_pointer <- main.
   Called from tests/value/downcast.i:155.
-[value:alarm] tests/value/downcast.i:50: Warning: 
+[eva:alarm] tests/value/downcast.i:50: Warning: 
   signed overflow. assert -9223372036854775808 ≤ p + (long long)100;
-[value:alarm] tests/value/downcast.i:50: Warning: 
+[eva:alarm] tests/value/downcast.i:50: Warning: 
   signed overflow. assert p + (long long)100 ≤ 9223372036854775807;
-[value:alarm] tests/value/downcast.i:51: Warning: 
+[eva:alarm] tests/value/downcast.i:51: Warning: 
   unsigned downcast. assert 0 ≤ p;
-[value:alarm] tests/value/downcast.i:51: Warning: 
+[eva:alarm] tests/value/downcast.i:51: Warning: 
   unsigned downcast. assert p ≤ 4294967295;
-[value] Recording results for main4_pointer
-[value] Done for function main4_pointer
-[value] computing for function main5_wrap_signed <- main.
+[eva] Recording results for main4_pointer
+[eva] Done for function main4_pointer
+[eva] computing for function main5_wrap_signed <- main.
   Called from tests/value/downcast.i:156.
-[value] tests/value/downcast.i:63: 
+[eva] tests/value/downcast.i:63: 
   Frama_C_show_each:
   [100000..2147483647], [100145..2147483792], [-2147483648..2147483647]
-[value:alarm] tests/value/downcast.i:64: Warning: assertion got status unknown.
-[value] Recording results for main5_wrap_signed
-[value] Done for function main5_wrap_signed
-[value] computing for function main6_val_warn_converted_signed <- main.
+[eva:alarm] tests/value/downcast.i:64: Warning: assertion got status unknown.
+[eva] Recording results for main5_wrap_signed
+[eva] Done for function main5_wrap_signed
+[eva] computing for function main6_val_warn_converted_signed <- main.
   Called from tests/value/downcast.i:157.
-[value:alarm] tests/value/downcast.i:81: Warning: 
+[eva:alarm] tests/value/downcast.i:81: Warning: 
   unsigned downcast. assert 0 ≤ -12;
-[value:alarm] tests/value/downcast.i:86: Warning: 
+[eva:alarm] tests/value/downcast.i:86: Warning: 
   unsigned downcast. assert 0 ≤ -64000;
-[value] tests/value/downcast.i:92: 
+[eva] tests/value/downcast.i:92: 
   Assigning imprecise value to y.
   The imprecision originates from Arithmetic {tests/value/downcast.i:92}
-[value:alarm] tests/value/downcast.i:93: Warning: 
+[eva:alarm] tests/value/downcast.i:93: Warning: 
   unsigned downcast. assert p ≤ 65535;
-[value] Recording results for main6_val_warn_converted_signed
-[value] Done for function main6_val_warn_converted_signed
-[value] computing for function main7_signed_upcast <- main.
+[eva] Recording results for main6_val_warn_converted_signed
+[eva] Done for function main6_val_warn_converted_signed
+[eva] computing for function main7_signed_upcast <- main.
   Called from tests/value/downcast.i:158.
-[value] Recording results for main7_signed_upcast
-[value] Done for function main7_signed_upcast
-[value] computing for function main8_bitfields <- main.
+[eva] Recording results for main7_signed_upcast
+[eva] Done for function main7_signed_upcast
+[eva] computing for function main8_bitfields <- main.
   Called from tests/value/downcast.i:159.
-[value] Recording results for main8_bitfields
-[value] Done for function main8_bitfields
-[value] computing for function main9_bitfield <- main.
+[eva] Recording results for main8_bitfields
+[eva] Done for function main8_bitfields
+[eva] computing for function main9_bitfield <- main.
   Called from tests/value/downcast.i:160.
-[value] tests/value/downcast.i:134: assertion got status valid.
-[value] Recording results for main9_bitfield
-[value] Done for function main9_bitfield
-[value] computing for function main10_loop <- main.
+[eva] tests/value/downcast.i:134: assertion got status valid.
+[eva] Recording results for main9_bitfield
+[eva] Done for function main9_bitfield
+[eva] computing for function main10_loop <- main.
   Called from tests/value/downcast.i:161.
-[value:alarm] tests/value/downcast.i:146: Warning: 
+[eva:alarm] tests/value/downcast.i:146: Warning: 
   unsigned downcast. assert 0 ≤ v;
-[value:alarm] tests/value/downcast.i:146: Warning: 
+[eva:alarm] tests/value/downcast.i:146: Warning: 
   unsigned downcast. assert v ≤ 1023;
-[value] Recording results for main10_loop
-[value] Done for function main10_loop
-[value] Recording results for main
-[value] done for function main
-[value] tests/value/downcast.i:33: 
-  assertion 'Value,unsigned_downcast' got final status invalid.
-[value] tests/value/downcast.i:81: 
-  assertion 'Value,unsigned_downcast' got final status invalid.
-[value] tests/value/downcast.i:86: 
-  assertion 'Value,unsigned_downcast' got final status invalid.
-[value] ====== VALUES COMPUTED ======
-[value:final-states] Values at end of function main1:
+[eva] Recording results for main10_loop
+[eva] Done for function main10_loop
+[eva] Recording results for main
+[eva] done for function main
+[eva] tests/value/downcast.i:33: 
+  assertion 'Eva,unsigned_downcast' got final status invalid.
+[eva] tests/value/downcast.i:81: 
+  assertion 'Eva,unsigned_downcast' got final status invalid.
+[eva] tests/value/downcast.i:86: 
+  assertion 'Eva,unsigned_downcast' got final status invalid.
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function main1:
   sz ∈ [--..--]
   uc ∈ [--..--]
   x ∈ [--..--]
   ux ∈ [--..--]
   s ∈ [--..--]
-[value:final-states] Values at end of function main10_loop:
+[eva:final-states] Values at end of function main10_loop:
   c ∈ [--..--] or UNINITIALIZED
   bf.b ∈ [--..--] or UNINITIALIZED
     .[bits 10 to 31] ∈ UNINITIALIZED
   k ∈ {10}
-[value:final-states] Values at end of function main2_bitfield:
+[eva:final-states] Values at end of function main2_bitfield:
   i ∈ {117}
   j ∈ {254}
   ss.i ∈ {-11} or UNINITIALIZED
     {.j; .[bits 10 to 31]} ∈ UNINITIALIZED
-[value:final-states] Values at end of function main3_reduction:
+[eva:final-states] Values at end of function main3_reduction:
   x_0 ∈ [--..--]
   c ∈ [--..--]
   y ∈ [0..255]
   d ∈ [--..--]
-[value:final-states] Values at end of function main4_pointer:
+[eva:final-states] Values at end of function main4_pointer:
   p ∈ {{ &x_0 + {100} }}
   q ∈ {{ &x_0 + {100} }}
   r ∈ {{ &x_0 + {100} }}
-[value:final-states] Values at end of function main5_wrap_signed:
+[eva:final-states] Values at end of function main5_wrap_signed:
   x_0 ∈ [100000..2147483647]
   y ∈ [100145..2147483792]
   z ∈ [--..--]
-[value:final-states] Values at end of function main6_val_warn_converted_signed:
+[eva:final-states] Values at end of function main6_val_warn_converted_signed:
   
-[value:final-states] Values at end of function main7_signed_upcast:
+[eva:final-states] Values at end of function main7_signed_upcast:
   c ∈ {240}
   i ∈ {240}
-[value:final-states] Values at end of function main8_bitfields:
+[eva:final-states] Values at end of function main8_bitfields:
   S.i1 ∈ {65}
    .i2 ∈ {-1; 1} or UNINITIALIZED
    .[bits 24 to 31] ∈ UNINITIALIZED
   c ∈ {-1; 1; 65} or UNINITIALIZED
-[value:final-states] Values at end of function main9_bitfield:
+[eva:final-states] Values at end of function main9_bitfield:
   bf.a ∈ {1648}
     .[bits 11 to 31] ∈ UNINITIALIZED
   c ∈ {112} or UNINITIALIZED
-[value:final-states] Values at end of function main:
+[eva:final-states] Values at end of function main:
   sz ∈ [--..--]
   uc ∈ [--..--]
   x ∈ [--..--]
@@ -882,84 +882,84 @@ void main(void)
 --- Properties of Function 'main1'
 --------------------------------------------------------------------------------
 
-[    -    ] Assertion 'Value,unsigned_downcast' (file tests/value/downcast.i, line 20)
-            tried with Value.
-[    -    ] Assertion 'Value,unsigned_downcast' (file tests/value/downcast.i, line 21)
-            tried with Value.
-[    -    ] Assertion 'Value,unsigned_downcast' (file tests/value/downcast.i, line 21)
-            tried with Value.
-[    -    ] Assertion 'Value,unsigned_downcast' (file tests/value/downcast.i, line 24)
-            tried with Value.
+[    -    ] Assertion 'Eva,unsigned_downcast' (file tests/value/downcast.i, line 20)
+            tried with Eva.
+[    -    ] Assertion 'Eva,unsigned_downcast' (file tests/value/downcast.i, line 21)
+            tried with Eva.
+[    -    ] Assertion 'Eva,unsigned_downcast' (file tests/value/downcast.i, line 21)
+            tried with Eva.
+[    -    ] Assertion 'Eva,unsigned_downcast' (file tests/value/downcast.i, line 24)
+            tried with Eva.
 
 --------------------------------------------------------------------------------
 --- Properties of Function 'main2_bitfield'
 --------------------------------------------------------------------------------
 
-[  Alarm  ] Assertion 'Value,unsigned_downcast' (file tests/value/downcast.i, line 33)
-            By Value, with pending:
+[  Alarm  ] Assertion 'Eva,unsigned_downcast' (file tests/value/downcast.i, line 33)
+            By Eva, with pending:
              - Unreachable instruction (file tests/value/downcast.i, line 33)
 
 --------------------------------------------------------------------------------
 --- Properties of Function 'main3_reduction'
 --------------------------------------------------------------------------------
 
-[    -    ] Assertion 'Value,unsigned_downcast' (file tests/value/downcast.i, line 40)
-            tried with Value.
-[    -    ] Assertion 'Value,unsigned_downcast' (file tests/value/downcast.i, line 41)
-            tried with Value.
+[    -    ] Assertion 'Eva,unsigned_downcast' (file tests/value/downcast.i, line 40)
+            tried with Eva.
+[    -    ] Assertion 'Eva,unsigned_downcast' (file tests/value/downcast.i, line 41)
+            tried with Eva.
 
 --------------------------------------------------------------------------------
 --- Properties of Function 'main4_pointer'
 --------------------------------------------------------------------------------
 
-[    -    ] Assertion 'Value,signed_overflow' (file tests/value/downcast.i, line 50)
-            tried with Value.
-[    -    ] Assertion 'Value,signed_overflow' (file tests/value/downcast.i, line 50)
-            tried with Value.
-[    -    ] Assertion 'Value,unsigned_downcast' (file tests/value/downcast.i, line 51)
-            tried with Value.
-[    -    ] Assertion 'Value,unsigned_downcast' (file tests/value/downcast.i, line 51)
-            tried with Value.
+[    -    ] Assertion 'Eva,signed_overflow' (file tests/value/downcast.i, line 50)
+            tried with Eva.
+[    -    ] Assertion 'Eva,signed_overflow' (file tests/value/downcast.i, line 50)
+            tried with Eva.
+[    -    ] Assertion 'Eva,unsigned_downcast' (file tests/value/downcast.i, line 51)
+            tried with Eva.
+[    -    ] Assertion 'Eva,unsigned_downcast' (file tests/value/downcast.i, line 51)
+            tried with Eva.
 
 --------------------------------------------------------------------------------
 --- Properties of Function 'main5_wrap_signed'
 --------------------------------------------------------------------------------
 
 [    -    ] Assertion 'ASSUME' (file tests/value/downcast.i, line 58)
-            tried with Value.
+            tried with Eva.
 [  Valid  ] Assertion (file tests/value/downcast.i, line 59)
-            by Value.
+            by Eva.
 [    -    ] Assertion (file tests/value/downcast.i, line 64)
-            tried with Value.
+            tried with Eva.
 
 --------------------------------------------------------------------------------
 --- Properties of Function 'main6_val_warn_converted_signed'
 --------------------------------------------------------------------------------
 
-[  Alarm  ] Assertion 'Value,unsigned_downcast' (file tests/value/downcast.i, line 81)
-            By Value, with pending:
+[  Alarm  ] Assertion 'Eva,unsigned_downcast' (file tests/value/downcast.i, line 81)
+            By Eva, with pending:
              - Unreachable initialization of 'e_0' (file tests/value/downcast.i, line 81)
-[  Alarm  ] Assertion 'Value,unsigned_downcast' (file tests/value/downcast.i, line 86)
-            By Value, with pending:
+[  Alarm  ] Assertion 'Eva,unsigned_downcast' (file tests/value/downcast.i, line 86)
+            By Eva, with pending:
              - Unreachable initialization of 'e_1' (file tests/value/downcast.i, line 86)
-[    -    ] Assertion 'Value,unsigned_downcast' (file tests/value/downcast.i, line 93)
-            tried with Value.
+[    -    ] Assertion 'Eva,unsigned_downcast' (file tests/value/downcast.i, line 93)
+            tried with Eva.
 
 --------------------------------------------------------------------------------
 --- Properties of Function 'main9_bitfield'
 --------------------------------------------------------------------------------
 
 [  Valid  ] Assertion (file tests/value/downcast.i, line 134)
-            by Value.
+            by Eva.
 
 --------------------------------------------------------------------------------
 --- Properties of Function 'main10_loop'
 --------------------------------------------------------------------------------
 
-[    -    ] Assertion 'Value,unsigned_downcast' (file tests/value/downcast.i, line 146)
-            tried with Value.
-[    -    ] Assertion 'Value,unsigned_downcast' (file tests/value/downcast.i, line 146)
-            tried with Value.
+[    -    ] Assertion 'Eva,unsigned_downcast' (file tests/value/downcast.i, line 146)
+            tried with Eva.
+[    -    ] Assertion 'Eva,unsigned_downcast' (file tests/value/downcast.i, line 146)
+            tried with Eva.
 
 --------------------------------------------------------------------------------
 --- Status Report Summary
@@ -997,14 +997,14 @@ int volatile v;
 void main1(void)
 {
   sz = (signed char)((int)sx + (int)sy);
-  /*@ assert Value: unsigned_downcast: 0 ≤ (int)sx + (int)sy; */
+  /*@ assert Eva: unsigned_downcast: 0 ≤ (int)sx + (int)sy; */
   uc = (unsigned char)((int)sx + (int)sy);
-  /*@ assert Value: unsigned_downcast: 0 ≤ x; */
-  /*@ assert Value: unsigned_downcast: x ≤ 255; */
+  /*@ assert Eva: unsigned_downcast: 0 ≤ x; */
+  /*@ assert Eva: unsigned_downcast: x ≤ 255; */
   uc = (unsigned char)x;
   x = (int)(uy + uz);
   ux = uy + uz;
-  /*@ assert Value: unsigned_downcast: uy + uz ≤ 65535; */
+  /*@ assert Eva: unsigned_downcast: uy + uz ≤ 65535; */
   s = (unsigned short)(uy + uz);
   return;
 }
@@ -1017,7 +1017,7 @@ void main2_bitfield(void)
   if (v) 
     ss.i = (int)i;
   if (v) 
-    /*@ assert Value: unsigned_downcast: j ≤ 31; */
+    /*@ assert Eva: unsigned_downcast: j ≤ 31; */
     ss.j = (unsigned int)j;
   return;
 }
@@ -1026,9 +1026,9 @@ void main3_reduction(void)
 {
   int x_0 = v;
   char c = (char)x_0;
-  /*@ assert Value: unsigned_downcast: 0 ≤ v; */
+  /*@ assert Eva: unsigned_downcast: 0 ≤ v; */
   unsigned int y = (unsigned int)v;
-  /*@ assert Value: unsigned_downcast: y ≤ 255; */
+  /*@ assert Eva: unsigned_downcast: y ≤ 255; */
   unsigned char d = (unsigned char)y;
   return;
 }
@@ -1038,14 +1038,14 @@ void main4_pointer(void)
   int x_0;
   long long p = (long long)(& x_0);
   /*@ assert
-      Value: signed_overflow: -9223372036854775808 ≤ p + (long long)100;
+      Eva: signed_overflow: -9223372036854775808 ≤ p + (long long)100;
   */
   /*@ assert
-      Value: signed_overflow: p + (long long)100 ≤ 9223372036854775807;
+      Eva: signed_overflow: p + (long long)100 ≤ 9223372036854775807;
   */
   p += (long long)100;
-  /*@ assert Value: unsigned_downcast: 0 ≤ p; */
-  /*@ assert Value: unsigned_downcast: p ≤ 4294967295; */
+  /*@ assert Eva: unsigned_downcast: 0 ≤ p; */
+  /*@ assert Eva: unsigned_downcast: p ≤ 4294967295; */
   unsigned int q = (unsigned int)p;
   int r = (int)p;
   return;
@@ -1081,12 +1081,12 @@ void main6_val_warn_converted_signed(void)
     short b = (short)e;
   }
   if (v) {
-    /*@ assert Value: unsigned_downcast: 0 ≤ -12; */
+    /*@ assert Eva: unsigned_downcast: 0 ≤ -12; */
     unsigned long e_0 = (unsigned long)(-12);
     short b_0 = (short)e_0;
   }
   if (v) {
-    /*@ assert Value: unsigned_downcast: 0 ≤ -64000; */
+    /*@ assert Eva: unsigned_downcast: 0 ≤ -64000; */
     unsigned int e_1 = (unsigned int)(-64000);
     short b_1 = (short)e_1;
   }
@@ -1094,7 +1094,7 @@ void main6_val_warn_converted_signed(void)
     int *p = (int *)(& v);
     int x_0 = (int)p;
     short y = (short)p;
-    /*@ assert Value: unsigned_downcast: p ≤ 65535; */
+    /*@ assert Eva: unsigned_downcast: p ≤ 65535; */
     unsigned short z = (unsigned short)p;
   }
   return;
@@ -1148,8 +1148,8 @@ void main10_loop(void)
   struct __anonstruct_bf_2 bf;
   int k = 0;
   while (k < 10) {
-    /*@ assert Value: unsigned_downcast: 0 ≤ v; */
-    /*@ assert Value: unsigned_downcast: v ≤ 1023; */
+    /*@ assert Eva: unsigned_downcast: 0 ≤ v; */
+    /*@ assert Eva: unsigned_downcast: v ≤ 1023; */
     bf.b = (unsigned int)v;
     if (v) 
       c = (signed char)bf.b;
@@ -1174,10 +1174,10 @@ void main(void)
 }
 
 
-[value] Analyzing an incomplete application starting at main
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing an incomplete application starting at main
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   sx ∈ [--..--]
   sy ∈ [--..--]
   sz ∈ [--..--]
@@ -1188,135 +1188,135 @@ void main(void)
   uz ∈ [--..--]
   s ∈ [--..--]
   v ∈ [--..--]
-[value] computing for function main1 <- main.
+[eva] computing for function main1 <- main.
   Called from tests/value/downcast.i:152.
-[value:alarm] tests/value/downcast.i:19: Warning: 
+[eva:alarm] tests/value/downcast.i:19: Warning: 
   signed downcast. assert -128 ≤ (int)sx + (int)sy;
-[value:alarm] tests/value/downcast.i:19: Warning: 
+[eva:alarm] tests/value/downcast.i:19: Warning: 
   signed downcast. assert (int)sx + (int)sy ≤ 127;
-[value] Recording results for main1
-[value] Done for function main1
-[value] computing for function main2_bitfield <- main.
+[eva] Recording results for main1
+[eva] Done for function main1
+[eva] computing for function main2_bitfield <- main.
   Called from tests/value/downcast.i:153.
-[value:alarm] tests/value/downcast.i:32: Warning: 
+[eva:alarm] tests/value/downcast.i:32: Warning: 
   signed downcast. assert i ≤ 15;
-[value] Recording results for main2_bitfield
-[value] Done for function main2_bitfield
-[value] computing for function main3_reduction <- main.
+[eva] Recording results for main2_bitfield
+[eva] Done for function main2_bitfield
+[eva] computing for function main3_reduction <- main.
   Called from tests/value/downcast.i:154.
-[value:alarm] tests/value/downcast.i:38: Warning: 
+[eva:alarm] tests/value/downcast.i:38: Warning: 
   signed downcast. assert -128 ≤ x_0;
-[value:alarm] tests/value/downcast.i:38: Warning: 
+[eva:alarm] tests/value/downcast.i:38: Warning: 
   signed downcast. assert x_0 ≤ 127;
-[value] Recording results for main3_reduction
-[value] Done for function main3_reduction
-[value] computing for function main4_pointer <- main.
+[eva] Recording results for main3_reduction
+[eva] Done for function main3_reduction
+[eva] computing for function main4_pointer <- main.
   Called from tests/value/downcast.i:155.
-[value:alarm] tests/value/downcast.i:50: Warning: 
+[eva:alarm] tests/value/downcast.i:50: Warning: 
   signed overflow. assert -9223372036854775808 ≤ p + (long long)100;
-[value:alarm] tests/value/downcast.i:50: Warning: 
+[eva:alarm] tests/value/downcast.i:50: Warning: 
   signed overflow. assert p + (long long)100 ≤ 9223372036854775807;
-[value:alarm] tests/value/downcast.i:52: Warning: 
+[eva:alarm] tests/value/downcast.i:52: Warning: 
   signed downcast. assert -2147483648 ≤ p;
-[value:alarm] tests/value/downcast.i:52: Warning: 
+[eva:alarm] tests/value/downcast.i:52: Warning: 
   signed downcast. assert p ≤ 2147483647;
-[value] Recording results for main4_pointer
-[value] Done for function main4_pointer
-[value] computing for function main5_wrap_signed <- main.
+[eva] Recording results for main4_pointer
+[eva] Done for function main4_pointer
+[eva] computing for function main5_wrap_signed <- main.
   Called from tests/value/downcast.i:156.
-[value] tests/value/downcast.i:63: 
+[eva] tests/value/downcast.i:63: 
   Frama_C_show_each:
   [100000..2147483647], [100145..2147483792], [-2147483648..2147483647]
-[value] Recording results for main5_wrap_signed
-[value] Done for function main5_wrap_signed
-[value] computing for function main6_val_warn_converted_signed <- main.
+[eva] Recording results for main5_wrap_signed
+[eva] Done for function main5_wrap_signed
+[eva] computing for function main6_val_warn_converted_signed <- main.
   Called from tests/value/downcast.i:157.
-[value:alarm] tests/value/downcast.i:71: Warning: 
+[eva:alarm] tests/value/downcast.i:71: Warning: 
   signed downcast. assert (int)65300u ≤ 32767;
-[value:alarm] tests/value/downcast.i:87: Warning: 
+[eva:alarm] tests/value/downcast.i:87: Warning: 
   signed downcast. assert -32768 ≤ (int)e_1;
-[value:alarm] tests/value/downcast.i:92: Warning: 
+[eva:alarm] tests/value/downcast.i:92: Warning: 
   signed downcast. assert -32768 ≤ (int)p;
-[value:alarm] tests/value/downcast.i:92: Warning: 
+[eva:alarm] tests/value/downcast.i:92: Warning: 
   signed downcast. assert (int)p ≤ 32767;
-[value] Recording results for main6_val_warn_converted_signed
-[value] Done for function main6_val_warn_converted_signed
-[value] computing for function main7_signed_upcast <- main.
+[eva] Recording results for main6_val_warn_converted_signed
+[eva] Done for function main6_val_warn_converted_signed
+[eva] computing for function main7_signed_upcast <- main.
   Called from tests/value/downcast.i:158.
-[value] Recording results for main7_signed_upcast
-[value] Done for function main7_signed_upcast
-[value] computing for function main8_bitfields <- main.
+[eva] Recording results for main7_signed_upcast
+[eva] Done for function main7_signed_upcast
+[eva] computing for function main8_bitfields <- main.
   Called from tests/value/downcast.i:159.
-[value:alarm] tests/value/downcast.i:119: Warning: 
+[eva:alarm] tests/value/downcast.i:119: Warning: 
   signed downcast. assert (int)S.i1 ≤ 31;
-[value:alarm] tests/value/downcast.i:120: Warning: 
+[eva:alarm] tests/value/downcast.i:120: Warning: 
   signed downcast. assert (int)S.i1 ≤ 127;
-[value:alarm] tests/value/downcast.i:124: Warning: 
+[eva:alarm] tests/value/downcast.i:124: Warning: 
   signed downcast. assert (int)S.i1 ≤ 31;
-[value] Recording results for main8_bitfields
-[value] Done for function main8_bitfields
-[value] computing for function main9_bitfield <- main.
+[eva] Recording results for main8_bitfields
+[eva] Done for function main8_bitfields
+[eva] computing for function main9_bitfield <- main.
   Called from tests/value/downcast.i:160.
-[value:alarm] tests/value/downcast.i:137: Warning: 
+[eva:alarm] tests/value/downcast.i:137: Warning: 
   signed downcast. assert -128 ≤ (int)bf.a;
-[value] Recording results for main9_bitfield
-[value] Done for function main9_bitfield
-[value] computing for function main10_loop <- main.
+[eva] Recording results for main9_bitfield
+[eva] Done for function main9_bitfield
+[eva] computing for function main10_loop <- main.
   Called from tests/value/downcast.i:161.
-[value:alarm] tests/value/downcast.i:147: Warning: 
+[eva:alarm] tests/value/downcast.i:147: Warning: 
   signed downcast. assert -128 ≤ (int)bf.b;
-[value:alarm] tests/value/downcast.i:147: Warning: 
+[eva:alarm] tests/value/downcast.i:147: Warning: 
   signed downcast. assert (int)bf.b ≤ 127;
-[value] Recording results for main10_loop
-[value] Done for function main10_loop
-[value] Recording results for main
-[value] done for function main
-[value] ====== VALUES COMPUTED ======
-[value:final-states] Values at end of function main1:
+[eva] Recording results for main10_loop
+[eva] Done for function main10_loop
+[eva] Recording results for main
+[eva] done for function main
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function main1:
   sz ∈ [--..--]
   uc ∈ [--..--]
   x ∈ [--..--]
   ux ∈ [--..--]
   s ∈ [--..--]
-[value:final-states] Values at end of function main10_loop:
+[eva:final-states] Values at end of function main10_loop:
   c ∈ [--..--] or UNINITIALIZED
   bf.b ∈ [--..--] or UNINITIALIZED
     .[bits 10 to 31] ∈ UNINITIALIZED
   k ∈ {10}
-[value:final-states] Values at end of function main2_bitfield:
+[eva:final-states] Values at end of function main2_bitfield:
   i ∈ {117}
   j ∈ {254}
   ss.i ∈ UNINITIALIZED
     .j ∈ {30} or UNINITIALIZED
     .[bits 10 to 31] ∈ UNINITIALIZED
-[value:final-states] Values at end of function main3_reduction:
+[eva:final-states] Values at end of function main3_reduction:
   x_0 ∈ [-128..127]
   c ∈ [--..--]
   y ∈ [--..--]
   d ∈ [--..--]
-[value:final-states] Values at end of function main4_pointer:
+[eva:final-states] Values at end of function main4_pointer:
   p ∈ {{ &x_0 + {100} }}
   q ∈ {{ &x_0 + {100} }}
   r ∈ {{ &x_0 + {100} }}
-[value:final-states] Values at end of function main5_wrap_signed:
+[eva:final-states] Values at end of function main5_wrap_signed:
   x_0 ∈ [100000..2147483647]
   y ∈ [100145..2147483792]
   z ∈ [--..--]
-[value:final-states] Values at end of function main6_val_warn_converted_signed:
+[eva:final-states] Values at end of function main6_val_warn_converted_signed:
   
-[value:final-states] Values at end of function main7_signed_upcast:
+[eva:final-states] Values at end of function main7_signed_upcast:
   c ∈ {240}
   i ∈ {240}
-[value:final-states] Values at end of function main8_bitfields:
+[eva:final-states] Values at end of function main8_bitfields:
   S.i1 ∈ {65}
    .i2 ∈ {-1} or UNINITIALIZED
    .[bits 24 to 31] ∈ UNINITIALIZED
   c ∈ {-1; 65} or UNINITIALIZED
-[value:final-states] Values at end of function main9_bitfield:
+[eva:final-states] Values at end of function main9_bitfield:
   bf.a ∈ {1648}
     .[bits 11 to 31] ∈ UNINITIALIZED
   c ∈ UNINITIALIZED
-[value:final-states] Values at end of function main:
+[eva:final-states] Values at end of function main:
   sz ∈ [--..--]
   uc ∈ [--..--]
   x ∈ [--..--]
@@ -1427,79 +1427,79 @@ void main(void)
 --- Properties of Function 'main1'
 --------------------------------------------------------------------------------
 
-[    -    ] Assertion 'Value,signed_downcast' (file tests/value/downcast.i, line 19)
-            tried with Value.
-[    -    ] Assertion 'Value,signed_downcast' (file tests/value/downcast.i, line 19)
-            tried with Value.
+[    -    ] Assertion 'Eva,signed_downcast' (file tests/value/downcast.i, line 19)
+            tried with Eva.
+[    -    ] Assertion 'Eva,signed_downcast' (file tests/value/downcast.i, line 19)
+            tried with Eva.
 
 --------------------------------------------------------------------------------
 --- Properties of Function 'main2_bitfield'
 --------------------------------------------------------------------------------
 
-[  Alarm  ] Assertion 'Value,signed_downcast' (file tests/value/downcast.i, line 32)
-            By Value, with pending:
+[  Alarm  ] Assertion 'Eva,signed_downcast' (file tests/value/downcast.i, line 32)
+            By Eva, with pending:
              - Unreachable instruction (file tests/value/downcast.i, line 32)
 
 --------------------------------------------------------------------------------
 --- Properties of Function 'main3_reduction'
 --------------------------------------------------------------------------------
 
-[    -    ] Assertion 'Value,signed_downcast' (file tests/value/downcast.i, line 38)
-            tried with Value.
-[    -    ] Assertion 'Value,signed_downcast' (file tests/value/downcast.i, line 38)
-            tried with Value.
+[    -    ] Assertion 'Eva,signed_downcast' (file tests/value/downcast.i, line 38)
+            tried with Eva.
+[    -    ] Assertion 'Eva,signed_downcast' (file tests/value/downcast.i, line 38)
+            tried with Eva.
 
 --------------------------------------------------------------------------------
 --- Properties of Function 'main4_pointer'
 --------------------------------------------------------------------------------
 
-[    -    ] Assertion 'Value,signed_overflow' (file tests/value/downcast.i, line 50)
-            tried with Value.
-[    -    ] Assertion 'Value,signed_overflow' (file tests/value/downcast.i, line 50)
-            tried with Value.
-[    -    ] Assertion 'Value,signed_downcast' (file tests/value/downcast.i, line 52)
-            tried with Value.
-[    -    ] Assertion 'Value,signed_downcast' (file tests/value/downcast.i, line 52)
-            tried with Value.
+[    -    ] Assertion 'Eva,signed_overflow' (file tests/value/downcast.i, line 50)
+            tried with Eva.
+[    -    ] Assertion 'Eva,signed_overflow' (file tests/value/downcast.i, line 50)
+            tried with Eva.
+[    -    ] Assertion 'Eva,signed_downcast' (file tests/value/downcast.i, line 52)
+            tried with Eva.
+[    -    ] Assertion 'Eva,signed_downcast' (file tests/value/downcast.i, line 52)
+            tried with Eva.
 
 --------------------------------------------------------------------------------
 --- Properties of Function 'main5_wrap_signed'
 --------------------------------------------------------------------------------
 
 [    -    ] Assertion 'ASSUME' (file tests/value/downcast.i, line 58)
-            tried with Value.
+            tried with Eva.
 [  Valid  ] Assertion (file tests/value/downcast.i, line 59)
-            by Value.
+            by Eva.
 [    -    ] Assertion (file tests/value/downcast.i, line 64)
-            tried with Value.
+            tried with Eva.
 
 --------------------------------------------------------------------------------
 --- Properties of Function 'main6_val_warn_converted_signed'
 --------------------------------------------------------------------------------
 
-[  Alarm  ] Assertion 'Value,signed_downcast' (file tests/value/downcast.i, line 71)
-            By Value, with pending:
+[  Alarm  ] Assertion 'Eva,signed_downcast' (file tests/value/downcast.i, line 71)
+            By Eva, with pending:
              - Unreachable initialization of 's_0' (file tests/value/downcast.i, line 71)
-[  Alarm  ] Assertion 'Value,signed_downcast' (file tests/value/downcast.i, line 87)
-            By Value, with pending:
+[  Alarm  ] Assertion 'Eva,signed_downcast' (file tests/value/downcast.i, line 87)
+            By Eva, with pending:
              - Unreachable initialization of 'b_1' (file tests/value/downcast.i, line 87)
-[    -    ] Assertion 'Value,signed_downcast' (file tests/value/downcast.i, line 92)
-            tried with Value.
-[    -    ] Assertion 'Value,signed_downcast' (file tests/value/downcast.i, line 92)
-            tried with Value.
+[    -    ] Assertion 'Eva,signed_downcast' (file tests/value/downcast.i, line 92)
+            tried with Eva.
+[    -    ] Assertion 'Eva,signed_downcast' (file tests/value/downcast.i, line 92)
+            tried with Eva.
 
 --------------------------------------------------------------------------------
 --- Properties of Function 'main8_bitfields'
 --------------------------------------------------------------------------------
 
-[  Alarm  ] Assertion 'Value,signed_downcast' (file tests/value/downcast.i, line 119)
-            By Value, with pending:
+[  Alarm  ] Assertion 'Eva,signed_downcast' (file tests/value/downcast.i, line 119)
+            By Eva, with pending:
              - Unreachable instruction (file tests/value/downcast.i, line 119)
-[  Alarm  ] Assertion 'Value,signed_downcast' (file tests/value/downcast.i, line 120)
-            By Value, with pending:
+[  Alarm  ] Assertion 'Eva,signed_downcast' (file tests/value/downcast.i, line 120)
+            By Eva, with pending:
              - Unreachable instruction (file tests/value/downcast.i, line 120)
-[  Alarm  ] Assertion 'Value,signed_downcast' (file tests/value/downcast.i, line 124)
-            By Value, with pending:
+[  Alarm  ] Assertion 'Eva,signed_downcast' (file tests/value/downcast.i, line 124)
+            By Eva, with pending:
              - Unreachable instruction (file tests/value/downcast.i, line 124)
 
 --------------------------------------------------------------------------------
@@ -1507,19 +1507,19 @@ void main(void)
 --------------------------------------------------------------------------------
 
 [  Valid  ] Assertion (file tests/value/downcast.i, line 134)
-            by Value.
-[  Alarm  ] Assertion 'Value,signed_downcast' (file tests/value/downcast.i, line 137)
-            By Value, with pending:
+            by Eva.
+[  Alarm  ] Assertion 'Eva,signed_downcast' (file tests/value/downcast.i, line 137)
+            By Eva, with pending:
              - Unreachable instruction (file tests/value/downcast.i, line 137)
 
 --------------------------------------------------------------------------------
 --- Properties of Function 'main10_loop'
 --------------------------------------------------------------------------------
 
-[    -    ] Assertion 'Value,signed_downcast' (file tests/value/downcast.i, line 147)
-            tried with Value.
-[    -    ] Assertion 'Value,signed_downcast' (file tests/value/downcast.i, line 147)
-            tried with Value.
+[    -    ] Assertion 'Eva,signed_downcast' (file tests/value/downcast.i, line 147)
+            tried with Eva.
+[    -    ] Assertion 'Eva,signed_downcast' (file tests/value/downcast.i, line 147)
+            tried with Eva.
 
 --------------------------------------------------------------------------------
 --- Status Report Summary
@@ -1556,8 +1556,8 @@ unsigned short s;
 int volatile v;
 void main1(void)
 {
-  /*@ assert Value: signed_downcast: -128 ≤ (int)sx + (int)sy; */
-  /*@ assert Value: signed_downcast: (int)sx + (int)sy ≤ 127; */
+  /*@ assert Eva: signed_downcast: -128 ≤ (int)sx + (int)sy; */
+  /*@ assert Eva: signed_downcast: (int)sx + (int)sy ≤ 127; */
   sz = (signed char)((int)sx + (int)sy);
   uc = (unsigned char)((int)sx + (int)sy);
   uc = (unsigned char)x;
@@ -1573,7 +1573,7 @@ void main2_bitfield(void)
   int i = 117;
   unsigned int j = (unsigned int)254;
   if (v) 
-    /*@ assert Value: signed_downcast: i ≤ 15; */
+    /*@ assert Eva: signed_downcast: i ≤ 15; */
     ss.i = (int)i;
   if (v) 
     ss.j = (unsigned int)j;
@@ -1583,8 +1583,8 @@ void main2_bitfield(void)
 void main3_reduction(void)
 {
   int x_0 = v;
-  /*@ assert Value: signed_downcast: -128 ≤ x_0; */
-  /*@ assert Value: signed_downcast: x_0 ≤ 127; */
+  /*@ assert Eva: signed_downcast: -128 ≤ x_0; */
+  /*@ assert Eva: signed_downcast: x_0 ≤ 127; */
   char c = (char)x_0;
   unsigned int y = (unsigned int)v;
   unsigned char d = (unsigned char)y;
@@ -1596,15 +1596,15 @@ void main4_pointer(void)
   int x_0;
   long long p = (long long)(& x_0);
   /*@ assert
-      Value: signed_overflow: -9223372036854775808 ≤ p + (long long)100;
+      Eva: signed_overflow: -9223372036854775808 ≤ p + (long long)100;
   */
   /*@ assert
-      Value: signed_overflow: p + (long long)100 ≤ 9223372036854775807;
+      Eva: signed_overflow: p + (long long)100 ≤ 9223372036854775807;
   */
   p += (long long)100;
   unsigned int q = (unsigned int)p;
-  /*@ assert Value: signed_downcast: -2147483648 ≤ p; */
-  /*@ assert Value: signed_downcast: p ≤ 2147483647; */
+  /*@ assert Eva: signed_downcast: -2147483648 ≤ p; */
+  /*@ assert Eva: signed_downcast: p ≤ 2147483647; */
   int r = (int)p;
   return;
 }
@@ -1629,7 +1629,7 @@ void main5_wrap_signed(void)
 void main6_val_warn_converted_signed(void)
 {
   if (v) {
-    /*@ assert Value: signed_downcast: (int)65300u ≤ 32767; */
+    /*@ assert Eva: signed_downcast: (int)65300u ≤ 32767; */
     short s_0 = (short)65300u;
   }
   if (v) {
@@ -1645,14 +1645,14 @@ void main6_val_warn_converted_signed(void)
   }
   if (v) {
     unsigned int e_1 = (unsigned int)(-64000);
-    /*@ assert Value: signed_downcast: -32768 ≤ (int)e_1; */
+    /*@ assert Eva: signed_downcast: -32768 ≤ (int)e_1; */
     short b_1 = (short)e_1;
   }
   if (v) {
     int *p = (int *)(& v);
     int x_0 = (int)p;
-    /*@ assert Value: signed_downcast: -32768 ≤ (int)p; */
-    /*@ assert Value: signed_downcast: (int)p ≤ 32767; */
+    /*@ assert Eva: signed_downcast: -32768 ≤ (int)p; */
+    /*@ assert Eva: signed_downcast: (int)p ≤ 32767; */
     short y = (short)p;
     unsigned short z = (unsigned short)p;
   }
@@ -1677,14 +1677,14 @@ void main8_bitfields(void)
     c = (signed char)S.i1;
   S.i1 = (unsigned int)257u;
   if (v) 
-    /*@ assert Value: signed_downcast: (int)S.i1 ≤ 31; */
+    /*@ assert Eva: signed_downcast: (int)S.i1 ≤ 31; */
     S.i2 = (int)S.i1;
   if (v) 
-    /*@ assert Value: signed_downcast: (int)S.i1 ≤ 127; */
+    /*@ assert Eva: signed_downcast: (int)S.i1 ≤ 127; */
     c = (signed char)S.i1;
   S.i1 = (unsigned int)65u;
   if (v) 
-    /*@ assert Value: signed_downcast: (int)S.i1 ≤ 31; */
+    /*@ assert Eva: signed_downcast: (int)S.i1 ≤ 31; */
     S.i2 = (int)S.i1;
   if (v) c = (signed char)S.i1;
   return;
@@ -1700,7 +1700,7 @@ void main9_bitfield(void)
     /*@ assert signed_a ≡ -400; */ ;
   }
   if (v) 
-    /*@ assert Value: signed_downcast: -128 ≤ (int)bf.a; */
+    /*@ assert Eva: signed_downcast: -128 ≤ (int)bf.a; */
     c = (signed char)bf.a;
   return;
 }
@@ -1713,8 +1713,8 @@ void main10_loop(void)
   while (k < 10) {
     bf.b = (unsigned int)v;
     if (v) 
-      /*@ assert Value: signed_downcast: -128 ≤ (int)bf.b; */
-      /*@ assert Value: signed_downcast: (int)bf.b ≤ 127; */
+      /*@ assert Eva: signed_downcast: -128 ≤ (int)bf.b; */
+      /*@ assert Eva: signed_downcast: (int)bf.b ≤ 127; */
       c = (signed char)bf.b;
     k ++;
   }
@@ -1737,10 +1737,10 @@ void main(void)
 }
 
 
-[value] Analyzing an incomplete application starting at main5_wrap_signed
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing an incomplete application starting at main5_wrap_signed
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   sx ∈ [--..--]
   sy ∈ [--..--]
   sz ∈ [--..--]
@@ -1751,18 +1751,18 @@ void main(void)
   uz ∈ [--..--]
   s ∈ [--..--]
   v ∈ [--..--]
-[value] tests/value/downcast.i:63: 
+[eva] tests/value/downcast.i:63: 
   Frama_C_show_each:
   [2147483503..2147483647],
   [2147483648..2147483792],
   [-2147483648..-2147483504]
-[value] tests/value/downcast.i:63: 
+[eva] tests/value/downcast.i:63: 
   Frama_C_show_each:
   [100000..2147483502], [100145..2147483647], [100145..2147483647]
-[value] Recording results for main5_wrap_signed
-[value] done for function main5_wrap_signed
-[value] ====== VALUES COMPUTED ======
-[value:final-states] Values at end of function main5_wrap_signed:
+[eva] Recording results for main5_wrap_signed
+[eva] done for function main5_wrap_signed
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function main5_wrap_signed:
   x_0 ∈ [100000..2147483647]
   y ∈ [100145..2147483792]
   z ∈ [--..--]
@@ -1784,11 +1784,11 @@ void main(void)
 --------------------------------------------------------------------------------
 
 [    -    ] Assertion 'ASSUME' (file tests/value/downcast.i, line 58)
-            tried with Value (v2).
+            tried with Eva (v2).
 [  Valid  ] Assertion (file tests/value/downcast.i, line 59)
-            by Value (v2).
+            by Eva (v2).
 [  Valid  ] Assertion (file tests/value/downcast.i, line 64)
-            by Value (v2).
+            by Eva (v2).
 
 --------------------------------------------------------------------------------
 --- Properties of Function 'main9_bitfield'
@@ -1796,10 +1796,10 @@ void main(void)
 
 [  Dead   ] Assertion (file tests/value/downcast.i, line 134)
             Locally valid, but unreachable.
-            By Value (v2) because:
+            By Eva (v2) because:
              - Unreachable program point (file tests/value/downcast.i, line 134)
 [Unreachable] Unreachable program point (file tests/value/downcast.i, line 134)
-            by Value (v2).
+            by Eva (v2).
 
 --------------------------------------------------------------------------------
 --- Status Report Summary

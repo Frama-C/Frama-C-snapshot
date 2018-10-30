@@ -1,8 +1,8 @@
 [kernel] Parsing tests/test/adpcm.c (with preprocessing)
-[value] Analyzing a complete application starting at main
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing a complete application starting at main
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   tqmf[0..23] ∈ {0}
   h[0] ∈ {12}
    [1..2] ∈ {-44}
@@ -376,407 +376,344 @@
            [3] ∈ {0}
            [4..9] ∈ {1}
   compressed[0..9] ∈ {0}
-[value] computing for function encode <- main.
+[eva] computing for function encode <- main.
   Called from tests/test/adpcm.c:608.
-[value] computing for function filtez <- encode <- main.
+[eva] computing for function filtez <- encode <- main.
   Called from tests/test/adpcm.c:301.
-[value] Recording results for filtez
-[value] Done for function filtez
-[value] computing for function filtep <- encode <- main.
+[eva] Recording results for filtez
+[eva] Done for function filtez
+[eva] computing for function filtep <- encode <- main.
   Called from tests/test/adpcm.c:304.
-[value] Recording results for filtep
-[value] Done for function filtep
-[value] computing for function quantl <- encode <- main.
+[eva] Recording results for filtep
+[eva] Done for function filtep
+[eva] computing for function quantl <- encode <- main.
   Called from tests/test/adpcm.c:311.
-[value] computing for function abs <- quantl <- encode <- main.
+[eva] computing for function abs <- quantl <- encode <- main.
   Called from tests/test/adpcm.c:444.
-[value] Recording results for abs
-[value] Done for function abs
-[value] Recording results for quantl
-[value] Done for function quantl
-[value] computing for function logscl <- encode <- main.
+[eva] Recording results for abs
+[eva] Done for function abs
+[eva] Recording results for quantl
+[eva] Done for function quantl
+[eva] computing for function logscl <- encode <- main.
   Called from tests/test/adpcm.c:318.
-[value] Recording results for logscl
-[value] Done for function logscl
-[value] computing for function scalel <- encode <- main.
+[eva] Recording results for logscl
+[eva] Done for function logscl
+[eva] computing for function scalel <- encode <- main.
   Called from tests/test/adpcm.c:322.
-[value] Recording results for scalel
-[value] Done for function scalel
-[value] computing for function upzero <- encode <- main.
+[eva] Recording results for scalel
+[eva] Done for function scalel
+[eva] computing for function upzero <- encode <- main.
   Called from tests/test/adpcm.c:331.
-[value] Recording results for upzero
-[value] Done for function upzero
-[value] computing for function uppol2 <- encode <- main.
+[eva] Recording results for upzero
+[eva] Done for function upzero
+[eva] computing for function uppol2 <- encode <- main.
   Called from tests/test/adpcm.c:335.
-[value] Recording results for uppol2
-[value] Done for function uppol2
-[value] computing for function uppol1 <- encode <- main.
+[eva] Recording results for uppol2
+[eva] Done for function uppol2
+[eva] computing for function uppol1 <- encode <- main.
   Called from tests/test/adpcm.c:339.
-[value] Recording results for uppol1
-[value] Done for function uppol1
-[value] computing for function filtez <- encode <- main.
+[eva] Recording results for uppol1
+[eva] Done for function uppol1
+[eva] computing for function filtez <- encode <- main.
   Called from tests/test/adpcm.c:352.
-[value] Recording results for filtez
-[value] Done for function filtez
-[value] computing for function filtep <- encode <- main.
-  Called from tests/test/adpcm.c:354.
-[value] Recording results for filtep
-[value] Done for function filtep
-[value] computing for function abs <- encode <- main.
-  Called from tests/test/adpcm.c:370.
-[value] Recording results for abs
-[value] Done for function abs
-[value] computing for function logsch <- encode <- main.
+[eva] Recording results for filtez
+[eva] Done for function filtez
+[eva] tests/test/adpcm.c:354: Reusing old results for call to filtep
+[eva] tests/test/adpcm.c:370: Reusing old results for call to abs
+[eva] computing for function logsch <- encode <- main.
   Called from tests/test/adpcm.c:376.
-[value] Recording results for logsch
-[value] Done for function logsch
-[value] computing for function scalel <- encode <- main.
+[eva] Recording results for logsch
+[eva] Done for function logsch
+[eva] computing for function scalel <- encode <- main.
   Called from tests/test/adpcm.c:379.
-[value] Recording results for scalel
-[value] Done for function scalel
-[value] computing for function upzero <- encode <- main.
+[eva] Recording results for scalel
+[eva] Done for function scalel
+[eva] computing for function upzero <- encode <- main.
   Called from tests/test/adpcm.c:387.
-[value] Recording results for upzero
-[value] Done for function upzero
-[value] computing for function uppol2 <- encode <- main.
-  Called from tests/test/adpcm.c:391.
-[value] Recording results for uppol2
-[value] Done for function uppol2
-[value] computing for function uppol1 <- encode <- main.
-  Called from tests/test/adpcm.c:394.
-[value] Recording results for uppol1
-[value] Done for function uppol1
-[value] tests/test/adpcm.c:262: function encode: postcondition got status valid.
-[value] Recording results for encode
-[value] Done for function encode
-[value] computing for function encode <- main.
+[eva] Recording results for upzero
+[eva] Done for function upzero
+[eva] tests/test/adpcm.c:391: Reusing old results for call to uppol2
+[eva] tests/test/adpcm.c:394: Reusing old results for call to uppol1
+[eva] tests/test/adpcm.c:262: function encode: postcondition got status valid.
+[eva] Recording results for encode
+[eva] Done for function encode
+[eva] computing for function encode <- main.
   Called from tests/test/adpcm.c:608.
-[value] computing for function filtez <- encode <- main.
-  Called from tests/test/adpcm.c:301.
-[value] Recording results for filtez
-[value] Done for function filtez
-[value] computing for function filtep <- encode <- main.
+[eva] tests/test/adpcm.c:301: Reusing old results for call to filtez
+[eva] computing for function filtep <- encode <- main.
   Called from tests/test/adpcm.c:304.
-[value] Recording results for filtep
-[value] Done for function filtep
-[value] computing for function quantl <- encode <- main.
+[eva] Recording results for filtep
+[eva] Done for function filtep
+[eva] computing for function quantl <- encode <- main.
   Called from tests/test/adpcm.c:311.
-[value] computing for function abs <- quantl <- encode <- main.
+[eva] computing for function abs <- quantl <- encode <- main.
   Called from tests/test/adpcm.c:444.
-[value] Recording results for abs
-[value] Done for function abs
-[value] Recording results for quantl
-[value] Done for function quantl
-[value] computing for function logscl <- encode <- main.
+[eva] Recording results for abs
+[eva] Done for function abs
+[eva] Recording results for quantl
+[eva] Done for function quantl
+[eva] computing for function logscl <- encode <- main.
   Called from tests/test/adpcm.c:318.
-[value] Recording results for logscl
-[value] Done for function logscl
-[value] computing for function scalel <- encode <- main.
+[eva] Recording results for logscl
+[eva] Done for function logscl
+[eva] computing for function scalel <- encode <- main.
   Called from tests/test/adpcm.c:322.
-[value] Recording results for scalel
-[value] Done for function scalel
-[value] computing for function upzero <- encode <- main.
-  Called from tests/test/adpcm.c:331.
-[value] Recording results for upzero
-[value] Done for function upzero
-[value] computing for function uppol2 <- encode <- main.
+[eva] Recording results for scalel
+[eva] Done for function scalel
+[eva] tests/test/adpcm.c:331: Reusing old results for call to upzero
+[eva] computing for function uppol2 <- encode <- main.
   Called from tests/test/adpcm.c:335.
-[value] Recording results for uppol2
-[value] Done for function uppol2
-[value] computing for function uppol1 <- encode <- main.
+[eva] Recording results for uppol2
+[eva] Done for function uppol2
+[eva] computing for function uppol1 <- encode <- main.
   Called from tests/test/adpcm.c:339.
-[value] Recording results for uppol1
-[value] Done for function uppol1
-[value] computing for function filtez <- encode <- main.
-  Called from tests/test/adpcm.c:352.
-[value] Recording results for filtez
-[value] Done for function filtez
-[value] computing for function filtep <- encode <- main.
-  Called from tests/test/adpcm.c:354.
-[value] Recording results for filtep
-[value] Done for function filtep
-[value] computing for function abs <- encode <- main.
-  Called from tests/test/adpcm.c:370.
-[value] Recording results for abs
-[value] Done for function abs
-[value] computing for function logsch <- encode <- main.
-  Called from tests/test/adpcm.c:376.
-[value] Recording results for logsch
-[value] Done for function logsch
-[value] computing for function scalel <- encode <- main.
-  Called from tests/test/adpcm.c:379.
-[value] Recording results for scalel
-[value] Done for function scalel
-[value] computing for function upzero <- encode <- main.
-  Called from tests/test/adpcm.c:387.
-[value] Recording results for upzero
-[value] Done for function upzero
-[value] computing for function uppol2 <- encode <- main.
-  Called from tests/test/adpcm.c:391.
-[value] Recording results for uppol2
-[value] Done for function uppol2
-[value] computing for function uppol1 <- encode <- main.
-  Called from tests/test/adpcm.c:394.
-[value] Recording results for uppol1
-[value] Done for function uppol1
-[value] Recording results for encode
-[value] Done for function encode
-[value] computing for function encode <- main.
+[eva] Recording results for uppol1
+[eva] Done for function uppol1
+[eva] tests/test/adpcm.c:352: Reusing old results for call to filtez
+[eva] tests/test/adpcm.c:354: Reusing old results for call to filtep
+[eva] tests/test/adpcm.c:370: Reusing old results for call to abs
+[eva] tests/test/adpcm.c:376: Reusing old results for call to logsch
+[eva] tests/test/adpcm.c:379: Reusing old results for call to scalel
+[eva] tests/test/adpcm.c:387: Reusing old results for call to upzero
+[eva] tests/test/adpcm.c:391: Reusing old results for call to uppol2
+[eva] tests/test/adpcm.c:394: Reusing old results for call to uppol1
+[eva] Recording results for encode
+[eva] Done for function encode
+[eva] computing for function encode <- main.
   Called from tests/test/adpcm.c:608.
-[value] computing for function filtez <- encode <- main.
-  Called from tests/test/adpcm.c:301.
-[value] Recording results for filtez
-[value] Done for function filtez
-[value] computing for function filtep <- encode <- main.
+[eva] tests/test/adpcm.c:301: Reusing old results for call to filtez
+[eva] computing for function filtep <- encode <- main.
   Called from tests/test/adpcm.c:304.
-[value] Recording results for filtep
-[value] Done for function filtep
-[value] computing for function quantl <- encode <- main.
+[eva] Recording results for filtep
+[eva] Done for function filtep
+[eva] computing for function quantl <- encode <- main.
   Called from tests/test/adpcm.c:311.
-[value] computing for function abs <- quantl <- encode <- main.
-  Called from tests/test/adpcm.c:444.
-[value] Recording results for abs
-[value] Done for function abs
-[value] Recording results for quantl
-[value] Done for function quantl
-[value] computing for function logscl <- encode <- main.
+[eva] tests/test/adpcm.c:444: Reusing old results for call to abs
+[eva] Recording results for quantl
+[eva] Done for function quantl
+[eva] computing for function logscl <- encode <- main.
   Called from tests/test/adpcm.c:318.
-[value] Recording results for logscl
-[value] Done for function logscl
-[value] computing for function scalel <- encode <- main.
+[eva] Recording results for logscl
+[eva] Done for function logscl
+[eva] computing for function scalel <- encode <- main.
   Called from tests/test/adpcm.c:322.
-[value] Recording results for scalel
-[value] Done for function scalel
-[value] computing for function upzero <- encode <- main.
+[eva] Recording results for scalel
+[eva] Done for function scalel
+[eva] computing for function upzero <- encode <- main.
   Called from tests/test/adpcm.c:331.
-[value] Recording results for upzero
-[value] Done for function upzero
-[value] computing for function uppol2 <- encode <- main.
+[eva] Recording results for upzero
+[eva] Done for function upzero
+[eva] computing for function uppol2 <- encode <- main.
   Called from tests/test/adpcm.c:335.
-[value] Recording results for uppol2
-[value] Done for function uppol2
-[value] computing for function uppol1 <- encode <- main.
+[eva] Recording results for uppol2
+[eva] Done for function uppol2
+[eva] computing for function uppol1 <- encode <- main.
   Called from tests/test/adpcm.c:339.
-[value] Recording results for uppol1
-[value] Done for function uppol1
-[value] computing for function filtez <- encode <- main.
-  Called from tests/test/adpcm.c:352.
-[value] Recording results for filtez
-[value] Done for function filtez
-[value] computing for function filtep <- encode <- main.
-  Called from tests/test/adpcm.c:354.
-[value] Recording results for filtep
-[value] Done for function filtep
-[value] computing for function abs <- encode <- main.
-  Called from tests/test/adpcm.c:370.
-[value] Recording results for abs
-[value] Done for function abs
-[value] computing for function logsch <- encode <- main.
+[eva] Recording results for uppol1
+[eva] Done for function uppol1
+[eva] tests/test/adpcm.c:352: Reusing old results for call to filtez
+[eva] tests/test/adpcm.c:354: Reusing old results for call to filtep
+[eva] tests/test/adpcm.c:370: Reusing old results for call to abs
+[eva] computing for function logsch <- encode <- main.
   Called from tests/test/adpcm.c:376.
-[value] Recording results for logsch
-[value] Done for function logsch
-[value] computing for function scalel <- encode <- main.
-  Called from tests/test/adpcm.c:379.
-[value] Recording results for scalel
-[value] Done for function scalel
-[value] computing for function upzero <- encode <- main.
+[eva] Recording results for logsch
+[eva] Done for function logsch
+[eva] tests/test/adpcm.c:379: Reusing old results for call to scalel
+[eva] computing for function upzero <- encode <- main.
   Called from tests/test/adpcm.c:387.
-[value] Recording results for upzero
-[value] Done for function upzero
-[value] computing for function uppol2 <- encode <- main.
+[eva] Recording results for upzero
+[eva] Done for function upzero
+[eva] computing for function uppol2 <- encode <- main.
   Called from tests/test/adpcm.c:391.
-[value] Recording results for uppol2
-[value] Done for function uppol2
-[value] computing for function uppol1 <- encode <- main.
+[eva] Recording results for uppol2
+[eva] Done for function uppol2
+[eva] computing for function uppol1 <- encode <- main.
   Called from tests/test/adpcm.c:394.
-[value] Recording results for uppol1
-[value] Done for function uppol1
-[value] Recording results for encode
-[value] Done for function encode
-[value] computing for function encode <- main.
+[eva] Recording results for uppol1
+[eva] Done for function uppol1
+[eva] Recording results for encode
+[eva] Done for function encode
+[eva] computing for function encode <- main.
   Called from tests/test/adpcm.c:608.
-[value] computing for function filtez <- encode <- main.
+[eva] computing for function filtez <- encode <- main.
   Called from tests/test/adpcm.c:301.
-[value] Recording results for filtez
-[value] Done for function filtez
-[value] computing for function filtep <- encode <- main.
+[eva] Recording results for filtez
+[eva] Done for function filtez
+[eva] computing for function filtep <- encode <- main.
   Called from tests/test/adpcm.c:304.
-[value] Recording results for filtep
-[value] Done for function filtep
-[value] computing for function quantl <- encode <- main.
+[eva] Recording results for filtep
+[eva] Done for function filtep
+[eva] computing for function quantl <- encode <- main.
   Called from tests/test/adpcm.c:311.
-[value] computing for function abs <- quantl <- encode <- main.
+[eva] computing for function abs <- quantl <- encode <- main.
   Called from tests/test/adpcm.c:444.
-[value] Recording results for abs
-[value] Done for function abs
-[value] Recording results for quantl
-[value] Done for function quantl
-[value] computing for function logscl <- encode <- main.
+[eva] Recording results for abs
+[eva] Done for function abs
+[eva] Recording results for quantl
+[eva] Done for function quantl
+[eva] computing for function logscl <- encode <- main.
   Called from tests/test/adpcm.c:318.
-[value] Recording results for logscl
-[value] Done for function logscl
-[value] computing for function scalel <- encode <- main.
+[eva] Recording results for logscl
+[eva] Done for function logscl
+[eva] computing for function scalel <- encode <- main.
   Called from tests/test/adpcm.c:322.
-[value] Recording results for scalel
-[value] Done for function scalel
-[value] computing for function upzero <- encode <- main.
+[eva] Recording results for scalel
+[eva] Done for function scalel
+[eva] computing for function upzero <- encode <- main.
   Called from tests/test/adpcm.c:331.
-[value] Recording results for upzero
-[value] Done for function upzero
-[value] computing for function uppol2 <- encode <- main.
+[eva] Recording results for upzero
+[eva] Done for function upzero
+[eva] computing for function uppol2 <- encode <- main.
   Called from tests/test/adpcm.c:335.
-[value] Recording results for uppol2
-[value] Done for function uppol2
-[value] computing for function uppol1 <- encode <- main.
+[eva] Recording results for uppol2
+[eva] Done for function uppol2
+[eva] computing for function uppol1 <- encode <- main.
   Called from tests/test/adpcm.c:339.
-[value] Recording results for uppol1
-[value] Done for function uppol1
-[value] computing for function filtez <- encode <- main.
+[eva] Recording results for uppol1
+[eva] Done for function uppol1
+[eva] computing for function filtez <- encode <- main.
   Called from tests/test/adpcm.c:352.
-[value] Recording results for filtez
-[value] Done for function filtez
-[value] computing for function filtep <- encode <- main.
+[eva] Recording results for filtez
+[eva] Done for function filtez
+[eva] computing for function filtep <- encode <- main.
   Called from tests/test/adpcm.c:354.
-[value] Recording results for filtep
-[value] Done for function filtep
-[value] computing for function abs <- encode <- main.
+[eva] Recording results for filtep
+[eva] Done for function filtep
+[eva] computing for function abs <- encode <- main.
   Called from tests/test/adpcm.c:370.
-[value] Recording results for abs
-[value] Done for function abs
-[value] computing for function logsch <- encode <- main.
+[eva] Recording results for abs
+[eva] Done for function abs
+[eva] computing for function logsch <- encode <- main.
   Called from tests/test/adpcm.c:376.
-[value] Recording results for logsch
-[value] Done for function logsch
-[value] computing for function scalel <- encode <- main.
+[eva] Recording results for logsch
+[eva] Done for function logsch
+[eva] computing for function scalel <- encode <- main.
   Called from tests/test/adpcm.c:379.
-[value] Recording results for scalel
-[value] Done for function scalel
-[value] computing for function upzero <- encode <- main.
+[eva] Recording results for scalel
+[eva] Done for function scalel
+[eva] computing for function upzero <- encode <- main.
   Called from tests/test/adpcm.c:387.
-[value] Recording results for upzero
-[value] Done for function upzero
-[value] computing for function uppol2 <- encode <- main.
+[eva] Recording results for upzero
+[eva] Done for function upzero
+[eva] computing for function uppol2 <- encode <- main.
   Called from tests/test/adpcm.c:391.
-[value] Recording results for uppol2
-[value] Done for function uppol2
-[value] computing for function uppol1 <- encode <- main.
+[eva] Recording results for uppol2
+[eva] Done for function uppol2
+[eva] computing for function uppol1 <- encode <- main.
   Called from tests/test/adpcm.c:394.
-[value] Recording results for uppol1
-[value] Done for function uppol1
-[value] Recording results for encode
-[value] Done for function encode
-[value] computing for function encode <- main.
+[eva] Recording results for uppol1
+[eva] Done for function uppol1
+[eva] Recording results for encode
+[eva] Done for function encode
+[eva] computing for function encode <- main.
   Called from tests/test/adpcm.c:608.
-[value] computing for function filtez <- encode <- main.
+[eva] computing for function filtez <- encode <- main.
   Called from tests/test/adpcm.c:301.
-[value] Recording results for filtez
-[value] Done for function filtez
-[value] computing for function filtep <- encode <- main.
+[eva] Recording results for filtez
+[eva] Done for function filtez
+[eva] computing for function filtep <- encode <- main.
   Called from tests/test/adpcm.c:304.
-[value] Recording results for filtep
-[value] Done for function filtep
-[value] computing for function quantl <- encode <- main.
+[eva] Recording results for filtep
+[eva] Done for function filtep
+[eva] computing for function quantl <- encode <- main.
   Called from tests/test/adpcm.c:311.
-[value] computing for function abs <- quantl <- encode <- main.
-  Called from tests/test/adpcm.c:444.
-[value] Recording results for abs
-[value] Done for function abs
-[value] Recording results for quantl
-[value] Done for function quantl
-[value] computing for function logscl <- encode <- main.
+[eva] tests/test/adpcm.c:444: Reusing old results for call to abs
+[eva] Recording results for quantl
+[eva] Done for function quantl
+[eva] computing for function logscl <- encode <- main.
   Called from tests/test/adpcm.c:318.
-[value] Recording results for logscl
-[value] Done for function logscl
-[value] computing for function scalel <- encode <- main.
+[eva] Recording results for logscl
+[eva] Done for function logscl
+[eva] computing for function scalel <- encode <- main.
   Called from tests/test/adpcm.c:322.
-[value] Recording results for scalel
-[value] Done for function scalel
-[value] computing for function upzero <- encode <- main.
+[eva] Recording results for scalel
+[eva] Done for function scalel
+[eva] computing for function upzero <- encode <- main.
   Called from tests/test/adpcm.c:331.
-[value] Recording results for upzero
-[value] Done for function upzero
-[value] computing for function uppol2 <- encode <- main.
+[eva] Recording results for upzero
+[eva] Done for function upzero
+[eva] computing for function uppol2 <- encode <- main.
   Called from tests/test/adpcm.c:335.
-[value] Recording results for uppol2
-[value] Done for function uppol2
-[value] computing for function uppol1 <- encode <- main.
+[eva] Recording results for uppol2
+[eva] Done for function uppol2
+[eva] computing for function uppol1 <- encode <- main.
   Called from tests/test/adpcm.c:339.
-[value] Recording results for uppol1
-[value] Done for function uppol1
-[value] computing for function filtez <- encode <- main.
+[eva] Recording results for uppol1
+[eva] Done for function uppol1
+[eva] computing for function filtez <- encode <- main.
   Called from tests/test/adpcm.c:352.
-[value] Recording results for filtez
-[value] Done for function filtez
-[value] computing for function filtep <- encode <- main.
+[eva] Recording results for filtez
+[eva] Done for function filtez
+[eva] computing for function filtep <- encode <- main.
   Called from tests/test/adpcm.c:354.
-[value] Recording results for filtep
-[value] Done for function filtep
-[value] computing for function abs <- encode <- main.
+[eva] Recording results for filtep
+[eva] Done for function filtep
+[eva] computing for function abs <- encode <- main.
   Called from tests/test/adpcm.c:370.
-[value] Recording results for abs
-[value] Done for function abs
-[value] computing for function logsch <- encode <- main.
+[eva] Recording results for abs
+[eva] Done for function abs
+[eva] computing for function logsch <- encode <- main.
   Called from tests/test/adpcm.c:376.
-[value] Recording results for logsch
-[value] Done for function logsch
-[value] computing for function scalel <- encode <- main.
+[eva] Recording results for logsch
+[eva] Done for function logsch
+[eva] computing for function scalel <- encode <- main.
   Called from tests/test/adpcm.c:379.
-[value] Recording results for scalel
-[value] Done for function scalel
-[value] computing for function upzero <- encode <- main.
+[eva] Recording results for scalel
+[eva] Done for function scalel
+[eva] computing for function upzero <- encode <- main.
   Called from tests/test/adpcm.c:387.
-[value] Recording results for upzero
-[value] Done for function upzero
-[value] computing for function uppol2 <- encode <- main.
+[eva] Recording results for upzero
+[eva] Done for function upzero
+[eva] computing for function uppol2 <- encode <- main.
   Called from tests/test/adpcm.c:391.
-[value] Recording results for uppol2
-[value] Done for function uppol2
-[value] computing for function uppol1 <- encode <- main.
+[eva] Recording results for uppol2
+[eva] Done for function uppol2
+[eva] computing for function uppol1 <- encode <- main.
   Called from tests/test/adpcm.c:394.
-[value] Recording results for uppol1
-[value] Done for function uppol1
-[value] Recording results for encode
-[value] Done for function encode
-[value] Recording results for main
-[value] done for function main
-[value] ====== VALUES COMPUTED ======
-[value:final-states] Values at end of function abs:
+[eva] Recording results for uppol1
+[eva] Done for function uppol1
+[eva] Recording results for encode
+[eva] Done for function encode
+[eva] Recording results for main
+[eva] done for function main
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function abs:
   m ∈ {0; 1; 2}
-[value:final-states] Values at end of function filtep:
+[eva:final-states] Values at end of function filtep:
   pl ∈ {-2464; -1146; 0; 47584; 56154}
   pl2 ∈ {-2; 0; 98}
   __retres ∈ {-1; 0; 1}
-[value:final-states] Values at end of function filtez:
+[eva:final-states] Values at end of function filtez:
   bpl ∈ {{ &delay_bpl[6] ; &delay_bph[6] }}
   dlt_0 ∈ {{ &delay_dltx[6] ; &delay_dhx[6] }}
   i ∈ {6}
   zl ∈ {-256; -128; 0; 6223; 6272}
   __retres ∈ {-1; 0}
-[value:final-states] Values at end of function logsch:
+[eva:final-states] Values at end of function logsch:
   nbh_0 ∈ {0; 577; 798}
   wd ∈ {0; 791}
-[value:final-states] Values at end of function logscl:
+[eva:final-states] Values at end of function logscl:
   nbl_0 ∈ {2958; 3042; 5869; 5976; 8865}
   wd ∈ {0; 2934; 3018; 5823; 5929}
-[value:final-states] Values at end of function quantl:
+[eva:final-states] Values at end of function quantl:
   ril ∈ {4; 32; 63}
   mil ∈ {0; 29}
   wd ∈ {0; 1; 2}
   decis ∈ {0; 1; 79; 223}
-[value:final-states] Values at end of function scalel:
+[eva:final-states] Values at end of function scalel:
   wd1 ∈ {0; 9; 10; 12; 14; 15; 27; 29}
   wd2 ∈ {0; 1; 2; 4}
   wd3 ∈ {1; 10; 11; 28; 29; 79}
   __retres ∈ {8; 80; 88; 224; 232; 632}
-[value:final-states] Values at end of function uppol1:
+[eva:final-states] Values at end of function uppol1:
   wd2 ∈ {0; 191; 381; 570; 759}
   wd3 ∈ {14790; 14890; 14997; 15046; 15111; 15232}
   apl1 ∈ {192; 383; 573; 762; 951}
-[value:final-states] Values at end of function uppol2:
+[eva:final-states] Values at end of function uppol2:
   wd2 ∈ {-24; -18; -12; -6; 0}
   wd4 ∈ {-152; 104; 110; 116; 122; 128}
   apl2 ∈ {128; 249; 314; 363; 470; 570}
-[value:final-states] Values at end of function upzero:
+[eva:final-states] Values at end of function upzero:
   delay_bpl[0] ∈ {0; 127; 128; 254}
            [1] ∈ {-2; 0; 127; 128}
            [2..5] ∈ {0; 127; 128; 254}
@@ -790,7 +727,7 @@
   i ∈ {6}
   wd2 ∈ {128} or UNINITIALIZED
   wd3 ∈ {0; 126; 127} or UNINITIALIZED
-[value:final-states] Values at end of function encode:
+[eva:final-states] Values at end of function encode:
   tqmf[0] ∈ {0; 1}
       [1] ∈ {1}
       [2..5] ∈ {0; 1}
@@ -851,7 +788,7 @@
   xb ∈ {-456; -44; 0; 168; 992}
   decis ∈ {0; 1}
   __retres ∈ {96; 191; 196; 224; 255}
-[value:final-states] Values at end of function main:
+[eva:final-states] Values at end of function main:
   tqmf[0..5] ∈ {1}
       [6] ∈ {0}
       [7] ∈ {1}

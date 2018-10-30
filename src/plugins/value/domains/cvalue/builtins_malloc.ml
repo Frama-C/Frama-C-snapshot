@@ -27,6 +27,9 @@ open Cvalue
 
 let dkey = Value_parameters.register_category "malloc"
 
+let wkey_weak_alloc = Value_parameters.register_warn_category "malloc:weak"
+let () = Value_parameters.set_warn_status wkey_weak_alloc Log.Winactive
+
 (** {1 Dynamically allocated bases} *)
 
 module Base_hptmap = Hptmap.Make
@@ -109,35 +112,35 @@ let extract_size sizev_bytes =
 (* Name of the base that will be given to a malloced variable, determined
    using the callstack. *)
 let base_name prefix stack =
-  let stmt_line stmt = (fst (Cil_datatype.Stmt.loc stmt)).Lexing.pos_lnum in
+  let stmt_line stmt = (fst (Cil_datatype.Stmt.loc stmt)).Filepath.pos_lnum in
   match stack with
-    | [] -> assert false
-    | [kf, Kglobal] -> (* Degenerate case *)
-      Format.asprintf "__%s_%a" prefix Kernel_function.pretty kf
-    | (_, Kglobal) :: _ :: _ -> assert false
-    | (_, Kstmt callsite) :: qstack ->
-      (* Use the whole call-stack to generate the name *)
-      let rec loop_full = function
-        | [_, Kglobal] -> Format.sprintf "_%s" (Kernel.MainFunction.get ())
-        | (_, Kglobal) :: _ :: _ -> assert false
-        | [] -> assert false (* impossible, we should have seen a Kglobal *)
-        | (kf, Kstmt line)::b ->
-          let line = stmt_line line in
-          let node_str = Format.asprintf "_l%d__%a"
+  | [] -> assert false
+  | [kf, Kglobal] -> (* Degenerate case *)
+    Format.asprintf "__%s_%a" prefix Kernel_function.pretty kf
+  | (_, Kglobal) :: _ :: _ -> assert false
+  | (_, Kstmt callsite) :: qstack ->
+    (* Use the whole call-stack to generate the name *)
+    let rec loop_full = function
+      | [_, Kglobal] -> Format.sprintf "_%s" (Kernel.MainFunction.get ())
+      | (_, Kglobal) :: _ :: _ -> assert false
+      | [] -> assert false (* impossible, we should have seen a Kglobal *)
+      | (kf, Kstmt line)::b ->
+        let line = stmt_line line in
+        let node_str = Format.asprintf "_l%d__%a"
             line Kernel_function.pretty kf
-          in
-          (loop_full b) ^ node_str
-      in
-      (* Use only the name of the caller to malloc for the name *)
-      let caller = function
-        | [] -> assert false (* caught above *)
-        | (kf, _) :: _ -> Format.asprintf "_%a" Kernel_function.pretty kf
-      in
-      let full_name = false in
-      Format.asprintf "__%s%s_l%d"
-        prefix
-        (if full_name then loop_full qstack else caller qstack)
-        (stmt_line callsite)
+        in
+        (loop_full b) ^ node_str
+    in
+    (* Use only the name of the caller to malloc for the name *)
+    let caller = function
+      | [] -> assert false (* caught above *)
+      | (kf, _) :: _ -> Format.asprintf "_%a" Kernel_function.pretty kf
+    in
+    let full_name = false in
+    Format.asprintf "__%s%s_l%d"
+      prefix
+      (if full_name then loop_full qstack else caller qstack)
+      (stmt_line callsite)
 ;;
 
 type var = Weak | Strong
@@ -155,8 +158,9 @@ let create_new_var stack prefix type_base weak =
    created by one of the functions of this module. Mutating variables name
    is not a good idea in general, but we take the risk here. *)
 let mutate_name_to_weak vi =
-  Value_parameters.result ~dkey ~current:true ~once:false
-    "@[marking variable `%s' as weak@]" vi.vname;
+  Value_parameters.warning ~wkey:wkey_weak_alloc ~current:true ~once:false
+    "@[marking variable `%s' as weak@]%t" vi.vname
+    Value_util.pp_callstack;
   try
     let prefix, remainder =
       Scanf.sscanf vi.vname "__%s@_%s" (fun s1 s2 -> (s1, s2))
@@ -207,7 +211,7 @@ let guess_intended_malloc_type stack sizev constant_size =
   try
     match snd (List.hd stack) with
     | Kstmt {skind = Instr (Call (Some lv, _, _, _))} ->
-        mk_typed_size (Cil.typeOfLval lv)
+      mk_typed_size (Cil.typeOfLval lv)
     | Kstmt {skind = Instr(Local_init(vi, _, _))} -> mk_typed_size vi.vtype
     | _ -> raise Exit
   with Exit | Cil.SizeOfError _ -> (* Default, use char *)
@@ -288,7 +292,7 @@ let add_zeroes = add_v (V_Or_Uninitialized.initialized Cvalue.V.singleton_zero)
    [state_after_alloc]: state in case the allocation is successful;
    [returns_null]: if given, forces the result to consider/ignore the possibility
    of failure, despite -val-alloc-returns-null.
- *)
+*)
 let wrap_fallible_alloc ?returns_null ret orig_state state_after_alloc =
   let default_returns_null = Value_parameters.AllocReturnsNull.get () in
   let returns_null = Extlib.opt_conv default_returns_null returns_null in
@@ -317,11 +321,9 @@ let alloc_abstract weak deallocation stack prefix sizev _state =
   let type_base = type_from_nb_elems tsize in
   let var = create_new_var stack prefix type_base weak in
   Value_parameters.result ~current:true ~once:true
-    "allocating %svariable %a%s"
+    "@[allocating %svariable %a@]%t"
     (if weak = Weak then "weak " else "") Printer.pp_varinfo var
-    (if Value_parameters.PrintCallstacks.get ()
-     then (Format.asprintf "@.stack: %a" Value_types.Callstack.pretty stack)
-     else "");
+    Value_util.pp_callstack;
   let size_char = Bit_utils.sizeofchar () in
   (* Sizes are in bits *)
   let min_alloc = Int.(pred (mul size_char tsize.min_bytes)) in
@@ -413,10 +415,10 @@ module MallocedByStack = (* varinfo list Callstack.hashtbl *)
   State_builder.Hashtbl(Value_types.Callstack.Hashtbl)
     (Datatype.List(Base))
     (struct
-       let name = "Value.Builtins_malloc.MallocedByStack"
-       let size = 17
-       let dependencies = [Ast.self]
-     end)
+      let name = "Value.Builtins_malloc.MallocedByStack"
+      let size = 17
+      let dependencies = [Ast.self]
+    end)
 let () = Ast.add_monotonic_state MallocedByStack.self
 
 (* Performs an abstract allocation on an existing allocated variable,
@@ -513,9 +515,9 @@ let free ~exact bases state =
   let changed = ref Locations.Zone.bottom in
   (* Uncomment this code to simulate the fact that free "writes" the bases
      it deallocates
-  Base_hptmap.iter (fun b ->
+     Base_hptmap.iter (fun b ->
       changed := Zone.join !changed (enumerate_bits (loc_of_base b))
-    ) bases; *)
+     ) bases; *)
   (* No need to remove the freed bases from the state if [exact] is false,
      because they must remain for the 'inexact' case *)
   let state =
@@ -566,8 +568,8 @@ let resolve_bases_to_free arg =
     then begin
       let base_card = match Base.validity base with
         | Base.Variable { Base.weak = true } -> 2
-          (* weak validity has "infinite" cardinality; but here we use 2 since
-             any value > 1 leads to a weak update anyway *)
+        (* weak validity has "infinite" cardinality; but here we use 2 since
+           any value > 1 leads to a weak update anyway *)
         | _ -> 1
       in
       if allocated_base
@@ -575,7 +577,7 @@ let resolve_bases_to_free arg =
       else if Base.is_null base
       then acc, card + base_card, true
       else acc, card, null
-      end
+    end
     else acc, card, null
   in
   Cvalue.V.fold_topset_ok f arg (Base.Hptset.empty, 0, false)
@@ -597,7 +599,7 @@ let frama_c_free state actuals =
   match actuals with
   | [ _, arg, _ ] ->
     let bases_to_remove, card_to_remove, _null = resolve_bases_to_free arg in
-    if card_to_remove = 0 then 
+    if card_to_remove = 0 then
       { Value_types.c_values = [];
         c_clobbered = Base.SetLattice.bottom;
         c_from = None;
@@ -728,7 +730,7 @@ let realloc_alloc_copy weak bases_to_realloc null_in_arg sizev state =
     in
     Cvalue.Model.paste_offsetmap
       ~from:offsm ~dst_loc:loc_bits ~size:(Int.succ max_valid) ~exact:false
-     dst_state
+      dst_state
   in
   (* Copy the old bases *)
   let copy_one dst_state b =
@@ -797,36 +799,36 @@ let () = Builtins.register_builtin
 (** {1 Leak detection} *)
 
 (* Experimental, not to be released, leak detection built-in. *)
-(* Check if the base_to_check is present in one of 
+(* Check if the base_to_check is present in one of
    the offsetmaps of the state *)
 exception Not_leaked
 let check_if_base_is_leaked base_to_check state =
   match state with
   | Model.Bottom -> false
   | Model.Top -> true
-  | Model.Map m -> 
-  try 
-    Cvalue.Model.fold 
-      (fun base offsetmap () -> 
-	if not (Base.equal base_to_check base) then 
-	  Cvalue.V_Offsetmap.iter_on_values 
-	    (fun v ->
-	      if Locations.Location_Bytes.may_reach base_to_check 
-		(V_Or_Uninitialized.get_v v) then raise Not_leaked) 
-	    offsetmap)
-      m
-      ();
-    true
-  with Not_leaked -> false
+  | Model.Map m ->
+    try
+      Cvalue.Model.fold
+        (fun base offsetmap () ->
+           if not (Base.equal base_to_check base) then
+             Cvalue.V_Offsetmap.iter_on_values
+               (fun v ->
+                  if Locations.Location_Bytes.may_reach base_to_check
+                      (V_Or_Uninitialized.get_v v) then raise Not_leaked)
+               offsetmap)
+        m
+        ();
+      true
+    with Not_leaked -> false
 
 (* Does not detect leaked cycles within malloc'ed bases.
    The complexity is very far from being optimal. *)
-let check_leaked_malloced_bases state _ = 
+let check_leaked_malloced_bases state _ =
   let alloced_bases = Dynamic_Alloc_Bases.get () in
   Base_hptmap.iter
     (fun base _ -> if check_if_base_is_leaked base state then
-	Value_util.warning_once_current "memory leak detected for %a"
-	  Base.pretty base)
+        Value_util.warning_once_current "memory leak detected for %a"
+          Base.pretty base)
     alloced_bases;
   { Value_types.c_values = [None,state] ;
     c_clobbered = Base.SetLattice.bottom;
@@ -834,7 +836,7 @@ let check_leaked_malloced_bases state _ =
     c_from = None;
   }
 
-let () = 
+let () =
   Builtins.register_builtin "Frama_C_check_leak" check_leaked_malloced_bases
 
 

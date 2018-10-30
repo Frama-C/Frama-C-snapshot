@@ -1,33 +1,33 @@
 [kernel] Parsing tests/value/cert_exp35_c.i (no preprocessing)
-[value] Analyzing a complete application starting at main
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing a complete application starting at main
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   __fc_stdout ∈ {{ NULL ; &S___fc_stdout[0] }}
   S___fc_stdout[0..1] ∈ [--..--]
-[value] computing for function addressee <- main.
+[eva] computing for function addressee <- main.
   Called from tests/value/cert_exp35_c.i:24.
-[value] Recording results for addressee
-[value] Done for function addressee
-[value] computing for function printf_va_1 <- main.
+[eva] Recording results for addressee
+[eva] Done for function addressee
+[eva] computing for function printf_va_1 <- main.
   Called from tests/value/cert_exp35_c.i:24.
-[value] using specification for function printf_va_1
-[value:alarm] tests/value/cert_exp35_c.i:24: Warning: 
+[eva] using specification for function printf_va_1
+[eva:alarm] tests/value/cert_exp35_c.i:24: Warning: 
   function printf_va_1: precondition valid_read_string(format) got status unknown.
-[value:alarm] tests/value/cert_exp35_c.i:24: Warning: 
+[eva:alarm] tests/value/cert_exp35_c.i:24: Warning: 
   function printf_va_1: precondition valid_read_string(param0) got status unknown.
-[value] Done for function printf_va_1
-[value] Recording results for main
-[value] done for function main
-[value] ====== VALUES COMPUTED ======
-[value:final-states] Values at end of function addressee:
+[eva] Done for function printf_va_1
+[eva] Recording results for main
+[eva] done for function main
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function addressee:
   result.a[0] ∈ {119}
         .a[1] ∈ {111}
         .a[2] ∈ {114}
         .a[3] ∈ {108}
         .a[4] ∈ {100}
         .a[5] ∈ {0}
-[value:final-states] Values at end of function main:
+[eva:final-states] Values at end of function main:
   __retres ∈ {0}
   S___fc_stdout[0..1] ∈ [--..--]
 [from] Computing for function addressee

@@ -2,7 +2,5 @@
 [test] Warning: Uncategorized warning
 [test:a] Warning: Warning A
 [test:a] Warning: Another Warning A
-[test] warning a treated as error:
-  Warning A
-[test] warning a treated as error:
-  Another Warning A
+[test] Warning: warning a treated as deferred error. See above messages for more information.
+[kernel] Plug-in test aborted: invalid user input.

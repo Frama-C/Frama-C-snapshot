@@ -1,8 +1,8 @@
 [kernel] Parsing tests/value/val_if.i (no preprocessing)
-[value] Analyzing a complete application starting at f1
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing a complete application starting at f1
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   i ∈ {0}
   j ∈ {0}
   x ∈ {0}
@@ -11,10 +11,10 @@
   m ∈ {0}
   n ∈ {0}
   d ∈ {0}
-[value] Recording results for f1
-[value] done for function f1
-[value] ====== VALUES COMPUTED ======
-[value:final-states] Values at end of function f1:
+[eva] Recording results for f1
+[eva] done for function f1
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function f1:
   i ∈ {10}
   j ∈ {-1; 13}
   x ∈ {-1; 1}

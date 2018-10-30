@@ -415,7 +415,7 @@ let assemble_wpo wpo =
         end;
         let pid = wpo.Wpo.po_pid in
         {
-          file ; 
+          file ;
           theory = theory_name_of_pid pid ;
           goal = why3_goal_name ;
         }
@@ -456,10 +456,10 @@ let assemble_goal wpo =
           Wpo.GOAL.compute_proof vcq.Wpo.VC_Annot.goal in
       if goal == Lang.F.p_true then (** The wpo is trivial *) None
       else
-        if WpPropId.is_tactic wpo.Wpo.po_pid then
-          Some (Model.with_model wpo.Wpo.po_model (assemble_tactic wpo) vcq)
-        else
-          Some (Model.with_model wpo.Wpo.po_model assemble_wpo wpo)
+      if WpPropId.is_tactic wpo.Wpo.po_pid then
+        Some (Model.with_model wpo.Wpo.po_model (assemble_tactic wpo) vcq)
+      else
+        Some (Model.with_model wpo.Wpo.po_model assemble_wpo wpo)
   | Wpo.GoalLemma _ ->
       Some (Model.with_model wpo.Wpo.po_model assemble_wpo wpo)
 
@@ -540,7 +540,8 @@ class why3 ~timeout ~prover ~pid ~file ~includes ~logout ~logerr =
       else
         match error with
         | Error_Generated(pos,message) ->
-            Wp_parameters.error ~source:pos "Why3 error:@\n%s" message ;
+            let source = Cil_datatype.Position.of_lexing_pos pos in
+            Wp_parameters.error ~source "Why3 error:@\n%s" message ;
             VCS.failed ~pos message
         | Error_No ->
             if r = 0 then
@@ -558,7 +559,7 @@ class why3 ~timeout ~prover ~pid ~file ~includes ~logout ~logerr =
                   end ;
                 VCS.kfailed "Why3 exits with status %d." r
               end
-              
+
     method prove =
       why#add [ "prove" ] ;
       if Wp_parameters.Check.get () then why#add ["--type-only"] ;
@@ -572,7 +573,7 @@ class why3 ~timeout ~prover ~pid ~file ~includes ~logout ~logerr =
       why#add_positive ~name:"-t" ~value:time ;
       if Wp_parameters.ProofTrace.get () then
         (* [VP] This also keeps temp files. To be changed with FB's new option
-           	 when it is implemented. *)
+                 when it is implemented. *)
         why#add ["--debug"; "call_prover"];
       why#timeout time ;
       why#add_list ~name:"-L" includes;
@@ -642,7 +643,7 @@ let parse spec =
     let k = String.index spec ':' in
     let dp_name = String.sub spec 0 k in
     let dp_version = String.sub spec (succ k) (String.length spec - k - 1)
-                   |> String.map (fun c -> if c =':' then ' ' else c) in
+                     |> String.map (fun c -> if c =':' then ' ' else c) in
     { dp_prover = spec ; dp_name ; dp_version }
   with Not_found ->
     { dp_prover = spec ; dp_name = spec ; dp_version = "default" }
@@ -666,8 +667,8 @@ class why3detect job =
         Wp_parameters.debug ~level:1
           "Prover %S, version %s detected." dp_name dp_version ;
         let dp_prover = Printf.sprintf "%s:%s" dp_name dp_version
-                      |> String.map
-                           (fun c -> if c = ' ' || c = ',' then ':' else c) in
+                        |> String.map
+                          (fun c -> if c = ' ' || c = ',' then ':' else c) in
         dps <- { dp_name ; dp_version ; dp_prover } :: dps
       end
 
@@ -681,8 +682,8 @@ class why3detect job =
   end
 
 let detect_why3 job =
-  let task = (new why3detect job)#detect in 
+  let task = (new why3detect job)#detect in
   Task.run (Task.thread task)
-    
+
 let detect_provers job =
   detect_why3 (function None -> job [] | Some dps -> job dps)

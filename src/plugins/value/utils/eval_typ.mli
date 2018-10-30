@@ -33,10 +33,10 @@ val sizeof_lval_typ: typ -> Int_Base.t
 
 
 (** [offsetmap_matches_type t o] returns true if either:
-  - [o] contains a single scalar binding, of the expected scalar type [t]
+    - [o] contains a single scalar binding, of the expected scalar type [t]
     (float or integer)
-  - [o] contains multiple bindings, pointers, etc.
-  - [t] is not a scalar type. *)
+    - [o] contains multiple bindings, pointers, etc.
+    - [t] is not a scalar type. *)
 val offsetmap_matches_type: typ -> Cvalue.V_Offsetmap.t -> bool
 
 val need_cast: typ -> typ -> bool
@@ -60,15 +60,9 @@ val compatible_functions:
 val expr_contains_volatile: exp -> bool
 val lval_contains_volatile: lval -> bool
 (** Those two expressions indicate that one l-value contained inside
-    the arguments (or the l-value itself for [lval_contains_volatile]) has
+    the arguments (and the l-value itself for [lval_contains_volatile]) has
     volatile qualifier. Relational analyses should not learn anything on
     such values. *)
-
-val kf_assigns_only_result_or_volatile: kernel_function -> bool
-(** returns [true] if the function assigns only [\result] or variables
-    that have [volatile] qualifier (that are usually not tracked by domains
-    anyway). *)
-
 
 (** Abstraction of an integer type, more convenient than an [ikind] because
     it can also be used for bitfields. *)
@@ -93,6 +87,6 @@ type scalar_typ =
   | TSInt of integer_range
   | TSPtr of integer_range
   | TSFloat of fkind
-  | TSNotScalar
 
-val classify_as_scalar: typ -> scalar_typ
+(* Classifies a cil type as a scalar type; returns None for non-scalar types. *)
+val classify_as_scalar: typ -> scalar_typ option

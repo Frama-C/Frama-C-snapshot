@@ -80,7 +80,7 @@ struct
   end
   module Tset = Idxset.Make(E)
   module Tmap = Idxmap.Make(E)
-  
+
   (* ------------------------------------------------------------------------ *)
   (* ---  Parameters                                                      --- *)
   (* ------------------------------------------------------------------------ *)
@@ -502,7 +502,7 @@ struct
           if cmp<>0 then cmp else phi v1 v2
       | Acst _ , _ -> (-1)
       | _ , Acst _ -> 1
-    
+
       | Aget(a1,b1) , Aget(a2,b2) ->
           let cmp = cmp_size a b in
           if cmp <> 0 then cmp else
@@ -631,7 +631,7 @@ struct
   module STRUCTURAL = struct type t = term let compare = COMPARE.compare end
   module STmap = Map.Make(STRUCTURAL)
   module STset = Set.Make(STRUCTURAL)
-  
+
   (* -------------------------------------------------------------------------- *)
   (* --- Global State                                                       --- *)
   (* -------------------------------------------------------------------------- *)
@@ -642,6 +642,7 @@ struct
     cache : term C.cache ;
     mutable checks : STset.t STmap.t ;
     mutable builtins_fun : (term list -> term) BUILTIN.t ;
+    mutable builtins_get : (term list -> term -> term) BUILTIN.t ;
     mutable builtins_eq  : (term -> term -> term) BUILTIN.t ;
     mutable builtins_leq : (term -> term -> term) BUILTIN.t ;
   }
@@ -652,6 +653,7 @@ struct
     cache = C.create ~size:0x1000 ; (* 4096 entries *)
     checks = STmap.empty ;
     builtins_fun = BUILTIN.empty ;
+    builtins_get = BUILTIN.empty ;
     builtins_eq  = BUILTIN.empty ;
     builtins_leq = BUILTIN.empty ;
   }
@@ -660,8 +662,8 @@ struct
   let get_state () = !state
   let set_state st = state := st
   let release () =
-      C.clear !state.cache ;
-      !state.checks <- STmap.empty
+    C.clear !state.cache ;
+    !state.checks <- STmap.empty
 
   let clock = ref true
   let constants = ref Tset.empty
@@ -681,6 +683,7 @@ struct
     C.clear st.cache;
     st.checks <- STmap.empty;
     st.builtins_fun <- BUILTIN.empty ;
+    st.builtins_get <- BUILTIN.empty ;
     st.builtins_eq  <- BUILTIN.empty ;
     st.builtins_leq <- BUILTIN.empty ;
     let add s c = W.add s.weak c ; s.kid <- max s.kid (succ c.id) in
@@ -811,7 +814,7 @@ struct
       insert(Bind(q,t,e))
 
   let c_const t v = insert(Acst(t,v))
-  
+
   let c_get m k = insert(Aget(m,k))
 
   let c_set m k v = insert(Aset(m,k,v))
@@ -871,7 +874,7 @@ struct
     match e.repr with
     | Fun(f,_) -> BUILTIN.find f !state.builtins_eq a b
     | _ -> raise Not_found
-             
+
   let simplify_leq e a b =
     match e.repr with
     | Fun(f,_) -> BUILTIN.find f !state.builtins_leq a b
@@ -918,10 +921,10 @@ struct
     | _ -> op x y
 
   let distribute f = function
-    | x::[] as xs -> 
+    | x::[] as xs ->
         begin
           match x.repr with
-        | If(c,a,b) ->  !extern_ite c (!extern_fun f [a]) (!extern_fun f [b])
+          | If(c,a,b) ->  !extern_ite c (!extern_fun f [a]) (!extern_fun f [b])
           | _ -> operation (FUN(f,xs))
         end
     | a::b::[] as xs ->
@@ -945,6 +948,12 @@ struct
     begin
       prepare_builtin f !state.builtins_fun ;
       !state.builtins_fun <- BUILTIN.add f p !state.builtins_fun ;
+    end
+
+  let set_builtin_get f p =
+    begin
+      prepare_builtin f !state.builtins_get ;
+      !state.builtins_get <- BUILTIN.add f p !state.builtins_get ;
     end
 
   let set_builtin_eq f p =
@@ -998,16 +1007,34 @@ struct
     | [_] as l -> l
     | x::( (y::_) as w ) -> if x==y then op_idempotent w else x :: op_idempotent w
 
-  let op_invertible xs ys =
-    let rec simpl modified turn xs ys = match xs , ys with
-      | x::xs , y::ys when x==y -> simpl true turn xs ys
-      | _ ->
-          let xs = List.rev xs in
-          let ys = List.rev ys in
-          if turn
-          then simpl modified false xs ys
-          else modified,xs,ys
-    in simpl false true xs ys
+  let op_invertible ~ac xs ys =
+    if ac then
+      let modified = ref false in
+      let rxs = ref [] in
+      let rys = ref [] in
+      let rec walk xs ys =
+        match xs , ys with
+        | x::txs , y::tys ->
+            let cmp = compare x y in
+            if cmp < 0 then (rxs := x :: !rxs ; walk txs ys) else
+            if cmp > 0 then (rys := y :: !rys ; walk xs tys) else
+              ( modified := true ; walk txs tys )
+        | _ ->
+            begin
+              rxs := List.rev_append !rxs xs ;
+              rys := List.rev_append !rys ys ;
+            end
+      in walk xs ys ; !modified , !rxs , !rys
+    else
+      let rec simpl modified turn xs ys = match xs , ys with
+        | x::xs , y::ys when x==y -> simpl true turn xs ys
+        | _ ->
+            let xs = List.rev xs in
+            let ys = List.rev ys in
+            if turn
+            then simpl modified false xs ys
+            else modified,xs,ys
+      in simpl false true xs ys
 
   let rec element = function
     | E_none -> assert false
@@ -1136,7 +1163,7 @@ struct
     if i_affine xs ys
     then i_affine_rel Z.equal c_builtin_eq c xs ys
     else r_affine_rel Q.equal c_builtin_eq c xs ys
-  
+
   let affine_neq c xs ys =
     if i_affine xs ys
     then i_affine_rel (fun x y -> not (Z.equal x y)) c_builtin_neq c xs ys
@@ -1161,7 +1188,7 @@ struct
     | LT -> affine_lt
     | NEQ -> affine_neq
     | LEQ -> affine_leq
-  
+
   (* --- Times --- *)
 
   let q_times k z =
@@ -1234,7 +1261,7 @@ struct
     | _ -> false
 
   let fold_coef g xs k t = fold_monom xs (Z.div k g) t
-  
+
   let rec coef_monoms c = function
     | [] -> c , Z.one
     | (n,e)::w ->
@@ -1246,7 +1273,7 @@ struct
                 then coef_gcd (Z.add c n) p w
                 else coef_gcd c Z.(gcd p (abs n)) w
           in coef_gcd c (Z.abs n) w
-          
+
   let rec partition_monoms phi xs ys = function
     | [] -> xs,ys
     | (k,t) :: kts ->
@@ -1270,7 +1297,7 @@ struct
      CONG-LT-POS:  0 < r -> gB+r <  0 <-> B <  0
      CONG-LT-NEG:  r < 0 -> gB+r <  0 <-> B <= 0
   *)
-  
+
   let relation rel cmp x y =
     if is_affine x || is_affine y then
       let kts = unfold_affine1 (unfold_affine1 [] Z.one x) Z.minus_one y in
@@ -1314,10 +1341,10 @@ struct
       if Q.equal r Q.one then c_mul ts else  c_mul (e_real r :: ts)
     else
       let s,ts = i_ground Z.mul Z.one [] ts in
-    if Z.equal Z.zero s then e_zint Z.zero else
-    if ts=[] then e_zint s else
-      let t = c_mul ts in
-      if Z.equal s Z.one then t else c_times s t
+      if Z.equal Z.zero s then e_zint Z.zero else
+      if ts=[] then e_zint s else
+        let t = c_mul ts in
+        if Z.equal s Z.one then t else c_times s t
 
   (* --- Divisions --- *)
 
@@ -1461,7 +1488,7 @@ struct
     | _ -> c_imply hs b
   and implication_and hs0 hs b0 bs = try
       let hs'= merge hs0 hs in
-      try 
+      try
         match consequence_and hs bs with
         | []  -> e_true (* [And hs] implies [b0] *)
         | [b] -> implication hs' b
@@ -1494,14 +1521,14 @@ struct
     e_not (c_and hs)
 
   let rec consequence_aux hs x = match x.repr with
-    | And xs -> begin try 
+    | And xs -> begin try
           match consequence_and hs xs with
           | [] -> e_true
           | [x] -> consequence_aux hs x
           | hs -> if hs==xs then x else c_and hs
         with Absorbant -> e_false
       end
-    | Or xs -> begin try 
+    | Or xs -> begin try
           match consequence_and hs xs with
           | [] -> e_false
           | [x] -> consequence_aux hs x
@@ -1525,7 +1552,7 @@ struct
       end
     | _ -> x
 
-  let consequence h x = 
+  let consequence h x =
     let not_x = e_not x in
     match h.repr with
     | True -> x
@@ -1539,7 +1566,18 @@ struct
     | S_diff         (* different constructors *)
     | S_injection    (* same injective function *)
     | S_invertible   (* same invertible function *)
+    | S_invertible_both (* both functions (different ones) are invertible *)
+    | S_invertible_left (* left function is invertible *)
+    | S_invertible_right (* right function is invertible *)
     | S_functions    (* general functions *)
+
+  let is_ac f = match Fun.category f with
+    | Logic.Operator op -> op.associative && op.commutative
+    | _ -> false
+
+  let is_invertible_assoc = function
+    | { invertible=true ; associative=true } -> true
+    | _ -> false
 
   let structural f g =
     if Fun.equal f g then
@@ -1550,6 +1588,10 @@ struct
     else
       match Fun.category f , Fun.category g with
       | Logic.Constructor , Logic.Constructor -> S_diff
+      | Logic.Operator fop , Logic.Operator gop
+        when (is_invertible_assoc fop) && (is_invertible_assoc gop) -> S_invertible_both
+      | Logic.Operator op , _ when is_invertible_assoc op -> S_invertible_left
+      | _ , Logic.Operator op when is_invertible_assoc op -> S_invertible_right
       | _ -> S_functions
 
   let contrary x y = (is_prop x || is_prop y) && (e_not x == y)
@@ -1591,26 +1633,38 @@ struct
           | S_diff -> e_false
           | S_injection -> e_all2 e_eq xs ys
           | S_functions -> c_builtin_eq x y
-          | S_invertible ->
-              let modified,xs,ys = op_invertible xs ys in
-              if modified
-              then c_builtin_eq (e_fun f xs) (e_fun g ys)
-              else c_builtin_eq x y
+          | S_invertible -> eq_invertible x y f xs ys
+          | S_invertible_left -> eq_invertible x y f xs [y]
+          | S_invertible_right -> eq_invertible x y g [x] ys
+          | S_invertible_both -> eq_invertible_both x y f g xs ys
         end
     | Rdef fxs , Rdef gys ->
         begin
           try e_all2 eq_field fxs gys
           with Exit -> e_false
         end
-        
+
     | Acst(_,a) , Acst(_,b) -> e_eq a b
     | Acst(_,v0) , Aset(m,_,v) -> conjunction [e_eq v v0 ; e_eq x m]
     | Aset(m,_,v) , Acst(_,v0) -> conjunction [e_eq v v0 ; e_eq m y]
-          
+
     | _ when contrary x y -> e_false
-      
+
     | Fun _ , _ | _ , Fun _ -> c_builtin_eq x y
+
     | _ -> c_eq x y
+
+  and eq_invertible x y f xs ys =
+    let modified,xs,ys = op_invertible ~ac:(is_ac f) xs ys in
+    if modified
+    then eq_symb (e_fun f xs) (e_fun f ys)
+    else c_builtin_eq x y
+
+  and eq_invertible_both x y f g xs ys =
+    let modified,xs',ys' = op_invertible ~ac:(is_ac f) xs [y] in
+    if modified
+    then eq_symb (e_fun f xs') (e_fun f ys')
+    else eq_invertible x y g [x] ys
 
   and eq_field (f,x) (g,y) =
     if Field.equal f g then e_eq x y else raise Exit
@@ -1640,26 +1694,38 @@ struct
           | S_diff -> e_true
           | S_injection -> e_any2 e_neq xs ys
           | S_functions -> c_builtin_neq x y
-          | S_invertible ->
-              let modified,xs,ys = op_invertible xs ys in
-              if modified
-              then c_builtin_neq (e_fun f xs) (e_fun g ys)
-              else c_builtin_neq x y
+          | S_invertible -> neq_invertible x y f xs ys
+          | S_invertible_left -> neq_invertible x y f xs [y]
+          | S_invertible_right -> neq_invertible x y g [x] ys
+          | S_invertible_both -> neq_invertible_both x y f g xs ys
         end
     | Rdef fxs , Rdef gys ->
         begin
           try e_any2 neq_field fxs gys
           with Exit -> e_true
         end
-        
+
     | Acst(_,a) , Acst(_,b) -> e_neq a b
     | Acst(_,v0) , Aset(m,_,v) -> disjunction [e_neq v v0 ; e_neq x m]
     | Aset(m,_,v) , Acst(_,v0) -> disjunction [e_neq v v0 ; e_neq m y]
-  
+
     | _ when contrary x y -> e_true
-      
+
     | Fun _ , _ | _ , Fun _ -> c_builtin_neq x y
+
     | _ -> c_neq x y
+
+  and neq_invertible x y f xs ys =
+    let modified,xs,ys = op_invertible ~ac:(is_ac f) xs ys in
+    if modified
+    then neq_symb (e_fun f xs) (e_fun f ys)
+    else c_builtin_neq x y
+
+  and neq_invertible_both x y f g xs ys =
+    let modified,xs',ys' = op_invertible ~ac:(is_ac f) xs [y] in
+    if modified
+    then neq_symb (e_fun f xs') (e_fun f ys')
+    else neq_invertible x y g [x] ys
 
   and neq_field (f,x) (g,y) =
     if Field.equal f g then e_neq x y else raise Exit
@@ -1765,6 +1831,11 @@ struct
           | No -> e_get m0 k
           | Maybe -> c_get m k
         end
+    | Fun (g,xs) ->
+        begin
+          try (BUILTIN.find g !state.builtins_get) xs k
+          with Not_found -> c_get m k
+        end
     | _ -> c_get m k
 
   let rec e_set m k v =
@@ -1784,7 +1855,7 @@ struct
     | _ -> c_set m k v
 
   let e_const (k:tau) v = c_const k v
-  
+
   (* -------------------------------------------------------------------------- *)
   (* --- Records                                                            --- *)
   (* -------------------------------------------------------------------------- *)
@@ -2521,7 +2592,7 @@ struct
         | Apply _ | Bind(Lambda,_,_) -> raise Not_found
 
   and typeof env e = try Some (typecheck env e) with Not_found -> None
-  
+
   let undefined _ = raise Not_found
   let typeof ?(field=undefined) ?(record=undefined) ?(call=undefined) e =
     typecheck { field ; record ; call } e

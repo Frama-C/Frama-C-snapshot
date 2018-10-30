@@ -1,13 +1,13 @@
 [kernel] Parsing tests/value/broken_loop.i (no preprocessing)
-[value] Analyzing a complete application starting at loop
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing a complete application starting at loop
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   X ∈ {0}
-[value] Recording results for loop
-[value] done for function loop
-[value] ====== VALUES COMPUTED ======
-[value:final-states] Values at end of function loop:
+[eva] Recording results for loop
+[eva] done for function loop
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function loop:
   X ∈ {2}
 [from] Computing for function loop
 [from] Done for function loop

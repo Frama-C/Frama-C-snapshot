@@ -72,6 +72,17 @@ val arithmetic_conversion:
 module Lenv : sig
   type t
   val empty : unit -> t
+
+  val add_var: string -> Cil_types.logic_var -> t -> t
+  val add_type_var: string -> Cil_types.logic_type -> t -> t
+  val add_logic_info: string -> Cil_types.logic_info -> t -> t
+  val add_logic_label: string -> Cil_types.logic_label -> t -> t
+
+  val find_var: string -> t-> Cil_types.logic_var
+  val find_type_var: string -> t -> Cil_types.logic_type
+  val find_logic_info: string -> t -> Cil_types.logic_info
+  val find_logic_label: string -> t -> Cil_types.logic_label
+
 end
 
 type type_namespace = Typedef | Struct | Union | Enum
@@ -132,12 +143,12 @@ type typing_context = {
       executed and the exception re-raised.
 
       @since Chlorine-20180501
-   *)
+  *)
   on_error: 'a 'b. ('a -> 'b) -> (unit -> unit) -> 'a -> 'b
 }
 
 (** [register_behavior_extension name f] registers a typing function [f] to
-    be used to type clause with name [name].
+    be used to type function contract clause with name [name].
     Here is a basic example:
     let count = ref 0 in
     let foo_typer ~typing_context ~loc ps =
@@ -160,51 +171,109 @@ type typing_context = {
 val register_behavior_extension:
   string ->
   (typing_context:typing_context -> loc:location ->
-    Logic_ptree.lexpr list -> acsl_extension_kind) -> unit
+   Logic_ptree.lexpr list -> acsl_extension_kind) -> unit
+
+(** register an extension for global annotation.
+
+    @plugin development guide
+
+    @since Frama-C+dev
+*)
+val register_global_extension:
+  string ->
+  (typing_context:typing_context -> loc: location ->
+   Logic_ptree.lexpr list -> acsl_extension_kind) -> unit
+
+(** register an extension for code annotation to be evaluated at _current_
+    program point.
+
+    @plugin development guide
+
+    @since Frama-C+dev
+*)
+val register_code_annot_extension:
+  string ->
+  (typing_context: typing_context -> loc: location ->
+   Logic_ptree.lexpr list -> acsl_extension_kind) -> unit
+
+(** register an extension for code annotation to be evaluated for the _next_
+    statement.
+
+    @plugin development guide
+
+    @since Frama-C+dev
+*)
+val register_code_annot_next_stmt_extension:
+  string ->
+  (typing_context: typing_context -> loc: location ->
+   Logic_ptree.lexpr list -> acsl_extension_kind) -> unit
+
+(** register an extension for loop annotation.
+
+    @plugin development guide
+
+    @since Frama-C+dev
+*)
+val register_code_annot_next_loop_extension:
+  string ->
+  (typing_context: typing_context -> loc: location ->
+   Logic_ptree.lexpr list -> acsl_extension_kind) -> unit
+
+
+(** register an extension both for code and loop annotations.
+
+    @plugin development guide
+
+    @since Frama-C+dev
+*)
+val register_code_annot_next_both_extension:
+  string ->
+  (typing_context: typing_context -> loc: location ->
+   Logic_ptree.lexpr list -> acsl_extension_kind) -> unit
 
 module Make
-  (C :
-    sig
-      val is_loop: unit -> bool
-      (** whether the annotation we want to type is contained in a loop.
-          Only useful when creating objects of type [code_annotation]. *)
-      val anonCompFieldName : string
-      val conditionalConversion : typ -> typ -> typ
-      val find_macro : string -> Logic_ptree.lexpr
-      val find_var : string -> logic_var
-      val find_enum_tag : string -> exp * typ
-      val find_type : type_namespace -> string -> typ
-      val find_comp_field: compinfo -> string -> offset
-      val find_label : string -> stmt ref
+    (C :
+     sig
+       val is_loop: unit -> bool
+       (** whether the annotation we want to type is contained in a loop.
+           Only useful when creating objects of type [code_annotation]. *)
+       val anonCompFieldName : string
+       val conditionalConversion : typ -> typ -> typ
+       val find_macro : string -> Logic_ptree.lexpr
+       val find_var : string -> logic_var
+       val find_enum_tag : string -> exp * typ
+       val find_type : type_namespace -> string -> typ
+       val find_comp_field: compinfo -> string -> offset
+       val find_label : string -> stmt ref
 
-      val remove_logic_function : string -> unit
-      val remove_logic_info: logic_info -> unit
-      val remove_logic_type: string -> unit
-      val remove_logic_ctor: string -> unit
+       val remove_logic_function : string -> unit
+       val remove_logic_info: logic_info -> unit
+       val remove_logic_type: string -> unit
+       val remove_logic_ctor: string -> unit
 
-      val add_logic_function: logic_info -> unit
-      val add_logic_type: string -> logic_type_info -> unit
-      val add_logic_ctor: string -> logic_ctor_info -> unit
+       val add_logic_function: logic_info -> unit
+       val add_logic_type: string -> logic_type_info -> unit
+       val add_logic_ctor: string -> logic_ctor_info -> unit
 
-      val find_all_logic_functions : string -> Cil_types.logic_info list
-      val find_logic_type: string -> logic_type_info
-      val find_logic_ctor: string -> logic_ctor_info
+       val find_all_logic_functions : string -> Cil_types.logic_info list
+       val find_logic_type: string -> logic_type_info
+       val find_logic_ctor: string -> logic_ctor_info
 
-      (** What to do when we have a term of type Integer in a context
-          expecting a C integral type.
-          @raise Failure to reject such conversion
-          @since Nitrogen-20111001
+       (** What to do when we have a term of type Integer in a context
+           expecting a C integral type.
+           @raise Failure to reject such conversion
+           @since Nitrogen-20111001
        *)
-      val integral_cast: Cil_types.typ -> Cil_types.term -> Cil_types.term
+       val integral_cast: Cil_types.typ -> Cil_types.term -> Cil_types.term
 
-      (** raises an error at the given location and with the given message.
-          @since Magnesium-20151001 *)
-      val error: location -> ('a,Format.formatter,unit, 'b) format4 -> 'a
+       (** raises an error at the given location and with the given message.
+           @since Magnesium-20151001 *)
+       val error: location -> ('a,Format.formatter,unit, 'b) format4 -> 'a
 
-      (** see {!Logic_typing.typing_context}. *)
-      val on_error: ('a -> 'b) -> (unit -> unit) -> 'a -> 'b
+       (** see {!Logic_typing.typing_context}. *)
+       val on_error: ('a -> 'b) -> (unit -> unit) -> 'a -> 'b
 
-    end) :
+     end) :
 sig
 
   (** @since Nitrogen-20111001 *)
@@ -220,11 +289,11 @@ sig
   val predicate : Lenv.t -> Logic_ptree.lexpr -> predicate
 
   (** [code_annot loc behaviors rt annot] type-checks an in-code annotation.
-    @param loc current location
-    @param behaviors list of existing behaviors
-    @param rt return type of current function
-    @param annot the annotation
-   *)
+      @param loc current location
+      @param behaviors list of existing behaviors
+      @param rt return type of current function
+      @param annot the annotation
+  *)
   val code_annot :
     Cil_types.location -> string list ->
     Cil_types.logic_type -> Logic_ptree.code_annot -> code_annotation
@@ -247,7 +316,7 @@ sig
       @param prms its parameters
       @param its type
       @param spec the spec to typecheck
-   *)
+  *)
   val funspec :
     string list ->
     varinfo -> (varinfo list) option -> typ -> Logic_ptree.spec -> funspec
@@ -279,8 +348,8 @@ val add_result: Lenv.t -> logic_type -> Lenv.t
 val enter_post_state: Lenv.t -> termination_kind -> Lenv.t
 
 (** enter a given post-state and put [\result] in the env.
-NB: if the kind of the post-state is neither [Normal] nor [Returns],
-this is not a normal ACSL environment. Use with caution.
+    NB: if the kind of the post-state is neither [Normal] nor [Returns],
+    this is not a normal ACSL environment. Use with caution.
 *)
 val post_state_env: termination_kind -> logic_type -> Lenv.t
 

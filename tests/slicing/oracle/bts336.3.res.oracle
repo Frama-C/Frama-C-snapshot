@@ -1,32 +1,32 @@
 [kernel] Parsing tests/slicing/bts336.i (no preprocessing)
-[value] Analyzing a complete application starting at main3
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing a complete application starting at main3
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   T[0..9] ∈ {0}
   x5 ∈ {0}
-[value] computing for function f3 <- main3.
+[eva] computing for function f3 <- main3.
   Called from tests/slicing/bts336.i:53.
-[value] Recording results for f3
+[eva] Recording results for f3
 [from] Computing for function f3
 [from] Done for function f3
-[value] Done for function f3
-[value] computing for function f3 <- main3.
+[eva] Done for function f3
+[eva] computing for function f3 <- main3.
   Called from tests/slicing/bts336.i:54.
-[value] Recording results for f3
+[eva] Recording results for f3
 [from] Computing for function f3
 [from] Done for function f3
-[value] Done for function f3
-[value] computing for function f3 <- main3.
+[eva] Done for function f3
+[eva] computing for function f3 <- main3.
   Called from tests/slicing/bts336.i:55.
-[value] Recording results for f3
+[eva] Recording results for f3
 [from] Computing for function f3
 [from] Done for function f3
-[value] Done for function f3
-[value] Recording results for main3
+[eva] Done for function f3
+[eva] Recording results for main3
 [from] Computing for function main3
 [from] Done for function main3
-[value] done for function main3
+[eva] done for function main3
 [from] ====== DISPLAYING CALLWISE DEPENDENCIES ======
 [from] call to f3 at tests/slicing/bts336.i:53 (by main3):
   a FROM p; a

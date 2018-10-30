@@ -1,0 +1,77 @@
+[kernel] Parsing tests/builtins/from_result.c (with preprocessing)
+[eva] Analyzing a complete application starting at main
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
+  
+[eva] computing for function bar <- main.
+  Called from tests/builtins/from_result.c:32.
+[eva] tests/builtins/from_result.c:18: Call to builtin Frama_C_malloc_fresh
+[eva] tests/builtins/from_result.c:18: allocating variable __malloc_bar_l18
+[eva] Recording results for bar
+[eva] Done for function bar
+[eva] computing for function bar <- main.
+  Called from tests/builtins/from_result.c:33.
+[eva] tests/builtins/from_result.c:18: Call to builtin Frama_C_malloc_fresh
+[eva] tests/builtins/from_result.c:18: allocating variable __malloc_bar_l18_0
+[eva] Recording results for bar
+[eva] Done for function bar
+[eva] computing for function create_t <- main.
+  Called from tests/builtins/from_result.c:34.
+[eva] using specification for function create_t
+[eva] Done for function create_t
+[eva] computing for function create_t1 <- main.
+  Called from tests/builtins/from_result.c:35.
+[eva] using specification for function create_t1
+[eva] Done for function create_t1
+[eva] computing for function change_t <- main.
+  Called from tests/builtins/from_result.c:36.
+[eva] Recording results for change_t
+[eva] Done for function change_t
+[eva] computing for function foo <- main.
+  Called from tests/builtins/from_result.c:37.
+[eva] using specification for function foo
+[eva] tests/builtins/from_result.c:29: Warning: 
+  no 'assigns \result \from ...' clause specified for function foo
+[eva] Done for function foo
+[eva] Recording results for main
+[eva] done for function main
+[from] Computing for function bar
+[from] Computing for function Frama_C_malloc_fresh <-bar
+[from] Done for function Frama_C_malloc_fresh
+[from] Done for function bar
+[from] Computing for function change_t
+[from] Done for function change_t
+[from] Computing for function main
+[from] Computing for function create_t <-main
+[from] Done for function create_t
+[from] Computing for function create_t1 <-main
+[from] Done for function create_t1
+[from] Computing for function foo <-main
+[from] Done for function foo
+[from] Done for function main
+[from] ====== DEPENDENCIES COMPUTED ======
+  These dependencies hold at termination for the executions that terminate:
+[from] Function Frama_C_malloc_fresh:
+  __fc_heap_status FROM __fc_heap_status; size (and SELF)
+  \result FROM __fc_heap_status; size
+[from] Function bar:
+  __fc_heap_status FROM __fc_heap_status (and SELF)
+  __malloc_bar_l18 FROM __fc_heap_status; x (and SELF)
+  __malloc_bar_l18_0 FROM __fc_heap_status; x (and SELF)
+  \result FROM __fc_heap_status
+[from] Function change_t:
+  v.a FROM t0; x
+   .b FROM t0; y
+[from] Function create_t:
+  \result FROM x; y
+[from] Function create_t1:
+  \result FROM x; y
+[from] Function foo:
+  \result FROM ANYTHING(origin:Unknown)
+[from] Function main:
+  __fc_heap_status FROM __fc_heap_status (and SELF)
+  __malloc_bar_l18 FROM __fc_heap_status (and SELF)
+  __malloc_bar_l18_0 FROM __fc_heap_status (and SELF)
+  \result FROM \nothing
+[from] ====== END OF DEPENDENCIES ======

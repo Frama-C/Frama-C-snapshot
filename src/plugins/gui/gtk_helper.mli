@@ -362,7 +362,7 @@ val make_text_page:
     contents changes.
     @since Beryllium-20090901 *)
 
-val open_in_external_viewer : ?line:int -> string -> unit
+val open_in_external_viewer : ?line:int -> Datatype.Filepath.t -> unit
 (** Opens [file] in an external viewer, optionally centered on line [line]
     (if supported by the viewer). The viewer is executed in the
     background (i.e. it does not block the execution of Frama-C).

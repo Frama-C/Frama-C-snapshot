@@ -1,5 +1,5 @@
 /* run.config*
-   STDOPT: +"-val-warn-copy-indeterminate=-main -value-msg-key garbled-mix -absolute-valid-range 0x2D-0x30 -no-val-warn-pointer-subtraction" +"-then -absolute-valid-range 0x2D-0x31"
+   STDOPT: +"-eva-warn-copy-indeterminate=-main -eva-warn-key garbled-mix -absolute-valid-range 0x2D-0x30 -eva-no-warn-pointer-subtraction" +"-then -absolute-valid-range 0x2D-0x31"
 */
 
 

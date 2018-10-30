@@ -1,12 +1,12 @@
 [kernel] Parsing tests/slicing/unsupported.i (no preprocessing)
 [sparecode] remove unused code...
-[value] Analyzing a complete application starting at main
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing a complete application starting at main
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   
-[value] Recording results for main
-[value] done for function main
+[eva] Recording results for main
+[eva] done for function main
 [pdg] computing for function main
 [pdg] done for function main
 [sparecode] tests/slicing/unsupported.i:11: Warning: Dropping annotation

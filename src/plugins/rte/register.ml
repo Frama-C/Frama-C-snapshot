@@ -37,11 +37,6 @@ let () =
     "annotate_kf" Kernel_function.ty Db.RteGen.annotate_kf Visit.annotate_kf;
   journal_register false "compute" Datatype.unit Db.RteGen.compute 
     Visit.compute;
-  journal_register 
-    true
-    "do_precond" Kernel_function.ty Db.RteGen.do_precond Visit.do_precond
-    ~comment:"Generate RTE annotations corresponding to -rte-precond in the \
-  given function.";
   journal_register true
     ~comment:"Generate all RTE annotations in the \
   given function."
@@ -52,7 +47,6 @@ let () =
     "do_rte" Kernel_function.ty Db.RteGen.do_rte Visit.do_rte;
   let open Generator in
   let open Db.RteGen in
-  nojournal_register get_precond_status Called_precond.accessor;
   nojournal_register get_signedOv_status Signed_overflow.accessor;
   nojournal_register get_divMod_status Div_mod.accessor;
   nojournal_register get_initialized_status Initialized.accessor;

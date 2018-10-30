@@ -76,17 +76,23 @@ OCAML_ANNOT_OPTION ?=@OCAML_ANNOT_OPTION@
 OCAMLLIB	?=@OCAMLLIB@
 # either opt or byte
 OCAMLBEST	?=@OCAMLBEST@
+
 OCAMLVERSION 	?=@OCAMLVERSION@
+
+OCAMLMAJORNB    ?=@OCAMLMAJORNB@
+OCAMLMINORNB    ?=@OCAMLMINORNB@
+OCAMLPATCHNB    ?=@OCAMLPATCHNB@
+
+HAS_OCAML403    ?=@HAS_OCAML403@
+HAS_OCAML404    ?=@HAS_OCAML404@
+HAS_OCAML405    ?=@HAS_OCAML405@
+HAS_OCAML407    ?=@HAS_OCAML407@
+
 NATIVE_THREADS	?=@HAS_NATIVE_THREADS@
 OCAMLWIN32	?=@OCAMLWIN32@
 PTESTSBEST      ?=@PTESTSBEST@
 
 DEVELOPMENT	?=@DEVELOPMENT@
-
-# Compatibility across OCaml versions
-
-SPLIT_ON_CHAR ?= @SPLIT_ON_CHAR@
-STACK_FOLD ?= @STACK_FOLD@
 
 #############
 # Libraries #
@@ -108,6 +114,9 @@ HAS_YOJSON	?=@HAS_YOJSON@
 
 # apron
 HAS_APRON	?=@HAS_APRON@
+
+# mpfr
+HAS_MPFR ?=@HAS_MPFR@
 
 # landmarks
 HAS_LANDMARKS	?=@HAS_LANDMARKS@
@@ -135,6 +144,16 @@ UNDERSCORE_NAME ?=@UNDERSCORE_NAME@
 HAVE_BUILTIN_VA_LIST ?=@HAVE_BUILTIN_VA_LIST@
 THREAD_IS_KEYWORD ?=@THREAD_IS_KEYWORD@
 
+# test directories for ptests configuration
+# Non-plugin test directories containing some ML files to compile
+TEST_DIRS_AS_PLUGIN:=\
+  dynamic dynamic_plugin journal saveload spec misc syntax cil \
+  pretty_printing builtins libc value fc_script
+ifeq ("$(HAS_YOJSON)","yes")
+TEST_DIRS_AS_PLUGIN+=jcdb
+endif
+PLUGIN_TESTS_LIST+=$(TEST_DIRS_AS_PLUGIN)
+
 ##########################
 # Variables for plug-ins #
 ##########################
@@ -157,7 +176,7 @@ ENABLE_SCOPE	                  ?=@ENABLE_SCOPE@
 ENABLE_SLICING	                  ?=@ENABLE_SLICING@
 ENABLE_SPARECODE                  ?=@ENABLE_SPARECODE@
 ENABLE_USERS	                  ?=@ENABLE_USERS@
-ENABLE_VALUE_ANALYSIS             ?=@ENABLE_VALUE_ANALYSIS@
+ENABLE_EVA                      ?=@ENABLE_EVA@
 
 #bytes is part of the stdlib, but is used as a transitional package.
 LIBRARY_NAMES := findlib ocamlgraph unix str dynlink bytes zarith

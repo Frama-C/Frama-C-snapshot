@@ -75,16 +75,16 @@
   Function call = 1
   Pointer dereferencing = 1
   Cyclomatic complexity = 4
-[value] Analyzing a complete application starting at main
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing a complete application starting at main
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   bar ∈ {0}
   t[0] ∈ {{ &baz }}
    [1] ∈ {0}
-[value] done for function main
-[metrics] Value coverage statistics
-  =========================
+[eva] done for function main
+[metrics] Eva coverage statistics
+  =======================
   Syntactically reachable functions = 3 (out of 3)
   Semantically reached functions = 1
   Coverage estimation = 33.3% 
@@ -95,7 +95,7 @@
   ------------------------------------
   Function main references foo (at tests/metrics/reach.c:26)
   Initializer of t references baz (at tests/metrics/reach.c:10)
-[metrics] Statements analyzed by Value
-  ----------------------------
+[metrics] Statements analyzed by Eva
+  --------------------------
   12 stmts in analyzed functions, 7 stmts analyzed (58.3%)
   main: 7 stmts out of 12 (58.3%)

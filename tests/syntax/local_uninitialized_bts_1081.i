@@ -1,6 +1,6 @@
 int X,Y,FOO;
 
-main(){
+int main(){
   int foo, x, y;
   foo ? x : y; // should be kept
   foo ? X : y; // should be kept

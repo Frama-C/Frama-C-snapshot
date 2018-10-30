@@ -20,12 +20,25 @@
 #   <Prover>: prover
 ###############################################################################
 
+######################
+Plugin WP 18.0 (Argon)
+######################
+
+-  Wp         [2018/10/25] Added support for ACSL \offset construct
+-  Wp         [2018/09/04] Option -wp-warn-separation changed into -wp-warn-memory-model
+                           Adding memory model hypotheses related to pointer validity
+-  Wp         [2018/06/28] Use functional havoc instead of a predicate in Typed model
+-  Qed        [2018/06/28] Added builtin simplification on array operations
+-  Wp         [2018/06/20] Added more simplifications on list operations
+-  Qed        [2018/06/20] Added more simplifications for invertible functions
+-  TIP        [2018/06/07] Extends tactical 'Split' to distribution of qualitifiers
+
 ###########################
 Plugin WP Chlorine-20180501
 ###########################
 
 -  WP         [2018/03/08] Add the missing ACSL math builtins (see manual)
--  WP         [2018/02/12] Optional support for _Bool range (-wp-bool-range)
+-  WP         [2018/02/12] Experimental support for _Bool range (-wp-bool-range)
 -  WP         [2018/03/12] Better handling of \null and (void *)0L
 -  WP         [2018/02/16] Allow backtracking when using strategies (-wp-auto-backtrack)
 -  WP         [2018/02/16] Filter out some variables from separation

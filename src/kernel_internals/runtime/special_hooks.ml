@@ -38,7 +38,7 @@ let print_config () =
            FRAMAC_SHARE  = %S@\n  \
            FRAMAC_LIB    = %S@\n  \
            FRAMAC_PLUGIN = %S%t@."
-          Config.version
+          Config.version_and_codename
           Config.datadir Config.libdir Config.plugin_path
         (fun fmt ->
           if Config.preprocessor = "" then
@@ -59,7 +59,7 @@ let print_config get value () =
     raise Cmdline.Exit
   end
 
-let print_version = print_config Kernel.PrintVersion.get Config.version
+let print_version = print_config Kernel.PrintVersion.get Config.version_and_codename
 let () = Cmdline.run_after_early_stage print_version
 
 let print_sharepath = print_config Kernel.PrintShare.get Config.datadir
@@ -104,18 +104,19 @@ let time () =
 let () = Extlib.safe_at_exit time
 
 (* Save Frama-c on disk if required *)
-let save_binary keep_name =
+let save_binary error_extension =
   let filename = Kernel.SaveState.get () in
   if filename <> "" then begin
     Kernel.SaveState.clear ();
     let realname =
-      if keep_name then filename
-      else begin
-	let s = filename ^ ".crash" in
-	Kernel.warning
-	  "attempting to save on crash: modifying filename into `%s'." s;
-	s
-      end
+      match error_extension with
+      | None -> filename
+      | Some err_ext ->
+        let s = filename ^ err_ext in
+        Kernel.warning
+          "attempting to save on non-zero exit code: \
+           modifying filename into `%s'." s;
+        s
     in
     try 
       Project.save_all realname
@@ -123,16 +124,17 @@ let save_binary keep_name =
       Kernel.error "problem while saving to file %s (%s)." realname s
   end
 let () = 
-  (* implement behavior described in BTS #1388: 
+  (* implement a refinement of the behavior described in BTS #1388:
      - on normal exit: save
-     - on Sys.break, system error, user error or feature request: do not save
-     - on fatal error or unexpected error: save, but slightly change the
-     generated filename. *)
-  Cmdline.at_normal_exit (fun () -> save_binary true);
+     - on Sys.break, system error or feature request: do not save
+     - on user error: save, but add ".error" suffix
+     - on fatal error or unexpected error: save, but add ".crash" suffix *)
+  Cmdline.at_normal_exit (fun () -> save_binary None);
   Cmdline.at_error_exit
     (function
-    | Sys.Break | Sys_error _ | Log.AbortError _ | Log.FeatureRequest _ -> ()
-    | _ -> save_binary false)
+      | Sys.Break | Sys_error _ | Log.FeatureRequest _ -> ()
+      | Log.AbortError _ -> save_binary (Some ".error")
+      | _ -> save_binary (Some ".crash"))
 
 (* Load Frama-c from disk if required *)
 let load_binary () =

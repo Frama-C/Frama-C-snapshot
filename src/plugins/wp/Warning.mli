@@ -29,7 +29,7 @@ val error : ?source:string -> ('a,Format.formatter,unit,'b) format4 -> 'a
 (** Warning Manager *)
 
 type t = {
-  loc : Lexing.position ;
+  loc : Filepath.position ;
   severe : bool ;
   source : string ;
   reason : string ;

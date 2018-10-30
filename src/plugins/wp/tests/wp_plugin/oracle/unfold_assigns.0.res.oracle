@@ -14,8 +14,6 @@ Assume {
   When: !invalid(Malloc_0, s, 2).
   (* Heap *)
   Have: (region(s.base) <= 0) /\ linked(Malloc_0).
-  (* Exit Effects *)
-  Have: havoc(Mint_0, Mint_1, s, 2).
 }
 Prove: false.
 
@@ -28,8 +26,6 @@ Assume {
   When: !invalid(Malloc_0, s, 2).
   (* Heap *)
   Have: (region(s.base) <= 0) /\ linked(Malloc_0).
-  (* Call Effects *)
-  Have: havoc(Mint_0, Mint_1, s, 2).
 }
 Prove: false.
 

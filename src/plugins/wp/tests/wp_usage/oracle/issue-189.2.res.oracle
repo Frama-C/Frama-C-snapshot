@@ -23,6 +23,10 @@ Effect at line 17
 Prove: true.
 
 ------------------------------------------------------------
-[wp] Warning: Separation hypotheses for function 'f':
-  /*@ behavior typed_caveat: requires \separated(ptr,src); */
+[wp] Warning: Memory model hypotheses for function 'f':
+  /*@
+     behavior typed_caveat:
+     requires \separated(ptr,src);
+     requires \valid(ptr);
+     */
   void f(char *ptr, char const *src, unsigned int idx);

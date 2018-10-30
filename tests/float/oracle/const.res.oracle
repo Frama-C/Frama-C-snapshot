@@ -23,10 +23,10 @@
   Floating-point constant 0.00000000000000000000000000000000000000000000070064923216240853546186479164495806564013097093825788587853414194489554134293030074331909418106079101562499f is not represented exactly. Will use 0x0.0000000000000p-1022.
 [kernel:parser:decimal-float] tests/float/const.i:37: Warning: 
   Floating-point constant 0.00000000000000000000000000000000000000000000070064923216240853546186479164495806564013097093825788587853414194489554134293030074331909418106079101562501f is not represented exactly. Will use 0x1.0000000000000p-149.
-[value] Analyzing a complete application starting at main
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing a complete application starting at main
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   f0 ∈ {0}
   f_ ∈ {0}
   f00 ∈ {0}
@@ -132,11 +132,11 @@
   half_smallest_pos3 ∈ {0}
   half_smallest_pos4 ∈ {0}
   half_smallest_pos5 ∈ {0x1.0000000000000p-149}
-[value] tests/float/const.i:48: assertion got status valid.
-[value] Recording results for main
-[value] done for function main
-[value] ====== VALUES COMPUTED ======
-[value:final-states] Values at end of function main:
+[eva] tests/float/const.i:48: assertion got status valid.
+[eva] Recording results for main
+[eva] done for function main
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function main:
   f_ ∈ {-0x0.0000000000000p-1022}
   f00 ∈ {0}
   f2 ∈ {0x1.8000000000000p1}

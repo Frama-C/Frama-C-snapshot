@@ -1,0 +1,3 @@
+LOG: gen_@PTEST_NAME@.c
+OPT: -machdep gcc_x86_64 -check -e-acsl -e-acsl-temporal-validity -then-last -load-script tests/print.cmxs -print -ocode tests/temporal/result/gen_@PTEST_NAME@.c -kernel-verbose 0 -val -value-verbose 0 -eva-warn-key="alarm=inactive"
+EXEC: ./scripts/testrun.sh @PTEST_NAME@ temporal "" "--frama-c=@frama-c@ --full-mmodel --temporal"

@@ -1,0 +1,401 @@
+# frama-c -wp [...]
+[kernel] Parsing tests/wp/wp_behavior.i (no preprocessing)
+[wp] Running WP plugin...
+[wp] Loading driver 'share/wp.driver'
+[wp] Warning: Missing RTE guards
+------------------------------------------------------------
+  Function behaviors
+------------------------------------------------------------
+
+Goal Complete behaviors 'Y', 'X':
+Assume {
+  (* Heap *)
+  Have: (region(px_0.base) <= 0) /\ (region(py_0.base) <= 0).
+  (* Pre-condition *)
+  Have: P_R.
+}
+Prove: P_CX \/ P_CY.
+
+------------------------------------------------------------
+
+Goal Disjoint behaviors 'Y', 'X':
+Assume {
+  (* Heap *)
+  Have: (region(px_0.base) <= 0) /\ (region(py_0.base) <= 0).
+  (* Pre-condition *)
+  Have: P_R.
+}
+Prove: (!P_CX) \/ (!P_CY).
+
+------------------------------------------------------------
+
+Goal Post-condition (file tests/wp/wp_behavior.i, line 24) in 'behaviors':
+Assume {
+  (* Heap *)
+  Have: (region(px_0.base) <= 0) /\ (region(py_0.base) <= 0).
+  (* Pre-condition *)
+  Have: P_R.
+  (* Assertion *)
+  Have: P_Q.
+}
+Prove: P_P.
+
+------------------------------------------------------------
+
+Goal Assertion (file tests/wp/wp_behavior.i, line 39):
+Assume {
+  (* Heap *)
+  Have: (region(px_0.base) <= 0) /\ (region(py_0.base) <= 0).
+  (* Pre-condition *)
+  Have: P_R.
+}
+Prove: P_Q.
+
+------------------------------------------------------------
+------------------------------------------------------------
+  Function behaviors with behavior X
+------------------------------------------------------------
+
+Goal Post-condition for 'X' (file tests/wp/wp_behavior.i, line 28) in 'behaviors':
+Assume {
+  (* Heap *)
+  Have: (region(px_0.base) <= 0) /\ (region(py_0.base) <= 0) /\
+      (region(qx_0.base) <= 0) /\ linked(Malloc_0).
+  (* Pre-condition *)
+  Have: P_R.
+  (* Pre-condition for 'X' *)
+  Have: P_RX.
+  (* Pre-condition for 'X' *)
+  Have: P_CX.
+  (* Assertion *)
+  Have: P_Q.
+}
+Prove: P_PX.
+
+------------------------------------------------------------
+
+Goal Assigns for 'X' (file tests/wp/wp_behavior.i, line 29) in 'behaviors' (1/2):
+Effect at line 40
+Assume {
+  Type: is_sint32(c).
+  (* Goal *)
+  When: !invalid(Malloc_0, px_0, 1).
+  (* Heap *)
+  Have: (region(px_0.base) <= 0) /\ (region(py_0.base) <= 0) /\
+      (region(qx_0.base) <= 0) /\ linked(Malloc_0).
+  (* Pre-condition *)
+  Have: P_R.
+  (* Pre-condition for 'X' *)
+  Have: P_RX.
+  (* Pre-condition for 'X' *)
+  Have: P_CX.
+  (* Assertion *)
+  Have: P_Q.
+  (* Then *)
+  Have: c != 0.
+}
+Prove: qx_0 = px_0.
+
+------------------------------------------------------------
+
+Goal Assigns for 'X' (file tests/wp/wp_behavior.i, line 29) in 'behaviors' (2/2):
+Effect at line 41
+Assume {
+  (* Goal *)
+  When: !invalid(Malloc_0, py_0, 1).
+  (* Heap *)
+  Have: (region(px_0.base) <= 0) /\ (region(py_0.base) <= 0) /\
+      (region(qx_0.base) <= 0) /\ linked(Malloc_0).
+  (* Pre-condition *)
+  Have: P_R.
+  (* Pre-condition for 'X' *)
+  Have: P_RX.
+  (* Pre-condition for 'X' *)
+  Have: P_CX.
+  (* Assertion *)
+  Have: P_Q.
+}
+Prove: qx_0 = py_0.
+
+------------------------------------------------------------
+------------------------------------------------------------
+  Function behaviors with behavior Y
+------------------------------------------------------------
+
+Goal Post-condition for 'Y' (file tests/wp/wp_behavior.i, line 33) in 'behaviors':
+Assume {
+  (* Heap *)
+  Have: (region(px_0.base) <= 0) /\ (region(py_0.base) <= 0) /\
+      (region(qy_0.base) <= 0) /\ linked(Malloc_0).
+  (* Pre-condition *)
+  Have: P_R.
+  (* Pre-condition for 'Y' *)
+  Have: P_RY.
+  (* Pre-condition for 'Y' *)
+  Have: P_CY.
+  (* Assertion *)
+  Have: P_Q.
+}
+Prove: P_PY.
+
+------------------------------------------------------------
+
+Goal Assigns for 'Y' (file tests/wp/wp_behavior.i, line 34) in 'behaviors' (1/2):
+Effect at line 40
+Assume {
+  Type: is_sint32(c).
+  (* Goal *)
+  When: !invalid(Malloc_0, px_0, 1).
+  (* Heap *)
+  Have: (region(px_0.base) <= 0) /\ (region(py_0.base) <= 0) /\
+      (region(qy_0.base) <= 0) /\ linked(Malloc_0).
+  (* Pre-condition *)
+  Have: P_R.
+  (* Pre-condition for 'Y' *)
+  Have: P_RY.
+  (* Pre-condition for 'Y' *)
+  Have: P_CY.
+  (* Assertion *)
+  Have: P_Q.
+  (* Then *)
+  Have: c != 0.
+}
+Prove: qy_0 = px_0.
+
+------------------------------------------------------------
+
+Goal Assigns for 'Y' (file tests/wp/wp_behavior.i, line 34) in 'behaviors' (2/2):
+Effect at line 41
+Assume {
+  (* Goal *)
+  When: !invalid(Malloc_0, py_0, 1).
+  (* Heap *)
+  Have: (region(px_0.base) <= 0) /\ (region(py_0.base) <= 0) /\
+      (region(qy_0.base) <= 0) /\ linked(Malloc_0).
+  (* Pre-condition *)
+  Have: P_R.
+  (* Pre-condition for 'Y' *)
+  Have: P_RY.
+  (* Pre-condition for 'Y' *)
+  Have: P_CY.
+  (* Assertion *)
+  Have: P_Q.
+}
+Prove: qy_0 = py_0.
+
+------------------------------------------------------------
+------------------------------------------------------------
+  Function call
+------------------------------------------------------------
+
+Goal Post-condition (file tests/wp/wp_behavior.i, line 66) in 'call':
+Assume {
+  (* Heap *)
+  Have: (region(px_0.base) <= 0) /\ (region(py_0.base) <= 0) /\
+      (region(qx_0.base) <= 0) /\ (region(qy_0.base) <= 0).
+  (* Pre-condition *)
+  Have: P_RQ.
+  (* Call 'behaviors' *)
+  Have: P_P /\ P_R /\ ((P_CX -> P_RX)) /\ ((P_CX -> P_PX)) /\
+      ((P_CY -> P_RY)) /\ ((P_CY -> P_PY)).
+}
+Prove: P_Q.
+
+------------------------------------------------------------
+
+Goal Assigns (file tests/wp/wp_behavior.i, line 65) in 'call':
+Effect at line 69
+Assume {
+  (* Heap *)
+  Have: (region(px_0.base) <= 0) /\ (region(py_0.base) <= 0) /\
+      (region(qx_0.base) <= 0) /\ (region(qy_0.base) <= 0).
+  (* Pre-condition *)
+  Have: P_RQ.
+  (* Exit 'behaviors' *)
+  Have: P_R /\ ((P_CX -> P_RX)) /\ ((P_CY -> P_RY)).
+}
+Prove: false.
+
+------------------------------------------------------------
+
+Goal Assigns (file tests/wp/wp_behavior.i, line 65) in 'call':
+Effect at line 69
+Assume {
+  (* Heap *)
+  Have: (region(px_0.base) <= 0) /\ (region(py_0.base) <= 0) /\
+      (region(qx_0.base) <= 0) /\ (region(qy_0.base) <= 0).
+  (* Pre-condition *)
+  Have: P_RQ.
+  (* Call 'behaviors' *)
+  Have: P_P /\ P_R /\ ((P_CX -> P_RX)) /\ ((P_CX -> P_PX)) /\
+      ((P_CY -> P_RY)) /\ ((P_CY -> P_PY)).
+}
+Prove: false.
+
+------------------------------------------------------------
+
+Goal Instance of 'Pre-condition (file tests/wp/wp_behavior.i, line 23) in 'behaviors'' in 'call' at call 'behaviors' (file tests/wp/wp_behavior.i, line 69)
+:
+Assume {
+  (* Heap *)
+  Have: (region(px_0.base) <= 0) /\ (region(py_0.base) <= 0) /\
+      (region(qx_0.base) <= 0) /\ (region(qy_0.base) <= 0).
+  (* Pre-condition *)
+  Have: P_RQ.
+}
+Prove: P_R.
+
+------------------------------------------------------------
+
+Goal Instance of 'Pre-condition for 'X' (file tests/wp/wp_behavior.i, line 27) in 'behaviors'' in 'call' at call 'behaviors' (file tests/wp/wp_behavior.i, line 69)
+:
+Assume {
+  (* Goal *)
+  When: P_CX.
+  (* Heap *)
+  Have: (region(px_0.base) <= 0) /\ (region(py_0.base) <= 0) /\
+      (region(qx_0.base) <= 0) /\ (region(qy_0.base) <= 0).
+  (* Pre-condition *)
+  Have: P_RQ.
+}
+Prove: P_RX.
+
+------------------------------------------------------------
+
+Goal Instance of 'Pre-condition for 'Y' (file tests/wp/wp_behavior.i, line 32) in 'behaviors'' in 'call' at call 'behaviors' (file tests/wp/wp_behavior.i, line 69)
+:
+Assume {
+  (* Goal *)
+  When: P_CY.
+  (* Heap *)
+  Have: (region(px_0.base) <= 0) /\ (region(py_0.base) <= 0) /\
+      (region(qx_0.base) <= 0) /\ (region(qy_0.base) <= 0).
+  (* Pre-condition *)
+  Have: P_RQ.
+}
+Prove: P_RY.
+
+------------------------------------------------------------
+------------------------------------------------------------
+  Function main
+------------------------------------------------------------
+
+Goal Pre-condition (file tests/wp/wp_behavior.i, line 45) in 'main':
+Assume { (* Heap *) Have: (region(p.base) <= 0) /\ (region(q.base) <= 0). }
+Prove: P_R.
+
+------------------------------------------------------------
+
+Goal Pre-condition (file tests/wp/wp_behavior.i, line 46) in 'main':
+Assume { (* Heap *) Have: (region(p.base) <= 0) /\ (region(q.base) <= 0). }
+Prove: P_R1.
+
+------------------------------------------------------------
+------------------------------------------------------------
+  Function main with behavior X
+------------------------------------------------------------
+
+Goal Pre-condition for 'X' (file tests/wp/wp_behavior.i, line 49) in 'main':
+Assume {
+  (* Heap *)
+  Have: (region(p.base) <= 0) /\ (region(q.base) <= 0) /\ linked(Malloc_0).
+  (* Pre-condition *)
+  Have: P_R.
+  (* Pre-condition *)
+  Have: P_R1.
+  (* Pre-condition for 'X' *)
+  Have: P_CX.
+}
+Prove: P_RX.
+
+------------------------------------------------------------
+
+Goal Pre-condition for 'X' (file tests/wp/wp_behavior.i, line 50) in 'main':
+Assume {
+  (* Heap *)
+  Have: (region(p.base) <= 0) /\ (region(q.base) <= 0) /\ linked(Malloc_0).
+  (* Pre-condition *)
+  Have: P_R.
+  (* Pre-condition *)
+  Have: P_R1.
+  (* Pre-condition for 'X' *)
+  Have: P_CX.
+}
+Prove: P_RX1.
+
+------------------------------------------------------------
+
+Goal Assigns for 'X' (file tests/wp/wp_behavior.i, line 51) in 'main' (1/2):
+Effect at line 58
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Assigns for 'X' (file tests/wp/wp_behavior.i, line 51) in 'main' (2/2):
+Effect at line 59
+Assume {
+  (* Goal *)
+  When: !invalid(Malloc_0, q, 1).
+  (* Heap *)
+  Have: (region(p.base) <= 0) /\ (region(q.base) <= 0) /\ linked(Malloc_0).
+  (* Pre-condition *)
+  Have: P_R.
+  (* Pre-condition *)
+  Have: P_R1.
+  (* Pre-condition for 'X' *)
+  Have: P_CX.
+  (* Pre-condition for 'X' *)
+  Have: P_RX1.
+  (* Pre-condition for 'X' *)
+  Have: P_RX.
+}
+Prove: q = p.
+
+------------------------------------------------------------
+------------------------------------------------------------
+  Function main with behavior Y
+------------------------------------------------------------
+
+Goal Pre-condition for 'Y' (file tests/wp/wp_behavior.i, line 54) in 'main':
+Assume {
+  (* Heap *)
+  Have: (region(p.base) <= 0) /\ (region(q.base) <= 0) /\ linked(Malloc_0).
+  (* Pre-condition *)
+  Have: P_R.
+  (* Pre-condition *)
+  Have: P_R1.
+  (* Pre-condition for 'Y' *)
+  Have: P_CY.
+}
+Prove: P_RY.
+
+------------------------------------------------------------
+
+Goal Assigns for 'Y' (file tests/wp/wp_behavior.i, line 55) in 'main' (1/2):
+Effect at line 58
+Assume {
+  Type: is_sint32(c).
+  (* Goal *)
+  When: !invalid(Malloc_0, p, 1).
+  (* Heap *)
+  Have: (region(p.base) <= 0) /\ (region(q.base) <= 0) /\ linked(Malloc_0).
+  (* Pre-condition *)
+  Have: P_R.
+  (* Pre-condition *)
+  Have: P_R1.
+  (* Pre-condition for 'Y' *)
+  Have: P_CY.
+  (* Pre-condition for 'Y' *)
+  Have: P_RY.
+  (* Then *)
+  Have: c != 0.
+}
+Prove: q = p.
+
+------------------------------------------------------------
+
+Goal Assigns for 'Y' (file tests/wp/wp_behavior.i, line 55) in 'main' (2/2):
+Effect at line 59
+Prove: true.
+
+------------------------------------------------------------

@@ -1,5 +1,5 @@
 /* run.config
- OPT: -print -journal-disable -kernel-warn-abort=-annot-error
+ OPT: -print -journal-disable -kernel-warn-key=annot-error=active
 */
 
 // test of label inference into 

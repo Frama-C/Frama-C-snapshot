@@ -1,43 +1,42 @@
 [kernel] Parsing tests/value/cast2.i (no preprocessing)
-[value] Analyzing a complete application starting at main
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing a complete application starting at main
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   G ∈ {255}
-[value] computing for function g <- main.
+[eva] computing for function g <- main.
   Called from tests/value/cast2.i:28.
-[value] computing for function any_int <- g <- main.
+[eva] computing for function any_int <- g <- main.
   Called from tests/value/cast2.i:7.
-[value] using specification for function any_int
-[value] Done for function any_int
-[value:alarm] tests/value/cast2.i:9: Warning: 
+[eva] using specification for function any_int
+[eva] Done for function any_int
+[eva:alarm] tests/value/cast2.i:9: Warning: 
   signed overflow. assert t + 1 ≤ 2147483647;
-[value] Recording results for g
-[value] Done for function g
-[value] computing for function h <- main.
+[eva] Recording results for g
+[eva] Done for function g
+[eva] computing for function h <- main.
   Called from tests/value/cast2.i:29.
-[value] Recording results for h
-[value] Done for function h
-[value] computing for function passcast <- main.
+[eva] Recording results for h
+[eva] Done for function h
+[eva] computing for function passcast <- main.
   Called from tests/value/cast2.i:30.
-[value] computing for function any_int <- passcast <- main.
+[eva] computing for function any_int <- passcast <- main.
   Called from tests/value/cast2.i:20.
-[value] Done for function any_int
-[value] tests/value/cast2.i:23: Frama_C_show_each: [-128..100]
-[value] tests/value/cast2.i:24: entering loop for the first time
-[value] Recording results for passcast
-[value] Done for function passcast
-[value] Recording results for main
-[value] done for function main
-[value] ====== VALUES COMPUTED ======
-[value:final-states] Values at end of function g:
+[eva] Done for function any_int
+[eva] tests/value/cast2.i:23: Frama_C_show_each: [-128..100]
+[eva] Recording results for passcast
+[eva] Done for function passcast
+[eva] Recording results for main
+[eva] done for function main
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function g:
   t ∈ [-2147483647..2147483647]
   G_0 ∈ [--..--]
-[value:final-states] Values at end of function h:
+[eva:final-states] Values at end of function h:
   G ∈ {1}
-[value:final-states] Values at end of function passcast:
+[eva:final-states] Values at end of function passcast:
   i ∈ [-128..100]
-[value:final-states] Values at end of function main:
+[eva:final-states] Values at end of function main:
   G ∈ {1}
 [from] Computing for function g
 [from] Computing for function any_int <-g

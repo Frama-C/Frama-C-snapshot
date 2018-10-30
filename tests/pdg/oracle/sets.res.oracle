@@ -1,18 +1,18 @@
 [kernel] Parsing tests/pdg/sets.c (with preprocessing)
-[value] Analyzing an incomplete application starting at f
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing an incomplete application starting at f
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   b ∈ [--..--]
   c ∈ [--..--]
   x ∈ [--..--]
   y ∈ [--..--]
   z ∈ [--..--]
   t ∈ [--..--]
-[value:alarm] tests/pdg/sets.c:15: Warning: 
+[eva:alarm] tests/pdg/sets.c:15: Warning: 
   signed overflow. assert b + y ≤ 2147483647;
-[value] Recording results for f
-[value] done for function f
+[eva] Recording results for f
+[eva] done for function f
 [inout] InOut (internal) for function f:
   Operational inputs:
     a

@@ -5,13 +5,11 @@ let print () =
 let print_status () =
   Kernel.log "printing status";
   let  _, _, get_signedOv_status = !Db.RteGen.get_signedOv_status () in
-  let  _, _, get_precond_status = !Db.RteGen.get_precond_status () in
   Globals.Functions.iter
     (fun kf ->
-      Kernel.log "kf = %s rte_gen_status = %b precond_status = %b\n"
+      Kernel.log "kf = %s rte_gen_status = %b\n"
 	(Kernel_function.get_name kf)
-	(get_signedOv_status kf)
-	(get_precond_status kf))
+	(get_signedOv_status kf))
 
 let main () =
   Dynamic.Parameter.Bool.set "-rte-mem" false;
@@ -20,13 +18,6 @@ let main () =
   Dynamic.Parameter.Bool.set "-rte-div" false;
   Kernel.SignedOverflow.off ();
   Kernel.SignedDowncast.off ();
-  Dynamic.Parameter.Bool.set "-rte-precond" true;
-  print ();
-  print_status ();
-
-  Kernel.log "computing -rte-precond annotations" ;
-  !Db.RteGen.compute () ;
-
   print ();
   print_status ();
 

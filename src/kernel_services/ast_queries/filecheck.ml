@@ -384,7 +384,10 @@ class check ?(is_normalized=true) what : Visitor.frama_c_visitor =
       let ok = List.exists (function Label _ -> true | _ -> false) !s.labels in
       if not ok then
         check_abort
-          "Statement is referenced by \\at or goto without having a label";
+          "@[<v 2>Statement is referenced by \\at or goto without \
+           having a label:@\n%a@]"
+          Printer.pp_stmt !s
+      ;
       labelled_stmt <- !s :: labelled_stmt
 
     method private check_try_catch_decl (decl,_) =
@@ -607,14 +610,46 @@ class check ?(is_normalized=true) what : Visitor.frama_c_visitor =
           Printer.pp_code_annotation ca
       end else Hashtbl.add known_code_annot_id ca.annot_id ca;
       let old_labels = logic_labels in
-      logic_labels <-
-        Logic_const.(init_label :: here_label :: pre_label :: logic_labels);
+      let my_labels =
+        Logic_const.([init_label; here_label; pre_label])
+      in
+      let my_labels =
+        match ca.annot_content with
+        | AExtended (_, is_loop, (_, name, _, _)) ->
+          (match Logic_env.extension_category name, is_loop with
+           | Some (Ext_code_annot (Ext_next_stmt | Ext_next_both)), false ->
+             Logic_const.post_label :: my_labels
+           | Some (Ext_code_annot Ext_here), false -> my_labels
+           | Some (Ext_code_annot (Ext_next_loop | Ext_next_both)), true ->
+             Logic_const.loop_current_label ::
+             Logic_const.loop_entry_label :: my_labels
+           | Some (Ext_code_annot (Ext_here | Ext_next_stmt)), true ->
+             Kernel.(
+               warning ~wkey:wkey_acsl_extension
+                 "%s is a code annotation extension, \
+                  but used as a loop annotation" name);
+             my_labels
+           | Some (Ext_code_annot (Ext_next_loop)), false ->
+             Kernel.(
+               warning ~wkey:wkey_acsl_extension
+                 "%s is a loop annotation extension, \
+                  but used as a code annotation" name;
+               my_labels)
+           | (Some (Ext_contract | Ext_global) | None), _ ->
+             Kernel.(
+               warning ~wkey:wkey_acsl_extension
+                 "%s is not a known code annotation extension" name);
+             my_labels)
+        | AAssert _ | AStmtSpec _ | AInvariant _ | AVariant _
+        | AAssigns _ | AAllocation _ | APragma _ -> my_labels
+      in
+      logic_labels <- my_labels @ logic_labels;
       (* on non-normalized code, we can't really check the scope of behavior
          names of statement contracts. *)
       if is_normalized then begin
         match ca.annot_content with
         | AAssert(bhvs,_) | AStmtSpec(bhvs,_) | AInvariant (bhvs,_,_)
-        | AAssigns(bhvs,_) | AAllocation(bhvs,_) | AExtended (bhvs,_) ->
+        | AAssigns(bhvs,_) | AAllocation(bhvs,_) | AExtended (bhvs,_,_) ->
           List.iter
             (fun b ->
                if not (self#mem_behavior_stack_name b) then

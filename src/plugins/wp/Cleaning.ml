@@ -165,4 +165,3 @@ let rec filter_type m p =
         | _ -> p
       end
   | _ -> p
-

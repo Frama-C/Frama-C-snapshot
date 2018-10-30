@@ -299,323 +299,349 @@
   
   void __builtin_varargs_start(__builtin_va_list);
   
-  short __sync_add_and_fetch_int16_t(short *, short , ...);
+  short __sync_add_and_fetch_int16_t(short volatile *, short , ...);
   
-  int __sync_add_and_fetch_int32_t(int *, int , ...);
+  int __sync_add_and_fetch_int32_t(int volatile *, int , ...);
   
-  long long __sync_add_and_fetch_int64_t(long long *, long long , ...);
+  long long __sync_add_and_fetch_int64_t(long long volatile *, long long , ...);
   
-  signed char __sync_add_and_fetch_int8_t(signed char *, signed char , ...);
+  signed char __sync_add_and_fetch_int8_t(signed char volatile *, signed char
+                                          , ...);
   
-  unsigned short __sync_add_and_fetch_uint16_t(unsigned short *, unsigned short
-                                               , ...);
+  unsigned short __sync_add_and_fetch_uint16_t(unsigned short volatile *,
+                                               unsigned short , ...);
   
-  unsigned int __sync_add_and_fetch_uint32_t(unsigned int *, unsigned int , ...);
+  unsigned int __sync_add_and_fetch_uint32_t(unsigned int volatile *,
+                                             unsigned int , ...);
   
-  unsigned long long __sync_add_and_fetch_uint64_t(unsigned long long *,
+  unsigned long long __sync_add_and_fetch_uint64_t(unsigned long long volatile *,
                                                    unsigned long long , ...);
   
-  unsigned char __sync_add_and_fetch_uint8_t(unsigned char *, unsigned char
-                                             , ...);
+  unsigned char __sync_add_and_fetch_uint8_t(unsigned char volatile *,
+                                             unsigned char , ...);
   
-  short __sync_and_and_fetch_int16_t(short *, short , ...);
+  short __sync_and_and_fetch_int16_t(short volatile *, short , ...);
   
-  int __sync_and_and_fetch_int32_t(int *, int , ...);
+  int __sync_and_and_fetch_int32_t(int volatile *, int , ...);
   
-  long long __sync_and_and_fetch_int64_t(long long *, long long , ...);
+  long long __sync_and_and_fetch_int64_t(long long volatile *, long long , ...);
   
-  signed char __sync_and_and_fetch_int8_t(signed char *, signed char , ...);
+  signed char __sync_and_and_fetch_int8_t(signed char volatile *, signed char
+                                          , ...);
   
-  unsigned short __sync_and_and_fetch_uint16_t(unsigned short *, unsigned short
-                                               , ...);
+  unsigned short __sync_and_and_fetch_uint16_t(unsigned short volatile *,
+                                               unsigned short , ...);
   
-  unsigned int __sync_and_and_fetch_uint32_t(unsigned int *, unsigned int , ...);
+  unsigned int __sync_and_and_fetch_uint32_t(unsigned int volatile *,
+                                             unsigned int , ...);
   
-  unsigned long long __sync_and_and_fetch_uint64_t(unsigned long long *,
+  unsigned long long __sync_and_and_fetch_uint64_t(unsigned long long volatile *,
                                                    unsigned long long , ...);
   
-  unsigned char __sync_and_and_fetch_uint8_t(unsigned char *, unsigned char
-                                             , ...);
+  unsigned char __sync_and_and_fetch_uint8_t(unsigned char volatile *,
+                                             unsigned char , ...);
   
-  int __sync_bool_compare_and_swap_int16_t(short *, short, short , ...);
+  int __sync_bool_compare_and_swap_int16_t(short volatile *, short, short , ...);
   
-  int __sync_bool_compare_and_swap_int32_t(int *, int, int , ...);
+  int __sync_bool_compare_and_swap_int32_t(int volatile *, int, int , ...);
   
-  int __sync_bool_compare_and_swap_int64_t(long long *, long long, long long
-                                           , ...);
+  int __sync_bool_compare_and_swap_int64_t(long long volatile *, long long,
+                                           long long , ...);
   
-  int __sync_bool_compare_and_swap_int8_t(signed char *, signed char,
+  int __sync_bool_compare_and_swap_int8_t(signed char volatile *, signed char,
                                           signed char , ...);
   
-  int __sync_bool_compare_and_swap_uint16_t(unsigned short *, unsigned short,
-                                            unsigned short , ...);
+  int __sync_bool_compare_and_swap_uint16_t(unsigned short volatile *,
+                                            unsigned short, unsigned short
+                                            , ...);
   
-  int __sync_bool_compare_and_swap_uint32_t(unsigned int *, unsigned int,
-                                            unsigned int , ...);
+  int __sync_bool_compare_and_swap_uint32_t(unsigned int volatile *,
+                                            unsigned int, unsigned int , ...);
   
-  int __sync_bool_compare_and_swap_uint64_t(unsigned long long *,
+  int __sync_bool_compare_and_swap_uint64_t(unsigned long long volatile *,
                                             unsigned long long,
                                             unsigned long long , ...);
   
-  int __sync_bool_compare_and_swap_uint8_t(unsigned char *, unsigned char,
-                                           unsigned char , ...);
+  int __sync_bool_compare_and_swap_uint8_t(unsigned char volatile *,
+                                           unsigned char, unsigned char , ...);
   
-  short __sync_fetch_and_add_int16_t(short *, short , ...);
+  short __sync_fetch_and_add_int16_t(short volatile *, short , ...);
   
-  int __sync_fetch_and_add_int32_t(int *, int , ...);
+  int __sync_fetch_and_add_int32_t(int volatile *, int , ...);
   
-  long long __sync_fetch_and_add_int64_t(long long *, long long , ...);
+  long long __sync_fetch_and_add_int64_t(long long volatile *, long long , ...);
   
-  signed char __sync_fetch_and_add_int8_t(signed char *, signed char , ...);
+  signed char __sync_fetch_and_add_int8_t(signed char volatile *, signed char
+                                          , ...);
   
-  unsigned short __sync_fetch_and_add_uint16_t(unsigned short *, unsigned short
-                                               , ...);
+  unsigned short __sync_fetch_and_add_uint16_t(unsigned short volatile *,
+                                               unsigned short , ...);
   
-  unsigned int __sync_fetch_and_add_uint32_t(unsigned int *, unsigned int , ...);
+  unsigned int __sync_fetch_and_add_uint32_t(unsigned int volatile *,
+                                             unsigned int , ...);
   
-  unsigned long long __sync_fetch_and_add_uint64_t(unsigned long long *,
+  unsigned long long __sync_fetch_and_add_uint64_t(unsigned long long volatile *,
                                                    unsigned long long , ...);
   
-  unsigned char __sync_fetch_and_add_uint8_t(unsigned char *, unsigned char
-                                             , ...);
+  unsigned char __sync_fetch_and_add_uint8_t(unsigned char volatile *,
+                                             unsigned char , ...);
   
-  short __sync_fetch_and_and_int16_t(short *, short , ...);
+  short __sync_fetch_and_and_int16_t(short volatile *, short , ...);
   
-  int __sync_fetch_and_and_int32_t(int *, int , ...);
+  int __sync_fetch_and_and_int32_t(int volatile *, int , ...);
   
-  long long __sync_fetch_and_and_int64_t(long long *, long long , ...);
+  long long __sync_fetch_and_and_int64_t(long long volatile *, long long , ...);
   
-  signed char __sync_fetch_and_and_int8_t(signed char *, signed char , ...);
+  signed char __sync_fetch_and_and_int8_t(signed char volatile *, signed char
+                                          , ...);
   
-  unsigned short __sync_fetch_and_and_uint16_t(unsigned short *, unsigned short
-                                               , ...);
+  unsigned short __sync_fetch_and_and_uint16_t(unsigned short volatile *,
+                                               unsigned short , ...);
   
-  unsigned int __sync_fetch_and_and_uint32_t(unsigned int *, unsigned int , ...);
+  unsigned int __sync_fetch_and_and_uint32_t(unsigned int volatile *,
+                                             unsigned int , ...);
   
-  unsigned long long __sync_fetch_and_and_uint64_t(unsigned long long *,
+  unsigned long long __sync_fetch_and_and_uint64_t(unsigned long long volatile *,
                                                    unsigned long long , ...);
   
-  unsigned char __sync_fetch_and_and_uint8_t(unsigned char *, unsigned char
-                                             , ...);
+  unsigned char __sync_fetch_and_and_uint8_t(unsigned char volatile *,
+                                             unsigned char , ...);
   
-  short __sync_fetch_and_nand_int16_t(short *, short , ...);
+  short __sync_fetch_and_nand_int16_t(short volatile *, short , ...);
   
-  int __sync_fetch_and_nand_int32_t(int *, int , ...);
+  int __sync_fetch_and_nand_int32_t(int volatile *, int , ...);
   
-  long long __sync_fetch_and_nand_int64_t(long long *, long long , ...);
+  long long __sync_fetch_and_nand_int64_t(long long volatile *, long long , ...);
   
-  signed char __sync_fetch_and_nand_int8_t(signed char *, signed char , ...);
+  signed char __sync_fetch_and_nand_int8_t(signed char volatile *, signed char
+                                           , ...);
   
-  unsigned short __sync_fetch_and_nand_uint16_t(unsigned short *,
+  unsigned short __sync_fetch_and_nand_uint16_t(unsigned short volatile *,
                                                 unsigned short , ...);
   
-  unsigned int __sync_fetch_and_nand_uint32_t(unsigned int *, unsigned int
-                                              , ...);
+  unsigned int __sync_fetch_and_nand_uint32_t(unsigned int volatile *,
+                                              unsigned int , ...);
   
-  unsigned long long __sync_fetch_and_nand_uint64_t(unsigned long long *,
+  unsigned long long __sync_fetch_and_nand_uint64_t(unsigned long long volatile *,
                                                     unsigned long long , ...);
   
-  unsigned char __sync_fetch_and_nand_uint8_t(unsigned char *, unsigned char
-                                              , ...);
+  unsigned char __sync_fetch_and_nand_uint8_t(unsigned char volatile *,
+                                              unsigned char , ...);
   
-  short __sync_fetch_and_or_int16_t(short *, short , ...);
+  short __sync_fetch_and_or_int16_t(short volatile *, short , ...);
   
-  int __sync_fetch_and_or_int32_t(int *, int , ...);
+  int __sync_fetch_and_or_int32_t(int volatile *, int , ...);
   
-  long long __sync_fetch_and_or_int64_t(long long *, long long , ...);
+  long long __sync_fetch_and_or_int64_t(long long volatile *, long long , ...);
   
-  signed char __sync_fetch_and_or_int8_t(signed char *, signed char , ...);
+  signed char __sync_fetch_and_or_int8_t(signed char volatile *, signed char
+                                         , ...);
   
-  unsigned short __sync_fetch_and_or_uint16_t(unsigned short *, unsigned short
-                                              , ...);
+  unsigned short __sync_fetch_and_or_uint16_t(unsigned short volatile *,
+                                              unsigned short , ...);
   
-  unsigned int __sync_fetch_and_or_uint32_t(unsigned int *, unsigned int , ...);
+  unsigned int __sync_fetch_and_or_uint32_t(unsigned int volatile *,
+                                            unsigned int , ...);
   
-  unsigned long long __sync_fetch_and_or_uint64_t(unsigned long long *,
+  unsigned long long __sync_fetch_and_or_uint64_t(unsigned long long volatile *,
                                                   unsigned long long , ...);
   
-  unsigned char __sync_fetch_and_or_uint8_t(unsigned char *, unsigned char
-                                            , ...);
+  unsigned char __sync_fetch_and_or_uint8_t(unsigned char volatile *,
+                                            unsigned char , ...);
   
-  short __sync_fetch_and_sub_int16_t(short *, short , ...);
+  short __sync_fetch_and_sub_int16_t(short volatile *, short , ...);
   
-  int __sync_fetch_and_sub_int32_t(int *, int , ...);
+  int __sync_fetch_and_sub_int32_t(int volatile *, int , ...);
   
-  long long __sync_fetch_and_sub_int64_t(long long *, long long , ...);
+  long long __sync_fetch_and_sub_int64_t(long long volatile *, long long , ...);
   
-  signed char __sync_fetch_and_sub_int8_t(signed char *, signed char , ...);
+  signed char __sync_fetch_and_sub_int8_t(signed char volatile *, signed char
+                                          , ...);
   
-  unsigned short __sync_fetch_and_sub_uint16_t(unsigned short *, unsigned short
-                                               , ...);
+  unsigned short __sync_fetch_and_sub_uint16_t(unsigned short volatile *,
+                                               unsigned short , ...);
   
-  unsigned int __sync_fetch_and_sub_uint32_t(unsigned int *, unsigned int , ...);
+  unsigned int __sync_fetch_and_sub_uint32_t(unsigned int volatile *,
+                                             unsigned int , ...);
   
-  unsigned long long __sync_fetch_and_sub_uint64_t(unsigned long long *,
+  unsigned long long __sync_fetch_and_sub_uint64_t(unsigned long long volatile *,
                                                    unsigned long long , ...);
   
-  unsigned char __sync_fetch_and_sub_uint8_t(unsigned char *, unsigned char
-                                             , ...);
+  unsigned char __sync_fetch_and_sub_uint8_t(unsigned char volatile *,
+                                             unsigned char , ...);
   
-  short __sync_fetch_and_xor_int16_t(short *, short , ...);
+  short __sync_fetch_and_xor_int16_t(short volatile *, short , ...);
   
-  int __sync_fetch_and_xor_int32_t(int *, int , ...);
+  int __sync_fetch_and_xor_int32_t(int volatile *, int , ...);
   
-  long long __sync_fetch_and_xor_int64_t(long long *, long long , ...);
+  long long __sync_fetch_and_xor_int64_t(long long volatile *, long long , ...);
   
-  signed char __sync_fetch_and_xor_int8_t(signed char *, signed char , ...);
+  signed char __sync_fetch_and_xor_int8_t(signed char volatile *, signed char
+                                          , ...);
   
-  unsigned short __sync_fetch_and_xor_uint16_t(unsigned short *, unsigned short
-                                               , ...);
+  unsigned short __sync_fetch_and_xor_uint16_t(unsigned short volatile *,
+                                               unsigned short , ...);
   
-  unsigned int __sync_fetch_and_xor_uint32_t(unsigned int *, unsigned int , ...);
+  unsigned int __sync_fetch_and_xor_uint32_t(unsigned int volatile *,
+                                             unsigned int , ...);
   
-  unsigned long long __sync_fetch_and_xor_uint64_t(unsigned long long *,
+  unsigned long long __sync_fetch_and_xor_uint64_t(unsigned long long volatile *,
                                                    unsigned long long , ...);
   
-  unsigned char __sync_fetch_and_xor_uint8_t(unsigned char *, unsigned char
+  unsigned char __sync_fetch_and_xor_uint8_t(unsigned char volatile *,
+                                             unsigned char , ...);
+  
+  void __sync_lock_release_int16_t(short volatile * , ...);
+  
+  void __sync_lock_release_int32_t(int volatile * , ...);
+  
+  void __sync_lock_release_int64_t(long long volatile * , ...);
+  
+  void __sync_lock_release_int8_t(signed char volatile * , ...);
+  
+  void __sync_lock_release_uint16_t(unsigned short volatile * , ...);
+  
+  void __sync_lock_release_uint32_t(unsigned int volatile * , ...);
+  
+  void __sync_lock_release_uint64_t(unsigned long long volatile * , ...);
+  
+  void __sync_lock_release_uint8_t(unsigned char volatile * , ...);
+  
+  short __sync_lock_test_and_set_int16_t(short volatile *, short , ...);
+  
+  int __sync_lock_test_and_set_int32_t(int volatile *, int , ...);
+  
+  long long __sync_lock_test_and_set_int64_t(long long volatile *, long long
                                              , ...);
   
-  void __sync_lock_release_int16_t(short * , ...);
+  signed char __sync_lock_test_and_set_int8_t(signed char volatile *,
+                                              signed char , ...);
   
-  void __sync_lock_release_int32_t(int * , ...);
-  
-  void __sync_lock_release_int64_t(long long * , ...);
-  
-  void __sync_lock_release_int8_t(signed char * , ...);
-  
-  void __sync_lock_release_uint16_t(unsigned short * , ...);
-  
-  void __sync_lock_release_uint32_t(unsigned int * , ...);
-  
-  void __sync_lock_release_uint64_t(unsigned long long * , ...);
-  
-  void __sync_lock_release_uint8_t(unsigned char * , ...);
-  
-  short __sync_lock_test_and_set_int16_t(short *, short , ...);
-  
-  int __sync_lock_test_and_set_int32_t(int *, int , ...);
-  
-  long long __sync_lock_test_and_set_int64_t(long long *, long long , ...);
-  
-  signed char __sync_lock_test_and_set_int8_t(signed char *, signed char , ...);
-  
-  unsigned short __sync_lock_test_and_set_uint16_t(unsigned short *,
+  unsigned short __sync_lock_test_and_set_uint16_t(unsigned short volatile *,
                                                    unsigned short , ...);
   
-  unsigned int __sync_lock_test_and_set_uint32_t(unsigned int *, unsigned int
-                                                 , ...);
+  unsigned int __sync_lock_test_and_set_uint32_t(unsigned int volatile *,
+                                                 unsigned int , ...);
   
-  unsigned long long __sync_lock_test_and_set_uint64_t(unsigned long long *,
+  unsigned long long __sync_lock_test_and_set_uint64_t(unsigned long long volatile *,
                                                        unsigned long long , ...);
   
-  unsigned char __sync_lock_test_and_set_uint8_t(unsigned char *, unsigned char
-                                                 , ...);
+  unsigned char __sync_lock_test_and_set_uint8_t(unsigned char volatile *,
+                                                 unsigned char , ...);
   
-  short __sync_nand_and_fetch_int16_t(short *, short , ...);
+  short __sync_nand_and_fetch_int16_t(short volatile *, short , ...);
   
-  int __sync_nand_and_fetch_int32_t(int *, int , ...);
+  int __sync_nand_and_fetch_int32_t(int volatile *, int , ...);
   
-  long long __sync_nand_and_fetch_int64_t(long long *, long long , ...);
+  long long __sync_nand_and_fetch_int64_t(long long volatile *, long long , ...);
   
-  signed char __sync_nand_and_fetch_int8_t(signed char *, signed char , ...);
+  signed char __sync_nand_and_fetch_int8_t(signed char volatile *, signed char
+                                           , ...);
   
-  unsigned short __sync_nand_and_fetch_uint16_t(unsigned short *,
+  unsigned short __sync_nand_and_fetch_uint16_t(unsigned short volatile *,
                                                 unsigned short , ...);
   
-  unsigned int __sync_nand_and_fetch_uint32_t(unsigned int *, unsigned int
-                                              , ...);
+  unsigned int __sync_nand_and_fetch_uint32_t(unsigned int volatile *,
+                                              unsigned int , ...);
   
-  unsigned long long __sync_nand_and_fetch_uint64_t(unsigned long long *,
+  unsigned long long __sync_nand_and_fetch_uint64_t(unsigned long long volatile *,
                                                     unsigned long long , ...);
   
-  unsigned char __sync_nand_and_fetch_uint8_t(unsigned char *, unsigned char
-                                              , ...);
+  unsigned char __sync_nand_and_fetch_uint8_t(unsigned char volatile *,
+                                              unsigned char , ...);
   
-  short __sync_or_and_fetch_int16_t(short *, short , ...);
+  short __sync_or_and_fetch_int16_t(short volatile *, short , ...);
   
-  int __sync_or_and_fetch_int32_t(int *, int , ...);
+  int __sync_or_and_fetch_int32_t(int volatile *, int , ...);
   
-  long long __sync_or_and_fetch_int64_t(long long *, long long , ...);
+  long long __sync_or_and_fetch_int64_t(long long volatile *, long long , ...);
   
-  signed char __sync_or_and_fetch_int8_t(signed char *, signed char , ...);
+  signed char __sync_or_and_fetch_int8_t(signed char volatile *, signed char
+                                         , ...);
   
-  unsigned short __sync_or_and_fetch_uint16_t(unsigned short *, unsigned short
-                                              , ...);
+  unsigned short __sync_or_and_fetch_uint16_t(unsigned short volatile *,
+                                              unsigned short , ...);
   
-  unsigned int __sync_or_and_fetch_uint32_t(unsigned int *, unsigned int , ...);
+  unsigned int __sync_or_and_fetch_uint32_t(unsigned int volatile *,
+                                            unsigned int , ...);
   
-  unsigned long long __sync_or_and_fetch_uint64_t(unsigned long long *,
+  unsigned long long __sync_or_and_fetch_uint64_t(unsigned long long volatile *,
                                                   unsigned long long , ...);
   
-  unsigned char __sync_or_and_fetch_uint8_t(unsigned char *, unsigned char
-                                            , ...);
+  unsigned char __sync_or_and_fetch_uint8_t(unsigned char volatile *,
+                                            unsigned char , ...);
   
-  short __sync_sub_and_fetch_int16_t(short *, short , ...);
+  short __sync_sub_and_fetch_int16_t(short volatile *, short , ...);
   
-  int __sync_sub_and_fetch_int32_t(int *, int , ...);
+  int __sync_sub_and_fetch_int32_t(int volatile *, int , ...);
   
-  long long __sync_sub_and_fetch_int64_t(long long *, long long , ...);
+  long long __sync_sub_and_fetch_int64_t(long long volatile *, long long , ...);
   
-  signed char __sync_sub_and_fetch_int8_t(signed char *, signed char , ...);
+  signed char __sync_sub_and_fetch_int8_t(signed char volatile *, signed char
+                                          , ...);
   
-  unsigned short __sync_sub_and_fetch_uint16_t(unsigned short *, unsigned short
-                                               , ...);
+  unsigned short __sync_sub_and_fetch_uint16_t(unsigned short volatile *,
+                                               unsigned short , ...);
   
-  unsigned int __sync_sub_and_fetch_uint32_t(unsigned int *, unsigned int , ...);
+  unsigned int __sync_sub_and_fetch_uint32_t(unsigned int volatile *,
+                                             unsigned int , ...);
   
-  unsigned long long __sync_sub_and_fetch_uint64_t(unsigned long long *,
+  unsigned long long __sync_sub_and_fetch_uint64_t(unsigned long long volatile *,
                                                    unsigned long long , ...);
   
-  unsigned char __sync_sub_and_fetch_uint8_t(unsigned char *, unsigned char
-                                             , ...);
+  unsigned char __sync_sub_and_fetch_uint8_t(unsigned char volatile *,
+                                             unsigned char , ...);
   
   void __sync_synchronize(...);
   
-  short __sync_val_compare_and_swap_int16_t(short *, short, short , ...);
+  short __sync_val_compare_and_swap_int16_t(short volatile *, short, short
+                                            , ...);
   
-  int __sync_val_compare_and_swap_int32_t(int *, int, int , ...);
+  int __sync_val_compare_and_swap_int32_t(int volatile *, int, int , ...);
   
-  long long __sync_val_compare_and_swap_int64_t(long long *, long long,
-                                                long long , ...);
+  long long __sync_val_compare_and_swap_int64_t(long long volatile *,
+                                                long long, long long , ...);
   
-  signed char __sync_val_compare_and_swap_int8_t(signed char *, signed char,
-                                                 signed char , ...);
+  signed char __sync_val_compare_and_swap_int8_t(signed char volatile *,
+                                                 signed char, signed char , ...);
   
-  unsigned short __sync_val_compare_and_swap_uint16_t(unsigned short *,
+  unsigned short __sync_val_compare_and_swap_uint16_t(unsigned short volatile *,
                                                       unsigned short,
                                                       unsigned short , ...);
   
-  unsigned int __sync_val_compare_and_swap_uint32_t(unsigned int *,
+  unsigned int __sync_val_compare_and_swap_uint32_t(unsigned int volatile *,
                                                     unsigned int, unsigned int
                                                     , ...);
   
-  unsigned long long __sync_val_compare_and_swap_uint64_t(unsigned long long *,
+  unsigned long long __sync_val_compare_and_swap_uint64_t(unsigned long long volatile *,
                                                           unsigned long long,
                                                           unsigned long long
                                                           , ...);
   
-  unsigned char __sync_val_compare_and_swap_uint8_t(unsigned char *,
+  unsigned char __sync_val_compare_and_swap_uint8_t(unsigned char volatile *,
                                                     unsigned char,
                                                     unsigned char , ...);
   
-  short __sync_xor_and_fetch_int16_t(short *, short , ...);
+  short __sync_xor_and_fetch_int16_t(short volatile *, short , ...);
   
-  int __sync_xor_and_fetch_int32_t(int *, int , ...);
+  int __sync_xor_and_fetch_int32_t(int volatile *, int , ...);
   
-  long long __sync_xor_and_fetch_int64_t(long long *, long long , ...);
+  long long __sync_xor_and_fetch_int64_t(long long volatile *, long long , ...);
   
-  signed char __sync_xor_and_fetch_int8_t(signed char *, signed char , ...);
+  signed char __sync_xor_and_fetch_int8_t(signed char volatile *, signed char
+                                          , ...);
   
-  unsigned short __sync_xor_and_fetch_uint16_t(unsigned short *, unsigned short
-                                               , ...);
+  unsigned short __sync_xor_and_fetch_uint16_t(unsigned short volatile *,
+                                               unsigned short , ...);
   
-  unsigned int __sync_xor_and_fetch_uint32_t(unsigned int *, unsigned int , ...);
+  unsigned int __sync_xor_and_fetch_uint32_t(unsigned int volatile *,
+                                             unsigned int , ...);
   
-  unsigned long long __sync_xor_and_fetch_uint64_t(unsigned long long *,
+  unsigned long long __sync_xor_and_fetch_uint64_t(unsigned long long volatile *,
                                                    unsigned long long , ...);
   
-  unsigned char __sync_xor_and_fetch_uint8_t(unsigned char *, unsigned char
-                                             , ...);
+  unsigned char __sync_xor_and_fetch_uint8_t(unsigned char volatile *,
+                                             unsigned char , ...);
   
   int max(int i, int j)
   {

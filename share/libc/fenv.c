@@ -6,13 +6,23 @@
 /*    CEA (Commissariat à l'énergie atomique et aux énergies              */
 /*         alternatives)                                                  */
 /*                                                                        */
-/*  All rights reserved.                                                  */
-/*  Contact CEA LIST for licensing.                                       */
+/*  you can redistribute it and/or modify it under the terms of the GNU   */
+/*  Lesser General Public License as published by the Free Software       */
+/*  Foundation, version 2.1.                                              */
+/*                                                                        */
+/*  It is distributed in the hope that it will be useful,                 */
+/*  but WITHOUT ANY WARRANTY; without even the implied warranty of        */
+/*  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         */
+/*  GNU Lesser General Public License for more details.                   */
+/*                                                                        */
+/*  See the GNU Lesser General Public License version 2.1                 */
+/*  for more details (enclosed in the file licenses/LGPLv2.1).            */
 /*                                                                        */
 /**************************************************************************/
 
 /* ISO C: 7.6 */
 #include "fenv.h"
+__PUSH_FC_STDLIB
 
 /** Determines which of a specified subset of the floating-point exception flags
  *  are currently set.
@@ -40,7 +50,7 @@ volatile fenv_t __fc_fenv_state __attribute__((FRAMA_C_MODEL));
  */
 int feholdexcept( fenv_t *envp )
 {
-  *envp = __fc_fenv_state; /* store the current FPU environment */
+  *envp = (fenv_t)__fc_fenv_state; /* store the current FPU environment */
 
   return 0;
 }
@@ -57,3 +67,5 @@ void fesetenv( const fenv_t *envp )
 {
   __fc_fenv_state = *envp;
 }
+
+__POP_FC_STDLIB

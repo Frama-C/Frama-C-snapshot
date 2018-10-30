@@ -164,6 +164,14 @@ extern float Frama_C_float_interval(float min, float max);
  */
 extern double Frama_C_double_interval(double min, double max);
 
+/*@ requires finite: \is_finite(min) && \is_finite(max);
+    requires order: min <= max;
+    assigns \result \from min, max, Frama_C_entropy_source;
+    assigns Frama_C_entropy_source \from Frama_C_entropy_source;
+    ensures result_bounded: \is_finite(\result) && min <= \result <= max;
+ */
+extern double Frama_C_real_interval_as_double(double min, double max);
+
 /*@ // Signals an error;
   terminates \false;
   assigns \nothing;

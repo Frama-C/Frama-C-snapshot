@@ -107,6 +107,22 @@ module Shift =
        let additional_parameters = []
      end)
 
+module Left_shift_negative =
+  Make
+    (struct
+      let name = "left_shift_negative"
+      let parameter = Kernel.LeftShiftNegative.parameter
+      let additional_parameters = []
+    end)
+
+module Right_shift_negative =
+  Make
+    (struct
+      let name = "right_shift_negative"
+      let parameter = Kernel.RightShiftNegative.parameter
+      let additional_parameters = []
+    end)
+
 module Signed_overflow =
   Make
     (struct
@@ -156,14 +172,13 @@ module Finite_float =
        let additional_parameters = []
      end)
 
-
-module Called_precond =
+module Bool_value =
   Make
     (struct
-       let name = "precondition"
-       let parameter = Options.DoCalledPrecond.parameter
-       let additional_parameters = []
-     end)
+      let name = "bool_value"
+      let parameter = Kernel.InvalidBool.parameter
+      let additional_parameters = []
+    end)
 
 (** DO NOT CALL Make AFTER THIS POINT *)
 

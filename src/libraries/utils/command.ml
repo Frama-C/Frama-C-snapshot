@@ -149,7 +149,7 @@ let full_command_async cmd args ~stdin ~stdout ~stderr =
   let pid =
     Unix.create_process cmd (Array.concat [[|cmd|];args]) stdin stdout stderr
   in
-  let last_result= ref(Not_ready (fun () -> Extlib.terminate_process pid))
+  let last_result= ref(Not_ready (fun () -> Unix.kill pid Sys.sigkill))
   in
   (fun () ->
      match !last_result with
@@ -160,7 +160,7 @@ let full_command_async cmd args ~stdin ~stdout ~stderr =
          in
          if child_id = 0 then r
          else (last_result := Result status; !last_result))
-  
+
 let flush b f =
   match b with
   | None -> ()
@@ -203,13 +203,13 @@ let command_generic ~async ?stdout ?stderr cmd args =
   in
   let killed = cancelable_at_exit
       begin fun () ->
-        Extlib.terminate_process pid ;
+        Unix.kill pid Sys.sigkill;
         Unix.(try ignore (waitpid [] pid) with Unix_error _ -> ()) ;
       end in
   safe_close_out inc;
   safe_close_out outc;
   safe_close_out errc;
-  let kill () = Extlib.terminate_process pid in
+  let kill () = Unix.kill pid Sys.sigkill in
   let last_result= ref (Not_ready kill) in
   let wait_flags =
     if async

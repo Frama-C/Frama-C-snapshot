@@ -94,6 +94,18 @@ Definition is_sint64 (x:Z): Prop := ((-9223372036854775808%Z)%Z <= x)%Z /\
   (x < 9223372036854775808%Z)%Z.
 
 (* Why3 goal *)
+Lemma is_bool0 : (is_bool 0%Z).
+Proof.
+  unfold is_bool. auto.
+Qed.
+
+(* Why3 goal *)
+Lemma is_bool1 : (is_bool 1%Z).
+Proof.
+  unfold is_bool. auto.
+Qed.
+
+(* Why3 goal *)
 Definition to_bool: Z -> Z.
 exact (fun x => if ( x =? 0 ) then 0 else 1).
 Defined.

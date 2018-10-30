@@ -1,5 +1,5 @@
 directory	file	line	function	property kind	status	property
-FRAMAC_SHARE/libc	math.h	459	pow	precondition	Unknown	finite_logic_res: \is_finite(pow(x, y))
+FRAMAC_SHARE/libc	math.h	528	pow	precondition	Unknown	finite_logic_res: \is_finite(pow(x, y))
 tests/report	csv.c	11	main1	signed_overflow	Unknown	-2147483648 ≤ x * x
 tests/report	csv.c	11	main1	signed_overflow	Unknown	x * x ≤ 2147483647
 tests/report	csv.c	12	main1	index_bound	Unknown	0 ≤ x

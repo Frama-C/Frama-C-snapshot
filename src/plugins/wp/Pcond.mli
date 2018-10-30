@@ -64,26 +64,26 @@ class engine : #Plang.engine ->
     method pp_condition : step:step -> condition printer
     method pp_block : clause:string -> sequence printer
     method pp_goal : pred printer
-        
+
     method pp_step : step printer
     (** Assumes an "<hv>" box is opened. *)
-        
+
     method pp_block : clause:string -> sequence printer
     (** Assumes an "<hv>" box is opened and all variables are named. *)
-        
+
     method pp_sequence : clause:string -> sequence printer
-    (** Assumes an "<hv>" box is opened {i and} all variables are declared. 
+    (** Assumes an "<hv>" box is opened {i and} all variables are declared.
         (recursively used) *)
 
     method pp_sequent : sequent printer
     (** Print the sequent in global environment. *)
-    
+
     method pp_esequent : env -> sequent printer
     (** Print the sequent in the given environment.
         The environment is enriched with the shared terms. *)
-        
+
   end
-    
+
 (* -------------------------------------------------------------------------- *)
 (* --- State-Aware Printers                                               --- *)
 (* -------------------------------------------------------------------------- *)

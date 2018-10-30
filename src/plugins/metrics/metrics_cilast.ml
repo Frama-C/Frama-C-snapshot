@@ -20,6 +20,7 @@
 (*                                                                        *)
 (**************************************************************************)
 
+module Kernel_file = File
 open Cil_datatype
 open Cil_types
 open Metrics_base
@@ -29,7 +30,7 @@ type cilast_metrics = {
   fundecl_calls: int Metrics_base.VInfoMap.t;
   fundef_calls: int Metrics_base.VInfoMap.t;
   extern_global_vars: Metrics_base.VInfoSet.t;
-  basic_metrics: BasicMetrics.t
+  basic_global_metrics: BasicMetrics.t
 }
 
 (** Syntactic metrics
@@ -50,18 +51,22 @@ class type sloc_visitor = object
   method extern_global_vars: Metrics_base.VInfoSet.t
 
   (* Get the computed metrics *)
-  method get_metrics: BasicMetrics.t
+  method get_global_metrics: BasicMetrics.t
 
-  (* Print the metrics of a file [string] to a formatter
+  (* Print the metrics of a file [Datatype.Filepath.t] to a formatter
      Yields a fatal error if the file does not exist (or has no metrics).
   *)
-  method pp_file_metrics: Format.formatter -> string -> unit
+  method pp_file_metrics: Format.formatter -> Datatype.Filepath.t -> unit
 
   method pp_detailed_text_metrics: Format.formatter -> unit
   (** Print results of all file and functions to the given formatter as text *)
 
   method print_stats: Format.formatter -> unit
   (** Print computed metrics to a formatter *)
+
+  method get_metrics_map:
+    (BasicMetrics.t OptionKf.Map.t) Datatype.Filepath.Map.t
+  (** Compute and return per-function metrics *)
 end
 
 (* Various metrics computing visitor on Cil AST.
@@ -81,8 +86,8 @@ class slocVisitor ~libc : sloc_visitor = object(self)
      Its storing hierarchy is as follows: filename -> function_name -> metrics
   *)
   val mutable metrics_map:
-      (BasicMetrics.t Datatype.String.Map.t) Datatype.String.Map.t =
-    Datatype.String.Map.empty
+    (BasicMetrics.t OptionKf.Map.t) Datatype.Filepath.Map.t =
+    Datatype.Filepath.Map.empty
 
   val mutable seen_vars = Varinfo.Set.empty;
 
@@ -94,10 +99,11 @@ class slocVisitor ~libc : sloc_visitor = object(self)
   method fundecl_calls = !fundecl_calls
   method fundef_calls = !fundef_calls
   method extern_global_vars = !extern_global_vars
-  method get_metrics = !global_metrics
+  method get_global_metrics = !global_metrics
+  method get_metrics_map = metrics_map
 
-  method private update_metrics_map filename strmap =
-    metrics_map <- Datatype.String.Map.add filename strmap metrics_map
+  method private update_metrics_map filename kfmap =
+    metrics_map <- Datatype.Filepath.Map.add filename kfmap metrics_map
 
   (* Utility method to increase metrics counts *)
   method private incr_both_metrics f =
@@ -108,22 +114,23 @@ class slocVisitor ~libc : sloc_visitor = object(self)
     map := VInfoMap.add vinfo value !map
 
   method private stats_of_filename filename =
-    try Datatype.String.Map.find filename metrics_map
+    try Datatype.Filepath.Map.find filename metrics_map
     with
       | Not_found ->
-        Metrics_parameters.fatal "Metrics for file %s not_found@." filename
+        Metrics_parameters.fatal "Metrics for file %a not_found@."
+          Datatype.Filepath.pretty filename
 
   method pp_file_metrics fmt filename =
     Format.fprintf fmt "@[<v 0>%a@]"
       (fun fmt filename ->
         let fun_tbl = self#stats_of_filename filename in
-        Datatype.String.Map.iter (fun _fun_name fmetrics ->
+        OptionKf.Map.iter (fun _fun_name fmetrics ->
           Format.fprintf fmt "@ %a" pp_base_metrics fmetrics)
           fun_tbl;
       ) filename
 
   method pp_detailed_text_metrics fmt =
-    Datatype.String.Map.iter
+    Datatype.Filepath.Map.iter
       (fun filename _func_tbl ->
         Format.fprintf fmt "%a" self#pp_file_metrics filename) metrics_map
 
@@ -132,13 +139,13 @@ class slocVisitor ~libc : sloc_visitor = object(self)
     Format.pp_set_tags fmt true;
     let pr_hdr fmt hdr_name =
       Format.fprintf fmt "@{<th>%s@}" hdr_name in
-    Datatype.String.Map.iter
+    Datatype.Filepath.Map.iter
       (fun filename func_tbl ->
         Metrics_parameters.result ~level:2 "%a" self#pp_file_metrics filename;
-        if func_tbl <> Datatype.String.Map.empty then
+        if func_tbl <> OptionKf.Map.empty then
           begin
             Format.fprintf fmt
-              "@[<v 0>@{<h3>%s@}<br/>@ \
+              "@[<v 0>@{<h3>%a@}<br/>@ \
                @{<table>\
                @[<v 2>@ \
                  @[<v 2>@{<tbody>@ \
@@ -147,13 +154,13 @@ class slocVisitor ~libc : sloc_visitor = object(self)
                        %a@ \
                        @}@]@]@ @} \
                @]@ "
-              filename
+              Datatype.Filepath.pretty filename
               pr_hdr "Function" pr_hdr "#If stmts" pr_hdr "#Assignments"
               pr_hdr "#Loops" pr_hdr "#Calls" pr_hdr "#Gotos"
               pr_hdr "#Pointer dereferencing" pr_hdr "#Exits"
               pr_hdr "Cyclomatic value"
               (fun fmt fun_tbl ->
-                Datatype.String.Map.iter
+                OptionKf.Map.iter
                   (fun _fname fmetrics ->
                     Format.fprintf fmt "%a"
                       pp_base_metrics_as_html_row fmetrics;
@@ -161,8 +168,9 @@ class slocVisitor ~libc : sloc_visitor = object(self)
               ) func_tbl;
           end
         else 
-	  Metrics_parameters.warning
-	    "Filename <%s> has no functions@." filename)
+          Metrics_parameters.warning
+            "Filename <%a> has no functions@."
+            Datatype.Filepath.pretty filename)
       metrics_map
 
 (* Save the local metrics currently computed.
@@ -172,21 +180,21 @@ class slocVisitor ~libc : sloc_visitor = object(self)
 *)
   method private record_and_clear_function_metrics metrics =
     let filename = metrics.cfile_name in
-    let funcname = metrics.cfunc_name in
+    let funcname = metrics.cfunc in
     local_metrics := BasicMetrics.set_cyclo !local_metrics
            (BasicMetrics.compute_cyclo !local_metrics);
     global_metrics := BasicMetrics.set_cyclo !global_metrics
            (!global_metrics.ccyclo + !local_metrics.ccyclo);
     (try
-       let fun_tbl = Datatype.String.Map.find filename metrics_map in
+       let fun_tbl = Datatype.Filepath.Map.find filename metrics_map in
        self#update_metrics_map filename
-         (Datatype.String.Map.add funcname !local_metrics fun_tbl);
+         (OptionKf.Map.add funcname !local_metrics fun_tbl);
      with
        | Not_found ->
-         let new_stringmap =
-           Datatype.String.Map.add funcname !local_metrics
-             Datatype.String.Map.empty
-         in self#update_metrics_map filename new_stringmap;
+         let new_kfmap =
+           OptionKf.Map.add funcname !local_metrics
+             OptionKf.Map.empty
+         in self#update_metrics_map filename new_kfmap;
     );
     local_metrics := empty_metrics;
 
@@ -219,7 +227,7 @@ class slocVisitor ~libc : sloc_visitor = object(self)
         local_metrics :=
           {!local_metrics with
             cfile_name = file_of_fundef fdec;
-            cfunc_name = fdec.svar.vname;
+            cfunc = Some (Globals.Functions.get fdec.svar);
             cfuncs = 1; (* Only one function is indeed being defined here *)};
         let fvinfo = fdec.svar in
         (if not (VInfoMap.mem fvinfo !fundef_calls) then
@@ -315,6 +323,7 @@ class slocVisitor ~libc : sloc_visitor = object(self)
             | Dtype_annot (ta, _) -> ta.l_var_info.lv_name
             | Dmodel_annot (mi, _) -> mi.mi_name
             | Dcustom_annot (_c, _n, _, _) -> " (Custom) "
+            | Dextended ((_, n, _, _), _, _) -> " (Extension " ^ n ^ ")"
         end
 
   method private images (globs:global list) =
@@ -359,6 +368,182 @@ class slocVisitor ~libc : sloc_visitor = object(self)
 
 end
 
+let dkey = Metrics_parameters.register_category "used-files"
+
+class reachable_from_main visited_vardefs = object
+  inherit Visitor.frama_c_inplace
+
+  val visited_vardefs = ref visited_vardefs
+
+  method get_visited_vardefs = !visited_vardefs
+
+  method! vvrbl vi =
+    if vi.vglob && not (Varinfo.Set.mem vi !visited_vardefs) then begin
+      Metrics_parameters.feedback ~dkey "visiting %a" Printer.pp_varinfo vi;
+      visited_vardefs := Varinfo.Set.add vi !visited_vardefs;
+      try
+        let kf = Globals.Functions.get vi in
+        try
+          let fd = Kernel_function.get_definition kf in
+          let vis = new reachable_from_main !visited_vardefs in
+          ignore (Visitor.visitFramacFunction (vis :> Visitor.frama_c_visitor) fd);
+          visited_vardefs :=
+            Varinfo.Set.union !visited_vardefs vis#get_visited_vardefs
+        with Kernel_function.No_Definition -> ()
+      with Not_found -> (* global var, not function *)
+        let def = Ast.def_or_last_decl vi in
+        let vis = new reachable_from_main !visited_vardefs in
+        ignore (Visitor.visitFramacGlobal (vis :> Visitor.frama_c_visitor) def);
+        visited_vardefs :=
+          Varinfo.Set.union !visited_vardefs vis#get_visited_vardefs
+    end;
+    Cil.SkipChildren
+end
+
+let reachable_from_main () =
+  try
+    let (kf, _) = Globals.entry_point () in
+    Metrics_parameters.feedback ~dkey "compute_reachable_from_main: %a"
+      Kernel_function.pretty kf;
+    try
+      let main_fd = Kernel_function.get_definition kf in
+      let vis = new reachable_from_main (Varinfo.Set.singleton main_fd.svar) in
+      ignore (Visitor.visitFramacFunction (vis :> Visitor.frama_c_visitor) main_fd);
+      Some (Varinfo.Set.elements vis#get_visited_vardefs)
+    with Kernel_function.No_Definition -> None
+  with Globals.No_such_entry_point _ -> None
+
+(* Requires a main function *)
+let compute_files_defining_globals gvars =
+  List.fold_left (fun acc vi ->
+      Metrics_parameters.feedback ~dkey "looking for global: %a"
+        Printer.pp_varinfo vi;
+      let def = Ast.def_or_last_decl vi in
+      let is_def =
+        match def with
+        | GVar _ | GFun _ -> true
+        | _ -> false
+      in
+      if is_def then
+        let loc = Cil_datatype.Global.loc def in
+        if Location.equal loc Location.unknown then acc
+        else begin
+          Metrics_parameters.feedback ~dkey "found %s at: %a"
+            (if is_def then "definition" else "declaration")
+            Printer.pp_location loc;
+          Datatype.Filepath.Set.add ((fst loc).Filepath.pos_path) acc
+        end
+      else acc
+    ) (Datatype.Filepath.Set.empty) gvars
+
+class logic_loc_visitor = object
+  inherit Visitor.frama_c_inplace
+
+  val locs = ref Location.Set.empty
+  method get_locs = !locs
+
+  method! vterm t =
+    locs := Cil_datatype.Location.Set.add t.term_loc !locs;
+    Cil.DoChildren
+
+  method! vpredicate p =
+    locs := Cil_datatype.Location.Set.add p.pred_loc !locs;
+    Cil.DoChildren
+end
+
+let get_filenames_in_funspec kf =
+  try
+    let spec = Annotations.funspec ~populate:false kf in
+    Metrics_parameters.feedback ~dkey "looking for files in the spec of: %a"
+      Kernel_function.pretty kf;
+    List.fold_left (fun acc b ->
+        let visitor = new logic_loc_visitor in
+        ignore
+          (Visitor.visitFramacBehavior (visitor :> Visitor.frama_c_visitor) b);
+        let locs = visitor#get_locs in
+        Cil_datatype.Location.Set.fold (fun loc acc' ->
+            let path = (fst loc).Filepath.pos_path in
+            Metrics_parameters.feedback ~dkey ~once:true
+              "found annotation in: %a"
+              Datatype.Filepath.pretty path;
+            Datatype.Filepath.Set.add path acc'
+          ) locs acc
+      ) Datatype.Filepath.Set.empty spec.spec_behavior
+  with Annotations.No_funspec _ -> Datatype.Filepath.Set.empty
+
+let compute_files_defining_funspecs gvars =
+  List.fold_left
+    (fun acc vi ->
+       try
+         let kf = Globals.Functions.get vi in
+         let fs = get_filenames_in_funspec kf in
+         Datatype.Filepath.Set.union acc fs
+       with Not_found -> acc
+    ) Datatype.Filepath.Set.empty gvars
+
+let used_files () =
+  match reachable_from_main () with
+  | None -> Metrics_parameters.abort
+              "'%s' requires an entry point (-main) with a body"
+              Metrics_parameters.UsedFiles.option_name
+  | Some reachable_gvars ->
+    let used_for_defs = compute_files_defining_globals reachable_gvars in
+    let used_for_specs = compute_files_defining_funspecs reachable_gvars in
+    Datatype.Filepath.Set.union used_for_defs used_for_specs
+
+let pretty_used_files used_files =
+  (* Note: used_files may also contain #include'd files,
+           but we only want those given in the command line *)
+  let cmdline_files = List.fold_left (fun acc file ->
+      Datatype.Filepath.Set.add (
+        Datatype.Filepath.of_string (Kernel_file.get_name file)
+      ) acc
+    ) Datatype.Filepath.Set.empty (Kernel_file.get_all ())
+  in
+  let used_cmdline_files, used_included_files =
+    Datatype.Filepath.Set.partition (fun path ->
+        Datatype.Filepath.Set.mem path cmdline_files
+      ) used_files
+  in
+  let used_included_c_files =
+    Datatype.Filepath.Set.filter
+      (fun f ->
+         Extlib.string_suffix ~strict:true ".c"
+           (f : Filepath.Normalized.t :> string))
+      used_included_files
+  in
+  let used_implicitly_included_c_files =
+    Datatype.Filepath.Set.diff used_included_c_files cmdline_files
+  in
+  let unused_cmdline_files =
+    Datatype.Filepath.Set.diff cmdline_files used_cmdline_files
+  in
+  let nb s = Datatype.Filepath.Set.cardinal s in
+  let pp_filepaths title fmt paths =
+    let n = nb paths in
+    if n = 0 then Format.ifprintf fmt ""
+    else
+      let title_len = String.length title in
+      Format.fprintf fmt
+        "@\n%s (%d)\
+         @\n%s\
+         @\n%a@\n"
+        title n (String.make (title_len + 4) '=')
+        (Pretty_utils.pp_list ~sep:" \\@\n" ~suf:" \\" Datatype.Filepath.pretty)
+        (Datatype.Filepath.Set.elements paths)
+  in
+  Metrics_parameters.result
+    "Used files starting at function '%a':@\n\
+     - command line has %d out of %d file(s) being used@\n\
+     - %d used file(s) inside #include directives, of which %d '.c' file(s).@\n\
+     %a%a%a"
+    Kernel_function.pretty (fst (Globals.entry_point ()))
+    (nb used_cmdline_files) (nb cmdline_files)
+    (nb used_included_files) (nb used_included_c_files)
+    (pp_filepaths "Used command-line files") used_cmdline_files
+    (pp_filepaths "Unused command-line files") unused_cmdline_files
+    (pp_filepaths "Used, but implicitly included C files")
+    used_implicitly_included_c_files
 
 let dump_html fmt cil_visitor =
   (* Activate tagging for html *)
@@ -372,7 +557,7 @@ let dump_html fmt cil_visitor =
               @{<td class=\"stat\">%d@}@]@ @} " s n
   in
   let pr_stats fmt visitor =
-    let metrics = visitor#get_metrics in
+    let metrics = visitor#get_global_metrics in
     Format.fprintf fmt "@[<v 0>@{<table>%a@}@]"
       (fun fmt metrics ->
         List.iter2 (fun text value -> pr_row text fmt value)
@@ -466,16 +651,25 @@ let pp_funinfo fmt vis =
 let pp_with_funinfo fmt cil_visitor =
   Format.fprintf fmt "@[<v 0>%a@ %a@]"
     pp_funinfo cil_visitor
-    pp_base_metrics cil_visitor#get_metrics
+    pp_base_metrics cil_visitor#get_global_metrics
 ;;
 
-let get_metrics ~libc =
+let get_global_metrics ~libc =
   let file = Ast.get () in
    (* Do as before *)
   let cil_visitor = new slocVisitor ~libc in
   Visitor.visitFramacFileSameGlobals
     (cil_visitor:>Visitor.frama_c_visitor) file;
-  cil_visitor#get_metrics
+  cil_visitor#get_global_metrics
+;;
+
+let get_metrics_map ~libc =
+  let file = Ast.get () in
+   (* Do as before *)
+  let cil_visitor = new slocVisitor ~libc in
+  Visitor.visitFramacFileSameGlobals
+    (cil_visitor:>Visitor.frama_c_visitor) file;
+  cil_visitor#get_metrics_map
 ;;
 
 let get_cilast_metrics ~libc =
@@ -488,7 +682,7 @@ let get_cilast_metrics ~libc =
     fundecl_calls = cil_visitor#fundecl_calls;
     fundef_calls = cil_visitor#fundef_calls;
     extern_global_vars = cil_visitor#extern_global_vars;
-    basic_metrics = cil_visitor#get_metrics;
+    basic_global_metrics = cil_visitor#get_global_metrics;
   }
 ;;
 

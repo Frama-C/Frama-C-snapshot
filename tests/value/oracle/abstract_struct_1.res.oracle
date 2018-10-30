@@ -1,23 +1,17 @@
 [kernel] Parsing tests/value/abstract_struct_1.c (with preprocessing)
 [kernel] Parsing tests/value/abstract_struct_2.c (with preprocessing)
-[value] Analyzing an incomplete application starting at main
-[value] Computing initial state
-[value:initial-state] 
+[eva] Analyzing an incomplete application starting at main
+[eva] Computing initial state
+[eva:initial-state] 
   creating variable S_data_0_S_repositories with imprecise size (type struct abstracttype [2])
-[value] tests/value/abstract_struct_1.c:10: Warning: 
+[eva] tests/value/abstract_struct_1.c:10: Warning: 
   during initialization of variable 'repositories', size of
   type 'struct abstracttype' cannot be computed
   (abstract type 'struct abstracttype')
-[value:initial-state] 
+[eva:initial-state] 
   creating variable S_data_1_S_repositories with imprecise size (type struct abstracttype [2])
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
-  __fc_heap_status ∈ [--..--]
-  __fc_random_counter ∈ [--..--]
-  __fc_rand_max ∈ {32767}
-  __fc_mblen_state ∈ [--..--]
-  __fc_mbtowc_state ∈ [--..--]
-  __fc_wctomb_state ∈ [--..--]
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   repositories ∈ {{ NULL ; &S_repositories[0] }}
   S_repositories[0].data ∈
                 {{ NULL ; (struct abstracttype *)&S_data_0_S_repositories }}
@@ -25,12 +19,12 @@
                 {{ NULL ; (struct abstracttype *)&S_data_1_S_repositories }}
   S_data_0_S_repositories[bits 0 to ..] ∈ [--..--] or UNINITIALIZED
   S_data_1_S_repositories[bits 0 to ..] ∈ [--..--] or UNINITIALIZED
-[value] tests/value/abstract_struct_1.c:13: 
-  allocating variable __calloc_main_l13
-[value] Recording results for main
-[value] done for function main
-[value] ====== VALUES COMPUTED ======
-[value:final-states] Values at end of function main:
+[eva] tests/value/abstract_struct_1.c:13: Call to builtin calloc
+[eva] tests/value/abstract_struct_1.c:13: allocating variable __calloc_main_l13
+[eva] Recording results for main
+[eva] done for function main
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function main:
   __fc_heap_status ∈ [--..--]
   repositories ∈ {{ NULL ; &__calloc_main_l13 }}
 [from] Computing for function main

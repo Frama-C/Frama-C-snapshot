@@ -63,18 +63,33 @@ Let x_4 = x + x_1.
 Assume {
   Type: is_sint32(r) /\ is_sint32(x) /\ is_sint32(x_1) /\ is_sint32(x_2) /\
       is_sint32(x_3) /\ is_sint32(x_4).
-  (* Pre-condition 'KO' *)
+  (* Pre-condition *)
   Have: P_OBS(x, x_1, r).
 }
 Prove: P_OBS(x_2, x_3, x_4).
 
 ------------------------------------------------------------
-[wp] Warning: Separation hypotheses for function 'implicit':
-  /*@ behavior typed_caveat: requires \separated(a,r); */
+[wp] Warning: Memory model hypotheses for function 'implicit':
+  /*@
+     behavior typed_caveat:
+     requires \separated(a,r);
+     requires \valid(a);
+     requires \valid(r);
+     */
   void implicit(struct S *a, int *r);
-[wp] Warning: Separation hypotheses for function 'explicit':
-  /*@ behavior typed_caveat: requires \separated(a,r); */
+[wp] Warning: Memory model hypotheses for function 'explicit':
+  /*@
+     behavior typed_caveat:
+     requires \separated(a,r);
+     requires \valid(a);
+     requires \valid(r);
+     */
   void explicit(struct S *a, int *r);
-[wp] Warning: Separation hypotheses for function 'observer':
-  /*@ behavior typed_caveat: requires \separated(a,r); */
+[wp] Warning: Memory model hypotheses for function 'observer':
+  /*@
+     behavior typed_caveat:
+     requires \separated(a,r);
+     requires \valid(a);
+     requires \valid(r);
+     */
   void observer(struct S *a, int *r);

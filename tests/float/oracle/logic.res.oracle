@@ -13,54 +13,54 @@
   Floating-point constant 3.3 is not represented exactly. Will use 0x1.a666666666666p1.
 [kernel:parser:decimal-float] tests/float/logic.i:77: Warning: 
   Floating-point constant 3.3 is not represented exactly. Will use 0x1.a666666666666p1.
-[value] Analyzing a complete application starting at main
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing a complete application starting at main
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   v ∈ [--..--]
   undet ∈ [--..--]
   top_int ∈ [--..--]
-[value:alarm] tests/float/logic.i:12: Warning: assertion got status unknown.
-[value:alarm] tests/float/logic.i:17: Warning: 
+[eva:alarm] tests/float/logic.i:12: Warning: assertion got status unknown.
+[eva:alarm] tests/float/logic.i:17: Warning: 
   assertion got status invalid (stopping propagation).
-[value] tests/float/logic.i:22: assertion got status valid.
-[value] computing for function test_is_finite <- main.
+[eva] tests/float/logic.i:22: assertion got status valid.
+[eva] computing for function test_is_finite <- main.
   Called from tests/float/logic.i:27.
-[value] tests/float/logic.i:50: assertion got status valid.
-[value:alarm] tests/float/logic.i:59: Warning: assertion got status unknown.
-[value:alarm] tests/float/logic.i:67: Warning: assertion got status unknown.
-[value] computing for function my_fabs <- test_is_finite <- main.
+[eva] tests/float/logic.i:50: assertion got status valid.
+[eva:alarm] tests/float/logic.i:59: Warning: assertion got status unknown.
+[eva:alarm] tests/float/logic.i:67: Warning: assertion got status unknown.
+[eva] computing for function my_fabs <- test_is_finite <- main.
   Called from tests/float/logic.i:70.
-[value] using specification for function my_fabs
-[value] Done for function my_fabs
-[value] computing for function my_fabs <- test_is_finite <- main.
+[eva] using specification for function my_fabs
+[eva] Done for function my_fabs
+[eva] computing for function my_fabs <- test_is_finite <- main.
   Called from tests/float/logic.i:71.
-[value] Done for function my_fabs
-[value] computing for function my_ratio <- test_is_finite <- main.
+[eva] Done for function my_fabs
+[eva] computing for function my_ratio <- test_is_finite <- main.
   Called from tests/float/logic.i:74.
-[value] using specification for function my_ratio
-[value] tests/float/logic.i:46: Warning: 
+[eva] using specification for function my_ratio
+[eva] tests/float/logic.i:46: Warning: 
   no 'assigns \result \from ...' clause specified for function my_ratio
-[value] Done for function my_ratio
-[value] computing for function my_ratio_body <- test_is_finite <- main.
+[eva] Done for function my_ratio
+[eva] computing for function my_ratio_body <- test_is_finite <- main.
   Called from tests/float/logic.i:77.
-[value] computing for function my_fabs <- my_ratio_body <- test_is_finite <- main.
+[eva] computing for function my_fabs <- my_ratio_body <- test_is_finite <- main.
   Called from tests/float/logic.i:41.
-[value] Done for function my_fabs
-[value] tests/float/logic.i:39: 
+[eva] Done for function my_fabs
+[eva] tests/float/logic.i:39: 
   function my_ratio_body: postcondition got status valid.
-[value] tests/float/logic.i:40: 
+[eva] tests/float/logic.i:40: 
   function my_ratio_body: postcondition got status valid.
-[value] Recording results for my_ratio_body
-[value] Done for function my_ratio_body
-[value] Recording results for test_is_finite
-[value] Done for function test_is_finite
-[value] Recording results for main
-[value] done for function main
-[value] ====== VALUES COMPUTED ======
-[value:final-states] Values at end of function my_ratio_body:
+[eva] Recording results for my_ratio_body
+[eva] Done for function my_ratio_body
+[eva] Recording results for test_is_finite
+[eva] Done for function test_is_finite
+[eva] Recording results for main
+[eva] done for function main
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function my_ratio_body:
   __retres ∈ {-0x1.bca1b00000000p-1}
-[value:final-states] Values at end of function test_is_finite:
+[eva:final-states] Values at end of function test_is_finite:
   f1 ∈ [-0x1.fffffe0000000p127 .. 0x1.fffffe0000000p127]
   f2 ∈ [--..--]
   f3 ∈ [--..--]
@@ -69,7 +69,7 @@
   g2 ∈ {0x1.a666660000000p1}
   g3 ∈ [-0x1.fffffe0000000p-1 .. 0x1.fffffe0000000p-1]
   g4 ∈ {-0x1.bca1b00000000p-1}
-[value:final-states] Values at end of function main:
+[eva:final-states] Values at end of function main:
   __retres ∈ {0}
 [from] Computing for function my_ratio_body
 [from] Computing for function my_fabs <-my_ratio_body

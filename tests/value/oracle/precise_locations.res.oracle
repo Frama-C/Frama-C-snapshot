@@ -1,16 +1,16 @@
 [kernel] Parsing tests/value/precise_locations.i (no preprocessing)
-[value] Analyzing a complete application starting at main
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing a complete application starting at main
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   t[0..49] ∈ {0}
   i ∈ {0}
   j ∈ {0}
   q ∈ {0}
   r ∈ {0}
-[value] tests/value/precise_locations.i:28: entering loop for the first time
-[value] tests/value/precise_locations.i:29: entering loop for the first time
-[value] tests/value/precise_locations.i:33: 
+[eva] tests/value/precise_locations.i:29: starting to merge loop iterations
+[eva] tests/value/precise_locations.i:28: starting to merge loop iterations
+[eva] tests/value/precise_locations.i:33: 
   Frama_C_dump_each:
   # Cvalue domain:
   t{[0..48]{.f1[0..4]; .f_inter[0..4]; .f2#; .f_inter2[0..4]; .[bits 328 to 351]#}; [49].f1[0..4]} ∈
@@ -23,46 +23,22 @@
   v ∈ [--..--]
   __retres ∈ UNINITIALIZED
   ==END OF DUMP==
-[value] tests/value/precise_locations.i:34: entering loop for the first time
-[value] tests/value/precise_locations.i:37: entering loop for the first time
-[value] tests/value/precise_locations.i:38: entering loop for the first time
-[value] computing for function ct <- main.
+[eva] tests/value/precise_locations.i:34: starting to merge loop iterations
+[eva] computing for function ct <- main.
   Called from tests/value/precise_locations.i:39.
-[value] Recording results for ct
-[value] Done for function ct
-[value] computing for function ct <- main.
-  Called from tests/value/precise_locations.i:39.
-[value] Recording results for ct
-[value] Done for function ct
-[value] computing for function ct <- main.
-  Called from tests/value/precise_locations.i:39.
-[value] Recording results for ct
-[value] Done for function ct
-[value] computing for function ct <- main.
-  Called from tests/value/precise_locations.i:39.
-[value] Recording results for ct
-[value] Done for function ct
-[value] computing for function ct <- main.
-  Called from tests/value/precise_locations.i:39.
-[value] Recording results for ct
-[value] Done for function ct
-[value] computing for function ct <- main.
-  Called from tests/value/precise_locations.i:39.
-[value] Recording results for ct
-[value] Done for function ct
-[value] computing for function ct <- main.
-  Called from tests/value/precise_locations.i:39.
-[value] Recording results for ct
-[value] Done for function ct
-[value] computing for function ct <- main.
-  Called from tests/value/precise_locations.i:39.
-[value] Recording results for ct
-[value] Done for function ct
-[value] computing for function ct <- main.
-  Called from tests/value/precise_locations.i:39.
-[value] Recording results for ct
-[value] Done for function ct
-[value] tests/value/precise_locations.i:42: 
+[eva] Recording results for ct
+[eva] Done for function ct
+[eva] tests/value/precise_locations.i:38: starting to merge loop iterations
+[eva] tests/value/precise_locations.i:39: Reusing old results for call to ct
+[eva] tests/value/precise_locations.i:39: Reusing old results for call to ct
+[eva] tests/value/precise_locations.i:39: Reusing old results for call to ct
+[eva] tests/value/precise_locations.i:39: Reusing old results for call to ct
+[eva] tests/value/precise_locations.i:37: starting to merge loop iterations
+[eva] tests/value/precise_locations.i:39: Reusing old results for call to ct
+[eva] tests/value/precise_locations.i:39: Reusing old results for call to ct
+[eva] tests/value/precise_locations.i:39: Reusing old results for call to ct
+[eva] tests/value/precise_locations.i:39: Reusing old results for call to ct
+[eva] tests/value/precise_locations.i:42: 
   Frama_C_dump_each:
   # Cvalue domain:
   t[0]{.f1[0..4]; .f_inter[0..4]} ∈ {0; 10; 20}
@@ -174,66 +150,66 @@
   v ∈ [--..--]
   __retres ∈ UNINITIALIZED
   ==END OF DUMP==
-[value] tests/value/precise_locations.i:44: entering loop for the first time
-[value] tests/value/precise_locations.i:45: entering loop for the first time
-[value] computing for function f <- main.
+[eva] computing for function f <- main.
   Called from tests/value/precise_locations.i:48.
-[value] using specification for function f
-[value] tests/value/precise_locations.i:48: 
+[eva] using specification for function f
+[eva] tests/value/precise_locations.i:48: 
   function f: precondition got status valid.
-[value] Done for function f
-[value] computing for function g <- main.
+[eva] Done for function f
+[eva] computing for function g <- main.
   Called from tests/value/precise_locations.i:49.
-[value] using specification for function g
-[value] tests/value/precise_locations.i:49: 
+[eva] using specification for function g
+[eva] tests/value/precise_locations.i:49: 
   function g: precondition got status valid.
-[value] Done for function g
-[value] computing for function f <- main.
+[eva] Done for function g
+[eva] tests/value/precise_locations.i:45: starting to merge loop iterations
+[eva] computing for function f <- main.
   Called from tests/value/precise_locations.i:48.
-[value] Done for function f
-[value] computing for function g <- main.
+[eva] Done for function f
+[eva] computing for function g <- main.
   Called from tests/value/precise_locations.i:49.
-[value] Done for function g
-[value] computing for function f <- main.
+[eva] Done for function g
+[eva] computing for function f <- main.
   Called from tests/value/precise_locations.i:48.
-[value] Done for function f
-[value] computing for function g <- main.
+[eva] Done for function f
+[eva] computing for function g <- main.
   Called from tests/value/precise_locations.i:49.
-[value] Done for function g
-[value] computing for function f <- main.
+[eva] Done for function g
+[eva] computing for function f <- main.
   Called from tests/value/precise_locations.i:48.
-[value] Done for function f
-[value] computing for function g <- main.
+[eva] Done for function f
+[eva] computing for function g <- main.
   Called from tests/value/precise_locations.i:49.
-[value] Done for function g
-[value] computing for function f <- main.
+[eva] Done for function g
+[eva] tests/value/precise_locations.i:44: starting to merge loop iterations
+[eva] computing for function f <- main.
   Called from tests/value/precise_locations.i:48.
-[value] Done for function f
-[value] computing for function g <- main.
+[eva] Done for function f
+[eva] computing for function g <- main.
   Called from tests/value/precise_locations.i:49.
-[value] Done for function g
-[value] computing for function f <- main.
+[eva] Done for function g
+[eva] computing for function f <- main.
   Called from tests/value/precise_locations.i:48.
-[value] Done for function f
-[value] computing for function g <- main.
+[eva] Done for function f
+[eva] computing for function g <- main.
   Called from tests/value/precise_locations.i:49.
-[value] Done for function g
-[value] computing for function f <- main.
+[eva] Done for function g
+[eva] computing for function f <- main.
   Called from tests/value/precise_locations.i:48.
-[value:alarm] tests/value/precise_locations.i:48: Warning: 
+[eva:alarm] tests/value/precise_locations.i:48: Warning: 
   function f: precondition got status unknown.
-[value] Done for function f
-[value] computing for function g <- main.
+[eva] Done for function f
+[eva] computing for function g <- main.
   Called from tests/value/precise_locations.i:49.
-[value:alarm] tests/value/precise_locations.i:49: Warning: 
+[eva:alarm] tests/value/precise_locations.i:49: Warning: 
   function g: precondition got status unknown.
-[value] Done for function g
-[value] Recording results for main
-[value] done for function main
-[value] ====== VALUES COMPUTED ======
-[value:final-states] Values at end of function ct:
+[eva] Done for function g
+[eva] Recording results for main
+[eva] done for function main
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function ct:
   __retres ∈ {20}
-[value:final-states] Values at end of function main:
+[eva:final-states] Values at end of function main:
   t[0]{.f1[0..4]; .f_inter[0..4]} ∈ {0; 10; 20}
    [0].f2 ∈ [--..--]
    [bits 328 to 831]# ∈ {0; 10; 20} repeated %32, bits 8 to 511 
@@ -403,10 +379,10 @@
 
 [    -    ] Instance of 'Pre-condition (file tests/value/precise_locations.i, line 18)' at call 'f' (file tests/value/precise_locations.i, line 48)
 
-            tried with Value.
+            tried with Eva.
 [    -    ] Instance of 'Pre-condition (file tests/value/precise_locations.i, line 21)' at call 'g' (file tests/value/precise_locations.i, line 49)
 
-            tried with Value.
+            tried with Eva.
 
 --------------------------------------------------------------------------------
 --- Status Report Summary
@@ -416,16 +392,16 @@
      4 To be validated
      8 Total
 --------------------------------------------------------------------------------
-[value] Analyzing a complete application starting at main
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing a complete application starting at main
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   t[0..49] ∈ {0}
   i ∈ {0}
   j ∈ {0}
   q ∈ {0}
   r ∈ {0}
-[value] tests/value/precise_locations.i:33: 
+[eva] tests/value/precise_locations.i:33: 
   Frama_C_dump_each:
   # Cvalue domain:
   t[0].f1[0..4] ∈ {0; 10}
@@ -535,43 +511,19 @@
   v ∈ [--..--]
   __retres ∈ UNINITIALIZED
   ==END OF DUMP==
-[value] computing for function ct <- main.
+[eva] computing for function ct <- main.
   Called from tests/value/precise_locations.i:39.
-[value] Recording results for ct
-[value] Done for function ct
-[value] computing for function ct <- main.
-  Called from tests/value/precise_locations.i:39.
-[value] Recording results for ct
-[value] Done for function ct
-[value] computing for function ct <- main.
-  Called from tests/value/precise_locations.i:39.
-[value] Recording results for ct
-[value] Done for function ct
-[value] computing for function ct <- main.
-  Called from tests/value/precise_locations.i:39.
-[value] Recording results for ct
-[value] Done for function ct
-[value] computing for function ct <- main.
-  Called from tests/value/precise_locations.i:39.
-[value] Recording results for ct
-[value] Done for function ct
-[value] computing for function ct <- main.
-  Called from tests/value/precise_locations.i:39.
-[value] Recording results for ct
-[value] Done for function ct
-[value] computing for function ct <- main.
-  Called from tests/value/precise_locations.i:39.
-[value] Recording results for ct
-[value] Done for function ct
-[value] computing for function ct <- main.
-  Called from tests/value/precise_locations.i:39.
-[value] Recording results for ct
-[value] Done for function ct
-[value] computing for function ct <- main.
-  Called from tests/value/precise_locations.i:39.
-[value] Recording results for ct
-[value] Done for function ct
-[value] tests/value/precise_locations.i:42: 
+[eva] Recording results for ct
+[eva] Done for function ct
+[eva] tests/value/precise_locations.i:39: Reusing old results for call to ct
+[eva] tests/value/precise_locations.i:39: Reusing old results for call to ct
+[eva] tests/value/precise_locations.i:39: Reusing old results for call to ct
+[eva] tests/value/precise_locations.i:39: Reusing old results for call to ct
+[eva] tests/value/precise_locations.i:39: Reusing old results for call to ct
+[eva] tests/value/precise_locations.i:39: Reusing old results for call to ct
+[eva] tests/value/precise_locations.i:39: Reusing old results for call to ct
+[eva] tests/value/precise_locations.i:39: Reusing old results for call to ct
+[eva] tests/value/precise_locations.i:42: 
   Frama_C_dump_each:
   # Cvalue domain:
   t[0].f1[0..4] ∈ {0; 10; 20}
@@ -781,54 +733,54 @@
   v ∈ [--..--]
   __retres ∈ UNINITIALIZED
   ==END OF DUMP==
-[value] computing for function f <- main.
+[eva] computing for function f <- main.
   Called from tests/value/precise_locations.i:48.
-[value] Done for function f
-[value] computing for function g <- main.
+[eva] Done for function f
+[eva] computing for function g <- main.
   Called from tests/value/precise_locations.i:49.
-[value] Done for function g
-[value] computing for function f <- main.
+[eva] Done for function g
+[eva] computing for function f <- main.
   Called from tests/value/precise_locations.i:48.
-[value] Done for function f
-[value] computing for function g <- main.
+[eva] Done for function f
+[eva] computing for function g <- main.
   Called from tests/value/precise_locations.i:49.
-[value] Done for function g
-[value] computing for function f <- main.
+[eva] Done for function g
+[eva] computing for function f <- main.
   Called from tests/value/precise_locations.i:48.
-[value] Done for function f
-[value] computing for function g <- main.
+[eva] Done for function f
+[eva] computing for function g <- main.
   Called from tests/value/precise_locations.i:49.
-[value] Done for function g
-[value] computing for function f <- main.
+[eva] Done for function g
+[eva] computing for function f <- main.
   Called from tests/value/precise_locations.i:48.
-[value] Done for function f
-[value] computing for function g <- main.
+[eva] Done for function f
+[eva] computing for function g <- main.
   Called from tests/value/precise_locations.i:49.
-[value] Done for function g
-[value] computing for function f <- main.
+[eva] Done for function g
+[eva] computing for function f <- main.
   Called from tests/value/precise_locations.i:48.
-[value] Done for function f
-[value] computing for function g <- main.
+[eva] Done for function f
+[eva] computing for function g <- main.
   Called from tests/value/precise_locations.i:49.
-[value] Done for function g
-[value] computing for function f <- main.
+[eva] Done for function g
+[eva] computing for function f <- main.
   Called from tests/value/precise_locations.i:48.
-[value] Done for function f
-[value] computing for function g <- main.
+[eva] Done for function f
+[eva] computing for function g <- main.
   Called from tests/value/precise_locations.i:49.
-[value] Done for function g
-[value] computing for function f <- main.
+[eva] Done for function g
+[eva] computing for function f <- main.
   Called from tests/value/precise_locations.i:48.
-[value] Done for function f
-[value] computing for function g <- main.
+[eva] Done for function f
+[eva] computing for function g <- main.
   Called from tests/value/precise_locations.i:49.
-[value] Done for function g
-[value] Recording results for main
-[value] done for function main
-[value] ====== VALUES COMPUTED ======
-[value:final-states] Values at end of function ct:
+[eva] Done for function g
+[eva] Recording results for main
+[eva] done for function main
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function ct:
   __retres ∈ {20}
-[value:final-states] Values at end of function main:
+[eva:final-states] Values at end of function main:
   t[0].f1[0..4] ∈ {0; 10; 20}
    [0].f_inter[0..4] ∈ {0}
    [0].f2 ∈ {-99; 0}
@@ -1214,10 +1166,10 @@
 
 [  Valid  ] Instance of 'Pre-condition (file tests/value/precise_locations.i, line 18)' at call 'f' (file tests/value/precise_locations.i, line 48)
 
-            by Value (v2).
+            by Eva (v2).
 [  Valid  ] Instance of 'Pre-condition (file tests/value/precise_locations.i, line 21)' at call 'g' (file tests/value/precise_locations.i, line 49)
 
-            by Value (v2).
+            by Eva (v2).
 
 --------------------------------------------------------------------------------
 --- Status Report Summary

@@ -1,31 +1,31 @@
 [kernel] Parsing tests/pdg/inter_alias.c (with preprocessing)
-[value] Analyzing a complete application starting at main
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing a complete application starting at main
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   G ∈ {0}
-[value] computing for function f1 <- main.
+[eva] computing for function f1 <- main.
   Called from tests/pdg/inter_alias.c:15.
-[value] Recording results for f1
+[eva] Recording results for f1
 [from] Computing for function f1
 [from] Done for function f1
-[value] Done for function f1
-[value] computing for function f1 <- main.
+[eva] Done for function f1
+[eva] computing for function f1 <- main.
   Called from tests/pdg/inter_alias.c:16.
-[value] Recording results for f1
+[eva] Recording results for f1
 [from] Computing for function f1
 [from] Done for function f1
-[value] Done for function f1
-[value] Recording results for main
+[eva] Done for function f1
+[eva] Recording results for main
 [from] Computing for function main
 [from] Done for function main
-[value] done for function main
-[value] ====== VALUES COMPUTED ======
-[value:final-states] Values at end of function f1:
+[eva] done for function main
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function f1:
   a ∈ {3}
   b ∈ {0; 4}
   __retres ∈ {3; 4}
-[value:final-states] Values at end of function main:
+[eva:final-states] Values at end of function main:
   a ∈ {3}
   b ∈ {4}
   __retres ∈ {7}

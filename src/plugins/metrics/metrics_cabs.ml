@@ -39,8 +39,8 @@ class metricsCabsVisitor = object(self)
   (* Local metrics are kept stored after computation in this map of maps.
      Its storing hierarchy is as follows: filename -> function_name -> metrics *)
   val mutable metrics_map:
-      (BasicMetrics.t Datatype.String.Map.t) Datatype.String.Map.t =
-    Datatype.String.Map.empty
+      (BasicMetrics.t Metrics_base.OptionKf.Map.t) Datatype.Filepath.Map.t =
+    Datatype.Filepath.Map.empty
 
   val functions_no_source: (string, int) Hashtbl.t = Hashtbl.create 97
   val functions_with_source: (string, int) Hashtbl.t = Hashtbl.create 97
@@ -52,7 +52,7 @@ class metricsCabsVisitor = object(self)
   method set_standalone v = standalone <- v
   method get_metrics = !global_metrics
   method private update_metrics_map filename strmap =
-    metrics_map <- Datatype.String.Map.add filename strmap metrics_map
+    metrics_map <- Datatype.Filepath.Map.add filename strmap metrics_map
 
   (* Utility methods to increase metrics counts *)
   method private incr_both_metrics f =
@@ -65,19 +65,21 @@ class metricsCabsVisitor = object(self)
 
   method private record_and_clear metrics =
     let filename = metrics.cfile_name
-    and funcname = metrics.cfunc_name in
+    and func = metrics.cfunc in
     local_metrics := BasicMetrics.set_cyclo !local_metrics
            (BasicMetrics.compute_cyclo !local_metrics);
     global_metrics := BasicMetrics.set_cyclo !global_metrics
            (!global_metrics.ccyclo + !local_metrics.ccyclo);
     (try
-       let fun_tbl = Datatype.String.Map.find filename metrics_map in
+       let fun_tbl = Datatype.Filepath.Map.find filename metrics_map in
        self#update_metrics_map filename
-         (Datatype.String.Map.add funcname !local_metrics fun_tbl);
+         (Metrics_base.OptionKf.Map.add func !local_metrics fun_tbl);
      with
        | Not_found ->
          let new_stringmap =
-           Datatype.String.Map.add funcname !local_metrics Datatype.String.Map.empty in
+           Metrics_base.OptionKf.Map.add func !local_metrics
+             Metrics_base.OptionKf.Map.empty
+         in
          self#update_metrics_map filename new_stringmap;
     );
     local_metrics := empty_metrics;
@@ -90,7 +92,7 @@ class metricsCabsVisitor = object(self)
           local_metrics :=
             {!local_metrics with
               cfile_name = get_filename def;
-              cfunc_name = funcname;
+              cfunc = Some (Metrics_base.kf_of_cabs_name sname);
               cfuncs = 1; (* Only one function is indeed being defined here *)};
           Metrics_parameters.debug
             ~level:1 "Definition of function %s encountered@." funcname;
@@ -215,22 +217,23 @@ class metricsCabsVisitor = object(self)
     Cil.DoChildren
 
   method private stats_of_filename filename =
-    try Datatype.String.Map.find filename metrics_map
+    try Datatype.Filepath.Map.find filename metrics_map
     with
       | Not_found ->
-        Metrics_parameters.fatal "Metrics for file %s not_found@." filename
+        Metrics_parameters.fatal "Metrics for file %a not_found@."
+          Datatype.Filepath.pretty filename
 
   method pp_file_metrics fmt filename =
     Format.fprintf fmt "@[<v 0>%a@]"
       (fun fmt filename ->
         let fun_tbl = self#stats_of_filename filename in
-        Datatype.String.Map.iter (fun _fun_name fmetrics ->
+        OptionKf.Map.iter (fun _fun_name fmetrics ->
           Format.fprintf fmt "@ %a" pp_base_metrics fmetrics)
           fun_tbl;
       ) filename
 
   method pp_detailed_text_metrics fmt () =
-    Datatype.String.Map.iter
+    Datatype.Filepath.Map.iter
       (fun filename _func_tbl ->
         Format.fprintf fmt "%a" self#pp_file_metrics filename) metrics_map
 
@@ -566,7 +569,7 @@ let pp_metrics ppf cabs_visitor =
   let operand_tbl = cabs_visitor#get_operand_tbl () in
 
   let dummy_cst cst =
-    { expr_loc = (Lexing.dummy_pos, Lexing.dummy_pos);
+    { expr_loc = Cil_datatype.Location.unknown;
       expr_node = CONSTANT cst;
     }
   and simple_pp_htbl ppf htbl =
@@ -645,7 +648,8 @@ let compute_on_cabs () =
     let cabs_visitor = new metricsCabsVisitor in
     List.iter (fun file ->
       Metrics_parameters.debug
-	~level:2 "Compute Cabs metrics for file %s@." (fst file);
+        ~level:2 "Compute Cabs metrics for file %a@."
+        Datatype.Filepath.pretty (fst file);
       ignore
 	(Cabsvisit.visitCabsFile (cabs_visitor:>Cabsvisit.cabsVisitor) file);
     )

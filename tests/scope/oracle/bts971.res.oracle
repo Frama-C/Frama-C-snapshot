@@ -1,11 +1,11 @@
 [kernel] Parsing tests/scope/bts971.c (with preprocessing)
 === Tests for Scope.Defs
 --- Intraprocedural mode (-scope-no-defs-interproc)
-[value:alarm] tests/scope/bts971.c:10: Warning: 
+[eva:alarm] tests/scope/bts971.c:10: Warning: 
   signed overflow. assert v + 1 ≤ 2147483647;
-[value:alarm] tests/scope/bts971.c:18: Warning: 
+[eva:alarm] tests/scope/bts971.c:18: Warning: 
   signed overflow. assert v + 2 ≤ 2147483647;
-[value:alarm] tests/scope/bts971.c:19: Warning: 
+[eva:alarm] tests/scope/bts971.c:19: Warning: 
   signed overflow. assert v + 3 ≤ 2147483647;
 Current program point = first one in function 'f1'
 * Defs for (v) at current program point=

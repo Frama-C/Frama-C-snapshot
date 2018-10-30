@@ -40,9 +40,6 @@ type truth = True | False | Unknown
 
 val inv_truth: truth -> truth
 
-type alarm = SureAlarm | Alarm | NoAlarm
-(** Less ambiguous version of {!truth} for alarms. *)
-
 (** Signatures for comparison operators [==, !=, <, >, <=, >=]. *)
 module Comp: sig
   type t = Lt | Gt | Le | Ge | Eq | Ne (** comparison operators *)

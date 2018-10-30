@@ -1,31 +1,31 @@
 [kernel] Parsing tests/value/leaf2.i (no preprocessing)
-[value] Analyzing a complete application starting at main
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing a complete application starting at main
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   G ∈ {0}
   H ∈ {0}
   I ∈ {0}
-[value] computing for function f <- main.
+[eva] computing for function f <- main.
   Called from tests/value/leaf2.i:6.
 [kernel:annot:missing-spec] tests/value/leaf2.i:6: Warning: 
   Neither code nor specification for function f, generating default assigns from the prototype
-[value] using specification for function f
-[value] Done for function f
-[value] tests/value/leaf2.i:6: 
+[eva] using specification for function f
+[eva] Done for function f
+[eva] tests/value/leaf2.i:6: 
   Assigning imprecise value to G.
   The imprecision originates from Library function {tests/value/leaf2.i:6}
-[value:alarm] tests/value/leaf2.i:7: Warning: 
+[eva:alarm] tests/value/leaf2.i:7: Warning: 
   signed overflow. assert -2147483648 ≤ G + 1;
-[value:alarm] tests/value/leaf2.i:7: Warning: 
+[eva:alarm] tests/value/leaf2.i:7: Warning: 
   signed overflow. assert G + 1 ≤ 2147483647;
-[value] tests/value/leaf2.i:7: 
+[eva] tests/value/leaf2.i:7: 
   Assigning imprecise value to G.
   The imprecision originates from Library function {tests/value/leaf2.i:6}
-[value] Recording results for main
-[value] done for function main
-[value] ====== VALUES COMPUTED ======
-[value:final-states] Values at end of function main:
+[eva] Recording results for main
+[eva] done for function main
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function main:
   G ∈
    {{ garbled mix of &{I}
     (origin: Library function {tests/value/leaf2.i:6}) }}

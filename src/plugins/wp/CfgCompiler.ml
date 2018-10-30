@@ -423,72 +423,72 @@ struct
 
   let output_dot : type a b. out_channel -> ?checks:_ -> (a,b) env -> unit =
     fun cout ?(checks=Bag.empty) env ->
-    let count = let c = ref max_int in fun () -> decr c; !c in
-    let module E = struct
-      type t = Graph.Graphviz.DotAttributes.edge list
-      let default = []
-      let compare x y = assert (x == y); 0
-    end
-    in
-    let module V = struct
-      type t =
-        | Node of Node.t
-        | Assume of int * Lang.F.pred
-        | Check of int * Lang.F.pred
-        (* todo better saner comparison *)
-      let tag = function | Node i -> Node.tag i | Assume (i,_) -> i | Check (i,_) -> i
-      let pp fmt = function | Node i -> Node.pp fmt i | Assume (i,_) -> Format.fprintf fmt "ass%i" i
-                            | Check (i,_) -> Format.fprintf fmt "chk%i" i
-      let equal x y = (tag x) = (tag y)
-      let compare x y = Pervasives.compare (tag x) (tag y)
-      let hash x = tag x
-    end in
-    let module G = Graph.Imperative.Digraph.ConcreteBidirectionalLabeled (V)(E) in
-    let module Dot = Graph.Graphviz.Dot(struct
-        let graph_attributes _g = [`Fontname "fixed"]
-        let default_vertex_attributes _g = (* [`Shape `Point] *) [`Shape `Circle]
-        let vertex_name v = Format.asprintf "cp%a" V.pp  v
-        let vertex_attributes  = function
-          | V.Node n -> [`Label (escape "%a" Node.pp n)]
-          | V.Assume (_,p) -> [`Style `Dashed; `Label (escape "%a" Lang.F.pp_pred p)]
-          | V.Check (_,p) -> [`Style `Dotted; `Label (escape "%a" Lang.F.pp_pred p)]
-        let get_subgraph _ = None
-        let default_edge_attributes _g = []
-        let edge_attributes ((_,e,_):G.E.t) : Graph.Graphviz.DotAttributes.edge list = e
-        include G
-      end) in
-    let g = G.create () in
-    let add_edge n1 l n2 =  G.add_edge_e g (V.Node n1,l,V.Node n2) in
-    let add_edges : type a b. Node.t -> (a,b) edge -> unit = fun n1 -> function
-      | Goto n2 -> add_edge n1 [] n2
-      | Branch((_,c),n2,n2') ->
-          let aux s = function
-            | None -> ()
-            | Some n -> add_edge n1 [`Label (escape "%s%a" s Lang.F.pp_pred c)] n
-          in
-          aux "" n2; aux "!" n2'
-      | Either l -> List.iter (add_edge n1 []) l
-      | Implies l ->
-           List.iter (fun (c,n) -> add_edge n1 [`Label (escape "%a" Lang.F.pp_pred (C.get c))] n) l
-      | Effect ((_,e),n2) ->
-          add_edge n1 [`Label (escape "%a" Lang.F.pp_pred e)] n2
-      | Havoc (_,n2) -> add_edge n1 [`Label (escape "havoc")] n2
-      | Binding (_,n2) -> add_edge n1 [`Label (escape "binding")] n2
-    in
-    Node.Map.iter add_edges env.succs;
-    (** assumes *)
-    Bag.iter (fun (m,p) ->
-        let n1 = V.Assume(count (), p) in
-        let assume_label = [`Style `Dashed ] in
-        Node.Map.iter (fun n2 _ -> G.add_edge_e g (n1,assume_label,V.Node n2)) m
-      ) env.assumes;
-    (** checks *)
-    Bag.iter (fun (m,p) ->
-        let n1 = V.Check(count (), p) in
-        let label = [`Style `Dotted ] in
-        Node.Map.iter (fun n2 _ -> G.add_edge_e g (V.Node n2,label,n1)) m
-      ) checks;
-    Dot.output_graph cout g
+      let count = let c = ref max_int in fun () -> decr c; !c in
+      let module E = struct
+        type t = Graph.Graphviz.DotAttributes.edge list
+        let default = []
+        let compare x y = assert (x == y); 0
+      end
+      in
+      let module V = struct
+        type t =
+          | Node of Node.t
+          | Assume of int * Lang.F.pred
+          | Check of int * Lang.F.pred
+          (* todo better saner comparison *)
+        let tag = function | Node i -> Node.tag i | Assume (i,_) -> i | Check (i,_) -> i
+        let pp fmt = function | Node i -> Node.pp fmt i | Assume (i,_) -> Format.fprintf fmt "ass%i" i
+                              | Check (i,_) -> Format.fprintf fmt "chk%i" i
+        let equal x y = (tag x) = (tag y)
+        let compare x y = Pervasives.compare (tag x) (tag y)
+        let hash x = tag x
+      end in
+      let module G = Graph.Imperative.Digraph.ConcreteBidirectionalLabeled (V)(E) in
+      let module Dot = Graph.Graphviz.Dot(struct
+          let graph_attributes _g = [`Fontname "fixed"]
+          let default_vertex_attributes _g = (* [`Shape `Point] *) [`Shape `Circle]
+          let vertex_name v = Format.asprintf "cp%a" V.pp  v
+          let vertex_attributes  = function
+            | V.Node n -> [`Label (escape "%a" Node.pp n)]
+            | V.Assume (_,p) -> [`Style `Dashed; `Label (escape "%a" Lang.F.pp_pred p)]
+            | V.Check (_,p) -> [`Style `Dotted; `Label (escape "%a" Lang.F.pp_pred p)]
+          let get_subgraph _ = None
+          let default_edge_attributes _g = []
+          let edge_attributes ((_,e,_):G.E.t) : Graph.Graphviz.DotAttributes.edge list = e
+          include G
+        end) in
+      let g = G.create () in
+      let add_edge n1 l n2 =  G.add_edge_e g (V.Node n1,l,V.Node n2) in
+      let add_edges : type a b. Node.t -> (a,b) edge -> unit = fun n1 -> function
+        | Goto n2 -> add_edge n1 [] n2
+        | Branch((_,c),n2,n2') ->
+            let aux s = function
+              | None -> ()
+              | Some n -> add_edge n1 [`Label (escape "%s%a" s Lang.F.pp_pred c)] n
+            in
+            aux "" n2; aux "!" n2'
+        | Either l -> List.iter (add_edge n1 []) l
+        | Implies l ->
+            List.iter (fun (c,n) -> add_edge n1 [`Label (escape "%a" Lang.F.pp_pred (C.get c))] n) l
+        | Effect ((_,e),n2) ->
+            add_edge n1 [`Label (escape "%a" Lang.F.pp_pred e)] n2
+        | Havoc (_,n2) -> add_edge n1 [`Label (escape "havoc")] n2
+        | Binding (_,n2) -> add_edge n1 [`Label (escape "binding")] n2
+      in
+      Node.Map.iter add_edges env.succs;
+      (** assumes *)
+      Bag.iter (fun (m,p) ->
+          let n1 = V.Assume(count (), p) in
+          let assume_label = [`Style `Dashed ] in
+          Node.Map.iter (fun n2 _ -> G.add_edge_e g (n1,assume_label,V.Node n2)) m
+        ) env.assumes;
+      (** checks *)
+      Bag.iter (fun (m,p) ->
+          let n1 = V.Check(count (), p) in
+          let label = [`Style `Dotted ] in
+          Node.Map.iter (fun n2 _ -> G.add_edge_e g (V.Node n2,label,n1)) m
+        ) checks;
+      Dot.output_graph cout g
 
   let dump_env : type a. name:string -> (_, a) env -> unit = fun ~name env ->
     let file = (Filename.get_temp_dir_name ()) ^ "/cfg_" ^ name in
@@ -824,12 +824,12 @@ struct
             let l' = List.map find l in
             let l' = List.sort_uniq Node.compare l' in
             begin match l' with
-            | [] -> assert false (* absurd: Either after restricted has at least one successor *)
-            | [a] -> Some (Goto a)
-            | [a;_] when Node.Hashtbl.mem to_remove a ->
-                let br = Node.Hashtbl.find to_remove a in
-                Some br
-            | l' -> Some (Either l')
+              | [] -> assert false (* absurd: Either after restricted has at least one successor *)
+              | [a] -> Some (Goto a)
+              | [a;_] when Node.Hashtbl.mem to_remove a ->
+                  let br = Node.Hashtbl.find to_remove a in
+                  Some br
+              | l' -> Some (Either l')
             end
         | Implies l ->
             let l' = List.map (fun (g,n) -> (g,find n)) l in
@@ -877,71 +877,71 @@ struct
       with Not_found ->
         let dom = find_def ~def:S.empty node reads in
         let ret =
-            match Node.Map.find node env.succs with
-              | exception Not_found ->
-                  (** posts node *)
-                  let s1 = S.create () in
-                  allocate dom s1;
-                  s1
-            | Goto (node2) ->
-                let s1 = S.copy (aux node2) in
-                allocate dom s1;
-                add_edge node (Goto node2);
-                s1
-            | Branch (pred, node2, node3) ->
-                let dom = (S.union (C.reads pred) dom) in
-                begin match node2, node3 with
-                  | (None, Some next) | (Some next, None) ->
-                      let s1 = S.copy (aux next) in
-                      allocate dom s1;
-                      let pred = C.relocate s1 pred in
-                      add_edge node (Branch(pred,node2,node3));
-                      s1
-                  | Some node2, Some node3 ->
-                      let s2 = aux node2 in
-                      let s3 = aux node3 in
-                      let s1,p2,p3 = S.merge s2 s3 in
-                      allocate dom s1;
-                      let node2' = add_binding_edge node2 p2 in
-                      let node3' = add_binding_edge node3 p3 in
-                      let pred = C.relocate s1 pred in
-                      add_edge node (Branch(pred,Some node2',Some node3'));
-                      s1
-                  | _ -> assert false
-                end
-            | Either (l) ->
-                let s1, pl = S.merge_list (List.map aux l) in
-                allocate dom s1;
-                let l = List.map2 add_binding_edge l pl in
-                add_edge node (Either l);
-                s1
-            | Implies (l) ->
-                let dom =
-                  List.fold_left (fun acc (c,_) -> S.union (C.reads c) acc) dom l
-                in
-                let s1, pl = S.merge_list (List.map (fun (_,n) -> aux n) l) in
-                allocate dom s1;
-                let l = List.map2 (fun (c,a) b ->
-                    let a = add_binding_edge a b in
-                    let c = C.relocate s1 c in
-                    (c,a)) l pl
-                in
-                add_edge node (Implies l);
-                s1
-            | Effect (effect , node2) ->
-                let s2 = aux node2 in
-                let s1 = S.remove_chunks s2 (E.writes effect) in
-                allocate dom s1;
-                allocate (E.reads effect) s1;
-                let effect = E.relocate {pre=s1;post=s2} effect in
-                add_edge node (Effect(effect,node2));
-                s1
-            | Havoc (eff, node2) ->
-                let s2 = aux node2 in
-                let s1 = S.havoc s2 eff in
-                allocate dom s1;
-                add_edge node (Havoc(eff,node2));
-                s1
+          match Node.Map.find node env.succs with
+          | exception Not_found ->
+              (** posts node *)
+              let s1 = S.create () in
+              allocate dom s1;
+              s1
+          | Goto (node2) ->
+              let s1 = S.copy (aux node2) in
+              allocate dom s1;
+              add_edge node (Goto node2);
+              s1
+          | Branch (pred, node2, node3) ->
+              let dom = (S.union (C.reads pred) dom) in
+              begin match node2, node3 with
+                | (None, Some next) | (Some next, None) ->
+                    let s1 = S.copy (aux next) in
+                    allocate dom s1;
+                    let pred = C.relocate s1 pred in
+                    add_edge node (Branch(pred,node2,node3));
+                    s1
+                | Some node2, Some node3 ->
+                    let s2 = aux node2 in
+                    let s3 = aux node3 in
+                    let s1,p2,p3 = S.merge s2 s3 in
+                    allocate dom s1;
+                    let node2' = add_binding_edge node2 p2 in
+                    let node3' = add_binding_edge node3 p3 in
+                    let pred = C.relocate s1 pred in
+                    add_edge node (Branch(pred,Some node2',Some node3'));
+                    s1
+                | _ -> assert false
+              end
+          | Either (l) ->
+              let s1, pl = S.merge_list (List.map aux l) in
+              allocate dom s1;
+              let l = List.map2 add_binding_edge l pl in
+              add_edge node (Either l);
+              s1
+          | Implies (l) ->
+              let dom =
+                List.fold_left (fun acc (c,_) -> S.union (C.reads c) acc) dom l
+              in
+              let s1, pl = S.merge_list (List.map (fun (_,n) -> aux n) l) in
+              allocate dom s1;
+              let l = List.map2 (fun (c,a) b ->
+                  let a = add_binding_edge a b in
+                  let c = C.relocate s1 c in
+                  (c,a)) l pl
+              in
+              add_edge node (Implies l);
+              s1
+          | Effect (effect , node2) ->
+              let s2 = aux node2 in
+              let s1 = S.remove_chunks s2 (E.writes effect) in
+              allocate dom s1;
+              allocate (E.reads effect) s1;
+              let effect = E.relocate {pre=s1;post=s2} effect in
+              add_edge node (Effect(effect,node2));
+              s1
+          | Havoc (eff, node2) ->
+              let s2 = aux node2 in
+              let s1 = S.havoc s2 eff in
+              allocate dom s1;
+              add_edge node (Havoc(eff,node2));
+              s1
         in
         visited := Node.Map.add node ret !visited;
         ret
@@ -1323,8 +1323,8 @@ struct
           Node.Hashtbl.find env.subtrees n
 
     (** Add each assume to the sub-tree corresponding to the latest
-       node it uses. The assumes are true if all their nodes are
-       accessible *)
+        node it uses. The assumes are true if all their nodes are
+        accessible *)
     let add_assumes_fact env = Bag.iter (fun p ->
         let nodes = P.nodes_list p in
         let nodes_are_accessible =
@@ -1369,7 +1369,7 @@ struct
       f, Node.Hashtbl.fold Node.Map.add env.full_conds Node.Map.empty
   end
 
-    let compile : ?name:string -> ?mode:mode -> node -> Node.Set.t -> S.domain Node.Map.t ->
+  let compile : ?name:string -> ?mode:mode -> node -> Node.Set.t -> S.domain Node.Map.t ->
     cfg -> F.pred Node.Map.t * S.t Node.Map.t * Conditions.sequence =
     fun ?(name="cfg") ?(mode=`Bool_Forward) pre posts user_reads env ->
       if Wp_parameters.has_dkey dkey then

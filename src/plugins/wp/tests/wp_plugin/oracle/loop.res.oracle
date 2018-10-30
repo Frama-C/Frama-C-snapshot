@@ -10,27 +10,24 @@
 Goal Post-condition 'qed_ok' in 'init':
 Let a_1 = shift_sint32(t, a).
 Let x = -a.
+Let a_2 = havoc(Mint_undef_0, Mint_0, a_1, i - a).
 Assume {
-  Type: is_sint32(a) /\ is_sint32(b) /\ is_sint32(i_1).
+  Type: is_sint32(a) /\ is_sint32(b) /\ is_sint32(i).
   (* Goal *)
-  When: (i <= b) /\ (a <= i) /\ is_sint32(i).
+  When: (i_1 <= b) /\ (a <= i_1) /\ is_sint32(i_1).
   (* Heap *)
   Have: (region(t.base) <= 0) /\ linked(Malloc_0).
   (* Pre-condition *)
-  Have: valid_rw(Malloc_0, a_1, 1 + b - a).
-  (* Pre-condition *)
-  Have: a <= b.
-  (* Loop assigns 'qed_ok' *)
-  Have: havoc(Mint_1, Mint_0, a_1, i_1 - a).
+  Have: (a <= b) /\ valid_rw(Malloc_0, a_1, 1 + b - a).
   (* Invariant 'qed_ok' *)
-  Have: forall i_2 : Z. ((a <= i_2) -> ((i_2 < i_1) ->
-      (Mint_0[shift_sint32(t, i_2)] = e))).
+  Have: forall i_2 : Z. ((a <= i_2) -> ((i_2 < i) ->
+      (a_2[shift_sint32(t, i_2)] = e))).
   (* Invariant 'qed_ok' *)
-  Have: (a <= i_1) /\ (i_1 <= (1 + b)).
+  Have: (a <= i) /\ (i <= (1 + b)).
   (* Else *)
-  Have: b < i_1.
+  Have: b < i.
 }
-Prove: Mint_0[shift_sint32(t, i)] = e.
+Prove: a_2[shift_sint32(t, i_1)] = e.
 
 ------------------------------------------------------------
 
@@ -43,14 +40,10 @@ Assume {
   (* Heap *)
   Have: (region(t.base) <= 0) /\ linked(Malloc_0).
   (* Pre-condition *)
-  Have: valid_rw(Malloc_0, a_1, 1 + b - a).
-  (* Pre-condition *)
-  Have: a <= b.
-  (* Loop assigns 'qed_ok' *)
-  Have: havoc(Mint_0, Mint_1, a_1, i - a).
+  Have: (a <= b) /\ valid_rw(Malloc_0, a_1, 1 + b - a).
   (* Invariant 'qed_ok' *)
   Have: forall i_1 : Z. ((a <= i_1) -> ((i_1 < i) ->
-      (Mint_1[shift_sint32(t, i_1)] = e))).
+      (havoc(Mint_undef_0, Mint_0, a_1, i - a)[shift_sint32(t, i_1)] = e))).
   (* Invariant 'qed_ok' *)
   Have: (a <= i) /\ (i <= (1 + b)).
   (* Then *)
@@ -66,9 +59,7 @@ Assume {
   (* Heap *)
   Have: (region(t.base) <= 0) /\ linked(Malloc_0).
   (* Pre-condition *)
-  Have: valid_rw(Malloc_0, shift_sint32(t, a), 1 + b - a).
-  (* Pre-condition *)
-  Have: a <= b.
+  Have: (a <= b) /\ valid_rw(Malloc_0, shift_sint32(t, a), 1 + b - a).
 }
 Prove: a <= (1 + b).
 
@@ -77,6 +68,7 @@ Prove: a <= (1 + b).
 Goal Preservation of Invariant 'qed_ok' (file tests/wp_plugin/loop.i, line 13):
 Let a_1 = shift_sint32(t, a).
 Let x = -a.
+Let a_2 = havoc(Mint_undef_0, Mint_0, a_1, i - a).
 Assume {
   Type: is_sint32(a) /\ is_sint32(b) /\ is_sint32(i) /\ is_sint32(1 + i).
   (* Goal *)
@@ -84,20 +76,16 @@ Assume {
   (* Heap *)
   Have: (region(t.base) <= 0) /\ linked(Malloc_0).
   (* Pre-condition *)
-  Have: valid_rw(Malloc_0, a_1, 1 + b - a).
-  (* Pre-condition *)
-  Have: a <= b.
-  (* Loop assigns 'qed_ok' *)
-  Have: havoc(Mint_1, Mint_0, a_1, i - a).
+  Have: (a <= b) /\ valid_rw(Malloc_0, a_1, 1 + b - a).
   (* Invariant 'qed_ok' *)
   Have: forall i_2 : Z. ((a <= i_2) -> ((i_2 < i) ->
-      (Mint_0[shift_sint32(t, i_2)] = e))).
+      (a_2[shift_sint32(t, i_2)] = e))).
   (* Invariant 'qed_ok' *)
   Have: (a <= i) /\ (i <= (1 + b)).
   (* Then *)
   Have: i <= b.
 }
-Prove: Mint_0[shift_sint32(t, i) <- e][shift_sint32(t, i_1)] = e.
+Prove: a_2[shift_sint32(t, i) <- e][shift_sint32(t, i_1)] = e.
 
 ------------------------------------------------------------
 
@@ -129,14 +117,10 @@ Assume {
   (* Heap *)
   Have: (region(t.base) <= 0) /\ linked(Malloc_0).
   (* Pre-condition *)
-  Have: valid_rw(Malloc_0, a_1, 1 + b - a).
-  (* Pre-condition *)
-  Have: a <= b.
-  (* Loop assigns 'qed_ok' *)
-  Have: havoc(Mint_0, Mint_1, a_1, i - a).
+  Have: (a <= b) /\ valid_rw(Malloc_0, a_1, 1 + b - a).
   (* Invariant 'qed_ok' *)
   Have: forall i_1 : Z. ((a <= i_1) -> ((i_1 < i) ->
-      (Mint_1[shift_sint32(t, i_1)] = e))).
+      (havoc(Mint_undef_0, Mint_0, a_1, i - a)[shift_sint32(t, i_1)] = e))).
   (* Invariant 'qed_ok' *)
   Have: (a <= i) /\ (i <= (1 + b)).
   (* Then *)
@@ -150,19 +134,14 @@ Goal Assigns 'qed_ok' in 'init':
 Effect at line 15
 Let a_1 = shift_sint32(t, a).
 Let x = -a.
-Let x_1 = i - a.
 Assume {
   Have: a < i.
-  Have: !invalid(Malloc_0, a_1, x_1).
+  Have: !invalid(Malloc_0, a_1, i - a).
   Type: is_sint32(a) /\ is_sint32(b) /\ is_sint32(i).
   (* Heap *)
   Have: (region(t.base) <= 0) /\ linked(Malloc_0).
   (* Pre-condition *)
-  Have: valid_rw(Malloc_0, a_1, 1 + b - a).
-  (* Pre-condition *)
-  Have: a <= b.
-  (* Loop assigns 'qed_ok' *)
-  Have: havoc(Mint_0, Mint_1, a_1, x_1).
+  Have: (a <= b) /\ valid_rw(Malloc_0, a_1, 1 + b - a).
 }
 Prove: i <= (1 + b).
 

@@ -1,8 +1,8 @@
 [kernel] Parsing tests/value/misaligned_tabs.i (no preprocessing)
-[value] Analyzing a complete application starting at main
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing a complete application starting at main
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   T[0..299] ∈ {0}
   S1{.i1; .i2} ∈ {4369}
     {.c1; .c2} ∈ {17}
@@ -16,30 +16,30 @@
   S4{.i1; .i2} ∈ {4369}
     {.c1; .c2} ∈ {17}
     {.i3; .i4} ∈ {4369}
-[value] computing for function misaligned_struct <- main.
+[eva] computing for function misaligned_struct <- main.
   Called from tests/value/misaligned_tabs.i:58.
-[value] tests/value/misaligned_tabs.i:10: Frama_C_show_each_1: {1}
-[value] tests/value/misaligned_tabs.i:13: Frama_C_show_each_2: {1}
-[value] tests/value/misaligned_tabs.i:14: Frama_C_show_each_3: {1}
-[value] tests/value/misaligned_tabs.i:15: Frama_C_show_each_4: {1}
-[value] tests/value/misaligned_tabs.i:19: Frama_C_show_each_5: {1}
-[value] tests/value/misaligned_tabs.i:20: Frama_C_show_each_6: {1}
-[value] tests/value/misaligned_tabs.i:21: Frama_C_show_each_7: {1}
-[value] tests/value/misaligned_tabs.i:22: Frama_C_show_each_8: {1}
-[value] tests/value/misaligned_tabs.i:41: Frama_C_show_each_9: {1}
-[value] tests/value/misaligned_tabs.i:42: Frama_C_show_each_a: {1}
-[value] tests/value/misaligned_tabs.i:43: Frama_C_show_each_b: {1}
-[value] tests/value/misaligned_tabs.i:44: Frama_C_show_each_c: {1}
-[value] tests/value/misaligned_tabs.i:45: Frama_C_show_each_d: {1}
-[value] tests/value/misaligned_tabs.i:46: Frama_C_show_each_e: {1}
-[value] tests/value/misaligned_tabs.i:47: Frama_C_show_each_f: {1}
-[value] Recording results for misaligned_struct
-[value] Done for function misaligned_struct
-[value] tests/value/misaligned_tabs.i:64: Frama_C_show_each_g: {1}
-[value] Recording results for main
-[value] done for function main
-[value] ====== VALUES COMPUTED ======
-[value:final-states] Values at end of function misaligned_struct:
+[eva] tests/value/misaligned_tabs.i:10: Frama_C_show_each_1: {1}
+[eva] tests/value/misaligned_tabs.i:13: Frama_C_show_each_2: {1}
+[eva] tests/value/misaligned_tabs.i:14: Frama_C_show_each_3: {1}
+[eva] tests/value/misaligned_tabs.i:15: Frama_C_show_each_4: {1}
+[eva] tests/value/misaligned_tabs.i:19: Frama_C_show_each_5: {1}
+[eva] tests/value/misaligned_tabs.i:20: Frama_C_show_each_6: {1}
+[eva] tests/value/misaligned_tabs.i:21: Frama_C_show_each_7: {1}
+[eva] tests/value/misaligned_tabs.i:22: Frama_C_show_each_8: {1}
+[eva] tests/value/misaligned_tabs.i:41: Frama_C_show_each_9: {1}
+[eva] tests/value/misaligned_tabs.i:42: Frama_C_show_each_a: {1}
+[eva] tests/value/misaligned_tabs.i:43: Frama_C_show_each_b: {1}
+[eva] tests/value/misaligned_tabs.i:44: Frama_C_show_each_c: {1}
+[eva] tests/value/misaligned_tabs.i:45: Frama_C_show_each_d: {1}
+[eva] tests/value/misaligned_tabs.i:46: Frama_C_show_each_e: {1}
+[eva] tests/value/misaligned_tabs.i:47: Frama_C_show_each_f: {1}
+[eva] Recording results for misaligned_struct
+[eva] Done for function misaligned_struct
+[eva] tests/value/misaligned_tabs.i:64: Frama_C_show_each_g: {1}
+[eva] Recording results for main
+[eva] done for function main
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function misaligned_struct:
   S1.i1[bits 0 to 7] ∈ {17}
     {.i1[bits 8 to 15]#; .i2} ∈ {4369} repeated %16, bits 8 to 31 
     {.c1; .c2} ∈ {17}
@@ -55,7 +55,7 @@
   S4{.i1#; .i2#} ∈ {17} repeated %8 
     {.c1#; .c2#} ∈ {4369}%32, bits 0 to 15 
     {.i3#; .i4#} ∈ {17} repeated %8 
-[value:final-states] Values at end of function main:
+[eva:final-states] Values at end of function main:
   T[0]# ∈ {1; 2}%32, bits 0 to 7 
    [1] ∈ {0}
    [bits 16 to 95]# ∈ {1; 2} repeated %32, bits 16 to 95 

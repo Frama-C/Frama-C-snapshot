@@ -56,7 +56,7 @@ AC_SUBST([FRAMAC_VERSION],[`cat VERSION`])
 
 new_section "configure make"
 
-AC_CHECK_PROG(MAKE,make,make,)
+AC_CHECK_PROGS(MAKE,gmake make,make,)
 AC_MSG_CHECKING([version of make])
 MAKE_DISTRIB=`sh -c "$MAKE -v | sed -n -e 's/\(.*\) Make.*$/\1/p'"`
 MAKE_MAJOR=`sh -c "$MAKE -v | sed -n  -f bin/sed_get_make_major"`
@@ -113,23 +113,42 @@ case $OCAMLVERSION in
      OCAML_ANNOT_OPTION="-bin-annot";;
 esac
 
-AC_SUBST(SPLIT_ON_CHAR)
-AC_SUBST(STACK_FOLD)
+AC_SUBST(OCAMLMAJORNB)
+AC_SUBST(OCAMLMINORNB)
+AC_SUBST(OCAMLPATCHNB)
 
-case $OCAMLVERSION in
- 4.02.*)
-  SPLIT_ON_CHAR=split_on_char;
-  STACK_FOLD=stack_fold
- ;;
- 4.03.*)
-  SPLIT_ON_CHAR=split_on_char;
-  STACK_FOLD=Stack.fold
- ;;
- *)
-  SPLIT_ON_CHAR=String.split_on_char;
-  STACK_FOLD=Stack.fold
- ;;
-esac
+AC_SUBST(HAS_OCAML403)
+AC_SUBST(HAS_OCAML404)
+AC_SUBST(HAS_OCAML405)
+AC_SUBST(HAS_OCAML407)
+
+OCAMLMAJORNB=$(echo $OCAMLVERSION | cut -f 1 -d .)
+OCAMLMINORNB=$(echo $OCAMLVERSION | cut -f 2 -d .)
+OCAMLPATCHNB=$(echo $OCAMLVERSION | cut -f 3 -d .)
+
+if test $OCAMLMAJORNB -gt 4; then
+  HAS_OCAML403=yes;
+  HAS_OCAML404=yes;
+  HAS_OCAML405=yes;
+  HAS_OCAML407=yes;
+else
+  HAS_OCAML403=no;
+  HAS_OCAML404=no;
+  HAS_OCAML405=no;
+  HAS_OCAML407=no;
+  if test $OCAMLMINORNB -ge 3; then
+    HAS_OCAML403=yes;
+  fi;
+  if test $OCAMLMINORNB -ge 4; then
+    HAS_OCAML404=yes;
+  fi;
+  if test $OCAMLMINORNB -ge 5; then
+    HAS_OCAML405=yes;
+  fi;
+  if test $OCAMLMINORNB -ge 7; then
+    HAS_OCAML407=yes;
+  fi;
+fi;   # MAJORNB -gt 4
 
 # Ocaml library path
 AC_MSG_CHECKING(OCaml library path)
@@ -346,6 +365,20 @@ if test -f "$APRON_PATH/apron.$DYN_SUFFIX"; then
 else
   HAS_APRON="no";
   AC_MSG_RESULT(not found. The corresponding domains won't be available in Eva)
+fi;
+
+# mpfr
+#######
+
+AC_MSG_CHECKING(for MPFR)
+
+MPFR_PATH=$($OCAMLFIND query gmp 2>/dev/null | tr -d '\r\n')
+if test -f "$MPFR_PATH/gmp.$DYN_SUFFIX" -a -f "$MPFR_PATH/mpfr.cmx" ; then
+  HAS_MPFR="yes";
+  AC_MSG_RESULT(found)
+else
+  HAS_MPFR="no";
+  AC_MSG_RESULT(not found. The numerors domain won't be available in Eva)
 fi;
 
 # landmarks (profiling tool, for developers)
@@ -684,7 +717,7 @@ check_plugin(callgraph, src/plugins/callgraph,
 
 plugin_use_external(callgraph,dot)
 plugin_use(callgraph,gui)
-plugin_use(callgraph,value_analysis)
+plugin_use(callgraph,eva)
 
 # constant propagation
 ######################
@@ -692,14 +725,14 @@ plugin_use(callgraph,value_analysis)
 check_plugin(semantic_constant_folding, src/plugins/constant_propagation,
              [support for constant propagation plugin],yes)
 
-plugin_require(semantic_constant_folding,value_analysis)
+plugin_require(semantic_constant_folding,eva)
 
 # from
 ######
 
 check_plugin(from_analysis,src/plugins/from,[support for from analysis],yes)
 
-plugin_require(from_analysis,value_analysis)
+plugin_require(from_analysis,eva)
 plugin_require(from_analysis,callgraph)
 
 # gui
@@ -720,7 +753,7 @@ check_plugin(impact,src/plugins/impact,[support for impact plugin],yes)
 plugin_use(impact,gui)
 plugin_use(impact,slicing)
 plugin_require(impact,pdg)
-plugin_require(impact,value_analysis)
+plugin_require(impact,eva)
 plugin_require(impact,inout)
 
 # inout
@@ -728,14 +761,14 @@ plugin_require(impact,inout)
 
 check_plugin(inout,src/plugins/inout,[support for inout analysis],yes)
 plugin_require(inout,from_analysis)
-plugin_require(inout,value_analysis)
+plugin_require(inout,eva)
 plugin_require(inout,callgraph)
 
 # metrics
 #########
 
 check_plugin(metrics,src/plugins/metrics,[support for metrics analysis],yes)
-plugin_use(metrics,value_analysis)
+plugin_use(metrics,eva)
 plugin_use(metrics,gui)
 
 # occurrence
@@ -744,14 +777,14 @@ plugin_use(metrics,gui)
 check_plugin(occurrence,src/plugins/occurrence,
              [support for occurrence analysis],yes)
 plugin_use(occurrence,gui)
-plugin_require(occurrence,value_analysis)
+plugin_require(occurrence,eva)
 
 # pdg
 #####
 
 check_plugin(pdg,src/plugins/pdg,[support for pdg plugin],yes,pdg_types)
 plugin_require(pdg,from_analysis)
-plugin_require(pdg,value_analysis)
+plugin_require(pdg,eva)
 plugin_require(pdg,callgraph)
 
 # postdominators
@@ -771,7 +804,7 @@ check_plugin(rtegen,src/plugins/rte,
 
 check_plugin(scope,src/plugins/scope,[support for scope plugin],yes)
 plugin_require(scope,postdominators)
-plugin_require(scope,value_analysis)
+plugin_require(scope,eva)
 plugin_require(scope,from_analysis)
 plugin_require(scope,pdg)
 plugin_use(scope,gui)
@@ -782,7 +815,7 @@ plugin_use(scope,gui)
 check_plugin(slicing,src/plugins/slicing,[support for slicing plugin],yes)
 plugin_require(slicing,from_analysis)
 plugin_require(slicing,pdg)
-plugin_require(slicing,value_analysis)
+plugin_require(slicing,eva)
 plugin_require(slicing,callgraph)
 plugin_use(slicing,gui)
 
@@ -792,23 +825,23 @@ plugin_use(slicing,gui)
 check_plugin(sparecode,src/plugins/sparecode,
              [support for sparecode plugin],yes)
 plugin_require(sparecode,pdg)
-plugin_require(sparecode,value_analysis)
+plugin_require(sparecode,eva)
 
 # users
 #######
 
 check_plugin(users,src/plugins/users,[support for users analysis],yes)
-plugin_require(users,value_analysis)
+plugin_require(users,eva)
 plugin_use(users,callgraph)
 
 # value
 #######
 
-check_plugin(value_analysis,src/plugins/value,
+check_plugin(eva,src/plugins/value,
              [support for value analysis],yes)
-plugin_use(value_analysis,gui)
-plugin_use(value_analysis,scope)
-plugin_use(value_analysis,callgraph)
+plugin_use(eva,gui)
+plugin_use(eva,scope)
+plugin_use(eva,callgraph)
 
 ####################
 # External plugins #
@@ -956,6 +989,7 @@ AC_SUBST(DOT)
 AC_SUBST(HAS_DOT)
 AC_SUBST(HAS_YOJSON)
 AC_SUBST(HAS_APRON)
+AC_SUBST(HAS_MPFR)
 AC_SUBST(HAS_LANDMARKS)
 AC_SUBST(OCAMLBEST)
 AC_SUBST(OCAMLVERSION)

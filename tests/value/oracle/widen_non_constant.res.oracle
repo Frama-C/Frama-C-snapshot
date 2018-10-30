@@ -1,101 +1,99 @@
 [kernel] Parsing tests/value/widen_non_constant.i (no preprocessing)
-[value] Analyzing a complete application starting at main
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing a complete application starting at main
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   N ∈ {24}
   A[0..23] ∈ [--..--]
   B[0..25] ∈ [--..--]
   C[0..23] ∈ [--..--]
   t[0..19] ∈ {0}
   u[0..39] ∈ {0}
-[value] computing for function main1 <- main.
+[eva] computing for function main1 <- main.
   Called from tests/value/widen_non_constant.i:84.
-[value] tests/value/widen_non_constant.i:10: entering loop for the first time
-[value] tests/value/widen_non_constant.i:11: Frama_C_show_each_out: {0}
-[value] tests/value/widen_non_constant.i:12: entering loop for the first time
-[value] tests/value/widen_non_constant.i:13: Frama_C_show_each_in: {0}, {1}
-[value] tests/value/widen_non_constant.i:13: Frama_C_show_each_in: {0}, {1; 2}
-[value] tests/value/widen_non_constant.i:13: 
-  Frama_C_show_each_in: {0}, {1; 2; 3}
-[value] tests/value/widen_non_constant.i:13: Frama_C_show_each_in: {0}, [1..23]
-[value] tests/value/widen_non_constant.i:11: Frama_C_show_each_out: {0; 1}
-[value] tests/value/widen_non_constant.i:13: 
-  Frama_C_show_each_in: {0; 1}, [1..23]
-[value] tests/value/widen_non_constant.i:11: Frama_C_show_each_out: {0; 1; 2}
-[value] tests/value/widen_non_constant.i:13: 
+[eva] tests/value/widen_non_constant.i:11: Frama_C_show_each_out: {0}
+[eva] tests/value/widen_non_constant.i:13: Frama_C_show_each_in: {0}, {1}
+[eva] tests/value/widen_non_constant.i:12: starting to merge loop iterations
+[eva] tests/value/widen_non_constant.i:13: Frama_C_show_each_in: {0}, {1; 2}
+[eva] tests/value/widen_non_constant.i:13: Frama_C_show_each_in: {0}, {1; 2; 3}
+[eva] tests/value/widen_non_constant.i:13: Frama_C_show_each_in: {0}, [1..23]
+[eva] tests/value/widen_non_constant.i:10: starting to merge loop iterations
+[eva] tests/value/widen_non_constant.i:11: Frama_C_show_each_out: {0; 1}
+[eva] tests/value/widen_non_constant.i:13: Frama_C_show_each_in: {0; 1}, [1..23]
+[eva] tests/value/widen_non_constant.i:11: Frama_C_show_each_out: {0; 1; 2}
+[eva] tests/value/widen_non_constant.i:13: 
   Frama_C_show_each_in: {0; 1; 2}, [1..23]
-[value] tests/value/widen_non_constant.i:11: Frama_C_show_each_out: [0..22]
-[value] tests/value/widen_non_constant.i:13: 
+[eva] tests/value/widen_non_constant.i:11: Frama_C_show_each_out: [0..22]
+[eva] tests/value/widen_non_constant.i:13: 
   Frama_C_show_each_in: [0..23], [1..23]
-[value] Recording results for main1
-[value] Done for function main1
-[value] computing for function main2 <- main.
+[eva] Recording results for main1
+[eva] Done for function main1
+[eva] computing for function main2 <- main.
   Called from tests/value/widen_non_constant.i:85.
-[value] tests/value/widen_non_constant.i:26: entering loop for the first time
-[value] tests/value/widen_non_constant.i:27: Frama_C_show_each_out: {0}
-[value] tests/value/widen_non_constant.i:28: entering loop for the first time
-[value] tests/value/widen_non_constant.i:29: Frama_C_show_each_in: {0}, {1}
-[value] tests/value/widen_non_constant.i:29: Frama_C_show_each_in: {0}, {1; 2}
-[value] tests/value/widen_non_constant.i:29: 
-  Frama_C_show_each_in: {0}, {1; 2; 3}
-[value] tests/value/widen_non_constant.i:29: Frama_C_show_each_in: {0}, [1..23]
-[value] tests/value/widen_non_constant.i:27: Frama_C_show_each_out: {0; 1}
-[value] tests/value/widen_non_constant.i:29: 
-  Frama_C_show_each_in: {0; 1}, [1..23]
-[value] tests/value/widen_non_constant.i:27: Frama_C_show_each_out: {0; 1; 2}
-[value] tests/value/widen_non_constant.i:29: 
+[eva] tests/value/widen_non_constant.i:27: Frama_C_show_each_out: {0}
+[eva] tests/value/widen_non_constant.i:29: Frama_C_show_each_in: {0}, {1}
+[eva] tests/value/widen_non_constant.i:28: starting to merge loop iterations
+[eva] tests/value/widen_non_constant.i:29: Frama_C_show_each_in: {0}, {1; 2}
+[eva] tests/value/widen_non_constant.i:29: Frama_C_show_each_in: {0}, {1; 2; 3}
+[eva] tests/value/widen_non_constant.i:29: Frama_C_show_each_in: {0}, [1..23]
+[eva] tests/value/widen_non_constant.i:26: starting to merge loop iterations
+[eva] tests/value/widen_non_constant.i:27: Frama_C_show_each_out: {0; 1}
+[eva] tests/value/widen_non_constant.i:29: Frama_C_show_each_in: {0; 1}, [1..23]
+[eva] tests/value/widen_non_constant.i:27: Frama_C_show_each_out: {0; 1; 2}
+[eva] tests/value/widen_non_constant.i:29: 
+  Frama_C_show_each_in: {0; 1; 2}, [1..23]
+[eva] tests/value/widen_non_constant.i:27: Frama_C_show_each_out: [0..22]
+[eva] tests/value/widen_non_constant.i:29: 
   Frama_C_show_each_in: [0..25], [1..23]
-[value] tests/value/widen_non_constant.i:27: Frama_C_show_each_out: [0..22]
-[value] Recording results for main2
-[value] Done for function main2
-[value] computing for function main3 <- main.
+[eva] Recording results for main2
+[eva] Done for function main2
+[eva] computing for function main3 <- main.
   Called from tests/value/widen_non_constant.i:86.
-[value] tests/value/widen_non_constant.i:45: entering loop for the first time
-[value] tests/value/widen_non_constant.i:46: Frama_C_show_each_out: {0}
-[value] tests/value/widen_non_constant.i:47: entering loop for the first time
-[value] tests/value/widen_non_constant.i:48: Frama_C_show_each_in: {0}, {1}
-[value] tests/value/widen_non_constant.i:48: Frama_C_show_each_in: {0}, {1; 2}
-[value] tests/value/widen_non_constant.i:48: 
-  Frama_C_show_each_in: {0}, {1; 2; 3}
-[value] tests/value/widen_non_constant.i:48: Frama_C_show_each_in: {0}, [1..23]
-[value] tests/value/widen_non_constant.i:46: Frama_C_show_each_out: {0; 1}
-[value] tests/value/widen_non_constant.i:48: 
-  Frama_C_show_each_in: {0; 1}, [1..23]
-[value] tests/value/widen_non_constant.i:46: Frama_C_show_each_out: {0; 1; 2}
-[value] tests/value/widen_non_constant.i:48: 
+[eva] tests/value/widen_non_constant.i:46: Frama_C_show_each_out: {0}
+[eva] tests/value/widen_non_constant.i:48: Frama_C_show_each_in: {0}, {1}
+[eva] tests/value/widen_non_constant.i:47: starting to merge loop iterations
+[eva] tests/value/widen_non_constant.i:48: Frama_C_show_each_in: {0}, {1; 2}
+[eva] tests/value/widen_non_constant.i:48: Frama_C_show_each_in: {0}, {1; 2; 3}
+[eva] tests/value/widen_non_constant.i:48: Frama_C_show_each_in: {0}, [1..23]
+[eva] tests/value/widen_non_constant.i:45: starting to merge loop iterations
+[eva] tests/value/widen_non_constant.i:46: Frama_C_show_each_out: {0; 1}
+[eva] tests/value/widen_non_constant.i:48: Frama_C_show_each_in: {0; 1}, [1..23]
+[eva] tests/value/widen_non_constant.i:46: Frama_C_show_each_out: {0; 1; 2}
+[eva] tests/value/widen_non_constant.i:48: 
+  Frama_C_show_each_in: {0; 1; 2}, [1..23]
+[eva] tests/value/widen_non_constant.i:46: Frama_C_show_each_out: [0..22]
+[eva] tests/value/widen_non_constant.i:48: 
   Frama_C_show_each_in: [0..2147483647], [1..23]
-[value:alarm] tests/value/widen_non_constant.i:49: Warning: 
+[eva:alarm] tests/value/widen_non_constant.i:49: Warning: 
   out of bounds read. assert \valid_read(p + j);
-[value:alarm] tests/value/widen_non_constant.i:45: Warning: 
+[eva:alarm] tests/value/widen_non_constant.i:45: Warning: 
   signed overflow. assert j + 1 ≤ 2147483647;
-[value] tests/value/widen_non_constant.i:46: Frama_C_show_each_out: [0..22]
-[value] Recording results for main3
-[value] Done for function main3
-[value] computing for function main4 <- main.
+[eva] Recording results for main3
+[eva] Done for function main3
+[eva] computing for function main4 <- main.
   Called from tests/value/widen_non_constant.i:87.
-[value] tests/value/widen_non_constant.i:63: entering loop for the first time
-[value] tests/value/widen_non_constant.i:69: entering loop for the first time
-[value] tests/value/widen_non_constant.i:72: Frama_C_show_each: {43}
-[value] tests/value/widen_non_constant.i:75: entering loop for the first time
-[value] tests/value/widen_non_constant.i:78: 
+[eva] tests/value/widen_non_constant.i:63: starting to merge loop iterations
+[eva] tests/value/widen_non_constant.i:69: starting to merge loop iterations
+[eva] tests/value/widen_non_constant.i:72: Frama_C_show_each: {43}
+[eva] tests/value/widen_non_constant.i:75: starting to merge loop iterations
+[eva] tests/value/widen_non_constant.i:78: 
   Frama_C_show_each: {35; 36; 37; 38; 39; 40; 41; 42}
-[value] Recording results for main4
-[value] Done for function main4
-[value] Recording results for main
-[value] done for function main
-[value] ====== VALUES COMPUTED ======
-[value:final-states] Values at end of function main1:
+[eva] Recording results for main4
+[eva] Done for function main4
+[eva] Recording results for main
+[eva] done for function main
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function main1:
   i ∈ {24} or UNINITIALIZED
   j ∈ {23; 24}
-[value:final-states] Values at end of function main2:
+[eva:final-states] Values at end of function main2:
   i ∈ {24; 25} or UNINITIALIZED
   j ∈ {23; 24; 25; 26}
-[value:final-states] Values at end of function main3:
+[eva:final-states] Values at end of function main3:
   i ∈ [24..2147483647] or UNINITIALIZED
   j ∈ [23..2147483647]
   p ∈ {{ &C[0] }}
-[value:final-states] Values at end of function main4:
+[eva:final-states] Values at end of function main4:
   t[0] ∈ {-1}
    [1..19] ∈ [0..18]
   u[0..39] ∈ [0..42]
@@ -103,7 +101,7 @@
   j ∈ {35; 36; 37; 38; 39; 40; 41; 42}
   maxi ∈ {19}
   maxj ∈ {35}
-[value:final-states] Values at end of function main:
+[eva:final-states] Values at end of function main:
   t[0] ∈ {-1}
    [1..19] ∈ [0..18]
   u[0..39] ∈ [0..42]

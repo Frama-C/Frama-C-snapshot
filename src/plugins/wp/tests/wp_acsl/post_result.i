@@ -1,5 +1,5 @@
 /* run.config_qualif
-   OPT: -wp-timeout 1
+   OPT: -wp-steps 50
 */
 
 int a[5];

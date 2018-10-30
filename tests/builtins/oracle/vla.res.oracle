@@ -1,0 +1,145 @@
+[kernel] Parsing tests/builtins/vla.c (with preprocessing)
+[eva] Analyzing a complete application starting at main
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
+  
+[eva] computing for function f <- main.
+  Called from tests/builtins/vla.c:20.
+[eva] tests/builtins/vla.c:6: assertion 'alloca_bounds' got status valid.
+[eva] tests/builtins/vla.c:6: Call to builtin __fc_vla_alloc
+[eva] tests/builtins/vla.c:6: allocating variable __malloc_f_l6
+[eva] tests/builtins/vla.c:7: Frama_C_show_each: {{ &__malloc_f_l6 }}
+[eva] tests/builtins/vla.c:6: Call to builtin __fc_vla_free
+[eva:malloc] tests/builtins/vla.c:6: strong free on bases: {__malloc_f_l6}
+[eva] Recording results for f
+[eva] Done for function f
+[eva] tests/builtins/vla.c:20: freeing automatic bases: {__malloc_f_l6}
+[eva:malloc] tests/builtins/vla.c:20: strong free on bases: {__malloc_f_l6}
+[eva] computing for function f <- main.
+  Called from tests/builtins/vla.c:20.
+[eva] tests/builtins/vla.c:6: Call to builtin __fc_vla_alloc
+[eva:malloc] tests/builtins/vla.c:6: 
+  resizing variable `__malloc_f_l6' (0..63) to fit 0..95
+[eva] tests/builtins/vla.c:7: Frama_C_show_each: {{ &__malloc_f_l6 }}
+[eva:alarm] tests/builtins/vla.c:8: Warning: 
+  out of bounds write. assert \valid(t + i);
+[eva:alarm] tests/builtins/vla.c:9: Warning: 
+  out of bounds read. assert \valid_read(t + i);
+[eva] tests/builtins/vla.c:6: Call to builtin __fc_vla_free
+[eva:malloc] tests/builtins/vla.c:6: strong free on bases: {__malloc_f_l6}
+[eva] Recording results for f
+[eva] Done for function f
+[eva:malloc] tests/builtins/vla.c:20: strong free on bases: {__malloc_f_l6}
+[eva] computing for function f <- main.
+  Called from tests/builtins/vla.c:20.
+[eva] tests/builtins/vla.c:6: Call to builtin __fc_vla_alloc
+[eva:malloc] tests/builtins/vla.c:6: 
+  resizing variable `__malloc_f_l6' (0..63/95) to fit 0..127
+[eva] tests/builtins/vla.c:7: Frama_C_show_each: {{ &__malloc_f_l6 }}
+[eva] tests/builtins/vla.c:6: Call to builtin __fc_vla_free
+[eva:malloc] tests/builtins/vla.c:6: strong free on bases: {__malloc_f_l6}
+[eva] Recording results for f
+[eva] Done for function f
+[eva:malloc] tests/builtins/vla.c:20: strong free on bases: {__malloc_f_l6}
+[eva] computing for function f <- main.
+  Called from tests/builtins/vla.c:20.
+[eva] tests/builtins/vla.c:6: Call to builtin __fc_vla_alloc
+[eva:malloc] tests/builtins/vla.c:6: 
+  resizing variable `__malloc_f_l6' (0..63/127) to fit 0..159
+[eva] tests/builtins/vla.c:7: Frama_C_show_each: {{ &__malloc_f_l6 }}
+[eva] tests/builtins/vla.c:6: Call to builtin __fc_vla_free
+[eva:malloc] tests/builtins/vla.c:6: strong free on bases: {__malloc_f_l6}
+[eva] Recording results for f
+[eva] Done for function f
+[eva:malloc] tests/builtins/vla.c:20: strong free on bases: {__malloc_f_l6}
+[eva] computing for function f <- main.
+  Called from tests/builtins/vla.c:20.
+[eva] tests/builtins/vla.c:6: Call to builtin __fc_vla_alloc
+[eva:malloc] tests/builtins/vla.c:6: 
+  resizing variable `__malloc_f_l6' (0..63/159) to fit 0..191
+[eva] tests/builtins/vla.c:7: Frama_C_show_each: {{ &__malloc_f_l6 }}
+[eva] tests/builtins/vla.c:6: Call to builtin __fc_vla_free
+[eva:malloc] tests/builtins/vla.c:6: strong free on bases: {__malloc_f_l6}
+[eva] Recording results for f
+[eva] Done for function f
+[eva:malloc] tests/builtins/vla.c:20: strong free on bases: {__malloc_f_l6}
+[eva] computing for function f <- main.
+  Called from tests/builtins/vla.c:20.
+[eva] tests/builtins/vla.c:6: Call to builtin __fc_vla_alloc
+[eva:malloc] tests/builtins/vla.c:6: 
+  resizing variable `__malloc_f_l6' (0..63/191) to fit 0..223
+[eva] tests/builtins/vla.c:7: Frama_C_show_each: {{ &__malloc_f_l6 }}
+[eva] tests/builtins/vla.c:6: Call to builtin __fc_vla_free
+[eva:malloc] tests/builtins/vla.c:6: strong free on bases: {__malloc_f_l6}
+[eva] Recording results for f
+[eva] Done for function f
+[eva:malloc] tests/builtins/vla.c:20: strong free on bases: {__malloc_f_l6}
+[eva] computing for function f <- main.
+  Called from tests/builtins/vla.c:20.
+[eva] tests/builtins/vla.c:6: Call to builtin __fc_vla_alloc
+[eva:malloc] tests/builtins/vla.c:6: 
+  resizing variable `__malloc_f_l6' (0..63/223) to fit 0..255
+[eva] tests/builtins/vla.c:7: Frama_C_show_each: {{ &__malloc_f_l6 }}
+[eva] tests/builtins/vla.c:6: Call to builtin __fc_vla_free
+[eva:malloc] tests/builtins/vla.c:6: strong free on bases: {__malloc_f_l6}
+[eva] Recording results for f
+[eva] Done for function f
+[eva:malloc] tests/builtins/vla.c:20: strong free on bases: {__malloc_f_l6}
+[eva] computing for function f <- main.
+  Called from tests/builtins/vla.c:20.
+[eva] tests/builtins/vla.c:6: Call to builtin __fc_vla_alloc
+[eva:malloc] tests/builtins/vla.c:6: 
+  resizing variable `__malloc_f_l6' (0..63/255) to fit 0..287
+[eva] tests/builtins/vla.c:7: Frama_C_show_each: {{ &__malloc_f_l6 }}
+[eva] tests/builtins/vla.c:6: Call to builtin __fc_vla_free
+[eva:malloc] tests/builtins/vla.c:6: strong free on bases: {__malloc_f_l6}
+[eva] Recording results for f
+[eva] Done for function f
+[eva:malloc] tests/builtins/vla.c:20: strong free on bases: {__malloc_f_l6}
+[eva] computing for function f <- main.
+  Called from tests/builtins/vla.c:20.
+[eva] tests/builtins/vla.c:6: Call to builtin __fc_vla_alloc
+[eva:malloc] tests/builtins/vla.c:6: 
+  resizing variable `__malloc_f_l6' (0..63/287) to fit 0..319
+[eva] tests/builtins/vla.c:7: Frama_C_show_each: {{ &__malloc_f_l6 }}
+[eva] tests/builtins/vla.c:6: Call to builtin __fc_vla_free
+[eva:malloc] tests/builtins/vla.c:6: strong free on bases: {__malloc_f_l6}
+[eva] Recording results for f
+[eva] Done for function f
+[eva:malloc] tests/builtins/vla.c:20: strong free on bases: {__malloc_f_l6}
+[eva] Recording results for main
+[eva] done for function main
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function f:
+  t ∈ ESCAPINGADDR
+  __lengthof_t ∈ [2..10]
+[eva:final-states] Values at end of function main:
+  i ∈ {10}
+[from] Computing for function f
+[from] Computing for function __fc_vla_alloc <-f
+[from] Done for function __fc_vla_alloc
+[from] Computing for function __fc_vla_free <-f
+[from] Done for function __fc_vla_free
+[from] Done for function f
+[from] Computing for function main
+[from] Done for function main
+[from] ====== DEPENDENCIES COMPUTED ======
+  These dependencies hold at termination for the executions that terminate:
+[from] Function __fc_vla_alloc:
+  \result FROM \nothing
+[from] Function __fc_vla_free:
+  NO EFFECTS
+[from] Function f:
+  __malloc_f_l6[1..9] FROM i (and SELF)
+[from] Function main:
+  __malloc_f_l6[1..9] FROM \nothing (and SELF)
+[from] ====== END OF DEPENDENCIES ======
+[inout] Out (internal) for function f:
+    t; __lengthof_t; __malloc_f_l6[1..9]
+[inout] Inputs for function f:
+    __malloc_f_l6[1..9]
+[inout] Out (internal) for function main:
+    i; __malloc_f_l6[1..9]
+[inout] Inputs for function main:
+    __malloc_f_l6[1..9]

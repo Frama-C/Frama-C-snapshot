@@ -1,0 +1,155 @@
+# frama-c -wp -wp-rte [...]
+[kernel] Parsing tests/wp_gallery/frama_c_hashtbl_solved.c (with preprocessing)
+[wp] Running WP plugin...
+[wp] Loading driver 'share/wp.driver'
+[rte] annotating function add
+[rte] annotating function eq_string
+[rte] annotating function hash
+[rte] annotating function init
+[rte] annotating function mem_binding
+[rte] annotating function size
+[wp] Computing [100 goals...]
+[wp] Goal typed_add_complete_full_nominal : not tried
+[wp] Goal typed_add_disjoint_full_nominal : not tried
+[wp] Goal typed_add_assert_rte_index_bound : not tried
+[wp] Goal typed_add_assert_rte_mem_access : not tried
+[wp] Goal typed_add_assert_rte_index_bound_2 : not tried
+[wp] Goal typed_add_assert_rte_index_bound_3 : not tried
+[wp] Goal typed_add_assert_rte_index_bound_4 : not tried
+[wp] Goal typed_add_assert_rte_index_bound_5 : not tried
+[wp] Goal typed_add_assert_rte_mem_access_2 : not tried
+[wp] Goal typed_add_assert_rte_mem_access_3 : not tried
+[wp] Goal typed_add_assert_rte_index_bound_6 : not tried
+[wp] Goal typed_add_assert_rte_mem_access_4 : not tried
+[wp] Goal typed_add_assert_rte_mem_access_5 : not tried
+[wp] Goal typed_add_assert_rte_signed_overflow : not tried
+[wp] Goal typed_add_assert_rte_mem_access_6 : not tried
+[wp] Goal typed_add_assert_rte_mem_access_7 : not tried
+[wp] Goal typed_add_assert_rte_signed_overflow_2 : not tried
+[wp] Goal typed_add_assign_exit : trivial
+[wp] Goal typed_add_assign_normal_part1 : trivial
+[wp] Goal typed_add_assign_normal_part2 : not tried
+[wp] Goal typed_add_assign_normal_part3 : not tried
+[wp] Goal typed_add_assign_normal_part4 : not tried
+[wp] Goal typed_add_assign_normal_part5 : not tried
+[wp] Goal typed_add_assign_normal_part6 : not tried
+[wp] Goal typed_add_assign_normal_part7 : not tried
+[wp] Goal typed_add_assign_normal_part8 : not tried
+[wp] Goal typed_add_assign_normal_part9 : not tried
+[wp] Goal typed_add_call_hash_pre : not tried
+[wp] Goal typed_add_full_post : not tried
+[wp] Goal typed_add_full_assign_exit : trivial
+[wp] Goal typed_add_full_assign_normal_part1 : trivial
+[wp] Goal typed_add_full_assign_normal_part2 : not tried
+[wp] Goal typed_add_full_assign_normal_part3 : not tried
+[wp] Goal typed_add_full_assign_normal_part4 : not tried
+[wp] Goal typed_add_full_assign_normal_part5 : not tried
+[wp] Goal typed_add_full_assign_normal_part6 : not tried
+[wp] Goal typed_add_full_assign_normal_part7 : not tried
+[wp] Goal typed_add_full_assign_normal_part8 : not tried
+[wp] Goal typed_add_full_assign_normal_part9 : not tried
+[wp] Goal typed_add_nominal_post : not tried
+[wp] Goal typed_add_nominal_post_2 : not tried
+[wp] Goal typed_add_nominal_post_3 : not tried
+[wp] Goal typed_add_nominal_post_4 : not tried
+[wp] Goal typed_add_nominal_post_5 : not tried
+[wp] Goal typed_add_nominal_assign_exit : trivial
+[wp] Goal typed_add_nominal_assign_normal_part1 : trivial
+[wp] Goal typed_add_nominal_assign_normal_part2 : not tried
+[wp] Goal typed_add_nominal_assign_normal_part3 : not tried
+[wp] Goal typed_add_nominal_assign_normal_part4 : not tried
+[wp] Goal typed_add_nominal_assign_normal_part5 : not tried
+[wp] Goal typed_add_nominal_assign_normal_part6 : not tried
+[wp] Goal typed_add_nominal_assign_normal_part7 : not tried
+[wp] Goal typed_add_nominal_assign_normal_part8 : not tried
+[wp] Goal typed_add_nominal_assign_normal_part9 : not tried
+[wp] Goal typed_eq_string_complete_not_eq_eq : trivial
+[wp] Goal typed_eq_string_disjoint_not_eq_eq : trivial
+[wp] Goal typed_eq_string_loop_inv_preserved : not tried
+[wp] Goal typed_eq_string_loop_inv_established : not tried
+[wp] Goal typed_eq_string_loop_inv_2_preserved : not tried
+[wp] Goal typed_eq_string_loop_inv_2_established : not tried
+[wp] Goal typed_eq_string_assert_rte_mem_access : not tried
+[wp] Goal typed_eq_string_assert_rte_mem_access_2 : not tried
+[wp] Goal typed_eq_string_assert_rte_signed_overflow : not tried
+[wp] Goal typed_eq_string_loop_assign : trivial
+[wp] Goal typed_eq_string_assign_part1 : not tried
+[wp] Goal typed_eq_string_assign_part2 : not tried
+[wp] Goal typed_eq_string_assign_part3 : not tried
+[wp] Goal typed_eq_string_assign_part4 : not tried
+[wp] Goal typed_eq_string_loop_term_decrease : not tried
+[wp] Goal typed_eq_string_loop_term_positive : not tried
+[wp] Goal typed_eq_string_eq_post : not tried
+[wp] Goal typed_eq_string_not_eq_post : not tried
+[wp] Goal typed_hash_post_left_unproved : not tried
+[wp] Goal typed_hash_loop_inv_preserved : not tried
+[wp] Goal typed_hash_loop_inv_established : not tried
+[wp] Goal typed_hash_assert_rte_mem_access : not tried
+[wp] Goal typed_hash_assert_rte_mem_access_2 : not tried
+[wp] Goal typed_hash_assert_rte_signed_overflow : not tried
+[wp] Goal typed_hash_loop_assign : trivial
+[wp] Goal typed_hash_assign_part1 : not tried
+[wp] Goal typed_hash_assign_part2 : not tried
+[wp] Goal typed_hash_loop_term_decrease : not tried
+[wp] Goal typed_hash_loop_term_positive : not tried
+[wp] Goal typed_init_post : not tried
+[wp] Goal typed_init_post_2 : not tried
+[wp] Goal typed_init_assert_rte_mem_access : not tried
+[wp] Goal typed_init_loop_inv_preserved : not tried
+[wp] Goal typed_init_loop_inv_established : not tried
+[wp] Goal typed_init_loop_inv_2_preserved : not tried
+[wp] Goal typed_init_loop_inv_2_established : not tried
+[wp] Goal typed_init_assert_rte_index_bound : not tried
+[wp] Goal typed_init_assert_rte_index_bound_2 : not tried
+[wp] Goal typed_init_assert_rte_mem_access_2 : not tried
+[wp] Goal typed_init_assert_rte_signed_overflow : not tried
+[wp] Goal typed_init_loop_assign_part1 : trivial
+[wp] Goal typed_init_loop_assign_part2 : not tried
+[wp] Goal typed_init_assign_part1 : not tried
+[wp] Goal typed_init_assign_part2 : not tried
+[wp] Goal typed_init_assign_part3 : not tried
+[wp] Goal typed_init_loop_term_decrease : not tried
+[wp] Goal typed_init_loop_term_positive : not tried
+[wp] Goal typed_mem_binding_complete_not_found_found : not tried
+[wp] Goal typed_mem_binding_disjoint_not_found_found : not tried
+[wp] Goal typed_mem_binding_loop_inv_preserved : not tried
+[wp] Goal typed_mem_binding_loop_inv_established : not tried
+[wp] Goal typed_mem_binding_loop_inv_2_preserved : not tried
+[wp] Goal typed_mem_binding_loop_inv_2_established : not tried
+[wp] Goal typed_mem_binding_assert_rte_index_bound : not tried
+[wp] Goal typed_mem_binding_assert_rte_index_bound_2 : not tried
+[wp] Goal typed_mem_binding_assert_rte_mem_access : not tried
+[wp] Goal typed_mem_binding_assert_rte_index_bound_3 : not tried
+[wp] Goal typed_mem_binding_assert_rte_index_bound_4 : not tried
+[wp] Goal typed_mem_binding_assert_rte_index_bound_5 : not tried
+[wp] Goal typed_mem_binding_assert_rte_index_bound_6 : not tried
+[wp] Goal typed_mem_binding_assert_rte_mem_access_2 : not tried
+[wp] Goal typed_mem_binding_assert_rte_index_bound_7 : not tried
+[wp] Goal typed_mem_binding_assert_rte_index_bound_8 : not tried
+[wp] Goal typed_mem_binding_assert_rte_index_bound_9 : not tried
+[wp] Goal typed_mem_binding_assert_rte_index_bound_10 : not tried
+[wp] Goal typed_mem_binding_assert_rte_mem_access_3 : not tried
+[wp] Goal typed_mem_binding_assert_rte_signed_overflow : not tried
+[wp] Goal typed_mem_binding_loop_assign_part1 : trivial
+[wp] Goal typed_mem_binding_loop_assign_part2 : not tried
+[wp] Goal typed_mem_binding_assign_exit_part1 : trivial
+[wp] Goal typed_mem_binding_assign_exit_part2 : not tried
+[wp] Goal typed_mem_binding_assign_exit_part3 : not tried
+[wp] Goal typed_mem_binding_assign_exit_part4 : not tried
+[wp] Goal typed_mem_binding_assign_normal_part1 : trivial
+[wp] Goal typed_mem_binding_assign_normal_part2 : not tried
+[wp] Goal typed_mem_binding_assign_normal_part3 : not tried
+[wp] Goal typed_mem_binding_assign_normal_part4 : not tried
+[wp] Goal typed_mem_binding_assign_normal_part5 : not tried
+[wp] Goal typed_mem_binding_assign_normal_part6 : not tried
+[wp] Goal typed_mem_binding_assign_normal_part7 : not tried
+[wp] Goal typed_mem_binding_loop_term_decrease : not tried
+[wp] Goal typed_mem_binding_loop_term_positive : not tried
+[wp] Goal typed_mem_binding_call_hash_pre : not tried
+[wp] Goal typed_mem_binding_call_eq_string_pre : not tried
+[wp] Goal typed_mem_binding_call_eq_string_pre_2 : not tried
+[wp] Goal typed_mem_binding_found_post : not tried
+[wp] Goal typed_mem_binding_not_found_post : not tried
+[wp] Goal typed_size_post : not tried
+[wp] Goal typed_size_assert_rte_mem_access : not tried
+[wp] Goal typed_size_assign : not tried

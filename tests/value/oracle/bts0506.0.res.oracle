@@ -1,113 +1,113 @@
 [kernel] Parsing tests/value/bts0506.i (no preprocessing)
-[value] Analyzing a complete application starting at main
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing a complete application starting at main
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   
-[value] computing for function f <- main.
+[eva] computing for function f <- main.
   Called from tests/value/bts0506.i:47.
-[value] Recording results for f
-[value] Done for function f
-[value] computing for function main2 <- main.
+[eva] Recording results for f
+[eva] Done for function f
+[eva] computing for function main2 <- main.
   Called from tests/value/bts0506.i:49.
-[value] computing for function f1 <- main2 <- main.
+[eva] computing for function f1 <- main2 <- main.
   Called from tests/value/bts0506.i:15.
 [kernel:annot:missing-spec] tests/value/bts0506.i:15: Warning: 
   Neither code nor specification for function f1, generating default assigns from the prototype
-[value] using specification for function f1
-[value] Done for function f1
-[value] computing for function f1 <- main2 <- main.
+[eva] using specification for function f1
+[eva] Done for function f1
+[eva] computing for function f1 <- main2 <- main.
   Called from tests/value/bts0506.i:16.
-[value] Done for function f1
-[value] computing for function f1 <- main2 <- main.
+[eva] Done for function f1
+[eva] computing for function f1 <- main2 <- main.
   Called from tests/value/bts0506.i:17.
-[value] Done for function f1
-[value] computing for function f1 <- main2 <- main.
+[eva] Done for function f1
+[eva] computing for function f1 <- main2 <- main.
   Called from tests/value/bts0506.i:18.
-[value] Done for function f1
-[value] computing for function f2 <- main2 <- main.
+[eva] Done for function f1
+[eva] computing for function f2 <- main2 <- main.
   Called from tests/value/bts0506.i:20.
 [kernel:annot:missing-spec] tests/value/bts0506.i:20: Warning: 
   Neither code nor specification for function f2, generating default assigns from the prototype
-[value] using specification for function f2
-[value] Done for function f2
-[value] computing for function f2 <- main2 <- main.
+[eva] using specification for function f2
+[eva] Done for function f2
+[eva] computing for function f2 <- main2 <- main.
   Called from tests/value/bts0506.i:21.
-[value] Done for function f2
-[value] computing for function f2 <- main2 <- main.
+[eva] Done for function f2
+[eva] computing for function f2 <- main2 <- main.
   Called from tests/value/bts0506.i:22.
-[value] Done for function f2
-[value] computing for function f3 <- main2 <- main.
+[eva] Done for function f2
+[eva] computing for function f3 <- main2 <- main.
   Called from tests/value/bts0506.i:24.
 [kernel:annot:missing-spec] tests/value/bts0506.i:24: Warning: 
   Neither code nor specification for function f3, generating default assigns from the prototype
-[value] using specification for function f3
-[value] Done for function f3
-[value] computing for function f3 <- main2 <- main.
+[eva] using specification for function f3
+[eva] Done for function f3
+[eva] computing for function f3 <- main2 <- main.
   Called from tests/value/bts0506.i:25.
-[value] Done for function f3
-[value] computing for function f4 <- main2 <- main.
+[eva] Done for function f3
+[eva] computing for function f4 <- main2 <- main.
   Called from tests/value/bts0506.i:27.
 [kernel:annot:missing-spec] tests/value/bts0506.i:27: Warning: 
   Neither code nor specification for function f4, generating default assigns from the prototype
-[value] using specification for function f4
-[value] Done for function f4
-[value:alarm] tests/value/bts0506.i:27: Warning: 
+[eva] using specification for function f4
+[eva] Done for function f4
+[eva:alarm] tests/value/bts0506.i:27: Warning: 
   non-finite float value. assert \is_finite(tmp_8);
                           (tmp_8 from f4())
-[value] computing for function f4 <- main2 <- main.
+[eva] computing for function f4 <- main2 <- main.
   Called from tests/value/bts0506.i:28.
-[value] Done for function f4
-[value:alarm] tests/value/bts0506.i:28: Warning: 
+[eva] Done for function f4
+[eva:alarm] tests/value/bts0506.i:28: Warning: 
   non-finite float value. assert \is_finite(tmp_9);
                           (tmp_9 from f4())
-[value] computing for function f5 <- main2 <- main.
+[eva] computing for function f5 <- main2 <- main.
   Called from tests/value/bts0506.i:30.
 [kernel:annot:missing-spec] tests/value/bts0506.i:30: Warning: 
   Neither code nor specification for function f5, generating default assigns from the prototype
-[value] using specification for function f5
-[value] Done for function f5
-[value:alarm] tests/value/bts0506.i:30: Warning: 
+[eva] using specification for function f5
+[eva] Done for function f5
+[eva:alarm] tests/value/bts0506.i:30: Warning: 
   non-finite double value. assert \is_finite(tmp_10);
                            (tmp_10 from f5())
-[value:alarm] tests/value/bts0506.i:30: Warning: 
+[eva:alarm] tests/value/bts0506.i:30: Warning: 
   non-finite float value. assert \is_finite((float)tmp_10);
                           (tmp_10 from f5())
-[value] computing for function f5 <- main2 <- main.
+[eva] computing for function f5 <- main2 <- main.
   Called from tests/value/bts0506.i:31.
-[value] Done for function f5
-[value:alarm] tests/value/bts0506.i:31: Warning: 
+[eva] Done for function f5
+[eva:alarm] tests/value/bts0506.i:31: Warning: 
   non-finite double value. assert \is_finite(tmp_11);
                            (tmp_11 from f5())
-[value] computing for function f6 <- main2 <- main.
+[eva] computing for function f6 <- main2 <- main.
   Called from tests/value/bts0506.i:33.
 [kernel:annot:missing-spec] tests/value/bts0506.i:33: Warning: 
   Neither code nor specification for function f6, generating default assigns from the prototype
-[value] using specification for function f6
-[value] Done for function f6
-[value] computing for function f6 <- main2 <- main.
+[eva] using specification for function f6
+[eva] Done for function f6
+[eva] computing for function f6 <- main2 <- main.
   Called from tests/value/bts0506.i:34.
-[value] Done for function f6
-[value] computing for function f6 <- main2 <- main.
+[eva] Done for function f6
+[eva] computing for function f6 <- main2 <- main.
   Called from tests/value/bts0506.i:35.
-[value] Done for function f6
-[value] computing for function f7 <- main2 <- main.
+[eva] Done for function f6
+[eva] computing for function f7 <- main2 <- main.
   Called from tests/value/bts0506.i:37.
 [kernel:annot:missing-spec] tests/value/bts0506.i:37: Warning: 
   Neither code nor specification for function f7, generating default assigns from the prototype
-[value] using specification for function f7
-[value] Done for function f7
-[value] computing for function f7 <- main2 <- main.
+[eva] using specification for function f7
+[eva] Done for function f7
+[eva] computing for function f7 <- main2 <- main.
   Called from tests/value/bts0506.i:38.
-[value] Done for function f7
-[value] Recording results for main2
-[value] Done for function main2
-[value] Recording results for main
-[value] done for function main
-[value] ====== VALUES COMPUTED ======
-[value:final-states] Values at end of function f:
+[eva] Done for function f7
+[eva] Recording results for main2
+[eva] Done for function main2
+[eva] Recording results for main
+[eva] done for function main
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function f:
   __retres ∈ {43}
-[value:final-states] Values at end of function main2:
+[eva:final-states] Values at end of function main2:
   r1 ∈ [--..--]
   r2 ∈ [--..--]
   r3 ∈ [--..--]
@@ -126,7 +126,7 @@
   r15 ∈ [--..--]
   r16 ∈ [--..--]
   r17 ∈ [--..--]
-[value:final-states] Values at end of function main:
+[eva:final-states] Values at end of function main:
   x ∈ {43}
 [from] Computing for function f
 [from] Done for function f
@@ -254,17 +254,17 @@ void main2(void)
   tmp_7 = f3();
   int r8bis = (int)tmp_7;
   tmp_8 = f4();
-  /*@ assert Value: is_nan_or_infinite: \is_finite(tmp_8); */
+  /*@ assert Eva: is_nan_or_infinite: \is_finite(tmp_8); */
   float r9 = tmp_8;
   tmp_9 = f4();
-  /*@ assert Value: is_nan_or_infinite: \is_finite(tmp_9); */
+  /*@ assert Eva: is_nan_or_infinite: \is_finite(tmp_9); */
   double r10 = (double)tmp_9;
   tmp_10 = f5();
-  /*@ assert Value: is_nan_or_infinite: \is_finite(tmp_10); */
-  /*@ assert Value: is_nan_or_infinite: \is_finite((float)tmp_10); */
+  /*@ assert Eva: is_nan_or_infinite: \is_finite(tmp_10); */
+  /*@ assert Eva: is_nan_or_infinite: \is_finite((float)tmp_10); */
   float r11 = (float)tmp_10;
   tmp_11 = f5();
-  /*@ assert Value: is_nan_or_infinite: \is_finite(tmp_11); */
+  /*@ assert Eva: is_nan_or_infinite: \is_finite(tmp_11); */
   double r12 = tmp_11;
   tmp_12 = f6();
   void *r13 = (void *)tmp_12;

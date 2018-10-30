@@ -47,7 +47,7 @@ struct
     object(self)
 
       inherit E.engine
-      
+
       (* -------------------------------------------------------------------------- *)
       (* --- Types                                                              --- *)
       (* -------------------------------------------------------------------------- *)
@@ -93,7 +93,7 @@ struct
       method pp_real fmt q =
         fprintf fmt "( %s / %s )%%R"
           (Z.to_string q.Q.num)
-          (Z.to_string q.Q.den)       
+          (Z.to_string q.Q.den)
 
       method e_true  = function Cterm -> "true"  | Cprop -> "True"
       method e_false = function Cterm -> "false" | Cprop -> "False"
@@ -182,7 +182,7 @@ struct
         in
         fprintf fmt "@[<hov 2>(const@ %a :@ farray@ %a@ %a)@]"
           self#pp_atom v self#pp_tau k pp_domain v
-          
+
       method pp_array_get fmt m k =
         fprintf fmt "%a.[ %a ]" self#pp_atom m self#pp_flow k
 
@@ -338,9 +338,9 @@ struct
           List.iter (fun t -> fprintf fmt "@ %a ->" self#pp_tau t) ts ;
           fprintf fmt "@ %a :=" self#pp_tau t ;
           List.iter
-                  (fun (lemma,xs,(_:trigger list list),p) ->
-                     fprintf fmt "@ | @[<hov 2>%s: %a@]" lemma self#pp_prop (T.e_forall xs p)
-                  ) l ;
+            (fun (lemma,xs,(_:trigger list list),p) ->
+               fprintf fmt "@ | @[<hov 2>%s: %a@]" lemma self#pp_prop (T.e_forall xs p)
+            ) l ;
           fprintf fmt ".@]@\n"
         end
 

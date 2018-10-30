@@ -58,7 +58,7 @@ external sys_single_precision_of_string: string -> float =
 (** If [s] is parsed as [(n, l, u)], then [n] is the nearest approximation of
     [s] with the desired precision. Moreover, [l] and [u] are the
     most precise float such that [l <= s <= u], again with this precision.
-    
+
     Consistent with [logic_real] definition in Cil_types. *)
 type parsed_float = {
   f_nearest : float ;
@@ -66,9 +66,10 @@ type parsed_float = {
   f_upper : float ;
 }
 
-val single_precision_of_string: string -> parsed_float
-val double_precision_of_string: string -> parsed_float
-val parse_kind: Cil_types.fkind -> string -> parsed_float
+(** [parse s] parses [s] and returns the parsed float and its kind (single,
+    double or long double precision) according to its suffix, if any. Strings
+    with no suffix are parsed as double. *)
+val parse: string -> Cil_types.fkind * parsed_float
 
 val pretty_normal : use_hex : bool -> Format.formatter -> float -> unit
 val pretty : Format.formatter -> float -> unit

@@ -292,7 +292,8 @@ let signed_div_assertion ~remove_trivial ~on_alarm (exp, lexp, rexp) =
   end
   else alarm ()
 
-let shift_width_assertion ~remove_trivial ~on_alarm (exp, upper_bound) =
+(* Assertions for the left and right operands of left and right shift. *)
+let shift_assertion ~remove_trivial ~on_alarm (exp, upper_bound) =
   let alarm ?status () =
     let a = Alarms.Invalid_shift(exp, upper_bound) in
     on_alarm ?status a;
@@ -313,22 +314,25 @@ let shift_width_assertion ~remove_trivial ~on_alarm (exp, upper_bound) =
   end
   else alarm ()
 
-(* assertions for bitwise left/right shift signed overflow *)
+(* The right operand of shifts should be nonnegative and strictly less than the
+   width of the promoted left operand. *)
+let shift_width_assertion ~remove_trivial ~on_alarm (exp, typ) =
+  let size = Cil.bitsSizeOf typ in
+  shift_assertion ~remove_trivial ~on_alarm (exp, Some size)
+
+(* The left operand of signed shifts should be nonnegative:
+   implementation defined for right shift, undefined behavior for left shift. *)
+let shift_negative_assertion ~remove_trivial ~on_alarm exp =
+  shift_assertion ~remove_trivial ~on_alarm (exp, None)
+
+(* Assertion for left and right shift overflow: the result should be
+   representable in the result type.  *)
 let shift_overflow_assertion ~signed ~remove_trivial ~on_alarm (exp, op, lexp, rexp) =
-  (* - (1) right operand should be nonnegative and
-     strictly less than the width of promoted left operand:
-     now done by shift_right_operand_assertion
-     - (2) (since signed version) left operand should be nonnegative
-     (implementation defined for right shift, undefined for left shift)
-     - (3) (for signed left shift): result should be representable in result
-     type *)
   let t = Cil.unrollType (Cil.typeOf exp) in
   let size = Cil.bitsSizeOf t in
   if size <> Cil.bitsSizeOf (Cil.typeOf lexp) then
     (* size of result type should be size of left (promoted) operand *)
     Options.warn "problem with bitsSize of %a: not treated" Printer.pp_exp exp;
-  if signed then
-    shift_width_assertion ~remove_trivial ~on_alarm (lexp, None);
   if op = Shiftlt then
     (* compute greatest representable "size bits" (signed) integer *)
     let maxValResult =
@@ -496,6 +500,9 @@ let finite_float_assertion ~remove_trivial:_ ~on_alarm (fkind, exp) =
 (* assertion for a pointer call [( *e )(args)]. *)
 let pointer_call ~remove_trivial:_ ~on_alarm (e, args) =
   on_alarm ?status:None (Alarms.Function_pointer (e, Some args))
+
+let bool_value ~remove_trivial:_ ~on_alarm lv =
+  on_alarm ?status:None (Alarms.Invalid_bool lv)
 
 (*
 Local Variables:

@@ -38,8 +38,22 @@ __BEGIN_DECLS
       \forall size_t i; 0 <= i < n ==> !\dangling((char *)s + i);
 */
 
-/*@ requires valid_s1: \valid_read(((char*)s1)+(0..n - 1));
-  @ requires valid_s2: \valid_read(((char*)s2)+(0..n - 1));
+/*@
+  predicate empty_block{L}(void *s) =
+    \block_length((char*)s) == 0 && \offset((char*)s) == 0;
+
+  // Note: the [\valid_read] below is intentional: if [malloc(0)] may return a
+  // const base, then [memset(p, 0, 0)] requires p to have a readable
+  // (but not writable) byte.
+  predicate valid_or_empty{L}(void *s, size_t n) =
+    (empty_block(s) || \valid_read((char*)s)) && \valid(((char*)s)+(0..n-1));
+
+  predicate valid_read_or_empty{L}(void *s, size_t n) =
+    (empty_block(s) || \valid_read((char*)s)) && \valid_read(((char*)s)+(1..n-1));
+*/
+
+/*@ requires valid_s1: valid_read_or_empty(s1, n);
+  @ requires valid_s2: valid_read_or_empty(s2, n);
   @ requires initialization:s1: \initialized(((char*)s1)+(0..n - 1));
   @ requires initialization:s2: \initialized(((char*)s2)+(0..n - 1));
   @ requires danglingness:s1: non_escaping(s1, n);
@@ -51,8 +65,8 @@ __BEGIN_DECLS
 extern int memcmp (const void *s1, const void *s2, size_t n);
 
 /*@ requires valid:
-        \valid_read(((unsigned char*)s)+(0..n - 1))
-     || \valid_read(((unsigned char*)s)+(0..memchr_off((char*)s,c,n)));
+         valid_read_or_empty(s, n)
+         || \valid_read(((unsigned char*)s)+(..memchr_off((char*)s,c,n)));
   @ requires initialization:
         \initialized(((unsigned char*)s)+(0..n - 1))
      || \initialized(((unsigned char*)s)+(0..memchr_off((char*)s,c,n)));
@@ -75,8 +89,8 @@ extern void *memchr(const void *s, int c, size_t n);
 
 // Copy memory
 
-/*@ requires valid_dest: \valid(((char*)dest)+(0..n - 1));
-  @ requires valid_src: \valid_read(((char*)src)+(0..n - 1));
+/*@ requires valid_dest: valid_or_empty(dest, n);
+  @ requires valid_src: valid_read_or_empty(src, n);
   @ requires separation:
   @   \separated(((char *)dest)+(0..n-1),((char *)src)+(0..n-1));
   @ assigns ((char*)dest)[0..n - 1] \from ((char*)src)[0..n-1];
@@ -87,8 +101,8 @@ extern void *memchr(const void *s, int c, size_t n);
 extern void *memcpy(void *restrict dest,
 		    const void *restrict src, size_t n);
 
-/*@ requires valid_dest: \valid(((char*)dest)+(0..n - 1));
-  @ requires valid_src: \valid_read(((char*)src)+(0..n - 1));
+/*@ requires valid_dest: valid_or_empty(dest, n);
+  @ requires valid_src: valid_read_or_empty(src, n);
   @ assigns ((char*)dest)[0..n - 1] \from ((char*)src)[0..n-1];
   @ assigns \result \from dest;
   @ ensures copied_contents: memcmp{Post,Pre}((char*)dest,(char*)src,n) == 0;
@@ -98,7 +112,7 @@ extern void *memmove(void *dest, const void *src, size_t n);
 
 // Set memory
 
-/*@ requires valid_s: \valid(((char*)s)+(0..n - 1));
+/*@ requires valid_s: valid_or_empty(s, n);
   @ assigns ((char*)s)[0..n - 1] \from c;
   @ assigns \result \from s;
   @ ensures acsl_c_equiv: memset((char*)s,c,n);
@@ -144,11 +158,11 @@ extern int strcoll (const char *s1, const char *s2);
   @ assigns \result \from s, s[0..],c;
   @ behavior found:
   @   assumes char_found: strchr(s,c);
-  @   ensures result_char: *\result == c;
+  @   ensures result_char: *\result == (char)c;
   @   ensures result_same_base: \base_addr(\result) == \base_addr(s);
-  @   ensures result_in_length: s <= \result < s + strlen(s);
+  @   ensures result_in_length: s <= \result <= s + strlen(s);
   @   ensures result_valid_string: valid_read_string(\result);
-  @   ensures result_first_occur: \forall char* p; s<=p<\result ==> *p != c;
+  @   ensures result_first_occur: \forall char* p; s<=p<\result ==> *p != (char)c;
   @ behavior not_found:
   @   assumes char_not_found: !strchr(s,c);
   @   ensures result_null: \result == \null;
@@ -224,7 +238,6 @@ extern char *strcasestr (const char *haystack, const char *needle);
 char *__fc_strtok_ptr;
 
 /*@ // missing: separation
-  requires valid_string_s: valid_string_or_null(s);
   requires valid_string_delim: valid_read_string(delim);
   assigns s[0..] \from s[0..],
       indirect:s, indirect:__fc_strtok_ptr, indirect:delim[0..];
@@ -237,6 +250,10 @@ char *__fc_strtok_ptr;
                                 indirect:delim[0..];
   behavior new_str:
     assumes s_not_null: s != \null;
+    requires valid_string_s_or_delim_not_found:
+      valid_string(s) ||
+      (valid_read_string(s) &&
+        \forall int i; 0 <= i < strlen(delim) ==> !strchr(s,delim[i]));
     assigns __fc_strtok_ptr \from s, indirect:s[0..], indirect:delim[0..];
     assigns s[0..] \from s[0..], indirect:s, indirect:delim[0..];
     assigns \result \from s, indirect:s[0..], indirect:delim[0..];
@@ -262,7 +279,6 @@ char *__fc_strtok_ptr;
 extern char *strtok(char *restrict s, const char *restrict delim);
 
 /*@ // missing: separation
-  requires valid_string_s: valid_string_or_null(s);
   requires valid_string_delim: valid_read_string(delim);
   requires valid_saveptr: \valid(saveptr);
   assigns s[0..] \from s[0..],
@@ -276,6 +292,10 @@ extern char *strtok(char *restrict s, const char *restrict delim);
                          indirect:delim[0..];
   behavior new_str:
     assumes s_not_null: s != \null;
+    requires valid_string_s_or_delim_not_found:
+      valid_string(s) ||
+      (valid_read_string(s) &&
+        \forall int i; 0 <= i < strlen(delim) ==> !strchr(s,delim[i]));
     assigns *saveptr \from s, indirect:s[0..], indirect:delim[0..];
     assigns s[0..] \from s[0..], indirect:s, indirect:delim[0..];
     assigns \result \from s, indirect:s[0..], indirect:delim[0..];
@@ -309,7 +329,15 @@ extern char *strtok_r(char *restrict s, const char *restrict delim, char **restr
   @*/
 extern char *strsep (char **stringp, const char *delim);
 
-/*@ assigns \result \from errnum;
+extern char __fc_strerror[64];
+char * const __fc_p_strerror = __fc_strerror;
+
+// Note: postcondition "result_nul_terminated" is only a temporary patch,
+//       to help plug-ins which are currently unable to reduce the post-state
+//       using only 'result_valid_string'.
+/*@ assigns \result \from __fc_p_strerror, indirect:errnum;
+  @ ensures result_internal_str: \result == __fc_p_strerror;
+  @ ensures result_nul_terminated: \result[63] == 0;
   @ ensures result_valid_string: valid_read_string(\result);
   @*/
 extern char *strerror(int errnum);
@@ -413,6 +441,7 @@ extern size_t strxfrm (char *restrict dest,
 // Allocate strings
 
 /*@ allocates \result;
+  @ assigns \result \from indirect:s[0..strlen(s)], indirect:__fc_heap_status;
   @ behavior allocation:
   @   assumes can_allocate: is_allocable(strlen(s));
   @   assigns __fc_heap_status \from indirect:s, __fc_heap_status;
@@ -429,6 +458,8 @@ extern size_t strxfrm (char *restrict dest,
 extern char *strdup (const char *s);
 
 /*@ allocates \result;
+  @ assigns \result \from indirect:s[0..strlen(s)], indirect:n,
+  @                       indirect:__fc_heap_status;
   @ behavior allocation:
   @   assumes can_allocate: is_allocable(\min(strlen(s), n+1));
   @   assigns __fc_heap_status \from indirect:s, indirect:n, __fc_heap_status;
@@ -462,7 +493,7 @@ __END_DECLS
 
 /* Include strings.h: this is what BSD does, and glibc does something
    equivalent (having copied prototypes to string.h). */
-#include <strings.h>
+#include "strings.h"
 
 __POP_FC_STDLIB
 #endif /* _STRING_H_ */

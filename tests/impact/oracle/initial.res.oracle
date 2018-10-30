@@ -1,34 +1,31 @@
 [kernel] Parsing tests/impact/initial.i (no preprocessing)
 [impact] beginning analysis
-[value] Analyzing a complete application starting at main1
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing a complete application starting at main1
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   x1 ∈ {0}
   x2 ∈ {0}
   y2 ∈ {0}
   z2 ∈ {0}
   x3 ∈ {0}
   c ∈ [--..--]
-[value] tests/impact/initial.i:24: entering loop for the first time
-[value] computing for function g1 <- main1.
+[eva] computing for function g1 <- main1.
   Called from tests/impact/initial.i:25.
-[value] computing for function f1 <- g1 <- main1.
+[eva] computing for function f1 <- g1 <- main1.
   Called from tests/impact/initial.i:19.
-[value] Recording results for f1
-[value] Done for function f1
-[value] Recording results for g1
-[value] Done for function g1
-[value] computing for function g1 <- main1.
+[eva] Recording results for f1
+[eva] Done for function f1
+[eva] Recording results for g1
+[eva] Done for function g1
+[eva] tests/impact/initial.i:24: starting to merge loop iterations
+[eva] computing for function g1 <- main1.
   Called from tests/impact/initial.i:25.
-[value] computing for function f1 <- g1 <- main1.
-  Called from tests/impact/initial.i:19.
-[value] Recording results for f1
-[value] Done for function f1
-[value] Recording results for g1
-[value] Done for function g1
-[value] Recording results for main1
-[value] done for function main1
+[eva] tests/impact/initial.i:19: Reusing old results for call to f1
+[eva] Recording results for g1
+[eva] Done for function g1
+[eva] Recording results for main1
+[eva] done for function main1
 [from] Computing for function f1
 [from] Done for function f1
 [from] Computing for function g1
@@ -38,35 +35,34 @@
 [impact] impacted statements of stmt(s) 7 are:
 [impact] analysis done
 [impact] beginning analysis
-[value] Analyzing a complete application starting at main2
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing a complete application starting at main2
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   x1 ∈ {0}
   x2 ∈ {0}
   y2 ∈ {0}
   z2 ∈ {0}
   x3 ∈ {0}
   c ∈ [--..--]
-[value] tests/impact/initial.i:57: entering loop for the first time
-[value] computing for function h2 <- main2.
+[eva] computing for function h2 <- main2.
   Called from tests/impact/initial.i:58.
-[value] computing for function g2 <- h2 <- main2.
+[eva] computing for function g2 <- h2 <- main2.
   Called from tests/impact/initial.i:52.
-[value] computing for function f2 <- g2 <- h2 <- main2.
+[eva] computing for function f2 <- g2 <- h2 <- main2.
   Called from tests/impact/initial.i:46.
-[value] Recording results for f2
-[value] Done for function f2
-[value] computing for function aux2 <- g2 <- h2 <- main2.
+[eva] Recording results for f2
+[eva] Done for function f2
+[eva] computing for function aux2 <- g2 <- h2 <- main2.
   Called from tests/impact/initial.i:47.
-[value] Recording results for aux2
-[value] Done for function aux2
-[value] Recording results for g2
-[value] Done for function g2
-[value] Recording results for h2
-[value] Done for function h2
-[value] Recording results for main2
-[value] done for function main2
+[eva] Recording results for aux2
+[eva] Done for function aux2
+[eva] Recording results for g2
+[eva] Done for function g2
+[eva] Recording results for h2
+[eva] Done for function h2
+[eva] Recording results for main2
+[eva] done for function main2
 [from] Computing for function f2
 [from] Done for function f2
 [from] Computing for function aux2
@@ -87,35 +83,28 @@
     tests/impact/initial.i:58 (sid 38): h2();
 [impact] analysis done
 [impact] beginning analysis
-[value] Analyzing a complete application starting at main3
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing a complete application starting at main3
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   x1 ∈ {0}
   x2 ∈ {0}
   y2 ∈ {0}
   z2 ∈ {0}
   x3 ∈ {0}
   c ∈ [--..--]
-[value] tests/impact/initial.i:80: entering loop for the first time
-[value] computing for function g3 <- main3.
+[eva] computing for function g3 <- main3.
   Called from tests/impact/initial.i:81.
-[value] computing for function f3 <- g3 <- main3.
+[eva] computing for function f3 <- g3 <- main3.
   Called from tests/impact/initial.i:69.
-[value] Recording results for f3
-[value] Done for function f3
-[value] Recording results for g3
-[value] Done for function g3
-[value] computing for function g3 <- main3.
-  Called from tests/impact/initial.i:81.
-[value] computing for function f3 <- g3 <- main3.
-  Called from tests/impact/initial.i:69.
-[value] Recording results for f3
-[value] Done for function f3
-[value] Recording results for g3
-[value] Done for function g3
-[value] Recording results for main3
-[value] done for function main3
+[eva] Recording results for f3
+[eva] Done for function f3
+[eva] Recording results for g3
+[eva] Done for function g3
+[eva] tests/impact/initial.i:80: starting to merge loop iterations
+[eva] tests/impact/initial.i:81: Reusing old results for call to g3
+[eva] Recording results for main3
+[eva] done for function main3
 [from] Computing for function f3
 [from] Done for function f3
 [from] Computing for function g3

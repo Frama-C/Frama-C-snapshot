@@ -1,25 +1,26 @@
 [kernel] Parsing tests/slicing/bts0190.i (no preprocessing)
 [slicing] slicing requests in progress...
-[value] Analyzing a complete application starting at main
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing a complete application starting at main
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   
-[value] computing for function x <- main.
+[eva] computing for function x <- main.
   Called from tests/slicing/bts0190.i:15.
-[value] tests/slicing/bts0190.i:8: assertion got status valid.
-[value] tests/slicing/bts0190.i:9: assertion got status valid.
-[value] computing for function z1 <- x <- main.
+[eva] tests/slicing/bts0190.i:8: assertion got status valid.
+[eva] tests/slicing/bts0190.i:9: assertion got status valid.
+[eva] computing for function z1 <- x <- main.
   Called from tests/slicing/bts0190.i:10.
-[value] Recording results for z1
-[value] Done for function z1
-[value] Recording results for x
-[value] Done for function x
-[value] Recording results for main
-[value] done for function main
+[eva] Recording results for z1
+[eva] Done for function z1
+[eva] Recording results for x
+[eva] Done for function x
+[eva] Recording results for main
+[eva] done for function main
 [slicing] initializing slicing ...
 [slicing] interpreting slicing requests from the command line...
-[slicing] User Error: Unbound variable y. Slicing requests from the command line are ignored.
+[slicing:cmdline] Warning: 
+  Unbound variable y. Slicing requests from the command line are ignored.
 [slicing] Warning: No internal slicing request from the command line.
 [slicing] Warning: Adding an extra request on the entry point of function: main.
 [pdg] computing for function main

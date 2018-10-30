@@ -147,7 +147,7 @@ let classify_std env vi = match vi.vname with
   | "wscanf"   -> mk_format_fun vi ScanfLike  ~format_pos:0 (StdIO)
 
   (* stropts.h *)
-  | "ioctl"   -> mk_overload env ["__va_ioctl_void" ; "__va_ioctl_ptr"]
+  | "ioctl"   -> mk_overload env ["__va_ioctl_void" ; "__va_ioctl_int" ; "__va_ioctl_ptr"]
 
   (* Anything else *)
   | _ -> Unknown

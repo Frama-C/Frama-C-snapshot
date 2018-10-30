@@ -1,0 +1,98 @@
+[e-acsl] beginning translation.
+[e-acsl] tests/gmp/at_on-purely-logic-variables.c:16: Warning: 
+  E-ACSL construct
+  `\at on purely logic variables that needs to allocate too much memory (bigger than int_max bytes)'
+  is not yet supported.
+  Ignoring annotation.
+[e-acsl] tests/gmp/at_on-purely-logic-variables.c:28: Warning: 
+  E-ACSL construct
+  `\at on purely logic variables that needs to allocate too much memory (bigger than int_max bytes)'
+  is not yet supported.
+  Ignoring annotation.
+[e-acsl] tests/gmp/at_on-purely-logic-variables.c:29: Warning: 
+  E-ACSL construct
+  `\at on purely logic variables that needs to allocate too much memory (bigger than int_max bytes)'
+  is not yet supported.
+  Ignoring annotation.
+[e-acsl] tests/gmp/at_on-purely-logic-variables.c:34: Warning: 
+  E-ACSL construct
+  `\at on purely logic variables that needs to allocate too much memory (bigger than int_max bytes)'
+  is not yet supported.
+  Ignoring annotation.
+[e-acsl] tests/gmp/at_on-purely-logic-variables.c:37: Warning: 
+  E-ACSL construct `\at on purely logic variables and over gmp type'
+  is not yet supported.
+  Ignoring annotation.
+[e-acsl] tests/gmp/at_on-purely-logic-variables.c:41: Warning: 
+  E-ACSL construct `\at on purely logic variables and over gmp type'
+  is not yet supported.
+  Ignoring annotation.
+[e-acsl] tests/gmp/at_on-purely-logic-variables.c:45: Warning: 
+  E-ACSL construct
+  `\at on purely logic variables and with quantifier that uses too complex bound (E-ACSL cannot infer a finite upper bound to it)'
+  is not yet supported.
+  Ignoring annotation.
+[e-acsl] tests/gmp/at_on-purely-logic-variables.c:57: Warning: 
+  E-ACSL construct
+  `\at on purely logic variables that needs to allocate too much memory (bigger than int_max bytes)'
+  is not yet supported.
+  Ignoring annotation.
+[e-acsl] tests/gmp/at_on-purely-logic-variables.c:64: Warning: 
+  E-ACSL construct
+  `\at on purely logic variables that needs to allocate too much memory (bigger than int_max bytes)'
+  is not yet supported.
+  Ignoring annotation.
+[e-acsl] tests/gmp/at_on-purely-logic-variables.c:65: Warning: 
+  E-ACSL construct `\at with logic variable linked to C variable'
+  is not yet supported.
+  Ignoring annotation.
+[e-acsl] tests/gmp/at_on-purely-logic-variables.c:7: Warning: 
+  E-ACSL construct
+  `\at on purely logic variables that needs to allocate too much memory (bigger than int_max bytes)'
+  is not yet supported.
+  Ignoring annotation.
+[e-acsl] tests/gmp/at_on-purely-logic-variables.c:8: Warning: 
+  E-ACSL construct
+  `\at on purely logic variables that needs to allocate too much memory (bigger than int_max bytes)'
+  is not yet supported.
+  Ignoring annotation.
+[e-acsl] translation done in project "e-acsl".
+[eva] Analyzing a complete application starting at main
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
+  __e_acsl_init ∈ [--..--]
+  __e_acsl_heap_allocation_size ∈ [--..--]
+  __e_acsl_math_HUGE_VAL ∈ [-1.79769313486e+308 .. 1.79769313486e+308]
+  __e_acsl_math_HUGE_VALF ∈ [-3.40282346639e+38 .. 3.40282346639e+38]
+  __e_acsl_math_INFINITY ∈ [-1.79769313486e+308 .. 1.79769313486e+308]
+[eva] using specification for function __e_acsl_memory_init
+[eva] using specification for function __e_acsl_store_block
+[eva] using specification for function __e_acsl_full_init
+[eva:alarm] tests/gmp/at_on-purely-logic-variables.c:28: Warning: 
+  assertion got status unknown.
+[eva:alarm] tests/gmp/at_on-purely-logic-variables.c:29: Warning: 
+  assertion got status unknown.
+[eva:alarm] tests/gmp/at_on-purely-logic-variables.c:31: Warning: 
+  assertion got status unknown.
+[eva:alarm] tests/gmp/at_on-purely-logic-variables.c:37: Warning: 
+  assertion got status unknown.
+[eva:alarm] tests/gmp/at_on-purely-logic-variables.c:41: Warning: 
+  assertion got status unknown.
+[eva:alarm] tests/gmp/at_on-purely-logic-variables.c:43: Warning: 
+  assertion got status unknown.
+[eva] using specification for function __e_acsl_delete_block
+[eva:alarm] tests/gmp/at_on-purely-logic-variables.c:6: Warning: 
+  function __gen_e_acsl_f: postcondition got status unknown.
+[eva:alarm] tests/gmp/at_on-purely-logic-variables.c:8: Warning: 
+  function __gen_e_acsl_f: postcondition got status unknown.
+[eva:alarm] tests/gmp/at_on-purely-logic-variables.c:16: Warning: 
+  assertion got status unknown.
+[eva:alarm] tests/gmp/at_on-purely-logic-variables.c:54: Warning: 
+  assertion got status unknown.
+[eva:alarm] tests/gmp/at_on-purely-logic-variables.c:63: Warning: 
+  assertion got status unknown.
+[eva:alarm] tests/gmp/at_on-purely-logic-variables.c:65: Warning: 
+  assertion got status unknown.
+[eva] using specification for function __e_acsl_memory_clean
+[eva] done for function main

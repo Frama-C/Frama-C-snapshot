@@ -67,7 +67,7 @@ let get_calls ecmd bhvs : (string * Kernel_function.t list) list =
        let fs = ref [] in
        List.iter
          (function
-           | _,cmd, Ext_terms ts when cmd = ecmd ->
+           | _,cmd, _, Ext_terms ts when cmd = ecmd ->
                fs := !fs @ List.map get_call ts
            | _ -> ())
          bhv.Cil_types.b_extended ;
@@ -100,7 +100,7 @@ let property ~kf ?bhv ~stmt ~calls =
     | None -> Format.asprintf "@[<hov 2>calls%a@]" pp_calls calls
     | Some b -> Format.asprintf "@[<hov 2>for %s calls%a@]" b pp_calls calls
   in
-  Property.ip_other fact (Some kf) (Kstmt stmt)
+  Property.(ip_other fact (OLStmt (kf,stmt)))
 
 (* -------------------------------------------------------------------------- *)
 (* --- Detection                                                          --- *)
@@ -112,6 +112,7 @@ class dyncall =
 
     val mutable count = 0
     val mutable scope = []
+    val block_calls = Stack.create ()
 
     method count = count
 
@@ -122,28 +123,42 @@ class dyncall =
       scope <- [] ;
       DoChildren
 
+    method! vcode_annot ca =
+      match ca.annot_content with
+      | Cil_types.AExtended (bhvs,_,(_, "calls", _,Ext_terms calls)) ->
+          if calls <> [] && (scope <> [] || not (Stack.is_empty block_calls))
+          then begin
+            let bhvs =
+              match bhvs with
+              | [] -> [ Cil.default_behavior_name ]
+              | bhvs -> bhvs
+            in
+            let add_calls_info stmt =
+              count <- succ count ;
+              List.iter
+                (fun bhv ->
+                   let kfs = List.map get_call calls in
+                   begin
+                     if Wp_parameters.has_dkey dkey_calls then
+                       let source = snd (Stmt.loc stmt) in
+                       if Cil.default_behavior_name = bhv then
+                         Wp_parameters.result ~source
+                           "@[<hov 2>Calls%a@]" pp_calls kfs
+                       else
+                         Wp_parameters.result ~source
+                           "@[<hov 2>Calls (for %s)%a@]" bhv pp_calls kfs
+                   end;
+                   CallPoints.add (bhv,stmt) kfs)
+                bhvs
+            in
+            if scope <> [] then List.iter add_calls_info scope
+            else
+              List.iter add_calls_info (Stack.top block_calls)
+          end;
+          SkipChildren
+      | _ -> SkipChildren
+
     method! vspec spec =
-      let calls = get_calls "calls" spec.Cil_types.spec_behavior in
-      if calls <> [] && scope <> [] then
-        List.iter
-          (fun stmt ->
-             count <- succ count ;
-             List.iter
-               (fun (bhv,kfs) ->
-                  begin
-                    if Wp_parameters.has_dkey dkey_calls then
-                      let source = snd (Stmt.loc stmt) in
-                      if Cil.default_behavior_name = bhv then
-                        Wp_parameters.result ~source
-                          "@[<hov 2>Calls%a@]" pp_calls kfs
-                      else
-                        Wp_parameters.result ~source
-                          "@[<hov 2>Calls (for %s)%a@]" bhv pp_calls kfs
-                  end ;
-                  CallPoints.add (bhv,stmt) kfs
-               ) calls
-          ) scope ;
-      scope <- [] ;
       let calls = get_calls "instanceof" spec.Cil_types.spec_behavior in
       if calls <> [] then
         begin
@@ -154,14 +169,26 @@ class dyncall =
                    "@[<hov 2>%a for %s instance of%a"
                    Kernel_function.pretty kf bhv pp_calls kfs)
               calls
-        end ;
-      DoChildren
+        end;
+      SkipChildren
 
-    method! vinst = function
-      | Call( _ , fct , _ , _ ) when Kernel_function.get_called fct = None ->
+    method! vstmt_aux s =
+      match s.skind with
+      | Instr (Call( _ , fct , _ , _ ))
+        when Kernel_function.get_called fct = None ->
+          if not (Stack.is_empty block_calls) then
+            Stack.push (self#stmt :: Stack.pop block_calls) block_calls;
           scope <- self#stmt :: scope ;
-          SkipChildren
-      | _ -> SkipChildren
+          Cil.DoChildrenPost (fun s -> scope <- []; s)
+      | Block _ ->
+          Stack.push [] block_calls;
+          Cil.DoChildrenPost
+            (fun s ->
+               let calls = Stack.pop block_calls in
+               if not (Stack.is_empty block_calls) then
+                 Stack.push (calls @ Stack.pop block_calls) block_calls;
+               s)
+      | _ -> Cil.DoChildren
 
   end
 
@@ -195,11 +222,9 @@ let get ?(bhv=Cil.default_behavior_name) stmt =
 (* -------------------------------------------------------------------------- *)
 
 let register () =
-  if Wp_parameters.DynCall.get () then
-    let register = Logic_typing.register_behavior_extension in
-    begin
-      register "calls" typecheck ;
-      register "instanceof" typecheck ;
-    end
+  if Wp_parameters.DynCall.get () then begin
+    Logic_typing.register_code_annot_next_stmt_extension "calls" typecheck;
+    Logic_typing.register_behavior_extension "instanceof" typecheck ;
+  end
 
 let () = Cmdline.run_after_configuring_stage register

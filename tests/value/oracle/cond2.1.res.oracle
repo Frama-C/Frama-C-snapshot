@@ -1,8 +1,8 @@
 [kernel] Parsing tests/value/cond2.i (no preprocessing)
-[value] Analyzing a complete application starting at un_1
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing a complete application starting at un_1
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   Gx ∈ [--..--]
   Gy ∈ [--..--]
   px ∈ {0}
@@ -14,28 +14,28 @@
   s ∈ {0}
   t ∈ {0}
   u ∈ {0}
-[value] tests/value/cond2.i:52: entering loop for the first time
-[value:alarm] tests/value/cond2.i:52: Warning: 
+[eva] tests/value/cond2.i:52: starting to merge loop iterations
+[eva:alarm] tests/value/cond2.i:52: Warning: 
   signed overflow. assert x + 2 ≤ 2147483647;
-[value] tests/value/cond2.i:53: entering loop for the first time
-[value:alarm] tests/value/cond2.i:53: Warning: 
+[eva] tests/value/cond2.i:53: starting to merge loop iterations
+[eva:alarm] tests/value/cond2.i:53: Warning: 
   signed overflow. assert y + 2 ≤ 2147483647;
-[value] tests/value/cond2.i:59: entering loop for the first time
-[value:alarm] tests/value/cond2.i:59: Warning: 
+[eva] tests/value/cond2.i:59: starting to merge loop iterations
+[eva:alarm] tests/value/cond2.i:59: Warning: 
   signed overflow. assert x + 4 ≤ 2147483647;
-[value] tests/value/cond2.i:60: entering loop for the first time
-[value:alarm] tests/value/cond2.i:60: Warning: 
+[eva] tests/value/cond2.i:60: starting to merge loop iterations
+[eva:alarm] tests/value/cond2.i:60: Warning: 
   signed overflow. assert y + 4 ≤ 2147483647;
-[value] tests/value/cond2.i:66: entering loop for the first time
-[value:alarm] tests/value/cond2.i:66: Warning: 
+[eva] tests/value/cond2.i:66: starting to merge loop iterations
+[eva:alarm] tests/value/cond2.i:66: Warning: 
   out of bounds write. assert \valid(px);
-[value] tests/value/cond2.i:67: entering loop for the first time
-[value:alarm] tests/value/cond2.i:67: Warning: 
+[eva] tests/value/cond2.i:67: starting to merge loop iterations
+[eva:alarm] tests/value/cond2.i:67: Warning: 
   out of bounds write. assert \valid(py);
-[value] Recording results for un_1
-[value] done for function un_1
-[value] ====== VALUES COMPUTED ======
-[value:final-states] Values at end of function un_1:
+[eva] Recording results for un_1
+[eva] done for function un_1
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function un_1:
   px ∈ {{ &T + [0..384],0%16 }}
   py ∈ {{ &T + [4..388],4%16 }}
   x ∈ [0..2147483646],0%2

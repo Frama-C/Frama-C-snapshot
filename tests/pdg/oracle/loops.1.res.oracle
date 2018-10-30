@@ -1,14 +1,14 @@
 [kernel] Parsing tests/pdg/loops.c (with preprocessing)
-[value] Analyzing an incomplete application starting at simple_with_break
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing an incomplete application starting at simple_with_break
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   after ∈ [--..--]
-[value] tests/pdg/loops.c:51: entering loop for the first time
-[value:alarm] tests/pdg/loops.c:53: Warning: 
+[eva] tests/pdg/loops.c:51: starting to merge loop iterations
+[eva:alarm] tests/pdg/loops.c:53: Warning: 
   signed overflow. assert s + 2 ≤ 2147483647;
-[value] Recording results for simple_with_break
-[value] done for function simple_with_break
+[eva] Recording results for simple_with_break
+[eva] done for function simple_with_break
 [pdg] computing for function simple_with_break
 [pdg] done for function simple_with_break
 [pdg] PDG for simple_with_break

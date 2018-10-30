@@ -15,41 +15,41 @@
   Floating-point constant 1e38 is not represented exactly. Will use 0x1.2ced32a16a1b1p126.
 [kernel:parser:decimal-float] tests/float/dr_infinity.i:36: Warning: 
   Floating-point constant 0.001 is not represented exactly. Will use 0x1.0624dd2f1a9fcp-10.
-[value] Analyzing a complete application starting at main
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing a complete application starting at main
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   v ∈ [--..--]
-[value] tests/float/dr_infinity.i:9: Frama_C_show_each: {0x1.fffffe0000000p127}
-[value:alarm] tests/float/dr_infinity.i:11: Warning: 
+[eva] tests/float/dr_infinity.i:9: Frama_C_show_each: {0x1.fffffe0000000p127}
+[eva:alarm] tests/float/dr_infinity.i:11: Warning: 
   non-finite float value. assert \is_finite((float)3.402823567797366e+38);
-[value:alarm] tests/float/dr_infinity.i:16: Warning: 
+[eva:alarm] tests/float/dr_infinity.i:16: Warning: 
   non-finite float value. assert \is_finite((float)(x * x));
-[value:alarm] tests/float/dr_infinity.i:21: Warning: 
+[eva:alarm] tests/float/dr_infinity.i:21: Warning: 
   non-finite double value. assert \is_finite((double)(d * (double)10));
-[value:alarm] tests/float/dr_infinity.i:26: Warning: 
+[eva:alarm] tests/float/dr_infinity.i:26: Warning: 
   non-finite double value. assert \is_finite((double)((double)2 / d));
-[value:alarm] tests/float/dr_infinity.i:31: Warning: 
+[eva:alarm] tests/float/dr_infinity.i:31: Warning: 
   non-finite double value. assert \is_finite((double)(d / 0.01));
-[value:alarm] tests/float/dr_infinity.i:36: Warning: 
+[eva:alarm] tests/float/dr_infinity.i:36: Warning: 
   non-finite float value.
   assert \is_finite((float)((double)((double)x / 0.001)));
-[value:alarm] tests/float/dr_infinity.i:41: Warning: 
+[eva:alarm] tests/float/dr_infinity.i:41: Warning: 
   non-finite double value. assert \is_finite((double)(d / 0.));
-[value] Recording results for main
-[value] done for function main
-[value] tests/float/dr_infinity.i:11: 
-  assertion 'Value,is_nan_or_infinite' got final status invalid.
-[value] tests/float/dr_infinity.i:16: 
-  assertion 'Value,is_nan_or_infinite' got final status invalid.
-[value] tests/float/dr_infinity.i:26: 
-  assertion 'Value,is_nan_or_infinite' got final status invalid.
-[value] tests/float/dr_infinity.i:36: 
-  assertion 'Value,is_nan_or_infinite' got final status invalid.
-[value] tests/float/dr_infinity.i:41: 
-  assertion 'Value,is_nan_or_infinite' got final status invalid.
-[value] ====== VALUES COMPUTED ======
-[value:final-states] Values at end of function main:
+[eva] Recording results for main
+[eva] done for function main
+[eva] tests/float/dr_infinity.i:11: 
+  assertion 'Eva,is_nan_or_infinite' got final status invalid.
+[eva] tests/float/dr_infinity.i:16: 
+  assertion 'Eva,is_nan_or_infinite' got final status invalid.
+[eva] tests/float/dr_infinity.i:26: 
+  assertion 'Eva,is_nan_or_infinite' got final status invalid.
+[eva] tests/float/dr_infinity.i:36: 
+  assertion 'Eva,is_nan_or_infinite' got final status invalid.
+[eva] tests/float/dr_infinity.i:41: 
+  assertion 'Eva,is_nan_or_infinite' got final status invalid.
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function main:
   x ∈ {0x1.fffffe0000000p127}
   d ∈ UNINITIALIZED
 [from] Computing for function main

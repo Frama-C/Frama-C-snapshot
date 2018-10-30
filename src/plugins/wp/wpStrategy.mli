@@ -70,6 +70,10 @@ val normalize : WpPropId.prop_id ->
  * All the [add_prop_xxx] functions below use this one. *)
 val add_prop : t_annots -> annot_kind -> WpPropId.prop_id -> predicate option -> t_annots
 
+val add_prop_fct_pre_bhv :
+  t_annots -> annot_kind -> Cil_types.kernel_function ->
+  Cil_types.funbehavior -> t_annots
+
 (** Add the predicate as a function precondition.
  * Add [assumes => pre] if [assumes] is given. *)
 val add_prop_fct_pre : t_annots -> annot_kind ->
@@ -225,7 +229,7 @@ type strategy_kind =
   | SKannots (** normal mode for annotations *)
   | SKfroms of strategy_for_froms
 
-val mk_strategy : string -> Cil2cfg.t -> string option -> 
+val mk_strategy : string -> Cil2cfg.t -> string option ->
   strategy_kind -> annots_tbl -> strategy
 
 val get_annots : strategy -> Cil2cfg.edge -> t_annots

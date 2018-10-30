@@ -3,18 +3,18 @@
 */
 
 #include <__fc_builtin.h>
+#include <math.h>
 
-double Frama_C_cos(double);
-double Frama_C_sin(double);
+
 float Frama_C_float_interval(float, float);
 
-main(){
+int main(){
   float f = Frama_C_float_interval(-3.1875, -3.1875+0.25);  
   while (f <= 3.1875)
     { //Frama_C_show_each_f(f);
-      Frama_C_show_each_s((float)Frama_C_sin(f));
-      Frama_C_show_each_c((float)Frama_C_cos(f));
+      Frama_C_show_each_s((float)sin(f));
+      Frama_C_show_each_c((float)cos(f));
       f += 0.25;
     }
+  return 0;
 }
-  

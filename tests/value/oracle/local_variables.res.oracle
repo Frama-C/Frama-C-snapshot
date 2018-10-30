@@ -1,64 +1,64 @@
 [kernel] Parsing tests/value/local_variables.i (no preprocessing)
-[value] Analyzing a complete application starting at main
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing a complete application starting at main
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   A ∈ {0}
   B ∈ {0}
   C ∈ {0}
   D ∈ {0}
   R ∈ {0}
   S ∈ {0}
-[value] computing for function u <- main.
+[eva] computing for function u <- main.
   Called from tests/value/local_variables.i:30.
-[value] computing for function w <- u <- main.
+[eva] computing for function w <- u <- main.
   Called from tests/value/local_variables.i:11.
-[value] computing for function unkn <- w <- u <- main.
+[eva] computing for function unkn <- w <- u <- main.
   Called from tests/value/local_variables.i:24.
 [kernel:annot:missing-spec] tests/value/local_variables.i:24: Warning: 
   Neither code nor specification for function unkn, generating default assigns from the prototype
-[value] using specification for function unkn
-[value] Done for function unkn
-[value] Recording results for w
-[value] Done for function w
-[value] Recording results for u
-[value] Done for function u
-[value] computing for function v <- main.
+[eva] using specification for function unkn
+[eva] Done for function unkn
+[eva] Recording results for w
+[eva] Done for function w
+[eva] Recording results for u
+[eva] Done for function u
+[eva] computing for function v <- main.
   Called from tests/value/local_variables.i:31.
-[value] computing for function w <- v <- main.
+[eva] computing for function w <- v <- main.
   Called from tests/value/local_variables.i:18.
-[value] computing for function unkn <- w <- v <- main.
+[eva] computing for function unkn <- w <- v <- main.
   Called from tests/value/local_variables.i:24.
-[value] Done for function unkn
-[value] Recording results for w
-[value] Done for function w
-[value] Recording results for v
-[value] Done for function v
-[value] tests/value/local_variables.i:35: Warning: 
+[eva] Done for function unkn
+[eva] Recording results for w
+[eva] Done for function w
+[eva] Recording results for v
+[eva] Done for function v
+[eva:locals-escaping] tests/value/local_variables.i:35: Warning: 
   locals {x} escaping the scope of a block of main through p
-[value] tests/value/local_variables.i:43: entering loop for the first time
-[value:alarm] tests/value/local_variables.i:47: Warning: 
+[eva] tests/value/local_variables.i:43: starting to merge loop iterations
+[eva:alarm] tests/value/local_variables.i:47: Warning: 
   accessing left-value that contains escaping addresses.
   assert ¬\dangling(&p);
-[value:alarm] tests/value/local_variables.i:47: Warning: 
+[eva:alarm] tests/value/local_variables.i:47: Warning: 
   out of bounds read. assert \valid_read(p);
-[value] Recording results for main
-[value] done for function main
-[value] ====== VALUES COMPUTED ======
-[value:final-states] Values at end of function w:
+[eva] Recording results for main
+[eva] done for function main
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function w:
   B ∈ {0}
   wu ∈ {0}
   wv ∈ {0}
   __retres ∈ {0}
-[value:final-states] Values at end of function u:
+[eva:final-states] Values at end of function u:
   B ∈ {0}
   ru ∈ {0}
   wu ∈ {0}
-[value:final-states] Values at end of function v:
+[eva:final-states] Values at end of function v:
   B ∈ {0}
   rv ∈ {0}
   wv ∈ {0}
-[value:final-states] Values at end of function main:
+[eva:final-states] Values at end of function main:
   B ∈ {0}
   R ∈ {0}
   S ∈ {0}

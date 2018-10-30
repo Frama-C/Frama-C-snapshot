@@ -86,3 +86,12 @@ Goal Instance of 'Pre-condition (file tests/wp_hoare/byref.i, line 11) in 'f'' i
 Prove: true.
 
 ------------------------------------------------------------
+[wp] Warning: Memory model hypotheses for function 'f':
+  /*@ behavior typed_ref: requires \valid(r); */
+  void f(int *r);
+[wp] Warning: Memory model hypotheses for function 'wrong_without_ref':
+  /*@ behavior typed_ref: requires \valid(q); */
+  int wrong_without_ref(int *q);
+[wp] Warning: Memory model hypotheses for function 'pointer':
+  /*@ behavior typed_ref: requires \valid(q); */
+  int pointer(int *q);

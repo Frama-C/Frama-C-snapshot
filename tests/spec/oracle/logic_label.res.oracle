@@ -14,7 +14,7 @@ void f(void)
 int g(int i)
 {
   lab: /*@ assert i ≡ \at(i,lab); */ ;
-       return i;
+  return i;
 }
 
 /*@ predicate modified{L1, L2}(int x) = \at(x,L1) ≢ \at(x,L2);

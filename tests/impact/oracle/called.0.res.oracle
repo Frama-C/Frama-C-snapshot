@@ -1,20 +1,17 @@
 [kernel] Parsing tests/impact/called.i (no preprocessing)
 [impact] beginning analysis
-[value] Analyzing an incomplete application starting at g
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing an incomplete application starting at g
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   X ∈ [--..--]
-[value] computing for function f <- g.
+[eva] computing for function f <- g.
   Called from tests/impact/called.i:15.
-[value] Recording results for f
-[value] Done for function f
-[value] computing for function f <- g.
-  Called from tests/impact/called.i:17.
-[value] Recording results for f
-[value] Done for function f
-[value] Recording results for g
-[value] done for function g
+[eva] Recording results for f
+[eva] Done for function f
+[eva] tests/impact/called.i:17: Reusing old results for call to f
+[eva] Recording results for g
+[eva] done for function g
 [pdg] computing for function g
 [from] Computing for function f
 [from] Done for function f

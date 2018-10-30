@@ -84,4 +84,3 @@ val is_cint_simplifier: Conditions.simplifier
 val mask_simplifier: Conditions.simplifier
 
 val is_positive_or_null: term -> bool
-

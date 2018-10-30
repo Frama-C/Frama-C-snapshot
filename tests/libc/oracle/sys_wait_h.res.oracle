@@ -1,0 +1,41 @@
+[kernel] Parsing tests/libc/sys_wait_h.c (with preprocessing)
+[eva] Analyzing a complete application starting at main
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
+  
+[eva] computing for function wait <- main.
+  Called from tests/libc/sys_wait_h.c:7.
+[eva] using specification for function wait
+[eva] Done for function wait
+[eva] computing for function wait <- main.
+  Called from tests/libc/sys_wait_h.c:9.
+[eva] tests/libc/sys_wait_h.c:9: 
+  function wait, behavior stat_loc_non_null: precondition 'valid_stat_loc' got status valid.
+[eva] Done for function wait
+[eva] computing for function wait <- main.
+  Called from tests/libc/sys_wait_h.c:9.
+[eva] Done for function wait
+[eva] tests/libc/sys_wait_h.c:11: assertion got status valid.
+[eva] computing for function waitpid <- main.
+  Called from tests/libc/sys_wait_h.c:15.
+[eva] using specification for function waitpid
+[eva] Done for function waitpid
+[eva] computing for function waitpid <- main.
+  Called from tests/libc/sys_wait_h.c:15.
+[eva] Done for function waitpid
+[eva] computing for function waitpid <- main.
+  Called from tests/libc/sys_wait_h.c:15.
+[eva] Done for function waitpid
+[eva] computing for function waitpid <- main.
+  Called from tests/libc/sys_wait_h.c:16.
+[eva] tests/libc/sys_wait_h.c:16: 
+  function waitpid, behavior stat_loc_non_null: precondition 'valid_stat_loc' got status valid.
+[eva] Done for function waitpid
+[eva] Recording results for main
+[eva] done for function main
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function main:
+  r ∈ [-1..2147483647]
+  stat_val ∈ [--..--] or UNINITIALIZED
+  __retres ∈ {0}

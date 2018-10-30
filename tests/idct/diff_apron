@@ -1,467 +1,1724 @@
 diff tests/idct/oracle/ieee_1180_1990.res.oracle tests/idct/oracle_apron/ieee_1180_1990.res.oracle
-133,134c133,136
-< [value] tests/idct/ieee_1180_1990.c:85: 
+143,150c143,158
+< [eva] tests/idct/ieee_1180_1990.c:85: 
+<   Reusing old results for call to IEEE_1180_1990_rand
+< [eva] tests/idct/ieee_1180_1990.c:85: 
+<   Reusing old results for call to IEEE_1180_1990_rand
+< [eva] tests/idct/ieee_1180_1990.c:85: 
+<   Reusing old results for call to IEEE_1180_1990_rand
+< [eva] tests/idct/ieee_1180_1990.c:85: 
 <   Reusing old results for call to IEEE_1180_1990_rand
 ---
-> [value] computing for function IEEE_1180_1990_rand <- IEEE_1180_1990_mkbk <- main.
+> [eva] computing for function IEEE_1180_1990_rand <- IEEE_1180_1990_mkbk <- main.
 >   Called from tests/idct/ieee_1180_1990.c:85.
-> [value] Recording results for IEEE_1180_1990_rand
-> [value] Done for function IEEE_1180_1990_rand
-304,311c306,321
-< [value] tests/idct/ieee_1180_1990.c:85: 
+> [eva] Recording results for IEEE_1180_1990_rand
+> [eva] Done for function IEEE_1180_1990_rand
+> [eva] computing for function IEEE_1180_1990_rand <- IEEE_1180_1990_mkbk <- main.
+>   Called from tests/idct/ieee_1180_1990.c:85.
+> [eva] Recording results for IEEE_1180_1990_rand
+> [eva] Done for function IEEE_1180_1990_rand
+> [eva] computing for function IEEE_1180_1990_rand <- IEEE_1180_1990_mkbk <- main.
+>   Called from tests/idct/ieee_1180_1990.c:85.
+> [eva] Recording results for IEEE_1180_1990_rand
+> [eva] Done for function IEEE_1180_1990_rand
+> [eva] computing for function IEEE_1180_1990_rand <- IEEE_1180_1990_mkbk <- main.
+>   Called from tests/idct/ieee_1180_1990.c:85.
+> [eva] Recording results for IEEE_1180_1990_rand
+> [eva] Done for function IEEE_1180_1990_rand
+386,404c394,427
+< [eva] tests/idct/ieee_1180_1990.c:85: 
 <   Reusing old results for call to IEEE_1180_1990_rand
-< [value] tests/idct/ieee_1180_1990.c:85: 
+< [eva] tests/idct/ieee_1180_1990.c:85: 
 <   Reusing old results for call to IEEE_1180_1990_rand
-< [value] tests/idct/ieee_1180_1990.c:85: 
+< [eva] tests/idct/ieee_1180_1990.c:85: 
 <   Reusing old results for call to IEEE_1180_1990_rand
-< [value] tests/idct/ieee_1180_1990.c:85: 
+< [eva] tests/idct/ieee_1180_1990.c:85: 
 <   Reusing old results for call to IEEE_1180_1990_rand
----
-> [value] computing for function IEEE_1180_1990_rand <- IEEE_1180_1990_mkbk <- main.
->   Called from tests/idct/ieee_1180_1990.c:85.
-> [value] Recording results for IEEE_1180_1990_rand
-> [value] Done for function IEEE_1180_1990_rand
-> [value] computing for function IEEE_1180_1990_rand <- IEEE_1180_1990_mkbk <- main.
->   Called from tests/idct/ieee_1180_1990.c:85.
-> [value] Recording results for IEEE_1180_1990_rand
-> [value] Done for function IEEE_1180_1990_rand
-> [value] computing for function IEEE_1180_1990_rand <- IEEE_1180_1990_mkbk <- main.
->   Called from tests/idct/ieee_1180_1990.c:85.
-> [value] Recording results for IEEE_1180_1990_rand
-> [value] Done for function IEEE_1180_1990_rand
-> [value] computing for function IEEE_1180_1990_rand <- IEEE_1180_1990_mkbk <- main.
->   Called from tests/idct/ieee_1180_1990.c:85.
-> [value] Recording results for IEEE_1180_1990_rand
-> [value] Done for function IEEE_1180_1990_rand
-376,383c386,401
-< [value] tests/idct/ieee_1180_1990.c:85: 
+< [eva] tests/idct/ieee_1180_1990.c:85: 
 <   Reusing old results for call to IEEE_1180_1990_rand
-< [value] tests/idct/ieee_1180_1990.c:85: 
+< [eva] tests/idct/ieee_1180_1990.c:85: 
 <   Reusing old results for call to IEEE_1180_1990_rand
-< [value] tests/idct/ieee_1180_1990.c:85: 
-<   Reusing old results for call to IEEE_1180_1990_rand
-< [value] tests/idct/ieee_1180_1990.c:85: 
-<   Reusing old results for call to IEEE_1180_1990_rand
----
-> [value] computing for function IEEE_1180_1990_rand <- IEEE_1180_1990_mkbk <- main.
->   Called from tests/idct/ieee_1180_1990.c:85.
-> [value] Recording results for IEEE_1180_1990_rand
-> [value] Done for function IEEE_1180_1990_rand
-> [value] computing for function IEEE_1180_1990_rand <- IEEE_1180_1990_mkbk <- main.
->   Called from tests/idct/ieee_1180_1990.c:85.
-> [value] Recording results for IEEE_1180_1990_rand
-> [value] Done for function IEEE_1180_1990_rand
-> [value] computing for function IEEE_1180_1990_rand <- IEEE_1180_1990_mkbk <- main.
->   Called from tests/idct/ieee_1180_1990.c:85.
-> [value] Recording results for IEEE_1180_1990_rand
-> [value] Done for function IEEE_1180_1990_rand
-> [value] computing for function IEEE_1180_1990_rand <- IEEE_1180_1990_mkbk <- main.
->   Called from tests/idct/ieee_1180_1990.c:85.
-> [value] Recording results for IEEE_1180_1990_rand
-> [value] Done for function IEEE_1180_1990_rand
-444,453c462,481
-< [value] tests/idct/ieee_1180_1990.c:85: 
-<   Reusing old results for call to IEEE_1180_1990_rand
-< [value] tests/idct/ieee_1180_1990.c:85: 
-<   Reusing old results for call to IEEE_1180_1990_rand
-< [value] tests/idct/ieee_1180_1990.c:85: 
-<   Reusing old results for call to IEEE_1180_1990_rand
-< [value] tests/idct/ieee_1180_1990.c:85: 
-<   Reusing old results for call to IEEE_1180_1990_rand
-< [value] tests/idct/ieee_1180_1990.c:85: 
-<   Reusing old results for call to IEEE_1180_1990_rand
----
-> [value] computing for function IEEE_1180_1990_rand <- IEEE_1180_1990_mkbk <- main.
->   Called from tests/idct/ieee_1180_1990.c:85.
-> [value] Recording results for IEEE_1180_1990_rand
-> [value] Done for function IEEE_1180_1990_rand
-> [value] computing for function IEEE_1180_1990_rand <- IEEE_1180_1990_mkbk <- main.
->   Called from tests/idct/ieee_1180_1990.c:85.
-> [value] Recording results for IEEE_1180_1990_rand
-> [value] Done for function IEEE_1180_1990_rand
-> [value] computing for function IEEE_1180_1990_rand <- IEEE_1180_1990_mkbk <- main.
->   Called from tests/idct/ieee_1180_1990.c:85.
-> [value] Recording results for IEEE_1180_1990_rand
-> [value] Done for function IEEE_1180_1990_rand
-> [value] computing for function IEEE_1180_1990_rand <- IEEE_1180_1990_mkbk <- main.
->   Called from tests/idct/ieee_1180_1990.c:85.
-> [value] Recording results for IEEE_1180_1990_rand
-> [value] Done for function IEEE_1180_1990_rand
-> [value] computing for function IEEE_1180_1990_rand <- IEEE_1180_1990_mkbk <- main.
->   Called from tests/idct/ieee_1180_1990.c:85.
-> [value] Recording results for IEEE_1180_1990_rand
-> [value] Done for function IEEE_1180_1990_rand
-468c496,499
-< [value] tests/idct/ieee_1180_1990.c:214: Reusing old results for call to idct
----
-> [value] computing for function idct <- main.
->   Called from tests/idct/ieee_1180_1990.c:214.
-> [value] Recording results for idct
-> [value] Done for function idct
-475,477c506,513
-< [value] tests/idct/ieee_1180_1990.c:237: 
+< [eva] Recording results for IEEE_1180_1990_mkbk
+< [eva] Done for function IEEE_1180_1990_mkbk
+< [eva] tests/idct/ieee_1180_1990.c:258: 
+<   Reusing old results for call to IEEE_1180_1990_dctf
+< [eva] tests/idct/ieee_1180_1990.c:259: 
 <   Reusing old results for call to IEEE_1180_1990_idctf
-< [value] tests/idct/ieee_1180_1990.c:238: Reusing old results for call to idct
+< [eva] tests/idct/ieee_1180_1990.c:260: Reusing old results for call to idct
 ---
-> [value] computing for function IEEE_1180_1990_idctf <- main.
+> [eva] computing for function IEEE_1180_1990_rand <- IEEE_1180_1990_mkbk <- main.
+>   Called from tests/idct/ieee_1180_1990.c:85.
+> [eva] Recording results for IEEE_1180_1990_rand
+> [eva] Done for function IEEE_1180_1990_rand
+> [eva] computing for function IEEE_1180_1990_rand <- IEEE_1180_1990_mkbk <- main.
+>   Called from tests/idct/ieee_1180_1990.c:85.
+> [eva] Recording results for IEEE_1180_1990_rand
+> [eva] Done for function IEEE_1180_1990_rand
+> [eva] computing for function IEEE_1180_1990_rand <- IEEE_1180_1990_mkbk <- main.
+>   Called from tests/idct/ieee_1180_1990.c:85.
+> [eva] Recording results for IEEE_1180_1990_rand
+> [eva] Done for function IEEE_1180_1990_rand
+> [eva] computing for function IEEE_1180_1990_rand <- IEEE_1180_1990_mkbk <- main.
+>   Called from tests/idct/ieee_1180_1990.c:85.
+> [eva] Recording results for IEEE_1180_1990_rand
+> [eva] Done for function IEEE_1180_1990_rand
+> [eva] computing for function IEEE_1180_1990_rand <- IEEE_1180_1990_mkbk <- main.
+>   Called from tests/idct/ieee_1180_1990.c:85.
+> [eva] Recording results for IEEE_1180_1990_rand
+> [eva] Done for function IEEE_1180_1990_rand
+> [eva] Recording results for IEEE_1180_1990_mkbk
+> [eva] Done for function IEEE_1180_1990_mkbk
+> [eva] computing for function IEEE_1180_1990_dctf <- main.
+>   Called from tests/idct/ieee_1180_1990.c:258.
+> [eva] Recording results for IEEE_1180_1990_dctf
+> [eva] Done for function IEEE_1180_1990_dctf
+> [eva] computing for function IEEE_1180_1990_idctf <- main.
+>   Called from tests/idct/ieee_1180_1990.c:259.
+> [eva] Recording results for IEEE_1180_1990_idctf
+> [eva] Done for function IEEE_1180_1990_idctf
+> [eva] computing for function idct <- main.
+>   Called from tests/idct/ieee_1180_1990.c:260.
+> [eva] Recording results for idct
+> [eva] Done for function idct
+427,431c450,461
+< [eva] tests/idct/ieee_1180_1990.c:282: 
+<   Reusing old results for call to IEEE_1180_1990_dctf
+< [eva] tests/idct/ieee_1180_1990.c:283: 
+<   Reusing old results for call to IEEE_1180_1990_idctf
+< [eva] tests/idct/ieee_1180_1990.c:284: Reusing old results for call to idct
+---
+> [eva] computing for function IEEE_1180_1990_dctf <- main.
+>   Called from tests/idct/ieee_1180_1990.c:282.
+> [eva] Recording results for IEEE_1180_1990_dctf
+> [eva] Done for function IEEE_1180_1990_dctf
+> [eva] computing for function IEEE_1180_1990_idctf <- main.
+>   Called from tests/idct/ieee_1180_1990.c:283.
+> [eva] Recording results for IEEE_1180_1990_idctf
+> [eva] Done for function IEEE_1180_1990_idctf
+> [eva] computing for function idct <- main.
+>   Called from tests/idct/ieee_1180_1990.c:284.
+> [eva] Recording results for idct
+> [eva] Done for function idct
+458,476c488,521
+< [eva] tests/idct/ieee_1180_1990.c:85: 
+<   Reusing old results for call to IEEE_1180_1990_rand
+< [eva] tests/idct/ieee_1180_1990.c:85: 
+<   Reusing old results for call to IEEE_1180_1990_rand
+< [eva] tests/idct/ieee_1180_1990.c:85: 
+<   Reusing old results for call to IEEE_1180_1990_rand
+< [eva] tests/idct/ieee_1180_1990.c:85: 
+<   Reusing old results for call to IEEE_1180_1990_rand
+< [eva] tests/idct/ieee_1180_1990.c:85: 
+<   Reusing old results for call to IEEE_1180_1990_rand
+< [eva] tests/idct/ieee_1180_1990.c:85: 
+<   Reusing old results for call to IEEE_1180_1990_rand
+< [eva] Recording results for IEEE_1180_1990_mkbk
+< [eva] Done for function IEEE_1180_1990_mkbk
+< [eva] tests/idct/ieee_1180_1990.c:304: 
+<   Reusing old results for call to IEEE_1180_1990_dctf
+< [eva] tests/idct/ieee_1180_1990.c:305: 
+<   Reusing old results for call to IEEE_1180_1990_idctf
+< [eva] tests/idct/ieee_1180_1990.c:306: Reusing old results for call to idct
+---
+> [eva] computing for function IEEE_1180_1990_rand <- IEEE_1180_1990_mkbk <- main.
+>   Called from tests/idct/ieee_1180_1990.c:85.
+> [eva] Recording results for IEEE_1180_1990_rand
+> [eva] Done for function IEEE_1180_1990_rand
+> [eva] computing for function IEEE_1180_1990_rand <- IEEE_1180_1990_mkbk <- main.
+>   Called from tests/idct/ieee_1180_1990.c:85.
+> [eva] Recording results for IEEE_1180_1990_rand
+> [eva] Done for function IEEE_1180_1990_rand
+> [eva] computing for function IEEE_1180_1990_rand <- IEEE_1180_1990_mkbk <- main.
+>   Called from tests/idct/ieee_1180_1990.c:85.
+> [eva] Recording results for IEEE_1180_1990_rand
+> [eva] Done for function IEEE_1180_1990_rand
+> [eva] computing for function IEEE_1180_1990_rand <- IEEE_1180_1990_mkbk <- main.
+>   Called from tests/idct/ieee_1180_1990.c:85.
+> [eva] Recording results for IEEE_1180_1990_rand
+> [eva] Done for function IEEE_1180_1990_rand
+> [eva] computing for function IEEE_1180_1990_rand <- IEEE_1180_1990_mkbk <- main.
+>   Called from tests/idct/ieee_1180_1990.c:85.
+> [eva] Recording results for IEEE_1180_1990_rand
+> [eva] Done for function IEEE_1180_1990_rand
+> [eva] Recording results for IEEE_1180_1990_mkbk
+> [eva] Done for function IEEE_1180_1990_mkbk
+> [eva] computing for function IEEE_1180_1990_dctf <- main.
+>   Called from tests/idct/ieee_1180_1990.c:304.
+> [eva] Recording results for IEEE_1180_1990_dctf
+> [eva] Done for function IEEE_1180_1990_dctf
+> [eva] computing for function IEEE_1180_1990_idctf <- main.
+>   Called from tests/idct/ieee_1180_1990.c:305.
+> [eva] Recording results for IEEE_1180_1990_idctf
+> [eva] Done for function IEEE_1180_1990_idctf
+> [eva] computing for function idct <- main.
+>   Called from tests/idct/ieee_1180_1990.c:306.
+> [eva] Recording results for idct
+> [eva] Done for function idct
+499,503c544,555
+< [eva] tests/idct/ieee_1180_1990.c:328: 
+<   Reusing old results for call to IEEE_1180_1990_dctf
+< [eva] tests/idct/ieee_1180_1990.c:329: 
+<   Reusing old results for call to IEEE_1180_1990_idctf
+< [eva] tests/idct/ieee_1180_1990.c:330: Reusing old results for call to idct
+---
+> [eva] computing for function IEEE_1180_1990_dctf <- main.
+>   Called from tests/idct/ieee_1180_1990.c:328.
+> [eva] Recording results for IEEE_1180_1990_dctf
+> [eva] Done for function IEEE_1180_1990_dctf
+> [eva] computing for function IEEE_1180_1990_idctf <- main.
+>   Called from tests/idct/ieee_1180_1990.c:329.
+> [eva] Recording results for IEEE_1180_1990_idctf
+> [eva] Done for function IEEE_1180_1990_idctf
+> [eva] computing for function idct <- main.
+>   Called from tests/idct/ieee_1180_1990.c:330.
+> [eva] Recording results for idct
+> [eva] Done for function idct
+527,540c579,602
+< [eva] tests/idct/ieee_1180_1990.c:85: 
+<   Reusing old results for call to IEEE_1180_1990_rand
+< [eva] tests/idct/ieee_1180_1990.c:85: 
+<   Reusing old results for call to IEEE_1180_1990_rand
+< [eva] tests/idct/ieee_1180_1990.c:85: 
+<   Reusing old results for call to IEEE_1180_1990_rand
+< [eva] tests/idct/ieee_1180_1990.c:85: 
+<   Reusing old results for call to IEEE_1180_1990_rand
+< [eva] tests/idct/ieee_1180_1990.c:85: 
+<   Reusing old results for call to IEEE_1180_1990_rand
+< [eva] tests/idct/ieee_1180_1990.c:85: 
+<   Reusing old results for call to IEEE_1180_1990_rand
+< [eva] tests/idct/ieee_1180_1990.c:85: 
+<   Reusing old results for call to IEEE_1180_1990_rand
+---
+> [eva] computing for function IEEE_1180_1990_rand <- IEEE_1180_1990_mkbk <- main.
+>   Called from tests/idct/ieee_1180_1990.c:85.
+> [eva] Recording results for IEEE_1180_1990_rand
+> [eva] Done for function IEEE_1180_1990_rand
+> [eva] computing for function IEEE_1180_1990_rand <- IEEE_1180_1990_mkbk <- main.
+>   Called from tests/idct/ieee_1180_1990.c:85.
+> [eva] Recording results for IEEE_1180_1990_rand
+> [eva] Done for function IEEE_1180_1990_rand
+> [eva] computing for function IEEE_1180_1990_rand <- IEEE_1180_1990_mkbk <- main.
+>   Called from tests/idct/ieee_1180_1990.c:85.
+> [eva] Recording results for IEEE_1180_1990_rand
+> [eva] Done for function IEEE_1180_1990_rand
+> [eva] computing for function IEEE_1180_1990_rand <- IEEE_1180_1990_mkbk <- main.
+>   Called from tests/idct/ieee_1180_1990.c:85.
+> [eva] Recording results for IEEE_1180_1990_rand
+> [eva] Done for function IEEE_1180_1990_rand
+> [eva] computing for function IEEE_1180_1990_rand <- IEEE_1180_1990_mkbk <- main.
+>   Called from tests/idct/ieee_1180_1990.c:85.
+> [eva] Recording results for IEEE_1180_1990_rand
+> [eva] Done for function IEEE_1180_1990_rand
+> [eva] computing for function IEEE_1180_1990_rand <- IEEE_1180_1990_mkbk <- main.
+>   Called from tests/idct/ieee_1180_1990.c:85.
+> [eva] Recording results for IEEE_1180_1990_rand
+> [eva] Done for function IEEE_1180_1990_rand
+562a625,812
+> [eva] Recording results for IEEE_1180_1990_dctf
+> [eva] Done for function IEEE_1180_1990_dctf
+> [eva] computing for function IEEE_1180_1990_idctf <- main.
+>   Called from tests/idct/ieee_1180_1990.c:213.
+> [eva] tests/idct/ieee_1180_1990.c:140: 
+>   Call to builtin Frama_C_sqrt for function sqrt
+> [eva] tests/idct/ieee_1180_1990.c:141: 
+>   Call to builtin Frama_C_cos for function cos
+> [eva] tests/idct/ieee_1180_1990.c:141: 
+>   Call to builtin Frama_C_cos for function cos
+> [eva] tests/idct/ieee_1180_1990.c:141: 
+>   Call to builtin Frama_C_cos for function cos
+> [eva] tests/idct/ieee_1180_1990.c:141: 
+>   Call to builtin Frama_C_cos for function cos
+> [eva] tests/idct/ieee_1180_1990.c:140: 
+>   Call to builtin Frama_C_sqrt for function sqrt
+> [eva] tests/idct/ieee_1180_1990.c:141: 
+>   Call to builtin Frama_C_cos for function cos
+> [eva] tests/idct/ieee_1180_1990.c:140: 
+>   Call to builtin Frama_C_sqrt for function sqrt
+> [eva] tests/idct/ieee_1180_1990.c:141: 
+>   Call to builtin Frama_C_cos for function cos
+> [eva] Recording results for IEEE_1180_1990_idctf
+> [eva] Done for function IEEE_1180_1990_idctf
+> [eva] computing for function idct <- main.
+>   Called from tests/idct/ieee_1180_1990.c:214.
+> [eva] Recording results for idct
+> [eva] Done for function idct
+> [eva] computing for function IEEE_1180_1990_dctf <- main.
+>   Called from tests/idct/ieee_1180_1990.c:236.
+> [eva] Recording results for IEEE_1180_1990_dctf
+> [eva] Done for function IEEE_1180_1990_dctf
+> [eva] computing for function IEEE_1180_1990_idctf <- main.
 >   Called from tests/idct/ieee_1180_1990.c:237.
-> [value] Recording results for IEEE_1180_1990_idctf
-> [value] Done for function IEEE_1180_1990_idctf
-> [value] computing for function idct <- main.
+> [eva] Recording results for IEEE_1180_1990_idctf
+> [eva] Done for function IEEE_1180_1990_idctf
+> [eva] computing for function idct <- main.
 >   Called from tests/idct/ieee_1180_1990.c:238.
-> [value] Recording results for idct
-> [value] Done for function idct
-480,489c516,535
-< [value] tests/idct/ieee_1180_1990.c:85: 
-<   Reusing old results for call to IEEE_1180_1990_rand
-< [value] tests/idct/ieee_1180_1990.c:85: 
-<   Reusing old results for call to IEEE_1180_1990_rand
-< [value] tests/idct/ieee_1180_1990.c:85: 
-<   Reusing old results for call to IEEE_1180_1990_rand
-< [value] tests/idct/ieee_1180_1990.c:85: 
-<   Reusing old results for call to IEEE_1180_1990_rand
-< [value] tests/idct/ieee_1180_1990.c:85: 
-<   Reusing old results for call to IEEE_1180_1990_rand
----
-> [value] computing for function IEEE_1180_1990_rand <- IEEE_1180_1990_mkbk <- main.
+> [eva] Recording results for idct
+> [eva] Done for function idct
+> [eva] computing for function IEEE_1180_1990_mkbk <- main.
+>   Called from tests/idct/ieee_1180_1990.c:257.
+> [eva] computing for function IEEE_1180_1990_rand <- IEEE_1180_1990_mkbk <- main.
 >   Called from tests/idct/ieee_1180_1990.c:85.
-> [value] Recording results for IEEE_1180_1990_rand
-> [value] Done for function IEEE_1180_1990_rand
-> [value] computing for function IEEE_1180_1990_rand <- IEEE_1180_1990_mkbk <- main.
+> [eva] Recording results for IEEE_1180_1990_rand
+> [eva] Done for function IEEE_1180_1990_rand
+> [eva] computing for function IEEE_1180_1990_rand <- IEEE_1180_1990_mkbk <- main.
 >   Called from tests/idct/ieee_1180_1990.c:85.
-> [value] Recording results for IEEE_1180_1990_rand
-> [value] Done for function IEEE_1180_1990_rand
-> [value] computing for function IEEE_1180_1990_rand <- IEEE_1180_1990_mkbk <- main.
+> [eva] Recording results for IEEE_1180_1990_rand
+> [eva] Done for function IEEE_1180_1990_rand
+> [eva] computing for function IEEE_1180_1990_rand <- IEEE_1180_1990_mkbk <- main.
 >   Called from tests/idct/ieee_1180_1990.c:85.
-> [value] Recording results for IEEE_1180_1990_rand
-> [value] Done for function IEEE_1180_1990_rand
-> [value] computing for function IEEE_1180_1990_rand <- IEEE_1180_1990_mkbk <- main.
+> [eva] Recording results for IEEE_1180_1990_rand
+> [eva] Done for function IEEE_1180_1990_rand
+> [eva] computing for function IEEE_1180_1990_rand <- IEEE_1180_1990_mkbk <- main.
 >   Called from tests/idct/ieee_1180_1990.c:85.
-> [value] Recording results for IEEE_1180_1990_rand
-> [value] Done for function IEEE_1180_1990_rand
-> [value] computing for function IEEE_1180_1990_rand <- IEEE_1180_1990_mkbk <- main.
+> [eva] Recording results for IEEE_1180_1990_rand
+> [eva] Done for function IEEE_1180_1990_rand
+> [eva] computing for function IEEE_1180_1990_rand <- IEEE_1180_1990_mkbk <- main.
 >   Called from tests/idct/ieee_1180_1990.c:85.
-> [value] Recording results for IEEE_1180_1990_rand
-> [value] Done for function IEEE_1180_1990_rand
-510,519c556,575
-< [value] tests/idct/ieee_1180_1990.c:85: 
-<   Reusing old results for call to IEEE_1180_1990_rand
-< [value] tests/idct/ieee_1180_1990.c:85: 
-<   Reusing old results for call to IEEE_1180_1990_rand
-< [value] tests/idct/ieee_1180_1990.c:85: 
-<   Reusing old results for call to IEEE_1180_1990_rand
-< [value] tests/idct/ieee_1180_1990.c:85: 
-<   Reusing old results for call to IEEE_1180_1990_rand
-< [value] tests/idct/ieee_1180_1990.c:85: 
-<   Reusing old results for call to IEEE_1180_1990_rand
----
-> [value] computing for function IEEE_1180_1990_rand <- IEEE_1180_1990_mkbk <- main.
+> [eva] Recording results for IEEE_1180_1990_rand
+> [eva] Done for function IEEE_1180_1990_rand
+> [eva] computing for function IEEE_1180_1990_rand <- IEEE_1180_1990_mkbk <- main.
 >   Called from tests/idct/ieee_1180_1990.c:85.
-> [value] Recording results for IEEE_1180_1990_rand
-> [value] Done for function IEEE_1180_1990_rand
-> [value] computing for function IEEE_1180_1990_rand <- IEEE_1180_1990_mkbk <- main.
+> [eva] Recording results for IEEE_1180_1990_rand
+> [eva] Done for function IEEE_1180_1990_rand
+> [eva] Recording results for IEEE_1180_1990_mkbk
+> [eva] Done for function IEEE_1180_1990_mkbk
+> [eva] computing for function IEEE_1180_1990_dctf <- main.
+>   Called from tests/idct/ieee_1180_1990.c:258.
+> [eva] Recording results for IEEE_1180_1990_dctf
+> [eva] Done for function IEEE_1180_1990_dctf
+> [eva] computing for function IEEE_1180_1990_idctf <- main.
+>   Called from tests/idct/ieee_1180_1990.c:259.
+> [eva] Recording results for IEEE_1180_1990_idctf
+> [eva] Done for function IEEE_1180_1990_idctf
+> [eva] computing for function idct <- main.
+>   Called from tests/idct/ieee_1180_1990.c:260.
+> [eva] Recording results for idct
+> [eva] Done for function idct
+> [eva] computing for function IEEE_1180_1990_dctf <- main.
+>   Called from tests/idct/ieee_1180_1990.c:282.
+> [eva] Recording results for IEEE_1180_1990_dctf
+> [eva] Done for function IEEE_1180_1990_dctf
+> [eva] computing for function IEEE_1180_1990_idctf <- main.
+>   Called from tests/idct/ieee_1180_1990.c:283.
+> [eva] Recording results for IEEE_1180_1990_idctf
+> [eva] Done for function IEEE_1180_1990_idctf
+> [eva] computing for function idct <- main.
+>   Called from tests/idct/ieee_1180_1990.c:284.
+> [eva] Recording results for idct
+> [eva] Done for function idct
+> [eva] computing for function IEEE_1180_1990_mkbk <- main.
+>   Called from tests/idct/ieee_1180_1990.c:303.
+> [eva] computing for function IEEE_1180_1990_rand <- IEEE_1180_1990_mkbk <- main.
 >   Called from tests/idct/ieee_1180_1990.c:85.
-> [value] Recording results for IEEE_1180_1990_rand
-> [value] Done for function IEEE_1180_1990_rand
-> [value] computing for function IEEE_1180_1990_rand <- IEEE_1180_1990_mkbk <- main.
+> [eva] Recording results for IEEE_1180_1990_rand
+> [eva] Done for function IEEE_1180_1990_rand
+> [eva] computing for function IEEE_1180_1990_rand <- IEEE_1180_1990_mkbk <- main.
 >   Called from tests/idct/ieee_1180_1990.c:85.
-> [value] Recording results for IEEE_1180_1990_rand
-> [value] Done for function IEEE_1180_1990_rand
-> [value] computing for function IEEE_1180_1990_rand <- IEEE_1180_1990_mkbk <- main.
+> [eva] Recording results for IEEE_1180_1990_rand
+> [eva] Done for function IEEE_1180_1990_rand
+> [eva] computing for function IEEE_1180_1990_rand <- IEEE_1180_1990_mkbk <- main.
 >   Called from tests/idct/ieee_1180_1990.c:85.
-> [value] Recording results for IEEE_1180_1990_rand
-> [value] Done for function IEEE_1180_1990_rand
-> [value] computing for function IEEE_1180_1990_rand <- IEEE_1180_1990_mkbk <- main.
+> [eva] Recording results for IEEE_1180_1990_rand
+> [eva] Done for function IEEE_1180_1990_rand
+> [eva] computing for function IEEE_1180_1990_rand <- IEEE_1180_1990_mkbk <- main.
 >   Called from tests/idct/ieee_1180_1990.c:85.
-> [value] Recording results for IEEE_1180_1990_rand
-> [value] Done for function IEEE_1180_1990_rand
-540,549c596,615
-< [value] tests/idct/ieee_1180_1990.c:85: 
-<   Reusing old results for call to IEEE_1180_1990_rand
-< [value] tests/idct/ieee_1180_1990.c:85: 
-<   Reusing old results for call to IEEE_1180_1990_rand
-< [value] tests/idct/ieee_1180_1990.c:85: 
-<   Reusing old results for call to IEEE_1180_1990_rand
-< [value] tests/idct/ieee_1180_1990.c:85: 
-<   Reusing old results for call to IEEE_1180_1990_rand
-< [value] tests/idct/ieee_1180_1990.c:85: 
-<   Reusing old results for call to IEEE_1180_1990_rand
----
-> [value] computing for function IEEE_1180_1990_rand <- IEEE_1180_1990_mkbk <- main.
+> [eva] Recording results for IEEE_1180_1990_rand
+> [eva] Done for function IEEE_1180_1990_rand
+> [eva] computing for function IEEE_1180_1990_rand <- IEEE_1180_1990_mkbk <- main.
 >   Called from tests/idct/ieee_1180_1990.c:85.
-> [value] Recording results for IEEE_1180_1990_rand
-> [value] Done for function IEEE_1180_1990_rand
-> [value] computing for function IEEE_1180_1990_rand <- IEEE_1180_1990_mkbk <- main.
+> [eva] Recording results for IEEE_1180_1990_rand
+> [eva] Done for function IEEE_1180_1990_rand
+> [eva] computing for function IEEE_1180_1990_rand <- IEEE_1180_1990_mkbk <- main.
 >   Called from tests/idct/ieee_1180_1990.c:85.
-> [value] Recording results for IEEE_1180_1990_rand
-> [value] Done for function IEEE_1180_1990_rand
-> [value] computing for function IEEE_1180_1990_rand <- IEEE_1180_1990_mkbk <- main.
->   Called from tests/idct/ieee_1180_1990.c:85.
-> [value] Recording results for IEEE_1180_1990_rand
-> [value] Done for function IEEE_1180_1990_rand
-> [value] computing for function IEEE_1180_1990_rand <- IEEE_1180_1990_mkbk <- main.
->   Called from tests/idct/ieee_1180_1990.c:85.
-> [value] Recording results for IEEE_1180_1990_rand
-> [value] Done for function IEEE_1180_1990_rand
-> [value] computing for function IEEE_1180_1990_rand <- IEEE_1180_1990_mkbk <- main.
->   Called from tests/idct/ieee_1180_1990.c:85.
-> [value] Recording results for IEEE_1180_1990_rand
-> [value] Done for function IEEE_1180_1990_rand
-560,562c626,633
-< [value] tests/idct/ieee_1180_1990.c:213: 
-<   Reusing old results for call to IEEE_1180_1990_idctf
-< [value] tests/idct/ieee_1180_1990.c:214: Reusing old results for call to idct
----
-> [value] computing for function IEEE_1180_1990_idctf <- main.
->   Called from tests/idct/ieee_1180_1990.c:213.
-> [value] Recording results for IEEE_1180_1990_idctf
-> [value] Done for function IEEE_1180_1990_idctf
-> [value] computing for function idct <- main.
->   Called from tests/idct/ieee_1180_1990.c:214.
-> [value] Recording results for idct
-> [value] Done for function idct
-592,598c663,702
-< [value] tests/idct/ieee_1180_1990.c:211: 
-<   Reusing old results for call to IEEE_1180_1990_mkbk
-< [value] tests/idct/ieee_1180_1990.c:212: 
-<   Reusing old results for call to IEEE_1180_1990_dctf
-< [value] tests/idct/ieee_1180_1990.c:213: 
-<   Reusing old results for call to IEEE_1180_1990_idctf
-< [value] tests/idct/ieee_1180_1990.c:214: Reusing old results for call to idct
----
-> [value] computing for function IEEE_1180_1990_mkbk <- main.
+> [eva] Recording results for IEEE_1180_1990_rand
+> [eva] Done for function IEEE_1180_1990_rand
+> [eva] Recording results for IEEE_1180_1990_mkbk
+> [eva] Done for function IEEE_1180_1990_mkbk
+> [eva] computing for function IEEE_1180_1990_dctf <- main.
+>   Called from tests/idct/ieee_1180_1990.c:304.
+> [eva] Recording results for IEEE_1180_1990_dctf
+> [eva] Done for function IEEE_1180_1990_dctf
+> [eva] computing for function IEEE_1180_1990_idctf <- main.
+>   Called from tests/idct/ieee_1180_1990.c:305.
+> [eva] Recording results for IEEE_1180_1990_idctf
+> [eva] Done for function IEEE_1180_1990_idctf
+> [eva] computing for function idct <- main.
+>   Called from tests/idct/ieee_1180_1990.c:306.
+> [eva] Recording results for idct
+> [eva] Done for function idct
+> [eva] computing for function IEEE_1180_1990_dctf <- main.
+>   Called from tests/idct/ieee_1180_1990.c:328.
+> [eva] Recording results for IEEE_1180_1990_dctf
+> [eva] Done for function IEEE_1180_1990_dctf
+> [eva] computing for function IEEE_1180_1990_idctf <- main.
+>   Called from tests/idct/ieee_1180_1990.c:329.
+> [eva] Recording results for IEEE_1180_1990_idctf
+> [eva] Done for function IEEE_1180_1990_idctf
+> [eva] computing for function idct <- main.
+>   Called from tests/idct/ieee_1180_1990.c:330.
+> [eva] Recording results for idct
+> [eva] Done for function idct
+> [eva] computing for function IEEE_1180_1990_mkbk <- main.
 >   Called from tests/idct/ieee_1180_1990.c:211.
-> [value] computing for function IEEE_1180_1990_rand <- IEEE_1180_1990_mkbk <- main.
+> [eva] computing for function IEEE_1180_1990_rand <- IEEE_1180_1990_mkbk <- main.
 >   Called from tests/idct/ieee_1180_1990.c:85.
-> [value] Recording results for IEEE_1180_1990_rand
-> [value] Done for function IEEE_1180_1990_rand
-> [value] computing for function IEEE_1180_1990_rand <- IEEE_1180_1990_mkbk <- main.
+> [eva] Recording results for IEEE_1180_1990_rand
+> [eva] Done for function IEEE_1180_1990_rand
+> [eva] computing for function IEEE_1180_1990_rand <- IEEE_1180_1990_mkbk <- main.
 >   Called from tests/idct/ieee_1180_1990.c:85.
-> [value] Recording results for IEEE_1180_1990_rand
-> [value] Done for function IEEE_1180_1990_rand
-> [value] computing for function IEEE_1180_1990_rand <- IEEE_1180_1990_mkbk <- main.
+> [eva] Recording results for IEEE_1180_1990_rand
+> [eva] Done for function IEEE_1180_1990_rand
+> [eva] computing for function IEEE_1180_1990_rand <- IEEE_1180_1990_mkbk <- main.
 >   Called from tests/idct/ieee_1180_1990.c:85.
-> [value] Recording results for IEEE_1180_1990_rand
-> [value] Done for function IEEE_1180_1990_rand
-> [value] computing for function IEEE_1180_1990_rand <- IEEE_1180_1990_mkbk <- main.
+> [eva] Recording results for IEEE_1180_1990_rand
+> [eva] Done for function IEEE_1180_1990_rand
+> [eva] computing for function IEEE_1180_1990_rand <- IEEE_1180_1990_mkbk <- main.
 >   Called from tests/idct/ieee_1180_1990.c:85.
-> [value] Recording results for IEEE_1180_1990_rand
-> [value] Done for function IEEE_1180_1990_rand
-> [value] computing for function IEEE_1180_1990_rand <- IEEE_1180_1990_mkbk <- main.
+> [eva] Recording results for IEEE_1180_1990_rand
+> [eva] Done for function IEEE_1180_1990_rand
+> [eva] computing for function IEEE_1180_1990_rand <- IEEE_1180_1990_mkbk <- main.
 >   Called from tests/idct/ieee_1180_1990.c:85.
-> [value] Recording results for IEEE_1180_1990_rand
-> [value] Done for function IEEE_1180_1990_rand
-> [value] tests/idct/ieee_1180_1990.c:85: 
->   Reusing old results for call to IEEE_1180_1990_rand
-> [value] tests/idct/ieee_1180_1990.c:85: 
->   Reusing old results for call to IEEE_1180_1990_rand
-> [value] Recording results for IEEE_1180_1990_mkbk
-> [value] Done for function IEEE_1180_1990_mkbk
-> [value] computing for function IEEE_1180_1990_dctf <- main.
+> [eva] Recording results for IEEE_1180_1990_rand
+> [eva] Done for function IEEE_1180_1990_rand
+> [eva] computing for function IEEE_1180_1990_rand <- IEEE_1180_1990_mkbk <- main.
+>   Called from tests/idct/ieee_1180_1990.c:85.
+> [eva] Recording results for IEEE_1180_1990_rand
+> [eva] Done for function IEEE_1180_1990_rand
+> [eva] Recording results for IEEE_1180_1990_mkbk
+> [eva] Done for function IEEE_1180_1990_mkbk
+> [eva] computing for function IEEE_1180_1990_dctf <- main.
 >   Called from tests/idct/ieee_1180_1990.c:212.
-> [value] Recording results for IEEE_1180_1990_dctf
-> [value] Done for function IEEE_1180_1990_dctf
-> [value] computing for function IEEE_1180_1990_idctf <- main.
->   Called from tests/idct/ieee_1180_1990.c:213.
-> [value] Recording results for IEEE_1180_1990_idctf
-> [value] Done for function IEEE_1180_1990_idctf
-> [value] computing for function idct <- main.
+> [eva] tests/idct/ieee_1180_1990.c:100: 
+>   Call to builtin Frama_C_sqrt for function sqrt
+> [eva] tests/idct/ieee_1180_1990.c:101: 
+>   Call to builtin Frama_C_cos for function cos
+> [eva] tests/idct/ieee_1180_1990.c:101: 
+>   Call to builtin Frama_C_cos for function cos
+> [eva] tests/idct/ieee_1180_1990.c:101: 
+>   Call to builtin Frama_C_cos for function cos
+> [eva] tests/idct/ieee_1180_1990.c:101: 
+>   Call to builtin Frama_C_cos for function cos
+> [eva] tests/idct/ieee_1180_1990.c:100: 
+>   Call to builtin Frama_C_sqrt for function sqrt
+> [eva] tests/idct/ieee_1180_1990.c:101: 
+>   Call to builtin Frama_C_cos for function cos
+588a839,1026
+> [eva] Recording results for IEEE_1180_1990_idctf
+> [eva] Done for function IEEE_1180_1990_idctf
+> [eva] computing for function idct <- main.
 >   Called from tests/idct/ieee_1180_1990.c:214.
-> [value] Recording results for idct
-> [value] Done for function idct
-628,634c732,771
-< [value] tests/idct/ieee_1180_1990.c:211: 
-<   Reusing old results for call to IEEE_1180_1990_mkbk
-< [value] tests/idct/ieee_1180_1990.c:212: 
-<   Reusing old results for call to IEEE_1180_1990_dctf
-< [value] tests/idct/ieee_1180_1990.c:213: 
-<   Reusing old results for call to IEEE_1180_1990_idctf
-< [value] tests/idct/ieee_1180_1990.c:214: Reusing old results for call to idct
----
-> [value] computing for function IEEE_1180_1990_mkbk <- main.
+> [eva] Recording results for idct
+> [eva] Done for function idct
+> [eva] computing for function IEEE_1180_1990_dctf <- main.
+>   Called from tests/idct/ieee_1180_1990.c:236.
+> [eva] Recording results for IEEE_1180_1990_dctf
+> [eva] Done for function IEEE_1180_1990_dctf
+> [eva] computing for function IEEE_1180_1990_idctf <- main.
+>   Called from tests/idct/ieee_1180_1990.c:237.
+> [eva] Recording results for IEEE_1180_1990_idctf
+> [eva] Done for function IEEE_1180_1990_idctf
+> [eva] computing for function idct <- main.
+>   Called from tests/idct/ieee_1180_1990.c:238.
+> [eva] Recording results for idct
+> [eva] Done for function idct
+> [eva] computing for function IEEE_1180_1990_mkbk <- main.
+>   Called from tests/idct/ieee_1180_1990.c:257.
+> [eva] computing for function IEEE_1180_1990_rand <- IEEE_1180_1990_mkbk <- main.
+>   Called from tests/idct/ieee_1180_1990.c:85.
+> [eva] Recording results for IEEE_1180_1990_rand
+> [eva] Done for function IEEE_1180_1990_rand
+> [eva] computing for function IEEE_1180_1990_rand <- IEEE_1180_1990_mkbk <- main.
+>   Called from tests/idct/ieee_1180_1990.c:85.
+> [eva] Recording results for IEEE_1180_1990_rand
+> [eva] Done for function IEEE_1180_1990_rand
+> [eva] computing for function IEEE_1180_1990_rand <- IEEE_1180_1990_mkbk <- main.
+>   Called from tests/idct/ieee_1180_1990.c:85.
+> [eva] Recording results for IEEE_1180_1990_rand
+> [eva] Done for function IEEE_1180_1990_rand
+> [eva] computing for function IEEE_1180_1990_rand <- IEEE_1180_1990_mkbk <- main.
+>   Called from tests/idct/ieee_1180_1990.c:85.
+> [eva] Recording results for IEEE_1180_1990_rand
+> [eva] Done for function IEEE_1180_1990_rand
+> [eva] computing for function IEEE_1180_1990_rand <- IEEE_1180_1990_mkbk <- main.
+>   Called from tests/idct/ieee_1180_1990.c:85.
+> [eva] Recording results for IEEE_1180_1990_rand
+> [eva] Done for function IEEE_1180_1990_rand
+> [eva] computing for function IEEE_1180_1990_rand <- IEEE_1180_1990_mkbk <- main.
+>   Called from tests/idct/ieee_1180_1990.c:85.
+> [eva] Recording results for IEEE_1180_1990_rand
+> [eva] Done for function IEEE_1180_1990_rand
+> [eva] Recording results for IEEE_1180_1990_mkbk
+> [eva] Done for function IEEE_1180_1990_mkbk
+> [eva] computing for function IEEE_1180_1990_dctf <- main.
+>   Called from tests/idct/ieee_1180_1990.c:258.
+> [eva] Recording results for IEEE_1180_1990_dctf
+> [eva] Done for function IEEE_1180_1990_dctf
+> [eva] computing for function IEEE_1180_1990_idctf <- main.
+>   Called from tests/idct/ieee_1180_1990.c:259.
+> [eva] Recording results for IEEE_1180_1990_idctf
+> [eva] Done for function IEEE_1180_1990_idctf
+> [eva] computing for function idct <- main.
+>   Called from tests/idct/ieee_1180_1990.c:260.
+> [eva] Recording results for idct
+> [eva] Done for function idct
+> [eva] computing for function IEEE_1180_1990_dctf <- main.
+>   Called from tests/idct/ieee_1180_1990.c:282.
+> [eva] Recording results for IEEE_1180_1990_dctf
+> [eva] Done for function IEEE_1180_1990_dctf
+> [eva] computing for function IEEE_1180_1990_idctf <- main.
+>   Called from tests/idct/ieee_1180_1990.c:283.
+> [eva] Recording results for IEEE_1180_1990_idctf
+> [eva] Done for function IEEE_1180_1990_idctf
+> [eva] computing for function idct <- main.
+>   Called from tests/idct/ieee_1180_1990.c:284.
+> [eva] Recording results for idct
+> [eva] Done for function idct
+> [eva] computing for function IEEE_1180_1990_mkbk <- main.
+>   Called from tests/idct/ieee_1180_1990.c:303.
+> [eva] computing for function IEEE_1180_1990_rand <- IEEE_1180_1990_mkbk <- main.
+>   Called from tests/idct/ieee_1180_1990.c:85.
+> [eva] Recording results for IEEE_1180_1990_rand
+> [eva] Done for function IEEE_1180_1990_rand
+> [eva] computing for function IEEE_1180_1990_rand <- IEEE_1180_1990_mkbk <- main.
+>   Called from tests/idct/ieee_1180_1990.c:85.
+> [eva] Recording results for IEEE_1180_1990_rand
+> [eva] Done for function IEEE_1180_1990_rand
+> [eva] computing for function IEEE_1180_1990_rand <- IEEE_1180_1990_mkbk <- main.
+>   Called from tests/idct/ieee_1180_1990.c:85.
+> [eva] Recording results for IEEE_1180_1990_rand
+> [eva] Done for function IEEE_1180_1990_rand
+> [eva] computing for function IEEE_1180_1990_rand <- IEEE_1180_1990_mkbk <- main.
+>   Called from tests/idct/ieee_1180_1990.c:85.
+> [eva] Recording results for IEEE_1180_1990_rand
+> [eva] Done for function IEEE_1180_1990_rand
+> [eva] computing for function IEEE_1180_1990_rand <- IEEE_1180_1990_mkbk <- main.
+>   Called from tests/idct/ieee_1180_1990.c:85.
+> [eva] Recording results for IEEE_1180_1990_rand
+> [eva] Done for function IEEE_1180_1990_rand
+> [eva] computing for function IEEE_1180_1990_rand <- IEEE_1180_1990_mkbk <- main.
+>   Called from tests/idct/ieee_1180_1990.c:85.
+> [eva] Recording results for IEEE_1180_1990_rand
+> [eva] Done for function IEEE_1180_1990_rand
+> [eva] Recording results for IEEE_1180_1990_mkbk
+> [eva] Done for function IEEE_1180_1990_mkbk
+> [eva] computing for function IEEE_1180_1990_dctf <- main.
+>   Called from tests/idct/ieee_1180_1990.c:304.
+> [eva] Recording results for IEEE_1180_1990_dctf
+> [eva] Done for function IEEE_1180_1990_dctf
+> [eva] computing for function IEEE_1180_1990_idctf <- main.
+>   Called from tests/idct/ieee_1180_1990.c:305.
+> [eva] Recording results for IEEE_1180_1990_idctf
+> [eva] Done for function IEEE_1180_1990_idctf
+> [eva] computing for function idct <- main.
+>   Called from tests/idct/ieee_1180_1990.c:306.
+> [eva] Recording results for idct
+> [eva] Done for function idct
+> [eva] computing for function IEEE_1180_1990_dctf <- main.
+>   Called from tests/idct/ieee_1180_1990.c:328.
+> [eva] Recording results for IEEE_1180_1990_dctf
+> [eva] Done for function IEEE_1180_1990_dctf
+> [eva] computing for function IEEE_1180_1990_idctf <- main.
+>   Called from tests/idct/ieee_1180_1990.c:329.
+> [eva] Recording results for IEEE_1180_1990_idctf
+> [eva] Done for function IEEE_1180_1990_idctf
+> [eva] computing for function idct <- main.
+>   Called from tests/idct/ieee_1180_1990.c:330.
+> [eva] Recording results for idct
+> [eva] Done for function idct
+> [eva] computing for function IEEE_1180_1990_mkbk <- main.
 >   Called from tests/idct/ieee_1180_1990.c:211.
-> [value] computing for function IEEE_1180_1990_rand <- IEEE_1180_1990_mkbk <- main.
+> [eva] computing for function IEEE_1180_1990_rand <- IEEE_1180_1990_mkbk <- main.
 >   Called from tests/idct/ieee_1180_1990.c:85.
-> [value] Recording results for IEEE_1180_1990_rand
-> [value] Done for function IEEE_1180_1990_rand
-> [value] computing for function IEEE_1180_1990_rand <- IEEE_1180_1990_mkbk <- main.
+> [eva] Recording results for IEEE_1180_1990_rand
+> [eva] Done for function IEEE_1180_1990_rand
+> [eva] computing for function IEEE_1180_1990_rand <- IEEE_1180_1990_mkbk <- main.
 >   Called from tests/idct/ieee_1180_1990.c:85.
-> [value] Recording results for IEEE_1180_1990_rand
-> [value] Done for function IEEE_1180_1990_rand
-> [value] computing for function IEEE_1180_1990_rand <- IEEE_1180_1990_mkbk <- main.
+> [eva] Recording results for IEEE_1180_1990_rand
+> [eva] Done for function IEEE_1180_1990_rand
+> [eva] computing for function IEEE_1180_1990_rand <- IEEE_1180_1990_mkbk <- main.
 >   Called from tests/idct/ieee_1180_1990.c:85.
-> [value] Recording results for IEEE_1180_1990_rand
-> [value] Done for function IEEE_1180_1990_rand
-> [value] computing for function IEEE_1180_1990_rand <- IEEE_1180_1990_mkbk <- main.
+> [eva] Recording results for IEEE_1180_1990_rand
+> [eva] Done for function IEEE_1180_1990_rand
+> [eva] computing for function IEEE_1180_1990_rand <- IEEE_1180_1990_mkbk <- main.
 >   Called from tests/idct/ieee_1180_1990.c:85.
-> [value] Recording results for IEEE_1180_1990_rand
-> [value] Done for function IEEE_1180_1990_rand
-> [value] computing for function IEEE_1180_1990_rand <- IEEE_1180_1990_mkbk <- main.
+> [eva] Recording results for IEEE_1180_1990_rand
+> [eva] Done for function IEEE_1180_1990_rand
+> [eva] computing for function IEEE_1180_1990_rand <- IEEE_1180_1990_mkbk <- main.
 >   Called from tests/idct/ieee_1180_1990.c:85.
-> [value] Recording results for IEEE_1180_1990_rand
-> [value] Done for function IEEE_1180_1990_rand
-> [value] tests/idct/ieee_1180_1990.c:85: 
->   Reusing old results for call to IEEE_1180_1990_rand
-> [value] tests/idct/ieee_1180_1990.c:85: 
->   Reusing old results for call to IEEE_1180_1990_rand
-> [value] Recording results for IEEE_1180_1990_mkbk
-> [value] Done for function IEEE_1180_1990_mkbk
-> [value] computing for function IEEE_1180_1990_dctf <- main.
+> [eva] Recording results for IEEE_1180_1990_rand
+> [eva] Done for function IEEE_1180_1990_rand
+> [eva] computing for function IEEE_1180_1990_rand <- IEEE_1180_1990_mkbk <- main.
+>   Called from tests/idct/ieee_1180_1990.c:85.
+> [eva] Recording results for IEEE_1180_1990_rand
+> [eva] Done for function IEEE_1180_1990_rand
+> [eva] Recording results for IEEE_1180_1990_mkbk
+> [eva] Done for function IEEE_1180_1990_mkbk
+> [eva] computing for function IEEE_1180_1990_dctf <- main.
 >   Called from tests/idct/ieee_1180_1990.c:212.
-> [value] Recording results for IEEE_1180_1990_dctf
-> [value] Done for function IEEE_1180_1990_dctf
-> [value] computing for function IEEE_1180_1990_idctf <- main.
+> [eva] tests/idct/ieee_1180_1990.c:100: 
+>   Call to builtin Frama_C_sqrt for function sqrt
+> [eva] tests/idct/ieee_1180_1990.c:101: 
+>   Call to builtin Frama_C_cos for function cos
+> [eva] tests/idct/ieee_1180_1990.c:101: 
+>   Call to builtin Frama_C_cos for function cos
+> [eva] tests/idct/ieee_1180_1990.c:101: 
+>   Call to builtin Frama_C_cos for function cos
+> [eva] tests/idct/ieee_1180_1990.c:101: 
+>   Call to builtin Frama_C_cos for function cos
+> [eva] tests/idct/ieee_1180_1990.c:100: 
+>   Call to builtin Frama_C_sqrt for function sqrt
+> [eva] tests/idct/ieee_1180_1990.c:101: 
+>   Call to builtin Frama_C_cos for function cos
+> [eva] tests/idct/ieee_1180_1990.c:100: 
+>   Call to builtin Frama_C_sqrt for function sqrt
+> [eva] tests/idct/ieee_1180_1990.c:101: 
+>   Call to builtin Frama_C_cos for function cos
+> [eva] Recording results for IEEE_1180_1990_dctf
+> [eva] Done for function IEEE_1180_1990_dctf
+> [eva] computing for function IEEE_1180_1990_idctf <- main.
 >   Called from tests/idct/ieee_1180_1990.c:213.
-> [value] Recording results for IEEE_1180_1990_idctf
-> [value] Done for function IEEE_1180_1990_idctf
-> [value] computing for function idct <- main.
->   Called from tests/idct/ieee_1180_1990.c:214.
-> [value] Recording results for idct
-> [value] Done for function idct
-664,670c801,840
-< [value] tests/idct/ieee_1180_1990.c:211: 
-<   Reusing old results for call to IEEE_1180_1990_mkbk
-< [value] tests/idct/ieee_1180_1990.c:212: 
-<   Reusing old results for call to IEEE_1180_1990_dctf
-< [value] tests/idct/ieee_1180_1990.c:213: 
-<   Reusing old results for call to IEEE_1180_1990_idctf
-< [value] tests/idct/ieee_1180_1990.c:214: Reusing old results for call to idct
+> [eva] tests/idct/ieee_1180_1990.c:140: 
+>   Call to builtin Frama_C_sqrt for function sqrt
+> [eva] tests/idct/ieee_1180_1990.c:141: 
+>   Call to builtin Frama_C_cos for function cos
+> [eva] tests/idct/ieee_1180_1990.c:141: 
+>   Call to builtin Frama_C_cos for function cos
+> [eva] tests/idct/ieee_1180_1990.c:141: 
+>   Call to builtin Frama_C_cos for function cos
+> [eva] tests/idct/ieee_1180_1990.c:141: 
+>   Call to builtin Frama_C_cos for function cos
+> [eva] tests/idct/ieee_1180_1990.c:140: 
+>   Call to builtin Frama_C_sqrt for function sqrt
+> [eva] tests/idct/ieee_1180_1990.c:141: 
+>   Call to builtin Frama_C_cos for function cos
+595,597c1033,1036
+< [eva] tests/idct/ieee_1180_1990.c:214: Reusing old results for call to idct
+< [eva] tests/idct/ieee_1180_1990.c:235: Warning: 
+<   2's complement assumed for overflow
 ---
-> [value] computing for function IEEE_1180_1990_mkbk <- main.
->   Called from tests/idct/ieee_1180_1990.c:211.
-> [value] computing for function IEEE_1180_1990_rand <- IEEE_1180_1990_mkbk <- main.
->   Called from tests/idct/ieee_1180_1990.c:85.
-> [value] Recording results for IEEE_1180_1990_rand
-> [value] Done for function IEEE_1180_1990_rand
-> [value] computing for function IEEE_1180_1990_rand <- IEEE_1180_1990_mkbk <- main.
->   Called from tests/idct/ieee_1180_1990.c:85.
-> [value] Recording results for IEEE_1180_1990_rand
-> [value] Done for function IEEE_1180_1990_rand
-> [value] computing for function IEEE_1180_1990_rand <- IEEE_1180_1990_mkbk <- main.
->   Called from tests/idct/ieee_1180_1990.c:85.
-> [value] Recording results for IEEE_1180_1990_rand
-> [value] Done for function IEEE_1180_1990_rand
-> [value] computing for function IEEE_1180_1990_rand <- IEEE_1180_1990_mkbk <- main.
->   Called from tests/idct/ieee_1180_1990.c:85.
-> [value] Recording results for IEEE_1180_1990_rand
-> [value] Done for function IEEE_1180_1990_rand
-> [value] computing for function IEEE_1180_1990_rand <- IEEE_1180_1990_mkbk <- main.
->   Called from tests/idct/ieee_1180_1990.c:85.
-> [value] Recording results for IEEE_1180_1990_rand
-> [value] Done for function IEEE_1180_1990_rand
-> [value] tests/idct/ieee_1180_1990.c:85: 
->   Reusing old results for call to IEEE_1180_1990_rand
-> [value] tests/idct/ieee_1180_1990.c:85: 
->   Reusing old results for call to IEEE_1180_1990_rand
-> [value] Recording results for IEEE_1180_1990_mkbk
-> [value] Done for function IEEE_1180_1990_mkbk
-> [value] computing for function IEEE_1180_1990_dctf <- main.
->   Called from tests/idct/ieee_1180_1990.c:212.
-> [value] Recording results for IEEE_1180_1990_dctf
-> [value] Done for function IEEE_1180_1990_dctf
-> [value] computing for function IEEE_1180_1990_idctf <- main.
->   Called from tests/idct/ieee_1180_1990.c:213.
-> [value] Recording results for IEEE_1180_1990_idctf
-> [value] Done for function IEEE_1180_1990_idctf
-> [value] computing for function idct <- main.
+> [eva] computing for function idct <- main.
 >   Called from tests/idct/ieee_1180_1990.c:214.
-> [value] Recording results for idct
-> [value] Done for function idct
-700,706c870,909
-< [value] tests/idct/ieee_1180_1990.c:211: 
-<   Reusing old results for call to IEEE_1180_1990_mkbk
-< [value] tests/idct/ieee_1180_1990.c:212: 
-<   Reusing old results for call to IEEE_1180_1990_dctf
-< [value] tests/idct/ieee_1180_1990.c:213: 
+> [eva] Recording results for idct
+> [eva] Done for function idct
+602,604c1041,1048
+< [eva] tests/idct/ieee_1180_1990.c:237: 
 <   Reusing old results for call to IEEE_1180_1990_idctf
-< [value] tests/idct/ieee_1180_1990.c:214: Reusing old results for call to idct
+< [eva] tests/idct/ieee_1180_1990.c:238: Reusing old results for call to idct
 ---
-> [value] computing for function IEEE_1180_1990_mkbk <- main.
->   Called from tests/idct/ieee_1180_1990.c:211.
-> [value] computing for function IEEE_1180_1990_rand <- IEEE_1180_1990_mkbk <- main.
->   Called from tests/idct/ieee_1180_1990.c:85.
-> [value] Recording results for IEEE_1180_1990_rand
-> [value] Done for function IEEE_1180_1990_rand
-> [value] computing for function IEEE_1180_1990_rand <- IEEE_1180_1990_mkbk <- main.
->   Called from tests/idct/ieee_1180_1990.c:85.
-> [value] Recording results for IEEE_1180_1990_rand
-> [value] Done for function IEEE_1180_1990_rand
-> [value] computing for function IEEE_1180_1990_rand <- IEEE_1180_1990_mkbk <- main.
->   Called from tests/idct/ieee_1180_1990.c:85.
-> [value] Recording results for IEEE_1180_1990_rand
-> [value] Done for function IEEE_1180_1990_rand
-> [value] computing for function IEEE_1180_1990_rand <- IEEE_1180_1990_mkbk <- main.
->   Called from tests/idct/ieee_1180_1990.c:85.
-> [value] Recording results for IEEE_1180_1990_rand
-> [value] Done for function IEEE_1180_1990_rand
-> [value] computing for function IEEE_1180_1990_rand <- IEEE_1180_1990_mkbk <- main.
->   Called from tests/idct/ieee_1180_1990.c:85.
-> [value] Recording results for IEEE_1180_1990_rand
-> [value] Done for function IEEE_1180_1990_rand
-> [value] tests/idct/ieee_1180_1990.c:85: 
->   Reusing old results for call to IEEE_1180_1990_rand
-> [value] tests/idct/ieee_1180_1990.c:85: 
->   Reusing old results for call to IEEE_1180_1990_rand
-> [value] Recording results for IEEE_1180_1990_mkbk
-> [value] Done for function IEEE_1180_1990_mkbk
-> [value] computing for function IEEE_1180_1990_dctf <- main.
->   Called from tests/idct/ieee_1180_1990.c:212.
-> [value] Recording results for IEEE_1180_1990_dctf
-> [value] Done for function IEEE_1180_1990_dctf
-> [value] computing for function IEEE_1180_1990_idctf <- main.
->   Called from tests/idct/ieee_1180_1990.c:213.
-> [value] Recording results for IEEE_1180_1990_idctf
-> [value] Done for function IEEE_1180_1990_idctf
-> [value] computing for function idct <- main.
->   Called from tests/idct/ieee_1180_1990.c:214.
-> [value] Recording results for idct
-> [value] Done for function idct
-736,742c939,978
-< [value] tests/idct/ieee_1180_1990.c:211: 
-<   Reusing old results for call to IEEE_1180_1990_mkbk
-< [value] tests/idct/ieee_1180_1990.c:212: 
+> [eva] computing for function IEEE_1180_1990_idctf <- main.
+>   Called from tests/idct/ieee_1180_1990.c:237.
+> [eva] Recording results for IEEE_1180_1990_idctf
+> [eva] Done for function IEEE_1180_1990_idctf
+> [eva] computing for function idct <- main.
+>   Called from tests/idct/ieee_1180_1990.c:238.
+> [eva] Recording results for idct
+> [eva] Done for function idct
+607,634c1051,1100
+< [eva] tests/idct/ieee_1180_1990.c:85: 
+<   Reusing old results for call to IEEE_1180_1990_rand
+< [eva] tests/idct/ieee_1180_1990.c:85: 
+<   Reusing old results for call to IEEE_1180_1990_rand
+< [eva] tests/idct/ieee_1180_1990.c:85: 
+<   Reusing old results for call to IEEE_1180_1990_rand
+< [eva] tests/idct/ieee_1180_1990.c:85: 
+<   Reusing old results for call to IEEE_1180_1990_rand
+< [eva] tests/idct/ieee_1180_1990.c:85: 
+<   Reusing old results for call to IEEE_1180_1990_rand
+< [eva] tests/idct/ieee_1180_1990.c:85: 
+<   Reusing old results for call to IEEE_1180_1990_rand
+< [eva] tests/idct/ieee_1180_1990.c:85: 
+<   Reusing old results for call to IEEE_1180_1990_rand
+< [eva] Recording results for IEEE_1180_1990_mkbk
+< [eva] Done for function IEEE_1180_1990_mkbk
+< [eva] tests/idct/ieee_1180_1990.c:258: 
 <   Reusing old results for call to IEEE_1180_1990_dctf
-< [value] tests/idct/ieee_1180_1990.c:213: 
+< [eva] tests/idct/ieee_1180_1990.c:259: 
 <   Reusing old results for call to IEEE_1180_1990_idctf
-< [value] tests/idct/ieee_1180_1990.c:214: Reusing old results for call to idct
+< [eva] tests/idct/ieee_1180_1990.c:260: Reusing old results for call to idct
+< [eva] tests/idct/ieee_1180_1990.c:281: Warning: 
+<   2's complement assumed for overflow
+< [eva] tests/idct/ieee_1180_1990.c:282: 
+<   Reusing old results for call to IEEE_1180_1990_dctf
+< [eva] tests/idct/ieee_1180_1990.c:283: 
+<   Reusing old results for call to IEEE_1180_1990_idctf
+< [eva] tests/idct/ieee_1180_1990.c:284: Reusing old results for call to idct
 ---
-> [value] computing for function IEEE_1180_1990_mkbk <- main.
->   Called from tests/idct/ieee_1180_1990.c:211.
-> [value] computing for function IEEE_1180_1990_rand <- IEEE_1180_1990_mkbk <- main.
+> [eva] computing for function IEEE_1180_1990_rand <- IEEE_1180_1990_mkbk <- main.
 >   Called from tests/idct/ieee_1180_1990.c:85.
-> [value] Recording results for IEEE_1180_1990_rand
-> [value] Done for function IEEE_1180_1990_rand
-> [value] computing for function IEEE_1180_1990_rand <- IEEE_1180_1990_mkbk <- main.
+> [eva] Recording results for IEEE_1180_1990_rand
+> [eva] Done for function IEEE_1180_1990_rand
+> [eva] computing for function IEEE_1180_1990_rand <- IEEE_1180_1990_mkbk <- main.
 >   Called from tests/idct/ieee_1180_1990.c:85.
-> [value] Recording results for IEEE_1180_1990_rand
-> [value] Done for function IEEE_1180_1990_rand
-> [value] computing for function IEEE_1180_1990_rand <- IEEE_1180_1990_mkbk <- main.
+> [eva] Recording results for IEEE_1180_1990_rand
+> [eva] Done for function IEEE_1180_1990_rand
+> [eva] computing for function IEEE_1180_1990_rand <- IEEE_1180_1990_mkbk <- main.
 >   Called from tests/idct/ieee_1180_1990.c:85.
-> [value] Recording results for IEEE_1180_1990_rand
-> [value] Done for function IEEE_1180_1990_rand
-> [value] computing for function IEEE_1180_1990_rand <- IEEE_1180_1990_mkbk <- main.
+> [eva] Recording results for IEEE_1180_1990_rand
+> [eva] Done for function IEEE_1180_1990_rand
+> [eva] computing for function IEEE_1180_1990_rand <- IEEE_1180_1990_mkbk <- main.
 >   Called from tests/idct/ieee_1180_1990.c:85.
-> [value] Recording results for IEEE_1180_1990_rand
-> [value] Done for function IEEE_1180_1990_rand
-> [value] computing for function IEEE_1180_1990_rand <- IEEE_1180_1990_mkbk <- main.
+> [eva] Recording results for IEEE_1180_1990_rand
+> [eva] Done for function IEEE_1180_1990_rand
+> [eva] computing for function IEEE_1180_1990_rand <- IEEE_1180_1990_mkbk <- main.
 >   Called from tests/idct/ieee_1180_1990.c:85.
-> [value] Recording results for IEEE_1180_1990_rand
-> [value] Done for function IEEE_1180_1990_rand
-> [value] tests/idct/ieee_1180_1990.c:85: 
->   Reusing old results for call to IEEE_1180_1990_rand
-> [value] tests/idct/ieee_1180_1990.c:85: 
->   Reusing old results for call to IEEE_1180_1990_rand
-> [value] Recording results for IEEE_1180_1990_mkbk
-> [value] Done for function IEEE_1180_1990_mkbk
-> [value] computing for function IEEE_1180_1990_dctf <- main.
->   Called from tests/idct/ieee_1180_1990.c:212.
-> [value] Recording results for IEEE_1180_1990_dctf
-> [value] Done for function IEEE_1180_1990_dctf
-> [value] computing for function IEEE_1180_1990_idctf <- main.
+> [eva] Recording results for IEEE_1180_1990_rand
+> [eva] Done for function IEEE_1180_1990_rand
+> [eva] computing for function IEEE_1180_1990_rand <- IEEE_1180_1990_mkbk <- main.
+>   Called from tests/idct/ieee_1180_1990.c:85.
+> [eva] Recording results for IEEE_1180_1990_rand
+> [eva] Done for function IEEE_1180_1990_rand
+> [eva] Recording results for IEEE_1180_1990_mkbk
+> [eva] Done for function IEEE_1180_1990_mkbk
+> [eva] computing for function IEEE_1180_1990_dctf <- main.
+>   Called from tests/idct/ieee_1180_1990.c:258.
+> [eva] Recording results for IEEE_1180_1990_dctf
+> [eva] Done for function IEEE_1180_1990_dctf
+> [eva] computing for function IEEE_1180_1990_idctf <- main.
+>   Called from tests/idct/ieee_1180_1990.c:259.
+> [eva] Recording results for IEEE_1180_1990_idctf
+> [eva] Done for function IEEE_1180_1990_idctf
+> [eva] computing for function idct <- main.
+>   Called from tests/idct/ieee_1180_1990.c:260.
+> [eva] Recording results for idct
+> [eva] Done for function idct
+> [eva] computing for function IEEE_1180_1990_dctf <- main.
+>   Called from tests/idct/ieee_1180_1990.c:282.
+> [eva] Recording results for IEEE_1180_1990_dctf
+> [eva] Done for function IEEE_1180_1990_dctf
+> [eva] computing for function IEEE_1180_1990_idctf <- main.
+>   Called from tests/idct/ieee_1180_1990.c:283.
+> [eva] Recording results for IEEE_1180_1990_idctf
+> [eva] Done for function IEEE_1180_1990_idctf
+> [eva] computing for function idct <- main.
+>   Called from tests/idct/ieee_1180_1990.c:284.
+> [eva] Recording results for idct
+> [eva] Done for function idct
+637,664c1103,1152
+< [eva] tests/idct/ieee_1180_1990.c:85: 
+<   Reusing old results for call to IEEE_1180_1990_rand
+< [eva] tests/idct/ieee_1180_1990.c:85: 
+<   Reusing old results for call to IEEE_1180_1990_rand
+< [eva] tests/idct/ieee_1180_1990.c:85: 
+<   Reusing old results for call to IEEE_1180_1990_rand
+< [eva] tests/idct/ieee_1180_1990.c:85: 
+<   Reusing old results for call to IEEE_1180_1990_rand
+< [eva] tests/idct/ieee_1180_1990.c:85: 
+<   Reusing old results for call to IEEE_1180_1990_rand
+< [eva] tests/idct/ieee_1180_1990.c:85: 
+<   Reusing old results for call to IEEE_1180_1990_rand
+< [eva] tests/idct/ieee_1180_1990.c:85: 
+<   Reusing old results for call to IEEE_1180_1990_rand
+< [eva] Recording results for IEEE_1180_1990_mkbk
+< [eva] Done for function IEEE_1180_1990_mkbk
+< [eva] tests/idct/ieee_1180_1990.c:304: 
+<   Reusing old results for call to IEEE_1180_1990_dctf
+< [eva] tests/idct/ieee_1180_1990.c:305: 
+<   Reusing old results for call to IEEE_1180_1990_idctf
+< [eva] tests/idct/ieee_1180_1990.c:306: Reusing old results for call to idct
+< [eva] tests/idct/ieee_1180_1990.c:327: Warning: 
+<   2's complement assumed for overflow
+< [eva] tests/idct/ieee_1180_1990.c:328: 
+<   Reusing old results for call to IEEE_1180_1990_dctf
+< [eva] tests/idct/ieee_1180_1990.c:329: 
+<   Reusing old results for call to IEEE_1180_1990_idctf
+< [eva] tests/idct/ieee_1180_1990.c:330: Reusing old results for call to idct
+---
+> [eva] computing for function IEEE_1180_1990_rand <- IEEE_1180_1990_mkbk <- main.
+>   Called from tests/idct/ieee_1180_1990.c:85.
+> [eva] Recording results for IEEE_1180_1990_rand
+> [eva] Done for function IEEE_1180_1990_rand
+> [eva] computing for function IEEE_1180_1990_rand <- IEEE_1180_1990_mkbk <- main.
+>   Called from tests/idct/ieee_1180_1990.c:85.
+> [eva] Recording results for IEEE_1180_1990_rand
+> [eva] Done for function IEEE_1180_1990_rand
+> [eva] computing for function IEEE_1180_1990_rand <- IEEE_1180_1990_mkbk <- main.
+>   Called from tests/idct/ieee_1180_1990.c:85.
+> [eva] Recording results for IEEE_1180_1990_rand
+> [eva] Done for function IEEE_1180_1990_rand
+> [eva] computing for function IEEE_1180_1990_rand <- IEEE_1180_1990_mkbk <- main.
+>   Called from tests/idct/ieee_1180_1990.c:85.
+> [eva] Recording results for IEEE_1180_1990_rand
+> [eva] Done for function IEEE_1180_1990_rand
+> [eva] computing for function IEEE_1180_1990_rand <- IEEE_1180_1990_mkbk <- main.
+>   Called from tests/idct/ieee_1180_1990.c:85.
+> [eva] Recording results for IEEE_1180_1990_rand
+> [eva] Done for function IEEE_1180_1990_rand
+> [eva] computing for function IEEE_1180_1990_rand <- IEEE_1180_1990_mkbk <- main.
+>   Called from tests/idct/ieee_1180_1990.c:85.
+> [eva] Recording results for IEEE_1180_1990_rand
+> [eva] Done for function IEEE_1180_1990_rand
+> [eva] Recording results for IEEE_1180_1990_mkbk
+> [eva] Done for function IEEE_1180_1990_mkbk
+> [eva] computing for function IEEE_1180_1990_dctf <- main.
+>   Called from tests/idct/ieee_1180_1990.c:304.
+> [eva] Recording results for IEEE_1180_1990_dctf
+> [eva] Done for function IEEE_1180_1990_dctf
+> [eva] computing for function IEEE_1180_1990_idctf <- main.
+>   Called from tests/idct/ieee_1180_1990.c:305.
+> [eva] Recording results for IEEE_1180_1990_idctf
+> [eva] Done for function IEEE_1180_1990_idctf
+> [eva] computing for function idct <- main.
+>   Called from tests/idct/ieee_1180_1990.c:306.
+> [eva] Recording results for idct
+> [eva] Done for function idct
+> [eva] computing for function IEEE_1180_1990_dctf <- main.
+>   Called from tests/idct/ieee_1180_1990.c:328.
+> [eva] Recording results for IEEE_1180_1990_dctf
+> [eva] Done for function IEEE_1180_1990_dctf
+> [eva] computing for function IEEE_1180_1990_idctf <- main.
+>   Called from tests/idct/ieee_1180_1990.c:329.
+> [eva] Recording results for IEEE_1180_1990_idctf
+> [eva] Done for function IEEE_1180_1990_idctf
+> [eva] computing for function idct <- main.
+>   Called from tests/idct/ieee_1180_1990.c:330.
+> [eva] Recording results for idct
+> [eva] Done for function idct
+667,680c1155,1178
+< [eva] tests/idct/ieee_1180_1990.c:85: 
+<   Reusing old results for call to IEEE_1180_1990_rand
+< [eva] tests/idct/ieee_1180_1990.c:85: 
+<   Reusing old results for call to IEEE_1180_1990_rand
+< [eva] tests/idct/ieee_1180_1990.c:85: 
+<   Reusing old results for call to IEEE_1180_1990_rand
+< [eva] tests/idct/ieee_1180_1990.c:85: 
+<   Reusing old results for call to IEEE_1180_1990_rand
+< [eva] tests/idct/ieee_1180_1990.c:85: 
+<   Reusing old results for call to IEEE_1180_1990_rand
+< [eva] tests/idct/ieee_1180_1990.c:85: 
+<   Reusing old results for call to IEEE_1180_1990_rand
+< [eva] tests/idct/ieee_1180_1990.c:85: 
+<   Reusing old results for call to IEEE_1180_1990_rand
+---
+> [eva] computing for function IEEE_1180_1990_rand <- IEEE_1180_1990_mkbk <- main.
+>   Called from tests/idct/ieee_1180_1990.c:85.
+> [eva] Recording results for IEEE_1180_1990_rand
+> [eva] Done for function IEEE_1180_1990_rand
+> [eva] computing for function IEEE_1180_1990_rand <- IEEE_1180_1990_mkbk <- main.
+>   Called from tests/idct/ieee_1180_1990.c:85.
+> [eva] Recording results for IEEE_1180_1990_rand
+> [eva] Done for function IEEE_1180_1990_rand
+> [eva] computing for function IEEE_1180_1990_rand <- IEEE_1180_1990_mkbk <- main.
+>   Called from tests/idct/ieee_1180_1990.c:85.
+> [eva] Recording results for IEEE_1180_1990_rand
+> [eva] Done for function IEEE_1180_1990_rand
+> [eva] computing for function IEEE_1180_1990_rand <- IEEE_1180_1990_mkbk <- main.
+>   Called from tests/idct/ieee_1180_1990.c:85.
+> [eva] Recording results for IEEE_1180_1990_rand
+> [eva] Done for function IEEE_1180_1990_rand
+> [eva] computing for function IEEE_1180_1990_rand <- IEEE_1180_1990_mkbk <- main.
+>   Called from tests/idct/ieee_1180_1990.c:85.
+> [eva] Recording results for IEEE_1180_1990_rand
+> [eva] Done for function IEEE_1180_1990_rand
+> [eva] computing for function IEEE_1180_1990_rand <- IEEE_1180_1990_mkbk <- main.
+>   Called from tests/idct/ieee_1180_1990.c:85.
+> [eva] Recording results for IEEE_1180_1990_rand
+> [eva] Done for function IEEE_1180_1990_rand
+702a1201,1384
+> [eva] Recording results for IEEE_1180_1990_dctf
+> [eva] Done for function IEEE_1180_1990_dctf
+> [eva] computing for function IEEE_1180_1990_idctf <- main.
 >   Called from tests/idct/ieee_1180_1990.c:213.
-> [value] Recording results for IEEE_1180_1990_idctf
-> [value] Done for function IEEE_1180_1990_idctf
-> [value] computing for function idct <- main.
+> [eva] tests/idct/ieee_1180_1990.c:140: 
+>   Call to builtin Frama_C_sqrt for function sqrt
+> [eva] tests/idct/ieee_1180_1990.c:141: 
+>   Call to builtin Frama_C_cos for function cos
+> [eva] tests/idct/ieee_1180_1990.c:141: 
+>   Call to builtin Frama_C_cos for function cos
+> [eva] tests/idct/ieee_1180_1990.c:141: 
+>   Call to builtin Frama_C_cos for function cos
+> [eva] tests/idct/ieee_1180_1990.c:141: 
+>   Call to builtin Frama_C_cos for function cos
+> [eva] tests/idct/ieee_1180_1990.c:140: 
+>   Call to builtin Frama_C_sqrt for function sqrt
+> [eva] tests/idct/ieee_1180_1990.c:141: 
+>   Call to builtin Frama_C_cos for function cos
+> [eva] tests/idct/ieee_1180_1990.c:140: 
+>   Call to builtin Frama_C_sqrt for function sqrt
+> [eva] tests/idct/ieee_1180_1990.c:141: 
+>   Call to builtin Frama_C_cos for function cos
+> [eva] Recording results for IEEE_1180_1990_idctf
+> [eva] Done for function IEEE_1180_1990_idctf
+> [eva] computing for function idct <- main.
 >   Called from tests/idct/ieee_1180_1990.c:214.
-> [value] Recording results for idct
-> [value] Done for function idct
+> [eva] Recording results for idct
+> [eva] Done for function idct
+> [eva] computing for function IEEE_1180_1990_dctf <- main.
+>   Called from tests/idct/ieee_1180_1990.c:236.
+> [eva] Recording results for IEEE_1180_1990_dctf
+> [eva] Done for function IEEE_1180_1990_dctf
+> [eva] computing for function IEEE_1180_1990_idctf <- main.
+>   Called from tests/idct/ieee_1180_1990.c:237.
+> [eva] Recording results for IEEE_1180_1990_idctf
+> [eva] Done for function IEEE_1180_1990_idctf
+> [eva] computing for function idct <- main.
+>   Called from tests/idct/ieee_1180_1990.c:238.
+> [eva] Recording results for idct
+> [eva] Done for function idct
+> [eva] computing for function IEEE_1180_1990_mkbk <- main.
+>   Called from tests/idct/ieee_1180_1990.c:257.
+> [eva] computing for function IEEE_1180_1990_rand <- IEEE_1180_1990_mkbk <- main.
+>   Called from tests/idct/ieee_1180_1990.c:85.
+> [eva] Recording results for IEEE_1180_1990_rand
+> [eva] Done for function IEEE_1180_1990_rand
+> [eva] computing for function IEEE_1180_1990_rand <- IEEE_1180_1990_mkbk <- main.
+>   Called from tests/idct/ieee_1180_1990.c:85.
+> [eva] Recording results for IEEE_1180_1990_rand
+> [eva] Done for function IEEE_1180_1990_rand
+> [eva] computing for function IEEE_1180_1990_rand <- IEEE_1180_1990_mkbk <- main.
+>   Called from tests/idct/ieee_1180_1990.c:85.
+> [eva] Recording results for IEEE_1180_1990_rand
+> [eva] Done for function IEEE_1180_1990_rand
+> [eva] computing for function IEEE_1180_1990_rand <- IEEE_1180_1990_mkbk <- main.
+>   Called from tests/idct/ieee_1180_1990.c:85.
+> [eva] Recording results for IEEE_1180_1990_rand
+> [eva] Done for function IEEE_1180_1990_rand
+> [eva] computing for function IEEE_1180_1990_rand <- IEEE_1180_1990_mkbk <- main.
+>   Called from tests/idct/ieee_1180_1990.c:85.
+> [eva] Recording results for IEEE_1180_1990_rand
+> [eva] Done for function IEEE_1180_1990_rand
+> [eva] computing for function IEEE_1180_1990_rand <- IEEE_1180_1990_mkbk <- main.
+>   Called from tests/idct/ieee_1180_1990.c:85.
+> [eva] Recording results for IEEE_1180_1990_rand
+> [eva] Done for function IEEE_1180_1990_rand
+> [eva] Recording results for IEEE_1180_1990_mkbk
+> [eva] Done for function IEEE_1180_1990_mkbk
+> [eva] computing for function IEEE_1180_1990_dctf <- main.
+>   Called from tests/idct/ieee_1180_1990.c:258.
+> [eva] Recording results for IEEE_1180_1990_dctf
+> [eva] Done for function IEEE_1180_1990_dctf
+> [eva] computing for function IEEE_1180_1990_idctf <- main.
+>   Called from tests/idct/ieee_1180_1990.c:259.
+> [eva] Recording results for IEEE_1180_1990_idctf
+> [eva] Done for function IEEE_1180_1990_idctf
+> [eva] computing for function idct <- main.
+>   Called from tests/idct/ieee_1180_1990.c:260.
+> [eva] Recording results for idct
+> [eva] Done for function idct
+> [eva] computing for function IEEE_1180_1990_dctf <- main.
+>   Called from tests/idct/ieee_1180_1990.c:282.
+> [eva] Recording results for IEEE_1180_1990_dctf
+> [eva] Done for function IEEE_1180_1990_dctf
+> [eva] computing for function IEEE_1180_1990_idctf <- main.
+>   Called from tests/idct/ieee_1180_1990.c:283.
+> [eva] Recording results for IEEE_1180_1990_idctf
+> [eva] Done for function IEEE_1180_1990_idctf
+> [eva] computing for function idct <- main.
+>   Called from tests/idct/ieee_1180_1990.c:284.
+> [eva] Recording results for idct
+> [eva] Done for function idct
+> [eva] computing for function IEEE_1180_1990_mkbk <- main.
+>   Called from tests/idct/ieee_1180_1990.c:303.
+> [eva] computing for function IEEE_1180_1990_rand <- IEEE_1180_1990_mkbk <- main.
+>   Called from tests/idct/ieee_1180_1990.c:85.
+> [eva] Recording results for IEEE_1180_1990_rand
+> [eva] Done for function IEEE_1180_1990_rand
+> [eva] computing for function IEEE_1180_1990_rand <- IEEE_1180_1990_mkbk <- main.
+>   Called from tests/idct/ieee_1180_1990.c:85.
+> [eva] Recording results for IEEE_1180_1990_rand
+> [eva] Done for function IEEE_1180_1990_rand
+> [eva] computing for function IEEE_1180_1990_rand <- IEEE_1180_1990_mkbk <- main.
+>   Called from tests/idct/ieee_1180_1990.c:85.
+> [eva] Recording results for IEEE_1180_1990_rand
+> [eva] Done for function IEEE_1180_1990_rand
+> [eva] computing for function IEEE_1180_1990_rand <- IEEE_1180_1990_mkbk <- main.
+>   Called from tests/idct/ieee_1180_1990.c:85.
+> [eva] Recording results for IEEE_1180_1990_rand
+> [eva] Done for function IEEE_1180_1990_rand
+> [eva] computing for function IEEE_1180_1990_rand <- IEEE_1180_1990_mkbk <- main.
+>   Called from tests/idct/ieee_1180_1990.c:85.
+> [eva] Recording results for IEEE_1180_1990_rand
+> [eva] Done for function IEEE_1180_1990_rand
+> [eva] computing for function IEEE_1180_1990_rand <- IEEE_1180_1990_mkbk <- main.
+>   Called from tests/idct/ieee_1180_1990.c:85.
+> [eva] Recording results for IEEE_1180_1990_rand
+> [eva] Done for function IEEE_1180_1990_rand
+> [eva] Recording results for IEEE_1180_1990_mkbk
+> [eva] Done for function IEEE_1180_1990_mkbk
+> [eva] computing for function IEEE_1180_1990_dctf <- main.
+>   Called from tests/idct/ieee_1180_1990.c:304.
+> [eva] Recording results for IEEE_1180_1990_dctf
+> [eva] Done for function IEEE_1180_1990_dctf
+> [eva] computing for function IEEE_1180_1990_idctf <- main.
+>   Called from tests/idct/ieee_1180_1990.c:305.
+> [eva] Recording results for IEEE_1180_1990_idctf
+> [eva] Done for function IEEE_1180_1990_idctf
+> [eva] computing for function idct <- main.
+>   Called from tests/idct/ieee_1180_1990.c:306.
+> [eva] Recording results for idct
+> [eva] Done for function idct
+> [eva] computing for function IEEE_1180_1990_dctf <- main.
+>   Called from tests/idct/ieee_1180_1990.c:328.
+> [eva] Recording results for IEEE_1180_1990_dctf
+> [eva] Done for function IEEE_1180_1990_dctf
+> [eva] computing for function IEEE_1180_1990_idctf <- main.
+>   Called from tests/idct/ieee_1180_1990.c:329.
+> [eva] Recording results for IEEE_1180_1990_idctf
+> [eva] Done for function IEEE_1180_1990_idctf
+> [eva] computing for function idct <- main.
+>   Called from tests/idct/ieee_1180_1990.c:330.
+> [eva] Recording results for idct
+> [eva] Done for function idct
+> [eva] computing for function IEEE_1180_1990_mkbk <- main.
+>   Called from tests/idct/ieee_1180_1990.c:211.
+> [eva] computing for function IEEE_1180_1990_rand <- IEEE_1180_1990_mkbk <- main.
+>   Called from tests/idct/ieee_1180_1990.c:85.
+> [eva] Recording results for IEEE_1180_1990_rand
+> [eva] Done for function IEEE_1180_1990_rand
+> [eva] computing for function IEEE_1180_1990_rand <- IEEE_1180_1990_mkbk <- main.
+>   Called from tests/idct/ieee_1180_1990.c:85.
+> [eva] Recording results for IEEE_1180_1990_rand
+> [eva] Done for function IEEE_1180_1990_rand
+> [eva] computing for function IEEE_1180_1990_rand <- IEEE_1180_1990_mkbk <- main.
+>   Called from tests/idct/ieee_1180_1990.c:85.
+> [eva] Recording results for IEEE_1180_1990_rand
+> [eva] Done for function IEEE_1180_1990_rand
+> [eva] computing for function IEEE_1180_1990_rand <- IEEE_1180_1990_mkbk <- main.
+>   Called from tests/idct/ieee_1180_1990.c:85.
+> [eva] Recording results for IEEE_1180_1990_rand
+> [eva] Done for function IEEE_1180_1990_rand
+> [eva] computing for function IEEE_1180_1990_rand <- IEEE_1180_1990_mkbk <- main.
+>   Called from tests/idct/ieee_1180_1990.c:85.
+> [eva] Recording results for IEEE_1180_1990_rand
+> [eva] Done for function IEEE_1180_1990_rand
+> [eva] computing for function IEEE_1180_1990_rand <- IEEE_1180_1990_mkbk <- main.
+>   Called from tests/idct/ieee_1180_1990.c:85.
+> [eva] Recording results for IEEE_1180_1990_rand
+> [eva] Done for function IEEE_1180_1990_rand
+> [eva] Recording results for IEEE_1180_1990_mkbk
+> [eva] Done for function IEEE_1180_1990_mkbk
+> [eva] computing for function IEEE_1180_1990_dctf <- main.
+>   Called from tests/idct/ieee_1180_1990.c:212.
+> [eva] tests/idct/ieee_1180_1990.c:100: 
+>   Call to builtin Frama_C_sqrt for function sqrt
+> [eva] tests/idct/ieee_1180_1990.c:101: 
+>   Call to builtin Frama_C_cos for function cos
+> [eva] tests/idct/ieee_1180_1990.c:101: 
+>   Call to builtin Frama_C_cos for function cos
+> [eva] tests/idct/ieee_1180_1990.c:101: 
+>   Call to builtin Frama_C_cos for function cos
+> [eva] tests/idct/ieee_1180_1990.c:101: 
+>   Call to builtin Frama_C_cos for function cos
+706a1389,1526
+> [eva] tests/idct/ieee_1180_1990.c:100: 
+>   Call to builtin Frama_C_sqrt for function sqrt
+> [eva] tests/idct/ieee_1180_1990.c:101: 
+>   Call to builtin Frama_C_cos for function cos
+> [eva] Recording results for IEEE_1180_1990_dctf
+> [eva] Done for function IEEE_1180_1990_dctf
+> [eva] computing for function IEEE_1180_1990_idctf <- main.
+>   Called from tests/idct/ieee_1180_1990.c:213.
+> [eva] tests/idct/ieee_1180_1990.c:140: 
+>   Call to builtin Frama_C_sqrt for function sqrt
+> [eva] tests/idct/ieee_1180_1990.c:141: 
+>   Call to builtin Frama_C_cos for function cos
+> [eva] tests/idct/ieee_1180_1990.c:141: 
+>   Call to builtin Frama_C_cos for function cos
+> [eva] tests/idct/ieee_1180_1990.c:141: 
+>   Call to builtin Frama_C_cos for function cos
+> [eva] tests/idct/ieee_1180_1990.c:141: 
+>   Call to builtin Frama_C_cos for function cos
+> [eva] tests/idct/ieee_1180_1990.c:140: 
+>   Call to builtin Frama_C_sqrt for function sqrt
+> [eva] tests/idct/ieee_1180_1990.c:141: 
+>   Call to builtin Frama_C_cos for function cos
+> [eva] tests/idct/ieee_1180_1990.c:140: 
+>   Call to builtin Frama_C_sqrt for function sqrt
+> [eva] tests/idct/ieee_1180_1990.c:141: 
+>   Call to builtin Frama_C_cos for function cos
+> [eva] Recording results for IEEE_1180_1990_idctf
+> [eva] Done for function IEEE_1180_1990_idctf
+> [eva] computing for function idct <- main.
+>   Called from tests/idct/ieee_1180_1990.c:214.
+> [eva] Recording results for idct
+> [eva] Done for function idct
+> [eva] computing for function IEEE_1180_1990_dctf <- main.
+>   Called from tests/idct/ieee_1180_1990.c:236.
+> [eva] Recording results for IEEE_1180_1990_dctf
+> [eva] Done for function IEEE_1180_1990_dctf
+> [eva] computing for function IEEE_1180_1990_idctf <- main.
+>   Called from tests/idct/ieee_1180_1990.c:237.
+> [eva] Recording results for IEEE_1180_1990_idctf
+> [eva] Done for function IEEE_1180_1990_idctf
+> [eva] computing for function idct <- main.
+>   Called from tests/idct/ieee_1180_1990.c:238.
+> [eva] Recording results for idct
+> [eva] Done for function idct
+> [eva] computing for function IEEE_1180_1990_mkbk <- main.
+>   Called from tests/idct/ieee_1180_1990.c:257.
+> [eva] computing for function IEEE_1180_1990_rand <- IEEE_1180_1990_mkbk <- main.
+>   Called from tests/idct/ieee_1180_1990.c:85.
+> [eva] Recording results for IEEE_1180_1990_rand
+> [eva] Done for function IEEE_1180_1990_rand
+> [eva] computing for function IEEE_1180_1990_rand <- IEEE_1180_1990_mkbk <- main.
+>   Called from tests/idct/ieee_1180_1990.c:85.
+> [eva] Recording results for IEEE_1180_1990_rand
+> [eva] Done for function IEEE_1180_1990_rand
+> [eva] computing for function IEEE_1180_1990_rand <- IEEE_1180_1990_mkbk <- main.
+>   Called from tests/idct/ieee_1180_1990.c:85.
+> [eva] Recording results for IEEE_1180_1990_rand
+> [eva] Done for function IEEE_1180_1990_rand
+> [eva] computing for function IEEE_1180_1990_rand <- IEEE_1180_1990_mkbk <- main.
+>   Called from tests/idct/ieee_1180_1990.c:85.
+> [eva] Recording results for IEEE_1180_1990_rand
+> [eva] Done for function IEEE_1180_1990_rand
+> [eva] computing for function IEEE_1180_1990_rand <- IEEE_1180_1990_mkbk <- main.
+>   Called from tests/idct/ieee_1180_1990.c:85.
+> [eva] Recording results for IEEE_1180_1990_rand
+> [eva] Done for function IEEE_1180_1990_rand
+> [eva] computing for function IEEE_1180_1990_rand <- IEEE_1180_1990_mkbk <- main.
+>   Called from tests/idct/ieee_1180_1990.c:85.
+> [eva] Recording results for IEEE_1180_1990_rand
+> [eva] Done for function IEEE_1180_1990_rand
+> [eva] Recording results for IEEE_1180_1990_mkbk
+> [eva] Done for function IEEE_1180_1990_mkbk
+> [eva] computing for function IEEE_1180_1990_dctf <- main.
+>   Called from tests/idct/ieee_1180_1990.c:258.
+> [eva] Recording results for IEEE_1180_1990_dctf
+> [eva] Done for function IEEE_1180_1990_dctf
+> [eva] computing for function IEEE_1180_1990_idctf <- main.
+>   Called from tests/idct/ieee_1180_1990.c:259.
+> [eva] Recording results for IEEE_1180_1990_idctf
+> [eva] Done for function IEEE_1180_1990_idctf
+> [eva] computing for function idct <- main.
+>   Called from tests/idct/ieee_1180_1990.c:260.
+> [eva] Recording results for idct
+> [eva] Done for function idct
+> [eva] computing for function IEEE_1180_1990_dctf <- main.
+>   Called from tests/idct/ieee_1180_1990.c:282.
+> [eva] Recording results for IEEE_1180_1990_dctf
+> [eva] Done for function IEEE_1180_1990_dctf
+> [eva] computing for function IEEE_1180_1990_idctf <- main.
+>   Called from tests/idct/ieee_1180_1990.c:283.
+> [eva] Recording results for IEEE_1180_1990_idctf
+> [eva] Done for function IEEE_1180_1990_idctf
+> [eva] computing for function idct <- main.
+>   Called from tests/idct/ieee_1180_1990.c:284.
+> [eva] Recording results for idct
+> [eva] Done for function idct
+> [eva] computing for function IEEE_1180_1990_mkbk <- main.
+>   Called from tests/idct/ieee_1180_1990.c:303.
+> [eva] computing for function IEEE_1180_1990_rand <- IEEE_1180_1990_mkbk <- main.
+>   Called from tests/idct/ieee_1180_1990.c:85.
+> [eva] Recording results for IEEE_1180_1990_rand
+> [eva] Done for function IEEE_1180_1990_rand
+> [eva] computing for function IEEE_1180_1990_rand <- IEEE_1180_1990_mkbk <- main.
+>   Called from tests/idct/ieee_1180_1990.c:85.
+> [eva] Recording results for IEEE_1180_1990_rand
+> [eva] Done for function IEEE_1180_1990_rand
+> [eva] computing for function IEEE_1180_1990_rand <- IEEE_1180_1990_mkbk <- main.
+>   Called from tests/idct/ieee_1180_1990.c:85.
+> [eva] Recording results for IEEE_1180_1990_rand
+> [eva] Done for function IEEE_1180_1990_rand
+> [eva] computing for function IEEE_1180_1990_rand <- IEEE_1180_1990_mkbk <- main.
+>   Called from tests/idct/ieee_1180_1990.c:85.
+> [eva] Recording results for IEEE_1180_1990_rand
+> [eva] Done for function IEEE_1180_1990_rand
+> [eva] computing for function IEEE_1180_1990_rand <- IEEE_1180_1990_mkbk <- main.
+>   Called from tests/idct/ieee_1180_1990.c:85.
+> [eva] Recording results for IEEE_1180_1990_rand
+> [eva] Done for function IEEE_1180_1990_rand
+> [eva] computing for function IEEE_1180_1990_rand <- IEEE_1180_1990_mkbk <- main.
+>   Called from tests/idct/ieee_1180_1990.c:85.
+> [eva] Recording results for IEEE_1180_1990_rand
+> [eva] Done for function IEEE_1180_1990_rand
+> [eva] Recording results for IEEE_1180_1990_mkbk
+> [eva] Done for function IEEE_1180_1990_mkbk
+> [eva] computing for function IEEE_1180_1990_dctf <- main.
+>   Called from tests/idct/ieee_1180_1990.c:304.
+> [eva] Recording results for IEEE_1180_1990_dctf
+> [eva] Done for function IEEE_1180_1990_dctf
+> [eva] computing for function IEEE_1180_1990_idctf <- main.
+>   Called from tests/idct/ieee_1180_1990.c:305.
+> [eva] Recording results for IEEE_1180_1990_idctf
+> [eva] Done for function IEEE_1180_1990_idctf
+> [eva] computing for function idct <- main.
+>   Called from tests/idct/ieee_1180_1990.c:306.
+> [eva] Recording results for idct
+> [eva] Done for function idct
+> [eva] computing for function IEEE_1180_1990_dctf <- main.
+>   Called from tests/idct/ieee_1180_1990.c:328.
+709,891c1529,1920
+< [eva] tests/idct/ieee_1180_1990.c:213: 
+<   Reusing old results for call to IEEE_1180_1990_idctf
+< [eva] tests/idct/ieee_1180_1990.c:214: Reusing old results for call to idct
+< [eva] tests/idct/ieee_1180_1990.c:236: 
+<   Reusing old results for call to IEEE_1180_1990_dctf
+< [eva] tests/idct/ieee_1180_1990.c:237: 
+<   Reusing old results for call to IEEE_1180_1990_idctf
+< [eva] tests/idct/ieee_1180_1990.c:238: Reusing old results for call to idct
+< [eva] tests/idct/ieee_1180_1990.c:257: 
+<   Reusing old results for call to IEEE_1180_1990_mkbk
+< [eva] tests/idct/ieee_1180_1990.c:258: 
+<   Reusing old results for call to IEEE_1180_1990_dctf
+< [eva] tests/idct/ieee_1180_1990.c:259: 
+<   Reusing old results for call to IEEE_1180_1990_idctf
+< [eva] tests/idct/ieee_1180_1990.c:260: Reusing old results for call to idct
+< [eva] tests/idct/ieee_1180_1990.c:282: 
+<   Reusing old results for call to IEEE_1180_1990_dctf
+< [eva] tests/idct/ieee_1180_1990.c:283: 
+<   Reusing old results for call to IEEE_1180_1990_idctf
+< [eva] tests/idct/ieee_1180_1990.c:284: Reusing old results for call to idct
+< [eva] tests/idct/ieee_1180_1990.c:303: 
+<   Reusing old results for call to IEEE_1180_1990_mkbk
+< [eva] tests/idct/ieee_1180_1990.c:304: 
+<   Reusing old results for call to IEEE_1180_1990_dctf
+< [eva] tests/idct/ieee_1180_1990.c:305: 
+<   Reusing old results for call to IEEE_1180_1990_idctf
+< [eva] tests/idct/ieee_1180_1990.c:306: Reusing old results for call to idct
+< [eva] tests/idct/ieee_1180_1990.c:328: 
+<   Reusing old results for call to IEEE_1180_1990_dctf
+< [eva] tests/idct/ieee_1180_1990.c:329: 
+<   Reusing old results for call to IEEE_1180_1990_idctf
+< [eva] tests/idct/ieee_1180_1990.c:330: Reusing old results for call to idct
+< [eva] tests/idct/ieee_1180_1990.c:211: 
+<   Reusing old results for call to IEEE_1180_1990_mkbk
+< [eva] tests/idct/ieee_1180_1990.c:212: 
+<   Reusing old results for call to IEEE_1180_1990_dctf
+< [eva] tests/idct/ieee_1180_1990.c:213: 
+<   Reusing old results for call to IEEE_1180_1990_idctf
+< [eva] tests/idct/ieee_1180_1990.c:214: Reusing old results for call to idct
+< [eva] tests/idct/ieee_1180_1990.c:236: 
+<   Reusing old results for call to IEEE_1180_1990_dctf
+< [eva] tests/idct/ieee_1180_1990.c:237: 
+<   Reusing old results for call to IEEE_1180_1990_idctf
+< [eva] tests/idct/ieee_1180_1990.c:238: Reusing old results for call to idct
+< [eva] tests/idct/ieee_1180_1990.c:257: 
+<   Reusing old results for call to IEEE_1180_1990_mkbk
+< [eva] tests/idct/ieee_1180_1990.c:258: 
+<   Reusing old results for call to IEEE_1180_1990_dctf
+< [eva] tests/idct/ieee_1180_1990.c:259: 
+<   Reusing old results for call to IEEE_1180_1990_idctf
+< [eva] tests/idct/ieee_1180_1990.c:260: Reusing old results for call to idct
+< [eva] tests/idct/ieee_1180_1990.c:282: 
+<   Reusing old results for call to IEEE_1180_1990_dctf
+< [eva] tests/idct/ieee_1180_1990.c:283: 
+<   Reusing old results for call to IEEE_1180_1990_idctf
+< [eva] tests/idct/ieee_1180_1990.c:284: Reusing old results for call to idct
+< [eva] tests/idct/ieee_1180_1990.c:303: 
+<   Reusing old results for call to IEEE_1180_1990_mkbk
+< [eva] tests/idct/ieee_1180_1990.c:304: 
+<   Reusing old results for call to IEEE_1180_1990_dctf
+< [eva] tests/idct/ieee_1180_1990.c:305: 
+<   Reusing old results for call to IEEE_1180_1990_idctf
+< [eva] tests/idct/ieee_1180_1990.c:306: Reusing old results for call to idct
+< [eva] tests/idct/ieee_1180_1990.c:328: 
+<   Reusing old results for call to IEEE_1180_1990_dctf
+< [eva] tests/idct/ieee_1180_1990.c:329: 
+<   Reusing old results for call to IEEE_1180_1990_idctf
+< [eva] tests/idct/ieee_1180_1990.c:330: Reusing old results for call to idct
+< [eva] tests/idct/ieee_1180_1990.c:211: 
+<   Reusing old results for call to IEEE_1180_1990_mkbk
+< [eva] tests/idct/ieee_1180_1990.c:212: 
+<   Reusing old results for call to IEEE_1180_1990_dctf
+< [eva] tests/idct/ieee_1180_1990.c:213: 
+<   Reusing old results for call to IEEE_1180_1990_idctf
+< [eva] tests/idct/ieee_1180_1990.c:214: Reusing old results for call to idct
+< [eva] tests/idct/ieee_1180_1990.c:236: 
+<   Reusing old results for call to IEEE_1180_1990_dctf
+< [eva] tests/idct/ieee_1180_1990.c:237: 
+<   Reusing old results for call to IEEE_1180_1990_idctf
+< [eva] tests/idct/ieee_1180_1990.c:238: Reusing old results for call to idct
+< [eva] tests/idct/ieee_1180_1990.c:257: 
+<   Reusing old results for call to IEEE_1180_1990_mkbk
+< [eva] tests/idct/ieee_1180_1990.c:258: 
+<   Reusing old results for call to IEEE_1180_1990_dctf
+< [eva] tests/idct/ieee_1180_1990.c:259: 
+<   Reusing old results for call to IEEE_1180_1990_idctf
+< [eva] tests/idct/ieee_1180_1990.c:260: Reusing old results for call to idct
+< [eva] tests/idct/ieee_1180_1990.c:282: 
+<   Reusing old results for call to IEEE_1180_1990_dctf
+< [eva] tests/idct/ieee_1180_1990.c:283: 
+<   Reusing old results for call to IEEE_1180_1990_idctf
+< [eva] tests/idct/ieee_1180_1990.c:284: Reusing old results for call to idct
+< [eva] tests/idct/ieee_1180_1990.c:303: 
+<   Reusing old results for call to IEEE_1180_1990_mkbk
+< [eva] tests/idct/ieee_1180_1990.c:304: 
+<   Reusing old results for call to IEEE_1180_1990_dctf
+< [eva] tests/idct/ieee_1180_1990.c:305: 
+<   Reusing old results for call to IEEE_1180_1990_idctf
+< [eva] tests/idct/ieee_1180_1990.c:306: Reusing old results for call to idct
+< [eva] tests/idct/ieee_1180_1990.c:328: 
+<   Reusing old results for call to IEEE_1180_1990_dctf
+< [eva] tests/idct/ieee_1180_1990.c:329: 
+<   Reusing old results for call to IEEE_1180_1990_idctf
+< [eva] tests/idct/ieee_1180_1990.c:330: Reusing old results for call to idct
+< [eva] tests/idct/ieee_1180_1990.c:211: 
+<   Reusing old results for call to IEEE_1180_1990_mkbk
+< [eva] tests/idct/ieee_1180_1990.c:212: 
+<   Reusing old results for call to IEEE_1180_1990_dctf
+< [eva] tests/idct/ieee_1180_1990.c:213: 
+<   Reusing old results for call to IEEE_1180_1990_idctf
+< [eva] tests/idct/ieee_1180_1990.c:214: Reusing old results for call to idct
+< [eva] tests/idct/ieee_1180_1990.c:236: 
+<   Reusing old results for call to IEEE_1180_1990_dctf
+< [eva] tests/idct/ieee_1180_1990.c:237: 
+<   Reusing old results for call to IEEE_1180_1990_idctf
+< [eva] tests/idct/ieee_1180_1990.c:238: Reusing old results for call to idct
+< [eva] tests/idct/ieee_1180_1990.c:257: 
+<   Reusing old results for call to IEEE_1180_1990_mkbk
+< [eva] tests/idct/ieee_1180_1990.c:258: 
+<   Reusing old results for call to IEEE_1180_1990_dctf
+< [eva] tests/idct/ieee_1180_1990.c:259: 
+<   Reusing old results for call to IEEE_1180_1990_idctf
+< [eva] tests/idct/ieee_1180_1990.c:260: Reusing old results for call to idct
+< [eva] tests/idct/ieee_1180_1990.c:282: 
+<   Reusing old results for call to IEEE_1180_1990_dctf
+< [eva] tests/idct/ieee_1180_1990.c:283: 
+<   Reusing old results for call to IEEE_1180_1990_idctf
+< [eva] tests/idct/ieee_1180_1990.c:284: Reusing old results for call to idct
+< [eva] tests/idct/ieee_1180_1990.c:303: 
+<   Reusing old results for call to IEEE_1180_1990_mkbk
+< [eva] tests/idct/ieee_1180_1990.c:304: 
+<   Reusing old results for call to IEEE_1180_1990_dctf
+< [eva] tests/idct/ieee_1180_1990.c:305: 
+<   Reusing old results for call to IEEE_1180_1990_idctf
+< [eva] tests/idct/ieee_1180_1990.c:306: Reusing old results for call to idct
+< [eva] tests/idct/ieee_1180_1990.c:328: 
+<   Reusing old results for call to IEEE_1180_1990_dctf
+< [eva] tests/idct/ieee_1180_1990.c:329: 
+<   Reusing old results for call to IEEE_1180_1990_idctf
+< [eva] tests/idct/ieee_1180_1990.c:330: Reusing old results for call to idct
+< [eva] tests/idct/ieee_1180_1990.c:211: 
+<   Reusing old results for call to IEEE_1180_1990_mkbk
+< [eva] tests/idct/ieee_1180_1990.c:212: 
+<   Reusing old results for call to IEEE_1180_1990_dctf
+< [eva] tests/idct/ieee_1180_1990.c:213: 
+<   Reusing old results for call to IEEE_1180_1990_idctf
+< [eva] tests/idct/ieee_1180_1990.c:214: Reusing old results for call to idct
+< [eva] tests/idct/ieee_1180_1990.c:236: 
+<   Reusing old results for call to IEEE_1180_1990_dctf
+< [eva] tests/idct/ieee_1180_1990.c:237: 
+<   Reusing old results for call to IEEE_1180_1990_idctf
+< [eva] tests/idct/ieee_1180_1990.c:238: Reusing old results for call to idct
+< [eva] tests/idct/ieee_1180_1990.c:257: 
+<   Reusing old results for call to IEEE_1180_1990_mkbk
+< [eva] tests/idct/ieee_1180_1990.c:258: 
+<   Reusing old results for call to IEEE_1180_1990_dctf
+< [eva] tests/idct/ieee_1180_1990.c:259: 
+<   Reusing old results for call to IEEE_1180_1990_idctf
+< [eva] tests/idct/ieee_1180_1990.c:260: Reusing old results for call to idct
+< [eva] tests/idct/ieee_1180_1990.c:282: 
+<   Reusing old results for call to IEEE_1180_1990_dctf
+< [eva] tests/idct/ieee_1180_1990.c:283: 
+<   Reusing old results for call to IEEE_1180_1990_idctf
+< [eva] tests/idct/ieee_1180_1990.c:284: Reusing old results for call to idct
+< [eva] tests/idct/ieee_1180_1990.c:303: 
+<   Reusing old results for call to IEEE_1180_1990_mkbk
+< [eva] tests/idct/ieee_1180_1990.c:304: 
+<   Reusing old results for call to IEEE_1180_1990_dctf
+< [eva] tests/idct/ieee_1180_1990.c:305: 
+<   Reusing old results for call to IEEE_1180_1990_idctf
+< [eva] tests/idct/ieee_1180_1990.c:306: Reusing old results for call to idct
+< [eva] tests/idct/ieee_1180_1990.c:328: 
+<   Reusing old results for call to IEEE_1180_1990_dctf
+< [eva] tests/idct/ieee_1180_1990.c:329: 
+<   Reusing old results for call to IEEE_1180_1990_idctf
+< [eva] tests/idct/ieee_1180_1990.c:330: Reusing old results for call to idct
+< [eva] tests/idct/ieee_1180_1990.c:211: 
+<   Reusing old results for call to IEEE_1180_1990_mkbk
+< [eva] tests/idct/ieee_1180_1990.c:212: 
+<   Reusing old results for call to IEEE_1180_1990_dctf
+< [eva] tests/idct/ieee_1180_1990.c:213: 
+<   Reusing old results for call to IEEE_1180_1990_idctf
+< [eva] tests/idct/ieee_1180_1990.c:214: Reusing old results for call to idct
+---
+> [eva] computing for function IEEE_1180_1990_idctf <- main.
+>   Called from tests/idct/ieee_1180_1990.c:329.
+> [eva] Recording results for IEEE_1180_1990_idctf
+> [eva] Done for function IEEE_1180_1990_idctf
+> [eva] computing for function idct <- main.
+>   Called from tests/idct/ieee_1180_1990.c:330.
+> [eva] Recording results for idct
+> [eva] Done for function idct
+> [eva] computing for function IEEE_1180_1990_mkbk <- main.
+>   Called from tests/idct/ieee_1180_1990.c:211.
+> [eva] computing for function IEEE_1180_1990_rand <- IEEE_1180_1990_mkbk <- main.
+>   Called from tests/idct/ieee_1180_1990.c:85.
+> [eva] Recording results for IEEE_1180_1990_rand
+> [eva] Done for function IEEE_1180_1990_rand
+> [eva] computing for function IEEE_1180_1990_rand <- IEEE_1180_1990_mkbk <- main.
+>   Called from tests/idct/ieee_1180_1990.c:85.
+> [eva] Recording results for IEEE_1180_1990_rand
+> [eva] Done for function IEEE_1180_1990_rand
+> [eva] computing for function IEEE_1180_1990_rand <- IEEE_1180_1990_mkbk <- main.
+>   Called from tests/idct/ieee_1180_1990.c:85.
+> [eva] Recording results for IEEE_1180_1990_rand
+> [eva] Done for function IEEE_1180_1990_rand
+> [eva] computing for function IEEE_1180_1990_rand <- IEEE_1180_1990_mkbk <- main.
+>   Called from tests/idct/ieee_1180_1990.c:85.
+> [eva] Recording results for IEEE_1180_1990_rand
+> [eva] Done for function IEEE_1180_1990_rand
+> [eva] computing for function IEEE_1180_1990_rand <- IEEE_1180_1990_mkbk <- main.
+>   Called from tests/idct/ieee_1180_1990.c:85.
+> [eva] Recording results for IEEE_1180_1990_rand
+> [eva] Done for function IEEE_1180_1990_rand
+> [eva] computing for function IEEE_1180_1990_rand <- IEEE_1180_1990_mkbk <- main.
+>   Called from tests/idct/ieee_1180_1990.c:85.
+> [eva] Recording results for IEEE_1180_1990_rand
+> [eva] Done for function IEEE_1180_1990_rand
+> [eva] Recording results for IEEE_1180_1990_mkbk
+> [eva] Done for function IEEE_1180_1990_mkbk
+> [eva] computing for function IEEE_1180_1990_dctf <- main.
+>   Called from tests/idct/ieee_1180_1990.c:212.
+> [eva] tests/idct/ieee_1180_1990.c:100: 
+>   Call to builtin Frama_C_sqrt for function sqrt
+> [eva] tests/idct/ieee_1180_1990.c:101: 
+>   Call to builtin Frama_C_cos for function cos
+> [eva] tests/idct/ieee_1180_1990.c:101: 
+>   Call to builtin Frama_C_cos for function cos
+> [eva] tests/idct/ieee_1180_1990.c:101: 
+>   Call to builtin Frama_C_cos for function cos
+> [eva] tests/idct/ieee_1180_1990.c:101: 
+>   Call to builtin Frama_C_cos for function cos
+> [eva] tests/idct/ieee_1180_1990.c:100: 
+>   Call to builtin Frama_C_sqrt for function sqrt
+> [eva] tests/idct/ieee_1180_1990.c:101: 
+>   Call to builtin Frama_C_cos for function cos
+> [eva] tests/idct/ieee_1180_1990.c:100: 
+>   Call to builtin Frama_C_sqrt for function sqrt
+> [eva] tests/idct/ieee_1180_1990.c:101: 
+>   Call to builtin Frama_C_cos for function cos
+> [eva] Recording results for IEEE_1180_1990_dctf
+> [eva] Done for function IEEE_1180_1990_dctf
+> [eva] computing for function IEEE_1180_1990_idctf <- main.
+>   Called from tests/idct/ieee_1180_1990.c:213.
+> [eva] tests/idct/ieee_1180_1990.c:140: 
+>   Call to builtin Frama_C_sqrt for function sqrt
+> [eva] tests/idct/ieee_1180_1990.c:141: 
+>   Call to builtin Frama_C_cos for function cos
+> [eva] tests/idct/ieee_1180_1990.c:141: 
+>   Call to builtin Frama_C_cos for function cos
+> [eva] tests/idct/ieee_1180_1990.c:141: 
+>   Call to builtin Frama_C_cos for function cos
+> [eva] tests/idct/ieee_1180_1990.c:141: 
+>   Call to builtin Frama_C_cos for function cos
+> [eva] tests/idct/ieee_1180_1990.c:140: 
+>   Call to builtin Frama_C_sqrt for function sqrt
+> [eva] tests/idct/ieee_1180_1990.c:141: 
+>   Call to builtin Frama_C_cos for function cos
+> [eva] tests/idct/ieee_1180_1990.c:140: 
+>   Call to builtin Frama_C_sqrt for function sqrt
+> [eva] tests/idct/ieee_1180_1990.c:141: 
+>   Call to builtin Frama_C_cos for function cos
+> [eva] Recording results for IEEE_1180_1990_idctf
+> [eva] Done for function IEEE_1180_1990_idctf
+> [eva] computing for function idct <- main.
+>   Called from tests/idct/ieee_1180_1990.c:214.
+> [eva] Recording results for idct
+> [eva] Done for function idct
+> [eva] computing for function IEEE_1180_1990_dctf <- main.
+>   Called from tests/idct/ieee_1180_1990.c:236.
+> [eva] Recording results for IEEE_1180_1990_dctf
+> [eva] Done for function IEEE_1180_1990_dctf
+> [eva] computing for function IEEE_1180_1990_idctf <- main.
+>   Called from tests/idct/ieee_1180_1990.c:237.
+> [eva] Recording results for IEEE_1180_1990_idctf
+> [eva] Done for function IEEE_1180_1990_idctf
+> [eva] computing for function idct <- main.
+>   Called from tests/idct/ieee_1180_1990.c:238.
+> [eva] Recording results for idct
+> [eva] Done for function idct
+> [eva] computing for function IEEE_1180_1990_mkbk <- main.
+>   Called from tests/idct/ieee_1180_1990.c:257.
+> [eva] computing for function IEEE_1180_1990_rand <- IEEE_1180_1990_mkbk <- main.
+>   Called from tests/idct/ieee_1180_1990.c:85.
+> [eva] Recording results for IEEE_1180_1990_rand
+> [eva] Done for function IEEE_1180_1990_rand
+> [eva] computing for function IEEE_1180_1990_rand <- IEEE_1180_1990_mkbk <- main.
+>   Called from tests/idct/ieee_1180_1990.c:85.
+> [eva] Recording results for IEEE_1180_1990_rand
+> [eva] Done for function IEEE_1180_1990_rand
+> [eva] computing for function IEEE_1180_1990_rand <- IEEE_1180_1990_mkbk <- main.
+>   Called from tests/idct/ieee_1180_1990.c:85.
+> [eva] Recording results for IEEE_1180_1990_rand
+> [eva] Done for function IEEE_1180_1990_rand
+> [eva] computing for function IEEE_1180_1990_rand <- IEEE_1180_1990_mkbk <- main.
+>   Called from tests/idct/ieee_1180_1990.c:85.
+> [eva] Recording results for IEEE_1180_1990_rand
+> [eva] Done for function IEEE_1180_1990_rand
+> [eva] computing for function IEEE_1180_1990_rand <- IEEE_1180_1990_mkbk <- main.
+>   Called from tests/idct/ieee_1180_1990.c:85.
+> [eva] Recording results for IEEE_1180_1990_rand
+> [eva] Done for function IEEE_1180_1990_rand
+> [eva] computing for function IEEE_1180_1990_rand <- IEEE_1180_1990_mkbk <- main.
+>   Called from tests/idct/ieee_1180_1990.c:85.
+> [eva] Recording results for IEEE_1180_1990_rand
+> [eva] Done for function IEEE_1180_1990_rand
+> [eva] Recording results for IEEE_1180_1990_mkbk
+> [eva] Done for function IEEE_1180_1990_mkbk
+> [eva] computing for function IEEE_1180_1990_dctf <- main.
+>   Called from tests/idct/ieee_1180_1990.c:258.
+> [eva] Recording results for IEEE_1180_1990_dctf
+> [eva] Done for function IEEE_1180_1990_dctf
+> [eva] computing for function IEEE_1180_1990_idctf <- main.
+>   Called from tests/idct/ieee_1180_1990.c:259.
+> [eva] Recording results for IEEE_1180_1990_idctf
+> [eva] Done for function IEEE_1180_1990_idctf
+> [eva] computing for function idct <- main.
+>   Called from tests/idct/ieee_1180_1990.c:260.
+> [eva] Recording results for idct
+> [eva] Done for function idct
+> [eva] computing for function IEEE_1180_1990_dctf <- main.
+>   Called from tests/idct/ieee_1180_1990.c:282.
+> [eva] Recording results for IEEE_1180_1990_dctf
+> [eva] Done for function IEEE_1180_1990_dctf
+> [eva] computing for function IEEE_1180_1990_idctf <- main.
+>   Called from tests/idct/ieee_1180_1990.c:283.
+> [eva] Recording results for IEEE_1180_1990_idctf
+> [eva] Done for function IEEE_1180_1990_idctf
+> [eva] computing for function idct <- main.
+>   Called from tests/idct/ieee_1180_1990.c:284.
+> [eva] Recording results for idct
+> [eva] Done for function idct
+> [eva] computing for function IEEE_1180_1990_mkbk <- main.
+>   Called from tests/idct/ieee_1180_1990.c:303.
+> [eva] computing for function IEEE_1180_1990_rand <- IEEE_1180_1990_mkbk <- main.
+>   Called from tests/idct/ieee_1180_1990.c:85.
+> [eva] Recording results for IEEE_1180_1990_rand
+> [eva] Done for function IEEE_1180_1990_rand
+> [eva] computing for function IEEE_1180_1990_rand <- IEEE_1180_1990_mkbk <- main.
+>   Called from tests/idct/ieee_1180_1990.c:85.
+> [eva] Recording results for IEEE_1180_1990_rand
+> [eva] Done for function IEEE_1180_1990_rand
+> [eva] computing for function IEEE_1180_1990_rand <- IEEE_1180_1990_mkbk <- main.
+>   Called from tests/idct/ieee_1180_1990.c:85.
+> [eva] Recording results for IEEE_1180_1990_rand
+> [eva] Done for function IEEE_1180_1990_rand
+> [eva] computing for function IEEE_1180_1990_rand <- IEEE_1180_1990_mkbk <- main.
+>   Called from tests/idct/ieee_1180_1990.c:85.
+> [eva] Recording results for IEEE_1180_1990_rand
+> [eva] Done for function IEEE_1180_1990_rand
+> [eva] computing for function IEEE_1180_1990_rand <- IEEE_1180_1990_mkbk <- main.
+>   Called from tests/idct/ieee_1180_1990.c:85.
+> [eva] Recording results for IEEE_1180_1990_rand
+> [eva] Done for function IEEE_1180_1990_rand
+> [eva] computing for function IEEE_1180_1990_rand <- IEEE_1180_1990_mkbk <- main.
+>   Called from tests/idct/ieee_1180_1990.c:85.
+> [eva] Recording results for IEEE_1180_1990_rand
+> [eva] Done for function IEEE_1180_1990_rand
+> [eva] Recording results for IEEE_1180_1990_mkbk
+> [eva] Done for function IEEE_1180_1990_mkbk
+> [eva] computing for function IEEE_1180_1990_dctf <- main.
+>   Called from tests/idct/ieee_1180_1990.c:304.
+> [eva] Recording results for IEEE_1180_1990_dctf
+> [eva] Done for function IEEE_1180_1990_dctf
+> [eva] computing for function IEEE_1180_1990_idctf <- main.
+>   Called from tests/idct/ieee_1180_1990.c:305.
+> [eva] Recording results for IEEE_1180_1990_idctf
+> [eva] Done for function IEEE_1180_1990_idctf
+> [eva] computing for function idct <- main.
+>   Called from tests/idct/ieee_1180_1990.c:306.
+> [eva] Recording results for idct
+> [eva] Done for function idct
+> [eva] computing for function IEEE_1180_1990_dctf <- main.
+>   Called from tests/idct/ieee_1180_1990.c:328.
+> [eva] Recording results for IEEE_1180_1990_dctf
+> [eva] Done for function IEEE_1180_1990_dctf
+> [eva] computing for function IEEE_1180_1990_idctf <- main.
+>   Called from tests/idct/ieee_1180_1990.c:329.
+> [eva] Recording results for IEEE_1180_1990_idctf
+> [eva] Done for function IEEE_1180_1990_idctf
+> [eva] computing for function idct <- main.
+>   Called from tests/idct/ieee_1180_1990.c:330.
+> [eva] Recording results for idct
+> [eva] Done for function idct
+> [eva] computing for function IEEE_1180_1990_mkbk <- main.
+>   Called from tests/idct/ieee_1180_1990.c:211.
+> [eva] computing for function IEEE_1180_1990_rand <- IEEE_1180_1990_mkbk <- main.
+>   Called from tests/idct/ieee_1180_1990.c:85.
+> [eva] Recording results for IEEE_1180_1990_rand
+> [eva] Done for function IEEE_1180_1990_rand
+> [eva] computing for function IEEE_1180_1990_rand <- IEEE_1180_1990_mkbk <- main.
+>   Called from tests/idct/ieee_1180_1990.c:85.
+> [eva] Recording results for IEEE_1180_1990_rand
+> [eva] Done for function IEEE_1180_1990_rand
+> [eva] computing for function IEEE_1180_1990_rand <- IEEE_1180_1990_mkbk <- main.
+>   Called from tests/idct/ieee_1180_1990.c:85.
+> [eva] Recording results for IEEE_1180_1990_rand
+> [eva] Done for function IEEE_1180_1990_rand
+> [eva] computing for function IEEE_1180_1990_rand <- IEEE_1180_1990_mkbk <- main.
+>   Called from tests/idct/ieee_1180_1990.c:85.
+> [eva] Recording results for IEEE_1180_1990_rand
+> [eva] Done for function IEEE_1180_1990_rand
+> [eva] computing for function IEEE_1180_1990_rand <- IEEE_1180_1990_mkbk <- main.
+>   Called from tests/idct/ieee_1180_1990.c:85.
+> [eva] Recording results for IEEE_1180_1990_rand
+> [eva] Done for function IEEE_1180_1990_rand
+> [eva] computing for function IEEE_1180_1990_rand <- IEEE_1180_1990_mkbk <- main.
+>   Called from tests/idct/ieee_1180_1990.c:85.
+> [eva] Recording results for IEEE_1180_1990_rand
+> [eva] Done for function IEEE_1180_1990_rand
+> [eva] Recording results for IEEE_1180_1990_mkbk
+> [eva] Done for function IEEE_1180_1990_mkbk
+> [eva] computing for function IEEE_1180_1990_dctf <- main.
+>   Called from tests/idct/ieee_1180_1990.c:212.
+> [eva] tests/idct/ieee_1180_1990.c:100: 
+>   Call to builtin Frama_C_sqrt for function sqrt
+> [eva] tests/idct/ieee_1180_1990.c:101: 
+>   Call to builtin Frama_C_cos for function cos
+> [eva] tests/idct/ieee_1180_1990.c:101: 
+>   Call to builtin Frama_C_cos for function cos
+> [eva] tests/idct/ieee_1180_1990.c:101: 
+>   Call to builtin Frama_C_cos for function cos
+> [eva] tests/idct/ieee_1180_1990.c:101: 
+>   Call to builtin Frama_C_cos for function cos
+> [eva] tests/idct/ieee_1180_1990.c:100: 
+>   Call to builtin Frama_C_sqrt for function sqrt
+> [eva] tests/idct/ieee_1180_1990.c:101: 
+>   Call to builtin Frama_C_cos for function cos
+> [eva] tests/idct/ieee_1180_1990.c:100: 
+>   Call to builtin Frama_C_sqrt for function sqrt
+> [eva] tests/idct/ieee_1180_1990.c:101: 
+>   Call to builtin Frama_C_cos for function cos
+> [eva] Recording results for IEEE_1180_1990_dctf
+> [eva] Done for function IEEE_1180_1990_dctf
+> [eva] computing for function IEEE_1180_1990_idctf <- main.
+>   Called from tests/idct/ieee_1180_1990.c:213.
+> [eva] tests/idct/ieee_1180_1990.c:140: 
+>   Call to builtin Frama_C_sqrt for function sqrt
+> [eva] tests/idct/ieee_1180_1990.c:141: 
+>   Call to builtin Frama_C_cos for function cos
+> [eva] tests/idct/ieee_1180_1990.c:141: 
+>   Call to builtin Frama_C_cos for function cos
+> [eva] tests/idct/ieee_1180_1990.c:141: 
+>   Call to builtin Frama_C_cos for function cos
+> [eva] tests/idct/ieee_1180_1990.c:141: 
+>   Call to builtin Frama_C_cos for function cos
+> [eva] tests/idct/ieee_1180_1990.c:140: 
+>   Call to builtin Frama_C_sqrt for function sqrt
+> [eva] tests/idct/ieee_1180_1990.c:141: 
+>   Call to builtin Frama_C_cos for function cos
+> [eva] tests/idct/ieee_1180_1990.c:140: 
+>   Call to builtin Frama_C_sqrt for function sqrt
+> [eva] tests/idct/ieee_1180_1990.c:141: 
+>   Call to builtin Frama_C_cos for function cos
+> [eva] Recording results for IEEE_1180_1990_idctf
+> [eva] Done for function IEEE_1180_1990_idctf
+> [eva] computing for function idct <- main.
+>   Called from tests/idct/ieee_1180_1990.c:214.
+> [eva] Recording results for idct
+> [eva] Done for function idct
+> [eva] computing for function IEEE_1180_1990_dctf <- main.
+>   Called from tests/idct/ieee_1180_1990.c:236.
+> [eva] Recording results for IEEE_1180_1990_dctf
+> [eva] Done for function IEEE_1180_1990_dctf
+> [eva] computing for function IEEE_1180_1990_idctf <- main.
+>   Called from tests/idct/ieee_1180_1990.c:237.
+> [eva] Recording results for IEEE_1180_1990_idctf
+> [eva] Done for function IEEE_1180_1990_idctf
+> [eva] computing for function idct <- main.
+>   Called from tests/idct/ieee_1180_1990.c:238.
+> [eva] Recording results for idct
+> [eva] Done for function idct
+> [eva] computing for function IEEE_1180_1990_mkbk <- main.
+>   Called from tests/idct/ieee_1180_1990.c:257.
+> [eva] computing for function IEEE_1180_1990_rand <- IEEE_1180_1990_mkbk <- main.
+>   Called from tests/idct/ieee_1180_1990.c:85.
+> [eva] Recording results for IEEE_1180_1990_rand
+> [eva] Done for function IEEE_1180_1990_rand
+> [eva] computing for function IEEE_1180_1990_rand <- IEEE_1180_1990_mkbk <- main.
+>   Called from tests/idct/ieee_1180_1990.c:85.
+> [eva] Recording results for IEEE_1180_1990_rand
+> [eva] Done for function IEEE_1180_1990_rand
+> [eva] computing for function IEEE_1180_1990_rand <- IEEE_1180_1990_mkbk <- main.
+>   Called from tests/idct/ieee_1180_1990.c:85.
+> [eva] Recording results for IEEE_1180_1990_rand
+> [eva] Done for function IEEE_1180_1990_rand
+> [eva] computing for function IEEE_1180_1990_rand <- IEEE_1180_1990_mkbk <- main.
+>   Called from tests/idct/ieee_1180_1990.c:85.
+> [eva] Recording results for IEEE_1180_1990_rand
+> [eva] Done for function IEEE_1180_1990_rand
+> [eva] computing for function IEEE_1180_1990_rand <- IEEE_1180_1990_mkbk <- main.
+>   Called from tests/idct/ieee_1180_1990.c:85.
+> [eva] Recording results for IEEE_1180_1990_rand
+> [eva] Done for function IEEE_1180_1990_rand
+> [eva] computing for function IEEE_1180_1990_rand <- IEEE_1180_1990_mkbk <- main.
+>   Called from tests/idct/ieee_1180_1990.c:85.
+> [eva] Recording results for IEEE_1180_1990_rand
+> [eva] Done for function IEEE_1180_1990_rand
+> [eva] Recording results for IEEE_1180_1990_mkbk
+> [eva] Done for function IEEE_1180_1990_mkbk
+> [eva] computing for function IEEE_1180_1990_dctf <- main.
+>   Called from tests/idct/ieee_1180_1990.c:258.
+> [eva] Recording results for IEEE_1180_1990_dctf
+> [eva] Done for function IEEE_1180_1990_dctf
+> [eva] computing for function IEEE_1180_1990_idctf <- main.
+>   Called from tests/idct/ieee_1180_1990.c:259.
+> [eva] Recording results for IEEE_1180_1990_idctf
+> [eva] Done for function IEEE_1180_1990_idctf
+> [eva] computing for function idct <- main.
+>   Called from tests/idct/ieee_1180_1990.c:260.
+> [eva] Recording results for idct
+> [eva] Done for function idct
+> [eva] computing for function IEEE_1180_1990_dctf <- main.
+>   Called from tests/idct/ieee_1180_1990.c:282.
+> [eva] Recording results for IEEE_1180_1990_dctf
+> [eva] Done for function IEEE_1180_1990_dctf
+> [eva] computing for function IEEE_1180_1990_idctf <- main.
+>   Called from tests/idct/ieee_1180_1990.c:283.
+> [eva] Recording results for IEEE_1180_1990_idctf
+> [eva] Done for function IEEE_1180_1990_idctf
+> [eva] computing for function idct <- main.
+>   Called from tests/idct/ieee_1180_1990.c:284.
+> [eva] Recording results for idct
+> [eva] Done for function idct
+> [eva] computing for function IEEE_1180_1990_mkbk <- main.
+>   Called from tests/idct/ieee_1180_1990.c:303.
+> [eva] computing for function IEEE_1180_1990_rand <- IEEE_1180_1990_mkbk <- main.
+>   Called from tests/idct/ieee_1180_1990.c:85.
+> [eva] Recording results for IEEE_1180_1990_rand
+> [eva] Done for function IEEE_1180_1990_rand
+> [eva] computing for function IEEE_1180_1990_rand <- IEEE_1180_1990_mkbk <- main.
+>   Called from tests/idct/ieee_1180_1990.c:85.
+> [eva] Recording results for IEEE_1180_1990_rand
+> [eva] Done for function IEEE_1180_1990_rand
+> [eva] computing for function IEEE_1180_1990_rand <- IEEE_1180_1990_mkbk <- main.
+>   Called from tests/idct/ieee_1180_1990.c:85.
+> [eva] Recording results for IEEE_1180_1990_rand
+> [eva] Done for function IEEE_1180_1990_rand
+> [eva] computing for function IEEE_1180_1990_rand <- IEEE_1180_1990_mkbk <- main.
+>   Called from tests/idct/ieee_1180_1990.c:85.
+> [eva] Recording results for IEEE_1180_1990_rand
+> [eva] Done for function IEEE_1180_1990_rand
+> [eva] computing for function IEEE_1180_1990_rand <- IEEE_1180_1990_mkbk <- main.
+>   Called from tests/idct/ieee_1180_1990.c:85.
+> [eva] Recording results for IEEE_1180_1990_rand
+> [eva] Done for function IEEE_1180_1990_rand
+> [eva] computing for function IEEE_1180_1990_rand <- IEEE_1180_1990_mkbk <- main.
+>   Called from tests/idct/ieee_1180_1990.c:85.
+> [eva] Recording results for IEEE_1180_1990_rand
+> [eva] Done for function IEEE_1180_1990_rand
+> [eva] Recording results for IEEE_1180_1990_mkbk
+> [eva] Done for function IEEE_1180_1990_mkbk
+> [eva] computing for function IEEE_1180_1990_dctf <- main.
+>   Called from tests/idct/ieee_1180_1990.c:304.
+> [eva] Recording results for IEEE_1180_1990_dctf
+> [eva] Done for function IEEE_1180_1990_dctf
+> [eva] computing for function IEEE_1180_1990_idctf <- main.
+>   Called from tests/idct/ieee_1180_1990.c:305.
+> [eva] Recording results for IEEE_1180_1990_idctf
+> [eva] Done for function IEEE_1180_1990_idctf
+> [eva] computing for function idct <- main.
+>   Called from tests/idct/ieee_1180_1990.c:306.
+> [eva] Recording results for idct
+> [eva] Done for function idct
+> [eva] computing for function IEEE_1180_1990_dctf <- main.
+>   Called from tests/idct/ieee_1180_1990.c:328.
+> [eva] Recording results for IEEE_1180_1990_dctf
+> [eva] Done for function IEEE_1180_1990_dctf
+> [eva] computing for function IEEE_1180_1990_idctf <- main.
+>   Called from tests/idct/ieee_1180_1990.c:329.
+> [eva] Recording results for IEEE_1180_1990_idctf
+> [eva] Done for function IEEE_1180_1990_idctf
+> [eva] computing for function idct <- main.
+>   Called from tests/idct/ieee_1180_1990.c:330.
+> [eva] Recording results for idct
+> [eva] Done for function idct
+928c1957
+<   M1[0..7][0..7] ∈ [--..--]
+---
+>   M1[0..7][0..7] ∈ [-2147483647..2147483647]
+981c2010
+<   M1[0..7][0..7] ∈ [--..--]
+---
+>   M1[0..7][0..7] ∈ [-2147483647..2147483647]

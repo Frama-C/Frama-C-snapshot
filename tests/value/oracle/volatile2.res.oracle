@@ -1,8 +1,8 @@
 [kernel] Parsing tests/value/volatile2.i (no preprocessing)
-[value] Analyzing a complete application starting at main
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing a complete application starting at main
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   t[0..9] ∈ [--..--]
   u ∈ [--..--]
   pu ∈ {{ &u }}
@@ -12,58 +12,58 @@
   BITF ∈ [--..--]
   S9 ∈ [--..--]
   u9[0..9] ∈ [--..--]
-[value] computing for function main1 <- main.
+[eva] computing for function main1 <- main.
   Called from tests/value/volatile2.i:136.
-[value:alarm] tests/value/volatile2.i:23: Warning: 
+[eva:alarm] tests/value/volatile2.i:23: Warning: 
   signed overflow. assert (int)c << 8 ≤ 32767;
-[value:alarm] tests/value/volatile2.i:24: Warning: 
+[eva:alarm] tests/value/volatile2.i:24: Warning: 
   signed overflow. assert (int)*p << 8 ≤ 32767;
-[value:alarm] tests/value/volatile2.i:25: Warning: 
+[eva:alarm] tests/value/volatile2.i:25: Warning: 
   signed overflow. assert (int)t[1] << 8 ≤ 32767;
-[value:alarm] tests/value/volatile2.i:26: Warning: 
+[eva:alarm] tests/value/volatile2.i:26: Warning: 
   signed overflow. assert (int)u.f1 << 8 ≤ 32767;
-[value] Recording results for main1
-[value] Done for function main1
-[value] computing for function main2 <- main.
+[eva] Recording results for main1
+[eva] Done for function main1
+[eva] computing for function main2 <- main.
   Called from tests/value/volatile2.i:137.
-[value] Recording results for main2
-[value] Done for function main2
-[value] computing for function main3 <- main.
+[eva] Recording results for main2
+[eva] Done for function main2
+[eva] computing for function main3 <- main.
   Called from tests/value/volatile2.i:138.
-[value:alarm] tests/value/volatile2.i:47: Warning: 
+[eva:alarm] tests/value/volatile2.i:47: Warning: 
   assertion got status invalid (stopping propagation).
-[value] tests/value/volatile2.i:52: assertion got status valid.
-[value:alarm] tests/value/volatile2.i:55: Warning: assertion got status unknown.
-[value:alarm] tests/value/volatile2.i:56: Warning: assertion got status unknown.
-[value] tests/value/volatile2.i:59: assertion got status valid.
-[value] Recording results for main3
-[value] Done for function main3
-[value] computing for function main4 <- main.
+[eva] tests/value/volatile2.i:52: assertion got status valid.
+[eva:alarm] tests/value/volatile2.i:55: Warning: assertion got status unknown.
+[eva:alarm] tests/value/volatile2.i:56: Warning: assertion got status unknown.
+[eva] tests/value/volatile2.i:59: assertion got status valid.
+[eva] Recording results for main3
+[eva] Done for function main3
+[eva] computing for function main4 <- main.
   Called from tests/value/volatile2.i:139.
-[value] Recording results for main4
-[value] Done for function main4
-[value] computing for function main5 <- main.
+[eva] Recording results for main4
+[eva] Done for function main4
+[eva] computing for function main5 <- main.
   Called from tests/value/volatile2.i:140.
-[value:alarm] tests/value/volatile2.i:76: Warning: 
+[eva:alarm] tests/value/volatile2.i:76: Warning: 
   signed overflow. assert i + 1 ≤ 32767;
-[value:alarm] tests/value/volatile2.i:76: Warning: 
+[eva:alarm] tests/value/volatile2.i:76: Warning: 
   signed overflow. assert j + 1 ≤ 32767;
-[value:alarm] tests/value/volatile2.i:76: Warning: 
+[eva:alarm] tests/value/volatile2.i:76: Warning: 
   signed overflow.
   assert -32768 ≤ tmp + tmp_0;
   (tmp from i++, tmp_0 from j++)
-[value:alarm] tests/value/volatile2.i:76: Warning: 
+[eva:alarm] tests/value/volatile2.i:76: Warning: 
   signed overflow. assert tmp + tmp_0 ≤ 32767;
                    (tmp from i++, tmp_0 from j++)
-[value:alarm] tests/value/volatile2.i:78: Warning: 
+[eva:alarm] tests/value/volatile2.i:78: Warning: 
   signed overflow. assert i + 1 ≤ 32767;
-[value:alarm] tests/value/volatile2.i:78: Warning: 
+[eva:alarm] tests/value/volatile2.i:78: Warning: 
   signed overflow. assert j + 1 ≤ 32767;
-[value:alarm] tests/value/volatile2.i:78: Warning: 
+[eva:alarm] tests/value/volatile2.i:78: Warning: 
   signed overflow. assert -32768 ≤ i + j;
-[value:alarm] tests/value/volatile2.i:78: Warning: 
+[eva:alarm] tests/value/volatile2.i:78: Warning: 
   signed overflow. assert i + j ≤ 32767;
-[value] tests/value/volatile2.i:80: 
+[eva] tests/value/volatile2.i:80: 
   Frama_C_dump_each:
   # Cvalue domain:
   t[0..9] ∈ [--..--]
@@ -82,46 +82,46 @@
   S9 ∈ [--..--]
   u9[0..9] ∈ [--..--]
   ==END OF DUMP==
-[value] Recording results for main5
-[value] Done for function main5
-[value] computing for function main6 <- main.
+[eva] Recording results for main5
+[eva] Done for function main5
+[eva] computing for function main6 <- main.
   Called from tests/value/volatile2.i:141.
-[value] Recording results for main6
-[value] Done for function main6
-[value] computing for function main7 <- main.
+[eva] Recording results for main6
+[eva] Done for function main6
+[eva] computing for function main7 <- main.
   Called from tests/value/volatile2.i:142.
-[value] Recording results for main7
-[value] Done for function main7
-[value] computing for function main8 <- main.
+[eva] Recording results for main7
+[eva] Done for function main7
+[eva] computing for function main8 <- main.
   Called from tests/value/volatile2.i:143.
-[value] tests/value/volatile2.i:119: 
+[eva] tests/value/volatile2.i:119: 
   Frama_C_show_each: [--..--], [--..--], [--..--], [--..--], [--..--]
-[value] Recording results for main8
-[value] Done for function main8
-[value] computing for function main9 <- main.
+[eva] Recording results for main8
+[eva] Done for function main8
+[eva] computing for function main9 <- main.
   Called from tests/value/volatile2.i:144.
-[value:alarm] tests/value/volatile2.i:129: Warning: 
+[eva:alarm] tests/value/volatile2.i:129: Warning: 
   accessing out of bounds index. assert 0 ≤ S9.i1;
-[value:alarm] tests/value/volatile2.i:129: Warning: 
+[eva:alarm] tests/value/volatile2.i:129: Warning: 
   accessing out of bounds index. assert S9.i1 < 10;
-[value:alarm] tests/value/volatile2.i:130: Warning: 
+[eva:alarm] tests/value/volatile2.i:130: Warning: 
   accessing out of bounds index. assert 0 ≤ S9.i1;
-[value:alarm] tests/value/volatile2.i:130: Warning: 
+[eva:alarm] tests/value/volatile2.i:130: Warning: 
   accessing out of bounds index. assert S9.i1 < 10;
-[value:alarm] tests/value/volatile2.i:131: Warning: 
+[eva:alarm] tests/value/volatile2.i:131: Warning: 
   accessing out of bounds index. assert 0 ≤ u9[1];
-[value:alarm] tests/value/volatile2.i:131: Warning: 
+[eva:alarm] tests/value/volatile2.i:131: Warning: 
   accessing out of bounds index. assert u9[1] < 10;
-[value:alarm] tests/value/volatile2.i:132: Warning: 
+[eva:alarm] tests/value/volatile2.i:132: Warning: 
   accessing out of bounds index. assert 0 ≤ u9[1];
-[value:alarm] tests/value/volatile2.i:132: Warning: 
+[eva:alarm] tests/value/volatile2.i:132: Warning: 
   accessing out of bounds index. assert u9[1] < 10;
-[value] Recording results for main9
-[value] Done for function main9
-[value] Recording results for main
-[value] done for function main
-[value] ====== VALUES COMPUTED ======
-[value:final-states] Values at end of function main1:
+[eva] Recording results for main9
+[eva] Done for function main9
+[eva] Recording results for main
+[eva] done for function main
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function main1:
   c ∈ [--..--]
   x ∈ {1}
   p ∈ {{ (unsigned char volatile *)&x }}
@@ -129,35 +129,35 @@
   j ∈ [0..32767]
   k ∈ [0..32767]
   l ∈ [0..32767]
-[value:final-states] Values at end of function main2:
+[eva:final-states] Values at end of function main2:
   i ∈ [-128..127]
   j ∈ [0..255]
   k ∈ [0..255]
-[value:final-states] Values at end of function main3:
+[eva:final-states] Values at end of function main3:
   
-[value:final-states] Values at end of function main4:
+[eva:final-states] Values at end of function main4:
   p1 ∈ {{ &i }}
   p2 ∈ {{ &i + [--..--] }}
-[value:final-states] Values at end of function main5:
+[eva:final-states] Values at end of function main5:
   i ∈ [--..--]
   j ∈ [--..--]
   k ∈ [--..--]
   l ∈ [--..--]
-[value:final-states] Values at end of function main6:
+[eva:final-states] Values at end of function main6:
   i ∈ {1}
   j ∈ {1}
-[value:final-states] Values at end of function main7:
+[eva:final-states] Values at end of function main7:
   i ∈ {-3; -2; -1; 0; 1; 2; 3; 4}
   k ∈ [1..16]
-[value:final-states] Values at end of function main8:
+[eva:final-states] Values at end of function main8:
   a ∈ [--..--]
   b ∈ [--..--]
   c ∈ [--..--]
   d ∈ [--..--]
   e ∈ [--..--]
-[value:final-states] Values at end of function main9:
+[eva:final-states] Values at end of function main9:
   t9[0..9] ∈ {1; 2; 3; 4} or UNINITIALIZED
-[value:final-states] Values at end of function main:
+[eva:final-states] Values at end of function main:
   
 /* Generated by Frama-C */
 struct u {
@@ -198,13 +198,13 @@ void main1(void)
   unsigned char volatile c = (unsigned char)1;
   int x = 1;
   unsigned char volatile *p = (unsigned char volatile *)(& x);
-  /*@ assert Value: signed_overflow: (int)c << 8 ≤ 32767; */
+  /*@ assert Eva: signed_overflow: (int)c << 8 ≤ 32767; */
   unsigned int i = (unsigned int)(((int)c << 8) + (int)c);
-  /*@ assert Value: signed_overflow: (int)*p << 8 ≤ 32767; */
+  /*@ assert Eva: signed_overflow: (int)*p << 8 ≤ 32767; */
   unsigned int j = (unsigned int)(((int)*p << 8) + (int)*p);
-  /*@ assert Value: signed_overflow: (int)t[1] << 8 ≤ 32767; */
+  /*@ assert Eva: signed_overflow: (int)t[1] << 8 ≤ 32767; */
   unsigned int k = (unsigned int)(((int)t[1] << 8) + (int)t[2]);
-  /*@ assert Value: signed_overflow: (int)u.f1 << 8 ≤ 32767; */
+  /*@ assert Eva: signed_overflow: (int)u.f1 << 8 ≤ 32767; */
   unsigned int l = (unsigned int)(((int)u.f1 << 8) + (int)u.f2);
   return;
 }
@@ -252,20 +252,20 @@ void main5(void)
   int volatile i = 0;
   int volatile j = 0;
   tmp = i;
-  /*@ assert Value: signed_overflow: i + 1 ≤ 32767; */
+  /*@ assert Eva: signed_overflow: i + 1 ≤ 32767; */
   i ++;
   tmp_0 = j;
-  /*@ assert Value: signed_overflow: j + 1 ≤ 32767; */
+  /*@ assert Eva: signed_overflow: j + 1 ≤ 32767; */
   j ++;
-  /*@ assert Value: signed_overflow: -32768 ≤ tmp + tmp_0; */
-  /*@ assert Value: signed_overflow: tmp + tmp_0 ≤ 32767; */
+  /*@ assert Eva: signed_overflow: -32768 ≤ tmp + tmp_0; */
+  /*@ assert Eva: signed_overflow: tmp + tmp_0 ≤ 32767; */
   int k = tmp + tmp_0;
-  /*@ assert Value: signed_overflow: i + 1 ≤ 32767; */
+  /*@ assert Eva: signed_overflow: i + 1 ≤ 32767; */
   i ++;
-  /*@ assert Value: signed_overflow: j + 1 ≤ 32767; */
+  /*@ assert Eva: signed_overflow: j + 1 ≤ 32767; */
   j ++;
-  /*@ assert Value: signed_overflow: -32768 ≤ i + j; */
-  /*@ assert Value: signed_overflow: i + j ≤ 32767; */
+  /*@ assert Eva: signed_overflow: -32768 ≤ i + j; */
+  /*@ assert Eva: signed_overflow: i + j ≤ 32767; */
   int l = i + j;
   Frama_C_dump_each();
   return;
@@ -307,17 +307,17 @@ int volatile u9[10];
 void main9(void)
 {
   int t9[10];
-  /*@ assert Value: index_bound: 0 ≤ S9.i1; */
-  /*@ assert Value: index_bound: S9.i1 < 10; */
+  /*@ assert Eva: index_bound: 0 ≤ S9.i1; */
+  /*@ assert Eva: index_bound: S9.i1 < 10; */
   t9[S9.i1] = 1;
-  /*@ assert Value: index_bound: 0 ≤ S9.i1; */
-  /*@ assert Value: index_bound: S9.i1 < 10; */
+  /*@ assert Eva: index_bound: 0 ≤ S9.i1; */
+  /*@ assert Eva: index_bound: S9.i1 < 10; */
   t9[S9.i1] = 2;
-  /*@ assert Value: index_bound: 0 ≤ u9[1]; */
-  /*@ assert Value: index_bound: u9[1] < 10; */
+  /*@ assert Eva: index_bound: 0 ≤ u9[1]; */
+  /*@ assert Eva: index_bound: u9[1] < 10; */
   t9[u9[1]] = 3;
-  /*@ assert Value: index_bound: 0 ≤ u9[1]; */
-  /*@ assert Value: index_bound: u9[1] < 10; */
+  /*@ assert Eva: index_bound: 0 ≤ u9[1]; */
+  /*@ assert Eva: index_bound: u9[1] < 10; */
   t9[u9[1]] = 4;
   return;
 }

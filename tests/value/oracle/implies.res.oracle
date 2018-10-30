@@ -1,16 +1,16 @@
 [kernel] Parsing tests/value/implies.i (no preprocessing)
-[value] Analyzing a complete application starting at main
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing a complete application starting at main
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   A ∈ {0}
   B ∈ {0}
-[value:alarm] tests/value/implies.i:6: Warning: assertion got status unknown.
-[value:alarm] tests/value/implies.i:8: Warning: assertion got status unknown.
-[value] Recording results for main
-[value] done for function main
-[value] ====== VALUES COMPUTED ======
-[value:final-states] Values at end of function main:
+[eva:alarm] tests/value/implies.i:6: Warning: assertion got status unknown.
+[eva:alarm] tests/value/implies.i:8: Warning: assertion got status unknown.
+[eva] Recording results for main
+[eva] done for function main
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function main:
   A ∈ {1}
   __retres ∈ {1}
 [from] Computing for function main

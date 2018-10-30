@@ -1,0 +1,142 @@
+tests/reject/function_declaration.i:7:[kernel] failure: You used visitCilFileSameGlobals but the global got changed:
+                   int X = 0;
+
+                  changed to
+                  /*************/
+                  /* GMP types */
+                  /*************/
+
+                  typedef struct {
+                    int _mp_alloc;
+                    int _mp_size;
+                    unsigned long int *_mp_d;
+                  } __mpz_struct;
+
+                  typedef __mpz_struct mpz_t[1];
+
+                  /*****************/
+                  /* GMP functions */
+                  /*****************/
+
+                  // initilializers
+
+                  /*@ ensures \valid(x);
+                    @ assigns *x; */
+                  extern void mpz_init(mpz_t x);
+
+                  /*@ ensures \valid(z);
+                    @ assigns *z; */
+                  extern void mpz_init_set_ui(mpz_t z, unsigned long int n);
+
+                  /*@ ensures \valid(z);
+                    @ assigns *z; */
+                  extern void mpz_init_set_si(mpz_t z, signed long int n);
+
+                  /*@ ensures \valid(z);
+                    @ assigns *z; */
+                  extern int mpz_init_set_str(mpz_t z, const char *str, int base);
+
+                  // finalizer
+
+                  /*@ requires \valid(x);
+                    @ assigns *x; */
+                  extern void mpz_clear(mpz_t x);
+
+                  // logical and arithmetic operators
+
+                  /*@ requires \valid(z1);
+                    @ requires \valid(z2);
+                    @ assigns \nothing; */
+                  extern int mpz_cmp(const mpz_t z1, const mpz_t z2);
+
+                  /*@ requires \valid(z1);
+                    @ requires \valid(z2);
+                    @ assigns *z1; */
+                  extern int mpz_comp(mpz_t z1, const mpz_t z2);
+
+                  /*@ requires \valid(z1);
+                    @ requires \valid(z2);
+                    @ assigns *z1; */
+                  extern void mpz_neg(mpz_t z1, const mpz_t z2);
+
+                  /*@ requires \valid(z1);
+                    @ requires \valid(z2);
+                    @ requires \valid(z3);
+                    @ assigns *z1; */
+                  extern void mpz_add(mpz_t z1, const mpz_t z2, const mpz_t z3);
+
+                  /*@ requires \valid(z1);
+                    @ requires \valid(z2);
+                    @ requires \valid(z3);
+                    @ assigns *z1; */
+                  extern void mpz_sub(mpz_t z1, const mpz_t z2, const mpz_t z3);
+
+                  /*@ requires \valid(z1);
+                    @ requires \valid(z2);
+                    @ requires \valid(z3);
+                    @ assigns *z1; */
+                  extern void mpz_mul(mpz_t z1, const mpz_t z2, const mpz_t z3);
+
+                  /*@ requires \valid(z1);
+                    @ requires \valid(z2);
+                    @ requires \valid(z3);
+                    @ assigns *z1; */
+                  extern void mpz_cdiv_q(mpz_t z1, const mpz_t z2, const mpz_t z3);
+
+                  /*@ requires \valid(z1);
+                    @ requires \valid(z2);
+                    @ requires \valid(z3);
+                    @ assigns *z1; */
+                  extern void mpz_mod(mpz_t z1, const mpz_t z2, const mpz_t z3);
+                  // TODO: remplacer par un e_acsl.h.in
+                  // faire générer par le makefile un e_acsl.h
+                  // avec des #include "FRAMAC_SHARE/libc/stdio.h", etc
+
+                  // [TODO] ne pas générer les typedef si on veut linker avec GMP derrière
+
+                  // [TODO] utiliser un champ modèle de type integer pour modéliser
+                  // l'entier exact correspondant à un mpz_t.
+                  // Not yet implemented in ACSL.
+
+                  /************************/
+                  /* Standard C functions */
+                  /************************/
+
+                  /*@ terminates \false;
+                    @ assigns \nothing;
+                    @ ensures \false; */
+                  extern void exit(int status);
+
+                  /*@ assigns \nothing; */
+                  extern int printf(const char *, ...);
+
+                  /*****************************/
+                  /* Dedicated E-ACSL function */
+                  /*****************************/
+
+                  void e_acsl_fail(char *msg) { printf("%s\n", msg); exit(1); }
+
+
+                              int X = 0;
+[kernel] The full backtrace is:
+         Raised at file "src/kernel/log.ml", line 509, characters 30-31
+         Called from file "src/kernel/log.ml", line 503, characters 2-9
+         Re-raised at file "src/kernel/log.ml", line 506, characters 8-9
+         Called from file "list.ml", line 69, characters 12-15
+         Called from file "cil/src/cil.ml", line 7969, characters 3-30
+         Called from file "cil/src/cil.ml", line 8013, characters 2-368
+         Called from file "cil/src/cil.ml", line 6380, characters 21-41
+         Called from file "cil/src/cil.ml", line 8044, characters 7-84
+         Called from file "src/kernel/visitor.ml", line 299, characters 2-45
+         Called from file "src/type/type.ml", line 600, characters 39-44
+         Called from file "queue.ml", line 134, characters 6-20
+         Called from file "src/kernel/boot.ml", line 36, characters 4-20
+         Called from file "src/kernel/cmdline.ml", line 723, characters 2-9
+         Called from file "src/kernel/cmdline.ml", line 200, characters 4-8
+
+         Frama-C aborted because of internal error.
+         Please report as 'crash' at http://bts.frama-c.com/.
+         Your Frama-C version is Carbon-20110201+dev.
+         Note that a version and a backtrace alone often does not have information
+         to understand the bug. Guidelines for reporting bugs are at:
+         http://bts.frama-c.com/dokuwiki/doku.php?id=mantis:frama-c:bug_reporting_guidelines

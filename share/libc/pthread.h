@@ -129,8 +129,8 @@ enum
 // Include pthread-related types
 #include "__fc_define_pthread_types.h"
 #include "__fc_define_size_t.h"
+#include "sched.h"
 
-extern int pthread_atfork(void (*)(void), void (*)(void), void(*)(void));
 extern int pthread_attr_destroy(pthread_attr_t *);
 extern int pthread_attr_getdetachstate(const pthread_attr_t *, int *);
 extern int pthread_attr_getguardsize(const pthread_attr_t *restrict,

@@ -99,8 +99,7 @@ let get_backtrace () =
   let current_src_string =
     try
       let src = Log.get_current_source() in
-      Format.asprintf "Current source was: %s:%d@."
-        (Filepath.pretty src.Lexing.pos_fname) src.Lexing.pos_lnum
+      Format.asprintf "Current source was: %a@." Filepath.pp_pos src
     with Not_found -> "Current source was not set\n"
   in
   current_src_string ^ "The full backtrace is:\n" ^ bt
@@ -112,7 +111,7 @@ let request_crash_report =
      Note that a version and a backtrace alone often do not contain enough\n\
      information to understand the bug. Guidelines for reporting bugs are at:\n\
      http://bts.frama-c.com/dokuwiki/doku.php?id=mantis:frama-c:bug_reporting_guidelines\n"
-    Config.version
+    Config.version_and_codename
 
 let protect = function
   | Sys.Break -> 
@@ -589,6 +588,8 @@ struct
 
   module H = Hook.Make(struct end)
 
+  let () = H.extend Log.treat_deferred_error
+
   let options  : (string, cmdline_option) Hashtbl.t = Hashtbl.create 17
 
   let add_for_parsing option = Hashtbl.add options option.oname option
@@ -981,7 +982,7 @@ let plugin_help shortname =
 let help () =
   Log.print_on_output
     begin fun fmt ->
-      Format.fprintf fmt "\nThis is Frama-C %s\n" Config.version ;
+      Format.fprintf fmt "\nThis is Frama-C %s\n" Config.version_and_codename ;
       Format.fprintf fmt "\nUsage:\n    %s [options files ...]\n" Sys.argv.(0) ;
       let print_line fmt s =
         Format.(pp_print_string fmt s ; pp_print_newline fmt ()) in

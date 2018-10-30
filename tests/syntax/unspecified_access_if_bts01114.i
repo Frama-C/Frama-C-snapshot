@@ -3,9 +3,10 @@ STDOPT: +"-unspecified-access"
 */
 int x, *p;
 
-main(){
+int main(){
   p = &x;
   *p = (*p < 3);
   if (*p = (*p < 3))
     x = 4;
+  return 0;
 }

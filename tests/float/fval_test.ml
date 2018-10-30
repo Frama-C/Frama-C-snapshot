@@ -22,7 +22,7 @@ module Float = struct
 end
 
 let round fkind =
-  if fkind = Float32
+  if fkind = Single
   then Floating_point.round_to_single_precision_float
   else fun f -> f
 
@@ -49,8 +49,8 @@ let product itvs =
   List.filter (fun (a, b) -> Float.le a b) l
 
 let interesting = function
-  | Float32 | Real -> interesting_float
-  | Float64 -> interesting_double
+  | Single | Real | Long_Double -> interesting_float
+  | Double -> interesting_double
 
 (* Tests the abstract operation [fval_op fval = fval_r] by adding
    NaN to fval. The function checks that the result is [fval_r] plus NaN. *)
@@ -184,13 +184,13 @@ let reinterpret fkind f =
   let signed = false in
   let i_f = Ival.inject_float f in
   let i_f_int, fkind = match fkind with
-    | Float32 ->
+    | Single ->
       Ival.reinterpret_as_int i_f ~signed ~size:(Integer.of_int 32),
       Cil_types.FFloat
-    | Float64 ->
+    | Double ->
       Ival.reinterpret_as_int i_f ~signed ~size:(Integer.of_int 64),
       Cil_types.FDouble
-    | Real -> assert false
+    | Real | Long_Double -> assert false
   in
   let i_f' = Ival.reinterpret_as_float fkind i_f_int in
   Ival.project_float i_f'
@@ -201,7 +201,7 @@ let test_forward_unop () =
     let str_op = Format.asprintf "%s%a" str_op pretty_kind fkind in
     List.iter (test_unop_on_itv ?exact fkind op fval_op str_op) l2
   in
-  let test_unop ?exact op ?(fkinds=[Float32; Float64; Real]) fval_op str_op =
+  let test_unop ?exact op ?(fkinds=[Single; Double; Real]) fval_op str_op =
     List.iter (fun fkind -> test_unop ?exact fkind op fval_op str_op) fkinds
   in
   test_unop ( ~-. ) (fun _ -> neg) "-.";
@@ -212,11 +212,11 @@ let test_forward_unop () =
   test_unop Pervasives.floor floor "floor";
   test_unop Pervasives.ceil ceil "ceil";
   (* TODO: use interesting floating-point values for trigonometry. *)
-  test_unop ~fkinds:[Float64] Pervasives.cos cos "cos";
-  test_unop ~fkinds:[Float32] Floating_point.cosf cos "cos";
-  test_unop ~fkinds:[Float64] Pervasives.sin sin "sin";
-  test_unop ~fkinds:[Float32] Floating_point.sinf sin "sin";
-  test_unop ~exact:false ~fkinds:[Float32; Float64]
+  test_unop ~fkinds:[Double] Pervasives.cos cos "cos";
+  test_unop ~fkinds:[Single] Floating_point.cosf cos "cos";
+  test_unop ~fkinds:[Double] Pervasives.sin sin "sin";
+  test_unop ~fkinds:[Single] Floating_point.sinf sin "sin";
+  test_unop ~exact:false ~fkinds:[Single; Double]
     (fun f -> f) reinterpret "reinterpret";
 ;;
 
@@ -230,16 +230,16 @@ let test_forward_binop () =
   let test_binop ~pow fkinds op fval_op str_op =
     List.iter (fun fkind -> test_binop ~pow fkind op fval_op str_op) fkinds
   in
-  let fkinds = [Float32; Float64; Real] in
+  let fkinds = [Single; Double; Real] in
   test_binop ~pow:false fkinds ( +. ) add "*";
   test_binop ~pow:false fkinds ( -. ) sub "*";
   test_binop ~pow:false fkinds ( *. ) mul "*";
   test_binop ~pow:false fkinds ( /. ) div "/";
-  test_binop ~pow:false [Float32; Float64] mod_float fmod "mod";
-  test_binop ~pow:true [Float64] ( ** ) pow "pow";
-  test_binop ~pow:true [Float32] Floating_point.powf pow "pow";
-  test_binop ~pow:false [Float64] Pervasives.atan2 atan2 "atan2";
-  test_binop ~pow:false [Float32] Floating_point.atan2f atan2 "atan2"
+  test_binop ~pow:false [Single; Double] mod_float fmod "mod";
+  test_binop ~pow:true [Double] ( ** ) pow "pow";
+  test_binop ~pow:true [Single] Floating_point.powf pow "pow";
+  test_binop ~pow:false [Double] Pervasives.atan2 atan2 "atan2";
+  test_binop ~pow:false [Single] Floating_point.atan2f atan2 "atan2"
 
 let interesting_for_comp =
   [-.infinity; -1.2e-323; -0.; infinity; 1.3e-323; +0.; ]

@@ -2115,19 +2115,30 @@ fi
 
 
 
+        REQUIRE_QED=$REQUIRE_QED" "wp
+        REQUIRED_WP=$REQUIRED_WP" "qed
+
+
+
+
+
+
+
+
+
+        REQUIRE_RTEGEN=$REQUIRE_RTEGEN" "wp
+        REQUIRED_WP=$REQUIRED_WP" "rtegen
+
+
+
+
+
+
+
+
+
         USE_GUI=$USE_GUI" "wp
         USED_WP=$USED_WP" "gui
-
-
-
-
-
-
-
-
-
-        USE_RTEGEN=$USE_RTEGEN" "wp
-        USED_WP=$USED_WP" "rtegen
 
 
 
@@ -2277,8 +2288,8 @@ $as_echo "why3 unsupported version $WHY3VERSION" >&6; }
           ;;
       esac
     else
-      { $as_echo "$as_me:${as_lineno-$LINENO}: rerun configure to make wp using why3 0.87" >&5
-$as_echo "$as_me: rerun configure to make wp using why3 0.87" >&6;}
+      { $as_echo "$as_me:${as_lineno-$LINENO}: rerun configure to make wp using why3 0.88" >&5
+$as_echo "$as_me: rerun configure to make wp using why3 0.88" >&6;}
     fi
   else
     WHY3COQC="no"
@@ -3473,7 +3484,6 @@ if test -n "$ac_unrecognized_opts" && test "$enable_option_checking" != no; then
   { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: unrecognized options: $ac_unrecognized_opts" >&5
 $as_echo "$as_me: WARNING: unrecognized options: $ac_unrecognized_opts" >&2;}
 fi
-
 
 
 

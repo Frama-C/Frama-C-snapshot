@@ -1,0 +1,59 @@
+# frama-c -wp -wp-timeout 120 -wp-steps 2500 [...]
+[kernel] Parsing tests/wp_plugin/string_c.c (with preprocessing)
+[wp] Running WP plugin...
+[wp] Loading driver 'share/wp.driver'
+[wp] Warning: Missing RTE guards
+[wp] 44 goals scheduled
+[wp] [Alt-Ergo] Goal typed_memcpy_post_copied_contents : Valid
+[wp] [Qed] Goal typed_memcpy_post_result_ptr : Valid
+[wp] [Alt-Ergo] Goal typed_memcpy_loop_inv_no_eva_preserved : Valid
+[wp] [Alt-Ergo] Goal typed_memcpy_loop_inv_no_eva_established : Valid
+[wp] [Alt-Ergo] Goal typed_memcpy_loop_inv_no_eva_2_preserved : Valid
+[wp] [Qed] Goal typed_memcpy_loop_inv_no_eva_2_established : Valid
+[wp] [Qed] Goal typed_memcpy_loop_assign_part1 : Valid
+[wp] [Qed] Goal typed_memcpy_loop_assign_part2 : Valid
+[wp] [Alt-Ergo] Goal typed_memcpy_loop_assign_part3 : Valid
+[wp] [Qed] Goal typed_memcpy_assign : Valid
+[wp] [Alt-Ergo] Goal typed_memcpy_loop_term_decrease : Valid
+[wp] [Qed] Goal typed_memcpy_loop_term_positive : Valid
+[wp] [Alt-Ergo] Goal typed_memmove_post_copied_contents : Valid
+[wp] [Qed] Goal typed_memmove_post_result_ptr : Valid
+[wp] [Alt-Ergo] Goal typed_memmove_loop_inv_no_eva_preserved : Valid
+[wp] [Alt-Ergo] Goal typed_memmove_loop_inv_no_eva_established : Valid
+[wp] [Alt-Ergo] Goal typed_memmove_loop_inv_no_eva_2_preserved : Valid
+[wp] [Qed] Goal typed_memmove_loop_inv_no_eva_2_established : Valid
+[wp] [Alt-Ergo] Goal typed_memmove_loop_inv_no_eva_3_preserved : Valid
+[wp] [Qed] Goal typed_memmove_loop_inv_no_eva_3_established : Valid
+[wp] [Alt-Ergo] Goal typed_memmove_loop_inv_no_eva_4_preserved : Valid
+[wp] [Alt-Ergo] Goal typed_memmove_loop_inv_no_eva_4_established : Valid
+[wp] [Alt-Ergo] Goal typed_memmove_loop_inv_no_eva_5_preserved : Valid
+[wp] [Alt-Ergo] Goal typed_memmove_loop_inv_no_eva_5_established : Valid
+[wp] [Alt-Ergo] Goal typed_memmove_loop_inv_no_eva_6_preserved : Valid
+[wp] [Qed] Goal typed_memmove_loop_inv_no_eva_6_established : Valid
+[wp] [Qed] Goal typed_memmove_loop_assign_part1 : Valid
+[wp] [Qed] Goal typed_memmove_loop_assign_part2 : Valid
+[wp] [Alt-Ergo] Goal typed_memmove_loop_assign_part3 : Valid
+[wp] [Qed] Goal typed_memmove_loop_assign_2_part1 : Valid
+[wp] [Qed] Goal typed_memmove_loop_assign_2_part2 : Valid
+[wp] [Alt-Ergo] Goal typed_memmove_loop_assign_2_part3 : Valid
+[wp] [Qed] Goal typed_memmove_assign_exit : Valid
+[wp] [Qed] Goal typed_memmove_assign_normal_part1 : Valid
+[wp] [Qed] Goal typed_memmove_assign_normal_part2 : Valid
+[wp] [Qed] Goal typed_memmove_assign_normal_part3 : Valid
+[wp] [Qed] Goal typed_memmove_assign_normal_part4 : Valid
+[wp] [Qed] Goal typed_memmove_assign_normal_part5 : Valid
+[wp] [Alt-Ergo] Goal typed_memmove_assign_normal_part6 : Valid
+[wp] [Qed] Goal typed_memmove_assign_normal_part7 : Valid
+[wp] [Alt-Ergo] Goal typed_memmove_loop_term_decrease : Valid
+[wp] [Qed] Goal typed_memmove_loop_term_positive : Valid
+[wp] [Alt-Ergo] Goal typed_memmove_loop_term_2_decrease : Valid
+[wp] [Qed] Goal typed_memmove_loop_term_2_positive : Valid
+[wp] Proved goals:   44 / 44
+  Qed:            23 
+  Alt-Ergo:       21
+[wp] Report 'tests/wp_plugin/string_c.c.0.report.json'
+-------------------------------------------------------------
+Functions           WP     Alt-Ergo        Total   Success
+memcpy               6      6 (864..960)    12       100%
+memmove             17     15 (1984..2368)  32       100%
+-------------------------------------------------------------

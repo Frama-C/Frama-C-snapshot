@@ -1,22 +1,22 @@
 [kernel] Parsing tests/pdg/calls_and_struct.c (with preprocessing)
-[value] Analyzing a complete application starting at main
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing a complete application starting at main
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   S ∈ {0}
   A ∈ {0}
   B ∈ {0}
   C ∈ {0}
-[value] computing for function asgn_struct <- main.
+[eva] computing for function asgn_struct <- main.
   Called from tests/pdg/calls_and_struct.c:23.
-[value] Recording results for asgn_struct
-[value] Done for function asgn_struct
-[value] computing for function f <- main.
+[eva] Recording results for asgn_struct
+[eva] Done for function asgn_struct
+[eva] computing for function f <- main.
   Called from tests/pdg/calls_and_struct.c:27.
-[value] Recording results for f
-[value] Done for function f
-[value] Recording results for main
-[value] done for function main
+[eva] Recording results for f
+[eva] Done for function f
+[eva] Recording results for main
+[eva] done for function main
 [from] Computing for function asgn_struct
 [from] Done for function asgn_struct
 [from] Computing for function f

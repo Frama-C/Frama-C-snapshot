@@ -1,8 +1,8 @@
 [kernel] Parsing tests/value/modulo.i (no preprocessing)
-[value] Analyzing a complete application starting at main
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing a complete application starting at main
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   A ∈ {0}
   B ∈ {0}
   C ∈ {0}
@@ -25,94 +25,88 @@
   a ∈ [--..--]
   b ∈ [--..--]
   i2 ∈ [--..--]
-[value] computing for function pgcd1 <- main.
+[eva] computing for function pgcd1 <- main.
   Called from tests/value/modulo.i:151.
-[value:alarm] tests/value/modulo.i:151: Warning: 
+[eva:alarm] tests/value/modulo.i:151: Warning: 
   function pgcd1: precondition got status unknown.
-[value] tests/value/modulo.i:37: loop invariant got status valid.
-[value] tests/value/modulo.i:38: loop invariant got status valid.
-[value] tests/value/modulo.i:41: Frama_C_show_each_1: [1..10], [1..10], [0..9]
-[value] tests/value/modulo.i:41: Frama_C_show_each_1: {0}, [1..10], {0}
-[value] tests/value/modulo.i:41: 
-  Frama_C_show_each_1: [-10..-1], [1..10], [-9..0]
-[value] tests/value/modulo.i:41: Frama_C_show_each_1: [1..10], [-10..-1], [0..9]
-[value] tests/value/modulo.i:41: Frama_C_show_each_1: {0}, [-10..-1], {0}
-[value] tests/value/modulo.i:41: 
+[eva] tests/value/modulo.i:37: loop invariant got status valid.
+[eva] tests/value/modulo.i:38: loop invariant got status valid.
+[eva] tests/value/modulo.i:41: Frama_C_show_each_1: [1..10], [1..10], [0..9]
+[eva] tests/value/modulo.i:41: Frama_C_show_each_1: {0}, [1..10], {0}
+[eva] tests/value/modulo.i:41: Frama_C_show_each_1: [-10..-1], [1..10], [-9..0]
+[eva] tests/value/modulo.i:41: Frama_C_show_each_1: [1..10], [-10..-1], [0..9]
+[eva] tests/value/modulo.i:41: Frama_C_show_each_1: {0}, [-10..-1], {0}
+[eva] tests/value/modulo.i:41: 
   Frama_C_show_each_1: [-10..-1], [-10..-1], [-9..0]
-[value] Recording results for pgcd1
-[value] Done for function pgcd1
-[value] computing for function pgcd2 <- main.
+[eva] Recording results for pgcd1
+[eva] Done for function pgcd1
+[eva] computing for function pgcd2 <- main.
   Called from tests/value/modulo.i:152.
-[value:alarm] tests/value/modulo.i:152: Warning: 
+[eva:alarm] tests/value/modulo.i:152: Warning: 
   function pgcd2: precondition got status unknown.
-[value] tests/value/modulo.i:50: loop invariant got status valid.
-[value] tests/value/modulo.i:53: 
-  Frama_C_show_each_2: [-10..10], [1..10], [-9..9]
-[value] tests/value/modulo.i:53: 
+[eva] tests/value/modulo.i:50: loop invariant got status valid.
+[eva] tests/value/modulo.i:53: Frama_C_show_each_2: [-10..10], [1..10], [-9..9]
+[eva] tests/value/modulo.i:53: 
   Frama_C_show_each_2: [-10..10], [-10..-1], [-9..9]
-[value] Recording results for pgcd2
-[value] Done for function pgcd2
-[value] computing for function pgcd3 <- main.
+[eva] Recording results for pgcd2
+[eva] Done for function pgcd2
+[eva] computing for function pgcd3 <- main.
   Called from tests/value/modulo.i:153.
-[value:alarm] tests/value/modulo.i:153: Warning: 
+[eva:alarm] tests/value/modulo.i:153: Warning: 
   function pgcd3: precondition got status unknown.
-[value:alarm] tests/value/modulo.i:63: Warning: 
+[eva:alarm] tests/value/modulo.i:63: Warning: 
   division by zero. assert b_0 ≢ 0;
-[value] tests/value/modulo.i:64: 
+[eva] tests/value/modulo.i:64: 
   Frama_C_show_each_3: [-10..10], [-10..10], [-9..9]
-[value] Recording results for pgcd3
-[value] Done for function pgcd3
-[value] computing for function main2 <- main.
+[eva] Recording results for pgcd3
+[eva] Done for function pgcd3
+[eva] computing for function main2 <- main.
   Called from tests/value/modulo.i:155.
-[value:alarm] tests/value/modulo.i:9: Warning: 
+[eva:alarm] tests/value/modulo.i:9: Warning: 
   signed overflow. assert -2147483648 ≤ 4 * i;
-[value:alarm] tests/value/modulo.i:9: Warning: 
+[eva:alarm] tests/value/modulo.i:9: Warning: 
   signed overflow. assert 4 * i ≤ 2147483647;
-[value:alarm] tests/value/modulo.i:10: Warning: 
+[eva:alarm] tests/value/modulo.i:10: Warning: 
   signed overflow. assert -2147483648 ≤ 4 * i;
-[value:alarm] tests/value/modulo.i:10: Warning: 
+[eva:alarm] tests/value/modulo.i:10: Warning: 
   signed overflow. assert 4 * i ≤ 2147483647;
-[value:alarm] tests/value/modulo.i:11: Warning: assertion got status unknown.
-[value:alarm] tests/value/modulo.i:13: Warning: assertion got status unknown.
-[value:alarm] tests/value/modulo.i:27: Warning: 
-  division by zero. assert G ≢ 0;
-[value:alarm] tests/value/modulo.i:29: Warning: 
-  division by zero. assert L ≢ 0;
-[value] Recording results for main2
-[value] Done for function main2
-[value] computing for function simultaneous_congruences <- main.
+[eva:alarm] tests/value/modulo.i:11: Warning: assertion got status unknown.
+[eva:alarm] tests/value/modulo.i:13: Warning: assertion got status unknown.
+[eva:alarm] tests/value/modulo.i:27: Warning: division by zero. assert G ≢ 0;
+[eva:alarm] tests/value/modulo.i:29: Warning: division by zero. assert L ≢ 0;
+[eva] Recording results for main2
+[eva] Done for function main2
+[eva] computing for function simultaneous_congruences <- main.
   Called from tests/value/modulo.i:156.
-[value:alarm] tests/value/modulo.i:76: Warning: assertion got status unknown.
-[value] tests/value/modulo.i:95: entering loop for the first time
-[value] tests/value/modulo.i:82: entering loop for the first time
-[value] Recording results for simultaneous_congruences
-[value] Done for function simultaneous_congruences
-[value] computing for function shift_modulo <- main.
+[eva:alarm] tests/value/modulo.i:76: Warning: assertion got status unknown.
+[eva] Recording results for simultaneous_congruences
+[eva] Done for function simultaneous_congruences
+[eva] computing for function shift_modulo <- main.
   Called from tests/value/modulo.i:157.
-[value:alarm] tests/value/modulo.i:100: Warning: assertion got status unknown.
-[value:alarm] tests/value/modulo.i:103: Warning: 
+[eva:alarm] tests/value/modulo.i:100: Warning: assertion got status unknown.
+[eva:alarm] tests/value/modulo.i:103: Warning: 
   signed overflow. assert (int)((int)(i * 12) + 5) << 25 ≤ 2147483647;
-[value:alarm] tests/value/modulo.i:104: Warning: 
+[eva:alarm] tests/value/modulo.i:104: Warning: 
   signed overflow. assert (int)((int)(i * 13) + 7) << 25 ≤ 2147483647;
-[value] Recording results for shift_modulo
-[value] Done for function shift_modulo
-[value] computing for function extract_bits_modulo <- main.
+[eva] Recording results for shift_modulo
+[eva] Done for function shift_modulo
+[eva] computing for function extract_bits_modulo <- main.
   Called from tests/value/modulo.i:158.
-[value:alarm] tests/value/modulo.i:109: Warning: assertion got status unknown.
-[value] Recording results for extract_bits_modulo
-[value] Done for function extract_bits_modulo
-[value] computing for function pos_rem <- main.
+[eva:alarm] tests/value/modulo.i:109: Warning: assertion got status unknown.
+[eva] Recording results for extract_bits_modulo
+[eva] Done for function extract_bits_modulo
+[eva] computing for function pos_rem <- main.
   Called from tests/value/modulo.i:159.
-[value:alarm] tests/value/modulo.i:137: Warning: assertion got status unknown.
-[value:alarm] tests/value/modulo.i:142: Warning: assertion got status unknown.
-[value:alarm] tests/value/modulo.i:146: Warning: assertion got status unknown.
-[value] Recording results for pos_rem
-[value] Done for function pos_rem
-[value] Recording results for main
-[value] done for function main
+[eva:alarm] tests/value/modulo.i:137: Warning: assertion got status unknown.
+[eva:alarm] tests/value/modulo.i:142: Warning: assertion got status unknown.
+[eva:alarm] tests/value/modulo.i:146: Warning: assertion got status unknown.
+[eva] Recording results for pos_rem
+[eva] Done for function pos_rem
+[eva] Recording results for main
+[eva] done for function main
 [scope:rm_asserts] removing 2 assertion(s)
-[value] ====== VALUES COMPUTED ======
-[value:final-states] Values at end of function extract_bits_modulo:
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function extract_bits_modulo:
   i ∈ [0..10]
   aa1 ∈ [1291..32011],1291%3072
   ptr1 ∈ {{ (unsigned char *)&aa1 }}
@@ -130,14 +124,14 @@
   ptr4 ∈ {{ (unsigned char *)&aa4 }}
   m4 ∈ [16..126]
   n4 ∈ {0}
-[value:final-states] Values at end of function main2:
+[eva:final-states] Values at end of function main2:
   A ∈ {0}
   B ∈ {-3; 1}
   C ∈ {1}
   D ∈ {1; 4; 7; 10}
   E ∈ {-11; -8; -5; -2; 1; 4; 7; 10}
   F ∈ {5}
-  G ∈ [0..12]
+  G ∈ [1..12]
   H ∈ [0..100]
   I ∈ [101..301],1%2
   J ∈ [-201..299],4%5
@@ -149,27 +143,27 @@
   P ∈ {0}
   Q ∈ [-8..8]
   i ∈ [0..100]
-[value:final-states] Values at end of function pgcd1:
+[eva:final-states] Values at end of function pgcd1:
   a_0 ∈ [-10..10]
   b_0 ∈ {0}
-[value:final-states] Values at end of function pgcd2:
+[eva:final-states] Values at end of function pgcd2:
   a_0 ∈ [-10..10]
   b_0 ∈ {0}
-[value:final-states] Values at end of function pgcd3:
+[eva:final-states] Values at end of function pgcd3:
   a_0 ∈ [-10..10]
   b_0 ∈ {0}
-[value:final-states] Values at end of function pos_rem:
+[eva:final-states] Values at end of function pos_rem:
   n ∈ [-1..72]
   j ∈ [-128..127]
   k ∈ [0..135]
   l ∈ [-128..127]
-[value:final-states] Values at end of function shift_modulo:
+[eva:final-states] Values at end of function shift_modulo:
   i ∈ [0..10]
   r ∈ [20..500],20%48
   s ∈ [5..125],5%12
   q ∈ {5; 17; 29; 41; 53}
   t ∈ {7; 20; 33; 46; 59}
-[value:final-states] Values at end of function simultaneous_congruences:
+[eva:final-states] Values at end of function simultaneous_congruences:
   n1 ∈ [98..436207493],98%195
   n2 ∈ [98..436207493],98%195
   n3 ∈ [98..436207493],98%195
@@ -178,14 +172,14 @@
   o1 ∈ [11..268435451],11%24
   o2 ∈ [11..268435451],11%24
   o3 ∈ [11..268435451],11%24
-[value:final-states] Values at end of function main:
+[eva:final-states] Values at end of function main:
   A ∈ {0}
   B ∈ {-3; 1}
   C ∈ {1}
   D ∈ {1; 4; 7; 10}
   E ∈ {-11; -8; -5; -2; 1; 4; 7; 10}
   F ∈ {5}
-  G ∈ [0..12]
+  G ∈ [1..12]
   H ∈ [0..100]
   I ∈ [101..301],1%2
   J ∈ [-201..299],4%5

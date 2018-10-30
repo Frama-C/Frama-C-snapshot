@@ -1,41 +1,41 @@
 [kernel] Parsing tests/value/use_spec.i (no preprocessing)
-[value] User Error: no assigns specified for function 'f', for which a builtin
+[eva] User Error: no assigns specified for function 'f', for which a builtin
   or the specification will be used. Potential unsoundness.
-[value] Warning: Generating potentially incorrect assigns for function 'f' for which option -val-use-spec is set
+[eva] Warning: Generating potentially incorrect assigns for function 'f' for which option -eva-use-spec is set
 [kernel:annot:missing-spec] tests/value/use_spec.i:7: Warning: 
   Neither code nor specification for function f, generating default assigns from the prototype
-[value] Analyzing a complete application starting at main
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing a complete application starting at main
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   w ∈ {0}
   x ∈ {0}
   y ∈ {0}
   z ∈ {0}
-[value] computing for function f <- main.
+[eva] computing for function f <- main.
   Called from tests/value/use_spec.i:22.
-[value] using specification for function f
-[value] Done for function f
-[value] computing for function g <- main.
+[eva] using specification for function f
+[eva] Done for function f
+[eva] computing for function g <- main.
   Called from tests/value/use_spec.i:23.
 [kernel:annot:missing-spec] tests/value/use_spec.i:23: Warning: 
   Neither code nor specification for function g, generating default assigns from the prototype
-[value] using specification for function g
-[value] Done for function g
-[value] computing for function h <- main.
+[eva] using specification for function g
+[eva] Done for function g
+[eva] computing for function h <- main.
   Called from tests/value/use_spec.i:24.
-[value] using specification for function h
-[value] Done for function h
-[value] computing for function i <- main.
+[eva] using specification for function h
+[eva] Done for function h
+[eva] computing for function i <- main.
   Called from tests/value/use_spec.i:25.
-[value] using specification for function i
-[value] Done for function i
-[value] Recording results for main
+[eva] using specification for function i
+[eva] Done for function i
+[eva] Recording results for main
 [from] Computing for function main
 [from] Done for function main
-[value] done for function main
-[value] ====== VALUES COMPUTED ======
-[value:final-states] Values at end of function main:
+[eva] done for function main
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function main:
   w ∈ [--..--]
   x ∈ [--..--]
   y ∈ [--..--]
@@ -76,3 +76,5 @@
     x; y
   Sure outputs:
     w; z
+[eva] User Error: Deferred error message was emitted during execution. See above messages for more information.
+[kernel] Plug-in eva aborted: invalid user input.

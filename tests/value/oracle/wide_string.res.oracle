@@ -1,21 +1,21 @@
 [kernel] Parsing tests/value/wide_string.c (with preprocessing)
-[value] Analyzing a complete application starting at main
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing a complete application starting at main
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   
-[value:alarm] tests/value/wide_string.c:16: Warning: 
+[eva:alarm] tests/value/wide_string.c:16: Warning: 
   accessing out of bounds index. assert 4 < 4;
-[value:alarm] tests/value/wide_string.c:19: Warning: 
+[eva:alarm] tests/value/wide_string.c:19: Warning: 
   accessing out of bounds index. assert 4 < 4;
-[value] Recording results for main
-[value] done for function main
-[value] tests/value/wide_string.c:16: 
-  assertion 'Value,index_bound' got final status invalid.
-[value] tests/value/wide_string.c:19: 
-  assertion 'Value,index_bound' got final status invalid.
-[value] ====== VALUES COMPUTED ======
-[value:final-states] Values at end of function main:
+[eva] Recording results for main
+[eva] done for function main
+[eva] tests/value/wide_string.c:16: 
+  assertion 'Eva,index_bound' got final status invalid.
+[eva] tests/value/wide_string.c:19: 
+  assertion 'Eva,index_bound' got final status invalid.
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function main:
   p ∈ {{ "bar" }}
   q ∈ {{ L"foO" }}
   __retres ∈ {0}

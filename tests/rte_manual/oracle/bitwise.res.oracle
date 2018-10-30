@@ -12,7 +12,6 @@ int main(void)
   /*@ assert rte: signed_overflow: x << y ≤ 2147483647; */
   z = x << y;
   /*@ assert rte: shift: 0 ≤ y < 32; */
-  /*@ assert rte: shift: 0 ≤ x; */
   z = x >> y;
   __retres = 0;
   return __retres;

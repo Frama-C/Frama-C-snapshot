@@ -51,12 +51,9 @@ Assume {
   (* Heap *)
   Have: (region(t.base) <= 0) /\ linked(Malloc_0).
   (* Pre-condition *)
-  Have: valid_rw(Malloc_0, a, 10).
-  (* Pre-condition *)
-  Have: (0 <= x) /\ (x <= 9).
-  (* Pre-condition *)
-  Have: forall i_1 : Z. ((0 <= i_1) -> ((i_1 <= 9) ->
-      (0 <= Mint_0[shift_sint32(t, i_1)]))).
+  Have: (0 <= x) /\ (x <= 9) /\ valid_rw(Malloc_0, a, 10) /\
+      (forall i_1 : Z. ((0 <= i_1) -> ((i_1 <= 9) ->
+       (0 <= Mint_0[shift_sint32(t, i_1)])))).
 }
 Prove: 0 <= m_3[shift_sint32(t, 4) <- m_3[a_1]][shift_sint32(t, i)].
 

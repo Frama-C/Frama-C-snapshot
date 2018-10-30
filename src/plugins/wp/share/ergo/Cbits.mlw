@@ -32,6 +32,40 @@
 (** The theory real_RealInfix_ must be appended to this file*)
 (** The theory real_FromInt_ must be appended to this file*)
 (** The theory Cint_ must be appended to this file*)
+axiom lnot_bool : (lnot(0) = (-1))
+
+axiom lnot_bool1 : (lnot((-1)) = 0)
+
+axiom land_idemp : (forall x:int [land(x, x)]. (land(x, x) = x))
+
+axiom land_0 : (forall x:int [land(0, x)]. (land(0, x) = 0))
+
+axiom land_0bis : (forall x:int [land(x, 0)]. (land(x, 0) = 0))
+
+axiom land_1 : (forall x:int [land((-1), x)]. (land((-1), x) = x))
+
+axiom land_1bis : (forall x:int [land(x, (-1))]. (land(x, (-1)) = x))
+
+axiom lor_idemp : (forall x:int [lor(x, x)]. (lor(x, x) = x))
+
+axiom lor_1 : (forall x:int [lor((-1), x)]. (lor((-1), x) = (-1)))
+
+axiom lor_1bis : (forall x:int [lor(x, (-1))]. (lor(x, (-1)) = (-1)))
+
+axiom lor_0 : (forall x:int [lor(0, x)]. (lor(0, x) = x))
+
+axiom lor_0bis : (forall x:int [lor(x, 0)]. (lor(x, 0) = x))
+
+axiom lxor_nilpotent : (forall x:int [lxor(x, x)]. (lxor(x, x) = 0))
+
+axiom lxor_1 : (forall x:int [lxor((-1), x)]. (lxor((-1), x) = lnot(x)))
+
+axiom lxor_1bis : (forall x:int [lxor(x, (-1))]. (lxor(x, (-1)) = lnot(x)))
+
+axiom lxor_0 : (forall x:int [lxor(0, x)]. (lxor(0, x) = x))
+
+axiom lxor_0bis : (forall x:int [lxor(x, 0)]. (lxor(x, 0) = x))
+
 axiom bit_test_def :
   (forall x:int. forall k:int [bit_testb(x, k)]. ((bit_testb(x, k) = true) ->
   bit_test(x, k)))

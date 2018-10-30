@@ -1,9 +1,9 @@
 /* run.config
    OPT: -rte -warn-signed-overflow -print -machdep x86_32
+   OPT: -rte -warn-right-shift-negative -no-warn-left-shift-negative -print -machdep x86_32
 */
 
 int main() {
-
   int i=0;  
   int x=0,y=0,z=0;
   unsigned int ux=0,uy=0,uz=0;

@@ -6,5 +6,7 @@
   behavior hexa: assumes c!='\xAB';
   behavior oct: assumes c!='\123';
   behavior string: assumes ""!="\"" && ""=="" ;
+  behavior esc: assumes c == ' ' || c == '\f' || c == '\n' ||
+                        c == '\r' || c == '\t' || c == '\v';
 */
 void f(char c) { }

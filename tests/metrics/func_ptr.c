@@ -1,6 +1,6 @@
 /* run.config
-   STDOPT: +"-metrics-value-cover -metrics-cover main -load-module scope"
-   STDOPT: +"-metrics-value-cover -main foobar -metrics-cover foobar -load-module scope"
+   STDOPT: +"-metrics-eva-cover -metrics-cover main -load-module scope"
+   STDOPT: +"-metrics-eva-cover -main foobar -metrics-cover foobar -load-module scope"
 **/
 
 void (*bar) (int);  extern void (*bar_extern) (int);

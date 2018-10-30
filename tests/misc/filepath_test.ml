@@ -9,8 +9,11 @@ let () =
     (Filepath.normalize "/../tmp/../..");
   Kernel.feedback "normalize(/tmp/inexistent_directory/..): %s"
     (Filepath.normalize "/tmp/inexistent_directory/..");
-  try
-    Kernel.feedback "normalize(): %s" (Filepath.normalize "");
-    Kernel.fatal "this code should be unreachable"
-  with Invalid_argument _ ->
-    Kernel.feedback "caught the expected exception"
+  Kernel.feedback "normalize(): %s"
+    (Filepath.normalize "");
+  Kernel.feedback "relativize(.): %s"
+    (Filepath.relativize ".");
+  Kernel.feedback "relativize(./tests/..): %s"
+    (Filepath.relativize "./tests/..");
+  Kernel.feedback "relativize(/a/bc/d,base_name:/a/b/): %s"
+    (Filepath.relativize ~base_name:"/a/b/" "/a/bc/d")

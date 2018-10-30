@@ -1,37 +1,37 @@
 [kernel] Parsing tests/value/pointer_arg.i (no preprocessing)
-[value] Analyzing a complete application starting at main
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing a complete application starting at main
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   v ∈ [--..--]
-[value:alarm] tests/value/pointer_arg.i:4: Warning: 
+[eva:alarm] tests/value/pointer_arg.i:4: Warning: 
   out of bounds write. assert \valid(arg + 0);
-[value:alarm] tests/value/pointer_arg.i:5: Warning: 
+[eva:alarm] tests/value/pointer_arg.i:5: Warning: 
   out of bounds write. assert \valid(arg + 1);
-[value:alarm] tests/value/pointer_arg.i:6: Warning: 
+[eva:alarm] tests/value/pointer_arg.i:6: Warning: 
   out of bounds write. assert \valid(arg + 2);
 [kernel] tests/value/pointer_arg.i:6: Warning: 
   all target addresses were invalid. This path is assumed to be dead.
-[value:alarm] tests/value/pointer_arg.i:7: Warning: 
+[eva:alarm] tests/value/pointer_arg.i:7: Warning: 
   out of bounds write. assert \valid(arg + 1000);
 [kernel] tests/value/pointer_arg.i:7: Warning: 
   all target addresses were invalid. This path is assumed to be dead.
-[value:alarm] tests/value/pointer_arg.i:8: Warning: 
+[eva:alarm] tests/value/pointer_arg.i:8: Warning: 
   out of bounds write. assert \valid(arg + argc);
-[value:alarm] tests/value/pointer_arg.i:11: Warning: 
+[eva:alarm] tests/value/pointer_arg.i:11: Warning: 
   out of bounds write. assert \valid(argv + 1);
-[value:alarm] tests/value/pointer_arg.i:15: Warning: 
+[eva:alarm] tests/value/pointer_arg.i:15: Warning: 
   out of bounds read. assert \valid_read(argv + 0);
-[value:alarm] tests/value/pointer_arg.i:15: Warning: 
+[eva:alarm] tests/value/pointer_arg.i:15: Warning: 
   out of bounds write. assert \valid(*(argv + 0) + 0);
-[value] Recording results for main
-[value] done for function main
-[value] tests/value/pointer_arg.i:6: 
-  assertion 'Value,mem_access' got final status invalid.
-[value] tests/value/pointer_arg.i:7: 
-  assertion 'Value,mem_access' got final status invalid.
-[value] ====== VALUES COMPUTED ======
-[value:final-states] Values at end of function main:
+[eva] Recording results for main
+[eva] done for function main
+[eva] tests/value/pointer_arg.i:6: 
+  assertion 'Eva,mem_access' got final status invalid.
+[eva] tests/value/pointer_arg.i:7: 
+  assertion 'Eva,mem_access' got final status invalid.
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function main:
   __retres ∈ {0}
   S_argv[0] ∈ {{ &S_0_S_argv[0] }}
         [1] ∈ {{ NULL ; &S_1_S_argv[0] ; "5069" }}

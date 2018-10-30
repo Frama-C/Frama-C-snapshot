@@ -24,7 +24,7 @@
 #define __FC_ALLOCA
 #include "features.h"
 __PUSH_FC_STDLIB
-#include <stdlib.h>
+#include "stdlib.h"
 
 __BEGIN_DECLS
 

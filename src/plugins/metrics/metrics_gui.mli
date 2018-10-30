@@ -23,12 +23,12 @@
 (** {1 GUI utilities for Metrics} *)
 
 (** Initialize the main Metrics panel into an upper and lower part.
-    @returns a box containing the lower part of the panel where metrics can
+    @return a box containing the lower part of the panel where metrics can
     display their results.
 *)
 val init_panel : Design.main_window_extension_points -> GPack.box ;;
 
-(** @returns a value allowing to register the panel into the main GUI *)
+(** @return a value allowing to register the panel into the main GUI *)
 val coerce_panel_to_ui : < coerce : 'a; .. > -> 'b -> string * 'a * 'c option  ;;
 
 (** Display the list of list of strings in a LablGTK table object *)

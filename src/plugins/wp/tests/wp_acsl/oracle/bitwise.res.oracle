@@ -71,6 +71,27 @@ Prove: land(65535, a) != 21845.
 
 ------------------------------------------------------------
 ------------------------------------------------------------
+  Function band_bool with behavior false
+------------------------------------------------------------
+
+Goal Post-condition for 'false' (file tests/wp_acsl/bitwise.i, line 91) in 'band_bool':
+Assume {
+  Type: is_uint8(a) /\ is_uint8(b).
+  (* Pre-condition for 'false' *)
+  Have: (a != 1) \/ (b != 1).
+}
+Prove: land(a, b) = 0.
+
+------------------------------------------------------------
+------------------------------------------------------------
+  Function band_bool with behavior true
+------------------------------------------------------------
+
+Goal Post-condition for 'true' (file tests/wp_acsl/bitwise.i, line 88) in 'band_bool':
+Prove: true.
+
+------------------------------------------------------------
+------------------------------------------------------------
   Function bnot
 ------------------------------------------------------------
 
@@ -116,6 +137,32 @@ Prove: true.
 
 ------------------------------------------------------------
 ------------------------------------------------------------
+  Function bor_bool with behavior false
+------------------------------------------------------------
+
+Goal Post-condition for 'false' (file tests/wp_acsl/bitwise.i, line 81) in 'bor_bool':
+Assume {
+  Type: is_uint8(a) /\ is_uint8(b).
+  (* Pre-condition for 'false' *)
+  Have: (a != 1) /\ (b != 1).
+}
+Prove: (a = 0) /\ (b = 0).
+
+------------------------------------------------------------
+------------------------------------------------------------
+  Function bor_bool with behavior true
+------------------------------------------------------------
+
+Goal Post-condition for 'true' (file tests/wp_acsl/bitwise.i, line 78) in 'bor_bool':
+Assume {
+  Type: is_uint8(a) /\ is_uint8(b).
+  (* Pre-condition for 'true' *)
+  Have: (a = 1) \/ (b = 1).
+}
+Prove: (a != 0) \/ (b != 0).
+
+------------------------------------------------------------
+------------------------------------------------------------
   Function bxor
 ------------------------------------------------------------
 
@@ -147,6 +194,32 @@ Goal Post-condition for 'bit3' 'zbit' in 'bxor':
 Let x = lnot(b).
 Assume { Type: is_sint32(b) /\ is_sint32(x) /\ is_sint32(lxor(b, x)). }
 Prove: lnot(x) = b.
+
+------------------------------------------------------------
+------------------------------------------------------------
+  Function bxor_bool with behavior false
+------------------------------------------------------------
+
+Goal Post-condition for 'false' (file tests/wp_acsl/bitwise.i, line 100) in 'bxor_bool':
+Assume {
+  Type: is_uint8(a) /\ is_uint8(b).
+  (* Pre-condition for 'false' *)
+  Have: ((a != 0) \/ (b != 1)) /\ ((a != 1) \/ (b != 0)).
+}
+Prove: b = a.
+
+------------------------------------------------------------
+------------------------------------------------------------
+  Function bxor_bool with behavior true
+------------------------------------------------------------
+
+Goal Post-condition for 'true' (file tests/wp_acsl/bitwise.i, line 97) in 'bxor_bool':
+Assume {
+  Type: is_uint8(a) /\ is_uint8(b).
+  (* Pre-condition for 'true' *)
+  Have: ((a = 0) /\ (b = 1)) \/ ((a = 1) /\ (b = 0)).
+}
+Prove: b != a.
 
 ------------------------------------------------------------
 ------------------------------------------------------------

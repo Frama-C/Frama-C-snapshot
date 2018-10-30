@@ -1,8 +1,8 @@
 [kernel] Parsing tests/value/deps_compose.i (no preprocessing)
-[value] Analyzing a complete application starting at main
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing a complete application starting at main
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   c ∈ {1}
   z ∈ {0}
   x1 ∈ {0}
@@ -17,25 +17,22 @@
   y5 ∈ {0}
   x6 ∈ {0}
   y6 ∈ {0}
-[value] computing for function f <- main.
+[eva] computing for function f <- main.
   Called from tests/value/deps_compose.i:17.
-[value] Recording results for f
-[value] Done for function f
-[value] computing for function f <- main.
-  Called from tests/value/deps_compose.i:26.
-[value] Recording results for f
-[value] Done for function f
-[value] Recording results for main
-[value] done for function main
-[value] ====== VALUES COMPUTED ======
-[value:final-states] Values at end of function f:
+[eva] Recording results for f
+[eva] Done for function f
+[eva] tests/value/deps_compose.i:26: Reusing old results for call to f
+[eva] Recording results for main
+[eva] done for function main
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function f:
   x1 ∈ {0}
   x2 ∈ {0}
   x3 ∈ {0}
   x4 ∈ {0}
   x5 ∈ {0}
   x6 ∈ {0}
-[value:final-states] Values at end of function main:
+[eva:final-states] Values at end of function main:
   x1 ∈ {0}
   y1 ∈ {0}
   x2 ∈ {0}

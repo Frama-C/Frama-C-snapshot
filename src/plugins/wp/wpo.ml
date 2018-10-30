@@ -91,9 +91,9 @@ struct
     let fmt = Format.formatter_of_buffer buffer in
     Format.fprintf fmt "%s/%s/%s" dir mid id ;
     (match prover with None -> () | Some p ->
-      Format.fprintf fmt "_%s" (filename_for_prover p)) ;
+        Format.fprintf fmt "_%s" (filename_for_prover p)) ;
     (match suffix with None -> () | Some s ->
-      Format.fprintf fmt "_%s" s) ;
+        Format.fprintf fmt "_%s" s) ;
     Format.fprintf fmt ".%s" ext ;
     Format.pp_print_flush fmt ();
     Buffer.contents buffer
@@ -203,7 +203,7 @@ struct
   let preprocess g =
     if Wp_parameters.Let.get () then
       begin
-        apply Conditions.introduction g ;
+        apply Conditions.introduction_eq g ;
         let fold acc (get,solver) = if get () then solver::acc else acc in
         let solvers = List.fold_left fold [] default_simplifiers in
         apply (Conditions.simplify ~solvers) g ;
@@ -262,7 +262,7 @@ struct
     | None ->
         let s = Conditions.lemma vc.lemma.l_lemma in
         vc.sequent <- Some s ; s
-  
+
   let pretty fmt vc results =
     begin
       Format.fprintf fmt "Lemma %s:@\n" vc.lemma.l_name ;
@@ -321,7 +321,7 @@ struct
     | None -> ()
     | Some(s,e) ->
         let loc = fst (Stmt.loc s) in
-        let line = loc.Lexing.pos_lnum in
+        let line = loc.Filepath.pos_lnum in
         let desc = match e with
           | WpPropId.FromCode -> "Effect"
           | WpPropId.FromCall -> "Call Effect"
@@ -549,14 +549,14 @@ struct
   let get w p =
     try Pmap.find p w.dps
     with Not_found ->
-      match class_of_prover p with
-      | None -> VCS.no_result
-      | Some cp ->
-          try Cmap.find cp w.cps
-          with Not_found -> VCS.no_result
+    match class_of_prover p with
+    | None -> VCS.no_result
+    | Some cp ->
+        try Cmap.find cp w.cps
+        with Not_found -> VCS.no_result
 
   let clear w = w.dps <- Pmap.empty ; w.cps <- Cmap.empty
-  
+
   let replace w p r =
     begin
       if p = Qed then
@@ -823,7 +823,7 @@ let compute g =
 let is_proved g =
   is_trivial g || List.exists (fun (_,r) -> VCS.is_valid r) (get_results g)
 
-let is_unknown g = List.exists 
+let is_unknown g = List.exists
     (fun (_,r) -> VCS.is_verdict r && not (VCS.is_valid r))
     ( get_results g )
 

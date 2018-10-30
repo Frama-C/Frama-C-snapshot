@@ -1,45 +1,38 @@
 [kernel] Parsing tests/libc/coverage.c (with preprocessing)
 [kernel] Parsing share/libc/string.c (with preprocessing)
-[value] Analyzing a complete application starting at main
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
-  __fc_heap_status ∈ [--..--]
-  __fc_strtok_ptr ∈ {0}
-  __fc_random_counter ∈ [--..--]
-  __fc_rand_max ∈ {32767}
-  __fc_mblen_state ∈ [--..--]
-  __fc_mbtowc_state ∈ [--..--]
-  __fc_wctomb_state ∈ [--..--]
-[value] computing for function strlen <- main.
+[eva] Analyzing a complete application starting at main
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
+  
+[eva] computing for function strlen <- main.
   Called from tests/libc/coverage.c:9.
-[value] share/libc/string.c:79: entering loop for the first time
-[value] Recording results for strlen
-[value] Done for function strlen
-[value] Recording results for main
-[value] done for function main
-[value] ====== VALUES COMPUTED ======
-[value:final-states] Values at end of function strlen:
+[eva] Recording results for strlen
+[eva] Done for function strlen
+[eva] Recording results for main
+[eva] done for function main
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function strlen:
   i ∈ {6}
-[value:final-states] Values at end of function main:
+[eva:final-states] Values at end of function main:
   s ∈ {{ "blabli" }}
   l ∈ {6}
-[metrics] Value coverage statistics
-  =========================
+[metrics] Eva coverage statistics
+  =======================
   Syntactically reachable functions = 1 (out of 1)
   Semantically reached functions = 1
   Coverage estimation = 100.0%
-[metrics] Statements analyzed by Value
-  ----------------------------
+[metrics] Statements analyzed by Eva
+  --------------------------
   4 stmts in analyzed functions, 4 stmts analyzed (100.0%)
   main: 4 stmts out of 4 (100.0%)
-[metrics] Value coverage statistics
-  =========================
-  Syntactically reachable functions = 2 (out of 72)
+[metrics] Eva coverage statistics
+  =======================
+  Syntactically reachable functions = 2 (out of 75)
   Semantically reached functions = 2
   Coverage estimation = 100.0%
-[metrics] Statements analyzed by Value
-  ----------------------------
+[metrics] Statements analyzed by Eva
+  --------------------------
   10 stmts in analyzed functions, 10 stmts analyzed (100.0%)
   main: 4 stmts out of 4 (100.0%)
   strlen: 6 stmts out of 6 (100.0%)

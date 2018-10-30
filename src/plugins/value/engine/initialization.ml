@@ -198,6 +198,7 @@ module Make
       let typ_lval = Cil.typeOfLval lval in
       if Cil.typeHasQualifier "const" typ_lval &&
          not (Cil.typeHasQualifier "volatile" typ_lval)
+         && not (Cil.is_mutable_or_initialized lval)
       then apply_cil_single_initializer kinstr state lval exp
       else state
     | CompoundInit (typ, l) ->
@@ -215,6 +216,7 @@ module Make
      are taken into account *)
   let initialize_var_lib_entry kinstr vi init state =
     if Cil.typeHasQualifier "const" vi.vtype && not (vi.vstorage = Extern)
+       && not (Cil.typeHasAttributeMemoryBlock Cil.frama_c_mutable vi.vtype)
     then (* Fully const base. Ignore -lib-entry altogether. *)
       initialize_var_not_lib_entry kinstr ~local:false vi init state
     else
@@ -360,6 +362,26 @@ module Make
     then supplied_state ()
     else global_state ~lib_entry
 
+  let print_initial_cvalue_state state =
+    let cvalue_state = Cvalue_domain.extract Domain.get state in
+    (* Do not show variables from the frama-c libc specifications. *)
+    let print_base base =
+      try
+        let varinfo = Base.to_varinfo base in
+        not (Cil.hasAttribute "fc_stdlib" varinfo.vattr
+             || Cil.hasAttribute "fc_stdlib_generated" varinfo.vattr)
+      with Base.Not_a_C_variable -> true
+    in
+    let cvalue_state =
+      if Kernel.PrintLibc.get ()
+      then cvalue_state
+      else Cvalue.Model.filter_base print_base cvalue_state
+    in
+    Value_parameters.printf ~dkey:Value_parameters.dkey_initial_state
+      ~header:(fun fmt -> Format.pp_print_string fmt
+                  "Values of globals at initialization")
+      "@[  %a@]" Cvalue.Model.pretty cvalue_state
+
   let initial_state_with_formals ~lib_entry kf =
     let init_state =
       if Db.Value.globals_use_supplied_state ()
@@ -375,12 +397,7 @@ module Make
       end
     in
     Domain.Store.register_global_state init_state;
-    (* Prints the initial cvalue state. *)
-    let cvalue_state = Cvalue_domain.extract Domain.get init_state in
-    Value_parameters.printf ~dkey:Value_parameters.dkey_initial_state
-      ~header:(fun fmt -> Format.pp_print_string fmt
-                  "Values of globals at initialization")
-      "@[  %a@]" Cvalue.Model.pretty cvalue_state;
+    print_initial_cvalue_state init_state;
     init_state >>-: add_main_formals kf
 
 end

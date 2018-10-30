@@ -61,15 +61,12 @@ let visit_bar vis ext =
   | Ext_terms _ | Ext_preds _ ->
       Kernel.fatal "bar extension should have ids as arguments"
 
-let type_baz ~typing_context ~loc l =
-  if not (typing_context.is_loop ()) then
-    typing_context.error loc "baz is a loop extension only"
-  else
-    let t =
-      List.map
-        (typing_context.type_term typing_context typing_context.pre_state) l
-    in
-    Ext_terms t
+let type_baz ~typing_context ~loc:_loc l =
+  let t =
+    List.map
+      (typing_context.type_term typing_context typing_context.pre_state) l
+  in
+  Ext_terms t
 
 module Count_bla = State_builder.Counter(struct let name = "Count_bla" end)
 
@@ -115,7 +112,11 @@ let () =
   Logic_typing.register_behavior_extension "bla" type_bla;
   Cil_printer.register_behavior_extension "bar" print_bar;
   Cil.register_behavior_extension "bar" visit_bar;
-  Logic_typing.register_behavior_extension "baz" type_baz
+  Logic_typing.register_code_annot_next_both_extension "baz" type_baz;
+  Logic_typing.register_code_annot_next_loop_extension "lfoo" type_foo;
+  Logic_typing.register_code_annot_extension "ca_foo" type_foo;
+  Logic_typing.register_code_annot_next_stmt_extension "ns_foo" type_foo;
+  Logic_typing.register_global_extension "global_foo" type_foo
 
 let run () =
   Ast.compute ();

@@ -1,217 +1,205 @@
 [kernel] Parsing tests/value/backward_add_ptr.c (with preprocessing)
-[value] Analyzing a complete application starting at main
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing a complete application starting at main
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   rand ∈ [--..--]
-[value] computing for function main1 <- main.
+[eva] computing for function main1 <- main.
   Called from tests/value/backward_add_ptr.c:185.
-[value:alarm] tests/value/backward_add_ptr.c:25: Warning: 
+[eva:alarm] tests/value/backward_add_ptr.c:25: Warning: 
   out of bounds read. assert \valid_read(p + (unsigned int)q);
-[value] tests/value/backward_add_ptr.c:26: 
+[eva] tests/value/backward_add_ptr.c:26: 
   Frama_C_show_each_only_a: {0; 1}, {{ &a }}, {0}
-[value:alarm] tests/value/backward_add_ptr.c:32: Warning: 
+[eva:alarm] tests/value/backward_add_ptr.c:32: Warning: 
   out of bounds read. assert \valid_read((char *)p + (unsigned int)q);
-[value] tests/value/backward_add_ptr.c:33: 
+[eva] tests/value/backward_add_ptr.c:33: 
   Frama_C_show_each_reduced_offset:
   {0; 1}, {{ NULL + {0; 1; 2; 3} ; &a }}, {{ NULL + {0; 1; 2; 3} ; &b }}
-[value:alarm] tests/value/backward_add_ptr.c:38: Warning: 
+[eva:alarm] tests/value/backward_add_ptr.c:38: Warning: 
   out of bounds read.
   assert \valid_read(p + (unsigned int)((unsigned int)q / 4));
-[value] tests/value/backward_add_ptr.c:39: 
+[eva] tests/value/backward_add_ptr.c:39: 
   Frama_C_show_each_no_reduction:
   {0; 1}, {{ NULL + [0..4294967295] ; &a }}, {{ NULL + [0..4294967295] ; &b }}
-[value] Recording results for main1
-[value] Done for function main1
-[value] computing for function main2 <- main.
+[eva] Recording results for main1
+[eva] Done for function main1
+[eva] computing for function main2 <- main.
   Called from tests/value/backward_add_ptr.c:186.
-[value:alarm] tests/value/backward_add_ptr.c:54: Warning: 
+[eva:alarm] tests/value/backward_add_ptr.c:54: Warning: 
   out of bounds read. assert \valid_read((int *)((char *)p + (unsigned int)q));
-[value] tests/value/backward_add_ptr.c:55: 
-  Frama_C_show_each_int_if: {{ &a }}, {0}
-[value] tests/value/backward_add_ptr.c:57: 
+[eva] tests/value/backward_add_ptr.c:55: Frama_C_show_each_int_if: {{ &a }}, {0}
+[eva] tests/value/backward_add_ptr.c:57: 
   Frama_C_show_each_int_else: {0}, {{ &b }}
-[value:alarm] tests/value/backward_add_ptr.c:60: Warning: 
+[eva:alarm] tests/value/backward_add_ptr.c:60: Warning: 
   out of bounds read. assert \valid_read((char *)p + (unsigned int)q);
-[value] tests/value/backward_add_ptr.c:61: 
+[eva] tests/value/backward_add_ptr.c:61: 
   Frama_C_show_each_char_if:
   {{ NULL + {1; 2; 3} ; &a }}, {{ NULL + {0; 1; 2; 3} ; &b }}
-[value] tests/value/backward_add_ptr.c:63: 
+[eva] tests/value/backward_add_ptr.c:63: 
   Frama_C_show_each_char_else: {0}, {{ &b }}
-[value] Recording results for main2
-[value] Done for function main2
-[value] computing for function main3 <- main.
+[eva] Recording results for main2
+[eva] Done for function main2
+[eva] computing for function main3 <- main.
   Called from tests/value/backward_add_ptr.c:187.
-[value] computing for function gm <- main3 <- main.
+[eva] computing for function gm <- main3 <- main.
   Called from tests/value/backward_add_ptr.c:75.
-[value] tests/value/backward_add_ptr.c:68: 
+[eva] tests/value/backward_add_ptr.c:68: 
   Assigning imprecise value to __retres.
   The imprecision originates from Arithmetic
   {tests/value/backward_add_ptr.c:68}
-[value] tests/value/backward_add_ptr.c:68: 
+[eva] tests/value/backward_add_ptr.c:68: 
   Assigning imprecise value to \result<gm>.
   The imprecision originates from Arithmetic
   {tests/value/backward_add_ptr.c:68}
-[value] Recording results for gm
-[value] Done for function gm
-[value] tests/value/backward_add_ptr.c:75: 
+[eva] Recording results for gm
+[eva] Done for function gm
+[eva] tests/value/backward_add_ptr.c:75: 
   Assigning imprecise value to p.
   The imprecision originates from Arithmetic
   {tests/value/backward_add_ptr.c:68}
-[value:alarm] tests/value/backward_add_ptr.c:81: Warning: 
+[eva:alarm] tests/value/backward_add_ptr.c:81: Warning: 
   out of bounds read. assert \valid_read(p + (unsigned int)q);
-[value] tests/value/backward_add_ptr.c:82: 
+[eva] tests/value/backward_add_ptr.c:82: 
   Frama_C_show_each_GM_only_a:
   {{ &a + [-17179869180..0],0%4 }}, [0..4294967295]
-[value:alarm] tests/value/backward_add_ptr.c:87: Warning: 
+[eva:alarm] tests/value/backward_add_ptr.c:87: Warning: 
   out of bounds read. assert \valid_read((char *)p + (unsigned int)q);
-[value] tests/value/backward_add_ptr.c:88: 
+[eva] tests/value/backward_add_ptr.c:88: 
   Frama_C_show_each_GM_reduce_p_offset:
   {{ NULL + {0; 1; 2; 3} ; &a + [-4294967295..3] }},
   {{ NULL + [0..4294967295] ; &b }}
-[value] computing for function gm <- main3 <- main.
-  Called from tests/value/backward_add_ptr.c:91.
-[value] Recording results for gm
-[value] Done for function gm
-[value] tests/value/backward_add_ptr.c:91: 
+[eva] tests/value/backward_add_ptr.c:91: Reusing old results for call to gm
+[eva] tests/value/backward_add_ptr.c:91: 
   Assigning imprecise value to p.
   The imprecision originates from Arithmetic
   {tests/value/backward_add_ptr.c:68}
-[value:alarm] tests/value/backward_add_ptr.c:96: Warning: 
+[eva:alarm] tests/value/backward_add_ptr.c:96: Warning: 
   out of bounds read. assert \valid_read(p + (unsigned int)q);
-[value] computing for function gm <- main3 <- main.
+[eva] computing for function gm <- main3 <- main.
   Called from tests/value/backward_add_ptr.c:100.
-[value] Recording results for gm
-[value] Done for function gm
-[value] tests/value/backward_add_ptr.c:100: 
+[eva] Recording results for gm
+[eva] Done for function gm
+[eva] tests/value/backward_add_ptr.c:100: 
   Assigning imprecise value to p.
   The imprecision originates from Arithmetic
   {tests/value/backward_add_ptr.c:68}
-[value:alarm] tests/value/backward_add_ptr.c:106: Warning: 
+[eva:alarm] tests/value/backward_add_ptr.c:106: Warning: 
   out of bounds read. assert \valid_read(p + (unsigned int)q);
-[value] tests/value/backward_add_ptr.c:107: 
+[eva] tests/value/backward_add_ptr.c:107: 
   Frama_C_show_each_GM_no_reduction:
   {{ garbled mix of &{a; b}
   (origin: Arithmetic {tests/value/backward_add_ptr.c:68}) }},
   {{ NULL + [0..4294967295] ; &b }}
-[value] computing for function gm <- main3 <- main.
-  Called from tests/value/backward_add_ptr.c:110.
-[value] Recording results for gm
-[value] Done for function gm
-[value] tests/value/backward_add_ptr.c:110: 
+[eva] tests/value/backward_add_ptr.c:110: Reusing old results for call to gm
+[eva] tests/value/backward_add_ptr.c:110: 
   Assigning imprecise value to p.
   The imprecision originates from Arithmetic
   {tests/value/backward_add_ptr.c:68}
-[value:alarm] tests/value/backward_add_ptr.c:115: Warning: 
+[eva:alarm] tests/value/backward_add_ptr.c:115: Warning: 
   out of bounds read. assert \valid_read((char *)p + (unsigned int)q);
-[value] tests/value/backward_add_ptr.c:116: 
+[eva] tests/value/backward_add_ptr.c:116: 
   Frama_C_show_each_GM_only_c: {0}, {{ &c }}
-[value:alarm] tests/value/backward_add_ptr.c:121: Warning: 
+[eva:alarm] tests/value/backward_add_ptr.c:121: Warning: 
   out of bounds read. assert \valid_read(p + (unsigned int)q);
-[value] tests/value/backward_add_ptr.c:122: 
+[eva] tests/value/backward_add_ptr.c:122: 
   Frama_C_show_each_GM_only_b:
   {{ &b + [-17179869180..0],0%4 }}, [0..4294967295]
-[value] computing for function gm <- main3 <- main.
-  Called from tests/value/backward_add_ptr.c:125.
-[value] Recording results for gm
-[value] Done for function gm
-[value] tests/value/backward_add_ptr.c:125: 
+[eva] tests/value/backward_add_ptr.c:125: Reusing old results for call to gm
+[eva] tests/value/backward_add_ptr.c:125: 
   Assigning imprecise value to p.
   The imprecision originates from Arithmetic
   {tests/value/backward_add_ptr.c:68}
-[value:alarm] tests/value/backward_add_ptr.c:130: Warning: 
+[eva:alarm] tests/value/backward_add_ptr.c:130: Warning: 
   out of bounds read. assert \valid_read((char *)p + (unsigned int)q);
-[value:alarm] tests/value/backward_add_ptr.c:136: Warning: 
+[eva:alarm] tests/value/backward_add_ptr.c:136: Warning: 
   out of bounds read. assert \valid_read((char *)p + (unsigned int)q);
-[value] tests/value/backward_add_ptr.c:137: 
+[eva] tests/value/backward_add_ptr.c:137: 
   Frama_C_show_each_GM_only_b_and_gm:
   {{ garbled mix of &{b}
   (origin: Arithmetic {tests/value/backward_add_ptr.c:68}) }},
   {{ NULL + [0..4294967295] ; &b }}
-[value] Recording results for main3
-[value] Done for function main3
-[value] computing for function main4 <- main.
+[eva] Recording results for main3
+[eva] Done for function main3
+[eva] computing for function main4 <- main.
   Called from tests/value/backward_add_ptr.c:188.
-[value] computing for function gm <- main4 <- main.
+[eva] computing for function gm <- main4 <- main.
   Called from tests/value/backward_add_ptr.c:145.
-[value] Recording results for gm
-[value] Done for function gm
-[value] tests/value/backward_add_ptr.c:145: 
+[eva] Recording results for gm
+[eva] Done for function gm
+[eva] tests/value/backward_add_ptr.c:145: 
   Assigning imprecise value to tmp_0.
   The imprecision originates from Arithmetic
   {tests/value/backward_add_ptr.c:68}
-[value] tests/value/backward_add_ptr.c:145: 
+[eva] tests/value/backward_add_ptr.c:145: 
   Assigning imprecise value to p.
   The imprecision originates from Arithmetic
   {tests/value/backward_add_ptr.c:68}
-[value] computing for function gm <- main4 <- main.
+[eva] computing for function gm <- main4 <- main.
   Called from tests/value/backward_add_ptr.c:146.
-[value] Recording results for gm
-[value] Done for function gm
-[value] tests/value/backward_add_ptr.c:146: 
+[eva] Recording results for gm
+[eva] Done for function gm
+[eva] tests/value/backward_add_ptr.c:146: 
   Assigning imprecise value to q.
   The imprecision originates from Arithmetic
   {tests/value/backward_add_ptr.c:68}
-[value:alarm] tests/value/backward_add_ptr.c:150: Warning: 
+[eva:alarm] tests/value/backward_add_ptr.c:150: Warning: 
   out of bounds read. assert \valid_read(p + (unsigned int)q);
-[value] tests/value/backward_add_ptr.c:151: 
+[eva] tests/value/backward_add_ptr.c:151: 
   Frama_C_show_each_2GM_no_reduction:
   {{ garbled mix of &{a; b}
   (origin: Arithmetic {tests/value/backward_add_ptr.c:68}) }},
   {{ garbled mix of &{c}
   (origin: Arithmetic {tests/value/backward_add_ptr.c:68}) }}
-[value:alarm] tests/value/backward_add_ptr.c:156: Warning: 
+[eva:alarm] tests/value/backward_add_ptr.c:156: Warning: 
   out of bounds read. assert \valid_read((char *)p + (unsigned int)q);
-[value] tests/value/backward_add_ptr.c:157: 
+[eva] tests/value/backward_add_ptr.c:157: 
   Frama_C_show_each_2GM_only_b:
   {{ garbled mix of &{b}
   (origin: Arithmetic {tests/value/backward_add_ptr.c:68}) }},
   [0..4294967295]
-[value] computing for function gm <- main4 <- main.
-  Called from tests/value/backward_add_ptr.c:160.
-[value] Recording results for gm
-[value] Done for function gm
-[value] tests/value/backward_add_ptr.c:160: 
+[eva] tests/value/backward_add_ptr.c:160: Reusing old results for call to gm
+[eva] tests/value/backward_add_ptr.c:160: 
   Assigning imprecise value to p.
   The imprecision originates from Arithmetic
   {tests/value/backward_add_ptr.c:68}
-[value] computing for function gm <- main4 <- main.
+[eva] computing for function gm <- main4 <- main.
   Called from tests/value/backward_add_ptr.c:161.
-[value] Recording results for gm
-[value] Done for function gm
-[value] tests/value/backward_add_ptr.c:161: 
+[eva] Recording results for gm
+[eva] Done for function gm
+[eva] tests/value/backward_add_ptr.c:161: 
   Assigning imprecise value to q.
   The imprecision originates from Arithmetic
   {tests/value/backward_add_ptr.c:68}
-[value:alarm] tests/value/backward_add_ptr.c:165: Warning: 
+[eva:alarm] tests/value/backward_add_ptr.c:165: Warning: 
   out of bounds read. assert \valid_read((char *)p + (unsigned int)q);
-[value] tests/value/backward_add_ptr.c:166: 
+[eva] tests/value/backward_add_ptr.c:166: 
   Frama_C_show_each_2GM_TEST:
   {{ garbled mix of &{b}
   (origin: Arithmetic {tests/value/backward_add_ptr.c:68}) }},
   {{ garbled mix of &{b}
   (origin: Arithmetic {tests/value/backward_add_ptr.c:68}) }}
-[value:alarm] tests/value/backward_add_ptr.c:171: Warning: 
+[eva:alarm] tests/value/backward_add_ptr.c:171: Warning: 
   out of bounds read. assert \valid_read(p + (unsigned int)q);
-[value] tests/value/backward_add_ptr.c:172: 
+[eva] tests/value/backward_add_ptr.c:172: 
   Frama_C_show_each_2GM_gm_of_a_b:
   {{ garbled mix of &{a; b}
   (origin: Arithmetic {tests/value/backward_add_ptr.c:68}) }},
   {{ garbled mix of &{b}
   (origin: Arithmetic {tests/value/backward_add_ptr.c:68}) }}
-[value:alarm] tests/value/backward_add_ptr.c:177: Warning: 
+[eva:alarm] tests/value/backward_add_ptr.c:177: Warning: 
   out of bounds read. assert \valid_read((char *)p + (unsigned int)q);
-[value] tests/value/backward_add_ptr.c:178: 
+[eva] tests/value/backward_add_ptr.c:178: 
   Frama_C_show_each_2GM_gm_of_b_c:
   {{ garbled mix of &{b}
   (origin: Arithmetic {tests/value/backward_add_ptr.c:68}) }},
   {{ garbled mix of &{b; c}
   (origin: Arithmetic {tests/value/backward_add_ptr.c:68}) }}
-[value] Recording results for main4
-[value] Done for function main4
-[value] Recording results for main
-[value] done for function main
-[value] Warning: Garbled mix generated during analysis:
+[eva] Recording results for main4
+[eva] Done for function main4
+[eva] Recording results for main
+[eva] done for function main
+[eva:garbled-mix] Warning: 
+  Garbled mix generated during analysis:
   {{ garbled mix of &{b}
     (origin: Arithmetic {tests/value/backward_add_ptr.c:25}) }}
   {{ garbled mix of &{a}
@@ -260,25 +248,25 @@
     (origin: Arithmetic {tests/value/backward_add_ptr.c:68}) }}
   {{ garbled mix of &{b; c}
     (origin: Arithmetic {tests/value/backward_add_ptr.c:68}) }}
-[value] ====== VALUES COMPUTED ======
-[value:final-states] Values at end of function gm:
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function gm:
   __retres ∈
           {{ garbled mix of &{a; b; a; b; c}
            (origin: Arithmetic {tests/value/backward_add_ptr.c:68}) }}
-[value:final-states] Values at end of function main1:
+[eva:final-states] Values at end of function main1:
   a ∈ {0}
   b ∈ {1}
   p ∈ {{ NULL + [0..4294967295] ; &a }}
   q ∈ {{ NULL + [0..4294967295] ; &b }}
   v ∈ {0; 1} or UNINITIALIZED
   w ∈ {0; 1} or UNINITIALIZED
-[value:final-states] Values at end of function main2:
+[eva:final-states] Values at end of function main2:
   a ∈ {0}
   b[bits 0 to 7] ∈ {1}
    [bits 8 to 31]# ∈ {1}%32, bits 8 to 31 
   p ∈ {{ NULL + [0..4294967295] ; &a }}
   q ∈ {{ NULL + [0..4294967295] ; &b }}
-[value:final-states] Values at end of function main3:
+[eva:final-states] Values at end of function main3:
   a ∈ {0}
   b[bits 0 to 7] ∈ {1}
    [bits 8 to 31]# ∈ {1}%32, bits 8 to 31 
@@ -290,7 +278,7 @@
   q ∈ {{ NULL + [--..--] ; &b }}
   v ∈ {0; 1} or UNINITIALIZED
   w ∈ {0; 1} or UNINITIALIZED
-[value:final-states] Values at end of function main4:
+[eva:final-states] Values at end of function main4:
   a ∈ {0}
   b[bits 0 to 7] ∈ {1}
    [bits 8 to 31]# ∈ {1}%32, bits 8 to 31 
@@ -303,7 +291,7 @@
    {{ garbled mix of &{b; c}
     (origin: Arithmetic {tests/value/backward_add_ptr.c:68}) }}
   v ∈ {0; 1; 2} or UNINITIALIZED
-[value:final-states] Values at end of function main:
+[eva:final-states] Values at end of function main:
   __retres ∈ {0}
 [from] Computing for function gm
 [from] Done for function gm

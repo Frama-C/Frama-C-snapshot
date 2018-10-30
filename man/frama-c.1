@@ -221,7 +221,7 @@ are still fatal, though).
 .PD 0
 .P
 .PD
-\f[B]Deprecated\f[]: use \f[B]\-kernel\-warn\-abort=\-annot\-error\f[]
+\f[B]Deprecated\f[]: use \f[B]\-kernel\-warn\-key annot\-error\f[]
 instead.
 .RS
 .RE
@@ -346,6 +346,8 @@ Defaults to yes.
 .TP
 .B \-inline\-calls \f[I]f1,\&...,fn\f[]
 syntactically inlines calls to functions \f[I]f1,\&...,fn\f[].
+Use \f[B]\@inline\f[] to select all functions with attribute
+\f[I]inline\f[].
 Recursive functions are inlined only at the first level.
 Calls via function pointers are not inlined.
 .RS
@@ -427,43 +429,20 @@ Can also be set on a per\-plugin basis, with option
 Note that each plugin has its own set of categories.
 .RS
 .RE
-.PP
-Options \f[B]\-kernel\-warn\-\f[]\f[I]<action>\f[] below follow the same
-rules as \f[B]\-kernel\-msg\-key\f[].
-Message categories and warning categories may have the same name, but
-they are independent from each other.
-Warning categories can also be set on a per\-plugin basis, with options
-\-\f[I]<plugin>\f[]\f[B]\-warn\-\f[]\f[I]<action>\f[].
-.PP
-For the first three options, a negative form (\f[B]\-k1\f[]) will lead
-\f[B]k1\f[] to generate warnings, while for
-\f[B]\-kernel\-warn\-key\f[], it will disable category \f[B]k1\f[]
-entirely (no related message will be emitted).
 .TP
-.B \-kernel\-warn\-abort \f[I]k1,\&...,kn\f[]
-warning categories \f[I]k1,\&...,kn\f[] abort the execution.
+.B \-kernel\-warn\-key \f[I]k1=a1,\&...,kn=an\f[]
+controls the emission of warnings based on categories: for each warning
+category \f[I]k\f[], associate action \f[I]a\f[].
+Use \f[B]\-kernel\-warn\-key help\f[] to get a list of available warning
+categories and their currently associated actions.
+The following actions can be set per category: \f[B]active\f[] (warn),
+\f[B]feedback\f[], \f[B]error\f[], \f[B]abort\f[], \f[B]once\f[],
+\f[B]feedback\-once\f[], \f[B]err\-once\f[].
+Omitting the action is equivalent to setting it to \f[B]active\f[].
+Warning categories can also be set on a per\-plugin basis, with option
+\-\f[I]<plugin>\f[]\f[B]\-warn\-key\f[].
 .RS
 .RE
-.TP
-.B \-kernel\-warn\-error \f[I]k1,\&...,kn\f[]
-warning categories \f[I]k1,\&...,kn\f[] change Frama\-C's exit status.
-.RS
-.RE
-.TP
-.B \-kernel\-warn\-feedback \f[I]k1,\&...,kn\f[]
-warning categories \f[I]k1,\&...,kn\f[] produce only a feedback message.
-.RS
-.RE
-.TP
-.B \-kernel\-warn\-key \f[I]k1,\&...,kn\f[]
-warning categories \f[I]k1,\&...,kn\f[] generate warnings.
-.RS
-.RE
-.PP
-Finally, there are three variants of the options above which emit a
-single message per category: \f[B]\-kernel\-warn\-err\-once\f[],
-\f[B]\-kernel\-warn\-feedback\-once\f[], and
-\f[B]\-kernel\-warn\-once\f[].
 .TP
 .B [\-no]\-lib\-entry
 indicates that the entry point is called during program execution.
@@ -585,6 +564,14 @@ by the \f[B]FRAMAC_SHARE\f[] variable).
 transforms throw and try/catch statements into normal C functions.
 Defaults to no, unless the input source language has an exception
 mechanism.
+.RS
+.RE
+.TP
+.B \-remove\-inlined \f[I]f1,\&...,fn\f[]
+removes inlined functions \f[I]f1,\&...,fn\f[] from the AST, which must
+have been given to \f[B]\-inline\-calls\f[].
+Note: this option does not check if the given functions were fully
+inlined.
 .RS
 .RE
 .TP
@@ -728,8 +715,20 @@ warns when a floating\-point constant cannot be exactly represented
 .PD 0
 .P
 .PD
-\f[B]Deprecated\f[]: use \f[B]\-kernel\-warn\-once
-parser:decimal\-float\f[] (and variants) instead.
+\f[B]Deprecated\f[]: use \f[B]\-kernel\-warn\-key
+parser:decimal\-float=once\f[] (and variants) instead.
+.RS
+.RE
+.TP
+.B [\-no]\-warn\-left\-shift\-negative
+generate alarms for signed left shifts on negative values.
+Defaults to yes.
+.RS
+.RE
+.TP
+.B [\-no]\-warn\-right\-shift\-negative
+generate alarms for signed right shifts on negative values.
+Defaults to no.
 .RS
 .RE
 .TP
@@ -755,6 +754,12 @@ Defaults to no.
 .B [\-no]\-warn\-unsigned\-overflow
 generates alarms for unsigned operations that overflow.
 Defaults to no.
+.RS
+.RE
+.TP
+.B [\-no]\-warn\-invalid\-bool
+generates alarms for reads of trap representations of _Bool lvalues.
+Defaults to yes.
 .RS
 .RE
 .SS Plugin\-specific options

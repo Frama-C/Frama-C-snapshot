@@ -1,6 +1,10 @@
+/* run.config
+   OPT:
+   OPT: -main main_ko
+*/
 /* run.config_qualif
    OPT: -wp -wp-par 1 -wp-prop="-qed_ko"
-   OPT: -wp -wp-par 1 -wp-prop qed_ko -wp-timeout 5
+   OPT: -main main_ko -wp-par 1 -wp-prop qed_ko -wp-steps 50
 */
 
 /* -------------------------------------------------------------------------- */
@@ -40,16 +44,15 @@ int u [];
     requires qed_ok: Sc_c_3 : sc3.c == 0;
     requires qed_ok: Tab_no_init : tab[5] == 0 ; 
     requires qed_ok: Tab_todo : \forall int i; 0 <= i <= 31 ==> tab[i] <= 255;
+ */
+void main (void){return;}
 
-    requires qed_ko: Sc_eq_ko : sc2 == sc3; 
+/*@ requires qed_ko: Sc_eq_ko : sc2 == sc3; 
     requires qed_ko: Sc_t : sc3.b[2] == 3 ;
     requires qed_ko: Sc_c_2 : sc2.c == 2; 
     requires qed_ko: Tab_no_init : tab[5] == 1 ; 
     requires qed_ko: With_Array_Struct_3 : st.tab[3] == 3 ; 
     requires qed_ko: Simple_Array_1 : t[1] == 1 ; 
  */
-void main (void){return;}
-
-
-
+void main_ko (void){return;}
 

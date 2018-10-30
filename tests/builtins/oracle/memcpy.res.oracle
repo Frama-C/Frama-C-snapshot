@@ -1,0 +1,2140 @@
+[kernel] Parsing tests/builtins/memcpy.c (with preprocessing)
+[eva] Analyzing a complete application starting at main_all
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
+  NULL[rbits 800000 to 800015] ∈ [--..--]
+  i ∈ [--..--]
+  src[0..19] ∈ {0}
+  dst1[0..19] ∈ {0}
+  dst2[0..19] ∈ {0}
+  dst3[0..19] ∈ {0}
+  dst4[0..19] ∈ {0}
+  dst5[0..99] ∈ {0}
+  maybe ∈ [--..--]
+  tm[0..999] ∈ {0}
+  um[0..999] ∈ {0}
+  ttyp[0..999] ∈ {0}
+  v1 ∈ {0}
+  v2 ∈ {0}
+  v3 ∈ {0}
+  v4 ∈ {0}
+  v5 ∈ {0}
+  t[0..3] ∈ {0}
+[eva] computing for function main <- main_all.
+  Called from tests/builtins/memcpy.c:226.
+[eva] computing for function buggy <- main <- main_all.
+  Called from tests/builtins/memcpy.c:61.
+[eva] tests/builtins/memcpy.c:28: Call to builtin memcpy
+[eva:alarm] tests/builtins/memcpy.c:28: Warning: 
+  function memcpy: precondition 'valid_dest' got status unknown.
+[eva] tests/builtins/memcpy.c:28: 
+  function memcpy: precondition 'valid_src' got status valid.
+[eva] tests/builtins/memcpy.c:28: 
+  function memcpy: precondition 'separation' got status valid.
+[eva] share/libc/string.h:98: 
+  cannot evaluate ACSL term, unsupported ACSL construct: logic function memcmp
+[eva] Recording results for buggy
+[from] Computing for function buggy
+[from] Done for function buggy
+[eva] Done for function buggy
+[eva] computing for function many <- main <- main_all.
+  Called from tests/builtins/memcpy.c:63.
+[eva:alarm] tests/builtins/memcpy.c:44: Warning: assertion got status unknown.
+[eva] tests/builtins/memcpy.c:47: Call to builtin memcpy
+[eva] tests/builtins/memcpy.c:47: 
+  function memcpy: precondition 'valid_dest' got status valid.
+[eva] tests/builtins/memcpy.c:47: 
+  function memcpy: precondition 'valid_src' got status valid.
+[eva] tests/builtins/memcpy.c:47: 
+  function memcpy: precondition 'separation' got status valid.
+[kernel] tests/builtins/memcpy.c:47: 
+  too many locations to update in array. Approximating.
+[eva] tests/builtins/memcpy.c:49: Call to builtin memcpy
+[eva] tests/builtins/memcpy.c:49: 
+  function memcpy: precondition 'valid_dest' got status valid.
+[eva] tests/builtins/memcpy.c:49: 
+  function memcpy: precondition 'valid_src' got status valid.
+[eva] tests/builtins/memcpy.c:49: 
+  function memcpy: precondition 'separation' got status valid.
+[kernel] tests/builtins/memcpy.c:49: 
+  too many locations to update in array. Approximating.
+[kernel] tests/builtins/memcpy.c:49: 
+  more than 150(1000) locations to update in array. Approximating.
+[kernel] tests/builtins/memcpy.c:49: 
+  more than 150(1000) elements to enumerate. Approximating.
+[eva] tests/builtins/memcpy.c:53: Call to builtin memcpy
+[eva] tests/builtins/memcpy.c:53: 
+  function memcpy: precondition 'valid_dest' got status valid.
+[eva] tests/builtins/memcpy.c:53: 
+  function memcpy: precondition 'valid_src' got status valid.
+[eva] tests/builtins/memcpy.c:53: 
+  function memcpy: precondition 'separation' got status valid.
+[kernel] tests/builtins/memcpy.c:53: 
+  too many locations to update in array. Approximating.
+[eva] Recording results for many
+[from] Computing for function many
+[from] Done for function many
+[eva] Done for function many
+[eva] computing for function init <- main <- main_all.
+  Called from tests/builtins/memcpy.c:65.
+[eva] Semantic level unrolling superposing up to 100 states
+[eva] Recording results for init
+[from] Computing for function init
+[from] Done for function init
+[eva] Done for function init
+[eva:alarm] tests/builtins/memcpy.c:67: Warning: assertion got status unknown.
+[eva] tests/builtins/memcpy.c:68: Call to builtin memcpy
+[eva] tests/builtins/memcpy.c:68: 
+  function memcpy: precondition 'valid_dest' got status valid.
+[eva] tests/builtins/memcpy.c:68: 
+  function memcpy: precondition 'valid_src' got status valid.
+[eva] tests/builtins/memcpy.c:68: 
+  function memcpy: precondition 'separation' got status valid.
+[eva] tests/builtins/memcpy.c:70: Call to builtin memcpy
+[eva:alarm] tests/builtins/memcpy.c:70: Warning: 
+  function memcpy: precondition 'valid_dest' got status unknown.
+[eva:alarm] tests/builtins/memcpy.c:70: Warning: 
+  function memcpy: precondition 'valid_src' got status unknown.
+[eva] tests/builtins/memcpy.c:70: 
+  function memcpy: precondition 'separation' got status valid.
+[eva:alarm] tests/builtins/memcpy.c:72: Warning: assertion got status unknown.
+[eva] tests/builtins/memcpy.c:73: Call to builtin memcpy
+[eva] tests/builtins/memcpy.c:73: 
+  function memcpy: precondition 'valid_dest' got status valid.
+[eva] tests/builtins/memcpy.c:73: 
+  function memcpy: precondition 'valid_src' got status valid.
+[eva] tests/builtins/memcpy.c:73: 
+  function memcpy: precondition 'separation' got status valid.
+[eva] tests/builtins/memcpy.c:75: Call to builtin memcpy
+[eva:alarm] tests/builtins/memcpy.c:75: Warning: 
+  function memcpy: precondition 'valid_dest' got status unknown.
+[eva:alarm] tests/builtins/memcpy.c:75: Warning: 
+  function memcpy: precondition 'valid_src' got status unknown.
+[eva] tests/builtins/memcpy.c:75: 
+  function memcpy: precondition 'separation' got status valid.
+[eva] tests/builtins/memcpy.c:83: Call to builtin memcpy
+[eva] tests/builtins/memcpy.c:83: 
+  function memcpy: precondition 'valid_dest' got status valid.
+[eva] tests/builtins/memcpy.c:83: 
+  function memcpy: precondition 'valid_src' got status valid.
+[eva] tests/builtins/memcpy.c:83: 
+  function memcpy: precondition 'separation' got status valid.
+[eva] tests/builtins/memcpy.c:85: Call to builtin memcpy
+[eva] tests/builtins/memcpy.c:85: 
+  function memcpy: precondition 'valid_dest' got status valid.
+[eva] tests/builtins/memcpy.c:85: 
+  function memcpy: precondition 'valid_src' got status valid.
+[eva] tests/builtins/memcpy.c:85: 
+  function memcpy: precondition 'separation' got status valid.
+[eva] tests/builtins/memcpy.c:87: Call to builtin memcpy
+[eva] tests/builtins/memcpy.c:87: 
+  function memcpy: precondition 'valid_dest' got status valid.
+[eva:alarm] tests/builtins/memcpy.c:87: Warning: 
+  function memcpy: precondition 'valid_src' got status unknown.
+[eva] tests/builtins/memcpy.c:87: 
+  function memcpy: precondition 'separation' got status valid.
+[eva] tests/builtins/memcpy.c:89: Call to builtin memcpy
+[eva:alarm] tests/builtins/memcpy.c:89: Warning: 
+  function memcpy: precondition 'valid_dest' got status unknown.
+[eva] tests/builtins/memcpy.c:89: 
+  function memcpy: precondition 'valid_src' got status valid.
+[eva] tests/builtins/memcpy.c:89: 
+  function memcpy: precondition 'separation' got status valid.
+[kernel] tests/builtins/memcpy.c:89: 
+  writing somewhere in {NULL; v4} because of Arithmetic
+                                 {tests/builtins/memcpy.c:89}.
+[eva] tests/builtins/memcpy.c:91: Call to builtin memcpy
+[eva:alarm] tests/builtins/memcpy.c:91: Warning: 
+  function memcpy: precondition 'valid_dest' got status unknown.
+[eva] tests/builtins/memcpy.c:91: 
+  function memcpy: precondition 'valid_src' got status valid.
+[eva] tests/builtins/memcpy.c:91: 
+  function memcpy: precondition 'separation' got status valid.
+[kernel] tests/builtins/memcpy.c:91: 
+  writing somewhere in {NULL; v5} because of Arithmetic
+                                 {tests/builtins/memcpy.c:91}.
+[eva] tests/builtins/memcpy.c:96: Call to builtin memcpy
+[eva:alarm] tests/builtins/memcpy.c:96: Warning: 
+  function memcpy: precondition 'valid_dest' got status unknown.
+[eva:alarm] tests/builtins/memcpy.c:96: Warning: 
+  function memcpy: precondition 'valid_src' got status unknown.
+[eva:alarm] tests/builtins/memcpy.c:96: Warning: 
+  function memcpy: precondition 'separation' got status unknown.
+[eva:imprecision] tests/builtins/memcpy.c:96: 
+  In memcpy builtin: too many sizes to enumerate, possible loss of precision
+[eva] tests/builtins/memcpy.c:95: starting to merge loop iterations
+[eva] tests/builtins/memcpy.c:96: Call to builtin memcpy
+[eva] tests/builtins/memcpy.c:101: Call to builtin memcpy
+[eva] tests/builtins/memcpy.c:101: 
+  function memcpy: precondition 'valid_dest' got status valid.
+[eva] tests/builtins/memcpy.c:101: 
+  function memcpy: precondition 'valid_src' got status valid.
+[eva] tests/builtins/memcpy.c:101: 
+  function memcpy: precondition 'separation' got status valid.
+[eva:alarm] tests/builtins/memcpy.c:103: Warning: assertion got status unknown.
+[eva] tests/builtins/memcpy.c:105: Call to builtin memcpy
+[eva] tests/builtins/memcpy.c:105: 
+  function memcpy: precondition 'valid_dest' got status valid.
+[eva] tests/builtins/memcpy.c:105: 
+  function memcpy: precondition 'valid_src' got status valid.
+[eva] tests/builtins/memcpy.c:105: 
+  function memcpy: precondition 'separation' got status valid.
+[eva:imprecision] tests/builtins/memcpy.c:105: 
+  In memcpy builtin: too many sizes to enumerate, possible loss of precision
+[eva] tests/builtins/memcpy.c:110: starting to merge loop iterations
+[eva] tests/builtins/memcpy.c:114: Call to builtin memcpy
+[eva:alarm] tests/builtins/memcpy.c:114: Warning: 
+  function memcpy: precondition 'valid_dest' got status unknown.
+[eva] tests/builtins/memcpy.c:114: 
+  function memcpy: precondition 'valid_src' got status valid.
+[eva] tests/builtins/memcpy.c:114: 
+  function memcpy: precondition 'separation' got status valid.
+[kernel] tests/builtins/memcpy.c:114: 
+  too many locations to update in array. Approximating.
+[eva] tests/builtins/memcpy.c:118: starting to merge loop iterations
+[eva] tests/builtins/memcpy.c:122: Call to builtin memcpy
+[eva:alarm] tests/builtins/memcpy.c:122: Warning: 
+  function memcpy: precondition 'valid_dest' got status unknown.
+[eva] tests/builtins/memcpy.c:122: 
+  function memcpy: precondition 'valid_src' got status valid.
+[eva] tests/builtins/memcpy.c:122: 
+  function memcpy: precondition 'separation' got status valid.
+[kernel] tests/builtins/memcpy.c:122: 
+  too many locations to update in array. Approximating.
+[eva] tests/builtins/memcpy.c:126: starting to merge loop iterations
+[eva] tests/builtins/memcpy.c:131: Call to builtin memcpy
+[eva:alarm] tests/builtins/memcpy.c:131: Warning: 
+  function memcpy: precondition 'valid_dest' got status unknown.
+[eva] tests/builtins/memcpy.c:131: 
+  function memcpy: precondition 'valid_src' got status valid.
+[eva] tests/builtins/memcpy.c:131: 
+  function memcpy: precondition 'separation' got status valid.
+[kernel] tests/builtins/memcpy.c:131: 
+  too many locations to update in array. Approximating.
+[eva] tests/builtins/memcpy.c:135: starting to merge loop iterations
+[eva] tests/builtins/memcpy.c:140: Call to builtin memcpy
+[eva:alarm] tests/builtins/memcpy.c:140: Warning: 
+  function memcpy: precondition 'valid_dest' got status unknown.
+[eva] tests/builtins/memcpy.c:140: 
+  function memcpy: precondition 'valid_src' got status valid.
+[eva] tests/builtins/memcpy.c:140: 
+  function memcpy: precondition 'separation' got status valid.
+[kernel] tests/builtins/memcpy.c:140: 
+  too many locations to update in array. Approximating.
+[eva] tests/builtins/memcpy.c:145: Call to builtin memcpy
+[eva:alarm] tests/builtins/memcpy.c:145: Warning: 
+  function memcpy: precondition 'valid_dest' got status unknown.
+[eva:alarm] tests/builtins/memcpy.c:145: Warning: 
+  function memcpy: precondition 'valid_src' got status unknown.
+[eva] tests/builtins/memcpy.c:145: 
+  function memcpy: precondition 'separation' got status valid.
+[eva:imprecision] tests/builtins/memcpy.c:145: 
+  In memcpy builtin: too many sizes to enumerate, possible loss of precision
+[eva:alarm] tests/builtins/memcpy.c:150: Warning: assertion got status unknown.
+[eva] tests/builtins/memcpy.c:151: Call to builtin memcpy
+[eva:alarm] tests/builtins/memcpy.c:151: Warning: 
+  function memcpy: precondition 'valid_dest' got status unknown.
+[eva:alarm] tests/builtins/memcpy.c:151: Warning: 
+  function memcpy: precondition 'valid_src' got status unknown.
+[eva] tests/builtins/memcpy.c:151: 
+  function memcpy: precondition 'separation' got status valid.
+[eva:imprecision] tests/builtins/memcpy.c:151: 
+  In memcpy builtin: too many sizes to enumerate, possible loss of precision
+[eva:alarm] tests/builtins/memcpy.c:152: Warning: assertion got status unknown.
+[eva] tests/builtins/memcpy.c:153: Call to builtin memcpy
+[eva] tests/builtins/memcpy.c:153: 
+  function memcpy: precondition 'valid_dest' got status valid.
+[eva] tests/builtins/memcpy.c:153: 
+  function memcpy: precondition 'valid_src' got status valid.
+[eva] tests/builtins/memcpy.c:153: 
+  function memcpy: precondition 'separation' got status valid.
+[eva] Recording results for main
+[from] Computing for function main
+[from] Done for function main
+[eva] Done for function main
+[eva] computing for function main_uninit <- main_all.
+  Called from tests/builtins/memcpy.c:227.
+[eva] tests/builtins/memcpy.c:172: Call to builtin memcpy
+[eva] tests/builtins/memcpy.c:172: 
+  function memcpy: precondition 'valid_dest' got status valid.
+[eva] tests/builtins/memcpy.c:172: 
+  function memcpy: precondition 'valid_src' got status valid.
+[eva] tests/builtins/memcpy.c:172: 
+  function memcpy: precondition 'separation' got status valid.
+[eva:imprecision] tests/builtins/memcpy.c:172: 
+  In memcpy builtin: precise copy of indeterminate values UNINITIALIZED
+[eva] tests/builtins/memcpy.c:173: assertion got status valid.
+[eva] computing for function itv <- main_uninit <- main_all.
+  Called from tests/builtins/memcpy.c:174.
+[eva] using specification for function itv
+[eva] Done for function itv
+[eva] tests/builtins/memcpy.c:174: Call to builtin memcpy
+[eva] tests/builtins/memcpy.c:174: 
+  function memcpy: precondition 'valid_dest' got status valid.
+[eva] tests/builtins/memcpy.c:174: 
+  function memcpy: precondition 'valid_src' got status valid.
+[eva] tests/builtins/memcpy.c:174: 
+  function memcpy: precondition 'separation' got status valid.
+[eva:imprecision] tests/builtins/memcpy.c:174: 
+  In memcpy builtin: too many sizes to enumerate, possible loss of precision
+[eva:imprecision] tests/builtins/memcpy.c:174: 
+  In memcpy builtin: imprecise copy of indeterminate values
+[eva] tests/builtins/memcpy.c:175: assertion got status valid.
+[eva] computing for function make_unknown <- main_uninit <- main_all.
+  Called from tests/builtins/memcpy.c:178.
+[eva] using specification for function make_unknown
+[eva] tests/builtins/memcpy.c:178: 
+  function make_unknown: precondition got status valid.
+[eva] Done for function make_unknown
+[eva] tests/builtins/memcpy.c:179: Call to builtin memcpy
+[eva] tests/builtins/memcpy.c:179: 
+  function memcpy: precondition 'valid_dest' got status valid.
+[eva] tests/builtins/memcpy.c:179: 
+  function memcpy: precondition 'valid_src' got status valid.
+[eva] tests/builtins/memcpy.c:179: 
+  function memcpy: precondition 'separation' got status valid.
+[eva] tests/builtins/memcpy.c:180: assertion got status valid.
+[eva] computing for function itv <- main_uninit <- main_all.
+  Called from tests/builtins/memcpy.c:181.
+[eva] Done for function itv
+[eva] tests/builtins/memcpy.c:181: Call to builtin memcpy
+[eva] tests/builtins/memcpy.c:181: 
+  function memcpy: precondition 'valid_dest' got status valid.
+[eva] tests/builtins/memcpy.c:181: 
+  function memcpy: precondition 'valid_src' got status valid.
+[eva] tests/builtins/memcpy.c:181: 
+  function memcpy: precondition 'separation' got status valid.
+[eva:imprecision] tests/builtins/memcpy.c:181: 
+  In memcpy builtin: too many sizes to enumerate, possible loss of precision
+[eva:imprecision] tests/builtins/memcpy.c:181: 
+  In memcpy builtin: imprecise copy of indeterminate values
+[eva:alarm] tests/builtins/memcpy.c:182: Warning: 
+  accessing uninitialized left-value. assert \initialized(&b[11]);
+[eva] computing for function make_unknown <- main_uninit <- main_all.
+  Called from tests/builtins/memcpy.c:185.
+[eva] tests/builtins/memcpy.c:185: 
+  function make_unknown: precondition got status valid.
+[eva] Done for function make_unknown
+[eva] tests/builtins/memcpy.c:187: Call to builtin memcpy
+[eva] tests/builtins/memcpy.c:187: 
+  function memcpy: precondition 'valid_dest' got status valid.
+[eva] tests/builtins/memcpy.c:187: 
+  function memcpy: precondition 'valid_src' got status valid.
+[eva] tests/builtins/memcpy.c:187: 
+  function memcpy: precondition 'separation' got status valid.
+[eva:imprecision] tests/builtins/memcpy.c:187: 
+  In memcpy builtin: precise copy of indeterminate values UNINITIALIZED
+[eva] tests/builtins/memcpy.c:188: assertion got status valid.
+[eva] computing for function itv <- main_uninit <- main_all.
+  Called from tests/builtins/memcpy.c:190.
+[eva] Done for function itv
+[eva] tests/builtins/memcpy.c:190: Call to builtin memcpy
+[eva] tests/builtins/memcpy.c:190: 
+  function memcpy: precondition 'valid_dest' got status valid.
+[eva] tests/builtins/memcpy.c:190: 
+  function memcpy: precondition 'valid_src' got status valid.
+[eva] tests/builtins/memcpy.c:190: 
+  function memcpy: precondition 'separation' got status valid.
+[eva:imprecision] tests/builtins/memcpy.c:190: 
+  In memcpy builtin: too many sizes to enumerate, possible loss of precision
+[eva:imprecision] tests/builtins/memcpy.c:190: 
+  In memcpy builtin: imprecise copy of indeterminate values
+[eva] tests/builtins/memcpy.c:191: assertion got status valid.
+[eva:alarm] tests/builtins/memcpy.c:192: Warning: 
+  accessing uninitialized left-value. assert \initialized(&b[8]);
+[eva] computing for function make_unknown <- main_uninit <- main_all.
+  Called from tests/builtins/memcpy.c:196.
+[eva] tests/builtins/memcpy.c:196: 
+  function make_unknown: precondition got status valid.
+[eva] Done for function make_unknown
+[eva] computing for function make_unknown <- main_uninit <- main_all.
+  Called from tests/builtins/memcpy.c:197.
+[eva] tests/builtins/memcpy.c:197: 
+  function make_unknown: precondition got status valid.
+[eva] Done for function make_unknown
+[eva] tests/builtins/memcpy.c:198: Call to builtin memcpy
+[eva] tests/builtins/memcpy.c:198: 
+  function memcpy: precondition 'valid_dest' got status valid.
+[eva] tests/builtins/memcpy.c:198: 
+  function memcpy: precondition 'valid_src' got status valid.
+[eva] tests/builtins/memcpy.c:198: 
+  function memcpy: precondition 'separation' got status valid.
+[eva] tests/builtins/memcpy.c:199: assertion got status valid.
+[eva] computing for function itv <- main_uninit <- main_all.
+  Called from tests/builtins/memcpy.c:200.
+[eva] Done for function itv
+[eva] tests/builtins/memcpy.c:200: Call to builtin memcpy
+[eva] tests/builtins/memcpy.c:200: 
+  function memcpy: precondition 'valid_dest' got status valid.
+[eva] tests/builtins/memcpy.c:200: 
+  function memcpy: precondition 'valid_src' got status valid.
+[eva] tests/builtins/memcpy.c:200: 
+  function memcpy: precondition 'separation' got status valid.
+[eva:imprecision] tests/builtins/memcpy.c:200: 
+  In memcpy builtin: too many sizes to enumerate, possible loss of precision
+[eva:imprecision] tests/builtins/memcpy.c:200: 
+  In memcpy builtin: imprecise copy of indeterminate values
+[eva:alarm] tests/builtins/memcpy.c:201: Warning: 
+  accessing uninitialized left-value. assert \initialized(&b[11]);
+[eva] Recording results for main_uninit
+[from] Computing for function main_uninit
+[from] Done for function main_uninit
+[eva] Done for function main_uninit
+[eva] computing for function main_local <- main_all.
+  Called from tests/builtins/memcpy.c:228.
+[eva] tests/builtins/memcpy.c:209: Call to builtin memcpy
+[eva] tests/builtins/memcpy.c:209: 
+  function memcpy: precondition 'valid_dest' got status valid.
+[eva] tests/builtins/memcpy.c:209: 
+  function memcpy: precondition 'valid_src' got status valid.
+[eva] tests/builtins/memcpy.c:209: 
+  function memcpy: precondition 'separation' got status valid.
+[eva:locals-escaping] tests/builtins/memcpy.c:210: Warning: 
+  locals {y} escaping the scope of a block of main_local through p
+[eva] tests/builtins/memcpy.c:212: 
+  Frama_C_dump_each:
+  # Cvalue domain:
+  NULL[rbits 800000 to 800015] ∈ [--..--]
+  __fc_heap_status ∈ [--..--]
+  __fc_strtok_ptr ∈ {0}
+  __fc_strerror[0..63] ∈ [--..--]
+  __fc_p_strerror ∈ {{ &__fc_strerror[0] }}
+  i ∈ [--..--]
+  src[0..19] ∈ {0}
+  dst1[0..19] ∈ {0}
+  dst2[0..19] ∈ {0}
+  dst3[0..19] ∈ {0}
+  dst4[0..19] ∈ {0}
+  dst5[0..99] ∈ {0}
+  maybe ∈ [--..--]
+  tm[0..999] ∈ {0}
+  um[0..999] ∈ {0}
+  ttyp[0..999] ∈ {0}
+  v1 ∈ {0}
+  v2 ∈ {0}
+  v3 ∈ {0}
+  v4 ∈ {0}
+  v5 ∈ {0}
+  t[0..3] ∈ {0}
+  p ∈ ESCAPINGADDR
+  q ∈ {0}
+  ==END OF DUMP==
+[eva] Recording results for main_local
+[from] Computing for function main_local
+[from] Done for function main_local
+[eva] Done for function main_local
+[eva] computing for function copy_0 <- main_all.
+  Called from tests/builtins/memcpy.c:229.
+[eva] tests/builtins/memcpy.c:220: Call to builtin memcpy
+[eva:alarm] tests/builtins/memcpy.c:220: Warning: 
+  function memcpy: precondition 'valid_dest' got status invalid.
+[eva] tests/builtins/memcpy.c:220: 
+  function memcpy: no state left, precondition 'valid_src' got status valid.
+[eva] tests/builtins/memcpy.c:220: 
+  function memcpy: no state left, precondition 'separation' got status valid.
+[eva] tests/builtins/memcpy.c:221: Call to builtin memcpy
+[eva] tests/builtins/memcpy.c:221: 
+  function memcpy: precondition 'valid_dest' got status valid.
+[eva:alarm] tests/builtins/memcpy.c:221: Warning: 
+  function memcpy: precondition 'valid_src' got status invalid.
+[eva] tests/builtins/memcpy.c:221: 
+  function memcpy: no state left, precondition 'separation' got status valid.
+[eva] Recording results for copy_0
+[from] Computing for function copy_0
+[from] Done for function copy_0
+[eva] Done for function copy_0
+[eva] Recording results for main_all
+[from] Computing for function main_all
+[from] Non-terminating function main_all (no dependencies)
+[from] Done for function main_all
+[eva] done for function main_all
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function init:
+  src[0] ∈ {1}
+     [1] ∈ {2}
+     [2] ∈ {3}
+     [3] ∈ {4}
+     [4] ∈ {5}
+     [5] ∈ {6}
+     [6] ∈ {7}
+     [7] ∈ {8}
+     [8] ∈ {9}
+     [9] ∈ {10}
+     [10] ∈ {11}
+     [11] ∈ {12}
+     [12] ∈ {13}
+     [13] ∈ {14}
+     [14] ∈ {15}
+     [15] ∈ {16}
+     [16] ∈ {17}
+     [17] ∈ {18}
+     [18] ∈ {19}
+     [19] ∈ {20}
+  dst1[0..19] ∈ {-1}
+  dst2[0..19] ∈ {-1}
+  dst3[0..19] ∈ {-1}
+  dst4[0..19] ∈ {-1}
+  dst5[0..99] ∈ {-1}
+  j ∈ {100}
+[eva:final-states] Values at end of function buggy:
+  c ∈ {100}
+  p ∈ {{ &c ; "abc" }}
+[eva:final-states] Values at end of function copy_0:
+  
+[eva:final-states] Values at end of function main_local:
+  p ∈ ESCAPINGADDR
+  q ∈ {0}
+[eva:final-states] Values at end of function main_uninit:
+  a[0..9] ∈ [--..--] or UNINITIALIZED
+   [10..49] ∈ UNINITIALIZED
+  b[0..24] ∈ [--..--] or UNINITIALIZED
+   [25..49] ∈ UNINITIALIZED
+  r ∈ [0..255]
+[eva:final-states] Values at end of function many:
+  tm[0..999] ∈ {0; 1684234849}
+  um{[0..998]#; [999][bits 0 to 15]} ∈ {0; 25185} repeated %16 
+    [999][bits 16 to 31] ∈ {0}
+  ttyp[0].ts ∈ [--..--]
+      [0].[bits 16 to 31]# ∈ {0; 8589934593}%64, bits 16 to 31 
+      [0].ti ∈ [--..--]
+      [1..999]{.ts#; .ti#; .[bits 16 to 31]#} ∈
+      {0; 8589934593} repeated %64 
+  s[0] ∈ {97}
+   [1] ∈ {98}
+   [2] ∈ {99}
+   [3] ∈ {100}
+   [4] ∈ {0}
+  p ∈ [0..999]
+  ty.ts ∈ {1}
+    .[bits 16 to 31] ∈ {0}
+    .ti ∈ {2}
+[eva:final-states] Values at end of function main:
+  src[0] ∈ {1}
+     [1] ∈ {2}
+     [2] ∈ {3}
+     [3] ∈ {4}
+     [4] ∈ {5}
+     [5] ∈ {6}
+     [6] ∈ {7}
+     [7] ∈ {8}
+     [8] ∈ {9}
+     [9] ∈ {10}
+     [10] ∈ {11}
+     [11] ∈ {12}
+     [12] ∈ {13}
+     [13] ∈ {14}
+     [14] ∈ {15}
+     [15] ∈ {16}
+     [16] ∈ {17}
+     [17] ∈ {18}
+     [18] ∈ {19}
+     [19] ∈ {20}
+  dst1[0] ∈ {-1}
+      [1] ∈ {3}
+      [2] ∈ {4}
+      [3] ∈ {5}
+      [4] ∈ {6}
+      [5] ∈ {7}
+      [6] ∈ {-1; 8}
+      [7] ∈ {-1; 9}
+      [8] ∈ {-1; 10}
+      [9] ∈ {-1; 11}
+      [10] ∈ {-1; 12}
+      [11] ∈ {-1; 13}
+      [12] ∈ {-1; 14}
+      [13] ∈ {-1; 15}
+      [14] ∈ {-1; 16}
+      [15] ∈ {-1; 17}
+      [16..19] ∈ {-1}
+  dst2[0] ∈ {-1}
+      [1] ∈ {3}
+      [2] ∈ {4}
+      [3] ∈ {5}
+      [4] ∈ {6}
+      [5] ∈ {7}
+      [6] ∈ {8}
+      [7] ∈ {9}
+      [8] ∈ {10}
+      [9] ∈ {11}
+      [10] ∈ {12}
+      [11] ∈ {-1; 13}
+      [12] ∈ {-1; 14}
+      [13] ∈ {-1; 15}
+      [14] ∈ {-1; 16}
+      [15] ∈ {-1; 17}
+      [16] ∈ {-1; 18}
+      [17] ∈ {-1; 19}
+      [18] ∈ {-1; 20}
+      [19] ∈ {-1}
+  dst3[0..4] ∈ {-1}
+      [5] ∈ {3}
+      [6] ∈ {4}
+      [7] ∈ {5}
+      [8] ∈ {6}
+      [9] ∈ {7}
+      [10] ∈ {-1; 8}
+      [11] ∈ {-1; 9}
+      [12] ∈ {-1; 10}
+      [13] ∈ {-1; 11}
+      [14] ∈ {-1; 12}
+      [15] ∈ {-1; 13}
+      [16] ∈ {-1; 14}
+      [17] ∈ {-1; 15}
+      [18] ∈ {-1; 16}
+      [19] ∈ {-1}
+  dst4[0..4] ∈ {-1}
+      [5] ∈ {3}
+      [6] ∈ {4}
+      [7] ∈ {5}
+      [8] ∈ {6}
+      [9] ∈ {7}
+      [10] ∈ {8}
+      [11] ∈ {9}
+      [12] ∈ {10}
+      [13] ∈ {11}
+      [14] ∈ {12}
+      [15] ∈ {-1; 13}
+      [16] ∈ {-1; 14}
+      [17] ∈ {-1; 15}
+      [18] ∈ {-1; 16}
+      [19] ∈ {-1}
+  dst5[0] ∈ {-1; 1}
+      [1] ∈ {-1; 2}
+      [2] ∈ {-1; 3}
+      [3] ∈ {-1; 4}
+      [4] ∈ {-1; 5}
+      [5] ∈ {-1; 6}
+      [6] ∈ {-1; 7}
+      [7] ∈ {-1; 8}
+      [8] ∈ {-1; 9}
+      [9] ∈ {-1; 10}
+      [10] ∈ {-1; 11}
+      [11] ∈ {-1; 12}
+      [12] ∈ {-1; 13}
+      [13] ∈ {-1; 14}
+      [14..19] ∈ {-1}
+      [20] ∈ {-1; 1}
+      [21] ∈ {-1; 2}
+      [22] ∈ {-1; 3}
+      [23] ∈ {-1; 4}
+      [24] ∈ {-1; 5}
+      [25] ∈ {-1; 6}
+      [26] ∈ {-1; 7}
+      [27] ∈ {-1; 8}
+      [28] ∈ {-1; 9}
+      [29] ∈ {-1; 10}
+      [30] ∈ {-1; 11}
+      [31] ∈ {-1; 12}
+      [32] ∈ {-1; 13}
+      [33] ∈ {-1; 14}
+      [34..39] ∈ {-1}
+      [40] ∈ {-1; 1}
+      [41..88] ∈ [-1..19]
+      [89..99] ∈ {-1}
+  tm[0..999] ∈ {0; 1684234849}
+  um{[0..998]#; [999][bits 0 to 15]} ∈ {0; 25185} repeated %16 
+    [999][bits 16 to 31] ∈ {0}
+  ttyp[0].ts ∈ [--..--]
+      [0].[bits 16 to 31]# ∈ {0; 8589934593}%64, bits 16 to 31 
+      [0].ti ∈ [--..--]
+      [1..999]{.ts#; .ti#; .[bits 16 to 31]#} ∈
+      {0; 8589934593} repeated %64 
+  v1.x ∈ {5}
+    .y ∈ {7}
+    {.p; .padding[0..23]} ∈ {0}
+  v2.x ∈ {5}
+    .y ∈ {7}
+    {.p; .padding[0..23]} ∈ {0}
+  v3 ∈
+    {{ garbled mix of &{v1}
+     (origin: Misaligned {tests/builtins/memcpy.c:87}) }}
+  v4.x ∈ [--..--]
+    .y ∈ {{ (int)&t }}
+    {.p; .padding[0..23]} ∈ [--..--]
+  v5 ∈
+    {{ garbled mix of &{t}
+     (origin: Misaligned {tests/builtins/memcpy.c:91}) }}
+  t{[0]; [1]{.x; .y}} ∈ {0}
+   [1].p ∈ {{ &v1.y }}
+   {[1].padding[0..23]; [2]; [3]{.x; .y}} ∈ {0}
+   [3].p ∈ {{ NULL ; &v1.y }}
+   [3].padding[0..23] ∈ {0}
+  b ∈ [1..19]
+  p ∈ {{ &dst5{[40], [70]} }}
+  ptop1[0..3] ∈ UNINITIALIZED
+       [bits 32 to 6399]# ∈ {67305985} or UNINITIALIZED repeated %32 
+  pptop ∈ {{ &ptop4 + [--..--],2%4 }}
+  ptop2[0..1] ∈ UNINITIALIZED
+       [bits 16 to 5999]# ∈ {84148994} or UNINITIALIZED repeated %32 
+       [750..799] ∈ UNINITIALIZED
+  ptop3[0..1] ∈ UNINITIALIZED
+       [bits 16 to 6383]# ∈ {100992003} or UNINITIALIZED repeated %32 
+       [798..799] ∈ UNINITIALIZED
+  ptop4[0..1] ∈ UNINITIALIZED
+       [2..798] ∈ [--..--] or UNINITIALIZED
+       [799] ∈ UNINITIALIZED
+  garbledsize[0..9] ∈ UNINITIALIZED
+             [10..99] ∈ [1..20] or UNINITIALIZED
+  pgarbledsize ∈ {{ (int *)&garbledsize[10] }}
+  dstmaybesize1[0..14] ∈ [1..20] or UNINITIALIZED
+  dstmaybesize2[0] ∈ {1} or UNINITIALIZED
+               [1] ∈ {2} or UNINITIALIZED
+               [2] ∈ {3} or UNINITIALIZED
+               [3] ∈ {4} or UNINITIALIZED
+               [4] ∈ {5} or UNINITIALIZED
+               [5] ∈ {6} or UNINITIALIZED
+               [6..149] ∈ UNINITIALIZED
+  maybesize ∈ {0; 1; 2; 3; 4; 5; 6}
+[eva:final-states] Values at end of function main_all:
+  NON TERMINATING FUNCTION
+[from] ====== DISPLAYING CALLWISE DEPENDENCIES ======
+[from] call to memcpy at tests/builtins/memcpy.c:28 (by buggy):
+  c FROM "d"[bits 0 to 7]
+  \result FROM dest
+[from] call to memcpy at tests/builtins/memcpy.c:220 (by copy_0):
+  \result FROM dest
+[from] call to memcpy at tests/builtins/memcpy.c:221 (by copy_0):
+  \result FROM dest
+[from] call to memcpy at tests/builtins/memcpy.c:209 (by main_local):
+  p FROM q
+  \result FROM dest
+[from] call to Frama_C_dump_each at tests/builtins/memcpy.c:212 (by main_local):
+  \result FROM \nothing
+[from] call to memcpy at tests/builtins/memcpy.c:172 (by main_uninit):
+  b[0..9] FROM a[0..9]
+  \result FROM dest
+[from] call to memcpy at tests/builtins/memcpy.c:174 (by main_uninit):
+  b[0..24] FROM a[0..24] (and SELF)
+  \result FROM dest
+[from] call to itv at tests/builtins/memcpy.c:174 (by main_uninit):
+  \result FROM l; u
+[from] call to make_unknown at tests/builtins/memcpy.c:178 (by main_uninit):
+  a[0..9] FROM maybe
+[from] call to memcpy at tests/builtins/memcpy.c:179 (by main_uninit):
+  b[0..9] FROM a[0..9]
+  \result FROM dest
+[from] call to memcpy at tests/builtins/memcpy.c:181 (by main_uninit):
+  b[0..24] FROM a[0..24] (and SELF)
+  \result FROM dest
+[from] call to itv at tests/builtins/memcpy.c:181 (by main_uninit):
+  \result FROM l; u
+[from] call to make_unknown at tests/builtins/memcpy.c:185 (by main_uninit):
+  b[0..9] FROM maybe
+[from] call to memcpy at tests/builtins/memcpy.c:187 (by main_uninit):
+  b[0..9] FROM a[0..9]
+  \result FROM dest
+[from] call to memcpy at tests/builtins/memcpy.c:190 (by main_uninit):
+  b[0..24] FROM a[0..24] (and SELF)
+  \result FROM dest
+[from] call to itv at tests/builtins/memcpy.c:190 (by main_uninit):
+  \result FROM l; u
+[from] call to make_unknown at tests/builtins/memcpy.c:196 (by main_uninit):
+  a[0..9] FROM maybe
+[from] call to make_unknown at tests/builtins/memcpy.c:197 (by main_uninit):
+  b[0..9] FROM maybe
+[from] call to memcpy at tests/builtins/memcpy.c:198 (by main_uninit):
+  b[0..9] FROM a[0..9]
+  \result FROM dest
+[from] call to memcpy at tests/builtins/memcpy.c:200 (by main_uninit):
+  b[0..24] FROM a[0..24] (and SELF)
+  \result FROM dest
+[from] call to itv at tests/builtins/memcpy.c:200 (by main_uninit):
+  \result FROM l; u
+[from] call to memcpy at tests/builtins/memcpy.c:47 (by many):
+  tm[0..999] FROM s[0..3] (and SELF)
+  \result FROM dest
+[from] call to memcpy at tests/builtins/memcpy.c:49 (by many):
+  um{[0..998]; [999][bits 0 to 15]} FROM s[0..1] (and SELF)
+  \result FROM dest
+[from] call to memcpy at tests/builtins/memcpy.c:53 (by many):
+  ttyp[0..999] FROM ty (and SELF)
+  \result FROM dest
+[from] call to buggy at tests/builtins/memcpy.c:61 (by main):
+  NO EFFECTS
+[from] call to many at tests/builtins/memcpy.c:63 (by main):
+  tm[0] FROM \nothing
+    [1..999] FROM \nothing (and SELF)
+  um[0] FROM \nothing
+    {[1..998]; [999][bits 0 to 15]} FROM \nothing (and SELF)
+  ttyp[0] FROM \nothing
+      [1..999] FROM \nothing (and SELF)
+[from] call to init at tests/builtins/memcpy.c:65 (by main):
+  src[0..19] FROM \nothing (and SELF)
+  dst1[0..19] FROM \nothing (and SELF)
+  dst2[0..19] FROM \nothing (and SELF)
+  dst3[0..19] FROM \nothing (and SELF)
+  dst4[0..19] FROM \nothing (and SELF)
+  dst5[0..99] FROM \nothing (and SELF)
+[from] call to memcpy at tests/builtins/memcpy.c:68 (by main):
+  dst1[1..5] FROM src[2..6]
+      [6..15] FROM src[7..16] (and SELF)
+  \result FROM dest
+[from] call to memcpy at tests/builtins/memcpy.c:70 (by main):
+  dst2[1..10] FROM src[2..11]
+      [11..19] FROM src[12..19] (and SELF)
+  \result FROM dest
+[from] call to memcpy at tests/builtins/memcpy.c:73 (by main):
+  dst3[5..9] FROM src[2..6]
+      [10..18] FROM src[7..15] (and SELF)
+  \result FROM dest
+[from] call to memcpy at tests/builtins/memcpy.c:75 (by main):
+  dst4[5..14] FROM src[2..11]
+      [15..19] FROM src[12..19] (and SELF)
+  \result FROM dest
+[from] call to memcpy at tests/builtins/memcpy.c:83 (by main):
+  v2 FROM v1
+  \result FROM dest
+[from] call to memcpy at tests/builtins/memcpy.c:85 (by main):
+  t[2] FROM t[0]
+   [3] FROM t[1] (and SELF)
+  \result FROM dest
+[from] call to memcpy at tests/builtins/memcpy.c:87 (by main):
+  v3 FROM t[0..3]
+  \result FROM dest
+[from] call to memcpy at tests/builtins/memcpy.c:89 (by main):
+  v4 FROM v1{.x; .y; .p; .padding[0..3]} (and SELF)
+  \result FROM dest
+[from] call to memcpy at tests/builtins/memcpy.c:91 (by main):
+  v5 FROM v4{.x; .y; .p; .padding[0..3]} (and SELF)
+  \result FROM dest
+[from] call to memcpy at tests/builtins/memcpy.c:96 (by main):
+  x FROM x (and SELF)
+  \result FROM dest
+[from] call to memcpy at tests/builtins/memcpy.c:101 (by main):
+  dst5[0..4] FROM src[0..4] (and SELF)
+      {[5..19]; [25..33]} FROM src[5..13] (and SELF)
+      [20..24] FROM src[0..13] (and SELF)
+  \result FROM dest
+[from] call to memcpy at tests/builtins/memcpy.c:105 (by main):
+  dst5[40] FROM src[0] (and SELF)
+      {[41..69]; [71..88]} FROM src[1..18] (and SELF)
+      [70] FROM src[0..18] (and SELF)
+  \result FROM dest
+[from] call to memcpy at tests/builtins/memcpy.c:114 (by main):
+  ptop1[4..799] FROM src[0..3] (and SELF)
+  \result FROM dest
+[from] call to memcpy at tests/builtins/memcpy.c:122 (by main):
+  ptop2[2..749] FROM src[1..4] (and SELF)
+  \result FROM dest
+[from] call to memcpy at tests/builtins/memcpy.c:131 (by main):
+  ptop3[2..797] FROM src[2..5] (and SELF)
+  \result FROM dest
+[from] call to memcpy at tests/builtins/memcpy.c:140 (by main):
+  ptop4[2..798] FROM src[2..6] (and SELF)
+  \result FROM dest
+[from] call to memcpy at tests/builtins/memcpy.c:145 (by main):
+  garbledsize[10..99] FROM src[0..19] (and SELF)
+  \result FROM dest
+[from] call to memcpy at tests/builtins/memcpy.c:151 (by main):
+  dstmaybesize1[0..14] FROM src[0..19] (and SELF)
+  \result FROM dest
+[from] call to memcpy at tests/builtins/memcpy.c:153 (by main):
+  dstmaybesize2[0..5] FROM src[0..5] (and SELF)
+  \result FROM dest
+[from] call to main at tests/builtins/memcpy.c:226 (by main_all):
+  src[0..19] FROM \nothing (and SELF)
+  dst1{[0]; [16..19]} FROM \nothing (and SELF)
+      [1..5] FROM src[2..6]
+      [6..15] FROM src[7..16] (and SELF)
+  dst2[0] FROM \nothing (and SELF)
+      [1..10] FROM src[2..11]
+      [11..19] FROM src[12..19] (and SELF)
+  dst3{[0..4]; [19]} FROM \nothing (and SELF)
+      [5..9] FROM src[2..6]
+      [10..18] FROM src[7..15] (and SELF)
+  dst4[0..4] FROM \nothing (and SELF)
+      [5..14] FROM src[2..11]
+      [15..19] FROM src[12..19] (and SELF)
+  dst5[0..4] FROM src[0..4] (and SELF)
+      {[5..19]; [25..33]} FROM src[5..13] (and SELF)
+      [20..24] FROM src[0..13] (and SELF)
+      {[34..39]; [89..99]} FROM \nothing (and SELF)
+      [40] FROM src[0] (and SELF)
+      {[41..69]; [71..88]} FROM src[1..18] (and SELF)
+      [70] FROM src[0..18] (and SELF)
+  tm[0] FROM \nothing
+    [1..999] FROM \nothing (and SELF)
+  um[0] FROM \nothing
+    {[1..998]; [999][bits 0 to 15]} FROM \nothing (and SELF)
+  ttyp[0] FROM \nothing
+      [1..999] FROM \nothing (and SELF)
+  v1{.x; .y} FROM \nothing
+  v2 FROM v1{.p; .padding[0..23]}
+  v3 FROM v2; t{[0]; [3]}
+  v4{.x; {.p; .padding[0..23]}} FROM v1{.p; .padding[0..3]} (and SELF)
+    .y FROM \nothing
+  v5 FROM v1{.p; .padding[0..3]}; v4{.x; {.p; .padding[0..3]}} (and SELF)
+  t[1] FROM v2
+   [2] FROM t[0]
+   [3] FROM v2 (and SELF)
+[from] call to main_uninit at tests/builtins/memcpy.c:227 (by main_all):
+  NO EFFECTS
+[from] call to main_local at tests/builtins/memcpy.c:228 (by main_all):
+  NO EFFECTS
+[from] call to copy_0 at tests/builtins/memcpy.c:229 (by main_all):
+  NO EFFECTS
+[from] entry point:
+  NON TERMINATING - NO EFFECTS
+[from] ====== END OF CALLWISE DEPENDENCIES ======
+[inout] Out (internal) for function init:
+    src[0..19]; dst1[0..19]; dst2[0..19]; dst3[0..19]; dst4[0..19];
+    dst5[0..99]; j
+[inout] Inputs for function init:
+    \nothing
+[inout] InOut (internal) for function init:
+  Operational inputs:
+    \nothing
+  Operational inputs on termination:
+    \nothing
+  Sure outputs:
+    j
+[inout] Out (internal) for function buggy:
+    c; p; tmp
+[inout] Inputs for function buggy:
+    maybe; "d"[bits 0 to 7]
+[inout] InOut (internal) for function buggy:
+  Operational inputs:
+    maybe; "d"[bits 0 to 7]
+  Operational inputs on termination:
+    maybe; "d"[bits 0 to 7]
+  Sure outputs:
+    c; p; tmp
+[inout] Out (internal) for function copy_0:
+    \nothing
+[inout] Inputs for function copy_0:
+    i
+[inout] InOut (internal) for function copy_0:
+  Operational inputs:
+    i
+  Operational inputs on termination:
+    i
+  Sure outputs:
+    \nothing
+[inout] Out (internal) for function main_local:
+    p; q
+[inout] Inputs for function main_local:
+    \nothing
+[inout] InOut (internal) for function main_local:
+  Operational inputs:
+    \nothing
+  Operational inputs on termination:
+    \nothing
+  Sure outputs:
+    p; q
+[inout] Out (internal) for function main_uninit:
+    a[0..9]; b[0..24]; r; tmp; tmp_0; tmp_1; tmp_2
+[inout] Inputs for function main_uninit:
+    maybe
+[inout] InOut (internal) for function main_uninit:
+  Operational inputs:
+    maybe; a[0..24]; b[11]
+  Operational inputs on termination:
+    maybe; a[0..24]; b[11]
+  Sure outputs:
+    r
+[inout] Out (internal) for function many:
+    tm[0..999]; um{[0..998]; [999][bits 0 to 15]}; ttyp[0..999]; s[0..4]; 
+    p; ty{.ts; .ti}
+[inout] Inputs for function many:
+    maybe
+[inout] InOut (internal) for function many:
+  Operational inputs:
+    maybe; ty.[bits 16 to 31]
+  Operational inputs on termination:
+    maybe; ty.[bits 16 to 31]
+  Sure outputs:
+    tm[0]; um[0]; ttyp[0]; s[0..4]; p; ty{.ts; .ti}
+[inout] Out (internal) for function main:
+    src[0..19]; dst1[0..19]; dst2[0..19]; dst3[0..19]; dst4[0..19];
+    dst5[0..99]; tm[0..999]; um{[0..998]; [999][bits 0 to 15]}; ttyp[0..999];
+    v1{.x; .y}; v2; v3; v4; v5; t[1..3]; b; x; p; ptop1[4..799]; pptop;
+    ptop2[2..749]; ptop3[2..797]; ptop4[2..798]; garbledsize[10..99];
+    pgarbledsize; dstmaybesize1[0..14]; dstmaybesize2[0..5]; maybesize
+[inout] Inputs for function main:
+    NULL[100000..100001]; i; src[0..19]; maybe; v1; v2;
+    v4{.x; .y; .p; .padding[0..3]}; t[0..3]; "d"[bits 0 to 7]
+[inout] InOut (internal) for function main:
+  Operational inputs:
+    i; src[0..19]; maybe; v1{.p; .padding[0..23]}; v2;
+    v4{.x; {.p; .padding[0..3]}}; t{[0]; [3]}; a; b; "d"[bits 0 to 7]
+  Operational inputs on termination:
+    src[0..19]; maybe; v1{.p; .padding[0..23]}; v2;
+    v4{.x; {.p; .padding[0..3]}}; t{[0]; [3]}; a; b; "d"[bits 0 to 7]
+  Sure outputs:
+    dst1[1..5]; dst2[1..10]; dst3[5..9]; dst4[5..14]; tm[0]; um[0]; ttyp[0];
+    v1{.x; .y}; v2; v3; v4.y; t[1..2]; b; p; pptop; pgarbledsize; maybesize
+[inout] Out (internal) for function main_all:
+    src[0..19]; dst1[0..19]; dst2[0..19]; dst3[0..19]; dst4[0..19];
+    dst5[0..99]; tm[0..999]; um{[0..998]; [999][bits 0 to 15]}; ttyp[0..999];
+    v1{.x; .y}; v2; v3; v4; v5; t[1..3]
+[inout] Inputs for function main_all:
+    NULL[100000..100001]; i; src[0..19]; maybe; v1; v2;
+    v4{.x; .y; .p; .padding[0..3]}; t[0..3]; "d"[bits 0 to 7]
+[inout] InOut (internal) for function main_all:
+  Operational inputs:
+    i; src[0..19]; maybe; v1{.p; .padding[0..23]}; v2;
+    v4{.x; {.p; .padding[0..3]}}; t{[0]; [3]}; "d"[bits 0 to 7]
+  Operational inputs on termination:
+    \nothing
+  Sure outputs:
+    ANYTHING(origin:Unknown)
+[report] Computing properties status...
+--------------------------------------------------------------------------------
+--- Global Properties
+--------------------------------------------------------------------------------
+
+[ Extern  ] Axiom 'memchr_def'
+            Unverifiable but considered Valid.
+[ Extern  ] Axiom 'memcmp_strlen_left'
+            Unverifiable but considered Valid.
+[ Extern  ] Axiom 'memcmp_strlen_right'
+            Unverifiable but considered Valid.
+[ Extern  ] Axiom 'memcmp_strlen_shift_left'
+            Unverifiable but considered Valid.
+[ Extern  ] Axiom 'memcmp_strlen_shift_right'
+            Unverifiable but considered Valid.
+[ Extern  ] Axiom 'memcmp_zero'
+            Unverifiable but considered Valid.
+[ Extern  ] Axiom 'memset_def'
+            Unverifiable but considered Valid.
+[ Extern  ] Axiom 'never_allocable'
+            Unverifiable but considered Valid.
+[ Extern  ] Axiom 'strchr_def'
+            Unverifiable but considered Valid.
+[ Extern  ] Axiom 'strcmp_zero'
+            Unverifiable but considered Valid.
+[ Extern  ] Axiom 'strlen_at_null'
+            Unverifiable but considered Valid.
+[ Extern  ] Axiom 'strlen_before_null'
+            Unverifiable but considered Valid.
+[ Extern  ] Axiom 'strlen_create'
+            Unverifiable but considered Valid.
+[ Extern  ] Axiom 'strlen_create_shift'
+            Unverifiable but considered Valid.
+[ Extern  ] Axiom 'strlen_neg'
+            Unverifiable but considered Valid.
+[ Extern  ] Axiom 'strlen_not_zero'
+            Unverifiable but considered Valid.
+[ Extern  ] Axiom 'strlen_pos_or_null'
+            Unverifiable but considered Valid.
+[ Extern  ] Axiom 'strlen_shift'
+            Unverifiable but considered Valid.
+[ Extern  ] Axiom 'strlen_sup'
+            Unverifiable but considered Valid.
+[ Extern  ] Axiom 'strlen_zero'
+            Unverifiable but considered Valid.
+[ Extern  ] Axiom 'strncmp_zero'
+            Unverifiable but considered Valid.
+[ Extern  ] Axiom 'wcschr_def'
+            Unverifiable but considered Valid.
+[ Extern  ] Axiom 'wcscmp_zero'
+            Unverifiable but considered Valid.
+[ Extern  ] Axiom 'wcslen_at_null'
+            Unverifiable but considered Valid.
+[ Extern  ] Axiom 'wcslen_before_null'
+            Unverifiable but considered Valid.
+[ Extern  ] Axiom 'wcslen_create'
+            Unverifiable but considered Valid.
+[ Extern  ] Axiom 'wcslen_create_shift'
+            Unverifiable but considered Valid.
+[ Extern  ] Axiom 'wcslen_neg'
+            Unverifiable but considered Valid.
+[ Extern  ] Axiom 'wcslen_not_zero'
+            Unverifiable but considered Valid.
+[ Extern  ] Axiom 'wcslen_pos_or_null'
+            Unverifiable but considered Valid.
+[ Extern  ] Axiom 'wcslen_shift'
+            Unverifiable but considered Valid.
+[ Extern  ] Axiom 'wcslen_sup'
+            Unverifiable but considered Valid.
+[ Extern  ] Axiom 'wcslen_zero'
+            Unverifiable but considered Valid.
+[ Extern  ] Axiom 'wcsncmp_zero'
+            Unverifiable but considered Valid.
+[  Valid  ] Axiomatic 'MemChr'
+            by Frama-C kernel.
+[  Valid  ] Axiomatic 'MemCmp'
+            by Frama-C kernel.
+[  Valid  ] Axiomatic 'MemSet'
+            by Frama-C kernel.
+[  Valid  ] Axiomatic 'StrChr'
+            by Frama-C kernel.
+[  Valid  ] Axiomatic 'StrCmp'
+            by Frama-C kernel.
+[  Valid  ] Axiomatic 'StrLen'
+            by Frama-C kernel.
+[  Valid  ] Axiomatic 'StrNCmp'
+            by Frama-C kernel.
+[  Valid  ] Axiomatic 'WcsChr'
+            by Frama-C kernel.
+[  Valid  ] Axiomatic 'WcsCmp'
+            by Frama-C kernel.
+[  Valid  ] Axiomatic 'WcsLen'
+            by Frama-C kernel.
+[  Valid  ] Axiomatic 'WcsNCmp'
+            by Frama-C kernel.
+[  Valid  ] Axiomatic 'dynamic_allocation'
+            by Frama-C kernel.
+
+--------------------------------------------------------------------------------
+--- Properties of Function 'memcmp'
+--------------------------------------------------------------------------------
+
+[ Extern  ] Post-condition 'logic_spec'
+            Unverifiable but considered Valid.
+[ Extern  ] Assigns nothing
+            Unverifiable but considered Valid.
+[ Extern  ] Froms (file share/libc/string.h, line 61)
+            Unverifiable but considered Valid.
+[  Valid  ] Default behavior
+            by Frama-C kernel.
+
+--------------------------------------------------------------------------------
+--- Properties of Function 'memchr'
+--------------------------------------------------------------------------------
+
+[ Extern  ] Post-condition for 'found' 'result_same_base'
+            Unverifiable but considered Valid.
+[ Extern  ] Post-condition for 'found' 'result_char'
+            Unverifiable but considered Valid.
+[ Extern  ] Post-condition for 'found' 'result_in_str'
+            Unverifiable but considered Valid.
+[ Extern  ] Post-condition for 'not_found' 'result_null'
+            Unverifiable but considered Valid.
+[ Extern  ] Assigns nothing
+            Unverifiable but considered Valid.
+[ Extern  ] Froms (file share/libc/string.h, line 76)
+            Unverifiable but considered Valid.
+[  Valid  ] Default behavior
+            by Frama-C kernel.
+[  Valid  ] Behavior 'found'
+            by Frama-C kernel.
+[  Valid  ] Behavior 'not_found'
+            by Frama-C kernel.
+
+--------------------------------------------------------------------------------
+--- Properties of Function 'memcpy'
+--------------------------------------------------------------------------------
+
+[  Alarm  ] Pre-condition 'valid_dest'
+            By Call Preconditions, with pending:
+             - Unreachable call 'memcpy' (file tests/builtins/memcpy.c, line 220)
+             - Instance of 'Pre-condition 'valid_dest'' of 'buggy' at call 'memcpy' (file tests/builtins/memcpy.c, line 28)
+
+             - Instance of 'Pre-condition 'valid_dest'' of 'main' at call 'memcpy' (file tests/builtins/memcpy.c, line 70)
+
+             - Instance of 'Pre-condition 'valid_dest'' of 'main' at call 'memcpy' (file tests/builtins/memcpy.c, line 75)
+
+             - Instance of 'Pre-condition 'valid_dest'' of 'main' at call 'memcpy' (file tests/builtins/memcpy.c, line 89)
+
+             - Instance of 'Pre-condition 'valid_dest'' of 'main' at call 'memcpy' (file tests/builtins/memcpy.c, line 91)
+
+             - Instance of 'Pre-condition 'valid_dest'' of 'main' at call 'memcpy' (file tests/builtins/memcpy.c, line 96)
+
+             - Instance of 'Pre-condition 'valid_dest'' of 'main' at call 'memcpy' (file tests/builtins/memcpy.c, line 114)
+
+             - Instance of 'Pre-condition 'valid_dest'' of 'main' at call 'memcpy' (file tests/builtins/memcpy.c, line 122)
+
+             - Instance of 'Pre-condition 'valid_dest'' of 'main' at call 'memcpy' (file tests/builtins/memcpy.c, line 131)
+
+             - Instance of 'Pre-condition 'valid_dest'' of 'main' at call 'memcpy' (file tests/builtins/memcpy.c, line 140)
+
+             - Instance of 'Pre-condition 'valid_dest'' of 'main' at call 'memcpy' (file tests/builtins/memcpy.c, line 145)
+
+             - Instance of 'Pre-condition 'valid_dest'' of 'main' at call 'memcpy' (file tests/builtins/memcpy.c, line 151)
+
+[  Alarm  ] Pre-condition 'valid_src'
+            By Call Preconditions, with pending:
+             - Unreachable call 'memcpy' (file tests/builtins/memcpy.c, line 221)
+             - Instance of 'Pre-condition 'valid_src'' of 'main' at call 'memcpy' (file tests/builtins/memcpy.c, line 70)
+
+             - Instance of 'Pre-condition 'valid_src'' of 'main' at call 'memcpy' (file tests/builtins/memcpy.c, line 75)
+
+             - Instance of 'Pre-condition 'valid_src'' of 'main' at call 'memcpy' (file tests/builtins/memcpy.c, line 87)
+
+             - Instance of 'Pre-condition 'valid_src'' of 'main' at call 'memcpy' (file tests/builtins/memcpy.c, line 96)
+
+             - Instance of 'Pre-condition 'valid_src'' of 'main' at call 'memcpy' (file tests/builtins/memcpy.c, line 145)
+
+             - Instance of 'Pre-condition 'valid_src'' of 'main' at call 'memcpy' (file tests/builtins/memcpy.c, line 151)
+
+[    -    ] Pre-condition 'separation'
+            tried with Call Preconditions.
+[ Extern  ] Post-condition 'copied_contents'
+            Unverifiable but considered Valid.
+[ Extern  ] Post-condition 'result_ptr'
+            Unverifiable but considered Valid.
+[ Extern  ] Assigns (file share/libc/string.h, line 96)
+            Unverifiable but considered Valid.
+[ Extern  ] Froms (file share/libc/string.h, line 96)
+            Unverifiable but considered Valid.
+[ Extern  ] Froms (file share/libc/string.h, line 97)
+            Unverifiable but considered Valid.
+[  Valid  ] Default behavior
+            by Frama-C kernel.
+
+--------------------------------------------------------------------------------
+--- Properties of Function 'memmove'
+--------------------------------------------------------------------------------
+
+[ Extern  ] Post-condition 'copied_contents'
+            Unverifiable but considered Valid.
+[ Extern  ] Post-condition 'result_ptr'
+            Unverifiable but considered Valid.
+[ Extern  ] Assigns (file share/libc/string.h, line 106)
+            Unverifiable but considered Valid.
+[ Extern  ] Froms (file share/libc/string.h, line 106)
+            Unverifiable but considered Valid.
+[ Extern  ] Froms (file share/libc/string.h, line 107)
+            Unverifiable but considered Valid.
+[  Valid  ] Default behavior
+            by Frama-C kernel.
+
+--------------------------------------------------------------------------------
+--- Properties of Function 'memset'
+--------------------------------------------------------------------------------
+
+[ Extern  ] Post-condition 'acsl_c_equiv'
+            Unverifiable but considered Valid.
+[ Extern  ] Post-condition 'result_ptr'
+            Unverifiable but considered Valid.
+[ Extern  ] Assigns (file share/libc/string.h, line 116)
+            Unverifiable but considered Valid.
+[ Extern  ] Froms (file share/libc/string.h, line 116)
+            Unverifiable but considered Valid.
+[ Extern  ] Froms (file share/libc/string.h, line 117)
+            Unverifiable but considered Valid.
+[  Valid  ] Default behavior
+            by Frama-C kernel.
+
+--------------------------------------------------------------------------------
+--- Properties of Function 'strlen'
+--------------------------------------------------------------------------------
+
+[ Extern  ] Post-condition 'acsl_c_equiv'
+            Unverifiable but considered Valid.
+[ Extern  ] Assigns nothing
+            Unverifiable but considered Valid.
+[ Extern  ] Froms (file share/libc/string.h, line 126)
+            Unverifiable but considered Valid.
+[  Valid  ] Default behavior
+            by Frama-C kernel.
+
+--------------------------------------------------------------------------------
+--- Properties of Function 'strnlen'
+--------------------------------------------------------------------------------
+
+[ Extern  ] Post-condition 'result_bounded'
+            Unverifiable but considered Valid.
+[ Extern  ] Assigns nothing
+            Unverifiable but considered Valid.
+[ Extern  ] Froms (file share/libc/string.h, line 132)
+            Unverifiable but considered Valid.
+[  Valid  ] Default behavior
+            by Frama-C kernel.
+
+--------------------------------------------------------------------------------
+--- Properties of Function 'strcmp'
+--------------------------------------------------------------------------------
+
+[ Extern  ] Post-condition 'acsl_c_equiv'
+            Unverifiable but considered Valid.
+[ Extern  ] Assigns nothing
+            Unverifiable but considered Valid.
+[ Extern  ] Froms (file share/libc/string.h, line 139)
+            Unverifiable but considered Valid.
+[  Valid  ] Default behavior
+            by Frama-C kernel.
+
+--------------------------------------------------------------------------------
+--- Properties of Function 'strncmp'
+--------------------------------------------------------------------------------
+
+[ Extern  ] Post-condition 'acsl_c_equiv'
+            Unverifiable but considered Valid.
+[ Extern  ] Assigns nothing
+            Unverifiable but considered Valid.
+[ Extern  ] Froms (file share/libc/string.h, line 146)
+            Unverifiable but considered Valid.
+[  Valid  ] Default behavior
+            by Frama-C kernel.
+
+--------------------------------------------------------------------------------
+--- Properties of Function 'strcoll'
+--------------------------------------------------------------------------------
+
+[ Extern  ] Assigns nothing
+            Unverifiable but considered Valid.
+[ Extern  ] Froms (file share/libc/string.h, line 153)
+            Unverifiable but considered Valid.
+[  Valid  ] Default behavior
+            by Frama-C kernel.
+
+--------------------------------------------------------------------------------
+--- Properties of Function 'strchr'
+--------------------------------------------------------------------------------
+
+[ Extern  ] Post-condition for 'found' 'result_char'
+            Unverifiable but considered Valid.
+[ Extern  ] Post-condition for 'found' 'result_same_base'
+            Unverifiable but considered Valid.
+[ Extern  ] Post-condition for 'found' 'result_in_length'
+            Unverifiable but considered Valid.
+[ Extern  ] Post-condition for 'found' 'result_valid_string'
+            Unverifiable but considered Valid.
+[ Extern  ] Post-condition for 'found' 'result_first_occur'
+            Unverifiable but considered Valid.
+[ Extern  ] Post-condition for 'not_found' 'result_null'
+            Unverifiable but considered Valid.
+[ Extern  ] Post-condition for 'default' 'result_null_or_same_base'
+            Unverifiable but considered Valid.
+[ Extern  ] Assigns nothing
+            Unverifiable but considered Valid.
+[ Extern  ] Froms (file share/libc/string.h, line 158)
+            Unverifiable but considered Valid.
+[  Valid  ] Behavior 'default'
+            by Frama-C kernel.
+[  Valid  ] Default behavior
+            by Frama-C kernel.
+[  Valid  ] Behavior 'found'
+            by Frama-C kernel.
+[  Valid  ] Behavior 'not_found'
+            by Frama-C kernel.
+
+--------------------------------------------------------------------------------
+--- Properties of Function 'strrchr'
+--------------------------------------------------------------------------------
+
+[ Extern  ] Post-condition for 'found' 'result_char'
+            Unverifiable but considered Valid.
+[ Extern  ] Post-condition for 'found' 'result_same_base'
+            Unverifiable but considered Valid.
+[ Extern  ] Post-condition for 'found' 'result_valid_string'
+            Unverifiable but considered Valid.
+[ Extern  ] Post-condition for 'not_found' 'result_null'
+            Unverifiable but considered Valid.
+[ Extern  ] Post-condition for 'default' 'result_null_or_same_base'
+            Unverifiable but considered Valid.
+[ Extern  ] Assigns nothing
+            Unverifiable but considered Valid.
+[ Extern  ] Froms (file share/libc/string.h, line 176)
+            Unverifiable but considered Valid.
+[  Valid  ] Behavior 'default'
+            by Frama-C kernel.
+[  Valid  ] Default behavior
+            by Frama-C kernel.
+[  Valid  ] Behavior 'found'
+            by Frama-C kernel.
+[  Valid  ] Behavior 'not_found'
+            by Frama-C kernel.
+
+--------------------------------------------------------------------------------
+--- Properties of Function 'strcspn'
+--------------------------------------------------------------------------------
+
+[ Extern  ] Post-condition 'result_bounded'
+            Unverifiable but considered Valid.
+[ Extern  ] Assigns nothing
+            Unverifiable but considered Valid.
+[ Extern  ] Froms (file share/libc/string.h, line 193)
+            Unverifiable but considered Valid.
+[  Valid  ] Default behavior
+            by Frama-C kernel.
+
+--------------------------------------------------------------------------------
+--- Properties of Function 'strspn'
+--------------------------------------------------------------------------------
+
+[ Extern  ] Post-condition 'result_bounded'
+            Unverifiable but considered Valid.
+[ Extern  ] Assigns (file share/libc/string.h, line 200)
+            Unverifiable but considered Valid.
+[ Extern  ] Froms (file share/libc/string.h, line 200)
+            Unverifiable but considered Valid.
+[ Extern  ] Froms (file share/libc/string.h, line 201)
+            Unverifiable but considered Valid.
+[  Valid  ] Default behavior
+            by Frama-C kernel.
+
+--------------------------------------------------------------------------------
+--- Properties of Function 'strpbrk'
+--------------------------------------------------------------------------------
+
+[ Extern  ] Post-condition 'result_null_or_same_base'
+            Unverifiable but considered Valid.
+[ Extern  ] Assigns nothing
+            Unverifiable but considered Valid.
+[ Extern  ] Froms (file share/libc/string.h, line 208)
+            Unverifiable but considered Valid.
+[  Valid  ] Default behavior
+            by Frama-C kernel.
+
+--------------------------------------------------------------------------------
+--- Properties of Function 'strstr'
+--------------------------------------------------------------------------------
+
+[ Extern  ] Post-condition 'result_null_or_in_haystack'
+            Unverifiable but considered Valid.
+[ Extern  ] Assigns nothing
+            Unverifiable but considered Valid.
+[ Extern  ] Froms (file share/libc/string.h, line 216)
+            Unverifiable but considered Valid.
+[  Valid  ] Default behavior
+            by Frama-C kernel.
+
+--------------------------------------------------------------------------------
+--- Properties of Function 'strtok'
+--------------------------------------------------------------------------------
+
+[ Extern  ] Post-condition for 'new_str' 'result_subset'
+            Unverifiable but considered Valid.
+[ Extern  ] Post-condition for 'new_str' 'ptr_subset'
+            Unverifiable but considered Valid.
+[ Extern  ] Post-condition for 'resume_str' 'result_subset'
+            Unverifiable but considered Valid.
+[ Extern  ] Post-condition for 'resume_str' 'ptr_subset'
+            Unverifiable but considered Valid.
+[ Extern  ] Assigns (file share/libc/string.h, line 242)
+            Unverifiable but considered Valid.
+[ Extern  ] Assigns for 'new_str' (file share/libc/string.h, line 257)
+            Unverifiable but considered Valid.
+[ Extern  ] Assigns for 'resume_str' (file share/libc/string.h, line 265)
+            Unverifiable but considered Valid.
+[ Extern  ] Froms (file share/libc/string.h, line 242)
+            Unverifiable but considered Valid.
+[ Extern  ] Froms (file share/libc/string.h, line 244)
+            Unverifiable but considered Valid.
+[ Extern  ] Froms (file share/libc/string.h, line 246)
+            Unverifiable but considered Valid.
+[ Extern  ] Froms (file share/libc/string.h, line 248)
+            Unverifiable but considered Valid.
+[ Extern  ] Froms for 'new_str' (file share/libc/string.h, line 257)
+            Unverifiable but considered Valid.
+[ Extern  ] Froms for 'new_str' (file share/libc/string.h, line 258)
+            Unverifiable but considered Valid.
+[ Extern  ] Froms for 'new_str' (file share/libc/string.h, line 259)
+            Unverifiable but considered Valid.
+[ Extern  ] Froms for 'resume_str' (file share/libc/string.h, line 265)
+            Unverifiable but considered Valid.
+[ Extern  ] Froms for 'resume_str' (file share/libc/string.h, line 268)
+            Unverifiable but considered Valid.
+[ Extern  ] Froms for 'resume_str' (file share/libc/string.h, line 271)
+            Unverifiable but considered Valid.
+[  Valid  ] Default behavior
+            by Frama-C kernel.
+[  Valid  ] Behavior 'new_str'
+            by Frama-C kernel.
+[  Valid  ] Behavior 'resume_str'
+            by Frama-C kernel.
+
+--------------------------------------------------------------------------------
+--- Properties of Function 'strtok_r'
+--------------------------------------------------------------------------------
+
+[ Extern  ] Post-condition for 'new_str' 'result_subset'
+            Unverifiable but considered Valid.
+[ Extern  ] Post-condition for 'new_str' 'initialization'
+            Unverifiable but considered Valid.
+[ Extern  ] Post-condition for 'new_str' 'saveptr_subset'
+            Unverifiable but considered Valid.
+[ Extern  ] Post-condition for 'resume_str' 'result_subset'
+            Unverifiable but considered Valid.
+[ Extern  ] Post-condition for 'resume_str' 'saveptr_subset'
+            Unverifiable but considered Valid.
+[ Extern  ] Assigns (file share/libc/string.h, line 284)
+            Unverifiable but considered Valid.
+[ Extern  ] Assigns for 'new_str' (file share/libc/string.h, line 299)
+            Unverifiable but considered Valid.
+[ Extern  ] Assigns for 'resume_str' (file share/libc/string.h, line 309)
+            Unverifiable but considered Valid.
+[ Extern  ] Froms (file share/libc/string.h, line 284)
+            Unverifiable but considered Valid.
+[ Extern  ] Froms (file share/libc/string.h, line 286)
+            Unverifiable but considered Valid.
+[ Extern  ] Froms (file share/libc/string.h, line 288)
+            Unverifiable but considered Valid.
+[ Extern  ] Froms (file share/libc/string.h, line 290)
+            Unverifiable but considered Valid.
+[ Extern  ] Froms for 'new_str' (file share/libc/string.h, line 299)
+            Unverifiable but considered Valid.
+[ Extern  ] Froms for 'new_str' (file share/libc/string.h, line 300)
+            Unverifiable but considered Valid.
+[ Extern  ] Froms for 'new_str' (file share/libc/string.h, line 301)
+            Unverifiable but considered Valid.
+[ Extern  ] Froms for 'resume_str' (file share/libc/string.h, line 309)
+            Unverifiable but considered Valid.
+[ Extern  ] Froms for 'resume_str' (file share/libc/string.h, line 312)
+            Unverifiable but considered Valid.
+[ Extern  ] Froms for 'resume_str' (file share/libc/string.h, line 315)
+            Unverifiable but considered Valid.
+[  Valid  ] Default behavior
+            by Frama-C kernel.
+[  Valid  ] Behavior 'new_str'
+            by Frama-C kernel.
+[  Valid  ] Behavior 'resume_str'
+            by Frama-C kernel.
+
+--------------------------------------------------------------------------------
+--- Properties of Function 'strsep'
+--------------------------------------------------------------------------------
+
+[ Extern  ] Assigns (file share/libc/string.h, line 327)
+            Unverifiable but considered Valid.
+[ Extern  ] Froms (file share/libc/string.h, line 327)
+            Unverifiable but considered Valid.
+[ Extern  ] Froms (file share/libc/string.h, line 328)
+            Unverifiable but considered Valid.
+[  Valid  ] Default behavior
+            by Frama-C kernel.
+
+--------------------------------------------------------------------------------
+--- Properties of Function 'strerror'
+--------------------------------------------------------------------------------
+
+[ Extern  ] Post-condition 'result_internal_str'
+            Unverifiable but considered Valid.
+[ Extern  ] Post-condition 'result_nul_terminated'
+            Unverifiable but considered Valid.
+[ Extern  ] Post-condition 'result_valid_string'
+            Unverifiable but considered Valid.
+[ Extern  ] Assigns nothing
+            Unverifiable but considered Valid.
+[ Extern  ] Froms (file share/libc/string.h, line 338)
+            Unverifiable but considered Valid.
+[  Valid  ] Default behavior
+            by Frama-C kernel.
+
+--------------------------------------------------------------------------------
+--- Properties of Function 'strcpy'
+--------------------------------------------------------------------------------
+
+[ Extern  ] Post-condition 'equal_contents'
+            Unverifiable but considered Valid.
+[ Extern  ] Post-condition 'result_ptr'
+            Unverifiable but considered Valid.
+[ Extern  ] Assigns (file share/libc/string.h, line 351)
+            Unverifiable but considered Valid.
+[ Extern  ] Froms (file share/libc/string.h, line 351)
+            Unverifiable but considered Valid.
+[ Extern  ] Froms (file share/libc/string.h, line 352)
+            Unverifiable but considered Valid.
+[  Valid  ] Default behavior
+            by Frama-C kernel.
+
+--------------------------------------------------------------------------------
+--- Properties of Function 'strncpy'
+--------------------------------------------------------------------------------
+
+[ Extern  ] Post-condition 'result_ptr'
+            Unverifiable but considered Valid.
+[ Extern  ] Post-condition 'initialization'
+            Unverifiable but considered Valid.
+[ Extern  ] Post-condition for 'complete' 'equal_after_copy'
+            Unverifiable but considered Valid.
+[ Extern  ] Post-condition for 'partial' 'equal_prefix'
+            Unverifiable but considered Valid.
+[ Extern  ] Assigns (file share/libc/string.h, line 363)
+            Unverifiable but considered Valid.
+[ Extern  ] Froms (file share/libc/string.h, line 363)
+            Unverifiable but considered Valid.
+[ Extern  ] Froms (file share/libc/string.h, line 364)
+            Unverifiable but considered Valid.
+[  Valid  ] Behavior 'complete'
+            by Frama-C kernel.
+[  Valid  ] Default behavior
+            by Frama-C kernel.
+[  Valid  ] Behavior 'partial'
+            by Frama-C kernel.
+
+--------------------------------------------------------------------------------
+--- Properties of Function 'strcat'
+--------------------------------------------------------------------------------
+
+[ Extern  ] Post-condition 'sum_of_lengths'
+            Unverifiable but considered Valid.
+[ Extern  ] Post-condition 'initialization,dest'
+            Unverifiable but considered Valid.
+[ Extern  ] Post-condition 'dest_null_terminated'
+            Unverifiable but considered Valid.
+[ Extern  ] Post-condition 'result_ptr'
+            Unverifiable but considered Valid.
+[ Extern  ] Assigns (file share/libc/string.h, line 397)
+            Unverifiable but considered Valid.
+[ Extern  ] Froms (file share/libc/string.h, line 397)
+            Unverifiable but considered Valid.
+[ Extern  ] Froms (file share/libc/string.h, line 400)
+            Unverifiable but considered Valid.
+[  Valid  ] Default behavior
+            by Frama-C kernel.
+
+--------------------------------------------------------------------------------
+--- Properties of Function 'strncat'
+--------------------------------------------------------------------------------
+
+[ Extern  ] Post-condition 'result_ptr'
+            Unverifiable but considered Valid.
+[ Extern  ] Post-condition for 'complete' 'sum_of_lengths'
+            Unverifiable but considered Valid.
+[ Extern  ] Post-condition for 'partial' 'sum_of_bounded_lengths'
+            Unverifiable but considered Valid.
+[ Extern  ] Assigns for 'complete' (file share/libc/string.h, line 417)
+            Unverifiable but considered Valid.
+[ Extern  ] Assigns (file share/libc/string.h, line 411)
+            Unverifiable but considered Valid.
+[ Extern  ] Assigns for 'partial' (file share/libc/string.h, line 425)
+            Unverifiable but considered Valid.
+[ Extern  ] Froms for 'complete' (file share/libc/string.h, line 417)
+            Unverifiable but considered Valid.
+[ Extern  ] Froms for 'complete' (file share/libc/string.h, line 419)
+            Unverifiable but considered Valid.
+[ Extern  ] Froms (file share/libc/string.h, line 411)
+            Unverifiable but considered Valid.
+[ Extern  ] Froms (file share/libc/string.h, line 412)
+            Unverifiable but considered Valid.
+[ Extern  ] Froms for 'partial' (file share/libc/string.h, line 425)
+            Unverifiable but considered Valid.
+[ Extern  ] Froms for 'partial' (file share/libc/string.h, line 427)
+            Unverifiable but considered Valid.
+[  Valid  ] Behavior 'complete'
+            by Frama-C kernel.
+[  Valid  ] Default behavior
+            by Frama-C kernel.
+[  Valid  ] Behavior 'partial'
+            by Frama-C kernel.
+
+--------------------------------------------------------------------------------
+--- Properties of Function 'strxfrm'
+--------------------------------------------------------------------------------
+
+[ Extern  ] Assigns (file share/libc/string.h, line 435)
+            Unverifiable but considered Valid.
+[ Extern  ] Froms (file share/libc/string.h, line 435)
+            Unverifiable but considered Valid.
+[ Extern  ] Froms (file share/libc/string.h, line 436)
+            Unverifiable but considered Valid.
+[  Valid  ] Default behavior
+            by Frama-C kernel.
+
+--------------------------------------------------------------------------------
+--- Properties of Function 'strdup'
+--------------------------------------------------------------------------------
+
+[ Extern  ] Post-condition for 'allocation' 'allocation'
+            Unverifiable but considered Valid.
+[ Extern  ] Post-condition for 'allocation' 'result_valid_string_and_same_contents'
+            Unverifiable but considered Valid.
+[ Extern  ] Post-condition for 'no_allocation' 'result_null'
+            Unverifiable but considered Valid.
+[ Extern  ] Assigns for 'allocation' (file share/libc/string.h, line 447)
+            Unverifiable but considered Valid.
+[ Extern  ] Assigns nothing
+            Unverifiable but considered Valid.
+[ Extern  ] Assigns for 'no_allocation' nothing
+            Unverifiable but considered Valid.
+[ Extern  ] Froms for 'allocation' (file share/libc/string.h, line 447)
+            Unverifiable but considered Valid.
+[ Extern  ] Froms for 'allocation' (file share/libc/string.h, line 448)
+            Unverifiable but considered Valid.
+[ Extern  ] Froms (file share/libc/string.h, line 444)
+            Unverifiable but considered Valid.
+[ Extern  ] Froms for 'no_allocation' (file share/libc/string.h, line 454)
+            Unverifiable but considered Valid.
+[  Valid  ] Behavior 'allocation'
+            by Frama-C kernel.
+[  Valid  ] Default behavior
+            by Frama-C kernel.
+[  Valid  ] Behavior 'no_allocation'
+            by Frama-C kernel.
+[ Extern  ] Frees/Allocates nothing/(file share/libc/string.h, line 443) 
+            Unverifiable but considered Valid.
+[ Extern  ] Frees/Allocates for 'no_allocation' nothing/nothing 
+            Unverifiable but considered Valid.
+
+--------------------------------------------------------------------------------
+--- Properties of Function 'strndup'
+--------------------------------------------------------------------------------
+
+[ Extern  ] Post-condition for 'allocation' 'allocation'
+            Unverifiable but considered Valid.
+[ Extern  ] Post-condition for 'allocation' 'result_valid_string_bounded_and_same_prefix'
+            Unverifiable but considered Valid.
+[ Extern  ] Post-condition for 'no_allocation' 'result_null'
+            Unverifiable but considered Valid.
+[ Extern  ] Assigns for 'allocation' (file share/libc/string.h, line 465)
+            Unverifiable but considered Valid.
+[ Extern  ] Assigns nothing
+            Unverifiable but considered Valid.
+[ Extern  ] Assigns for 'no_allocation' nothing
+            Unverifiable but considered Valid.
+[ Extern  ] Froms for 'allocation' (file share/libc/string.h, line 465)
+            Unverifiable but considered Valid.
+[ Extern  ] Froms for 'allocation' (file share/libc/string.h, line 466)
+            Unverifiable but considered Valid.
+[ Extern  ] Froms (file share/libc/string.h, line 461)
+            Unverifiable but considered Valid.
+[ Extern  ] Froms for 'no_allocation' (file share/libc/string.h, line 475)
+            Unverifiable but considered Valid.
+[  Valid  ] Behavior 'allocation'
+            by Frama-C kernel.
+[  Valid  ] Default behavior
+            by Frama-C kernel.
+[  Valid  ] Behavior 'no_allocation'
+            by Frama-C kernel.
+[ Extern  ] Frees/Allocates nothing/(file share/libc/string.h, line 460) 
+            Unverifiable but considered Valid.
+[ Extern  ] Frees/Allocates for 'no_allocation' nothing/nothing 
+            Unverifiable but considered Valid.
+
+--------------------------------------------------------------------------------
+--- Properties of Function 'bzero'
+--------------------------------------------------------------------------------
+
+[ Extern  ] Post-condition 'zero_initialized'
+            Unverifiable but considered Valid.
+[ Extern  ] Assigns (file share/libc/strings.h, line 37)
+            Unverifiable but considered Valid.
+[ Extern  ] Froms (file share/libc/strings.h, line 37)
+            Unverifiable but considered Valid.
+[  Valid  ] Default behavior
+            by Frama-C kernel.
+
+--------------------------------------------------------------------------------
+--- Properties of Function 'strcasecmp'
+--------------------------------------------------------------------------------
+
+[ Extern  ] Assigns nothing
+            Unverifiable but considered Valid.
+[ Extern  ] Froms (file share/libc/strings.h, line 47)
+            Unverifiable but considered Valid.
+[  Valid  ] Default behavior
+            by Frama-C kernel.
+
+--------------------------------------------------------------------------------
+--- Properties of Function 'strncasecmp'
+--------------------------------------------------------------------------------
+
+[ Extern  ] Assigns nothing
+            Unverifiable but considered Valid.
+[ Extern  ] Froms (file share/libc/strings.h, line 54)
+            Unverifiable but considered Valid.
+[  Valid  ] Default behavior
+            by Frama-C kernel.
+
+--------------------------------------------------------------------------------
+--- Properties of Function 'buggy'
+--------------------------------------------------------------------------------
+
+[    -    ] Instance of 'Pre-condition 'valid_dest'' at call 'memcpy' (file tests/builtins/memcpy.c, line 28)
+
+            tried with Eva.
+[  Valid  ] Instance of 'Pre-condition 'valid_src'' at call 'memcpy' (file tests/builtins/memcpy.c, line 28)
+
+            by Eva.
+[  Valid  ] Instance of 'Pre-condition 'separation'' at call 'memcpy' (file tests/builtins/memcpy.c, line 28)
+
+            by Eva.
+
+--------------------------------------------------------------------------------
+--- Properties of Function 'many'
+--------------------------------------------------------------------------------
+
+[    -    ] Assertion (file tests/builtins/memcpy.c, line 44)
+            tried with Eva.
+[  Valid  ] Instance of 'Pre-condition 'valid_dest'' at call 'memcpy' (file tests/builtins/memcpy.c, line 47)
+
+            by Eva.
+[  Valid  ] Instance of 'Pre-condition 'valid_src'' at call 'memcpy' (file tests/builtins/memcpy.c, line 47)
+
+            by Eva.
+[  Valid  ] Instance of 'Pre-condition 'separation'' at call 'memcpy' (file tests/builtins/memcpy.c, line 47)
+
+            by Eva.
+[  Valid  ] Instance of 'Pre-condition 'valid_dest'' at call 'memcpy' (file tests/builtins/memcpy.c, line 49)
+
+            by Eva.
+[  Valid  ] Instance of 'Pre-condition 'valid_src'' at call 'memcpy' (file tests/builtins/memcpy.c, line 49)
+
+            by Eva.
+[  Valid  ] Instance of 'Pre-condition 'separation'' at call 'memcpy' (file tests/builtins/memcpy.c, line 49)
+
+            by Eva.
+[  Valid  ] Instance of 'Pre-condition 'valid_dest'' at call 'memcpy' (file tests/builtins/memcpy.c, line 53)
+
+            by Eva.
+[  Valid  ] Instance of 'Pre-condition 'valid_src'' at call 'memcpy' (file tests/builtins/memcpy.c, line 53)
+
+            by Eva.
+[  Valid  ] Instance of 'Pre-condition 'separation'' at call 'memcpy' (file tests/builtins/memcpy.c, line 53)
+
+            by Eva.
+
+--------------------------------------------------------------------------------
+--- Properties of Function 'main'
+--------------------------------------------------------------------------------
+
+[    -    ] Assertion (file tests/builtins/memcpy.c, line 67)
+            tried with Eva.
+[    -    ] Assertion (file tests/builtins/memcpy.c, line 72)
+            tried with Eva.
+[    -    ] Assertion (file tests/builtins/memcpy.c, line 103)
+            tried with Eva.
+[    -    ] Assertion (file tests/builtins/memcpy.c, line 150)
+            tried with Eva.
+[    -    ] Assertion (file tests/builtins/memcpy.c, line 152)
+            tried with Eva.
+[  Valid  ] Instance of 'Pre-condition 'valid_dest'' at call 'memcpy' (file tests/builtins/memcpy.c, line 68)
+
+            by Eva.
+[  Valid  ] Instance of 'Pre-condition 'valid_src'' at call 'memcpy' (file tests/builtins/memcpy.c, line 68)
+
+            by Eva.
+[  Valid  ] Instance of 'Pre-condition 'separation'' at call 'memcpy' (file tests/builtins/memcpy.c, line 68)
+
+            by Eva.
+[    -    ] Instance of 'Pre-condition 'valid_dest'' at call 'memcpy' (file tests/builtins/memcpy.c, line 70)
+
+            tried with Eva.
+[    -    ] Instance of 'Pre-condition 'valid_src'' at call 'memcpy' (file tests/builtins/memcpy.c, line 70)
+
+            tried with Eva.
+[  Valid  ] Instance of 'Pre-condition 'separation'' at call 'memcpy' (file tests/builtins/memcpy.c, line 70)
+
+            by Eva.
+[  Valid  ] Instance of 'Pre-condition 'valid_dest'' at call 'memcpy' (file tests/builtins/memcpy.c, line 73)
+
+            by Eva.
+[  Valid  ] Instance of 'Pre-condition 'valid_src'' at call 'memcpy' (file tests/builtins/memcpy.c, line 73)
+
+            by Eva.
+[  Valid  ] Instance of 'Pre-condition 'separation'' at call 'memcpy' (file tests/builtins/memcpy.c, line 73)
+
+            by Eva.
+[    -    ] Instance of 'Pre-condition 'valid_dest'' at call 'memcpy' (file tests/builtins/memcpy.c, line 75)
+
+            tried with Eva.
+[    -    ] Instance of 'Pre-condition 'valid_src'' at call 'memcpy' (file tests/builtins/memcpy.c, line 75)
+
+            tried with Eva.
+[  Valid  ] Instance of 'Pre-condition 'separation'' at call 'memcpy' (file tests/builtins/memcpy.c, line 75)
+
+            by Eva.
+[  Valid  ] Instance of 'Pre-condition 'valid_dest'' at call 'memcpy' (file tests/builtins/memcpy.c, line 83)
+
+            by Eva.
+[  Valid  ] Instance of 'Pre-condition 'valid_src'' at call 'memcpy' (file tests/builtins/memcpy.c, line 83)
+
+            by Eva.
+[  Valid  ] Instance of 'Pre-condition 'separation'' at call 'memcpy' (file tests/builtins/memcpy.c, line 83)
+
+            by Eva.
+[  Valid  ] Instance of 'Pre-condition 'valid_dest'' at call 'memcpy' (file tests/builtins/memcpy.c, line 85)
+
+            by Eva.
+[  Valid  ] Instance of 'Pre-condition 'valid_src'' at call 'memcpy' (file tests/builtins/memcpy.c, line 85)
+
+            by Eva.
+[  Valid  ] Instance of 'Pre-condition 'separation'' at call 'memcpy' (file tests/builtins/memcpy.c, line 85)
+
+            by Eva.
+[  Valid  ] Instance of 'Pre-condition 'valid_dest'' at call 'memcpy' (file tests/builtins/memcpy.c, line 87)
+
+            by Eva.
+[    -    ] Instance of 'Pre-condition 'valid_src'' at call 'memcpy' (file tests/builtins/memcpy.c, line 87)
+
+            tried with Eva.
+[  Valid  ] Instance of 'Pre-condition 'separation'' at call 'memcpy' (file tests/builtins/memcpy.c, line 87)
+
+            by Eva.
+[    -    ] Instance of 'Pre-condition 'valid_dest'' at call 'memcpy' (file tests/builtins/memcpy.c, line 89)
+
+            tried with Eva.
+[  Valid  ] Instance of 'Pre-condition 'valid_src'' at call 'memcpy' (file tests/builtins/memcpy.c, line 89)
+
+            by Eva.
+[  Valid  ] Instance of 'Pre-condition 'separation'' at call 'memcpy' (file tests/builtins/memcpy.c, line 89)
+
+            by Eva.
+[    -    ] Instance of 'Pre-condition 'valid_dest'' at call 'memcpy' (file tests/builtins/memcpy.c, line 91)
+
+            tried with Eva.
+[  Valid  ] Instance of 'Pre-condition 'valid_src'' at call 'memcpy' (file tests/builtins/memcpy.c, line 91)
+
+            by Eva.
+[  Valid  ] Instance of 'Pre-condition 'separation'' at call 'memcpy' (file tests/builtins/memcpy.c, line 91)
+
+            by Eva.
+[    -    ] Instance of 'Pre-condition 'valid_dest'' at call 'memcpy' (file tests/builtins/memcpy.c, line 96)
+
+            tried with Eva.
+[    -    ] Instance of 'Pre-condition 'valid_src'' at call 'memcpy' (file tests/builtins/memcpy.c, line 96)
+
+            tried with Eva.
+[    -    ] Instance of 'Pre-condition 'separation'' at call 'memcpy' (file tests/builtins/memcpy.c, line 96)
+
+            tried with Eva.
+[  Valid  ] Instance of 'Pre-condition 'valid_dest'' at call 'memcpy' (file tests/builtins/memcpy.c, line 101)
+
+            by Eva.
+[  Valid  ] Instance of 'Pre-condition 'valid_src'' at call 'memcpy' (file tests/builtins/memcpy.c, line 101)
+
+            by Eva.
+[  Valid  ] Instance of 'Pre-condition 'separation'' at call 'memcpy' (file tests/builtins/memcpy.c, line 101)
+
+            by Eva.
+[  Valid  ] Instance of 'Pre-condition 'valid_dest'' at call 'memcpy' (file tests/builtins/memcpy.c, line 105)
+
+            by Eva.
+[  Valid  ] Instance of 'Pre-condition 'valid_src'' at call 'memcpy' (file tests/builtins/memcpy.c, line 105)
+
+            by Eva.
+[  Valid  ] Instance of 'Pre-condition 'separation'' at call 'memcpy' (file tests/builtins/memcpy.c, line 105)
+
+            by Eva.
+[    -    ] Instance of 'Pre-condition 'valid_dest'' at call 'memcpy' (file tests/builtins/memcpy.c, line 114)
+
+            tried with Eva.
+[  Valid  ] Instance of 'Pre-condition 'valid_src'' at call 'memcpy' (file tests/builtins/memcpy.c, line 114)
+
+            by Eva.
+[  Valid  ] Instance of 'Pre-condition 'separation'' at call 'memcpy' (file tests/builtins/memcpy.c, line 114)
+
+            by Eva.
+[    -    ] Instance of 'Pre-condition 'valid_dest'' at call 'memcpy' (file tests/builtins/memcpy.c, line 122)
+
+            tried with Eva.
+[  Valid  ] Instance of 'Pre-condition 'valid_src'' at call 'memcpy' (file tests/builtins/memcpy.c, line 122)
+
+            by Eva.
+[  Valid  ] Instance of 'Pre-condition 'separation'' at call 'memcpy' (file tests/builtins/memcpy.c, line 122)
+
+            by Eva.
+[    -    ] Instance of 'Pre-condition 'valid_dest'' at call 'memcpy' (file tests/builtins/memcpy.c, line 131)
+
+            tried with Eva.
+[  Valid  ] Instance of 'Pre-condition 'valid_src'' at call 'memcpy' (file tests/builtins/memcpy.c, line 131)
+
+            by Eva.
+[  Valid  ] Instance of 'Pre-condition 'separation'' at call 'memcpy' (file tests/builtins/memcpy.c, line 131)
+
+            by Eva.
+[    -    ] Instance of 'Pre-condition 'valid_dest'' at call 'memcpy' (file tests/builtins/memcpy.c, line 140)
+
+            tried with Eva.
+[  Valid  ] Instance of 'Pre-condition 'valid_src'' at call 'memcpy' (file tests/builtins/memcpy.c, line 140)
+
+            by Eva.
+[  Valid  ] Instance of 'Pre-condition 'separation'' at call 'memcpy' (file tests/builtins/memcpy.c, line 140)
+
+            by Eva.
+[    -    ] Instance of 'Pre-condition 'valid_dest'' at call 'memcpy' (file tests/builtins/memcpy.c, line 145)
+
+            tried with Eva.
+[    -    ] Instance of 'Pre-condition 'valid_src'' at call 'memcpy' (file tests/builtins/memcpy.c, line 145)
+
+            tried with Eva.
+[  Valid  ] Instance of 'Pre-condition 'separation'' at call 'memcpy' (file tests/builtins/memcpy.c, line 145)
+
+            by Eva.
+[    -    ] Instance of 'Pre-condition 'valid_dest'' at call 'memcpy' (file tests/builtins/memcpy.c, line 151)
+
+            tried with Eva.
+[    -    ] Instance of 'Pre-condition 'valid_src'' at call 'memcpy' (file tests/builtins/memcpy.c, line 151)
+
+            tried with Eva.
+[  Valid  ] Instance of 'Pre-condition 'separation'' at call 'memcpy' (file tests/builtins/memcpy.c, line 151)
+
+            by Eva.
+[  Valid  ] Instance of 'Pre-condition 'valid_dest'' at call 'memcpy' (file tests/builtins/memcpy.c, line 153)
+
+            by Eva.
+[  Valid  ] Instance of 'Pre-condition 'valid_src'' at call 'memcpy' (file tests/builtins/memcpy.c, line 153)
+
+            by Eva.
+[  Valid  ] Instance of 'Pre-condition 'separation'' at call 'memcpy' (file tests/builtins/memcpy.c, line 153)
+
+            by Eva.
+
+--------------------------------------------------------------------------------
+--- Properties of Function 'itv'
+--------------------------------------------------------------------------------
+
+[ Extern  ] Post-condition (file tests/builtins/memcpy.c, line 158)
+            Unverifiable but considered Valid.
+[ Extern  ] Assigns nothing
+            Unverifiable but considered Valid.
+[ Extern  ] Froms (file tests/builtins/memcpy.c, line 157)
+            Unverifiable but considered Valid.
+[  Valid  ] Default behavior
+            by Frama-C kernel.
+
+--------------------------------------------------------------------------------
+--- Properties of Function 'make_unknown'
+--------------------------------------------------------------------------------
+
+[  Valid  ] Pre-condition (file tests/builtins/memcpy.c, line 161)
+            by Call Preconditions.
+[ Extern  ] Post-condition (file tests/builtins/memcpy.c, line 163)
+            Unverifiable but considered Valid.
+[ Extern  ] Assigns (file tests/builtins/memcpy.c, line 162)
+            Unverifiable but considered Valid.
+[ Extern  ] Froms (file tests/builtins/memcpy.c, line 162)
+            Unverifiable but considered Valid.
+[  Valid  ] Default behavior
+            by Frama-C kernel.
+
+--------------------------------------------------------------------------------
+--- Properties of Function 'main_uninit'
+--------------------------------------------------------------------------------
+
+[  Valid  ] Assertion (file tests/builtins/memcpy.c, line 173)
+            by Eva.
+[  Valid  ] Assertion (file tests/builtins/memcpy.c, line 175)
+            by Eva.
+[  Valid  ] Assertion (file tests/builtins/memcpy.c, line 180)
+            by Eva.
+[  Valid  ] Assertion (file tests/builtins/memcpy.c, line 188)
+            by Eva.
+[  Valid  ] Assertion (file tests/builtins/memcpy.c, line 191)
+            by Eva.
+[  Valid  ] Assertion (file tests/builtins/memcpy.c, line 199)
+            by Eva.
+[    -    ] Assertion 'Eva,initialization' (file tests/builtins/memcpy.c, line 182)
+            tried with Eva.
+[    -    ] Assertion 'Eva,initialization' (file tests/builtins/memcpy.c, line 192)
+            tried with Eva.
+[    -    ] Assertion 'Eva,initialization' (file tests/builtins/memcpy.c, line 201)
+            tried with Eva.
+[  Valid  ] Instance of 'Pre-condition 'valid_dest'' at call 'memcpy' (file tests/builtins/memcpy.c, line 172)
+
+            by Eva.
+[  Valid  ] Instance of 'Pre-condition 'valid_src'' at call 'memcpy' (file tests/builtins/memcpy.c, line 172)
+
+            by Eva.
+[  Valid  ] Instance of 'Pre-condition 'separation'' at call 'memcpy' (file tests/builtins/memcpy.c, line 172)
+
+            by Eva.
+[  Valid  ] Instance of 'Pre-condition 'valid_dest'' at call 'memcpy' (file tests/builtins/memcpy.c, line 174)
+
+            by Eva.
+[  Valid  ] Instance of 'Pre-condition 'valid_src'' at call 'memcpy' (file tests/builtins/memcpy.c, line 174)
+
+            by Eva.
+[  Valid  ] Instance of 'Pre-condition 'separation'' at call 'memcpy' (file tests/builtins/memcpy.c, line 174)
+
+            by Eva.
+[  Valid  ] Instance of 'Pre-condition (file tests/builtins/memcpy.c, line 161)' at call 'make_unknown' (file tests/builtins/memcpy.c, line 178)
+
+            by Eva.
+[  Valid  ] Instance of 'Pre-condition 'valid_dest'' at call 'memcpy' (file tests/builtins/memcpy.c, line 179)
+
+            by Eva.
+[  Valid  ] Instance of 'Pre-condition 'valid_src'' at call 'memcpy' (file tests/builtins/memcpy.c, line 179)
+
+            by Eva.
+[  Valid  ] Instance of 'Pre-condition 'separation'' at call 'memcpy' (file tests/builtins/memcpy.c, line 179)
+
+            by Eva.
+[  Valid  ] Instance of 'Pre-condition 'valid_dest'' at call 'memcpy' (file tests/builtins/memcpy.c, line 181)
+
+            by Eva.
+[  Valid  ] Instance of 'Pre-condition 'valid_src'' at call 'memcpy' (file tests/builtins/memcpy.c, line 181)
+
+            by Eva.
+[  Valid  ] Instance of 'Pre-condition 'separation'' at call 'memcpy' (file tests/builtins/memcpy.c, line 181)
+
+            by Eva.
+[  Valid  ] Instance of 'Pre-condition (file tests/builtins/memcpy.c, line 161)' at call 'make_unknown' (file tests/builtins/memcpy.c, line 185)
+
+            by Eva.
+[  Valid  ] Instance of 'Pre-condition 'valid_dest'' at call 'memcpy' (file tests/builtins/memcpy.c, line 187)
+
+            by Eva.
+[  Valid  ] Instance of 'Pre-condition 'valid_src'' at call 'memcpy' (file tests/builtins/memcpy.c, line 187)
+
+            by Eva.
+[  Valid  ] Instance of 'Pre-condition 'separation'' at call 'memcpy' (file tests/builtins/memcpy.c, line 187)
+
+            by Eva.
+[  Valid  ] Instance of 'Pre-condition 'valid_dest'' at call 'memcpy' (file tests/builtins/memcpy.c, line 190)
+
+            by Eva.
+[  Valid  ] Instance of 'Pre-condition 'valid_src'' at call 'memcpy' (file tests/builtins/memcpy.c, line 190)
+
+            by Eva.
+[  Valid  ] Instance of 'Pre-condition 'separation'' at call 'memcpy' (file tests/builtins/memcpy.c, line 190)
+
+            by Eva.
+[  Valid  ] Instance of 'Pre-condition (file tests/builtins/memcpy.c, line 161)' at call 'make_unknown' (file tests/builtins/memcpy.c, line 196)
+
+            by Eva.
+[  Valid  ] Instance of 'Pre-condition (file tests/builtins/memcpy.c, line 161)' at call 'make_unknown' (file tests/builtins/memcpy.c, line 197)
+
+            by Eva.
+[  Valid  ] Instance of 'Pre-condition 'valid_dest'' at call 'memcpy' (file tests/builtins/memcpy.c, line 198)
+
+            by Eva.
+[  Valid  ] Instance of 'Pre-condition 'valid_src'' at call 'memcpy' (file tests/builtins/memcpy.c, line 198)
+
+            by Eva.
+[  Valid  ] Instance of 'Pre-condition 'separation'' at call 'memcpy' (file tests/builtins/memcpy.c, line 198)
+
+            by Eva.
+[  Valid  ] Instance of 'Pre-condition 'valid_dest'' at call 'memcpy' (file tests/builtins/memcpy.c, line 200)
+
+            by Eva.
+[  Valid  ] Instance of 'Pre-condition 'valid_src'' at call 'memcpy' (file tests/builtins/memcpy.c, line 200)
+
+            by Eva.
+[  Valid  ] Instance of 'Pre-condition 'separation'' at call 'memcpy' (file tests/builtins/memcpy.c, line 200)
+
+            by Eva.
+
+--------------------------------------------------------------------------------
+--- Properties of Function 'main_local'
+--------------------------------------------------------------------------------
+
+[  Valid  ] Instance of 'Pre-condition 'valid_dest'' at call 'memcpy' (file tests/builtins/memcpy.c, line 209)
+
+            by Eva.
+[  Valid  ] Instance of 'Pre-condition 'valid_src'' at call 'memcpy' (file tests/builtins/memcpy.c, line 209)
+
+            by Eva.
+[  Valid  ] Instance of 'Pre-condition 'separation'' at call 'memcpy' (file tests/builtins/memcpy.c, line 209)
+
+            by Eva.
+
+--------------------------------------------------------------------------------
+--- Properties of Function 'copy_0'
+--------------------------------------------------------------------------------
+
+[  Alarm  ] Instance of 'Pre-condition 'valid_dest'' at call 'memcpy' (file tests/builtins/memcpy.c, line 220)
+
+            By Eva, with pending:
+             - Unreachable call 'memcpy' (file tests/builtins/memcpy.c, line 220)
+[  Valid  ] Instance of 'Pre-condition 'valid_src'' at call 'memcpy' (file tests/builtins/memcpy.c, line 220)
+
+            by Eva.
+[  Valid  ] Instance of 'Pre-condition 'separation'' at call 'memcpy' (file tests/builtins/memcpy.c, line 220)
+
+            by Eva.
+[  Valid  ] Instance of 'Pre-condition 'valid_dest'' at call 'memcpy' (file tests/builtins/memcpy.c, line 221)
+
+            by Eva.
+[  Alarm  ] Instance of 'Pre-condition 'valid_src'' at call 'memcpy' (file tests/builtins/memcpy.c, line 221)
+
+            By Eva, with pending:
+             - Unreachable call 'memcpy' (file tests/builtins/memcpy.c, line 221)
+[  Valid  ] Instance of 'Pre-condition 'separation'' at call 'memcpy' (file tests/builtins/memcpy.c, line 221)
+
+            by Eva.
+
+--------------------------------------------------------------------------------
+--- Status Report Summary
+--------------------------------------------------------------------------------
+   156 Completely validated
+   215 Considered valid
+    29 To be validated
+     4 Alarms emitted
+   404 Total
+--------------------------------------------------------------------------------

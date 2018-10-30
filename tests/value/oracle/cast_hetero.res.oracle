@@ -1,23 +1,23 @@
 [kernel] Parsing tests/value/cast_hetero.i (no preprocessing)
-[value] Analyzing a complete application starting at main
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing a complete application starting at main
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   X ∈ {0}
   pt ∈ {0}
   T[0..9] ∈ {0}
-[value] computing for function g <- main.
+[eva] computing for function g <- main.
   Called from tests/value/cast_hetero.i:16.
-[value] Recording results for g
-[value] Done for function g
-[value] Recording results for main
-[value] done for function main
-[value] ====== VALUES COMPUTED ======
-[value:final-states] Values at end of function g:
+[eva] Recording results for g
+[eva] Done for function g
+[eva] Recording results for main
+[eva] done for function main
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function g:
   pt ∈ {{ &X }}
   T[0] ∈ {1}
    [1..9] ∈ {0}
-[value:final-states] Values at end of function main:
+[eva:final-states] Values at end of function main:
   pt ∈ {{ &X }}
   T[0] ∈ {1}
    [1..9] ∈ {0}

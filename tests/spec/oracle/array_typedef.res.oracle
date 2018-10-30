@@ -1,38 +1,38 @@
 [kernel] Parsing tests/spec/array_typedef.c (with preprocessing)
-[value] Analyzing a complete application starting at main
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing a complete application starting at main
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   
-[value] computing for function create_msg <- main.
+[eva] computing for function create_msg <- main.
   Called from tests/spec/array_typedef.c:35.
-[value] computing for function host_address <- create_msg <- main.
+[eva] computing for function host_address <- create_msg <- main.
   Called from tests/spec/array_typedef.c:25.
-[value] Recording results for host_address
-[value] Done for function host_address
-[value] computing for function host_address <- create_msg <- main.
+[eva] Recording results for host_address
+[eva] Done for function host_address
+[eva] computing for function host_address <- create_msg <- main.
   Called from tests/spec/array_typedef.c:26.
-[value] Recording results for host_address
-[value] Done for function host_address
-[value] tests/spec/array_typedef.c:27: assertion got status valid.
-[value] tests/spec/array_typedef.c:28: assertion got status valid.
-[value] tests/spec/array_typedef.c:29: assertion got status valid.
-[value] Recording results for create_msg
-[value] Done for function create_msg
-[value] computing for function send_msg <- main.
+[eva] Recording results for host_address
+[eva] Done for function host_address
+[eva] tests/spec/array_typedef.c:27: assertion got status valid.
+[eva] tests/spec/array_typedef.c:28: assertion got status valid.
+[eva] tests/spec/array_typedef.c:29: assertion got status valid.
+[eva] Recording results for create_msg
+[eva] Done for function create_msg
+[eva] computing for function send_msg <- main.
   Called from tests/spec/array_typedef.c:36.
-[value] computing for function send_addr <- send_msg <- main.
+[eva] computing for function send_addr <- send_msg <- main.
   Called from tests/spec/array_typedef.c:15.
-[value] using specification for function send_addr
-[value] tests/spec/array_typedef.c:12: Warning: 
+[eva] using specification for function send_addr
+[eva] tests/spec/array_typedef.c:12: Warning: 
   no \from part for clause 'assigns \empty;'
-[value] Done for function send_addr
-[value] Recording results for send_msg
-[value] Done for function send_msg
-[value] Recording results for main
-[value] done for function main
-[value] ====== VALUES COMPUTED ======
-[value:final-states] Values at end of function host_address:
+[eva] Done for function send_addr
+[eva] Recording results for send_msg
+[eva] Done for function send_msg
+[eva] Recording results for main
+[eva] done for function main
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function host_address:
   i ∈ {4}
   msg1.src[0] ∈ {192}
       .src[1] ∈ {100}
@@ -42,7 +42,7 @@
       .dst[1] ∈ {100} or UNINITIALIZED
       .dst[2] ∈ {200} or UNINITIALIZED
       .dst[3] ∈ {101} or UNINITIALIZED
-[value:final-states] Values at end of function create_msg:
+[eva:final-states] Values at end of function create_msg:
   msg1.src[0] ∈ {192}
       .src[1] ∈ {100}
       .src[2] ∈ {200}
@@ -51,9 +51,9 @@
       .dst[1] ∈ {100}
       .dst[2] ∈ {200}
       .dst[3] ∈ {101}
-[value:final-states] Values at end of function send_msg:
+[eva:final-states] Values at end of function send_msg:
   
-[value:final-states] Values at end of function main:
+[eva:final-states] Values at end of function main:
   msg1.src[0] ∈ {192}
       .src[1] ∈ {100}
       .src[2] ∈ {200}

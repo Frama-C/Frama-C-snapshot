@@ -34,7 +34,7 @@ module Api:sig
   (** Sets slicing parameters related to command line options
       [-slicing-level], [-slice-callers], [-slice-undef-functions],
       [-slicing-keep-annotations].
-      @modified Sulfur-20171101 the optional argument and the related
+      @modify Sulfur-20171101 the optional argument and the related
       deprecated option [-slice-print] have been removed. *)
 
   (* ---------------------------------------------------------------------- *)
@@ -83,7 +83,7 @@ module Api:sig
         The entry point function is only exported once :
         it is VERY recommended to give to it its original name,
         even if it is sliced.
-        @modified Sulfur-20171101 argument order and arity. *)
+        @modify Sulfur-20171101 argument order and arity. *)
 
     (** {3 Not for casual users} *)
 

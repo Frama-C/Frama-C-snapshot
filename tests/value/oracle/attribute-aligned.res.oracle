@@ -1,68 +1,68 @@
 [kernel] Parsing tests/value/attribute-aligned.c (with preprocessing)
-[value] Analyzing a complete application starting at main
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing a complete application starting at main
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   S ∈ {0}
   A ∈ {0}
   B ∈ {0}
-[value] computing for function ct <- main.
-  Called from tests/value/attribute-aligned.c:94.
-[value] Recording results for ct
-[value] Done for function ct
-[value] computing for function dt <- main.
-  Called from tests/value/attribute-aligned.c:95.
-[value] Recording results for dt
-[value] Done for function dt
-[value] computing for function pt <- main.
-  Called from tests/value/attribute-aligned.c:96.
-[value] Recording results for pt
-[value] Done for function pt
-[value] computing for function qt <- main.
+[eva] computing for function ct <- main.
   Called from tests/value/attribute-aligned.c:97.
-[value] Recording results for qt
-[value] Done for function qt
-[value] computing for function rt <- main.
+[eva] Recording results for ct
+[eva] Done for function ct
+[eva] computing for function dt <- main.
   Called from tests/value/attribute-aligned.c:98.
-[value] Recording results for rt
-[value] Done for function rt
-[value] computing for function st <- main.
+[eva] Recording results for dt
+[eva] Done for function dt
+[eva] computing for function pt <- main.
   Called from tests/value/attribute-aligned.c:99.
-[value] Recording results for st
-[value] Done for function st
-[value] computing for function tt <- main.
+[eva] Recording results for pt
+[eva] Done for function pt
+[eva] computing for function qt <- main.
   Called from tests/value/attribute-aligned.c:100.
-[value] Recording results for tt
-[value] Done for function tt
-[value] Recording results for main
-[value] done for function main
-[value] ====== VALUES COMPUTED ======
-[value:final-states] Values at end of function ct:
+[eva] Recording results for qt
+[eva] Done for function qt
+[eva] computing for function rt <- main.
+  Called from tests/value/attribute-aligned.c:101.
+[eva] Recording results for rt
+[eva] Done for function rt
+[eva] computing for function st <- main.
+  Called from tests/value/attribute-aligned.c:102.
+[eva] Recording results for st
+[eva] Done for function st
+[eva] computing for function tt <- main.
+  Called from tests/value/attribute-aligned.c:103.
+[eva] Recording results for tt
+[eva] Done for function tt
+[eva] Recording results for main
+[eva] done for function main
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function ct:
   S ∈ {1}
   A ∈ {0}
-[value:final-states] Values at end of function dt:
+[eva:final-states] Values at end of function dt:
   S ∈ {4}
   A ∈ {0}
-[value:final-states] Values at end of function pt:
+[eva:final-states] Values at end of function pt:
   S ∈ {4}
   A ∈ {0}
-[value:final-states] Values at end of function qt:
+[eva:final-states] Values at end of function qt:
   S ∈ {4}
   A ∈ {0}
   B ∈ {1}
-[value:final-states] Values at end of function rt:
+[eva:final-states] Values at end of function rt:
   S ∈ {8}
   A ∈ {0}
   B ∈ {4}
-[value:final-states] Values at end of function st:
+[eva:final-states] Values at end of function st:
   S ∈ {8}
   A ∈ {0}
   B ∈ {4}
-[value:final-states] Values at end of function tt:
+[eva:final-states] Values at end of function tt:
   S ∈ {4}
   A ∈ {0}
   B ∈ {4}
-[value:final-states] Values at end of function main:
+[eva:final-states] Values at end of function main:
   S ∈ {4}
   A ∈ {0}
   B ∈ {4}

@@ -1,8 +1,8 @@
 [kernel] Parsing tests/value/shift.i (no preprocessing)
-[value] Analyzing a complete application starting at main
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing a complete application starting at main
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   a ∈ {0}
   b ∈ {0}
   d ∈ {0}
@@ -18,61 +18,58 @@
   uf ∈ {0}
   t[0..9] ∈ {0}
   v ∈ [--..--]
-[value:alarm] tests/value/shift.i:21: Warning: 
+[eva:alarm] tests/value/shift.i:21: Warning: 
   invalid RHS operand for shift. assert 0 ≤ c < 32;
-[value] tests/value/shift.i:22: assertion got status valid.
-[value:alarm] tests/value/shift.i:25: Warning: 
+[eva] tests/value/shift.i:22: assertion got status valid.
+[eva:alarm] tests/value/shift.i:25: Warning: 
   invalid RHS operand for shift. assert 0 ≤ c < 32;
-[value] tests/value/shift.i:26: assertion got status valid.
-[value:alarm] tests/value/shift.i:29: Warning: 
+[eva] tests/value/shift.i:26: assertion got status valid.
+[eva:alarm] tests/value/shift.i:29: Warning: 
   invalid RHS operand for shift. assert 0 ≤ c < 32;
-[value:alarm] tests/value/shift.i:31: Warning: 
+[eva:alarm] tests/value/shift.i:31: Warning: 
   invalid LHS operand for left shift. assert 0 ≤ c;
-[value] tests/value/shift.i:32: assertion got status valid.
-[value:alarm] tests/value/shift.i:35: Warning: 
+[eva] tests/value/shift.i:32: assertion got status valid.
+[eva:alarm] tests/value/shift.i:35: Warning: 
   invalid RHS operand for shift. assert 0 ≤ 32 < 32;
-[value:alarm] tests/value/shift.i:36: Warning: 
+[eva:alarm] tests/value/shift.i:36: Warning: 
   invalid RHS operand for shift. assert 0 ≤ 5555 < 32;
-[value:alarm] tests/value/shift.i:40: Warning: 
+[eva:alarm] tests/value/shift.i:40: Warning: 
   invalid RHS operand for shift. assert 0 ≤ b < 32;
-[value] tests/value/shift.i:48: 
+[eva] tests/value/shift.i:48: 
   Frama_C_show_each: {{ "ua:%u\nub:%u\n" }}, {1401}, {1073741074}
-[value:alarm] tests/value/shift.i:52: Warning: 
+[eva:alarm] tests/value/shift.i:52: Warning: 
   unsigned overflow. assert 0 ≤ (unsigned long)((char *)t) << 8;
-[value:alarm] tests/value/shift.i:52: Warning: 
+[eva:alarm] tests/value/shift.i:52: Warning: 
   unsigned overflow. assert (unsigned long)((char *)t) << 8 ≤ 4294967295;
-[value] tests/value/shift.i:52: 
+[eva] tests/value/shift.i:52: 
   Assigning imprecise value to r.
   The imprecision originates from Arithmetic {tests/value/shift.i:52}
-[value:alarm] tests/value/shift.i:53: Warning: 
+[eva:alarm] tests/value/shift.i:53: Warning: 
   invalid LHS operand for left shift. assert 0 ≤ (long)((char *)t);
-[value:alarm] tests/value/shift.i:53: Warning: 
+[eva:alarm] tests/value/shift.i:53: Warning: 
   signed overflow. assert -2147483648 ≤ (long)((char *)t) << 8;
-[value:alarm] tests/value/shift.i:53: Warning: 
+[eva:alarm] tests/value/shift.i:53: Warning: 
   signed overflow. assert (long)((char *)t) << 8 ≤ 2147483647;
-[value:alarm] tests/value/shift.i:53: Warning: 
+[eva:alarm] tests/value/shift.i:53: Warning: 
   signed overflow.
   assert -2147483648 ≤ (long)r + (long)((long)((char *)t) << 8);
-[value:alarm] tests/value/shift.i:53: Warning: 
+[eva:alarm] tests/value/shift.i:53: Warning: 
   signed overflow.
   assert (long)r + (long)((long)((char *)t) << 8) ≤ 2147483647;
-[value] tests/value/shift.i:53: 
+[eva] tests/value/shift.i:53: 
   Assigning imprecise value to r.
   The imprecision originates from Arithmetic
-[value:alarm] tests/value/shift.i:58: Warning: 
+[eva:alarm] tests/value/shift.i:58: Warning: 
   unsigned overflow. assert 2U << 31 ≤ 4294967295;
-[value] Recording results for main
-[value] done for function main
-[value] tests/value/shift.i:35: 
-  assertion 'Value,shift' got final status invalid.
-[value] tests/value/shift.i:36: 
-  assertion 'Value,shift' got final status invalid.
-[value] tests/value/shift.i:40: 
-  assertion 'Value,shift' got final status invalid.
-[value] tests/value/shift.i:58: 
-  assertion 'Value,unsigned_overflow' got final status invalid.
-[value] ====== VALUES COMPUTED ======
-[value:final-states] Values at end of function main:
+[eva] Recording results for main
+[eva] done for function main
+[eva] tests/value/shift.i:35: assertion 'Eva,shift' got final status invalid.
+[eva] tests/value/shift.i:36: assertion 'Eva,shift' got final status invalid.
+[eva] tests/value/shift.i:40: assertion 'Eva,shift' got final status invalid.
+[eva] tests/value/shift.i:58: 
+  assertion 'Eva,unsigned_overflow' got final status invalid.
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function main:
   a ∈ {314; 1256; 5024}
   b ∈ {0}
   d ∈ {61; 246; 255; 987}

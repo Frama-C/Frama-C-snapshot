@@ -112,6 +112,7 @@ double f0 = 1.1234;
 int i5 = 1;
 
 int main() {
+  unsigned char c1, c2;
   j=0;
   i = &j;
   pp = &p;
@@ -162,6 +163,8 @@ int main() {
   v = p.val;
   v = p.tq[i0][i1].v;
 
+  c1 = c2;
+  unsigned char c3 = c2;
   return v;
 }
 

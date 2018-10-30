@@ -128,7 +128,8 @@ let insert base path_name =
 let cwd = insert dummy (Sys.getcwd())
 
 let normalize ?base_name path_name =
-  if path_name = "" then raise (Invalid_argument "Filepath.normalize");
+  if path_name = "" then ""
+  else
   let base =
     match base_name with
       | None -> cwd
@@ -184,18 +185,57 @@ let relativize ?base_name file_name =
   let file_name = (insert cwd file_name).path_name in
   let base_name = match base_name with
     | None -> cwd.path_name
-    | Some b -> (insert cwd b).path_name in
-  if Extlib.string_prefix ~strict:true base_name file_name then
-    let n = 1 + String.length base_name in
-    String.sub file_name n (String.length file_name - n)
-  else file_name
+    | Some b -> (insert cwd b).path_name
+  in
+  if base_name = file_name then "." else
+    let base_name = base_name ^ Filename.dir_sep in
+    if Extlib.string_prefix base_name file_name then
+      let n = String.length base_name in
+      let file_name = String.sub file_name n (String.length file_name - n) in
+      if file_name = "" then "." else file_name
+    else file_name
 
 let is_relative ?base_name file_name =
   let file_name = (insert cwd file_name).path_name in
   let base_name = match base_name with
     | None -> cwd.path_name
-    | Some b -> (insert cwd b).path_name in
-  Extlib.string_prefix ~strict:true base_name file_name
+    | Some b -> (insert cwd b).path_name
+  in
+  base_name = file_name
+  || Extlib.string_prefix (base_name ^ Filename.dir_sep) file_name
+
+(* -------------------------------------------------------------------------- *)
+(* --- Normalized Typed Module                                            --- *)
+(* -------------------------------------------------------------------------- *)
+
+module Normalized = struct
+  type t = string
+  let of_string ?base_name s = normalize ?base_name s
+  let to_pretty_string s = pretty s
+  let equal : t -> t -> bool = (=)
+  let compare = String.compare
+
+  let compare_pretty ?(case_sensitive=false) s1 s2 =
+    let s1 = pretty s1 in
+    let s2 = pretty s2 in
+    if case_sensitive then String.compare s1 s2
+    else Extlib.compare_ignore_case s1 s2
+
+  let pretty fmt p = Format.fprintf fmt "%s" (pretty p)
+  let pp_abs fmt p = Format.fprintf fmt "%s" p
+  let unknown = normalize ""
+end
+
+type position =
+  {
+    pos_path : Normalized.t;
+    pos_lnum : int;
+    pos_bol : int;
+    pos_cnum : int;
+  }
+
+let pp_pos fmt pos =
+  Format.fprintf fmt "%a:%d" Normalized.pretty pos.pos_path pos.pos_lnum
 
 (*
 Local Variables:

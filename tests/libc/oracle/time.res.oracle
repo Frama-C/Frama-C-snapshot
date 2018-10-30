@@ -1,60 +1,53 @@
 [kernel] Parsing tests/libc/time.c (with preprocessing)
-[value] Analyzing a complete application starting at main
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
-  __fc_time ∈ [--..--]
-  __fc_tz ∈ [--..--]
-  __fc_time_tm ∈ {0}
-  __fc_p_time_tm ∈ {{ &__fc_time_tm }}
-  tzname[0] ∈ {{ NULL ; &S_0_tzname[0] }}
-        [1] ∈ {{ NULL ; &S_1_tzname[0] }}
-  S_0_tzname[0..1] ∈ [--..--]
-  S_1_tzname[0..1] ∈ [--..--]
-[value] computing for function test_gettimeofday <- main.
+[eva] Analyzing a complete application starting at main
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
+  
+[eva] computing for function test_gettimeofday <- main.
   Called from tests/libc/time.c:27.
-[value] computing for function gettimeofday <- test_gettimeofday <- main.
+[eva] computing for function gettimeofday <- test_gettimeofday <- main.
   Called from tests/libc/time.c:7.
-[value] using specification for function gettimeofday
-[value] Done for function gettimeofday
-[value] tests/libc/time.c:8: assertion got status valid.
-[value] tests/libc/time.c:9: assertion got status valid.
-[value] Recording results for test_gettimeofday
-[value] Done for function test_gettimeofday
-[value] computing for function test_strftime <- main.
+[eva] using specification for function gettimeofday
+[eva] Done for function gettimeofday
+[eva] tests/libc/time.c:8: assertion got status valid.
+[eva] tests/libc/time.c:9: assertion got status valid.
+[eva] Recording results for test_gettimeofday
+[eva] Done for function test_gettimeofday
+[eva] computing for function test_strftime <- main.
   Called from tests/libc/time.c:28.
-[value] computing for function time <- test_strftime <- main.
+[eva] computing for function time <- test_strftime <- main.
   Called from tests/libc/time.c:18.
-[value] using specification for function time
-[value] Done for function time
-[value] computing for function localtime <- test_strftime <- main.
+[eva] using specification for function time
+[eva] Done for function time
+[eva] computing for function localtime <- test_strftime <- main.
   Called from tests/libc/time.c:19.
-[value] using specification for function localtime
-[value] Done for function localtime
-[value] computing for function strftime <- test_strftime <- main.
+[eva] using specification for function localtime
+[eva] Done for function localtime
+[eva] computing for function strftime <- test_strftime <- main.
   Called from tests/libc/time.c:21.
-[value] using specification for function strftime
-[value] tests/libc/time.c:21: 
+[eva] using specification for function strftime
+[eva] tests/libc/time.c:21: 
   function strftime: precondition 'dst_has_room' got status valid.
-[value] tests/libc/time.c:21: 
+[eva] tests/libc/time.c:21: 
   function strftime: precondition 'valid_format' got status valid.
-[value] tests/libc/time.c:21: 
+[eva] tests/libc/time.c:21: 
   function strftime: precondition 'valid_tm' got status valid.
-[value] Done for function strftime
-[value] Recording results for test_strftime
-[value] Done for function test_strftime
-[value] Recording results for main
-[value] done for function main
-[value] ====== VALUES COMPUTED ======
-[value:final-states] Values at end of function test_gettimeofday:
+[eva] Done for function strftime
+[eva] Recording results for test_strftime
+[eva] Done for function test_strftime
+[eva] Recording results for main
+[eva] done for function main
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function test_gettimeofday:
   tv.tv_sec ∈ [--..--]
     .tv_usec ∈ [0..999999]
-[value:final-states] Values at end of function test_strftime:
+[eva:final-states] Values at end of function test_strftime:
   __fc_time_tm ∈ [--..--]
   outstr[0..199] ∈ [--..--] or UNINITIALIZED
   t ∈ [--..--]
   tmp ∈ {{ NULL ; &__fc_time_tm }}
   res ∈ [0..200] or UNINITIALIZED
-[value:final-states] Values at end of function main:
+[eva:final-states] Values at end of function main:
   __fc_time_tm ∈ [--..--]
   __retres ∈ {0}

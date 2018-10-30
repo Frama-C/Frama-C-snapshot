@@ -1,12 +1,12 @@
 [kernel] Parsing tests/value/initialized_copy.i (no preprocessing)
-[value] Analyzing a complete application starting at main
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing a complete application starting at main
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   w[0..9] ∈ {0}
   v ∈ [--..--]
-[value] tests/value/initialized_copy.i:30: Frama_C_show_each_unreached:
-[value] tests/value/initialized_copy.i:38: 
+[eva] tests/value/initialized_copy.i:30: Frama_C_show_each_unreached:
+[eva] tests/value/initialized_copy.i:38: 
   Frama_C_dump_each:
   # Cvalue domain:
   w[0..9] ∈ {0}
@@ -15,8 +15,8 @@
   a_0 ∈ {1} or UNINITIALIZED
   __retres ∈ UNINITIALIZED
   ==END OF DUMP==
-[value] tests/value/initialized_copy.i:48: Frama_C_show_each_unreached:
-[value] tests/value/initialized_copy.i:65: 
+[eva] tests/value/initialized_copy.i:48: Frama_C_show_each_unreached:
+[eva] tests/value/initialized_copy.i:65: 
   Frama_C_dump_each:
   # Cvalue domain:
   w[0..9] ∈ {0}
@@ -32,20 +32,20 @@
      [bits 24 to 31] ∈ {4}
   __retres ∈ UNINITIALIZED
   ==END OF DUMP==
-[value] tests/value/initialized_copy.i:73: 
+[eva] tests/value/initialized_copy.i:73: 
   Frama_C_show_each: .c ∈ {1}
                      .[bits 8 to 31] ∈ UNINITIALIZED
                      .i ∈ {5}
-[value] tests/value/initialized_copy.i:79: Frama_C_show_each: UNINITIALIZED
-[value] tests/value/initialized_copy.i:85: 
+[eva] tests/value/initialized_copy.i:79: Frama_C_show_each: UNINITIALIZED
+[eva] tests/value/initialized_copy.i:85: 
   Frama_C_show_each: .i1 ∈ {1}
                      .i2 ∈ UNINITIALIZED
-[value:alarm] tests/value/initialized_copy.i:90: Warning: 
+[eva:alarm] tests/value/initialized_copy.i:90: Warning: 
   assertion got status unknown.
-[value] tests/value/initialized_copy.i:93: Frama_C_show_each_unreached:
-[value:alarm] tests/value/initialized_copy.i:98: Warning: 
+[eva] tests/value/initialized_copy.i:93: Frama_C_show_each_unreached:
+[eva:alarm] tests/value/initialized_copy.i:98: Warning: 
   assertion got status unknown.
-[value] tests/value/initialized_copy.i:102: 
+[eva] tests/value/initialized_copy.i:102: 
   Frama_C_dump_each:
   # Cvalue domain:
   w[0..9] ∈ {0}
@@ -57,9 +57,9 @@
      [2..9] ∈ UNINITIALIZED
   __retres ∈ UNINITIALIZED
   ==END OF DUMP==
-[value:alarm] tests/value/initialized_copy.i:108: Warning: 
+[eva:alarm] tests/value/initialized_copy.i:108: Warning: 
   assertion got status unknown.
-[value] tests/value/initialized_copy.i:112: 
+[eva] tests/value/initialized_copy.i:112: 
   Frama_C_dump_each:
   # Cvalue domain:
   w[0..9] ∈ {0; 12} or UNINITIALIZED
@@ -70,18 +70,18 @@
      [2..9] ∈ UNINITIALIZED
   __retres ∈ UNINITIALIZED
   ==END OF DUMP==
-[value] computing for function f <- main.
+[eva] computing for function f <- main.
   Called from tests/value/initialized_copy.i:129.
-[value] Recording results for f
-[value] Done for function f
-[value] tests/value/initialized_copy.i:130: Frama_C_show_each_unreached:
-[value:alarm] tests/value/initialized_copy.i:135: Warning: 
+[eva] Recording results for f
+[eva] Done for function f
+[eva] tests/value/initialized_copy.i:130: Frama_C_show_each_unreached:
+[eva:alarm] tests/value/initialized_copy.i:135: Warning: 
   accessing uninitialized left-value. assert \initialized(&a_6);
-[value] computing for function f <- main.
+[eva] computing for function f <- main.
   Called from tests/value/initialized_copy.i:143.
-[value] Recording results for f
-[value] Done for function f
-[value] tests/value/initialized_copy.i:144: 
+[eva] Recording results for f
+[eva] Done for function f
+[eva] tests/value/initialized_copy.i:144: 
   Frama_C_dump_each:
   # Cvalue domain:
   w[0..9] ∈ {0; 12} or UNINITIALIZED
@@ -89,15 +89,15 @@
   a_7 ∈ {1} or UNINITIALIZED
   __retres ∈ UNINITIALIZED
   ==END OF DUMP==
-[value:alarm] tests/value/initialized_copy.i:151: Warning: 
+[eva:alarm] tests/value/initialized_copy.i:151: Warning: 
   accessing uninitialized left-value. assert \initialized(&a_8);
-[value] computing for function g <- main.
+[eva] computing for function g <- main.
   Called from tests/value/initialized_copy.i:151.
 [kernel:annot:missing-spec] tests/value/initialized_copy.i:151: Warning: 
   Neither code nor specification for function g, generating default assigns from the prototype
-[value] using specification for function g
-[value] Done for function g
-[value] tests/value/initialized_copy.i:152: 
+[eva] using specification for function g
+[eva] Done for function g
+[eva] tests/value/initialized_copy.i:152: 
   Frama_C_dump_each:
   # Cvalue domain:
   w[0..9] ∈ {0; 12} or UNINITIALIZED
@@ -105,14 +105,14 @@
   a_8 ∈ {1}
   __retres ∈ UNINITIALIZED
   ==END OF DUMP==
-[value] Recording results for main
-[value] done for function main
-[value] tests/value/initialized_copy.i:135: 
-  assertion 'Value,initialization' got final status invalid.
-[value] ====== VALUES COMPUTED ======
-[value:final-states] Values at end of function f:
+[eva] Recording results for main
+[eva] done for function main
+[eva] tests/value/initialized_copy.i:135: 
+  assertion 'Eva,initialization' got final status invalid.
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function f:
   
-[value:final-states] Values at end of function main:
+[eva:final-states] Values at end of function main:
   w[0..9] ∈ {0; 12} or UNINITIALIZED
   __retres ∈ {0; 8} or UNINITIALIZED
 [from] Computing for function f

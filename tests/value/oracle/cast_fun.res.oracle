@@ -33,69 +33,69 @@
   casting function to int *
 [kernel:typing:incompatible-pointer-types] tests/value/cast_fun.i:141: Warning: 
   casting function from int *
-[value] Analyzing a complete application starting at main
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing a complete application starting at main
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   
-[value] computing for function f1 <- main.
+[eva] computing for function f1 <- main.
   Called from tests/value/cast_fun.i:60.
-[value] using specification for function f1
-[value] tests/value/cast_fun.i:6: Warning: 
+[eva] using specification for function f1
+[eva] tests/value/cast_fun.i:6: Warning: 
   no 'assigns \result \from ...' clause specified for function f1
-[value] Done for function f1
-[value:alarm] tests/value/cast_fun.i:65: Warning: 
+[eva] Done for function f1
+[eva:alarm] tests/value/cast_fun.i:65: Warning: 
   pointer to function with incompatible type. assert \valid_function(p1);
-[value] computing for function f2 <- main.
+[eva] computing for function f2 <- main.
   Called from tests/value/cast_fun.i:65.
-[value] using specification for function f2
-[value] tests/value/cast_fun.i:8: Warning: 
+[eva] using specification for function f2
+[eva] tests/value/cast_fun.i:8: Warning: 
   no 'assigns \result \from ...' clause specified for function f2
-[value] Done for function f2
-[value] computing for function f3 <- main.
+[eva] Done for function f2
+[eva] computing for function f3 <- main.
   Called from tests/value/cast_fun.i:70.
-[value] using specification for function f3
-[value] tests/value/cast_fun.i:10: Warning: 
+[eva] using specification for function f3
+[eva] tests/value/cast_fun.i:10: Warning: 
   no 'assigns \result \from ...' clause specified for function f3
-[value] Done for function f3
-[value] computing for function f3 <- main.
+[eva] Done for function f3
+[eva] computing for function f3 <- main.
   Called from tests/value/cast_fun.i:75.
-[value] Done for function f3
-[value:alarm] tests/value/cast_fun.i:80: Warning: 
+[eva] Done for function f3
+[eva:alarm] tests/value/cast_fun.i:80: Warning: 
   pointer to function with incompatible type. assert \valid_function(p1);
-[value:alarm] tests/value/cast_fun.i:85: Warning: 
+[eva:alarm] tests/value/cast_fun.i:85: Warning: 
   pointer to function with incompatible type.
   assert \valid_function((void (*)(int ))p4);
-[value] computing for function f6 <- main.
+[eva] computing for function f6 <- main.
   Called from tests/value/cast_fun.i:90.
-[value] using specification for function f6
-[value] Done for function f6
-[value:alarm] tests/value/cast_fun.i:95: Warning: 
+[eva] using specification for function f6
+[eva] Done for function f6
+[eva:alarm] tests/value/cast_fun.i:95: Warning: 
   pointer to function with incompatible type. assert \valid_function(p2);
-[value:alarm] tests/value/cast_fun.i:100: Warning: 
+[eva:alarm] tests/value/cast_fun.i:100: Warning: 
   pointer to function with incompatible type. assert \valid_function(p2);
-[value] computing for function f9 <- main.
+[eva] computing for function f9 <- main.
   Called from tests/value/cast_fun.i:105.
-[value] using specification for function f9
-[value] Done for function f9
-[value] computing for function f10 <- main.
+[eva] using specification for function f9
+[eva] Done for function f9
+[eva] computing for function f10 <- main.
   Called from tests/value/cast_fun.i:110.
-[value] using specification for function f10
-[value] Done for function f10
-[value] computing for function f10 <- main.
+[eva] using specification for function f10
+[eva] Done for function f10
+[eva] computing for function f10 <- main.
   Called from tests/value/cast_fun.i:121.
-[value] Done for function f10
-[value:alarm] tests/value/cast_fun.i:126: Warning: 
+[eva] Done for function f10
+[eva:alarm] tests/value/cast_fun.i:126: Warning: 
   pointer to function with incompatible type. assert \valid_function(p1);
-[value:alarm] tests/value/cast_fun.i:131: Warning: 
+[eva:alarm] tests/value/cast_fun.i:131: Warning: 
   pointer to function with incompatible type. assert \valid_function(p1);
-[value] computing for function f1 <- main.
+[eva] computing for function f1 <- main.
   Called from tests/value/cast_fun.i:136.
-[value] Done for function f1
-[value] computing for function f1 <- main.
+[eva] Done for function f1
+[eva] computing for function f1 <- main.
   Called from tests/value/cast_fun.i:142.
-[value] Done for function f1
-[value] Recording results for main
+[eva] Done for function f1
+[eva] Recording results for main
 [from] Computing for function main
 [from] tests/value/cast_fun.i:60: Warning: 
   variadic call detected. Using only 0 argument(s).
@@ -110,21 +110,21 @@
 [from] tests/value/cast_fun.i:142: Warning: 
   variadic call detected. Using only 0 argument(s).
 [from] Done for function main
-[value] done for function main
-[value] tests/value/cast_fun.i:80: 
-  assertion 'Value,function_pointer' got final status invalid.
-[value] tests/value/cast_fun.i:85: 
-  assertion 'Value,function_pointer' got final status invalid.
-[value] tests/value/cast_fun.i:95: 
-  assertion 'Value,function_pointer' got final status invalid.
-[value] tests/value/cast_fun.i:100: 
-  assertion 'Value,function_pointer' got final status invalid.
-[value] tests/value/cast_fun.i:126: 
-  assertion 'Value,function_pointer' got final status invalid.
-[value] tests/value/cast_fun.i:131: 
-  assertion 'Value,function_pointer' got final status invalid.
-[value] ====== VALUES COMPUTED ======
-[value:final-states] Values at end of function main:
+[eva] done for function main
+[eva] tests/value/cast_fun.i:80: 
+  assertion 'Eva,function_pointer' got final status invalid.
+[eva] tests/value/cast_fun.i:85: 
+  assertion 'Eva,function_pointer' got final status invalid.
+[eva] tests/value/cast_fun.i:95: 
+  assertion 'Eva,function_pointer' got final status invalid.
+[eva] tests/value/cast_fun.i:100: 
+  assertion 'Eva,function_pointer' got final status invalid.
+[eva] tests/value/cast_fun.i:126: 
+  assertion 'Eva,function_pointer' got final status invalid.
+[eva] tests/value/cast_fun.i:131: 
+  assertion 'Eva,function_pointer' got final status invalid.
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function main:
   p1 ∈ {{ &f1 ; (int (*)(int ))&f2 ; &f3 }} or UNINITIALIZED
   p2 ∈ {{ &f6 }} or UNINITIALIZED
   p3 ∈ {{ &f9 }} or UNINITIALIZED

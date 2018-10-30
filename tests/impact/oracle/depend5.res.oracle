@@ -1,8 +1,8 @@
 [kernel] Parsing tests/impact/depend5.i (no preprocessing)
-[value] Analyzing a complete application starting at main
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing a complete application starting at main
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   a ∈ {0}
   b ∈ {0}
   c ∈ {0}
@@ -16,7 +16,7 @@
 [from] Done for function g
 [from] Computing for function main
 [from] Done for function main
-[value] done for function main
+[eva] done for function main
 [from] ====== DISPLAYING CALLWISE DEPENDENCIES ======
 [from] call to f at tests/impact/depend5.i:18 (by g):
   b FROM a; e

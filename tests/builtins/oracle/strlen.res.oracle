@@ -1,0 +1,661 @@
+[kernel] Parsing tests/builtins/strlen.c (with preprocessing)
+[eva] Analyzing a complete application starting at main
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
+  static_str ∈ {{ "Hello World\n" }}
+  zero_str ∈ {{ "abc\000\000\000abc" }}
+  tab_str[0] ∈ {{ "" }}
+         [1] ∈ {{ "a" }}
+         [2] ∈ {{ "aa" }}
+         [3] ∈ {{ "aaa" }}
+         [4] ∈ {{ "aaaa" }}
+         [5] ∈ {{ "aaaaa" }}
+         [6] ∈ {{ "aaaaaa" }}
+         [7] ∈ {{ "aaaaaaaaa" }}
+         [8] ∈ {{ "aaaaaaaaaa" }}
+         [9] ∈ {{ "aaaaaaaaaaa" }}
+         [10] ∈ {{ "aaaaaaaaaaaa" }}
+         [11] ∈ {{ "aaaaaaaaaaaaa" }}
+  unterminated_string[0] ∈ {117}
+                     [1] ∈ {110}
+                     [2] ∈ {116}
+                     [3] ∈ {101}
+                     [4] ∈ {114}
+                     [5] ∈ {109}
+                     [6] ∈ {105}
+                     [7] ∈ {110}
+                     [8] ∈ {97}
+                     [9] ∈ {116}
+                     [10] ∈ {101}
+                     [11] ∈ {100}
+  nondet ∈ [--..--]
+[eva] computing for function small_sets <- main.
+  Called from tests/builtins/strlen.c:334.
+[eva] tests/builtins/strlen.c:60: Call to builtin strlen
+[eva] tests/builtins/strlen.c:60: 
+  function strlen: precondition 'valid_string_s' got status valid.
+[eva] tests/builtins/strlen.c:61: assertion got status valid.
+[eva] tests/builtins/strlen.c:65: Call to builtin strlen
+[eva] tests/builtins/strlen.c:65: 
+  function strlen: precondition 'valid_string_s' got status valid.
+[eva] tests/builtins/strlen.c:66: assertion got status valid.
+[eva] tests/builtins/strlen.c:70: Call to builtin strlen
+[eva] tests/builtins/strlen.c:70: 
+  function strlen: precondition 'valid_string_s' got status valid.
+[eva] tests/builtins/strlen.c:71: assertion got status valid.
+[eva] tests/builtins/strlen.c:75: Call to builtin strlen
+[eva] tests/builtins/strlen.c:75: 
+  function strlen: precondition 'valid_string_s' got status valid.
+[eva] tests/builtins/strlen.c:76: assertion got status valid.
+[eva] tests/builtins/strlen.c:81: Call to builtin strlen
+[eva:alarm] tests/builtins/strlen.c:81: Warning: 
+  function strlen: precondition 'valid_string_s' got status unknown.
+[eva] tests/builtins/strlen.c:82: assertion got status valid.
+[eva] Recording results for small_sets
+[eva] Done for function small_sets
+[eva] computing for function zero_termination <- main.
+  Called from tests/builtins/strlen.c:335.
+[eva] tests/builtins/strlen.c:89: Call to builtin strlen
+[eva:alarm] tests/builtins/strlen.c:89: Warning: 
+  function strlen: precondition 'valid_string_s' got status unknown.
+[eva] tests/builtins/strlen.c:90: assertion got status valid.
+[eva] tests/builtins/strlen.c:93: Call to builtin strlen
+[eva:alarm] tests/builtins/strlen.c:93: Warning: 
+  function strlen: precondition 'valid_string_s' got status invalid.
+[eva] tests/builtins/strlen.c:97: Call to builtin strlen
+[eva:alarm] tests/builtins/strlen.c:97: Warning: 
+  function strlen: precondition 'valid_string_s' got status invalid.
+[eva] Recording results for zero_termination
+[eva] Done for function zero_termination
+[eva] computing for function strlen_initialization <- main.
+  Called from tests/builtins/strlen.c:336.
+[eva] tests/builtins/strlen.c:105: Call to builtin strlen
+[eva:alarm] tests/builtins/strlen.c:105: Warning: 
+  function strlen: precondition 'valid_string_s' got status unknown.
+[eva] tests/builtins/strlen.c:106: assertion got status valid.
+[eva] tests/builtins/strlen.c:109: Call to builtin strlen
+[eva:alarm] tests/builtins/strlen.c:109: Warning: 
+  function strlen: precondition 'valid_string_s' got status invalid.
+[eva] tests/builtins/strlen.c:116: Call to builtin strlen
+[eva:alarm] tests/builtins/strlen.c:116: Warning: 
+  function strlen: precondition 'valid_string_s' got status unknown.
+[eva] tests/builtins/strlen.c:117: assertion got status valid.
+[eva] tests/builtins/strlen.c:124: Call to builtin strlen
+[eva:alarm] tests/builtins/strlen.c:124: Warning: 
+  function strlen: precondition 'valid_string_s' got status unknown.
+[eva] tests/builtins/strlen.c:125: assertion got status valid.
+[eva] Recording results for strlen_initialization
+[eva] Done for function strlen_initialization
+[eva] computing for function strlen_large <- main.
+  Called from tests/builtins/strlen.c:337.
+[eva] computing for function init_array_nondet <- strlen_large <- main.
+  Called from tests/builtins/strlen.c:168.
+[eva] tests/builtins/strlen.c:161: Call to builtin memset
+[eva] tests/builtins/strlen.c:161: 
+  function memset: precondition 'valid_s' got status valid.
+[eva] share/libc/string.h:118: 
+  cannot evaluate ACSL term, unsupported ACSL construct: logic function memset
+[eva] Recording results for init_array_nondet
+[eva] Done for function init_array_nondet
+[eva] computing for function Frama_C_interval <- strlen_large <- main.
+  Called from tests/builtins/strlen.c:171.
+[eva] using specification for function Frama_C_interval
+[eva] tests/builtins/strlen.c:171: 
+  function Frama_C_interval: precondition 'order' got status valid.
+[eva] Done for function Frama_C_interval
+[eva] tests/builtins/strlen.c:172: Call to builtin strlen
+[eva] tests/builtins/strlen.c:172: 
+  function strlen: precondition 'valid_string_s' got status valid.
+[eva] tests/builtins/strlen.c:173: assertion got status valid.
+[eva] computing for function Frama_C_interval <- strlen_large <- main.
+  Called from tests/builtins/strlen.c:175.
+[eva] tests/builtins/strlen.c:175: 
+  function Frama_C_interval: precondition 'order' got status valid.
+[eva] Done for function Frama_C_interval
+[eva] tests/builtins/strlen.c:176: Call to builtin strlen
+[eva] tests/builtins/strlen.c:176: 
+  function strlen: precondition 'valid_string_s' got status valid.
+[eva] tests/builtins/strlen.c:177: assertion got status valid.
+[eva] computing for function Frama_C_interval <- strlen_large <- main.
+  Called from tests/builtins/strlen.c:179.
+[eva] tests/builtins/strlen.c:179: 
+  function Frama_C_interval: precondition 'order' got status valid.
+[eva] Done for function Frama_C_interval
+[eva] tests/builtins/strlen.c:180: Call to builtin strlen
+[eva] tests/builtins/strlen.c:180: 
+  function strlen: precondition 'valid_string_s' got status valid.
+[eva] tests/builtins/strlen.c:181: assertion got status valid.
+[eva] computing for function Frama_C_interval <- strlen_large <- main.
+  Called from tests/builtins/strlen.c:183.
+[eva] tests/builtins/strlen.c:183: 
+  function Frama_C_interval: precondition 'order' got status valid.
+[eva] Done for function Frama_C_interval
+[eva] tests/builtins/strlen.c:184: Call to builtin strlen
+[eva:alarm] tests/builtins/strlen.c:184: Warning: 
+  function strlen: precondition 'valid_string_s' got status unknown.
+[eva] tests/builtins/strlen.c:185: assertion got status valid.
+[eva] computing for function init_array_nondet <- strlen_large <- main.
+  Called from tests/builtins/strlen.c:187.
+[eva] tests/builtins/strlen.c:161: Call to builtin memset
+[eva] Recording results for init_array_nondet
+[eva] Done for function init_array_nondet
+[eva] computing for function Frama_C_interval <- strlen_large <- main.
+  Called from tests/builtins/strlen.c:188.
+[eva] tests/builtins/strlen.c:188: 
+  function Frama_C_interval: precondition 'order' got status valid.
+[eva] Done for function Frama_C_interval
+[eva] tests/builtins/strlen.c:189: Call to builtin strlen
+[eva:alarm] tests/builtins/strlen.c:189: Warning: 
+  function strlen: precondition 'valid_string_s' got status unknown.
+[eva] tests/builtins/strlen.c:190: assertion got status valid.
+[eva] Recording results for strlen_large
+[eva] Done for function strlen_large
+[eva] computing for function strlen_large_uninit <- main.
+  Called from tests/builtins/strlen.c:338.
+[eva] computing for function init_array_nondet <- strlen_large_uninit <- main.
+  Called from tests/builtins/strlen.c:197.
+[eva] tests/builtins/strlen.c:161: Call to builtin memset
+[eva] Recording results for init_array_nondet
+[eva] Done for function init_array_nondet
+[eva] computing for function init_array_nondet <- strlen_large_uninit <- main.
+  Called from tests/builtins/strlen.c:198.
+[eva] tests/builtins/strlen.c:161: Call to builtin memset
+[eva] Recording results for init_array_nondet
+[eva] Done for function init_array_nondet
+[eva] computing for function Frama_C_interval <- strlen_large_uninit <- main.
+  Called from tests/builtins/strlen.c:202.
+[eva] tests/builtins/strlen.c:202: 
+  function Frama_C_interval: precondition 'order' got status valid.
+[eva] Done for function Frama_C_interval
+[eva] tests/builtins/strlen.c:203: Call to builtin strlen
+[eva:alarm] tests/builtins/strlen.c:203: Warning: 
+  function strlen: precondition 'valid_string_s' got status unknown.
+[eva] tests/builtins/strlen.c:204: assertion got status valid.
+[eva] computing for function Frama_C_interval <- strlen_large_uninit <- main.
+  Called from tests/builtins/strlen.c:207.
+[eva] tests/builtins/strlen.c:207: 
+  function Frama_C_interval: precondition 'order' got status valid.
+[eva] Done for function Frama_C_interval
+[eva] tests/builtins/strlen.c:208: Call to builtin strlen
+[eva:alarm] tests/builtins/strlen.c:208: Warning: 
+  function strlen: precondition 'valid_string_s' got status unknown.
+[eva] tests/builtins/strlen.c:209: assertion got status valid.
+[eva] computing for function Frama_C_interval <- strlen_large_uninit <- main.
+  Called from tests/builtins/strlen.c:211.
+[eva] tests/builtins/strlen.c:211: 
+  function Frama_C_interval: precondition 'order' got status valid.
+[eva] Done for function Frama_C_interval
+[eva] tests/builtins/strlen.c:212: Call to builtin strlen
+[eva:alarm] tests/builtins/strlen.c:212: Warning: 
+  function strlen: precondition 'valid_string_s' got status unknown.
+[eva] tests/builtins/strlen.c:213: assertion got status valid.
+[eva] Recording results for strlen_large_uninit
+[eva] Done for function strlen_large_uninit
+[eva] computing for function misc <- main.
+  Called from tests/builtins/strlen.c:339.
+[eva] tests/builtins/strlen.c:241: Call to builtin strlen
+[eva:alarm] tests/builtins/strlen.c:241: Warning: 
+  function strlen: precondition 'valid_string_s' got status invalid.
+[eva] tests/builtins/strlen.c:244: Call to builtin strlen
+[eva] tests/builtins/strlen.c:244: 
+  function strlen: precondition 'valid_string_s' got status valid.
+[eva] tests/builtins/strlen.c:245: assertion got status valid.
+[eva] tests/builtins/strlen.c:248: Call to builtin strlen
+[eva:alarm] tests/builtins/strlen.c:248: Warning: 
+  function strlen: precondition 'valid_string_s' got status unknown.
+[eva] tests/builtins/strlen.c:249: assertion got status valid.
+[eva] computing for function Frama_C_interval <- misc <- main.
+  Called from tests/builtins/strlen.c:250.
+[eva] tests/builtins/strlen.c:250: 
+  function Frama_C_interval: precondition 'order' got status valid.
+[eva] Done for function Frama_C_interval
+[eva] tests/builtins/strlen.c:252: Call to builtin strlen
+[eva] tests/builtins/strlen.c:252: 
+  function strlen: precondition 'valid_string_s' got status valid.
+[eva] tests/builtins/strlen.c:253: assertion got status valid.
+[eva] tests/builtins/strlen.c:255: Call to builtin strlen
+[eva:alarm] tests/builtins/strlen.c:255: Warning: 
+  function strlen: precondition 'valid_string_s' got status invalid.
+[eva] tests/builtins/strlen.c:256: Call to builtin strlen
+[eva] tests/builtins/strlen.c:256: 
+  function strlen: precondition 'valid_string_s' got status valid.
+[eva] tests/builtins/strlen.c:257: assertion got status valid.
+[eva] tests/builtins/strlen.c:260: Call to builtin strlen
+[eva] tests/builtins/strlen.c:260: 
+  function strlen: precondition 'valid_string_s' got status valid.
+[eva] tests/builtins/strlen.c:261: assertion got status valid.
+[eva] tests/builtins/strlen.c:265: Call to builtin strlen
+[eva] tests/builtins/strlen.c:265: 
+  function strlen: precondition 'valid_string_s' got status valid.
+[eva] tests/builtins/strlen.c:266: assertion got status valid.
+[eva] tests/builtins/strlen.c:270: Call to builtin strlen
+[eva] tests/builtins/strlen.c:270: 
+  function strlen: precondition 'valid_string_s' got status valid.
+[eva] tests/builtins/strlen.c:271: assertion got status valid.
+[eva] tests/builtins/strlen.c:269: starting to merge loop iterations
+[eva] tests/builtins/strlen.c:270: Call to builtin strlen
+[eva] tests/builtins/strlen.c:270: Call to builtin strlen
+[eva] tests/builtins/strlen.c:270: Call to builtin strlen
+[eva] tests/builtins/strlen.c:270: Call to builtin strlen
+[eva] tests/builtins/strlen.c:277: Call to builtin strlen
+[eva:alarm] tests/builtins/strlen.c:277: Warning: 
+  function strlen: precondition 'valid_string_s' got status unknown.
+[eva] tests/builtins/strlen.c:278: assertion got status valid.
+[eva] Recording results for misc
+[eva] Done for function misc
+[eva] computing for function bitfields <- main.
+  Called from tests/builtins/strlen.c:340.
+[eva] tests/builtins/strlen.c:140: Call to builtin strlen
+[eva:alarm] tests/builtins/strlen.c:140: Warning: 
+  function strlen: precondition 'valid_string_s' got status invalid.
+[eva] Recording results for bitfields
+[eva] Done for function bitfields
+[eva] computing for function bitfields2 <- main.
+  Called from tests/builtins/strlen.c:341.
+[eva] tests/builtins/strlen.c:155: Call to builtin strlen
+[eva] tests/builtins/strlen.c:155: 
+  function strlen: precondition 'valid_string_s' got status valid.
+[eva] tests/builtins/strlen.c:156: assertion got status valid.
+[eva] Recording results for bitfields2
+[eva] Done for function bitfields2
+[eva] computing for function escaping <- main.
+  Called from tests/builtins/strlen.c:342.
+[eva:locals-escaping] tests/builtins/strlen.c:222: Warning: 
+  locals {x} escaping the scope of a block of escaping through s
+[eva] tests/builtins/strlen.c:225: Call to builtin strlen
+[eva:alarm] tests/builtins/strlen.c:225: Warning: 
+  function strlen: precondition 'valid_string_s' got status unknown.
+[eva] tests/builtins/strlen.c:226: assertion got status valid.
+[eva] tests/builtins/strlen.c:228: Call to builtin strlen
+[eva] tests/builtins/strlen.c:228: 
+  function strlen: precondition 'valid_string_s' got status valid.
+[eva] tests/builtins/strlen.c:229: assertion got status valid.
+[eva] Recording results for escaping
+[eva] Done for function escaping
+[eva] computing for function big_array <- main.
+  Called from tests/builtins/strlen.c:343.
+[eva:alarm] tests/builtins/strlen.c:287: Warning: 
+  out of bounds write. assert \valid(p);
+[eva:alarm] tests/builtins/strlen.c:289: Warning: 
+  out of bounds write. assert \valid(p);
+[eva:alarm] tests/builtins/strlen.c:291: Warning: 
+  out of bounds write. assert \valid(p);
+[eva] tests/builtins/strlen.c:297: Call to builtin strlen
+[eva:alarm] tests/builtins/strlen.c:297: Warning: 
+  function strlen: precondition 'valid_string_s' got status unknown.
+[eva] tests/builtins/strlen.c:298: Call to builtin strlen
+[eva:alarm] tests/builtins/strlen.c:298: Warning: 
+  function strlen: precondition 'valid_string_s' got status unknown.
+[eva] tests/builtins/strlen.c:299: Call to builtin strlen
+[eva:alarm] tests/builtins/strlen.c:299: Warning: 
+  function strlen: precondition 'valid_string_s' got status unknown.
+[eva] tests/builtins/strlen.c:300: Frama_C_show_each: {1}, {1}, {1}
+[eva] tests/builtins/strlen.c:302: Call to builtin strlen
+[eva:alarm] tests/builtins/strlen.c:302: Warning: 
+  function strlen: precondition 'valid_string_s' got status unknown.
+[eva] tests/builtins/strlen.c:303: Call to builtin strlen
+[eva:alarm] tests/builtins/strlen.c:303: Warning: 
+  function strlen: precondition 'valid_string_s' got status unknown.
+[eva] tests/builtins/strlen.c:304: Call to builtin strlen
+[eva:alarm] tests/builtins/strlen.c:304: Warning: 
+  function strlen: precondition 'valid_string_s' got status unknown.
+[eva] tests/builtins/strlen.c:305: Frama_C_show_each: {1}, {1}, {1}
+[eva] Recording results for big_array
+[eva] Done for function big_array
+[eva] computing for function negative_offsets <- main.
+  Called from tests/builtins/strlen.c:344.
+[eva] tests/builtins/strlen.c:310: starting to merge loop iterations
+[eva] computing for function Frama_C_interval <- negative_offsets <- main.
+  Called from tests/builtins/strlen.c:314.
+[eva] tests/builtins/strlen.c:314: 
+  function Frama_C_interval: precondition 'order' got status valid.
+[eva] Done for function Frama_C_interval
+[eva] tests/builtins/strlen.c:315: Call to builtin strlen
+[eva:alarm] tests/builtins/strlen.c:315: Warning: 
+  function strlen: precondition 'valid_string_s' got status invalid.
+[eva] computing for function Frama_C_interval <- negative_offsets <- main.
+  Called from tests/builtins/strlen.c:318.
+[eva] tests/builtins/strlen.c:318: 
+  function Frama_C_interval: precondition 'order' got status valid.
+[eva] Done for function Frama_C_interval
+[eva] tests/builtins/strlen.c:319: Call to builtin strlen
+[eva:alarm] tests/builtins/strlen.c:319: Warning: 
+  function strlen: precondition 'valid_string_s' got status invalid.
+[eva] computing for function Frama_C_interval <- negative_offsets <- main.
+  Called from tests/builtins/strlen.c:321.
+[eva] tests/builtins/strlen.c:321: 
+  function Frama_C_interval: precondition 'order' got status valid.
+[eva] Done for function Frama_C_interval
+[eva] tests/builtins/strlen.c:322: Call to builtin strlen
+[eva:alarm] tests/builtins/strlen.c:322: Warning: 
+  function strlen: precondition 'valid_string_s' got status unknown.
+[eva] computing for function Frama_C_interval <- negative_offsets <- main.
+  Called from tests/builtins/strlen.c:323.
+[eva] tests/builtins/strlen.c:323: 
+  function Frama_C_interval: precondition 'order' got status valid.
+[eva] Done for function Frama_C_interval
+[eva] tests/builtins/strlen.c:324: Call to builtin strlen
+[eva:alarm] tests/builtins/strlen.c:324: Warning: 
+  function strlen: precondition 'valid_string_s' got status unknown.
+[eva] computing for function Frama_C_interval <- negative_offsets <- main.
+  Called from tests/builtins/strlen.c:325.
+[eva] tests/builtins/strlen.c:325: 
+  function Frama_C_interval: precondition 'order' got status valid.
+[eva] Done for function Frama_C_interval
+[eva] tests/builtins/strlen.c:326: Call to builtin strlen
+[eva:alarm] tests/builtins/strlen.c:326: Warning: 
+  function strlen: precondition 'valid_string_s' got status unknown.
+[eva] computing for function Frama_C_interval <- negative_offsets <- main.
+  Called from tests/builtins/strlen.c:327.
+[eva] tests/builtins/strlen.c:327: 
+  function Frama_C_interval: precondition 'order' got status valid.
+[eva] Done for function Frama_C_interval
+[eva] tests/builtins/strlen.c:329: Call to builtin strlen
+[eva:alarm] tests/builtins/strlen.c:329: Warning: 
+  function strlen: precondition 'valid_string_s' got status unknown.
+[eva] Recording results for negative_offsets
+[eva] Done for function negative_offsets
+[eva] Recording results for main
+[eva] done for function main
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function init_array_nondet:
+  from ∈ {-1}
+  to ∈ {-1}
+  val1 ∈ {-1}
+  val2 ∈ {-1}
+  val ∈ {0; 1; 2; 3; 4}
+  a[0..99] ∈ {0; 1; 2}
+  a[0..39] ∈ {1; 2}
+   [40..49] ∈ UNINITIALIZED
+   [50..94] ∈ {3; 4} or UNINITIALIZED
+   [95..99] ∈ UNINITIALIZED
+[eva:final-states] Values at end of function big_array:
+  t[0..999999] ∈ {270729319} or UNINITIALIZED
+  u[0..199] ∈ {270729319} or UNINITIALIZED
+  r[0..200] ∈ {270729319} or UNINITIALIZED
+  p ∈ {{ &r + [0..800],0%4 }}
+  len_u ∈ {1}
+  len_r ∈ {1}
+  len_t ∈ {1}
+[eva:final-states] Values at end of function bitfields:
+  s.a ∈ {3}
+   .b ∈ {1}
+   .[bits 16 to 31] ∈ UNINITIALIZED
+   .c ∈ {7}
+   .[bits 49 to 63] ∈ UNINITIALIZED
+  p ∈ {{ (char *)&s }}
+[eva:final-states] Values at end of function bitfields2:
+  s.a ∈ {3}
+   .b ∈ {1}
+   .c ∈ {7}
+   .[bits 25 to 31] ∈ UNINITIALIZED
+  p ∈ {{ (char *)&s }}
+  z1 ∈ {2}
+[eva:final-states] Values at end of function escaping:
+  s[0] ∈ {0}
+   [1..3] ∈ ESCAPINGADDR
+  z1 ∈ {0}
+  z2 ∈ {0}
+[eva:final-states] Values at end of function misc:
+  Frama_C_entropy_source ∈ [--..--]
+  loc_str ∈ {{ "Bonjour Monde\n" }}
+  loc_char_array[0..2] ∈ UNINITIALIZED
+                [3] ∈ {0}
+                [4] ∈ UNINITIALIZED
+  sz1 ∈ {12; 14}
+  sz2 ∈ {0}
+  sz3 ∈ [0..13]
+  sz4 ∈ {3}
+  sz5 ∈ {2; 3; 4}
+  sz6 ∈ {1; 2; 3}
+  sz7 ∈ {0; 1; 2; 3; 4} or UNINITIALIZED
+  sz8 ∈ {1}
+  x ∈ {-1412567296}
+  z ∈ {305419776}
+  i ∈ [0..11]
+  str ∈
+     {{ "" ; "a" ; "aa" ; "aaa" ; "aaaa" ; "aaaaa" ; "aaaaaa" ; "aaaaaaaaa" ;
+        "aaaaaaaaaa" ; "aaaaaaaaaaa" ; "aaaaaaaaaaaa" ; "aaaaaaaaaaaaa" }}
+  s1 ∈ {{ "mno\000pqr" ; "MNOP\000QRS" }}
+  s2 ∈ {{ "efg" + {1; 2} ; "EFGH" + {1; 2} }}
+  maybe_init[0] ∈ {65} or UNINITIALIZED
+            [1] ∈ {0}
+[eva:final-states] Values at end of function negative_offsets:
+  Frama_C_entropy_source ∈ [--..--]
+  buf[0..98] ∈ {65} or UNINITIALIZED
+     [99] ∈ {0}
+  len1 ∈ UNINITIALIZED
+  len2 ∈ UNINITIALIZED
+  len3 ∈ {99}
+  len4 ∈ {97; 98; 99}
+  len5 ∈ {92; 93; 94; 95; 96; 97; 98; 99}
+  len6 ∈ {99}
+  offset3 ∈ {-1; 0}
+  offset4 ∈ {-1; 0; 1; 2}
+  offset5 ∈ [-4..7]
+  offset6 ∈ [-10..0]
+  p ∈ {{ &buf + [-10..0] }}
+[eva:final-states] Values at end of function small_sets:
+  s ∈ {{ "b\000c" }}
+  p ∈ {{ "b\000c" + {0; 2} }}
+  z1 ∈ {2; 3}
+  z2 ∈ {0; 2}
+  z3 ∈ {0}
+  z4 ∈ {1}
+  t[0..1] ∈ {0; 1}
+   [2..3] ∈ {1}
+  z5 ∈ {0; 1}
+[eva:final-states] Values at end of function strlen_initialization:
+  empty_or_uninitialized[0] ∈ {0} or UNINITIALIZED
+  z1 ∈ {0}
+  s[0] ∈ {1} or UNINITIALIZED
+   [1] ∈ {0}
+  p ∈ {{ &t[0] }}
+  z2 ∈ {1}
+  t[0..1] ∈ {10}
+   [2] ∈ {10} or UNINITIALIZED
+   [3] ∈ {0}
+  z3 ∈ {3}
+[eva:final-states] Values at end of function strlen_large:
+  Frama_C_entropy_source ∈ [--..--]
+  a[0..99] ∈ {0; 2}
+  offset ∈ [50..70]
+  z1 ∈ [0..54]
+  z2 ∈ [3..15]
+  z3 ∈ [1..15]
+  z4 ∈ [0..12]
+  z5 ∈ [0..49]
+[eva:final-states] Values at end of function strlen_large_uninit:
+  Frama_C_entropy_source ∈ [--..--]
+  a[0..19] ∈ {1; 2}
+   [20] ∈ {0}
+   [21..39] ∈ {1; 2}
+   [40..49] ∈ UNINITIALIZED
+   [50..74] ∈ {3; 4}
+   [75] ∈ {0}
+   [76..94] ∈ {3; 4}
+   [95..97] ∈ UNINITIALIZED
+   [98] ∈ {0}
+   [99] ∈ UNINITIALIZED
+  offset ∈ {0}
+  z1 ∈ [0..17]
+  z2 ∈ [0..12]
+  z3 ∈ {20; 21; 22; 23; 24; 25}
+[eva:final-states] Values at end of function zero_termination:
+  empty_or_non_terminated[0] ∈ {0; 100}
+  z1 ∈ {0}
+  non_terminated[0] ∈ {88}
+  non_terminated2[0] ∈ {76}
+                 [1] ∈ {0}
+                 [2] ∈ {28}
+                 [3] ∈ {14}
+  p ∈ {{ &non_terminated2{[2], [3]} }}
+[eva:final-states] Values at end of function main:
+  Frama_C_entropy_source ∈ [--..--]
+  __retres ∈ {0}
+[from] Computing for function init_array_nondet
+[from] Computing for function memset <-init_array_nondet
+[from] Done for function memset
+[from] Done for function init_array_nondet
+[from] Computing for function big_array
+[from] Computing for function strlen <-big_array
+[from] Done for function strlen
+[from] Done for function big_array
+[from] Computing for function bitfields
+[from] Done for function bitfields
+[from] Computing for function bitfields2
+[from] Done for function bitfields2
+[from] Computing for function escaping
+[from] Done for function escaping
+[from] Computing for function misc
+[from] Computing for function Frama_C_interval <-misc
+[from] Done for function Frama_C_interval
+[from] Done for function misc
+[from] Computing for function negative_offsets
+[from] Done for function negative_offsets
+[from] Computing for function small_sets
+[from] Done for function small_sets
+[from] Computing for function strlen_initialization
+[from] Done for function strlen_initialization
+[from] Computing for function strlen_large
+[from] Done for function strlen_large
+[from] Computing for function strlen_large_uninit
+[from] Done for function strlen_large_uninit
+[from] Computing for function zero_termination
+[from] Done for function zero_termination
+[from] Computing for function main
+[from] Done for function main
+[from] ====== DEPENDENCIES COMPUTED ======
+  These dependencies hold at termination for the executions that terminate:
+[from] Function Frama_C_interval:
+  Frama_C_entropy_source FROM Frama_C_entropy_source (and SELF)
+  \result FROM Frama_C_entropy_source; min; max
+[from] Function memset:
+  a[0..99] FROM c (and SELF)
+  a[0..99] FROM c (and SELF)
+  \result FROM s
+[from] Function init_array_nondet:
+  a[0..99] FROM val1; val2; nondet (and SELF)
+  a[0..99] FROM val1; val2; nondet (and SELF)
+[from] Function strlen:
+  \result FROM unterminated_string[0..11]; t[0..3];
+               empty_or_non_terminated[0]; non_terminated[0];
+               non_terminated2[2..3]; empty_or_uninitialized[0];
+               uninitialized[0]; s[0..1]; t[0..3]; s; s; a[3..99]; a[3..99];
+               s[0..3]; loc_char_array[0..4]; x; maybe_init[0..1];
+               t[0..999999]; u[0..199]; r[0..200]; buf[0..99];
+               "Hello World\n"[bits 0 to 103];
+               "abc\000\000\000abc"[bits 0 to 79]; ""[bits 0 to 7];
+               "a"[bits 0 to 15]; "aa"[bits 0 to 23]; "aaa";
+               "aaaa"[bits 0 to 39]; "aaaaa"[bits 0 to 47];
+               "aaaaaa"[bits 0 to 55]; "aaaaaaaaa"[bits 0 to 79];
+               "aaaaaaaaaa"[bits 0 to 87]; "aaaaaaaaaaa"[bits 0 to 95];
+               "aaaaaaaaaaaa"[bits 0 to 103]; "aaaaaaaaaaaaa"[bits 0 to 111];
+               "abc"; "\000bc"; ""[bits 0 to 7]; "b\000c";
+               "Bonjour Monde\n"[bits 0 to 119]; "abc"; "ABCD"[bits 0 to 39];
+               "efg"[bits 8 to 31]; "EFGH"[bits 8 to 39];
+               "mno\000pqr"[bits 0 to 63]; "MNOP\000QRS"[bits 0 to 71]
+[from] Function big_array:
+  NO EFFECTS
+[from] Function bitfields:
+  NO EFFECTS
+[from] Function bitfields2:
+  NO EFFECTS
+[from] Function escaping:
+  NO EFFECTS
+[from] Function misc:
+  Frama_C_entropy_source FROM Frama_C_entropy_source (and SELF)
+[from] Function negative_offsets:
+  Frama_C_entropy_source FROM Frama_C_entropy_source; nondet (and SELF)
+[from] Function small_sets:
+  NO EFFECTS
+[from] Function strlen_initialization:
+  NO EFFECTS
+[from] Function strlen_large:
+  Frama_C_entropy_source FROM Frama_C_entropy_source (and SELF)
+[from] Function strlen_large_uninit:
+  Frama_C_entropy_source FROM Frama_C_entropy_source (and SELF)
+[from] Function zero_termination:
+  NO EFFECTS
+[from] Function main:
+  Frama_C_entropy_source FROM Frama_C_entropy_source; nondet (and SELF)
+  \result FROM \nothing
+[from] ====== END OF DEPENDENCIES ======
+[inout] Out (internal) for function init_array_nondet:
+    from; to; val1; val2; val; tmp; a[0..99]; a{[0..39]; [50..94]}
+[inout] Inputs for function init_array_nondet:
+    nondet
+[inout] Out (internal) for function big_array:
+    t[0..999999]; u[0..199]; r[0..200]; p; len_u; len_r; len_t
+[inout] Inputs for function big_array:
+    nondet
+[inout] Out (internal) for function bitfields:
+    s{{.a; .b}; .c}; p
+[inout] Inputs for function bitfields:
+    nondet
+[inout] Out (internal) for function bitfields2:
+    s{.a; .b; .c}; p; z1; tmp
+[inout] Inputs for function bitfields2:
+    \nothing
+[inout] Out (internal) for function escaping:
+    s[0..3]; z1; tmp; z2; tmp_0
+[inout] Inputs for function escaping:
+    nondet
+[inout] Out (internal) for function misc:
+    Frama_C_entropy_source; loc_str; loc_char_array[3]; sz1; sz2; sz3; 
+    sz4; sz5; sz6; sz7; sz8; x; z; i; str; s1; tmp; s2; tmp_0; j;
+    maybe_init[0..1]
+[inout] Inputs for function misc:
+    Frama_C_entropy_source; static_str; zero_str; tab_str[0..11];
+    unterminated_string[0..11]; nondet; "Hello World\n"[bits 0 to 103];
+    "abc\000\000\000abc"[bits 0 to 79]; ""[bits 0 to 7]; "a"[bits 0 to 15];
+    "aa"[bits 0 to 23]; "aaa"; "aaaa"[bits 0 to 39]; "aaaaa"[bits 0 to 47];
+    "aaaaaa"[bits 0 to 55]; "aaaaaaaaa"[bits 0 to 79];
+    "aaaaaaaaaa"[bits 0 to 87]; "aaaaaaaaaaa"[bits 0 to 95];
+    "aaaaaaaaaaaa"[bits 0 to 103]; "aaaaaaaaaaaaa"[bits 0 to 111];
+    "Bonjour Monde\n"[bits 0 to 119]; "abc"; "ABCD"[bits 0 to 39];
+    "efg"[bits 8 to 31]; "EFGH"[bits 8 to 39]; "mno\000pqr"[bits 0 to 63];
+    "MNOP\000QRS"[bits 0 to 71]
+[inout] Out (internal) for function negative_offsets:
+    Frama_C_entropy_source; buf[0..99]; i; len1; len2; len3; len4; len5; 
+    len6; offset1; offset2; offset3; offset4; offset5; offset6; p
+[inout] Inputs for function negative_offsets:
+    Frama_C_entropy_source; nondet
+[inout] Out (internal) for function small_sets:
+    s; p; tmp; z1; tmp_0; z2; tmp_1; z3; tmp_2; z4; tmp_3; t[0..3]; z5; tmp_4
+[inout] Inputs for function small_sets:
+    nondet; "abc"; "\000bc"; ""[bits 0 to 7]; "b\000c"
+[inout] Out (internal) for function strlen_initialization:
+    empty_or_uninitialized[0]; z1; tmp; s[0..1]; p; z2; tmp_0; t[0..3]; 
+    z3; tmp_1
+[inout] Inputs for function strlen_initialization:
+    nondet
+[inout] Out (internal) for function strlen_large:
+    Frama_C_entropy_source; a[0..99]; offset; z1; tmp_0; z2; tmp_1; z3; 
+    tmp_2; z4; tmp_3; z5; tmp_4
+[inout] Inputs for function strlen_large:
+    Frama_C_entropy_source; nondet
+[inout] Out (internal) for function strlen_large_uninit:
+    Frama_C_entropy_source; a{[0..39]; [50..94]; [98]}; offset; z1; tmp_0; 
+    z2; tmp_1; z3; tmp_2
+[inout] Inputs for function strlen_large_uninit:
+    Frama_C_entropy_source; nondet
+[inout] Out (internal) for function zero_termination:
+    empty_or_non_terminated[0]; z1; tmp; non_terminated[0];
+    non_terminated2[0..3]; p; tmp_0
+[inout] Inputs for function zero_termination:
+    nondet
+[inout] Out (internal) for function main:
+    Frama_C_entropy_source; __retres
+[inout] Inputs for function main:
+    Frama_C_entropy_source; static_str; zero_str; tab_str[0..11];
+    unterminated_string[0..11]; nondet; "Hello World\n"[bits 0 to 103];
+    "abc\000\000\000abc"[bits 0 to 79]; ""[bits 0 to 7]; "a"[bits 0 to 15];
+    "aa"[bits 0 to 23]; "aaa"; "aaaa"[bits 0 to 39]; "aaaaa"[bits 0 to 47];
+    "aaaaaa"[bits 0 to 55]; "aaaaaaaaa"[bits 0 to 79];
+    "aaaaaaaaaa"[bits 0 to 87]; "aaaaaaaaaaa"[bits 0 to 95];
+    "aaaaaaaaaaaa"[bits 0 to 103]; "aaaaaaaaaaaaa"[bits 0 to 111]; "abc";
+    "\000bc"; ""[bits 0 to 7]; "b\000c"; "Bonjour Monde\n"[bits 0 to 119];
+    "abc"; "ABCD"[bits 0 to 39]; "efg"[bits 8 to 31]; "EFGH"[bits 8 to 39];
+    "mno\000pqr"[bits 0 to 63]; "MNOP\000QRS"[bits 0 to 71]

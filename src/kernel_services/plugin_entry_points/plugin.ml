@@ -44,6 +44,7 @@ module type S_no_log = sig
   module Config: Parameter_sig.Specific_dir
   val help: Cmdline.Group.t
   val messages: Cmdline.Group.t
+  val add_plugin_output_aliases: string list -> unit
 end
 
 module type S = sig
@@ -522,9 +523,7 @@ struct
 
     let pp_source fmt = function
       | None -> ()
-      | Some src ->
-        Format.fprintf fmt "%s:%d:" (Filepath.pretty src.Lexing.pos_fname)
-          src.Lexing.pos_lnum
+      | Some src -> Format.fprintf fmt "%a:" Filepath.pp_pos src
   end
 
   (* Output must be synchronized with functions [prefix_*] in module Log. *)
@@ -629,6 +628,44 @@ struct
 
   type action = Print_help | Change_category of (bool * string) list
 
+  let warn_status_of_string = function
+    | "inactive" | "ignore" -> Log.Winactive
+    | "feedback" -> Log.Wfeedback
+    | "feedback-once" -> Log.Wfeedback_once
+    | "once" -> Log.Wonce
+    | "active" -> Log.Wactive
+    | "err-once" -> Log.Werror_once
+    | "error" -> Log.Werror
+    | "abort" -> Log.Wabort
+    | s -> L.abort "Unknown warning category status `%s'" s
+
+  let parse_warn_directives is_kernel _old_s s =
+    let set_status c s =
+      if is_kernel && not (L.is_registered_category c) then
+        Cmdline.run_after_extended_stage (fun () -> L.set_warn_status c s)
+      else
+        L.set_warn_status c s
+    in
+    let directives = Transitioning.String.split_on_char ',' s in
+    if List.mem "help" directives then begin
+      match directives with
+      | [ "help" ] ->
+        Cmdline.run_after_exiting_stage
+          (fun () -> L.pp_all_warn_categories_status (); raise Cmdline.Exit)
+      | _ -> L.abort "mixing help with warning categories in `%s'" s
+    end else begin
+      let parse_single s =
+        match Transitioning.String.split_on_char '=' s with
+        | [] -> assert false (* split_on_char should return at least an element
+                                even if it is the empty string *)
+        | [ c ] -> set_status c Log.Wactive
+        | [ c; status ] -> set_status c (warn_status_of_string status)
+        | _ -> L.abort "Ill-formed warn key directive `%s'" s
+      in
+      let non_empty s = s <> "" in
+      List.iter parse_single (List.filter non_empty directives)
+    end
+
   let parse_category s =
     let categories = Transitioning.String.split_on_char ',' s in
     if List.mem "help" categories then Print_help
@@ -642,28 +679,6 @@ struct
       let non_empty s = s <> "" in
       Change_category (Extlib.filter_map non_empty parse_single categories)
     end
-
-  let warn_category_hook is_kernel status_set status_unset _ s =
-    match parse_category s with
-    | Print_help ->
-      Cmdline.run_after_exiting_stage
-        (fun () -> L.pp_all_warn_categories_status (); raise Cmdline.Exit)
-    | Change_category l ->
-      let set_status flag c () =
-        let status = if flag then status_set else status_unset in
-        L.set_warn_status c status
-      in
-      let action (to_add, c) =
-        (* Allow loaded modules to add categories to the kernel:
-           Only categories that exist will be considered in the early
-           stage where -kernel-msg-key is running. Of course, if
-           none of the loaded modules register the given category,
-           a warning will still be emitted. *)
-        if is_kernel && not (L.is_registered_category c) then begin
-          Cmdline.run_after_extended_stage (set_status to_add c)
-        end else set_status to_add c ()
-      in
-      List.iter action l
 
   let debug_category_optname = output_mode "Msg_key" "msg-key"
   module Debug_category =
@@ -705,121 +720,27 @@ struct
   module Warn_category =
     Empty_string(struct
       let option_name = warn_category_optname
-      let arg_name="k1[,...,kn]"
+      let arg_name="k1[=s1][,...,kn[=sn]]"
       let help =
-        "control warning display for categories <k1>,...,<kn>. Use "
+        "set warning status for category <k1> to <s1>,...,<kn> to <sn>. Use "
         ^ debug_category_optname
         ^ " help to get a list of available categories, and * to enable \
-              all categories"
+           all categories. Possible statuses are inactive, feedback-once, \
+           once, active, error-once, error, and abort. Defaults to active"
     end)
 
   let () =
     let is_kernel = is_kernel () in
-    Warn_category.add_set_hook
-      (warn_category_hook is_kernel Log.Wactive Log.Winactive)
+    Warn_category.add_set_hook (parse_warn_directives is_kernel)
 
- let warn_once_optname = output_mode "Warn_once" "warn-once"
-  module Warn_once =
-    Empty_string(struct
-      let option_name = warn_once_optname
-      let arg_name="k1[,...,kn]"
-      let help =
-        "control warning display for categories <k1>,...,<kn>. Use "
-        ^ warn_once_optname
-        ^ " help to get a list of available categories, and * to enable \
-              all categories"
-    end)
-
-  let () =
-    let is_kernel = is_kernel () in
-    Warn_once.add_set_hook
-      (warn_category_hook is_kernel Log.Wonce Log.Winactive)
-
-  let warn_error_optname = output_mode "Warn_error" "warn-error"
-  module Warn_error =
-    Empty_string(struct
-      let option_name = warn_error_optname
-      let arg_name="k1[,...,kn]"
-      let help =
-        "Warning categories <k1>,...,<kn> change Frama-C exit status. Use "
-        ^ warn_error_optname
-        ^ " help to get a list of available categories, and * to enable \
-              all categories"
-    end)
-
-  let () =
-    let is_kernel = is_kernel () in
-    Warn_error.add_set_hook
-      (warn_category_hook is_kernel Log.Werror Log.Wactive)
-
-let warn_err_once_optname = output_mode "Warn_err_once" "warn-err-once"
-  module Warn_err_once =
-    Empty_string(struct
-      let option_name = warn_err_once_optname
-      let arg_name="k1[,...,kn]"
-      let help =
-        "Warning categories <k1>,...,<kn> change Frama-C exit status. Use "
-        ^ warn_err_once_optname
-        ^ " help to get a list of available categories, and * to enable \
-              all categories"
-    end)
-
-  let () =
-    let is_kernel = is_kernel () in
-    Warn_err_once.add_set_hook
-      (warn_category_hook is_kernel Log.Werror_once Log.Wonce)
-
-  let warn_abort_optname = output_mode "Warn_abort" "warn-abort"
-  module Warn_abort =
-    Empty_string(struct
-      let option_name = warn_abort_optname
-      let arg_name="k1[,...,kn]"
-      let help =
-        "Warning categories <k1>,...,<kn> abort the execution. Use "
-        ^ debug_category_optname
-        ^ " help to get a list of available categories, and * to enable \
-              all categories"
-    end)
-
-  let () =
-    let is_kernel = is_kernel () in
-    Warn_abort.add_set_hook
-      (warn_category_hook is_kernel Log.Wabort Log.Wactive)
-
-  let warn_feedback_optname = output_mode "Warn_feedback" "warn-feedback"
-  module Warn_feedback =
-    Empty_string(struct
-      let option_name = warn_feedback_optname
-      let arg_name="k1[,...,kn]"
-      let help =
-        "Warning categories <k1>,...,<kn> only produce a feedback message. Use "
-        ^ debug_category_optname
-        ^ " help to get a list of available categories, and * to enable \
-              all categories"
-    end)
-
-  let () =
-    let is_kernel = is_kernel () in
-    Warn_feedback.add_set_hook
-      (warn_category_hook is_kernel Log.Wfeedback Log.Wactive)
-
-  let warn_feedback_once_optname =
-    output_mode "Warn_feedback_once" "warn-feedback-once"
-  module Warn_feedback_once =
-    Empty_string(struct
-      let option_name = warn_feedback_once_optname
-      let arg_name="k1[,...,kn]"
-      let help =
-        "Warning categories <k1>,...,<kn> only produce a feedback message. Use "
-        ^ warn_feedback_once_optname
-        ^ " help to get a list of available categories, and * to enable \
-              all categories"
-    end)
-
-  let () =
-    let is_kernel = is_kernel () in
-    Warn_feedback_once.add_set_hook
-      (warn_category_hook is_kernel Log.Wfeedback_once Log.Wonce)
+  let add_plugin_output_aliases aliases =
+    let aliases = List.filter (fun alias -> alias <> "") aliases in
+    let optname suffix = List.map (fun alias -> "-" ^ alias ^ suffix) aliases in
+    Help.add_aliases (optname "-help");
+    Verbose.add_aliases (optname "-verbose");
+    Debug_category.add_aliases (optname "-msg-key");
+    Warn_category.add_aliases (optname "-warn-key");
+    LogToFile.add_aliases (optname "-log")
 
   let () = reset_plugin ()
 

@@ -35,6 +35,10 @@ module Callstack: sig
   include Datatype.S_with_collections with type t = callstack
   val pretty_debug : Format.formatter -> t -> unit
 
+  (** Print a hash of the callstack when '-kernel-msg-key callstack'
+      is enabled (prints nothing otherwise). *)
+  val pretty_hash : Format.formatter -> t -> unit
+
   (** Print a call stack without displaying call sites. *)
   val pretty_short : Format.formatter -> t -> unit
 end

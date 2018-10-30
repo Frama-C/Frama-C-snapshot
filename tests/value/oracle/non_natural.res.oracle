@@ -1,135 +1,129 @@
 [kernel] Parsing tests/value/non_natural.i (no preprocessing)
-[value] Analyzing a complete application starting at main
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing a complete application starting at main
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   v ∈ [--..--]
-[value] computing for function main1 <- main.
+[eva] computing for function main1 <- main.
   Called from tests/value/non_natural.i:63.
-[kernel] tests/value/non_natural.i:13: Warning: Non-natural loop detected.
-[value] tests/value/non_natural.i:11: Frama_C_show_each: {0}
-[value] tests/value/non_natural.i:11: Frama_C_show_each: {0; 1}
-[value] tests/value/non_natural.i:11: Frama_C_show_each: {0; 1; 2}
-[value] tests/value/non_natural.i:11: Frama_C_show_each: {0; 1; 2; 3}
-[value] tests/value/non_natural.i:11: Frama_C_show_each: [0..999999]
-[value] Recording results for main1
-[value] Done for function main1
-[value] computing for function main2 <- main.
+[eva] tests/value/non_natural.i:11: Frama_C_show_each: {0}
+[eva] tests/value/non_natural.i:11: Frama_C_show_each: {0; 1}
+[eva] tests/value/non_natural.i:11: Frama_C_show_each: {0; 1; 2}
+[eva] tests/value/non_natural.i:11: Frama_C_show_each: [0..999999]
+[eva] Recording results for main1
+[eva] Done for function main1
+[eva] computing for function main2 <- main.
   Called from tests/value/non_natural.i:64.
-[value] computing for function duff1 <- main2 <- main.
+[eva] computing for function duff1 <- main2 <- main.
   Called from tests/value/non_natural.i:57.
-[kernel] tests/value/non_natural.i:21: Warning: Non-natural loop detected.
-[value] tests/value/non_natural.i:21: entering loop for the first time
-[value] tests/value/non_natural.i:22: Frama_C_show_each: {{ &p2 }}
-[value:alarm] tests/value/non_natural.i:23: Warning: 
+[eva] tests/value/non_natural.i:22: Frama_C_show_each: {{ &p2 }}
+[eva:alarm] tests/value/non_natural.i:23: Warning: 
   accessing uninitialized left-value.
   assert \initialized(tmp_0);
   (tmp_0 from from++)
-[value:alarm] tests/value/non_natural.i:24: Warning: 
+[eva:alarm] tests/value/non_natural.i:24: Warning: 
   accessing uninitialized left-value.
   assert \initialized(tmp_2);
   (tmp_2 from from++)
-[value:alarm] tests/value/non_natural.i:25: Warning: 
+[eva:alarm] tests/value/non_natural.i:25: Warning: 
   accessing uninitialized left-value.
   assert \initialized(tmp_4);
   (tmp_4 from from++)
-[value:alarm] tests/value/non_natural.i:26: Warning: 
+[eva:alarm] tests/value/non_natural.i:26: Warning: 
   accessing uninitialized left-value.
   assert \initialized(tmp_6);
   (tmp_6 from from++)
-[value:alarm] tests/value/non_natural.i:27: Warning: 
+[eva:alarm] tests/value/non_natural.i:27: Warning: 
   accessing uninitialized left-value.
   assert \initialized(tmp_8);
   (tmp_8 from from++)
-[value:alarm] tests/value/non_natural.i:28: Warning: 
+[eva:alarm] tests/value/non_natural.i:28: Warning: 
   accessing uninitialized left-value.
   assert \initialized(tmp_10);
   (tmp_10 from from++)
-[value:alarm] tests/value/non_natural.i:29: Warning: 
+[eva:alarm] tests/value/non_natural.i:29: Warning: 
   accessing uninitialized left-value.
   assert \initialized(tmp_12);
   (tmp_12 from from++)
-[value:alarm] tests/value/non_natural.i:30: Warning: 
+[eva:alarm] tests/value/non_natural.i:30: Warning: 
   accessing uninitialized left-value.
   assert \initialized(tmp_14);
   (tmp_14 from from++)
-[value] tests/value/non_natural.i:22: Frama_C_show_each: {{ &p2 + {0; 32} }}
-[value] tests/value/non_natural.i:22: Frama_C_show_each: {{ &p2 + {0; 32; 64} }}
-[value] tests/value/non_natural.i:22: 
+[eva] tests/value/non_natural.i:21: starting to merge loop iterations
+[eva] tests/value/non_natural.i:22: Frama_C_show_each: {{ &p2 + {0; 32} }}
+[eva] tests/value/non_natural.i:22: Frama_C_show_each: {{ &p2 + {0; 32; 64} }}
+[eva] tests/value/non_natural.i:22: 
   Frama_C_show_each: {{ &p2 + {0; 32; 64; 96} }}
-[value] tests/value/non_natural.i:22: 
-  Frama_C_show_each: {{ &p2 + {0; 32; 64; 96; 128} }}
-[value] tests/value/non_natural.i:22: 
-  Frama_C_show_each: {{ &p2 + [0..399968],0%32 }}
+[kernel] tests/value/non_natural.i:30: 
+  more than 200(12500) locations to update in array. Approximating.
+[eva] tests/value/non_natural.i:22: 
+  Frama_C_show_each: {{ &p2 + [0..400000],0%32 }}
+[eva:alarm] tests/value/non_natural.i:23: Warning: 
+  out of bounds write. assert \valid(tmp);
+                       (tmp from to++)
 [kernel] tests/value/non_natural.i:23: 
   more than 200(12500) locations to update in array. Approximating.
+[eva:alarm] tests/value/non_natural.i:24: Warning: 
+  out of bounds write. assert \valid(tmp_1);
+                       (tmp_1 from to++)
 [kernel] tests/value/non_natural.i:24: 
   more than 200(12500) locations to update in array. Approximating.
-[value:alarm] tests/value/non_natural.i:25: Warning: 
+[eva:alarm] tests/value/non_natural.i:25: Warning: 
+  out of bounds write. assert \valid(tmp_3);
+                       (tmp_3 from to++)
+[eva:alarm] tests/value/non_natural.i:25: Warning: 
   out of bounds read. assert \valid_read(tmp_4);
                       (tmp_4 from from++)
 [kernel] tests/value/non_natural.i:25: 
   more than 200(12500) locations to update in array. Approximating.
-[value:alarm] tests/value/non_natural.i:26: Warning: 
+[eva:alarm] tests/value/non_natural.i:26: Warning: 
+  out of bounds write. assert \valid(tmp_5);
+                       (tmp_5 from to++)
+[eva:alarm] tests/value/non_natural.i:26: Warning: 
   out of bounds read. assert \valid_read(tmp_6);
                       (tmp_6 from from++)
 [kernel] tests/value/non_natural.i:26: 
   more than 200(12500) locations to update in array. Approximating.
-[value:alarm] tests/value/non_natural.i:27: Warning: 
+[eva:alarm] tests/value/non_natural.i:27: Warning: 
+  out of bounds write. assert \valid(tmp_7);
+                       (tmp_7 from to++)
+[eva:alarm] tests/value/non_natural.i:27: Warning: 
   out of bounds read. assert \valid_read(tmp_8);
                       (tmp_8 from from++)
 [kernel] tests/value/non_natural.i:27: 
   more than 200(12500) locations to update in array. Approximating.
-[value:alarm] tests/value/non_natural.i:28: Warning: 
+[eva:alarm] tests/value/non_natural.i:28: Warning: 
+  out of bounds write. assert \valid(tmp_9);
+                       (tmp_9 from to++)
+[eva:alarm] tests/value/non_natural.i:28: Warning: 
   out of bounds read. assert \valid_read(tmp_10);
                       (tmp_10 from from++)
 [kernel] tests/value/non_natural.i:28: 
   more than 200(12500) locations to update in array. Approximating.
-[value:alarm] tests/value/non_natural.i:29: Warning: 
+[eva:alarm] tests/value/non_natural.i:29: Warning: 
+  out of bounds write. assert \valid(tmp_11);
+                       (tmp_11 from to++)
+[eva:alarm] tests/value/non_natural.i:29: Warning: 
   out of bounds read. assert \valid_read(tmp_12);
                       (tmp_12 from from++)
 [kernel] tests/value/non_natural.i:29: 
   more than 200(12500) locations to update in array. Approximating.
-[value:alarm] tests/value/non_natural.i:30: Warning: 
-  out of bounds read. assert \valid_read(tmp_14);
-                      (tmp_14 from from++)
-[kernel] tests/value/non_natural.i:30: 
-  more than 200(12500) locations to update in array. Approximating.
-[value] tests/value/non_natural.i:22: 
-  Frama_C_show_each: {{ &p2 + [0..400000],0%32 }}
-[value:alarm] tests/value/non_natural.i:23: Warning: 
-  out of bounds write. assert \valid(tmp);
-                       (tmp from to++)
-[value:alarm] tests/value/non_natural.i:23: Warning: 
-  out of bounds read. assert \valid_read(tmp_0);
-                      (tmp_0 from from++)
-[value:alarm] tests/value/non_natural.i:24: Warning: 
-  out of bounds write. assert \valid(tmp_1);
-                       (tmp_1 from to++)
-[value:alarm] tests/value/non_natural.i:24: Warning: 
-  out of bounds read. assert \valid_read(tmp_2);
-                      (tmp_2 from from++)
-[value:alarm] tests/value/non_natural.i:25: Warning: 
-  out of bounds write. assert \valid(tmp_3);
-                       (tmp_3 from to++)
-[value:alarm] tests/value/non_natural.i:26: Warning: 
-  out of bounds write. assert \valid(tmp_5);
-                       (tmp_5 from to++)
-[value:alarm] tests/value/non_natural.i:27: Warning: 
-  out of bounds write. assert \valid(tmp_7);
-                       (tmp_7 from to++)
-[value:alarm] tests/value/non_natural.i:28: Warning: 
-  out of bounds write. assert \valid(tmp_9);
-                       (tmp_9 from to++)
-[value:alarm] tests/value/non_natural.i:29: Warning: 
-  out of bounds write. assert \valid(tmp_11);
-                       (tmp_11 from to++)
-[value:alarm] tests/value/non_natural.i:30: Warning: 
+[eva:alarm] tests/value/non_natural.i:30: Warning: 
   out of bounds write. assert \valid(tmp_13);
                        (tmp_13 from to++)
-[value] tests/value/non_natural.i:22: 
-  Frama_C_show_each: {{ &p2 + [0..--],0%32 }}
-[value] Recording results for duff1
+[eva:alarm] tests/value/non_natural.i:30: Warning: 
+  out of bounds read. assert \valid_read(tmp_14);
+                      (tmp_14 from from++)
+[eva] tests/value/non_natural.i:22: 
+  Frama_C_show_each: {{ &p2 + [0..400032],0%32 }}
+[eva:alarm] tests/value/non_natural.i:23: Warning: 
+  out of bounds read. assert \valid_read(tmp_0);
+                      (tmp_0 from from++)
+[eva:alarm] tests/value/non_natural.i:24: Warning: 
+  out of bounds read. assert \valid_read(tmp_2);
+                      (tmp_2 from from++)
+[eva] tests/value/non_natural.i:22: Frama_C_show_each: {{ &p2 + [0..--],0%32 }}
+[eva] Recording results for duff1
 [kernel] tests/value/non_natural.i:23: 
   more than 200(12501) elements to enumerate. Approximating.
 [kernel] tests/value/non_natural.i:23: 
@@ -150,143 +144,143 @@
   more than 200(12500) elements to enumerate. Approximating.
 [kernel] tests/value/non_natural.i:30: 
   more than 200(12500) elements to enumerate. Approximating.
-[value] Done for function duff1
-[value:alarm] tests/value/non_natural.i:58: Warning: 
+[eva] Done for function duff1
+[eva:alarm] tests/value/non_natural.i:58: Warning: 
   accessing out of bounds index. assert 0 ≤ o;
-[value:alarm] tests/value/non_natural.i:58: Warning: 
+[eva:alarm] tests/value/non_natural.i:58: Warning: 
   accessing out of bounds index. assert o < 100002;
-[value] computing for function duff2 <- main2 <- main.
+[eva] computing for function duff2 <- main2 <- main.
   Called from tests/value/non_natural.i:59.
-[kernel] tests/value/non_natural.i:38: Warning: Non-natural loop detected.
-[value] tests/value/non_natural.i:38: Frama_C_show_each: {{ &p2 }}
-[value:alarm] tests/value/non_natural.i:39: Warning: 
+[eva] tests/value/non_natural.i:38: Frama_C_show_each: {{ &p2 }}
+[eva:alarm] tests/value/non_natural.i:39: Warning: 
   accessing uninitialized left-value.
   assert \initialized(tmp_0);
   (tmp_0 from from++)
-[value:alarm] tests/value/non_natural.i:40: Warning: 
+[eva:alarm] tests/value/non_natural.i:40: Warning: 
   accessing uninitialized left-value.
   assert \initialized(tmp_2);
   (tmp_2 from from++)
-[value:alarm] tests/value/non_natural.i:41: Warning: 
+[eva:alarm] tests/value/non_natural.i:41: Warning: 
   accessing uninitialized left-value.
   assert \initialized(tmp_4);
   (tmp_4 from from++)
-[value:alarm] tests/value/non_natural.i:42: Warning: 
+[eva:alarm] tests/value/non_natural.i:42: Warning: 
   accessing uninitialized left-value.
   assert \initialized(tmp_6);
   (tmp_6 from from++)
-[value:alarm] tests/value/non_natural.i:43: Warning: 
+[eva:alarm] tests/value/non_natural.i:43: Warning: 
   accessing uninitialized left-value.
   assert \initialized(tmp_8);
   (tmp_8 from from++)
-[value:alarm] tests/value/non_natural.i:44: Warning: 
+[eva:alarm] tests/value/non_natural.i:44: Warning: 
   accessing uninitialized left-value.
   assert \initialized(tmp_10);
   (tmp_10 from from++)
-[value:alarm] tests/value/non_natural.i:45: Warning: 
+[eva:alarm] tests/value/non_natural.i:45: Warning: 
   accessing uninitialized left-value.
   assert \initialized(tmp_12);
   (tmp_12 from from++)
-[value:alarm] tests/value/non_natural.i:46: Warning: 
+[eva:alarm] tests/value/non_natural.i:46: Warning: 
   accessing uninitialized left-value.
   assert \initialized(tmp_14);
   (tmp_14 from from++)
-[value] tests/value/non_natural.i:38: Frama_C_show_each: {{ &p2 + {0; 32} }}
-[value] tests/value/non_natural.i:38: Frama_C_show_each: {{ &p2 + {0; 32; 64} }}
-[value] tests/value/non_natural.i:38: 
-  Frama_C_show_each: {{ &p2 + [0..399968],0%32 }}
+[eva] tests/value/non_natural.i:38: Frama_C_show_each: {{ &p2 + {0; 32} }}
+[eva] tests/value/non_natural.i:38: Frama_C_show_each: {{ &p2 + {0; 32; 64} }}
+[eva] tests/value/non_natural.i:38: 
+  Frama_C_show_each: {{ &p2 + {0; 32; 64; 96} }}
+[kernel] tests/value/non_natural.i:46: 
+  more than 200(12500) locations to update in array. Approximating.
+[eva] tests/value/non_natural.i:38: 
+  Frama_C_show_each: {{ &p2 + [0..400000],0%32 }}
+[eva:alarm] tests/value/non_natural.i:39: Warning: 
+  out of bounds write. assert \valid(tmp);
+                       (tmp from to++)
 [kernel] tests/value/non_natural.i:39: 
   more than 200(12500) locations to update in array. Approximating.
+[eva:alarm] tests/value/non_natural.i:40: Warning: 
+  out of bounds write. assert \valid(tmp_1);
+                       (tmp_1 from to++)
 [kernel] tests/value/non_natural.i:40: 
   more than 200(12500) locations to update in array. Approximating.
-[value:alarm] tests/value/non_natural.i:41: Warning: 
+[eva:alarm] tests/value/non_natural.i:41: Warning: 
+  out of bounds write. assert \valid(tmp_3);
+                       (tmp_3 from to++)
+[eva:alarm] tests/value/non_natural.i:41: Warning: 
   out of bounds read. assert \valid_read(tmp_4);
                       (tmp_4 from from++)
 [kernel] tests/value/non_natural.i:41: 
   more than 200(12500) locations to update in array. Approximating.
-[value:alarm] tests/value/non_natural.i:42: Warning: 
+[eva:alarm] tests/value/non_natural.i:42: Warning: 
+  out of bounds write. assert \valid(tmp_5);
+                       (tmp_5 from to++)
+[eva:alarm] tests/value/non_natural.i:42: Warning: 
   out of bounds read. assert \valid_read(tmp_6);
                       (tmp_6 from from++)
 [kernel] tests/value/non_natural.i:42: 
   more than 200(12500) locations to update in array. Approximating.
-[value:alarm] tests/value/non_natural.i:43: Warning: 
+[eva:alarm] tests/value/non_natural.i:43: Warning: 
+  out of bounds write. assert \valid(tmp_7);
+                       (tmp_7 from to++)
+[eva:alarm] tests/value/non_natural.i:43: Warning: 
   out of bounds read. assert \valid_read(tmp_8);
                       (tmp_8 from from++)
 [kernel] tests/value/non_natural.i:43: 
   more than 200(12500) locations to update in array. Approximating.
-[value:alarm] tests/value/non_natural.i:44: Warning: 
+[eva:alarm] tests/value/non_natural.i:44: Warning: 
+  out of bounds write. assert \valid(tmp_9);
+                       (tmp_9 from to++)
+[eva:alarm] tests/value/non_natural.i:44: Warning: 
   out of bounds read. assert \valid_read(tmp_10);
                       (tmp_10 from from++)
 [kernel] tests/value/non_natural.i:44: 
   more than 200(12500) locations to update in array. Approximating.
-[value:alarm] tests/value/non_natural.i:45: Warning: 
+[eva:alarm] tests/value/non_natural.i:45: Warning: 
+  out of bounds write. assert \valid(tmp_11);
+                       (tmp_11 from to++)
+[eva:alarm] tests/value/non_natural.i:45: Warning: 
   out of bounds read. assert \valid_read(tmp_12);
                       (tmp_12 from from++)
 [kernel] tests/value/non_natural.i:45: 
   more than 200(12500) locations to update in array. Approximating.
-[value:alarm] tests/value/non_natural.i:46: Warning: 
-  out of bounds read. assert \valid_read(tmp_14);
-                      (tmp_14 from from++)
-[kernel] tests/value/non_natural.i:46: 
-  more than 200(12500) locations to update in array. Approximating.
-[value] tests/value/non_natural.i:38: 
-  Frama_C_show_each: {{ &p2 + [0..400000],0%32 }}
-[value:alarm] tests/value/non_natural.i:39: Warning: 
-  out of bounds write. assert \valid(tmp);
-                       (tmp from to++)
-[value:alarm] tests/value/non_natural.i:39: Warning: 
-  out of bounds read. assert \valid_read(tmp_0);
-                      (tmp_0 from from++)
-[value:alarm] tests/value/non_natural.i:40: Warning: 
-  out of bounds write. assert \valid(tmp_1);
-                       (tmp_1 from to++)
-[value:alarm] tests/value/non_natural.i:40: Warning: 
-  out of bounds read. assert \valid_read(tmp_2);
-                      (tmp_2 from from++)
-[value:alarm] tests/value/non_natural.i:41: Warning: 
-  out of bounds write. assert \valid(tmp_3);
-                       (tmp_3 from to++)
-[value:alarm] tests/value/non_natural.i:42: Warning: 
-  out of bounds write. assert \valid(tmp_5);
-                       (tmp_5 from to++)
-[value:alarm] tests/value/non_natural.i:43: Warning: 
-  out of bounds write. assert \valid(tmp_7);
-                       (tmp_7 from to++)
-[value:alarm] tests/value/non_natural.i:44: Warning: 
-  out of bounds write. assert \valid(tmp_9);
-                       (tmp_9 from to++)
-[value:alarm] tests/value/non_natural.i:45: Warning: 
-  out of bounds write. assert \valid(tmp_11);
-                       (tmp_11 from to++)
-[value:alarm] tests/value/non_natural.i:46: Warning: 
+[eva:alarm] tests/value/non_natural.i:46: Warning: 
   out of bounds write. assert \valid(tmp_13);
                        (tmp_13 from to++)
-[value] tests/value/non_natural.i:38: 
-  Frama_C_show_each: {{ &p2 + [0..--],0%32 }}
-[value] Recording results for duff2
-[value] Done for function duff2
-[value] Recording results for main2
-[value] Done for function main2
-[value] Recording results for main
-[value] done for function main
-[value] ====== VALUES COMPUTED ======
-[value:final-states] Values at end of function duff1:
+[eva:alarm] tests/value/non_natural.i:46: Warning: 
+  out of bounds read. assert \valid_read(tmp_14);
+                      (tmp_14 from from++)
+[eva] tests/value/non_natural.i:38: 
+  Frama_C_show_each: {{ &p2 + [0..400032],0%32 }}
+[eva:alarm] tests/value/non_natural.i:39: Warning: 
+  out of bounds read. assert \valid_read(tmp_0);
+                      (tmp_0 from from++)
+[eva:alarm] tests/value/non_natural.i:40: Warning: 
+  out of bounds read. assert \valid_read(tmp_2);
+                      (tmp_2 from from++)
+[eva] tests/value/non_natural.i:38: Frama_C_show_each: {{ &p2 + [0..--],0%32 }}
+[eva] Recording results for duff2
+[eva] Done for function duff2
+[eva] Recording results for main2
+[eva] Done for function main2
+[eva] Recording results for main
+[eva] done for function main
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function duff1:
   to ∈ {{ &p2 + [32..--],0%32 }}
   from ∈ {{ &p1 + [32..--],0%32 }}
   n ∈ {0}
   p2[0..99999] ∈ {1} or UNINITIALIZED
-[value:final-states] Values at end of function duff2:
+[eva:final-states] Values at end of function duff2:
   to ∈ {{ &p2 + [32..--],0%32 }}
   from ∈ {{ &p1 + [32..--],0%32 }}
   n ∈ {0}
   p2[0..99999] ∈ {1; 2} or UNINITIALIZED
-[value:final-states] Values at end of function main1:
+[eva:final-states] Values at end of function main1:
   c ∈ {1000000}
-[value:final-states] Values at end of function main2:
+[eva:final-states] Values at end of function main2:
   p1[0..100001] ∈ {1; 2} or UNINITIALIZED
   p2[0..99999] ∈ {1; 2} or UNINITIALIZED
   o ∈ [0..100001]
-[value:final-states] Values at end of function main:
+[eva:final-states] Values at end of function main:
   
 [from] Computing for function duff1
 [kernel] tests/value/non_natural.i:23: 

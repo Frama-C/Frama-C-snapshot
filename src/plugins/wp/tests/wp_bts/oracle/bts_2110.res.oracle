@@ -14,16 +14,15 @@
 goal myMain_stmt_assign:
   forall i : int.
   forall t : int farray.
-  forall t_2,t_1 : (addr,int) farray.
+  forall t_1 : (addr,int) farray.
   forall a_1,a : addr.
   let a_2 = shiftfield_F1_FD_pos(a) : addr in
-  let x = t_2[a_2] : int in
+  let x = t_1[a_2] : int in
   (x <> i) ->
   (region(a.base) <= 0) ->
   (region(a_1.base) <= 0) ->
   linked(t) ->
   is_sint32(i) ->
-  havoc(t_2, t_1, a_1, 1) ->
   is_sint32(x) ->
   (not invalid(t, a_2, 1)) ->
   (a_2 = a_1)
@@ -63,11 +62,10 @@ axiom Q_Load_S2_A_eqmem_Mint:
 
 axiom Q_Load_S2_A_havoc_Mint:
   forall p,q : addr.
-  forall Mint_0,Mint_1 : (addr,int) farray.
+  forall Mint_0,Mint_1,Mint_2 : (addr,int) farray.
   forall k : int
-  [havoc(Mint_0, Mint_1, q, k),Load_S2_A(p, Mint_0)|
-    havoc(Mint_0, Mint_1, q, k),Load_S2_A(p, Mint_1)].
-  separated(p, 1, q, k) -> havoc(Mint_0, Mint_1, q, k) ->
+  [Load_S2_A(p, Mint_0)|Load_S2_A(p, Mint_1)].
+  (havoc(Mint_2, Mint_0, q, k) = Mint_1) -> separated(p, 1, q, k) ->
     (Load_S2_A(p, Mint_1) = Load_S2_A(p, Mint_0))
 
 ---------------------------------------------
@@ -93,13 +91,12 @@ predicate EqS2_A(S:S2_A, S_1:S2_A) = (S_1.F2_A_dummy) = (S.F2_A_dummy)
 goal myMain_post_KO:
   forall t_1,t : (addr,int) farray.
   forall a_1,a : addr.
-  let a_2 = Load_S2_A(a_1, t) : S2_A in
-  let a_3 = Load_S2_A(a_1, t_1) : S2_A in
+  let a_2 = Load_S2_A(a_1, t_1) : S2_A in
+  let a_3 = Load_S2_A(a_1, havoc(t, t_1, a_1, 1)) : S2_A in
   (region(a.base) <= 0) ->
   (region(a_1.base) <= 0) ->
   IsS2_A(a_2) ->
   IsS2_A(a_3) ->
-  havoc(t, t_1, a_1, 1) ->
   EqS2_A(a_3, a_2)
 
 [wp] 2 goals generated

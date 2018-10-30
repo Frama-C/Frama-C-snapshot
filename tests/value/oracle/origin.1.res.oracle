@@ -1,8 +1,8 @@
 [kernel] Parsing tests/value/origin.i (no preprocessing)
-[value] Analyzing a complete application starting at origin
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing a complete application starting at origin
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   a ∈ {0}
   b ∈ {0}
   aa2 ∈ {0}
@@ -52,32 +52,32 @@
    .t[0] ∈ {{ &y }}
    .t[1] ∈ {0}
   S_gpp[0..1] ∈ [--..--]
-[value] computing for function f <- origin.
+[eva] computing for function f <- origin.
   Called from tests/value/origin.i:124.
 [kernel:annot:missing-spec] tests/value/origin.i:124: Warning: 
   Neither code nor specification for function f, generating default assigns from the prototype
-[value] using specification for function f
-[value] Done for function f
-[value] tests/value/origin.i:126: 
+[eva] using specification for function f
+[eva] Done for function f
+[eva] tests/value/origin.i:126: 
   Assigning imprecise value to r.p.
   The imprecision originates from Misaligned {tests/value/origin.i:126}
-[value] tests/value/origin.i:129: 
+[eva] tests/value/origin.i:129: 
   Assigning imprecise value to r.t[0].
   The imprecision originates from Merge {tests/value/origin.i:129}
-[value:alarm] tests/value/origin.i:130: Warning: 
+[eva:alarm] tests/value/origin.i:130: Warning: 
   signed overflow. assert -2147483648 ≤ -((int)(&x));
-[value:alarm] tests/value/origin.i:130: Warning: 
+[eva:alarm] tests/value/origin.i:130: Warning: 
   signed overflow. assert -((int)(&x)) ≤ 2147483647;
-[value] tests/value/origin.i:130: 
+[eva] tests/value/origin.i:130: 
   Assigning imprecise value to r.t[1].
   The imprecision originates from Arithmetic {tests/value/origin.i:130}
-[value] tests/value/origin.i:131: 
+[eva] tests/value/origin.i:131: 
   Assigning imprecise value to \result<origin>.
   The imprecision originates from Misaligned {tests/value/origin.i:126}
-[value] Recording results for origin
-[value] done for function origin
-[value] ====== VALUES COMPUTED ======
-[value:final-states] Values at end of function origin:
+[eva] Recording results for origin
+[eva] done for function origin
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function origin:
   r.c ∈ [--..--]
    .[bits 8 to 15] ∈ UNINITIALIZED
    .i ∈ [--..--]

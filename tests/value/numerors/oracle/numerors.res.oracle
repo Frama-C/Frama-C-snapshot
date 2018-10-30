@@ -1,0 +1,294 @@
+[eva] Warning: The numerors domain is experimental.
+[kernel] Parsing tests/value/numerors/numerors.c (with preprocessing)
+[kernel:parser:decimal-float] tests/value/numerors/numerors.c:24: Warning: 
+  Floating-point constant 0.69314718056 is not represented exactly. Will use 0x1.62e42fefa3bdcp-1.
+  (warn-once: no further messages from category 'parser:decimal-float' will be emitted)
+[kernel:typing:implicit-function-declaration] tests/value/numerors/numerors.c:246: Warning: 
+  Calling undeclared function DPRINTFrama_C_domain_show_each_ex10. Old style K&R code?
+[eva] Analyzing a complete application starting at main
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
+  
+[eva] using specification for function Frama_C_double_interval
+[eva] tests/value/numerors/numerors.c:175: 
+  Frama_C_domain_show_each_ex0:
+  res : # Cvalue domain: [1.60171325191e-16 .. 13.9069790712]
+        # numerors: Exact   : [0.0000000000000000000000000000000000000000E0 ; 0.1390697907123480622606275603218668502037E2]
+                    Approx  : [0.16017132519073324E-15 ; 0.13906979071234806E2] :: Double
+                    Abs Err : [-0.6872322967884114849286679416803461995281E-13 ; 0.6814624853785664269739340909405869167913E-13]
+                    Rel Err : {NaN}[-@Inf@ ; @Inf@]
+[eva] tests/value/numerors/numerors.c:181: 
+  Frama_C_domain_show_each_ex1:
+  res_0 : # Cvalue domain: [1. .. 2.]
+          # numerors: Exact   : [0.1000000000000000000000000000000000000000E1 ; 0.2000000000000000000000000000000000000000E1]
+                      Approx  : [0.10000000000000000E1 ; 0.20000000000000000E1] :: Double
+                      Abs Err : [-0.2220446049250313080847263336181640625000E-15 ; 0.2220446049250313080847263336181640625000E-15]
+                      Rel Err : [-0.1110223024625156540423631668090820312500E-15 ; 0.1110223024625156540423631668090820312500E-15]
+[eva] tests/value/numerors/numerors.c:188: 
+  Frama_C_domain_show_each_ex2:
+  res_1 : # Cvalue domain: [2. .. 3495.]
+          # numerors: Exact   : [0.2000000000000000000000000000000000000000E1 ; 0.3495000000000000000000000000000000000000E4]
+                      Approx  : [0.20000000000000000E1 ; 0.34949999999999995E4] :: Double
+                      Abs Err : [-0.8433254095052689081057906150817871093750E-12 ; 0.8433254095052689081057906150817871093750E-12]
+                      Rel Err : [-0.8881784197001252754797360887467345688648E-15 ; 0.8881784197001253617613975972949103649613E-15]
+[eva] tests/value/numerors/numerors.c:194: 
+  Frama_C_domain_show_each_ex3:
+  res_2 : # Cvalue domain: [0.0337542351052 .. 8.95097760024]
+          # numerors: Exact   : [0.3375423510518920966949169416556651945629E-1 ; 0.8950977600240098913885247155101311206002E1]
+                      Approx  : [0.33754235105189205E-1 ; 0.89509776002400994E1] :: Double
+                      Abs Err : [-0.5483002744215625940572962640894922696096E-14 ; 0.5483002744215625619742990194211273224505E-14]
+                      Rel Err : [-0.6559951477854231429232012065810737101423E-15 ; 0.6559951477854236047867747502423701377016E-15]
+[eva] tests/value/numerors/numerors.c:201: 
+  Frama_C_domain_show_each_ex3b:
+  res_3 : # Cvalue domain: [0.978318343479 .. 3.09371424212]
+          # numerors: Exact   : [0.9783183434785159564221044363850222152518E0 ; 0.3093714242115046288104330996683226579188E1]
+                      Approx  : [0.97831834347851587E0 ; 0.30937142421150465E1] :: Double
+                      Abs Err : [-0.1277667385507086358965123148387792119576E-14 ; 0.1277667385507086244854347066867404524747E-14]
+                      Rel Err : [-0.4914871294831948016034334832375710273403E-15 ; 0.4914871294831949090271396563319978405399E-15]
+[eva] tests/value/numerors/numerors.c:212: 
+  Frama_C_domain_show_each_ex6:
+  res_4 : # Cvalue domain: [302.104204 .. 888.8981992]
+          # numerors: Exact   : [0.3021042039999999946535094077354476426274E3 ; 0.8888981992000000696700647968145915176558E3]
+                      Approx  : [0.30210420399999998E3 ; 0.88889819920000014E3] :: Double
+                      Abs Err : [-0.3634963879374508791577285881076208118731E-12 ; 0.3634963879374508791577285881076208118731E-12]
+                      Rel Err : [-0.1203215258591538453369909571455158421791E-14 ; 0.1203215258591538453369909571455158421791E-14]
+[eva] tests/value/numerors/numerors.c:218: 
+  Frama_C_domain_show_each_ex7:
+  res_5 : # Cvalue domain: [-0. .. 999.]
+          # numerors: Exact   : [0.0000000000000000000000000000000000000000E0 ; 0.9990000000000000000000000000000000000000E3]
+                      Approx  : [0.00000000000000000E0 ; 0.99900000000000000E3] :: Double
+                      Abs Err : [-0.1677546990208611532580107450485229492188E-12 ; 0.1677546990208611532580107450485229492188E-12]
+                      Rel Err : [-0.1000000000000000000000000000000000000000E1 ; 0.1000000000000000222044604925031332736641E1]
+[eva] tests/value/numerors/numerors.c:225: 
+  Frama_C_domain_show_each_ex8:
+  res_6 : # Cvalue domain: [0.0001334 .. 748.875937031]
+          # numerors: Exact   : [0.1333999999999853007655777522215634571138E-3 ; 0.7488759370313796393766912581415073207576E3]
+                      Approx  : [0.13339999999997982E-3 ; 0.74887593703139316E3] :: Double
+                      Abs Err : [-0.6281868632904980036355881586033195687787E-10 ; 0.6281868632904978648301330246081703393322E-10]
+                      Rel Err : [-0.1394024964317243270152811996722122989506E-12 ; 0.1394024964317476250489121282425932120066E-12]
+[eva] tests/value/numerors/numerors.c:233: 
+  Frama_C_domain_show_each_ex9:
+  res_7 : # Cvalue domain: [0. .. 9.]
+          # numerors: Exact   : [0.0000000000000000000000000000000000000000E0 ; 0.9000000000000000000000000000000000000000E1]
+                      Approx  : [0.00000000000000000E0 ; 0.90000000000000000E1] :: Double
+                      Abs Err : [-0.3330669073875469621270895004272460937500E-14 ; 0.3330669073875469621270895004272460937500E-14]
+                      Rel Err : {NaN}[-@Inf@ ; @Inf@]
+[kernel:annot:missing-spec] tests/value/numerors/numerors.c:246: Warning: 
+  Neither code nor specification for function DPRINTFrama_C_domain_show_each_ex10, generating default assigns from the prototype
+[eva] using specification for function DPRINTFrama_C_domain_show_each_ex10
+[eva] tests/value/numerors/numerors.c:253: 
+  Frama_C_domain_show_each_ex11:
+  res_9 : # Cvalue domain: [-10. .. 9.]
+          # numerors: Exact   : [-0.9999999999999999444888487687421760603063E1 ; 0.8999999999999999444888487687421760603063E1]
+                      Approx  : [-0.10000000000000000E2 ; 0.90000000000000000E1] :: Double
+                      Abs Err : [-0.3108624468950438189926652229871209121695E-14 ; 0.3108624468950438189926652229871209121695E-14]
+                      Rel Err : {NaN}[-@Inf@ ; @Inf@]
+[eva] tests/value/numerors/numerors.c:267: 
+  Frama_C_domain_show_each_ex12:
+  res_10 : # Cvalue domain: [-90000000000. .. 90000000000.]
+           # numerors: Exact   : [-0.8999999999999998527545029547436608851484E11 ; 0.8999999999999998527545029547436608851484E11]
+                       Approx  : [-0.89999999999999969E11 ; 0.89999999999999969E11] :: Double
+                       Abs Err : [-0.8635914150545432128142627823909072074997E-4 ; 0.8635914150545432128142627823909072074997E-4]
+                       Rel Err : {NaN}[-@Inf@ ; @Inf@]
+[eva] tests/value/numerors/numerors.c:273: 
+  Frama_C_domain_show_each_ex13:
+  res_11 : # Cvalue domain: [3.33333333336e-06 .. 49999.7500009]
+           # numerors: Exact   : [0.3333333333355170680079027079045772552490E-5 ; 0.4999975000092243354885617849491239040532E5]
+                       Approx  : [0.33333333333551707E-5 ; 0.49999750000901753E5] :: Double
+                       Abs Err : [-0.2775732718567027525067161305837110287050E-6 ; 0.2775732718567027525067161305837110287050E-6]
+                       Rel Err : [-0.5551531456831610179749247367088410229787E-11 ; 0.5551531456893246717431747290382925386036E-11]
+[eva] tests/value/numerors/numerors.c:279: 
+  Frama_C_domain_show_each_ex14:
+  res_12 : # Cvalue domain: [0.333333333333 .. 0.499997500012]
+           # numerors: Exact   : [0.3333333333333333333333333333333333333324E0 ; 0.4999975000124999211224662180394492022040E0]
+                       Approx  : [0.33333333333333331E0 ; 0.49999750001249993E0] :: Double
+                       Abs Err : [-0.8326617173953773290385013211266127132753E-16 ; 0.8326617173953773290385013211266127132753E-16]
+                       Rel Err : [-0.1942884742006656004728570708900745304743E-15 ; 0.1942884742006656436133616254818044541448E-15]
+[eva] tests/value/numerors/numerors.c:287: 
+  Frama_C_domain_show_each_ex15:
+  res_13 : # Cvalue domain: [-158.71914441 .. -0.0294424405923]
+           # numerors: Exact   : [-0.1587191444098274115955446209844803067978E3 ; -0.2944244059231351257710791058441647506465E-1]
+                       Approx  : [-0.15871914440982744E3 ; -0.29442440592313514E-1] :: Double
+                       Abs Err : [-0.1612638843178377622324642063347794130201E-12 ; 0.1131249523134862193732856437881723057227E-12]
+                       Rel Err : [-0.8037262132110641500497794485461413919033E-15 ; 0.1087562440079161300103746120138817306955E-14]
+[eva] tests/value/numerors/numerors.c:295: 
+  Frama_C_domain_show_each_ex16:
+  res_14 : # Cvalue domain: [-276.076533164 .. -0.0190177456065]
+           # numerors: Exact   : [-0.2760765331640504770698676515851031086582E3 ; -0.1901774560649244635436704521232894339985E-1]
+                       Approx  : [-0.27607653316405055E3 ; -0.19017745606492449E-1] :: Double
+                       Abs Err : [-0.3256292179541437208740488266853534070327E-12 ; 0.2211307468314929517580310302380396746946E-12]
+                       Rel Err : [-0.8484502047655877231613027117059095969693E-15 ; 0.1202567997077699441659111747996405715480E-14]
+[eva] tests/value/numerors/numerors.c:303: 
+  Frama_C_domain_show_each_ex17:
+  res_15 : # Cvalue domain: [-96.2940054272 .. -0.437730749478]
+           # numerors: Exact   : [-0.9629400542724778150250156262812600294936E2 ; -0.4377307494777530136197221375536929084148E0]
+                       Approx  : [-0.96294005427247797E2 ; -0.43773074947775303E0] :: Double
+                       Abs Err : [-0.8468477552955525820717069386585896489452E-13 ; 0.6514096687868988734638545330938000772540E-13]
+                       Rel Err : [-0.7835148480723063129830501593306965288073E-15 ; 0.9659496077498560340092621058073705763325E-15]
+[eva] tests/value/numerors/numerors.c:311: 
+  Frama_C_domain_show_each_ex18:
+  res_16 : # Cvalue domain: [0.23 .. 705.]
+           # numerors: Exact   : [0.2300000000000000144328993201270351179518E0 ; 0.7050000000000000000000000000000000000000E3]
+                       Approx  : [0.23000000000000001E0 ; 0.70500000000000000E3] :: Double
+                       Abs Err : [-0.2398081733190338127315044403076171875000E-12 ; 0.2398081733190338127315044403076171875000E-12]
+                       Rel Err : [-0.7769699762951025096944871633634846936580E-15 ; 0.7769699762951025343386195185366972103319E-15]
+[eva] tests/value/numerors/numerors.c:319: 
+  Frama_C_domain_show_each_ex19:
+  res_17 : # Cvalue domain: [-56604.375 .. -17500.7226562]
+           # numerors: Exact   : [-0.5660437500000000000000000000000000000000E5 ; -0.1750072265625000000000000000000000000000E5]
+                       Approx  : [-0.56604375000000000E5 ; -0.17500722656250000E5] :: Double
+                       Abs Err : [-0.2311573155111545929685235023498535156250E-10 ; 0.2311573155111545929685235023498535156250E-10]
+                       Rel Err : [-0.9599726972336419077172240991279643575220E-15 ; 0.9599726972336419828137219509953929714914E-15]
+[eva] tests/value/numerors/numerors.c:327: 
+  Frama_C_domain_show_each_ex20:
+  res_18 : # Cvalue domain: [-58.3291268902 .. -1.55052857215]
+           # numerors: Exact   : [-0.5832912689020381398067797299148505129648E2 ; -0.1550528572148073522313766360019326035054E1]
+                       Approx  : [-0.58329126890203817E2 ; -0.15505285721480737E1] :: Double
+                       Abs Err : [-0.4730697503829382129027399925956529859776E-13 ; 0.4730697503829382129027399925956529859776E-13]
+                       Rel Err : [-0.3051022463440039392068299689909525546473E-13 ; 0.3051022463440039392068299689909525546473E-13]
+[eva] tests/value/numerors/numerors.c:335: 
+  Frama_C_domain_show_each_ex21:
+  res_19 : # Cvalue domain: [-29.45668 .. -17.2064186047]
+           # numerors: Exact   : [-0.2945668000000000000157247952033272198063E2 ; -0.1720641860465116118096387512384970406998E2]
+                       Approx  : [-0.29456679999999999E2 ; -0.17206418604651159E2] :: Double
+                       Abs Err : [-0.8574649403470366002128123689729074042771E-14 ; 0.8574649403470366002128123689729074042771E-14]
+                       Rel Err : [-0.4983401601744424370920185165421154732898E-15 ; 0.4983401601744424370920185165421154732898E-15]
+[eva] tests/value/numerors/numerors.c:343: 
+  Frama_C_domain_show_each_ex22:
+  res_20 : # Cvalue domain: [0.466095844875 .. 40.3751268902]
+           # numerors: Exact   : [0.4660958448753461188415837845944154629506E0 ; 0.4037512689020381374686500400542710311727E2]
+                       Approx  : [0.46609584487534628E0 ; 0.40375126890203816E2] :: Double
+                       Abs Err : [-0.3847214473505710097066292589685237582544E-13 ; 0.3847214473505710097066292589685237582544E-13]
+                       Rel Err : [-0.7503001469467220611440194097877310286712E-13 ; 0.7503001469467220611440194097877310286712E-13]
+[eva] tests/value/numerors/numerors.c:349: 
+  Frama_C_domain_show_each_ex23:
+  res_21 : # Cvalue domain: [0.314893617021 .. 1.10082644628]
+           # numerors: Exact   : [0.3148936170212766157042358765415951814629E0 ; 0.1100826446280991689748168076657706284150E1]
+                       Approx  : [0.31489361702127666E0 ; 0.11008264462809918E1] :: Double
+                       Abs Err : [-0.3303730805571862333870711656253103896878E-15 ; 0.3716038002337877906151465102741893473761E-15]
+                       Rel Err : [-0.3287861107517272234931398743194668081979E-15 ; 0.3662404431906822043894328428967861666413E-15]
+[eva] tests/value/numerors/numerors.c:355: 
+  Frama_C_domain_show_each_ex24:
+  res_22 : # Cvalue domain: [0.037277059224 .. 0.357101682634]
+           # numerors: Exact   : [0.3727705922396188315553910536810374136040E-1 ; 0.3571016826342484234552761955006389263168E0]
+                       Approx  : [0.37277059223961892E-1 ; 0.35710168263424841E0] :: Double
+                       Abs Err : [-0.1313017243835630183159929396718348939639E-15 ; 0.1399805988350607027320916630544501911918E-15]
+                       Rel Err : [-0.4534121467923005490925282815272109351436E-15 ; 0.4777157971909094354555439318653432884464E-15]
+[eva] tests/value/numerors/numerors.c:361: 
+  Frama_C_domain_show_each_ex25:
+  res_23 : # Cvalue domain: [2097409.2 .. 34343230.]
+           # numerors: Exact   : [0.2097409200000000203193013824945250028307E7 ; 0.3434322999999999796410298932210208492067E8]
+                       Approx  : [0.20974092000000002E7 ; 0.34343230000000000E8] :: Double
+                       Abs Err : [-0.1894834534752476505050509244649967340148E-7 ; 0.1993876287329499120388584774975653479550E-7]
+                       Rel Err : [-0.6826270855317666580438337875158337973839E-15 ; 0.7079318169668344451021328448332520415253E-15]
+[eva] tests/value/numerors/numerors.c:367: 
+  Frama_C_domain_show_each_ex26:
+  res_24 : # Cvalue domain: [0.228628389494 .. 1.53875739135]
+           # numerors: Exact   : [0.2286283894941354341682482558349743716163E0 ; 0.1538757391347667405409134113796570280684E1]
+                       Approx  : [0.22862838949413544E0 ; 0.15387573913476675E1] :: Double
+                       Abs Err : [-0.5181361907845419705744219345541902609430E-15 ; 0.5181361907845419705744219345541902609430E-15]
+                       Rel Err : [-0.1735051065540738928615478866398739207711E-14 ; 0.1735051065540738825042934451768543295544E-14]
+[eva] tests/value/numerors/numerors.c:373: 
+  Frama_C_domain_show_each_ex27:
+  res_25 : # Cvalue domain: [0.8359375 .. 1.5625]
+           # numerors: Exact   : [0.8359375000000000000000000000000000000000E0 ; 0.1562500000000000000000000000000000000000E1]
+                       Approx  : [0.83593750000000000E0 ; 0.15625000000000000E1] :: Double
+                       Abs Err : [-0.5620504062164854985894635319709777832031E-15 ; 0.5620504062164854985894635319709777832031E-15]
+                       Rel Err : [-0.6723593644458891945743115148811696845812E-15 ; 0.6723593644458891945743115148811696845812E-15]
+[eva] tests/value/numerors/numerors.c:379: 
+  Frama_C_domain_show_each_ex28:
+  res_26 : # Cvalue domain: [-1.7261767499 .. -0.0422467640079]
+           # numerors: Exact   : [-0.1726176749901162501132812500000000000004E1 ; -0.4224676400790965999999999999999999998971E-1]
+                       Approx  : [-0.17261767499011627E1 ; -0.42246764007909610E-1] :: Double
+                       Abs Err : [-0.5867853536391490212420248588143346856126E-15 ; 0.5570994050918043816793619293944153365339E-15]
+                       Rel Err : [-0.1075409232850577199876876365727845835922E-13 ; 0.1099687719037347795339717936867396431953E-13]
+[eva] done for function main
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function ex0:
+  x ∈ [0.5 .. 1.]
+  n ∈ [1..14]
+  y ∈ [1.11022302463e-16 .. 0.5]
+  lx ∈ [1.11022302463e-16 .. 0.688541666667]
+  __retres ∈ [1.60171325191e-16 .. 13.9069790712]
+[eva:final-states] Values at end of function ex1:
+  x ∈ [1. .. 10000.]
+  temp ∈ [1. .. 2.]
+[eva:final-states] Values at end of function ex10:
+  __retres ∈ [8. .. 16.]
+[eva:final-states] Values at end of function ex11:
+  __retres ∈ [-10. .. 9.]
+[eva:final-states] Values at end of function ex12:
+  v2 ∈ [-30000000000. .. 30000000000.]
+  v1 ∈ [-30000000000. .. 30000000000.]
+  v0 ∈ [-30000000000. .. 30000000000.]
+  __retres ∈ [-90000000000. .. 90000000000.]
+[eva:final-states] Values at end of function ex13:
+  r1 ∈ [1.00000000001e-05 .. 1.]
+  r2 ∈ [1.0000200001 .. 4.]
+  __retres ∈ [3.33333333336e-06 .. 49999.7500009]
+[eva:final-states] Values at end of function ex14:
+  __retres ∈ [0.333333333333 .. 0.499997500012]
+[eva:final-states] Values at end of function ex15:
+  t1 ∈ [313.4 .. 361.4]
+  __retres ∈ [-158.71914441 .. -0.0294424405923]
+[eva:final-states] Values at end of function ex16:
+  t1 ∈ [307.4 .. 367.4]
+  __retres ∈ [-276.076533164 .. -0.0190177456065]
+[eva:final-states] Values at end of function ex17:
+  t1 ∈ [301.4 .. 349.4]
+  __retres ∈ [-96.2940054272 .. -0.437730749478]
+[eva:final-states] Values at end of function ex18:
+  __retres ∈ [0.23 .. 705.]
+[eva:final-states] Values at end of function ex19:
+  __retres ∈ [-56604.375 .. -17500.7226562]
+[eva:final-states] Values at end of function ex2:
+  x ∈ [1. .. 10000.]
+  temp ∈ [2. .. 3495.]
+[eva:final-states] Values at end of function ex20:
+  __retres ∈ [-58.3291268902 .. -1.55052857215]
+[eva:final-states] Values at end of function ex21:
+  __retres ∈ [-29.45668 .. -17.2064186047]
+[eva:final-states] Values at end of function ex22:
+  __retres ∈ [0.466095844875 .. 40.3751268902]
+[eva:final-states] Values at end of function ex23:
+  r ∈ {4.}
+  K ∈ {1.11}
+  __retres ∈ [0.314893617021 .. 1.10082644628]
+[eva:final-states] Values at end of function ex24:
+  r ∈ {4.}
+  K ∈ {1.11}
+  __retres ∈ [0.037277059224 .. 0.357101682634]
+[eva:final-states] Values at end of function ex25:
+  p ∈ {35000000.}
+  a ∈ {0.401}
+  b ∈ {4.27e-05}
+  t ∈ {300.}
+  n ∈ {1000.}
+  k ∈ {1.3806503e-23}
+  __retres ∈ [2097409.2 .. 34343230.]
+[eva:final-states] Values at end of function ex26:
+  __retres ∈ [0.228628389494 .. 1.53875739135]
+[eva:final-states] Values at end of function ex27:
+  __retres ∈ [0.8359375 .. 1.5625]
+[eva:final-states] Values at end of function ex28:
+  __retres ∈ [-1.7261767499 .. -0.0422467640079]
+[eva:final-states] Values at end of function ex6:
+  __retres ∈ [302.104204 .. 888.8981992]
+[eva:final-states] Values at end of function ex7:
+  __retres ∈ [-0. .. 999.]
+[eva:final-states] Values at end of function ex8:
+  t ∈ [1.002001 .. 4.]
+  __retres ∈ [0.0001334 .. 748.875937031]
+[eva:final-states] Values at end of function ex9:
+  p0 ∈ [0. .. 3.]
+  p1 ∈ [0. .. 3.]
+  p2 ∈ [0. .. 3.]
+  __retres ∈ [0. .. 9.]
+[eva:final-states] Values at end of function ex3:
+  __retres ∈ [0.0337542351052 .. 8.95097760024]
+[eva:final-states] Values at end of function ex3b:
+  __retres ∈ [0.978318343479 .. 3.09371424212]
+[eva:final-states] Values at end of function main:
+  Frama_C_entropy_source ∈ [--..--]
+  __retres ∈ {0}

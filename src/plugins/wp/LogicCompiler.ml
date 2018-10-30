@@ -306,7 +306,7 @@ struct
 
   let getsigma = function Some s -> s | None ->
     Warning.error "No current memory (missing \\at)"
-  
+
   let current e = getsigma e.current
 
   let move_at env s = { env with lhere = Some s ; current = Some s }
@@ -381,7 +381,7 @@ struct
 
   let occurs_pvars f p = Vars.exists f (F.varsp p)
   let occurs_ps x ps = List.exists (F.occursp x) ps
-  
+
   let compile_step
       (name:string)
       (types:string list)
@@ -460,7 +460,7 @@ struct
         let compare = Logic_type_info.compare
         let pretty = Logic_type_info.pretty
       end)
-  
+
   module Signature = Model.Index
       (struct
         type key = logic_info
@@ -729,9 +729,9 @@ struct
   let define_type c t =
     Typedefs.update t () ;
     Definitions.define_type c t
-      
+
   let define_logic c a = Signature.compile (compile_logic c a)
-      
+
   let define_lemma c l =
     if l.lem_labels <> [] && Wp_parameters.has_dkey dkey_lemma then
       Wp_parameters.warning ~source:l.lem_position
@@ -759,7 +759,7 @@ struct
         | Axiomatic ax -> define_axiomatic cluster ax
       end ;
       Definitions.find_lemma l
-  
+
   let signature phi =
     try Signature.find phi
     with Not_found ->
@@ -778,7 +778,7 @@ struct
               ax.ax_name Printer.pp_logic_var phi.l_var_info
 
   let rec logic_type t =
-    match Logic_utils.unroll_type t with
+    match Logic_utils.unroll_type ~unroll_typedef:false t with
     | Ctype _ -> ()
     | Linteger | Lreal | Lvar _ | Larrow _ -> ()
     | Ltype(lt,ps) ->
@@ -804,7 +804,7 @@ struct
       List.iter (fun x -> logic_type x.lv_type) phi.l_profile ;
       Extlib.may logic_type phi.l_type ;
     end
-  
+
   (* -------------------------------------------------------------------------- *)
   (* --- Binding Formal with Actual w.r.t Signature                         --- *)
   (* -------------------------------------------------------------------------- *)
@@ -866,20 +866,20 @@ struct
   let logic_var env x =
     try Logic_var.Map.find x env.vars
     with Not_found ->
-      try
-        (** It is here because currently the application of a function
-            of arity 0 are represented in the AST as a variable not
-            as an application of the function with no arguments *)
-        let cst = Logic_env.find_logic_cons x in
-        let v =
-          match LogicBuiltins.logic cst with
-          | ACSLDEF -> call_fun env cst [] []
-          | HACK phi -> phi []
-          | LFUN f -> e_fun f []
-        in Cvalues.plain x.lv_type v
-      with Not_found ->
-        Wp_parameters.fatal "Unbound logic variable '%a'"
-          Printer.pp_logic_var x
+    try
+      (** It is here because currently the application of a function
+          of arity 0 are represented in the AST as a variable not
+          as an application of the function with no arguments *)
+      let cst = Logic_env.find_logic_cons x in
+      let v =
+        match LogicBuiltins.logic cst with
+        | ACSLDEF -> call_fun env cst [] []
+        | HACK phi -> phi []
+        | LFUN f -> e_fun f []
+      in Cvalues.plain x.lv_type v
+    with Not_found ->
+      Wp_parameters.fatal "Unbound logic variable '%a'"
+        Printer.pp_logic_var x
 
   let logic_info env f =
     try

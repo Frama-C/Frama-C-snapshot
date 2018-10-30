@@ -1,84 +1,84 @@
 [kernel] Parsing tests/misc/widen_hints.c (with preprocessing)
-[value:widen-hints] computing global widen hints
-[value:widen-hints] tests/misc/widen_hints.c:71: 
+[eva:widen-hints] computing global widen hints
+[eva:widen-hints] tests/misc/widen_hints.c:71: 
   adding hint from annotation: a, {87} (for all statements)
-[value:widen-hints] tests/misc/widen_hints.c:87: 
+[eva:widen-hints] tests/misc/widen_hints.c:87: 
   adding hint from annotation: ss, {87} (for all statements)
-[value] Analyzing a complete application starting at main
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing a complete application starting at main
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   x ∈ {9}
   not_const ∈ {42}
-[value:widen-hints] tests/misc/widen_hints.c:72: 
+[eva:widen-hints] tests/misc/widen_hints.c:72: 
   computing dynamic hints for statement 16
-[value] tests/misc/widen_hints.c:72: entering loop for the first time
-[value] tests/misc/widen_hints.c:73: entering loop for the first time
-[value:widen-hints] tests/misc/widen_hints.c:88: 
+[eva] tests/misc/widen_hints.c:73: starting to merge loop iterations
+[eva] tests/misc/widen_hints.c:72: starting to merge loop iterations
+[eva:widen-hints] tests/misc/widen_hints.c:88: 
   computing dynamic hints for statement 30
-[value] tests/misc/widen_hints.c:88: entering loop for the first time
-[value] tests/misc/widen_hints.c:89: entering loop for the first time
-[value:widen-hints] tests/misc/widen_hints.c:97: 
+[eva] tests/misc/widen_hints.c:89: starting to merge loop iterations
+[eva] tests/misc/widen_hints.c:88: starting to merge loop iterations
+[eva:widen-hints] tests/misc/widen_hints.c:97: 
   computing dynamic hints for statement 48
-[value:widen-hints] tests/misc/widen_hints.c:97: 
+[eva:widen-hints] tests/misc/widen_hints.c:97: 
   adding new base due to dynamic widen hint: ip, {87}
-[value] tests/misc/widen_hints.c:97: entering loop for the first time
-[value] tests/misc/widen_hints.c:98: entering loop for the first time
-[value:widen-hints] tests/misc/widen_hints.c:107: 
+[eva] tests/misc/widen_hints.c:98: starting to merge loop iterations
+[eva] tests/misc/widen_hints.c:97: starting to merge loop iterations
+[eva:widen-hints] tests/misc/widen_hints.c:107: 
   computing dynamic hints for statement 67
-[value:widen-hints] tests/misc/widen_hints.c:107: 
+[eva:widen-hints] tests/misc/widen_hints.c:107: 
   adding new base due to dynamic widen hint: ip2, {87}
-[value] tests/misc/widen_hints.c:107: entering loop for the first time
-[value] tests/misc/widen_hints.c:108: entering loop for the first time
-[value:widen-hints] tests/misc/widen_hints.c:118: 
+[eva] tests/misc/widen_hints.c:108: starting to merge loop iterations
+[eva] tests/misc/widen_hints.c:107: starting to merge loop iterations
+[eva:widen-hints] tests/misc/widen_hints.c:118: 
   computing dynamic hints for statement 91
-[value:widen-hints] tests/misc/widen_hints.c:118: 
+[eva:widen-hints] tests/misc/widen_hints.c:118: 
   adding new base due to dynamic widen hint: iarray, {87}
-[value] tests/misc/widen_hints.c:116: entering loop for the first time
-[value] tests/misc/widen_hints.c:118: entering loop for the first time
-[value] computing for function using_dynamic_global <- main.
+[eva] tests/misc/widen_hints.c:118: starting to merge loop iterations
+[eva] tests/misc/widen_hints.c:116: starting to merge loop iterations
+[eva] computing for function using_dynamic_global <- main.
   Called from tests/misc/widen_hints.c:124.
-[value:widen-hints] tests/misc/widen_hints.c:58: 
+[eva:widen-hints] tests/misc/widen_hints.c:58: 
   computing dynamic hints for statement 2
-[value:widen-hints] tests/misc/widen_hints.c:58: 
+[eva:widen-hints] tests/misc/widen_hints.c:58: 
   adding new base due to dynamic widen hint: outer_i, {87}
-[value] Recording results for using_dynamic_global
-[value] Done for function using_dynamic_global
-[value] tests/misc/widen_hints.c:123: entering loop for the first time
-[value] computing for function using_dynamic_global <- main.
+[eva] Recording results for using_dynamic_global
+[eva] Done for function using_dynamic_global
+[eva] computing for function using_dynamic_global <- main.
   Called from tests/misc/widen_hints.c:124.
-[value] tests/misc/widen_hints.c:58: entering loop for the first time
-[value] Recording results for using_dynamic_global
-[value] Done for function using_dynamic_global
-[value] computing for function using_dynamic_global <- main.
+[eva] Recording results for using_dynamic_global
+[eva] Done for function using_dynamic_global
+[eva] tests/misc/widen_hints.c:123: starting to merge loop iterations
+[eva] computing for function using_dynamic_global <- main.
   Called from tests/misc/widen_hints.c:124.
-[value] Recording results for using_dynamic_global
-[value] Done for function using_dynamic_global
-[value] computing for function using_dynamic_global <- main.
+[eva] tests/misc/widen_hints.c:58: starting to merge loop iterations
+[eva] Recording results for using_dynamic_global
+[eva] Done for function using_dynamic_global
+[eva] computing for function using_dynamic_global <- main.
   Called from tests/misc/widen_hints.c:124.
-[value] Recording results for using_dynamic_global
-[value] Done for function using_dynamic_global
-[value] computing for function using_dynamic_global <- main.
+[eva] Recording results for using_dynamic_global
+[eva] Done for function using_dynamic_global
+[eva] computing for function using_dynamic_global <- main.
   Called from tests/misc/widen_hints.c:124.
-[value] Recording results for using_dynamic_global
-[value] Done for function using_dynamic_global
-[value] Recording results for main
-[value] done for function main
-[value] ====== VALUES COMPUTED ======
-[value:final-states] Values at end of function using_dynamic_global:
+[eva] Recording results for using_dynamic_global
+[eva] Done for function using_dynamic_global
+[eva] Recording results for main
+[eva] done for function main
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function using_dynamic_global:
   b ∈ [0..2147483647]
-[value:final-states] Values at end of function main:
+[eva:final-states] Values at end of function main:
   m ∈ {10}
   n ∈ {43}
-  ss.i ∈ {87; 88}
+  ss.i ∈ {87}
     .d ∈ UNINITIALIZED
-  ip ∈ {87; 88}
+  ip ∈ {87}
   p ∈ {{ &ip }}
-  ip2 ∈ {87; 88}
+  ip2 ∈ {87}
   p2 ∈ {{ &ip2 }}
   pp ∈ {{ &p2 }}
   iarray[0] ∈ {0}
-        [1].i ∈ {87; 88}
+        [1].i ∈ {87}
   piarray[0] ∈ {{ &iarray[0] }}
          [1] ∈ {{ &iarray[1] }}
   outer_i ∈ {87}

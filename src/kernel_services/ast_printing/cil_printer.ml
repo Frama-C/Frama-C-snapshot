@@ -42,7 +42,7 @@ module Behavior_extensions = struct
     | Ext_preds preds ->
       Pretty_utils.pp_list ~sep:",@ " printer#predicate fmt preds
 
-  let pp (printer) fmt (_, name, ext) =
+  let pp (printer) fmt (_, name, _, ext) =
     let pp =
       try
         Hashtbl.find printer_tbl name
@@ -53,15 +53,28 @@ module Behavior_extensions = struct
 end
 let register_behavior_extension = Behavior_extensions.register
 
+let register_code_annot_extension = Behavior_extensions.register
+
+let register_loop_annot_extension = Behavior_extensions.register
+
+let register_global_extension = Behavior_extensions.register
+
 (* Internal attributes. Won't be pretty-printed *)
 let reserved_attributes = ref []
-let register_shallow_attribute s = reserved_attributes:=s::!reserved_attributes
+let register_shallow_attribute s =
+  reserved_attributes:=
+    (Extlib.strip_underscore s)::!reserved_attributes
+
+let () = register_shallow_attribute Cil.frama_c_mutable
+let () = register_shallow_attribute Cil.frama_c_init_obj
 
 let keep_attr = function
-  | Attr (s,_) -> not (List.mem s !reserved_attributes)
+  | Attr _ as a -> not (List.mem (Cil.attributeName a) !reserved_attributes)
   | AttrAnnot _ -> true
 
-let filter_printing_attributes l = List.filter keep_attr l
+let filter_printing_attributes l =
+  if Kernel.(is_debug_key_enabled dkey_print_attrs) then l
+  else List.filter keep_attr l
 
 let needs_quote =
   let regex = Str.regexp "^[A-Za-z0-9_]+$" in
@@ -485,10 +498,7 @@ class cil_printer () = object (self)
   method private may_be_skipped s = s.labels = []
 
   method location fmt loc =
-    let loc = (fst loc) in
-    Format.fprintf fmt "%s:%d"
-      (Filepath.pretty loc.Lexing.pos_fname)
-      loc.Lexing.pos_lnum
+    Format.fprintf fmt "%a" Filepath.pp_pos (fst loc)
 
   (* constant *)
   method constant fmt = function
@@ -1077,10 +1087,11 @@ class cil_printer () = object (self)
      match blk.bstmts, attrs, blk.blocals, ctxt with
      | _, _, _ :: _,_ | _, _ :: _, _, _ -> true
      | _::_::_,[],[],Stmt_block s ->
-       not (Cil.has_extern_local_init blk) && self#stmt_has_annot s
+       not (Cil.has_extern_local_init blk) &&
+        (self#stmt_has_annot s || s.labels <> [])
        (* Do not put braces around a Local_init statement if we are not
           in the appropriate block. This trumps the presence of a binding
-          annotation, in case of something like:
+          annotation (or a label at block level, in case of something like:
           { /* start of scoping block */
            //@ slicing pragma stmt;
            /* { */ /* start of non-scoping block
@@ -1095,9 +1106,11 @@ class cil_printer () = object (self)
         gives us at least a correct, compilable, C code.
        *)
      | _::_::_,[],[],_ -> is_cfg_block ctxt
-     | [ { skind = Block b } as s' ], [], [], Stmt_block _ ->
-       b.bscoping && self#require_braces ctxt b &&
-       not (self#require_braces (Stmt_block s') b)
+     | [ { skind = Block b } as s' ], [], [], Stmt_block s ->
+       (b.bscoping ||
+        (not (Cil.has_extern_local_init b) && self#stmt_has_annot s))
+       && self#require_braces ctxt b
+       && not (self#require_braces (Stmt_block s') b)
        (* If b wants braces in current context but not in subcontext, put
           braces directly there. Otherwise, wait for children to do it. *)
      | [ { skind = Block b } ], [], [], _ -> self#require_braces ctxt b
@@ -1151,7 +1164,7 @@ class cil_printer () = object (self)
       ?(cut=true) ctxt fmt blk =
     let braces = self#require_braces ctxt blk in
     let inline = not braces && self#inline_block ctxt blk in
-    if braces then pp_print_char fmt '{';
+    if braces then Format.pp_print_char fmt '{';
     if braces && not inline then pp_print_space fmt ();
     if blk.blocals <> [] && verbose then
       fprintf fmt "@[/* Locals: %a */@]@ "
@@ -1189,17 +1202,17 @@ class cil_printer () = object (self)
 
   (* Store here the name of the last file printed in a line number. This is
      private to the object *)
-  val mutable lastFileName = ""
+  val mutable lastFileName = Datatype.Filepath.dummy
   val mutable lastLineNumber = -1
 
   (* Make sure that you only call self#line_directive on an empty line *)
   method line_directive ?(forcefile=false) fmt l =
     match state.line_directive_style with
     | None -> ()
-    | Some _ when (fst l).Lexing.pos_lnum <= 0 -> ()
+    | Some _ when (fst l).Filepath.pos_lnum <= 0 -> ()
 
     (* Do not print lineComment if the same line as above *)
-    | Some Line_comment_sparse when (fst l).Lexing.pos_lnum = lastLineNumber -> 
+    | Some Line_comment_sparse when (fst l).Filepath.pos_lnum = lastLineNumber -> 
       ()
 
     | Some style  ->
@@ -1208,16 +1221,18 @@ class cil_printer () = object (self)
 	| Line_preprocessor_output when not (Cil.msvcMode ()) -> "#"
 	| Line_preprocessor_output | Line_preprocessor_input -> "#line"
       in
-      lastLineNumber <- (fst l).Lexing.pos_lnum;
+      let pos = fst l in
+      lastLineNumber <- pos.Filepath.pos_lnum;
       let filename =
-	if forcefile || (fst l).Lexing.pos_fname <> lastFileName then begin
-	  lastFileName <- (fst l).Lexing.pos_fname;
-	  " \"" ^ (Filepath.pretty (fst l).Lexing.pos_fname) ^ "\""
+        if forcefile || pos.Filepath.pos_path <> lastFileName then begin
+          lastFileName <- pos.Filepath.pos_path;
+          Format.asprintf " \"%a\""
+            Datatype.Filepath.pretty pos.Filepath.pos_path
 	end else
 	  ""
       in
       fprintf fmt "@[@<0>\n@<0>%s@<0> @<0>%d@<0> @<0>%s@]@\n" 
-	directive (fst l).Lexing.pos_lnum filename
+	directive (fst l).Filepath.pos_lnum filename
 
   method stmtkind (next: stmt) fmt = function
     | UnspecifiedSequence seq ->
@@ -2653,8 +2668,8 @@ class cil_printer () = object (self)
       self#pp_acsl_keyword "requires"
       self#identified_predicate p
 
-  method extended fmt (id, name, ext) =
-    Behavior_extensions.pp (self :> extensible_printer_type) fmt (id,name,ext)
+  method extended fmt (id, name, l,ext) =
+    Behavior_extensions.pp (self :> extensible_printer_type) fmt (id,name,l,ext)
 
   method post_cond fmt (k,p) =
     let kw = get_termination_kind_name k in
@@ -2906,9 +2921,10 @@ class cil_printer () = object (self)
         self#predicate i
     | AVariant v ->
       self#variant fmt v
-    | AExtended (behav, e) ->
-      fprintf fmt "@[<2>%aloop %a@]"
-        pp_for_behavs behav
+    | AExtended (behav, is_loop, e) ->
+      let prefix = if is_loop then "loop " else "" in
+      fprintf fmt "@[<2>%a%s%a@]"
+        pp_for_behavs behav prefix
         (Behavior_extensions.pp (self:>Printer_api.extensible_printer_type)) e
 
   method private logicPrms fmt arg =
@@ -3098,6 +3114,7 @@ class cil_printer () = object (self)
         (Pretty_utils.pp_list ~pre:"@[<v 0>" ~suf:"@]@\n" ~sep:"@\n"
 	   self#global_annotation)
         decls
+    | Dextended (e,_attr,_) -> self#extended fmt e
 
   method logic_type_def fmt = function
     | LTsum l ->

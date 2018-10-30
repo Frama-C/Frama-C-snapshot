@@ -46,7 +46,7 @@ val parse :
   ?default:setup ->
   ?warning:(string -> unit) ->
   string list -> setup
-(** 
+(**
    Apply specifications to default setup.
    Default setup is [Factory.default].
    Default warning is [Wp_parameters.abort]. *)

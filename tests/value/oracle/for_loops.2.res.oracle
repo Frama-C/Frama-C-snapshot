@@ -1,17 +1,16 @@
 [kernel] Parsing tests/value/for_loops.c (with preprocessing)
-[value] Analyzing a complete application starting at main_3
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
-  Frama_C_entropy_source ∈ [--..--]
+[eva] Analyzing a complete application starting at main_3
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   x ∈ {0}
-[value] computing for function Frama_C_interval <- main_3.
+[eva] computing for function Frama_C_interval <- main_3.
   Called from tests/value/for_loops.c:37.
-[value] using specification for function Frama_C_interval
-[value] tests/value/for_loops.c:37: 
+[eva] using specification for function Frama_C_interval
+[eva] tests/value/for_loops.c:37: 
   function Frama_C_interval: precondition 'order' got status valid.
-[value] Done for function Frama_C_interval
-[value] tests/value/for_loops.c:39: 
+[eva] Done for function Frama_C_interval
+[eva] tests/value/for_loops.c:39: 
   Frama_C_dump_each:
   # Cvalue domain:
   Frama_C_entropy_source ∈ [--..--]
@@ -21,8 +20,8 @@
   nSelectors ∈ [0..1000]
   w ∈ {0}
   ==END OF DUMP==
-[value] tests/value/for_loops.c:40: entering loop for the first time
-[value] tests/value/for_loops.c:41: 
+[eva] tests/value/for_loops.c:40: starting to merge loop iterations
+[eva] tests/value/for_loops.c:41: 
   Frama_C_dump_each:
   # Cvalue domain:
   Frama_C_entropy_source ∈ [--..--]
@@ -32,16 +31,16 @@
   nSelectors ∈ [0..1000]
   w ∈ {0}
   ==END OF DUMP==
-[value] tests/value/for_loops.c:42: entering loop for the first time
-[value:alarm] tests/value/for_loops.c:42: Warning: 
+[eva:alarm] tests/value/for_loops.c:42: Warning: 
   accessing uninitialized left-value. assert \initialized(&T[j]);
-[value:alarm] tests/value/for_loops.c:42: Warning: 
+[eva] tests/value/for_loops.c:42: starting to merge loop iterations
+[eva:alarm] tests/value/for_loops.c:42: Warning: 
   signed overflow. assert w + T[j] ≤ 2147483647;
-[value] tests/value/for_loops.c:43: Frama_C_show_each: [0..2147483647]
-[value] Recording results for main_3
-[value] done for function main_3
-[value] ====== VALUES COMPUTED ======
-[value:final-states] Values at end of function main_3:
+[eva] tests/value/for_loops.c:43: Frama_C_show_each: [0..2147483647]
+[eva] Recording results for main_3
+[eva] done for function main_3
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function main_3:
   Frama_C_entropy_source ∈ [--..--]
   j ∈ [0..1000]
   T[0..999] ∈ {1} or UNINITIALIZED

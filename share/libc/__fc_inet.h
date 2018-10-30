@@ -37,7 +37,9 @@ __PUSH_FC_STDLIB
 __BEGIN_DECLS
 
 #include "__fc_string_axiomatic.h"
+#include "__fc_define_pthread_types.h"
 #include "inttypes.h"
+#include "signal.h"
 #include "sys/socket.h"
 
 ////////// DEFINITIONS BELOW WERE ORIGINALLY IN <netinet/in.h>
@@ -358,7 +360,7 @@ extern uint16_t ntohs(uint16_t arg);
 extern in_addr_t inet_addr(const char *arg);
 
 volatile char __fc_inet_ntoa_array[16];
-char *__fc_inet_ntoa = __fc_inet_ntoa_array;
+char *__fc_inet_ntoa = (char*)__fc_inet_ntoa_array;
 
 /*@
   assigns \result \from indirect:arg, __fc_inet_ntoa;

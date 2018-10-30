@@ -1,19 +1,19 @@
 [kernel] Parsing tests/value/control.i (no preprocessing)
-[value] Analyzing a complete application starting at f
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing a complete application starting at f
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   x ∈ {0}
   y ∈ {0}
   c ∈ {0}
   d ∈ {0}
-[value] tests/value/control.i:11: entering loop for the first time
-[value:alarm] tests/value/control.i:14: Warning: 
+[eva] tests/value/control.i:11: starting to merge loop iterations
+[eva:alarm] tests/value/control.i:14: Warning: 
   signed overflow. assert x + 1 ≤ 2147483647;
-[value] Recording results for f
-[value] done for function f
-[value] ====== VALUES COMPUTED ======
-[value:final-states] Values at end of function f:
+[eva] Recording results for f
+[eva] done for function f
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function f:
   x ∈ [0..2147483647]
   i ∈ {4}
 [from] Computing for function f

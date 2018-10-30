@@ -1,15 +1,15 @@
 [kernel] Parsing tests/slicing/csmith.i (no preprocessing)
-[value] Analyzing a complete application starting at bts906c
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing a complete application starting at bts906c
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   G1 ∈ {0}
   G1b ∈ {0}
   G2 ∈ {0}
-[value] tests/slicing/csmith.i:189: entering loop for the first time
-[value] tests/slicing/csmith.i:190: entering loop for the first time
-[value] Recording results for bts906c
-[value] done for function bts906c
+[eva] tests/slicing/csmith.i:189: starting to merge loop iterations
+[eva] tests/slicing/csmith.i:190: starting to merge loop iterations
+[eva] Recording results for bts906c
+[eva] done for function bts906c
 [pdg] computing for function bts906c
 [pdg] done for function bts906c
 [pdg] PDG for bts906c

@@ -1,0 +1,76 @@
+[e-acsl] beginning translation.
+[e-acsl] translation done in project "e-acsl".
+[eva] Analyzing a complete application starting at main
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
+  __e_acsl_init ∈ [--..--]
+  __e_acsl_heap_allocation_size ∈ [--..--]
+  __e_acsl_math_HUGE_VAL ∈ [-1.79769313486e+308 .. 1.79769313486e+308]
+  __e_acsl_math_HUGE_VALF ∈ [-3.40282346639e+38 .. 3.40282346639e+38]
+  __e_acsl_math_INFINITY ∈ [-1.79769313486e+308 .. 1.79769313486e+308]
+  A ∈ {0}
+[eva] using specification for function __e_acsl_memory_init
+[eva] using specification for function __e_acsl_store_block
+[eva] using specification for function __e_acsl_full_init
+[eva] using specification for function __gmpz_init_set_si
+[eva] using specification for function __gmpz_init_set
+[eva] using specification for function __gmpz_clear
+[eva] using specification for function __e_acsl_delete_block
+[eva] using specification for function __gmpz_cmp
+[eva] using specification for function __e_acsl_assert
+[eva:alarm] tests/gmp/at.i:35: Warning: 
+  function __e_acsl_assert: precondition got status unknown.
+[eva] using specification for function __gmpz_init
+[eva] using specification for function __gmpz_add
+[eva:alarm] tests/gmp/at.i:43: Warning: 
+  function __gmpz_init_set: precondition ¬\initialized(z) got status unknown.
+[eva:alarm] tests/gmp/at.i:43: Warning: 
+  function __e_acsl_assert: precondition got status unknown.
+[eva:alarm] tests/gmp/at.i:9: Warning: 
+  function __gmpz_init_set: precondition ¬\initialized(z) got status unknown.
+[eva:alarm] tests/gmp/at.i:11: Warning: 
+  function __e_acsl_assert: precondition got status unknown.
+[eva] tests/gmp/at.i:12: 
+  cannot evaluate ACSL term, \at() on a C label is unsupported
+[eva:alarm] tests/gmp/at.i:12: Warning: assertion got status unknown.
+[eva:alarm] tests/gmp/at.i:12: Warning: 
+  function __e_acsl_assert: precondition got status unknown.
+[eva:alarm] tests/gmp/at.i:13: Warning: 
+  function __e_acsl_assert: precondition got status unknown.
+[eva] tests/gmp/at.i:14: 
+  cannot evaluate ACSL term, \at() on a C label is unsupported
+[eva:alarm] tests/gmp/at.i:14: Warning: assertion got status unknown.
+[eva:alarm] tests/gmp/at.i:14: Warning: 
+  function __e_acsl_assert: precondition got status unknown.
+[eva:alarm] tests/gmp/at.i:7: Warning: 
+  function __e_acsl_assert: precondition got status unknown.
+[eva] tests/gmp/at.i:48: 
+  cannot evaluate ACSL term, \at() on a C label is unsupported
+[eva:alarm] tests/gmp/at.i:48: Warning: assertion got status unknown.
+[eva:alarm] tests/gmp/at.i:48: Warning: 
+  function __e_acsl_assert: precondition got status unknown.
+[eva] tests/gmp/at.i:49: 
+  cannot evaluate ACSL term, \at() on a C label is unsupported
+[eva:alarm] tests/gmp/at.i:49: Warning: assertion got status unknown.
+[eva:alarm] tests/gmp/at.i:49: Warning: 
+  function __e_acsl_assert: precondition got status unknown.
+[eva] tests/gmp/at.i:50: 
+  cannot evaluate ACSL term, \at() on a C label is unsupported
+[eva:alarm] tests/gmp/at.i:50: Warning: assertion got status unknown.
+[eva:alarm] tests/gmp/at.i:50: Warning: 
+  function __e_acsl_assert: precondition got status unknown.
+[eva] using specification for function __e_acsl_initialize
+[eva] using specification for function __e_acsl_valid_read
+[eva] tests/gmp/at.i:26: 
+  cannot evaluate ACSL term, \at() on a C label is unsupported
+[eva:alarm] tests/gmp/at.i:26: Warning: assertion got status unknown.
+[eva:alarm] tests/gmp/at.i:26: Warning: 
+  function __e_acsl_assert: precondition got status unknown.
+[eva] tests/gmp/at.i:28: 
+  cannot evaluate ACSL term, \at() on a C label is unsupported
+[eva:alarm] tests/gmp/at.i:28: Warning: assertion got status unknown.
+[eva:alarm] tests/gmp/at.i:28: Warning: 
+  function __e_acsl_assert: precondition got status unknown.
+[eva] using specification for function __e_acsl_memory_clean
+[eva] done for function main

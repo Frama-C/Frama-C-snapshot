@@ -61,8 +61,7 @@ val pp_bool : Format.formatter -> bool -> unit
 val pp_int : Format.formatter -> int -> unit
 val pp_char : Format.formatter -> char -> unit
 val pp_float : Format.formatter -> float -> unit
-val pp_variant :
-  'a Pretty_utils.formatter -> ('a * string option) Pretty_utils.formatter
+val pp_variant : Cil_types.variant Pretty_utils.formatter
 val pp_allocation :
   Format.formatter -> Cil_types.allocation -> unit
 val pp_deps :
@@ -109,6 +108,7 @@ val pp_stmtkind : Format.formatter -> Cil_types.stmtkind -> unit
 val pp_catch_binder : Cil_types.catch_binder Pretty_utils.formatter
 val pp_instr : Cil_types.instr Pretty_utils.formatter
 val pp_extended_asm : Cil_types.extended_asm Pretty_utils.formatter
+val pp_filepath_position : Format.formatter -> Filepath.position -> unit
 val pp_lexing_position : Format.formatter -> Lexing.position -> unit
 val pp_location : Format.formatter -> Cil_types.location -> unit
 val pp_logic_constant : Format.formatter -> Cil_types.logic_constant -> unit

@@ -2,16 +2,16 @@
    OPT: -wp -wp-par 1
 */
 
-int t[20]; 
+int t[20];
 
-int mat[10][5]; 
+int mat[10][5];
 
-struct S {int i; int tab[4];}; 
+struct S {int i; int tab[4];};
 
-int x; 
+int x;
 
 struct S s;
-struct S ts[4]; 
+struct S ts[4];
 
 /*@
    ensures Pt: \block_length(&t) == 20*sizeof(int) ;

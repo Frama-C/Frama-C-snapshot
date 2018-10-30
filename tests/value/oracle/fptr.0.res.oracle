@@ -9,10 +9,10 @@
   int (*)(void)
   and
   short (*)()
-[value] Analyzing a complete application starting at main
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing a complete application starting at main
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   R ∈ {77}
   v ∈ [--..--]
   n ∈ {0}
@@ -22,108 +22,88 @@
   GLOBAL[0..9] ∈ {0}
   G ∈ {0}
   TA ∈ {0}
-[value] computing for function retshort <- main.
+[eva] computing for function retshort <- main.
   Called from tests/value/fptr.i:42.
-[value] Recording results for retshort
-[value] Done for function retshort
-[value] computing for function retint <- main.
+[eva] Recording results for retshort
+[eva] Done for function retshort
+[eva] computing for function retint <- main.
   Called from tests/value/fptr.i:43.
-[value] Recording results for retint
-[value] Done for function retint
-[value:alarm] tests/value/fptr.i:44: Warning: 
+[eva] Recording results for retint
+[eva] Done for function retint
+[eva:alarm] tests/value/fptr.i:44: Warning: 
   pointer to function with incompatible type.
   assert \valid_function((int (*)(void))(&retshort));
-[value:alarm] tests/value/fptr.i:45: Warning: 
+[eva:alarm] tests/value/fptr.i:45: Warning: 
   pointer to function with incompatible type.
   assert \valid_function((short (*)(void))(&retint));
-[value] tests/value/fptr.i:50: entering loop for the first time
-[value] tests/value/fptr.i:51: Frama_C_show_each_F: {{ &h }}
-[value] computing for function f <- main.
+[eva] tests/value/fptr.i:51: Frama_C_show_each_F: {{ &h }}
+[eva] computing for function f <- main.
   Called from tests/value/fptr.i:52.
-[value] computing for function h <- f <- main.
+[eva] computing for function h <- f <- main.
   Called from tests/value/fptr.i:9.
-[value] Recording results for h
-[value] Done for function h
-[value] Recording results for f
-[value] Done for function f
-[value] tests/value/fptr.i:52: Frama_C_show_each: {0}
-[value] tests/value/fptr.i:51: Frama_C_show_each_F: {{ &h ; &hh }}
-[value] computing for function f <- main.
+[eva] Recording results for h
+[eva] Done for function h
+[eva] Recording results for f
+[eva] Done for function f
+[eva] tests/value/fptr.i:52: Frama_C_show_each: {0}
+[eva] tests/value/fptr.i:50: starting to merge loop iterations
+[eva] tests/value/fptr.i:51: Frama_C_show_each_F: {{ &h ; &hh }}
+[eva] computing for function f <- main.
   Called from tests/value/fptr.i:52.
-[value] computing for function hh <- f <- main.
+[eva] computing for function hh <- f <- main.
   Called from tests/value/fptr.i:9.
-[value] Recording results for hh
-[value] Done for function hh
-[value] computing for function h <- f <- main.
-  Called from tests/value/fptr.i:9.
-[value] Recording results for h
-[value] Done for function h
-[value] Recording results for f
-[value] Done for function f
-[value] tests/value/fptr.i:52: Frama_C_show_each: {0; 1}
-[value] tests/value/fptr.i:51: Frama_C_show_each_F: {{ NULL ; &h ; &hh }}
-[value] computing for function f <- main.
+[eva] Recording results for hh
+[eva] Done for function hh
+[eva] tests/value/fptr.i:9: Reusing old results for call to h
+[eva] Recording results for f
+[eva] Done for function f
+[eva] tests/value/fptr.i:52: Frama_C_show_each: {0; 1}
+[eva] tests/value/fptr.i:51: Frama_C_show_each_F: {{ NULL ; &h ; &hh }}
+[eva] computing for function f <- main.
   Called from tests/value/fptr.i:52.
-[value:alarm] tests/value/fptr.i:9: Warning: 
+[eva:alarm] tests/value/fptr.i:9: Warning: 
   pointer to function with incompatible type. assert \valid_function(ptr);
-[value] computing for function hh <- f <- main.
-  Called from tests/value/fptr.i:9.
-[value] Recording results for hh
-[value] Done for function hh
-[value] computing for function h <- f <- main.
-  Called from tests/value/fptr.i:9.
-[value] Recording results for h
-[value] Done for function h
-[value] Recording results for f
-[value] Done for function f
-[value] tests/value/fptr.i:52: Frama_C_show_each: {0; 1}
-[value] tests/value/fptr.i:51: Frama_C_show_each_F: {{ NULL ; &h ; &hh }}
-[value] computing for function f <- main.
-  Called from tests/value/fptr.i:52.
-[value] computing for function hh <- f <- main.
-  Called from tests/value/fptr.i:9.
-[value] Recording results for hh
-[value] Done for function hh
-[value] computing for function h <- f <- main.
-  Called from tests/value/fptr.i:9.
-[value] Recording results for h
-[value] Done for function h
-[value] Recording results for f
-[value] Done for function f
-[value:alarm] tests/value/fptr.i:56: Warning: 
+[eva] tests/value/fptr.i:9: Reusing old results for call to hh
+[eva] tests/value/fptr.i:9: Reusing old results for call to h
+[eva] Recording results for f
+[eva] Done for function f
+[eva] tests/value/fptr.i:52: Frama_C_show_each: {0; 1}
+[eva] tests/value/fptr.i:51: Frama_C_show_each_F: {{ NULL ; &h ; &hh }}
+[eva] tests/value/fptr.i:52: Reusing old results for call to f
+[eva:alarm] tests/value/fptr.i:56: Warning: 
   division by zero. assert (int)(c & 64) ≢ 0;
-[value] computing for function hh <- main.
+[eva] computing for function hh <- main.
   Called from tests/value/fptr.i:56.
-[value] Recording results for hh
-[value] Done for function hh
-[value] computing for function h <- main.
+[eva] Recording results for hh
+[eva] Done for function hh
+[eva] computing for function h <- main.
   Called from tests/value/fptr.i:56.
-[value] Recording results for h
-[value] Done for function h
-[value] Recording results for main
-[value] done for function main
-[value] tests/value/fptr.i:44: 
-  assertion 'Value,function_pointer' got final status invalid.
-[value] tests/value/fptr.i:45: 
-  assertion 'Value,function_pointer' got final status invalid.
-[value] ====== VALUES COMPUTED ======
-[value:final-states] Values at end of function h:
+[eva] Recording results for h
+[eva] Done for function h
+[eva] Recording results for main
+[eva] done for function main
+[eva] tests/value/fptr.i:44: 
+  assertion 'Eva,function_pointer' got final status invalid.
+[eva] tests/value/fptr.i:45: 
+  assertion 'Eva,function_pointer' got final status invalid.
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function h:
   X ∈ {0; 1}
   XH ∈ {0; 1}
-[value:final-states] Values at end of function hh:
+[eva:final-states] Values at end of function hh:
   X ∈ {0; 2}
   XHH ∈ {0; 1}
-[value:final-states] Values at end of function f:
+[eva:final-states] Values at end of function f:
   R ∈ {1; 2}
   n ∈ {1; 2; 3}
   X ∈ {1; 2}
   XH ∈ {0; 1}
   XHH ∈ {0; 1}
-[value:final-states] Values at end of function retint:
+[eva:final-states] Values at end of function retint:
   __retres ∈ {42}
-[value:final-states] Values at end of function retshort:
+[eva:final-states] Values at end of function retshort:
   __retres ∈ {12}
-[value:final-states] Values at end of function main:
+[eva:final-states] Values at end of function main:
   R ∈ {1; 2; 77}
   n ∈ {0; 1; 2; 3}
   X ∈ {0; 1; 2; 77}

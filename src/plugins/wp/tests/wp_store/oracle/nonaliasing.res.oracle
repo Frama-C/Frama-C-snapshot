@@ -23,11 +23,8 @@ Assume {
   (* Heap *)
   Have: (region(p.base) <= 0) /\ (region(q.base) <= 0) /\ linked(Malloc_0).
   (* Pre-condition *)
-  Have: valid_rw(Malloc_0, p, 1).
-  (* Pre-condition *)
-  Have: valid_rw(Malloc_0, q, 1).
-  (* Pre-condition *)
-  Have: (0 <= x) /\ (0 <= x_1) /\ (x <= 199) /\ (x_1 <= 199).
+  Have: (0 <= x) /\ (0 <= x_1) /\ (x <= 199) /\ (x_1 <= 199) /\
+      valid_rw(Malloc_0, p, 1) /\ valid_rw(Malloc_0, q, 1).
 }
 Prove: x_5 = x_2.
 
@@ -47,11 +44,8 @@ Assume {
   (* Heap *)
   Have: (region(p.base) <= 0) /\ (region(q.base) <= 0) /\ linked(Malloc_0).
   (* Pre-condition *)
-  Have: valid_rw(Malloc_0, p, 1).
-  (* Pre-condition *)
-  Have: valid_rw(Malloc_0, q, 1).
-  (* Pre-condition *)
-  Have: (0 <= x) /\ (0 <= x_1) /\ (x <= 199) /\ (x_1 <= 199).
+  Have: (0 <= x) /\ (0 <= x_1) /\ (x <= 199) /\ (x_1 <= 199) /\
+      valid_rw(Malloc_0, p, 1) /\ valid_rw(Malloc_0, q, 1).
 }
 Prove: x_2 = x_1.
 
@@ -71,11 +65,8 @@ Assume {
   (* Heap *)
   Have: (region(p.base) <= 0) /\ (region(q.base) <= 0) /\ linked(Malloc_0).
   (* Pre-condition *)
-  Have: valid_rw(Malloc_0, p, 1).
-  (* Pre-condition *)
-  Have: valid_rw(Malloc_0, q, 1).
-  (* Pre-condition *)
-  Have: (0 <= x) /\ (0 <= x_1) /\ (x <= 199) /\ (x_1 <= 199).
+  Have: (0 <= x) /\ (0 <= x_1) /\ (x <= 199) /\ (x_1 <= 199) /\
+      valid_rw(Malloc_0, p, 1) /\ valid_rw(Malloc_0, q, 1).
 }
 Prove: x_5 = x_2.
 
@@ -93,11 +84,8 @@ Assume {
   (* Heap *)
   Have: (region(p.base) <= 0) /\ (region(q.base) <= 0) /\ linked(Malloc_0).
   (* Pre-condition *)
-  Have: valid_rw(Malloc_0, p, 1).
-  (* Pre-condition *)
-  Have: valid_rw(Malloc_0, q, 1).
-  (* Pre-condition *)
-  Have: (0 <= x) /\ (0 <= x_1) /\ (x <= 199) /\ (x_1 <= 199).
+  Have: (0 <= x) /\ (0 <= x_1) /\ (x <= 199) /\ (x_1 <= 199) /\
+      valid_rw(Malloc_0, p, 1) /\ valid_rw(Malloc_0, q, 1).
 }
 Prove: x_2 = x_1.
 

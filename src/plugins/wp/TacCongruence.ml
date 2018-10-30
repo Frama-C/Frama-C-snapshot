@@ -56,7 +56,7 @@ let pp_pattern fmt = function
   | IDIV_K(e,k) -> Format.fprintf fmt "@[<hov 2>(%a : int)/%s@]" F.pp_term e (Integer.to_string k)
   | QDIV(a,b) -> Format.fprintf fmt "@[<hov 2>(%a : real)@,/(%a : real)@]" F.pp_term a F.pp_term b
 *)
-          
+
 let to_term = function
   | IMUL_K(k,a) -> F.e_times k a
   | IDIV_K(a,k) -> F.e_div a (F.e_zint k)
@@ -136,7 +136,7 @@ let rec compare cmp a b =
       let ka = Integer.div p g in
       let kb = Integer.div q g in
       compare_div cmp (F.e_times ka a) (F.e_times kb b) (F.e_zint g)
-        
+
   | QDIV(a,u) , QDIV(b,v) -> compare_ratio cmp a u b v
   | QDIV(a,u) , (Ival(b,_) | Rval b) -> compare_ratio cmp a u b F.e_one
   | (Ival(a,_) | Rval a) , QDIV(b,v) -> compare_ratio cmp a F.e_one b v
@@ -188,7 +188,7 @@ class congruence =
         ~title:"Congruence"
         ~descr:"Euclidian Comparisons"
         ~params:[]
-    
+
     method select _feedback = function
       | Tactical.Clause(Tactical.Goal p) ->
           let q = select p in

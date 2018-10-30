@@ -1,4 +1,4 @@
-# frama-c -wp [...]
+# frama-c -wp -wp-timeout 90 -wp-steps 50 [...]
 [kernel] Parsing tests/wp/wp_behav.c (with preprocessing)
 [wp] Running WP plugin...
 [wp] Loading driver 'share/wp.driver'

@@ -1,0 +1,15 @@
+[e-acsl] beginning translation.
+[e-acsl] translation done in project "e-acsl".
+[eva] tests/bts/bts1395.i:9: Warning: 
+  recursive call during value analysis
+  of __gen_e_acsl_fact (__gen_e_acsl_fact <- fact :: tests/bts/bts1395.i:7 <-
+                                             __gen_e_acsl_fact :: tests/bts/bts1395.i:13 <-
+                                             main).
+  Assuming the call has no effect. The analysis will be unsound.
+[eva:alarm] tests/bts/bts1395.i:9: Warning: 
+  signed overflow. assert -2147483648 ≤ n * tmp;
+                   (tmp from fact(n - 1))
+[eva:alarm] tests/bts/bts1395.i:9: Warning: 
+  signed overflow. assert n * tmp ≤ 2147483647;
+                   (tmp from fact(n - 1))
+[eva:alarm] tests/bts/bts1395.i:14: Warning: assertion got status unknown.

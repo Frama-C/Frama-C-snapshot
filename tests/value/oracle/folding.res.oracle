@@ -1,40 +1,40 @@
 [kernel] Parsing tests/value/folding.i (no preprocessing)
-[value] Analyzing a complete application starting at main
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing a complete application starting at main
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   
-[value] computing for function g <- main.
+[eva] computing for function g <- main.
   Called from tests/value/folding.i:23.
-[value] computing for function f <- g <- main.
+[eva] computing for function f <- g <- main.
   Called from tests/value/folding.i:11.
-[value] Recording results for f
-[value] Done for function f
-[value] Recording results for g
-[value] Done for function g
-[value] computing for function foo <- main.
+[eva] Recording results for f
+[eva] Done for function f
+[eva] Recording results for g
+[eva] Done for function g
+[eva] computing for function foo <- main.
   Called from tests/value/folding.i:24.
-[value] Recording results for foo
-[value] Done for function foo
-[value] computing for function foo <- main.
+[eva] Recording results for foo
+[eva] Done for function foo
+[eva] computing for function foo <- main.
   Called from tests/value/folding.i:24.
-[value] Recording results for foo
-[value] Done for function foo
-[value] Recording results for main
-[value] done for function main
-[value] ====== VALUES COMPUTED ======
-[value:final-states] Values at end of function f:
+[eva] Recording results for foo
+[eva] Done for function foo
+[eva] Recording results for main
+[eva] done for function main
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function f:
   
-[value:final-states] Values at end of function foo:
+[eva:final-states] Values at end of function foo:
   unknown ∈ [--..--]
   __retres ∈ {8; 9; 779}
-[value:final-states] Values at end of function g:
+[eva:final-states] Values at end of function g:
   pfct ∈ {{ &f }}
   un ∈ {1}
   p ∈ {{ &deux }}
   deux ∈ {2}
   trois ∈ {5}
-[value:final-states] Values at end of function main:
+[eva:final-states] Values at end of function main:
   a ∈ {17; 18; 787; 788}
   b ∈ {4}
   c ∈ {33; 34; 803; 804}

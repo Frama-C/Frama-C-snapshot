@@ -1,29 +1,29 @@
 [kernel] Parsing tests/value/invalid_loc_return.i (no preprocessing)
-[value] Analyzing a complete application starting at main1
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing a complete application starting at main1
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   c ∈ [--..--]
-[value] computing for function main <- main1.
+[eva] computing for function main <- main1.
   Called from tests/value/invalid_loc_return.i:21.
-[value] computing for function foo <- main <- main1.
+[eva] computing for function foo <- main <- main1.
   Called from tests/value/invalid_loc_return.i:17.
-[value] Recording results for foo
-[value] Done for function foo
-[value:alarm] tests/value/invalid_loc_return.i:17: Warning: 
+[eva] Recording results for foo
+[eva] Done for function foo
+[eva:alarm] tests/value/invalid_loc_return.i:17: Warning: 
   accessing uninitialized left-value. assert \initialized(&p);
-[value] Recording results for main
-[value] Done for function main
-[value] Recording results for main1
-[value] done for function main1
-[value] ====== VALUES COMPUTED ======
-[value:final-states] Values at end of function foo:
+[eva] Recording results for main
+[eva] Done for function main
+[eva] Recording results for main1
+[eva] done for function main1
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function foo:
   __retres ∈ {1}
-[value:final-states] Values at end of function main:
+[eva:final-states] Values at end of function main:
   x ∈ {1}
   p ∈ {{ &q }}
   q ∈ {{ &x }}
-[value:final-states] Values at end of function main1:
+[eva:final-states] Values at end of function main1:
   
 [from] Computing for function foo
 [from] Done for function foo
@@ -52,37 +52,34 @@
     \nothing
 [inout] Inputs for function main1:
     c
-[value] Analyzing a complete application starting at main2
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing a complete application starting at main2
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   c ∈ [--..--]
-[value] computing for function main <- main2.
+[eva] computing for function main <- main2.
   Called from tests/value/invalid_loc_return.i:25.
-[value] computing for function foo <- main <- main2.
+[eva] computing for function foo <- main <- main2.
   Called from tests/value/invalid_loc_return.i:17.
-[value] Recording results for foo
-[value] Done for function foo
-[value:alarm] tests/value/invalid_loc_return.i:17: Warning: 
+[eva] Recording results for foo
+[eva] Done for function foo
+[eva:alarm] tests/value/invalid_loc_return.i:17: Warning: 
   accessing uninitialized left-value. assert \initialized(&p);
 [kernel] tests/value/invalid_loc_return.i:17: Warning: 
   all target addresses were invalid. This path is assumed to be dead.
-[value] computing for function foo <- main <- main2.
-  Called from tests/value/invalid_loc_return.i:17.
-[value] Recording results for foo
-[value] Done for function foo
-[value] Recording results for main
-[value] Done for function main
-[value] Recording results for main2
-[value] done for function main2
-[value] ====== VALUES COMPUTED ======
-[value:final-states] Values at end of function foo:
+[eva] tests/value/invalid_loc_return.i:17: Reusing old results for call to foo
+[eva] Recording results for main
+[eva] Done for function main
+[eva] Recording results for main2
+[eva] done for function main2
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function foo:
   __retres ∈ {1}
-[value:final-states] Values at end of function main:
+[eva:final-states] Values at end of function main:
   x ∈ {1}
   p ∈ {{ &q }}
   q ∈ {{ &x }}
-[value:final-states] Values at end of function main2:
+[eva:final-states] Values at end of function main2:
   
 [from] Computing for function foo
 [from] Done for function foo

@@ -196,10 +196,10 @@ let json_of_named = function
   | None -> Json.Null
   | Some a ->
       Json.Assoc Tactical.[
-        "id" , Json.String a.vid ;
-        "title" , Json.String a.title ;
-        "descr" , Json.String a.descr ;
-      ]
+          "id" , Json.String a.vid ;
+          "title" , Json.String a.title ;
+          "descr" , Json.String a.descr ;
+        ]
 
 let named_of_json find js =
   try

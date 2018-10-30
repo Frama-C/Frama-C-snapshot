@@ -45,4 +45,3 @@ val labels_axiom : label_mapping
 val preproc_annot : label_mapping -> predicate -> predicate
 
 val preproc_assigns : label_mapping -> from list -> from list
-

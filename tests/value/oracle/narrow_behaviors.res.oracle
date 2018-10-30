@@ -1,14 +1,21 @@
 [kernel] Parsing tests/value/narrow_behaviors.i (no preprocessing)
-[value] Analyzing a complete application starting at main
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing a complete application starting at main
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   nondet ∈ [--..--]
-[value] computing for function f1 <- main.
+[eva] computing for function f1 <- main.
   Called from tests/value/narrow_behaviors.i:56.
-[value] using specification for function f1
-[value] Done for function f1
-[value] tests/value/narrow_behaviors.i:56: 
+[eva] using specification for function f1
+[eva] Done for function f1
+[eva] tests/value/narrow_behaviors.i:56: 
+  Frama_C_dump_each:
+  # Cvalue domain:
+  nondet ∈ {0}
+  p{.x; .y} ∈ {1}
+  __retres ∈ UNINITIALIZED
+  ==END OF DUMP==
+[eva] tests/value/narrow_behaviors.i:56: 
   Frama_C_dump_each:
   # Cvalue domain:
   nondet ∈ [--..--]
@@ -16,25 +23,37 @@
    .y ∈ {1; 2}
   __retres ∈ UNINITIALIZED
   ==END OF DUMP==
-[value] tests/value/narrow_behaviors.i:56: 
+[eva] computing for function f2 <- main.
+  Called from tests/value/narrow_behaviors.i:57.
+[eva] using specification for function f2
+[eva] tests/value/narrow_behaviors.i:57: 
+  function f2, behavior b: assumes got status invalid; behavior not evaluated.
+[eva] tests/value/narrow_behaviors.i:57: 
+  function f2, behavior c: assumes got status invalid; behavior not evaluated.
+[eva] Done for function f2
+[eva] computing for function f2 <- main.
+  Called from tests/value/narrow_behaviors.i:57.
+[eva] Done for function f2
+[eva] tests/value/narrow_behaviors.i:57: 
   Frama_C_dump_each:
   # Cvalue domain:
   nondet ∈ {0}
   p{.x; .y} ∈ {1}
+  q.x ∈ {1; 2}
+   .y ∈ {1}
   __retres ∈ UNINITIALIZED
   ==END OF DUMP==
-[value] computing for function f2 <- main.
-  Called from tests/value/narrow_behaviors.i:57.
-[value] using specification for function f2
-[value] Done for function f2
-[value] computing for function f2 <- main.
-  Called from tests/value/narrow_behaviors.i:57.
-[value] tests/value/narrow_behaviors.i:57: 
-  function f2, behavior b: assumes got status invalid; behavior not evaluated.
-[value] tests/value/narrow_behaviors.i:57: 
-  function f2, behavior c: assumes got status invalid; behavior not evaluated.
-[value] Done for function f2
-[value] tests/value/narrow_behaviors.i:57: 
+[eva] tests/value/narrow_behaviors.i:57: 
+  Frama_C_dump_each:
+  # Cvalue domain:
+  nondet ∈ {0}
+  p.x ∈ {2}
+   .y ∈ {1; 2}
+  q.x ∈ {1; 2}
+   .y ∈ {1}
+  __retres ∈ UNINITIALIZED
+  ==END OF DUMP==
+[eva] tests/value/narrow_behaviors.i:57: 
   Frama_C_dump_each:
   # Cvalue domain:
   nondet ∈ [--..--]
@@ -44,74 +63,55 @@
    .y ∈ {1; 2}
   __retres ∈ UNINITIALIZED
   ==END OF DUMP==
-[value] tests/value/narrow_behaviors.i:57: 
-  Frama_C_dump_each:
-  # Cvalue domain:
-  nondet ∈ {0}
-  p.x ∈ {2}
-   .y ∈ {1; 2}
-  q.x ∈ {1; 2}
-   .y ∈ {1}
-  __retres ∈ UNINITIALIZED
-  ==END OF DUMP==
-[value] tests/value/narrow_behaviors.i:57: 
-  Frama_C_dump_each:
-  # Cvalue domain:
-  nondet ∈ {0}
-  p{.x; .y} ∈ {1}
-  q.x ∈ {1; 2}
-   .y ∈ {1}
-  __retres ∈ UNINITIALIZED
-  ==END OF DUMP==
-[value:alarm] tests/value/narrow_behaviors.i:61: Warning: 
+[eva:alarm] tests/value/narrow_behaviors.i:61: Warning: 
   assertion got status unknown.
-[value] computing for function f1 <- main.
+[eva] computing for function f1 <- main.
   Called from tests/value/narrow_behaviors.i:62.
-[value] tests/value/narrow_behaviors.i:62: 
+[eva] tests/value/narrow_behaviors.i:62: 
   function f1, behavior b: assumes got status invalid; behavior not evaluated.
-[value] tests/value/narrow_behaviors.i:62: 
+[eva] tests/value/narrow_behaviors.i:62: 
   function f1, behavior c: assumes got status invalid; behavior not evaluated.
-[value] Done for function f1
-[value] computing for function f1 <- main.
+[eva] Done for function f1
+[eva] computing for function f1 <- main.
   Called from tests/value/narrow_behaviors.i:62.
-[value] tests/value/narrow_behaviors.i:62: 
+[eva] tests/value/narrow_behaviors.i:62: 
   function f1, behavior a: assumes got status invalid; behavior not evaluated.
-[value] tests/value/narrow_behaviors.i:62: 
+[eva] tests/value/narrow_behaviors.i:62: 
   function f1, behavior d: assumes got status invalid; behavior not evaluated.
-[value] Done for function f1
-[value] tests/value/narrow_behaviors.i:62: 
+[eva] Done for function f1
+[eva] tests/value/narrow_behaviors.i:62: 
   Frama_C_dump_each:
   # Cvalue domain:
   nondet ∈ {0}
   r{.x; .y} ∈ {1}
   __retres ∈ UNINITIALIZED
   ==END OF DUMP==
-[value] tests/value/narrow_behaviors.i:62: 
+[eva] tests/value/narrow_behaviors.i:62: 
   Frama_C_dump_each:
   # Cvalue domain:
   nondet ∈ {1}
   r{.x; .y} ∈ {2}
   __retres ∈ UNINITIALIZED
   ==END OF DUMP==
-[value] computing for function f2 <- main.
+[eva] computing for function f2 <- main.
   Called from tests/value/narrow_behaviors.i:63.
-[value] tests/value/narrow_behaviors.i:63: 
+[eva] tests/value/narrow_behaviors.i:63: 
   function f2, behavior b: assumes got status invalid; behavior not evaluated.
-[value] tests/value/narrow_behaviors.i:63: 
+[eva] tests/value/narrow_behaviors.i:63: 
   function f2, behavior c: assumes got status invalid; behavior not evaluated.
-[value] Done for function f2
-[value] computing for function f2 <- main.
+[eva] Done for function f2
+[eva] computing for function f2 <- main.
   Called from tests/value/narrow_behaviors.i:63.
-[value] tests/value/narrow_behaviors.i:63: 
+[eva] tests/value/narrow_behaviors.i:63: 
   function f2, behavior a: assumes got status invalid; behavior not evaluated.
-[value] tests/value/narrow_behaviors.i:63: 
+[eva] tests/value/narrow_behaviors.i:63: 
   function f2, behavior d: assumes got status invalid; behavior not evaluated.
-[value] tests/value/narrow_behaviors.i:43: Warning: 
+[eva] tests/value/narrow_behaviors.i:43: Warning: 
   function f2, behavior c: this postcondition evaluates to false in this
   context. If it is valid, either a precondition was not verified for this
   call, or some assigns/from clauses are incomplete (or incorrect).
-[value] Done for function f2
-[value] tests/value/narrow_behaviors.i:63: 
+[eva] Done for function f2
+[eva] tests/value/narrow_behaviors.i:63: 
   Frama_C_dump_each:
   # Cvalue domain:
   nondet ∈ {0}
@@ -120,10 +120,10 @@
    .y ∈ {1}
   __retres ∈ UNINITIALIZED
   ==END OF DUMP==
-[value] Recording results for main
-[value] done for function main
-[value] ====== VALUES COMPUTED ======
-[value:final-states] Values at end of function main:
+[eva] Recording results for main
+[eva] done for function main
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function main:
   __retres ∈ {0}
 [from] Computing for function main
 [from] Computing for function f1 <-main

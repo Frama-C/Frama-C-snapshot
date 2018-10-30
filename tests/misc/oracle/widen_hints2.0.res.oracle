@@ -1,88 +1,84 @@
 [kernel] Parsing tests/misc/widen_hints2.c (with preprocessing)
-[value:widen-hints] computing global widen hints
-[value:widen-hints] tests/misc/widen_hints2.c:46: 
+[eva:widen-hints] computing global widen hints
+[eva:widen-hints] tests/misc/widen_hints2.c:46: 
   adding global hint from annotation: m, {2} (for all statements)
-[value:widen-hints] tests/misc/widen_hints2.c:60: 
+[eva:widen-hints] tests/misc/widen_hints2.c:60: 
   adding global hint from annotation: y_0, {2} (for all statements)
-[value:widen-hints] tests/misc/widen_hints2.c:20: 
+[eva:widen-hints] tests/misc/widen_hints2.c:20: 
   adding hint from annotation: for all variables, {88} (for all statements)
-[value:widen-hints] tests/misc/widen_hints2.c:47: 
+[eva:widen-hints] tests/misc/widen_hints2.c:47: 
   adding hint from annotation: y_0, {5} (for all statements)
-[value:widen-hints] tests/misc/widen_hints2.c:49: 
+[eva:widen-hints] tests/misc/widen_hints2.c:49: 
   adding hint from annotation: a, {2} (for all statements)
-[value:widen-hints] tests/misc/widen_hints2.c:51: 
+[eva:widen-hints] tests/misc/widen_hints2.c:51: 
   adding hint from annotation: a, {88} (for all statements)
-[value:widen-hints] tests/misc/widen_hints2.c:57: 
+[eva:widen-hints] tests/misc/widen_hints2.c:57: 
   adding hint from annotation: c, {88} (for all statements)
-[value:widen-hints] tests/misc/widen_hints2.c:58: 
+[eva:widen-hints] tests/misc/widen_hints2.c:58: 
   adding hint from annotation: y_0, {1} (for all statements)
-[value:widen-hints] tests/misc/widen_hints2.c:70: 
+[eva:widen-hints] tests/misc/widen_hints2.c:70: 
   adding hint from annotation: c_0, {88} (for all statements)
-[value:widen-hints] tests/misc/widen_hints2.c:78: 
+[eva:widen-hints] tests/misc/widen_hints2.c:78: 
   adding hint from annotation: glob, {88} (for all statements)
-[value] Analyzing a complete application starting at main
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
-  __fc_heap_status ∈ [--..--]
-  __fc_random_counter ∈ [--..--]
-  __fc_rand_max ∈ {32767}
-  __fc_mblen_state ∈ [--..--]
-  __fc_mbtowc_state ∈ [--..--]
-  __fc_wctomb_state ∈ [--..--]
+[eva] Analyzing a complete application starting at main
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   t[0..99] ∈ {0}
   x ∈ {9}
   glob ∈ {0}
   y ∈ {0}
-[value:widen-hints] tests/misc/widen_hints2.c:48: 
-  computing dynamic hints for statement 44
-[value:widen-hints] tests/misc/widen_hints2.c:50: 
-  computing dynamic hints for statement 47
-[value] tests/misc/widen_hints2.c:50: entering loop for the first time
-[value:widen-hints] tests/misc/widen_hints2.c:52: 
-  computing dynamic hints for statement 53
-[value] tests/misc/widen_hints2.c:52: entering loop for the first time
-[value:widen-hints] tests/misc/widen_hints2.c:63: 
-  computing dynamic hints for statement 65
-[value] tests/misc/widen_hints2.c:63: entering loop for the first time
-[value] tests/misc/widen_hints2.c:64: entering loop for the first time
-[value:widen-hints] tests/misc/widen_hints2.c:72: 
-  computing dynamic hints for statement 81
-[value] tests/misc/widen_hints2.c:72: entering loop for the first time
-[value] tests/misc/widen_hints2.c:73: entering loop for the first time
-[value:widen-hints] tests/misc/widen_hints2.c:79: 
-  computing dynamic hints for statement 96
-[value] tests/misc/widen_hints2.c:79: entering loop for the first time
-[value] tests/misc/widen_hints2.c:80: entering loop for the first time
-[value] computing for function f <- main.
+[eva:widen-hints] tests/misc/widen_hints2.c:48: 
+  computing dynamic hints for statement 43
+[eva:widen-hints] tests/misc/widen_hints2.c:48: 
+  computing dynamic hints for statement 45
+[eva:widen-hints] tests/misc/widen_hints2.c:50: 
+  computing dynamic hints for statement 48
+[eva:widen-hints] tests/misc/widen_hints2.c:52: 
+  computing dynamic hints for statement 54
+[eva] tests/misc/widen_hints2.c:50: starting to merge loop iterations
+[eva] tests/misc/widen_hints2.c:52: starting to merge loop iterations
+[eva:widen-hints] tests/misc/widen_hints2.c:63: 
+  computing dynamic hints for statement 66
+[eva] tests/misc/widen_hints2.c:63: starting to merge loop iterations
+[eva] tests/misc/widen_hints2.c:64: starting to merge loop iterations
+[eva:widen-hints] tests/misc/widen_hints2.c:72: 
+  computing dynamic hints for statement 82
+[eva] tests/misc/widen_hints2.c:72: starting to merge loop iterations
+[eva] tests/misc/widen_hints2.c:73: starting to merge loop iterations
+[eva:widen-hints] tests/misc/widen_hints2.c:79: 
+  computing dynamic hints for statement 97
+[eva] tests/misc/widen_hints2.c:79: starting to merge loop iterations
+[eva] tests/misc/widen_hints2.c:80: starting to merge loop iterations
+[eva] computing for function f <- main.
   Called from tests/misc/widen_hints2.c:85.
-[value:widen-hints] tests/misc/widen_hints2.c:22: 
+[eva:widen-hints] tests/misc/widen_hints2.c:22: 
   computing dynamic hints for statement 4
-[value] tests/misc/widen_hints2.c:22: entering loop for the first time
-[value] tests/misc/widen_hints2.c:23: entering loop for the first time
-[value] Recording results for f
-[value] Done for function f
-[value] computing for function g <- main.
+[eva] tests/misc/widen_hints2.c:22: starting to merge loop iterations
+[eva] tests/misc/widen_hints2.c:23: starting to merge loop iterations
+[eva] Recording results for f
+[eva] Done for function f
+[eva] computing for function g <- main.
   Called from tests/misc/widen_hints2.c:86.
-[value] tests/misc/widen_hints2.c:34: entering loop for the first time
-[value] tests/misc/widen_hints2.c:35: entering loop for the first time
-[value:alarm] tests/misc/widen_hints2.c:36: Warning: 
+[eva] tests/misc/widen_hints2.c:34: starting to merge loop iterations
+[eva] tests/misc/widen_hints2.c:35: starting to merge loop iterations
+[eva:alarm] tests/misc/widen_hints2.c:36: Warning: 
   accessing out of bounds index. assert kk < 100;
-[value] Recording results for g
-[value] Done for function g
-[value] Recording results for main
-[value] done for function main
-[value] ====== VALUES COMPUTED ======
-[value:final-states] Values at end of function f:
+[eva] Recording results for g
+[eva] Done for function g
+[eva] Recording results for main
+[eva] done for function main
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function f:
   tf[0..87] ∈ {1} or UNINITIALIZED
     [88..99] ∈ UNINITIALIZED
   m ∈ {10}
   n ∈ {43}
-[value:final-states] Values at end of function g:
+[eva:final-states] Values at end of function g:
   tg[0..99] ∈ {1} or UNINITIALIZED
   m ∈ {10}
   n ∈ {43}
-[value:final-states] Values at end of function main:
+[eva:final-states] Values at end of function main:
   t[0..87] ∈ {0; 1}
    [88..99] ∈ {0}
   glob ∈ [87..2147483647]

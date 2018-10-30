@@ -1,0 +1,29 @@
+[e-acsl] beginning translation.
+[e-acsl] translation done in project "e-acsl".
+[eva:alarm] tests/runtime/base_addr.c:46: Warning: assertion got status unknown.
+[eva:alarm] tests/runtime/base_addr.c:46: Warning: 
+  function __e_acsl_assert: precondition got status unknown.
+[eva:alarm] tests/runtime/base_addr.c:47: Warning: assertion got status unknown.
+[eva:alarm] tests/runtime/base_addr.c:47: Warning: 
+  function __e_acsl_assert: precondition got status unknown.
+[eva:alarm] tests/runtime/base_addr.c:48: Warning: assertion got status unknown.
+[eva:alarm] tests/runtime/base_addr.c:48: Warning: 
+  function __e_acsl_assert: precondition got status unknown.
+[eva:alarm] tests/runtime/base_addr.c:50: Warning: assertion got status unknown.
+[eva:alarm] tests/runtime/base_addr.c:50: Warning: 
+  function __e_acsl_assert: precondition got status unknown.
+[eva:alarm] tests/runtime/base_addr.c:51: Warning: assertion got status unknown.
+[eva:alarm] tests/runtime/base_addr.c:51: Warning: 
+  function __e_acsl_assert: precondition got status unknown.
+[eva:alarm] tests/runtime/base_addr.c:57: Warning: assertion got status unknown.
+[eva:alarm] tests/runtime/base_addr.c:57: Warning: 
+  function __e_acsl_assert: precondition got status unknown.
+[eva:alarm] tests/runtime/base_addr.c:59: Warning: assertion got status unknown.
+[eva:alarm] tests/runtime/base_addr.c:59: Warning: 
+  function __e_acsl_assert: precondition got status unknown.
+[eva:alarm] tests/runtime/base_addr.c:61: Warning: assertion got status unknown.
+[eva:alarm] tests/runtime/base_addr.c:61: Warning: 
+  function __e_acsl_assert: precondition got status unknown.
+[eva:alarm] tests/runtime/base_addr.c:63: Warning: assertion got status unknown.
+[eva:alarm] tests/runtime/base_addr.c:63: Warning: 
+  function __e_acsl_assert: precondition got status unknown.

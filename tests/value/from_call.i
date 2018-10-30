@@ -1,6 +1,6 @@
 /* run.config*
-   OPT: -no-autoload-plugins -load-module from,inout,users,value -calldeps -val @VALUECONFIG@ -journal-disable -users -then -input
-   OPT: -no-autoload-plugins -load-module from,value @VALUECONFIG@ -deps -show-indirect-deps -journal-disable
+   OPT: -no-autoload-plugins -load-module from,inout,users,eva -calldeps -val @VALUECONFIG@ -journal-disable -users -then -input
+   OPT: -no-autoload-plugins -load-module from,eva @VALUECONFIG@ -deps -show-indirect-deps -journal-disable
 */
 int a,b,c,d;
 int x,y,z,t;

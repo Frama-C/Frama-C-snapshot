@@ -41,7 +41,7 @@ type function_calls =
 let () = ignore
     [FullInterprocedural; IntraproceduralAll; IntraproceduralNonReferenced]
 
-let function_calls_handling = ref IntraproceduralNonReferenced
+let function_calls_handling = IntraproceduralNonReferenced
 
 module G = struct
 
@@ -90,7 +90,7 @@ module G = struct
        | _, None -> true
        | None, Some _ -> false
        | Some b1, Some b2 -> Integer.le b1 b2)
-    
+
     (* This function computes how much the bounds of [i2] have increased from
        those of [i1], i.e. [diff [1 .. 4]  [-2 .. 8]] is [-3 .. 4]
        and [diff [-2 .. 8] [1 .. 4]] is [-4 .. 3]. *)
@@ -268,7 +268,7 @@ module G = struct
           end
       in
       `Value (nb_min, nb_max)
-    
+
   end
 
   (* A MV contains (usual) values for the different bases that are incremented
@@ -280,8 +280,8 @@ module G = struct
   module MV = struct
 
     include Hptmap.Make(Base)(Cvalue.V)(Hptmap.Comp_unused)
-      (struct let v = [] end)
-      (struct let l = [Ast.self] end)
+        (struct let v = [] end)
+        (struct let l = [Ast.self] end)
 
     (* This function computes a pointwise union on two MVs assumed to have
        disjoint set of keys. *)
@@ -308,9 +308,9 @@ module G = struct
                                    hence the inclusion holds *)
         then PTrue
         else PUnknown
-    in
-    binary_predicate cache UniversalPredicate
-      ~decide_fast ~decide_fst ~decide_snd ~decide_both
+      in
+      binary_predicate cache UniversalPredicate
+        ~decide_fast ~decide_fst ~decide_snd ~decide_both
 
   end
 
@@ -321,8 +321,8 @@ module G = struct
   module MC = struct
 
     include Hptmap.Make(Base)(Bounds)(Hptmap.Comp_unused)
-      (struct let v = [] end)
-      (struct let l = [Ast.self] end)
+        (struct let v = [] end)
+        (struct let l = [Ast.self] end)
 
     (* This function computes a pointwise union on two MCs assumed to have
        disjoint set of keys. *)
@@ -335,7 +335,7 @@ module G = struct
     (* For the "standard" join and widen, keys present in one map but not
        in the other are assumed to be 0. *)
 
-    let default = function None -> Bounds.zero | Some b -> b          
+    let default = function None -> Bounds.zero | Some b -> b
 
     let widen =
       let cache = cache_name "MC.widen" in
@@ -353,9 +353,9 @@ module G = struct
       let decide_snd _b v2 = Bounds.(is_included zero v2) in
       let decide_both _ v1 v2 = Bounds.is_included v1 v2 in
       let decide_fast s t = if s == t then PTrue else PUnknown
-    in
-    binary_predicate cache UniversalPredicate
-      ~decide_fast ~decide_fst ~decide_snd ~decide_both
+      in
+      binary_predicate cache UniversalPredicate
+        ~decide_fast ~decide_fst ~decide_snd ~decide_both
 
 
   end
@@ -379,7 +379,7 @@ module G = struct
   let delta_mv =
     let cache = cache_name "delta_mv" in
     let empty = MC.empty in
-    let empty_left _ = empty in 
+    let empty_left _ = empty in
     let empty_right _ = empty in
     let both b v1 v2 =
       match delta_min_max_cvalue v1 v2 with
@@ -482,7 +482,7 @@ module G = struct
   end
 
   type iteration_info =
-    PreciseIteration of int | MultipleIterations of multiple_iterations
+      PreciseIteration of int | MultipleIterations of multiple_iterations
 
   module IterationInfo = struct
     include Datatype.Make(struct
@@ -506,8 +506,8 @@ module G = struct
         let equal = Datatype.from_compare
 
         let structural_descr = Structural_descr.t_sum [|
-          [| Datatype.Int.packed_descr|];
-          [| Structural_descr.pack MultipleIterations.structural_descr |]
+            [| Datatype.Int.packed_descr|];
+            [| Structural_descr.pack MultipleIterations.structural_descr |]
           |]
       end)
 
@@ -528,12 +528,12 @@ module G = struct
   end
 
   (* type t = MV.t * (stmt * iteration_info) list *)
-  
+
   include Datatype.Pair_with_collections
       (MV)
       (Datatype.List(Datatype.Pair(Cil_datatype.Stmt)(IterationInfo)))
       (struct let module_name = "Values.Gauges_domain.G" end)
-  
+
   let empty = MV.empty, []
   let top (state: t) : t =
     let top_iteration_info = function
@@ -550,14 +550,14 @@ module G = struct
 
   let pretty_loop_step fmt (stmt, ii) =
     Format.fprintf fmt "s%d: %a" stmt.sid pretty_iteration_info ii
-  
+
   let pretty_loop_info =
     Pretty_utils.pp_list ~pre:"@[<v>" ~suf:"@]" ~sep:"@ " pretty_loop_step
 
   let pretty fmt (ct, l: t) =
     Format.fprintf fmt "@[<v>@[V: [%a]@]@ @[%a@]@]"
       MV.pretty ct pretty_loop_info l
-  
+
   (* Abstract operation when returning at the start of a loop. Increment the
      counter for this loop, or correct the constants if the loop coefficients
      have already been found. *)
@@ -695,7 +695,7 @@ module G = struct
     let r = is_included s1 s2 in
     Kernel.result ~current:true "INCL %b@.%a@.@.%a" r pretty s1 pretty s2;
     r
-  
+
   (* hypothesis from Value: s2 is supposed to happen 'after' s1. This widening
      function is full of heuristics to maintain some precision, i.e. do not
      widen everything to Top immediately. Basically:
@@ -771,7 +771,7 @@ module G = struct
      which we return [false] will never be part of a state. *)
   let tracked_variable vi =
     Cil.isIntegralOrPointerType vi.vtype &&
-    (match !function_calls_handling with
+    (match function_calls_handling with
      | FullInterprocedural -> true
      | IntraproceduralAll -> not vi.vglob
      | IntraproceduralNonReferenced -> not vi.vglob && not vi.vaddrof
@@ -789,7 +789,7 @@ module G = struct
     | Base.Var (vi, _) when tracked_variable vi ->
       MV.remove b ct, List.map aux l
     | _ -> state
-  
+
   exception Untranslatable
 
   module Gauge = struct
@@ -837,13 +837,18 @@ module G = struct
       with Cvalue.V.Not_based_on_null | Ival.Not_Singleton_Int ->
         raise Untranslatable
 
-    (* Check that [v] is an integer, or a single pointer (invariant 2 of MV) *)
+    (* Check that [v] is an integer, or a single pointer (invariant 2 of MV).
+       Pointers to a single base with variable validity are also ruled out, as
+       the base may become weak, making the pointer imprecise and thus breaking
+       invariant 2.1. *)
     let sanitize_v v =
       try
-        let _b, i = Cvalue.V.find_lonely_key v in
-        match i with
-        | Ival.Float _ -> raise Untranslatable
-        | _ -> ()
+        let b, i = Cvalue.V.find_lonely_key v in
+        let validity = Base.validity b in
+        match validity, i with
+        | Base.Variable _, _
+        | _, Ival.Float _ -> raise Untranslatable
+        | _, _ -> ()
       with Not_found -> raise Untranslatable
 
     let add (ct1, l1: t) (ct2, l2: t) : t =
@@ -945,7 +950,7 @@ module G = struct
               let l' = replace stmt n_iter l in
               Some (ct, l')
             else None
-    with Not_found -> None 
+    with Not_found -> None
 
   (* Convert a location into a supported variable, i.e. scalar. The location
      must assign the entire variable. Also check that the type of the
@@ -1040,8 +1045,8 @@ module G = struct
     and fits_in_type ?(is_cast=false) typ g =
       let open Eval_typ in
       match classify_as_scalar typ with
-      | TSNotScalar | TSFloat _ -> raise Untranslatable
-      | TSInt ir | TSPtr ir ->
+      | None | Some (TSFloat _) -> raise Untranslatable
+      | Some (TSInt ir | TSPtr ir) ->
         if not is_cast &&
            ((ir.i_signed && Kernel.SignedOverflow.get ()) ||
             (not ir.i_signed && Kernel.UnsignedOverflow.get ()))
@@ -1086,7 +1091,7 @@ module G = struct
     let ct' = MV.add b ctg ct in
     let l' = aux l lg in
     (ct', l')
-  
+
   let assign to_loc to_v lv e state =
     let loc = to_loc lv in
     try
@@ -1094,10 +1099,10 @@ module G = struct
       let g = translate_exp state to_loc to_v e in
       store_gauge b g state
     with Untranslatable ->
-      try
-        Locations.Location_Bits.fold_topset_ok
-          (fun b _ state -> kill_base b state) loc.Locations.loc state
-      with Abstract_interp.Error_Top -> top state
+    try
+      Locations.Location_Bits.fold_topset_ok
+        (fun b _ state -> kill_base b state) loc.Locations.loc state
+    with Abstract_interp.Error_Top -> top state
 
 end
 
@@ -1134,22 +1139,7 @@ module D_Impl : Abstract_domain.S_with_Structure
     (* reverts implicitly to Top *)
     remove_variables vars state
 
-
   type origin = unit
-
-  let approximate_call kf state =
-    let post_state =
-      let name = Kernel_function.get_name kf in
-      if Ast_info.is_frama_c_builtin name ||
-         (name <> "free" && Eval_typ.kf_assigns_only_result_or_volatile kf)
-      then state
-      else
-        match !function_calls_handling with
-        | FullInterprocedural -> G.top state
-        | IntraproceduralAll -> state (* unsound here *)
-        | IntraproceduralNonReferenced -> state
-    in
-    `Value [ post_state ]
 
   let kill loc state =
     let loc = Precise_locs.imprecise_location loc in
@@ -1175,7 +1165,7 @@ module D_Impl : Abstract_domain.S_with_Structure
     let update _valuation st = st (* TODO? *)
 
     exception Unassignable
-    
+
     let assign _kinstr lv e _assignment valuation (state:state) =
       let to_loc lv =
         match Valuation.find_loc valuation lv with
@@ -1219,7 +1209,7 @@ module D_Impl : Abstract_domain.S_with_Structure
 
     let finalize_call _stmt _call ~pre ~post =
       let state =
-        match !function_calls_handling with
+        match function_calls_handling with
         | FullInterprocedural -> post
         | IntraproceduralNonReferenced -> pre
         | IntraproceduralAll -> pre (* unsound here *)
@@ -1228,7 +1218,7 @@ module D_Impl : Abstract_domain.S_with_Structure
 
     let start_call _stmt call valuation state =
       let state =
-        match !function_calls_handling with
+        match function_calls_handling with
         | FullInterprocedural -> update valuation state
         | IntraproceduralAll
         | IntraproceduralNonReferenced -> G.empty
@@ -1252,9 +1242,7 @@ module D_Impl : Abstract_domain.S_with_Structure
         with Untranslatable -> state
       in
       let state = List.fold_left aux_arg state call.arguments in
-      Compute state
-
-    let approximate_call _stmt call state = approximate_call call.kf state
+      `Value state
 
     let show_expr _valuation _state _fmt _expr = ()
   end
@@ -1264,7 +1252,7 @@ module D_Impl : Abstract_domain.S_with_Structure
   let leave_loop = G.leave_loop
 
   (* TODO: it would be interesting to return something here, but we
-     currently need a valuation to perform the translation. *) 
+     currently need a valuation to perform the translation. *)
   let extract_expr _oracle _state _exp =
     `Value (Cvalue.V.top, ()), Alarmset.all
 
@@ -1287,9 +1275,15 @@ module D_Impl : Abstract_domain.S_with_Structure
   let reduce_further _state _expr _value = []
 
   (* Memexec *)
-  let filter_by_bases _bases state = state
 
-  let reuse ~current_input:_ ~previous_output = previous_output
+  let relate _kf _bases _state = match function_calls_handling with
+    | FullInterprocedural -> Base.SetLattice.top
+    | IntraproceduralAll
+    | IntraproceduralNonReferenced -> Base.SetLattice.empty
+
+  let filter _kf _kind _bases state = state
+
+  let reuse _kf _bases ~current_input:_ ~previous_output = previous_output
 
   (* Initial state *)
   let introduce_globals _ state = state

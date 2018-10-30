@@ -1,14 +1,13 @@
 [kernel] Parsing tests/slicing/bts341.i (no preprocessing)
 [slicing] slicing requests in progress...
-[value] Analyzing a complete application starting at main
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing a complete application starting at main
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   
-[value] tests/slicing/bts341.i:6: entering loop for the first time
-[value] tests/slicing/bts341.i:7: assertion got status valid.
-[value] Recording results for main
-[value] done for function main
+[eva] tests/slicing/bts341.i:7: assertion got status valid.
+[eva] Recording results for main
+[eva] done for function main
 [slicing] initializing slicing ...
 [slicing] interpreting slicing requests from the command line...
 [pdg] computing for function main

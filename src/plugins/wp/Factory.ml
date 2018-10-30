@@ -105,7 +105,7 @@ let describe s =
 
 module type Proxy = sig
   val datatype : string
-  val param : Cil_types.varinfo -> Separation.param
+  val param : Cil_types.varinfo -> MemoryContext.param
   val iter : ?kf:Kernel_function.t -> init:bool ->
     (Cil_types.varinfo -> unit) -> unit
 end
@@ -121,7 +121,7 @@ struct
     let get_vars = Wp_parameters.ByValue.get in
     let open Cil_types in
     let module S = Datatype.String.Set in
-    let open Separation in
+    let open MemoryContext in
     if S.mem x.vname (get_addr ()) then ByAddr else
     if S.mem x.vname (get_ctxt ()) then InContext else
     if S.mem x.vname (get_refs ()) then ByRef else
@@ -129,14 +129,14 @@ struct
       V.param x
 
   (** A memory model context has to be set. *)
-  let separation () =
+  let hypotheses () =
     let kf = Model.get_scope () in
     let init = match kf with
       | None -> false
       | Some f -> WpStrategy.is_main_init f in
-    let p = ref Separation.empty in
-    V.iter ?kf ~init (fun vi -> p := Separation.set vi (param vi) !p) ;
-    Separation.requires !p
+    let p = ref MemoryContext.empty in
+    V.iter ?kf ~init (fun vi -> p := MemoryContext.set vi (param vi) !p) ;
+    MemoryContext.requires !p
 
 end
 
@@ -147,7 +147,7 @@ end
 module Raw : Proxy =
 struct
   let datatype = "Raw"
-  let param _x = Separation.ByValue
+  let param _x = MemoryContext.ByValue
   (* if x.vaddrof then Separation.InHeap else Separation.ByValue *)
   let iter ?kf ~init f =
     begin
@@ -166,7 +166,7 @@ end
 let is_formal_ptr x =
   let open Cil_types in
   x.vformal && Cil.isPointerType x.vtype
-    
+
 let refusage_param ~byref ~context x =
   let kf = Model.get_scope () in
   let init = match kf with
@@ -177,13 +177,13 @@ let refusage_param ~byref ~context x =
         ( WpStrategy.isInitConst () &&
           WpStrategy.isGlobalInitConst x ) in
   match RefUsage.get ?kf ~init x with
-  | RefUsage.NoAccess -> Separation.NotUsed
-  | RefUsage.ByAddr -> Separation.ByAddr
-  | RefUsage.ByRef when byref -> Separation.ByRef
-  | RefUsage.ByArray when context && is_formal_ptr x -> Separation.InArray
-  | RefUsage.ByValue when context && is_formal_ptr x -> Separation.InContext
-  | RefUsage.ByRef | RefUsage.ByValue -> Separation.ByValue
-  | RefUsage.ByArray -> Separation.ByShift
+  | RefUsage.NoAccess -> MemoryContext.NotUsed
+  | RefUsage.ByAddr -> MemoryContext.ByAddr
+  | RefUsage.ByRef when byref -> MemoryContext.ByRef
+  | RefUsage.ByArray when context && is_formal_ptr x -> MemoryContext.InArray
+  | RefUsage.ByValue when context && is_formal_ptr x -> MemoryContext.InContext
+  | RefUsage.ByRef | RefUsage.ByValue -> MemoryContext.ByValue
+  | RefUsage.ByArray -> MemoryContext.ByShift
 
 let refusage_iter ?kf ~init f = RefUsage.iter ?kf ~init (fun x _usage -> f x)
 
@@ -212,7 +212,7 @@ end
 (* --- Generator & Model                                                  --- *)
 (* -------------------------------------------------------------------------- *)
 
-(* Each model must be instanciated statically because of registered memory 
+(* Each model must be instanciated statically because of registered memory
    models identifiers and Frama-C states *)
 
 module Register(V : Proxy)(M : Sigs.Model) = MemVar.Make(MakeVarUsage(V))(M)
@@ -286,14 +286,14 @@ let instance (s:setup) (d:driver) =
     let id,descr = describe s in
     let module CC = (val compiler s.mheap s.mvar) in
     let tuning = [configure s d] in
-    let separation kf = Model.on_scope (Some kf) CC.M.separation () in
+    let hypotheses kf = Model.on_scope (Some kf) CC.M.hypotheses () in
     let id,descr =
       if LogicBuiltins.is_default d then id,descr
       else
         ( id ^ "_" ^ LogicBuiltins.id d ,
           descr ^ " (Driver " ^ LogicBuiltins.descr d ^ ")" )
     in
-    let model = Model.register ~id ~descr ~tuning ~separation () in
+    let model = Model.register ~id ~descr ~tuning ~hypotheses () in
     instances := COMPILERS.add (s,d) model !instances ; model
 
 let ident s = fst (describe s)
@@ -315,7 +315,7 @@ let split ~warning (m:string) : string list =
        | 'A' .. 'Z' -> Buffer.add_char buffer c
        | '_' | ',' | '@' | '+' | ' ' | '\t' | '\n' | '(' | ')' -> flush ()
        | _ -> warning (Printf.sprintf
-                       "In model spec %S : unexpected character '%c'" m c)
+                         "In model spec %S : unexpected character '%c'" m c)
     )
     (Transitioning.String.uppercase_ascii m) ;
   flush () ; !tk
@@ -335,7 +335,7 @@ let update_config ~warning m s = function
   | "REAL" -> { s with cfloat = Cfloat.Real }
   | "FLOAT" | "CFLOAT" -> { s with cfloat = Cfloat.Float }
   | t -> warning (Printf.sprintf
-                  "In model spec %S : unknown '%s' selector@." m t) ; s
+                    "In model spec %S : unknown '%s' selector@." m t) ; s
 
 let apply_config ~warning (s:setup) m : setup =
   List.fold_left (update_config ~warning m) s (split ~warning m)

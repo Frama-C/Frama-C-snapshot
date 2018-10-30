@@ -1296,7 +1296,10 @@ broken:@ status %a not allowed when simplifying hypothesis status@]"
       s
 
   let get_conjunction ppts =
-    let tmp = Property.ip_other "$Feedback.tmp$" None Cil_types.Kglobal in
+    let tmp =
+      Property.(
+        ip_other "$Feedback.tmp$" (OLGlob Cil_datatype.Location.unknown))
+    in
     logical_consequence Emitter.kernel tmp ppts;
     let s = get tmp in
     remove tmp ;

@@ -30,7 +30,9 @@ FRAMAC_LIBDIR :=$(shell frama-c-config -print-libpath)
 endif
 PLUGIN_DIR ?=.
 
+ifneq ("$(FRAMAC_INTERNAL)","yes")
 include $(FRAMAC_SHARE)/Makefile.config
+endif
 
 # Coq Resources Installation
 
@@ -59,7 +61,7 @@ PLUGIN_CMO:= \
 	rformat wprop \
 	wp_parameters wp_error \
 	dyncall ctypes clabels \
-	Separation \
+	MemoryContext \
 	LogicUsage RefUsage \
 	cil2cfg normAtLabels wpPropId mcfg \
 	Context Warning Model Lang Repr Matrix Passive Splitter \
@@ -122,7 +124,7 @@ CEA_WP_GENEREATED=why3_xml.ml script.ml rformat.ml driver.ml
 PLUGIN_TESTS_DIRS:= \
   wp wp_plugin wp_acsl wp_bts \
   wp_store wp_hoare wp_typed wp_usage \
-  wp_gallery wp_manual
+  wp_gallery wp_manual wp_tip
 
 # --------------------------------------------------------------------------
 # --- Dynamic Plugin                                                     ---
@@ -148,7 +150,7 @@ $(Wp_DIR)/Makefile: $(Wp_DIR)/Makefile.in $(Wp_DIR)/share/Makefile.resources $(C
 WP_API_BASE= \
 	wp_parameters.mli \
 	ctypes.mli clabels.mli \
-	Separation.mli \
+	MemoryContext.mli \
 	LogicUsage.mli RefUsage.mli \
 	normAtLabels.mli \
 	wpPropId.mli mcfg.ml \

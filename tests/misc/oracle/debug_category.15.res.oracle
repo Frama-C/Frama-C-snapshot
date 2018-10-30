@@ -1,0 +1,6 @@
+[kernel] Parsing tests/misc/debug_category.i (no preprocessing)
+[test] Warning: Uncategorized warning
+[test:a] Warning: Warning A
+[test:a] Warning: Another Warning A
+[test] Failure: Deferred error message was emitted during execution.
+[kernel] Plug-in test aborted: invalid user input.

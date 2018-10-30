@@ -1,5 +1,10 @@
 open Cil_types
 
+(* known exceptions to the const/valid_read rule *)
+let non_const_exceptions = [
+  "putenv";
+]
+
 let warn_if_const string typ vi loc = 
   if Cil.typeHasQualifier "const" typ then
     Kernel.result ~source:(fst loc)
@@ -7,14 +12,15 @@ let warn_if_const string typ vi loc =
              You probably meant '\\valid_read%s' instead"
       string Printer.pp_varinfo vi string
 
-let warn_if_not_const string typ vi loc = 
-  if not (Cil.typeHasQualifier "const" typ) then
-    Kernel.result ~source:(fst loc)
-      "'requires \\valid_read%s' of a non-const variable %a. \
-             You may have meant '\\valid%s'"
-      string Printer.pp_varinfo vi string
+let warn_if_not_const kf string typ vi loc =
+  if not (List.mem (Kernel_function.get_name kf) non_const_exceptions) then
+    if not (Cil.typeHasQualifier "const" typ) then
+      Kernel.result ~source:(fst loc)
+        "'requires \\valid_read%s' of a non-const variable %a. \
+         You may have meant '\\valid%s'"
+        string Printer.pp_varinfo vi string
 
-let check_annot _ (a: identified_predicate) =
+let check_annot kf _ (a: identified_predicate) =
   let p = a.ip_content.pred_content in
   match p with
   | Pvalid (_, t) | Pvalid_read (_, t)
@@ -27,9 +33,9 @@ let check_annot _ (a: identified_predicate) =
       | Papp ({l_var_info={lv_name="valid_string"}},_,_) ->
         warn_if_const "_string"
       | Pvalid_read _ ->
-        warn_if_not_const ""
+        warn_if_not_const kf ""
       | Papp ({l_var_info={lv_name="valid_read_string"}},_,_) ->
-        warn_if_not_const "_string"
+        warn_if_not_const kf "_string"
       | _ -> assert false
     in
     match t.term_node with
@@ -57,7 +63,7 @@ let check () =
   let check_kf kf =
     let bhvs = Annotations.behaviors ~populate:false kf in
     List.iter (fun bhv ->
-      Annotations.iter_requires check_annot kf bhv.b_name) bhvs
+      Annotations.iter_requires (check_annot kf) kf bhv.b_name) bhvs
   in
   Globals.Functions.iter check_kf
 

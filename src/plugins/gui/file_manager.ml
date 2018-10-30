@@ -176,17 +176,26 @@ let preferences (host_window: Design.main_window_extension_points) =
   wb_ok#grab_default ();
   let f_ok () =
     (* retrieve chosen preferences from dialog *)
-    Gui_parameters.debug "saving preferences";
-    Gtk_helper.Configuration.set "theme"
-      (Gtk_helper.Configuration.ConfString theme_group#get);
-    Gtk_helper.Configuration.set "editor"
-      (Gtk_helper.Configuration.ConfString editor_input#text);
-    Gtk_helper.Configuration.save ();
-    dialog#destroy ();
-    (* Reloads the icons from the theme, and resets the icons used as property
-       status bullets.*)
-    Gtk_helper.Icon.clear ();
-    Design.Feedback.declare_markers host_window#source_viewer;
+    (* note: Guilib does not allow double quotes in strings, but it fails
+       without raising an exception, so we must check if beforehand. *)
+    if String.contains editor_input#text '"' then
+      GToolbox.message_box ~title:"Error"
+        "Error: configuration strings cannot contain double quotes. \n\
+         Use single quotes instead. \n\
+         Note that file names (%s) are automatically quoted."
+    else begin
+      Gui_parameters.debug "saving preferences";
+      Gtk_helper.Configuration.set "theme"
+        (Gtk_helper.Configuration.ConfString theme_group#get);
+      Gtk_helper.Configuration.set "editor"
+        (Gtk_helper.Configuration.ConfString editor_input#text);
+      Gtk_helper.Configuration.save ();
+      dialog#destroy ();
+      (* Reloads the icons from the theme, and resets the icons used as property
+         status bullets.*)
+      Gtk_helper.Icon.clear ();
+      Design.Feedback.declare_markers host_window#source_viewer;
+    end
   in
   let f_cancel () =
     Gui_parameters.debug "canceled, preferences not saved";

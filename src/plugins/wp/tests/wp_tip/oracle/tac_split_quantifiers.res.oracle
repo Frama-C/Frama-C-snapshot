@@ -1,0 +1,46 @@
+# frama-c -wp [...]
+[kernel] Parsing tests/wp_tip/tac_split_quantifiers.i (no preprocessing)
+[wp] Running WP plugin...
+[wp] Loading driver 'share/wp.driver'
+[wp] Warning: Missing RTE guards
+------------------------------------------------------------
+  Function split
+------------------------------------------------------------
+
+Goal Post-condition 'Goal_Exist_Or' in 'split':
+Prove: exists i_2,i_1,i : Z. P_Q1(1) \/ P_P1(i_2) \/ P_P2(i_1, i) \/
+    (exists i_3 : Z. P_Q2(i_2, i_3)).
+
+------------------------------------------------------------
+
+Goal Post-condition 'Goal_Exist_And' in 'split':
+Prove: exists i_2,i_1,i : Z. P_P1(i_2) /\ P_Q1(i) /\ P_P2(i_1, i) /\
+    (exists i_3 : Z. P_Q2(i_2, i_3)).
+
+------------------------------------------------------------
+
+Goal Post-condition 'Goal_Exist_And_bis' in 'split':
+Prove: exists i_3,i_2,i_1,i : Z. P_Q1(1) /\ P_P2(i_3, i_2) /\
+    P_R2(i_2, i_1) /\ (exists i_4 : Z. P_Q2(i, i_4)).
+
+------------------------------------------------------------
+
+Goal Post-condition 'Hyp_Forall_And' in 'split':
+Assume {
+  (* Goal *)
+  When: forall i_2,i_1,i : Z. P_Q1(1) /\ P_P1(i_2) /\ P_P2(i_1, i) /\
+      (forall i_3 : Z. P_Q2(i_2, i_3)).
+}
+Prove: P_Q1(L_A).
+
+------------------------------------------------------------
+
+Goal Post-condition 'Hyp_Forall_Or_bis' in 'split':
+Assume {
+  (* Goal *)
+  When: forall i_3,i_2,i_1,i : Z. P_Q1(1) \/ P_P2(i_3, i_2) \/
+      P_R2(i_2, i_1) \/ (forall i_4 : Z. P_Q2(i, i_4)).
+}
+Prove: P_Q1(L_A).
+
+------------------------------------------------------------

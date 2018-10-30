@@ -6,118 +6,115 @@
   void (*)(long , short *)
 [kernel:typing:incompatible-types-call] tests/value/fun_ptr.i:56: Warning: 
   expected 'short *' but got argument of type 'int *': & x
-[value] Analyzing a complete application starting at main
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing a complete application starting at main
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   t[0] ∈ {{ (long long)&f }}
    [1] ∈ {{ (long long)&g }}
   R1 ∈ {0}
   R2 ∈ {0}
   R3 ∈ {0}
   v ∈ [--..--]
-[value] computing for function test1 <- main.
+[eva] computing for function test1 <- main.
   Called from tests/value/fun_ptr.i:78.
-[value:alarm] tests/value/fun_ptr.i:28: Warning: 
+[eva:alarm] tests/value/fun_ptr.i:28: Warning: 
   pointer to function with incompatible type.
   assert \valid_function((int (*)(int ))t[nd]);
-[value] computing for function f <- test1 <- main.
+[eva] computing for function f <- test1 <- main.
   Called from tests/value/fun_ptr.i:28.
-[value] Recording results for f
-[value] Done for function f
-[value] Recording results for test1
-[value] Done for function test1
-[value] computing for function test2 <- main.
+[eva] Recording results for f
+[eva] Done for function f
+[eva] Recording results for test1
+[eva] Done for function test1
+[eva] computing for function test2 <- main.
   Called from tests/value/fun_ptr.i:79.
-[value:alarm] tests/value/fun_ptr.i:33: Warning: 
+[eva:alarm] tests/value/fun_ptr.i:33: Warning: 
   pointer to function with incompatible type.
   assert \valid_function((int (*)(int , int ))t[nd]);
-[value] computing for function g <- test2 <- main.
+[eva] computing for function g <- test2 <- main.
   Called from tests/value/fun_ptr.i:33.
-[value] Recording results for g
-[value] Done for function g
-[value] computing for function f <- test2 <- main.
-  Called from tests/value/fun_ptr.i:33.
-[value] Recording results for f
-[value] Done for function f
-[value] Recording results for test2
-[value] Done for function test2
-[value] computing for function test3 <- main.
+[eva] Recording results for g
+[eva] Done for function g
+[eva] tests/value/fun_ptr.i:33: Reusing old results for call to f
+[eva] Recording results for test2
+[eva] Done for function test2
+[eva] computing for function test3 <- main.
   Called from tests/value/fun_ptr.i:80.
-[value:alarm] tests/value/fun_ptr.i:38: Warning: 
+[eva:alarm] tests/value/fun_ptr.i:38: Warning: 
   pointer to function with incompatible type.
   assert \valid_function((double (*)(int ))t[nd]);
-[value] Recording results for test3
-[value] Done for function test3
-[value:alarm] tests/value/fun_ptr.i:83: Warning: 
+[eva] Recording results for test3
+[eva] Done for function test3
+[eva:alarm] tests/value/fun_ptr.i:83: Warning: 
   pointer to function with incompatible type.
   assert \valid_function((double (*)(double , double ))ph);
-[value:alarm] tests/value/fun_ptr.i:85: Warning: 
+[eva:alarm] tests/value/fun_ptr.i:85: Warning: 
   pointer to function with incompatible type.
   assert \valid_function((double (*)(void))ph);
-[value] computing for function h <- main.
+[eva] computing for function h <- main.
   Called from tests/value/fun_ptr.i:87.
-[value] Recording results for h
-[value] Done for function h
-[value] computing for function test_benign <- main.
+[eva] Recording results for h
+[eva] Done for function h
+[eva] computing for function test_benign <- main.
   Called from tests/value/fun_ptr.i:89.
-[value:alarm] tests/value/fun_ptr.i:56: Warning: 
+[eva:alarm] tests/value/fun_ptr.i:56: Warning: 
   pointer to function with incompatible type. assert \valid_function(p);
-[value] computing for function benign <- test_benign <- main.
+[eva] computing for function benign <- test_benign <- main.
   Called from tests/value/fun_ptr.i:56.
-[value] Recording results for benign
-[value] Done for function benign
-[value] Recording results for test_benign
-[value] Done for function test_benign
-[value] computing for function test_too_much_benign <- main.
+[eva] Recording results for benign
+[eva] Done for function benign
+[eva] Recording results for test_benign
+[eva] Done for function test_benign
+[eva] computing for function test_too_much_benign <- main.
   Called from tests/value/fun_ptr.i:90.
-[value:alarm] tests/value/fun_ptr.i:70: Warning: 
+[eva:alarm] tests/value/fun_ptr.i:70: Warning: 
   pointer to function with incompatible type.
   assert \valid_function((void (*)(int , int ))p);
-[value] computing for function too_much <- test_too_much_benign <- main.
+[eva] computing for function too_much <- test_too_much_benign <- main.
   Called from tests/value/fun_ptr.i:70.
-[value] Recording results for too_much
-[value] Done for function too_much
-[value:alarm] tests/value/fun_ptr.i:73: Warning: 
+[eva] Recording results for too_much
+[eva] Done for function too_much
+[eva:alarm] tests/value/fun_ptr.i:73: Warning: 
   pointer to function with incompatible type.
   assert \valid_function((void (*)(int , int ))p);
-[value] Recording results for test_too_much_benign
-[value] Done for function test_too_much_benign
-[value] Recording results for main
-[value] done for function main
-[value] tests/value/fun_ptr.i:38: 
-  assertion 'Value,function_pointer' got final status invalid.
-[value] tests/value/fun_ptr.i:73: 
-  assertion 'Value,function_pointer' got final status invalid.
-[value] tests/value/fun_ptr.i:83: 
-  assertion 'Value,function_pointer' got final status invalid.
-[value] tests/value/fun_ptr.i:85: 
-  assertion 'Value,function_pointer' got final status invalid.
-[value] ====== VALUES COMPUTED ======
-[value:final-states] Values at end of function benign:
+[eva] Recording results for test_too_much_benign
+[eva] Done for function test_too_much_benign
+[eva] Recording results for main
+[eva] done for function main
+[eva] tests/value/fun_ptr.i:38: 
+  assertion 'Eva,function_pointer' got final status invalid.
+[eva] tests/value/fun_ptr.i:73: 
+  assertion 'Eva,function_pointer' got final status invalid.
+[eva] tests/value/fun_ptr.i:83: 
+  assertion 'Eva,function_pointer' got final status invalid.
+[eva] tests/value/fun_ptr.i:85: 
+  assertion 'Eva,function_pointer' got final status invalid.
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function benign:
   q ∈ {{ &x }}
   k ∈ {-2147483648}
   x ∈ {-2147483648}
-[value:final-states] Values at end of function f:
+[eva:final-states] Values at end of function f:
   __retres ∈ {4}
-[value:final-states] Values at end of function g:
+[eva:final-states] Values at end of function g:
   __retres ∈ {7}
-[value:final-states] Values at end of function h:
+[eva:final-states] Values at end of function h:
   __retres ∈ {3.}
-[value:final-states] Values at end of function test1:
+[eva:final-states] Values at end of function test1:
   R1 ∈ {4}
-[value:final-states] Values at end of function test2:
+[eva:final-states] Values at end of function test2:
   R2 ∈ {4; 7}
-[value:final-states] Values at end of function test3:
+[eva:final-states] Values at end of function test3:
   NON TERMINATING FUNCTION
-[value:final-states] Values at end of function test_benign:
+[eva:final-states] Values at end of function test_benign:
   x ∈ {-2147483648}
   p ∈ {{ (void (*)(long , short *))&benign }}
-[value:final-states] Values at end of function too_much:
+[eva:final-states] Values at end of function too_much:
   j ∈ {1}
-[value:final-states] Values at end of function test_too_much_benign:
+[eva:final-states] Values at end of function test_too_much_benign:
   p ∈ {{ &too_much }}
-[value:final-states] Values at end of function main:
+[eva:final-states] Values at end of function main:
   R1 ∈ {4}
   R2 ∈ {4; 7}
   R3 ∈ {0}

@@ -35,12 +35,12 @@ type annot_kind =
              but not an hypothesis (see Aboth): A /\ ...*)
   | Aboth of bool
   (* annotation can be used as both hypothesis and goal :
-     	 - with true : considered as both : A /\ A=>..
-     	 - with false : we just want to use it as hyp right now. *)
+         - with true : considered as both : A /\ A=>..
+         - with false : we just want to use it as hyp right now. *)
   | AcutB of bool
   (* annotation is use as a cut :
-     	 - with true (A is also a goal) -> A (+ proof obligation A => ...)
-     	 - with false (A is an hyp only) -> True (+ proof obligation A => ...) *)
+         - with true (A is also a goal) -> A (+ proof obligation A => ...)
+         - with false (A is an hyp only) -> True (+ proof obligation A => ...) *)
   | AcallHyp of kernel_function
   (* annotation is a called function property to consider as an Hyp.
    * The pre are not here but in AcallPre since they can also
@@ -137,6 +137,19 @@ let add_prop acc kind id p =
 
 (* -------------------------------------------------------------------------- *)
 (* adding some specific properties. *)
+let add_prop_fct_pre_bhv acc kind kf bhv =
+  let norm_pred pred =
+    let p = Logic_const.pred_of_id_pred pred in
+    Logic_const.(pat (p,pre_label))
+  in
+  let requires = Logic_const.pands (List.map norm_pred bhv.b_requires) in
+  let assumes = Logic_const.pands (List.map norm_pred bhv.b_assumes) in
+  let precond = Logic_const.pimplies (assumes, requires) in
+  let precond_id = Logic_const.new_predicate precond in
+  let id = WpPropId.mk_pre_id kf Kglobal bhv precond_id in
+  let labels = NormAtLabels.labels_fct_pre in
+  let p = normalize id labels precond in
+  add_prop acc kind id p
 
 let add_prop_fct_pre acc kind kf bhv ~assumes pre =
   let id = WpPropId.mk_pre_id kf Kglobal bhv pre in
@@ -633,7 +646,7 @@ let is_main_init kf =
       Kernel_function.pretty kf (if is_main then "" else "NOT ");
     is_main
 
-let isInitConst () = Kernel.ConstReadonly.get () && Wp_parameters.Init.get ()
+let isInitConst () = Wp_parameters.Init.get ()
 
 let isGlobalInitConst var =
   var.vglob && var.vstorage <> Extern && Cil.typeHasQualifier "const" var.vtype

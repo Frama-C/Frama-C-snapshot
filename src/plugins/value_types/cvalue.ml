@@ -434,28 +434,25 @@ module V = struct
       else topify_arith_origin pointer_part, false      
     in
     if ok_garbled && integer_part' == integer_part then
-      v (* both pointer and integer part are unchanged *), true
+      v (* both pointer and integer part are unchanged *)
     else
-      join (inject_ival integer_part') pointer_part', false
+      join (inject_ival integer_part') pointer_part'
 
   let cast_int_to_int ~size ~signed v =
     to_int Ival.cast_int_to_int ~size ~signed v
-  
+
   let reinterpret_as_int ~signed ~size v =
-    fst (to_int Ival.reinterpret_as_int ~size ~signed v)
+    to_int Ival.reinterpret_as_int ~size ~signed v
 
   let cast_float_to_int ~signed ~size v =
    try
      let v1 = project_ival v in
-     let alarm_use_as_float, alarm_overflow, r =
-       Ival.cast_float_to_int ~signed ~size v1
-     in
-     alarm_use_as_float, alarm_overflow, inject_ival r
+     let r = Ival.cast_float_to_int ~signed ~size v1 in
+     inject_ival r
    with Not_based_on_null ->
-     if is_bottom v then
-       NoAlarm, (NoAlarm, NoAlarm), v
-     else
-       Alarm, (Alarm, Alarm), topify_arith_origin v
+     if is_bottom v
+     then v
+     else topify_arith_origin v
 
  let cast_float_to_int_inverse ~single_precision i =
    try
@@ -500,16 +497,7 @@ module V = struct
   let arithmetic_function = import_function ~topify:Origin.K_Arith
 
   (* Compute the pointwise difference between two Locations_Bytes.t. *)
-  let sub_untyped_pointwise ?factor v1 v2 =
-    let offsets = sub_pointwise ?factor v1 v2 in
-    let warn =
-      try
-        let b1, _ = find_lonely_key v1
-        and b2, _ = find_lonely_key v2 in
-        not (Base.equal b1 b2)
-      with Not_found -> true
-    in
-    offsets, warn
+  let sub_untyped_pointwise = sub_pointwise
 
   (* compute [e1+factor*e2] using C semantic for +, i.e.
      [ptr+v] is [add_untyped sizeof_in_octets( *ptr) ptr v]. This function

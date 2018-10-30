@@ -1,0 +1,29 @@
+[e-acsl] beginning translation.
+[e-acsl] Warning: annotating undefined function `printf_va_1':
+  the generated program may miss memory instrumentation
+  if there are memory-related annotations.
+[e-acsl] Warning: annotating undefined function `printf_va_2':
+  the generated program may miss memory instrumentation
+  if there are memory-related annotations.
+[e-acsl] Warning: annotating undefined function `printf_va_3':
+  the generated program may miss memory instrumentation
+  if there are memory-related annotations.
+[e-acsl] tests/runtime/local_goto.c:37: Warning: 
+  E-ACSL construct `logic function application' is not yet supported.
+  Ignoring annotation.
+[e-acsl] tests/runtime/local_goto.c:37: Warning: 
+  E-ACSL construct `assigns clause in behavior' is not yet supported.
+  Ignoring annotation.
+[e-acsl] tests/runtime/local_goto.c:28: Warning: 
+  E-ACSL construct `logic function application' is not yet supported.
+  Ignoring annotation.
+[e-acsl] tests/runtime/local_goto.c:28: Warning: 
+  E-ACSL construct `assigns clause in behavior' is not yet supported.
+  Ignoring annotation.
+[e-acsl] tests/runtime/local_goto.c:16: Warning: 
+  E-ACSL construct `logic function application' is not yet supported.
+  Ignoring annotation.
+[e-acsl] tests/runtime/local_goto.c:16: Warning: 
+  E-ACSL construct `assigns clause in behavior' is not yet supported.
+  Ignoring annotation.
+[e-acsl] translation done in project "e-acsl".

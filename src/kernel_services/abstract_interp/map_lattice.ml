@@ -54,6 +54,7 @@ module type Map_Lattice_with_cardinality = sig
   include Lattice_with_cardinality
   type key
   type v
+  val find_lonely_key: t -> key * v
   val find_lonely_binding: t -> key * v
 end
 
@@ -220,9 +221,14 @@ module Make_Map_Lattice
 
 
   module With_Cardinality
+      (K: sig val is_summary: Key.t -> bool end)
       (Value :
          Lattice_type.Full_AI_Lattice_with_cardinality with type t := Value.t)
   = struct
+
+    let find_lonely_key m =
+      let k, _ as pair = find_lonely_key m in
+      if K.is_summary k then raise Not_found else pair
 
     (** if there is only one binding [k -> v] in map [m] (that is, only one key
         [k] and [cardinal_zero_or_one v]), returns the pair [k,v].

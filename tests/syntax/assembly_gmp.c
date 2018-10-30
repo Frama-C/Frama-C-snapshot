@@ -179,3 +179,16 @@ mpn_mod_1_1p (mp_srcptr ap, mp_size_t n, mp_limb_t b, const mp_limb_t bmodb[4])
   udiv_rnnd_preinv (r, r1, r0, b, bi);
   return r >> cnt;
 }
+
+int loc[10];
+
+void f(void) {
+
+unsigned long ulValue;
+unsigned long* pulValue = &ulValue;
+
+asm("sidt %0\n" : :"m"(loc));
+
+asm ("movq $36, (%0)": : "r"(pulValue));
+
+}

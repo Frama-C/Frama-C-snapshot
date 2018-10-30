@@ -228,10 +228,10 @@ let highlighter (buffer:Design.reactive_buffer) localizable ~start ~stop =
 let check_value (main_ui:Design.main_window_extension_points) =
   Db.Value.is_computed () ||
     let answer = GToolbox.question_box
-      ~title:("Need Value Analysis")
+      ~title:("Eva Needed")
       ~buttons:[ "Run"; "Cancel" ]
-      ("Value analysis has to be run first.\nThis can take some time.\n"
-       ^"Do you want to run the value analysis now ?")
+      ("Eva has to be run first.\nThis can take some time.\n"
+       ^"Do you want to run Eva now ?")
     in
     answer = 1 &&
         match main_ui#full_protect ~cancelable:true !Db.Value.compute with

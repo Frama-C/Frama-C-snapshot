@@ -4,7 +4,7 @@ int r0, r1 = 6, r2 = -8, r6, r7, r8, r9, rn1 = 5, rn2, rn3, rn4=-3, rn5;
 
 int vic;
 
-main (int c)
+int main (int c)
 {
   int rc;
   if (c<0) c=0;
@@ -52,4 +52,5 @@ main (int c)
     Frama_C_show_each_should(vic);
   else
     Frama_C_show_each_shouldnt(vic);
+  return 0;
 }

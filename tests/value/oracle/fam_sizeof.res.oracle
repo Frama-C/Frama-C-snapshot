@@ -1,19 +1,19 @@
 [kernel] Parsing tests/value/fam_sizeof.i (no preprocessing)
-[value] Analyzing a complete application starting at main
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing a complete application starting at main
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   fam ∈ {0}
   nested ∈ {0}
   fam2 ∈ {0}
   gcc_fam ∈ {0}
-[value] tests/value/fam_sizeof.i:44: assertion got status valid.
-[value] tests/value/fam_sizeof.i:48: assertion got status valid.
-[value] tests/value/fam_sizeof.i:50: assertion got status valid.
-[value] Recording results for main
-[value] done for function main
-[value] ====== VALUES COMPUTED ======
-[value:final-states] Values at end of function main:
+[eva] tests/value/fam_sizeof.i:44: assertion got status valid.
+[eva] tests/value/fam_sizeof.i:48: assertion got status valid.
+[eva] tests/value/fam_sizeof.i:50: assertion got status valid.
+[eva] Recording results for main
+[eva] done for function main
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function main:
   z1 ∈ {4}
   z2 ∈ {20}
   z3 ∈ {12}

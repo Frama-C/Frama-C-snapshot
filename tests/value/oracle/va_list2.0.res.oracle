@@ -1,58 +1,58 @@
 [kernel] Parsing tests/value/va_list2.c (with preprocessing)
-[value] Analyzing a complete application starting at main
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing a complete application starting at main
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   
-[value:initial-state] 
+[eva:initial-state] 
   creating variable S_0_S___va_params with imprecise size (type void)
-[value:initial-state] 
+[eva:initial-state] 
   creating variable S_1_S___va_params with imprecise size (type void)
-[value] tests/value/va_list2.c:12: entering loop for the first time
-[value:alarm] tests/value/va_list2.c:12: Warning: 
+[eva:alarm] tests/value/va_list2.c:12: Warning: 
   out of bounds read. assert \valid_read(fmt);
-[value:alarm] tests/value/va_list2.c:15: Warning: 
+[eva:alarm] tests/value/va_list2.c:15: Warning: 
   out of bounds read. assert \valid_read(args);
-[value:alarm] tests/value/va_list2.c:15: Warning: 
+[eva:alarm] tests/value/va_list2.c:15: Warning: 
   out of bounds read. assert \valid_read((int *)*args);
-[value] tests/value/va_list2.c:15: 
+[eva] tests/value/va_list2.c:15: 
   Assigning imprecise value to tmp.
   The imprecision originates from Well
-[value] tests/value/va_list2.c:15: 
+[eva] tests/value/va_list2.c:15: 
   Assigning imprecise value to i.
   The imprecision originates from Well
-[value] tests/value/va_list2.c:16: 
+[eva] tests/value/va_list2.c:16: 
   Frama_C_show_each_i: {{ garbled mix of &{S_0_S___va_params} (origin: Well) }}
-[value:alarm] tests/value/va_list2.c:20: Warning: 
+[eva:alarm] tests/value/va_list2.c:20: Warning: 
   out of bounds read. assert \valid_read(args);
-[value:alarm] tests/value/va_list2.c:20: Warning: 
+[eva:alarm] tests/value/va_list2.c:20: Warning: 
   out of bounds read. assert \valid_read((float *)*args);
-[value:alarm] tests/value/va_list2.c:20: Warning: 
+[eva:alarm] tests/value/va_list2.c:20: Warning: 
   non-finite float value. assert \is_finite(*((float *)*args));
-[value] tests/value/va_list2.c:20: 
+[eva] tests/value/va_list2.c:20: 
   Assigning imprecise value to tmp_0.
   The imprecision originates from Well
-[value:alarm] tests/value/va_list2.c:20: Warning: 
+[eva:alarm] tests/value/va_list2.c:20: Warning: 
   non-finite float value. assert \is_finite(tmp_0);
                           (tmp_0 from vararg)
-[value] tests/value/va_list2.c:20: 
+[eva] tests/value/va_list2.c:20: 
   Assigning imprecise value to f.
   The imprecision originates from Well
-[value] tests/value/va_list2.c:21: 
+[eva] tests/value/va_list2.c:21: 
   Frama_C_show_each_f: {{ garbled mix of &{S_0_S___va_params} (origin: Well) }}
-[value:alarm] tests/value/va_list2.c:13: Warning: 
+[eva] tests/value/va_list2.c:12: starting to merge loop iterations
+[eva:alarm] tests/value/va_list2.c:13: Warning: 
   out of bounds read. assert \valid_read(fmt);
-[value] tests/value/va_list2.c:16: 
+[eva] tests/value/va_list2.c:16: 
   Frama_C_show_each_i:
   {{ garbled mix of &{S_0_S___va_params; S_1_S___va_params} (origin: Well) }}
-[value] tests/value/va_list2.c:21: 
+[eva] tests/value/va_list2.c:21: 
   Frama_C_show_each_f:
   {{ garbled mix of &{S_0_S___va_params; S_1_S___va_params} (origin: Well) }}
-[value] Recording results for main
-[value] done for function main
+[eva] Recording results for main
+[eva] done for function main
 [scope:rm_asserts] removing 1 assertion(s)
-[value] ====== VALUES COMPUTED ======
-[value:final-states] Values at end of function main:
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function main:
   fmt ∈ {{ &S_fmt{[0], [1]} }}
   args ∈ {{ NULL ; &S___va_params{[0], [1], [2]} }}
 [from] Computing for function main

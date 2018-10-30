@@ -1,45 +1,45 @@
 [kernel] Parsing tests/constant_propagation/declaration.c (with preprocessing)
-[value] Analyzing a complete application starting at main
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing a complete application starting at main
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   X ∈ [--..--]
   Y ∈ {-42}
-[value] computing for function f <- main.
+[eva] computing for function f <- main.
   Called from tests/constant_propagation/declaration.c:27.
-[value:alarm] tests/constant_propagation/declaration.c:6: Warning: 
+[eva:alarm] tests/constant_propagation/declaration.c:6: Warning: 
   signed overflow. assert *x + 1 ≤ 2147483647;
-[value] computing for function h <- f <- main.
+[eva] computing for function h <- f <- main.
   Called from tests/constant_propagation/declaration.c:8.
-[value:alarm] tests/constant_propagation/declaration.c:22: Warning: 
+[eva:alarm] tests/constant_propagation/declaration.c:22: Warning: 
   signed overflow. assert *x + 2 ≤ 2147483647;
-[value] Recording results for h
-[value] Done for function h
-[value] Recording results for f
-[value] Done for function f
-[value] computing for function g <- main.
+[eva] Recording results for h
+[eva] Done for function h
+[eva] Recording results for f
+[eva] Done for function f
+[eva] computing for function g <- main.
   Called from tests/constant_propagation/declaration.c:28.
-[value:alarm] tests/constant_propagation/declaration.c:12: Warning: 
+[eva:alarm] tests/constant_propagation/declaration.c:12: Warning: 
   signed overflow. assert *x + 1 ≤ 2147483647;
-[value] computing for function h <- g <- main.
+[eva] computing for function h <- g <- main.
   Called from tests/constant_propagation/declaration.c:14.
-[value] Recording results for h
-[value] Done for function h
-[value] Recording results for g
-[value] Done for function g
-[value] Recording results for main
-[value] done for function main
-[value] ====== VALUES COMPUTED ======
-[value:final-states] Values at end of function h:
+[eva] Recording results for h
+[eva] Done for function h
+[eva] Recording results for g
+[eva] Done for function g
+[eva] Recording results for main
+[eva] done for function main
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function h:
   X ∈ [-2147483645..2147483647]
   Y ∈ {-36; -30}
-[value:final-states] Values at end of function f:
+[eva:final-states] Values at end of function f:
   X ∈ [-2147483645..2147483647]
   Y ∈ {-36}
-[value:final-states] Values at end of function g:
+[eva:final-states] Values at end of function g:
   X ∈ [-2147483642..2147483647]
   Y ∈ {-30}
-[value:final-states] Values at end of function main:
+[eva:final-states] Values at end of function main:
   X ∈ [-2147483642..2147483647]
   Y ∈ {-30}
 [scf] beginning constant propagation
@@ -52,7 +52,7 @@ extern int X;
 
 void f(int *x, int *y, void (*p)(int *x, int *y))
 {
-  /*@ assert Value: signed_overflow: *x + 1 ≤ 2147483647; */
+  /*@ assert Eva: signed_overflow: *x + 1 ≤ 2147483647; */
   X ++;
   Y = -41;
   h(& X,& Y);
@@ -61,7 +61,7 @@ void f(int *x, int *y, void (*p)(int *x, int *y))
 
 void g(int *x, int *y, void (*p)(int *x, int *y))
 {
-  /*@ assert Value: signed_overflow: *x + 1 ≤ 2147483647; */
+  /*@ assert Eva: signed_overflow: *x + 1 ≤ 2147483647; */
   X ++;
   Y = -35;
   h(& X,& Y);
@@ -71,7 +71,7 @@ void g(int *x, int *y, void (*p)(int *x, int *y))
 int Y = -42;
 void h(int *x, int *y)
 {
-  /*@ assert Value: signed_overflow: *x + 2 ≤ 2147483647; */
+  /*@ assert Eva: signed_overflow: *x + 2 ≤ 2147483647; */
   X += 2;
   Y += 5;
   return;
@@ -87,36 +87,36 @@ int main(void)
 
 [scf] constant propagation done
 [scf] beginning constant propagation
-[value] Analyzing a complete application starting at main
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing a complete application starting at main
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   X ∈ [--..--]
   Y ∈ {-42}
-[value] computing for function f <- main.
+[eva] computing for function f <- main.
   Called from tests/constant_propagation/declaration.c:27.
-[value:alarm] tests/constant_propagation/declaration.c:6: Warning: 
+[eva:alarm] tests/constant_propagation/declaration.c:6: Warning: 
   signed overflow. assert X + 1 ≤ 2147483647;
-[value] computing for function h <- f <- main.
+[eva] computing for function h <- f <- main.
   Called from tests/constant_propagation/declaration.c:8.
-[value:alarm] tests/constant_propagation/declaration.c:22: Warning: 
+[eva:alarm] tests/constant_propagation/declaration.c:22: Warning: 
   signed overflow. assert X + 2 ≤ 2147483647;
-[value] Recording results for h
-[value] Done for function h
-[value] Recording results for f
-[value] Done for function f
-[value] computing for function g <- main.
+[eva] Recording results for h
+[eva] Done for function h
+[eva] Recording results for f
+[eva] Done for function f
+[eva] computing for function g <- main.
   Called from tests/constant_propagation/declaration.c:28.
-[value:alarm] tests/constant_propagation/declaration.c:12: Warning: 
+[eva:alarm] tests/constant_propagation/declaration.c:12: Warning: 
   signed overflow. assert X + 1 ≤ 2147483647;
-[value] computing for function h <- g <- main.
+[eva] computing for function h <- g <- main.
   Called from tests/constant_propagation/declaration.c:14.
-[value] Recording results for h
-[value] Done for function h
-[value] Recording results for g
-[value] Done for function g
-[value] Recording results for main
-[value] done for function main
+[eva] Recording results for h
+[eva] Done for function h
+[eva] Recording results for g
+[eva] Done for function g
+[eva] Recording results for main
+[eva] done for function main
 /* Generated by Frama-C */
 void h(int *x, int *y);
 
@@ -126,8 +126,8 @@ extern int X;
 
 void f(int *x, int *y, void (*p)(int *x, int *y))
 {
-  /*@ assert Value: signed_overflow: *x + 1 ≤ 2147483647; */
-  /*@ assert Value: signed_overflow: X + 1 ≤ 2147483647; */
+  /*@ assert Eva: signed_overflow: *x + 1 ≤ 2147483647; */
+  /*@ assert Eva: signed_overflow: X + 1 ≤ 2147483647; */
   X ++;
   Y = -41;
   h(& X,& Y);
@@ -136,8 +136,8 @@ void f(int *x, int *y, void (*p)(int *x, int *y))
 
 void g(int *x, int *y, void (*p)(int *x, int *y))
 {
-  /*@ assert Value: signed_overflow: *x + 1 ≤ 2147483647; */
-  /*@ assert Value: signed_overflow: X + 1 ≤ 2147483647; */
+  /*@ assert Eva: signed_overflow: *x + 1 ≤ 2147483647; */
+  /*@ assert Eva: signed_overflow: X + 1 ≤ 2147483647; */
   X ++;
   Y = -35;
   h(& X,& Y);
@@ -147,8 +147,8 @@ void g(int *x, int *y, void (*p)(int *x, int *y))
 int Y = -42;
 void h(int *x, int *y)
 {
-  /*@ assert Value: signed_overflow: *x + 2 ≤ 2147483647; */
-  /*@ assert Value: signed_overflow: X + 2 ≤ 2147483647; */
+  /*@ assert Eva: signed_overflow: *x + 2 ≤ 2147483647; */
+  /*@ assert Eva: signed_overflow: X + 2 ≤ 2147483647; */
   X += 2;
   Y += 5;
   return;

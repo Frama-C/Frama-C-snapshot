@@ -1,8 +1,8 @@
 [kernel] Parsing tests/value/struct2.i (no preprocessing)
-[value] Analyzing a complete application starting at f_precis
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing a complete application starting at f_precis
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   NULL[rbits 32768 to 65543] ∈ [--..--]
   tabst[0..9] ∈ {0}
   tabst2[0..9] ∈ {0}
@@ -41,71 +41,71 @@
   v ∈ [--..--]
   Tab[0..9] ∈ {0}
   P ∈ {0}
-[value:alarm] tests/value/struct2.i:74: Warning: 
+[eva:alarm] tests/value/struct2.i:74: Warning: 
   accessing out of bounds index. assert 0 ≤ i;
-[value:alarm] tests/value/struct2.i:74: Warning: 
+[eva:alarm] tests/value/struct2.i:74: Warning: 
   accessing out of bounds index. assert i < 2;
-[value:alarm] tests/value/struct2.i:76: Warning: 
+[eva:alarm] tests/value/struct2.i:76: Warning: 
   accessing out of bounds index. assert 0 ≤ (int)(i + j);
-[value:alarm] tests/value/struct2.i:76: Warning: 
+[eva:alarm] tests/value/struct2.i:76: Warning: 
   accessing out of bounds index. assert (int)(i + j) < 2;
-[value:alarm] tests/value/struct2.i:76: Warning: 
+[eva:alarm] tests/value/struct2.i:76: Warning: 
   signed overflow. assert i + j ≤ 2147483647;
-[value:alarm] tests/value/struct2.i:78: Warning: 
+[eva:alarm] tests/value/struct2.i:78: Warning: 
   accessing out of bounds index. assert tab2[i] < 2;
-[value:alarm] tests/value/struct2.i:80: Warning: 
+[eva:alarm] tests/value/struct2.i:80: Warning: 
   accessing out of bounds index. assert tab2[1] < 2;
-[value:alarm] tests/value/struct2.i:82: Warning: 
+[eva:alarm] tests/value/struct2.i:82: Warning: 
   accessing out of bounds index. assert 0 ≤ (int)(tab2[i] + j);
-[value:alarm] tests/value/struct2.i:82: Warning: 
+[eva:alarm] tests/value/struct2.i:82: Warning: 
   accessing out of bounds index. assert (int)(tab2[i] + j) < 2;
-[value:alarm] tests/value/struct2.i:99: Warning: 
+[eva:alarm] tests/value/struct2.i:99: Warning: 
   accessing out of bounds index. assert 0 ≤ (int)(tabl[i] + y);
-[value:alarm] tests/value/struct2.i:99: Warning: 
+[eva:alarm] tests/value/struct2.i:99: Warning: 
   accessing out of bounds index. assert (int)(tabl[i] + y) < 2;
-[value:alarm] tests/value/struct2.i:117: Warning: 
+[eva:alarm] tests/value/struct2.i:117: Warning: 
   signed overflow. assert -2147483648 ≤ *p + x;
-[value:alarm] tests/value/struct2.i:117: Warning: 
+[eva:alarm] tests/value/struct2.i:117: Warning: 
   signed overflow. assert *p + x ≤ 2147483647;
-[value:alarm] tests/value/struct2.i:124: Warning: 
+[eva:alarm] tests/value/struct2.i:124: Warning: 
   out of bounds read. assert \valid_read(r);
 [kernel] tests/value/struct2.i:124: Warning: 
   all target addresses were invalid. This path is assumed to be dead.
-[value:alarm] tests/value/struct2.i:130: Warning: 
+[eva:alarm] tests/value/struct2.i:130: Warning: 
   out of bounds read. assert \valid_read(p3 + 2);
-[value:alarm] tests/value/struct2.i:138: Warning: 
+[eva:alarm] tests/value/struct2.i:138: Warning: 
   signed overflow. assert *((int *)0x1020) + i ≤ 2147483647;
-[value:alarm] tests/value/struct2.i:149: Warning: 
+[eva:alarm] tests/value/struct2.i:149: Warning: 
   out of bounds write. assert \valid(*t + i);
-[value:alarm] tests/value/struct2.i:185: Warning: 
+[eva:alarm] tests/value/struct2.i:185: Warning: 
   accessing out of bounds index. assert 0 ≤ (int)(i + j);
-[value:alarm] tests/value/struct2.i:185: Warning: 
+[eva:alarm] tests/value/struct2.i:185: Warning: 
   accessing out of bounds index. assert (int)(i + j) < 2;
-[value:alarm] tests/value/struct2.i:185: Warning: 
+[eva:alarm] tests/value/struct2.i:185: Warning: 
   accessing out of bounds index. assert 0 ≤ k;
-[value:alarm] tests/value/struct2.i:185: Warning: 
+[eva:alarm] tests/value/struct2.i:185: Warning: 
   accessing out of bounds index. assert k < 2;
-[value:alarm] tests/value/struct2.i:185: Warning: 
+[eva:alarm] tests/value/struct2.i:185: Warning: 
   accessing out of bounds index. assert 0 ≤ l;
-[value:alarm] tests/value/struct2.i:185: Warning: 
+[eva:alarm] tests/value/struct2.i:185: Warning: 
   accessing out of bounds index. assert l < 2;
-[value:alarm] tests/value/struct2.i:185: Warning: 
+[eva:alarm] tests/value/struct2.i:185: Warning: 
   accessing out of bounds index. assert 0 ≤ (int)(tab3[l] + m);
-[value:alarm] tests/value/struct2.i:185: Warning: 
+[eva:alarm] tests/value/struct2.i:185: Warning: 
   accessing out of bounds index. assert (int)(tab3[l] + m) < 10;
-[value:alarm] tests/value/struct2.i:185: Warning: 
+[eva:alarm] tests/value/struct2.i:185: Warning: 
   signed overflow. assert -2147483648 ≤ tab3[l] + m;
-[value:alarm] tests/value/struct2.i:185: Warning: 
+[eva:alarm] tests/value/struct2.i:185: Warning: 
   signed overflow. assert tab3[l] + m ≤ 2147483647;
-[value] Recording results for f_precis
-[value] done for function f_precis
-[value] tests/value/struct2.i:124: 
-  assertion 'Value,mem_access' got final status invalid.
-[value] tests/value/struct2.i:130: 
-  assertion 'Value,mem_access' got final status invalid.
+[eva] Recording results for f_precis
+[eva] done for function f_precis
+[eva] tests/value/struct2.i:124: 
+  assertion 'Eva,mem_access' got final status invalid.
+[eva] tests/value/struct2.i:130: 
+  assertion 'Eva,mem_access' got final status invalid.
 [scope:rm_asserts] removing 2 assertion(s)
-[value] ====== VALUES COMPUTED ======
-[value:final-states] Values at end of function f_precis:
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function f_precis:
   NULL[rbits 32768 to 32799] ∈ {{ NULL + [--..--] ; (? *)&a }}
       [rbits 32800 to 65543] ∈ [--..--]
   tab_s[0] ∈ {0}

@@ -98,6 +98,6 @@ Effect at line 20
 Prove: true.
 
 ------------------------------------------------------------
-[wp] Warning: Separation hypotheses for function 'job':
+[wp] Warning: Memory model hypotheses for function 'job':
   /*@ behavior typed: requires \separated(&p,b+(..)); */
   void job(int n, int *b);

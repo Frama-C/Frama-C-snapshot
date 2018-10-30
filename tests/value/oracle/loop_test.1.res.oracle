@@ -1,8 +1,8 @@
 [kernel] Parsing tests/value/loop_test.i (no preprocessing)
-[value] Analyzing a complete application starting at test_cent_onzes
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing a complete application starting at test_cent_onzes
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   r0 ∈ {0}
   r1 ∈ {0}
   r2 ∈ {0}
@@ -23,80 +23,80 @@
   c7 ∈ {0}
   c8 ∈ {0}
   c9 ∈ {0}
-[value] computing for function cent_onze_0 <- test_cent_onzes.
+[eva] computing for function cent_onze_0 <- test_cent_onzes.
   Called from tests/value/loop_test.i:101.
-[value] tests/value/loop_test.i:57: entering loop for the first time
-[value] Recording results for cent_onze_0
-[value] Done for function cent_onze_0
-[value] computing for function cent_onze_1 <- test_cent_onzes.
+[eva] tests/value/loop_test.i:57: starting to merge loop iterations
+[eva] Recording results for cent_onze_0
+[eva] Done for function cent_onze_0
+[eva] computing for function cent_onze_1 <- test_cent_onzes.
   Called from tests/value/loop_test.i:102.
-[value] tests/value/loop_test.i:60: entering loop for the first time
-[value] Recording results for cent_onze_1
-[value] Done for function cent_onze_1
-[value] computing for function cent_onze_2 <- test_cent_onzes.
+[eva] tests/value/loop_test.i:60: starting to merge loop iterations
+[eva] Recording results for cent_onze_1
+[eva] Done for function cent_onze_1
+[eva] computing for function cent_onze_2 <- test_cent_onzes.
   Called from tests/value/loop_test.i:103.
-[value] tests/value/loop_test.i:64: entering loop for the first time
-[value] Recording results for cent_onze_2
-[value] Done for function cent_onze_2
-[value] computing for function cent_onze_3 <- test_cent_onzes.
+[eva] tests/value/loop_test.i:64: starting to merge loop iterations
+[eva] Recording results for cent_onze_2
+[eva] Done for function cent_onze_2
+[eva] computing for function cent_onze_3 <- test_cent_onzes.
   Called from tests/value/loop_test.i:104.
-[value] tests/value/loop_test.i:68: entering loop for the first time
-[value] Recording results for cent_onze_3
-[value] Done for function cent_onze_3
-[value] computing for function cent_onze_4 <- test_cent_onzes.
+[eva] tests/value/loop_test.i:68: starting to merge loop iterations
+[eva] Recording results for cent_onze_3
+[eva] Done for function cent_onze_3
+[eva] computing for function cent_onze_4 <- test_cent_onzes.
   Called from tests/value/loop_test.i:105.
-[value] tests/value/loop_test.i:72: entering loop for the first time
-[value] Recording results for cent_onze_4
-[value] Done for function cent_onze_4
-[value] computing for function cent_onze_5 <- test_cent_onzes.
+[eva] tests/value/loop_test.i:72: starting to merge loop iterations
+[eva] Recording results for cent_onze_4
+[eva] Done for function cent_onze_4
+[eva] computing for function cent_onze_5 <- test_cent_onzes.
   Called from tests/value/loop_test.i:106.
-[value] tests/value/loop_test.i:77: entering loop for the first time
-[value] Recording results for cent_onze_5
-[value] Done for function cent_onze_5
-[value] computing for function cent_onze_6 <- test_cent_onzes.
+[eva] tests/value/loop_test.i:77: starting to merge loop iterations
+[eva] Recording results for cent_onze_5
+[eva] Done for function cent_onze_5
+[eva] computing for function cent_onze_6 <- test_cent_onzes.
   Called from tests/value/loop_test.i:107.
-[value] tests/value/loop_test.i:80: entering loop for the first time
-[value] Recording results for cent_onze_6
-[value] Done for function cent_onze_6
-[value] computing for function cent_onze_7 <- test_cent_onzes.
+[eva] tests/value/loop_test.i:80: starting to merge loop iterations
+[eva] Recording results for cent_onze_6
+[eva] Done for function cent_onze_6
+[eva] computing for function cent_onze_7 <- test_cent_onzes.
   Called from tests/value/loop_test.i:108.
-[value] tests/value/loop_test.i:84: entering loop for the first time
-[value] Recording results for cent_onze_7
-[value] Done for function cent_onze_7
-[value] computing for function cent_onze_8 <- test_cent_onzes.
+[eva] tests/value/loop_test.i:84: starting to merge loop iterations
+[eva] Recording results for cent_onze_7
+[eva] Done for function cent_onze_7
+[eva] computing for function cent_onze_8 <- test_cent_onzes.
   Called from tests/value/loop_test.i:109.
-[value] tests/value/loop_test.i:88: entering loop for the first time
-[value] Recording results for cent_onze_8
-[value] Done for function cent_onze_8
-[value] computing for function cent_onze_9 <- test_cent_onzes.
+[eva] tests/value/loop_test.i:88: starting to merge loop iterations
+[eva] Recording results for cent_onze_8
+[eva] Done for function cent_onze_8
+[eva] computing for function cent_onze_9 <- test_cent_onzes.
   Called from tests/value/loop_test.i:110.
-[value] tests/value/loop_test.i:92: entering loop for the first time
-[value] Recording results for cent_onze_9
-[value] Done for function cent_onze_9
-[value] Recording results for test_cent_onzes
-[value] done for function test_cent_onzes
-[value] ====== VALUES COMPUTED ======
-[value:final-states] Values at end of function cent_onze_0:
+[eva] tests/value/loop_test.i:92: starting to merge loop iterations
+[eva] Recording results for cent_onze_9
+[eva] Done for function cent_onze_9
+[eva] Recording results for test_cent_onzes
+[eva] done for function test_cent_onzes
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function cent_onze_0:
   cent_onze ∈ {111}
-[value:final-states] Values at end of function cent_onze_1:
+[eva:final-states] Values at end of function cent_onze_1:
   cent_onze ∈ {111}
-[value:final-states] Values at end of function cent_onze_2:
+[eva:final-states] Values at end of function cent_onze_2:
   cent_onze ∈ {111}
-[value:final-states] Values at end of function cent_onze_3:
+[eva:final-states] Values at end of function cent_onze_3:
   cent_onze ∈ {111}
-[value:final-states] Values at end of function cent_onze_4:
+[eva:final-states] Values at end of function cent_onze_4:
   cent_onze ∈ {111}
-[value:final-states] Values at end of function cent_onze_5:
+[eva:final-states] Values at end of function cent_onze_5:
   cent_onze ∈ {111}
-[value:final-states] Values at end of function cent_onze_6:
+[eva:final-states] Values at end of function cent_onze_6:
   cent_onze ∈ {111}
-[value:final-states] Values at end of function cent_onze_7:
+[eva:final-states] Values at end of function cent_onze_7:
   cent_onze ∈ {111}
-[value:final-states] Values at end of function cent_onze_8:
+[eva:final-states] Values at end of function cent_onze_8:
   cent_onze ∈ {111}
-[value:final-states] Values at end of function cent_onze_9:
+[eva:final-states] Values at end of function cent_onze_9:
   cent_onze ∈ {111}
-[value:final-states] Values at end of function test_cent_onzes:
+[eva:final-states] Values at end of function test_cent_onzes:
   c0 ∈ {111}
   c1 ∈ {111}
   c2 ∈ {111}

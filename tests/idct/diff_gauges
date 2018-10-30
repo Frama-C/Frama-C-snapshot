@@ -1,36 +1,68 @@
 diff tests/idct/oracle/ieee_1180_1990.res.oracle tests/idct/oracle_gauges/ieee_1180_1990.res.oracle
-140a141,144
-> [value] tests/idct/ieee_1180_1990.c:85: 
+51a52,55
+> [eva] tests/idct/idct.c:90: Call to builtin Frama_C_sqrt for function sqrt
+> [eva] tests/idct/idct.c:91: Call to builtin Frama_C_cos for function cos
+> [eva] tests/idct/idct.c:90: Call to builtin Frama_C_sqrt for function sqrt
+> [eva] tests/idct/idct.c:91: Call to builtin Frama_C_cos for function cos
+150a155,158
+> [eva] tests/idct/ieee_1180_1990.c:85: 
 >   Reusing old results for call to IEEE_1180_1990_rand
-> [value] tests/idct/ieee_1180_1990.c:85: 
+> [eva] tests/idct/ieee_1180_1990.c:85: 
 >   Reusing old results for call to IEEE_1180_1990_rand
-742a747,775
-> [value] tests/idct/ieee_1180_1990.c:236: 
+198a207,214
+> [eva] tests/idct/ieee_1180_1990.c:100: 
+>   Call to builtin Frama_C_sqrt for function sqrt
+> [eva] tests/idct/ieee_1180_1990.c:101: 
+>   Call to builtin Frama_C_cos for function cos
+> [eva] tests/idct/ieee_1180_1990.c:100: 
+>   Call to builtin Frama_C_sqrt for function sqrt
+> [eva] tests/idct/ieee_1180_1990.c:101: 
+>   Call to builtin Frama_C_cos for function cos
+280a297,304
+> [eva] tests/idct/ieee_1180_1990.c:140: 
+>   Call to builtin Frama_C_sqrt for function sqrt
+> [eva] tests/idct/ieee_1180_1990.c:141: 
+>   Call to builtin Frama_C_cos for function cos
+> [eva] tests/idct/ieee_1180_1990.c:140: 
+>   Call to builtin Frama_C_sqrt for function sqrt
+> [eva] tests/idct/ieee_1180_1990.c:141: 
+>   Call to builtin Frama_C_cos for function cos
+548a573,574
+> [eva] tests/idct/ieee_1180_1990.c:100: 
+>   Call to builtin Frama_C_sqrt for function sqrt
+574a601,602
+> [eva] tests/idct/ieee_1180_1990.c:140: 
+>   Call to builtin Frama_C_sqrt for function sqrt
+688a717,718
+> [eva] tests/idct/ieee_1180_1990.c:100: 
+>   Call to builtin Frama_C_sqrt for function sqrt
+891a922,950
+> [eva] tests/idct/ieee_1180_1990.c:236: 
 >   Reusing old results for call to IEEE_1180_1990_dctf
-> [value] tests/idct/ieee_1180_1990.c:237: 
+> [eva] tests/idct/ieee_1180_1990.c:237: 
 >   Reusing old results for call to IEEE_1180_1990_idctf
-> [value] tests/idct/ieee_1180_1990.c:238: Reusing old results for call to idct
-> [value] tests/idct/ieee_1180_1990.c:257: 
+> [eva] tests/idct/ieee_1180_1990.c:238: Reusing old results for call to idct
+> [eva] tests/idct/ieee_1180_1990.c:257: 
 >   Reusing old results for call to IEEE_1180_1990_mkbk
-> [value] tests/idct/ieee_1180_1990.c:258: 
+> [eva] tests/idct/ieee_1180_1990.c:258: 
 >   Reusing old results for call to IEEE_1180_1990_dctf
-> [value] tests/idct/ieee_1180_1990.c:259: 
+> [eva] tests/idct/ieee_1180_1990.c:259: 
 >   Reusing old results for call to IEEE_1180_1990_idctf
-> [value] tests/idct/ieee_1180_1990.c:260: Reusing old results for call to idct
-> [value] tests/idct/ieee_1180_1990.c:282: 
+> [eva] tests/idct/ieee_1180_1990.c:260: Reusing old results for call to idct
+> [eva] tests/idct/ieee_1180_1990.c:282: 
 >   Reusing old results for call to IEEE_1180_1990_dctf
-> [value] tests/idct/ieee_1180_1990.c:283: 
+> [eva] tests/idct/ieee_1180_1990.c:283: 
 >   Reusing old results for call to IEEE_1180_1990_idctf
-> [value] tests/idct/ieee_1180_1990.c:284: Reusing old results for call to idct
-> [value] tests/idct/ieee_1180_1990.c:303: 
+> [eva] tests/idct/ieee_1180_1990.c:284: Reusing old results for call to idct
+> [eva] tests/idct/ieee_1180_1990.c:303: 
 >   Reusing old results for call to IEEE_1180_1990_mkbk
-> [value] tests/idct/ieee_1180_1990.c:304: 
+> [eva] tests/idct/ieee_1180_1990.c:304: 
 >   Reusing old results for call to IEEE_1180_1990_dctf
-> [value] tests/idct/ieee_1180_1990.c:305: 
+> [eva] tests/idct/ieee_1180_1990.c:305: 
 >   Reusing old results for call to IEEE_1180_1990_idctf
-> [value] tests/idct/ieee_1180_1990.c:306: Reusing old results for call to idct
-> [value] tests/idct/ieee_1180_1990.c:328: 
+> [eva] tests/idct/ieee_1180_1990.c:306: Reusing old results for call to idct
+> [eva] tests/idct/ieee_1180_1990.c:328: 
 >   Reusing old results for call to IEEE_1180_1990_dctf
-> [value] tests/idct/ieee_1180_1990.c:329: 
+> [eva] tests/idct/ieee_1180_1990.c:329: 
 >   Reusing old results for call to IEEE_1180_1990_idctf
-> [value] tests/idct/ieee_1180_1990.c:330: Reusing old results for call to idct
+> [eva] tests/idct/ieee_1180_1990.c:330: Reusing old results for call to idct

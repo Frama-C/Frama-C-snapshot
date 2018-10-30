@@ -1,23 +1,23 @@
 [kernel] Parsing tests/value/pointer2.i (no preprocessing)
-[value] Analyzing a complete application starting at g
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing a complete application starting at g
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   p ∈ {0}
   q ∈ {0}
   x ∈ {0}
   y ∈ {0}
   z ∈ {0}
-[value] computing for function f <- g.
+[eva] computing for function f <- g.
   Called from tests/value/pointer2.i:14.
-[value] Recording results for f
-[value] Done for function f
-[value] Recording results for g
-[value] done for function g
-[value] ====== VALUES COMPUTED ======
-[value:final-states] Values at end of function f:
+[eva] Recording results for f
+[eva] Done for function f
+[eva] Recording results for g
+[eva] done for function g
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function f:
   
-[value:final-states] Values at end of function g:
+[eva:final-states] Values at end of function g:
   p ∈ {{ &x }}
 [from] Computing for function f
 [from] Done for function f

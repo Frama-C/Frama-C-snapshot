@@ -1,5 +1,5 @@
 /* run.config*
-   STDOPT: +"-const-writable -then -const-readonly"
+   STDOPT:
 */
 extern const int G;
 extern const int I=2;
@@ -35,7 +35,6 @@ void const_destination(int *p) {
 
 void modify_I (){
   Frama_C_show_each(I);
-  if (v) I++;
   if (v) pointer_to_const(&I);
   if (v) const_destination((int *)&I);
 }
@@ -49,17 +48,14 @@ void modify_J (){
 
 void modify_s (){
   Frama_C_show_each(s.i1);
-  if (v) s.i1 ++;
   if (v) pointer_to_const(&s.i2);
   if (v) const_destination((int *)&s.i2);
 }
 
 void modify_t(){
   Frama_C_show_each(t[5]);
-  if (v) t[5] ++;
   if (v) pointer_to_const(&t[3]);
   if (v) const_destination((int *)&t[2]);
-
 }
 
 // we can reduce G, even though it is constant
@@ -98,17 +94,38 @@ int ret_const() {
   return aux_ret_const();
 }
 
+typedef struct {
+ __attribute__((__fc_mutable)) int x;
+ const int y;
+} S;
+
+void build_S(
+  __attribute__((__fc_initialized_object)) const S* s, int x, int y)
+{
+  s->x = x;
+  s->y=y;
+}
+
+void mutable_test(const S* s) {
+  s->x = 42;
+  s->x++;
+  s->x += 2;
+}
+
 void main () {
   const_formal(G);
   const_formal(42);
-
   modify_I();
   modify_J();
   modify_s();
   modify_t();
   constrain_G ();
-
   pointer_to_const_logic (&J);
   local_const ();
   ret_const();
+  const S ls;
+  build_S(&ls, 1, 2);
+  Frama_C_show_each_S1(ls.x, ls.y);
+  mutable_test(&ls);
+  Frama_C_show_each_S2(ls.x, ls.y);
 }

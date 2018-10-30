@@ -207,7 +207,7 @@ let filetree_selector
               globals
               ([],[],[],[],[],[])
           in
-          main_ui#pretty_information "@[File %s@]@." f;
+          main_ui#pretty_information "@[File %a@]@." Datatype.Filepath.pretty f;
           let printing
               (head:string)
               (ellipsis:bool)
@@ -445,7 +445,7 @@ let to_do_on_select
         main_ui#pretty_information "This is a requires clause.@.%a@."
           pretty_predicate_status ip;
         main_ui#view_original (Property.location ip)
-    | PIP (Property.IPExtended(_,_,(_,name,_)) as ip) ->
+    | PIP (Property.IPExtended(_,(_,name,_,_)) as ip) ->
         main_ui#pretty_information "This clause is a %s extension.@.%a@."
           name
           pretty_predicate_status ip;
@@ -1232,8 +1232,8 @@ class main_window () : main_window_extension_points =
       if not (Location.equal loc Location.unknown) then
         Source_manager.load_file
           self#original_source_viewer
-          ~filename:(fst loc).Lexing.pos_fname
-          ~line:(fst loc).Lexing.pos_lnum
+          ~filename:(fst loc).Filepath.pos_path
+          ~line:(fst loc).Filepath.pos_lnum
           ~click_cb:(fun olocz ->
               match olocz with
               | None -> ()
@@ -1281,8 +1281,8 @@ class main_window () : main_window_extension_points =
       if use_external_viewer then begin
         if not (Location.equal loc Location.unknown) then
           let args_for_emacs =
-            Format.sprintf "emacsclient -n +%d %s"
-              (fst loc).Lexing.pos_lnum (fst loc).Lexing.pos_fname
+            Format.sprintf "emacsclient -n +%d %S"
+              (fst loc).Filepath.pos_lnum ((fst loc).Filepath.pos_path :> string)
               (*          Format.sprintf "mate -a -l %d %s" line file  *)
           in
           Gui_parameters.debug ~dkey "Running %s" args_for_emacs;
@@ -1723,8 +1723,8 @@ class main_window () : main_window_extension_points =
                if List.mem `CONTROL modi then
                  (* Control-click: open current location using external viewer
                     (Emacs) *)
-                 open_in_external_viewer (fst loc).Lexing.pos_fname
-                   ~line:(fst loc).Lexing.pos_lnum;
+                 open_in_external_viewer (fst loc).Filepath.pos_path
+                   ~line:(fst loc).Filepath.pos_lnum;
              self#view_original loc
            with Gui_printers.NoMatch -> ())
   end

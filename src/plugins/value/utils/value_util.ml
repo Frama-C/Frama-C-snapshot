@@ -45,7 +45,7 @@ let push_call_stack kf ki =
 ;;
 
 
-let current_kf () = 
+let current_kf () =
   let (kf,_) = (List.hd !call_stack) in kf;;
 
 let call_stack () = !call_stack
@@ -58,10 +58,10 @@ let pp_callstack fmt =
 
 (* Assertions emitted during the analysis *)
 
-let emitter = 
+let emitter =
   Emitter.create
-    "Value"
-    [ Emitter.Property_status; Emitter.Alarm ] 
+    "Eva"
+    [ Emitter.Property_status; Emitter.Alarm ]
     ~correctness:Value_parameters.parameters_correctness
     ~tuning:Value_parameters.parameters_tuning
 
@@ -106,16 +106,15 @@ let create_new_var name typ =
   register_new_var vi typ;
   vi
 
-let is_const_write_invalid typ =
-  Kernel.ConstReadonly.get () && Cil.typeHasQualifier "const" typ
+let is_const_write_invalid typ = Cil.typeHasQualifier "const" typ
 
 (* Find if a postcondition contains [\result] *)
 class postconditions_mention_result = object
   inherit Visitor.frama_c_inplace
 
   method! vterm_lhost = function
-  | TResult _ -> raise Exit
-  | _ -> Cil.DoChildren
+    | TResult _ -> raise Exit
+    | _ -> Cil.DoChildren
 end
 let postconditions_mention_result spec =
   (* We save the current location because the visitor modifies it. *)
@@ -156,7 +155,9 @@ let conv_relation rel =
   | Rgt -> C.Gt
 
 let loc_dummy_value =
-  let l = { Lexing.dummy_pos with Lexing.pos_fname = "_value_" } in
+  let l = { Cil_datatype.Position.unknown with
+            Filepath.pos_path = Datatype.Filepath.of_string "_value_" }
+  in
   l, l
 
 let zero e =
@@ -181,15 +182,15 @@ let eq_with_zero positive e =
 let is_value_zero e =
   e.eloc == loc_dummy_value
 
-  let inv_rel = function
-    | Gt -> Le
-    | Lt -> Ge
-    | Le -> Gt
-    | Ge -> Lt
-    | Eq -> Ne
-    | Ne -> Eq
-    | _ -> assert false
-  
+let inv_rel = function
+  | Gt -> Le
+  | Lt -> Ge
+  | Le -> Gt
+  | Ge -> Lt
+  | Eq -> Ne
+  | Ne -> Eq
+  | _ -> assert false
+
 (* Transform an expression supposed to be [positive] into an equivalent
    one in which the root expression is a comparison operator. *)
 let rec normalize_as_cond expr positive =
@@ -235,11 +236,11 @@ let lval_to_exp =
 
 let dump_garbled_mix () =
   let l = Cvalue.V.get_garbled_mix () in
-  if l <> [] && Value_parameters.(is_debug_key_enabled dkey_garbled_mix) then
+  if l <> [] then
     let pp_one fmt v = Format.fprintf fmt "@[<hov 2>%a@]" Cvalue.V.pretty v in
-    Value_parameters.warning
+    Value_parameters.warning ~wkey:Value_parameters.wkey_garbled_mix
       "Garbled mix generated during analysis:@.\
-      @[<v>%a@]"
+       @[<v>%a@]"
       (Pretty_utils.pp_list ~pre:"" ~suf:"" ~sep:"@ " pp_one) l
 
 

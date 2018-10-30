@@ -27,12 +27,21 @@ let wrap_fk r = function
   | Cil_types.FDouble -> Eval_op.wrap_double r
   | _ -> assert false
 
-let restrict_float expr fk value =
-  let open Cvalue_forward in
+let restrict_float ~assume_finite fkind value =
+  let truth = Cvalue_forward.assume_not_nan ~assume_finite fkind value in
+  match truth with
+  | `True -> value
+  | `Unknown reduced_value -> reduced_value
+  | `False -> Cvalue.V.bottom
+  | _ -> assert false
+
+(* Alarms should be handled by the preconditions of the builtin. This function
+   only removes the forbidden floating-point values. *)
+let remove_special_float fk value =
   match Kernel.SpecialFloat.get () with
-  | "none"       -> value, Alarmset.none
-  | "nan"        -> restrict_float ~remove_infinite:false expr fk value
-  | "non-finite" -> restrict_float ~remove_infinite:true expr fk value
+  | "none"       -> value
+  | "nan"        -> restrict_float ~assume_finite:false fk value
+  | "non-finite" -> restrict_float ~assume_finite:true fk value
   | _            -> assert false
 
 let arity2 fk caml_fun state actuals =
@@ -46,9 +55,7 @@ let arity2 fk caml_fun state actuals =
           let i2 = Cvalue.V.project_ival arg2 in
           let f2 = Ival.project_float i2 in
           let f' = Cvalue.V.inject_float (caml_fun (Fval.kind fk) f1 f2) in
-          let v, _alarms = restrict_float fk Cil_datatype.Exp.dummy f' in
-          (* Alarms should be handled by the preconditions of the builtin *)
-          v
+          remove_special_float fk f'
         with Cvalue.V.Not_based_on_null ->
           Cvalue.V.topify_arith_origin (V.join arg1 arg2)
       in
@@ -85,9 +92,7 @@ let arity1 name fk caml_fun state actuals =
           let i = Cvalue.V.project_ival arg in
           let f = Ival.project_float i in
           let f' = Cvalue.V.inject_float (caml_fun (Fval.kind fk) f) in
-          let v, _alarms = restrict_float fk Cil_datatype.Exp.dummy f' in
-          (* Alarms should be handled by the preconditions of the builtin *)
-          v
+          remove_special_float fk f'
         with
         | Cvalue.V.Not_based_on_null ->
           if Cvalue.V.is_bottom arg then begin

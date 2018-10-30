@@ -222,4 +222,3 @@ let fold = M.fold
 let exists f xs = List.exists (fun (_,x) -> f x) xs
 let for_all f xs = List.for_all (fun (_,x) -> f x) xs
 let filter f xs = List.filter (fun (_,x) -> f x) xs
-

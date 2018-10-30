@@ -202,6 +202,7 @@ Prove: true.
 Goal Post-condition 'Preset_5_tps' in 'call_reset_5_tps':
 Let a = tps_0[9].
 Let a_1 = shift_T(a, 0).
+Let a_2 = havoc(Mint_undef_0, Mint_0, a_1, 10).
 Assume {
   (* Goal *)
   When: (0 <= i) /\ (i <= 4).
@@ -211,11 +212,9 @@ Assume {
   Have: valid_rw(Malloc_0, a_1, 10).
   (* Call 'reset_5' *)
   Have: forall i_1 : Z. ((0 <= i_1) -> ((i_1 <= 4) ->
-      (Mint_0[shiftfield_F1_T_a(shift_T(a, i_1))] = 0))).
-  (* Call Effects *)
-  Have: havoc(Mint_1, Mint_0, a_1, 10).
+      (a_2[shiftfield_F1_T_a(shift_T(a, i_1))] = 0))).
 }
-Prove: Mint_0[shiftfield_F1_T_a(shift_T(a, i))] = 0.
+Prove: a_2[shiftfield_F1_T_a(shift_T(a, i))] = 0.
 
 ------------------------------------------------------------
 
@@ -249,3 +248,6 @@ Goal Assigns (file tests/wp_hoare/reference_and_struct.i, line 12) in 'reset':
 Prove: true.
 
 ------------------------------------------------------------
+[wp] Warning: Memory model hypotheses for function 'reset':
+  /*@ behavior typed_ref: requires \valid(p); */
+  void reset(struct T *p);

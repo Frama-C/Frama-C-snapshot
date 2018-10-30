@@ -1,19 +1,19 @@
 [kernel] Parsing tests/value/sort4.i (no preprocessing)
 [kernel] tests/value/sort4.i:25: Warning: 
   parsing obsolete ACSL construct '\valid_range(addr,min,max)'. '\valid(addr+(min..max))' should be used instead.
-[value] Analyzing an incomplete application starting at sort4_1
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing an incomplete application starting at sort4_1
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   a ∈ [--..--]
   b ∈ [--..--]
   c ∈ [--..--]
   d ∈ [--..--]
-[value:alarm] tests/value/sort4.i:20: Warning: assertion got status unknown.
-[value] Recording results for sort4_1
-[value] done for function sort4_1
-[value] ====== VALUES COMPUTED ======
-[value:final-states] Values at end of function sort4_1:
+[eva:alarm] tests/value/sort4.i:20: Warning: assertion got status unknown.
+[eva] Recording results for sort4_1
+[eva] done for function sort4_1
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function sort4_1:
   a ∈ [--..--]
   b ∈ [--..--]
   c ∈ [--..--]

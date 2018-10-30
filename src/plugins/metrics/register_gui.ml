@@ -80,7 +80,7 @@ module CyclomaticMetricsGUI = struct
       let checker = (new Metrics_cilast.slocVisitor ~libc) in
       ignore (visitFramacGlobal (checker :> frama_c_visitor)
                 (Kernel_function.get_global checked_fun));
-      checker#get_metrics
+      checker#get_global_metrics
     (* 2 becomes "2*checker#funcs" in the general case *)
 
     method do_value (main_ui:Design.main_window_extension_points) loc
@@ -202,7 +202,7 @@ module CyclomaticMetricsGUI = struct
     ignore(GMisc.label ~markup:(Printf.sprintf "<b>%s</b>" name)
              ~justify:`LEFT ~packing:box#pack ());
     ignore(GMisc.separator `HORIZONTAL ~packing:box#pack ());
-    let metrics = Metrics_cilast.get_metrics ~libc in
+    let metrics = Metrics_cilast.get_global_metrics ~libc in
     let table_contents = BasicMetrics.to_list metrics in
     Metrics_gui.display_as_table table_contents box
 
@@ -217,7 +217,7 @@ module ValueCoverageGUI = struct
   open Metrics_coverage
   open Gtk_helper
 
-  let name = "Value coverage"
+  let name = "Eva coverage"
 
   let result = ref None 
   let highlight = ref false
@@ -340,7 +340,7 @@ module ValueCoverageGUI = struct
              ~justify:`LEFT ~packing:box#pack ());
     ignore(GMisc.separator `HORIZONTAL ~packing:box#pack ());
     let metrics = compute ~libc in
-    let pcent = Metrics_coverage.percent_coverage metrics in
+    let pcent = Metrics_coverage.percent_coverage ~libc metrics in
     let progress_bar = GRange.progress_bar ~packing:box#pack () in
     progress_bar#set_fraction (pcent /. 100.0);
     ignore(GMisc.label

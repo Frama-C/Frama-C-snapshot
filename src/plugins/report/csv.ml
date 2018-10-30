@@ -20,141 +20,38 @@
 (*                                                                        *)
 (**************************************************************************)
 
-open Property
-open Cil_types
-
-
-let pwd = Sys.getcwd ()
-
-(* Prefixes and suffixes to remove on directory names *)
-let prefixes = [pwd ^ Filename.dir_sep; pwd]
-
-let string_del_prefix s del =
-  let ld = String.length del in
-  let ls = String.length s in
-  if ls >= ld then
-    let pre = String.sub s 0 ld in
-    if pre = del then String.sub s ld (ls-ld)
-    else s
-  else s
-
-let clean_dir s =
-  let no_prefix = List.fold_left string_del_prefix s prefixes in
-  if no_prefix = "" then "." else no_prefix
-
 (* Split the location into 'dir,file,line number,char number' in this order *)
 let split_loc loc =
-  let open Lexing in
-  let file = Filepath.pretty loc.pos_fname in
+  let file =
+    Filepath.Normalized.to_pretty_string loc.Filepath.pos_path
+  in
   let dir = Filename.dirname file in
-  let dir = clean_dir dir in
+  let dir = Filepath.relativize dir in
   let file = Filename.basename file in
-  dir, file, loc.pos_lnum, loc.pos_cnum
-
-let status_kind prop =
-  let open Property_status.Consolidation in
-  match get prop with
-  | Never_tried -> "Ignored"
-  | Considered_valid  -> "Considered valid"
-  | Valid _ -> "Valid"
-  | Valid_under_hyp _ -> "Partially proven"
-  | Unknown _ -> "Unknown"
-  | Invalid _ -> "Invalid"
-  | Invalid_under_hyp _ -> "Invalid or unreachable"
-  | Invalid_but_dead _ | Valid_but_dead _ | Unknown_but_dead _ -> "Dead"
-  | Inconsistent _ -> "Inconsistent"
-
-let (|>) = Extlib.swap
+  dir, file, loc.Filepath.pos_lnum, loc.Filepath.pos_cnum
 
 (* For properties that we want to skip *)
 exception Skip
 
-let to_string_no_break pp =
-  let b = Buffer.create 20 in
-  let fmt = Format.formatter_of_buffer b in
-  Format.pp_set_margin fmt 1000000;
-  pp fmt;
-  Format.pp_print_flush fmt ();
-  Buffer.contents b
+let kf_of_property ip =
+  match Property.get_kf ip with
+  | Some kf -> kf
+  | None -> fst (Globals.entry_point ())
 
 let to_string ip =
-  let status = status_kind ip in
+  let status = Description.status_feedback (Property_status.Feedback.get ip) in
   let loc = Property.location ip in
-  let default ?(pp = (Property.pretty |> ip)) kf kind =
+  match Description.property_kind_and_node ip with
+  | None -> raise Skip
+  | Some (kind, txt) ->
+    let kf = kf_of_property ip in
     let loc =
       if Cil_datatype.Location.(equal loc unknown) then
         Kernel_function.get_location kf
       else loc
     in
-    let txt = to_string_no_break pp in
     let loc = split_loc (fst loc) in
     (loc, Kernel_function.get_name kf, kind, status, txt)
-  in
-  begin
-    match ip with
-    | IPCodeAnnot (kf, _stmt, ca) -> begin
-      let kind, pp = match ca.annot_content with
-        | AAssert (_, ({pred_content = p; pred_name} as named)) -> begin
-          match Alarms.find ca with
-          | Some alarm ->
-            (Alarms.get_name alarm), (Printer.pp_predicate_node |> p)
-          | None -> begin
-              (* Special hack for builtin "preconditions" in Value. Not
-                 meant to stay forever, hopefully. *)
-              match p, pred_name with
-              | Papp ({l_var_info = {lv_name = "\\warning"}}, _,
-                      [{term_node = TConst (LStr s)}]), [_plugin; name] ->
-                name, (Format.pp_print_string |> s)
-              | _ ->
-                if List.exists ((=) "missing_return") pred_name then
-                  "missing_return", (Printer.pp_predicate |> named)
-                else
-                  "user assertion", (Printer.pp_predicate_node |> p)
-            end
-        end
-        | AInvariant (_, _, {pred_content = p}) ->
-          "loop invariant", (Printer.pp_predicate_node |> p)
-        | _ ->
-          Report_parameters.warning ~source:(fst loc)
-            "ignoring annotation '%a' in csv export"
-            Printer.pp_code_annotation ca;
-          "", (fun _ -> ())
-      in
-      if kind <> "" then default ~pp kf kind else raise Skip
-    end
-    | IPPredicate (pk, kf, _, p) -> begin
-      let kind = match pk with
-        | PKRequires _ -> "precondition"
-        | PKAssumes _ -> "behavior assumption" (*should never happen *)
-        | PKEnsures _ -> "postcondition"
-        | PKTerminates -> "termination clause"
-      in
-      let pp = Printer.pp_identified_predicate |> p in
-      default ~pp kf kind
-    end
-    | IPAssigns (kf, _, _, _) -> default kf "assigns clause" 
-    | IPFrom (kf, _, _, _) -> default kf "from clause"
-
-    | IPComplete (kf, _, _, _) -> default kf "complete behaviors"
-    | IPDisjoint (kf, _, _, _) -> default kf "disjoint behaviors"
-
-    (* Add new cases if new IPPropertyInstance are added *)
-    | IPPropertyInstance (kf, _, _,
-                          IPPredicate (PKRequires _b, kf', Kglobal,p)) ->
-      let kind = "precondition of " ^ Kernel_function.get_name kf' in
-      let pp = Printer.pp_identified_predicate |> p in
-      default ~pp kf kind
-    | IPReachable _ -> raise Skip (* Ignore: unimportant except for dead
-                                     statuses,
-                             that are listed elsewhere *)
-    | IPAxiom _ | IPAxiomatic _ -> raise Skip (* Ignore: no status *)
-    | IPBehavior _ -> raise Skip (* Ignore: redundant with its contents *)
-    | _ ->
-      Report_parameters.warning ~source:(fst loc)
-        "ignoring property '%a' in csv export" Property.pretty ip;
-      raise Skip
-  end
-;;
 
 (* Compute the lines to export as a .csv, then sorts them *)
 let lines () =
@@ -204,7 +101,7 @@ let print_csv_once () =
 let print_csv, _ =
   State_builder.apply_once
     "Report.print_csv_once"
-    [ Report_parameters.PrintProperties.self; 
+    [ Report_parameters.PrintProperties.self;
       Report_parameters.Specialized.self;
       Report_parameters.CSVFile.self;
       Property_status.self ]

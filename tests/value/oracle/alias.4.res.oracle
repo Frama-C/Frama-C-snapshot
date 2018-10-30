@@ -1,8 +1,8 @@
 [kernel] Parsing tests/value/alias.i (no preprocessing)
-[value] Analyzing a complete application starting at main6
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing a complete application starting at main6
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   NULL[rbits 0 to 2047] ∈ [--..--]
   A ∈ {0}
   B ∈ {0}
@@ -57,15 +57,15 @@
   U ∈ {0}
   char1 ∈ {0}
   ll1 ∈ {0}
-[value] tests/value/alias.i:185: entering loop for the first time
-[value:alarm] tests/value/alias.i:191: Warning: 
+[eva] tests/value/alias.i:185: starting to merge loop iterations
+[eva:alarm] tests/value/alias.i:191: Warning: 
   pointer comparison. assert \pointer_comparable((void *)PTR2, (void *)PTR1);
-[value:alarm] tests/value/alias.i:199: Warning: 
+[eva:alarm] tests/value/alias.i:199: Warning: 
   signed overflow. assert c + 1 ≤ 2147483647;
-[value] Recording results for main6
-[value] done for function main6
-[value] ====== VALUES COMPUTED ======
-[value:final-states] Values at end of function main6:
+[eva] Recording results for main6
+[eva] done for function main6
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function main6:
   p[0] ∈ {0}
    [1] ∈ {0; 77}
    [2..4] ∈ {0}

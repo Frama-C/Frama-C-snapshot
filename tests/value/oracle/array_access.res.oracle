@@ -1,8 +1,8 @@
 [kernel] Parsing tests/value/array_access.c (with preprocessing)
-[value] Analyzing a complete application starting at main
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing a complete application starting at main
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   t1[0] ∈ {1}
     [1] ∈ {2}
     [2] ∈ {3}
@@ -127,29 +127,29 @@
     [105] ∈ {3}
     [106] ∈ {4}
   R ∈ {0}
-[value] computing for function any_int <- main.
+[eva] computing for function any_int <- main.
   Called from tests/value/array_access.c:16.
-[value] using specification for function any_int
-[value] Done for function any_int
-[value] computing for function any_int <- main.
+[eva] using specification for function any_int
+[eva] Done for function any_int
+[eva] computing for function any_int <- main.
   Called from tests/value/array_access.c:16.
-[value] Done for function any_int
-[value] tests/value/array_access.c:18: Frama_C_show_each_I: [0..8]
-[value:alarm] tests/value/array_access.c:19: Warning: 
+[eva] Done for function any_int
+[eva] tests/value/array_access.c:18: Frama_C_show_each_I: [0..8]
+[eva:alarm] tests/value/array_access.c:19: Warning: 
   accessing out of bounds index. assert 0 ≤ (int)((int)(-i) - 1);
-[value] computing for function any_int <- main.
+[eva] computing for function any_int <- main.
   Called from tests/value/array_access.c:21.
-[value] Done for function any_int
-[value:alarm] tests/value/array_access.c:21: Warning: 
+[eva] Done for function any_int
+[eva:alarm] tests/value/array_access.c:21: Warning: 
   out of bounds read.
   assert \valid_read((int *)((char *)ch) + tmp_0);
   (tmp_0 from any_int())
-[value] Recording results for main
-[value] done for function main
-[value] tests/value/array_access.c:19: 
-  assertion 'Value,index_bound' got final status invalid.
-[value] ====== VALUES COMPUTED ======
-[value:final-states] Values at end of function main:
+[eva] Recording results for main
+[eva] done for function main
+[eva] tests/value/array_access.c:19: 
+  assertion 'Eva,index_bound' got final status invalid.
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function main:
   R ∈ {16777472; 16777473}
   i ∈ [--..--]
   j ∈ {10}

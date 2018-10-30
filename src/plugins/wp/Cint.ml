@@ -143,10 +143,10 @@ and is_negative e = match F.repr e with
         | Logic.Yes -> true
         | Logic.No | Logic.Maybe -> false
 and xor_sign es = try
-    Some (List.fold_left (fun acc e -> 
-           if is_positive_or_null e then acc (* as previous *)
-           else if is_negative e then (not acc) (* opposite sign *)
-           else raise Not_found) true es)
+    Some (List.fold_left (fun acc e ->
+        if is_positive_or_null e then acc (* as previous *)
+        else if is_negative e then (not acc) (* opposite sign *)
+        else raise Not_found) true es)
   with Not_found -> None
 
 let match_positive_or_null e =
@@ -404,22 +404,11 @@ let range i a =
       else F.p_leq F.e_zero a
   | Machine -> p_call (p_is_int i) [a]
 
-let check_rte () =
-  if Wp_parameters.RTE.get () ||
-     Dynamic.Parameter.Bool.get "-rte" ()
+let ensures warn i a =
+  if warn i
   then
-    (Wp_parameters.warning ~once:true
-       "Option -wp-overflows incompatiable with RTE (ignored)" ;
-     false)
-  else true
-
-let ensures error i a =
-  if error i
-  then
-    (if Wp_parameters.Overflows.get () && Lang.has_gamma () &&
-        check_rte ()
-     then
-       Lang.assume (range i a) ;
+    (if Lang.has_gamma () && Wp_parameters.get_overflows ()
+     then Lang.assume (range i a) ;
      a)
   else e_fun (f_to_int i) [a]
 
@@ -484,43 +473,43 @@ let smp_bitk_positive = function
       begin
         try e_eq (match_power2 a) k
         with Not_found ->
-          match F.repr a with
-          | Logic.Kint za ->
-              let zk = match_integer k (* simplifies constants *)
-              in if Integer.is_zero (Integer.logand za
-                                       (Integer.shift_left Integer.one zk))
-              then e_false else e_true
-          | Logic.Fun( f , [e;n] ) when Fun.equal f f_lsr && is_positive_or_null n ->
-              bitk_positive (e_add k n) e
-          | Logic.Fun( f , [e;n] ) when Fun.equal f f_lsl && is_positive_or_null n ->
-              begin match is_leq n k with
-                | Logic.Yes -> bitk_positive (e_sub k n) e
-                | Logic.No  -> e_false
-                | Logic.Maybe -> raise Not_found
+        match F.repr a with
+        | Logic.Kint za ->
+            let zk = match_integer k (* simplifies constants *)
+            in if Integer.is_zero (Integer.logand za
+                                     (Integer.shift_left Integer.one zk))
+            then e_false else e_true
+        | Logic.Fun( f , [e;n] ) when Fun.equal f f_lsr && is_positive_or_null n ->
+            bitk_positive (e_add k n) e
+        | Logic.Fun( f , [e;n] ) when Fun.equal f f_lsl && is_positive_or_null n ->
+            begin match is_leq n k with
+              | Logic.Yes -> bitk_positive (e_sub k n) e
+              | Logic.No  -> e_false
+              | Logic.Maybe -> raise Not_found
+            end
+        | Logic.Fun( f , es ) when Fun.equal f f_land ->
+            F.e_and (List.map (bitk_positive k) es)
+        | Logic.Fun( f , es ) when Fun.equal f f_lor ->
+            F.e_or (List.map (bitk_positive k) es)
+        | Logic.Fun( f , [a;b] ) when Fun.equal f f_lxor ->
+            F.e_neq (bitk_positive k a) (bitk_positive k b)
+        | Logic.Fun( f , [a] ) when Fun.equal f f_lnot ->
+            F.e_not (bitk_positive k a)
+        | Logic.Fun( conv , [a] ) (* when is_to_c_int conv *) ->
+            let iota = to_cint conv in
+            let size = Ctypes.i_bits iota in
+            let signed = Ctypes.signed iota in
+            if signed then (* beware of sign-bit *)
+              begin match is_leq k (e_int (size-2)) with
+                | Logic.Yes -> bitk_positive k a
+                | Logic.No | Logic.Maybe -> raise Not_found
               end
-         | Logic.Fun( f , es ) when Fun.equal f f_land ->
-              F.e_and (List.map (bitk_positive k) es)
-          | Logic.Fun( f , es ) when Fun.equal f f_lor ->
-              F.e_or (List.map (bitk_positive k) es)
-          | Logic.Fun( f , [a;b] ) when Fun.equal f f_lxor ->
-              F.e_neq (bitk_positive k a) (bitk_positive k b)
-          | Logic.Fun( f , [a] ) when Fun.equal f f_lnot ->
-              F.e_not (bitk_positive k a)
-          | Logic.Fun( conv , [a] ) (* when is_to_c_int conv *) ->
-              let iota = to_cint conv in
-              let size = Ctypes.i_bits iota in
-              let signed = Ctypes.signed iota in
-              if signed then (* beware of sign-bit *)
-                begin match is_leq k (e_int (size-2)) with
-                  | Logic.Yes -> bitk_positive k a
-                  | Logic.No | Logic.Maybe -> raise Not_found
-                end
-              else begin match is_leq (e_int size) k with
-                | Logic.Yes -> e_false
-                | Logic.No -> bitk_positive k a
-                | Logic.Maybe -> raise Not_found
-              end
-          | _ -> raise Not_found
+            else begin match is_leq (e_int size) k with
+              | Logic.Yes -> e_false
+              | Logic.No -> bitk_positive k a
+              | Logic.Maybe -> raise Not_found
+            end
+        | _ -> raise Not_found
       end
   | _ -> raise Not_found
 
@@ -642,7 +631,7 @@ let smp_eq_with_lsl_cst a0 b0 =
     if not (Integer.is_zero (Integer.logand b1 (two_power_k_minus1 a2)))
     then
       (* a2>=0 && 0!=(b1 & ((2**a2)-1)) ==> ( (e<<a2)==b1 <==> false ) *)
-      e_false 
+      e_false
     else
       (* a2>=0 && 0==(b1 & ((2**a2)-1)) ==> ( (e<<a2)==b1 <==> e==(b1>>a2) ) *)
       e_eq e (e_zint (Integer.shift_right b1 a2))
@@ -729,7 +718,7 @@ let smp_cmp_with_lsr cmp a0 b0 =
     cmp (e_fun f_land [a;m]) (e_fun f_land [b;m])
 
 let smp_eq_with_lsr a0 b0 =
-    smp_cmp_with_lsr e_eq a0 b0
+  smp_cmp_with_lsr e_eq a0 b0
 
 let smp_leq_with_lsr a0 b0 =
   try
@@ -805,7 +794,7 @@ let l_lsr a b = e_fun f_lsr [a;b]
 
 (* C Code Semantics *)
 
-(* we need a (forced) conversion to properly encode 
+(* we need a (forced) conversion to properly encode
    the semantics of C in terms of the semantics in Z(ACSL).
    Typically, lnot(128) becomes (-129), which must be converted
    to obtain an unsigned. *)
@@ -975,13 +964,13 @@ end
 
 let mask_simplifier =
   object(self)
-        
+
     (** Must be 2^n-1 *)
     val mutable magnitude : Integer.t Tmap.t = Tmap.empty
 
     method name = "Rewrite unsigned masks"
     method copy = {< magnitude = magnitude >}
-                                                 
+
     method private update x m =
       let better =
         try Integer.lt m (Tmap.find x magnitude)
@@ -1000,7 +989,7 @@ let mask_simplifier =
       match F.repr x with
       | Kint v -> F.e_zint (Integer.logand m v)
       | _ -> x
-    
+
     method private rewrite e =
       match F.repr e with
       | Fun(f,es) when f == f_land ->
@@ -1010,7 +999,7 @@ let mask_simplifier =
             | Some m -> F.e_fun f_land (List.map (self#reduce m) es)
           end
       | _ -> raise Not_found
-    
+
     method target _ = ()
     method infer = []
     method fixpoint = ()
@@ -1044,7 +1033,7 @@ let mask_simplifier =
     method simplify_goal p =
       if Tmap.is_empty magnitude then p else
         F.p_subst self#rewrite p
-    
+
   end
 
 (* -------------------------------------------------------------------------- *)

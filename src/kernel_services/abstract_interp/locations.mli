@@ -24,7 +24,6 @@
     @plugin development guide *)
 
 open Cil_types
-open Abstract_interp
 
 (** Association between bases and offsets in byte.
     @plugin development guide *)
@@ -95,6 +94,10 @@ module Location_Bytes : sig
   (** Subtracts the offsets of two locations [loc1] and [loc2].
       Returns the pointwise subtraction of their offsets
       [off1 - factor * off2]. [factor] defaults to [1]. *)
+
+  val sub_pointer: t -> t -> t
+  (** Subtracts the offsets of two locations. Same as [sub_pointwise factor:1],
+      except that garbled mixes from operands are propagated into the result. *)
 
   (** Topifying of values, in case of imprecise accesses *)
   val topify_arith_origin : t -> t
@@ -194,10 +197,6 @@ module Location_Bytes : sig
   val iter_on_strings :
     skip:Base.t option -> (Base.t -> string -> int -> int -> unit) -> t -> unit
 
-  val partially_overlaps : size:Int.t -> t -> t -> bool
-    (** Is there a possibly-non empty intersection between the two supplied
-        locations, assuming they have size [size] *)
-
   (** [is_relationable loc] returns [true] iff [loc] represents a single
       memory location. *)
   val is_relationable: t -> bool
@@ -214,7 +213,8 @@ module Location_Bytes : sig
     (** Clear the information on created garbled mix. *)
 
   val do_track_garbled_mix: bool -> unit
-  
+  val track_garbled_mix: t -> t
+
 (**/**)
   val pretty_debug: t Pretty_utils.formatter
   val clear_caches: unit -> unit
@@ -351,6 +351,13 @@ val valid_cardinal_zero_or_one : for_writing:bool -> location -> bool
 (** Is the valid part of the location bottom or a singleton? *)
 
 val filter_base: (Base.t -> bool) -> location -> location
+
+val overlaps: partial:bool -> location -> location -> bool
+(** Is there a possibly non-empty intersection between two given locations?
+    If [partial] is true, returns true if the two locations may be overlapping
+    without being equal. If [partial] is false, also returns true if the two
+    locations may be equal. Returns false when the two locations cannot be
+    overlapping. *)
 
 val pretty : Format.formatter -> location -> unit
 val pretty_english : prefix:bool -> Format.formatter -> location -> unit

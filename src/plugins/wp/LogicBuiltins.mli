@@ -64,26 +64,26 @@ val dependencies : string -> string list
 val add_library : string -> string list -> unit
 (** Add a new library or update the dependencies of an existing one *)
 
-val add_alias : source:Lexing.position -> string -> kind list -> alias:string -> unit -> unit
+val add_alias : source:Filepath.position -> string -> kind list -> alias:string -> unit -> unit
 
-val add_type : source:Lexing.position -> string -> library:string ->
+val add_type : source:Filepath.position -> string -> library:string ->
   ?link:string infoprover -> unit -> unit
 
-val add_ctor : source:Lexing.position -> string -> kind list ->
+val add_ctor : source:Filepath.position -> string -> kind list ->
   library:string -> link:Qed.Engine.link infoprover -> unit -> unit
 
-val add_logic : source:Lexing.position -> kind -> string -> kind list ->
+val add_logic : source:Filepath.position -> kind -> string -> kind list ->
   library:string -> ?category:category -> link:Qed.Engine.link infoprover ->
   unit -> unit
 
-val add_predicate : source:Lexing.position -> string -> kind list ->
+val add_predicate : source:Filepath.position -> string -> kind list ->
   library:string -> link:string infoprover ->
   unit -> unit
 
 val add_option :
   driver_dir:string -> string -> string -> library:string -> string -> unit
 (** add a value to an option (group, name) *)
-  
+
 val set_option :
   driver_dir:string -> string -> string -> library:string -> string -> unit
 (** reset and add a value to an option (group, name) *)

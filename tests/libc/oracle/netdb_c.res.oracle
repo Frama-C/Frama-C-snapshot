@@ -1,5 +1,5 @@
 [kernel] Parsing tests/libc/netdb_c.c (with preprocessing)
-[value] Splitting return states on:
+[eva] Splitting return states on:
   \return(tmpfile) == 0 (auto)
   \return(tmpnam) == 0 (auto)
   \return(fopen) == 0 (auto)
@@ -33,195 +33,162 @@
   \return(strndup) == 0 (auto)
   \return(bind) == 0 (auto)
   \return(socket) == -1 (auto)
+  \return(signal) == 0 (auto)
   \return(inet_ntoa) == 0 (auto)
   \return(inet_ntop) == 0 (auto)
   \return(gai_strerror) == 0 (auto)
   \return(getaddrinfo) == 0 (auto)
   \return(Frama_C_nondet_ptr) == 0 (auto)
-[value] Analyzing a complete application starting at main
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
-  __fc_errno ∈ [--..--]
-  __fc_stderr ∈ {{ NULL ; &S___fc_stderr[0] }}
-  __fc_stdin ∈ {{ NULL ; &S___fc_stdin[0] }}
-  __fc_stdout ∈ {{ NULL ; &S___fc_stdout[0] }}
-  __fc_fopen[0..15] ∈ {0}
-  __fc_p_fopen ∈ {{ &__fc_fopen[0] }}
-  __fc_heap_status ∈ [--..--]
-  __fc_random_counter ∈ [--..--]
-  __fc_rand_max ∈ {32767}
-  __fc_mblen_state ∈ [--..--]
-  __fc_mbtowc_state ∈ [--..--]
-  __fc_wctomb_state ∈ [--..--]
-  __fc_time ∈ [--..--]
-  __fc_tz ∈ [--..--]
-  __fc_fds_state ∈ [--..--]
-  optarg ∈ {{ NULL ; &S_optarg[0] }}
-  optind ∈ [--..--]
-  opterr ∈ [--..--]
-  optopt ∈ [--..--]
-  Frama_C_entropy_source ∈ [--..--]
-  __fc_fds[0..1023] ∈ {0}
-  __fc_hostname[0..63] ∈ [--..--]
-  __fc_strtok_ptr ∈ {0}
-  __fc_sockfds[0..1023] ∈ {0}
-  __fc_socket_counter ∈ [--..--]
-  __fc_open_sock_fds ∈ [--..--]
-  in6addr_any ∈ {0}
-  in6addr_loopback.s6_addr[0..15] ∈ {255}
-  __fc_inet_ntoa_array[0..15] ∈ [--..--]
-  __fc_inet_ntoa ∈ {{ &__fc_inet_ntoa_array[0] }}
-  h_errno ∈ {0}
-  __fc_gai_strerror ∈ {{ "<error message reported by gai_strerror>" }}
-  getaddrinfo_net_state ∈ [--..--]
-  S___fc_stderr[0..1] ∈ [--..--]
-  S___fc_stdin[0..1] ∈ [--..--]
-  S___fc_stdout[0..1] ∈ [--..--]
-  S_optarg[0..1] ∈ [--..--]
-[value] tests/libc/netdb_c.c:33: 
+[eva] Analyzing a complete application starting at main
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
+  
+[eva] tests/libc/netdb_c.c:33: Call to builtin memset
+[eva] tests/libc/netdb_c.c:33: 
   function memset: precondition 'valid_s' got status valid.
-[value] tests/libc/netdb_c.c:33: 
-  Call to builtin memset(({{ (void *)&hints }},{0},{32}))
-[value] computing for function getaddrinfo <- main.
+[eva] share/libc/string.h:118: 
+  cannot evaluate ACSL term, unsupported ACSL construct: logic function memset
+[eva] computing for function getaddrinfo <- main.
   Called from tests/libc/netdb_c.c:42.
-[value] share/libc/netdb.c:54: allocating variable __malloc_getaddrinfo_l54
-[value] share/libc/netdb.c:56: allocating variable __malloc_getaddrinfo_l56
-[value] computing for function Frama_C_interval <- getaddrinfo <- main.
-  Called from share/libc/netdb.c:58.
-[value] using specification for function Frama_C_interval
-[value] share/libc/netdb.c:58: 
+[eva] share/libc/netdb.c:55: Call to builtin malloc
+[eva] share/libc/netdb.c:55: allocating variable __malloc_getaddrinfo_l55
+[eva] share/libc/netdb.c:57: Call to builtin malloc
+[eva] share/libc/netdb.c:57: allocating variable __malloc_getaddrinfo_l57
+[eva] computing for function Frama_C_interval <- getaddrinfo <- main.
+  Called from share/libc/netdb.c:59.
+[eva] using specification for function Frama_C_interval
+[eva] share/libc/netdb.c:59: 
   function Frama_C_interval: precondition 'order' got status valid.
-[value] Done for function Frama_C_interval
-[value] computing for function Frama_C_interval <- getaddrinfo <- main.
-  Called from share/libc/netdb.c:61.
-[value] share/libc/netdb.c:61: 
+[eva] Done for function Frama_C_interval
+[eva] computing for function Frama_C_interval <- getaddrinfo <- main.
+  Called from share/libc/netdb.c:62.
+[eva] share/libc/netdb.c:62: 
   function Frama_C_interval: precondition 'order' got status valid.
-[value] Done for function Frama_C_interval
-[value] computing for function Frama_C_interval <- getaddrinfo <- main.
-  Called from share/libc/netdb.c:61.
-[value] Done for function Frama_C_interval
-[value] computing for function Frama_C_interval <- getaddrinfo <- main.
-  Called from share/libc/netdb.c:61.
-[value] Done for function Frama_C_interval
-[value] computing for function Frama_C_interval <- getaddrinfo <- main.
-  Called from share/libc/netdb.c:61.
-[value] Done for function Frama_C_interval
-[value] computing for function Frama_C_interval <- getaddrinfo <- main.
-  Called from share/libc/netdb.c:61.
-[value] Done for function Frama_C_interval
-[value] computing for function Frama_C_interval <- getaddrinfo <- main.
-  Called from share/libc/netdb.c:61.
-[value] Done for function Frama_C_interval
-[value] computing for function Frama_C_interval <- getaddrinfo <- main.
-  Called from share/libc/netdb.c:61.
-[value] Done for function Frama_C_interval
-[value] computing for function Frama_C_interval <- getaddrinfo <- main.
-  Called from share/libc/netdb.c:61.
-[value] Done for function Frama_C_interval
-[value] computing for function Frama_C_interval <- getaddrinfo <- main.
-  Called from share/libc/netdb.c:61.
-[value] Done for function Frama_C_interval
-[value] computing for function Frama_C_interval <- getaddrinfo <- main.
-  Called from share/libc/netdb.c:61.
-[value] Done for function Frama_C_interval
-[value] computing for function Frama_C_interval <- getaddrinfo <- main.
-  Called from share/libc/netdb.c:61.
-[value] Done for function Frama_C_interval
-[value] computing for function Frama_C_interval <- getaddrinfo <- main.
-  Called from share/libc/netdb.c:61.
-[value] Done for function Frama_C_interval
-[value] computing for function Frama_C_interval <- getaddrinfo <- main.
-  Called from share/libc/netdb.c:61.
-[value] Done for function Frama_C_interval
-[value] computing for function Frama_C_interval <- getaddrinfo <- main.
-  Called from share/libc/netdb.c:61.
-[value] Done for function Frama_C_interval
-[value] computing for function Frama_C_interval <- getaddrinfo <- main.
-  Called from share/libc/netdb.c:66.
-[value] share/libc/netdb.c:66: 
-  function Frama_C_interval: precondition 'order' got status valid.
-[value] Done for function Frama_C_interval
-[value] computing for function Frama_C_interval <- getaddrinfo <- main.
+[eva] Done for function Frama_C_interval
+[eva] computing for function Frama_C_interval <- getaddrinfo <- main.
+  Called from share/libc/netdb.c:62.
+[eva] Done for function Frama_C_interval
+[eva] computing for function Frama_C_interval <- getaddrinfo <- main.
+  Called from share/libc/netdb.c:62.
+[eva] Done for function Frama_C_interval
+[eva] computing for function Frama_C_interval <- getaddrinfo <- main.
+  Called from share/libc/netdb.c:62.
+[eva] Done for function Frama_C_interval
+[eva] computing for function Frama_C_interval <- getaddrinfo <- main.
+  Called from share/libc/netdb.c:62.
+[eva] Done for function Frama_C_interval
+[eva] computing for function Frama_C_interval <- getaddrinfo <- main.
+  Called from share/libc/netdb.c:62.
+[eva] Done for function Frama_C_interval
+[eva] computing for function Frama_C_interval <- getaddrinfo <- main.
+  Called from share/libc/netdb.c:62.
+[eva] Done for function Frama_C_interval
+[eva] computing for function Frama_C_interval <- getaddrinfo <- main.
+  Called from share/libc/netdb.c:62.
+[eva] Done for function Frama_C_interval
+[eva] computing for function Frama_C_interval <- getaddrinfo <- main.
+  Called from share/libc/netdb.c:62.
+[eva] Done for function Frama_C_interval
+[eva] computing for function Frama_C_interval <- getaddrinfo <- main.
+  Called from share/libc/netdb.c:62.
+[eva] Done for function Frama_C_interval
+[eva] computing for function Frama_C_interval <- getaddrinfo <- main.
+  Called from share/libc/netdb.c:62.
+[eva] Done for function Frama_C_interval
+[eva] computing for function Frama_C_interval <- getaddrinfo <- main.
+  Called from share/libc/netdb.c:62.
+[eva] Done for function Frama_C_interval
+[eva] computing for function Frama_C_interval <- getaddrinfo <- main.
+  Called from share/libc/netdb.c:62.
+[eva] Done for function Frama_C_interval
+[eva] computing for function Frama_C_interval <- getaddrinfo <- main.
+  Called from share/libc/netdb.c:62.
+[eva] Done for function Frama_C_interval
+[eva] computing for function Frama_C_interval <- getaddrinfo <- main.
   Called from share/libc/netdb.c:67.
-[value] share/libc/netdb.c:67: 
+[eva] share/libc/netdb.c:67: 
   function Frama_C_interval: precondition 'order' got status valid.
-[value] Done for function Frama_C_interval
-[value] Recording results for getaddrinfo
-[value] Done for function getaddrinfo
-[value] computing for function gai_strerror <- main.
+[eva] Done for function Frama_C_interval
+[eva] computing for function Frama_C_interval <- getaddrinfo <- main.
+  Called from share/libc/netdb.c:68.
+[eva] share/libc/netdb.c:68: 
+  function Frama_C_interval: precondition 'order' got status valid.
+[eva] Done for function Frama_C_interval
+[eva] Recording results for getaddrinfo
+[eva] Done for function getaddrinfo
+[eva] computing for function gai_strerror <- main.
   Called from tests/libc/netdb_c.c:44.
-[value] using specification for function gai_strerror
-[value] Done for function gai_strerror
-[value] computing for function fprintf_va_1 <- main.
+[eva] using specification for function gai_strerror
+[eva] Done for function gai_strerror
+[eva] computing for function fprintf_va_1 <- main.
   Called from tests/libc/netdb_c.c:44.
-[value] using specification for function fprintf_va_1
-[value] tests/libc/netdb_c.c:44: 
+[eva] using specification for function fprintf_va_1
+[eva] tests/libc/netdb_c.c:44: 
   function fprintf_va_1: precondition valid_read_string(format) got status valid.
-[value] tests/libc/netdb_c.c:44: 
+[eva] tests/libc/netdb_c.c:44: 
   function fprintf_va_1: precondition valid_read_string(param0) got status valid.
-[value] Done for function fprintf_va_1
-[value] computing for function exit <- main.
+[eva] Done for function fprintf_va_1
+[eva] computing for function exit <- main.
   Called from tests/libc/netdb_c.c:45.
-[value] using specification for function exit
-[value] Done for function exit
-[value] computing for function socket <- main.
+[eva] using specification for function exit
+[eva] Done for function exit
+[eva] computing for function socket <- main.
   Called from tests/libc/netdb_c.c:54.
-[value] using specification for function socket
-[value] Done for function socket
-[value] computing for function bind <- main.
+[eva] using specification for function socket
+[eva] Done for function socket
+[eva] computing for function bind <- main.
   Called from tests/libc/netdb_c.c:59.
-[value] using specification for function bind
-[value] tests/libc/netdb_c.c:59: 
+[eva] using specification for function bind
+[eva] tests/libc/netdb_c.c:59: 
   function bind: precondition 'valid_sockfd,sockfd' got status valid.
-[value] tests/libc/netdb_c.c:59: 
+[eva] tests/libc/netdb_c.c:59: 
   function bind: precondition 'valid_read_addr' got status valid.
-[value] Done for function bind
-[value] computing for function close <- main.
+[eva] Done for function bind
+[eva] computing for function close <- main.
   Called from tests/libc/netdb_c.c:62.
-[value] using specification for function close
-[value] tests/libc/netdb_c.c:62: 
+[eva] using specification for function close
+[eva] tests/libc/netdb_c.c:62: 
   function close: precondition 'valid_fd' got status valid.
-[value] Done for function close
-[value] tests/libc/netdb_c.c:53: entering loop for the first time
-[value] computing for function fprintf_va_2 <- main.
+[eva] Done for function close
+[eva] computing for function fprintf_va_2 <- main.
   Called from tests/libc/netdb_c.c:65.
-[value] using specification for function fprintf_va_2
-[value] tests/libc/netdb_c.c:65: 
+[eva] using specification for function fprintf_va_2
+[eva] tests/libc/netdb_c.c:65: 
   function fprintf_va_2: precondition got status valid.
-[value] Done for function fprintf_va_2
-[value] computing for function exit <- main.
+[eva] Done for function fprintf_va_2
+[eva] computing for function exit <- main.
   Called from tests/libc/netdb_c.c:66.
-[value] Done for function exit
-[value] computing for function freeaddrinfo <- main.
+[eva] Done for function exit
+[eva] computing for function freeaddrinfo <- main.
   Called from tests/libc/netdb_c.c:69.
-[value] using specification for function freeaddrinfo
-[value] tests/libc/netdb_c.c:69: Warning: ignoring unsupported \allocates clause
-[value] tests/libc/netdb_c.c:69: 
+[eva] using specification for function freeaddrinfo
+[eva] tests/libc/netdb_c.c:69: Warning: ignoring unsupported \allocates clause
+[eva] tests/libc/netdb_c.c:69: 
   function freeaddrinfo: precondition 'addrinfo_valid' got status valid.
-[value] Done for function freeaddrinfo
-[value] Recording results for main
-[value] done for function main
-[value] ====== VALUES COMPUTED ======
-[value:final-states] Values at end of function getaddrinfo:
+[eva] Done for function freeaddrinfo
+[eva] Recording results for main
+[eva] done for function main
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function getaddrinfo:
   __fc_errno ∈ [--..--]
   __fc_heap_status ∈ [--..--]
   Frama_C_entropy_source ∈ [--..--]
-  result ∈ {{ &__malloc_getaddrinfo_l54 }} or UNINITIALIZED
+  result ∈ {{ &__malloc_getaddrinfo_l55 }} or UNINITIALIZED
   __retres ∈ [-11..0]
-  __malloc_getaddrinfo_l54.ai_flags ∈ {0} or UNINITIALIZED
+  __malloc_getaddrinfo_l55.ai_flags ∈ {0} or UNINITIALIZED
                           .ai_family ∈ [0..43] or UNINITIALIZED
                           .ai_socktype ∈
                           {0; 1; 2; 3; 4; 5} or UNINITIALIZED
                           .ai_protocol ∈ [0..256] or UNINITIALIZED
                           .ai_addrlen ∈ {16} or UNINITIALIZED
                           .ai_addr ∈
-                          {{ &__malloc_getaddrinfo_l56 }} or UNINITIALIZED
+                          {{ &__malloc_getaddrinfo_l57 }} or UNINITIALIZED
                           .ai_canonname ∈ {{ "dummy" }} or UNINITIALIZED
                           .ai_next ∈ {0} or UNINITIALIZED
-  __malloc_getaddrinfo_l56.sa_family ∈ [0..43]
+  __malloc_getaddrinfo_l57.sa_family ∈ [0..43]
                           .sa_data[0..13] ∈ [--..--]
-[value:final-states] Values at end of function main:
+[eva:final-states] Values at end of function main:
   __fc_errno ∈ [--..--]
   __fc_heap_status ∈ [--..--]
   Frama_C_entropy_source ∈ [--..--]
@@ -232,20 +199,20 @@
        .ai_family ∈ {0}
        .ai_socktype ∈ {2}
        {.ai_protocol; .ai_addrlen; .ai_addr; .ai_canonname; .ai_next} ∈ {0}
-  result ∈ {{ &__malloc_getaddrinfo_l54 }}
-  rp ∈ {{ &__malloc_getaddrinfo_l54 }}
+  result ∈ {{ &__malloc_getaddrinfo_l55 }}
+  rp ∈ {{ &__malloc_getaddrinfo_l55 }}
   sfd ∈ [0..1023]
   s ∈ {0}
   addr ∈ {{ "localhost" }}
   __retres ∈ {0}
   S___fc_stderr[0..1] ∈ [--..--]
-  __malloc_getaddrinfo_l54.ai_flags ∈ {0}
+  __malloc_getaddrinfo_l55.ai_flags ∈ {0}
                           .ai_family ∈ [0..43]
                           .ai_socktype ∈ {0; 1; 2; 3; 4; 5}
                           .ai_protocol ∈ [0..256]
                           .ai_addrlen ∈ {16}
-                          .ai_addr ∈ {{ &__malloc_getaddrinfo_l56 }}
+                          .ai_addr ∈ {{ &__malloc_getaddrinfo_l57 }}
                           .ai_canonname ∈ {{ "dummy" }}
                           .ai_next ∈ {0}
-  __malloc_getaddrinfo_l56.sa_family ∈ [0..43]
+  __malloc_getaddrinfo_l57.sa_family ∈ [0..43]
                           .sa_data[0..13] ∈ [--..--]

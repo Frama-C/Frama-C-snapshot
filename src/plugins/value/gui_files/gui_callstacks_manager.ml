@@ -708,6 +708,15 @@ module Make (Input: Input) = struct
             render_session ()
           ) model.loc
       in
+      (* To avoid slowing down the GUI,
+         limit maximum number of displayed values *)
+      let nb_max = 30 in
+      let len = List.length vars_to_display in
+      let vars_to_display, nb_omitted =
+        if len > nb_max then
+          Extlib.list_slice ~last:nb_max vars_to_display, len - nb_max
+        else vars_to_display, 0
+      in
       List.iter (fun vi ->
           let label = Format.asprintf "Display values for '%a'"
               Printer.pp_varinfo vi in
@@ -715,6 +724,14 @@ module Make (Input: Input) = struct
           menu#add varmenuitem;
           ignore (varmenuitem#connect#activate (callback_display_var vi));
         ) vars_to_display;
+      if nb_omitted > 0 then begin
+        let label =
+          Format.asprintf "... plus other %d values (omitted)" nb_omitted
+        in
+        let varmenuitem = GMenu.menu_item ~label () in
+        menu#add varmenuitem;
+        varmenuitem#misc#set_sensitive false
+      end;
       let time = GtkMain.Main.get_current_event_time () in
       menu#popup ~button:3 ~time
     in
@@ -945,7 +962,7 @@ let make_widget (main_ui:main_ui) ~packing make_panel =
         | GL_Stmt (kf, stmt) ->
           Format.asprintf "%a:%d"
             Kernel_function.pretty kf
-            (fst (Cil_datatype.Stmt.loc stmt)).Lexing.pos_lnum
+            (fst (Cil_datatype.Stmt.loc stmt)).Filepath.pos_lnum
         | GL_Pre kf ->
           Format.asprintf "pre %a" Kernel_function.pretty kf
         | GL_Post kf ->

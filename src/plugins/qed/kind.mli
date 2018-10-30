@@ -74,4 +74,3 @@ val compare_tau:
 
 module MakeTau(F : Field)(A : Data) :
   Data with type t = (F.t,A.t) datatype
-

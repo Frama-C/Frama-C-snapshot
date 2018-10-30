@@ -15,7 +15,6 @@ int main(void)
   int __retres;
   int tmp;
   tmp = getfoo2();
-  ;
   if (tmp != (int)(& foo)) {
     __retres = 1;
     goto return_label;

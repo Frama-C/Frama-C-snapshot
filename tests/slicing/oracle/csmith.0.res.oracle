@@ -1,98 +1,94 @@
 [kernel] Parsing tests/slicing/csmith.i (no preprocessing)
 [slicing] slicing requests in progress...
-[value] Analyzing a complete application starting at main
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing a complete application starting at main
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   G1 ∈ {0}
   G1b ∈ {0}
   G2 ∈ {0}
-[value] computing for function f1 <- main.
+[eva] computing for function f1 <- main.
   Called from tests/slicing/csmith.i:234.
-[value] tests/slicing/csmith.i:15: entering loop for the first time
-[value] Recording results for f1
-[value] Done for function f1
-[value] computing for function f1b <- main.
+[eva] Recording results for f1
+[eva] Done for function f1
+[eva] computing for function f1b <- main.
   Called from tests/slicing/csmith.i:235.
-[value] Recording results for f1b
-[value] Done for function f1b
-[value] computing for function f2 <- main.
+[eva] Recording results for f1b
+[eva] Done for function f1b
+[eva] computing for function f2 <- main.
   Called from tests/slicing/csmith.i:236.
-[value] tests/slicing/csmith.i:36: entering loop for the first time
-[value] Recording results for f2
-[value] Done for function f2
-[value] computing for function bts181 <- main.
+[eva] Recording results for f2
+[eva] Done for function f2
+[eva] computing for function bts181 <- main.
   Called from tests/slicing/csmith.i:237.
-[value] Recording results for bts181
-[value] Done for function bts181
-[value] computing for function bts181b <- main.
+[eva] Recording results for bts181
+[eva] Done for function bts181
+[eva] computing for function bts181b <- main.
   Called from tests/slicing/csmith.i:238.
-[value] Recording results for bts181b
-[value] Done for function bts181b
-[value] computing for function bts807 <- main.
+[eva] Recording results for bts181b
+[eva] Done for function bts181b
+[eva] computing for function bts807 <- main.
   Called from tests/slicing/csmith.i:239.
-[value] tests/slicing/csmith.i:68: entering loop for the first time
-[value] Recording results for bts807
-[value] Done for function bts807
-[value] computing for function bts809 <- main.
+[eva] Recording results for bts807
+[eva] Done for function bts807
+[eva] computing for function bts809 <- main.
   Called from tests/slicing/csmith.i:240.
-[value] tests/slicing/csmith.i:78: entering loop for the first time
-[value] Recording results for bts809
-[value] Done for function bts809
-[value] computing for function bts879 <- main.
+[eva] Recording results for bts809
+[eva] Done for function bts809
+[eva] computing for function bts879 <- main.
   Called from tests/slicing/csmith.i:241.
-[value] Recording results for bts879
-[value] Done for function bts879
-[value] computing for function bts879b <- main.
+[eva] Recording results for bts879
+[eva] Done for function bts879
+[eva] computing for function bts879b <- main.
   Called from tests/slicing/csmith.i:242.
-[value] Recording results for bts879b
-[value] Done for function bts879b
-[value] computing for function bts899 <- main.
+[eva] Recording results for bts879b
+[eva] Done for function bts879b
+[eva] computing for function bts899 <- main.
   Called from tests/slicing/csmith.i:243.
-[value] tests/slicing/csmith.i:135: entering loop for the first time
-[value:alarm] tests/slicing/csmith.i:141: Warning: 
+[eva] tests/slicing/csmith.i:135: starting to merge loop iterations
+[eva:alarm] tests/slicing/csmith.i:141: Warning: 
   signed overflow. assert x + 1 ≤ 2147483647;
-[value] Recording results for bts899
-[value] Done for function bts899
-[value:alarm] tests/slicing/csmith.i:243: Warning: 
+[eva] Recording results for bts899
+[eva] Done for function bts899
+[eva:alarm] tests/slicing/csmith.i:243: Warning: 
   signed overflow. assert x + tmp_5 ≤ 2147483647;
                    (tmp_5 from bts899())
-[value] computing for function bts906 <- main.
+[eva] computing for function bts906 <- main.
   Called from tests/slicing/csmith.i:244.
-[value] tests/slicing/csmith.i:149: entering loop for the first time
-[value] tests/slicing/csmith.i:150: entering loop for the first time
-[value] Recording results for bts906
-[value] Done for function bts906
-[value:alarm] tests/slicing/csmith.i:244: Warning: 
+[eva] tests/slicing/csmith.i:149: starting to merge loop iterations
+[eva] tests/slicing/csmith.i:150: starting to merge loop iterations
+[eva] Recording results for bts906
+[eva] Done for function bts906
+[eva:alarm] tests/slicing/csmith.i:244: Warning: 
   signed overflow. assert x + tmp_6 ≤ 2147483647;
                    (tmp_6 from bts906())
-[value] computing for function bts906b <- main.
+[eva] computing for function bts906b <- main.
   Called from tests/slicing/csmith.i:245.
-[value] tests/slicing/csmith.i:168: entering loop for the first time
-[value] tests/slicing/csmith.i:169: entering loop for the first time
-[value] Recording results for bts906b
-[value] Done for function bts906b
-[value:alarm] tests/slicing/csmith.i:245: Warning: 
+[eva] tests/slicing/csmith.i:168: starting to merge loop iterations
+[eva] tests/slicing/csmith.i:169: starting to merge loop iterations
+[eva] Recording results for bts906b
+[eva] Done for function bts906b
+[eva:alarm] tests/slicing/csmith.i:245: Warning: 
   signed overflow. assert x + tmp_7 ≤ 2147483647;
                    (tmp_7 from bts906b())
-[value] computing for function bts963 <- main.
+[eva] computing for function bts963 <- main.
   Called from tests/slicing/csmith.i:247.
-[value] tests/slicing/csmith.i:211: entering loop for the first time
-[value] Recording results for bts963
-[value] Done for function bts963
-[value:alarm] tests/slicing/csmith.i:247: Warning: 
+[eva] tests/slicing/csmith.i:211: starting to merge loop iterations
+[eva] Recording results for bts963
+[eva] Done for function bts963
+[eva:alarm] tests/slicing/csmith.i:247: Warning: 
   signed overflow. assert x + tmp_8 ≤ 2147483647;
                    (tmp_8 from bts963())
-[value] computing for function bts963b <- main.
+[eva] computing for function bts963b <- main.
   Called from tests/slicing/csmith.i:248.
-[value] tests/slicing/csmith.i:223: entering loop for the first time
-[value] Recording results for bts963b
-[value] Done for function bts963b
-[value:alarm] tests/slicing/csmith.i:248: Warning: 
+[eva] tests/slicing/csmith.i:223: starting to merge loop iterations
+[eva] Recording results for bts963b
+[eva] Done for function bts963b
+[eva:alarm] tests/slicing/csmith.i:248: Warning: 
   signed overflow. assert x + tmp_9 ≤ 2147483647;
                    (tmp_9 from bts963b())
-[value] Recording results for main
-[value] done for function main
+[eva] Recording results for main
+[eva] done for function main
 [slicing] initializing slicing ...
 [slicing] interpreting slicing requests from the command line...
 [pdg] computing for function main
@@ -240,8 +236,10 @@ int bts879_slice_1(int c)
   if (p) goto _LOR;
   else 
     if (0) {
-      _LOR: __retres = 1;
-            goto return_label;
+      _LOR: {
+              __retres = 1;
+              goto return_label;
+            }
     }
   __retres = 0;
   return_label: return __retres;

@@ -1,5 +1,5 @@
 open Cil_types
-open Lexing
+open Filepath
 
 let print_pos fmt pos =
   Format.fprintf

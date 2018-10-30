@@ -22,16 +22,6 @@
 
 open Eval
 
-(* Here we need to intersect the alarms issued for each abstract value. *)
-let (>>=) (t, a) f = match t with
-  | `Bottom  -> `Bottom, a
-  | `Value t ->
-    let t', a' = f t in
-    match Alarmset.inter a a' with
-    | `Inconsistent -> `Bottom, Alarmset.none
-    | `Value alarms -> t', alarms
-
-
 module Make
     (Left: Abstract_value.Internal)
     (Right: Abstract_value.Internal)
@@ -56,42 +46,70 @@ module Make
     left, right
 
   let zero = Left.zero, Right.zero
-  let float_zeros = Left.float_zeros, Right.float_zeros
+  let one = Left.one, Right.one
   let top_int = Left.top_int, Right.top_int
   let inject_int typ i = Left.inject_int typ i, Right.inject_int typ i
-  let inject_address vi = Left.inject_address vi, Right.inject_address vi
+
+  (* Intersects the truth values [t1] and [t2] coming from [assume_] functions
+     from both abstract values. [v1] and [v2] are the initial values leading to
+     these truth values, that may be reduced by the assumption. [combine]
+     combines values from both abstract values into values of the product. *)
+  let narrow_any_truth combine (v1, t1) (v2, t2) = match t1, t2 with
+    | `Unreachable, _ | _, `Unreachable
+    | (`True | `TrueReduced _), `False
+    | `False, (`True | `TrueReduced _) -> `Unreachable
+    | `False, _ | _, `False -> `False
+    | `Unknown v1, `Unknown v2 -> `Unknown (combine v1 v2)
+    | (`Unknown v1 | `TrueReduced v1), `True -> `TrueReduced (combine v1 v2)
+    | `True, (`Unknown v2 | `TrueReduced v2) -> `TrueReduced (combine v1 v2)
+    | (`Unknown v1 | `TrueReduced v1),
+      (`Unknown v2 | `TrueReduced v2) -> `TrueReduced (combine v1 v2)
+    | `True, `True -> `True
+
+  let narrow_truth = narrow_any_truth (fun left right -> left, right)
+
+  let assume_non_zero (left, right) =
+    let left_truth = Left.assume_non_zero left
+    and right_truth = Right.assume_non_zero right in
+    narrow_truth (left, left_truth) (right, right_truth)
+
+  let assume_bounded kind bound (left, right) =
+    let left_truth = Left.assume_bounded kind bound left
+    and right_truth = Right.assume_bounded kind bound right in
+    narrow_truth (left, left_truth) (right, right_truth)
+
+  let assume_not_nan ~assume_finite fkind (left, right) =
+    let left_truth = Left.assume_not_nan ~assume_finite fkind left
+    and right_truth = Right.assume_not_nan ~assume_finite fkind right in
+    narrow_truth (left, left_truth) (right, right_truth)
+
+  let assume_comparable op (l1, r1) (l2, r2) =
+    let left_truth = Left.assume_comparable op l1 l2
+    and right_truth = Right.assume_comparable op r1 r2 in
+    let combine (l1, l2) (r1, r2) = (l1, r1), (l2, r2) in
+    narrow_any_truth combine ((l1, l2), left_truth) ((r1, r2), right_truth)
 
   let constant expr constant =
     let left = Left.constant expr constant
     and right = Right.constant expr constant in
     left, right
 
-  let forward_unop ~context typ unop (left, right) =
-    Left.forward_unop ~context typ unop left >>= fun left ->
-    Right.forward_unop ~context typ unop right >>=: fun right ->
+  let forward_unop typ unop (left, right) =
+    Left.forward_unop typ unop left >>- fun left ->
+    Right.forward_unop typ unop right >>-: fun right ->
     left, right
 
-  let forward_binop ~context typ binop (l1, r1) (l2, r2) =
-    Left.forward_binop ~context typ binop l1 l2 >>= fun left ->
-    Right.forward_binop ~context typ binop r1 r2 >>=: fun right ->
-    left, right
-
-  let truncate_integer expr range (left, right) =
-    Left.truncate_integer expr range left >>= fun left ->
-    Right.truncate_integer expr range right >>=: fun right ->
+  let forward_binop typ binop (l1, r1) (l2, r2) =
+    Left.forward_binop typ binop l1 l2 >>- fun left ->
+    Right.forward_binop typ binop r1 r2 >>-: fun right ->
     left, right
 
   let rewrap_integer range (left, right) =
     Left.rewrap_integer range left, Right.rewrap_integer range right
 
-  let restrict_float ~remove_infinite expr fkind (left, right) =
-    Left.restrict_float ~remove_infinite expr fkind left >>= fun left ->
-    Right.restrict_float ~remove_infinite expr fkind right >>=: fun right ->
-    left, right
-
-  let cast ~src_typ ~dst_typ expr (left, right) =
-    Left.cast ~src_typ ~dst_typ expr left >>= fun left ->
-    Right.cast ~src_typ ~dst_typ expr right >>=: fun right ->
+  let forward_cast ~src_type ~dst_type (left, right) =
+    Left.forward_cast ~src_type ~dst_type left >>- fun left ->
+    Right.forward_cast ~src_type ~dst_type right >>-: fun right ->
     left, right
 
   let resolve_functions (left, right) =

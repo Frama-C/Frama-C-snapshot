@@ -1,17 +1,17 @@
 [kernel] Parsing tests/value/test.i (no preprocessing)
-[value] Analyzing a complete application starting at f
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing a complete application starting at f
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   
-[value:alarm] tests/value/test.i:21: Warning: 
+[eva:alarm] tests/value/test.i:21: Warning: 
   accessing uninitialized left-value. assert \initialized(&t[100]);
-[value] Recording results for f
-[value] done for function f
-[value] tests/value/test.i:21: 
-  assertion 'Value,initialization' got final status invalid.
-[value] ====== VALUES COMPUTED ======
-[value:final-states] Values at end of function f:
+[eva] Recording results for f
+[eva] done for function f
+[eva] tests/value/test.i:21: 
+  assertion 'Eva,initialization' got final status invalid.
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function f:
   t[0] ∈ {99}
    [1..88887] ∈ UNINITIALIZED
 [from] Computing for function f

@@ -1,8 +1,8 @@
 [kernel] Parsing tests/value/strings.i (no preprocessing)
-[value] Analyzing a complete application starting at main6
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing a complete application starting at main6
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   s1[0] ∈ {104}
     [1] ∈ {101}
     [2..3] ∈ {108}
@@ -37,67 +37,67 @@
   s4 ∈ {{ "tutu" }}
   s7 ∈ {{ "hello\000 world" }}
   s8 ∈ {{ "hello" }}
-[value] computing for function u <- main6.
+[eva] computing for function u <- main6.
   Called from tests/value/strings.i:72.
 [kernel:annot:missing-spec] tests/value/strings.i:72: Warning: 
   Neither code nor specification for function u, generating default assigns from the prototype
-[value] using specification for function u
-[value] Done for function u
-[value:alarm] tests/value/strings.i:73: Warning: 
+[eva] using specification for function u
+[eva] Done for function u
+[eva:alarm] tests/value/strings.i:73: Warning: 
   pointer comparison. assert \pointer_comparable((void *)s3, (void *)s4);
-[value] computing for function u <- main6.
+[eva] computing for function u <- main6.
   Called from tests/value/strings.i:74.
-[value] Done for function u
-[value] computing for function u <- main6.
+[eva] Done for function u
+[eva] computing for function u <- main6.
   Called from tests/value/strings.i:76.
-[value] Done for function u
-[value] computing for function u <- main6.
+[eva] Done for function u
+[eva] computing for function u <- main6.
   Called from tests/value/strings.i:78.
-[value] Done for function u
-[value:alarm] tests/value/strings.i:79: Warning: 
+[eva] Done for function u
+[eva:alarm] tests/value/strings.i:79: Warning: 
   pointer comparison. assert \pointer_comparable((void *)s7, (void *)s8);
-[value] computing for function u <- main6.
+[eva] computing for function u <- main6.
   Called from tests/value/strings.i:80.
-[value] Done for function u
-[value] computing for function u <- main6.
+[eva] Done for function u
+[eva] computing for function u <- main6.
   Called from tests/value/strings.i:82.
-[value] Done for function u
-[value:alarm] tests/value/strings.i:83: Warning: 
+[eva] Done for function u
+[eva:alarm] tests/value/strings.i:83: Warning: 
   pointer comparison.
   assert \pointer_comparable((void *)(s7 + 1), (void *)(s8 + 1));
-[value] computing for function u <- main6.
+[eva] computing for function u <- main6.
   Called from tests/value/strings.i:84.
-[value] Done for function u
-[value] computing for function u <- main6.
+[eva] Done for function u
+[eva] computing for function u <- main6.
   Called from tests/value/strings.i:86.
-[value] Done for function u
-[value] computing for function u <- main6.
+[eva] Done for function u
+[eva] computing for function u <- main6.
   Called from tests/value/strings.i:87.
-[value] Done for function u
-[value] computing for function u <- main6.
+[eva] Done for function u
+[eva] computing for function u <- main6.
   Called from tests/value/strings.i:88.
-[value] Done for function u
-[value] computing for function u <- main6.
+[eva] Done for function u
+[eva] computing for function u <- main6.
   Called from tests/value/strings.i:89.
-[value] Done for function u
-[value] computing for function u <- main6.
+[eva] Done for function u
+[eva] computing for function u <- main6.
   Called from tests/value/strings.i:89.
-[value] Done for function u
-[value] computing for function u <- main6.
+[eva] Done for function u
+[eva] computing for function u <- main6.
   Called from tests/value/strings.i:90.
-[value] Done for function u
-[value:alarm] tests/value/strings.i:91: Warning: 
+[eva] Done for function u
+[eva:alarm] tests/value/strings.i:91: Warning: 
   pointer comparison. assert \pointer_comparable((void *)s5, (void *)s6);
-[value] computing for function u <- main6.
+[eva] computing for function u <- main6.
   Called from tests/value/strings.i:92.
-[value] Done for function u
-[value:alarm] tests/value/strings.i:93: Warning: 
+[eva] Done for function u
+[eva:alarm] tests/value/strings.i:93: Warning: 
   pointer comparison.
   assert \pointer_comparable((void *)("oh, hello" + 4), (void *)s7);
-[value] Recording results for main6
-[value] done for function main6
-[value] ====== VALUES COMPUTED ======
-[value:final-states] Values at end of function main6:
+[eva] Recording results for main6
+[eva] done for function main6
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function main6:
   s5 ∈ {{ "tutu" ; "hello" }}
   s6 ∈ {{ "tutu" ; "tutu" ; "hello" }}
   cc ∈ {116}

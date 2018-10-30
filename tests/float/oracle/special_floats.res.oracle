@@ -1,17 +1,17 @@
 [kernel] Parsing tests/float/special_floats.i (no preprocessing)
-[value] Analyzing a complete application starting at main
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing a complete application starting at main
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   rand ∈ [--..--]
-[value] computing for function nan_comparisons <- main.
+[eva] computing for function nan_comparisons <- main.
   Called from tests/float/special_floats.i:24.
-[value] Recording results for nan_comparisons
-[value] Done for function nan_comparisons
-[value] Recording results for main
-[value] done for function main
-[value] ====== VALUES COMPUTED ======
-[value:final-states] Values at end of function nan_comparisons:
+[eva] Recording results for nan_comparisons
+[eva] Done for function nan_comparisons
+[eva] Recording results for main
+[eva] done for function main
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function nan_comparisons:
   n ∈ NaN
   d ∈ [-10. .. 10.]
   eq1 ∈ {0}
@@ -20,5 +20,5 @@
   eq2 ∈ {0}
   comp2 ∈ {0; 1}
   ne2 ∈ {1}
-[value:final-states] Values at end of function main:
+[eva:final-states] Values at end of function main:
   

@@ -1,3 +1,4 @@
 [kernel] Parsing tests/value/split_return.i (no preprocessing)
-[value] User Error: incorrect argument for option -slevel-function (no function 'NON_EXISTING').
-[kernel] Plug-in value aborted: invalid user input.
+[eva] User Error: incorrect argument for option -eva-slevel-function
+  (no function 'NON_EXISTING').
+[kernel] Plug-in eva aborted: invalid user input.

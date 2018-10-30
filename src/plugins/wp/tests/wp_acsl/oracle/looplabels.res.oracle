@@ -8,7 +8,23 @@
 ------------------------------------------------------------
 
 Goal Post-condition (file tests/wp_acsl/looplabels.i, line 13) in 'copy':
-Prove: true.
+Let a_1 = shift_sint32(b, 0).
+Let a_2 = shift_sint32(a, 0).
+Assume {
+  Type: is_sint32(i) /\ is_sint32(n).
+  (* Heap *)
+  Have: (region(a.base) <= 0) /\ (region(b.base) <= 0) /\ linked(Malloc_0).
+  (* Pre-condition *)
+  Have: (0 < n) /\ valid_rw(Malloc_0, a_2, n) /\
+      valid_rw(Malloc_0, a_1, n) /\ separated(a_2, n, a_1, n).
+  (* Invariant *)
+  Have: P_IsEqual(havoc(Mint_undef_0, Mint_0, a_1, n), a, b, i).
+  (* Invariant *)
+  Have: (0 <= i) /\ (i <= n).
+  (* Else *)
+  Have: n <= i.
+}
+Prove: P_IsEqual(havoc(Mint_undef_0, Mint_0, a_1, i), a, b, i).
 
 ------------------------------------------------------------
 
@@ -20,17 +36,10 @@ Assume {
   (* Heap *)
   Have: (region(a.base) <= 0) /\ (region(b.base) <= 0) /\ linked(Malloc_0).
   (* Pre-condition *)
-  Have: 0 < n.
-  (* Pre-condition *)
-  Have: valid_rw(Malloc_0, a_2, n).
-  (* Pre-condition *)
-  Have: valid_rw(Malloc_0, a_1, n).
-  (* Pre-condition *)
-  Have: separated(a_2, n, a_1, n).
-  (* Loop assigns ... *)
-  Have: havoc(Mint_0, Mint_1, a_1, n).
+  Have: (0 < n) /\ valid_rw(Malloc_0, a_2, n) /\
+      valid_rw(Malloc_0, a_1, n) /\ separated(a_2, n, a_1, n).
   (* Invariant *)
-  Have: P_IsEqual(Mint_1, a, b, i).
+  Have: P_IsEqual(havoc(Mint_undef_0, Mint_0, a_1, n), a, b, i).
   (* Invariant *)
   Have: (0 <= i) /\ (i <= n).
   (* Then *)
@@ -47,31 +56,24 @@ Prove: true.
 
 Goal Preservation of Invariant (file tests/wp_acsl/looplabels.i, line 19):
 Let a_1 = shift_sint32(b, 0).
-Let a_2 = shift_sint32(a, 0).
+Let a_2 = havoc(Mint_undef_0, Mint_0, a_1, n).
+Let a_3 = shift_sint32(a, 0).
 Let x = 1 + i.
 Assume {
   Type: is_sint32(i) /\ is_sint32(n) /\ is_sint32(x).
   (* Heap *)
   Have: (region(a.base) <= 0) /\ (region(b.base) <= 0) /\ linked(Malloc_0).
   (* Pre-condition *)
-  Have: 0 < n.
-  (* Pre-condition *)
-  Have: valid_rw(Malloc_0, a_2, n).
-  (* Pre-condition *)
-  Have: valid_rw(Malloc_0, a_1, n).
-  (* Pre-condition *)
-  Have: separated(a_2, n, a_1, n).
-  (* Loop assigns ... *)
-  Have: havoc(Mint_1, Mint_0, a_1, n).
+  Have: (0 < n) /\ valid_rw(Malloc_0, a_3, n) /\
+      valid_rw(Malloc_0, a_1, n) /\ separated(a_3, n, a_1, n).
   (* Invariant *)
-  Have: P_IsEqual(Mint_0, a, b, i).
+  Have: P_IsEqual(a_2, a, b, i).
   (* Invariant *)
   Have: (0 <= i) /\ (i <= n).
   (* Then *)
   Have: i < n.
 }
-Prove: P_IsEqual(Mint_0[shift_sint32(b, i) <- Mint_0[shift_sint32(a, i)]], a,
-         b, x).
+Prove: P_IsEqual(a_2[shift_sint32(b, i) <- a_2[shift_sint32(a, i)]], a, b, x).
 
 ------------------------------------------------------------
 
@@ -83,13 +85,8 @@ Assume {
   (* Heap *)
   Have: (region(a.base) <= 0) /\ (region(b.base) <= 0) /\ linked(Malloc_0).
   (* Pre-condition *)
-  Have: 0 < n.
-  (* Pre-condition *)
-  Have: valid_rw(Malloc_0, a_1, n).
-  (* Pre-condition *)
-  Have: valid_rw(Malloc_0, a_2, n).
-  (* Pre-condition *)
-  Have: separated(a_1, n, a_2, n).
+  Have: (0 < n) /\ valid_rw(Malloc_0, a_1, n) /\
+      valid_rw(Malloc_0, a_2, n) /\ separated(a_1, n, a_2, n).
 }
 Prove: P_IsEqual(Mint_0, a, b, 0).
 
@@ -112,17 +109,10 @@ Assume {
   (* Heap *)
   Have: (region(a.base) <= 0) /\ (region(b.base) <= 0) /\ linked(Malloc_0).
   (* Pre-condition *)
-  Have: 0 < n.
-  (* Pre-condition *)
-  Have: valid_rw(Malloc_0, a_2, n).
-  (* Pre-condition *)
-  Have: valid_rw(Malloc_0, a_1, n).
-  (* Pre-condition *)
-  Have: separated(a_2, n, a_1, n).
-  (* Loop assigns ... *)
-  Have: havoc(Mint_0, Mint_1, a_1, n).
+  Have: (0 < n) /\ valid_rw(Malloc_0, a_2, n) /\
+      valid_rw(Malloc_0, a_1, n) /\ separated(a_2, n, a_1, n).
   (* Invariant *)
-  Have: P_IsEqual(Mint_1, a, b, i).
+  Have: P_IsEqual(havoc(Mint_undef_0, Mint_0, a_1, n), a, b, i).
   (* Invariant *)
   Have: (0 <= i) /\ (i <= n).
   (* Then *)

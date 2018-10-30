@@ -26,11 +26,6 @@ double f4(void)
   double r;
   tab[0] = 1.0;
   tab[1] = 2.0;
-  /*@ behavior pre_g4:
-        requires
-          \valid(&tab) ∧ \valid(&tab + (0 .. 0)) ∧
-          \valid((double *)(&tab) + (0 .. 1));
-  */
   r = g4(& tab);
   return r;
 }

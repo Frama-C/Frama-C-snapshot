@@ -1,0 +1,71 @@
+# frama-c -wp [...]
+[kernel] Parsing tests/wp_acsl/init_value.i (no preprocessing)
+[wp] Running WP plugin...
+[wp] Loading driver 'share/wp.driver'
+[wp] Warning: Missing RTE guards
+------------------------------------------------------------
+  Function main_ko
+------------------------------------------------------------
+
+Goal Pre-condition 'qed_ko,Sc_eq_ko' in 'main_ko':
+Let a = sc2_0.F3_Sc_b.
+Let a_1 = sc3_0.F3_Sc_b.
+Assume {
+  Type: IsS3_Sc(sc2_0) /\ IsS3_Sc(sc3_0).
+  (* Initializer *)
+  Init: (sc3_0.F3_Sc_a) = 1.
+  (* Initializer *)
+  Init: a_1[0] = 2.
+  (* Initializer *)
+  Init: a_1[1] = 3.
+  (* Initializer *)
+  Init: a_1[2] = 4.
+  (* Initializer *)
+  Init: (sc3_0.F3_Sc_c) = 0.
+  (* Initializer *)
+  Init: (sc2_0.F3_Sc_a) = 1.
+  (* Initializer *)
+  Init: a[0] = 2.
+  (* Initializer *)
+  Init: a[1] = 3.
+  (* Initializer *)
+  Init: forall i : Z. ((2 <= i) -> ((i <= 2) -> (a[i] = 0))).
+  (* Initializer *)
+  Init: (sc2_0.F3_Sc_c) = 4.
+}
+Prove: EqS3_Sc(sc2_0, sc3_0).
+
+------------------------------------------------------------
+
+Goal Pre-condition 'qed_ko,Sc_t' in 'main_ko':
+Prove: false.
+
+------------------------------------------------------------
+
+Goal Pre-condition 'qed_ko,Sc_c_2' in 'main_ko':
+Prove: false.
+
+------------------------------------------------------------
+
+Goal Pre-condition 'qed_ko,Tab_no_init' in 'main_ko':
+Prove: false.
+
+------------------------------------------------------------
+
+Goal Pre-condition 'qed_ko,With_Array_Struct_3' in 'main_ko':
+Prove: false.
+
+------------------------------------------------------------
+
+Goal Pre-condition 'qed_ko,Simple_Array_1' in 'main_ko':
+Let x = t[1].
+Assume {
+  Type: is_sint32(x).
+  (* Initializer *)
+  Init: t[0] = 1.
+  (* Initializer *)
+  Init: forall i : Z. ((0 < i) -> ((i <= 1) -> (t[i] = 0))).
+}
+Prove: x = 1.
+
+------------------------------------------------------------

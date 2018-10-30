@@ -137,6 +137,43 @@ let execnow_opt_to_byte cmd =
   let cmd = opt_to_byte cmd in
   opt_to_byte_options cmd
 
+
+let output_unix_error (exn : exn) =
+  match exn with
+  | Unix.Unix_error (error, _function, arg) ->
+    let message = Unix.error_message error in
+    if arg = "" then
+      Format.eprintf "%s@." message
+    else 
+      Format.eprintf "%s: %s@." arg message
+  | _ -> assert false
+
+let mv src dest =
+  try
+    Unix.rename src dest
+  with Unix.Unix_error _ as e ->
+    output_unix_error e
+
+let unlink ?(silent = true) file =
+  let open Unix in
+  try
+    Unix.unlink file
+  with
+  | Unix_error _ when silent -> ()
+  | Unix_error (ENOENT,_,_) -> () (* Ignore "Not such file or directory" *)
+  | Unix_error _ as e -> output_unix_error e
+
+let is_file_empty_or_nonexisting filename =
+  let open Unix in
+  try
+    (Unix.stat filename).st_size = 0
+  with
+  | Unix_error (UnixLabels.ENOENT, _, _) -> (* file does not exist *)
+    true
+  | Unix_error _ as e ->
+    output_unix_error e;
+    raise e
+
 let base_path = Filename.current_dir_name
 (*    (Filename.concat
         (Filename.dirname Sys.executable_name)
@@ -969,8 +1006,7 @@ let command_string command =
         let stderr =
           Filename.temp_file (Filename.basename log_prefix) ".err.log"
         in
-        at_exit
-          (fun () ->  try Unix.unlink stderr with Unix.Unix_error _ -> ());
+        at_exit (fun () ->  unlink stderr);
         stderr
   in
   let filter = match command.filter with
@@ -1019,27 +1055,28 @@ let command_string command =
   command_string
 
 let update_log_files dir file =
-  let command_string =
-    "mv " ^
-      SubDir.make_result_file dir file ^ " " ^ SubDir.make_oracle_file dir file
-  in
-  ignore (launch command_string)
+  mv (SubDir.make_result_file dir file) (SubDir.make_oracle_file dir file)
 
 let update_toplevel_command command =
+
   let log_prefix = log_prefix command in
   let oracle_prefix = oracle_prefix command in
-  let command_string =
-    "mv " ^
-      log_prefix ^ ".res.log " ^
-      oracle_prefix ^ ".res.oracle"
-  in
-  ignore (launch command_string);
-  let command_string =
-    "mv " ^
-      log_prefix ^ ".err.log " ^
-        oracle_prefix ^ ".err.oracle"
-  in
-  ignore (launch command_string);
+  (* Update oracle *)
+  mv (log_prefix ^ ".res.log") (oracle_prefix ^ ".res.oracle");
+  (* Is there an error log ? *)
+  begin try
+    let log = log_prefix ^ ".err.log"
+    and oracle = oracle_prefix ^ ".err.oracle"
+    in
+    if is_file_empty_or_nonexisting log then
+      (* No, remove the error oracle *)
+      unlink ~silent:false oracle
+    else
+      (* Yes, update the error oracle*)
+      mv log oracle
+  with (* Possible error in [is_file_empty] *)
+    Unix.Unix_error _ -> ()
+  end;
   let macros = get_macros command in
   let log_files =
     List.fold_left
@@ -1057,9 +1094,7 @@ let rec update_command = function
 
 let remove_execnow_results execnow =
   List.iter
-    (fun f ->
-       try Unix.unlink (SubDir.make_result_file execnow.ex_dir f)
-       with Unix.Unix_error _ -> ())
+    (fun f -> unlink (SubDir.make_result_file execnow.ex_dir f))
     (execnow.ex_bin @ execnow.ex_log)
 
 module Make_Report(M:sig type t end)=struct
@@ -1173,7 +1208,6 @@ let do_command command =
           end;
           lock ();
           shared.summary_run <- succ shared.summary_run ;
-          shared.summary_log <- shared.summary_log + 2 ;
           Queue.push (Cmp_Toplevel command) shared.cmps;
           List.iter
             (fun f -> Queue.push (Cmp_Log (command.directory, f)) shared.cmps)
@@ -1204,10 +1238,7 @@ let do_command command =
                 Toplevel cmd ->
                   shared.summary_run <- shared.summary_run + 1;
                   let log_prefix = log_prefix cmd in
-                  begin try
-                    Unix.unlink (log_prefix ^ ".res.log ")
-                  with Unix.Unix_error _ -> ()
-                  end;
+                  unlink (log_prefix ^ ".res.log ")
               | Target (execnow,cmds) ->
                   shared.summary_run <- succ shared.summary_run;
                   remove_execnow_results execnow;
@@ -1239,7 +1270,7 @@ let do_command command =
                   execnow.ex_cmd
               in
               if !verbosity >= 1 then begin
-                lock_printf "%% launch %s" cmd;
+                lock_printf "%% launch %s@." cmd;
               end;
               let r = launch cmd in
               (* mark as already executed. For EXECNOW in test_config files,
@@ -1257,6 +1288,9 @@ let do_command command =
 let log_ext = function Res -> ".res" | Err -> ".err"
 
 let launch_and_check_compare_file diff ~cmp_string ~log_file ~oracle_file =
+  lock();
+  shared.summary_log <- shared.summary_log + 1;
+  unlock();
   let res = launch cmp_string in
   begin
     match res with
@@ -1282,6 +1316,17 @@ let launch_and_check_compare_file diff ~cmp_string ~log_file ~oracle_file =
   end;
   res
 
+let check_file_is_empty_or_nonexisting diff ~log_file =
+  if is_file_empty_or_nonexisting log_file then
+    0
+  else begin
+    lock();
+    Queue.push diff shared.diffs;
+    Condition.signal shared.diff_available;
+    unlock();
+    1
+  end
+
 let compare_one_file cmp log_prefix oracle_prefix log_kind =
   if !behavior = Show
   then begin
@@ -1294,15 +1339,19 @@ let compare_one_file cmp log_prefix oracle_prefix log_kind =
     let ext = log_ext log_kind in
     let log_file = log_prefix ^ ext ^ ".log" in
     let oracle_file = oracle_prefix ^ ext ^ ".oracle" in
-    let cmp_string =
-      !do_cmp ^ " " ^ log_file ^ " " ^ oracle_file ^ " > /dev/null 2> /dev/null"
-    in
-    if !verbosity >= 2 then lock_printf "%% cmp%s (%d) :%s@."
-      ext
-      cmp.n
-      cmp_string;
-    launch_and_check_compare_file (Command_error (cmp,log_kind))
-      ~cmp_string ~log_file ~oracle_file
+    if log_kind = Err && not (Sys.file_exists oracle_file) then
+      check_file_is_empty_or_nonexisting (Command_error (cmp,log_kind)) ~log_file
+    else begin
+      let cmp_string =
+        !do_cmp ^ " " ^ log_file ^ " " ^ oracle_file ^ " > /dev/null 2> /dev/null"
+      in
+      if !verbosity >= 2 then lock_printf "%% cmp%s (%d) :%s@."
+          ext
+          cmp.n
+          cmp_string;
+      launch_and_check_compare_file (Command_error (cmp,log_kind))
+        ~cmp_string ~log_file ~oracle_file
+    end
 
 let compare_one_log_file dir file =
   if !behavior = Show
@@ -1316,7 +1365,6 @@ let compare_one_log_file dir file =
     let oracle_file = SubDir.make_oracle_file dir file in
     let cmp_string = !do_cmp ^ " " ^ log_file ^ " " ^ oracle_file ^ " > /dev/null 2> /dev/null" in
     if !verbosity >= 2 then lock_printf "%% cmplog: %s / %s@." (SubDir.get dir) file;
-    shared.summary_log <- succ shared.summary_log;
     ignore (launch_and_check_compare_file (Log_error (dir,file))
               ~cmp_string ~log_file ~oracle_file)
 
@@ -1539,7 +1587,7 @@ let dispatcher () =
          execnow=false;
         }
       in
-      let process_macros s =
+      let process_macros_cmd s =
         basic_command_string
           { file = file;
 	    nb_files = nb_files;
@@ -1552,10 +1600,11 @@ let dispatcher () =
             macros = config.dc_macros;
             execnow = true; }
       in
+      let process_macros s = snd (replace_macros config.dc_macros s) in
       let make_execnow_cmd execnow =
         let res =
           {
-            ex_cmd = process_macros execnow.ex_cmd;
+            ex_cmd = process_macros_cmd execnow.ex_cmd;
             ex_log = List.map process_macros execnow.ex_log;
             ex_bin = List.map process_macros execnow.ex_bin;
             ex_dir = execnow.ex_dir;

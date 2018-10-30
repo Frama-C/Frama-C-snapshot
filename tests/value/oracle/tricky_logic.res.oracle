@@ -1,67 +1,67 @@
 [kernel] Parsing tests/value/tricky_logic.i (no preprocessing)
-[value] Analyzing a complete application starting at main
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing a complete application starting at main
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   vol ∈ [--..--]
   str ∈ {{ "abc" }}
   x ∈ {0}
   y ∈ {0}
-[value] tests/value/tricky_logic.i:56: 
+[eva] tests/value/tricky_logic.i:56: 
   function main: precondition got status valid.
-[value] computing for function f1 <- main.
+[eva] computing for function f1 <- main.
   Called from tests/value/tricky_logic.i:58.
-[value] tests/value/tricky_logic.i:15: assertion got status valid.
-[value] tests/value/tricky_logic.i:16: assertion got status valid.
-[value] Recording results for f1
-[value] Done for function f1
-[value] computing for function f2 <- main.
+[eva] tests/value/tricky_logic.i:15: assertion got status valid.
+[eva] tests/value/tricky_logic.i:16: assertion got status valid.
+[eva] Recording results for f1
+[eva] Done for function f1
+[eva] computing for function f2 <- main.
   Called from tests/value/tricky_logic.i:62.
-[value] tests/value/tricky_logic.i:23: assertion got status valid.
-[value] tests/value/tricky_logic.i:24: assertion got status valid.
-[value] Recording results for f2
-[value] Done for function f2
-[value] computing for function f3 <- main.
+[eva] tests/value/tricky_logic.i:23: assertion got status valid.
+[eva] tests/value/tricky_logic.i:24: assertion got status valid.
+[eva] Recording results for f2
+[eva] Done for function f2
+[eva] computing for function f3 <- main.
   Called from tests/value/tricky_logic.i:65.
-[value] tests/value/tricky_logic.i:29: assertion got status valid.
-[value] tests/value/tricky_logic.i:30: assertion got status valid.
-[value:alarm] tests/value/tricky_logic.i:31: Warning: 
+[eva] tests/value/tricky_logic.i:29: assertion got status valid.
+[eva] tests/value/tricky_logic.i:30: assertion got status valid.
+[eva:alarm] tests/value/tricky_logic.i:31: Warning: 
   assertion got status unknown.
-[value] Recording results for f3
-[value] Done for function f3
-[value] computing for function f4 <- main.
+[eva] Recording results for f3
+[eva] Done for function f3
+[eva] computing for function f4 <- main.
   Called from tests/value/tricky_logic.i:67.
-[value] computing for function g4 <- f4 <- main.
+[eva] computing for function g4 <- f4 <- main.
   Called from tests/value/tricky_logic.i:51.
-[value] tests/value/tricky_logic.i:38: assertion got status valid.
-[value:alarm] tests/value/tricky_logic.i:39: Warning: 
+[eva] tests/value/tricky_logic.i:38: assertion got status valid.
+[eva:alarm] tests/value/tricky_logic.i:39: Warning: 
   assertion got status unknown.
-[value] Recording results for g4
-[value] Done for function g4
-[value] tests/value/tricky_logic.i:52: assertion got status valid.
-[value] tests/value/tricky_logic.i:53: assertion got status valid.
-[value] Recording results for f4
-[value] Done for function f4
-[value] Recording results for main
-[value] done for function main
-[value] ====== VALUES COMPUTED ======
-[value:final-states] Values at end of function f1:
+[eva] Recording results for g4
+[eva] Done for function g4
+[eva] tests/value/tricky_logic.i:52: assertion got status valid.
+[eva] tests/value/tricky_logic.i:53: assertion got status valid.
+[eva] Recording results for f4
+[eva] Done for function f4
+[eva] Recording results for main
+[eva] done for function main
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function f1:
   
-[value:final-states] Values at end of function f2:
+[eva:final-states] Values at end of function f2:
   x ∈ {4}
   y ∈ {5}
-[value:final-states] Values at end of function f3:
+[eva:final-states] Values at end of function f3:
   
-[value:final-states] Values at end of function g4:
+[eva:final-states] Values at end of function g4:
   s.i1 ∈ {3}
    .i2 ∈ {2} or UNINITIALIZED
   x_0 ∈ {1}
-[value:final-states] Values at end of function f4:
+[eva:final-states] Values at end of function f4:
   p ∈ {{ &z }}
   q ∈ {{ &x }}
   s.i1 ∈ {1} or UNINITIALIZED
    .i2 ∈ {2} or UNINITIALIZED
-[value:final-states] Values at end of function main:
+[eva:final-states] Values at end of function main:
   x ∈ {2; 3}
   y ∈ {5}
 [from] Computing for function f1

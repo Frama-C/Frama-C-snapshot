@@ -1,7 +1,7 @@
+#include <__fc_builtin.h>
 int t[10], u[11];
 struct ts { int f1; int f2; } s1, s2, s3[10];
 unsigned int x; volatile v;
-
 
 struct s1{
   int x;
@@ -256,6 +256,38 @@ void float_sign() {
   //@ assert \sign(d) == \Positive && \sign(d) == \Negative; // must be unknown
 }
 
+
+int *arr_ptr[3], arr_ptr_arr[6];
+
+//@ assigns *(arr_ptr[0..2]) \from \nothing;
+void assign_tsets_aux (void);
+
+void assign_tsets () {
+  arr_ptr [0] = &arr_ptr_arr[1];
+  arr_ptr [1] = &arr_ptr_arr[4];
+  arr_ptr [2] = &arr_ptr_arr[5];
+  assign_tsets_aux (); // Make sure the under-approximation is precise: no "(and SELF)" information in froms
+}
+
+
+void min_max () {
+  int x = Frama_C_interval(3, 17);
+  int y = Frama_C_interval(1, 5);
+  int z = Frama_C_interval(1, 100);
+  int r1 = v;
+  int r2 = v;
+  int r3 = v;
+  int r4 = v;
+  //@ assert r1 == \max(x, y);
+  //@ assert r2 == \max(x, z);
+  //@ assert r3 == \min(x, y);
+  //@ assert r4 == \min(x, z);
+  double a = 0.;
+  double b = - 0.;
+  double d = v;
+  //@ assert d == \min(a, b);
+}
+
 void main () {
   eq_tsets();
   eq_char();
@@ -266,4 +298,6 @@ void main () {
   cond_in_lval();
   pred();
   float_sign();
+  min_max();
+  assign_tsets();
 }

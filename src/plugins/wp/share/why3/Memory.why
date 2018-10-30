@@ -68,9 +68,7 @@ predicate eqmem (m1:Map.map addr 'a) (m2:Map.map addr 'a) (p:addr) (a:int) =
   forall q:addr [(Map.([]) (m1) (p))| (Map.([]) (m2) (q))]. included q 1 p
   a -> (((Map.([]) (m1) (q))) = ((Map.([]) (m2) (q))))
 
-predicate havoc (m1:Map.map addr 'a) (m2:Map.map addr 'a) (p:addr) (a:int) =
-  forall q:addr [(Map.([]) (m1) (p))| (Map.([]) (m2) (q))]. separated q 1 p
-  a -> (((Map.([]) (m1) (q))) = ((Map.([]) (m2) (q))))
+function havoc (Map.map addr 'a) (Map.map addr 'a) addr int : Map.map addr 'a
 
 predicate valid_rw (m:Map.map int int) (p:addr) (n:int) =
   (Int.(>) (n) (0)) -> (Int.(<) (0) (base p)) /\ (Int.(<=) (0) (offset p)) /\
@@ -128,12 +126,18 @@ axiom eqmem_included : forall m1:Map.map addr 'a, m2:Map.map addr 'a.
 axiom eqmem_sym : forall m1:Map.map addr 'a, m2:Map.map addr 'a. forall p:
   addr. forall a:int. eqmem m1 m2 p a -> eqmem m2 m1 p a
 
-axiom havoc_sym : forall m1:Map.map addr 'a, m2:Map.map addr 'a. forall p:
-  addr. forall a:int. havoc m1 m2 p a -> havoc m2 m1 p a
+axiom havoc_access : forall m0:Map.map addr 'a, m1:Map.map addr 'a. forall q:
+  addr, p:addr. forall a:int. (((Map.([]) (havoc m0 m1 p
+  a) (q))) = (if separated q 1 p a then (Map.([]) (m1) (q))
+  else (Map.([]) (m0) (q))))
 
 function int_of_addr addr : int
 
 function addr_of_int int : addr
+
+function base_offset int : int
+
+function base_index int : int
 
 axiom int_of_addr_bijection : forall a:int. ((int_of_addr (addr_of_int
   a)) = (a))
@@ -142,5 +146,12 @@ axiom addr_of_int_bijection : forall p:addr. ((addr_of_int (int_of_addr
   p)) = (p))
 
 axiom addr_of_null : ((int_of_addr null) = (0))
+
+axiom base_offset_zero : ((base_offset 0) = (0))
+
+axiom base_offset_inj : forall i:int. ((base_index (base_offset i)) = (i))
+
+axiom base_offset_monotonic : forall i:int, j:int. (Int.(<) (i) (j)) ->
+  (Int.(<) (base_offset i) (base_offset j))
 
 end

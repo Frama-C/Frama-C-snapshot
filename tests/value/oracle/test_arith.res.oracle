@@ -1,8 +1,8 @@
 [kernel] Parsing tests/value/test_arith.c (with preprocessing)
-[value] Analyzing a complete application starting at main
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing a complete application starting at main
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   t[0..9] ∈ {0}
   j ∈ {0}
   k ∈ {0}
@@ -15,16 +15,16 @@
   m2 ∈ {0}
   m3 ∈ {0}
   G ∈ {0}
-[value:alarm] tests/value/test_arith.c:16: Warning: 
+[eva:alarm] tests/value/test_arith.c:16: Warning: 
   signed overflow. assert n + 1 ≤ 2147483647;
-[value:alarm] tests/value/test_arith.c:18: Warning: 
+[eva:alarm] tests/value/test_arith.c:18: Warning: 
   signed overflow. assert -2147483648 ≤ (int)ptr + 1;
-[value:alarm] tests/value/test_arith.c:18: Warning: 
+[eva:alarm] tests/value/test_arith.c:18: Warning: 
   signed overflow. assert (int)ptr + 1 ≤ 2147483647;
-[value] Recording results for main
-[value] done for function main
-[value] ====== VALUES COMPUTED ======
-[value:final-states] Values at end of function main:
+[eva] Recording results for main
+[eva] done for function main
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function main:
   t[0..4] ∈ {0}
    [5] ∈ {11}
    [6..9] ∈ {0}

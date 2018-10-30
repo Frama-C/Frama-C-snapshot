@@ -1,13 +1,13 @@
 /* run.config*
-   OPT: -no-autoload-plugins -load-module value,inout -val @VALUECONFIG@ -journal-disable -machdep x86_64
-   OPT: -no-autoload-plugins -load-module value,inout -val @VALUECONFIG@ -journal-disable
+   OPT: -no-autoload-plugins -load-module eva,inout -val @VALUECONFIG@ -journal-disable -machdep x86_64
+   OPT: -no-autoload-plugins -load-module eva,inout -val @VALUECONFIG@ -journal-disable
 */
 
 int x;
 long x2;
 unsigned long x9[6][2];
 
-main(){ 
+int main(){
   x2 = 2793414595;
   for (int i = 0; i < 6; i++)
     {

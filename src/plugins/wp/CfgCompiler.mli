@@ -57,7 +57,7 @@ sig
   (** The memory model used. *)
   module S : Sigma
 
- (** Program point along a trace. *)
+  (** Program point along a trace. *)
   module Node : sig
     type t
     module Map : Qed.Idxmap.S with type key = t
@@ -158,8 +158,8 @@ sig
       sigma can be discarded during compilation *)
 
   val concat : cfg -> cfg -> cfg
-  (** The concatenation is the intersection of all 
-      possible collection of traces from each cfg. 
+  (** The concatenation is the intersection of all
+      possible collection of traces from each cfg.
 
       [concat] is associative, commutative,
       has [nop] as neutral element.
@@ -198,7 +198,7 @@ sig
   (** Same than guard but the condition is negated *)
 
   val either : node -> node list -> cfg
-  (** Structurally corresponds to an arbitrary choice among the different 
+  (** Structurally corresponds to an arbitrary choice among the different
       possible executions.
 
       [either] is associative and commutative. [either a []] is
@@ -230,7 +230,7 @@ sig
   val assume : P.t -> cfg
   (** Represents execution traces [T] such that, if [T] contains
       every node points in the label-map, then the condition holds over the
-      corresponding memory states. If the node-map is empty, 
+      corresponding memory states. If the node-map is empty,
       the condition must hold over all possible execution path.
 
       Formally: [| assume P |]_I iff [| P |]_I
@@ -254,21 +254,21 @@ sig
 
   (** {2 Path-Predicates}
 
-    The compilation of cfg control-flow into path predicate
-    is performed by allocating fresh environments with optimized variable
-    allocation. Only the relevant path between the nodes
-    is extracted. Other paths in the cfg are pruned out.
+      The compilation of cfg control-flow into path predicate
+      is performed by allocating fresh environments with optimized variable
+      allocation. Only the relevant path between the nodes
+      is extracted. Other paths in the cfg are pruned out.
   *)
 
   (** Extract the nodes that are between the start node and the final
-     nodes and returns how to observe a collection of states indexed
-     by nodes. The returned maps gives, for each reachable node, a
-     predicate representing paths that reach the node and the memory
-     state at this node.
+      nodes and returns how to observe a collection of states indexed
+      by nodes. The returned maps gives, for each reachable node, a
+      predicate representing paths that reach the node and the memory
+      state at this node.
 
       Nodes absent from the map are unreachable. Whenever possible,
-     predicate [F.ptrue] is returned for inconditionally accessible
-     nodes.
+      predicate [F.ptrue] is returned for inconditionally accessible
+      nodes.
 
       ~name: identifier used for debugging
 

@@ -1,8 +1,8 @@
 [kernel] Parsing tests/value/relations2.i (no preprocessing)
-[value] Analyzing a complete application starting at main
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing a complete application starting at main
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   sv ∈ [--..--]
   a[0..513] ∈ [--..--]
   T[0] ∈ {0}
@@ -12,13 +12,13 @@
    [4] ∈ {6}
    [5] ∈ {41}
    [6] ∈ {42}
-[value] computing for function bts2166 <- main.
+[eva] computing for function bts2166 <- main.
   Called from tests/value/relations2.i:63.
-[value:alarm] tests/value/relations2.i:63: Warning: 
+[eva:alarm] tests/value/relations2.i:63: Warning: 
   function bts2166: precondition 'len' got status unknown.
-[value:alarm] tests/value/relations2.i:63: Warning: 
+[eva:alarm] tests/value/relations2.i:63: Warning: 
   function bts2166: precondition 'n' got status unknown.
-[value] tests/value/relations2.i:15: 
+[eva] tests/value/relations2.i:15: 
   Frama_C_dump_each:
   # Cvalue domain:
   sv ∈ [--..--]
@@ -33,24 +33,23 @@
    [5] ∈ {41}
    [6] ∈ {42}
   ==END OF DUMP==
-[value] tests/value/relations2.i:17: 
+[eva] tests/value/relations2.i:17: 
   Frama_C_show_each_end: [0..4294967295], [0..64]
-[value] Recording results for bts2166
-[value] Done for function bts2166
-[value] computing for function main2 <- main.
+[eva] Recording results for bts2166
+[eva] Done for function bts2166
+[eva] computing for function main2 <- main.
   Called from tests/value/relations2.i:64.
-[value] computing for function unsigned_interval <- main2 <- main.
+[eva] computing for function unsigned_interval <- main2 <- main.
   Called from tests/value/relations2.i:29.
-[value] using specification for function unsigned_interval
-[value] Done for function unsigned_interval
-[value] computing for function unsigned_interval <- main2 <- main.
+[eva] using specification for function unsigned_interval
+[eva] Done for function unsigned_interval
+[eva] computing for function unsigned_interval <- main2 <- main.
   Called from tests/value/relations2.i:30.
-[value] Done for function unsigned_interval
-[value] computing for function unsigned_interval <- main2 <- main.
+[eva] Done for function unsigned_interval
+[eva] computing for function unsigned_interval <- main2 <- main.
   Called from tests/value/relations2.i:31.
-[value] Done for function unsigned_interval
-[value] tests/value/relations2.i:32: entering loop for the first time
-[value] tests/value/relations2.i:33: 
+[eva] Done for function unsigned_interval
+[eva] tests/value/relations2.i:33: 
   Frama_C_dump_each:
   # Cvalue domain:
   sv ∈ [--..--]
@@ -67,10 +66,11 @@
    [5] ∈ {41}
    [6] ∈ {42}
   ==END OF DUMP==
-[value:alarm] tests/value/relations2.i:34: Warning: 
+[eva:alarm] tests/value/relations2.i:34: Warning: 
   accessing out of bounds index.
   assert (unsigned int)(i - (unsigned int)(t + 1)) < 514;
-[value] tests/value/relations2.i:33: 
+[eva] tests/value/relations2.i:32: starting to merge loop iterations
+[eva] tests/value/relations2.i:33: 
   Frama_C_dump_each:
   # Cvalue domain:
   sv ∈ [--..--]
@@ -87,7 +87,7 @@
    [5] ∈ {41}
    [6] ∈ {42}
   ==END OF DUMP==
-[value] tests/value/relations2.i:33: 
+[eva] tests/value/relations2.i:33: 
   Frama_C_dump_each:
   # Cvalue domain:
   sv ∈ [--..--]
@@ -104,7 +104,7 @@
    [5] ∈ {41}
    [6] ∈ {42}
   ==END OF DUMP==
-[value] tests/value/relations2.i:33: 
+[eva] tests/value/relations2.i:33: 
   Frama_C_dump_each:
   # Cvalue domain:
   sv ∈ [--..--]
@@ -121,25 +121,25 @@
    [5] ∈ {41}
    [6] ∈ {42}
   ==END OF DUMP==
-[value:alarm] tests/value/relations2.i:35: Warning: 
+[eva:alarm] tests/value/relations2.i:35: Warning: 
   signed overflow. assert s + b3 ≤ 2147483647;
-[value] Recording results for main2
-[value] Done for function main2
-[value] computing for function main3 <- main.
+[eva] Recording results for main2
+[eva] Done for function main2
+[eva] computing for function main3 <- main.
   Called from tests/value/relations2.i:65.
-[value] tests/value/relations2.i:47: Frama_C_show_each_NO1:
-[value] tests/value/relations2.i:49: Frama_C_show_each_OK1:
-[value] tests/value/relations2.i:55: Frama_C_show_each_OK2:
-[value] tests/value/relations2.i:57: Frama_C_show_each_NO2:
-[value] Recording results for main3
-[value] Done for function main3
-[value] Recording results for main
-[value] done for function main
-[value] ====== VALUES COMPUTED ======
-[value:final-states] Values at end of function bts2166:
+[eva] tests/value/relations2.i:47: Frama_C_show_each_NO1:
+[eva] tests/value/relations2.i:49: Frama_C_show_each_OK1:
+[eva] tests/value/relations2.i:55: Frama_C_show_each_OK2:
+[eva] tests/value/relations2.i:57: Frama_C_show_each_NO2:
+[eva] Recording results for main3
+[eva] Done for function main3
+[eva] Recording results for main
+[eva] done for function main
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function bts2166:
   len ∈ [--..--]
   n ∈ [0..64]
-[value:final-states] Values at end of function main3:
+[eva:final-states] Values at end of function main3:
   T[0] ∈ {0; 2}
    [1] ∈ {1; 2}
    [2] ∈ {42}
@@ -147,12 +147,12 @@
    [4] ∈ {6}
    [5] ∈ {17; 41}
    [6] ∈ {17; 42}
-[value:final-states] Values at end of function main2:
+[eva:final-states] Values at end of function main2:
   i ∈ [0..512]
   t ∈ [0..512]
   n ∈ [0..512]
   s ∈ [0..2147483647]
-[value:final-states] Values at end of function main:
+[eva:final-states] Values at end of function main:
   T[0] ∈ {0; 2}
    [1] ∈ {1; 2}
    [2] ∈ {42}

@@ -1,41 +1,41 @@
 [kernel] Parsing tests/value/disjoint_status.i (no preprocessing)
-[value] Analyzing a complete application starting at main
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing a complete application starting at main
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   x ∈ {0}
-[value:alarm] tests/value/disjoint_status.i:13: Warning: 
+[eva:alarm] tests/value/disjoint_status.i:13: Warning: 
   function main: precondition c + 1 ≡ 2 got status unknown.
-[value:alarm] tests/value/disjoint_status.i:14: Warning: 
+[eva:alarm] tests/value/disjoint_status.i:14: Warning: 
   function main: precondition c + d ≡ 3 got status unknown.
-[value] computing for function f <- main.
+[eva] computing for function f <- main.
   Called from tests/value/disjoint_status.i:18.
-[value] tests/value/disjoint_status.i:18: 
+[eva] tests/value/disjoint_status.i:18: 
   function f: precondition 'ReqTrue' got status valid.
-[value:alarm] tests/value/disjoint_status.i:8: Warning: 
+[eva:alarm] tests/value/disjoint_status.i:8: Warning: 
   assertion 'A1' got status invalid (stopping propagation).
-[value] tests/value/disjoint_status.i:6: 
+[eva] tests/value/disjoint_status.i:6: 
   function f: no state left, postcondition 'PostTrue' got status valid.
-[value] Recording results for f
-[value] Done for function f
-[value:alarm] tests/value/disjoint_status.i:19: Warning: 
+[eva] Recording results for f
+[eva] Done for function f
+[eva:alarm] tests/value/disjoint_status.i:19: Warning: 
   assertion got status unknown.
-[value] computing for function f <- main.
+[eva] computing for function f <- main.
   Called from tests/value/disjoint_status.i:20.
-[value] tests/value/disjoint_status.i:20: 
+[eva] tests/value/disjoint_status.i:20: 
   function f: precondition 'ReqTrue' got status valid.
-[value] tests/value/disjoint_status.i:8: assertion 'A1' got status valid.
-[value] tests/value/disjoint_status.i:9: assertion 'A2' got status valid.
-[value] tests/value/disjoint_status.i:6: 
+[eva] tests/value/disjoint_status.i:8: assertion 'A1' got status valid.
+[eva] tests/value/disjoint_status.i:9: assertion 'A2' got status valid.
+[eva] tests/value/disjoint_status.i:6: 
   function f: postcondition 'PostTrue' got status valid.
-[value] Recording results for f
-[value] Done for function f
-[value] Recording results for main
-[value] done for function main
-[value] ====== VALUES COMPUTED ======
-[value:final-states] Values at end of function f:
+[eva] Recording results for f
+[eva] Done for function f
+[eva] Recording results for main
+[eva] done for function main
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function f:
   x ∈ {0}
-[value:final-states] Values at end of function main:
+[eva:final-states] Values at end of function main:
   x ∈ {0}
 [from] Computing for function f
 [from] Done for function f
@@ -65,11 +65,11 @@
 [  Valid  ] Pre-condition 'ReqTrue'
             by Call Preconditions.
 [  Valid  ] Post-condition 'PostTrue'
-            by Value.
+            by Eva.
 [    -    ] Assertion 'A1' (file tests/value/disjoint_status.i, line 8)
-            tried with Value.
+            tried with Eva.
 [  Valid  ] Assertion 'A2' (file tests/value/disjoint_status.i, line 9)
-            by Value.
+            by Eva.
 [  Valid  ] Default behavior
             by Frama-C kernel.
 
@@ -78,19 +78,19 @@
 --------------------------------------------------------------------------------
 
 [    -    ] Pre-condition (file tests/value/disjoint_status.i, line 13)
-            tried with Value.
+            tried with Eva.
 [    -    ] Pre-condition (file tests/value/disjoint_status.i, line 14)
-            tried with Value.
+            tried with Eva.
 [    -    ] Assertion (file tests/value/disjoint_status.i, line 19)
-            tried with Value.
+            tried with Eva.
 [  Valid  ] Default behavior
             by Frama-C kernel.
 [  Valid  ] Instance of 'Pre-condition 'ReqTrue'' at call 'f' (file tests/value/disjoint_status.i, line 18)
 
-            by Value.
+            by Eva.
 [  Valid  ] Instance of 'Pre-condition 'ReqTrue'' at call 'f' (file tests/value/disjoint_status.i, line 20)
 
-            by Value.
+            by Eva.
 
 --------------------------------------------------------------------------------
 --- Status Report Summary

@@ -1,8 +1,8 @@
 [kernel] Parsing tests/value/ptr_relation.i (no preprocessing)
-[value] Analyzing a complete application starting at main1
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing a complete application starting at main1
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   i ∈ {0}
   j ∈ {0}
   x ∈ {0}
@@ -16,10 +16,10 @@
   ptr ∈ {0}
   tab_ptr_fct2[0] ∈ {{ &f2 }}
               [1] ∈ {{ &g2 }}
-[value] Recording results for main1
-[value] done for function main1
-[value] ====== VALUES COMPUTED ======
-[value:final-states] Values at end of function main1:
+[eva] Recording results for main1
+[eva] done for function main1
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function main1:
   i ∈ {3; 4}
   j ∈ {-1; 0; 1}
   x ∈ {3; 4}

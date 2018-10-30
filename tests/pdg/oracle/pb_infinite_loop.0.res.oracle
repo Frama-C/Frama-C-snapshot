@@ -1,16 +1,16 @@
 [kernel] Parsing tests/pdg/pb_infinite_loop.c (with preprocessing)
-[value] Analyzing a complete application starting at test_infinite_loop
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing a complete application starting at test_infinite_loop
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   G ∈ [--..--]
-[value] tests/pdg/pb_infinite_loop.c:20: entering loop for the first time
-[value:alarm] tests/pdg/pb_infinite_loop.c:23: Warning: 
+[eva] tests/pdg/pb_infinite_loop.c:20: starting to merge loop iterations
+[eva:alarm] tests/pdg/pb_infinite_loop.c:23: Warning: 
   signed overflow. assert i + 1 ≤ 2147483647;
-[value:alarm] tests/pdg/pb_infinite_loop.c:22: Warning: 
+[eva:alarm] tests/pdg/pb_infinite_loop.c:22: Warning: 
   signed overflow. assert G + 1 ≤ 2147483647;
-[value] Recording results for test_infinite_loop
-[value] done for function test_infinite_loop
+[eva] Recording results for test_infinite_loop
+[eva] done for function test_infinite_loop
 [pdg] computing for function test_infinite_loop
 [pdg] done for function test_infinite_loop
 [pdg] PDG for test_infinite_loop

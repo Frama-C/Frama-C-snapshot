@@ -1,8 +1,8 @@
 [kernel] Parsing tests/value/pointer_comp.c (with preprocessing)
-[value] Analyzing a complete application starting at main
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing a complete application starting at main
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   v ∈ [--..--]
   str1[0] ∈ {97}
       [1] ∈ {98}
@@ -15,34 +15,34 @@
       [4] ∈ {0}
   s1 ∈ {0}
   s2[0..7] ∈ {0}
-[value:alarm] tests/value/pointer_comp.c:37: Warning: 
+[eva:alarm] tests/value/pointer_comp.c:37: Warning: 
   pointer comparison. assert \pointer_comparable((void *)(&s2[9]), (void *)0);
-[value:alarm] tests/value/pointer_comp.c:38: Warning: 
+[eva:alarm] tests/value/pointer_comp.c:38: Warning: 
   pointer comparison.
   assert \pointer_comparable((void *)(&s2[9]), (void *)(&s2[9]));
-[value:alarm] tests/value/pointer_comp.c:41: Warning: 
+[eva:alarm] tests/value/pointer_comp.c:41: Warning: 
   pointer comparison.
   assert \pointer_comparable((void *)(&str1), (void *)(&str2));
-[value:alarm] tests/value/pointer_comp.c:42: Warning: 
+[eva:alarm] tests/value/pointer_comp.c:42: Warning: 
   pointer comparison. assert \pointer_comparable((void *)(&s1), (void *)(&s2));
-[value:alarm] tests/value/pointer_comp.c:43: Warning: 
+[eva:alarm] tests/value/pointer_comp.c:43: Warning: 
   pointer comparison.
   assert \pointer_comparable((void (*)())(&f), (void (*)())(&g));
-[value:alarm] tests/value/pointer_comp.c:46: Warning: 
+[eva:alarm] tests/value/pointer_comp.c:46: Warning: 
   pointer comparison. assert \pointer_comparable((void *)(&s1), (void *)0);
-[value:alarm] tests/value/pointer_comp.c:47: Warning: 
+[eva:alarm] tests/value/pointer_comp.c:47: Warning: 
   pointer comparison. assert \pointer_comparable((void *)(&s1 + 1), (void *)0);
-[value:alarm] tests/value/pointer_comp.c:48: Warning: 
+[eva:alarm] tests/value/pointer_comp.c:48: Warning: 
   pointer comparison. assert \pointer_comparable((void *)(&s2[8]), (void *)0);
-[value:alarm] tests/value/pointer_comp.c:50: Warning: 
+[eva:alarm] tests/value/pointer_comp.c:50: Warning: 
   pointer comparison.
   assert \pointer_comparable((void (*)())(&f), (void (*)())0);
-[value:alarm] tests/value/pointer_comp.c:51: Warning: 
+[eva:alarm] tests/value/pointer_comp.c:51: Warning: 
   pointer comparison. assert \pointer_comparable((void (*)())p, (void (*)())0);
-[value] Recording results for main
-[value] done for function main
-[value] ====== VALUES COMPUTED ======
-[value:final-states] Values at end of function main:
+[eva] Recording results for main
+[eva] done for function main
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function main:
   i ∈ {0; 1}
   p ∈ {{ &f ; &g }}
 [from] Computing for function main
@@ -87,51 +87,48 @@ void main(void)
   i = p == (void (*)(void))0;
   i = & s2[2] < & s2[4];
   /*@ assert
-      Value: ptr_comparison: \pointer_comparable((void *)(&s2[9]), (void *)0);
+      Eva: ptr_comparison: \pointer_comparable((void *)(&s2[9]), (void *)0);
   */
   i = & s2[9] == (struct s *)0;
   /*@ assert
-      Value: ptr_comparison:
+      Eva: ptr_comparison:
         \pointer_comparable((void *)(&s2[9]), (void *)(&s2[9]));
   */
   i = & s2[9] == & s2[9];
   /*@ assert
-      Value: ptr_comparison:
+      Eva: ptr_comparison:
         \pointer_comparable((void *)(&str1), (void *)(&str2));
   */
   i = & str1 < & str2;
   /*@ assert
-      Value: ptr_comparison:
-        \pointer_comparable((void *)(&s1), (void *)(&s2));
+      Eva: ptr_comparison: \pointer_comparable((void *)(&s1), (void *)(&s2));
   */
   i = (void *)(& s1) < (void *)(& s2);
   /*@ assert
-      Value: ptr_comparison:
+      Eva: ptr_comparison:
         \pointer_comparable((void (*)())(&f), (void (*)())(&g));
   */
   i = & f < & g;
   /*@ assert
-      Value: ptr_comparison: \pointer_comparable((void *)(&s1), (void *)0);
+      Eva: ptr_comparison: \pointer_comparable((void *)(&s1), (void *)0);
   */
   i = & s1 > (struct s *)0;
   /*@ assert
-      Value: ptr_comparison:
-        \pointer_comparable((void *)(&s1 + 1), (void *)0);
+      Eva: ptr_comparison: \pointer_comparable((void *)(&s1 + 1), (void *)0);
   */
   i = & s1 + 1 > (struct s *)0;
   /*@ assert
-      Value: ptr_comparison: \pointer_comparable((void *)(&s2[8]), (void *)0);
+      Eva: ptr_comparison: \pointer_comparable((void *)(&s2[8]), (void *)0);
   */
   i = & s2[8] > (struct s *)0;
   i = & f == (void (*)(void))0;
   /*@ assert
-      Value: ptr_comparison:
+      Eva: ptr_comparison:
         \pointer_comparable((void (*)())(&f), (void (*)())0);
   */
   i = & f > (void (*)(void))0;
   /*@ assert
-      Value: ptr_comparison:
-        \pointer_comparable((void (*)())p, (void (*)())0);
+      Eva: ptr_comparison: \pointer_comparable((void (*)())p, (void (*)())0);
   */
   i = p > (void (*)(void))0;
   return;

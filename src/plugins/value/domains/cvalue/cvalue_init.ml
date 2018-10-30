@@ -58,8 +58,12 @@ type validity_hidden_base =
   | KnownThenUnknownValidity of Integer.t (* Base is valid on i bits, then
                                              maybe invalid on the remainder of its validity *)
 
-let create_hidden_base ~valid ~hidden_var_name ~name_desc pointed_typ =
+let stdlib_attribute = Attr ("fc_stdlib_generated", [])
+
+let create_hidden_base ~libc ~valid ~hidden_var_name ~name_desc pointed_typ =
   let hidden_var = Value_util.create_new_var hidden_var_name pointed_typ in
+  if libc
+  then hidden_var.vattr <- Cil.addAttribute stdlib_attribute hidden_var.vattr;
   hidden_var.vdescr <- Some name_desc;
   let validity =
     (* Add a special case for void* pointers: we do not want to compute the
@@ -129,6 +133,7 @@ let initialize_var_using_type varinfo state =
     | TPtr (typ, _) as full_typ
       when depth <= Value_parameters.AutomaticContextMaxDepth.get () ->
       let attr = Cil.typeAttrs full_typ in
+      let libc = Cil.hasAttribute "fc_stdlib" varinfo.vattr in
       let context_max_width =
         Value_parameters.AutomaticContextMaxWidth.get ()
       in begin
@@ -157,7 +162,7 @@ let initialize_var_using_type varinfo state =
           in
           let hidden_base =
             create_hidden_base
-              ~valid ~hidden_var_name ~name_desc arr_pointed_typ
+              ~libc ~valid ~hidden_var_name ~name_desc arr_pointed_typ
           in
           let state =
             add_offsetmap
@@ -182,7 +187,7 @@ let initialize_var_using_type varinfo state =
           let name_desc = "*"^name_desc in
           let valid = UnknownValidity in
           let hidden_base =
-            create_hidden_base ~valid ~hidden_var_name ~name_desc typ
+            create_hidden_base ~libc ~valid ~hidden_var_name ~name_desc typ
           in
           make_well hidden_base state (Lazy.force loc)
         | false, true -> (* function *)

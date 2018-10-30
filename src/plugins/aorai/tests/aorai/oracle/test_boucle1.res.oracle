@@ -465,8 +465,10 @@ int main(void)
   __retres = 0;
   goto return_label;
   label_ok: __retres = 1;
-  return_label: main_post_func(__retres);
-  return __retres;
+  return_label: {
+                  main_post_func(__retres);
+                  return __retres;
+                }
 }
 
 

@@ -1,0 +1,153 @@
+[kernel] Parsing tests/builtins/write-const.c (with preprocessing)
+[eva] Analyzing a complete application starting at main
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
+  v ∈ [--..--]
+  a ∈ {-1}
+  b ∈ {0}
+[eva] computing for function main0 <- main.
+  Called from tests/builtins/write-const.c:44.
+[eva] tests/builtins/write-const.c:18: Call to builtin memcpy
+[eva:alarm] tests/builtins/write-const.c:18: Warning: 
+  function memcpy: precondition 'valid_dest' got status unknown.
+[eva] tests/builtins/write-const.c:18: 
+  function memcpy: precondition 'valid_src' got status valid.
+[eva] tests/builtins/write-const.c:18: 
+  function memcpy: precondition 'separation' got status valid.
+[eva] share/libc/string.h:98: 
+  cannot evaluate ACSL term, unsupported ACSL construct: logic function memcmp
+[eva] tests/builtins/write-const.c:19: 
+  Frama_C_dump_each:
+  # Cvalue domain:
+  __fc_heap_status ∈ [--..--]
+  __fc_strtok_ptr ∈ {0}
+  __fc_strerror[0..63] ∈ [--..--]
+  __fc_p_strerror ∈ {{ &__fc_strerror[0] }}
+  v ∈ [--..--]
+  a ∈ {-1}
+  b ∈ {1}
+  p ∈ {{ &a ; &b }}
+  tmp ∈ {{ &a ; &b }}
+  x ∈ {1}
+  ==END OF DUMP==
+[eva] Recording results for main0
+[from] Computing for function main0
+[from] Done for function main0
+[eva] Done for function main0
+[eva] computing for function main1 <- main.
+  Called from tests/builtins/write-const.c:45.
+[eva] tests/builtins/write-const.c:25: Call to builtin memset
+[eva:alarm] tests/builtins/write-const.c:25: Warning: 
+  function memset: precondition 'valid_s' got status unknown.
+[eva] share/libc/string.h:118: 
+  cannot evaluate ACSL term, unsupported ACSL construct: logic function memset
+[eva] tests/builtins/write-const.c:26: 
+  Frama_C_dump_each:
+  # Cvalue domain:
+  __fc_heap_status ∈ [--..--]
+  __fc_strtok_ptr ∈ {0}
+  __fc_strerror[0..63] ∈ [--..--]
+  __fc_p_strerror ∈ {{ &__fc_strerror[0] }}
+  v ∈ [--..--]
+  a ∈ {-1}
+  b ∈ {84215045}
+  p ∈ {{ &a ; &b }}
+  tmp ∈ {{ &a ; &b }}
+  x ∈ {1}
+  ==END OF DUMP==
+[eva] Recording results for main1
+[from] Computing for function main1
+[from] Done for function main1
+[eva] Done for function main1
+[eva] computing for function main2 <- main.
+  Called from tests/builtins/write-const.c:46.
+[eva:alarm] tests/builtins/write-const.c:32: Warning: 
+  out of bounds write. assert \valid(p);
+[eva] tests/builtins/write-const.c:33: 
+  Frama_C_dump_each:
+  # Cvalue domain:
+  __fc_heap_status ∈ [--..--]
+  __fc_strtok_ptr ∈ {0}
+  __fc_strerror[0..63] ∈ [--..--]
+  __fc_p_strerror ∈ {{ &__fc_strerror[0] }}
+  v ∈ [--..--]
+  a ∈ {-1}
+  b ∈ {1}
+  p ∈ {{ &b }}
+  tmp ∈ {{ &a ; &b }}
+  ==END OF DUMP==
+[eva] Recording results for main2
+[from] Computing for function main2
+[from] Done for function main2
+[eva] Done for function main2
+[eva] computing for function main3 <- main.
+  Called from tests/builtins/write-const.c:47.
+[eva:alarm] tests/builtins/write-const.c:39: Warning: 
+  out of bounds write. assert \valid(p);
+[eva] tests/builtins/write-const.c:40: 
+  Frama_C_dump_each:
+  # Cvalue domain:
+  __fc_heap_status ∈ [--..--]
+  __fc_strtok_ptr ∈ {0}
+  __fc_strerror[0..63] ∈ [--..--]
+  __fc_p_strerror ∈ {{ &__fc_strerror[0] }}
+  v ∈ [--..--]
+  a ∈ {-1}
+  b ∈ {2}
+  p ∈ {{ &b }}
+  tmp ∈ {{ &a ; &b }}
+  y ∈ {2}
+  ==END OF DUMP==
+[eva] Recording results for main3
+[from] Computing for function main3
+[from] Done for function main3
+[eva] Done for function main3
+[eva] Recording results for main
+[from] Computing for function main
+[from] Done for function main
+[eva] done for function main
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function main2:
+  b ∈ {1}
+  p ∈ {{ &b }}
+[eva:final-states] Values at end of function main3:
+  b ∈ {2}
+  p ∈ {{ &b }}
+  y ∈ {2}
+[eva:final-states] Values at end of function main0:
+  b ∈ {1}
+  p ∈ {{ &a ; &b }}
+  x ∈ {1}
+[eva:final-states] Values at end of function main1:
+  b ∈ {84215045}
+  p ∈ {{ &a ; &b }}
+  x ∈ {1}
+[eva:final-states] Values at end of function main:
+  b ∈ {2}
+[from] ====== DISPLAYING CALLWISE DEPENDENCIES ======
+[from] call to Frama_C_dump_each at tests/builtins/write-const.c:33 (by main2):
+  \result FROM \nothing
+[from] call to Frama_C_dump_each at tests/builtins/write-const.c:40 (by main3):
+  \result FROM \nothing
+[from] call to memcpy at tests/builtins/write-const.c:18 (by main0):
+  b FROM x
+  \result FROM dest
+[from] call to Frama_C_dump_each at tests/builtins/write-const.c:19 (by main0):
+  \result FROM \nothing
+[from] call to memset at tests/builtins/write-const.c:25 (by main1):
+  b FROM c
+  \result FROM s
+[from] call to Frama_C_dump_each at tests/builtins/write-const.c:26 (by main1):
+  \result FROM \nothing
+[from] call to main0 at tests/builtins/write-const.c:44 (by main):
+  b FROM \nothing
+[from] call to main1 at tests/builtins/write-const.c:45 (by main):
+  b FROM \nothing
+[from] call to main2 at tests/builtins/write-const.c:46 (by main):
+  b FROM v
+[from] call to main3 at tests/builtins/write-const.c:47 (by main):
+  b FROM v
+[from] entry point:
+  b FROM v
+[from] ====== END OF CALLWISE DEPENDENCIES ======

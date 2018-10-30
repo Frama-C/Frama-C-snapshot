@@ -1,12 +1,12 @@
 [kernel] Parsing tests/slicing/bts1248.i (no preprocessing)
 [slicing] slicing requests in progress...
-[value] Analyzing a complete application starting at f
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing a complete application starting at f
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   
-[value] Recording results for f
-[value] done for function f
+[eva] Recording results for f
+[eva] done for function f
 [slicing] initializing slicing ...
 [slicing] interpreting slicing requests from the command line...
 [slicing] Warning: No internal slicing request from the command line.

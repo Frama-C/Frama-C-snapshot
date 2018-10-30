@@ -1,4 +1,7 @@
 [
+  { "classid": "Parsing", "action": "ERROR", "title": "",
+    "descr": "unbound logic variable ignored. Ignoring code annotation",
+    "file": "tests/report/classify.c", "line": 27 },
   { "classid": "RTE", "action": "REVIEW", "title": "Missing RTE guards",
     "descr": "Shall run Eva plug-in" },
   { "classid": "UNIT", "action": "INFO", "title": "Precondition 'f'",

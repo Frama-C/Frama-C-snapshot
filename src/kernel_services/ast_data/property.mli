@@ -94,15 +94,22 @@ type program_point = Before | After
 
 type identified_reachable = kernel_function option * kinstr * program_point
 (** [None, Kglobal] --> global property 
-    [None, Some kf] --> impossible
+    [None, Some ki] --> impossible
     [Some kf, Kglobal] --> property of a function without code
     [Some kf, Kstmt stmt] --> reachability of the given stmt (and the attached
     properties) *)
 
-type identified_extended =
-  kernel_function *
-  kinstr *
-  Cil_types.acsl_extension
+type other_loc =
+  | OLContract of kernel_function
+  | OLStmt of kernel_function * stmt
+  | OLGlob of location
+
+type extended_loc =
+  | ELContract of kernel_function
+  | ELStmt of kernel_function * stmt
+  | ELGlob
+
+type identified_extended = extended_loc * Cil_types.acsl_extension
 
 and identified_axiomatic = string * identified_property list
 
@@ -140,7 +147,7 @@ and identified_property = private
   | IPPropertyInstance of identified_instance
   | IPTypeInvariant of identified_type_invariant
   | IPGlobalInvariant of identified_global_invariant
-  | IPOther of string * kernel_function option * kinstr
+  | IPOther of string * other_loc
 
 include Datatype.S_with_collections with type t = identified_property
 
@@ -155,13 +162,30 @@ val short_pretty: Format.formatter -> t -> unit
 (** @since Oxygen-20120901 *)
 val pretty_predicate_kind: Format.formatter -> predicate_kind -> unit
 
+val pretty_debug: Format.formatter -> identified_property -> unit
+(** Internal use only.
+    @since Frama-C+dev *)
+
+(** create a Loc_contract or Loc_stmt depending on the kinstr.
+    @since Frama-C+dev
+*)
+val e_loc_of_stmt: kernel_function -> kinstr -> extended_loc
+
+(** create a Loc_contract or Loc_stmt depending on the kinstr.
+    @since Frama-C+dev
+*)
+val o_loc_of_stmt: kernel_function -> kinstr -> other_loc
+
+
 (**************************************************************************)
 (** {2 Smart constructors} *)
 (**************************************************************************)
 
-val ip_other: string -> kernel_function option -> kinstr -> identified_property
+val ip_other: string -> other_loc -> identified_property
 (** Create a non-standard property.
-    @since Nitrogen-20111001 *)
+    @since Nitrogen-20111001
+    @modify Frama-C+dev Refine localisation argument
+ *)
 
 val ip_reachable_stmt: kernel_function -> stmt -> identified_property
 (** @since Oxygen-20120901 *)
@@ -197,10 +221,11 @@ val ip_of_ensures:
   kernel_function -> kinstr -> funbehavior ->
   (termination_kind * Cil_types.identified_predicate) -> identified_property
 
-(** Test test*)
-val ip_of_extended:
-  Cil_types.kernel_function ->
-  Cil_types.kinstr -> Cil_types.acsl_extension -> identified_property
+(** Extended property.
+    @since Chlorine-20180501
+    @modify Frama-C+dev refine localisation argument
+*)
+val ip_of_extended: extended_loc -> acsl_extension -> identified_property
 
 (** Builds the IPPredicate PKEnsures corresponding to a behavior.
     @since Carbon-20110201 *)
@@ -428,7 +453,7 @@ val location: identified_property -> location
 (** returns the location of the property.
     @since Oxygen-20120901 *)
 
-val source: identified_property -> Lexing.position option
+val source: identified_property -> Filepath.position option
 (** returns the location of the property, if not unknown.
     @since Chlorine-20180501 *)
 

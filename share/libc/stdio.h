@@ -35,6 +35,7 @@ __PUSH_FC_STDLIB
 #include "__fc_define_file.h"
 #include "__fc_define_null.h"
 #include "__fc_define_eof.h"
+#include "__fc_define_ssize_t.h"
 
 #define _IOFBF 0
 #define _IOLBF 1
@@ -107,6 +108,7 @@ extern int fflush(FILE *stream);
 
 /*@
   requires valid_filename: valid_read_string(filename);
+  requires valid_mode: valid_read_string(mode);
   assigns \result \from indirect:filename[..], indirect:mode[..], __fc_p_fopen;
   ensures result_null_or_valid_fd:
     \result==\null || (\subset(\result,&__fc_fopen[0 .. __FC_FOPEN_MAX-1])) ;
@@ -115,6 +117,7 @@ extern FILE *fopen(const char * restrict filename,
      const char * restrict mode);
 
 /*@
+  requires valid_mode: valid_read_string(mode);
   assigns \result, __fc_fopen[fd] \from indirect:fd, indirect:mode[0..],
     indirect:__fc_fopen[fd], __fc_p_fopen;
   ensures result_null_or_valid_fd:
@@ -122,10 +125,19 @@ extern FILE *fopen(const char * restrict filename,
  */
 extern FILE *fdopen(int fd, const char *mode);
 
-/*@ 
-  assigns *stream; 
-  ensures result_null_or_same: \result==\null || \result==stream;
-*/ 
+/*@
+  requires valid_filename: valid_read_string(filename);
+  requires valid_mode: valid_read_string(mode);
+  requires valid_stream: \valid(stream);
+  assigns \result \from indirect:filename[..], indirect:mode[..], __fc_p_fopen,
+                        indirect:stream;
+  assigns *stream \from indirect:filename[..], indirect:mode[..], __fc_p_fopen,
+                        indirect:stream;
+  ensures result_null_or_valid_fd:
+    \result==\null || \result \in &__fc_fopen[0 .. __FC_FOPEN_MAX-1];
+  ensures stream_opened:
+    *stream \in __fc_fopen[0 .. __FC_FOPEN_MAX-1];
+*/
 extern FILE *freopen(const char * restrict filename,
               const char * restrict mode,
               FILE * restrict stream);
@@ -200,7 +212,11 @@ extern int vsscanf(const char * restrict s,
      const char * restrict format,
      va_list arg);
 
-/*@ assigns *stream;
+/*@
+  requires valid_stream: \valid(stream);
+  assigns *stream \from *stream;
+  assigns \result \from indirect:*stream;
+  ensures result_uchar_or_eof: 0 <= \result <= __FC_UCHAR_MAX || \result == EOF;
  */
 extern int fgetc(FILE *stream);
 
@@ -380,6 +396,13 @@ extern FILE *popen(const char *command, const char *type);
   ensures closed_stream: !is_open_pipe(stream);
 */
 extern int pclose(FILE *stream);
+
+// This file may be included by non-POSIX machdeps, which do not define
+// ssize_t, so we must check it
+#ifdef __FC_POSIX_VERSION
+// No specification given; include "stdio.c" to use Frama-C's implementation
+ssize_t getline(char **lineptr, size_t *n, FILE *stream);
+#endif
 
 __END_DECLS
 

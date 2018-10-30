@@ -22,7 +22,7 @@
 
 type tab = {
   tab_name : string ;
-  tab_file : string ;
+  tab_file : Datatype.Filepath.t ;
   tab_page : int ;
   tab_select : line:int -> unit ;
   tab_source_view : GSourceView2.source_view;
@@ -30,7 +30,7 @@ type tab = {
 
 type t = {
   notebook : GPack.notebook;
-  file_index : (string,tab) Hashtbl.t;
+  file_index : (Datatype.Filepath.t,tab) Hashtbl.t;
   name_index : (string,tab) Hashtbl.t;
   page_index : (int,tab) Hashtbl.t;
   mutable pages : int ;
@@ -89,14 +89,15 @@ let select_name w title =
 
 let selection_locked = ref false
 
-let load_file w ?title ~filename ?(line=(-1)) ~click_cb () =
-  Gui_parameters.debug ~level:2 "Opening file %S line %d" filename line ;
+let load_file w ?title ~(filename : Datatype.Filepath.t) ?(line=(-1)) ~click_cb () =
+  Gui_parameters.debug ~level:2 "Opening file \"%a\" line %d"
+    Datatype.Filepath.pretty filename line ;
   let tab =
     begin
       try Hashtbl.find w.file_index filename
       with Not_found ->
         let name = match title with
-          | None -> Filepath.pretty filename
+          | None -> Filepath.Normalized.to_pretty_string filename
           | Some s -> s
         in
         let label = GMisc.label ~text:name () in
@@ -114,10 +115,11 @@ let load_file w ?title ~filename ?(line=(-1)) ~click_cb () =
         let page_num = w.notebook#page_num sw#coerce in
         let b = Buffer.create 1024 in
         let s =
-          if with_file filename ~f:(input_channel b) then
+          if with_file (filename :> string) ~f:(input_channel b) then
             Wutil.to_utf8 (Buffer.contents b)
           else
-            "Error: cannot open file '" ^ (Filepath.pretty filename) ^ "'"
+            let f = Filepath.Normalized.to_pretty_string filename in
+            "Error: cannot open file '" ^ f ^ "'"
         in
         Buffer.reset b;
         let (buffer:GText.buffer) = window#buffer in
@@ -165,10 +167,10 @@ let load_file w ?title ~filename ?(line=(-1)) ~click_cb () =
                                  let line = iter#line + 1 in
                                  let col = iter#line_index in
                                  let offset = iter#offset in
-                                 let pos = {Lexing.pos_fname = filename;
-                                            Lexing.pos_lnum = line;
-                                            Lexing.pos_bol = offset - col;
-                                            Lexing.pos_cnum = offset;} in
+                                 let pos = {Filepath.pos_path = filename;
+                                            Filepath.pos_lnum = line;
+                                            Filepath.pos_bol = offset - col;
+                                            Filepath.pos_cnum = offset;} in
                                  let localz =
                                    Pretty_source.loc_to_localizable ~precise_col:true pos
                                  in

@@ -1,182 +1,182 @@
 [kernel] Parsing tests/slicing/call_accuracy.i (no preprocessing)
-[value] Analyzing a complete application starting at main
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing a complete application starting at main
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   S1 ∈ {0}
   S2 ∈ {0}
   S3 ∈ {0}
   S4 ∈ {0}
-[value] computing for function test_struct <- main.
+[eva] computing for function test_struct <- main.
   Called from tests/slicing/call_accuracy.i:62.
-[value] Recording results for test_struct
+[eva] Recording results for test_struct
 [from] Computing for function test_struct
 [from] Done for function test_struct
-[value] Done for function test_struct
-[value] computing for function test_cond <- main.
+[eva] Done for function test_struct
+[eva] computing for function test_cond <- main.
   Called from tests/slicing/call_accuracy.i:63.
-[value:alarm] tests/slicing/call_accuracy.i:11: Warning: 
+[eva:alarm] tests/slicing/call_accuracy.i:11: Warning: 
   signed overflow. assert x + 1 ≤ 2147483647;
-[value:alarm] tests/slicing/call_accuracy.i:12: Warning: 
+[eva:alarm] tests/slicing/call_accuracy.i:12: Warning: 
   signed overflow. assert y + 1 ≤ 2147483647;
-[value:alarm] tests/slicing/call_accuracy.i:13: Warning: 
+[eva:alarm] tests/slicing/call_accuracy.i:13: Warning: 
   signed overflow. assert z + 1 ≤ 2147483647;
-[value] computing for function f_cond <- test_cond <- main.
+[eva] computing for function f_cond <- test_cond <- main.
   Called from tests/slicing/call_accuracy.i:14.
-[value:alarm] tests/slicing/call_accuracy.i:5: Warning: 
+[eva:alarm] tests/slicing/call_accuracy.i:5: Warning: 
   signed overflow. assert a + 1 ≤ 2147483647;
-[value:alarm] tests/slicing/call_accuracy.i:6: Warning: 
+[eva:alarm] tests/slicing/call_accuracy.i:6: Warning: 
   signed overflow. assert b + 1 ≤ 2147483647;
-[value] Recording results for f_cond
+[eva] Recording results for f_cond
 [from] Computing for function f_cond
 [from] Done for function f_cond
-[value] Done for function f_cond
-[value:alarm] tests/slicing/call_accuracy.i:15: Warning: 
+[eva] Done for function f_cond
+[eva:alarm] tests/slicing/call_accuracy.i:15: Warning: 
   signed overflow. assert y + 1 ≤ 2147483647;
-[value:alarm] tests/slicing/call_accuracy.i:16: Warning: 
+[eva:alarm] tests/slicing/call_accuracy.i:16: Warning: 
   signed overflow. assert x + 1 ≤ 2147483647;
-[value:alarm] tests/slicing/call_accuracy.i:17: Warning: 
+[eva:alarm] tests/slicing/call_accuracy.i:17: Warning: 
   signed overflow. assert z + 1 ≤ 2147483647;
-[value] computing for function f_cond <- test_cond <- main.
+[eva] computing for function f_cond <- test_cond <- main.
   Called from tests/slicing/call_accuracy.i:18.
-[value] Recording results for f_cond
+[eva] Recording results for f_cond
 [from] Computing for function f_cond
 [from] Done for function f_cond
-[value] Done for function f_cond
-[value] Recording results for test_cond
+[eva] Done for function f_cond
+[eva] Recording results for test_cond
 [from] Computing for function test_cond
 [from] Done for function test_cond
-[value] Done for function test_cond
-[value] computing for function test_set <- main.
+[eva] Done for function test_cond
+[eva] computing for function test_set <- main.
   Called from tests/slicing/call_accuracy.i:64.
-[value] computing for function f_set <- test_set <- main.
+[eva] computing for function f_set <- test_set <- main.
   Called from tests/slicing/call_accuracy.i:32.
-[value] Recording results for f_set
+[eva] Recording results for f_set
 [from] Computing for function f_set
 [from] Done for function f_set
-[value] Done for function f_set
-[value] computing for function f_set <- test_set <- main.
+[eva] Done for function f_set
+[eva] computing for function f_set <- test_set <- main.
   Called from tests/slicing/call_accuracy.i:33.
-[value] Recording results for f_set
+[eva] Recording results for f_set
 [from] Computing for function f_set
 [from] Done for function f_set
-[value] Done for function f_set
-[value] computing for function f_set <- test_set <- main.
+[eva] Done for function f_set
+[eva] computing for function f_set <- test_set <- main.
   Called from tests/slicing/call_accuracy.i:34.
-[value] Recording results for f_set
+[eva] Recording results for f_set
 [from] Computing for function f_set
 [from] Done for function f_set
-[value] Done for function f_set
-[value] computing for function f_set <- test_set <- main.
+[eva] Done for function f_set
+[eva] computing for function f_set <- test_set <- main.
   Called from tests/slicing/call_accuracy.i:35.
-[value] Recording results for f_set
+[eva] Recording results for f_set
 [from] Computing for function f_set
 [from] Done for function f_set
-[value] Done for function f_set
-[value] computing for function f_set <- test_set <- main.
+[eva] Done for function f_set
+[eva] computing for function f_set <- test_set <- main.
   Called from tests/slicing/call_accuracy.i:36.
-[value] Recording results for f_set
+[eva] Recording results for f_set
 [from] Computing for function f_set
 [from] Done for function f_set
-[value] Done for function f_set
-[value] computing for function f_set <- test_set <- main.
+[eva] Done for function f_set
+[eva] computing for function f_set <- test_set <- main.
   Called from tests/slicing/call_accuracy.i:37.
-[value] Recording results for f_set
+[eva] Recording results for f_set
 [from] Computing for function f_set
 [from] Done for function f_set
-[value] Done for function f_set
-[value] computing for function f_set <- test_set <- main.
+[eva] Done for function f_set
+[eva] computing for function f_set <- test_set <- main.
   Called from tests/slicing/call_accuracy.i:38.
-[value] Recording results for f_set
+[eva] Recording results for f_set
 [from] Computing for function f_set
 [from] Done for function f_set
-[value] Done for function f_set
-[value] computing for function f_set <- test_set <- main.
+[eva] Done for function f_set
+[eva] computing for function f_set <- test_set <- main.
   Called from tests/slicing/call_accuracy.i:39.
-[value] Recording results for f_set
+[eva] Recording results for f_set
 [from] Computing for function f_set
 [from] Done for function f_set
-[value] Done for function f_set
-[value] computing for function f_set <- test_set <- main.
+[eva] Done for function f_set
+[eva] computing for function f_set <- test_set <- main.
   Called from tests/slicing/call_accuracy.i:40.
-[value] Recording results for f_set
+[eva] Recording results for f_set
 [from] Computing for function f_set
 [from] Done for function f_set
-[value] Done for function f_set
-[value] computing for function f_set <- test_set <- main.
+[eva] Done for function f_set
+[eva] computing for function f_set <- test_set <- main.
   Called from tests/slicing/call_accuracy.i:41.
-[value] Recording results for f_set
+[eva] Recording results for f_set
 [from] Computing for function f_set
 [from] Done for function f_set
-[value] Done for function f_set
-[value] computing for function f_set <- test_set <- main.
+[eva] Done for function f_set
+[eva] computing for function f_set <- test_set <- main.
   Called from tests/slicing/call_accuracy.i:42.
-[value] Recording results for f_set
+[eva] Recording results for f_set
 [from] Computing for function f_set
 [from] Done for function f_set
-[value] Done for function f_set
-[value] computing for function f_set <- test_set <- main.
+[eva] Done for function f_set
+[eva] computing for function f_set <- test_set <- main.
   Called from tests/slicing/call_accuracy.i:43.
-[value] Recording results for f_set
+[eva] Recording results for f_set
 [from] Computing for function f_set
 [from] Done for function f_set
-[value] Done for function f_set
-[value] computing for function f_set <- test_set <- main.
+[eva] Done for function f_set
+[eva] computing for function f_set <- test_set <- main.
   Called from tests/slicing/call_accuracy.i:44.
-[value] Recording results for f_set
+[eva] Recording results for f_set
 [from] Computing for function f_set
 [from] Done for function f_set
-[value] Done for function f_set
-[value] computing for function f_set <- test_set <- main.
+[eva] Done for function f_set
+[eva] computing for function f_set <- test_set <- main.
   Called from tests/slicing/call_accuracy.i:45.
-[value] Recording results for f_set
+[eva] Recording results for f_set
 [from] Computing for function f_set
 [from] Done for function f_set
-[value] Done for function f_set
-[value:alarm] tests/slicing/call_accuracy.i:49: Warning: 
+[eva] Done for function f_set
+[eva:alarm] tests/slicing/call_accuracy.i:49: Warning: 
   signed overflow. assert -2147483648 ≤ b + s1.b;
-[value:alarm] tests/slicing/call_accuracy.i:49: Warning: 
+[eva:alarm] tests/slicing/call_accuracy.i:49: Warning: 
   signed overflow. assert b + s1.b ≤ 2147483647;
-[value:alarm] tests/slicing/call_accuracy.i:49: Warning: 
+[eva:alarm] tests/slicing/call_accuracy.i:49: Warning: 
   signed overflow. assert (int)(b + s1.b) + s3.b ≤ 2147483647;
-[value:alarm] tests/slicing/call_accuracy.i:49: Warning: 
+[eva:alarm] tests/slicing/call_accuracy.i:49: Warning: 
   signed overflow.
   assert -2147483648 ≤ (int)((int)(b + s1.b) + s3.b) + tab[1];
-[value:alarm] tests/slicing/call_accuracy.i:49: Warning: 
+[eva:alarm] tests/slicing/call_accuracy.i:49: Warning: 
   signed overflow.
   assert (int)((int)(b + s1.b) + s3.b) + tab[1] ≤ 2147483647;
-[value:alarm] tests/slicing/call_accuracy.i:49: Warning: 
+[eva:alarm] tests/slicing/call_accuracy.i:49: Warning: 
   signed overflow.
   assert -2147483648 ≤ (int)((int)((int)(b + s1.b) + s3.b) + tab[1]) + S1.b;
-[value:alarm] tests/slicing/call_accuracy.i:49: Warning: 
+[eva:alarm] tests/slicing/call_accuracy.i:49: Warning: 
   signed overflow.
   assert (int)((int)((int)(b + s1.b) + s3.b) + tab[1]) + S1.b ≤ 2147483647;
-[value:alarm] tests/slicing/call_accuracy.i:49: Warning: 
+[eva:alarm] tests/slicing/call_accuracy.i:49: Warning: 
   signed overflow.
   assert
   -2147483648 ≤
   (int)((int)((int)((int)(b + s1.b) + s3.b) + tab[1]) + S1.b) + S2.b;
-[value:alarm] tests/slicing/call_accuracy.i:49: Warning: 
+[eva:alarm] tests/slicing/call_accuracy.i:49: Warning: 
   signed overflow.
   assert
   (int)((int)((int)((int)(b + s1.b) + s3.b) + tab[1]) + S1.b) + S2.b ≤
   2147483647;
-[value] Recording results for test_set
+[eva] Recording results for test_set
 [from] Computing for function test_set
 [from] Done for function test_set
-[value] Done for function test_set
-[value:alarm] tests/slicing/call_accuracy.i:65: Warning: 
+[eva] Done for function test_set
+[eva:alarm] tests/slicing/call_accuracy.i:65: Warning: 
   signed overflow. assert r1 + r2 ≤ 2147483647;
-[value:alarm] tests/slicing/call_accuracy.i:65: Warning: 
+[eva:alarm] tests/slicing/call_accuracy.i:65: Warning: 
   signed overflow. assert -2147483648 ≤ (int)(r1 + r2) + r3;
-[value:alarm] tests/slicing/call_accuracy.i:65: Warning: 
+[eva:alarm] tests/slicing/call_accuracy.i:65: Warning: 
   signed overflow. assert (int)(r1 + r2) + r3 ≤ 2147483647;
-[value:alarm] tests/slicing/call_accuracy.i:65: Warning: 
+[eva:alarm] tests/slicing/call_accuracy.i:65: Warning: 
   signed overflow. assert (int)((int)(r1 + r2) + r3) + S3.b ≤ 2147483647;
-[value] Recording results for main
+[eva] Recording results for main
 [from] Computing for function main
 [from] Done for function main
-[value] done for function main
+[eva] done for function main
 [from] ====== DISPLAYING CALLWISE DEPENDENCIES ======
 [from] call to f_cond at tests/slicing/call_accuracy.i:14 (by test_cond):
   \result FROM c; a

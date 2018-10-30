@@ -17,18 +17,8 @@ int h(int p);
 
 void job(void)
 {
-  /*@ behavior pre_f:
-        ensures \true;
-        assigns x; */
   f();
-  /*@ behavior pre_g:
-        ensures \true;
-        assigns \nothing; */
   g();
-  /*@ behavior pre_h:
-        requires 2 > 0;
-        ensures \true;
-        assigns \nothing; */
   h(2);
   return;
 }

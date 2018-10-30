@@ -1,13 +1,13 @@
 [kernel] Parsing tests/slicing/slice_pragma_stmt.i (no preprocessing)
 [slicing] slicing requests in progress...
-[value] Analyzing a complete application starting at test5
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing a complete application starting at test5
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   x ∈ {0}
   y ∈ {0}
-[value] Recording results for test5
-[value] done for function test5
+[eva] Recording results for test5
+[eva] done for function test5
 [slicing] initializing slicing ...
 [slicing] interpreting slicing requests from the command line...
 [pdg] computing for function test5
@@ -28,8 +28,8 @@ void test5(int c1, int c2)
 {
   if (c1 < c2) goto L;
   c1 = c2;
-  L: /*@ slice pragma stmt; */
-  x = c1;
+  /*@ slice pragma stmt; */
+  L: x = c1;
   return;
 }
 

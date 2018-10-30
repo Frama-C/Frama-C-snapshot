@@ -1,36 +1,36 @@
 [kernel] Parsing tests/value/recursion2.i (no preprocessing)
-[value] Analyzing a complete application starting at main
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing a complete application starting at main
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   x ∈ {0}
   y ∈ {0}
-[value] computing for function h2 <- main.
+[eva] computing for function h2 <- main.
   Called from tests/value/recursion2.i:21.
-[value] computing for function h1 <- h2 <- main.
+[eva] computing for function h1 <- h2 <- main.
   Called from tests/value/recursion2.i:17.
-[value] Recording results for h1
-[value] Done for function h1
-[value] Recording results for h2
-[value] Done for function h2
-[value] computing for function h1 <- main.
+[eva] Recording results for h1
+[eva] Done for function h1
+[eva] Recording results for h2
+[eva] Done for function h2
+[eva] computing for function h1 <- main.
   Called from tests/value/recursion2.i:22.
-[value] computing for function h2 <- h1 <- main.
+[eva] computing for function h2 <- h1 <- main.
   Called from tests/value/recursion2.i:12.
-[value] Recording results for h2
-[value] Done for function h2
-[value] Recording results for h1
-[value] Done for function h1
-[value] Recording results for main
-[value] done for function main
-[value] ====== VALUES COMPUTED ======
-[value:final-states] Values at end of function h1:
+[eva] Recording results for h2
+[eva] Done for function h2
+[eva] Recording results for h1
+[eva] Done for function h1
+[eva] Recording results for main
+[eva] done for function main
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function h1:
   r ∈ {0}
   q ∈ {0}
-[value:final-states] Values at end of function h2:
+[eva:final-states] Values at end of function h2:
   r ∈ {0}
   q ∈ {0}
-[value:final-states] Values at end of function main:
+[eva:final-states] Values at end of function main:
   
 [inout] Out (internal) for function h1:
     r; q

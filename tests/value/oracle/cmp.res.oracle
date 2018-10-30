@@ -1,27 +1,27 @@
 [kernel] Parsing tests/value/cmp.i (no preprocessing)
-[value] Analyzing a complete application starting at main
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing a complete application starting at main
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   
-[value:alarm] tests/value/cmp.i:10: Warning: 
+[eva:alarm] tests/value/cmp.i:10: Warning: 
   accessing out of bounds index. assert 0 ≤ d;
-[value:alarm] tests/value/cmp.i:10: Warning: 
+[eva:alarm] tests/value/cmp.i:10: Warning: 
   accessing out of bounds index. assert d < 10;
-[value] computing for function cmp <- main.
+[eva] computing for function cmp <- main.
   Called from tests/value/cmp.i:11.
-[value:alarm] tests/value/cmp.i:4: Warning: 
+[eva:alarm] tests/value/cmp.i:4: Warning: 
   accessing uninitialized left-value. assert \initialized(s1);
-[value:alarm] tests/value/cmp.i:4: Warning: 
+[eva:alarm] tests/value/cmp.i:4: Warning: 
   out of bounds read. assert \valid_read(s1);
-[value] Recording results for cmp
-[value] Done for function cmp
-[value] Recording results for main
-[value] done for function main
-[value] ====== VALUES COMPUTED ======
-[value:final-states] Values at end of function cmp:
+[eva] Recording results for cmp
+[eva] Done for function cmp
+[eva] Recording results for main
+[eva] done for function main
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function cmp:
   __retres ∈ {1}
-[value:final-states] Values at end of function main:
+[eva:final-states] Values at end of function main:
   T[0..9] ∈ [--..--] or UNINITIALIZED
   r ∈ {1}
 [from] Computing for function cmp

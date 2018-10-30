@@ -1,44 +1,41 @@
 [kernel] Parsing tests/value/long_const.i (no preprocessing)
-[value] Analyzing a complete application starting at main
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing a complete application starting at main
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   
-[value] tests/value/long_const.i:35: 
+[eva] tests/value/long_const.i:35: 
   Frama_C_show_each_f: {4}, {18446603611099103232}, {0}
-[value] computing for function div64 <- main.
+[eva] computing for function div64 <- main.
   Called from tests/value/long_const.i:37.
-[value:alarm] tests/value/long_const.i:37: Warning: 
+[eva:alarm] tests/value/long_const.i:37: Warning: 
   function div64: precondition 'num' got status unknown.
-[value:alarm] tests/value/long_const.i:37: Warning: 
+[eva:alarm] tests/value/long_const.i:37: Warning: 
   function div64: precondition 'denom' got status unknown.
-[value] computing for function LL_ABS <- div64 <- main.
+[eva] computing for function LL_ABS <- div64 <- main.
   Called from tests/value/long_const.i:24.
-[value] Recording results for LL_ABS
-[value] Done for function LL_ABS
-[value] computing for function LL_ABS <- div64 <- main.
-  Called from tests/value/long_const.i:25.
-[value] Recording results for LL_ABS
-[value] Done for function LL_ABS
-[value] tests/value/long_const.i:26: 
+[eva] Recording results for LL_ABS
+[eva] Done for function LL_ABS
+[eva] tests/value/long_const.i:25: Reusing old results for call to LL_ABS
+[eva] tests/value/long_const.i:26: 
   Frama_C_show_each:
   [-9223372036854775807..9223372036854775807],
   [0..9223372036854775807],
   [-9223372036854775807..9223372036854775807],
   [0..9223372036854775807]
-[value] Recording results for div64
-[value] Done for function div64
-[value] Recording results for main
-[value] done for function main
-[value] ====== VALUES COMPUTED ======
-[value:final-states] Values at end of function LL_ABS:
+[eva] Recording results for div64
+[eva] Done for function div64
+[eva] Recording results for main
+[eva] done for function main
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function LL_ABS:
   
-[value:final-states] Values at end of function div64:
+[eva:final-states] Values at end of function div64:
   loc_num ∈ [0..9223372036854775807]
   loc_den ∈ [0..9223372036854775807]
   signe_negatif ∈ {-9223372036854775808; 0}
   __retres ∈ {0}
-[value:final-states] Values at end of function main:
+[eva:final-states] Values at end of function main:
   i ∈ {18446603611099103232}
   j ∈ {0}
 [from] Computing for function LL_ABS

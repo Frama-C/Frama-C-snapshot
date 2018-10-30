@@ -1,8 +1,8 @@
 [kernel] Parsing tests/value/pointer.i (no preprocessing)
-[value] Analyzing a complete application starting at main
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing a complete application starting at main
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   x ∈ {0}
   y ∈ {0}
   c ∈ {0}
@@ -11,38 +11,38 @@
   T[0..9] ∈ {0}
   cc1 ∈ {0}
   cc2 ∈ {0}
-[value] computing for function k <- main.
+[eva] computing for function k <- main.
   Called from tests/value/pointer.i:37.
-[value] computing for function l <- k <- main.
+[eva] computing for function l <- k <- main.
   Called from tests/value/pointer.i:29.
-[value] Recording results for l
-[value] Done for function l
-[value] Recording results for k
-[value] Done for function k
-[value] computing for function k <- main.
+[eva] Recording results for l
+[eva] Done for function l
+[eva] Recording results for k
+[eva] Done for function k
+[eva] computing for function k <- main.
   Called from tests/value/pointer.i:38.
-[value] computing for function l <- k <- main.
+[eva] computing for function l <- k <- main.
   Called from tests/value/pointer.i:29.
-[value] Recording results for l
-[value] Done for function l
-[value] Recording results for k
-[value] Done for function k
-[value:alarm] tests/value/pointer.i:40: Warning: 
+[eva] Recording results for l
+[eva] Done for function l
+[eva] Recording results for k
+[eva] Done for function k
+[eva:alarm] tests/value/pointer.i:40: Warning: 
   pointer comparison.
   assert \pointer_comparable((void *)((int *)T - 1), (void *)((int *)T));
-[value:alarm] tests/value/pointer.i:41: Warning: 
+[eva:alarm] tests/value/pointer.i:41: Warning: 
   pointer comparison.
   assert \pointer_comparable((void *)((int *)T), (void *)(&T[12]));
-[value] Recording results for main
-[value] done for function main
-[value] ====== VALUES COMPUTED ======
-[value:final-states] Values at end of function l:
+[eva] Recording results for main
+[eva] done for function main
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function l:
   x ∈ {19}
   c ∈ {19}
-[value:final-states] Values at end of function k:
+[eva:final-states] Values at end of function k:
   x ∈ {19}
   c ∈ {19}
-[value:final-states] Values at end of function main:
+[eva:final-states] Values at end of function main:
   x ∈ {19}
   c ∈ {19}
   cc1 ∈ {1; 99}

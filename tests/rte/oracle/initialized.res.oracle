@@ -286,6 +286,8 @@ double f0 = 1.1234;
 int i5 = 1;
 int main(void)
 {
+  unsigned char c1;
+  unsigned char c2;
   struct P *tmp;
   j = 0;
   i = & j;
@@ -490,6 +492,8 @@ int main(void)
   /*@ assert rte: index_bound: i1 < 11; */
   /*@ assert rte: initialization: \initialized(&p.tq[i0][i1].v); */
   v = p.tq[i0][i1].v;
+  c1 = c2;
+  unsigned char c3 = c2;
   return v;
 }
 

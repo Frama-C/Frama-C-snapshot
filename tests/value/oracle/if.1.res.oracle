@@ -1,18 +1,18 @@
 [kernel] Parsing tests/value/if.i (no preprocessing)
-[value] Analyzing a complete application starting at main6
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing a complete application starting at main6
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   G ∈ {0}
   H ∈ {0}
   J ∈ {0}
   p ∈ {0}
   q ∈ {0}
   t[0..99] ∈ {0}
-[value] Recording results for main6
-[value] done for function main6
-[value] ====== VALUES COMPUTED ======
-[value:final-states] Values at end of function main6:
+[eva] Recording results for main6
+[eva] done for function main6
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function main6:
   G ∈ {0}
   __retres ∈ {1}
 [from] Computing for function main6

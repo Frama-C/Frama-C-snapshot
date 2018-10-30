@@ -1,27 +1,24 @@
 [kernel] Parsing tests/slicing/forall_loop_invariant.i (no preprocessing)
 [slicing] slicing requests in progress...
-[value] Analyzing a complete application starting at main
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing a complete application starting at main
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   t[0..9] ∈ {0}
   u[0..9] ∈ {0}
-[value] tests/slicing/forall_loop_invariant.i:10: 
-  loop invariant got status valid.
-[value] tests/slicing/forall_loop_invariant.i:11: 
-  loop invariant got status valid.
-[value] tests/slicing/forall_loop_invariant.i:12: 
-  loop invariant got status valid.
-[value] tests/slicing/forall_loop_invariant.i:14: 
-  entering loop for the first time
-[value:alarm] tests/slicing/forall_loop_invariant.i:11: Warning: 
+[eva] tests/slicing/forall_loop_invariant.i:10: loop invariant got status valid.
+[eva] tests/slicing/forall_loop_invariant.i:11: loop invariant got status valid.
+[eva] tests/slicing/forall_loop_invariant.i:12: loop invariant got status valid.
+[eva] tests/slicing/forall_loop_invariant.i:14: 
+  starting to merge loop iterations
+[eva:alarm] tests/slicing/forall_loop_invariant.i:11: Warning: 
   loop invariant got status unknown.
-[value:alarm] tests/slicing/forall_loop_invariant.i:12: Warning: 
+[eva:alarm] tests/slicing/forall_loop_invariant.i:12: Warning: 
   loop invariant got status unknown.
-[value:alarm] tests/slicing/forall_loop_invariant.i:18: Warning: 
+[eva:alarm] tests/slicing/forall_loop_invariant.i:18: Warning: 
   assertion got status unknown.
-[value] Recording results for main
-[value] done for function main
+[eva] Recording results for main
+[eva] done for function main
 [slicing] initializing slicing ...
 [slicing] interpreting slicing requests from the command line...
 [pdg] computing for function main

@@ -1,0 +1,65 @@
+[kernel] Parsing tests/builtins/alloc-vla.c (with preprocessing)
+[eva] Analyzing a complete application starting at main
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
+  nondet ∈ [--..--]
+[eva] computing for function f <- main.
+  Called from tests/builtins/alloc-vla.c:12.
+[eva] tests/builtins/alloc-vla.c:6: assertion 'alloca_bounds' got status valid.
+[eva] tests/builtins/alloc-vla.c:6: Call to builtin __fc_vla_alloc
+[eva] tests/builtins/alloc-vla.c:6: allocating variable __malloc_f_l6
+[eva] tests/builtins/alloc-vla.c:7: Call to builtin free
+[eva:alarm] tests/builtins/alloc-vla.c:7: Warning: 
+  function free: precondition 'freeable' got status invalid.
+[eva] tests/builtins/alloc-vla.c:6: Call to builtin __fc_vla_free
+[eva:malloc] tests/builtins/alloc-vla.c:6: strong free on bases: {__malloc_f_l6}
+[eva:alarm] tests/builtins/alloc-vla.c:8: Warning: 
+  accessing left-value that contains escaping addresses.
+  assert ¬\dangling(&a);
+[eva] Recording results for f
+[eva] Done for function f
+[eva] Recording results for main
+[eva] done for function main
+[eva] tests/builtins/alloc-vla.c:8: 
+  assertion 'Eva,dangling_pointer' got final status invalid.
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function f:
+  __fc_heap_status ∈ [--..--]
+  a ∈ ESCAPINGADDR
+  __lengthof_a ∈ {4}
+[eva:final-states] Values at end of function main:
+  NON TERMINATING FUNCTION
+[from] Computing for function f
+[from] Computing for function __fc_vla_alloc <-f
+[from] Done for function __fc_vla_alloc
+[from] Computing for function free <-f
+[from] Done for function free
+[from] Computing for function __fc_vla_free <-f
+[from] Done for function __fc_vla_free
+[from] Done for function f
+[from] Computing for function main
+[from] Non-terminating function main (no dependencies)
+[from] Done for function main
+[from] ====== DEPENDENCIES COMPUTED ======
+  These dependencies hold at termination for the executions that terminate:
+[from] Function __fc_vla_alloc:
+  \result FROM \nothing
+[from] Function __fc_vla_free:
+  NO EFFECTS
+[from] Function free:
+  __fc_heap_status FROM __fc_heap_status (and SELF)
+[from] Function f:
+  __fc_heap_status FROM __fc_heap_status; nondet (and SELF)
+  \result FROM \nothing
+[from] Function main:
+  NON TERMINATING - NO EFFECTS
+[from] ====== END OF DEPENDENCIES ======
+[inout] Out (internal) for function f:
+    __fc_heap_status; a; __lengthof_a
+[inout] Inputs for function f:
+    __fc_heap_status; nondet
+[inout] Out (internal) for function main:
+    __fc_heap_status; t
+[inout] Inputs for function main:
+    __fc_heap_status; nondet

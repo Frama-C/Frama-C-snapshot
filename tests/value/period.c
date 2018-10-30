@@ -48,9 +48,9 @@ void main()
 
   Frama_C_dump_each();
 
-  int *p = &g + (int)&g;
+  int *p = (&g + (int)&g) - (int)&g; // creates a garbled mix
   *p = 1;
-  p = &g + (int)&g;
+  p = (&g + (int)&g) - (int)&g; // creates a garbled mix
   int vg = *p;
   *p = &vg;
 }

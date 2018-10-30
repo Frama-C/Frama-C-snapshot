@@ -8,52 +8,49 @@
 ------------------------------------------------------------
 
 Goal Post-condition (file tests/wp_acsl/simpl_is_type.i, line 17) in 'f':
+Let a = shift_sint32(t, 0).
+Let a_1 = havoc(Mint_undef_0, Mint_0, a, size_0).
 Assume {
-  Type: is_sint32(i_1) /\ is_sint32(size_0).
+  Type: is_sint32(i) /\ is_sint32(size_0).
   (* Goal *)
-  When: (0 <= i) /\ (i < size_0) /\ is_sint32(i).
+  When: (0 <= i_1) /\ (i_1 < size_0) /\ is_sint32(i_1).
   (* Heap *)
   Have: (region(t.base) <= 0) /\ linked(Malloc_0).
   (* Pre-condition *)
-  Have: forall i_2 : Z. ((0 <= i_2) -> ((i_2 < size_0) ->
-      (Mint_1[shift_sint32(t, i_2)] < 0))).
-  (* Pre-condition *)
-  Have: 0 < size_0.
-  (* Loop assigns ... *)
-  Have: havoc(Mint_1, Mint_0, shift_sint32(t, 0), size_0).
+  Have: (0 < size_0) /\
+      (forall i_2 : Z. ((0 <= i_2) -> ((i_2 < size_0) ->
+       (Mint_0[shift_sint32(t, i_2)] < 0)))).
   (* Invariant *)
-  Have: forall i_2 : Z. ((i_1 <= i_2) -> ((i_2 < size_0) ->
-      (Mint_0[shift_sint32(t, i_2)] < 0))).
+  Have: forall i_2 : Z. ((i <= i_2) -> ((i_2 < size_0) ->
+      (a_1[shift_sint32(t, i_2)] < 0))).
   (* Invariant *)
-  Have: forall i_2 : Z. ((0 <= i_2) -> ((i_2 < i_1) ->
-      (0 < Mint_0[shift_sint32(t, i_2)]))).
+  Have: forall i_2 : Z. ((0 <= i_2) -> ((i_2 < i) ->
+      (0 < a_1[shift_sint32(t, i_2)]))).
   (* Invariant *)
-  Have: (0 <= i_1) /\ (i_1 <= size_0).
+  Have: (0 <= i) /\ (i <= size_0).
   (* Else *)
-  Have: size_0 <= i_1.
+  Have: size_0 <= i.
 }
-Prove: 0 < Mint_0[shift_sint32(t, i)].
+Prove: 0 < havoc(Mint_undef_0, Mint_0, a, i)[shift_sint32(t, i_1)].
 
 ------------------------------------------------------------
 
 Goal Preservation of Invariant (file tests/wp_acsl/simpl_is_type.i, line 22):
+Let a = havoc(Mint_undef_0, Mint_0, shift_sint32(t, 0), size_0).
 Assume {
   Type: is_sint32(i) /\ is_sint32(size_0) /\ is_sint32(1 + i).
   (* Heap *)
   Have: (region(t.base) <= 0) /\ linked(Malloc_0).
   (* Pre-condition *)
-  Have: forall i_1 : Z. ((0 <= i_1) -> ((i_1 < size_0) ->
-      (Mint_0[shift_sint32(t, i_1)] < 0))).
-  (* Pre-condition *)
-  Have: 0 < size_0.
-  (* Loop assigns ... *)
-  Have: havoc(Mint_0, Mint_1, shift_sint32(t, 0), size_0).
+  Have: (0 < size_0) /\
+      (forall i_1 : Z. ((0 <= i_1) -> ((i_1 < size_0) ->
+       (Mint_0[shift_sint32(t, i_1)] < 0)))).
   (* Invariant *)
   Have: forall i_1 : Z. ((i <= i_1) -> ((i_1 < size_0) ->
-      (Mint_1[shift_sint32(t, i_1)] < 0))).
+      (a[shift_sint32(t, i_1)] < 0))).
   (* Invariant *)
   Have: forall i_1 : Z. ((0 <= i_1) -> ((i_1 < i) ->
-      (0 < Mint_1[shift_sint32(t, i_1)]))).
+      (0 < a[shift_sint32(t, i_1)]))).
   (* Invariant *)
   Have: (0 <= i) /\ (i <= size_0).
   (* Then *)
@@ -69,34 +66,32 @@ Prove: true.
 ------------------------------------------------------------
 
 Goal Preservation of Invariant (file tests/wp_acsl/simpl_is_type.i, line 23):
-Let a = shift_sint32(t, i).
-Let x = Mint_0[a].
+Let a = havoc(Mint_undef_0, Mint_0, shift_sint32(t, 0), size_0).
+Let a_1 = shift_sint32(t, i).
+Let a_2 = a[a_1].
 Assume {
   Type: is_sint32(i) /\ is_sint32(size_0) /\ is_sint32(1 + i) /\
-      is_sint32(x).
+      is_sint32(a_2).
   (* Goal *)
   When: (0 <= i_1) /\ (i_1 <= i) /\ is_sint32(i_1).
   (* Heap *)
   Have: (region(t.base) <= 0) /\ linked(Malloc_0).
   (* Pre-condition *)
-  Have: forall i_2 : Z. ((0 <= i_2) -> ((i_2 < size_0) ->
-      (Mint_1[shift_sint32(t, i_2)] < 0))).
-  (* Pre-condition *)
-  Have: 0 < size_0.
-  (* Loop assigns ... *)
-  Have: havoc(Mint_1, Mint_0, shift_sint32(t, 0), size_0).
+  Have: (0 < size_0) /\
+      (forall i_2 : Z. ((0 <= i_2) -> ((i_2 < size_0) ->
+       (Mint_0[shift_sint32(t, i_2)] < 0)))).
   (* Invariant *)
   Have: forall i_2 : Z. ((i <= i_2) -> ((i_2 < size_0) ->
-      (Mint_0[shift_sint32(t, i_2)] < 0))).
+      (a[shift_sint32(t, i_2)] < 0))).
   (* Invariant *)
   Have: forall i_2 : Z. ((0 <= i_2) -> ((i_2 < i) ->
-      (0 < Mint_0[shift_sint32(t, i_2)]))).
+      (0 < a[shift_sint32(t, i_2)]))).
   (* Invariant *)
   Have: (0 <= i) /\ (i <= size_0).
   (* Then *)
   Have: i < size_0.
 }
-Prove: 0 < Mint_0[a <- -x][shift_sint32(t, i_1)].
+Prove: 0 < a[a_1 <- -a_2][shift_sint32(t, i_1)].
 
 ------------------------------------------------------------
 
@@ -106,34 +101,32 @@ Prove: true.
 ------------------------------------------------------------
 
 Goal Preservation of Invariant (file tests/wp_acsl/simpl_is_type.i, line 24):
-Let a = shift_sint32(t, i).
-Let x = Mint_0[a].
+Let a = havoc(Mint_undef_0, Mint_0, shift_sint32(t, 0), size_0).
+Let a_1 = shift_sint32(t, i).
+Let a_2 = a[a_1].
 Assume {
   Type: is_sint32(i) /\ is_sint32(size_0) /\ is_sint32(1 + i) /\
-      is_sint32(x).
+      is_sint32(a_2).
   (* Goal *)
   When: (i_1 < size_0) /\ (i < i_1) /\ is_sint32(i_1).
   (* Heap *)
   Have: (region(t.base) <= 0) /\ linked(Malloc_0).
   (* Pre-condition *)
-  Have: forall i_2 : Z. ((0 <= i_2) -> ((i_2 < size_0) ->
-      (Mint_1[shift_sint32(t, i_2)] < 0))).
-  (* Pre-condition *)
-  Have: 0 < size_0.
-  (* Loop assigns ... *)
-  Have: havoc(Mint_1, Mint_0, shift_sint32(t, 0), size_0).
+  Have: (0 < size_0) /\
+      (forall i_2 : Z. ((0 <= i_2) -> ((i_2 < size_0) ->
+       (Mint_0[shift_sint32(t, i_2)] < 0)))).
   (* Invariant *)
   Have: forall i_2 : Z. ((i <= i_2) -> ((i_2 < size_0) ->
-      (Mint_0[shift_sint32(t, i_2)] < 0))).
+      (a[shift_sint32(t, i_2)] < 0))).
   (* Invariant *)
   Have: forall i_2 : Z. ((0 <= i_2) -> ((i_2 < i) ->
-      (0 < Mint_0[shift_sint32(t, i_2)]))).
+      (0 < a[shift_sint32(t, i_2)]))).
   (* Invariant *)
   Have: (0 <= i) /\ (i <= size_0).
   (* Then *)
   Have: i < size_0.
 }
-Prove: Mint_0[a <- -x][shift_sint32(t, i_1)] < 0.
+Prove: a[a_1 <- -a_2][shift_sint32(t, i_1)] < 0.
 
 ------------------------------------------------------------
 
@@ -145,10 +138,9 @@ Assume {
   (* Heap *)
   Have: (region(t.base) <= 0) /\ linked(Malloc_0).
   (* Pre-condition *)
-  Have: forall i_1 : Z. ((0 <= i_1) -> ((i_1 < size_0) ->
-      (Mint_0[shift_sint32(t, i_1)] < 0))).
-  (* Pre-condition *)
-  Have: 0 < size_0.
+  Have: (0 < size_0) /\
+      (forall i_1 : Z. ((0 <= i_1) -> ((i_1 < size_0) ->
+       (Mint_0[shift_sint32(t, i_1)] < 0)))).
 }
 Prove: Mint_0[shift_sint32(t, i)] < 0.
 
@@ -162,32 +154,30 @@ Prove: true.
 Goal Loop assigns (file tests/wp_acsl/simpl_is_type.i, line 25) (2/2):
 Effect at line 28
 Let a = shift_sint32(t, 0).
-Let a_1 = shift_sint32(t, i).
+Let a_1 = havoc(Mint_undef_0, Mint_0, a, size_0).
+Let a_2 = shift_sint32(t, i).
 Assume {
   Type: is_sint32(i) /\ is_sint32(size_0).
   (* Goal *)
-  When: !invalid(Malloc_0, a_1, 1).
+  When: !invalid(Malloc_0, a_2, 1).
   (* Heap *)
   Have: (region(t.base) <= 0) /\ linked(Malloc_0).
   (* Pre-condition *)
-  Have: forall i_1 : Z. ((0 <= i_1) -> ((i_1 < size_0) ->
-      (Mint_0[shift_sint32(t, i_1)] < 0))).
-  (* Pre-condition *)
-  Have: 0 < size_0.
-  (* Loop assigns ... *)
-  Have: havoc(Mint_0, Mint_1, a, size_0).
+  Have: (0 < size_0) /\
+      (forall i_1 : Z. ((0 <= i_1) -> ((i_1 < size_0) ->
+       (Mint_0[shift_sint32(t, i_1)] < 0)))).
   (* Invariant *)
   Have: forall i_1 : Z. ((i <= i_1) -> ((i_1 < size_0) ->
-      (Mint_1[shift_sint32(t, i_1)] < 0))).
+      (a_1[shift_sint32(t, i_1)] < 0))).
   (* Invariant *)
   Have: forall i_1 : Z. ((0 <= i_1) -> ((i_1 < i) ->
-      (0 < Mint_1[shift_sint32(t, i_1)]))).
+      (0 < a_1[shift_sint32(t, i_1)]))).
   (* Invariant *)
   Have: (0 <= i) /\ (i <= size_0).
   (* Then *)
   Have: i < size_0.
 }
-Prove: included(a_1, 1, a, size_0).
+Prove: included(a_2, 1, a, size_0).
 
 ------------------------------------------------------------
 ------------------------------------------------------------

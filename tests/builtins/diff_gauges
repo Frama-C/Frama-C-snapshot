@@ -1,0 +1,358 @@
+diff tests/builtins/oracle/Longinit_sequencer.res.oracle tests/builtins/oracle_gauges/Longinit_sequencer.res.oracle
+320c320
+<   tests/builtins/result/Longinit_sequencer.sav
+---
+>   tests/builtins/result_gauges/Longinit_sequencer.sav
+556c556
+<   tests/builtins/result/Longinit_sequencer.sav
+---
+>   tests/builtins/result_gauges/Longinit_sequencer.sav
+diff tests/builtins/oracle/linked_list.0.res.oracle tests/builtins/oracle_gauges/linked_list.0.res.oracle
+1052a1053,1058
+> [eva] computing for function printf_va_1 <- main.
+>   Called from tests/builtins/linked_list.c:51.
+> [eva] Done for function printf_va_1
+> [eva] computing for function printf_va_1 <- main.
+>   Called from tests/builtins/linked_list.c:51.
+> [eva] Done for function printf_va_1
+diff tests/builtins/oracle/linked_list.1.res.oracle tests/builtins/oracle_gauges/linked_list.1.res.oracle
+556a557,562
+> [eva] computing for function printf_va_1 <- main.
+>   Called from tests/builtins/linked_list.c:51.
+> [eva] Done for function printf_va_1
+> [eva] computing for function printf_va_1 <- main.
+>   Called from tests/builtins/linked_list.c:51.
+> [eva] Done for function printf_va_1
+diff tests/builtins/oracle/malloc-size-zero.1.res.oracle tests/builtins/oracle_gauges/malloc-size-zero.1.res.oracle
+31a32,41
+> [eva] computing for function my_calloc <- main.
+>   Called from tests/builtins/malloc-size-zero.c:29.
+> [eva] tests/builtins/malloc-size-zero.c:10: Call to builtin malloc
+> [eva] Recording results for my_calloc
+> [eva] Done for function my_calloc
+> [eva] computing for function my_calloc <- main.
+>   Called from tests/builtins/malloc-size-zero.c:29.
+> [eva] tests/builtins/malloc-size-zero.c:10: Call to builtin malloc
+> [eva] Recording results for my_calloc
+> [eva] Done for function my_calloc
+diff tests/builtins/oracle/memcpy.res.oracle tests/builtins/oracle_gauges/memcpy.res.oracle
+167a168,169
+> [eva] tests/builtins/memcpy.c:96: Call to builtin memcpy
+> [eva] tests/builtins/memcpy.c:96: Call to builtin memcpy
+446a449
+> [eva] tests/builtins/memcpy.c:230: starting to merge loop iterations
+diff tests/builtins/oracle/realloc.res.oracle tests/builtins/oracle_gauges/realloc.res.oracle
+644a645,957
+> [eva] tests/builtins/realloc.c:152: Call to builtin realloc
+> [eva:malloc] bases_to_realloc: {__realloc_w_main10_l152}
+> [eva:malloc] tests/builtins/realloc.c:152: 
+>   weak free on bases: {__realloc_w_main10_l152}
+> [eva] tests/builtins/realloc.c:154: Frama_C_show_each_main10: {4}
+> [eva] tests/builtins/realloc.c:155: 
+>   Frama_C_dump_each:
+>   # Cvalue domain:
+>   __fc_heap_status ∈ [--..--]
+>   __fc_random_counter ∈ [--..--]
+>   __fc_rand_max ∈ {32767}
+>   __fc_env[0] ∈ {{ NULL ; &S_0___fc_env[0] }}
+>           [1] ∈ {{ NULL ; &S_1___fc_env[0] }}
+>           [2..4095] ∈ {{ NULL ; &S_0___fc_env[0] ; &S_1___fc_env[0] }}
+>   __fc_mblen_state ∈ [--..--]
+>   __fc_mbtowc_state ∈ [--..--]
+>   __fc_wctomb_state ∈ [--..--]
+>   Frama_C_entropy_source ∈ [--..--]
+>   v ∈ [--..--]
+>   p ∈ {{ &__realloc_w_main10_l152[0] }}
+>   q ∈ {{ &__realloc_w_main10_l152[0] }} or ESCAPINGADDR
+>   S_0___fc_env[0..1] ∈ [--..--]
+>   S_1___fc_env[0..1] ∈ [--..--]
+>   __realloc_w_main10_l152[0] ∈ {4}
+>                          [1] ∈ UNINITIALIZED
+>   ==END OF DUMP==
+> [eva] tests/builtins/realloc.c:152: Call to builtin realloc
+> [eva:malloc] bases_to_realloc: {__realloc_w_main10_l152}
+> [eva:malloc] tests/builtins/realloc.c:152: 
+>   weak free on bases: {__realloc_w_main10_l152}
+> [eva] tests/builtins/realloc.c:154: Frama_C_show_each_main10: {4}
+> [eva] tests/builtins/realloc.c:155: 
+>   Frama_C_dump_each:
+>   # Cvalue domain:
+>   __fc_heap_status ∈ [--..--]
+>   __fc_random_counter ∈ [--..--]
+>   __fc_rand_max ∈ {32767}
+>   __fc_env[0] ∈ {{ NULL ; &S_0___fc_env[0] }}
+>           [1] ∈ {{ NULL ; &S_1___fc_env[0] }}
+>           [2..4095] ∈ {{ NULL ; &S_0___fc_env[0] ; &S_1___fc_env[0] }}
+>   __fc_mblen_state ∈ [--..--]
+>   __fc_mbtowc_state ∈ [--..--]
+>   __fc_wctomb_state ∈ [--..--]
+>   Frama_C_entropy_source ∈ [--..--]
+>   v ∈ [--..--]
+>   p ∈ {{ &__realloc_w_main10_l152[0] }}
+>   q ∈ {{ &__realloc_w_main10_l152[0] }} or ESCAPINGADDR
+>   S_0___fc_env[0..1] ∈ [--..--]
+>   S_1___fc_env[0..1] ∈ [--..--]
+>   __realloc_w_main10_l152[0] ∈ {4}
+>                          [1] ∈ UNINITIALIZED
+>   ==END OF DUMP==
+> [eva] tests/builtins/realloc.c:152: Call to builtin realloc
+> [eva:malloc] bases_to_realloc: {__realloc_w_main10_l152}
+> [eva:malloc] tests/builtins/realloc.c:152: 
+>   weak free on bases: {__realloc_w_main10_l152}
+> [eva] tests/builtins/realloc.c:154: Frama_C_show_each_main10: {4}
+> [eva] tests/builtins/realloc.c:155: 
+>   Frama_C_dump_each:
+>   # Cvalue domain:
+>   __fc_heap_status ∈ [--..--]
+>   __fc_random_counter ∈ [--..--]
+>   __fc_rand_max ∈ {32767}
+>   __fc_env[0] ∈ {{ NULL ; &S_0___fc_env[0] }}
+>           [1] ∈ {{ NULL ; &S_1___fc_env[0] }}
+>           [2..4095] ∈ {{ NULL ; &S_0___fc_env[0] ; &S_1___fc_env[0] }}
+>   __fc_mblen_state ∈ [--..--]
+>   __fc_mbtowc_state ∈ [--..--]
+>   __fc_wctomb_state ∈ [--..--]
+>   Frama_C_entropy_source ∈ [--..--]
+>   v ∈ [--..--]
+>   p ∈ {{ &__realloc_w_main10_l152[0] }}
+>   q ∈ {{ &__realloc_w_main10_l152[0] }} or ESCAPINGADDR
+>   S_0___fc_env[0..1] ∈ [--..--]
+>   S_1___fc_env[0..1] ∈ [--..--]
+>   __realloc_w_main10_l152[0] ∈ {4}
+>                          [1] ∈ UNINITIALIZED
+>   ==END OF DUMP==
+> [eva] tests/builtins/realloc.c:152: Call to builtin realloc
+> [eva:malloc] bases_to_realloc: {__realloc_w_main10_l152}
+> [eva:malloc] tests/builtins/realloc.c:152: 
+>   weak free on bases: {__realloc_w_main10_l152}
+> [eva] tests/builtins/realloc.c:154: Frama_C_show_each_main10: {4}
+> [eva] tests/builtins/realloc.c:155: 
+>   Frama_C_dump_each:
+>   # Cvalue domain:
+>   __fc_heap_status ∈ [--..--]
+>   __fc_random_counter ∈ [--..--]
+>   __fc_rand_max ∈ {32767}
+>   __fc_env[0] ∈ {{ NULL ; &S_0___fc_env[0] }}
+>           [1] ∈ {{ NULL ; &S_1___fc_env[0] }}
+>           [2..4095] ∈ {{ NULL ; &S_0___fc_env[0] ; &S_1___fc_env[0] }}
+>   __fc_mblen_state ∈ [--..--]
+>   __fc_mbtowc_state ∈ [--..--]
+>   __fc_wctomb_state ∈ [--..--]
+>   Frama_C_entropy_source ∈ [--..--]
+>   v ∈ [--..--]
+>   p ∈ {{ &__realloc_w_main10_l152[0] }}
+>   q ∈ {{ &__realloc_w_main10_l152[0] }} or ESCAPINGADDR
+>   S_0___fc_env[0..1] ∈ [--..--]
+>   S_1___fc_env[0..1] ∈ [--..--]
+>   __realloc_w_main10_l152[0] ∈ {4}
+>                          [1] ∈ UNINITIALIZED
+>   ==END OF DUMP==
+> [eva] tests/builtins/realloc.c:152: Call to builtin realloc
+> [eva:malloc] bases_to_realloc: {__realloc_w_main10_l152}
+> [eva:malloc] tests/builtins/realloc.c:152: 
+>   weak free on bases: {__realloc_w_main10_l152}
+> [eva] tests/builtins/realloc.c:154: Frama_C_show_each_main10: {4}
+> [eva] tests/builtins/realloc.c:155: 
+>   Frama_C_dump_each:
+>   # Cvalue domain:
+>   __fc_heap_status ∈ [--..--]
+>   __fc_random_counter ∈ [--..--]
+>   __fc_rand_max ∈ {32767}
+>   __fc_env[0] ∈ {{ NULL ; &S_0___fc_env[0] }}
+>           [1] ∈ {{ NULL ; &S_1___fc_env[0] }}
+>           [2..4095] ∈ {{ NULL ; &S_0___fc_env[0] ; &S_1___fc_env[0] }}
+>   __fc_mblen_state ∈ [--..--]
+>   __fc_mbtowc_state ∈ [--..--]
+>   __fc_wctomb_state ∈ [--..--]
+>   Frama_C_entropy_source ∈ [--..--]
+>   v ∈ [--..--]
+>   p ∈ {{ &__realloc_w_main10_l152[0] }}
+>   q ∈ {{ &__realloc_w_main10_l152[0] }} or ESCAPINGADDR
+>   S_0___fc_env[0..1] ∈ [--..--]
+>   S_1___fc_env[0..1] ∈ [--..--]
+>   __realloc_w_main10_l152[0] ∈ {4}
+>                          [1] ∈ UNINITIALIZED
+>   ==END OF DUMP==
+> [eva] tests/builtins/realloc.c:152: Call to builtin realloc
+> [eva:malloc] bases_to_realloc: {__realloc_w_main10_l152}
+> [eva:malloc] tests/builtins/realloc.c:152: 
+>   weak free on bases: {__realloc_w_main10_l152}
+> [eva] tests/builtins/realloc.c:154: Frama_C_show_each_main10: {4}
+> [eva] tests/builtins/realloc.c:155: 
+>   Frama_C_dump_each:
+>   # Cvalue domain:
+>   __fc_heap_status ∈ [--..--]
+>   __fc_random_counter ∈ [--..--]
+>   __fc_rand_max ∈ {32767}
+>   __fc_env[0] ∈ {{ NULL ; &S_0___fc_env[0] }}
+>           [1] ∈ {{ NULL ; &S_1___fc_env[0] }}
+>           [2..4095] ∈ {{ NULL ; &S_0___fc_env[0] ; &S_1___fc_env[0] }}
+>   __fc_mblen_state ∈ [--..--]
+>   __fc_mbtowc_state ∈ [--..--]
+>   __fc_wctomb_state ∈ [--..--]
+>   Frama_C_entropy_source ∈ [--..--]
+>   v ∈ [--..--]
+>   p ∈ {{ &__realloc_w_main10_l152[0] }}
+>   q ∈ {{ &__realloc_w_main10_l152[0] }} or ESCAPINGADDR
+>   S_0___fc_env[0..1] ∈ [--..--]
+>   S_1___fc_env[0..1] ∈ [--..--]
+>   __realloc_w_main10_l152[0] ∈ {4}
+>                          [1] ∈ UNINITIALIZED
+>   ==END OF DUMP==
+> [eva] tests/builtins/realloc.c:152: Call to builtin realloc
+> [eva:malloc] bases_to_realloc: {__realloc_w_main10_l152}
+> [eva:malloc] tests/builtins/realloc.c:152: 
+>   weak free on bases: {__realloc_w_main10_l152}
+> [eva] tests/builtins/realloc.c:154: Frama_C_show_each_main10: {4}
+> [eva] tests/builtins/realloc.c:155: 
+>   Frama_C_dump_each:
+>   # Cvalue domain:
+>   __fc_heap_status ∈ [--..--]
+>   __fc_random_counter ∈ [--..--]
+>   __fc_rand_max ∈ {32767}
+>   __fc_env[0] ∈ {{ NULL ; &S_0___fc_env[0] }}
+>           [1] ∈ {{ NULL ; &S_1___fc_env[0] }}
+>           [2..4095] ∈ {{ NULL ; &S_0___fc_env[0] ; &S_1___fc_env[0] }}
+>   __fc_mblen_state ∈ [--..--]
+>   __fc_mbtowc_state ∈ [--..--]
+>   __fc_wctomb_state ∈ [--..--]
+>   Frama_C_entropy_source ∈ [--..--]
+>   v ∈ [--..--]
+>   p ∈ {{ &__realloc_w_main10_l152[0] }}
+>   q ∈ {{ &__realloc_w_main10_l152[0] }} or ESCAPINGADDR
+>   S_0___fc_env[0..1] ∈ [--..--]
+>   S_1___fc_env[0..1] ∈ [--..--]
+>   __realloc_w_main10_l152[0] ∈ {4}
+>                          [1] ∈ UNINITIALIZED
+>   ==END OF DUMP==
+> [eva] tests/builtins/realloc.c:152: Call to builtin realloc
+> [eva:malloc] bases_to_realloc: {__realloc_w_main10_l152}
+> [eva:malloc] tests/builtins/realloc.c:152: 
+>   weak free on bases: {__realloc_w_main10_l152}
+> [eva] tests/builtins/realloc.c:154: Frama_C_show_each_main10: {4}
+> [eva] tests/builtins/realloc.c:155: 
+>   Frama_C_dump_each:
+>   # Cvalue domain:
+>   __fc_heap_status ∈ [--..--]
+>   __fc_random_counter ∈ [--..--]
+>   __fc_rand_max ∈ {32767}
+>   __fc_env[0] ∈ {{ NULL ; &S_0___fc_env[0] }}
+>           [1] ∈ {{ NULL ; &S_1___fc_env[0] }}
+>           [2..4095] ∈ {{ NULL ; &S_0___fc_env[0] ; &S_1___fc_env[0] }}
+>   __fc_mblen_state ∈ [--..--]
+>   __fc_mbtowc_state ∈ [--..--]
+>   __fc_wctomb_state ∈ [--..--]
+>   Frama_C_entropy_source ∈ [--..--]
+>   v ∈ [--..--]
+>   p ∈ {{ &__realloc_w_main10_l152[0] }}
+>   q ∈ {{ &__realloc_w_main10_l152[0] }} or ESCAPINGADDR
+>   S_0___fc_env[0..1] ∈ [--..--]
+>   S_1___fc_env[0..1] ∈ [--..--]
+>   __realloc_w_main10_l152[0] ∈ {4}
+>                          [1] ∈ UNINITIALIZED
+>   ==END OF DUMP==
+> [eva] tests/builtins/realloc.c:152: Call to builtin realloc
+> [eva:malloc] bases_to_realloc: {__realloc_w_main10_l152}
+> [eva:malloc] tests/builtins/realloc.c:152: 
+>   weak free on bases: {__realloc_w_main10_l152}
+> [eva] tests/builtins/realloc.c:154: Frama_C_show_each_main10: {4}
+> [eva] tests/builtins/realloc.c:155: 
+>   Frama_C_dump_each:
+>   # Cvalue domain:
+>   __fc_heap_status ∈ [--..--]
+>   __fc_random_counter ∈ [--..--]
+>   __fc_rand_max ∈ {32767}
+>   __fc_env[0] ∈ {{ NULL ; &S_0___fc_env[0] }}
+>           [1] ∈ {{ NULL ; &S_1___fc_env[0] }}
+>           [2..4095] ∈ {{ NULL ; &S_0___fc_env[0] ; &S_1___fc_env[0] }}
+>   __fc_mblen_state ∈ [--..--]
+>   __fc_mbtowc_state ∈ [--..--]
+>   __fc_wctomb_state ∈ [--..--]
+>   Frama_C_entropy_source ∈ [--..--]
+>   v ∈ [--..--]
+>   p ∈ {{ &__realloc_w_main10_l152[0] }}
+>   q ∈ {{ &__realloc_w_main10_l152[0] }} or ESCAPINGADDR
+>   S_0___fc_env[0..1] ∈ [--..--]
+>   S_1___fc_env[0..1] ∈ [--..--]
+>   __realloc_w_main10_l152[0] ∈ {4}
+>                          [1] ∈ UNINITIALIZED
+>   ==END OF DUMP==
+> [eva] tests/builtins/realloc.c:150: starting to merge loop iterations
+> [eva] tests/builtins/realloc.c:152: Call to builtin realloc
+> [eva:malloc] bases_to_realloc: {__realloc_w_main10_l152}
+> [eva:malloc] tests/builtins/realloc.c:152: 
+>   weak free on bases: {__realloc_w_main10_l152}
+> [eva] tests/builtins/realloc.c:154: Frama_C_show_each_main10: {4}
+> [eva] tests/builtins/realloc.c:155: 
+>   Frama_C_dump_each:
+>   # Cvalue domain:
+>   __fc_heap_status ∈ [--..--]
+>   __fc_random_counter ∈ [--..--]
+>   __fc_rand_max ∈ {32767}
+>   __fc_env[0] ∈ {{ NULL ; &S_0___fc_env[0] }}
+>           [1] ∈ {{ NULL ; &S_1___fc_env[0] }}
+>           [2..4095] ∈ {{ NULL ; &S_0___fc_env[0] ; &S_1___fc_env[0] }}
+>   __fc_mblen_state ∈ [--..--]
+>   __fc_mbtowc_state ∈ [--..--]
+>   __fc_wctomb_state ∈ [--..--]
+>   Frama_C_entropy_source ∈ [--..--]
+>   v ∈ [--..--]
+>   p ∈ {{ &__realloc_w_main10_l152[0] }}
+>   q ∈ {{ &__realloc_w_main10_l152[0] }} or ESCAPINGADDR
+>   S_0___fc_env[0..1] ∈ [--..--]
+>   S_1___fc_env[0..1] ∈ [--..--]
+>   __realloc_w_main10_l152[0] ∈ {4}
+>                          [1] ∈ UNINITIALIZED
+>   ==END OF DUMP==
+> [eva] tests/builtins/realloc.c:152: Call to builtin realloc
+> [eva:malloc] bases_to_realloc: {__realloc_w_main10_l152}
+> [eva:malloc] tests/builtins/realloc.c:152: 
+>   weak free on bases: {__realloc_w_main10_l152}
+> [eva] tests/builtins/realloc.c:154: Frama_C_show_each_main10: {4}
+> [eva] tests/builtins/realloc.c:155: 
+>   Frama_C_dump_each:
+>   # Cvalue domain:
+>   __fc_heap_status ∈ [--..--]
+>   __fc_random_counter ∈ [--..--]
+>   __fc_rand_max ∈ {32767}
+>   __fc_env[0] ∈ {{ NULL ; &S_0___fc_env[0] }}
+>           [1] ∈ {{ NULL ; &S_1___fc_env[0] }}
+>           [2..4095] ∈ {{ NULL ; &S_0___fc_env[0] ; &S_1___fc_env[0] }}
+>   __fc_mblen_state ∈ [--..--]
+>   __fc_mbtowc_state ∈ [--..--]
+>   __fc_wctomb_state ∈ [--..--]
+>   Frama_C_entropy_source ∈ [--..--]
+>   v ∈ [--..--]
+>   p ∈ {{ &__realloc_w_main10_l152[0] }}
+>   q ∈ {{ &__realloc_w_main10_l152[0] }} or ESCAPINGADDR
+>   S_0___fc_env[0..1] ∈ [--..--]
+>   S_1___fc_env[0..1] ∈ [--..--]
+>   __realloc_w_main10_l152[0] ∈ {4}
+>                          [1] ∈ UNINITIALIZED
+>   ==END OF DUMP==
+> [eva] tests/builtins/realloc.c:152: Call to builtin realloc
+> [eva:malloc] bases_to_realloc: {__realloc_w_main10_l152}
+> [eva:malloc] tests/builtins/realloc.c:152: 
+>   weak free on bases: {__realloc_w_main10_l152}
+> [eva] tests/builtins/realloc.c:154: Frama_C_show_each_main10: {4}
+> [eva] tests/builtins/realloc.c:155: 
+>   Frama_C_dump_each:
+>   # Cvalue domain:
+>   __fc_heap_status ∈ [--..--]
+>   __fc_random_counter ∈ [--..--]
+>   __fc_rand_max ∈ {32767}
+>   __fc_env[0] ∈ {{ NULL ; &S_0___fc_env[0] }}
+>           [1] ∈ {{ NULL ; &S_1___fc_env[0] }}
+>           [2..4095] ∈ {{ NULL ; &S_0___fc_env[0] ; &S_1___fc_env[0] }}
+>   __fc_mblen_state ∈ [--..--]
+>   __fc_mbtowc_state ∈ [--..--]
+>   __fc_wctomb_state ∈ [--..--]
+>   Frama_C_entropy_source ∈ [--..--]
+>   v ∈ [--..--]
+>   p ∈ {{ &__realloc_w_main10_l152[0] }}
+>   q ∈ {{ &__realloc_w_main10_l152[0] }} or ESCAPINGADDR
+>   S_0___fc_env[0..1] ∈ [--..--]
+>   S_1___fc_env[0..1] ∈ [--..--]
+>   __realloc_w_main10_l152[0] ∈ {4}
+>                          [1] ∈ UNINITIALIZED
+>   ==END OF DUMP==

@@ -1,19 +1,19 @@
-# frama-c -wp [...]
+# frama-c -wp -wp-timeout 90 -wp-steps 50 [...]
 [kernel] Parsing tests/wp_acsl/init_value.i (no preprocessing)
 [wp] Running WP plugin...
 [wp] Loading driver 'share/wp.driver'
 [wp] Warning: Missing RTE guards
 [wp] 6 goals scheduled
-[wp] [Alt-Ergo] Goal typed_main_pre_qed_ko_Sc_eq_ko : Unknown
-[wp] [Alt-Ergo] Goal typed_main_pre_qed_ko_Sc_t : Unknown
-[wp] [Alt-Ergo] Goal typed_main_pre_qed_ko_Sc_c_2 : Unknown
-[wp] [Alt-Ergo] Goal typed_main_pre_qed_ko_Tab_no_init : Unknown
-[wp] [Alt-Ergo] Goal typed_main_pre_qed_ko_With_Array_Struct_3 : Unknown
-[wp] [Alt-Ergo] Goal typed_main_pre_qed_ko_Simple_Array_1 : Unknown
+[wp] [Alt-Ergo] Goal typed_main_ko_pre_qed_ko_Sc_eq_ko : Unknown
+[wp] [Alt-Ergo] Goal typed_main_ko_pre_qed_ko_Sc_t : Unknown
+[wp] [Alt-Ergo] Goal typed_main_ko_pre_qed_ko_Sc_c_2 : Unknown
+[wp] [Alt-Ergo] Goal typed_main_ko_pre_qed_ko_Tab_no_init : Unknown
+[wp] [Alt-Ergo] Goal typed_main_ko_pre_qed_ko_With_Array_Struct_3 : Unknown
+[wp] [Alt-Ergo] Goal typed_main_ko_pre_qed_ko_Simple_Array_1 : Unknown
 [wp] Proved goals:    0 / 6
   Alt-Ergo:        0  (unknown: 6)
 [wp] Report 'tests/wp_acsl/init_value.i.1.report.json'
 -------------------------------------------------------------
 Functions           WP     Alt-Ergo        Total   Success
-main                -      -                 6       0.0%
+main_ko             -      -                 6       0.0%
 -------------------------------------------------------------

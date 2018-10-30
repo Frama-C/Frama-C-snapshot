@@ -79,7 +79,7 @@ let set_unreachable pid =
   let emit = function
     | Property.IPPredicate(Property.PKAssumes _ ,_,_,_) -> ()
     | p ->
-    debug "unreachable annotation %a@." Property.pretty p;
+        debug "unreachable annotation %a@." Property.pretty p;
         Property_status.emit wp_unreachable ~hyps:[] p Property_status.True
   in
   let pids = match WpPropId.property_of_id pid with
@@ -89,8 +89,8 @@ let set_unreachable pid =
         (Property.ip_post_cond_of_behavior kf kinstr active bhv) @
         (Property.ip_requires_of_behavior kf kinstr bhv)
     | Property.IPExtended _ -> []
-      (* Extended clauses might concern anything. Don't validate them
-         unless we know exactly what is going on. *)
+    (* Extended clauses might concern anything. Don't validate them
+       unless we know exactly what is going on. *)
     | p ->
         Wp_parameters.result "[CFG] Goal %a : Valid (Unreachable)"
           WpPropId.pp_propid pid ; [p]
@@ -519,8 +519,17 @@ let add_fct_pre config acc spec =
     WpStrategy.add_prop_fct_bhv_pre acc kind kf b ~impl_assumes
   in
   let add_def_pre_hyp acc =
-    match Cil.find_default_behavior spec with None -> acc
-                                            | Some bdef -> add_bhv_pre_hyp bdef acc
+    match Cil.find_default_behavior spec with
+    | None -> acc
+    | Some bdef -> add_bhv_pre_hyp bdef acc
+  in
+  let acc =
+    if WpStrategy.is_main_init kf ||
+       Wp_parameters.PrecondWeakening.get () then acc
+    else let kind = WpStrategy.Ahyp in
+      List.fold_left (fun acc bhv ->
+          WpStrategy.add_prop_fct_pre_bhv acc kind kf bhv)
+        acc spec.spec_behavior
   in
   let acc = match get_behav config Kglobal spec.spec_behavior with
     | None -> add_def_pre_hyp acc
@@ -739,10 +748,9 @@ let add_called_post called_kf termination_kind acc =
   in
   List.fold_left add_behav acc spec.spec_behavior
 
-let add_call_annots config s kf l_post precond (before,(posts,exits)) =
+let add_call_annots config s kf l_post (before,(posts,exits)) =
   let spec = Annotations.funspec kf in
-  let before =
-    if precond then add_called_pre config kf s spec before else before in
+  let before = add_called_pre config kf s spec before in
   let posts = add_called_post kf Normal posts in
   let posts = WpStrategy.add_call_assigns_hyp posts config.kf s
       ~called_kf:kf l_post (Some spec) in
@@ -754,9 +762,7 @@ let get_call_annots config v s fct =
   let empty = let e = WpStrategy.empty_acc in e,(e,e) in
   match fct with
 
-  | Cil2cfg.Static kf ->
-      let precond = not (WpRTE.is_precond_generated config.kf) in
-      add_call_annots config s kf l_post precond empty
+  | Cil2cfg.Static kf -> add_call_annots config s kf l_post empty
 
   | Cil2cfg.Dynamic _ ->
       let calls = Dyncall.get ~bhv:(name_of_asked_bhv config.cur_bhv) s in
@@ -770,7 +776,7 @@ let get_call_annots config v s fct =
       else
         begin
           List.fold_left
-            (fun acc kf -> add_call_annots config s kf l_post true acc)
+            (fun acc kf -> add_call_annots config s kf l_post acc)
             empty calls
         end
 
@@ -902,7 +908,12 @@ let get_stmt_annots config v s =
               in (b_acc, (a_acc, e_acc))
           | TBRok | TBRpart ->
               let id = WpPropId.mk_assert_id config.kf s a in
-              let kind = WpStrategy.Aboth (goal_to_select config id) in
+              let kind =
+                if Wp_parameters.Assert_check_only.get () then
+                  WpStrategy.Agoal
+                else
+                  WpStrategy.Aboth (goal_to_select config id)
+              in
               let b_acc = WpStrategy.add_prop_assert b_acc kind kf s a p in
               (b_acc, (a_acc, e_acc))
         in acc
@@ -1061,6 +1072,9 @@ let add_global_annotations annots =
         Wp_parameters.warning ~source ~once:true
           "Custom annotation not handled (ignored)";
         ()
+    | Dextended _ -> ()
+    (* nothing to do. It's the job of the extension's owner
+       to generate the appropriate standard annotations. *)
     | Dinvariant (linfo,_) ->
         Wp_parameters.warning ~source ~once:true
           "Global invariant not handled yet ('%s' ignored)"
@@ -1093,7 +1107,7 @@ let behavior_name_of_config config =
   | StmtBhv (_, s, active, b) when b.b_name = Cil.default_behavior_name ->
       Some(
         "default_for_stmt_"^(string_of_int s.sid)^(string_of_active active))
-        (*TODO better name ?*)
+  (*TODO better name ?*)
   | StmtBhv (_, s, active, b) ->
       Some (b.b_name^"_stmt_"^(string_of_int s.sid)^(string_of_active active))
 

@@ -1,34 +1,33 @@
 [kernel] Parsing tests/slicing/loops.i (no preprocessing)
-[value] Analyzing a complete application starting at test_infinite_loop_5
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing a complete application starting at test_infinite_loop_5
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   G ∈ {0}
   C1 ∈ {1}
   C2 ∈ {1}
   X ∈ {0}
   Y ∈ {0}
   Z ∈ {0}
-[value] tests/slicing/loops.i:149: entering loop for the first time
-[value:alarm] tests/slicing/loops.i:165: Warning: 
+[eva:alarm] tests/slicing/loops.i:165: Warning: 
   signed overflow. assert -2147483648 ≤ G + data2;
-[value:alarm] tests/slicing/loops.i:165: Warning: 
+[eva:alarm] tests/slicing/loops.i:165: Warning: 
   signed overflow. assert G + data2 ≤ 2147483647;
-[value:alarm] tests/slicing/loops.i:150: Warning: 
+[eva] tests/slicing/loops.i:149: starting to merge loop iterations
+[eva:alarm] tests/slicing/loops.i:150: Warning: 
   signed overflow. assert -2147483648 ≤ G + data1;
-[value:alarm] tests/slicing/loops.i:150: Warning: 
+[eva:alarm] tests/slicing/loops.i:150: Warning: 
   signed overflow. assert G + data1 ≤ 2147483647;
-[value:alarm] tests/slicing/loops.i:154: Warning: 
+[eva:alarm] tests/slicing/loops.i:154: Warning: 
   signed overflow. assert -2147483648 ≤ G + no_data;
-[value:alarm] tests/slicing/loops.i:154: Warning: 
+[eva:alarm] tests/slicing/loops.i:154: Warning: 
   signed overflow. assert G + no_data ≤ 2147483647;
-[value] tests/slicing/loops.i:155: entering loop for the first time
-[value:alarm] tests/slicing/loops.i:156: Warning: 
+[eva:alarm] tests/slicing/loops.i:156: Warning: 
   signed overflow. assert -2147483648 ≤ G + no_data;
-[value:alarm] tests/slicing/loops.i:156: Warning: 
+[eva:alarm] tests/slicing/loops.i:156: Warning: 
   signed overflow. assert G + no_data ≤ 2147483647;
-[value] Recording results for test_infinite_loop_5
-[value] done for function test_infinite_loop_5
+[eva] Recording results for test_infinite_loop_5
+[eva] done for function test_infinite_loop_5
 [from] Computing for function test_infinite_loop_5
 [from] Done for function test_infinite_loop_5
 [from] ====== DEPENDENCIES COMPUTED ======

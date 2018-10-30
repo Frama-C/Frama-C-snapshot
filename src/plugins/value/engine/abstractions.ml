@@ -36,6 +36,7 @@ type config = {
   inout: bool;
   signs: bool;
   printer: bool;
+  numerors: bool;
 }
 
 let configure () = {
@@ -52,6 +53,7 @@ let configure () = {
   inout = Value_parameters.InoutDomain.get ();
   signs = Value_parameters.SignDomain.get ();
   printer = Value_parameters.PrinterDomain.get ();
+  numerors = Value_parameters.NumerorsDomain.get ();
 }
 
 let default_config = configure ()
@@ -70,6 +72,7 @@ let legacy_config = {
   inout = false;
   signs = false;
   printer = false;
+  numerors = false;
 }
 
 module type Value = sig
@@ -138,6 +141,11 @@ let build_value config =
     then
       let module V = Value_product.Make ((val value)) (Sign_value) in
       (module V: Abstract_value.Internal)
+    else value
+  in
+  let value =
+    if config.numerors
+    then Numerors_domain.add_numerors_value value
     else value
   in
   let value =
@@ -378,6 +386,25 @@ let add_signs abstract =
     module Dom = Dom
   end : Abstract)
 
+(* -------------------------------------------------------------------------- *)
+(*                           Numerors Domain                                  *)
+(* -------------------------------------------------------------------------- *)
+
+let add_errors abstract =
+  let module Abstract = (val abstract : Abstract) in
+  let module K = struct
+    type v = Numerors_domain.value
+    let key = Numerors_domain.value_key
+  end in
+  let module Conv = Convert (Abstract.Val) (K) in
+  let module Numerors = (val Numerors_domain.numerors_domain ()) in
+  let module Errors = Domain_lift.Make (Numerors) (Conv) in
+  let module Dom = Domain_product.Make (Abstract.Val) (Abstract.Dom) (Errors) in
+  (module struct
+    module Val = Abstract.Val
+    module Loc = Abstract.Loc
+    module Dom = Dom
+  end : Abstract)
 
 (* -------------------------------------------------------------------------- *)
 (*                                 Printer                                    *)
@@ -457,6 +484,11 @@ let build_abstractions config =
     else abstractions
   in
   let abstractions =
+    if config.numerors
+    then add_errors abstractions
+    else abstractions
+  in
+  let abstractions =
     if config.printer
     then add_printer abstractions
     else abstractions
@@ -474,7 +506,7 @@ module Reduce (Value : Abstract_value.External) = struct
      component (coming currently from an Apron domain), reduce them from each
      other. If the Cvalue is not a scalar do nothing, because we do not
      currently use Apron for pointer offsets. *)
-  let reduce =
+  let reduce_apron_itv =
     match Value.get Main_values.interval_key, Value.get Main_values.cvalue_key with
     | Some get_interval, Some get_cvalue ->
       begin
@@ -503,6 +535,9 @@ module Reduce (Value : Abstract_value.External) = struct
       end
     | _, _ -> fun x -> x
 
+  let reduce_error = Numerors_domain.reduce_error (module Value)
+
+  let reduce t = reduce_apron_itv (reduce_error t)
 end
 
 let open_abstractions abstraction =

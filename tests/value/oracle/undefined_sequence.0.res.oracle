@@ -67,106 +67,104 @@
   i = tmp_9 + tmp_10;
 [kernel] tests/value/undefined_sequence.i:67: Warning: 
   Unspecified sequence with side effect:
-  /* my_f <- g */
+  /* my_f <-  */
   my_f = & g;
   tmp_16 = f(1);
   /*  <- my_f */
   tmp_17 = (*my_f)(2);
   /*  <-  */
   tmp_18 = tmp_16 + tmp_17;
-[value] Analyzing a complete application starting at main
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing a complete application starting at main
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   G[0..9] ∈ {0}
   c ∈ [--..--]
   r ∈ {0}
   H ∈ {0}
-[value:alarm] tests/value/undefined_sequence.i:35: Warning: 
+[eva:alarm] tests/value/undefined_sequence.i:35: Warning: 
   undefined multiple accesses in expression. assert \separated(&x, y);
-[value] tests/value/undefined_sequence.i:36: entering loop for the first time
-[value] tests/value/undefined_sequence.i:38: entering loop for the first time
-[value] tests/value/undefined_sequence.i:40: entering loop for the first time
-[value:alarm] tests/value/undefined_sequence.i:40: Warning: 
+[eva] tests/value/undefined_sequence.i:36: starting to merge loop iterations
+[eva] tests/value/undefined_sequence.i:38: starting to merge loop iterations
+[eva] tests/value/undefined_sequence.i:40: starting to merge loop iterations
+[eva:alarm] tests/value/undefined_sequence.i:40: Warning: 
   signed overflow.
   assert G[tmp_2] + G[tmp_3] ≤ 2147483647;
   (tmp_2 from j++, tmp_3 from i++)
-[value] tests/value/undefined_sequence.i:43: entering loop for the first time
-[value:alarm] tests/value/undefined_sequence.i:44: Warning: 
+[eva:alarm] tests/value/undefined_sequence.i:44: Warning: 
   undefined multiple accesses in expression. assert \separated(&j, &j);
-[value:alarm] tests/value/undefined_sequence.i:45: Warning: 
+[eva:alarm] tests/value/undefined_sequence.i:45: Warning: 
   undefined multiple accesses in expression. assert \separated(&i, &i);
-[value] tests/value/undefined_sequence.i:49: entering loop for the first time
-[value:alarm] tests/value/undefined_sequence.i:50: Warning: 
+[eva:alarm] tests/value/undefined_sequence.i:50: Warning: 
   undefined multiple accesses in expression. assert \separated(&j, &j);
-[value:alarm] tests/value/undefined_sequence.i:51: Warning: 
+[eva:alarm] tests/value/undefined_sequence.i:51: Warning: 
   undefined multiple accesses in expression. assert \separated(&i, &i);
-[value:alarm] tests/value/undefined_sequence.i:53: Warning: 
+[eva:alarm] tests/value/undefined_sequence.i:53: Warning: 
   undefined multiple accesses in expression. assert \separated(&x, &x);
-[value] computing for function g <- main.
+[eva] computing for function g <- main.
   Called from tests/value/undefined_sequence.i:54.
-[value] Recording results for g
-[value] Done for function g
-[value] computing for function f <- main.
+[eva] Recording results for g
+[eva] Done for function g
+[eva] computing for function f <- main.
   Called from tests/value/undefined_sequence.i:54.
-[value] Recording results for f
-[value] Done for function f
-[value] computing for function h <- main.
+[eva] Recording results for f
+[eva] Done for function f
+[eva] computing for function h <- main.
   Called from tests/value/undefined_sequence.i:56.
-[value:alarm] tests/value/undefined_sequence.i:16: Warning: 
+[eva:alarm] tests/value/undefined_sequence.i:16: Warning: 
   undefined multiple accesses in expression. assert \separated(&r, &r);
-[value] Recording results for h
-[value] Done for function h
-[value] computing for function h <- main.
+[eva] Recording results for h
+[eva] Done for function h
+[eva] computing for function h <- main.
   Called from tests/value/undefined_sequence.i:56.
-[value] Recording results for h
-[value] Done for function h
-[value] computing for function func <- main.
+[eva] Recording results for h
+[eva] Done for function h
+[eva] computing for function func <- main.
   Called from tests/value/undefined_sequence.i:60.
-[value] Recording results for func
-[value] Done for function func
-[value] computing for function ub_ret <- main.
+[eva] Recording results for func
+[eva] Done for function func
+[eva] computing for function ub_ret <- main.
   Called from tests/value/undefined_sequence.i:65.
-[value:alarm] tests/value/undefined_sequence.i:28: Warning: 
+[eva:alarm] tests/value/undefined_sequence.i:28: Warning: 
   undefined multiple accesses in expression. assert \separated(&d, &d);
-[value] Recording results for ub_ret
-[value] Done for function ub_ret
-[value:alarm] tests/value/undefined_sequence.i:67: Warning: 
+[eva] Recording results for ub_ret
+[eva] Done for function ub_ret
+[eva:alarm] tests/value/undefined_sequence.i:67: Warning: 
   undefined multiple accesses in expression. assert \separated(&my_f, &my_f);
-[value] Recording results for main
-[value] done for function main
-[value] tests/value/undefined_sequence.i:16: 
-  assertion 'Value,separation' got final status invalid.
-[value] tests/value/undefined_sequence.i:28: 
-  assertion 'Value,separation' got final status invalid.
-[value] tests/value/undefined_sequence.i:35: 
-  assertion 'Value,separation' got final status invalid.
-[value] tests/value/undefined_sequence.i:44: 
-  assertion 'Value,separation' got final status invalid.
-[value] tests/value/undefined_sequence.i:45: 
-  assertion 'Value,separation' got final status invalid.
-[value] tests/value/undefined_sequence.i:50: 
-  assertion 'Value,separation' got final status invalid.
-[value] tests/value/undefined_sequence.i:51: 
-  assertion 'Value,separation' got final status invalid.
-[value] tests/value/undefined_sequence.i:53: 
-  assertion 'Value,separation' got final status invalid.
-[value] tests/value/undefined_sequence.i:67: 
-  assertion 'Value,separation' got final status invalid.
-[value] ====== VALUES COMPUTED ======
-[value:final-states] Values at end of function f:
+[eva] Recording results for main
+[eva] done for function main
+[eva] tests/value/undefined_sequence.i:16: 
+  assertion 'Eva,separation' got final status invalid.
+[eva] tests/value/undefined_sequence.i:28: 
+  assertion 'Eva,separation' got final status invalid.
+[eva] tests/value/undefined_sequence.i:35: 
+  assertion 'Eva,separation' got final status invalid.
+[eva] tests/value/undefined_sequence.i:44: 
+  assertion 'Eva,separation' got final status invalid.
+[eva] tests/value/undefined_sequence.i:45: 
+  assertion 'Eva,separation' got final status invalid.
+[eva] tests/value/undefined_sequence.i:50: 
+  assertion 'Eva,separation' got final status invalid.
+[eva] tests/value/undefined_sequence.i:51: 
+  assertion 'Eva,separation' got final status invalid.
+[eva] tests/value/undefined_sequence.i:53: 
+  assertion 'Eva,separation' got final status invalid.
+[eva] tests/value/undefined_sequence.i:67: 
+  assertion 'Eva,separation' got final status invalid.
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function f:
   __retres ∈ {6}
-[value:final-states] Values at end of function func:
+[eva:final-states] Values at end of function func:
   __retres ∈ {5; 6}
-[value:final-states] Values at end of function g:
+[eva:final-states] Values at end of function g:
   __retres ∈ {5}
-[value:final-states] Values at end of function h:
+[eva:final-states] Values at end of function h:
   r ∈ {1; 2}
   H ∈ {0; 1}
   i ∈ {0; 1}
-[value:final-states] Values at end of function ub_ret:
+[eva:final-states] Values at end of function ub_ret:
   NON TERMINATING FUNCTION
-[value:final-states] Values at end of function main:
+[eva:final-states] Values at end of function main:
   G[0..1] ∈ [0..2147483647]
    [2] ∈ {0; 1}
    [3..9] ∈ [0..2147483647]

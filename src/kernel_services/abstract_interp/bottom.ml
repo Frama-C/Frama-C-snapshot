@@ -39,6 +39,10 @@ end
 
 include Type
 
+let is_bottom = function
+  | `Bottom -> true
+  | `Value _ -> false
+
 let non_bottom = function
   | `Value v -> v
   | `Bottom  -> assert false
@@ -126,6 +130,9 @@ module Bound_Lattice
   let is_included = is_included Lattice.is_included
 end
 
+let to_list = function
+  | `Bottom  -> []
+  | `Value v -> [v]
 
 let bot_of_list = function
   | [] -> `Bottom
@@ -139,6 +146,8 @@ let add_to_list elt list = match elt with
   | `Bottom    -> list
   | `Value elt -> elt :: list
 
+let all l =
+  List.fold_left (fun l elt -> add_to_list elt l) [] l
 
 module Top = struct
 

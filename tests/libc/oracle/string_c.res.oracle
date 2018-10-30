@@ -1,1016 +1,970 @@
 [kernel] Parsing tests/libc/string_c.c (with preprocessing)
-[value] Analyzing a complete application starting at main
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
-  __fc_heap_status ∈ [--..--]
-  __fc_strtok_ptr ∈ {0}
-  __fc_random_counter ∈ [--..--]
-  __fc_rand_max ∈ {32767}
-  __fc_mblen_state ∈ [--..--]
-  __fc_mbtowc_state ∈ [--..--]
-  __fc_wctomb_state ∈ [--..--]
-[value] computing for function test_memcpy <- main.
+[eva] Analyzing a complete application starting at main
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
+  v ∈ [--..--]
+[eva] computing for function test_memcpy <- main.
   Called from tests/libc/string_c.c:281.
-[value] computing for function memcpy <- test_memcpy <- main.
+[eva] computing for function memcpy <- test_memcpy <- main.
   Called from tests/libc/string_c.c:10.
-[value] tests/libc/string_c.c:10: 
+[eva] tests/libc/string_c.c:10: 
   function memcpy: precondition 'valid_dest' got status valid.
-[value] tests/libc/string_c.c:10: 
+[eva] tests/libc/string_c.c:10: 
   function memcpy: precondition 'valid_src' got status valid.
-[value] tests/libc/string_c.c:10: 
+[eva] tests/libc/string_c.c:10: 
   function memcpy: precondition 'separation' got status valid.
-[value] share/libc/string.h:84: 
+[eva] share/libc/string.h:98: 
   cannot evaluate ACSL term, unsupported ACSL construct: logic function memcmp
-[value:alarm] share/libc/string.h:84: Warning: 
+[eva:alarm] share/libc/string.h:98: Warning: 
   function memcpy: postcondition 'copied_contents' got status unknown.
-[value] share/libc/string.h:85: 
+[eva] share/libc/string.h:99: 
   function memcpy: postcondition 'result_ptr' got status valid.
-[value] Recording results for memcpy
-[value] Done for function memcpy
-[value] tests/libc/string_c.c:11: assertion got status valid.
-[value] tests/libc/string_c.c:12: assertion got status valid.
-[value] tests/libc/string_c.c:13: assertion got status valid.
-[value] tests/libc/string_c.c:14: assertion got status valid.
-[value] computing for function memcpy <- test_memcpy <- main.
+[eva] Recording results for memcpy
+[eva] Done for function memcpy
+[eva] tests/libc/string_c.c:11: assertion got status valid.
+[eva] tests/libc/string_c.c:12: assertion got status valid.
+[eva] tests/libc/string_c.c:13: assertion got status valid.
+[eva] tests/libc/string_c.c:14: assertion got status valid.
+[eva] computing for function memcpy <- test_memcpy <- main.
   Called from tests/libc/string_c.c:16.
-[value] tests/libc/string_c.c:16: 
+[eva] tests/libc/string_c.c:16: 
   function memcpy: precondition 'valid_dest' got status valid.
-[value] tests/libc/string_c.c:16: 
+[eva] tests/libc/string_c.c:16: 
   function memcpy: precondition 'valid_src' got status valid.
-[value] tests/libc/string_c.c:16: 
+[eva] tests/libc/string_c.c:16: 
   function memcpy: precondition 'separation' got status valid.
-[value] Recording results for memcpy
-[value] Done for function memcpy
-[value] tests/libc/string_c.c:17: assertion got status valid.
-[value] tests/libc/string_c.c:18: assertion got status valid.
-[value] computing for function memcpy <- test_memcpy <- main.
+[eva] Recording results for memcpy
+[eva] Done for function memcpy
+[eva] tests/libc/string_c.c:17: assertion got status valid.
+[eva] tests/libc/string_c.c:18: assertion got status valid.
+[eva] computing for function memcpy <- test_memcpy <- main.
   Called from tests/libc/string_c.c:19.
-[value] tests/libc/string_c.c:19: 
+[eva] tests/libc/string_c.c:19: 
   function memcpy: precondition 'valid_dest' got status valid.
-[value] tests/libc/string_c.c:19: 
-  function memcpy: precondition 'valid_src' got status valid.
-[value] tests/libc/string_c.c:19: 
+[eva:alarm] tests/libc/string_c.c:19: Warning: 
+  function memcpy: precondition 'valid_src' got status unknown.
+[eva] tests/libc/string_c.c:19: 
   function memcpy: precondition 'separation' got status valid.
-[value] Recording results for memcpy
-[value] Done for function memcpy
-[value] computing for function memcpy <- test_memcpy <- main.
+[eva] Recording results for memcpy
+[eva] Done for function memcpy
+[eva] computing for function memcpy <- test_memcpy <- main.
   Called from tests/libc/string_c.c:20.
-[value] tests/libc/string_c.c:20: 
-  function memcpy: precondition 'valid_dest' got status valid.
-[value] tests/libc/string_c.c:20: 
-  function memcpy: precondition 'valid_src' got status valid.
-[value] tests/libc/string_c.c:20: 
+[eva:alarm] tests/libc/string_c.c:20: Warning: 
+  function memcpy: precondition 'valid_dest' got status unknown.
+[eva:alarm] tests/libc/string_c.c:20: Warning: 
+  function memcpy: precondition 'valid_src' got status unknown.
+[eva] tests/libc/string_c.c:20: 
   function memcpy: precondition 'separation' got status valid.
-[value] Recording results for memcpy
-[value] Done for function memcpy
-[value] tests/libc/string_c.c:21: assertion got status valid.
-[value] computing for function memcpy <- test_memcpy <- main.
+[eva] Recording results for memcpy
+[eva] Done for function memcpy
+[eva] computing for function memcpy <- test_memcpy <- main.
   Called from tests/libc/string_c.c:23.
-[value] tests/libc/string_c.c:23: 
+[eva] tests/libc/string_c.c:23: 
   function memcpy: precondition 'valid_dest' got status valid.
-[value] tests/libc/string_c.c:23: 
+[eva] tests/libc/string_c.c:23: 
   function memcpy: precondition 'valid_src' got status valid.
-[value] tests/libc/string_c.c:23: 
+[eva] tests/libc/string_c.c:23: 
   function memcpy: precondition 'separation' got status valid.
-[value] Recording results for memcpy
-[value] Done for function memcpy
-[value] tests/libc/string_c.c:24: assertion got status valid.
-[value] tests/libc/string_c.c:25: assertion got status valid.
-[value] Recording results for test_memcpy
-[value] Done for function test_memcpy
-[value] computing for function test_memmove <- main.
+[eva] Recording results for memcpy
+[eva] Done for function memcpy
+[eva] tests/libc/string_c.c:23: Reusing old results for call to memcpy
+[eva] tests/libc/string_c.c:24: assertion got status valid.
+[eva] tests/libc/string_c.c:25: assertion got status valid.
+[eva] Recording results for test_memcpy
+[eva] Done for function test_memcpy
+[eva] computing for function test_memmove <- main.
   Called from tests/libc/string_c.c:282.
-[value] tests/libc/string_c.c:34: Frama_C_show_each_s0: {1}
-[value] tests/libc/string_c.c:35: Frama_C_show_each_s0: {2}
-[value] tests/libc/string_c.c:36: Frama_C_show_each_s0: {3}
-[value] tests/libc/string_c.c:37: Frama_C_show_each_s0: {4}
-[value] tests/libc/string_c.c:38: Frama_C_show_each_s0: {3}
-[value] tests/libc/string_c.c:39: Frama_C_show_each_s0: {4}
-[value] tests/libc/string_c.c:40: Frama_C_show_each_s0: {5}
-[value] tests/libc/string_c.c:41: Frama_C_show_each_s0: {6}
-[value] computing for function memmove <- test_memmove <- main.
+[eva] tests/libc/string_c.c:34: Frama_C_show_each_s0: {1}
+[eva] tests/libc/string_c.c:35: Frama_C_show_each_s0: {2}
+[eva] tests/libc/string_c.c:36: Frama_C_show_each_s0: {3}
+[eva] tests/libc/string_c.c:37: Frama_C_show_each_s0: {4}
+[eva] tests/libc/string_c.c:38: Frama_C_show_each_s0: {3}
+[eva] tests/libc/string_c.c:39: Frama_C_show_each_s0: {4}
+[eva] tests/libc/string_c.c:40: Frama_C_show_each_s0: {5}
+[eva] tests/libc/string_c.c:41: Frama_C_show_each_s0: {6}
+[eva] computing for function memmove <- test_memmove <- main.
   Called from tests/libc/string_c.c:42.
-[value] tests/libc/string_c.c:42: 
+[eva] tests/libc/string_c.c:42: 
   function memmove: precondition 'valid_dest' got status valid.
-[value] tests/libc/string_c.c:42: 
+[eva] tests/libc/string_c.c:42: 
   function memmove: precondition 'valid_src' got status valid.
-[value] computing for function memoverlap <- memmove <- test_memmove <- main.
-  Called from share/libc/string.c:63.
-[value] using specification for function memoverlap
-[value] Done for function memoverlap
-[value] share/libc/string.h:94: 
+[eva] computing for function memoverlap <- memmove <- test_memmove <- main.
+  Called from share/libc/string.c:69.
+[eva] using specification for function memoverlap
+[eva] Done for function memoverlap
+[eva] share/libc/string.h:108: 
   cannot evaluate ACSL term, unsupported ACSL construct: logic function memcmp
-[value:alarm] share/libc/string.h:94: Warning: 
+[eva:alarm] share/libc/string.h:108: Warning: 
   function memmove: postcondition 'copied_contents' got status unknown.
-[value] share/libc/string.h:95: 
+[eva] share/libc/string.h:109: 
   function memmove: postcondition 'result_ptr' got status valid.
-[value] Recording results for memmove
-[value] Done for function memmove
-[value] tests/libc/string_c.c:43: assertion got status valid.
-[value] tests/libc/string_c.c:44: assertion got status valid.
-[value] computing for function memmove <- test_memmove <- main.
+[eva] Recording results for memmove
+[eva] Done for function memmove
+[eva] tests/libc/string_c.c:43: assertion got status valid.
+[eva] tests/libc/string_c.c:44: assertion got status valid.
+[eva] computing for function memmove <- test_memmove <- main.
   Called from tests/libc/string_c.c:49.
-[value] tests/libc/string_c.c:49: 
+[eva] tests/libc/string_c.c:49: 
   function memmove: precondition 'valid_dest' got status valid.
-[value] tests/libc/string_c.c:49: 
+[eva] tests/libc/string_c.c:49: 
   function memmove: precondition 'valid_src' got status valid.
-[value] computing for function memoverlap <- memmove <- test_memmove <- main.
-  Called from share/libc/string.c:63.
-[value] Done for function memoverlap
-[value] Recording results for memmove
-[value] Done for function memmove
-[value] tests/libc/string_c.c:50: assertion got status valid.
-[value] computing for function memmove <- test_memmove <- main.
+[eva] computing for function memoverlap <- memmove <- test_memmove <- main.
+  Called from share/libc/string.c:69.
+[eva] Done for function memoverlap
+[eva] Recording results for memmove
+[eva] Done for function memmove
+[eva] tests/libc/string_c.c:50: assertion got status valid.
+[eva] computing for function memmove <- test_memmove <- main.
   Called from tests/libc/string_c.c:52.
-[value] tests/libc/string_c.c:52: 
+[eva] tests/libc/string_c.c:52: 
   function memmove: precondition 'valid_dest' got status valid.
-[value] tests/libc/string_c.c:52: 
+[eva] tests/libc/string_c.c:52: 
   function memmove: precondition 'valid_src' got status valid.
-[value] computing for function memoverlap <- memmove <- test_memmove <- main.
-  Called from share/libc/string.c:63.
-[value] Done for function memoverlap
-[value] Recording results for memmove
-[value] Done for function memmove
-[value] tests/libc/string_c.c:53: assertion got status valid.
-[value] computing for function memmove <- test_memmove <- main.
+[eva] computing for function memoverlap <- memmove <- test_memmove <- main.
+  Called from share/libc/string.c:69.
+[eva] Done for function memoverlap
+[eva] Recording results for memmove
+[eva] Done for function memmove
+[eva] tests/libc/string_c.c:53: assertion got status valid.
+[eva] computing for function memmove <- test_memmove <- main.
   Called from tests/libc/string_c.c:56.
-[value] tests/libc/string_c.c:56: 
+[eva] tests/libc/string_c.c:56: 
   function memmove: precondition 'valid_dest' got status valid.
-[value] tests/libc/string_c.c:56: 
+[eva] tests/libc/string_c.c:56: 
   function memmove: precondition 'valid_src' got status valid.
-[value] computing for function memoverlap <- memmove <- test_memmove <- main.
-  Called from share/libc/string.c:63.
-[value] Done for function memoverlap
-[value] Recording results for memmove
-[value] Done for function memmove
-[value] tests/libc/string_c.c:57: assertion got status valid.
-[value] Recording results for test_memmove
-[value] Done for function test_memmove
-[value] computing for function test_strlen <- main.
+[eva] computing for function memoverlap <- memmove <- test_memmove <- main.
+  Called from share/libc/string.c:69.
+[eva] Done for function memoverlap
+[eva] Recording results for memmove
+[eva] Done for function memmove
+[eva] tests/libc/string_c.c:57: assertion got status valid.
+[eva] Recording results for test_memmove
+[eva] Done for function test_memmove
+[eva] computing for function test_strlen <- main.
   Called from tests/libc/string_c.c:283.
-[value] computing for function strlen <- test_strlen <- main.
+[eva] computing for function strlen <- test_strlen <- main.
   Called from tests/libc/string_c.c:64.
-[value] tests/libc/string_c.c:64: 
+[eva] tests/libc/string_c.c:64: 
   function strlen: precondition 'valid_string_s' got status valid.
-[value] share/libc/string.h:113: 
+[eva] share/libc/string.h:127: 
   function strlen: postcondition 'acsl_c_equiv' got status valid.
-[value] Recording results for strlen
-[value] Done for function strlen
-[value] tests/libc/string_c.c:65: assertion got status valid.
-[value] computing for function strlen <- test_strlen <- main.
+[eva] Recording results for strlen
+[eva] Done for function strlen
+[eva] tests/libc/string_c.c:65: assertion got status valid.
+[eva] computing for function strlen <- test_strlen <- main.
   Called from tests/libc/string_c.c:66.
-[value] tests/libc/string_c.c:66: 
+[eva] tests/libc/string_c.c:66: 
   function strlen: precondition 'valid_string_s' got status valid.
-[value] Recording results for strlen
-[value] Done for function strlen
-[value] tests/libc/string_c.c:67: assertion got status valid.
-[value] computing for function strlen <- test_strlen <- main.
+[eva] Recording results for strlen
+[eva] Done for function strlen
+[eva] tests/libc/string_c.c:67: assertion got status valid.
+[eva] computing for function strlen <- test_strlen <- main.
   Called from tests/libc/string_c.c:68.
-[value] tests/libc/string_c.c:68: 
+[eva] tests/libc/string_c.c:68: 
   function strlen: precondition 'valid_string_s' got status valid.
-[value] Recording results for strlen
-[value] Done for function strlen
-[value] tests/libc/string_c.c:69: assertion got status valid.
-[value] Recording results for test_strlen
-[value] Done for function test_strlen
-[value] computing for function test_strnlen <- main.
+[eva] Recording results for strlen
+[eva] Done for function strlen
+[eva] tests/libc/string_c.c:69: assertion got status valid.
+[eva] Recording results for test_strlen
+[eva] Done for function test_strlen
+[eva] computing for function test_strnlen <- main.
   Called from tests/libc/string_c.c:284.
-[value] computing for function strnlen <- test_strnlen <- main.
+[eva] computing for function strnlen <- test_strnlen <- main.
   Called from tests/libc/string_c.c:75.
-[value] tests/libc/string_c.c:75: 
+[eva] tests/libc/string_c.c:75: 
   function strnlen: precondition 'valid_string_s' got status valid.
-[value] share/libc/string.h:119: 
+[eva] share/libc/string.h:133: 
   function strnlen: postcondition 'result_bounded' got status valid.
-[value] Recording results for strnlen
-[value] Done for function strnlen
-[value] tests/libc/string_c.c:76: assertion got status valid.
-[value] computing for function strnlen <- test_strnlen <- main.
+[eva] Recording results for strnlen
+[eva] Done for function strnlen
+[eva] tests/libc/string_c.c:76: assertion got status valid.
+[eva] computing for function strnlen <- test_strnlen <- main.
   Called from tests/libc/string_c.c:77.
-[value] tests/libc/string_c.c:77: 
+[eva] tests/libc/string_c.c:77: 
   function strnlen: precondition 'valid_string_s' got status valid.
-[value] Recording results for strnlen
-[value] Done for function strnlen
-[value] tests/libc/string_c.c:78: assertion got status valid.
-[value] computing for function strnlen <- test_strnlen <- main.
+[eva] Recording results for strnlen
+[eva] Done for function strnlen
+[eva] tests/libc/string_c.c:78: assertion got status valid.
+[eva] computing for function strnlen <- test_strnlen <- main.
   Called from tests/libc/string_c.c:79.
-[value] tests/libc/string_c.c:79: 
+[eva] tests/libc/string_c.c:79: 
   function strnlen: precondition 'valid_string_s' got status valid.
-[value] Recording results for strnlen
-[value] Done for function strnlen
-[value] tests/libc/string_c.c:80: assertion got status valid.
-[value] computing for function strnlen <- test_strnlen <- main.
+[eva] Recording results for strnlen
+[eva] Done for function strnlen
+[eva] tests/libc/string_c.c:80: assertion got status valid.
+[eva] computing for function strnlen <- test_strnlen <- main.
   Called from tests/libc/string_c.c:81.
-[value] tests/libc/string_c.c:81: 
+[eva] tests/libc/string_c.c:81: 
   function strnlen: precondition 'valid_string_s' got status valid.
-[value] Recording results for strnlen
-[value] Done for function strnlen
-[value] tests/libc/string_c.c:82: assertion got status valid.
-[value] computing for function strnlen <- test_strnlen <- main.
+[eva] Recording results for strnlen
+[eva] Done for function strnlen
+[eva] tests/libc/string_c.c:82: assertion got status valid.
+[eva] computing for function strnlen <- test_strnlen <- main.
   Called from tests/libc/string_c.c:83.
-[value] tests/libc/string_c.c:83: 
+[eva] tests/libc/string_c.c:83: 
   function strnlen: precondition 'valid_string_s' got status valid.
-[value] Recording results for strnlen
-[value] Done for function strnlen
-[value] tests/libc/string_c.c:84: assertion got status valid.
-[value] computing for function strnlen <- test_strnlen <- main.
+[eva] Recording results for strnlen
+[eva] Done for function strnlen
+[eva] tests/libc/string_c.c:84: assertion got status valid.
+[eva] computing for function strnlen <- test_strnlen <- main.
   Called from tests/libc/string_c.c:85.
-[value] tests/libc/string_c.c:85: 
+[eva] tests/libc/string_c.c:85: 
   function strnlen: precondition 'valid_string_s' got status valid.
-[value] Recording results for strnlen
-[value] Done for function strnlen
-[value] tests/libc/string_c.c:86: assertion got status valid.
-[value] Recording results for test_strnlen
-[value] Done for function test_strnlen
-[value] computing for function test_memset <- main.
+[eva] Recording results for strnlen
+[eva] Done for function strnlen
+[eva] tests/libc/string_c.c:86: assertion got status valid.
+[eva] Recording results for test_strnlen
+[eva] Done for function test_strnlen
+[eva] computing for function test_memset <- main.
   Called from tests/libc/string_c.c:285.
-[value] computing for function memset <- test_memset <- main.
+[eva] computing for function memset <- test_memset <- main.
   Called from tests/libc/string_c.c:92.
-[value] tests/libc/string_c.c:92: 
+[eva] tests/libc/string_c.c:92: 
   function memset: precondition 'valid_s' got status valid.
-[value] share/libc/string.h:104: 
+[eva] share/libc/string.h:118: 
   cannot evaluate ACSL term, unsupported ACSL construct: logic function memset
-[value:alarm] share/libc/string.h:104: Warning: 
+[eva:alarm] share/libc/string.h:118: Warning: 
   function memset: postcondition 'acsl_c_equiv' got status unknown.
-[value] share/libc/string.h:105: 
+[eva] share/libc/string.h:119: 
   function memset: postcondition 'result_ptr' got status valid.
-[value] Recording results for memset
-[value] Done for function memset
-[value] tests/libc/string_c.c:93: assertion got status valid.
-[value] tests/libc/string_c.c:94: assertion got status valid.
-[value] tests/libc/string_c.c:95: assertion got status valid.
-[value] computing for function memset <- test_memset <- main.
+[eva] Recording results for memset
+[eva] Done for function memset
+[eva] tests/libc/string_c.c:93: assertion got status valid.
+[eva] tests/libc/string_c.c:94: assertion got status valid.
+[eva] tests/libc/string_c.c:95: assertion got status valid.
+[eva] computing for function memset <- test_memset <- main.
   Called from tests/libc/string_c.c:96.
-[value] tests/libc/string_c.c:96: 
+[eva] tests/libc/string_c.c:96: 
   function memset: precondition 'valid_s' got status valid.
-[value] Recording results for memset
-[value] Done for function memset
-[value] tests/libc/string_c.c:97: assertion got status valid.
-[value] Recording results for test_memset
-[value] Done for function test_memset
-[value] computing for function test_strcmp <- main.
+[eva] Recording results for memset
+[eva] Done for function memset
+[eva] tests/libc/string_c.c:97: assertion got status valid.
+[eva] Recording results for test_memset
+[eva] Done for function test_memset
+[eva] computing for function test_strcmp <- main.
   Called from tests/libc/string_c.c:286.
-[value] computing for function strcmp <- test_strcmp <- main.
+[eva] computing for function strcmp <- test_strcmp <- main.
   Called from tests/libc/string_c.c:104.
-[value] tests/libc/string_c.c:104: 
+[eva] tests/libc/string_c.c:104: 
   function strcmp: precondition 'valid_string_s1' got status valid.
-[value] tests/libc/string_c.c:104: 
+[eva] tests/libc/string_c.c:104: 
   function strcmp: precondition 'valid_string_s2' got status valid.
-[value] share/libc/string.h:126: 
+[eva] share/libc/string.h:140: 
   cannot evaluate ACSL term, unsupported ACSL construct: logic function strcmp
-[value:alarm] share/libc/string.h:126: Warning: 
+[eva:alarm] share/libc/string.h:140: Warning: 
   function strcmp: postcondition 'acsl_c_equiv' got status unknown.
-[value] Recording results for strcmp
-[value] Done for function strcmp
-[value] tests/libc/string_c.c:105: assertion got status valid.
-[value] computing for function strcmp <- test_strcmp <- main.
+[eva] Recording results for strcmp
+[eva] Done for function strcmp
+[eva] tests/libc/string_c.c:105: assertion got status valid.
+[eva] computing for function strcmp <- test_strcmp <- main.
   Called from tests/libc/string_c.c:106.
-[value] tests/libc/string_c.c:106: 
+[eva] tests/libc/string_c.c:106: 
   function strcmp: precondition 'valid_string_s1' got status valid.
-[value] tests/libc/string_c.c:106: 
+[eva] tests/libc/string_c.c:106: 
   function strcmp: precondition 'valid_string_s2' got status valid.
-[value] Recording results for strcmp
-[value] Done for function strcmp
-[value] tests/libc/string_c.c:107: assertion got status valid.
-[value] computing for function strcmp <- test_strcmp <- main.
+[eva] Recording results for strcmp
+[eva] Done for function strcmp
+[eva] tests/libc/string_c.c:107: assertion got status valid.
+[eva] computing for function strcmp <- test_strcmp <- main.
   Called from tests/libc/string_c.c:108.
-[value] tests/libc/string_c.c:108: 
+[eva] tests/libc/string_c.c:108: 
   function strcmp: precondition 'valid_string_s1' got status valid.
-[value] tests/libc/string_c.c:108: 
+[eva] tests/libc/string_c.c:108: 
   function strcmp: precondition 'valid_string_s2' got status valid.
-[value] Recording results for strcmp
-[value] Done for function strcmp
-[value] tests/libc/string_c.c:109: assertion got status valid.
-[value] computing for function strcmp <- test_strcmp <- main.
+[eva] Recording results for strcmp
+[eva] Done for function strcmp
+[eva] tests/libc/string_c.c:109: assertion got status valid.
+[eva] computing for function strcmp <- test_strcmp <- main.
   Called from tests/libc/string_c.c:110.
-[value] tests/libc/string_c.c:110: 
+[eva] tests/libc/string_c.c:110: 
   function strcmp: precondition 'valid_string_s1' got status valid.
-[value] tests/libc/string_c.c:110: 
+[eva] tests/libc/string_c.c:110: 
   function strcmp: precondition 'valid_string_s2' got status valid.
-[value] Recording results for strcmp
-[value] Done for function strcmp
-[value] tests/libc/string_c.c:111: assertion got status valid.
-[value] computing for function strcmp <- test_strcmp <- main.
+[eva] Recording results for strcmp
+[eva] Done for function strcmp
+[eva] tests/libc/string_c.c:111: assertion got status valid.
+[eva] computing for function strcmp <- test_strcmp <- main.
   Called from tests/libc/string_c.c:112.
-[value] tests/libc/string_c.c:112: 
+[eva] tests/libc/string_c.c:112: 
   function strcmp: precondition 'valid_string_s1' got status valid.
-[value] tests/libc/string_c.c:112: 
+[eva] tests/libc/string_c.c:112: 
   function strcmp: precondition 'valid_string_s2' got status valid.
-[value] Recording results for strcmp
-[value] Done for function strcmp
-[value] tests/libc/string_c.c:113: assertion got status valid.
-[value] computing for function strcmp <- test_strcmp <- main.
+[eva] Recording results for strcmp
+[eva] Done for function strcmp
+[eva] tests/libc/string_c.c:113: assertion got status valid.
+[eva] computing for function strcmp <- test_strcmp <- main.
   Called from tests/libc/string_c.c:114.
-[value] tests/libc/string_c.c:114: 
+[eva] tests/libc/string_c.c:114: 
   function strcmp: precondition 'valid_string_s1' got status valid.
-[value] tests/libc/string_c.c:114: 
+[eva] tests/libc/string_c.c:114: 
   function strcmp: precondition 'valid_string_s2' got status valid.
-[value] Recording results for strcmp
-[value] Done for function strcmp
-[value] tests/libc/string_c.c:115: assertion got status valid.
-[value] computing for function strcmp <- test_strcmp <- main.
+[eva] Recording results for strcmp
+[eva] Done for function strcmp
+[eva] tests/libc/string_c.c:115: assertion got status valid.
+[eva] computing for function strcmp <- test_strcmp <- main.
   Called from tests/libc/string_c.c:116.
-[value] tests/libc/string_c.c:116: 
+[eva] tests/libc/string_c.c:116: 
   function strcmp: precondition 'valid_string_s1' got status valid.
-[value] tests/libc/string_c.c:116: 
+[eva] tests/libc/string_c.c:116: 
   function strcmp: precondition 'valid_string_s2' got status valid.
-[value] Recording results for strcmp
-[value] Done for function strcmp
-[value] tests/libc/string_c.c:117: assertion got status valid.
-[value] Recording results for test_strcmp
-[value] Done for function test_strcmp
-[value] computing for function test_strncmp <- main.
+[eva] Recording results for strcmp
+[eva] Done for function strcmp
+[eva] tests/libc/string_c.c:117: assertion got status valid.
+[eva] Recording results for test_strcmp
+[eva] Done for function test_strcmp
+[eva] computing for function test_strncmp <- main.
   Called from tests/libc/string_c.c:287.
-[value] computing for function strncmp <- test_strncmp <- main.
+[eva] computing for function strncmp <- test_strncmp <- main.
   Called from tests/libc/string_c.c:167.
-[value] tests/libc/string_c.c:167: 
+[eva] tests/libc/string_c.c:167: 
   function strncmp: precondition 'valid_string_s1' got status valid.
-[value] tests/libc/string_c.c:167: 
+[eva] tests/libc/string_c.c:167: 
   function strncmp: precondition 'valid_string_s2' got status valid.
-[value] share/libc/string.h:133: 
+[eva] share/libc/string.h:147: 
   cannot evaluate ACSL term, unsupported ACSL construct: logic function strncmp
-[value:alarm] share/libc/string.h:133: Warning: 
+[eva:alarm] share/libc/string.h:147: Warning: 
   function strncmp: postcondition 'acsl_c_equiv' got status unknown.
-[value] Recording results for strncmp
-[value] Done for function strncmp
-[value] tests/libc/string_c.c:168: assertion got status valid.
-[value] computing for function strncmp <- test_strncmp <- main.
+[eva] Recording results for strncmp
+[eva] Done for function strncmp
+[eva] tests/libc/string_c.c:168: assertion got status valid.
+[eva] computing for function strncmp <- test_strncmp <- main.
   Called from tests/libc/string_c.c:169.
-[value] tests/libc/string_c.c:169: 
+[eva] tests/libc/string_c.c:169: 
   function strncmp: precondition 'valid_string_s1' got status valid.
-[value] tests/libc/string_c.c:169: 
+[eva] tests/libc/string_c.c:169: 
   function strncmp: precondition 'valid_string_s2' got status valid.
-[value] Recording results for strncmp
-[value] Done for function strncmp
-[value] tests/libc/string_c.c:170: assertion got status valid.
-[value] computing for function strncmp <- test_strncmp <- main.
+[eva] Recording results for strncmp
+[eva] Done for function strncmp
+[eva] tests/libc/string_c.c:170: assertion got status valid.
+[eva] computing for function strncmp <- test_strncmp <- main.
   Called from tests/libc/string_c.c:172.
-[value] tests/libc/string_c.c:172: 
+[eva] tests/libc/string_c.c:172: 
   function strncmp: precondition 'valid_string_s1' got status valid.
-[value] tests/libc/string_c.c:172: 
+[eva] tests/libc/string_c.c:172: 
   function strncmp: precondition 'valid_string_s2' got status valid.
-[value] Recording results for strncmp
-[value] Done for function strncmp
-[value] tests/libc/string_c.c:173: assertion got status valid.
-[value] computing for function strncmp <- test_strncmp <- main.
+[eva] Recording results for strncmp
+[eva] Done for function strncmp
+[eva] tests/libc/string_c.c:173: assertion got status valid.
+[eva] computing for function strncmp <- test_strncmp <- main.
   Called from tests/libc/string_c.c:174.
-[value] tests/libc/string_c.c:174: 
+[eva] tests/libc/string_c.c:174: 
   function strncmp: precondition 'valid_string_s1' got status valid.
-[value] tests/libc/string_c.c:174: 
+[eva] tests/libc/string_c.c:174: 
   function strncmp: precondition 'valid_string_s2' got status valid.
-[value] Recording results for strncmp
-[value] Done for function strncmp
-[value] tests/libc/string_c.c:175: assertion got status valid.
-[value] computing for function strncmp <- test_strncmp <- main.
+[eva] Recording results for strncmp
+[eva] Done for function strncmp
+[eva] tests/libc/string_c.c:175: assertion got status valid.
+[eva] computing for function strncmp <- test_strncmp <- main.
   Called from tests/libc/string_c.c:176.
-[value] tests/libc/string_c.c:176: 
+[eva] tests/libc/string_c.c:176: 
   function strncmp: precondition 'valid_string_s1' got status valid.
-[value] tests/libc/string_c.c:176: 
+[eva] tests/libc/string_c.c:176: 
   function strncmp: precondition 'valid_string_s2' got status valid.
-[value] Recording results for strncmp
-[value] Done for function strncmp
-[value] tests/libc/string_c.c:177: assertion got status valid.
-[value] computing for function strncmp <- test_strncmp <- main.
+[eva] Recording results for strncmp
+[eva] Done for function strncmp
+[eva] tests/libc/string_c.c:177: assertion got status valid.
+[eva] computing for function strncmp <- test_strncmp <- main.
   Called from tests/libc/string_c.c:178.
-[value] tests/libc/string_c.c:178: 
+[eva] tests/libc/string_c.c:178: 
   function strncmp: precondition 'valid_string_s1' got status valid.
-[value] tests/libc/string_c.c:178: 
+[eva] tests/libc/string_c.c:178: 
   function strncmp: precondition 'valid_string_s2' got status valid.
-[value] Recording results for strncmp
-[value] Done for function strncmp
-[value] tests/libc/string_c.c:179: assertion got status valid.
-[value] computing for function strncmp <- test_strncmp <- main.
+[eva] Recording results for strncmp
+[eva] Done for function strncmp
+[eva] tests/libc/string_c.c:179: assertion got status valid.
+[eva] computing for function strncmp <- test_strncmp <- main.
   Called from tests/libc/string_c.c:180.
-[value] tests/libc/string_c.c:180: 
+[eva] tests/libc/string_c.c:180: 
   function strncmp: precondition 'valid_string_s1' got status valid.
-[value] tests/libc/string_c.c:180: 
+[eva] tests/libc/string_c.c:180: 
   function strncmp: precondition 'valid_string_s2' got status valid.
-[value] Recording results for strncmp
-[value] Done for function strncmp
-[value] tests/libc/string_c.c:181: assertion got status valid.
-[value] computing for function strncmp <- test_strncmp <- main.
+[eva] Recording results for strncmp
+[eva] Done for function strncmp
+[eva] tests/libc/string_c.c:181: assertion got status valid.
+[eva] computing for function strncmp <- test_strncmp <- main.
   Called from tests/libc/string_c.c:182.
-[value] tests/libc/string_c.c:182: 
+[eva] tests/libc/string_c.c:182: 
   function strncmp: precondition 'valid_string_s1' got status valid.
-[value] tests/libc/string_c.c:182: 
+[eva] tests/libc/string_c.c:182: 
   function strncmp: precondition 'valid_string_s2' got status valid.
-[value] Recording results for strncmp
-[value] Done for function strncmp
-[value] tests/libc/string_c.c:183: assertion got status valid.
-[value] Recording results for test_strncmp
-[value] Done for function test_strncmp
-[value] computing for function test_memcmp <- main.
+[eva] Recording results for strncmp
+[eva] Done for function strncmp
+[eva] tests/libc/string_c.c:183: assertion got status valid.
+[eva] Recording results for test_strncmp
+[eva] Done for function test_strncmp
+[eva] computing for function test_memcmp <- main.
   Called from tests/libc/string_c.c:288.
-[value] computing for function memcmp <- test_memcmp <- main.
+[eva] computing for function memcmp <- test_memcmp <- main.
   Called from tests/libc/string_c.c:188.
-[value] tests/libc/string_c.c:188: 
+[eva] tests/libc/string_c.c:188: 
   function memcmp: precondition 'valid_s1' got status valid.
-[value] tests/libc/string_c.c:188: 
+[eva] tests/libc/string_c.c:188: 
   function memcmp: precondition 'valid_s2' got status valid.
-[value] tests/libc/string_c.c:188: 
+[eva] tests/libc/string_c.c:188: 
   function memcmp: precondition 'initialization,s1' got status valid.
-[value] tests/libc/string_c.c:188: 
+[eva] tests/libc/string_c.c:188: 
   function memcmp: precondition 'initialization,s2' got status valid.
-[value] tests/libc/string_c.c:188: 
+[eva] tests/libc/string_c.c:188: 
   function memcmp: precondition 'danglingness,s1' got status valid.
-[value] tests/libc/string_c.c:188: 
+[eva] tests/libc/string_c.c:188: 
   function memcmp: precondition 'danglingness,s2' got status valid.
-[value] share/libc/string.h:49: 
+[eva] share/libc/string.h:63: 
   cannot evaluate ACSL term, unsupported ACSL construct: logic function memcmp
-[value:alarm] share/libc/string.h:49: Warning: 
+[eva:alarm] share/libc/string.h:63: Warning: 
   function memcmp: postcondition 'logic_spec' got status unknown.
-[value] Recording results for memcmp
-[value] Done for function memcmp
-[value] tests/libc/string_c.c:189: assertion got status valid.
-[value] computing for function memcmp <- test_memcmp <- main.
+[eva] Recording results for memcmp
+[eva] Done for function memcmp
+[eva] tests/libc/string_c.c:189: assertion got status valid.
+[eva] computing for function memcmp <- test_memcmp <- main.
   Called from tests/libc/string_c.c:190.
-[value] tests/libc/string_c.c:190: 
+[eva] tests/libc/string_c.c:190: 
   function memcmp: precondition 'valid_s1' got status valid.
-[value] tests/libc/string_c.c:190: 
+[eva] tests/libc/string_c.c:190: 
   function memcmp: precondition 'valid_s2' got status valid.
-[value] tests/libc/string_c.c:190: 
+[eva] tests/libc/string_c.c:190: 
   function memcmp: precondition 'initialization,s1' got status valid.
-[value] tests/libc/string_c.c:190: 
+[eva] tests/libc/string_c.c:190: 
   function memcmp: precondition 'initialization,s2' got status valid.
-[value] tests/libc/string_c.c:190: 
+[eva] tests/libc/string_c.c:190: 
   function memcmp: precondition 'danglingness,s1' got status valid.
-[value] tests/libc/string_c.c:190: 
+[eva] tests/libc/string_c.c:190: 
   function memcmp: precondition 'danglingness,s2' got status valid.
-[value] Recording results for memcmp
-[value] Done for function memcmp
-[value] tests/libc/string_c.c:191: assertion got status valid.
-[value] computing for function memcmp <- test_memcmp <- main.
+[eva] Recording results for memcmp
+[eva] Done for function memcmp
+[eva] tests/libc/string_c.c:191: assertion got status valid.
+[eva] computing for function memcmp <- test_memcmp <- main.
   Called from tests/libc/string_c.c:192.
-[value] tests/libc/string_c.c:192: 
+[eva] tests/libc/string_c.c:192: 
   function memcmp: precondition 'valid_s1' got status valid.
-[value] tests/libc/string_c.c:192: 
+[eva] tests/libc/string_c.c:192: 
   function memcmp: precondition 'valid_s2' got status valid.
-[value] tests/libc/string_c.c:192: 
+[eva] tests/libc/string_c.c:192: 
   function memcmp: precondition 'initialization,s1' got status valid.
-[value] tests/libc/string_c.c:192: 
+[eva] tests/libc/string_c.c:192: 
   function memcmp: precondition 'initialization,s2' got status valid.
-[value] tests/libc/string_c.c:192: 
+[eva] tests/libc/string_c.c:192: 
   function memcmp: precondition 'danglingness,s1' got status valid.
-[value] tests/libc/string_c.c:192: 
+[eva] tests/libc/string_c.c:192: 
   function memcmp: precondition 'danglingness,s2' got status valid.
-[value] Recording results for memcmp
-[value] Done for function memcmp
-[value] tests/libc/string_c.c:193: assertion got status valid.
-[value] computing for function memcmp <- test_memcmp <- main.
+[eva] Recording results for memcmp
+[eva] Done for function memcmp
+[eva] tests/libc/string_c.c:193: assertion got status valid.
+[eva] computing for function memcmp <- test_memcmp <- main.
   Called from tests/libc/string_c.c:194.
-[value] tests/libc/string_c.c:194: 
+[eva] tests/libc/string_c.c:194: 
   function memcmp: precondition 'valid_s1' got status valid.
-[value] tests/libc/string_c.c:194: 
+[eva] tests/libc/string_c.c:194: 
   function memcmp: precondition 'valid_s2' got status valid.
-[value] tests/libc/string_c.c:194: 
+[eva] tests/libc/string_c.c:194: 
   function memcmp: precondition 'initialization,s1' got status valid.
-[value] tests/libc/string_c.c:194: 
+[eva] tests/libc/string_c.c:194: 
   function memcmp: precondition 'initialization,s2' got status valid.
-[value] tests/libc/string_c.c:194: 
+[eva] tests/libc/string_c.c:194: 
   function memcmp: precondition 'danglingness,s1' got status valid.
-[value] tests/libc/string_c.c:194: 
+[eva] tests/libc/string_c.c:194: 
   function memcmp: precondition 'danglingness,s2' got status valid.
-[value] Recording results for memcmp
-[value] Done for function memcmp
-[value] tests/libc/string_c.c:195: assertion got status valid.
-[value] Recording results for test_memcmp
-[value] Done for function test_memcmp
-[value] computing for function test_strcat <- main.
+[eva] Recording results for memcmp
+[eva] Done for function memcmp
+[eva] tests/libc/string_c.c:195: assertion got status valid.
+[eva] Recording results for test_memcmp
+[eva] Done for function test_memcmp
+[eva] computing for function test_strcat <- main.
   Called from tests/libc/string_c.c:289.
-[value] computing for function strcat <- test_strcat <- main.
+[eva] computing for function strcat <- test_strcat <- main.
   Called from tests/libc/string_c.c:124.
-[value] tests/libc/string_c.c:124: 
+[eva] tests/libc/string_c.c:124: 
   function strcat: precondition 'valid_string_src' got status valid.
-[value] tests/libc/string_c.c:124: 
+[eva] tests/libc/string_c.c:124: 
   function strcat: precondition 'valid_string_dest' got status valid.
-[value] tests/libc/string_c.c:124: 
+[eva] tests/libc/string_c.c:124: 
   function strcat: precondition 'room_string' got status valid.
-[value] computing for function strlen <- strcat <- test_strcat <- main.
-  Called from share/libc/string.c:154.
-[value] share/libc/string.c:154: 
+[eva] computing for function strlen <- strcat <- test_strcat <- main.
+  Called from share/libc/string.c:174.
+[eva] share/libc/string.c:174: 
   function strlen: precondition 'valid_string_s' got status valid.
-[value] Recording results for strlen
-[value] Done for function strlen
-[value] share/libc/string.h:371: 
+[eva] Recording results for strlen
+[eva] Done for function strlen
+[eva] share/libc/string.h:399: 
   function strcat: postcondition 'sum_of_lengths' got status valid.
-[value] share/libc/string.h:374: 
+[eva] share/libc/string.h:402: 
   function strcat: postcondition 'initialization,dest' got status valid.
-[value] share/libc/string.h:375: 
+[eva] share/libc/string.h:403: 
   function strcat: postcondition 'dest_null_terminated' got status valid.
-[value] share/libc/string.h:376: 
+[eva] share/libc/string.h:404: 
   function strcat: postcondition 'result_ptr' got status valid.
-[value] Recording results for strcat
-[value] Done for function strcat
-[value] tests/libc/string_c.c:125: assertion got status valid.
-[value] tests/libc/string_c.c:126: assertion got status valid.
-[value] computing for function strcat <- test_strcat <- main.
+[eva] Recording results for strcat
+[eva] Done for function strcat
+[eva] tests/libc/string_c.c:125: assertion got status valid.
+[eva] tests/libc/string_c.c:126: assertion got status valid.
+[eva] computing for function strcat <- test_strcat <- main.
   Called from tests/libc/string_c.c:132.
-[value] tests/libc/string_c.c:132: 
+[eva] tests/libc/string_c.c:132: 
   function strcat: precondition 'valid_string_src' got status valid.
-[value] tests/libc/string_c.c:132: 
+[eva] tests/libc/string_c.c:132: 
   function strcat: precondition 'valid_string_dest' got status valid.
-[value] tests/libc/string_c.c:132: 
+[eva] tests/libc/string_c.c:132: 
   function strcat: precondition 'room_string' got status valid.
-[value] computing for function strlen <- strcat <- test_strcat <- main.
-  Called from share/libc/string.c:154.
-[value] Recording results for strlen
-[value] Done for function strlen
-[value] Recording results for strcat
-[value] Done for function strcat
-[value] tests/libc/string_c.c:133: assertion got status valid.
-[value] computing for function strcat <- test_strcat <- main.
+[eva] computing for function strlen <- strcat <- test_strcat <- main.
+  Called from share/libc/string.c:174.
+[eva] Recording results for strlen
+[eva] Done for function strlen
+[eva] Recording results for strcat
+[eva] Done for function strcat
+[eva] tests/libc/string_c.c:133: assertion got status valid.
+[eva] computing for function strcat <- test_strcat <- main.
   Called from tests/libc/string_c.c:134.
-[value] tests/libc/string_c.c:134: 
+[eva] tests/libc/string_c.c:134: 
   function strcat: precondition 'valid_string_src' got status valid.
-[value] tests/libc/string_c.c:134: 
+[eva] tests/libc/string_c.c:134: 
   function strcat: precondition 'valid_string_dest' got status valid.
-[value] tests/libc/string_c.c:134: 
+[eva] tests/libc/string_c.c:134: 
   function strcat: precondition 'room_string' got status valid.
-[value] computing for function strlen <- strcat <- test_strcat <- main.
-  Called from share/libc/string.c:154.
-[value] Recording results for strlen
-[value] Done for function strlen
-[value] Recording results for strcat
-[value] Done for function strcat
-[value] computing for function strcat <- test_strcat <- main.
+[eva] computing for function strlen <- strcat <- test_strcat <- main.
+  Called from share/libc/string.c:174.
+[eva] Recording results for strlen
+[eva] Done for function strlen
+[eva] Recording results for strcat
+[eva] Done for function strcat
+[eva] computing for function strcat <- test_strcat <- main.
   Called from tests/libc/string_c.c:135.
-[value] tests/libc/string_c.c:135: 
+[eva] tests/libc/string_c.c:135: 
   function strcat: precondition 'valid_string_src' got status valid.
-[value] tests/libc/string_c.c:135: 
+[eva] tests/libc/string_c.c:135: 
   function strcat: precondition 'valid_string_dest' got status valid.
-[value] tests/libc/string_c.c:135: 
+[eva] tests/libc/string_c.c:135: 
   function strcat: precondition 'room_string' got status valid.
-[value] computing for function strlen <- strcat <- test_strcat <- main.
-  Called from share/libc/string.c:154.
-[value] Recording results for strlen
-[value] Done for function strlen
-[value] Recording results for strcat
-[value] Done for function strcat
-[value] tests/libc/string_c.c:136: assertion got status valid.
-[value] Recording results for test_strcat
-[value] Done for function test_strcat
-[value] computing for function test_strcpy <- main.
+[eva] share/libc/string.c:174: Reusing old results for call to strlen
+[eva] Recording results for strcat
+[eva] Done for function strcat
+[eva] tests/libc/string_c.c:136: assertion got status valid.
+[eva] Recording results for test_strcat
+[eva] Done for function test_strcat
+[eva] computing for function test_strcpy <- main.
   Called from tests/libc/string_c.c:291.
-[value] computing for function strcpy <- test_strcpy <- main.
+[eva] computing for function strcpy <- test_strcpy <- main.
   Called from tests/libc/string_c.c:142.
-[value] tests/libc/string_c.c:142: 
+[eva] tests/libc/string_c.c:142: 
   function strcpy: precondition 'valid_string_src' got status valid.
-[value] tests/libc/string_c.c:142: 
+[eva] tests/libc/string_c.c:142: 
   function strcpy: precondition 'room_string' got status valid.
-[value] tests/libc/string_c.c:142: 
+[eva] tests/libc/string_c.c:142: 
   function strcpy: precondition 'separation' got status valid.
-[value] share/libc/string.h:325: 
+[eva] share/libc/string.h:353: 
   cannot evaluate ACSL term, unsupported ACSL construct: logic function strcmp
-[value:alarm] share/libc/string.h:325: Warning: 
+[eva:alarm] share/libc/string.h:353: Warning: 
   function strcpy: postcondition 'equal_contents' got status unknown.
-[value] share/libc/string.h:326: 
+[eva] share/libc/string.h:354: 
   function strcpy: postcondition 'result_ptr' got status valid.
-[value] Recording results for strcpy
-[value] Done for function strcpy
-[value] tests/libc/string_c.c:143: assertion got status valid.
-[value] tests/libc/string_c.c:144: assertion got status valid.
-[value] computing for function strcpy <- test_strcpy <- main.
+[eva] Recording results for strcpy
+[eva] Done for function strcpy
+[eva] tests/libc/string_c.c:143: assertion got status valid.
+[eva] tests/libc/string_c.c:144: assertion got status valid.
+[eva] computing for function strcpy <- test_strcpy <- main.
   Called from tests/libc/string_c.c:145.
-[value] tests/libc/string_c.c:145: 
+[eva] tests/libc/string_c.c:145: 
   function strcpy: precondition 'valid_string_src' got status valid.
-[value] tests/libc/string_c.c:145: 
+[eva] tests/libc/string_c.c:145: 
   function strcpy: precondition 'room_string' got status valid.
-[value] tests/libc/string_c.c:145: 
+[eva] tests/libc/string_c.c:145: 
   function strcpy: precondition 'separation' got status valid.
-[value] Recording results for strcpy
-[value] Done for function strcpy
-[value] tests/libc/string_c.c:146: assertion got status valid.
-[value] computing for function strcpy <- test_strcpy <- main.
+[eva] Recording results for strcpy
+[eva] Done for function strcpy
+[eva] tests/libc/string_c.c:146: assertion got status valid.
+[eva] computing for function strcpy <- test_strcpy <- main.
   Called from tests/libc/string_c.c:147.
-[value] tests/libc/string_c.c:147: 
+[eva] tests/libc/string_c.c:147: 
   function strcpy: precondition 'valid_string_src' got status valid.
-[value] tests/libc/string_c.c:147: 
+[eva] tests/libc/string_c.c:147: 
   function strcpy: precondition 'room_string' got status valid.
-[value] tests/libc/string_c.c:147: 
+[eva] tests/libc/string_c.c:147: 
   function strcpy: precondition 'separation' got status valid.
-[value] Recording results for strcpy
-[value] Done for function strcpy
-[value] tests/libc/string_c.c:148: assertion got status valid.
-[value] Recording results for test_strcpy
-[value] Done for function test_strcpy
-[value] computing for function test_strncpy <- main.
+[eva] Recording results for strcpy
+[eva] Done for function strcpy
+[eva] tests/libc/string_c.c:148: assertion got status valid.
+[eva] Recording results for test_strcpy
+[eva] Done for function test_strcpy
+[eva] computing for function test_strncpy <- main.
   Called from tests/libc/string_c.c:292.
-[value] computing for function strncpy <- test_strncpy <- main.
+[eva] computing for function strncpy <- test_strncpy <- main.
   Called from tests/libc/string_c.c:154.
-[value] tests/libc/string_c.c:154: 
+[eva] tests/libc/string_c.c:154: 
   function strncpy: precondition 'valid_string_src' got status valid.
-[value] tests/libc/string_c.c:154: 
+[eva] tests/libc/string_c.c:154: 
   function strncpy: precondition 'room_nstring' got status valid.
-[value] tests/libc/string_c.c:154: 
+[eva] tests/libc/string_c.c:154: 
   function strncpy: precondition 'separation' got status valid.
-[value] share/libc/string.h:337: 
+[eva] share/libc/string.h:365: 
   function strncpy: postcondition 'result_ptr' got status valid.
-[value] share/libc/string.h:338: 
+[eva] share/libc/string.h:366: 
   function strncpy: postcondition 'initialization' got status valid.
-[value] share/libc/string.h:341: 
+[eva] share/libc/string.h:369: 
   cannot evaluate ACSL term, unsupported ACSL construct: logic function strcmp
-[value:alarm] share/libc/string.h:341: Warning: 
+[eva:alarm] share/libc/string.h:369: Warning: 
   function strncpy, behavior complete: postcondition 'equal_after_copy' got status unknown.
-[value] Recording results for strncpy
-[value] Done for function strncpy
-[value] tests/libc/string_c.c:155: assertion got status valid.
-[value] tests/libc/string_c.c:156: assertion got status valid.
-[value] computing for function strncpy <- test_strncpy <- main.
+[eva] Recording results for strncpy
+[eva] Done for function strncpy
+[eva] tests/libc/string_c.c:155: assertion got status valid.
+[eva] tests/libc/string_c.c:156: assertion got status valid.
+[eva] computing for function strncpy <- test_strncpy <- main.
   Called from tests/libc/string_c.c:157.
-[value] tests/libc/string_c.c:157: 
+[eva] tests/libc/string_c.c:157: 
   function strncpy: precondition 'valid_string_src' got status valid.
-[value] tests/libc/string_c.c:157: 
+[eva] tests/libc/string_c.c:157: 
   function strncpy: precondition 'room_nstring' got status valid.
-[value] tests/libc/string_c.c:157: 
+[eva] tests/libc/string_c.c:157: 
   function strncpy: precondition 'separation' got status valid.
-[value] share/libc/string.h:344: 
+[eva] share/libc/string.h:372: 
   cannot evaluate ACSL term, unsupported ACSL construct: logic function memcmp
-[value:alarm] share/libc/string.h:344: Warning: 
+[eva:alarm] share/libc/string.h:372: Warning: 
   function strncpy, behavior partial: postcondition 'equal_prefix' got status unknown.
-[value] Recording results for strncpy
-[value] Done for function strncpy
-[value] tests/libc/string_c.c:158: assertion got status valid.
-[value] computing for function strncpy <- test_strncpy <- main.
+[eva] Recording results for strncpy
+[eva] Done for function strncpy
+[eva] tests/libc/string_c.c:158: assertion got status valid.
+[eva] computing for function strncpy <- test_strncpy <- main.
   Called from tests/libc/string_c.c:159.
-[value] tests/libc/string_c.c:159: 
+[eva] tests/libc/string_c.c:159: 
   function strncpy: precondition 'valid_string_src' got status valid.
-[value] tests/libc/string_c.c:159: 
+[eva] tests/libc/string_c.c:159: 
   function strncpy: precondition 'room_nstring' got status valid.
-[value] tests/libc/string_c.c:159: 
+[eva] tests/libc/string_c.c:159: 
   function strncpy: precondition 'separation' got status valid.
-[value] Recording results for strncpy
-[value] Done for function strncpy
-[value] tests/libc/string_c.c:160: assertion got status valid.
-[value] computing for function strncpy <- test_strncpy <- main.
+[eva] Recording results for strncpy
+[eva] Done for function strncpy
+[eva] tests/libc/string_c.c:160: assertion got status valid.
+[eva] computing for function strncpy <- test_strncpy <- main.
   Called from tests/libc/string_c.c:161.
-[value] tests/libc/string_c.c:161: 
+[eva] tests/libc/string_c.c:161: 
   function strncpy: precondition 'valid_string_src' got status valid.
-[value] tests/libc/string_c.c:161: 
+[eva] tests/libc/string_c.c:161: 
   function strncpy: precondition 'room_nstring' got status valid.
-[value] tests/libc/string_c.c:161: 
+[eva] tests/libc/string_c.c:161: 
   function strncpy: precondition 'separation' got status valid.
-[value] Recording results for strncpy
-[value] Done for function strncpy
-[value] tests/libc/string_c.c:162: assertion got status valid.
-[value] Recording results for test_strncpy
-[value] Done for function test_strncpy
-[value] computing for function test_strchr <- main.
+[eva] Recording results for strncpy
+[eva] Done for function strncpy
+[eva] tests/libc/string_c.c:162: assertion got status valid.
+[eva] Recording results for test_strncpy
+[eva] Done for function test_strncpy
+[eva] computing for function test_strchr <- main.
   Called from tests/libc/string_c.c:293.
-[value] computing for function strchr <- test_strchr <- main.
+[eva] computing for function strchr <- test_strchr <- main.
   Called from tests/libc/string_c.c:201.
-[value] tests/libc/string_c.c:201: 
+[eva] tests/libc/string_c.c:201: 
   function strchr: precondition 'valid_string_s' got status valid.
-[value] share/libc/string.h:146: 
-  cannot evaluate ACSL term, unsupported ACSL construct: logic function strchr
-[value] share/libc/string.h:153: 
-  cannot evaluate ACSL term, unsupported ACSL construct: logic function strchr
-[value] share/libc/string.h:147: 
-  function strchr, behavior found: postcondition 'result_char' got status valid. (Behavior may be inactive, no reduction performed.)
-[value] share/libc/string.h:148: 
-  function strchr, behavior found: postcondition 'result_same_base' got status valid. (Behavior may be inactive, no reduction performed.)
-[value] share/libc/string.h:149: 
-  function strchr, behavior found: postcondition 'result_in_length' got status valid. (Behavior may be inactive, no reduction performed.)
-[value] share/libc/string.h:150: 
-  function strchr, behavior found: postcondition 'result_valid_string' got status valid. (Behavior may be inactive, no reduction performed.)
-[value:alarm] share/libc/string.h:151: Warning: 
-  function strchr, behavior found: postcondition 'result_first_occur' got status unknown. (Behavior may be inactive, no reduction performed.)
-[value:alarm] share/libc/string.h:154: Warning: 
-  function strchr, behavior not_found: postcondition 'result_null' got status invalid. (Behavior may be inactive, no reduction performed.)
-[value] share/libc/string.h:157: 
+[eva] share/libc/string.h:161: 
+  function strchr, behavior found: postcondition 'result_char' got status valid.
+[eva] share/libc/string.h:162: 
+  function strchr, behavior found: postcondition 'result_same_base' got status valid.
+[eva] share/libc/string.h:163: 
+  function strchr, behavior found: postcondition 'result_in_length' got status valid.
+[eva] share/libc/string.h:164: 
+  function strchr, behavior found: postcondition 'result_valid_string' got status valid.
+[eva:alarm] share/libc/string.h:165: Warning: 
+  function strchr, behavior found: postcondition 'result_first_occur' got status unknown.
+[eva] share/libc/string.h:171: 
   function strchr, behavior default: postcondition 'result_null_or_same_base' got status valid.
-[value] Recording results for strchr
-[value] Done for function strchr
-[value] tests/libc/string_c.c:202: assertion got status valid.
-[value] computing for function strchr <- test_strchr <- main.
+[eva] Recording results for strchr
+[eva] Done for function strchr
+[eva] tests/libc/string_c.c:202: assertion got status valid.
+[eva] computing for function strchr <- test_strchr <- main.
   Called from tests/libc/string_c.c:203.
-[value] tests/libc/string_c.c:203: 
+[eva] tests/libc/string_c.c:203: 
   function strchr: precondition 'valid_string_s' got status valid.
-[value:alarm] share/libc/string.h:147: Warning: 
-  function strchr, behavior found: postcondition 'result_char' got status unknown. (Behavior may be inactive, no reduction performed.)
-[value:alarm] share/libc/string.h:148: Warning: 
-  function strchr, behavior found: postcondition 'result_same_base' got status invalid. (Behavior may be inactive, no reduction performed.)
-[value:alarm] share/libc/string.h:149: Warning: 
-  function strchr, behavior found: postcondition 'result_in_length' got status invalid. (Behavior may be inactive, no reduction performed.)
-[value:alarm] share/libc/string.h:150: Warning: 
-  function strchr, behavior found: postcondition 'result_valid_string' got status invalid. (Behavior may be inactive, no reduction performed.)
-[value] share/libc/string.h:154: 
-  function strchr, behavior not_found: postcondition 'result_null' got status valid. (Behavior may be inactive, no reduction performed.)
-[value] Recording results for strchr
-[value] Done for function strchr
-[value] tests/libc/string_c.c:204: assertion got status valid.
-[value] computing for function strchr <- test_strchr <- main.
+[eva] share/libc/string.h:168: 
+  function strchr, behavior not_found: postcondition 'result_null' got status valid.
+[eva] Recording results for strchr
+[eva] Done for function strchr
+[eva] tests/libc/string_c.c:204: assertion got status valid.
+[eva] computing for function strchr <- test_strchr <- main.
   Called from tests/libc/string_c.c:205.
-[value] tests/libc/string_c.c:205: 
+[eva] tests/libc/string_c.c:205: 
   function strchr: precondition 'valid_string_s' got status valid.
-[value] Recording results for strchr
-[value] Done for function strchr
-[value] tests/libc/string_c.c:206: assertion got status valid.
-[value] computing for function strchr <- test_strchr <- main.
+[eva] Recording results for strchr
+[eva] Done for function strchr
+[eva] tests/libc/string_c.c:206: assertion got status valid.
+[eva] computing for function strchr <- test_strchr <- main.
   Called from tests/libc/string_c.c:207.
-[value] tests/libc/string_c.c:207: 
+[eva] tests/libc/string_c.c:207: 
   function strchr: precondition 'valid_string_s' got status valid.
-[value] Recording results for strchr
-[value] Done for function strchr
-[value] tests/libc/string_c.c:208: assertion got status valid.
-[value] Recording results for test_strchr
-[value] Done for function test_strchr
-[value] computing for function test_strrchr <- main.
+[eva] Recording results for strchr
+[eva] Done for function strchr
+[eva] tests/libc/string_c.c:208: assertion got status valid.
+[eva] Recording results for test_strchr
+[eva] Done for function test_strchr
+[eva] computing for function test_strrchr <- main.
   Called from tests/libc/string_c.c:294.
-[value] computing for function strrchr <- test_strrchr <- main.
+[eva] computing for function strrchr <- test_strrchr <- main.
   Called from tests/libc/string_c.c:214.
-[value] tests/libc/string_c.c:214: 
+[eva] tests/libc/string_c.c:214: 
   function strrchr: precondition 'valid_string_s' got status valid.
-[value] share/libc/string.h:164: 
-  cannot evaluate ACSL term, unsupported ACSL construct: logic function strchr
-[value] share/libc/string.h:169: 
-  cannot evaluate ACSL term, unsupported ACSL construct: logic function strchr
-[value] computing for function strlen <- strrchr <- test_strrchr <- main.
-  Called from share/libc/string.c:209.
-[value] share/libc/string.c:209: 
+[eva] computing for function strlen <- strrchr <- test_strrchr <- main.
+  Called from share/libc/string.c:229.
+[eva] share/libc/string.c:229: 
   function strlen: precondition 'valid_string_s' got status valid.
-[value] Recording results for strlen
-[value] Done for function strlen
-[value] share/libc/string.h:165: 
-  function strrchr, behavior found: postcondition 'result_char' got status valid. (Behavior may be inactive, no reduction performed.)
-[value] share/libc/string.h:166: 
-  function strrchr, behavior found: postcondition 'result_same_base' got status valid. (Behavior may be inactive, no reduction performed.)
-[value] share/libc/string.h:167: 
-  function strrchr, behavior found: postcondition 'result_valid_string' got status valid. (Behavior may be inactive, no reduction performed.)
-[value:alarm] share/libc/string.h:170: Warning: 
-  function strrchr, behavior not_found: postcondition 'result_null' got status invalid. (Behavior may be inactive, no reduction performed.)
-[value] share/libc/string.h:173: 
+[eva] Recording results for strlen
+[eva] Done for function strlen
+[eva] share/libc/string.h:179: 
+  function strrchr, behavior found: postcondition 'result_char' got status valid.
+[eva] share/libc/string.h:180: 
+  function strrchr, behavior found: postcondition 'result_same_base' got status valid.
+[eva] share/libc/string.h:181: 
+  function strrchr, behavior found: postcondition 'result_valid_string' got status valid.
+[eva] share/libc/string.h:187: 
   function strrchr, behavior default: postcondition 'result_null_or_same_base' got status valid.
-[value] Recording results for strrchr
-[value] Done for function strrchr
-[value] tests/libc/string_c.c:215: assertion got status valid.
-[value] computing for function strrchr <- test_strrchr <- main.
+[eva] Recording results for strrchr
+[eva] Done for function strrchr
+[eva] tests/libc/string_c.c:215: assertion got status valid.
+[eva] computing for function strrchr <- test_strrchr <- main.
   Called from tests/libc/string_c.c:216.
-[value] tests/libc/string_c.c:216: 
+[eva] tests/libc/string_c.c:216: 
   function strrchr: precondition 'valid_string_s' got status valid.
-[value] computing for function strlen <- strrchr <- test_strrchr <- main.
-  Called from share/libc/string.c:209.
-[value] Recording results for strlen
-[value] Done for function strlen
-[value:alarm] share/libc/string.h:165: Warning: 
-  function strrchr, behavior found: postcondition 'result_char' got status unknown. (Behavior may be inactive, no reduction performed.)
-[value:alarm] share/libc/string.h:166: Warning: 
-  function strrchr, behavior found: postcondition 'result_same_base' got status invalid. (Behavior may be inactive, no reduction performed.)
-[value:alarm] share/libc/string.h:167: Warning: 
-  function strrchr, behavior found: postcondition 'result_valid_string' got status invalid. (Behavior may be inactive, no reduction performed.)
-[value] share/libc/string.h:170: 
-  function strrchr, behavior not_found: postcondition 'result_null' got status valid. (Behavior may be inactive, no reduction performed.)
-[value] Recording results for strrchr
-[value] Done for function strrchr
-[value] tests/libc/string_c.c:217: assertion got status valid.
-[value] computing for function strrchr <- test_strrchr <- main.
+[eva] share/libc/string.c:229: Reusing old results for call to strlen
+[eva] share/libc/string.h:184: 
+  function strrchr, behavior not_found: postcondition 'result_null' got status valid.
+[eva] Recording results for strrchr
+[eva] Done for function strrchr
+[eva] tests/libc/string_c.c:217: assertion got status valid.
+[eva] computing for function strrchr <- test_strrchr <- main.
   Called from tests/libc/string_c.c:218.
-[value] tests/libc/string_c.c:218: 
+[eva] tests/libc/string_c.c:218: 
   function strrchr: precondition 'valid_string_s' got status valid.
-[value] computing for function strlen <- strrchr <- test_strrchr <- main.
-  Called from share/libc/string.c:209.
-[value] Recording results for strlen
-[value] Done for function strlen
-[value] Recording results for strrchr
-[value] Done for function strrchr
-[value] tests/libc/string_c.c:219: assertion got status valid.
-[value] computing for function strrchr <- test_strrchr <- main.
+[eva] share/libc/string.c:229: Reusing old results for call to strlen
+[eva] Recording results for strrchr
+[eva] Done for function strrchr
+[eva] tests/libc/string_c.c:219: assertion got status valid.
+[eva] computing for function strrchr <- test_strrchr <- main.
   Called from tests/libc/string_c.c:220.
-[value] tests/libc/string_c.c:220: 
+[eva] tests/libc/string_c.c:220: 
   function strrchr: precondition 'valid_string_s' got status valid.
-[value] computing for function strlen <- strrchr <- test_strrchr <- main.
-  Called from share/libc/string.c:209.
-[value] Recording results for strlen
-[value] Done for function strlen
-[value] Recording results for strrchr
-[value] Done for function strrchr
-[value] tests/libc/string_c.c:221: assertion got status valid.
-[value] Recording results for test_strrchr
-[value] Done for function test_strrchr
-[value] computing for function test_memchr <- main.
+[eva] share/libc/string.c:229: Reusing old results for call to strlen
+[eva] Recording results for strrchr
+[eva] Done for function strrchr
+[eva] tests/libc/string_c.c:221: assertion got status valid.
+[eva] Recording results for test_strrchr
+[eva] Done for function test_strrchr
+[eva] computing for function test_memchr <- main.
   Called from tests/libc/string_c.c:295.
-[value] computing for function memchr <- test_memchr <- main.
+[eva] computing for function memchr <- test_memchr <- main.
   Called from tests/libc/string_c.c:227.
-[value] tests/libc/string_c.c:227: 
+[eva] tests/libc/string_c.c:227: 
   function memchr: precondition 'valid' got status valid.
-[value] tests/libc/string_c.c:227: 
+[eva] tests/libc/string_c.c:227: 
   function memchr: precondition 'initialization' got status valid.
-[value] tests/libc/string_c.c:227: 
+[eva] tests/libc/string_c.c:227: 
   function memchr: precondition 'danglingness' got status valid.
-[value] share/libc/string.h:64: 
+[eva] share/libc/string.h:78: 
   cannot evaluate ACSL term, unsupported ACSL construct: logic function memchr
-[value] share/libc/string.h:71: 
+[eva] share/libc/string.h:85: 
   cannot evaluate ACSL term, unsupported ACSL construct: logic function memchr
-[value] share/libc/string.h:65: 
+[eva] share/libc/string.h:79: 
   function memchr, behavior found: postcondition 'result_same_base' got status valid. (Behavior may be inactive, no reduction performed.)
-[value] share/libc/string.h:66: 
+[eva] share/libc/string.h:80: 
   function memchr, behavior found: postcondition 'result_char' got status valid. (Behavior may be inactive, no reduction performed.)
-[value:alarm] share/libc/string.h:67: Warning: 
+[eva:alarm] share/libc/string.h:81: Warning: 
   function memchr, behavior found: postcondition 'result_in_str' got status unknown. (Behavior may be inactive, no reduction performed.)
-[value:alarm] share/libc/string.h:72: Warning: 
+[eva:alarm] share/libc/string.h:86: Warning: 
   function memchr, behavior not_found: postcondition 'result_null' got status invalid. (Behavior may be inactive, no reduction performed.)
-[value] Recording results for memchr
-[value] Done for function memchr
-[value] tests/libc/string_c.c:228: assertion got status valid.
-[value] computing for function memchr <- test_memchr <- main.
+[eva] Recording results for memchr
+[eva] Done for function memchr
+[eva] tests/libc/string_c.c:228: assertion got status valid.
+[eva] computing for function memchr <- test_memchr <- main.
   Called from tests/libc/string_c.c:229.
-[value] tests/libc/string_c.c:229: 
+[eva] tests/libc/string_c.c:229: 
   function memchr: precondition 'valid' got status valid.
-[value] tests/libc/string_c.c:229: 
+[eva] tests/libc/string_c.c:229: 
   function memchr: precondition 'initialization' got status valid.
-[value] tests/libc/string_c.c:229: 
+[eva] tests/libc/string_c.c:229: 
   function memchr: precondition 'danglingness' got status valid.
-[value:alarm] share/libc/string.h:65: Warning: 
+[eva:alarm] share/libc/string.h:79: Warning: 
   function memchr, behavior found: postcondition 'result_same_base' got status invalid. (Behavior may be inactive, no reduction performed.)
-[value:alarm] share/libc/string.h:66: Warning: 
+[eva:alarm] share/libc/string.h:80: Warning: 
   function memchr, behavior found: postcondition 'result_char' got status unknown. (Behavior may be inactive, no reduction performed.)
-[value] share/libc/string.h:72: 
+[eva] share/libc/string.h:86: 
   function memchr, behavior not_found: postcondition 'result_null' got status valid. (Behavior may be inactive, no reduction performed.)
-[value] Recording results for memchr
-[value] Done for function memchr
-[value] tests/libc/string_c.c:230: assertion got status valid.
-[value] computing for function memchr <- test_memchr <- main.
+[eva] Recording results for memchr
+[eva] Done for function memchr
+[eva] tests/libc/string_c.c:230: assertion got status valid.
+[eva] computing for function memchr <- test_memchr <- main.
   Called from tests/libc/string_c.c:231.
-[value] tests/libc/string_c.c:231: 
+[eva] tests/libc/string_c.c:231: 
   function memchr: precondition 'valid' got status valid.
-[value] tests/libc/string_c.c:231: 
+[eva] tests/libc/string_c.c:231: 
   function memchr: precondition 'initialization' got status valid.
-[value] tests/libc/string_c.c:231: 
+[eva] tests/libc/string_c.c:231: 
   function memchr: precondition 'danglingness' got status valid.
-[value] Recording results for memchr
-[value] Done for function memchr
-[value] tests/libc/string_c.c:232: assertion got status valid.
-[value] computing for function memchr <- test_memchr <- main.
+[eva] Recording results for memchr
+[eva] Done for function memchr
+[eva] tests/libc/string_c.c:232: assertion got status valid.
+[eva] computing for function memchr <- test_memchr <- main.
   Called from tests/libc/string_c.c:233.
-[value] tests/libc/string_c.c:233: 
+[eva] tests/libc/string_c.c:233: 
   function memchr: precondition 'valid' got status valid.
-[value] tests/libc/string_c.c:233: 
+[eva] tests/libc/string_c.c:233: 
   function memchr: precondition 'initialization' got status valid.
-[value] tests/libc/string_c.c:233: 
+[eva] tests/libc/string_c.c:233: 
   function memchr: precondition 'danglingness' got status valid.
-[value] Recording results for memchr
-[value] Done for function memchr
-[value] tests/libc/string_c.c:234: assertion got status valid.
-[value] computing for function memchr <- test_memchr <- main.
+[eva] Recording results for memchr
+[eva] Done for function memchr
+[eva] tests/libc/string_c.c:234: assertion got status valid.
+[eva] computing for function memchr <- test_memchr <- main.
   Called from tests/libc/string_c.c:235.
-[value] tests/libc/string_c.c:235: 
+[eva] tests/libc/string_c.c:235: 
   function memchr: precondition 'valid' got status valid.
-[value] tests/libc/string_c.c:235: 
+[eva] tests/libc/string_c.c:235: 
   function memchr: precondition 'initialization' got status valid.
-[value] tests/libc/string_c.c:235: 
+[eva] tests/libc/string_c.c:235: 
   function memchr: precondition 'danglingness' got status valid.
-[value] Recording results for memchr
-[value] Done for function memchr
-[value] tests/libc/string_c.c:236: assertion got status valid.
-[value] computing for function memchr <- test_memchr <- main.
+[eva] Recording results for memchr
+[eva] Done for function memchr
+[eva] tests/libc/string_c.c:236: assertion got status valid.
+[eva] computing for function memchr <- test_memchr <- main.
   Called from tests/libc/string_c.c:237.
-[value] tests/libc/string_c.c:237: 
+[eva] tests/libc/string_c.c:237: 
   function memchr: precondition 'valid' got status valid.
-[value] tests/libc/string_c.c:237: 
+[eva] tests/libc/string_c.c:237: 
   function memchr: precondition 'initialization' got status valid.
-[value] tests/libc/string_c.c:237: 
+[eva] tests/libc/string_c.c:237: 
   function memchr: precondition 'danglingness' got status valid.
-[value] Recording results for memchr
-[value] Done for function memchr
-[value] tests/libc/string_c.c:238: assertion got status valid.
-[value] Recording results for test_memchr
-[value] Done for function test_memchr
-[value] computing for function test_memrchr <- main.
+[eva] Recording results for memchr
+[eva] Done for function memchr
+[eva] tests/libc/string_c.c:238: assertion got status valid.
+[eva] Recording results for test_memchr
+[eva] Done for function test_memchr
+[eva] computing for function test_memrchr <- main.
   Called from tests/libc/string_c.c:296.
-[value] computing for function memrchr <- test_memrchr <- main.
+[eva] computing for function memrchr <- test_memrchr <- main.
   Called from tests/libc/string_c.c:244.
-[value] Recording results for memrchr
-[value] Done for function memrchr
-[value] tests/libc/string_c.c:245: assertion got status valid.
-[value] computing for function memrchr <- test_memrchr <- main.
+[eva] Recording results for memrchr
+[eva] Done for function memrchr
+[eva] tests/libc/string_c.c:245: assertion got status valid.
+[eva] computing for function memrchr <- test_memrchr <- main.
   Called from tests/libc/string_c.c:246.
-[value] Recording results for memrchr
-[value] Done for function memrchr
-[value] tests/libc/string_c.c:247: assertion got status valid.
-[value] computing for function memrchr <- test_memrchr <- main.
+[eva] Recording results for memrchr
+[eva] Done for function memrchr
+[eva] tests/libc/string_c.c:247: assertion got status valid.
+[eva] computing for function memrchr <- test_memrchr <- main.
   Called from tests/libc/string_c.c:248.
-[value] Recording results for memrchr
-[value] Done for function memrchr
-[value] tests/libc/string_c.c:249: assertion got status valid.
-[value] computing for function memrchr <- test_memrchr <- main.
+[eva] Recording results for memrchr
+[eva] Done for function memrchr
+[eva] tests/libc/string_c.c:249: assertion got status valid.
+[eva] computing for function memrchr <- test_memrchr <- main.
   Called from tests/libc/string_c.c:250.
-[value] Recording results for memrchr
-[value] Done for function memrchr
-[value] tests/libc/string_c.c:251: assertion got status valid.
-[value] computing for function memrchr <- test_memrchr <- main.
+[eva] Recording results for memrchr
+[eva] Done for function memrchr
+[eva] tests/libc/string_c.c:251: assertion got status valid.
+[eva] computing for function memrchr <- test_memrchr <- main.
   Called from tests/libc/string_c.c:252.
-[value] Recording results for memrchr
-[value] Done for function memrchr
-[value] tests/libc/string_c.c:253: assertion got status valid.
-[value] computing for function memrchr <- test_memrchr <- main.
+[eva] Recording results for memrchr
+[eva] Done for function memrchr
+[eva] tests/libc/string_c.c:253: assertion got status valid.
+[eva] computing for function memrchr <- test_memrchr <- main.
   Called from tests/libc/string_c.c:254.
-[value] Recording results for memrchr
-[value] Done for function memrchr
-[value] tests/libc/string_c.c:255: assertion got status valid.
-[value] Recording results for test_memrchr
-[value] Done for function test_memrchr
-[value] computing for function test_strstr <- main.
+[eva] Recording results for memrchr
+[eva] Done for function memrchr
+[eva] tests/libc/string_c.c:255: assertion got status valid.
+[eva] Recording results for test_memrchr
+[eva] Done for function test_memrchr
+[eva] computing for function test_strstr <- main.
   Called from tests/libc/string_c.c:297.
-[value] computing for function strstr <- test_strstr <- main.
+[eva] computing for function strstr <- test_strstr <- main.
   Called from tests/libc/string_c.c:261.
-[value] tests/libc/string_c.c:261: 
+[eva] tests/libc/string_c.c:261: 
   function strstr: precondition 'valid_string_haystack' got status valid.
-[value] tests/libc/string_c.c:261: 
+[eva] tests/libc/string_c.c:261: 
   function strstr: precondition 'valid_string_needle' got status valid.
-[value] share/libc/string.h:207: 
+[eva] share/libc/string.h:221: 
   cannot evaluate ACSL term, unsupported ACSL construct: logic function memcmp
-[value:alarm] share/libc/string.h:205: Warning: 
+[eva:alarm] share/libc/string.h:219: Warning: 
   function strstr: postcondition 'result_null_or_in_haystack' got status unknown.
-[value] Recording results for strstr
-[value] Done for function strstr
-[value] tests/libc/string_c.c:262: assertion got status valid.
-[value] computing for function strstr <- test_strstr <- main.
+[eva] Recording results for strstr
+[eva] Done for function strstr
+[eva] tests/libc/string_c.c:262: assertion got status valid.
+[eva] computing for function strstr <- test_strstr <- main.
   Called from tests/libc/string_c.c:263.
-[value] tests/libc/string_c.c:263: 
+[eva] tests/libc/string_c.c:263: 
   function strstr: precondition 'valid_string_haystack' got status valid.
-[value] tests/libc/string_c.c:263: 
+[eva] tests/libc/string_c.c:263: 
   function strstr: precondition 'valid_string_needle' got status valid.
-[value] Recording results for strstr
-[value] Done for function strstr
-[value] tests/libc/string_c.c:264: assertion got status valid.
-[value] computing for function strstr <- test_strstr <- main.
+[eva] Recording results for strstr
+[eva] Done for function strstr
+[eva] tests/libc/string_c.c:264: assertion got status valid.
+[eva] computing for function strstr <- test_strstr <- main.
   Called from tests/libc/string_c.c:265.
-[value] tests/libc/string_c.c:265: 
+[eva] tests/libc/string_c.c:265: 
   function strstr: precondition 'valid_string_haystack' got status valid.
-[value] tests/libc/string_c.c:265: 
+[eva] tests/libc/string_c.c:265: 
   function strstr: precondition 'valid_string_needle' got status valid.
-[value] share/libc/string.h:205: 
+[eva] share/libc/string.h:219: 
   function strstr: postcondition 'result_null_or_in_haystack' got status valid.
-[value] Recording results for strstr
-[value] Done for function strstr
-[value] tests/libc/string_c.c:266: assertion got status valid.
-[value] computing for function strstr <- test_strstr <- main.
+[eva] Recording results for strstr
+[eva] Done for function strstr
+[eva] tests/libc/string_c.c:266: assertion got status valid.
+[eva] computing for function strstr <- test_strstr <- main.
   Called from tests/libc/string_c.c:267.
-[value] tests/libc/string_c.c:267: 
+[eva] tests/libc/string_c.c:267: 
   function strstr: precondition 'valid_string_haystack' got status valid.
-[value] tests/libc/string_c.c:267: 
+[eva] tests/libc/string_c.c:267: 
   function strstr: precondition 'valid_string_needle' got status valid.
-[value] Recording results for strstr
-[value] Done for function strstr
-[value] tests/libc/string_c.c:268: assertion got status valid.
-[value] computing for function strstr <- test_strstr <- main.
+[eva] Recording results for strstr
+[eva] Done for function strstr
+[eva] tests/libc/string_c.c:268: assertion got status valid.
+[eva] computing for function strstr <- test_strstr <- main.
   Called from tests/libc/string_c.c:269.
-[value] tests/libc/string_c.c:269: 
+[eva] tests/libc/string_c.c:269: 
   function strstr: precondition 'valid_string_haystack' got status valid.
-[value] tests/libc/string_c.c:269: 
+[eva] tests/libc/string_c.c:269: 
   function strstr: precondition 'valid_string_needle' got status valid.
-[value] Recording results for strstr
-[value] Done for function strstr
-[value] tests/libc/string_c.c:270: assertion got status valid.
-[value] computing for function strstr <- test_strstr <- main.
+[eva] Recording results for strstr
+[eva] Done for function strstr
+[eva] tests/libc/string_c.c:270: assertion got status valid.
+[eva] computing for function strstr <- test_strstr <- main.
   Called from tests/libc/string_c.c:271.
-[value] tests/libc/string_c.c:271: 
+[eva] tests/libc/string_c.c:271: 
   function strstr: precondition 'valid_string_haystack' got status valid.
-[value] tests/libc/string_c.c:271: 
+[eva] tests/libc/string_c.c:271: 
   function strstr: precondition 'valid_string_needle' got status valid.
-[value] Recording results for strstr
-[value] Done for function strstr
-[value] tests/libc/string_c.c:272: assertion got status valid.
-[value] computing for function strstr <- test_strstr <- main.
+[eva] Recording results for strstr
+[eva] Done for function strstr
+[eva] tests/libc/string_c.c:272: assertion got status valid.
+[eva] computing for function strstr <- test_strstr <- main.
   Called from tests/libc/string_c.c:273.
-[value] tests/libc/string_c.c:273: 
+[eva] tests/libc/string_c.c:273: 
   function strstr: precondition 'valid_string_haystack' got status valid.
-[value] tests/libc/string_c.c:273: 
+[eva] tests/libc/string_c.c:273: 
   function strstr: precondition 'valid_string_needle' got status valid.
-[value] Recording results for strstr
-[value] Done for function strstr
-[value] tests/libc/string_c.c:274: assertion got status valid.
-[value] computing for function strstr <- test_strstr <- main.
+[eva] Recording results for strstr
+[eva] Done for function strstr
+[eva] tests/libc/string_c.c:274: assertion got status valid.
+[eva] computing for function strstr <- test_strstr <- main.
   Called from tests/libc/string_c.c:275.
-[value] tests/libc/string_c.c:275: 
+[eva] tests/libc/string_c.c:275: 
   function strstr: precondition 'valid_string_haystack' got status valid.
-[value] tests/libc/string_c.c:275: 
+[eva] tests/libc/string_c.c:275: 
   function strstr: precondition 'valid_string_needle' got status valid.
-[value] Recording results for strstr
-[value] Done for function strstr
-[value] tests/libc/string_c.c:276: assertion got status valid.
-[value] Recording results for test_strstr
-[value] Done for function test_strstr
-[value] Recording results for main
-[value] done for function main
-[value] ====== VALUES COMPUTED ======
-[value:final-states] Values at end of function memchr:
+[eva] Recording results for strstr
+[eva] Done for function strstr
+[eva] tests/libc/string_c.c:276: assertion got status valid.
+[eva] Recording results for test_strstr
+[eva] Done for function test_strstr
+[eva] Recording results for main
+[eva] done for function main
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function memchr:
   ch ∈ {1; 2; 5}
   ss ∈ {{ (unsigned char const *)&s }}
   __retres ∈ {{ NULL ; (void *)&s{[0], [1]} }}
-[value:final-states] Values at end of function memcmp:
+[eva:final-states] Values at end of function memcmp:
   p1 ∈ {{ "hallo" ; "hallo" ; "a\000b" ; "a\000b" }}
   p2 ∈ {{ (unsigned char const *)&hello ; "a\000c" ; "a\000c" }}
   __retres ∈ {-4; -1; 0}
-[value:final-states] Values at end of function memcpy:
-  res ∈ {{ NULL ; &dest[0] }}
+[eva:final-states] Values at end of function memcpy:
   dest[0] ∈ {65; 97; 104}
       [1] ∈ {0; 56; 101}
       [2] ∈ {9; 98; 108}
       [3] ∈ {0; 18; 108}
       [4] ∈ {0; 111}
       [5] ∈ {0}
-  __retres ∈ {{ NULL ; (void *)&dest }}
-[value:final-states] Values at end of function memmove:
+[eva:final-states] Values at end of function memmove:
   s ∈ {{ &buf{[0], [2]} }}
   d ∈ {{ &buf{[0], [2], [3]} }}
   buf[0] ∈ {1; 3}
@@ -1020,22 +974,22 @@
      [4] ∈ {3; 4; 5}
      [5] ∈ {4; 5; 6}
   __retres ∈ {{ (void *)&buf{[0], [2], [3]} }}
-[value:final-states] Values at end of function memrchr:
+[eva:final-states] Values at end of function memrchr:
   ch ∈ {1; 2; 5}
   ss ∈ {{ (unsigned char const *)&s }}
   __retres ∈ {{ NULL ; (void *)&s{[0], [3], [4]} }}
-[value:final-states] Values at end of function memset:
+[eva:final-states] Values at end of function memset:
   p ∈ {{ (unsigned char *)&dest }}
   dest[0..2] ∈ {42}
       [3] ∈ {0}
-[value:final-states] Values at end of function strchr:
+[eva:final-states] Values at end of function strchr:
   ch ∈ {0; 72; 104; 108}
   i ∈ {0; 2; 5}
   __retres ∈ {{ NULL ; "hello" + {0; 2; 5} }}
-[value:final-states] Values at end of function strcmp:
+[eva:final-states] Values at end of function strcmp:
   i ∈ {0; 1; 4; 5}
   __retres ∈ {-111; -104; -32; 0; 111}
-[value:final-states] Values at end of function strcpy:
+[eva:final-states] Values at end of function strcpy:
   i ∈ {0; 5; 6}
   s[0] ∈ {0; 54; 104}
    [1] ∈ {53; 101}
@@ -1044,9 +998,9 @@
    [4] ∈ {50; 111}
    [5] ∈ {0; 49}
    [6] ∈ {0} or UNINITIALIZED
-[value:final-states] Values at end of function strlen:
+[eva:final-states] Values at end of function strlen:
   i ∈ {0; 2; 4; 5; 7}
-[value:final-states] Values at end of function strcat:
+[eva:final-states] Values at end of function strcat:
   i ∈ {0; 1; 3; 5}
   n ∈ {0; 4; 7}
   s[0] ∈ {104}
@@ -1058,9 +1012,9 @@
    [7] ∈ {0; 120} or UNINITIALIZED
    [8] ∈ {0} or UNINITIALIZED
    [9] ∈ UNINITIALIZED
-[value:final-states] Values at end of function strncmp:
+[eva:final-states] Values at end of function strncmp:
   __retres ∈ {-104; -4; 0; 111}
-[value:final-states] Values at end of function strncpy:
+[eva:final-states] Values at end of function strncpy:
   i ∈ {0; 3; 5; 7}
   s[0] ∈ {97; 98; 104}
    [1] ∈ {98; 101; 121}
@@ -1068,14 +1022,14 @@
    [3] ∈ {0; 108}
    [4] ∈ {0; 111}
    [5..6] ∈ {0}
-[value:final-states] Values at end of function strnlen:
+[eva:final-states] Values at end of function strnlen:
   i ∈ {0; 2; 4; 5}
-[value:final-states] Values at end of function strrchr:
+[eva:final-states] Values at end of function strrchr:
   ch ∈ {0; 72; 104; 108}
   __retres ∈ {{ NULL ; "hello" + {0; 3; 5} }}
-[value:final-states] Values at end of function strstr:
+[eva:final-states] Values at end of function strstr:
   __retres ∈ {{ NULL ; "hello" + {0; 2; 3} }}
-[value:final-states] Values at end of function test_memchr:
+[eva:final-states] Values at end of function test_memchr:
   s[0] ∈ {1}
    [1] ∈ {2}
    [2] ∈ {3}
@@ -1083,7 +1037,7 @@
    [4] ∈ {2}
    [5] ∈ {4}
   p ∈ {{ &s[0] }}
-[value:final-states] Values at end of function test_memcmp:
+[eva:final-states] Values at end of function test_memcmp:
   hello[0] ∈ {104}
        [1] ∈ {101}
        [2..3] ∈ {108}
@@ -1093,7 +1047,7 @@
   res2 ∈ {0}
   res3 ∈ {0}
   res4 ∈ {-1}
-[value:final-states] Values at end of function test_memcpy:
+[eva:final-states] Values at end of function test_memcpy:
   dest[0] ∈ {65}
       [1] ∈ {56}
       [2] ∈ {9}
@@ -1104,13 +1058,13 @@
      [2..3] ∈ {108}
      [4] ∈ {111}
      [5] ∈ {0}
-  p ∈ {0}
+  p ∈ {{ NULL ; &dest[0] }}
   src2[0] ∈ {97}
       [1] ∈ {0}
       [2] ∈ {98}
       [3..4] ∈ {0}
   x ∈ {302594113}
-[value:final-states] Values at end of function test_memmove:
+[eva:final-states] Values at end of function test_memmove:
   buf[0] ∈ {3}
      [1] ∈ {4}
      [2] ∈ {5}
@@ -1120,7 +1074,7 @@
   s ∈ {{ &buf[0] }}
   d ∈ {{ &buf[3] }}
   p ∈ {{ &buf[2] }}
-[value:final-states] Values at end of function test_memrchr:
+[eva:final-states] Values at end of function test_memrchr:
   s[0] ∈ {1}
    [1] ∈ {2}
    [2] ∈ {3}
@@ -1128,11 +1082,11 @@
    [4] ∈ {2}
    [5] ∈ {4}
   p ∈ {{ &s[0] }}
-[value:final-states] Values at end of function test_memset:
+[eva:final-states] Values at end of function test_memset:
   dest[0..2] ∈ {42}
       [3] ∈ {0}
   p ∈ {{ &dest[0] }}
-[value:final-states] Values at end of function test_strcat:
+[eva:final-states] Values at end of function test_strcat:
   s[0] ∈ {104}
    [1] ∈ {101}
    [2..3] ∈ {108}
@@ -1143,10 +1097,10 @@
    [8] ∈ {0}
    [9] ∈ UNINITIALIZED
   p ∈ {{ &s[0] }}
-[value:final-states] Values at end of function test_strchr:
+[eva:final-states] Values at end of function test_strchr:
   s ∈ {{ "hello" }}
   p ∈ {{ "hello" + {5} }}
-[value:final-states] Values at end of function test_strcmp:
+[eva:final-states] Values at end of function test_strcmp:
   hello[0] ∈ {104}
        [1] ∈ {97}
        [2..3] ∈ {108}
@@ -1159,7 +1113,7 @@
   res5 ∈ {-104}
   res6 ∈ {0}
   res7 ∈ {0}
-[value:final-states] Values at end of function test_strcpy:
+[eva:final-states] Values at end of function test_strcpy:
   s[0] ∈ {0}
    [1] ∈ {53}
    [2] ∈ {52}
@@ -1168,10 +1122,10 @@
    [5] ∈ {49}
    [6] ∈ {0}
   p ∈ {{ &s[0] }}
-[value:final-states] Values at end of function test_strlen:
+[eva:final-states] Values at end of function test_strlen:
   s ∈ {{ "hello" }}
   n ∈ {0}
-[value:final-states] Values at end of function test_strncmp:
+[eva:final-states] Values at end of function test_strncmp:
   hello[0] ∈ {104}
        [1] ∈ {97}
        [2..3] ∈ {108}
@@ -1185,19 +1139,19 @@
   res6 ∈ {-104}
   res7 ∈ {0}
   res8 ∈ {0}
-[value:final-states] Values at end of function test_strncpy:
+[eva:final-states] Values at end of function test_strncpy:
   s[0] ∈ {97}
    [1] ∈ {98}
    [2..6] ∈ {0}
   p ∈ {{ &s[0] }}
-[value:final-states] Values at end of function test_strnlen:
+[eva:final-states] Values at end of function test_strnlen:
   s ∈ {{ "hello" }}
   n ∈ {0}
-[value:final-states] Values at end of function test_strrchr:
+[eva:final-states] Values at end of function test_strrchr:
   s ∈ {{ "hello" }}
   p ∈ {{ "hello" + {5} }}
-[value:final-states] Values at end of function test_strstr:
+[eva:final-states] Values at end of function test_strstr:
   s ∈ {{ "hello" }}
   p ∈ {{ "hello" }}
-[value:final-states] Values at end of function main:
+[eva:final-states] Values at end of function main:
   __retres ∈ {0}

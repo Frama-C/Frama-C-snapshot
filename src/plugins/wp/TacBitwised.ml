@@ -38,7 +38,7 @@ let rec bitwise_eqs a b n =
 
 (* bitwise eq on n bits *)
 let bitwise_eq a b n = F.e_and (bitwise_eqs a b (n-1))
-    
+
 let rewrite descr u v = Tactical.rewrite [ descr , F.p_true , u , v ]
 
 let vrange,prange = Tactical.spinner ~id:"Wp.bitwised.range"
@@ -61,8 +61,8 @@ class bitcase =
           let n = self#get_field vrange in
           feedback#set_title "Bitwise Eq. (%d bits)" n ;
           (*   range:(0 <= a < 2^n && 0 <= b < 2^n)
-            && bitwise:(forall k; 0 <= k <= n ==> (bit(a,k) <==> bit(b,k)))
-            |- a <= b *)
+               && bitwise:(forall k; 0 <= k <= n ==> (bit(a,k) <==> bit(b,k)))
+               |- a <= b *)
           let inrange = F.p_and (range a n) (range b n) in
           let bitwise = bitwise_eq a b n in
           Tactical.Applicable
@@ -104,16 +104,16 @@ let rec lookup push clause ~nbits ~priority p =
         let priority = if bx && by then priority else priority *. 0.8 in
         push (strategy ~priority ~nbits Tactical.(Inside(clause,p)))
   | _ -> ()
-    
+
 class autobitwise =
   object(self)
 
     method private nbits = Ctypes.i_bits (Ctypes.c_ptr ())
-    
+
     method id = "wp:bitwised"
     method title =
       Printf.sprintf "Auto Bitwise Eq. (%d)" self#nbits
-        
+
     method descr =
       Printf.sprintf "Apply Bitwise Equality on wordsize bits (%d)" self#nbits
 
@@ -126,7 +126,7 @@ class autobitwise =
            let p = Conditions.head step |> F.e_prop in
            lookup push (Tactical.Step step) ~nbits ~priority:0.5 p
         ) (fst seq)
-    
+
   end
 
 let () = Strategy.register (new autobitwise)

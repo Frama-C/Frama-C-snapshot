@@ -1,25 +1,24 @@
 [kernel] Parsing tests/impact/loop.i (no preprocessing)
 [impact] beginning analysis
-[value] Analyzing an incomplete application starting at loop
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing an incomplete application starting at loop
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   c ∈ [--..--]
   x ∈ [--..--]
   y ∈ [--..--]
   z ∈ [--..--]
   w ∈ [--..--]
-[value] tests/impact/loop.i:9: entering loop for the first time
-[value:alarm] tests/impact/loop.i:10: Warning: 
+[eva:alarm] tests/impact/loop.i:10: Warning: 
   signed overflow. assert w + 1 ≤ 2147483647;
-[value:alarm] tests/impact/loop.i:11: Warning: 
+[eva:alarm] tests/impact/loop.i:11: Warning: 
   signed overflow. assert y + 1 ≤ 2147483647;
-[value:alarm] tests/impact/loop.i:13: Warning: 
+[eva:alarm] tests/impact/loop.i:13: Warning: 
   signed overflow. assert x + 1 ≤ 2147483647;
-[value:alarm] tests/impact/loop.i:14: Warning: 
+[eva:alarm] tests/impact/loop.i:14: Warning: 
   signed overflow. assert x + 1 ≤ 2147483647;
-[value] Recording results for loop
-[value] done for function loop
+[eva] Recording results for loop
+[eva] done for function loop
 [pdg] computing for function loop
 [pdg] done for function loop
 [impact] impacted statements of stmt(s) 9 are:

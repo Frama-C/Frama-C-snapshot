@@ -1,4 +1,4 @@
-# frama-c -wp [...]
+# frama-c -wp -wp-timeout 90 -wp-steps 1500 [...]
 [kernel] Parsing tests/wp_typed/avar.i (no preprocessing)
 [wp] Running WP plugin...
 [wp] Loading driver 'share/wp.driver'

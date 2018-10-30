@@ -1,63 +1,63 @@
 [kernel] Parsing tests/value/reevaluate_alarms.i (no preprocessing)
-[value] Analyzing a complete application starting at main
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing a complete application starting at main
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   S ∈ {0}
   T[0..4] ∈ {0}
   n ∈ {1}
-[value] computing for function loop <- main.
+[eva] computing for function loop <- main.
   Called from tests/value/reevaluate_alarms.i:34.
-[value] tests/value/reevaluate_alarms.i:13: entering loop for the first time
-[value:alarm] tests/value/reevaluate_alarms.i:14: Warning: 
+[eva] tests/value/reevaluate_alarms.i:13: starting to merge loop iterations
+[eva:alarm] tests/value/reevaluate_alarms.i:14: Warning: 
   signed overflow. assert S + i ≤ 2147483647;
-[value:alarm] tests/value/reevaluate_alarms.i:14: Warning: 
+[eva:alarm] tests/value/reevaluate_alarms.i:14: Warning: 
   out of bounds write. assert \valid(tmp);
                        (tmp from p++)
-[value] Recording results for loop
-[value] Done for function loop
-[value] computing for function compute_n <- main.
+[eva] Recording results for loop
+[eva] Done for function loop
+[eva] computing for function compute_n <- main.
   Called from tests/value/reevaluate_alarms.i:36.
-[value] tests/value/reevaluate_alarms.i:19: entering loop for the first time
-[value:alarm] tests/value/reevaluate_alarms.i:20: Warning: 
+[eva] tests/value/reevaluate_alarms.i:19: starting to merge loop iterations
+[eva:alarm] tests/value/reevaluate_alarms.i:20: Warning: 
   signed overflow. assert n * i ≤ 2147483647;
-[value] Recording results for compute_n
-[value] Done for function compute_n
-[value] computing for function init_p <- main.
+[eva] Recording results for compute_n
+[eva] Done for function compute_n
+[eva] computing for function init_p <- main.
   Called from tests/value/reevaluate_alarms.i:40.
-[value] Recording results for init_p
-[value] Done for function init_p
-[value] computing for function initialized_p <- main.
+[eva] Recording results for init_p
+[eva] Done for function init_p
+[eva] computing for function initialized_p <- main.
   Called from tests/value/reevaluate_alarms.i:41.
-[value:alarm] tests/value/reevaluate_alarms.i:30: Warning: 
+[eva:alarm] tests/value/reevaluate_alarms.i:30: Warning: 
   accessing uninitialized left-value. assert \initialized(p);
-[value] Recording results for initialized_p
-[value] Done for function initialized_p
-[value] computing for function init_p <- main.
+[eva] Recording results for initialized_p
+[eva] Done for function initialized_p
+[eva] computing for function init_p <- main.
   Called from tests/value/reevaluate_alarms.i:43.
-[value] Recording results for init_p
-[value] Done for function init_p
-[value] computing for function initialized_p <- main.
+[eva] Recording results for init_p
+[eva] Done for function init_p
+[eva] computing for function initialized_p <- main.
   Called from tests/value/reevaluate_alarms.i:44.
-[value] Recording results for initialized_p
-[value] Done for function initialized_p
-[value] Recording results for main
-[value] done for function main
-[value] ====== VALUES COMPUTED ======
-[value:final-states] Values at end of function compute_n:
+[eva] Recording results for initialized_p
+[eva] Done for function initialized_p
+[eva] Recording results for main
+[eva] done for function main
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function compute_n:
   n ∈ [1..2147483647]
   i ∈ {6}
-[value:final-states] Values at end of function init_p:
+[eva:final-states] Values at end of function init_p:
   x ∈ {0} or UNINITIALIZED
   y ∈ {0} or UNINITIALIZED
-[value:final-states] Values at end of function initialized_p:
+[eva:final-states] Values at end of function initialized_p:
   x ∈ {1}
-[value:final-states] Values at end of function loop:
+[eva:final-states] Values at end of function loop:
   S ∈ [0..2147483647]
   T[0..4] ∈ [0..2147483647]
   i ∈ {5}
   p ∈ {{ &T + [0..--],0%4 }}
-[value:final-states] Values at end of function main:
+[eva:final-states] Values at end of function main:
   S ∈ [0..2147483647]
   T[0..4] ∈ [0..2147483647]
   n ∈ [1..2147483647]
@@ -119,24 +119,24 @@
 --- Properties of Function 'loop'
 --------------------------------------------------------------------------------
 
-[    -    ] Assertion 'Value,signed_overflow' (file tests/value/reevaluate_alarms.i, line 14)
-            tried with Value.
-[    -    ] Assertion 'Value,mem_access' (file tests/value/reevaluate_alarms.i, line 14)
-            tried with Value.
+[    -    ] Assertion 'Eva,signed_overflow' (file tests/value/reevaluate_alarms.i, line 14)
+            tried with Eva.
+[    -    ] Assertion 'Eva,mem_access' (file tests/value/reevaluate_alarms.i, line 14)
+            tried with Eva.
 
 --------------------------------------------------------------------------------
 --- Properties of Function 'compute_n'
 --------------------------------------------------------------------------------
 
-[    -    ] Assertion 'Value,signed_overflow' (file tests/value/reevaluate_alarms.i, line 20)
-            tried with Value.
+[    -    ] Assertion 'Eva,signed_overflow' (file tests/value/reevaluate_alarms.i, line 20)
+            tried with Eva.
 
 --------------------------------------------------------------------------------
 --- Properties of Function 'initialized_p'
 --------------------------------------------------------------------------------
 
-[    -    ] Assertion 'Value,initialization' (file tests/value/reevaluate_alarms.i, line 30)
-            tried with Value.
+[    -    ] Assertion 'Eva,initialization' (file tests/value/reevaluate_alarms.i, line 30)
+            tried with Eva.
 
 --------------------------------------------------------------------------------
 --- Status Report Summary
@@ -144,57 +144,57 @@
      4 To be validated
      4 Total
 --------------------------------------------------------------------------------
-[value] Analyzing a complete application starting at main
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing a complete application starting at main
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   S ∈ {0}
   T[0..4] ∈ {0}
   n ∈ {1}
-[value] computing for function loop <- main.
+[eva] computing for function loop <- main.
   Called from tests/value/reevaluate_alarms.i:34.
-[value] Recording results for loop
-[value] Done for function loop
-[value] computing for function compute_n <- main.
+[eva] Recording results for loop
+[eva] Done for function loop
+[eva] computing for function compute_n <- main.
   Called from tests/value/reevaluate_alarms.i:36.
-[value] Recording results for compute_n
-[value] Done for function compute_n
-[value] computing for function init_p <- main.
+[eva] Recording results for compute_n
+[eva] Done for function compute_n
+[eva] computing for function init_p <- main.
   Called from tests/value/reevaluate_alarms.i:40.
-[value] Recording results for init_p
-[value] Done for function init_p
-[value] computing for function initialized_p <- main.
+[eva] Recording results for init_p
+[eva] Done for function init_p
+[eva] computing for function initialized_p <- main.
   Called from tests/value/reevaluate_alarms.i:41.
-[value] Recording results for initialized_p
-[value] Done for function initialized_p
-[value] computing for function init_p <- main.
+[eva] Recording results for initialized_p
+[eva] Done for function initialized_p
+[eva] computing for function init_p <- main.
   Called from tests/value/reevaluate_alarms.i:43.
-[value] Recording results for init_p
-[value] Done for function init_p
-[value] computing for function initialized_p <- main.
+[eva] Recording results for init_p
+[eva] Done for function init_p
+[eva] computing for function initialized_p <- main.
   Called from tests/value/reevaluate_alarms.i:44.
-[value] Recording results for initialized_p
-[value] Done for function initialized_p
-[value] Recording results for main
-[value] done for function main
-[value] tests/value/reevaluate_alarms.i:14: 
-  assertion 'Value,signed_overflow' got final status valid.
-[value] tests/value/reevaluate_alarms.i:14: 
-  assertion 'Value,mem_access' got final status valid.
-[value] tests/value/reevaluate_alarms.i:20: 
-  assertion 'Value,signed_overflow' got final status valid.
-[value] tests/value/reevaluate_alarms.i:30: 
-  assertion 'Value,initialization' got final status valid.
-[value] ====== VALUES COMPUTED ======
-[value:final-states] Values at end of function compute_n:
+[eva] Recording results for initialized_p
+[eva] Done for function initialized_p
+[eva] Recording results for main
+[eva] done for function main
+[eva] tests/value/reevaluate_alarms.i:14: 
+  assertion 'Eva,signed_overflow' got final status valid.
+[eva] tests/value/reevaluate_alarms.i:14: 
+  assertion 'Eva,mem_access' got final status valid.
+[eva] tests/value/reevaluate_alarms.i:20: 
+  assertion 'Eva,signed_overflow' got final status valid.
+[eva] tests/value/reevaluate_alarms.i:30: 
+  assertion 'Eva,initialization' got final status valid.
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function compute_n:
   n ∈ {120}
   i ∈ {6}
-[value:final-states] Values at end of function init_p:
+[eva:final-states] Values at end of function init_p:
   x ∈ {0}
   y ∈ {0} or UNINITIALIZED
-[value:final-states] Values at end of function initialized_p:
+[eva:final-states] Values at end of function initialized_p:
   x ∈ {1}
-[value:final-states] Values at end of function loop:
+[eva:final-states] Values at end of function loop:
   S ∈ {10}
   T[0] ∈ {0}
    [1] ∈ {1}
@@ -203,7 +203,7 @@
    [4] ∈ {10}
   i ∈ {5}
   p ∈ {{ &T[5] }}
-[value:final-states] Values at end of function main:
+[eva:final-states] Values at end of function main:
   S ∈ {10}
   T[0] ∈ {0}
    [1] ∈ {1}
@@ -269,24 +269,24 @@
 --- Properties of Function 'loop'
 --------------------------------------------------------------------------------
 
-[  Valid  ] Assertion 'Value,signed_overflow' (file tests/value/reevaluate_alarms.i, line 14)
-            by Value (v2).
-[  Valid  ] Assertion 'Value,mem_access' (file tests/value/reevaluate_alarms.i, line 14)
-            by Value (v2).
+[  Valid  ] Assertion 'Eva,signed_overflow' (file tests/value/reevaluate_alarms.i, line 14)
+            by Eva (v2).
+[  Valid  ] Assertion 'Eva,mem_access' (file tests/value/reevaluate_alarms.i, line 14)
+            by Eva (v2).
 
 --------------------------------------------------------------------------------
 --- Properties of Function 'compute_n'
 --------------------------------------------------------------------------------
 
-[  Valid  ] Assertion 'Value,signed_overflow' (file tests/value/reevaluate_alarms.i, line 20)
-            by Value (v2).
+[  Valid  ] Assertion 'Eva,signed_overflow' (file tests/value/reevaluate_alarms.i, line 20)
+            by Eva (v2).
 
 --------------------------------------------------------------------------------
 --- Properties of Function 'initialized_p'
 --------------------------------------------------------------------------------
 
-[  Valid  ] Assertion 'Value,initialization' (file tests/value/reevaluate_alarms.i, line 30)
-            by Value (v2).
+[  Valid  ] Assertion 'Eva,initialization' (file tests/value/reevaluate_alarms.i, line 30)
+            by Eva (v2).
 
 --------------------------------------------------------------------------------
 --- Status Report Summary

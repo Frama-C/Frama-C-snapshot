@@ -163,8 +163,8 @@ class type feedback =
 
     method update_field :
       'a. ?enabled:bool -> ?title:string -> ?tooltip:string ->
-          ?range:bool -> ?vmin:int -> ?vmax:int ->
-          ?filter:(Lang.F.term -> bool) -> 'a field -> unit
+      ?range:bool -> ?vmin:int -> ?vmax:int ->
+      ?filter:(Lang.F.term -> bool) -> 'a field -> unit
     (** Update field parameters *)
 
   end

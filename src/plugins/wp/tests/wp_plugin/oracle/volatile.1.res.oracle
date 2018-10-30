@@ -70,6 +70,6 @@ tests/wp_plugin/volatile.i:35: warning from wp:
 Prove: true.
 
 ------------------------------------------------------------
-[wp] Warning: Separation hypotheses for function 'job_struct_assigns':
+[wp] Warning: Memory model hypotheses for function 'job_struct_assigns':
   /*@ behavior typed: requires \separated(&sv,p); */
   void job_struct_assigns(struct st_v *p);

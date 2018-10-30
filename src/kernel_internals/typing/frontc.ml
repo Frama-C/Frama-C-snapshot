@@ -46,24 +46,25 @@
 let setMSVCMode () =
   Cprint.msvcMode := true
 
-let parse_to_cabs (fname : string) =
+let parse_to_cabs (path : Datatype.Filepath.t) =
   try
-    Kernel.feedback ~level:2 "Parsing %s" fname ;
+    Kernel.feedback ~level:2 "Parsing %a" Datatype.Filepath.pretty path;
     Errorloc.clear_errors () ;
-    let lexbuf = Clexer.init fname in
+    let lexbuf = Clexer.init (path :> string) in
     let cabs = Cparser.file Clexer.initial lexbuf in
     (* Cprint.print_defs cabs;*)
     Clexer.finish ();
     if Errorloc.had_errors () then begin
-      Kernel.debug "There were parsing errors in %s" fname ;
+      Kernel.debug "There were parsing errors in %a"
+        Datatype.Filepath.pretty path;
       raise Parsing.Parse_error
     end;
 
-    (fname, cabs)
+    (path, cabs)
   with
   | Sys_error msg ->
     Clexer.finish () ;
-    Kernel.abort "Cannot open %s : %s" fname msg ;
+    Kernel.abort "Cannot open %a : %s" Datatype.Filepath.pretty path msg ;
   | Parsing.Parse_error ->
     Clexer.finish ();
     raise Parsing.Parse_error ;
@@ -71,12 +72,13 @@ let parse_to_cabs (fname : string) =
 module Syntactic_transformations = Hook.Fold(struct type t = Cabs.file end)
 let add_syntactic_transformation = Syntactic_transformations.extend
 
-let parse fname =
-  Kernel.feedback ~level:2 "Parsing %s to Cabs" fname ;
-  let cabs = parse_to_cabs fname in
+let parse path =
+  Kernel.feedback ~level:2 "Parsing %a to Cabs" Datatype.Filepath.pretty path;
+  let cabs = parse_to_cabs path in
   let cabs = Syntactic_transformations.apply cabs in
   (* Now (return a function that will) convert to CIL *)
   fun _ ->
-    Kernel.feedback ~level:2 "Converting %s from Cabs to CIL" fname ;
+    Kernel.feedback ~level:2 "Converting %a from Cabs to CIL"
+      Datatype.Filepath.pretty path;
     let cil = Cabs2cil.convFile cabs in
     cil,cabs

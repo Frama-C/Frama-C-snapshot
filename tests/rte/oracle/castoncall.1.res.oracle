@@ -16,11 +16,6 @@ void *nondet_ptr(void *a, void *b)
 {
   void *__retres;
   int tmp;
-  /*@ behavior pre_nondet:
-        ensures tmp ≡ \old((int)a) ∨ tmp ≡ \old((int)b);
-        assigns tmp;
-        assigns tmp \from b, a;
-  */
   tmp = nondet((int)a,(int)b);
   __retres = (void *)tmp;
   return __retres;
@@ -33,9 +28,6 @@ int f(void);
 void g(void)
 {
   int tmp;
-  /*@ behavior pre_f:
-        ensures tmp ≡ 1;
-        assigns tmp; */
   tmp = f();
   /*@ assert rte: signed_downcast: tmp ≤ 127; */
   /*@ assert rte: signed_downcast: -128 ≤ tmp; */

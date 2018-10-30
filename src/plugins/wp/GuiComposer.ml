@@ -266,7 +266,7 @@ class browser (focused : GuiSequent.focused) =
         offset <- 0 ;
         listed <- 0 ;
       end
-      
+
     method connect f = update <- f
 
     method print ( cc : GuiTactic.browser ) ~quit fmt =

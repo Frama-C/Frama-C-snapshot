@@ -1,8 +1,8 @@
 [kernel] Parsing tests/value/mixed_val.i (no preprocessing)
-[value] Analyzing a complete application starting at main
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing a complete application starting at main
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   T[0] ∈ {97}
    [1..9] ∈ {0}
   a ∈ {0}
@@ -10,10 +10,10 @@
   c ∈ {0}
   d ∈ {0}
   e ∈ {0}
-[value] Recording results for main
-[value] done for function main
-[value] ====== VALUES COMPUTED ======
-[value:final-states] Values at end of function main:
+[eva] Recording results for main
+[eva] done for function main
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function main:
   T[0] ∈ {-2999}
    [1..9] ∈ {0}
   a ∈ {128073}

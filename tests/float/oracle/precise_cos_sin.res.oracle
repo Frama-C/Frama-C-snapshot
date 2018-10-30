@@ -1,129 +1,181 @@
 [kernel] Parsing tests/float/precise_cos_sin.c (with preprocessing)
-[value] Analyzing a complete application starting at main
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
-  Frama_C_entropy_source ∈ [--..--]
-[value] computing for function Frama_C_float_interval <- main.
+[eva] Analyzing a complete application starting at main
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
+  
+[eva] computing for function Frama_C_float_interval <- main.
   Called from tests/float/precise_cos_sin.c:12.
-[value] using specification for function Frama_C_float_interval
-[value] tests/float/precise_cos_sin.c:12: 
+[eva] using specification for function Frama_C_float_interval
+[eva] tests/float/precise_cos_sin.c:12: 
   function Frama_C_float_interval: precondition 'finite' got status valid.
-[value] tests/float/precise_cos_sin.c:12: 
+[eva] tests/float/precise_cos_sin.c:12: 
   function Frama_C_float_interval: precondition 'order' got status valid.
-[value] Done for function Frama_C_float_interval
-[kernel:annot:missing-spec] tests/float/precise_cos_sin.c:15: Warning: 
-  Neither code nor specification for function Frama_C_sin, generating default assigns from the prototype
-[value] tests/float/precise_cos_sin.c:15: 
+[eva] Done for function Frama_C_float_interval
+[eva] tests/float/precise_cos_sin.c:15: Call to builtin sin
+[eva] tests/float/precise_cos_sin.c:15: 
+  function sin: precondition 'finite_arg' got status valid.
+[eva] tests/float/precise_cos_sin.c:15: 
   Frama_C_show_each_s: [-1.0000000000000000 .. 1.0000000000000000]
-[kernel:annot:missing-spec] tests/float/precise_cos_sin.c:16: Warning: 
-  Neither code nor specification for function Frama_C_cos, generating default assigns from the prototype
-[value] tests/float/precise_cos_sin.c:16: 
+[eva] tests/float/precise_cos_sin.c:16: Call to builtin cos
+[eva] tests/float/precise_cos_sin.c:16: 
+  function cos: precondition 'finite_arg' got status valid.
+[eva] tests/float/precise_cos_sin.c:16: 
   Frama_C_show_each_c: [-1.0000000000000000 .. 1.0000000000000000]
-[value] tests/float/precise_cos_sin.c:15: 
+[eva] tests/float/precise_cos_sin.c:15: Call to builtin sin
+[eva] tests/float/precise_cos_sin.c:15: 
   Frama_C_show_each_s: [-1.0000000000000000 .. 1.0000000000000000]
-[value] tests/float/precise_cos_sin.c:16: 
+[eva] tests/float/precise_cos_sin.c:16: Call to builtin cos
+[eva] tests/float/precise_cos_sin.c:16: 
   Frama_C_show_each_c: [-1.0000000000000000 .. 1.0000000000000000]
-[value] tests/float/precise_cos_sin.c:15: 
+[eva] tests/float/precise_cos_sin.c:15: Call to builtin sin
+[eva] tests/float/precise_cos_sin.c:15: 
   Frama_C_show_each_s: [-1.0000000000000000 .. 1.0000000000000000]
-[value] tests/float/precise_cos_sin.c:16: 
+[eva] tests/float/precise_cos_sin.c:16: Call to builtin cos
+[eva] tests/float/precise_cos_sin.c:16: 
   Frama_C_show_each_c: [-1.0000000000000000 .. 1.0000000000000000]
-[value] tests/float/precise_cos_sin.c:15: 
+[eva] tests/float/precise_cos_sin.c:15: Call to builtin sin
+[eva] tests/float/precise_cos_sin.c:15: 
   Frama_C_show_each_s: [-1.0000000000000000 .. 1.0000000000000000]
-[value] tests/float/precise_cos_sin.c:16: 
+[eva] tests/float/precise_cos_sin.c:16: Call to builtin cos
+[eva] tests/float/precise_cos_sin.c:16: 
   Frama_C_show_each_c: [-1.0000000000000000 .. 1.0000000000000000]
-[value] tests/float/precise_cos_sin.c:15: 
+[eva] tests/float/precise_cos_sin.c:15: Call to builtin sin
+[eva] tests/float/precise_cos_sin.c:15: 
   Frama_C_show_each_s: [-1.0000000000000000 .. 1.0000000000000000]
-[value] tests/float/precise_cos_sin.c:16: 
+[eva] tests/float/precise_cos_sin.c:16: Call to builtin cos
+[eva] tests/float/precise_cos_sin.c:16: 
   Frama_C_show_each_c: [-1.0000000000000000 .. 1.0000000000000000]
-[value] tests/float/precise_cos_sin.c:15: 
+[eva] tests/float/precise_cos_sin.c:15: Call to builtin sin
+[eva] tests/float/precise_cos_sin.c:15: 
   Frama_C_show_each_s: [-1.0000000000000000 .. 1.0000000000000000]
-[value] tests/float/precise_cos_sin.c:16: 
+[eva] tests/float/precise_cos_sin.c:16: Call to builtin cos
+[eva] tests/float/precise_cos_sin.c:16: 
   Frama_C_show_each_c: [-1.0000000000000000 .. 1.0000000000000000]
-[value] tests/float/precise_cos_sin.c:15: 
+[eva] tests/float/precise_cos_sin.c:15: Call to builtin sin
+[eva] tests/float/precise_cos_sin.c:15: 
   Frama_C_show_each_s: [-1.0000000000000000 .. 1.0000000000000000]
-[value] tests/float/precise_cos_sin.c:16: 
+[eva] tests/float/precise_cos_sin.c:16: Call to builtin cos
+[eva] tests/float/precise_cos_sin.c:16: 
   Frama_C_show_each_c: [-1.0000000000000000 .. 1.0000000000000000]
-[value] tests/float/precise_cos_sin.c:15: 
+[eva] tests/float/precise_cos_sin.c:15: Call to builtin sin
+[eva] tests/float/precise_cos_sin.c:15: 
   Frama_C_show_each_s: [-1.0000000000000000 .. 1.0000000000000000]
-[value] tests/float/precise_cos_sin.c:16: 
+[eva] tests/float/precise_cos_sin.c:16: Call to builtin cos
+[eva] tests/float/precise_cos_sin.c:16: 
   Frama_C_show_each_c: [-1.0000000000000000 .. 1.0000000000000000]
-[value] tests/float/precise_cos_sin.c:15: 
+[eva] tests/float/precise_cos_sin.c:15: Call to builtin sin
+[eva] tests/float/precise_cos_sin.c:15: 
   Frama_C_show_each_s: [-1.0000000000000000 .. 1.0000000000000000]
-[value] tests/float/precise_cos_sin.c:16: 
+[eva] tests/float/precise_cos_sin.c:16: Call to builtin cos
+[eva] tests/float/precise_cos_sin.c:16: 
   Frama_C_show_each_c: [-1.0000000000000000 .. 1.0000000000000000]
-[value] tests/float/precise_cos_sin.c:15: 
+[eva] tests/float/precise_cos_sin.c:15: Call to builtin sin
+[eva] tests/float/precise_cos_sin.c:15: 
   Frama_C_show_each_s: [-1.0000000000000000 .. 1.0000000000000000]
-[value] tests/float/precise_cos_sin.c:16: 
+[eva] tests/float/precise_cos_sin.c:16: Call to builtin cos
+[eva] tests/float/precise_cos_sin.c:16: 
   Frama_C_show_each_c: [-1.0000000000000000 .. 1.0000000000000000]
-[value] tests/float/precise_cos_sin.c:15: 
+[eva] tests/float/precise_cos_sin.c:15: Call to builtin sin
+[eva] tests/float/precise_cos_sin.c:15: 
   Frama_C_show_each_s: [-1.2692141532897949*2^-1 .. -1.6947050094604492*2^-2]
-[value] tests/float/precise_cos_sin.c:16: 
+[eva] tests/float/precise_cos_sin.c:16: Call to builtin cos
+[eva] tests/float/precise_cos_sin.c:16: 
   Frama_C_show_each_c: [1.5456699132919311*2^-1 .. 1.8116273880004883*2^-1]
-[value] tests/float/precise_cos_sin.c:15: 
+[eva] tests/float/precise_cos_sin.c:15: Call to builtin sin
+[eva] tests/float/precise_cos_sin.c:15: 
   Frama_C_show_each_s: [-1.6947050094604492*2^-2 .. -1.4912263154983521*2^-3]
-[value] tests/float/precise_cos_sin.c:16: 
+[eva] tests/float/precise_cos_sin.c:16: Call to builtin cos
+[eva] tests/float/precise_cos_sin.c:16: 
   Frama_C_show_each_c: [1.8116273880004883*2^-1 .. 1.9649466276168823*2^-1]
-[value] tests/float/precise_cos_sin.c:15: 
+[eva] tests/float/precise_cos_sin.c:15: Call to builtin sin
+[eva] tests/float/precise_cos_sin.c:15: 
   Frama_C_show_each_s: [-1.4912263154983521*2^-3 .. 1.9986981153488159*2^-5]
-[value] tests/float/precise_cos_sin.c:16: 
+[eva] tests/float/precise_cos_sin.c:16: Call to builtin cos
+[eva] tests/float/precise_cos_sin.c:16: 
   Frama_C_show_each_c: [1.9649466276168823*2^-1 .. 1.0000000000000000]
-[value] tests/float/precise_cos_sin.c:15: 
+[eva] tests/float/precise_cos_sin.c:15: Call to builtin sin
+[eva] tests/float/precise_cos_sin.c:15: 
   Frama_C_show_each_s: [1.9986981153488159*2^-5 .. 1.2297540903091430*2^-2]
-[value] tests/float/precise_cos_sin.c:16: 
+[eva] tests/float/precise_cos_sin.c:16: Call to builtin cos
+[eva] tests/float/precise_cos_sin.c:16: 
   Frama_C_show_each_c: [1.9031358957290649*2^-1 .. 1.9960950613021851*2^-1]
-[value] tests/float/precise_cos_sin.c:15: 
+[eva] tests/float/precise_cos_sin.c:15: Call to builtin sin
+[eva] tests/float/precise_cos_sin.c:15: 
   Frama_C_show_each_s: [1.2297540903091430*2^-2 .. 1.0666053295135498*2^-1]
-[value] tests/float/precise_cos_sin.c:16: 
+[eva] tests/float/precise_cos_sin.c:16: Call to builtin cos
+[eva] tests/float/precise_cos_sin.c:16: 
   Frama_C_show_each_c: [1.6918489933013916*2^-1 .. 1.9031358957290649*2^-1]
-[value] tests/float/precise_cos_sin.c:15: 
+[eva] tests/float/precise_cos_sin.c:15: Call to builtin sin
+[eva] tests/float/precise_cos_sin.c:15: 
   Frama_C_show_each_s: [-1.0000000000000000 .. 1.0000000000000000]
-[value] tests/float/precise_cos_sin.c:16: 
+[eva] tests/float/precise_cos_sin.c:16: Call to builtin cos
+[eva] tests/float/precise_cos_sin.c:16: 
   Frama_C_show_each_c: [-1.0000000000000000 .. 1.0000000000000000]
-[value] tests/float/precise_cos_sin.c:15: 
+[eva] tests/float/precise_cos_sin.c:15: Call to builtin sin
+[eva] tests/float/precise_cos_sin.c:15: 
   Frama_C_show_each_s: [-1.0000000000000000 .. 1.0000000000000000]
-[value] tests/float/precise_cos_sin.c:16: 
+[eva] tests/float/precise_cos_sin.c:16: Call to builtin cos
+[eva] tests/float/precise_cos_sin.c:16: 
   Frama_C_show_each_c: [-1.0000000000000000 .. 1.0000000000000000]
-[value] tests/float/precise_cos_sin.c:15: 
+[eva] tests/float/precise_cos_sin.c:15: Call to builtin sin
+[eva] tests/float/precise_cos_sin.c:15: 
   Frama_C_show_each_s: [-1.0000000000000000 .. 1.0000000000000000]
-[value] tests/float/precise_cos_sin.c:16: 
+[eva] tests/float/precise_cos_sin.c:16: Call to builtin cos
+[eva] tests/float/precise_cos_sin.c:16: 
   Frama_C_show_each_c: [-1.0000000000000000 .. 1.0000000000000000]
-[value] tests/float/precise_cos_sin.c:15: 
+[eva] tests/float/precise_cos_sin.c:15: Call to builtin sin
+[eva] tests/float/precise_cos_sin.c:15: 
   Frama_C_show_each_s: [-1.0000000000000000 .. 1.0000000000000000]
-[value] tests/float/precise_cos_sin.c:16: 
+[eva] tests/float/precise_cos_sin.c:16: Call to builtin cos
+[eva] tests/float/precise_cos_sin.c:16: 
   Frama_C_show_each_c: [-1.0000000000000000 .. 1.0000000000000000]
-[value] tests/float/precise_cos_sin.c:15: 
+[eva] tests/float/precise_cos_sin.c:15: Call to builtin sin
+[eva] tests/float/precise_cos_sin.c:15: 
   Frama_C_show_each_s: [-1.0000000000000000 .. 1.0000000000000000]
-[value] tests/float/precise_cos_sin.c:16: 
+[eva] tests/float/precise_cos_sin.c:16: Call to builtin cos
+[eva] tests/float/precise_cos_sin.c:16: 
   Frama_C_show_each_c: [-1.0000000000000000 .. 1.0000000000000000]
-[value] tests/float/precise_cos_sin.c:15: 
+[eva] tests/float/precise_cos_sin.c:15: Call to builtin sin
+[eva] tests/float/precise_cos_sin.c:15: 
   Frama_C_show_each_s: [-1.0000000000000000 .. 1.0000000000000000]
-[value] tests/float/precise_cos_sin.c:16: 
+[eva] tests/float/precise_cos_sin.c:16: Call to builtin cos
+[eva] tests/float/precise_cos_sin.c:16: 
   Frama_C_show_each_c: [-1.0000000000000000 .. 1.0000000000000000]
-[value] tests/float/precise_cos_sin.c:15: 
+[eva] tests/float/precise_cos_sin.c:15: Call to builtin sin
+[eva] tests/float/precise_cos_sin.c:15: 
   Frama_C_show_each_s: [-1.0000000000000000 .. 1.0000000000000000]
-[value] tests/float/precise_cos_sin.c:16: 
+[eva] tests/float/precise_cos_sin.c:16: Call to builtin cos
+[eva] tests/float/precise_cos_sin.c:16: 
   Frama_C_show_each_c: [-1.0000000000000000 .. 1.0000000000000000]
-[value] tests/float/precise_cos_sin.c:15: 
+[eva] tests/float/precise_cos_sin.c:15: Call to builtin sin
+[eva] tests/float/precise_cos_sin.c:15: 
   Frama_C_show_each_s: [-1.0000000000000000 .. 1.0000000000000000]
-[value] tests/float/precise_cos_sin.c:16: 
+[eva] tests/float/precise_cos_sin.c:16: Call to builtin cos
+[eva] tests/float/precise_cos_sin.c:16: 
   Frama_C_show_each_c: [-1.0000000000000000 .. 1.0000000000000000]
-[value] tests/float/precise_cos_sin.c:15: 
+[eva] tests/float/precise_cos_sin.c:15: Call to builtin sin
+[eva] tests/float/precise_cos_sin.c:15: 
   Frama_C_show_each_s: [-1.0000000000000000 .. 1.0000000000000000]
-[value] tests/float/precise_cos_sin.c:16: 
+[eva] tests/float/precise_cos_sin.c:16: Call to builtin cos
+[eva] tests/float/precise_cos_sin.c:16: 
   Frama_C_show_each_c: [-1.0000000000000000 .. 1.0000000000000000]
-[value] tests/float/precise_cos_sin.c:15: 
+[eva] tests/float/precise_cos_sin.c:15: Call to builtin sin
+[eva] tests/float/precise_cos_sin.c:15: 
   Frama_C_show_each_s: [-1.0000000000000000 .. 1.0000000000000000]
-[value] tests/float/precise_cos_sin.c:16: 
+[eva] tests/float/precise_cos_sin.c:16: Call to builtin cos
+[eva] tests/float/precise_cos_sin.c:16: 
   Frama_C_show_each_c: [-1.0000000000000000 .. 1.0000000000000000]
-[value] tests/float/precise_cos_sin.c:15: 
+[eva] tests/float/precise_cos_sin.c:15: Call to builtin sin
+[eva] tests/float/precise_cos_sin.c:15: 
   Frama_C_show_each_s: [-1.0000000000000000 .. 1.0000000000000000]
-[value] tests/float/precise_cos_sin.c:16: 
+[eva] tests/float/precise_cos_sin.c:16: Call to builtin cos
+[eva] tests/float/precise_cos_sin.c:16: 
   Frama_C_show_each_c: [-1.0000000000000000 .. 1.0000000000000000]
-[value] Recording results for main
-[value] done for function main
-[value] ====== VALUES COMPUTED ======
-[value:final-states] Values at end of function main:
+[eva] Recording results for main
+[eva] done for function main
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function main:
   Frama_C_entropy_source ∈ [--..--]
   f ∈ [3.1875002384185791 .. 3.4375000000000000]
   __retres ∈ {0}

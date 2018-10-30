@@ -1,7 +1,7 @@
 
 let main _ =
   let all = Cil_datatype.Fundec.Set.empty in
-  let new_proj = !Db.Constant_Propagation.get all ~cast_intro:true in
+  let new_proj = Constant_Propagation.Api.get all ~cast_intro:true in
   Project.on
     new_proj
     (fun () ->

@@ -1,9 +1,9 @@
 [kernel] Parsing tests/impact/slicing.i (no preprocessing)
 [impact] beginning analysis
-[value] Analyzing an incomplete application starting at impact
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing an incomplete application starting at impact
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   a ∈ [--..--]
   b ∈ [--..--]
   c ∈ [--..--]
@@ -13,20 +13,20 @@
   z ∈ [--..--]
   f ∈ [--..--]
   w ∈ [--..--]
-[value:alarm] tests/impact/slicing.i:13: Warning: 
+[eva:alarm] tests/impact/slicing.i:13: Warning: 
   signed overflow. assert -2147483648 ≤ b + c;
-[value:alarm] tests/impact/slicing.i:13: Warning: 
+[eva:alarm] tests/impact/slicing.i:13: Warning: 
   signed overflow. assert b + c ≤ 2147483647;
-[value:alarm] tests/impact/slicing.i:14: Warning: 
+[eva:alarm] tests/impact/slicing.i:14: Warning: 
   signed overflow. assert -2147483648 ≤ x + e;
-[value:alarm] tests/impact/slicing.i:14: Warning: 
+[eva:alarm] tests/impact/slicing.i:14: Warning: 
   signed overflow. assert x + e ≤ 2147483647;
-[value:alarm] tests/impact/slicing.i:18: Warning: 
+[eva:alarm] tests/impact/slicing.i:18: Warning: 
   signed overflow. assert -2147483648 ≤ y + f;
-[value:alarm] tests/impact/slicing.i:18: Warning: 
+[eva:alarm] tests/impact/slicing.i:18: Warning: 
   signed overflow. assert y + f ≤ 2147483647;
-[value] Recording results for impact
-[value] done for function impact
+[eva] Recording results for impact
+[eva] done for function impact
 [pdg] computing for function impact
 [pdg] done for function impact
 [impact] impacted statements of stmt(s) 6 are:

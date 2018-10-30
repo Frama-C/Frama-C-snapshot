@@ -53,8 +53,8 @@ int main(void)
   int __retres;
   int y_0;
   int m = 10;
-  /*@ widen_hints global:m, 2;
-        widen_hints y_0, 5; */
+  /*@ widen_hints global:m, 2; */
+  /*@ widen_hints y_0, 5; */
   int n = 33 + m;
   {
     int a = 0;

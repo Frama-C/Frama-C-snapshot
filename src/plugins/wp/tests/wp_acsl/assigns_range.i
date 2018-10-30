@@ -1,6 +1,6 @@
 /* run.config_qualif
    OPT: -wp -wp-par 1 -wp-prop="-qed_ko"
-   OPT: -wp -wp-par 1 -wp-prop qed_ko -wp-timeout 5
+   OPT: -wp -wp-par 1 -wp-prop qed_ko -wp-steps 50
 */
 
 int t1[20], t2[20], t3[20], t4[20], t5[20];

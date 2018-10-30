@@ -1,0 +1,71 @@
+[kernel] Parsing tests/builtins/calloc.c (with preprocessing)
+[eva] Analyzing a complete application starting at main
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
+  nondet ∈ [--..--]
+[eva] computing for function calloc <- main.
+  Called from tests/builtins/calloc.c:14.
+[eva] using specification for function calloc
+[eva] tests/builtins/calloc.c:14: Warning: 
+  ignoring unsupported \allocates clause
+[eva] Done for function calloc
+[eva] computing for function calloc <- main.
+  Called from tests/builtins/calloc.c:17.
+[eva] tests/builtins/calloc.c:17: Warning: 
+  ignoring unsupported \allocates clause
+[eva] Done for function calloc
+[eva] computing for function calloc <- main.
+  Called from tests/builtins/calloc.c:20.
+[eva] tests/builtins/calloc.c:20: Warning: 
+  ignoring unsupported \allocates clause
+[eva] Done for function calloc
+[eva] computing for function calloc <- main.
+  Called from tests/builtins/calloc.c:23.
+[eva] tests/builtins/calloc.c:23: Warning: 
+  ignoring unsupported \allocates clause
+[eva] Done for function calloc
+[eva:alarm] tests/builtins/calloc.c:26: Warning: 
+  assertion got status invalid (stopping propagation).
+[eva] computing for function calloc <- main.
+  Called from tests/builtins/calloc.c:30.
+[eva] tests/builtins/calloc.c:30: Warning: 
+  ignoring unsupported \allocates clause
+[eva] Done for function calloc
+[eva:alarm] tests/builtins/calloc.c:33: Warning: 
+  assertion got status invalid (stopping propagation).
+[eva] computing for function calloc <- main.
+  Called from tests/builtins/calloc.c:38.
+[eva] tests/builtins/calloc.c:38: Warning: 
+  ignoring unsupported \allocates clause
+[eva] Done for function calloc
+[eva] tests/builtins/calloc.c:40: assertion got status valid.
+[eva] Recording results for main
+[eva] done for function main
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function main:
+  __fc_heap_status ∈ [--..--]
+  p1 ∈ [--..--]
+  p2 ∈ [--..--]
+  p3 ∈ [--..--]
+  p4 ∈ [--..--]
+  p5 ∈ [--..--]
+  p9001 ∈ {0}
+  __retres ∈ {0; 1}
+[from] Computing for function main
+[from] Computing for function calloc <-main
+[from] Done for function calloc
+[from] Done for function main
+[from] ====== DEPENDENCIES COMPUTED ======
+  These dependencies hold at termination for the executions that terminate:
+[from] Function calloc:
+  __fc_heap_status FROM __fc_heap_status; nmemb; size (and SELF)
+  \result FROM __fc_heap_status; nmemb; size
+[from] Function main:
+  __fc_heap_status FROM __fc_heap_status (and SELF)
+  \result FROM __fc_heap_status
+[from] ====== END OF DEPENDENCIES ======
+[inout] Out (internal) for function main:
+    __fc_heap_status; p1; p2; p3; p4; p5; p9001; __retres
+[inout] Inputs for function main:
+    __fc_heap_status; nondet

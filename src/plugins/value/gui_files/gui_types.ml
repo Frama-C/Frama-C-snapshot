@@ -171,11 +171,11 @@ module Make (V: Abstractions.Value) = struct
   let from_cvalue v = V.set Main_values.cvalue_key v V.top
 
   let var_of_base base acc =
-  try
-    let vi = Base.to_varinfo base in
-    (* if it is a function, do not add it *)
-    if Cil.isFunctionType vi.vtype then acc else vi :: acc
-  with Base.Not_a_C_variable -> acc
+    try
+      let vi = Base.to_varinfo base in
+      (* if it is a function, do not add it *)
+      if Cil.isFunctionType vi.vtype then acc else vi :: acc
+    with Base.Not_a_C_variable -> acc
 
   (* [vars_in_gui_res r] returns a list of non-function C variables
      present in [r]. *)
@@ -249,7 +249,7 @@ let pretty_callstack fmt cs =
           end
         | _ -> assert false
       in
-      Format.fprintf fmt "@[<hv>";
+      Format.fprintf fmt "@[<hv>%a" Value_types.Callstack.pretty_hash cs;
       aux callsite q;
       Format.fprintf fmt "@]"
     end
@@ -261,6 +261,7 @@ let pretty_callstack_short fmt cs =
   match cs with
   | [_, Kglobal] -> ()
   | (_kf_cur, Kstmt _callsite) :: q ->
+    Format.fprintf fmt "%a" Value_types.Callstack.pretty_hash cs;
     Pretty_utils.pp_flowlist ~left:"@[" ~sep:" ←@ " ~right:"@]"
       (fun fmt (kf, _) -> Kernel_function.pretty fmt kf) fmt q
   | _ -> assert false

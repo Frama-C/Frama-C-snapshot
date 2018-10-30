@@ -1,64 +1,64 @@
 [kernel] Parsing tests/value/logicdeps.i (no preprocessing)
-[value] Analyzing a complete application starting at main
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing a complete application starting at main
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   t[0..49] ∈ {0}
   p ∈ {0}
   y ∈ [--..--]
   z ∈ [--..--]
-[value:alarm] tests/value/logicdeps.i:19: Warning: assertion got status unknown.
-[value:alarm] tests/value/logicdeps.i:20: Warning: assertion got status unknown.
-[value] computing for function g <- main.
+[eva:alarm] tests/value/logicdeps.i:19: Warning: assertion got status unknown.
+[eva:alarm] tests/value/logicdeps.i:20: Warning: assertion got status unknown.
+[eva] computing for function g <- main.
   Called from tests/value/logicdeps.i:23.
-[value] computing for function f <- g <- main.
+[eva] computing for function f <- g <- main.
   Called from tests/value/logicdeps.i:13.
-[value] using specification for function f
-[value] Done for function f
-[value] Recording results for g
+[eva] using specification for function f
+[eva] Done for function f
+[eva] Recording results for g
 [from] Computing for function g
 [from] Done for function g
-[value] Done for function g
-[value] computing for function g <- main.
+[eva] Done for function g
+[eva] computing for function g <- main.
   Called from tests/value/logicdeps.i:24.
-[value] computing for function f <- g <- main.
+[eva] computing for function f <- g <- main.
   Called from tests/value/logicdeps.i:13.
-[value] Done for function f
-[value] Recording results for g
+[eva] Done for function f
+[eva] Recording results for g
 [from] Computing for function g
 [from] Done for function g
-[value] Done for function g
-[value] tests/value/logicdeps.i:25: Reusing old results for call to g
-[value] tests/value/logicdeps.i:27: assertion got status valid.
-[value] computing for function g <- main.
+[eva] Done for function g
+[eva] tests/value/logicdeps.i:25: Reusing old results for call to g
+[eva] tests/value/logicdeps.i:27: assertion got status valid.
+[eva] computing for function g <- main.
   Called from tests/value/logicdeps.i:30.
-[value] computing for function f <- g <- main.
+[eva] computing for function f <- g <- main.
   Called from tests/value/logicdeps.i:13.
-[value] Done for function f
-[value] Recording results for g
+[eva] Done for function f
+[eva] Recording results for g
 [from] Computing for function g
 [from] Done for function g
-[value] Done for function g
-[value] computing for function g <- main.
+[eva] Done for function g
+[eva] computing for function g <- main.
   Called from tests/value/logicdeps.i:31.
-[value] computing for function f <- g <- main.
+[eva] computing for function f <- g <- main.
   Called from tests/value/logicdeps.i:13.
-[value] Done for function f
-[value] Recording results for g
+[eva] Done for function f
+[eva] Recording results for g
 [from] Computing for function g
 [from] Done for function g
-[value] Done for function g
-[value] tests/value/logicdeps.i:32: Reusing old results for call to g
-[value] Recording results for main
+[eva] Done for function g
+[eva] tests/value/logicdeps.i:32: Reusing old results for call to g
+[eva] Recording results for main
 [from] Computing for function main
 [from] Done for function main
-[value] done for function main
-[value] ====== VALUES COMPUTED ======
-[value:final-states] Values at end of function g:
+[eva] done for function main
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function g:
   t[0..19] ∈ {0}
    [20..40] ∈ [--..--]
    [41..49] ∈ {0}
-[value:final-states] Values at end of function main:
+[eva:final-states] Values at end of function main:
   t[0..19] ∈ {0}
    [20..40] ∈ [--..--]
    [41..49] ∈ {0}

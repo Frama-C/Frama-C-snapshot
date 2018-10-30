@@ -1,8 +1,8 @@
 [kernel] Parsing tests/value/loop_test.i (no preprocessing)
-[value] Analyzing a complete application starting at test_onzes
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing a complete application starting at test_onzes
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   r0 ∈ {0}
   r1 ∈ {0}
   r2 ∈ {0}
@@ -23,80 +23,80 @@
   c7 ∈ {0}
   c8 ∈ {0}
   c9 ∈ {0}
-[value] computing for function onze_0 <- test_onzes.
+[eva] computing for function onze_0 <- test_onzes.
   Called from tests/value/loop_test.i:43.
-[value] tests/value/loop_test.i:9: entering loop for the first time
-[value] Recording results for onze_0
-[value] Done for function onze_0
-[value] computing for function onze_1 <- test_onzes.
+[eva] tests/value/loop_test.i:9: starting to merge loop iterations
+[eva] Recording results for onze_0
+[eva] Done for function onze_0
+[eva] computing for function onze_1 <- test_onzes.
   Called from tests/value/loop_test.i:44.
-[value] tests/value/loop_test.i:12: entering loop for the first time
-[value] Recording results for onze_1
-[value] Done for function onze_1
-[value] computing for function onze_2 <- test_onzes.
+[eva] tests/value/loop_test.i:12: starting to merge loop iterations
+[eva] Recording results for onze_1
+[eva] Done for function onze_1
+[eva] computing for function onze_2 <- test_onzes.
   Called from tests/value/loop_test.i:45.
-[value] tests/value/loop_test.i:15: entering loop for the first time
-[value] Recording results for onze_2
-[value] Done for function onze_2
-[value] computing for function onze_3 <- test_onzes.
+[eva] tests/value/loop_test.i:15: starting to merge loop iterations
+[eva] Recording results for onze_2
+[eva] Done for function onze_2
+[eva] computing for function onze_3 <- test_onzes.
   Called from tests/value/loop_test.i:46.
-[value] tests/value/loop_test.i:18: entering loop for the first time
-[value] Recording results for onze_3
-[value] Done for function onze_3
-[value] computing for function onze_4 <- test_onzes.
+[eva] tests/value/loop_test.i:18: starting to merge loop iterations
+[eva] Recording results for onze_3
+[eva] Done for function onze_3
+[eva] computing for function onze_4 <- test_onzes.
   Called from tests/value/loop_test.i:47.
-[value] tests/value/loop_test.i:21: entering loop for the first time
-[value] Recording results for onze_4
-[value] Done for function onze_4
-[value] computing for function onze_5 <- test_onzes.
+[eva] tests/value/loop_test.i:21: starting to merge loop iterations
+[eva] Recording results for onze_4
+[eva] Done for function onze_4
+[eva] computing for function onze_5 <- test_onzes.
   Called from tests/value/loop_test.i:48.
-[value] tests/value/loop_test.i:25: entering loop for the first time
-[value] Recording results for onze_5
-[value] Done for function onze_5
-[value] computing for function onze_6 <- test_onzes.
+[eva] tests/value/loop_test.i:25: starting to merge loop iterations
+[eva] Recording results for onze_5
+[eva] Done for function onze_5
+[eva] computing for function onze_6 <- test_onzes.
   Called from tests/value/loop_test.i:49.
-[value] tests/value/loop_test.i:28: entering loop for the first time
-[value] Recording results for onze_6
-[value] Done for function onze_6
-[value] computing for function onze_7 <- test_onzes.
+[eva] tests/value/loop_test.i:28: starting to merge loop iterations
+[eva] Recording results for onze_6
+[eva] Done for function onze_6
+[eva] computing for function onze_7 <- test_onzes.
   Called from tests/value/loop_test.i:50.
-[value] tests/value/loop_test.i:31: entering loop for the first time
-[value] Recording results for onze_7
-[value] Done for function onze_7
-[value] computing for function onze_8 <- test_onzes.
+[eva] tests/value/loop_test.i:31: starting to merge loop iterations
+[eva] Recording results for onze_7
+[eva] Done for function onze_7
+[eva] computing for function onze_8 <- test_onzes.
   Called from tests/value/loop_test.i:51.
-[value] tests/value/loop_test.i:34: entering loop for the first time
-[value] Recording results for onze_8
-[value] Done for function onze_8
-[value] computing for function onze_9 <- test_onzes.
+[eva] tests/value/loop_test.i:34: starting to merge loop iterations
+[eva] Recording results for onze_8
+[eva] Done for function onze_8
+[eva] computing for function onze_9 <- test_onzes.
   Called from tests/value/loop_test.i:52.
-[value] tests/value/loop_test.i:37: entering loop for the first time
-[value] Recording results for onze_9
-[value] Done for function onze_9
-[value] Recording results for test_onzes
-[value] done for function test_onzes
-[value] ====== VALUES COMPUTED ======
-[value:final-states] Values at end of function onze_0:
+[eva] tests/value/loop_test.i:37: starting to merge loop iterations
+[eva] Recording results for onze_9
+[eva] Done for function onze_9
+[eva] Recording results for test_onzes
+[eva] done for function test_onzes
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function onze_0:
   onze ∈ {11}
-[value:final-states] Values at end of function onze_1:
+[eva:final-states] Values at end of function onze_1:
   onze ∈ {11}
-[value:final-states] Values at end of function onze_2:
+[eva:final-states] Values at end of function onze_2:
   onze ∈ {11}
-[value:final-states] Values at end of function onze_3:
+[eva:final-states] Values at end of function onze_3:
   onze ∈ {11}
-[value:final-states] Values at end of function onze_4:
+[eva:final-states] Values at end of function onze_4:
   onze ∈ {11}
-[value:final-states] Values at end of function onze_5:
+[eva:final-states] Values at end of function onze_5:
   onze ∈ {11}
-[value:final-states] Values at end of function onze_6:
+[eva:final-states] Values at end of function onze_6:
   onze ∈ {11}
-[value:final-states] Values at end of function onze_7:
+[eva:final-states] Values at end of function onze_7:
   onze ∈ {11}
-[value:final-states] Values at end of function onze_8:
+[eva:final-states] Values at end of function onze_8:
   onze ∈ {11}
-[value:final-states] Values at end of function onze_9:
+[eva:final-states] Values at end of function onze_9:
   onze ∈ {11}
-[value:final-states] Values at end of function test_onzes:
+[eva:final-states] Values at end of function test_onzes:
   r0 ∈ {11}
   r1 ∈ {11}
   r2 ∈ {11}

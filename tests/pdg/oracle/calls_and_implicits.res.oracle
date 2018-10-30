@@ -1,29 +1,29 @@
 [kernel] Parsing tests/pdg/calls_and_implicits.c (with preprocessing)
-[value] Analyzing a complete application starting at main
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing a complete application starting at main
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   t[0..4] ∈ {0}
   G ∈ {0}
   G2 ∈ {0}
-[value] computing for function f <- main.
+[eva] computing for function f <- main.
   Called from tests/pdg/calls_and_implicits.c:34.
-[value] Recording results for f
-[value] Done for function f
-[value] computing for function f <- main.
+[eva] Recording results for f
+[eva] Done for function f
+[eva] computing for function f <- main.
   Called from tests/pdg/calls_and_implicits.c:35.
-[value] Recording results for f
-[value] Done for function f
-[value] computing for function f2 <- main.
+[eva] Recording results for f
+[eva] Done for function f
+[eva] computing for function f2 <- main.
   Called from tests/pdg/calls_and_implicits.c:36.
-[value] Recording results for f2
-[value] Done for function f2
-[value] computing for function swap <- main.
+[eva] Recording results for f2
+[eva] Done for function f2
+[eva] computing for function swap <- main.
   Called from tests/pdg/calls_and_implicits.c:38.
-[value] Recording results for swap
-[value] Done for function swap
-[value] Recording results for main
-[value] done for function main
+[eva] Recording results for swap
+[eva] Done for function swap
+[eva] Recording results for main
+[eva] done for function main
 [inout] InOut (internal) for function f:
   Operational inputs:
     G

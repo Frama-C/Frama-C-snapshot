@@ -111,19 +111,6 @@ module Make
       (Left.reduce_further left expr value)
       (Right.reduce_further right expr value)
 
-  (* TODO: this function does a cartesian product, which is pretty terrible. *)
-  let merge_results _kf left_list right_list =
-    let list =
-      List.fold_left
-        (fun acc left ->
-           List.fold_left
-             (fun acc right -> (left, right) :: acc)
-             acc right_list)
-        [] left_list
-    in
-    List.rev list
-
-
   module Transfer
       (Valuation: Abstract_domain.Valuation with type value = value
                                              and type origin = origin
@@ -196,39 +183,10 @@ module Make
       >>-: fun right ->
       left, right
 
-    let approximate_call stmt call (left, right) =
-      Left_Transfer.approximate_call stmt call left >>- fun left_result ->
-      Right_Transfer.approximate_call stmt call right >>-: fun right_result ->
-      merge_results call.kf left_result right_result
-
     let start_call stmt call valuation (left, right) =
-      let left_action = Left_Transfer.start_call stmt call valuation left
-      and right_action = Right_Transfer.start_call stmt call valuation right in
-      match left_action, right_action with
-      | Compute left, Compute right -> Compute (left, right)
-      | Result (left_result, c1), Result (right_result, _c2) ->
-        let result =
-          left_result >>- fun left_result ->
-          right_result >>-: fun right_result ->
-          merge_results call.kf left_result right_result
-        in
-        Result (result, c1) (* TODO: c1 *)
-      | Result (left_result, c1), Compute right ->
-        Right.Store.register_initial_state (Value_util.call_stack ()) right;
-        let result =
-          Right_Transfer.approximate_call stmt call right >>- fun right_result ->
-          left_result >>-: fun left_result ->
-          merge_results call.kf left_result right_result
-        in
-        Result (result, c1)
-      | Compute left, Result (right_result, c2) ->
-        Left.Store.register_initial_state (Value_util.call_stack ()) left;
-        let result =
-          Left_Transfer.approximate_call stmt call left >>- fun left_result ->
-          right_result >>-: fun right_result ->
-          merge_results call.kf left_result right_result
-        in
-        Result (result, c2)
+      Left_Transfer.start_call stmt call valuation left >>- fun left ->
+      Right_Transfer.start_call stmt call valuation right >>-: fun right ->
+      left, right
 
     let show_expr =
       let (|-) f g = fun fmt exp -> f fmt exp; g fmt exp in
@@ -341,13 +299,16 @@ module Make
     Right.initialize_variable_using_type kind varinfo right
 
 
-  let filter_by_bases bases (left, right) =
-    Left.filter_by_bases bases left, Right.filter_by_bases bases right
-  let reuse ~current_input ~previous_output =
-    Left.reuse
-      ~current_input:(fst current_input) ~previous_output:(fst previous_output),
-    Right.reuse
-      ~current_input:(snd current_input) ~previous_output:(snd previous_output)
+  let relate kf bases (left, right) =
+    Base.SetLattice.join
+      (Left.relate kf bases left) (Right.relate kf bases right)
+  let filter kf kind bases (left, right) =
+    Left.filter kf kind bases left, Right.filter kf kind bases right
+  let reuse kf bases ~current_input ~previous_output =
+    let left_input, right_input = current_input
+    and left_output, right_output = previous_output in
+    Left.reuse kf bases ~current_input:left_input ~previous_output:left_output,
+    Right.reuse kf bases ~current_input:right_input ~previous_output:right_output
 
   let merge_tbl left_tbl right_tbl =
     let open Value_types in

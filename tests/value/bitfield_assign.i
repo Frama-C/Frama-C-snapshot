@@ -26,11 +26,11 @@ int g_2;
 
 void Frama_C_show_each(unsigned);
 
-main(){
+int main(){
   unsigned short l_8 = 1UL;
   unsigned int l_16 = 0xBD4AA41AL;
 
   g_2 |= (g_7[g_5].f3.f2 = l_16);
   Frama_C_show_each(g_2);
+  return 0;
 }
-

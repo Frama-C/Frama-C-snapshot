@@ -1,0 +1,60 @@
+[kernel] Parsing tests/builtins/calloc.c (with preprocessing)
+[eva] Analyzing a complete application starting at main
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
+  nondet ∈ [--..--]
+[eva] tests/builtins/calloc.c:14: 
+  Call to builtin Frama_C_calloc_fresh for function calloc
+[eva] tests/builtins/calloc.c:14: allocating variable __calloc_main_l14
+[eva] tests/builtins/calloc.c:17: 
+  Call to builtin Frama_C_calloc_fresh for function calloc
+[eva] tests/builtins/calloc.c:17: allocating variable __calloc_main_l17
+[eva] tests/builtins/calloc.c:20: 
+  Call to builtin Frama_C_calloc_fresh for function calloc
+[eva] tests/builtins/calloc.c:20: allocating variable __calloc_main_l20
+[eva] tests/builtins/calloc.c:23: 
+  Call to builtin Frama_C_calloc_fresh for function calloc
+[eva] tests/builtins/calloc.c:23: allocating variable __calloc_main_l23
+[eva] tests/builtins/calloc.c:26: assertion got status valid.
+[eva] tests/builtins/calloc.c:27: assertion got status valid.
+[eva] tests/builtins/calloc.c:30: 
+  Call to builtin Frama_C_calloc_fresh for function calloc
+[eva] tests/builtins/calloc.c:30: allocating variable __calloc_main_l30
+[eva] tests/builtins/calloc.c:33: assertion got status valid.
+[eva] tests/builtins/calloc.c:34: assertion got status valid.
+[eva] tests/builtins/calloc.c:35: assertion got status valid.
+[eva] tests/builtins/calloc.c:38: 
+  Call to builtin Frama_C_calloc_fresh for function calloc
+[eva] tests/builtins/calloc.c:38: Warning: 
+  calloc out of bounds: assert(nmemb * size <= SIZE_MAX)
+[eva] tests/builtins/calloc.c:40: assertion got status valid.
+[eva] Recording results for main
+[eva] done for function main
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function main:
+  __fc_heap_status ∈ [--..--]
+  p1 ∈ {{ &__calloc_main_l14[0] }}
+  p2 ∈ {{ &__calloc_main_l17[0] }}
+  p3 ∈ {{ &__calloc_main_l20[0] }}
+  p4 ∈ {{ &__calloc_main_l23 }}
+  p5 ∈ {{ &__calloc_main_l30[0] }}
+  p9001 ∈ {0}
+  __retres ∈ {0}
+[from] Computing for function main
+[from] Computing for function calloc <-main
+[from] Done for function calloc
+[from] Done for function main
+[from] ====== DEPENDENCIES COMPUTED ======
+  These dependencies hold at termination for the executions that terminate:
+[from] Function calloc:
+  __fc_heap_status FROM __fc_heap_status; nmemb; size (and SELF)
+  \result FROM __fc_heap_status; nmemb; size
+[from] Function main:
+  __fc_heap_status FROM __fc_heap_status (and SELF)
+  \result FROM __fc_heap_status
+[from] ====== END OF DEPENDENCIES ======
+[inout] Out (internal) for function main:
+    __fc_heap_status; p1; p2; p3; p4; p5; p9001; __retres
+[inout] Inputs for function main:
+    __fc_heap_status; nondet

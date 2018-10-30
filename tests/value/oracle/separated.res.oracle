@@ -1,23 +1,23 @@
 [kernel] Parsing tests/value/separated.i (no preprocessing)
-[value] Analyzing a complete application starting at main
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing a complete application starting at main
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   t[0..14] ∈ {0}
   p ∈ {{ &t[0] }}
   x ∈ {0}
-[value] tests/value/separated.i:10: assertion got status valid.
-[value:alarm] tests/value/separated.i:13: Warning: 
+[eva] tests/value/separated.i:10: assertion got status valid.
+[eva:alarm] tests/value/separated.i:13: Warning: 
   assertion got status invalid (stopping propagation).
-[value:alarm] tests/value/separated.i:16: Warning: 
+[eva:alarm] tests/value/separated.i:16: Warning: 
   assertion got status invalid (stopping propagation).
-[value:alarm] tests/value/separated.i:19: Warning: 
+[eva:alarm] tests/value/separated.i:19: Warning: 
   assertion got status invalid (stopping propagation).
-[value] tests/value/separated.i:22: assertion got status valid.
-[value] Recording results for main
-[value] done for function main
-[value] ====== VALUES COMPUTED ======
-[value:final-states] Values at end of function main:
+[eva] tests/value/separated.i:22: assertion got status valid.
+[eva] Recording results for main
+[eva] done for function main
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function main:
   x ∈ {1}
   __retres ∈ {0}
 [from] Computing for function main

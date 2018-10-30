@@ -1,23 +1,22 @@
 [kernel] Parsing tests/value/reduce_formals.i (no preprocessing)
-[value] Analyzing a complete application starting at main
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing a complete application starting at main
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   g ∈ [--..--]
-[value] computing for function main1 <- main.
+[eva] computing for function main1 <- main.
   Called from tests/value/reduce_formals.i:69.
-[value:alarm] tests/value/reduce_formals.i:2: Warning: 
+[eva:alarm] tests/value/reduce_formals.i:2: Warning: 
   assertion got status unknown.
-[value] tests/value/reduce_formals.i:5: entering loop for the first time
-[value] Recording results for main1
-[value] Done for function main1
-[value] computing for function main2 <- main.
+[eva] Recording results for main1
+[eva] Done for function main1
+[eva] computing for function main2 <- main.
   Called from tests/value/reduce_formals.i:70.
-[value] using specification for function main2
-[value:alarm] tests/value/reduce_formals.i:70: Warning: 
+[eva] using specification for function main2
+[eva:alarm] tests/value/reduce_formals.i:70: Warning: 
   function main2: precondition got status unknown.
-[value] Done for function main2
-[value] tests/value/reduce_formals.i:72: 
+[eva] Done for function main2
+[eva] tests/value/reduce_formals.i:72: 
   Frama_C_dump_each:
   # Cvalue domain:
   g ∈ [--..--]
@@ -27,88 +26,87 @@
   y ∈ [--..--]
   z ∈ [8..2147483647]
   ==END OF DUMP==
-[value] computing for function main3 <- main.
+[eva] computing for function main3 <- main.
   Called from tests/value/reduce_formals.i:75.
-[value] tests/value/reduce_formals.i:18: assertion got status valid.
-[value] computing for function f_main3 <- main3 <- main.
+[eva] tests/value/reduce_formals.i:18: assertion got status valid.
+[eva] computing for function f_main3 <- main3 <- main.
   Called from tests/value/reduce_formals.i:19.
-[value] Recording results for f_main3
-[value] Done for function f_main3
-[value] tests/value/reduce_formals.i:20: Frama_C_show_each: {6}
-[value] Recording results for main3
-[value] Done for function main3
-[value] computing for function main4 <- main.
+[eva] Recording results for f_main3
+[eva] Done for function f_main3
+[eva] tests/value/reduce_formals.i:20: Frama_C_show_each: {6}
+[eva] Recording results for main3
+[eva] Done for function main3
+[eva] computing for function main4 <- main.
   Called from tests/value/reduce_formals.i:76.
-[value] computing for function f_main4_1 <- main4 <- main.
+[eva] computing for function f_main4_1 <- main4 <- main.
   Called from tests/value/reduce_formals.i:33.
-[value:alarm] tests/value/reduce_formals.i:24: Warning: 
+[eva:alarm] tests/value/reduce_formals.i:24: Warning: 
   assertion got status unknown.
-[value] Recording results for f_main4_1
-[value] Done for function f_main4_1
-[value] tests/value/reduce_formals.i:34: 
+[eva] Recording results for f_main4_1
+[eva] Done for function f_main4_1
+[eva] tests/value/reduce_formals.i:34: 
   Frama_C_show_each_v: {10; 11; 12; 13; 14; 15}
-[value] computing for function f_main4_2 <- main4 <- main.
+[eva] computing for function f_main4_2 <- main4 <- main.
   Called from tests/value/reduce_formals.i:36.
-[value:alarm] tests/value/reduce_formals.i:28: Warning: 
+[eva:alarm] tests/value/reduce_formals.i:28: Warning: 
   assertion got status unknown.
-[value] Recording results for f_main4_2
-[value] Done for function f_main4_2
-[value] tests/value/reduce_formals.i:37: 
-  Frama_C_show_each_v: {16; 17; 18; 19; 20}
-[value] Recording results for main4
-[value] Done for function main4
-[value] computing for function main5 <- main.
+[eva] Recording results for f_main4_2
+[eva] Done for function f_main4_2
+[eva] tests/value/reduce_formals.i:37: Frama_C_show_each_v: {16; 17; 18; 19; 20}
+[eva] Recording results for main4
+[eva] Done for function main4
+[eva] computing for function main5 <- main.
   Called from tests/value/reduce_formals.i:77.
-[value] computing for function f_main_1 <- main5 <- main.
+[eva] computing for function f_main_1 <- main5 <- main.
   Called from tests/value/reduce_formals.i:52.
-[value] computing for function f_main_2 <- f_main_1 <- main5 <- main.
+[eva] computing for function f_main_2 <- f_main_1 <- main5 <- main.
   Called from tests/value/reduce_formals.i:47.
-[value] Recording results for f_main_2
-[value] Done for function f_main_2
-[value] Recording results for f_main_1
-[value] Done for function f_main_1
-[value] Recording results for main5
-[value] Done for function main5
-[value] computing for function main6 <- main.
+[eva] Recording results for f_main_2
+[eva] Done for function f_main_2
+[eva] Recording results for f_main_1
+[eva] Done for function f_main_1
+[eva] Recording results for main5
+[eva] Done for function main5
+[eva] computing for function main6 <- main.
   Called from tests/value/reduce_formals.i:78.
-[value:alarm] tests/value/reduce_formals.i:63: Warning: 
+[eva:alarm] tests/value/reduce_formals.i:63: Warning: 
   assertion got status unknown.
-[value] computing for function f_main6 <- main6 <- main.
+[eva] computing for function f_main6 <- main6 <- main.
   Called from tests/value/reduce_formals.i:64.
-[value:alarm] tests/value/reduce_formals.i:58: Warning: 
+[eva:alarm] tests/value/reduce_formals.i:58: Warning: 
   assertion got status unknown.
-[value] Recording results for f_main6
-[value] Done for function f_main6
-[value] tests/value/reduce_formals.i:65: Frama_C_show_each_6: {3}
-[value] Recording results for main6
-[value] Done for function main6
-[value] Recording results for main
-[value] done for function main
-[value] ====== VALUES COMPUTED ======
-[value:final-states] Values at end of function f_main3:
+[eva] Recording results for f_main6
+[eva] Done for function f_main6
+[eva] tests/value/reduce_formals.i:65: Frama_C_show_each_6: {3}
+[eva] Recording results for main6
+[eva] Done for function main6
+[eva] Recording results for main
+[eva] done for function main
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function f_main3:
   x ∈ {6}
-[value:final-states] Values at end of function f_main4_1:
+[eva:final-states] Values at end of function f_main4_1:
   
-[value:final-states] Values at end of function f_main4_2:
+[eva:final-states] Values at end of function f_main4_2:
   
-[value:final-states] Values at end of function f_main6:
+[eva:final-states] Values at end of function f_main6:
   g ∈ {3}
-[value:final-states] Values at end of function f_main_2:
+[eva:final-states] Values at end of function f_main_2:
   __retres ∈ {0}
-[value:final-states] Values at end of function f_main_1:
+[eva:final-states] Values at end of function f_main_1:
   v ∈ {0}
-[value:final-states] Values at end of function main1:
+[eva:final-states] Values at end of function main1:
   j ∈ [-306783375..306783381]
-[value:final-states] Values at end of function main3:
+[eva:final-states] Values at end of function main3:
   x ∈ {6}
   p ∈ {{ &x }}
-[value:final-states] Values at end of function main4:
+[eva:final-states] Values at end of function main4:
   
-[value:final-states] Values at end of function main5:
+[eva:final-states] Values at end of function main5:
   l ∈ {2}
-[value:final-states] Values at end of function main6:
+[eva:final-states] Values at end of function main6:
   g ∈ {3}
-[value:final-states] Values at end of function main:
+[eva:final-states] Values at end of function main:
   g ∈ {3}
 [from] Computing for function f_main3
 [from] Done for function f_main3

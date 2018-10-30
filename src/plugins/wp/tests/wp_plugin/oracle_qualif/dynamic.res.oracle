@@ -1,20 +1,34 @@
-# frama-c -wp [...]
+# frama-c -wp -wp-timeout 90 -wp-steps 1500 [...]
 [kernel] Parsing tests/wp_plugin/dynamic.i (no preprocessing)
 [wp] Running WP plugin...
 [wp] Computing dynamic calls.
-[wp] Dynamic call(s): 1.
+[wp] Dynamic call(s): 3.
 [wp] Loading driver 'share/wp.driver'
 [wp] Warning: Missing RTE guards
-[wp] 4 goals scheduled
+[wp] 13 goals scheduled
 [wp] [Alt-Ergo] Goal typed_call_stmt_calls_f1_f2 : Valid
 [wp] [Qed] Goal typed_call_post_part1 : Valid
 [wp] [Qed] Goal typed_call_post_part2 : Valid
 [wp] [Alt-Ergo] Goal typed_call_call_f1_pre : Valid
-[wp] Proved goals:    4 / 4
-  Qed:             2 
-  Alt-Ergo:        2
+[wp] [Qed] Goal typed_guarded_call_stmt_calls_g : Valid
+[wp] [Alt-Ergo] Goal typed_guarded_call_post_part1 : Valid
+[wp] [Qed] Goal typed_guarded_call_post_part2 : Valid
+[wp] [Qed] Goal typed_guarded_call_post_2_part1 : Valid
+[wp] [Qed] Goal typed_guarded_call_post_2_part2 : Valid
+[wp] [Qed] Goal typed_no_call_stmt_calls_unreachable_g : Valid
+[wp] [Qed] Goal typed_no_call_post_part1 : Valid
+[wp] [Qed] Goal typed_no_call_post_part2 : Valid
+[wp] [Qed] Goal typed_no_call_call_unreachable_g_pre : Valid
+[wp] Proved goals:   13 / 13
+  Qed:            10 
+  Alt-Ergo:        3
 [wp] Report 'tests/wp_plugin/dynamic.i.0.report.json'
 -------------------------------------------------------------
 Functions           WP     Alt-Ergo        Total   Success
-call                 2      2 (44..56)       4       100%
+call                 2      2 (52..64)       4       100%
+guarded_call         4      1 (8..20)        5       100%
+no_call              4     -                 4       100%
 -------------------------------------------------------------
+[wp] Warning: Memory model hypotheses for function 'guarded_call':
+  /*@ behavior typed: requires \separated(&X,p); */
+  void guarded_call(struct S *p);

@@ -1,8 +1,8 @@
 [kernel] Parsing tests/value/inout.i (no preprocessing)
-[value] Analyzing a complete application starting at inout_11_3
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing a complete application starting at inout_11_3
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   Xt ∈ {0}
   Xs ∈ {0}
   Xs_I ∈ {0}
@@ -20,11 +20,11 @@
       [6] ∈ {25}
       [7] ∈ {40}
   I5_nt ∈ {0}
-[value] tests/value/inout.i:37: entering loop for the first time
-[value:alarm] tests/value/inout.i:42: Warning: 
+[eva] tests/value/inout.i:37: starting to merge loop iterations
+[eva:alarm] tests/value/inout.i:42: Warning: 
   accessing uninitialized left-value. assert \initialized(&r);
-[value] Recording results for inout_11_3
-[value] done for function inout_11_3
+[eva] Recording results for inout_11_3
+[eva] done for function inout_11_3
 [from] Computing for function inout_11_3
 [from] Done for function inout_11_3
 [from] ====== DEPENDENCIES COMPUTED ======

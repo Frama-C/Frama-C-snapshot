@@ -23,6 +23,7 @@
 /* ISO C: 7.12 */
 
 #include "math.h"
+__PUSH_FC_STDLIB
 
 double fabs(double x){
   if(x==0.0) return 0.0;
@@ -66,3 +67,5 @@ int __finite(double d)
   /* A floating point value is invalid, if the exponent is 0xff */
   return !(usExp == 0xff) ;
 }
+
+__POP_FC_STDLIB

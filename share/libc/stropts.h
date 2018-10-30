@@ -164,10 +164,17 @@ extern int    getpmsg(int, struct strbuf *restrict, struct strbuf *restrict,
 extern int    ioctl(int, int, ...);
 
 // for Variadic
-/*@ assigns \result \from fd, request; */
+/*@ assigns \result \from indirect:fd, indirect:request; */
 extern int    __va_ioctl_void(int fd, int request);
-/*@ assigns \result \from fd, request, argp[0..]; */
-extern int    __va_ioctl_ptr(int fd, int request, char* argp);
+
+/*@ assigns \result \from indirect:fd, indirect:request, indirect:arg; */
+extern int    __va_ioctl_int(int fd, int request, int arg);
+
+/*@ assigns \result \from indirect:fd, indirect:request,
+      indirect:((char*)argp)[0..];
+    assigns argp != \null ? ((char*)argp)[0..] : \empty \from
+      indirect:fd, indirect:request, ((char*)argp)[0..]; */
+extern int    __va_ioctl_ptr(int fd, int request, void* argp);
 
 extern int    isastream(int);
 extern int    putmsg(int, const struct strbuf *, const struct strbuf *, int);

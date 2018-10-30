@@ -194,7 +194,7 @@ let kf_to_global kf = match kf.fundec with
 let translate_history_elt old_helt =
   let test_name_file old_name new_name old_loc new_loc =
     old_name = new_name &&
-    (fst old_loc).Lexing.pos_fname = (fst new_loc).Lexing.pos_fname
+    (fst old_loc).Filepath.pos_path = (fst new_loc).Filepath.pos_path
   in
   let global old_g =
     let iter new_g =
@@ -269,11 +269,11 @@ let translate_history_elt old_helt =
               | Kstmt s -> fst (Stmt.loc s)
               | Kglobal -> (* fallback *) old_kf_loc
             in
-            let offset = old_loc.Lexing.pos_lnum - old_kf_loc.Lexing.pos_lnum in
+            let offset = old_loc.Filepath.pos_lnum - old_kf_loc.Filepath.pos_lnum in
             let new_kf_loc = fst (Global.loc g) in
             let new_loc = {new_kf_loc with
-                           Lexing.pos_lnum = new_kf_loc.Lexing.pos_lnum + offset;
-                           Lexing.pos_cnum = old_loc.Lexing.pos_cnum;
+                           Filepath.pos_lnum = new_kf_loc.Filepath.pos_lnum + offset;
+                           Filepath.pos_cnum = old_loc.Filepath.pos_cnum;
                           }
             in
             match Pretty_source.loc_to_localizable new_loc with

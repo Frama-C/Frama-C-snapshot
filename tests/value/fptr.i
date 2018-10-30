@@ -1,7 +1,7 @@
 /* run.config*
    GCC:
-   OPT: -no-autoload-plugins -load-module from,inout,value -val @VALUECONFIG@ -journal-disable -then -deps -out
-   OPT: -no-autoload-plugins -load-module from,inout,value -val @VALUECONFIG@ -main main_uninit -journal-disable -then -deps -out
+   OPT: -no-autoload-plugins -load-module from,inout,eva -val @VALUECONFIG@ -journal-disable -then -deps -out
+   OPT: -no-autoload-plugins -load-module from,inout,eva -val @VALUECONFIG@ -main main_uninit -journal-disable -then -deps -out
 */
 int R=77; volatile int v; int n;
 

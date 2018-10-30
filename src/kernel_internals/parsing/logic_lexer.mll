@@ -150,13 +150,27 @@
       try
         Hashtbl.find (if Logic_utils.is_kw_c_mode () then c_kw else all_kw) s
       with Not_found ->
+        let res =
+          if not (Logic_utils.is_kw_c_mode ()) then begin
+            match Logic_env.extension_category s with
+            | None -> None
+            | Some Cil_types.Ext_contract -> Some (EXT_CONTRACT s)
+            | Some Cil_types.Ext_global -> Some (EXT_GLOBAL s)
+            | Some Cil_types.Ext_code_annot _ -> Some (EXT_CODE_ANNOT s)
+          end
+          else None
+        in
+        match res with
+        | None ->
         if Logic_env.typename_status s then TYPENAME s
         else
           (try
              Hashtbl.find type_kw s
            with Not_found ->
              if Logic_utils.is_rt_type_mode () then TYPENAME s
-             else IDENTIFIER s)),
+               else IDENTIFIER s)
+        | Some lex -> lex
+    ),
     (fun s -> Hashtbl.mem all_kw s || Hashtbl.mem type_kw s)
 
   let bs_identifier =
@@ -252,6 +266,8 @@ let rFS	= ('f'|'F'|'l'|'L'|'d'|'D')
 let rIS = ('u'|'U'|'l'|'L')*
 let comment_line = "//" [^'\n']*
 
+(* Do not forget to update also the corresponding chr rule if you add
+   a supported escape sequence here. *)
 let escape = '\\'
    ('\'' | '"' | '?' | '\\' | 'a' | 'b' | 'f' | 'n' | 'r'
    | 't' | 'v')
@@ -394,11 +410,12 @@ and chr buffer = parse
              | 'n' -> '\n'
              | 'r' -> '\r'
              | 't' -> '\t'
+             | 'v' -> '\011' (* no '\v' in OCaml 😞 *)
              | '\'' -> '\''
              | '"' -> '"'
              | '?' -> '?'
              | '\\' -> '\\'
-             | _ -> assert false
+             | _ -> (* escape regex does not allow anything else *) assert false
           ); chr buffer lexbuf}
   | eof { Buffer.contents buffer }
   | _  { Buffer.add_string buffer (lexeme lexbuf); chr buffer lexbuf }
@@ -415,7 +432,7 @@ and hash = parse
                    with Failure _ ->
                      (* the int is too big. *)
                      Kernel.warning
-                       ~source:lexbuf.lex_start_p
+                       ~source:(Cil_datatype.Position.of_lexing_pos lexbuf.lex_start_p)
                        "Bad line number in preprocessed file: %s"  s;
                      (-1)
                  in
@@ -459,28 +476,29 @@ and comment = parse
           pos_cnum = 0; };
     )
 
-  let parse_from_location f (loc, s : Lexing.position * string) =
-    let emitwith _ = Logic_utils.exit_kw_c_mode () in
-    let output = Kernel.warning ~wkey:Kernel.wkey_annot_error ~emitwith in
+  let parse_from_location f (loc, s : Filepath.position * string) =
+    let finally _ = Logic_utils.exit_kw_c_mode () in
+    let output = Kernel.logwith finally ~wkey:Kernel.wkey_annot_error
+    in
     let lb = from_string s in
-    set_initial_location lb loc;
+    set_initial_location lb (Cil_datatype.Position.to_lexing_pos loc);
     try
       let res = f token lb in
-      Some (lb.Lexing.lex_curr_p, res)
+      Some (Cil_datatype.Position.of_lexing_pos lb.Lexing.lex_curr_p, res)
     with
       | Failure s -> (* raised by the lexer itself, through [f] *)
-          output ~source:lb.lex_curr_p "lexing error: %s" s; None
+          output ~source:(Cil_datatype.Position.of_lexing_pos lb.lex_curr_p) "lexing error: %s" s; None
       | Parsing.Parse_error ->
-        output ~source:lb.lex_curr_p "unexpected token '%s'" (Lexing.lexeme lb);
+        output ~source:(Cil_datatype.Position.of_lexing_pos lb.lex_curr_p) "unexpected token '%s'" (Lexing.lexeme lb);
         None
-      | Error (_, m) -> output ~source:lb.lex_curr_p "%s" m; None
+      | Error (_, m) -> output ~source:(Cil_datatype.Position.of_lexing_pos lb.lex_curr_p) "%s" m; None
       | Logic_utils.Not_well_formed (loc, m) ->
         output ~source:(fst loc) "%s" m;
         None
       | Log.FeatureRequest(_,msg) ->
-        output ~source:lb.lex_curr_p "unimplemented ACSL feature: %s" msg; None
+        output ~source:(Cil_datatype.Position.of_lexing_pos lb.lex_curr_p) "unimplemented ACSL feature: %s" msg; None
       | exn ->
-        Kernel.fatal ~source:lb.lex_curr_p "Unknown error (%s)"
+        Kernel.fatal ~source:(Cil_datatype.Position.of_lexing_pos lb.lex_curr_p) "Unknown error (%s)"
           (Printexc.to_string exn)
 
   let lexpr = parse_from_location Logic_parser.lexpr_eof
@@ -498,7 +516,7 @@ and comment = parse
       accept_c_comments_into_acsl_spec := false ;
       raise exn
 
-  type 'a parse = Lexing.position * string -> (Lexing.position * 'a) option
+  type 'a parse = Filepath.position * string -> (Filepath.position * 'a) option
 
   let chr lexbuf =
     let buf = Buffer.create 16 in

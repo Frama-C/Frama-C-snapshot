@@ -69,7 +69,7 @@ module Location_Bytes = struct
 
   module MapLattice = struct
     include Map_lattice.Make_Map_Lattice (Base) (Ival) (M)
-    include With_Cardinality (Ival)
+    include With_Cardinality (struct let is_summary = Base.is_weak end) (Ival)
   end
 
   module MapSetLattice = struct
@@ -124,11 +124,23 @@ module Location_Bytes = struct
     if Ival.is_bottom offset then bottom
     else map (Ival.add_int_under offset) l
 
-  let sub_pointwise ?factor l1 l2 =
+  let sub_pointwise_map ?factor m1 m2 =
     let factor = match factor with
       | None -> Int_Base.minus_one
       | Some f -> Int_Base.neg f
     in
+    (* Subtract pointwise for all the bases that are present in both m1
+       and m2. *)
+    M.fold2_join_heterogeneous
+      ~cache:Hptmap_sig.NoCache
+      ~empty_left:(fun _ -> Ival.bottom)
+      ~empty_right:(fun _ -> Ival.bottom)
+      ~both:(fun _b i1 i2 -> Ival.add_int i1 (Ival.scale_int_base factor i2))
+      ~join:Ival.join
+      ~empty:Ival.bottom
+      m1 (M.shape m2)
+
+  let sub_pointwise ?factor l1 l2 =
     match l1, l2 with
     | Top _, Top _
     | Top (Base.SetLattice.Top, _), Map _
@@ -140,17 +152,20 @@ module Location_Bytes = struct
         Ival.top
       else
         Ival.bottom
+    | Map m1, Map m2 -> sub_pointwise_map ?factor m1 m2
+
+  let sub_pointer l1 l2 =
+    match l1, l2 with
+    | Top (s1, o1), Top (s2, o2) ->
+      if Base.SetLattice.intersects s1 s2
+      then Top (Base.SetLattice.join s1 s2, Origin.join o1 o2)
+      else bottom
+    | Top (s, _) as t, Map m
+    | Map m, (Top (s, _) as t) ->
+      if Base.SetLattice.exists (fun b -> M.mem b m) s then t else bottom
     | Map m1, Map m2 ->
-      (* Subtract pointwise for all the bases that are present in both m1
-         and m2. *)
-      M.fold2_join_heterogeneous
-        ~cache:Hptmap_sig.NoCache
-        ~empty_left:(fun _ -> Ival.bottom)
-        ~empty_right:(fun _ -> Ival.bottom)
-        ~both:(fun _b i1 i2 -> Ival.add_int i1 (Ival.scale_int_base factor i2))
-        ~join:Ival.join
-        ~empty:Ival.bottom
-        m1 (M.shape m2)
+      let ival = sub_pointwise_map m1 m2 in
+      inject_ival ival
 
   let cardinal_zero_or_one = function
     | Top _ -> false
@@ -378,45 +393,16 @@ module Location_Bytes = struct
        | Map _ -> false);
        true
 
- type overlaps = Overlaps of (M.t -> M.t -> bool)
-
- module DatatypeOverlap = Datatype.Make(struct
-   include Datatype.Undefined (* Closures: cannot be marshalled *)
-   type t = overlaps
-   let name = "Locations.DatatypeOverlap.t"
-   let reprs = [Overlaps (fun _ _ -> true)]
-   let mem_project = Datatype.never_any_project
- end)
-
- module PartiallyOverlaps =
-   State_builder.Int_hashtbl(DatatypeOverlap)(struct
-     let size = 7
-     let dependencies = [Ast.self]
-     let name = "Locations.PartiallyOverlap"
-   end)
-
- let partially_overlaps ~size mm1 mm2 =
+ let overlaps ~partial ~size mm1 mm2 =
    match mm1, mm2 with
-     | Top _, _ | _, Top _ -> intersects mm1 mm2
-     | Map m1, Map m2 ->
-       let size_int = Int.to_int size in
-       let map_partially_overlaps =
-	 try
-           (match PartiallyOverlaps.find size_int with Overlaps f -> f)
-	 with Not_found ->
-           let name = Format.asprintf "Locations.Overlap(%d)" size_int in
-	   let f = 
-	     M.symmetric_binary_predicate
-               (Hptmap_sig.TemporaryCache name) M.ExistentialPredicate
-	       ~decide_fast:(fun _ _ -> M.PUnknown)
-	       ~decide_one:(fun _ _ -> false)
-	       ~decide_both:(fun _ x y -> Ival.partially_overlaps size x y)
-	   in
-           PartiallyOverlaps.add size_int (Overlaps f);
-	   f
-       in
-       map_partially_overlaps m1 m2
-
+   | Top _, _ | _, Top _ -> intersects mm1 mm2
+   | Map m1, Map m2 ->
+     M.symmetric_binary_predicate
+       Hptmap_sig.NoCache M.ExistentialPredicate
+       ~decide_fast:(fun _ _ -> M.PUnknown)
+       ~decide_one:(fun _ _ -> false)
+       ~decide_both:(fun _ x y -> Ival.overlaps ~partial ~size x y)
+       m1 m2
 
   type size_widen_hint = Ival.size_widen_hint
   type generic_widen_hint = Base.t -> Ival.generic_widen_hint
@@ -794,6 +780,12 @@ let zone_of_varinfo var = enumerate_bits (loc_of_varinfo var)
 (** [invalid_part l] is an over-approximation of the invalid part
    of the location [l] *)
 let invalid_part l = l (* TODO (but rarely useful) *)
+
+let overlaps ~partial l1 l2 =
+  try
+    let size = Int.max (Int_Base.project l1.size) (Int_Base.project l2.size) in
+    Location_Bits.overlaps ~partial ~size l1.loc l2.loc
+  with Abstract_interp.Error_Top -> true
 
 module Location =
   Datatype.Make

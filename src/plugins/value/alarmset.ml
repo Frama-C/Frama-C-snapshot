@@ -360,30 +360,37 @@ let emit_alarm kinstr alarm (status:status) =
   | Alarms.Uninitialized_union _ ->
     register_alarm "accessing uninitialized union"
 
+  | Alarms.Invalid_bool _ ->
+    register_alarm "trap representation of a _Bool lvalue"
+
 let height_alarm = let open Value_util in function
-  | Alarms.Division_by_zero e
-  | Alarms.Index_out_of_bound (e,_)
-  | Alarms.Invalid_shift (e,_)
-  | Alarms.Overflow (_,e,_,_)
-  | Alarms.Float_to_int (e,_,_)
-  | Alarms.Function_pointer (e, _)
-  | Alarms.Pointer_comparison (None,e) -> height_expr e + 2
-  | Alarms.Memory_access (lv,_)
-  | Alarms.Dangling lv -> height_lval lv + 1
-  | Alarms.Uninitialized lv -> height_lval lv
-  | Alarms.Pointer_comparison (Some e1,e2) -> max (height_expr e1) (height_expr e2) + 2
-  | Alarms.Differing_blocks (e1,e2) -> max (height_expr e1) (height_expr e2) + 1
-  | Alarms.Not_separated (lv1,lv2)
-  | Alarms.Overlap (lv1,lv2) -> max (height_lval lv1) (height_lval lv2) + 1
-  | Alarms.Is_nan_or_infinite (e, fkind)
-  | Alarms.Is_nan (e, fkind) ->
-    let trivial = match Cil.typeOf e with
-      | TFloat (fk, _) -> fk = fkind
-      | _ -> false
-    in
-    if trivial then height_expr e else height_expr e + 1
-  | Alarms.Uninitialized_union llv -> List.fold_left max 0 (List.map height_lval llv)
-    
+    | Alarms.Division_by_zero e
+    | Alarms.Index_out_of_bound (e,_)
+    | Alarms.Invalid_shift (e,_)
+    | Alarms.Overflow (_,e,_,_)
+    | Alarms.Float_to_int (e,_,_)
+    | Alarms.Function_pointer (e, _)
+    | Alarms.Pointer_comparison (None,e) -> height_expr e + 2
+    | Alarms.Memory_access (lv,_)
+    | Alarms.Dangling lv
+    | Alarms.Invalid_bool lv -> height_lval lv + 1
+    | Alarms.Uninitialized lv -> height_lval lv
+    | Alarms.Pointer_comparison (Some e1, e2) ->
+      max (height_expr e1) (height_expr e2) + 2
+    | Alarms.Differing_blocks (e1, e2) ->
+      max (height_expr e1) (height_expr e2) + 1
+    | Alarms.Not_separated (lv1,lv2)
+    | Alarms.Overlap (lv1,lv2) -> max (height_lval lv1) (height_lval lv2) + 1
+    | Alarms.Is_nan_or_infinite (e, fkind)
+    | Alarms.Is_nan (e, fkind) ->
+      let trivial = match Cil.typeOf e with
+        | TFloat (fk, _) -> fk = fkind
+        | _ -> false
+      in
+      if trivial then height_expr e else height_expr e + 1
+    | Alarms.Uninitialized_union llv ->
+      List.fold_left max 0 (List.map height_lval llv)
+
 let cmp a1 a2 =
   Datatype.Int.compare (height_alarm (fst a1)) (height_alarm (fst a2))
 
@@ -424,6 +431,7 @@ let warn_alarm warn_mode = function
   | Alarms.Overlap _
   | Alarms.Function_pointer _
   | Alarms.Uninitialized_union _
+  | Alarms.Invalid_bool _
     -> warn_mode.others ()
 
 let notify warn_mode alarms =

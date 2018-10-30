@@ -21,7 +21,7 @@
 (**************************************************************************)
 
 (** Builtins for standard floating-point functions.
-    
+
     Nothing is exported, all the builtins are registered through
     {Builtins.register_builtin} *)
 
@@ -31,4 +31,3 @@ Local Variables:
 compile-command: "make -C ../.."
 End:
 *)
-

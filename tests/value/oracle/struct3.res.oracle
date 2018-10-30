@@ -1,8 +1,8 @@
 [kernel] Parsing tests/value/struct3.i (no preprocessing)
-[value] Analyzing a complete application starting at main
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing a complete application starting at main
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   tabst[0..9] ∈ {0}
   tabst2[0..9] ∈ {0}
   tab_s[0..1] ∈ {0}
@@ -15,21 +15,22 @@
   s8 ∈ {0}
   s7 ∈ {0}
   v ∈ [--..--]
-[value:alarm] tests/value/struct3.i:42: Warning: 
+[eva:alarm] tests/value/struct3.i:42: Warning: 
   accessing out of bounds index. assert 10 < 10;
 [kernel] tests/value/struct3.i:42: Warning: 
   all target addresses were invalid. This path is assumed to be dead.
-[value] tests/value/struct3.i:46: 
+[eva] tests/value/struct3.i:46: 
   Assigning imprecise value to s2.a.
   The imprecision originates from Arithmetic {tests/value/struct3.i:46}
-[value] Recording results for main
-[value] done for function main
-[value] Warning: Garbled mix generated during analysis:
+[eva] Recording results for main
+[eva] done for function main
+[eva:garbled-mix] Warning: 
+  Garbled mix generated during analysis:
   {{ garbled mix of &{s1} (origin: Arithmetic {tests/value/struct3.i:46}) }}
-[value] tests/value/struct3.i:42: 
-  assertion 'Value,index_bound' got final status invalid.
-[value] ====== VALUES COMPUTED ======
-[value:final-states] Values at end of function main:
+[eva] tests/value/struct3.i:42: 
+  assertion 'Eva,index_bound' got final status invalid.
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function main:
   s1.a ∈ {2}
     .d[0] ∈ {1}
     .d[1..2] ∈ {2}

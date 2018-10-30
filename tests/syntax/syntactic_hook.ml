@@ -3,7 +3,6 @@ open Cabshelper
 open Cil_types
 open Cil
 open Cabs
-open Lexing
 
 class visit = object
   inherit nopCabsVisitor
@@ -47,7 +46,7 @@ let warn_conflict oldvi vi reason =
     ~source:(fst vi.vdecl)
     "[SH]: conflict with declaration of %a at line %d: %s"
     Format.pp_print_string vi.vname
-    (fst oldvi.vdecl).pos_lnum
+    (fst oldvi.vdecl).Filepath.pos_lnum
     reason
 ;;
 
@@ -59,7 +58,7 @@ let warn_distinct oldvi vi =
     "[SH]: definition of %a does not use exactly the same prototype as \
      declared on line %d"
     Format.pp_print_string vi.vname
-    (fst oldvi.vdecl).pos_lnum
+    (fst oldvi.vdecl).Filepath.pos_lnum
 ;;
 
 Cabs2cil.register_different_decl_hook warn_distinct;;

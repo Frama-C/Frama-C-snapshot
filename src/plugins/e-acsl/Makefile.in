@@ -1,8 +1,8 @@
 ##########################################################################
 #                                                                        #
-#  This file is part of Frama-C.                                         #
+#  This file is part of the Frama-C's E-ACSL plug-in.                    #
 #                                                                        #
-#  Copyright (C) 2007-2018                                               #
+#  Copyright (C) 2012-2018                                               #
 #    CEA (Commissariat à l'énergie atomique et aux énergies              #
 #         alternatives)                                                  #
 #                                                                        #
@@ -69,16 +69,19 @@ PLUGIN_CMO:= local_config \
 	mmodel_analysis \
 	exit_points \
 	label \
+	lscope \
 	env \
 	keep_status \
 	dup_functions \
 	interval \
 	typing \
+	loops \
 	quantif \
+	at_with_lscope \
+	mmodel_translate \
 	translate \
 	temporal \
 	prepare_ast \
-	loops \
 	visit \
 	main
 
@@ -228,9 +231,9 @@ clean::
 # Cleaning #
 ############
 
-EACSL_CLEANFILES = $(wildcard doc/doxygen/doxygen.cfg \
+EACSL_CLEANFILES = doc/doxygen/doxygen.cfg \
 	Makefile config.log config.status configure .depend autom4te.cache/* \
-	META.frama-c-e_acsl Makefile.plugin.generated local_config.ml top/*)
+	META.frama-c-e_acsl Makefile.plugin.generated local_config.ml top/*
 
 e-acsl-distclean:: clean
 	$(PRINT_RM) generated project files
@@ -242,15 +245,12 @@ e-acsl-distclean:: clean
 
 EXPORT = e-acsl-$(EACSL_VERSION)
 
-EACSL_OCAML_FILES = $(wildcard *.mli) \
-	$(filter-out $(wildcard *local_config.ml), $(wildcard *.ml))
-
 EACSL_CONTRIB_FILES = \
   $(EACSL_GMP_REL_DIR)/mini-gmp.c \
   $(EACSL_GMP_REL_DIR)/mini-gmp.h \
   $(EACSL_DLMALLOC_REL_DIR)/dlmalloc.c
 
-EACSL_MANUAL_FILES = $(wildcard $(E_ACSL_DIR)/doc/manuals/*.pdf)
+EACSL_MANUAL_FILES = doc/manuals/*.pdf
 
 EACSL_DOC_FILES = \
 	$(EACSL_MANUAL_FILES) \
@@ -259,14 +259,16 @@ EACSL_DOC_FILES = \
 	man/e-acsl-gcc.sh.1
 
 EACSL_TEST_FILES = \
-  tests/test_config.in tests/print.ml \
+  tests/test_config.in tests/print.ml
+
+# Test files without header management 
+EACSL_DISTRIB_TESTS = \
   $(foreach dir, $(addprefix tests/,$(PLUGIN_TESTS_DIRS)), \
-    $(wildcard \
       $(dir)/*.[ic] \
       $(dir)/test_config \
       $(dir)/oracle/*.c \
       $(dir)/oracle/*.oracle \
-  ))
+  )
 
 EACSL_RTL_FILES = $(EACSL_RTL_SRC)
 
@@ -281,7 +283,7 @@ EACSL_MISC_FILES = \
 
 EACSL_SHARE_FILES = share/e-acsl/*.[ch] share/e-acsl/*/*.[ch]
 
-PLUGIN_DISTRIB_EXTERNAL:=\
+EACSL_DISTRIB_EXTERNAL =\
   $(EACSL_SHARE_FILES) \
   $(EACSL_MISC_FILES) \
   $(EACSL_DOC_FILES) \
@@ -291,38 +293,63 @@ PLUGIN_DISTRIB_EXTERNAL:=\
   $(EACSL_LICENSE_FILES) \
   $(EACSL_CONTRIB_FILES)
 
-EACSL_DISTRIB_FILES:= $(PLUGIN_DISTRIB_EXTERNAL) $(EACSL_OCAML_FILES)
+PLUGIN_DISTRIB_EXTERNAL:= $(EACSL_DISTRIB_EXTERNAL)
+
+# Files of `DISTRIB_FILES` without header and not listed in file
+# `headers/header_specs.txt`.
+PLUGIN_HEADER_EXCEPTIONS:=
+
+# Files that are not listed in `DISTRIB_FILES`
+# and decicated to distributed tests
+PLUGIN_DISTRIB_TESTS:= $(EACSL_DISTRIB_TESTS)
+
+# for e-csl-distrib target:
+EACSL_OCAML_FILES = *.mli \
+  $(patsubst $(EACSL_PLUGIN_DIR)/%, %, \
+    $(filter-out $(wildcard $(EACSL_PLUGIN_DIR)/*local_config.ml), \
+		 $(wildcard $(EACSL_PLUGIN_DIR)/*.ml)))
+
+EACSL_DISTRIB_FILES = \
+  $(patsubst $(EACSL_PLUGIN_DIR)/%,%,\
+    $(wildcard $(addprefix $(EACSL_PLUGIN_DIR)/, \
+       $(EACSL_OCAML_FILES) $(EACSL_DISTRIB_EXTERNAL) $(EACSL_DISTRIB_TESTS))))
 
 # BE CAREFUL: manually remove all *.ml* files which should not be released!
 e-acsl-distrib:
 	$(PRINT_TAR) tmp-distrib
-	$(TAR) cf tmp.tar $(EACSL_DISTRIB_FILES)
+	cd $(EACSL_PLUGIN_DIR); \
+	  $(TAR) cf tmp.tar $(EACSL_DISTRIB_FILES)
 	$(PRINT_MAKING) export directories
-	$(MKDIR) $(EXPORT)
+	$(MKDIR) $(EACSL_PLUGIN_DIR)/$(EXPORT)
 	$(PRINT_UNTAR) tmp-distrib
-	cd $(EXPORT); \
-		$(TAR) xf ../tmp.tar && \
-		autoconf && \
-		$(SED) -i -e 's/IS_DISTRIBUTED:=no/IS_DISTRIBUTED:=yes/' Makefile.in && \
-		$(RM) -rf autom4te.cache
+	cd $(EACSL_PLUGIN_DIR)/$(EXPORT); \
+	  pwd && \
+	  $(TAR) xf ../tmp.tar && \
+	  autoconf && \
+	  $(SED) \
+	    -i -e 's/IS_DISTRIBUTED:=no/IS_DISTRIBUTED:=yes/' Makefile.in && \
+	  $(RM) -rf autom4te.cache
 	$(PRINT_RM) tmp-distrib
-	$(RM) tmp.tar
-	$(PRINT_MAKING) archive
-	$(TAR) czf $(EXPORT).tar.gz $(EXPORT)
+	$(RM) $(EACSL_PLUGIN_DIR)/tmp.tar
+	$(PRINT_MAKING) archive $(EACSL_PLUGIN_DIR)/$(EXPORT).tar.gz
+	cd $(EACSL_PLUGIN_DIR) ; \
+	  $(TAR) czf $(EXPORT).tar.gz $(EXPORT)
 	$(PRINT) Cleaning
-	$(RM) -fr $(EXPORT)
+	$(RM) -fr $(EACSL_PLUGIN_DIR)/$(EXPORT)
 
 WWW	?= /localhome/julien/frama-c/doc/www
 e-acsl-install-distrib: e-acsl-distrib
 	$(PRINT) Copying to website
-	$(CP) $(EXPORT).tar.gz $(WWW)/distrib/download/e-acsl
-	$(CP) $(EACSL_DOC_FILES) $(WWW)/distrib/download/e-acsl
+	$(CP) $(EACSL_PLUGIN_DIR)/$(EXPORT).tar.gz \
+	  $(WWW)/distrib/download/e-acsl
+	$(CP) $(addprefix $(EACSL_PLUGIN_DIR)/, $(EACSL_DOC_FILES)) \
+	  $(WWW)/distrib/download/e-acsl
 ifneq ("$(EACSL_MANUAL_FILES)","")
-	$(CP) doc/manuals/e-acsl-manual.pdf \
+	$(CP) $(EACSL_PLUGIN_DIR)/doc/manuals/e-acsl-manual.pdf \
 	      $(WWW)/distrib/download/e-acsl/e-acsl-manual-$(EACSL_VERSION).pdf
-	$(CP) doc/manuals/e-acsl.pdf \
+	$(CP) $(EACSL_PLUGIN_DIR)/doc/manuals/e-acsl.pdf \
 	      $(WWW)/distrib/download/e-acsl/e-acsl-1.7.pdf
-	$(CP) doc/manuals/e-acsl-implementation.pdf \
+	$(CP) $(EACSL_PLUGIN_DIR)/doc/manuals/e-acsl-implementation.pdf \
 	      $(WWW)/distrib/download/e-acsl/e-acsl-implementation-$(EACSL_VERSION).pdf
 endif
 
@@ -346,36 +373,37 @@ e-acsl-distrib-check:
 # Header #
 ##########
 
-EACSL_CEA_LGPL_BARE= *.ml *.mli Makefile.in configure.ac share/e-acsl/*.[ch] \
-  share/e-acsl/*/*.[ch] scripts/*.sh tests/print.ml man/e-acsl-gcc.sh.1
-EACSL_CEA_LGPL=$(addprefix $(EACSL_PLUGIN_DIR)/, $(EACSL_CEA_LGPL_BARE))
+ifneq ("$(FRAMAC_INTERNAL)","yes")
 
 EACSL_SPARETIMELABS=$(EACSL_PLUGIN_DIR)/share/e-acsl/e_acsl_printf.h
 
-# Files without header. contrib files keep their own header.
-EACSL_NOHEADER_BARE=INSTALL README VERSION license/* \
-  doc/Changelog doc/doxygen/doxygen.cfg.in .depend tests/test_config.in \
-  $(EACSL_CONTRIB_FILES)
+EACSL_SHARE_BARE= share/e-acsl/*.[ch] share/e-acsl/*/*.[ch]
+EACSL_SHARE=$(addprefix $(EACSL_PLUGIN_DIR)/, $(EACSL_SHARE_BARE))
+EACSL_CEA_SHARE=$(filter-out $(EACSL_SPARETIMELABS), $(wildcard $(EACSL_SHARE)))
 
-EACSL_NOHEADER=$(addprefix $(EACSL_PLUGIN_DIR)/, $(EACSL_NOHEADER_BARE))
+EACSL_CEA_LGPL_BARE= *.ml *.mli Makefile.in configure.ac \
+  scripts/*.sh tests/print.ml man/e-acsl-gcc.sh.1
+EACSL_CEA_LGPL=$(addprefix $(EACSL_PLUGIN_DIR)/, $(EACSL_CEA_LGPL_BARE)) \
+               $(EACSL_CEA_SHARE)
 
-ifeq ("$(FRAMAC_INTERNAL)","yes")
-CEA_LGPL_HEADER=$(FRAMAC_ROOT_SRCDIR)/headers/open-source/CEA_LGPL
-# EACSL does not use hdrck mechanism
-HEADER_EXCEPTIONS+=\
-  $(wildcard $(EACSL_CEA_LGPL) $(EACSL_SPARETIMELABS) $(EACSL_NOHEADER))
-else
-CEA_LGPL_HEADER=$(EACSL_PLUGIN_DIR)/license/CEA_LGPL
-endif
-
+# valid values: open-source, close-source 
+EACSL_HEADERS?=open-source
 headers::
-	@echo "Applying Headers..."
+	@echo "Applying $(EACSL_HEADERS) headers..."
 	headache -c $(EACSL_PLUGIN_DIR)/license/headache_config.txt \
-                 -h $(CEA_LGPL_HEADER) $(EACSL_CEA_LGPL)
+                 -h $(EACSL_PLUGIN_DIR)/headers/$(EACSL_HEADERS)/CEA_LGPL_OR_PROPRIETARY.E_ACSL \
+                 $(EACSL_CEA_LGPL)
 	headache -c $(EACSL_PLUGIN_DIR)/license/headache_config.txt \
-                 -h $(EACSL_PLUGIN_DIR)/license/SPARETIMELABS \
+                 -h $(EACSL_PLUGIN_DIR)/headers/$(EACSL_HEADERS)/MODIFIED_SPARETIMELABS \
                  $(EACSL_SPARETIMELABS)
+	headache -c $(EACSL_PLUGIN_DIR)/license/headache_config.txt \
+                 -h $(EACSL_PLUGIN_DIR)/headers/$(EACSL_HEADERS)/MODIFIED_DLMALLOC \
+                 $(EACSL_PLUGIN_DIR)/contrib/libdlmalloc/dlmalloc.c
+	headache -c $(EACSL_PLUGIN_DIR)/license/headache_config.txt \
+                 -h $(EACSL_PLUGIN_DIR)/headers/$(EACSL_HEADERS)/MODIFIED_LIB_GMP \
+                 $(EACSL_PLUGIN_DIR)/contrib/libgmp/mini-gmp.[ch]
 
+endif
 
 ################
 # Generic part #
@@ -386,6 +414,8 @@ include $(FRAMAC_SHARE)/Makefile.dynamic
 ###########
 # Install #
 ###########
+
+EACSL_INSTALL_MANUAL_FILES=$(wildcard $(addprefix $(EACSL_PLUGIN_DIR)/, $(EACSL_MANUAL_FILES)))
 
 install::
 	$(PRINT_INSTALL) E-ACSL share files
@@ -399,10 +429,10 @@ install::
 	      $(FRAMAC_DATADIR)/e-acsl/segment_model
         # manuals are not present in standard distribution.
         # Don't fail because of that.
-ifneq ("$(EACSL_MANUAL_FILES)","")
+ifneq ("$(EACSL_INSTALL_MANUAL_FILES)","")
 	$(PRINT_INSTALL) E-ACSL manuals
 	$(MKDIR) $(FRAMAC_DATADIR)/manuals
-	$(CP) $(EACSL_MANUAL_FILES) $(FRAMAC_DATADIR)/manuals;
+	$(CP) $(EACSL_INSTALL_MANUAL_FILES) $(FRAMAC_DATADIR)/manuals;
 endif
 	$(PRINT_INSTALL) E-ACSL libraries
 	$(MKDIR) $(LIBDIR)
@@ -423,7 +453,7 @@ uninstall::
 	$(RM) $(LIBDIR)/libeacsl-*.a
 	$(PRINT_RM) E-ACSL scripts
 	$(RM) $(BINDIR)/e-acsl-gcc.sh
-	$(PRINT_RM) man pages
+	$(PRINT_RM) E-ACSL man pages
 	$(RM) $(MANDIR)/man1/e-acsl-gcc.sh.1
 
 ####################

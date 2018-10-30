@@ -1,22 +1,22 @@
 [kernel] Parsing tests/slicing/bts0950_annot.i (no preprocessing)
-[value] Analyzing a complete application starting at main
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing a complete application starting at main
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   a ∈ {1}
   b ∈ {2}
-[value] computing for function cpy <- main.
+[eva] computing for function cpy <- main.
   Called from tests/slicing/bts0950_annot.i:14.
-[value] tests/slicing/bts0950_annot.i:14: 
+[eva] tests/slicing/bts0950_annot.i:14: 
   function cpy: precondition got status valid.
-[value] Recording results for cpy
-[value] Done for function cpy
-[value] Recording results for main
-[value] done for function main
-[value] ====== VALUES COMPUTED ======
-[value:final-states] Values at end of function cpy:
+[eva] Recording results for cpy
+[eva] Done for function cpy
+[eva] Recording results for main
+[eva] done for function main
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function cpy:
   a ∈ {2}
-[value:final-states] Values at end of function main:
+[eva:final-states] Values at end of function main:
   a ∈ {2}
 [slicing] slicing requests in progress...
 [slicing] initializing slicing ...
@@ -57,22 +57,22 @@ void main(void)
 
 
 [kernel] Parsing tests/slicing/result/ocode_0_bts0950_annot.i (no preprocessing)
-[value] Analyzing a complete application starting at main
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing a complete application starting at main
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   a ∈ {1}
   b ∈ {2}
-[value] computing for function cpy <- main.
+[eva] computing for function cpy <- main.
   Called from tests/slicing/result/ocode_0_bts0950_annot.i:15.
-[value] tests/slicing/result/ocode_0_bts0950_annot.i:15: 
+[eva] tests/slicing/result/ocode_0_bts0950_annot.i:15: 
   function cpy: precondition got status valid.
-[value] Recording results for cpy
-[value] Done for function cpy
-[value] Recording results for main
-[value] done for function main
-[value] ====== VALUES COMPUTED ======
-[value:final-states] Values at end of function cpy:
+[eva] Recording results for cpy
+[eva] Done for function cpy
+[eva] Recording results for main
+[eva] done for function main
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function cpy:
   a ∈ {2}
-[value:final-states] Values at end of function main:
+[eva:final-states] Values at end of function main:
   a ∈ {2}

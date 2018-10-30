@@ -10,50 +10,44 @@
 Goal Post-condition 'P,todo' in 'f':
 Let a_1 = shift_sint32(t, a).
 Let x = -a.
+Let a_2 = havoc(Mint_undef_0, Mint_0, a_1, i - a).
 Assume {
   Type: is_sint32(a) /\ is_sint32(b) /\ is_sint32(i).
   (* Heap *)
   Have: (region(t.base) <= 0) /\ linked(Malloc_0).
   (* Pre-condition *)
-  Have: valid_rw(Malloc_0, a_1, 1 + b - a).
-  (* Pre-condition *)
-  Have: a <= b.
-  (* Loop assigns ... *)
-  Have: havoc(Mint_1, Mint_0, a_1, i - a).
+  Have: (a <= b) /\ valid_rw(Malloc_0, a_1, 1 + b - a).
   (* Invariant 'Positive' *)
   Have: forall i_1 : Z. ((a <= i_1) -> ((i_1 < i) ->
-      (0 < Mint_0[shift_sint32(t, i_1)]))).
+      (0 < a_2[shift_sint32(t, i_1)]))).
   (* Invariant 'Index' *)
   Have: (a <= i) /\ (i <= (1 + b)).
   (* Else *)
   Have: b < i.
 }
-Prove: P_P(Mint_0, t, a, b).
+Prove: P_P(a_2, t, a, b).
 
 ------------------------------------------------------------
 
 Goal Post-condition 'Q' in 'f':
 Let a_1 = shift_sint32(t, a).
 Let x = -a.
+Let a_2 = havoc(Mint_undef_0, Mint_0, a_1, i - a).
 Assume {
   Type: is_sint32(a) /\ is_sint32(b) /\ is_sint32(i).
   (* Heap *)
   Have: (region(t.base) <= 0) /\ linked(Malloc_0).
   (* Pre-condition *)
-  Have: valid_rw(Malloc_0, a_1, 1 + b - a).
-  (* Pre-condition *)
-  Have: a <= b.
-  (* Loop assigns ... *)
-  Have: havoc(Mint_1, Mint_0, a_1, i - a).
+  Have: (a <= b) /\ valid_rw(Malloc_0, a_1, 1 + b - a).
   (* Invariant 'Positive' *)
   Have: forall i_1 : Z. ((a <= i_1) -> ((i_1 < i) ->
-      (0 < Mint_0[shift_sint32(t, i_1)]))).
+      (0 < a_2[shift_sint32(t, i_1)]))).
   (* Invariant 'Index' *)
   Have: (a <= i) /\ (i <= (1 + b)).
   (* Else *)
   Have: b < i.
 }
-Prove: P_Q(Malloc_0, Mint_0, t, a, b).
+Prove: P_Q(Malloc_0, a_2, t, a, b).
 
 ------------------------------------------------------------
 
@@ -66,14 +60,10 @@ Assume {
   (* Heap *)
   Have: (region(t.base) <= 0) /\ linked(Malloc_0).
   (* Pre-condition *)
-  Have: valid_rw(Malloc_0, a_1, 1 + b - a).
-  (* Pre-condition *)
-  Have: a <= b.
-  (* Loop assigns ... *)
-  Have: havoc(Mint_0, Mint_1, a_1, i - a).
+  Have: (a <= b) /\ valid_rw(Malloc_0, a_1, 1 + b - a).
   (* Invariant 'Positive' *)
   Have: forall i_1 : Z. ((a <= i_1) -> ((i_1 < i) ->
-      (0 < Mint_1[shift_sint32(t, i_1)]))).
+      (0 < havoc(Mint_undef_0, Mint_0, a_1, i - a)[shift_sint32(t, i_1)]))).
   (* Invariant 'Index' *)
   Have: (a <= i) /\ (i <= (1 + b)).
   (* Then *)
@@ -89,9 +79,7 @@ Assume {
   (* Heap *)
   Have: (region(t.base) <= 0) /\ linked(Malloc_0).
   (* Pre-condition *)
-  Have: valid_rw(Malloc_0, shift_sint32(t, a), 1 + b - a).
-  (* Pre-condition *)
-  Have: a <= b.
+  Have: (a <= b) /\ valid_rw(Malloc_0, shift_sint32(t, a), 1 + b - a).
 }
 Prove: a <= (1 + b).
 
@@ -100,6 +88,7 @@ Prove: a <= (1 + b).
 Goal Preservation of Invariant 'Positive' (file tests/wp_acsl/axioms.i, line 31):
 Let a_1 = shift_sint32(t, a).
 Let x = -a.
+Let a_2 = havoc(Mint_undef_0, Mint_0, a_1, i - a).
 Assume {
   Type: is_sint32(a) /\ is_sint32(b) /\ is_sint32(i) /\ is_sint32(1 + i).
   (* Goal *)
@@ -107,20 +96,16 @@ Assume {
   (* Heap *)
   Have: (region(t.base) <= 0) /\ linked(Malloc_0).
   (* Pre-condition *)
-  Have: valid_rw(Malloc_0, a_1, 1 + b - a).
-  (* Pre-condition *)
-  Have: a <= b.
-  (* Loop assigns ... *)
-  Have: havoc(Mint_1, Mint_0, a_1, i - a).
+  Have: (a <= b) /\ valid_rw(Malloc_0, a_1, 1 + b - a).
   (* Invariant 'Positive' *)
   Have: forall i_2 : Z. ((a <= i_2) -> ((i_2 < i) ->
-      (0 < Mint_0[shift_sint32(t, i_2)]))).
+      (0 < a_2[shift_sint32(t, i_2)]))).
   (* Invariant 'Index' *)
   Have: (a <= i) /\ (i <= (1 + b)).
   (* Then *)
   Have: i <= b.
 }
-Prove: 0 < Mint_0[shift_sint32(t, i) <- 1][shift_sint32(t, i_1)].
+Prove: 0 < a_2[shift_sint32(t, i) <- 1][shift_sint32(t, i_1)].
 
 ------------------------------------------------------------
 
@@ -152,14 +137,10 @@ Assume {
   (* Heap *)
   Have: (region(t.base) <= 0) /\ linked(Malloc_0).
   (* Pre-condition *)
-  Have: valid_rw(Malloc_0, a_1, 1 + b - a).
-  (* Pre-condition *)
-  Have: a <= b.
-  (* Loop assigns ... *)
-  Have: havoc(Mint_0, Mint_1, a_1, i - a).
+  Have: (a <= b) /\ valid_rw(Malloc_0, a_1, 1 + b - a).
   (* Invariant 'Positive' *)
   Have: forall i_1 : Z. ((a <= i_1) -> ((i_1 < i) ->
-      (0 < Mint_1[shift_sint32(t, i_1)]))).
+      (0 < havoc(Mint_undef_0, Mint_0, a_1, i - a)[shift_sint32(t, i_1)]))).
   (* Invariant 'Index' *)
   Have: (a <= i) /\ (i <= (1 + b)).
   (* Then *)
@@ -173,19 +154,14 @@ Goal Assigns 'todo' in 'f':
 Effect at line 34
 Let a_1 = shift_sint32(t, a).
 Let x = -a.
-Let x_1 = i - a.
 Assume {
   Have: a < i.
-  Have: !invalid(Malloc_0, a_1, x_1).
+  Have: !invalid(Malloc_0, a_1, i - a).
   Type: is_sint32(a) /\ is_sint32(b) /\ is_sint32(i).
   (* Heap *)
   Have: (region(t.base) <= 0) /\ linked(Malloc_0).
   (* Pre-condition *)
-  Have: valid_rw(Malloc_0, a_1, 1 + b - a).
-  (* Pre-condition *)
-  Have: a <= b.
-  (* Loop assigns ... *)
-  Have: havoc(Mint_0, Mint_1, a_1, x_1).
+  Have: (a <= b) /\ valid_rw(Malloc_0, a_1, 1 + b - a).
 }
 Prove: i <= (1 + b).
 

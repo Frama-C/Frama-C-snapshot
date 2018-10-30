@@ -30,27 +30,27 @@ let frama_C_assert state actuals =
   in
   match actuals with
   | [arg_exp, arg, _arg_offsm] -> begin
-        let state =
-	  if Cvalue.V.is_zero arg 
-	  then do_bottom ()
-	  else if Cvalue.V.contains_zero arg 
-         then begin
-           let state = !Db.Value.reduce_by_cond state arg_exp true in
-           if Cvalue.Model.is_reachable state
-           then (warning_once_current "Frama_C_assert: unknown"; state)
-           else do_bottom ()
-         end
-	  else begin
-	      warning_once_current "Frama_C_assert: true";
-	      state
-	    end
-        in
-	{ Value_types.c_values = [ None, state ] ;
-	  c_clobbered = Base.SetLattice.bottom;
-          c_from = None;
-          c_cacheable = Value_types.NoCache;
-        }
-      end
+      let state =
+        if Cvalue.V.is_zero arg
+        then do_bottom ()
+        else if Cvalue.V.contains_zero arg
+        then begin
+          let state = !Db.Value.reduce_by_cond state arg_exp true in
+          if Cvalue.Model.is_reachable state
+          then (warning_once_current "Frama_C_assert: unknown"; state)
+          else do_bottom ()
+        end
+        else begin
+          warning_once_current "Frama_C_assert: true";
+          state
+        end
+      in
+      { Value_types.c_values = [ None, state ] ;
+        c_clobbered = Base.SetLattice.bottom;
+        c_from = None;
+        c_cacheable = Value_types.NoCache;
+      }
+    end
   | _ -> raise (Builtins.Invalid_nb_of_args 1)
 
 let () = Builtins.register_builtin "Frama_C_assert" frama_C_assert

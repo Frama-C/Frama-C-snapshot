@@ -1,0 +1,5 @@
+LOG: gen_@PTEST_NAME@.c
+OPT: -machdep gcc_x86_64 -check -e-acsl -then-last -load-script tests/print.cmxs -print -ocode tests/gmp/result/gen_@PTEST_NAME@.c -kernel-verbose 0 -eva -eva-no-print -eva-no-show-progress -no-results -eva-no-alloc-returns-null
+EXEC: ./scripts/testrun.sh @PTEST_NAME@ gmp "1" "--frama-c=@frama-c@"
+LOG: gen_@PTEST_NAME@2.c
+OPT: -machdep gcc_x86_64 -check -e-acsl -e-acsl-gmp-only -then-last -load-script tests/print.cmxs -print -ocode tests/gmp/result/gen_@PTEST_NAME@2.c -kernel-verbose 0 -eva -eva-no-print -eva-no-show-progress -no-results -eva-no-alloc-returns-null

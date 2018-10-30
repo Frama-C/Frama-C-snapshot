@@ -45,7 +45,7 @@ and log2d i j n =
     if c < 0 then log2d k j n else (* a=2^k < n *)
       k
 
-(* Theorem LAND-1: derived from Cbits.uint_land_range 
+(* Theorem LAND-1: derived from Cbits.uint_land_range
    exists i, 0 <= e_i <= n
    -----------------------------
    0 <= land(e_1,...,e_n) <= n

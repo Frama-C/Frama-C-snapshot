@@ -70,7 +70,7 @@ let merge_string (c1,(b1,_)) (c2,(_,e2)) = c1 @ c2, (b1,e2)
 
 (* To be called only inside a grammar rule. *)
 let make_expr e =
-  { expr_loc = symbol_start_pos (), symbol_end_pos ();
+  { expr_loc = Cil_datatype.Location.of_lexing_loc (symbol_start_pos (), symbol_end_pos ());
     expr_node = e }
 
 let currentFunctionName = ref "<outside any function>"
@@ -301,7 +301,7 @@ let in_block l =
 
 %}
 
-%token <Lexing.position * string> SPEC
+%token <Filepath.position * string> SPEC
 %token <Logic_ptree.decl list> DECL
 %token <Logic_ptree.code_annot * Cabs.cabsloc> CODE_ANNOT
 %token <Logic_ptree.code_annot list * Cabs.cabsloc> LOOP_ANNOT
@@ -479,7 +479,7 @@ global:
     * scope it looks too much like a function call  *) */
 | IDENT LPAREN old_parameter_list_ne RPAREN old_pardef_list SEMICOLON
     {
-      let loc = Parsing.rhs_start_pos 1, Parsing.rhs_end_pos 1 in
+      let loc = Cil_datatype.Location.of_lexing_loc (Parsing.rhs_start_pos 1, Parsing.rhs_end_pos 1) in
       (* Convert pardecl to new style *)
       let pardecl, isva = doOldParDecl $3 $5 in
       (* Make the function declarator *)
@@ -488,7 +488,7 @@ global:
            ["FC_OLDSTYLEPROTO",[]], loc), NO_INIT)]
     }
 | IDENT LPAREN RPAREN SEMICOLON {
-  let loc = Parsing.rhs_start_pos 1, Parsing.rhs_end_pos 1 in
+  let loc = Cil_datatype.Location.of_lexing_loc (Parsing.rhs_start_pos 1, Parsing.rhs_end_pos 1) in
   doDeclaration None loc []
     [(($1, PROTO(JUSTBASE,[],false),
        ["FC_OLDSTYLEPROTO",[]], loc), NO_INIT)]
@@ -527,8 +527,8 @@ postfix_expression:                     /*(* 6.5.2 *)*/
 | postfix_expression LPAREN arguments RPAREN {make_expr (CALL ($1, $3))}
 | BUILTIN_VA_ARG LPAREN expression COMMA type_name RPAREN
       { let b, d = $5 in
-        let loc = Parsing.rhs_start_pos 5, Parsing.rhs_end_pos 5 in
-        let loc_f = Parsing.rhs_start_pos 1, Parsing.rhs_end_pos 1 in
+        let loc = Cil_datatype.Location.of_lexing_loc (Parsing.rhs_start_pos 5, Parsing.rhs_end_pos 5) in
+        let loc_f = Cil_datatype.Location.of_lexing_loc (Parsing.rhs_start_pos 1, Parsing.rhs_end_pos 1) in
         make_expr
           (CALL
              ({ expr_loc = loc_f;
@@ -539,9 +539,9 @@ postfix_expression:                     /*(* 6.5.2 *)*/
 | BUILTIN_TYPES_COMPAT LPAREN type_name COMMA type_name RPAREN
       { let b1,d1 = $3 in
         let b2,d2 = $5 in
-        let loc_f = Parsing.rhs_start_pos 1, Parsing.rhs_end_pos 1 in
-        let loc1 = Parsing.rhs_start_pos 3, Parsing.rhs_end_pos 3 in
-        let loc2 = Parsing.rhs_start_pos 5, Parsing.rhs_end_pos 5 in
+        let loc_f = Cil_datatype.Location.of_lexing_loc (Parsing.rhs_start_pos 1, Parsing.rhs_end_pos 1) in
+        let loc1 = Cil_datatype.Location.of_lexing_loc (Parsing.rhs_start_pos 3, Parsing.rhs_end_pos 3) in
+        let loc2 = Cil_datatype.Location.of_lexing_loc (Parsing.rhs_start_pos 5, Parsing.rhs_end_pos 5) in
         make_expr
           (CALL
              ({expr_loc = loc_f;
@@ -857,7 +857,7 @@ block_element_list:
 |   annot_list_opt pragma block_element_list            { $1 @ $3 }
 /*(* GCC accepts a label at the end of a block *)*/
 |   annot_list_opt id_or_typename_as_id COLON 
-    { let loc = Parsing.rhs_start_pos 2, Parsing.rhs_end_pos 3 in
+    { let loc = Cil_datatype.Location.of_lexing_loc (Parsing.rhs_start_pos 2, Parsing.rhs_end_pos 3) in
       $1 @ no_ghost [LABEL ($2, no_ghost_stmt (NOP loc), loc)] }
 ;
 
@@ -899,85 +899,89 @@ statement:
         | None -> bs
       }
 |   comma_expression SEMICOLON
-	  { let loc = Parsing.symbol_start_pos (), Parsing.symbol_end_pos () in
+	  { let loc = Cil_datatype.Location.of_lexing_loc (Parsing.symbol_start_pos (), Parsing.symbol_end_pos ()) in
             no_ghost [COMPUTATION (smooth_expression $1,loc)]}
 |   block { let (x,y,z) = $1 in no_ghost [BLOCK (x, y, z)]}
 |   IF paren_comma_expression annotated_statement
-        { let loc = Parsing.symbol_start_pos (), Parsing.symbol_end_pos () in
+        { let loc = Cil_datatype.Location.of_lexing_loc (Parsing.symbol_start_pos (), Parsing.symbol_end_pos ()) in
           no_ghost [IF (smooth_expression $2,
                        in_block $3, no_ghost_stmt (NOP loc), loc)]}
 |   IF paren_comma_expression annotated_statement ELSE annotated_statement
-	{ let loc = Parsing.symbol_start_pos (), Parsing.symbol_end_pos () in
+	{ let loc = Cil_datatype.Location.of_lexing_loc (Parsing.symbol_start_pos (), Parsing.symbol_end_pos ()) in
           no_ghost
             [IF (smooth_expression $2, in_block $3, in_block $5, loc)]}
 |   SWITCH paren_comma_expression annotated_statement
-        { let loc = Parsing.symbol_start_pos (), Parsing.symbol_end_pos () in
+        { let loc = Cil_datatype.Location.of_lexing_loc (Parsing.symbol_start_pos (), Parsing.symbol_end_pos ()) in
           no_ghost [SWITCH (smooth_expression $2, in_block $3, loc)]}
 |   opt_loop_annotations
     WHILE paren_comma_expression annotated_statement
-    { let loc = Parsing.rhs_start_pos 2, Parsing.symbol_end_pos () in
+    { let loc = Cil_datatype.Location.of_lexing_loc (Parsing.rhs_start_pos 2, Parsing.symbol_end_pos ()) in
       no_ghost [WHILE ($1, smooth_expression $3, in_block $4, loc)] }
 |   opt_loop_annotations
     DO annotated_statement WHILE paren_comma_expression SEMICOLON
-    { let loc = Parsing.rhs_start_pos 2, Parsing.symbol_end_pos () in
+    { let loc = Cil_datatype.Location.of_lexing_loc (Parsing.rhs_start_pos 2, Parsing.symbol_end_pos ()) in
       no_ghost [DOWHILE ($1, smooth_expression $5, in_block $3, loc)]}
 |   opt_loop_annotations
     FOR LPAREN for_clause opt_expression
     SEMICOLON opt_expression RPAREN annotated_statement
-    { let loc = Parsing.rhs_start_pos 2, Parsing.symbol_end_pos () in
+    { let loc = Cil_datatype.Location.of_lexing_loc (Parsing.rhs_start_pos 2, Parsing.symbol_end_pos ()) in
       no_ghost [FOR ($1, $4, $5, $7, in_block $9, loc)]}
 |   id_or_typename_as_id COLON  attribute_nocv_list annotated_statement
 	{(* The only attribute that should appear here
             is "unused". For now, we drop this on the
             floor, since unused labels are usually
             removed anyways by Rmtmps. *)
-          let loc = Parsing.rhs_start_pos 1, Parsing.rhs_end_pos 2 in
-          no_ghost [LABEL ($1, in_block $4, loc)]}
+          let loc = Cil_datatype.Location.of_lexing_loc (Parsing.rhs_start_pos 1, Parsing.rhs_end_pos 2) in
+          match $4 with
+          | [] -> (* should not happen if grammar is written correctly *)
+            parse_error "empty statement after label"
+          | s :: others -> no_ghost [LABEL($1,s,loc)] @ others }
+
 |   CASE expression COLON annotated_statement
-	    { let loc = Parsing.symbol_start_pos (), Parsing.rhs_end_pos 3 in
+	    { let loc = Cil_datatype.Location.of_lexing_loc (Parsing.symbol_start_pos (), Parsing.rhs_end_pos 3) in
               no_ghost [CASE ($2, in_block $4, loc)]}
 |   CASE expression ELLIPSIS expression COLON annotated_statement
-	    { let loc = Parsing.symbol_start_pos (), Parsing.rhs_end_pos 5 in
+	    { let loc = Cil_datatype.Location.of_lexing_loc (Parsing.symbol_start_pos (), Parsing.rhs_end_pos 5) in
               no_ghost [CASERANGE ($2, $4, in_block $6, loc)]}
 |   DEFAULT COLON annotated_statement
-        { let loc = Parsing.symbol_start_pos(), Parsing.symbol_end_pos () in
+        { let loc = Cil_datatype.Location.of_lexing_loc (Parsing.symbol_start_pos(), Parsing.symbol_end_pos ()) in
               no_ghost [DEFAULT (in_block $3, loc)]}	      
 |   RETURN SEMICOLON {
-      let loc = Parsing.symbol_start_pos (), Parsing.symbol_end_pos () in
+      let loc = Cil_datatype.Location.of_lexing_loc (Parsing.symbol_start_pos (), Parsing.symbol_end_pos ()) in
       no_ghost [RETURN ({ expr_loc = loc; expr_node = NOTHING}, loc)]
     }
 |   RETURN comma_expression SEMICOLON {
-      let loc = Parsing.symbol_start_pos (), Parsing.symbol_end_pos () in
+      let loc = Cil_datatype.Location.of_lexing_loc (Parsing.symbol_start_pos (), Parsing.symbol_end_pos ()) in
       no_ghost [RETURN (smooth_expression $2, loc)]
     }
 |   BREAK SEMICOLON     {
-      let loc = Parsing.symbol_start_pos (), Parsing.symbol_end_pos () in
+      let loc = Cil_datatype.Location.of_lexing_loc (Parsing.symbol_start_pos (), Parsing.symbol_end_pos ()) in
       no_ghost [BREAK loc]
     }
 |   CONTINUE SEMICOLON	 {
-      let loc = Parsing.symbol_start_pos (), Parsing.symbol_end_pos () in
+      let loc = Cil_datatype.Location.of_lexing_loc (Parsing.symbol_start_pos (), Parsing.symbol_end_pos ()) in
       no_ghost [CONTINUE loc]
     }
 |   GOTO id_or_typename_as_id SEMICOLON {
-      let loc = Parsing.symbol_start_pos (), Parsing.symbol_end_pos () in
+      let loc = Cil_datatype.Location.of_lexing_loc (Parsing.symbol_start_pos (), Parsing.symbol_end_pos ()) in
       no_ghost [GOTO ($2, loc)]
     }
 |   GOTO STAR comma_expression SEMICOLON {
-      let loc = Parsing.symbol_start_pos (), Parsing.symbol_end_pos () in
+      let loc = Cil_datatype.Location.of_lexing_loc (Parsing.symbol_start_pos (), Parsing.symbol_end_pos ()) in
       no_ghost [COMPGOTO (smooth_expression $3, loc) ]
     }
 |   ASM GOTO asmattr LPAREN asmtemplate asmoutputs RPAREN SEMICOLON {
-      let loc = Parsing.symbol_start_pos (), Parsing.symbol_end_pos () in
+      let loc = Cil_datatype.Location.of_lexing_loc (Parsing.symbol_start_pos (), Parsing.symbol_end_pos ()) in
       no_ghost [ASM ($3, $5, $6, loc)]
     }
 |   ASM asmattr LPAREN asmtemplate asmoutputs RPAREN SEMICOLON {
-      let loc = Parsing.symbol_start_pos (), Parsing.symbol_end_pos () in
+      let loc = Cil_datatype.Location.of_lexing_loc (Parsing.symbol_start_pos (), Parsing.symbol_end_pos ()) in
       no_ghost [ASM ($2, $4, $5, loc)]
     }
 |   MSASM   { no_ghost [ASM ([], [fst $1], None, snd $1)]}
 |   TRY block EXCEPT paren_comma_expression block {
-      let loc = Parsing.symbol_start_pos (), Parsing.symbol_end_pos () in
-      let loc_e = Parsing.rhs_start_pos 4, Parsing.rhs_end_pos 4 in
+      let loc = Cil_datatype.Location.of_lexing_loc (Parsing.symbol_start_pos (), Parsing.symbol_end_pos ()) in
+      let loc_e = Cil_datatype.Location.of_lexing_loc (Parsing.rhs_start_pos 4, Parsing.rhs_end_pos 4) in
       let b, _, _ = $2 in
       let h, _, _ = $5 in
       if not !Cprint.msvcMode then
@@ -986,7 +990,7 @@ statement:
         [TRY_EXCEPT (b, {expr_loc = loc_e; expr_node = COMMA $4}, h, loc)]
     }
 |   TRY block FINALLY block {
-      let loc = Parsing.symbol_start_pos (), Parsing.symbol_end_pos () in
+      let loc = Cil_datatype.Location.of_lexing_loc (Parsing.symbol_start_pos (), Parsing.symbol_end_pos ()) in
       let b, _, _ = $2 in
       let h, _, _ = $4 in
       if not !Cprint.msvcMode then
@@ -1123,7 +1127,7 @@ type_spec:   /* ISO 6.7.2 */
 |   ENUM   just_attributes                LBRACE enum_list maybecomma RBRACE
                                                    { Tenum   ("", Some $4, $2), $1 }
 |   NAMED_TYPE      {
-      (Tnamed $1, (Parsing.symbol_start_pos (), Parsing.symbol_end_pos()))
+      (Tnamed $1, Cil_datatype.Location.of_lexing_loc (Parsing.symbol_start_pos (), Parsing.symbol_end_pos()))
       }
 |   TYPEOF LPAREN expression RPAREN     { TtypeofE $3, $1 }
 |   TYPEOF LPAREN type_name RPAREN      { let s, d = $3 in
@@ -1165,11 +1169,11 @@ enum_list: /* (* ISO 6.7.2.2 *) */
 ;
 enumerator:
     IDENT			{
-      let loc = Parsing.symbol_start_pos (), Parsing.symbol_end_pos() in
+      let loc = Cil_datatype.Location.of_lexing_loc (Parsing.symbol_start_pos (), Parsing.symbol_end_pos()) in
       ($1, { expr_node = NOTHING; expr_loc = loc }, loc)
     }
 |   IDENT EQ expression		{
-      ($1, $3, (Parsing.symbol_start_pos (),Parsing.symbol_end_pos()))
+      ($1, $3, Cil_datatype.Location.of_lexing_loc (Parsing.symbol_start_pos (),Parsing.symbol_end_pos()))
     }
 ;
 
@@ -1370,7 +1374,7 @@ function_def_start:  /* (* ISO 6.9.1 *) */
 /* (* New-style function that does not have a return type *) */
 | IDENT parameter_list_startscope rest_par_list RPAREN
     { let (params, isva) = $3 in
-      let loc = Parsing.rhs_start_pos 1, Parsing.rhs_end_pos 1 in
+      let loc = Cil_datatype.Location.of_lexing_loc (Parsing.rhs_start_pos 1, Parsing.rhs_end_pos 1) in
       let fdec =
         ($1, PROTO(JUSTBASE, params, isva), [], loc) in
       announceFunctionName fdec;
@@ -1382,7 +1386,7 @@ function_def_start:  /* (* ISO 6.9.1 *) */
 | IDENT LPAREN old_parameter_list_ne RPAREN old_pardef_list
     { (* Convert pardecl to new style *)
       let pardecl, isva = doOldParDecl $3 $5 in
-      let loc = Parsing.rhs_start_pos 1, Parsing.rhs_end_pos 1 in
+      let loc = Cil_datatype.Location.of_lexing_loc (Parsing.rhs_start_pos 1, Parsing.rhs_end_pos 1) in
       (* Make the function declarator *)
       let fdec = ($1, PROTO(JUSTBASE, pardecl,isva), [], loc) in
       announceFunctionName fdec;
@@ -1391,7 +1395,7 @@ function_def_start:  /* (* ISO 6.9.1 *) */
     }
 | IDENT LPAREN RPAREN
   {
-    let loc = Parsing.rhs_start_pos 1, Parsing.rhs_start_pos 1 in
+    let loc = Cil_datatype.Location.of_lexing_loc (Parsing.rhs_start_pos 1, Parsing.rhs_start_pos 1) in
     let fdec = ($1, PROTO(JUSTBASE,[],false),[],loc) in
     announceFunctionName fdec;
     (loc, [SpecType Tint], fdec)
@@ -1419,7 +1423,7 @@ attributes_with_asm:
     /* empty */                         { [] }
 |   attribute attributes_with_asm       { fst $1 :: $2 }
 |   ASM LPAREN string_constant RPAREN attributes {
-      let loc = Parsing.rhs_start_pos 3, Parsing.rhs_end_pos 3 in
+      let loc = Cil_datatype.Location.of_lexing_loc (Parsing.rhs_start_pos 3, Parsing.rhs_end_pos 3) in
       ("__asm__",
        [{ expr_node = CONSTANT(CONST_STRING (fst $3)); expr_loc = loc}])
       :: $5
@@ -1523,12 +1527,12 @@ primary_attr:
 postfix_attr:
     primary_attr { $1 }
 |   id_or_typename_as_id paren_attr_list_ne {
-        let loc = Parsing.rhs_start_pos 1, Parsing.rhs_end_pos 1 in
+        let loc = Cil_datatype.Location.of_lexing_loc (Parsing.rhs_start_pos 1, Parsing.rhs_end_pos 1) in
         make_expr (CALL({ expr_loc = loc; expr_node = VARIABLE $1}, $2)) }
       /* (* use a VARIABLE "" so that the parentheses are printed *) */
 |   id_or_typename_as_id LPAREN  RPAREN {
-      let loc1 = Parsing.rhs_start_pos 1, Parsing.rhs_end_pos 1 in
-      let loc2 = Parsing.rhs_start_pos 2, Parsing.rhs_end_pos 3 in
+      let loc1 = Cil_datatype.Location.of_lexing_loc (Parsing.rhs_start_pos 1, Parsing.rhs_end_pos 1) in
+      let loc2 = Cil_datatype.Location.of_lexing_loc (Parsing.rhs_start_pos 2, Parsing.rhs_end_pos 3) in
       let f = { expr_node = VARIABLE $1; expr_loc = loc1 } in
       let arg = { expr_node = VARIABLE ""; expr_loc = loc2 } in
       make_expr (CALL(f, [arg]))
@@ -1536,7 +1540,7 @@ postfix_attr:
       /* (* use a VARIABLE "" so that the parameters are printed without
           * parentheses nor comma *) */
 |   basic_attr param_attr_list_ne  {
-      let loc = Parsing.rhs_start_pos 1, Parsing.rhs_end_pos 1 in
+      let loc = Cil_datatype.Location.of_lexing_loc (Parsing.rhs_start_pos 1, Parsing.rhs_end_pos 1) in
       make_expr (CALL({ expr_node = VARIABLE ""; expr_loc = loc}, $1::$2)) }
 
 |   postfix_attr ARROW id_or_typename   { make_expr (MEMBEROFPTR ($1, $3))}

@@ -1,19 +1,19 @@
 [kernel] Parsing tests/value/goto.i (no preprocessing)
-[value] Analyzing a complete application starting at main
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing a complete application starting at main
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   
-[value] computing for function stop <- main.
+[eva] computing for function stop <- main.
   Called from tests/value/goto.i:10.
-[value] Recording results for stop
-[value] Done for function stop
-[value] Recording results for main
-[value] done for function main
-[value] ====== VALUES COMPUTED ======
-[value:final-states] Values at end of function stop:
+[eva] Recording results for stop
+[eva] Done for function stop
+[eva] Recording results for main
+[eva] done for function main
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function stop:
   NON TERMINATING FUNCTION
-[value:final-states] Values at end of function main:
+[eva:final-states] Values at end of function main:
   c ∈ [--..--]
   __retres ∈ {0}
 [from] Computing for function stop

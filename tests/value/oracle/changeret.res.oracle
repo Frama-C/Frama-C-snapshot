@@ -1,46 +1,46 @@
 [kernel] Parsing tests/value/changeret.i (no preprocessing)
-[value] Analyzing a complete application starting at main
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing a complete application starting at main
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   x ∈ {0}
   y ∈ {0}
   p ∈ {0}
   v ∈ [--..--]
-[value] computing for function main1 <- main.
+[eva] computing for function main1 <- main.
   Called from tests/value/changeret.i:31.
-[value] computing for function f <- main1 <- main.
+[eva] computing for function f <- main1 <- main.
   Called from tests/value/changeret.i:15.
-[value] Recording results for f
-[value] Done for function f
-[value] Recording results for main1
-[value] Done for function main1
-[value] computing for function main2 <- main.
+[eva] Recording results for f
+[eva] Done for function f
+[eva] Recording results for main1
+[eva] Done for function main1
+[eva] computing for function main2 <- main.
   Called from tests/value/changeret.i:32.
-[value] computing for function g <- main2 <- main.
+[eva] computing for function g <- main2 <- main.
   Called from tests/value/changeret.i:27.
-[value:alarm] tests/value/changeret.i:19: Warning: 
+[eva:alarm] tests/value/changeret.i:19: Warning: 
   out of bounds read. assert \valid_read(p);
-[value] Recording results for g
-[value] Done for function g
-[value] Recording results for main2
-[value] Done for function main2
-[value] Recording results for main
-[value] done for function main
-[value] ====== VALUES COMPUTED ======
-[value:final-states] Values at end of function f:
+[eva] Recording results for g
+[eva] Done for function g
+[eva] Recording results for main2
+[eva] Done for function main2
+[eva] Recording results for main
+[eva] done for function main
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function f:
   p ∈ {{ &y }}
   __retres ∈ {1}
-[value:final-states] Values at end of function g:
+[eva:final-states] Values at end of function g:
   z ∈ {1}
   __retres ∈ {1}
-[value:final-states] Values at end of function main1:
+[eva:final-states] Values at end of function main1:
   x ∈ {0}
   p ∈ {{ &y }}
-[value:final-states] Values at end of function main2:
+[eva:final-states] Values at end of function main2:
   y ∈ {1}
   p ∈ {{ &y }}
-[value:final-states] Values at end of function main:
+[eva:final-states] Values at end of function main:
   x ∈ {0}
   y ∈ {1}
   p ∈ {{ &y }}

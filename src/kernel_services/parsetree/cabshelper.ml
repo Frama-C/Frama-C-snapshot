@@ -48,7 +48,7 @@ let getident () =
     nextident := !nextident + 1;
     !nextident
 
-let cabslu = Lexing.dummy_pos,Lexing.dummy_pos
+let cabslu = Cil_datatype.Location.unknown
 
 module Comments =
   struct
@@ -80,12 +80,13 @@ module Comments =
       MyState.set ((MyTable.add first ((last,comment)::acc)) state)
 
     let get (first,last) =
+      let open Cil_datatype in
       Kernel.debug ~dkey:Kernel.dkey_comments
         "Searching for comments between positions %a and %a@."
-        Cil_datatype.Position.pretty first
-        Cil_datatype.Position.pretty last;
-      if Cil_datatype.Position.equal first Lexing.dummy_pos ||
-         Cil_datatype.Position.equal last Lexing.dummy_pos
+        Position.pretty first
+        Position.pretty last;
+      if Position.equal first Position.unknown ||
+         Position.equal last Position.unknown
       then begin
         Kernel.debug ~dkey:Kernel.dkey_comments "skipping dummy position@.";
         []
@@ -210,9 +211,7 @@ let valueOfDigit chr =
 
 
 let d_cabsloc fmt cl =
-  Format.fprintf fmt "%s:%d"
-    (fst cl).Lexing.pos_fname
-    (fst cl).Lexing.pos_lnum
+  Format.fprintf fmt "%a" Filepath.pp_pos (fst cl)
 
 type attr_test = Normal | Test
 let state_stack = Stack.create ()

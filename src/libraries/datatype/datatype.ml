@@ -1929,6 +1929,23 @@ module Integer =
      end)
 let integer = Integer.ty
 
+module Filepath = struct
+  include Simple_type
+      (struct
+        type t = Filepath.Normalized.t
+        let name = "Filepath.Normalized"
+        let reprs = [ Filepath.Normalized.of_string "/" ]
+        let copy = Extlib.id (* immutable strings do not need copy. *)
+        let compare = Filepath.Normalized.compare
+        let equal : t -> t -> bool = (=)
+        let pretty = Filepath.Normalized.pretty
+        let varname _ = "p"
+      end)
+  let dummy = Filepath.Normalized.unknown
+  let of_string ?base_name s = Filepath.Normalized.of_string ?base_name s
+  let pp_abs = Filepath.Normalized.pp_abs
+end
+
 (* ****************************************************************************)
 (** {3 Triple} *)
 (* ****************************************************************************)

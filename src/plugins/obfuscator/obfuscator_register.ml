@@ -65,11 +65,11 @@ let force_run =
     ~journalize:true
     force_run
 
-let run () = 
-  if Options.Run.get () then begin 
+let run () =
+  if Options.Run.get () then begin
     force_run ();
-    Options.Run.off () (* de-activate yourself to allow the other analyzers to
-			  run from now *)
+    Cmdline.bail_out () (* stop Frama-C as specified by the -help message
+                           and by the discussion in Gitlab issue #491 *)
   end
 
 let () = Db.Main.extend run

@@ -1,8 +1,8 @@
 [kernel] Parsing tests/value/val_ptr.i (no preprocessing)
-[value] Analyzing a complete application starting at f
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing a complete application starting at f
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   i ∈ {0}
   j ∈ {0}
   x ∈ {0}
@@ -16,10 +16,10 @@
   c ∈ {0}
   p ∈ {0}
   T[0..7] ∈ {0}
-[value] Recording results for f
-[value] done for function f
-[value] ====== VALUES COMPUTED ======
-[value:final-states] Values at end of function f:
+[eva] Recording results for f
+[eva] done for function f
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function f:
   i ∈ {10}
   j ∈ {10; 12; 16}
   k ∈ {10; 11; 12}

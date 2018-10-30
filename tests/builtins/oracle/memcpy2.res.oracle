@@ -1,0 +1,97 @@
+[kernel] Parsing tests/builtins/memcpy2.c (with preprocessing)
+[eva] Analyzing a complete application starting at main
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
+  
+[eva] computing for function Frama_C_interval <- main.
+  Called from tests/builtins/memcpy2.c:9.
+[eva] using specification for function Frama_C_interval
+[eva] tests/builtins/memcpy2.c:9: 
+  function Frama_C_interval: precondition 'order' got status valid.
+[eva] Done for function Frama_C_interval
+[eva] tests/builtins/memcpy2.c:10: Call to builtin memcpy
+[eva] tests/builtins/memcpy2.c:10: 
+  function memcpy: precondition 'valid_dest' got status valid.
+[eva] tests/builtins/memcpy2.c:10: 
+  function memcpy: precondition 'valid_src' got status valid.
+[eva] tests/builtins/memcpy2.c:10: 
+  function memcpy: precondition 'separation' got status valid.
+[eva] share/libc/string.h:98: 
+  cannot evaluate ACSL term, unsupported ACSL construct: logic function memcmp
+[eva] tests/builtins/memcpy2.c:12: 
+  Frama_C_dump_each:
+  # Cvalue domain:
+  Frama_C_entropy_source ∈ [--..--]
+  __fc_heap_status ∈ [--..--]
+  __fc_strtok_ptr ∈ {0}
+  __fc_strerror[0..63] ∈ [--..--]
+  __fc_p_strerror ∈ {{ &__fc_strerror[0] }}
+  c ∈ [--..--]
+  v ∈ {{ NULL ; &S_v[0] }}
+  t[0..510] ∈ {0} or UNINITIALIZED
+   [511] ∈ UNINITIALIZED
+  s[0..511] ∈ {0}
+  l ∈ [0..511]
+  __retres ∈ UNINITIALIZED
+  S_v[0] ∈ {{ NULL ; &S_0_S_v[0] }}
+     [1] ∈ {{ NULL ; &S_1_S_v[0] }}
+  S_0_S_v[0..1] ∈ [--..--]
+  S_1_S_v[0..1] ∈ [--..--]
+  ==END OF DUMP==
+[eva] computing for function Frama_C_interval <- main.
+  Called from tests/builtins/memcpy2.c:14.
+[eva] tests/builtins/memcpy2.c:14: 
+  function Frama_C_interval: precondition 'order' got status valid.
+[eva] Done for function Frama_C_interval
+[eva] tests/builtins/memcpy2.c:15: Call to builtin memcpy
+[eva] tests/builtins/memcpy2.c:15: 
+  function memcpy: precondition 'valid_dest' got status valid.
+[eva] tests/builtins/memcpy2.c:15: 
+  function memcpy: precondition 'valid_src' got status valid.
+[eva] tests/builtins/memcpy2.c:15: 
+  function memcpy: precondition 'separation' got status valid.
+[eva] computing for function Frama_C_interval <- main.
+  Called from tests/builtins/memcpy2.c:17.
+[eva] tests/builtins/memcpy2.c:17: 
+  function Frama_C_interval: precondition 'order' got status valid.
+[eva] Done for function Frama_C_interval
+[eva] tests/builtins/memcpy2.c:18: Call to builtin memcpy
+[eva] tests/builtins/memcpy2.c:18: 
+  function memcpy: precondition 'valid_dest' got status valid.
+[eva] tests/builtins/memcpy2.c:18: 
+  function memcpy: precondition 'valid_src' got status valid.
+[eva] tests/builtins/memcpy2.c:18: 
+  function memcpy: precondition 'separation' got status valid.
+[eva] Recording results for main
+[eva] done for function main
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function main:
+  Frama_C_entropy_source ∈ [--..--]
+  t[0] ∈ {0}
+   [1..511] ∈ {0} or UNINITIALIZED
+  s[0..511] ∈ {0}
+  l ∈ [1..512]
+  __retres ∈ {0}
+[from] Computing for function main
+[from] Computing for function Frama_C_interval <-main
+[from] Done for function Frama_C_interval
+[from] Computing for function memcpy <-main
+[from] Done for function memcpy
+[from] Done for function main
+[from] ====== DEPENDENCIES COMPUTED ======
+  These dependencies hold at termination for the executions that terminate:
+[from] Function Frama_C_interval:
+  Frama_C_entropy_source FROM Frama_C_entropy_source (and SELF)
+  \result FROM Frama_C_entropy_source; min; max
+[from] Function memcpy:
+  t[0..511] FROM s[0..511] (and SELF)
+  \result FROM dest
+[from] Function main:
+  Frama_C_entropy_source FROM Frama_C_entropy_source (and SELF)
+  \result FROM \nothing
+[from] ====== END OF DEPENDENCIES ======
+[inout] Out (internal) for function main:
+    Frama_C_entropy_source; t[0..511]; s[0..511]; l; __retres
+[inout] Inputs for function main:
+    Frama_C_entropy_source

@@ -4,7 +4,7 @@ unsigned int *p=&a;
 unsigned int *q=&b;
 int X, Y, Z, T;
 
-main(int c){
+int main(int c){
   b = c ? -1 : 5;
   if (*p == 3) 
     X = *p;
@@ -17,4 +17,5 @@ main(int c){
   Frama_C_show_each(b);
   Frama_C_dump_each();
   b = b+0;
+  return 0;
 }

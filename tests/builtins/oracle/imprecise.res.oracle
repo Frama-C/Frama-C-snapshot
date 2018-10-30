@@ -1,0 +1,1114 @@
+[kernel] Parsing tests/builtins/imprecise.c (with preprocessing)
+[kernel:typing:implicit-function-declaration] tests/builtins/imprecise.c:77: Warning: 
+  Calling undeclared function gm_f2. Old style K&R code?
+[eva] Analyzing a complete application starting at main
+[eva] Computing initial state
+[eva] tests/builtins/imprecise.c:27: Warning: 
+  during initialization of variable 'v1', size of type 'struct s' cannot be
+  computed (abstract type 'struct s')
+[eva] tests/builtins/imprecise.c:27: Warning: 
+  during initialization of variable 'v2', size of type 'struct s' cannot be
+  computed (abstract type 'struct s')
+[eva] tests/builtins/imprecise.c:28: Warning: 
+  during initialization of variable 'v3', size of type 'struct u' cannot be
+  computed (abstract type 'struct u')
+[eva] tests/builtins/imprecise.c:28: Warning: 
+  during initialization of variable 'v5', size of type 'struct u' cannot be
+  computed (abstract type 'struct u')
+[eva] tests/builtins/imprecise.c:83: Warning: 
+  during initialization of variable 's1', size of type 'struct s' cannot be
+  computed (abstract type 'struct s')
+[eva] tests/builtins/imprecise.c:83: Warning: 
+  during initialization of variable 's2', size of type 'struct s' cannot be
+  computed (abstract type 'struct s')
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
+  NULL[rbits 800 to 1607] ∈ [--..--]
+  v ∈ [--..--]
+  addr ∈ [--..--]
+  v1.[bits 0 to ..] ∈ {0} or UNINITIALIZED
+  v2.[bits 0 to ..] ∈ {0} or UNINITIALIZED
+  v3.[bits 0 to ..] ∈ {0} or UNINITIALIZED
+  v5.[bits 0 to ..] ∈ {0} or UNINITIALIZED
+  t[0..9] ∈ {0}
+  p_gm_null ∈ {0}
+  s1.[bits 0 to ..] ∈ {0} or UNINITIALIZED
+  s2.[bits 0 to ..] ∈ {0} or UNINITIALIZED
+[eva] computing for function invalid_assigns_imprecise <- main.
+  Called from tests/builtins/imprecise.c:144.
+[eva] computing for function f <- invalid_assigns_imprecise <- main.
+  Called from tests/builtins/imprecise.c:11.
+[eva] using specification for function f
+[eva] Done for function f
+[eva] Recording results for invalid_assigns_imprecise
+[from] Computing for function invalid_assigns_imprecise
+[from] Done for function invalid_assigns_imprecise
+[eva] Done for function invalid_assigns_imprecise
+[eva] computing for function write_garbled <- main.
+  Called from tests/builtins/imprecise.c:145.
+[eva] tests/builtins/imprecise.c:19: 
+  Assigning imprecise value to p.
+  The imprecision originates from Arithmetic {tests/builtins/imprecise.c:19}
+[eva:alarm] tests/builtins/imprecise.c:20: Warning: 
+  out of bounds write. assert \valid(p);
+[eva] tests/builtins/imprecise.c:21: 
+  Frama_C_dump_each:
+  # Cvalue domain:
+  NULL[rbits 800 to 1607] ∈ [--..--]
+  __fc_heap_status ∈ [--..--]
+  __fc_strtok_ptr ∈ {0}
+  __fc_strerror[0..63] ∈ [--..--]
+  __fc_p_strerror ∈ {{ &__fc_strerror[0] }}
+  i ∈ {1}
+  j ∈ {1; 2}
+  k[0..4] ∈ [--..--]
+  p ∈ {{ NULL + [100..197] ; &j ; &k + [0..16] }}
+  v ∈ [--..--]
+  addr ∈ [--..--]
+  v1.[bits 0 to ..] ∈ {0} or UNINITIALIZED
+  v2.[bits 0 to ..] ∈ {0} or UNINITIALIZED
+  v3.[bits 0 to ..] ∈ {0} or UNINITIALIZED
+  v5.[bits 0 to ..] ∈ {0} or UNINITIALIZED
+  t[0..9] ∈ {0}
+  p_gm_null ∈ {0}
+  s1.[bits 0 to ..] ∈ {0} or UNINITIALIZED
+  s2.[bits 0 to ..] ∈ {0} or UNINITIALIZED
+  ==END OF DUMP==
+[eva] Recording results for write_garbled
+[from] Computing for function write_garbled
+[from] Done for function write_garbled
+[eva] Done for function write_garbled
+[eva:locals-escaping] tests/builtins/imprecise.c:145: Warning: 
+  locals {j, k} escaping the scope of write_garbled through NULL
+[eva] computing for function abstract_structs <- main.
+  Called from tests/builtins/imprecise.c:146.
+[eva:alarm] tests/builtins/imprecise.c:37: Warning: 
+  accessing uninitialized left-value. assert \initialized(p);
+[eva:alarm] tests/builtins/imprecise.c:37: Warning: 
+  out of bounds read. assert \valid_read(p);
+[eva:alarm] tests/builtins/imprecise.c:40: Warning: 
+  accessing uninitialized left-value. assert \initialized(p);
+[eva:alarm] tests/builtins/imprecise.c:40: Warning: 
+  out of bounds read. assert \valid_read(p);
+[eva:alarm] tests/builtins/imprecise.c:45: Warning: 
+  out of bounds write. assert \valid(p);
+[eva:alarm] tests/builtins/imprecise.c:46: Warning: 
+  out of bounds read. assert \valid_read(p);
+[eva] tests/builtins/imprecise.c:51: Call to builtin memset
+[eva:alarm] tests/builtins/imprecise.c:51: Warning: 
+  function memset: precondition 'valid_s' got status unknown.
+[eva] share/libc/string.h:118: 
+  cannot evaluate ACSL term, unsupported ACSL construct: logic function memset
+[eva:alarm] tests/builtins/imprecise.c:53: Warning: 
+  out of bounds write. assert \valid(p2);
+[eva:alarm] tests/builtins/imprecise.c:56: Warning: 
+  out of bounds write. assert \valid(p4);
+[eva:alarm] tests/builtins/imprecise.c:58: Warning: 
+  out of bounds write. assert \valid(p5);
+[eva:alarm] tests/builtins/imprecise.c:60: Warning: 
+  out of bounds write. assert \valid(p6);
+[eva] Recording results for abstract_structs
+[from] Computing for function abstract_structs
+[from] Done for function abstract_structs
+[eva] Done for function abstract_structs
+[eva] computing for function cast_address <- main.
+  Called from tests/builtins/imprecise.c:147.
+[eva] tests/builtins/imprecise.c:66: 
+  Assigning imprecise value to c1.
+  The imprecision originates from Arithmetic {tests/builtins/imprecise.c:66}
+[eva:alarm] tests/builtins/imprecise.c:68: Warning: 
+  signed overflow. assert -2147483648 ≤ (int)*((char *)(&p)) + 0;
+[eva:alarm] tests/builtins/imprecise.c:68: Warning: 
+  signed overflow. assert (int)*((char *)(&p)) + 0 ≤ 2147483647;
+[eva] tests/builtins/imprecise.c:68: 
+  Assigning imprecise value to c3.
+  The imprecision originates from Misaligned {tests/builtins/imprecise.c:68}
+[eva] Recording results for cast_address
+[from] Computing for function cast_address
+[from] Done for function cast_address
+[eva] Done for function cast_address
+[eva] computing for function garbled_mix_null <- main.
+  Called from tests/builtins/imprecise.c:148.
+[eva] computing for function gm_f1 <- garbled_mix_null <- main.
+  Called from tests/builtins/imprecise.c:75.
+[kernel:annot:missing-spec] tests/builtins/imprecise.c:75: Warning: 
+  Neither code nor specification for function gm_f1, generating default assigns from the prototype
+[eva] using specification for function gm_f1
+[eva] Done for function gm_f1
+[eva] tests/builtins/imprecise.c:76: 
+  Frama_C_dump_each:
+  # Cvalue domain:
+  NULL[rbits 800 to 1607] ∈ [--..--] or ESCAPINGADDR
+  __fc_heap_status ∈ [--..--]
+  __fc_strtok_ptr ∈ {0}
+  __fc_strerror[0..63] ∈ [--..--]
+  __fc_p_strerror ∈ {{ &__fc_strerror[0] }}
+  v ∈ [--..--]
+  addr ∈ [--..--]
+  v1.[bits 0 to 7] ∈ {1}
+    .[bits 8 to ..] ∈ {0} or UNINITIALIZED
+  v2.[bits 0 to 31] ∈ {0} or UNINITIALIZED
+    .[bits 32 to 63] ∈ {{ (? *)&addr }}
+    .[bits 64 to ..] ∈ {0} or UNINITIALIZED
+  v3.[bits 0 to ..]# ∈ {0; 251} or UNINITIALIZED repeated %8 
+  v5.[bits 0 to 262143]# ∈ {0; 18; 19; 20} or UNINITIALIZED repeated %8 
+    .[bits 262144 to 17179869183]# ∈
+    {0; 19; 20} or UNINITIALIZED repeated %8 
+    .[bits 17179869184 to ..]# ∈ {0; 20} or UNINITIALIZED repeated %8 
+  t[0..9] ∈ {0}
+  p_gm_null ∈ [--..--]
+  s1.[bits 0 to ..] ∈ {0} or UNINITIALIZED
+  s2.[bits 0 to ..] ∈ {0} or UNINITIALIZED
+  ==END OF DUMP==
+[eva:alarm] tests/builtins/imprecise.c:77: Warning: 
+  out of bounds read. assert \valid_read(p_gm_null);
+[eva:alarm] tests/builtins/imprecise.c:77: Warning: 
+  accessing left-value that contains escaping addresses.
+  assert ¬\dangling(p_gm_null);
+[eva] computing for function gm_f2 <- garbled_mix_null <- main.
+  Called from tests/builtins/imprecise.c:77.
+[kernel:annot:missing-spec] tests/builtins/imprecise.c:77: Warning: 
+  Neither code nor specification for function gm_f2, generating default assigns from the prototype
+[eva] using specification for function gm_f2
+[eva] Done for function gm_f2
+[eva] tests/builtins/imprecise.c:78: 
+  Frama_C_dump_each:
+  # Cvalue domain:
+  NULL[rbits 800 to 1607] ∈ [--..--] or ESCAPINGADDR
+  __fc_heap_status ∈ [--..--]
+  __fc_strtok_ptr ∈ {0}
+  __fc_strerror[0..63] ∈ [--..--]
+  __fc_p_strerror ∈ {{ &__fc_strerror[0] }}
+  v ∈ [--..--]
+  addr ∈ [--..--]
+  v1.[bits 0 to 7] ∈ {1}
+    .[bits 8 to ..] ∈ {0} or UNINITIALIZED
+  v2.[bits 0 to 31] ∈ {0} or UNINITIALIZED
+    .[bits 32 to 63] ∈ {{ (? *)&addr }}
+    .[bits 64 to ..] ∈ {0} or UNINITIALIZED
+  v3.[bits 0 to ..]# ∈ {0; 251} or UNINITIALIZED repeated %8 
+  v5.[bits 0 to 262143]# ∈ {0; 18; 19; 20} or UNINITIALIZED repeated %8 
+    .[bits 262144 to 17179869183]# ∈
+    {0; 19; 20} or UNINITIALIZED repeated %8 
+    .[bits 17179869184 to ..]# ∈ {0; 20} or UNINITIALIZED repeated %8 
+  t[0..9] ∈ {0}
+  p_gm_null ∈ [100..197]
+  s1.[bits 0 to ..] ∈ {0} or UNINITIALIZED
+  s2.[bits 0 to ..] ∈ {0} or UNINITIALIZED
+  ==END OF DUMP==
+[eva] Recording results for garbled_mix_null
+[from] Computing for function garbled_mix_null
+[from] Done for function garbled_mix_null
+[eva] Done for function garbled_mix_null
+[eva] computing for function weak_update_imprecise_size <- main.
+  Called from tests/builtins/imprecise.c:149.
+[eva] Recording results for weak_update_imprecise_size
+[from] Computing for function weak_update_imprecise_size
+[from] Done for function weak_update_imprecise_size
+[eva] Done for function weak_update_imprecise_size
+[eva] computing for function many_writes <- main.
+  Called from tests/builtins/imprecise.c:150.
+[eva:alarm] tests/builtins/imprecise.c:111: Warning: 
+  accessing out of bounds index. assert 0 ≤ v;
+[eva:alarm] tests/builtins/imprecise.c:111: Warning: 
+  accessing out of bounds index. assert v < 300;
+[kernel] tests/builtins/imprecise.c:111: 
+  more than 200(300) locations to update in array. Approximating.
+[eva:alarm] tests/builtins/imprecise.c:112: Warning: 
+  assertion got status unknown.
+[eva:alarm] tests/builtins/imprecise.c:114: Warning: 
+  accessing out of bounds index. assert 0 ≤ v;
+[eva:alarm] tests/builtins/imprecise.c:114: Warning: 
+  accessing out of bounds index. assert v < 300;
+[kernel] tests/builtins/imprecise.c:114: 
+  more than 200(300) locations to update in array. Approximating.
+[kernel] tests/builtins/imprecise.c:114: approximating value to write.
+[eva:alarm] tests/builtins/imprecise.c:116: Warning: 
+  assertion got status unknown.
+[eva] Recording results for many_writes
+[kernel] tests/builtins/imprecise.c:111: 
+  more than 200(300) elements to enumerate. Approximating.
+[kernel] tests/builtins/imprecise.c:114: 
+  more than 200(300) elements to enumerate. Approximating.
+[from] Computing for function many_writes
+[kernel] tests/builtins/imprecise.c:111: 
+  more than 200(300) dependencies to update. Approximating.
+[kernel] tests/builtins/imprecise.c:114: 
+  more than 200(300) dependencies to update. Approximating.
+[from] Done for function many_writes
+[eva] Done for function many_writes
+[eva] computing for function overlap <- main.
+  Called from tests/builtins/imprecise.c:151.
+[eva:alarm] tests/builtins/imprecise.c:122: Warning: 
+  out of bounds write. assert \valid((int *)(&t_char[v]));
+[eva] Recording results for overlap
+[from] Computing for function overlap
+[from] Done for function overlap
+[eva] Done for function overlap
+[eva] computing for function paste_big <- main.
+  Called from tests/builtins/imprecise.c:152.
+[eva] tests/builtins/imprecise.c:133: Call to builtin memset
+[eva] tests/builtins/imprecise.c:133: 
+  function memset: precondition 'valid_s' got status valid.
+[eva:alarm] tests/builtins/imprecise.c:136: Warning: 
+  assertion got status unknown.
+[kernel] tests/builtins/imprecise.c:137: 
+  too many locations to update in array. Approximating.
+[eva:alarm] tests/builtins/imprecise.c:140: Warning: 
+  accessing uninitialized left-value.
+  assert \initialized((int *)(&t_big) + 48);
+[eva] Recording results for paste_big
+[from] Computing for function paste_big
+[from] Done for function paste_big
+[eva] Done for function paste_big
+[eva] Recording results for main
+[from] Computing for function main
+[from] Done for function main
+[eva] done for function main
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function cast_address:
+  p ∈ {{ &x }}
+  c1 ∈
+    {{ garbled mix of &{x}
+     (origin: Arithmetic {tests/builtins/imprecise.c:66}) }}
+  c2# ∈ {{ (? *)&x }}%32, bits 0 to 7 
+  c3 ∈
+    {{ garbled mix of &{x}
+     (origin: Misaligned {tests/builtins/imprecise.c:68}) }}
+[eva:final-states] Values at end of function garbled_mix_null:
+  NULL[rbits 800 to 1607] ∈ [--..--] or ESCAPINGADDR
+  p_gm_null ∈ [100..197]
+[eva:final-states] Values at end of function invalid_assigns_imprecise:
+  NULL[rbits 800 to 1607] ∈ [--..--]
+  p ∈ {0}
+[eva:final-states] Values at end of function many_writes:
+  t_packed1{[0..298]{.i1; .i2#; .[bits 48 to 63]#}; [299].i1} ∈
+           {1} or UNINITIALIZED repeated %32 
+           [299]{.i2; .[bits 48 to 63]} ∈ UNINITIALIZED
+  t_packed2{[0..298]; [299].i1} ∈ [--..--] or UNINITIALIZED
+           [299].i2 ∈ UNINITIALIZED
+[eva:final-states] Values at end of function abstract_structs:
+  v1.[bits 0 to 7] ∈ {1}
+    .[bits 8 to ..] ∈ {0} or UNINITIALIZED
+  v2.[bits 0 to 31] ∈ {0} or UNINITIALIZED
+    .[bits 32 to 63] ∈ {{ (? *)&addr }}
+    .[bits 64 to ..] ∈ {0} or UNINITIALIZED
+  v3.[bits 0 to ..]# ∈ {0; 251} or UNINITIALIZED repeated %8 
+  v5.[bits 0 to 262143]# ∈ {0; 18; 19; 20} or UNINITIALIZED repeated %8 
+    .[bits 262144 to 17179869183]# ∈
+    {0; 19; 20} or UNINITIALIZED repeated %8 
+    .[bits 17179869184 to ..]# ∈ {0; 20} or UNINITIALIZED repeated %8 
+  p ∈ {{ (char *)&v1 }}
+  q ∈ {1}
+  p2 ∈ {{ &v2 + {4} }}
+  p4 ∈ {{ &v5 + [0..32767] }}
+  p5 ∈ {{ &v5 + [0..2147483647] }}
+  p6 ∈ {{ &v5 + [0..4294967295] }}
+[eva:final-states] Values at end of function overlap:
+  t_char[0..99] ∈ [--..--] or UNINITIALIZED
+[eva:final-states] Values at end of function paste_big:
+  i ∈ [0..299]
+  s.c[0..20479] ∈ {2}
+   .i ∈ {33686018}
+  t_big[0].c[0..191] ∈ [--..--] or UNINITIALIZED
+       [0].c[192..195] ∈ [--..--]
+       {[0]{.c[196..20479]; .i}; [1..299]} ∈ [--..--] or UNINITIALIZED
+  v_0 ∈ [--..--]
+[eva:final-states] Values at end of function weak_update_imprecise_size:
+  vx ∈ {1}
+  vy ∈ {1} or UNINITIALIZED
+[eva:final-states] Values at end of function write_garbled:
+  NULL[rbits 800 to 1607] ∈
+      {{ garbled mix of &{j; k}
+       (origin: Misaligned {tests/builtins/imprecise.c:22}) }}
+  i ∈ {1}
+  j ∈ {{ NULL + [1..197] ; (int)&j ; &k + [0..16] }}
+  k[0..4] ∈
+   {{ garbled mix of &{j; k}
+    (origin: Misaligned {tests/builtins/imprecise.c:22}) }}
+  p ∈ {{ NULL + [100..197] ; &j ; &k + [0..16] }}
+[eva:final-states] Values at end of function main:
+  NULL[rbits 800 to 1607] ∈ [--..--] or ESCAPINGADDR
+  v1.[bits 0 to 7] ∈ {1}
+    .[bits 8 to ..] ∈ {0} or UNINITIALIZED
+  v2.[bits 0 to 31] ∈ {0} or UNINITIALIZED
+    .[bits 32 to 63] ∈ {{ (? *)&addr }}
+    .[bits 64 to ..] ∈ {0} or UNINITIALIZED
+  v3.[bits 0 to ..]# ∈ {0; 251} or UNINITIALIZED repeated %8 
+  v5.[bits 0 to 262143]# ∈ {0; 18; 19; 20} or UNINITIALIZED repeated %8 
+    .[bits 262144 to 17179869183]# ∈
+    {0; 19; 20} or UNINITIALIZED repeated %8 
+    .[bits 17179869184 to ..]# ∈ {0; 20} or UNINITIALIZED repeated %8 
+  p_gm_null ∈ [100..197]
+[from] Computing for function cast_address
+[from] Done for function cast_address
+[from] Computing for function garbled_mix_null
+[from] Computing for function gm_f1 <-garbled_mix_null
+[from] Done for function gm_f1
+[from] Computing for function gm_f2 <-garbled_mix_null
+[from] Done for function gm_f2
+[from] Done for function garbled_mix_null
+[from] Computing for function invalid_assigns_imprecise
+[from] Computing for function f <-invalid_assigns_imprecise
+[from] Done for function f
+[from] Done for function invalid_assigns_imprecise
+[from] Computing for function many_writes
+[from] Done for function many_writes
+[from] Computing for function abstract_structs
+[from] Computing for function memset <-abstract_structs
+[from] Done for function memset
+[from] Done for function abstract_structs
+[from] Computing for function overlap
+[from] Done for function overlap
+[from] Computing for function paste_big
+[from] Done for function paste_big
+[from] Computing for function weak_update_imprecise_size
+[from] Done for function weak_update_imprecise_size
+[from] Computing for function write_garbled
+[from] Done for function write_garbled
+[from] Computing for function main
+[from] Done for function main
+[from] ====== DEPENDENCIES COMPUTED ======
+  These dependencies hold at termination for the executions that terminate:
+[from] Function cast_address:
+  NO EFFECTS
+[from] Function f:
+  NULL[100..200] FROM \nothing (and SELF)
+[from] Function gm_f1:
+  \result FROM \nothing
+[from] Function gm_f2:
+  NULL[100..200] FROM NULL[100..200] (and SELF)
+  \result FROM NULL[100..200]
+[from] Function garbled_mix_null:
+  NULL[100..200] FROM NULL[100..200] (and SELF)
+  p_gm_null FROM \nothing
+[from] Function invalid_assigns_imprecise:
+  NULL[100..200] FROM \nothing (and SELF)
+[from] Function many_writes:
+  NO EFFECTS
+[from] Function memset:
+  v3.[bits 0 to 34359738359] FROM c (and SELF)
+  s FROM c (and SELF)
+  \result FROM s
+[from] Function abstract_structs:
+  v1.[bits 0 to 7] FROM \nothing
+  v2.[bits 32 to 63] FROM \nothing
+  v3.[bits 0 to 34359738359] FROM \nothing (and SELF)
+  v5.[bits 0 to ..] FROM v (and SELF)
+[from] Function overlap:
+  NO EFFECTS
+[from] Function paste_big:
+  v3.[bits 0 to 34359738359] FROM \nothing (and SELF)
+[from] Function weak_update_imprecise_size:
+  NO EFFECTS
+[from] Function write_garbled:
+  NULL[100..200] FROM \nothing (and SELF)
+[from] Function main:
+  NULL[100..200] FROM NULL[100..200] (and SELF)
+  v1.[bits 0 to 7] FROM \nothing
+  v2.[bits 32 to 63] FROM \nothing
+  v3.[bits 0 to 34359738359] FROM \nothing (and SELF)
+  v5.[bits 0 to ..] FROM v (and SELF)
+  p_gm_null FROM \nothing
+[from] ====== END OF DEPENDENCIES ======
+[from] ====== DISPLAYING CALLWISE DEPENDENCIES ======
+[from] call to gm_f1 at tests/builtins/imprecise.c:75 (by garbled_mix_null):
+  \result FROM \nothing
+[from] call to Frama_C_dump_each at tests/builtins/imprecise.c:76 (by garbled_mix_null):
+  \result FROM \nothing
+[from] call to gm_f2 at tests/builtins/imprecise.c:77 (by garbled_mix_null):
+  NULL[100..200] FROM NULL[100..200] (and SELF)
+  \result FROM NULL[100..200]
+[from] call to Frama_C_dump_each at tests/builtins/imprecise.c:78 (by garbled_mix_null):
+  \result FROM \nothing
+[from] call to f at tests/builtins/imprecise.c:11 (by invalid_assigns_imprecise):
+  NULL[100..200] FROM \nothing (and SELF)
+[from] call to memset at tests/builtins/imprecise.c:51 (by abstract_structs):
+  v3.[bits 0 to ..] FROM c (and SELF)
+  \result FROM s
+[from] call to memset at tests/builtins/imprecise.c:133 (by paste_big):
+  s FROM c
+  \result FROM s
+[from] call to Frama_C_dump_each at tests/builtins/imprecise.c:21 (by write_garbled):
+  \result FROM \nothing
+[from] call to invalid_assigns_imprecise at tests/builtins/imprecise.c:144 (by main):
+  NULL[100..200] FROM \nothing (and SELF)
+[from] call to write_garbled at tests/builtins/imprecise.c:145 (by main):
+  NULL[100..200] FROM \nothing (and SELF)
+[from] call to abstract_structs at tests/builtins/imprecise.c:146 (by main):
+  v1.[bits 0 to 7] FROM \nothing
+  v2.[bits 32 to 63] FROM \nothing
+  v3.[bits 0 to ..] FROM \nothing (and SELF)
+  v5.[bits 0 to ..] FROM v (and SELF)
+[from] call to cast_address at tests/builtins/imprecise.c:147 (by main):
+  NO EFFECTS
+[from] call to garbled_mix_null at tests/builtins/imprecise.c:148 (by main):
+  NULL[100..200] FROM NULL[100..200] (and SELF)
+  p_gm_null FROM \nothing
+[from] call to weak_update_imprecise_size at tests/builtins/imprecise.c:149 (by main):
+  NO EFFECTS
+[from] call to many_writes at tests/builtins/imprecise.c:150 (by main):
+  NO EFFECTS
+[from] call to overlap at tests/builtins/imprecise.c:151 (by main):
+  NO EFFECTS
+[from] call to paste_big at tests/builtins/imprecise.c:152 (by main):
+  NO EFFECTS
+[from] entry point:
+  NULL[100..200] FROM NULL[100..200] (and SELF)
+  v1.[bits 0 to 7] FROM \nothing
+  v2.[bits 32 to 63] FROM \nothing
+  v3.[bits 0 to ..] FROM \nothing (and SELF)
+  v5.[bits 0 to ..] FROM v (and SELF)
+  p_gm_null FROM \nothing
+[from] ====== END OF CALLWISE DEPENDENCIES ======
+[inout] Out (internal) for function cast_address:
+    p; c1; c2; c3
+[inout] Inputs for function cast_address:
+    \nothing
+[inout] InOut (internal) for function cast_address:
+  Operational inputs:
+    \nothing
+  Operational inputs on termination:
+    \nothing
+  Sure outputs:
+    p; c1; c2; c3
+[inout] Out (internal) for function garbled_mix_null:
+    NULL[100..200]; p_gm_null
+[inout] Inputs for function garbled_mix_null:
+    NULL[100..200]; p_gm_null
+[inout] InOut (internal) for function garbled_mix_null:
+  Operational inputs:
+    NULL[100..200]
+  Operational inputs on termination:
+    NULL[100..200]
+  Sure outputs:
+    p_gm_null
+[inout] Out (internal) for function invalid_assigns_imprecise:
+    NULL[..]; p
+[inout] Inputs for function invalid_assigns_imprecise:
+    \nothing
+[inout] InOut (internal) for function invalid_assigns_imprecise:
+  Operational inputs:
+    \nothing
+  Operational inputs on termination:
+    \nothing
+  Sure outputs:
+    p
+[inout] Out (internal) for function many_writes:
+    t_packed1{[0..298]; [299].i1}; t_packed2{[0..298]; [299].i1}
+[inout] Inputs for function many_writes:
+    v
+[inout] InOut (internal) for function many_writes:
+  Operational inputs:
+    v
+  Operational inputs on termination:
+    v
+  Sure outputs:
+    \nothing
+[inout] Out (internal) for function abstract_structs:
+    v1.[bits 0 to 7]; v2.[bits 32 to 63]; v3.[bits 0 to ..]; v5.[bits 0 to ..];
+    p; w1; w; q; p2; p4; p5; p6
+[inout] Inputs for function abstract_structs:
+    v; v1.[bits 0 to 7]
+[inout] InOut (internal) for function abstract_structs:
+  Operational inputs:
+    v; v1.[bits 0 to 7]
+  Operational inputs on termination:
+    v; v1.[bits 0 to 7]
+  Sure outputs:
+    v1.[bits 0 to 7]; v2.[bits 32 to 63]; p; q; p2; p4; p5; p6
+[inout] Out (internal) for function overlap:
+    t_char[0..99]
+[inout] Inputs for function overlap:
+    v
+[inout] InOut (internal) for function overlap:
+  Operational inputs:
+    v
+  Operational inputs on termination:
+    v
+  Sure outputs:
+    \nothing
+[inout] Out (internal) for function paste_big:
+    i; s; t_big[0..299]; v_0
+[inout] Inputs for function paste_big:
+    v
+[inout] InOut (internal) for function paste_big:
+  Operational inputs:
+    v; t_big[0].c[192..195]
+  Operational inputs on termination:
+    v; t_big[0].c[192..195]
+  Sure outputs:
+    i; s; v_0
+[inout] Out (internal) for function weak_update_imprecise_size:
+    vx; vy
+[inout] Inputs for function weak_update_imprecise_size:
+    v
+[inout] InOut (internal) for function weak_update_imprecise_size:
+  Operational inputs:
+    v
+  Operational inputs on termination:
+    v
+  Sure outputs:
+    vx
+[inout] Out (internal) for function write_garbled:
+    NULL[100..200]; i; j; k[0..4]; p
+[inout] Inputs for function write_garbled:
+    \nothing
+[inout] InOut (internal) for function write_garbled:
+  Operational inputs:
+    \nothing
+  Operational inputs on termination:
+    \nothing
+  Sure outputs:
+    i; j; k[0..4]; p
+[inout] Out (internal) for function main:
+    NULL[..]; v1.[bits 0 to 7]; v2.[bits 32 to 63]; v3.[bits 0 to ..];
+    v5.[bits 0 to ..]; p_gm_null
+[inout] Inputs for function main:
+    NULL[100..200]; v; v1.[bits 0 to 7]; p_gm_null
+[inout] InOut (internal) for function main:
+  Operational inputs:
+    NULL[100..200]; v; v1.[bits 0 to 7]
+  Operational inputs on termination:
+    NULL[100..200]; v; v1.[bits 0 to 7]
+  Sure outputs:
+    v1.[bits 0 to 7]; v2.[bits 32 to 63]; p_gm_null
+[eva] Analyzing an incomplete application starting at main
+[eva] Computing initial state
+[eva:initial-state] 
+  creating variable S_0_t with imprecise size (type struct s [2])
+[eva] tests/builtins/imprecise.c:29: Warning: 
+  during initialization of variable 't', size of type 'struct s' cannot be
+  computed (abstract type 'struct s')
+[eva:initial-state] 
+  creating variable S_1_t with imprecise size (type struct s [2])
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
+  NULL[rbits 800 to 1607] ∈ [--..--]
+  v ∈ [--..--]
+  addr ∈ [--..--]
+  v1.[bits 0 to ..] ∈ [--..--] or UNINITIALIZED
+  v2.[bits 0 to ..] ∈ [--..--] or UNINITIALIZED
+  v3.[bits 0 to ..] ∈ [--..--] or UNINITIALIZED
+  v5.[bits 0 to ..] ∈ [--..--] or UNINITIALIZED
+  t[0] ∈ {{ NULL ; (struct s *)&S_0_t }}
+   [1] ∈ {{ NULL ; (struct s *)&S_1_t }}
+   [2..9] ∈ {{ NULL ; (struct s *)&S_0_t ; (struct s *)&S_1_t }}
+  p_gm_null ∈ {{ NULL ; &S_p_gm_null[0] }}
+  s1.[bits 0 to ..] ∈ [--..--] or UNINITIALIZED
+  s2.[bits 0 to ..] ∈ [--..--] or UNINITIALIZED
+  S_0_t[bits 0 to ..] ∈ [--..--] or UNINITIALIZED
+  S_1_t[bits 0 to ..] ∈ [--..--] or UNINITIALIZED
+  S_p_gm_null[0] ∈ {{ NULL ; &S_0_S_p_gm_null[0] }}
+             [1] ∈ {{ NULL ; &S_1_S_p_gm_null[0] }}
+  S_0_S_p_gm_null[0..1] ∈ [--..--]
+  S_1_S_p_gm_null[0..1] ∈ [--..--]
+[eva] computing for function invalid_assigns_imprecise <- main.
+  Called from tests/builtins/imprecise.c:144.
+[eva] computing for function f <- invalid_assigns_imprecise <- main.
+  Called from tests/builtins/imprecise.c:11.
+[eva] Done for function f
+[eva] Recording results for invalid_assigns_imprecise
+[from] Computing for function invalid_assigns_imprecise
+[from] Done for function invalid_assigns_imprecise
+[eva] Done for function invalid_assigns_imprecise
+[eva] computing for function write_garbled <- main.
+  Called from tests/builtins/imprecise.c:145.
+[eva:alarm] tests/builtins/imprecise.c:20: Warning: 
+  out of bounds write. assert \valid(p);
+[eva] tests/builtins/imprecise.c:21: 
+  Frama_C_dump_each:
+  # Cvalue domain:
+  NULL[rbits 800 to 1607] ∈ [--..--]
+  __fc_heap_status ∈ [--..--]
+  __fc_strtok_ptr ∈ {{ NULL ; &S___fc_strtok_ptr[0] }}
+  __fc_strerror[0..63] ∈ [--..--]
+  __fc_p_strerror ∈ {{ &__fc_strerror[0] }}
+  i ∈ {1}
+  j ∈ {1; 2}
+  k[0..4] ∈ [--..--]
+  p ∈ {{ NULL + [100..197] ; &j ; &k + [0..16] }}
+  v ∈ [--..--]
+  addr ∈ [--..--]
+  v1.[bits 0 to ..] ∈ [--..--] or UNINITIALIZED
+  v2.[bits 0 to ..] ∈ [--..--] or UNINITIALIZED
+  v3.[bits 0 to ..] ∈ [--..--] or UNINITIALIZED
+  v5.[bits 0 to ..] ∈ [--..--] or UNINITIALIZED
+  t[0] ∈ {{ NULL ; (struct s *)&S_0_t }}
+   [1] ∈ {{ NULL ; (struct s *)&S_1_t }}
+   [2..9] ∈ {{ NULL ; (struct s *)&S_0_t ; (struct s *)&S_1_t }}
+  p_gm_null ∈ {{ NULL ; &S_p_gm_null[0] }}
+  s1.[bits 0 to ..] ∈ [--..--] or UNINITIALIZED
+  s2.[bits 0 to ..] ∈ [--..--] or UNINITIALIZED
+  S___fc_strtok_ptr[0..1] ∈ [--..--]
+  S_0_t[bits 0 to ..] ∈ [--..--] or UNINITIALIZED
+  S_1_t[bits 0 to ..] ∈ [--..--] or UNINITIALIZED
+  S_p_gm_null[0] ∈ {{ NULL ; &S_0_S_p_gm_null[0] }}
+             [1] ∈ {{ NULL ; &S_1_S_p_gm_null[0] }}
+  S_0_S_p_gm_null[0..1] ∈ [--..--]
+  S_1_S_p_gm_null[0..1] ∈ [--..--]
+  ==END OF DUMP==
+[eva] Recording results for write_garbled
+[from] Computing for function write_garbled
+[from] Done for function write_garbled
+[eva] Done for function write_garbled
+[eva] computing for function abstract_structs <- main.
+  Called from tests/builtins/imprecise.c:146.
+[eva:alarm] tests/builtins/imprecise.c:37: Warning: 
+  accessing uninitialized left-value. assert \initialized(p);
+[eva:alarm] tests/builtins/imprecise.c:37: Warning: 
+  out of bounds read. assert \valid_read(p);
+[eva:alarm] tests/builtins/imprecise.c:40: Warning: 
+  accessing uninitialized left-value. assert \initialized(p);
+[eva:alarm] tests/builtins/imprecise.c:40: Warning: 
+  out of bounds read. assert \valid_read(p);
+[eva:alarm] tests/builtins/imprecise.c:45: Warning: 
+  out of bounds write. assert \valid(p);
+[eva:alarm] tests/builtins/imprecise.c:46: Warning: 
+  out of bounds read. assert \valid_read(p);
+[eva] tests/builtins/imprecise.c:51: Call to builtin memset
+[eva:alarm] tests/builtins/imprecise.c:53: Warning: 
+  out of bounds write. assert \valid(p2);
+[eva:alarm] tests/builtins/imprecise.c:56: Warning: 
+  out of bounds write. assert \valid(p4);
+[eva:alarm] tests/builtins/imprecise.c:58: Warning: 
+  out of bounds write. assert \valid(p5);
+[eva:alarm] tests/builtins/imprecise.c:60: Warning: 
+  out of bounds write. assert \valid(p6);
+[eva] Recording results for abstract_structs
+[from] Computing for function abstract_structs
+[from] Done for function abstract_structs
+[eva] Done for function abstract_structs
+[eva] computing for function cast_address <- main.
+  Called from tests/builtins/imprecise.c:147.
+[eva:alarm] tests/builtins/imprecise.c:68: Warning: 
+  signed overflow. assert -2147483648 ≤ (int)*((char *)(&p)) + 0;
+[eva:alarm] tests/builtins/imprecise.c:68: Warning: 
+  signed overflow. assert (int)*((char *)(&p)) + 0 ≤ 2147483647;
+[eva] Recording results for cast_address
+[from] Computing for function cast_address
+[from] Done for function cast_address
+[eva] Done for function cast_address
+[eva] computing for function garbled_mix_null <- main.
+  Called from tests/builtins/imprecise.c:148.
+[eva] computing for function gm_f1 <- garbled_mix_null <- main.
+  Called from tests/builtins/imprecise.c:75.
+[eva] Done for function gm_f1
+[eva] tests/builtins/imprecise.c:76: 
+  Frama_C_dump_each:
+  # Cvalue domain:
+  NULL[rbits 800 to 1607] ∈ [--..--] or ESCAPINGADDR
+  __fc_heap_status ∈ [--..--]
+  __fc_strtok_ptr ∈ {{ NULL ; &S___fc_strtok_ptr[0] }}
+  __fc_strerror[0..63] ∈ [--..--]
+  __fc_p_strerror ∈ {{ &__fc_strerror[0] }}
+  v ∈ [--..--]
+  addr ∈ [--..--]
+  v1.[bits 0 to 7] ∈ {1}
+    .[bits 8 to ..] ∈ [--..--] or UNINITIALIZED
+  v2.[bits 0 to 31] ∈ [--..--] or UNINITIALIZED
+    .[bits 32 to 63] ∈ {{ (? *)&addr }}
+    .[bits 64 to ..] ∈ [--..--] or UNINITIALIZED
+  v3.[bits 0 to ..] ∈ [--..--] or UNINITIALIZED
+  v5.[bits 0 to ..] ∈ [--..--] or UNINITIALIZED
+  t[0] ∈ {{ NULL ; (struct s *)&S_0_t }}
+   [1] ∈ {{ NULL ; (struct s *)&S_1_t }}
+   [2..9] ∈ {{ NULL ; (struct s *)&S_0_t ; (struct s *)&S_1_t }}
+  p_gm_null ∈ [--..--]
+  s1.[bits 0 to ..] ∈ [--..--] or UNINITIALIZED
+  s2.[bits 0 to ..] ∈ [--..--] or UNINITIALIZED
+  S___fc_strtok_ptr[0..1] ∈ [--..--]
+  S_0_t[bits 0 to ..] ∈ [--..--] or UNINITIALIZED
+  S_1_t[bits 0 to ..] ∈ [--..--] or UNINITIALIZED
+  S_p_gm_null[0] ∈ {{ NULL ; &S_0_S_p_gm_null[0] }}
+             [1] ∈ {{ NULL ; &S_1_S_p_gm_null[0] }}
+  S_0_S_p_gm_null[0..1] ∈ [--..--]
+  S_1_S_p_gm_null[0..1] ∈ [--..--]
+  ==END OF DUMP==
+[eva:alarm] tests/builtins/imprecise.c:77: Warning: 
+  out of bounds read. assert \valid_read(p_gm_null);
+[eva:alarm] tests/builtins/imprecise.c:77: Warning: 
+  accessing left-value that contains escaping addresses.
+  assert ¬\dangling(p_gm_null);
+[eva] computing for function gm_f2 <- garbled_mix_null <- main.
+  Called from tests/builtins/imprecise.c:77.
+[eva] Done for function gm_f2
+[eva] tests/builtins/imprecise.c:78: 
+  Frama_C_dump_each:
+  # Cvalue domain:
+  NULL[rbits 800 to 1607] ∈ [--..--] or ESCAPINGADDR
+  __fc_heap_status ∈ [--..--]
+  __fc_strtok_ptr ∈ {{ NULL ; &S___fc_strtok_ptr[0] }}
+  __fc_strerror[0..63] ∈ [--..--]
+  __fc_p_strerror ∈ {{ &__fc_strerror[0] }}
+  v ∈ [--..--]
+  addr ∈ [--..--]
+  v1.[bits 0 to 7] ∈ {1}
+    .[bits 8 to ..] ∈ [--..--] or UNINITIALIZED
+  v2.[bits 0 to 31] ∈ [--..--] or UNINITIALIZED
+    .[bits 32 to 63] ∈ {{ (? *)&addr }}
+    .[bits 64 to ..] ∈ [--..--] or UNINITIALIZED
+  v3.[bits 0 to ..] ∈ [--..--] or UNINITIALIZED
+  v5.[bits 0 to ..] ∈ [--..--] or UNINITIALIZED
+  t[0] ∈ {{ NULL ; (struct s *)&S_0_t }}
+   [1] ∈ {{ NULL ; (struct s *)&S_1_t }}
+   [2..9] ∈ {{ NULL ; (struct s *)&S_0_t ; (struct s *)&S_1_t }}
+  p_gm_null ∈ [100..197]
+  s1.[bits 0 to ..] ∈ [--..--] or UNINITIALIZED
+  s2.[bits 0 to ..] ∈ [--..--] or UNINITIALIZED
+  S___fc_strtok_ptr[0..1] ∈ [--..--]
+  S_0_t[bits 0 to ..] ∈ [--..--] or UNINITIALIZED
+  S_1_t[bits 0 to ..] ∈ [--..--] or UNINITIALIZED
+  S_p_gm_null[0] ∈ {{ NULL ; &S_0_S_p_gm_null[0] }}
+             [1] ∈ {{ NULL ; &S_1_S_p_gm_null[0] }}
+  S_0_S_p_gm_null[0..1] ∈ [--..--]
+  S_1_S_p_gm_null[0..1] ∈ [--..--]
+  ==END OF DUMP==
+[eva] Recording results for garbled_mix_null
+[from] Computing for function garbled_mix_null
+[from] Done for function garbled_mix_null
+[eva] Done for function garbled_mix_null
+[eva] computing for function weak_update_imprecise_size <- main.
+  Called from tests/builtins/imprecise.c:149.
+[eva] Recording results for weak_update_imprecise_size
+[from] Computing for function weak_update_imprecise_size
+[from] Done for function weak_update_imprecise_size
+[eva] Done for function weak_update_imprecise_size
+[eva] computing for function many_writes <- main.
+  Called from tests/builtins/imprecise.c:150.
+[eva:alarm] tests/builtins/imprecise.c:111: Warning: 
+  accessing out of bounds index. assert 0 ≤ v;
+[eva:alarm] tests/builtins/imprecise.c:111: Warning: 
+  accessing out of bounds index. assert v < 300;
+[eva:alarm] tests/builtins/imprecise.c:114: Warning: 
+  accessing out of bounds index. assert 0 ≤ v;
+[eva:alarm] tests/builtins/imprecise.c:114: Warning: 
+  accessing out of bounds index. assert v < 300;
+[eva] Recording results for many_writes
+[from] Computing for function many_writes
+[from] Done for function many_writes
+[eva] Done for function many_writes
+[eva] computing for function overlap <- main.
+  Called from tests/builtins/imprecise.c:151.
+[eva:alarm] tests/builtins/imprecise.c:122: Warning: 
+  out of bounds write. assert \valid((int *)(&t_char[v]));
+[eva] Recording results for overlap
+[from] Computing for function overlap
+[from] Done for function overlap
+[eva] Done for function overlap
+[eva] computing for function paste_big <- main.
+  Called from tests/builtins/imprecise.c:152.
+[eva] tests/builtins/imprecise.c:133: Call to builtin memset
+[eva:alarm] tests/builtins/imprecise.c:140: Warning: 
+  accessing uninitialized left-value.
+  assert \initialized((int *)(&t_big) + 48);
+[eva] Recording results for paste_big
+[from] Computing for function paste_big
+[from] Done for function paste_big
+[eva] Done for function paste_big
+[eva] Recording results for main
+[from] Computing for function main
+[from] Done for function main
+[eva] done for function main
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function cast_address:
+  p ∈ {{ &x }}
+  c1 ∈
+    {{ garbled mix of &{x}
+     (origin: Arithmetic {tests/builtins/imprecise.c:66}) }}
+  c2# ∈ {{ (? *)&x }}%32, bits 0 to 7 
+  c3 ∈
+    {{ garbled mix of &{x}
+     (origin: Misaligned {tests/builtins/imprecise.c:68}) }}
+[eva:final-states] Values at end of function garbled_mix_null:
+  NULL[rbits 800 to 1607] ∈ [--..--] or ESCAPINGADDR
+  p_gm_null ∈ [100..197]
+[eva:final-states] Values at end of function invalid_assigns_imprecise:
+  NULL[rbits 800 to 1607] ∈ [--..--]
+  p ∈ {0}
+[eva:final-states] Values at end of function many_writes:
+  t_packed1{[0..298]{.i1; .i2#; .[bits 48 to 63]#}; [299].i1} ∈
+           {1} or UNINITIALIZED repeated %32 
+           [299]{.i2; .[bits 48 to 63]} ∈ UNINITIALIZED
+  t_packed2{[0..298]; [299].i1} ∈ [--..--] or UNINITIALIZED
+           [299].i2 ∈ UNINITIALIZED
+[eva:final-states] Values at end of function abstract_structs:
+  v1.[bits 0 to 7] ∈ {1}
+    .[bits 8 to ..] ∈ [--..--] or UNINITIALIZED
+  v2.[bits 0 to 31] ∈ [--..--] or UNINITIALIZED
+    .[bits 32 to 63] ∈ {{ (? *)&addr }}
+    .[bits 64 to ..] ∈ [--..--] or UNINITIALIZED
+  v3.[bits 0 to ..] ∈ [--..--] or UNINITIALIZED
+  v5.[bits 0 to ..] ∈ [--..--] or UNINITIALIZED
+  p ∈ {{ (char *)&v1 }}
+  q ∈ {1}
+  p2 ∈ {{ &v2 + {4} }}
+  p4 ∈ {{ &v5 + [0..32767] }}
+  p5 ∈ {{ &v5 + [0..2147483647] }}
+  p6 ∈ {{ &v5 + [0..4294967295] }}
+[eva:final-states] Values at end of function overlap:
+  t_char[0..99] ∈ [--..--] or UNINITIALIZED
+[eva:final-states] Values at end of function paste_big:
+  i ∈ [0..299]
+  s.c[0..20479] ∈ {2}
+   .i ∈ {33686018}
+  t_big[0].c[0..191] ∈ [--..--] or UNINITIALIZED
+       [0].c[192..195] ∈ [--..--]
+       {[0]{.c[196..20479]; .i}; [1..299]} ∈ [--..--] or UNINITIALIZED
+  v_0 ∈ [--..--]
+[eva:final-states] Values at end of function weak_update_imprecise_size:
+  vx ∈ {1}
+  vy ∈ {1} or UNINITIALIZED
+[eva:final-states] Values at end of function write_garbled:
+  NULL[rbits 800 to 1607] ∈
+      {{ garbled mix of &{j; k}
+       (origin: Misaligned {tests/builtins/imprecise.c:22}) }}
+  i ∈ {1}
+  j ∈ {{ NULL + [1..197] ; (int)&j ; &k + [0..16] }}
+  k[0..4] ∈
+   {{ garbled mix of &{j; k}
+    (origin: Misaligned {tests/builtins/imprecise.c:22}) }}
+  p ∈ {{ NULL + [100..197] ; &j ; &k + [0..16] }}
+[eva:final-states] Values at end of function main:
+  NULL[rbits 800 to 1607] ∈ [--..--] or ESCAPINGADDR
+  v1.[bits 0 to 7] ∈ {1}
+    .[bits 8 to ..] ∈ [--..--] or UNINITIALIZED
+  v2.[bits 0 to 31] ∈ [--..--] or UNINITIALIZED
+    .[bits 32 to 63] ∈ {{ (? *)&addr }}
+    .[bits 64 to ..] ∈ [--..--] or UNINITIALIZED
+  v3.[bits 0 to ..] ∈ [--..--] or UNINITIALIZED
+  v5.[bits 0 to ..] ∈ [--..--] or UNINITIALIZED
+  p_gm_null ∈ [100..197]
+[from] Computing for function cast_address
+[from] Done for function cast_address
+[from] Computing for function garbled_mix_null
+[from] Computing for function gm_f1 <-garbled_mix_null
+[from] Done for function gm_f1
+[from] Computing for function gm_f2 <-garbled_mix_null
+[from] Done for function gm_f2
+[from] Done for function garbled_mix_null
+[from] Computing for function invalid_assigns_imprecise
+[from] Computing for function f <-invalid_assigns_imprecise
+[from] Done for function f
+[from] Done for function invalid_assigns_imprecise
+[from] Computing for function many_writes
+[from] Done for function many_writes
+[from] Computing for function abstract_structs
+[from] Computing for function memset <-abstract_structs
+[from] Done for function memset
+[from] Done for function abstract_structs
+[from] Computing for function overlap
+[from] Done for function overlap
+[from] Computing for function paste_big
+[from] Done for function paste_big
+[from] Computing for function weak_update_imprecise_size
+[from] Done for function weak_update_imprecise_size
+[from] Computing for function write_garbled
+[from] Done for function write_garbled
+[from] Computing for function main
+[from] Done for function main
+[from] ====== DEPENDENCIES COMPUTED ======
+  These dependencies hold at termination for the executions that terminate:
+[from] Function cast_address:
+  NO EFFECTS
+[from] Function f:
+  NULL[100..200] FROM \nothing (and SELF)
+[from] Function gm_f1:
+  \result FROM \nothing
+[from] Function gm_f2:
+  NULL[100..200] FROM NULL[100..200] (and SELF)
+  \result FROM NULL[100..200]
+[from] Function garbled_mix_null:
+  NULL[100..200] FROM NULL[100..200] (and SELF)
+  p_gm_null FROM \nothing
+[from] Function invalid_assigns_imprecise:
+  NULL[100..200] FROM \nothing (and SELF)
+[from] Function many_writes:
+  NO EFFECTS
+[from] Function memset:
+  v3.[bits 0 to 34359738359] FROM c (and SELF)
+  s FROM c (and SELF)
+  \result FROM s
+[from] Function abstract_structs:
+  v1.[bits 0 to 7] FROM \nothing
+  v2.[bits 32 to 63] FROM \nothing
+  v3.[bits 0 to 34359738359] FROM \nothing (and SELF)
+  v5.[bits 0 to ..] FROM v (and SELF)
+[from] Function overlap:
+  NO EFFECTS
+[from] Function paste_big:
+  v3.[bits 0 to 34359738359] FROM \nothing (and SELF)
+[from] Function weak_update_imprecise_size:
+  NO EFFECTS
+[from] Function write_garbled:
+  NULL[100..200] FROM \nothing (and SELF)
+[from] Function main:
+  NULL[100..200] FROM NULL[100..200] (and SELF)
+  v1.[bits 0 to 7] FROM \nothing
+  v2.[bits 32 to 63] FROM \nothing
+  v3.[bits 0 to 34359738359] FROM \nothing (and SELF)
+  v5.[bits 0 to ..] FROM v (and SELF)
+  p_gm_null FROM \nothing
+[from] ====== END OF DEPENDENCIES ======
+[from] ====== DISPLAYING CALLWISE DEPENDENCIES ======
+[from] call to gm_f1 at tests/builtins/imprecise.c:75 (by garbled_mix_null):
+  \result FROM \nothing
+[from] call to Frama_C_dump_each at tests/builtins/imprecise.c:76 (by garbled_mix_null):
+  \result FROM \nothing
+[from] call to gm_f2 at tests/builtins/imprecise.c:77 (by garbled_mix_null):
+  NULL[100..200] FROM NULL[100..200] (and SELF)
+  \result FROM NULL[100..200]
+[from] call to Frama_C_dump_each at tests/builtins/imprecise.c:78 (by garbled_mix_null):
+  \result FROM \nothing
+[from] call to f at tests/builtins/imprecise.c:11 (by invalid_assigns_imprecise):
+  NULL[100..200] FROM \nothing (and SELF)
+[from] call to memset at tests/builtins/imprecise.c:51 (by abstract_structs):
+  v3.[bits 0 to ..] FROM c (and SELF)
+  \result FROM s
+[from] call to memset at tests/builtins/imprecise.c:133 (by paste_big):
+  s FROM c
+  \result FROM s
+[from] call to Frama_C_dump_each at tests/builtins/imprecise.c:21 (by write_garbled):
+  \result FROM \nothing
+[from] call to invalid_assigns_imprecise at tests/builtins/imprecise.c:144 (by main):
+  NULL[100..200] FROM \nothing (and SELF)
+[from] call to write_garbled at tests/builtins/imprecise.c:145 (by main):
+  NULL[100..200] FROM \nothing (and SELF)
+[from] call to abstract_structs at tests/builtins/imprecise.c:146 (by main):
+  v1.[bits 0 to 7] FROM \nothing
+  v2.[bits 32 to 63] FROM \nothing
+  v3.[bits 0 to ..] FROM \nothing (and SELF)
+  v5.[bits 0 to ..] FROM v (and SELF)
+[from] call to cast_address at tests/builtins/imprecise.c:147 (by main):
+  NO EFFECTS
+[from] call to garbled_mix_null at tests/builtins/imprecise.c:148 (by main):
+  NULL[100..200] FROM NULL[100..200] (and SELF)
+  p_gm_null FROM \nothing
+[from] call to weak_update_imprecise_size at tests/builtins/imprecise.c:149 (by main):
+  NO EFFECTS
+[from] call to many_writes at tests/builtins/imprecise.c:150 (by main):
+  NO EFFECTS
+[from] call to overlap at tests/builtins/imprecise.c:151 (by main):
+  NO EFFECTS
+[from] call to paste_big at tests/builtins/imprecise.c:152 (by main):
+  NO EFFECTS
+[from] entry point:
+  NULL[100..200] FROM NULL[100..200] (and SELF)
+  v1.[bits 0 to 7] FROM \nothing
+  v2.[bits 32 to 63] FROM \nothing
+  v3.[bits 0 to ..] FROM \nothing (and SELF)
+  v5.[bits 0 to ..] FROM v (and SELF)
+  p_gm_null FROM \nothing
+[from] ====== END OF CALLWISE DEPENDENCIES ======
+[inout] Out (internal) for function cast_address:
+    p; c1; c2; c3
+[inout] Inputs for function cast_address:
+    \nothing
+[inout] InOut (internal) for function cast_address:
+  Operational inputs:
+    \nothing
+  Operational inputs on termination:
+    \nothing
+  Sure outputs:
+    p; c1; c2; c3
+[inout] Out (internal) for function garbled_mix_null:
+    NULL[100..200]; p_gm_null
+[inout] Inputs for function garbled_mix_null:
+    NULL[100..200]; p_gm_null
+[inout] InOut (internal) for function garbled_mix_null:
+  Operational inputs:
+    NULL[100..200]
+  Operational inputs on termination:
+    NULL[100..200]
+  Sure outputs:
+    p_gm_null
+[inout] Out (internal) for function invalid_assigns_imprecise:
+    NULL[..]; p
+[inout] Inputs for function invalid_assigns_imprecise:
+    \nothing
+[inout] InOut (internal) for function invalid_assigns_imprecise:
+  Operational inputs:
+    \nothing
+  Operational inputs on termination:
+    \nothing
+  Sure outputs:
+    p
+[inout] Out (internal) for function many_writes:
+    t_packed1{[0..298]; [299].i1}; t_packed2{[0..298]; [299].i1}
+[inout] Inputs for function many_writes:
+    v
+[inout] InOut (internal) for function many_writes:
+  Operational inputs:
+    v
+  Operational inputs on termination:
+    v
+  Sure outputs:
+    \nothing
+[inout] Out (internal) for function abstract_structs:
+    v1.[bits 0 to 7]; v2.[bits 32 to 63]; v3.[bits 0 to ..]; v5.[bits 0 to ..];
+    p; w1; w; q; p2; p4; p5; p6
+[inout] Inputs for function abstract_structs:
+    v; v1.[bits 0 to 7]
+[inout] InOut (internal) for function abstract_structs:
+  Operational inputs:
+    v; v1.[bits 0 to 7]
+  Operational inputs on termination:
+    v; v1.[bits 0 to 7]
+  Sure outputs:
+    v1.[bits 0 to 7]; v2.[bits 32 to 63]; p; q; p2; p4; p5; p6
+[inout] Out (internal) for function overlap:
+    t_char[0..99]
+[inout] Inputs for function overlap:
+    v
+[inout] InOut (internal) for function overlap:
+  Operational inputs:
+    v
+  Operational inputs on termination:
+    v
+  Sure outputs:
+    \nothing
+[inout] Out (internal) for function paste_big:
+    i; s; t_big[0..299]; v_0
+[inout] Inputs for function paste_big:
+    v
+[inout] InOut (internal) for function paste_big:
+  Operational inputs:
+    v; t_big[0].c[192..195]
+  Operational inputs on termination:
+    v; t_big[0].c[192..195]
+  Sure outputs:
+    i; s; v_0
+[inout] Out (internal) for function weak_update_imprecise_size:
+    vx; vy
+[inout] Inputs for function weak_update_imprecise_size:
+    v
+[inout] InOut (internal) for function weak_update_imprecise_size:
+  Operational inputs:
+    v
+  Operational inputs on termination:
+    v
+  Sure outputs:
+    vx
+[inout] Out (internal) for function write_garbled:
+    NULL[100..200]; i; j; k[0..4]; p
+[inout] Inputs for function write_garbled:
+    \nothing
+[inout] InOut (internal) for function write_garbled:
+  Operational inputs:
+    \nothing
+  Operational inputs on termination:
+    \nothing
+  Sure outputs:
+    i; j; k[0..4]; p
+[inout] Out (internal) for function main:
+    NULL[..]; v1.[bits 0 to 7]; v2.[bits 32 to 63]; v3.[bits 0 to ..];
+    v5.[bits 0 to ..]; p_gm_null
+[inout] Inputs for function main:
+    NULL[100..200]; v; v1.[bits 0 to 7]; p_gm_null
+[inout] InOut (internal) for function main:
+  Operational inputs:
+    NULL[100..200]; v; v1.[bits 0 to 7]
+  Operational inputs on termination:
+    NULL[100..200]; v; v1.[bits 0 to 7]
+  Sure outputs:
+    v1.[bits 0 to 7]; v2.[bits 32 to 63]; p_gm_null

@@ -1,40 +1,40 @@
 [kernel] Parsing tests/libc/assert_h.c (with preprocessing)
-[value] Analyzing a complete application starting at main
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing a complete application starting at main
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   fp ∈ {0}
   naan ∈ [--..--]
   s1 ∈ {0}
   nondet ∈ [--..--]
-[value] computing for function __FC_assert <- main.
+[eva] computing for function __FC_assert <- main.
   Called from tests/libc/assert_h.c:13.
-[value] using specification for function __FC_assert
-[value:alarm] tests/libc/assert_h.c:13: Warning: 
+[eva] using specification for function __FC_assert
+[eva:alarm] tests/libc/assert_h.c:13: Warning: 
   function __FC_assert: precondition 'nonnull_c' got status unknown.
-[value] Done for function __FC_assert
-[value] computing for function __FC_assert <- main.
+[eva] Done for function __FC_assert
+[eva] computing for function __FC_assert <- main.
   Called from tests/libc/assert_h.c:14.
-[value:alarm] tests/libc/assert_h.c:14: Warning: 
+[eva:alarm] tests/libc/assert_h.c:14: Warning: 
   function __FC_assert: precondition 'nonnull_c' got status invalid.
-[value] Done for function __FC_assert
-[value] computing for function __FC_assert <- main.
+[eva] Done for function __FC_assert
+[eva] computing for function __FC_assert <- main.
   Called from tests/libc/assert_h.c:15.
-[value] tests/libc/assert_h.c:15: 
+[eva] tests/libc/assert_h.c:15: 
   function __FC_assert: precondition 'nonnull_c' got status valid.
-[value] Done for function __FC_assert
-[value] computing for function __FC_assert <- main.
+[eva] Done for function __FC_assert
+[eva] computing for function __FC_assert <- main.
   Called from tests/libc/assert_h.c:16.
-[value:alarm] tests/libc/assert_h.c:16: Warning: 
+[eva:alarm] tests/libc/assert_h.c:16: Warning: 
   function __FC_assert: precondition 'nonnull_c' got status invalid.
-[value] Done for function __FC_assert
-[value] computing for function __FC_assert <- main.
+[eva] Done for function __FC_assert
+[eva] computing for function __FC_assert <- main.
   Called from tests/libc/assert_h.c:17.
-[value:alarm] tests/libc/assert_h.c:17: Warning: 
+[eva:alarm] tests/libc/assert_h.c:17: Warning: 
   function __FC_assert: precondition 'nonnull_c' got status unknown.
-[value] Done for function __FC_assert
-[value] Recording results for main
-[value] done for function main
-[value] ====== VALUES COMPUTED ======
-[value:final-states] Values at end of function main:
+[eva] Done for function __FC_assert
+[eva] Recording results for main
+[eva] done for function main
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function main:
   

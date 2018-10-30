@@ -1,0 +1,8 @@
+[kernel:typing:implicit-function-declaration] tests/bts/bts2252.c:22: Warning: 
+  Calling undeclared function strncpy. Old style K&R code?
+[e-acsl] beginning translation.
+[kernel:annot:missing-spec] tests/bts/bts2252.c:22: Warning: 
+  Neither code nor specification for function strncpy, generating default assigns from the prototype
+[e-acsl] translation done in project "e-acsl".
+[eva:alarm] tests/bts/bts2252.c:17: Warning: 
+  out of bounds read. assert \valid_read(srcbuf + i);

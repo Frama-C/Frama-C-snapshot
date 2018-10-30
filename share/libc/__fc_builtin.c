@@ -21,6 +21,7 @@
 /**************************************************************************/
 
 #include "__fc_builtin.h"
+__PUSH_FC_STDLIB
 
 /* Those builtins implementations could probably be removed entirely for
    Value, as the spec is informative enough. There remains a slight difference
@@ -40,7 +41,8 @@ int Frama_C_nondet(int a, int b)
 
 void *Frama_C_nondet_ptr(void *a, void *b)
 {
-  return (void*) Frama_C_nondet((int)a, (int)b);
+  Frama_C_update_entropy();
+  return Frama_C_entropy_source ? a : b;
 }
 
 int Frama_C_interval(int min, int max)
@@ -66,3 +68,5 @@ double Frama_C_double_interval(double min, double max)
   Frama_C_update_entropy();
   return Frama_C_entropy_source ? min : max;
 }
+
+__POP_FC_STDLIB

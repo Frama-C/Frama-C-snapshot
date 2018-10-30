@@ -4,7 +4,7 @@
 
 /* run.config_qualif
    OPT: -wp -wp-par 1 -wp-prop="-qed_ko"
-   OPT: -wp -wp-par 1 -wp-prop qed_ko -wp-timeout 5
+   OPT: -wp -wp-par 1 -wp-prop qed_ko -wp-steps 50
 */
 
 /* run.config 

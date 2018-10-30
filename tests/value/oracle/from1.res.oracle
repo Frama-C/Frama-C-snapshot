@@ -1,8 +1,8 @@
 [kernel] Parsing tests/value/from1.i (no preprocessing)
-[value] Analyzing a complete application starting at main
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing a complete application starting at main
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   G ∈ {0}
   cx ∈ {0}
   cy ∈ {0}
@@ -10,22 +10,22 @@
   sx ∈ {0}
   sy ∈ {0}
   s ∈ {0}
-[value] computing for function f <- main.
+[eva] computing for function f <- main.
   Called from tests/value/from1.i:23.
-[value] Recording results for f
-[value] Done for function f
-[value] computing for function sf <- main.
+[eva] Recording results for f
+[eva] Done for function f
+[eva] computing for function sf <- main.
   Called from tests/value/from1.i:25.
-[value] Recording results for sf
-[value] Done for function sf
-[value] Recording results for main
-[value] done for function main
-[value] ====== VALUES COMPUTED ======
-[value:final-states] Values at end of function f:
+[eva] Recording results for sf
+[eva] Done for function sf
+[eva] Recording results for main
+[eva] done for function main
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function f:
   cy ∈ {0}
-[value:final-states] Values at end of function sf:
+[eva:final-states] Values at end of function sf:
   __retres ∈ {0}
-[value:final-states] Values at end of function main:
+[eva:final-states] Values at end of function main:
   G ∈ [--..--]
   cx ∈ {0}
   cy ∈ {0}

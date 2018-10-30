@@ -22,6 +22,7 @@
 
 /* ISO C: 7.25 */
 #include "wchar.h"
+__PUSH_FC_STDLIB
 
 wchar_t* wmemcpy(wchar_t *dest, const wchar_t *src, size_t n)
 {
@@ -89,3 +90,5 @@ wchar_t* wcsncat(wchar_t *dest, const wchar_t *src, size_t n)
 
   return dest;
 }
+
+__POP_FC_STDLIB

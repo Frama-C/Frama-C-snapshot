@@ -129,12 +129,12 @@ let engine =
     inherit E.engine as super
     inherit Lang.idprinting
     method infoprover p = p.coq
-                            
+
     method! pp_fun cmode fct ts =
       if fct == Vlist.f_concat
       then Vlist.export self ts
       else super#pp_fun cmode fct ts
-    
+
   end
 
 
@@ -388,7 +388,7 @@ class runcoq includes source =
   object(self)
 
     inherit ProverTask.command "coq"
-    
+
     method private project =
       let dir = Filename.dirname source in
       let p = Wp_parameters.CoqProject.get () in
@@ -403,7 +403,7 @@ class runcoq includes source =
             ) includes ;
           Format.fprintf fmt "-arg -noglob@\n" ;
         end
-    
+
     method private options =
       begin
         List.iter
@@ -461,7 +461,7 @@ class runcoq includes source =
     method script =
       let script = Wp_parameters.Script.get () in
       if Sys.file_exists script then self#add [ script ]
-    
+
     method coqide =
       let coqide = Wp_parameters.CoqIde.get () in
       self#set_command coqide ;
@@ -631,7 +631,7 @@ let gen_session w =
     Wp_parameters.print_generated w.cw_script ;
     Task.return VCS.no_result
   end
-  
+
 let check_session w =
   compile_headers w.cw_includes false w.cw_headers >>=
   (fun () -> check_script w) >>> function

@@ -1,26 +1,25 @@
 [kernel] Parsing tests/value/threat_array.i (no preprocessing)
-[value] Analyzing a complete application starting at main
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing a complete application starting at main
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   T[0..9] ∈ {0}
   p ∈ {0}
   q ∈ {0}
-[value:alarm] tests/value/threat_array.i:6: Warning: 
-  assertion got status unknown.
-[value] tests/value/threat_array.i:8: assertion got status valid.
-[value] tests/value/threat_array.i:9: assertion got status valid.
-[value] tests/value/threat_array.i:14: assertion got status valid.
-[value:alarm] tests/value/threat_array.i:17: Warning: 
+[eva:alarm] tests/value/threat_array.i:6: Warning: assertion got status unknown.
+[eva] tests/value/threat_array.i:8: assertion got status valid.
+[eva] tests/value/threat_array.i:9: assertion got status valid.
+[eva] tests/value/threat_array.i:14: assertion got status valid.
+[eva:alarm] tests/value/threat_array.i:17: Warning: 
   assertion got status invalid (stopping propagation).
-[value:alarm] tests/value/threat_array.i:20: Warning: 
+[eva:alarm] tests/value/threat_array.i:20: Warning: 
   accessing out of bounds index. assert 0 ≤ c;
-[value:alarm] tests/value/threat_array.i:20: Warning: 
+[eva:alarm] tests/value/threat_array.i:20: Warning: 
   accessing out of bounds index. assert c < 10;
-[value] Recording results for main
-[value] done for function main
-[value] ====== VALUES COMPUTED ======
-[value:final-states] Values at end of function main:
+[eva] Recording results for main
+[eva] done for function main
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function main:
   T[0..9] ∈ {0; 4}
   p ∈ {{ (int (*)[5])&T[5] }}
   q ∈ {{ (int (*)[10])&T[5] }}

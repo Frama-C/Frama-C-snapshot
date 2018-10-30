@@ -1,22 +1,22 @@
 [kernel] Parsing tests/value/addr.i (no preprocessing)
-[value] Analyzing a complete application starting at main
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing a complete application starting at main
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   t[0..4] ∈ {0}
   x ∈ {0}
   p ∈ {0}
   q ∈ {0}
-[value] computing for function f <- main.
+[eva] computing for function f <- main.
   Called from tests/value/addr.i:20.
-[value] Recording results for f
-[value] Done for function f
-[value] Recording results for main
-[value] done for function main
-[value] ====== VALUES COMPUTED ======
-[value:final-states] Values at end of function f:
+[eva] Recording results for f
+[eva] Done for function f
+[eva] Recording results for main
+[eva] done for function main
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function f:
   p ∈ {{ &t[2] }}
-[value:final-states] Values at end of function main:
+[eva:final-states] Values at end of function main:
   t[0..1] ∈ {0}
    [2] ∈ {77}
    [3..4] ∈ {0}

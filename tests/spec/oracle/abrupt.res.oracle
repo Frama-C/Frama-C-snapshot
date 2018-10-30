@@ -22,7 +22,7 @@ int f(int c)
   switch_0_break: ;
   while (1) {
     while_1_continue: ;
-    __sid_13_label: ;
+    __sid_13_label:
     /*@ breaks x ≡ \old(x);
         continues x ≡ \old(x) + 1; */
     {

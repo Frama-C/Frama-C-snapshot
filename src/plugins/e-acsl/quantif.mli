@@ -1,8 +1,8 @@
 (**************************************************************************)
 (*                                                                        *)
-(*  This file is part of Frama-C.                                         *)
+(*  This file is part of the Frama-C's E-ACSL plug-in.                    *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2018                                               *)
+(*  Copyright (C) 2012-2018                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -24,18 +24,16 @@
 
 open Cil_types
 
-val quantif_to_exp: kernel_function -> Env.t -> predicate -> exp * Env.t
+val quantif_to_exp:
+  kernel_function -> Env.t -> predicate -> exp * Env.t
 (** The given predicate must be a quantification. *)
 
 (* ***********************************************************************)
 (** {2 Forward references} *)
 (* ***********************************************************************)
 
-val predicate_to_exp_ref: 
+val predicate_to_exp_ref:
   (kernel_function -> Env.t -> predicate -> exp * Env.t) ref
-
-val term_to_exp_ref: 
-  (kernel_function -> Env.t -> term -> exp * Env.t) ref
 
 (*
 Local Variables:

@@ -85,15 +85,15 @@ val ki_of_localizable : localizable -> kinstr
 val varinfo_of_localizable : localizable -> varinfo option
 
 val localizable_from_locs :
-  Locs.state -> file:string -> line:int -> localizable list
+  Locs.state -> file:Datatype.Filepath.t -> line:int -> localizable list
 (** Returns the lists of localizable in [file] at [line]
     visible in the current [Locs.state].
     This function is inefficient as it iterates on all the current
     [Locs.state]. *)
 
-val loc_to_localizable: ?precise_col:bool -> Lexing.position -> localizable option
+val loc_to_localizable: ?precise_col:bool -> Filepath.position -> localizable option
 (** return the (hopefully) most precise localizable that contains the given
-    Lexing.position. If [precise_col] is [true], takes the column number into
+    Filepath.position. If [precise_col] is [true], takes the column number into
     account (possibly a more precise, but costly, result).
     @since Nitrogen-20111001 *)
 

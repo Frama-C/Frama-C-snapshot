@@ -1,13 +1,13 @@
 [kernel] Parsing tests/pdg/loops.c (with preprocessing)
-[value] Analyzing an incomplete application starting at loop_with_goto
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing an incomplete application starting at loop_with_goto
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   after ∈ [--..--]
-[value:alarm] tests/pdg/loops.c:120: Warning: 
+[eva:alarm] tests/pdg/loops.c:120: Warning: 
   signed overflow. assert -2147483648 ≤ n - 1;
-[value] Recording results for loop_with_goto
-[value] done for function loop_with_goto
+[eva] Recording results for loop_with_goto
+[eva] done for function loop_with_goto
 [pdg] computing for function loop_with_goto
 [pdg] done for function loop_with_goto
 [pdg] PDG for loop_with_goto

@@ -1,8 +1,8 @@
 [kernel] Parsing tests/value/inout.i (no preprocessing)
-[value] Analyzing a complete application starting at never_terminate
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing a complete application starting at never_terminate
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   Xt ∈ {0}
   Xs ∈ {0}
   Xs_I ∈ {0}
@@ -20,9 +20,8 @@
       [6] ∈ {25}
       [7] ∈ {40}
   I5_nt ∈ {0}
-[value] tests/value/inout.i:50: entering loop for the first time
-[value] Recording results for never_terminate
-[value] done for function never_terminate
+[eva] Recording results for never_terminate
+[eva] done for function never_terminate
 [from] Computing for function never_terminate
 [from] Non-terminating function never_terminate (no dependencies)
 [from] Done for function never_terminate

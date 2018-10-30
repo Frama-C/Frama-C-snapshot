@@ -1,28 +1,28 @@
 [kernel] Parsing tests/slicing/loops.i (no preprocessing)
-[value] Analyzing a complete application starting at main
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing a complete application starting at main
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   G ∈ {0}
   C1 ∈ {1}
   C2 ∈ {1}
   X ∈ {0}
   Y ∈ {0}
   Z ∈ {0}
-[value] computing for function may_write_Y_from_Z <- main.
+[eva] computing for function may_write_Y_from_Z <- main.
   Called from tests/slicing/loops.i:199.
-[value] using specification for function may_write_Y_from_Z
-[value] Done for function may_write_Y_from_Z
-[value] computing for function loop <- main.
+[eva] using specification for function may_write_Y_from_Z
+[eva] Done for function may_write_Y_from_Z
+[eva] computing for function loop <- main.
   Called from tests/slicing/loops.i:202.
-[value] tests/slicing/loops.i:176: entering loop for the first time
-[value] tests/slicing/loops.i:183: assertion got status valid.
-[value:alarm] tests/slicing/loops.i:179: Warning: 
+[eva] tests/slicing/loops.i:183: assertion got status valid.
+[eva] tests/slicing/loops.i:176: starting to merge loop iterations
+[eva:alarm] tests/slicing/loops.i:179: Warning: 
   signed overflow. assert X + 1 ≤ 2147483647;
-[value] Recording results for loop
-[value] Done for function loop
-[value] Recording results for main
-[value] done for function main
+[eva] Recording results for loop
+[eva] Done for function loop
+[eva] Recording results for main
+[eva] done for function main
 [from] Computing for function loop
 [from] Non-terminating function loop (no dependencies)
 [from] Done for function loop

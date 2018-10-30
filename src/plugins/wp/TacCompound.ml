@@ -63,7 +63,7 @@ let rec typeof_index a k =
   match F.repr a with
   | Qed.Logic.Aset(a,k,_) -> typeof_index a k
   | _ -> typeof_domain a
-and typeof_domain a = 
+and typeof_domain a =
   match F.typeof a with
   | Qed.Logic.Array(t,_) -> t
   | _ -> raise Not_found
@@ -80,13 +80,13 @@ let get_array_update a =
 
 let array1 upd a =
   let t =
-    try typeof_domain a 
+    try typeof_domain a
     with Not_found -> typeof_update upd
   in Array1(upd,a,t)
-    
+
 let array2 p q =
   let t =
-    try typeof_update p 
+    try typeof_update p
     with Not_found -> typeof_update q
   in Array2(p,q,t)
 
@@ -142,7 +142,7 @@ let clause ~(vars : F.Vars.t) = function
 (* -------------------------------------------------------------------------- *)
 (* --- Compound Tactic                                                    --- *)
 (* -------------------------------------------------------------------------- *)
-      
+
 let conj cs = F.p_all snd cs
 let disj cs = F.p_any (fun (_,p) -> F.p_not p) cs
 

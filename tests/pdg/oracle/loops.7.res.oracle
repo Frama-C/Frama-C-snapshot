@@ -1,12 +1,15 @@
 [kernel] Parsing tests/pdg/loops.c (with preprocessing)
-[value] Analyzing an incomplete application starting at non_natural_loop
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing an incomplete application starting at non_natural_loop
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   after ∈ [--..--]
-[kernel] tests/pdg/loops.c:139: Warning: Non-natural loop detected.
-[value] Recording results for non_natural_loop
-[value] done for function non_natural_loop
+[eva:alarm] tests/pdg/loops.c:137: Warning: 
+  signed overflow. assert x + 2 ≤ 2147483647;
+[eva] Recording results for non_natural_loop
+[eva] done for function non_natural_loop
+[eva] tests/pdg/loops.c:137: 
+  assertion 'Eva,signed_overflow' got final status valid.
 [pdg] computing for function non_natural_loop
 [pdg] done for function non_natural_loop
 [pdg] PDG for non_natural_loop

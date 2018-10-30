@@ -73,8 +73,10 @@ and constant_term t =
 (* -------------------------------------------------------------------------- *)
 
 (* The type contains C-integers *)
-let rec is_constrained ty =
-  match Ctypes.object_of ty with
+let rec is_constrained typ =
+  is_constrained_obj (Ctypes.object_of typ)
+
+and is_constrained_obj = function
   | C_int _ -> true
   | C_float _ -> false
   | C_pointer _ -> false
@@ -198,7 +200,7 @@ module TYPE = STRUCTURAL
 let has_ctype = TYPE.is_typ
 
 let has_ltype ltype e =
-  match Logic_utils.unroll_type ltype with
+  match Logic_utils.unroll_type ~unroll_typedef:false ltype with
   | Ctype typ -> has_ctype typ e
   | Ltype _ | Lvar _ | Linteger | Lreal | Larrow _ -> p_true
 
@@ -206,12 +208,12 @@ let is_object obj = function
   | Loc _ -> p_true
   | Val e -> TYPE.is_obj obj e
 
-let cdomain typ =
-  if is_constrained typ then Some(has_ctype typ) else None
+let cdomain obj =
+  if is_constrained_obj obj then Some(TYPE.is_obj obj) else None
 
 let ldomain ltype =
-  match Logic_utils.unroll_type ltype with
-  | Ctype typ -> cdomain typ
+  match Logic_utils.unroll_type ~unroll_typedef:false ltype with
+  | Ctype typ -> cdomain (Ctypes.object_of typ)
   | Ltype _ | Lvar _ | Linteger | Lreal | Larrow _ -> None
 
 (* -------------------------------------------------------------------------- *)
@@ -419,7 +421,7 @@ struct
     | Vloc l -> Vset.singleton (M.pointer_val l)
     | Vset s -> s
     | Lset sloc -> vset_of_sloc sloc
-  
+
   let sloc_map phi = function
     | Vexp e -> [phi (Sloc (M.pointer_loc e))]
     | Vloc l -> [phi (Sloc l)]
@@ -428,7 +430,7 @@ struct
 
   let region obj logic = sloc_map (fun s -> obj , s) logic
   let sloc logic = sloc_map (fun s -> s) logic
-  
+
   (* -------------------------------------------------------------------------- *)
   (* --- Morphisms                                                          --- *)
   (* -------------------------------------------------------------------------- *)
@@ -509,7 +511,7 @@ struct
   let is_asup n = function
     | Some e -> e == e_int (n-1)
     | None -> false
-  
+
   let srange loc obj size a b =
     match size with
     | None -> Srange(loc,obj,a,b)
@@ -518,7 +520,7 @@ struct
           Sarray(loc,obj,n)
         else
           Srange(loc,obj,a,b)
-  
+
   let shift_set sloc obj (size : int option) kset =
     match sloc , size , kset with
     | Sloc l , Some n , Vset.Range(None,None) when Kernel.SafeArrays.get () ->
@@ -541,7 +543,7 @@ struct
             let xs,l,p = rdescr sloc in
             let ys,k,q = Vset.descr kset in
             Sdescr( xs @ ys , M.shift l obj k , p_and p q )
-              
+
   let shift lv obj ?size kv =
     if is_single kv then
       let k = value kv in map_loc (fun l -> M.shift l obj k) lv
@@ -554,7 +556,7 @@ struct
                      shift_set sloc obj size kset :: s
                   ) s ks
              ) [] (sloc lv))
-  
+
   (* -------------------------------------------------------------------------- *)
   (* --- Load in Memory                                                     --- *)
   (* -------------------------------------------------------------------------- *)
@@ -624,7 +626,7 @@ struct
   (* -------------------------------------------------------------------------- *)
   (* --- Sloc to Rloc                                                       --- *)
   (* -------------------------------------------------------------------------- *)
-  
+
   let rloc obj = function
     | Sloc l -> Rloc(obj,l)
     | Sarray(l,t,n) -> Rrange(l,t,ainf,asup n)
@@ -687,10 +689,10 @@ struct
     | Sarray(l,t,n) -> phi (Rrange(l,t,ainf,asup n))
     | Srange(l,t,a,b) -> phi (Rrange(l,t,a,b))
     | Sdescr(xs,l,p) -> p_forall xs (p_imply p (phi (Rloc(obj,l))))
-  
+
   let valid sigma acs sloc = on_sloc (M.valid sigma acs) sloc
   let invalid sigma sloc = on_sloc (M.invalid sigma) sloc
-  
+
   (* -------------------------------------------------------------------------- *)
   (* --- Subset                                                             --- *)
   (* -------------------------------------------------------------------------- *)
@@ -708,5 +710,5 @@ struct
         let ra = List.map (fun s -> ta,s) (sloc la) in
         let rb = List.map (fun s -> tb,s) (sloc lb) in
         p_all (fun s -> p_any (included s) rb) ra
-  
+
 end

@@ -1,20 +1,20 @@
 [kernel] Parsing tests/slicing/bts679.i (no preprocessing)
 [slicing] slicing requests in progress...
-[value] Analyzing a complete application starting at main
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing a complete application starting at main
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   X ∈ {1}
-[value] computing for function f <- main.
+[eva] computing for function f <- main.
   Called from tests/slicing/bts679.i:7.
-[value] Recording results for f
-[value] Done for function f
-[value] tests/slicing/bts679.i:8: 
+[eva] Recording results for f
+[eva] Done for function f
+[eva] tests/slicing/bts679.i:8: 
   cannot evaluate ACSL term, \at() on a C label is unsupported
-[value:alarm] tests/slicing/bts679.i:8: Warning: assertion got status unknown.
-[value] Recording results for main
-[value] done for function main
-[value] tests/slicing/bts679.i:8: assertion got final status valid.
+[eva:alarm] tests/slicing/bts679.i:8: Warning: assertion got status unknown.
+[eva] Recording results for main
+[eva] done for function main
+[eva] tests/slicing/bts679.i:8: assertion got final status valid.
 [slicing] initializing slicing ...
 [slicing] interpreting slicing requests from the command line...
 [pdg] computing for function main

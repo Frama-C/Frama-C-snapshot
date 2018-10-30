@@ -1,8 +1,8 @@
 (**************************************************************************)
 (*                                                                        *)
-(*  This file is part of Frama-C.                                         *)
+(*  This file is part of the Frama-C's E-ACSL plug-in.                    *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2018                                               *)
+(*  Copyright (C) 2012-2018                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -73,6 +73,9 @@ val typ_of_integer_ty: integer_ty -> typ
     for [Gmp] and [TInt(ik, [[]])] for [Ctype ik].
     @raise Not_an_integer in case of {!Other}. *)
 
+val integer_ty_of_typ: typ -> integer_ty
+(** Reverse of [typ_of_integer_ty] *)
+
 val join: integer_ty -> integer_ty -> integer_ty
 (** {!integer_ty} is a join-semi-lattice if you do not consider [Other]. If
     there is no [Other] in argument, this function computes the join of this
@@ -128,6 +131,15 @@ val get_cast_of_predicate: predicate -> typ option
 val unsafe_set: term -> ?ctx:integer_ty -> integer_ty -> unit
 (** Register that the given term has the given type in the given context (if
     any). No verification is done. *)
+
+
+(*****************************************************************************)
+(* Utils *)
+(*****************************************************************************)
+
+val ty_of_interv: ?ctx:integer_ty -> Ival.t -> integer_ty
+(* Compute the smallest type (bigger than [int]) which can contain the whole
+   interval. It is the \theta operator of the JFLA's paper. *)
 
 (******************************************************************************)
 (** {2 Internal stuff} *)

@@ -190,16 +190,19 @@ module HCEToZone = struct
     let decide _ v1 v2 = Locations.Zone.join v1 v2 in
     join ~cache ~symmetric ~idempotent ~decide
 
-  let find_default k m =
-    try find k m
-    with Not_found -> Locations.Zone.bottom
+  let merge =
+    let cache_name = cache_prefix ^ ".merge" in
+    let cache = Hptmap_sig.PersistentCache cache_name in
+    let decide _ _ v2 = v2 in
+    join ~cache ~symmetric:false ~idempotent:true ~decide
 
+  let merge ~into v = merge into v
 end
 
 
 module BaseToHCESet = struct
 
-  include Hptmap.Make (Base) (HCESet) (Hptmap.Comp_unused)
+  include Hptmap.Make (Base.Base) (HCESet) (Hptmap.Comp_unused)
       (struct let v = [] end)(struct let l = [Ast.self] end)
 
   let cache_prefix = "Value.Symbolic_exprs.B2K"

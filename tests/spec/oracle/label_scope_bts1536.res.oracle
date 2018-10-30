@@ -3,8 +3,29 @@
 void f(void)
 {
   int i;
-  LInit: LLoop: i = 0;
-         /*@ assert \at(1,LInit) ≡ 1; */ ;
+  LInit: {
+           LLoop: i = 0;
+           /*@ assert \at(1,LInit) ≡ 1; */ ;
+         }
+  return;
+}
+
+int x;
+void g(void)
+{
+  L1: /*@ assert \at(x,L1) ≡ \at(x,L1); */ ;
+  L3: ;
+  /*@ assert \at(x,L1) ≡ \at(x,L1); */ ;
+  /*@ assert \at(x,L3) ≡ \at(x,L3); */ ;
+  return;
+}
+
+void h(void)
+{
+  L1: /*@ ensures \at(x,L1) ≡ \at(x,L1); */
+  L3: ;
+  /*@ assert \at(x,L1) ≡ \at(x,L1); */ ;
+  /*@ assert \at(x,L3) ≡ \at(x,L3); */ ;
   return;
 }
 

@@ -1,0 +1,271 @@
+[kernel] Parsing tests/libc/stdio_c.c (with preprocessing)
+[eva] Analyzing a complete application starting at main
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
+  
+[eva] computing for function fopen <- main.
+  Called from tests/libc/stdio_c.c:11.
+[eva] using specification for function fopen
+[eva] tests/libc/stdio_c.c:11: 
+  function fopen: precondition 'valid_filename' got status valid.
+[eva] tests/libc/stdio_c.c:11: 
+  function fopen: precondition 'valid_mode' got status valid.
+[eva] Done for function fopen
+[eva] computing for function getline <- main.
+  Called from tests/libc/stdio_c.c:13.
+[eva] computing for function ferror <- getline <- main.
+  Called from share/libc/stdio.c:46.
+[eva] using specification for function ferror
+[eva] Done for function ferror
+[eva] computing for function feof <- getline <- main.
+  Called from share/libc/stdio.c:46.
+[eva] using specification for function feof
+[eva] Done for function feof
+[eva] share/libc/stdio.c:51: Call to builtin malloc
+[eva] share/libc/stdio.c:51: allocating variable __malloc_getline_l51
+[eva] computing for function ferror <- getline <- main.
+  Called from share/libc/stdio.c:60.
+[eva] Done for function ferror
+[eva] computing for function feof <- getline <- main.
+  Called from share/libc/stdio.c:60.
+[eva] Done for function feof
+[eva] computing for function fgetc <- getline <- main.
+  Called from share/libc/stdio.c:62.
+[eva] using specification for function fgetc
+[eva] share/libc/stdio.c:62: 
+  function fgetc: precondition 'valid_stream' got status valid.
+[eva] Done for function fgetc
+[eva:alarm] share/libc/stdio.c:68: Warning: 
+  out of bounds write. assert \valid(*lineptr + tmp_2);
+                       (tmp_2 from cur++)
+[eva] share/libc/stdio.c:61: starting to merge loop iterations
+[eva] computing for function fgetc <- getline <- main.
+  Called from share/libc/stdio.c:62.
+[eva] Done for function fgetc
+[eva] share/libc/stdio.c:82: Call to builtin realloc
+[eva] share/libc/stdio.c:82: 
+  function realloc: precondition 'freeable' got status valid.
+[eva] share/libc/stdio.c:82: allocating variable __realloc_getline_l82
+[eva] share/libc/stdio.c:60: starting to merge loop iterations
+[eva] computing for function ferror <- getline <- main.
+  Called from share/libc/stdio.c:60.
+[eva] Done for function ferror
+[eva] computing for function feof <- getline <- main.
+  Called from share/libc/stdio.c:60.
+[eva] Done for function feof
+[eva] computing for function fgetc <- getline <- main.
+  Called from share/libc/stdio.c:62.
+[eva] Done for function fgetc
+[eva] computing for function fgetc <- getline <- main.
+  Called from share/libc/stdio.c:62.
+[eva] Done for function fgetc
+[eva] share/libc/stdio.c:82: Call to builtin realloc
+[eva] computing for function ferror <- getline <- main.
+  Called from share/libc/stdio.c:60.
+[eva] Done for function ferror
+[eva] computing for function feof <- getline <- main.
+  Called from share/libc/stdio.c:60.
+[eva] Done for function feof
+[eva] computing for function fgetc <- getline <- main.
+  Called from share/libc/stdio.c:62.
+[eva] Done for function fgetc
+[eva] computing for function fgetc <- getline <- main.
+  Called from share/libc/stdio.c:62.
+[eva] Done for function fgetc
+[eva] share/libc/stdio.c:82: Call to builtin realloc
+[eva] computing for function ferror <- getline <- main.
+  Called from share/libc/stdio.c:60.
+[eva] Done for function ferror
+[eva] computing for function feof <- getline <- main.
+  Called from share/libc/stdio.c:60.
+[eva] Done for function feof
+[eva] computing for function fgetc <- getline <- main.
+  Called from share/libc/stdio.c:62.
+[eva] Done for function fgetc
+[eva] computing for function fgetc <- getline <- main.
+  Called from share/libc/stdio.c:62.
+[eva] Done for function fgetc
+[eva] share/libc/stdio.c:82: Call to builtin realloc
+[eva] computing for function ferror <- getline <- main.
+  Called from share/libc/stdio.c:60.
+[eva] Done for function ferror
+[eva] computing for function feof <- getline <- main.
+  Called from share/libc/stdio.c:60.
+[eva] Done for function feof
+[eva] computing for function fgetc <- getline <- main.
+  Called from share/libc/stdio.c:62.
+[eva] Done for function fgetc
+[eva] computing for function fgetc <- getline <- main.
+  Called from share/libc/stdio.c:62.
+[eva] Done for function fgetc
+[eva] share/libc/stdio.c:82: Call to builtin realloc
+[eva] computing for function ferror <- getline <- main.
+  Called from share/libc/stdio.c:60.
+[eva] Done for function ferror
+[eva] computing for function feof <- getline <- main.
+  Called from share/libc/stdio.c:60.
+[eva] Done for function feof
+[eva:alarm] share/libc/stdio.c:71: Warning: 
+  out of bounds write. assert \valid(*lineptr + cur);
+[eva] Recording results for getline
+[eva] Done for function getline
+[eva:alarm] tests/libc/stdio_c.c:14: Warning: 
+  assertion 'read_ok' got status unknown.
+[eva] tests/libc/stdio_c.c:15: Call to builtin strlen
+[eva:alarm] tests/libc/stdio_c.c:15: Warning: 
+  function strlen: precondition 'valid_string_s' got status unknown.
+[eva:alarm] tests/libc/stdio_c.c:16: Warning: 
+  assertion 'read_bytes' got status unknown.
+[eva:alarm] tests/libc/stdio_c.c:17: Warning: 
+  assertion 'allocated_enough' got status unknown.
+[eva] tests/libc/stdio_c.c:13: starting to merge loop iterations
+[eva] computing for function getline <- main.
+  Called from tests/libc/stdio_c.c:13.
+[eva] computing for function ferror <- getline <- main.
+  Called from share/libc/stdio.c:46.
+[eva] Done for function ferror
+[eva] computing for function feof <- getline <- main.
+  Called from share/libc/stdio.c:46.
+[eva] Done for function feof
+[eva] share/libc/stdio.c:51: Call to builtin malloc
+[eva] computing for function ferror <- getline <- main.
+  Called from share/libc/stdio.c:60.
+[eva] Done for function ferror
+[eva] computing for function feof <- getline <- main.
+  Called from share/libc/stdio.c:60.
+[eva] Done for function feof
+[eva] computing for function fgetc <- getline <- main.
+  Called from share/libc/stdio.c:62.
+[eva] Done for function fgetc
+[eva] computing for function fgetc <- getline <- main.
+  Called from share/libc/stdio.c:62.
+[eva] Done for function fgetc
+[eva] computing for function fgetc <- getline <- main.
+  Called from share/libc/stdio.c:62.
+[eva] Done for function fgetc
+[eva] computing for function fgetc <- getline <- main.
+  Called from share/libc/stdio.c:62.
+[eva] Done for function fgetc
+[eva] share/libc/stdio.c:82: Call to builtin realloc
+[eva] computing for function ferror <- getline <- main.
+  Called from share/libc/stdio.c:60.
+[eva] Done for function ferror
+[eva] computing for function feof <- getline <- main.
+  Called from share/libc/stdio.c:60.
+[eva] Done for function feof
+[eva] Recording results for getline
+[eva] Done for function getline
+[eva] tests/libc/stdio_c.c:15: Call to builtin strlen
+[eva] computing for function getline <- main.
+  Called from tests/libc/stdio_c.c:13.
+[eva] computing for function ferror <- getline <- main.
+  Called from share/libc/stdio.c:46.
+[eva] Done for function ferror
+[eva] computing for function feof <- getline <- main.
+  Called from share/libc/stdio.c:46.
+[eva] Done for function feof
+[eva] share/libc/stdio.c:51: Call to builtin malloc
+[eva] computing for function ferror <- getline <- main.
+  Called from share/libc/stdio.c:60.
+[eva] Done for function ferror
+[eva] computing for function feof <- getline <- main.
+  Called from share/libc/stdio.c:60.
+[eva] Done for function feof
+[eva] computing for function fgetc <- getline <- main.
+  Called from share/libc/stdio.c:62.
+[eva] Done for function fgetc
+[eva] computing for function fgetc <- getline <- main.
+  Called from share/libc/stdio.c:62.
+[eva] Done for function fgetc
+[eva] computing for function fgetc <- getline <- main.
+  Called from share/libc/stdio.c:62.
+[eva] Done for function fgetc
+[eva] computing for function fgetc <- getline <- main.
+  Called from share/libc/stdio.c:62.
+[eva] Done for function fgetc
+[eva] share/libc/stdio.c:82: Call to builtin realloc
+[eva] computing for function ferror <- getline <- main.
+  Called from share/libc/stdio.c:60.
+[eva] Done for function ferror
+[eva] computing for function feof <- getline <- main.
+  Called from share/libc/stdio.c:60.
+[eva] Done for function feof
+[eva] Recording results for getline
+[eva] Done for function getline
+[eva] tests/libc/stdio_c.c:15: Call to builtin strlen
+[eva] computing for function getline <- main.
+  Called from tests/libc/stdio_c.c:13.
+[eva] computing for function ferror <- getline <- main.
+  Called from share/libc/stdio.c:46.
+[eva] Done for function ferror
+[eva] computing for function feof <- getline <- main.
+  Called from share/libc/stdio.c:46.
+[eva] Done for function feof
+[eva] share/libc/stdio.c:51: Call to builtin malloc
+[eva] computing for function ferror <- getline <- main.
+  Called from share/libc/stdio.c:60.
+[eva] Done for function ferror
+[eva] computing for function feof <- getline <- main.
+  Called from share/libc/stdio.c:60.
+[eva] Done for function feof
+[eva] computing for function fgetc <- getline <- main.
+  Called from share/libc/stdio.c:62.
+[eva] Done for function fgetc
+[eva] computing for function fgetc <- getline <- main.
+  Called from share/libc/stdio.c:62.
+[eva] Done for function fgetc
+[eva] computing for function fgetc <- getline <- main.
+  Called from share/libc/stdio.c:62.
+[eva] Done for function fgetc
+[eva] computing for function fgetc <- getline <- main.
+  Called from share/libc/stdio.c:62.
+[eva] Done for function fgetc
+[eva] share/libc/stdio.c:82: Call to builtin realloc
+[eva] computing for function ferror <- getline <- main.
+  Called from share/libc/stdio.c:60.
+[eva] Done for function ferror
+[eva] computing for function feof <- getline <- main.
+  Called from share/libc/stdio.c:60.
+[eva] Done for function feof
+[eva] Recording results for getline
+[eva] Done for function getline
+[eva] tests/libc/stdio_c.c:15: Call to builtin strlen
+[eva] tests/libc/stdio_c.c:19: Call to builtin free
+[eva] tests/libc/stdio_c.c:19: 
+  function free: precondition 'freeable' got status valid.
+[eva] computing for function fclose <- main.
+  Called from tests/libc/stdio_c.c:20.
+[eva] using specification for function fclose
+[eva] tests/libc/stdio_c.c:20: 
+  function fclose: precondition 'valid_stream' got status valid.
+[eva] Done for function fclose
+[eva] Recording results for main
+[eva] done for function main
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function getline:
+  __fc_heap_status ∈ [--..--]
+  __fc_errno ∈ [--..--]
+  __fc_fopen[0..15] ∈ [--..--]
+  cur ∈ [0..2147483647]
+  line ∈
+      {{ NULL ; &__malloc_w_getline_l51[0] ; &__realloc_w_getline_l82[0] }}
+  len ∈ [0..2147483647]
+  __retres ∈ [-1..2147483646]
+  __malloc_w_getline_l51[0..1] ∈ [--..--] or UNINITIALIZED
+  __realloc_w_getline_l82[0..2147483645] ∈ [--..--] or UNINITIALIZED
+                         [2147483646] ∈ {0} or UNINITIALIZED
+[eva:final-states] Values at end of function main:
+  __fc_heap_status ∈ [--..--]
+  __fc_errno ∈ [--..--]
+  __fc_fopen[0..15] ∈ [--..--]
+  stream ∈ {{ NULL ; &__fc_fopen + [0..120],0%8 }}
+  line ∈
+      {{ NULL ; &__malloc_w_getline_l51[0] ; &__realloc_w_getline_l82[0] }} or ESCAPINGADDR
+  len ∈ [0..2147483647]
+  total_len ∈ [--..--]
+  read ∈ {-1} or UNINITIALIZED
+  __retres ∈ {0; 1}
+  __malloc_w_getline_l51[0..1] ∈ [--..--] or UNINITIALIZED
+  __realloc_w_getline_l82[0..2147483645] ∈ [--..--] or UNINITIALIZED
+                         [2147483646] ∈ {0} or UNINITIALIZED

@@ -1,11 +1,10 @@
 [kernel] Parsing tests/value/context_free.i (no preprocessing)
-[value] Analyzing an incomplete application starting at f
-[value] Computing initial state
-[value:initial-state] 
-  creating variable S_p_svoid with imprecise size (type void)
-[value:initial-state] creating variable S_qvoid with imprecise size (type void)
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing an incomplete application starting at f
+[eva] Computing initial state
+[eva:initial-state] creating variable S_p_svoid with imprecise size (type void)
+[eva:initial-state] creating variable S_qvoid with imprecise size (type void)
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   a ∈ [--..--]
   b ∈ [--..--]
   c ∈ [--..--]
@@ -74,48 +73,46 @@
   S_p_svoid[bits 0 to ..] ∈
            {{ garbled mix of &{S_p_svoid} (origin: Well) }}
   S_qvoid[bits 0 to ..] ∈ {{ garbled mix of &{S_qvoid} (origin: Well) }}
-[value:initial-state] 
-  creating variable S_0_S_vvv with imprecise size (type void)
-[value:initial-state] 
-  creating variable S_1_S_vvv with imprecise size (type void)
-[value:initial-state] creating variable S_vv with imprecise size (type void)
-[value:alarm] tests/value/context_free.i:46: Warning: 
+[eva:initial-state] creating variable S_0_S_vvv with imprecise size (type void)
+[eva:initial-state] creating variable S_1_S_vvv with imprecise size (type void)
+[eva:initial-state] creating variable S_vv with imprecise size (type void)
+[eva:alarm] tests/value/context_free.i:46: Warning: 
   out of bounds write. assert \valid(p);
-[value] tests/value/context_free.i:51: 
+[eva] tests/value/context_free.i:51: 
   Assigning imprecise value to vv.
   The imprecision originates from Well
-[value:alarm] tests/value/context_free.i:52: Warning: 
+[eva:alarm] tests/value/context_free.i:52: Warning: 
   out of bounds write. assert \valid(vvv);
-[value] tests/value/context_free.i:52: 
+[eva] tests/value/context_free.i:52: 
   Assigning imprecise value to *vvv (pointing to S_vvv with offsets {0}).
   The imprecision originates from Well
-[value] tests/value/context_free.i:54: 
+[eva] tests/value/context_free.i:54: 
   Assigning imprecise value to uu.u1.
   The imprecision originates from Well
-[value:alarm] tests/value/context_free.i:56: Warning: 
+[eva:alarm] tests/value/context_free.i:56: Warning: 
   out of bounds write. assert \valid(ta + 1);
-[value] tests/value/context_free.i:58: 
+[eva] tests/value/context_free.i:58: 
   Assigning imprecise value to pvoid.
   The imprecision originates from Well
-[value:alarm] tests/value/context_free.i:59: Warning: 
+[eva:alarm] tests/value/context_free.i:59: Warning: 
   out of bounds write. assert \valid(pvoid);
-[value] tests/value/context_free.i:60: 
+[eva] tests/value/context_free.i:60: 
   Assigning imprecise value to pvoid.
   The imprecision originates from Well
-[value:alarm] tests/value/context_free.i:61: Warning: 
+[eva:alarm] tests/value/context_free.i:61: Warning: 
   out of bounds write. assert \valid(pvoid);
-[value] tests/value/context_free.i:61: 
+[eva] tests/value/context_free.i:61: 
   Assigning imprecise value to *pvoid
   (pointing to S_qvoid with offsets [0..34359738360],0%8).
   The imprecision originates from Arithmetic {tests/value/context_free.i:61}
-[value:alarm] tests/value/context_free.i:62: Warning: 
+[eva:alarm] tests/value/context_free.i:62: Warning: 
   pointer to function with incompatible type. assert \valid_function(g);
-[value] Recording results for f
-[value] done for function f
-[value] tests/value/context_free.i:62: 
-  assertion 'Value,function_pointer' got final status invalid.
-[value] ====== VALUES COMPUTED ======
-[value:final-states] Values at end of function f:
+[eva] Recording results for f
+[eva] done for function f
+[eva] tests/value/context_free.i:62: 
+  assertion 'Eva,function_pointer' got final status invalid.
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function f:
   a ∈ [--..--]
   b ∈ [--..--]
   t.s1 ∈ [--..--]

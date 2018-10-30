@@ -10,8 +10,6 @@ int main(void)
   int i;
   int t[10];
   i = 0;
-  /*@ behavior pre_f:
-        assigns t[i]; */
   t[i] = f();
   __retres = 0;
   return __retres;

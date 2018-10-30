@@ -2,16 +2,15 @@
 [kernel:parser:decimal-float] tests/float/const2.i:1: Warning: 
   Floating-point constant 1e-40f is not represented exactly. Will use 0x1.16c2000000000p-133.
   (warn-once: no further messages from category 'parser:decimal-float' will be emitted)
-[value] Analyzing a complete application starting at main
-[value] Computing initial state
-[value:alarm] tests/float/const2.i:2: Warning: 
+[eva] Analyzing a complete application starting at main
+[eva] Computing initial state
+[eva:alarm] tests/float/const2.i:2: Warning: 
   non-finite float value. assert \is_finite(1e40f);
-[value] tests/float/const2.i:2: Warning: 
-  evaluation of initializer '1e40f' failed
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] tests/float/const2.i:2: Warning: evaluation of initializer '1e40f' failed
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   NOT ACCESSIBLE
-[value] Value analysis not started because globals initialization is not computable.
+[eva] Eva not started because globals initialization is not computable.
 [from] ====== DEPENDENCIES COMPUTED ======
   These dependencies hold at termination for the executions that terminate:
 [from] ====== END OF DEPENDENCIES ======

@@ -125,13 +125,14 @@ let parse_file input =
   if input.token <> EOF then failwith "unexpected end-of-file" ;
   content
 
-exception Error of string * int * string
+exception Error of Filepath.Normalized.t * int * string
 
 let error lexbuf msg =
   let open Lexing in
   let position = Lexing.lexeme_start_p lexbuf in
   let token = Lexing.lexeme lexbuf in
-  Error(position.pos_fname,position.pos_lnum,
+  let path = Filepath.Normalized.of_string position.pos_fname in
+  Error(path,position.pos_lnum,
         Printf.sprintf "%s (at %S)" msg token)
 
 let load_lexbuf lexbuf =

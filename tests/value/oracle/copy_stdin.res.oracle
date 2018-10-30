@@ -1,19 +1,19 @@
 [kernel] Parsing tests/value/copy_stdin.i (no preprocessing)
-[value] Analyzing a complete application starting at main
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing a complete application starting at main
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   
-[value] computing for function leaf <- main.
+[eva] computing for function leaf <- main.
   Called from tests/value/copy_stdin.i:4.
 [kernel:annot:missing-spec] tests/value/copy_stdin.i:4: Warning: 
   Neither code nor specification for function leaf, generating default assigns from the prototype
-[value] using specification for function leaf
-[value] Done for function leaf
-[value] Recording results for main
-[value] done for function main
-[value] ====== VALUES COMPUTED ======
-[value:final-states] Values at end of function main:
+[eva] using specification for function leaf
+[eva] Done for function leaf
+[eva] Recording results for main
+[eva] done for function main
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function main:
   stdin ∈ [--..--]
   toto ∈ [--..--]
 [from] Computing for function main

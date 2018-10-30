@@ -145,10 +145,17 @@ Definition eqmem {a:Type} {a_WT:WhyType a} (m1:(map.Map.map addr a))
   (m2:(map.Map.map addr a)) (p:addr) (a1:Z): Prop := forall (q:addr),
   (included q 1%Z p a1) -> ((map.Map.get m1 q) = (map.Map.get m2 q)).
 
-(* Why3 assumption *)
-Definition havoc {a:Type} {a_WT:WhyType a} (m1:(map.Map.map addr a))
-  (m2:(map.Map.map addr a)) (p:addr) (a1:Z): Prop := forall (q:addr),
-  (separated q 1%Z p a1) -> ((map.Map.get m1 q) = (map.Map.get m2 q)).
+(* Why3 goal *)
+Definition havoc: forall {a:Type} {a_WT:WhyType a}, (map.Map.map addr a) ->
+  (map.Map.map addr a) -> addr -> Z -> (map.Map.map addr a).
+Admitted.
+
+Definition fhavoc {A : Type}
+  (m : farray addr A)
+  (w : farray addr A) (p:addr) (n:Z) : (farray addr A) :=
+  {| whytype1 := whytype1 m;
+     whytype2 := whytype2 m;
+     access := @havoc _ (whytype2 m) m w p n |}.
 
 (* Why3 assumption *)
 Definition valid_rw (m:(map.Map.map Z Z)) (p:addr) (n:Z): Prop :=
@@ -309,9 +316,13 @@ Proof.
 Admitted.
 
 (* Why3 goal *)
-Lemma havoc_sym : forall {a:Type} {a_WT:WhyType a}, forall (m1:(map.Map.map
-  addr a)) (m2:(map.Map.map addr a)), forall (p:addr), forall (a1:Z), (havoc
-  m1 m2 p a1) -> (havoc m2 m1 p a1).
+Lemma havoc_access : forall {a:Type} {a_WT:WhyType a},
+  forall (m0:(map.Map.map addr a)) (m1:(map.Map.map addr a)), forall (q:addr)
+  (p:addr), forall (a1:Z), ((separated q 1%Z p a1) -> ((map.Map.get (havoc m0
+  m1 p a1) q) = (map.Map.get m1 q))) /\ ((~ (separated q 1%Z p a1)) ->
+  ((map.Map.get (havoc m0 m1 p a1) q) = (map.Map.get m0 q))).
+Proof.
+  intros a a_WT m0 m1 q p a1.
 Admitted.
 
 (* Why3 goal *)
@@ -320,6 +331,14 @@ Admitted.
 
 (* Why3 goal *)
 Definition addr_of_int: Z -> addr.
+Admitted.
+
+(* Why3 goal *)
+Definition base_offset: Z -> Z.
+Admitted.
+
+(* Why3 goal *)
+Definition base_index: Z -> Z.
 Admitted.
 
 (* Why3 goal *)
@@ -334,5 +353,18 @@ Admitted.
 
 (* Why3 goal *)
 Lemma addr_of_null : ((int_of_addr null) = 0%Z).
+Admitted.
+
+(* Why3 goal *)
+Lemma base_offset_zero : ((base_offset 0%Z) = 0%Z).
+Admitted.
+
+(* Why3 goal *)
+Lemma base_offset_inj : forall (i:Z), ((base_index (base_offset i)) = i).
+Admitted.
+
+(* Why3 goal *)
+Lemma base_offset_monotonic : forall (i:Z) (j:Z), (i < j)%Z ->
+  ((base_offset i) < (base_offset j))%Z.
 Admitted.
 

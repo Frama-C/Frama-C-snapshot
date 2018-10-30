@@ -1,21 +1,21 @@
 [kernel] Parsing tests/misc/char_ampamp.c (with preprocessing)
-[value] Analyzing a complete application starting at main
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing a complete application starting at main
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   c ∈ {1}
   y ∈ {0}
-[value] computing for function g <- main.
+[eva] computing for function g <- main.
   Called from tests/misc/char_ampamp.c:12.
-[value] tests/misc/char_ampamp.c:6: Frama_C_show_each_x: {1}
-[value] Recording results for g
-[value] Done for function g
-[value] Recording results for main
-[value] done for function main
-[value] ====== VALUES COMPUTED ======
-[value:final-states] Values at end of function g:
+[eva] tests/misc/char_ampamp.c:6: Frama_C_show_each_x: {1}
+[eva] Recording results for g
+[eva] Done for function g
+[eva] Recording results for main
+[eva] done for function main
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function g:
   
-[value:final-states] Values at end of function main:
+[eva:final-states] Values at end of function main:
   y ∈ {1}
   __retres ∈ {0}
 [from] Computing for function g

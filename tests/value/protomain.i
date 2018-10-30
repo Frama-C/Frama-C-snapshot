@@ -1,4 +1,4 @@
 /* run.config*
-   OPT: -no-autoload-plugins -load-module inout,value -val @VALUECONFIG@
+   OPT: -no-autoload-plugins -load-module inout,eva -val @VALUECONFIG@
 */
 int main(int c, char **);

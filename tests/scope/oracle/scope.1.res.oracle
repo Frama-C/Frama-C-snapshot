@@ -1,15 +1,14 @@
 [kernel] Parsing tests/scope/scope.c (with preprocessing)
-[value] Analyzing a complete application starting at f2
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
-  Frama_C_entropy_source ∈ [--..--]
+[eva] Analyzing a complete application starting at f2
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   S1 ∈ {0}
   S2 ∈ {0}
   T[0..99] ∈ {0}
-[value] Recording results for f2
-[value] done for function f2
-[value] ====== VALUES COMPUTED ======
-[value:final-states] Values at end of function f2:
+[eva] Recording results for f2
+[eva] done for function f2
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function f2:
   x ∈ {1; 2}
   y ∈ {3; 4}

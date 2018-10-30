@@ -24,12 +24,10 @@
     The interfaces of this module may change between
     Frama-C versions. Contact us if you need stable APIs. *)
 
-open Abstract_interp
-
-
-type kind =
-  | Float32 (** 32 bits float (a.k.a 'float' C type) *)
-  | Float64 (** 64 bits float (a.k.a 'double' C type) *)
+type kind = Float_sig.prec =
+  | Single (** 32 bits float (a.k.a 'float' C type) *)
+  | Double (** 64 bits float (a.k.a 'double' C type) *)
+  | Long_Double
   | Real    (** set of real *)
 
 val pretty_kind: Format.formatter -> kind -> unit
@@ -62,69 +60,21 @@ module F : sig
       floats. Returns -infty on -MAX_FLT. Infinities are left unchanged. *)
 end
 
-type t
-val packed_descr : Structural_descr.pack
-
-val top_finite : kind -> t
+include Float_interval_sig.S with type float := F.t
 
 val round_to_single_precision_float : t -> t
-
-val bits_of_float64_list : t -> (Int.t * Int.t) list
-val bits_of_float32_list : t -> (Int.t * Int.t) list
-
-
-(** [inject_raw b e] creates an abstract float interval.
-    Does not handle NaN.
-    Does not enlarge subnormals to handle flush-to-zero modes.
-    Only checks that [b <= e], but nothing else.
-*)
-(* val inject_raw : F.t -> F.t -> t *)
 
 (** [inject] creates an abstract float interval. It handles
     infinities, flush-to-zero (rounding subnormals if needed) and NaN.
     Inputs must be compatible with [float_kind]. Raises no exceptions
     (unless values are not compatible with [float_kind], in which case
     execution is aborted). The two floating point numbers must be
-    ordered (so not NaN). [~nan] indicates if NaN is present.
-*)
+    ordered (so not NaN). [~nan] indicates if NaN is present. *)
 val inject : ?nan:bool -> kind -> F.t -> F.t -> t
-
-val nan: t
-(** The NaN singleton *)
 
 val inject_singleton : F.t -> t
 
-(** [has_greater_min_bound f1 f2] returns 1 if the interval [f1] has a better
-    minimum bound (i.e. greater) than the interval [f2]. *)
-val has_greater_min_bound : t -> t -> int
-
-(** [has_smaller_max_bound f1 f2] returns 1 if the interval [f1] has a better
-    maximum bound (i.e. lower) than the interval [f2]. *)
-val has_smaller_max_bound : t -> t -> int
-
-val min_and_max : t -> (F.t * F.t) option * bool
-(** returns the bounds of the float interval, (or None if the argument is
-    exactly NaN), and a boolean indicating the possibility that the value
-    may be NaN. *)
-
-val is_negative : t -> Comp.result
-(** [is_negative f] returns [True] iff all values in [f] are negative;
-    [False] iff all values are positive; and [Unknown] otherwise.
-    Note that we do not keep sign information for NaN, so if [f] may contain
-    NaN, the result is always [Unknown]. *)
-
 val top : t
-val add : kind -> t -> t -> t
-val sub : kind -> t -> t -> t
-val mul : kind -> t -> t -> t
-val div : kind -> t -> t -> t
-
-val compare : t -> t -> int
-val equal : t -> t -> bool
-
-val pretty : Format.formatter -> t -> unit
-
-val hash : t -> int
 
 val plus_zero : t
 val minus_zero : t
@@ -133,25 +83,15 @@ val zeros: t (** Both positive and negative zero *)
 val pi: t (** Real representation of \pi. *)
 val e: t  (** Real representation of \e. *)
 
-val contains_a_zero : t -> bool
 val contains_plus_zero : t -> bool
-val contains_non_zero : t -> bool
 
-val is_included : t -> t -> bool
-val join : t -> t -> t
-val meet : t -> t -> t Bottom.or_bottom
-val narrow : t -> t -> t Bottom.or_bottom
+val meet: t -> t -> t Bottom.or_bottom
 
 val is_singleton : t -> bool
 (** Returns [true] on NaN. We expect this function to be e.g. to perform
     subdivisions/enumerations. The size of the concretization is less
     interesting to us. (And it is also possible to consider that there is
     only one NaN value in the concrete anyway.) *)
-
-val is_finite : t -> Comp.result
-val is_not_nan : t -> Comp.result
-val backward_is_finite : kind -> t -> t Bottom.or_bottom
-val backward_is_not_nan: t -> t Bottom.or_bottom
 
 exception Not_Singleton_Float
 
@@ -161,22 +101,6 @@ val project_float: t -> F.t
 
 val subdiv_float_interval : kind -> t -> t * t
 (** Raise {!Can_not_subdiv} if it can't be subdivided *)
-
-val neg : t -> t
-
-val cos : kind -> t -> t
-val sin : kind -> t -> t
-
-val atan2: kind -> t -> t -> t
-(** Returns atan2(y,x). *)
-
-val pow: kind -> t -> t -> t
-(** Returns pow(x,y). *)
-
-val fmod: kind -> t -> t -> t
-(** Returns fmod(x,y). *)
-
-val sqrt : kind -> t -> t
 
 (** Discussion regarding [kind] and the 3 functions below.
 
@@ -206,22 +130,6 @@ val ceil: kind -> t -> t
 val trunc: kind -> t -> t
 val fround: kind -> t -> t
 
-val widen : t -> t -> t
-
-val forward_comp: Comp.t -> t -> t -> Comp.result
-
-val backward_comp_left_true :
-  Comp.t -> kind -> t -> t -> t Bottom.or_bottom
-(** [backward_comp op allroundingmodes fkind f1 f2] attempts to reduce
-    [f1] into [f1'] so that the relation [f1' op f2] holds. [fkind] is
-    the type of [f1] and [f1'] (not necessarily of [f2]).  *)
-
-val backward_comp_left_false :
-  Comp.t -> kind -> t -> t -> t Bottom.or_bottom
-(** [backward_comp op allroundingmodes fkind f1 f2] attempts to reduce
-    [f1] into [f1'] so that the relation [f1' op f2] doesn't holds. [fkind] is
-    the type of [f1] and [f1'] (not necessarily of [f2]). *)
-
 val backward_cast_float_to_double: t -> t Bottom.or_bottom
 (** [backward_cast_float_to_double d] return all possible float32 [f] such that
     [(double)f = d]. The double of [d] that have no float32 equivalent are
@@ -229,18 +137,6 @@ val backward_cast_float_to_double: t -> t Bottom.or_bottom
 
 val backward_cast_double_to_real: t -> t
 
-val cast_int_to_float: kind -> Int.t option -> Int.t option -> t
-
-val backward_add:
-  kind -> left:t -> right:t -> result:t ->
-  (t * t) Bottom.or_bottom
-
-val backward_sub:
-  kind -> left:t -> right:t -> result:t ->
-  (t * t) Bottom.or_bottom
-
 val kind: Cil_types.fkind -> kind
 (** Classify a [Cil_types.fkind] as either a 32 or 64 floating-point type.
     Long double are over approximated by Reals *)
-
-

@@ -1,0 +1,1161 @@
+[kernel] Parsing tests/builtins/strnlen2.c (with preprocessing)
+[eva] Analyzing a complete application starting at main
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
+  static_str ∈ {{ "Hello World\n" }}
+  zero_str ∈ {{ "abc\000\000\000abc" }}
+  tab_str[0] ∈ {{ "" }}
+         [1] ∈ {{ "a" }}
+         [2] ∈ {{ "aa" }}
+         [3] ∈ {{ "aaa" }}
+         [4] ∈ {{ "aaaa" }}
+         [5] ∈ {{ "aaaaa" }}
+         [6] ∈ {{ "aaaaaa" }}
+         [7] ∈ {{ "aaaaaaaaa" }}
+         [8] ∈ {{ "aaaaaaaaaa" }}
+         [9] ∈ {{ "aaaaaaaaaaa" }}
+         [10] ∈ {{ "aaaaaaaaaaaa" }}
+         [11] ∈ {{ "aaaaaaaaaaaaa" }}
+  unterminated_string[0] ∈ {117}
+                     [1] ∈ {110}
+                     [2] ∈ {116}
+                     [3] ∈ {101}
+                     [4] ∈ {114}
+                     [5] ∈ {109}
+                     [6] ∈ {105}
+                     [7] ∈ {110}
+                     [8] ∈ {97}
+                     [9] ∈ {116}
+                     [10] ∈ {101}
+                     [11] ∈ {100}
+  nondet ∈ [--..--]
+[eva] computing for function small_sets <- main.
+  Called from tests/builtins/strnlen2.c:513.
+[eva] tests/builtins/strnlen2.c:45: Call to builtin strnlen
+[eva] tests/builtins/strnlen2.c:45: 
+  function strnlen: precondition 'valid_string_s' got status valid.
+[eva] tests/builtins/strnlen2.c:46: assertion got status valid.
+[eva] tests/builtins/strnlen2.c:49: Call to builtin strnlen
+[eva] tests/builtins/strnlen2.c:49: 
+  function strnlen: precondition 'valid_string_s' got status valid.
+[eva] tests/builtins/strnlen2.c:50: assertion got status valid.
+[eva] tests/builtins/strnlen2.c:52: Call to builtin strnlen
+[eva] tests/builtins/strnlen2.c:52: 
+  function strnlen: precondition 'valid_string_s' got status valid.
+[eva] tests/builtins/strnlen2.c:53: assertion got status valid.
+[eva] tests/builtins/strnlen2.c:56: Call to builtin strnlen
+[eva] tests/builtins/strnlen2.c:56: 
+  function strnlen: precondition 'valid_string_s' got status valid.
+[eva] tests/builtins/strnlen2.c:57: assertion got status valid.
+[eva] tests/builtins/strnlen2.c:61: Call to builtin strnlen
+[eva] tests/builtins/strnlen2.c:61: 
+  function strnlen: precondition 'valid_string_s' got status valid.
+[eva] tests/builtins/strnlen2.c:62: assertion got status valid.
+[eva] Recording results for small_sets
+[eva] Done for function small_sets
+[eva] computing for function zero_termination <- main.
+  Called from tests/builtins/strnlen2.c:514.
+[eva] tests/builtins/strnlen2.c:68: Call to builtin strnlen
+[eva] tests/builtins/strnlen2.c:68: 
+  function strnlen: precondition 'valid_string_s' got status valid.
+[eva] tests/builtins/strnlen2.c:69: assertion got status valid.
+[eva] tests/builtins/strnlen2.c:73: Call to builtin strnlen
+[eva:alarm] tests/builtins/strnlen2.c:73: Warning: 
+  function strnlen: precondition 'valid_string_s' got status invalid.
+[eva] tests/builtins/strnlen2.c:79: Call to builtin strnlen
+[eva:alarm] tests/builtins/strnlen2.c:79: Warning: 
+  function strnlen: precondition 'valid_string_s' got status unknown.
+[eva] Recording results for zero_termination
+[eva] Done for function zero_termination
+[eva] computing for function initialization <- main.
+  Called from tests/builtins/strnlen2.c:516.
+[eva] tests/builtins/strnlen2.c:85: Call to builtin strnlen
+[eva:alarm] tests/builtins/strnlen2.c:85: Warning: 
+  function strnlen: precondition 'valid_string_s' got status unknown.
+[eva] tests/builtins/strnlen2.c:86: assertion got status valid.
+[eva] tests/builtins/strnlen2.c:89: Call to builtin strnlen
+[eva:alarm] tests/builtins/strnlen2.c:89: Warning: 
+  function strnlen: precondition 'valid_string_s' got status invalid.
+[eva] tests/builtins/strnlen2.c:94: Call to builtin strnlen
+[eva:alarm] tests/builtins/strnlen2.c:94: Warning: 
+  function strnlen: precondition 'valid_string_s' got status unknown.
+[eva] tests/builtins/strnlen2.c:95: assertion got status valid.
+[eva] tests/builtins/strnlen2.c:101: Call to builtin strnlen
+[eva:alarm] tests/builtins/strnlen2.c:101: Warning: 
+  function strnlen: precondition 'valid_string_s' got status unknown.
+[eva] tests/builtins/strnlen2.c:102: assertion got status valid.
+[eva] Recording results for initialization
+[eva] Done for function initialization
+[eva] computing for function large <- main.
+  Called from tests/builtins/strnlen2.c:517.
+[eva] computing for function init_array_nondet <- large <- main.
+  Called from tests/builtins/strnlen2.c:144.
+[eva] tests/builtins/strnlen2.c:138: Call to builtin memset
+[eva] tests/builtins/strnlen2.c:138: 
+  function memset: precondition 'valid_s' got status valid.
+[eva] share/libc/string.h:118: 
+  cannot evaluate ACSL term, unsupported ACSL construct: logic function memset
+[eva] Recording results for init_array_nondet
+[eva] Done for function init_array_nondet
+[eva] computing for function Frama_C_interval <- large <- main.
+  Called from tests/builtins/strnlen2.c:147.
+[eva] using specification for function Frama_C_interval
+[eva] tests/builtins/strnlen2.c:147: 
+  function Frama_C_interval: precondition 'order' got status valid.
+[eva] Done for function Frama_C_interval
+[eva] tests/builtins/strnlen2.c:148: Call to builtin strnlen
+[eva] tests/builtins/strnlen2.c:148: 
+  function strnlen: precondition 'valid_string_s' got status valid.
+[eva] tests/builtins/strnlen2.c:149: assertion got status valid.
+[eva] computing for function Frama_C_interval <- large <- main.
+  Called from tests/builtins/strnlen2.c:151.
+[eva] tests/builtins/strnlen2.c:151: 
+  function Frama_C_interval: precondition 'order' got status valid.
+[eva] Done for function Frama_C_interval
+[eva] tests/builtins/strnlen2.c:152: Call to builtin strnlen
+[eva] tests/builtins/strnlen2.c:152: 
+  function strnlen: precondition 'valid_string_s' got status valid.
+[eva] tests/builtins/strnlen2.c:153: assertion got status valid.
+[eva] computing for function Frama_C_interval <- large <- main.
+  Called from tests/builtins/strnlen2.c:155.
+[eva] tests/builtins/strnlen2.c:155: 
+  function Frama_C_interval: precondition 'order' got status valid.
+[eva] Done for function Frama_C_interval
+[eva] tests/builtins/strnlen2.c:156: Call to builtin strnlen
+[eva] tests/builtins/strnlen2.c:156: 
+  function strnlen: precondition 'valid_string_s' got status valid.
+[eva] tests/builtins/strnlen2.c:157: assertion got status valid.
+[eva] computing for function Frama_C_interval <- large <- main.
+  Called from tests/builtins/strnlen2.c:159.
+[eva] tests/builtins/strnlen2.c:159: 
+  function Frama_C_interval: precondition 'order' got status valid.
+[eva] Done for function Frama_C_interval
+[eva] tests/builtins/strnlen2.c:160: Call to builtin strnlen
+[eva:alarm] tests/builtins/strnlen2.c:160: Warning: 
+  function strnlen: precondition 'valid_string_s' got status unknown.
+[eva] tests/builtins/strnlen2.c:161: assertion got status valid.
+[eva] computing for function init_array_nondet <- large <- main.
+  Called from tests/builtins/strnlen2.c:163.
+[eva] tests/builtins/strnlen2.c:138: Call to builtin memset
+[eva] Recording results for init_array_nondet
+[eva] Done for function init_array_nondet
+[eva] computing for function Frama_C_interval <- large <- main.
+  Called from tests/builtins/strnlen2.c:164.
+[eva] tests/builtins/strnlen2.c:164: 
+  function Frama_C_interval: precondition 'order' got status valid.
+[eva] Done for function Frama_C_interval
+[eva] tests/builtins/strnlen2.c:165: Call to builtin strnlen
+[eva:alarm] tests/builtins/strnlen2.c:165: Warning: 
+  function strnlen: precondition 'valid_string_s' got status unknown.
+[eva] tests/builtins/strnlen2.c:166: assertion got status valid.
+[eva] Recording results for large
+[eva] Done for function large
+[eva] computing for function large_uninit <- main.
+  Called from tests/builtins/strnlen2.c:518.
+[eva] computing for function init_array_nondet <- large_uninit <- main.
+  Called from tests/builtins/strnlen2.c:171.
+[eva] tests/builtins/strnlen2.c:138: Call to builtin memset
+[eva] Recording results for init_array_nondet
+[eva] Done for function init_array_nondet
+[eva] computing for function init_array_nondet <- large_uninit <- main.
+  Called from tests/builtins/strnlen2.c:172.
+[eva] tests/builtins/strnlen2.c:138: Call to builtin memset
+[eva] Recording results for init_array_nondet
+[eva] Done for function init_array_nondet
+[eva] computing for function Frama_C_interval <- large_uninit <- main.
+  Called from tests/builtins/strnlen2.c:176.
+[eva] tests/builtins/strnlen2.c:176: 
+  function Frama_C_interval: precondition 'order' got status valid.
+[eva] Done for function Frama_C_interval
+[eva] tests/builtins/strnlen2.c:177: Call to builtin strnlen
+[eva:alarm] tests/builtins/strnlen2.c:177: Warning: 
+  function strnlen: precondition 'valid_string_s' got status unknown.
+[eva] tests/builtins/strnlen2.c:178: assertion got status valid.
+[eva] computing for function Frama_C_interval <- large_uninit <- main.
+  Called from tests/builtins/strnlen2.c:181.
+[eva] tests/builtins/strnlen2.c:181: 
+  function Frama_C_interval: precondition 'order' got status valid.
+[eva] Done for function Frama_C_interval
+[eva] tests/builtins/strnlen2.c:182: Call to builtin strnlen
+[eva:alarm] tests/builtins/strnlen2.c:182: Warning: 
+  function strnlen: precondition 'valid_string_s' got status unknown.
+[eva] tests/builtins/strnlen2.c:183: assertion got status valid.
+[eva] computing for function Frama_C_interval <- large_uninit <- main.
+  Called from tests/builtins/strnlen2.c:185.
+[eva] tests/builtins/strnlen2.c:185: 
+  function Frama_C_interval: precondition 'order' got status valid.
+[eva] Done for function Frama_C_interval
+[eva] tests/builtins/strnlen2.c:186: Call to builtin strnlen
+[eva:alarm] tests/builtins/strnlen2.c:186: Warning: 
+  function strnlen: precondition 'valid_string_s' got status unknown.
+[eva] tests/builtins/strnlen2.c:187: assertion got status valid.
+[eva] Recording results for large_uninit
+[eva] Done for function large_uninit
+[eva] computing for function misc <- main.
+  Called from tests/builtins/strnlen2.c:519.
+[eva] tests/builtins/strnlen2.c:215: Call to builtin strnlen
+[eva:alarm] tests/builtins/strnlen2.c:215: Warning: 
+  function strnlen: precondition 'valid_string_s' got status invalid.
+[eva] tests/builtins/strnlen2.c:218: Call to builtin strnlen
+[eva] tests/builtins/strnlen2.c:218: 
+  function strnlen: precondition 'valid_string_s' got status valid.
+[eva] tests/builtins/strnlen2.c:219: assertion got status valid.
+[eva] tests/builtins/strnlen2.c:222: Call to builtin strnlen
+[eva:alarm] tests/builtins/strnlen2.c:222: Warning: 
+  function strnlen: precondition 'valid_string_s' got status unknown.
+[eva] tests/builtins/strnlen2.c:223: assertion got status valid.
+[eva] computing for function Frama_C_interval <- misc <- main.
+  Called from tests/builtins/strnlen2.c:224.
+[eva] tests/builtins/strnlen2.c:224: 
+  function Frama_C_interval: precondition 'order' got status valid.
+[eva] Done for function Frama_C_interval
+[eva] tests/builtins/strnlen2.c:226: Call to builtin strnlen
+[eva] tests/builtins/strnlen2.c:226: 
+  function strnlen: precondition 'valid_string_s' got status valid.
+[eva] tests/builtins/strnlen2.c:227: assertion got status valid.
+[eva] tests/builtins/strnlen2.c:229: Call to builtin strnlen
+[eva:alarm] tests/builtins/strnlen2.c:229: Warning: 
+  function strnlen: precondition 'valid_string_s' got status invalid.
+[eva] tests/builtins/strnlen2.c:230: Call to builtin strnlen
+[eva] tests/builtins/strnlen2.c:230: 
+  function strnlen: precondition 'valid_string_s' got status valid.
+[eva] tests/builtins/strnlen2.c:231: assertion got status valid.
+[eva] tests/builtins/strnlen2.c:234: Call to builtin strnlen
+[eva] tests/builtins/strnlen2.c:234: 
+  function strnlen: precondition 'valid_string_s' got status valid.
+[eva] tests/builtins/strnlen2.c:235: assertion got status valid.
+[eva] tests/builtins/strnlen2.c:239: Call to builtin strnlen
+[eva] tests/builtins/strnlen2.c:239: 
+  function strnlen: precondition 'valid_string_s' got status valid.
+[eva] tests/builtins/strnlen2.c:240: assertion got status valid.
+[eva] tests/builtins/strnlen2.c:244: Call to builtin strnlen
+[eva] tests/builtins/strnlen2.c:244: 
+  function strnlen: precondition 'valid_string_s' got status valid.
+[eva] tests/builtins/strnlen2.c:245: assertion got status valid.
+[eva] tests/builtins/strnlen2.c:243: starting to merge loop iterations
+[eva] tests/builtins/strnlen2.c:244: Call to builtin strnlen
+[eva] tests/builtins/strnlen2.c:244: Call to builtin strnlen
+[eva] tests/builtins/strnlen2.c:244: Call to builtin strnlen
+[eva] tests/builtins/strnlen2.c:244: Call to builtin strnlen
+[eva] tests/builtins/strnlen2.c:251: Call to builtin strnlen
+[eva:alarm] tests/builtins/strnlen2.c:251: Warning: 
+  function strnlen: precondition 'valid_string_s' got status unknown.
+[eva] tests/builtins/strnlen2.c:252: assertion got status valid.
+[eva] Recording results for misc
+[eva] Done for function misc
+[eva] computing for function bitfields <- main.
+  Called from tests/builtins/strnlen2.c:520.
+[eva] tests/builtins/strnlen2.c:117: Call to builtin strnlen
+[eva:alarm] tests/builtins/strnlen2.c:117: Warning: 
+  function strnlen: precondition 'valid_string_s' got status invalid.
+[eva] Recording results for bitfields
+[eva] Done for function bitfields
+[eva] computing for function bitfields2 <- main.
+  Called from tests/builtins/strnlen2.c:521.
+[eva] tests/builtins/strnlen2.c:132: Call to builtin strnlen
+[eva] tests/builtins/strnlen2.c:132: 
+  function strnlen: precondition 'valid_string_s' got status valid.
+[eva] tests/builtins/strnlen2.c:133: assertion got status valid.
+[eva] Recording results for bitfields2
+[eva] Done for function bitfields2
+[eva] computing for function escaping <- main.
+  Called from tests/builtins/strnlen2.c:522.
+[eva:locals-escaping] tests/builtins/strnlen2.c:196: Warning: 
+  locals {x} escaping the scope of a block of escaping through s
+[eva] tests/builtins/strnlen2.c:199: Call to builtin strnlen
+[eva] tests/builtins/strnlen2.c:199: 
+  function strnlen: precondition 'valid_string_s' got status valid.
+[eva] tests/builtins/strnlen2.c:200: assertion got status valid.
+[eva] tests/builtins/strnlen2.c:202: Call to builtin strnlen
+[eva] tests/builtins/strnlen2.c:202: 
+  function strnlen: precondition 'valid_string_s' got status valid.
+[eva] tests/builtins/strnlen2.c:203: assertion got status valid.
+[eva] Recording results for escaping
+[eva] Done for function escaping
+[eva] computing for function big_array <- main.
+  Called from tests/builtins/strnlen2.c:523.
+[eva:alarm] tests/builtins/strnlen2.c:261: Warning: 
+  out of bounds write. assert \valid(p);
+[eva:alarm] tests/builtins/strnlen2.c:263: Warning: 
+  out of bounds write. assert \valid(p);
+[eva:alarm] tests/builtins/strnlen2.c:265: Warning: 
+  out of bounds write. assert \valid(p);
+[eva] tests/builtins/strnlen2.c:272: Call to builtin strnlen
+[eva:alarm] tests/builtins/strnlen2.c:272: Warning: 
+  function strnlen: precondition 'valid_string_s' got status unknown.
+[eva] tests/builtins/strnlen2.c:273: Call to builtin strnlen
+[eva:alarm] tests/builtins/strnlen2.c:273: Warning: 
+  function strnlen: precondition 'valid_string_s' got status unknown.
+[eva] tests/builtins/strnlen2.c:274: Call to builtin strnlen
+[eva:alarm] tests/builtins/strnlen2.c:274: Warning: 
+  function strnlen: precondition 'valid_string_s' got status unknown.
+[eva] tests/builtins/strnlen2.c:275: assertion got status valid.
+[eva] tests/builtins/strnlen2.c:276: assertion got status valid.
+[eva] tests/builtins/strnlen2.c:277: assertion got status valid.
+[eva] tests/builtins/strnlen2.c:278: Frama_C_show_each: {1}, {1}, {1}
+[eva] tests/builtins/strnlen2.c:282: Call to builtin strnlen
+[eva:alarm] tests/builtins/strnlen2.c:282: Warning: 
+  function strnlen: precondition 'valid_string_s' got status unknown.
+[eva] tests/builtins/strnlen2.c:283: Call to builtin strnlen
+[eva:alarm] tests/builtins/strnlen2.c:283: Warning: 
+  function strnlen: precondition 'valid_string_s' got status unknown.
+[eva] tests/builtins/strnlen2.c:284: Call to builtin strnlen
+[eva:alarm] tests/builtins/strnlen2.c:284: Warning: 
+  function strnlen: precondition 'valid_string_s' got status unknown.
+[eva] tests/builtins/strnlen2.c:285: assertion got status valid.
+[eva] tests/builtins/strnlen2.c:286: assertion got status valid.
+[eva] tests/builtins/strnlen2.c:287: assertion got status valid.
+[eva] tests/builtins/strnlen2.c:288: Frama_C_show_each: {1}, {1}, {1}
+[eva] computing for function init_array_nondet <- big_array <- main.
+  Called from tests/builtins/strnlen2.c:291.
+[eva] tests/builtins/strnlen2.c:138: Call to builtin memset
+[eva] Recording results for init_array_nondet
+[eva] Done for function init_array_nondet
+[eva] computing for function init_array_nondet <- big_array <- main.
+  Called from tests/builtins/strnlen2.c:292.
+[eva] tests/builtins/strnlen2.c:138: Call to builtin memset
+[eva] Recording results for init_array_nondet
+[eva] Done for function init_array_nondet
+[eva] computing for function init_array_nondet <- big_array <- main.
+  Called from tests/builtins/strnlen2.c:293.
+[eva] tests/builtins/strnlen2.c:138: Call to builtin memset
+[eva] Recording results for init_array_nondet
+[eva] Done for function init_array_nondet
+[eva:alarm] tests/builtins/strnlen2.c:295: Warning: 
+  out of bounds write. assert \valid(p);
+[eva:alarm] tests/builtins/strnlen2.c:297: Warning: 
+  out of bounds write. assert \valid(p);
+[eva:alarm] tests/builtins/strnlen2.c:299: Warning: 
+  out of bounds write. assert \valid(p);
+[eva] tests/builtins/strnlen2.c:300: Call to builtin strnlen
+[eva] tests/builtins/strnlen2.c:300: 
+  function strnlen: precondition 'valid_string_s' got status valid.
+[eva] tests/builtins/strnlen2.c:301: Call to builtin strnlen
+[eva] tests/builtins/strnlen2.c:301: 
+  function strnlen: precondition 'valid_string_s' got status valid.
+[eva] tests/builtins/strnlen2.c:302: Call to builtin strnlen
+[eva] tests/builtins/strnlen2.c:302: 
+  function strnlen: precondition 'valid_string_s' got status valid.
+[eva] tests/builtins/strnlen2.c:303: assertion got status valid.
+[eva] tests/builtins/strnlen2.c:304: assertion got status valid.
+[eva] tests/builtins/strnlen2.c:305: assertion got status valid.
+[eva] tests/builtins/strnlen2.c:306: 
+  Frama_C_show_each: [0..800], [0..804], [0..4000000]
+[eva] tests/builtins/strnlen2.c:308: Call to builtin strnlen
+[eva:alarm] tests/builtins/strnlen2.c:308: Warning: 
+  function strnlen: precondition 'valid_string_s' got status unknown.
+[eva] tests/builtins/strnlen2.c:309: Call to builtin strnlen
+[eva:alarm] tests/builtins/strnlen2.c:309: Warning: 
+  function strnlen: precondition 'valid_string_s' got status unknown.
+[eva] tests/builtins/strnlen2.c:310: Call to builtin strnlen
+[eva:alarm] tests/builtins/strnlen2.c:310: Warning: 
+  function strnlen: precondition 'valid_string_s' got status unknown.
+[eva] tests/builtins/strnlen2.c:311: assertion got status valid.
+[eva] tests/builtins/strnlen2.c:312: assertion got status valid.
+[eva] tests/builtins/strnlen2.c:313: assertion got status valid.
+[eva] tests/builtins/strnlen2.c:314: 
+  Frama_C_show_each: [0..799], [0..803], [0..3999999]
+[eva] Recording results for big_array
+[eva] Done for function big_array
+[eva] computing for function no_zero_but_ok <- main.
+  Called from tests/builtins/strnlen2.c:525.
+[eva] tests/builtins/strnlen2.c:325: Call to builtin strnlen
+[eva] tests/builtins/strnlen2.c:325: 
+  function strnlen: precondition 'valid_string_s' got status valid.
+[eva] tests/builtins/strnlen2.c:326: assertion got status valid.
+[eva] tests/builtins/strnlen2.c:327: Call to builtin strnlen
+[eva] tests/builtins/strnlen2.c:327: 
+  function strnlen: precondition 'valid_string_s' got status valid.
+[eva] tests/builtins/strnlen2.c:328: assertion got status valid.
+[eva] tests/builtins/strnlen2.c:330: Call to builtin strnlen
+[eva] tests/builtins/strnlen2.c:330: 
+  function strnlen: precondition 'valid_string_s' got status valid.
+[eva] tests/builtins/strnlen2.c:331: assertion got status valid.
+[eva] tests/builtins/strnlen2.c:333: Call to builtin strnlen
+[eva] tests/builtins/strnlen2.c:333: 
+  function strnlen: precondition 'valid_string_s' got status valid.
+[eva] tests/builtins/strnlen2.c:334: assertion got status valid.
+[eva] tests/builtins/strnlen2.c:336: Call to builtin strnlen
+[eva:alarm] tests/builtins/strnlen2.c:336: Warning: 
+  function strnlen: precondition 'valid_string_s' got status unknown.
+[eva] tests/builtins/strnlen2.c:337: assertion got status valid.
+[eva] Recording results for no_zero_but_ok
+[eva] Done for function no_zero_but_ok
+[eva] computing for function small_sets_n <- main.
+  Called from tests/builtins/strnlen2.c:526.
+[eva] tests/builtins/strnlen2.c:345: Call to builtin strnlen
+[eva] tests/builtins/strnlen2.c:345: 
+  function strnlen: precondition 'valid_string_s' got status valid.
+[eva] tests/builtins/strnlen2.c:346: assertion got status valid.
+[eva] tests/builtins/strnlen2.c:351: Call to builtin strnlen
+[eva] tests/builtins/strnlen2.c:351: 
+  function strnlen: precondition 'valid_string_s' got status valid.
+[eva] tests/builtins/strnlen2.c:352: assertion got status valid.
+[eva] tests/builtins/strnlen2.c:356: Call to builtin strnlen
+[eva] tests/builtins/strnlen2.c:356: 
+  function strnlen: precondition 'valid_string_s' got status valid.
+[eva] tests/builtins/strnlen2.c:357: assertion got status valid.
+[eva] tests/builtins/strnlen2.c:361: Call to builtin strnlen
+[eva] tests/builtins/strnlen2.c:361: 
+  function strnlen: precondition 'valid_string_s' got status valid.
+[eva] tests/builtins/strnlen2.c:362: assertion got status valid.
+[eva] tests/builtins/strnlen2.c:366: Call to builtin strnlen
+[eva] tests/builtins/strnlen2.c:366: 
+  function strnlen: precondition 'valid_string_s' got status valid.
+[eva] tests/builtins/strnlen2.c:367: assertion got status valid.
+[eva] Recording results for small_sets_n
+[eva] Done for function small_sets_n
+[eva] computing for function large_n <- main.
+  Called from tests/builtins/strnlen2.c:527.
+[eva] computing for function init_array_nondet <- large_n <- main.
+  Called from tests/builtins/strnlen2.c:372.
+[eva] tests/builtins/strnlen2.c:138: Call to builtin memset
+[eva] Recording results for init_array_nondet
+[eva] Done for function init_array_nondet
+[eva] computing for function Frama_C_interval <- large_n <- main.
+  Called from tests/builtins/strnlen2.c:377.
+[eva] tests/builtins/strnlen2.c:377: 
+  function Frama_C_interval: precondition 'order' got status valid.
+[eva] Done for function Frama_C_interval
+[eva] computing for function Frama_C_interval <- large_n <- main.
+  Called from tests/builtins/strnlen2.c:378.
+[eva] tests/builtins/strnlen2.c:378: 
+  function Frama_C_interval: precondition 'order' got status valid.
+[eva] Done for function Frama_C_interval
+[eva] tests/builtins/strnlen2.c:379: Call to builtin strnlen
+[eva] tests/builtins/strnlen2.c:379: 
+  function strnlen: precondition 'valid_string_s' got status valid.
+[eva] tests/builtins/strnlen2.c:380: assertion got status valid.
+[eva] tests/builtins/strnlen2.c:384: Call to builtin strnlen
+[eva] tests/builtins/strnlen2.c:384: 
+  function strnlen: precondition 'valid_string_s' got status valid.
+[eva] tests/builtins/strnlen2.c:385: assertion got status valid.
+[eva] tests/builtins/strnlen2.c:388: Call to builtin strnlen
+[eva] tests/builtins/strnlen2.c:388: 
+  function strnlen: precondition 'valid_string_s' got status valid.
+[eva] tests/builtins/strnlen2.c:389: assertion got status valid.
+[eva] computing for function Frama_C_interval <- large_n <- main.
+  Called from tests/builtins/strnlen2.c:391.
+[eva] tests/builtins/strnlen2.c:391: 
+  function Frama_C_interval: precondition 'order' got status valid.
+[eva] Done for function Frama_C_interval
+[eva] tests/builtins/strnlen2.c:392: Call to builtin strnlen
+[eva] tests/builtins/strnlen2.c:392: 
+  function strnlen: precondition 'valid_string_s' got status valid.
+[eva] tests/builtins/strnlen2.c:393: assertion got status valid.
+[eva] computing for function Frama_C_interval <- large_n <- main.
+  Called from tests/builtins/strnlen2.c:395.
+[eva] tests/builtins/strnlen2.c:395: 
+  function Frama_C_interval: precondition 'order' got status valid.
+[eva] Done for function Frama_C_interval
+[eva] tests/builtins/strnlen2.c:396: Call to builtin strnlen
+[eva] tests/builtins/strnlen2.c:396: 
+  function strnlen: precondition 'valid_string_s' got status valid.
+[eva] tests/builtins/strnlen2.c:397: assertion got status valid.
+[eva] computing for function Frama_C_interval <- large_n <- main.
+  Called from tests/builtins/strnlen2.c:399.
+[eva] tests/builtins/strnlen2.c:399: 
+  function Frama_C_interval: precondition 'order' got status valid.
+[eva] Done for function Frama_C_interval
+[eva] tests/builtins/strnlen2.c:400: Call to builtin strnlen
+[eva] tests/builtins/strnlen2.c:400: 
+  function strnlen: precondition 'valid_string_s' got status valid.
+[eva] tests/builtins/strnlen2.c:401: assertion got status valid.
+[eva] computing for function init_array_nondet <- large_n <- main.
+  Called from tests/builtins/strnlen2.c:403.
+[eva] tests/builtins/strnlen2.c:138: Call to builtin memset
+[eva] Recording results for init_array_nondet
+[eva] Done for function init_array_nondet
+[eva] computing for function Frama_C_interval <- large_n <- main.
+  Called from tests/builtins/strnlen2.c:404.
+[eva] tests/builtins/strnlen2.c:404: 
+  function Frama_C_interval: precondition 'order' got status valid.
+[eva] Done for function Frama_C_interval
+[eva] tests/builtins/strnlen2.c:405: Call to builtin strnlen
+[eva] tests/builtins/strnlen2.c:405: 
+  function strnlen: precondition 'valid_string_s' got status valid.
+[eva] tests/builtins/strnlen2.c:406: assertion got status valid.
+[eva] computing for function Frama_C_interval <- large_n <- main.
+  Called from tests/builtins/strnlen2.c:408.
+[eva] tests/builtins/strnlen2.c:408: 
+  function Frama_C_interval: precondition 'order' got status valid.
+[eva] Done for function Frama_C_interval
+[eva] tests/builtins/strnlen2.c:409: Call to builtin strnlen
+[eva:alarm] tests/builtins/strnlen2.c:409: Warning: 
+  function strnlen: precondition 'valid_string_s' got status unknown.
+[eva] tests/builtins/strnlen2.c:410: assertion got status valid.
+[eva] computing for function Frama_C_interval <- large_n <- main.
+  Called from tests/builtins/strnlen2.c:412.
+[eva] tests/builtins/strnlen2.c:412: 
+  function Frama_C_interval: precondition 'order' got status valid.
+[eva] Done for function Frama_C_interval
+[eva] computing for function Frama_C_interval <- large_n <- main.
+  Called from tests/builtins/strnlen2.c:413.
+[eva] tests/builtins/strnlen2.c:413: 
+  function Frama_C_interval: precondition 'order' got status valid.
+[eva] Done for function Frama_C_interval
+[eva] tests/builtins/strnlen2.c:414: Call to builtin strnlen
+[eva] tests/builtins/strnlen2.c:414: 
+  function strnlen: precondition 'valid_string_s' got status valid.
+[eva] tests/builtins/strnlen2.c:415: assertion got status valid.
+[eva] Recording results for large_n
+[eva] Done for function large_n
+[eva] computing for function unbounded_n <- main.
+  Called from tests/builtins/strnlen2.c:529.
+[eva] tests/builtins/strnlen2.c:423: Call to builtin strnlen
+[eva] tests/builtins/strnlen2.c:423: 
+  function strnlen: precondition 'valid_string_s' got status valid.
+[eva] tests/builtins/strnlen2.c:424: assertion got status valid.
+[eva] tests/builtins/strnlen2.c:426: Call to builtin strnlen
+[eva] tests/builtins/strnlen2.c:426: 
+  function strnlen: precondition 'valid_string_s' got status valid.
+[eva] tests/builtins/strnlen2.c:427: assertion got status valid.
+[eva] tests/builtins/strnlen2.c:429: Call to builtin strnlen
+[eva] tests/builtins/strnlen2.c:429: 
+  function strnlen: precondition 'valid_string_s' got status valid.
+[eva] tests/builtins/strnlen2.c:430: assertion got status valid.
+[eva] Recording results for unbounded_n
+[eva] Done for function unbounded_n
+[eva] computing for function intervals <- main.
+  Called from tests/builtins/strnlen2.c:530.
+[eva] computing for function init_array_nondet <- intervals <- main.
+  Called from tests/builtins/strnlen2.c:435.
+[eva] tests/builtins/strnlen2.c:138: Call to builtin memset
+[eva] Recording results for init_array_nondet
+[eva] Done for function init_array_nondet
+[eva] computing for function init_array_nondet <- intervals <- main.
+  Called from tests/builtins/strnlen2.c:436.
+[eva] tests/builtins/strnlen2.c:138: Call to builtin memset
+[eva] Recording results for init_array_nondet
+[eva] Done for function init_array_nondet
+[eva] computing for function init_array_nondet <- intervals <- main.
+  Called from tests/builtins/strnlen2.c:437.
+[eva] tests/builtins/strnlen2.c:138: Call to builtin memset
+[eva] Recording results for init_array_nondet
+[eva] Done for function init_array_nondet
+[eva] computing for function init_array_nondet <- intervals <- main.
+  Called from tests/builtins/strnlen2.c:438.
+[eva] tests/builtins/strnlen2.c:138: Call to builtin memset
+[eva] Recording results for init_array_nondet
+[eva] Done for function init_array_nondet
+[eva] computing for function init_array_nondet <- intervals <- main.
+  Called from tests/builtins/strnlen2.c:439.
+[eva] tests/builtins/strnlen2.c:138: Call to builtin memset
+[eva] Recording results for init_array_nondet
+[eva] Done for function init_array_nondet
+[eva] computing for function Frama_C_interval <- intervals <- main.
+  Called from tests/builtins/strnlen2.c:441.
+[eva] tests/builtins/strnlen2.c:441: 
+  function Frama_C_interval: precondition 'order' got status valid.
+[eva] Done for function Frama_C_interval
+[eva] computing for function Frama_C_interval <- intervals <- main.
+  Called from tests/builtins/strnlen2.c:442.
+[eva] tests/builtins/strnlen2.c:442: 
+  function Frama_C_interval: precondition 'order' got status valid.
+[eva] Done for function Frama_C_interval
+[eva] tests/builtins/strnlen2.c:443: Call to builtin strnlen
+[eva:alarm] tests/builtins/strnlen2.c:443: Warning: 
+  function strnlen: precondition 'valid_string_s' got status unknown.
+[eva] tests/builtins/strnlen2.c:444: assertion got status valid.
+[eva] computing for function Frama_C_interval <- intervals <- main.
+  Called from tests/builtins/strnlen2.c:446.
+[eva] tests/builtins/strnlen2.c:446: 
+  function Frama_C_interval: precondition 'order' got status valid.
+[eva] Done for function Frama_C_interval
+[eva] computing for function Frama_C_interval <- intervals <- main.
+  Called from tests/builtins/strnlen2.c:447.
+[eva] tests/builtins/strnlen2.c:447: 
+  function Frama_C_interval: precondition 'order' got status valid.
+[eva] Done for function Frama_C_interval
+[eva] tests/builtins/strnlen2.c:448: Call to builtin strnlen
+[eva:alarm] tests/builtins/strnlen2.c:448: Warning: 
+  function strnlen: precondition 'valid_string_s' got status unknown.
+[eva] tests/builtins/strnlen2.c:449: assertion got status valid.
+[eva] computing for function Frama_C_interval <- intervals <- main.
+  Called from tests/builtins/strnlen2.c:451.
+[eva] tests/builtins/strnlen2.c:451: 
+  function Frama_C_interval: precondition 'order' got status valid.
+[eva] Done for function Frama_C_interval
+[eva] computing for function Frama_C_interval <- intervals <- main.
+  Called from tests/builtins/strnlen2.c:452.
+[eva] tests/builtins/strnlen2.c:452: 
+  function Frama_C_interval: precondition 'order' got status valid.
+[eva] Done for function Frama_C_interval
+[eva] tests/builtins/strnlen2.c:453: Call to builtin strnlen
+[eva:alarm] tests/builtins/strnlen2.c:453: Warning: 
+  function strnlen: precondition 'valid_string_s' got status unknown.
+[eva] tests/builtins/strnlen2.c:454: assertion got status valid.
+[eva] computing for function Frama_C_interval <- intervals <- main.
+  Called from tests/builtins/strnlen2.c:456.
+[eva] tests/builtins/strnlen2.c:456: 
+  function Frama_C_interval: precondition 'order' got status valid.
+[eva] Done for function Frama_C_interval
+[eva] computing for function Frama_C_interval <- intervals <- main.
+  Called from tests/builtins/strnlen2.c:457.
+[eva] tests/builtins/strnlen2.c:457: 
+  function Frama_C_interval: precondition 'order' got status valid.
+[eva] Done for function Frama_C_interval
+[eva] tests/builtins/strnlen2.c:458: Call to builtin strnlen
+[eva:alarm] tests/builtins/strnlen2.c:458: Warning: 
+  function strnlen: precondition 'valid_string_s' got status unknown.
+[eva] tests/builtins/strnlen2.c:459: assertion got status valid.
+[eva] computing for function Frama_C_interval <- intervals <- main.
+  Called from tests/builtins/strnlen2.c:461.
+[eva] tests/builtins/strnlen2.c:461: 
+  function Frama_C_interval: precondition 'order' got status valid.
+[eva] Done for function Frama_C_interval
+[eva] computing for function Frama_C_interval <- intervals <- main.
+  Called from tests/builtins/strnlen2.c:462.
+[eva] tests/builtins/strnlen2.c:462: 
+  function Frama_C_interval: precondition 'order' got status valid.
+[eva] Done for function Frama_C_interval
+[eva] tests/builtins/strnlen2.c:463: Call to builtin strnlen
+[eva:alarm] tests/builtins/strnlen2.c:463: Warning: 
+  function strnlen: precondition 'valid_string_s' got status unknown.
+[eva] tests/builtins/strnlen2.c:464: assertion got status valid.
+[eva] computing for function Frama_C_interval <- intervals <- main.
+  Called from tests/builtins/strnlen2.c:466.
+[eva] tests/builtins/strnlen2.c:466: 
+  function Frama_C_interval: precondition 'order' got status valid.
+[eva] Done for function Frama_C_interval
+[eva] computing for function Frama_C_interval <- intervals <- main.
+  Called from tests/builtins/strnlen2.c:467.
+[eva] tests/builtins/strnlen2.c:467: 
+  function Frama_C_interval: precondition 'order' got status valid.
+[eva] Done for function Frama_C_interval
+[eva] tests/builtins/strnlen2.c:468: Call to builtin strnlen
+[eva:alarm] tests/builtins/strnlen2.c:468: Warning: 
+  function strnlen: precondition 'valid_string_s' got status unknown.
+[eva] tests/builtins/strnlen2.c:469: assertion got status valid.
+[eva] computing for function Frama_C_interval <- intervals <- main.
+  Called from tests/builtins/strnlen2.c:471.
+[eva] tests/builtins/strnlen2.c:471: 
+  function Frama_C_interval: precondition 'order' got status valid.
+[eva] Done for function Frama_C_interval
+[eva] computing for function Frama_C_interval <- intervals <- main.
+  Called from tests/builtins/strnlen2.c:472.
+[eva] tests/builtins/strnlen2.c:472: 
+  function Frama_C_interval: precondition 'order' got status valid.
+[eva] Done for function Frama_C_interval
+[eva] tests/builtins/strnlen2.c:473: Call to builtin strnlen
+[eva:alarm] tests/builtins/strnlen2.c:473: Warning: 
+  function strnlen: precondition 'valid_string_s' got status unknown.
+[eva] tests/builtins/strnlen2.c:474: assertion got status valid.
+[eva] computing for function Frama_C_interval <- intervals <- main.
+  Called from tests/builtins/strnlen2.c:476.
+[eva] tests/builtins/strnlen2.c:476: 
+  function Frama_C_interval: precondition 'order' got status valid.
+[eva] Done for function Frama_C_interval
+[eva] computing for function Frama_C_interval <- intervals <- main.
+  Called from tests/builtins/strnlen2.c:477.
+[eva] tests/builtins/strnlen2.c:477: 
+  function Frama_C_interval: precondition 'order' got status valid.
+[eva] Done for function Frama_C_interval
+[eva] tests/builtins/strnlen2.c:478: Call to builtin strnlen
+[eva:alarm] tests/builtins/strnlen2.c:478: Warning: 
+  function strnlen: precondition 'valid_string_s' got status unknown.
+[eva] tests/builtins/strnlen2.c:479: assertion got status valid.
+[eva] computing for function Frama_C_interval <- intervals <- main.
+  Called from tests/builtins/strnlen2.c:481.
+[eva] tests/builtins/strnlen2.c:481: 
+  function Frama_C_interval: precondition 'order' got status valid.
+[eva] Done for function Frama_C_interval
+[eva] computing for function Frama_C_interval <- intervals <- main.
+  Called from tests/builtins/strnlen2.c:482.
+[eva] tests/builtins/strnlen2.c:482: 
+  function Frama_C_interval: precondition 'order' got status valid.
+[eva] Done for function Frama_C_interval
+[eva] tests/builtins/strnlen2.c:483: Call to builtin strnlen
+[eva:alarm] tests/builtins/strnlen2.c:483: Warning: 
+  function strnlen: precondition 'valid_string_s' got status unknown.
+[eva] tests/builtins/strnlen2.c:484: assertion got status valid.
+[eva] Recording results for intervals
+[eva] Done for function intervals
+[eva] computing for function negative_offsets <- main.
+  Called from tests/builtins/strnlen2.c:532.
+[eva] tests/builtins/strnlen2.c:489: starting to merge loop iterations
+[eva] computing for function Frama_C_interval <- negative_offsets <- main.
+  Called from tests/builtins/strnlen2.c:493.
+[eva] tests/builtins/strnlen2.c:493: 
+  function Frama_C_interval: precondition 'order' got status valid.
+[eva] Done for function Frama_C_interval
+[eva] tests/builtins/strnlen2.c:494: Call to builtin strnlen
+[eva:alarm] tests/builtins/strnlen2.c:494: Warning: 
+  function strnlen: precondition 'valid_string_s' got status unknown.
+[eva] computing for function Frama_C_interval <- negative_offsets <- main.
+  Called from tests/builtins/strnlen2.c:497.
+[eva] tests/builtins/strnlen2.c:497: 
+  function Frama_C_interval: precondition 'order' got status valid.
+[eva] Done for function Frama_C_interval
+[eva] tests/builtins/strnlen2.c:498: Call to builtin strnlen
+[eva:alarm] tests/builtins/strnlen2.c:498: Warning: 
+  function strnlen: precondition 'valid_string_s' got status unknown.
+[eva] computing for function Frama_C_interval <- negative_offsets <- main.
+  Called from tests/builtins/strnlen2.c:500.
+[eva] tests/builtins/strnlen2.c:500: 
+  function Frama_C_interval: precondition 'order' got status valid.
+[eva] Done for function Frama_C_interval
+[eva] tests/builtins/strnlen2.c:501: Call to builtin strnlen
+[eva:alarm] tests/builtins/strnlen2.c:501: Warning: 
+  function strnlen: precondition 'valid_string_s' got status unknown.
+[eva] computing for function Frama_C_interval <- negative_offsets <- main.
+  Called from tests/builtins/strnlen2.c:502.
+[eva] tests/builtins/strnlen2.c:502: 
+  function Frama_C_interval: precondition 'order' got status valid.
+[eva] Done for function Frama_C_interval
+[eva] tests/builtins/strnlen2.c:503: Call to builtin strnlen
+[eva:alarm] tests/builtins/strnlen2.c:503: Warning: 
+  function strnlen: precondition 'valid_string_s' got status unknown.
+[eva] computing for function Frama_C_interval <- negative_offsets <- main.
+  Called from tests/builtins/strnlen2.c:504.
+[eva] tests/builtins/strnlen2.c:504: 
+  function Frama_C_interval: precondition 'order' got status valid.
+[eva] Done for function Frama_C_interval
+[eva] tests/builtins/strnlen2.c:505: Call to builtin strnlen
+[eva:alarm] tests/builtins/strnlen2.c:505: Warning: 
+  function strnlen: precondition 'valid_string_s' got status unknown.
+[eva] computing for function Frama_C_interval <- negative_offsets <- main.
+  Called from tests/builtins/strnlen2.c:506.
+[eva] tests/builtins/strnlen2.c:506: 
+  function Frama_C_interval: precondition 'order' got status valid.
+[eva] Done for function Frama_C_interval
+[eva] tests/builtins/strnlen2.c:508: Call to builtin strnlen
+[eva:alarm] tests/builtins/strnlen2.c:508: Warning: 
+  function strnlen: precondition 'valid_string_s' got status unknown.
+[eva] Recording results for negative_offsets
+[eva] Done for function negative_offsets
+[eva] Recording results for main
+[eva] done for function main
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function init_array_nondet:
+  from ∈ {-1}
+  to ∈ {-1}
+  val1 ∈ {-1}
+  val2 ∈ {-1}
+  val ∈ {0; 1; 2; 3; 4}
+  a[0..99] ∈ {0; 1; 2}
+  a[0..39] ∈ {1; 2}
+   [40..49] ∈ UNINITIALIZED
+   [50..94] ∈ {3; 4} or UNINITIALIZED
+   [95..99] ∈ UNINITIALIZED
+  u[0..199] ∈ {0; 16843009}
+  r[0..200] ∈ {0; 16843009; 270729319} or UNINITIALIZED
+  t[0..999999] ∈ {0; 16843009; 270729319} or UNINITIALIZED
+  a[0..99] ∈ {0; 1; 2}
+  a[0..9] ∈ {0; 1}
+   [10] ∈ UNINITIALIZED
+   [11] ∈ {0; 1} or UNINITIALIZED
+   [12..15] ∈ {1} or UNINITIALIZED
+   [16..19] ∈ {0; 1} or UNINITIALIZED
+   [20..99] ∈ UNINITIALIZED
+[eva:final-states] Values at end of function big_array:
+  u[0..199] ∈ {0; 16843009; 270729319}
+  r[0..200] ∈ {0; 16843009; 270729319}
+  t[0..999999] ∈ {0; 16843009; 270729319}
+  p ∈ {{ &t + [0..3999996],0%4 }}
+  len_u ∈ [0..799]
+  len_r ∈ [0..803]
+  len_t ∈ [0..3999999]
+[eva:final-states] Values at end of function bitfields:
+  s.a ∈ {3}
+   .b ∈ {1}
+   .[bits 16 to 31] ∈ UNINITIALIZED
+   .c ∈ {7}
+   .[bits 49 to 63] ∈ UNINITIALIZED
+  p ∈ {{ (char *)&s }}
+[eva:final-states] Values at end of function bitfields2:
+  s.a ∈ {3}
+   .b ∈ {1}
+   .c ∈ {7}
+   .[bits 25 to 31] ∈ UNINITIALIZED
+  p ∈ {{ (char *)&s }}
+  z1 ∈ {2}
+[eva:final-states] Values at end of function escaping:
+  s[0] ∈ {0}
+   [1..3] ∈ ESCAPINGADDR
+  z1 ∈ {0}
+  z2 ∈ {0}
+[eva:final-states] Values at end of function initialization:
+  empty_or_uninitialized[0] ∈ {0} or UNINITIALIZED
+  z1 ∈ {0}
+  s[0] ∈ {1} or UNINITIALIZED
+   [1] ∈ {0}
+  z2 ∈ {1}
+  t[0..1] ∈ {10}
+   [2] ∈ {10} or UNINITIALIZED
+   [3] ∈ {0}
+  z3 ∈ {3}
+[eva:final-states] Values at end of function intervals:
+  Frama_C_entropy_source ∈ [--..--]
+  a[0..2] ∈ {0; 1}
+   [3..6] ∈ {1}
+   [7..9] ∈ {0; 1}
+   [10] ∈ UNINITIALIZED
+   [11] ∈ {0; 1}
+   [12..15] ∈ {1}
+   [16..19] ∈ {0; 1}
+   [20..99] ∈ UNINITIALIZED
+  offset ∈ [3..11]
+  n ∈ [0..11]
+  z1 ∈ [0..9]
+  z2 ∈ {0; 1; 2; 3; 4; 5; 6; 7}
+  z3 ∈ {0; 1; 2; 3; 4; 5; 6; 7}
+  z4 ∈ {0; 1; 2; 3; 4; 5; 6; 7}
+  z5 ∈ {0; 1; 2; 3; 4; 5; 6; 7}
+  z6 ∈ {0; 1; 2; 3; 4; 5; 6; 7}
+  z7 ∈ [0..9]
+  z8 ∈ [0..9]
+  z9 ∈ [0..9]
+[eva:final-states] Values at end of function large:
+  Frama_C_entropy_source ∈ [--..--]
+  a[0..99] ∈ {0; 2}
+  offset ∈ [50..70]
+  z1 ∈ [0..54]
+  z2 ∈ [3..15]
+  z3 ∈ [1..15]
+  z4 ∈ [0..12]
+  z5 ∈ [0..49]
+[eva:final-states] Values at end of function large_n:
+  Frama_C_entropy_source ∈ [--..--]
+  a[0..99] ∈ {0; 2}
+  offset ∈ [0..10]
+  n ∈ [0..90]
+  z1 ∈ [0..12]
+  z2 ∈ [0..13]
+  z3 ∈ [0..20]
+  z4 ∈ [0..13]
+  z5 ∈ [1..15]
+  z6 ∈ [0..20]
+  z7 ∈ [0..20]
+  z8 ∈ [0..50]
+  z9 ∈ [0..90]
+[eva:final-states] Values at end of function large_uninit:
+  Frama_C_entropy_source ∈ [--..--]
+  a[0..19] ∈ {1; 2}
+   [20] ∈ {0}
+   [21..39] ∈ {1; 2}
+   [40..49] ∈ UNINITIALIZED
+   [50..74] ∈ {3; 4}
+   [75] ∈ {0}
+   [76..94] ∈ {3; 4}
+   [95..97] ∈ UNINITIALIZED
+   [98] ∈ {0}
+   [99] ∈ UNINITIALIZED
+  offset ∈ {0}
+  z1 ∈ [0..17]
+  z2 ∈ [0..12]
+  z3 ∈ {20; 21; 22; 23; 24; 25}
+[eva:final-states] Values at end of function misc:
+  Frama_C_entropy_source ∈ [--..--]
+  loc_str ∈ {{ "Bonjour Monde\n" }}
+  loc_char_array[0..2] ∈ UNINITIALIZED
+                [3] ∈ {0}
+                [4] ∈ UNINITIALIZED
+  sz1 ∈ {12; 14}
+  sz2 ∈ {0}
+  sz3 ∈ [0..13]
+  sz4 ∈ {3}
+  sz5 ∈ {2; 3; 4}
+  sz6 ∈ {1; 2; 3}
+  sz7 ∈ {0; 1; 2; 3; 4} or UNINITIALIZED
+  sz8 ∈ {1}
+  x ∈ {-1412567296}
+  z ∈ {305419776}
+  i ∈ [0..11]
+  str ∈
+     {{ "" ; "a" ; "aa" ; "aaa" ; "aaaa" ; "aaaaa" ; "aaaaaa" ; "aaaaaaaaa" ;
+        "aaaaaaaaaa" ; "aaaaaaaaaaa" ; "aaaaaaaaaaaa" ; "aaaaaaaaaaaaa" }}
+  s1 ∈ {{ "mno\000pqr" ; "MNOP\000QRS" }}
+  s2 ∈ {{ "efg" + {1; 2} ; "EFGH" + {1; 2} }}
+  maybe_init[0] ∈ {65} or UNINITIALIZED
+            [1] ∈ {0}
+[eva:final-states] Values at end of function negative_offsets:
+  Frama_C_entropy_source ∈ [--..--]
+  buf[0..98] ∈ {65} or UNINITIALIZED
+     [99] ∈ {0}
+  len1 ∈ UNINITIALIZED
+  len2 ∈ UNINITIALIZED
+  len3 ∈ {99}
+  len4 ∈ {97; 98; 99}
+  len5 ∈ {92; 93; 94; 95; 96; 97; 98; 99}
+  len6 ∈ {99}
+  offset3 ∈ {-1; 0}
+  offset4 ∈ {-1; 0; 1; 2}
+  offset5 ∈ [-4..7]
+  offset6 ∈ [-10..0]
+  p ∈ {{ &buf + [-10..0] }}
+[eva:final-states] Values at end of function no_zero_but_ok:
+  s[0..9] ∈ {1}
+   [10] ∈ {0}
+   [11..13] ∈ {1}
+   [14..19] ∈ {0; 1}
+  z1 ∈ {5}
+  z2 ∈ {10}
+  p ∈ {{ &s{[7], [18]} }}
+  z3 ∈ {2; 9}
+  z4 ∈ {3; 4}
+  z5 ∈ {0; 1; 3}
+[eva:final-states] Values at end of function small_sets:
+  s ∈ {{ "b\000c" }}
+  o ∈ {0; 2}
+  z1 ∈ {2; 3}
+  z2 ∈ {0; 2}
+  z3 ∈ {0}
+  z4 ∈ {1}
+  t[0..1] ∈ {0; 1}
+   [2..3] ∈ {1}
+  z5 ∈ {0; 1; 4}
+[eva:final-states] Values at end of function small_sets_n:
+  s ∈ {{ "bcd\000efg" }}
+  p ∈ {{ "bcd\000efg" + {0; 2; 4} }}
+  n ∈ {2; 5}
+  z1 ∈ {2; 4; 5}
+  z2 ∈ {0; 1; 4}
+  z3a ∈ {1; 2}
+  z3 ∈ {1; 2; 3}
+  z4 ∈ {1; 2; 3}
+[eva:final-states] Values at end of function unbounded_n:
+  n ∈ [0..2147483647]
+  s ∈ {{ "bcd\000eg" }}
+  zu1 ∈ {0; 1; 2; 3}
+  o ∈ {0; 1}
+  zu2 ∈ {0; 1; 2; 3}
+  zu3 ∈ {0; 1; 2; 3}
+[eva:final-states] Values at end of function zero_termination:
+  empty_or_non_terminated[0] ∈ {0; 100}
+  z1 ∈ {0; 1}
+  non_terminated[0] ∈ {88}
+  non_terminated2[0] ∈ {76}
+                 [1] ∈ {0}
+                 [2] ∈ {28}
+                 [3] ∈ {14}
+  o ∈ {2; 3}
+[eva:final-states] Values at end of function main:
+  Frama_C_entropy_source ∈ [--..--]
+  __retres ∈ {0}
+[from] Computing for function init_array_nondet
+[from] Computing for function memset <-init_array_nondet
+[from] Done for function memset
+[from] Done for function init_array_nondet
+[from] Computing for function big_array
+[from] Computing for function strnlen <-big_array
+[from] Done for function strnlen
+[from] Done for function big_array
+[from] Computing for function bitfields
+[from] Done for function bitfields
+[from] Computing for function bitfields2
+[from] Done for function bitfields2
+[from] Computing for function escaping
+[from] Done for function escaping
+[from] Computing for function initialization
+[from] Done for function initialization
+[from] Computing for function intervals
+[from] Computing for function Frama_C_interval <-intervals
+[from] Done for function Frama_C_interval
+[from] Done for function intervals
+[from] Computing for function large
+[from] Done for function large
+[from] Computing for function large_n
+[from] Done for function large_n
+[from] Computing for function large_uninit
+[from] Done for function large_uninit
+[from] Computing for function misc
+[from] Done for function misc
+[from] Computing for function negative_offsets
+[from] Done for function negative_offsets
+[from] Computing for function no_zero_but_ok
+[from] Done for function no_zero_but_ok
+[from] Computing for function small_sets
+[from] Done for function small_sets
+[from] Computing for function small_sets_n
+[from] Done for function small_sets_n
+[from] Computing for function unbounded_n
+[from] Done for function unbounded_n
+[from] Computing for function zero_termination
+[from] Done for function zero_termination
+[from] Computing for function main
+[from] Done for function main
+[from] ====== DEPENDENCIES COMPUTED ======
+  These dependencies hold at termination for the executions that terminate:
+[from] Function Frama_C_interval:
+  Frama_C_entropy_source FROM Frama_C_entropy_source (and SELF)
+  \result FROM Frama_C_entropy_source; min; max
+[from] Function memset:
+  a[0..99] FROM c (and SELF)
+  a[0..99] FROM c (and SELF)
+  u[0..199] FROM c (and SELF)
+  r[0..200] FROM c (and SELF)
+  t[0..999999] FROM c (and SELF)
+  a[0..99] FROM c (and SELF)
+  a[0..99] FROM c (and SELF)
+  \result FROM s
+[from] Function init_array_nondet:
+  a[0..99] FROM val1; val2; nondet (and SELF)
+  a[0..99] FROM val1; val2; nondet (and SELF)
+  u[0..199] FROM val1; val2; nondet (and SELF)
+  r[0..200] FROM val1; val2; nondet (and SELF)
+  t[0..999999] FROM val1; val2; nondet (and SELF)
+  a[0..99] FROM val1; val2; nondet (and SELF)
+  a[0..99] FROM val1; val2; nondet (and SELF)
+[from] Function strnlen:
+  \result FROM n; unterminated_string[0..11]; t[0..3];
+               empty_or_non_terminated[0]; non_terminated[0];
+               non_terminated2[2..3]; empty_or_uninitialized[0];
+               uninitialized[0]; s[0..1]; t[0..3]; s; s; a[3..99]; a[3..99];
+               s[0..3]; loc_char_array[0..4]; x; maybe_init[0..1]; u[0..199];
+               r[0..200]; t[0..999999]; s[0..19]; a[0..99]; a[0..99];
+               buf[0..99]; "Hello World\n"[bits 0 to 103];
+               "abc\000\000\000abc"[bits 0 to 79]; ""[bits 0 to 7];
+               "a"[bits 0 to 15]; "aa"[bits 0 to 23]; "aaa";
+               "aaaa"[bits 0 to 39]; "aaaaa"[bits 0 to 47];
+               "aaaaaa"[bits 0 to 55]; "aaaaaaaaa"[bits 0 to 79];
+               "aaaaaaaaaa"[bits 0 to 87]; "aaaaaaaaaaa"[bits 0 to 95];
+               "aaaaaaaaaaaa"[bits 0 to 103]; "aaaaaaaaaaaaa"[bits 0 to 111];
+               "abc"; "\000bc"; ""[bits 0 to 7]; "b\000c";
+               "Bonjour Monde\n"[bits 0 to 119]; "abc"; "ABCD"[bits 0 to 39];
+               "efg"[bits 8 to 31]; "EFGH"[bits 8 to 39];
+               "mno\000pqr"[bits 0 to 63]; "MNOP\000QRS"[bits 0 to 71];
+               "abcde"[bits 0 to 47]; "\000bcdef"[bits 0 to 55];
+               "bcd\000efg"[bits 0 to 63]; "abc"; "bcd\000eg"[bits 0 to 55]
+[from] Function big_array:
+  NO EFFECTS
+[from] Function bitfields:
+  NO EFFECTS
+[from] Function bitfields2:
+  NO EFFECTS
+[from] Function escaping:
+  NO EFFECTS
+[from] Function initialization:
+  NO EFFECTS
+[from] Function intervals:
+  Frama_C_entropy_source FROM Frama_C_entropy_source (and SELF)
+[from] Function large:
+  Frama_C_entropy_source FROM Frama_C_entropy_source (and SELF)
+[from] Function large_n:
+  Frama_C_entropy_source FROM Frama_C_entropy_source (and SELF)
+[from] Function large_uninit:
+  Frama_C_entropy_source FROM Frama_C_entropy_source (and SELF)
+[from] Function misc:
+  Frama_C_entropy_source FROM Frama_C_entropy_source (and SELF)
+[from] Function negative_offsets:
+  Frama_C_entropy_source FROM Frama_C_entropy_source; nondet (and SELF)
+[from] Function no_zero_but_ok:
+  NO EFFECTS
+[from] Function small_sets:
+  NO EFFECTS
+[from] Function small_sets_n:
+  NO EFFECTS
+[from] Function unbounded_n:
+  NO EFFECTS
+[from] Function zero_termination:
+  NO EFFECTS
+[from] Function main:
+  Frama_C_entropy_source FROM Frama_C_entropy_source; nondet (and SELF)
+  \result FROM \nothing
+[from] ====== END OF DEPENDENCIES ======
+[inout] Out (internal) for function init_array_nondet:
+    from; to; val1; val2; val; tmp; a[0..99]; a{[0..39]; [50..94]}; u[0..199];
+    r[0..200]; t[0..999999]; a[0..99]; a{[0..9]; [11..19]}
+[inout] Inputs for function init_array_nondet:
+    nondet
+[inout] Out (internal) for function big_array:
+    u[0..199]; r[0..200]; t[0..999999]; p; len_u; len_r; len_t
+[inout] Inputs for function big_array:
+    nondet
+[inout] Out (internal) for function bitfields:
+    s{{.a; .b}; .c}; p
+[inout] Inputs for function bitfields:
+    nondet
+[inout] Out (internal) for function bitfields2:
+    s{.a; .b; .c}; p; z1; tmp
+[inout] Inputs for function bitfields2:
+    \nothing
+[inout] Out (internal) for function escaping:
+    s[0..3]; z1; tmp; z2; tmp_0
+[inout] Inputs for function escaping:
+    nondet
+[inout] Out (internal) for function initialization:
+    empty_or_uninitialized[0]; z1; tmp; s[0..1]; z2; tmp_0; t[0..3]; z3; tmp_1
+[inout] Inputs for function initialization:
+    nondet
+[inout] Out (internal) for function intervals:
+    Frama_C_entropy_source; a{[0..9]; [11..19]}; offset; n; z1; tmp_1; 
+    z2; tmp_2; z3; tmp_3; z4; tmp_4; z5; tmp_5; z6; tmp_6; z7; tmp_7; z8;
+    tmp_8; z9; tmp_9
+[inout] Inputs for function intervals:
+    Frama_C_entropy_source; nondet
+[inout] Out (internal) for function large:
+    Frama_C_entropy_source; a[0..99]; offset; z1; tmp_0; z2; tmp_1; z3; 
+    tmp_2; z4; tmp_3; z5; tmp_4
+[inout] Inputs for function large:
+    Frama_C_entropy_source; nondet
+[inout] Out (internal) for function large_n:
+    Frama_C_entropy_source; a[0..99]; offset; n; z1; tmp_1; z2; tmp_2; 
+    z3; tmp_3; z4; tmp_4; z5; tmp_5; z6; tmp_6; z7; tmp_7; z8; tmp_8; z9; 
+    tmp_9
+[inout] Inputs for function large_n:
+    Frama_C_entropy_source; nondet
+[inout] Out (internal) for function large_uninit:
+    Frama_C_entropy_source; a{[0..39]; [50..94]; [98]}; offset; z1; tmp_0; 
+    z2; tmp_1; z3; tmp_2
+[inout] Inputs for function large_uninit:
+    Frama_C_entropy_source; nondet
+[inout] Out (internal) for function misc:
+    Frama_C_entropy_source; loc_str; loc_char_array[3]; sz1; sz2; sz3; 
+    sz4; sz5; sz6; sz7; sz8; x; z; i; str; s1; tmp; s2; tmp_0; j;
+    maybe_init[0..1]
+[inout] Inputs for function misc:
+    Frama_C_entropy_source; static_str; zero_str; tab_str[0..11];
+    unterminated_string[0..11]; nondet; "Hello World\n"[bits 0 to 103];
+    "abc\000\000\000abc"[bits 0 to 71]; ""[bits 0 to 7]; "a"[bits 0 to 15];
+    "aa"[bits 0 to 23]; "aaa"; "aaaa"[bits 0 to 39]; "aaaaa"[bits 0 to 47];
+    "aaaaaa"[bits 0 to 55]; "aaaaaaaaa"[bits 0 to 79];
+    "aaaaaaaaaa"[bits 0 to 87]; "aaaaaaaaaaa"[bits 0 to 95];
+    "aaaaaaaaaaaa"[bits 0 to 103]; "aaaaaaaaaaaaa"[bits 0 to 103];
+    "Bonjour Monde\n"[bits 0 to 111]; "abc"; "ABCD"[bits 0 to 39];
+    "efg"[bits 8 to 31]; "EFGH"[bits 8 to 39]; "mno\000pqr"[bits 0 to 63];
+    "MNOP\000QRS"[bits 0 to 71]
+[inout] Out (internal) for function negative_offsets:
+    Frama_C_entropy_source; buf[0..99]; i; len1; len2; len3; len4; len5; 
+    len6; offset1; offset2; offset3; offset4; offset5; offset6; p
+[inout] Inputs for function negative_offsets:
+    Frama_C_entropy_source; nondet
+[inout] Out (internal) for function no_zero_but_ok:
+    s[0..19]; z1; tmp; z2; tmp_0; p; tmp_1; z3; tmp_2; z4; tmp_3; z5; tmp_4
+[inout] Inputs for function no_zero_but_ok:
+    nondet
+[inout] Out (internal) for function small_sets:
+    s; o; tmp; z1; tmp_0; z2; tmp_1; z3; tmp_2; z4; tmp_3; t[0..3]; z5; tmp_4
+[inout] Inputs for function small_sets:
+    nondet; "abc"; "\000bc"[bits 0 to 23]; "b\000c"
+[inout] Out (internal) for function small_sets_n:
+    s; p; tmp; n; tmp_0; z1; tmp_1; z2; tmp_2; z3a; tmp_3; z3; tmp_4; tmp_5;
+    z4; tmp_6
+[inout] Inputs for function small_sets_n:
+    nondet; "abcde"[bits 0 to 47]; "\000bcdef"[bits 0 to 39];
+    "bcd\000efg"[bits 0 to 63]
+[inout] Out (internal) for function unbounded_n:
+    n; s; zu1; tmp; o; tmp_0; zu2; tmp_1; zu3; tmp_2
+[inout] Inputs for function unbounded_n:
+    nondet; "abc"; "bcd\000eg"[bits 0 to 55]
+[inout] Out (internal) for function zero_termination:
+    empty_or_non_terminated[0]; z1; tmp; non_terminated[0];
+    non_terminated2[0..3]; o; tmp_0
+[inout] Inputs for function zero_termination:
+    nondet
+[inout] Out (internal) for function main:
+    Frama_C_entropy_source; __retres
+[inout] Inputs for function main:
+    Frama_C_entropy_source; static_str; zero_str; tab_str[0..11];
+    unterminated_string[0..11]; nondet; "Hello World\n"[bits 0 to 103];
+    "abc\000\000\000abc"[bits 0 to 71]; ""[bits 0 to 7]; "a"[bits 0 to 15];
+    "aa"[bits 0 to 23]; "aaa"; "aaaa"[bits 0 to 39]; "aaaaa"[bits 0 to 47];
+    "aaaaaa"[bits 0 to 55]; "aaaaaaaaa"[bits 0 to 79];
+    "aaaaaaaaaa"[bits 0 to 87]; "aaaaaaaaaaa"[bits 0 to 95];
+    "aaaaaaaaaaaa"[bits 0 to 103]; "aaaaaaaaaaaaa"[bits 0 to 103]; "abc";
+    "\000bc"[bits 0 to 23]; "b\000c"; "Bonjour Monde\n"[bits 0 to 111]; 
+    "abc"; "ABCD"[bits 0 to 39]; "efg"[bits 8 to 31]; "EFGH"[bits 8 to 39];
+    "mno\000pqr"[bits 0 to 63]; "MNOP\000QRS"[bits 0 to 71];
+    "abcde"[bits 0 to 47]; "\000bcdef"[bits 0 to 39];
+    "bcd\000efg"[bits 0 to 63]; "abc"; "bcd\000eg"[bits 0 to 55]

@@ -3,6 +3,7 @@ EXECNOW: make -s @PTEST_DIR@/@PTEST_NAME@.cmxs
 OPT: -json-compilation-database @PTEST_DIR@ -print
 OPT: -json-compilation-database @PTEST_DIR@/with_arguments.json -print
 OPT: -json-compilation-database @PTEST_DIR@/with_arguments.json -load-module @PTEST_DIR@/@PTEST_NAME@.cmxs
+EXECNOW: LOG list_files.res LOG list_files.err share/analysis-scripts/list_files.py @PTEST_DIR@/compile_commands_working.json > @PTEST_DIR@/result/list_files.res 2> @PTEST_DIR@/result/list_files.err
 */
 #include <stdio.h>
 

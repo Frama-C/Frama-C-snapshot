@@ -1,17 +1,17 @@
 [kernel] Parsing tests/value/deps.i (no preprocessing)
-[value] Analyzing a complete application starting at fonc2
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing a complete application starting at fonc2
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   
-[value:alarm] tests/value/deps.i:32: Warning: 
+[eva:alarm] tests/value/deps.i:32: Warning: 
   signed overflow. assert -2147483648 ≤ a + b;
-[value:alarm] tests/value/deps.i:32: Warning: 
+[eva:alarm] tests/value/deps.i:32: Warning: 
   signed overflow. assert a + b ≤ 2147483647;
-[value] Recording results for fonc2
-[value] done for function fonc2
-[value] ====== VALUES COMPUTED ======
-[value:final-states] Values at end of function fonc2:
+[eva] Recording results for fonc2
+[eva] done for function fonc2
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function fonc2:
   w ∈ [--..--]
   v1.x ∈ [--..--]
     .y ∈ UNINITIALIZED

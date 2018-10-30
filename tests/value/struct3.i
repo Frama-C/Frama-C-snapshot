@@ -1,5 +1,5 @@
 /* run.config*
-   STDOPT: +"-value-msg-key garbled-mix"
+   STDOPT: +"-eva-warn-key garbled-mix"
 */
 
 struct st1 {

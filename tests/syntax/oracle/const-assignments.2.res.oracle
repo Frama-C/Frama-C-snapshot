@@ -1,0 +1,6 @@
+[kernel] Parsing tests/syntax/const-assignments.c (with preprocessing)
+[kernel] tests/syntax/const-assignments.c:27: User Error: 
+  Cannot assign to non-modifiable lval x
+[kernel] User Error: stopping on file "tests/syntax/const-assignments.c" that has errors. Add
+  '-kernel-msg-key pp' for preprocessing command.
+[kernel] Frama-C aborted: invalid user input.

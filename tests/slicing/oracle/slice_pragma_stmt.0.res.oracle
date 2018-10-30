@@ -34,21 +34,24 @@ void nop4(int c1, int c2)
 void nop5(int c1, int c2)
 {
   if (c2) goto L;
-  L: /*@ slice pragma stmt; */ ;
+  /*@ slice pragma stmt; */
+  L: ;
   x = 1;
   return;
 }
 
 void nop6(int c1, int c2)
 {
-  L: /*@ slice pragma stmt; */ ;
+  /*@ slice pragma stmt; */
+  L: ;
   x = 1;
   return;
 }
 
 void nop7(int c1, int c2)
 {
-  L: /*@ slice pragma stmt; */ ;
+  /*@ slice pragma stmt; */
+  L: ;
   x = 1;
   return;
 }
@@ -89,11 +92,13 @@ void double_effect3(int c1, int c2)
 {
   int tmp;
   if (c2) goto L;
-  L: /*@ slice pragma stmt; */
-  { /* sequence */
-    tmp = y;
-    y ++;
-    x += tmp;
+  /*@ slice pragma stmt; */
+  {
+    L: { /* sequence */
+         tmp = y;
+         y ++;
+         x += tmp;
+       }
   }
   return;
 }
@@ -101,13 +106,13 @@ void double_effect3(int c1, int c2)
 void double_effect4(int c1, int c2)
 {
   if (c2) goto L;
-  L: /*@ slice pragma stmt; */
-  {
-    int tmp;
-    tmp = y;
-    y ++;
-    x += tmp;
-  }
+  /*@ slice pragma stmt; */
+  L: {
+       int tmp;
+       tmp = y;
+       y ++;
+       x += tmp;
+     }
   return;
 }
 
@@ -167,8 +172,8 @@ void test5(int c1, int c2)
 {
   if (c1 < c2) goto L;
   c1 = c2;
-  L: /*@ slice pragma stmt; */
-  x = c1;
+  /*@ slice pragma stmt; */
+  L: x = c1;
   y = c2;
   return;
 }
@@ -178,11 +183,13 @@ void test6(int c1, int c2)
   int tmp;
   if (c1 < c2) goto L;
   c1 = c2;
-  L: /*@ slice pragma stmt; */
-  { /* sequence */
-    tmp = c1;
-    c1 ++;
-    x = tmp;
+  /*@ slice pragma stmt; */
+  {
+    L: { /* sequence */
+         tmp = c1;
+         c1 ++;
+         x = tmp;
+       }
   }
   y = c2;
   return;
@@ -192,14 +199,14 @@ void test7(int c1, int c2)
 {
   if (c1 < c2) goto L;
   c1 = c2;
-  L: /*@ slice pragma stmt; */
-  {
-    int tmp;
-    tmp = c1;
-    c1 ++;
-    x = tmp;
-    c2 ++;
-  }
+  /*@ slice pragma stmt; */
+  L: {
+       int tmp;
+       tmp = c1;
+       c1 ++;
+       x = tmp;
+       c2 ++;
+     }
   y = c2;
   return;
 }
@@ -211,9 +218,11 @@ void test8(int c1, int c2)
   /*@ slice pragma stmt; */
   {
     int tmp;
-    L: tmp = c1;
-       c1 ++;
-       x = tmp;
+    L: { /* sequence */
+         tmp = c1;
+         c1 ++;
+         x = tmp;
+       }
     c2 ++;
   }
   y = c2;

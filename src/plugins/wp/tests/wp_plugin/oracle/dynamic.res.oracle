@@ -2,7 +2,7 @@
 [kernel] Parsing tests/wp_plugin/dynamic.i (no preprocessing)
 [wp] Running WP plugin...
 [wp] Computing dynamic calls.
-[wp] Dynamic call(s): 1.
+[wp] Dynamic call(s): 3.
 [wp] Loading driver 'share/wp.driver'
 [wp] Warning: Missing RTE guards
 ------------------------------------------------------------
@@ -53,3 +53,71 @@ Assume {
 Prove: ((-10) <= x) /\ (x <= 10).
 
 ------------------------------------------------------------
+------------------------------------------------------------
+  Function guarded_call
+------------------------------------------------------------
+
+Goal calls g in 'guarded_call' at instruction (file tests/wp_plugin/dynamic.i, line 44):
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Post-condition (file tests/wp_plugin/dynamic.i, line 38) in 'guarded_call' (1/2):
+Assume {
+  Type: is_sint32(X).
+  (* Goal *)
+  When: Mptr_0[shiftfield_F1_S_f(p)] = global(0).
+  (* Heap *)
+  Have: (region(p.base) <= 0) /\ framed(Mptr_0).
+  (* Else *)
+  Have: G_g_44 = 0.
+}
+Prove: X = 1.
+
+------------------------------------------------------------
+
+Goal Post-condition (file tests/wp_plugin/dynamic.i, line 38) in 'guarded_call' (2/2):
+Tags: Call g.
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Post-condition (file tests/wp_plugin/dynamic.i, line 39) in 'guarded_call' (1/2):
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Post-condition (file tests/wp_plugin/dynamic.i, line 39) in 'guarded_call' (2/2):
+Tags: Call g.
+Prove: true.
+
+------------------------------------------------------------
+------------------------------------------------------------
+  Function no_call
+------------------------------------------------------------
+
+Goal calls unreachable_g in 'no_call' at instruction (file tests/wp_plugin/dynamic.i, line 57):
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Post-condition (file tests/wp_plugin/dynamic.i, line 51) in 'no_call' (1/2):
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Post-condition (file tests/wp_plugin/dynamic.i, line 51) in 'no_call' (2/2):
+Tags: Call unreachable_g.
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Instance of 'Pre-condition (file tests/wp_plugin/dynamic.i, line 48) in 'unreachable_g'' in 'no_call' at instruction (file tests/wp_plugin/dynamic.i, line 57)
+:
+Tags: Call unreachable_g.
+Prove: true.
+
+------------------------------------------------------------
+[wp] Warning: Memory model hypotheses for function 'guarded_call':
+  /*@ behavior typed: requires \separated(&X,p); */
+  void guarded_call(struct S *p);

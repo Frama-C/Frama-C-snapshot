@@ -1,154 +1,154 @@
 [kernel] Parsing tests/report/csv.c (with preprocessing)
-[value] Analyzing a complete application starting at main
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing a complete application starting at main
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   v ∈ [--..--]
-  __fc_errno ∈ [--..--]
-[value] computing for function main1 <- main.
+[eva] computing for function main1 <- main.
   Called from tests/report/csv.c:54.
-[value] Recording results for main1
-[value] Done for function main1
-[value] computing for function main2 <- main.
+[eva] Recording results for main1
+[eva] Done for function main1
+[eva] computing for function main2 <- main.
   Called from tests/report/csv.c:55.
-[value] computing for function f <- main2 <- main.
+[eva] computing for function f <- main2 <- main.
   Called from tests/report/csv.c:21.
 [kernel] tests/report/csv.c:21: Warning: 
   No code nor implicit assigns clause for function f, generating default assigns from the prototype
-[value] using specification for function f
-[value] Done for function f
-[value] computing for function f <- main2 <- main.
+[eva] using specification for function f
+[eva] Done for function f
+[eva] computing for function f <- main2 <- main.
   Called from tests/report/csv.c:22.
-[value] Done for function f
-[value] computing for function f <- main2 <- main.
+[eva] Done for function f
+[eva] computing for function f <- main2 <- main.
   Called from tests/report/csv.c:23.
-[value] Done for function f
-[value] computing for function f <- main2 <- main.
+[eva] Done for function f
+[eva] computing for function f <- main2 <- main.
   Called from tests/report/csv.c:24.
-[value] tests/report/csv.c:24: function f: precondition got status valid.
-[value] Done for function f
-[value] Recording results for main2
-[value] Done for function main2
-[value] computing for function main3 <- main.
+[eva] tests/report/csv.c:24: function f: precondition got status valid.
+[eva] Done for function f
+[eva] Recording results for main2
+[eva] Done for function main2
+[eva] computing for function main3 <- main.
   Called from tests/report/csv.c:56.
-[value] tests/report/csv.c:33: 
+[eva] tests/report/csv.c:33: Call to builtin pow
+[eva] tests/report/csv.c:33: 
   function pow: precondition 'finite_args' got status valid.
-[value] Recording results for main3
-[value] Done for function main3
-[value] computing for function main4 <- main.
+[eva] Recording results for main3
+[eva] Done for function main3
+[eva] computing for function main4 <- main.
   Called from tests/report/csv.c:57.
-[value] computing for function any_double <- main4 <- main.
+[eva] computing for function any_double <- main4 <- main.
   Called from tests/report/csv.c:49.
-[value] using specification for function any_double
-[value] Done for function any_double
-[value] computing for function __FC_assert <- main4 <- main.
+[eva] using specification for function any_double
+[eva] Done for function any_double
+[eva] computing for function __FC_assert <- main4 <- main.
   Called from tests/report/csv.c:50.
-[value] using specification for function __FC_assert
-[value] Done for function __FC_assert
-[value] Recording results for main4
-[value] Done for function main4
-[value] Recording results for main
-[value] done for function main
+[eva] using specification for function __FC_assert
+[eva] Done for function __FC_assert
+[eva] Recording results for main4
+[eva] Done for function main4
+[eva] Recording results for main
+[eva] done for function main
 [scope:rm_asserts] removing 1 assertion(s)
-[value] ====== VALUES COMPUTED ======
-[value:final-states] Values at end of function main1:
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function main1:
   x ∈ [0..14]
   t[0] ∈ UNINITIALIZED
    [1] ∈ {3}
    [2..9] ∈ UNINITIALIZED
   u[0..14] ∈ {1} or UNINITIALIZED
-[value:final-states] Values at end of function main2:
+[eva:final-states] Values at end of function main2:
   
-[value:final-states] Values at end of function main4:
+[eva:final-states] Values at end of function main4:
   d ∈ [1. .. 1.79769313486e+308]
-[value:final-states] Values at end of function main3:
+[eva:final-states] Values at end of function main3:
   f1 ∈ [-2147483648. .. 2147483647.]
   f2 ∈ [-2147483648. .. 2147483647.]
   r ∈ [-1.79769313486e+308 .. 1.79769313486e+308]
-[value:final-states] Values at end of function main:
+[eva:final-states] Values at end of function main:
   
 [report] Dumping properties in 'tests/report/result/csv.csv'
-[value] Analyzing a complete application starting at main
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing a complete application starting at main
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   v ∈ [--..--]
-  __fc_errno ∈ [--..--]
-[value] computing for function main1 <- main.
+[eva] computing for function main1 <- main.
   Called from tests/report/csv.c:54.
-[value:alarm] tests/report/csv.c:11: Warning: 
+[eva:alarm] tests/report/csv.c:11: Warning: 
   signed overflow. assert -2147483648 ≤ x * x;
-[value:alarm] tests/report/csv.c:11: Warning: 
+[eva:alarm] tests/report/csv.c:11: Warning: 
   signed overflow. assert x * x ≤ 2147483647;
-[value:alarm] tests/report/csv.c:12: Warning: 
+[eva:alarm] tests/report/csv.c:12: Warning: 
   accessing out of bounds index. assert 0 ≤ x;
-[value:alarm] tests/report/csv.c:12: Warning: 
+[eva:alarm] tests/report/csv.c:12: Warning: 
   accessing out of bounds index. assert x < 15;
-[value:alarm] tests/report/csv.c:13: Warning: 
+[eva:alarm] tests/report/csv.c:13: Warning: 
   accessing uninitialized left-value. assert \initialized(&u[x]);
-[value:alarm] tests/report/csv.c:14: Warning: 
+[eva:alarm] tests/report/csv.c:14: Warning: 
   accessing uninitialized left-value. assert \initialized(&u[x]);
-[value] Recording results for main1
-[value] Done for function main1
-[value] computing for function main2 <- main.
+[eva] Recording results for main1
+[eva] Done for function main1
+[eva] computing for function main2 <- main.
   Called from tests/report/csv.c:55.
-[value] computing for function f <- main2 <- main.
+[eva] computing for function f <- main2 <- main.
   Called from tests/report/csv.c:21.
-[value:alarm] tests/report/csv.c:21: Warning: 
+[eva:alarm] tests/report/csv.c:21: Warning: 
   function f: precondition got status unknown.
-[value] Done for function f
-[value] computing for function f <- main2 <- main.
+[eva] Done for function f
+[eva] computing for function f <- main2 <- main.
   Called from tests/report/csv.c:22.
-[value:alarm] tests/report/csv.c:22: Warning: 
+[eva:alarm] tests/report/csv.c:22: Warning: 
   function f: precondition got status unknown.
-[value] Done for function f
-[value] computing for function f <- main2 <- main.
+[eva] Done for function f
+[eva] computing for function f <- main2 <- main.
   Called from tests/report/csv.c:23.
-[value:alarm] tests/report/csv.c:23: Warning: 
+[eva:alarm] tests/report/csv.c:23: Warning: 
   function f: precondition got status unknown.
-[value] Done for function f
-[value] computing for function f <- main2 <- main.
+[eva] Done for function f
+[eva] computing for function f <- main2 <- main.
   Called from tests/report/csv.c:24.
-[value] Done for function f
-[value] Recording results for main2
-[value] Done for function main2
-[value] computing for function main3 <- main.
+[eva] Done for function f
+[eva] Recording results for main2
+[eva] Done for function main2
+[eva] computing for function main3 <- main.
   Called from tests/report/csv.c:56.
-[value:alarm] tests/report/csv.c:33: Warning: 
+[eva] tests/report/csv.c:33: Call to builtin pow
+[eva:alarm] tests/report/csv.c:33: Warning: 
   function pow: precondition 'finite_logic_res' got status unknown.
-[value] Recording results for main3
-[value] Done for function main3
-[value] computing for function main4 <- main.
+[eva] Recording results for main3
+[eva] Done for function main3
+[eva] computing for function main4 <- main.
   Called from tests/report/csv.c:57.
-[value] computing for function any_double <- main4 <- main.
+[eva] computing for function any_double <- main4 <- main.
   Called from tests/report/csv.c:49.
-[value] Done for function any_double
-[value:alarm] tests/report/csv.c:50: Warning: 
+[eva] Done for function any_double
+[eva:alarm] tests/report/csv.c:50: Warning: 
   non-finite double value. assert \is_finite(d);
-[value] computing for function __FC_assert <- main4 <- main.
+[eva] computing for function __FC_assert <- main4 <- main.
   Called from tests/report/csv.c:50.
-[value:alarm] tests/report/csv.c:50: Warning: 
+[eva:alarm] tests/report/csv.c:50: Warning: 
   function __FC_assert: precondition got status invalid.
-[value] Done for function __FC_assert
-[value] Recording results for main4
-[value] Done for function main4
-[value] Recording results for main
-[value] done for function main
+[eva] Done for function __FC_assert
+[eva] Recording results for main4
+[eva] Done for function main4
+[eva] Recording results for main
+[eva] done for function main
 [scope:rm_asserts] removing 1 assertion(s)
-[value] ====== VALUES COMPUTED ======
-[value:final-states] Values at end of function main1:
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function main1:
   x ∈ [0..14]
   t[0] ∈ UNINITIALIZED
    [1] ∈ {3}
    [2..9] ∈ UNINITIALIZED
   u[0..14] ∈ {1} or UNINITIALIZED
-[value:final-states] Values at end of function main2:
+[eva:final-states] Values at end of function main2:
   
-[value:final-states] Values at end of function main4:
+[eva:final-states] Values at end of function main4:
   d ∈ [1. .. 1.79769313486e+308]
-[value:final-states] Values at end of function main3:
+[eva:final-states] Values at end of function main3:
   f1 ∈ [-2147483648. .. 2147483647.]
   f2 ∈ [-2147483648. .. 2147483647.]
   r ∈ [-1.79769313486e+308 .. 1.79769313486e+308]
-[value:final-states] Values at end of function main:
+[eva:final-states] Values at end of function main:
   

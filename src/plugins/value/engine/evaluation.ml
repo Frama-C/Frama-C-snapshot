@@ -136,6 +136,56 @@ let may_be_reduced_lval (host, offset) = match host with
   | Var _ -> may_be_reduced_offset offset
   | Mem _ -> true
 
+let warn_pointer_comparison typ =
+  match Value_parameters.WarnPointerComparison.get () with
+  | "none" -> false
+  | "all" -> true
+  | "pointer" -> Cil.isPointerType (Cil.unrollType typ)
+  | _ -> assert false
+
+let propagate_all_pointer_comparison typ =
+  not (Cil.isPointerType typ)
+  || Value_parameters.UndefinedPointerComparisonPropagateAll.get ()
+
+let comparison_kind = function
+  | Eq | Ne -> Some Abstract_value.Equality
+  | Le | Lt
+  | Ge | Gt -> Some Abstract_value.Relation
+  | _ -> None
+
+let signed_ikind = function
+  | IBool                   -> IBool
+  | IChar | ISChar | IUChar -> ISChar
+  | IInt | IUInt            -> IInt
+  | IShort | IUShort        -> IShort
+  | ILong | IULong          -> ILong
+  | ILongLong | IULongLong  -> ILongLong
+
+let rec signed_counterpart typ =
+  match Cil.unrollType typ with
+  | TInt (ik, attrs) -> TInt (signed_ikind ik, attrs)
+  | TEnum ({ekind = ik} as info, attrs) ->
+    let info = { info with ekind = signed_ikind ik} in
+    TEnum (info, attrs)
+  | TPtr _ -> signed_counterpart Cil.(theMachine.upointType)
+  | _ -> assert false
+
+module MemoDowncastConvertedAlarm =
+  State_builder.Hashtbl
+    (Cil_datatype.Exp.Hashtbl)
+    (Cil_datatype.Exp)
+    (struct
+      let name = "Value.Evaluation.MemoDowncastConvertedAlarm"
+      let size = 16
+      let dependencies = [ Ast.self ]
+    end)
+let exp_alarm_signed_converted_downcast =
+  MemoDowncastConvertedAlarm.memo
+    (fun exp ->
+       let src_typ = Cil.typeOf exp in
+       let signed_typ = signed_counterpart src_typ in
+       let signed_exp = Cil.new_exp ~loc:exp.eloc (CastE (signed_typ, exp)) in
+       signed_exp)
 
 module type S = sig
   type state
@@ -161,10 +211,10 @@ module type S = sig
   val split_by_evaluation:
     exp -> Integer.t list -> state list ->
     (Integer.t * state list * bool) list * state list
-  val check_non_overlapping:
-    state -> lval list -> lval list -> unit evaluated
   val eval_function_exp:
     exp -> ?args:exp list -> state -> (Kernel_function.t * Valuation.t) list evaluated
+  val interpret_truth:
+    alarm:(unit -> Alarms.t) -> 'a -> 'a Abstract_value.truth -> 'a evaluated
 end
 
 let return t = `Value t, Alarmset.none
@@ -326,50 +376,372 @@ module Make
     let v = record.value.v >>-: Value.reduce in
     { record with value = {record.value with v = v} }
 
+  (* ------------------------------------------------------------------------
+                    Forward Operations, Alarms and Reductions
+     ------------------------------------------------------------------------ *)
+
+  (* Handles the result of an [assume] function from value abstractions (see
+     abstract_values.mli for more details), applied to the initial [value].
+     If the value could have been reduced, [reduce] is applied on the new value.
+     If the status is not true, [alarm] is used to create the alarm. *)
+  let process_truth ~reduce ~alarm value =
+    let build_alarm status = Alarmset.singleton ~status (alarm ()) in
+    function
+    | `Unreachable   -> `Bottom, Alarmset.none
+    | `False         -> `Bottom, build_alarm Alarmset.False
+    | `Unknown v     -> reduce v; `Value v, build_alarm Alarmset.Unknown
+    | `TrueReduced v -> reduce v; `Value v, Alarmset.none
+    | `True          -> `Value value, Alarmset.none
+
+  (* Does not register the possible reduction, as the initial [value] has not
+     been saved yet. *)
+  let interpret_truth ~alarm value truth =
+    let reduce _ = () in
+    process_truth ~reduce ~alarm value truth
+
+  let reduce_argument (e, v) new_value =
+    if not (Value.equal v new_value) then reduce_expr_value Forward e new_value
+
+  (* Registers the new value if it has been reduced. *)
+  let reduce_by_truth ~alarm (expr, value) truth =
+    let reduce = reduce_argument (expr, value) in
+    process_truth ~reduce ~alarm value truth
+
+  (* Processes the results of assume_comparable, that affects both arguments of
+     the comparison. *)
+  let reduce_by_double_truth ~alarm (e1, v1) (e2, v2) truth =
+    let reduce (new_value1, new_value2) =
+      Extlib.may (fun e1 -> reduce_argument (e1, v1) new_value1) e1;
+      reduce_argument (e2, v2) new_value2;
+    in
+    process_truth ~reduce ~alarm (v1, v2) truth
+
+  let is_true = function
+    | `True | `TrueReduced _ -> true
+    | _ -> false
 
   let may_overflow = function
     | Shiftlt | Mult | MinusPP | MinusPI | IndexPI | PlusPI
     | PlusA | Div | Mod | MinusA -> true
     | _ -> false
 
-  let handle_integer_overflow expr range eval =
+  let truncate_bound overflow_kind bound bound_kind expr value =
+    let alarm () = Alarms.Overflow (overflow_kind, expr, bound, bound_kind) in
+    let bound = Abstract_value.Int bound in
+    let truth = Value.assume_bounded bound_kind bound value in
+    interpret_truth ~alarm value truth
+
+  let truncate_lower_bound overflow_kind expr range value =
+    let min_bound = Eval_typ.range_lower_bound range in
+    let bound_kind = Alarms.Lower_bound in
+    truncate_bound overflow_kind min_bound bound_kind expr value
+
+  let truncate_upper_bound overflow_kind expr range value =
+    let max_bound = Eval_typ.range_upper_bound range in
+    let bound_kind = Alarms.Upper_bound in
+    truncate_bound overflow_kind max_bound bound_kind expr value
+
+  let truncate_integer overflow_kind expr range value =
+    truncate_lower_bound overflow_kind expr range value >>= fun value ->
+    truncate_upper_bound overflow_kind expr range value
+
+  let handle_integer_overflow expr range value =
     let signed = range.Eval_typ.i_signed in
     if (signed && Kernel.SignedOverflow.get ()) ||
        (not signed && Kernel.UnsignedOverflow.get ())
-    then eval >>= Value.truncate_integer expr range
-    else eval >>=: Value.rewrap_integer range
+    then
+      let overflow_kind = if signed then Alarms.Signed else Alarms.Unsigned in
+      truncate_integer overflow_kind expr range value
+    else
+      let v = Value.rewrap_integer range value in
+      if range.Eval_typ.i_signed && not (Value.equal value v)
+      then Value_util.warning_once_current "2's complement assumed for overflow";
+      return v
 
-  let restrict_float expr fk value =
+  let restrict_float ?(reduce=false) ~assume_finite expr fkind value =
+    let truth = Value.assume_not_nan ~assume_finite fkind value in
+    let alarm () =
+      if assume_finite
+      then Alarms.Is_nan_or_infinite (expr, fkind)
+      else Alarms.Is_nan (expr, fkind)
+    in
+    if reduce
+    then reduce_by_truth ~alarm (expr, value) truth
+    else interpret_truth ~alarm value truth
+
+  let remove_special_float expr fk value =
     match Kernel.SpecialFloat.get () with
     | "none"       -> return value
-    | "nan"        -> Value.restrict_float ~remove_infinite:false expr fk value
-    | "non-finite" -> Value.restrict_float ~remove_infinite:true expr fk value
+    | "nan"        -> restrict_float ~assume_finite:false expr fk value
+    | "non-finite" -> restrict_float ~assume_finite:true expr fk value
     | _            -> assert false
 
-  let handle_overflow ~may_overflow expr typ eval =
+  let handle_overflow ~may_overflow expr typ value =
     match Eval_typ.classify_as_scalar typ with
-    | Eval_typ.TSInt range ->
+    | Some (Eval_typ.TSInt range) ->
       (* If the operation cannot overflow, truncates the abstract value to the
          range of the type (without emitting alarms). This can regain some
          precision when the abstract operator was too imprecise.
          Otherwise, truncates or rewraps the abstract value according to
          the parameters of the analysis. *)
       if not may_overflow
-      then eval >>=. fun v -> fst (Value.truncate_integer expr range v)
-      else handle_integer_overflow expr range eval
-    | Eval_typ.TSFloat fk -> eval >>= restrict_float expr fk
-    | Eval_typ.TSPtr _
-    | Eval_typ.TSNotScalar -> eval
+      then fst (truncate_integer Alarms.Signed expr range value), Alarmset.none
+      else handle_integer_overflow expr range value
+    | Some (Eval_typ.TSFloat fk) -> remove_special_float expr fk value
+    | Some (Eval_typ.TSPtr _)
+    | None -> return value
 
   (* Removes NaN and infinite floats from the value read from a lvalue. *)
-  let restrict_float_lvalue lval typ res =
+  let remove_special_float_lvalue typ lval res =
     match typ with
     | TFloat (fkind, _) ->
       res >>= fun (value, origin) ->
       let expr = Value_util.lval_to_exp lval in
-      restrict_float expr fkind value >>=: fun new_value ->
+      remove_special_float expr fkind value >>=: fun new_value ->
       new_value, origin
     | _ -> res
+
+  (* Removes invalid bool values from a lvalue. *)
+  let assume_valid_bool typ lval res =
+    if not (Kernel.InvalidBool.get ()) then res else
+      match typ with
+      | TInt (IBool, _) ->
+        res >>= fun (value, origin) ->
+        let one = Abstract_value.Int Integer.one in
+        let truth = Value.assume_bounded Alarms.Upper_bound one value in
+        let alarm () = Alarms.Invalid_bool lval in
+        interpret_truth ~alarm value truth >>=: fun new_value ->
+        new_value, origin
+      | _ -> res
+
+  (* Reduce the rhs argument of a shift so that it fits inside [size] bits. *)
+  let reduce_shift_rhs typ expr value =
+    let size = Cil.bitsSizeOf typ in
+    let size_int = Abstract_value.Int (Integer.of_int (size - 1)) in
+    let zero_int = Abstract_value.Int Integer.zero in
+    let alarm () = Alarms.Invalid_shift (expr, Some size) in
+    let truth = Value.assume_bounded Alarms.Lower_bound zero_int value in
+    reduce_by_truth ~alarm (expr, value) truth >>= fun value ->
+    let truth = Value.assume_bounded Alarms.Upper_bound size_int value in
+    reduce_by_truth ~alarm (expr, value) truth
+
+  (* Reduces the right argument of a shift, and if [warn_negative] is true,
+     also reduces its left argument to a positive value. *)
+  let reduce_shift ~warn_negative typ (e1, v1) (e2, v2) =
+    reduce_shift_rhs typ e2 v2 >>= fun v2 ->
+    if warn_negative && Bit_utils.is_signed_int_enum_pointer typ
+    then
+      (* Cannot shift a negative value *)
+      let zero_int = Abstract_value.Int Integer.zero in
+      let alarm () = Alarms.Invalid_shift (e1, None) in
+      let truth = Value.assume_bounded Alarms.Lower_bound zero_int v1 in
+      reduce_by_truth ~alarm (e1, v1) truth >>=: fun v1 ->
+      v1, v2
+    else return (v1, v2)
+
+  (* Emits alarms for an index out of bound, and reduces its value. *)
+  let assume_valid_index ~size ~size_expr ~index_expr value =
+    let size_int = Abstract_value.Int (Integer.pred size) in
+    let zero_int = Abstract_value.Int Integer.zero in
+    let alarm () = Alarms.Index_out_of_bound (index_expr, None) in
+    let truth = Value.assume_bounded Alarms.Lower_bound zero_int value in
+    reduce_by_truth ~alarm (index_expr, value) truth >>= fun value ->
+    let alarm () = Alarms.Index_out_of_bound (index_expr, Some size_expr) in
+    let truth = Value.assume_bounded Alarms.Upper_bound size_int value in
+    reduce_by_truth ~alarm (index_expr, value) truth
+
+  let assume_valid_binop typ (e1, v1 as arg1) op (e2, v2 as arg2) =
+    if Cil.isIntegralType typ
+    then
+      match op with
+      | Div | Mod ->
+        let truth = Value.assume_non_zero v2 in
+        let alarm () = Alarms.Division_by_zero e2 in
+        reduce_by_truth ~alarm arg2 truth >>=: fun v2 -> v1, v2
+      | Shiftrt ->
+        let warn_negative = Kernel.RightShiftNegative.get () in
+        reduce_shift ~warn_negative typ arg1 arg2
+      | Shiftlt ->
+        let warn_negative = Kernel.LeftShiftNegative.get () in
+        reduce_shift ~warn_negative typ arg1 arg2
+      | MinusPP when Value_parameters.WarnPointerSubstraction.get () ->
+        let kind = Abstract_value.Subtraction in
+        let truth = Value.assume_comparable kind v1 v2 in
+        let alarm () = Alarms.Differing_blocks (e1, e2) in
+        let arg1 = Some e1, v1 in
+        reduce_by_double_truth ~alarm arg1 arg2 truth
+      | _ -> return (v1, v2)
+    else return (v1, v2)
+
+  (* Pretty prints the result of a comparison independently of the value
+     abstractions used. *)
+  let pretty_zero_or_one fmt v =
+    let str =
+      if Value.(equal v zero) then "{0}"
+      else if Value.(equal v one) then "{1}"
+      else "{0; 1}"
+    in
+    Format.fprintf fmt "%s" str
+
+  let forward_comparison ~compute typ kind (e1, v1) (e2, v2) =
+    let truth = Value.assume_comparable kind v1 v2 in
+    let alarm () = Alarms.Pointer_comparison (e1, e2) in
+    let propagate_all = propagate_all_pointer_comparison typ in
+    let args, alarms =
+      if warn_pointer_comparison typ
+      then if propagate_all
+        then `Value (v1, v2), snd (interpret_truth ~alarm (v1, v2) truth)
+        else reduce_by_double_truth ~alarm (e1, v1) (e2, v2) truth
+      else `Value (v1, v2), Alarmset.none
+    in
+    let result = args >>- fun (v1, v2) -> compute v1 v2 in
+    let value =
+      if is_true truth || not propagate_all
+      then result
+      else
+        let zero_or_one = Value.(join zero one) in
+        if Cil.isPointerType typ then
+          Value_parameters.result
+            ~current:true ~once:true
+            ~dkey:Value_parameters.dkey_pointer_comparison
+            "evaluating condition to {0; 1} instead of %a because of UPCPA"
+            (Bottom.pretty pretty_zero_or_one) result;
+        `Value zero_or_one
+    in
+    value, alarms
+
+  let forward_binop typ (e1, v1 as arg1) op arg2 =
+    let typ_e1 = Cil.unrollType (Cil.typeOf e1) in
+    match comparison_kind op with
+    | Some kind ->
+      let compute v1 v2 = Value.forward_binop typ_e1 op v1 v2 in
+      (* Detect zero expressions created by the evaluator *)
+      let e1 = if Value_util.is_value_zero e1 then None else Some e1 in
+      forward_comparison ~compute typ_e1 kind (e1, v1) arg2
+    | None ->
+      assume_valid_binop typ arg1 op arg2 >>=. fun (v1, v2) ->
+      Value.forward_binop typ_e1 op v1 v2
+
+  let forward_unop unop (e, v as arg) =
+    let typ = Cil.unrollType (Cil.typeOf e) in
+    if unop = LNot
+    then
+      let kind = Abstract_value.Equality in
+      let compute _ v = Value.forward_unop typ unop v in
+      forward_comparison ~compute typ kind (None, Value.zero) arg
+    else Value.forward_unop typ unop v, Alarmset.none
+
+  (* ------------------------------------------------------------------------
+                                    Casts
+     ------------------------------------------------------------------------ *)
+
+  type integer_range = Eval_typ.integer_range = { i_bits: int; i_signed: bool }
+
+  let cast_integer overflow_kind expr ~src ~dst value =
+    let value =
+      if Eval_typ.(Integer.lt (range_lower_bound src) (range_lower_bound dst))
+      then truncate_lower_bound overflow_kind expr dst value
+      else return value
+    in
+    value >>= fun value ->
+    if Eval_typ.(Integer.gt (range_upper_bound src) (range_upper_bound dst))
+    then truncate_upper_bound overflow_kind expr dst value
+    else return value
+
+  (* Relaxed semantics for downcasts into signed types:
+     first converts the value to the signed counterpart of the source type, and
+     then downcasts it into the signed destination type. Emits only alarms for
+     the second cast. *)
+  let relaxed_signed_downcast expr ~src ~dst value =
+    let expr, src, value =
+      if not src.i_signed
+      then
+        let signed_src = { src with i_signed = true } in
+        let signed_v = Value.rewrap_integer signed_src value in
+        let signed_exp = exp_alarm_signed_converted_downcast expr in
+        signed_exp, signed_src, signed_v
+      else expr, src, value
+    in
+    cast_integer Alarms.Signed_downcast expr ~src ~dst value
+
+  let cast_int_to_int expr ~src ~dst value =
+    (* Regain some precision in case a transfer function was imprecise.
+       This should probably be done in the transfer function, though. *)
+    let value =
+      if Value.(equal top_int value)
+      then Value.rewrap_integer src value
+      else value
+    in
+    if Eval_typ.range_inclusion src dst
+    then return value (* Upcast, nothing to check. *)
+    else if dst.i_signed then (* Signed downcast. *)
+      if Kernel.SignedDowncast.get ()
+      then cast_integer Alarms.Signed_downcast expr ~src ~dst value
+      else if Value_parameters.WarnSignedConvertedDowncast.get ()
+      then relaxed_signed_downcast expr ~src ~dst value
+      else return (Value.rewrap_integer dst value)
+    else (* Unsigned downcast. *)
+    if Kernel.UnsignedDowncast.get ()
+    then cast_integer Alarms.Unsigned_downcast expr ~src ~dst value
+    else return (Value.rewrap_integer dst value)
+
+  (* Re-export type here *)
+  type scalar_typ = Eval_typ.scalar_typ =
+    | TSInt of integer_range
+    | TSPtr of integer_range
+    | TSFloat of fkind
+
+  let round fkind f = match fkind with
+    | FFloat -> Floating_point.round_to_single_precision_float f
+    | FDouble | FLongDouble -> f
+
+  let truncate_float_bound fkind bound bound_kind expr value =
+    let next_int, prev_float, is_beyond = match bound_kind with
+      | Alarms.Upper_bound -> Integer.succ, Fval.F.prev_float, Integer.ge
+      | Alarms.Lower_bound -> Integer.pred, Fval.F.next_float, Integer.le
+    in
+    let ibound = next_int bound in
+    let fbound = round fkind (Integer.to_float ibound) in
+    let float_bound =
+      if is_beyond (Integer.of_float fbound) ibound
+      then prev_float (Fval.kind fkind) fbound
+      else fbound
+    in
+    let alarm () = Alarms.Float_to_int (expr, bound, bound_kind) in
+    let bound = Abstract_value.Float (float_bound, fkind) in
+    let truth = Value.assume_bounded bound_kind bound value in
+    reduce_by_truth ~alarm (expr, value) truth
+
+  let truncate_float fkind dst_range expr value =
+    let max_bound = Eval_typ.range_upper_bound dst_range in
+    let bound_kind = Alarms.Upper_bound in
+    truncate_float_bound fkind max_bound bound_kind expr value >>= fun value ->
+    let min_bound = Eval_typ.range_lower_bound dst_range in
+    let bound_kind = Alarms.Lower_bound in
+    truncate_float_bound fkind min_bound bound_kind expr value
+
+  let forward_cast ~dst expr value =
+    let src = Cil.typeOf expr in
+    match Eval_typ.(classify_as_scalar src, classify_as_scalar dst) with
+    | None, _ | _, None -> return value (* Unclear whether this happens. *)
+    | Some src_type, Some dst_type ->
+      let value, alarms =
+        match src_type, dst_type with
+        | (TSInt src | TSPtr src), (TSInt dst | TSPtr dst) ->
+          cast_int_to_int ~src ~dst expr value
+        | TSFloat src, (TSInt dst | TSPtr dst)  ->
+          restrict_float ~reduce:true ~assume_finite:true expr src value >>=
+          truncate_float src dst expr
+        | (TSInt _ | TSPtr _), TSFloat _ ->
+          (* Cannot overflow with 32 bits float. *)
+          `Value value, Alarmset.none
+        | TSFloat _, TSFloat _ -> `Value value, Alarmset.none
+      in
+      value >>- Value.forward_cast ~src_type ~dst_type, alarms
+
+  (* ------------------------------------------------------------------------
+                               Forward Evaluation
+     ------------------------------------------------------------------------ *)
 
   (* Makes the oracle for the domain queries, called by the forward evaluation.
      Defined below, after applying the subdivided_evaluation to the forward
@@ -485,39 +857,24 @@ module Make
 
     | UnOp (op, e, typ) ->
       root_forward_eval fuel state e >>= fun (v, volatile) ->
-      let context = { operand = e }
-      and e_typ = Cil.unrollType (Cil.typeOf e) in
-      let v = Value.forward_unop ~context e_typ op v in
+      forward_unop op (e, v) >>= fun v ->
       let may_overflow = op = Neg in
       let v = handle_overflow ~may_overflow expr typ v in
       compute_reduction v volatile
 
     | BinOp (op, e1, e2, typ) ->
-      let context =
-        { left_operand = e1; right_operand = e2; binary_result = expr }
-      in
       root_forward_eval fuel state e1 >>= fun (v1, volatile1) ->
       root_forward_eval fuel state e2 >>= fun (v2, volatile2) ->
-      let typ_e1 = Cil.unrollType (Cil.typeOf e1) in
-      let v = Value.forward_binop ~context typ_e1 op v1 v2 in
+      forward_binop typ (e1, v1) op (e2, v2) >>= fun v ->
       let may_overflow = may_overflow op in
       let v = handle_overflow ~may_overflow expr typ v in
       compute_reduction v (volatile1 || volatile2)
 
-    | CastE (dst_typ, e) ->
+    | CastE (dst, e) ->
       root_forward_eval fuel state e >>= fun (value, volatile) ->
-      let src_typ = Cil.typeOf e in
-      let arg = match Cil.unrollType src_typ with
-        | TFloat (fkind, _) ->
-          if Cil.isFloatingType dst_typ
-          then return value
-          else Value.restrict_float ~remove_infinite:true e fkind value
-        | _ -> return value
-      in
-      arg >>= fun value ->
-      let v = Value.cast ~src_typ ~dst_typ e value in
-      let v = match Cil.unrollType dst_typ with
-        | TFloat (fkind, _) -> v >>= restrict_float expr fkind
+      let v = forward_cast ~dst e value in
+      let v = match Cil.unrollType dst with
+        | TFloat (fkind, _) -> v >>= remove_special_float expr fkind
         | _ -> v
       in
       compute_reduction v volatile
@@ -532,7 +889,7 @@ module Make
       | CEnum {eival = e} -> forward_eval fuel state e
       | CReal (_f, fkind, _fstring) ->
         let value = Value.constant expr constant in
-        restrict_float expr fkind value
+        remove_special_float expr fkind value
       (* Integer constants never overflow, because the front-end chooses a
          suitable type. *)
       | _ -> return (Value.constant expr constant)
@@ -585,8 +942,14 @@ module Make
     then `Value (loc, typ, Neither, volatile), Alarmset.none
     else
       let bitfield = Cil.isBitfield lval in
-      Loc.reduce_loc_by_validity ~for_writing ~bitfield lval loc
-      >>=: fun valid_loc ->
+      let truth = Loc.assume_valid_location ~for_writing ~bitfield loc in
+      let alarm () =
+        let access_kind =
+          if for_writing then Alarms.For_writing else Alarms.For_reading
+        in
+        Alarms.Memory_access (lval, access_kind)
+      in
+      interpret_truth ~alarm loc truth >>=: fun valid_loc ->
       let reduction = if Loc.equal_loc valid_loc loc then Neither else Forward in
       valid_loc, typ, reduction, volatile
 
@@ -647,12 +1010,7 @@ module Make
             then `Value index, Alarmset.none
             else
               let size_expr = Extlib.the array_size in (* array_size exists *)
-              Loc.reduce_index_by_array_size ~size_expr ~index_expr size index
-              >>=: fun new_index ->
-              (* Update the cache with the new value of the index *)
-              if not (Value.equal index new_index)
-              then reduce_expr_value Forward index_expr new_index;
-              new_index
+              assume_valid_index ~size ~size_expr ~index_expr index
           with
           | Cil.LenOfArray -> `Value index, Alarmset.none (* unknown array size *)
       in
@@ -687,7 +1045,8 @@ module Make
       let record, alarms = indeterminate_copy lval v alarms in
       `Value (record, Neither, volatile), alarms
     else
-      let v, alarms = restrict_float_lvalue lval typ_lv (v, alarms) in
+      let v, alarms = remove_special_float_lvalue typ_lv lval (v, alarms) in
+      let v, alarms = assume_valid_bool typ_lv lval (v, alarms) in
       (v, alarms) >>=: fun (value, origin) ->
       let value = define_value value
       and origin = Some origin
@@ -798,20 +1157,26 @@ module Make
   let rec backward_eval fuel state expr value =
     (* Evaluate the expression if needed. *)
     evaluate_for_reduction state expr >>- fun (record, report) ->
-    (* Reduction of [expr] by [value]. *)
+    (* Reduction of [expr] by [value]. Also performs further reductions
+       requested by the domains. Returns Bottom if one of these reductions
+       leads to bottom. *)
     let reduce kind value =
+      let continue = `Value () in
       (* Avoids reduction of volatile expressions. *)
-      if report.volatile then ()
+      if report.volatile then continue
       else
         let value = Value.reduce value in
         reduce_expr_recording kind expr (record, report) value;
         (* If enough fuel, asks the domain for more reductions. *)
         if fuel > 0
         then
-          let reduce (expr, v) =
-            ignore (backward_eval (pred fuel) state expr (Some v))
+          (* The reductions requested by the domains. *)
+          let reductions_list = Domain.reduce_further state expr value in
+          let reduce acc (expr, v) =
+            acc >>- fun () -> backward_eval (pred fuel) state expr (Some v)
           in
-          List.iter reduce (Domain.reduce_further state expr value)
+          List.fold_left reduce continue reductions_list
+        else continue
     in
     record.value.v >>- fun old_value ->
     (* Determines the need of a backward reduction. *)
@@ -829,17 +1194,17 @@ module Make
              which is then reduced accordingly. *)
           backward_loc state lval value >>- function
           | None ->
-            reduce kind value;
+            reduce kind value >>- fun () ->
             recursive_descent_lval fuel state lval
           | Some (loc, new_value) ->
             let kind =
               if Value.is_included old_value new_value then Neither else Backward
             in
-            reduce kind new_value;
+            reduce kind new_value >>- fun () ->
             internal_backward_lval fuel state loc lval
         end
       | _ ->
-        reduce kind value;
+        reduce kind value >>- fun () ->
         internal_backward fuel state expr value
 
   (* Backward propagate the reduction [expr] = [value] to the subterms of the
@@ -1128,6 +1493,10 @@ module Make
       subdivided_forward_eval valuation state expr >>=: fst
 
   let lvaluate ?(valuation=Cache.empty) ~for_writing state lval =
+    (* If [for_writing] is true, the location of [lval] is reduced by removing
+       const bases. Use [for_writing:false] if const bases can be written
+       through a mutable field or an initializing function. *)
+    let for_writing = for_writing && not (Cil.is_mutable_or_initialized lval) in
     let host, offset = lval in
     evaluate_host valuation state host >>= fun valuation ->
     evaluate_offsets valuation state offset >>= fun valuation ->
@@ -1252,20 +1621,6 @@ module Make
         List.fold_left process_one_value ([], eval_states) expected_values
       in
       matched, List.map (fun (s, _, _) -> s) tail
-
-  let check_non_overlapping state lvs1 lvs2 =
-    let eval_loc (acc_list, valuation) lval =
-      let for_writing = false in
-      match fst (lvaluate ~valuation ~for_writing state lval) with
-      | `Bottom -> acc_list, valuation
-      | `Value (valuation, loc, _) -> (lval, loc) :: acc_list, valuation
-    in
-    let eval_list valuation lvs =
-      List.fold_left eval_loc ([], valuation) lvs
-    in
-    let list1, valuation = eval_list Valuation.empty lvs1 in
-    let list2, _ = eval_list valuation lvs2 in
-    Loc.check_non_overlapping list1 list2
 
 end
 

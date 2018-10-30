@@ -49,6 +49,12 @@ PLUGIN_TESTS_DIRS:=report
 
 include $(FRAMAC_SHARE)/Makefile.dynamic
 
+ifeq ($(FRAMAC_INTERNAL),yes)
+# To allow testing with WP
+Report_DEFAULT_TESTS: create_share_link
+
+endif
+
 #####################################
 # Regenerating the Makefile on need #
 #####################################

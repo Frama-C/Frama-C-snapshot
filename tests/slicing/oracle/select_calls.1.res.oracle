@@ -1,19 +1,19 @@
 [kernel] Parsing tests/slicing/select_calls.i (no preprocessing)
 [slicing] slicing requests in progress...
-[value] Analyzing an incomplete application starting at g
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing an incomplete application starting at g
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   c ∈ [--..--]
   d ∈ [--..--]
-[value] computing for function nothing <- g.
+[eva] computing for function nothing <- g.
   Called from tests/slicing/select_calls.i:42.
 [kernel:annot:missing-spec] tests/slicing/select_calls.i:42: Warning: 
   Neither code nor specification for function nothing, generating default assigns from the prototype
-[value] using specification for function nothing
-[value] Done for function nothing
-[value] Recording results for g
-[value] done for function g
+[eva] using specification for function nothing
+[eva] Done for function nothing
+[eva] Recording results for g
+[eva] done for function g
 [slicing] initializing slicing ...
 [slicing] interpreting slicing requests from the command line...
 [pdg] computing for function g

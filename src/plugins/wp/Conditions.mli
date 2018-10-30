@@ -52,7 +52,7 @@ and condition =
   | State of Mstate.state
 
 and sequence (** List of steps *)
-  
+
 type sequent = sequence * F.pred
 
 val pretty : (Format.formatter -> sequent -> unit) ref
@@ -132,8 +132,11 @@ val subst : (term -> term) -> sequent -> sequent
     to predicates.
 *)
 
-val introduction : sequent -> sequent
+val introduction : sequent -> sequent option
 (** Performs existential, universal and hypotheses introductions *)
+
+val introduction_eq : sequent -> sequent
+(** Same as [introduction] but returns the same sequent is None *)
 
 val lemma : pred -> sequent
 (** Performs existential, universal and hypotheses introductions *)
@@ -147,7 +150,7 @@ val close : sequent -> pred (** With free variables {i quantified}. *)
 val at_closure : (sequent -> sequent ) -> unit (** register a transformation applied just before close *)
 
 (** {2 Bundles}
-    
+
     Bundles are {i mergeable} pre-sequences.
     This the key structure for merging hypotheses with linear complexity
     during backward weakest pre-condition calculus.

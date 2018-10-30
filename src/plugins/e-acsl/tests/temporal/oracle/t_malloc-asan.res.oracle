@@ -1,0 +1,11 @@
+[e-acsl] beginning translation.
+[e-acsl] Warning: annotating undefined function `printf_va_1':
+  the generated program may miss memory instrumentation
+  if there are memory-related annotations.
+[e-acsl] tests/temporal/t_malloc-asan.c:31: Warning: 
+  E-ACSL construct `logic function application' is not yet supported.
+  Ignoring annotation.
+[e-acsl] tests/temporal/t_malloc-asan.c:31: Warning: 
+  E-ACSL construct `assigns clause in behavior' is not yet supported.
+  Ignoring annotation.
+[e-acsl] translation done in project "e-acsl".

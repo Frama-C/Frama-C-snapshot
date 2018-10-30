@@ -28,7 +28,7 @@ include Sigs.Model
 
 type pointer = NoCast | Fits | Unsafe
 val pointer : pointer Context.value
-val p_havoc : Lang.lfun
+val f_havoc : Lang.lfun
 val p_separated : Lang.lfun
 val p_included : Lang.lfun
 val p_valid_rd : Lang.lfun

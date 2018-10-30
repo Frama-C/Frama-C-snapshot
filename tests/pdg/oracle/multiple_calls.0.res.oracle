@@ -1,28 +1,28 @@
 [kernel] Parsing tests/pdg/multiple_calls.c (with preprocessing)
-[value] Analyzing a complete application starting at appel_ptr_fct
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing a complete application starting at appel_ptr_fct
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   G1 ∈ [--..--]
   G2 ∈ [--..--]
   G3 ∈ [--..--]
   G4 ∈ [--..--]
-[value] computing for function fct2 <- appel_ptr_fct.
+[eva] computing for function fct2 <- appel_ptr_fct.
   Called from tests/pdg/multiple_calls.c:23.
-[value] Recording results for fct2
-[value] Done for function fct2
-[value] computing for function fct1 <- appel_ptr_fct.
+[eva] Recording results for fct2
+[eva] Done for function fct2
+[eva] computing for function fct1 <- appel_ptr_fct.
   Called from tests/pdg/multiple_calls.c:23.
-[value] Recording results for fct1
-[value] Done for function fct1
-[value:alarm] tests/pdg/multiple_calls.c:24: Warning: 
+[eva] Recording results for fct1
+[eva] Done for function fct1
+[eva:alarm] tests/pdg/multiple_calls.c:24: Warning: 
   signed overflow. assert x + G1 ≤ 2147483647;
-[value:alarm] tests/pdg/multiple_calls.c:24: Warning: 
+[eva:alarm] tests/pdg/multiple_calls.c:24: Warning: 
   signed overflow. assert -2147483648 ≤ (int)(x + G1) + G2;
-[value:alarm] tests/pdg/multiple_calls.c:24: Warning: 
+[eva:alarm] tests/pdg/multiple_calls.c:24: Warning: 
   signed overflow. assert (int)(x + G1) + G2 ≤ 2147483647;
-[value] Recording results for appel_ptr_fct
-[value] done for function appel_ptr_fct
+[eva] Recording results for appel_ptr_fct
+[eva] done for function appel_ptr_fct
 [from] Computing for function fct1
 [from] Done for function fct1
 [from] Computing for function fct2

@@ -1,20 +1,24 @@
 /* run.config
-   STDOPT: #"-slevel 10 -val-split-return full"
+   STDOPT:
 */
 
 #include "glob.c"
 #include <stdio.h>
 #include <string.h>
-#include "string.c"
+
 
 volatile int v;
 int globerr0(const char *epath, int eerrno) {
+#ifndef __FRAMAC__
   fprintf(stderr, "%s: %s\n", epath, strerror(eerrno));
+#endif
   return 0;
 }
 
 int globerr1(const char *epath, int eerrno) {
+#ifndef __FRAMAC__
   fprintf(stderr, "%s: %s\n", epath, strerror(eerrno));
+#endif
   return 1;
 }
 

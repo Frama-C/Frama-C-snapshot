@@ -1,5 +1,5 @@
 /* run.config*
-   OPT: -val @VALUECONFIG@ -warn-special-float none
+   OPT: -eva @VALUECONFIG@ -warn-special-float none
 */
 
 /* Tests on special float values NaN and infinites. */

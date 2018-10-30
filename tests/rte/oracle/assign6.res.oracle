@@ -11,22 +11,8 @@ int main(void)
 {
   int a;
   int b;
-  /*@ behavior pre_f:
-        assigns z, a;
-        assigns z \from \nothing;
-        assigns a \from \nothing;
-  */
   a = f(0,0);
-  /*@ behavior pre_f_2:
-        assigns z, a;
-        assigns z \from b;
-        assigns a \from b; */
   a = f(0,b);
-  /*@ behavior pre_f_3:
-        assigns z, a;
-        assigns z \from \nothing;
-        assigns a \from b;
-  */
   a = f(b,0);
   return a;
 }

@@ -84,10 +84,6 @@ let kind_of_property = function
 let is_rte_generated kf =
   List.for_all (fun (_, _, lookup) -> lookup kf) (!Db.RteGen.get_all_status ())
 
-let is_rte_precond kf =
-  let _, _, lookup = !Db.RteGen.get_precond_status () in
-  lookup kf
-
 class popup () =
   object(self)
 
@@ -103,9 +99,6 @@ class popup () =
       let model = Factory.instance setup driver in
       WpRTE.generate kf model
 
-    method private rte_precond kf =
-      !Db.RteGen.do_precond kf
-    
     method private rte_option
         (menu : GMenu.menu GMenu.factory)
         (main : Design.main_window_extension_points) title action kf =
@@ -118,13 +111,6 @@ class popup () =
           if not (is_rte_generated kf) then
             self#rte_option menu main "Insert wp-rte guards"
               self#rte_generate kf ;
-          if not (is_rte_precond kf) then
-            self#rte_option menu main "Insert all callees contract"
-              self#rte_precond kf;
-      | PStmt(kf,({ skind=Instr(Call _ | Local_init (_, ConsInit _, _)) })) ->
-          if not (is_rte_precond kf) then
-            self#rte_option menu main "Insert callees contract (all calls)"
-              self#rte_precond kf;
       | _ -> ()
 
     method private wp_popup (menu : GMenu.menu GMenu.factory) = function

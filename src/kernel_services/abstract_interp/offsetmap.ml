@@ -42,8 +42,9 @@ let msg_emitter = Lattice_messages.register "Offsetmap"
 
 (** Offsetmaps are unbalanced trees that map intervals to values, with
     the additional properties that the shape of the tree is entirely determined
-    by the intervals that are mapped. The intervals are contiguous (offsetmaps
-    cannot contain holes), and sorted from left to right in the tree.
+    by the intervals that are mapped (see function [is_above] for the ordering).
+    The intervals are contiguous (offsetmaps cannot contain holes), and sorted
+    from left to right in the tree.
 
     In this file, offsetmaps are represented in a relative way to maximise
     sharing. An offsetmap alone does not "know" which intervals it represents.
@@ -361,15 +362,24 @@ module Make (V : module type of Offsetmap_lattice_with_isotropy) = struct
         max
   ;;
 
+  (* [is_above] provides a static ordering between two adjacent intervals. This
+     is used to decide which interval goes on top of the other in an offsetmap,
+     and thus governs the shape of the tree. As for patricia trees, this static
+     hierarchy optimizes the merge of two offsetmaps.
+     [min1..max1] and [min2..max2] must be two adjacent non-overlapping
+     intervals. Then:
+     - the interval containing 0, if any, is put at the top;
+     - otherwise, the interval containing the multiple of the largest power of 2
+       is put at the top.
+     This ordering of adjacent intervals is an invariant of the offsetmaps. *)
   let is_above min1 max1 min2 max2 =
-    if min1 =~ Integer.zero then true
-    else if min2 =~ Integer.zero then false
+    if min1 <=~ Integer.zero && max1 >=~ Integer.zero then true
+    else if min2 <=~ Integer.zero && max2 >=~ Integer.zero then false
     else
       let signature_interval min max =
         Integer.logxor (pred min) max
       in
       signature_interval min1 max1 >~ signature_interval min2 max2
-  ;;
 
 
   type zipper =

@@ -1,137 +1,137 @@
 [kernel] Parsing tests/scope/bts383.c (with preprocessing)
 [kernel:typing:incompatible-types-call] tests/scope/bts383.c:62: Warning: 
   expected 'char const *' but got argument of type 'int *': p + 1
-[value] Analyzing a complete application starting at main
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing a complete application starting at main
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   v ∈ {0}
-[value:alarm] tests/scope/bts383.c:56: Warning: 
+[eva:alarm] tests/scope/bts383.c:56: Warning: 
   out of bounds read. assert \valid_read(p + 1);
-[value:alarm] tests/scope/bts383.c:57: Warning: 
+[eva:alarm] tests/scope/bts383.c:57: Warning: 
   out of bounds read. assert \valid_read(p + 1);
-[value] computing for function if1 <- main.
+[eva] computing for function if1 <- main.
   Called from tests/scope/bts383.c:58.
-[value:alarm] tests/scope/bts383.c:10: Warning: 
+[eva:alarm] tests/scope/bts383.c:10: Warning: 
   out of bounds read. assert \valid_read(p);
-[value:alarm] tests/scope/bts383.c:11: Warning: 
+[eva:alarm] tests/scope/bts383.c:11: Warning: 
   out of bounds read. assert \valid_read(p);
-[value] Recording results for if1
-[value] Done for function if1
-[value] computing for function if2 <- main.
+[eva] Recording results for if1
+[eva] Done for function if1
+[eva] computing for function if2 <- main.
   Called from tests/scope/bts383.c:59.
-[value:alarm] tests/scope/bts383.c:15: Warning: 
+[eva:alarm] tests/scope/bts383.c:15: Warning: 
   out of bounds read. assert \valid_read(p);
-[value:alarm] tests/scope/bts383.c:16: Warning: 
+[eva:alarm] tests/scope/bts383.c:16: Warning: 
   out of bounds read. assert \valid_read(p);
-[value] Recording results for if2
-[value] Done for function if2
-[value] computing for function loop1 <- main.
+[eva] Recording results for if2
+[eva] Done for function if2
+[eva] computing for function loop1 <- main.
   Called from tests/scope/bts383.c:60.
-[value:alarm] tests/scope/bts383.c:20: Warning: 
+[eva:alarm] tests/scope/bts383.c:20: Warning: 
   out of bounds read. assert \valid_read(p);
-[value] tests/scope/bts383.c:21: entering loop for the first time
-[value:alarm] tests/scope/bts383.c:22: Warning: 
+[eva:alarm] tests/scope/bts383.c:22: Warning: 
   out of bounds read. assert \valid_read(p);
-[value] Recording results for loop1
-[value] Done for function loop1
-[value] computing for function loop2 <- main.
+[eva] tests/scope/bts383.c:21: starting to merge loop iterations
+[eva] Recording results for loop1
+[eva] Done for function loop1
+[eva] computing for function loop2 <- main.
   Called from tests/scope/bts383.c:61.
-[value] tests/scope/bts383.c:27: entering loop for the first time
-[value:alarm] tests/scope/bts383.c:28: Warning: 
+[eva:alarm] tests/scope/bts383.c:28: Warning: 
   out of bounds read. assert \valid_read(p);
-[value:alarm] tests/scope/bts383.c:30: Warning: 
+[eva] tests/scope/bts383.c:27: starting to merge loop iterations
+[eva:alarm] tests/scope/bts383.c:30: Warning: 
   out of bounds read. assert \valid_read(p);
-[value] Recording results for loop2
-[value] Done for function loop2
-[value] computing for function out_string <- main.
+[eva] Recording results for loop2
+[eva] Done for function loop2
+[eva] computing for function out_string <- main.
   Called from tests/scope/bts383.c:62.
-[value] tests/scope/bts383.c:35: entering loop for the first time
-[value:alarm] tests/scope/bts383.c:35: Warning: 
+[eva:alarm] tests/scope/bts383.c:35: Warning: 
   out of bounds read. assert \valid_read(value);
-[value:alarm] tests/scope/bts383.c:36: Warning: 
+[eva:alarm] tests/scope/bts383.c:36: Warning: 
   out of bounds read. assert \valid_read(value);
-[value] computing for function out_char <- out_string <- main.
+[eva] computing for function out_char <- out_string <- main.
   Called from tests/scope/bts383.c:36.
 [kernel:annot:missing-spec] tests/scope/bts383.c:36: Warning: 
   Neither code nor specification for function out_char, generating default assigns from the prototype
-[value] using specification for function out_char
-[value] Done for function out_char
-[value] computing for function out_char <- out_string <- main.
+[eva] using specification for function out_char
+[eva] Done for function out_char
+[eva] tests/scope/bts383.c:35: starting to merge loop iterations
+[eva] computing for function out_char <- out_string <- main.
   Called from tests/scope/bts383.c:36.
-[value] Done for function out_char
-[value] computing for function out_char <- out_string <- main.
+[eva] Done for function out_char
+[eva] computing for function out_char <- out_string <- main.
   Called from tests/scope/bts383.c:36.
-[value] Done for function out_char
-[value] computing for function out_char <- out_string <- main.
+[eva] Done for function out_char
+[eva] computing for function out_char <- out_string <- main.
   Called from tests/scope/bts383.c:36.
-[value] Done for function out_char
-[value] Recording results for out_string
-[value] Done for function out_string
-[value] computing for function fstruct <- main.
+[eva] Done for function out_char
+[eva] Recording results for out_string
+[eva] Done for function out_string
+[eva] computing for function fstruct <- main.
   Called from tests/scope/bts383.c:63.
-[value:alarm] tests/scope/bts383.c:41: Warning: 
+[eva:alarm] tests/scope/bts383.c:41: Warning: 
   out of bounds write. assert \valid(&ps->a);
-[value:alarm] tests/scope/bts383.c:42: Warning: 
+[eva:alarm] tests/scope/bts383.c:42: Warning: 
   out of bounds write. assert \valid(&ps->b);
-[value:alarm] tests/scope/bts383.c:43: Warning: 
+[eva:alarm] tests/scope/bts383.c:43: Warning: 
   out of bounds write. assert \valid(&ps->a);
-[value:alarm] tests/scope/bts383.c:43: Warning: 
+[eva:alarm] tests/scope/bts383.c:43: Warning: 
   out of bounds read. assert \valid_read(&ps->b);
-[value:alarm] tests/scope/bts383.c:44: Warning: 
+[eva:alarm] tests/scope/bts383.c:44: Warning: 
   out of bounds write. assert \valid(&ps->b);
-[value:alarm] tests/scope/bts383.c:44: Warning: 
+[eva:alarm] tests/scope/bts383.c:44: Warning: 
   out of bounds read. assert \valid_read(&ps->a);
-[value:alarm] tests/scope/bts383.c:45: Warning: 
+[eva:alarm] tests/scope/bts383.c:45: Warning: 
   out of bounds read. assert \valid_read(&ps->a);
-[value:alarm] tests/scope/bts383.c:45: Warning: 
+[eva:alarm] tests/scope/bts383.c:45: Warning: 
   out of bounds read. assert \valid_read(&ps->b);
-[value:alarm] tests/scope/bts383.c:47: Warning: 
+[eva:alarm] tests/scope/bts383.c:47: Warning: 
   out of bounds write. assert \valid(&ps->a);
-[value:alarm] tests/scope/bts383.c:48: Warning: 
+[eva:alarm] tests/scope/bts383.c:48: Warning: 
   out of bounds write. assert \valid(&ps->b);
-[value:alarm] tests/scope/bts383.c:49: Warning: 
+[eva:alarm] tests/scope/bts383.c:49: Warning: 
   out of bounds write. assert \valid(&ps->a);
-[value:alarm] tests/scope/bts383.c:49: Warning: 
+[eva:alarm] tests/scope/bts383.c:49: Warning: 
   out of bounds read. assert \valid_read(&ps->b);
-[value:alarm] tests/scope/bts383.c:50: Warning: 
+[eva:alarm] tests/scope/bts383.c:50: Warning: 
   out of bounds write. assert \valid(&ps->b);
-[value:alarm] tests/scope/bts383.c:50: Warning: 
+[eva:alarm] tests/scope/bts383.c:50: Warning: 
   out of bounds read. assert \valid_read(&ps->a);
-[value:alarm] tests/scope/bts383.c:51: Warning: 
+[eva:alarm] tests/scope/bts383.c:51: Warning: 
   out of bounds read. assert \valid_read(&ps->a);
-[value:alarm] tests/scope/bts383.c:51: Warning: 
+[eva:alarm] tests/scope/bts383.c:51: Warning: 
   out of bounds read. assert \valid_read(&ps->b);
-[value] Recording results for fstruct
-[value] Done for function fstruct
-[value:alarm] tests/scope/bts383.c:63: Warning: 
+[eva] Recording results for fstruct
+[eva] Done for function fstruct
+[eva:alarm] tests/scope/bts383.c:63: Warning: 
   signed overflow. assert x + tmp ≤ 2147483647;
                    (tmp from fstruct(ps + 1))
-[value] Recording results for main
-[value] done for function main
+[eva] Recording results for main
+[eva] done for function main
 [scope:rm_asserts] removing 12 assertion(s)
-[value] ====== VALUES COMPUTED ======
-[value:final-states] Values at end of function fstruct:
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function fstruct:
   ps ∈ {{ &S_ps[2] }}
   x ∈ {20}
   S_ps[0] ∈ [--..--]
       [1..2]{.a; .b} ∈ {5}
-[value:final-states] Values at end of function if1:
+[eva:final-states] Values at end of function if1:
   v ∈ [--..--]
-[value:final-states] Values at end of function if2:
+[eva:final-states] Values at end of function if2:
   v ∈ [--..--]
   __retres ∈ [--..--]
-[value:final-states] Values at end of function loop1:
+[eva:final-states] Values at end of function loop1:
   v ∈ [--..--]
   i ∈ [0..2147483647]
   n ∈ [--..--]
-[value:final-states] Values at end of function loop2:
+[eva:final-states] Values at end of function loop2:
   v ∈ [--..--]
   i ∈ [0..2147483647]
   __retres ∈ [--..--]
-[value:final-states] Values at end of function out_string:
+[eva:final-states] Values at end of function out_string:
   value ∈ {{ &S_p + {4; 5; 6; 7; 8; 9; 10; 11} }}
-[value:final-states] Values at end of function main:
+[eva:final-states] Values at end of function main:
   v ∈ [--..--]
   x ∈ [-2147483628..2147483647]
   S_ps[0] ∈ [--..--]
@@ -145,9 +145,9 @@ typedef struct __anonstruct_Tstruct_1 Tstruct;
 int v;
 void if1(int *p)
 {
-  /*@ assert Value: mem_access: \valid_read(p); */
+  /*@ assert Eva: mem_access: \valid_read(p); */
   if (*p > 0) 
-    /*@ assert Value: mem_access: \valid_read(p); */
+    /*@ assert Eva: mem_access: \valid_read(p); */
     v = *p;
   return;
 }
@@ -156,9 +156,9 @@ int if2(int c, int *p)
 {
   int __retres;
   if (c) 
-    /*@ assert Value: mem_access: \valid_read(p); */
+    /*@ assert Eva: mem_access: \valid_read(p); */
     v = *p;
-  /*@ assert Value: mem_access: \valid_read(p); */
+  /*@ assert Eva: mem_access: \valid_read(p); */
   __retres = *p;
   return __retres;
 }
@@ -166,11 +166,11 @@ int if2(int c, int *p)
 void loop1(int *p)
 {
   int i;
-  /*@ assert Value: mem_access: \valid_read(p); */
+  /*@ assert Eva: mem_access: \valid_read(p); */
   int n = *p;
   i = 0;
   while (i < n) {
-    /*@ assert Value: mem_access: \valid_read(p); */
+    /*@ assert Eva: mem_access: \valid_read(p); */
     v = *p;
     i ++;
   }
@@ -183,11 +183,11 @@ int loop2(int n, int *p)
   int i;
   i = 0;
   while (i < n) {
-    /*@ assert Value: mem_access: \valid_read(p); */
+    /*@ assert Eva: mem_access: \valid_read(p); */
     v = *p;
     i ++;
   }
-  /*@ assert Value: mem_access: \valid_read(p); */
+  /*@ assert Eva: mem_access: \valid_read(p); */
   __retres = *p;
   return __retres;
 }
@@ -198,9 +198,9 @@ void out_char(char c);
 void out_string(char const *value)
 {
   while (1) {
-    /*@ assert Value: mem_access: \valid_read(value); */
+    /*@ assert Eva: mem_access: \valid_read(value); */
     if (! *value) break;
-    /*@ assert Value: mem_access: \valid_read(value); */
+    /*@ assert Eva: mem_access: \valid_read(value); */
     out_char(*value);
     value ++;
   }
@@ -210,32 +210,32 @@ void out_string(char const *value)
 int fstruct(Tstruct *ps)
 {
   int x;
-  /*@ assert Value: mem_access: \valid(&ps->a); */
+  /*@ assert Eva: mem_access: \valid(&ps->a); */
   ps->a = 3;
-  /*@ assert Value: mem_access: \valid(&ps->b); */
+  /*@ assert Eva: mem_access: \valid(&ps->b); */
   ps->b = 5;
-  /*@ assert Value: mem_access: \valid(&ps->a); */
-  /*@ assert Value: mem_access: \valid_read(&ps->b); */
+  /*@ assert Eva: mem_access: \valid(&ps->a); */
+  /*@ assert Eva: mem_access: \valid_read(&ps->b); */
   ps->a = ps->b;
-  /*@ assert Value: mem_access: \valid(&ps->b); */
-  /*@ assert Value: mem_access: \valid_read(&ps->a); */
+  /*@ assert Eva: mem_access: \valid(&ps->b); */
+  /*@ assert Eva: mem_access: \valid_read(&ps->a); */
   ps->b = ps->a;
-  /*@ assert Value: mem_access: \valid_read(&ps->a); */
-  /*@ assert Value: mem_access: \valid_read(&ps->b); */
+  /*@ assert Eva: mem_access: \valid_read(&ps->a); */
+  /*@ assert Eva: mem_access: \valid_read(&ps->b); */
   x = ps->a + ps->b;
   ps ++;
-  /*@ assert Value: mem_access: \valid(&ps->a); */
+  /*@ assert Eva: mem_access: \valid(&ps->a); */
   ps->a = 3;
-  /*@ assert Value: mem_access: \valid(&ps->b); */
+  /*@ assert Eva: mem_access: \valid(&ps->b); */
   ps->b = 5;
-  /*@ assert Value: mem_access: \valid(&ps->a); */
-  /*@ assert Value: mem_access: \valid_read(&ps->b); */
+  /*@ assert Eva: mem_access: \valid(&ps->a); */
+  /*@ assert Eva: mem_access: \valid_read(&ps->b); */
   ps->a = ps->b;
-  /*@ assert Value: mem_access: \valid(&ps->b); */
-  /*@ assert Value: mem_access: \valid_read(&ps->a); */
+  /*@ assert Eva: mem_access: \valid(&ps->b); */
+  /*@ assert Eva: mem_access: \valid_read(&ps->a); */
   ps->b = ps->a;
-  /*@ assert Value: mem_access: \valid_read(&ps->a); */
-  /*@ assert Value: mem_access: \valid_read(&ps->b); */
+  /*@ assert Eva: mem_access: \valid_read(&ps->a); */
+  /*@ assert Eva: mem_access: \valid_read(&ps->b); */
   x += ps->a + ps->b;
   return x;
 }
@@ -244,9 +244,9 @@ int main(int *p, Tstruct *ps)
 {
   int x;
   int tmp;
-  /*@ assert Value: mem_access: \valid_read(p + 1); */
+  /*@ assert Eva: mem_access: \valid_read(p + 1); */
   x = *(p + 1);
-  /*@ assert Value: mem_access: \valid_read(p + 1); */
+  /*@ assert Eva: mem_access: \valid_read(p + 1); */
   v = *(p + 1);
   if1(p + 1);
   if2(x,p + 1);
@@ -254,7 +254,7 @@ int main(int *p, Tstruct *ps)
   loop2(x,p + 1);
   out_string((char const *)(p + 1));
   tmp = fstruct(ps + 1);
-  /*@ assert Value: signed_overflow: x + tmp ≤ 2147483647; */
+  /*@ assert Eva: signed_overflow: x + tmp ≤ 2147483647; */
   x += tmp;
   return x;
 }

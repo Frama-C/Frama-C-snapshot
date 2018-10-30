@@ -1,41 +1,41 @@
 [kernel] Parsing tests/value/loop1.i (no preprocessing)
-[value] Analyzing a complete application starting at main
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing a complete application starting at main
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   U[0] ∈ {1}
    [1] ∈ {2}
    [2..99] ∈ {0}
   NULL_GLOBAL_LOOSING_BITS_ONE_BY_ONE ∈ {0}
-[value] computing for function main1 <- main.
+[eva] computing for function main1 <- main.
   Called from tests/value/loop1.i:25.
-[value] tests/value/loop1.i:5: entering loop for the first time
-[value] tests/value/loop1.i:8: 
+[eva] tests/value/loop1.i:8: 
   cannot evaluate ACSL term, no environment to evaluate \at(_,LoopCurrent)
-[value:alarm] tests/value/loop1.i:8: Warning: assertion got status unknown.
-[value] tests/value/loop1.i:9: 
+[eva:alarm] tests/value/loop1.i:8: Warning: assertion got status unknown.
+[eva] tests/value/loop1.i:9: 
   cannot evaluate ACSL term, no environment to evaluate \at(_,LoopEntry)
-[value:alarm] tests/value/loop1.i:9: Warning: assertion got status unknown.
-[value] Recording results for main1
-[value] Done for function main1
-[value] computing for function main2 <- main.
+[eva:alarm] tests/value/loop1.i:9: Warning: assertion got status unknown.
+[eva] tests/value/loop1.i:5: starting to merge loop iterations
+[eva] Recording results for main1
+[eva] Done for function main1
+[eva] computing for function main2 <- main.
   Called from tests/value/loop1.i:26.
-[value] tests/value/loop1.i:17: entering loop for the first time
-[value:alarm] tests/value/loop1.i:19: Warning: 
+[eva] tests/value/loop1.i:17: starting to merge loop iterations
+[eva:alarm] tests/value/loop1.i:19: Warning: 
   accessing out of bounds index. assert i < 100;
-[value] Recording results for main2
-[value] Done for function main2
-[value] Recording results for main
-[value] done for function main
-[value] ====== VALUES COMPUTED ======
-[value:final-states] Values at end of function main1:
+[eva] Recording results for main2
+[eva] Done for function main2
+[eva] Recording results for main
+[eva] done for function main
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function main1:
   U[0] ∈ {1; 7}
    [1] ∈ {2; 7}
    [2..99] ∈ {0; 7}
   i ∈ {100}
-[value:final-states] Values at end of function main2:
+[eva:final-states] Values at end of function main2:
   NON TERMINATING FUNCTION
-[value:final-states] Values at end of function main:
+[eva:final-states] Values at end of function main:
   NON TERMINATING FUNCTION
 [from] Computing for function main1
 [from] Done for function main1

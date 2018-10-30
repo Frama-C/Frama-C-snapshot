@@ -38,6 +38,7 @@ let pos =         { pos = true;  zero = false; neg = false }
 let neg_or_zero = { pos = false; zero = true;  neg = true  }
 let neg =         { pos = false; zero = false; neg = true  }
 let zero =        { pos = false; zero = true;  neg = false }
+let one =         { pos = true; zero = false;  neg = false }
 let non_zero =    { pos = true;  zero = false; neg = true  }
 let ge_zero v = not v.neg
 let le_zero v = not v.pos
@@ -90,7 +91,6 @@ let narrow v1 v2 =
   } in
   if r = empty then `Bottom else `Value r
 
-let float_zeros = top
 let top_int = top
 
 (* [inject_int] creates an abstract value corresponding to the singleton [i]. *)
@@ -103,12 +103,24 @@ let constant _ = function
   | CInt64 (i, _, _) -> inject_int () i
   | _ -> top
 
-(* Modelisation of a pointer. We cannot be precise *)
-let inject_address _ = top
-
 (* Extracting function pointers from an abstraction. Not implemented
    precisely *)
 let resolve_functions _ = `Top, true
+
+(** {2 Alarms} *)
+
+let assume_non_zero v =
+  if equal v zero
+  then `False
+  else if v.zero
+  then `Unknown {v with zero = false}
+  else `True
+
+(* TODO: use the bound to reduce the value when possible. *)
+let assume_bounded _ _ v = `Unknown v
+
+let assume_not_nan ~assume_finite:_ _ v = `Unknown v
+let assume_comparable _ v1 v2 = `Unknown (v1, v2)
 
 (** {2 Forward transfer functions} *)
 
@@ -119,10 +131,10 @@ let resolve_functions _ = `Top, true
 
 let neg_unop v = { v with neg = v.pos; pos = v.neg }
 
-let forward_unop ~context:_ _ op v =
+let forward_unop _ op v =
   match op with
-  | Neg -> `Value (neg_unop v), Alarmset.all
-  | _ -> `Value top, Alarmset.all
+  | Neg -> `Value (neg_unop v)
+  | _ -> `Value top
 
 let plus v1 v2 =
   let neg = v1.neg || v2.neg in
@@ -145,60 +157,34 @@ let div v1 v2 =
   let zero = true in (* zero can appear with large enough v2 *)
   { neg; pos; zero }
 
-(* This function implements a forward evaluation of the / operator, but
-   also refines the alarms emitted by Eva when the divisor cannot be zero. *)
-let div_with_alarms div_exp v1 v2 =
-  let r = if equal zero v2 then `Bottom else `Value (div v1 v2) in
-  let alarms =
-    if v2.zero then Alarmset.all (* division by zero can occur, return no
-                                    information on the possible alarms *)
-    else
-      (* Division by zero does *not* occur. Emit all possible alarms except
-         that one. *)
-      let div_alarm = Alarms.Division_by_zero div_exp in
-      Alarmset.set div_alarm Alarmset.True Alarmset.all
-  in
-  r, alarms
-
-let forward_binop ~context _ op v1 v2 =
+let forward_binop _ op v1 v2 =
   match op with
-  | PlusA  -> `Value (plus v1 v2), Alarmset.all
-  | MinusA -> `Value (plus v1 (neg_unop v2)), Alarmset.all
-  | Mult   -> `Value (mul v1 v2), Alarmset.all
-  | Div    -> div_with_alarms context.right_operand v1 v2
-  | _      -> `Value top, Alarmset.all
-
-let truncate_integer _expr range v =
-  if equal v zero then `Value v, Alarmset.none
-  else if range.Eval_typ.i_signed
-  then `Value v, Alarmset.all
-  else `Value {v with neg = false}, Alarmset.all
+  | PlusA  -> `Value (plus v1 v2)
+  | MinusA -> `Value (plus v1 (neg_unop v2))
+  | Mult   -> `Value (mul v1 v2)
+  | Div    -> if equal zero v2 then `Bottom else `Value (div v1 v2)
+  | _      -> `Value top
 
 let rewrap_integer range v =
   if equal v zero then v
   else if range.Eval_typ.i_signed then top else pos_or_zero
 
-(* Floating-point values are not handled. *)
-let restrict_float ~remove_infinite:_ _ _ _ = `Value top, Alarmset.all
-
 (* Casts from type [src_typ] to type [dst_typ]. As downcasting can wrap,
    we only handle upcasts precisely *)
-let cast ~src_typ ~dst_typ _e v =
+let forward_cast ~src_type ~dst_type v =
   let open Eval_typ in
-  let range_src = classify_as_scalar src_typ in
-  let range_dst = classify_as_scalar dst_typ in
-  match range_src, range_dst with
+  match src_type, dst_type with
   | TSInt range_src, TSInt range_dst ->
-    if equal v zero then `Value v, Alarmset.none else
+    if equal v zero then `Value v else
     if range_inclusion range_src range_dst then
-      `Value v, Alarmset.none (* upcast *)
+      `Value v (* upcast *)
     else if range_dst.i_signed then
-      `Value top, Alarmset.all (*dst_typ is signed, return all possible values*)
+      `Value top (*dst_typ is signed, return all possible values*)
     else
-      `Value pos_or_zero, Alarmset.all (* dst_typ is unsigned *)
+      `Value pos_or_zero (* dst_typ is unsigned *)
   | _ ->
     (* at least one non-integer type. not handled precisely. *)
-    `Value top, Alarmset.all
+    `Value top
 
 
 (** {2 Backward transfer functions} *)

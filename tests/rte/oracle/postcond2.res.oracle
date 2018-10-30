@@ -25,18 +25,8 @@ int main(void)
 {
   int tmp_0;
   int tab[2] = {3, 4};
-  /*@ behavior pre_f:
-        requires \valid((int *)tab + 0);
-        assigns a; */
   int a = f(tab);
   /*@ assert rte: signed_overflow: 3 - tab[0] ≤ 2147483647; */
-  /*@ behavior pre_g:
-        requires \valid(&tab[(int)(3 - tab[0])] + a);
-        requires \valid((&tab[(int)(3 - tab[0])] + a) + (0 .. 10));
-        assigns *(&tab[(int)(3 - tab[0])] + a), tmp_0;
-        assigns *(&tab[(int)(3 - tab[0])] + a) \from a;
-        assigns tmp_0 \from *(&tab[(int)(3 - tab[0])] + a);
-  */
   tmp_0 = g(& tab[3 - tab[0]] + a,a);
   return tmp_0;
 }

@@ -1,24 +1,24 @@
 [kernel] Parsing tests/value/loop3.c (with preprocessing)
-[value] Analyzing a complete application starting at main
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing a complete application starting at main
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   i ∈ {0}
   j ∈ {0}
   k ∈ {0}
-[value] computing for function any_int <- main.
+[eva] computing for function any_int <- main.
   Called from tests/value/loop3.c:8.
-[value] using specification for function any_int
-[value] Done for function any_int
-[value] tests/value/loop3.c:11: entering loop for the first time
-[value:alarm] tests/value/loop3.c:11: Warning: 
+[eva] using specification for function any_int
+[eva] Done for function any_int
+[eva] tests/value/loop3.c:11: starting to merge loop iterations
+[eva:alarm] tests/value/loop3.c:11: Warning: 
   signed overflow. assert j + 3 ≤ 2147483647;
-[value:alarm] tests/value/loop3.c:11: Warning: 
+[eva:alarm] tests/value/loop3.c:11: Warning: 
   signed overflow. assert k + 8 ≤ 2147483647;
-[value] Recording results for main
-[value] done for function main
-[value] ====== VALUES COMPUTED ======
-[value:final-states] Values at end of function main:
+[eva] Recording results for main
+[eva] done for function main
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function main:
   i ∈ {100}
   j ∈ [0..2147483646],0%3
   k ∈ [0..2147483640],0%8

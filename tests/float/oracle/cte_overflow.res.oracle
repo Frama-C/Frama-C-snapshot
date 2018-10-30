@@ -7,23 +7,23 @@
   Floating-point constant 1e80f is not represented exactly. Will use inf.
 [kernel:parser:decimal-float] tests/float/cte_overflow.i:17: Warning: 
   Floating-point constant 1e500f is not represented exactly. Will use inf.
-[value] Analyzing a complete application starting at main
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing a complete application starting at main
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   v ∈ [--..--]
-[value:alarm] tests/float/cte_overflow.i:12: Warning: 
+[eva:alarm] tests/float/cte_overflow.i:12: Warning: 
   non-finite double value. assert \is_finite(1e500);
-[value:alarm] tests/float/cte_overflow.i:17: Warning: 
+[eva:alarm] tests/float/cte_overflow.i:17: Warning: 
   non-finite float value. assert \is_finite(1e80f);
-[value] Recording results for main
-[value] done for function main
-[value] tests/float/cte_overflow.i:12: 
-  assertion 'Value,is_nan_or_infinite' got final status invalid.
-[value] tests/float/cte_overflow.i:17: 
-  assertion 'Value,is_nan_or_infinite' got final status invalid.
-[value] ====== VALUES COMPUTED ======
-[value:final-states] Values at end of function main:
+[eva] Recording results for main
+[eva] done for function main
+[eva] tests/float/cte_overflow.i:12: 
+  assertion 'Eva,is_nan_or_infinite' got final status invalid.
+[eva] tests/float/cte_overflow.i:17: 
+  assertion 'Eva,is_nan_or_infinite' got final status invalid.
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function main:
   t ∈ {0}
   __retres ∈ {0}
 [from] Computing for function main

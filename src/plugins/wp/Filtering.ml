@@ -115,7 +115,7 @@ struct
         meet_index (Imap.interf (fun _ u v -> meet_filter (meet u v)) a b)
     | Field a , Field b ->
         meet_field (Fmap.interf (fun _ u v -> meet_filter (meet u v)) a b)
-  | (Index _ | Array _) , Field _
+    | (Index _ | Array _) , Field _
     | Field _ , (Index _ | Array _)
       -> Bot
 
@@ -231,17 +231,17 @@ struct
 
   let rec compute env e =
     try Tmap.find e env.mvalue with Not_found ->
-    let module L = Qed.Logic in
-    match F.repr e with
-    | L.True | L.False | L.Kint _ | L.Kreal _ -> E
-    | _ ->
-        let result = match F.repr e with
-          | L.Rget( r , f ) -> getfield (compute env r) f
-          | L.Aget( r , k ) -> getindex ~mu:(domain env) (compute env r) k
-          | L.Fvar x -> X(x,[])
-          | L.Fun(f,_) -> D (subterms env (symbol f) e)
-          | _ -> D (subterms env Domain.empty e)
-        in env.mvalue <- Tmap.add e result env.mvalue ; result
+      let module L = Qed.Logic in
+      match F.repr e with
+      | L.True | L.False | L.Kint _ | L.Kreal _ -> E
+      | _ ->
+          let result = match F.repr e with
+            | L.Rget( r , f ) -> getfield (compute env r) f
+            | L.Aget( r , k ) -> getindex ~mu:(domain env) (compute env r) k
+            | L.Fvar x -> X(x,[])
+            | L.Fun(f,_) -> D (subterms env (symbol f) e)
+            | _ -> D (subterms env Domain.empty e)
+          in env.mvalue <- Tmap.add e result env.mvalue ; result
 
   and subterms env d0 e =
     let pool = ref d0 in
@@ -258,7 +258,7 @@ struct
         let dom = path x ds in
         env.mdomain <- Tmap.add e dom env.mdomain ; dom
 
- end
+end
 
 (* -------------------------------------------------------------------------- *)
 (* --- Collect                                                            --- *)

@@ -1,4 +1,4 @@
-# frama-c -wp [...]
+# frama-c -wp -wp-timeout 90 -wp-steps 50 [...]
 [kernel] Parsing tests/wp_plugin/float_format.i (no preprocessing)
 [kernel:parser:decimal-float] tests/wp_plugin/float_format.i:10: Warning: 
   Floating-point constant 0.2 is not represented exactly. Will use 0x1.999999999999ap-3.

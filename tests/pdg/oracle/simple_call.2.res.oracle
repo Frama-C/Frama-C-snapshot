@@ -1,22 +1,22 @@
 [kernel] Parsing tests/pdg/simple_call.c (with preprocessing)
-[value] Analyzing a complete application starting at call_mix_G1_G2
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing a complete application starting at call_mix_G1_G2
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   G ∈ [--..--]
   G1 ∈ [--..--]
   G2 ∈ [--..--]
   S ∈ [--..--]
-[value] computing for function mix_G1_G2 <- call_mix_G1_G2.
+[eva] computing for function mix_G1_G2 <- call_mix_G1_G2.
   Called from tests/pdg/simple_call.c:28.
-[value] Recording results for mix_G1_G2
-[value] Done for function mix_G1_G2
-[value:alarm] tests/pdg/simple_call.c:31: Warning: 
+[eva] Recording results for mix_G1_G2
+[eva] Done for function mix_G1_G2
+[eva:alarm] tests/pdg/simple_call.c:31: Warning: 
   signed overflow. assert -2147483648 ≤ x1 + x2;
-[value:alarm] tests/pdg/simple_call.c:31: Warning: 
+[eva:alarm] tests/pdg/simple_call.c:31: Warning: 
   signed overflow. assert x1 + x2 ≤ 2147483647;
-[value] Recording results for call_mix_G1_G2
-[value] done for function call_mix_G1_G2
+[eva] Recording results for call_mix_G1_G2
+[eva] done for function call_mix_G1_G2
 [pdg] computing for function call_mix_G1_G2
 [from] Computing for function mix_G1_G2
 [from] Done for function mix_G1_G2

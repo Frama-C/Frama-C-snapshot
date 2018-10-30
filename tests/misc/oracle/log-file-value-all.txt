@@ -1,16 +1,16 @@
-[value] Analyzing a complete application starting at main
-[value] Computing initial state
-[value] Initial state computed
-[value] computing for function f <- main.
+[eva] Analyzing a complete application starting at main
+[eva] Computing initial state
+[eva] Initial state computed
+[eva] computing for function f <- main.
 Called from tests/misc/log-file.i:17.
-[value] using specification for function f
-[value] Done for function f
-[value] computing for function g <- main.
+[eva] using specification for function f
+[eva] Done for function f
+[eva] computing for function g <- main.
 Called from tests/misc/log-file.i:18.
-[value] using specification for function g
-tests/misc/log-file.i:14:[value] warning: no 'assigns \result \from ...' clause specified for function g
-[value] Done for function g
-tests/misc/log-file.i:19:[value] entering loop for the first time
-[value] Recording results for main
-[value] done for function main
-[value] ====== VALUES COMPUTED ======
+[eva] using specification for function g
+tests/misc/log-file.i:14:[eva] warning: no 'assigns \result \from ...' clause specified for function g
+[eva] Done for function g
+tests/misc/log-file.i:19:[eva] starting to merge loop iterations
+[eva] Recording results for main
+[eva] done for function main
+[eva] ====== VALUES COMPUTED ======

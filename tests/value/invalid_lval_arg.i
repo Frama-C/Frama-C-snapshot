@@ -9,7 +9,7 @@ void g(int x)
 
 void (*p)(int);
 
-main(int c){
+int main(int c){
   p = c&1? f : g;
   if (c&2) 
     f(**(int**)0); 

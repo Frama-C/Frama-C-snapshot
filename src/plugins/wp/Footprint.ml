@@ -110,10 +110,10 @@ let _prefix m k m' =
   let n = String.length m in
   let n' = String.length m' in
   k+n' <= n &&
-    (try for i = 0 to n'-1 do
-         if m.[k+i] != m'.[i] then raise Exit
-       done ; true
-     with Exit -> false)
+  (try for i = 0 to n'-1 do
+       if m.[k+i] != m'.[i] then raise Exit
+     done ; true
+   with Exit -> false)
 
 let matches fp e =
   let fe = pattern e in

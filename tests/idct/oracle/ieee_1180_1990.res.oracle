@@ -3,15 +3,10 @@
   Floating-point constant 3.14159265358979323846 is not represented exactly. Will use 0x1.921fb54442d18p1.
   (warn-once: no further messages from category 'parser:decimal-float' will be emitted)
 [kernel] Parsing tests/idct/idct.c (with preprocessing)
-[value] Analyzing a complete application starting at main
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
-  __fc_errno ∈ [--..--]
-  __fc_stdin ∈ {{ NULL ; &S___fc_stdin[0] }}
-  __fc_stdout ∈ {{ NULL ; &S___fc_stdout[0] }}
-  __fc_fopen[0..15] ∈ {0}
-  __fc_p_fopen ∈ {{ &__fc_fopen[0] }}
+[eva] Analyzing a complete application starting at main
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   M1[0..7][0..7] ∈ {0}
   IEEE_1180_1990_rand_randx ∈ {1}
   IEEE_1180_1990_rand_z ∈ {1.9999999990686774*2^30}
@@ -22,763 +17,917 @@
   idct_init ∈ {1}
   idct_mc1[0..7][0..7] ∈ {0}
   idct_mc2[0..7][0..7] ∈ {0}
-  S___fc_stdin[0..1] ∈ [--..--]
-  S___fc_stdout[0..1] ∈ [--..--]
-[value] tests/idct/ieee_1180_1990.c:178: entering loop for the first time
-[value] tests/idct/ieee_1180_1990.c:179: entering loop for the first time
-[value] tests/idct/ieee_1180_1990.c:184: entering loop for the first time
-[value] tests/idct/ieee_1180_1990.c:185: entering loop for the first time
-[value] computing for function idct <- main.
+[eva] tests/idct/ieee_1180_1990.c:179: starting to merge loop iterations
+[eva] tests/idct/ieee_1180_1990.c:178: starting to merge loop iterations
+[eva] tests/idct/ieee_1180_1990.c:185: starting to merge loop iterations
+[eva] tests/idct/ieee_1180_1990.c:184: starting to merge loop iterations
+[eva] computing for function idct <- main.
   Called from tests/idct/ieee_1180_1990.c:187.
-[value] tests/idct/idct.c:87: entering loop for the first time
-[value] tests/idct/idct.c:88: entering loop for the first time
-[value] tests/idct/idct.c:90: 
+[eva] tests/idct/idct.c:90: Call to builtin Frama_C_sqrt for function sqrt
+[eva] tests/idct/idct.c:90: 
   function sqrt: precondition 'finite_arg' got status valid.
-[value] tests/idct/idct.c:90: 
+[eva] tests/idct/idct.c:90: 
   function sqrt: precondition 'arg_positive' got status valid.
-[value] tests/idct/idct.c:91: 
+[eva] tests/idct/idct.c:91: Call to builtin Frama_C_cos for function cos
+[eva] tests/idct/idct.c:91: 
   function cos: precondition 'finite_arg' got status valid.
-[value] tests/idct/idct.c:125: entering loop for the first time
-[value] tests/idct/idct.c:126: entering loop for the first time
-[value] tests/idct/idct.c:128: entering loop for the first time
-[value:alarm] tests/idct/idct.c:129: Warning: 
+[eva] tests/idct/idct.c:88: starting to merge loop iterations
+[eva] tests/idct/idct.c:90: Call to builtin Frama_C_sqrt for function sqrt
+[eva] tests/idct/idct.c:91: Call to builtin Frama_C_cos for function cos
+[eva] tests/idct/idct.c:90: Call to builtin Frama_C_sqrt for function sqrt
+[eva] tests/idct/idct.c:91: Call to builtin Frama_C_cos for function cos
+[eva] tests/idct/idct.c:90: Call to builtin Frama_C_sqrt for function sqrt
+[eva] tests/idct/idct.c:91: Call to builtin Frama_C_cos for function cos
+[eva] tests/idct/idct.c:90: Call to builtin Frama_C_sqrt for function sqrt
+[eva] tests/idct/idct.c:91: Call to builtin Frama_C_cos for function cos
+[eva] tests/idct/idct.c:87: starting to merge loop iterations
+[eva] tests/idct/idct.c:90: Call to builtin Frama_C_sqrt for function sqrt
+[eva] tests/idct/idct.c:91: Call to builtin Frama_C_cos for function cos
+[eva] tests/idct/idct.c:90: Call to builtin Frama_C_sqrt for function sqrt
+[eva] tests/idct/idct.c:91: Call to builtin Frama_C_cos for function cos
+[eva] tests/idct/idct.c:90: Call to builtin Frama_C_sqrt for function sqrt
+[eva] tests/idct/idct.c:91: Call to builtin Frama_C_cos for function cos
+[eva] tests/idct/idct.c:90: Call to builtin Frama_C_sqrt for function sqrt
+[eva] tests/idct/idct.c:91: Call to builtin Frama_C_cos for function cos
+[eva] tests/idct/idct.c:128: starting to merge loop iterations
+[eva] tests/idct/idct.c:126: starting to merge loop iterations
+[eva:alarm] tests/idct/idct.c:129: Warning: 
   accessing uninitialized left-value. assert \initialized(&tmp1[i][j]);
-[value:alarm] tests/idct/idct.c:131: Warning: 
+[eva:alarm] tests/idct/idct.c:131: Warning: 
   accessing uninitialized left-value. assert \initialized(&tmp1[i][j]);
-[value:alarm] tests/idct/idct.c:141: Warning: 
+[eva:alarm] tests/idct/idct.c:141: Warning: 
   accessing uninitialized left-value. assert \initialized(&tmp1[i][j]);
-[value:alarm] tests/idct/idct.c:143: Warning: 
+[eva:alarm] tests/idct/idct.c:143: Warning: 
   accessing uninitialized left-value. assert \initialized(&tmp1[i][j]);
-[value:alarm] tests/idct/idct.c:145: Warning: 
+[eva:alarm] tests/idct/idct.c:145: Warning: 
   accessing uninitialized left-value. assert \initialized(&tmp1[i][j]);
-[value:alarm] tests/idct/idct.c:147: Warning: 
+[eva:alarm] tests/idct/idct.c:147: Warning: 
   accessing uninitialized left-value. assert \initialized(&tmp1[i][j]);
-[value:alarm] tests/idct/idct.c:150: Warning: 
+[eva:alarm] tests/idct/idct.c:150: Warning: 
   accessing uninitialized left-value. assert \initialized(&tmp1[i][j]);
-[value] tests/idct/idct.c:141: Warning: 2's complement assumed for overflow
-[value] tests/idct/idct.c:159: entering loop for the first time
-[value] tests/idct/idct.c:160: entering loop for the first time
-[value] tests/idct/idct.c:162: entering loop for the first time
-[value] tests/idct/idct.c:163: Warning: 2's complement assumed for overflow
-[value:alarm] tests/idct/idct.c:163: Warning: 
+[eva] tests/idct/idct.c:141: Warning: 2's complement assumed for overflow
+[eva] tests/idct/idct.c:125: starting to merge loop iterations
+[eva] tests/idct/idct.c:163: Warning: 2's complement assumed for overflow
+[eva:alarm] tests/idct/idct.c:163: Warning: 
   accessing uninitialized left-value. assert \initialized(&tmp2[k][j]);
-[value:alarm] tests/idct/idct.c:163: Warning: 
+[eva] tests/idct/idct.c:162: starting to merge loop iterations
+[eva] tests/idct/idct.c:160: starting to merge loop iterations
+[eva:alarm] tests/idct/idct.c:163: Warning: 
   accessing uninitialized left-value. assert \initialized(&tmp1[i][j]);
-[value:alarm] tests/idct/idct.c:166: Warning: 
+[eva:alarm] tests/idct/idct.c:166: Warning: 
   accessing uninitialized left-value. assert \initialized(&tmp1[i][j]);
-[value] tests/idct/idct.c:176: Warning: 2's complement assumed for overflow
-[value:alarm] tests/idct/idct.c:176: Warning: 
+[eva] tests/idct/idct.c:176: Warning: 2's complement assumed for overflow
+[eva:alarm] tests/idct/idct.c:176: Warning: 
   accessing uninitialized left-value. assert \initialized(&tmp1[i][j]);
-[value:alarm] tests/idct/idct.c:178: Warning: 
+[eva:alarm] tests/idct/idct.c:178: Warning: 
   accessing uninitialized left-value. assert \initialized(&tmp1[i][j]);
-[value:alarm] tests/idct/idct.c:180: Warning: 
+[eva:alarm] tests/idct/idct.c:180: Warning: 
   accessing uninitialized left-value. assert \initialized(&tmp1[i][j]);
-[value:alarm] tests/idct/idct.c:182: Warning: 
+[eva:alarm] tests/idct/idct.c:182: Warning: 
   accessing uninitialized left-value. assert \initialized(&tmp1[i][j]);
-[value:alarm] tests/idct/idct.c:185: Warning: 
+[eva:alarm] tests/idct/idct.c:185: Warning: 
   accessing uninitialized left-value. assert \initialized(&tmp1[i][j]);
-[value] Recording results for idct
-[value] Done for function idct
-[value] tests/idct/ieee_1180_1990.c:189: entering loop for the first time
-[value] tests/idct/ieee_1180_1990.c:190: entering loop for the first time
-[value:alarm] tests/idct/ieee_1180_1990.c:191: Warning: 
+[eva] tests/idct/idct.c:159: starting to merge loop iterations
+[eva] Recording results for idct
+[eva] Done for function idct
+[eva:alarm] tests/idct/ieee_1180_1990.c:191: Warning: 
   accessing uninitialized left-value. assert \initialized(&m2[i][j]);
-[value] computing for function printf_va_1 <- main.
+[eva] tests/idct/ieee_1180_1990.c:190: starting to merge loop iterations
+[eva] tests/idct/ieee_1180_1990.c:189: starting to merge loop iterations
+[eva] computing for function printf_va_1 <- main.
   Called from tests/idct/ieee_1180_1990.c:195.
-[value] using specification for function printf_va_1
-[value] tests/idct/ieee_1180_1990.c:195: 
+[eva] using specification for function printf_va_1
+[eva] tests/idct/ieee_1180_1990.c:195: 
   function printf_va_1: precondition got status valid.
-[value] Done for function printf_va_1
-[value] computing for function printf_va_2 <- main.
+[eva] Done for function printf_va_1
+[eva] computing for function printf_va_2 <- main.
   Called from tests/idct/ieee_1180_1990.c:196.
-[value] using specification for function printf_va_2
-[value] tests/idct/ieee_1180_1990.c:196: 
+[eva] using specification for function printf_va_2
+[eva] tests/idct/ieee_1180_1990.c:196: 
   function printf_va_2: precondition got status valid.
-[value] Done for function printf_va_2
-[value] tests/idct/ieee_1180_1990.c:202: entering loop for the first time
-[value] computing for function IEEE_1180_1990_mkbk <- main.
+[eva] Done for function printf_va_2
+[eva] computing for function IEEE_1180_1990_mkbk <- main.
   Called from tests/idct/ieee_1180_1990.c:211.
-[value] tests/idct/ieee_1180_1990.c:83: entering loop for the first time
-[value] tests/idct/ieee_1180_1990.c:84: entering loop for the first time
-[value] computing for function IEEE_1180_1990_rand <- IEEE_1180_1990_mkbk <- main.
+[eva] computing for function IEEE_1180_1990_rand <- IEEE_1180_1990_mkbk <- main.
   Called from tests/idct/ieee_1180_1990.c:85.
-[value] Recording results for IEEE_1180_1990_rand
-[value] Done for function IEEE_1180_1990_rand
-[value] computing for function IEEE_1180_1990_rand <- IEEE_1180_1990_mkbk <- main.
+[eva] Recording results for IEEE_1180_1990_rand
+[eva] Done for function IEEE_1180_1990_rand
+[eva] tests/idct/ieee_1180_1990.c:84: starting to merge loop iterations
+[eva] computing for function IEEE_1180_1990_rand <- IEEE_1180_1990_mkbk <- main.
   Called from tests/idct/ieee_1180_1990.c:85.
-[value] tests/idct/ieee_1180_1990.c:69: Warning: 
+[eva] tests/idct/ieee_1180_1990.c:69: Warning: 
   2's complement assumed for overflow
-[value] Recording results for IEEE_1180_1990_rand
-[value] Done for function IEEE_1180_1990_rand
-[value] computing for function IEEE_1180_1990_rand <- IEEE_1180_1990_mkbk <- main.
+[eva] Recording results for IEEE_1180_1990_rand
+[eva] Done for function IEEE_1180_1990_rand
+[eva] computing for function IEEE_1180_1990_rand <- IEEE_1180_1990_mkbk <- main.
   Called from tests/idct/ieee_1180_1990.c:85.
-[value] Recording results for IEEE_1180_1990_rand
-[value] Done for function IEEE_1180_1990_rand
-[value] computing for function IEEE_1180_1990_rand <- IEEE_1180_1990_mkbk <- main.
+[eva] Recording results for IEEE_1180_1990_rand
+[eva] Done for function IEEE_1180_1990_rand
+[eva] computing for function IEEE_1180_1990_rand <- IEEE_1180_1990_mkbk <- main.
   Called from tests/idct/ieee_1180_1990.c:85.
-[value] Recording results for IEEE_1180_1990_rand
-[value] Done for function IEEE_1180_1990_rand
-[value] computing for function IEEE_1180_1990_rand <- IEEE_1180_1990_mkbk <- main.
+[eva] Recording results for IEEE_1180_1990_rand
+[eva] Done for function IEEE_1180_1990_rand
+[eva] computing for function IEEE_1180_1990_rand <- IEEE_1180_1990_mkbk <- main.
   Called from tests/idct/ieee_1180_1990.c:85.
-[value] Recording results for IEEE_1180_1990_rand
-[value] Done for function IEEE_1180_1990_rand
-[value] computing for function IEEE_1180_1990_rand <- IEEE_1180_1990_mkbk <- main.
+[eva] Recording results for IEEE_1180_1990_rand
+[eva] Done for function IEEE_1180_1990_rand
+[eva] computing for function IEEE_1180_1990_rand <- IEEE_1180_1990_mkbk <- main.
   Called from tests/idct/ieee_1180_1990.c:85.
-[value] Recording results for IEEE_1180_1990_rand
-[value] Done for function IEEE_1180_1990_rand
-[value] computing for function IEEE_1180_1990_rand <- IEEE_1180_1990_mkbk <- main.
+[eva] Recording results for IEEE_1180_1990_rand
+[eva] Done for function IEEE_1180_1990_rand
+[eva] computing for function IEEE_1180_1990_rand <- IEEE_1180_1990_mkbk <- main.
   Called from tests/idct/ieee_1180_1990.c:85.
-[value] Recording results for IEEE_1180_1990_rand
-[value] Done for function IEEE_1180_1990_rand
-[value] tests/idct/ieee_1180_1990.c:85: 
+[eva] Recording results for IEEE_1180_1990_rand
+[eva] Done for function IEEE_1180_1990_rand
+[eva] tests/idct/ieee_1180_1990.c:83: starting to merge loop iterations
+[eva] tests/idct/ieee_1180_1990.c:85: 
   Reusing old results for call to IEEE_1180_1990_rand
-[value] tests/idct/ieee_1180_1990.c:85: 
+[eva] tests/idct/ieee_1180_1990.c:85: 
   Reusing old results for call to IEEE_1180_1990_rand
-[value] tests/idct/ieee_1180_1990.c:85: 
+[eva] tests/idct/ieee_1180_1990.c:85: 
   Reusing old results for call to IEEE_1180_1990_rand
-[value] tests/idct/ieee_1180_1990.c:85: 
+[eva] tests/idct/ieee_1180_1990.c:85: 
   Reusing old results for call to IEEE_1180_1990_rand
-[value] Recording results for IEEE_1180_1990_mkbk
-[value] Done for function IEEE_1180_1990_mkbk
-[value] computing for function IEEE_1180_1990_dctf <- main.
+[eva] Recording results for IEEE_1180_1990_mkbk
+[eva] Done for function IEEE_1180_1990_mkbk
+[eva] computing for function IEEE_1180_1990_dctf <- main.
   Called from tests/idct/ieee_1180_1990.c:212.
-[value] tests/idct/ieee_1180_1990.c:98: entering loop for the first time
-[value] tests/idct/ieee_1180_1990.c:99: entering loop for the first time
-[value] tests/idct/ieee_1180_1990.c:100: 
+[eva] tests/idct/ieee_1180_1990.c:100: 
+  Call to builtin Frama_C_sqrt for function sqrt
+[eva] tests/idct/ieee_1180_1990.c:100: 
   function sqrt: precondition 'finite_arg' got status valid.
-[value] tests/idct/ieee_1180_1990.c:100: 
+[eva] tests/idct/ieee_1180_1990.c:100: 
   function sqrt: precondition 'arg_positive' got status valid.
-[value] tests/idct/ieee_1180_1990.c:101: 
+[eva] tests/idct/ieee_1180_1990.c:101: 
+  Call to builtin Frama_C_cos for function cos
+[eva] tests/idct/ieee_1180_1990.c:101: 
   function cos: precondition 'finite_arg' got status valid.
-[value] tests/idct/ieee_1180_1990.c:104: entering loop for the first time
-[value] tests/idct/ieee_1180_1990.c:105: entering loop for the first time
-[value] tests/idct/ieee_1180_1990.c:108: entering loop for the first time
-[value:alarm] tests/idct/ieee_1180_1990.c:109: Warning: 
+[eva] tests/idct/ieee_1180_1990.c:99: starting to merge loop iterations
+[eva] tests/idct/ieee_1180_1990.c:100: 
+  Call to builtin Frama_C_sqrt for function sqrt
+[eva] tests/idct/ieee_1180_1990.c:101: 
+  Call to builtin Frama_C_cos for function cos
+[eva] tests/idct/ieee_1180_1990.c:100: 
+  Call to builtin Frama_C_sqrt for function sqrt
+[eva] tests/idct/ieee_1180_1990.c:101: 
+  Call to builtin Frama_C_cos for function cos
+[eva] tests/idct/ieee_1180_1990.c:100: 
+  Call to builtin Frama_C_sqrt for function sqrt
+[eva] tests/idct/ieee_1180_1990.c:101: 
+  Call to builtin Frama_C_cos for function cos
+[eva] tests/idct/ieee_1180_1990.c:100: 
+  Call to builtin Frama_C_sqrt for function sqrt
+[eva] tests/idct/ieee_1180_1990.c:101: 
+  Call to builtin Frama_C_cos for function cos
+[eva] tests/idct/ieee_1180_1990.c:98: starting to merge loop iterations
+[eva] tests/idct/ieee_1180_1990.c:100: 
+  Call to builtin Frama_C_sqrt for function sqrt
+[eva] tests/idct/ieee_1180_1990.c:101: 
+  Call to builtin Frama_C_cos for function cos
+[eva] tests/idct/ieee_1180_1990.c:100: 
+  Call to builtin Frama_C_sqrt for function sqrt
+[eva] tests/idct/ieee_1180_1990.c:101: 
+  Call to builtin Frama_C_cos for function cos
+[eva] tests/idct/ieee_1180_1990.c:100: 
+  Call to builtin Frama_C_sqrt for function sqrt
+[eva] tests/idct/ieee_1180_1990.c:101: 
+  Call to builtin Frama_C_cos for function cos
+[eva] tests/idct/ieee_1180_1990.c:100: 
+  Call to builtin Frama_C_sqrt for function sqrt
+[eva] tests/idct/ieee_1180_1990.c:101: 
+  Call to builtin Frama_C_cos for function cos
+[eva] tests/idct/ieee_1180_1990.c:108: starting to merge loop iterations
+[eva] tests/idct/ieee_1180_1990.c:105: starting to merge loop iterations
+[eva:alarm] tests/idct/ieee_1180_1990.c:109: Warning: 
   accessing uninitialized left-value. assert \initialized(&tmp1[i][j]);
-[value] tests/idct/ieee_1180_1990.c:111: entering loop for the first time
-[value] tests/idct/ieee_1180_1990.c:112: entering loop for the first time
-[value] tests/idct/ieee_1180_1990.c:115: entering loop for the first time
-[value:alarm] tests/idct/ieee_1180_1990.c:116: Warning: 
+[eva] tests/idct/ieee_1180_1990.c:104: starting to merge loop iterations
+[eva:alarm] tests/idct/ieee_1180_1990.c:116: Warning: 
   accessing uninitialized left-value. assert \initialized(&tmp1[i][k]);
-[value:alarm] tests/idct/ieee_1180_1990.c:116: Warning: 
+[eva] tests/idct/ieee_1180_1990.c:115: starting to merge loop iterations
+[eva] tests/idct/ieee_1180_1990.c:112: starting to merge loop iterations
+[eva:alarm] tests/idct/ieee_1180_1990.c:116: Warning: 
   accessing uninitialized left-value. assert \initialized(&tmp2[i][j]);
-[value:alarm] tests/idct/ieee_1180_1990.c:117: Warning: 
+[eva:alarm] tests/idct/ieee_1180_1990.c:117: Warning: 
   accessing uninitialized left-value. assert \initialized(&tmp2[i][j]);
-[value:alarm] tests/idct/ieee_1180_1990.c:119: Warning: 
+[eva:alarm] tests/idct/ieee_1180_1990.c:119: Warning: 
   accessing uninitialized left-value. assert \initialized(&tmp2[i][j]);
-[value:alarm] tests/idct/ieee_1180_1990.c:121: Warning: 
+[eva:alarm] tests/idct/ieee_1180_1990.c:121: Warning: 
   accessing uninitialized left-value. assert \initialized(&tmp2[i][j]);
-[value:alarm] tests/idct/ieee_1180_1990.c:122: Warning: 
+[eva:alarm] tests/idct/ieee_1180_1990.c:122: Warning: 
   accessing uninitialized left-value. assert \initialized(&tmp2[i][j]);
-[value:alarm] tests/idct/ieee_1180_1990.c:122: Warning: 
+[eva:alarm] tests/idct/ieee_1180_1990.c:122: Warning: 
   overflow in conversion from floating-point to integer.
   assert -2147483649 < tmp2[i][j] + 0.5;
-[value:alarm] tests/idct/ieee_1180_1990.c:122: Warning: 
+[eva:alarm] tests/idct/ieee_1180_1990.c:122: Warning: 
   overflow in conversion from floating-point to integer.
   assert tmp2[i][j] + 0.5 < 2147483648;
-[value:alarm] tests/idct/ieee_1180_1990.c:124: Warning: 
+[eva:alarm] tests/idct/ieee_1180_1990.c:124: Warning: 
   accessing uninitialized left-value. assert \initialized(&tmp2[i][j]);
-[value:alarm] tests/idct/ieee_1180_1990.c:124: Warning: 
+[eva:alarm] tests/idct/ieee_1180_1990.c:124: Warning: 
   overflow in conversion from floating-point to integer.
   assert -2147483649 < tmp2[i][j] - 0.5;
-[value:alarm] tests/idct/ieee_1180_1990.c:124: Warning: 
+[eva:alarm] tests/idct/ieee_1180_1990.c:124: Warning: 
   overflow in conversion from floating-point to integer.
   assert tmp2[i][j] - 0.5 < 2147483648;
-[value] Recording results for IEEE_1180_1990_dctf
-[value] Done for function IEEE_1180_1990_dctf
-[value] computing for function IEEE_1180_1990_idctf <- main.
+[eva] tests/idct/ieee_1180_1990.c:111: starting to merge loop iterations
+[eva] Recording results for IEEE_1180_1990_dctf
+[eva] Done for function IEEE_1180_1990_dctf
+[eva] computing for function IEEE_1180_1990_idctf <- main.
   Called from tests/idct/ieee_1180_1990.c:213.
-[value] tests/idct/ieee_1180_1990.c:138: entering loop for the first time
-[value] tests/idct/ieee_1180_1990.c:139: entering loop for the first time
-[value] tests/idct/ieee_1180_1990.c:140: 
+[eva] tests/idct/ieee_1180_1990.c:140: 
+  Call to builtin Frama_C_sqrt for function sqrt
+[eva] tests/idct/ieee_1180_1990.c:140: 
   function sqrt: precondition 'finite_arg' got status valid.
-[value] tests/idct/ieee_1180_1990.c:140: 
+[eva] tests/idct/ieee_1180_1990.c:140: 
   function sqrt: precondition 'arg_positive' got status valid.
-[value] tests/idct/ieee_1180_1990.c:141: 
+[eva] tests/idct/ieee_1180_1990.c:141: 
+  Call to builtin Frama_C_cos for function cos
+[eva] tests/idct/ieee_1180_1990.c:141: 
   function cos: precondition 'finite_arg' got status valid.
-[value] tests/idct/ieee_1180_1990.c:145: entering loop for the first time
-[value] tests/idct/ieee_1180_1990.c:146: entering loop for the first time
-[value] tests/idct/ieee_1180_1990.c:149: entering loop for the first time
-[value:alarm] tests/idct/ieee_1180_1990.c:150: Warning: 
+[eva] tests/idct/ieee_1180_1990.c:139: starting to merge loop iterations
+[eva] tests/idct/ieee_1180_1990.c:140: 
+  Call to builtin Frama_C_sqrt for function sqrt
+[eva] tests/idct/ieee_1180_1990.c:141: 
+  Call to builtin Frama_C_cos for function cos
+[eva] tests/idct/ieee_1180_1990.c:140: 
+  Call to builtin Frama_C_sqrt for function sqrt
+[eva] tests/idct/ieee_1180_1990.c:141: 
+  Call to builtin Frama_C_cos for function cos
+[eva] tests/idct/ieee_1180_1990.c:140: 
+  Call to builtin Frama_C_sqrt for function sqrt
+[eva] tests/idct/ieee_1180_1990.c:141: 
+  Call to builtin Frama_C_cos for function cos
+[eva] tests/idct/ieee_1180_1990.c:140: 
+  Call to builtin Frama_C_sqrt for function sqrt
+[eva] tests/idct/ieee_1180_1990.c:141: 
+  Call to builtin Frama_C_cos for function cos
+[eva] tests/idct/ieee_1180_1990.c:138: starting to merge loop iterations
+[eva] tests/idct/ieee_1180_1990.c:140: 
+  Call to builtin Frama_C_sqrt for function sqrt
+[eva] tests/idct/ieee_1180_1990.c:141: 
+  Call to builtin Frama_C_cos for function cos
+[eva] tests/idct/ieee_1180_1990.c:140: 
+  Call to builtin Frama_C_sqrt for function sqrt
+[eva] tests/idct/ieee_1180_1990.c:141: 
+  Call to builtin Frama_C_cos for function cos
+[eva] tests/idct/ieee_1180_1990.c:140: 
+  Call to builtin Frama_C_sqrt for function sqrt
+[eva] tests/idct/ieee_1180_1990.c:141: 
+  Call to builtin Frama_C_cos for function cos
+[eva] tests/idct/ieee_1180_1990.c:140: 
+  Call to builtin Frama_C_sqrt for function sqrt
+[eva] tests/idct/ieee_1180_1990.c:141: 
+  Call to builtin Frama_C_cos for function cos
+[eva:alarm] tests/idct/ieee_1180_1990.c:150: Warning: 
   accessing uninitialized left-value. assert \initialized(&(*(m1 + k))[j]);
-[value:alarm] tests/idct/ieee_1180_1990.c:150: Warning: 
+[eva] tests/idct/ieee_1180_1990.c:149: starting to merge loop iterations
+[eva] tests/idct/ieee_1180_1990.c:146: starting to merge loop iterations
+[eva:alarm] tests/idct/ieee_1180_1990.c:150: Warning: 
   accessing uninitialized left-value. assert \initialized(&tmp1[i][j]);
-[value] tests/idct/ieee_1180_1990.c:152: entering loop for the first time
-[value] tests/idct/ieee_1180_1990.c:153: entering loop for the first time
-[value] tests/idct/ieee_1180_1990.c:156: entering loop for the first time
-[value:alarm] tests/idct/ieee_1180_1990.c:157: Warning: 
+[eva] tests/idct/ieee_1180_1990.c:145: starting to merge loop iterations
+[eva:alarm] tests/idct/ieee_1180_1990.c:157: Warning: 
   accessing uninitialized left-value. assert \initialized(&tmp1[i][k]);
-[value:alarm] tests/idct/ieee_1180_1990.c:157: Warning: 
+[eva] tests/idct/ieee_1180_1990.c:156: starting to merge loop iterations
+[eva] tests/idct/ieee_1180_1990.c:153: starting to merge loop iterations
+[eva:alarm] tests/idct/ieee_1180_1990.c:157: Warning: 
   accessing uninitialized left-value. assert \initialized(&tmp2[i][j]);
-[value:alarm] tests/idct/ieee_1180_1990.c:158: Warning: 
+[eva:alarm] tests/idct/ieee_1180_1990.c:158: Warning: 
   accessing uninitialized left-value. assert \initialized(&tmp2[i][j]);
-[value:alarm] tests/idct/ieee_1180_1990.c:160: Warning: 
+[eva:alarm] tests/idct/ieee_1180_1990.c:160: Warning: 
   accessing uninitialized left-value. assert \initialized(&tmp2[i][j]);
-[value:alarm] tests/idct/ieee_1180_1990.c:162: Warning: 
+[eva:alarm] tests/idct/ieee_1180_1990.c:162: Warning: 
   accessing uninitialized left-value. assert \initialized(&tmp2[i][j]);
-[value:alarm] tests/idct/ieee_1180_1990.c:163: Warning: 
+[eva:alarm] tests/idct/ieee_1180_1990.c:163: Warning: 
   accessing uninitialized left-value. assert \initialized(&tmp2[i][j]);
-[value:alarm] tests/idct/ieee_1180_1990.c:163: Warning: 
+[eva:alarm] tests/idct/ieee_1180_1990.c:163: Warning: 
   overflow in conversion from floating-point to integer.
   assert -2147483649 < tmp2[i][j] + 0.5;
-[value:alarm] tests/idct/ieee_1180_1990.c:163: Warning: 
+[eva:alarm] tests/idct/ieee_1180_1990.c:163: Warning: 
   overflow in conversion from floating-point to integer.
   assert tmp2[i][j] + 0.5 < 2147483648;
-[value:alarm] tests/idct/ieee_1180_1990.c:165: Warning: 
+[eva:alarm] tests/idct/ieee_1180_1990.c:165: Warning: 
   accessing uninitialized left-value. assert \initialized(&tmp2[i][j]);
-[value:alarm] tests/idct/ieee_1180_1990.c:165: Warning: 
+[eva:alarm] tests/idct/ieee_1180_1990.c:165: Warning: 
   overflow in conversion from floating-point to integer.
   assert -2147483649 < tmp2[i][j] - 0.5;
-[value:alarm] tests/idct/ieee_1180_1990.c:165: Warning: 
+[eva:alarm] tests/idct/ieee_1180_1990.c:165: Warning: 
   overflow in conversion from floating-point to integer.
   assert tmp2[i][j] - 0.5 < 2147483648;
-[value] Recording results for IEEE_1180_1990_idctf
-[value] Done for function IEEE_1180_1990_idctf
-[value] computing for function idct <- main.
+[eva] tests/idct/ieee_1180_1990.c:152: starting to merge loop iterations
+[eva] Recording results for IEEE_1180_1990_idctf
+[eva] Done for function IEEE_1180_1990_idctf
+[eva] computing for function idct <- main.
   Called from tests/idct/ieee_1180_1990.c:214.
-[value] tests/idct/idct.c:129: Warning: 2's complement assumed for overflow
-[value:alarm] tests/idct/idct.c:129: Warning: 
+[eva] tests/idct/idct.c:129: Warning: 2's complement assumed for overflow
+[eva:alarm] tests/idct/idct.c:129: Warning: 
   accessing uninitialized left-value. assert \initialized(&(*(m1 + k))[j]);
-[value] Recording results for idct
-[value] Done for function idct
-[value] tests/idct/ieee_1180_1990.c:215: entering loop for the first time
-[value] tests/idct/ieee_1180_1990.c:216: entering loop for the first time
-[value] tests/idct/ieee_1180_1990.c:218: Warning: 
+[eva] Recording results for idct
+[eva] Done for function idct
+[eva] tests/idct/ieee_1180_1990.c:218: Warning: 
   2's complement assumed for overflow
-[value:alarm] tests/idct/ieee_1180_1990.c:218: Warning: 
+[eva:alarm] tests/idct/ieee_1180_1990.c:218: Warning: 
   accessing uninitialized left-value. assert \initialized(&m3[j][k]);
-[value:alarm] tests/idct/ieee_1180_1990.c:218: Warning: 
+[eva:alarm] tests/idct/ieee_1180_1990.c:218: Warning: 
   accessing uninitialized left-value. assert \initialized(&m4[j][k]);
-[value:alarm] tests/idct/ieee_1180_1990.c:219: Warning: 
+[eva:alarm] tests/idct/ieee_1180_1990.c:219: Warning: 
   accessing uninitialized left-value. assert \initialized(&res[0].pme[j][k]);
-[value] tests/idct/ieee_1180_1990.c:220: Warning: 
+[eva] tests/idct/ieee_1180_1990.c:220: Warning: 
   2's complement assumed for overflow
-[value] tests/idct/ieee_1180_1990.c:230: Warning: 
+[eva] tests/idct/ieee_1180_1990.c:230: Warning: 
   2's complement assumed for overflow
-[value:alarm] tests/idct/ieee_1180_1990.c:231: Warning: 
+[eva:alarm] tests/idct/ieee_1180_1990.c:231: Warning: 
   accessing uninitialized left-value. assert \initialized(&res[0].pmse[j][k]);
-[value] tests/idct/ieee_1180_1990.c:219: Warning: 
+[eva] tests/idct/ieee_1180_1990.c:216: starting to merge loop iterations
+[eva] tests/idct/ieee_1180_1990.c:219: Warning: 
   2's complement assumed for overflow
-[value] tests/idct/ieee_1180_1990.c:231: Warning: 
+[eva] tests/idct/ieee_1180_1990.c:231: Warning: 
   2's complement assumed for overflow
-[value] tests/idct/ieee_1180_1990.c:233: entering loop for the first time
-[value] tests/idct/ieee_1180_1990.c:234: entering loop for the first time
-[value] computing for function IEEE_1180_1990_dctf <- main.
+[eva] tests/idct/ieee_1180_1990.c:215: starting to merge loop iterations
+[eva] tests/idct/ieee_1180_1990.c:234: starting to merge loop iterations
+[eva] tests/idct/ieee_1180_1990.c:233: starting to merge loop iterations
+[eva] computing for function IEEE_1180_1990_dctf <- main.
   Called from tests/idct/ieee_1180_1990.c:236.
-[value] Recording results for IEEE_1180_1990_dctf
-[value] Done for function IEEE_1180_1990_dctf
-[value] computing for function IEEE_1180_1990_idctf <- main.
+[eva] Recording results for IEEE_1180_1990_dctf
+[eva] Done for function IEEE_1180_1990_dctf
+[eva] computing for function IEEE_1180_1990_idctf <- main.
   Called from tests/idct/ieee_1180_1990.c:237.
-[value] Recording results for IEEE_1180_1990_idctf
-[value] Done for function IEEE_1180_1990_idctf
-[value] computing for function idct <- main.
+[eva] Recording results for IEEE_1180_1990_idctf
+[eva] Done for function IEEE_1180_1990_idctf
+[eva] computing for function idct <- main.
   Called from tests/idct/ieee_1180_1990.c:238.
-[value] Recording results for idct
-[value] Done for function idct
-[value] tests/idct/ieee_1180_1990.c:239: entering loop for the first time
-[value] tests/idct/ieee_1180_1990.c:240: entering loop for the first time
-[value] tests/idct/ieee_1180_1990.c:242: Warning: 
+[eva] Recording results for idct
+[eva] Done for function idct
+[eva] tests/idct/ieee_1180_1990.c:242: Warning: 
   2's complement assumed for overflow
-[value:alarm] tests/idct/ieee_1180_1990.c:242: Warning: 
+[eva:alarm] tests/idct/ieee_1180_1990.c:242: Warning: 
   accessing uninitialized left-value. assert \initialized(&m3[j][k]);
-[value:alarm] tests/idct/ieee_1180_1990.c:242: Warning: 
+[eva:alarm] tests/idct/ieee_1180_1990.c:242: Warning: 
   accessing uninitialized left-value. assert \initialized(&m4[j][k]);
-[value:alarm] tests/idct/ieee_1180_1990.c:243: Warning: 
+[eva:alarm] tests/idct/ieee_1180_1990.c:243: Warning: 
   accessing uninitialized left-value. assert \initialized(&res[3].pme[j][k]);
-[value] tests/idct/ieee_1180_1990.c:244: Warning: 
+[eva] tests/idct/ieee_1180_1990.c:244: Warning: 
   2's complement assumed for overflow
-[value] tests/idct/ieee_1180_1990.c:254: Warning: 
+[eva] tests/idct/ieee_1180_1990.c:254: Warning: 
   2's complement assumed for overflow
-[value:alarm] tests/idct/ieee_1180_1990.c:255: Warning: 
+[eva:alarm] tests/idct/ieee_1180_1990.c:255: Warning: 
   accessing uninitialized left-value. assert \initialized(&res[3].pmse[j][k]);
-[value] tests/idct/ieee_1180_1990.c:243: Warning: 
+[eva] tests/idct/ieee_1180_1990.c:240: starting to merge loop iterations
+[eva] tests/idct/ieee_1180_1990.c:243: Warning: 
   2's complement assumed for overflow
-[value] tests/idct/ieee_1180_1990.c:255: Warning: 
+[eva] tests/idct/ieee_1180_1990.c:255: Warning: 
   2's complement assumed for overflow
-[value] computing for function IEEE_1180_1990_mkbk <- main.
+[eva] tests/idct/ieee_1180_1990.c:239: starting to merge loop iterations
+[eva] computing for function IEEE_1180_1990_mkbk <- main.
   Called from tests/idct/ieee_1180_1990.c:257.
-[value] computing for function IEEE_1180_1990_rand <- IEEE_1180_1990_mkbk <- main.
+[eva] computing for function IEEE_1180_1990_rand <- IEEE_1180_1990_mkbk <- main.
   Called from tests/idct/ieee_1180_1990.c:85.
-[value] Recording results for IEEE_1180_1990_rand
-[value] Done for function IEEE_1180_1990_rand
-[value] tests/idct/ieee_1180_1990.c:85: 
+[eva] Recording results for IEEE_1180_1990_rand
+[eva] Done for function IEEE_1180_1990_rand
+[eva] tests/idct/ieee_1180_1990.c:85: 
   Reusing old results for call to IEEE_1180_1990_rand
-[value] tests/idct/ieee_1180_1990.c:85: 
+[eva] tests/idct/ieee_1180_1990.c:85: 
   Reusing old results for call to IEEE_1180_1990_rand
-[value] tests/idct/ieee_1180_1990.c:85: 
+[eva] tests/idct/ieee_1180_1990.c:85: 
   Reusing old results for call to IEEE_1180_1990_rand
-[value] tests/idct/ieee_1180_1990.c:85: 
+[eva] tests/idct/ieee_1180_1990.c:85: 
   Reusing old results for call to IEEE_1180_1990_rand
-[value] tests/idct/ieee_1180_1990.c:85: 
+[eva] tests/idct/ieee_1180_1990.c:85: 
   Reusing old results for call to IEEE_1180_1990_rand
-[value] tests/idct/ieee_1180_1990.c:85: 
+[eva] tests/idct/ieee_1180_1990.c:85: 
   Reusing old results for call to IEEE_1180_1990_rand
-[value] Recording results for IEEE_1180_1990_mkbk
-[value] Done for function IEEE_1180_1990_mkbk
-[value] tests/idct/ieee_1180_1990.c:258: 
+[eva] Recording results for IEEE_1180_1990_mkbk
+[eva] Done for function IEEE_1180_1990_mkbk
+[eva] tests/idct/ieee_1180_1990.c:258: 
   Reusing old results for call to IEEE_1180_1990_dctf
-[value] tests/idct/ieee_1180_1990.c:259: 
+[eva] tests/idct/ieee_1180_1990.c:259: 
   Reusing old results for call to IEEE_1180_1990_idctf
-[value] tests/idct/ieee_1180_1990.c:260: Reusing old results for call to idct
-[value] tests/idct/ieee_1180_1990.c:261: entering loop for the first time
-[value] tests/idct/ieee_1180_1990.c:262: entering loop for the first time
-[value] tests/idct/ieee_1180_1990.c:264: Warning: 
+[eva] tests/idct/ieee_1180_1990.c:260: Reusing old results for call to idct
+[eva] tests/idct/ieee_1180_1990.c:264: Warning: 
   2's complement assumed for overflow
-[value:alarm] tests/idct/ieee_1180_1990.c:264: Warning: 
+[eva:alarm] tests/idct/ieee_1180_1990.c:264: Warning: 
   accessing uninitialized left-value. assert \initialized(&m3[j][k]);
-[value:alarm] tests/idct/ieee_1180_1990.c:264: Warning: 
+[eva:alarm] tests/idct/ieee_1180_1990.c:264: Warning: 
   accessing uninitialized left-value. assert \initialized(&m4[j][k]);
-[value:alarm] tests/idct/ieee_1180_1990.c:265: Warning: 
+[eva:alarm] tests/idct/ieee_1180_1990.c:265: Warning: 
   accessing uninitialized left-value. assert \initialized(&res[1].pme[j][k]);
-[value] tests/idct/ieee_1180_1990.c:266: Warning: 
+[eva] tests/idct/ieee_1180_1990.c:266: Warning: 
   2's complement assumed for overflow
-[value] tests/idct/ieee_1180_1990.c:276: Warning: 
+[eva] tests/idct/ieee_1180_1990.c:276: Warning: 
   2's complement assumed for overflow
-[value:alarm] tests/idct/ieee_1180_1990.c:277: Warning: 
+[eva:alarm] tests/idct/ieee_1180_1990.c:277: Warning: 
   accessing uninitialized left-value. assert \initialized(&res[1].pmse[j][k]);
-[value] tests/idct/ieee_1180_1990.c:265: Warning: 
+[eva] tests/idct/ieee_1180_1990.c:262: starting to merge loop iterations
+[eva] tests/idct/ieee_1180_1990.c:265: Warning: 
   2's complement assumed for overflow
-[value] tests/idct/ieee_1180_1990.c:277: Warning: 
+[eva] tests/idct/ieee_1180_1990.c:277: Warning: 
   2's complement assumed for overflow
-[value] tests/idct/ieee_1180_1990.c:279: entering loop for the first time
-[value] tests/idct/ieee_1180_1990.c:280: entering loop for the first time
-[value] tests/idct/ieee_1180_1990.c:282: 
+[eva] tests/idct/ieee_1180_1990.c:261: starting to merge loop iterations
+[eva] tests/idct/ieee_1180_1990.c:280: starting to merge loop iterations
+[eva] tests/idct/ieee_1180_1990.c:279: starting to merge loop iterations
+[eva] tests/idct/ieee_1180_1990.c:282: 
   Reusing old results for call to IEEE_1180_1990_dctf
-[value] tests/idct/ieee_1180_1990.c:283: 
+[eva] tests/idct/ieee_1180_1990.c:283: 
   Reusing old results for call to IEEE_1180_1990_idctf
-[value] tests/idct/ieee_1180_1990.c:284: Reusing old results for call to idct
-[value] tests/idct/ieee_1180_1990.c:285: entering loop for the first time
-[value] tests/idct/ieee_1180_1990.c:286: entering loop for the first time
-[value] tests/idct/ieee_1180_1990.c:288: Warning: 
+[eva] tests/idct/ieee_1180_1990.c:284: Reusing old results for call to idct
+[eva] tests/idct/ieee_1180_1990.c:288: Warning: 
   2's complement assumed for overflow
-[value:alarm] tests/idct/ieee_1180_1990.c:288: Warning: 
+[eva:alarm] tests/idct/ieee_1180_1990.c:288: Warning: 
   accessing uninitialized left-value. assert \initialized(&m3[j][k]);
-[value:alarm] tests/idct/ieee_1180_1990.c:288: Warning: 
+[eva:alarm] tests/idct/ieee_1180_1990.c:288: Warning: 
   accessing uninitialized left-value. assert \initialized(&m4[j][k]);
-[value:alarm] tests/idct/ieee_1180_1990.c:289: Warning: 
+[eva:alarm] tests/idct/ieee_1180_1990.c:289: Warning: 
   accessing uninitialized left-value. assert \initialized(&res[4].pme[j][k]);
-[value] tests/idct/ieee_1180_1990.c:290: Warning: 
+[eva] tests/idct/ieee_1180_1990.c:290: Warning: 
   2's complement assumed for overflow
-[value] tests/idct/ieee_1180_1990.c:300: Warning: 
+[eva] tests/idct/ieee_1180_1990.c:300: Warning: 
   2's complement assumed for overflow
-[value:alarm] tests/idct/ieee_1180_1990.c:301: Warning: 
+[eva:alarm] tests/idct/ieee_1180_1990.c:301: Warning: 
   accessing uninitialized left-value. assert \initialized(&res[4].pmse[j][k]);
-[value] tests/idct/ieee_1180_1990.c:289: Warning: 
+[eva] tests/idct/ieee_1180_1990.c:286: starting to merge loop iterations
+[eva] tests/idct/ieee_1180_1990.c:289: Warning: 
   2's complement assumed for overflow
-[value] tests/idct/ieee_1180_1990.c:301: Warning: 
+[eva] tests/idct/ieee_1180_1990.c:301: Warning: 
   2's complement assumed for overflow
-[value] computing for function IEEE_1180_1990_mkbk <- main.
+[eva] tests/idct/ieee_1180_1990.c:285: starting to merge loop iterations
+[eva] computing for function IEEE_1180_1990_mkbk <- main.
   Called from tests/idct/ieee_1180_1990.c:303.
-[value] computing for function IEEE_1180_1990_rand <- IEEE_1180_1990_mkbk <- main.
+[eva] computing for function IEEE_1180_1990_rand <- IEEE_1180_1990_mkbk <- main.
   Called from tests/idct/ieee_1180_1990.c:85.
-[value] Recording results for IEEE_1180_1990_rand
-[value] Done for function IEEE_1180_1990_rand
-[value] tests/idct/ieee_1180_1990.c:85: 
+[eva] Recording results for IEEE_1180_1990_rand
+[eva] Done for function IEEE_1180_1990_rand
+[eva] tests/idct/ieee_1180_1990.c:85: 
   Reusing old results for call to IEEE_1180_1990_rand
-[value] tests/idct/ieee_1180_1990.c:85: 
+[eva] tests/idct/ieee_1180_1990.c:85: 
   Reusing old results for call to IEEE_1180_1990_rand
-[value] tests/idct/ieee_1180_1990.c:85: 
+[eva] tests/idct/ieee_1180_1990.c:85: 
   Reusing old results for call to IEEE_1180_1990_rand
-[value] tests/idct/ieee_1180_1990.c:85: 
+[eva] tests/idct/ieee_1180_1990.c:85: 
   Reusing old results for call to IEEE_1180_1990_rand
-[value] tests/idct/ieee_1180_1990.c:85: 
+[eva] tests/idct/ieee_1180_1990.c:85: 
   Reusing old results for call to IEEE_1180_1990_rand
-[value] tests/idct/ieee_1180_1990.c:85: 
+[eva] tests/idct/ieee_1180_1990.c:85: 
   Reusing old results for call to IEEE_1180_1990_rand
-[value] Recording results for IEEE_1180_1990_mkbk
-[value] Done for function IEEE_1180_1990_mkbk
-[value] tests/idct/ieee_1180_1990.c:304: 
+[eva] Recording results for IEEE_1180_1990_mkbk
+[eva] Done for function IEEE_1180_1990_mkbk
+[eva] tests/idct/ieee_1180_1990.c:304: 
   Reusing old results for call to IEEE_1180_1990_dctf
-[value] tests/idct/ieee_1180_1990.c:305: 
+[eva] tests/idct/ieee_1180_1990.c:305: 
   Reusing old results for call to IEEE_1180_1990_idctf
-[value] tests/idct/ieee_1180_1990.c:306: Reusing old results for call to idct
-[value] tests/idct/ieee_1180_1990.c:307: entering loop for the first time
-[value] tests/idct/ieee_1180_1990.c:308: entering loop for the first time
-[value] tests/idct/ieee_1180_1990.c:310: Warning: 
+[eva] tests/idct/ieee_1180_1990.c:306: Reusing old results for call to idct
+[eva] tests/idct/ieee_1180_1990.c:310: Warning: 
   2's complement assumed for overflow
-[value:alarm] tests/idct/ieee_1180_1990.c:310: Warning: 
+[eva:alarm] tests/idct/ieee_1180_1990.c:310: Warning: 
   accessing uninitialized left-value. assert \initialized(&m3[j][k]);
-[value:alarm] tests/idct/ieee_1180_1990.c:310: Warning: 
+[eva:alarm] tests/idct/ieee_1180_1990.c:310: Warning: 
   accessing uninitialized left-value. assert \initialized(&m4[j][k]);
-[value:alarm] tests/idct/ieee_1180_1990.c:311: Warning: 
+[eva:alarm] tests/idct/ieee_1180_1990.c:311: Warning: 
   accessing uninitialized left-value. assert \initialized(&res[2].pme[j][k]);
-[value] tests/idct/ieee_1180_1990.c:312: Warning: 
+[eva] tests/idct/ieee_1180_1990.c:312: Warning: 
   2's complement assumed for overflow
-[value] tests/idct/ieee_1180_1990.c:322: Warning: 
+[eva] tests/idct/ieee_1180_1990.c:322: Warning: 
   2's complement assumed for overflow
-[value:alarm] tests/idct/ieee_1180_1990.c:323: Warning: 
+[eva:alarm] tests/idct/ieee_1180_1990.c:323: Warning: 
   accessing uninitialized left-value. assert \initialized(&res[2].pmse[j][k]);
-[value] tests/idct/ieee_1180_1990.c:311: Warning: 
+[eva] tests/idct/ieee_1180_1990.c:308: starting to merge loop iterations
+[eva] tests/idct/ieee_1180_1990.c:311: Warning: 
   2's complement assumed for overflow
-[value] tests/idct/ieee_1180_1990.c:323: Warning: 
+[eva] tests/idct/ieee_1180_1990.c:323: Warning: 
   2's complement assumed for overflow
-[value] tests/idct/ieee_1180_1990.c:325: entering loop for the first time
-[value] tests/idct/ieee_1180_1990.c:326: entering loop for the first time
-[value] tests/idct/ieee_1180_1990.c:328: 
+[eva] tests/idct/ieee_1180_1990.c:307: starting to merge loop iterations
+[eva] tests/idct/ieee_1180_1990.c:326: starting to merge loop iterations
+[eva] tests/idct/ieee_1180_1990.c:325: starting to merge loop iterations
+[eva] tests/idct/ieee_1180_1990.c:328: 
   Reusing old results for call to IEEE_1180_1990_dctf
-[value] tests/idct/ieee_1180_1990.c:329: 
+[eva] tests/idct/ieee_1180_1990.c:329: 
   Reusing old results for call to IEEE_1180_1990_idctf
-[value] tests/idct/ieee_1180_1990.c:330: Reusing old results for call to idct
-[value] tests/idct/ieee_1180_1990.c:331: entering loop for the first time
-[value] tests/idct/ieee_1180_1990.c:332: entering loop for the first time
-[value] tests/idct/ieee_1180_1990.c:334: Warning: 
+[eva] tests/idct/ieee_1180_1990.c:330: Reusing old results for call to idct
+[eva] tests/idct/ieee_1180_1990.c:334: Warning: 
   2's complement assumed for overflow
-[value:alarm] tests/idct/ieee_1180_1990.c:334: Warning: 
+[eva:alarm] tests/idct/ieee_1180_1990.c:334: Warning: 
   accessing uninitialized left-value. assert \initialized(&m3[j][k]);
-[value:alarm] tests/idct/ieee_1180_1990.c:334: Warning: 
+[eva:alarm] tests/idct/ieee_1180_1990.c:334: Warning: 
   accessing uninitialized left-value. assert \initialized(&m4[j][k]);
-[value:alarm] tests/idct/ieee_1180_1990.c:335: Warning: 
+[eva:alarm] tests/idct/ieee_1180_1990.c:335: Warning: 
   accessing uninitialized left-value. assert \initialized(&res[5].pme[j][k]);
-[value] tests/idct/ieee_1180_1990.c:336: Warning: 
+[eva] tests/idct/ieee_1180_1990.c:336: Warning: 
   2's complement assumed for overflow
-[value] tests/idct/ieee_1180_1990.c:346: Warning: 
+[eva] tests/idct/ieee_1180_1990.c:346: Warning: 
   2's complement assumed for overflow
-[value:alarm] tests/idct/ieee_1180_1990.c:347: Warning: 
+[eva:alarm] tests/idct/ieee_1180_1990.c:347: Warning: 
   accessing uninitialized left-value. assert \initialized(&res[5].pmse[j][k]);
-[value] tests/idct/ieee_1180_1990.c:335: Warning: 
+[eva] tests/idct/ieee_1180_1990.c:332: starting to merge loop iterations
+[eva] tests/idct/ieee_1180_1990.c:335: Warning: 
   2's complement assumed for overflow
-[value] tests/idct/ieee_1180_1990.c:347: Warning: 
+[eva] tests/idct/ieee_1180_1990.c:347: Warning: 
   2's complement assumed for overflow
-[value] computing for function IEEE_1180_1990_mkbk <- main.
+[eva] tests/idct/ieee_1180_1990.c:331: starting to merge loop iterations
+[eva] tests/idct/ieee_1180_1990.c:202: starting to merge loop iterations
+[eva] computing for function IEEE_1180_1990_mkbk <- main.
   Called from tests/idct/ieee_1180_1990.c:211.
-[value] tests/idct/ieee_1180_1990.c:85: 
+[eva] tests/idct/ieee_1180_1990.c:85: 
   Reusing old results for call to IEEE_1180_1990_rand
-[value] tests/idct/ieee_1180_1990.c:85: 
+[eva] tests/idct/ieee_1180_1990.c:85: 
   Reusing old results for call to IEEE_1180_1990_rand
-[value] tests/idct/ieee_1180_1990.c:85: 
+[eva] tests/idct/ieee_1180_1990.c:85: 
   Reusing old results for call to IEEE_1180_1990_rand
-[value] tests/idct/ieee_1180_1990.c:85: 
+[eva] tests/idct/ieee_1180_1990.c:85: 
   Reusing old results for call to IEEE_1180_1990_rand
-[value] tests/idct/ieee_1180_1990.c:85: 
+[eva] tests/idct/ieee_1180_1990.c:85: 
   Reusing old results for call to IEEE_1180_1990_rand
-[value] tests/idct/ieee_1180_1990.c:85: 
+[eva] tests/idct/ieee_1180_1990.c:85: 
   Reusing old results for call to IEEE_1180_1990_rand
-[value] tests/idct/ieee_1180_1990.c:85: 
+[eva] tests/idct/ieee_1180_1990.c:85: 
   Reusing old results for call to IEEE_1180_1990_rand
-[value] Recording results for IEEE_1180_1990_mkbk
-[value] Done for function IEEE_1180_1990_mkbk
-[value] computing for function IEEE_1180_1990_dctf <- main.
+[eva] Recording results for IEEE_1180_1990_mkbk
+[eva] Done for function IEEE_1180_1990_mkbk
+[eva] computing for function IEEE_1180_1990_dctf <- main.
   Called from tests/idct/ieee_1180_1990.c:212.
-[value] Recording results for IEEE_1180_1990_dctf
-[value] Done for function IEEE_1180_1990_dctf
-[value] computing for function IEEE_1180_1990_idctf <- main.
+[eva] tests/idct/ieee_1180_1990.c:100: 
+  Call to builtin Frama_C_sqrt for function sqrt
+[eva] tests/idct/ieee_1180_1990.c:101: 
+  Call to builtin Frama_C_cos for function cos
+[eva] tests/idct/ieee_1180_1990.c:101: 
+  Call to builtin Frama_C_cos for function cos
+[eva] tests/idct/ieee_1180_1990.c:101: 
+  Call to builtin Frama_C_cos for function cos
+[eva] tests/idct/ieee_1180_1990.c:101: 
+  Call to builtin Frama_C_cos for function cos
+[eva] tests/idct/ieee_1180_1990.c:100: 
+  Call to builtin Frama_C_sqrt for function sqrt
+[eva] tests/idct/ieee_1180_1990.c:101: 
+  Call to builtin Frama_C_cos for function cos
+[eva] tests/idct/ieee_1180_1990.c:100: 
+  Call to builtin Frama_C_sqrt for function sqrt
+[eva] tests/idct/ieee_1180_1990.c:101: 
+  Call to builtin Frama_C_cos for function cos
+[eva] tests/idct/ieee_1180_1990.c:100: 
+  Call to builtin Frama_C_sqrt for function sqrt
+[eva] tests/idct/ieee_1180_1990.c:101: 
+  Call to builtin Frama_C_cos for function cos
+[eva] Recording results for IEEE_1180_1990_dctf
+[eva] Done for function IEEE_1180_1990_dctf
+[eva] computing for function IEEE_1180_1990_idctf <- main.
   Called from tests/idct/ieee_1180_1990.c:213.
-[value] Recording results for IEEE_1180_1990_idctf
-[value] Done for function IEEE_1180_1990_idctf
-[value] tests/idct/ieee_1180_1990.c:214: Reusing old results for call to idct
-[value] tests/idct/ieee_1180_1990.c:235: Warning: 
+[eva] tests/idct/ieee_1180_1990.c:140: 
+  Call to builtin Frama_C_sqrt for function sqrt
+[eva] tests/idct/ieee_1180_1990.c:141: 
+  Call to builtin Frama_C_cos for function cos
+[eva] tests/idct/ieee_1180_1990.c:141: 
+  Call to builtin Frama_C_cos for function cos
+[eva] tests/idct/ieee_1180_1990.c:141: 
+  Call to builtin Frama_C_cos for function cos
+[eva] tests/idct/ieee_1180_1990.c:141: 
+  Call to builtin Frama_C_cos for function cos
+[eva] tests/idct/ieee_1180_1990.c:140: 
+  Call to builtin Frama_C_sqrt for function sqrt
+[eva] tests/idct/ieee_1180_1990.c:141: 
+  Call to builtin Frama_C_cos for function cos
+[eva] tests/idct/ieee_1180_1990.c:140: 
+  Call to builtin Frama_C_sqrt for function sqrt
+[eva] tests/idct/ieee_1180_1990.c:141: 
+  Call to builtin Frama_C_cos for function cos
+[eva] tests/idct/ieee_1180_1990.c:140: 
+  Call to builtin Frama_C_sqrt for function sqrt
+[eva] tests/idct/ieee_1180_1990.c:141: 
+  Call to builtin Frama_C_cos for function cos
+[eva] Recording results for IEEE_1180_1990_idctf
+[eva] Done for function IEEE_1180_1990_idctf
+[eva] tests/idct/ieee_1180_1990.c:214: Reusing old results for call to idct
+[eva] tests/idct/ieee_1180_1990.c:235: Warning: 
   2's complement assumed for overflow
-[value] computing for function IEEE_1180_1990_dctf <- main.
+[eva] computing for function IEEE_1180_1990_dctf <- main.
   Called from tests/idct/ieee_1180_1990.c:236.
-[value] Recording results for IEEE_1180_1990_dctf
-[value] Done for function IEEE_1180_1990_dctf
-[value] tests/idct/ieee_1180_1990.c:237: 
+[eva] Recording results for IEEE_1180_1990_dctf
+[eva] Done for function IEEE_1180_1990_dctf
+[eva] tests/idct/ieee_1180_1990.c:237: 
   Reusing old results for call to IEEE_1180_1990_idctf
-[value] tests/idct/ieee_1180_1990.c:238: Reusing old results for call to idct
-[value] computing for function IEEE_1180_1990_mkbk <- main.
+[eva] tests/idct/ieee_1180_1990.c:238: Reusing old results for call to idct
+[eva] computing for function IEEE_1180_1990_mkbk <- main.
   Called from tests/idct/ieee_1180_1990.c:257.
-[value] tests/idct/ieee_1180_1990.c:85: 
+[eva] tests/idct/ieee_1180_1990.c:85: 
   Reusing old results for call to IEEE_1180_1990_rand
-[value] tests/idct/ieee_1180_1990.c:85: 
+[eva] tests/idct/ieee_1180_1990.c:85: 
   Reusing old results for call to IEEE_1180_1990_rand
-[value] tests/idct/ieee_1180_1990.c:85: 
+[eva] tests/idct/ieee_1180_1990.c:85: 
   Reusing old results for call to IEEE_1180_1990_rand
-[value] tests/idct/ieee_1180_1990.c:85: 
+[eva] tests/idct/ieee_1180_1990.c:85: 
   Reusing old results for call to IEEE_1180_1990_rand
-[value] tests/idct/ieee_1180_1990.c:85: 
+[eva] tests/idct/ieee_1180_1990.c:85: 
   Reusing old results for call to IEEE_1180_1990_rand
-[value] tests/idct/ieee_1180_1990.c:85: 
+[eva] tests/idct/ieee_1180_1990.c:85: 
   Reusing old results for call to IEEE_1180_1990_rand
-[value] tests/idct/ieee_1180_1990.c:85: 
+[eva] tests/idct/ieee_1180_1990.c:85: 
   Reusing old results for call to IEEE_1180_1990_rand
-[value] Recording results for IEEE_1180_1990_mkbk
-[value] Done for function IEEE_1180_1990_mkbk
-[value] tests/idct/ieee_1180_1990.c:258: 
+[eva] Recording results for IEEE_1180_1990_mkbk
+[eva] Done for function IEEE_1180_1990_mkbk
+[eva] tests/idct/ieee_1180_1990.c:258: 
   Reusing old results for call to IEEE_1180_1990_dctf
-[value] tests/idct/ieee_1180_1990.c:259: 
+[eva] tests/idct/ieee_1180_1990.c:259: 
   Reusing old results for call to IEEE_1180_1990_idctf
-[value] tests/idct/ieee_1180_1990.c:260: Reusing old results for call to idct
-[value] tests/idct/ieee_1180_1990.c:281: Warning: 
+[eva] tests/idct/ieee_1180_1990.c:260: Reusing old results for call to idct
+[eva] tests/idct/ieee_1180_1990.c:281: Warning: 
   2's complement assumed for overflow
-[value] tests/idct/ieee_1180_1990.c:282: 
+[eva] tests/idct/ieee_1180_1990.c:282: 
   Reusing old results for call to IEEE_1180_1990_dctf
-[value] tests/idct/ieee_1180_1990.c:283: 
+[eva] tests/idct/ieee_1180_1990.c:283: 
   Reusing old results for call to IEEE_1180_1990_idctf
-[value] tests/idct/ieee_1180_1990.c:284: Reusing old results for call to idct
-[value] computing for function IEEE_1180_1990_mkbk <- main.
+[eva] tests/idct/ieee_1180_1990.c:284: Reusing old results for call to idct
+[eva] computing for function IEEE_1180_1990_mkbk <- main.
   Called from tests/idct/ieee_1180_1990.c:303.
-[value] tests/idct/ieee_1180_1990.c:85: 
+[eva] tests/idct/ieee_1180_1990.c:85: 
   Reusing old results for call to IEEE_1180_1990_rand
-[value] tests/idct/ieee_1180_1990.c:85: 
+[eva] tests/idct/ieee_1180_1990.c:85: 
   Reusing old results for call to IEEE_1180_1990_rand
-[value] tests/idct/ieee_1180_1990.c:85: 
+[eva] tests/idct/ieee_1180_1990.c:85: 
   Reusing old results for call to IEEE_1180_1990_rand
-[value] tests/idct/ieee_1180_1990.c:85: 
+[eva] tests/idct/ieee_1180_1990.c:85: 
   Reusing old results for call to IEEE_1180_1990_rand
-[value] tests/idct/ieee_1180_1990.c:85: 
+[eva] tests/idct/ieee_1180_1990.c:85: 
   Reusing old results for call to IEEE_1180_1990_rand
-[value] tests/idct/ieee_1180_1990.c:85: 
+[eva] tests/idct/ieee_1180_1990.c:85: 
   Reusing old results for call to IEEE_1180_1990_rand
-[value] tests/idct/ieee_1180_1990.c:85: 
+[eva] tests/idct/ieee_1180_1990.c:85: 
   Reusing old results for call to IEEE_1180_1990_rand
-[value] Recording results for IEEE_1180_1990_mkbk
-[value] Done for function IEEE_1180_1990_mkbk
-[value] tests/idct/ieee_1180_1990.c:304: 
+[eva] Recording results for IEEE_1180_1990_mkbk
+[eva] Done for function IEEE_1180_1990_mkbk
+[eva] tests/idct/ieee_1180_1990.c:304: 
   Reusing old results for call to IEEE_1180_1990_dctf
-[value] tests/idct/ieee_1180_1990.c:305: 
+[eva] tests/idct/ieee_1180_1990.c:305: 
   Reusing old results for call to IEEE_1180_1990_idctf
-[value] tests/idct/ieee_1180_1990.c:306: Reusing old results for call to idct
-[value] tests/idct/ieee_1180_1990.c:327: Warning: 
+[eva] tests/idct/ieee_1180_1990.c:306: Reusing old results for call to idct
+[eva] tests/idct/ieee_1180_1990.c:327: Warning: 
   2's complement assumed for overflow
-[value] tests/idct/ieee_1180_1990.c:328: 
+[eva] tests/idct/ieee_1180_1990.c:328: 
   Reusing old results for call to IEEE_1180_1990_dctf
-[value] tests/idct/ieee_1180_1990.c:329: 
+[eva] tests/idct/ieee_1180_1990.c:329: 
   Reusing old results for call to IEEE_1180_1990_idctf
-[value] tests/idct/ieee_1180_1990.c:330: Reusing old results for call to idct
-[value] computing for function IEEE_1180_1990_mkbk <- main.
+[eva] tests/idct/ieee_1180_1990.c:330: Reusing old results for call to idct
+[eva] computing for function IEEE_1180_1990_mkbk <- main.
   Called from tests/idct/ieee_1180_1990.c:211.
-[value] tests/idct/ieee_1180_1990.c:85: 
+[eva] tests/idct/ieee_1180_1990.c:85: 
   Reusing old results for call to IEEE_1180_1990_rand
-[value] tests/idct/ieee_1180_1990.c:85: 
+[eva] tests/idct/ieee_1180_1990.c:85: 
   Reusing old results for call to IEEE_1180_1990_rand
-[value] tests/idct/ieee_1180_1990.c:85: 
+[eva] tests/idct/ieee_1180_1990.c:85: 
   Reusing old results for call to IEEE_1180_1990_rand
-[value] tests/idct/ieee_1180_1990.c:85: 
+[eva] tests/idct/ieee_1180_1990.c:85: 
   Reusing old results for call to IEEE_1180_1990_rand
-[value] tests/idct/ieee_1180_1990.c:85: 
+[eva] tests/idct/ieee_1180_1990.c:85: 
   Reusing old results for call to IEEE_1180_1990_rand
-[value] tests/idct/ieee_1180_1990.c:85: 
+[eva] tests/idct/ieee_1180_1990.c:85: 
   Reusing old results for call to IEEE_1180_1990_rand
-[value] tests/idct/ieee_1180_1990.c:85: 
+[eva] tests/idct/ieee_1180_1990.c:85: 
   Reusing old results for call to IEEE_1180_1990_rand
-[value] Recording results for IEEE_1180_1990_mkbk
-[value] Done for function IEEE_1180_1990_mkbk
-[value] computing for function IEEE_1180_1990_dctf <- main.
+[eva] Recording results for IEEE_1180_1990_mkbk
+[eva] Done for function IEEE_1180_1990_mkbk
+[eva] computing for function IEEE_1180_1990_dctf <- main.
   Called from tests/idct/ieee_1180_1990.c:212.
-[value] Recording results for IEEE_1180_1990_dctf
-[value] Done for function IEEE_1180_1990_dctf
-[value] tests/idct/ieee_1180_1990.c:213: 
+[eva] tests/idct/ieee_1180_1990.c:100: 
+  Call to builtin Frama_C_sqrt for function sqrt
+[eva] tests/idct/ieee_1180_1990.c:101: 
+  Call to builtin Frama_C_cos for function cos
+[eva] tests/idct/ieee_1180_1990.c:101: 
+  Call to builtin Frama_C_cos for function cos
+[eva] tests/idct/ieee_1180_1990.c:101: 
+  Call to builtin Frama_C_cos for function cos
+[eva] tests/idct/ieee_1180_1990.c:101: 
+  Call to builtin Frama_C_cos for function cos
+[eva] tests/idct/ieee_1180_1990.c:100: 
+  Call to builtin Frama_C_sqrt for function sqrt
+[eva] tests/idct/ieee_1180_1990.c:101: 
+  Call to builtin Frama_C_cos for function cos
+[eva] tests/idct/ieee_1180_1990.c:100: 
+  Call to builtin Frama_C_sqrt for function sqrt
+[eva] tests/idct/ieee_1180_1990.c:101: 
+  Call to builtin Frama_C_cos for function cos
+[eva] tests/idct/ieee_1180_1990.c:100: 
+  Call to builtin Frama_C_sqrt for function sqrt
+[eva] tests/idct/ieee_1180_1990.c:101: 
+  Call to builtin Frama_C_cos for function cos
+[eva] Recording results for IEEE_1180_1990_dctf
+[eva] Done for function IEEE_1180_1990_dctf
+[eva] tests/idct/ieee_1180_1990.c:213: 
   Reusing old results for call to IEEE_1180_1990_idctf
-[value] tests/idct/ieee_1180_1990.c:214: Reusing old results for call to idct
-[value] tests/idct/ieee_1180_1990.c:236: 
+[eva] tests/idct/ieee_1180_1990.c:214: Reusing old results for call to idct
+[eva] tests/idct/ieee_1180_1990.c:236: 
   Reusing old results for call to IEEE_1180_1990_dctf
-[value] tests/idct/ieee_1180_1990.c:237: 
+[eva] tests/idct/ieee_1180_1990.c:237: 
   Reusing old results for call to IEEE_1180_1990_idctf
-[value] tests/idct/ieee_1180_1990.c:238: Reusing old results for call to idct
-[value] tests/idct/ieee_1180_1990.c:257: 
+[eva] tests/idct/ieee_1180_1990.c:238: Reusing old results for call to idct
+[eva] tests/idct/ieee_1180_1990.c:257: 
   Reusing old results for call to IEEE_1180_1990_mkbk
-[value] tests/idct/ieee_1180_1990.c:258: 
+[eva] tests/idct/ieee_1180_1990.c:258: 
   Reusing old results for call to IEEE_1180_1990_dctf
-[value] tests/idct/ieee_1180_1990.c:259: 
+[eva] tests/idct/ieee_1180_1990.c:259: 
   Reusing old results for call to IEEE_1180_1990_idctf
-[value] tests/idct/ieee_1180_1990.c:260: Reusing old results for call to idct
-[value] tests/idct/ieee_1180_1990.c:282: 
+[eva] tests/idct/ieee_1180_1990.c:260: Reusing old results for call to idct
+[eva] tests/idct/ieee_1180_1990.c:282: 
   Reusing old results for call to IEEE_1180_1990_dctf
-[value] tests/idct/ieee_1180_1990.c:283: 
+[eva] tests/idct/ieee_1180_1990.c:283: 
   Reusing old results for call to IEEE_1180_1990_idctf
-[value] tests/idct/ieee_1180_1990.c:284: Reusing old results for call to idct
-[value] tests/idct/ieee_1180_1990.c:303: 
+[eva] tests/idct/ieee_1180_1990.c:284: Reusing old results for call to idct
+[eva] tests/idct/ieee_1180_1990.c:303: 
   Reusing old results for call to IEEE_1180_1990_mkbk
-[value] tests/idct/ieee_1180_1990.c:304: 
+[eva] tests/idct/ieee_1180_1990.c:304: 
   Reusing old results for call to IEEE_1180_1990_dctf
-[value] tests/idct/ieee_1180_1990.c:305: 
+[eva] tests/idct/ieee_1180_1990.c:305: 
   Reusing old results for call to IEEE_1180_1990_idctf
-[value] tests/idct/ieee_1180_1990.c:306: Reusing old results for call to idct
-[value] tests/idct/ieee_1180_1990.c:328: 
+[eva] tests/idct/ieee_1180_1990.c:306: Reusing old results for call to idct
+[eva] tests/idct/ieee_1180_1990.c:328: 
   Reusing old results for call to IEEE_1180_1990_dctf
-[value] tests/idct/ieee_1180_1990.c:329: 
+[eva] tests/idct/ieee_1180_1990.c:329: 
   Reusing old results for call to IEEE_1180_1990_idctf
-[value] tests/idct/ieee_1180_1990.c:330: Reusing old results for call to idct
-[value] tests/idct/ieee_1180_1990.c:211: 
+[eva] tests/idct/ieee_1180_1990.c:330: Reusing old results for call to idct
+[eva] tests/idct/ieee_1180_1990.c:211: 
   Reusing old results for call to IEEE_1180_1990_mkbk
-[value] tests/idct/ieee_1180_1990.c:212: 
+[eva] tests/idct/ieee_1180_1990.c:212: 
   Reusing old results for call to IEEE_1180_1990_dctf
-[value] tests/idct/ieee_1180_1990.c:213: 
+[eva] tests/idct/ieee_1180_1990.c:213: 
   Reusing old results for call to IEEE_1180_1990_idctf
-[value] tests/idct/ieee_1180_1990.c:214: Reusing old results for call to idct
-[value] tests/idct/ieee_1180_1990.c:236: 
+[eva] tests/idct/ieee_1180_1990.c:214: Reusing old results for call to idct
+[eva] tests/idct/ieee_1180_1990.c:236: 
   Reusing old results for call to IEEE_1180_1990_dctf
-[value] tests/idct/ieee_1180_1990.c:237: 
+[eva] tests/idct/ieee_1180_1990.c:237: 
   Reusing old results for call to IEEE_1180_1990_idctf
-[value] tests/idct/ieee_1180_1990.c:238: Reusing old results for call to idct
-[value] tests/idct/ieee_1180_1990.c:257: 
+[eva] tests/idct/ieee_1180_1990.c:238: Reusing old results for call to idct
+[eva] tests/idct/ieee_1180_1990.c:257: 
   Reusing old results for call to IEEE_1180_1990_mkbk
-[value] tests/idct/ieee_1180_1990.c:258: 
+[eva] tests/idct/ieee_1180_1990.c:258: 
   Reusing old results for call to IEEE_1180_1990_dctf
-[value] tests/idct/ieee_1180_1990.c:259: 
+[eva] tests/idct/ieee_1180_1990.c:259: 
   Reusing old results for call to IEEE_1180_1990_idctf
-[value] tests/idct/ieee_1180_1990.c:260: Reusing old results for call to idct
-[value] tests/idct/ieee_1180_1990.c:282: 
+[eva] tests/idct/ieee_1180_1990.c:260: Reusing old results for call to idct
+[eva] tests/idct/ieee_1180_1990.c:282: 
   Reusing old results for call to IEEE_1180_1990_dctf
-[value] tests/idct/ieee_1180_1990.c:283: 
+[eva] tests/idct/ieee_1180_1990.c:283: 
   Reusing old results for call to IEEE_1180_1990_idctf
-[value] tests/idct/ieee_1180_1990.c:284: Reusing old results for call to idct
-[value] tests/idct/ieee_1180_1990.c:303: 
+[eva] tests/idct/ieee_1180_1990.c:284: Reusing old results for call to idct
+[eva] tests/idct/ieee_1180_1990.c:303: 
   Reusing old results for call to IEEE_1180_1990_mkbk
-[value] tests/idct/ieee_1180_1990.c:304: 
+[eva] tests/idct/ieee_1180_1990.c:304: 
   Reusing old results for call to IEEE_1180_1990_dctf
-[value] tests/idct/ieee_1180_1990.c:305: 
+[eva] tests/idct/ieee_1180_1990.c:305: 
   Reusing old results for call to IEEE_1180_1990_idctf
-[value] tests/idct/ieee_1180_1990.c:306: Reusing old results for call to idct
-[value] tests/idct/ieee_1180_1990.c:328: 
+[eva] tests/idct/ieee_1180_1990.c:306: Reusing old results for call to idct
+[eva] tests/idct/ieee_1180_1990.c:328: 
   Reusing old results for call to IEEE_1180_1990_dctf
-[value] tests/idct/ieee_1180_1990.c:329: 
+[eva] tests/idct/ieee_1180_1990.c:329: 
   Reusing old results for call to IEEE_1180_1990_idctf
-[value] tests/idct/ieee_1180_1990.c:330: Reusing old results for call to idct
-[value] tests/idct/ieee_1180_1990.c:211: 
+[eva] tests/idct/ieee_1180_1990.c:330: Reusing old results for call to idct
+[eva] tests/idct/ieee_1180_1990.c:211: 
   Reusing old results for call to IEEE_1180_1990_mkbk
-[value] tests/idct/ieee_1180_1990.c:212: 
+[eva] tests/idct/ieee_1180_1990.c:212: 
   Reusing old results for call to IEEE_1180_1990_dctf
-[value] tests/idct/ieee_1180_1990.c:213: 
+[eva] tests/idct/ieee_1180_1990.c:213: 
   Reusing old results for call to IEEE_1180_1990_idctf
-[value] tests/idct/ieee_1180_1990.c:214: Reusing old results for call to idct
-[value] tests/idct/ieee_1180_1990.c:236: 
+[eva] tests/idct/ieee_1180_1990.c:214: Reusing old results for call to idct
+[eva] tests/idct/ieee_1180_1990.c:236: 
   Reusing old results for call to IEEE_1180_1990_dctf
-[value] tests/idct/ieee_1180_1990.c:237: 
+[eva] tests/idct/ieee_1180_1990.c:237: 
   Reusing old results for call to IEEE_1180_1990_idctf
-[value] tests/idct/ieee_1180_1990.c:238: Reusing old results for call to idct
-[value] tests/idct/ieee_1180_1990.c:257: 
+[eva] tests/idct/ieee_1180_1990.c:238: Reusing old results for call to idct
+[eva] tests/idct/ieee_1180_1990.c:257: 
   Reusing old results for call to IEEE_1180_1990_mkbk
-[value] tests/idct/ieee_1180_1990.c:258: 
+[eva] tests/idct/ieee_1180_1990.c:258: 
   Reusing old results for call to IEEE_1180_1990_dctf
-[value] tests/idct/ieee_1180_1990.c:259: 
+[eva] tests/idct/ieee_1180_1990.c:259: 
   Reusing old results for call to IEEE_1180_1990_idctf
-[value] tests/idct/ieee_1180_1990.c:260: Reusing old results for call to idct
-[value] tests/idct/ieee_1180_1990.c:282: 
+[eva] tests/idct/ieee_1180_1990.c:260: Reusing old results for call to idct
+[eva] tests/idct/ieee_1180_1990.c:282: 
   Reusing old results for call to IEEE_1180_1990_dctf
-[value] tests/idct/ieee_1180_1990.c:283: 
+[eva] tests/idct/ieee_1180_1990.c:283: 
   Reusing old results for call to IEEE_1180_1990_idctf
-[value] tests/idct/ieee_1180_1990.c:284: Reusing old results for call to idct
-[value] tests/idct/ieee_1180_1990.c:303: 
+[eva] tests/idct/ieee_1180_1990.c:284: Reusing old results for call to idct
+[eva] tests/idct/ieee_1180_1990.c:303: 
   Reusing old results for call to IEEE_1180_1990_mkbk
-[value] tests/idct/ieee_1180_1990.c:304: 
+[eva] tests/idct/ieee_1180_1990.c:304: 
   Reusing old results for call to IEEE_1180_1990_dctf
-[value] tests/idct/ieee_1180_1990.c:305: 
+[eva] tests/idct/ieee_1180_1990.c:305: 
   Reusing old results for call to IEEE_1180_1990_idctf
-[value] tests/idct/ieee_1180_1990.c:306: Reusing old results for call to idct
-[value] tests/idct/ieee_1180_1990.c:328: 
+[eva] tests/idct/ieee_1180_1990.c:306: Reusing old results for call to idct
+[eva] tests/idct/ieee_1180_1990.c:328: 
   Reusing old results for call to IEEE_1180_1990_dctf
-[value] tests/idct/ieee_1180_1990.c:329: 
+[eva] tests/idct/ieee_1180_1990.c:329: 
   Reusing old results for call to IEEE_1180_1990_idctf
-[value] tests/idct/ieee_1180_1990.c:330: Reusing old results for call to idct
-[value] tests/idct/ieee_1180_1990.c:211: 
+[eva] tests/idct/ieee_1180_1990.c:330: Reusing old results for call to idct
+[eva] tests/idct/ieee_1180_1990.c:211: 
   Reusing old results for call to IEEE_1180_1990_mkbk
-[value] tests/idct/ieee_1180_1990.c:212: 
+[eva] tests/idct/ieee_1180_1990.c:212: 
   Reusing old results for call to IEEE_1180_1990_dctf
-[value] tests/idct/ieee_1180_1990.c:213: 
+[eva] tests/idct/ieee_1180_1990.c:213: 
   Reusing old results for call to IEEE_1180_1990_idctf
-[value] tests/idct/ieee_1180_1990.c:214: Reusing old results for call to idct
-[value] tests/idct/ieee_1180_1990.c:236: 
+[eva] tests/idct/ieee_1180_1990.c:214: Reusing old results for call to idct
+[eva] tests/idct/ieee_1180_1990.c:236: 
   Reusing old results for call to IEEE_1180_1990_dctf
-[value] tests/idct/ieee_1180_1990.c:237: 
+[eva] tests/idct/ieee_1180_1990.c:237: 
   Reusing old results for call to IEEE_1180_1990_idctf
-[value] tests/idct/ieee_1180_1990.c:238: Reusing old results for call to idct
-[value] tests/idct/ieee_1180_1990.c:257: 
+[eva] tests/idct/ieee_1180_1990.c:238: Reusing old results for call to idct
+[eva] tests/idct/ieee_1180_1990.c:257: 
   Reusing old results for call to IEEE_1180_1990_mkbk
-[value] tests/idct/ieee_1180_1990.c:258: 
+[eva] tests/idct/ieee_1180_1990.c:258: 
   Reusing old results for call to IEEE_1180_1990_dctf
-[value] tests/idct/ieee_1180_1990.c:259: 
+[eva] tests/idct/ieee_1180_1990.c:259: 
   Reusing old results for call to IEEE_1180_1990_idctf
-[value] tests/idct/ieee_1180_1990.c:260: Reusing old results for call to idct
-[value] tests/idct/ieee_1180_1990.c:282: 
+[eva] tests/idct/ieee_1180_1990.c:260: Reusing old results for call to idct
+[eva] tests/idct/ieee_1180_1990.c:282: 
   Reusing old results for call to IEEE_1180_1990_dctf
-[value] tests/idct/ieee_1180_1990.c:283: 
+[eva] tests/idct/ieee_1180_1990.c:283: 
   Reusing old results for call to IEEE_1180_1990_idctf
-[value] tests/idct/ieee_1180_1990.c:284: Reusing old results for call to idct
-[value] tests/idct/ieee_1180_1990.c:303: 
+[eva] tests/idct/ieee_1180_1990.c:284: Reusing old results for call to idct
+[eva] tests/idct/ieee_1180_1990.c:303: 
   Reusing old results for call to IEEE_1180_1990_mkbk
-[value] tests/idct/ieee_1180_1990.c:304: 
+[eva] tests/idct/ieee_1180_1990.c:304: 
   Reusing old results for call to IEEE_1180_1990_dctf
-[value] tests/idct/ieee_1180_1990.c:305: 
+[eva] tests/idct/ieee_1180_1990.c:305: 
   Reusing old results for call to IEEE_1180_1990_idctf
-[value] tests/idct/ieee_1180_1990.c:306: Reusing old results for call to idct
-[value] tests/idct/ieee_1180_1990.c:328: 
+[eva] tests/idct/ieee_1180_1990.c:306: Reusing old results for call to idct
+[eva] tests/idct/ieee_1180_1990.c:328: 
   Reusing old results for call to IEEE_1180_1990_dctf
-[value] tests/idct/ieee_1180_1990.c:329: 
+[eva] tests/idct/ieee_1180_1990.c:329: 
   Reusing old results for call to IEEE_1180_1990_idctf
-[value] tests/idct/ieee_1180_1990.c:330: Reusing old results for call to idct
-[value] tests/idct/ieee_1180_1990.c:211: 
+[eva] tests/idct/ieee_1180_1990.c:330: Reusing old results for call to idct
+[eva] tests/idct/ieee_1180_1990.c:211: 
   Reusing old results for call to IEEE_1180_1990_mkbk
-[value] tests/idct/ieee_1180_1990.c:212: 
+[eva] tests/idct/ieee_1180_1990.c:212: 
   Reusing old results for call to IEEE_1180_1990_dctf
-[value] tests/idct/ieee_1180_1990.c:213: 
+[eva] tests/idct/ieee_1180_1990.c:213: 
   Reusing old results for call to IEEE_1180_1990_idctf
-[value] tests/idct/ieee_1180_1990.c:214: Reusing old results for call to idct
-[value] tests/idct/ieee_1180_1990.c:236: 
+[eva] tests/idct/ieee_1180_1990.c:214: Reusing old results for call to idct
+[eva] tests/idct/ieee_1180_1990.c:236: 
   Reusing old results for call to IEEE_1180_1990_dctf
-[value] tests/idct/ieee_1180_1990.c:237: 
+[eva] tests/idct/ieee_1180_1990.c:237: 
   Reusing old results for call to IEEE_1180_1990_idctf
-[value] tests/idct/ieee_1180_1990.c:238: Reusing old results for call to idct
-[value] tests/idct/ieee_1180_1990.c:257: 
+[eva] tests/idct/ieee_1180_1990.c:238: Reusing old results for call to idct
+[eva] tests/idct/ieee_1180_1990.c:257: 
   Reusing old results for call to IEEE_1180_1990_mkbk
-[value] tests/idct/ieee_1180_1990.c:258: 
+[eva] tests/idct/ieee_1180_1990.c:258: 
   Reusing old results for call to IEEE_1180_1990_dctf
-[value] tests/idct/ieee_1180_1990.c:259: 
+[eva] tests/idct/ieee_1180_1990.c:259: 
   Reusing old results for call to IEEE_1180_1990_idctf
-[value] tests/idct/ieee_1180_1990.c:260: Reusing old results for call to idct
-[value] tests/idct/ieee_1180_1990.c:282: 
+[eva] tests/idct/ieee_1180_1990.c:260: Reusing old results for call to idct
+[eva] tests/idct/ieee_1180_1990.c:282: 
   Reusing old results for call to IEEE_1180_1990_dctf
-[value] tests/idct/ieee_1180_1990.c:283: 
+[eva] tests/idct/ieee_1180_1990.c:283: 
   Reusing old results for call to IEEE_1180_1990_idctf
-[value] tests/idct/ieee_1180_1990.c:284: Reusing old results for call to idct
-[value] tests/idct/ieee_1180_1990.c:303: 
+[eva] tests/idct/ieee_1180_1990.c:284: Reusing old results for call to idct
+[eva] tests/idct/ieee_1180_1990.c:303: 
   Reusing old results for call to IEEE_1180_1990_mkbk
-[value] tests/idct/ieee_1180_1990.c:304: 
+[eva] tests/idct/ieee_1180_1990.c:304: 
   Reusing old results for call to IEEE_1180_1990_dctf
-[value] tests/idct/ieee_1180_1990.c:305: 
+[eva] tests/idct/ieee_1180_1990.c:305: 
   Reusing old results for call to IEEE_1180_1990_idctf
-[value] tests/idct/ieee_1180_1990.c:306: Reusing old results for call to idct
-[value] tests/idct/ieee_1180_1990.c:328: 
+[eva] tests/idct/ieee_1180_1990.c:306: Reusing old results for call to idct
+[eva] tests/idct/ieee_1180_1990.c:328: 
   Reusing old results for call to IEEE_1180_1990_dctf
-[value] tests/idct/ieee_1180_1990.c:329: 
+[eva] tests/idct/ieee_1180_1990.c:329: 
   Reusing old results for call to IEEE_1180_1990_idctf
-[value] tests/idct/ieee_1180_1990.c:330: Reusing old results for call to idct
-[value] tests/idct/ieee_1180_1990.c:211: 
+[eva] tests/idct/ieee_1180_1990.c:330: Reusing old results for call to idct
+[eva] tests/idct/ieee_1180_1990.c:211: 
   Reusing old results for call to IEEE_1180_1990_mkbk
-[value] tests/idct/ieee_1180_1990.c:212: 
+[eva] tests/idct/ieee_1180_1990.c:212: 
   Reusing old results for call to IEEE_1180_1990_dctf
-[value] tests/idct/ieee_1180_1990.c:213: 
+[eva] tests/idct/ieee_1180_1990.c:213: 
   Reusing old results for call to IEEE_1180_1990_idctf
-[value] tests/idct/ieee_1180_1990.c:214: Reusing old results for call to idct
-[value] tests/idct/ieee_1180_1990.c:350: entering loop for the first time
-[value] tests/idct/ieee_1180_1990.c:354: entering loop for the first time
-[value] tests/idct/ieee_1180_1990.c:355: entering loop for the first time
-[value:alarm] tests/idct/ieee_1180_1990.c:357: Warning: 
+[eva] tests/idct/ieee_1180_1990.c:214: Reusing old results for call to idct
+[eva:alarm] tests/idct/ieee_1180_1990.c:357: Warning: 
   accessing uninitialized left-value. assert \initialized(&res[i].pmse[j][k]);
-[value:alarm] tests/idct/ieee_1180_1990.c:368: Warning: 
+[eva:alarm] tests/idct/ieee_1180_1990.c:368: Warning: 
   accessing uninitialized left-value. assert \initialized(&res[i].pme[j][k]);
-[value] tests/idct/ieee_1180_1990.c:369: Warning: 
+[eva] tests/idct/ieee_1180_1990.c:369: Warning: 
   2's complement assumed for overflow
-[value] tests/idct/ieee_1180_1990.c:357: Warning: 
+[eva] tests/idct/ieee_1180_1990.c:355: starting to merge loop iterations
+[eva] tests/idct/ieee_1180_1990.c:357: Warning: 
   2's complement assumed for overflow
-[value:alarm] tests/idct/ieee_1180_1990.c:358: Warning: 
+[eva:alarm] tests/idct/ieee_1180_1990.c:358: Warning: 
   accessing uninitialized left-value. assert \initialized(&res[i].pmse[j][k]);
-[value] tests/idct/ieee_1180_1990.c:368: Warning: 
+[eva] tests/idct/ieee_1180_1990.c:368: Warning: 
   2's complement assumed for overflow
-[value:alarm] tests/idct/ieee_1180_1990.c:369: Warning: 
+[eva:alarm] tests/idct/ieee_1180_1990.c:369: Warning: 
   accessing uninitialized left-value. assert \initialized(&res[i].pme[j][k]);
-[value:alarm] tests/idct/ieee_1180_1990.c:369: Warning: 
+[eva:alarm] tests/idct/ieee_1180_1990.c:369: Warning: 
   accessing uninitialized left-value. assert \initialized(&res[i].pme[j][k]);
-[value:alarm] tests/idct/ieee_1180_1990.c:369: Warning: 
+[eva:alarm] tests/idct/ieee_1180_1990.c:369: Warning: 
   accessing uninitialized left-value. assert \initialized(&res[i].pme[j][k]);
-[value] tests/idct/ieee_1180_1990.c:389: Warning: 
+[eva] tests/idct/ieee_1180_1990.c:354: starting to merge loop iterations
+[eva] tests/idct/ieee_1180_1990.c:389: Warning: 
   2's complement assumed for overflow
-[value] Recording results for main
-[value] done for function main
+[eva] tests/idct/ieee_1180_1990.c:350: starting to merge loop iterations
+[eva] Recording results for main
+[eva] done for function main
 [scope:rm_asserts] removing 16 assertion(s)
-[value] ====== VALUES COMPUTED ======
-[value:final-states] Values at end of function IEEE_1180_1990_rand:
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function IEEE_1180_1990_rand:
   i ∈ [0..2147483646]
   j ∈ [0..600]
   x ∈ [0.0000000000000000 .. 600.9999997201375663]
   IEEE_1180_1990_rand_randx ∈ [--..--]
   __retres ∈ [-300..300]
-[value:final-states] Values at end of function IEEE_1180_1990_mkbk:
+[eva:final-states] Values at end of function IEEE_1180_1990_mkbk:
   i ∈ {8}
   j ∈ {8} or UNINITIALIZED
   M1[0..7][0..7] ∈ [--..--]
   IEEE_1180_1990_rand_randx ∈ [--..--]
-[value:final-states] Values at end of function IEEE_1180_1990_dctf:
+[eva:final-states] Values at end of function IEEE_1180_1990_dctf:
   i ∈ {8}
   j ∈ {8} or UNINITIALIZED
   k ∈ {8} or UNINITIALIZED
@@ -790,7 +939,7 @@
   IEEE_1180_1990_dctf_mcos[0..7][0..7] ∈
                           [-1.0000000000000000*2^-1 .. 1.0000000000000000*2^-1]
   IEEE_1180_1990_dctf_init ∈ {0}
-[value:final-states] Values at end of function IEEE_1180_1990_idctf:
+[eva:final-states] Values at end of function IEEE_1180_1990_idctf:
   i ∈ {8}
   j ∈ {8} or UNINITIALIZED
   k ∈ {8} or UNINITIALIZED
@@ -802,7 +951,7 @@
   IEEE_1180_1990_idctf_mcos[0..7][0..7] ∈
                            [-1.0000000000000000*2^-1 .. 1.0000000000000000*2^-1]
   IEEE_1180_1990_idctf_init ∈ {0}
-[value:final-states] Values at end of function idct:
+[eva:final-states] Values at end of function idct:
   m2[0..7][0..7] ∈ [--..--] or UNINITIALIZED
   m4[0..7][0..7] ∈ [--..--] or UNINITIALIZED
   i ∈ {8}
@@ -817,7 +966,7 @@
   idct_init ∈ {0}
   idct_mc1[0..7][0..7] ∈ [-8192..8192]
   idct_mc2[0..7][0..7] ∈ [-8192..8192]
-[value:final-states] Values at end of function main:
+[eva:final-states] Values at end of function main:
   res[0..5] ∈ [--..--] or UNINITIALIZED
   i ∈ {6}
   j ∈ {8}
@@ -1037,6 +1186,9 @@
 [ Extern  ] Axiom 'strncmp_zero'
             axiom strncmp_zero
             Unverifiable but considered Valid.
+[ Extern  ] Axiom 'wcschr_def'
+            axiom wcschr_def
+            Unverifiable but considered Valid.
 [ Extern  ] Axiom 'wcscmp_zero'
             axiom wcscmp_zero
             Unverifiable but considered Valid.
@@ -1094,6 +1246,9 @@
 [  Valid  ] Axiomatic 'StrNCmp'
             axiomatic StrNCmp
             by Frama-C kernel.
+[  Valid  ] Axiomatic 'WcsChr'
+            axiomatic WcsChr
+            by Frama-C kernel.
 [  Valid  ] Axiomatic 'WcsCmp'
             axiomatic WcsCmp
             by Frama-C kernel.
@@ -1145,7 +1300,7 @@
 [ Extern  ] Assigns nothing
             assigns \nothing;
             Unverifiable but considered Valid.
-[ Extern  ] Froms (file share/libc/stdio.h, line 79)
+[ Extern  ] Froms (file share/libc/stdio.h, line 80)
             assigns \result \from __fc_p_fopen;
             Unverifiable but considered Valid.
 [  Valid  ] Default behavior
@@ -1156,13 +1311,13 @@
 --- Properties of Function 'tmpnam'
 --------------------------------------------------------------------------------
 
-[ Extern  ] Assigns (file share/libc/stdio.h, line 86)
+[ Extern  ] Assigns (file share/libc/stdio.h, line 87)
             assigns \result, *(s + (..));
             Unverifiable but considered Valid.
-[ Extern  ] Froms (file share/libc/stdio.h, line 86)
+[ Extern  ] Froms (file share/libc/stdio.h, line 87)
             assigns \result \from *(s + (..));
             Unverifiable but considered Valid.
-[ Extern  ] Froms (file share/libc/stdio.h, line 87)
+[ Extern  ] Froms (file share/libc/stdio.h, line 88)
             assigns *(s + (..)) \from \nothing;
             Unverifiable but considered Valid.
 [  Valid  ] Default behavior
@@ -1179,7 +1334,7 @@
 [ Extern  ] Assigns nothing
             assigns \nothing;
             Unverifiable but considered Valid.
-[ Extern  ] Froms (file share/libc/stdio.h, line 94)
+[ Extern  ] Froms (file share/libc/stdio.h, line 95)
             assigns \result \from stream, stream->__fc_FILE_id;
             Unverifiable but considered Valid.
 [  Valid  ] Default behavior
@@ -1196,7 +1351,7 @@
 [ Extern  ] Assigns nothing
             assigns \nothing;
             Unverifiable but considered Valid.
-[ Extern  ] Froms (file share/libc/stdio.h, line 102)
+[ Extern  ] Froms (file share/libc/stdio.h, line 103)
             assigns \result \from stream, stream->__fc_FILE_id;
             Unverifiable but considered Valid.
 [  Valid  ] Default behavior
@@ -1216,7 +1371,7 @@
 [ Extern  ] Assigns nothing
             assigns \nothing;
             Unverifiable but considered Valid.
-[ Extern  ] Froms (file share/libc/stdio.h, line 110)
+[ Extern  ] Froms (file share/libc/stdio.h, line 112)
             assigns \result
               \from (indirect: *(filename + (..))),
                     (indirect: *(mode + (..))), __fc_p_fopen;
@@ -1235,15 +1390,15 @@
               \result ≡ \null ∨
               \subset(\result, &__fc_fopen[0 .. 16 - 1])
             Unverifiable but considered Valid.
-[ Extern  ] Assigns (file share/libc/stdio.h, line 118)
+[ Extern  ] Assigns (file share/libc/stdio.h, line 121)
             assigns \result, __fc_fopen[fd];
             Unverifiable but considered Valid.
-[ Extern  ] Froms (file share/libc/stdio.h, line 118)
+[ Extern  ] Froms (file share/libc/stdio.h, line 121)
             assigns \result
               \from (indirect: fd), (indirect: *(mode + (0 ..))),
                     (indirect: __fc_fopen[fd]), __fc_p_fopen;
             Unverifiable but considered Valid.
-[ Extern  ] Froms (file share/libc/stdio.h, line 118)
+[ Extern  ] Froms (file share/libc/stdio.h, line 121)
             assigns __fc_fopen[fd]
               \from (indirect: fd), (indirect: *(mode + (0 ..))),
                     (indirect: __fc_fopen[fd]), __fc_p_fopen;
@@ -1256,13 +1411,28 @@
 --- Properties of Function 'freopen'
 --------------------------------------------------------------------------------
 
-[ Extern  ] Post-condition 'result_null_or_same'
+[ Extern  ] Post-condition 'result_null_or_valid_fd'
             ensures
-            result_null_or_same:
-              \result ≡ \null ∨ \result ≡ \old(stream)
+            result_null_or_valid_fd:
+              \result ≡ \null ∨ \result ∈ &__fc_fopen[0 .. 16 - 1]
             Unverifiable but considered Valid.
-[ Extern  ] Assigns (file share/libc/stdio.h, line 126)
-            assigns *stream;
+[ Extern  ] Post-condition 'stream_opened'
+            ensures stream_opened: *\old(stream) ∈ __fc_fopen[0 .. 16 - 1]
+            Unverifiable but considered Valid.
+[ Extern  ] Assigns (file share/libc/stdio.h, line 132)
+            assigns \result, *stream;
+            Unverifiable but considered Valid.
+[ Extern  ] Froms (file share/libc/stdio.h, line 132)
+            assigns \result
+              \from (indirect: *(filename + (..))),
+                    (indirect: *(mode + (..))), __fc_p_fopen,
+                    (indirect: stream);
+            Unverifiable but considered Valid.
+[ Extern  ] Froms (file share/libc/stdio.h, line 134)
+            assigns *stream
+              \from (indirect: *(filename + (..))),
+                    (indirect: *(mode + (..))), __fc_p_fopen,
+                    (indirect: stream);
             Unverifiable but considered Valid.
 [  Valid  ] Default behavior
             default behavior
@@ -1272,10 +1442,10 @@
 --- Properties of Function 'setbuf'
 --------------------------------------------------------------------------------
 
-[ Extern  ] Assigns (file share/libc/stdio.h, line 133)
+[ Extern  ] Assigns (file share/libc/stdio.h, line 145)
             assigns *stream;
             Unverifiable but considered Valid.
-[ Extern  ] Froms (file share/libc/stdio.h, line 133)
+[ Extern  ] Froms (file share/libc/stdio.h, line 145)
             assigns *stream \from buf;
             Unverifiable but considered Valid.
 [  Valid  ] Default behavior
@@ -1286,10 +1456,10 @@
 --- Properties of Function 'setvbuf'
 --------------------------------------------------------------------------------
 
-[ Extern  ] Assigns (file share/libc/stdio.h, line 137)
+[ Extern  ] Assigns (file share/libc/stdio.h, line 149)
             assigns *stream;
             Unverifiable but considered Valid.
-[ Extern  ] Froms (file share/libc/stdio.h, line 137)
+[ Extern  ] Froms (file share/libc/stdio.h, line 149)
             assigns *stream \from buf, mode, size;
             Unverifiable but considered Valid.
 [  Valid  ] Default behavior
@@ -1300,10 +1470,10 @@
 --- Properties of Function 'vfprintf'
 --------------------------------------------------------------------------------
 
-[ Extern  ] Assigns (file share/libc/stdio.h, line 166)
+[ Extern  ] Assigns (file share/libc/stdio.h, line 178)
             assigns *stream;
             Unverifiable but considered Valid.
-[ Extern  ] Froms (file share/libc/stdio.h, line 166)
+[ Extern  ] Froms (file share/libc/stdio.h, line 178)
             assigns *stream \from *(format + (..)), arg;
             Unverifiable but considered Valid.
 [  Valid  ] Default behavior
@@ -1314,10 +1484,10 @@
 --- Properties of Function 'vfscanf'
 --------------------------------------------------------------------------------
 
-[ Extern  ] Assigns (file share/libc/stdio.h, line 171)
+[ Extern  ] Assigns (file share/libc/stdio.h, line 183)
             assigns *stream;
             Unverifiable but considered Valid.
-[ Extern  ] Froms (file share/libc/stdio.h, line 171)
+[ Extern  ] Froms (file share/libc/stdio.h, line 183)
             assigns *stream \from *(format + (..)), *stream;
             Unverifiable but considered Valid.
 [  Valid  ] Default behavior
@@ -1328,10 +1498,10 @@
 --- Properties of Function 'vprintf'
 --------------------------------------------------------------------------------
 
-[ Extern  ] Assigns (file share/libc/stdio.h, line 177)
+[ Extern  ] Assigns (file share/libc/stdio.h, line 189)
             assigns *__fc_stdout;
             Unverifiable but considered Valid.
-[ Extern  ] Froms (file share/libc/stdio.h, line 177)
+[ Extern  ] Froms (file share/libc/stdio.h, line 189)
             assigns *__fc_stdout \from arg;
             Unverifiable but considered Valid.
 [  Valid  ] Default behavior
@@ -1342,10 +1512,10 @@
 --- Properties of Function 'vscanf'
 --------------------------------------------------------------------------------
 
-[ Extern  ] Assigns (file share/libc/stdio.h, line 181)
+[ Extern  ] Assigns (file share/libc/stdio.h, line 193)
             assigns *__fc_stdin;
             Unverifiable but considered Valid.
-[ Extern  ] Froms (file share/libc/stdio.h, line 181)
+[ Extern  ] Froms (file share/libc/stdio.h, line 193)
             assigns *__fc_stdin \from *(format + (..));
             Unverifiable but considered Valid.
 [  Valid  ] Default behavior
@@ -1356,10 +1526,10 @@
 --- Properties of Function 'vsnprintf'
 --------------------------------------------------------------------------------
 
-[ Extern  ] Assigns (file share/libc/stdio.h, line 186)
+[ Extern  ] Assigns (file share/libc/stdio.h, line 198)
             assigns *(s + (0 .. n - 1));
             Unverifiable but considered Valid.
-[ Extern  ] Froms (file share/libc/stdio.h, line 186)
+[ Extern  ] Froms (file share/libc/stdio.h, line 198)
             assigns *(s + (0 .. n - 1)) \from *(format + (..)), arg;
             Unverifiable but considered Valid.
 [  Valid  ] Default behavior
@@ -1370,10 +1540,10 @@
 --- Properties of Function 'vsprintf'
 --------------------------------------------------------------------------------
 
-[ Extern  ] Assigns (file share/libc/stdio.h, line 192)
+[ Extern  ] Assigns (file share/libc/stdio.h, line 204)
             assigns *(s + (0 ..));
             Unverifiable but considered Valid.
-[ Extern  ] Froms (file share/libc/stdio.h, line 192)
+[ Extern  ] Froms (file share/libc/stdio.h, line 204)
             assigns *(s + (0 ..)) \from *(format + (..)), arg;
             Unverifiable but considered Valid.
 [  Valid  ] Default behavior
@@ -1384,8 +1554,18 @@
 --- Properties of Function 'fgetc'
 --------------------------------------------------------------------------------
 
-[ Extern  ] Assigns (file share/libc/stdio.h, line 203)
-            assigns *stream;
+[ Extern  ] Post-condition 'result_uchar_or_eof'
+            ensures
+            result_uchar_or_eof: (0 ≤ \result ≤ 255) ∨ \result ≡ -1
+            Unverifiable but considered Valid.
+[ Extern  ] Assigns (file share/libc/stdio.h, line 217)
+            assigns *stream, \result;
+            Unverifiable but considered Valid.
+[ Extern  ] Froms (file share/libc/stdio.h, line 217)
+            assigns *stream \from *stream;
+            Unverifiable but considered Valid.
+[ Extern  ] Froms (file share/libc/stdio.h, line 218)
+            assigns \result \from (indirect: *stream);
             Unverifiable but considered Valid.
 [  Valid  ] Default behavior
             default behavior
@@ -1404,14 +1584,14 @@
             terminated_string_on_success:
               \result ≢ \null ⇒ valid_string(\old(s))
             Unverifiable but considered Valid.
-[ Extern  ] Assigns (file share/libc/stdio.h, line 209)
+[ Extern  ] Assigns (file share/libc/stdio.h, line 225)
             assigns *(s + (0 .. size)), \result;
             Unverifiable but considered Valid.
-[ Extern  ] Froms (file share/libc/stdio.h, line 209)
+[ Extern  ] Froms (file share/libc/stdio.h, line 225)
             assigns *(s + (0 .. size))
               \from (indirect: size), (indirect: *stream);
             Unverifiable but considered Valid.
-[ Extern  ] Froms (file share/libc/stdio.h, line 210)
+[ Extern  ] Froms (file share/libc/stdio.h, line 226)
             assigns \result \from s, (indirect: size), (indirect: *stream);
             Unverifiable but considered Valid.
 [  Valid  ] Default behavior
@@ -1422,7 +1602,7 @@
 --- Properties of Function 'fputc'
 --------------------------------------------------------------------------------
 
-[ Extern  ] Assigns (file share/libc/stdio.h, line 218)
+[ Extern  ] Assigns (file share/libc/stdio.h, line 234)
             assigns *stream;
             Unverifiable but considered Valid.
 [  Valid  ] Default behavior
@@ -1433,10 +1613,10 @@
 --- Properties of Function 'fputs'
 --------------------------------------------------------------------------------
 
-[ Extern  ] Assigns (file share/libc/stdio.h, line 221)
+[ Extern  ] Assigns (file share/libc/stdio.h, line 237)
             assigns *stream;
             Unverifiable but considered Valid.
-[ Extern  ] Froms (file share/libc/stdio.h, line 221)
+[ Extern  ] Froms (file share/libc/stdio.h, line 237)
             assigns *stream \from *(s + (..));
             Unverifiable but considered Valid.
 [  Valid  ] Default behavior
@@ -1447,13 +1627,13 @@
 --- Properties of Function 'getc'
 --------------------------------------------------------------------------------
 
-[ Extern  ] Assigns (file share/libc/stdio.h, line 225)
+[ Extern  ] Assigns (file share/libc/stdio.h, line 241)
             assigns \result, *stream;
             Unverifiable but considered Valid.
-[ Extern  ] Froms (file share/libc/stdio.h, line 225)
+[ Extern  ] Froms (file share/libc/stdio.h, line 241)
             assigns \result \from *stream;
             Unverifiable but considered Valid.
-[ Extern  ] Froms (file share/libc/stdio.h, line 225)
+[ Extern  ] Froms (file share/libc/stdio.h, line 241)
             assigns *stream \from *stream;
             Unverifiable but considered Valid.
 [  Valid  ] Default behavior
@@ -1467,7 +1647,7 @@
 [ Extern  ] Assigns nothing
             assigns \nothing;
             Unverifiable but considered Valid.
-[ Extern  ] Froms (file share/libc/stdio.h, line 228)
+[ Extern  ] Froms (file share/libc/stdio.h, line 244)
             assigns \result \from *__fc_stdin;
             Unverifiable but considered Valid.
 [  Valid  ] Default behavior
@@ -1482,13 +1662,13 @@
             ensures
             result_null_or_same: \result ≡ \old(s) ∨ \result ≡ \null
             Unverifiable but considered Valid.
-[ Extern  ] Assigns (file share/libc/stdio.h, line 232)
+[ Extern  ] Assigns (file share/libc/stdio.h, line 248)
             assigns *(s + (..)), \result;
             Unverifiable but considered Valid.
-[ Extern  ] Froms (file share/libc/stdio.h, line 232)
+[ Extern  ] Froms (file share/libc/stdio.h, line 248)
             assigns *(s + (..)) \from *__fc_stdin;
             Unverifiable but considered Valid.
-[ Extern  ] Froms (file share/libc/stdio.h, line 233)
+[ Extern  ] Froms (file share/libc/stdio.h, line 249)
             assigns \result \from s, __fc_stdin;
             Unverifiable but considered Valid.
 [  Valid  ] Default behavior
@@ -1499,10 +1679,10 @@
 --- Properties of Function 'putc'
 --------------------------------------------------------------------------------
 
-[ Extern  ] Assigns (file share/libc/stdio.h, line 238)
+[ Extern  ] Assigns (file share/libc/stdio.h, line 254)
             assigns *stream;
             Unverifiable but considered Valid.
-[ Extern  ] Froms (file share/libc/stdio.h, line 238)
+[ Extern  ] Froms (file share/libc/stdio.h, line 254)
             assigns *stream \from c;
             Unverifiable but considered Valid.
 [  Valid  ] Default behavior
@@ -1513,10 +1693,10 @@
 --- Properties of Function 'putchar'
 --------------------------------------------------------------------------------
 
-[ Extern  ] Assigns (file share/libc/stdio.h, line 241)
+[ Extern  ] Assigns (file share/libc/stdio.h, line 257)
             assigns *__fc_stdout;
             Unverifiable but considered Valid.
-[ Extern  ] Froms (file share/libc/stdio.h, line 241)
+[ Extern  ] Froms (file share/libc/stdio.h, line 257)
             assigns *__fc_stdout \from c;
             Unverifiable but considered Valid.
 [  Valid  ] Default behavior
@@ -1527,10 +1707,10 @@
 --- Properties of Function 'puts'
 --------------------------------------------------------------------------------
 
-[ Extern  ] Assigns (file share/libc/stdio.h, line 244)
+[ Extern  ] Assigns (file share/libc/stdio.h, line 260)
             assigns *__fc_stdout;
             Unverifiable but considered Valid.
-[ Extern  ] Froms (file share/libc/stdio.h, line 244)
+[ Extern  ] Froms (file share/libc/stdio.h, line 260)
             assigns *__fc_stdout \from *(s + (..));
             Unverifiable but considered Valid.
 [  Valid  ] Default behavior
@@ -1541,10 +1721,10 @@
 --- Properties of Function 'ungetc'
 --------------------------------------------------------------------------------
 
-[ Extern  ] Assigns (file share/libc/stdio.h, line 247)
+[ Extern  ] Assigns (file share/libc/stdio.h, line 263)
             assigns *stream;
             Unverifiable but considered Valid.
-[ Extern  ] Froms (file share/libc/stdio.h, line 247)
+[ Extern  ] Froms (file share/libc/stdio.h, line 263)
             assigns *stream \from c;
             Unverifiable but considered Valid.
 [  Valid  ] Default behavior
@@ -1564,14 +1744,14 @@
               \initialized((char *)\old(ptr) +
                            (0 .. \result * \old(size) - 1))
             Unverifiable but considered Valid.
-[ Extern  ] Assigns (file share/libc/stdio.h, line 253)
+[ Extern  ] Assigns (file share/libc/stdio.h, line 269)
             assigns *((char *)ptr + (0 .. nmemb * size - 1)), \result;
             Unverifiable but considered Valid.
-[ Extern  ] Froms (file share/libc/stdio.h, line 253)
+[ Extern  ] Froms (file share/libc/stdio.h, line 269)
             assigns *((char *)ptr + (0 .. nmemb * size - 1))
               \from size, nmemb, *stream;
             Unverifiable but considered Valid.
-[ Extern  ] Froms (file share/libc/stdio.h, line 254)
+[ Extern  ] Froms (file share/libc/stdio.h, line 270)
             assigns \result \from size, *stream;
             Unverifiable but considered Valid.
 [  Valid  ] Default behavior
@@ -1585,13 +1765,13 @@
 [ Extern  ] Post-condition 'size_written'
             ensures size_written: \result ≤ \old(nmemb)
             Unverifiable but considered Valid.
-[ Extern  ] Assigns (file share/libc/stdio.h, line 266)
+[ Extern  ] Assigns (file share/libc/stdio.h, line 282)
             assigns *stream, \result;
             Unverifiable but considered Valid.
-[ Extern  ] Froms (file share/libc/stdio.h, line 266)
+[ Extern  ] Froms (file share/libc/stdio.h, line 282)
             assigns *stream \from *((char *)ptr + (0 .. nmemb * size - 1));
             Unverifiable but considered Valid.
-[ Extern  ] Froms (file share/libc/stdio.h, line 266)
+[ Extern  ] Froms (file share/libc/stdio.h, line 282)
             assigns \result \from *((char *)ptr + (0 .. nmemb * size - 1));
             Unverifiable but considered Valid.
 [  Valid  ] Default behavior
@@ -1602,10 +1782,10 @@
 --- Properties of Function 'fgetpos'
 --------------------------------------------------------------------------------
 
-[ Extern  ] Assigns (file share/libc/stdio.h, line 274)
+[ Extern  ] Assigns (file share/libc/stdio.h, line 290)
             assigns *pos;
             Unverifiable but considered Valid.
-[ Extern  ] Froms (file share/libc/stdio.h, line 274)
+[ Extern  ] Froms (file share/libc/stdio.h, line 290)
             assigns *pos \from *stream;
             Unverifiable but considered Valid.
 [  Valid  ] Default behavior
@@ -1616,19 +1796,19 @@
 --- Properties of Function 'fseek'
 --------------------------------------------------------------------------------
 
-[ Extern  ] Assigns (file share/libc/stdio.h, line 281)
+[ Extern  ] Assigns (file share/libc/stdio.h, line 297)
             assigns *stream, \result, __fc_errno;
             Unverifiable but considered Valid.
-[ Extern  ] Froms (file share/libc/stdio.h, line 281)
+[ Extern  ] Froms (file share/libc/stdio.h, line 297)
             assigns *stream
               \from *stream, (indirect: offset), (indirect: whence);
             Unverifiable but considered Valid.
-[ Extern  ] Froms (file share/libc/stdio.h, line 282)
+[ Extern  ] Froms (file share/libc/stdio.h, line 298)
             assigns \result
               \from (indirect: *stream), (indirect: offset),
                     (indirect: whence);
             Unverifiable but considered Valid.
-[ Extern  ] Froms (file share/libc/stdio.h, line 282)
+[ Extern  ] Froms (file share/libc/stdio.h, line 298)
             assigns __fc_errno
               \from (indirect: *stream), (indirect: offset),
                     (indirect: whence);
@@ -1641,10 +1821,10 @@
 --- Properties of Function 'fsetpos'
 --------------------------------------------------------------------------------
 
-[ Extern  ] Assigns (file share/libc/stdio.h, line 287)
+[ Extern  ] Assigns (file share/libc/stdio.h, line 303)
             assigns *stream;
             Unverifiable but considered Valid.
-[ Extern  ] Froms (file share/libc/stdio.h, line 287)
+[ Extern  ] Froms (file share/libc/stdio.h, line 303)
             assigns *stream \from *pos;
             Unverifiable but considered Valid.
 [  Valid  ] Default behavior
@@ -1661,13 +1841,13 @@
               \result ≡ -1 ∨
               (\result ≥ 0 ∧ __fc_errno ≡ \old(__fc_errno))
             Unverifiable but considered Valid.
-[ Extern  ] Assigns (file share/libc/stdio.h, line 292)
+[ Extern  ] Assigns (file share/libc/stdio.h, line 308)
             assigns \result, __fc_errno;
             Unverifiable but considered Valid.
-[ Extern  ] Froms (file share/libc/stdio.h, line 292)
+[ Extern  ] Froms (file share/libc/stdio.h, line 308)
             assigns \result \from (indirect: *stream);
             Unverifiable but considered Valid.
-[ Extern  ] Froms (file share/libc/stdio.h, line 292)
+[ Extern  ] Froms (file share/libc/stdio.h, line 308)
             assigns __fc_errno \from (indirect: *stream);
             Unverifiable but considered Valid.
 [  Valid  ] Default behavior
@@ -1678,10 +1858,10 @@
 --- Properties of Function 'rewind'
 --------------------------------------------------------------------------------
 
-[ Extern  ] Assigns (file share/libc/stdio.h, line 298)
+[ Extern  ] Assigns (file share/libc/stdio.h, line 314)
             assigns *stream;
             Unverifiable but considered Valid.
-[ Extern  ] Froms (file share/libc/stdio.h, line 298)
+[ Extern  ] Froms (file share/libc/stdio.h, line 314)
             assigns *stream \from \nothing;
             Unverifiable but considered Valid.
 [  Valid  ] Default behavior
@@ -1692,10 +1872,10 @@
 --- Properties of Function 'clearerr'
 --------------------------------------------------------------------------------
 
-[ Extern  ] Assigns (file share/libc/stdio.h, line 301)
+[ Extern  ] Assigns (file share/libc/stdio.h, line 317)
             assigns *stream;
             Unverifiable but considered Valid.
-[ Extern  ] Froms (file share/libc/stdio.h, line 301)
+[ Extern  ] Froms (file share/libc/stdio.h, line 317)
             assigns *stream \from \nothing;
             Unverifiable but considered Valid.
 [  Valid  ] Default behavior
@@ -1709,7 +1889,7 @@
 [ Extern  ] Assigns nothing
             assigns \nothing;
             Unverifiable but considered Valid.
-[ Extern  ] Froms (file share/libc/stdio.h, line 304)
+[ Extern  ] Froms (file share/libc/stdio.h, line 320)
             assigns \result \from *stream;
             Unverifiable but considered Valid.
 [  Valid  ] Default behavior
@@ -1723,7 +1903,7 @@
 [ Extern  ] Assigns nothing
             assigns \nothing;
             Unverifiable but considered Valid.
-[ Extern  ] Froms (file share/libc/stdio.h, line 307)
+[ Extern  ] Froms (file share/libc/stdio.h, line 323)
             assigns \result \from *stream;
             Unverifiable but considered Valid.
 [  Valid  ] Default behavior
@@ -1734,10 +1914,10 @@
 --- Properties of Function 'flockfile'
 --------------------------------------------------------------------------------
 
-[ Extern  ] Assigns (file share/libc/stdio.h, line 310)
+[ Extern  ] Assigns (file share/libc/stdio.h, line 326)
             assigns *stream;
             Unverifiable but considered Valid.
-[ Extern  ] Froms (file share/libc/stdio.h, line 310)
+[ Extern  ] Froms (file share/libc/stdio.h, line 326)
             assigns *stream \from \nothing;
             Unverifiable but considered Valid.
 [  Valid  ] Default behavior
@@ -1748,10 +1928,10 @@
 --- Properties of Function 'funlockfile'
 --------------------------------------------------------------------------------
 
-[ Extern  ] Assigns (file share/libc/stdio.h, line 313)
+[ Extern  ] Assigns (file share/libc/stdio.h, line 329)
             assigns *stream;
             Unverifiable but considered Valid.
-[ Extern  ] Froms (file share/libc/stdio.h, line 313)
+[ Extern  ] Froms (file share/libc/stdio.h, line 329)
             assigns *stream \from \nothing;
             Unverifiable but considered Valid.
 [  Valid  ] Default behavior
@@ -1762,13 +1942,13 @@
 --- Properties of Function 'ftrylockfile'
 --------------------------------------------------------------------------------
 
-[ Extern  ] Assigns (file share/libc/stdio.h, line 316)
+[ Extern  ] Assigns (file share/libc/stdio.h, line 332)
             assigns \result, *stream;
             Unverifiable but considered Valid.
-[ Extern  ] Froms (file share/libc/stdio.h, line 316)
+[ Extern  ] Froms (file share/libc/stdio.h, line 332)
             assigns \result \from \nothing;
             Unverifiable but considered Valid.
-[ Extern  ] Froms (file share/libc/stdio.h, line 316)
+[ Extern  ] Froms (file share/libc/stdio.h, line 332)
             assigns *stream \from \nothing;
             Unverifiable but considered Valid.
 [  Valid  ] Default behavior
@@ -1782,7 +1962,7 @@
 [ Extern  ] Assigns nothing
             assigns \nothing;
             Unverifiable but considered Valid.
-[ Extern  ] Froms (file share/libc/stdio.h, line 319)
+[ Extern  ] Froms (file share/libc/stdio.h, line 335)
             assigns \result \from *stream;
             Unverifiable but considered Valid.
 [  Valid  ] Default behavior
@@ -1793,10 +1973,10 @@
 --- Properties of Function 'perror'
 --------------------------------------------------------------------------------
 
-[ Extern  ] Assigns (file share/libc/stdio.h, line 322)
+[ Extern  ] Assigns (file share/libc/stdio.h, line 338)
             assigns __fc_stdout;
             Unverifiable but considered Valid.
-[ Extern  ] Froms (file share/libc/stdio.h, line 322)
+[ Extern  ] Froms (file share/libc/stdio.h, line 338)
             assigns __fc_stdout \from __fc_errno, *(s + (..));
             Unverifiable but considered Valid.
 [  Valid  ] Default behavior
@@ -1807,13 +1987,13 @@
 --- Properties of Function 'getc_unlocked'
 --------------------------------------------------------------------------------
 
-[ Extern  ] Assigns (file share/libc/stdio.h, line 325)
+[ Extern  ] Assigns (file share/libc/stdio.h, line 341)
             assigns \result, *stream;
             Unverifiable but considered Valid.
-[ Extern  ] Froms (file share/libc/stdio.h, line 325)
+[ Extern  ] Froms (file share/libc/stdio.h, line 341)
             assigns \result \from *stream;
             Unverifiable but considered Valid.
-[ Extern  ] Froms (file share/libc/stdio.h, line 325)
+[ Extern  ] Froms (file share/libc/stdio.h, line 341)
             assigns *stream \from *stream;
             Unverifiable but considered Valid.
 [  Valid  ] Default behavior
@@ -1827,7 +2007,7 @@
 [ Extern  ] Assigns nothing
             assigns \nothing;
             Unverifiable but considered Valid.
-[ Extern  ] Froms (file share/libc/stdio.h, line 327)
+[ Extern  ] Froms (file share/libc/stdio.h, line 343)
             assigns \result \from *__fc_stdin;
             Unverifiable but considered Valid.
 [  Valid  ] Default behavior
@@ -1838,10 +2018,10 @@
 --- Properties of Function 'putc_unlocked'
 --------------------------------------------------------------------------------
 
-[ Extern  ] Assigns (file share/libc/stdio.h, line 329)
+[ Extern  ] Assigns (file share/libc/stdio.h, line 345)
             assigns *stream;
             Unverifiable but considered Valid.
-[ Extern  ] Froms (file share/libc/stdio.h, line 329)
+[ Extern  ] Froms (file share/libc/stdio.h, line 345)
             assigns *stream \from c;
             Unverifiable but considered Valid.
 [  Valid  ] Default behavior
@@ -1852,10 +2032,10 @@
 --- Properties of Function 'putchar_unlocked'
 --------------------------------------------------------------------------------
 
-[ Extern  ] Assigns (file share/libc/stdio.h, line 331)
+[ Extern  ] Assigns (file share/libc/stdio.h, line 347)
             assigns *__fc_stdout;
             Unverifiable but considered Valid.
-[ Extern  ] Froms (file share/libc/stdio.h, line 331)
+[ Extern  ] Froms (file share/libc/stdio.h, line 347)
             assigns *__fc_stdout \from c;
             Unverifiable but considered Valid.
 [  Valid  ] Default behavior
@@ -1866,10 +2046,10 @@
 --- Properties of Function 'clearerr_unlocked'
 --------------------------------------------------------------------------------
 
-[ Extern  ] Assigns (file share/libc/stdio.h, line 334)
+[ Extern  ] Assigns (file share/libc/stdio.h, line 350)
             assigns *stream;
             Unverifiable but considered Valid.
-[ Extern  ] Froms (file share/libc/stdio.h, line 334)
+[ Extern  ] Froms (file share/libc/stdio.h, line 350)
             assigns *stream \from \nothing;
             Unverifiable but considered Valid.
 [  Valid  ] Default behavior
@@ -1883,7 +2063,7 @@
 [ Extern  ] Assigns nothing
             assigns \nothing;
             Unverifiable but considered Valid.
-[ Extern  ] Froms (file share/libc/stdio.h, line 336)
+[ Extern  ] Froms (file share/libc/stdio.h, line 352)
             assigns \result \from *stream;
             Unverifiable but considered Valid.
 [  Valid  ] Default behavior
@@ -1897,7 +2077,7 @@
 [ Extern  ] Assigns nothing
             assigns \nothing;
             Unverifiable but considered Valid.
-[ Extern  ] Froms (file share/libc/stdio.h, line 338)
+[ Extern  ] Froms (file share/libc/stdio.h, line 354)
             assigns \result \from *stream;
             Unverifiable but considered Valid.
 [  Valid  ] Default behavior
@@ -1911,7 +2091,7 @@
 [ Extern  ] Assigns nothing
             assigns \nothing;
             Unverifiable but considered Valid.
-[ Extern  ] Froms (file share/libc/stdio.h, line 340)
+[ Extern  ] Froms (file share/libc/stdio.h, line 356)
             assigns \result \from *stream;
             Unverifiable but considered Valid.
 [  Valid  ] Default behavior
@@ -1929,14 +2109,14 @@
               (\subset(\result, &__fc_fopen[0 .. 16 - 1]) ∧
                is_open_pipe(\result))
             Unverifiable but considered Valid.
-[ Extern  ] Assigns (file share/libc/stdio.h, line 365)
+[ Extern  ] Assigns (file share/libc/stdio.h, line 381)
             assigns \result, __fc_fopen[0 ..];
             Unverifiable but considered Valid.
-[ Extern  ] Froms (file share/libc/stdio.h, line 365)
+[ Extern  ] Froms (file share/libc/stdio.h, line 381)
             assigns \result
               \from (indirect: *command), (indirect: *type), __fc_p_fopen;
             Unverifiable but considered Valid.
-[ Extern  ] Froms (file share/libc/stdio.h, line 367)
+[ Extern  ] Froms (file share/libc/stdio.h, line 383)
             assigns __fc_fopen[0 ..]
               \from (indirect: *command), (indirect: *type), __fc_fopen[0 ..];
             Unverifiable but considered Valid.
@@ -1954,11 +2134,99 @@
 [ Extern  ] Assigns nothing
             assigns \nothing;
             Unverifiable but considered Valid.
-[ Extern  ] Froms (file share/libc/stdio.h, line 379)
+[ Extern  ] Froms (file share/libc/stdio.h, line 395)
             assigns \result \from (indirect: *stream);
             Unverifiable but considered Valid.
 [  Valid  ] Default behavior
             default behavior
+            by Frama-C kernel.
+
+--------------------------------------------------------------------------------
+--- Properties of Function '__fc_fpclassifyf'
+--------------------------------------------------------------------------------
+
+[ Extern  ] Post-condition for 'nan' 'fp_nan'
+            ensures fp_nan: \result ≡ 0
+            Unverifiable but considered Valid.
+[ Extern  ] Post-condition for 'inf' 'fp_infinite'
+            ensures fp_infinite: \result ≡ 1
+            Unverifiable but considered Valid.
+[ Extern  ] Post-condition for 'zero' 'fp_zero'
+            ensures fp_zero: \result ≡ 2
+            Unverifiable but considered Valid.
+[ Extern  ] Post-condition for 'subnormal' 'fp_subnormal'
+            ensures fp_subnormal: \result ≡ 3
+            Unverifiable but considered Valid.
+[ Extern  ] Post-condition for 'normal' 'fp_normal'
+            ensures fp_normal: \result ≡ 4
+            Unverifiable but considered Valid.
+[ Extern  ] Assigns nothing
+            assigns \nothing;
+            Unverifiable but considered Valid.
+[ Extern  ] Froms (file share/libc/math.h, line 73)
+            assigns \result \from x;
+            Unverifiable but considered Valid.
+[  Valid  ] Default behavior
+            default behavior
+            by Frama-C kernel.
+[  Valid  ] Behavior 'inf'
+            behavior inf
+            by Frama-C kernel.
+[  Valid  ] Behavior 'nan'
+            behavior nan
+            by Frama-C kernel.
+[  Valid  ] Behavior 'normal'
+            behavior normal
+            by Frama-C kernel.
+[  Valid  ] Behavior 'subnormal'
+            behavior subnormal
+            by Frama-C kernel.
+[  Valid  ] Behavior 'zero'
+            behavior zero
+            by Frama-C kernel.
+
+--------------------------------------------------------------------------------
+--- Properties of Function '__fc_fpclassify'
+--------------------------------------------------------------------------------
+
+[ Extern  ] Post-condition for 'nan' 'fp_nan'
+            ensures fp_nan: \result ≡ 0
+            Unverifiable but considered Valid.
+[ Extern  ] Post-condition for 'inf' 'fp_infinite'
+            ensures fp_infinite: \result ≡ 1
+            Unverifiable but considered Valid.
+[ Extern  ] Post-condition for 'zero' 'fp_zero'
+            ensures fp_zero: \result ≡ 2
+            Unverifiable but considered Valid.
+[ Extern  ] Post-condition for 'subnormal' 'fp_subnormal'
+            ensures fp_subnormal: \result ≡ 3
+            Unverifiable but considered Valid.
+[ Extern  ] Post-condition for 'normal' 'fp_normal'
+            ensures fp_normal: \result ≡ 4
+            Unverifiable but considered Valid.
+[ Extern  ] Assigns nothing
+            assigns \nothing;
+            Unverifiable but considered Valid.
+[ Extern  ] Froms (file share/libc/math.h, line 97)
+            assigns \result \from x;
+            Unverifiable but considered Valid.
+[  Valid  ] Default behavior
+            default behavior
+            by Frama-C kernel.
+[  Valid  ] Behavior 'inf'
+            behavior inf
+            by Frama-C kernel.
+[  Valid  ] Behavior 'nan'
+            behavior nan
+            by Frama-C kernel.
+[  Valid  ] Behavior 'normal'
+            behavior normal
+            by Frama-C kernel.
+[  Valid  ] Behavior 'subnormal'
+            behavior subnormal
+            by Frama-C kernel.
+[  Valid  ] Behavior 'zero'
+            behavior zero
             by Frama-C kernel.
 
 --------------------------------------------------------------------------------
@@ -1971,28 +2239,28 @@
 [ Extern  ] Post-condition for 'domain_error' 'errno_set'
             ensures errno_set: __fc_errno ≡ 1
             Unverifiable but considered Valid.
-[ Extern  ] Assigns (file share/libc/math.h, line 65)
+[ Extern  ] Assigns (file share/libc/math.h, line 134)
             assigns __fc_errno, \result;
             Unverifiable but considered Valid.
-[ Extern  ] Assigns for 'domain_error' (file share/libc/math.h, line 72)
+[ Extern  ] Assigns for 'domain_error' (file share/libc/math.h, line 141)
             assigns __fc_errno, \result;
             Unverifiable but considered Valid.
 [ Extern  ] Assigns for 'normal' nothing
             assigns \nothing;
             Unverifiable but considered Valid.
-[ Extern  ] Froms (file share/libc/math.h, line 65)
+[ Extern  ] Froms (file share/libc/math.h, line 134)
             assigns __fc_errno \from x;
             Unverifiable but considered Valid.
-[ Extern  ] Froms (file share/libc/math.h, line 65)
+[ Extern  ] Froms (file share/libc/math.h, line 134)
             assigns \result \from x;
             Unverifiable but considered Valid.
-[ Extern  ] Froms for 'domain_error' (file share/libc/math.h, line 72)
+[ Extern  ] Froms for 'domain_error' (file share/libc/math.h, line 141)
             assigns __fc_errno \from x;
             Unverifiable but considered Valid.
-[ Extern  ] Froms for 'domain_error' (file share/libc/math.h, line 72)
+[ Extern  ] Froms for 'domain_error' (file share/libc/math.h, line 141)
             assigns \result \from x;
             Unverifiable but considered Valid.
-[ Extern  ] Froms for 'normal' (file share/libc/math.h, line 68)
+[ Extern  ] Froms for 'normal' (file share/libc/math.h, line 137)
             assigns \result \from x;
             Unverifiable but considered Valid.
 [  Valid  ] Default behavior
@@ -2015,28 +2283,28 @@
 [ Extern  ] Post-condition for 'domain_error' 'errno_set'
             ensures errno_set: __fc_errno ≡ 1
             Unverifiable but considered Valid.
-[ Extern  ] Assigns (file share/libc/math.h, line 79)
+[ Extern  ] Assigns (file share/libc/math.h, line 148)
             assigns __fc_errno, \result;
             Unverifiable but considered Valid.
-[ Extern  ] Assigns for 'domain_error' (file share/libc/math.h, line 86)
+[ Extern  ] Assigns for 'domain_error' (file share/libc/math.h, line 155)
             assigns __fc_errno, \result;
             Unverifiable but considered Valid.
 [ Extern  ] Assigns for 'normal' nothing
             assigns \nothing;
             Unverifiable but considered Valid.
-[ Extern  ] Froms (file share/libc/math.h, line 79)
+[ Extern  ] Froms (file share/libc/math.h, line 148)
             assigns __fc_errno \from x;
             Unverifiable but considered Valid.
-[ Extern  ] Froms (file share/libc/math.h, line 79)
+[ Extern  ] Froms (file share/libc/math.h, line 148)
             assigns \result \from x;
             Unverifiable but considered Valid.
-[ Extern  ] Froms for 'domain_error' (file share/libc/math.h, line 86)
+[ Extern  ] Froms for 'domain_error' (file share/libc/math.h, line 155)
             assigns __fc_errno \from x;
             Unverifiable but considered Valid.
-[ Extern  ] Froms for 'domain_error' (file share/libc/math.h, line 86)
+[ Extern  ] Froms for 'domain_error' (file share/libc/math.h, line 155)
             assigns \result \from x;
             Unverifiable but considered Valid.
-[ Extern  ] Froms for 'normal' (file share/libc/math.h, line 82)
+[ Extern  ] Froms for 'normal' (file share/libc/math.h, line 151)
             assigns \result \from x;
             Unverifiable but considered Valid.
 [  Valid  ] Default behavior
@@ -2059,28 +2327,28 @@
 [ Extern  ] Post-condition for 'domain_error' 'errno_set'
             ensures errno_set: __fc_errno ≡ 1
             Unverifiable but considered Valid.
-[ Extern  ] Assigns (file share/libc/math.h, line 93)
+[ Extern  ] Assigns (file share/libc/math.h, line 162)
             assigns __fc_errno, \result;
             Unverifiable but considered Valid.
-[ Extern  ] Assigns for 'domain_error' (file share/libc/math.h, line 100)
+[ Extern  ] Assigns for 'domain_error' (file share/libc/math.h, line 169)
             assigns __fc_errno, \result;
             Unverifiable but considered Valid.
 [ Extern  ] Assigns for 'normal' nothing
             assigns \nothing;
             Unverifiable but considered Valid.
-[ Extern  ] Froms (file share/libc/math.h, line 93)
+[ Extern  ] Froms (file share/libc/math.h, line 162)
             assigns __fc_errno \from x;
             Unverifiable but considered Valid.
-[ Extern  ] Froms (file share/libc/math.h, line 93)
+[ Extern  ] Froms (file share/libc/math.h, line 162)
             assigns \result \from x;
             Unverifiable but considered Valid.
-[ Extern  ] Froms for 'domain_error' (file share/libc/math.h, line 100)
+[ Extern  ] Froms for 'domain_error' (file share/libc/math.h, line 169)
             assigns __fc_errno \from x;
             Unverifiable but considered Valid.
-[ Extern  ] Froms for 'domain_error' (file share/libc/math.h, line 100)
+[ Extern  ] Froms for 'domain_error' (file share/libc/math.h, line 169)
             assigns \result \from x;
             Unverifiable but considered Valid.
-[ Extern  ] Froms for 'normal' (file share/libc/math.h, line 96)
+[ Extern  ] Froms for 'normal' (file share/libc/math.h, line 165)
             assigns \result \from x;
             Unverifiable but considered Valid.
 [  Valid  ] Default behavior
@@ -2103,28 +2371,28 @@
 [ Extern  ] Post-condition for 'domain_error' 'errno_set'
             ensures errno_set: __fc_errno ≡ 1
             Unverifiable but considered Valid.
-[ Extern  ] Assigns (file share/libc/math.h, line 107)
+[ Extern  ] Assigns (file share/libc/math.h, line 176)
             assigns __fc_errno, \result;
             Unverifiable but considered Valid.
-[ Extern  ] Assigns for 'domain_error' (file share/libc/math.h, line 114)
+[ Extern  ] Assigns for 'domain_error' (file share/libc/math.h, line 183)
             assigns __fc_errno, \result;
             Unverifiable but considered Valid.
 [ Extern  ] Assigns for 'normal' nothing
             assigns \nothing;
             Unverifiable but considered Valid.
-[ Extern  ] Froms (file share/libc/math.h, line 107)
+[ Extern  ] Froms (file share/libc/math.h, line 176)
             assigns __fc_errno \from x;
             Unverifiable but considered Valid.
-[ Extern  ] Froms (file share/libc/math.h, line 107)
+[ Extern  ] Froms (file share/libc/math.h, line 176)
             assigns \result \from x;
             Unverifiable but considered Valid.
-[ Extern  ] Froms for 'domain_error' (file share/libc/math.h, line 114)
+[ Extern  ] Froms for 'domain_error' (file share/libc/math.h, line 183)
             assigns __fc_errno \from x;
             Unverifiable but considered Valid.
-[ Extern  ] Froms for 'domain_error' (file share/libc/math.h, line 114)
+[ Extern  ] Froms for 'domain_error' (file share/libc/math.h, line 183)
             assigns \result \from x;
             Unverifiable but considered Valid.
-[ Extern  ] Froms for 'normal' (file share/libc/math.h, line 110)
+[ Extern  ] Froms for 'normal' (file share/libc/math.h, line 179)
             assigns \result \from x;
             Unverifiable but considered Valid.
 [  Valid  ] Default behavior
@@ -2147,28 +2415,28 @@
 [ Extern  ] Post-condition for 'domain_error' 'errno_set'
             ensures errno_set: __fc_errno ≡ 1
             Unverifiable but considered Valid.
-[ Extern  ] Assigns (file share/libc/math.h, line 121)
+[ Extern  ] Assigns (file share/libc/math.h, line 190)
             assigns __fc_errno, \result;
             Unverifiable but considered Valid.
-[ Extern  ] Assigns for 'domain_error' (file share/libc/math.h, line 128)
+[ Extern  ] Assigns for 'domain_error' (file share/libc/math.h, line 197)
             assigns __fc_errno, \result;
             Unverifiable but considered Valid.
 [ Extern  ] Assigns for 'normal' nothing
             assigns \nothing;
             Unverifiable but considered Valid.
-[ Extern  ] Froms (file share/libc/math.h, line 121)
+[ Extern  ] Froms (file share/libc/math.h, line 190)
             assigns __fc_errno \from x;
             Unverifiable but considered Valid.
-[ Extern  ] Froms (file share/libc/math.h, line 121)
+[ Extern  ] Froms (file share/libc/math.h, line 190)
             assigns \result \from x;
             Unverifiable but considered Valid.
-[ Extern  ] Froms for 'domain_error' (file share/libc/math.h, line 128)
+[ Extern  ] Froms for 'domain_error' (file share/libc/math.h, line 197)
             assigns __fc_errno \from x;
             Unverifiable but considered Valid.
-[ Extern  ] Froms for 'domain_error' (file share/libc/math.h, line 128)
+[ Extern  ] Froms for 'domain_error' (file share/libc/math.h, line 197)
             assigns \result \from x;
             Unverifiable but considered Valid.
-[ Extern  ] Froms for 'normal' (file share/libc/math.h, line 124)
+[ Extern  ] Froms for 'normal' (file share/libc/math.h, line 193)
             assigns \result \from x;
             Unverifiable but considered Valid.
 [  Valid  ] Default behavior
@@ -2191,28 +2459,28 @@
 [ Extern  ] Post-condition for 'domain_error' 'errno_set'
             ensures errno_set: __fc_errno ≡ 1
             Unverifiable but considered Valid.
-[ Extern  ] Assigns (file share/libc/math.h, line 135)
+[ Extern  ] Assigns (file share/libc/math.h, line 204)
             assigns __fc_errno, \result;
             Unverifiable but considered Valid.
-[ Extern  ] Assigns for 'domain_error' (file share/libc/math.h, line 142)
+[ Extern  ] Assigns for 'domain_error' (file share/libc/math.h, line 211)
             assigns __fc_errno, \result;
             Unverifiable but considered Valid.
 [ Extern  ] Assigns for 'normal' nothing
             assigns \nothing;
             Unverifiable but considered Valid.
-[ Extern  ] Froms (file share/libc/math.h, line 135)
+[ Extern  ] Froms (file share/libc/math.h, line 204)
             assigns __fc_errno \from x;
             Unverifiable but considered Valid.
-[ Extern  ] Froms (file share/libc/math.h, line 135)
+[ Extern  ] Froms (file share/libc/math.h, line 204)
             assigns \result \from x;
             Unverifiable but considered Valid.
-[ Extern  ] Froms for 'domain_error' (file share/libc/math.h, line 142)
+[ Extern  ] Froms for 'domain_error' (file share/libc/math.h, line 211)
             assigns __fc_errno \from x;
             Unverifiable but considered Valid.
-[ Extern  ] Froms for 'domain_error' (file share/libc/math.h, line 142)
+[ Extern  ] Froms for 'domain_error' (file share/libc/math.h, line 211)
             assigns \result \from x;
             Unverifiable but considered Valid.
-[ Extern  ] Froms for 'normal' (file share/libc/math.h, line 138)
+[ Extern  ] Froms for 'normal' (file share/libc/math.h, line 207)
             assigns \result \from x;
             Unverifiable but considered Valid.
 [  Valid  ] Default behavior
@@ -2238,7 +2506,7 @@
 [ Extern  ] Assigns nothing
             assigns \nothing;
             Unverifiable but considered Valid.
-[ Extern  ] Froms (file share/libc/math.h, line 149)
+[ Extern  ] Froms (file share/libc/math.h, line 218)
             assigns \result \from x;
             Unverifiable but considered Valid.
 [  Valid  ] Default behavior
@@ -2258,7 +2526,7 @@
 [ Extern  ] Assigns nothing
             assigns \nothing;
             Unverifiable but considered Valid.
-[ Extern  ] Froms (file share/libc/math.h, line 156)
+[ Extern  ] Froms (file share/libc/math.h, line 225)
             assigns \result \from x;
             Unverifiable but considered Valid.
 [  Valid  ] Default behavior
@@ -2278,7 +2546,7 @@
 [ Extern  ] Assigns nothing
             assigns \nothing;
             Unverifiable but considered Valid.
-[ Extern  ] Froms (file share/libc/math.h, line 163)
+[ Extern  ] Froms (file share/libc/math.h, line 232)
             assigns \result \from x;
             Unverifiable but considered Valid.
 [  Valid  ] Default behavior
@@ -2295,7 +2563,7 @@
 [ Extern  ] Assigns nothing
             assigns \nothing;
             Unverifiable but considered Valid.
-[ Extern  ] Froms (file share/libc/math.h, line 171)
+[ Extern  ] Froms (file share/libc/math.h, line 240)
             assigns \result \from x, y;
             Unverifiable but considered Valid.
 [  Valid  ] Default behavior
@@ -2312,7 +2580,7 @@
 [ Extern  ] Assigns nothing
             assigns \nothing;
             Unverifiable but considered Valid.
-[ Extern  ] Froms (file share/libc/math.h, line 178)
+[ Extern  ] Froms (file share/libc/math.h, line 247)
             assigns \result \from x, y;
             Unverifiable but considered Valid.
 [  Valid  ] Default behavior
@@ -2335,7 +2603,7 @@
 [ Extern  ] Assigns nothing
             assigns \nothing;
             Unverifiable but considered Valid.
-[ Extern  ] Froms (file share/libc/math.h, line 186)
+[ Extern  ] Froms (file share/libc/math.h, line 255)
             assigns \result \from x;
             Unverifiable but considered Valid.
 [  Valid  ] Default behavior
@@ -2355,7 +2623,7 @@
 [ Extern  ] Assigns nothing
             assigns \nothing;
             Unverifiable but considered Valid.
-[ Extern  ] Froms (file share/libc/math.h, line 193)
+[ Extern  ] Froms (file share/libc/math.h, line 262)
             assigns \result \from x;
             Unverifiable but considered Valid.
 [  Valid  ] Default behavior
@@ -2375,7 +2643,7 @@
 [ Extern  ] Assigns nothing
             assigns \nothing;
             Unverifiable but considered Valid.
-[ Extern  ] Froms (file share/libc/math.h, line 200)
+[ Extern  ] Froms (file share/libc/math.h, line 269)
             assigns \result \from x;
             Unverifiable but considered Valid.
 [  Valid  ] Default behavior
@@ -2395,7 +2663,7 @@
 [ Extern  ] Assigns nothing
             assigns \nothing;
             Unverifiable but considered Valid.
-[ Extern  ] Froms (file share/libc/math.h, line 207)
+[ Extern  ] Froms (file share/libc/math.h, line 276)
             assigns \result \from x;
             Unverifiable but considered Valid.
 [  Valid  ] Default behavior
@@ -2415,7 +2683,7 @@
 [ Extern  ] Assigns nothing
             assigns \nothing;
             Unverifiable but considered Valid.
-[ Extern  ] Froms (file share/libc/math.h, line 214)
+[ Extern  ] Froms (file share/libc/math.h, line 283)
             assigns \result \from x;
             Unverifiable but considered Valid.
 [  Valid  ] Default behavior
@@ -2435,7 +2703,7 @@
 [ Extern  ] Assigns nothing
             assigns \nothing;
             Unverifiable but considered Valid.
-[ Extern  ] Froms (file share/libc/math.h, line 221)
+[ Extern  ] Froms (file share/libc/math.h, line 290)
             assigns \result \from x;
             Unverifiable but considered Valid.
 [  Valid  ] Default behavior
@@ -2455,10 +2723,10 @@
 [ Extern  ] Post-condition for 'domain_error' 'errno_set'
             ensures errno_set: __fc_errno ≡ 1
             Unverifiable but considered Valid.
-[ Extern  ] Assigns (file share/libc/math.h, line 232)
+[ Extern  ] Assigns (file share/libc/math.h, line 301)
             assigns __fc_errno, \result;
             Unverifiable but considered Valid.
-[ Extern  ] Assigns for 'domain_error' (file share/libc/math.h, line 243)
+[ Extern  ] Assigns for 'domain_error' (file share/libc/math.h, line 312)
             assigns __fc_errno, \result;
             Unverifiable but considered Valid.
 [ Extern  ] Assigns for 'infinite' nothing
@@ -2467,22 +2735,22 @@
 [ Extern  ] Assigns for 'normal' nothing
             assigns \nothing;
             Unverifiable but considered Valid.
-[ Extern  ] Froms (file share/libc/math.h, line 232)
+[ Extern  ] Froms (file share/libc/math.h, line 301)
             assigns __fc_errno \from x;
             Unverifiable but considered Valid.
-[ Extern  ] Froms (file share/libc/math.h, line 232)
+[ Extern  ] Froms (file share/libc/math.h, line 301)
             assigns \result \from x;
             Unverifiable but considered Valid.
-[ Extern  ] Froms for 'domain_error' (file share/libc/math.h, line 243)
+[ Extern  ] Froms for 'domain_error' (file share/libc/math.h, line 312)
             assigns __fc_errno \from x;
             Unverifiable but considered Valid.
-[ Extern  ] Froms for 'domain_error' (file share/libc/math.h, line 243)
+[ Extern  ] Froms for 'domain_error' (file share/libc/math.h, line 312)
             assigns \result \from x;
             Unverifiable but considered Valid.
-[ Extern  ] Froms for 'infinite' (file share/libc/math.h, line 239)
+[ Extern  ] Froms for 'infinite' (file share/libc/math.h, line 308)
             assigns \result \from x;
             Unverifiable but considered Valid.
-[ Extern  ] Froms for 'normal' (file share/libc/math.h, line 235)
+[ Extern  ] Froms for 'normal' (file share/libc/math.h, line 304)
             assigns \result \from x;
             Unverifiable but considered Valid.
 [  Valid  ] Default behavior
@@ -2511,10 +2779,10 @@
 [ Extern  ] Post-condition for 'domain_error' 'errno_set'
             ensures errno_set: __fc_errno ≡ 1
             Unverifiable but considered Valid.
-[ Extern  ] Assigns (file share/libc/math.h, line 250)
+[ Extern  ] Assigns (file share/libc/math.h, line 319)
             assigns __fc_errno, \result;
             Unverifiable but considered Valid.
-[ Extern  ] Assigns for 'domain_error' (file share/libc/math.h, line 261)
+[ Extern  ] Assigns for 'domain_error' (file share/libc/math.h, line 330)
             assigns __fc_errno, \result;
             Unverifiable but considered Valid.
 [ Extern  ] Assigns for 'infinite' nothing
@@ -2523,22 +2791,22 @@
 [ Extern  ] Assigns for 'normal' nothing
             assigns \nothing;
             Unverifiable but considered Valid.
-[ Extern  ] Froms (file share/libc/math.h, line 250)
+[ Extern  ] Froms (file share/libc/math.h, line 319)
             assigns __fc_errno \from x;
             Unverifiable but considered Valid.
-[ Extern  ] Froms (file share/libc/math.h, line 250)
+[ Extern  ] Froms (file share/libc/math.h, line 319)
             assigns \result \from x;
             Unverifiable but considered Valid.
-[ Extern  ] Froms for 'domain_error' (file share/libc/math.h, line 261)
+[ Extern  ] Froms for 'domain_error' (file share/libc/math.h, line 330)
             assigns __fc_errno \from x;
             Unverifiable but considered Valid.
-[ Extern  ] Froms for 'domain_error' (file share/libc/math.h, line 261)
+[ Extern  ] Froms for 'domain_error' (file share/libc/math.h, line 330)
             assigns \result \from x;
             Unverifiable but considered Valid.
-[ Extern  ] Froms for 'infinite' (file share/libc/math.h, line 257)
+[ Extern  ] Froms for 'infinite' (file share/libc/math.h, line 326)
             assigns \result \from x;
             Unverifiable but considered Valid.
-[ Extern  ] Froms for 'normal' (file share/libc/math.h, line 253)
+[ Extern  ] Froms for 'normal' (file share/libc/math.h, line 322)
             assigns \result \from x;
             Unverifiable but considered Valid.
 [  Valid  ] Default behavior
@@ -2567,10 +2835,10 @@
 [ Extern  ] Post-condition for 'domain_error' 'errno_set'
             ensures errno_set: __fc_errno ≡ 1
             Unverifiable but considered Valid.
-[ Extern  ] Assigns (file share/libc/math.h, line 268)
+[ Extern  ] Assigns (file share/libc/math.h, line 337)
             assigns __fc_errno, \result;
             Unverifiable but considered Valid.
-[ Extern  ] Assigns for 'domain_error' (file share/libc/math.h, line 279)
+[ Extern  ] Assigns for 'domain_error' (file share/libc/math.h, line 348)
             assigns __fc_errno, \result;
             Unverifiable but considered Valid.
 [ Extern  ] Assigns for 'infinite' nothing
@@ -2579,22 +2847,22 @@
 [ Extern  ] Assigns for 'normal' nothing
             assigns \nothing;
             Unverifiable but considered Valid.
-[ Extern  ] Froms (file share/libc/math.h, line 268)
+[ Extern  ] Froms (file share/libc/math.h, line 337)
             assigns __fc_errno \from x;
             Unverifiable but considered Valid.
-[ Extern  ] Froms (file share/libc/math.h, line 268)
+[ Extern  ] Froms (file share/libc/math.h, line 337)
             assigns \result \from x;
             Unverifiable but considered Valid.
-[ Extern  ] Froms for 'domain_error' (file share/libc/math.h, line 279)
+[ Extern  ] Froms for 'domain_error' (file share/libc/math.h, line 348)
             assigns __fc_errno \from x;
             Unverifiable but considered Valid.
-[ Extern  ] Froms for 'domain_error' (file share/libc/math.h, line 279)
+[ Extern  ] Froms for 'domain_error' (file share/libc/math.h, line 348)
             assigns \result \from x;
             Unverifiable but considered Valid.
-[ Extern  ] Froms for 'infinite' (file share/libc/math.h, line 275)
+[ Extern  ] Froms for 'infinite' (file share/libc/math.h, line 344)
             assigns \result \from x;
             Unverifiable but considered Valid.
-[ Extern  ] Froms for 'normal' (file share/libc/math.h, line 271)
+[ Extern  ] Froms for 'normal' (file share/libc/math.h, line 340)
             assigns \result \from x;
             Unverifiable but considered Valid.
 [  Valid  ] Default behavior
@@ -2623,7 +2891,7 @@
 [ Extern  ] Assigns nothing
             assigns \nothing;
             Unverifiable but considered Valid.
-[ Extern  ] Froms (file share/libc/math.h, line 307)
+[ Extern  ] Froms (file share/libc/math.h, line 376)
             assigns \result \from x;
             Unverifiable but considered Valid.
 [  Valid  ] Default behavior
@@ -2643,7 +2911,7 @@
 [ Extern  ] Assigns nothing
             assigns \nothing;
             Unverifiable but considered Valid.
-[ Extern  ] Froms (file share/libc/math.h, line 315)
+[ Extern  ] Froms (file share/libc/math.h, line 384)
             assigns \result \from x;
             Unverifiable but considered Valid.
 [  Valid  ] Default behavior
@@ -2660,7 +2928,7 @@
 [ Extern  ] Assigns nothing
             assigns \nothing;
             Unverifiable but considered Valid.
-[ Extern  ] Froms (file share/libc/math.h, line 345)
+[ Extern  ] Froms (file share/libc/math.h, line 414)
             assigns \result \from x;
             Unverifiable but considered Valid.
 [  Valid  ] Default behavior
@@ -2677,7 +2945,7 @@
 [ Extern  ] Assigns nothing
             assigns \nothing;
             Unverifiable but considered Valid.
-[ Extern  ] Froms (file share/libc/math.h, line 352)
+[ Extern  ] Froms (file share/libc/math.h, line 421)
             assigns \result \from x;
             Unverifiable but considered Valid.
 [  Valid  ] Default behavior
@@ -2694,7 +2962,7 @@
 [ Extern  ] Assigns nothing
             assigns \nothing;
             Unverifiable but considered Valid.
-[ Extern  ] Froms (file share/libc/math.h, line 359)
+[ Extern  ] Froms (file share/libc/math.h, line 428)
             assigns \result \from x;
             Unverifiable but considered Valid.
 [  Valid  ] Default behavior
@@ -2711,7 +2979,7 @@
 [ Extern  ] Assigns nothing
             assigns \nothing;
             Unverifiable but considered Valid.
-[ Extern  ] Froms (file share/libc/math.h, line 366)
+[ Extern  ] Froms (file share/libc/math.h, line 435)
             assigns \result \from x;
             Unverifiable but considered Valid.
 [  Valid  ] Default behavior
@@ -2728,7 +2996,7 @@
 [ Extern  ] Assigns nothing
             assigns \nothing;
             Unverifiable but considered Valid.
-[ Extern  ] Froms (file share/libc/math.h, line 373)
+[ Extern  ] Froms (file share/libc/math.h, line 442)
             assigns \result \from x;
             Unverifiable but considered Valid.
 [  Valid  ] Default behavior
@@ -2745,7 +3013,7 @@
 [ Extern  ] Assigns nothing
             assigns \nothing;
             Unverifiable but considered Valid.
-[ Extern  ] Froms (file share/libc/math.h, line 380)
+[ Extern  ] Froms (file share/libc/math.h, line 449)
             assigns \result \from x;
             Unverifiable but considered Valid.
 [  Valid  ] Default behavior
@@ -2762,7 +3030,7 @@
 [ Extern  ] Assigns nothing
             assigns \nothing;
             Unverifiable but considered Valid.
-[ Extern  ] Froms (file share/libc/math.h, line 391)
+[ Extern  ] Froms (file share/libc/math.h, line 460)
             assigns \result \from x;
             Unverifiable but considered Valid.
 [  Valid  ] Default behavior
@@ -2779,7 +3047,7 @@
 [ Extern  ] Assigns nothing
             assigns \nothing;
             Unverifiable but considered Valid.
-[ Extern  ] Froms (file share/libc/math.h, line 398)
+[ Extern  ] Froms (file share/libc/math.h, line 467)
             assigns \result \from x;
             Unverifiable but considered Valid.
 [  Valid  ] Default behavior
@@ -2796,7 +3064,7 @@
 [ Extern  ] Assigns nothing
             assigns \nothing;
             Unverifiable but considered Valid.
-[ Extern  ] Froms (file share/libc/math.h, line 405)
+[ Extern  ] Froms (file share/libc/math.h, line 474)
             assigns \result \from x;
             Unverifiable but considered Valid.
 [  Valid  ] Default behavior
@@ -2821,7 +3089,7 @@
 [ Extern  ] Assigns nothing
             assigns \nothing;
             Unverifiable but considered Valid.
-[ Extern  ] Froms (file share/libc/math.h, line 431)
+[ Extern  ] Froms (file share/libc/math.h, line 500)
             assigns \result \from x;
             Unverifiable but considered Valid.
 [  Valid  ] Default behavior
@@ -2846,7 +3114,7 @@
 [ Extern  ] Assigns nothing
             assigns \nothing;
             Unverifiable but considered Valid.
-[ Extern  ] Froms (file share/libc/math.h, line 439)
+[ Extern  ] Froms (file share/libc/math.h, line 508)
             assigns \result \from x;
             Unverifiable but considered Valid.
 [  Valid  ] Default behavior
@@ -2871,7 +3139,7 @@
 [ Extern  ] Assigns nothing
             assigns \nothing;
             Unverifiable but considered Valid.
-[ Extern  ] Froms (file share/libc/math.h, line 447)
+[ Extern  ] Froms (file share/libc/math.h, line 516)
             assigns \result \from x;
             Unverifiable but considered Valid.
 [  Valid  ] Default behavior
@@ -2888,7 +3156,7 @@
 [ Extern  ] Assigns nothing
             assigns \nothing;
             Unverifiable but considered Valid.
-[ Extern  ] Froms (file share/libc/math.h, line 460)
+[ Extern  ] Froms (file share/libc/math.h, line 529)
             assigns \result \from x, y;
             Unverifiable but considered Valid.
 [  Valid  ] Default behavior
@@ -2905,7 +3173,7 @@
 [ Extern  ] Assigns nothing
             assigns \nothing;
             Unverifiable but considered Valid.
-[ Extern  ] Froms (file share/libc/math.h, line 467)
+[ Extern  ] Froms (file share/libc/math.h, line 536)
             assigns \result \from x, y;
             Unverifiable but considered Valid.
 [  Valid  ] Default behavior
@@ -2931,7 +3199,7 @@
 [ Extern  ] Assigns nothing
             assigns \nothing;
             Unverifiable but considered Valid.
-[ Extern  ] Froms (file share/libc/math.h, line 476)
+[ Extern  ] Froms (file share/libc/math.h, line 545)
             assigns \result \from x;
             Unverifiable but considered Valid.
 [  Valid  ] Default behavior
@@ -2951,7 +3219,7 @@
 [ Extern  ] Assigns nothing
             assigns \nothing;
             Unverifiable but considered Valid.
-[ Extern  ] Froms (file share/libc/math.h, line 484)
+[ Extern  ] Froms (file share/libc/math.h, line 553)
             assigns \result \from x;
             Unverifiable but considered Valid.
 [  Valid  ] Default behavior
@@ -2971,7 +3239,7 @@
 [ Extern  ] Assigns nothing
             assigns \nothing;
             Unverifiable but considered Valid.
-[ Extern  ] Froms (file share/libc/math.h, line 492)
+[ Extern  ] Froms (file share/libc/math.h, line 561)
             assigns \result \from x;
             Unverifiable but considered Valid.
 [  Valid  ] Default behavior
@@ -2988,7 +3256,7 @@
 [ Extern  ] Assigns nothing
             assigns \nothing;
             Unverifiable but considered Valid.
-[ Extern  ] Froms (file share/libc/math.h, line 515)
+[ Extern  ] Froms (file share/libc/math.h, line 584)
             assigns \result \from x;
             Unverifiable but considered Valid.
 [  Valid  ] Default behavior
@@ -3005,7 +3273,7 @@
 [ Extern  ] Assigns nothing
             assigns \nothing;
             Unverifiable but considered Valid.
-[ Extern  ] Froms (file share/libc/math.h, line 521)
+[ Extern  ] Froms (file share/libc/math.h, line 590)
             assigns \result \from x;
             Unverifiable but considered Valid.
 [  Valid  ] Default behavior
@@ -3022,7 +3290,7 @@
 [ Extern  ] Assigns nothing
             assigns \nothing;
             Unverifiable but considered Valid.
-[ Extern  ] Froms (file share/libc/math.h, line 528)
+[ Extern  ] Froms (file share/libc/math.h, line 597)
             assigns \result \from x;
             Unverifiable but considered Valid.
 [  Valid  ] Default behavior
@@ -3039,7 +3307,7 @@
 [ Extern  ] Assigns nothing
             assigns \nothing;
             Unverifiable but considered Valid.
-[ Extern  ] Froms (file share/libc/math.h, line 534)
+[ Extern  ] Froms (file share/libc/math.h, line 603)
             assigns \result \from x;
             Unverifiable but considered Valid.
 [  Valid  ] Default behavior
@@ -3056,7 +3324,7 @@
 [ Extern  ] Assigns nothing
             assigns \nothing;
             Unverifiable but considered Valid.
-[ Extern  ] Froms (file share/libc/math.h, line 540)
+[ Extern  ] Froms (file share/libc/math.h, line 609)
             assigns \result \from x;
             Unverifiable but considered Valid.
 [  Valid  ] Default behavior
@@ -3073,7 +3341,7 @@
 [ Extern  ] Assigns nothing
             assigns \nothing;
             Unverifiable but considered Valid.
-[ Extern  ] Froms (file share/libc/math.h, line 546)
+[ Extern  ] Froms (file share/libc/math.h, line 615)
             assigns \result \from x;
             Unverifiable but considered Valid.
 [  Valid  ] Default behavior
@@ -3090,7 +3358,7 @@
 [ Extern  ] Assigns nothing
             assigns \nothing;
             Unverifiable but considered Valid.
-[ Extern  ] Froms (file share/libc/math.h, line 568)
+[ Extern  ] Froms (file share/libc/math.h, line 637)
             assigns \result \from x;
             Unverifiable but considered Valid.
 [  Valid  ] Default behavior
@@ -3107,7 +3375,7 @@
 [ Extern  ] Assigns nothing
             assigns \nothing;
             Unverifiable but considered Valid.
-[ Extern  ] Froms (file share/libc/math.h, line 574)
+[ Extern  ] Froms (file share/libc/math.h, line 643)
             assigns \result \from x;
             Unverifiable but considered Valid.
 [  Valid  ] Default behavior
@@ -3124,7 +3392,7 @@
 [ Extern  ] Assigns nothing
             assigns \nothing;
             Unverifiable but considered Valid.
-[ Extern  ] Froms (file share/libc/math.h, line 580)
+[ Extern  ] Froms (file share/libc/math.h, line 649)
             assigns \result \from x;
             Unverifiable but considered Valid.
 [  Valid  ] Default behavior
@@ -3141,7 +3409,7 @@
 [ Extern  ] Assigns nothing
             assigns \nothing;
             Unverifiable but considered Valid.
-[ Extern  ] Froms (file share/libc/math.h, line 594)
+[ Extern  ] Froms (file share/libc/math.h, line 663)
             assigns \result \from x;
             Unverifiable but considered Valid.
 [  Valid  ] Default behavior
@@ -3158,7 +3426,7 @@
 [ Extern  ] Assigns nothing
             assigns \nothing;
             Unverifiable but considered Valid.
-[ Extern  ] Froms (file share/libc/math.h, line 600)
+[ Extern  ] Froms (file share/libc/math.h, line 669)
             assigns \result \from x;
             Unverifiable but considered Valid.
 [  Valid  ] Default behavior
@@ -3175,7 +3443,7 @@
 [ Extern  ] Assigns nothing
             assigns \nothing;
             Unverifiable but considered Valid.
-[ Extern  ] Froms (file share/libc/math.h, line 606)
+[ Extern  ] Froms (file share/libc/math.h, line 675)
             assigns \result \from x;
             Unverifiable but considered Valid.
 [  Valid  ] Default behavior
@@ -3192,7 +3460,7 @@
 [ Extern  ] Assigns nothing
             assigns \nothing;
             Unverifiable but considered Valid.
-[ Extern  ] Froms (file share/libc/math.h, line 613)
+[ Extern  ] Froms (file share/libc/math.h, line 682)
             assigns \result \from x, y;
             Unverifiable but considered Valid.
 [  Valid  ] Default behavior
@@ -3209,7 +3477,7 @@
 [ Extern  ] Assigns nothing
             assigns \nothing;
             Unverifiable but considered Valid.
-[ Extern  ] Froms (file share/libc/math.h, line 620)
+[ Extern  ] Froms (file share/libc/math.h, line 689)
             assigns \result \from x, y;
             Unverifiable but considered Valid.
 [  Valid  ] Default behavior
@@ -3226,7 +3494,7 @@
 [ Extern  ] Assigns nothing
             assigns \nothing;
             Unverifiable but considered Valid.
-[ Extern  ] Froms (file share/libc/math.h, line 641)
+[ Extern  ] Froms (file share/libc/math.h, line 710)
             assigns \result \from (indirect: *(tagp + (0 ..)));
             Unverifiable but considered Valid.
 [  Valid  ] Default behavior
@@ -3243,7 +3511,7 @@
 [ Extern  ] Assigns nothing
             assigns \nothing;
             Unverifiable but considered Valid.
-[ Extern  ] Froms (file share/libc/math.h, line 648)
+[ Extern  ] Froms (file share/libc/math.h, line 717)
             assigns \result \from (indirect: *(tagp + (0 ..)));
             Unverifiable but considered Valid.
 [  Valid  ] Default behavior
@@ -3260,7 +3528,7 @@
 [ Extern  ] Assigns nothing
             assigns \nothing;
             Unverifiable but considered Valid.
-[ Extern  ] Froms (file share/libc/math.h, line 655)
+[ Extern  ] Froms (file share/libc/math.h, line 724)
             assigns \result \from (indirect: *(tagp + (0 ..)));
             Unverifiable but considered Valid.
 [  Valid  ] Default behavior
@@ -3271,301 +3539,301 @@
 --- Properties of Function 'idct'
 --------------------------------------------------------------------------------
 
-[    -    ] Assertion 'Value,initialization' (file tests/idct/idct.c, line 129)
-            assert Value: initialization: \initialized(&tmp1[i][j]);
-            tried with Value.
-[    -    ] Assertion 'Value,initialization' (file tests/idct/idct.c, line 131)
-            assert Value: initialization: \initialized(&tmp1[i][j]);
-            tried with Value.
-[    -    ] Assertion 'Value,initialization' (file tests/idct/idct.c, line 141)
-            assert Value: initialization: \initialized(&tmp1[i][j]);
-            tried with Value.
-[    -    ] Assertion 'Value,initialization' (file tests/idct/idct.c, line 143)
-            assert Value: initialization: \initialized(&tmp1[i][j]);
-            tried with Value.
-[    -    ] Assertion 'Value,initialization' (file tests/idct/idct.c, line 145)
-            assert Value: initialization: \initialized(&tmp1[i][j]);
-            tried with Value.
-[ Partial ] Assertion 'Value,initialization' (file tests/idct/idct.c, line 147)
-            assert Value: initialization: \initialized(&tmp1[i][j]);
+[    -    ] Assertion 'Eva,initialization' (file tests/idct/idct.c, line 129)
+            assert Eva: initialization: \initialized(&tmp1[i][j]);
+            tried with Eva.
+[    -    ] Assertion 'Eva,initialization' (file tests/idct/idct.c, line 131)
+            assert Eva: initialization: \initialized(&tmp1[i][j]);
+            tried with Eva.
+[    -    ] Assertion 'Eva,initialization' (file tests/idct/idct.c, line 141)
+            assert Eva: initialization: \initialized(&tmp1[i][j]);
+            tried with Eva.
+[    -    ] Assertion 'Eva,initialization' (file tests/idct/idct.c, line 143)
+            assert Eva: initialization: \initialized(&tmp1[i][j]);
+            tried with Eva.
+[    -    ] Assertion 'Eva,initialization' (file tests/idct/idct.c, line 145)
+            assert Eva: initialization: \initialized(&tmp1[i][j]);
+            tried with Eva.
+[ Partial ] Assertion 'Eva,initialization' (file tests/idct/idct.c, line 147)
+            assert Eva: initialization: \initialized(&tmp1[i][j]);
             By RedundantAlarms, with pending:
-             - Assertion 'Value,initialization' (file tests/idct/idct.c, line 145)
-[ Partial ] Assertion 'Value,initialization' (file tests/idct/idct.c, line 150)
-            assert Value: initialization: \initialized(&tmp1[i][j]);
+             - Assertion 'Eva,initialization' (file tests/idct/idct.c, line 145)
+[ Partial ] Assertion 'Eva,initialization' (file tests/idct/idct.c, line 150)
+            assert Eva: initialization: \initialized(&tmp1[i][j]);
             By RedundantAlarms, with pending:
-             - Assertion 'Value,initialization' (file tests/idct/idct.c, line 145)
-[    -    ] Assertion 'Value,initialization' (file tests/idct/idct.c, line 163)
-            assert Value: initialization: \initialized(&tmp2[k][j]);
-            tried with Value.
-[    -    ] Assertion 'Value,initialization' (file tests/idct/idct.c, line 163)
-            assert Value: initialization: \initialized(&tmp1[i][j]);
-            tried with Value.
-[    -    ] Assertion 'Value,initialization' (file tests/idct/idct.c, line 166)
-            assert Value: initialization: \initialized(&tmp1[i][j]);
-            tried with Value.
-[    -    ] Assertion 'Value,initialization' (file tests/idct/idct.c, line 176)
-            assert Value: initialization: \initialized(&tmp1[i][j]);
-            tried with Value.
-[    -    ] Assertion 'Value,initialization' (file tests/idct/idct.c, line 178)
-            assert Value: initialization: \initialized(&tmp1[i][j]);
-            tried with Value.
-[    -    ] Assertion 'Value,initialization' (file tests/idct/idct.c, line 180)
-            assert Value: initialization: \initialized(&tmp1[i][j]);
-            tried with Value.
-[ Partial ] Assertion 'Value,initialization' (file tests/idct/idct.c, line 182)
-            assert Value: initialization: \initialized(&tmp1[i][j]);
+             - Assertion 'Eva,initialization' (file tests/idct/idct.c, line 145)
+[    -    ] Assertion 'Eva,initialization' (file tests/idct/idct.c, line 163)
+            assert Eva: initialization: \initialized(&tmp2[k][j]);
+            tried with Eva.
+[    -    ] Assertion 'Eva,initialization' (file tests/idct/idct.c, line 163)
+            assert Eva: initialization: \initialized(&tmp1[i][j]);
+            tried with Eva.
+[    -    ] Assertion 'Eva,initialization' (file tests/idct/idct.c, line 166)
+            assert Eva: initialization: \initialized(&tmp1[i][j]);
+            tried with Eva.
+[    -    ] Assertion 'Eva,initialization' (file tests/idct/idct.c, line 176)
+            assert Eva: initialization: \initialized(&tmp1[i][j]);
+            tried with Eva.
+[    -    ] Assertion 'Eva,initialization' (file tests/idct/idct.c, line 178)
+            assert Eva: initialization: \initialized(&tmp1[i][j]);
+            tried with Eva.
+[    -    ] Assertion 'Eva,initialization' (file tests/idct/idct.c, line 180)
+            assert Eva: initialization: \initialized(&tmp1[i][j]);
+            tried with Eva.
+[ Partial ] Assertion 'Eva,initialization' (file tests/idct/idct.c, line 182)
+            assert Eva: initialization: \initialized(&tmp1[i][j]);
             By RedundantAlarms, with pending:
-             - Assertion 'Value,initialization' (file tests/idct/idct.c, line 180)
-[ Partial ] Assertion 'Value,initialization' (file tests/idct/idct.c, line 185)
-            assert Value: initialization: \initialized(&tmp1[i][j]);
+             - Assertion 'Eva,initialization' (file tests/idct/idct.c, line 180)
+[ Partial ] Assertion 'Eva,initialization' (file tests/idct/idct.c, line 185)
+            assert Eva: initialization: \initialized(&tmp1[i][j]);
             By RedundantAlarms, with pending:
-             - Assertion 'Value,initialization' (file tests/idct/idct.c, line 180)
-[    -    ] Assertion 'Value,initialization' (file tests/idct/idct.c, line 129)
-            assert Value: initialization: \initialized(&(*(m1 + k))[j]);
-            tried with Value.
+             - Assertion 'Eva,initialization' (file tests/idct/idct.c, line 180)
+[    -    ] Assertion 'Eva,initialization' (file tests/idct/idct.c, line 129)
+            assert Eva: initialization: \initialized(&(*(m1 + k))[j]);
+            tried with Eva.
 [  Valid  ] Instance of 'Pre-condition 'finite_arg'' at call 'sqrt' (file tests/idct/idct.c, line 90)
 
             status of 'requires
             finite_arg: \is_finite(x)' of sqrt at stmt 525
-            by Value.
+            by Eva.
 [  Valid  ] Instance of 'Pre-condition 'arg_positive'' at call 'sqrt' (file tests/idct/idct.c, line 90)
 
             status of 'requires arg_positive: x ≥ -0.' of sqrt at stmt 525
-            by Value.
+            by Eva.
 [  Valid  ] Instance of 'Pre-condition 'finite_arg'' at call 'cos' (file tests/idct/idct.c, line 91)
 
             status of 'requires finite_arg: \is_finite(x)' of cos at stmt 528
-            by Value.
+            by Eva.
 
 --------------------------------------------------------------------------------
 --- Properties of Function 'IEEE_1180_1990_dctf'
 --------------------------------------------------------------------------------
 
-[    -    ] Assertion 'Value,initialization' (file tests/idct/ieee_1180_1990.c, line 109)
-            assert Value: initialization: \initialized(&tmp1[i][j]);
-            tried with Value.
-[    -    ] Assertion 'Value,initialization' (file tests/idct/ieee_1180_1990.c, line 116)
-            assert Value: initialization: \initialized(&tmp1[i][k]);
-            tried with Value.
-[    -    ] Assertion 'Value,initialization' (file tests/idct/ieee_1180_1990.c, line 116)
-            assert Value: initialization: \initialized(&tmp2[i][j]);
-            tried with Value.
-[    -    ] Assertion 'Value,initialization' (file tests/idct/ieee_1180_1990.c, line 117)
-            assert Value: initialization: \initialized(&tmp2[i][j]);
-            tried with Value.
-[ Partial ] Assertion 'Value,initialization' (file tests/idct/ieee_1180_1990.c, line 119)
-            assert Value: initialization: \initialized(&tmp2[i][j]);
+[    -    ] Assertion 'Eva,initialization' (file tests/idct/ieee_1180_1990.c, line 109)
+            assert Eva: initialization: \initialized(&tmp1[i][j]);
+            tried with Eva.
+[    -    ] Assertion 'Eva,initialization' (file tests/idct/ieee_1180_1990.c, line 116)
+            assert Eva: initialization: \initialized(&tmp1[i][k]);
+            tried with Eva.
+[    -    ] Assertion 'Eva,initialization' (file tests/idct/ieee_1180_1990.c, line 116)
+            assert Eva: initialization: \initialized(&tmp2[i][j]);
+            tried with Eva.
+[    -    ] Assertion 'Eva,initialization' (file tests/idct/ieee_1180_1990.c, line 117)
+            assert Eva: initialization: \initialized(&tmp2[i][j]);
+            tried with Eva.
+[ Partial ] Assertion 'Eva,initialization' (file tests/idct/ieee_1180_1990.c, line 119)
+            assert Eva: initialization: \initialized(&tmp2[i][j]);
             By RedundantAlarms, with pending:
-             - Assertion 'Value,initialization' (file tests/idct/ieee_1180_1990.c, line 117)
-[ Partial ] Assertion 'Value,initialization' (file tests/idct/ieee_1180_1990.c, line 121)
-            assert Value: initialization: \initialized(&tmp2[i][j]);
+             - Assertion 'Eva,initialization' (file tests/idct/ieee_1180_1990.c, line 117)
+[ Partial ] Assertion 'Eva,initialization' (file tests/idct/ieee_1180_1990.c, line 121)
+            assert Eva: initialization: \initialized(&tmp2[i][j]);
             By RedundantAlarms, with pending:
-             - Assertion 'Value,initialization' (file tests/idct/ieee_1180_1990.c, line 117)
-[ Partial ] Assertion 'Value,initialization' (file tests/idct/ieee_1180_1990.c, line 122)
-            assert Value: initialization: \initialized(&tmp2[i][j]);
+             - Assertion 'Eva,initialization' (file tests/idct/ieee_1180_1990.c, line 117)
+[ Partial ] Assertion 'Eva,initialization' (file tests/idct/ieee_1180_1990.c, line 122)
+            assert Eva: initialization: \initialized(&tmp2[i][j]);
             By RedundantAlarms, with pending:
-             - Assertion 'Value,initialization' (file tests/idct/ieee_1180_1990.c, line 117)
-[    -    ] Assertion 'Value,float_to_int' (file tests/idct/ieee_1180_1990.c, line 122)
-            assert Value: float_to_int: -2147483649 < tmp2[i][j] + 0.5;
-            tried with Value.
-[    -    ] Assertion 'Value,float_to_int' (file tests/idct/ieee_1180_1990.c, line 122)
-            assert Value: float_to_int: tmp2[i][j] + 0.5 < 2147483648;
-            tried with Value.
-[ Partial ] Assertion 'Value,initialization' (file tests/idct/ieee_1180_1990.c, line 124)
-            assert Value: initialization: \initialized(&tmp2[i][j]);
+             - Assertion 'Eva,initialization' (file tests/idct/ieee_1180_1990.c, line 117)
+[    -    ] Assertion 'Eva,float_to_int' (file tests/idct/ieee_1180_1990.c, line 122)
+            assert Eva: float_to_int: -2147483649 < tmp2[i][j] + 0.5;
+            tried with Eva.
+[    -    ] Assertion 'Eva,float_to_int' (file tests/idct/ieee_1180_1990.c, line 122)
+            assert Eva: float_to_int: tmp2[i][j] + 0.5 < 2147483648;
+            tried with Eva.
+[ Partial ] Assertion 'Eva,initialization' (file tests/idct/ieee_1180_1990.c, line 124)
+            assert Eva: initialization: \initialized(&tmp2[i][j]);
             By RedundantAlarms, with pending:
-             - Assertion 'Value,initialization' (file tests/idct/ieee_1180_1990.c, line 117)
-[    -    ] Assertion 'Value,float_to_int' (file tests/idct/ieee_1180_1990.c, line 124)
-            assert Value: float_to_int: -2147483649 < tmp2[i][j] - 0.5;
-            tried with Value.
-[    -    ] Assertion 'Value,float_to_int' (file tests/idct/ieee_1180_1990.c, line 124)
-            assert Value: float_to_int: tmp2[i][j] - 0.5 < 2147483648;
-            tried with Value.
+             - Assertion 'Eva,initialization' (file tests/idct/ieee_1180_1990.c, line 117)
+[    -    ] Assertion 'Eva,float_to_int' (file tests/idct/ieee_1180_1990.c, line 124)
+            assert Eva: float_to_int: -2147483649 < tmp2[i][j] - 0.5;
+            tried with Eva.
+[    -    ] Assertion 'Eva,float_to_int' (file tests/idct/ieee_1180_1990.c, line 124)
+            assert Eva: float_to_int: tmp2[i][j] - 0.5 < 2147483648;
+            tried with Eva.
 [  Valid  ] Instance of 'Pre-condition 'finite_arg'' at call 'sqrt' (file tests/idct/ieee_1180_1990.c, line 100)
 
             status of 'requires finite_arg: \is_finite(x)' of sqrt at stmt 41
-            by Value.
+            by Eva.
 [  Valid  ] Instance of 'Pre-condition 'arg_positive'' at call 'sqrt' (file tests/idct/ieee_1180_1990.c, line 100)
 
             status of 'requires arg_positive: x ≥ -0.' of sqrt at stmt 41
-            by Value.
+            by Eva.
 [  Valid  ] Instance of 'Pre-condition 'finite_arg'' at call 'cos' (file tests/idct/ieee_1180_1990.c, line 101)
 
             status of 'requires finite_arg: \is_finite(x)' of cos at stmt 44
-            by Value.
+            by Eva.
 
 --------------------------------------------------------------------------------
 --- Properties of Function 'IEEE_1180_1990_idctf'
 --------------------------------------------------------------------------------
 
-[    -    ] Assertion 'Value,initialization' (file tests/idct/ieee_1180_1990.c, line 150)
-            assert Value: initialization: \initialized(&(*(m1 + k))[j]);
-            tried with Value.
-[    -    ] Assertion 'Value,initialization' (file tests/idct/ieee_1180_1990.c, line 150)
-            assert Value: initialization: \initialized(&tmp1[i][j]);
-            tried with Value.
-[    -    ] Assertion 'Value,initialization' (file tests/idct/ieee_1180_1990.c, line 157)
-            assert Value: initialization: \initialized(&tmp1[i][k]);
-            tried with Value.
-[    -    ] Assertion 'Value,initialization' (file tests/idct/ieee_1180_1990.c, line 157)
-            assert Value: initialization: \initialized(&tmp2[i][j]);
-            tried with Value.
-[    -    ] Assertion 'Value,initialization' (file tests/idct/ieee_1180_1990.c, line 158)
-            assert Value: initialization: \initialized(&tmp2[i][j]);
-            tried with Value.
-[ Partial ] Assertion 'Value,initialization' (file tests/idct/ieee_1180_1990.c, line 160)
-            assert Value: initialization: \initialized(&tmp2[i][j]);
+[    -    ] Assertion 'Eva,initialization' (file tests/idct/ieee_1180_1990.c, line 150)
+            assert Eva: initialization: \initialized(&(*(m1 + k))[j]);
+            tried with Eva.
+[    -    ] Assertion 'Eva,initialization' (file tests/idct/ieee_1180_1990.c, line 150)
+            assert Eva: initialization: \initialized(&tmp1[i][j]);
+            tried with Eva.
+[    -    ] Assertion 'Eva,initialization' (file tests/idct/ieee_1180_1990.c, line 157)
+            assert Eva: initialization: \initialized(&tmp1[i][k]);
+            tried with Eva.
+[    -    ] Assertion 'Eva,initialization' (file tests/idct/ieee_1180_1990.c, line 157)
+            assert Eva: initialization: \initialized(&tmp2[i][j]);
+            tried with Eva.
+[    -    ] Assertion 'Eva,initialization' (file tests/idct/ieee_1180_1990.c, line 158)
+            assert Eva: initialization: \initialized(&tmp2[i][j]);
+            tried with Eva.
+[ Partial ] Assertion 'Eva,initialization' (file tests/idct/ieee_1180_1990.c, line 160)
+            assert Eva: initialization: \initialized(&tmp2[i][j]);
             By RedundantAlarms, with pending:
-             - Assertion 'Value,initialization' (file tests/idct/ieee_1180_1990.c, line 158)
-[ Partial ] Assertion 'Value,initialization' (file tests/idct/ieee_1180_1990.c, line 162)
-            assert Value: initialization: \initialized(&tmp2[i][j]);
+             - Assertion 'Eva,initialization' (file tests/idct/ieee_1180_1990.c, line 158)
+[ Partial ] Assertion 'Eva,initialization' (file tests/idct/ieee_1180_1990.c, line 162)
+            assert Eva: initialization: \initialized(&tmp2[i][j]);
             By RedundantAlarms, with pending:
-             - Assertion 'Value,initialization' (file tests/idct/ieee_1180_1990.c, line 158)
-[ Partial ] Assertion 'Value,initialization' (file tests/idct/ieee_1180_1990.c, line 163)
-            assert Value: initialization: \initialized(&tmp2[i][j]);
+             - Assertion 'Eva,initialization' (file tests/idct/ieee_1180_1990.c, line 158)
+[ Partial ] Assertion 'Eva,initialization' (file tests/idct/ieee_1180_1990.c, line 163)
+            assert Eva: initialization: \initialized(&tmp2[i][j]);
             By RedundantAlarms, with pending:
-             - Assertion 'Value,initialization' (file tests/idct/ieee_1180_1990.c, line 158)
-[    -    ] Assertion 'Value,float_to_int' (file tests/idct/ieee_1180_1990.c, line 163)
-            assert Value: float_to_int: -2147483649 < tmp2[i][j] + 0.5;
-            tried with Value.
-[    -    ] Assertion 'Value,float_to_int' (file tests/idct/ieee_1180_1990.c, line 163)
-            assert Value: float_to_int: tmp2[i][j] + 0.5 < 2147483648;
-            tried with Value.
-[ Partial ] Assertion 'Value,initialization' (file tests/idct/ieee_1180_1990.c, line 165)
-            assert Value: initialization: \initialized(&tmp2[i][j]);
+             - Assertion 'Eva,initialization' (file tests/idct/ieee_1180_1990.c, line 158)
+[    -    ] Assertion 'Eva,float_to_int' (file tests/idct/ieee_1180_1990.c, line 163)
+            assert Eva: float_to_int: -2147483649 < tmp2[i][j] + 0.5;
+            tried with Eva.
+[    -    ] Assertion 'Eva,float_to_int' (file tests/idct/ieee_1180_1990.c, line 163)
+            assert Eva: float_to_int: tmp2[i][j] + 0.5 < 2147483648;
+            tried with Eva.
+[ Partial ] Assertion 'Eva,initialization' (file tests/idct/ieee_1180_1990.c, line 165)
+            assert Eva: initialization: \initialized(&tmp2[i][j]);
             By RedundantAlarms, with pending:
-             - Assertion 'Value,initialization' (file tests/idct/ieee_1180_1990.c, line 158)
-[    -    ] Assertion 'Value,float_to_int' (file tests/idct/ieee_1180_1990.c, line 165)
-            assert Value: float_to_int: -2147483649 < tmp2[i][j] - 0.5;
-            tried with Value.
-[    -    ] Assertion 'Value,float_to_int' (file tests/idct/ieee_1180_1990.c, line 165)
-            assert Value: float_to_int: tmp2[i][j] - 0.5 < 2147483648;
-            tried with Value.
+             - Assertion 'Eva,initialization' (file tests/idct/ieee_1180_1990.c, line 158)
+[    -    ] Assertion 'Eva,float_to_int' (file tests/idct/ieee_1180_1990.c, line 165)
+            assert Eva: float_to_int: -2147483649 < tmp2[i][j] - 0.5;
+            tried with Eva.
+[    -    ] Assertion 'Eva,float_to_int' (file tests/idct/ieee_1180_1990.c, line 165)
+            assert Eva: float_to_int: tmp2[i][j] - 0.5 < 2147483648;
+            tried with Eva.
 [  Valid  ] Instance of 'Pre-condition 'finite_arg'' at call 'sqrt' (file tests/idct/ieee_1180_1990.c, line 140)
 
             status of 'requires
             finite_arg: \is_finite(x)' of sqrt at stmt 121
-            by Value.
+            by Eva.
 [  Valid  ] Instance of 'Pre-condition 'arg_positive'' at call 'sqrt' (file tests/idct/ieee_1180_1990.c, line 140)
 
             status of 'requires arg_positive: x ≥ -0.' of sqrt at stmt 121
-            by Value.
+            by Eva.
 [  Valid  ] Instance of 'Pre-condition 'finite_arg'' at call 'cos' (file tests/idct/ieee_1180_1990.c, line 141)
 
             status of 'requires finite_arg: \is_finite(x)' of cos at stmt 124
-            by Value.
+            by Eva.
 
 --------------------------------------------------------------------------------
 --- Properties of Function 'main'
 --------------------------------------------------------------------------------
 
-[    -    ] Assertion 'Value,initialization' (file tests/idct/ieee_1180_1990.c, line 191)
-            assert Value: initialization: \initialized(&m2[i][j]);
-            tried with Value.
-[    -    ] Assertion 'Value,initialization' (file tests/idct/ieee_1180_1990.c, line 218)
-            assert Value: initialization: \initialized(&m3[j][k]);
-            tried with Value.
-[    -    ] Assertion 'Value,initialization' (file tests/idct/ieee_1180_1990.c, line 218)
-            assert Value: initialization: \initialized(&m4[j][k]);
-            tried with Value.
-[    -    ] Assertion 'Value,initialization' (file tests/idct/ieee_1180_1990.c, line 219)
-            assert Value: initialization: \initialized(&res[0].pme[j][k]);
-            tried with Value.
-[    -    ] Assertion 'Value,initialization' (file tests/idct/ieee_1180_1990.c, line 231)
-            assert Value: initialization: \initialized(&res[0].pmse[j][k]);
-            tried with Value.
-[    -    ] Assertion 'Value,initialization' (file tests/idct/ieee_1180_1990.c, line 242)
-            assert Value: initialization: \initialized(&m3[j][k]);
-            tried with Value.
-[    -    ] Assertion 'Value,initialization' (file tests/idct/ieee_1180_1990.c, line 242)
-            assert Value: initialization: \initialized(&m4[j][k]);
-            tried with Value.
-[    -    ] Assertion 'Value,initialization' (file tests/idct/ieee_1180_1990.c, line 243)
-            assert Value: initialization: \initialized(&res[3].pme[j][k]);
-            tried with Value.
-[    -    ] Assertion 'Value,initialization' (file tests/idct/ieee_1180_1990.c, line 255)
-            assert Value: initialization: \initialized(&res[3].pmse[j][k]);
-            tried with Value.
-[    -    ] Assertion 'Value,initialization' (file tests/idct/ieee_1180_1990.c, line 264)
-            assert Value: initialization: \initialized(&m3[j][k]);
-            tried with Value.
-[    -    ] Assertion 'Value,initialization' (file tests/idct/ieee_1180_1990.c, line 264)
-            assert Value: initialization: \initialized(&m4[j][k]);
-            tried with Value.
-[    -    ] Assertion 'Value,initialization' (file tests/idct/ieee_1180_1990.c, line 265)
-            assert Value: initialization: \initialized(&res[1].pme[j][k]);
-            tried with Value.
-[    -    ] Assertion 'Value,initialization' (file tests/idct/ieee_1180_1990.c, line 277)
-            assert Value: initialization: \initialized(&res[1].pmse[j][k]);
-            tried with Value.
-[    -    ] Assertion 'Value,initialization' (file tests/idct/ieee_1180_1990.c, line 288)
-            assert Value: initialization: \initialized(&m3[j][k]);
-            tried with Value.
-[    -    ] Assertion 'Value,initialization' (file tests/idct/ieee_1180_1990.c, line 288)
-            assert Value: initialization: \initialized(&m4[j][k]);
-            tried with Value.
-[    -    ] Assertion 'Value,initialization' (file tests/idct/ieee_1180_1990.c, line 289)
-            assert Value: initialization: \initialized(&res[4].pme[j][k]);
-            tried with Value.
-[    -    ] Assertion 'Value,initialization' (file tests/idct/ieee_1180_1990.c, line 301)
-            assert Value: initialization: \initialized(&res[4].pmse[j][k]);
-            tried with Value.
-[    -    ] Assertion 'Value,initialization' (file tests/idct/ieee_1180_1990.c, line 310)
-            assert Value: initialization: \initialized(&m3[j][k]);
-            tried with Value.
-[    -    ] Assertion 'Value,initialization' (file tests/idct/ieee_1180_1990.c, line 310)
-            assert Value: initialization: \initialized(&m4[j][k]);
-            tried with Value.
-[    -    ] Assertion 'Value,initialization' (file tests/idct/ieee_1180_1990.c, line 311)
-            assert Value: initialization: \initialized(&res[2].pme[j][k]);
-            tried with Value.
-[    -    ] Assertion 'Value,initialization' (file tests/idct/ieee_1180_1990.c, line 323)
-            assert Value: initialization: \initialized(&res[2].pmse[j][k]);
-            tried with Value.
-[    -    ] Assertion 'Value,initialization' (file tests/idct/ieee_1180_1990.c, line 334)
-            assert Value: initialization: \initialized(&m3[j][k]);
-            tried with Value.
-[    -    ] Assertion 'Value,initialization' (file tests/idct/ieee_1180_1990.c, line 334)
-            assert Value: initialization: \initialized(&m4[j][k]);
-            tried with Value.
-[    -    ] Assertion 'Value,initialization' (file tests/idct/ieee_1180_1990.c, line 335)
-            assert Value: initialization: \initialized(&res[5].pme[j][k]);
-            tried with Value.
-[    -    ] Assertion 'Value,initialization' (file tests/idct/ieee_1180_1990.c, line 347)
-            assert Value: initialization: \initialized(&res[5].pmse[j][k]);
-            tried with Value.
-[    -    ] Assertion 'Value,initialization' (file tests/idct/ieee_1180_1990.c, line 357)
-            assert Value: initialization: \initialized(&res[i].pmse[j][k]);
-            tried with Value.
-[    -    ] Assertion 'Value,initialization' (file tests/idct/ieee_1180_1990.c, line 368)
-            assert Value: initialization: \initialized(&res[i].pme[j][k]);
-            tried with Value.
-[ Partial ] Assertion 'Value,initialization' (file tests/idct/ieee_1180_1990.c, line 358)
-            assert Value: initialization: \initialized(&res[i].pmse[j][k]);
+[    -    ] Assertion 'Eva,initialization' (file tests/idct/ieee_1180_1990.c, line 191)
+            assert Eva: initialization: \initialized(&m2[i][j]);
+            tried with Eva.
+[    -    ] Assertion 'Eva,initialization' (file tests/idct/ieee_1180_1990.c, line 218)
+            assert Eva: initialization: \initialized(&m3[j][k]);
+            tried with Eva.
+[    -    ] Assertion 'Eva,initialization' (file tests/idct/ieee_1180_1990.c, line 218)
+            assert Eva: initialization: \initialized(&m4[j][k]);
+            tried with Eva.
+[    -    ] Assertion 'Eva,initialization' (file tests/idct/ieee_1180_1990.c, line 219)
+            assert Eva: initialization: \initialized(&res[0].pme[j][k]);
+            tried with Eva.
+[    -    ] Assertion 'Eva,initialization' (file tests/idct/ieee_1180_1990.c, line 231)
+            assert Eva: initialization: \initialized(&res[0].pmse[j][k]);
+            tried with Eva.
+[    -    ] Assertion 'Eva,initialization' (file tests/idct/ieee_1180_1990.c, line 242)
+            assert Eva: initialization: \initialized(&m3[j][k]);
+            tried with Eva.
+[    -    ] Assertion 'Eva,initialization' (file tests/idct/ieee_1180_1990.c, line 242)
+            assert Eva: initialization: \initialized(&m4[j][k]);
+            tried with Eva.
+[    -    ] Assertion 'Eva,initialization' (file tests/idct/ieee_1180_1990.c, line 243)
+            assert Eva: initialization: \initialized(&res[3].pme[j][k]);
+            tried with Eva.
+[    -    ] Assertion 'Eva,initialization' (file tests/idct/ieee_1180_1990.c, line 255)
+            assert Eva: initialization: \initialized(&res[3].pmse[j][k]);
+            tried with Eva.
+[    -    ] Assertion 'Eva,initialization' (file tests/idct/ieee_1180_1990.c, line 264)
+            assert Eva: initialization: \initialized(&m3[j][k]);
+            tried with Eva.
+[    -    ] Assertion 'Eva,initialization' (file tests/idct/ieee_1180_1990.c, line 264)
+            assert Eva: initialization: \initialized(&m4[j][k]);
+            tried with Eva.
+[    -    ] Assertion 'Eva,initialization' (file tests/idct/ieee_1180_1990.c, line 265)
+            assert Eva: initialization: \initialized(&res[1].pme[j][k]);
+            tried with Eva.
+[    -    ] Assertion 'Eva,initialization' (file tests/idct/ieee_1180_1990.c, line 277)
+            assert Eva: initialization: \initialized(&res[1].pmse[j][k]);
+            tried with Eva.
+[    -    ] Assertion 'Eva,initialization' (file tests/idct/ieee_1180_1990.c, line 288)
+            assert Eva: initialization: \initialized(&m3[j][k]);
+            tried with Eva.
+[    -    ] Assertion 'Eva,initialization' (file tests/idct/ieee_1180_1990.c, line 288)
+            assert Eva: initialization: \initialized(&m4[j][k]);
+            tried with Eva.
+[    -    ] Assertion 'Eva,initialization' (file tests/idct/ieee_1180_1990.c, line 289)
+            assert Eva: initialization: \initialized(&res[4].pme[j][k]);
+            tried with Eva.
+[    -    ] Assertion 'Eva,initialization' (file tests/idct/ieee_1180_1990.c, line 301)
+            assert Eva: initialization: \initialized(&res[4].pmse[j][k]);
+            tried with Eva.
+[    -    ] Assertion 'Eva,initialization' (file tests/idct/ieee_1180_1990.c, line 310)
+            assert Eva: initialization: \initialized(&m3[j][k]);
+            tried with Eva.
+[    -    ] Assertion 'Eva,initialization' (file tests/idct/ieee_1180_1990.c, line 310)
+            assert Eva: initialization: \initialized(&m4[j][k]);
+            tried with Eva.
+[    -    ] Assertion 'Eva,initialization' (file tests/idct/ieee_1180_1990.c, line 311)
+            assert Eva: initialization: \initialized(&res[2].pme[j][k]);
+            tried with Eva.
+[    -    ] Assertion 'Eva,initialization' (file tests/idct/ieee_1180_1990.c, line 323)
+            assert Eva: initialization: \initialized(&res[2].pmse[j][k]);
+            tried with Eva.
+[    -    ] Assertion 'Eva,initialization' (file tests/idct/ieee_1180_1990.c, line 334)
+            assert Eva: initialization: \initialized(&m3[j][k]);
+            tried with Eva.
+[    -    ] Assertion 'Eva,initialization' (file tests/idct/ieee_1180_1990.c, line 334)
+            assert Eva: initialization: \initialized(&m4[j][k]);
+            tried with Eva.
+[    -    ] Assertion 'Eva,initialization' (file tests/idct/ieee_1180_1990.c, line 335)
+            assert Eva: initialization: \initialized(&res[5].pme[j][k]);
+            tried with Eva.
+[    -    ] Assertion 'Eva,initialization' (file tests/idct/ieee_1180_1990.c, line 347)
+            assert Eva: initialization: \initialized(&res[5].pmse[j][k]);
+            tried with Eva.
+[    -    ] Assertion 'Eva,initialization' (file tests/idct/ieee_1180_1990.c, line 357)
+            assert Eva: initialization: \initialized(&res[i].pmse[j][k]);
+            tried with Eva.
+[    -    ] Assertion 'Eva,initialization' (file tests/idct/ieee_1180_1990.c, line 368)
+            assert Eva: initialization: \initialized(&res[i].pme[j][k]);
+            tried with Eva.
+[ Partial ] Assertion 'Eva,initialization' (file tests/idct/ieee_1180_1990.c, line 358)
+            assert Eva: initialization: \initialized(&res[i].pmse[j][k]);
             By RedundantAlarms, with pending:
-             - Assertion 'Value,initialization' (file tests/idct/ieee_1180_1990.c, line 357)
-[ Partial ] Assertion 'Value,initialization' (file tests/idct/ieee_1180_1990.c, line 369)
-            assert Value: initialization: \initialized(&res[i].pme[j][k]);
+             - Assertion 'Eva,initialization' (file tests/idct/ieee_1180_1990.c, line 357)
+[ Partial ] Assertion 'Eva,initialization' (file tests/idct/ieee_1180_1990.c, line 369)
+            assert Eva: initialization: \initialized(&res[i].pme[j][k]);
             By RedundantAlarms, with pending:
-             - Assertion 'Value,initialization' (file tests/idct/ieee_1180_1990.c, line 368)
-[ Partial ] Assertion 'Value,initialization' (file tests/idct/ieee_1180_1990.c, line 369)
-            assert Value: initialization: \initialized(&res[i].pme[j][k]);
+             - Assertion 'Eva,initialization' (file tests/idct/ieee_1180_1990.c, line 368)
+[ Partial ] Assertion 'Eva,initialization' (file tests/idct/ieee_1180_1990.c, line 369)
+            assert Eva: initialization: \initialized(&res[i].pme[j][k]);
             By RedundantAlarms, with pending:
-             - Assertion 'Value,initialization' (file tests/idct/ieee_1180_1990.c, line 368)
-[ Partial ] Assertion 'Value,initialization' (file tests/idct/ieee_1180_1990.c, line 369)
-            assert Value: initialization: \initialized(&res[i].pme[j][k]);
+             - Assertion 'Eva,initialization' (file tests/idct/ieee_1180_1990.c, line 368)
+[ Partial ] Assertion 'Eva,initialization' (file tests/idct/ieee_1180_1990.c, line 369)
+            assert Eva: initialization: \initialized(&res[i].pme[j][k]);
             By RedundantAlarms, with pending:
-             - Assertion 'Value,initialization' (file tests/idct/ieee_1180_1990.c, line 368)
+             - Assertion 'Eva,initialization' (file tests/idct/ieee_1180_1990.c, line 368)
 [  Valid  ] Instance of 'Pre-condition (file tests/idct/ieee_1180_1990.c, line 195)' at call 'printf_va_1' (file tests/idct/ieee_1180_1990.c, line 195)
 
             status of 'requires
             valid_read_string(format)' of printf_va_1 at stmt 238
-            by Value.
+            by Eva.
 [  Valid  ] Instance of 'Pre-condition (file tests/idct/ieee_1180_1990.c, line 196)' at call 'printf_va_2' (file tests/idct/ieee_1180_1990.c, line 196)
 
             status of 'requires
             valid_read_string(format)' of printf_va_2 at stmt 239
-            by Value.
+            by Eva.
 
 --------------------------------------------------------------------------------
 --- Properties of Function 'printf_va_1'
@@ -3622,9 +3890,9 @@
 --------------------------------------------------------------------------------
 --- Status Report Summary
 --------------------------------------------------------------------------------
-   160 Completely validated
+   173 Completely validated
     16 Locally validated
-   427 Considered valid
+   448 Considered valid
     56 To be validated
-   659 Total
+   693 Total
 --------------------------------------------------------------------------------

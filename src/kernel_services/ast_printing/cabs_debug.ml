@@ -25,7 +25,7 @@ open Cabs
 open Format
 
 let pp_cabsloc fmt (pos1 , _pos2) =
-  fprintf fmt "%d,%s" pos1.Lexing.pos_lnum (Filename.basename (pos1.Lexing.pos_fname))
+  fprintf fmt "%d,%s" pos1.Filepath.pos_lnum (pos1.Filepath.pos_path :> string)
 
 let pp_storage  fmt = function
   |	NO_STORAGE -> fprintf fmt "NO_STORAGE"
@@ -189,7 +189,7 @@ and pp_def fmt = function
   |	CUSTOM _ -> fprintf fmt "CUSTOM"
     
 and pp_file fmt (s,l) =
-  fprintf fmt "@[FILE %s, {" s;
+  fprintf fmt "@[FILE %a, {" Filepath.Normalized.pp_abs s;
   List.iter
     (fun (b,def) -> fprintf fmt "@ %b, def(%a)" b pp_def def)
     l;

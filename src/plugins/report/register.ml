@@ -27,7 +27,7 @@
 let print () =
   Report_parameters.feedback "Computing properties status..." ;
   Log.print_on_output (fun fmt -> Scan.iter (Dump.create fmt))
-    
+
 let print =
   Dynamic.register
     ~plugin:"Report"

@@ -1,0 +1,197 @@
+#!/bin/bash
+##########################################################################
+#                                                                        #
+#  This file is part of Frama-C.                                         #
+#                                                                        #
+#  Copyright (C) 2007-2018                                               #
+#    CEA (Commissariat à l'énergie atomique et aux énergies              #
+#         alternatives)                                                  #
+#                                                                        #
+#  you can redistribute it and/or modify it under the terms of the GNU   #
+#  Lesser General Public License as published by the Free Software       #
+#  Foundation, version 2.1.                                              #
+#                                                                        #
+#  It is distributed in the hope that it will be useful,                 #
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of        #
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         #
+#  GNU Lesser General Public License for more details.                   #
+#                                                                        #
+#  See the GNU Lesser General Public License version 2.1                 #
+#  for more details (enclosed in the file licenses/LGPLv2.1).            #
+#                                                                        #
+##########################################################################
+
+# Accept '-check' to avoid issues with ptests
+while [ $# -ge 1 -a "$1" = "-check" ]; do
+    shift
+done
+
+if [ $# -lt 1 ]; then
+   echo "usage: $0 cmd [args]"
+   echo ""
+   echo "  where cmd is:"
+   echo ""
+   echo "  - make-template [dir]"
+   echo "      Interactively prepares a template for running analysis scripts,"
+   echo "      writing it to [dir/GNUmakefile]. [dir] is [.] if ommitted."
+   echo ""
+   echo "  - make-path"
+   echo "      [for Frama-C developers and advanced users without Frama-C in the path]"
+   echo "      Creates a frama-c-path.mk file in the current working directory."
+   echo ""
+   echo "  - list-files [path/to/compile_commands.json]"
+   echo "      Lists all sources in the given compile_commands.json"
+   echo "      (defaults to './compile_commands.json' if omitted)."
+   echo "      Also lists files defining a 'main' function"
+   echo "      (heuristics-based; neither correct nor complete)."
+   echo ""
+   echo "  - flamegraph <flamegraph.txt> [dir]"
+   echo "      Generates flamegraph.svg and flamegraph.html in [dir]"
+   echo "      (or in the FRAMAC_SESSION directory by default)."
+   echo "      Also opens it in a browser, unless variable NOGUI is set."
+   exit
+fi
+
+DIR="$( cd "$( dirname "$0" )" && pwd )"
+FRAMAC_SHARE=$("${DIR}/frama-c-config" -print-share-path)
+if [ -z ${FRAMAC_SESSION+x} ]; then
+    FRAMAC_SESSION="./.frama-c";
+fi
+command="$1"
+
+# [check_path_exists path]: if [path] exists,
+# ask if it should be overwritten
+check_path_exists() {
+    if [ -e "$1" ]; then
+        read -p "warning: '$1' already exists. Overwrite? [y/N] " yn
+        case $yn in
+            [Yy]) ;;
+            *)
+                echo "Exiting without overwriting."
+                exit 0;;
+        esac
+    fi
+}
+
+# [open file]
+open_file() {
+    case "$OSTYPE" in
+        cygwin*)
+            cmd /c start "$1"
+            ;;
+        linux*)
+            xdg-open "$1"
+            ;;
+        darwin*)
+            open "$1"
+            ;;
+    esac
+}
+
+make_template() {
+    if [ "$#" -gt 0 ]; then
+        dir="${1%/}"
+    else
+        dir="."
+    fi
+    path="$dir/GNUmakefile"
+    check_path_exists "$path"
+    read -p "Main target name: " main
+    if [[ ! ( "$main" =~ ^[a-zA-Z_0-9]+$ ) ]]; then
+        echo "error: invalid main target name";
+        exit 1
+    fi
+    read -p "Source files separated by spaces (default if empty: *.c): " sources
+    if [ "$sources" = "" ]; then
+        sources="*.c"
+    fi
+    sed "s/^MAIN_TARGET :=/MAIN_TARGET := ${main}/" "${FRAMAC_SHARE}/analysis-scripts/template.mk" > "${path}.tmp"
+    sed "s|\$(MAIN_TARGET).parse:|\$(MAIN_TARGET).parse: $sources|" "${path}.tmp" | sed "/# Remove these lines after defining the main target/{N;N;N;N;d;}" > "$path"
+    rm "${path}.tmp"
+    echo "Template created: $path"
+}
+
+make_path() {
+    cat <<EOF > frama-c-path.mk
+FRAMAC_DIR=${DIR}
+ifeq (\$(wildcard \$(FRAMAC_DIR)),)
+# Frama-C not installed locally; using the version in the PATH
+else
+FRAMAC=\$(FRAMAC_DIR)/frama-c
+FRAMAC_GUI=\$(FRAMAC_DIR)/frama-c-gui
+FRAMAC_CONFIG=\$(FRAMAC_DIR)/frama-c-config
+endif
+EOF
+    echo "Wrote to: frama-c-path.mk"
+}
+
+flamegraph() {
+    if [ "$#" -eq 0 ]; then
+        echo "error: 'flamegraph' command requires a path";
+        exit 1
+    fi
+    if [ ! -e "$1" ]; then
+        echo "error: '$1' not found"
+        exit 1
+    else
+        path="$1"
+    fi
+    if [ "$#" -ge 2 ]; then
+        dir="${2%/}"
+    else
+        dir="$FRAMAC_SESSION"
+    fi
+    if [ ! -d "$dir" ]; then
+        mkdir "$dir"
+        if [ $? -ne 0 ]; then
+            echo "error: could not create '$dir'"
+            exit 1
+        fi
+    fi
+    out_svg="$dir/flamegraph.svg"
+    "${FRAMAC_SHARE}/analysis-scripts/flamegraph.pl" \
+        --title "Eva Flamegraph" --inverted --hash "$path" \
+        --width 1400 --fontsize 11 > "$out_svg.tmp"
+    if [ ! $? -eq 0 ]; then
+        echo "Error creating flamegraph, aborting."
+        exit 1
+    fi
+    mv "$out_svg.tmp" "$out_svg"
+    out_html="$dir/flamegraph.html"
+    cat <<EOF > "$out_html"
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Eva Flamegraph</title>
+  </head>
+  <body>
+    <embed src="flamegraph.svg" style="max-width:100%;width:1400px;min-width:1000px">
+  </body>
+</html>
+EOF
+    if [ -z "$NOGUI" ]; then
+        open_file "$out_html"
+    fi
+}
+
+case "$command" in
+    "make-template")
+        shift;
+        make_template "$@";
+        ;;
+    "make-path")
+        shift;
+        make_path;
+        ;;
+    "list-files")
+        shift;
+        ${FRAMAC_SHARE}/analysis-scripts/list_files.py "$@";
+        ;;
+    "flamegraph")
+        shift;
+        flamegraph "$@";
+        ;;
+    *)
+        echo "error: unrecognized command: $command"
+esac

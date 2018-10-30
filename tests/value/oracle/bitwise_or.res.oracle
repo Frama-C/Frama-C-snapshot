@@ -1,9 +1,8 @@
 [kernel] Parsing tests/value/bitwise_or.c (with preprocessing)
-[value] Analyzing a complete application starting at main
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
-  Frama_C_entropy_source ∈ [--..--]
+[eva] Analyzing a complete application starting at main
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   or1 ∈ {0}
   or2 ∈ {0}
   or3 ∈ {0}
@@ -26,26 +25,26 @@
   d ∈ {0}
   e ∈ {0}
   s ∈ [--..--]
-[value] computing for function Frama_C_interval <- main.
+[eva] computing for function Frama_C_interval <- main.
   Called from tests/value/bitwise_or.c:13.
-[value] using specification for function Frama_C_interval
-[value] tests/value/bitwise_or.c:13: 
+[eva] using specification for function Frama_C_interval
+[eva] tests/value/bitwise_or.c:13: 
   function Frama_C_interval: precondition 'order' got status valid.
-[value] Done for function Frama_C_interval
-[value] computing for function Frama_C_interval <- main.
+[eva] Done for function Frama_C_interval
+[eva] computing for function Frama_C_interval <- main.
   Called from tests/value/bitwise_or.c:14.
-[value] tests/value/bitwise_or.c:14: 
+[eva] tests/value/bitwise_or.c:14: 
   function Frama_C_interval: precondition 'order' got status valid.
-[value] Done for function Frama_C_interval
-[value] computing for function Frama_C_interval <- main.
+[eva] Done for function Frama_C_interval
+[eva] computing for function Frama_C_interval <- main.
   Called from tests/value/bitwise_or.c:15.
-[value] tests/value/bitwise_or.c:15: 
+[eva] tests/value/bitwise_or.c:15: 
   function Frama_C_interval: precondition 'order' got status valid.
-[value] Done for function Frama_C_interval
-[value] Recording results for main
-[value] done for function main
-[value] ====== VALUES COMPUTED ======
-[value:final-states] Values at end of function main:
+[eva] Done for function Frama_C_interval
+[eva] Recording results for main
+[eva] done for function main
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function main:
   Frama_C_entropy_source ∈ [--..--]
   or1 ∈ [--..--]
   or2 ∈ [13..31]

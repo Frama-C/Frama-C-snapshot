@@ -1,0 +1,65 @@
+[kernel] Parsing tests/builtins/alloc.c (with preprocessing)
+[eva] Analyzing a complete application starting at main_abs
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
+  NULL[rbits 2048 to 4103] ∈ [--..--]
+  p ∈ {0}
+  q ∈ {0}
+  r ∈ {0}
+  a ∈ {0}
+  b ∈ {0}
+  t ∈ {0}
+  u ∈ {0}
+  v ∈ {0}
+  ch ∈ {44}
+[eva] tests/builtins/alloc.c:50: Call to builtin Frama_C_malloc_fresh
+[eva] tests/builtins/alloc.c:50: allocating variable __malloc_main_abs_l50
+[eva:alarm] tests/builtins/alloc.c:51: Warning: 
+  signed overflow. assert -2147483648 ≤ -((int)q);
+[eva:alarm] tests/builtins/alloc.c:51: Warning: 
+  signed overflow. assert -((int)q) ≤ 2147483647;
+[eva] tests/builtins/alloc.c:51: 
+  Assigning imprecise value to r.
+  The imprecision originates from Arithmetic {tests/builtins/alloc.c:51}
+[eva:alarm] tests/builtins/alloc.c:54: Warning: 
+  out of bounds write. assert \valid(r);
+[eva:alarm] tests/builtins/alloc.c:56: Warning: 
+  signed overflow. assert -2147483648 ≤ *q + 1;
+[eva:alarm] tests/builtins/alloc.c:56: Warning: 
+  signed overflow. assert *q + 1 ≤ 2147483647;
+[eva] Recording results for main_abs
+[eva] done for function main_abs
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function main_abs:
+  NULL[rbits 2048 to 4103] ∈
+      {{ garbled mix of &{__malloc_main_abs_l50}
+       (origin: Misaligned {tests/builtins/alloc.c:54}) }}
+  __fc_heap_status ∈ [--..--]
+  q ∈ {{ &__malloc_main_abs_l50 }}
+  r ∈ {{ NULL + [256..509] ; &__malloc_main_abs_l50 }}
+  a ∈ {{ NULL + [1..510] ; &__malloc_main_abs_l50 + {1} }}
+  __malloc_main_abs_l50 ∈
+                       {{ NULL + [1..510] ; &__malloc_main_abs_l50 + {1} }}
+[from] Computing for function main_abs
+[from] Computing for function Frama_C_malloc_fresh <-main_abs
+[from] Done for function Frama_C_malloc_fresh
+[from] Done for function main_abs
+[from] ====== DEPENDENCIES COMPUTED ======
+  These dependencies hold at termination for the executions that terminate:
+[from] Function Frama_C_malloc_fresh:
+  __fc_heap_status FROM __fc_heap_status; size (and SELF)
+  \result FROM __fc_heap_status; size
+[from] Function main_abs:
+  NULL{[256..259]; [264..512]} FROM __fc_heap_status (and SELF)
+      [260..263] FROM __fc_heap_status
+  __fc_heap_status FROM __fc_heap_status (and SELF)
+  q FROM __fc_heap_status
+  r FROM __fc_heap_status
+  a FROM __fc_heap_status
+  __malloc_main_abs_l50 FROM __fc_heap_status
+[from] ====== END OF DEPENDENCIES ======
+[inout] Out (internal) for function main_abs:
+    NULL[256..512]; __fc_heap_status; q; r; a; __malloc_main_abs_l50
+[inout] Inputs for function main_abs:
+    __fc_heap_status; q; r; __malloc_main_abs_l50

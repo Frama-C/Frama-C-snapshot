@@ -290,7 +290,8 @@ let stmt_of_instr_list ?(loc=Location.unknown) = function
  let bitfield_attribute_name = "FRAMA_C_BITFIELD_SIZE"
 
  (** Construct sorted lists of attributes ***)
- let attributeName = function Attr(a, _) | AttrAnnot a -> a
+ let attributeName =
+   function Attr(a, _) | AttrAnnot a -> Extlib.strip_underscore a
 
  let addAttribute
      (Attr(an, _) | AttrAnnot an as a: attribute) (al: attributes) =
@@ -313,6 +314,7 @@ let stmt_of_instr_list ?(loc=Location.unknown) = function
    List.filter (fun a -> attributeName a <> an) al
 
  let hasAttribute (s: string) (al: attribute list) : bool =
+   let s = Extlib.strip_underscore s in
    List.exists (fun a -> attributeName a = s) al
 
  let rec dropAttributes (anl: string list) (al: attributes) =
@@ -554,12 +556,6 @@ type attributeClass =
  let rec unrollTypeSkel = function
    | TNamed (r, _) -> unrollTypeSkel r.ttype
    | x -> x
-
-
- let isFunctionType t =
-   match unrollTypeSkel t with
-     TFun _ -> true
-   | _ -> false
 
  (* Make a varinfo. Used mostly as a helper function below  *)
  let makeVarinfo ?(source=true) ?(temp=false) global formal name typ =
@@ -2934,14 +2930,14 @@ and childrenBehavior vis b =
    b.b_extended <- mapNoCopy (visitCilExtended vis) b.b_extended;
    b
 
-and visitCilExtended vis (i,s,p as orig) =
+and visitCilExtended vis (i,s,l,p as orig) =
   let visit =
     try Hashtbl.find visitor_tbl s
     with Not_found -> (fun _ _ -> DoChildren)
   in
   let p' = doVisitCil vis id (visit vis) childrenCilExtended p in
-  if is_fresh_behavior vis#behavior then Logic_const.new_acsl_extension s p
-  else if p == p' then orig else (i,s,p')
+  if is_fresh_behavior vis#behavior then Logic_const.new_acsl_extension s l p
+  else if p == p' then orig else (i,s,l,p')
 
 and childrenCilExtended vis p =
   match p with
@@ -3100,6 +3096,10 @@ and childrenSpec vis s =
        let l' = mapNoCopy (visitCilAnnotation vis) l in
        let attr' = visitCilAttributes vis attr in
        if l' != l || attr != attr' then Daxiomatic(id,l',attr',loc) else a
+     | Dextended (e,attr,loc) ->
+       let e' = visitCilExtended vis e in
+       let attr' = visitCilAttributes vis attr in
+       if e != e' || attr != attr' then Dextended(e',attr', loc) else a
 
  and visitCilCodeAnnotation vis ca =
    doVisitCil
@@ -3139,9 +3139,11 @@ and childrenSpec vis s =
      | AAllocation(behav, fa) ->
 	 let fa' = visitCilAllocation vis fa in
 	 if fa != fa' then change_content (AAllocation (behav,fa')) else ca
-     | AExtended(behav, ext) ->
+     | AExtended(behav, is_loop, ext) ->
        let ext' = visitCilExtended vis ext in
-       if ext' != ext then change_content (AExtended (behav, ext')) else ca
+       if ext' != ext then
+         change_content (AExtended (behav, is_loop, ext'))
+       else ca
 
 and visitCilExpr (vis: cilVisitor) (e: exp) : exp =
   let oldLoc = CurrentLoc.get () in
@@ -4404,6 +4406,7 @@ let map_under_info f e = match e.enode with
    match unrollTypeSkel t with
      TVoid _ -> true
    | _ -> false
+
  let isVoidPtrType t =
    match unrollTypeSkel t with
      TPtr(tau,_) when isVoidType tau -> true
@@ -4449,11 +4452,23 @@ let isCharConstPtrType t =
    | TInt _ | TEnum _ | TPtr _ -> true
    | _ -> false
 
- let isLogicIntegralType t =
+ let rec isLogicBooleanType t =
+    match t with
+      | Ctype ty -> isIntegralType ty
+      | Linteger -> true
+      | Ltype ({lt_name = name},[]) ->
+          name = Utf8_logic.boolean
+      | Ltype (tdef,_) as ty when is_unrollable_ltdef tdef ->
+        isLogicBooleanType (unroll_ltdef ty)
+      | Lreal | Ltype _ | Lvar _ | Larrow _ -> false
+
+ let rec isLogicIntegralType t =
    match t with
      | Ctype t -> isIntegralType t
      | Linteger -> true
      | Lreal -> false
+     | Ltype (tdef,_) as ty when is_unrollable_ltdef tdef ->
+       isLogicIntegralType (unroll_ltdef ty)
      | Lvar _ | Ltype _ | Larrow _ -> false
 
  let isFloatingType t =
@@ -4468,18 +4483,22 @@ let isCharConstPtrType t =
      | Lreal -> false
      | Lvar _ | Ltype _ | Larrow _ -> false
 
- let isLogicRealOrFloatType t =
+ let rec isLogicRealOrFloatType t =
    match t with
      | Ctype t -> isFloatingType t
      | Linteger -> false
      | Lreal -> true
+     | Ltype (tdef,_) as ty when is_unrollable_ltdef tdef ->
+       isLogicRealOrFloatType (unroll_ltdef ty)
      | Lvar _ | Ltype _ | Larrow _ -> false
 
- let isLogicRealType t =
+ let rec isLogicRealType t =
    match t with
      | Ctype _ -> false
      | Linteger -> false
      | Lreal -> true
+     | Ltype (tdef,_) as ty when is_unrollable_ltdef tdef ->
+       isLogicRealType (unroll_ltdef ty)
      | Lvar _ | Ltype _ | Larrow _ -> false
 
  let isArithmeticType t =
@@ -4492,21 +4511,39 @@ let isCharConstPtrType t =
    | TInt _ | TEnum _ | TFloat _ | TPtr _ -> true
    | _ -> false
 
- let isLogicArithmeticType t =
+ let rec isLogicArithmeticType t =
    match t with
      | Ctype t -> isArithmeticType t
      | Linteger | Lreal -> true
+     | Ltype (tdef,_) as ty when is_unrollable_ltdef tdef ->
+       isLogicArithmeticType (unroll_ltdef ty)
      | Lvar _ | Ltype _ | Larrow _ -> false
+
+ let isFunctionType t =
+   match unrollTypeSkel t with
+   | TFun _ -> true
+   | _ -> false
+
+ let isLogicFunctionType t = Logic_const.isLogicCType isFunctionType t
+
+ let isFunPtrType t =
+   match unrollTypeSkel t with
+   | TPtr (t,_) -> isFunctionType t
+   | _ -> false
+
+ let isLogicFunPtrType t = Logic_const.isLogicCType isFunPtrType t
 
  let isPointerType t =
    match unrollTypeSkel t with
-     TPtr _ -> true
+   | TPtr _ -> true
    | _ -> false
 
- let isTypeTagType t =
+ let rec isTypeTagType t =
    match t with
-       Ltype({lt_name = "typetag"},[]) -> true
-     | _ -> false
+   | Ltype ({lt_name = "typetag"},[]) -> true
+   | Ltype (tdef,_) as ty when is_unrollable_ltdef tdef ->
+     isTypeTagType (unroll_ltdef ty)
+   | _ -> false
 
  let getReturnType t =
    match unrollType t with
@@ -4526,7 +4563,7 @@ let isCharConstPtrType t =
  let typeOf_pointed typ =
    match unrollType typ with
    | TPtr (typ,_) -> typ
-   | _ -> assert false
+   | _ -> Kernel.fatal "Not a pointer type %a" !pp_typ_ref typ
 
  (** Returns the type of the elements of the array. Asserts it is an array type
  *)
@@ -4534,6 +4571,18 @@ let isCharConstPtrType t =
    match unrollType t with
    | TArray (ty_elem, _, _, _) -> ty_elem
    | _ -> Kernel.fatal "Not an array type %a" !pp_typ_ref t
+
+
+ let frama_c_mutable = "__fc_mutable"
+ let () = registerAttribute frama_c_mutable (AttrName false)
+ let () =
+   registerAttribute (Extlib.strip_underscore frama_c_mutable) (AttrName false)
+
+ let frama_c_init_obj = "__fc_initialized_object"
+ let () = registerAttribute frama_c_init_obj (AttrName false)
+ let () =
+   registerAttribute (Extlib.strip_underscore frama_c_init_obj) (AttrName false)
+
 
  (**** Compute the type of an expression ****)
  let rec typeOf (e: exp) : typ =
@@ -4599,10 +4648,18 @@ let isCharConstPtrType t =
    end
    | Field (fi, o) ->
        match unrollType basetyp with
-	 TComp (_, _,baseAttrs) ->
-	   let fieldType = typeOffset fi.ftype o in
+         | TComp (_, _,baseAttrs) ->
            let attrs = filter_qualifier_attributes baseAttrs in
-	   typeAddAttributes attrs fieldType
+           (* if the field is mutable, it can written to even if it is
+              part of a const object (but a const subpart of the field
+              is still const (except potentially a mutable subsubpart, etc.)
+           *)
+           let attrs =
+             if hasAttribute frama_c_mutable fi.fattr then
+               dropAttribute "const" attrs
+             else attrs
+           in
+           typeOffset (typeAddAttributes attrs fi.ftype) o
        | basetyp -> 
 	 Kernel.fatal ~current:true
 	   "typeOffset: Field %s on a non-compound type '%a'"
@@ -4618,18 +4675,19 @@ let isCharConstPtrType t =
        typeTermOffset ty off
    | TResult ty, off -> typeTermOffset (Ctype ty) off
    | TMem addr, off -> begin
-     let type_of_pointed t = 
-       match t with
+     let rec type_of_pointed = function
 	 | Ctype typ ->
 	     begin match unrollType typ with
-		 TPtr (t, _) -> typeTermOffset (Ctype t) off
-	       | _ -> 
+               | TPtr (t, _) -> typeTermOffset (Ctype t) off
+               | _ ->
 		 Kernel.fatal ~current:true
 		   "typeOfTermLval: Mem on a non-pointer"
 	     end
 	 | Linteger | Lreal -> 
 	   Kernel.fatal ~current:true "typeOfTermLval: Mem on a logic type"
-	 | Ltype (s,_) -> 
+         | Ltype (s,_) as ty when is_unrollable_ltdef s ->
+           type_of_pointed (unroll_ltdef ty)
+         | Ltype (s,_) ->
            Kernel.fatal ~current:true
 	     "typeOfTermLval: Mem on a non-C type (%s)" s.lt_name
 	 | Lvar s -> 
@@ -4646,14 +4704,15 @@ let isCharConstPtrType t =
    let blendAttributes baseAttrs t =
      let (_, _, contagious) =
        partitionAttributes ~default:(AttrName false) baseAttrs in
-     let putAttributes =
-       function
+     let rec putAttributes = function
          | Ctype typ ->
 	   Ctype (typeAddAttributes contagious typ)
          | Linteger | Lreal -> 
            Kernel.fatal ~current:true
 	     "typeTermOffset: Attribute on a logic type"
-         | Ltype (s,_) -> 
+         | Ltype (s,_) as ty when is_unrollable_ltdef s ->
+           putAttributes (unroll_ltdef ty)
+         | Ltype (s,_) ->
            Kernel.fatal ~current:true
 	     "typeTermOffset: Attribute on a non-C type (%s)" s.lt_name
          | Lvar s -> 
@@ -4668,7 +4727,7 @@ let isCharConstPtrType t =
    function
      | TNoOffset -> basetyp
      | TIndex (e, o) -> begin
-       let elt_type basetyp =
+       let rec elt_type basetyp =
          match basetyp with
 	   | Ctype typ ->
 	     begin match unrollType typ with
@@ -4680,8 +4739,10 @@ let isCharConstPtrType t =
 		   "typeTermOffset: Index on a non-array"
 	     end
 	   | Linteger | Lreal -> Kernel.fatal ~current:true "typeTermOffset: Index on a logic type"
-	   | Ltype (s,_) -> 
-             Kernel.fatal ~current:true "typeTermOffset: Index on a non-C type (%s)" s.lt_name
+           | Ltype (s,_) as ty when is_unrollable_ltdef s ->
+             elt_type (unroll_ltdef ty)
+           | Ltype (s,_) ->
+              Kernel.fatal ~current:true "typeTermOffset: Index on a non-C type (%s)" s.lt_name
 	   | Lvar s -> Kernel.fatal ~current:true "typeTermOffset: Index on a non-C type ('%s)" s
 	   | Larrow _ -> Kernel.fatal ~current:true "typeTermOffset: Index on a function type"
        in
@@ -4690,8 +4751,7 @@ let isCharConstPtrType t =
      end
      | TModel (m,o) -> typeTermOffset m.mi_field_type o
      | TField (fi, o) ->
-       let elt_type basetyp =
-         match basetyp with
+       let rec elt_type = function
 	   | Ctype typ ->
 	     begin match unrollType typ with
 	         TComp (_, _, baseAttrs) ->
@@ -4700,7 +4760,9 @@ let isCharConstPtrType t =
 	       | _ ->  Kernel.fatal ~current:true "typeTermOffset: Field on a non-compound"
 	     end
 	   | Linteger | Lreal -> Kernel.fatal ~current:true "typeTermOffset: Field on a logic type"
-	   | Ltype (s,_) ->
+           | Ltype (s,_) as ty when is_unrollable_ltdef s ->
+             elt_type (unroll_ltdef ty)
+           | Ltype (s,_) ->
              Kernel.fatal ~current:true "typeTermOffset: Field on a non-C type (%s)" s.lt_name
 	   | Lvar s ->  Kernel.fatal ~current:true "typeTermOffset: Field on a non-C type ('%s)" s
 	   | Larrow _ -> Kernel.fatal ~current:true "typeTermOffset: Field on a function type"
@@ -4748,10 +4810,9 @@ let isCharConstPtrType t =
  let rec isVolatileLogicType = function
   | Ctype typ -> isVolatileType typ
   | Linteger | Lreal | Lvar _ | Larrow _ -> false
-  | Ltype( { lt_def } ,_) ->
-      match lt_def with
-      | None | Some (LTsum _) -> false
-      | Some (LTsyn lt) -> isVolatileLogicType lt
+  | Ltype (tdef,_) as ty when is_unrollable_ltdef tdef ->
+    isVolatileLogicType (unroll_ltdef ty)
+  | Ltype _ -> false
 
  let isVolatileLval lv = isVolatileType (typeOfLval lv)
  let isVolatileTermLval lv =
@@ -5719,6 +5780,8 @@ let () = List.iter add_special_builtin
   [ "__builtin_stdarg_start"; "__builtin_va_arg";
     "__builtin_va_start"; "__builtin_expect"; "__builtin_next_arg"; ]
 
+let typeAddVolatile typ = typeAddAttributes [Attr ("volatile", [])] typ
+
  module Builtin_functions =
    State_builder.Hashtbl
      (Datatype.String.Hashtbl)
@@ -5977,7 +6040,7 @@ let () = List.iter add_special_builtin
    let add_sync (typ,name) f = 
      match typ with 
      | Some typ -> 
-       add ~prefix:"__sync_" (f^name) typ [ TPtr(typ,[]); typ] true
+       add ~prefix:"__sync_" (f^name) typ [ TPtr(typeAddVolatile typ,[]); typ] true
      | None -> ()
    in
    let add_sync f = 
@@ -6001,7 +6064,7 @@ let () = List.iter add_special_builtin
      | Some typ -> 
        add ~prefix:"" ("__sync_bool_compare_and_swap"^n)
          intType
-         [ TPtr(typ,[]); typ ; typ] 
+         [ TPtr(typeAddVolatile typ,[]); typ ; typ]
          true
      | None -> ())
      atomic_instances;
@@ -6010,7 +6073,7 @@ let () = List.iter add_special_builtin
      | Some typ -> 
        add ~prefix:"" ("__sync_val_compare_and_swap"^n)
          typ
-         [ TPtr(typ,[]); typ ; typ] 
+         [ TPtr(typeAddVolatile typ,[]); typ ; typ]
          true
      | None -> ())
      atomic_instances;
@@ -6019,7 +6082,7 @@ let () = List.iter add_special_builtin
      | Some typ -> 
        add ~prefix:"" ("__sync_lock_release"^n)
          voidType
-         [ TPtr(typ,[]) ] 
+         [ TPtr(typeAddVolatile typ,[]) ]
          true;
      | None -> ())
      atomic_instances;
@@ -6331,15 +6394,9 @@ let need_cast ?(force=false) oldt newt =
 
  let dummyFile =
    { globals = [];
-     fileName = "<dummy>";
+     fileName = Datatype.Filepath.of_string "<dummy>";
      globinit = None;
      globinitcalled = false;}
-
-
- (* Take the name of a file and make a valid varinfo name out of it. There are
-  * a few characters that are not valid in varinfos *)
- let makeValidVarinfoName (s: string) =
-   String.map (fun c -> if c = '-' || c = '.' then '_' else c) s
 
  let rec lastOffset (off: offset) : offset =
    match off with
@@ -6528,64 +6585,6 @@ let childrenFileSameGlobals vis f =
    in
    try ignore (visitCilExpr vis e); false
    with M.Found -> true
-
- (** Create or fetch the global initializer. Tries to put a call to the
-  * function with the main_name into it *)
- let getGlobInit ?(main_name="main") (fl: file) =
-   match fl.globinit with
-     Some f -> f
-   | None -> begin
-       (* Sadly, we cannot use the Filename library because it does not like
-	* function names with multiple . in them *)
-       let f =
-	 let len = String.length fl.fileName in
-	 (* Find the last path separator and record the first . that we see,
-	 * going backwards *)
-	 let lastDot = ref len in
-	 let rec findLastPathSep i =
-	   if i < 0 then -1 else
-	   let c = String.get fl.fileName i in
-	   if c = '/' || c = '\\' then i
-	   else begin
-	     if c = '.' && !lastDot = len then
-	       lastDot := i;
-	     findLastPathSep (i - 1)
-	   end
-	 in
-	 let lastPathSep = findLastPathSep (len - 1) in
-	 let basenoext =
-	   String.sub fl.fileName (lastPathSep + 1) (!lastDot - lastPathSep - 1)
-	 in
-	 emptyFunction
-	   (makeValidVarinfoName ("__globinit_" ^ basenoext))
-       in
-       fl.globinit <- Some f;
-       (* Now try to add a call to the global initialized at the beginning of
-	* main *)
-       let inserted = ref false in
-       List.iter
-	 (function
-           | GFun(m, lm) when m.svar.vname = main_name ->
-	       (* Prepend a prototype to the global initializer *)
-	       fl.globals <- GFunDecl (empty_funspec (),f.svar, lm) :: fl.globals;
-	       m.sbody.bstmts <-
-		  mkStmt (Instr (Call(None,
-				      new_exp ~loc:f.svar.vdecl (Lval(var f.svar)),
-				      [], Location.unknown)))
-		 :: m.sbody.bstmts;
-	       inserted := true;
-	       Kernel.feedback ~level:2 "Inserted the globinit" ;
-	       fl.globinitcalled <- true;
-	   | _ -> ())
-	 fl.globals;
-
- (* YMo: remove useless warning that worries users *)
- (*       if not !inserted then *)
- (*         ignore (E.warn "Cannot find %s to add global initializer %s" *)
- (*                   main_name f.svar.vname); *)
-
-       f
-   end
 
  (* Fold over all globals, including the global initializer *)
  let mapGlobals (fl: file)
@@ -7288,32 +7287,90 @@ let rec makeZeroInit ~loc (t: typ) : init =
 
    | _ -> Kernel.fatal ~current:true "Type of Compound is not array or struct or union"
 
+let has_flexible_array_member t =
+  let is_flexible_array t =
+    match unrollType t with
+    | TArray (_, None, _, _) -> true
+    | TArray (_, Some z, _, _) -> gccMode() && isZero z
+    | _ -> false
+  in
+  match unrollType t with
+  | TComp (c,_,_) ->
+    c.cfields <> [] && is_flexible_array (Extlib.last c.cfields).ftype
+  | _ -> false
 
-
-
- let rec isCompleteType ?(allowZeroSizeArrays=false) t =
+(* last_field is [true] if the given type is the type of the last field of
+   a struct (which could be a FAM, making the whole struct complete even if
+   the array type isn't. *)
+ let rec isCompleteType ?allowZeroSizeArrays ?(last_field=false) t =
+   let allowZeroSizeArrays =
+     match allowZeroSizeArrays with
+     | None -> gccMode()
+     | Some flag -> flag
+   in
    match unrollType t with
    | TVoid _ -> false (* void is an incomplete type by definition (6.2.5§19) *)
-   | TArray(_t, None, _, _) -> false
+   | TArray(t, None, _, _) ->
+     last_field && is_complete_agg_member ~allowZeroSizeArrays ~last_field  t
    | TArray(t, Some z, _, _) when isZero z ->
-     allowZeroSizeArrays && isCompleteType t
-   | TArray(t, Some _, _, _) -> isCompleteType t
+     allowZeroSizeArrays &&
+     is_complete_agg_member ~allowZeroSizeArrays ~last_field t
+   | TArray(t, Some _, _, _) ->
+     is_complete_agg_member ~allowZeroSizeArrays ~last_field t
    | TComp (comp, _, _) -> (* Struct or union *)
        comp.cdefined &&
-       List.for_all
-         (fun fi -> isCompleteType ~allowZeroSizeArrays fi.ftype) comp.cfields
+       complete_type_fields ~allowZeroSizeArrays comp.cstruct comp.cfields
    | TEnum({eitems = []},_) -> false
    | TEnum _ -> true
    | TInt _ | TFloat _ | TPtr _ | TBuiltin_va_list _ -> true
    | TFun _ -> true (* only object types can be incomplete (6.2.5§1) *)
    | TNamed _ -> assert false (* unroll should have removed it. *)
 
+and complete_type_fields ?allowZeroSizeArrays is_struct fields =
+  let rec aux is_first l =
+    let last_field = is_struct && not is_first in
+    match l with
+    | [] -> true
+    | [ f ] -> is_complete_agg_member ?allowZeroSizeArrays ~last_field f.ftype
+    | f :: tl ->
+      is_complete_agg_member ?allowZeroSizeArrays f.ftype && aux false tl
+  in
+  aux true fields
+
+and is_complete_agg_member ?allowZeroSizeArrays ?last_field t =
+  isCompleteType ?allowZeroSizeArrays ?last_field t &&
+  not (has_flexible_array_member t)
+
+(* last_field optional argument can only be used internally. Do not allow
+   callers to mess with it. *)
+let isCompleteType ?allowZeroSizeArrays t =
+  isCompleteType ?allowZeroSizeArrays t
+
+ let is_mutable_or_initialized (host, offset) =
+   let rec aux can_mutate typ off =
+     let can_mutate = can_mutate && not (isConstType typ) in
+     match unrollType typ, off with
+     | _, NoOffset -> can_mutate
+     | _, Field (fi, off) ->
+       aux
+         (can_mutate || hasAttribute frama_c_mutable fi.fattr)
+         fi.ftype off
+     | TArray(typ, _, _, _), Index(_, off) -> aux can_mutate typ off
+     | _, Index _ -> Kernel.fatal "Index on a non-array type"
+   in
+   match host with
+   | Mem({ enode = Lval (Var vi, NoOffset) })
+     when hasAttribute frama_c_init_obj vi.vattr -> true
+   | _ ->
+     aux false (typeOfLhost host) offset
+
  let is_modifiable_lval lv =
    let t = typeOfLval lv in
    match unrollType t with
    | TArray _ -> false
    | TFun _ -> false
-   | _ -> not (isConstType t) && isCompleteType t
+   | _ -> (not (isConstType t)
+           || is_mutable_or_initialized lv) && isCompleteType t
 
  (* makes sure that the type of a C variable and the type of its associated
    logic variable -if any- stay synchronized. See bts 1538 *)

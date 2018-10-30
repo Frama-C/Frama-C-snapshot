@@ -1,25 +1,25 @@
 [kernel] Parsing tests/value/loop_simple.i (no preprocessing)
-[value] Analyzing a complete application starting at main
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing a complete application starting at main
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   i ∈ {0}
   j ∈ {0}
   k ∈ {0}
   n ∈ {0}
   r ∈ {0}
-[value] tests/value/loop_simple.i:24: entering loop for the first time
-[value] tests/value/loop_simple.i:25: entering loop for the first time
-[value] tests/value/loop_simple.i:26: entering loop for the first time
-[value:alarm] tests/value/loop_simple.i:27: Warning: 
+[eva] tests/value/loop_simple.i:26: starting to merge loop iterations
+[eva:alarm] tests/value/loop_simple.i:27: Warning: 
   signed overflow. assert (int)((int)(i + j) + k) + r ≤ 2147483647;
-[value:alarm] tests/value/loop_simple.i:27: Warning: 
+[eva:alarm] tests/value/loop_simple.i:27: Warning: 
   signed overflow.
   assert (int)((int)((int)(i + j) + k) + r) + 1 ≤ 2147483647;
-[value] Recording results for main
-[value] done for function main
-[value] ====== VALUES COMPUTED ======
-[value:final-states] Values at end of function main:
+[eva] tests/value/loop_simple.i:25: starting to merge loop iterations
+[eva] tests/value/loop_simple.i:24: starting to merge loop iterations
+[eva] Recording results for main
+[eva] done for function main
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function main:
   i ∈ {2}
   j ∈ {0; 2}
   k ∈ {0; 2}

@@ -49,9 +49,9 @@ void sort4_2(int *a, int *b, int *c, int *d) {
 }
 #endif
 
+//@ type Lint = int;
 
-
-/*@ predicate swap_ord(int a2,int b2,int a1,int b1) =
+/*@ predicate swap_ord(Lint a2,Lint b2,Lint a1,Lint b1) =
   @   (a1 <= b1 ==> (a2 == a1 && b2 == b1)) &&
   @   (a1 > b1 ==> (a2 == b1 && b2 == a1)) ;
   @*/

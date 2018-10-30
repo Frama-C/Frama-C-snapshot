@@ -386,9 +386,10 @@ class altergo ~config ~pid ~gui ~file ~lines ~logout ~logerr =
       else
         match error with
         | Some(pos,message) when unsat || limit || not valid ->
-            Wp_parameters.error ~source:pos "Alt-Ergo error:@\n%s" message ;
+            let source = Cil_datatype.Position.of_lexing_pos pos in
+            Wp_parameters.error ~source "Alt-Ergo error:@\n%s" message ;
             VCS.failed ~pos message
-        | _ -> 
+        | _ ->
             try
               let verdict =
                 if unsat then VCS.Unknown else

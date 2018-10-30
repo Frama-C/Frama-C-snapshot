@@ -1,20 +1,20 @@
 [kernel] Parsing tests/saveload/multi_project.i (no preprocessing)
-[value] Analyzing a complete application starting at main
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing a complete application starting at main
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   
-[value] computing for function f <- main.
+[eva] computing for function f <- main.
   Called from tests/saveload/multi_project.i:14.
-[value] Recording results for f
-[value] Done for function f
-[value] tests/saveload/multi_project.i:15: assertion got status valid.
-[value] Recording results for main
-[value] done for function main
-[value] ====== VALUES COMPUTED ======
-[value:final-states] Values at end of function f:
+[eva] Recording results for f
+[eva] Done for function f
+[eva] tests/saveload/multi_project.i:15: assertion got status valid.
+[eva] Recording results for main
+[eva] done for function main
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function f:
   __retres ∈ {4}
-[value:final-states] Values at end of function main:
+[eva:final-states] Values at end of function main:
   x ∈ {2}
   y ∈ {4}
   __retres ∈ {8}

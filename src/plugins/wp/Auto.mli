@@ -24,7 +24,7 @@ open Tactical
 open Strategy
 
 (* -------------------------------------------------------------------------- *)
-(** {2 Basic Strategies} 
+(** {2 Basic Strategies}
     It is always safe to apply strategies to any goal. *)
 (* -------------------------------------------------------------------------- *)
 
@@ -60,7 +60,7 @@ sig
 end
 
 (* -------------------------------------------------------------------------- *)
-(** {2 Trusted Tactical Process} 
+(** {2 Trusted Tactical Process}
     Tacticals with hand-written process are not safe.
     However, the combinators below are guarantied to be sound. *)
 (* -------------------------------------------------------------------------- *)
@@ -83,7 +83,7 @@ val t_split : ?pos:string -> ?neg:string -> Lang.F.pred -> process
 (** Prove condition [p] and use-it as a forward hypothesis. *)
 val t_cut : ?by:string -> Lang.F.pred -> process -> process
 
-(** Case analysis: [t_case p a b] applies process [a] under hypothesis [p] 
+(** Case analysis: [t_case p a b] applies process [a] under hypothesis [p]
     and process [b] under hypothesis [not p]. *)
 val t_case : Lang.F.pred -> process -> process -> process
 

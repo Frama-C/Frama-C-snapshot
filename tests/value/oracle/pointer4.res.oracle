@@ -1,19 +1,19 @@
 [kernel] Parsing tests/value/pointer4.i (no preprocessing)
-[value] Analyzing a complete application starting at main
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing a complete application starting at main
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   NULL[rbits 0 to 63] ∈ [--..--]
   d ∈ {0}
   e[0..9] ∈ {0}
   c ∈ {0}
-[value] tests/value/pointer4.i:12: entering loop for the first time
-[value:alarm] tests/value/pointer4.i:15: Warning: 
+[eva] tests/value/pointer4.i:12: starting to merge loop iterations
+[eva:alarm] tests/value/pointer4.i:15: Warning: 
   out of bounds write. assert \valid((int *)0x0 + c);
-[value] Recording results for main
-[value] done for function main
-[value] ====== VALUES COMPUTED ======
-[value:final-states] Values at end of function main:
+[eva] Recording results for main
+[eva] done for function main
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function main:
   NON TERMINATING FUNCTION
 [from] Computing for function main
 [from] Non-terminating function main (no dependencies)

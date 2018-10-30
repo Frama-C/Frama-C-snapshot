@@ -109,14 +109,13 @@ module type S = sig
     exp -> Integer.t list -> state list ->
     (Integer.t * state list * bool) list * state list
 
-  val check_non_overlapping:
-    state -> lval list -> lval list -> unit evaluated
-
   val eval_function_exp:
     exp -> ?args:exp list -> state ->
     (Kernel_function.t * Valuation.t) list evaluated
-    (** Evaluation of the function argument of a [Call] constructor *)
+  (** Evaluation of the function argument of a [Call] constructor *)
 
+  val interpret_truth:
+    alarm:(unit -> Alarms.t) -> 'a -> 'a Abstract_value.truth -> 'a evaluated
 end
 
 module type Value = sig

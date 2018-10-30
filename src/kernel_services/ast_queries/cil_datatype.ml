@@ -20,6 +20,8 @@
 (*                                                                        *)
 (**************************************************************************)
 
+module UtilsFilepath = Filepath
+
 module type S_with_pretty = sig
   include Datatype.S
   val pretty_ref: (Format.formatter -> t -> unit) ref
@@ -131,8 +133,9 @@ module Cabs_file = struct
     (struct
       type t = Cabs.file
       let name = "Cabs_file"
-      let reprs = [ "", []; "", [ true, Cabs.GLOBANNOT [] ] ]
-      let varname (s, _) = "cabs_" ^ s
+      let reprs = [ Datatype.Filepath.dummy, [];
+                    Datatype.Filepath.dummy, [ true, Cabs.GLOBANNOT [] ] ]
+      let varname (s, _) = "cabs_" ^ (Filepath.Normalized.to_pretty_string s)
       let internal_pretty_code = Datatype.undefined
       let pretty fmt cabs = !pretty_ref fmt cabs
      end)
@@ -143,27 +146,45 @@ end
 (**************************************************************************)
 
 module Position =  struct
-  let pretty_ref = ref (fun _ _ -> assert false)
+  let pretty_ref = ref UtilsFilepath.pp_pos
+  let unknown = {
+    Filepath.pos_path = Datatype.Filepath.dummy;
+    pos_lnum = 0;
+    pos_bol = 0;
+    pos_cnum = -1;
+  }
+  let of_lexing_pos p = {
+    Filepath.pos_path = Datatype.Filepath.of_string p.Lexing.pos_fname;
+    pos_lnum = p.Lexing.pos_lnum;
+    pos_bol = p.Lexing.pos_bol;
+    pos_cnum = p.Lexing.pos_cnum;
+  }
+  let to_lexing_pos p = {
+    Lexing.pos_fname = (p.Filepath.pos_path :> string);
+    pos_lnum = p.Filepath.pos_lnum;
+    pos_bol = p.Filepath.pos_bol;
+    pos_cnum = p.Filepath.pos_cnum;
+  }
   include Make_with_collections
     (struct
-      type t = Lexing.position
+      type t = Filepath.position
       let name = "Position"
-      let reprs = [ Lexing.dummy_pos ]
+      let reprs = [ unknown ]
       let compare: t -> t -> int = (=?=)
       let hash = Hashtbl.hash
       let copy = Datatype.identity
       let equal: t -> t -> bool = ( = )
       let internal_pretty_code = Datatype.undefined
-      let pretty fmt pos =
-        Format.fprintf fmt "%s:%d char %d"
-          (Filepath.pretty pos.Lexing.pos_fname) pos.Lexing.pos_lnum
-          (pos.Lexing.pos_cnum - pos.Lexing.pos_bol)
+      let pretty = Filepath.pp_pos
       let varname _ = "pos"
     end)
+  let pp_with_col fmt pos =
+    Format.fprintf fmt "%a char %d" pretty pos
+      (pos.Filepath.pos_cnum - pos.Filepath.pos_bol)
 end
 
 module Location = struct
-  let unknown = Lexing.dummy_pos, Lexing.dummy_pos
+  let unknown = Position.unknown, Position.unknown
   let pretty_ref = ref (fun _ _ -> assert false)
   include Make_with_collections
     (struct
@@ -171,7 +192,7 @@ module Location = struct
       let name = "Location"
       let reprs = [ unknown ]
       let compare: location -> location -> int = (=?=)
-      let hash (b, _e) = Hashtbl.hash (b.Lexing.pos_fname, b.Lexing.pos_lnum)
+      let hash (b, _e) = Hashtbl.hash (b.Filepath.pos_path, b.Filepath.pos_lnum)
       let copy = Datatype.identity (* immutable strings *)
       let equal : t -> t -> bool = ( = )
       let internal_pretty_code = Datatype.undefined
@@ -180,20 +201,25 @@ module Location = struct
      end)
 
   let pretty_long fmt loc =
-    let file = Filepath.pretty (fst loc).Lexing.pos_fname in
-    let line = (fst loc).Lexing.pos_lnum in
-    if file <> "." && file <> "" && line > 0 then
-      Format.fprintf fmt "file %s, line %d" file line
+    let path = (fst loc).Filepath.pos_path in
+    if path = Datatype.Filepath.dummy then Format.fprintf fmt "generated"
     else
-      Format.fprintf fmt "generated"
+      let line = (fst loc).Filepath.pos_lnum in
+      if line > 0 then
+        Format.fprintf fmt "file %a, line %d"
+          Datatype.Filepath.pretty path line
 
   let pretty_line fmt loc =
-    let line = (fst loc).Lexing.pos_lnum in
+    let line = (fst loc).Filepath.pos_lnum in
     if line > 0 then
       Format.fprintf fmt "line %d" line
     else
       Format.fprintf fmt "generated"
 
+  let of_lexing_loc (pos1, pos2) =
+    Position.of_lexing_pos pos1, Position.of_lexing_pos pos2
+  let to_lexing_loc (pos1, pos2) =
+    Position.to_lexing_pos pos1, Position.to_lexing_pos pos2
 end
 
 module Instr = struct
@@ -225,7 +251,7 @@ module File =
       type t = file
       let name = "File"
       let reprs =
-	[ { fileName = "";
+        [ { fileName = Datatype.Filepath.dummy;
 	    globals = [];
 	    globinit = None;
 	    globinitcalled = false } ]
@@ -1903,6 +1929,10 @@ module Global_annotation = struct
             Dcustom_annot(_, n2, attr2, _) ->
             let res = Datatype.String.compare n1 n2 in
             if res = 0 then Attributes.compare attr1 attr2 else res
+          | Dcustom_annot _, _ -> -1
+          | _, Dcustom_annot _ -> 1
+          | Dextended ((id1,_,_,_),_,_), Dextended((id2,_,_,_),_,_) ->
+            Datatype.Int.compare id1 id2
 
       let equal = Datatype.from_compare
 
@@ -1921,6 +1951,7 @@ module Global_annotation = struct
         | Dtype_annot(l,_) -> 17 * Logic_info.hash l
         | Dmodel_annot(l,_) -> 19 * Model_info.hash l
         | Dcustom_annot(_,n,_,_) -> 23 * Datatype.String.hash n
+        | Dextended ((id,_,_,_),_,_) -> 29 * Datatype.Int.hash id
 
       let copy = Datatype.undefined
      end)
@@ -1935,6 +1966,7 @@ module Global_annotation = struct
     | Dmodel_annot(_, loc) -> loc
     | Dvolatile(_, _, _, _,loc) -> loc
     | Dcustom_annot(_,_,_,loc) -> loc
+    | Dextended(_,_,loc) -> loc
 
   let attr = function
     | Dfun_or_pred({ l_var_info = { lv_attr }}, _) -> lv_attr
@@ -1946,6 +1978,7 @@ module Global_annotation = struct
     | Dmodel_annot({ mi_attr }, _) -> mi_attr
     | Dvolatile(_, _, _, attr, _) -> attr
     | Dcustom_annot(_,_,attr,_) -> attr
+    | Dextended (_,attr,_) -> attr
 end
 
 module Global = struct
@@ -2316,7 +2349,7 @@ module Syntactic_scope =
         | Program, _ -> 1
         | _, Program -> -1
         | Translation_unit s1, Translation_unit s2 ->
-          Datatype.String.compare s1 s2
+          Datatype.Filepath.compare s1 s2
         | Translation_unit _, _ -> 1
         | _, Translation_unit _ -> -1
         | Block_scope s1, Block_scope s2 -> Stmt_Id.compare s1 s2
@@ -2324,11 +2357,12 @@ module Syntactic_scope =
       let hash s =
         match s with
         | Program -> 5
-        | Translation_unit s -> 7 * Datatype.String.hash s + 11
+        | Translation_unit s -> 7 * Datatype.Filepath.hash s + 11
         | Block_scope s -> 13 * Stmt_Id.hash s  + 17
       let pretty fmt = function
         | Program -> Format.pp_print_string fmt "<Whole Program>"
-        | Translation_unit s -> Format.fprintf fmt "File %s" s
+        | Translation_unit s ->
+          Format.fprintf fmt "File %a" Datatype.Filepath.pretty s
         | Block_scope s ->
           Format.fprintf fmt "Statement at %a:@\n@[%a@]"
             Location.pretty (Stmt.loc s) Stmt.pretty s

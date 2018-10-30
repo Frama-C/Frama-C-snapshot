@@ -33,12 +33,14 @@ val html_tag_functions : Format.formatter_tag_functions;;
 *)
 val mk_hdr : int -> Format.formatter -> string -> unit;;
 
+module OptionKf : Datatype.S_with_collections with type t = Kernel_function.t option
+
 module BasicMetrics : sig
   (** Simple type of metrics. *)
   type t = {
-    cfile_name : string ;    (** Filename *)
-    cfunc_name : string ;    (** Function name if applicable, eg. not for
-                                 global metrics *)
+    cfile_name : Datatype.Filepath.t ;    (** Filename *)
+    cfunc : OptionKf.t; (** Function name if applicable
+                            ([None] for global metrics) *)
     cslocs: int ;            (** Lines of code w.r.t. statements *)
     cifs: int ;              (** If / cases of switch *)
     cloops: int ;            (** Loops: for, while, do...while *)
@@ -115,14 +117,15 @@ val pretty_entry_points :
 ;;
 
 (** Get the filename where the definition of a varinfo occurs *)
-val file_of_vinfodef: Cil_types.varinfo -> string;;
+val file_of_vinfodef: Cil_types.varinfo -> Datatype.Filepath.t;;
 
 (** Get the filename containing the function definition *)
-val file_of_fundef: Cil_types.fundec -> string;;
+val file_of_fundef: Cil_types.fundec -> Datatype.Filepath.t;;
 
 
 val extract_fundef_name: Cabs.single_name -> string;;
-val get_filename: Cabs.definition -> string;;
+val kf_of_cabs_name: Cabs.single_name -> Kernel_function.t;;
+val get_filename: Cabs.definition -> Datatype.Filepath.t;;
 
 (** Type of the generated report file.
     Automatically set according to the file extension.

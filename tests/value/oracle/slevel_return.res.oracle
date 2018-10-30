@@ -1,19 +1,19 @@
 [kernel] Parsing tests/value/slevel_return.i (no preprocessing)
-[value] Analyzing a complete application starting at main
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing a complete application starting at main
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   x ∈ {0}
   y ∈ {0}
-[value] computing for function main1 <- main.
+[eva] computing for function main1 <- main.
   Called from tests/value/slevel_return.i:44.
-[value] tests/value/slevel_return.i:7: 
+[eva] tests/value/slevel_return.i:7: 
   function main1: postcondition got status valid.
-[value] Recording results for main1
-[value] Done for function main1
-[value] computing for function main2 <- main.
+[eva] Recording results for main1
+[eva] Done for function main1
+[eva] computing for function main2 <- main.
   Called from tests/value/slevel_return.i:45.
-[value] tests/value/slevel_return.i:38: 
+[eva] tests/value/slevel_return.i:38: 
   Frama_C_dump_each:
   # Cvalue domain:
   x ∈ {-3}
@@ -21,20 +21,20 @@
   c ∈ [--..--]
   c ∈ [--..--]
   ==END OF DUMP==
-[value] tests/value/slevel_return.i:23: 
+[eva] tests/value/slevel_return.i:23: 
   function main2: postcondition got status valid.
-[value] Recording results for main2
-[value] Done for function main2
-[value] Recording results for main
-[value] done for function main
-[value] ====== VALUES COMPUTED ======
-[value:final-states] Values at end of function main1:
+[eva] Recording results for main2
+[eva] Done for function main2
+[eva] Recording results for main
+[eva] done for function main
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function main1:
   x ∈ {-3; 0; 5}
   y ∈ {0; 1; 6}
-[value:final-states] Values at end of function main2:
+[eva:final-states] Values at end of function main2:
   x ∈ {-3; 0; 5}
   y ∈ {0; 1; 6}
-[value:final-states] Values at end of function main:
+[eva:final-states] Values at end of function main:
   x ∈ {-3; 0; 5}
   y ∈ {0; 1; 6}
 [from] Computing for function main1

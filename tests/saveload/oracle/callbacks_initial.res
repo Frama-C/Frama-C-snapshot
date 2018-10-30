@@ -1,38 +1,38 @@
 [kernel] Parsing tests/saveload/callbacks.i (no preprocessing)
-[value] Analyzing a complete application starting at main1
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing a complete application starting at main1
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   x ∈ {0}
   y ∈ {0}
-[value] computing for function g1 <- main1.
+[eva] computing for function g1 <- main1.
   Called from tests/saveload/callbacks.i:25.
-[value] computing for function f <- g1 <- main1.
+[eva] computing for function f <- g1 <- main1.
   Called from tests/saveload/callbacks.i:16.
-[value] Recording results for f
+[eva] Recording results for f
 [from] Computing for function f
 [from] Done for function f
-[value] Done for function f
-[value] Recording results for g1
+[eva] Done for function f
+[eva] Recording results for g1
 [from] Computing for function g1
 [from] Done for function g1
-[value] Done for function g1
-[value] computing for function g2 <- main1.
+[eva] Done for function g1
+[eva] computing for function g2 <- main1.
   Called from tests/saveload/callbacks.i:26.
-[value] computing for function f <- g2 <- main1.
+[eva] computing for function f <- g2 <- main1.
   Called from tests/saveload/callbacks.i:21.
-[value] Recording results for f
+[eva] Recording results for f
 [from] Computing for function f
 [from] Done for function f
-[value] Done for function f
-[value] Recording results for g2
+[eva] Done for function f
+[eva] Recording results for g2
 [from] Computing for function g2
 [from] Done for function g2
-[value] Done for function g2
-[value] Recording results for main1
+[eva] Done for function g2
+[eva] Recording results for main1
 [from] Computing for function main1
 [from] Done for function main1
-[value] done for function main1
+[eva] done for function main1
 [from] ====== DISPLAYING CALLWISE DEPENDENCIES ======
 [from] call to f at tests/saveload/callbacks.i:16 (by g1):
   x FROM p

@@ -1,8 +1,8 @@
 [kernel] Parsing tests/value/inout.i (no preprocessing)
-[value] Analyzing a complete application starting at call_may_not_terminate
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing a complete application starting at call_may_not_terminate
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   Xt ∈ {0}
   Xs ∈ {0}
   Xs_I ∈ {0}
@@ -20,13 +20,12 @@
       [6] ∈ {25}
       [7] ∈ {40}
   I5_nt ∈ {0}
-[value] computing for function may_not_terminate <- call_may_not_terminate.
+[eva] computing for function may_not_terminate <- call_may_not_terminate.
   Called from tests/value/inout.i:68.
-[value] tests/value/inout.i:60: entering loop for the first time
-[value] Recording results for may_not_terminate
-[value] Done for function may_not_terminate
-[value] Recording results for call_may_not_terminate
-[value] done for function call_may_not_terminate
+[eva] Recording results for may_not_terminate
+[eva] Done for function may_not_terminate
+[eva] Recording results for call_may_not_terminate
+[eva] done for function call_may_not_terminate
 [from] Computing for function may_not_terminate
 [from] Done for function may_not_terminate
 [from] Computing for function call_may_not_terminate

@@ -1,48 +1,48 @@
 [kernel] Parsing tests/impact/loop2.i (no preprocessing)
-[value] Analyzing an incomplete application starting at main
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing an incomplete application starting at main
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   v ∈ [--..--]
   t[0..9] ∈ [--..--]
   u[0..9] ∈ [--..--]
   w[0..9] ∈ [--..--]
-[value] computing for function init <- main.
+[eva] computing for function init <- main.
   Called from tests/impact/loop2.i:24.
-[value] tests/impact/loop2.i:11: entering loop for the first time
-[value] Recording results for init
+[eva] tests/impact/loop2.i:11: starting to merge loop iterations
+[eva] Recording results for init
 [from] Computing for function init
 [from] Done for function init
-[value] Done for function init
-[value] tests/impact/loop2.i:25: entering loop for the first time
-[value] computing for function f <- main.
+[eva] Done for function init
+[eva] computing for function f <- main.
   Called from tests/impact/loop2.i:27.
-[value] Recording results for f
+[eva] Recording results for f
 [from] Computing for function f
 [from] Done for function f
-[value] Done for function f
-[value] computing for function f <- main.
+[eva] Done for function f
+[eva] tests/impact/loop2.i:25: starting to merge loop iterations
+[eva] computing for function f <- main.
   Called from tests/impact/loop2.i:27.
-[value] Recording results for f
+[eva] Recording results for f
 [from] Computing for function f
 [from] Done for function f
-[value] Done for function f
-[value] computing for function f <- main.
+[eva] Done for function f
+[eva] computing for function f <- main.
   Called from tests/impact/loop2.i:27.
-[value] Recording results for f
+[eva] Recording results for f
 [from] Computing for function f
 [from] Done for function f
-[value] Done for function f
-[value] computing for function f <- main.
+[eva] Done for function f
+[eva] computing for function f <- main.
   Called from tests/impact/loop2.i:27.
-[value] Recording results for f
+[eva] Recording results for f
 [from] Computing for function f
 [from] Done for function f
-[value] Done for function f
-[value] Recording results for main
+[eva] Done for function f
+[eva] Recording results for main
 [from] Computing for function main
 [from] Done for function main
-[value] done for function main
+[eva] done for function main
 [from] ====== DISPLAYING CALLWISE DEPENDENCIES ======
 [from] call to init at tests/impact/loop2.i:24 (by main):
   u[0..9] FROM v (and SELF)
@@ -69,86 +69,84 @@
     tests/impact/loop2.i:27 (sid 27): f(i);
 [impact] analysis done
 [kernel] Parsing tests/impact/loop2.i (no preprocessing)
-[value] Analyzing an incomplete application starting at main
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing an incomplete application starting at main
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   v ∈ [--..--]
   t[0..9] ∈ [--..--]
   u[0..9] ∈ [--..--]
   w[0..9] ∈ [--..--]
-[value] computing for function init <- main.
+[eva] computing for function init <- main.
   Called from tests/impact/loop2.i:24.
-[value] tests/impact/loop2.i:11: entering loop for the first time
-[value] Recording results for init
+[eva] Recording results for init
 [from] Computing for function init
 [from] Done for function init
-[value] Done for function init
-[value] computing for function f <- main.
+[eva] Done for function init
+[eva] computing for function f <- main.
   Called from tests/impact/loop2.i:27.
-[value] Recording results for f
+[eva] Recording results for f
 [from] Computing for function f
 [from] Done for function f
-[value] Done for function f
-[value] computing for function f <- main.
+[eva] Done for function f
+[eva] computing for function f <- main.
   Called from tests/impact/loop2.i:27.
-[value] Recording results for f
+[eva] Recording results for f
 [from] Computing for function f
 [from] Done for function f
-[value] Done for function f
-[value] computing for function f <- main.
+[eva] Done for function f
+[eva] computing for function f <- main.
   Called from tests/impact/loop2.i:27.
-[value] Recording results for f
+[eva] Recording results for f
 [from] Computing for function f
 [from] Done for function f
-[value] Done for function f
-[value] computing for function f <- main.
+[eva] Done for function f
+[eva] computing for function f <- main.
   Called from tests/impact/loop2.i:27.
-[value] Recording results for f
+[eva] Recording results for f
 [from] Computing for function f
 [from] Done for function f
-[value] Done for function f
-[value] computing for function f <- main.
+[eva] Done for function f
+[eva] computing for function f <- main.
   Called from tests/impact/loop2.i:27.
-[value] Recording results for f
+[eva] Recording results for f
 [from] Computing for function f
 [from] Done for function f
-[value] Done for function f
-[value] computing for function f <- main.
+[eva] Done for function f
+[eva] computing for function f <- main.
   Called from tests/impact/loop2.i:27.
-[value] Recording results for f
+[eva] Recording results for f
 [from] Computing for function f
 [from] Done for function f
-[value] Done for function f
-[value] computing for function f <- main.
+[eva] Done for function f
+[eva] computing for function f <- main.
   Called from tests/impact/loop2.i:27.
-[value] Recording results for f
+[eva] Recording results for f
 [from] Computing for function f
 [from] Done for function f
-[value] Done for function f
-[value] computing for function f <- main.
+[eva] Done for function f
+[eva] computing for function f <- main.
   Called from tests/impact/loop2.i:27.
-[value] Recording results for f
+[eva] Recording results for f
 [from] Computing for function f
 [from] Done for function f
-[value] Done for function f
-[value] computing for function f <- main.
+[eva] Done for function f
+[eva] computing for function f <- main.
   Called from tests/impact/loop2.i:27.
-[value] Recording results for f
+[eva] Recording results for f
 [from] Computing for function f
 [from] Done for function f
-[value] Done for function f
-[value] computing for function f <- main.
+[eva] Done for function f
+[eva] computing for function f <- main.
   Called from tests/impact/loop2.i:27.
-[value] Recording results for f
+[eva] Recording results for f
 [from] Computing for function f
 [from] Done for function f
-[value] Done for function f
-[value] tests/impact/loop2.i:25: entering loop for the first time
-[value] Recording results for main
+[eva] Done for function f
+[eva] Recording results for main
 [from] Computing for function main
 [from] Done for function main
-[value] done for function main
+[eva] done for function main
 [from] ====== DISPLAYING CALLWISE DEPENDENCIES ======
 [from] call to init at tests/impact/loop2.i:24 (by main):
   u[0..9] FROM v

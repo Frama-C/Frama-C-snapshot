@@ -666,8 +666,10 @@ int main(void)
   L2: goto L3;
   L5: opb();
   goto L6;
-  return_label: main_post_func(__retres);
-  return __retres;
+  return_label: {
+                  main_post_func(__retres);
+                  return __retres;
+                }
 }
 
 

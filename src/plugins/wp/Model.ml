@@ -28,19 +28,19 @@ type model = {
   id : string ; (* Identifier Basename for Model (unique) *)
   descr : string ; (* Title of the Model (for pretty) *)
   emitter : Emitter.t ;
-  separation : separation ;
+  hypotheses : hypotheses ;
   mutable tuning : tuning list ;
 }
 
 and tuning = unit -> unit
-and separation = Kernel_function.t -> Separation.clause list
+and hypotheses = Kernel_function.t -> MemoryContext.clause list
 
-let nosep (_kf) = []
+let nohyp (_kf) = []
 let repr = {
   id = "?model" ; descr = "?model" ;
   emitter = Emitter.kernel ;
   tuning = [ fun () -> () ] ;
-  separation = nosep ;
+  hypotheses = nohyp ;
 }
 
 module D = Datatype.Make_with_collections(struct
@@ -84,7 +84,7 @@ end
 let find ~id = MODELS.find id
 let iter f = MODELS.iter f
 
-let register ~id ?(descr=id) ?(tuning=[]) ?(separation=nosep) () =
+let register ~id ?(descr=id) ?(tuning=[]) ?(hypotheses=nohyp) () =
   if MODELS.mem id then
     Wp_parameters.fatal "Duplicate model '%s'" id ;
   let emitter =
@@ -98,14 +98,14 @@ let register ~id ?(descr=id) ?(tuning=[]) ?(separation=nosep) () =
     descr ;
     emitter ;
     tuning ;
-    separation ;
+    hypotheses ;
   } in
   MODELS.add model ; model
 
 let get_id m = m.id
 let get_descr m = m.descr
-let get_separation m = m.separation
-  
+let get_hypotheses m = m.hypotheses
+
 type scope = Kernel_function.t option
 let scope : scope Context.value = Context.create "Wp.Scope"
 let model : model Context.value = Context.create "Wp.Model"
@@ -232,7 +232,7 @@ struct
       e.index <- MAP.remove k e.index ;
       e.lock <- SET.remove k e.lock ;
     end
-  
+
   let mem k = let e = entries () in MAP.mem k e.index || SET.mem k e.lock
   let find k = let e = entries () in MAP.find k e.index
 
@@ -338,7 +338,7 @@ struct
       e.index <- MAP.remove k e.index ;
       e.lock <- SET.remove k e.lock ;
     end
-  
+
   let mem k = let e = entries () in MAP.mem k e.index || SET.mem k e.lock
 
   let find k = let e = entries () in MAP.find k e.index
@@ -366,7 +366,7 @@ struct
       e.index <- MAP.add k d e.index ;
       fire k d ;
     end
-  
+
   let memoize f k =
     let e = entries () in
     try MAP.find k e.index

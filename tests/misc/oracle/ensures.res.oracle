@@ -1,12 +1,12 @@
 [kernel] Parsing tests/misc/ensures.i (no preprocessing)
-[value] Analyzing a complete application starting at main
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing a complete application starting at main
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   
-[value:alarm] tests/misc/ensures.i:4: Warning: 
+[eva:alarm] tests/misc/ensures.i:4: Warning: 
   function main: postcondition got status invalid.
-[value] done for function main
+[eva] done for function main
 [kernel] main: behavior default!
   **NOT** VALID according to Frama-C kernel (under hypotheses)
-[kernel] main: behavior default! **NOT** VALID according to Value (under hypotheses)
+[kernel] main: behavior default! **NOT** VALID according to Eva (under hypotheses)

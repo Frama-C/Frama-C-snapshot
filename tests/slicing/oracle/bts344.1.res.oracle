@@ -1,18 +1,18 @@
 [kernel] Parsing tests/slicing/bts344.i (no preprocessing)
 [slicing] slicing requests in progress...
-[value] Analyzing a complete application starting at main_bis
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing a complete application starting at main_bis
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   X ∈ {0}
   Y ∈ {0}
-[value] computing for function k <- main_bis.
+[eva] computing for function k <- main_bis.
   Called from tests/slicing/bts344.i:32.
-[value] tests/slicing/bts344.i:9: function k: postcondition got status valid.
-[value] Recording results for k
-[value] Done for function k
-[value] Recording results for main_bis
-[value] done for function main_bis
+[eva] tests/slicing/bts344.i:9: function k: postcondition got status valid.
+[eva] Recording results for k
+[eva] Done for function k
+[eva] Recording results for main_bis
+[eva] done for function main_bis
 [slicing] initializing slicing ...
 [slicing] interpreting slicing requests from the command line...
 [pdg] computing for function main_bis

@@ -1,160 +1,159 @@
 [kernel] Parsing tests/value/split_return.i (no preprocessing)
-[value] Warning: ignoring non-existing function 'NON_EXISTING'.
-[value] Splitting return states on:
+[eva] Warning: ignoring non-existing function 'NON_EXISTING'.
+[eva] Splitting return states on:
   \return(f2) == 0 (user)
   \return(f3) == -2, -4 (user)
   \return(f4) == 4 (user)
   \return(f5) == -2 (user)
-[value] Analyzing a complete application starting at main
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing a complete application starting at main
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   i2 ∈ [--..--]
   i3 ∈ [--..--]
   i4 ∈ [--..--]
   i5 ∈ [--..--]
   v ∈ [--..--]
   v7 ∈ {0}
-[value] computing for function main1 <- main.
+[eva] computing for function main1 <- main.
   Called from tests/value/split_return.i:176.
-[value] computing for function init <- main1 <- main.
+[eva] computing for function init <- main1 <- main.
   Called from tests/value/split_return.i:17.
-[value] using specification for function init
-[value] Done for function init
-[value] Recording results for main1
-[value] Done for function main1
-[value] computing for function main2 <- main.
+[eva] using specification for function init
+[eva] Done for function init
+[eva] Recording results for main1
+[eva] Done for function main1
+[eva] computing for function main2 <- main.
   Called from tests/value/split_return.i:177.
-[value] computing for function f2 <- main2 <- main.
+[eva] computing for function f2 <- main2 <- main.
   Called from tests/value/split_return.i:48.
-[value] Recording results for f2
-[value] Done for function f2
-[value] tests/value/split_return.i:49: Frama_C_show_each_f2: {5; 7}, {5}
-[value] tests/value/split_return.i:49: Frama_C_show_each_f2: {0}, {0}
-[value] tests/value/split_return.i:51: assertion got status valid.
-[value] tests/value/split_return.i:53: Frama_C_show_each_f2_2: {5; 7}, {5}
-[value] tests/value/split_return.i:54: assertion got status valid.
-[value] Recording results for main2
-[value] Done for function main2
-[value] computing for function main3 <- main.
+[eva] Recording results for f2
+[eva] Done for function f2
+[eva] tests/value/split_return.i:49: Frama_C_show_each_f2: {5; 7}, {5}
+[eva] tests/value/split_return.i:49: Frama_C_show_each_f2: {0}, {0}
+[eva] tests/value/split_return.i:51: assertion got status valid.
+[eva] tests/value/split_return.i:53: Frama_C_show_each_f2_2: {5; 7}, {5}
+[eva] tests/value/split_return.i:54: assertion got status valid.
+[eva] Recording results for main2
+[eva] Done for function main2
+[eva] computing for function main3 <- main.
   Called from tests/value/split_return.i:178.
-[value] computing for function f3 <- main3 <- main.
+[eva] computing for function f3 <- main3 <- main.
   Called from tests/value/split_return.i:73.
-[value] tests/value/split_return.i:69: 
-  f3: cannot properly split on \result == -2
-[value] Recording results for f3
-[value] Done for function f3
-[value] tests/value/split_return.i:74: Frama_C_show_each_f3: {-2; 7}, {0; 5}
-[value:alarm] tests/value/split_return.i:76: Warning: 
+[eva] tests/value/split_return.i:69: f3: cannot properly split on \result == -2
+[eva] Recording results for f3
+[eva] Done for function f3
+[eva] tests/value/split_return.i:74: Frama_C_show_each_f3: {-2; 7}, {0; 5}
+[eva:alarm] tests/value/split_return.i:76: Warning: 
   assertion got status unknown.
-[value:alarm] tests/value/split_return.i:78: Warning: 
+[eva:alarm] tests/value/split_return.i:78: Warning: 
   assertion got status unknown.
-[value] Recording results for main3
-[value] Done for function main3
-[value] computing for function main4 <- main.
+[eva] Recording results for main3
+[eva] Done for function main3
+[eva] computing for function main4 <- main.
   Called from tests/value/split_return.i:179.
-[value] computing for function f4 <- main4 <- main.
+[eva] computing for function f4 <- main4 <- main.
   Called from tests/value/split_return.i:94.
-[value] Recording results for f4
-[value] Done for function f4
-[value] tests/value/split_return.i:95: Frama_C_show_each_f4: {4; 7}, {0; 5}
-[value:alarm] tests/value/split_return.i:97: Warning: 
+[eva] Recording results for f4
+[eva] Done for function f4
+[eva] tests/value/split_return.i:95: Frama_C_show_each_f4: {4; 7}, {0; 5}
+[eva:alarm] tests/value/split_return.i:97: Warning: 
   assertion got status unknown.
-[value:alarm] tests/value/split_return.i:99: Warning: 
+[eva:alarm] tests/value/split_return.i:99: Warning: 
   assertion got status unknown.
-[value] Recording results for main4
-[value] Done for function main4
-[value] computing for function main5 <- main.
+[eva] Recording results for main4
+[eva] Done for function main4
+[eva] computing for function main5 <- main.
   Called from tests/value/split_return.i:180.
-[value] computing for function f5 <- main5 <- main.
+[eva] computing for function f5 <- main5 <- main.
   Called from tests/value/split_return.i:117.
-[value] Recording results for f5
-[value] Done for function f5
-[value] tests/value/split_return.i:118: Frama_C_show_each_f5: {7}, {5}
-[value] tests/value/split_return.i:118: Frama_C_show_each_f5: {-2}, {0}
-[value] tests/value/split_return.i:120: assertion got status valid.
-[value] tests/value/split_return.i:122: assertion got status valid.
-[value] Recording results for main5
-[value] Done for function main5
-[value] computing for function main6 <- main.
+[eva] Recording results for f5
+[eva] Done for function f5
+[eva] tests/value/split_return.i:118: Frama_C_show_each_f5: {7}, {5}
+[eva] tests/value/split_return.i:118: Frama_C_show_each_f5: {-2}, {0}
+[eva] tests/value/split_return.i:120: assertion got status valid.
+[eva] tests/value/split_return.i:122: assertion got status valid.
+[eva] Recording results for main5
+[eva] Done for function main5
+[eva] computing for function main6 <- main.
   Called from tests/value/split_return.i:181.
-[value] computing for function f6 <- main6 <- main.
+[eva] computing for function f6 <- main6 <- main.
   Called from tests/value/split_return.i:135.
-[value:alarm] tests/value/split_return.i:130: Warning: 
+[eva:alarm] tests/value/split_return.i:130: Warning: 
   assertion got status unknown.
-[value] Recording results for f6
-[value] Done for function f6
-[value] Recording results for main6
-[value] Done for function main6
-[value] computing for function main7 <- main.
+[eva] Recording results for f6
+[eva] Done for function f6
+[eva] Recording results for main6
+[eva] Done for function main6
+[eva] computing for function main7 <- main.
   Called from tests/value/split_return.i:182.
-[value] computing for function f7 <- main7 <- main.
+[eva] computing for function f7 <- main7 <- main.
   Called from tests/value/split_return.i:148.
-[value] Recording results for f7
-[value] Done for function f7
-[value] tests/value/split_return.i:153: 
+[eva] Recording results for f7
+[eva] Done for function f7
+[eva] tests/value/split_return.i:153: 
   Frama_C_show_each_NULL: {{ NULL ; &v }}, {0; 1}
-[value] Recording results for main7
-[value] Done for function main7
-[value] computing for function main8 <- main.
+[eva] Recording results for main7
+[eva] Done for function main7
+[eva] computing for function main8 <- main.
   Called from tests/value/split_return.i:183.
-[value] computing for function f8 <- main8 <- main.
+[eva] computing for function f8 <- main8 <- main.
   Called from tests/value/split_return.i:171.
-[value] Recording results for f8
-[value] Done for function f8
-[value] tests/value/split_return.i:172: 
+[eva] Recording results for f8
+[eva] Done for function f8
+[eva] tests/value/split_return.i:172: 
   Frama_C_show_each_then8: {-1; 4}, {{ NULL ; &x }}
-[value] Recording results for main8
-[value] Done for function main8
-[value] Recording results for main
-[value] done for function main
-[value] ====== VALUES COMPUTED ======
-[value:final-states] Values at end of function f2:
+[eva] Recording results for main8
+[eva] Done for function main8
+[eva] Recording results for main
+[eva] done for function main
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function f2:
   i2 ∈ {0; 5}
   __retres ∈ {0; 5; 7}
-[value:final-states] Values at end of function f3:
+[eva:final-states] Values at end of function f3:
   i3 ∈ {0; 5}
   res1 ∈ {-2; 7}
   res2 ∈ {-2; 7}
-[value:final-states] Values at end of function f4:
+[eva:final-states] Values at end of function f4:
   i4 ∈ {0; 5}
   __retres ∈ {4; 7}
-[value:final-states] Values at end of function f5:
+[eva:final-states] Values at end of function f5:
   i5 ∈ {0; 5}
   res ∈ {-2; 7}
-[value:final-states] Values at end of function f6:
+[eva:final-states] Values at end of function f6:
   i ∈ [-5..5]
-[value:final-states] Values at end of function f7:
+[eva:final-states] Values at end of function f7:
   v7 ∈ {0; 1}
   __retres ∈ {{ NULL ; &v }}
-[value:final-states] Values at end of function f8:
+[eva:final-states] Values at end of function f8:
   x ∈ {-1; 4}
   __retres ∈ {{ NULL ; &x }}
-[value:final-states] Values at end of function main1:
+[eva:final-states] Values at end of function main1:
   x ∈ [0..2147483649]
   r ∈ {0; 1}
-[value:final-states] Values at end of function main2:
+[eva:final-states] Values at end of function main2:
   i2 ∈ {0; 5}
   r ∈ {0; 5; 7}
-[value:final-states] Values at end of function main3:
+[eva:final-states] Values at end of function main3:
   i3 ∈ {0; 5}
   r ∈ {-2; 7}
-[value:final-states] Values at end of function main4:
+[eva:final-states] Values at end of function main4:
   i4 ∈ {0; 5}
   r ∈ {4; 7}
-[value:final-states] Values at end of function main5:
+[eva:final-states] Values at end of function main5:
   i5 ∈ {0; 5}
   r ∈ {-2; 7}
-[value:final-states] Values at end of function main6:
+[eva:final-states] Values at end of function main6:
   
-[value:final-states] Values at end of function main7:
+[eva:final-states] Values at end of function main7:
   v7 ∈ {0; 1}
   p ∈ {{ NULL ; &v }}
-[value:final-states] Values at end of function main8:
+[eva:final-states] Values at end of function main8:
   x ∈ {-1; 4}
   pf ∈ {{ &f8 }}
   p ∈ {{ NULL ; &x }}
-[value:final-states] Values at end of function main:
+[eva:final-states] Values at end of function main:
   i2 ∈ {0; 5}
   i3 ∈ {0; 5}
   i4 ∈ {0; 5}
@@ -329,53 +328,53 @@
 
 [  Dead   ] Assertion (file tests/value/split_return.i, line 27)
             Locally valid, but unreachable.
-            By Value because:
+            By Eva because:
              - Unreachable program point (file tests/value/split_return.i, line 27)
 [Unreachable] Unreachable program point (file tests/value/split_return.i, line 27)
-            by Value.
+            by Eva.
 
 --------------------------------------------------------------------------------
 --- Properties of Function 'main2'
 --------------------------------------------------------------------------------
 
 [  Valid  ] Assertion (file tests/value/split_return.i, line 51)
-            by Value.
+            by Eva.
 [  Valid  ] Assertion (file tests/value/split_return.i, line 54)
-            by Value.
+            by Eva.
 
 --------------------------------------------------------------------------------
 --- Properties of Function 'main3'
 --------------------------------------------------------------------------------
 
 [    -    ] Assertion (file tests/value/split_return.i, line 76)
-            tried with Value.
+            tried with Eva.
 [    -    ] Assertion (file tests/value/split_return.i, line 78)
-            tried with Value.
+            tried with Eva.
 
 --------------------------------------------------------------------------------
 --- Properties of Function 'main4'
 --------------------------------------------------------------------------------
 
 [    -    ] Assertion (file tests/value/split_return.i, line 97)
-            tried with Value.
+            tried with Eva.
 [    -    ] Assertion (file tests/value/split_return.i, line 99)
-            tried with Value.
+            tried with Eva.
 
 --------------------------------------------------------------------------------
 --- Properties of Function 'main5'
 --------------------------------------------------------------------------------
 
 [  Valid  ] Assertion (file tests/value/split_return.i, line 120)
-            by Value.
+            by Eva.
 [  Valid  ] Assertion (file tests/value/split_return.i, line 122)
-            by Value.
+            by Eva.
 
 --------------------------------------------------------------------------------
 --- Properties of Function 'f6'
 --------------------------------------------------------------------------------
 
 [    -    ] Assertion (file tests/value/split_return.i, line 130)
-            tried with Value.
+            tried with Eva.
 
 --------------------------------------------------------------------------------
 --- Status Report Summary

@@ -1,0 +1,3742 @@
+[kernel] Parsing tests/builtins/malloc-optimistic.c (with preprocessing)
+[eva] Analyzing a complete application starting at main
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
+  v ∈ [--..--]
+[eva] computing for function main1 <- main.
+  Called from tests/builtins/malloc-optimistic.c:135.
+[eva] tests/builtins/malloc-optimistic.c:16: Frama_C_show_each_1_1: {0}
+[eva] tests/builtins/malloc-optimistic.c:16: Frama_C_show_each_1_1: {1}
+[eva] tests/builtins/malloc-optimistic.c:17: Call to builtin malloc
+[eva] tests/builtins/malloc-optimistic.c:17: 
+  allocating variable __malloc_main1_l17
+[eva] tests/builtins/malloc-optimistic.c:17: Call to builtin malloc
+[eva:malloc] tests/builtins/malloc-optimistic.c:17: 
+  resizing variable `__malloc_main1_l17' (0..31) to fit 0..63
+[eva] tests/builtins/malloc-optimistic.c:18: Frama_C_show_each_1_2: {0}
+[eva] tests/builtins/malloc-optimistic.c:18: Frama_C_show_each_1_2: {1}
+[eva:alarm] tests/builtins/malloc-optimistic.c:19: Warning: 
+  out of bounds write. assert \valid(p + i);
+[eva] Recording results for main1
+[eva] Done for function main1
+[eva] tests/builtins/malloc-optimistic.c:136: Call to builtin free
+[eva:malloc] tests/builtins/malloc-optimistic.c:136: 
+  strong free on bases: {__malloc_main1_l17}
+[eva] computing for function main2 <- main.
+  Called from tests/builtins/malloc-optimistic.c:137.
+[eva] tests/builtins/malloc-optimistic.c:26: Frama_C_show_each_2_1: {2}
+[eva] tests/builtins/malloc-optimistic.c:26: Frama_C_show_each_2_1: {1}
+[eva] tests/builtins/malloc-optimistic.c:27: Call to builtin malloc
+[eva] tests/builtins/malloc-optimistic.c:27: 
+  allocating variable __malloc_main2_l27
+[eva] tests/builtins/malloc-optimistic.c:27: Call to builtin malloc
+[eva:malloc] tests/builtins/malloc-optimistic.c:27: 
+  resizing variable `__malloc_main2_l27' (0..95) to fit 0..63
+[eva] tests/builtins/malloc-optimistic.c:28: Frama_C_show_each_2_2: {2}
+[eva] tests/builtins/malloc-optimistic.c:28: Frama_C_show_each_2_2: {1}
+[eva:alarm] tests/builtins/malloc-optimistic.c:29: Warning: 
+  out of bounds write. assert \valid(p + i);
+[eva] Recording results for main2
+[eva] Done for function main2
+[eva] tests/builtins/malloc-optimistic.c:138: Call to builtin free
+[eva:malloc] tests/builtins/malloc-optimistic.c:138: 
+  strong free on bases: {__malloc_main2_l27}
+[eva] computing for function main3 <- main.
+  Called from tests/builtins/malloc-optimistic.c:139.
+[eva] computing for function main_3_aux <- main3 <- main.
+  Called from tests/builtins/malloc-optimistic.c:48.
+[eva] tests/builtins/malloc-optimistic.c:34: Call to builtin malloc
+[eva] tests/builtins/malloc-optimistic.c:34: 
+  allocating variable __malloc_main_3_aux_l34
+[eva] Recording results for main_3_aux
+[eva] Done for function main_3_aux
+[eva] computing for function main_3_aux <- main3 <- main.
+  Called from tests/builtins/malloc-optimistic.c:48.
+[eva] tests/builtins/malloc-optimistic.c:34: Call to builtin malloc
+[eva:malloc] tests/builtins/malloc-optimistic.c:34: 
+  resizing variable `__malloc_main_3_aux_l34' (0..31) to fit 0..63
+[eva:alarm] tests/builtins/malloc-optimistic.c:35: Warning: 
+  out of bounds write. assert \valid(p + i);
+[eva] Recording results for main_3_aux
+[eva] Done for function main_3_aux
+[eva] Recording results for main3
+[eva] Done for function main3
+[eva] tests/builtins/malloc-optimistic.c:140: Call to builtin free
+[eva:malloc] tests/builtins/malloc-optimistic.c:140: 
+  strong free on bases: {__malloc_main_3_aux_l34}
+[eva] computing for function main4 <- main.
+  Called from tests/builtins/malloc-optimistic.c:141.
+[eva] computing for function main_4_aux <- main4 <- main.
+  Called from tests/builtins/malloc-optimistic.c:56.
+[eva] tests/builtins/malloc-optimistic.c:40: Call to builtin malloc
+[eva] tests/builtins/malloc-optimistic.c:40: 
+  allocating variable __malloc_main_4_aux_l40
+[eva] Recording results for main_4_aux
+[eva] Done for function main_4_aux
+[eva] computing for function main_4_aux <- main4 <- main.
+  Called from tests/builtins/malloc-optimistic.c:56.
+[eva] tests/builtins/malloc-optimistic.c:40: Call to builtin malloc
+[eva:malloc] tests/builtins/malloc-optimistic.c:40: 
+  resizing variable `__malloc_main_4_aux_l40' (0..95) to fit 0..63
+[eva] Recording results for main_4_aux
+[eva] Done for function main_4_aux
+[eva] Recording results for main4
+[eva] Done for function main4
+[eva] tests/builtins/malloc-optimistic.c:142: Call to builtin free
+[eva:malloc] tests/builtins/malloc-optimistic.c:142: 
+  strong free on bases: {__malloc_main_4_aux_l40}
+[eva] computing for function main5 <- main.
+  Called from tests/builtins/malloc-optimistic.c:144.
+[eva] tests/builtins/malloc-optimistic.c:64: Call to builtin malloc
+[eva] tests/builtins/malloc-optimistic.c:64: 
+  allocating variable __malloc_main5_l64
+[eva] tests/builtins/malloc-optimistic.c:64: Call to builtin malloc
+[eva:malloc] tests/builtins/malloc-optimistic.c:64: 
+  resizing variable `__malloc_main5_l64' (0..31) to fit 0..63
+[eva:alarm] tests/builtins/malloc-optimistic.c:65: Warning: 
+  out of bounds write. assert \valid(p + i);
+[eva:alarm] tests/builtins/malloc-optimistic.c:66: Warning: 
+  out of bounds read. assert \valid_read(p + i);
+[eva] tests/builtins/malloc-optimistic.c:67: 
+  Frama_C_dump_each:
+  # Cvalue domain:
+  v ∈ [--..--]
+  i ∈ {0}
+  p ∈ {{ &__malloc_main5_l64[0] }}
+  j ∈ {0}
+  k ∈ {-2}
+  p ∈ ESCAPINGADDR
+  __retres ∈ UNINITIALIZED
+  __malloc_main5_l64[0] ∈ {0}
+  ==END OF DUMP==
+[eva] tests/builtins/malloc-optimistic.c:67: 
+  Frama_C_dump_each:
+  # Cvalue domain:
+  v ∈ [--..--]
+  i ∈ {1}
+  p ∈ {{ &__malloc_main5_l64[0] }}
+  j ∈ {0}
+  k ∈ {-2}
+  p ∈ ESCAPINGADDR
+  __retres ∈ UNINITIALIZED
+  __malloc_main5_l64[0] ∈ UNINITIALIZED
+                    [1] ∈ {0}
+  ==END OF DUMP==
+[eva] tests/builtins/malloc-optimistic.c:68: Call to builtin free
+[eva:malloc] tests/builtins/malloc-optimistic.c:68: 
+  strong free on bases: {__malloc_main5_l64}
+[eva] tests/builtins/malloc-optimistic.c:68: Call to builtin free
+[eva:malloc] tests/builtins/malloc-optimistic.c:68: 
+  strong free on bases: {__malloc_main5_l64}
+[eva] tests/builtins/malloc-optimistic.c:64: Call to builtin malloc
+[eva:malloc] tests/builtins/malloc-optimistic.c:64: 
+  resizing variable `__malloc_main5_l64' (0..31/63) to fit 0..63
+[eva] tests/builtins/malloc-optimistic.c:64: Call to builtin malloc
+[eva:malloc] tests/builtins/malloc-optimistic.c:64: 
+  resizing variable `__malloc_main5_l64' (0..31/63) to fit 0..95
+[eva] tests/builtins/malloc-optimistic.c:67: 
+  Frama_C_dump_each:
+  # Cvalue domain:
+  v ∈ [--..--]
+  i ∈ {1}
+  p ∈ {{ &__malloc_main5_l64[0] }}
+  j ∈ {1}
+  k ∈ {-1}
+  p ∈ ESCAPINGADDR
+  __retres ∈ UNINITIALIZED
+  __malloc_main5_l64[0] ∈ UNINITIALIZED
+                    [1] ∈ {1}
+  ==END OF DUMP==
+[eva] tests/builtins/malloc-optimistic.c:67: 
+  Frama_C_dump_each:
+  # Cvalue domain:
+  v ∈ [--..--]
+  i ∈ {2}
+  p ∈ {{ &__malloc_main5_l64[0] }}
+  j ∈ {1}
+  k ∈ {-1}
+  p ∈ ESCAPINGADDR
+  __retres ∈ UNINITIALIZED
+  __malloc_main5_l64[0..1] ∈ UNINITIALIZED
+                    [2] ∈ {1}
+  ==END OF DUMP==
+[eva] tests/builtins/malloc-optimistic.c:68: Call to builtin free
+[eva:malloc] tests/builtins/malloc-optimistic.c:68: 
+  strong free on bases: {__malloc_main5_l64}
+[eva] tests/builtins/malloc-optimistic.c:68: Call to builtin free
+[eva:malloc] tests/builtins/malloc-optimistic.c:68: 
+  strong free on bases: {__malloc_main5_l64}
+[eva] tests/builtins/malloc-optimistic.c:64: Call to builtin malloc
+[eva:malloc] tests/builtins/malloc-optimistic.c:64: 
+  resizing variable `__malloc_main5_l64' (0..31/95) to fit 0..95
+[eva] tests/builtins/malloc-optimistic.c:64: Call to builtin malloc
+[eva:malloc] tests/builtins/malloc-optimistic.c:64: 
+  resizing variable `__malloc_main5_l64' (0..31/95) to fit 0..127
+[eva] tests/builtins/malloc-optimistic.c:67: 
+  Frama_C_dump_each:
+  # Cvalue domain:
+  v ∈ [--..--]
+  i ∈ {2}
+  p ∈ {{ &__malloc_main5_l64[0] }}
+  j ∈ {2}
+  k ∈ {0}
+  p ∈ ESCAPINGADDR
+  __retres ∈ UNINITIALIZED
+  __malloc_main5_l64[0..1] ∈ UNINITIALIZED
+                    [2] ∈ {2}
+  ==END OF DUMP==
+[eva] tests/builtins/malloc-optimistic.c:67: 
+  Frama_C_dump_each:
+  # Cvalue domain:
+  v ∈ [--..--]
+  i ∈ {3}
+  p ∈ {{ &__malloc_main5_l64[0] }}
+  j ∈ {2}
+  k ∈ {0}
+  p ∈ ESCAPINGADDR
+  __retres ∈ UNINITIALIZED
+  __malloc_main5_l64[0..2] ∈ UNINITIALIZED
+                    [3] ∈ {2}
+  ==END OF DUMP==
+[eva] tests/builtins/malloc-optimistic.c:68: Call to builtin free
+[eva:malloc] tests/builtins/malloc-optimistic.c:68: 
+  strong free on bases: {__malloc_main5_l64}
+[eva] tests/builtins/malloc-optimistic.c:68: Call to builtin free
+[eva:malloc] tests/builtins/malloc-optimistic.c:68: 
+  strong free on bases: {__malloc_main5_l64}
+[eva] tests/builtins/malloc-optimistic.c:64: Call to builtin malloc
+[eva:malloc] tests/builtins/malloc-optimistic.c:64: 
+  resizing variable `__malloc_main5_l64' (0..31/127) to fit 0..127
+[eva] tests/builtins/malloc-optimistic.c:64: Call to builtin malloc
+[eva:malloc] tests/builtins/malloc-optimistic.c:64: 
+  resizing variable `__malloc_main5_l64' (0..31/127) to fit 0..159
+[eva] tests/builtins/malloc-optimistic.c:67: 
+  Frama_C_dump_each:
+  # Cvalue domain:
+  v ∈ [--..--]
+  i ∈ {3}
+  p ∈ {{ &__malloc_main5_l64[0] }}
+  j ∈ {3}
+  k ∈ {1}
+  p ∈ ESCAPINGADDR
+  __retres ∈ UNINITIALIZED
+  __malloc_main5_l64[0..2] ∈ UNINITIALIZED
+                    [3] ∈ {3}
+  ==END OF DUMP==
+[eva] tests/builtins/malloc-optimistic.c:67: 
+  Frama_C_dump_each:
+  # Cvalue domain:
+  v ∈ [--..--]
+  i ∈ {4}
+  p ∈ {{ &__malloc_main5_l64[0] }}
+  j ∈ {3}
+  k ∈ {1}
+  p ∈ ESCAPINGADDR
+  __retres ∈ UNINITIALIZED
+  __malloc_main5_l64[0..3] ∈ UNINITIALIZED
+                    [4] ∈ {3}
+  ==END OF DUMP==
+[eva] tests/builtins/malloc-optimistic.c:68: Call to builtin free
+[eva:malloc] tests/builtins/malloc-optimistic.c:68: 
+  strong free on bases: {__malloc_main5_l64}
+[eva] tests/builtins/malloc-optimistic.c:68: Call to builtin free
+[eva:malloc] tests/builtins/malloc-optimistic.c:68: 
+  strong free on bases: {__malloc_main5_l64}
+[eva] tests/builtins/malloc-optimistic.c:64: Call to builtin malloc
+[eva:malloc] tests/builtins/malloc-optimistic.c:64: 
+  resizing variable `__malloc_main5_l64' (0..31/159) to fit 0..159
+[eva] tests/builtins/malloc-optimistic.c:64: Call to builtin malloc
+[eva:malloc] tests/builtins/malloc-optimistic.c:64: 
+  resizing variable `__malloc_main5_l64' (0..31/159) to fit 0..191
+[eva] tests/builtins/malloc-optimistic.c:67: 
+  Frama_C_dump_each:
+  # Cvalue domain:
+  v ∈ [--..--]
+  i ∈ {4}
+  p ∈ {{ &__malloc_main5_l64[0] }}
+  j ∈ {4}
+  k ∈ {2}
+  p ∈ ESCAPINGADDR
+  __retres ∈ UNINITIALIZED
+  __malloc_main5_l64[0..3] ∈ UNINITIALIZED
+                    [4] ∈ {4}
+  ==END OF DUMP==
+[eva] tests/builtins/malloc-optimistic.c:67: 
+  Frama_C_dump_each:
+  # Cvalue domain:
+  v ∈ [--..--]
+  i ∈ {5}
+  p ∈ {{ &__malloc_main5_l64[0] }}
+  j ∈ {4}
+  k ∈ {2}
+  p ∈ ESCAPINGADDR
+  __retres ∈ UNINITIALIZED
+  __malloc_main5_l64[0..4] ∈ UNINITIALIZED
+                    [5] ∈ {4}
+  ==END OF DUMP==
+[eva] tests/builtins/malloc-optimistic.c:68: Call to builtin free
+[eva:malloc] tests/builtins/malloc-optimistic.c:68: 
+  strong free on bases: {__malloc_main5_l64}
+[eva] tests/builtins/malloc-optimistic.c:68: Call to builtin free
+[eva:malloc] tests/builtins/malloc-optimistic.c:68: 
+  strong free on bases: {__malloc_main5_l64}
+[eva] tests/builtins/malloc-optimistic.c:64: Call to builtin malloc
+[eva:malloc] tests/builtins/malloc-optimistic.c:64: 
+  resizing variable `__malloc_main5_l64' (0..31/191) to fit 0..191
+[eva] tests/builtins/malloc-optimistic.c:64: Call to builtin malloc
+[eva:malloc] tests/builtins/malloc-optimistic.c:64: 
+  resizing variable `__malloc_main5_l64' (0..31/191) to fit 0..223
+[eva] tests/builtins/malloc-optimistic.c:67: 
+  Frama_C_dump_each:
+  # Cvalue domain:
+  v ∈ [--..--]
+  i ∈ {5}
+  p ∈ {{ &__malloc_main5_l64[0] }}
+  j ∈ {5}
+  k ∈ {3}
+  p ∈ ESCAPINGADDR
+  __retres ∈ UNINITIALIZED
+  __malloc_main5_l64[0..4] ∈ UNINITIALIZED
+                    [5] ∈ {5}
+  ==END OF DUMP==
+[eva] tests/builtins/malloc-optimistic.c:67: 
+  Frama_C_dump_each:
+  # Cvalue domain:
+  v ∈ [--..--]
+  i ∈ {6}
+  p ∈ {{ &__malloc_main5_l64[0] }}
+  j ∈ {5}
+  k ∈ {3}
+  p ∈ ESCAPINGADDR
+  __retres ∈ UNINITIALIZED
+  __malloc_main5_l64[0..5] ∈ UNINITIALIZED
+                    [6] ∈ {5}
+  ==END OF DUMP==
+[eva] tests/builtins/malloc-optimistic.c:68: Call to builtin free
+[eva:malloc] tests/builtins/malloc-optimistic.c:68: 
+  strong free on bases: {__malloc_main5_l64}
+[eva] tests/builtins/malloc-optimistic.c:68: Call to builtin free
+[eva:malloc] tests/builtins/malloc-optimistic.c:68: 
+  strong free on bases: {__malloc_main5_l64}
+[eva] tests/builtins/malloc-optimistic.c:64: Call to builtin malloc
+[eva:malloc] tests/builtins/malloc-optimistic.c:64: 
+  resizing variable `__malloc_main5_l64' (0..31/223) to fit 0..223
+[eva] tests/builtins/malloc-optimistic.c:64: Call to builtin malloc
+[eva:malloc] tests/builtins/malloc-optimistic.c:64: 
+  resizing variable `__malloc_main5_l64' (0..31/223) to fit 0..255
+[eva] tests/builtins/malloc-optimistic.c:67: 
+  Frama_C_dump_each:
+  # Cvalue domain:
+  v ∈ [--..--]
+  i ∈ {6}
+  p ∈ {{ &__malloc_main5_l64[0] }}
+  j ∈ {6}
+  k ∈ {4}
+  p ∈ ESCAPINGADDR
+  __retres ∈ UNINITIALIZED
+  __malloc_main5_l64[0..5] ∈ UNINITIALIZED
+                    [6] ∈ {6}
+  ==END OF DUMP==
+[eva] tests/builtins/malloc-optimistic.c:67: 
+  Frama_C_dump_each:
+  # Cvalue domain:
+  v ∈ [--..--]
+  i ∈ {7}
+  p ∈ {{ &__malloc_main5_l64[0] }}
+  j ∈ {6}
+  k ∈ {4}
+  p ∈ ESCAPINGADDR
+  __retres ∈ UNINITIALIZED
+  __malloc_main5_l64[0..6] ∈ UNINITIALIZED
+                    [7] ∈ {6}
+  ==END OF DUMP==
+[eva] tests/builtins/malloc-optimistic.c:68: Call to builtin free
+[eva:malloc] tests/builtins/malloc-optimistic.c:68: 
+  strong free on bases: {__malloc_main5_l64}
+[eva] tests/builtins/malloc-optimistic.c:68: Call to builtin free
+[eva:malloc] tests/builtins/malloc-optimistic.c:68: 
+  strong free on bases: {__malloc_main5_l64}
+[eva] tests/builtins/malloc-optimistic.c:64: Call to builtin malloc
+[eva:malloc] tests/builtins/malloc-optimistic.c:64: 
+  resizing variable `__malloc_main5_l64' (0..31/255) to fit 0..255
+[eva] tests/builtins/malloc-optimistic.c:64: Call to builtin malloc
+[eva:malloc] tests/builtins/malloc-optimistic.c:64: 
+  resizing variable `__malloc_main5_l64' (0..31/255) to fit 0..287
+[eva] tests/builtins/malloc-optimistic.c:67: 
+  Frama_C_dump_each:
+  # Cvalue domain:
+  v ∈ [--..--]
+  i ∈ {7}
+  p ∈ {{ &__malloc_main5_l64[0] }}
+  j ∈ {7}
+  k ∈ {5}
+  p ∈ ESCAPINGADDR
+  __retres ∈ UNINITIALIZED
+  __malloc_main5_l64[0..6] ∈ UNINITIALIZED
+                    [7] ∈ {7}
+  ==END OF DUMP==
+[eva] tests/builtins/malloc-optimistic.c:67: 
+  Frama_C_dump_each:
+  # Cvalue domain:
+  v ∈ [--..--]
+  i ∈ {8}
+  p ∈ {{ &__malloc_main5_l64[0] }}
+  j ∈ {7}
+  k ∈ {5}
+  p ∈ ESCAPINGADDR
+  __retres ∈ UNINITIALIZED
+  __malloc_main5_l64[0..7] ∈ UNINITIALIZED
+                    [8] ∈ {7}
+  ==END OF DUMP==
+[eva] tests/builtins/malloc-optimistic.c:68: Call to builtin free
+[eva:malloc] tests/builtins/malloc-optimistic.c:68: 
+  strong free on bases: {__malloc_main5_l64}
+[eva] tests/builtins/malloc-optimistic.c:68: Call to builtin free
+[eva:malloc] tests/builtins/malloc-optimistic.c:68: 
+  strong free on bases: {__malloc_main5_l64}
+[eva] tests/builtins/malloc-optimistic.c:64: Call to builtin malloc
+[eva:malloc] tests/builtins/malloc-optimistic.c:64: 
+  resizing variable `__malloc_main5_l64' (0..31/287) to fit 0..287
+[eva] tests/builtins/malloc-optimistic.c:64: Call to builtin malloc
+[eva:malloc] tests/builtins/malloc-optimistic.c:64: 
+  resizing variable `__malloc_main5_l64' (0..31/287) to fit 0..319
+[eva] tests/builtins/malloc-optimistic.c:67: 
+  Frama_C_dump_each:
+  # Cvalue domain:
+  v ∈ [--..--]
+  i ∈ {8}
+  p ∈ {{ &__malloc_main5_l64[0] }}
+  j ∈ {8}
+  k ∈ {6}
+  p ∈ ESCAPINGADDR
+  __retres ∈ UNINITIALIZED
+  __malloc_main5_l64[0..7] ∈ UNINITIALIZED
+                    [8] ∈ {8}
+  ==END OF DUMP==
+[eva] tests/builtins/malloc-optimistic.c:67: 
+  Frama_C_dump_each:
+  # Cvalue domain:
+  v ∈ [--..--]
+  i ∈ {9}
+  p ∈ {{ &__malloc_main5_l64[0] }}
+  j ∈ {8}
+  k ∈ {6}
+  p ∈ ESCAPINGADDR
+  __retres ∈ UNINITIALIZED
+  __malloc_main5_l64[0..8] ∈ UNINITIALIZED
+                    [9] ∈ {8}
+  ==END OF DUMP==
+[eva] tests/builtins/malloc-optimistic.c:68: Call to builtin free
+[eva:malloc] tests/builtins/malloc-optimistic.c:68: 
+  strong free on bases: {__malloc_main5_l64}
+[eva] tests/builtins/malloc-optimistic.c:68: Call to builtin free
+[eva:malloc] tests/builtins/malloc-optimistic.c:68: 
+  strong free on bases: {__malloc_main5_l64}
+[eva] tests/builtins/malloc-optimistic.c:64: Call to builtin malloc
+[eva:malloc] tests/builtins/malloc-optimistic.c:64: 
+  resizing variable `__malloc_main5_l64' (0..31/319) to fit 0..319
+[eva] tests/builtins/malloc-optimistic.c:64: Call to builtin malloc
+[eva:malloc] tests/builtins/malloc-optimistic.c:64: 
+  resizing variable `__malloc_main5_l64' (0..31/319) to fit 0..351
+[eva] tests/builtins/malloc-optimistic.c:67: 
+  Frama_C_dump_each:
+  # Cvalue domain:
+  v ∈ [--..--]
+  i ∈ {9}
+  p ∈ {{ &__malloc_main5_l64[0] }}
+  j ∈ {9}
+  k ∈ {7}
+  p ∈ ESCAPINGADDR
+  __retres ∈ UNINITIALIZED
+  __malloc_main5_l64[0..8] ∈ UNINITIALIZED
+                    [9] ∈ {9}
+  ==END OF DUMP==
+[eva] tests/builtins/malloc-optimistic.c:67: 
+  Frama_C_dump_each:
+  # Cvalue domain:
+  v ∈ [--..--]
+  i ∈ {10}
+  p ∈ {{ &__malloc_main5_l64[0] }}
+  j ∈ {9}
+  k ∈ {7}
+  p ∈ ESCAPINGADDR
+  __retres ∈ UNINITIALIZED
+  __malloc_main5_l64[0..9] ∈ UNINITIALIZED
+                    [10] ∈ {9}
+  ==END OF DUMP==
+[eva] tests/builtins/malloc-optimistic.c:68: Call to builtin free
+[eva:malloc] tests/builtins/malloc-optimistic.c:68: 
+  strong free on bases: {__malloc_main5_l64}
+[eva] tests/builtins/malloc-optimistic.c:68: Call to builtin free
+[eva:malloc] tests/builtins/malloc-optimistic.c:68: 
+  strong free on bases: {__malloc_main5_l64}
+[eva] Recording results for main5
+[eva] Done for function main5
+[eva] computing for function main6 <- main.
+  Called from tests/builtins/malloc-optimistic.c:145.
+[eva] tests/builtins/malloc-optimistic.c:77: Call to builtin malloc
+[eva] tests/builtins/malloc-optimistic.c:77: 
+  allocating variable __malloc_main6_l77
+[eva] tests/builtins/malloc-optimistic.c:77: Call to builtin malloc
+[eva:malloc] tests/builtins/malloc-optimistic.c:77: 
+  resizing variable `__malloc_main6_l77' (0..31) to fit 0..63
+[eva:alarm] tests/builtins/malloc-optimistic.c:78: Warning: 
+  out of bounds write. assert \valid(p + i);
+[eva:alarm] tests/builtins/malloc-optimistic.c:79: Warning: 
+  out of bounds read. assert \valid_read(p + i);
+[eva] tests/builtins/malloc-optimistic.c:80: 
+  Frama_C_dump_each:
+  # Cvalue domain:
+  v ∈ [--..--]
+  i ∈ {0}
+  p ∈ {{ &__malloc_main6_l77[0] }}
+  j ∈ {0}
+  k ∈ {-2}
+  p ∈ ESCAPINGADDR
+  __retres ∈ UNINITIALIZED
+  __malloc_main6_l77[0] ∈ {0}
+  ==END OF DUMP==
+[eva] tests/builtins/malloc-optimistic.c:80: 
+  Frama_C_dump_each:
+  # Cvalue domain:
+  v ∈ [--..--]
+  i ∈ {1}
+  p ∈ {{ &__malloc_main6_l77[0] }}
+  j ∈ {0}
+  k ∈ {-2}
+  p ∈ ESCAPINGADDR
+  __retres ∈ UNINITIALIZED
+  __malloc_main6_l77[0] ∈ UNINITIALIZED
+                    [1] ∈ {0}
+  ==END OF DUMP==
+[eva] tests/builtins/malloc-optimistic.c:81: Call to builtin free
+[eva:malloc] tests/builtins/malloc-optimistic.c:81: 
+  strong free on bases: {__malloc_main6_l77}
+[eva] tests/builtins/malloc-optimistic.c:77: Call to builtin malloc
+[eva:malloc:weak] tests/builtins/malloc-optimistic.c:77: 
+  marking variable `__malloc_main6_l77' as weak
+[eva:malloc] tests/builtins/malloc-optimistic.c:77: 
+  resizing variable `__malloc_w_main6_l77' (0..31/63) to fit 0..63
+[eva] tests/builtins/malloc-optimistic.c:77: Call to builtin malloc
+[eva:malloc] tests/builtins/malloc-optimistic.c:77: 
+  resizing variable `__malloc_w_main6_l77' (0..31/63) to fit 0..95
+[eva:alarm] tests/builtins/malloc-optimistic.c:79: Warning: 
+  accessing uninitialized left-value. assert \initialized(p + i);
+[eva] tests/builtins/malloc-optimistic.c:80: 
+  Frama_C_dump_each:
+  # Cvalue domain:
+  v ∈ [--..--]
+  i ∈ {1}
+  p ∈ {{ &__malloc_w_main6_l77[0] }}
+  j ∈ {1}
+  k ∈ {-2; -1}
+  p ∈ ESCAPINGADDR
+  __retres ∈ UNINITIALIZED
+  __malloc_w_main6_l77[0] ∈ UNINITIALIZED
+                      [1] ∈ {0; 1} or UNINITIALIZED
+  ==END OF DUMP==
+[eva] tests/builtins/malloc-optimistic.c:80: 
+  Frama_C_dump_each:
+  # Cvalue domain:
+  v ∈ [--..--]
+  i ∈ {2}
+  p ∈ {{ &__malloc_w_main6_l77[0] }}
+  j ∈ {1}
+  k ∈ {-1}
+  p ∈ ESCAPINGADDR
+  __retres ∈ UNINITIALIZED
+  __malloc_w_main6_l77[0] ∈ UNINITIALIZED
+                      [1] ∈ {0} or UNINITIALIZED
+                      [2] ∈ {1} or UNINITIALIZED
+  ==END OF DUMP==
+[eva] tests/builtins/malloc-optimistic.c:81: Call to builtin free
+[eva:malloc] tests/builtins/malloc-optimistic.c:81: 
+  weak free on bases: {__malloc_w_main6_l77}
+[eva] tests/builtins/malloc-optimistic.c:77: Call to builtin malloc
+[eva:malloc] tests/builtins/malloc-optimistic.c:77: 
+  resizing variable `__malloc_w_main6_l77' (0..31/95) to fit 0..95
+[eva] tests/builtins/malloc-optimistic.c:77: Call to builtin malloc
+[eva:malloc] tests/builtins/malloc-optimistic.c:77: 
+  resizing variable `__malloc_w_main6_l77' (0..31/95) to fit 0..127
+[eva] tests/builtins/malloc-optimistic.c:80: 
+  Frama_C_dump_each:
+  # Cvalue domain:
+  v ∈ [--..--]
+  i ∈ {2}
+  p ∈ {{ &__malloc_w_main6_l77[0] }}
+  j ∈ {2}
+  k ∈ {-1; 0}
+  p ∈ ESCAPINGADDR
+  __retres ∈ UNINITIALIZED
+  __malloc_w_main6_l77[0] ∈ UNINITIALIZED
+                      [1] ∈ {0; 1} or UNINITIALIZED
+                      [2] ∈ {1; 2} or UNINITIALIZED
+  ==END OF DUMP==
+[eva] tests/builtins/malloc-optimistic.c:80: 
+  Frama_C_dump_each:
+  # Cvalue domain:
+  v ∈ [--..--]
+  i ∈ {3}
+  p ∈ {{ &__malloc_w_main6_l77[0] }}
+  j ∈ {2}
+  k ∈ {0}
+  p ∈ ESCAPINGADDR
+  __retres ∈ UNINITIALIZED
+  __malloc_w_main6_l77[0] ∈ UNINITIALIZED
+                      [1] ∈ {0; 1} or UNINITIALIZED
+                      [2] ∈ {1} or UNINITIALIZED
+                      [3] ∈ {2} or UNINITIALIZED
+  ==END OF DUMP==
+[eva] tests/builtins/malloc-optimistic.c:81: Call to builtin free
+[eva:malloc] tests/builtins/malloc-optimistic.c:81: 
+  weak free on bases: {__malloc_w_main6_l77}
+[eva] tests/builtins/malloc-optimistic.c:77: Call to builtin malloc
+[eva:malloc] tests/builtins/malloc-optimistic.c:77: 
+  resizing variable `__malloc_w_main6_l77' (0..31/127) to fit 0..127
+[eva] tests/builtins/malloc-optimistic.c:77: Call to builtin malloc
+[eva:malloc] tests/builtins/malloc-optimistic.c:77: 
+  resizing variable `__malloc_w_main6_l77' (0..31/127) to fit 0..159
+[eva] tests/builtins/malloc-optimistic.c:80: 
+  Frama_C_dump_each:
+  # Cvalue domain:
+  v ∈ [--..--]
+  i ∈ {3}
+  p ∈ {{ &__malloc_w_main6_l77[0] }}
+  j ∈ {3}
+  k ∈ {0; 1}
+  p ∈ ESCAPINGADDR
+  __retres ∈ UNINITIALIZED
+  __malloc_w_main6_l77[0] ∈ UNINITIALIZED
+                      [1] ∈ {0; 1} or UNINITIALIZED
+                      [2] ∈ {1; 2} or UNINITIALIZED
+                      [3] ∈ {2; 3} or UNINITIALIZED
+  ==END OF DUMP==
+[eva] tests/builtins/malloc-optimistic.c:80: 
+  Frama_C_dump_each:
+  # Cvalue domain:
+  v ∈ [--..--]
+  i ∈ {4}
+  p ∈ {{ &__malloc_w_main6_l77[0] }}
+  j ∈ {3}
+  k ∈ {1}
+  p ∈ ESCAPINGADDR
+  __retres ∈ UNINITIALIZED
+  __malloc_w_main6_l77[0] ∈ UNINITIALIZED
+                      [1] ∈ {0; 1} or UNINITIALIZED
+                      [2] ∈ {1; 2} or UNINITIALIZED
+                      [3] ∈ {2} or UNINITIALIZED
+                      [4] ∈ {3} or UNINITIALIZED
+  ==END OF DUMP==
+[eva] tests/builtins/malloc-optimistic.c:81: Call to builtin free
+[eva:malloc] tests/builtins/malloc-optimistic.c:81: 
+  weak free on bases: {__malloc_w_main6_l77}
+[eva] tests/builtins/malloc-optimistic.c:77: Call to builtin malloc
+[eva:malloc] tests/builtins/malloc-optimistic.c:77: 
+  resizing variable `__malloc_w_main6_l77' (0..31/159) to fit 0..159
+[eva] tests/builtins/malloc-optimistic.c:77: Call to builtin malloc
+[eva:malloc] tests/builtins/malloc-optimistic.c:77: 
+  resizing variable `__malloc_w_main6_l77' (0..31/159) to fit 0..191
+[eva] tests/builtins/malloc-optimistic.c:80: 
+  Frama_C_dump_each:
+  # Cvalue domain:
+  v ∈ [--..--]
+  i ∈ {4}
+  p ∈ {{ &__malloc_w_main6_l77[0] }}
+  j ∈ {4}
+  k ∈ {1; 2}
+  p ∈ ESCAPINGADDR
+  __retres ∈ UNINITIALIZED
+  __malloc_w_main6_l77[0] ∈ UNINITIALIZED
+                      [1] ∈ {0; 1} or UNINITIALIZED
+                      [2] ∈ {1; 2} or UNINITIALIZED
+                      [3] ∈ {2; 3} or UNINITIALIZED
+                      [4] ∈ {3; 4} or UNINITIALIZED
+  ==END OF DUMP==
+[eva] tests/builtins/malloc-optimistic.c:80: 
+  Frama_C_dump_each:
+  # Cvalue domain:
+  v ∈ [--..--]
+  i ∈ {5}
+  p ∈ {{ &__malloc_w_main6_l77[0] }}
+  j ∈ {4}
+  k ∈ {2}
+  p ∈ ESCAPINGADDR
+  __retres ∈ UNINITIALIZED
+  __malloc_w_main6_l77[0] ∈ UNINITIALIZED
+                      [1] ∈ {0; 1} or UNINITIALIZED
+                      [2] ∈ {1; 2} or UNINITIALIZED
+                      [3] ∈ {2; 3} or UNINITIALIZED
+                      [4] ∈ {3} or UNINITIALIZED
+                      [5] ∈ {4} or UNINITIALIZED
+  ==END OF DUMP==
+[eva] tests/builtins/malloc-optimistic.c:81: Call to builtin free
+[eva:malloc] tests/builtins/malloc-optimistic.c:81: 
+  weak free on bases: {__malloc_w_main6_l77}
+[eva] tests/builtins/malloc-optimistic.c:77: Call to builtin malloc
+[eva:malloc] tests/builtins/malloc-optimistic.c:77: 
+  resizing variable `__malloc_w_main6_l77' (0..31/191) to fit 0..191
+[eva] tests/builtins/malloc-optimistic.c:77: Call to builtin malloc
+[eva:malloc] tests/builtins/malloc-optimistic.c:77: 
+  resizing variable `__malloc_w_main6_l77' (0..31/191) to fit 0..223
+[eva] tests/builtins/malloc-optimistic.c:80: 
+  Frama_C_dump_each:
+  # Cvalue domain:
+  v ∈ [--..--]
+  i ∈ {5}
+  p ∈ {{ &__malloc_w_main6_l77[0] }}
+  j ∈ {5}
+  k ∈ {2; 3}
+  p ∈ ESCAPINGADDR
+  __retres ∈ UNINITIALIZED
+  __malloc_w_main6_l77[0] ∈ UNINITIALIZED
+                      [1] ∈ {0; 1} or UNINITIALIZED
+                      [2] ∈ {1; 2} or UNINITIALIZED
+                      [3] ∈ {2; 3} or UNINITIALIZED
+                      [4] ∈ {3; 4} or UNINITIALIZED
+                      [5] ∈ {4; 5} or UNINITIALIZED
+  ==END OF DUMP==
+[eva] tests/builtins/malloc-optimistic.c:80: 
+  Frama_C_dump_each:
+  # Cvalue domain:
+  v ∈ [--..--]
+  i ∈ {6}
+  p ∈ {{ &__malloc_w_main6_l77[0] }}
+  j ∈ {5}
+  k ∈ {3}
+  p ∈ ESCAPINGADDR
+  __retres ∈ UNINITIALIZED
+  __malloc_w_main6_l77[0] ∈ UNINITIALIZED
+                      [1] ∈ {0; 1} or UNINITIALIZED
+                      [2] ∈ {1; 2} or UNINITIALIZED
+                      [3] ∈ {2; 3} or UNINITIALIZED
+                      [4] ∈ {3; 4} or UNINITIALIZED
+                      [5] ∈ {4} or UNINITIALIZED
+                      [6] ∈ {5} or UNINITIALIZED
+  ==END OF DUMP==
+[eva] tests/builtins/malloc-optimistic.c:81: Call to builtin free
+[eva:malloc] tests/builtins/malloc-optimistic.c:81: 
+  weak free on bases: {__malloc_w_main6_l77}
+[eva] tests/builtins/malloc-optimistic.c:77: Call to builtin malloc
+[eva:malloc] tests/builtins/malloc-optimistic.c:77: 
+  resizing variable `__malloc_w_main6_l77' (0..31/223) to fit 0..223
+[eva] tests/builtins/malloc-optimistic.c:77: Call to builtin malloc
+[eva:malloc] tests/builtins/malloc-optimistic.c:77: 
+  resizing variable `__malloc_w_main6_l77' (0..31/223) to fit 0..255
+[eva] tests/builtins/malloc-optimistic.c:80: 
+  Frama_C_dump_each:
+  # Cvalue domain:
+  v ∈ [--..--]
+  i ∈ {6}
+  p ∈ {{ &__malloc_w_main6_l77[0] }}
+  j ∈ {6}
+  k ∈ {3; 4}
+  p ∈ ESCAPINGADDR
+  __retres ∈ UNINITIALIZED
+  __malloc_w_main6_l77[0] ∈ UNINITIALIZED
+                      [1] ∈ {0; 1} or UNINITIALIZED
+                      [2] ∈ {1; 2} or UNINITIALIZED
+                      [3] ∈ {2; 3} or UNINITIALIZED
+                      [4] ∈ {3; 4} or UNINITIALIZED
+                      [5] ∈ {4; 5} or UNINITIALIZED
+                      [6] ∈ {5; 6} or UNINITIALIZED
+  ==END OF DUMP==
+[eva] tests/builtins/malloc-optimistic.c:80: 
+  Frama_C_dump_each:
+  # Cvalue domain:
+  v ∈ [--..--]
+  i ∈ {7}
+  p ∈ {{ &__malloc_w_main6_l77[0] }}
+  j ∈ {6}
+  k ∈ {4}
+  p ∈ ESCAPINGADDR
+  __retres ∈ UNINITIALIZED
+  __malloc_w_main6_l77[0] ∈ UNINITIALIZED
+                      [1] ∈ {0; 1} or UNINITIALIZED
+                      [2] ∈ {1; 2} or UNINITIALIZED
+                      [3] ∈ {2; 3} or UNINITIALIZED
+                      [4] ∈ {3; 4} or UNINITIALIZED
+                      [5] ∈ {4; 5} or UNINITIALIZED
+                      [6] ∈ {5} or UNINITIALIZED
+                      [7] ∈ {6} or UNINITIALIZED
+  ==END OF DUMP==
+[eva] tests/builtins/malloc-optimistic.c:81: Call to builtin free
+[eva:malloc] tests/builtins/malloc-optimistic.c:81: 
+  weak free on bases: {__malloc_w_main6_l77}
+[eva] tests/builtins/malloc-optimistic.c:77: Call to builtin malloc
+[eva:malloc] tests/builtins/malloc-optimistic.c:77: 
+  resizing variable `__malloc_w_main6_l77' (0..31/255) to fit 0..255
+[eva] tests/builtins/malloc-optimistic.c:77: Call to builtin malloc
+[eva:malloc] tests/builtins/malloc-optimistic.c:77: 
+  resizing variable `__malloc_w_main6_l77' (0..31/255) to fit 0..287
+[eva] tests/builtins/malloc-optimistic.c:80: 
+  Frama_C_dump_each:
+  # Cvalue domain:
+  v ∈ [--..--]
+  i ∈ {7}
+  p ∈ {{ &__malloc_w_main6_l77[0] }}
+  j ∈ {7}
+  k ∈ {4; 5}
+  p ∈ ESCAPINGADDR
+  __retres ∈ UNINITIALIZED
+  __malloc_w_main6_l77[0] ∈ UNINITIALIZED
+                      [1] ∈ {0; 1} or UNINITIALIZED
+                      [2] ∈ {1; 2} or UNINITIALIZED
+                      [3] ∈ {2; 3} or UNINITIALIZED
+                      [4] ∈ {3; 4} or UNINITIALIZED
+                      [5] ∈ {4; 5} or UNINITIALIZED
+                      [6] ∈ {5; 6} or UNINITIALIZED
+                      [7] ∈ {6; 7} or UNINITIALIZED
+  ==END OF DUMP==
+[eva] tests/builtins/malloc-optimistic.c:80: 
+  Frama_C_dump_each:
+  # Cvalue domain:
+  v ∈ [--..--]
+  i ∈ {8}
+  p ∈ {{ &__malloc_w_main6_l77[0] }}
+  j ∈ {7}
+  k ∈ {5}
+  p ∈ ESCAPINGADDR
+  __retres ∈ UNINITIALIZED
+  __malloc_w_main6_l77[0] ∈ UNINITIALIZED
+                      [1] ∈ {0; 1} or UNINITIALIZED
+                      [2] ∈ {1; 2} or UNINITIALIZED
+                      [3] ∈ {2; 3} or UNINITIALIZED
+                      [4] ∈ {3; 4} or UNINITIALIZED
+                      [5] ∈ {4; 5} or UNINITIALIZED
+                      [6] ∈ {5; 6} or UNINITIALIZED
+                      [7] ∈ {6} or UNINITIALIZED
+                      [8] ∈ {7} or UNINITIALIZED
+  ==END OF DUMP==
+[eva] tests/builtins/malloc-optimistic.c:81: Call to builtin free
+[eva:malloc] tests/builtins/malloc-optimistic.c:81: 
+  weak free on bases: {__malloc_w_main6_l77}
+[eva] tests/builtins/malloc-optimistic.c:77: Call to builtin malloc
+[eva:malloc] tests/builtins/malloc-optimistic.c:77: 
+  resizing variable `__malloc_w_main6_l77' (0..31/287) to fit 0..287
+[eva] tests/builtins/malloc-optimistic.c:77: Call to builtin malloc
+[eva:malloc] tests/builtins/malloc-optimistic.c:77: 
+  resizing variable `__malloc_w_main6_l77' (0..31/287) to fit 0..319
+[eva] tests/builtins/malloc-optimistic.c:80: 
+  Frama_C_dump_each:
+  # Cvalue domain:
+  v ∈ [--..--]
+  i ∈ {8}
+  p ∈ {{ &__malloc_w_main6_l77[0] }}
+  j ∈ {8}
+  k ∈ {5; 6}
+  p ∈ ESCAPINGADDR
+  __retres ∈ UNINITIALIZED
+  __malloc_w_main6_l77[0] ∈ UNINITIALIZED
+                      [1] ∈ {0; 1} or UNINITIALIZED
+                      [2] ∈ {1; 2} or UNINITIALIZED
+                      [3] ∈ {2; 3} or UNINITIALIZED
+                      [4] ∈ {3; 4} or UNINITIALIZED
+                      [5] ∈ {4; 5} or UNINITIALIZED
+                      [6] ∈ {5; 6} or UNINITIALIZED
+                      [7] ∈ {6; 7} or UNINITIALIZED
+                      [8] ∈ {7; 8} or UNINITIALIZED
+  ==END OF DUMP==
+[eva] tests/builtins/malloc-optimistic.c:80: 
+  Frama_C_dump_each:
+  # Cvalue domain:
+  v ∈ [--..--]
+  i ∈ {9}
+  p ∈ {{ &__malloc_w_main6_l77[0] }}
+  j ∈ {8}
+  k ∈ {6}
+  p ∈ ESCAPINGADDR
+  __retres ∈ UNINITIALIZED
+  __malloc_w_main6_l77[0] ∈ UNINITIALIZED
+                      [1] ∈ {0; 1} or UNINITIALIZED
+                      [2] ∈ {1; 2} or UNINITIALIZED
+                      [3] ∈ {2; 3} or UNINITIALIZED
+                      [4] ∈ {3; 4} or UNINITIALIZED
+                      [5] ∈ {4; 5} or UNINITIALIZED
+                      [6] ∈ {5; 6} or UNINITIALIZED
+                      [7] ∈ {6; 7} or UNINITIALIZED
+                      [8] ∈ {7} or UNINITIALIZED
+                      [9] ∈ {8} or UNINITIALIZED
+  ==END OF DUMP==
+[eva] tests/builtins/malloc-optimistic.c:81: Call to builtin free
+[eva:malloc] tests/builtins/malloc-optimistic.c:81: 
+  weak free on bases: {__malloc_w_main6_l77}
+[eva] tests/builtins/malloc-optimistic.c:77: Call to builtin malloc
+[eva:malloc] tests/builtins/malloc-optimistic.c:77: 
+  resizing variable `__malloc_w_main6_l77' (0..31/319) to fit 0..319
+[eva] tests/builtins/malloc-optimistic.c:77: Call to builtin malloc
+[eva:malloc] tests/builtins/malloc-optimistic.c:77: 
+  resizing variable `__malloc_w_main6_l77' (0..31/319) to fit 0..351
+[eva] tests/builtins/malloc-optimistic.c:80: 
+  Frama_C_dump_each:
+  # Cvalue domain:
+  v ∈ [--..--]
+  i ∈ {9}
+  p ∈ {{ &__malloc_w_main6_l77[0] }}
+  j ∈ {9}
+  k ∈ {6; 7}
+  p ∈ ESCAPINGADDR
+  __retres ∈ UNINITIALIZED
+  __malloc_w_main6_l77[0] ∈ UNINITIALIZED
+                      [1] ∈ {0; 1} or UNINITIALIZED
+                      [2] ∈ {1; 2} or UNINITIALIZED
+                      [3] ∈ {2; 3} or UNINITIALIZED
+                      [4] ∈ {3; 4} or UNINITIALIZED
+                      [5] ∈ {4; 5} or UNINITIALIZED
+                      [6] ∈ {5; 6} or UNINITIALIZED
+                      [7] ∈ {6; 7} or UNINITIALIZED
+                      [8] ∈ {7; 8} or UNINITIALIZED
+                      [9] ∈ {8; 9} or UNINITIALIZED
+  ==END OF DUMP==
+[eva] tests/builtins/malloc-optimistic.c:80: 
+  Frama_C_dump_each:
+  # Cvalue domain:
+  v ∈ [--..--]
+  i ∈ {10}
+  p ∈ {{ &__malloc_w_main6_l77[0] }}
+  j ∈ {9}
+  k ∈ {7}
+  p ∈ ESCAPINGADDR
+  __retres ∈ UNINITIALIZED
+  __malloc_w_main6_l77[0] ∈ UNINITIALIZED
+                      [1] ∈ {0; 1} or UNINITIALIZED
+                      [2] ∈ {1; 2} or UNINITIALIZED
+                      [3] ∈ {2; 3} or UNINITIALIZED
+                      [4] ∈ {3; 4} or UNINITIALIZED
+                      [5] ∈ {4; 5} or UNINITIALIZED
+                      [6] ∈ {5; 6} or UNINITIALIZED
+                      [7] ∈ {6; 7} or UNINITIALIZED
+                      [8] ∈ {7; 8} or UNINITIALIZED
+                      [9] ∈ {8} or UNINITIALIZED
+                      [10] ∈ {9} or UNINITIALIZED
+  ==END OF DUMP==
+[eva] tests/builtins/malloc-optimistic.c:81: Call to builtin free
+[eva:malloc] tests/builtins/malloc-optimistic.c:81: 
+  weak free on bases: {__malloc_w_main6_l77}
+[eva] Recording results for main6
+[eva] Done for function main6
+[eva] computing for function main7 <- main.
+  Called from tests/builtins/malloc-optimistic.c:148.
+[eva] tests/builtins/malloc-optimistic.c:90: Call to builtin malloc
+[eva] tests/builtins/malloc-optimistic.c:90: 
+  allocating variable __malloc_main7_l90
+[eva] tests/builtins/malloc-optimistic.c:90: Call to builtin malloc
+[eva:malloc] tests/builtins/malloc-optimistic.c:90: 
+  resizing variable `__malloc_main7_l90' (0..31) to fit 0..63
+[eva:alarm] tests/builtins/malloc-optimistic.c:91: Warning: 
+  out of bounds write. assert \valid(p + i);
+[eva:alarm] tests/builtins/malloc-optimistic.c:92: Warning: 
+  out of bounds read. assert \valid_read(p + i);
+[eva] tests/builtins/malloc-optimistic.c:93: 
+  Frama_C_dump_each:
+  # Cvalue domain:
+  v ∈ [--..--]
+  i ∈ {0}
+  p ∈ {{ &__malloc_main7_l90[0] }}
+  j ∈ {0}
+  k ∈ {-2}
+  p ∈ ESCAPINGADDR
+  __retres ∈ UNINITIALIZED
+  __malloc_w_main6_l77[0] ∈ UNINITIALIZED
+                      [1] ∈ {0; 1} or UNINITIALIZED
+                      [2] ∈ {1; 2} or UNINITIALIZED
+                      [3] ∈ {2; 3} or UNINITIALIZED
+                      [4] ∈ {3; 4} or UNINITIALIZED
+                      [5] ∈ {4; 5} or UNINITIALIZED
+                      [6] ∈ {5; 6} or UNINITIALIZED
+                      [7] ∈ {6; 7} or UNINITIALIZED
+                      [8] ∈ {7; 8} or UNINITIALIZED
+                      [9] ∈ {8; 9} or UNINITIALIZED
+                      [10] ∈ {9} or UNINITIALIZED
+  __malloc_main7_l90[0] ∈ {0}
+  ==END OF DUMP==
+[eva] tests/builtins/malloc-optimistic.c:93: 
+  Frama_C_dump_each:
+  # Cvalue domain:
+  v ∈ [--..--]
+  i ∈ {1}
+  p ∈ {{ &__malloc_main7_l90[0] }}
+  j ∈ {0}
+  k ∈ {-2}
+  p ∈ ESCAPINGADDR
+  __retres ∈ UNINITIALIZED
+  __malloc_w_main6_l77[0] ∈ UNINITIALIZED
+                      [1] ∈ {0; 1} or UNINITIALIZED
+                      [2] ∈ {1; 2} or UNINITIALIZED
+                      [3] ∈ {2; 3} or UNINITIALIZED
+                      [4] ∈ {3; 4} or UNINITIALIZED
+                      [5] ∈ {4; 5} or UNINITIALIZED
+                      [6] ∈ {5; 6} or UNINITIALIZED
+                      [7] ∈ {6; 7} or UNINITIALIZED
+                      [8] ∈ {7; 8} or UNINITIALIZED
+                      [9] ∈ {8; 9} or UNINITIALIZED
+                      [10] ∈ {9} or UNINITIALIZED
+  __malloc_main7_l90[0] ∈ UNINITIALIZED
+                    [1] ∈ {0}
+  ==END OF DUMP==
+[eva] tests/builtins/malloc-optimistic.c:94: Call to builtin free
+[eva:malloc] tests/builtins/malloc-optimistic.c:94: 
+  strong free on bases: {__malloc_main7_l90}
+[eva] tests/builtins/malloc-optimistic.c:94: Call to builtin free
+[eva:malloc] tests/builtins/malloc-optimistic.c:94: 
+  strong free on bases: {__malloc_main7_l90}
+[eva] tests/builtins/malloc-optimistic.c:90: Call to builtin malloc
+[eva:malloc] tests/builtins/malloc-optimistic.c:90: 
+  resizing variable `__malloc_main7_l90' (0..31/63) to fit 0..63
+[eva] tests/builtins/malloc-optimistic.c:90: Call to builtin malloc
+[eva:malloc] tests/builtins/malloc-optimistic.c:90: 
+  resizing variable `__malloc_main7_l90' (0..31/63) to fit 0..95
+[eva] tests/builtins/malloc-optimistic.c:93: 
+  Frama_C_dump_each:
+  # Cvalue domain:
+  v ∈ [--..--]
+  i ∈ {1}
+  p ∈ {{ &__malloc_main7_l90[0] }}
+  j ∈ {1}
+  k ∈ {-1}
+  p ∈ ESCAPINGADDR
+  __retres ∈ UNINITIALIZED
+  __malloc_w_main6_l77[0] ∈ UNINITIALIZED
+                      [1] ∈ {0; 1} or UNINITIALIZED
+                      [2] ∈ {1; 2} or UNINITIALIZED
+                      [3] ∈ {2; 3} or UNINITIALIZED
+                      [4] ∈ {3; 4} or UNINITIALIZED
+                      [5] ∈ {4; 5} or UNINITIALIZED
+                      [6] ∈ {5; 6} or UNINITIALIZED
+                      [7] ∈ {6; 7} or UNINITIALIZED
+                      [8] ∈ {7; 8} or UNINITIALIZED
+                      [9] ∈ {8; 9} or UNINITIALIZED
+                      [10] ∈ {9} or UNINITIALIZED
+  __malloc_main7_l90[0] ∈ UNINITIALIZED
+                    [1] ∈ {1}
+  ==END OF DUMP==
+[eva] tests/builtins/malloc-optimistic.c:93: 
+  Frama_C_dump_each:
+  # Cvalue domain:
+  v ∈ [--..--]
+  i ∈ {2}
+  p ∈ {{ &__malloc_main7_l90[0] }}
+  j ∈ {1}
+  k ∈ {-1}
+  p ∈ ESCAPINGADDR
+  __retres ∈ UNINITIALIZED
+  __malloc_w_main6_l77[0] ∈ UNINITIALIZED
+                      [1] ∈ {0; 1} or UNINITIALIZED
+                      [2] ∈ {1; 2} or UNINITIALIZED
+                      [3] ∈ {2; 3} or UNINITIALIZED
+                      [4] ∈ {3; 4} or UNINITIALIZED
+                      [5] ∈ {4; 5} or UNINITIALIZED
+                      [6] ∈ {5; 6} or UNINITIALIZED
+                      [7] ∈ {6; 7} or UNINITIALIZED
+                      [8] ∈ {7; 8} or UNINITIALIZED
+                      [9] ∈ {8; 9} or UNINITIALIZED
+                      [10] ∈ {9} or UNINITIALIZED
+  __malloc_main7_l90[0..1] ∈ UNINITIALIZED
+                    [2] ∈ {1}
+  ==END OF DUMP==
+[eva] tests/builtins/malloc-optimistic.c:94: Call to builtin free
+[eva:malloc] tests/builtins/malloc-optimistic.c:94: 
+  strong free on bases: {__malloc_main7_l90}
+[eva] tests/builtins/malloc-optimistic.c:94: Call to builtin free
+[eva:malloc] tests/builtins/malloc-optimistic.c:94: 
+  strong free on bases: {__malloc_main7_l90}
+[eva] tests/builtins/malloc-optimistic.c:90: Call to builtin malloc
+[eva:malloc] tests/builtins/malloc-optimistic.c:90: 
+  resizing variable `__malloc_main7_l90' (0..31/95) to fit 0..95
+[eva] tests/builtins/malloc-optimistic.c:90: Call to builtin malloc
+[eva:malloc] tests/builtins/malloc-optimistic.c:90: 
+  resizing variable `__malloc_main7_l90' (0..31/95) to fit 0..127
+[eva] tests/builtins/malloc-optimistic.c:93: 
+  Frama_C_dump_each:
+  # Cvalue domain:
+  v ∈ [--..--]
+  i ∈ {2}
+  p ∈ {{ &__malloc_main7_l90[0] }}
+  j ∈ {2}
+  k ∈ {0}
+  p ∈ ESCAPINGADDR
+  __retres ∈ UNINITIALIZED
+  __malloc_w_main6_l77[0] ∈ UNINITIALIZED
+                      [1] ∈ {0; 1} or UNINITIALIZED
+                      [2] ∈ {1; 2} or UNINITIALIZED
+                      [3] ∈ {2; 3} or UNINITIALIZED
+                      [4] ∈ {3; 4} or UNINITIALIZED
+                      [5] ∈ {4; 5} or UNINITIALIZED
+                      [6] ∈ {5; 6} or UNINITIALIZED
+                      [7] ∈ {6; 7} or UNINITIALIZED
+                      [8] ∈ {7; 8} or UNINITIALIZED
+                      [9] ∈ {8; 9} or UNINITIALIZED
+                      [10] ∈ {9} or UNINITIALIZED
+  __malloc_main7_l90[0..1] ∈ UNINITIALIZED
+                    [2] ∈ {2}
+  ==END OF DUMP==
+[eva] tests/builtins/malloc-optimistic.c:93: 
+  Frama_C_dump_each:
+  # Cvalue domain:
+  v ∈ [--..--]
+  i ∈ {3}
+  p ∈ {{ &__malloc_main7_l90[0] }}
+  j ∈ {2}
+  k ∈ {0}
+  p ∈ ESCAPINGADDR
+  __retres ∈ UNINITIALIZED
+  __malloc_w_main6_l77[0] ∈ UNINITIALIZED
+                      [1] ∈ {0; 1} or UNINITIALIZED
+                      [2] ∈ {1; 2} or UNINITIALIZED
+                      [3] ∈ {2; 3} or UNINITIALIZED
+                      [4] ∈ {3; 4} or UNINITIALIZED
+                      [5] ∈ {4; 5} or UNINITIALIZED
+                      [6] ∈ {5; 6} or UNINITIALIZED
+                      [7] ∈ {6; 7} or UNINITIALIZED
+                      [8] ∈ {7; 8} or UNINITIALIZED
+                      [9] ∈ {8; 9} or UNINITIALIZED
+                      [10] ∈ {9} or UNINITIALIZED
+  __malloc_main7_l90[0..2] ∈ UNINITIALIZED
+                    [3] ∈ {2}
+  ==END OF DUMP==
+[eva] tests/builtins/malloc-optimistic.c:94: Call to builtin free
+[eva:malloc] tests/builtins/malloc-optimistic.c:94: 
+  strong free on bases: {__malloc_main7_l90}
+[eva] tests/builtins/malloc-optimistic.c:94: Call to builtin free
+[eva:malloc] tests/builtins/malloc-optimistic.c:94: 
+  strong free on bases: {__malloc_main7_l90}
+[eva] tests/builtins/malloc-optimistic.c:90: Call to builtin malloc
+[eva:malloc] tests/builtins/malloc-optimistic.c:90: 
+  resizing variable `__malloc_main7_l90' (0..31/127) to fit 0..127
+[eva] tests/builtins/malloc-optimistic.c:90: Call to builtin malloc
+[eva:malloc] tests/builtins/malloc-optimistic.c:90: 
+  resizing variable `__malloc_main7_l90' (0..31/127) to fit 0..159
+[eva] tests/builtins/malloc-optimistic.c:93: 
+  Frama_C_dump_each:
+  # Cvalue domain:
+  v ∈ [--..--]
+  i ∈ {3}
+  p ∈ {{ &__malloc_main7_l90[0] }}
+  j ∈ {3}
+  k ∈ {1}
+  p ∈ ESCAPINGADDR
+  __retres ∈ UNINITIALIZED
+  __malloc_w_main6_l77[0] ∈ UNINITIALIZED
+                      [1] ∈ {0; 1} or UNINITIALIZED
+                      [2] ∈ {1; 2} or UNINITIALIZED
+                      [3] ∈ {2; 3} or UNINITIALIZED
+                      [4] ∈ {3; 4} or UNINITIALIZED
+                      [5] ∈ {4; 5} or UNINITIALIZED
+                      [6] ∈ {5; 6} or UNINITIALIZED
+                      [7] ∈ {6; 7} or UNINITIALIZED
+                      [8] ∈ {7; 8} or UNINITIALIZED
+                      [9] ∈ {8; 9} or UNINITIALIZED
+                      [10] ∈ {9} or UNINITIALIZED
+  __malloc_main7_l90[0..2] ∈ UNINITIALIZED
+                    [3] ∈ {3}
+  ==END OF DUMP==
+[eva] tests/builtins/malloc-optimistic.c:93: 
+  Frama_C_dump_each:
+  # Cvalue domain:
+  v ∈ [--..--]
+  i ∈ {4}
+  p ∈ {{ &__malloc_main7_l90[0] }}
+  j ∈ {3}
+  k ∈ {1}
+  p ∈ ESCAPINGADDR
+  __retres ∈ UNINITIALIZED
+  __malloc_w_main6_l77[0] ∈ UNINITIALIZED
+                      [1] ∈ {0; 1} or UNINITIALIZED
+                      [2] ∈ {1; 2} or UNINITIALIZED
+                      [3] ∈ {2; 3} or UNINITIALIZED
+                      [4] ∈ {3; 4} or UNINITIALIZED
+                      [5] ∈ {4; 5} or UNINITIALIZED
+                      [6] ∈ {5; 6} or UNINITIALIZED
+                      [7] ∈ {6; 7} or UNINITIALIZED
+                      [8] ∈ {7; 8} or UNINITIALIZED
+                      [9] ∈ {8; 9} or UNINITIALIZED
+                      [10] ∈ {9} or UNINITIALIZED
+  __malloc_main7_l90[0..3] ∈ UNINITIALIZED
+                    [4] ∈ {3}
+  ==END OF DUMP==
+[eva] tests/builtins/malloc-optimistic.c:94: Call to builtin free
+[eva:malloc] tests/builtins/malloc-optimistic.c:94: 
+  strong free on bases: {__malloc_main7_l90}
+[eva] tests/builtins/malloc-optimistic.c:94: Call to builtin free
+[eva:malloc] tests/builtins/malloc-optimistic.c:94: 
+  strong free on bases: {__malloc_main7_l90}
+[eva] tests/builtins/malloc-optimistic.c:90: Call to builtin malloc
+[eva:malloc] tests/builtins/malloc-optimistic.c:90: 
+  resizing variable `__malloc_main7_l90' (0..31/159) to fit 0..159
+[eva] tests/builtins/malloc-optimistic.c:90: Call to builtin malloc
+[eva:malloc] tests/builtins/malloc-optimistic.c:90: 
+  resizing variable `__malloc_main7_l90' (0..31/159) to fit 0..191
+[eva] tests/builtins/malloc-optimistic.c:93: 
+  Frama_C_dump_each:
+  # Cvalue domain:
+  v ∈ [--..--]
+  i ∈ {4}
+  p ∈ {{ &__malloc_main7_l90[0] }}
+  j ∈ {4}
+  k ∈ {2}
+  p ∈ ESCAPINGADDR
+  __retres ∈ UNINITIALIZED
+  __malloc_w_main6_l77[0] ∈ UNINITIALIZED
+                      [1] ∈ {0; 1} or UNINITIALIZED
+                      [2] ∈ {1; 2} or UNINITIALIZED
+                      [3] ∈ {2; 3} or UNINITIALIZED
+                      [4] ∈ {3; 4} or UNINITIALIZED
+                      [5] ∈ {4; 5} or UNINITIALIZED
+                      [6] ∈ {5; 6} or UNINITIALIZED
+                      [7] ∈ {6; 7} or UNINITIALIZED
+                      [8] ∈ {7; 8} or UNINITIALIZED
+                      [9] ∈ {8; 9} or UNINITIALIZED
+                      [10] ∈ {9} or UNINITIALIZED
+  __malloc_main7_l90[0..3] ∈ UNINITIALIZED
+                    [4] ∈ {4}
+  ==END OF DUMP==
+[eva] tests/builtins/malloc-optimistic.c:93: 
+  Frama_C_dump_each:
+  # Cvalue domain:
+  v ∈ [--..--]
+  i ∈ {5}
+  p ∈ {{ &__malloc_main7_l90[0] }}
+  j ∈ {4}
+  k ∈ {2}
+  p ∈ ESCAPINGADDR
+  __retres ∈ UNINITIALIZED
+  __malloc_w_main6_l77[0] ∈ UNINITIALIZED
+                      [1] ∈ {0; 1} or UNINITIALIZED
+                      [2] ∈ {1; 2} or UNINITIALIZED
+                      [3] ∈ {2; 3} or UNINITIALIZED
+                      [4] ∈ {3; 4} or UNINITIALIZED
+                      [5] ∈ {4; 5} or UNINITIALIZED
+                      [6] ∈ {5; 6} or UNINITIALIZED
+                      [7] ∈ {6; 7} or UNINITIALIZED
+                      [8] ∈ {7; 8} or UNINITIALIZED
+                      [9] ∈ {8; 9} or UNINITIALIZED
+                      [10] ∈ {9} or UNINITIALIZED
+  __malloc_main7_l90[0..4] ∈ UNINITIALIZED
+                    [5] ∈ {4}
+  ==END OF DUMP==
+[eva] tests/builtins/malloc-optimistic.c:94: Call to builtin free
+[eva:malloc] tests/builtins/malloc-optimistic.c:94: 
+  strong free on bases: {__malloc_main7_l90}
+[eva] tests/builtins/malloc-optimistic.c:94: Call to builtin free
+[eva:malloc] tests/builtins/malloc-optimistic.c:94: 
+  strong free on bases: {__malloc_main7_l90}
+[eva] tests/builtins/malloc-optimistic.c:90: Call to builtin malloc
+[eva:malloc] tests/builtins/malloc-optimistic.c:90: 
+  resizing variable `__malloc_main7_l90' (0..31/191) to fit 0..191
+[eva] tests/builtins/malloc-optimistic.c:90: Call to builtin malloc
+[eva:malloc] tests/builtins/malloc-optimistic.c:90: 
+  resizing variable `__malloc_main7_l90' (0..31/191) to fit 0..223
+[eva] tests/builtins/malloc-optimistic.c:93: 
+  Frama_C_dump_each:
+  # Cvalue domain:
+  v ∈ [--..--]
+  i ∈ {5}
+  p ∈ {{ &__malloc_main7_l90[0] }}
+  j ∈ {5}
+  k ∈ {3}
+  p ∈ ESCAPINGADDR
+  __retres ∈ UNINITIALIZED
+  __malloc_w_main6_l77[0] ∈ UNINITIALIZED
+                      [1] ∈ {0; 1} or UNINITIALIZED
+                      [2] ∈ {1; 2} or UNINITIALIZED
+                      [3] ∈ {2; 3} or UNINITIALIZED
+                      [4] ∈ {3; 4} or UNINITIALIZED
+                      [5] ∈ {4; 5} or UNINITIALIZED
+                      [6] ∈ {5; 6} or UNINITIALIZED
+                      [7] ∈ {6; 7} or UNINITIALIZED
+                      [8] ∈ {7; 8} or UNINITIALIZED
+                      [9] ∈ {8; 9} or UNINITIALIZED
+                      [10] ∈ {9} or UNINITIALIZED
+  __malloc_main7_l90[0..4] ∈ UNINITIALIZED
+                    [5] ∈ {5}
+  ==END OF DUMP==
+[eva] tests/builtins/malloc-optimistic.c:93: 
+  Frama_C_dump_each:
+  # Cvalue domain:
+  v ∈ [--..--]
+  i ∈ {6}
+  p ∈ {{ &__malloc_main7_l90[0] }}
+  j ∈ {5}
+  k ∈ {3}
+  p ∈ ESCAPINGADDR
+  __retres ∈ UNINITIALIZED
+  __malloc_w_main6_l77[0] ∈ UNINITIALIZED
+                      [1] ∈ {0; 1} or UNINITIALIZED
+                      [2] ∈ {1; 2} or UNINITIALIZED
+                      [3] ∈ {2; 3} or UNINITIALIZED
+                      [4] ∈ {3; 4} or UNINITIALIZED
+                      [5] ∈ {4; 5} or UNINITIALIZED
+                      [6] ∈ {5; 6} or UNINITIALIZED
+                      [7] ∈ {6; 7} or UNINITIALIZED
+                      [8] ∈ {7; 8} or UNINITIALIZED
+                      [9] ∈ {8; 9} or UNINITIALIZED
+                      [10] ∈ {9} or UNINITIALIZED
+  __malloc_main7_l90[0..5] ∈ UNINITIALIZED
+                    [6] ∈ {5}
+  ==END OF DUMP==
+[eva] tests/builtins/malloc-optimistic.c:94: Call to builtin free
+[eva:malloc] tests/builtins/malloc-optimistic.c:94: 
+  strong free on bases: {__malloc_main7_l90}
+[eva] tests/builtins/malloc-optimistic.c:94: Call to builtin free
+[eva:malloc] tests/builtins/malloc-optimistic.c:94: 
+  strong free on bases: {__malloc_main7_l90}
+[eva] tests/builtins/malloc-optimistic.c:90: Call to builtin malloc
+[eva:malloc] tests/builtins/malloc-optimistic.c:90: 
+  resizing variable `__malloc_main7_l90' (0..31/223) to fit 0..223
+[eva] tests/builtins/malloc-optimistic.c:90: Call to builtin malloc
+[eva:malloc] tests/builtins/malloc-optimistic.c:90: 
+  resizing variable `__malloc_main7_l90' (0..31/223) to fit 0..255
+[eva] tests/builtins/malloc-optimistic.c:93: 
+  Frama_C_dump_each:
+  # Cvalue domain:
+  v ∈ [--..--]
+  i ∈ {6}
+  p ∈ {{ &__malloc_main7_l90[0] }}
+  j ∈ {6}
+  k ∈ {4}
+  p ∈ ESCAPINGADDR
+  __retres ∈ UNINITIALIZED
+  __malloc_w_main6_l77[0] ∈ UNINITIALIZED
+                      [1] ∈ {0; 1} or UNINITIALIZED
+                      [2] ∈ {1; 2} or UNINITIALIZED
+                      [3] ∈ {2; 3} or UNINITIALIZED
+                      [4] ∈ {3; 4} or UNINITIALIZED
+                      [5] ∈ {4; 5} or UNINITIALIZED
+                      [6] ∈ {5; 6} or UNINITIALIZED
+                      [7] ∈ {6; 7} or UNINITIALIZED
+                      [8] ∈ {7; 8} or UNINITIALIZED
+                      [9] ∈ {8; 9} or UNINITIALIZED
+                      [10] ∈ {9} or UNINITIALIZED
+  __malloc_main7_l90[0..5] ∈ UNINITIALIZED
+                    [6] ∈ {6}
+  ==END OF DUMP==
+[eva] tests/builtins/malloc-optimistic.c:93: 
+  Frama_C_dump_each:
+  # Cvalue domain:
+  v ∈ [--..--]
+  i ∈ {7}
+  p ∈ {{ &__malloc_main7_l90[0] }}
+  j ∈ {6}
+  k ∈ {4}
+  p ∈ ESCAPINGADDR
+  __retres ∈ UNINITIALIZED
+  __malloc_w_main6_l77[0] ∈ UNINITIALIZED
+                      [1] ∈ {0; 1} or UNINITIALIZED
+                      [2] ∈ {1; 2} or UNINITIALIZED
+                      [3] ∈ {2; 3} or UNINITIALIZED
+                      [4] ∈ {3; 4} or UNINITIALIZED
+                      [5] ∈ {4; 5} or UNINITIALIZED
+                      [6] ∈ {5; 6} or UNINITIALIZED
+                      [7] ∈ {6; 7} or UNINITIALIZED
+                      [8] ∈ {7; 8} or UNINITIALIZED
+                      [9] ∈ {8; 9} or UNINITIALIZED
+                      [10] ∈ {9} or UNINITIALIZED
+  __malloc_main7_l90[0..6] ∈ UNINITIALIZED
+                    [7] ∈ {6}
+  ==END OF DUMP==
+[eva] tests/builtins/malloc-optimistic.c:94: Call to builtin free
+[eva:malloc] tests/builtins/malloc-optimistic.c:94: 
+  strong free on bases: {__malloc_main7_l90}
+[eva] tests/builtins/malloc-optimistic.c:94: Call to builtin free
+[eva:malloc] tests/builtins/malloc-optimistic.c:94: 
+  strong free on bases: {__malloc_main7_l90}
+[eva] tests/builtins/malloc-optimistic.c:90: Call to builtin malloc
+[eva:malloc] tests/builtins/malloc-optimistic.c:90: 
+  resizing variable `__malloc_main7_l90' (0..31/255) to fit 0..255
+[eva] tests/builtins/malloc-optimistic.c:90: Call to builtin malloc
+[eva:malloc] tests/builtins/malloc-optimistic.c:90: 
+  resizing variable `__malloc_main7_l90' (0..31/255) to fit 0..287
+[eva] tests/builtins/malloc-optimistic.c:93: 
+  Frama_C_dump_each:
+  # Cvalue domain:
+  v ∈ [--..--]
+  i ∈ {7}
+  p ∈ {{ &__malloc_main7_l90[0] }}
+  j ∈ {7}
+  k ∈ {5}
+  p ∈ ESCAPINGADDR
+  __retres ∈ UNINITIALIZED
+  __malloc_w_main6_l77[0] ∈ UNINITIALIZED
+                      [1] ∈ {0; 1} or UNINITIALIZED
+                      [2] ∈ {1; 2} or UNINITIALIZED
+                      [3] ∈ {2; 3} or UNINITIALIZED
+                      [4] ∈ {3; 4} or UNINITIALIZED
+                      [5] ∈ {4; 5} or UNINITIALIZED
+                      [6] ∈ {5; 6} or UNINITIALIZED
+                      [7] ∈ {6; 7} or UNINITIALIZED
+                      [8] ∈ {7; 8} or UNINITIALIZED
+                      [9] ∈ {8; 9} or UNINITIALIZED
+                      [10] ∈ {9} or UNINITIALIZED
+  __malloc_main7_l90[0..6] ∈ UNINITIALIZED
+                    [7] ∈ {7}
+  ==END OF DUMP==
+[eva] tests/builtins/malloc-optimistic.c:93: 
+  Frama_C_dump_each:
+  # Cvalue domain:
+  v ∈ [--..--]
+  i ∈ {8}
+  p ∈ {{ &__malloc_main7_l90[0] }}
+  j ∈ {7}
+  k ∈ {5}
+  p ∈ ESCAPINGADDR
+  __retres ∈ UNINITIALIZED
+  __malloc_w_main6_l77[0] ∈ UNINITIALIZED
+                      [1] ∈ {0; 1} or UNINITIALIZED
+                      [2] ∈ {1; 2} or UNINITIALIZED
+                      [3] ∈ {2; 3} or UNINITIALIZED
+                      [4] ∈ {3; 4} or UNINITIALIZED
+                      [5] ∈ {4; 5} or UNINITIALIZED
+                      [6] ∈ {5; 6} or UNINITIALIZED
+                      [7] ∈ {6; 7} or UNINITIALIZED
+                      [8] ∈ {7; 8} or UNINITIALIZED
+                      [9] ∈ {8; 9} or UNINITIALIZED
+                      [10] ∈ {9} or UNINITIALIZED
+  __malloc_main7_l90[0..7] ∈ UNINITIALIZED
+                    [8] ∈ {7}
+  ==END OF DUMP==
+[eva] tests/builtins/malloc-optimistic.c:94: Call to builtin free
+[eva:malloc] tests/builtins/malloc-optimistic.c:94: 
+  strong free on bases: {__malloc_main7_l90}
+[eva] tests/builtins/malloc-optimistic.c:94: Call to builtin free
+[eva:malloc] tests/builtins/malloc-optimistic.c:94: 
+  strong free on bases: {__malloc_main7_l90}
+[eva] tests/builtins/malloc-optimistic.c:90: Call to builtin malloc
+[eva:malloc] tests/builtins/malloc-optimistic.c:90: 
+  resizing variable `__malloc_main7_l90' (0..31/287) to fit 0..287
+[eva] tests/builtins/malloc-optimistic.c:90: Call to builtin malloc
+[eva:malloc] tests/builtins/malloc-optimistic.c:90: 
+  resizing variable `__malloc_main7_l90' (0..31/287) to fit 0..319
+[eva] tests/builtins/malloc-optimistic.c:93: 
+  Frama_C_dump_each:
+  # Cvalue domain:
+  v ∈ [--..--]
+  i ∈ {8}
+  p ∈ {{ &__malloc_main7_l90[0] }}
+  j ∈ {8}
+  k ∈ {6}
+  p ∈ ESCAPINGADDR
+  __retres ∈ UNINITIALIZED
+  __malloc_w_main6_l77[0] ∈ UNINITIALIZED
+                      [1] ∈ {0; 1} or UNINITIALIZED
+                      [2] ∈ {1; 2} or UNINITIALIZED
+                      [3] ∈ {2; 3} or UNINITIALIZED
+                      [4] ∈ {3; 4} or UNINITIALIZED
+                      [5] ∈ {4; 5} or UNINITIALIZED
+                      [6] ∈ {5; 6} or UNINITIALIZED
+                      [7] ∈ {6; 7} or UNINITIALIZED
+                      [8] ∈ {7; 8} or UNINITIALIZED
+                      [9] ∈ {8; 9} or UNINITIALIZED
+                      [10] ∈ {9} or UNINITIALIZED
+  __malloc_main7_l90[0..7] ∈ UNINITIALIZED
+                    [8] ∈ {8}
+  ==END OF DUMP==
+[eva] tests/builtins/malloc-optimistic.c:93: 
+  Frama_C_dump_each:
+  # Cvalue domain:
+  v ∈ [--..--]
+  i ∈ {9}
+  p ∈ {{ &__malloc_main7_l90[0] }}
+  j ∈ {8}
+  k ∈ {6}
+  p ∈ ESCAPINGADDR
+  __retres ∈ UNINITIALIZED
+  __malloc_w_main6_l77[0] ∈ UNINITIALIZED
+                      [1] ∈ {0; 1} or UNINITIALIZED
+                      [2] ∈ {1; 2} or UNINITIALIZED
+                      [3] ∈ {2; 3} or UNINITIALIZED
+                      [4] ∈ {3; 4} or UNINITIALIZED
+                      [5] ∈ {4; 5} or UNINITIALIZED
+                      [6] ∈ {5; 6} or UNINITIALIZED
+                      [7] ∈ {6; 7} or UNINITIALIZED
+                      [8] ∈ {7; 8} or UNINITIALIZED
+                      [9] ∈ {8; 9} or UNINITIALIZED
+                      [10] ∈ {9} or UNINITIALIZED
+  __malloc_main7_l90[0..8] ∈ UNINITIALIZED
+                    [9] ∈ {8}
+  ==END OF DUMP==
+[eva] tests/builtins/malloc-optimistic.c:94: Call to builtin free
+[eva:malloc] tests/builtins/malloc-optimistic.c:94: 
+  strong free on bases: {__malloc_main7_l90}
+[eva] tests/builtins/malloc-optimistic.c:94: Call to builtin free
+[eva:malloc] tests/builtins/malloc-optimistic.c:94: 
+  strong free on bases: {__malloc_main7_l90}
+[eva] tests/builtins/malloc-optimistic.c:90: Call to builtin malloc
+[eva:malloc] tests/builtins/malloc-optimistic.c:90: 
+  resizing variable `__malloc_main7_l90' (0..31/319) to fit 0..319
+[eva] tests/builtins/malloc-optimistic.c:90: Call to builtin malloc
+[eva:malloc] tests/builtins/malloc-optimistic.c:90: 
+  resizing variable `__malloc_main7_l90' (0..31/319) to fit 0..351
+[eva] tests/builtins/malloc-optimistic.c:93: 
+  Frama_C_dump_each:
+  # Cvalue domain:
+  v ∈ [--..--]
+  i ∈ {9}
+  p ∈ {{ &__malloc_main7_l90[0] }}
+  j ∈ {9}
+  k ∈ {7}
+  p ∈ ESCAPINGADDR
+  __retres ∈ UNINITIALIZED
+  __malloc_w_main6_l77[0] ∈ UNINITIALIZED
+                      [1] ∈ {0; 1} or UNINITIALIZED
+                      [2] ∈ {1; 2} or UNINITIALIZED
+                      [3] ∈ {2; 3} or UNINITIALIZED
+                      [4] ∈ {3; 4} or UNINITIALIZED
+                      [5] ∈ {4; 5} or UNINITIALIZED
+                      [6] ∈ {5; 6} or UNINITIALIZED
+                      [7] ∈ {6; 7} or UNINITIALIZED
+                      [8] ∈ {7; 8} or UNINITIALIZED
+                      [9] ∈ {8; 9} or UNINITIALIZED
+                      [10] ∈ {9} or UNINITIALIZED
+  __malloc_main7_l90[0..8] ∈ UNINITIALIZED
+                    [9] ∈ {9}
+  ==END OF DUMP==
+[eva] tests/builtins/malloc-optimistic.c:93: 
+  Frama_C_dump_each:
+  # Cvalue domain:
+  v ∈ [--..--]
+  i ∈ {10}
+  p ∈ {{ &__malloc_main7_l90[0] }}
+  j ∈ {9}
+  k ∈ {7}
+  p ∈ ESCAPINGADDR
+  __retres ∈ UNINITIALIZED
+  __malloc_w_main6_l77[0] ∈ UNINITIALIZED
+                      [1] ∈ {0; 1} or UNINITIALIZED
+                      [2] ∈ {1; 2} or UNINITIALIZED
+                      [3] ∈ {2; 3} or UNINITIALIZED
+                      [4] ∈ {3; 4} or UNINITIALIZED
+                      [5] ∈ {4; 5} or UNINITIALIZED
+                      [6] ∈ {5; 6} or UNINITIALIZED
+                      [7] ∈ {6; 7} or UNINITIALIZED
+                      [8] ∈ {7; 8} or UNINITIALIZED
+                      [9] ∈ {8; 9} or UNINITIALIZED
+                      [10] ∈ {9} or UNINITIALIZED
+  __malloc_main7_l90[0..9] ∈ UNINITIALIZED
+                    [10] ∈ {9}
+  ==END OF DUMP==
+[eva] tests/builtins/malloc-optimistic.c:94: Call to builtin free
+[eva:malloc] tests/builtins/malloc-optimistic.c:94: 
+  strong free on bases: {__malloc_main7_l90}
+[eva] tests/builtins/malloc-optimistic.c:94: Call to builtin free
+[eva:malloc] tests/builtins/malloc-optimistic.c:94: 
+  strong free on bases: {__malloc_main7_l90}
+[eva] tests/builtins/malloc-optimistic.c:90: Call to builtin malloc
+[eva:malloc] tests/builtins/malloc-optimistic.c:90: 
+  resizing variable `__malloc_main7_l90' (0..31/351) to fit 0..351
+[eva] tests/builtins/malloc-optimistic.c:90: Call to builtin malloc
+[eva:malloc] tests/builtins/malloc-optimistic.c:90: 
+  resizing variable `__malloc_main7_l90' (0..31/351) to fit 0..383
+[eva] tests/builtins/malloc-optimistic.c:93: 
+  Frama_C_dump_each:
+  # Cvalue domain:
+  v ∈ [--..--]
+  i ∈ {10}
+  p ∈ {{ &__malloc_main7_l90[0] }}
+  j ∈ {10}
+  k ∈ {8}
+  p ∈ ESCAPINGADDR
+  __retres ∈ UNINITIALIZED
+  __malloc_w_main6_l77[0] ∈ UNINITIALIZED
+                      [1] ∈ {0; 1} or UNINITIALIZED
+                      [2] ∈ {1; 2} or UNINITIALIZED
+                      [3] ∈ {2; 3} or UNINITIALIZED
+                      [4] ∈ {3; 4} or UNINITIALIZED
+                      [5] ∈ {4; 5} or UNINITIALIZED
+                      [6] ∈ {5; 6} or UNINITIALIZED
+                      [7] ∈ {6; 7} or UNINITIALIZED
+                      [8] ∈ {7; 8} or UNINITIALIZED
+                      [9] ∈ {8; 9} or UNINITIALIZED
+                      [10] ∈ {9} or UNINITIALIZED
+  __malloc_main7_l90[0..9] ∈ UNINITIALIZED
+                    [10] ∈ {10}
+  ==END OF DUMP==
+[eva] tests/builtins/malloc-optimistic.c:93: 
+  Frama_C_dump_each:
+  # Cvalue domain:
+  v ∈ [--..--]
+  i ∈ {11}
+  p ∈ {{ &__malloc_main7_l90[0] }}
+  j ∈ {10}
+  k ∈ {8}
+  p ∈ ESCAPINGADDR
+  __retres ∈ UNINITIALIZED
+  __malloc_w_main6_l77[0] ∈ UNINITIALIZED
+                      [1] ∈ {0; 1} or UNINITIALIZED
+                      [2] ∈ {1; 2} or UNINITIALIZED
+                      [3] ∈ {2; 3} or UNINITIALIZED
+                      [4] ∈ {3; 4} or UNINITIALIZED
+                      [5] ∈ {4; 5} or UNINITIALIZED
+                      [6] ∈ {5; 6} or UNINITIALIZED
+                      [7] ∈ {6; 7} or UNINITIALIZED
+                      [8] ∈ {7; 8} or UNINITIALIZED
+                      [9] ∈ {8; 9} or UNINITIALIZED
+                      [10] ∈ {9} or UNINITIALIZED
+  __malloc_main7_l90[0..10] ∈ UNINITIALIZED
+                    [11] ∈ {10}
+  ==END OF DUMP==
+[eva] tests/builtins/malloc-optimistic.c:94: Call to builtin free
+[eva:malloc] tests/builtins/malloc-optimistic.c:94: 
+  strong free on bases: {__malloc_main7_l90}
+[eva] tests/builtins/malloc-optimistic.c:94: Call to builtin free
+[eva:malloc] tests/builtins/malloc-optimistic.c:94: 
+  strong free on bases: {__malloc_main7_l90}
+[eva] tests/builtins/malloc-optimistic.c:90: Call to builtin malloc
+[eva:malloc] tests/builtins/malloc-optimistic.c:90: 
+  resizing variable `__malloc_main7_l90' (0..31/383) to fit 0..383
+[eva] tests/builtins/malloc-optimistic.c:90: Call to builtin malloc
+[eva:malloc] tests/builtins/malloc-optimistic.c:90: 
+  resizing variable `__malloc_main7_l90' (0..31/383) to fit 0..415
+[eva] tests/builtins/malloc-optimistic.c:93: 
+  Frama_C_dump_each:
+  # Cvalue domain:
+  v ∈ [--..--]
+  i ∈ {11}
+  p ∈ {{ &__malloc_main7_l90[0] }}
+  j ∈ {11}
+  k ∈ {9}
+  p ∈ ESCAPINGADDR
+  __retres ∈ UNINITIALIZED
+  __malloc_w_main6_l77[0] ∈ UNINITIALIZED
+                      [1] ∈ {0; 1} or UNINITIALIZED
+                      [2] ∈ {1; 2} or UNINITIALIZED
+                      [3] ∈ {2; 3} or UNINITIALIZED
+                      [4] ∈ {3; 4} or UNINITIALIZED
+                      [5] ∈ {4; 5} or UNINITIALIZED
+                      [6] ∈ {5; 6} or UNINITIALIZED
+                      [7] ∈ {6; 7} or UNINITIALIZED
+                      [8] ∈ {7; 8} or UNINITIALIZED
+                      [9] ∈ {8; 9} or UNINITIALIZED
+                      [10] ∈ {9} or UNINITIALIZED
+  __malloc_main7_l90[0..10] ∈ UNINITIALIZED
+                    [11] ∈ {11}
+  ==END OF DUMP==
+[eva] tests/builtins/malloc-optimistic.c:93: 
+  Frama_C_dump_each:
+  # Cvalue domain:
+  v ∈ [--..--]
+  i ∈ {12}
+  p ∈ {{ &__malloc_main7_l90[0] }}
+  j ∈ {11}
+  k ∈ {9}
+  p ∈ ESCAPINGADDR
+  __retres ∈ UNINITIALIZED
+  __malloc_w_main6_l77[0] ∈ UNINITIALIZED
+                      [1] ∈ {0; 1} or UNINITIALIZED
+                      [2] ∈ {1; 2} or UNINITIALIZED
+                      [3] ∈ {2; 3} or UNINITIALIZED
+                      [4] ∈ {3; 4} or UNINITIALIZED
+                      [5] ∈ {4; 5} or UNINITIALIZED
+                      [6] ∈ {5; 6} or UNINITIALIZED
+                      [7] ∈ {6; 7} or UNINITIALIZED
+                      [8] ∈ {7; 8} or UNINITIALIZED
+                      [9] ∈ {8; 9} or UNINITIALIZED
+                      [10] ∈ {9} or UNINITIALIZED
+  __malloc_main7_l90[0..11] ∈ UNINITIALIZED
+                    [12] ∈ {11}
+  ==END OF DUMP==
+[eva] tests/builtins/malloc-optimistic.c:94: Call to builtin free
+[eva:malloc] tests/builtins/malloc-optimistic.c:94: 
+  strong free on bases: {__malloc_main7_l90}
+[eva] tests/builtins/malloc-optimistic.c:94: Call to builtin free
+[eva:malloc] tests/builtins/malloc-optimistic.c:94: 
+  strong free on bases: {__malloc_main7_l90}
+[eva] tests/builtins/malloc-optimistic.c:90: Call to builtin malloc
+[eva:malloc] tests/builtins/malloc-optimistic.c:90: 
+  resizing variable `__malloc_main7_l90' (0..31/415) to fit 0..415
+[eva] tests/builtins/malloc-optimistic.c:90: Call to builtin malloc
+[eva:malloc] tests/builtins/malloc-optimistic.c:90: 
+  resizing variable `__malloc_main7_l90' (0..31/415) to fit 0..447
+[eva] tests/builtins/malloc-optimistic.c:93: 
+  Frama_C_dump_each:
+  # Cvalue domain:
+  v ∈ [--..--]
+  i ∈ {12}
+  p ∈ {{ &__malloc_main7_l90[0] }}
+  j ∈ {12}
+  k ∈ {10}
+  p ∈ ESCAPINGADDR
+  __retres ∈ UNINITIALIZED
+  __malloc_w_main6_l77[0] ∈ UNINITIALIZED
+                      [1] ∈ {0; 1} or UNINITIALIZED
+                      [2] ∈ {1; 2} or UNINITIALIZED
+                      [3] ∈ {2; 3} or UNINITIALIZED
+                      [4] ∈ {3; 4} or UNINITIALIZED
+                      [5] ∈ {4; 5} or UNINITIALIZED
+                      [6] ∈ {5; 6} or UNINITIALIZED
+                      [7] ∈ {6; 7} or UNINITIALIZED
+                      [8] ∈ {7; 8} or UNINITIALIZED
+                      [9] ∈ {8; 9} or UNINITIALIZED
+                      [10] ∈ {9} or UNINITIALIZED
+  __malloc_main7_l90[0..11] ∈ UNINITIALIZED
+                    [12] ∈ {12}
+  ==END OF DUMP==
+[eva] tests/builtins/malloc-optimistic.c:93: 
+  Frama_C_dump_each:
+  # Cvalue domain:
+  v ∈ [--..--]
+  i ∈ {13}
+  p ∈ {{ &__malloc_main7_l90[0] }}
+  j ∈ {12}
+  k ∈ {10}
+  p ∈ ESCAPINGADDR
+  __retres ∈ UNINITIALIZED
+  __malloc_w_main6_l77[0] ∈ UNINITIALIZED
+                      [1] ∈ {0; 1} or UNINITIALIZED
+                      [2] ∈ {1; 2} or UNINITIALIZED
+                      [3] ∈ {2; 3} or UNINITIALIZED
+                      [4] ∈ {3; 4} or UNINITIALIZED
+                      [5] ∈ {4; 5} or UNINITIALIZED
+                      [6] ∈ {5; 6} or UNINITIALIZED
+                      [7] ∈ {6; 7} or UNINITIALIZED
+                      [8] ∈ {7; 8} or UNINITIALIZED
+                      [9] ∈ {8; 9} or UNINITIALIZED
+                      [10] ∈ {9} or UNINITIALIZED
+  __malloc_main7_l90[0..12] ∈ UNINITIALIZED
+                    [13] ∈ {12}
+  ==END OF DUMP==
+[eva] tests/builtins/malloc-optimistic.c:94: Call to builtin free
+[eva:malloc] tests/builtins/malloc-optimistic.c:94: 
+  strong free on bases: {__malloc_main7_l90}
+[eva] tests/builtins/malloc-optimistic.c:94: Call to builtin free
+[eva:malloc] tests/builtins/malloc-optimistic.c:94: 
+  strong free on bases: {__malloc_main7_l90}
+[eva] tests/builtins/malloc-optimistic.c:90: Call to builtin malloc
+[eva:malloc] tests/builtins/malloc-optimistic.c:90: 
+  resizing variable `__malloc_main7_l90' (0..31/447) to fit 0..447
+[eva] tests/builtins/malloc-optimistic.c:90: Call to builtin malloc
+[eva:malloc] tests/builtins/malloc-optimistic.c:90: 
+  resizing variable `__malloc_main7_l90' (0..31/447) to fit 0..479
+[eva] tests/builtins/malloc-optimistic.c:93: 
+  Frama_C_dump_each:
+  # Cvalue domain:
+  v ∈ [--..--]
+  i ∈ {13}
+  p ∈ {{ &__malloc_main7_l90[0] }}
+  j ∈ {13}
+  k ∈ {11}
+  p ∈ ESCAPINGADDR
+  __retres ∈ UNINITIALIZED
+  __malloc_w_main6_l77[0] ∈ UNINITIALIZED
+                      [1] ∈ {0; 1} or UNINITIALIZED
+                      [2] ∈ {1; 2} or UNINITIALIZED
+                      [3] ∈ {2; 3} or UNINITIALIZED
+                      [4] ∈ {3; 4} or UNINITIALIZED
+                      [5] ∈ {4; 5} or UNINITIALIZED
+                      [6] ∈ {5; 6} or UNINITIALIZED
+                      [7] ∈ {6; 7} or UNINITIALIZED
+                      [8] ∈ {7; 8} or UNINITIALIZED
+                      [9] ∈ {8; 9} or UNINITIALIZED
+                      [10] ∈ {9} or UNINITIALIZED
+  __malloc_main7_l90[0..12] ∈ UNINITIALIZED
+                    [13] ∈ {13}
+  ==END OF DUMP==
+[eva] tests/builtins/malloc-optimistic.c:93: 
+  Frama_C_dump_each:
+  # Cvalue domain:
+  v ∈ [--..--]
+  i ∈ {14}
+  p ∈ {{ &__malloc_main7_l90[0] }}
+  j ∈ {13}
+  k ∈ {11}
+  p ∈ ESCAPINGADDR
+  __retres ∈ UNINITIALIZED
+  __malloc_w_main6_l77[0] ∈ UNINITIALIZED
+                      [1] ∈ {0; 1} or UNINITIALIZED
+                      [2] ∈ {1; 2} or UNINITIALIZED
+                      [3] ∈ {2; 3} or UNINITIALIZED
+                      [4] ∈ {3; 4} or UNINITIALIZED
+                      [5] ∈ {4; 5} or UNINITIALIZED
+                      [6] ∈ {5; 6} or UNINITIALIZED
+                      [7] ∈ {6; 7} or UNINITIALIZED
+                      [8] ∈ {7; 8} or UNINITIALIZED
+                      [9] ∈ {8; 9} or UNINITIALIZED
+                      [10] ∈ {9} or UNINITIALIZED
+  __malloc_main7_l90[0..13] ∈ UNINITIALIZED
+                    [14] ∈ {13}
+  ==END OF DUMP==
+[eva] tests/builtins/malloc-optimistic.c:94: Call to builtin free
+[eva:malloc] tests/builtins/malloc-optimistic.c:94: 
+  strong free on bases: {__malloc_main7_l90}
+[eva] tests/builtins/malloc-optimistic.c:94: Call to builtin free
+[eva:malloc] tests/builtins/malloc-optimistic.c:94: 
+  strong free on bases: {__malloc_main7_l90}
+[eva] tests/builtins/malloc-optimistic.c:90: Call to builtin malloc
+[eva:malloc] tests/builtins/malloc-optimistic.c:90: 
+  resizing variable `__malloc_main7_l90' (0..31/479) to fit 0..479
+[eva] tests/builtins/malloc-optimistic.c:90: Call to builtin malloc
+[eva:malloc] tests/builtins/malloc-optimistic.c:90: 
+  resizing variable `__malloc_main7_l90' (0..31/479) to fit 0..511
+[eva] tests/builtins/malloc-optimistic.c:93: 
+  Frama_C_dump_each:
+  # Cvalue domain:
+  v ∈ [--..--]
+  i ∈ {14}
+  p ∈ {{ &__malloc_main7_l90[0] }}
+  j ∈ {14}
+  k ∈ {12}
+  p ∈ ESCAPINGADDR
+  __retres ∈ UNINITIALIZED
+  __malloc_w_main6_l77[0] ∈ UNINITIALIZED
+                      [1] ∈ {0; 1} or UNINITIALIZED
+                      [2] ∈ {1; 2} or UNINITIALIZED
+                      [3] ∈ {2; 3} or UNINITIALIZED
+                      [4] ∈ {3; 4} or UNINITIALIZED
+                      [5] ∈ {4; 5} or UNINITIALIZED
+                      [6] ∈ {5; 6} or UNINITIALIZED
+                      [7] ∈ {6; 7} or UNINITIALIZED
+                      [8] ∈ {7; 8} or UNINITIALIZED
+                      [9] ∈ {8; 9} or UNINITIALIZED
+                      [10] ∈ {9} or UNINITIALIZED
+  __malloc_main7_l90[0..13] ∈ UNINITIALIZED
+                    [14] ∈ {14}
+  ==END OF DUMP==
+[eva] tests/builtins/malloc-optimistic.c:93: 
+  Frama_C_dump_each:
+  # Cvalue domain:
+  v ∈ [--..--]
+  i ∈ {15}
+  p ∈ {{ &__malloc_main7_l90[0] }}
+  j ∈ {14}
+  k ∈ {12}
+  p ∈ ESCAPINGADDR
+  __retres ∈ UNINITIALIZED
+  __malloc_w_main6_l77[0] ∈ UNINITIALIZED
+                      [1] ∈ {0; 1} or UNINITIALIZED
+                      [2] ∈ {1; 2} or UNINITIALIZED
+                      [3] ∈ {2; 3} or UNINITIALIZED
+                      [4] ∈ {3; 4} or UNINITIALIZED
+                      [5] ∈ {4; 5} or UNINITIALIZED
+                      [6] ∈ {5; 6} or UNINITIALIZED
+                      [7] ∈ {6; 7} or UNINITIALIZED
+                      [8] ∈ {7; 8} or UNINITIALIZED
+                      [9] ∈ {8; 9} or UNINITIALIZED
+                      [10] ∈ {9} or UNINITIALIZED
+  __malloc_main7_l90[0..14] ∈ UNINITIALIZED
+                    [15] ∈ {14}
+  ==END OF DUMP==
+[eva] tests/builtins/malloc-optimistic.c:94: Call to builtin free
+[eva:malloc] tests/builtins/malloc-optimistic.c:94: 
+  strong free on bases: {__malloc_main7_l90}
+[eva] tests/builtins/malloc-optimistic.c:94: Call to builtin free
+[eva:malloc] tests/builtins/malloc-optimistic.c:94: 
+  strong free on bases: {__malloc_main7_l90}
+[eva] tests/builtins/malloc-optimistic.c:90: Call to builtin malloc
+[eva:malloc] tests/builtins/malloc-optimistic.c:90: 
+  resizing variable `__malloc_main7_l90' (0..31/511) to fit 0..511/543
+[eva:alarm] tests/builtins/malloc-optimistic.c:92: Warning: 
+  accessing uninitialized left-value. assert \initialized(p + i);
+[eva] tests/builtins/malloc-optimistic.c:93: 
+  Frama_C_dump_each:
+  # Cvalue domain:
+  v ∈ [--..--]
+  i ∈ {15; 16}
+  p ∈ {{ &__malloc_main7_l90[0] }}
+  j ∈ {15}
+  k ∈ {13}
+  p ∈ ESCAPINGADDR
+  __retres ∈ UNINITIALIZED
+  __malloc_w_main6_l77[0] ∈ UNINITIALIZED
+                      [1] ∈ {0; 1} or UNINITIALIZED
+                      [2] ∈ {1; 2} or UNINITIALIZED
+                      [3] ∈ {2; 3} or UNINITIALIZED
+                      [4] ∈ {3; 4} or UNINITIALIZED
+                      [5] ∈ {4; 5} or UNINITIALIZED
+                      [6] ∈ {5; 6} or UNINITIALIZED
+                      [7] ∈ {6; 7} or UNINITIALIZED
+                      [8] ∈ {7; 8} or UNINITIALIZED
+                      [9] ∈ {8; 9} or UNINITIALIZED
+                      [10] ∈ {9} or UNINITIALIZED
+  __malloc_main7_l90[0..14] ∈ UNINITIALIZED
+                    [15..16] ∈ {15} or UNINITIALIZED
+  ==END OF DUMP==
+[eva] tests/builtins/malloc-optimistic.c:94: Call to builtin free
+[eva:malloc] tests/builtins/malloc-optimistic.c:94: 
+  strong free on bases: {__malloc_main7_l90}
+[eva] tests/builtins/malloc-optimistic.c:88: starting to merge loop iterations
+[eva] tests/builtins/malloc-optimistic.c:90: Call to builtin malloc
+[eva:malloc] tests/builtins/malloc-optimistic.c:90: 
+  resizing variable `__malloc_main7_l90' (0..31/543) to fit 0..511/575
+[eva] tests/builtins/malloc-optimistic.c:93: 
+  Frama_C_dump_each:
+  # Cvalue domain:
+  v ∈ [--..--]
+  i ∈ {15; 16; 17}
+  p ∈ {{ &__malloc_main7_l90[0] }}
+  j ∈ {15; 16}
+  k ∈ {13; 14}
+  p ∈ ESCAPINGADDR
+  __retres ∈ UNINITIALIZED
+  __malloc_w_main6_l77[0] ∈ UNINITIALIZED
+                      [1] ∈ {0; 1} or UNINITIALIZED
+                      [2] ∈ {1; 2} or UNINITIALIZED
+                      [3] ∈ {2; 3} or UNINITIALIZED
+                      [4] ∈ {3; 4} or UNINITIALIZED
+                      [5] ∈ {4; 5} or UNINITIALIZED
+                      [6] ∈ {5; 6} or UNINITIALIZED
+                      [7] ∈ {6; 7} or UNINITIALIZED
+                      [8] ∈ {7; 8} or UNINITIALIZED
+                      [9] ∈ {8; 9} or UNINITIALIZED
+                      [10] ∈ {9} or UNINITIALIZED
+  __malloc_main7_l90[0..14] ∈ UNINITIALIZED
+                    [15..17] ∈ {15; 16} or UNINITIALIZED
+  ==END OF DUMP==
+[eva] tests/builtins/malloc-optimistic.c:94: Call to builtin free
+[eva:malloc] tests/builtins/malloc-optimistic.c:94: 
+  strong free on bases: {__malloc_main7_l90}
+[eva] tests/builtins/malloc-optimistic.c:90: Call to builtin malloc
+[eva:malloc] tests/builtins/malloc-optimistic.c:90: 
+  resizing variable `__malloc_main7_l90' (0..31/575) to fit 0..511/607
+[eva] tests/builtins/malloc-optimistic.c:93: 
+  Frama_C_dump_each:
+  # Cvalue domain:
+  v ∈ [--..--]
+  i ∈ {15; 16; 17; 18}
+  p ∈ {{ &__malloc_main7_l90[0] }}
+  j ∈ {15; 16; 17}
+  k ∈ {13; 14; 15}
+  p ∈ ESCAPINGADDR
+  __retres ∈ UNINITIALIZED
+  __malloc_w_main6_l77[0] ∈ UNINITIALIZED
+                      [1] ∈ {0; 1} or UNINITIALIZED
+                      [2] ∈ {1; 2} or UNINITIALIZED
+                      [3] ∈ {2; 3} or UNINITIALIZED
+                      [4] ∈ {3; 4} or UNINITIALIZED
+                      [5] ∈ {4; 5} or UNINITIALIZED
+                      [6] ∈ {5; 6} or UNINITIALIZED
+                      [7] ∈ {6; 7} or UNINITIALIZED
+                      [8] ∈ {7; 8} or UNINITIALIZED
+                      [9] ∈ {8; 9} or UNINITIALIZED
+                      [10] ∈ {9} or UNINITIALIZED
+  __malloc_main7_l90[0..14] ∈ UNINITIALIZED
+                    [15..18] ∈ {15; 16; 17} or UNINITIALIZED
+  ==END OF DUMP==
+[eva] tests/builtins/malloc-optimistic.c:94: Call to builtin free
+[eva:malloc] tests/builtins/malloc-optimistic.c:94: 
+  strong free on bases: {__malloc_main7_l90}
+[eva] tests/builtins/malloc-optimistic.c:90: Call to builtin malloc
+[eva:malloc] tests/builtins/malloc-optimistic.c:90: 
+  resizing variable `__malloc_main7_l90' (0..31/607) to fit 0..511/3231
+[eva] tests/builtins/malloc-optimistic.c:93: 
+  Frama_C_dump_each:
+  # Cvalue domain:
+  v ∈ [--..--]
+  i ∈ [15..100]
+  p ∈ {{ &__malloc_main7_l90[0] }}
+  j ∈ [15..99]
+  k ∈ [13..97]
+  p ∈ ESCAPINGADDR
+  __retres ∈ UNINITIALIZED
+  __malloc_w_main6_l77[0] ∈ UNINITIALIZED
+                      [1] ∈ {0; 1} or UNINITIALIZED
+                      [2] ∈ {1; 2} or UNINITIALIZED
+                      [3] ∈ {2; 3} or UNINITIALIZED
+                      [4] ∈ {3; 4} or UNINITIALIZED
+                      [5] ∈ {4; 5} or UNINITIALIZED
+                      [6] ∈ {5; 6} or UNINITIALIZED
+                      [7] ∈ {6; 7} or UNINITIALIZED
+                      [8] ∈ {7; 8} or UNINITIALIZED
+                      [9] ∈ {8; 9} or UNINITIALIZED
+                      [10] ∈ {9} or UNINITIALIZED
+  __malloc_main7_l90[0..14] ∈ UNINITIALIZED
+                    [15..100] ∈ [15..99] or UNINITIALIZED
+  ==END OF DUMP==
+[eva] tests/builtins/malloc-optimistic.c:94: Call to builtin free
+[eva:malloc] tests/builtins/malloc-optimistic.c:94: 
+  strong free on bases: {__malloc_main7_l90}
+[eva] Recording results for main7
+[eva] Done for function main7
+[eva] computing for function main8 <- main.
+  Called from tests/builtins/malloc-optimistic.c:149.
+[eva] tests/builtins/malloc-optimistic.c:103: Call to builtin malloc
+[eva] tests/builtins/malloc-optimistic.c:103: 
+  allocating variable __malloc_main8_l103
+[eva] tests/builtins/malloc-optimistic.c:103: Call to builtin malloc
+[eva:malloc] tests/builtins/malloc-optimistic.c:103: 
+  resizing variable `__malloc_main8_l103' (0..31) to fit 0..63
+[eva:alarm] tests/builtins/malloc-optimistic.c:104: Warning: 
+  out of bounds write. assert \valid(p + i);
+[eva:alarm] tests/builtins/malloc-optimistic.c:105: Warning: 
+  out of bounds read. assert \valid_read(p + i);
+[eva] tests/builtins/malloc-optimistic.c:106: 
+  Frama_C_dump_each:
+  # Cvalue domain:
+  v ∈ [--..--]
+  i ∈ {0}
+  p ∈ {{ &__malloc_main8_l103[0] }}
+  j ∈ {0}
+  k ∈ {-2}
+  p ∈ ESCAPINGADDR
+  __retres ∈ UNINITIALIZED
+  __malloc_w_main6_l77[0] ∈ UNINITIALIZED
+                      [1] ∈ {0; 1} or UNINITIALIZED
+                      [2] ∈ {1; 2} or UNINITIALIZED
+                      [3] ∈ {2; 3} or UNINITIALIZED
+                      [4] ∈ {3; 4} or UNINITIALIZED
+                      [5] ∈ {4; 5} or UNINITIALIZED
+                      [6] ∈ {5; 6} or UNINITIALIZED
+                      [7] ∈ {6; 7} or UNINITIALIZED
+                      [8] ∈ {7; 8} or UNINITIALIZED
+                      [9] ∈ {8; 9} or UNINITIALIZED
+                      [10] ∈ {9} or UNINITIALIZED
+  __malloc_main8_l103[0] ∈ {0}
+  ==END OF DUMP==
+[eva] tests/builtins/malloc-optimistic.c:106: 
+  Frama_C_dump_each:
+  # Cvalue domain:
+  v ∈ [--..--]
+  i ∈ {1}
+  p ∈ {{ &__malloc_main8_l103[0] }}
+  j ∈ {0}
+  k ∈ {-2}
+  p ∈ ESCAPINGADDR
+  __retres ∈ UNINITIALIZED
+  __malloc_w_main6_l77[0] ∈ UNINITIALIZED
+                      [1] ∈ {0; 1} or UNINITIALIZED
+                      [2] ∈ {1; 2} or UNINITIALIZED
+                      [3] ∈ {2; 3} or UNINITIALIZED
+                      [4] ∈ {3; 4} or UNINITIALIZED
+                      [5] ∈ {4; 5} or UNINITIALIZED
+                      [6] ∈ {5; 6} or UNINITIALIZED
+                      [7] ∈ {6; 7} or UNINITIALIZED
+                      [8] ∈ {7; 8} or UNINITIALIZED
+                      [9] ∈ {8; 9} or UNINITIALIZED
+                      [10] ∈ {9} or UNINITIALIZED
+  __malloc_main8_l103[0] ∈ UNINITIALIZED
+                     [1] ∈ {0}
+  ==END OF DUMP==
+[eva] tests/builtins/malloc-optimistic.c:107: Call to builtin free
+[eva:malloc] tests/builtins/malloc-optimistic.c:107: 
+  strong free on bases: {__malloc_main8_l103}
+[eva] tests/builtins/malloc-optimistic.c:103: Call to builtin malloc
+[eva:malloc:weak] tests/builtins/malloc-optimistic.c:103: 
+  marking variable `__malloc_main8_l103' as weak
+[eva:malloc] tests/builtins/malloc-optimistic.c:103: 
+  resizing variable `__malloc_w_main8_l103' (0..31/63) to fit 0..63
+[eva] tests/builtins/malloc-optimistic.c:103: Call to builtin malloc
+[eva:malloc] tests/builtins/malloc-optimistic.c:103: 
+  resizing variable `__malloc_w_main8_l103' (0..31/63) to fit 0..95
+[eva:alarm] tests/builtins/malloc-optimistic.c:105: Warning: 
+  accessing uninitialized left-value. assert \initialized(p + i);
+[eva] tests/builtins/malloc-optimistic.c:106: 
+  Frama_C_dump_each:
+  # Cvalue domain:
+  v ∈ [--..--]
+  i ∈ {1}
+  p ∈ {{ &__malloc_w_main8_l103[0] }}
+  j ∈ {1}
+  k ∈ {-2; -1}
+  p ∈ ESCAPINGADDR
+  __retres ∈ UNINITIALIZED
+  __malloc_w_main6_l77[0] ∈ UNINITIALIZED
+                      [1] ∈ {0; 1} or UNINITIALIZED
+                      [2] ∈ {1; 2} or UNINITIALIZED
+                      [3] ∈ {2; 3} or UNINITIALIZED
+                      [4] ∈ {3; 4} or UNINITIALIZED
+                      [5] ∈ {4; 5} or UNINITIALIZED
+                      [6] ∈ {5; 6} or UNINITIALIZED
+                      [7] ∈ {6; 7} or UNINITIALIZED
+                      [8] ∈ {7; 8} or UNINITIALIZED
+                      [9] ∈ {8; 9} or UNINITIALIZED
+                      [10] ∈ {9} or UNINITIALIZED
+  __malloc_w_main8_l103[0] ∈ UNINITIALIZED
+                       [1] ∈ {0; 1} or UNINITIALIZED
+  ==END OF DUMP==
+[eva] tests/builtins/malloc-optimistic.c:106: 
+  Frama_C_dump_each:
+  # Cvalue domain:
+  v ∈ [--..--]
+  i ∈ {2}
+  p ∈ {{ &__malloc_w_main8_l103[0] }}
+  j ∈ {1}
+  k ∈ {-1}
+  p ∈ ESCAPINGADDR
+  __retres ∈ UNINITIALIZED
+  __malloc_w_main6_l77[0] ∈ UNINITIALIZED
+                      [1] ∈ {0; 1} or UNINITIALIZED
+                      [2] ∈ {1; 2} or UNINITIALIZED
+                      [3] ∈ {2; 3} or UNINITIALIZED
+                      [4] ∈ {3; 4} or UNINITIALIZED
+                      [5] ∈ {4; 5} or UNINITIALIZED
+                      [6] ∈ {5; 6} or UNINITIALIZED
+                      [7] ∈ {6; 7} or UNINITIALIZED
+                      [8] ∈ {7; 8} or UNINITIALIZED
+                      [9] ∈ {8; 9} or UNINITIALIZED
+                      [10] ∈ {9} or UNINITIALIZED
+  __malloc_w_main8_l103[0] ∈ UNINITIALIZED
+                       [1] ∈ {0} or UNINITIALIZED
+                       [2] ∈ {1} or UNINITIALIZED
+  ==END OF DUMP==
+[eva] tests/builtins/malloc-optimistic.c:107: Call to builtin free
+[eva:malloc] tests/builtins/malloc-optimistic.c:107: 
+  weak free on bases: {__malloc_w_main8_l103}
+[eva] tests/builtins/malloc-optimistic.c:103: Call to builtin malloc
+[eva:malloc] tests/builtins/malloc-optimistic.c:103: 
+  resizing variable `__malloc_w_main8_l103' (0..31/95) to fit 0..95
+[eva] tests/builtins/malloc-optimistic.c:103: Call to builtin malloc
+[eva:malloc] tests/builtins/malloc-optimistic.c:103: 
+  resizing variable `__malloc_w_main8_l103' (0..31/95) to fit 0..127
+[eva] tests/builtins/malloc-optimistic.c:106: 
+  Frama_C_dump_each:
+  # Cvalue domain:
+  v ∈ [--..--]
+  i ∈ {2}
+  p ∈ {{ &__malloc_w_main8_l103[0] }}
+  j ∈ {2}
+  k ∈ {-1; 0}
+  p ∈ ESCAPINGADDR
+  __retres ∈ UNINITIALIZED
+  __malloc_w_main6_l77[0] ∈ UNINITIALIZED
+                      [1] ∈ {0; 1} or UNINITIALIZED
+                      [2] ∈ {1; 2} or UNINITIALIZED
+                      [3] ∈ {2; 3} or UNINITIALIZED
+                      [4] ∈ {3; 4} or UNINITIALIZED
+                      [5] ∈ {4; 5} or UNINITIALIZED
+                      [6] ∈ {5; 6} or UNINITIALIZED
+                      [7] ∈ {6; 7} or UNINITIALIZED
+                      [8] ∈ {7; 8} or UNINITIALIZED
+                      [9] ∈ {8; 9} or UNINITIALIZED
+                      [10] ∈ {9} or UNINITIALIZED
+  __malloc_w_main8_l103[0] ∈ UNINITIALIZED
+                       [1] ∈ {0; 1} or UNINITIALIZED
+                       [2] ∈ {1; 2} or UNINITIALIZED
+  ==END OF DUMP==
+[eva] tests/builtins/malloc-optimistic.c:106: 
+  Frama_C_dump_each:
+  # Cvalue domain:
+  v ∈ [--..--]
+  i ∈ {3}
+  p ∈ {{ &__malloc_w_main8_l103[0] }}
+  j ∈ {2}
+  k ∈ {0}
+  p ∈ ESCAPINGADDR
+  __retres ∈ UNINITIALIZED
+  __malloc_w_main6_l77[0] ∈ UNINITIALIZED
+                      [1] ∈ {0; 1} or UNINITIALIZED
+                      [2] ∈ {1; 2} or UNINITIALIZED
+                      [3] ∈ {2; 3} or UNINITIALIZED
+                      [4] ∈ {3; 4} or UNINITIALIZED
+                      [5] ∈ {4; 5} or UNINITIALIZED
+                      [6] ∈ {5; 6} or UNINITIALIZED
+                      [7] ∈ {6; 7} or UNINITIALIZED
+                      [8] ∈ {7; 8} or UNINITIALIZED
+                      [9] ∈ {8; 9} or UNINITIALIZED
+                      [10] ∈ {9} or UNINITIALIZED
+  __malloc_w_main8_l103[0] ∈ UNINITIALIZED
+                       [1] ∈ {0; 1} or UNINITIALIZED
+                       [2] ∈ {1} or UNINITIALIZED
+                       [3] ∈ {2} or UNINITIALIZED
+  ==END OF DUMP==
+[eva] tests/builtins/malloc-optimistic.c:107: Call to builtin free
+[eva:malloc] tests/builtins/malloc-optimistic.c:107: 
+  weak free on bases: {__malloc_w_main8_l103}
+[eva] tests/builtins/malloc-optimistic.c:103: Call to builtin malloc
+[eva:malloc] tests/builtins/malloc-optimistic.c:103: 
+  resizing variable `__malloc_w_main8_l103' (0..31/127) to fit 0..127
+[eva] tests/builtins/malloc-optimistic.c:103: Call to builtin malloc
+[eva:malloc] tests/builtins/malloc-optimistic.c:103: 
+  resizing variable `__malloc_w_main8_l103' (0..31/127) to fit 0..159
+[eva] tests/builtins/malloc-optimistic.c:106: 
+  Frama_C_dump_each:
+  # Cvalue domain:
+  v ∈ [--..--]
+  i ∈ {3}
+  p ∈ {{ &__malloc_w_main8_l103[0] }}
+  j ∈ {3}
+  k ∈ {0; 1}
+  p ∈ ESCAPINGADDR
+  __retres ∈ UNINITIALIZED
+  __malloc_w_main6_l77[0] ∈ UNINITIALIZED
+                      [1] ∈ {0; 1} or UNINITIALIZED
+                      [2] ∈ {1; 2} or UNINITIALIZED
+                      [3] ∈ {2; 3} or UNINITIALIZED
+                      [4] ∈ {3; 4} or UNINITIALIZED
+                      [5] ∈ {4; 5} or UNINITIALIZED
+                      [6] ∈ {5; 6} or UNINITIALIZED
+                      [7] ∈ {6; 7} or UNINITIALIZED
+                      [8] ∈ {7; 8} or UNINITIALIZED
+                      [9] ∈ {8; 9} or UNINITIALIZED
+                      [10] ∈ {9} or UNINITIALIZED
+  __malloc_w_main8_l103[0] ∈ UNINITIALIZED
+                       [1] ∈ {0; 1} or UNINITIALIZED
+                       [2] ∈ {1; 2} or UNINITIALIZED
+                       [3] ∈ {2; 3} or UNINITIALIZED
+  ==END OF DUMP==
+[eva] tests/builtins/malloc-optimistic.c:106: 
+  Frama_C_dump_each:
+  # Cvalue domain:
+  v ∈ [--..--]
+  i ∈ {4}
+  p ∈ {{ &__malloc_w_main8_l103[0] }}
+  j ∈ {3}
+  k ∈ {1}
+  p ∈ ESCAPINGADDR
+  __retres ∈ UNINITIALIZED
+  __malloc_w_main6_l77[0] ∈ UNINITIALIZED
+                      [1] ∈ {0; 1} or UNINITIALIZED
+                      [2] ∈ {1; 2} or UNINITIALIZED
+                      [3] ∈ {2; 3} or UNINITIALIZED
+                      [4] ∈ {3; 4} or UNINITIALIZED
+                      [5] ∈ {4; 5} or UNINITIALIZED
+                      [6] ∈ {5; 6} or UNINITIALIZED
+                      [7] ∈ {6; 7} or UNINITIALIZED
+                      [8] ∈ {7; 8} or UNINITIALIZED
+                      [9] ∈ {8; 9} or UNINITIALIZED
+                      [10] ∈ {9} or UNINITIALIZED
+  __malloc_w_main8_l103[0] ∈ UNINITIALIZED
+                       [1] ∈ {0; 1} or UNINITIALIZED
+                       [2] ∈ {1; 2} or UNINITIALIZED
+                       [3] ∈ {2} or UNINITIALIZED
+                       [4] ∈ {3} or UNINITIALIZED
+  ==END OF DUMP==
+[eva] tests/builtins/malloc-optimistic.c:107: Call to builtin free
+[eva:malloc] tests/builtins/malloc-optimistic.c:107: 
+  weak free on bases: {__malloc_w_main8_l103}
+[eva] tests/builtins/malloc-optimistic.c:103: Call to builtin malloc
+[eva:malloc] tests/builtins/malloc-optimistic.c:103: 
+  resizing variable `__malloc_w_main8_l103' (0..31/159) to fit 0..159
+[eva] tests/builtins/malloc-optimistic.c:103: Call to builtin malloc
+[eva:malloc] tests/builtins/malloc-optimistic.c:103: 
+  resizing variable `__malloc_w_main8_l103' (0..31/159) to fit 0..191
+[eva] tests/builtins/malloc-optimistic.c:106: 
+  Frama_C_dump_each:
+  # Cvalue domain:
+  v ∈ [--..--]
+  i ∈ {4}
+  p ∈ {{ &__malloc_w_main8_l103[0] }}
+  j ∈ {4}
+  k ∈ {1; 2}
+  p ∈ ESCAPINGADDR
+  __retres ∈ UNINITIALIZED
+  __malloc_w_main6_l77[0] ∈ UNINITIALIZED
+                      [1] ∈ {0; 1} or UNINITIALIZED
+                      [2] ∈ {1; 2} or UNINITIALIZED
+                      [3] ∈ {2; 3} or UNINITIALIZED
+                      [4] ∈ {3; 4} or UNINITIALIZED
+                      [5] ∈ {4; 5} or UNINITIALIZED
+                      [6] ∈ {5; 6} or UNINITIALIZED
+                      [7] ∈ {6; 7} or UNINITIALIZED
+                      [8] ∈ {7; 8} or UNINITIALIZED
+                      [9] ∈ {8; 9} or UNINITIALIZED
+                      [10] ∈ {9} or UNINITIALIZED
+  __malloc_w_main8_l103[0] ∈ UNINITIALIZED
+                       [1] ∈ {0; 1} or UNINITIALIZED
+                       [2] ∈ {1; 2} or UNINITIALIZED
+                       [3] ∈ {2; 3} or UNINITIALIZED
+                       [4] ∈ {3; 4} or UNINITIALIZED
+  ==END OF DUMP==
+[eva] tests/builtins/malloc-optimistic.c:106: 
+  Frama_C_dump_each:
+  # Cvalue domain:
+  v ∈ [--..--]
+  i ∈ {5}
+  p ∈ {{ &__malloc_w_main8_l103[0] }}
+  j ∈ {4}
+  k ∈ {2}
+  p ∈ ESCAPINGADDR
+  __retres ∈ UNINITIALIZED
+  __malloc_w_main6_l77[0] ∈ UNINITIALIZED
+                      [1] ∈ {0; 1} or UNINITIALIZED
+                      [2] ∈ {1; 2} or UNINITIALIZED
+                      [3] ∈ {2; 3} or UNINITIALIZED
+                      [4] ∈ {3; 4} or UNINITIALIZED
+                      [5] ∈ {4; 5} or UNINITIALIZED
+                      [6] ∈ {5; 6} or UNINITIALIZED
+                      [7] ∈ {6; 7} or UNINITIALIZED
+                      [8] ∈ {7; 8} or UNINITIALIZED
+                      [9] ∈ {8; 9} or UNINITIALIZED
+                      [10] ∈ {9} or UNINITIALIZED
+  __malloc_w_main8_l103[0] ∈ UNINITIALIZED
+                       [1] ∈ {0; 1} or UNINITIALIZED
+                       [2] ∈ {1; 2} or UNINITIALIZED
+                       [3] ∈ {2; 3} or UNINITIALIZED
+                       [4] ∈ {3} or UNINITIALIZED
+                       [5] ∈ {4} or UNINITIALIZED
+  ==END OF DUMP==
+[eva] tests/builtins/malloc-optimistic.c:107: Call to builtin free
+[eva:malloc] tests/builtins/malloc-optimistic.c:107: 
+  weak free on bases: {__malloc_w_main8_l103}
+[eva] tests/builtins/malloc-optimistic.c:103: Call to builtin malloc
+[eva:malloc] tests/builtins/malloc-optimistic.c:103: 
+  resizing variable `__malloc_w_main8_l103' (0..31/191) to fit 0..191
+[eva] tests/builtins/malloc-optimistic.c:103: Call to builtin malloc
+[eva:malloc] tests/builtins/malloc-optimistic.c:103: 
+  resizing variable `__malloc_w_main8_l103' (0..31/191) to fit 0..223
+[eva] tests/builtins/malloc-optimistic.c:106: 
+  Frama_C_dump_each:
+  # Cvalue domain:
+  v ∈ [--..--]
+  i ∈ {5}
+  p ∈ {{ &__malloc_w_main8_l103[0] }}
+  j ∈ {5}
+  k ∈ {2; 3}
+  p ∈ ESCAPINGADDR
+  __retres ∈ UNINITIALIZED
+  __malloc_w_main6_l77[0] ∈ UNINITIALIZED
+                      [1] ∈ {0; 1} or UNINITIALIZED
+                      [2] ∈ {1; 2} or UNINITIALIZED
+                      [3] ∈ {2; 3} or UNINITIALIZED
+                      [4] ∈ {3; 4} or UNINITIALIZED
+                      [5] ∈ {4; 5} or UNINITIALIZED
+                      [6] ∈ {5; 6} or UNINITIALIZED
+                      [7] ∈ {6; 7} or UNINITIALIZED
+                      [8] ∈ {7; 8} or UNINITIALIZED
+                      [9] ∈ {8; 9} or UNINITIALIZED
+                      [10] ∈ {9} or UNINITIALIZED
+  __malloc_w_main8_l103[0] ∈ UNINITIALIZED
+                       [1] ∈ {0; 1} or UNINITIALIZED
+                       [2] ∈ {1; 2} or UNINITIALIZED
+                       [3] ∈ {2; 3} or UNINITIALIZED
+                       [4] ∈ {3; 4} or UNINITIALIZED
+                       [5] ∈ {4; 5} or UNINITIALIZED
+  ==END OF DUMP==
+[eva] tests/builtins/malloc-optimistic.c:106: 
+  Frama_C_dump_each:
+  # Cvalue domain:
+  v ∈ [--..--]
+  i ∈ {6}
+  p ∈ {{ &__malloc_w_main8_l103[0] }}
+  j ∈ {5}
+  k ∈ {3}
+  p ∈ ESCAPINGADDR
+  __retres ∈ UNINITIALIZED
+  __malloc_w_main6_l77[0] ∈ UNINITIALIZED
+                      [1] ∈ {0; 1} or UNINITIALIZED
+                      [2] ∈ {1; 2} or UNINITIALIZED
+                      [3] ∈ {2; 3} or UNINITIALIZED
+                      [4] ∈ {3; 4} or UNINITIALIZED
+                      [5] ∈ {4; 5} or UNINITIALIZED
+                      [6] ∈ {5; 6} or UNINITIALIZED
+                      [7] ∈ {6; 7} or UNINITIALIZED
+                      [8] ∈ {7; 8} or UNINITIALIZED
+                      [9] ∈ {8; 9} or UNINITIALIZED
+                      [10] ∈ {9} or UNINITIALIZED
+  __malloc_w_main8_l103[0] ∈ UNINITIALIZED
+                       [1] ∈ {0; 1} or UNINITIALIZED
+                       [2] ∈ {1; 2} or UNINITIALIZED
+                       [3] ∈ {2; 3} or UNINITIALIZED
+                       [4] ∈ {3; 4} or UNINITIALIZED
+                       [5] ∈ {4} or UNINITIALIZED
+                       [6] ∈ {5} or UNINITIALIZED
+  ==END OF DUMP==
+[eva] tests/builtins/malloc-optimistic.c:107: Call to builtin free
+[eva:malloc] tests/builtins/malloc-optimistic.c:107: 
+  weak free on bases: {__malloc_w_main8_l103}
+[eva] tests/builtins/malloc-optimistic.c:103: Call to builtin malloc
+[eva:malloc] tests/builtins/malloc-optimistic.c:103: 
+  resizing variable `__malloc_w_main8_l103' (0..31/223) to fit 0..223
+[eva] tests/builtins/malloc-optimistic.c:103: Call to builtin malloc
+[eva:malloc] tests/builtins/malloc-optimistic.c:103: 
+  resizing variable `__malloc_w_main8_l103' (0..31/223) to fit 0..255
+[eva] tests/builtins/malloc-optimistic.c:106: 
+  Frama_C_dump_each:
+  # Cvalue domain:
+  v ∈ [--..--]
+  i ∈ {6}
+  p ∈ {{ &__malloc_w_main8_l103[0] }}
+  j ∈ {6}
+  k ∈ {3; 4}
+  p ∈ ESCAPINGADDR
+  __retres ∈ UNINITIALIZED
+  __malloc_w_main6_l77[0] ∈ UNINITIALIZED
+                      [1] ∈ {0; 1} or UNINITIALIZED
+                      [2] ∈ {1; 2} or UNINITIALIZED
+                      [3] ∈ {2; 3} or UNINITIALIZED
+                      [4] ∈ {3; 4} or UNINITIALIZED
+                      [5] ∈ {4; 5} or UNINITIALIZED
+                      [6] ∈ {5; 6} or UNINITIALIZED
+                      [7] ∈ {6; 7} or UNINITIALIZED
+                      [8] ∈ {7; 8} or UNINITIALIZED
+                      [9] ∈ {8; 9} or UNINITIALIZED
+                      [10] ∈ {9} or UNINITIALIZED
+  __malloc_w_main8_l103[0] ∈ UNINITIALIZED
+                       [1] ∈ {0; 1} or UNINITIALIZED
+                       [2] ∈ {1; 2} or UNINITIALIZED
+                       [3] ∈ {2; 3} or UNINITIALIZED
+                       [4] ∈ {3; 4} or UNINITIALIZED
+                       [5] ∈ {4; 5} or UNINITIALIZED
+                       [6] ∈ {5; 6} or UNINITIALIZED
+  ==END OF DUMP==
+[eva] tests/builtins/malloc-optimistic.c:106: 
+  Frama_C_dump_each:
+  # Cvalue domain:
+  v ∈ [--..--]
+  i ∈ {7}
+  p ∈ {{ &__malloc_w_main8_l103[0] }}
+  j ∈ {6}
+  k ∈ {4}
+  p ∈ ESCAPINGADDR
+  __retres ∈ UNINITIALIZED
+  __malloc_w_main6_l77[0] ∈ UNINITIALIZED
+                      [1] ∈ {0; 1} or UNINITIALIZED
+                      [2] ∈ {1; 2} or UNINITIALIZED
+                      [3] ∈ {2; 3} or UNINITIALIZED
+                      [4] ∈ {3; 4} or UNINITIALIZED
+                      [5] ∈ {4; 5} or UNINITIALIZED
+                      [6] ∈ {5; 6} or UNINITIALIZED
+                      [7] ∈ {6; 7} or UNINITIALIZED
+                      [8] ∈ {7; 8} or UNINITIALIZED
+                      [9] ∈ {8; 9} or UNINITIALIZED
+                      [10] ∈ {9} or UNINITIALIZED
+  __malloc_w_main8_l103[0] ∈ UNINITIALIZED
+                       [1] ∈ {0; 1} or UNINITIALIZED
+                       [2] ∈ {1; 2} or UNINITIALIZED
+                       [3] ∈ {2; 3} or UNINITIALIZED
+                       [4] ∈ {3; 4} or UNINITIALIZED
+                       [5] ∈ {4; 5} or UNINITIALIZED
+                       [6] ∈ {5} or UNINITIALIZED
+                       [7] ∈ {6} or UNINITIALIZED
+  ==END OF DUMP==
+[eva] tests/builtins/malloc-optimistic.c:107: Call to builtin free
+[eva:malloc] tests/builtins/malloc-optimistic.c:107: 
+  weak free on bases: {__malloc_w_main8_l103}
+[eva] tests/builtins/malloc-optimistic.c:103: Call to builtin malloc
+[eva:malloc] tests/builtins/malloc-optimistic.c:103: 
+  resizing variable `__malloc_w_main8_l103' (0..31/255) to fit 0..255
+[eva] tests/builtins/malloc-optimistic.c:103: Call to builtin malloc
+[eva:malloc] tests/builtins/malloc-optimistic.c:103: 
+  resizing variable `__malloc_w_main8_l103' (0..31/255) to fit 0..287
+[eva] tests/builtins/malloc-optimistic.c:106: 
+  Frama_C_dump_each:
+  # Cvalue domain:
+  v ∈ [--..--]
+  i ∈ {7}
+  p ∈ {{ &__malloc_w_main8_l103[0] }}
+  j ∈ {7}
+  k ∈ {4; 5}
+  p ∈ ESCAPINGADDR
+  __retres ∈ UNINITIALIZED
+  __malloc_w_main6_l77[0] ∈ UNINITIALIZED
+                      [1] ∈ {0; 1} or UNINITIALIZED
+                      [2] ∈ {1; 2} or UNINITIALIZED
+                      [3] ∈ {2; 3} or UNINITIALIZED
+                      [4] ∈ {3; 4} or UNINITIALIZED
+                      [5] ∈ {4; 5} or UNINITIALIZED
+                      [6] ∈ {5; 6} or UNINITIALIZED
+                      [7] ∈ {6; 7} or UNINITIALIZED
+                      [8] ∈ {7; 8} or UNINITIALIZED
+                      [9] ∈ {8; 9} or UNINITIALIZED
+                      [10] ∈ {9} or UNINITIALIZED
+  __malloc_w_main8_l103[0] ∈ UNINITIALIZED
+                       [1] ∈ {0; 1} or UNINITIALIZED
+                       [2] ∈ {1; 2} or UNINITIALIZED
+                       [3] ∈ {2; 3} or UNINITIALIZED
+                       [4] ∈ {3; 4} or UNINITIALIZED
+                       [5] ∈ {4; 5} or UNINITIALIZED
+                       [6] ∈ {5; 6} or UNINITIALIZED
+                       [7] ∈ {6; 7} or UNINITIALIZED
+  ==END OF DUMP==
+[eva] tests/builtins/malloc-optimistic.c:106: 
+  Frama_C_dump_each:
+  # Cvalue domain:
+  v ∈ [--..--]
+  i ∈ {8}
+  p ∈ {{ &__malloc_w_main8_l103[0] }}
+  j ∈ {7}
+  k ∈ {5}
+  p ∈ ESCAPINGADDR
+  __retres ∈ UNINITIALIZED
+  __malloc_w_main6_l77[0] ∈ UNINITIALIZED
+                      [1] ∈ {0; 1} or UNINITIALIZED
+                      [2] ∈ {1; 2} or UNINITIALIZED
+                      [3] ∈ {2; 3} or UNINITIALIZED
+                      [4] ∈ {3; 4} or UNINITIALIZED
+                      [5] ∈ {4; 5} or UNINITIALIZED
+                      [6] ∈ {5; 6} or UNINITIALIZED
+                      [7] ∈ {6; 7} or UNINITIALIZED
+                      [8] ∈ {7; 8} or UNINITIALIZED
+                      [9] ∈ {8; 9} or UNINITIALIZED
+                      [10] ∈ {9} or UNINITIALIZED
+  __malloc_w_main8_l103[0] ∈ UNINITIALIZED
+                       [1] ∈ {0; 1} or UNINITIALIZED
+                       [2] ∈ {1; 2} or UNINITIALIZED
+                       [3] ∈ {2; 3} or UNINITIALIZED
+                       [4] ∈ {3; 4} or UNINITIALIZED
+                       [5] ∈ {4; 5} or UNINITIALIZED
+                       [6] ∈ {5; 6} or UNINITIALIZED
+                       [7] ∈ {6} or UNINITIALIZED
+                       [8] ∈ {7} or UNINITIALIZED
+  ==END OF DUMP==
+[eva] tests/builtins/malloc-optimistic.c:107: Call to builtin free
+[eva:malloc] tests/builtins/malloc-optimistic.c:107: 
+  weak free on bases: {__malloc_w_main8_l103}
+[eva] tests/builtins/malloc-optimistic.c:103: Call to builtin malloc
+[eva:malloc] tests/builtins/malloc-optimistic.c:103: 
+  resizing variable `__malloc_w_main8_l103' (0..31/287) to fit 0..287
+[eva] tests/builtins/malloc-optimistic.c:103: Call to builtin malloc
+[eva:malloc] tests/builtins/malloc-optimistic.c:103: 
+  resizing variable `__malloc_w_main8_l103' (0..31/287) to fit 0..319
+[eva] tests/builtins/malloc-optimistic.c:106: 
+  Frama_C_dump_each:
+  # Cvalue domain:
+  v ∈ [--..--]
+  i ∈ {8}
+  p ∈ {{ &__malloc_w_main8_l103[0] }}
+  j ∈ {8}
+  k ∈ {5; 6}
+  p ∈ ESCAPINGADDR
+  __retres ∈ UNINITIALIZED
+  __malloc_w_main6_l77[0] ∈ UNINITIALIZED
+                      [1] ∈ {0; 1} or UNINITIALIZED
+                      [2] ∈ {1; 2} or UNINITIALIZED
+                      [3] ∈ {2; 3} or UNINITIALIZED
+                      [4] ∈ {3; 4} or UNINITIALIZED
+                      [5] ∈ {4; 5} or UNINITIALIZED
+                      [6] ∈ {5; 6} or UNINITIALIZED
+                      [7] ∈ {6; 7} or UNINITIALIZED
+                      [8] ∈ {7; 8} or UNINITIALIZED
+                      [9] ∈ {8; 9} or UNINITIALIZED
+                      [10] ∈ {9} or UNINITIALIZED
+  __malloc_w_main8_l103[0] ∈ UNINITIALIZED
+                       [1] ∈ {0; 1} or UNINITIALIZED
+                       [2] ∈ {1; 2} or UNINITIALIZED
+                       [3] ∈ {2; 3} or UNINITIALIZED
+                       [4] ∈ {3; 4} or UNINITIALIZED
+                       [5] ∈ {4; 5} or UNINITIALIZED
+                       [6] ∈ {5; 6} or UNINITIALIZED
+                       [7] ∈ {6; 7} or UNINITIALIZED
+                       [8] ∈ {7; 8} or UNINITIALIZED
+  ==END OF DUMP==
+[eva] tests/builtins/malloc-optimistic.c:106: 
+  Frama_C_dump_each:
+  # Cvalue domain:
+  v ∈ [--..--]
+  i ∈ {9}
+  p ∈ {{ &__malloc_w_main8_l103[0] }}
+  j ∈ {8}
+  k ∈ {6}
+  p ∈ ESCAPINGADDR
+  __retres ∈ UNINITIALIZED
+  __malloc_w_main6_l77[0] ∈ UNINITIALIZED
+                      [1] ∈ {0; 1} or UNINITIALIZED
+                      [2] ∈ {1; 2} or UNINITIALIZED
+                      [3] ∈ {2; 3} or UNINITIALIZED
+                      [4] ∈ {3; 4} or UNINITIALIZED
+                      [5] ∈ {4; 5} or UNINITIALIZED
+                      [6] ∈ {5; 6} or UNINITIALIZED
+                      [7] ∈ {6; 7} or UNINITIALIZED
+                      [8] ∈ {7; 8} or UNINITIALIZED
+                      [9] ∈ {8; 9} or UNINITIALIZED
+                      [10] ∈ {9} or UNINITIALIZED
+  __malloc_w_main8_l103[0] ∈ UNINITIALIZED
+                       [1] ∈ {0; 1} or UNINITIALIZED
+                       [2] ∈ {1; 2} or UNINITIALIZED
+                       [3] ∈ {2; 3} or UNINITIALIZED
+                       [4] ∈ {3; 4} or UNINITIALIZED
+                       [5] ∈ {4; 5} or UNINITIALIZED
+                       [6] ∈ {5; 6} or UNINITIALIZED
+                       [7] ∈ {6; 7} or UNINITIALIZED
+                       [8] ∈ {7} or UNINITIALIZED
+                       [9] ∈ {8} or UNINITIALIZED
+  ==END OF DUMP==
+[eva] tests/builtins/malloc-optimistic.c:107: Call to builtin free
+[eva:malloc] tests/builtins/malloc-optimistic.c:107: 
+  weak free on bases: {__malloc_w_main8_l103}
+[eva] tests/builtins/malloc-optimistic.c:103: Call to builtin malloc
+[eva:malloc] tests/builtins/malloc-optimistic.c:103: 
+  resizing variable `__malloc_w_main8_l103' (0..31/319) to fit 0..319
+[eva] tests/builtins/malloc-optimistic.c:103: Call to builtin malloc
+[eva:malloc] tests/builtins/malloc-optimistic.c:103: 
+  resizing variable `__malloc_w_main8_l103' (0..31/319) to fit 0..351
+[eva] tests/builtins/malloc-optimistic.c:106: 
+  Frama_C_dump_each:
+  # Cvalue domain:
+  v ∈ [--..--]
+  i ∈ {9}
+  p ∈ {{ &__malloc_w_main8_l103[0] }}
+  j ∈ {9}
+  k ∈ {6; 7}
+  p ∈ ESCAPINGADDR
+  __retres ∈ UNINITIALIZED
+  __malloc_w_main6_l77[0] ∈ UNINITIALIZED
+                      [1] ∈ {0; 1} or UNINITIALIZED
+                      [2] ∈ {1; 2} or UNINITIALIZED
+                      [3] ∈ {2; 3} or UNINITIALIZED
+                      [4] ∈ {3; 4} or UNINITIALIZED
+                      [5] ∈ {4; 5} or UNINITIALIZED
+                      [6] ∈ {5; 6} or UNINITIALIZED
+                      [7] ∈ {6; 7} or UNINITIALIZED
+                      [8] ∈ {7; 8} or UNINITIALIZED
+                      [9] ∈ {8; 9} or UNINITIALIZED
+                      [10] ∈ {9} or UNINITIALIZED
+  __malloc_w_main8_l103[0] ∈ UNINITIALIZED
+                       [1] ∈ {0; 1} or UNINITIALIZED
+                       [2] ∈ {1; 2} or UNINITIALIZED
+                       [3] ∈ {2; 3} or UNINITIALIZED
+                       [4] ∈ {3; 4} or UNINITIALIZED
+                       [5] ∈ {4; 5} or UNINITIALIZED
+                       [6] ∈ {5; 6} or UNINITIALIZED
+                       [7] ∈ {6; 7} or UNINITIALIZED
+                       [8] ∈ {7; 8} or UNINITIALIZED
+                       [9] ∈ {8; 9} or UNINITIALIZED
+  ==END OF DUMP==
+[eva] tests/builtins/malloc-optimistic.c:106: 
+  Frama_C_dump_each:
+  # Cvalue domain:
+  v ∈ [--..--]
+  i ∈ {10}
+  p ∈ {{ &__malloc_w_main8_l103[0] }}
+  j ∈ {9}
+  k ∈ {7}
+  p ∈ ESCAPINGADDR
+  __retres ∈ UNINITIALIZED
+  __malloc_w_main6_l77[0] ∈ UNINITIALIZED
+                      [1] ∈ {0; 1} or UNINITIALIZED
+                      [2] ∈ {1; 2} or UNINITIALIZED
+                      [3] ∈ {2; 3} or UNINITIALIZED
+                      [4] ∈ {3; 4} or UNINITIALIZED
+                      [5] ∈ {4; 5} or UNINITIALIZED
+                      [6] ∈ {5; 6} or UNINITIALIZED
+                      [7] ∈ {6; 7} or UNINITIALIZED
+                      [8] ∈ {7; 8} or UNINITIALIZED
+                      [9] ∈ {8; 9} or UNINITIALIZED
+                      [10] ∈ {9} or UNINITIALIZED
+  __malloc_w_main8_l103[0] ∈ UNINITIALIZED
+                       [1] ∈ {0; 1} or UNINITIALIZED
+                       [2] ∈ {1; 2} or UNINITIALIZED
+                       [3] ∈ {2; 3} or UNINITIALIZED
+                       [4] ∈ {3; 4} or UNINITIALIZED
+                       [5] ∈ {4; 5} or UNINITIALIZED
+                       [6] ∈ {5; 6} or UNINITIALIZED
+                       [7] ∈ {6; 7} or UNINITIALIZED
+                       [8] ∈ {7; 8} or UNINITIALIZED
+                       [9] ∈ {8} or UNINITIALIZED
+                       [10] ∈ {9} or UNINITIALIZED
+  ==END OF DUMP==
+[eva] tests/builtins/malloc-optimistic.c:107: Call to builtin free
+[eva:malloc] tests/builtins/malloc-optimistic.c:107: 
+  weak free on bases: {__malloc_w_main8_l103}
+[eva] tests/builtins/malloc-optimistic.c:103: Call to builtin malloc
+[eva:malloc] tests/builtins/malloc-optimistic.c:103: 
+  resizing variable `__malloc_w_main8_l103' (0..31/351) to fit 0..351
+[eva] tests/builtins/malloc-optimistic.c:103: Call to builtin malloc
+[eva:malloc] tests/builtins/malloc-optimistic.c:103: 
+  resizing variable `__malloc_w_main8_l103' (0..31/351) to fit 0..383
+[eva] tests/builtins/malloc-optimistic.c:106: 
+  Frama_C_dump_each:
+  # Cvalue domain:
+  v ∈ [--..--]
+  i ∈ {10}
+  p ∈ {{ &__malloc_w_main8_l103[0] }}
+  j ∈ {10}
+  k ∈ {7; 8}
+  p ∈ ESCAPINGADDR
+  __retres ∈ UNINITIALIZED
+  __malloc_w_main6_l77[0] ∈ UNINITIALIZED
+                      [1] ∈ {0; 1} or UNINITIALIZED
+                      [2] ∈ {1; 2} or UNINITIALIZED
+                      [3] ∈ {2; 3} or UNINITIALIZED
+                      [4] ∈ {3; 4} or UNINITIALIZED
+                      [5] ∈ {4; 5} or UNINITIALIZED
+                      [6] ∈ {5; 6} or UNINITIALIZED
+                      [7] ∈ {6; 7} or UNINITIALIZED
+                      [8] ∈ {7; 8} or UNINITIALIZED
+                      [9] ∈ {8; 9} or UNINITIALIZED
+                      [10] ∈ {9} or UNINITIALIZED
+  __malloc_w_main8_l103[0] ∈ UNINITIALIZED
+                       [1] ∈ {0; 1} or UNINITIALIZED
+                       [2] ∈ {1; 2} or UNINITIALIZED
+                       [3] ∈ {2; 3} or UNINITIALIZED
+                       [4] ∈ {3; 4} or UNINITIALIZED
+                       [5] ∈ {4; 5} or UNINITIALIZED
+                       [6] ∈ {5; 6} or UNINITIALIZED
+                       [7] ∈ {6; 7} or UNINITIALIZED
+                       [8] ∈ {7; 8} or UNINITIALIZED
+                       [9] ∈ {8; 9} or UNINITIALIZED
+                       [10] ∈ {9; 10} or UNINITIALIZED
+  ==END OF DUMP==
+[eva] tests/builtins/malloc-optimistic.c:106: 
+  Frama_C_dump_each:
+  # Cvalue domain:
+  v ∈ [--..--]
+  i ∈ {11}
+  p ∈ {{ &__malloc_w_main8_l103[0] }}
+  j ∈ {10}
+  k ∈ {8}
+  p ∈ ESCAPINGADDR
+  __retres ∈ UNINITIALIZED
+  __malloc_w_main6_l77[0] ∈ UNINITIALIZED
+                      [1] ∈ {0; 1} or UNINITIALIZED
+                      [2] ∈ {1; 2} or UNINITIALIZED
+                      [3] ∈ {2; 3} or UNINITIALIZED
+                      [4] ∈ {3; 4} or UNINITIALIZED
+                      [5] ∈ {4; 5} or UNINITIALIZED
+                      [6] ∈ {5; 6} or UNINITIALIZED
+                      [7] ∈ {6; 7} or UNINITIALIZED
+                      [8] ∈ {7; 8} or UNINITIALIZED
+                      [9] ∈ {8; 9} or UNINITIALIZED
+                      [10] ∈ {9} or UNINITIALIZED
+  __malloc_w_main8_l103[0] ∈ UNINITIALIZED
+                       [1] ∈ {0; 1} or UNINITIALIZED
+                       [2] ∈ {1; 2} or UNINITIALIZED
+                       [3] ∈ {2; 3} or UNINITIALIZED
+                       [4] ∈ {3; 4} or UNINITIALIZED
+                       [5] ∈ {4; 5} or UNINITIALIZED
+                       [6] ∈ {5; 6} or UNINITIALIZED
+                       [7] ∈ {6; 7} or UNINITIALIZED
+                       [8] ∈ {7; 8} or UNINITIALIZED
+                       [9] ∈ {8; 9} or UNINITIALIZED
+                       [10] ∈ {9} or UNINITIALIZED
+                       [11] ∈ {10} or UNINITIALIZED
+  ==END OF DUMP==
+[eva] tests/builtins/malloc-optimistic.c:107: Call to builtin free
+[eva:malloc] tests/builtins/malloc-optimistic.c:107: 
+  weak free on bases: {__malloc_w_main8_l103}
+[eva] tests/builtins/malloc-optimistic.c:103: Call to builtin malloc
+[eva:malloc] tests/builtins/malloc-optimistic.c:103: 
+  resizing variable `__malloc_w_main8_l103' (0..31/383) to fit 0..383
+[eva] tests/builtins/malloc-optimistic.c:103: Call to builtin malloc
+[eva:malloc] tests/builtins/malloc-optimistic.c:103: 
+  resizing variable `__malloc_w_main8_l103' (0..31/383) to fit 0..415
+[eva] tests/builtins/malloc-optimistic.c:106: 
+  Frama_C_dump_each:
+  # Cvalue domain:
+  v ∈ [--..--]
+  i ∈ {11}
+  p ∈ {{ &__malloc_w_main8_l103[0] }}
+  j ∈ {11}
+  k ∈ {8; 9}
+  p ∈ ESCAPINGADDR
+  __retres ∈ UNINITIALIZED
+  __malloc_w_main6_l77[0] ∈ UNINITIALIZED
+                      [1] ∈ {0; 1} or UNINITIALIZED
+                      [2] ∈ {1; 2} or UNINITIALIZED
+                      [3] ∈ {2; 3} or UNINITIALIZED
+                      [4] ∈ {3; 4} or UNINITIALIZED
+                      [5] ∈ {4; 5} or UNINITIALIZED
+                      [6] ∈ {5; 6} or UNINITIALIZED
+                      [7] ∈ {6; 7} or UNINITIALIZED
+                      [8] ∈ {7; 8} or UNINITIALIZED
+                      [9] ∈ {8; 9} or UNINITIALIZED
+                      [10] ∈ {9} or UNINITIALIZED
+  __malloc_w_main8_l103[0] ∈ UNINITIALIZED
+                       [1] ∈ {0; 1} or UNINITIALIZED
+                       [2] ∈ {1; 2} or UNINITIALIZED
+                       [3] ∈ {2; 3} or UNINITIALIZED
+                       [4] ∈ {3; 4} or UNINITIALIZED
+                       [5] ∈ {4; 5} or UNINITIALIZED
+                       [6] ∈ {5; 6} or UNINITIALIZED
+                       [7] ∈ {6; 7} or UNINITIALIZED
+                       [8] ∈ {7; 8} or UNINITIALIZED
+                       [9] ∈ {8; 9} or UNINITIALIZED
+                       [10] ∈ {9; 10} or UNINITIALIZED
+                       [11] ∈ {10; 11} or UNINITIALIZED
+  ==END OF DUMP==
+[eva] tests/builtins/malloc-optimistic.c:106: 
+  Frama_C_dump_each:
+  # Cvalue domain:
+  v ∈ [--..--]
+  i ∈ {12}
+  p ∈ {{ &__malloc_w_main8_l103[0] }}
+  j ∈ {11}
+  k ∈ {9}
+  p ∈ ESCAPINGADDR
+  __retres ∈ UNINITIALIZED
+  __malloc_w_main6_l77[0] ∈ UNINITIALIZED
+                      [1] ∈ {0; 1} or UNINITIALIZED
+                      [2] ∈ {1; 2} or UNINITIALIZED
+                      [3] ∈ {2; 3} or UNINITIALIZED
+                      [4] ∈ {3; 4} or UNINITIALIZED
+                      [5] ∈ {4; 5} or UNINITIALIZED
+                      [6] ∈ {5; 6} or UNINITIALIZED
+                      [7] ∈ {6; 7} or UNINITIALIZED
+                      [8] ∈ {7; 8} or UNINITIALIZED
+                      [9] ∈ {8; 9} or UNINITIALIZED
+                      [10] ∈ {9} or UNINITIALIZED
+  __malloc_w_main8_l103[0] ∈ UNINITIALIZED
+                       [1] ∈ {0; 1} or UNINITIALIZED
+                       [2] ∈ {1; 2} or UNINITIALIZED
+                       [3] ∈ {2; 3} or UNINITIALIZED
+                       [4] ∈ {3; 4} or UNINITIALIZED
+                       [5] ∈ {4; 5} or UNINITIALIZED
+                       [6] ∈ {5; 6} or UNINITIALIZED
+                       [7] ∈ {6; 7} or UNINITIALIZED
+                       [8] ∈ {7; 8} or UNINITIALIZED
+                       [9] ∈ {8; 9} or UNINITIALIZED
+                       [10] ∈ {9; 10} or UNINITIALIZED
+                       [11] ∈ {10} or UNINITIALIZED
+                       [12] ∈ {11} or UNINITIALIZED
+  ==END OF DUMP==
+[eva] tests/builtins/malloc-optimistic.c:107: Call to builtin free
+[eva:malloc] tests/builtins/malloc-optimistic.c:107: 
+  weak free on bases: {__malloc_w_main8_l103}
+[eva] tests/builtins/malloc-optimistic.c:103: Call to builtin malloc
+[eva:malloc] tests/builtins/malloc-optimistic.c:103: 
+  resizing variable `__malloc_w_main8_l103' (0..31/415) to fit 0..415
+[eva] tests/builtins/malloc-optimistic.c:103: Call to builtin malloc
+[eva:malloc] tests/builtins/malloc-optimistic.c:103: 
+  resizing variable `__malloc_w_main8_l103' (0..31/415) to fit 0..447
+[eva] tests/builtins/malloc-optimistic.c:106: 
+  Frama_C_dump_each:
+  # Cvalue domain:
+  v ∈ [--..--]
+  i ∈ {12}
+  p ∈ {{ &__malloc_w_main8_l103[0] }}
+  j ∈ {12}
+  k ∈ {9; 10}
+  p ∈ ESCAPINGADDR
+  __retres ∈ UNINITIALIZED
+  __malloc_w_main6_l77[0] ∈ UNINITIALIZED
+                      [1] ∈ {0; 1} or UNINITIALIZED
+                      [2] ∈ {1; 2} or UNINITIALIZED
+                      [3] ∈ {2; 3} or UNINITIALIZED
+                      [4] ∈ {3; 4} or UNINITIALIZED
+                      [5] ∈ {4; 5} or UNINITIALIZED
+                      [6] ∈ {5; 6} or UNINITIALIZED
+                      [7] ∈ {6; 7} or UNINITIALIZED
+                      [8] ∈ {7; 8} or UNINITIALIZED
+                      [9] ∈ {8; 9} or UNINITIALIZED
+                      [10] ∈ {9} or UNINITIALIZED
+  __malloc_w_main8_l103[0] ∈ UNINITIALIZED
+                       [1] ∈ {0; 1} or UNINITIALIZED
+                       [2] ∈ {1; 2} or UNINITIALIZED
+                       [3] ∈ {2; 3} or UNINITIALIZED
+                       [4] ∈ {3; 4} or UNINITIALIZED
+                       [5] ∈ {4; 5} or UNINITIALIZED
+                       [6] ∈ {5; 6} or UNINITIALIZED
+                       [7] ∈ {6; 7} or UNINITIALIZED
+                       [8] ∈ {7; 8} or UNINITIALIZED
+                       [9] ∈ {8; 9} or UNINITIALIZED
+                       [10] ∈ {9; 10} or UNINITIALIZED
+                       [11] ∈ {10; 11} or UNINITIALIZED
+                       [12] ∈ {11; 12} or UNINITIALIZED
+  ==END OF DUMP==
+[eva] tests/builtins/malloc-optimistic.c:106: 
+  Frama_C_dump_each:
+  # Cvalue domain:
+  v ∈ [--..--]
+  i ∈ {13}
+  p ∈ {{ &__malloc_w_main8_l103[0] }}
+  j ∈ {12}
+  k ∈ {10}
+  p ∈ ESCAPINGADDR
+  __retres ∈ UNINITIALIZED
+  __malloc_w_main6_l77[0] ∈ UNINITIALIZED
+                      [1] ∈ {0; 1} or UNINITIALIZED
+                      [2] ∈ {1; 2} or UNINITIALIZED
+                      [3] ∈ {2; 3} or UNINITIALIZED
+                      [4] ∈ {3; 4} or UNINITIALIZED
+                      [5] ∈ {4; 5} or UNINITIALIZED
+                      [6] ∈ {5; 6} or UNINITIALIZED
+                      [7] ∈ {6; 7} or UNINITIALIZED
+                      [8] ∈ {7; 8} or UNINITIALIZED
+                      [9] ∈ {8; 9} or UNINITIALIZED
+                      [10] ∈ {9} or UNINITIALIZED
+  __malloc_w_main8_l103[0] ∈ UNINITIALIZED
+                       [1] ∈ {0; 1} or UNINITIALIZED
+                       [2] ∈ {1; 2} or UNINITIALIZED
+                       [3] ∈ {2; 3} or UNINITIALIZED
+                       [4] ∈ {3; 4} or UNINITIALIZED
+                       [5] ∈ {4; 5} or UNINITIALIZED
+                       [6] ∈ {5; 6} or UNINITIALIZED
+                       [7] ∈ {6; 7} or UNINITIALIZED
+                       [8] ∈ {7; 8} or UNINITIALIZED
+                       [9] ∈ {8; 9} or UNINITIALIZED
+                       [10] ∈ {9; 10} or UNINITIALIZED
+                       [11] ∈ {10; 11} or UNINITIALIZED
+                       [12] ∈ {11} or UNINITIALIZED
+                       [13] ∈ {12} or UNINITIALIZED
+  ==END OF DUMP==
+[eva] tests/builtins/malloc-optimistic.c:107: Call to builtin free
+[eva:malloc] tests/builtins/malloc-optimistic.c:107: 
+  weak free on bases: {__malloc_w_main8_l103}
+[eva] tests/builtins/malloc-optimistic.c:103: Call to builtin malloc
+[eva:malloc] tests/builtins/malloc-optimistic.c:103: 
+  resizing variable `__malloc_w_main8_l103' (0..31/447) to fit 0..447
+[eva] tests/builtins/malloc-optimistic.c:103: Call to builtin malloc
+[eva:malloc] tests/builtins/malloc-optimistic.c:103: 
+  resizing variable `__malloc_w_main8_l103' (0..31/447) to fit 0..479
+[eva] tests/builtins/malloc-optimistic.c:106: 
+  Frama_C_dump_each:
+  # Cvalue domain:
+  v ∈ [--..--]
+  i ∈ {13}
+  p ∈ {{ &__malloc_w_main8_l103[0] }}
+  j ∈ {13}
+  k ∈ {10; 11}
+  p ∈ ESCAPINGADDR
+  __retres ∈ UNINITIALIZED
+  __malloc_w_main6_l77[0] ∈ UNINITIALIZED
+                      [1] ∈ {0; 1} or UNINITIALIZED
+                      [2] ∈ {1; 2} or UNINITIALIZED
+                      [3] ∈ {2; 3} or UNINITIALIZED
+                      [4] ∈ {3; 4} or UNINITIALIZED
+                      [5] ∈ {4; 5} or UNINITIALIZED
+                      [6] ∈ {5; 6} or UNINITIALIZED
+                      [7] ∈ {6; 7} or UNINITIALIZED
+                      [8] ∈ {7; 8} or UNINITIALIZED
+                      [9] ∈ {8; 9} or UNINITIALIZED
+                      [10] ∈ {9} or UNINITIALIZED
+  __malloc_w_main8_l103[0] ∈ UNINITIALIZED
+                       [1] ∈ {0; 1} or UNINITIALIZED
+                       [2] ∈ {1; 2} or UNINITIALIZED
+                       [3] ∈ {2; 3} or UNINITIALIZED
+                       [4] ∈ {3; 4} or UNINITIALIZED
+                       [5] ∈ {4; 5} or UNINITIALIZED
+                       [6] ∈ {5; 6} or UNINITIALIZED
+                       [7] ∈ {6; 7} or UNINITIALIZED
+                       [8] ∈ {7; 8} or UNINITIALIZED
+                       [9] ∈ {8; 9} or UNINITIALIZED
+                       [10] ∈ {9; 10} or UNINITIALIZED
+                       [11] ∈ {10; 11} or UNINITIALIZED
+                       [12] ∈ {11; 12} or UNINITIALIZED
+                       [13] ∈ {12; 13} or UNINITIALIZED
+  ==END OF DUMP==
+[eva] tests/builtins/malloc-optimistic.c:106: 
+  Frama_C_dump_each:
+  # Cvalue domain:
+  v ∈ [--..--]
+  i ∈ {14}
+  p ∈ {{ &__malloc_w_main8_l103[0] }}
+  j ∈ {13}
+  k ∈ {11}
+  p ∈ ESCAPINGADDR
+  __retres ∈ UNINITIALIZED
+  __malloc_w_main6_l77[0] ∈ UNINITIALIZED
+                      [1] ∈ {0; 1} or UNINITIALIZED
+                      [2] ∈ {1; 2} or UNINITIALIZED
+                      [3] ∈ {2; 3} or UNINITIALIZED
+                      [4] ∈ {3; 4} or UNINITIALIZED
+                      [5] ∈ {4; 5} or UNINITIALIZED
+                      [6] ∈ {5; 6} or UNINITIALIZED
+                      [7] ∈ {6; 7} or UNINITIALIZED
+                      [8] ∈ {7; 8} or UNINITIALIZED
+                      [9] ∈ {8; 9} or UNINITIALIZED
+                      [10] ∈ {9} or UNINITIALIZED
+  __malloc_w_main8_l103[0] ∈ UNINITIALIZED
+                       [1] ∈ {0; 1} or UNINITIALIZED
+                       [2] ∈ {1; 2} or UNINITIALIZED
+                       [3] ∈ {2; 3} or UNINITIALIZED
+                       [4] ∈ {3; 4} or UNINITIALIZED
+                       [5] ∈ {4; 5} or UNINITIALIZED
+                       [6] ∈ {5; 6} or UNINITIALIZED
+                       [7] ∈ {6; 7} or UNINITIALIZED
+                       [8] ∈ {7; 8} or UNINITIALIZED
+                       [9] ∈ {8; 9} or UNINITIALIZED
+                       [10] ∈ {9; 10} or UNINITIALIZED
+                       [11] ∈ {10; 11} or UNINITIALIZED
+                       [12] ∈ {11; 12} or UNINITIALIZED
+                       [13] ∈ {12} or UNINITIALIZED
+                       [14] ∈ {13} or UNINITIALIZED
+  ==END OF DUMP==
+[eva] tests/builtins/malloc-optimistic.c:107: Call to builtin free
+[eva:malloc] tests/builtins/malloc-optimistic.c:107: 
+  weak free on bases: {__malloc_w_main8_l103}
+[eva] tests/builtins/malloc-optimistic.c:103: Call to builtin malloc
+[eva:malloc] tests/builtins/malloc-optimistic.c:103: 
+  resizing variable `__malloc_w_main8_l103' (0..31/479) to fit 0..479
+[eva] tests/builtins/malloc-optimistic.c:103: Call to builtin malloc
+[eva:malloc] tests/builtins/malloc-optimistic.c:103: 
+  resizing variable `__malloc_w_main8_l103' (0..31/479) to fit 0..511
+[eva] tests/builtins/malloc-optimistic.c:106: 
+  Frama_C_dump_each:
+  # Cvalue domain:
+  v ∈ [--..--]
+  i ∈ {14}
+  p ∈ {{ &__malloc_w_main8_l103[0] }}
+  j ∈ {14}
+  k ∈ {11; 12}
+  p ∈ ESCAPINGADDR
+  __retres ∈ UNINITIALIZED
+  __malloc_w_main6_l77[0] ∈ UNINITIALIZED
+                      [1] ∈ {0; 1} or UNINITIALIZED
+                      [2] ∈ {1; 2} or UNINITIALIZED
+                      [3] ∈ {2; 3} or UNINITIALIZED
+                      [4] ∈ {3; 4} or UNINITIALIZED
+                      [5] ∈ {4; 5} or UNINITIALIZED
+                      [6] ∈ {5; 6} or UNINITIALIZED
+                      [7] ∈ {6; 7} or UNINITIALIZED
+                      [8] ∈ {7; 8} or UNINITIALIZED
+                      [9] ∈ {8; 9} or UNINITIALIZED
+                      [10] ∈ {9} or UNINITIALIZED
+  __malloc_w_main8_l103[0] ∈ UNINITIALIZED
+                       [1] ∈ {0; 1} or UNINITIALIZED
+                       [2] ∈ {1; 2} or UNINITIALIZED
+                       [3] ∈ {2; 3} or UNINITIALIZED
+                       [4] ∈ {3; 4} or UNINITIALIZED
+                       [5] ∈ {4; 5} or UNINITIALIZED
+                       [6] ∈ {5; 6} or UNINITIALIZED
+                       [7] ∈ {6; 7} or UNINITIALIZED
+                       [8] ∈ {7; 8} or UNINITIALIZED
+                       [9] ∈ {8; 9} or UNINITIALIZED
+                       [10] ∈ {9; 10} or UNINITIALIZED
+                       [11] ∈ {10; 11} or UNINITIALIZED
+                       [12] ∈ {11; 12} or UNINITIALIZED
+                       [13] ∈ {12; 13} or UNINITIALIZED
+                       [14] ∈ {13; 14} or UNINITIALIZED
+  ==END OF DUMP==
+[eva] tests/builtins/malloc-optimistic.c:106: 
+  Frama_C_dump_each:
+  # Cvalue domain:
+  v ∈ [--..--]
+  i ∈ {15}
+  p ∈ {{ &__malloc_w_main8_l103[0] }}
+  j ∈ {14}
+  k ∈ {12}
+  p ∈ ESCAPINGADDR
+  __retres ∈ UNINITIALIZED
+  __malloc_w_main6_l77[0] ∈ UNINITIALIZED
+                      [1] ∈ {0; 1} or UNINITIALIZED
+                      [2] ∈ {1; 2} or UNINITIALIZED
+                      [3] ∈ {2; 3} or UNINITIALIZED
+                      [4] ∈ {3; 4} or UNINITIALIZED
+                      [5] ∈ {4; 5} or UNINITIALIZED
+                      [6] ∈ {5; 6} or UNINITIALIZED
+                      [7] ∈ {6; 7} or UNINITIALIZED
+                      [8] ∈ {7; 8} or UNINITIALIZED
+                      [9] ∈ {8; 9} or UNINITIALIZED
+                      [10] ∈ {9} or UNINITIALIZED
+  __malloc_w_main8_l103[0] ∈ UNINITIALIZED
+                       [1] ∈ {0; 1} or UNINITIALIZED
+                       [2] ∈ {1; 2} or UNINITIALIZED
+                       [3] ∈ {2; 3} or UNINITIALIZED
+                       [4] ∈ {3; 4} or UNINITIALIZED
+                       [5] ∈ {4; 5} or UNINITIALIZED
+                       [6] ∈ {5; 6} or UNINITIALIZED
+                       [7] ∈ {6; 7} or UNINITIALIZED
+                       [8] ∈ {7; 8} or UNINITIALIZED
+                       [9] ∈ {8; 9} or UNINITIALIZED
+                       [10] ∈ {9; 10} or UNINITIALIZED
+                       [11] ∈ {10; 11} or UNINITIALIZED
+                       [12] ∈ {11; 12} or UNINITIALIZED
+                       [13] ∈ {12; 13} or UNINITIALIZED
+                       [14] ∈ {13} or UNINITIALIZED
+                       [15] ∈ {14} or UNINITIALIZED
+  ==END OF DUMP==
+[eva] tests/builtins/malloc-optimistic.c:107: Call to builtin free
+[eva:malloc] tests/builtins/malloc-optimistic.c:107: 
+  weak free on bases: {__malloc_w_main8_l103}
+[eva] tests/builtins/malloc-optimistic.c:103: Call to builtin malloc
+[eva:malloc] tests/builtins/malloc-optimistic.c:103: 
+  resizing variable `__malloc_w_main8_l103' (0..31/511) to fit 0..511/543
+[eva] tests/builtins/malloc-optimistic.c:106: 
+  Frama_C_dump_each:
+  # Cvalue domain:
+  v ∈ [--..--]
+  i ∈ {15; 16}
+  p ∈ {{ &__malloc_w_main8_l103[0] }}
+  j ∈ {15}
+  k ∈ {12; 13}
+  p ∈ ESCAPINGADDR
+  __retres ∈ UNINITIALIZED
+  __malloc_w_main6_l77[0] ∈ UNINITIALIZED
+                      [1] ∈ {0; 1} or UNINITIALIZED
+                      [2] ∈ {1; 2} or UNINITIALIZED
+                      [3] ∈ {2; 3} or UNINITIALIZED
+                      [4] ∈ {3; 4} or UNINITIALIZED
+                      [5] ∈ {4; 5} or UNINITIALIZED
+                      [6] ∈ {5; 6} or UNINITIALIZED
+                      [7] ∈ {6; 7} or UNINITIALIZED
+                      [8] ∈ {7; 8} or UNINITIALIZED
+                      [9] ∈ {8; 9} or UNINITIALIZED
+                      [10] ∈ {9} or UNINITIALIZED
+  __malloc_w_main8_l103[0] ∈ UNINITIALIZED
+                       [1] ∈ {0; 1} or UNINITIALIZED
+                       [2] ∈ {1; 2} or UNINITIALIZED
+                       [3] ∈ {2; 3} or UNINITIALIZED
+                       [4] ∈ {3; 4} or UNINITIALIZED
+                       [5] ∈ {4; 5} or UNINITIALIZED
+                       [6] ∈ {5; 6} or UNINITIALIZED
+                       [7] ∈ {6; 7} or UNINITIALIZED
+                       [8] ∈ {7; 8} or UNINITIALIZED
+                       [9] ∈ {8; 9} or UNINITIALIZED
+                       [10] ∈ {9; 10} or UNINITIALIZED
+                       [11] ∈ {10; 11} or UNINITIALIZED
+                       [12] ∈ {11; 12} or UNINITIALIZED
+                       [13] ∈ {12; 13} or UNINITIALIZED
+                       [14] ∈ {13; 14} or UNINITIALIZED
+                       [15] ∈ {14; 15} or UNINITIALIZED
+                       [16] ∈ {15} or UNINITIALIZED
+  ==END OF DUMP==
+[eva] tests/builtins/malloc-optimistic.c:107: Call to builtin free
+[eva:malloc] tests/builtins/malloc-optimistic.c:107: 
+  weak free on bases: {__malloc_w_main8_l103}
+[eva] tests/builtins/malloc-optimistic.c:101: starting to merge loop iterations
+[eva] tests/builtins/malloc-optimistic.c:103: Call to builtin malloc
+[eva:malloc] tests/builtins/malloc-optimistic.c:103: 
+  resizing variable `__malloc_w_main8_l103' (0..31/543) to fit 0..511/575
+[eva] tests/builtins/malloc-optimistic.c:106: 
+  Frama_C_dump_each:
+  # Cvalue domain:
+  v ∈ [--..--]
+  i ∈ {15; 16; 17}
+  p ∈ {{ &__malloc_w_main8_l103[0] }}
+  j ∈ {15; 16}
+  k ∈ {12; 13; 14}
+  p ∈ ESCAPINGADDR
+  __retres ∈ UNINITIALIZED
+  __malloc_w_main6_l77[0] ∈ UNINITIALIZED
+                      [1] ∈ {0; 1} or UNINITIALIZED
+                      [2] ∈ {1; 2} or UNINITIALIZED
+                      [3] ∈ {2; 3} or UNINITIALIZED
+                      [4] ∈ {3; 4} or UNINITIALIZED
+                      [5] ∈ {4; 5} or UNINITIALIZED
+                      [6] ∈ {5; 6} or UNINITIALIZED
+                      [7] ∈ {6; 7} or UNINITIALIZED
+                      [8] ∈ {7; 8} or UNINITIALIZED
+                      [9] ∈ {8; 9} or UNINITIALIZED
+                      [10] ∈ {9} or UNINITIALIZED
+  __malloc_w_main8_l103[0] ∈ UNINITIALIZED
+                       [1] ∈ {0; 1} or UNINITIALIZED
+                       [2] ∈ {1; 2} or UNINITIALIZED
+                       [3] ∈ {2; 3} or UNINITIALIZED
+                       [4] ∈ {3; 4} or UNINITIALIZED
+                       [5] ∈ {4; 5} or UNINITIALIZED
+                       [6] ∈ {5; 6} or UNINITIALIZED
+                       [7] ∈ {6; 7} or UNINITIALIZED
+                       [8] ∈ {7; 8} or UNINITIALIZED
+                       [9] ∈ {8; 9} or UNINITIALIZED
+                       [10] ∈ {9; 10} or UNINITIALIZED
+                       [11] ∈ {10; 11} or UNINITIALIZED
+                       [12] ∈ {11; 12} or UNINITIALIZED
+                       [13] ∈ {12; 13} or UNINITIALIZED
+                       [14] ∈ {13; 14} or UNINITIALIZED
+                       [15] ∈ {14; 15; 16} or UNINITIALIZED
+                       [16..17] ∈ {15; 16} or UNINITIALIZED
+  ==END OF DUMP==
+[eva] tests/builtins/malloc-optimistic.c:107: Call to builtin free
+[eva:malloc] tests/builtins/malloc-optimistic.c:107: 
+  weak free on bases: {__malloc_w_main8_l103}
+[eva] tests/builtins/malloc-optimistic.c:103: Call to builtin malloc
+[eva:malloc] tests/builtins/malloc-optimistic.c:103: 
+  resizing variable `__malloc_w_main8_l103' (0..31/575) to fit 0..511/607
+[eva] tests/builtins/malloc-optimistic.c:106: 
+  Frama_C_dump_each:
+  # Cvalue domain:
+  v ∈ [--..--]
+  i ∈ {15; 16; 17; 18}
+  p ∈ {{ &__malloc_w_main8_l103[0] }}
+  j ∈ {15; 16; 17}
+  k ∈ {12; 13; 14; 15}
+  p ∈ ESCAPINGADDR
+  __retres ∈ UNINITIALIZED
+  __malloc_w_main6_l77[0] ∈ UNINITIALIZED
+                      [1] ∈ {0; 1} or UNINITIALIZED
+                      [2] ∈ {1; 2} or UNINITIALIZED
+                      [3] ∈ {2; 3} or UNINITIALIZED
+                      [4] ∈ {3; 4} or UNINITIALIZED
+                      [5] ∈ {4; 5} or UNINITIALIZED
+                      [6] ∈ {5; 6} or UNINITIALIZED
+                      [7] ∈ {6; 7} or UNINITIALIZED
+                      [8] ∈ {7; 8} or UNINITIALIZED
+                      [9] ∈ {8; 9} or UNINITIALIZED
+                      [10] ∈ {9} or UNINITIALIZED
+  __malloc_w_main8_l103[0] ∈ UNINITIALIZED
+                       [1] ∈ {0; 1} or UNINITIALIZED
+                       [2] ∈ {1; 2} or UNINITIALIZED
+                       [3] ∈ {2; 3} or UNINITIALIZED
+                       [4] ∈ {3; 4} or UNINITIALIZED
+                       [5] ∈ {4; 5} or UNINITIALIZED
+                       [6] ∈ {5; 6} or UNINITIALIZED
+                       [7] ∈ {6; 7} or UNINITIALIZED
+                       [8] ∈ {7; 8} or UNINITIALIZED
+                       [9] ∈ {8; 9} or UNINITIALIZED
+                       [10] ∈ {9; 10} or UNINITIALIZED
+                       [11] ∈ {10; 11} or UNINITIALIZED
+                       [12] ∈ {11; 12} or UNINITIALIZED
+                       [13] ∈ {12; 13} or UNINITIALIZED
+                       [14] ∈ {13; 14} or UNINITIALIZED
+                       [15] ∈ {14; 15; 16; 17} or UNINITIALIZED
+                       [16..18] ∈ {15; 16; 17} or UNINITIALIZED
+  ==END OF DUMP==
+[eva] tests/builtins/malloc-optimistic.c:107: Call to builtin free
+[eva:malloc] tests/builtins/malloc-optimistic.c:107: 
+  weak free on bases: {__malloc_w_main8_l103}
+[eva] tests/builtins/malloc-optimistic.c:103: Call to builtin malloc
+[eva:malloc] tests/builtins/malloc-optimistic.c:103: 
+  resizing variable `__malloc_w_main8_l103' (0..31/607) to fit 0..511/3231
+[eva] tests/builtins/malloc-optimistic.c:106: 
+  Frama_C_dump_each:
+  # Cvalue domain:
+  v ∈ [--..--]
+  i ∈ [15..100]
+  p ∈ {{ &__malloc_w_main8_l103[0] }}
+  j ∈ [15..99]
+  k ∈ [12..97]
+  p ∈ ESCAPINGADDR
+  __retres ∈ UNINITIALIZED
+  __malloc_w_main6_l77[0] ∈ UNINITIALIZED
+                      [1] ∈ {0; 1} or UNINITIALIZED
+                      [2] ∈ {1; 2} or UNINITIALIZED
+                      [3] ∈ {2; 3} or UNINITIALIZED
+                      [4] ∈ {3; 4} or UNINITIALIZED
+                      [5] ∈ {4; 5} or UNINITIALIZED
+                      [6] ∈ {5; 6} or UNINITIALIZED
+                      [7] ∈ {6; 7} or UNINITIALIZED
+                      [8] ∈ {7; 8} or UNINITIALIZED
+                      [9] ∈ {8; 9} or UNINITIALIZED
+                      [10] ∈ {9} or UNINITIALIZED
+  __malloc_w_main8_l103[0] ∈ UNINITIALIZED
+                       [1] ∈ {0; 1} or UNINITIALIZED
+                       [2] ∈ {1; 2} or UNINITIALIZED
+                       [3] ∈ {2; 3} or UNINITIALIZED
+                       [4] ∈ {3; 4} or UNINITIALIZED
+                       [5] ∈ {4; 5} or UNINITIALIZED
+                       [6] ∈ {5; 6} or UNINITIALIZED
+                       [7] ∈ {6; 7} or UNINITIALIZED
+                       [8] ∈ {7; 8} or UNINITIALIZED
+                       [9] ∈ {8; 9} or UNINITIALIZED
+                       [10] ∈ {9; 10} or UNINITIALIZED
+                       [11] ∈ {10; 11} or UNINITIALIZED
+                       [12] ∈ {11; 12} or UNINITIALIZED
+                       [13] ∈ {12; 13} or UNINITIALIZED
+                       [14] ∈ {13; 14} or UNINITIALIZED
+                       [15] ∈ [14..99] or UNINITIALIZED
+                       [16..100] ∈ [15..99] or UNINITIALIZED
+  ==END OF DUMP==
+[eva] tests/builtins/malloc-optimistic.c:107: Call to builtin free
+[eva:malloc] tests/builtins/malloc-optimistic.c:107: 
+  weak free on bases: {__malloc_w_main8_l103}
+[eva] tests/builtins/malloc-optimistic.c:103: Call to builtin malloc
+[eva:malloc] tests/builtins/malloc-optimistic.c:103: 
+  resizing variable `__malloc_w_main8_l103' (0..31/3231) to fit 0..511/3231
+[eva] Recording results for main8
+[eva] Done for function main8
+[eva] computing for function main9 <- main.
+  Called from tests/builtins/malloc-optimistic.c:150.
+[eva] tests/builtins/malloc-optimistic.c:119: Call to builtin malloc
+[eva] tests/builtins/malloc-optimistic.c:119: 
+  allocating variable __malloc_main9_l119
+[eva] tests/builtins/malloc-optimistic.c:120: 
+  Frama_C_show_each: {0}, {{ &__malloc_main9_l119 }}
+[eva] tests/builtins/malloc-optimistic.c:122: Frama_C_show_each: {0}
+[eva] computing for function main9_aux <- main9 <- main.
+  Called from tests/builtins/malloc-optimistic.c:123.
+[eva] Recording results for main9_aux
+[eva] Done for function main9_aux
+[eva] tests/builtins/malloc-optimistic.c:119: Call to builtin malloc
+[eva:malloc:weak] tests/builtins/malloc-optimistic.c:119: 
+  marking variable `__malloc_main9_l119' as weak
+[eva] tests/builtins/malloc-optimistic.c:120: 
+  Frama_C_show_each: {1}, {{ &__malloc_w_main9_l119 }}
+[eva] tests/builtins/malloc-optimistic.c:122: Frama_C_show_each: {-20; 1}
+[eva] computing for function main9_aux <- main9 <- main.
+  Called from tests/builtins/malloc-optimistic.c:123.
+[eva] Recording results for main9_aux
+[eva] Done for function main9_aux
+[eva] tests/builtins/malloc-optimistic.c:119: Call to builtin malloc
+[eva] tests/builtins/malloc-optimistic.c:120: 
+  Frama_C_show_each: {2}, {{ &__malloc_w_main9_l119 }}
+[eva] tests/builtins/malloc-optimistic.c:122: Frama_C_show_each: {-20; 1; 2}
+[eva] computing for function main9_aux <- main9 <- main.
+  Called from tests/builtins/malloc-optimistic.c:123.
+[eva] Recording results for main9_aux
+[eva] Done for function main9_aux
+[eva] tests/builtins/malloc-optimistic.c:119: Call to builtin malloc
+[eva] tests/builtins/malloc-optimistic.c:120: 
+  Frama_C_show_each: {3}, {{ &__malloc_w_main9_l119 }}
+[eva] tests/builtins/malloc-optimistic.c:122: Frama_C_show_each: {-20; 1; 2; 3}
+[eva] computing for function main9_aux <- main9 <- main.
+  Called from tests/builtins/malloc-optimistic.c:123.
+[eva] Recording results for main9_aux
+[eva] Done for function main9_aux
+[eva] tests/builtins/malloc-optimistic.c:119: Call to builtin malloc
+[eva] tests/builtins/malloc-optimistic.c:120: 
+  Frama_C_show_each: {4}, {{ &__malloc_w_main9_l119 }}
+[eva] tests/builtins/malloc-optimistic.c:122: 
+  Frama_C_show_each: {-20; 1; 2; 3; 4}
+[eva] computing for function main9_aux <- main9 <- main.
+  Called from tests/builtins/malloc-optimistic.c:123.
+[eva] Recording results for main9_aux
+[eva] Done for function main9_aux
+[eva] tests/builtins/malloc-optimistic.c:119: Call to builtin malloc
+[eva] tests/builtins/malloc-optimistic.c:120: 
+  Frama_C_show_each: {5}, {{ &__malloc_w_main9_l119 }}
+[eva] tests/builtins/malloc-optimistic.c:122: 
+  Frama_C_show_each: {-20; 1; 2; 3; 4; 5}
+[eva] computing for function main9_aux <- main9 <- main.
+  Called from tests/builtins/malloc-optimistic.c:123.
+[eva] Recording results for main9_aux
+[eva] Done for function main9_aux
+[eva] tests/builtins/malloc-optimistic.c:119: Call to builtin malloc
+[eva] tests/builtins/malloc-optimistic.c:120: 
+  Frama_C_show_each: {6}, {{ &__malloc_w_main9_l119 }}
+[eva] tests/builtins/malloc-optimistic.c:122: 
+  Frama_C_show_each: {-20; 1; 2; 3; 4; 5; 6}
+[eva] computing for function main9_aux <- main9 <- main.
+  Called from tests/builtins/malloc-optimistic.c:123.
+[eva] Recording results for main9_aux
+[eva] Done for function main9_aux
+[eva] tests/builtins/malloc-optimistic.c:119: Call to builtin malloc
+[eva] tests/builtins/malloc-optimistic.c:120: 
+  Frama_C_show_each: {7}, {{ &__malloc_w_main9_l119 }}
+[eva] tests/builtins/malloc-optimistic.c:122: 
+  Frama_C_show_each: {-20; 1; 2; 3; 4; 5; 6; 7}
+[eva] computing for function main9_aux <- main9 <- main.
+  Called from tests/builtins/malloc-optimistic.c:123.
+[eva] Recording results for main9_aux
+[eva] Done for function main9_aux
+[eva] tests/builtins/malloc-optimistic.c:119: Call to builtin malloc
+[eva] tests/builtins/malloc-optimistic.c:120: 
+  Frama_C_show_each: {8}, {{ &__malloc_w_main9_l119 }}
+[eva] tests/builtins/malloc-optimistic.c:122: Frama_C_show_each: [-20..8]
+[eva] computing for function main9_aux <- main9 <- main.
+  Called from tests/builtins/malloc-optimistic.c:123.
+[eva] Recording results for main9_aux
+[eva] Done for function main9_aux
+[eva] tests/builtins/malloc-optimistic.c:119: Call to builtin malloc
+[eva] tests/builtins/malloc-optimistic.c:120: 
+  Frama_C_show_each: {9}, {{ &__malloc_w_main9_l119 }}
+[eva] tests/builtins/malloc-optimistic.c:122: Frama_C_show_each: [-20..9]
+[eva] computing for function main9_aux <- main9 <- main.
+  Called from tests/builtins/malloc-optimistic.c:123.
+[eva] Recording results for main9_aux
+[eva] Done for function main9_aux
+[eva] tests/builtins/malloc-optimistic.c:119: Call to builtin malloc
+[eva] tests/builtins/malloc-optimistic.c:120: 
+  Frama_C_show_each: {10}, {{ &__malloc_w_main9_l119 }}
+[eva] tests/builtins/malloc-optimistic.c:122: Frama_C_show_each: [-20..10]
+[eva] computing for function main9_aux <- main9 <- main.
+  Called from tests/builtins/malloc-optimistic.c:123.
+[eva] Recording results for main9_aux
+[eva] Done for function main9_aux
+[eva] tests/builtins/malloc-optimistic.c:119: Call to builtin malloc
+[eva] tests/builtins/malloc-optimistic.c:120: 
+  Frama_C_show_each: {11}, {{ &__malloc_w_main9_l119 }}
+[eva] tests/builtins/malloc-optimistic.c:122: Frama_C_show_each: [-20..11]
+[eva] computing for function main9_aux <- main9 <- main.
+  Called from tests/builtins/malloc-optimistic.c:123.
+[eva] Recording results for main9_aux
+[eva] Done for function main9_aux
+[eva] tests/builtins/malloc-optimistic.c:119: Call to builtin malloc
+[eva] tests/builtins/malloc-optimistic.c:120: 
+  Frama_C_show_each: {12}, {{ &__malloc_w_main9_l119 }}
+[eva] tests/builtins/malloc-optimistic.c:122: Frama_C_show_each: [-20..12]
+[eva] computing for function main9_aux <- main9 <- main.
+  Called from tests/builtins/malloc-optimistic.c:123.
+[eva] Recording results for main9_aux
+[eva] Done for function main9_aux
+[eva] tests/builtins/malloc-optimistic.c:119: Call to builtin malloc
+[eva] tests/builtins/malloc-optimistic.c:120: 
+  Frama_C_show_each: {13}, {{ &__malloc_w_main9_l119 }}
+[eva] tests/builtins/malloc-optimistic.c:122: Frama_C_show_each: [-20..13]
+[eva] computing for function main9_aux <- main9 <- main.
+  Called from tests/builtins/malloc-optimistic.c:123.
+[eva] Recording results for main9_aux
+[eva] Done for function main9_aux
+[eva] tests/builtins/malloc-optimistic.c:119: Call to builtin malloc
+[eva] tests/builtins/malloc-optimistic.c:120: 
+  Frama_C_show_each: {14}, {{ &__malloc_w_main9_l119 }}
+[eva] tests/builtins/malloc-optimistic.c:122: Frama_C_show_each: [-20..14]
+[eva] computing for function main9_aux <- main9 <- main.
+  Called from tests/builtins/malloc-optimistic.c:123.
+[eva] Recording results for main9_aux
+[eva] Done for function main9_aux
+[eva] tests/builtins/malloc-optimistic.c:119: Call to builtin malloc
+[eva] tests/builtins/malloc-optimistic.c:120: 
+  Frama_C_show_each: {15}, {{ &__malloc_w_main9_l119 }}
+[eva] tests/builtins/malloc-optimistic.c:122: Frama_C_show_each: [-20..15]
+[eva] computing for function main9_aux <- main9 <- main.
+  Called from tests/builtins/malloc-optimistic.c:123.
+[eva] Recording results for main9_aux
+[eva] Done for function main9_aux
+[eva] tests/builtins/malloc-optimistic.c:119: Call to builtin malloc
+[eva] tests/builtins/malloc-optimistic.c:120: 
+  Frama_C_show_each: {16}, {{ &__malloc_w_main9_l119 }}
+[eva] tests/builtins/malloc-optimistic.c:122: Frama_C_show_each: [-20..16]
+[eva] computing for function main9_aux <- main9 <- main.
+  Called from tests/builtins/malloc-optimistic.c:123.
+[eva] Recording results for main9_aux
+[eva] Done for function main9_aux
+[eva] tests/builtins/malloc-optimistic.c:119: Call to builtin malloc
+[eva] tests/builtins/malloc-optimistic.c:120: 
+  Frama_C_show_each: {17}, {{ &__malloc_w_main9_l119 }}
+[eva] tests/builtins/malloc-optimistic.c:122: Frama_C_show_each: [-20..17]
+[eva] computing for function main9_aux <- main9 <- main.
+  Called from tests/builtins/malloc-optimistic.c:123.
+[eva] Recording results for main9_aux
+[eva] Done for function main9_aux
+[eva] tests/builtins/malloc-optimistic.c:119: Call to builtin malloc
+[eva] tests/builtins/malloc-optimistic.c:120: 
+  Frama_C_show_each: {18}, {{ &__malloc_w_main9_l119 }}
+[eva] tests/builtins/malloc-optimistic.c:122: Frama_C_show_each: [-20..18]
+[eva] computing for function main9_aux <- main9 <- main.
+  Called from tests/builtins/malloc-optimistic.c:123.
+[eva] Recording results for main9_aux
+[eva] Done for function main9_aux
+[eva] tests/builtins/malloc-optimistic.c:119: Call to builtin malloc
+[eva] tests/builtins/malloc-optimistic.c:120: 
+  Frama_C_show_each: {19}, {{ &__malloc_w_main9_l119 }}
+[eva] tests/builtins/malloc-optimistic.c:122: Frama_C_show_each: [-20..19]
+[eva] computing for function main9_aux <- main9 <- main.
+  Called from tests/builtins/malloc-optimistic.c:123.
+[eva] Recording results for main9_aux
+[eva] Done for function main9_aux
+[eva] tests/builtins/malloc-optimistic.c:119: Call to builtin malloc
+[eva] tests/builtins/malloc-optimistic.c:120: 
+  Frama_C_show_each: {20}, {{ &__malloc_w_main9_l119 }}
+[eva] tests/builtins/malloc-optimistic.c:122: Frama_C_show_each: [-20..20]
+[eva] computing for function main9_aux <- main9 <- main.
+  Called from tests/builtins/malloc-optimistic.c:123.
+[eva] Recording results for main9_aux
+[eva] Done for function main9_aux
+[eva] tests/builtins/malloc-optimistic.c:119: Call to builtin malloc
+[eva] tests/builtins/malloc-optimistic.c:120: 
+  Frama_C_show_each: {21}, {{ &__malloc_w_main9_l119 }}
+[eva] tests/builtins/malloc-optimistic.c:122: Frama_C_show_each: [-20..21]
+[eva] computing for function main9_aux <- main9 <- main.
+  Called from tests/builtins/malloc-optimistic.c:123.
+[eva] Recording results for main9_aux
+[eva] Done for function main9_aux
+[eva] tests/builtins/malloc-optimistic.c:119: Call to builtin malloc
+[eva] tests/builtins/malloc-optimistic.c:120: 
+  Frama_C_show_each: {22}, {{ &__malloc_w_main9_l119 }}
+[eva] tests/builtins/malloc-optimistic.c:122: Frama_C_show_each: [-20..22]
+[eva] computing for function main9_aux <- main9 <- main.
+  Called from tests/builtins/malloc-optimistic.c:123.
+[eva] Recording results for main9_aux
+[eva] Done for function main9_aux
+[eva] tests/builtins/malloc-optimistic.c:119: Call to builtin malloc
+[eva] tests/builtins/malloc-optimistic.c:120: 
+  Frama_C_show_each: {23}, {{ &__malloc_w_main9_l119 }}
+[eva] tests/builtins/malloc-optimistic.c:122: Frama_C_show_each: [-20..23]
+[eva] computing for function main9_aux <- main9 <- main.
+  Called from tests/builtins/malloc-optimistic.c:123.
+[eva] Recording results for main9_aux
+[eva] Done for function main9_aux
+[eva] tests/builtins/malloc-optimistic.c:119: Call to builtin malloc
+[eva] tests/builtins/malloc-optimistic.c:120: 
+  Frama_C_show_each: {24}, {{ &__malloc_w_main9_l119 }}
+[eva] tests/builtins/malloc-optimistic.c:122: Frama_C_show_each: [-20..24]
+[eva] computing for function main9_aux <- main9 <- main.
+  Called from tests/builtins/malloc-optimistic.c:123.
+[eva] Recording results for main9_aux
+[eva] Done for function main9_aux
+[eva] tests/builtins/malloc-optimistic.c:119: Call to builtin malloc
+[eva] tests/builtins/malloc-optimistic.c:120: 
+  Frama_C_show_each: {25}, {{ &__malloc_w_main9_l119 }}
+[eva] tests/builtins/malloc-optimistic.c:122: Frama_C_show_each: [-20..25]
+[eva] computing for function main9_aux <- main9 <- main.
+  Called from tests/builtins/malloc-optimistic.c:123.
+[eva] Recording results for main9_aux
+[eva] Done for function main9_aux
+[eva] tests/builtins/malloc-optimistic.c:119: Call to builtin malloc
+[eva] tests/builtins/malloc-optimistic.c:120: 
+  Frama_C_show_each: {26}, {{ &__malloc_w_main9_l119 }}
+[eva] tests/builtins/malloc-optimistic.c:122: Frama_C_show_each: [-20..26]
+[eva] computing for function main9_aux <- main9 <- main.
+  Called from tests/builtins/malloc-optimistic.c:123.
+[eva] Recording results for main9_aux
+[eva] Done for function main9_aux
+[eva] tests/builtins/malloc-optimistic.c:119: Call to builtin malloc
+[eva] tests/builtins/malloc-optimistic.c:120: 
+  Frama_C_show_each: {27}, {{ &__malloc_w_main9_l119 }}
+[eva] tests/builtins/malloc-optimistic.c:122: Frama_C_show_each: [-20..27]
+[eva] computing for function main9_aux <- main9 <- main.
+  Called from tests/builtins/malloc-optimistic.c:123.
+[eva] Recording results for main9_aux
+[eva] Done for function main9_aux
+[eva] tests/builtins/malloc-optimistic.c:119: Call to builtin malloc
+[eva] tests/builtins/malloc-optimistic.c:120: 
+  Frama_C_show_each: {28}, {{ &__malloc_w_main9_l119 }}
+[eva] tests/builtins/malloc-optimistic.c:122: Frama_C_show_each: [-20..28]
+[eva] computing for function main9_aux <- main9 <- main.
+  Called from tests/builtins/malloc-optimistic.c:123.
+[eva] Recording results for main9_aux
+[eva] Done for function main9_aux
+[eva] tests/builtins/malloc-optimistic.c:119: Call to builtin malloc
+[eva] tests/builtins/malloc-optimistic.c:120: 
+  Frama_C_show_each: {29}, {{ &__malloc_w_main9_l119 }}
+[eva] tests/builtins/malloc-optimistic.c:122: Frama_C_show_each: [-20..29]
+[eva] computing for function main9_aux <- main9 <- main.
+  Called from tests/builtins/malloc-optimistic.c:123.
+[eva] Recording results for main9_aux
+[eva] Done for function main9_aux
+[eva] tests/builtins/malloc-optimistic.c:119: Call to builtin malloc
+[eva] tests/builtins/malloc-optimistic.c:120: 
+  Frama_C_show_each: {30}, {{ &__malloc_w_main9_l119 }}
+[eva] tests/builtins/malloc-optimistic.c:122: Frama_C_show_each: [-20..30]
+[eva] computing for function main9_aux <- main9 <- main.
+  Called from tests/builtins/malloc-optimistic.c:123.
+[eva] Recording results for main9_aux
+[eva] Done for function main9_aux
+[eva] tests/builtins/malloc-optimistic.c:118: starting to merge loop iterations
+[eva] tests/builtins/malloc-optimistic.c:119: Call to builtin malloc
+[eva] tests/builtins/malloc-optimistic.c:120: 
+  Frama_C_show_each: {30; 31}, {{ &__malloc_w_main9_l119 }}
+[eva] tests/builtins/malloc-optimistic.c:122: Frama_C_show_each: [-20..31]
+[eva] computing for function main9_aux <- main9 <- main.
+  Called from tests/builtins/malloc-optimistic.c:123.
+[eva] Recording results for main9_aux
+[eva] Done for function main9_aux
+[eva] tests/builtins/malloc-optimistic.c:119: Call to builtin malloc
+[eva] tests/builtins/malloc-optimistic.c:120: 
+  Frama_C_show_each: {30; 31; 32}, {{ &__malloc_w_main9_l119 }}
+[eva] tests/builtins/malloc-optimistic.c:122: Frama_C_show_each: [-20..32]
+[eva] computing for function main9_aux <- main9 <- main.
+  Called from tests/builtins/malloc-optimistic.c:123.
+[eva] Recording results for main9_aux
+[eva] Done for function main9_aux
+[eva] tests/builtins/malloc-optimistic.c:119: Call to builtin malloc
+[eva] tests/builtins/malloc-optimistic.c:120: 
+  Frama_C_show_each: [30..99], {{ &__malloc_w_main9_l119 }}
+[eva] tests/builtins/malloc-optimistic.c:122: Frama_C_show_each: [-20..99]
+[eva] computing for function main9_aux <- main9 <- main.
+  Called from tests/builtins/malloc-optimistic.c:123.
+[eva] Recording results for main9_aux
+[eva] Done for function main9_aux
+[eva] tests/builtins/malloc-optimistic.c:119: Call to builtin malloc
+[eva] tests/builtins/malloc-optimistic.c:120: 
+  Frama_C_show_each: [30..99], {{ &__malloc_w_main9_l119 }}
+[eva] Recording results for main9
+[eva] Done for function main9
+[eva] Recording results for main
+[eva] done for function main
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function main9_aux:
+  __malloc_w_main9_l119 ∈ [-20..99] or UNINITIALIZED
+[eva:final-states] Values at end of function main1:
+  i ∈ {0; 1}
+  p ∈ {{ &__malloc_main1_l17[0] }}
+  __retres ∈ {{ (void *)&__malloc_main1_l17 }}
+  __malloc_main1_l17[0] ∈ {0} or UNINITIALIZED
+                    [1] ∈ {1}
+[eva:final-states] Values at end of function main2:
+  i ∈ {1; 2}
+  p ∈ {{ &__malloc_main2_l27[0] }}
+  __retres ∈ {{ (void *)&__malloc_main2_l27 }}
+  __malloc_main2_l27[0] ∈ UNINITIALIZED
+                    [1] ∈ {1} or UNINITIALIZED
+                    [2] ∈ {2}
+[eva:final-states] Values at end of function main5:
+  i ∈ {9; 10}
+  p ∈ ESCAPINGADDR
+  __retres ∈ {0}
+[eva:final-states] Values at end of function main6:
+  i ∈ {9; 10}
+  p ∈ {{ &__malloc_w_main6_l77[0] }} or ESCAPINGADDR
+  __retres ∈ {0}
+  __malloc_w_main6_l77[0] ∈ UNINITIALIZED
+                      [1] ∈ {0; 1} or UNINITIALIZED
+                      [2] ∈ {1; 2} or UNINITIALIZED
+                      [3] ∈ {2; 3} or UNINITIALIZED
+                      [4] ∈ {3; 4} or UNINITIALIZED
+                      [5] ∈ {4; 5} or UNINITIALIZED
+                      [6] ∈ {5; 6} or UNINITIALIZED
+                      [7] ∈ {6; 7} or UNINITIALIZED
+                      [8] ∈ {7; 8} or UNINITIALIZED
+                      [9] ∈ {8; 9} or UNINITIALIZED
+                      [10] ∈ {9} or UNINITIALIZED
+[eva:final-states] Values at end of function main7:
+  i ∈ [14..100]
+  p ∈ ESCAPINGADDR
+  __retres ∈ {0}
+[eva:final-states] Values at end of function main8:
+  i ∈ [14..100]
+  p ∈ {{ &__malloc_w_main8_l103[0] }} or ESCAPINGADDR
+  __retres ∈ {0}
+  __malloc_w_main8_l103[0] ∈ UNINITIALIZED
+                       [1] ∈ {0; 1} or UNINITIALIZED
+                       [2] ∈ {1; 2} or UNINITIALIZED
+                       [3] ∈ {2; 3} or UNINITIALIZED
+                       [4] ∈ {3; 4} or UNINITIALIZED
+                       [5] ∈ {4; 5} or UNINITIALIZED
+                       [6] ∈ {5; 6} or UNINITIALIZED
+                       [7] ∈ {6; 7} or UNINITIALIZED
+                       [8] ∈ {7; 8} or UNINITIALIZED
+                       [9] ∈ {8; 9} or UNINITIALIZED
+                       [10] ∈ {9; 10} or UNINITIALIZED
+                       [11] ∈ {10; 11} or UNINITIALIZED
+                       [12] ∈ {11; 12} or UNINITIALIZED
+                       [13] ∈ {12; 13} or UNINITIALIZED
+                       [14] ∈ {13; 14} or UNINITIALIZED
+                       [15] ∈ [14..99] or UNINITIALIZED
+                       [16..100] ∈ [15..99] or UNINITIALIZED
+[eva:final-states] Values at end of function main9:
+  p ∈ {{ &__malloc_w_main9_l119 }}
+  __retres ∈ {0}
+  __malloc_w_main9_l119 ∈ [-20..99] or UNINITIALIZED
+[eva:final-states] Values at end of function main_3_aux:
+  p ∈ {{ &__malloc_main_3_aux_l34[0] }}
+  __retres ∈ {{ (void *)&__malloc_main_3_aux_l34 }}
+  __malloc_main_3_aux_l34[0] ∈ {0} or UNINITIALIZED
+                         [1] ∈ {1}
+[eva:final-states] Values at end of function main3:
+  i ∈ {0; 1}
+  p ∈ {{ &__malloc_main_3_aux_l34[0] }}
+  __retres ∈ {{ (void *)&__malloc_main_3_aux_l34 }}
+  __malloc_main_3_aux_l34[0] ∈ {0} or UNINITIALIZED
+                         [1] ∈ {1}
+[eva:final-states] Values at end of function main_4_aux:
+  p ∈ {{ &__malloc_main_4_aux_l40[0] }}
+  __retres ∈ {{ (void *)&__malloc_main_4_aux_l40 }}
+  __malloc_main_4_aux_l40[0] ∈ UNINITIALIZED
+                         [1] ∈ {1} or UNINITIALIZED
+                         [2] ∈ {2}
+[eva:final-states] Values at end of function main4:
+  i ∈ {1; 2}
+  p ∈ {{ &__malloc_main_4_aux_l40[0] }}
+  __retres ∈ {{ (void *)&__malloc_main_4_aux_l40 }}
+  __malloc_main_4_aux_l40[0] ∈ UNINITIALIZED
+                         [1] ∈ {1} or UNINITIALIZED
+                         [2] ∈ {2}
+[eva:final-states] Values at end of function main:
+  p ∈ ESCAPINGADDR
+  __malloc_w_main6_l77[0] ∈ UNINITIALIZED
+                      [1] ∈ {0; 1} or UNINITIALIZED
+                      [2] ∈ {1; 2} or UNINITIALIZED
+                      [3] ∈ {2; 3} or UNINITIALIZED
+                      [4] ∈ {3; 4} or UNINITIALIZED
+                      [5] ∈ {4; 5} or UNINITIALIZED
+                      [6] ∈ {5; 6} or UNINITIALIZED
+                      [7] ∈ {6; 7} or UNINITIALIZED
+                      [8] ∈ {7; 8} or UNINITIALIZED
+                      [9] ∈ {8; 9} or UNINITIALIZED
+                      [10] ∈ {9} or UNINITIALIZED
+  __malloc_w_main8_l103[0] ∈ UNINITIALIZED
+                       [1] ∈ {0; 1} or UNINITIALIZED
+                       [2] ∈ {1; 2} or UNINITIALIZED
+                       [3] ∈ {2; 3} or UNINITIALIZED
+                       [4] ∈ {3; 4} or UNINITIALIZED
+                       [5] ∈ {4; 5} or UNINITIALIZED
+                       [6] ∈ {5; 6} or UNINITIALIZED
+                       [7] ∈ {6; 7} or UNINITIALIZED
+                       [8] ∈ {7; 8} or UNINITIALIZED
+                       [9] ∈ {8; 9} or UNINITIALIZED
+                       [10] ∈ {9; 10} or UNINITIALIZED
+                       [11] ∈ {10; 11} or UNINITIALIZED
+                       [12] ∈ {11; 12} or UNINITIALIZED
+                       [13] ∈ {12; 13} or UNINITIALIZED
+                       [14] ∈ {13; 14} or UNINITIALIZED
+                       [15] ∈ [14..99] or UNINITIALIZED
+                       [16..100] ∈ [15..99] or UNINITIALIZED
+  __malloc_w_main9_l119 ∈ [-20..99] or UNINITIALIZED
+[from] Computing for function main9_aux
+[from] Done for function main9_aux
+[from] Computing for function main1
+[from] Computing for function malloc <-main1
+[from] Done for function malloc
+[from] Done for function main1
+[from] Computing for function main2
+[from] Done for function main2
+[from] Computing for function main5
+[from] Computing for function free <-main5
+[from] Done for function free
+[from] Done for function main5
+[from] Computing for function main6
+[from] Done for function main6
+[from] Computing for function main7
+[from] Done for function main7
+[from] Computing for function main8
+[from] Done for function main8
+[from] Computing for function main9
+[from] Done for function main9
+[from] Computing for function main_3_aux
+[from] Done for function main_3_aux
+[from] Computing for function main3
+[from] Done for function main3
+[from] Computing for function main_4_aux
+[from] Done for function main_4_aux
+[from] Computing for function main4
+[from] Done for function main4
+[from] Computing for function main
+[from] Done for function main
+[from] ====== DEPENDENCIES COMPUTED ======
+  These dependencies hold at termination for the executions that terminate:
+[from] Function free:
+  NO EFFECTS
+[from] Function main9_aux:
+  __malloc_w_main9_l119 FROM p (and SELF)
+[from] Function malloc:
+  \result FROM \nothing
+[from] Function main1:
+  __malloc_main1_l17[0..1] FROM v (and SELF)
+  \result FROM \nothing
+[from] Function main2:
+  __malloc_main2_l27[1..2] FROM v (and SELF)
+  \result FROM \nothing
+[from] Function main5:
+  __malloc_main5_l64[0..10] FROM v (and SELF)
+  \result FROM \nothing
+[from] Function main6:
+  __malloc_w_main6_l77[0..10] FROM v (and SELF)
+  \result FROM \nothing
+[from] Function main7:
+  __malloc_main7_l90[0..100] FROM v (and SELF)
+  \result FROM \nothing
+[from] Function main8:
+  __malloc_w_main8_l103[0..100] FROM v (and SELF)
+  \result FROM \nothing
+[from] Function main9:
+  __malloc_w_main9_l119 FROM \nothing (and SELF)
+  \result FROM \nothing
+[from] Function main_3_aux:
+  __malloc_main_3_aux_l34[0..1] FROM i (and SELF)
+  \result FROM \nothing
+[from] Function main3:
+  __malloc_main_3_aux_l34[0..1] FROM v (and SELF)
+  \result FROM \nothing
+[from] Function main_4_aux:
+  __malloc_main_4_aux_l40[1..2] FROM i (and SELF)
+  \result FROM \nothing
+[from] Function main4:
+  __malloc_main_4_aux_l40[1..2] FROM v (and SELF)
+  \result FROM \nothing
+[from] Function main:
+  __malloc_main1_l17[0..1] FROM v (and SELF)
+  __malloc_main2_l27[1..2] FROM v (and SELF)
+  __malloc_main_3_aux_l34[0..1] FROM v (and SELF)
+  __malloc_main_4_aux_l40[1..2] FROM v (and SELF)
+  __malloc_main5_l64[0..10] FROM v (and SELF)
+  __malloc_w_main6_l77[0..10] FROM v (and SELF)
+  __malloc_main7_l90[0..100] FROM v (and SELF)
+  __malloc_w_main8_l103[0..100] FROM v (and SELF)
+  __malloc_w_main9_l119 FROM \nothing (and SELF)
+[from] ====== END OF DEPENDENCIES ======
+[inout] Out (internal) for function main9_aux:
+    __malloc_w_main9_l119
+[inout] Inputs for function main9_aux:
+    \nothing
+[inout] Out (internal) for function main1:
+    i; p; __retres; __malloc_main1_l17[0..1]
+[inout] Inputs for function main1:
+    v
+[inout] Out (internal) for function main2:
+    i; p; __retres; __malloc_main2_l27[1..2]
+[inout] Inputs for function main2:
+    v
+[inout] Out (internal) for function main5:
+    i; p; j; k; __retres; __malloc_main5_l64[0..10]
+[inout] Inputs for function main5:
+    v; __malloc_main5_l64[0..10]
+[inout] Out (internal) for function main6:
+    i; p; j; k; __retres; __malloc_w_main6_l77[0..10]
+[inout] Inputs for function main6:
+    v; __malloc_w_main6_l77[0..10]
+[inout] Out (internal) for function main7:
+    i; p; j; k; __retres; __malloc_main7_l90[0..100]
+[inout] Inputs for function main7:
+    v; __malloc_main7_l90[0..100]
+[inout] Out (internal) for function main8:
+    i; p; j; k; __retres; __malloc_w_main8_l103[0..100]
+[inout] Inputs for function main8:
+    v; __malloc_w_main8_l103[0..100]
+[inout] Out (internal) for function main9:
+    p; j; __retres; __malloc_w_main9_l119
+[inout] Inputs for function main9:
+    __malloc_w_main9_l119
+[inout] Out (internal) for function main_3_aux:
+    p; __retres; __malloc_main_3_aux_l34[0..1]
+[inout] Inputs for function main_3_aux:
+    \nothing
+[inout] Out (internal) for function main3:
+    i; p; __retres; __malloc_main_3_aux_l34[0..1]
+[inout] Inputs for function main3:
+    v
+[inout] Out (internal) for function main_4_aux:
+    p; __retres; __malloc_main_4_aux_l40[1..2]
+[inout] Inputs for function main_4_aux:
+    \nothing
+[inout] Out (internal) for function main4:
+    i; p; __retres; __malloc_main_4_aux_l40[1..2]
+[inout] Inputs for function main4:
+    v
+[inout] Out (internal) for function main:
+    p; __malloc_main1_l17[0..1]; __malloc_main2_l27[1..2];
+    __malloc_main_3_aux_l34[0..1]; __malloc_main_4_aux_l40[1..2];
+    __malloc_main5_l64[0..10]; __malloc_w_main6_l77[0..10];
+    __malloc_main7_l90[0..100]; __malloc_w_main8_l103[0..100];
+    __malloc_w_main9_l119
+[inout] Inputs for function main:
+    v; __malloc_main5_l64[0..10]; __malloc_w_main6_l77[0..10];
+    __malloc_main7_l90[0..100]; __malloc_w_main8_l103[0..100];
+    __malloc_w_main9_l119

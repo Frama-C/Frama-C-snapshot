@@ -1,18 +1,18 @@
 [kernel] Parsing tests/value/val6.i (no preprocessing)
-[value] Analyzing a complete application starting at f1
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing a complete application starting at f1
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   NULL[rbits 8 to 8388607] ∈ [--..--]
   c ∈ {0}
   a ∈ {0}
   b ∈ {0}
   y ∈ {0}
   x ∈ {0}
-[value] Recording results for f1
-[value] done for function f1
-[value] ====== VALUES COMPUTED ======
-[value:final-states] Values at end of function f1:
+[eva] Recording results for f1
+[eva] done for function f1
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function f1:
   NULL[rbits 8 to 135] ∈ [--..--]
       [rbits 136 to 143] ∈ {27}
       [rbits 144 to 151] ∈ [--..--]

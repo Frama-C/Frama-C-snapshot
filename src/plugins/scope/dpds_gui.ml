@@ -473,10 +473,10 @@ let check_value (main_ui:Design.main_window_extension_points) =
   if Db.Value.is_computed () then true
   else
     let answer = GToolbox.question_box
-      ~title:("Need Value Analysis")
+      ~title:("Eva Needed")
       ~buttons:[ "Run"; "Cancel" ]
-      ("Value analysis has to be run first.\nThis can take some time.\n"
-       ^"Do you want to run the Value analysis with its current settings now?")
+      ("Eva has to be run first.\nThis can take some time.\n"
+       ^"Do you want to run Eva with its current settings now?")
     in
       if answer = 1 then
         match main_ui#full_protect ~cancelable:true !Db.Value.compute with

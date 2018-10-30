@@ -1,6 +1,6 @@
 /* run.config_qualif
    OPT: -pp-annot -wp -wp-par 1 -wp-prop="-qed_ko"
-   OPT: -pp-annot -wp -wp-par 1 -wp-prop qed_ko -wp-timeout 2
+   OPT: -pp-annot -wp -wp-par 1 -wp-prop qed_ko -wp-steps 50
 */
 
 #define OK 33

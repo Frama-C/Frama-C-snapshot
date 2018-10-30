@@ -72,6 +72,12 @@ module Vars: sig
   val add: varinfo -> initinfo -> unit
     (** @raise AlreadyExists if the given varinfo is already registered. *)
 
+  val remove: varinfo -> unit
+  (** Removes the given varinfo, which must have already been removed from the
+      AST. Warning: this is very dangerous.
+      @since Frama-C+dev
+  *)
+
   val add_decl: varinfo -> unit
     (** @raise AlreadyExists if the given varinfo is already registered. *)
 
@@ -122,6 +128,12 @@ module Functions: sig
   val add: cil_function -> unit
     (**TODO: remove this function and replace all calls by: *)
 
+  val remove: varinfo -> unit
+  (** Removes the given varinfo, which must have already been removed from the
+      AST. Warning: this is very dangerous.
+      @since Frama-C+dev
+  *)
+
   val replace_by_declaration: funspec -> varinfo -> location -> unit
     (** Note: if the varinfo is already registered and bound to a definition,
         the definition will be erased only if [vdefined] is false. Otherwise,
@@ -144,28 +156,30 @@ module FileIndex : sig
 
   (** {2 Getters} *)
 
-  val get_symbols : filename:string -> global list
+  val get_symbols : Datatype.Filepath.t -> global list
     (** All global C symbols of the given module.
         @since Boron-20100401 *)
 
-  val find : filename:string -> string * (global list)
-    (** All global C symbols for valviewer.
-        The file name to display is returned, and the [global] list reversed. *)
+  val find : Datatype.Filepath.t -> Datatype.Filepath.t * global list
+  [@@deprecated "Use FileIndex.get_symbols instead."]
+    (** [find path] returns all global C symbols associated with [path],
+        plus [path] itself. The returned [global] list is reversed.
+        @deprecated Frama-C+dev use [get_symbols] instead. *)
 
-  val get_files: unit -> string list
+  val get_files: unit -> Datatype.Filepath.t list
     (** Get the files list containing all [global] C symbols. *)
 
   (** {2 Searching among all [global] C symbols} *)
 
-  val get_globals : filename:string -> (varinfo * initinfo) list
+  val get_globals : Datatype.Filepath.t -> (varinfo * initinfo) list
   (** Global variables of the given module for the kernel user interface *)
 
-  val get_global_annotations: filename:string -> global_annotation list
+  val get_global_annotations: Datatype.Filepath.t -> global_annotation list
   (** Global annotations of the given module for the kernel user interface
       @since Nitrogen-20111001 *)
 
   val get_functions :
-    ?declarations:bool -> filename:string -> kernel_function list
+    ?declarations:bool -> Datatype.Filepath.t -> kernel_function list
     (** Global functions of the given module for the kernel user interface.
         If [declarations] is true, functions declared in a module but defined
         in another module are only reported in the latter (default is false).

@@ -23,6 +23,8 @@
 #ifndef _SYS_TIMEX_H
 #define _SYS_TIMEX_H 1
 #include "features.h"
+#include "stdint.h"
+#include "time.h"
 __PUSH_FC_STDLIB
 
 __BEGIN_DECLS

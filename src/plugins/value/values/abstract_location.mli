@@ -25,6 +25,7 @@
 open Cil_types
 open Eval
 
+type 'v truth = 'v Abstract_value.truth
 
 (** Signature of abstract memory locations. *)
 module type S = sig
@@ -43,11 +44,27 @@ module type S = sig
   val to_value : location -> value
   val size : location -> Int_Base.t
 
-  val partially_overlap: location -> location -> bool
+  (** {3 Alarms } *)
 
-  (** Needed for unspecified sequences. *)
-  val check_non_overlapping:
-    (lval * location) list -> (lval * location) list -> unit evaluated
+  (** These functions are used to create the alarms that report undesirable
+      behaviors, when a location abstraction does not meet the prerequisites of
+      an operation. Thereafter, the location is assumed to meet them to continue
+      the analysis.
+      See the documentation of {!Abstract_value.truth} for more details. *)
+
+  (** Assumes that two locations do not overlap. If [partial] is true, the
+      concrete locations may be equal, but different locations must not overlap.
+      Otherwise, the locations must be completely separate. *)
+  val assume_no_overlap:
+    partial:bool -> location -> location -> (location * location) truth
+
+  (** Assumes that the given location is valid for a read or write operation,
+      according to the [for_writing] boolean. Used to emit memory access alarms.
+      If the location is not completely valid, reduces it to its valid part.
+      [bitfield] indicates whether the location may be the one of a bitfield;
+      if it is false, the location can be assumed to be byte aligned. *)
+  val assume_valid_location:
+    for_writing:bool -> bitfield:bool -> location -> location truth
 
   (** {3 Forward Offset Operations } *)
 
@@ -63,15 +80,6 @@ module type S = sig
       [typ] must be the type pointed by the array. *)
   val forward_index : typ -> value -> offset -> offset
 
-  (** [reduce_index_by_array_size ~size_expr ~index_expr size index] reduces
-      the value [index] to fit into the interval [0..(size-1)]. It also returns
-      out-of-bound alarms if it was not already the case. [size_expr] and
-      [index_expr] are the Cil expressions of the array size and the index,
-      needed to create the alarms.
-      The value returned by this function must be included in [index]. *)
-  val reduce_index_by_array_size :
-    size_expr: exp -> index_expr: exp -> Integer.t -> value -> value evaluated
-
   (** {3 Forward Locations Operations } *)
 
   (** Evaluation of the location of an lvalue, when the offset has already
@@ -85,15 +93,6 @@ module type S = sig
   val forward_pointer : typ -> value -> offset -> location or_bottom
 
   val eval_varinfo : varinfo -> location
-
-  (** [reduce_loc_by_validity for_writing bitfield lval loc] reduce the location
-      [loc] by its valid part for a read or write operation, according to the
-      [for_writing] boolean. It also returns the alarms ensuring this validity.
-      [bitfield] indicates whether the location may be the one of a bitfield;
-      if it does not hold, the location is assumed to be byte aligned.
-      [lval] is only used to create the alarms. *)
-  val reduce_loc_by_validity :
-    for_writing:bool -> bitfield:bool -> lval -> location -> location evaluated
 
   (** {3 Backward Operations } *)
 

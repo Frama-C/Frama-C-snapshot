@@ -55,8 +55,43 @@ __BEGIN_DECLS
 typedef enum __FC_IDTYPE_T { P_ALL, P_PID, P_PGID } idtype_t;
 #endif
 
+/*@ //missing: assigns \result \from 'child processes'
+    //missing: terminates 'depending on child processes'
+    //missing: may set errno to ECHILD or EINTR
+  assigns \result \from \nothing;
+  assigns *stat_loc \from \nothing;
+  ensures result_ok_or_error: \result == -1 || \result >= 0;
+  ensures initialization:stat_loc_init_on_success:
+    \result >= 0 && stat_loc != \null ==> \initialized(stat_loc);
+  behavior stat_loc_null:
+    assumes stat_loc_null: stat_loc == \null;
+    assigns \result \from \nothing;
+  behavior stat_loc_non_null:
+    assumes stat_loc_non_null: stat_loc != \null;
+    requires valid_stat_loc: \valid(stat_loc);
+    //missing: assigns *stat_loc \from 'child processes'
+*/
 extern pid_t wait(int *stat_loc);
+
 extern int waitid(idtype_t idt, id_t id, siginfo_t * sig, int options);
+
+
+/*@ //missing: assigns \result \from 'child processes'
+    //missing: terminates 'depending on child processes'
+    //missing: may set errno to ECHILD, EINTR or EINVAL
+  assigns \result \from indirect:options;
+  assigns *stat_loc \from indirect:options;
+  ensures result_ok_or_error: \result == -1 || \result >= 0;
+  ensures initialization:stat_loc_init_on_success:
+    \result >= 0 && stat_loc != \null ==> \initialized(stat_loc);
+  behavior stat_loc_null:
+    assumes stat_loc_null: stat_loc == \null;
+    assigns \result \from \nothing;
+  behavior stat_loc_non_null:
+    assumes stat_loc_non_null: stat_loc != \null;
+    requires valid_stat_loc: \valid(stat_loc);
+    //missing: assigns *stat_loc \from 'child processes'
+*/
 extern pid_t waitpid(pid_t pid, int *stat_loc, int options);
 
 #include "resource.h"

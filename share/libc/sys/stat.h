@@ -33,7 +33,17 @@ extern int    chmod(const char *, mode_t);
 extern int    fchmod(int, mode_t);
 extern int    fstat(int, struct stat *);
 extern int    lstat(const char *, struct stat *);
-extern int    mkdir(const char *, mode_t);
+
+/*@ // missing: may assign to errno: EACCES, EEXIST, ELOOP, EMLINK,
+    //                               ENAMETOOLONG, ENOENT, ENOSPC,
+    //                               ENOTDIR, EROFS
+    // missing: assigns \result \from 'filesystem'
+  requires valid_string_path: valid_read_string(path);
+  assigns \result \from indirect:path, indirect:path[0..], indirect:mode;
+  ensures result_ok_or_error: \result == 0 || \result == -1;
+*/
+extern int    mkdir(const char *path, mode_t mode);
+
 extern int    mkfifo(const char *, mode_t);
 extern int    mknod(const char *, mode_t, dev_t);
 
@@ -47,7 +57,11 @@ extern int    mknod(const char *, mode_t, dev_t);
 */
 extern int    stat(const char *pathname, struct stat *buf);
 
-extern mode_t umask(mode_t);
+/*@ //missing: assigns 'process umask' \from cmask;
+    //missing: assigns \result \from 'old process umask'
+  assigns \result \from indirect:cmask;
+*/
+extern mode_t umask(mode_t cmask);
 
 __END_DECLS
 __POP_FC_STDLIB

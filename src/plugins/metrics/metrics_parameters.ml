@@ -55,11 +55,12 @@ module OutputFile =
 module ValueCoverage =
   WithOutput (
     struct
-      let option_name = "-metrics-value-cover"
-      let help = "estimate value analysis coverage w.r.t. \
+      let option_name = "-metrics-eva-cover"
+      let help = "estimate Eva coverage w.r.t. \
                   to reachable syntactic definitions"
       let output_by_default = true
     end)
+let () = ValueCoverage.add_aliases [ "-metrics-value-cover" ]
 
 module AstType =
   String
@@ -101,6 +102,13 @@ module LocalsSize =
       let help = "prints the size of local variables for functions f1,...,fn, \
                   and for the functions called within them \
                   (does not support recursive calls)"
+    end)
+
+module UsedFiles =
+  False
+    (struct
+      let option_name = "-metrics-used-files"
+      let help = "list files containing global definitions reachable by main"
     end)
 
 (*

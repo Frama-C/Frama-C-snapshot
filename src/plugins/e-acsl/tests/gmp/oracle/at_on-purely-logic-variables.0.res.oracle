@@ -1,0 +1,163 @@
+[e-acsl] beginning translation.
+[e-acsl] tests/gmp/at_on-purely-logic-variables.c:64: Warning: 
+  E-ACSL construct
+  `\at on purely logic variables that needs to allocate too much memory (bigger than int_max bytes)'
+  is not yet supported.
+  Ignoring annotation.
+[e-acsl] tests/gmp/at_on-purely-logic-variables.c:65: Warning: 
+  E-ACSL construct `\at with logic variable linked to C variable'
+  is not yet supported.
+  Ignoring annotation.
+[e-acsl] translation done in project "e-acsl".
+[eva] Analyzing a complete application starting at main
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
+  __e_acsl_init ∈ [--..--]
+  __e_acsl_heap_allocation_size ∈ [--..--]
+  __e_acsl_math_HUGE_VAL ∈ [-1.79769313486e+308 .. 1.79769313486e+308]
+  __e_acsl_math_HUGE_VALF ∈ [-3.40282346639e+38 .. 3.40282346639e+38]
+  __e_acsl_math_INFINITY ∈ [-1.79769313486e+308 .. 1.79769313486e+308]
+[eva] using specification for function __e_acsl_memory_init
+[eva] tests/gmp/at_on-purely-logic-variables.c:57: 
+  allocating variable __malloc_main_l57
+[eva] tests/gmp/at_on-purely-logic-variables.c:45: 
+  allocating variable __malloc_main_l45
+[eva] tests/gmp/at_on-purely-logic-variables.c:41: 
+  allocating variable __malloc_main_l41
+[eva] tests/gmp/at_on-purely-logic-variables.c:37: 
+  allocating variable __malloc_main_l37
+[eva] tests/gmp/at_on-purely-logic-variables.c:34: 
+  allocating variable __malloc_main_l34
+[eva] tests/gmp/at_on-purely-logic-variables.c:29: 
+  allocating variable __malloc_main_l29
+[eva] tests/gmp/at_on-purely-logic-variables.c:28: 
+  allocating variable __malloc_main_l28
+[eva] using specification for function __e_acsl_store_block
+[eva] using specification for function __e_acsl_full_init
+[eva] tests/gmp/at_on-purely-logic-variables.c:29: 
+  starting to merge loop iterations
+[eva] tests/gmp/at_on-purely-logic-variables.c:57: 
+  starting to merge loop iterations
+[eva:alarm] tests/gmp/at_on-purely-logic-variables.c:57: Warning: 
+  out of bounds write.
+  assert
+  \valid(__gen_e_acsl_at_7 +
+         (int)((int)((int)(__gen_e_acsl_u_6 - 10) * 300) +
+               (int)((int)((int)((int)(__gen_e_acsl_v_6 - -10) - 1) * 100) +
+                     (int)((int)(__gen_e_acsl_w_2 - 100) - 1))));
+[eva] tests/gmp/at_on-purely-logic-variables.c:45: 
+  starting to merge loop iterations
+[eva] tests/gmp/at_on-purely-logic-variables.c:34: 
+  starting to merge loop iterations
+[eva:alarm] tests/gmp/at_on-purely-logic-variables.c:28: Warning: 
+  assertion got status unknown.
+[eva] using specification for function __e_acsl_valid_read
+[eva] using specification for function __e_acsl_assert
+[eva:alarm] tests/gmp/at_on-purely-logic-variables.c:29: Warning: 
+  assertion got status unknown.
+[eva:alarm] tests/gmp/at_on-purely-logic-variables.c:29: Warning: 
+  accessing uninitialized left-value.
+  assert \initialized(__gen_e_acsl_at_2 + (__gen_e_acsl_j - 2));
+[eva] tests/gmp/at_on-purely-logic-variables.c:29: 
+  starting to merge loop iterations
+[eva:alarm] tests/gmp/at_on-purely-logic-variables.c:29: Warning: 
+  function __e_acsl_assert: precondition got status unknown.
+[eva:alarm] tests/gmp/at_on-purely-logic-variables.c:29: Warning: 
+  function __e_acsl_assert: precondition got status unknown.
+[eva:alarm] tests/gmp/at_on-purely-logic-variables.c:31: Warning: 
+  assertion got status unknown.
+[eva:alarm] tests/gmp/at_on-purely-logic-variables.c:33: Warning: 
+  accessing uninitialized left-value.
+  assert
+  \initialized(__gen_e_acsl_at_3 +
+               ((__gen_e_acsl_u - 9) * 11 + ((__gen_e_acsl_v - -5) - 1)));
+[eva] tests/gmp/at_on-purely-logic-variables.c:33: 
+  starting to merge loop iterations
+[eva:alarm] tests/gmp/at_on-purely-logic-variables.c:34: Warning: 
+  function __e_acsl_assert: precondition got status unknown.
+[eva:alarm] tests/gmp/at_on-purely-logic-variables.c:37: Warning: 
+  assertion got status unknown.
+[eva] tests/gmp/at_on-purely-logic-variables.c:41: 
+  starting to merge loop iterations
+[eva:alarm] tests/gmp/at_on-purely-logic-variables.c:41: Warning: 
+  assertion got status unknown.
+[eva:alarm] tests/gmp/at_on-purely-logic-variables.c:41: Warning: 
+  accessing uninitialized left-value.
+  assert \initialized(__gen_e_acsl_at_5 + ((__gen_e_acsl_k_3 - -9) - 1));
+[eva] tests/gmp/at_on-purely-logic-variables.c:41: 
+  starting to merge loop iterations
+[eva:alarm] tests/gmp/at_on-purely-logic-variables.c:41: Warning: 
+  function __e_acsl_assert: precondition got status unknown.
+[eva:alarm] tests/gmp/at_on-purely-logic-variables.c:41: Warning: 
+  function __e_acsl_assert: precondition got status unknown.
+[eva:alarm] tests/gmp/at_on-purely-logic-variables.c:43: Warning: 
+  assertion got status unknown.
+[eva:alarm] tests/gmp/at_on-purely-logic-variables.c:44: Warning: 
+  accessing uninitialized left-value.
+  assert
+  \initialized(__gen_e_acsl_at_6 +
+               ((__gen_e_acsl_u_3 - 9) * 32 + ((__gen_e_acsl_v_3 - -5) - 1)));
+[eva] tests/gmp/at_on-purely-logic-variables.c:44: 
+  starting to merge loop iterations
+[eva:alarm] tests/gmp/at_on-purely-logic-variables.c:45: Warning: 
+  function __e_acsl_assert: precondition got status unknown.
+[eva] tests/gmp/at_on-purely-logic-variables.c:8: 
+  allocating variable __malloc___gen_e_acsl_f_l8
+[eva] tests/gmp/at_on-purely-logic-variables.c:8: 
+  allocating variable __malloc___gen_e_acsl_f_l8_0
+[eva] tests/gmp/at_on-purely-logic-variables.c:7: 
+  allocating variable __malloc___gen_e_acsl_f_l7
+[eva] tests/gmp/at_on-purely-logic-variables.c:7: 
+  allocating variable __malloc___gen_e_acsl_f_l7_0
+[eva] tests/gmp/at_on-purely-logic-variables.c:7: 
+  starting to merge loop iterations
+[eva] tests/gmp/at_on-purely-logic-variables.c:7: 
+  starting to merge loop iterations
+[eva] using specification for function __e_acsl_delete_block
+[eva:alarm] tests/gmp/at_on-purely-logic-variables.c:7: Warning: 
+  accessing uninitialized left-value.
+  assert \initialized(__gen_e_acsl_at + ((__gen_e_acsl_n - 1) - 1));
+[eva:alarm] tests/gmp/at_on-purely-logic-variables.c:7: Warning: 
+  accessing uninitialized left-value.
+  assert \initialized(__gen_e_acsl_at_2 + ((__gen_e_acsl_n - 1) - 1));
+[eva] tests/gmp/at_on-purely-logic-variables.c:6: 
+  starting to merge loop iterations
+[eva:alarm] tests/gmp/at_on-purely-logic-variables.c:7: Warning: 
+  function __e_acsl_assert: precondition got status unknown.
+[eva:alarm] tests/gmp/at_on-purely-logic-variables.c:7: Warning: 
+  function __e_acsl_assert: precondition got status unknown.
+[eva:alarm] tests/gmp/at_on-purely-logic-variables.c:6: Warning: 
+  function __gen_e_acsl_f: postcondition got status unknown.
+[eva:alarm] tests/gmp/at_on-purely-logic-variables.c:8: Warning: 
+  function __gen_e_acsl_f: postcondition got status unknown.
+[eva] tests/gmp/at_on-purely-logic-variables.c:16: 
+  allocating variable __malloc_g_l16
+[eva] tests/gmp/at_on-purely-logic-variables.c:16: 
+  starting to merge loop iterations
+[eva:alarm] tests/gmp/at_on-purely-logic-variables.c:16: Warning: 
+  assertion got status unknown.
+[eva:alarm] tests/gmp/at_on-purely-logic-variables.c:16: Warning: 
+  accessing uninitialized left-value.
+  assert \initialized(__gen_e_acsl_at + (__gen_e_acsl_w - 3));
+[eva] tests/gmp/at_on-purely-logic-variables.c:16: 
+  starting to merge loop iterations
+[eva:alarm] tests/gmp/at_on-purely-logic-variables.c:16: Warning: 
+  function __e_acsl_assert: precondition got status unknown.
+[eva:alarm] tests/gmp/at_on-purely-logic-variables.c:16: Warning: 
+  function __e_acsl_assert: precondition got status unknown.
+[eva:alarm] tests/gmp/at_on-purely-logic-variables.c:54: Warning: 
+  assertion got status unknown.
+[eva:alarm] tests/gmp/at_on-purely-logic-variables.c:56: Warning: 
+  accessing uninitialized left-value.
+  assert
+  \initialized(__gen_e_acsl_at_7 +
+               ((__gen_e_acsl_u_5 - 10) * 300 +
+                (((__gen_e_acsl_v_5 - -10) - 1) * 100 +
+                 ((__gen_e_acsl_w - 100) - 1))));
+[eva:alarm] tests/gmp/at_on-purely-logic-variables.c:63: Warning: 
+  assertion got status unknown.
+[eva:alarm] tests/gmp/at_on-purely-logic-variables.c:65: Warning: 
+  assertion got status unknown.
+[eva] using specification for function __e_acsl_memory_clean
+[eva] done for function main

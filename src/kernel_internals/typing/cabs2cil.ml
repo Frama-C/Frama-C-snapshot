@@ -61,7 +61,12 @@ let valid_sid = false
    for the valid_sid label of Cil.mkStmt*. *)
 open Cil_types
 open Cil_datatype
-open Lexing
+
+let stripUnderscore s =
+  let res = Extlib.strip_underscore s in
+  if res = "" then
+    Kernel.error ~once:true ~current:true "Invalid attribute name %s" s;
+  res
 
 let frama_c_keep_block = "FRAMA_C_KEEP_BLOCK"
 let () = Cil_printer.register_shallow_attribute frama_c_keep_block
@@ -244,8 +249,10 @@ let rec check_no_locals_in_initializer i =
 
 (* ---------- source error message handling ------------- *)
 let cabslu s =
-  {Lexing.dummy_pos with pos_fname="Cabs2cil_start"^s},
-  {Lexing.dummy_pos with pos_fname="Cabs2cil_end"^s}
+  {Cil_datatype.Position.unknown with
+   Filepath.pos_path = Datatype.Filepath.of_string ("Cabs2cil_start" ^ s)},
+  {Cil_datatype.Position.unknown with
+   Filepath.pos_path = Datatype.Filepath.of_string ("Cabs2cil_end" ^ s)}
 
 
 (** Keep a list of the variable ID for the variables that were created to
@@ -661,8 +668,9 @@ let transparentUnionArgs : (int * typ) list ref = ref []
 let debugLoc = false
 let convLoc (l : cabsloc) =
   if debugLoc then
-    Kernel.debug "convLoc at %s: line %d, btye %d\n"
-      (fst l).Lexing.pos_fname (fst l).Lexing.pos_lnum (fst l).Lexing.pos_bol;
+    Kernel.debug "convLoc at %a: line %d, btye %d\n"
+      Datatype.Filepath.pretty (fst l).Filepath.pos_path
+      (fst l).Filepath.pos_lnum (fst l).Filepath.pos_bol;
   l
 
 let isOldStyleVarArgName n =
@@ -1001,7 +1009,6 @@ let gnu_body_result : (A.statement * ((exp * typ) option ref)) ref
 let dummy_function = emptyFunction "@dummy@"
 let currentReturnType : typ ref = ref (TVoid([]))
 let currentFunctionFDEC: fundec ref = ref dummy_function
-
 
 let lastStructId = ref 0
 let anonStructName (k: string) (suggested: string) =
@@ -1522,6 +1529,12 @@ struct
   let c2block ~ghost ?(collapse_block=true) ?(force_non_scoping=false) c =
     let declares_var = c.locals <> [] || c.statics <> [] in
     if c.unspecified_order then begin
+        if List.length c.stmts >= 2 then begin
+          let first_stmt =
+            (fun (s,_,_,_,_) -> s) (Extlib.last c.stmts) in
+          Kernel.warning ~wkey:Kernel.wkey_cert_exp_10
+            ~source:(fst (Stmt.loc first_stmt))
+            "Potential unsequenced side-effects" end;
       let b =
         Cil.mkBlock
           [mkStmt ~ghost ~valid_sid (UnspecifiedSequence (List.rev c.stmts))]
@@ -1549,7 +1562,13 @@ struct
   (* converts a chunk into a statement. *)
   let c2stmt ~ghost ?force_non_scoping c =
     let kind =
-      if c.unspecified_order then
+      if c.unspecified_order then begin
+        if List.length c.stmts >= 2 then begin
+          let first_stmt =
+            (fun (s,_,_,_,_) -> s) (Extlib.last c.stmts) in
+          Kernel.warning ~wkey:Kernel.wkey_cert_exp_10
+            ~source:(fst (Stmt.loc first_stmt))
+            "Potential unsequenced side-effects" end;
         let kind = UnspecifiedSequence (List.rev c.stmts) in
         if c.locals <> [] || c.statics <> [] then begin
           let b = Cil.mkBlock [mkStmt ~ghost ~valid_sid kind] in
@@ -1557,7 +1576,7 @@ struct
           b.bstatics <- c.statics;
           Block b
         end else kind
-      else
+      end else
         let block = c2block ~ghost ?force_non_scoping c in Block block
     in
     mkStmt ~ghost ~valid_sid kind
@@ -2702,6 +2721,14 @@ let rec castTo ?(fromsource=false)
           Cil_printer.pp_typ ot Cil_printer.pp_typ nt;
       result
 
+    | TFun _, TPtr(TFun _, _) ->
+      let clean_e =
+        match e.enode with
+        | Lval lv ->  Cil.mkAddrOf ~loc:e.eloc lv
+        | _ -> e (* function decay into pointer anyway *)
+      in
+      castTo ~fromsource (TPtr (ot', [])) nt' clean_e
+
       (* accept converting a ptr to function to/from a ptr to void, even though
          not really accepted by the standard. gcc supports it. though
       *)
@@ -3467,20 +3494,20 @@ let fieldsToInit
   and add_field (offset : offset) (f : fieldinfo) (found, loff as acc) =
     (* update current offset *)
     let offset = Cil.addOffset (Field (f, NoOffset)) offset in
-    (* if this field is an anonymous comp *)
-    if prefix anonCompFieldName f.fname then
+    (* Ignore anonymous non-comp fields *)
+    if f.fname = missingFieldName then
+      acc
+    (* if we have already found the designator, just append the current field *)
+    else if found then
+      found, offset :: loff
+    (* if this field is an anonymous comp, search for the designator inside *)
+    else if prefix anonCompFieldName f.fname && not found then
       match unrollType f.ftype with
       | TComp (comp, _, _) ->
         add_comp offset comp acc (* go deeper inside *)
       | _ ->
         abort_context "unnamed field type is not a struct/union"
-    (* if this field is an anonymous field but not a comp *)
-    else if f.fname = missingFieldName then
-      acc (* Ignore anonymous non-comp fields *)
-    (* if we have already found the designator, just append the current field *)
-    else if found then
-      found, offset :: loff
-   (* we didn't find the designator yet, does this field match ? *)
+   (* does this field match the designator ? *)
     else match designator with
       | Some fn when f.fname = fn -> (true, [offset])
       | _ -> acc
@@ -4078,6 +4105,17 @@ let rec evaluate_cond_exp = function
     | `CFalse -> `CTrue
     | `CUnknown -> `CUnknown
 
+let get_lval_compound_assigned op expr =
+  match expr.enode with
+  | Lval x
+  (* A GCC extension. The operation is done at the cast type.
+     The result is also of the cast type *)
+  | CastE (_, {enode = Lval x}) ->
+    if Cil.is_modifiable_lval x then x else
+      Kernel.abort ~current:true
+        "Cannot assign to non-modifiable lval %a"
+        Cil_printer.pp_lval x
+  | _ -> Kernel.fatal ~current:true "Expected lval for %s" op
 
 (* The way formals are handled now might generate incorrect types, in the
    sense that they refer to a varinfo (in the case of VLA depending on a
@@ -4606,21 +4644,6 @@ and makeVarSizeVarInfo ghost (ldecl : location)
 
 and doAttr ghost (a: A.attribute) : attribute list =
   (* Strip the leading and trailing underscore *)
-  let stripUnderscore (n: string) : string =
-    let l = String.length n in
-    let rec start i =
-      if i >= l then
-        Kernel.error ~once:true ~current:true "Invalid attribute name %s" n;
-      if String.get n i = '_' then start (i + 1) else i
-    in
-    let st = start 0 in
-    let rec finish i =
-      (* We know that we will stop at >= st >= 0 *)
-      if String.get n i = '_' then finish (i - 1) else i
-    in
-    let fin = finish (l - 1) in
-    String.sub n st (fin - st + 1)
-  in
   match a with
   | ("__attribute__", []) -> []  (* An empty list of gcc attributes *)
   | (s, []) ->
@@ -5105,6 +5128,10 @@ and makeCompType ghost (isstruct: bool)
       if Cil.isFunctionType ftype then
           Kernel.error ~current:true
             "field `%s' declared as a function" n
+      else if Cil.has_flexible_array_member ftype then
+        Kernel.error ~current:true
+          "field `%s' declared with a type containing a flexible array member."
+          n
       else if not (Cil.isCompleteType ~allowZeroSizeArrays ftype)
       then begin
         match Cil.unrollType ftype with
@@ -5121,7 +5148,7 @@ and makeCompType ghost (isstruct: bool)
           end
         | _ ->
           Kernel.error ~current:true
-            "field %s is declared with incomplete type %a"
+            "field `%s' is declared with incomplete type %a"
             n Cil_printer.pp_typ ftype
       end;
       let width, ftype =
@@ -5232,7 +5259,7 @@ and makeCompType ghost (isstruct: bool)
         "field %s occurs multiple times in aggregate %a. \
          Previous occurrence is at line %d."
         f.fname Cil_printer.pp_typ (TComp(comp,{scache = Not_Computed},[]))
-        (fst oldf.floc).Lexing.pos_lnum
+        (fst oldf.floc).Filepath.pos_lnum
     with Not_found ->
       (* Do not add unnamed bitfields: they can share the empty name. *)
       if f.fname <> "" then Cil_datatype.Fieldinfo.Hashtbl.add fld_table f f
@@ -5453,9 +5480,10 @@ and doExp local_env
             let reads =
               if
                 (* Always allow to read the address of an
-                   array, as it will never be written to:
+                   array or a function, as it will never be written to:
                    no read/write interference is possible. *)
                 Cil.isArrayType vi.vtype ||
+                Cil.isFunctionType vi.vtype ||
                 Lval.Set.mem lval local_env.authorized_reads
               then []
               else [ lval ]
@@ -5615,14 +5643,6 @@ and doExp local_env
       finishExp reads se (new_exp ~loc (Lval lv')) (dropQualifiers field_type)
 
     | A.CONSTANT ct -> begin
-        let hasSuffix str =
-          let l = String.length str in
-          fun s ->
-            let ls = String.length s in
-            l >= ls &&
-            s =
-            Transitioning.String.uppercase_ascii (String.sub str (l - ls) ls)
-        in
         match ct with
         | A.CONST_INT str -> begin
             let res = parseIntExp ~loc str in
@@ -5675,44 +5695,31 @@ and doExp local_env
           finishExp [] (unspecified_chunk empty) result (typeOf result)
 
         | A.CONST_FLOAT str -> begin
-            (* Maybe it ends in F or L. Strip those *)
-            let l = String.length str in
-            let hasSuffix = hasSuffix str in
-            let baseint, kind =
-              if  hasSuffix "L" then
-                String.sub str 0 (l - 1), FLongDouble
-              else if hasSuffix "F" then
-                String.sub str 0 (l - 1), FFloat
-              else if hasSuffix "D" then
-                String.sub str 0 (l - 1), FDouble
-              else
-                str, FDouble
-            in
-            try
-              Floating_point.set_round_nearest_even ();
-              let open Floating_point in
-              let basefloat = parse_kind kind baseint in
-              begin
-                if basefloat.f_lower <> basefloat.f_upper then
-                  Kernel.warning ~wkey:Kernel.wkey_decimal_float
-                    ~current:true
-                    "Floating-point constant %s is not represented exactly. Will use %a."
-                    str (Floating_point.pretty_normal ~use_hex:true) basefloat.f_nearest;
-              end ;
-              let node = Const(CReal(basefloat.f_nearest, kind, Some str)) in
-              finishExp [] (unspecified_chunk empty) (new_exp ~loc node) (TFloat(kind,[]))
-            with Failure s -> begin
-                Kernel.error ~once:true ~current:true "float_of_string %s (%s)\n" str s;
-                let res = new_exp ~loc (Const(CStr "booo CONS_FLOAT")) in
-                finishExp [] (unspecified_chunk empty) res (typeOf res)
-              end
+            Floating_point.set_round_nearest_even ();
+            let kind, parsed_float = Floating_point.parse str in
+            let nearest_float = parsed_float.Floating_point.f_nearest in
+            if Floating_point.(parsed_float.f_lower <> parsed_float.f_upper)
+            then
+              Kernel.warning ~wkey:Kernel.wkey_decimal_float ~current:true
+                "Floating-point constant %s is not represented exactly. \
+                 Will use %a."
+                str (Floating_point.pretty_normal ~use_hex:true) nearest_float;
+            let node = Const (CReal (nearest_float, kind, Some str)) in
+            let typ = TFloat (kind, []) in
+            finishExp [] (unspecified_chunk empty) (new_exp ~loc node) typ
           end
       end
 
     | A.TYPE_SIZEOF (bt, dt) ->
       let typ = doOnlyType local_env.is_ghost bt dt in
-      finishExp [] (unspecified_chunk empty) (new_exp ~loc (SizeOf(typ)))
-        theMachine.typeOfSizeOf
+      let res =
+        if Cil.isCompleteType typ then new_exp ~loc (SizeOf typ)
+        else begin
+          Kernel.error ~once:true ~current:true "sizeof on incomplete type";
+          new_exp ~loc (Const (CStr ("booo sizeof(incomplete)")))
+        end
+      in
+      finishExp [] (unspecified_chunk empty) res theMachine.typeOfSizeOf
 
     | A.EXPR_SIZEOF e ->
       (* Allow non-constants in sizeof *)
@@ -5907,13 +5914,7 @@ and doExp local_env
               new_exp ~loc
                 (BinOp(PlusA, res', kinteger ~loc IULong sizeOfLast, tres'))
             in
-            let lv = var last in
-            let reads =
-              if Lval.Set.mem lv local_env.authorized_reads
-              then []
-              else [ lv ]
-            in
-            finishExp reads (unspecified_chunk empty) res'' tres'
+            finishExp [] (unspecified_chunk empty) res'' tres'
           end else begin (* On GCC the only reliable way to do this is to
                           * call builtin_next_arg. If we take the address of
                           * a local we are going to get the address of a copy
@@ -5937,36 +5938,19 @@ and doExp local_env
             (* ignore (E.log "ADDROF on %a : %a\n" Cil_printer.pp_exp e'
                Cil_printer.pp_typ t); *)
             match e'.enode with
-            | (Lval x | CastE(_, {enode = Lval x})) ->
-              let reads =
-                match x with
-                | Mem _ ,_ -> r (* we're not really reading the
-                                     pointed value, just calculating an
-                                     offset. *)
-                | Var _,_ ->
-                  if Lval.Set.mem x local_env.authorized_reads
-                  then r
-                  else x :: r
-              in
+            | Lval x | CastE(_, {enode = Lval x}) | StartOf x ->
               (* Recover type qualifiers that were dropped by dropQualifiers
                  when the l-value was created *)
               let tres = match e'.enode with
-                | Lval x -> Cil.typeOfLval x
+                | Lval x | StartOf x -> Cil.typeOfLval x
                 | _ -> t
               in
-              finishExp reads se (mkAddrOfAndMark loc x) (TPtr(tres, []))
-
-            | StartOf (lv) ->
-              let tres = TPtr(typeOfLval lv, []) in (* pointer to array *)
               let reads =
-                match lv with
-                | Mem _, _ -> r (* see above *)
-                | Var _,_ ->
-                  if Lval.Set.mem lv local_env.authorized_reads
-                  then r
-                  else lv :: r
+                match r with
+                | x' :: r when LvalStructEq.equal x x' -> r
+                | _ -> r
               in
-              finishExp reads se (mkAddrOfAndMark loc lv) tres
+              finishExp reads se (mkAddrOfAndMark loc x) (TPtr(tres, []))
 
             | Const (CStr _ | CWStr _) ->
               (* string to array *)
@@ -5996,15 +5980,7 @@ and doExp local_env
             if asconst then
               Kernel.warning ~current:true "PREINCR or PREDECR in constant";
             let (r, se, e', t) = doExp local_env false e (AExp None) in
-            let lv =
-              match e'.enode with
-              | Lval x -> x
-              | CastE (_, {enode = Lval x}) -> x
-              (* A GCC extension. The operation is
-               * done at the cast type. The result
-               * is also of the cast type *)
-              | _ -> Kernel.fatal ~current:true "Expected lval for ++ or --"
-            in
+            let lv = get_lval_compound_assigned "++ or --" e' in
             let se' = remove_reads lv se in
             let r' =
               List.filter (fun x -> not (Lval.equal x lv)) r
@@ -6038,16 +6014,7 @@ and doExp local_env
             (* If we do not drop the result then we must save the value *)
             let uop' = if uop = A.POSINCR then PlusA else MinusA in
             let (r,se, e', t) = doExp local_env false e (AExp None) in
-            let lv =
-              match e'.enode with
-              | Lval x -> x
-              | CastE (_, {enode = Lval x}) -> x
-              (* GCC extension. The addition must
-               * be be done at the cast type. The
-               * result of this is also of the cast
-               * type *)
-              | _ -> Kernel.fatal ~current:true "Expected lval for ++ or --"
-            in
+            let lv = get_lval_compound_assigned "++ or --" e' in
             let se' = remove_reads lv se in
             let r' =
               List.filter (fun x -> not (Lval.equal x lv)) r
@@ -6212,16 +6179,7 @@ and doExp local_env
               | _ -> Kernel.fatal ~current:true "binary +="
             in
             let (r1,se1, e1', t1) = doExp local_env false e (AExp None) in
-            let lv1 =
-              match e1'.enode with
-              | Lval x -> x
-              | CastE (_, {enode = Lval x}) -> x
-              (* GCC extension. The operation and
-               * the result are at the cast type  *)
-              | _ ->
-                Kernel.fatal ~current:true
-                  "Expected lval for assignment with arith"
-            in
+            let lv1 = get_lval_compound_assigned "assignment with arith" e1' in
             let se1' = remove_reads lv1 se1 in
             let r1' = List.filter (fun x -> not (Lval.equal x lv1)) r1 in
             let local_env =
@@ -8480,7 +8438,9 @@ and createLocal ghost ((_, sto, _, _) as specs)
         ~isglobal:true
         loc specs (n, ndt, a) in
     vi.vname <- newname;
-    vi.vattr <- Cil.addAttribute (Attr (fc_local_static,[])) vi.vattr;
+    let attrs = Cil.addAttribute (Attr (fc_local_static,[])) vi.vattr in
+    vi.vattr <- fc_stdlib_attribute attrs;
+
     (* However, we have a problem if a real global appears later with the
      * name that we have happened to choose for this one. Remember these names
      * for later. *)
@@ -9395,6 +9355,34 @@ and doBody local_env (blk: A.block) : chunk =
                      s.Logic_ptree.spec_behavior,
                    true
                  | CODE_ANNOT(Logic_ptree.APragma _,_) -> [], true
+                 | CODE_ANNOT
+                   (Logic_ptree.AExtended(_,is_loop,(name,_)),loc) ->
+                   let source = fst loc in
+                   (match Logic_env.extension_category name, is_loop with
+                    | Some (Ext_code_annot Ext_here), false -> [], false
+                    | Some (Ext_code_annot Ext_next_stmt), false -> [], true
+                    | Some (Ext_code_annot Ext_next_loop), true -> [], false
+                    | Some (Ext_code_annot Ext_next_both), _ -> [], not is_loop
+                    | Some (Ext_code_annot (Ext_here | Ext_next_stmt)), true ->
+                      Kernel.(
+                        warning
+                          ~source ~wkey:wkey_acsl_extension
+                          "%s is a code annotation extension, \
+                           but used here as a loop annotation" name);
+                      [], false
+                    | Some (Ext_code_annot Ext_next_loop), false ->
+                      Kernel.(
+                        warning
+                          ~source ~wkey:wkey_acsl_extension
+                          "%s is a loop annotation extension, \
+                           but used here as a code annotation" name);
+                      [], false
+                    | (Some (Ext_global | Ext_contract) | None), _ ->
+                      Kernel.(
+                        warning
+                          ~source ~wkey:wkey_acsl_extension
+                          "%s is not a known code annotation extension" name);
+                      [], false)
                  | _ -> [], false
                in
                (*               Format.eprintf "Done statement %a@." d_chunk res; *)
@@ -9952,7 +9940,7 @@ let split_extern_inline_def acc g =
   | _ -> g::acc
 
 (* Translate a file *)
-let convFile (fname, f) =
+let convFile (path, f) =
   Errorloc.clear_errors();
   (* Clean up the global types *)
   initGlobals();
@@ -10003,7 +9991,7 @@ let convFile (fname, f) =
 
   if false then Kernel.debug "Cabs2cil converted %d globals" !globalidx;
   (* We are done *)
-  { fileName = fname;
+  { fileName = path;
     globals;
     globinit = None;
     globinitcalled = false;

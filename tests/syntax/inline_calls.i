@@ -1,6 +1,7 @@
 /* run.config
    STDOPT: +"-inline-calls @all"
-
+   STDOPT: +"-inline-calls @inline"
+   STDOPT: +"-inline-calls @inline -remove-inlined @inline"
  */
 
 int f() {

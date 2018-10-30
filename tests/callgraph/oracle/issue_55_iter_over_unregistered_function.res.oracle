@@ -1,14 +1,14 @@
 [kernel] Parsing tests/callgraph/issue_55_iter_over_unregistered_function.i (no preprocessing)
-[value] Analyzing a complete application starting at main
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing a complete application starting at main
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   
-[value:alarm] tests/callgraph/issue_55_iter_over_unregistered_function.i:12: Warning: 
+[eva:alarm] tests/callgraph/issue_55_iter_over_unregistered_function.i:12: Warning: 
   accessing uninitialized left-value. assert \initialized(&q);
-[value] done for function main
-[value] tests/callgraph/issue_55_iter_over_unregistered_function.i:12: 
-  assertion 'Value,initialization' got final status invalid.
+[eva] done for function main
+[eva] tests/callgraph/issue_55_iter_over_unregistered_function.i:12: 
+  assertion 'Eva,initialization' got final status invalid.
 [inout] InOut (internal) for function main:
   Operational inputs:
     q

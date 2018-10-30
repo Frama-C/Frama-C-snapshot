@@ -16,11 +16,11 @@
                               "pair_assert_rte_signed_overflow_2": { "alt-ergo": 
                                                                     { "total": 1,
                                                                     "valid": 1,
-                                                                    "rank": 12 },
+                                                                    "rank": 13 },
                                                                     "wp:main": 
                                                                     { "total": 1,
                                                                     "valid": 1,
-                                                                    "rank": 12 } },
+                                                                    "rank": 13 } },
                               "pair_assert_rte_index_bound_6": { "qed": 
                                                                    { "total": 1,
                                                                     "valid": 1 },
@@ -36,35 +36,35 @@
                               "pair_assert_rte_index_bound_4": { "alt-ergo": 
                                                                    { "total": 1,
                                                                     "valid": 1,
-                                                                    "rank": 13 },
+                                                                    "rank": 14 },
                                                                  "wp:main": 
                                                                    { "total": 1,
                                                                     "valid": 1,
-                                                                    "rank": 13 } },
+                                                                    "rank": 14 } },
                               "pair_assert_rte_index_bound_3": { "alt-ergo": 
                                                                    { "total": 1,
                                                                     "valid": 1,
-                                                                    "rank": 13 },
+                                                                    "rank": 14 },
                                                                  "wp:main": 
                                                                    { "total": 1,
                                                                     "valid": 1,
-                                                                    "rank": 13 } },
+                                                                    "rank": 14 } },
                               "pair_assert_rte_mem_access": { "alt-ergo": 
                                                                 { "total": 1,
                                                                   "valid": 1,
-                                                                  "rank": 21 },
+                                                                  "rank": 22 },
                                                               "wp:main": 
                                                                 { "total": 1,
                                                                   "valid": 1,
-                                                                  "rank": 21 } },
+                                                                  "rank": 22 } },
                               "pair_assert_rte_signed_overflow": { "alt-ergo": 
                                                                     { "total": 1,
                                                                     "valid": 1,
-                                                                    "rank": 3 },
+                                                                    "rank": 4 },
                                                                    "wp:main": 
                                                                     { "total": 1,
                                                                     "valid": 1,
-                                                                    "rank": 3 } },
+                                                                    "rank": 4 } },
                               "pair_assert_rte_index_bound_2": { "qed": 
                                                                    { "total": 1,
                                                                     "valid": 1 },

@@ -27,12 +27,12 @@
 
 let version _ =
   Format.printf
-    "Frama-C %s@\n\
+    "Frama-C %s (%s)@\n\
      Environment:@\n  \
        FRAMAC_SHARE  = %S@\n  \
        FRAMAC_LIB    = %S@\n  \
        FRAMAC_PLUGIN = %S@."
-    Config.version
+    Config.version Config.codename
     Config.datadir Config.libdir Config.plugin_path
   ;
   exit 0
@@ -50,9 +50,13 @@ let options = Arg.([
   Unit (fun _ -> Format.printf "%s%!" Config.plugin_path; exit 0),
   " Print the path where Frama-C dynamic plug-ins are searched for";
 
+  "-print-version",
+  Unit (fun _ -> Format.printf "%s%!" Config.version; exit 0),
+  " Print the version number of Frama-C";
+
   "-version",
   Unit version,
-  " Display Frama-C version";
+  " Display full version and configuration information"
 ])
 
 let usage = "\

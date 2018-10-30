@@ -1,8 +1,8 @@
 [kernel] Parsing tests/sparecode/bts334.i (no preprocessing)
-[value] Analyzing a complete application starting at main_init
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing a complete application starting at main_init
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   kf ∈ {0}
   k[0..1] ∈ {0}
   e0 ∈ [--..--]
@@ -11,100 +11,100 @@
   s1 ∈ {0}
   si[0..1] ∈ {0}
   so[0..1] ∈ {0}
-[value] computing for function init <- main_init.
+[eva] computing for function init <- main_init.
   Called from tests/sparecode/bts334.i:66.
 [kernel] tests/sparecode/bts334.i:66: Warning: 
   No code nor explicit assigns clause for function init, generating default assigns from the specification
-[value] using specification for function init
-[value] tests/sparecode/bts334.i:61: Warning: 
+[eva] using specification for function init
+[eva] tests/sparecode/bts334.i:61: Warning: 
   no 'assigns \result \from ...' clause specified for function init
-[value] Done for function init
-[value:alarm] tests/sparecode/bts334.i:67: Warning: 
+[eva] Done for function init
+[eva:alarm] tests/sparecode/bts334.i:67: Warning: 
   accessing uninitialized left-value. assert \initialized(&is_ok);
-[value] computing for function process <- main_init.
+[eva] computing for function process <- main_init.
   Called from tests/sparecode/bts334.i:67.
-[value] tests/sparecode/bts334.i:53: entering loop for the first time
-[value] computing for function loop_body <- process <- main_init.
+[eva] computing for function loop_body <- process <- main_init.
   Called from tests/sparecode/bts334.i:53.
-[value] computing for function f <- loop_body <- process <- main_init.
+[eva] computing for function f <- loop_body <- process <- main_init.
   Called from tests/sparecode/bts334.i:38.
-[value:alarm] tests/sparecode/bts334.i:14: Warning: 
+[eva:alarm] tests/sparecode/bts334.i:14: Warning: 
   division by zero. assert kf ≢ 0;
-[value:alarm] tests/sparecode/bts334.i:14: Warning: 
+[eva:alarm] tests/sparecode/bts334.i:14: Warning: 
   signed overflow. assert -2147483648 ≤ k[i] * (int)(vi - si[i]);
-[value:alarm] tests/sparecode/bts334.i:14: Warning: 
+[eva:alarm] tests/sparecode/bts334.i:14: Warning: 
   signed overflow. assert k[i] * (int)(vi - si[i]) ≤ 2147483647;
-[value] Recording results for f
+[eva] Recording results for f
 [from] Computing for function f
 [from] Done for function f
-[value] Done for function f
-[value] computing for function f <- loop_body <- process <- main_init.
+[eva] Done for function f
+[eva] computing for function f <- loop_body <- process <- main_init.
   Called from tests/sparecode/bts334.i:39.
-[value] Recording results for f
+[eva] Recording results for f
 [from] Computing for function f
 [from] Done for function f
-[value] Done for function f
-[value] Recording results for loop_body
+[eva] Done for function f
+[eva] Recording results for loop_body
 [from] Computing for function loop_body
 [from] Done for function loop_body
-[value] Done for function loop_body
-[value] computing for function loop_body <- process <- main_init.
+[eva] Done for function loop_body
+[eva] tests/sparecode/bts334.i:53: starting to merge loop iterations
+[eva] computing for function loop_body <- process <- main_init.
   Called from tests/sparecode/bts334.i:53.
-[value] computing for function f <- loop_body <- process <- main_init.
+[eva] computing for function f <- loop_body <- process <- main_init.
   Called from tests/sparecode/bts334.i:38.
-[value:alarm] tests/sparecode/bts334.i:14: Warning: 
+[eva:alarm] tests/sparecode/bts334.i:14: Warning: 
   signed overflow. assert -2147483648 ≤ vi - si[i];
-[value:alarm] tests/sparecode/bts334.i:14: Warning: 
+[eva:alarm] tests/sparecode/bts334.i:14: Warning: 
   signed overflow. assert vi - si[i] ≤ 2147483647;
-[value:alarm] tests/sparecode/bts334.i:14: Warning: 
+[eva:alarm] tests/sparecode/bts334.i:14: Warning: 
   signed overflow.
   assert -2147483648 ≤ (int)(so[i] / kf) + (int)(k[i] * (int)(vi - si[i]));
-[value:alarm] tests/sparecode/bts334.i:14: Warning: 
+[eva:alarm] tests/sparecode/bts334.i:14: Warning: 
   signed overflow.
   assert (int)(so[i] / kf) + (int)(k[i] * (int)(vi - si[i])) ≤ 2147483647;
-[value] Recording results for f
+[eva] Recording results for f
 [from] Computing for function f
 [from] Done for function f
-[value] Done for function f
-[value] computing for function f <- loop_body <- process <- main_init.
+[eva] Done for function f
+[eva] computing for function f <- loop_body <- process <- main_init.
   Called from tests/sparecode/bts334.i:39.
-[value] Recording results for f
+[eva] Recording results for f
 [from] Computing for function f
 [from] Done for function f
-[value] Done for function f
-[value] Recording results for loop_body
+[eva] Done for function f
+[eva] Recording results for loop_body
 [from] Computing for function loop_body
 [from] Done for function loop_body
-[value] Done for function loop_body
-[value] computing for function loop_body <- process <- main_init.
+[eva] Done for function loop_body
+[eva] computing for function loop_body <- process <- main_init.
   Called from tests/sparecode/bts334.i:53.
-[value] computing for function f <- loop_body <- process <- main_init.
+[eva] computing for function f <- loop_body <- process <- main_init.
   Called from tests/sparecode/bts334.i:38.
-[value:alarm] tests/sparecode/bts334.i:14: Warning: 
+[eva:alarm] tests/sparecode/bts334.i:14: Warning: 
   signed overflow. assert so[i] / kf ≤ 2147483647;
-[value] Recording results for f
+[eva] Recording results for f
 [from] Computing for function f
 [from] Done for function f
-[value] Done for function f
-[value] computing for function f <- loop_body <- process <- main_init.
+[eva] Done for function f
+[eva] computing for function f <- loop_body <- process <- main_init.
   Called from tests/sparecode/bts334.i:39.
-[value] Recording results for f
+[eva] Recording results for f
 [from] Computing for function f
 [from] Done for function f
-[value] Done for function f
-[value] Recording results for loop_body
+[eva] Done for function f
+[eva] Recording results for loop_body
 [from] Computing for function loop_body
 [from] Done for function loop_body
-[value] Done for function loop_body
-[value] Recording results for process
+[eva] Done for function loop_body
+[eva] Recording results for process
 [from] Computing for function process
 [from] Non-terminating function process (no dependencies)
 [from] Done for function process
-[value] Done for function process
-[value] Recording results for main_init
+[eva] Done for function process
+[eva] Recording results for main_init
 [from] Computing for function main_init
 [from] Done for function main_init
-[value] done for function main_init
+[eva] done for function main_init
 [from] ====== DISPLAYING CALLWISE DEPENDENCIES ======
 [from] call to f at tests/sparecode/bts334.i:38 (by loop_body):
   si[0] FROM vi; i

@@ -183,8 +183,10 @@ int isPresentRec(int *t, int i, int max, int val)
   }
   tmp = isPresentRec(t,i + 1,max,val);
   __retres = tmp;
-  return_label: isPresentRec_post_func(__retres);
-  return __retres;
+  return_label: {
+                  isPresentRec_post_func(__retres);
+                  return __retres;
+                }
 }
 
 /*@ ensures aorai_CurOpStatus ≡ aorai_Called;

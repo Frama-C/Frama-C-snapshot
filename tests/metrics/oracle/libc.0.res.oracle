@@ -1,6 +1,7 @@
 [kernel] Parsing tests/metrics/libc.c (with preprocessing)
-[metrics] Defined functions (1)
+[metrics] Defined functions (5)
   =====================
+   bar (0 call); f (0 call); foo (0 call); g (address taken) (0 call);
    main (0 call); 
   
   Undefined functions (0)
@@ -11,21 +12,43 @@
   =============================
    
   
-  Potential entry points (1)
+  Potential entry points (4)
   ==========================
-   main; 
+   bar; f; foo; main; 
   
   Global metrics
   ============== 
-  Sloc = 2
+  Sloc = 12
   Decision point = 0
-  Global variables = 0
+  Global variables = 1
   If = 0
   Loop = 0
   Goto = 0
-  Assignment = 1
-  Exit point = 1
-  Function = 1
-  Function call = 1
-  Pointer dereferencing = 0
-  Cyclomatic complexity = 1
+  Assignment = 5
+  Exit point = 5
+  Function = 5
+  Function call = 5
+  Pointer dereferencing = 1
+  Cyclomatic complexity = 5
+[eva] Analyzing a complete application starting at main
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
+  fp ∈ {{ &g }}
+[eva] using specification for function isalpha
+[eva] using specification for function isblank
+[eva] done for function main
+[metrics] Eva coverage statistics
+  =======================
+  Syntactically reachable functions = 4 (out of 5)
+  Semantically reached functions = 4
+  Coverage estimation = 100.0%
+[metrics] References to non-analyzed functions
+  ------------------------------------
+[metrics] Statements analyzed by Eva
+  --------------------------
+  10 stmts in analyzed functions, 10 stmts analyzed (100.0%)
+  bar: 2 stmts out of 2 (100.0%)
+  foo: 2 stmts out of 2 (100.0%)
+  g: 2 stmts out of 2 (100.0%)
+  main: 4 stmts out of 4 (100.0%)

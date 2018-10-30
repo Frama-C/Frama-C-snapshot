@@ -281,9 +281,6 @@ end
 
 (* Builtin to load a saved analysis state *)
 let frama_c_load_state state actuals =
-  if Value_parameters.ValShowProgress.get () then
-    Value_parameters.feedback "Call to builtin Frama_C_load_state(%a)%t"
-      Value_util.pretty_actuals actuals Value_util.pp_callstack;
   (* Warn if arguments contain pointers to local variables,
      in which case the loaded state may be unsound. *)
   begin

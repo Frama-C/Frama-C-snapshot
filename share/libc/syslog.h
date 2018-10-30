@@ -25,6 +25,7 @@
 #include "features.h"
 __PUSH_FC_STDLIB
 #include "__fc_define_null.h"
+#include "stdarg.h"
 
 __BEGIN_DECLS
 
@@ -139,6 +140,10 @@ extern void  openlog(const char *, int, int);
 extern int   setlogmask(int);
 /*@ assigns \nothing ; */
 extern void  syslog(int, const char *, ...);
+
+// Not POSIX, but present in glibc
+/*@ assigns \nothing ; */
+extern void  vsyslog(int, const char *, va_list);
 
 __END_DECLS
 

@@ -41,7 +41,7 @@ let configure () =
   end
 
 (* TODO: compute actual separation hypotheses *)
-let separation () = []
+let hypotheses () = []
 
 (* -------------------------------------------------------------------------- *)
 (* --- Chunks                                                             --- *)
@@ -102,7 +102,7 @@ struct
     | I::ps -> Format.fprintf fmt "%a[]" (pp x) ps
     | F f::S::ps -> Format.fprintf fmt "%a->%a" (pp x) ps Fieldinfo.pretty f
     | F f::ps -> Format.fprintf fmt "%a.%a" (pp x) ps Fieldinfo.pretty f
-  
+
   let pretty fmt (x,p) = Format.fprintf fmt "@[<hov 2>%a@]" (pp x) (List.rev p)
   let tau_of_chunk (x,p) =
     let te = Lang.tau_of_object (object_of_rpath x (List.rev p)) in
@@ -156,6 +156,7 @@ let field l f = Field(l,f)
 let shift l _obj k = Array(l,k)
 
 let base_addr _l = Warning.error ~source "No Base Addr"
+let base_offset _l = Warning.error ~source "No Offset Addr"
 let block_length _s _obj _l = Warning.error ~source "No Block Length"
 
 let cast _ _l = Warning.error ~source "No Cast"

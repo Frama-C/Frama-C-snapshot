@@ -38,9 +38,9 @@ let ladder = [| 1.0 ; 2.0 ; 3.0 ; 5.0 ; 10.0 ; 15.0 ;
 let n0 = 16
 let d0 = 4
 
-(* 
+(*
    Number of steps is divided into an infinite number of successive bundles.
-   Each bundle number k=0,... is divided into n0 small intervals 
+   Each bundle number k=0,... is divided into n0 small intervals
    of size 2^k * d0.
 
    The rank r-th of a number n is the r-th interval in some bundle k.
@@ -54,7 +54,7 @@ let ak k = a0 lsl k - a0 (* first index of bundle k *)
 let dk k = d0 lsl k      (* size of small intervals in bundle k *)
 
 (*
-   Compute the range of values for rank k. 
+   Compute the range of values for rank k.
    If ~limit:false, returns all the values n that have the rank k.
    If ~limit:true, returns all the values n that are stabilized at rank k.
 *)
@@ -149,7 +149,7 @@ let json_of_stats s =
       add "unknown" s.unsuccess @@
       (if s.rank >= 0 then [ "rank" , Json.Int s.rank ] else [])
     end
-    
+
 let rankify_stats s js =
   let n = s.steps in
   if n > 0 then
@@ -880,5 +880,5 @@ let export_json gstat jfile =
     Json.save_file jfile (json_of_fcstat gstat) ;
   end
 
-  
+
 (* -------------------------------------------------------------------------- *)

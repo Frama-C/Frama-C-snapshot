@@ -1,21 +1,21 @@
 [kernel] Parsing tests/slicing/bts1684.i (no preprocessing)
 [slicing] slicing requests in progress...
-[value] Analyzing a complete application starting at main
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing a complete application starting at main
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   d1 ∈ {0}
   d2 ∈ {0}
   d3 ∈ {0}
   x1 ∈ {0}
   x2 ∈ {0}
   x3 ∈ {0}
-[value] computing for function main2 <- main.
+[eva] computing for function main2 <- main.
   Called from tests/slicing/bts1684.i:14.
-[value] Recording results for main2
-[value] Done for function main2
-[value] Recording results for main
-[value] done for function main
+[eva] Recording results for main2
+[eva] Done for function main2
+[eva] Recording results for main
+[eva] done for function main
 [slicing] initializing slicing ...
 [slicing] interpreting slicing requests from the command line...
 [pdg] computing for function main

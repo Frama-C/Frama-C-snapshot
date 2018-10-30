@@ -1,3 +1,6 @@
+/* run.config*
+STDOPT: +"-machdep gcc_x86_32"
+*/
 #include <stddef.h>
 unsigned int S;
 unsigned int A,B;

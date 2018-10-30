@@ -1,8 +1,8 @@
 [kernel] Parsing tests/value/bitfield.i (no preprocessing)
-[value] Analyzing a complete application starting at main
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing a complete application starting at main
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   h ∈ {0}
   k ∈ {0}
   k8 ∈ {0}
@@ -24,20 +24,20 @@
   ee ∈ {0}
   foo ∈ [--..--]
   y ∈ [--..--]
-[value] computing for function main_old <- main.
+[eva] computing for function main_old <- main.
   Called from tests/value/bitfield.i:164.
-[value] tests/value/bitfield.i:113: Frama_C_show_each: {1}
-[value] tests/value/bitfield.i:117: Frama_C_show_each: {3}
-[value] tests/value/bitfield.i:123: 
+[eva] tests/value/bitfield.i:113: Frama_C_show_each: {1}
+[eva] tests/value/bitfield.i:117: Frama_C_show_each: {3}
+[eva] tests/value/bitfield.i:123: 
   Assigning imprecise value to v.c.
   The imprecision originates from Arithmetic {tests/value/bitfield.i:123}
-[value:alarm] tests/value/bitfield.i:125: Warning: 
+[eva:alarm] tests/value/bitfield.i:125: Warning: 
   signed overflow. assert -2147483648 ≤ (int)v.d + 1;
-[value:alarm] tests/value/bitfield.i:125: Warning: 
+[eva:alarm] tests/value/bitfield.i:125: Warning: 
   signed overflow. assert (int)v.d + 1 ≤ 2147483647;
-[value] computing for function f <- main_old <- main.
+[eva] computing for function f <- main_old <- main.
   Called from tests/value/bitfield.i:128.
-[value] tests/value/bitfield.i:21: 
+[eva] tests/value/bitfield.i:21: 
   Frama_C_dump_each:
   # Cvalue domain:
   h ∈ {0}
@@ -71,90 +71,90 @@
   l_161{.f0; .f1[bits 0 to 31]} ∈ {-1}
   tmp ∈ UNINITIALIZED
   ==END OF DUMP==
-[value] Recording results for f
-[value] Done for function f
-[value:alarm] tests/value/bitfield.i:129: Warning: 
+[eva] Recording results for f
+[eva] Done for function f
+[eva:alarm] tests/value/bitfield.i:129: Warning: 
   signed overflow. assert -2147483648 ≤ foo + foo;
-[value:alarm] tests/value/bitfield.i:129: Warning: 
+[eva:alarm] tests/value/bitfield.i:129: Warning: 
   signed overflow. assert foo + foo ≤ 2147483647;
-[value] tests/value/bitfield.i:130: 
+[eva] tests/value/bitfield.i:130: 
   Assigning imprecise value to h.c.
   The imprecision originates from Arithmetic {tests/value/bitfield.i:130}
-[value] computing for function return_8 <- main_old <- main.
+[eva] computing for function return_8 <- main_old <- main.
   Called from tests/value/bitfield.i:133.
-[value] Recording results for return_8
-[value] Done for function return_8
-[value] computing for function g <- main_old <- main.
+[eva] Recording results for return_8
+[eva] Done for function return_8
+[eva] computing for function g <- main_old <- main.
   Called from tests/value/bitfield.i:136.
-[value] Recording results for g
-[value] Done for function g
-[value] Recording results for main_old
-[value] Done for function main_old
-[value] tests/value/bitfield.i:164: Warning: 
+[eva] Recording results for g
+[eva] Done for function g
+[eva] Recording results for main_old
+[eva] Done for function main_old
+[eva:locals-escaping] tests/value/bitfield.i:164: Warning: 
   locals {v} escaping the scope of main_old through h
-[value] computing for function imprecise_bts_1671 <- main.
+[eva] computing for function imprecise_bts_1671 <- main.
   Called from tests/value/bitfield.i:165.
-[value] tests/value/bitfield.i:69: entering loop for the first time
-[value] computing for function leaf <- imprecise_bts_1671 <- main.
+[eva] computing for function leaf <- imprecise_bts_1671 <- main.
   Called from tests/value/bitfield.i:70.
 [kernel:annot:missing-spec] tests/value/bitfield.i:70: Warning: 
   Neither code nor specification for function leaf, generating default assigns from the prototype
-[value] using specification for function leaf
-[value] Done for function leaf
-[value] tests/value/bitfield.i:71: 
+[eva] using specification for function leaf
+[eva] Done for function leaf
+[eva] tests/value/bitfield.i:71: 
   Frama_C_show_each:
   {{ garbled mix of &{b} (origin: Misaligned {tests/value/bitfield.i:70}) }}
-[value] tests/value/bitfield.i:73: 
+[eva] tests/value/bitfield.i:73: 
   Frama_C_show_each:
   .next ∈
   {{ garbled mix of &{b} (origin: Misaligned {tests/value/bitfield.i:70}) }}
   .bitf ∈ {0}
   .[bits 65 to 95] ∈
   {{ garbled mix of &{b} (origin: Misaligned {tests/value/bitfield.i:70}) }}
-[value] tests/value/bitfield.i:74: 
+[eva] tests/value/bitfield.i:74: 
   Assigning imprecise value to c.
   The imprecision originates from Misaligned {tests/value/bitfield.i:70}
-[value] computing for function leaf <- imprecise_bts_1671 <- main.
+[eva] tests/value/bitfield.i:69: starting to merge loop iterations
+[eva] computing for function leaf <- imprecise_bts_1671 <- main.
   Called from tests/value/bitfield.i:70.
-[value] Done for function leaf
-[value] tests/value/bitfield.i:71: 
+[eva] Done for function leaf
+[eva] tests/value/bitfield.i:71: 
   Frama_C_show_each:
   {{ garbled mix of &{b} (origin: Misaligned {tests/value/bitfield.i:70}) }}
-[value:alarm] tests/value/bitfield.i:72: Warning: 
+[eva:alarm] tests/value/bitfield.i:72: Warning: 
   out of bounds write. assert \valid(&c->bitf);
-[value] tests/value/bitfield.i:73: 
+[eva] tests/value/bitfield.i:73: 
   Frama_C_show_each:
   {{ garbled mix of &{b} (origin: Misaligned {tests/value/bitfield.i:70}) }}
-[value:alarm] tests/value/bitfield.i:74: Warning: 
+[eva:alarm] tests/value/bitfield.i:74: Warning: 
   out of bounds read. assert \valid_read(&c->next.next);
-[value] computing for function leaf <- imprecise_bts_1671 <- main.
+[eva] computing for function leaf <- imprecise_bts_1671 <- main.
   Called from tests/value/bitfield.i:70.
-[value] Done for function leaf
-[value] Recording results for imprecise_bts_1671
-[value] Done for function imprecise_bts_1671
-[value] computing for function logic <- main.
+[eva] Done for function leaf
+[eva] Recording results for imprecise_bts_1671
+[eva] Done for function imprecise_bts_1671
+[eva] computing for function logic <- main.
   Called from tests/value/bitfield.i:166.
-[value] tests/value/bitfield.i:89: 
+[eva] tests/value/bitfield.i:89: 
   Frama_C_show_each: .v0_3 ∈ [--..--]
                      .v4 ∈ {0}
                      .v5_31 ∈ [--..--]
-[value] tests/value/bitfield.i:91: 
+[eva] tests/value/bitfield.i:91: 
   Frama_C_show_each: .v0_3 ∈ [--..--]
                      .v4 ∈ {0}
                      .v5_31 ∈ [--..--]
-[value] tests/value/bitfield.i:92: Frama_C_show_each: {0}
-[value] tests/value/bitfield.i:93: assertion got status valid.
-[value] tests/value/bitfield.i:95: Frama_C_show_each: [0..4294967287]
-[value] tests/value/bitfield.i:99: assertion got status valid.
-[value] tests/value/bitfield.i:100: assertion got status valid.
-[value:alarm] tests/value/bitfield.i:102: Warning: 
+[eva] tests/value/bitfield.i:92: Frama_C_show_each: {0}
+[eva] tests/value/bitfield.i:93: assertion got status valid.
+[eva] tests/value/bitfield.i:95: Frama_C_show_each: [0..4294967287]
+[eva] tests/value/bitfield.i:99: assertion got status valid.
+[eva] tests/value/bitfield.i:100: assertion got status valid.
+[eva:alarm] tests/value/bitfield.i:102: Warning: 
   accessing uninitialized left-value. assert \initialized(&w.v4);
-[value] tests/value/bitfield.i:105: assertion got status valid.
-[value] Recording results for logic
-[value] Done for function logic
-[value] computing for function eq_bitfields <- main.
+[eva] tests/value/bitfield.i:105: assertion got status valid.
+[eva] Recording results for logic
+[eva] Done for function logic
+[eva] computing for function eq_bitfields <- main.
   Called from tests/value/bitfield.i:167.
-[value] tests/value/bitfield.i:146: 
+[eva] tests/value/bitfield.i:146: 
   Frama_C_dump_each:
   # Cvalue domain:
   h.a ∈ {0}
@@ -197,31 +197,31 @@
    .c ∈ {16; 17}
    {.d; .[bits 28 to 31]} ∈ UNINITIALIZED
   ==END OF DUMP==
-[value] Recording results for eq_bitfields
-[value] Done for function eq_bitfields
-[value] computing for function char_short <- main.
+[eva] Recording results for eq_bitfields
+[eva] Done for function eq_bitfields
+[eva] computing for function char_short <- main.
   Called from tests/value/bitfield.i:168.
-[value] Recording results for char_short
-[value] Done for function char_short
-[value] Recording results for main
-[value] done for function main
-[value] tests/value/bitfield.i:102: 
-  assertion 'Value,initialization' got final status invalid.
-[value] ====== VALUES COMPUTED ======
-[value:final-states] Values at end of function char_short:
+[eva] Recording results for char_short
+[eva] Done for function char_short
+[eva] Recording results for main
+[eva] done for function main
+[eva] tests/value/bitfield.i:102: 
+  assertion 'Eva,initialization' got final status invalid.
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function char_short:
   S.c ∈ {1}
    .s ∈ {2}
    .[bits 3 to 15] ∈ {0}
   x_0 ∈ {1}
   y_0 ∈ {2}
-[value:final-states] Values at end of function eq_bitfields:
+[eva:final-states] Values at end of function eq_bitfields:
   i ∈ [--..--]
-[value:final-states] Values at end of function f:
+[eva:final-states] Values at end of function f:
   X ∈ {7}
-[value:final-states] Values at end of function g:
+[eva:final-states] Values at end of function g:
   H ∈ {0}
   r ∈ {1}
-[value:final-states] Values at end of function imprecise_bts_1671:
+[eva:final-states] Values at end of function imprecise_bts_1671:
   b ∈ {0}
   c ∈
    {{ garbled mix of &{b; ee}
@@ -229,15 +229,15 @@
   ee ∈
     {{ garbled mix of &{b}
      (origin: Misaligned {tests/value/bitfield.i:70}) }}
-[value:final-states] Values at end of function logic:
+[eva:final-states] Values at end of function logic:
   y.v0_3 ∈ [--..--]
    .v4 ∈ {0}
    .v5_31 ∈ [--..--]
   w.v0_3 ∈ {1}
    {.v4; .v5_31} ∈ UNINITIALIZED
-[value:final-states] Values at end of function return_8:
+[eva:final-states] Values at end of function return_8:
   __retres ∈ {8}
-[value:final-states] Values at end of function main_old:
+[eva:final-states] Values at end of function main_old:
   h.a ∈ {0}
    .b ∈ [--..--]
    .c ∈
@@ -264,7 +264,7 @@
    .[bits 28 to 31] ∈ UNINITIALIZED
    .d ∈ {{ &v + {9} }}
   l_161{.f0; .f1[bits 0 to 31]} ∈ {-1}
-[value:final-states] Values at end of function main:
+[eva:final-states] Values at end of function main:
   h.a ∈ {0}
    .b ∈ [--..--]
    .c ∈ [--..--] or ESCAPINGADDR
@@ -506,10 +506,10 @@ void imprecise_bts_1671(void)
   while (foo) {
     leaf(c);
     Frama_C_show_each(ee);
-    /*@ assert Value: mem_access: \valid(&c->bitf); */
+    /*@ assert Eva: mem_access: \valid(&c->bitf); */
     c->bitf = (int __attribute__((__FRAMA_C_BITFIELD_SIZE__(1))))0;
     Frama_C_show_each(ee);
-    /*@ assert Value: mem_access: \valid_read(&c->next.next); */
+    /*@ assert Eva: mem_access: \valid_read(&c->next.next); */
     c = (struct A *)c->next.next;
   }
   return;
@@ -532,7 +532,7 @@ void logic(void)
   /*@ assert \initialized(&w.v0_3); */ ;
   /*@ assert ¬\initialized(&w.v4); */ ;
   if (foo) {
-    /*@ assert Value: initialization: \initialized(&w.v4); */
+    /*@ assert Eva: initialization: \initialized(&w.v4); */
     int wc = (int)w.v4 + 1;
   }
   /*@ assert \separated(&w.v0_3, &w.v4); */ ;
@@ -552,14 +552,14 @@ void main_old(void)
   h.a = (unsigned int __attribute__((__FRAMA_C_BITFIELD_SIZE__(2))))VV;
   v.c = (int __attribute__((__FRAMA_C_BITFIELD_SIZE__(22))))(& v);
   v.d = (int __attribute__((__FRAMA_C_BITFIELD_SIZE__(32))))(& v + 1);
-  /*@ assert Value: signed_overflow: -2147483648 ≤ (int)v.d + 1; */
-  /*@ assert Value: signed_overflow: (int)v.d + 1 ≤ 2147483647; */
+  /*@ assert Eva: signed_overflow: -2147483648 ≤ (int)v.d + 1; */
+  /*@ assert Eva: signed_overflow: (int)v.d + 1 ≤ 2147483647; */
   v.d = (int __attribute__((__FRAMA_C_BITFIELD_SIZE__(32))))((int)v.d + 1);
   v.a = (unsigned int __attribute__((__FRAMA_C_BITFIELD_SIZE__(2))))4;
   v.b = (int __attribute__((__FRAMA_C_BITFIELD_SIZE__(4))))7;
   f((int)v.b);
-  /*@ assert Value: signed_overflow: -2147483648 ≤ foo + foo; */
-  /*@ assert Value: signed_overflow: foo + foo ≤ 2147483647; */
+  /*@ assert Eva: signed_overflow: -2147483648 ≤ foo + foo; */
+  /*@ assert Eva: signed_overflow: foo + foo ≤ 2147483647; */
   h.b = (int __attribute__((__FRAMA_C_BITFIELD_SIZE__(4))))(((foo + foo) + (int)h.a) + (int)h.b);
   h.c = (int __attribute__((__FRAMA_C_BITFIELD_SIZE__(22))))(& v + 1);
   k8.b = (int __attribute__((__FRAMA_C_BITFIELD_SIZE__(4))))8;

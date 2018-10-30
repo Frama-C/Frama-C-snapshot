@@ -20,6 +20,7 @@
 (*                                                                        *)
 (**************************************************************************)
 
+module OCamlHashtbl = Hashtbl
 open Cil_types
 
 type call_site = kernel_function * kinstr
@@ -37,6 +38,7 @@ module Callsite = struct
       )
 end
 
+let dkey_callstack = Kernel.register_category "callstack"
 
 type callstack = call_site list
 
@@ -48,14 +50,53 @@ module Callstack = struct
   (* Use default Datatype printer for debug only *)
   let pretty_debug = pretty
 
+  let stmt_hash s =
+    let pos = fst (Cil_datatype.Stmt.loc s) in
+    OCamlHashtbl.seeded_hash 0
+      (pos.Filepath.pos_path, pos.Filepath.pos_lnum)
+
+  let kf_hash kf =
+    let name = Kernel_function.get_name kf in
+    OCamlHashtbl.seeded_hash 0 name
+
+  let ki_hash = function
+    | Kglobal -> 1
+    | Kstmt s -> 5 * stmt_hash s
+
+  let rec hash = function
+    | [] -> 0
+    | (kf, ki) :: r ->
+      let p = OCamlHashtbl.seeded_hash 0 (kf_hash kf, ki_hash ki, hash r) in
+      p mod 11_316_496 (* 58 ** 4 *)
+
+  let base58_map = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz"
+
+  (* Converts [i] into a fixed-length, 4-wide string in base-58 *)
+  let base58_of_int n =
+    let buf = Bytes.create 4 in
+    Bytes.set buf 0 (String.get base58_map (n mod 58));
+    let n = n / 58 in
+    Bytes.set buf 1 (String.get base58_map (n mod 58));
+    let n = n / 58 in
+    Bytes.set buf 2 (String.get base58_map (n mod 58));
+    let n = n / 58 in
+    Bytes.set buf 3 (String.get base58_map (n mod 58));
+    Bytes.to_string buf
+
+  let pretty_hash fmt callstack =
+    if Kernel.is_debug_key_enabled dkey_callstack then
+      Format.fprintf fmt "<%s> " (base58_of_int (hash callstack))
+    else Format.ifprintf fmt ""
+
   let pretty_short fmt callstack =
+    Format.fprintf fmt "%a" pretty_hash callstack;
     Pretty_utils.pp_flowlist ~left:"" ~sep:" <- " ~right:""
       (fun fmt (kf,_) -> Kernel_function.pretty fmt kf)
       fmt
       callstack
 
   let pretty fmt callstack =
-    Format.fprintf fmt "@[<hv>";
+    Format.fprintf fmt "@[<hv>%a" pretty_hash callstack;
     List.iter (fun (kf,ki) ->
         Kernel_function.pretty fmt kf;
         match ki with

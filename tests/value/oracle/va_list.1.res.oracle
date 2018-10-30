@@ -1,21 +1,21 @@
 [kernel] Parsing tests/value/va_list.c (with preprocessing)
-[value] Analyzing a complete application starting at main
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing a complete application starting at main
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   
-[value] computing for function __builtin_next_arg <- main.
+[eva] computing for function __builtin_next_arg <- main.
   Called from tests/value/va_list.c:13.
 [kernel:annot:missing-spec] tests/value/va_list.c:13: Warning: 
   Neither code nor specification for function __builtin_next_arg, generating default assigns from the prototype
-[value] using specification for function __builtin_next_arg
-[value] tests/value/va_list.c:13: User Error: 
+[eva] using specification for function __builtin_next_arg
+[eva] tests/value/va_list.c:13: User Error: 
   functions returning variadic arguments must be stubbed
-[value] Done for function __builtin_next_arg
-[value] Recording results for main
-[value] done for function main
-[value] ====== VALUES COMPUTED ======
-[value:final-states] Values at end of function main:
+[eva] Done for function __builtin_next_arg
+[eva] Recording results for main
+[eva] done for function main
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function main:
   vlParameters ∈ [--..--]
 [from] Computing for function main
 [from] Computing for function __builtin_next_arg <-main
@@ -32,3 +32,5 @@
     vlParameters; tmp
 [inout] Inputs for function main:
     \nothing
+[eva] User Error: Deferred error message was emitted during execution. See above messages for more information.
+[kernel] Plug-in eva aborted: invalid user input.

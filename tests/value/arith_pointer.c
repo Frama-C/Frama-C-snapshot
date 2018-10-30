@@ -1,5 +1,5 @@
 /* run.config*
-   STDOPT: +"-ulevel 22" +"-then -no-val-warn-pointer-subtraction"
+   STDOPT: +"-ulevel 22" +"-then -eva-no-warn-pointer-subtraction"
 */
 
 

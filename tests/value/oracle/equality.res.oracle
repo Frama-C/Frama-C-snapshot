@@ -1,24 +1,69 @@
 [kernel] Parsing tests/value/equality.c (with preprocessing)
-[value] Analyzing a complete application starting at main
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing a complete application starting at main
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   rand ∈ [--..--]
-[value] Recording results for main
-[value] done for function main
-[value] ====== VALUES COMPUTED ======
-[value:final-states] Values at end of function main:
+[eva] computing for function replace_lvalue <- main.
+  Called from tests/value/equality.c:47.
+[eva] Recording results for replace_lvalue
+[eva] Done for function replace_lvalue
+[eva] computing for function assign_by_copy <- main.
+  Called from tests/value/equality.c:48.
+[eva] computing for function Frama_C_interval <- assign_by_copy <- main.
+  Called from tests/value/equality.c:39.
+[eva] using specification for function Frama_C_interval
+[eva] tests/value/equality.c:39: 
+  function Frama_C_interval: precondition 'order' got status valid.
+[eva] Done for function Frama_C_interval
+[eva:alarm] tests/value/equality.c:43: Warning: 
+  accessing uninitialized left-value. assert \initialized(&x);
+[eva] Recording results for assign_by_copy
+[eva] Done for function assign_by_copy
+[eva] Recording results for main
+[eva] done for function main
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function assign_by_copy:
+  Frama_C_entropy_source ∈ [--..--]
+  x ∈ [0..42]
+  y ∈ [0..42] or UNINITIALIZED
+  w ∈ [0..42] or UNINITIALIZED
+  z ∈ [1..43]
+[eva:final-states] Values at end of function replace_lvalue:
   x ∈ [-2147483647..2147483647]
   y ∈ [--..--]
-  z ∈ [-9..9]
+  z ∈ [-8..8]
+[eva:final-states] Values at end of function main:
+  Frama_C_entropy_source ∈ [--..--]
+[from] Computing for function assign_by_copy
+[from] Computing for function Frama_C_interval <-assign_by_copy
+[from] Done for function Frama_C_interval
+[from] Done for function assign_by_copy
+[from] Computing for function replace_lvalue
+[from] Done for function replace_lvalue
 [from] Computing for function main
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
   These dependencies hold at termination for the executions that terminate:
-[from] Function main:
+[from] Function Frama_C_interval:
+  Frama_C_entropy_source FROM Frama_C_entropy_source (and SELF)
+  \result FROM Frama_C_entropy_source; min; max
+[from] Function assign_by_copy:
+  Frama_C_entropy_source FROM Frama_C_entropy_source; rand (and SELF)
+[from] Function replace_lvalue:
   NO EFFECTS
+[from] Function main:
+  Frama_C_entropy_source FROM Frama_C_entropy_source; rand (and SELF)
 [from] ====== END OF DEPENDENCIES ======
-[inout] Out (internal) for function main:
+[inout] Out (internal) for function assign_by_copy:
+    Frama_C_entropy_source; x; y; w; z
+[inout] Inputs for function assign_by_copy:
+    Frama_C_entropy_source; rand
+[inout] Out (internal) for function replace_lvalue:
     x; y; z; tmp
-[inout] Inputs for function main:
+[inout] Inputs for function replace_lvalue:
     rand
+[inout] Out (internal) for function main:
+    Frama_C_entropy_source
+[inout] Inputs for function main:
+    Frama_C_entropy_source; rand

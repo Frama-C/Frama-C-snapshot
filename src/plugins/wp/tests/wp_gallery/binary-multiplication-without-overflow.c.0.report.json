@@ -1,8 +1,6 @@
-{ "wp:global": { "alt-ergo": { "total": 12, "valid": 10, "unknown": 2,
-                               "rank": 16 },
-                 "qed": { "total": 4, "valid": 4 },
-                 "wp:main": { "total": 16, "valid": 14, "unknown": 2,
-                              "rank": 16 } },
+{ "wp:global": { "alt-ergo": { "total": 10, "valid": 10, "rank": 16 },
+                 "qed": { "total": 3, "valid": 3 },
+                 "wp:main": { "total": 13, "valid": 13, "rank": 16 } },
   "wp:axiomatics": { "mult": { "lemma_sizeof_uint64_t_ok": { "qed": { "total": 1,
                                                                     "valid": 1 },
                                                              "wp:main": 
@@ -13,17 +11,10 @@
                                                              "wp:main": 
                                                                { "total": 1,
                                                                  "valid": 1 } },
-                               "lemma_ax2_ok": { "alt-ergo": { "total": 1,
-                                                               "unknown": 1 },
-                                                 "wp:main": { "total": 1,
-                                                              "unknown": 1 } },
-                               "wp:section": { "alt-ergo": { "total": 1,
-                                                             "unknown": 1 },
-                                               "qed": { "total": 2,
+                               "wp:section": { "qed": { "total": 2,
                                                         "valid": 2 },
-                                               "wp:main": { "total": 3,
-                                                            "valid": 2,
-                                                            "unknown": 1 } } } },
+                                               "wp:main": { "total": 2,
+                                                            "valid": 2 } } } },
   "wp:functions": { "BinaryMultiplication": { "BinaryMultiplication_assert_rte_unsigned_overflow_4": 
                                                 { "alt-ergo": { "total": 1,
                                                                 "valid": 1,
@@ -48,10 +39,10 @@
                                               "BinaryMultiplication_assert_rte_unsigned_overflow": 
                                                 { "alt-ergo": { "total": 1,
                                                                 "valid": 1,
-                                                                "rank": 4 },
+                                                                "rank": 5 },
                                                   "wp:main": { "total": 1,
                                                                "valid": 1,
-                                                               "rank": 4 } },
+                                                               "rank": 5 } },
                                               "BinaryMultiplication_loop_inv_inv2_ok_deductible": 
                                                 { "alt-ergo": { "total": 2,
                                                                 "valid": 2,
@@ -59,14 +50,6 @@
                                                   "wp:main": { "total": 2,
                                                                "valid": 2,
                                                                "rank": 10 } },
-                                              "BinaryMultiplication_loop_inv_inv1_ok": 
-                                                { "alt-ergo": { "total": 1,
-                                                                "unknown": 1 },
-                                                  "qed": { "total": 1,
-                                                           "valid": 1 },
-                                                  "wp:main": { "total": 2,
-                                                               "valid": 1,
-                                                               "unknown": 1 } },
                                               "BinaryMultiplication_assert_a1_ok_deductible": 
                                                 { "alt-ergo": { "total": 1,
                                                                 "valid": 1,
@@ -94,15 +77,13 @@
                                                                "valid": 1,
                                                                "rank": 16 } },
                                               "wp:section": { "alt-ergo": 
-                                                                { "total": 11,
+                                                                { "total": 10,
                                                                   "valid": 10,
-                                                                  "unknown": 1,
                                                                   "rank": 16 },
                                                               "qed": 
-                                                                { "total": 2,
-                                                                  "valid": 2 },
+                                                                { "total": 1,
+                                                                  "valid": 1 },
                                                               "wp:main": 
-                                                                { "total": 13,
-                                                                  "valid": 12,
-                                                                  "unknown": 1,
+                                                                { "total": 11,
+                                                                  "valid": 11,
                                                                   "rank": 16 } } } } }

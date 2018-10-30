@@ -160,8 +160,10 @@ int isPresent(int *t, int size, int val)
   int r = 1 + tmp;
   if (r == 0) r = -1;
   __retres = r;
-  return_label: isPresent_post_func(__retres);
-  return __retres;
+  return_label: {
+                  isPresent_post_func(__retres);
+                  return __retres;
+                }
 }
 
 /*@ ensures aorai_CurOpStatus ≡ aorai_Called;

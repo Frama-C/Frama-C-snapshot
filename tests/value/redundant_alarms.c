@@ -1,5 +1,5 @@
 /* run.config*
-   OPT: -no-autoload-plugins -load-module inout,scope,slicing,sparecode @VALUECONFIG@ -val-warn-copy-indeterminate=-@all,main3 -scope-msg-key rm_asserts -scope-verbose 2 -remove-redundant-alarms -print -slice-threat main1 -then-on 'Slicing export' -print
+   OPT: -no-autoload-plugins -load-module inout,scope,slicing,sparecode @VALUECONFIG@ -eva-warn-copy-indeterminate=-@all,main3 -scope-msg-key rm_asserts -scope-verbose 2 -remove-redundant-alarms -print -slice-threat main1 -then-on 'Slicing export' -print
  **/
 
 volatile int v;

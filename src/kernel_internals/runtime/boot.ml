@@ -34,6 +34,7 @@ let play_analysis () =
   end;
   try
     Db.Main.apply ();
+    Log.treat_deferred_error ();
     (* Printing code if required, have to be done at end *)
     if Kernel.PrintCode.get () then File.pretty_ast ();
     (* Easier to handle option -set-project-as-default at the last moment:

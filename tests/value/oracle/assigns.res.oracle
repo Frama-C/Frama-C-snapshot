@@ -1,10 +1,10 @@
 [kernel] Parsing tests/value/assigns.i (no preprocessing)
 [kernel] tests/value/assigns.i:31: Warning: 
   parsing obsolete ACSL construct 'logic declaration'. 'an axiomatic block' should be used instead.
-[value] Analyzing a complete application starting at main
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing a complete application starting at main
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   v ∈ [--..--]
   G ∈ {0}
   T[0..99] ∈ {0}
@@ -21,140 +21,140 @@
   t_main3_2[0..2][0..3][0..4] ∈ {0}
   t_main4[0..999] ∈ {0}
   u_main4[0..99] ∈ {0}
-[value] computing for function main1 <- main.
+[eva] computing for function main1 <- main.
   Called from tests/value/assigns.i:110.
-[value] computing for function F1 <- main1 <- main.
+[eva] computing for function F1 <- main1 <- main.
   Called from tests/value/assigns.i:46.
-[value] using specification for function F1
-[value] Done for function F1
-[value] tests/value/assigns.i:48: entering loop for the first time
-[value] computing for function f <- main1 <- main.
+[eva] using specification for function F1
+[eva] Done for function F1
+[eva] computing for function f <- main1 <- main.
   Called from tests/value/assigns.i:49.
-[value] using specification for function f
-[value] Done for function f
-[value] computing for function f <- main1 <- main.
+[eva] using specification for function f
+[eva] Done for function f
+[eva] tests/value/assigns.i:48: starting to merge loop iterations
+[eva] computing for function f <- main1 <- main.
   Called from tests/value/assigns.i:49.
-[value] Done for function f
-[value] computing for function f <- main1 <- main.
+[eva] Done for function f
+[eva] computing for function f <- main1 <- main.
   Called from tests/value/assigns.i:49.
-[value] Done for function f
-[value] computing for function f <- main1 <- main.
+[eva] Done for function f
+[eva] computing for function f <- main1 <- main.
   Called from tests/value/assigns.i:49.
-[value] Done for function f
-[value] computing for function f <- main1 <- main.
+[eva] Done for function f
+[eva] computing for function f <- main1 <- main.
   Called from tests/value/assigns.i:49.
-[value] Done for function f
-[value:alarm] tests/value/assigns.i:51: Warning: 
+[eva] Done for function f
+[eva:alarm] tests/value/assigns.i:51: Warning: 
   signed overflow. assert -2147483648 ≤ 2 * (int)(&T);
-[value:alarm] tests/value/assigns.i:51: Warning: 
+[eva:alarm] tests/value/assigns.i:51: Warning: 
   signed overflow. assert 2 * (int)(&T) ≤ 2147483647;
-[value] computing for function g <- main1 <- main.
+[eva] computing for function g <- main1 <- main.
   Called from tests/value/assigns.i:51.
-[value] using specification for function g
-[value] Done for function g
-[value:alarm] tests/value/assigns.i:52: Warning: 
+[eva] using specification for function g
+[eva] Done for function g
+[eva:alarm] tests/value/assigns.i:52: Warning: 
   signed overflow. assert -2147483648 ≤ 2 * (int)(&t3);
-[value:alarm] tests/value/assigns.i:52: Warning: 
+[eva:alarm] tests/value/assigns.i:52: Warning: 
   signed overflow. assert 2 * (int)(&t3) ≤ 2147483647;
-[value] computing for function h <- main1 <- main.
+[eva] computing for function h <- main1 <- main.
   Called from tests/value/assigns.i:52.
-[value] using specification for function h
-[value] Done for function h
-[value] computing for function j <- main1 <- main.
+[eva] using specification for function h
+[eva] Done for function h
+[eva] computing for function j <- main1 <- main.
   Called from tests/value/assigns.i:54.
-[value] tests/value/assigns.i:32: 
+[eva] tests/value/assigns.i:32: 
   Cannot evaluate range bound foo(*p)
   (unsupported ACSL construct: logic function foo). Approximating
-[value] using specification for function j
-[value] Done for function j
-[value] computing for function assigns_post <- main1 <- main.
+[eva] using specification for function j
+[eva] Done for function j
+[eva] computing for function assigns_post <- main1 <- main.
   Called from tests/value/assigns.i:56.
-[value] using specification for function assigns_post
-[value] tests/value/assigns.i:39: Warning: 
+[eva] using specification for function assigns_post
+[eva] tests/value/assigns.i:39: Warning: 
   no \from part
   for clause 'assigns Tpost[\at(\old(i),Post)], Tpost[\at(k,Post)];'
-[value] tests/value/assigns.i:56: Warning: 
+[eva] tests/value/assigns.i:56: Warning: 
+  cannot interpret assigns clause Tpost[\at(\old(i),Post)]
+  (no environment to evaluate \at(_,Post)); effects will be ignored
+[eva] tests/value/assigns.i:56: Warning: 
+  cannot interpret assigns clause Tpost[\at(k,Post)]
+  (no environment to evaluate \at(_,Post)); effects will be ignored
+[eva] tests/value/assigns.i:56: Warning: 
   cannot interpret 'from' clause 'assigns x \from \at(x,Post);'
   (no environment to evaluate \at(_,Post))
-[value] tests/value/assigns.i:56: Warning: 
-  cannot interpret assigns Tpost[\at(\old(i),Post)]
-  (no environment to evaluate \at(_,Post)); effects will be ignored
-[value] tests/value/assigns.i:56: Warning: 
-  cannot interpret assigns Tpost[\at(k,Post)]
-  (no environment to evaluate \at(_,Post)); effects will be ignored
-[value] Done for function assigns_post
-[value] Recording results for main1
-[value] Done for function main1
-[value] computing for function main2 <- main.
+[eva] Done for function assigns_post
+[eva] Recording results for main1
+[eva] Done for function main1
+[eva] computing for function main2 <- main.
   Called from tests/value/assigns.i:111.
-[value] computing for function ff1 <- main2 <- main.
+[eva] computing for function ff1 <- main2 <- main.
   Called from tests/value/assigns.i:76.
-[value] using specification for function ff1
-[value] tests/value/assigns.i:60: Warning: 
+[eva] using specification for function ff1
+[eva] tests/value/assigns.i:60: Warning: 
   no 'assigns \result \from ...' clause specified for function ff1
-[value] Done for function ff1
-[value] computing for function ff3 <- main2 <- main.
+[eva] Done for function ff1
+[eva] computing for function ff3 <- main2 <- main.
   Called from tests/value/assigns.i:78.
-[value] using specification for function ff3
-[value] tests/value/assigns.i:68: Warning: 
+[eva] using specification for function ff3
+[eva] tests/value/assigns.i:68: Warning: 
   no \from part for clause 'assigns y1, y3;'
-[value] Done for function ff3
-[value] computing for function ff4 <- main2 <- main.
+[eva] Done for function ff3
+[eva] computing for function ff4 <- main2 <- main.
   Called from tests/value/assigns.i:79.
 [kernel:annot:missing-spec] tests/value/assigns.i:79: Warning: 
   Neither code nor specification for function ff4, generating default assigns from the prototype
-[value] using specification for function ff4
-[value] Done for function ff4
-[value] computing for function ff5 <- main2 <- main.
+[eva] using specification for function ff4
+[eva] Done for function ff4
+[eva] computing for function ff5 <- main2 <- main.
   Called from tests/value/assigns.i:80.
 [kernel:annot:missing-spec] tests/value/assigns.i:80: Warning: 
   Neither code nor specification for function ff5, generating default assigns from the prototype
-[value] using specification for function ff5
-[value] Done for function ff5
-[value] computing for function ff2 <- main2 <- main.
+[eva] using specification for function ff5
+[eva] Done for function ff5
+[eva] computing for function ff2 <- main2 <- main.
   Called from tests/value/assigns.i:82.
 [kernel:annot:missing-spec] tests/value/assigns.i:82: Warning: 
   Neither code nor specification for function ff2, generating default assigns from the prototype
-[value] using specification for function ff2
-[value] Done for function ff2
-[value] computing for function ff2_bis <- main2 <- main.
+[eva] using specification for function ff2
+[eva] Done for function ff2
+[eva] computing for function ff2_bis <- main2 <- main.
   Called from tests/value/assigns.i:83.
-[value] using specification for function ff2_bis
-[value] tests/value/assigns.i:64: Warning: 
+[eva] using specification for function ff2_bis
+[eva] tests/value/assigns.i:64: Warning: 
   no 'assigns \result \from ...' clause specified for function ff2_bis
-[value] Done for function ff2_bis
-[value:alarm] tests/value/assigns.i:84: Warning: 
+[eva] Done for function ff2_bis
+[eva:alarm] tests/value/assigns.i:84: Warning: 
   pointer comparison. assert \pointer_comparable((void *)p, (void *)(&x));
-[value] Recording results for main2
-[value] Done for function main2
-[value] computing for function main3 <- main.
+[eva] Recording results for main2
+[eva] Done for function main2
+[eva] computing for function main3 <- main.
   Called from tests/value/assigns.i:112.
 [kernel:annot:missing-spec] tests/value/assigns.i:112: Warning: 
   Neither code nor specification for function main3, generating default assigns from the prototype
-[value] using specification for function main3
-[value] Done for function main3
-[value] computing for function main4 <- main.
+[eva] using specification for function main3
+[eva] Done for function main3
+[eva] computing for function main4 <- main.
   Called from tests/value/assigns.i:113.
-[value] computing for function f_main4_1 <- main4 <- main.
+[eva] computing for function f_main4_1 <- main4 <- main.
   Called from tests/value/assigns.i:104.
 [kernel] tests/value/assigns.i:104: 
   more than 200(1000) elements to enumerate. Approximating.
-[value] using specification for function f_main4_1
+[eva] using specification for function f_main4_1
 [kernel] tests/value/assigns.i:104: 
   more than 200(1000) locations to update in array. Approximating.
-[value] Done for function f_main4_1
-[value] computing for function f_main4_2 <- main4 <- main.
+[eva] Done for function f_main4_1
+[eva] computing for function f_main4_2 <- main4 <- main.
   Called from tests/value/assigns.i:105.
-[value] using specification for function f_main4_2
+[eva] using specification for function f_main4_2
 [kernel] tests/value/assigns.i:105: 
   more than 200(1000) locations to update in array. Approximating.
-[value] Done for function f_main4_2
-[value] Recording results for main4
-[value] Done for function main4
-[value] Recording results for main
-[value] done for function main
-[value] ====== VALUES COMPUTED ======
-[value:final-states] Values at end of function main1:
+[eva] Done for function f_main4_2
+[eva] Recording results for main4
+[eva] Done for function main4
+[eva] Recording results for main
+[eva] done for function main
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function main1:
   T[0..99] ∈ [--..--]
   Tpost[0..99] ∈ {0}
   t[0].f1 ∈ {0}
@@ -163,7 +163,7 @@
   t2[0..99999] ∈ [--..--]
   t3[0..99999] ∈ [--..--]
   x ∈ {{ ANYTHING }}
-[value:final-states] Values at end of function main2:
+[eva:final-states] Values at end of function main2:
   y1 ∈ [--..--]
   y2 ∈ [--..--]
   y3 ∈ [--..--]
@@ -171,7 +171,7 @@
   p ∈ [--..--]
   q ∈ {0}
   __retres ∈ {1}
-[value:final-states] Values at end of function main4:
+[eva:final-states] Values at end of function main4:
   t_main4{[0..998]; [999].f1} ∈ [--..--]
          [999].f2 ∈ {0}
   u_main4[0].f1 ∈ [--..--]
@@ -374,7 +374,7 @@
          [98].f2 ∈ {0}
          [99].f1 ∈ [--..--]
          [99].f2 ∈ {0}
-[value:final-states] Values at end of function main:
+[eva:final-states] Values at end of function main:
   T[0..99] ∈ [--..--]
   Tpost[0..99] ∈ {0}
   t[0].f1 ∈ {0}
@@ -603,7 +603,7 @@
 [from] Computing for function j <-main1
 [from] Done for function j
 [from] Computing for function assigns_post <-main1
-[value] tests/value/assigns.i:56: Warning: 
+[eva] tests/value/assigns.i:56: Warning: 
   Failed to interpret inputs in assigns clause 'assigns x \from \at(x,Post);'no environment to evaluate \at(_,Post)
 [from] Done for function assigns_post
 [from] Done for function main1
@@ -905,7 +905,9 @@ void g(int len);
     assigns *(p + (..)) \from \nothing; */
 void h(int *p);
 
-/*@ logic int foo(int p) ;
+/*@ type Lint = int;
+ */
+/*@ logic Lint foo(Lint p) ;
  */
 /*@ assigns *(p + (0 .. foo(*p)));
     assigns *(p + (0 .. foo(*p))) \from \nothing;
@@ -929,11 +931,11 @@ void main1(void)
       i ++;
     }
   }
-  /*@ assert Value: signed_overflow: -2147483648 ≤ 2 * (int)(&T); */
-  /*@ assert Value: signed_overflow: 2 * (int)(&T) ≤ 2147483647; */
+  /*@ assert Eva: signed_overflow: -2147483648 ≤ 2 * (int)(&T); */
+  /*@ assert Eva: signed_overflow: 2 * (int)(&T) ≤ 2147483647; */
   g(2 * (int)(& T));
-  /*@ assert Value: signed_overflow: -2147483648 ≤ 2 * (int)(&t3); */
-  /*@ assert Value: signed_overflow: 2 * (int)(&t3) ≤ 2147483647; */
+  /*@ assert Eva: signed_overflow: -2147483648 ≤ 2 * (int)(&t3); */
+  /*@ assert Eva: signed_overflow: 2 * (int)(&t3) ≤ 2147483647; */
   h((int *)(2 * (int)(& t3)));
   j((int *)(& T[9]));
   assigns_post(18);
@@ -974,7 +976,7 @@ int main2(void)
   int *p = ff2();
   int *q = ff2_bis();
   /*@ assert
-      Value: ptr_comparison: \pointer_comparable((void *)p, (void *)(&x));
+      Eva: ptr_comparison: \pointer_comparable((void *)p, (void *)(&x));
   */
   if (p != & x) {
     __retres = 1;

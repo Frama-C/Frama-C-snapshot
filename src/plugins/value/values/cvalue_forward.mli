@@ -24,32 +24,30 @@
 
 open Cvalue
 open Cil_types
+open Abstract_value
 
 val are_comparable: Abstract_interp.Comp.t -> V.t -> V.t -> bool
 
-val forward_binop_int:
-  context: Eval.binop_context ->
-  logic: bool ->
-  typ: typ ->
-  V.t -> binop -> V.t -> V.t * Alarmset.t
+val assume_non_zero: V.t -> V.t truth
+val assume_bounded: bound_kind -> bound -> V.t -> V.t truth
+val assume_not_nan: assume_finite:bool -> fkind -> V.t -> V.t truth
+val assume_comparable: pointer_comparison -> V.t -> V.t -> (V.t * V.t) truth
+
+val forward_binop_int: typ: typ -> V.t -> binop -> V.t -> V.t
 
 val forward_binop_float: Fval.kind -> V.t -> binop -> V.t -> V.t
 
-val forward_unop:
-  context: Eval.unop_context ->
-  typ -> unop -> V.t -> V.t * Alarmset.t
+val forward_unop: typ -> unop -> V.t -> V.t
 
-val truncate_integer: exp -> Eval_typ.integer_range -> V.t -> V.t * Alarmset.t
 val rewrap_integer: Eval_typ.integer_range -> V.t -> V.t
 
 val reinterpret: typ -> V.t -> V.t
 
-val cast_float_to_int_alarms:
-  Eval_typ.integer_range -> (unit -> exp) -> V.t -> V.t * Alarmset.t
-(* Cast from floating-point to integer. The function given in argument
-   returns the expression being cast, used to build the alarms. *)
+val cast_float_to_int: Eval_typ.integer_range -> V.t -> V.t
+(* Cast from floating-point to integer. *)
 
-val cast: src_typ: typ -> dst_typ: typ -> exp -> V.t -> V.t * Alarmset.t
+val forward_cast:
+  src_type:Eval_typ.scalar_typ -> dst_type:Eval_typ.scalar_typ -> V.t -> V.t
 
 (** [make_volatile ?typ v] makes the value [v] more general (to account for
     external modifications), whenever [typ] is [None] or when it has type
@@ -57,11 +55,6 @@ val cast: src_typ: typ -> dst_typ: typ -> exp -> V.t -> V.t * Alarmset.t
 val make_volatile: ?typ:typ -> V.t -> V.t
 
 val eval_float_constant: float -> fkind -> string option -> V.t
-
-val restrict_float:
-  remove_infinite:bool -> fkind -> exp -> V.t -> V.t * Alarmset.t
-
-
 
 (*
 Local Variables:

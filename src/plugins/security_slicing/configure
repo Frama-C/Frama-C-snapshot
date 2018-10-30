@@ -2102,8 +2102,8 @@ echo "security_slicing... $ENABLE"
 
 
 
-        REQUIRE_VALUE_ANALYSIS=$REQUIRE_VALUE_ANALYSIS" "security_slicing
-        REQUIRED_SECURITY_SLICING=$REQUIRED_SECURITY_SLICING" "value_analysis
+        REQUIRE_EVA=$REQUIRE_EVA" "security_slicing
+        REQUIRED_SECURITY_SLICING=$REQUIRED_SECURITY_SLICING" "eva
 
 
 

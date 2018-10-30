@@ -163,7 +163,7 @@ let sort_of_object = function
 
 let sort_of_ctype t = sort_of_object (Ctypes.object_of t)
 
-let sort_of_ltype t = match Logic_utils.unroll_type t with
+let sort_of_ltype t = match Logic_utils.unroll_type ~unroll_typedef:false t with
   | Ctype typ -> sort_of_ctype typ
   | Ltype _ | Lvar _ | Larrow _ -> Logic.Sdata
   | Linteger -> Logic.Sint
@@ -197,7 +197,7 @@ let rec varpoly k x = function
 
 let builtins = Hashtbl.create 131
 
-let rec tau_of_ltype t = match Logic_utils.unroll_type t with
+let rec tau_of_ltype t = match Logic_utils.unroll_type ~unroll_typedef:false t with
   | Linteger -> Logic.Int
   | Lreal -> Logic.Real
   | Ctype typ -> tau_of_ctype typ
@@ -374,11 +374,11 @@ end
 
 type lfun =
   | ACSL of Cil_types.logic_info
-    (** Registered in Definition.t, only  *)
+  (** Registered in Definition.t, only  *)
   | CTOR of Cil_types.logic_ctor_info
-    (** Not registered in Definition.t, directly converted/printed *)
+  (** Not registered in Definition.t, directly converted/printed *)
   | Model of model
-    (** Generated or External function *)
+  (** Generated or External function *)
 
 and model = {
   m_category : lfun category ;
@@ -773,7 +773,7 @@ struct
 
   let e_vars e = List.sort Var.compare (Vars.elements (vars e))
   let p_vars = e_vars
-  
+
   let p_call = e_fun
   let p_close p = p_forall (p_vars p) p
 
@@ -791,7 +791,7 @@ struct
     | Eq _ | Neq _ | Leq _ | Lt _ | Times _ | Add _ | Mul _ | Div _ | Mod _
     | Acst _ | Aget _ | Aset _ | Rget _ | Rdef _ | Fun _ | Apply _ -> lc_iter fe p
     | And _ | Or _ | Imply _ | If _ | Not _ | Bind _ -> lc_iter fp p
-  
+
   let pp_tau = Pretty.pp_tau
   let context_pp = Context.create "Lang.F.pp"
   let pp_term fmt e =

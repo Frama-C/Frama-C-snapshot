@@ -1,51 +1,56 @@
 [kernel] Parsing tests/value/arith_pointer.c (with preprocessing)
-[value] Analyzing a complete application starting at main
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing a complete application starting at main
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   a ∈ {0}
   t[0..24] ∈ {0}
   vol ∈ [--..--]
-[value] computing for function main1 <- main.
+[eva] computing for function main1 <- main.
   Called from tests/value/arith_pointer.c:69.
-[value] Recording results for main1
-[value] Done for function main1
-[value] computing for function main2 <- main.
+[eva] Recording results for main1
+[eva] Done for function main1
+[eva] computing for function main2 <- main.
   Called from tests/value/arith_pointer.c:70.
-[value:alarm] tests/value/arith_pointer.c:30: Warning: 
+[eva:alarm] tests/value/arith_pointer.c:30: Warning: 
   pointer subtraction. assert \base_addr(p1) ≡ \base_addr(p2);
-[value] tests/value/arith_pointer.c:36: Frama_C_show_each: {-1}
-[value] tests/value/arith_pointer.c:40: Frama_C_show_each: {0}
-[value:alarm] tests/value/arith_pointer.c:49: Warning: 
+[eva] tests/value/arith_pointer.c:36: Frama_C_show_each: {-1}
+[eva] tests/value/arith_pointer.c:40: Frama_C_show_each: {0}
+[eva:alarm] tests/value/arith_pointer.c:49: Warning: 
   pointer subtraction. assert \base_addr(p2) ≡ \base_addr(p1);
-[value] tests/value/arith_pointer.c:50: Frama_C_show_each: {6; 11}
-[value:alarm] tests/value/arith_pointer.c:51: Warning: 
+[eva] tests/value/arith_pointer.c:50: Frama_C_show_each: {6; 11}
+[eva:alarm] tests/value/arith_pointer.c:51: Warning: 
   pointer subtraction. assert \base_addr(p2) ≡ \base_addr(p2);
-[value] tests/value/arith_pointer.c:52: Frama_C_show_each: {0}
-[value] tests/value/arith_pointer.c:54: 
+[eva] tests/value/arith_pointer.c:52: Frama_C_show_each: {0}
+[eva] tests/value/arith_pointer.c:54: 
   Assigning imprecise value to p1.
   The imprecision originates from Arithmetic {tests/value/arith_pointer.c:54}
-[value:alarm] tests/value/arith_pointer.c:56: Warning: 
+[eva:alarm] tests/value/arith_pointer.c:56: Warning: 
   pointer subtraction. assert \base_addr(p2) ≡ \base_addr(p1);
-[value:alarm] tests/value/arith_pointer.c:56: Warning: 
+[eva:alarm] tests/value/arith_pointer.c:56: Warning: 
   signed overflow. assert -2147483648 ≤ p2 - p1;
-[value:alarm] tests/value/arith_pointer.c:56: Warning: 
+[eva:alarm] tests/value/arith_pointer.c:56: Warning: 
   signed overflow. assert p2 - p1 ≤ 2147483647;
-[value] tests/value/arith_pointer.c:57: 
-  Frama_C_show_each: [-2147483648..2147483647]
-[value:alarm] tests/value/arith_pointer.c:60: Warning: 
+[eva] tests/value/arith_pointer.c:56: 
+  Assigning imprecise value to d.
+  The imprecision originates from Arithmetic {tests/value/arith_pointer.c:54}
+[eva] tests/value/arith_pointer.c:57: 
+  Frama_C_show_each:
+  {{ garbled mix of &{x}
+  (origin: Arithmetic {tests/value/arith_pointer.c:54}) }}
+[eva:alarm] tests/value/arith_pointer.c:60: Warning: 
   assertion got status unknown.
-[value] tests/value/arith_pointer.c:64: Frama_C_show_each: [-3..5]
-[value:alarm] tests/value/arith_pointer.c:65: Warning: 
+[eva] tests/value/arith_pointer.c:64: Frama_C_show_each: [-3..5]
+[eva:alarm] tests/value/arith_pointer.c:65: Warning: 
   assertion got status unknown.
-[value] Recording results for main2
-[value] Done for function main2
-[value] Recording results for main
-[value] done for function main
-[value] tests/value/arith_pointer.c:30: 
-  assertion 'Value,differing_blocks' got final status invalid.
-[value] ====== VALUES COMPUTED ======
-[value:final-states] Values at end of function main1:
+[eva] Recording results for main2
+[eva] Done for function main2
+[eva] Recording results for main
+[eva] done for function main
+[eva] tests/value/arith_pointer.c:30: 
+  assertion 'Eva,differing_blocks' got final status invalid.
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function main1:
   t[0..1] ∈ {-3}
    [2..5] ∈ {-2}
    [6..9] ∈ {-1}
@@ -55,12 +60,12 @@
    [20..24] ∈ {0}
   i ∈ {10}
   j ∈ {-10}
-[value:final-states] Values at end of function main2:
+[eva:final-states] Values at end of function main2:
   d ∈ {1}
   p1 ∈ {{ &x + {0; 4; 8; 12; 16} }}
   p2 ∈ {{ &x + {4; 8; 12; 16; 20} }}
   i ∈ {0; 1; 2; 3; 4}
-[value:final-states] Values at end of function main:
+[eva:final-states] Values at end of function main:
   t[0..1] ∈ {-3}
    [2..5] ∈ {-2}
    [6..9] ∈ {-1}
@@ -95,70 +100,70 @@
     t[0..19]
 [inout] Inputs for function main:
     vol
-[value] Analyzing a complete application starting at main
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing a complete application starting at main
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   a ∈ {0}
   t[0..24] ∈ {0}
   vol ∈ [--..--]
-[value] computing for function main1 <- main.
+[eva] computing for function main1 <- main.
   Called from tests/value/arith_pointer.c:69.
-[value] Recording results for main1
-[value] Done for function main1
-[value] computing for function main2 <- main.
+[eva] Recording results for main1
+[eva] Done for function main1
+[eva] computing for function main2 <- main.
   Called from tests/value/arith_pointer.c:70.
-[value:alarm] tests/value/arith_pointer.c:30: Warning: 
+[eva:alarm] tests/value/arith_pointer.c:30: Warning: 
   signed overflow. assert -2147483648 ≤ p1 - p2;
-[value:alarm] tests/value/arith_pointer.c:30: Warning: 
+[eva:alarm] tests/value/arith_pointer.c:30: Warning: 
   signed overflow. assert p1 - p2 ≤ 2147483647;
-[value] tests/value/arith_pointer.c:30: 
+[eva] tests/value/arith_pointer.c:30: 
   Assigning imprecise value to d.
   The imprecision originates from Arithmetic {tests/value/arith_pointer.c:30}
-[value] tests/value/arith_pointer.c:31: 
+[eva] tests/value/arith_pointer.c:31: 
   Frama_C_show_each:
   {{ garbled mix of &{x; y}
   (origin: Arithmetic {tests/value/arith_pointer.c:30}) }}
-[value] tests/value/arith_pointer.c:36: Frama_C_show_each: {-1}
-[value] tests/value/arith_pointer.c:40: Frama_C_show_each: {0}
-[value:alarm] tests/value/arith_pointer.c:49: Warning: 
+[eva] tests/value/arith_pointer.c:36: Frama_C_show_each: {-1}
+[eva] tests/value/arith_pointer.c:40: Frama_C_show_each: {0}
+[eva:alarm] tests/value/arith_pointer.c:49: Warning: 
   signed overflow. assert -2147483648 ≤ p2 - p1;
-[value:alarm] tests/value/arith_pointer.c:49: Warning: 
+[eva:alarm] tests/value/arith_pointer.c:49: Warning: 
   signed overflow. assert p2 - p1 ≤ 2147483647;
-[value] tests/value/arith_pointer.c:49: 
+[eva] tests/value/arith_pointer.c:49: 
   Assigning imprecise value to d.
   The imprecision originates from Arithmetic {tests/value/arith_pointer.c:49}
-[value] tests/value/arith_pointer.c:50: 
+[eva] tests/value/arith_pointer.c:50: 
   Frama_C_show_each:
   {{ garbled mix of &{x; y}
   (origin: Arithmetic {tests/value/arith_pointer.c:49}) }}
-[value:alarm] tests/value/arith_pointer.c:51: Warning: 
+[eva:alarm] tests/value/arith_pointer.c:51: Warning: 
   signed overflow. assert -2147483648 ≤ p2 - p2;
-[value:alarm] tests/value/arith_pointer.c:51: Warning: 
+[eva:alarm] tests/value/arith_pointer.c:51: Warning: 
   signed overflow. assert p2 - p2 ≤ 2147483647;
-[value] tests/value/arith_pointer.c:51: 
+[eva] tests/value/arith_pointer.c:51: 
   Assigning imprecise value to d.
   The imprecision originates from Arithmetic {tests/value/arith_pointer.c:51}
-[value] tests/value/arith_pointer.c:52: 
+[eva] tests/value/arith_pointer.c:52: 
   Frama_C_show_each:
   {{ garbled mix of &{x; y}
   (origin: Arithmetic {tests/value/arith_pointer.c:51}) }}
-[value:alarm] tests/value/arith_pointer.c:56: Warning: 
+[eva:alarm] tests/value/arith_pointer.c:56: Warning: 
   signed overflow. assert -2147483648 ≤ p2 - p1;
-[value:alarm] tests/value/arith_pointer.c:56: Warning: 
+[eva:alarm] tests/value/arith_pointer.c:56: Warning: 
   signed overflow. assert p2 - p1 ≤ 2147483647;
-[value] tests/value/arith_pointer.c:56: 
+[eva] tests/value/arith_pointer.c:56: 
   Assigning imprecise value to d.
   The imprecision originates from Arithmetic
-[value] tests/value/arith_pointer.c:57: 
+[eva] tests/value/arith_pointer.c:57: 
   Frama_C_show_each: {{ garbled mix of &{x} (origin: Arithmetic) }}
-[value] tests/value/arith_pointer.c:64: Frama_C_show_each: [-3..5]
-[value] Recording results for main2
-[value] Done for function main2
-[value] Recording results for main
-[value] done for function main
-[value] ====== VALUES COMPUTED ======
-[value:final-states] Values at end of function main1:
+[eva] tests/value/arith_pointer.c:64: Frama_C_show_each: [-3..5]
+[eva] Recording results for main2
+[eva] Done for function main2
+[eva] Recording results for main
+[eva] done for function main
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function main1:
   t[0..1] ∈ {-3}
    [2..5] ∈ {-2}
    [6..9] ∈ {-1}
@@ -168,12 +173,12 @@
    [20..24] ∈ {0}
   i ∈ {10}
   j ∈ {-10}
-[value:final-states] Values at end of function main2:
+[eva:final-states] Values at end of function main2:
   d ∈ {1}
   p1 ∈ {{ &x + {0; 4; 8; 12; 16} }}
   p2 ∈ {{ &x + {4; 8; 12; 16; 20} }}
   i ∈ {0; 1; 2; 3; 4}
-[value:final-states] Values at end of function main:
+[eva:final-states] Values at end of function main:
   t[0..1] ∈ {-3}
    [2..5] ∈ {-2}
    [6..9] ∈ {-1}

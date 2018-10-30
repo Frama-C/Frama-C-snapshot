@@ -1,34 +1,34 @@
 [kernel] Parsing tests/float/widen.c (with preprocessing)
-[value] Analyzing a complete application starting at main
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing a complete application starting at main
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   rand ∈ [--..--]
-[value] computing for function main1 <- main.
+[eva] computing for function main1 <- main.
   Called from tests/float/widen.c:50.
-[value] tests/float/widen.c:13: entering loop for the first time
-[value] tests/float/widen.c:16: entering loop for the first time
-[value] tests/float/widen.c:24: Frama_C_show_each_double_inf: [1. .. inf]
-[value] tests/float/widen.c:25: entering loop for the first time
-[value] tests/float/widen.c:34: Frama_C_show_each_float_inf: [1. .. inf]
-[value] Recording results for main1
-[value] Done for function main1
-[value] computing for function main2 <- main.
+[eva] tests/float/widen.c:13: starting to merge loop iterations
+[eva] tests/float/widen.c:16: starting to merge loop iterations
+[eva] tests/float/widen.c:24: Frama_C_show_each_double_inf: [1. .. inf]
+[eva] tests/float/widen.c:25: starting to merge loop iterations
+[eva] tests/float/widen.c:34: Frama_C_show_each_float_inf: [1. .. inf]
+[eva] Recording results for main1
+[eva] Done for function main1
+[eva] computing for function main2 <- main.
   Called from tests/float/widen.c:51.
-[value] tests/float/widen.c:40: entering loop for the first time
-[value] tests/float/widen.c:45: Frama_C_show_each: [-0. .. 0.]
-[value] Recording results for main2
-[value] Done for function main2
-[value] Recording results for main
-[value] done for function main
-[value] ====== VALUES COMPUTED ======
-[value:final-states] Values at end of function main1:
+[eva] tests/float/widen.c:40: starting to merge loop iterations
+[eva] tests/float/widen.c:45: Frama_C_show_each: [-0. .. 0.]
+[eva] Recording results for main2
+[eva] Done for function main2
+[eva] Recording results for main
+[eva] done for function main
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function main1:
   max ∈ [1. .. inf]
   f ∈ [1. .. inf]
   d ∈ [1. .. inf]
-[value:final-states] Values at end of function main2:
+[eva:final-states] Values at end of function main2:
   d ∈ [-0. .. 0.]
-[value:final-states] Values at end of function main:
+[eva:final-states] Values at end of function main:
   
 [from] Computing for function main1
 [from] Done for function main1

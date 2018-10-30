@@ -1,4 +1,4 @@
-# frama-c -wp [...]
+# frama-c -wp -wp-timeout 90 -wp-steps 1500 [...]
 [kernel] Parsing tests/wp/stmtcompiler_test.i (no preprocessing)
 [kernel] tests/wp/stmtcompiler_test.i:136: Warning: 
   Body of function if_assert falls-through. Adding a return statement

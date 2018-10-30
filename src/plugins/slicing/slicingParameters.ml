@@ -210,6 +210,9 @@ module OptionModified =
        let default () = true
      end)
 
+let wkey_cmdline = register_warn_category "cmdline"
+let () = set_warn_status wkey_cmdline Log.Wabort
+
 let () =
   State_dependency_graph.add_codependencies
     ~onto:OptionModified.self

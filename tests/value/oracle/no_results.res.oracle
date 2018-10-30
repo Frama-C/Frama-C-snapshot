@@ -1,55 +1,55 @@
 [kernel] Parsing tests/value/no_results.c (with preprocessing)
-[value] Analyzing a complete application starting at main
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing a complete application starting at main
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   t[0..2999] ∈ {0}
-[value] computing for function init <- main.
+[eva] computing for function init <- main.
   Called from tests/value/no_results.c:19.
-[value] Semantic level unrolling superposing up to 100 states
-[value] Semantic level unrolling superposing up to 200 states
-[value] Semantic level unrolling superposing up to 300 states
-[value] Semantic level unrolling superposing up to 400 states
-[value] Semantic level unrolling superposing up to 500 states
-[value] Semantic level unrolling superposing up to 600 states
-[value] Semantic level unrolling superposing up to 700 states
-[value] Semantic level unrolling superposing up to 800 states
-[value] Semantic level unrolling superposing up to 900 states
-[value] Semantic level unrolling superposing up to 1000 states
-[value] Semantic level unrolling superposing up to 1100 states
-[value] Semantic level unrolling superposing up to 1200 states
-[value] Semantic level unrolling superposing up to 1300 states
-[value] Semantic level unrolling superposing up to 1400 states
-[value] Semantic level unrolling superposing up to 1500 states
-[value] Semantic level unrolling superposing up to 1600 states
-[value] Semantic level unrolling superposing up to 1700 states
-[value] Semantic level unrolling superposing up to 1800 states
-[value] Semantic level unrolling superposing up to 1900 states
-[value] Semantic level unrolling superposing up to 2000 states
-[value] Semantic level unrolling superposing up to 2100 states
-[value] Semantic level unrolling superposing up to 2200 states
-[value] Semantic level unrolling superposing up to 2300 states
-[value] Semantic level unrolling superposing up to 2400 states
-[value] Semantic level unrolling superposing up to 2500 states
-[value] Semantic level unrolling superposing up to 2600 states
-[value] Semantic level unrolling superposing up to 2700 states
-[value] Semantic level unrolling superposing up to 2800 states
-[value] Semantic level unrolling superposing up to 2900 states
-[value] Semantic level unrolling superposing up to 3000 states
-[value] Recording results for init
-[value] Done for function init
-[value] computing for function f <- main.
+[eva] Semantic level unrolling superposing up to 100 states
+[eva] Semantic level unrolling superposing up to 200 states
+[eva] Semantic level unrolling superposing up to 300 states
+[eva] Semantic level unrolling superposing up to 400 states
+[eva] Semantic level unrolling superposing up to 500 states
+[eva] Semantic level unrolling superposing up to 600 states
+[eva] Semantic level unrolling superposing up to 700 states
+[eva] Semantic level unrolling superposing up to 800 states
+[eva] Semantic level unrolling superposing up to 900 states
+[eva] Semantic level unrolling superposing up to 1000 states
+[eva] Semantic level unrolling superposing up to 1100 states
+[eva] Semantic level unrolling superposing up to 1200 states
+[eva] Semantic level unrolling superposing up to 1300 states
+[eva] Semantic level unrolling superposing up to 1400 states
+[eva] Semantic level unrolling superposing up to 1500 states
+[eva] Semantic level unrolling superposing up to 1600 states
+[eva] Semantic level unrolling superposing up to 1700 states
+[eva] Semantic level unrolling superposing up to 1800 states
+[eva] Semantic level unrolling superposing up to 1900 states
+[eva] Semantic level unrolling superposing up to 2000 states
+[eva] Semantic level unrolling superposing up to 2100 states
+[eva] Semantic level unrolling superposing up to 2200 states
+[eva] Semantic level unrolling superposing up to 2300 states
+[eva] Semantic level unrolling superposing up to 2400 states
+[eva] Semantic level unrolling superposing up to 2500 states
+[eva] Semantic level unrolling superposing up to 2600 states
+[eva] Semantic level unrolling superposing up to 2700 states
+[eva] Semantic level unrolling superposing up to 2800 states
+[eva] Semantic level unrolling superposing up to 2900 states
+[eva] Semantic level unrolling superposing up to 3000 states
+[eva] Recording results for init
+[eva] Done for function init
+[eva] computing for function f <- main.
   Called from tests/value/no_results.c:20.
-[value] Recording results for f
+[eva] Recording results for f
 [from] Computing for function f
 [from] Done for function f
-[value] Done for function f
-[value] Recording results for main
+[eva] Done for function f
+[eva] Recording results for main
 [from] Computing for function main
 [from] Done for function main
-[value] done for function main
-[value] ====== VALUES COMPUTED ======
-[value:final-states] Values at end of function f:
+[eva] done for function main
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function f:
   t[0..1] ∈ {0}
    [2] ∈ {2}
    [3] ∈ {3}
@@ -3049,7 +3049,7 @@
    [2997] ∈ {2997}
    [2998] ∈ {2998}
    [2999] ∈ {2999}
-[value:final-states] Values at end of function main:
+[eva:final-states] Values at end of function main:
 Cannot filter: dumping raw memory (including unchanged variables)
   t[0..1] ∈ {0}
    [2] ∈ {2}

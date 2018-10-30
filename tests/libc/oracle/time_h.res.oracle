@@ -1,0 +1,115 @@
+[kernel] Parsing tests/libc/time_h.c (with preprocessing)
+[eva] Analyzing a complete application starting at main
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
+  
+[eva] computing for function nanosleep <- main.
+  Called from tests/libc/time_h.c:13.
+[eva] using specification for function nanosleep
+[eva] tests/libc/time_h.c:13: 
+  function nanosleep: precondition 'valid_request' got status valid.
+[eva] tests/libc/time_h.c:13: 
+  function nanosleep: precondition 'initialization,initialized_request' got status valid.
+[eva] tests/libc/time_h.c:13: 
+  function nanosleep: precondition 'valid_nanosecs' got status valid.
+[eva] tests/libc/time_h.c:13: 
+  function nanosleep: precondition 'valid_remaining_or_null' got status valid.
+[eva] Done for function nanosleep
+[eva] computing for function nanosleep <- main.
+  Called from tests/libc/time_h.c:17.
+[eva] tests/libc/time_h.c:17: 
+  function nanosleep: precondition 'valid_request' got status valid.
+[eva] tests/libc/time_h.c:17: 
+  function nanosleep: precondition 'initialization,initialized_request' got status valid.
+[eva] tests/libc/time_h.c:17: 
+  function nanosleep: precondition 'valid_nanosecs' got status valid.
+[eva] tests/libc/time_h.c:17: 
+  function nanosleep: precondition 'valid_remaining_or_null' got status valid.
+[eva] Done for function nanosleep
+[eva] computing for function nanosleep <- main.
+  Called from tests/libc/time_h.c:22.
+[eva] tests/libc/time_h.c:22: 
+  function nanosleep: precondition 'valid_request' got status valid.
+[eva] tests/libc/time_h.c:22: 
+  function nanosleep: precondition 'initialization,initialized_request' got status valid.
+[eva] tests/libc/time_h.c:22: 
+  function nanosleep: precondition 'valid_nanosecs' got status valid.
+[eva] tests/libc/time_h.c:22: 
+  function nanosleep: precondition 'valid_remaining_or_null' got status valid.
+[eva] Done for function nanosleep
+[eva] computing for function nanosleep <- main.
+  Called from tests/libc/time_h.c:22.
+[eva] Done for function nanosleep
+[eva] computing for function clock_nanosleep <- main.
+  Called from tests/libc/time_h.c:28.
+[eva] using specification for function clock_nanosleep
+[eva] tests/libc/time_h.c:28: 
+  function clock_nanosleep: precondition 'valid_request' got status valid.
+[eva] tests/libc/time_h.c:28: 
+  function clock_nanosleep: precondition 'initialization,initialized_request' got status valid.
+[eva] tests/libc/time_h.c:28: 
+  function clock_nanosleep: precondition 'valid_nanosecs' got status valid.
+[eva] tests/libc/time_h.c:28: 
+  function clock_nanosleep: precondition 'valid_remaining_or_null' got status valid.
+[eva] Done for function clock_nanosleep
+[eva] computing for function clock_nanosleep <- main.
+  Called from tests/libc/time_h.c:28.
+[eva] Done for function clock_nanosleep
+[eva] tests/libc/time_h.c:29: assertion got status valid.
+[eva] computing for function clock_nanosleep <- main.
+  Called from tests/libc/time_h.c:30.
+[eva] tests/libc/time_h.c:30: 
+  function clock_nanosleep: precondition 'valid_request' got status valid.
+[eva] tests/libc/time_h.c:30: 
+  function clock_nanosleep: precondition 'initialization,initialized_request' got status valid.
+[eva] tests/libc/time_h.c:30: 
+  function clock_nanosleep: precondition 'valid_nanosecs' got status valid.
+[eva] tests/libc/time_h.c:30: 
+  function clock_nanosleep: precondition 'valid_remaining_or_null' got status valid.
+[eva] Done for function clock_nanosleep
+[eva] computing for function clock_nanosleep <- main.
+  Called from tests/libc/time_h.c:32.
+[eva] tests/libc/time_h.c:32: 
+  function clock_nanosleep: precondition 'valid_request' got status valid.
+[eva] tests/libc/time_h.c:32: 
+  function clock_nanosleep: precondition 'initialization,initialized_request' got status valid.
+[eva] tests/libc/time_h.c:32: 
+  function clock_nanosleep: precondition 'valid_nanosecs' got status valid.
+[eva] tests/libc/time_h.c:32: 
+  function clock_nanosleep: precondition 'valid_remaining_or_null' got status valid.
+[eva] Done for function clock_nanosleep
+[eva] computing for function clock_nanosleep <- main.
+  Called from tests/libc/time_h.c:36.
+[eva] tests/libc/time_h.c:36: 
+  function clock_nanosleep: precondition 'valid_request' got status valid.
+[eva] tests/libc/time_h.c:36: 
+  function clock_nanosleep: precondition 'initialization,initialized_request' got status valid.
+[eva] tests/libc/time_h.c:36: 
+  function clock_nanosleep: precondition 'valid_nanosecs' got status valid.
+[eva] tests/libc/time_h.c:36: 
+  function clock_nanosleep: precondition 'valid_remaining_or_null' got status valid.
+[eva] Done for function clock_nanosleep
+[eva] computing for function clock_nanosleep <- main.
+  Called from tests/libc/time_h.c:36.
+[eva:alarm] tests/libc/time_h.c:36: Warning: 
+  function clock_nanosleep: precondition 'initialization,initialized_request' got status invalid.
+[eva] tests/libc/time_h.c:36: 
+  function clock_nanosleep: no state left, precondition 'valid_nanosecs' got status valid.
+[eva] tests/libc/time_h.c:36: 
+  function clock_nanosleep: no state left, precondition 'valid_remaining_or_null' got status valid.
+[eva] Done for function clock_nanosleep
+[eva] computing for function clock_nanosleep <- main.
+  Called from tests/libc/time_h.c:36.
+[eva] Done for function clock_nanosleep
+[eva] Recording results for main
+[eva] done for function main
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function main:
+  req.tv_sec ∈ [--..--]
+     .tv_nsec ∈ [0..999999999]
+  rem ∈ [--..--] or UNINITIALIZED
+  r ∈ {-1; 0; 4; 22}
+  creq.tv_sec ∈ [--..--] or UNINITIALIZED
+      .tv_nsec ∈ [0..999999999] or UNINITIALIZED
+  __retres ∈ {0; 1; 2}

@@ -46,11 +46,18 @@ type assert_kind =
 
 type 'vertex labels = 'vertex Cil_datatype.Logic_label.Map.t
 
+type 'vertex annotation = {
+  kind: assert_kind;
+  predicate: identified_predicate;
+  labels: 'vertex labels;
+  property: Property.t;
+}
+
 type 'vertex transition =
   | Skip
   | Return of exp option * stmt
   | Guard of exp * guard_kind * stmt
-  | Prop of assert_kind * identified_predicate * guard_kind * 'vertex labels * Property.t
+  | Prop of 'vertex annotation * stmt
   | Instr of instr * stmt
   | Enter of block
   | Leave of block
@@ -147,6 +154,11 @@ type control_points = {
 
 (** Helpers *)
 
+let is_loop stmt = match stmt.skind with Loop _ -> true | _ -> false
+let is_goto stmt = match stmt.skind with Goto _ -> true | _ -> false
+
+let is_goto_destination stmt = List.exists is_goto stmt.preds
+
 let stmt_loc stmt =
   Cil_datatype.Stmt.loc stmt
 
@@ -177,7 +189,41 @@ let last_loc block =
   try f (List.rev block.bstmts)
   with Not_found -> unknown_loc
 
-module Logic_label = Cil_datatype.Logic_label
+module LabelMap = struct
+  include Cil_datatype.Logic_label.Map
+  let add_builtin name = add (BuiltinLabel name)
+end
+
+(** Predicate for a loop variant v:
+    \at(v,start) > \at(v,end_loop) /\ \at(v,start) >= 0  *)
+let variant_predicate stmt v =
+  let loc = stmt_loc stmt in
+  let v_start = Logic_const.tat ~loc (v, BuiltinLabel LoopCurrent) in
+  let rel1 = Rlt, v_start, Logic_const.tat ~loc (v, BuiltinLabel Here)
+  and rel2 = Rle, Logic_const.tint ~loc Integer.zero, v_start in
+  let pred1 = Logic_const.prel ~loc rel1 in
+  let pred2 = Logic_const.prel ~loc rel2 in
+  Logic_const.pand ~loc (pred1, pred2)
+
+let supported_annotation annot = match annot.annot_content with
+  | AAssert ([], _)
+  | AInvariant ([], _, _)
+  | AVariant (_, None) -> true
+  | _ -> false (* TODO *)
+
+let code_annot = Annotations.code_annot ~filter:supported_annotation
+
+let make_annotation kf stmt annot labels =
+  let kind, pred =
+    match annot.annot_content with
+    | AAssert ([], pred) -> Assert, pred
+    | AInvariant ([], _, pred) -> Invariant, pred
+    | AVariant (v, None) -> Assert, variant_predicate stmt v
+    | _ -> assert false
+  in
+  let predicate = Logic_const.new_predicate pred in
+  let property = Property.ip_of_code_annot_single kf stmt annot in
+  {kind; predicate; labels; property}
 
 (** Build an automaton from a kf. It first traverses all the statements
     recursively. The recursion does not go deeper into instructions or
@@ -189,11 +235,6 @@ let build_automaton ~annotations kf =
   let table : (vertex * vertex) StmtTable.t = StmtTable.create 17 in
   let gotos : goto_list = ref [] in
   let loop_level = ref 0 in
-
-  let bind l n labels = Logic_label.Map.add l n labels in
-  let (@*) env lns =
-    List.fold_left (fun flow (l, n) -> Logic_label.Map.add l n flow) env lns
-  in
 
   (* Edges and vertices are numbered consecutively *)
   let next_vertex = ref 0
@@ -257,6 +298,15 @@ let build_automaton ~annotations kf =
     build_stmt_transition src dest stmt succ Skip
   in
 
+  let rec do_list do_one control labels = function
+    | [] -> assert false
+    | stmt :: [] -> do_one control labels stmt
+    | stmt :: l ->
+      let point = add_vertex () in
+      do_one {control with dest = point} labels stmt;
+      do_list do_one {control with src = point} labels l
+  in
+
   (* Entry and return point in the automaton *)
   let entry_point = add_vertex ()
   and return_point = add_vertex () in
@@ -276,93 +326,53 @@ let build_automaton ~annotations kf =
       add_edge control.src block_start kinstr (Enter block) loc_start;
       add_edge block_end control.dest kinstr (Leave block) loc_end;
       let block_control = {control with src = block_start; dest = block_end} in
-      do_stmt_list block_control labels block.bstmts
+      do_list do_stmt block_control labels block.bstmts
     end
-
-  and do_stmt_list control labels = function
-    | [] ->
-        assert false
-    | stmt :: [] ->
-        do_stmt control labels stmt
-    | stmt :: l ->
-        let point = add_vertex () in
-        do_stmt {control with dest = point} labels stmt;
-        do_stmt_list {control with src = point} labels l
-
-  and do_list do_ control labels = function
-    | [] -> control.src
-    | a :: l ->
-      let point = add_vertex () in
-      do_ {control with dest = point} labels a;
-      do_list do_ {control with src = point} labels l
 
   and do_stmt control (labels:vertex labels) stmt =
     let kinstr = Kstmt stmt
     and loc = stmt_loc stmt in
 
-    let rec do_prop kind pred truth_value control labels' ip =
-      let s = Cil.extract_labels_from_pred pred.ip_content in
-      let labels' = bind Logic_const.here_label control.src labels' in
-      let labels =
-        Logic_label.Set.fold (fun (l:Logic_label.t) labels ->
-            match l with
-            | Cil_types.StmtLabel stmt ->
-              let v =
-                try snd (StmtTable.find table !stmt)
-                with Not_found ->
-                  let after = add_vertex () in
-                  StmtTable.add table !stmt (add_vertex (), after);
-                  after
-              in
-              bind l v labels
-            | Cil_types.FormalLabel _ -> labels
-            | Cil_types.BuiltinLabel _ ->
-              bind l (try Logic_label.Map.find l labels' with Not_found -> invalid_arg "do_stmt") labels
-          ) s
-          Logic_label.Map.empty in
-      add_edge control.src control.dest kinstr (Prop(kind,pred,truth_value,labels,ip)) loc
+    let do_annot control labels (annot: code_annotation) : unit =
+      let labels = LabelMap.add_builtin Here control.src labels in
+      let annotation = make_annotation kf stmt annot labels in
+      let transition = Prop (annotation, stmt) in
+      add_edge control.src control.dest kinstr transition loc
+    in
+    let do_annot_list control labels l =
+      if l = [] then control.src else
+        let point = add_vertex () in
+        do_list do_annot {control with dest = point} labels l;
+        point
+    in
 
-    and do_annot stmt control labels (a:code_annotation) : unit =
-      match a.annot_content with
-      | AAssert([],pred) ->
-        let pred = Logic_const.new_predicate pred in
-        let ip = Property.ip_of_code_annot_single kf stmt a in
-        do_prop Assert pred Then control labels ip
-      | AInvariant([],_,pred) ->
-        let pred = Logic_const.new_predicate pred in
-        let ip = Property.ip_of_code_annot_single kf stmt a in
-        do_prop Invariant pred Then control labels ip
-      | AAssert(_,_) | AInvariant(_,_,_) | AVariant (_,Some _) -> assert false (** TODO *)
-      | AVariant (v,None) ->
-        let loc = stmt_loc stmt in
-        (** \at(v,start) > \at(v,end_loop) /\ \at(v,start) >= 0  *)
-        let pred1 = Logic_const.prel ~loc (Rlt,
-                                           Logic_const.tat ~loc (v,BuiltinLabel LoopCurrent),
-                                           Logic_const.tat ~loc (v,BuiltinLabel Here)) in
-        let pred2 = Logic_const.prel ~loc (Rle,
-                                           Logic_const.tint ~loc Integer.zero,
-                                           Logic_const.tat ~loc (v,BuiltinLabel LoopCurrent)) in
-        let pred = Logic_const.pand ~loc (pred1,pred2) in
-        let pred = Logic_const.new_predicate pred in
-        let ip = Property.ip_of_code_annot_single kf stmt a in
-        do_prop Assert pred Then control labels ip
-      | _ -> assert false
+    (* Adds statement annotations to the graph if required, except on loops
+       where variants and invariants need some special processing. *)
+    let control =
+      if not annotations || is_loop stmt then control else
+        let src = do_annot_list control labels (code_annot stmt) in
+        { control with src }
     in
+
+    (* Adds an empty vertex before loops (and goto destinations), allowing Eva
+       to distinguish between the state juste before the loop (or the goto)
+       and the states in the loop (or coming from the goto statements). *)
+    let control =
+      if not annotations && (is_loop stmt || is_goto_destination stmt)
+      then
+        let src = add_vertex () in
+        add_edge control.src src kinstr Skip loc;
+        { control with src }
+      else control
+    in
+
     (* Handle statement *)
-    let add_annot () =
-      if not annotations then control else
-        let l = Annotations.code_annot stmt in
-        let src = do_list (do_annot stmt) {control with dest = control.src} labels l in
-        {control with src}
-    in
     let dest = match stmt.skind with
       | Cil_types.Instr instr ->
-        let control = add_annot () in
         add_edge control.src control.dest kinstr (Instr (instr, stmt)) loc;
         control.dest
 
       | Cil_types.Return (opt_exp, _) ->
-        let control = add_annot () in
         let exited_blocks = Kernel_function.find_all_enclosing_blocks stmt in
         let transitions =
           Return (opt_exp,stmt) ::
@@ -372,22 +382,18 @@ let build_automaton ~annotations kf =
         end_code
 
       | Goto (dest_stmt, _) ->
-        let control = add_annot () in
         gotos := (control.src,stmt,!dest_stmt) :: !gotos;
         control.src
 
       | Break _ ->
-        let control = add_annot () in
         add_jump control.src (Extlib.the control.break) stmt;
         control.src
 
       | Continue _ ->
-        let control = add_annot () in
         add_jump control.src (Extlib.the control.continue) stmt;
         control.src
 
       | If (exp, then_block, else_block, _) ->
-        let control = add_annot () in
         let then_point = add_vertex ()
         and else_point = add_vertex () in
         let then_transition = Guard (exp, Then, stmt)
@@ -400,7 +406,6 @@ let build_automaton ~annotations kf =
         control.dest
 
       | Switch (exp1, block, cases, _) ->
-        let control = add_annot () in
         (* Guards for edges of the switch *)
         let build_guard exp2 kind =
           let enode = BinOp (Eq,exp1,exp2,Cil.intType) in
@@ -430,7 +435,7 @@ let build_automaton ~annotations kf =
                   default_case := Some (dest,case_stmt);
                   values
               | Label _ -> values
-              end values case_stmt.labels
+              end values case_stmt.Cil_types.labels
           end [] cases
         in
         (* Finally, link the default case *)
@@ -455,45 +460,53 @@ let build_automaton ~annotations kf =
         add_default_edge control.src values;
         control.dest
 
-    | Loop (_annotations, block, _, _, _) ->
-      incr loop_level;
-      (* We separate loop head from first statement of the loop, otherwise
-           we can't separate loop_entry from loop_current *)
-      let loop_head_point = add_vertex () in
-      add_edge control.src loop_head_point kinstr Skip loc;
-      loop_head_point.vertex_info <- LoopHead (!loop_level);
-      let labels = labels @* [BuiltinLabel LoopEntry,control.src;
-                              BuiltinLabel LoopCurrent,loop_head_point]
-      in
-      (* for variant to have one point at the end of the loop *)
-      let loop_end_point = add_vertex () in
-      let start_annot, end_annot =
-        List.partition
-          (function { annot_content = Cil_types.AVariant _ } -> false | _ -> true)
-          (Annotations.code_annot stmt)
-      in
-      let loop_start_body =
-        do_list (do_annot stmt) {control with src = loop_head_point} labels start_annot in
-      let loop_back =
-        do_list (do_annot stmt) {control with src = loop_end_point} labels end_annot in
-      add_edge loop_back loop_head_point kinstr Skip loc;
-      let loop_control = {
-        src=loop_start_body;
-        break=Some control.dest;
-        dest=loop_end_point;
-        continue=Some loop_end_point;
-      } in
-      do_block loop_control kinstr labels block;
-      decr loop_level;
-      control.dest
+      | Loop (_annotations, block, _, _, _) ->
+        incr loop_level;
+        let loop_control =
+          if not annotations
+          then
+            { src = control.src;
+              dest = control.src;
+              break = Some control.dest;
+              continue = Some control.src; }
+          else
+            (* We separate loop head from first statement of the loop, otherwise
+                 we can't separate loop_entry from loop_current *)
+            let loop_head_point = add_vertex () in
+            add_edge control.src loop_head_point kinstr Skip loc;
+            loop_head_point.vertex_info <- LoopHead (!loop_level);
+            let labels =
+              LabelMap.(add_builtin LoopEntry control.src
+                           (add_builtin LoopCurrent loop_head_point labels))
+            in
+            (* for variant to have one point at the end of the loop *)
+            let loop_end_point = add_vertex () in
+            let start_annot, end_annot =
+              List.partition
+                (function { annot_content = AVariant _ } -> false | _ -> true)
+                (code_annot stmt)
+            in
+            let loop_start_body =
+              do_annot_list {control with src = loop_head_point} labels start_annot
+            in
+            let loop_back =
+              do_annot_list {control with src = loop_end_point} labels end_annot
+            in
+            add_edge loop_back loop_head_point kinstr Skip loc;
+            { src=loop_start_body;
+              break=Some control.dest;
+              dest=loop_end_point;
+              continue=Some loop_end_point; }
+        in
+        do_block loop_control kinstr labels block;
+        decr loop_level;
+        control.dest
 
     | Block block ->
-      let control = add_annot () in
       do_block control kinstr labels block;
       control.dest
 
     | UnspecifiedSequence us ->
-      let control = add_annot () in
       let block = Cil.block_from_unspecified_sequence us in
       do_block control kinstr labels block;
       control.dest
@@ -510,8 +523,8 @@ let build_automaton ~annotations kf =
 
   let loc = Kernel_function.get_location kf in
 
-  add_edge entry_point start_code Kglobal Skip loc;
-  add_edge end_code return_point Kglobal Skip loc;
+  if annotations then add_edge entry_point start_code Kglobal Skip loc;
+  if annotations then add_edge end_code return_point Kglobal Skip loc;
 
   (* Iterate through the AST *)
   let control = {
@@ -523,8 +536,7 @@ let build_automaton ~annotations kf =
   in
 
   let labels_body =
-    Logic_label.Map.empty @* [Logic_const.pre_label, start_code;
-                              Logic_const.post_label, end_code]
+    LabelMap.(add_builtin Pre start_code (add_builtin Post end_code empty))
   in
   do_block control Kglobal labels_body fundec.sbody;
 
@@ -534,6 +546,33 @@ let build_automaton ~annotations kf =
       let dest,_ = StmtTable.find table dest_stmt in
       add_jump src dest src_stmt
     end !gotos;
+
+  (* For annotation transitions, bind statement labels to their corresponding
+     vertices once the graph has been built. The label map built with the graph
+     already contains the builtin labels. *)
+  let bind_labels (v1, edge, v2) =
+    match edge.edge_transition with
+    | Prop (annot, stmt) ->
+      let l = Cil.extract_labels_from_pred annot.predicate.ip_content in
+      let bind label map =
+        try
+          let vertex = match label with
+          | FormalLabel _ -> raise Not_found
+          | BuiltinLabel _ -> LabelMap.find label annot.labels
+          | StmtLabel stmt -> snd (StmtTable.find table !stmt)
+          in
+          LabelMap.add label vertex map
+        with Not_found -> map
+      in
+      let new_map = Cil_datatype.Logic_label.Set.fold bind l LabelMap.empty in
+      let new_annot = { annot with labels = new_map } in
+      let new_transition = Prop (new_annot, stmt) in
+      let new_edge = { edge with edge_transition = new_transition } in
+      G.remove_edge_e g (v1, edge, v2);
+      G.add_edge_e g (v1, new_edge, v2)
+    | _ -> ()
+  in
+  G.iter_edges_e bind_labels g;
 
   (* Return the result *)
   {graph = g; entry_point; return_point; stmt_table = table}
@@ -579,16 +618,9 @@ type wto = vertex Wto.partition
 
 module Scheduler = Wto.Make (Vertex)
 
-let build_wto {graph; entry_point} =
+let build_wto ~pref {graph; entry_point} =
   let init = entry_point
   and succs = fun stmt -> G.succ graph stmt
-  in
-  let pref v1 v2 =
-    match v1.vertex_info, v2.vertex_info with
-    | NoneInfo, NoneInfo -> 0
-    | NoneInfo, _ -> -1
-    | _ , NoneInfo -> 1
-    | LoopHead i, LoopHead j -> - (compare i j)
   in
   Scheduler.partition ~pref ~init ~succs
 
@@ -660,10 +692,9 @@ let pretty_transition fmt t =
   | Return (Some exp,_) -> fprintf fmt "return %a" Printer.pp_exp exp
   | Guard (exp,Then,_) -> Printer.pp_exp fmt exp
   | Guard (exp,Else,_) -> fprintf fmt "!(%a)" Printer.pp_exp exp
-  | Prop (k,p,b,_,_) ->
-    fprintf fmt "%a: %s%a" pretty_kind k
-      (if b = Then then "" else "!")
-      Cil_datatype.Identified_predicate.pretty p
+  | Prop (a,_) ->
+    fprintf fmt "%a: %a"
+      pretty_kind a.kind Printer.pp_identified_predicate a.predicate
   | Instr (instr,_) -> Printer.pp_instr fmt instr
   | Enter (b) -> fprintf fmt "Enter %a" print_var_list b.blocals
   | Leave (b)  -> fprintf fmt "Exit %a" print_var_list b.blocals
@@ -790,11 +821,20 @@ module WTOIndex =
 module Compute = struct
 
   let output_to_dot = output_to_dot
-  let build_wto = build_wto
   let get_automaton ~annotations = build_automaton ~annotations
   let exit_strategy = exit_strategy
 
   type wto_index_table = wto_index Vertex.Hashtbl.t
+
+  let build_wto automaton =
+    let pref v1 v2 =
+      match v1.vertex_info, v2.vertex_info with
+      | NoneInfo, NoneInfo -> 0
+      | NoneInfo, _ -> -1
+      | _ , NoneInfo -> 1
+      | LoopHead i, LoopHead j -> - (compare i j)
+    in
+    build_wto ~pref automaton
 
   let build_wto_index_table wto =
     let table = Vertex.Hashtbl.create 17 in
@@ -863,9 +903,19 @@ module WTOState = Kernel_function.Make_Table (WTO)
     let dependencies = [Ast.self]
    end)
 
-let get_wto = WTOState.memo (fun kf ->
-  let automaton = get_automaton kf in
-  build_wto automaton)
+let get_wto =
+  let build kf =
+    let automaton = get_automaton kf in
+    let pref v1 v2 =
+      match v1.vertex_start_of, v2.vertex_start_of with
+      | None, None -> 0
+      | None, _ -> -1
+      | _ , None -> 1
+      | Some _, Some _ -> 0
+    in
+    build_wto ~pref automaton
+  in
+  WTOState.memo build
 
 
 module WTOIndexState =
@@ -985,16 +1035,16 @@ module UnrollUnnatural  = struct
         | Instr (a,b) -> Instr (a,b)
         | Enter a -> Enter a
         | Leave a -> Leave a
-        | Prop (k,p,b,l,i) ->
-          let l = Logic_label.Map.map (fun v2 ->
+        | Prop (a,b) ->
+          let labels = LabelMap.map (fun v2 ->
               let v2l = Compute.get_wto_index index v2 in
               let d1,d2 = Compute.wto_index_diff nl v2l in
               let version2 = List.fold_left (fun acc e -> Vertex.Set.remove e acc) version d1 in
               let version2 = List.fold_left (fun acc e -> Vertex.Set.add e acc) version2 d2 in
               let version2 = Vertex.Set.remove v2 version2 in
               (v2,version2)
-            ) l in
-          Prop (k,p,b,l,i)
+            ) a.labels in
+          Prop ({a with labels}, b)
       in
       {e with edge_transition = t}
     in

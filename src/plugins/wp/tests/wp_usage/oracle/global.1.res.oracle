@@ -20,6 +20,6 @@ Goal Instance of 'Pre-condition (file tests/wp_usage/global.c, line 14) in 'foo'
 Prove: true.
 
 ------------------------------------------------------------
-[wp] Warning: Separation hypotheses for function 'foo':
+[wp] Warning: Memory model hypotheses for function 'foo':
   /*@ behavior typed: requires \separated(&GLOBAL,a); */
   void foo(int *a);

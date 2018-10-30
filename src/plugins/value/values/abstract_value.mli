@@ -25,6 +25,27 @@
 open Cil_types
 open Eval
 
+(** Type for the truth value of an assertion in a value abstraction. The two
+    last tags should be used only for a product of value abstractions. *)
+type 'v truth =
+  [ `False              (* The assertion is always false for the value
+                           abstraction, leading to bottom and a red alarm. *)
+  | `Unknown of 'v      (* The assertion may be true or false for different
+                           concretization of the abstraction. The value is
+                           reduced by assuming the assertion. *)
+  | `True               (* The assertion is always true for the value
+                           abstraction (that cannot be reduced). *)
+  | `TrueReduced of 'v  (* The assertion is always true according to a component
+                           of a product of values, but other components have
+                           been reduced by assuming the assertion. *)
+  | `Unreachable ]      (* A product of values was incompatible and has led to
+                           inconsistent truth value for the assertion. *)
+
+type bound_kind = Alarms.bound_kind = Lower_bound | Upper_bound
+type bound = Int of Integer.t | Float of float * fkind
+
+type pointer_comparison = Equality | Relation | Subtraction
+
 (** Signature of abstract numerical values. *)
 module type S = sig
   include Datatype.S
@@ -42,12 +63,49 @@ module type S = sig
   (** {3 Constructors } *)
 
   val zero: t
-  val float_zeros: t
+  val one: t
   val top_int : t
   val inject_int : typ -> Integer.t -> t
-  val inject_address: varinfo -> t
   (** Abstract address for the given varinfo. (With type "pointer to the type
       of the variable" if the abstract values are typed.) *)
+
+  (** {3 Alarms } *)
+
+  (** These functions are used to create the alarms that report undesirable
+      behaviors, when a value abstraction does not meet the prerequisites of an
+      operation. Thereafter, the value is assumed to meet them to continue the
+      analysis.
+      See the documentation of the [truth] type for more details. *)
+
+  (* Assumes that the integer value represents only non zero values. *)
+  val assume_non_zero: t -> t truth
+
+  (* [assume_bounded Lower_bound b v] assumes that the value [v] represents
+     only values greater or equal to the lower bound [b].
+     [assume_bounded Upper_bound b v] assumes that the value [v] represents
+     only values lower or equal to the greater bound [b].
+     Depending on the bound, [v] is an integer or a floating-point value. *)
+  val assume_bounded: bound_kind -> bound -> t -> t truth
+
+  (* Assumes that the floating-point value does not represent NaN.
+     If [assume_finite] is true, assumes that the value represents only finite
+     floating-point values. *)
+  val assume_not_nan: assume_finite:bool -> fkind -> t -> t truth
+
+  (* [assume_comparable cmp v1 v2] assumes that the integer or pointer values
+     [v1] and [v2] are comparable for [cmp]. Integers are always comparable.
+     If one value is a pointer, then both values should be pointers, and:
+     and according to [cmp]:
+     - if [cmp] is Equality:
+       either one pointer is NULL, or both pointers are valid (pointing into
+       their object), or both pointers are nearly valid (pointing into or just
+       beyond their object) and point to the same object.
+     - if [cmp] is Relation:
+       both pointers should point into or just beyond the same object;
+     - if [cmp] is Subtraction:
+       both pointers should point to the same object, without any restriction on
+       their offsets. *)
+  val assume_comparable: pointer_comparison -> t -> t -> (t * t) truth
 
   (** {3 Forward Operations } *)
 
@@ -55,17 +113,24 @@ module type S = sig
       for the given constant. The constant cannot be an enumeration constant. *)
   val constant : exp -> constant -> t
 
-  (** [forward_unop context typ unop v] evaluates the value [unop v], and the
-      alarms resulting from the operations. See {eval.mli} for details on the
-      types. [typ] is the type of [v], and [context] contains the expressions
-      involved in the operation, needed to create the alarms. *)
-  val forward_unop : context:unop_context -> typ -> unop -> t -> t evaluated
+  (** [forward_unop typ unop v] evaluates the value [unop v], resulting from the
+      application of the unary operator [unop] to the value [v].  [typ] is the
+      type of [v]. *)
+  val forward_unop : typ -> unop -> t -> t or_bottom
 
-  (** [forward_binop context typ binop v1 v2] evaluates the value [v1 binop v2],
-      and the alarms resulting from the operations. See {eval.mli} for details
-      on the types. [typ] is the type of [v1], and [context] contains the
-      expressions involved in the operation, needed to create the alarms. *)
-  val forward_binop : context:binop_context -> typ -> binop -> t -> t -> t evaluated
+  (** [forward_binop typ binop v1 v2] evaluates the value [v1 binop v2],
+      resulting from the application of the binary operator [binop] to the
+      values [v1] and [v2]. [typ] is the type of [v1]. *)
+  val forward_binop : typ -> binop -> t -> t -> t or_bottom
+
+  (** [rewrap_integer irange t] wraps around the abstract value [t] to fit the
+      integer range [irange], assuming 2's complement. *)
+  val rewrap_integer: Eval_typ.integer_range -> t -> t
+
+  (** Abstract evaluation of casts operators from [src_type] to [dst_type]. *)
+  val forward_cast :
+    src_type: Eval_typ.scalar_typ -> dst_type: Eval_typ.scalar_typ ->
+    t -> t or_bottom
 
   (** {3 Backward Operations } *)
 
@@ -107,25 +172,6 @@ module type S = sig
     src_val: t ->
     dst_val: t ->
     t option or_bottom
-
-  (** {3 Reinterpret and Cast } *)
-
-  (** [truncate_integer expr irange t] truncates the abstract value [t] to the
-      integer range [irange]. Produces overflow alarms if [t] does not already
-      fit into [irange], attached to the expression [expr]. *)
-  val truncate_integer: exp -> Eval_typ.integer_range -> t -> t evaluated
-
-  (** [rewrap_integer irange t] wraps around the abstract value [t] to fit the
-      integer range [irange]. Does not produce any alarms. *)
-  val rewrap_integer: Eval_typ.integer_range -> t -> t
-
-  (** [restrict_float expr fkind t] removes NaN from the abstract value [t].
-      It also removes infinities if [remove_infinite] is set to true.
-      Produces is_nan_or_infinite alarms if necessary. *)
-  val restrict_float: remove_infinite:bool -> exp -> fkind -> t -> t evaluated
-
-  (** Abstract evaluation of casts operators from [scr_typ] to [dst_typ]. *)
-  val cast : src_typ:typ -> dst_typ: typ -> exp -> t -> t evaluated
 
   val resolve_functions : t -> Kernel_function.t list or_top * bool
   (** [resolve_functions v] returns the list of functions that may be pointed to

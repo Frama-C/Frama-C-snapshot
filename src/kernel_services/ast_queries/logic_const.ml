@@ -55,8 +55,8 @@ let refresh_predicate p = { p with ip_id = PredicateId.next () }
 let new_identified_term t =
   { it_id = TermId.next (); it_content = t }
 
-let new_acsl_extension name p =
-  ExtendedId.next (),name ,p
+let new_acsl_extension name l p =
+  ExtendedId.next (),name, l, p
 
 let fresh_term_id = TermId.next
 
@@ -132,58 +132,101 @@ let loop_entry_label = BuiltinLabel LoopEntry
 
 (** {2 Types} *)
 
-let is_list_type = function
+let rec instantiate subst = function
+  | Ltype(ty,prms) -> Ltype(ty, List.map (instantiate subst) prms)
+  | Larrow(args,rt) ->
+      Larrow(List.map (instantiate subst) args, instantiate subst rt)
+  | Lvar v as ty ->
+      (* This is an application of type parameters:
+         no need to recursively substitute in the resulting type. *)
+      (try List.assoc v subst with Not_found -> ty)
+  | Ctype _ | Linteger | Lreal as ty -> ty
+
+let is_unrollable_ltdef = function
+  | {lt_def=Some (LTsyn _)} -> true
+  | {lt_def=Some (LTsum _)} | {lt_def=None} -> false
+
+let rec unroll_ltdef = function
+  | Ltype ({lt_def=Some (LTsyn ty);lt_params},prms) ->
+    let subst =
+      try
+        List.combine lt_params prms
+      with Invalid_argument _ ->
+        Kernel.fatal "Logic type used with wrong number of parameters"
+    in
+    unroll_ltdef (instantiate subst ty)
+  | Ltype ({lt_def= None},_)
+  | Ltype ({lt_def= Some (LTsum _)},_)
+  | Linteger | Lreal | Lvar _ | Larrow _ | Ctype _ as ty  -> ty
+
+let rec isLogicCType f = function
+  | Ltype (tdef,_) as ty when is_unrollable_ltdef tdef ->
+    isLogicCType f (unroll_ltdef ty)
+  | Ltype _ | Linteger | Lreal | Lvar _ | Larrow _ -> false
+  | Ctype cty  -> f cty
+
+let rec is_list_type = function
   | Ltype ({lt_name = "\\list"},[_]) -> true
+  | Ltype (tdef,_) as ty when is_unrollable_ltdef tdef ->
+    is_list_type (unroll_ltdef ty)
   | _ -> false
 
 (** returns the type of elements of a list type.
     @raise Failure if the input type is not a list type. *)
-let type_of_list_elem ty = match ty with
+let rec type_of_list_elem ty = match ty with
   | Ltype ({lt_name = "\\list"},[t]) -> t
+  | Ltype (tdef,_) as ty when is_unrollable_ltdef tdef ->
+    type_of_list_elem (unroll_ltdef ty)
   | _ -> failwith "not a list type"
 
 (** build the type list of [ty]. *)
 let make_type_list_of ty =
   Ltype(Logic_env.find_logic_type "\\list",[ty])
 
-let is_set_type = function
+let rec is_set_type = function
   | Ltype ({lt_name = "set"},[_]) -> true
+  | Ltype (tdef,_) as ty when is_unrollable_ltdef tdef ->
+    is_set_type (unroll_ltdef ty)
   | _ -> false
-
-(** [set_conversion ty1 ty2] returns a set type as soon as [ty1] and/or [ty2]
-    is a set. Elements have type [ty1], or the type of the elements of [ty1] if
-    it is itself a set-type ({i.e.} we do not build set of sets that way).*)
-let set_conversion ty1 ty2 =
-  match ty1,ty2 with
-  | Ltype ({lt_name = "set"},[_]),_ -> ty1
-  | ty1, Ltype({lt_name = "set"} as lt,[_]) -> Ltype(lt,[ty1])
-  | _ -> ty1
 
 (** converts a type into the corresponding set type if needed. *)
 let make_set_type ty =
   if is_set_type ty then ty
   else Ltype(Logic_env.find_logic_type "set",[ty])
 
+(** [set_conversion ty1 ty2] returns a set type as soon as [ty1] and/or [ty2]
+    is a set. Elements have type [ty1], or the type of the elements of [ty1] if
+    it is itself a set-type ({i.e.} we do not build set of sets that way).*)
+let set_conversion ty1 ty2 =
+  if is_set_type ty2 then make_set_type ty1 else ty1
+
 (** returns the type of elements of a set type.
     @raise Failure if the input type is not a set type. *)
-let type_of_element ty = match ty with
+let rec type_of_element ty = match ty with
   | Ltype ({lt_name = "set"},[t]) -> t
+  | Ltype (tdef,_) as ty when is_unrollable_ltdef tdef ->
+    type_of_element (unroll_ltdef ty)
   | _ -> failwith "not a set type"
 
 (** [plain_or_set f t] applies [f] to [t] or to the type of elements of [t]
     if it is a set type *)
 let plain_or_set f = function
   | Ltype ({lt_name = "set"},[t]) -> f t
+  | Ltype (tdef,_) as t when is_unrollable_ltdef tdef -> begin
+      match unroll_ltdef t with
+      | Ltype ({lt_name = "set"},[t]) -> f t
+      | _ -> f t
+    end
   | t -> f t
 
 let transform_element f t = set_conversion (plain_or_set f t) t
 
-let is_plain_type = function
-  | Ltype ({lt_name = "set"},[_]) -> false
-  | _ -> true
+let is_plain_type ty = not (is_set_type ty)
 
-let is_boolean_type = function
+let rec is_boolean_type = function
   | Ltype ({ lt_name = s }, []) when s = Utf8_logic.boolean -> true
+  | Ltype (tdef,_) as ty when is_unrollable_ltdef tdef ->
+    is_boolean_type (unroll_ltdef ty)
   | _ -> false
 
 let boolean_type = Ltype ({ lt_name = Utf8_logic.boolean ; lt_params = [] ; lt_def = None; lt_attr = [] } , [])

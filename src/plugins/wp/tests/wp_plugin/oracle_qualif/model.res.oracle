@@ -1,4 +1,4 @@
-# frama-c -wp [...]
+# frama-c -wp -wp-timeout 100 -wp-steps 500 [...]
 [kernel] Parsing tests/wp_plugin/model.i (no preprocessing)
 [kernel] tests/wp_plugin/model.i:11: Warning: 
   parsing obsolete ACSL construct 'logic declaration'. 'an axiomatic block' should be used instead.

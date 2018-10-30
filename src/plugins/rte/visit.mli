@@ -27,9 +27,6 @@ open Cil_types
 *)
 val annotate_kf: kernel_function -> unit
 
-(** Generates preconditions RTE for a given function. *)
-val do_precond: kernel_function -> unit
-
 (** Generates all RTEs for a given function. *)
 val do_all_rte: kernel_function -> unit
 

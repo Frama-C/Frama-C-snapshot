@@ -4,9 +4,9 @@
 [kernel] tests/value/empty_base.c:66: Warning: 
   Too many initializers for structure
 [kernel] tests/value/empty_base.c:74: User Error: 
-  field z is declared with incomplete type struct foo_0
+  field `z' declared with a type containing a flexible array member.
 [kernel] tests/value/empty_base.c:79: User Error: 
-  field f1 is declared with incomplete type struct f1_0
+  field `f1' declared with a type containing a flexible array member.
 [kernel] User Error: stopping on file "tests/value/empty_base.c" that has errors. Add
   '-kernel-msg-key pp' for preprocessing command.
 [kernel] Frama-C aborted: invalid user input.

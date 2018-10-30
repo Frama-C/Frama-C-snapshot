@@ -137,7 +137,7 @@ let widen_hint_terms_of_terms terms =
   with
     Invalid_hint -> None
 
-let () = Logic_typing.register_behavior_extension "widen_hints"
+let () = Logic_typing.register_code_annot_next_both_extension "widen_hints"
     (fun ~typing_context ~loc args ->
        let var_term, hint_terms =
          terms_of_parsed_widen_hints typing_context loc args
@@ -146,7 +146,7 @@ let () = Logic_typing.register_behavior_extension "widen_hints"
        Ext_terms terms
     )
 
-let () = Cil_printer.register_behavior_extension "widen_hints"
+let () = Cil_printer.register_code_annot_extension "widen_hints"
     (fun _pp fmt ext ->
        match ext with
        | Ext_id _ -> assert false
@@ -166,17 +166,8 @@ let get_widen_hints_annots stmt =
   Annotations.fold_code_annot
     (fun _emitter annot acc ->
        match annot with
-       | {annot_content = AStmtSpec (_, { spec_behavior = [{b_extended}]})} ->
-         acc @ Extlib.filter_map
-           (fun (_,name, _) -> name = "widen_hints")
-           (fun (_,_, ext) ->
-              match ext with
-              | Ext_id _ -> assert false
-              | Ext_preds _ -> assert false
-              | Ext_terms terms -> terms)
-           b_extended
        | {annot_content =
-            AExtended (_, (_,"widen_hints", Ext_terms terms))} ->
+            AExtended (_, _,(_,"widen_hints", _, Ext_terms terms))} ->
          (* loop widen_hints *)
          acc @ [terms]
        | _ -> acc

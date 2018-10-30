@@ -1,4 +1,6 @@
 [kernel] Parsing tests/report/classify.c (with preprocessing)
+[kernel:annot-error] tests/report/classify.c:27: Warning: 
+  unbound logic variable ignored. Ignoring code annotation
 [wp] Running WP plugin...
 [wp] Warning: Missing RTE guards
 [wp] 2 goals scheduled

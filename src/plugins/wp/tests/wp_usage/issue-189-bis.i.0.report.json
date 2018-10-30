@@ -1,15 +1,15 @@
-{ "wp:global": { "alt-ergo": { "total": 10, "valid": 10, "rank": 68 },
+{ "wp:global": { "alt-ergo": { "total": 10, "valid": 10, "rank": 52 },
                  "qed": { "total": 20, "valid": 20 },
-                 "wp:main": { "total": 30, "valid": 30, "rank": 68 } },
+                 "wp:main": { "total": 30, "valid": 30, "rank": 52 } },
   "wp:functions": { "memcpy_alias_vars": { "memcpy_alias_vars_loop_inv_cpy": 
                                              { "alt-ergo": { "total": 1,
                                                              "valid": 1,
-                                                             "rank": 68 },
+                                                             "rank": 52 },
                                                "qed": { "total": 1,
                                                         "valid": 1 },
                                                "wp:main": { "total": 2,
                                                             "valid": 2,
-                                                            "rank": 68 } },
+                                                            "rank": 52 } },
                                            "memcpy_alias_vars_loop_inv_dst": 
                                              { "qed": { "total": 2,
                                                         "valid": 2 },
@@ -60,22 +60,22 @@
                                            "wp:section": { "alt-ergo": 
                                                              { "total": 5,
                                                                "valid": 5,
-                                                               "rank": 68 },
+                                                               "rank": 52 },
                                                            "qed": { "total": 10,
                                                                     "valid": 10 },
                                                            "wp:main": 
                                                              { "total": 15,
                                                                "valid": 15,
-                                                               "rank": 68 } } },
+                                                               "rank": 52 } } },
                     "memcpy_context_vars": { "memcpy_context_vars_loop_inv_ok_cpy": 
                                                { "alt-ergo": { "total": 1,
                                                                "valid": 1,
-                                                               "rank": 68 },
+                                                               "rank": 52 },
                                                  "qed": { "total": 1,
                                                           "valid": 1 },
                                                  "wp:main": { "total": 2,
                                                               "valid": 2,
-                                                              "rank": 68 } },
+                                                              "rank": 52 } },
                                              "memcpy_context_vars_loop_inv_ok_dst": 
                                                { "qed": { "total": 2,
                                                           "valid": 2 },
@@ -126,10 +126,10 @@
                                              "wp:section": { "alt-ergo": 
                                                                { "total": 5,
                                                                  "valid": 5,
-                                                                 "rank": 68 },
+                                                                 "rank": 52 },
                                                              "qed": { "total": 10,
                                                                     "valid": 10 },
                                                              "wp:main": 
                                                                { "total": 15,
                                                                  "valid": 15,
-                                                                 "rank": 68 } } } } }
+                                                                 "rank": 52 } } } } }

@@ -1,12 +1,12 @@
 [kernel] Parsing tests/value/uninit_callstack.i (no preprocessing)
-[value] Analyzing a complete application starting at main
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing a complete application starting at main
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   p ∈ {0}
   x ∈ {0}
-[value:alarm] tests/value/uninit_callstack.i:8: Warning: 
+[eva:alarm] tests/value/uninit_callstack.i:8: Warning: 
   accessing uninitialized left-value. assert \initialized(p);
   stack: f :: tests/value/uninit_callstack.i:14 <- main
-[value] done for function main
-[value] ====== VALUES COMPUTED ======
+[eva] done for function main
+[eva] ====== VALUES COMPUTED ======

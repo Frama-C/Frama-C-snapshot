@@ -30,18 +30,19 @@ class coverageAuxVisitor ~libc = object(self)
 
   (* Visit the body and the spec of a function *)
   method private visit_function vi =
-    if Metrics_base.consider_function ~libc vi then
-      let kf = Globals.Functions.get vi in
-      let self = (self :> Visitor.frama_c_visitor) in
+    let kf = Globals.Functions.get vi in
+    let self = (self :> Visitor.frama_c_visitor) in
+    if Metrics_base.consider_function ~libc vi then begin
       (* Visit the spec. There might be references to function pointers in
          the assigns *)
       let spec = Annotations.funspec ~populate:false kf in
       ignore (Visitor.visitFramacFunspec self spec);
-      (try
-         (* Visit the body if we have one *)
-         let fundec = Kernel_function.get_definition kf in
-         ignore (Visitor.visitFramacFunction self fundec);
-       with Kernel_function.No_Definition -> ())
+    end;
+    (try
+       (* Visit the body if we have one *)
+       let fundec = Kernel_function.get_definition kf in
+       ignore (Visitor.visitFramacFunction self fundec);
+     with Kernel_function.No_Definition -> ())
 
   (* Visit the initializer of the given var, if it exists, and returns it *)
   method private visit_non_function_var vi =
@@ -59,6 +60,8 @@ class coverageAuxVisitor ~libc = object(self)
     else None
 
 end
+
+let dkey_syn = Metrics_parameters.register_category "syntactic-visitor"
 
 (* Reachability metrics: from a given entry point
    compute a conservative estimation
@@ -85,10 +88,12 @@ class callableFunctionsVisitor ~libc = object(self)
      consider it is called *)
   method! vvrbl vi =
     if not (self#already_seen vi) then begin
-      if Cil.isFunctionType vi.vtype &&
-           Metrics_base.consider_function ~libc vi
-      then
+      if Cil.isFunctionType vi.vtype && Metrics_base.consider_function ~libc vi
+      then begin
+        Metrics_parameters.feedback ~dkey:dkey_syn
+          "marking %a as callable" Printer.pp_varinfo vi;
         callable <- Varinfo.Set.add vi callable;
+      end;
       Stack.push vi todo;
     end;
     Cil.SkipChildren (* no children anyway *)
@@ -106,7 +111,10 @@ class callableFunctionsVisitor ~libc = object(self)
     Stack.clear todo;
     Stack.push vi todo;
     Varinfo.Hashtbl.clear visited;
-    callable <- Varinfo.Set.singleton vi;
+    Metrics_parameters.feedback ~dkey:dkey_syn
+      "marking %a as callable" Printer.pp_varinfo vi;
+    if Metrics_base.consider_function ~libc vi then
+      callable <- Varinfo.Set.singleton vi;
     (* Reach fixpoint *)
     while not (Stack.is_empty todo) do
       let vi = Stack.pop todo in
@@ -114,8 +122,7 @@ class callableFunctionsVisitor ~libc = object(self)
         begin
           Metrics_parameters.debug "Coverage: visiting %s" vi.vname;
           Varinfo.Hashtbl.add visited vi ();
-          if Cil.isFunctionType vi.vtype && Metrics_base.consider_function ~libc vi
-          then self#visit_function vi
+          if Cil.isFunctionType vi.vtype then self#visit_function vi
           else ignore (self#visit_non_function_var vi)
         end;
     done;
@@ -248,6 +255,8 @@ let compute_syntactic ~libc kf =
   res, vis#initializers
 ;;
 
+let dkey_sem = Metrics_parameters.register_category "semantic-visitor"
+
 let compute_semantic ~libc =
   assert (Db.Value.is_computed ());
   let res = ref Varinfo.Set.empty in
@@ -257,11 +266,18 @@ let compute_semantic ~libc =
        if !Db.Value.is_called kf &&
           Metrics_base.consider_function ~libc
             (Kernel_function.get_vi kf)
-       then
-         res := Varinfo.Set.add (Kernel_function.get_vi kf) !res
+       then begin
+        Metrics_parameters.feedback ~dkey:dkey_sem
+          "marking %a as called" Kernel_function.pretty kf;
+        res := Varinfo.Set.add (Kernel_function.get_vi kf) !res
+       end
     );
   !res
 ;;
+
+let cardinality ~libc s =
+  Varinfo.Set.cardinal
+    (Varinfo.Set.filter (fun vi -> Metrics_base.consider_function ~libc vi) s)
 
 class syntactic_printer ~libc reachable = object(self)
 
@@ -278,25 +294,25 @@ class syntactic_printer ~libc reachable = object(self)
     let add_binding map filename fvinfo =
       let set =
         try
-          let x = Datatype.String.Map.find filename map in
+          let x = Datatype.Filepath.Map.find filename map in
           Varinfo.Set.add fvinfo x
         with Not_found -> Varinfo.Set.add fvinfo Varinfo.Set.empty
-      in Datatype.String.Map.add filename set map
+      in Datatype.Filepath.Map.add filename set map
     in
     let map =
       Varinfo.Set.fold
         (fun fvinfo acc ->
            if Metrics_base.consider_function ~libc fvinfo then
-             let fname = Metrics_base.file_of_vinfodef fvinfo in
-             add_binding acc (Filepath.pretty fname) fvinfo
+             let path = Metrics_base.file_of_vinfodef fvinfo in
+             add_binding acc path fvinfo
            else acc
-        ) set Datatype.String.Map.empty
+        ) set Datatype.Filepath.Map.empty
     in
     Format.fprintf fmt "@[<v 0>";
-    Datatype.String.Map.iter
-      (fun pretty_fname fvinfoset ->
-         Format.fprintf fmt "@[<hov 2><%s>:@ %a@]@ "
-           pretty_fname
+    Datatype.Filepath.Map.iter
+      (fun path fvinfoset ->
+         Format.fprintf fmt "@[<hov 2><%a>:@ %a@]@ "
+           Datatype.Filepath.pretty path
            (fun fmt vinfoset ->
               let vars = Varinfo.Set.elements vinfoset in
               let sorted_vars = List.sort compare_vi_names vars in
@@ -308,12 +324,12 @@ class syntactic_printer ~libc reachable = object(self)
     Format.fprintf fmt "@]"
 
   method pp_reached_from_function fmt kf =
-    let card_syn = Varinfo.Set.cardinal reachable in
+    let card_syn = cardinality ~libc reachable in
     let title_reach = Format.asprintf "%a: %d"
         Kernel_function.pretty kf card_syn
     in
     let all = self#all_funs in
-    let card_all = Varinfo.Set.cardinal all in
+    let card_all = cardinality ~libc all in
     let title_unreach = Format.asprintf "%a: %d"
         Kernel_function.pretty kf (card_all - card_syn)
     in
@@ -343,17 +359,17 @@ class semantic_printer ~libc (cov_metrics : coverage_metrics) = object(self)
     let syntactic = cov_metrics.syntactic
     and semantic = cov_metrics.semantic in
     let unseen = Varinfo.Set.diff syntactic semantic in
-    let unseen_num = Varinfo.Set.cardinal unseen in
-    let nall = Varinfo.Set.cardinal all in
-    let nsyn = Varinfo.Set.cardinal syntactic
-    and nsem = Varinfo.Set.cardinal semantic in
+    let unseen_num = cardinality ~libc unseen in
+    let nall = cardinality ~libc all in
+    let nsyn = cardinality ~libc syntactic
+    and nsem = cardinality ~libc semantic in
     let percent = (float_of_int nsem) *. 100.0 /. (float_of_int nsyn) in
     Format.fprintf fmt "@[<v 0>\
                         %a@ \
                         Syntactically reachable functions = %d (out of %d)@ \
                         Semantically reached functions = %d@ \
                         Coverage estimation = %.1f%% @ "
-      (Metrics_base.mk_hdr 1) "Value coverage statistics"
+      (Metrics_base.mk_hdr 1) "Eva coverage statistics"
       nsyn nall nsem percent;
     if unseen_num > 0 then
       Format.fprintf fmt "@ @[<v 2>Unreached functions (%d) =@ %a@]"
@@ -381,7 +397,7 @@ class semantic_printer ~libc (cov_metrics : coverage_metrics) = object(self)
     let percent = 100. *. (float_of_int sum_value) /. (float_of_int sum_total) in
     Format.fprintf fmt "@[<v 0>%a@ \
                         %d stmts in analyzed functions, %d stmts analyzed (%.1f%%)@ "
-      (Metrics_base.mk_hdr 2) "Statements analyzed by Value"
+      (Metrics_base.mk_hdr 2) "Statements analyzed by Eva"
       sum_total sum_value percent;
     List.iter (fun (kf, total, visited, percent) ->
         Format.fprintf fmt "%a: %d stmts out of %d (%.1f%%)@ "
@@ -392,9 +408,9 @@ class semantic_printer ~libc (cov_metrics : coverage_metrics) = object(self)
 end
 
 
-let percent_coverage cov_metrics =
-  let nsyn = Varinfo.Set.cardinal cov_metrics.syntactic
-  and nsem = Varinfo.Set.cardinal cov_metrics.semantic in
+let percent_coverage ~libc cov_metrics =
+  let nsyn = cardinality ~libc cov_metrics.syntactic
+  and nsem = cardinality ~libc cov_metrics.semantic in
   let percent = (float_of_int nsem) /. (float_of_int nsyn) *. 100.0 in
   percent
 ;;

@@ -1,15 +1,3 @@
 [kernel] User Error: compilation of 'tests/wp/stmtcompiler_test_rela.ml' failed
-# frama-c -wp [...]
-[kernel] Parsing tests/wp/stmtcompiler_test_rela.i (no preprocessing)
-[wp] Running WP plugin...
-[wp] Loading driver 'share/wp.driver'
-[wp] Warning: Missing RTE guards
-[wp] 1 goal scheduled
-[wp] [Qed] Goal typed_empty_assert : Valid
-[wp] Proved goals:    1 / 1
-  Qed:             1
-[wp] Report 'tests/wp/stmtcompiler_test_rela.i.0.report.json'
--------------------------------------------------------------
-Functions           WP     Alt-Ergo        Total   Success
-empty                1     -                 1       100%
--------------------------------------------------------------
+[kernel] User Error: Deferred error message was emitted during execution. See above messages for more information.
+[kernel] Frama-C aborted: invalid user input.

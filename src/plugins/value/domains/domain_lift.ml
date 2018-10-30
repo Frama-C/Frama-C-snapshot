@@ -80,7 +80,7 @@ module Make
     { value with v = value.v >>-: Convert.restrict_val }
   let lift_assigned = function
     | Assign value -> Assign (Convert.restrict_val value)
-    | Copy (lval, value) -> Copy (lval, lift_flagged_value value)
+    | Copy (lval, value) -> Copy (lift_left lval, lift_flagged_value value)
 
   let lift_argument arg = { arg with avalue = lift_assigned arg.avalue }
 
@@ -140,9 +140,6 @@ module Make
       let call = lift_call call in
       Internal_Transfer.finalize_call stmt call ~pre ~post
 
-    let approximate_call stmt call state =
-      Internal_Transfer.approximate_call stmt (lift_call call) state
-
     let show_expr = Internal_Transfer.show_expr
   end
 
@@ -167,7 +164,8 @@ module Make
 
   let initialize_variable_using_type = Domain.initialize_variable_using_type
 
-  let filter_by_bases = Domain.filter_by_bases
+  let relate = Domain.relate
+  let filter = Domain.filter
   let reuse = Domain.reuse
 
   module Store = Domain.Store

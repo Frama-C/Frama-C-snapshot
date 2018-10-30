@@ -68,6 +68,13 @@ void test_strtok() {
   //@ assert p == \null || \subset(p, buf2+(0..));
   char *q = strtok(NULL, "c");
   //@ assert q == \null || \subset(p, buf2+(0..));
+  // test with non-writable string, but delimiter not found
+  char *r = strtok((char*)"constant!", "NONE_TO_BE_FOUND");
+  //@ assert r == \null;
+  if (nondet) {
+    strtok((char*)"constant!", "!");
+    //@ assert unreachable_if_precise: \false;
+  }
 }
 
 void test_strtok_r() {
@@ -91,6 +98,13 @@ void test_strtok_r() {
   //@ assert p == \null || \subset(p, buf2+(0..));
   char *q = strtok_r(NULL, "c", &saveptr);
   //@ assert q == \null || \subset(p, buf2+(0..));
+  // test with non-writable string, but delimiter not found
+  char *r = strtok_r((char*)"constant!", "NONE_TO_BE_FOUND", &saveptr);
+  //@ assert r == \null;
+  if (nondet) {
+    strtok_r((char*)"constant!", "!", &saveptr);
+    //@ assert unreachable_if_precise: \false;
+  }
 }
 
 int main(int argc, char **argv)
@@ -102,5 +116,7 @@ int main(int argc, char **argv)
   if (!nondet) crashes_gcc();
   test_strtok();
   test_strtok_r();
+  char *a = strdup("bla"); // unsound; specification currently unsupported
+  char *b = strndup("bla", 2); // unsound; specification currently unsupported
   return 0;
 }

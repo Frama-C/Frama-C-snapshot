@@ -1,24 +1,24 @@
 [kernel] Parsing tests/value/bug_0244.i (no preprocessing)
-[value] Analyzing a complete application starting at main
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing a complete application starting at main
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   R ∈ {0}
   p ∈ {0}
-[value] tests/value/bug_0244.i:7: entering loop for the first time
-[value] tests/value/bug_0244.i:10: Warning: 
+[eva:locals-escaping] tests/value/bug_0244.i:10: Warning: 
   locals {u} escaping the scope of a block of main through p
-[value:alarm] tests/value/bug_0244.i:12: Warning: 
+[eva] tests/value/bug_0244.i:7: starting to merge loop iterations
+[eva:alarm] tests/value/bug_0244.i:12: Warning: 
   accessing left-value that contains escaping addresses.
   assert ¬\dangling(&p);
-[value:alarm] tests/value/bug_0244.i:12: Warning: 
+[eva:alarm] tests/value/bug_0244.i:12: Warning: 
   out of bounds read. assert \valid_read(p);
-[value] Recording results for main
-[value] done for function main
-[value] tests/value/bug_0244.i:12: 
-  assertion 'Value,mem_access' got final status invalid.
-[value] ====== VALUES COMPUTED ======
-[value:final-states] Values at end of function main:
+[eva] Recording results for main
+[eva] done for function main
+[eva] tests/value/bug_0244.i:12: 
+  assertion 'Eva,mem_access' got final status invalid.
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function main:
   NON TERMINATING FUNCTION
 [from] Computing for function main
 [from] Non-terminating function main (no dependencies)

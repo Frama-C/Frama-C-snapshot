@@ -23,7 +23,7 @@
 open Cil_types
 
 exception Unsafe
-  
+
 (* This visitor checks that an expression is guaranteed to evaluate in
    the same way before and after a call. We restrict ourselves to
    lvalues that are unreferenced locals or formals, because they cannot
@@ -62,11 +62,11 @@ let written_formals kf =
 
       method! vinst i =
         begin match i with
-        | Call (Some (Var vi, _), _, _, _)
-        | Set ((Var vi, _), _, _) ->
-          if Kernel_function.is_formal vi kf then
-            referenced_formals := S.add vi !referenced_formals
-        | _ -> ()
+          | Call (Some (Var vi, _), _, _, _)
+          | Set ((Var vi, _), _, _) ->
+            if Kernel_function.is_formal vi kf then
+              referenced_formals := S.add vi !referenced_formals
+          | _ -> ()
         end;
         Cil.SkipChildren
     end
@@ -80,6 +80,6 @@ module WrittenFormals =
       let size = 17
       let dependencies = [Ast.self]
       let name = "Value_util.WrittenFormals"
-     end)
+    end)
 
 let written_formals = WrittenFormals.memo written_formals

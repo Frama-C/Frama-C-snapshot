@@ -19,11 +19,8 @@ Assume {
   (* Heap *)
   Have: (region(tbl_0.base) <= 0) /\ linked(Malloc_0).
   (* Pre-condition *)
-  Have: valid_rw(Malloc_0, tbl_0, 35).
-  (* Pre-condition *)
-  Have: valid_rw(Malloc_0, shift___anonstruct_Buckets_1(a, 0), 34).
-  (* Pre-condition *)
-  Have: (0 <= d) /\ (d <= 16).
+  Have: (0 <= d) /\ (d <= 16) /\ valid_rw(Malloc_0, tbl_0, 35) /\
+      valid_rw(Malloc_0, shift___anonstruct_Buckets_1(a, 0), 34).
 }
 Prove: (x <= d) /\ (d <= x).
 

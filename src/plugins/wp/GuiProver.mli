@@ -24,7 +24,7 @@ open Widget
 
 val no_status : icon
 val ok_status : icon
-val ko_status : icon 
+val ko_status : icon
 val wg_status : icon
 
 val filter : VCS.prover -> bool

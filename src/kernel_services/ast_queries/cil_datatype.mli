@@ -23,6 +23,10 @@
 (** Datatypes of some useful CIL types.
     @plugin development guide *)
 
+(* This module should not be exported, but we need the alias and OCaml
+   requires us to export it. *)
+module UtilsFilepath = Filepath
+
 open Cil_types
 open Datatype
 
@@ -46,8 +50,15 @@ end
 
 
 (** Single position in a file.
-    @since Nitrogen-20111001 *)
-module Position: S_with_collections_pretty with type t = Lexing.position
+    @since Nitrogen-20111001
+*)
+module Position: sig
+  include S_with_collections_pretty with type t = UtilsFilepath.position
+  val unknown : t
+  val pp_with_col : Format.formatter -> t -> unit
+  val of_lexing_pos : Lexing.position -> t
+  val to_lexing_pos : t -> Lexing.position
+end
 
 (** Cil locations. *)
 module Location: sig
@@ -59,6 +70,8 @@ module Location: sig
         [<dir/f>:<l>] *)
   val pretty_line: t Pretty_utils.formatter
   (** Prints only the line of the location *)
+  val of_lexing_loc : Lexing.position * Lexing.position -> t
+  val to_lexing_loc : t -> Lexing.position * Lexing.position
 end
 
 module Localisation: Datatype.S with type t = localisation

@@ -1,45 +1,45 @@
 [kernel] Parsing tests/impact/depend4.i (no preprocessing)
-[value] Analyzing a complete application starting at main
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing a complete application starting at main
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   a ∈ {0}
   r1 ∈ {0}
   r2 ∈ {0}
-[value] computing for function g1 <- main.
+[eva] computing for function g1 <- main.
   Called from tests/impact/depend4.i:27.
-[value] computing for function aux <- g1 <- main.
+[eva] computing for function aux <- g1 <- main.
   Called from tests/impact/depend4.i:19.
-[value] Recording results for aux
+[eva] Recording results for aux
 [from] Computing for function aux
 [from] Done for function aux
-[value] Done for function aux
-[value] Recording results for g1
+[eva] Done for function aux
+[eva] Recording results for g1
 [from] Computing for function g1
 [from] Done for function g1
-[value] Done for function g1
-[value] computing for function f <- main.
+[eva] Done for function g1
+[eva] computing for function f <- main.
   Called from tests/impact/depend4.i:29.
-[value] Recording results for f
+[eva] Recording results for f
 [from] Computing for function f
 [from] Done for function f
-[value] Done for function f
-[value] computing for function g2 <- main.
+[eva] Done for function f
+[eva] computing for function g2 <- main.
   Called from tests/impact/depend4.i:30.
-[value] computing for function aux <- g2 <- main.
+[eva] computing for function aux <- g2 <- main.
   Called from tests/impact/depend4.i:23.
-[value] Recording results for aux
+[eva] Recording results for aux
 [from] Computing for function aux
 [from] Done for function aux
-[value] Done for function aux
-[value] Recording results for g2
+[eva] Done for function aux
+[eva] Recording results for g2
 [from] Computing for function g2
 [from] Done for function g2
-[value] Done for function g2
-[value] Recording results for main
+[eva] Done for function g2
+[eva] Recording results for main
 [from] Computing for function main
 [from] Done for function main
-[value] done for function main
+[eva] done for function main
 [from] ====== DISPLAYING CALLWISE DEPENDENCIES ======
 [from] call to aux at tests/impact/depend4.i:19 (by g1):
   r2 FROM a; p; cond

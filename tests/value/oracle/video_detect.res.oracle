@@ -1,24 +1,24 @@
 [kernel] Parsing tests/value/video_detect.i (no preprocessing)
-[value] Analyzing a complete application starting at main
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing a complete application starting at main
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   NULL[rbits 256 to 287] ∈ [--..--]
   G ∈ {0}
-[value] computing for function detect_video <- main.
+[eva] computing for function detect_video <- main.
   Called from tests/value/video_detect.i:36.
-[value] Recording results for detect_video
-[value] Done for function detect_video
-[value] Recording results for main
-[value] done for function main
-[value] ====== VALUES COMPUTED ======
-[value:final-states] Values at end of function detect_video:
+[eva] Recording results for detect_video
+[eva] Done for function detect_video
+[eva] Recording results for main
+[eva] done for function main
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function detect_video:
   NULL[rbits 256 to 287] ∈ [--..--]
   p ∈ {32}
   saved1 ∈ [--..--]
   saved2 ∈ [--..--]
   video_found ∈ {0}
-[value:final-states] Values at end of function main:
+[eva:final-states] Values at end of function main:
   NULL[rbits 256 to 287] ∈ [--..--]
   ADDR ∈ {32}
 [from] Computing for function detect_video

@@ -1,4 +1,4 @@
-# frama-c -wp -wp-rte [...]
+# frama-c -wp -wp-rte -wp-timeout 90 -wp-steps 1500 [...]
 [kernel] Parsing tests/wp_bts/bts_1360.i (no preprocessing)
 [wp] Running WP plugin...
 [wp] Loading driver 'share/wp.driver'

@@ -1,6 +1,6 @@
 /* run.config_qualif
    OPT: -wp -wp-model Typed -wp-par 1 -wp-prop="-qed_ko,-ko"
-   OPT: -wp -wp-model Typed -wp-par 1 -wp-prop="qed_ko,ko" -wp-timeout 2
+   OPT: -wp -wp-model Typed -wp-par 1 -wp-prop="qed_ko,ko" -wp-steps 50
 */
 
 /*@ axiomatic S {

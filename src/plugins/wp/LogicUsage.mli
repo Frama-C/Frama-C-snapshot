@@ -32,7 +32,7 @@ val basename : varinfo -> string (** Trims the original name *)
 
 type logic_lemma = {
   lem_name : string ;
-  lem_position : Lexing.position ;
+  lem_position : Filepath.position ;
   lem_axiom : bool ;
   lem_types : string list ;
   lem_labels : logic_label list ;
@@ -42,7 +42,7 @@ type logic_lemma = {
 
 type axiomatic = {
   ax_name : string ;
-  ax_position : Lexing.position ;
+  ax_position : Filepath.position ;
   ax_property : Property.t ;
   mutable ax_types : logic_type_info list ;
   mutable ax_logics : logic_info list ;
@@ -76,4 +76,3 @@ val get_name : logic_info -> string
 val pp_profile : Format.formatter -> logic_info -> unit
 
 val dump : unit -> unit (** Print on output *)
-

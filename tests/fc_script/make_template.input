@@ -1,0 +1,2 @@
+fc_script_main
+file1.c file*.c dir/more_files.c

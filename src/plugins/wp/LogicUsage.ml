@@ -59,7 +59,7 @@ let trim name =
 
 type logic_lemma = {
   lem_name : string ;
-  lem_position : Lexing.position ;
+  lem_position : Filepath.position ;
   lem_axiom : bool ;
   lem_types : string list ;
   lem_labels : logic_label list ;
@@ -70,7 +70,7 @@ type logic_lemma = {
 
 type axiomatic = {
   ax_name : string ;
-  ax_position : Lexing.position ;
+  ax_position : Filepath.position ;
   ax_property : Property.t ;
   mutable ax_types : logic_type_info list ;
   mutable ax_logics : logic_info list ;
@@ -414,6 +414,7 @@ class visitor =
       | Dtype_annot _
       | Dmodel_annot _
       | Dcustom_annot _
+      | Dextended _
         -> SkipChildren
 
     method! vfunc _ = SkipChildren

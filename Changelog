@@ -13,6 +13,116 @@
 # '#?nnn'  : OLD-BTS entry #nnn                                               #
 ###############################################################################
 
+################################
+Open Source Release 18.0 (Argon)
+################################
+
+-!  Kernel    [2018/10/24] Log.error and Log.failure will eventually make
+              Frama-C exit with a non-zero status. Fixes #@552
+-   Kernel    [2018/10/24] More ergonomic command-line options for governing
+              warning categories statuses.
+-   Eva       [2018/10/24] Enable the memexec cache by default. It can be
+              disabled by option -eva-no-memexec.
+-   Eva       [2018/10/22] Improved performances when the symbolic locations
+              domain and the memexec cache are enabled.
+-   Eva       [2018/10/22] The memexec cache is now fully compatible with all
+              abstract domains provided by Eva. However, the binding to the
+              Apron domains disable memexec.
+-   Eva       [2018/10/18] New experimental domain "numerors" inferring absolute
+              and relative errors of floating-point computations. Enabled by the
+              option -eva-numerors-domain. Does not handle loops for now.
+-*  Kernel    [2018/10/18] Fixes parsing of compound initializers with anonymous
+              fields. Fixes #2384
+-*  Kernel    [2018/10/16] Consider that asm can change content of pointers
+              used as inputs when generating assigns clauses. Fixes #@458
+-   Eva       [2018/10/12] Remove option -obviously-terminates.
+-   Kernel    [2018/10/05] New option -warn-invalid-bool, to warn when reading
+              trap representations of type _Bool.
+-   Eva       [2018/10/04] ACSL predicates with a "no_eva" tag are now ignored.
+-   Eva       [2018/10/03] Warn about currently unsupported specifications
+              of some libc functions.
+-   Eva       [2018/10/02] Fix the gauges domain on weak bases.
+-   Eva       [2018/10/02] Some fixes and improvements of the equality domain.
+-*  Kernel    [2018/10/02] Rejects sizeof of an incomplete type. Fixes #@560.
+-*  Kernel    [2018/09/26] Add attribute to allow writing into const lvals in
+              specific (aka C++ constructors and mutable fields) circumstances.
+              Fixes #2395.
+-   Kernel    [2018/09/14] New warning (disabled by default) when multiple side
+              effects are unsequenced (CERT-EXP10-C recommandation).
+              Fixes #@492
+-   Eva       [2018/09/13] Remove option -val-warn-left-shift-negative, and
+              comply with kernel option -warn-[left|right]-shift-negative.
+-   Kernel    [2018/09/13] New options -warn-left-shift-negative (enabled by
+              default) and -warn-right-shift-negative (disabled by default),
+              to control the emission of alarms on shifts on negative integers.
+o!  Constant Propagation [2018/09/12] Removing Db API for Constant Propagation
+              plug-in. Calls to !Db.Constant_Propagation should be replaced by
+              calls to Constant_Propagation.Api.
+-   Eva       [2018/09/12] Reduction of values leading to division by zero
+              alarms, when possible.
+-   Eva       [2018/09/11] Better reduction of floating-point values cast into
+              integer types when an alarm is emitted.
+-   Metrics   [2018/09/06] Add option -metrics-used-files, to help identify
+              unnecessary files given in the command line
+-   Eva       [2018/08/31] Supports the ACSL functions \min and \max.
+-   Eva       [2018/08/30] Fixes the alarms on subtractions and comparisons of
+              pointers on weak bases (created by allocations in loops).
+-!  ACSL      [2018/08/28] Introduce extensions to global annotations and
+              better characterization of each extension kind.
+              See development guide for more information
+-   Eva       [2018/08/28] All options of Eva start with -eva. Aliases to
+              previous option names preserve backward compatibility.
+-!  Eva       [2018/08/28] Rename plug-in shortname from 'value' to 'eva'. Eva
+              is now properly named Eva in all logs, in the GUI, and as the
+              emitter of the alarms.
+-!  Kernel    [2018/08/23] Introduce Filepath dataype for more consistent
+              normalization of filenames
+-*  Kernel    [2018/08/23] Do not allow compound assignments to const variables
+              Fixes #@384
+-!  Kernel    [2018/08/23] Remove option -const-writable: const globals are
+              unconditionally constants
+-*  Eva       [2018/08/02] Deprecate option -val-warn-builtin-override in favor
+              of warning category builtins:override.
+-   Kernel    [2018/07/26] Fix compilation on OpenBSD
+              patch contributed by madroach. Fixes #2379
+-   Kernel    [2018/07/26] New option -remove-inlined to remove function(s)
+              after -inline-calls, add category @inline to refer to all
+              functions with inline attribute (for both options).
+-   Eva       [2018/07/23] The debug category "garbled-mix" becomes a warning
+              category. Better track of garbled mix created by specification.
+-*  ACSL      [2018/07/23] Avoid removing cast of void ptr used as
+              argument of function expecting a ptr with known size. Fixes #@432
+o!  Kernel    [2018/07/23] Remove completely outdated module Dataflow.
+              Deprecated since 3+ years. Use Dataflow2 instead.
+-*  RTE       [2018/07/23] Stop generating spurious \initialized alarms.
+              Fixes #@429  
+-*  Kernel    [2018/07/06] Respect relative order of labels and ACSL annots.
+              Fixes #@524
+o*  Ptests    [2018/07/02] Do not keep oracles for empty stderr. Fixes #@402
+-*! ACSL      [2018/07/02] introduce ACSL operators \le_double, \ge_double, ...
+              in addition to \le_float, \ge_float, ... Remove overloading of
+              \le_float that made it accept double as arguments. Fixes #@502
+-  Eva        [2018/06/28] New option -eva-report-red-statuses listing in
+              a csv file the properties invalid for some states of the analysis
+              (as in the "Red Alarms" panel of the GUI).
+-  Eva        [2018/06/25] Release all builtins, including memset and memcpy,
+              as open-source.
+-  Eva        [2018/06/15] When a cvalue builtin is used, other domains use the
+              frama-c libc specification to interpret the call without losing
+              too much information.
+-  Eva        [2018/06/14] The variables from the frama-c libc are no longer
+              shown in the initial state print.
+-  Eva        [2018/06/11] Improved precision of string builtins for strlen,
+              strchr and memchr.
+-  Eva        [2018/04/25] Renamed option -wlevel into -eva-widening-delay. New
+              option -eva-widening-period to control the number of iterations
+              between two widenings.
+-  Eva        [2018/04/25] New propagation strategy that allows unrolling loops
+              even when the slevel has been exceeded. Unroll the N first loop
+              iterations via the global option -eva-min-loop-unrolling N or via
+              specific code annotations /*@ loop unroll N; */. The new strategy
+              may affect analyses even without loop unrolling.
+
 #####################################
 Open Source Release Chlorine-20180502
 #####################################

@@ -116,7 +116,7 @@ Effect at line 68
 Prove: true.
 
 ------------------------------------------------------------
-[wp] Warning: Separation hypotheses for function 'job':
+[wp] Warning: Memory model hypotheses for function 'job':
   /*@
      behavior typed:
      requires \separated(\union(&seq,&service_cpt,service_id+(..),

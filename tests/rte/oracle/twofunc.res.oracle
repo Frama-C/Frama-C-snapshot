@@ -130,26 +130,30 @@ int main(void)
 [kernel] ================================
 [kernel] printing status
 [kernel] kf = f
-[kernel] - precondition = true
+[kernel] - bool_value = false
 [kernel] - finite_float = true
 [kernel] - float_to_int = true
 [kernel] - unsigned_downcast = false
 [kernel] - unsigned_overflow = false
 [kernel] - downcast = true
 [kernel] - signed_overflow = true
+[kernel] - right_shift_negative = false
+[kernel] - left_shift_negative = true
 [kernel] - shift_value_out_of_bounds = true
 [kernel] - division_by_zero = true
 [kernel] - pointer_call = true
 [kernel] - mem_access = true
 [kernel] - initialized = false
 [kernel] kf = main
-[kernel] - precondition = true
+[kernel] - bool_value = false
 [kernel] - finite_float = true
 [kernel] - float_to_int = true
 [kernel] - unsigned_downcast = false
 [kernel] - unsigned_overflow = false
 [kernel] - downcast = true
 [kernel] - signed_overflow = true
+[kernel] - right_shift_negative = false
+[kernel] - left_shift_negative = true
 [kernel] - shift_value_out_of_bounds = true
 [kernel] - division_by_zero = true
 [kernel] - pointer_call = true
@@ -218,26 +222,30 @@ int main(void)
 [kernel] ================================
 [kernel] printing status
 [kernel] kf = f
-[kernel] - precondition = true
+[kernel] - bool_value = false
 [kernel] - finite_float = true
 [kernel] - float_to_int = true
 [kernel] - unsigned_downcast = false
 [kernel] - unsigned_overflow = false
 [kernel] - downcast = true
 [kernel] - signed_overflow = true
+[kernel] - right_shift_negative = false
+[kernel] - left_shift_negative = true
 [kernel] - shift_value_out_of_bounds = true
 [kernel] - division_by_zero = true
 [kernel] - pointer_call = true
 [kernel] - mem_access = true
 [kernel] - initialized = false
 [kernel] kf = main
-[kernel] - precondition = true
+[kernel] - bool_value = false
 [kernel] - finite_float = true
 [kernel] - float_to_int = true
 [kernel] - unsigned_downcast = false
 [kernel] - unsigned_overflow = false
 [kernel] - downcast = true
 [kernel] - signed_overflow = true
+[kernel] - right_shift_negative = false
+[kernel] - left_shift_negative = true
 [kernel] - shift_value_out_of_bounds = true
 [kernel] - division_by_zero = true
 [kernel] - pointer_call = true

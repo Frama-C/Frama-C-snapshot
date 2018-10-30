@@ -24,7 +24,15 @@
     The body of this module is generated from Makefile. *)
 
 val version: string
-  (** Frama-C Version identifier. *)
+(** Frama-C Version identifier. *)
+
+val codename: string
+(** Frama-C version codename.
+    @since Frama-C+dev *)
+
+val version_and_codename: string
+(** Frama-C version and codename.
+    @since Frama-C+dev *)
 
 val is_gui: bool ref
   (** Is the Frama-C GUI running?

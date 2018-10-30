@@ -1,5 +1,3 @@
-open Cil_types
-
 module P =
   Plugin.Register(struct
     let name = "test"
@@ -29,7 +27,9 @@ let main () =
               Property_status.emit
                 emitter
                 p
-                ~hyps:[ Property.ip_other "Blob" None Kglobal ]
+                ~hyps:[
+                  Property.(
+                    ip_other "Blob" (OLGlob Cil_datatype.Location.unknown))]
                 Property_status.Dont_know;
               Format.printf "%a@."
                 Property_status.pretty (Property_status.get p))

@@ -1,5 +1,5 @@
 [kernel] Parsing tests/misc/widen_hints.c (with preprocessing)
-[value] tests/misc/widen_hints.c:65: User Error: 
+[eva] tests/misc/widen_hints.c:65: User Error: 
   could not parse widening hint: local_const
   If it contains variables, they must be global const integers.
-[kernel] Plug-in value aborted: invalid user input.
+[kernel] Plug-in eva aborted: invalid user input.

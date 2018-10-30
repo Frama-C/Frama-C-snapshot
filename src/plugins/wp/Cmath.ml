@@ -67,7 +67,7 @@ let builtin_truncate f e =
   match F.repr e with
   | Kint _ -> e
   | Kreal r when Q.(equal r zero) -> e_zero
-  | Kreal r -> 
+  | Kreal r ->
       begin
         try
           (* Waiting for Z-Arith to have truncation to big-int *)
@@ -139,7 +139,7 @@ let builtin_positive_leq lfun ~domain ~zero ~monotonic a b =
     | _ -> raise Not_found
   end
 
-(* rewrite a=b when a or b is f(x) 
+(* rewrite a=b when a or b is f(x)
    for functions f such as 0 < f(x) *)
 let builtin_strict_eq lfun ~domain ~zero ~injective a b =
   let open Qed.Logic in
@@ -154,7 +154,7 @@ let builtin_strict_eq lfun ~domain ~zero ~injective a b =
     | _ -> raise Not_found
   end
 
-(* rewrite a<=b when a or b is f(x) 
+(* rewrite a<=b when a or b is f(x)
    for functions f such as 0 < f(x) *)
 let builtin_strict_leq lfun ~domain ~zero ~monotonic a b =
   let open Qed.Logic in
@@ -351,14 +351,14 @@ let () = Context.register
       F.set_builtin_1 f_truncate (builtin_truncate f_truncate) ;
       F.set_builtin_1 f_ceil (builtin_truncate f_ceil) ;
       F.set_builtin_1 f_floor (builtin_truncate f_floor) ;
-        
+
       F.set_builtin_1   f_iabs (builtin_abs f_iabs e_zero) ;
       F.set_builtin_1   f_rabs (builtin_abs f_rabs e_zero_real) ;
       F.set_builtin_eq  f_iabs builtin_iabs_eq ;
       F.set_builtin_eq  f_rabs builtin_rabs_eq ;
       F.set_builtin_leq f_iabs builtin_iabs_leq ;
       F.set_builtin_leq f_rabs builtin_rabs_leq ;
-      
+
       F.set_builtin_1   f_sqrt builtin_sqrt ;
       F.set_builtin_eq  f_sqrt builtin_sqrt_eq ;
       F.set_builtin_leq f_sqrt builtin_sqrt_leq ;

@@ -24,10 +24,10 @@
     less precise. *)
 type call_init_state =
   | ISCaller (** information from the caller is propagated in the callee. May be
-             more precise, but problematic w.r.t Memexec because it increases
-             cache miss dramatically. *)
+                 more precise, but problematic w.r.t Memexec because it increases
+                 cache miss dramatically. *)
   | ISFormals (** empty state, except for the equalities between a formal and
-                the corresponding actual. Lesser impact on Memexec. *)
+                  the corresponding actual. Lesser impact on Memexec. *)
   | ISEmpty (** completely empty state, without impact on Memexec. *)
 
 

@@ -1,6 +1,7 @@
 /* run.config*
    OPT: -load-script tests/libc/check_libc_naming_conventions.ml -print -cpp-extra-args='-nostdinc -Ishare/libc' -metrics -metrics-libc -load-script tests/libc/check_const.ml -load-module metrics -val @VALUECONFIG@ -then -lib-entry -no-print -metrics-no-libc
    OPT: -print -print-libc
+   OPT: -load-script tests/libc/check_parsing_individual_headers.ml
    CMD: ./tests/libc/check_full_libc.sh
    OPT:
 **/
@@ -30,6 +31,7 @@
 #include "__fc_builtin.h"
 #include "__fc_define_blkcnt_t.h"
 #include "__fc_define_blksize_t.h"
+#include "__fc_define_clockid_t.h"
 #include "__fc_define_dev_t.h"
 #include "__fc_define_eof.h"
 #include "__fc_define_fd_set_t.h"
@@ -56,10 +58,12 @@
 #include "__fc_define_suseconds_t.h"
 #include "__fc_define_timespec.h"
 #include "__fc_define_time_t.h"
+#include "__fc_define_timer_t.h"
 #include "__fc_define_uid_and_gid.h"
 #include "__fc_define_useconds_t.h"
 #include "__fc_define_wchar_t.h"
 #include "__fc_define_wint_t.h"
+#include "__fc_inet.h"
 #include "__fc_machdep.h"
 //#include "__fc_machdep_linux_gcc_shared.h"
 #include "fcntl.h"
@@ -100,6 +104,7 @@
 #include "pthread.h"
 #include "pwd.h"
 #include "regex.h"
+#include "resolv.h"
 #include "sched.h"
 #include "semaphore.h"
 #include "setjmp.h"
@@ -119,14 +124,17 @@
 #include "syslog.h"
 #include "sys/mman.h"
 #include "sys/param.h"
+#include "sys/random.h"
 #include "sys/resource.h"
 #include "sys/select.h"
 #include "sys/shm.h"
+#include "sys/signal.h"
 #include "sys/socket.h"
 #include "sys/stat.h"
 #include "sys/sysctl.h"
 #include "sys/time.h"
 #include "sys/times.h"
+#include "sys/timex.h"
 #include "sys/types.h"
 #include "sys/uio.h"
 #include "sys/un.h"
@@ -148,4 +156,5 @@ void main() {
   //@ assert __fc_p_fopen == (FILE *)&__fc_fopen;
   //@ assert __fc_p_opendir == (DIR*)&__fc_opendir;
   //@ assert __fc_p_time_tm == &__fc_time_tm;
+  //@ assert __fc_p_strerror == __fc_strerror;
 }

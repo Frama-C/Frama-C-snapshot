@@ -32,7 +32,7 @@ let dkey = Widen_hints_ext.dkey
    widening hints in the outer loops. To do so, the simplest is to avoid
    specifying statements altogether. This may be inefficient for codes that
    reuse loop indexes...
- *)
+*)
 
 class pragma_widen_visitor init_widen_hints init_enclosing_loops = object(self)
   inherit Visitor.frama_c_inplace
@@ -48,84 +48,84 @@ class pragma_widen_visitor init_widen_hints init_enclosing_loops = object(self)
 
   method private process_loop_pragma stmt p =
     match p with
-  | Widen_variables l -> begin
-    let f (lv, lt) t = match t with
-      | { term_node= TLval (TVar {lv_origin = Some vi}, _)} ->
-        (Base.Set.add (Base.of_varinfo vi) lv, lt)
-      | _ -> (lv, t::lt)
-    in
-    match List.fold_left f (Base.Set.empty, []) l with
-    | (var_hints, []) ->
-      (* the annotation is empty or contains only variables *)
-      self#add_var_hints ~stmt var_hints
-    | (_lv, _lt) ->
-      Value_parameters.warning ~once:true
-        "could not interpret loop pragma relative to widening variables"
-  end
-  | Widen_hints l -> begin
-    let f (lv, lnum, lt) t = match t with
-      | { term_node= TLval (TVar { lv_origin = Some vi}, _)} ->
-        (Base.of_varinfo vi :: lv, lnum, lt)
-      | { term_node= TConst (Integer(v,_))} ->
-        (lv, Ival.Widen_Hints.add v lnum, lt)
-      | _ -> (lv, lnum, t::lt)
-    in
-    match List.fold_left f ([], Ival.Widen_Hints.empty, []) l with
-    | (vars, thresholds, []) ->
-      (* the annotation is empty or contains only variables *)
-      if vars = [] then
-        self#add_thresholds thresholds
-      else
-        List.iter (fun base -> self#add_thresholds ~base thresholds) vars
-    | _ ->
-      Value_parameters.warning ~once:true
-        "could not interpret loop pragma relative to widening hint"
-  end
-  | _ -> ()
+    | Widen_variables l -> begin
+        let f (lv, lt) t = match t with
+          | { term_node= TLval (TVar {lv_origin = Some vi}, _)} ->
+            (Base.Set.add (Base.of_varinfo vi) lv, lt)
+          | _ -> (lv, t::lt)
+        in
+        match List.fold_left f (Base.Set.empty, []) l with
+        | (var_hints, []) ->
+          (* the annotation is empty or contains only variables *)
+          self#add_var_hints ~stmt var_hints
+        | (_lv, _lt) ->
+          Value_parameters.warning ~once:true
+            "could not interpret loop pragma relative to widening variables"
+      end
+    | Widen_hints l -> begin
+        let f (lv, lnum, lt) t = match t with
+          | { term_node= TLval (TVar { lv_origin = Some vi}, _)} ->
+            (Base.of_varinfo vi :: lv, lnum, lt)
+          | { term_node= TConst (Integer(v,_))} ->
+            (lv, Ival.Widen_Hints.add v lnum, lt)
+          | _ -> (lv, lnum, t::lt)
+        in
+        match List.fold_left f ([], Ival.Widen_Hints.empty, []) l with
+        | (vars, thresholds, []) ->
+          (* the annotation is empty or contains only variables *)
+          if vars = [] then
+            self#add_thresholds thresholds
+          else
+            List.iter (fun base -> self#add_thresholds ~base thresholds) vars
+        | _ ->
+          Value_parameters.warning ~once:true
+            "could not interpret loop pragma relative to widening hint"
+      end
+    | _ -> ()
 
   method! vstmt (s:stmt) =
     match s.skind with
     | Loop (_, bl, _, _, _) -> begin
-      (* ZZZ: this code does not handle loops that are created using gotos. We
-         could improve this by finding the relevant statements using a
-         traversal of the CFG. *)
-      let annot = Annotations.code_annot s in
-      let pragmas = Logic_utils.extract_loop_pragma annot in
-      List.iter (self#process_loop_pragma s) pragmas;
-      let new_loop_info = s :: enclosing_loops in
-      let visitor = new pragma_widen_visitor widen_hints new_loop_info in
-      ignore (Visitor.visitFramacBlock visitor bl);
-      Cil.SkipChildren (* Otherwise the inner statements are visited multiple
-                          times needlessly *)
-    end
+        (* ZZZ: this code does not handle loops that are created using gotos. We
+           could improve this by finding the relevant statements using a
+           traversal of the CFG. *)
+        let annot = Annotations.code_annot s in
+        let pragmas = Logic_utils.extract_loop_pragma annot in
+        List.iter (self#process_loop_pragma s) pragmas;
+        let new_loop_info = s :: enclosing_loops in
+        let visitor = new pragma_widen_visitor widen_hints new_loop_info in
+        ignore (Visitor.visitFramacBlock visitor bl);
+        Cil.SkipChildren (* Otherwise the inner statements are visited multiple
+                            times needlessly *)
+      end
     | If (exp, bl_then, bl_else, _) -> begin
-      (* Look for if-goto and if-break statements. The variables of the
-         condition are added to the early widening variable set for this loop.*)
-      let aux_loop loop =
-        let loop_stmts = Stmts_graph.get_stmt_stmts loop in
-        let rec aux_block_loop bl =
-          match bl with
-          | {bstmts = []} -> ()
-          | {bstmts = [{skind = Block bl}]} -> aux_block_loop bl
-          | {bstmts = ({skind = Break _; succs = [stmt]}|
-                       {skind = Goto ({contents=stmt},_)})
-            ::_} when not (Stmt.Set.mem stmt loop_stmts) ->
-            (* This block goes out of [loop]. The variables of [exp] are hints*)
-            let varinfos = Cil.extract_varinfos_from_exp exp in
-            let var_hints =
-              Varinfo.Set.fold
-                (fun vi set -> Base.Set.add (Base.of_varinfo vi) set)
-                varinfos Base.Set.empty
-            in
-            self#add_var_hints ~stmt:loop var_hints
-          | _ -> ()
+        (* Look for if-goto and if-break statements. The variables of the
+           condition are added to the early widening variable set for this loop.*)
+        let aux_loop loop =
+          let loop_stmts = Stmts_graph.get_stmt_stmts loop in
+          let rec aux_block_loop bl =
+            match bl with
+            | {bstmts = []} -> ()
+            | {bstmts = [{skind = Block bl}]} -> aux_block_loop bl
+            | {bstmts = ({skind = Break _; succs = [stmt]}|
+                         {skind = Goto ({contents=stmt},_)})
+                        ::_} when not (Stmt.Set.mem stmt loop_stmts) ->
+              (* This block goes out of [loop]. The variables of [exp] are hints*)
+              let varinfos = Cil.extract_varinfos_from_exp exp in
+              let var_hints =
+                Varinfo.Set.fold
+                  (fun vi set -> Base.Set.add (Base.of_varinfo vi) set)
+                  varinfos Base.Set.empty
+              in
+              self#add_var_hints ~stmt:loop var_hints
+            | _ -> ()
+          in
+          aux_block_loop bl_then;
+          aux_block_loop bl_else
         in
-        aux_block_loop bl_then;
-        aux_block_loop bl_else
-      in
-      List.iter aux_loop enclosing_loops;
-      Cil.DoChildren
-    end
+        List.iter aux_loop enclosing_loops;
+        Cil.DoChildren
+      end
     | _ -> Cil.DoChildren
 
   method! vexpr (e:exp) = begin
@@ -150,14 +150,14 @@ class pragma_widen_visitor init_widen_hints init_enclosing_loops = object(self)
         self#add_thresholds ~base thresholds
       in
       let i1, i2 = Cil.constFoldToInt e1, Cil.constFoldToInt e2 in begin
-      match i1, i2, e1, e2 with
-      | Some int64, _, _, {enode=(CastE(_, { enode=Lval (Var varinfo, _)})
-                                 | Lval (Var varinfo, _))}->
-        add (Base.of_varinfo varinfo) (add1 int64)
-      | _, Some int64, {enode=(CastE(_, { enode=Lval (Var varinfo, _)})
-                              | Lval (Var varinfo, _))}, _ ->
-        add (Base.of_varinfo varinfo) (add2 int64)
-      | _ -> ()
+        match i1, i2, e1, e2 with
+        | Some int64, _, _, {enode=(CastE(_, { enode=Lval (Var varinfo, _)})
+                                   | Lval (Var varinfo, _))}->
+          add (Base.of_varinfo varinfo) (add1 int64)
+        | _, Some int64, {enode=(CastE(_, { enode=Lval (Var varinfo, _)})
+                                | Lval (Var varinfo, _))}, _ ->
+          add (Base.of_varinfo varinfo) (add2 int64)
+        | _ -> ()
       end;
       Cil.DoChildren
     in
@@ -166,14 +166,14 @@ class pragma_widen_visitor init_widen_hints init_enclosing_loops = object(self)
     | BinOp (Gt, e2, e1, _)
     | BinOp (Le, e2, e1, _)
     | BinOp (Ge, e1, e2, _) ->
-        comparison_visit with_succ with_pred e1 e2
+      comparison_visit with_succ with_pred e1 e2
     | BinOp (Eq, e1, e2, _)
     | BinOp (Ne, e1, e2, _) ->
-        comparison_visit with_s_p_ with_s_p_ e1 e2
+      comparison_visit with_s_p_ with_s_p_ e1 e2
     | UnOp (Neg, e, _) ->
-        unop_visit e
+      unop_visit e
     | Lval _ ->
-        unop_visit e
+      unop_visit e
     | _ -> default_visit e
   end
 
@@ -197,19 +197,19 @@ class pragma_widen_visitor init_widen_hints init_enclosing_loops = object(self)
         (* It is safe to ignore casts: hints do not need to be sound. *)
         aux_idx e' shift
       | BinOp ((PlusA | MinusA as op), e1, e2, _) -> begin
-        (* See if either [e1] or [e2] is constant. If so, find a variable in
-           the other expression and add a hint for this variable, shifted. *)
-        let shift' s =
-          if op = PlusA then Integer.add shift s else Integer.sub shift s
-        in
-        match Cil.constFoldToInt e1 with
-        | Some shift1 -> aux_idx e2 (shift' shift1)
-        | None -> begin
-          match Cil.constFoldToInt e2 with
-          | None -> ()
-          | Some shift2 -> aux_idx e1 (shift' shift2)
+          (* See if either [e1] or [e2] is constant. If so, find a variable in
+             the other expression and add a hint for this variable, shifted. *)
+          let shift' s =
+            if op = PlusA then Integer.add shift s else Integer.sub shift s
+          in
+          match Cil.constFoldToInt e1 with
+          | Some shift1 -> aux_idx e2 (shift' shift1)
+          | None -> begin
+              match Cil.constFoldToInt e2 with
+              | None -> ()
+              | Some shift2 -> aux_idx e1 (shift' shift2)
+            end
         end
-      end
       | _ -> ()
     in
     aux_idx idx Integer.zero
@@ -223,17 +223,17 @@ class pragma_widen_visitor init_widen_hints init_enclosing_loops = object(self)
       | NoOffset -> ()
       | Field (fi, off) -> aux_offset fi.ftype off
       | Index (idx, off) -> begin
-        match Cil.unrollType typ with 
-        | TArray (typ_e, size, _, _) -> begin
-          aux_offset typ_e off;
-          try
-            let size = Cil.lenOfArray64 size in
-            if Integer.(gt size zero) then
-              self#add_index_hints size idx
-          with Cil.LenOfArray -> ()
+          match Cil.unrollType typ with
+          | TArray (typ_e, size, _, _) -> begin
+              aux_offset typ_e off;
+              try
+                let size = Cil.lenOfArray64 size in
+                if Integer.(gt size zero) then
+                  self#add_index_hints size idx
+              with Cil.LenOfArray -> ()
+            end
+          | _ -> ()
         end
-        | _ -> ()
-      end
     in
     aux_offset (Cil.typeOfLhost host) off
 
@@ -339,8 +339,8 @@ let per_function_static_hints fdec =
   ignore (Visitor.visitFramacFunction visitor_pragma fdec);
   let visitor_local = new hints_visitor widen_hints false in
   ignore (Visitor.visitFramacFunction visitor_local fdec);
-  !widen_hints  
-  
+  !widen_hints
+
 module Per_Function_Static_Hints =
   State_builder.Hashtbl
     (Cil_datatype.Fundec.Hashtbl)
@@ -360,8 +360,8 @@ let precompute_widen_hints () =
 
 type dynamic_hint = {
   mutable bases : Base.Hptset.t
-      (* dynamic, used to detect when a new base needs to be added to the global
-         widening hints *);
+(* dynamic, used to detect when a new base needs to be added to the global
+   widening hints *);
   lv : exp * offset; (* static, parsed once from the AST *)
   thresholds : Ival.Widen_Hints.t; (* static, computed only once *)
 }
@@ -378,12 +378,12 @@ module DynamicHintDatatype = Datatype.Make(struct
            ExpOffset.packed_descr;
            Ival.Widen_Hints.packed_descr |]
     let reprs =
-    List.map
-      (fun wh -> { bases = Base.Hptset.empty;
-                   lv = (Exp.dummy, NoOffset);
-                   thresholds = wh })
-      Ival.Widen_Hints.reprs
-  let mem_project = Datatype.never_any_project
+      List.map
+        (fun wh -> { bases = Base.Hptset.empty;
+                     lv = (Exp.dummy, NoOffset);
+                     thresholds = wh })
+        Ival.Widen_Hints.reprs
+    let mem_project = Datatype.never_any_project
   end)
 
 (* use a list of hints instead of multiple entries in a hashtable
@@ -400,7 +400,7 @@ module StmtDynamicHint = Datatype.List(DynamicHintDatatype)
     that should be added to the global widening hints. Therefore,
     we store, for each annotation, the set of bases computed so far,
     plus the thresholds (to avoid recomputing them).
- *)
+*)
 module Parsed_Dynamic_Hints =
   State_builder.Hashtbl
     (Stmt.Hashtbl)

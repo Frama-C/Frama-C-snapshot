@@ -1,177 +1,177 @@
 [kernel] Parsing tests/slicing/unravel-variance.i (no preprocessing)
 [slicing] slicing requests in progress...
-[value] Analyzing a complete application starting at main
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing a complete application starting at main
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   
-[value] computing for function scanf <- main.
+[eva] computing for function scanf <- main.
   Called from tests/slicing/unravel-variance.i:31.
 [kernel:annot:missing-spec] tests/slicing/unravel-variance.i:31: Warning: 
   Neither code nor specification for function scanf, generating default assigns from the prototype
-[value] using specification for function scanf
-[value] Done for function scanf
-[value] tests/slicing/unravel-variance.i:32: entering loop for the first time
-[value:alarm] tests/slicing/unravel-variance.i:32: Warning: 
+[eva] using specification for function scanf
+[eva] Done for function scanf
+[eva:alarm] tests/slicing/unravel-variance.i:32: Warning: 
   accessing uninitialized left-value. assert \initialized(&n);
-[value] computing for function scanf <- main.
+[eva] computing for function scanf <- main.
   Called from tests/slicing/unravel-variance.i:34.
-[value] Done for function scanf
-[value:alarm] tests/slicing/unravel-variance.i:35: Warning: 
+[eva] Done for function scanf
+[eva:alarm] tests/slicing/unravel-variance.i:35: Warning: 
   accessing uninitialized left-value. assert \initialized(&x[i]);
-[value:alarm] tests/slicing/unravel-variance.i:35: Warning: 
+[eva:alarm] tests/slicing/unravel-variance.i:35: Warning: 
   non-finite float value. assert \is_finite(x[i]);
-[value:alarm] tests/slicing/unravel-variance.i:36: Warning: 
+[eva:alarm] tests/slicing/unravel-variance.i:36: Warning: 
   non-finite float value. assert \is_finite((float)(x[i] * x[i]));
-[value] computing for function scanf <- main.
+[eva] tests/slicing/unravel-variance.i:32: starting to merge loop iterations
+[eva] computing for function scanf <- main.
   Called from tests/slicing/unravel-variance.i:34.
-[value] Done for function scanf
-[value:alarm] tests/slicing/unravel-variance.i:35: Warning: 
+[eva] Done for function scanf
+[eva:alarm] tests/slicing/unravel-variance.i:35: Warning: 
   non-finite float value. assert \is_finite((float)(t1 + x[i]));
-[value:alarm] tests/slicing/unravel-variance.i:36: Warning: 
+[eva:alarm] tests/slicing/unravel-variance.i:36: Warning: 
   accessing uninitialized left-value. assert \initialized(&x[i]);
-[value:alarm] tests/slicing/unravel-variance.i:36: Warning: 
+[eva:alarm] tests/slicing/unravel-variance.i:36: Warning: 
   non-finite float value. assert \is_finite(x[i]);
-[value:alarm] tests/slicing/unravel-variance.i:36: Warning: 
+[eva:alarm] tests/slicing/unravel-variance.i:36: Warning: 
   non-finite float value.
   assert \is_finite((float)(ssq + (float)(x[i] * x[i])));
-[value] computing for function scanf <- main.
+[eva] computing for function scanf <- main.
   Called from tests/slicing/unravel-variance.i:34.
-[value] Done for function scanf
-[value] computing for function scanf <- main.
+[eva] Done for function scanf
+[eva] computing for function scanf <- main.
   Called from tests/slicing/unravel-variance.i:34.
-[value] Done for function scanf
-[value] computing for function scanf <- main.
+[eva] Done for function scanf
+[eva] computing for function scanf <- main.
   Called from tests/slicing/unravel-variance.i:34.
-[value] Done for function scanf
-[value:alarm] tests/slicing/unravel-variance.i:35: Warning: 
+[eva] Done for function scanf
+[eva:alarm] tests/slicing/unravel-variance.i:35: Warning: 
   accessing out of bounds index. assert i < 1024;
-[value:alarm] tests/slicing/unravel-variance.i:38: Warning: 
+[eva:alarm] tests/slicing/unravel-variance.i:38: Warning: 
   non-finite float value. assert \is_finite((float)(t1 / (float)n));
-[value:alarm] tests/slicing/unravel-variance.i:39: Warning: 
+[eva:alarm] tests/slicing/unravel-variance.i:39: Warning: 
   non-finite float value. assert \is_finite((float)((float)n * avg));
-[value:alarm] tests/slicing/unravel-variance.i:39: Warning: 
+[eva:alarm] tests/slicing/unravel-variance.i:39: Warning: 
   signed overflow. assert -2147483648 ≤ n - 1;
-[value:alarm] tests/slicing/unravel-variance.i:39: Warning: 
+[eva:alarm] tests/slicing/unravel-variance.i:39: Warning: 
   non-finite float value.
   assert \is_finite((float)((float)((float)n * avg) * avg));
-[value:alarm] tests/slicing/unravel-variance.i:39: Warning: 
+[eva:alarm] tests/slicing/unravel-variance.i:39: Warning: 
   non-finite float value.
   assert \is_finite((float)(ssq - (float)((float)((float)n * avg) * avg)));
-[value:alarm] tests/slicing/unravel-variance.i:39: Warning: 
+[eva:alarm] tests/slicing/unravel-variance.i:39: Warning: 
   non-finite float value.
   assert
   \is_finite((float)((float)(ssq - (float)((float)((float)n * avg) * avg)) /
                      (float)((int)(n - 1))));
-[value:alarm] tests/slicing/unravel-variance.i:40: Warning: 
+[eva:alarm] tests/slicing/unravel-variance.i:40: Warning: 
   non-finite float value. assert \is_finite((float)(t1 * avg));
-[value:alarm] tests/slicing/unravel-variance.i:40: Warning: 
+[eva:alarm] tests/slicing/unravel-variance.i:40: Warning: 
   non-finite float value. assert \is_finite((float)(ssq - (float)(t1 * avg)));
-[value:alarm] tests/slicing/unravel-variance.i:40: Warning: 
+[eva:alarm] tests/slicing/unravel-variance.i:40: Warning: 
   non-finite float value.
   assert
   \is_finite((float)((float)(ssq - (float)(t1 * avg)) / (float)((int)(n - 1))));
-[value:alarm] tests/slicing/unravel-variance.i:41: Warning: 
+[eva:alarm] tests/slicing/unravel-variance.i:41: Warning: 
   non-finite float value. assert \is_finite((float)(t1 * t1));
-[value:alarm] tests/slicing/unravel-variance.i:41: Warning: 
+[eva:alarm] tests/slicing/unravel-variance.i:41: Warning: 
   non-finite float value.
   assert \is_finite((float)((float)(t1 * t1) / (float)n));
-[value:alarm] tests/slicing/unravel-variance.i:42: Warning: 
+[eva:alarm] tests/slicing/unravel-variance.i:42: Warning: 
   non-finite float value. assert \is_finite((float)(ssq - t1));
-[value:alarm] tests/slicing/unravel-variance.i:42: Warning: 
+[eva:alarm] tests/slicing/unravel-variance.i:42: Warning: 
   non-finite float value.
   assert \is_finite((float)((float)(ssq - t1) / (float)((int)(n - 1))));
-[value] tests/slicing/unravel-variance.i:44: entering loop for the first time
-[value:alarm] tests/slicing/unravel-variance.i:46: Warning: 
+[eva:alarm] tests/slicing/unravel-variance.i:46: Warning: 
   accessing uninitialized left-value. assert \initialized(&x[i]);
-[value:alarm] tests/slicing/unravel-variance.i:46: Warning: 
+[eva:alarm] tests/slicing/unravel-variance.i:46: Warning: 
   non-finite float value. assert \is_finite(x[i]);
-[value:alarm] tests/slicing/unravel-variance.i:46: Warning: 
+[eva:alarm] tests/slicing/unravel-variance.i:46: Warning: 
   non-finite float value. assert \is_finite((float)(x[i] - avg));
-[value:alarm] tests/slicing/unravel-variance.i:48: Warning: 
+[eva:alarm] tests/slicing/unravel-variance.i:48: Warning: 
   non-finite float value. assert \is_finite((float)(dev * dev));
-[value:alarm] tests/slicing/unravel-variance.i:47: Warning: 
+[eva] tests/slicing/unravel-variance.i:44: starting to merge loop iterations
+[eva:alarm] tests/slicing/unravel-variance.i:47: Warning: 
   non-finite float value. assert \is_finite((float)(t2 + dev));
-[value:alarm] tests/slicing/unravel-variance.i:48: Warning: 
+[eva:alarm] tests/slicing/unravel-variance.i:48: Warning: 
   non-finite float value. assert \is_finite((float)(t1 + (float)(dev * dev)));
-[value:alarm] tests/slicing/unravel-variance.i:50: Warning: 
+[eva:alarm] tests/slicing/unravel-variance.i:50: Warning: 
   non-finite float value. assert \is_finite((float)(t2 * t2));
-[value:alarm] tests/slicing/unravel-variance.i:50: Warning: 
+[eva:alarm] tests/slicing/unravel-variance.i:50: Warning: 
   non-finite float value.
   assert \is_finite((float)((float)(t2 * t2) / (float)n));
-[value:alarm] tests/slicing/unravel-variance.i:50: Warning: 
+[eva:alarm] tests/slicing/unravel-variance.i:50: Warning: 
   non-finite float value.
   assert \is_finite((float)(t1 - (float)((float)(t2 * t2) / (float)n)));
-[value:alarm] tests/slicing/unravel-variance.i:50: Warning: 
+[eva:alarm] tests/slicing/unravel-variance.i:50: Warning: 
   non-finite float value.
   assert
   \is_finite((float)((float)(t1 - (float)((float)(t2 * t2) / (float)n)) /
                      (float)((int)(n - 1))));
-[value:alarm] tests/slicing/unravel-variance.i:51: Warning: 
+[eva:alarm] tests/slicing/unravel-variance.i:51: Warning: 
   non-finite float value.
   assert \is_finite((float)(t1 / (float)((int)(n - 1))));
-[value:alarm] tests/slicing/unravel-variance.i:52: Warning: 
+[eva:alarm] tests/slicing/unravel-variance.i:52: Warning: 
   overflow in conversion from floating-point to integer.
   assert -2147483649 < var2;
-[value:alarm] tests/slicing/unravel-variance.i:52: Warning: 
+[eva:alarm] tests/slicing/unravel-variance.i:52: Warning: 
   overflow in conversion from floating-point to integer.
   assert var2 < 2147483648;
-[value] computing for function printf1 <- main.
+[eva] computing for function printf1 <- main.
   Called from tests/slicing/unravel-variance.i:52.
 [kernel:annot:missing-spec] tests/slicing/unravel-variance.i:52: Warning: 
   Neither code nor specification for function printf1, generating default assigns from the prototype
-[value] using specification for function printf1
-[value] Done for function printf1
-[value:alarm] tests/slicing/unravel-variance.i:53: Warning: 
+[eva] using specification for function printf1
+[eva] Done for function printf1
+[eva:alarm] tests/slicing/unravel-variance.i:53: Warning: 
   overflow in conversion from floating-point to integer.
   assert -2147483649 < var3;
-[value:alarm] tests/slicing/unravel-variance.i:53: Warning: 
+[eva:alarm] tests/slicing/unravel-variance.i:53: Warning: 
   overflow in conversion from floating-point to integer.
   assert var3 < 2147483648;
-[value] computing for function printf2 <- main.
+[eva] computing for function printf2 <- main.
   Called from tests/slicing/unravel-variance.i:53.
 [kernel:annot:missing-spec] tests/slicing/unravel-variance.i:53: Warning: 
   Neither code nor specification for function printf2, generating default assigns from the prototype
-[value] using specification for function printf2
-[value] Done for function printf2
-[value:alarm] tests/slicing/unravel-variance.i:54: Warning: 
+[eva] using specification for function printf2
+[eva] Done for function printf2
+[eva:alarm] tests/slicing/unravel-variance.i:54: Warning: 
   overflow in conversion from floating-point to integer.
   assert -2147483649 < var4;
-[value:alarm] tests/slicing/unravel-variance.i:54: Warning: 
+[eva:alarm] tests/slicing/unravel-variance.i:54: Warning: 
   overflow in conversion from floating-point to integer.
   assert var4 < 2147483648;
-[value] computing for function printf3 <- main.
+[eva] computing for function printf3 <- main.
   Called from tests/slicing/unravel-variance.i:54.
 [kernel:annot:missing-spec] tests/slicing/unravel-variance.i:54: Warning: 
   Neither code nor specification for function printf3, generating default assigns from the prototype
-[value] using specification for function printf3
-[value] Done for function printf3
-[value:alarm] tests/slicing/unravel-variance.i:55: Warning: 
+[eva] using specification for function printf3
+[eva] Done for function printf3
+[eva:alarm] tests/slicing/unravel-variance.i:55: Warning: 
   overflow in conversion from floating-point to integer.
   assert -2147483649 < var5;
-[value:alarm] tests/slicing/unravel-variance.i:55: Warning: 
+[eva:alarm] tests/slicing/unravel-variance.i:55: Warning: 
   overflow in conversion from floating-point to integer.
   assert var5 < 2147483648;
-[value] computing for function printf4 <- main.
+[eva] computing for function printf4 <- main.
   Called from tests/slicing/unravel-variance.i:55.
 [kernel:annot:missing-spec] tests/slicing/unravel-variance.i:55: Warning: 
   Neither code nor specification for function printf4, generating default assigns from the prototype
-[value] using specification for function printf4
-[value] Done for function printf4
-[value:alarm] tests/slicing/unravel-variance.i:56: Warning: 
+[eva] using specification for function printf4
+[eva] Done for function printf4
+[eva:alarm] tests/slicing/unravel-variance.i:56: Warning: 
   overflow in conversion from floating-point to integer.
   assert -2147483649 < var1;
-[value:alarm] tests/slicing/unravel-variance.i:56: Warning: 
+[eva:alarm] tests/slicing/unravel-variance.i:56: Warning: 
   overflow in conversion from floating-point to integer.
   assert var1 < 2147483648;
-[value] computing for function printf5 <- main.
+[eva] computing for function printf5 <- main.
   Called from tests/slicing/unravel-variance.i:56.
 [kernel:annot:missing-spec] tests/slicing/unravel-variance.i:56: Warning: 
   Neither code nor specification for function printf5, generating default assigns from the prototype
-[value] using specification for function printf5
-[value] Done for function printf5
-[value] Recording results for main
-[value] done for function main
+[eva] using specification for function printf5
+[eva] Done for function printf5
+[eva] Recording results for main
+[eva] done for function main
 [scope:rm_asserts] removing 2 assertion(s)
 [slicing] initializing slicing ...
 [slicing] interpreting slicing requests from the command line...

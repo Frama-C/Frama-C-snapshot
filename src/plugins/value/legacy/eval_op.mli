@@ -74,6 +74,12 @@ val make_loc_contiguous: Locations.location -> Locations.location
 val pretty_stitched_offsetmap: Format.formatter -> typ -> V_Offsetmap.t -> unit
 val pretty_offsetmap: typ -> Format.formatter -> V_Offsetmap.t -> unit
 
+(* Given an under-approximation of a location, finds an under-approximation
+   of the value at this location in the given state.
+   Returns None if no under-approximation can be computed. *)
+val find_under_approximation:
+  Cvalue.Model.t -> Locations.location -> Cvalue.V_Or_Uninitialized.t option
+
 (*
 Local Variables:
 compile-command: "make -C ../../../.."

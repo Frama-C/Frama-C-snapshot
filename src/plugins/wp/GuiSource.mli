@@ -58,5 +58,3 @@ class highlighter : Design.main_window_extension_points ->
       start:int -> stop:int -> unit
 
   end
-
-

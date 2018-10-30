@@ -1,67 +1,72 @@
 [kernel] Parsing tests/libc/alloca_h.c (with preprocessing)
-[value] Analyzing a complete application starting at main
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
-  __fc_heap_status ∈ [--..--]
-  __fc_random_counter ∈ [--..--]
-  __fc_rand_max ∈ {32767}
-  __fc_mblen_state ∈ [--..--]
-  __fc_mbtowc_state ∈ [--..--]
-  __fc_wctomb_state ∈ [--..--]
-  __fc_stack_status ∈ [--..--]
+[eva] Analyzing a complete application starting at main
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   nondet ∈ [--..--]
-[value] tests/libc/alloca_h.c:30: allocating variable __alloca_main_l30
-[value] tests/libc/alloca_h.c:31: assertion got status valid.
-[value] tests/libc/alloca_h.c:35: allocating variable __alloca_main_l35
-[value] tests/libc/alloca_h.c:40: assertion got status valid.
-[value] computing for function f <- main.
+[eva] tests/libc/alloca_h.c:30: Call to builtin alloca
+[eva] tests/libc/alloca_h.c:30: allocating variable __alloca_main_l30
+[eva] tests/libc/alloca_h.c:31: assertion got status valid.
+[eva] tests/libc/alloca_h.c:35: Call to builtin alloca
+[eva] tests/libc/alloca_h.c:35: allocating variable __alloca_main_l35
+[eva] tests/libc/alloca_h.c:40: assertion got status valid.
+[eva] computing for function f <- main.
   Called from tests/libc/alloca_h.c:41.
-[value] tests/libc/alloca_h.c:6: allocating variable __alloca_f_l6
-[value] tests/libc/alloca_h.c:7: allocating variable __malloc_f_l7
-[value:alarm] tests/libc/alloca_h.c:9: Warning: 
+[eva] tests/libc/alloca_h.c:6: Call to builtin alloca
+[eva] tests/libc/alloca_h.c:6: allocating variable __alloca_f_l6
+[eva] tests/libc/alloca_h.c:7: Call to builtin malloc
+[eva] tests/libc/alloca_h.c:7: allocating variable __malloc_f_l7
+[eva] tests/libc/alloca_h.c:9: Call to builtin free
+[eva:alarm] tests/libc/alloca_h.c:9: Warning: 
   function free: precondition 'freeable' got status unknown.
-[value:alarm] tests/libc/alloca_h.c:10: Warning: 
+[eva:alarm] tests/libc/alloca_h.c:10: Warning: 
   accessing left-value that contains escaping addresses.
   assert ¬\dangling(&p);
-[value] Recording results for f
-[value] Done for function f
-[value] tests/libc/alloca_h.c:41: freeing automatic bases: {__alloca_f_l6}
-[value] tests/libc/alloca_h.c:42: assertion got status valid.
-[value] computing for function loop <- main.
+[eva] Recording results for f
+[eva] Done for function f
+[eva] tests/libc/alloca_h.c:41: freeing automatic bases: {__alloca_f_l6}
+[eva] tests/libc/alloca_h.c:42: assertion got status valid.
+[eva] computing for function loop <- main.
   Called from tests/libc/alloca_h.c:43.
-[value] tests/libc/alloca_h.c:22: entering loop for the first time
-[value] tests/libc/alloca_h.c:23: allocating variable __alloca_loop_l23
-[value] Recording results for loop
-[value] Done for function loop
-[value] tests/libc/alloca_h.c:43: freeing automatic bases: {__alloca_w_loop_l23}
-[value:alarm] tests/libc/alloca_h.c:44: Warning: assertion got status unknown.
-[value] tests/libc/alloca_h.c:45: allocating variable __alloca_main_l45
-[value] computing for function f2 <- main.
+[eva] tests/libc/alloca_h.c:23: Call to builtin alloca
+[eva] tests/libc/alloca_h.c:23: allocating variable __alloca_loop_l23
+[eva] tests/libc/alloca_h.c:22: starting to merge loop iterations
+[eva] tests/libc/alloca_h.c:23: Call to builtin alloca
+[eva] tests/libc/alloca_h.c:23: Call to builtin alloca
+[eva] tests/libc/alloca_h.c:23: Call to builtin alloca
+[eva] tests/libc/alloca_h.c:23: Call to builtin alloca
+[eva] Recording results for loop
+[eva] Done for function loop
+[eva] tests/libc/alloca_h.c:43: freeing automatic bases: {__alloca_w_loop_l23}
+[eva:alarm] tests/libc/alloca_h.c:44: Warning: assertion got status unknown.
+[eva] tests/libc/alloca_h.c:45: Call to builtin alloca
+[eva] tests/libc/alloca_h.c:45: allocating variable __alloca_main_l45
+[eva] computing for function f2 <- main.
   Called from tests/libc/alloca_h.c:46.
-[value] tests/libc/alloca_h.c:16: allocating variable __alloca_f2_l16
-[value] Recording results for f2
-[value] Done for function f2
-[value] tests/libc/alloca_h.c:46: freeing automatic bases: {__alloca_f2_l16}
-[value] tests/libc/alloca_h.c:48: assertion got status valid.
-[value] Recording results for main
-[value] done for function main
-[value] ====== VALUES COMPUTED ======
-[value:final-states] Values at end of function f2:
+[eva] tests/libc/alloca_h.c:16: Call to builtin alloca
+[eva] tests/libc/alloca_h.c:16: allocating variable __alloca_f2_l16
+[eva] Recording results for f2
+[eva] Done for function f2
+[eva] tests/libc/alloca_h.c:46: freeing automatic bases: {__alloca_f2_l16}
+[eva] tests/libc/alloca_h.c:48: assertion got status valid.
+[eva] Recording results for main
+[eva] done for function main
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function f2:
   __fc_stack_status ∈ [--..--]
   p ∈ {{ &__alloca_f2_l16[0] }}
   __alloca_main_l45[0] ∈ {42}
                    [1] ∈ {43}
-[value:final-states] Values at end of function loop:
+[eva:final-states] Values at end of function loop:
   __fc_stack_status ∈ [--..--]
   q ∈ {{ NULL ; &__alloca_w_loop_l23[0] }}
-[value:final-states] Values at end of function f:
+[eva:final-states] Values at end of function f:
   __fc_heap_status ∈ [--..--]
   __fc_stack_status ∈ [--..--]
   p ∈ {{ &__alloca_f_l6[0] }} or ESCAPINGADDR
   q ∈ {{ NULL ; &__malloc_f_l7[0] }} or ESCAPINGADDR
   r ∈ {{ NULL ; &__alloca_f_l6[0] ; &__malloc_f_l7[0] }} or ESCAPINGADDR
-[value:final-states] Values at end of function main:
+[eva:final-states] Values at end of function main:
   __fc_heap_status ∈ [--..--]
   __fc_stack_status ∈ [--..--]
   a ∈ {{ &__alloca_main_l30 }}

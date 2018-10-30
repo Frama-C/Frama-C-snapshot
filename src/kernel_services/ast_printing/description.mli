@@ -50,6 +50,15 @@ val pp_bhv : Format.formatter -> funbehavior -> unit
 val pp_property : Format.formatter -> Property.t -> unit
 (** prints an identified property *)
 
+val property_kind_and_node: Property.t -> (string * string) option
+(** Returns separately the kind and the node of a property. Returns None for
+    unsupported property kinds. Used to output properties in csv files.
+    @since Frama-C+dev *)
+
+val status_feedback: Property_status.Feedback.t -> string
+(** User-friendly description of property statuses.
+    @since Frama-C+dev *)
+
 type kf = [ `Always | `Never | `Context of kernel_function ]
 
 val pp_localized : kf:kf -> ki:bool -> kloc:bool -> Format.formatter -> Property.t -> unit

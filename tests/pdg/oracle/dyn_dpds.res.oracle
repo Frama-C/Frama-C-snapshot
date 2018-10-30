@@ -1,18 +1,18 @@
 [kernel] Parsing tests/pdg/dyn_dpds.c (with preprocessing)
-[value] Analyzing a complete application starting at main
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing a complete application starting at main
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   G ∈ {0}
-[value:alarm] tests/pdg/dyn_dpds.c:20: Warning: 
+[eva:alarm] tests/pdg/dyn_dpds.c:20: Warning: 
   signed overflow. assert -2147483648 ≤ a + b;
-[value:alarm] tests/pdg/dyn_dpds.c:20: Warning: 
+[eva:alarm] tests/pdg/dyn_dpds.c:20: Warning: 
   signed overflow. assert a + b ≤ 2147483647;
-[value:alarm] tests/pdg/dyn_dpds.c:23: Warning: 
+[eva:alarm] tests/pdg/dyn_dpds.c:23: Warning: 
   signed overflow. assert -x ≤ 2147483647;
-[value:alarm] tests/pdg/dyn_dpds.c:24: Warning: assertion got status unknown.
-[value] Recording results for main
-[value] done for function main
+[eva:alarm] tests/pdg/dyn_dpds.c:24: Warning: assertion got status unknown.
+[eva] Recording results for main
+[eva] done for function main
 [from] Computing for function main
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
@@ -28,15 +28,15 @@ int main(int a, int b, int c)
   int x;
   int *p;
   /* sid:1 */
-  /*@ assert Value: signed_overflow: -2147483648 ≤ a + b; */
-  /*@ assert Value: signed_overflow: a + b ≤ 2147483647; */
+  /*@ assert Eva: signed_overflow: -2147483648 ≤ a + b; */
+  /*@ assert Eva: signed_overflow: a + b ≤ 2147483647; */
   x = a + b;
   /* sid:2 */
   p = & x;
   /* sid:4 */
   if (c < 0) {
     /* sid:5 */
-    /*@ assert Value: signed_overflow: -x ≤ 2147483647; */
+    /*@ assert Eva: signed_overflow: -x ≤ 2147483647; */
     x = - x;
     /* sid:6 */
     /*@ assert *p > G; */ ;

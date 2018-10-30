@@ -30,13 +30,11 @@ end
 
 module type S = sig
   type state
-  type state_set
   type t
 
   val empty: unit -> t
-  val merge_set_return_new: state_set -> t -> state_set
+  val merge_set_return_new: state list -> t -> state list
   val join: t -> state or_bottom
-  val to_set: t -> state_set
   val to_list: t -> state list
   val pretty : Format.formatter -> t -> unit
 end
@@ -46,11 +44,9 @@ end
     dataflow analysis. *)
 module Make
     (Domain : Domain)
-    (States : Powerset.S with type state = Domain.t)
 = struct
 
   type state = Domain.t
-  type state_set = States.t
   module Index = Hashtbl.Make (Cvalue_domain.Subpart)
 
   type t = {
@@ -117,18 +113,16 @@ module Make
         else (Index.add states prefix state; true)
 
   let merge_set_return_new states partition =
-    let f state acc =
+    let f acc state =
       let added = add state partition in
-      if added then States.uncheck_add state acc else acc
+      if added then state :: acc else acc
     in
-    States.fold f states States.empty
+    List.fold_left f [] states
 
   let join partition =
     fold (fun v acc -> Bottom.join Domain.join (`Value v) acc) partition `Bottom
 
   let to_list p = Index.fold (fun _k v a -> v :: a) p.states p.others
-
-  let to_set partition = States.of_list (to_list partition)
 
   let iter f { states; others } =
     Index.iter (fun _k v -> f v) states;

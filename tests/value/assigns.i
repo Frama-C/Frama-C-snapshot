@@ -27,8 +27,8 @@ void g(int len);
 
 //@ assigns p[..] \from \nothing;
 void h(int *p);
-
-/*@ logic int foo(int p) ; */
+/*@ type Lint = int; */
+/*@ logic Lint foo(Lint p) ; */
 //@ assigns p[0..foo(*p)] \from \nothing;
 void j(int *p);
 

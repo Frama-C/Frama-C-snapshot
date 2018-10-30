@@ -5,8 +5,8 @@ int f(void)
   return -1;
 }
 
-main(){
+int main(){
   s.b = f();
   Frama_C_dump_each();
+  return 0;
 }
-  

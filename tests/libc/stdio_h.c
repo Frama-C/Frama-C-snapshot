@@ -24,5 +24,10 @@ int main() {
   if (!tmp) return 2;
   fseek(tmp, 0L, SEEK_SET);
   fclose(tmp);
+
+  FILE *redirected = freopen("/tmp/mytmp.txt", "w+", stdout);
+  if (!redirected) return 3;
+  printf("redirected to file");
+  fclose(redirected);
   return 0;
 }

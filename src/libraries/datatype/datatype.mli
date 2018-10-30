@@ -342,7 +342,17 @@ val formatter: Format.formatter Type.t
 
 module Integer: S_with_collections with type t = Integer.t
 val integer: Integer.t Type.t
-  
+
+(** Type-safe strings representing normalized filepaths.
+    See module {!Filepath.Normalized}.
+    @since Frama-C+dev *)
+module Filepath: sig
+  include S_with_collections with type t = Filepath.Normalized.t
+  val of_string: ?base_name:string -> string -> t
+  val pp_abs: Format.formatter -> t -> unit
+  val dummy: t
+end
+
 (* ****************************************************************************)
 (** {2 Generic functors for polymorphic types} *)
 (* ****************************************************************************)

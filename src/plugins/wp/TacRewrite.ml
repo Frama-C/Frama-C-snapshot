@@ -101,7 +101,7 @@ let rec lookup step push goal e =
         submit push select b goal tacr ;
       end
   | _ -> ()
-      
+
 class auto_rewrite =
   object
     method id = "wp:replace"
@@ -115,7 +115,7 @@ class auto_rewrite =
            | Have p | When p | Core p | Init p ->
                lookup s push (Lang.F.e_prop goal) (Lang.F.e_prop p)
            | _ -> ())
-        hyps 
+        hyps
   end
 
 let () = Strategy.register (new auto_rewrite)

@@ -1,9 +1,9 @@
 [kernel] Parsing tests/callgraph/no_fp_unsound_warning.i (no preprocessing)
-[value] Analyzing a complete application starting at main
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing a complete application starting at main
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   
-[value] done for function main
+[eva] done for function main
 [inout] Out (internal) for function main:
     \nothing

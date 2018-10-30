@@ -42,9 +42,10 @@ tests/ptests_config: Makefile.generating share/Makefile.config
 
 ALL_LIBRARY_NAMES=$(shell ocamlfind query -r -p-format $(LIBRARY_NAMES) $(LIBRARY_NAMES_GUI))
 
-$(CONFIG_FILE): $(CONFIG_FILE).in VERSION share/Makefile.config Makefile.generating configure.in
+$(CONFIG_FILE): $(CONFIG_FILE).in VERSION VERSION_CODENAME share/Makefile.config Makefile.generating configure.in
 	$(SED) \
 	  -e "s|@VERSION@|$(VERSION)|" \
+         -e "s|@VERSION_CODENAME@|$(VERSION_CODENAME)|" \
           -e "s|@CURR_DATE@|$$(LC_ALL=C date)|" \
 	  -e "s|@OCAMLC@|$(OCAMLC)|" \
           -e "s|@OCAMLOPT@|$(OCAMLOPT)|" \
@@ -122,13 +123,42 @@ endif
 
 GENERATED+= src/libraries/utils/json.ml src/libraries/stdlib/transitioning.ml
 
+ifeq ($(HAS_OCAML403),yes)
+  STACK_FOLD=Stack.fold
+else
+  STACK_FOLD=stack_fold
+endif
+
+ifeq ($(HAS_OCAML404),yes)
+  SPLIT_ON_CHAR=String.split_on_char
+else
+  SPLIT_ON_CHAR=split_on_char
+endif
+
+ifeq ($(HAS_OCAML405),yes)
+  NTH_OPT=List.nth_opt
+  FIND_OPT=List.find_opt
+  ASSOC_OPT=List.assoc_opt
+  ASSQ_OPT=List.assq_opt
+else
+  NTH_OPT=nth_opt
+  FIND_OPT=find_opt
+  ASSOC_OPT=assoc_opt
+  ASSQ_OPT=assq_opt
+endif
+
 src/libraries/stdlib/transitioning.ml: \
   src/libraries/stdlib/transitioning.ml.in \
   Makefile.generating share/Makefile.config
+	$(PRINT_MAKING) $@
 	rm -f $@
 	sed \
          -e 's/@SPLIT_ON_CHAR@/$(SPLIT_ON_CHAR)/g' \
          -e 's/@STACK_FOLD@/$(STACK_FOLD)/g' \
+         -e 's/@NTH_OPT@/$(NTH_OPT)/g' \
+         -e 's/@FIND_OPT@/$(FIND_OPT)/g' \
+         -e 's/@ASSOC_OPT@/$(ASSOC_OPT)/g' \
+         -e 's/@ASSQ_OPT@/$(ASSQ_OPT)/g' \
         $< > $@
 	$(CHMOD_RO) $@
 
@@ -165,6 +195,7 @@ endif
 	echo "FLG -c $(FLAGS) $(FRAMAC_USER_MERLIN_FLAGS)" > .merlin
 	for PKG in $(LIBRARY_NAMES); do echo PKG $$PKG >> .merlin; done
 	for PKG in $(LIBRARY_NAMES_GUI); do echo PKG $$PKG >> .merlin; done
+	for PKG in $(MERLIN_PACKAGES); do echo PKG $$PKG >> .merlin; done
 	echo "B lib/plugins" >> .merlin
 	echo "B lib/plugins/gui" >> .merlin
 	find src \( -name '.*' -o -name tests -o -name doc -o -name '*.cache' \) -prune \

@@ -1,51 +1,51 @@
 [kernel] Parsing tests/value/deps_unitialized_locals.i (no preprocessing)
-[value] Analyzing a complete application starting at main
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing a complete application starting at main
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   maybe ∈ [--..--]
   v1 ∈ {0}
   v2 ∈ {0}
   v ∈ {0}
-[value] computing for function f <- main.
+[eva] computing for function f <- main.
   Called from tests/value/deps_unitialized_locals.i:33.
-[value] Recording results for f
+[eva] Recording results for f
 [from] Computing for function f
 [from] Done for function f
-[value] Done for function f
-[value] computing for function g <- main.
+[eva] Done for function f
+[eva] computing for function g <- main.
   Called from tests/value/deps_unitialized_locals.i:36.
-[value:alarm] tests/value/deps_unitialized_locals.i:23: Warning: 
+[eva:alarm] tests/value/deps_unitialized_locals.i:23: Warning: 
   accessing uninitialized left-value. assert \initialized(&i);
-[value] Recording results for g
+[eva] Recording results for g
 [from] Computing for function g
 [from] Done for function g
-[value] Done for function g
-[value] computing for function h <- main.
+[eva] Done for function g
+[eva] computing for function h <- main.
   Called from tests/value/deps_unitialized_locals.i:39.
-[value] Recording results for h
+[eva] Recording results for h
 [from] Computing for function h
 [from] Done for function h
-[value] Done for function h
-[value] Recording results for main
+[eva] Done for function h
+[eva] Recording results for main
 [from] Computing for function main
 [from] Done for function main
-[value] done for function main
-[value] ====== VALUES COMPUTED ======
-[value:final-states] Values at end of function f:
+[eva] done for function main
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function f:
   v1.ts ∈ {1}
     .[bits 16 to 31] ∈ {0}
     .ti ∈ {2}
   ty.ts ∈ {1}
     .[bits 16 to 31] ∈ {0}
     .ti ∈ {2}
-[value:final-states] Values at end of function g:
+[eva:final-states] Values at end of function g:
   v ∈ {1}
   i ∈ {1}
-[value:final-states] Values at end of function h:
+[eva:final-states] Values at end of function h:
   v ∈ {1}
   i ∈ {1}
-[value:final-states] Values at end of function main:
+[eva:final-states] Values at end of function main:
   v1.ts ∈ {1}
     .[bits 16 to 31] ∈ {0}
     .ti ∈ {2}

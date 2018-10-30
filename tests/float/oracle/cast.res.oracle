@@ -1,25 +1,25 @@
 [kernel] Parsing tests/float/cast.i (no preprocessing)
-[value] Analyzing a complete application starting at main
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing a complete application starting at main
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   v ∈ [--..--]
-[value:alarm] tests/float/cast.i:11: Warning: 
+[eva:alarm] tests/float/cast.i:11: Warning: 
   non-finite double value. assert \is_finite(v);
-[value:alarm] tests/float/cast.i:11: Warning: 
+[eva:alarm] tests/float/cast.i:11: Warning: 
   non-finite float value. assert \is_finite((float)v);
-[value] computing for function assert_subnormal <- main.
+[eva] computing for function assert_subnormal <- main.
   Called from tests/float/cast.i:15.
-[value] using specification for function assert_subnormal
-[value] tests/float/cast.i:15: 
+[eva] using specification for function assert_subnormal
+[eva] tests/float/cast.i:15: 
   function assert_subnormal: precondition \is_finite(d) got status valid.
-[value:alarm] tests/float/cast.i:15: Warning: 
+[eva:alarm] tests/float/cast.i:15: Warning: 
   function assert_subnormal: precondition 0.0 < d < 0x1p-1022 got status unknown.
-[value] Done for function assert_subnormal
-[value] Recording results for main
-[value] done for function main
-[value] ====== VALUES COMPUTED ======
-[value:final-states] Values at end of function main:
+[eva] Done for function assert_subnormal
+[eva] Recording results for main
+[eva] done for function main
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function main:
   NON TERMINATING FUNCTION
 [from] Computing for function main
 [from] Computing for function assert_subnormal <-main

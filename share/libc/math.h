@@ -61,6 +61,75 @@ typedef double double_t;
 /* The following specifications will set errno. */
 #define math_errhandling	MATH_ERRNO
 
+#define FP_NAN 0
+#define FP_INFINITE 1
+#define FP_ZERO 2
+#define FP_SUBNORMAL 3
+#define FP_NORMAL 4
+
+#include <float.h> // for DBL_MIN and FLT_MIN
+
+/*@
+  assigns \result \from x;
+  behavior nan:
+    assumes is_nan: \is_NaN(x);
+    ensures fp_nan: \result == FP_NAN;
+  behavior inf:
+    assumes is_infinite: !\is_NaN(x) && !\is_finite(x);
+    ensures fp_infinite: \result == FP_INFINITE;
+  behavior zero:
+    assumes is_a_zero: x == 0.0; // also includes -0.0
+    ensures fp_zero: \result == FP_ZERO;
+  behavior subnormal:
+    assumes is_finite: \is_finite(x);
+    assumes is_subnormal: (x > 0.0 && x < FLT_MIN) || (x < 0.0 && x > -FLT_MIN);
+    ensures fp_subnormal: \result == FP_SUBNORMAL;
+  behavior normal:
+    assumes is_finite: \is_finite(x);
+    assumes not_subnormal: (x <= -FLT_MIN || x >= FLT_MIN);
+    ensures fp_normal: \result == FP_NORMAL;
+  complete behaviors;
+  disjoint behaviors;
+ */
+int __fc_fpclassifyf(float x);
+
+/*@
+  assigns \result \from x;
+  behavior nan:
+    assumes is_nan: \is_NaN(x);
+    ensures fp_nan: \result == FP_NAN;
+  behavior inf:
+    assumes is_infinite: !\is_NaN(x) && !\is_finite(x);
+    ensures fp_infinite: \result == FP_INFINITE;
+  behavior zero:
+    assumes is_a_zero: x == 0.0; // also includes -0.0
+    ensures fp_zero: \result == FP_ZERO;
+  behavior subnormal:
+    assumes is_finite: \is_finite(x);
+    assumes is_subnormal: (x > 0.0 && x < DBL_MIN) || (x < 0.0 && x > -DBL_MIN);
+    ensures fp_subnormal: \result == FP_SUBNORMAL;
+  behavior normal:
+    assumes is_finite: \is_finite(x);
+    assumes not_subnormal: (x <= -DBL_MIN || x >= DBL_MIN);
+    ensures fp_normal: \result == FP_NORMAL;
+  complete behaviors;
+  disjoint behaviors;
+ */
+int __fc_fpclassify(double x);
+
+// Incorrect in presence of long double with >64 bits
+#define fpclassify(x) \
+  (sizeof(x) == sizeof(float) ? __fc_fpclassifyf(x) : __fc_fpclassify(x))
+
+#define isinf(x) \
+  (sizeof(x) == sizeof(float) ? __fc_fpclassifyf(x) == FP_INFINITE : __fc_fpclassify(x) == FP_INFINITE)
+
+#define isnan(x) \
+  (sizeof(x) == sizeof(float) ? __fc_fpclassifyf(x) == FP_NAN : __fc_fpclassify(x) == FP_NAN)
+
+#define isnormal(x) \
+  (sizeof(x) == sizeof(float) ? __fc_fpclassifyf(x) == FP_NORMAL : __fc_fpclassify(x) == FP_NORMAL)
+
 /*@
   assigns __fc_errno, \result \from x;
   behavior normal:

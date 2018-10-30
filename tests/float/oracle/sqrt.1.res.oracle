@@ -1,16 +1,20 @@
-[kernel] Parsing tests/float/sqrt.i (no preprocessing)
-[value] Analyzing a complete application starting at main
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[kernel] Parsing tests/float/sqrt.c (with preprocessing)
+[eva] Analyzing a complete application starting at main
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   
-[kernel:annot:missing-spec] tests/float/sqrt.i:11: Warning: 
-  Neither code nor specification for function Frama_C_sqrt, generating default assigns from the prototype
-[value] tests/float/sqrt.i:12: assertion got status valid.
-[value] tests/float/sqrt.i:14: assertion got status valid.
-[value] tests/float/sqrt.i:19: 
+[eva] tests/float/sqrt.c:11: Call to builtin sqrt
+[eva] tests/float/sqrt.c:11: 
+  function sqrt: precondition 'finite_arg' got status valid.
+[eva] tests/float/sqrt.c:11: 
+  function sqrt: precondition 'arg_positive' got status valid.
+[eva] tests/float/sqrt.c:12: assertion got status valid.
+[eva] tests/float/sqrt.c:14: assertion got status valid.
+[eva] tests/float/sqrt.c:19: 
   Frama_C_dump_each:
   # Cvalue domain:
+  __fc_errno ∈ [--..--]
   k ∈ UNINITIALIZED
   i ∈ {-0.}
   j ∈ {-0.}
@@ -18,9 +22,10 @@
   p ∈ {{ (unsigned long long *)&j }}
   c[0..7] ∈ UNINITIALIZED
   ==END OF DUMP==
-[value] tests/float/sqrt.i:23: 
+[eva] tests/float/sqrt.c:23: 
   Frama_C_dump_each:
   # Cvalue domain:
+  __fc_errno ∈ [--..--]
   k ∈ UNINITIALIZED
   i ∈ {-0.}
   j ∈ {-0.}
@@ -28,13 +33,12 @@
   p ∈ {{ (unsigned long long *)&j }}
   c[0..7] ∈ UNINITIALIZED
   ==END OF DUMP==
-[value] tests/float/sqrt.i:25: 
-  Frama_C_show_each_long_long: {-0x8000000000000000}
-[value] tests/float/sqrt.i:26: Frama_C_show_each_double: {-0.}
-[value] Recording results for main
-[value] done for function main
-[value] ====== VALUES COMPUTED ======
-[value:final-states] Values at end of function main:
+[eva] tests/float/sqrt.c:25: Frama_C_show_each_long_long: {-0x8000000000000000}
+[eva] tests/float/sqrt.c:26: Frama_C_show_each_double: {-0.}
+[eva] Recording results for main
+[eva] done for function main
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function main:
   k ∈ {8}
   i ∈ {-0.}
   j ∈ {-0.}
@@ -43,13 +47,13 @@
   c[0] ∈ {128}
    [1..7] ∈ {0}
 [from] Computing for function main
-[from] Computing for function Frama_C_sqrt <-main
-[from] Done for function Frama_C_sqrt
+[from] Computing for function sqrt <-main
+[from] Done for function sqrt
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
   These dependencies hold at termination for the executions that terminate:
-[from] Function Frama_C_sqrt:
-  \result FROM d
+[from] Function sqrt:
+  \result FROM x
 [from] Function main:
   NO EFFECTS
 [from] ====== END OF DEPENDENCIES ======

@@ -45,22 +45,23 @@ val add_logic_function : logic_info -> unit
 val instantiate :
   (string * logic_type) list ->
   logic_type -> logic_type
+[@@deprecated "Use Logic_const.instantiate instead."]
 
 (** [is_instance_of poly t1 t2] returns [true] if [t1] can be derived from [t2]
-    by instantiating some of the type variable in [poly]. 
+    by instantiating some of the type variable in [poly].
 
     @since Magnesium-20151001
- *)
+*)
 val is_instance_of: string list -> logic_type -> logic_type -> bool
 
 (** expands logic type definitions. If the [unroll_typedef] flag is set to
     [true] (this is the default), C typedef will be expanded as well. *)
 val unroll_type : ?unroll_typedef:bool -> logic_type -> logic_type
 
-
 (** [isLogicType test typ] is [false] for pure logic types and the result
     of test for C types.
-*) (* BY: seriously? *)
+    In case of a set type, the function tests the element type.
+*)
 val isLogicType : (typ -> bool) -> logic_type -> bool
 
 (** {3 Predefined tests over types} *)
@@ -91,10 +92,10 @@ val typ_to_logic_type : typ -> logic_type
 
 (** @deprecated use Logic_const.pred_of_id_pred instead *)
 val predicate_of_identified_predicate: identified_predicate -> predicate
-  [@@ deprecated "Use Logic_const.pred_of_id_pred instead"]
+[@@ deprecated "Use Logic_const.pred_of_id_pred instead"]
 
 (** transforms \old and \at(,Old) into \at(,L) for L a label pointing
- to the given statement, creating one if needed. *)
+    to the given statement, creating one if needed. *)
 val translate_old_label: stmt -> predicate -> predicate
 
 (** {2 Terms} *)
@@ -140,7 +141,7 @@ val remove_logic_coerce: term -> term
     in [t]. In particular, [numeric_coerce (int)cst Linteger], where [cst]
     fits in int will be directly [cst], without any coercion.
 
-@since Magnesium-20151001
+    @since Magnesium-20151001
 *)
 val numeric_coerce: logic_type -> term -> term
 
@@ -156,19 +157,15 @@ val pointer_comparable: ?loc:location -> term -> term -> predicate
 (** \pointer_comparable
     @since Fluorine-20130401 *)
 
-val points_to_valid_string: ?loc:location -> term -> predicate
-(** \points_to_valid_string
-    @since Neon-20140301 *)
-
 (** {3 Conversion from exp to term}*)
 (** translates a C expression into an "equivalent" logical term.
-    [cast] specifies how C arithmetic operators are translated. 
-    When [cast] is [true], the translation returns a logic [term] having the 
-    same semantics of the C [expr] by introducing casts (i.e. the C expr [a+b] 
-    can be translated as [(char)(((char)a)+(char)b)] to preserve the modulo 
+    [cast] specifies how C arithmetic operators are translated.
+    When [cast] is [true], the translation returns a logic [term] having the
+    same semantics of the C [expr] by introducing casts (i.e. the C expr [a+b]
+    can be translated as [(char)(((char)a)+(char)b)] to preserve the modulo
     feature of the C addition).
-    Otherwise, no such casts are introduced and the C arithmetic operators are 
-    translated into perfect mathematical operators (i.e. a floating point 
+    Otherwise, no such casts are introduced and the C arithmetic operators are
+    translated into perfect mathematical operators (i.e. a floating point
     addition is translated into an addition of [real] numbers).
     @plugin development guide *)
 val expr_to_term : cast:bool -> exp -> term
@@ -337,12 +334,16 @@ val hash_term: term -> int
 (** comparison compatible with is_same_term *)
 val compare_term: term -> term -> int
 
+val hash_predicate: predicate -> int
+
+val compare_predicate: predicate -> predicate -> int
+
 (** {2 Merging contracts} *)
 
 val get_behavior_names : spec -> string list
 
-(** Concatenates two assigns if both are defined, 
-    returns WritesAny if one (or both) of them is WritesAny. 
+(** Concatenates two assigns if both are defined,
+    returns WritesAny if one (or both) of them is WritesAny.
     @since Nitrogen-20111001 *)
 val concat_assigns: assigns -> assigns -> assigns
 
@@ -350,26 +351,26 @@ val concat_assigns: assigns -> assigns -> assigns
     if both are, emitting a warning unless both are syntactically the same. *)
 val merge_assigns : assigns -> assigns -> assigns
 
-(** Concatenates two allocation clauses if both are defined, 
-    returns FreeAllocAny if one (or both) of them is FreeAllocAny. 
+(** Concatenates two allocation clauses if both are defined,
+    returns FreeAllocAny if one (or both) of them is FreeAllocAny.
     @since Nitrogen-20111001 *)
 val concat_allocation: allocation -> allocation -> allocation
 
 (** merge allocation: take the one that is defined and select an arbitrary one
-    if both are, emitting a warning unless both are syntactically the same. 
+    if both are, emitting a warning unless both are syntactically the same.
     @since Oxygen-20120901 *)
 val merge_allocation : allocation -> allocation -> allocation
 
 val merge_behaviors :
   silent:bool -> funbehavior list -> funbehavior list -> funbehavior list
 
-(** [merge_funspec oldspec newspec] merges [newspec] into [oldspec]. 
+(** [merge_funspec oldspec newspec] merges [newspec] into [oldspec].
     If the funspec belongs to a kernel function, do not forget to call
     {!Kernel_function.set_spec} after merging. *)
 val merge_funspec :
   ?silent_about_merging_behav:bool -> funspec -> funspec -> unit
 
-(** Reset the given funspec to empty. 
+(** Reset the given funspec to empty.
     @since Nitrogen-20111001 *)
 val clear_funspec: funspec -> unit
 
@@ -427,11 +428,6 @@ val complete_types: file -> unit
     Use with care.
 *)
 
-(** register a given name as a clause name for extended contract. *)
-val register_extension: string -> unit
-
-val is_extension: string -> bool
-
 val kw_c_mode : bool ref
 val enter_kw_c_mode : unit -> unit
 val exit_kw_c_mode : unit -> unit
@@ -440,7 +436,6 @@ val rt_type_mode : bool ref
 val enter_rt_type_mode : unit -> unit
 val exit_rt_type_mode : unit -> unit
 val is_rt_type_mode : unit -> bool
-
 
 (*
 Local Variables:

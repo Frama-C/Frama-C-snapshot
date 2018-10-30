@@ -43,3 +43,7 @@ val is_red_in_callstack:
    has been emitted during the analysis. Also returns the kinstr of the alarm or
    property, and the number of callstacks in which is was invalid.*)
 val get_all: unit -> (kinstr * alarm_or_property * int) list
+
+(* If option -eva-report-red-statuses has been set, reports red statuses in
+   a csv file. *)
+val report: unit -> unit

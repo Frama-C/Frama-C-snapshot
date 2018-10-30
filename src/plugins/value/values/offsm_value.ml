@@ -414,7 +414,7 @@ module Offsm : Abstract_value.Internal with type t = offsm_or_top = struct
   (* Simple values cannot be injected because we do not known their type
      (hence size in bits *)
   let zero = Top
-  let float_zeros = Top
+  let one = Top
   let top_int = Top
 
   let inject_int typ i =
@@ -423,7 +423,10 @@ module Offsm : Abstract_value.Internal with type t = offsm_or_top = struct
       O (inject ~size (V.inject_int i))
     with Cil.SizeOfError _ -> Top
 
-  let inject_address _ = Top
+  let assume_non_zero v = `Unknown v
+  let assume_bounded _ _ v = `Unknown v
+  let assume_not_nan ~assume_finite:_ _ v = `Unknown v
+  let assume_comparable _ v1 v2 = `Unknown (v1, v2)
 
   let constant e _c =
     if store_redundant then
@@ -434,20 +437,14 @@ module Offsm : Abstract_value.Internal with type t = offsm_or_top = struct
 
   let resolve_functions _ = `Top, true (* TODO: extract value *)
 
-  let forward_unop ~context:_ _typ op o =
+  let forward_unop _typ op o =
     let o' = match o, op with
       | Top, _ | _, (Neg | LNot) -> Top
       | O o, BNot -> O (bnot o)
     in
-    `Value o', Alarmset.all
+    `Value o'
 
-  let ik_of_type typ = match Cil.unrollType typ with
-    | TInt (ik, _)
-    | TEnum ({ekind = ik}, _)  -> Some ik
-    | TPtr _ -> Some Cil.theMachine.Cil.upointKind
-    | _ -> None
-
-  let forward_binop ~context:_ _typ op o1 o2 =
+  let forward_binop _typ op o1 o2 =
     let o' =
       match o1, o2, op with
       | O _o1, O _o2, (Shiftlt | Shiftrt) ->
@@ -459,7 +456,7 @@ module Offsm : Abstract_value.Internal with type t = offsm_or_top = struct
       | O o1, O o2, BXor -> O (bitwise_xor o1 o2)
       | _ -> Top
     in
-    `Value o', Alarmset.all
+    `Value o'
 
   let backward_binop ~input_type:_ ~resulting_type:_ _op ~left:_ ~right:_ ~result:_ =
     `Value (None, None)
@@ -469,21 +466,17 @@ module Offsm : Abstract_value.Internal with type t = offsm_or_top = struct
   let backward_cast ~src_typ:_ ~dst_typ:_ ~src_val:_ ~dst_val:_ =
     `Value None
 
-  let truncate_integer _e _range o = `Value o, Alarmset.all
   let rewrap_integer _range o = o
-  let restrict_float ~remove_infinite:_ _e _fkind o = `Value o, Alarmset.all
 
-  let cast ~src_typ ~dst_typ _e o =
-    let o' =
-      match o, ik_of_type src_typ, ik_of_type dst_typ with
-      | Top, _, _ | _, None, _ | _, _, None -> Top
-      | O o, Some ik_src, Some ik_dst ->
-        let old_size = Integer.of_int (Cil.bitsSizeOfInt ik_src) in
-        let new_size = Integer.of_int (Cil.bitsSizeOfInt ik_dst) in
-        let signed = Cil.isSigned ik_src in
-        O (cast ~old_size ~new_size ~signed o)
-    in
-    `Value o', Alarmset.all
+  let forward_cast ~src_type ~dst_type o =
+    let open Eval_typ in
+    match o, src_type, dst_type with
+    | O o, (TSInt src | TSPtr src), (TSInt dst | TSPtr dst) ->
+      let old_size = Int.of_int src.i_bits in
+      let new_size = Int.of_int dst.i_bits in
+      let signed = src.i_signed in
+      `Value (O (cast ~old_size ~new_size ~signed o))
+    | _ -> `Value Top
 
 end
 
@@ -518,20 +511,20 @@ module CvalueOffsm : Abstract_value.Internal with type t = V.t * offsm_or_top
       let v_o = Cvalue_forward.reinterpret typ v_o in
       (V.narrow v v_o, o)
 
-  let forward_unop ~context typ op p =
+  let forward_unop typ op p =
     match op with
     | BNot ->
       let p' = strengthen_offsm typ p in
-      forward_unop ~context typ op p' >>=: fun p'' ->
+      forward_unop typ op p' >>-: fun p'' ->
       strengthen_v typ p''
-    | _ -> forward_unop ~context typ op p
+    | _ -> forward_unop typ op p
 
-  let forward_binop ~context typ op l r =
+  let forward_binop typ op l r =
     match op with
     | BAnd | BOr | BXor ->
       let l = strengthen_offsm typ l in
       let r = strengthen_offsm typ r in
-      forward_binop ~context typ op l r >>=: fun p ->
+      forward_binop typ op l r >>-: fun p ->
       strengthen_v typ p
     | Shiftlt | Shiftrt ->
       let (v_r, _) = r in
@@ -543,11 +536,11 @@ module CvalueOffsm : Abstract_value.Internal with type t = V.t * offsm_or_top
           let signed = Bit_utils.is_signed_int_enum_pointer typ in
           let shiftn = if op = Shiftlt then SLeft i else SRight (i, signed) in
           let o = shift (size typ) (to_offsm typ l) shiftn in
-          Main_values.CVal.forward_binop ~context typ op v_l v_r >>=: fun v ->
+          Main_values.CVal.forward_binop typ op v_l v_r >>-: fun v ->
           v, O o
         with V.Not_based_on_null | Ival.Not_Singleton_Int ->
-          forward_binop ~context typ op l r
+          forward_binop typ op l r
       end
-    | _ -> forward_binop ~context typ op l r
+    | _ -> forward_binop typ op l r
 
 end

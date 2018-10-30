@@ -1,5 +1,5 @@
 /* run.config*
-   OPT: -no-autoload-plugins -load-module inout,value -val @VALUECONFIG@ -then -val-initialization-padding-globals no -then -val-initialization-padding-globals maybe -then -lib-entry -then -val-initialization-padding-globals no -then -val-initialization-padding-globals yes
+   OPT: -no-autoload-plugins -load-module inout,eva -val @VALUECONFIG@ -then -val-initialization-padding-globals no -then -val-initialization-padding-globals maybe -then -lib-entry -then -val-initialization-padding-globals no -then -val-initialization-padding-globals yes
 */
 
 typedef signed char int8_t;
@@ -55,6 +55,6 @@ struct S3 {
 struct S0 g_3 = {-1L,0x4B54L,6L,7L,0xFFL,1L,-10L,0x67457993L,0x3C7DL};
 struct S3 g_8 = {{0xD5L,-10L,0L,0x900B0881L,0xDAL,{0xDBL,0x846BL,1L,-7L,0xF3L,0xFC0336AEL,6L,0x52E4A6B2L,0x4EB0L},0x117216709E149CFFLL,0x9CL,-1L},0x1636717BL,-4L,4L,{0xE3L,0xECDCL,0xF1FA6F63EEDA781BLL,0xF7A0L,0x7CL,0L,0xA77DL,0x7FC7DF39L,0x3C5AL},{0xA104ACD6L,0xA8L},0xADL,8L};
 
-main(){
+int main(){
   return 0;
 }

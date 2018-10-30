@@ -29,14 +29,14 @@
   Function call = 1
   Pointer dereferencing = 0
   Cyclomatic complexity = 3
-[value] Analyzing a complete application starting at main
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing a complete application starting at main
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   
-[value] done for function main
-[metrics] Value coverage statistics
-  =========================
+[eva] done for function main
+[metrics] Eva coverage statistics
+  =======================
   Syntactically reachable functions = 2 (out of 2)
   Semantically reached functions = 1
   Coverage estimation = 50.0% 
@@ -46,22 +46,22 @@
 [metrics] References to non-analyzed functions
   ------------------------------------
   Function main calls foo (at tests/metrics/unreachable.c:16)
-[metrics] Statements analyzed by Value
-  ----------------------------
+[metrics] Statements analyzed by Eva
+  --------------------------
   10 stmts in analyzed functions, 6 stmts analyzed (60.0%)
   main: 6 stmts out of 10 (60.0%)
-[value] Analyzing a complete application starting at foo
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing a complete application starting at foo
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   
-[value] done for function foo
-[metrics] Value coverage statistics
-  =========================
+[eva] done for function foo
+[metrics] Eva coverage statistics
+  =======================
   Syntactically reachable functions = 1 (out of 2)
   Semantically reached functions = 1
   Coverage estimation = 100.0%
-[metrics] Statements analyzed by Value
-  ----------------------------
+[metrics] Statements analyzed by Eva
+  --------------------------
   2 stmts in analyzed functions, 2 stmts analyzed (100.0%)
   foo: 2 stmts out of 2 (100.0%)

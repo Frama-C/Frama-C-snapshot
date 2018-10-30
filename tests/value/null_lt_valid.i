@@ -22,7 +22,7 @@ void h(void){
     r2 = r;
 }
 
-main(int c){
+int main(int c){
   if (c&32)
     f();
   q = (c&64) ? t+(c&15) : p;
@@ -34,5 +34,5 @@ main(int c){
   t[0] = (p < t);
   t[1] = (q < t + 22);
   t[2] = (r < t + 22);
-
+  return 0;
 }

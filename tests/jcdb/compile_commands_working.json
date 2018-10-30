@@ -1,0 +1,10 @@
+[
+    { "directory": "tests/jcdb",
+      "command": "gcc",
+      "file": "jcdb.c"
+    },
+    { "directory": "tests/jcdb",
+      "command": "gcc",
+      "file": "file_without_main.c"
+    }
+]

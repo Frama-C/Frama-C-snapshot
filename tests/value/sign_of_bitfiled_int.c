@@ -1,6 +1,6 @@
 /* run.config*
-   OPT: -no-autoload-plugins -load-module value,inout -val @VALUECONFIG@ -cpp-extra-args="-DPTEST"  -journal-disable
-   OPT: -no-autoload-plugins -load-module value,inout -machdep ppc_32 -val @VALUECONFIG@ -cpp-extra-args="-DPTEST" -journal-disable
+   OPT: -no-autoload-plugins -load-module eva,inout -val @VALUECONFIG@ -cpp-extra-args="-DPTEST"  -journal-disable
+   OPT: -no-autoload-plugins -load-module eva,inout -machdep ppc_32 -val @VALUECONFIG@ -cpp-extra-args="-DPTEST" -journal-disable
 */
 
 

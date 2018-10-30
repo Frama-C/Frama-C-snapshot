@@ -497,3 +497,9 @@ Effect at line 46
 Prove: true.
 
 ------------------------------------------------------------
+[wp] Warning: Memory model hypotheses for function 'ref_bd':
+  /*@ behavior typed_ref: requires \valid(q); */
+  int ref_bd(int *q);
+[wp] Warning: Memory model hypotheses for function 'g':
+  /*@ behavior typed_ref: requires \valid(pg); */
+  int g(int *pg);

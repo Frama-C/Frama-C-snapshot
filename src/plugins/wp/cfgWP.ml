@@ -168,7 +168,7 @@ struct
   let pretty fmt wp =
     begin
       (match wp.sigma with None -> () | Some s ->
-        Format.fprintf fmt "Sigma:@[<hov 2>%a@]@\n" Sigma.pretty s) ;
+          Format.fprintf fmt "Sigma:@[<hov 2>%a@]@\n" Sigma.pretty s) ;
       pp_gvcs fmt wp.vcs ;
     end
 
@@ -210,7 +210,7 @@ struct
       | Some s -> S.add s vc.path in
     let hyps = Conditions.state ?stmt ?descr state vc.hyps in
     { vc with path ; hyps }
-  
+
   let assume_vc ?descr ?hpid ?stmt ?warn ?(filter=false) ?(init=false) hs vc =
     if (hs = [] && warn = None) ||
        (filter && not (List.exists (intersect_vc vc) hs))
@@ -634,7 +634,7 @@ struct
       let state = Mstate.state state sigma in
       gmap (state_vc ?descr ?stmt state) vcs
     with Not_found -> vcs
-        
+
   let label wenv stmt label wp =
     if Clabels.is_here label then wp else
       in_wenv wenv wp
@@ -708,7 +708,7 @@ struct
                 in
                 let update vc =
                   if List.exists (occurs_vc vc) ft
-                  then 
+                  then
                     let eqs = List.map Cvalues.equation stored in
                     assume_vc ~stmt ~warn eqs vc
                   else vc in
@@ -721,7 +721,7 @@ struct
   (* -------------------------------------------------------------------------- *)
   (* --- WP RULE : return statement                                         --- *)
   (* -------------------------------------------------------------------------- *)
-  
+
   let return wenv stmt result wp =
     match result with
     | None -> wp
@@ -1386,11 +1386,11 @@ end
 (* -------------------------------------------------------------------------- *)
 
 let kid_qed_check = ref 0
-    
+
 let add_qed_check collection model ~qed ~raw ~goal =
   let k = incr kid_qed_check ; !kid_qed_check in
   let id = Printf.sprintf "Qed-%04d" k in
-  let pip = Property.ip_other id None Kglobal in
+  let pip = Property.(ip_other id (OLGlob Cil_datatype.Location.unknown)) in
   let pid = WpPropId.mk_check pip in
   let vck = let open VC_Check in { raw ; qed ; goal } in
   let w = let open Wpo in {

@@ -1,53 +1,53 @@
 [kernel] Parsing tests/value/inout_proto.i (no preprocessing)
-[value] Analyzing a complete application starting at main_main
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing a complete application starting at main_main
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   a ∈ {0}
   b ∈ {0}
   c ∈ {0}
   t[0..9] ∈ {0}
   u[0..19] ∈ {0}
-[value] computing for function main <- main_main.
+[eva] computing for function main <- main_main.
   Called from tests/value/inout_proto.i:54.
-[value] computing for function SendBuffer <- main <- main_main.
+[eva] computing for function SendBuffer <- main <- main_main.
   Called from tests/value/inout_proto.i:19.
-[value] using specification for function SendBuffer
-[value] Done for function SendBuffer
-[value] Recording results for main
-[value] Done for function main
-[value] computing for function main2 <- main_main.
+[eva] using specification for function SendBuffer
+[eva] Done for function SendBuffer
+[eva] Recording results for main
+[eva] Done for function main
+[eva] computing for function main2 <- main_main.
   Called from tests/value/inout_proto.i:55.
-[value] computing for function f <- main2 <- main_main.
+[eva] computing for function f <- main2 <- main_main.
   Called from tests/value/inout_proto.i:46.
-[value] using specification for function f
-[value] Done for function f
-[value] computing for function g1 <- main2 <- main_main.
+[eva] using specification for function f
+[eva] Done for function f
+[eva] computing for function g1 <- main2 <- main_main.
   Called from tests/value/inout_proto.i:47.
-[value] computing for function g <- g1 <- main2 <- main_main.
+[eva] computing for function g <- g1 <- main2 <- main_main.
   Called from tests/value/inout_proto.i:34.
-[value] using specification for function g
-[value] Done for function g
-[value] Recording results for g1
-[value] Done for function g1
-[value] computing for function g2 <- main2 <- main_main.
+[eva] using specification for function g
+[eva] Done for function g
+[eva] Recording results for g1
+[eva] Done for function g1
+[eva] computing for function g2 <- main2 <- main_main.
   Called from tests/value/inout_proto.i:48.
-[value] computing for function g <- g2 <- main2 <- main_main.
+[eva] computing for function g <- g2 <- main2 <- main_main.
   Called from tests/value/inout_proto.i:38.
-[value] Done for function g
-[value] Recording results for g2
-[value] Done for function g2
-[value] computing for function g3 <- main2 <- main_main.
+[eva] Done for function g
+[eva] Recording results for g2
+[eva] Done for function g2
+[eva] computing for function g3 <- main2 <- main_main.
   Called from tests/value/inout_proto.i:50.
-[value] computing for function g <- g3 <- main2 <- main_main.
+[eva] computing for function g <- g3 <- main2 <- main_main.
   Called from tests/value/inout_proto.i:42.
-[value] Done for function g
-[value] Recording results for g3
-[value] Done for function g3
-[value] Recording results for main2
-[value] Done for function main2
-[value] Recording results for main_main
-[value] done for function main_main
+[eva] Done for function g
+[eva] Recording results for g3
+[eva] Done for function g3
+[eva] Recording results for main2
+[eva] Done for function main2
+[eva] Recording results for main_main
+[eva] done for function main_main
 [inout] InOut (internal) for function g1:
   Operational inputs:
     t[6..7]

@@ -42,4 +42,3 @@ end
 
 module Unary(A : S) : Cache with type 'a value = A.t -> 'a
 module Binary(A : S) : Cache with type 'a value = A.t -> A.t -> 'a
-

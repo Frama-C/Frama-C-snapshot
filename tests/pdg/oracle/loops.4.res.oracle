@@ -1,14 +1,14 @@
 [kernel] Parsing tests/pdg/loops.c (with preprocessing)
-[value] Analyzing an incomplete application starting at maybe_infinite
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing an incomplete application starting at maybe_infinite
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   after ∈ [--..--]
-[value] tests/pdg/loops.c:84: entering loop for the first time
-[value:alarm] tests/pdg/loops.c:88: Warning: 
+[eva] tests/pdg/loops.c:84: starting to merge loop iterations
+[eva:alarm] tests/pdg/loops.c:88: Warning: 
   signed overflow. assert i + 2 ≤ 2147483647;
-[value] Recording results for maybe_infinite
-[value] done for function maybe_infinite
+[eva] Recording results for maybe_infinite
+[eva] done for function maybe_infinite
 [pdg] computing for function maybe_infinite
 [pdg] done for function maybe_infinite
 [pdg] PDG for maybe_infinite

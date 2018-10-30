@@ -43,21 +43,21 @@ val get_formula: t -> Lang.F.pred
 val is_trivial : t -> bool
 val is_proved : t -> bool
 
-(** {2 Database} 
-    Notice that a property or a function have no proof obligation until you 
+(** {2 Database}
+    Notice that a property or a function have no proof obligation until you
     explicitly generate them {i via} the [generate_xxx] functions below.
 *)
 
 val clear : unit -> unit
 val proof : Property.t -> t list
-(** List of proof obligations computed for a given property. Might be empty if you 
+(** List of proof obligations computed for a given property. Might be empty if you
     don't have used one of the generators below. *)
-    
+
 val remove : Property.t -> unit
 val iter_ip : (t -> unit) -> Property.t -> unit
 val iter_kf : (t -> unit) -> ?bhv:string list -> Kernel_function.t -> unit
 
-(** {2 Generators} 
+(** {2 Generators}
     The generated VCs are also added to the database, so they can be
     accessed later. The default value for [model] is what has been
     given on the command line ([-wp-model] option)
@@ -68,7 +68,7 @@ val generate_kf : ?model:string -> ?bhv:string list -> Kernel_function.t -> t Ba
 val generate_call : ?model:string -> Cil_types.stmt -> t Bag.t
 
 (** {2 Prover Interface} *)
-    
+
 val prove : t ->
   ?config:config ->
   ?mode:mode ->
@@ -86,14 +86,14 @@ val spawn : t ->
   ?success:(t -> prover option -> unit) ->
   ?pool:Task.pool ->
   (mode * prover) list -> unit
-(** Same as [prove] but schedule the tasks into the global server returned 
-    by [server] function below. 
-    
+(** Same as [prove] but schedule the tasks into the global server returned
+    by [server] function below.
+
     The first succeeding prover cancels the other ones. *)
 
 val server : ?procs:int -> unit -> Task.server
 (** Default number of parallel tasks is given by [-wp-par] command-line option.
-    The returned server is global to Frama-C, but the number of parallel task 
+    The returned server is global to Frama-C, but the number of parallel task
     allowed will be updated to fit the [~procs] or command-line options. *)
 
 val command : t Bag.t -> unit

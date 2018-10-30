@@ -3,27 +3,27 @@
   Floating-point constant 3.4e38f is not represented exactly. Will use 0x1.ff933c0000000p127.
 [kernel:parser:decimal-float] tests/float/const4.i:7: Warning: 
   Floating-point constant 3.405e38f is not represented exactly. Will use inf.
-[value] Analyzing a complete application starting at main
-[value] Computing initial state
-[value:alarm] tests/float/const4.i:7: Warning: 
+[eva] Analyzing a complete application starting at main
+[eva] Computing initial state
+[eva:alarm] tests/float/const4.i:7: Warning: 
   non-finite float value. assert \is_finite(3.405e38f);
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   f1 ∈ [3.39999995214e+38 .. 3.40000015497e+38]
   f2 ∈ {3.40282346639e+38}
-[value] tests/float/const4.i:11: 
+[eva] tests/float/const4.i:11: 
   Frama_C_dump_each:
   # Cvalue domain:
   f1 ∈ [3.39999995214e+38 .. 3.40000015497e+38]
   f2 ∈ {3.40282346639e+38}
   __retres ∈ UNINITIALIZED
   ==END OF DUMP==
-[value] Recording results for main
-[value] done for function main
-[value] tests/float/const4.i:7: 
-  assertion 'Value,is_nan_or_infinite' got final status invalid.
-[value] ====== VALUES COMPUTED ======
-[value:final-states] Values at end of function main:
+[eva] Recording results for main
+[eva] done for function main
+[eva] tests/float/const4.i:7: 
+  assertion 'Eva,is_nan_or_infinite' got final status invalid.
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function main:
   d2 ∈ {3.40282346639e+38}
   __retres ∈ {0}
 [from] Computing for function main

@@ -26,6 +26,15 @@
 
 open Cil_types
 
+(** {2 registered ACSL extensions } *)
+
+(** register a given name as a clause name for extended category. *)
+val register_extension: string -> ext_category -> unit
+
+val is_extension: string -> bool
+
+val extension_category: string -> ext_category option
+
 (** {2 Global Tables} *)
 module Logic_info: State_builder.Hashtbl
   with type key = string and type data = Cil_types.logic_info list
@@ -41,7 +50,7 @@ module Model_info: State_builder.Hashtbl
   with type key = string and type data = Cil_types.model_info
 
 (** @since Oxygen-20120901 *)
-module Lemmas: State_builder.Hashtbl 
+module Lemmas: State_builder.Hashtbl
   with type key = string and type data = Cil_types.global_annotation
 
 val builtin_states: State.t list
@@ -68,7 +77,7 @@ val add_logic_type: string -> logic_type_info -> unit
 val add_logic_ctor: string -> logic_ctor_info -> unit
 
 (**
-   @since Oxygen-20120901 
+   @since Oxygen-20120901
 *)
 val add_model_field: model_info -> unit
 
@@ -76,11 +85,11 @@ val add_model_field: model_info -> unit
 
 module Builtins: sig
   val apply: unit -> unit
-    (** adds all requested objects in the environment. *)
+  (** adds all requested objects in the environment. *)
   val extend: (unit -> unit) -> unit
-    (** request an addition in the environment. Use one of the functions below
-        in the body of the argument.
-     *)
+  (** request an addition in the environment. Use one of the functions below
+      in the body of the argument.
+  *)
 end
 
 (** logic function/predicates that are effectively used in current project. *)
@@ -111,14 +120,14 @@ val iter_builtin_logic_ctor: (logic_ctor_info -> unit) -> unit
 val find_all_logic_functions : string -> logic_info list
 
 (** returns all model fields of the same name.
-   @since Oxygen-20120901 
+    @since Oxygen-20120901
 *)
 val find_all_model_fields: string -> model_info list
 
 (** [find_model_info field typ] returns the model field associated to [field]
     in type [typ].
     @raise Not_found if no such type exists.
-    @since Oxygen-20120901 
+    @since Oxygen-20120901
 *)
 val find_model_field: string -> typ -> model_info
 
@@ -126,7 +135,7 @@ val find_model_field: string -> typ -> model_info
     but may occasionally need to find associated logic_info.
     @raise Not_found if the given varinfo is not associated to a global logic
     constant.
- *)
+*)
 val find_logic_cons: logic_var -> logic_info
 val find_logic_type: string -> logic_type_info
 val find_logic_ctor: string -> logic_ctor_info
@@ -196,8 +205,8 @@ val builtin_types_as_typenames: unit -> unit
 (** {2 Internal use} *)
 
 val init_dependencies: State.t -> unit
-  (** Used to postpone dependency of Lenv global tables wrt Cil_state, which
-      is initialized afterwards. *)
+(** Used to postpone dependency of Lenv global tables wrt Cil_state, which
+    is initialized afterwards. *)
 
 (*
   Local Variables:

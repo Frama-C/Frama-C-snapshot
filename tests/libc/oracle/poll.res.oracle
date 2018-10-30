@@ -1,30 +1,23 @@
 [kernel] Parsing tests/libc/poll.c (with preprocessing)
-[value] Analyzing a complete application starting at main
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
-  __fc_errno ∈ [--..--]
-  __fc_stdin ∈ {{ NULL ; &S___fc_stdin[0] }}
-  __fc_stdout ∈ {{ NULL ; &S___fc_stdout[0] }}
-  __fc_fopen[0..15] ∈ {0}
-  __fc_p_fopen ∈ {{ &__fc_fopen[0] }}
-  Frama_C_entropy_source ∈ [--..--]
-  S___fc_stdin[0..1] ∈ [--..--]
-  S___fc_stdout[0..1] ∈ [--..--]
-[value] computing for function poll <- main.
+[eva] Analyzing a complete application starting at main
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
+  
+[eva] computing for function poll <- main.
   Called from tests/libc/poll.c:11.
-[value] using specification for function poll
-[value] tests/libc/poll.c:11: 
+[eva] using specification for function poll
+[eva] tests/libc/poll.c:11: 
   function poll: precondition 'valid_file_descriptors' got status valid.
-[value] Done for function poll
-[value] computing for function perror <- main.
+[eva] Done for function poll
+[eva] computing for function perror <- main.
   Called from tests/libc/poll.c:12.
-[value] using specification for function perror
-[value] Done for function perror
-[value] Recording results for main
-[value] done for function main
-[value] ====== VALUES COMPUTED ======
-[value:final-states] Values at end of function main:
+[eva] using specification for function perror
+[eva] Done for function perror
+[eva] Recording results for main
+[eva] done for function main
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function main:
   __fc_stdout ∈ {{ NULL + [--..--] ; &S___fc_stdout[0] }}
   ufds.fd ∈ {0}
       .events ∈ {3}

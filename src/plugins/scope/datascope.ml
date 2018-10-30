@@ -510,12 +510,7 @@ class containsVolatile = object
 
   method! vterm t =
     match t.term_node with
-    | TLval tlv -> begin
-        match Logic_utils.unroll_type (Cil.typeOfTermLval tlv) with
-        | Ctype typ ->
-          if Cil.typeHasQualifier "volatile" typ then raise VolatileFound
-        | _ -> ()
-      end;
+    | TLval tlv -> if Cil.isVolatileTermLval tlv then raise VolatileFound ;
       Cil.DoChildren
     | _ -> Cil.DoChildren
 

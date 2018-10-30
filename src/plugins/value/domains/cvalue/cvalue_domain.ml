@@ -86,7 +86,7 @@ module Model = struct
   let is_float v =
     Cvalue.V.(is_included v top_float) && Cvalue.V.contains_non_zero v
 
-  let extract_lval _oracle state lval typ loc =
+  let extract_scalar_lval state lval typ loc =
     let process_one_loc = eval_one_loc state lval typ in
     let acc = Cvalue.V.bottom, None in
     let value, alarms = Precise_locs.fold process_one_loc loc acc in
@@ -102,6 +102,27 @@ module Model = struct
     then `Bottom, alarms
     else `Value (value, origin), alarms
 
+  (* Imprecise version for aggregate types that cvalues are unable to precisely
+     represent. The initialization alarms must remain sound, though. *)
+  let extract_aggregate_lval state lval _typ ploc =
+    let loc = Precise_locs.imprecise_location ploc in
+    match loc.Locations.size with
+    | Int_Base.Top -> `Value (Cvalue.V.top, None), Alarmset.all
+    | Int_Base.Value size ->
+      let offsm = Cvalue.Model.copy_offsetmap loc.Locations.loc size state in
+      match offsm with
+      | `Bottom -> `Bottom, Alarmset.none
+      | `Value offsm ->
+        let value = Cvalue.V_Offsetmap.find_imprecise_everywhere offsm in
+        let alarms = indeterminate_alarms lval value in
+        let v = Cvalue.V_Or_Uninitialized.get_v value in
+        let v = if Cvalue.V.is_bottom v then `Bottom else `Value (v, None) in
+        v, alarms
+
+  let extract_lval _oracle state lval typ loc =
+    if Cil.isArithmeticOrPointerType typ
+    then extract_scalar_lval state lval typ loc
+    else extract_aggregate_lval state lval typ loc
 
   let backward_location state _lval typ precise_loc value =
     let size = Precise_locs.loc_size precise_loc in
@@ -148,7 +169,8 @@ module State = struct
   type state = Model.t * Locals_scoping.clobbered_set
 
   let structure =
-    Abstract_domain.Node (Abstract_domain.Leaf key, Abstract_domain.Void)
+    Abstract_domain.Node (Abstract_domain.Leaf key,
+                          Abstract_domain.Leaf Locals_scoping.key)
 
   let log_category = Value_parameters.dkey_cvalue_domain
 
@@ -221,16 +243,9 @@ module State = struct
       T.assume stmt expr positive valuation s >>-: fun s ->
       s, clob
 
-    let result_with_clob bases result =
-      let clob = Locals_scoping.bottom () in
-      Locals_scoping.remember_bases_with_locals clob bases;
-      List.map (fun post_state -> post_state, clob) result
-
     let start_call stmt call valuation (s, _clob) =
-      match T.start_call stmt call valuation s with
-      | Compute state, _ -> Compute (state, Locals_scoping.bottom ())
-      | Result (list, c), post_clob ->
-        Result ((list >>-: fun l -> result_with_clob post_clob l), c)
+      T.start_call stmt call valuation s >>-: fun state ->
+      state, Locals_scoping.bottom ()
 
     let finalize_call stmt call ~pre ~post =
       let (post_state, post_clob) = post
@@ -240,9 +255,6 @@ module State = struct
       >>-: fun state ->
       state, clob
 
-    (* TODO *)
-    let approximate_call _stmt _call (_state, _clob) = assert false
-
     let show_expr valuation (state, _) = T.show_expr valuation state
   end
 
@@ -250,18 +262,14 @@ module State = struct
   (*                                 Mem Exec                                 *)
   (* ------------------------------------------------------------------------ *)
 
+  let relate _kf _bases _state = Base.SetLattice.empty
+
   (* Auxiliary function that keeps only some bases inside a memory state *)
-  let filter_by_bases bases (state, clob) =
+  let filter _kf _kind bases (state, clob) =
     Cvalue.Model.filter_by_shape (Base.Hptset.shape bases) state, clob
 
-  let reuse ~current_input:(state, _) ~previous_output:(output, clob) =
-    let state =
-      match output with
-      | Cvalue.Model.Bottom | Cvalue.Model.Top as state -> state
-      | Cvalue.Model.Map outputs ->
-        Cvalue.Model.fold Cvalue.Model.add_base outputs state
-    in
-    state, clob
+  let reuse _ _ ~current_input:(state, _) ~previous_output:(output, clob) =
+    Cvalue.Model.merge ~into:state output, clob
 
   (* ------------------------------------------------------------------------ *)
   (*                                  Logic                                   *)
@@ -315,12 +323,15 @@ module State = struct
           Printer.pp_from assign pp_eval_error e;
         Cvalue.V.top
 
-  let logic_assign assign location ~pre:(pre_state, _) (state, sclob) =
-    let location = Precise_locs.imprecise_location location in
-    let env = Eval_terms.env_assigns pre_state in
-    let value = evaluate_from_clause env assign in
-    Locals_scoping.remember_if_locals_in_value sclob location value;
-    Cvalue.Model.add_binding ~exact:false state location value, sclob
+  let logic_assign logic_assign location ~pre:(pre_state, _) (state, sclob) =
+    match logic_assign with
+    | Assigns assign ->
+      let location = Precise_locs.imprecise_location location in
+      let env = Eval_terms.env_assigns pre_state in
+      let value = evaluate_from_clause env assign in
+      Locals_scoping.remember_if_locals_in_value sclob location value;
+      Cvalue.Model.add_binding ~exact:false state location value, sclob
+    | Frees _ | Allocates _ -> state, sclob
 
   (* ------------------------------------------------------------------------ *)
   (*                             Initialization                               *)
@@ -555,25 +566,6 @@ let distinct_subpart a b =
     try Model.comp_prefixes a b; None
     with Model.Found_prefix (p, s1, s2) -> Some (p, s1, s2)
 let find_subpart s prefix = Model.find_prefix s prefix
-
-module PowersetDomainCvalue = Powerset.Make (State)
-module Transfer_logic_cvalue =
-  Transfer_logic.Make(State)(PowersetDomainCvalue)
-
-let eval_precond kf stmt state =
-  let ki = Cil_types.Kstmt stmt in
-  let state = state, Locals_scoping.bottom () in
-  let ab = Transfer_logic_cvalue.create state kf in
-  let states = Transfer_logic_cvalue.check_fct_preconditions ki kf ab state in
-  match states with
-  | `Bottom -> Cvalue.Model.bottom
-  | `Value states ->
-    match PowersetDomainCvalue.join states with
-    | `Bottom -> Cvalue.Model.bottom (* impossible *)
-    | `Value s -> project s
-  
-
-let () = Cvalue_transfer.eval_precond := eval_precond
 
 (*
 Local Variables:

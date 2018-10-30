@@ -1,17 +1,17 @@
 [kernel] Parsing tests/spec/default_assigns_bts0966.i (no preprocessing)
-[value] Analyzing a complete application starting at main
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing a complete application starting at main
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   auto_states[0..3] ∈ {0}
 [kernel] tests/spec/default_assigns_bts0966.i:34: Warning: 
   No code nor implicit assigns clause for function copy, generating default assigns from the specification
-[value] using specification for function copy
-[value] tests/spec/default_assigns_bts0966.i:20: Warning: 
+[eva] using specification for function copy
+[eva] tests/spec/default_assigns_bts0966.i:20: Warning: 
   no \from part for clause 'assigns auto_states[Init], auto_states[Copy];'
-[value] done for function main
-[value] ====== VALUES COMPUTED ======
-[value:final-states] Values at end of function main:
+[eva] done for function main
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function main:
   auto_states[0] ∈ {0}
              [1] ∈ {1}
              [2..3] ∈ {0}

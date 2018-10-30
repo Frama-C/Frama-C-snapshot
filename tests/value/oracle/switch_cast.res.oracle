@@ -1,21 +1,21 @@
 [kernel] Parsing tests/value/switch_cast.i (no preprocessing)
-[value] Analyzing a complete application starting at main
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing a complete application starting at main
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   x ∈ [--..--]
-[value] computing for function g <- main.
+[eva] computing for function g <- main.
   Called from tests/value/switch_cast.i:71.
-[value] tests/value/switch_cast.i:67: Frama_C_show_each: [1..241],1%2
-[value] Recording results for g
-[value] Done for function g
-[value] Recording results for main
-[value] done for function main
-[value] ====== VALUES COMPUTED ======
-[value:final-states] Values at end of function g:
+[eva] tests/value/switch_cast.i:67: Frama_C_show_each: [1..241],1%2
+[eva] Recording results for g
+[eva] Done for function g
+[eva] Recording results for main
+[eva] done for function main
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function g:
   x ∈ [0..15]
   y ∈ [1..241],1%2
-[value:final-states] Values at end of function main:
+[eva:final-states] Values at end of function main:
   x ∈ [0..15]
 [from] Computing for function g
 [from] Done for function g

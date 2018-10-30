@@ -1,6 +1,6 @@
 /* run.config*
-  OPT: -val @VALUECONFIG@ -slevel 10 -big-ints-hex 0 -machdep ppc_32 -float-normal -warn-decimal-float all
-  OPT: -val @VALUECONFIG@ -slevel 10 -big-ints-hex 0 -machdep x86_32 -float-normal -warn-decimal-float all
+  OPT: -eva @VALUECONFIG@ -slevel 10 -big-ints-hex 0 -machdep ppc_32 -float-normal -warn-decimal-float all
+  OPT: -eva @VALUECONFIG@ -slevel 10 -big-ints-hex 0 -machdep x86_32 -float-normal -warn-decimal-float all
 */
 
 float f = 3.14;

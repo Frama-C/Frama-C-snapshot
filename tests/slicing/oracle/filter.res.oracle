@@ -1,29 +1,29 @@
 [kernel] Parsing tests/slicing/filter.i (no preprocessing)
 [slicing] slicing requests in progress...
-[value] Analyzing a complete application starting at main
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing a complete application starting at main
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   T[0..9] ∈ {0}
-[value] computing for function bts806 <- main.
+[eva] computing for function bts806 <- main.
   Called from tests/slicing/filter.i:42.
-[value] Recording results for bts806
-[value] Done for function bts806
-[value] computing for function unspec <- main.
+[eva] Recording results for bts806
+[eva] Done for function bts806
+[eva] computing for function unspec <- main.
   Called from tests/slicing/filter.i:43.
-[value] computing for function f <- unspec <- main.
+[eva] computing for function f <- unspec <- main.
   Called from tests/slicing/filter.i:36.
 [kernel:annot:missing-spec] tests/slicing/filter.i:36: Warning: 
   Neither code nor specification for function f, generating default assigns from the prototype
-[value] using specification for function f
-[value] Done for function f
-[value] Recording results for unspec
-[value] Done for function unspec
-[value:alarm] tests/slicing/filter.i:43: Warning: 
+[eva] using specification for function f
+[eva] Done for function f
+[eva] Recording results for unspec
+[eva] Done for function unspec
+[eva:alarm] tests/slicing/filter.i:43: Warning: 
   signed overflow. assert r + tmp_0 ≤ 2147483647;
                    (tmp_0 from unspec())
-[value] Recording results for main
-[value] done for function main
+[eva] Recording results for main
+[eva] done for function main
 [slicing] initializing slicing ...
 [slicing] interpreting slicing requests from the command line...
 [pdg] computing for function main

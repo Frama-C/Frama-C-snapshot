@@ -6,7 +6,7 @@ int t[50];
 int u[50];
 int x;
 
-main(int c){
+int main(int c){
   int i;
   for (i=0; i<50; i+=5)
     {
@@ -18,4 +18,5 @@ main(int c){
   x = t[c];
   x += u[c];
   x += u[c+1];
+  return 0;
 }

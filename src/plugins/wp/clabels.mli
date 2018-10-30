@@ -30,7 +30,7 @@
 *)
 
 type c_label
-  
+
 val is_here : c_label -> bool
 val mem : c_label -> c_label list -> bool
 val equal : c_label -> c_label -> bool
@@ -51,7 +51,7 @@ val at_exit : c_label
 val loopentry : c_label
 val loopcurrent : c_label
 val old : c_label
-  
+
 val formal : string -> c_label
 
 val case : int64 -> c_label
@@ -61,7 +61,7 @@ val loop_current : Cil_types.stmt -> c_label
 
 val to_logic : c_label -> Cil_types.logic_label
 val of_logic : Cil_types.logic_label -> c_label
-(** Assumes the logic label only comes from normalized or non-ambiguous 
+(** Assumes the logic label only comes from normalized or non-ambiguous
     labels. Ambiguous labels are: Old, LoopEntry and LoopCurrent, since
     they points to different program points dependending on the context. *)
 

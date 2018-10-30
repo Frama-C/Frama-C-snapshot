@@ -24,8 +24,8 @@
     value abstraction. Basically a map from variable to values. *)
 
 (** A builtin is an ocaml function for the interpretation of a whole C function:
-    it takes the value of the arguments as a list, and returns the result (that
-    can be bottom). *)
+    it takes the list of value arguments, and returns the result (that can be
+    bottom). *)
 type 'value builtin = 'value list -> 'value Eval.or_bottom
 
 (** Abstraction of the values variables are mapped to. *)

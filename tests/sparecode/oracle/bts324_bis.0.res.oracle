@@ -1,10 +1,10 @@
 [kernel] Parsing tests/sparecode/bts324_bis.i (no preprocessing)
 [sparecode] remove unused code...
 [sparecode] selecting function main outputs and entry point
-[value] Analyzing a complete application starting at main
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing a complete application starting at main
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   ki[0..1] ∈ {0}
   k ∈ {0}
   e0 ∈ [--..--]
@@ -14,65 +14,65 @@
   is_ok ∈ {0}
   f_si[0..1] ∈ {0}
   f_so[0..1] ∈ {0}
-[value] computing for function init <- main.
+[eva] computing for function init <- main.
   Called from tests/sparecode/bts324_bis.i:37.
-[value] Recording results for init
-[value] Done for function init
-[value] tests/sparecode/bts324_bis.i:39: entering loop for the first time
-[value] computing for function loop_body <- main.
+[eva] Recording results for init
+[eva] Done for function init
+[eva] computing for function loop_body <- main.
   Called from tests/sparecode/bts324_bis.i:40.
-[value] computing for function f <- loop_body <- main.
+[eva] computing for function f <- loop_body <- main.
   Called from tests/sparecode/bts324_bis.i:22.
-[value:alarm] tests/sparecode/bts324_bis.i:10: Warning: 
+[eva:alarm] tests/sparecode/bts324_bis.i:10: Warning: 
   signed overflow. assert -2147483648 ≤ ki[i] * (int)(vi - f_si[i]);
-[value:alarm] tests/sparecode/bts324_bis.i:10: Warning: 
+[eva:alarm] tests/sparecode/bts324_bis.i:10: Warning: 
   signed overflow. assert ki[i] * (int)(vi - f_si[i]) ≤ 2147483647;
-[value] Recording results for f
-[value] Done for function f
-[value] computing for function f <- loop_body <- main.
+[eva] Recording results for f
+[eva] Done for function f
+[eva] computing for function f <- loop_body <- main.
   Called from tests/sparecode/bts324_bis.i:23.
-[value] Recording results for f
-[value] Done for function f
-[value] Recording results for loop_body
-[value] Done for function loop_body
-[value] computing for function loop_body <- main.
+[eva] Recording results for f
+[eva] Done for function f
+[eva] Recording results for loop_body
+[eva] Done for function loop_body
+[eva] tests/sparecode/bts324_bis.i:39: starting to merge loop iterations
+[eva] computing for function loop_body <- main.
   Called from tests/sparecode/bts324_bis.i:40.
-[value] computing for function f <- loop_body <- main.
+[eva] computing for function f <- loop_body <- main.
   Called from tests/sparecode/bts324_bis.i:22.
-[value:alarm] tests/sparecode/bts324_bis.i:10: Warning: 
+[eva:alarm] tests/sparecode/bts324_bis.i:10: Warning: 
   signed overflow. assert -2147483648 ≤ vi - f_si[i];
-[value:alarm] tests/sparecode/bts324_bis.i:10: Warning: 
+[eva:alarm] tests/sparecode/bts324_bis.i:10: Warning: 
   signed overflow. assert vi - f_si[i] ≤ 2147483647;
-[value:alarm] tests/sparecode/bts324_bis.i:10: Warning: 
+[eva:alarm] tests/sparecode/bts324_bis.i:10: Warning: 
   signed overflow.
   assert
   -2147483648 ≤ (int)(f_so[i] / k) + (int)(ki[i] * (int)(vi - f_si[i]));
-[value:alarm] tests/sparecode/bts324_bis.i:10: Warning: 
+[eva:alarm] tests/sparecode/bts324_bis.i:10: Warning: 
   signed overflow.
   assert
   (int)(f_so[i] / k) + (int)(ki[i] * (int)(vi - f_si[i])) ≤ 2147483647;
-[value] Recording results for f
-[value] Done for function f
-[value] computing for function f <- loop_body <- main.
+[eva] Recording results for f
+[eva] Done for function f
+[eva] computing for function f <- loop_body <- main.
   Called from tests/sparecode/bts324_bis.i:23.
-[value] Recording results for f
-[value] Done for function f
-[value] Recording results for loop_body
-[value] Done for function loop_body
-[value] computing for function loop_body <- main.
+[eva] Recording results for f
+[eva] Done for function f
+[eva] Recording results for loop_body
+[eva] Done for function loop_body
+[eva] computing for function loop_body <- main.
   Called from tests/sparecode/bts324_bis.i:40.
-[value] computing for function f <- loop_body <- main.
+[eva] computing for function f <- loop_body <- main.
   Called from tests/sparecode/bts324_bis.i:22.
-[value] Recording results for f
-[value] Done for function f
-[value] computing for function f <- loop_body <- main.
+[eva] Recording results for f
+[eva] Done for function f
+[eva] computing for function f <- loop_body <- main.
   Called from tests/sparecode/bts324_bis.i:23.
-[value] Recording results for f
-[value] Done for function f
-[value] Recording results for loop_body
-[value] Done for function loop_body
-[value] Recording results for main
-[value] done for function main
+[eva] Recording results for f
+[eva] Done for function f
+[eva] Recording results for loop_body
+[eva] Done for function loop_body
+[eva] Recording results for main
+[eva] done for function main
 [pdg] computing for function main
 [from] Computing for function init
 [from] Done for function init

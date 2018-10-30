@@ -1,17 +1,49 @@
-{ "wp:global": { "alt-ergo": { "total": 2, "unknown": 2 },
-                 "wp:main": { "total": 2, "unknown": 2 } },
-  "wp:functions": { "job": { "job_post": { "alt-ergo": { "total": 1,
-                                                         "unknown": 1 },
-                                           "wp:main": { "total": 1,
-                                                        "unknown": 1 } },
-                             "wp:section": { "alt-ergo": { "total": 1,
-                                                           "unknown": 1 },
-                                             "wp:main": { "total": 1,
-                                                          "unknown": 1 } } },
-                    "job2": { "job2_post": { "alt-ergo": { "total": 1,
-                                                           "unknown": 1 },
-                                             "wp:main": { "total": 1,
-                                                          "unknown": 1 } },
+{ "wp:global": { "alt-ergo": { "total": 5, "unknown": 5 },
+                 "qed": { "total": 1, "valid": 1 },
+                 "wp:main": { "total": 6, "valid": 1, "unknown": 5 } },
+  "wp:functions": { "job": { "job_assert_rte_mem_access_3": { "qed": 
+                                                                { "total": 1,
+                                                                  "valid": 1 },
+                                                              "wp:main": 
+                                                                { "total": 1,
+                                                                  "valid": 1 } },
+                             "job_assert_rte_signed_overflow_2": { "alt-ergo": 
+                                                                    { "total": 1,
+                                                                    "unknown": 1 },
+                                                                   "wp:main": 
+                                                                    { "total": 1,
+                                                                    "unknown": 1 } },
+                             "job_assert_rte_signed_overflow": { "alt-ergo": 
+                                                                   { "total": 1,
+                                                                    "unknown": 1 },
+                                                                 "wp:main": 
+                                                                   { "total": 1,
+                                                                    "unknown": 1 } },
+                             "job_assert_rte_mem_access_2": { "alt-ergo": 
+                                                                { "total": 1,
+                                                                  "unknown": 1 },
+                                                              "wp:main": 
+                                                                { "total": 1,
+                                                                  "unknown": 1 } },
+                             "job_assert_rte_mem_access": { "alt-ergo": 
+                                                              { "total": 1,
+                                                                "unknown": 1 },
+                                                            "wp:main": 
+                                                              { "total": 1,
+                                                                "unknown": 1 } },
+                             "wp:section": { "alt-ergo": { "total": 4,
+                                                           "unknown": 4 },
+                                             "qed": { "total": 1,
+                                                      "valid": 1 },
+                                             "wp:main": { "total": 5,
+                                                          "valid": 1,
+                                                          "unknown": 4 } } },
+                    "job3": { "job3_assert_rte_bool_value": { "alt-ergo": 
+                                                                { "total": 1,
+                                                                  "unknown": 1 },
+                                                              "wp:main": 
+                                                                { "total": 1,
+                                                                  "unknown": 1 } },
                               "wp:section": { "alt-ergo": { "total": 1,
                                                             "unknown": 1 },
                                               "wp:main": { "total": 1,

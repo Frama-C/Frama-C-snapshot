@@ -89,10 +89,8 @@ predicate eqmem(m1: (addr,'a) farray, m2: (addr,'a) farray, p: addr,
   (forall q:addr [(m1[p])| (m2[q])]. (included(q, 1, p, a1) ->
   ((m1[q]) = (m2[q]))))
 
-predicate havoc(m1: (addr,'a) farray, m2: (addr,'a) farray, p: addr,
-  a1: int) =
-  (forall q:addr [(m1[p])| (m2[q])]. (separated(q, 1, p, a1) ->
-  ((m1[q]) = (m2[q]))))
+logic havoc : (addr,'a) farray, (addr,'a) farray, addr,
+  int -> (addr,'a) farray
 
 predicate valid_rw(m: (int,int) farray, p: addr, n: int) = ((0 <  n) ->
   ((0 <  (p).base) and ((0 <= (p).offset) and
@@ -176,14 +174,25 @@ axiom eqmem_sym :
   (forall p:addr.
   (forall a1:int. (eqmem(m1, m2, p, a1) -> eqmem(m2, m1, p, a1)))))
 
-axiom havoc_sym :
-  (forall m1:(addr,'a) farray. forall m2:(addr,'a) farray.
-  (forall p:addr.
-  (forall a1:int. (havoc(m1, m2, p, a1) -> havoc(m2, m1, p, a1)))))
+axiom havoc_access :
+  (forall m0:(addr,'a) farray. forall m1:(addr,'a) farray.
+  (forall q:addr. forall p:addr.
+  (forall a1:int. (separated(q, 1, p, a1) -> ((havoc(m0, m1, p,
+  a1)[q]) = (m1[q]))))))
+
+axiom havoc_access1 :
+  (forall m0:(addr,'a) farray. forall m1:(addr,'a) farray.
+  (forall q:addr. forall p:addr.
+  (forall a1:int. ((not separated(q, 1, p, a1)) -> ((havoc(m0, m1, p,
+  a1)[q]) = (m0[q]))))))
 
 logic int_of_addr : addr -> int
 
 logic addr_of_int : int -> addr
+
+logic base_offset : int -> int
+
+logic base_index : int -> int
 
 axiom int_of_addr_bijection :
   (forall a:int. (int_of_addr(addr_of_int(a)) = a))
@@ -192,4 +201,12 @@ axiom addr_of_int_bijection :
   (forall p:addr. (addr_of_int(int_of_addr(p)) = p))
 
 axiom addr_of_null : (int_of_addr(null) = 0)
+
+axiom base_offset_zero : (base_offset(0) = 0)
+
+axiom base_offset_inj : (forall i:int. (base_index(base_offset(i)) = i))
+
+axiom base_offset_monotonic :
+  (forall i:int. forall j:int. ((i <  j) ->
+  (base_offset(i) <  base_offset(j))))
 

@@ -227,7 +227,7 @@ let compute () =
   let g = G.create () in
   (* optimize with [Value] when either it is already computed or someone
      requires it anyway *)
-  if Dynamic.Parameter.Bool.get "-val" () then begin
+  if Dynamic.Parameter.Bool.get "-eva" () then begin
     !Db.Value.compute ();
     semantic_compute g
   end else

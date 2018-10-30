@@ -40,7 +40,7 @@ PLUGIN_DIR ?=.
 PLUGIN_NAME:=Studia
 PLUGIN_CMO:=options writes reads
 PLUGIN_GUI_CMO:=studia_gui
-PLUGIN_DEPENDENCIES:=Value
+PLUGIN_DEPENDENCIES:=Eva
 PLUGIN_DISTRIB_EXTERNAL:= Makefile
 
 ################

@@ -392,7 +392,7 @@ and bal = parse
           let source = source input in
           noskipkey input "=" ;
           let link = linkstring input in
-          add_type ~source name ~library ~link () ;
+          add_type ~source:(Cil_datatype.Position.of_lexing_pos source) name ~library ~link () ;
 	  skipkey input ";" ;
 	  parse ~driver_dir library input
       | KEY "ctor" ->
@@ -402,7 +402,7 @@ and bal = parse
 	  let args = signature input in
 	  skipkey input "=" ;
 	  let link = link `Nary input in
-	  add_ctor ~source name args ~library ~link () ;
+	  add_ctor ~source:(Cil_datatype.Position.of_lexing_pos source) name args ~library ~link () ;
 	  skipkey input ";" ;
 	  parse ~driver_dir library input
       | KEY "logic" ->
@@ -414,13 +414,13 @@ and bal = parse
           if key input ":=" then
             begin
               let alias = ident input in
-              add_alias ~source name args ~alias () ;
+              add_alias ~source:(Cil_datatype.Position.of_lexing_pos source) name args ~alias () ;
             end
           else
             begin
 	      skipkey input "=" ;
               let category,link = logic_link input in
-              add_logic ~source result name args ~library ~category ~link () ;
+              add_logic ~source:(Cil_datatype.Position.of_lexing_pos source) result name args ~library ~category ~link () ;
             end ;
           skipkey input ";" ;
 	  parse ~driver_dir library input
@@ -432,13 +432,13 @@ and bal = parse
           if key input ":=" then
             begin
               let alias = ident input in
-              add_alias ~source name args ~alias () ;
+              add_alias ~source:(Cil_datatype.Position.of_lexing_pos source) name args ~alias () ;
             end
           else
             begin
 	      noskipkey input "=" ;
 	      let link = linkstring input in
-	      add_predicate ~source name args ~library ~link () ;
+	      add_predicate ~source:(Cil_datatype.Position.of_lexing_pos source) name args ~library ~link () ;
             end ;
           skipkey input ";" ;
           parse ~driver_dir library input
@@ -459,7 +459,9 @@ and bal = parse
 
   let load_file ?(ontty=`Transient) file =
     try
-      Wp_parameters.feedback ~ontty "Loading driver '%s'" (Filepath.pretty file) ;
+      let path = Datatype.Filepath.of_string file in
+      Wp_parameters.feedback ~ontty "Loading driver '%a'"
+        Datatype.Filepath.pretty path;
       let driver_dir = Filename.dirname file in
       let inc = open_in file in
       let lex = Lexing.from_channel inc in
@@ -473,7 +475,7 @@ and bal = parse
 	close_in inc ;
 	let source = lex.Lexing.lex_start_p in
 	Wp_parameters.abort ~current:false
-          ~source "(Driver Error) %s (at %a)" msg
+          ~source:(Cil_datatype.Position.of_lexing_pos source) "(Driver Error) %s (at %a)" msg
           pretty (token input)
     with exn ->
       Wp_parameters.abort

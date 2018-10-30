@@ -52,6 +52,8 @@ module LocalsSize: Parameter_sig.Kernel_function_set
 
 module Libc: Parameter_sig.Bool
 
+module UsedFiles: Parameter_sig.Bool
+
 (*
 Local Variables:
 compile-command: "make -C ../../.."

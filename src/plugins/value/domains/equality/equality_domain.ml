@@ -39,10 +39,6 @@ let call_init_state kf =
   | "none" -> ISEmpty
   | _ -> assert false
 
-(* Handle calls to functions with only a specification as if nothing was
-   written. Unsafe. *)
-let unsafe_spec_calls = false
-
 let dkey = Value_parameters.register_category "d-eq"
 
 open Hcexprs
@@ -67,10 +63,12 @@ module Deps = struct
 
   let intersects (m, i: t) z =
     let aux_e e acc =
-      let z_e = HCEToZone.find_default e m in
-      if Locations.Zone.intersects z z_e then
-        e :: acc
-      else acc
+      try
+        let z_e = HCEToZone.find e m in
+        if Locations.Zone.intersects z z_e then
+          e :: acc
+        else acc
+      with Not_found -> acc
     in
     let aux_base b _ acc =
       let set = BaseToHCESet.find_default b i in
@@ -208,9 +206,6 @@ module Make
 
   let backward_location _state _lv _typ loc value = `Value (loc, value)
 
-  let alarms_inter x y = (* TODO *)
-    if Alarmset.is_empty y then x else Alarmset.all
-
   (* Remove all 'origin' information from the Cvalue component of a value.
      Since we perform evaluations at the current statement, the origin
      information we compute is incompatible with the one obtained from e.g.
@@ -229,16 +224,20 @@ module Make
   let coop_eval oracle equalities atom_src =
     match Equality.Set.find_option atom_src equalities with
     | Some equality ->
-      let aux_eq atom (accv, accalarms as acc) =
+      let aux_eq atom acc =
         if HCE.equal atom atom_src then acc (* avoid trivial recursion *)
         else
           let e = HCE.to_exp atom in
-          let v', alarms = oracle e in
-          Bottom.narrow Value.narrow accv v', alarms_inter accalarms alarms
+          let v', _alarms = oracle e in
+          Bottom.narrow Value.narrow acc v'
       in
-      Equality.Equality.fold aux_eq equality (`Value Value.top, Alarmset.none)
+      let v = Equality.Equality.fold aux_eq equality (`Value Value.top) in
       (* Remove the 'origin' information of garbled mixes. *)
-      >>=: fun v -> (imprecise_origin v, ())
+      let v = v >>-: fun v -> imprecise_origin v, () in
+      (* All expressions used by the equality domain have already been evaluated
+         before during the analysis; alarms about those expressions have already
+         been emitted. *)
+      v, Alarmset.none
     | None -> `Value (Value.top, ()), Alarmset.all
 
   let extract_expr (oracle: exp -> Value.t evaluated) (equalities, _, _) expr =
@@ -282,16 +281,6 @@ module Make
     in
     let zone = List.fold_left aux_vi Locations.Zone.bottom vars in
     kill Hcexprs.Deleted zone state
-
-  let approximate_call kf state =
-    let post_state =
-      let name = Kernel_function.get_name kf in
-      if Ast_info.is_frama_c_builtin name ||
-         (name <> "free" && Eval_typ.kf_assigns_only_result_or_volatile kf)
-      then state
-      else if unsafe_spec_calls then state else top
-    in
-    `Value [post_state]
 
   module Transfer
       (Valuation: Abstract_domain.Valuation
@@ -384,12 +373,23 @@ module Make
         let lvalues = Hcexprs.syntactic_lvalues expr in
         term, lvalues, add_deps valuation lvalues deps
 
-    (* Auxiliary function for [assign]. The assignment takes place, unless
-       some the of the expressions involved are volatile. [{left,right}_zone]
-       are the dependencies of the corresponding lval/expr. *)
-    let assign_eq left_lval right_expr valuation state =
+    let indeterminate_copy = function
+      | Assign _ -> false
+      | Copy (_loc, value) -> not value.initialized || value.escaping
+
+    (* Auxiliary function for [assign]. The equality is inferred, unless:
+       - some of the expressions involved are volatile
+       - the value has an aggregate type (as the current Eva values have no
+         meaning for such type, the equality would be useless or misleading).
+       - it is an assignment by copy, and the copied value is possibly
+         unitialized or escaping. In this case, when using the equality later,
+         the reevaluation of [right_expr] would reduce it incorrectly, by
+         removing indeterminate flags without emitting alarms. *)
+    let assign_eq left_lval right_expr value valuation state =
       if Eval_typ.lval_contains_volatile left_lval ||
-         Eval_typ.expr_contains_volatile right_expr
+         Eval_typ.expr_contains_volatile right_expr ||
+         not (Cil.isArithmeticOrPointerType (Cil.typeOfLval left_lval)) ||
+         indeterminate_copy value
       then state
       else
         let (equalities, deps, modified_zone: t) = state in
@@ -427,7 +427,7 @@ module Make
            (is_singleton (Eval.value_assigned value) &&
             Locations.cardinal_zero_or_one left_loc)
         then `Value state
-        else `Value (assign_eq left_value.lval right_expr valuation state)
+        else `Value (assign_eq left_value.lval right_expr value valuation state)
       with Top_location -> `Value state
 
     (* Add the equalities between the formals of a function and the actuals
@@ -439,7 +439,7 @@ module Make
         else
           try
             let left_value = Var arg.formal, NoOffset in
-            assign_eq left_value arg.concrete valuation state
+            assign_eq left_value arg.concrete arg.avalue valuation state
           with Top_location -> state
       in
       List.fold_left assign_formal state call.arguments
@@ -464,6 +464,7 @@ module Make
             and e2 = Cil.constFold true e2 in
             if Eval_typ.expr_contains_volatile e1
             || Eval_typ.expr_contains_volatile e2
+            || not (Cil.isArithmeticOrPointerType (Cil.typeOf e1))
             || (expr_is_cardinal_zero_or_one_loc valuation e1 &&
                 expr_cardinal_zero_or_one valuation e2)
             || (expr_is_cardinal_zero_or_one_loc valuation e2 &&
@@ -486,7 +487,7 @@ module Make
         | ISFormals -> assign_formals valuation call empty
         | ISEmpty   -> empty
       in
-      Compute state
+      `Value state
 
     let finalize_call _stmt call ~pre ~post =
       if call_init_state call.kf = ISCaller then
@@ -502,9 +503,6 @@ module Make
         let pre' = kill Hcexprs.Modified modif pre in
         (* then merge the two sets of equalities *)
         `Value (concat pre' post)
-
-    let approximate_call _stmt call state =
-      approximate_call call.kf state
 
     let show_expr _valuation (equalities, _, _) fmt expr =
       let atom = Hcexprs.HCE.of_exp expr in
@@ -533,7 +531,13 @@ module Make
   let initialize_variable _ _ ~initialized:_ _ state = state
   let initialize_variable_using_type _ _ state  = state
 
-  let filter_by_bases _ state = state
-  let reuse ~current_input:_ ~previous_output:state = state
+  let relate kf _bases _state =
+    match call_init_state kf with
+    | ISEmpty | ISFormals -> Base.SetLattice.empty
+    | ISCaller -> Base.SetLattice.top
+
+  let filter _kf _kind _bases state = state
+
+  let reuse _kf _bases ~current_input:_ ~previous_output:state = state
 
 end

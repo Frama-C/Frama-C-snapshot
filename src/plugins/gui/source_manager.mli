@@ -32,7 +32,7 @@ val make:
   ?tab_pos:Gtk.Tags.position -> ?packing:(GObj.widget -> unit) -> unit -> t
 
 val load_file: 
-  t -> ?title:string -> filename:string -> ?line:int ->
+  t -> ?title:string -> filename:Datatype.Filepath.t -> ?line:int ->
   click_cb:(Pretty_source.localizable option -> unit) -> unit -> unit
 (** If [line] is 0 then the last line of the text is shown.
     If [line] is less that 0 then no scrolling occurs (default).
@@ -43,7 +43,7 @@ val load_file:
     a reverse mapping from the original source to the Cil source, and not
     always exact. *)
 
-val select_file: t -> string -> unit (** Selection by page filename *)
+val select_file: t -> Datatype.Filepath.t -> unit (** Selection by page filename *)
 val select_name: t -> string -> unit (** Selection by page title *)
 val get_current_source_view : t -> GSourceView2.source_view
 (** Returns the source viewer for the currently displayed tab *)

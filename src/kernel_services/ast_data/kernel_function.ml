@@ -52,6 +52,21 @@ let get_locals f = match f.fundec with
   | Definition(d, _) -> d.slocals
   | Declaration(_, _, _, _) -> []
 
+let get_statics f = match f.fundec with
+  | Definition (d, _) ->
+    let statics = ref [] in
+    let local_statics_visitor =
+      object
+        inherit Cil.nopCilVisitor
+        method! vblock b =
+          statics := !statics @ b.bstatics;
+          Cil.DoChildren
+      end
+    in
+    ignore (Cil.visitCilBlock local_statics_visitor d.sbody);
+    !statics
+  | Declaration (_, _, _, _) -> []
+
 exception No_Definition
 let get_definition kf = match kf.fundec with
   | Definition (f,_) -> f

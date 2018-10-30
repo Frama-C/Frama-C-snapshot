@@ -106,16 +106,11 @@ let setCurrentLine (i: int) =
 let setCurrentWorkingDirectory s =
   !current.current_working_directory <- Some s;;
 
-let setCurrentFile ?(normalize=true) (n: string) =
-  let n =
-    if not normalize then n
-    else
-      let base_name = !current.current_working_directory in
-      Filepath.normalize ?base_name n
-  in
+let setCurrentFile n =
+  let base_name = !current.current_working_directory in
+  let n = Filepath.normalize ?base_name n in
   let pos = !current.lexbuf.Lexing.lex_curr_p in
   !current.lexbuf.Lexing.lex_curr_p <- { pos with Lexing.pos_fname = n }
-
 
 (* Prints the [pos.pos_lnum]-th line from file [pos.pos_fname],
    plus up to [ctx] lines before and after [pos.pos_lnum] (if they exist),
@@ -123,13 +118,13 @@ let setCurrentFile ?(normalize=true) (n: string) =
    Most exceptions are silently caught and printing is stopped if they occur. *)
 let pp_context_from_file ?(ctx=2) ?start_line fmt pos =
   try
-    let in_ch = open_in pos.Lexing.pos_fname in
+    let in_ch = open_in (pos.Filepath.pos_path :> string) in
     try
       begin
         let first_error_line, last_error_line =
           match start_line with
-          | None -> pos.Lexing.pos_lnum, pos.Lexing.pos_lnum
-          | Some l -> min l pos.Lexing.pos_lnum, max l pos.Lexing.pos_lnum
+          | None -> pos.Filepath.pos_lnum, pos.Filepath.pos_lnum
+          | Some l -> min l pos.Filepath.pos_lnum, max l pos.Filepath.pos_lnum
         in
         let first_to_print = max (first_error_line-ctx) 1 in
         let last_to_print = last_error_line+ctx in
@@ -183,27 +178,27 @@ let pp_context_from_file ?(ctx=2) ?start_line fmt pos =
   with _ -> ()
 
 let pretty_pos fmt pos =
-  if pos = Lexing.dummy_pos then Format.fprintf fmt "<unknown>"
-  else Format.fprintf fmt "%d:%d" pos.Lexing.pos_lnum
-      (pos.Lexing.pos_cnum - pos.Lexing.pos_bol)
+  if pos = Cil_datatype.Position.unknown then Format.fprintf fmt "<unknown>"
+  else Format.fprintf fmt "%d:%d" pos.Filepath.pos_lnum
+      (pos.Filepath.pos_cnum - pos.Filepath.pos_bol)
 
 let pretty_pos_between fmt (pos_start, pos_end) =
-  if pos_start.Lexing.pos_fname = pos_end.Lexing.pos_fname then
-    if pos_start.Lexing.pos_lnum = pos_end.Lexing.pos_lnum then
+  if pos_start.Filepath.pos_path = pos_end.Filepath.pos_path then
+    if pos_start.Filepath.pos_lnum = pos_end.Filepath.pos_lnum then
       (* single file, single line *)
       Format.fprintf fmt "Location: line %d, between columns %d and %d"
-        pos_start.Lexing.pos_lnum
-        (pos_start.Lexing.pos_cnum - pos_start.Lexing.pos_bol)
-        (pos_end.Lexing.pos_cnum - pos_end.Lexing.pos_bol)
+        pos_start.Filepath.pos_lnum
+        (pos_start.Filepath.pos_cnum - pos_start.Filepath.pos_bol)
+        (pos_end.Filepath.pos_cnum - pos_end.Filepath.pos_bol)
     else
       (* single file, multiple lines *)
       Format.fprintf fmt "Location: between lines %d and %d"
-        pos_start.Lexing.pos_lnum pos_end.Lexing.pos_lnum
+        pos_start.Filepath.pos_lnum pos_end.Filepath.pos_lnum
   else (* multiple files (very rare) *)
     Format.fprintf fmt "Location: between %a and %a"
       pretty_pos pos_start pretty_pos pos_end
 
-let parse_error ?(source=Lexing.lexeme_start_p !current.lexbuf) msg =
+let parse_error ?(source=Cil_datatype.Position.of_lexing_pos (Lexing.lexeme_start_p !current.lexbuf)) msg =
   let start_pos = try Some (Parsing.symbol_start_pos ()) with | _ -> None in
   let pretty_token fmt token =
     (* prints more detailed information around the erroneous token;
@@ -225,21 +220,24 @@ let parse_error ?(source=Lexing.lexeme_start_p !current.lexbuf) msg =
         raise (Log.AbortError "kernel"))
       msg
   | Some start_pos ->
+    let start_pos = Cil_datatype.Position.of_lexing_pos start_pos in
     Pretty_utils.ksfprintf (fun str ->
-        Kernel.feedback ~source:start_pos "%s:@." str ~append:(fun fmt ->
+        Kernel.feedback ~source:start_pos "%s:@." str
+          ~append:(fun fmt ->
             Format.fprintf fmt "%a%a\n"
               pretty_pos_between (start_pos, source)
               pretty_token (Lexing.lexeme !current.lexbuf);
             Format.fprintf fmt "%a@."
-              (pp_context_from_file ~start_line:start_pos.Lexing.pos_lnum ~ctx:2) source);
+              (pp_context_from_file ~start_line:start_pos.Filepath.pos_lnum ~ctx:2) source);
         raise (Log.AbortError "kernel"))
       msg
 
 
 (* More parsing support functions: line, file, char count *)
-let currentLoc () : Lexing.position * Lexing.position =
+let currentLoc () =
   let i = !current in
-  Lexing.lexeme_start_p i.lexbuf, Lexing.lexeme_end_p i.lexbuf
+  Cil_datatype.Location.of_lexing_loc
+    (Lexing.lexeme_start_p i.lexbuf, Lexing.lexeme_end_p i.lexbuf)
 
 
 (** Handling of errors during parsing *)

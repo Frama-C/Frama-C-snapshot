@@ -39,20 +39,20 @@
   Functions syntactically unreachable from foobar: 3
   --------------------------------------------------
   <tests/metrics/func_ptr.c>: exit; foo; main;
-[value] Analyzing a complete application starting at foobar
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing a complete application starting at foobar
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   bar ∈ {0}
   bar_extern ∈ {0}
-[value] done for function foobar
-[metrics] Value coverage statistics
-  =========================
+[eva] done for function foobar
+[metrics] Eva coverage statistics
+  =======================
   Syntactically reachable functions = 2 (out of 5)
   Semantically reached functions = 2
   Coverage estimation = 100.0%
-[metrics] Statements analyzed by Value
-  ----------------------------
+[metrics] Statements analyzed by Eva
+  --------------------------
   5 stmts in analyzed functions, 5 stmts analyzed (100.0%)
   baz: 1 stmts out of 1 (100.0%)
   foobar: 4 stmts out of 4 (100.0%)

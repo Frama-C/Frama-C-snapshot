@@ -1,31 +1,31 @@
 [kernel] Parsing tests/impact/call.i (no preprocessing)
 [impact] beginning analysis
-[value] Analyzing a complete application starting at main2
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing a complete application starting at main2
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   G ∈ {0}
   X ∈ {0}
-[value] computing for function call_test <- main2.
+[eva] computing for function call_test <- main2.
   Called from tests/impact/call.i:36.
-[value] computing for function test <- call_test <- main2.
+[eva] computing for function test <- call_test <- main2.
   Called from tests/impact/call.i:30.
-[value] computing for function p1 <- test <- call_test <- main2.
+[eva] computing for function p1 <- test <- call_test <- main2.
   Called from tests/impact/call.i:16.
-[value] using specification for function p1
-[value] Done for function p1
-[value] computing for function p2 <- test <- call_test <- main2.
+[eva] using specification for function p1
+[eva] Done for function p1
+[eva] computing for function p2 <- test <- call_test <- main2.
   Called from tests/impact/call.i:16.
 [kernel:annot:missing-spec] tests/impact/call.i:16: Warning: 
   Neither code nor specification for function p2, generating default assigns from the prototype
-[value] using specification for function p2
-[value] Done for function p2
-[value] Recording results for test
-[value] Done for function test
-[value] Recording results for call_test
-[value] Done for function call_test
-[value] Recording results for main2
-[value] done for function main2
+[eva] using specification for function p2
+[eva] Done for function p2
+[eva] Recording results for test
+[eva] Done for function test
+[eva] Recording results for call_test
+[eva] Done for function call_test
+[eva] Recording results for main2
+[eva] done for function main2
 [pdg] computing for function main2
 [from] Computing for function call_test
 [from] Computing for function test <-call_test

@@ -35,7 +35,7 @@ check_plugin(security_slicing,PLUGIN_RELATIVE_PATH(plugin_file),
 	     [support for Security_slicing plug-in],yes)
 
 plugin_require(security_slicing,slicing)
-plugin_require(security_slicing,value_analysis)
+plugin_require(security_slicing,eva)
 plugin_require(security_slicing,pdg)
 plugin_require(security_slicing,gui)
 check_plugin_dependencies

@@ -1,0 +1,34 @@
+[kernel] Parsing tests/builtins/strlen_align.c (with preprocessing)
+[eva] Analyzing a complete application starting at main
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
+  
+[eva] tests/builtins/strlen_align.c:24: Call to builtin strlen
+[eva] tests/builtins/strlen_align.c:24: 
+  function strlen: precondition 'valid_string_s' got status valid.
+[eva] Recording results for main
+[eva] done for function main
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function main:
+  o.e ∈ UNINITIALIZED
+   .obval ∈ {{ "a" }}
+   .c ∈ {32}
+  p ∈ {{ &o + {12} }}
+  k ∈ {0}
+  z ∈ {0}
+[from] Computing for function main
+[from] Computing for function strlen <-main
+[from] Done for function strlen
+[from] Done for function main
+[from] ====== DEPENDENCIES COMPUTED ======
+  These dependencies hold at termination for the executions that terminate:
+[from] Function strlen:
+  \result FROM o.c[bits 32 to 63]
+[from] Function main:
+  NO EFFECTS
+[from] ====== END OF DEPENDENCIES ======
+[inout] Out (internal) for function main:
+    o{.obval; .c}; p; k; z
+[inout] Inputs for function main:
+    \nothing

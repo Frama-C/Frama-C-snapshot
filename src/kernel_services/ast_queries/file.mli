@@ -26,6 +26,9 @@
     configurations. *)
 type cpp_opt_kind = Gnu | Not_gnu | Unknown
 
+(** File type, according to how it will be preprocessed.
+    Note: [string] is used here instead of [Filepath], to preserve
+          names given in the command line, without normalization. *)
 type file =
   | NeedCPP of string * string * cpp_opt_kind
       (** The first string is the filename of the [.c] to preprocess.
@@ -131,7 +134,7 @@ val get_suffixes: unit -> string list
       @since Boron-20100401 *)
 
 val get_name: t -> string
-  (** File name. *)
+  (** File name (not normalized). *)
 
 val get_preprocessor_command: unit -> string * cpp_opt_kind
   (** Return the preprocessor command to use. *)

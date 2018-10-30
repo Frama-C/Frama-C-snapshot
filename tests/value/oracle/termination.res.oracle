@@ -1,20 +1,20 @@
 [kernel] Parsing tests/value/termination.i (no preprocessing)
-[value] Analyzing a complete application starting at main
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing a complete application starting at main
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   G[0..9] ∈ {0}
   X ∈ {0}
-[value] computing for function loop <- main.
+[eva] computing for function loop <- main.
   Called from tests/value/termination.i:33.
-[value] Recording results for loop
-[value] Done for function loop
-[value] Recording results for main
-[value] done for function main
-[value] ====== VALUES COMPUTED ======
-[value:final-states] Values at end of function loop:
+[eva] Recording results for loop
+[eva] Done for function loop
+[eva] Recording results for main
+[eva] done for function main
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function loop:
   X ∈ {2}
-[value:final-states] Values at end of function main:
+[eva:final-states] Values at end of function main:
   X ∈ {2}
 [from] Computing for function loop
 [from] Done for function loop

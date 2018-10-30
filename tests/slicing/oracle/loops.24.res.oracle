@@ -1,19 +1,19 @@
 [kernel] Parsing tests/slicing/loops.i (no preprocessing)
-[value] Analyzing an incomplete application starting at alarm
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing an incomplete application starting at alarm
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   G ∈ [--..--]
   C1 ∈ [--..--]
   C2 ∈ [--..--]
   X ∈ [--..--]
   Y ∈ [--..--]
   Z ∈ [--..--]
-[value] tests/slicing/loops.i:210: assertion got status valid.
-[value:alarm] tests/slicing/loops.i:211: Warning: 
+[eva] tests/slicing/loops.i:210: assertion got status valid.
+[eva:alarm] tests/slicing/loops.i:211: Warning: 
   signed overflow. assert j + 1 ≤ 2147483647;
-[value] Recording results for alarm
-[value] done for function alarm
+[eva] Recording results for alarm
+[eva] done for function alarm
 [from] Computing for function alarm
 [from] Done for function alarm
 [from] ====== DEPENDENCIES COMPUTED ======

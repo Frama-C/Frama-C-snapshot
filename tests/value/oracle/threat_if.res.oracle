@@ -1,20 +1,20 @@
 [kernel] Parsing tests/value/threat_if.i (no preprocessing)
-[value] Analyzing a complete application starting at main
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing a complete application starting at main
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   p ∈ {0}
   l ∈ {0}
   m ∈ {0}
   i ∈ {0}
   X ∈ {-992}
-[value:alarm] tests/value/threat_if.i:14: Warning: 
+[eva:alarm] tests/value/threat_if.i:14: Warning: 
   out of bounds write. assert \valid(p);
-[value] tests/value/threat_if.i:18: Frama_C_show_each: {-126}
-[value] Recording results for main
-[value] done for function main
-[value] ====== VALUES COMPUTED ======
-[value:final-states] Values at end of function main:
+[eva] tests/value/threat_if.i:18: Frama_C_show_each: {-126}
+[eva] Recording results for main
+[eva] done for function main
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function main:
   p ∈ {{ NULL ; &l }}
   l ∈ {0; 1}
   G ∈ {-126}

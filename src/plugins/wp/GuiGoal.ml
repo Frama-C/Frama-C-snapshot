@@ -625,5 +625,5 @@ class pane (proverpane : GuiConfig.provers) =
               ProverSearch.backtrack proof ~anchor:node ~loop:true () in
             self#search proof fork
           end
-            
+
   end

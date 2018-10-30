@@ -33,9 +33,11 @@ Assume {
   Have: (region(x_1) <= 0) /\ linked(Malloc_0) /\ sconst(Mchar_0).
   (* Pre-condition *)
   Have: P_Length_of_str_is(Malloc_0, Mchar_0, s, i).
+  (* Pre-condition *)
+  Have: P_Length_of_str_is(Malloc_0, Mchar_0, s, i_1).
   (* Invariant 'ZERO' *)
-  Have: forall i_1 : Z. ((0 <= i_1) -> (((i_1 + s.offset) < ss_0.offset) ->
-      (Mchar_0[shift_sint8(s, i_1)] != 0))).
+  Have: forall i_2 : Z. ((0 <= i_2) -> (((i_2 + s.offset) < ss_0.offset) ->
+      (Mchar_0[shift_sint8(s, i_2)] != 0))).
   (* Invariant 'RANGE' *)
   Have: addr_le(s, ss_0) /\ addr_le(ss_0, a).
   (* Invariant 'BASE' *)
@@ -53,6 +55,8 @@ Assume {
   Have: (region(s.base) <= 0) /\ linked(Malloc_0) /\ sconst(Mchar_0).
   (* Pre-condition *)
   Have: P_Length_of_str_is(Malloc_0, Mchar_0, s, i).
+  (* Pre-condition *)
+  Have: P_Length_of_str_is(Malloc_0, Mchar_0, s, i_1).
 }
 Prove: addr_le(s, s) /\ addr_le(s, shift_sint8(s, L_Length(Mchar_0, s))).
 
@@ -71,9 +75,11 @@ Assume {
   Have: (region(x_1) <= 0) /\ linked(Malloc_0) /\ sconst(Mchar_0).
   (* Pre-condition *)
   Have: P_Length_of_str_is(Malloc_0, Mchar_0, s, i_1).
+  (* Pre-condition *)
+  Have: P_Length_of_str_is(Malloc_0, Mchar_0, s, i_2).
   (* Invariant 'ZERO' *)
-  Have: forall i_2 : Z. ((0 <= i_2) -> (((i_2 + x_2) < x_3) ->
-      (Mchar_0[shift_sint8(s, i_2)] != 0))).
+  Have: forall i_3 : Z. ((0 <= i_3) -> (((i_3 + x_2) < x_3) ->
+      (Mchar_0[shift_sint8(s, i_3)] != 0))).
   (* Invariant 'RANGE' *)
   Have: addr_le(s, ss_0) /\
       addr_le(ss_0, shift_sint8(s, L_Length(Mchar_0, s))).
@@ -100,9 +106,11 @@ Assume {
   Have: (region(x) <= 0) /\ linked(Malloc_0) /\ sconst(Mchar_0).
   (* Pre-condition *)
   Have: P_Length_of_str_is(Malloc_0, Mchar_0, s, i).
+  (* Pre-condition *)
+  Have: P_Length_of_str_is(Malloc_0, Mchar_0, s, i_1).
   (* Invariant 'ZERO' *)
-  Have: forall i_1 : Z. ((0 <= i_1) -> (((i_1 + x_1) < x_2) ->
-      (Mchar_0[shift_sint8(s, i_1)] != 0))).
+  Have: forall i_2 : Z. ((0 <= i_2) -> (((i_2 + x_1) < x_2) ->
+      (Mchar_0[shift_sint8(s, i_2)] != 0))).
   (* Invariant 'RANGE' *)
   Have: addr_le(s, ss_0) /\
       addr_le(ss_0, shift_sint8(s, L_Length(Mchar_0, s))).
@@ -149,9 +157,11 @@ Assume {
   Have: (region(x_1) <= 0) /\ linked(Malloc_0) /\ sconst(Mchar_0).
   (* Pre-condition *)
   Have: P_Length_of_str_is(Malloc_0, Mchar_0, s, i).
+  (* Pre-condition *)
+  Have: P_Length_of_str_is(Malloc_0, Mchar_0, s, i_1).
   (* Invariant 'ZERO' *)
-  Have: forall i_1 : Z. ((0 <= i_1) -> (((i_1 + x_3) < x_4) ->
-      (Mchar_0[shift_sint8(s, i_1)] != 0))).
+  Have: forall i_2 : Z. ((0 <= i_2) -> (((i_2 + x_3) < x_4) ->
+      (Mchar_0[shift_sint8(s, i_2)] != 0))).
   (* Invariant 'RANGE' *)
   Have: addr_le(s, ss_0) /\ addr_le(ss_0, shift_sint8(s, x_2)).
   (* Invariant 'BASE' *)

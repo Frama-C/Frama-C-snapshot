@@ -1,4 +1,4 @@
-# frama-c -wp -wp-model 'Typed (Ref)' [...]
+# frama-c -wp -wp-model 'Typed (Ref)' -wp-timeout 90 -wp-steps 1500 [...]
 [kernel] Parsing tests/wp_typed/user_injector.i (no preprocessing)
 [wp] Running WP plugin...
 [wp] Loading driver 'share/wp.driver'
@@ -27,10 +27,11 @@
 Functions           WP     Alt-Ergo        Total   Success
 job                 16     -                16       100%
 -------------------------------------------------------------
-[wp] Warning: Separation hypotheses for function 'job':
+[wp] Warning: Memory model hypotheses for function 'job':
   /*@
      behavior typed_ref:
      requires \separated(error,
                 \union(&seq,&service_cpt,service_id+(..),service_result+(..)));
+     requires \valid(error);
      */
   int job(int a, int b, int *error);

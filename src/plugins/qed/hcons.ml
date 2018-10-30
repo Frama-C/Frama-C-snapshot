@@ -60,14 +60,14 @@ let rec compare_list cmp xs ys =
     | x::xs , y::ys ->
         let c = cmp x y in
         if c = 0 then compare_list cmp xs ys else c
-          
+
 let rec equal_list eq xs ys =
   xs == ys ||
   match xs , ys with
   | [] , [] -> true
   | [] , _ :: _ | _ :: _ , [] -> false
   | x::xs , y::ys -> eq x y && equal_list eq xs ys
-                       
+
 let equal_array eq xs ys =
   let n = Array.length xs in
   let m = Array.length ys in

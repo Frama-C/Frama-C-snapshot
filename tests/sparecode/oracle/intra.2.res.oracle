@@ -1,19 +1,19 @@
 [kernel] Parsing tests/sparecode/intra.i (no preprocessing)
 [sparecode] remove unused code...
-[value] Analyzing a complete application starting at main2
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing a complete application starting at main2
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   G ∈ {0}
   X10 ∈ {0}
   Y10 ∈ {0}
-[value] computing for function f10 <- main2.
+[eva] computing for function f10 <- main2.
   Called from tests/sparecode/intra.i:115.
-[value] tests/sparecode/intra.i:109: assertion got status valid.
-[value] Recording results for f10
-[value] Done for function f10
-[value] Recording results for main2
-[value] done for function main2
+[eva] tests/sparecode/intra.i:109: assertion got status valid.
+[eva] Recording results for f10
+[eva] Done for function f10
+[eva] Recording results for main2
+[eva] done for function main2
 [pdg] computing for function main2
 [from] Computing for function f10
 [from] Done for function f10

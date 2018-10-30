@@ -46,7 +46,7 @@ let all_properties () =
 
 
 type property = {
-  module_name:string;
+  module_name:Datatype.Filepath.t;
   function_name:string;
   kind:string;
   status_name:string;
@@ -60,7 +60,7 @@ type property = {
 let kf_name_and_module kf =
   let name = Kernel_function.get_name kf in
   let loc = Kernel_function.get_location kf in
-  let file = Filename.basename (fst loc).Lexing.pos_fname in
+  let file = (fst loc).Filepath.pos_path in
   name, file
 
 let make_property ip =
@@ -71,7 +71,7 @@ let make_property ip =
     Format.asprintf "%a" Consolidation.pretty con_status
   in
   let function_name, module_name = match Property.get_kf ip with
-    | None -> "", "" (* TODO: it would be great to find the location
+    | None -> "", Datatype.Filepath.dummy (* TODO: it would be great to find the location
                         of global invariants or lemmas, but there isn't
                         enough information in the ast *)
     | Some kf -> kf_name_and_module kf
@@ -173,10 +173,8 @@ struct
   let first_extended_ref = ref true
 
   (* This function must always be called at OCaml toplevel, because it registers
-     a new Frama-C state.
-     [resettable] indicates whether it is affected by the "reset checkboxes"
-     menu. *)
-  let add ~name ~hint ?(default=true) ?(set=(fun _b -> ())) ?(resettable=true) () =
+     a new Frama-C state. *)
+  let add ~name ~hint ?(default=true) ?(set=(fun _b -> ())) () =
     let open Gtk_helper in
     let key_name =
       String.map
@@ -217,10 +215,10 @@ struct
     in
     let reset () = if get () <> default then set default in
     let chk = { id = next_id(); get; set; add; reset } in
-    if resettable then checks := chk :: !checks;
+    checks := chk :: !checks;
     chk
 
-  let onlyCurrent = add ~name:"Current function" ~resettable:false
+  let onlyCurrent = add ~name:"Current function" ~default:false
       ~hint:"Only show properties related to current function" ()
 
   let preconditions = add ~name:"Preconditions"
@@ -338,6 +336,18 @@ struct
           in *)
     onlyCurrent.add (*hb*) box;
     let hb, _ = make_expand box
+        ~tooltip:"Validity status of the properties that are shown" "Status"
+    in
+    valid.add hb;
+    validHyp.add hb;
+    unknown.add hb;
+    invalid.add hb;
+    invalidHyp.add hb;
+    considered_valid.add hb;
+    untried.add hb;
+    dead.add hb;
+    inconsistent.add hb;
+    let hb, _ = make_expand box
         ~tooltip:"Which properties (precondition, assertion, etc) are shown"
         "Kind"
     in
@@ -363,18 +373,6 @@ struct
     other.add hb;
     reachable.add hb;
     (*Pragma.add hb;*)
-    let hb, _ = make_expand box
-        ~tooltip:"Validity status of the properties that are shown" "Status"
-    in
-    valid.add hb;
-    validHyp.add hb;
-    unknown.add hb;
-    invalid.add hb;
-    invalidHyp.add hb;
-    considered_valid.add hb;
-    untried.add hb;
-    dead.add hb;
-    inconsistent.add hb;
     let hb_category, expand_category = make_expand box
         ~tooltip:"Category of runtime errors leading to the emission of an \
                   assertion. Enabled only when RTEs are displayed."
@@ -417,7 +415,11 @@ let aux_rte kf acc (name, _, rte_status_get: Db.RteGen.status_accessor) =
       in
       let function_name, module_name = kf_name_and_module kf in
       let status_icon = Gtk_helper.Icon.Feedback status in
-      let ip = Property.ip_other name None Kglobal in {
+      let ip =
+        Property.ip_other name
+          (Property.OLGlob (Kernel_function.get_location kf))
+      in
+      {
         module_name = module_name;
         function_name = function_name;
         visible = true;
@@ -435,7 +437,7 @@ let properties_tab_label = ref None
 (* Used to change dynamically the label of the "Properties" tab. *)
 
 (* Lists of checkboxes (used by popup menus) *)
-(* all checks (except onlyCurrent):
+(* all checks:
    preconditions; ensures; behaviors; allocations; assigns; from;
    assertions; invariant; variant; terminates; stmtSpec; axiomatic;
    typeInvariants; globalInvariants; instances; other; reachable; valid;
@@ -580,7 +582,7 @@ let make_panel (main_ui:main_window_extension_points) =
 
   (* Module name column viewer *)
   make_view_column (GTree.cell_renderer_text [top])
-    (function{module_name=m} -> [`TEXT m])
+    (function{module_name=m} -> [`TEXT (Filepath.Normalized.to_pretty_string m)])
     ~title:"File";
 
   (* Kind name column viewer *)
@@ -617,8 +619,7 @@ let make_panel (main_ui:main_window_extension_points) =
         preconditions.get () && stmtSpec.get ()
     | Property.IPPredicate(Property.PKAssumes _,_,_,_) -> false
     | Property.IPPredicate(Property.PKEnsures _,_,Kglobal,_) -> ensures.get ()
-    | Property.IPExtended(_,Kglobal,_) -> extended.get ()
-    | Property.IPExtended(_,Kstmt _, _) -> extended.get ()
+    | Property.IPExtended(_,_) -> extended.get ()
     | Property.IPPredicate(Property.PKEnsures _,_,Kstmt _,_) ->
         ensures.get() && stmtSpec.get()
     | Property.IPPredicate(Property.PKTerminates,_,_,_) -> terminates.get ()

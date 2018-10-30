@@ -1,21 +1,27 @@
-/*
-  This is a version (aka dlmalloc) of malloc/free/realloc written by
-  Doug Lea and released to the public domain, as explained at
-  http://creativecommons.org/publicdomain/zero/1.0/ Send questions,
-  comments, complaints, performance data, etc to dl@cs.oswego.edu
+/**************************************************************************/
+/*                                                                        */
+/*  This is a version (aka dlmalloc) of malloc/free/realloc written by    */
+/*  Doug Lea and released to the public domain, as explained at           */
+/*  http://creativecommons.org/publicdomain/zero/1.0/ Send questions,     */
+/*  comments, complaints, performance data, etc to dl@cs.oswego.edu       */
+/*                                                                        */
+/*  Version 2.8.6 Wed Aug 29 06:57:58 2012  Doug Lea                      */
+/*  Note: There may be an updated version of this malloc obtainable at    */
+/*          ftp://gee.cs.oswego.edu/pub/misc/malloc.c                     */
+/*        Check before installing!                                        */
+/*                                                                        */
+/*  File modified by CEA (Commissariat à l'énergie atomique et aux        */
+/*                        énergies alternatives).                         */
+/*                                                                        */
+/**************************************************************************/
 
-* Version 2.8.6 Wed Aug 29 06:57:58 2012  Doug Lea
-   Note: There may be an updated version of this malloc obtainable at
-           ftp://gee.cs.oswego.edu/pub/misc/malloc.c
-         Check before installing!
-
-* This file has been modified by CEA for use together with Runtime Library
+/* This file has been modified by CEA for use together with Runtime Library
   of the E-ACSL plugin of Frama-C.
   The changes introduced by CEA are limited to the following modifications:
     * Added declaration/definition of mspace_least_addr function
-    * Added functionality to modify prefix of `mspace_...` functions
+    * Added functionality to modify prefix of `mspace_...` functions. */
 
-* Quickstart
+/* Quickstart
 
   This library is all in one file to simplify the most common usage:
   ftp it, compile it (-O3), and link it into another program. All of

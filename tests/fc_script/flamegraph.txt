@@ -1,0 +1,8 @@
+main;f1 2.0
+main;f2;f3 2.0
+main;f2;f3;f4 2.0
+main;f2 2.0
+main;f1 1.5
+main;f1;f2 2.5
+main;f1 0.5
+main 1.0

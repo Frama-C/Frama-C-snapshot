@@ -1,0 +1,295 @@
+diff tests/builtins/oracle/Longinit_sequencer.res.oracle tests/builtins/oracle_symblocs/Longinit_sequencer.res.oracle
+320c320
+<   tests/builtins/result/Longinit_sequencer.sav
+---
+>   tests/builtins/result_symblocs/Longinit_sequencer.sav
+556c556
+<   tests/builtins/result/Longinit_sequencer.sav
+---
+>   tests/builtins/result_symblocs/Longinit_sequencer.sav
+diff tests/builtins/oracle/alloc_weak.res.oracle tests/builtins/oracle_symblocs/alloc_weak.res.oracle
+34,35d33
+< [eva:alarm] tests/builtins/alloc_weak.c:30: Warning: 
+<   accessing uninitialized left-value. assert \initialized(p);
+898c896
+<   r ∈ [--..--]
+---
+>   r ∈ {42}
+diff tests/builtins/oracle/imprecise.res.oracle tests/builtins/oracle_symblocs/imprecise.res.oracle
+216a217,218
+> [kernel] tests/builtins/imprecise.c:111: 
+>   more than 200(300) elements to enumerate. Approximating.
+225a228,229
+> [kernel] tests/builtins/imprecise.c:114: 
+>   more than 200(300) elements to enumerate. Approximating.
+229,232d232
+< [kernel] tests/builtins/imprecise.c:111: 
+<   more than 200(300) elements to enumerate. Approximating.
+< [kernel] tests/builtins/imprecise.c:114: 
+<   more than 200(300) elements to enumerate. Approximating.
+diff tests/builtins/oracle/linked_list.1.res.oracle tests/builtins/oracle_symblocs/linked_list.1.res.oracle
+470a471,472
+> [kernel] tests/builtins/linked_list.c:43: 
+>   more than 100(128) elements to enumerate. Approximating.
+472a475,476
+> [kernel] tests/builtins/linked_list.c:44: 
+>   more than 100(128) elements to enumerate. Approximating.
+558,561d561
+< [kernel] tests/builtins/linked_list.c:43: 
+<   more than 100(128) elements to enumerate. Approximating.
+< [kernel] tests/builtins/linked_list.c:44: 
+<   more than 100(128) elements to enumerate. Approximating.
+diff tests/builtins/oracle/malloc-optimistic.res.oracle tests/builtins/oracle_symblocs/malloc-optimistic.res.oracle
+524,525d523
+< [eva:alarm] tests/builtins/malloc-optimistic.c:79: Warning: 
+<   accessing uninitialized left-value. assert \initialized(p + i);
+533c531
+<   k ∈ {-2; -1}
+---
+>   k ∈ {-1}
+569c567
+<   k ∈ {-1; 0}
+---
+>   k ∈ {0}
+607c605
+<   k ∈ {0; 1}
+---
+>   k ∈ {1}
+647c645
+<   k ∈ {1; 2}
+---
+>   k ∈ {2}
+689c687
+<   k ∈ {2; 3}
+---
+>   k ∈ {3}
+733c731
+<   k ∈ {3; 4}
+---
+>   k ∈ {4}
+779c777
+<   k ∈ {4; 5}
+---
+>   k ∈ {5}
+827c825
+<   k ∈ {5; 6}
+---
+>   k ∈ {6}
+877c875
+<   k ∈ {6; 7}
+---
+>   k ∈ {7}
+1826,1827d1823
+< [eva:alarm] tests/builtins/malloc-optimistic.c:92: Warning: 
+<   accessing uninitialized left-value. assert \initialized(p + i);
+2018,2019d2013
+< [eva:alarm] tests/builtins/malloc-optimistic.c:105: Warning: 
+<   accessing uninitialized left-value. assert \initialized(p + i);
+2027c2021
+<   k ∈ {-2; -1}
+---
+>   k ∈ {-1}
+2085c2079
+<   k ∈ {-1; 0}
+---
+>   k ∈ {0}
+2145c2139
+<   k ∈ {0; 1}
+---
+>   k ∈ {1}
+2207c2201
+<   k ∈ {1; 2}
+---
+>   k ∈ {2}
+2271c2265
+<   k ∈ {2; 3}
+---
+>   k ∈ {3}
+2337c2331
+<   k ∈ {3; 4}
+---
+>   k ∈ {4}
+2405c2399
+<   k ∈ {4; 5}
+---
+>   k ∈ {5}
+2475c2469
+<   k ∈ {5; 6}
+---
+>   k ∈ {6}
+2547c2541
+<   k ∈ {6; 7}
+---
+>   k ∈ {7}
+2621c2615
+<   k ∈ {7; 8}
+---
+>   k ∈ {8}
+2697c2691
+<   k ∈ {8; 9}
+---
+>   k ∈ {9}
+2775c2769
+<   k ∈ {9; 10}
+---
+>   k ∈ {10}
+2855c2849
+<   k ∈ {10; 11}
+---
+>   k ∈ {11}
+2937c2931
+<   k ∈ {11; 12}
+---
+>   k ∈ {12}
+3018c3012
+<   k ∈ {12; 13}
+---
+>   k ∈ {13}
+3064c3058
+<   k ∈ {12; 13; 14}
+---
+>   k ∈ {13; 14}
+3109c3103
+<   k ∈ {12; 13; 14; 15}
+---
+>   k ∈ {13; 14; 15}
+3154c3148
+<   k ∈ [12..97]
+---
+>   k ∈ [13..97]
+3211c3205
+< [eva] tests/builtins/malloc-optimistic.c:122: Frama_C_show_each: {-20; 1}
+---
+> [eva] tests/builtins/malloc-optimistic.c:122: Frama_C_show_each: {1}
+3219c3213
+< [eva] tests/builtins/malloc-optimistic.c:122: Frama_C_show_each: {-20; 1; 2}
+---
+> [eva] tests/builtins/malloc-optimistic.c:122: Frama_C_show_each: {2}
+3227c3221
+< [eva] tests/builtins/malloc-optimistic.c:122: Frama_C_show_each: {-20; 1; 2; 3}
+---
+> [eva] tests/builtins/malloc-optimistic.c:122: Frama_C_show_each: {3}
+3235,3236c3229
+< [eva] tests/builtins/malloc-optimistic.c:122: 
+<   Frama_C_show_each: {-20; 1; 2; 3; 4}
+---
+> [eva] tests/builtins/malloc-optimistic.c:122: Frama_C_show_each: {4}
+3244,3245c3237
+< [eva] tests/builtins/malloc-optimistic.c:122: 
+<   Frama_C_show_each: {-20; 1; 2; 3; 4; 5}
+---
+> [eva] tests/builtins/malloc-optimistic.c:122: Frama_C_show_each: {5}
+3253,3254c3245
+< [eva] tests/builtins/malloc-optimistic.c:122: 
+<   Frama_C_show_each: {-20; 1; 2; 3; 4; 5; 6}
+---
+> [eva] tests/builtins/malloc-optimistic.c:122: Frama_C_show_each: {6}
+3262,3263c3253
+< [eva] tests/builtins/malloc-optimistic.c:122: 
+<   Frama_C_show_each: {-20; 1; 2; 3; 4; 5; 6; 7}
+---
+> [eva] tests/builtins/malloc-optimistic.c:122: Frama_C_show_each: {7}
+3271c3261
+< [eva] tests/builtins/malloc-optimistic.c:122: Frama_C_show_each: [-20..8]
+---
+> [eva] tests/builtins/malloc-optimistic.c:122: Frama_C_show_each: {8}
+3279c3269
+< [eva] tests/builtins/malloc-optimistic.c:122: Frama_C_show_each: [-20..9]
+---
+> [eva] tests/builtins/malloc-optimistic.c:122: Frama_C_show_each: {9}
+3287c3277
+< [eva] tests/builtins/malloc-optimistic.c:122: Frama_C_show_each: [-20..10]
+---
+> [eva] tests/builtins/malloc-optimistic.c:122: Frama_C_show_each: {10}
+3295c3285
+< [eva] tests/builtins/malloc-optimistic.c:122: Frama_C_show_each: [-20..11]
+---
+> [eva] tests/builtins/malloc-optimistic.c:122: Frama_C_show_each: {11}
+3303c3293
+< [eva] tests/builtins/malloc-optimistic.c:122: Frama_C_show_each: [-20..12]
+---
+> [eva] tests/builtins/malloc-optimistic.c:122: Frama_C_show_each: {12}
+3311c3301
+< [eva] tests/builtins/malloc-optimistic.c:122: Frama_C_show_each: [-20..13]
+---
+> [eva] tests/builtins/malloc-optimistic.c:122: Frama_C_show_each: {13}
+3319c3309
+< [eva] tests/builtins/malloc-optimistic.c:122: Frama_C_show_each: [-20..14]
+---
+> [eva] tests/builtins/malloc-optimistic.c:122: Frama_C_show_each: {14}
+3327c3317
+< [eva] tests/builtins/malloc-optimistic.c:122: Frama_C_show_each: [-20..15]
+---
+> [eva] tests/builtins/malloc-optimistic.c:122: Frama_C_show_each: {15}
+3335c3325
+< [eva] tests/builtins/malloc-optimistic.c:122: Frama_C_show_each: [-20..16]
+---
+> [eva] tests/builtins/malloc-optimistic.c:122: Frama_C_show_each: {16}
+3343c3333
+< [eva] tests/builtins/malloc-optimistic.c:122: Frama_C_show_each: [-20..17]
+---
+> [eva] tests/builtins/malloc-optimistic.c:122: Frama_C_show_each: {17}
+3351c3341
+< [eva] tests/builtins/malloc-optimistic.c:122: Frama_C_show_each: [-20..18]
+---
+> [eva] tests/builtins/malloc-optimistic.c:122: Frama_C_show_each: {18}
+3359c3349
+< [eva] tests/builtins/malloc-optimistic.c:122: Frama_C_show_each: [-20..19]
+---
+> [eva] tests/builtins/malloc-optimistic.c:122: Frama_C_show_each: {19}
+3367c3357
+< [eva] tests/builtins/malloc-optimistic.c:122: Frama_C_show_each: [-20..20]
+---
+> [eva] tests/builtins/malloc-optimistic.c:122: Frama_C_show_each: {20}
+3375c3365
+< [eva] tests/builtins/malloc-optimistic.c:122: Frama_C_show_each: [-20..21]
+---
+> [eva] tests/builtins/malloc-optimistic.c:122: Frama_C_show_each: {21}
+3383c3373
+< [eva] tests/builtins/malloc-optimistic.c:122: Frama_C_show_each: [-20..22]
+---
+> [eva] tests/builtins/malloc-optimistic.c:122: Frama_C_show_each: {22}
+3391c3381
+< [eva] tests/builtins/malloc-optimistic.c:122: Frama_C_show_each: [-20..23]
+---
+> [eva] tests/builtins/malloc-optimistic.c:122: Frama_C_show_each: {23}
+3399c3389
+< [eva] tests/builtins/malloc-optimistic.c:122: Frama_C_show_each: [-20..24]
+---
+> [eva] tests/builtins/malloc-optimistic.c:122: Frama_C_show_each: {24}
+3407c3397
+< [eva] tests/builtins/malloc-optimistic.c:122: Frama_C_show_each: [-20..25]
+---
+> [eva] tests/builtins/malloc-optimistic.c:122: Frama_C_show_each: {25}
+3415c3405
+< [eva] tests/builtins/malloc-optimistic.c:122: Frama_C_show_each: [-20..26]
+---
+> [eva] tests/builtins/malloc-optimistic.c:122: Frama_C_show_each: {26}
+3423c3413
+< [eva] tests/builtins/malloc-optimistic.c:122: Frama_C_show_each: [-20..27]
+---
+> [eva] tests/builtins/malloc-optimistic.c:122: Frama_C_show_each: {27}
+3431c3421
+< [eva] tests/builtins/malloc-optimistic.c:122: Frama_C_show_each: [-20..28]
+---
+> [eva] tests/builtins/malloc-optimistic.c:122: Frama_C_show_each: {28}
+3439c3429
+< [eva] tests/builtins/malloc-optimistic.c:122: Frama_C_show_each: [-20..29]
+---
+> [eva] tests/builtins/malloc-optimistic.c:122: Frama_C_show_each: {29}
+3447c3437
+< [eva] tests/builtins/malloc-optimistic.c:122: Frama_C_show_each: [-20..30]
+---
+> [eva] tests/builtins/malloc-optimistic.c:122: Frama_C_show_each: {30}
+3456c3446
+< [eva] tests/builtins/malloc-optimistic.c:122: Frama_C_show_each: [-20..31]
+---
+> [eva] tests/builtins/malloc-optimistic.c:122: Frama_C_show_each: {30; 31}
+3464c3454
+< [eva] tests/builtins/malloc-optimistic.c:122: Frama_C_show_each: [-20..32]
+---
+> [eva] tests/builtins/malloc-optimistic.c:122: Frama_C_show_each: {30; 31; 32}
+3472c3462
+< [eva] tests/builtins/malloc-optimistic.c:122: Frama_C_show_each: [-20..99]
+---
+> [eva] tests/builtins/malloc-optimistic.c:122: Frama_C_show_each: [30..99]

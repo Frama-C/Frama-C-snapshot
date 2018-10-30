@@ -1,12 +1,12 @@
 [kernel] Parsing tests/float/some.c (with preprocessing)
-[value] Analyzing a complete application starting at main
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing a complete application starting at main
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   t[0] ∈ {1.0000000000000000}
    [1..25] ∈ {0}
   y ∈ {1.0000000000000000*2^-1}
-[value] tests/float/some.c:16: 
+[eva] tests/float/some.c:16: 
   Frama_C_dump_each:
   # Cvalue domain:
   t[0] ∈ {1.0000000000000000}
@@ -37,6 +37,6 @@
   y ∈ {1.0000000000000000*2^-26}
   i ∈ {26}
   ==END OF DUMP==
-[value] Recording results for main
-[value] done for function main
-[value] ====== VALUES COMPUTED ======
+[eva] Recording results for main
+[eva] done for function main
+[eva] ====== VALUES COMPUTED ======

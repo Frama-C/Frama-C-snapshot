@@ -4,7 +4,7 @@
 
 /* run.config_qualif
 OPT: -journal-disable -wp -wp-model Caveat -wp-par 1 -wp-prop="-ko"
-OPT: -journal-disable -wp -wp-model Caveat -wp-par 1 -wp-prop ko -wp-timeout 2
+OPT: -journal-disable -wp -wp-model Caveat -wp-par 1 -wp-prop ko -wp-steps 50
 */
 
 /* run.config_qed

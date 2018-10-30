@@ -14,7 +14,7 @@ int printf3 (char const *, int);
 int printf4 (char const *, int);
 int printf5 (char const *, int);
 
-main()
+int main()
 {
       float x[1024];
       float var2, var3, var4 ;
@@ -54,4 +54,5 @@ main()
          printf3("variance (one pass, using average, sum): %f \n",var4);
          printf4("variance (two pass, corrected): %f \n",var5);
          printf5("variance (two pass): %f \n",var1);
+         return 0;
 }

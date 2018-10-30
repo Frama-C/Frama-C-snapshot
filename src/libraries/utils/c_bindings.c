@@ -35,11 +35,12 @@
 #include <unistd.h>
 
 // Some BSD flavors do not implement all of C99
-#if defined(__OpenBSD__) || defined(__NetBSD__) 
+#if defined(__NetBSD__)
 # include <ieeefp.h>
 # define FE_DOWNWARD FP_RM
 # define FE_UPWARD FP_RP
 # define FE_TONEAREST FP_RN
+# define FE_TOWARDZERO FP_RZ
 # define fegetround()	fpgetround()
 # define fesetround(RM)	fpsetround(RM)
 #else 
@@ -251,23 +252,6 @@ value single_precision_of_string(value str)
   }
   double d = f;
   return caml_copy_double(d);
-}
-
-#include <signal.h>
-value terminate_process(value v) 
-{
-  long pid = Long_val(v);
-#if _POSIX_C_SOURCE >= 1 || _XOPEN_SOURCE || _POSIX_SOURCE || __ENVIRONMENT_MAC_OS_X_VERSION_MIN_REQUIRED__ 
-  kill(pid,9);
-#else
- #ifdef _WIN32
-  TerminateProcess((HANDLE)pid,9);
- #else 
-  #warning Does your system have kill()?
- #endif
-#endif 
-
-  return Val_unit;
 }
 
 value ml_usleep(value v)

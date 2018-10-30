@@ -1,49 +1,49 @@
 [kernel] Parsing tests/slicing/select_calls.i (no preprocessing)
 [slicing] slicing requests in progress...
-[value] Analyzing an incomplete application starting at f
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing an incomplete application starting at f
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   c ∈ [--..--]
   d ∈ [--..--]
-[value] computing for function send <- f.
+[eva] computing for function send <- f.
   Called from tests/slicing/select_calls.i:22.
 [kernel:annot:missing-spec] tests/slicing/select_calls.i:22: Warning: 
   Neither code nor specification for function send, generating default assigns from the prototype
-[value] using specification for function send
-[value] Done for function send
-[value] computing for function send <- f.
+[eva] using specification for function send
+[eva] Done for function send
+[eva] computing for function send <- f.
   Called from tests/slicing/select_calls.i:23.
-[value] Done for function send
-[value] computing for function crypt <- f.
+[eva] Done for function send
+[eva] computing for function crypt <- f.
   Called from tests/slicing/select_calls.i:24.
 [kernel:annot:missing-spec] tests/slicing/select_calls.i:24: Warning: 
   Neither code nor specification for function crypt, generating default assigns from the prototype
-[value] using specification for function crypt
-[value] Done for function crypt
-[value] computing for function send <- f.
+[eva] using specification for function crypt
+[eva] Done for function crypt
+[eva] computing for function send <- f.
   Called from tests/slicing/select_calls.i:25.
-[value] Done for function send
-[value] computing for function send <- f.
+[eva] Done for function send
+[eva] computing for function send <- f.
   Called from tests/slicing/select_calls.i:28.
-[value] Done for function send
-[value] computing for function uncrypt <- f.
+[eva] Done for function send
+[eva] computing for function uncrypt <- f.
   Called from tests/slicing/select_calls.i:30.
 [kernel:annot:missing-spec] tests/slicing/select_calls.i:30: Warning: 
   Neither code nor specification for function uncrypt, generating default assigns from the prototype
-[value] using specification for function uncrypt
-[value] Done for function uncrypt
-[value] computing for function send <- f.
+[eva] using specification for function uncrypt
+[eva] Done for function uncrypt
+[eva] computing for function send <- f.
   Called from tests/slicing/select_calls.i:31.
-[value] Done for function send
-[value] computing for function crypt <- f.
+[eva] Done for function send
+[eva] computing for function crypt <- f.
   Called from tests/slicing/select_calls.i:33.
-[value] Done for function crypt
-[value] computing for function send <- f.
+[eva] Done for function crypt
+[eva] computing for function send <- f.
   Called from tests/slicing/select_calls.i:35.
-[value] Done for function send
-[value] Recording results for f
-[value] done for function f
+[eva] Done for function send
+[eva] Recording results for f
+[eva] done for function f
 [slicing] initializing slicing ...
 [slicing] interpreting slicing requests from the command line...
 [pdg] computing for function f

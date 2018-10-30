@@ -37,10 +37,11 @@
 # SLEVEL        the part of the frama-c command line concerning slevel
 #               (you can use EVAFLAGS for this, if you don't intend
 #               to use slevel-tweaker.sh)
-# EVABUILTINS   Eva builtins to be set (via -val-builtin)
-# EVAUSESPECS   Eva functions to be overridden by specs (-val-use-spec)
+# EVABUILTINS   Eva builtins to be set (via -eva-builtin)
+# EVAUSESPECS   Eva functions to be overridden by specs (-eva-use-spec)
 #
-# FLAMEGRAPH    path to flamegraph.pl (github.com/brendangregg/FlameGraph)
+# FLAMEGRAPH    If set (to any value), running an analysis will produce an
+#               SVG + HTML flamegraph at the end.
 #
 # There are several ways to define or change these variables.
 #
@@ -83,9 +84,6 @@ define time_with_output
 endef
 endif
 
-# If FLAMEGRAPH is not defined, try using one in the PATH
-FLAMEGRAPH ?= $(shell command -v flamegraph.pl 2> /dev/null)
-
 # --- Utilities ---
 
 define display_command =
@@ -104,16 +102,18 @@ fc_list = $(subst $(space),$(comma),$(strip $1))
 # --- Default configuration ---
 
 FRAMAC     ?= frama-c
+FRAMAC_SCRIPT = $(FRAMAC)-script
 FRAMAC_GUI ?= frama-c-gui
 SLEVEL     ?=
 EVAFLAGS   ?= \
-  -no-val-print -no-val-show-progress -value-msg-key=-initial-state \
-  -val-print-callstacks -no-val-warn-on-alarms \
+  -eva-no-print -eva-no-show-progress -eva-msg-key=-initial-state \
+  -eva-print-callstacks -eva-warn-key alarm=inactive \
   -no-deps-print -no-calldeps-print \
+  -eva-warn-key garbled-mix \
   -memexec-all -calldeps -permissive -from-verbose 0 \
   $(SLEVEL) \
-  $(if $(EVABUILTINS), -val-builtin=$(call fc_list,$(EVABUILTINS)),) \
-  $(if $(EVAUSESPECS), -val-use-spec $(call fc_list,$(EVAUSESPECS)),)
+  $(if $(EVABUILTINS), -eva-builtin=$(call fc_list,$(EVABUILTINS)),) \
+  $(if $(EVAUSESPECS), -eva-use-spec $(call fc_list,$(EVAUSESPECS)),)
 FCFLAGS    ?=
 FCGUIFLAGS ?=
 
@@ -159,10 +159,12 @@ SHELL        := /bin/bash
 	    $(PARSE) \
 	      -kernel-log w:$@/warnings.log \
 	      -variadic-log w:$@/warnings.log \
+	      -metrics -metrics-log a:$@/metrics.log \
 	      -save $@/framac.sav \
 	      -print -ocode $@/framac.ast -then -no-print \
 	    || ($(RM) $@/stats.txt && false) # Prevents having error code reporting in stats.txt
 	} 2>&1 |
+	  $(SED_UNBUFFERED) '/\[metrics\]/,999999d' |
 	  tee $@/parse.log
 	{
 	  printf 'timestamp=%q\n' "$(HR_TIMESTAMP)";
@@ -173,7 +175,7 @@ SHELL        := /bin/bash
 	touch $@ # Update timestamp and prevents remake if nothing changes
 
 %.slevel.eva: SLEVEL = -slevel $(word 2,$(subst ., ,$*))
-%.eva: EVA = $(FRAMAC) $(FCFLAGS) -val $(EVAFLAGS)
+%.eva: EVA = $(FRAMAC) $(FCFLAGS) -eva $(EVAFLAGS)
 %.eva: PARSE_RESULT = $(word 1,$(subst ., ,$*)).parse
 %.eva: $$(PARSE_RESULT) $$(shell $(DIR)cmd-dep.sh $$@/command $$(EVA)) $(if $(BENCHMARK),.FORCE,)
 	@$(call display_command,$(EVA))
@@ -183,28 +185,31 @@ SHELL        := /bin/bash
 	  $(call time_with_output,$@/stats.txt) \
 	    $(EVA) \
 	      -load $(PARSE_RESULT)/framac.sav -save $@/framac.sav \
-	      -val-flamegraph $@/flamegraph.txt \
+	      -eva-flamegraph $@/flamegraph.txt \
 	      -report-csv $@/alarms.csv -report-no-proven \
 	      -kernel-log w:$@/warnings.log \
 	      -from-log w:$@/warnings.log \
 	      -inout-log w:$@/warnings.log \
 	      -report-log w:$@/warnings.log \
 	      -scope-log w:$@/warnings.log \
-	      -value-log w:$@/warnings.log \
+	      -eva-log w:$@/warnings.log \
 	      -metrics-log a:$@/metrics.log \
-	      -metrics-value-cover \
+	      -metrics-eva-cover \
 	      -then -nonterm -nonterm-log a:$@/nonterm.log \
 	    || ($(RM) $@/stats.txt && false) # Prevents having error code reporting in stats.txt
 	} 2>&1 |
-	  $(SED_UNBUFFERED) '/\[value\] Values at end of function/,999999d' |
+	  $(SED_UNBUFFERED) '/\[eva\] Values at end of function/,999999d' |
 	  tee $@/eva.log
 	$(DIR)parse-coverage.sh $@/eva.log $@/stats.txt
 	{
 	  printf 'timestamp=%q\n' "$(HR_TIMESTAMP)";
-	  printf 'warnings=%s\n' "`cat $@/warnings.log | grep ':\[\(value\|kernel\|from\)\]' | wc -l`";
+	  printf 'warnings=%s\n' "`cat $@/warnings.log | grep ':\[\(eva\|kernel\|from\)\]' | wc -l`";
 	  printf 'alarms=%s\n' "`expr $$(cat $@/alarms.csv | wc -l) - 1`";
 	  printf 'cmd_args=%q\n' "$(subst ",\",$(wordlist 2,999,$(EVA)))"
 	} >> $@/stats.txt
+	if [ ! -z $${FLAMEGRAPH+x} ]; then
+	  NOGUI=1 $(FRAMAC_SCRIPT) flamegraph $@/flamegraph.txt $@/
+	fi
 	mv $@/{running,command}
 	touch $@ # Update timestamp and prevents remake if nothing changes
 	cp -r $@ $*_$(TIMESTAMP).eva
@@ -220,14 +225,19 @@ SHELL        := /bin/bash
 	    sed -e '1,/Add this to your command line:/d'
 	} > $@
 
-# Produce an SVG from raw flamegraph data produced by Eva
-%/flamegraph.svg: %/flamegraph.txt
-ifneq ($(FLAMEGRAPH),)
-	$(FLAMEGRAPH) $^ > $@
-else
-	$(error "FLAMEGRAPH not defined and flamegraph.pl not in the PATH")
-endif
+# Produce and open an SVG + HTML from raw flamegraph data produced by Eva
+%/flamegraph: %/flamegraph.html
+	@
+	case "$$OSTYPE" in
+	  cygwin*) cmd /c start "$^";;
+	  linux*) xdg-open "$^";;
+	  darwin*) open "$^";;
+	esac
 
+%/flamegraph.html %/flamegraph.svg: %/flamegraph.txt
+	NOGUI=1 $(FRAMAC_SCRIPT) flamegraph $^ $(dir $^)
+
+.PRECIOUS: %/flamegraph.html
 
 # clean is generally not the default goal, but if there is no default
 # rule when including this file, it would be.

@@ -1,44 +1,58 @@
 [kernel] Parsing tests/libc/sys_stat_h.c (with preprocessing)
-[value] Analyzing a complete application starting at main
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
-  __fc_time ∈ [--..--]
-  __fc_tz ∈ [--..--]
-  __fc_fds_state ∈ [--..--]
-  optarg ∈ {{ NULL ; &S_optarg[0] }}
-  optind ∈ [--..--]
-  opterr ∈ [--..--]
-  optopt ∈ [--..--]
-  __fc_fds[0..1023] ∈ {0}
-  __fc_hostname[0..63] ∈ [--..--]
-  S_optarg[0..1] ∈ [--..--]
-[value] computing for function __va_open_mode_t <- main.
-  Called from tests/libc/sys_stat_h.c:9.
-[value] using specification for function __va_open_mode_t
-[value] tests/libc/sys_stat_h.c:9: 
+[eva] Analyzing a complete application starting at main
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
+  nondet ∈ [--..--]
+[eva] computing for function __va_open_mode_t <- main.
+  Called from tests/libc/sys_stat_h.c:10.
+[eva] using specification for function __va_open_mode_t
+[eva] tests/libc/sys_stat_h.c:10: 
   function __va_open_mode_t: precondition 'valid_filename' got status valid.
-[value] Done for function __va_open_mode_t
-[value] computing for function close <- main.
-  Called from tests/libc/sys_stat_h.c:11.
-[value] using specification for function close
-[value:alarm] tests/libc/sys_stat_h.c:11: Warning: 
+[eva] Done for function __va_open_mode_t
+[eva] computing for function close <- main.
+  Called from tests/libc/sys_stat_h.c:12.
+[eva] using specification for function close
+[eva:alarm] tests/libc/sys_stat_h.c:12: Warning: 
   function close: precondition 'valid_fd' got status unknown.
-[value] Done for function close
-[value] computing for function stat <- main.
-  Called from tests/libc/sys_stat_h.c:13.
-[value] using specification for function stat
-[value] tests/libc/sys_stat_h.c:13: 
+[eva] Done for function close
+[eva] computing for function stat <- main.
+  Called from tests/libc/sys_stat_h.c:14.
+[eva] using specification for function stat
+[eva] tests/libc/sys_stat_h.c:14: 
   function stat: precondition 'valid_pathname' got status valid.
-[value] tests/libc/sys_stat_h.c:13: 
+[eva] tests/libc/sys_stat_h.c:14: 
   function stat: precondition 'valid_buf' got status valid.
-[value] Done for function stat
-[value] Recording results for main
-[value] done for function main
-[value] ====== VALUES COMPUTED ======
-[value:final-states] Values at end of function main:
+[eva] Done for function stat
+[eva] computing for function mkdir <- main.
+  Called from tests/libc/sys_stat_h.c:17.
+[eva] using specification for function mkdir
+[eva] tests/libc/sys_stat_h.c:17: 
+  function mkdir: precondition 'valid_string_path' got status valid.
+[eva] Done for function mkdir
+[eva] computing for function mkdir <- main.
+  Called from tests/libc/sys_stat_h.c:20.
+[eva:alarm] tests/libc/sys_stat_h.c:20: Warning: 
+  function mkdir: precondition 'valid_string_path' got status invalid.
+[eva] Done for function mkdir
+[eva] computing for function mkdir <- main.
+  Called from tests/libc/sys_stat_h.c:20.
+[eva] Done for function mkdir
+[eva] computing for function umask <- main.
+  Called from tests/libc/sys_stat_h.c:22.
+[eva] using specification for function umask
+[eva] Done for function umask
+[eva] computing for function umask <- main.
+  Called from tests/libc/sys_stat_h.c:22.
+[eva] Done for function umask
+[eva] Recording results for main
+[eva] done for function main
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function main:
   __fc_fds[0..1023] ∈ [--..--]
   fd ∈ [-1..1023]
   st ∈ [--..--] or UNINITIALIZED
   r ∈ {-1; 0}
+  r_mkdir ∈ {-1; 0}
+  old_mask ∈ [--..--]
   __retres ∈ {-1; 0; 1; 2; 3}

@@ -49,7 +49,7 @@ module Cfg (W : Mcfg.S) = struct
   (*[LC] Adding scopes for loop invariant preservation: WHY ???? *)
   (*[LC] Nevertheless, if required, this form should be used (BTS #1462)
 
-  let open_scope wenv formals blocks =
+    let open_scope wenv formals blocks =
     List.fold_right
       (fun b obj -> W.scope wenv b.blocals Mcfg.SC_Block_out obj)
       blocks
@@ -59,11 +59,11 @@ module Cfg (W : Mcfg.S) = struct
     match WpPropId.is_loop_preservation (fst g) with
       | None -> W.add_goal wenv g obj
       | Some stmt ->
-    	debug "add scope for loop preservation %a@." WpPropId.pp_pred_info g ;
-    	let blocks = Kernel_function.find_all_enclosing_blocks stmt in
-    	let kf = Kernel_function.find_englobing_kf stmt in
-    	let formals = Kernel_function.get_formals kf in
-    	W.merge wenv (W.add_goal wenv g (open_scope wenv formals blocks)) obj
+        debug "add scope for loop preservation %a@." WpPropId.pp_pred_info g ;
+        let blocks = Kernel_function.find_all_enclosing_blocks stmt in
+        let kf = Kernel_function.find_englobing_kf stmt in
+        let formals = Kernel_function.get_formals kf in
+        W.merge wenv (W.add_goal wenv g (open_scope wenv formals blocks)) obj
   *)
 
   let add_assigns_goal wenv obj g_assigns = match g_assigns with
@@ -229,8 +229,8 @@ module Cfg (W : Mcfg.S) = struct
         raise Not_found
                    | Some obj ->
                        if (res.mode = Pass2)
-                          && (List.length
-                                (Cil2cfg.pred_e res.cfg (Cil2cfg.edge_src e)) < 2) then
+                       && (List.length
+                             (Cil2cfg.pred_e res.cfg (Cil2cfg.edge_src e)) < 2) then
                          begin
                            (* it should be used once only : can free it *)
                            HE.replace res.tbl e None;
@@ -390,12 +390,12 @@ module Cfg (W : Mcfg.S) = struct
       loop_with_cut_pass1 ()
     else (* old mode or no inv or pass2 *)
     *)
-      match Cil2cfg.node_type nloop with
-      | Cil2cfg.Vloop (Some true, _) -> (* natural loop (has back edges) *)
-          loop_with_quantif ()
-      | _ -> (* TODO : print info about the loop *)
-          Wp_error.unsupported
-            "non-natural loop without invariant property."
+    match Cil2cfg.node_type nloop with
+    | Cil2cfg.Vloop (Some true, _) -> (* natural loop (has back edges) *)
+        loop_with_quantif ()
+    | _ -> (* TODO : print info about the loop *)
+        Wp_error.unsupported
+          "non-natural loop without invariant property."
 
   type callenv = {
     pre_annots : WpStrategy.t_annots ;
@@ -544,7 +544,7 @@ module Cfg (W : Mcfg.S) = struct
         Wp_parameters.debug "CFG node %a has %d successors instead of 1@."
           Cil2cfg.pp_node v (List.length ls);
         Wp_error.unsupported "strange loop(s)."
- 
+
   and compute_wp_edge ((kf, cfg, _annots, res, wenv) as env) e =
     let v = Cil2cfg.edge_dst e in
     debug "[compute_edge] before %a go...@." Cil2cfg.pp_node v;
@@ -557,7 +557,7 @@ module Cfg (W : Mcfg.S) = struct
     let res = match Cil2cfg.node_type v with
       | Cil2cfg.Vstart ->
           Wp_parameters.debug "No CFG edge can lead to Vstart";
-	  Wp_error.unsupported "strange CFGs."
+          Wp_error.unsupported "strange CFGs."
       | Cil2cfg.VfctIn ->
           let obj = get_only_succ env cfg v in
           let obj = wp_scope wenv formals Mcfg.SC_Function_in obj in
@@ -684,7 +684,7 @@ module Cfg (W : Mcfg.S) = struct
     debug "[wp-cfg] start computing with the strategy for %a"
       WpStrategy.pp_info_of_strategy strategy;
     if WpStrategy.strategy_has_prop_goal strategy
-       || WpStrategy.strategy_has_asgn_goal strategy then
+    || WpStrategy.strategy_has_asgn_goal strategy then
       try
         let kf = Cil2cfg.cfg_kf cfg in
         if Cil2cfg.strange_loops cfg <> [] then

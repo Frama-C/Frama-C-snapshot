@@ -1,72 +1,72 @@
 [kernel] Parsing tests/value/bitwise.i (no preprocessing)
-[value] Analyzing a complete application starting at main
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing a complete application starting at main
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   v ∈ [--..--]
-[value] computing for function main_and_or_rel <- main.
+[eva] computing for function main_and_or_rel <- main.
   Called from tests/value/bitwise.i:64.
-[value:alarm] tests/value/bitwise.i:13: Warning: assertion got status unknown.
-[value] Recording results for main_and_or_rel
-[value] Done for function main_and_or_rel
-[value] computing for function main_bitwise <- main.
+[eva:alarm] tests/value/bitwise.i:13: Warning: assertion got status unknown.
+[eva] Recording results for main_and_or_rel
+[eva] Done for function main_and_or_rel
+[eva] computing for function main_bitwise <- main.
   Called from tests/value/bitwise.i:65.
-[value] Recording results for main_bitwise
-[value] Done for function main_bitwise
-[value] computing for function main_bug1 <- main.
+[eva] Recording results for main_bitwise
+[eva] Done for function main_bitwise
+[eva] computing for function main_bug1 <- main.
   Called from tests/value/bitwise.i:66.
-[value] Recording results for main_bug1
-[value] Done for function main_bug1
-[value] computing for function main_bug2 <- main.
+[eva] Recording results for main_bug1
+[eva] Done for function main_bug1
+[eva] computing for function main_bug2 <- main.
   Called from tests/value/bitwise.i:67.
-[value] tests/value/bitwise.i:40: Frama_C_show_each_then:
-[value] tests/value/bitwise.i:40: Frama_C_show_each_else:
-[value] Recording results for main_bug2
-[value] Done for function main_bug2
-[value] computing for function main_bug3 <- main.
+[eva] tests/value/bitwise.i:40: Frama_C_show_each_then:
+[eva] tests/value/bitwise.i:40: Frama_C_show_each_else:
+[eva] Recording results for main_bug2
+[eva] Done for function main_bug2
+[eva] computing for function main_bug3 <- main.
   Called from tests/value/bitwise.i:68.
-[value] tests/value/bitwise.i:47: 
+[eva] tests/value/bitwise.i:47: 
   Frama_C_dump_each:
   # Cvalue domain:
   v ∈ [--..--]
   l_1180 ∈ {69166447}
   foo ∈ {4225800849}
   ==END OF DUMP==
-[value] Recording results for main_bug3
-[value] Done for function main_bug3
-[value] computing for function main_bug4 <- main.
+[eva] Recording results for main_bug3
+[eva] Done for function main_bug3
+[eva] computing for function main_bug4 <- main.
   Called from tests/value/bitwise.i:69.
-[value] tests/value/bitwise.i:57: Frama_C_show_each_then:
-[value] tests/value/bitwise.i:59: Frama_C_show_each_else:
-[value] Recording results for main_bug4
-[value] Done for function main_bug4
-[value] Recording results for main
-[value] done for function main
-[value] ====== VALUES COMPUTED ======
-[value:final-states] Values at end of function main_and_or_rel:
+[eva] tests/value/bitwise.i:57: Frama_C_show_each_then:
+[eva] tests/value/bitwise.i:59: Frama_C_show_each_else:
+[eva] Recording results for main_bug4
+[eva] Done for function main_bug4
+[eva] Recording results for main
+[eva] done for function main
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function main_and_or_rel:
   x ∈ [20..40]
   r1 ∈ [17..63] or UNINITIALIZED
   r2 ∈ [20..40] or UNINITIALIZED
   r3 ∈ [24..37] or UNINITIALIZED
-[value:final-states] Values at end of function main_bitwise:
+[eva:final-states] Values at end of function main_bitwise:
   i ∈ {5}
   j ∈ {4294967290}
   k ∈ {-6}
-[value:final-states] Values at end of function main_bug1:
+[eva:final-states] Values at end of function main_bug1:
   msb ∈ {6}
   lsb ∈ {3}
   par ∈ {5}
   p1 ∈ {5}
   p2 ∈ {0}
-[value:final-states] Values at end of function main_bug2:
+[eva:final-states] Values at end of function main_bug2:
   t ∈ {1; 2}
-[value:final-states] Values at end of function main_bug3:
+[eva:final-states] Values at end of function main_bug3:
   l_1180 ∈ {69166447}
   foo ∈ {4225800849}
-[value:final-states] Values at end of function main_bug4:
+[eva:final-states] Values at end of function main_bug4:
   g_2 ∈ {-1; 0}
   tmp_0 ∈ {-5496}
-[value:final-states] Values at end of function main:
+[eva:final-states] Values at end of function main:
   
 [from] Computing for function main_and_or_rel
 [from] Done for function main_and_or_rel

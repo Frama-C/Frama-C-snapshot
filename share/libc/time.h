@@ -30,7 +30,7 @@ __PUSH_FC_STDLIB
 #include "__fc_define_timer_t.h"
 #include "__fc_string_axiomatic.h"
 
-#include <errno.h>
+#include "errno.h"
 
 /*
  * Names of the interval timers, and structure
@@ -76,7 +76,7 @@ struct itimerspec {
 // other clocks exist (CLOCK_*_CPUTIME_ID and Linux-specific clocks)
 #define CLOCK_REALTIME 666
 #define CLOCK_MONOTONIC 1
-#define TIMER_ABSTIME 0
+#define TIMER_ABSTIME 1
 
 //@ ghost volatile unsigned int __fc_time __attribute__((FRAMA_C_MODEL));
 
@@ -170,8 +170,73 @@ extern int clock_getres(clockid_t, struct timespec *);
  */
 extern int clock_gettime(clockid_t clk_id, struct timespec *tp);
 
-extern int clock_nanosleep(clockid_t, int, const struct timespec *,
-                           struct timespec *);
+/*@ axiomatic nanosleep_predicates {
+  @   predicate abs_clock_in_range{L}(clockid_t id, struct timespec *tm)
+  @     reads __fc_time;
+  @
+  @   predicate valid_clock_id{L}(clockid_t id) // id is a known clock and not
+  @     reads __fc_time;                        // the CPU-time clock of the
+  @ }                                           // calling thread
+*/
+
+/*@ ghost volatile int __fc_interrupted __attribute__((FRAMA_C_MODEL)); */
+
+/*@ // missing: may assign to errno: EINTR, EINVAL, ENOTSUP
+    // missing: assigns \result, rmtp \from 'clock having id clock_id'
+  requires valid_request: \valid_read(rqtp);
+  requires initialization:initialized_request:
+    \initialized(&rqtp->tv_sec) && \initialized(&rqtp->tv_nsec);
+  requires valid_nanosecs: 0 <= rqtp->tv_nsec < 1000000000;
+  requires valid_remaining_or_null: rmtp == \null || \valid(rmtp);
+  assigns \result \from indirect:__fc_time, indirect:__fc_interrupted,
+                        indirect:clock_id, indirect:flags, indirect:rqtp,
+                        indirect:*rqtp;
+  behavior absolute:
+    assumes absolute_time: (flags & TIMER_ABSTIME) != 0;
+    assumes no_einval: abs_clock_in_range(clock_id, rqtp) &&
+                       valid_clock_id(clock_id);
+    assigns \result \from indirect:__fc_time, indirect:__fc_interrupted,
+                          indirect:clock_id, indirect:rqtp, indirect:*rqtp;
+    ensures result_ok_or_error: \result == 0 || \result == EINTR ||
+                                \result == EINVAL || \result == ENOTSUP;
+  behavior relative_interrupted:
+    assumes relative_time: (flags & TIMER_ABSTIME) == 0;
+    assumes interrupted: __fc_interrupted != 0;
+    assumes no_einval: valid_clock_id(clock_id);
+    assigns \result \from indirect:__fc_time, indirect:clock_id, indirect:rqtp,
+                          indirect:*rqtp;
+    assigns rmtp == \null ? \empty : *rmtp \from __fc_time, indirect:clock_id,
+                                                 indirect:rqtp, indirect:*rqtp,
+                                                 indirect:rmtp;
+    ensures result_interrupted: \result == EINTR;
+    ensures initialization:interrupted_remaining:
+      rmtp != \null ==> \initialized(&rmtp->tv_sec) && \initialized(&rmtp->tv_nsec);
+    ensures interrupted_remaining_decreases:
+      rmtp != \null ==>
+        rqtp->tv_sec * 1000000000 + rqtp->tv_nsec >=
+        rmtp->tv_sec * 1000000000 + rmtp->tv_nsec;
+    ensures remaining_valid:
+      rmtp != \null ==> 0 <= rmtp->tv_nsec < 1000000000;
+  behavior relative_no_error:
+    assumes relative_time: (flags & TIMER_ABSTIME) == 0;
+    assumes not_interrupted: __fc_interrupted == 0;
+    assumes no_einval: valid_clock_id(clock_id);
+    assigns \result \from indirect:__fc_time, indirect:clock_id,
+                          indirect:rqtp, indirect:*rqtp;
+    ensures result_ok: \result == 0;
+  behavior relative_invalid_clock_id:
+    assumes relative_time: (flags & TIMER_ABSTIME) == 0;
+    assumes not_interrupted: __fc_interrupted == 0;
+    assumes einval: !valid_clock_id(clock_id);
+    assigns \result \from indirect:__fc_time, indirect:clock_id,
+                          indirect:rqtp, indirect:*rqtp;
+    ensures result_einval: \result == EINVAL;
+  complete behaviors;
+  disjoint behaviors;
+*/
+extern int clock_nanosleep(clockid_t clock_id, int flags,
+                           const struct timespec *rqtp, struct timespec *rmtp);
+
 extern int clock_settime(clockid_t, const struct timespec *);
 extern char *ctime_r(const time_t *timep, char *buf);
 extern struct tm *getdate(const char *string);
@@ -179,7 +244,30 @@ extern struct tm *gmtime_r(const time_t *restrict timer,
                            struct tm *restrict result);
 extern struct tm *localtime_r(const time_t *restrict timep,
                               struct tm *restrict result);
-extern int nanosleep(const struct timespec *req, struct timespec *rem);
+
+/*@ // missing: errno may be set to EINTR (EINVAL prevented by precondition)
+  requires valid_request: \valid_read(rqtp);
+  requires initialization:initialized_request:
+    \initialized(&rqtp->tv_sec) && \initialized(&rqtp->tv_nsec);
+  requires valid_nanosecs: 0 <= rqtp->tv_nsec < 1000000000;
+  requires valid_remaining_or_null: rmtp == \null || \valid(rmtp);
+  assigns \result \from indirect:__fc_time, indirect:rqtp, indirect:*rqtp;
+  assigns rmtp == \null ? \empty : *rmtp \from indirect:__fc_time,
+                                               indirect:rqtp, indirect:*rqtp,
+                                               indirect:rmtp;
+  ensures result_elapsed_or_interrupted: \result == 0 || \result == -1;
+  ensures initialization:interrupted_remaining:
+    rmtp != \null && \result == -1 ==>
+      \initialized(&rmtp->tv_sec) && \initialized(&rmtp->tv_nsec);
+  ensures interrupted_remaining_decreases:
+    rmtp != \null && \result == -1 ==>
+      rqtp->tv_sec * 1000000000 + rqtp->tv_nsec >=
+      rmtp->tv_sec * 1000000000 + rmtp->tv_nsec;
+  ensures interrupted_remaining_valid:
+    rmtp != \null && \result == -1 ==> 0 <= rmtp->tv_nsec < 1000000000;
+*/
+extern int nanosleep(const struct timespec *rqtp, struct timespec *rmtp);
+
 //Note: uncomment functions below when the necessary types will be defined:
 // locale_t, timer_t
 //extern size_t strftime_l(char *restrict, size_t, const char *restrict,

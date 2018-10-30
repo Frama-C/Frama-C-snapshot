@@ -1,47 +1,47 @@
 [kernel] Parsing tests/value/bitwise_reduction.i (no preprocessing)
-[value] Analyzing a complete application starting at main
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing a complete application starting at main
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   v ∈ [--..--]
-[value] computing for function main1 <- main.
+[eva] computing for function main1 <- main.
   Called from tests/value/bitwise_reduction.i:33.
-[value:alarm] tests/value/bitwise_reduction.i:10: Warning: 
+[eva:alarm] tests/value/bitwise_reduction.i:10: Warning: 
   assertion got status unknown.
-[value:alarm] tests/value/bitwise_reduction.i:11: Warning: 
+[eva:alarm] tests/value/bitwise_reduction.i:11: Warning: 
   assertion got status unknown.
-[value:alarm] tests/value/bitwise_reduction.i:14: Warning: 
+[eva:alarm] tests/value/bitwise_reduction.i:14: Warning: 
   accessing out of bounds index. assert 0 ≤ i;
-[value:alarm] tests/value/bitwise_reduction.i:14: Warning: 
+[eva:alarm] tests/value/bitwise_reduction.i:14: Warning: 
   accessing out of bounds index. assert i < 2;
-[value] tests/value/bitwise_reduction.i:15: Frama_C_show_each_then1: {1}, {0; 1}
-[value] tests/value/bitwise_reduction.i:17: 
+[eva] tests/value/bitwise_reduction.i:15: Frama_C_show_each_then1: {1}, {0; 1}
+[eva] tests/value/bitwise_reduction.i:17: 
   Frama_C_show_each_else1:
   {0; 1}, {0; 1; 0x3000; 0x3001; 0x3200; 0x3201; 0xF000; 0xFF00}
-[value] tests/value/bitwise_reduction.i:19: 
+[eva] tests/value/bitwise_reduction.i:19: 
   Frama_C_show_each_else_then1:
   {0; 1}, {0; 1; 0x3000; 0x3001; 0x3200; 0x3201; 0xF000; 0xFF00}
-[value:alarm] tests/value/bitwise_reduction.i:23: Warning: 
+[eva:alarm] tests/value/bitwise_reduction.i:23: Warning: 
   out of bounds read. assert \valid_read(p);
-[value] tests/value/bitwise_reduction.i:24: 
+[eva] tests/value/bitwise_reduction.i:24: 
   Frama_C_show_each_then2: {{ &t + {4} }}, {0; 1}
-[value] tests/value/bitwise_reduction.i:26: 
+[eva] tests/value/bitwise_reduction.i:26: 
   Frama_C_show_each_else2:
   {{ &t + {0; 4} }}, {0; 1; 0x3000; 0x3001; 0x3200; 0x3201; 0xF000; 0xFF00}
-[value] tests/value/bitwise_reduction.i:28: 
+[eva] tests/value/bitwise_reduction.i:28: 
   Frama_C_show_each_else_then2:
   {0; 1}, {0; 1; 0x3000; 0x3001; 0x3200; 0x3201; 0xF000; 0xFF00}
-[value] Recording results for main1
-[value] Done for function main1
-[value] Recording results for main
-[value] done for function main
-[value] ====== VALUES COMPUTED ======
-[value:final-states] Values at end of function main1:
+[eva] Recording results for main1
+[eva] Done for function main1
+[eva] Recording results for main
+[eva] done for function main
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function main1:
   t[0] ∈ {0xF000; 0xFF00}
    [1] ∈ {0; 1; 0x3000; 0x3001; 0x3200; 0x3201; 0xF000}
   i ∈ {0; 1}
   p ∈ {{ &t{[0], [1]} }}
-[value:final-states] Values at end of function main:
+[eva:final-states] Values at end of function main:
   
 [from] Computing for function main1
 [from] Done for function main1

@@ -1,8 +1,8 @@
 (**************************************************************************)
 (*                                                                        *)
-(*  This file is part of Frama-C.                                         *)
+(*  This file is part of the Frama-C's E-ACSL plug-in.                    *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2018                                               *)
+(*  Copyright (C) 2012-2018                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -44,28 +44,18 @@ let move (vis:Visitor.generic_frama_c_visitor) ~old new_stmt =
   | _ :: _ ->
     old.labels <- [];
     new_stmt.labels <- labels @ new_stmt.labels;
+    let old = Cil.get_original_stmt vis#behavior old in
     Labeled_stmts.add old new_stmt;
     (* update the gotos of the function jumping to one of the labels *)
     let o orig_stmt = object
       inherit Visitor.frama_c_inplace
       (* invariant of this method: [s = Cil.memo_stmt vis#behavior orig_stmt] *)
       method !vstmt_aux s = match s.skind, orig_stmt.skind with
-      | Goto(s_ref, loc), Goto(orig_ref, _) ->
-        if Cil_datatype.Stmt.equal !s_ref old then
-          if s_ref == orig_ref then
-            (* The memo_stmt and its origin [orig_stmt] contain a shared
-               reference because [orig_stmt] has not yet been visited by [vis]
-               (forward goto). Consequently, do not modify the ref directly but
-               replace the corresponding stmt in the memoisation table. When
-               [orig_stmt] will be visited, the visitor will automatically
-               substitute it with the updated stmt. *)
-            Cil.set_stmt vis#behavior
-              orig_stmt
-              { s with skind = Goto(ref new_stmt, loc) }
-          else
-            (* Backward goto: it has already been visited and there is no more
-               sharing. Directly update the reference. *)
-            s_ref := new_stmt;
+      | Goto(s_ref, _), Goto(orig_ref, _) ->
+        if Cil_datatype.Stmt.equal !orig_ref old && s_ref != orig_ref then
+          (* Forward goto: it has already been visited.
+             We must update the reference. *)
+          s_ref := new_stmt;
         Cil.SkipChildren
       | _ -> Cil.DoChildren
       (* improve efficiency: skip childrens which cannot contain any label *)

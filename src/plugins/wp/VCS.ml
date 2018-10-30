@@ -264,7 +264,7 @@ let configure r =
     timeout ;
     stepout ;
     depth ;
-}
+  }
 
 let time_fits t =
   t = 0.0 ||
@@ -286,7 +286,7 @@ let depth_fits n =
 let autofit r =
   time_fits r.prover_time &&
   step_fits r.prover_steps &&
-  depth_fits r.prover_depth 
+  depth_fits r.prover_depth
 
 let result ?(solver=0.0) ?(time=0.0) ?(steps=0) ?(depth=0) verdict =
   {

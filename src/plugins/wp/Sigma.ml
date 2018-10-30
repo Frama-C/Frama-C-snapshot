@@ -30,7 +30,7 @@ module Make
     (C : Sigs.Chunk)
     (H : Qed.Collection.S with type t = C.t) :
   Sigs.Sigma with type chunk = C.t
-                and module Chunk = H =
+              and module Chunk = H =
 struct
 
   type chunk = C.t
@@ -123,9 +123,9 @@ struct
          | Some x , None -> b.map <- H.Map.add chunk x b.map
          | None , Some y -> a.map <- H.Map.add chunk y a.map
          | None , None -> ())
-     a.map b.map ; !p
+      a.map b.map ; !p
 
-  let assigned a b written =
+  let assigned ~pre ~post written =
     let p = ref Bag.empty in
     H.Map.iter2
       (fun chunk x y ->
@@ -133,10 +133,10 @@ struct
            match x,y with
            | Some x , Some y when x != y ->
                p := Bag.add (p_equal (e_var x) (e_var y)) !p
-           | Some x , None -> b.map <- H.Map.add chunk x b.map
-           | None , Some y -> a.map <- H.Map.add chunk y a.map
+           | Some x , None -> post.map <- H.Map.add chunk x post.map
+           | None , Some y -> pre.map <- H.Map.add chunk y pre.map
            | _ -> ())
-      a.map b.map ; !p
+      pre.map post.map ; !p
 
   let value w c = e_var (get w c)
 

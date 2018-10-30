@@ -49,7 +49,7 @@ int send4 (int x) {
   return x;
 }
 
-main()
+int main()
 {
 	int		input1,input2,input3,cond1,cond2;
 	int		a,b,c;
@@ -76,4 +76,5 @@ main()
 	send2 (output2);
 	send3 (output3);
 	send4 (cond2);
+        return 0;
 }

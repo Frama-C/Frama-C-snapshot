@@ -2,11 +2,10 @@
 [kernel:parser:decimal-float] tests/float/nonlin.c:75: Warning: 
   Floating-point constant 0.000000001 is not represented exactly. Will use 0x1.12e0be826d695p-30.
   (warn-once: no further messages from category 'parser:decimal-float' will be emitted)
-[value] Analyzing a complete application starting at main
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
-  Frama_C_entropy_source ∈ [--..--]
+[eva] Analyzing a complete application starting at main
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   a ∈ {0}
   b ∈ {0}
   c ∈ {0}
@@ -36,208 +35,226 @@
   rbits1 ∈ {0}
   rbits2 ∈ {0}
   v ∈ [--..--]
-[value] computing for function nonlin_f <- main.
-  Called from tests/float/nonlin.c:92.
-[value] computing for function Frama_C_float_interval <- nonlin_f <- main.
+[eva] computing for function nonlin_f <- main.
+  Called from tests/float/nonlin.c:105.
+[eva] computing for function Frama_C_float_interval <- nonlin_f <- main.
   Called from tests/float/nonlin.c:16.
-[value] using specification for function Frama_C_float_interval
-[value] tests/float/nonlin.c:16: 
+[eva] using specification for function Frama_C_float_interval
+[eva] tests/float/nonlin.c:16: 
   function Frama_C_float_interval: precondition 'finite' got status valid.
-[value] tests/float/nonlin.c:16: 
+[eva] tests/float/nonlin.c:16: 
   function Frama_C_float_interval: precondition 'order' got status valid.
-[value] Done for function Frama_C_float_interval
-[value] computing for function Frama_C_float_interval <- nonlin_f <- main.
+[eva] Done for function Frama_C_float_interval
+[eva] computing for function Frama_C_float_interval <- nonlin_f <- main.
   Called from tests/float/nonlin.c:17.
-[value] tests/float/nonlin.c:17: 
+[eva] tests/float/nonlin.c:17: 
   function Frama_C_float_interval: precondition 'finite' got status valid.
-[value] tests/float/nonlin.c:17: 
+[eva] tests/float/nonlin.c:17: 
   function Frama_C_float_interval: precondition 'order' got status valid.
-[value] Done for function Frama_C_float_interval
-[value] tests/float/nonlin.c:20: assertion got status valid.
-[value] tests/float/nonlin.c:24: assertion got status valid.
-[value] tests/float/nonlin.c:42: 
+[eva] Done for function Frama_C_float_interval
+[eva] tests/float/nonlin.c:20: assertion got status valid.
+[eva] tests/float/nonlin.c:24: assertion got status valid.
+[eva] tests/float/nonlin.c:42: 
   Frama_C_show_each_a_r2:
   {{ "a" }},
   [0x1.4000000000000p2 .. 0x1.4800000000000p2],
   {{ "r2" }},
   [0x1.4000000000000p2 .. 0x1.c800000000000p2]
-[value] tests/float/nonlin.c:42: 
+[eva] tests/float/nonlin.c:42: 
   Frama_C_show_each_a_r2:
   {{ "a" }},
   [0x1.4800000000000p2 .. 0x1.5000000000000p2],
   {{ "r2" }},
   [0x1.4800000000000p2 .. 0x1.c800000000000p2]
-[value] tests/float/nonlin.c:42: 
+[eva] tests/float/nonlin.c:42: 
   Frama_C_show_each_a_r2:
   {{ "a" }},
   [0x1.5000000000000p2 .. 0x1.5800000000000p2],
   {{ "r2" }},
   [0x1.5000000000000p2 .. 0x1.c800000000000p2]
-[value] tests/float/nonlin.c:42: 
+[eva] tests/float/nonlin.c:42: 
   Frama_C_show_each_a_r2:
   {{ "a" }},
   [0x1.5800000000000p2 .. 0x1.6000000000000p2],
   {{ "r2" }},
   [0x1.5800000000000p2 .. 0x1.c800000000000p2]
-[value] tests/float/nonlin.c:42: 
+[eva] tests/float/nonlin.c:42: 
   Frama_C_show_each_a_r2:
   {{ "a" }},
   [0x1.6000000000000p2 .. 0x1.6800000000000p2],
   {{ "r2" }},
   [0x1.6000000000000p2 .. 0x1.c800000000000p2]
-[value] tests/float/nonlin.c:42: 
+[eva] tests/float/nonlin.c:42: 
   Frama_C_show_each_a_r2:
   {{ "a" }},
   [0x1.6800000000000p2 .. 0x1.7000000000000p2],
   {{ "r2" }},
   [0x1.6800000000000p2 .. 0x1.c800000000000p2]
-[value] tests/float/nonlin.c:42: 
+[eva] tests/float/nonlin.c:42: 
   Frama_C_show_each_a_r2:
   {{ "a" }},
   [0x1.7000000000000p2 .. 0x1.7800000000000p2],
   {{ "r2" }},
   [0x1.7000000000000p2 .. 0x1.c800000000000p2]
-[value] tests/float/nonlin.c:42: 
+[eva] tests/float/nonlin.c:42: 
   Frama_C_show_each_a_r2:
   {{ "a" }},
   [0x1.7800000000000p2 .. 0x1.8000000000000p2],
   {{ "r2" }},
   [0x1.7800000000000p2 .. 0x1.c800000000000p2]
-[value] tests/float/nonlin.c:42: 
+[eva] tests/float/nonlin.c:42: 
   Frama_C_show_each_a_r2:
   {{ "a" }},
   [0x1.8000000000000p2 .. 0x1.8800000000000p2],
   {{ "r2" }},
   [0x1.8000000000000p2 .. 0x1.c800000000000p2]
-[value] tests/float/nonlin.c:42: 
+[eva] tests/float/nonlin.c:42: 
   Frama_C_show_each_a_r2:
   {{ "a" }},
   [0x1.8800000000000p2 .. 0x1.9000000000000p2],
   {{ "r2" }},
   [0x1.8800000000000p2 .. 0x1.c800000000000p2]
-[value] tests/float/nonlin.c:42: 
+[eva] tests/float/nonlin.c:42: 
   Frama_C_show_each_a_r2:
   {{ "a" }},
   [0x1.9000000000000p2 .. 0x1.9800000000000p2],
   {{ "r2" }},
   [0x1.9000000000000p2 .. 0x1.c800000000000p2]
-[value] tests/float/nonlin.c:42: 
+[eva] tests/float/nonlin.c:42: 
   Frama_C_show_each_a_r2:
   {{ "a" }},
   [0x1.9800000000000p2 .. 0x1.a000000000000p2],
   {{ "r2" }},
   [0x1.9800000000000p2 .. 0x1.c800000000000p2]
-[value] tests/float/nonlin.c:42: 
+[eva] tests/float/nonlin.c:42: 
   Frama_C_show_each_a_r2:
   {{ "a" }},
   [0x1.a000000000000p2 .. 0x1.a800000000000p2],
   {{ "r2" }},
   [0x1.a000000000000p2 .. 0x1.c800000000000p2]
-[value] tests/float/nonlin.c:42: 
+[eva] tests/float/nonlin.c:42: 
   Frama_C_show_each_a_r2:
   {{ "a" }},
   [0x1.a800000000000p2 .. 0x1.b000000000000p2],
   {{ "r2" }},
   [0x1.a800000000000p2 .. 0x1.c800000000000p2]
-[value] tests/float/nonlin.c:42: 
+[eva] tests/float/nonlin.c:42: 
   Frama_C_show_each_a_r2:
   {{ "a" }},
   [0x1.b000000000000p2 .. 0x1.b800000000000p2],
   {{ "r2" }},
   [0x1.b000000000000p2 .. 0x1.c800000000000p2]
-[value] tests/float/nonlin.c:42: 
+[eva] tests/float/nonlin.c:42: 
   Frama_C_show_each_a_r2:
   {{ "a" }},
   [0x1.b800000000000p2 .. 0x1.c000000000000p2],
   {{ "r2" }},
   [0x1.b800000000000p2 .. 0x1.c800000000000p2]
-[value] Recording results for nonlin_f
-[value] Done for function nonlin_f
-[value] computing for function other <- main.
-  Called from tests/float/nonlin.c:93.
-[value] computing for function Frama_C_float_interval <- other <- main.
+[eva] Recording results for nonlin_f
+[eva] Done for function nonlin_f
+[eva] computing for function other <- main.
+  Called from tests/float/nonlin.c:106.
+[eva] computing for function Frama_C_float_interval <- other <- main.
   Called from tests/float/nonlin.c:59.
-[value] tests/float/nonlin.c:59: 
+[eva] tests/float/nonlin.c:59: 
   function Frama_C_float_interval: precondition 'finite' got status valid.
-[value] tests/float/nonlin.c:59: 
+[eva] tests/float/nonlin.c:59: 
   function Frama_C_float_interval: precondition 'order' got status valid.
-[value] Done for function Frama_C_float_interval
-[value] computing for function Frama_C_float_interval <- other <- main.
+[eva] Done for function Frama_C_float_interval
+[eva] computing for function Frama_C_float_interval <- other <- main.
   Called from tests/float/nonlin.c:60.
-[value] tests/float/nonlin.c:60: 
+[eva] tests/float/nonlin.c:60: 
   function Frama_C_float_interval: precondition 'finite' got status valid.
-[value] tests/float/nonlin.c:60: 
+[eva] tests/float/nonlin.c:60: 
   function Frama_C_float_interval: precondition 'order' got status valid.
-[value] Done for function Frama_C_float_interval
-[value:alarm] tests/float/nonlin.c:61: Warning: 
+[eva] Done for function Frama_C_float_interval
+[eva:alarm] tests/float/nonlin.c:61: Warning: 
   accessing out of bounds index.
   assert 0 ≤ (int)((double)((double)(i * i) + 2.0));
-[value:alarm] tests/float/nonlin.c:61: Warning: 
+[eva:alarm] tests/float/nonlin.c:61: Warning: 
   accessing out of bounds index.
   assert (int)((double)((double)(i * i) + 2.0)) < 10;
-[value] computing for function access_bits <- other <- main.
+[eva] computing for function access_bits <- other <- main.
   Called from tests/float/nonlin.c:67.
-[value] Recording results for access_bits
-[value] Done for function access_bits
-[value] computing for function Frama_C_interval <- other <- main.
+[eva] Recording results for access_bits
+[eva] Done for function access_bits
+[eva] computing for function Frama_C_interval <- other <- main.
   Called from tests/float/nonlin.c:69.
-[value] using specification for function Frama_C_interval
-[value] tests/float/nonlin.c:69: 
+[eva] using specification for function Frama_C_interval
+[eva] tests/float/nonlin.c:69: 
   function Frama_C_interval: precondition 'order' got status valid.
-[value] Done for function Frama_C_interval
-[value:alarm] tests/float/nonlin.c:70: Warning: 
-  division by zero. assert x ≢ 0;
-[value] Recording results for other
-[value] Done for function other
-[value] computing for function split_alarm <- main.
-  Called from tests/float/nonlin.c:94.
-[value:alarm] tests/float/nonlin.c:74: Warning: 
+[eva] Done for function Frama_C_interval
+[eva:alarm] tests/float/nonlin.c:70: Warning: division by zero. assert x ≢ 0;
+[eva] Recording results for other
+[eva] Done for function other
+[eva] computing for function split_alarm <- main.
+  Called from tests/float/nonlin.c:107.
+[eva:alarm] tests/float/nonlin.c:74: Warning: 
   non-finite float value. assert \is_finite(v);
-[value:alarm] tests/float/nonlin.c:75: Warning: 
+[eva:alarm] tests/float/nonlin.c:75: Warning: 
   non-finite double value.
   assert
   \is_finite((double)((double)1 /
                       (double)((double)((double)ff * (double)ff) + 0.000000001)));
-[value] Recording results for split_alarm
-[value] Done for function split_alarm
-[value] computing for function norm <- main.
-  Called from tests/float/nonlin.c:95.
-[value:alarm] tests/float/nonlin.c:79: Warning: 
+[eva] Recording results for split_alarm
+[eva] Done for function split_alarm
+[eva] computing for function norm <- main.
+  Called from tests/float/nonlin.c:108.
+[eva:alarm] tests/float/nonlin.c:79: Warning: 
   non-finite float value. assert \is_finite(v);
-[value:alarm] tests/float/nonlin.c:80: Warning: 
+[eva:alarm] tests/float/nonlin.c:80: Warning: 
   non-finite float value. assert \is_finite(v);
-[value] Recording results for norm
-[value] Done for function norm
-[value] computing for function garbled <- main.
-  Called from tests/float/nonlin.c:96.
-[value:alarm] tests/float/nonlin.c:87: Warning: 
+[eva] Recording results for norm
+[eva] Done for function norm
+[eva] computing for function garbled <- main.
+  Called from tests/float/nonlin.c:109.
+[eva:alarm] tests/float/nonlin.c:87: Warning: 
   non-finite float value.
   assert \is_finite((float)((int)(&x_0 + (int)(&x_0))));
-[value] tests/float/nonlin.c:87: 
+[eva] tests/float/nonlin.c:87: 
   Assigning imprecise value to a_0.
   The imprecision originates from Arithmetic {tests/float/nonlin.c:87}
-[value:alarm] tests/float/nonlin.c:88: Warning: 
+[eva:alarm] tests/float/nonlin.c:88: Warning: 
   non-finite float value. assert \is_finite(a_0);
-[value:alarm] tests/float/nonlin.c:88: Warning: 
+[eva:alarm] tests/float/nonlin.c:88: Warning: 
   non-finite float value. assert \is_finite((float)(a_0 + a_0));
-[value] tests/float/nonlin.c:88: 
+[eva] tests/float/nonlin.c:88: 
   Assigning imprecise value to f.
   The imprecision originates from Arithmetic
-[value] Recording results for garbled
-[value] Done for function garbled
-[value] Recording results for main
-[value] done for function main
-[value] ====== VALUES COMPUTED ======
-[value:final-states] Values at end of function access_bits:
+[eva] Recording results for garbled
+[eva] Done for function garbled
+[eva] computing for function around_zeros <- main.
+  Called from tests/float/nonlin.c:110.
+[eva] computing for function Frama_C_float_interval <- around_zeros <- main.
+  Called from tests/float/nonlin.c:97.
+[eva] tests/float/nonlin.c:97: 
+  function Frama_C_float_interval: precondition 'finite' got status valid.
+[eva] tests/float/nonlin.c:97: 
+  function Frama_C_float_interval: precondition 'order' got status valid.
+[eva] Done for function Frama_C_float_interval
+[eva:alarm] tests/float/nonlin.c:101: Warning: 
+  non-finite float value.
+  assert \is_finite((float)(f1 / (float)((float)((float)(f + f) - f) - f1)));
+[eva] Recording results for around_zeros
+[eva] Done for function around_zeros
+[eva] Recording results for main
+[eva] done for function main
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function access_bits:
   rbits1 ∈ {0; 1; 2}
   x0 ∈ [--..--]
   __retres ∈ {0; 1}
-[value:final-states] Values at end of function garbled:
+[eva:final-states] Values at end of function around_zeros:
+  Frama_C_entropy_source ∈ [--..--]
+  f1 ∈ {0x1.0000000000000p-149}
+  f ∈ [-0x0.0000000000000p-1022 .. 0x1.0000000000000p-149]
+  res ∈ [-0x1.fffffe0000000p127 .. 0x1.fffffe0000000p127]
+[eva:final-states] Values at end of function garbled:
   a_0 ∈
      {{ garbled mix of &{x_0}
       (origin: Arithmetic {tests/float/nonlin.c:87}) }}
   f ∈ {{ garbled mix of &{x_0} (origin: Arithmetic) }}
-[value:final-states] Values at end of function nonlin_f:
+[eva:final-states] Values at end of function nonlin_f:
   Frama_C_entropy_source ∈ [--..--]
   a ∈ [0x1.4000000000000p2 .. 0x1.c000000000000p2]
   b ∈ [-0x0.0000000000000p-1022 .. 0x1.0000000000000p0]
@@ -245,11 +262,11 @@
   r1 ∈ [0x1.4000000000000p2 .. 0x1.2000000000000p3]
   r2 ∈ [0x1.4000000000000p2 .. 0x1.c800000000000p2]
   d ∈ [0x1.4000000000000p2 .. 0x1.c000000000000p2]
-[value:final-states] Values at end of function norm:
+[eva:final-states] Values at end of function norm:
   v1 ∈ [-0x1.fffffe0000000p127 .. 0x1.fffffe0000000p127]
   v2 ∈ [-0x1.fffffe0000000p127 .. 0x1.fffffe0000000p127]
   square ∈ [-0x1.fffffc0000020p256 .. 0x1.fffffc0000020p256]
-[value:final-states] Values at end of function other:
+[eva:final-states] Values at end of function other:
   Frama_C_entropy_source ∈ [--..--]
   i ∈ [-0x1.0a00000000000p7 .. 0x1.1c00000000000p7]
   s ∈ [-0x1.0a00000000000p7 .. 0x1.1c00000000000p7]
@@ -258,15 +275,15 @@
   sq ∈ [-0x1.2718000000000p14 .. 0x1.3b10000000000p14]
   h ∈ [-0x1.38d8000000000p14 .. 0x1.2950000000000p14]
   r ∈ [2..11]
-  x ∈ [0..42]
+  x ∈ [1..42]
   y ∈ [0..42]
   z ∈ [-2750000..2750000]
   rbits1 ∈ {0; 1; 2}
   rbits2 ∈ {0; 1}
-[value:final-states] Values at end of function split_alarm:
+[eva:final-states] Values at end of function split_alarm:
   ff ∈ [-0x1.fffffe0000000p127 .. 0x1.fffffe0000000p127]
   d_0 ∈ [-0x1.fffffffffffffp1023 .. 0x1.fffffffffffffp1023]
-[value:final-states] Values at end of function main:
+[eva:final-states] Values at end of function main:
   Frama_C_entropy_source ∈ [--..--]
   a ∈ [0x1.4000000000000p2 .. 0x1.c000000000000p2]
   b ∈ [-0x0.0000000000000p-1022 .. 0x1.0000000000000p0]
@@ -281,7 +298,7 @@
   sq ∈ [-0x1.2718000000000p14 .. 0x1.3b10000000000p14]
   h ∈ [-0x1.38d8000000000p14 .. 0x1.2950000000000p14]
   r ∈ [2..11]
-  x ∈ [0..42]
+  x ∈ [1..42]
   y ∈ [0..42]
   z ∈ [-2750000..2750000]
   rbits1 ∈ {0; 1; 2}

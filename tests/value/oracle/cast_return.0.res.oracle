@@ -1,91 +1,91 @@
 [kernel] Parsing tests/value/cast_return.c (with preprocessing)
-[value] Analyzing a complete application starting at main
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing a complete application starting at main
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   i ∈ [--..--]
   c ∈ [--..--]
-[value] computing for function main1 <- main.
+[eva] computing for function main1 <- main.
   Called from tests/value/cast_return.c:63.
-[value] computing for function f <- main1 <- main.
+[eva] computing for function f <- main1 <- main.
   Called from tests/value/cast_return.c:26.
-[value] Recording results for f
-[value] Done for function f
-[value] computing for function g <- main1 <- main.
+[eva] Recording results for f
+[eva] Done for function f
+[eva] computing for function g <- main1 <- main.
   Called from tests/value/cast_return.c:27.
-[value] Recording results for g
-[value] Done for function g
-[value:alarm] tests/value/cast_return.c:27: Warning: 
+[eva] Recording results for g
+[eva] Done for function g
+[eva:alarm] tests/value/cast_return.c:27: Warning: 
   accessing uninitialized left-value.
   assert \initialized(&tmp_0);
   (tmp_0 from g())
-[value] computing for function h <- main1 <- main.
+[eva] computing for function h <- main1 <- main.
   Called from tests/value/cast_return.c:31.
-[value] Recording results for h
-[value] Done for function h
-[value:alarm] tests/value/cast_return.c:31: Warning: 
+[eva] Recording results for h
+[eva] Done for function h
+[eva:alarm] tests/value/cast_return.c:31: Warning: 
   out of bounds write. assert \valid(*p);
 [kernel] tests/value/cast_return.c:31: Warning: 
   all target addresses were invalid. This path is assumed to be dead.
-[value] Recording results for main1
-[value] Done for function main1
-[value] computing for function main2 <- main.
+[eva] Recording results for main1
+[eva] Done for function main1
+[eva] computing for function main2 <- main.
   Called from tests/value/cast_return.c:64.
-[value] computing for function fl1 <- main2 <- main.
+[eva] computing for function fl1 <- main2 <- main.
   Called from tests/value/cast_return.c:50.
-[value] Recording results for fl1
-[value] Done for function fl1
-[value:alarm] tests/value/cast_return.c:50: Warning: 
+[eva] Recording results for fl1
+[eva] Done for function fl1
+[eva:alarm] tests/value/cast_return.c:50: Warning: 
   accessing uninitialized left-value.
   assert \initialized(&tmp);
   (tmp from fl1())
-[value] computing for function fl2 <- main2 <- main.
+[eva] computing for function fl2 <- main2 <- main.
   Called from tests/value/cast_return.c:51.
-[value] Recording results for fl2
-[value] Done for function fl2
-[value:alarm] tests/value/cast_return.c:51: Warning: 
+[eva] Recording results for fl2
+[eva] Done for function fl2
+[eva:alarm] tests/value/cast_return.c:51: Warning: 
   accessing uninitialized left-value.
   assert \initialized(&tmp_0);
   (tmp_0 from fl2())
-[value] Recording results for main2
-[value] Done for function main2
-[value] computing for function main3 <- main.
+[eva] Recording results for main2
+[eva] Done for function main2
+[eva] computing for function main3 <- main.
   Called from tests/value/cast_return.c:65.
-[value] computing for function ret_float <- main3 <- main.
+[eva] computing for function ret_float <- main3 <- main.
   Called from tests/value/cast_return.c:58.
-[value] using specification for function ret_float
-[value] Done for function ret_float
-[value:alarm] tests/value/cast_return.c:59: Warning: 
+[eva] using specification for function ret_float
+[eva] Done for function ret_float
+[eva:alarm] tests/value/cast_return.c:59: Warning: 
   non-finite float value. assert \is_finite(f1);
-[value] Recording results for main3
-[value] Done for function main3
-[value] Recording results for main
-[value] done for function main
-[value] tests/value/cast_return.c:31: 
-  assertion 'Value,mem_access' got final status invalid.
-[value] tests/value/cast_return.c:50: 
-  assertion 'Value,initialization' got final status invalid.
-[value] ====== VALUES COMPUTED ======
-[value:final-states] Values at end of function f:
+[eva] Recording results for main3
+[eva] Done for function main3
+[eva] Recording results for main
+[eva] done for function main
+[eva] tests/value/cast_return.c:31: 
+  assertion 'Eva,mem_access' got final status invalid.
+[eva] tests/value/cast_return.c:50: 
+  assertion 'Eva,initialization' got final status invalid.
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function f:
   
-[value:final-states] Values at end of function fl1:
+[eva:final-states] Values at end of function fl1:
   v[bits 0 to 7] ∈ {1}
    [bits 8 to 31] ∈ UNINITIALIZED
-[value:final-states] Values at end of function fl2:
+[eva:final-states] Values at end of function fl2:
   v ∈ {1.} or UNINITIALIZED
-[value:final-states] Values at end of function g:
+[eva:final-states] Values at end of function g:
   x ∈ {1} or UNINITIALIZED
-[value:final-states] Values at end of function h:
+[eva:final-states] Values at end of function h:
   __retres ∈ {1}
-[value:final-states] Values at end of function main1:
+[eva:final-states] Values at end of function main1:
   
-[value:final-states] Values at end of function main2:
+[eva:final-states] Values at end of function main2:
   d1 ∈ UNINITIALIZED
   d2 ∈ {1.}
-[value:final-states] Values at end of function main3:
+[eva:final-states] Values at end of function main3:
   f1 ∈ [-3.40282346639e+38 .. 3.40282346639e+38]
   f2 ∈ [-3.40282346639e+38 .. 3.40282346639e+38]
-[value:final-states] Values at end of function main:
+[eva:final-states] Values at end of function main:
   
 [from] Computing for function f
 [from] Done for function f
@@ -199,7 +199,7 @@ void main1(void)
   if (c) {
     int tmp_0;
     tmp_0 = g();
-    /*@ assert Value: initialization: \initialized(&tmp_0); */
+    /*@ assert Eva: initialization: \initialized(&tmp_0); */
     long long v = (long long)tmp_0;
   }
   if (c) {
@@ -207,7 +207,7 @@ void main1(void)
     int *x = (int *)0;
     int **p = & x;
     tmp_1 = h();
-    /*@ assert Value: mem_access: \valid(*p); */
+    /*@ assert Eva: mem_access: \valid(*p); */
     *(*p) = (int)tmp_1;
   }
   return;
@@ -235,11 +235,11 @@ void main2(void)
   if (c) {
     float tmp;
     tmp = fl1();
-    /*@ assert Value: initialization: \initialized(&tmp); */
+    /*@ assert Eva: initialization: \initialized(&tmp); */
     d1 = (double)tmp;
   }
   tmp_0 = fl2();
-  /*@ assert Value: initialization: \initialized(&tmp_0); */
+  /*@ assert Eva: initialization: \initialized(&tmp_0); */
   d2 = (double)tmp_0;
   return;
 }
@@ -251,7 +251,7 @@ float ret_float(void);
 void main3(void)
 {
   float f1 = ret_float();
-  /*@ assert Value: is_nan_or_infinite: \is_finite(f1); */
+  /*@ assert Eva: is_nan_or_infinite: \is_finite(f1); */
   float f2 = f1 + (float)1;
   return;
 }
@@ -265,81 +265,81 @@ void main(void)
 }
 
 
-[value] Analyzing a complete application starting at main
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing a complete application starting at main
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   i ∈ [--..--]
   c ∈ [--..--]
-[value] computing for function main1 <- main.
+[eva] computing for function main1 <- main.
   Called from tests/value/cast_return.c:63.
-[value] computing for function f <- main1 <- main.
+[eva] computing for function f <- main1 <- main.
   Called from tests/value/cast_return.c:26.
-[value] Recording results for f
-[value] Done for function f
-[value] computing for function g <- main1 <- main.
+[eva] Recording results for f
+[eva] Done for function f
+[eva] computing for function g <- main1 <- main.
   Called from tests/value/cast_return.c:27.
-[value:alarm] tests/value/cast_return.c:17: Warning: 
+[eva:alarm] tests/value/cast_return.c:17: Warning: 
   accessing uninitialized left-value. assert \initialized(&x);
-[value] Recording results for g
-[value] Done for function g
-[value] computing for function h <- main1 <- main.
+[eva] Recording results for g
+[eva] Done for function g
+[eva] computing for function h <- main1 <- main.
   Called from tests/value/cast_return.c:31.
-[value] Recording results for h
-[value] Done for function h
-[value:alarm] tests/value/cast_return.c:31: Warning: 
+[eva] Recording results for h
+[eva] Done for function h
+[eva:alarm] tests/value/cast_return.c:31: Warning: 
   out of bounds write. assert \valid(*p);
-[value] Recording results for main1
-[value] Done for function main1
-[value] computing for function main2 <- main.
+[eva] Recording results for main1
+[eva] Done for function main1
+[eva] computing for function main2 <- main.
   Called from tests/value/cast_return.c:64.
-[value] computing for function fl1 <- main2 <- main.
+[eva] computing for function fl1 <- main2 <- main.
   Called from tests/value/cast_return.c:50.
-[value:alarm] tests/value/cast_return.c:38: Warning: 
+[eva:alarm] tests/value/cast_return.c:38: Warning: 
   accessing uninitialized left-value. assert \initialized(&v);
-[value] Recording results for fl1
-[value] Done for function fl1
-[value] computing for function fl2 <- main2 <- main.
+[eva] Recording results for fl1
+[eva] Done for function fl1
+[eva] computing for function fl2 <- main2 <- main.
   Called from tests/value/cast_return.c:51.
-[value:alarm] tests/value/cast_return.c:44: Warning: 
+[eva:alarm] tests/value/cast_return.c:44: Warning: 
   accessing uninitialized left-value. assert \initialized(&v);
-[value] Recording results for fl2
-[value] Done for function fl2
-[value] Recording results for main2
-[value] Done for function main2
-[value] computing for function main3 <- main.
+[eva] Recording results for fl2
+[eva] Done for function fl2
+[eva] Recording results for main2
+[eva] Done for function main2
+[eva] computing for function main3 <- main.
   Called from tests/value/cast_return.c:65.
-[value] computing for function ret_float <- main3 <- main.
+[eva] computing for function ret_float <- main3 <- main.
   Called from tests/value/cast_return.c:58.
-[value] Done for function ret_float
-[value:alarm] tests/value/cast_return.c:59: Warning: 
+[eva] Done for function ret_float
+[eva:alarm] tests/value/cast_return.c:59: Warning: 
   non-finite float value. assert \is_finite(f1);
-[value] Recording results for main3
-[value] Done for function main3
-[value] Recording results for main
-[value] done for function main
-[value] tests/value/cast_return.c:38: 
-  assertion 'Value,initialization' got final status invalid.
-[value] ====== VALUES COMPUTED ======
-[value:final-states] Values at end of function f:
+[eva] Recording results for main3
+[eva] Done for function main3
+[eva] Recording results for main
+[eva] done for function main
+[eva] tests/value/cast_return.c:38: 
+  assertion 'Eva,initialization' got final status invalid.
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function f:
   
-[value:final-states] Values at end of function fl1:
+[eva:final-states] Values at end of function fl1:
   v[bits 0 to 7] ∈ {1}
    [bits 8 to 31] ∈ UNINITIALIZED
-[value:final-states] Values at end of function fl2:
+[eva:final-states] Values at end of function fl2:
   v ∈ {1.} or UNINITIALIZED
-[value:final-states] Values at end of function g:
+[eva:final-states] Values at end of function g:
   x ∈ {1} or UNINITIALIZED
-[value:final-states] Values at end of function h:
+[eva:final-states] Values at end of function h:
   __retres ∈ {1}
-[value:final-states] Values at end of function main1:
+[eva:final-states] Values at end of function main1:
   
-[value:final-states] Values at end of function main2:
+[eva:final-states] Values at end of function main2:
   d2 ∈ {1.}
-[value:final-states] Values at end of function main3:
+[eva:final-states] Values at end of function main3:
   f1 ∈ [-3.40282346639e+38 .. 3.40282346639e+38]
   f2 ∈ [-3.40282346639e+38 .. 3.40282346639e+38]
-[value:final-states] Values at end of function main:
+[eva:final-states] Values at end of function main:
   
 [from] Computing for function f
 [from] Done for function f

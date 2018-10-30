@@ -34,6 +34,138 @@ Require real.RealInfix.
 Require real.FromInt.
 Require Cint.
 
+(* Why3 goal *)
+Lemma lnot_bool : ((Cint.lnot 0%Z) = (-1%Z)%Z) /\
+  ((Cint.lnot (-1%Z)%Z) = 0%Z).
+Proof.
+  split; Zbits.auto_zbits.
+Qed.
+
+(* Why3 goal *)
+Lemma land_idemp : forall (x:Z), ((Cint.land x x) = x).
+Proof.
+  intro. Zbits.auto_zbits.
+Qed.
+
+(* Why3 goal *)
+Lemma land_0 : forall (x:Z), ((Cint.land 0%Z x) = 0%Z).
+Proof.
+  intro. Zbits.auto_zbits.
+Qed.
+
+(* Why3 goal *)
+Lemma land_0bis : forall (x:Z), ((Cint.land x 0%Z) = 0%Z).
+Proof.
+  intro.
+  rewrite Zbits.land_commut.
+  Zbits.auto_zbits.
+Qed.
+
+(* Why3 goal *)
+Lemma land_1 : forall (x:Z), ((Cint.land (-1%Z)%Z x) = x).
+Proof.
+  intro. Zbits.auto_zbits.
+Qed.
+
+(* Why3 goal *)
+Lemma land_1bis : forall (x:Z), ((Cint.land x (-1%Z)%Z) = x).
+Proof.
+  intros x.
+  rewrite Zbits.land_commut.
+  Zbits.auto_zbits.
+Qed.
+
+(* Why3 goal *)
+Lemma land_bool : ((Cint.land 0%Z 0%Z) = 0%Z) /\ (((Cint.land 0%Z
+  1%Z) = 0%Z) /\ (((Cint.land 1%Z 0%Z) = 0%Z) /\ ((Cint.land 1%Z
+  1%Z) = 1%Z))).
+Proof.
+  split;split;split;Zbits.auto_zbits.
+Qed.
+
+(* Why3 goal *)
+Lemma lor_idemp : forall (x:Z), ((Cint.lor x x) = x).
+Proof.
+  intro. Zbits.auto_zbits.
+Qed.
+
+(* Why3 goal *)
+Lemma lor_1 : forall (x:Z), ((Cint.lor (-1%Z)%Z x) = (-1%Z)%Z).
+Proof.
+  intro. Zbits.auto_zbits.
+Qed.
+
+(* Why3 goal *)
+Lemma lor_1bis : forall (x:Z), ((Cint.lor x (-1%Z)%Z) = (-1%Z)%Z).
+Proof.
+  intros x.
+  rewrite Zbits.lor_commut.
+  Zbits.auto_zbits.
+Qed.
+
+(* Why3 goal *)
+Lemma lor_0 : forall (x:Z), ((Cint.lor 0%Z x) = x).
+Proof.
+  intro. Zbits.auto_zbits.
+Qed.
+
+(* Why3 goal *)
+Lemma lor_0bis : forall (x:Z), ((Cint.lor x 0%Z) = x).
+Proof.
+  intros x.
+  rewrite Zbits.lor_commut.
+  Zbits.auto_zbits.
+Qed.
+
+(* Why3 goal *)
+Lemma lor_bool : ((Cint.lor 0%Z 0%Z) = 0%Z) /\ (((Cint.lor 0%Z 1%Z) = 1%Z) /\
+  (((Cint.lor 1%Z 0%Z) = 1%Z) /\ ((Cint.lor 1%Z 1%Z) = 1%Z))).
+Proof.
+  split;split;split; Zbits.auto_zbits.
+Qed.
+
+(* Why3 goal *)
+Lemma lxor_nilpotent : forall (x:Z), ((Cint.lxor x x) = 0%Z).
+Proof.
+  intro. Zbits.auto_zbits.
+Qed.
+
+(* Why3 goal *)
+Lemma lxor_1 : forall (x:Z), ((Cint.lxor (-1%Z)%Z x) = (Cint.lnot x)).
+Proof.
+  intro. Zbits.auto_zbits.
+Qed.
+
+(* Why3 goal *)
+Lemma lxor_1bis : forall (x:Z), ((Cint.lxor x (-1%Z)%Z) = (Cint.lnot x)).
+Proof.
+  intros x.
+  rewrite Zbits.lxor_commut.
+  Zbits.auto_zbits.
+Qed.
+
+(* Why3 goal *)
+Lemma lxor_0 : forall (x:Z), ((Cint.lxor 0%Z x) = x).
+Proof.
+  intro. Zbits.auto_zbits.
+Qed.
+
+(* Why3 goal *)
+Lemma lxor_0bis : forall (x:Z), ((Cint.lxor x 0%Z) = x).
+Proof.
+  intros x.
+  rewrite Zbits.lxor_commut.
+  Zbits.auto_zbits.
+Qed.
+
+(* Why3 goal *)
+Lemma lxor_bool : ((Cint.lxor 0%Z 0%Z) = 0%Z) /\ (((Cint.lxor 0%Z
+  1%Z) = 1%Z) /\ (((Cint.lxor 1%Z 0%Z) = 1%Z) /\ ((Cint.lxor 1%Z
+  1%Z) = 0%Z))).
+Proof.
+  split; split; split; Zbits.auto_zbits.
+Qed.
+
 Require Import Qedlib.
 Open Local Scope Z_scope.
 

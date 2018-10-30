@@ -103,7 +103,7 @@ class printer (text : Wtext.text) =
             text#printf "@{<bf>Script@} %a: %a.@\n" VCS.pp_prover p VCS.pp_result r
 
     method private strategy index i h =
-      text#printf "@{<bf>Strategy@} %s" 
+      text#printf "@{<bf>Strategy@} %s"
         h.Strategy.tactical#title ;
       if index = i
       then text#printf "(%4.2f)*@\n" h.Strategy.priority

@@ -1,8 +1,8 @@
 [kernel] Parsing tests/float/alarms.i (no preprocessing)
-[value] Analyzing a complete application starting at main
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing a complete application starting at main
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   u1 ∈ {0}
   u2 ∈ {0}
   f ∈ {0}
@@ -10,13 +10,13 @@
   big ∈ {0}
   ull ∈ {0}
   rand ∈ [--..--]
-[value] computing for function main1 <- main.
+[eva] computing for function main1 <- main.
   Called from tests/float/alarms.i:70.
-[value:alarm] tests/float/alarms.i:16: Warning: 
+[eva:alarm] tests/float/alarms.i:16: Warning: 
   NaN float value. assert ¬\is_NaN(u1.f);
-[value:alarm] tests/float/alarms.i:18: Warning: 
+[eva:alarm] tests/float/alarms.i:18: Warning: 
   NaN double value. assert ¬\is_NaN(u2.d);
-[value] tests/float/alarms.i:19: 
+[eva] tests/float/alarms.i:19: 
   Frama_C_dump_each:
   # Cvalue domain:
   u1{.l[bits 0 to 31]; .f; .d[bits 0 to 31]} ∈ [-inf .. inf]
@@ -31,79 +31,77 @@
   tmp ∈ UNINITIALIZED
   l ∈ [--..--]
   ==END OF DUMP==
-[value] computing for function fd <- main1 <- main.
+[eva] computing for function fd <- main1 <- main.
   Called from tests/float/alarms.i:21.
 [kernel:annot:missing-spec] tests/float/alarms.i:21: Warning: 
   Neither code nor specification for function fd, generating default assigns from the prototype
-[value] using specification for function fd
-[value] Done for function fd
-[value:alarm] tests/float/alarms.i:21: Warning: 
+[eva] using specification for function fd
+[eva] Done for function fd
+[eva:alarm] tests/float/alarms.i:21: Warning: 
   NaN double value. assert ¬\is_NaN(tmp);
                     (tmp from fd())
-[value] computing for function fd <- main1 <- main.
+[eva] computing for function fd <- main1 <- main.
   Called from tests/float/alarms.i:22.
-[value] Done for function fd
-[value:alarm] tests/float/alarms.i:23: Warning: 
+[eva] Done for function fd
+[eva:alarm] tests/float/alarms.i:23: Warning: 
   non-finite double value. assert \is_finite(vd);
-[value:alarm] tests/float/alarms.i:23: Warning: 
+[eva:alarm] tests/float/alarms.i:23: Warning: 
   NaN double value. assert ¬\is_NaN(vd);
-[value:alarm] tests/float/alarms.i:23: Warning: 
+[eva:alarm] tests/float/alarms.i:23: Warning: 
   overflow in conversion from floating-point to integer.
   assert -9223372036854775809 < vd;
-[value:alarm] tests/float/alarms.i:23: Warning: 
+[eva:alarm] tests/float/alarms.i:23: Warning: 
   overflow in conversion from floating-point to integer.
   assert vd < 9223372036854775808;
-[value:alarm] tests/float/alarms.i:24: Warning: 
+[eva:alarm] tests/float/alarms.i:24: Warning: 
   non-finite float value. assert \is_finite(vf);
-[value:alarm] tests/float/alarms.i:24: Warning: 
+[eva:alarm] tests/float/alarms.i:24: Warning: 
   overflow in conversion from floating-point to integer.
   assert -9223372036854775809 < vf;
-[value:alarm] tests/float/alarms.i:24: Warning: 
+[eva:alarm] tests/float/alarms.i:24: Warning: 
   overflow in conversion from floating-point to integer.
   assert vf < 9223372036854775808;
-[value] computing for function fd <- main1 <- main.
+[eva] computing for function fd <- main1 <- main.
   Called from tests/float/alarms.i:25.
-[value] Done for function fd
-[value:alarm] tests/float/alarms.i:26: Warning: 
+[eva] Done for function fd
+[eva:alarm] tests/float/alarms.i:26: Warning: 
   NaN double value. assert ¬\is_NaN(vd);
-[value] Recording results for main1
-[value] Done for function main1
-[value] computing for function main2 <- main.
+[eva] Recording results for main1
+[eva] Done for function main1
+[eva] computing for function main2 <- main.
   Called from tests/float/alarms.i:71.
-[value:alarm] tests/float/alarms.i:39: Warning: 
+[eva:alarm] tests/float/alarms.i:39: Warning: 
   NaN double value. assert ¬\is_NaN((double)(0. / 0.));
-[value] tests/float/alarms.i:41: assertion got status valid.
-[value] tests/float/alarms.i:42: assertion got status valid.
-[value] tests/float/alarms.i:43: assertion got status valid.
-[value] tests/float/alarms.i:44: assertion got status valid.
-[value] tests/float/alarms.i:47: assertion got status valid.
-[value:alarm] tests/float/alarms.i:50: Warning: 
+[eva] tests/float/alarms.i:41: assertion got status valid.
+[eva] tests/float/alarms.i:42: assertion got status valid.
+[eva] tests/float/alarms.i:43: assertion got status valid.
+[eva] tests/float/alarms.i:44: assertion got status valid.
+[eva] tests/float/alarms.i:47: assertion got status valid.
+[eva:alarm] tests/float/alarms.i:50: Warning: 
   NaN double value. assert ¬\is_NaN((double)(0. / 0.));
-[value] Recording results for main2
-[value] Done for function main2
-[value] computing for function main3 <- main.
+[eva] Recording results for main2
+[eva] Done for function main2
+[eva] computing for function main3 <- main.
   Called from tests/float/alarms.i:72.
-[value] computing for function fd <- main3 <- main.
+[eva] computing for function fd <- main3 <- main.
   Called from tests/float/alarms.i:64.
-[value] Done for function fd
-[value:alarm] tests/float/alarms.i:65: Warning: 
+[eva] Done for function fd
+[eva:alarm] tests/float/alarms.i:65: Warning: 
   NaN double value. assert ¬\is_NaN(d_0);
-[value] computing for function fabs <- main3 <- main.
+[eva] computing for function fabs <- main3 <- main.
   Called from tests/float/alarms.i:65.
-[value] Recording results for fabs
-[value] Done for function fabs
-[value] Recording results for main3
-[value] Done for function main3
-[value] Recording results for main
-[value] done for function main
-[value] tests/float/alarms.i:39: 
-  assertion 'Value,is_nan' got final status invalid.
-[value] tests/float/alarms.i:50: 
-  assertion 'Value,is_nan' got final status invalid.
-[value] ====== VALUES COMPUTED ======
-[value:final-states] Values at end of function fabs:
+[eva] Recording results for fabs
+[eva] Done for function fabs
+[eva] Recording results for main3
+[eva] Done for function main3
+[eva] Recording results for main
+[eva] done for function main
+[eva] tests/float/alarms.i:39: assertion 'Eva,is_nan' got final status invalid.
+[eva] tests/float/alarms.i:50: assertion 'Eva,is_nan' got final status invalid.
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function fabs:
   __retres ∈ [0. .. inf]
-[value:final-states] Values at end of function main1:
+[eva:final-states] Values at end of function main1:
   u1{.l[bits 0 to 31]; .f; .d[bits 0 to 31]} ∈ [-inf .. inf]
     {.l[bits 32 to 63]; .f[bits 32 to 63]; .d[bits 32 to 63]} ∈ [--..--]
   u2{.l; .f[bits 0 to 63]; .d} ∈ [-inf .. inf]
@@ -111,20 +109,20 @@
   d ∈ [-inf .. inf]
   big ∈ {1.38350580553e+19}
   ull ∈ {13835058055282163712}
-  vf ∈ [-inf .. inf]
+  vf ∈ [-9.22337203685e+18 .. 9.2233714871e+18]
   vd ∈ [-inf .. inf]
-  i ∈ [--..--]
-  j ∈ [--..--]
+  i ∈ [-9223372036854775808..9223372036854774784]
+  j ∈ [-9223372036854775808..9223371487098961920]
   mvd ∈ [-inf .. inf]
-[value:final-states] Values at end of function main2:
+[eva:final-states] Values at end of function main2:
   f_0 ∈ [-3. .. 17.]
   f_infinity ∈ [-3. .. inf]
   f_nan ∈ [-3. .. 17.]
   f_infinity_nan ∈ [-3. .. inf]
-[value:final-states] Values at end of function main3:
+[eva:final-states] Values at end of function main3:
   d_0 ∈ [-inf .. inf]
   r ∈ [0. .. inf]
-[value:final-states] Values at end of function main:
+[eva:final-states] Values at end of function main:
   u1{.l[bits 0 to 31]; .f; .d[bits 0 to 31]} ∈ [-inf .. inf]
     {.l[bits 32 to 63]; .f[bits 32 to 63]; .d[bits 32 to 63]} ∈ [--..--]
   u2{.l; .f[bits 0 to 63]; .d} ∈ [-inf .. inf]

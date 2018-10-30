@@ -1,0 +1,176 @@
+[kernel] Parsing tests/builtins/malloc-deps.i (no preprocessing)
+[eva] Analyzing a complete application starting at main
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
+  v ∈ [--..--]
+[eva] tests/builtins/malloc-deps.i:17: Call to builtin Frama_C_malloc_fresh_weak
+[eva] tests/builtins/malloc-deps.i:17: 
+  allocating weak variable __malloc_w_main_l17
+[eva] tests/builtins/malloc-deps.i:21: Call to builtin Frama_C_malloc_fresh
+[eva] tests/builtins/malloc-deps.i:21: allocating variable __malloc_main_l21
+[eva] tests/builtins/malloc-deps.i:28: Call to builtin Frama_C_malloc_by_stack
+[eva] tests/builtins/malloc-deps.i:28: allocating variable __malloc_main_l28
+[eva] computing for function g <- main.
+  Called from tests/builtins/malloc-deps.i:29.
+[eva:alarm] tests/builtins/malloc-deps.i:13: Warning: 
+  out of bounds write. assert \valid(p + k);
+[eva] Recording results for g
+[from] Computing for function g
+[from] Done for function g
+[eva] Done for function g
+[eva] tests/builtins/malloc-deps.i:28: Call to builtin Frama_C_malloc_by_stack
+[eva:malloc:weak] tests/builtins/malloc-deps.i:28: 
+  marking variable `__malloc_main_l28' as weak
+[eva:malloc] tests/builtins/malloc-deps.i:28: 
+  resizing variable `__malloc_w_main_l28' (0..31) to fit 0..63
+[eva:alarm] tests/builtins/malloc-deps.i:29: Warning: 
+  signed overflow. assert l + v ≤ 2147483647;
+[eva] computing for function g <- main.
+  Called from tests/builtins/malloc-deps.i:29.
+[eva] Recording results for g
+[from] Computing for function g
+[from] Done for function g
+[eva] Done for function g
+[eva] tests/builtins/malloc-deps.i:28: Call to builtin Frama_C_malloc_by_stack
+[eva:malloc] tests/builtins/malloc-deps.i:28: 
+  resizing variable `__malloc_w_main_l28' (0..31/63) to fit 0..95
+[eva] computing for function g <- main.
+  Called from tests/builtins/malloc-deps.i:29.
+[eva] Recording results for g
+[from] Computing for function g
+[from] Done for function g
+[eva] Done for function g
+[eva] tests/builtins/malloc-deps.i:28: Call to builtin Frama_C_malloc_by_stack
+[eva:malloc] tests/builtins/malloc-deps.i:28: 
+  resizing variable `__malloc_w_main_l28' (0..31/95) to fit 0..127
+[eva] computing for function g <- main.
+  Called from tests/builtins/malloc-deps.i:29.
+[eva] Recording results for g
+[from] Computing for function g
+[from] Done for function g
+[eva] Done for function g
+[eva] tests/builtins/malloc-deps.i:28: Call to builtin Frama_C_malloc_by_stack
+[eva:malloc] tests/builtins/malloc-deps.i:28: 
+  resizing variable `__malloc_w_main_l28' (0..31/127) to fit 0..159
+[eva] computing for function g <- main.
+  Called from tests/builtins/malloc-deps.i:29.
+[eva] Recording results for g
+[from] Computing for function g
+[from] Done for function g
+[eva] Done for function g
+[eva] tests/builtins/malloc-deps.i:28: Call to builtin Frama_C_malloc_by_stack
+[eva:malloc] tests/builtins/malloc-deps.i:28: 
+  resizing variable `__malloc_w_main_l28' (0..31/159) to fit 0..191
+[eva] computing for function g <- main.
+  Called from tests/builtins/malloc-deps.i:29.
+[eva] Recording results for g
+[from] Computing for function g
+[from] Done for function g
+[eva] Done for function g
+[eva] tests/builtins/malloc-deps.i:27: starting to merge loop iterations
+[eva] tests/builtins/malloc-deps.i:28: Call to builtin Frama_C_malloc_by_stack
+[eva:malloc] tests/builtins/malloc-deps.i:28: 
+  resizing variable `__malloc_w_main_l28' (0..31/191) to fit 0..191/223
+[eva] computing for function g <- main.
+  Called from tests/builtins/malloc-deps.i:29.
+[eva] Recording results for g
+[from] Computing for function g
+[from] Done for function g
+[eva] Done for function g
+[eva] tests/builtins/malloc-deps.i:28: Call to builtin Frama_C_malloc_by_stack
+[eva:malloc] tests/builtins/malloc-deps.i:28: 
+  resizing variable `__malloc_w_main_l28' (0..31/223) to fit 0..191/255
+[eva] computing for function g <- main.
+  Called from tests/builtins/malloc-deps.i:29.
+[eva] Recording results for g
+[from] Computing for function g
+[from] Done for function g
+[eva] Done for function g
+[eva] tests/builtins/malloc-deps.i:28: Call to builtin Frama_C_malloc_by_stack
+[eva:malloc] tests/builtins/malloc-deps.i:28: 
+  resizing variable `__malloc_w_main_l28' (0..31/255) to fit 0..191/319
+[eva] computing for function g <- main.
+  Called from tests/builtins/malloc-deps.i:29.
+[eva] Recording results for g
+[from] Computing for function g
+[from] Done for function g
+[eva] Done for function g
+[eva] tests/builtins/malloc-deps.i:28: Call to builtin Frama_C_malloc_by_stack
+[eva:malloc] tests/builtins/malloc-deps.i:28: 
+  resizing variable `__malloc_w_main_l28' (0..31/319) to fit 0..191/319
+[eva] computing for function g <- main.
+  Called from tests/builtins/malloc-deps.i:29.
+[eva] Recording results for g
+[from] Computing for function g
+[from] Done for function g
+[eva] Done for function g
+[eva] Recording results for main
+[from] Computing for function main
+[from] Done for function main
+[eva] done for function main
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function g:
+  __malloc_w_main_l28[0..9] ∈ [0..9] or UNINITIALIZED
+[eva:final-states] Values at end of function main:
+  p ∈ {{ &__malloc_w_main_l17[0] }}
+  q ∈ {{ &__malloc_main_l21[0] }}
+  r ∈ {{ &__malloc_w_main_l28[0] }}
+  __malloc_w_main_l17[0] ∈ [--..--] or UNINITIALIZED
+                     [1..24] ∈ UNINITIALIZED
+  __malloc_main_l21[0] ∈ [--..--]
+                   [1..24] ∈ UNINITIALIZED
+  __malloc_w_main_l28[0..9] ∈ [0..9] or UNINITIALIZED
+[from] Computing for function g
+[from] Done for function g
+[from] Computing for function main
+[from] Computing for function Frama_C_malloc_fresh_weak <-main
+[from] Done for function Frama_C_malloc_fresh_weak
+[from] Computing for function Frama_C_malloc_fresh <-main
+[from] Done for function Frama_C_malloc_fresh
+[from] Computing for function Frama_C_malloc_by_stack <-main
+[from] Done for function Frama_C_malloc_by_stack
+[from] Done for function main
+[from] ====== DEPENDENCIES COMPUTED ======
+  These dependencies hold at termination for the executions that terminate:
+[from] Function Frama_C_malloc_by_stack:
+  \result FROM \nothing
+[from] Function Frama_C_malloc_fresh:
+  \result FROM \nothing
+[from] Function Frama_C_malloc_fresh_weak:
+  \result FROM \nothing
+[from] Function g:
+  __malloc_w_main_l28[0..9] FROM p; k (and SELF)
+[from] Function main:
+  __malloc_w_main_l17[0] FROM i; j (and SELF)
+  __malloc_main_l21[0] FROM j
+  __malloc_w_main_l28[0..9] FROM v (and SELF)
+[from] ====== END OF DEPENDENCIES ======
+[from] ====== DISPLAYING CALLWISE DEPENDENCIES ======
+[from] call to Frama_C_malloc_fresh_weak at tests/builtins/malloc-deps.i:17 (by main):
+  \result FROM \nothing
+[from] call to Frama_C_malloc_fresh at tests/builtins/malloc-deps.i:21 (by main):
+  \result FROM \nothing
+[from] call to Frama_C_malloc_by_stack at tests/builtins/malloc-deps.i:28 (by main):
+  \result FROM \nothing
+[from] call to g at tests/builtins/malloc-deps.i:29 (by main):
+  __malloc_w_main_l28[0..9] FROM p; k (and SELF)
+[from] entry point:
+  __malloc_w_main_l17[0] FROM i; j (and SELF)
+  __malloc_main_l21[0] FROM j
+  __malloc_w_main_l28[0..9] FROM v (and SELF)
+[from] ====== END OF CALLWISE DEPENDENCIES ======
+[inout] InOut (internal) for function g:
+  Operational inputs:
+    p; k
+  Operational inputs on termination:
+    p; k
+  Sure outputs:
+    \nothing
+[inout] InOut (internal) for function main:
+  Operational inputs:
+    v; i; j
+  Operational inputs on termination:
+    v; i; j
+  Sure outputs:
+    p; q; l; __malloc_main_l21[0]

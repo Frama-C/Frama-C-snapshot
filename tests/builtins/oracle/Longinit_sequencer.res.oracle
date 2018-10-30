@@ -1,0 +1,730 @@
+[kernel] Parsing tests/builtins/Longinit_sequencer.i (no preprocessing)
+[kernel] Parsing tests/builtins/long_init.c (with preprocessing)
+[eva] Analyzing a complete application starting at main
+[eva] Computing initial state
+[eva] tests/builtins/long_init.c:34: 
+  Assigning imprecise value to garbled_mix.
+  The imprecision originates from Arithmetic {tests/builtins/long_init.c:34}
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
+  nondet ∈ [--..--]
+  a1[0..9] ∈ {0}
+  stuff ∈ {0}
+  garbled_mix ∈
+             {{ garbled mix of &{"abc"}
+              (origin: Arithmetic {tests/builtins/long_init.c:34}) }}
+  s ∈ {{ "abc" }}
+  pr ∈ {0}
+  pr2 ∈ {0}
+  pr_escaping ∈ {0}
+  ppr ∈ {0}
+  alloc1 ∈ {0}
+  alloc2 ∈ {0}
+  alloc3 ∈ {0}
+  fp ∈ {{ &fun }}
+  inited ∈ {0}
+[eva] computing for function init_outer <- main.
+  Called from tests/builtins/long_init.c:90.
+[eva] computing for function init_inner <- init_outer <- main.
+  Called from tests/builtins/long_init.c:85.
+[eva] tests/builtins/long_init.c:61: starting to merge loop iterations
+[eva] computing for function analyze <- init_inner <- init_outer <- main.
+  Called from tests/builtins/long_init.c:68.
+[eva] computing for function subanalyze <- analyze <- init_inner <- init_outer <- 
+                          main.
+  Called from tests/builtins/long_init.c:29.
+[eva] Recording results for subanalyze
+[eva] Done for function subanalyze
+[eva] computing for function subanalyze <- analyze <- init_inner <- init_outer <- 
+                          main.
+  Called from tests/builtins/long_init.c:29.
+[eva] Recording results for subanalyze
+[eva] Done for function subanalyze
+[eva] computing for function subanalyze <- analyze <- init_inner <- init_outer <- 
+                          main.
+  Called from tests/builtins/long_init.c:29.
+[eva] Recording results for subanalyze
+[eva] Done for function subanalyze
+[eva] computing for function subanalyze <- analyze <- init_inner <- init_outer <- 
+                          main.
+  Called from tests/builtins/long_init.c:29.
+[eva] Recording results for subanalyze
+[eva] Done for function subanalyze
+[eva] computing for function subanalyze <- analyze <- init_inner <- init_outer <- 
+                          main.
+  Called from tests/builtins/long_init.c:29.
+[eva] Recording results for subanalyze
+[eva] Done for function subanalyze
+[eva] Recording results for analyze
+[eva] Done for function analyze
+[eva] computing for function analyze <- init_inner <- init_outer <- main.
+  Called from tests/builtins/long_init.c:69.
+[eva] tests/builtins/long_init.c:29: Reusing old results for call to subanalyze
+[eva] tests/builtins/long_init.c:29: Reusing old results for call to subanalyze
+[eva] tests/builtins/long_init.c:29: Reusing old results for call to subanalyze
+[eva] tests/builtins/long_init.c:29: Reusing old results for call to subanalyze
+[eva] computing for function subanalyze <- analyze <- init_inner <- init_outer <- 
+                          main.
+  Called from tests/builtins/long_init.c:29.
+[eva] Recording results for subanalyze
+[eva] Done for function subanalyze
+[eva] Recording results for analyze
+[eva] Done for function analyze
+[eva] tests/builtins/long_init.c:73: 
+  Call to builtin Frama_C_malloc_fresh for function malloc
+[eva] tests/builtins/long_init.c:73: allocating variable __malloc_init_inner_l73
+[eva] tests/builtins/long_init.c:75: 
+  Call to builtin Frama_C_malloc_fresh for function malloc
+[eva] tests/builtins/long_init.c:75: allocating variable __malloc_init_inner_l75
+[eva] tests/builtins/long_init.c:77: Call to builtin free
+[eva] tests/builtins/long_init.c:77: 
+  function free: precondition 'freeable' got status valid.
+[eva] Recording results for init_inner
+[eva] Done for function init_inner
+[eva:locals-escaping] tests/builtins/long_init.c:85: Warning: 
+  locals {r, r2} escaping the scope of init_inner through pr
+[eva:locals-escaping] tests/builtins/long_init.c:85: Warning: 
+  locals {r2} escaping the scope of init_inner through pr2
+[eva:locals-escaping] tests/builtins/long_init.c:85: Warning: 
+  locals {r2} escaping the scope of init_inner through pr_escaping
+[eva] Recording results for init_outer
+[eva] Done for function init_outer
+[eva] tests/builtins/long_init.c:92: 
+  Frama_C_dump_each:
+  # Cvalue domain:
+  __fc_heap_status ∈ [--..--]
+  __fc_random_counter ∈ [--..--]
+  __fc_rand_max ∈ {32767}
+  __fc_env[0] ∈ {{ NULL ; &S_0___fc_env[0] }}
+          [1] ∈ {{ NULL ; &S_1___fc_env[0] }}
+          [2..4095] ∈ {{ NULL ; &S_0___fc_env[0] ; &S_1___fc_env[0] }}
+  __fc_mblen_state ∈ [--..--]
+  __fc_mbtowc_state ∈ [--..--]
+  __fc_wctomb_state ∈ [--..--]
+  nondet ∈ [--..--]
+  a1[0] ∈ {0}
+    [1] ∈ {1}
+    [2] ∈ {2}
+    [3] ∈ {3}
+    [4] ∈ {4}
+    [5] ∈ {5}
+    [6] ∈ {6}
+    [7] ∈ {7}
+    [8] ∈ {8}
+    [9] ∈ {9}
+  stuff.t[0..4] ∈ {3}
+       .t[5..9] ∈ {4}
+       .t[10..49] ∈ [0..12]
+       .d[0] ∈ {0}
+       .d[1] ∈ {3.125}
+       .d[2] ∈ {6.25}
+       .d[3] ∈ {9.375}
+       .d[4] ∈ {12.5}
+       .d[5] ∈ {15.625}
+       .d[6] ∈ {18.75}
+       .d[7] ∈ {21.875}
+       .d[8] ∈ {25.}
+       .d[9] ∈ {28.125}
+  garbled_mix ∈
+             {{ garbled mix of &{"abc"}
+              (origin: Arithmetic {tests/builtins/long_init.c:34}) }}
+  s ∈ {{ "abc" }}
+  pr ∈ ESCAPINGADDR
+  pr2 ∈ ESCAPINGADDR
+  pr_escaping ∈ ESCAPINGADDR
+  ppr ∈ {0}
+  alloc1 ∈ {{ &__malloc_init_inner_l73 }}
+  alloc2 ∈ ESCAPINGADDR
+  alloc3 ∈ {0}
+  fp ∈ {{ &fun }}
+  inited ∈ {1}
+  sa ∈ {{ "abc" }}
+  tmp_2 ∈ UNINITIALIZED
+  __retres ∈ UNINITIALIZED
+  S_0___fc_env[0..1] ∈ [--..--]
+  S_1___fc_env[0..1] ∈ [--..--]
+  __malloc_init_inner_l73 ∈ {{ (int)&__malloc_init_inner_l73 }}
+  ==END OF DUMP==
+[eva] tests/builtins/long_init.c:93: Reusing old results for call to analyze
+[eva] tests/builtins/long_init.c:94: Reusing old results for call to analyze
+[eva] computing for function dmin <- main.
+  Called from tests/builtins/long_init.c:98.
+[eva] Recording results for dmin
+[eva] Done for function dmin
+[eva] computing for function fun <- main.
+  Called from tests/builtins/long_init.c:99.
+[eva] Recording results for fun
+[eva] Done for function fun
+[eva] tests/builtins/long_init.c:103: Call to builtin free
+[eva] tests/builtins/long_init.c:103: 
+  function free: precondition 'freeable' got status valid.
+[eva] tests/builtins/long_init.c:104: 
+  Call to builtin Frama_C_malloc_fresh for function malloc
+[eva] tests/builtins/long_init.c:104: allocating variable __malloc_main_l104
+[eva] Recording results for main
+[eva] done for function main
+[eva] Saving globals state after call to function: init_inner
+Values at end of function dmin:
+  __retres ∈ [93.9166666667 .. 110.791666667]
+
+
+Values at end of function fun:
+  __retres ∈ {32}
+
+
+Values at end of function subanalyze:
+  
+
+Values at end of function analyze:
+  i ∈ {5}
+  res ∈ [93.9166666667 .. 110.791666667]
+
+Values at end of function init_inner:
+  __fc_heap_status ∈ [--..--]
+  a1[0] ∈ {0}
+    [1] ∈ {1}
+    [2] ∈ {2}
+    [3] ∈ {3}
+    [4] ∈ {4}
+    [5] ∈ {5}
+    [6] ∈ {6}
+    [7] ∈ {7}
+    [8] ∈ {8}
+    [9] ∈ {9}
+  stuff.t[0..4] ∈ {3}
+       .t[5..9] ∈ {4}
+       .t[10..49] ∈ [0..12]
+       .d[0] ∈ {0}
+       .d[1] ∈ {3.125}
+       .d[2] ∈ {6.25}
+       .d[3] ∈ {9.375}
+       .d[4] ∈ {12.5}
+       .d[5] ∈ {15.625}
+       .d[6] ∈ {18.75}
+       .d[7] ∈ {21.875}
+       .d[8] ∈ {25.}
+       .d[9] ∈ {28.125}
+  pr ∈ {{ &r ; &r2 }}
+  pr2 ∈ {{ &r2 }}
+  pr_escaping ∈ {{ &r2 }}
+  alloc1 ∈ {{ &__malloc_init_inner_l73 }}
+  alloc2 ∈ ESCAPINGADDR
+  i ∈ {10}
+  r ∈ {93.9166666667}
+  r2 ∈ {110.791666667}
+  __malloc_init_inner_l73 ∈ {{ (int)&__malloc_init_inner_l73 }}
+
+Values at end of function init_outer:
+  __fc_heap_status ∈ [--..--]
+  a1[0] ∈ {0}
+    [1] ∈ {1}
+    [2] ∈ {2}
+    [3] ∈ {3}
+    [4] ∈ {4}
+    [5] ∈ {5}
+    [6] ∈ {6}
+    [7] ∈ {7}
+    [8] ∈ {8}
+    [9] ∈ {9}
+  stuff.t[0..4] ∈ {3}
+       .t[5..9] ∈ {4}
+       .t[10..49] ∈ [0..12]
+       .d[0] ∈ {0}
+       .d[1] ∈ {3.125}
+       .d[2] ∈ {6.25}
+       .d[3] ∈ {9.375}
+       .d[4] ∈ {12.5}
+       .d[5] ∈ {15.625}
+       .d[6] ∈ {18.75}
+       .d[7] ∈ {21.875}
+       .d[8] ∈ {25.}
+       .d[9] ∈ {28.125}
+  pr ∈ ESCAPINGADDR
+  pr2 ∈ ESCAPINGADDR
+  pr_escaping ∈ ESCAPINGADDR
+  alloc1 ∈ {{ &__malloc_init_inner_l73 }}
+  alloc2 ∈ ESCAPINGADDR
+  inited ∈ {1}
+  __malloc_init_inner_l73 ∈ {{ (int)&__malloc_init_inner_l73 }}
+
+Values at end of function main:
+  __fc_heap_status ∈ [--..--]
+  a1[0] ∈ {0}
+    [1] ∈ {1}
+    [2] ∈ {2}
+    [3] ∈ {3}
+    [4] ∈ {4}
+    [5] ∈ {5}
+    [6] ∈ {6}
+    [7] ∈ {7}
+    [8] ∈ {8}
+    [9] ∈ {9}
+  stuff.t[0..4] ∈ {3}
+       .t[5..9] ∈ {4}
+       .t[10..49] ∈ [0..12]
+       .d[0] ∈ {0}
+       .d[1] ∈ {3.125}
+       .d[2] ∈ {6.25}
+       .d[3] ∈ {9.375}
+       .d[4] ∈ {12.5}
+       .d[5] ∈ {15.625}
+       .d[6] ∈ {18.75}
+       .d[7] ∈ {21.875}
+       .d[8] ∈ {25.}
+       .d[9] ∈ {28.125}
+  pr ∈ {{ &r ; &r2 }}
+  pr2 ∈ {{ &r ; &r2 }}
+  pr_escaping ∈ ESCAPINGADDR
+  ppr ∈ {{ &pr ; &pr2 }}
+  alloc1 ∈ ESCAPINGADDR
+  alloc2 ∈ ESCAPINGADDR
+  alloc3 ∈ {{ &__malloc_main_l104 }}
+  inited ∈ {1}
+  sa ∈ {{ "abc" }}
+  r ∈ {93.9166666667}
+  r2 ∈ {110.791666667}
+  dm ∈ [93.9166666667 .. 110.791666667]
+  res_from_fp ∈ {32}
+  res ∈ {93}
+  local ∈ {1}
+  __retres ∈ {0}[kernel] Parsing tests/builtins/long_init2.c (with preprocessing)
+[eva] Analyzing a complete application starting at main
+[eva] Computing initial state
+[eva] tests/builtins/long_init2.c:34: 
+  Assigning imprecise value to garbled_mix.
+  The imprecision originates from Arithmetic {tests/builtins/long_init2.c:34}
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
+  nondet ∈ [--..--]
+  a1[0..9] ∈ {0}
+  stuff ∈ {0}
+  garbled_mix ∈
+             {{ garbled mix of &{"abc"}
+              (origin: Arithmetic {tests/builtins/long_init2.c:34}) }}
+  s ∈ {{ "abc" }}
+  another_global ∈ {42}
+  pr ∈ {0}
+  pr2 ∈ {0}
+  pr_escaping ∈ {0}
+  ppr ∈ {0}
+  alloc1 ∈ {0}
+  alloc2 ∈ {0}
+  alloc3 ∈ {0}
+  fp ∈ {{ &fun }}
+  inited ∈ {0}
+[eva] computing for function init_outer <- main.
+  Called from tests/builtins/long_init2.c:90.
+[eva] tests/builtins/long_init2.c:85: 
+  Call to builtin Frama_C_load_state for function init_inner
+[eva] Skipping call to init_inner, loading globals state from file:
+  tests/builtins/result/Longinit_sequencer.sav
+[eva] Warning: importing garbled mix, locations may have changed
+[eva] Warning: variable `r' is not global, possibly an escaping value; ignoring
+[eva] Warning: variable `r2' is not global, possibly an escaping value; ignoring
+[eva] Warning: variable `r2' is not global, possibly an escaping value; ignoring
+[eva] Warning: found new global variable `another_global'
+[eva] Recording results for init_outer
+[eva] Done for function init_outer
+[eva] tests/builtins/long_init2.c:92: 
+  Frama_C_dump_each:
+  # Cvalue domain:
+  __fc_heap_status ∈ [--..--]
+  __fc_random_counter ∈ [--..--]
+  __fc_rand_max ∈ {32767}
+  __fc_env[0] ∈ {{ NULL ; &S_0___fc_env[0] }}
+          [1] ∈ {{ NULL ; &S_1___fc_env[0] }}
+          [2..4095] ∈ {{ NULL ; &S_0___fc_env[0] ; &S_1___fc_env[0] }}
+  __fc_mblen_state ∈ [--..--]
+  __fc_mbtowc_state ∈ [--..--]
+  __fc_wctomb_state ∈ [--..--]
+  nondet ∈ [--..--]
+  a1[0] ∈ {0}
+    [1] ∈ {1}
+    [2] ∈ {2}
+    [3] ∈ {3}
+    [4] ∈ {4}
+    [5] ∈ {5}
+    [6] ∈ {6}
+    [7] ∈ {7}
+    [8] ∈ {8}
+    [9] ∈ {9}
+  stuff.t[0..4] ∈ {3}
+       .t[5..9] ∈ {4}
+       .t[10..49] ∈ [0..12]
+       .d[0] ∈ {0}
+       .d[1] ∈ {3.125}
+       .d[2] ∈ {6.25}
+       .d[3] ∈ {9.375}
+       .d[4] ∈ {12.5}
+       .d[5] ∈ {15.625}
+       .d[6] ∈ {18.75}
+       .d[7] ∈ {21.875}
+       .d[8] ∈ {25.}
+       .d[9] ∈ {28.125}
+  garbled_mix ∈
+             {{ garbled mix of &{"abc"}
+              (origin: Arithmetic {tests/builtins/long_init.c:34}) }}
+  s ∈ {{ "abc" }}
+  another_global ∈ {42}
+  pr ∈ ESCAPINGADDR
+  pr2 ∈ ESCAPINGADDR
+  pr_escaping ∈ ESCAPINGADDR
+  ppr ∈ {0}
+  alloc1 ∈ {{ &__malloc_init_inner_l73 }}
+  alloc2 ∈ ESCAPINGADDR
+  alloc3 ∈ {0}
+  fp ∈ {{ &fun }}
+  inited ∈ {1}
+  sa ∈ {{ "abc" }}
+  tmp_2 ∈ UNINITIALIZED
+  __retres ∈ UNINITIALIZED
+  S_0___fc_env[0..1] ∈ [--..--]
+  S_1___fc_env[0..1] ∈ [--..--]
+  __malloc_init_inner_l73 ∈ {{ (int)&__malloc_init_inner_l73 }}
+  ==END OF DUMP==
+[eva] computing for function analyze <- main.
+  Called from tests/builtins/long_init2.c:93.
+[eva] computing for function subanalyze <- analyze <- main.
+  Called from tests/builtins/long_init2.c:29.
+[eva] Recording results for subanalyze
+[eva] Done for function subanalyze
+[eva] computing for function subanalyze <- analyze <- main.
+  Called from tests/builtins/long_init2.c:29.
+[eva] Recording results for subanalyze
+[eva] Done for function subanalyze
+[eva] computing for function subanalyze <- analyze <- main.
+  Called from tests/builtins/long_init2.c:29.
+[eva] Recording results for subanalyze
+[eva] Done for function subanalyze
+[eva] computing for function subanalyze <- analyze <- main.
+  Called from tests/builtins/long_init2.c:29.
+[eva] Recording results for subanalyze
+[eva] Done for function subanalyze
+[eva] computing for function subanalyze <- analyze <- main.
+  Called from tests/builtins/long_init2.c:29.
+[eva] Recording results for subanalyze
+[eva] Done for function subanalyze
+[eva] Recording results for analyze
+[eva] Done for function analyze
+[eva] computing for function analyze <- main.
+  Called from tests/builtins/long_init2.c:94.
+[eva] tests/builtins/long_init2.c:29: Reusing old results for call to subanalyze
+[eva] tests/builtins/long_init2.c:29: Reusing old results for call to subanalyze
+[eva] tests/builtins/long_init2.c:29: Reusing old results for call to subanalyze
+[eva] tests/builtins/long_init2.c:29: Reusing old results for call to subanalyze
+[eva] computing for function subanalyze <- analyze <- main.
+  Called from tests/builtins/long_init2.c:29.
+[eva] Recording results for subanalyze
+[eva] Done for function subanalyze
+[eva] Recording results for analyze
+[eva] Done for function analyze
+[eva] computing for function dmin <- main.
+  Called from tests/builtins/long_init2.c:98.
+[eva] Recording results for dmin
+[eva] Done for function dmin
+[eva] computing for function fun <- main.
+  Called from tests/builtins/long_init2.c:99.
+[eva] Recording results for fun
+[eva] Done for function fun
+[eva] tests/builtins/long_init2.c:103: Call to builtin free
+[eva] tests/builtins/long_init2.c:103: 
+  function free: precondition 'freeable' got status valid.
+[eva] tests/builtins/long_init2.c:104: 
+  Call to builtin Frama_C_malloc_fresh for function malloc
+[eva] tests/builtins/long_init2.c:104: allocating variable __malloc_main_l104
+[eva] Recording results for main
+[eva] done for function main
+[eva] Saving globals state after call to function: init_outer
+
+
+Values at end of function dmin:
+  __retres ∈ [93.9166666667 .. 110.791666667]
+
+
+Values at end of function fun:
+  __retres ∈ {32}
+
+
+Values at end of function init_outer:
+  a1[0] ∈ {0}
+    [1] ∈ {1}
+    [2] ∈ {2}
+    [3] ∈ {3}
+    [4] ∈ {4}
+    [5] ∈ {5}
+    [6] ∈ {6}
+    [7] ∈ {7}
+    [8] ∈ {8}
+    [9] ∈ {9}
+  stuff.t[0..4] ∈ {3}
+       .t[5..9] ∈ {4}
+       .t[10..49] ∈ [0..12]
+       .d[0] ∈ {0}
+       .d[1] ∈ {3.125}
+       .d[2] ∈ {6.25}
+       .d[3] ∈ {9.375}
+       .d[4] ∈ {12.5}
+       .d[5] ∈ {15.625}
+       .d[6] ∈ {18.75}
+       .d[7] ∈ {21.875}
+       .d[8] ∈ {25.}
+       .d[9] ∈ {28.125}
+  pr ∈ ESCAPINGADDR
+  pr2 ∈ ESCAPINGADDR
+  pr_escaping ∈ ESCAPINGADDR
+  alloc1 ∈ {{ &__malloc_init_inner_l73 }}
+  alloc2 ∈ ESCAPINGADDR
+  inited ∈ {1}
+
+
+Values at end of function subanalyze:
+  
+
+Values at end of function analyze:
+  i ∈ {5}
+  res ∈ [93.9166666667 .. 110.791666667]
+
+Values at end of function main:
+  __fc_heap_status ∈ [--..--]
+  a1[0] ∈ {0}
+    [1] ∈ {1}
+    [2] ∈ {2}
+    [3] ∈ {3}
+    [4] ∈ {4}
+    [5] ∈ {5}
+    [6] ∈ {6}
+    [7] ∈ {7}
+    [8] ∈ {8}
+    [9] ∈ {9}
+  stuff.t[0..4] ∈ {3}
+       .t[5..9] ∈ {4}
+       .t[10..49] ∈ [0..12]
+       .d[0] ∈ {0}
+       .d[1] ∈ {3.125}
+       .d[2] ∈ {6.25}
+       .d[3] ∈ {9.375}
+       .d[4] ∈ {12.5}
+       .d[5] ∈ {15.625}
+       .d[6] ∈ {18.75}
+       .d[7] ∈ {21.875}
+       .d[8] ∈ {25.}
+       .d[9] ∈ {28.125}
+  pr ∈ {{ &r ; &r2 }}
+  pr2 ∈ {{ &r ; &r2 }}
+  pr_escaping ∈ ESCAPINGADDR
+  ppr ∈ {{ &pr ; &pr2 }}
+  alloc1 ∈ ESCAPINGADDR
+  alloc2 ∈ ESCAPINGADDR
+  alloc3 ∈ {{ &__malloc_main_l104 }}
+  inited ∈ {1}
+  sa ∈ {{ "abc" }}
+  r ∈ {93.9166666667}
+  r2 ∈ {110.791666667}
+  dm ∈ [93.9166666667 .. 110.791666667]
+  res_from_fp ∈ {32}
+  res ∈ {93}
+  local ∈ {42}
+  __retres ∈ {0}[kernel] Parsing tests/builtins/long_init3.c (with preprocessing)
+[eva] Analyzing a complete application starting at main
+[eva] Computing initial state
+[eva] tests/builtins/long_init3.c:34: 
+  Assigning imprecise value to garbled_mix.
+  The imprecision originates from Arithmetic {tests/builtins/long_init3.c:34}
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
+  nondet ∈ [--..--]
+  a1[0..9] ∈ {0}
+  stuff ∈ {0}
+  garbled_mix ∈
+             {{ garbled mix of &{"abc"}
+              (origin: Arithmetic {tests/builtins/long_init3.c:34}) }}
+  s ∈ {{ "abc" }}
+  another_global ∈ {42}
+  yet_another_global ∈ {43}
+  pr ∈ {0}
+  pr2 ∈ {0}
+  pr_escaping ∈ {0}
+  ppr ∈ {0}
+  alloc1 ∈ {0}
+  alloc2 ∈ {0}
+  alloc3 ∈ {0}
+  fp ∈ {{ &fun }}
+  inited ∈ {0}
+[eva] tests/builtins/long_init3.c:90: 
+  Call to builtin Frama_C_load_state for function init_outer
+[eva] Skipping call to init_outer, loading globals state from file:
+  tests/builtins/result/Longinit_sequencer.sav
+[eva] Warning: importing garbled mix, locations may have changed
+[eva] Warning: found new global variable `yet_another_global'
+[eva] tests/builtins/long_init3.c:92: 
+  Frama_C_dump_each:
+  # Cvalue domain:
+  __fc_heap_status ∈ [--..--]
+  __fc_random_counter ∈ [--..--]
+  __fc_rand_max ∈ {32767}
+  __fc_env[0] ∈ {{ NULL ; &S_0___fc_env[0] }}
+          [1] ∈ {{ NULL ; &S_1___fc_env[0] }}
+          [2..4095] ∈ {{ NULL ; &S_0___fc_env[0] ; &S_1___fc_env[0] }}
+  __fc_mblen_state ∈ [--..--]
+  __fc_mbtowc_state ∈ [--..--]
+  __fc_wctomb_state ∈ [--..--]
+  nondet ∈ [--..--]
+  a1[0] ∈ {0}
+    [1] ∈ {1}
+    [2] ∈ {2}
+    [3] ∈ {3}
+    [4] ∈ {4}
+    [5] ∈ {5}
+    [6] ∈ {6}
+    [7] ∈ {7}
+    [8] ∈ {8}
+    [9] ∈ {9}
+  stuff.t[0..4] ∈ {3}
+       .t[5..9] ∈ {4}
+       .t[10..49] ∈ [0..12]
+       .d[0] ∈ {0}
+       .d[1] ∈ {3.125}
+       .d[2] ∈ {6.25}
+       .d[3] ∈ {9.375}
+       .d[4] ∈ {12.5}
+       .d[5] ∈ {15.625}
+       .d[6] ∈ {18.75}
+       .d[7] ∈ {21.875}
+       .d[8] ∈ {25.}
+       .d[9] ∈ {28.125}
+  garbled_mix ∈
+             {{ garbled mix of &{"abc"}
+              (origin: Arithmetic {tests/builtins/long_init.c:34}) }}
+  s ∈ {{ "abc" }}
+  another_global ∈ {42}
+  yet_another_global ∈ {43}
+  pr ∈ ESCAPINGADDR
+  pr2 ∈ ESCAPINGADDR
+  pr_escaping ∈ ESCAPINGADDR
+  ppr ∈ {0}
+  alloc1 ∈ {{ &__malloc_init_inner_l73 }}
+  alloc2 ∈ ESCAPINGADDR
+  alloc3 ∈ {0}
+  fp ∈ {{ &fun }}
+  inited ∈ {1}
+  sa ∈ {{ "abc" }}
+  tmp_2 ∈ UNINITIALIZED
+  __retres ∈ UNINITIALIZED
+  S_0___fc_env[0..1] ∈ [--..--]
+  S_1___fc_env[0..1] ∈ [--..--]
+  __malloc_init_inner_l73 ∈ {{ (int)&__malloc_init_inner_l73 }}
+  ==END OF DUMP==
+[eva] computing for function analyze <- main.
+  Called from tests/builtins/long_init3.c:93.
+[eva] computing for function subanalyze <- analyze <- main.
+  Called from tests/builtins/long_init3.c:29.
+[eva] Recording results for subanalyze
+[eva] Done for function subanalyze
+[eva] computing for function subanalyze <- analyze <- main.
+  Called from tests/builtins/long_init3.c:29.
+[eva] Recording results for subanalyze
+[eva] Done for function subanalyze
+[eva] computing for function subanalyze <- analyze <- main.
+  Called from tests/builtins/long_init3.c:29.
+[eva] Recording results for subanalyze
+[eva] Done for function subanalyze
+[eva] computing for function subanalyze <- analyze <- main.
+  Called from tests/builtins/long_init3.c:29.
+[eva] Recording results for subanalyze
+[eva] Done for function subanalyze
+[eva] computing for function subanalyze <- analyze <- main.
+  Called from tests/builtins/long_init3.c:29.
+[eva] Recording results for subanalyze
+[eva] Done for function subanalyze
+[eva] Recording results for analyze
+[eva] Done for function analyze
+[eva] computing for function analyze <- main.
+  Called from tests/builtins/long_init3.c:94.
+[eva] tests/builtins/long_init3.c:29: Reusing old results for call to subanalyze
+[eva] tests/builtins/long_init3.c:29: Reusing old results for call to subanalyze
+[eva] tests/builtins/long_init3.c:29: Reusing old results for call to subanalyze
+[eva] tests/builtins/long_init3.c:29: Reusing old results for call to subanalyze
+[eva] computing for function subanalyze <- analyze <- main.
+  Called from tests/builtins/long_init3.c:29.
+[eva] Recording results for subanalyze
+[eva] Done for function subanalyze
+[eva] Recording results for analyze
+[eva] Done for function analyze
+[eva] computing for function dmin <- main.
+  Called from tests/builtins/long_init3.c:98.
+[eva] Recording results for dmin
+[eva] Done for function dmin
+[eva] computing for function fun <- main.
+  Called from tests/builtins/long_init3.c:99.
+[eva] Recording results for fun
+[eva] Done for function fun
+[eva] tests/builtins/long_init3.c:103: Call to builtin free
+[eva] tests/builtins/long_init3.c:103: 
+  function free: precondition 'freeable' got status valid.
+[eva] tests/builtins/long_init3.c:104: 
+  Call to builtin Frama_C_malloc_fresh for function malloc
+[eva] tests/builtins/long_init3.c:104: allocating variable __malloc_main_l104
+[eva] Recording results for main
+[eva] done for function main
+
+
+Values at end of function dmin:
+  __retres ∈ [93.9166666667 .. 110.791666667]
+
+
+Values at end of function fun:
+  __retres ∈ {32}
+
+
+
+
+Values at end of function subanalyze:
+  
+
+Values at end of function analyze:
+  i ∈ {5}
+  res ∈ [93.9166666667 .. 110.791666667]
+
+Values at end of function main:
+  __fc_heap_status ∈ [--..--]
+  a1[0] ∈ {0}
+    [1] ∈ {1}
+    [2] ∈ {2}
+    [3] ∈ {3}
+    [4] ∈ {4}
+    [5] ∈ {5}
+    [6] ∈ {6}
+    [7] ∈ {7}
+    [8] ∈ {8}
+    [9] ∈ {9}
+  stuff.t[0..4] ∈ {3}
+       .t[5..9] ∈ {4}
+       .t[10..49] ∈ [0..12]
+       .d[0] ∈ {0}
+       .d[1] ∈ {3.125}
+       .d[2] ∈ {6.25}
+       .d[3] ∈ {9.375}
+       .d[4] ∈ {12.5}
+       .d[5] ∈ {15.625}
+       .d[6] ∈ {18.75}
+       .d[7] ∈ {21.875}
+       .d[8] ∈ {25.}
+       .d[9] ∈ {28.125}
+  pr ∈ {{ &r ; &r2 }}
+  pr2 ∈ {{ &r ; &r2 }}
+  pr_escaping ∈ ESCAPINGADDR
+  ppr ∈ {{ &pr ; &pr2 }}
+  alloc1 ∈ ESCAPINGADDR
+  alloc2 ∈ ESCAPINGADDR
+  alloc3 ∈ {{ &__malloc_main_l104 }}
+  inited ∈ {1}
+  sa ∈ {{ "abc" }}
+  r ∈ {93.9166666667}
+  r2 ∈ {110.791666667}
+  dm ∈ [93.9166666667 .. 110.791666667]
+  res_from_fp ∈ {32}
+  res ∈ {93}
+  local ∈ {42}
+  local2 ∈ {43}
+  __retres ∈ {0}
+

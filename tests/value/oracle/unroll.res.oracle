@@ -2,24 +2,22 @@
 [kernel] tests/value/unroll.i:49: Warning: 
   ignoring unrolling directive (not an understood constant expression)
 [kernel] tests/value/unroll.i:54: Warning: ignoring invalid unrolling directive
-[value] Analyzing a complete application starting at main
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing a complete application starting at main
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   t_biosmap[0..9] ∈ {0}
   g_biosmap ∈ {{ &t_biosmap[0] }}
   biosmap ∈ {0}
-[value] tests/value/unroll.i:31: entering loop for the first time
-[value:alarm] tests/value/unroll.i:34: Warning: 
+[eva] tests/value/unroll.i:31: starting to merge loop iterations
+[eva:alarm] tests/value/unroll.i:34: Warning: 
   signed overflow. assert -2147483648 ≤ j - 1;
-[value:alarm] tests/value/unroll.i:32: Warning: 
+[eva:alarm] tests/value/unroll.i:32: Warning: 
   signed overflow. assert G + i ≤ 2147483647;
-[value] tests/value/unroll.i:39: entering loop for the first time
-[value] tests/value/unroll.i:49: entering loop for the first time
-[value] Recording results for main
-[value] done for function main
-[value] ====== VALUES COMPUTED ======
-[value:final-states] Values at end of function main:
+[eva] Recording results for main
+[eva] done for function main
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function main:
   c ∈ {0}
   G ∈ [17739..2147483647]
   i ∈ {257}

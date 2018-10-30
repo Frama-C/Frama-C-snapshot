@@ -1,8 +1,8 @@
 [kernel] Parsing tests/float/init_float.i (no preprocessing)
-[value] Analyzing an incomplete application starting at main
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing an incomplete application starting at main
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   s.y ∈ [-1.9999998807907104*2^127 .. 1.9999998807907104*2^127]
   r ∈ [-1.9999999999999998*2^1023 .. 1.9999999999999998*2^1023]
   cv ∈ [-1.9999999999999998*2^1023 .. 1.9999999999999998*2^1023]
@@ -13,14 +13,14 @@
   l ∈ [--..--]
   Ha[0..4] ∈ [-1.9999999999999998*2^1023 .. 1.9999999999999998*2^1023]
   THa[0..4] ∈ [-1.9999999999999998*2^1023 .. 1.9999999999999998*2^1023]
-[value:alarm] tests/float/init_float.i:16: Warning: 
+[eva:alarm] tests/float/init_float.i:16: Warning: 
   function main: precondition -1000.0 ≤ x ≤ 1000.0 got status unknown.
-[value:alarm] tests/float/init_float.i:17: Warning: 
+[eva:alarm] tests/float/init_float.i:17: Warning: 
   function main: precondition 0.0 ≤ s.y ≤ 0.0 got status unknown.
-[value] Recording results for main
-[value] done for function main
-[value] ====== VALUES COMPUTED ======
-[value:final-states] Values at end of function main:
+[eva] Recording results for main
+[eva] done for function main
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function main:
   s.y ∈ [-0.0000000000000000 .. 0.0000000000000000]
   r ∈ [-1000.0000000000000000 .. 1000.0000000000000000]
   cv ∈ [1.0000000715686179 .. 1.6096441013214644*2^20]

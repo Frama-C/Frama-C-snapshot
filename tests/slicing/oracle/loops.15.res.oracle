@@ -1,24 +1,24 @@
 [kernel] Parsing tests/slicing/loops.i (no preprocessing)
-[value] Analyzing an incomplete application starting at stop_f1
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing an incomplete application starting at stop_f1
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   G ∈ [--..--]
   C1 ∈ [--..--]
   C2 ∈ [--..--]
   X ∈ [--..--]
   Y ∈ [--..--]
   Z ∈ [--..--]
-[value] tests/slicing/loops.i:66: entering loop for the first time
-[value] tests/slicing/loops.i:68: assertion got status valid.
-[value] computing for function stop <- stop_f1.
+[eva] tests/slicing/loops.i:68: assertion got status valid.
+[eva] tests/slicing/loops.i:66: starting to merge loop iterations
+[eva] computing for function stop <- stop_f1.
   Called from tests/slicing/loops.i:70.
 [kernel:annot:missing-spec] tests/slicing/loops.i:70: Warning: 
   Neither code nor specification for function stop, generating default assigns from the prototype
-[value] using specification for function stop
-[value] Done for function stop
-[value] Recording results for stop_f1
-[value] done for function stop_f1
+[eva] using specification for function stop
+[eva] Done for function stop
+[eva] Recording results for stop_f1
+[eva] done for function stop_f1
 [from] Computing for function stop_f1
 [from] Computing for function stop <-stop_f1
 [from] Done for function stop

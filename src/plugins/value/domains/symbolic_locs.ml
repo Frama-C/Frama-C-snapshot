@@ -70,14 +70,21 @@ module K2V = struct
       try `Value (M.join ~cache ~symmetric ~idempotent ~decide a b)
       with E.Bottom -> `Bottom
 
+  let merge =
+    let cache_name = cache_prefix ^ ".join" in
+    let cache = Hptmap_sig.PersistentCache cache_name in
+    let decide _ _ _ = assert false in
+    M.join ~cache ~symmetric:true ~idempotent:false ~decide
+
   let is_included =
     let cache_name = cache_prefix ^ ".is_included" in
     let decide_fst _b _v1 = true (* v2 is top *) in
-    let decide_snd _b _v2 = false (* v1 is top, v2 should not be *) in 
+    let decide_snd _b _v2 = false (* v1 is top, v2 should not be *) in
     let decide_both _ v1 v2 = V.is_included v1 v2 in
     let decide_fast s t =
-      if s == t || M.is_empty t (*all bases present in s but not in t
-                  are implicitly bound to Top in t, hence the inclusion holds *)
+      (* All bases present in s but not in t are implicitly bound to Top in t,
+         so an empty t implies that the inclusion holds. *)
+      if s == t || M.is_empty t
       then M.PTrue
       else M.PUnknown
     in
@@ -101,14 +108,14 @@ module K2V = struct
 end
 
 (* (* not used for now: too costly *)
-let rec interesting_exp (e: exp) = match e.enode with
-  | Const _ | SizeOf _ | SizeOfStr _ | SizeOfE _ | AlignOf _ | AlignOfE _
-  | StartOf _ | AddrOf _ ->
+   let rec interesting_exp (e: exp) = match e.enode with
+   | Const _ | SizeOf _ | SizeOfStr _ | SizeOfE _ | AlignOf _ | AlignOfE _
+   | StartOf _ | AddrOf _ ->
     false
-  | Lval lv -> true
-  | CastE (_,e) | UnOp (_,e,_) | Info (e,_) ->
+   | Lval lv -> true
+   | CastE (_,e) | UnOp (_,e,_) | Info (e,_) ->
     interesting_exp e
-  | BinOp (op,e1,e2,_) ->
+   | BinOp (op,e1,e2,_) ->
     match op with
     | Eq | Ne | Le | Ge | Lt | Gt -> false
     | _ -> interesting_exp e1 || interesting_exp e2
@@ -173,7 +180,7 @@ module Memory = struct
 
   include Datatype.Make_with_collections(struct
       include Datatype.Serializable_undefined
-      
+
       type t = memory
       let name = "Value.Symbolic_locs.Memory.t"
 
@@ -193,14 +200,7 @@ module Memory = struct
 
       let compare m1 m2 =
         let c = K2V.compare m1.values m2.values in
-        if c <> 0 then c
-        else
-          let c = K2Z.compare m1.zones m2.zones in
-          if c <> 0 then c
-          else
-            let c = B2K.compare m1.deps m2.deps in
-            if c <> 0 then c
-            else B2K.compare m1.syntactic_deps m2.syntactic_deps
+        if c <> 0 then c else K2Z.compare m1.zones m2.zones
 
       let equal = Datatype.from_compare
 
@@ -209,9 +209,7 @@ module Memory = struct
           K2V.M.pretty m.values K2Z.pretty m.zones
           B2K.pretty m.deps B2K.pretty m.syntactic_deps
 
-      let hash m = Hashtbl.hash
-          (K2V.hash m.values, K2Z.hash m.zones,
-           B2K.hash m.deps, B2K.hash m.syntactic_deps)
+      let hash m = Hashtbl.hash (K2V.hash m.values, K2Z.hash m.zones)
 
       let copy c = c
 
@@ -251,21 +249,23 @@ module Memory = struct
     | K.E e -> vars_exp e
     | K.LV lv -> vars_lv lv
 
-  (* Auxiliary function that add [k] to [state]. [v] is the value bound to
-     [k], [z] the dependency information. *)
-  let add_key k v z state =
-    let values = K2V.add k v state.values in
-    let zones = K2Z.add k z state.zones in
+  let add_deps k v z state =
     let add_dep b deps =
       let s = B2K.find_default b deps in
       let s' = K.HCESet.add k s in
       B2K.add b s' deps
     in
-    try
-      let deps = Zone.fold_bases add_dep z state.deps in
-      let bases = Base.Set.union (key_deps k) (v_deps v) in
-      let syntactic_deps = Base.Set.fold add_dep bases state.syntactic_deps in
-      { values; zones; deps; syntactic_deps }
+    let deps = Zone.fold_bases add_dep z state.deps in
+    let bases = Base.Set.union (key_deps k) (v_deps v) in
+    let syntactic_deps = Base.Set.fold add_dep bases state.syntactic_deps in
+    { state with deps; syntactic_deps }
+
+  (* Auxiliary function that add [k] to [state]. [v] is the value bound to
+     [k], [z] the dependency information. *)
+  let add_key k v z state =
+    let values = K2V.add k v state.values in
+    let zones = K2Z.add k z state.zones in
+    try add_deps k v z { state with values; zones }
     with Abstract_interp.Error_Top (* unknown dependencies *) -> state
 
   (* rebuild the state from scratch, especially [deps] and [syntactic_deps].
@@ -278,9 +278,10 @@ module Memory = struct
           Value_parameters.abort "Missing zone for %a@.%a"
             K.HCE.pretty k pretty state
       in
-      add_key k v z acc
+      add_deps k v z acc
     in
-    K2V.fold aux state.values empty_map
+    let state = { state with deps = B2K.empty; syntactic_deps = B2K.empty } in
+    K2V.fold aux state.values state
 
   (* check that a state is correct w.r.t. the invariants on [deps] and
      [syntactic_deps]. *)
@@ -301,9 +302,7 @@ module Memory = struct
         else B2K.add b set_b' d
       in
       (* there exists a dependency associated to k because d(values)=d(zones) *)
-      let z =
-        try K2Z.find_default k state.zones with Not_found ->assert false
-      in
+      let z = try K2Z.find k state.zones with Not_found -> assert false in
       let deps = Zone.fold_bases aux_deps z state.deps in
       let syn_deps = Base.Set.union (key_deps k) (v_deps v) in
       let syntactic_deps =
@@ -344,8 +343,10 @@ module Memory = struct
   let fold_overwritten f state z acc =
     (* Check if [k] is overwritten *)
     let aux_key k acc =
-      let z_k = K2Z.find k state.zones in
-      if Zone.intersects z z_k then f k acc else acc
+      try
+        let z_k = K2Z.find k state.zones in
+        if Zone.intersects z z_k then f k acc else acc
+      with Not_found -> acc
     in
     (* Check the keys overwritten among those depending on [b] *)
     let aux_base b acc =
@@ -408,6 +409,54 @@ module Memory = struct
   let find_expr expr state =
     find (K.HCE.of_exp expr) state
 
+  (* [gather_keys bases t] returns the set of keys bound to a base in [bases]
+     in [t.deps] or [t.syntactic_deps]. *)
+  let gather_keys =
+    let fold2 =
+      B2K.fold2_join_heterogeneous
+        ~cache:Hptmap_sig.NoCache
+        ~empty_left:(fun _ -> K.HCESet.empty)
+        ~empty_right:(fun _ -> K.HCESet.empty)
+        ~both:(fun _ keys _ -> keys)
+        ~join:K.HCESet.union
+        ~empty:K.HCESet.empty
+    in
+    fun bases t ->
+      let shape = Base.Hptset.shape bases in
+      K.HCESet.union (fold2 t.syntactic_deps shape) (fold2 t.deps shape)
+
+  (* Projects a state [t] onto the set of bases [bases]; used by MemExec to
+     efficiently compare different entry states for a function analysis.
+     Dependencies are left empty, as they are redundant with the [values] and
+     [zones] map – they could be rebuilt from the zones map. The maps produced
+     by [filter] should never be propagated, and a proper map is rebuild by
+     [reuse] if needed. *)
+  let filter bases t =
+    let keys = gather_keys bases t in
+    let key_shape = K.HCESet.shape keys in
+    let zones = K2Z.inter_with_shape key_shape t.zones in
+    let values = K2V.inter_with_shape key_shape t.values in
+    { values; zones; deps = B2K.empty; syntactic_deps = B2K.empty }
+
+  (* Removes from [t] all information about keys whose dependencies intersect
+     the set of bases [bases]. Note that dependencies are not minimal in the
+     result. *)
+  let diff bases t =
+    let keys = gather_keys bases t in
+    let key_shape = K.HCESet.shape keys in
+    let values = K2V.diff_with_shape key_shape t.values in
+    let zones = K2Z.diff_with_shape key_shape t.zones in
+    let base_shape = Base.Hptset.shape bases in
+    let deps = B2K.diff_with_shape base_shape t.deps in
+    let syntactic_deps = B2K.diff_with_shape base_shape t.syntactic_deps in
+    { values; zones; deps; syntactic_deps }
+
+  (* Merges all properties from [t] into [into]. *)
+  let merge ~into t =
+    { values = K2V.merge into.values t.values;
+      zones = K2Z.merge ~into:into.zones t.zones;
+      deps = B2K.union into.deps t.deps;
+      syntactic_deps = B2K.union into.syntactic_deps t.syntactic_deps }
 end
 
 module Internal : Domain_builder.InputDomain
@@ -527,23 +576,9 @@ module Internal : Domain_builder.InputDomain
 
     let assume _stmt _exp _pos valuation state = `Value (update valuation state)
 
-    let start_call _stmt _call valuation state =
-      let state = update valuation state in
-      Compute state
+    let start_call _stmt _call valuation state = `Value (update valuation state)
 
     let finalize_call _stmt _call ~pre:_ ~post = `Value post
-
-    (* Call in which we do not use the body. Return Top, except for builtins
-       and functions that do not significantly alter the memory. *)
-    let approximate_call _stmt call state =
-      let post_state =
-        let name = Kernel_function.get_name call.kf in
-        if Ast_info.is_frama_c_builtin name ||
-           name <> "free" && Eval_typ.kf_assigns_only_result_or_volatile call.kf
-        then state
-        else top
-      in
-      `Value [post_state]
 
     let show_expr _valuation _state _fmt _expr = ()
   end
@@ -574,10 +609,36 @@ module Internal : Domain_builder.InputDomain
 
   let reduce_further _state _expr _value = [] (*Nothing intelligent to suggest*)
 
-  (* Memexec *)
-  let filter_by_bases _bases state = state (* TODO *)
-  let reuse ~current_input:state ~previous_output:_ =
-    state (* TODO *)
+  (* Memexec: the symbolic locations domain is relational, as it may infer a
+     value for an expression or lvalue involving two different variables.
+     However, such values are only used when the expression or lvalue is
+     evaluated as it is: during the analysis of f, this domain cannot relate
+     by itself a variable read or written by f to a variable that is not. *)
+  let relate _kf _bases _state = Base.SetLattice.empty
+
+  let filter _kf _kind = Memory.filter
+
+  (* Efficient version of [reuse], but the resulting state does not satisfy
+     the [_check state], as some extra dependenies of keys removed from the
+     [current_input] may remain. *)
+  let reuse _kf bases ~current_input ~previous_output =
+    let into = Memory.diff bases current_input in
+    let state = Memory.merge ~into (Memory.rebuild previous_output) in
+    state
+
+  (* Less efficient version of [reuse], using successive applications of
+     [Memory.remove] and [Memory.add]. The resulting state is canonical and
+     satisfies [_check state]. *)
+  let _reuse _kf bases ~current_input ~previous_output =
+    let keys = Memory.gather_keys bases current_input in
+    let state = Memory.remove_keys keys current_input in
+    let keys = Memory.gather_keys bases previous_output in
+    K.HCESet.fold
+      (fun elt acc ->
+         let value = K2V.find elt previous_output.Memory.values in
+         let zone = K2Z.find elt previous_output.Memory.zones in
+         Memory.add_key elt value zone acc)
+      keys state
 
   (* Initial state. Initializers are singletons, so we store nothing. *)
   let introduce_globals _ state = state

@@ -168,6 +168,8 @@ Assume {
       is_sint32(y).
   (* Pre-condition *)
   Have: (ta_y_0=true).
+  (* Pre-condition *)
+  Have: (ta_y_0=true).
   (* Function Frame *)
   Have: (ta_y_1=true) /\ (ta_y_0=false).
   (* Block In *)
@@ -199,6 +201,8 @@ Assume {
   Have: (ta_y_1=true) <-> (ta_y_0=true).
   (* Pre-condition *)
   Have: (ta_y_1=true).
+  (* Pre-condition *)
+  Have: (ta_y_1=true).
   (* Function Frame *)
   Have: (ta_y_2=true) /\ (ta_y_1=false).
   (* Block In *)
@@ -225,6 +229,8 @@ Assume {
   Have: (ta_y_1=true) <-> (ta_y_0=true).
   (* Pre-condition *)
   Have: (ta_y_1=true).
+  (* Pre-condition *)
+  Have: (ta_y_1=true).
   (* Function Frame *)
   Have: (ta_y_2=true) /\ (ta_y_1=false).
   (* Block In *)
@@ -241,6 +247,8 @@ Call Result at line 52
 Assume {
   Type: is_sint32(load_0) /\ is_sint32(tmp_0) /\ is_sint32(y).
   Have: (ta_tmp_1=true) <-> (ta_tmp_0=true).
+  (* Pre-condition *)
+  Have: (ta_y_0=true).
   (* Pre-condition *)
   Have: (ta_y_0=true).
   (* Function Frame *)
@@ -262,6 +270,8 @@ Goal Instance of 'Pre-condition (file tests/wp_hoare/dispatch_var2.i, line 12) i
 Assume {
   (* Pre-condition *)
   Have: (ta_y_1=true).
+  (* Pre-condition *)
+  Have: (ta_y_1=true).
   (* Function Frame *)
   Have: (ta_y_0=true) /\ (ta_y_1=false).
   (* Block In *)
@@ -275,6 +285,8 @@ Goal Instance of 'Pre-condition (file tests/wp_hoare/dispatch_var2.i, line 27) i
 :
 Assume {
   Type: is_sint32(y).
+  (* Pre-condition *)
+  Have: (ta_y_1=true).
   (* Pre-condition *)
   Have: (ta_y_1=true).
   (* Function Frame *)
@@ -405,3 +417,15 @@ Goal Assigns (file tests/wp_hoare/dispatch_var2.i, line 13) in 'reset':
 Prove: true.
 
 ------------------------------------------------------------
+[wp] Warning: Memory model hypotheses for function 'reset':
+  /*@ behavior typed_ref: requires \valid(rp); */
+  void reset(int *rp);
+[wp] Warning: Memory model hypotheses for function 'incr':
+  /*@ behavior typed_ref: requires \valid(ip); */
+  void incr(int *ip);
+[wp] Warning: Memory model hypotheses for function 'load':
+  /*@ behavior typed_ref: requires \valid(lp); */
+  int load(int *lp);
+[wp] Warning: Memory model hypotheses for function 'call_param_ref':
+  /*@ behavior typed_ref: requires \valid(q); */
+  int call_param_ref(int *q);

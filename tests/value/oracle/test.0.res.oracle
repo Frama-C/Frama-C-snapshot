@@ -1,27 +1,27 @@
 [kernel] Parsing tests/value/test.i (no preprocessing)
-[value] Analyzing a complete application starting at inst_F6
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing a complete application starting at inst_F6
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   
-[value] tests/value/test.i:9: entering loop for the first time
-[value] tests/value/test.i:10: entering loop for the first time
-[value] tests/value/test.i:11: entering loop for the first time
-[value:alarm] tests/value/test.i:11: Warning: 
+[eva:alarm] tests/value/test.i:11: Warning: 
   out of bounds read. assert \valid_read(v + j);
-[value:alarm] tests/value/test.i:11: Warning: 
+[eva:alarm] tests/value/test.i:11: Warning: 
   out of bounds read. assert \valid_read(v + (int)(j + ecart));
-[value:alarm] tests/value/test.i:13: Warning: 
+[eva:alarm] tests/value/test.i:13: Warning: 
   out of bounds read. assert \valid_read(v + (int)(j + ecart));
-[value:alarm] tests/value/test.i:14: Warning: 
+[eva:alarm] tests/value/test.i:14: Warning: 
   out of bounds write. assert \valid(v + (int)(j + ecart));
-[value:alarm] tests/value/test.i:11: Warning: 
+[eva] tests/value/test.i:11: starting to merge loop iterations
+[eva] tests/value/test.i:10: starting to merge loop iterations
+[eva:alarm] tests/value/test.i:11: Warning: 
   signed overflow. assert j + ecart ≤ 2147483647;
-[value] Recording results for inst_F6
-[value] done for function inst_F6
+[eva] tests/value/test.i:9: starting to merge loop iterations
+[eva] Recording results for inst_F6
+[eva] done for function inst_F6
 [scope:rm_asserts] removing 1 assertion(s)
-[value] ====== VALUES COMPUTED ======
-[value:final-states] Values at end of function inst_F6:
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function inst_F6:
   t[0] ∈ UNINITIALIZED
    [1] ∈ {4}
    [2] ∈ UNINITIALIZED

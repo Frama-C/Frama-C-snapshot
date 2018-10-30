@@ -1,0 +1,88 @@
+[kernel] Parsing tests/builtins/imprecise-malloc-free.c (with preprocessing)
+[eva] Analyzing a complete application starting at main
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
+  i ∈ [--..--]
+[eva:alarm] tests/builtins/imprecise-malloc-free.c:13: Warning: 
+  signed overflow. assert -2147483648 ≤ i + (int)((int)(&size2) >> 1);
+[eva:alarm] tests/builtins/imprecise-malloc-free.c:13: Warning: 
+  signed overflow. assert i + (int)((int)(&size2) >> 1) ≤ 2147483647;
+[eva] tests/builtins/imprecise-malloc-free.c:13: 
+  Assigning imprecise value to size2.
+  The imprecision originates from Arithmetic
+  {tests/builtins/imprecise-malloc-free.c:13}
+[eva] tests/builtins/imprecise-malloc-free.c:14: Call to builtin malloc
+[eva] tests/builtins/imprecise-malloc-free.c:14: 
+  allocating variable __malloc_main_l14
+[eva] tests/builtins/imprecise-malloc-free.c:15: Call to builtin malloc
+[eva] tests/builtins/imprecise-malloc-free.c:15: 
+  allocating variable __malloc_main_l15
+[eva] tests/builtins/imprecise-malloc-free.c:16: Call to builtin malloc
+[eva] tests/builtins/imprecise-malloc-free.c:16: 
+  allocating variable __malloc_main_l16
+[eva] tests/builtins/imprecise-malloc-free.c:18: 
+  Frama_C_show_each:
+  {{ &__malloc_main_l14 }}, {{ &__malloc_main_l15 }}, {{ &__malloc_main_l16 }}
+[eva] tests/builtins/imprecise-malloc-free.c:19: 
+  Frama_C_show_each:
+  {{ garbled mix of &{__malloc_main_l14}
+  (origin: Arithmetic {tests/builtins/imprecise-malloc-free.c:19}) }}
+[eva:alarm] tests/builtins/imprecise-malloc-free.c:21: Warning: 
+  out of bounds write. assert \valid(p);
+[eva:alarm] tests/builtins/imprecise-malloc-free.c:22: Warning: 
+  out of bounds write. assert \valid(q);
+[eva:alarm] tests/builtins/imprecise-malloc-free.c:23: Warning: 
+  out of bounds write. assert \valid(r);
+[eva] tests/builtins/imprecise-malloc-free.c:25: Call to builtin free
+[eva:alarm] tests/builtins/imprecise-malloc-free.c:25: Warning: 
+  function free: precondition 'freeable' got status unknown.
+[eva:malloc] tests/builtins/imprecise-malloc-free.c:25: 
+  weak free on bases: {__malloc_main_l14}
+[eva] tests/builtins/imprecise-malloc-free.c:26: Call to builtin free
+[eva:alarm] tests/builtins/imprecise-malloc-free.c:26: Warning: 
+  function free: precondition 'freeable' got status unknown.
+[eva:malloc] tests/builtins/imprecise-malloc-free.c:26: 
+  weak free on bases: {__malloc_main_l15, __malloc_main_l16}
+[eva] Recording results for main
+[eva] done for function main
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function main:
+  __fc_heap_status ∈ [--..--]
+  size1 ∈ {{ &size1 + [-8589934592..8589934588],0%4 }}
+  size2 ∈
+       {{ garbled mix of &{size2}
+        (origin: Arithmetic {tests/builtins/imprecise-malloc-free.c:13}) }}
+  p ∈ {{ &__malloc_main_l14[0] }} or ESCAPINGADDR
+  q ∈ {{ &__malloc_main_l15[0] }} or ESCAPINGADDR
+  r ∈ {{ &__malloc_main_l16[0] }} or ESCAPINGADDR
+  __malloc_main_l14[0] ∈ {{ (int)&__malloc_main_l14[1] }} or ESCAPINGADDR
+                   [1..1073741823] ∈ UNINITIALIZED
+  __malloc_main_l15[0] ∈ {{ (int)&__malloc_main_l15[2] }} or ESCAPINGADDR
+                   [1..1073741823] ∈ UNINITIALIZED
+  __malloc_main_l16[0] ∈ {{ (int)&__malloc_main_l16[3] }} or ESCAPINGADDR
+                   [1..1073741823] ∈ UNINITIALIZED
+[from] Computing for function main
+[from] Computing for function malloc <-main
+[from] Done for function malloc
+[from] Computing for function free <-main
+[from] Done for function free
+[from] Done for function main
+[from] ====== DEPENDENCIES COMPUTED ======
+  These dependencies hold at termination for the executions that terminate:
+[from] Function free:
+  __fc_heap_status FROM __fc_heap_status (and SELF)
+[from] Function malloc:
+  __fc_heap_status FROM __fc_heap_status; size (and SELF)
+  \result FROM __fc_heap_status; size
+[from] Function main:
+  __fc_heap_status FROM i; __fc_heap_status (and SELF)
+  __malloc_main_l14[0] FROM __fc_heap_status
+  __malloc_main_l15[0] FROM i; __fc_heap_status
+  __malloc_main_l16[0] FROM i; __fc_heap_status
+[from] ====== END OF DEPENDENCIES ======
+[inout] Out (internal) for function main:
+    __fc_heap_status; size1; size2; p; q; r; __malloc_main_l14[0];
+    __malloc_main_l15[0]; __malloc_main_l16[0]
+[inout] Inputs for function main:
+    i; __fc_heap_status

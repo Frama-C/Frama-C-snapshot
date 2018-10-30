@@ -1,0 +1,5 @@
+[e-acsl] beginning translation.
+[e-acsl] translation done in project "e-acsl".
+[eva] tests/bts/bts2406.c:5: Warning: 
+  during initialization of variable 'tab', size of type 'char const []'
+  cannot be computed (Size of array without number of elements.)

@@ -1,24 +1,24 @@
 [kernel] Parsing tests/slicing/keep_annot.i (no preprocessing)
 [slicing] slicing requests in progress...
-[value] Analyzing an incomplete application starting at f
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing an incomplete application starting at f
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   
-[value] computing for function g <- f.
+[eva] computing for function g <- f.
   Called from tests/slicing/keep_annot.i:26.
-[value] tests/slicing/keep_annot.i:15: entering loop for the first time
-[value:alarm] tests/slicing/keep_annot.i:20: Warning: 
+[eva] tests/slicing/keep_annot.i:15: starting to merge loop iterations
+[eva:alarm] tests/slicing/keep_annot.i:20: Warning: 
   assertion got status unknown.
-[value:alarm] tests/slicing/keep_annot.i:21: Warning: 
+[eva:alarm] tests/slicing/keep_annot.i:21: Warning: 
   assertion got status unknown.
-[value] Recording results for g
-[value] Done for function g
-[value] tests/slicing/keep_annot.i:27: assertion got status valid.
-[value:alarm] tests/slicing/keep_annot.i:28: Warning: 
+[eva] Recording results for g
+[eva] Done for function g
+[eva] tests/slicing/keep_annot.i:27: assertion got status valid.
+[eva:alarm] tests/slicing/keep_annot.i:28: Warning: 
   assertion got status unknown.
-[value] Recording results for f
-[value] done for function f
+[eva] Recording results for f
+[eva] done for function f
 [slicing] initializing slicing ...
 [slicing] interpreting slicing requests from the command line...
 [pdg] computing for function f

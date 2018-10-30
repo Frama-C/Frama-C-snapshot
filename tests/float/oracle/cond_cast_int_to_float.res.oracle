@@ -2,102 +2,102 @@
 [kernel:parser:decimal-float] tests/float/cond_cast_int_to_float.c:18: Warning: 
   Floating-point constant 30.1f is not represented exactly. Will use 0x1.e1999a0000000p4.
   (warn-once: no further messages from category 'parser:decimal-float' will be emitted)
-[value] Analyzing a complete application starting at main
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing a complete application starting at main
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   v ∈ [--..--]
-[value:alarm] tests/float/cond_cast_int_to_float.c:15: Warning: 
+[eva:alarm] tests/float/cond_cast_int_to_float.c:15: Warning: 
   function main: precondition got status unknown.
-[value] computing for function __assert <- main.
+[eva] computing for function __assert <- main.
   Called from tests/float/cond_cast_int_to_float.c:18.
-[value] using specification for function __assert
-[value] tests/float/cond_cast_int_to_float.c:18: 
+[eva] using specification for function __assert
+[eva] tests/float/cond_cast_int_to_float.c:18: 
   function __assert: precondition got status valid.
-[value] Done for function __assert
-[value] tests/float/cond_cast_int_to_float.c:18: 
+[eva] Done for function __assert
+[eva] tests/float/cond_cast_int_to_float.c:18: 
   Frama_C_show_each_then: {18}, [31..10000]
-[value] computing for function __assert <- main.
+[eva] computing for function __assert <- main.
   Called from tests/float/cond_cast_int_to_float.c:18.
-[value] tests/float/cond_cast_int_to_float.c:18: 
+[eva] tests/float/cond_cast_int_to_float.c:18: 
   function __assert: precondition got status valid.
-[value] Done for function __assert
-[value] tests/float/cond_cast_int_to_float.c:18: 
+[eva] Done for function __assert
+[eva] tests/float/cond_cast_int_to_float.c:18: 
   Frama_C_show_each_else: {18}, [-10000..30]
-[value] computing for function __assert <- main.
+[eva] computing for function __assert <- main.
   Called from tests/float/cond_cast_int_to_float.c:19.
-[value] tests/float/cond_cast_int_to_float.c:19: 
+[eva] tests/float/cond_cast_int_to_float.c:19: 
   function __assert: precondition got status valid.
-[value] Done for function __assert
-[value] tests/float/cond_cast_int_to_float.c:19: 
+[eva] Done for function __assert
+[eva] tests/float/cond_cast_int_to_float.c:19: 
   Frama_C_show_each_then: {19}, [31..10000]
-[value] computing for function __assert <- main.
+[eva] computing for function __assert <- main.
   Called from tests/float/cond_cast_int_to_float.c:19.
-[value] tests/float/cond_cast_int_to_float.c:19: 
+[eva] tests/float/cond_cast_int_to_float.c:19: 
   function __assert: precondition got status valid.
-[value] Done for function __assert
-[value] tests/float/cond_cast_int_to_float.c:19: 
+[eva] Done for function __assert
+[eva] tests/float/cond_cast_int_to_float.c:19: 
   Frama_C_show_each_else: {19}, [-10000..30]
-[value] computing for function __assert <- main.
+[eva] computing for function __assert <- main.
   Called from tests/float/cond_cast_int_to_float.c:20.
-[value] tests/float/cond_cast_int_to_float.c:20: 
+[eva] tests/float/cond_cast_int_to_float.c:20: 
   function __assert: precondition got status valid.
-[value] Done for function __assert
-[value] tests/float/cond_cast_int_to_float.c:20: 
+[eva] Done for function __assert
+[eva] tests/float/cond_cast_int_to_float.c:20: 
   Frama_C_show_each_then: {20}, [30..10000]
-[value] computing for function __assert <- main.
+[eva] computing for function __assert <- main.
   Called from tests/float/cond_cast_int_to_float.c:20.
-[value] tests/float/cond_cast_int_to_float.c:20: 
+[eva] tests/float/cond_cast_int_to_float.c:20: 
   function __assert: precondition got status valid.
-[value] Done for function __assert
-[value] tests/float/cond_cast_int_to_float.c:20: 
+[eva] Done for function __assert
+[eva] tests/float/cond_cast_int_to_float.c:20: 
   Frama_C_show_each_else: {20}, [-10000..29]
-[value] computing for function __assert <- main.
+[eva] computing for function __assert <- main.
   Called from tests/float/cond_cast_int_to_float.c:22.
-[value] tests/float/cond_cast_int_to_float.c:22: 
+[eva] tests/float/cond_cast_int_to_float.c:22: 
   function __assert: precondition got status valid.
-[value] Done for function __assert
-[value] tests/float/cond_cast_int_to_float.c:22: 
+[eva] Done for function __assert
+[eva] tests/float/cond_cast_int_to_float.c:22: 
   Frama_C_show_each_then: {22}, [-30..10000]
-[value] computing for function __assert <- main.
+[eva] computing for function __assert <- main.
   Called from tests/float/cond_cast_int_to_float.c:22.
-[value] tests/float/cond_cast_int_to_float.c:22: 
+[eva] tests/float/cond_cast_int_to_float.c:22: 
   function __assert: precondition got status valid.
-[value] Done for function __assert
-[value] tests/float/cond_cast_int_to_float.c:22: 
+[eva] Done for function __assert
+[eva] tests/float/cond_cast_int_to_float.c:22: 
   Frama_C_show_each_else: {22}, [-10000..-31]
-[value] computing for function __assert <- main.
+[eva] computing for function __assert <- main.
   Called from tests/float/cond_cast_int_to_float.c:23.
-[value] tests/float/cond_cast_int_to_float.c:23: 
+[eva] tests/float/cond_cast_int_to_float.c:23: 
   function __assert: precondition got status valid.
-[value] Done for function __assert
-[value] tests/float/cond_cast_int_to_float.c:23: 
+[eva] Done for function __assert
+[eva] tests/float/cond_cast_int_to_float.c:23: 
   Frama_C_show_each_then: {23}, [-30..10000]
-[value] computing for function __assert <- main.
+[eva] computing for function __assert <- main.
   Called from tests/float/cond_cast_int_to_float.c:23.
-[value] tests/float/cond_cast_int_to_float.c:23: 
+[eva] tests/float/cond_cast_int_to_float.c:23: 
   function __assert: precondition got status valid.
-[value] Done for function __assert
-[value] tests/float/cond_cast_int_to_float.c:23: 
+[eva] Done for function __assert
+[eva] tests/float/cond_cast_int_to_float.c:23: 
   Frama_C_show_each_else: {23}, [-10000..-31]
-[value] computing for function __assert <- main.
+[eva] computing for function __assert <- main.
   Called from tests/float/cond_cast_int_to_float.c:24.
-[value] tests/float/cond_cast_int_to_float.c:24: 
+[eva] tests/float/cond_cast_int_to_float.c:24: 
   function __assert: precondition got status valid.
-[value] Done for function __assert
-[value] tests/float/cond_cast_int_to_float.c:24: 
+[eva] Done for function __assert
+[eva] tests/float/cond_cast_int_to_float.c:24: 
   Frama_C_show_each_then: {24}, [-29..10000]
-[value] computing for function __assert <- main.
+[eva] computing for function __assert <- main.
   Called from tests/float/cond_cast_int_to_float.c:24.
-[value] tests/float/cond_cast_int_to_float.c:24: 
+[eva] tests/float/cond_cast_int_to_float.c:24: 
   function __assert: precondition got status valid.
-[value] Done for function __assert
-[value] tests/float/cond_cast_int_to_float.c:24: 
+[eva] Done for function __assert
+[eva] tests/float/cond_cast_int_to_float.c:24: 
   Frama_C_show_each_else: {24}, [-10000..-30]
-[value] Recording results for main
-[value] done for function main
-[value] ====== VALUES COMPUTED ======
-[value:final-states] Values at end of function main:
+[eva] Recording results for main
+[eva] done for function main
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function main:
   
 [from] Computing for function main
 [from] Computing for function __assert <-main

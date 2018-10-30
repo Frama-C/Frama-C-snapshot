@@ -1,8 +1,8 @@
 [kernel] Parsing tests/value/lazy.i (no preprocessing)
-[value] Analyzing a complete application starting at main
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing a complete application starting at main
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   a ∈ {-1}
   b ∈ {0}
   d ∈ {0}
@@ -10,22 +10,22 @@
   r ∈ {0}
   s ∈ {0}
   t ∈ {0}
-[value:pointer-comparison] tests/value/lazy.i:11: 
+[eva:pointer-comparison] tests/value/lazy.i:11: 
   invalid pointer comparison: invalid pointer(s)
-[value:alarm] tests/value/lazy.i:11: Warning: 
+[eva:alarm] tests/value/lazy.i:11: Warning: 
   pointer comparison. assert \pointer_comparable((void *)0, (void *)q);
-[value:pointer-comparison] tests/value/lazy.i:14: 
+[eva:pointer-comparison] tests/value/lazy.i:14: 
   invalid pointer comparison: invalid pointer(s)
-[value:alarm] tests/value/lazy.i:14: Warning: 
+[eva:alarm] tests/value/lazy.i:14: Warning: 
   pointer comparison. assert \pointer_comparable((void *)0, (void *)s);
-[value:pointer-comparison] tests/value/lazy.i:19: 
+[eva:pointer-comparison] tests/value/lazy.i:19: 
   invalid pointer comparison: invalid pointer(s)
-[value:alarm] tests/value/lazy.i:19: Warning: 
+[eva:alarm] tests/value/lazy.i:19: Warning: 
   pointer comparison. assert \pointer_comparable((void *)0, (void *)(&a + 2));
-[value] Recording results for main
-[value] done for function main
-[value] ====== VALUES COMPUTED ======
-[value:final-states] Values at end of function main:
+[eva] Recording results for main
+[eva] done for function main
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function main:
   a ∈ {6}
   b ∈ {1}
   q ∈ {{ &a + {-4; 0} }}

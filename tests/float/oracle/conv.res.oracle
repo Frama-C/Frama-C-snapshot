@@ -1,76 +1,76 @@
 [kernel] Parsing tests/float/conv.i (no preprocessing)
-[value] Analyzing a complete application starting at main
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing a complete application starting at main
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   f ∈ {0}
   d ∈ {0}
   v ∈ [--..--]
-[value] computing for function main1 <- main.
+[eva] computing for function main1 <- main.
   Called from tests/float/conv.i:105.
-[value] tests/float/conv.i:15: Frama_C_show_each: {0}
-[value] tests/float/conv.i:18: Frama_C_show_each: {1.40129846432e-45}
-[value] tests/float/conv.i:22: 
+[eva] tests/float/conv.i:15: Frama_C_show_each: {0}
+[eva] tests/float/conv.i:18: Frama_C_show_each: {1.40129846432e-45}
+[eva] tests/float/conv.i:22: 
   Frama_C_show_each: [1.40129846432e-43 .. 2.40330263757e+12]
-[value:alarm] tests/float/conv.i:24: Warning: assertion got status unknown.
-[value] tests/float/conv.i:28: Frama_C_show_each: {3.40282346639e+38}
-[value] tests/float/conv.i:29: assertion got status valid.
-[value:alarm] tests/float/conv.i:32: Warning: 
+[eva:alarm] tests/float/conv.i:24: Warning: assertion got status unknown.
+[eva] tests/float/conv.i:28: Frama_C_show_each: {3.40282346639e+38}
+[eva] tests/float/conv.i:29: assertion got status valid.
+[eva:alarm] tests/float/conv.i:32: Warning: 
   non-finite float value. assert \is_finite(*((float *)(&i)));
-[value] tests/float/conv.i:37: Frama_C_show_each: {-3.40282346639e+38}
-[value] tests/float/conv.i:38: assertion got status valid.
-[value:alarm] tests/float/conv.i:41: Warning: 
+[eva] tests/float/conv.i:37: Frama_C_show_each: {-3.40282346639e+38}
+[eva] tests/float/conv.i:38: assertion got status valid.
+[eva:alarm] tests/float/conv.i:41: Warning: 
   non-finite float value. assert \is_finite(*((float *)(&i)));
-[value] tests/float/conv.i:45: Frama_C_show_each: [-0. .. 1.40129846432e-45]
-[value:alarm] tests/float/conv.i:48: Warning: assertion got status unknown.
-[value:alarm] tests/float/conv.i:49: Warning: 
+[eva] tests/float/conv.i:45: Frama_C_show_each: [-0. .. 1.40129846432e-45]
+[eva:alarm] tests/float/conv.i:48: Warning: assertion got status unknown.
+[eva:alarm] tests/float/conv.i:49: Warning: 
   non-finite float value. assert \is_finite(*((float *)(&i)));
-[value:alarm] tests/float/conv.i:52: Warning: 
+[eva:alarm] tests/float/conv.i:52: Warning: 
   non-finite float value. assert \is_finite(*((float *)(&i)));
-[value] tests/float/conv.i:52: Frama_C_show_each: {0}
-[value:alarm] tests/float/conv.i:55: Warning: 
+[eva] tests/float/conv.i:52: Frama_C_show_each: {0}
+[eva:alarm] tests/float/conv.i:55: Warning: 
   non-finite float value. assert \is_finite(*((float *)(&ui)));
-[value] Recording results for main1
-[value] Done for function main1
-[value] computing for function main2 <- main.
+[eva] Recording results for main1
+[eva] Done for function main1
+[eva] computing for function main2 <- main.
   Called from tests/float/conv.i:106.
-[value] tests/float/conv.i:63: Frama_C_show_each: {0}
-[value] tests/float/conv.i:66: Frama_C_show_each: {4.94065645841e-324}
-[value] tests/float/conv.i:69: 
+[eva] tests/float/conv.i:63: Frama_C_show_each: {0}
+[eva] tests/float/conv.i:66: Frama_C_show_each: {4.94065645841e-324}
+[eva] tests/float/conv.i:69: 
   Frama_C_show_each: [4.94065645841e-322 .. 9.22442153475e+159]
-[value] tests/float/conv.i:73: Frama_C_show_each: {1.79769313486e+308}
-[value] tests/float/conv.i:74: assertion got status valid.
-[value] tests/float/conv.i:77: Frama_C_show_each: Bottom
-[value] tests/float/conv.i:80: Frama_C_show_each: Bottom
-[value] tests/float/conv.i:84: Frama_C_show_each: {-1.79769313486e+308}
-[value] tests/float/conv.i:85: assertion got status valid.
-[value] tests/float/conv.i:88: Frama_C_show_each: Bottom
-[value] tests/float/conv.i:91: Frama_C_show_each: [0. .. 4.94065645841e-324]
-[value:alarm] tests/float/conv.i:94: Warning: assertion got status unknown.
-[value] tests/float/conv.i:95: Frama_C_show_each: Bottom
-[value] tests/float/conv.i:98: Frama_C_show_each: {0}
-[value] tests/float/conv.i:101: Frama_C_show_each: Bottom
-[value] Recording results for main2
-[value] Done for function main2
-[value] Recording results for main
-[value] done for function main
-[value] tests/float/conv.i:32: 
-  assertion 'Value,is_nan_or_infinite' got final status invalid.
-[value] tests/float/conv.i:41: 
-  assertion 'Value,is_nan_or_infinite' got final status invalid.
-[value] tests/float/conv.i:49: 
-  assertion 'Value,is_nan_or_infinite' got final status invalid.
-[value] tests/float/conv.i:55: 
-  assertion 'Value,is_nan_or_infinite' got final status invalid.
-[value] ====== VALUES COMPUTED ======
-[value:final-states] Values at end of function main1:
+[eva] tests/float/conv.i:73: Frama_C_show_each: {1.79769313486e+308}
+[eva] tests/float/conv.i:74: assertion got status valid.
+[eva] tests/float/conv.i:77: Frama_C_show_each: Bottom
+[eva] tests/float/conv.i:80: Frama_C_show_each: Bottom
+[eva] tests/float/conv.i:84: Frama_C_show_each: {-1.79769313486e+308}
+[eva] tests/float/conv.i:85: assertion got status valid.
+[eva] tests/float/conv.i:88: Frama_C_show_each: Bottom
+[eva] tests/float/conv.i:91: Frama_C_show_each: [0. .. 4.94065645841e-324]
+[eva:alarm] tests/float/conv.i:94: Warning: assertion got status unknown.
+[eva] tests/float/conv.i:95: Frama_C_show_each: Bottom
+[eva] tests/float/conv.i:98: Frama_C_show_each: {0}
+[eva] tests/float/conv.i:101: Frama_C_show_each: Bottom
+[eva] Recording results for main2
+[eva] Done for function main2
+[eva] Recording results for main
+[eva] done for function main
+[eva] tests/float/conv.i:32: 
+  assertion 'Eva,is_nan_or_infinite' got final status invalid.
+[eva] tests/float/conv.i:41: 
+  assertion 'Eva,is_nan_or_infinite' got final status invalid.
+[eva] tests/float/conv.i:49: 
+  assertion 'Eva,is_nan_or_infinite' got final status invalid.
+[eva] tests/float/conv.i:55: 
+  assertion 'Eva,is_nan_or_infinite' got final status invalid.
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function main1:
   f ∈ {0}
   i ∈ {0}
-[value:final-states] Values at end of function main2:
+[eva:final-states] Values at end of function main2:
   d ∈ {-1.79769313486e+308}
   i ∈ {-1; 0}
   ui ∈ {0xFFFFFFFFFFFFFFFF}
-[value:final-states] Values at end of function main:
+[eva:final-states] Values at end of function main:
   f ∈ {0}
   d ∈ {-1.79769313486e+308}
 [from] Computing for function main1

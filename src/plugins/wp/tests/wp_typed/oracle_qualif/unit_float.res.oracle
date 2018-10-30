@@ -1,4 +1,4 @@
-# frama-c -wp -wp-model 'Typed' [...]
+# frama-c -wp -wp-model 'Typed' -wp-timeout 90 -wp-steps 1500 [...]
 [kernel] Parsing tests/wp_typed/unit_float.i (no preprocessing)
 [kernel:parser:decimal-float] tests/wp_typed/unit_float.i:21: Warning: 
   Floating-point constant 0.2 is not represented exactly. Will use 0x1.999999999999ap-3.

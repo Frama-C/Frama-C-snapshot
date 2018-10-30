@@ -33,6 +33,9 @@ ifndef MAKECONFIG_DIR
 MAKECONFIG_DIR	:=$(FRAMAC_SHARE)
 endif
 
+#Add required packages to merlin
+MERLIN_PACKAGES+=$(PLUGIN_REQUIRES)
+
 #Do not generate documentation for this.
 PLUGIN_UNDOC:=$(PLUGIN_UNDOC)
 

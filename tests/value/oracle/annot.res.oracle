@@ -1,37 +1,37 @@
 [kernel] Parsing tests/value/annot.i (no preprocessing)
-[value] Analyzing a complete application starting at main
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing a complete application starting at main
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   A ∈ {0}
   B ∈ {0}
   C ∈ {0}
   u ∈ {0}
   v ∈ {0}
   w ∈ {0}
-[value:alarm] tests/value/annot.i:5: Warning: 
+[eva:alarm] tests/value/annot.i:5: Warning: 
   function main: precondition got status unknown.
-[value] tests/value/annot.i:15: assertion got status valid.
-[value] tests/value/annot.i:16: Frama_C_show_each_diff: {1}
-[value] tests/value/annot.i:21: assertion got status valid.
-[value:alarm] tests/value/annot.i:28: Warning: assertion got status unknown.
-[value:alarm] tests/value/annot.i:33: Warning: assertion got status unknown.
-[value] tests/value/annot.i:34: Frama_C_show_each_elseif_A_B: {0}, {2}
-[value:alarm] tests/value/annot.i:38: Warning: assertion got status unknown.
-[value] tests/value/annot.i:39: Frama_C_show_each_else_A_B: {0; 1}, {0; 2}
-[value:alarm] tests/value/annot.i:42: Warning: assertion got status unknown.
-[value] tests/value/annot.i:43: Frama_C_show_each_mn: [0..9], [0..9]
-[value] tests/value/annot.i:46: assertion got status valid.
-[value] tests/value/annot.i:47: assertion got status valid.
-[value:alarm] tests/value/annot.i:51: Warning: assertion got status unknown.
-[value:alarm] tests/value/annot.i:53: Warning: 
+[eva] tests/value/annot.i:15: assertion got status valid.
+[eva] tests/value/annot.i:16: Frama_C_show_each_diff: {1}
+[eva] tests/value/annot.i:21: assertion got status valid.
+[eva:alarm] tests/value/annot.i:28: Warning: assertion got status unknown.
+[eva:alarm] tests/value/annot.i:33: Warning: assertion got status unknown.
+[eva] tests/value/annot.i:34: Frama_C_show_each_elseif_A_B: {0}, {2}
+[eva:alarm] tests/value/annot.i:38: Warning: assertion got status unknown.
+[eva] tests/value/annot.i:39: Frama_C_show_each_else_A_B: {0; 1}, {0; 2}
+[eva:alarm] tests/value/annot.i:42: Warning: assertion got status unknown.
+[eva] tests/value/annot.i:43: Frama_C_show_each_mn: [0..9], [0..9]
+[eva] tests/value/annot.i:46: assertion got status valid.
+[eva] tests/value/annot.i:47: assertion got status valid.
+[eva:alarm] tests/value/annot.i:51: Warning: assertion got status unknown.
+[eva:alarm] tests/value/annot.i:53: Warning: 
   assertion got status invalid (stopping propagation).
-[value] tests/value/annot.i:7: 
+[eva] tests/value/annot.i:7: 
   function main: no state left, postcondition got status valid.
-[value] Recording results for main
-[value] done for function main
-[value] ====== VALUES COMPUTED ======
-[value:final-states] Values at end of function main:
+[eva] Recording results for main
+[eva] done for function main
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function main:
   NON TERMINATING FUNCTION
 [from] Computing for function main
 [from] Non-terminating function main (no dependencies)

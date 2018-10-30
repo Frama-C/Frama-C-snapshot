@@ -1,5 +1,5 @@
 /* run.config*
-   OPT: -no-autoload-plugins -load-module from,inout,value -print -val @VALUECONFIG@ -machdep x86_16
+   OPT: -no-autoload-plugins -load-module from,inout,eva -print -val @VALUECONFIG@ -machdep x86_16
 */
 
 

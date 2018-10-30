@@ -67,7 +67,11 @@ let main () =
                                locals_size_with_temps\t\
                                max_call_size_no_temps\t\
                                max_call_size_with_temps";
-    LocalsSize.iter (fun kf -> Metrics_cilast.compute_locals_size kf)
+    LocalsSize.iter (fun kf -> Metrics_cilast.compute_locals_size kf);
+  end;
+  if UsedFiles.get () then begin
+    let used_files = Metrics_cilast.used_files () in
+    Metrics_cilast.pretty_used_files used_files
   end
 ;;
 

@@ -1,8 +1,8 @@
 [kernel] Parsing tests/value/interpol.c (with preprocessing)
-[value] Analyzing a complete application starting at main
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing a complete application starting at main
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   t[0] ∈ {1}
    [1] ∈ {2}
    [2] ∈ {4}
@@ -11,16 +11,16 @@
    [5] ∈ {32}
    [6] ∈ {64}
    [7] ∈ {128}
-[value] tests/value/interpol.c:10: entering loop for the first time
-[value] tests/value/interpol.c:16: Frama_C_show_each_ok: {0}, {-1}
-[value] tests/value/interpol.c:16: Frama_C_show_each_ok: {0; 1}, {-2; -1}
-[value] tests/value/interpol.c:16: Frama_C_show_each_ok: {0; 1; 2}, {-4; -2; -1}
-[value] tests/value/interpol.c:16: 
+[eva] tests/value/interpol.c:16: Frama_C_show_each_ok: {0}, {-1}
+[eva] tests/value/interpol.c:10: starting to merge loop iterations
+[eva] tests/value/interpol.c:16: Frama_C_show_each_ok: {0; 1}, {-2; -1}
+[eva] tests/value/interpol.c:16: Frama_C_show_each_ok: {0; 1; 2}, {-4; -2; -1}
+[eva] tests/value/interpol.c:16: 
   Frama_C_show_each_ok: {0; 1; 2; 3; 4; 5; 6}, {-64; -32; -16; -8; -4; -2; -1}
-[value] Recording results for main
-[value] done for function main
-[value] ====== VALUES COMPUTED ======
-[value:final-states] Values at end of function main:
+[eva] Recording results for main
+[eva] done for function main
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function main:
   d ∈ {-64; -32; -16; -8; -4; -2; -1} or UNINITIALIZED
   i ∈ {7}
 [from] Computing for function main

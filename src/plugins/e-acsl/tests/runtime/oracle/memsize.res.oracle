@@ -1,0 +1,6 @@
+[e-acsl] beginning translation.
+[e-acsl] translation done in project "e-acsl".
+[eva:alarm] tests/runtime/memsize.c:14: Warning: assertion got status unknown.
+[eva:alarm] tests/runtime/memsize.c:16: Warning: 
+  assertion got status invalid (stopping propagation).
+[scope:rm_asserts] removing 6 assertion(s)

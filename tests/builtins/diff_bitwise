@@ -1,0 +1,9 @@
+diff tests/builtins/oracle/Longinit_sequencer.res.oracle tests/builtins/oracle_bitwise/Longinit_sequencer.res.oracle
+320c320
+<   tests/builtins/result/Longinit_sequencer.sav
+---
+>   tests/builtins/result_bitwise/Longinit_sequencer.sav
+556c556
+<   tests/builtins/result/Longinit_sequencer.sav
+---
+>   tests/builtins/result_bitwise/Longinit_sequencer.sav

@@ -15,7 +15,7 @@ diff tests/value/oracle/alias.4.res.oracle tests/value/oracle_symblocs/alias.4.r
 ---
 >   y ∈ {77}
 diff tests/value/oracle/alias.5.res.oracle tests/value/oracle_symblocs/alias.5.res.oracle
-171c171
+170c170
 <   y ∈ {0; 3; 77}
 ---
 >   y ∈ {77}
@@ -50,9 +50,89 @@ diff tests/value/oracle/bitwise_reduction.res.oracle tests/value/oracle_symblocs
 <   {0; 1}, {0; 1; 0x3000; 0x3001; 0x3200; 0x3201; 0xF000; 0xFF00}
 ---
 >   {0; 1}, {0x3000; 0x3001; 0x3200; 0x3201; 0xF000; 0xFF00}
+diff tests/value/oracle/builtins_split.res.oracle tests/value/oracle_symblocs/builtins_split.res.oracle
+68a69,70
+> [eva] tests/value/builtins_split.c:96: Call to builtin Frama_C_builtin_split_all
+> [eva] tests/value/builtins_split.c:96: Call to builtin Frama_C_builtin_split_all
+98a101,144
+> [eva] tests/value/builtins_split.c:104: 
+>   Call to builtin Frama_C_builtin_split_all
+> [eva] tests/value/builtins_split.c:104: 
+>   Call to builtin Frama_C_builtin_split_all
+> [eva] tests/value/builtins_split.c:104: 
+>   Call to builtin Frama_C_builtin_split_all
+> [eva] tests/value/builtins_split.c:104: 
+>   Call to builtin Frama_C_builtin_split_all
+> [eva] tests/value/builtins_split.c:104: 
+>   Call to builtin Frama_C_builtin_split_all
+> [eva] tests/value/builtins_split.c:104: 
+>   Call to builtin Frama_C_builtin_split_all
+> [eva] tests/value/builtins_split.c:104: 
+>   Call to builtin Frama_C_builtin_split_all
+> [eva] tests/value/builtins_split.c:104: 
+>   Call to builtin Frama_C_builtin_split_all
+> [eva] tests/value/builtins_split.c:104: 
+>   Call to builtin Frama_C_builtin_split_all
+> [eva] tests/value/builtins_split.c:104: 
+>   Call to builtin Frama_C_builtin_split_all
+> [eva] tests/value/builtins_split.c:104: 
+>   Call to builtin Frama_C_builtin_split_all
+> [eva] tests/value/builtins_split.c:104: 
+>   Call to builtin Frama_C_builtin_split_all
+> [eva] tests/value/builtins_split.c:104: 
+>   Call to builtin Frama_C_builtin_split_all
+> [eva] tests/value/builtins_split.c:104: 
+>   Call to builtin Frama_C_builtin_split_all
+> [eva] tests/value/builtins_split.c:104: 
+>   Call to builtin Frama_C_builtin_split_all
+> [eva] tests/value/builtins_split.c:104: 
+>   Call to builtin Frama_C_builtin_split_all
+> [eva] tests/value/builtins_split.c:104: 
+>   Call to builtin Frama_C_builtin_split_all
+> [eva] tests/value/builtins_split.c:104: 
+>   Call to builtin Frama_C_builtin_split_all
+> [eva] tests/value/builtins_split.c:104: 
+>   Call to builtin Frama_C_builtin_split_all
+> [eva] tests/value/builtins_split.c:104: 
+>   Call to builtin Frama_C_builtin_split_all
+> [eva] tests/value/builtins_split.c:104: 
+>   Call to builtin Frama_C_builtin_split_all
+> [eva] tests/value/builtins_split.c:104: 
+>   Call to builtin Frama_C_builtin_split_all
+133a180,209
+> [eva] tests/value/builtins_split.c:112: 
+>   Call to builtin Frama_C_builtin_split_all
+> [eva] tests/value/builtins_split.c:112: 
+>   Call to builtin Frama_C_builtin_split_all
+> [eva] tests/value/builtins_split.c:112: 
+>   Call to builtin Frama_C_builtin_split_all
+> [eva] tests/value/builtins_split.c:112: 
+>   Call to builtin Frama_C_builtin_split_all
+> [eva] tests/value/builtins_split.c:112: 
+>   Call to builtin Frama_C_builtin_split_all
+> [eva] tests/value/builtins_split.c:112: 
+>   Call to builtin Frama_C_builtin_split_all
+> [eva] tests/value/builtins_split.c:112: 
+>   Call to builtin Frama_C_builtin_split_all
+> [eva] tests/value/builtins_split.c:112: 
+>   Call to builtin Frama_C_builtin_split_all
+> [eva] tests/value/builtins_split.c:114: 
+>   Frama_C_show_each_s_5:
+>   {{ &s6 + {4} }}, {{ &s4 + {4} }}, {{ &s2 }}, [-2147483648..2147483647]
+> [eva] tests/value/builtins_split.c:114: 
+>   Frama_C_show_each_s_5: {{ &s6 + {4} }}, {{ &s4 + {4} }}, {{ &s0 }}, {0}
+> [eva] tests/value/builtins_split.c:114: 
+>   Frama_C_show_each_s_5: {{ &s5 + {4} }}, {{ &s3 + {4} }}, {{ &s1 }}, {-1}
+> [eva] tests/value/builtins_split.c:114: 
+>   Frama_C_show_each_s_5: {{ &s5 + {4} }}, {{ &s3 + {4} }}, {{ &s0 }}, {0}
+> [eva] tests/value/builtins_split.c:114: 
+>   Frama_C_show_each_s_5:
+>   {{ &s5 + {4} }}, {{ &s4 + {4} }}, {{ &s2 }}, [-2147483648..2147483647]
+> [eva] tests/value/builtins_split.c:114: 
+>   Frama_C_show_each_s_5: {{ &s5 + {4} }}, {{ &s4 + {4} }}, {{ &s0 }}, {0}
 diff tests/value/oracle/incompatible_states.res.oracle tests/value/oracle_symblocs/incompatible_states.res.oracle
 39,40d38
-< [value:alarm] tests/value/incompatible_states.c:53: Warning: 
+< [eva:alarm] tests/value/incompatible_states.c:53: Warning: 
 <   division by zero. assert t[i] ≢ 0;
 47c45
 < [scope:rm_asserts] removing 2 assertion(s)
@@ -60,40 +140,40 @@ diff tests/value/oracle/incompatible_states.res.oracle tests/value/oracle_symblo
 > [scope:rm_asserts] removing 1 assertion(s)
 diff tests/value/oracle/library.res.oracle tests/value/oracle_symblocs/library.res.oracle
 129,132d128
-< [value:alarm] tests/value/library.i:44: Warning: 
+< [eva:alarm] tests/value/library.i:44: Warning: 
 <   non-finite float value. assert \is_finite(*pf);
-< [value:alarm] tests/value/library.i:44: Warning: 
+< [eva:alarm] tests/value/library.i:44: Warning: 
 <   non-finite float value. assert \is_finite((float)(*pf + *pf));
 diff tests/value/oracle/non_natural.res.oracle tests/value/oracle_symblocs/non_natural.res.oracle
-65a66,69
-> [kernel] tests/value/non_natural.i:23: 
->   more than 200(12501) elements to enumerate. Approximating.
-> [kernel] tests/value/non_natural.i:23: 
->   more than 200(12500) elements to enumerate. Approximating.
-67a72,75
-> [kernel] tests/value/non_natural.i:24: 
->   more than 200(12501) elements to enumerate. Approximating.
-> [kernel] tests/value/non_natural.i:24: 
->   more than 200(12500) elements to enumerate. Approximating.
-72a81,82
-> [kernel] tests/value/non_natural.i:25: 
->   more than 200(12500) elements to enumerate. Approximating.
-77a88,89
-> [kernel] tests/value/non_natural.i:26: 
->   more than 200(12500) elements to enumerate. Approximating.
-82a95,96
-> [kernel] tests/value/non_natural.i:27: 
->   more than 200(12500) elements to enumerate. Approximating.
-87a102,103
-> [kernel] tests/value/non_natural.i:28: 
->   more than 200(12500) elements to enumerate. Approximating.
-92a109,110
-> [kernel] tests/value/non_natural.i:29: 
->   more than 200(12500) elements to enumerate. Approximating.
-97a116,117
+58a59,60
 > [kernel] tests/value/non_natural.i:30: 
 >   more than 200(12500) elements to enumerate. Approximating.
-133,152d152
+65a68,71
+> [kernel] tests/value/non_natural.i:23: 
+>   more than 200(12501) elements to enumerate. Approximating.
+> [kernel] tests/value/non_natural.i:23: 
+>   more than 200(12500) elements to enumerate. Approximating.
+70a77,80
+> [kernel] tests/value/non_natural.i:24: 
+>   more than 200(12501) elements to enumerate. Approximating.
+> [kernel] tests/value/non_natural.i:24: 
+>   more than 200(12500) elements to enumerate. Approximating.
+78a89,90
+> [kernel] tests/value/non_natural.i:25: 
+>   more than 200(12500) elements to enumerate. Approximating.
+86a99,100
+> [kernel] tests/value/non_natural.i:26: 
+>   more than 200(12500) elements to enumerate. Approximating.
+94a109,110
+> [kernel] tests/value/non_natural.i:27: 
+>   more than 200(12500) elements to enumerate. Approximating.
+102a119,120
+> [kernel] tests/value/non_natural.i:28: 
+>   more than 200(12500) elements to enumerate. Approximating.
+110a129,130
+> [kernel] tests/value/non_natural.i:29: 
+>   more than 200(12500) elements to enumerate. Approximating.
+127,146d146
 < [kernel] tests/value/non_natural.i:23: 
 <   more than 200(12501) elements to enumerate. Approximating.
 < [kernel] tests/value/non_natural.i:23: 
@@ -119,19 +199,19 @@ diff tests/value/oracle/non_natural.res.oracle tests/value/oracle_symblocs/non_n
 >   more than 200(12500) elements to enumerate. Approximating.
 diff tests/value/oracle/offsetmap.0.res.oracle tests/value/oracle_symblocs/offsetmap.0.res.oracle
 38d37
-< [value] Recording results for g
+< [eva] Recording results for g
 40a40
-> [value] Recording results for g
+> [eva] Recording results for g
 diff tests/value/oracle/offsetmap.1.res.oracle tests/value/oracle_symblocs/offsetmap.1.res.oracle
 38d37
-< [value] Recording results for g
+< [eva] Recording results for g
 40a40
-> [value] Recording results for g
+> [eva] Recording results for g
 diff tests/value/oracle/plevel.res.oracle tests/value/oracle_symblocs/plevel.res.oracle
 12d11
-< [value] Recording results for main
+< [eva] Recording results for main
 14a14
-> [value] Recording results for main
+> [eva] Recording results for main
 diff tests/value/oracle/ptr_relation.0.res.oracle tests/value/oracle_symblocs/ptr_relation.0.res.oracle
 23c23
 <   i ∈ {0; 77; 333}
@@ -139,59 +219,59 @@ diff tests/value/oracle/ptr_relation.0.res.oracle tests/value/oracle_symblocs/pt
 >   i ∈ {77}
 diff tests/value/oracle/redundant_alarms.res.oracle tests/value/oracle_symblocs/redundant_alarms.res.oracle
 10,13d9
-< [value:alarm] tests/value/redundant_alarms.c:11: Warning: 
+< [eva:alarm] tests/value/redundant_alarms.c:11: Warning: 
 <   accessing uninitialized left-value. assert \initialized(p);
-< [value:alarm] tests/value/redundant_alarms.c:12: Warning: 
+< [eva:alarm] tests/value/redundant_alarms.c:12: Warning: 
 <   accessing uninitialized left-value. assert \initialized(p);
 24,27d19
-< [value:alarm] tests/value/redundant_alarms.c:21: Warning: 
+< [eva:alarm] tests/value/redundant_alarms.c:21: Warning: 
 <   accessing uninitialized left-value. assert \initialized(&t[i]);
-< [value:alarm] tests/value/redundant_alarms.c:22: Warning: 
+< [eva:alarm] tests/value/redundant_alarms.c:22: Warning: 
 <   accessing uninitialized left-value. assert \initialized(&t[i]);
 38,41d29
-< [value:alarm] tests/value/redundant_alarms.c:32: Warning: 
+< [eva:alarm] tests/value/redundant_alarms.c:32: Warning: 
 <   accessing uninitialized left-value. assert \initialized(&t[j]);
-< [value:alarm] tests/value/redundant_alarms.c:33: Warning: 
+< [eva:alarm] tests/value/redundant_alarms.c:33: Warning: 
 <   accessing uninitialized left-value. assert \initialized(&t[i]);
-64,70d51
+63,69d50
 < [scope:rm_asserts] removing 3 assertion(s)
 < [scope:rm_asserts] tests/value/redundant_alarms.c:12: 
-<   removing redundant assert Value: initialization: \initialized(p);
+<   removing redundant assert Eva: initialization: \initialized(p);
 < [scope:rm_asserts] tests/value/redundant_alarms.c:32: 
-<   removing redundant assert Value: initialization: \initialized(&t[j]);
+<   removing redundant assert Eva: initialization: \initialized(&t[j]);
 < [scope:rm_asserts] tests/value/redundant_alarms.c:33: 
-<   removing redundant assert Value: initialization: \initialized(&t[i]);
-109d89
-<   /*@ assert Value: initialization: \initialized(p); */
-111d90
-<   /*@ assert Value: initialization: \initialized(p); */
-128d106
-<   /*@ assert Value: initialization: \initialized(&t[i]); */
-130d107
-<   /*@ assert Value: initialization: \initialized(&t[i]); */
-143d119
-<     /*@ assert Value: initialization: \initialized(&t[j]); */
-145d120
-<     /*@ assert Value: initialization: \initialized(&t[i]); */
-197a173
+<   removing redundant assert Eva: initialization: \initialized(&t[i]);
+108d88
+<   /*@ assert Eva: initialization: \initialized(p); */
+110d89
+<   /*@ assert Eva: initialization: \initialized(p); */
+127d105
+<   /*@ assert Eva: initialization: \initialized(&t[i]); */
+129d106
+<   /*@ assert Eva: initialization: \initialized(&t[i]); */
+142d118
+<     /*@ assert Eva: initialization: \initialized(&t[j]); */
+144d119
+<     /*@ assert Eva: initialization: \initialized(&t[i]); */
+196a172
 >   int z;
-200,202d175
+199,201d174
 <   *p = 1;
 <   int z = *p + 1;
 <   int w = *p + 2;
 diff tests/value/oracle/relations2.res.oracle tests/value/oracle_symblocs/relations2.res.oracle
 133d132
-< [value] tests/value/relations2.i:57: Frama_C_show_each_NO2:
+< [eva] tests/value/relations2.i:57: Frama_C_show_each_NO2:
 diff tests/value/oracle/struct2.res.oracle tests/value/oracle_symblocs/struct2.res.oracle
 55a56,57
 > [kernel] tests/value/struct2.i:78: Warning: 
 >   all target addresses were invalid. This path is assumed to be dead.
 59,60d60
 <   accessing out of bounds index. assert 0 ≤ (int)(tab2[i] + j);
-< [value:alarm] tests/value/struct2.i:82: Warning: 
+< [eva:alarm] tests/value/struct2.i:82: Warning: 
 83,84d82
 <   accessing out of bounds index. assert (int)(i + j) < 2;
-< [value:alarm] tests/value/struct2.i:185: Warning: 
+< [eva:alarm] tests/value/struct2.i:185: Warning: 
 106c104
 < [scope:rm_asserts] removing 2 assertion(s)
 ---
@@ -270,13 +350,13 @@ diff tests/value/oracle/symbolic_locs.res.oracle tests/value/oracle_symblocs/sym
 >   Z: {[  ]}
 >   I: {[  ]}
 >   S: {[  ]}
-140,142c190
-< [value:alarm] tests/value/symbolic_locs.i:111: Warning: 
+139,141c189
+< [eva:alarm] tests/value/symbolic_locs.i:111: Warning: 
 <   signed overflow. assert *p + 1 ≤ 2147483647;
-< [value] tests/value/symbolic_locs.i:113: Frama_C_show_each: [0..2147483647]
+< [eva] tests/value/symbolic_locs.i:113: Frama_C_show_each: [0..2147483647]
 ---
-> [value] tests/value/symbolic_locs.i:113: Frama_C_show_each: [10001..2147483647]
-151a200,204
+> [eva] tests/value/symbolic_locs.i:113: Frama_C_show_each: [10001..2147483647]
+150a199,203
 >   # Symbolic locations domain:
 >   V: {[  ]}
 >   Z: {[  ]}

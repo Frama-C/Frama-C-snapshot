@@ -1,8 +1,8 @@
 [kernel] Parsing tests/value/relation_reduction.i (no preprocessing)
-[value] Analyzing a complete application starting at main
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing a complete application starting at main
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   y ∈ {0}
   t ∈ {0}
   R1 ∈ {0}
@@ -19,16 +19,16 @@
      [6] ∈ {103}
      [7] ∈ {102}
      [8] ∈ {101}
-[value:alarm] tests/value/relation_reduction.i:9: Warning: 
+[eva:alarm] tests/value/relation_reduction.i:9: Warning: 
   signed overflow. assert y + 10 ≤ 2147483647;
-[value:alarm] tests/value/relation_reduction.i:20: Warning: 
+[eva:alarm] tests/value/relation_reduction.i:20: Warning: 
   accessing out of bounds index. assert 0 ≤ y;
-[value:alarm] tests/value/relation_reduction.i:20: Warning: 
+[eva:alarm] tests/value/relation_reduction.i:20: Warning: 
   accessing out of bounds index. assert y < 9;
-[value] Recording results for main
-[value] done for function main
-[value] ====== VALUES COMPUTED ======
-[value:final-states] Values at end of function main:
+[eva] Recording results for main
+[eva] done for function main
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function main:
   y ∈ [-2147483648..2147483637]
   t ∈ [-2147483638..2147483647]
   R1 ∈ [-2147483648..2147483637]

@@ -2,7 +2,7 @@
 [kernel] tests/syntax/incomplete_struct_field.i:1: User Error: 
   declaration of array of incomplete type 'struct _s`
 [kernel] tests/syntax/incomplete_struct_field.i:1: User Error: 
-  field v is declared with incomplete type struct _s [12]
+  field `v' is declared with incomplete type struct _s [12]
 [kernel] User Error: type struct _s is circular
 [kernel] User Error: stopping on file "tests/syntax/incomplete_struct_field.i" that has errors.
 [kernel] Frama-C aborted: invalid user input.

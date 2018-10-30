@@ -116,26 +116,26 @@ module Range =
 struct
 
   open Repr
-  
+
   let update merge x v ofs map =
     match Repr.term v with
-    | Int v -> 
+    | Int v ->
         let v0 = Integer.add v ofs in
         let v1 = try merge v0 (Tmap.find x map) with Not_found -> v0 in
         Tmap.add x v1 map
     | _ -> map
-      
+
   type rg = {
     mutable vmin : Integer.t F.Tmap.t ;
     mutable vmax : Integer.t F.Tmap.t ;
   }
-  
+
   let set_vmin rg x v ofs =
     rg.vmin <- update Integer.max x v ofs rg.vmin
-        
+
   let set_vmax rg x v ofs =
     rg.vmax <- update Integer.min x v ofs rg.vmax
-        
+
   let rec add_bound rg p =
     match Repr.term p with
     | And ps -> List.iter (add_bound rg) ps
@@ -168,12 +168,12 @@ struct
   let small = function
     | None -> None
     | Some z -> try Some(Integer.to_int z) with Integer.Too_big -> None
-  
+
   let bounds rg =
     Tmap.merge
       (fun _ a b -> Some(small a,small b))
       rg.vmin rg.vmax
-      
+
 end
 
 (* -------------------------------------------------------------------------- *)
@@ -214,13 +214,18 @@ class autosplit =
         let open Qed.Logic in
         match F.e_expr goal with
         | And _ | If _ -> true
+        | Bind (Exists,_,phi) -> let rec is_split = function
+            | Bind (Exists,_,phi) -> is_split (F.repr (F.QED.lc_repr phi))
+            | And _ | Or _ | If _ | Imply _ -> true
+            | _ -> false
+            in is_split (F.repr (F.QED.lc_repr phi))
         | Neq(x,y) | Eq(x,y) -> (F.is_prop x) && (F.is_prop y)
         | _ -> false
       in
       if is_split then
         let selection = Tactical.(Clause (Goal goal)) in
         push (split ~priority:2.0 selection)
-    
+
     method private search_branch push seq =
       let target = Lang.F.varsp (snd seq) in
       Conditions.iter
@@ -237,11 +242,11 @@ class autosplit =
                push (split ~priority selection)
            | _ -> ()
         ) (fst seq)
-    
+
     method search push seq =
       self#search_goal push seq ;
       self#search_branch push seq
-        
+
   end
 
 let auto_split = Strategy.export (new autosplit)

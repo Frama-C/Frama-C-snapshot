@@ -50,11 +50,6 @@ module Make
   let forward_index typ value offset =
     Loc.forward_index typ (Convert.restrict_val value) offset
 
-  let reduce_index_by_array_size ~size_expr ~index_expr size value =
-    let v = Convert.restrict_val value in
-    Loc.reduce_index_by_array_size ~size_expr ~index_expr size v >>=: fun v ->
-    Convert.replace_val v value
-
   let forward_pointer typ value offset =
     Loc.forward_pointer typ (Convert.restrict_val value) offset
 

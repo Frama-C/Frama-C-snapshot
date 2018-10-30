@@ -27,47 +27,47 @@ type split_strategy =
   | SplitAuto
   | SplitEqList of Datatype.Integer.t list
   | FullSplit
-(* To be completed with more involved strategies *)
+  (* To be completed with more involved strategies *)
 
 include
-Datatype.Make_with_collections(struct
-  type t = split_strategy
-  let name = "Value.Split_strategy"
-  let rehash = Datatype.identity
-  let structural_descr = Structural_descr.t_abstract
-  let reprs = [NoSplit]
-  let compare s1 s2 = match s1, s2 with
-    | NoSplit, NoSplit -> 0
-    | NoSplit, _ -> -1
-    | _, NoSplit -> 1
-    | SplitAuto, SplitAuto -> 0
-    | SplitAuto, _ -> -1
-    | _, SplitAuto -> 1
-    | FullSplit, FullSplit -> 0
-    | FullSplit, _ -> -1
-    | _, FullSplit -> 1
-    | SplitEqList l1, SplitEqList l2 ->
-      Extlib.list_compare Int.compare l1 l2
-	
-  let equal = Datatype.from_compare
-  let hash = function
-    | NoSplit -> 17
-    | SplitAuto -> 47
-    | FullSplit -> 19
-    | SplitEqList l ->
-      List.fold_left (fun acc i -> acc * 13 + 57 * Int.hash i) 1 l
-  let copy = Datatype.identity
-  let internal_pretty_code = Datatype.undefined
-  let pretty fmt = function
-    | NoSplit -> Format.pp_print_string fmt "no split"
-    | SplitAuto -> Format.pp_print_string fmt "auto split"
-    | FullSplit -> Format.pp_print_string fmt "full split"
-    | SplitEqList l ->
-      Format.fprintf fmt "Split on \\result == %a"
-        (Pretty_utils.pp_list ~sep:",@ " Datatype.Integer.pretty) l
-  let varname _ = "v"
-  let mem_project = Datatype.never_any_project
-end)
+  Datatype.Make_with_collections(struct
+    type t = split_strategy
+    let name = "Value.Split_strategy"
+    let rehash = Datatype.identity
+    let structural_descr = Structural_descr.t_abstract
+    let reprs = [NoSplit]
+    let compare s1 s2 = match s1, s2 with
+      | NoSplit, NoSplit -> 0
+      | NoSplit, _ -> -1
+      | _, NoSplit -> 1
+      | SplitAuto, SplitAuto -> 0
+      | SplitAuto, _ -> -1
+      | _, SplitAuto -> 1
+      | FullSplit, FullSplit -> 0
+      | FullSplit, _ -> -1
+      | _, FullSplit -> 1
+      | SplitEqList l1, SplitEqList l2 ->
+        Extlib.list_compare Int.compare l1 l2
+
+    let equal = Datatype.from_compare
+    let hash = function
+      | NoSplit -> 17
+      | SplitAuto -> 47
+      | FullSplit -> 19
+      | SplitEqList l ->
+        List.fold_left (fun acc i -> acc * 13 + 57 * Int.hash i) 1 l
+    let copy = Datatype.identity
+    let internal_pretty_code = Datatype.undefined
+    let pretty fmt = function
+      | NoSplit -> Format.pp_print_string fmt "no split"
+      | SplitAuto -> Format.pp_print_string fmt "auto split"
+      | FullSplit -> Format.pp_print_string fmt "full split"
+      | SplitEqList l ->
+        Format.fprintf fmt "Split on \\result == %a"
+          (Pretty_utils.pp_list ~sep:",@ " Datatype.Integer.pretty) l
+    let varname _ = "v"
+    let mem_project = Datatype.never_any_project
+  end)
 
 exception ParseFailure of string
 

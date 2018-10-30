@@ -30,13 +30,12 @@ module DoFloatToInt : Parameter_sig.Bool
 module DoInitialized : Parameter_sig.Bool
 module DoMemAccess : Parameter_sig.Bool
 module DoPointerCall : Parameter_sig.Bool
-module DoCalledPrecond : Parameter_sig.Bool
 
 module Trivial : Parameter_sig.Bool
 module Warn : Parameter_sig.Bool
 module FunctionSelection: Parameter_sig.Kernel_function_set
 
-val warn: ?source:Lexing.position -> ('a, Format.formatter, unit) format -> 'a
+val warn: ?source:Filepath.position -> ('a, Format.formatter, unit) format -> 'a
 
 (*
 Local Variables:

@@ -1,4 +1,4 @@
-# frama-c -wp -wp-model 'Typed (Caveat)' [...]
+# frama-c -wp -wp-model 'Typed (Caveat)' -wp-timeout 90 -wp-steps 1500 [...]
 [kernel] Parsing tests/wp_usage/caveat_range.i (no preprocessing)
 [wp] Running WP plugin...
 [wp] Loading driver 'share/wp.driver'
@@ -22,5 +22,8 @@
 [wp] Report 'tests/wp_usage/caveat_range.i.0.report.json'
 -------------------------------------------------------------
 Functions           WP     Alt-Ergo        Total   Success
-reset                7      5 (72..96)      12       100%
+reset                7      5 (40..52)      12       100%
 -------------------------------------------------------------
+[wp] Warning: Memory model hypotheses for function 'reset':
+  /*@ behavior typed_caveat: requires \valid(p+(..)); */
+  void reset(struct S *p);

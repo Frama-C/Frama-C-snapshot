@@ -67,6 +67,7 @@ type alarm =
       function (first argument). The second argument is the list of the
       arguments of the call. *)
   | Uninitialized_union of lval list
+  | Invalid_bool of lval (** Trap representation of a _Bool variable. *)
 
 include Datatype.S_with_collections with type t = alarm
 

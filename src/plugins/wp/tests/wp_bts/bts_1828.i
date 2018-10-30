@@ -1,11 +1,11 @@
 /* run.config
-   OPT: -wp-warn-separation
-   OPT: -wp-model "+ref" -wp-warn-separation
+   OPT: -wp-warn-memory-model
+   OPT: -wp-model "+ref"
  */
 
 /* run.config_qualif
-   OPT: -wp-warn-separation
-   OPT: -wp-model "+ref" -wp-warn-separation
+   OPT: -wp-warn-memory-model
+   OPT: -wp-model "+ref"
  */
 
 // --------------------------------------------------------------------------

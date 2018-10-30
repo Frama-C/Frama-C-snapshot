@@ -44,4 +44,3 @@ sig
   val tactical : tactical
   val strategy : ?priority:float -> selection -> strategy
 end
-  

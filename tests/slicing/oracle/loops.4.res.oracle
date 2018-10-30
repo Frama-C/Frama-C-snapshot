@@ -1,17 +1,16 @@
 [kernel] Parsing tests/slicing/loops.i (no preprocessing)
-[value] Analyzing a complete application starting at test_infinite_loop_3
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing a complete application starting at test_infinite_loop_3
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   G ∈ {0}
   C1 ∈ {1}
   C2 ∈ {1}
   X ∈ {0}
   Y ∈ {0}
   Z ∈ {0}
-[value] tests/slicing/loops.i:108: entering loop for the first time
-[value] Recording results for test_infinite_loop_3
-[value] done for function test_infinite_loop_3
+[eva] Recording results for test_infinite_loop_3
+[eva] done for function test_infinite_loop_3
 [from] Computing for function test_infinite_loop_3
 [from] Done for function test_infinite_loop_3
 [from] ====== DEPENDENCIES COMPUTED ======

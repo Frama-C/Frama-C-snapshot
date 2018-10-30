@@ -1,11 +1,11 @@
-# frama-c -wp -wp-depth 16 [...]
+# frama-c -wp -wp-timeout 90 -wp-steps 1500 -wp-depth 16 [...]
 [kernel] Parsing tests/wp_plugin/nth.i (no preprocessing)
 [wp] Running WP plugin...
 [wp] Loading driver 'share/wp.driver'
 [wp] 4 goals scheduled
 [wp] [alt-ergo] Goal typed_lemma_access_16_16_ok : Valid
 [wp] [alt-ergo] Goal typed_lemma_access_4_4_ok : Valid
-[wp] [alt-ergo] Goal typed_lemma_access_repeat_concat_3_ok : Valid
+[wp] [alt-ergo] Goal typed_lemma_access_repeat_concat_3_ok_lack : Valid
 [wp] [Qed] Goal typed_lemma_eq_repeat_concat_3_ok : Valid
 [wp] Proved goals:    4 / 4
   Qed:             1 

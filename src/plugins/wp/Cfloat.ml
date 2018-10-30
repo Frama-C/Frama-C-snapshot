@@ -73,23 +73,26 @@ let comma = "\\(.\\(\\(0*[1-9]\\)*\\)0*\\)?"
 let exponent = "\\([eE]\\([-+]?[0-9]*\\)\\)?"
 let real = Str.regexp (mantissa ^ comma ^ exponent ^ "$")
 
-let real_of_literal l =
+let parse_literal l =
   let open Cil_types in
   let r = l.r_literal in
-  if Str.string_match real r 0 then
-    let ma = Str.matched_group 1 r in
-    let mb = try Str.matched_group 3 r with Not_found -> "" in
-    let me = try Str.matched_group 6 r with Not_found -> "0" in
-    let n = int_of_string me - String.length mb in
-    let d n =
-      let s = Bytes.make (succ n) '0' in
-      Bytes.set s 0 '1' ; Q.of_string (Bytes.to_string s) in
-    let m = Q.of_string (ma ^ mb) in
-    if n < 0 then Q.div m (d (-n)) else
-    if n > 0 then Q.mul m (d n) else m
-  else Q.of_float l.r_nearest
+  try
+    if Str.string_match real r 0 then
+      let ma = Str.matched_group 1 r in
+      let mb = try Str.matched_group 3 r with Not_found -> "" in
+      let me = try Str.matched_group 6 r with Not_found -> "0" in
+      let n = int_of_string me - String.length mb in
+      let d n =
+        let s = Bytes.make (succ n) '0' in
+        Bytes.set s 0 '1' ; Q.of_string (Bytes.to_string s) in
+      let m = Q.of_string (ma ^ mb) in
+      if n < 0 then Q.div m (d (-n)) else
+      if n > 0 then Q.mul m (d n) else m
+    else Q.of_float l.r_nearest
+  with Failure _ ->
+    Warning.error ~source:"acsl" "Unexpected real literal %S" r
 
-let acsl_lit l = F.e_real (real_of_literal l)
+let acsl_lit l = F.e_real (parse_literal l)
 
 (* -------------------------------------------------------------------------- *)
 (* --- Operators                                                          --- *)
@@ -189,9 +192,9 @@ let builtin_error = function
 (* -------------------------------------------------------------------------- *)
 
 let float_of_real f a =
-    match Context.get model with
-    | Real -> a
-    | Float -> e_fun (flt_rnd f) [a]
+  match Context.get model with
+  | Real -> a
+  | Float -> e_fun (flt_rnd f) [a]
 
 let float_of_int f a = float_of_real f (Cmath.real_of_int a)
 let real_of_float _f a = a

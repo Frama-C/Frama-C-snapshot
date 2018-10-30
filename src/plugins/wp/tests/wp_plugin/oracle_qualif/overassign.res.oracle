@@ -1,4 +1,4 @@
-# frama-c -wp [...]
+# frama-c -wp -wp-timeout 90 -wp-steps 1500 [...]
 [kernel] Parsing tests/wp_plugin/overassign.i (no preprocessing)
 [wp] Running WP plugin...
 [wp] Loading driver 'share/wp.driver'
@@ -25,7 +25,7 @@ Functions           WP     Alt-Ergo        Total   Success
 f1_ok                2     -                 2       100%
 f2_ok                2     -                 2       100%
 f3_ok               -       2 (20..32)       2       100%
-f4_ok               -       2 (20..32)       2       100%
+f4_ok               -       2 (12..24)       2       100%
 f5_ko               -      -                 2       0.0%
 f6_ko               -      -                 2       0.0%
 -------------------------------------------------------------

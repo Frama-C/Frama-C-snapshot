@@ -211,3 +211,15 @@ Goal Assigns (file tests/wp_hoare/dispatch_var2.i, line 13) in 'reset':
 Prove: true.
 
 ------------------------------------------------------------
+[wp] Warning: Memory model hypotheses for function 'reset':
+  /*@ behavior typed_ref: requires \valid(rp); */
+  void reset(int *rp);
+[wp] Warning: Memory model hypotheses for function 'incr':
+  /*@ behavior typed_ref: requires \valid(ip); */
+  void incr(int *ip);
+[wp] Warning: Memory model hypotheses for function 'load':
+  /*@ behavior typed_ref: requires \valid(lp); */
+  int load(int *lp);
+[wp] Warning: Memory model hypotheses for function 'call_param_ref':
+  /*@ behavior typed_ref: requires \valid(q); */
+  int call_param_ref(int *q);

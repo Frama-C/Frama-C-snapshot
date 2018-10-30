@@ -33,14 +33,10 @@ Prove: true.
 ------------------------------------------------------------
 
 Goal Assertion 'KO_WHEN_VOLATILE' (file tests/wp_plugin/volatile.i, line 35):
-Assume {
-  (* Heap *)
-  Have: region(p.base) <= 0.
-  Have: havoc(Mint_0, Mint_1, p, 2).
-}
+Assume { (* Heap *) Have: region(p.base) <= 0. }
 Prove: EqS1_st_v(w, w_1).
 
 ------------------------------------------------------------
-[wp] Warning: Separation hypotheses for function 'job_struct_assigns':
+[wp] Warning: Memory model hypotheses for function 'job_struct_assigns':
   /*@ behavior typed: requires \separated(&sv,p); */
   void job_struct_assigns(struct st_v *p);

@@ -1,45 +1,40 @@
 [kernel] Parsing tests/value/annot_valid.i (no preprocessing)
-[value] Analyzing a complete application starting at main
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing a complete application starting at main
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   G ∈ {0}
-[value] tests/value/annot_valid.i:8: assertion got status valid.
-[value:alarm] tests/value/annot_valid.i:11: Warning: 
+[eva] tests/value/annot_valid.i:8: assertion got status valid.
+[eva:alarm] tests/value/annot_valid.i:11: Warning: 
   assertion got status invalid (stopping propagation).
-[value] tests/value/annot_valid.i:14: assertion got status valid.
-[value] tests/value/annot_valid.i:17: assertion got status valid.
-[value] tests/value/annot_valid.i:20: assertion got status valid.
-[value:alarm] tests/value/annot_valid.i:23: Warning: 
+[eva] tests/value/annot_valid.i:14: assertion got status valid.
+[eva] tests/value/annot_valid.i:17: assertion got status valid.
+[eva] tests/value/annot_valid.i:20: assertion got status valid.
+[eva:alarm] tests/value/annot_valid.i:23: Warning: 
   assertion got status invalid (stopping propagation).
-[value:alarm] tests/value/annot_valid.i:26: Warning: 
+[eva:alarm] tests/value/annot_valid.i:26: Warning: 
   assertion got status invalid (stopping propagation).
-[value:alarm] tests/value/annot_valid.i:29: Warning: 
-  assertion got status unknown.
-[value:alarm] tests/value/annot_valid.i:32: Warning: 
-  assertion got status unknown.
-[value:alarm] tests/value/annot_valid.i:35: Warning: 
-  assertion got status unknown.
-[value:alarm] tests/value/annot_valid.i:38: Warning: 
-  assertion got status unknown.
-[value] tests/value/annot_valid.i:41: assertion got status valid.
-[value:alarm] tests/value/annot_valid.i:44: Warning: 
+[eva:alarm] tests/value/annot_valid.i:29: Warning: assertion got status unknown.
+[eva:alarm] tests/value/annot_valid.i:32: Warning: assertion got status unknown.
+[eva:alarm] tests/value/annot_valid.i:35: Warning: assertion got status unknown.
+[eva:alarm] tests/value/annot_valid.i:38: Warning: assertion got status unknown.
+[eva] tests/value/annot_valid.i:41: assertion got status valid.
+[eva:alarm] tests/value/annot_valid.i:44: Warning: 
   assertion got status invalid (stopping propagation).
-[value] tests/value/annot_valid.i:47: assertion got status valid.
-[value:alarm] tests/value/annot_valid.i:50: Warning: 
+[eva] tests/value/annot_valid.i:47: assertion got status valid.
+[eva:alarm] tests/value/annot_valid.i:50: Warning: 
   assertion got status invalid (stopping propagation).
-[value] tests/value/annot_valid.i:53: assertion got status valid.
-[value] tests/value/annot_valid.i:56: assertion got status valid.
-[value] tests/value/annot_valid.i:57: 
+[eva] tests/value/annot_valid.i:53: assertion got status valid.
+[eva] tests/value/annot_valid.i:56: assertion got status valid.
+[eva] tests/value/annot_valid.i:57: 
   cannot evaluate ACSL term, \at() on a C label is unsupported
-[value:alarm] tests/value/annot_valid.i:57: Warning: 
-  assertion got status unknown.
-[value:alarm] tests/value/annot_valid.i:62: Warning: 
+[eva:alarm] tests/value/annot_valid.i:57: Warning: assertion got status unknown.
+[eva:alarm] tests/value/annot_valid.i:62: Warning: 
   assertion got status invalid (stopping propagation).
-[value] Recording results for main
-[value] done for function main
-[value] ====== VALUES COMPUTED ======
-[value:final-states] Values at end of function main:
+[eva] Recording results for main
+[eva] done for function main
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function main:
   p ∈ {{ &G }}
   c ∈ {{ (char *)&G }}
   __retres ∈ {0}

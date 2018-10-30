@@ -22,7 +22,7 @@
 
 #include "__fc_builtin.h"
 #include "assert.h"
-
+__PUSH_FC_STDLIB
 
 //@ assigns \nothing;
 extern void Frama_C_show_each_warning();
@@ -33,3 +33,5 @@ void __FC_assert(int c,const char* file,int line,const char*expr) {
     Frama_C_abort ();
   }
 }
+
+__POP_FC_STDLIB

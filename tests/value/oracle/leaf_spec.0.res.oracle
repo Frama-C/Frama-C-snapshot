@@ -1,45 +1,45 @@
 [kernel] Parsing tests/value/leaf_spec.i (no preprocessing)
-[value] Analyzing a complete application starting at main
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing a complete application starting at main
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   
-[value] computing for function f1 <- main.
+[eva] computing for function f1 <- main.
   Called from tests/value/leaf_spec.i:19.
 [kernel:annot:missing-spec] tests/value/leaf_spec.i:19: Warning: 
   Neither code nor specification for function f1, generating default assigns from the prototype
-[value] using specification for function f1
-[value] Done for function f1
-[value] computing for function g <- main.
+[eva] using specification for function f1
+[eva] Done for function f1
+[eva] computing for function g <- main.
   Called from tests/value/leaf_spec.i:20.
 [kernel:annot:missing-spec] tests/value/leaf_spec.i:20: Warning: 
   Neither code nor specification for function g, generating default assigns from the prototype
-[value] using specification for function g
-[value] Done for function g
-[value] computing for function h <- main.
+[eva] using specification for function g
+[eva] Done for function g
+[eva] computing for function h <- main.
   Called from tests/value/leaf_spec.i:21.
 [kernel:annot:missing-spec] tests/value/leaf_spec.i:21: Warning: 
   Neither code nor specification for function h, generating default assigns from the prototype
-[value] using specification for function h
-[value] Done for function h
-[value] computing for function k <- main.
+[eva] using specification for function h
+[eva] Done for function h
+[eva] computing for function k <- main.
   Called from tests/value/leaf_spec.i:22.
 [kernel:annot:missing-spec] tests/value/leaf_spec.i:22: Warning: 
   Neither code nor specification for function k, generating default assigns from the prototype
-[value] using specification for function k
-[value] tests/value/leaf_spec.i:22: Warning: 
+[eva] using specification for function k
+[eva] tests/value/leaf_spec.i:22: Warning: 
   Completely invalid destination for assigns clause *l. Ignoring.
-[value] Done for function k
-[value] computing for function k0 <- main.
+[eva] Done for function k
+[eva] computing for function k0 <- main.
   Called from tests/value/leaf_spec.i:22.
 [kernel:annot:missing-spec] tests/value/leaf_spec.i:22: Warning: 
   Neither code nor specification for function k0, generating default assigns from the prototype
-[value] using specification for function k0
-[value] Done for function k0
-[value] Recording results for main
-[value] done for function main
-[value] ====== VALUES COMPUTED ======
-[value:final-states] Values at end of function main:
+[eva] using specification for function k0
+[eva] Done for function k0
+[eva] Recording results for main
+[eva] done for function main
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function main:
   
 [from] Computing for function main
 [from] Computing for function f1 <-main

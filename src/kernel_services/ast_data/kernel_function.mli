@@ -159,6 +159,10 @@ val get_global : t -> global
 val get_formals : t -> varinfo list
 val get_locals : t -> varinfo list
 
+val get_statics : t -> varinfo list
+(** Returns the list of static variables declared inside the function.
+    @since Frama-C+dev *)
+
 exception No_Definition
 val get_definition : t -> fundec
   (** @raise No_Definition if the given function is not a definition.

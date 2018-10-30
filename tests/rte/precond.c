@@ -1,5 +1,5 @@
 /* run.config
-   OPT: -rte -warn-signed-overflow -warn-special-float none -print -rte-precond -journal-disable
+   OPT: -rte -warn-signed-overflow -warn-special-float none -print -journal-disable
 */
 
 int global = 15;

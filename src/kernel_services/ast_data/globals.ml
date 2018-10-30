@@ -181,6 +181,8 @@ module Functions = struct
       Datatype.String.Map.iter (fun _ v -> f v) (State.get ())
     let fold f acc =
       Datatype.String.Map.fold (fun _ v acc -> f v acc) (State.get ()) acc
+    let remove v =
+      State.set (Datatype.String.Map.remove v.vname (State.get ()))
   end
 
   module From_orig_name =
@@ -287,6 +289,7 @@ module Functions = struct
 
   let iter f = Iterator.iter (fun v -> f (State.find v))
   let fold f = Iterator.fold (fun v acc -> f (State.find v) acc)
+  let remove f = Iterator.remove f
 
   let iter_on_fundecs f =
     iter
@@ -470,8 +473,8 @@ module FileIndex = struct
 
   module S =
     State_builder.Hashtbl
-      (Datatype.String.Hashtbl)
-      (Datatype.Pair(Datatype.String)(Datatype.List(Global)))
+      (Datatype.Filepath.Hashtbl)
+      (Datatype.List(Global))
       (struct
          let name = "Globals.FileIndex"
          let dependencies = [ Ast.self ]
@@ -483,19 +486,19 @@ module FileIndex = struct
       iterGlobals
         (Ast.get ())
         (fun glob ->
-          let f = (fst (Global.loc glob)).Lexing.pos_fname in
-          Kernel.debug ~dkey:Kernel.dkey_globals "Indexing global in file %s@."
-            (Filepath.pretty f);
+           let f = (fst (Global.loc glob)).Filepath.pos_path in
+          Kernel.debug ~dkey:Kernel.dkey_globals "Indexing global in file %a@."
+            Datatype.Filepath.pretty f;
           ignore
              (S.memo
-                ~change:(fun (f,l) -> f, glob:: l) (fun _ -> f,[ glob ]) f))
+                ~change:(fun l -> glob :: l) (fun _ -> [ glob ]) f))
     in
     State_builder.apply_once "Globals.FileIndex.compute" [ S.self ] compute
 
   let remove_global_annotations a =
-    let f = (fst (Global_annotation.loc a)).Lexing.pos_fname in
+    let f = (fst (Global_annotation.loc a)).Filepath.pos_path in
     try 
-      let _, l = S.find f in
+      let l = S.find f in
       let l = 
 	List.filter
 	  (fun g -> match g with
@@ -503,7 +506,7 @@ module FileIndex = struct
 	  | _ -> true)
 	  l
       in
-      S.replace f (f, l)
+      S.replace f l
     with Not_found ->
       assert false
 
@@ -511,25 +514,20 @@ module FileIndex = struct
     compute ();
     S.fold (fun key _ keys ->  key :: keys) []
 
-  let get_symbols ~filename =
+  let get_symbols path =
     compute ();
-    try S.find filename
-    with Not_found ->
-      (* ??? *)
-      S.find (Filename.basename filename)
+    S.find path
 
-  let find ~filename =
-    let f,l = get_symbols ~filename in
-    f, List.rev l
-
-  let get_symbols ~filename = snd (get_symbols ~filename)
+  let find path =
+    let l = get_symbols path in
+    path, List.rev l
 
  (** get all global variables as (varinfo, initinfo) list with only one
       occurrence of a varinfo *)
-  let get_globals ~filename =
+  let get_globals path =
     compute ();
     let varinfo_set =
-      let l =  try snd (S.find filename) with Not_found -> [] in
+      let l =  try S.find path with Not_found -> [] in
       List.fold_right
         (fun glob acc ->
            match glob with
@@ -542,9 +540,9 @@ module FileIndex = struct
     in
     Varinfo.Set.fold (fun vi acc -> (vi, Vars.find vi) :: acc) varinfo_set []
 
-  let get_global_annotations ~filename =
+  let get_global_annotations path =
     compute ();
-    let l = try snd (S.find filename) with Not_found -> [] in
+    let l = try S.find path with Not_found -> [] in
     List.fold_right
       (fun glob acc -> match glob with
       | Cil_types.GAnnot(g, _) -> g :: acc
@@ -552,10 +550,10 @@ module FileIndex = struct
       l
       []
 
-  let get_functions ?(declarations=false) ~filename =
+  let get_functions ?(declarations=false) path =
     compute ();
     let varinfo_set =
-      let l = try snd (S.find filename) with Not_found -> [] in
+      let l = try S.find path with Not_found -> [] in
       List.fold_right
         (fun glob acc ->
            let is_func v = match v with
@@ -592,8 +590,9 @@ module FileIndex = struct
             else false
         | _ -> false
     in
-    let file = (fst x.Cil_types.vdecl).Lexing.pos_fname in
-    match List.find pred (snd (S.find file)) with
+    let file = (fst x.Cil_types.vdecl).Filepath.pos_path
+    in
+    match List.find pred (S.find file) with
     | Cil_types.GFun (fundec, _) ->
         Functions.get fundec.Cil_types.svar, !is_param
     | _ -> assert (false)
@@ -648,7 +647,7 @@ module Syntactic_search = struct
       try
         List.iter find_in_block blocks;
         let kf = !find_englobing_kf stmt in
-        let filename = (fst ( get_location kf)).Lexing.pos_fname in
+        let filename = (fst ( get_location kf)).Filepath.pos_path in
         let formals = get_formals kf in
         if List.exists has_name formals then
           Some (List.find has_name formals)
@@ -836,16 +835,16 @@ module Comments_stmt_cache =
      end)
 
 let get_comments_global g =
-  let last_pos f =
-    { Lexing.pos_fname = f;
-      Lexing.pos_lnum = max_int;
-      Lexing.pos_cnum = max_int;
-      Lexing.pos_bol = max_int
+  let last_pos (f : Datatype.Filepath.t) =
+    { Filepath.pos_path = f;
+      Filepath.pos_lnum = max_int;
+      Filepath.pos_cnum = max_int;
+      Filepath.pos_bol = max_int
     }
   in
   let add g =
     let my_loc = Cil_datatype.Global.loc g in
-    let file = (fst my_loc).Lexing.pos_fname in
+    let file = (fst my_loc).Filepath.pos_path in
     let globs = FileIndex.get_symbols file in
     let globs = List.sort 
       (fun g1 g2 -> 
@@ -857,13 +856,14 @@ let get_comments_global g =
     let rec find_prev l =
       match l with
         | [] -> 
-          Kernel.fatal "Cannot find global %a in file %s"
-            Cil_printer.pp_global g (Filepath.pretty file)
+          Kernel.fatal "Cannot find global %a in file %a"
+            Cil_printer.pp_global g
+            Datatype.Filepath.pretty file
         | g' :: l when Cil_datatype.Global.equal g g' ->
-            { Lexing.pos_fname = file;
-              Lexing.pos_lnum = 1;
-              Lexing.pos_cnum = 0;
-              Lexing.pos_bol = 0; }, l = []
+            { Filepath.pos_path = file;
+              Filepath.pos_lnum = 1;
+              Filepath.pos_cnum = 0;
+              Filepath.pos_bol = 0; }, l = []
         | g' :: g'' :: l when Cil_datatype.Global.equal g'' g ->
           snd (Cil_datatype.Global.loc g'), l = []
         | _ :: l -> find_prev l

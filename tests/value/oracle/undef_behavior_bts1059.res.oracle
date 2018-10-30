@@ -19,23 +19,23 @@
   a ++;
   /* a <- tmp_4 */
   a = tmp_4;
-[value] Analyzing a complete application starting at main
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing a complete application starting at main
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   c ∈ [--..--]
-[value:alarm] tests/value/undef_behavior_bts1059.i:15: Warning: 
+[eva:alarm] tests/value/undef_behavior_bts1059.i:15: Warning: 
   undefined multiple accesses in expression. assert \separated(&a, &a);
-[value:alarm] tests/value/undef_behavior_bts1059.i:23: Warning: 
+[eva:alarm] tests/value/undef_behavior_bts1059.i:23: Warning: 
   undefined multiple accesses in expression. assert \separated(&a, &a);
-[value] Recording results for main
-[value] done for function main
-[value] tests/value/undef_behavior_bts1059.i:15: 
-  assertion 'Value,separation' got final status invalid.
-[value] tests/value/undef_behavior_bts1059.i:23: 
-  assertion 'Value,separation' got final status invalid.
-[value] ====== VALUES COMPUTED ======
-[value:final-states] Values at end of function main:
+[eva] Recording results for main
+[eva] done for function main
+[eva] tests/value/undef_behavior_bts1059.i:15: 
+  assertion 'Eva,separation' got final status invalid.
+[eva] tests/value/undef_behavior_bts1059.i:23: 
+  assertion 'Eva,separation' got final status invalid.
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function main:
   a ∈ {1}
   b ∈ {2}
   __retres ∈ {0}

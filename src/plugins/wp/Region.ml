@@ -64,7 +64,7 @@ type region =
   | Fields of (field * region) list (* SORTED, DEFAULT : empty *)
   | Indices of set * ( set * region ) list
   (* Indices for FULL region.
-     	 Then indices for non-FULL and non-EMPTY regions *)
+         Then indices for non-FULL and non-EMPTY regions *)
 
 let empty = Empty
 let full = Full

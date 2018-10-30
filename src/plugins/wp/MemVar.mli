@@ -29,8 +29,9 @@ open Cil_types
 module type VarUsage =
 sig
   val datatype : string
-  val param : varinfo -> Separation.param
-  val separation : unit -> Separation.clause
+  val param : varinfo -> MemoryContext.param
+  (** Memory Model Hypotheses *)
+  val hypotheses : unit -> MemoryContext.clause list
 end
 
 module Make(V : VarUsage)(M : Sigs.Model) : Sigs.Model

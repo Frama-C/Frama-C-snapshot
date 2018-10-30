@@ -20,7 +20,7 @@
 (*                                                                        *)
 (**************************************************************************)
 
-open Format    
+open Format
 open Qed.Logic
 open Qed.Engine
 open Lang
@@ -37,7 +37,7 @@ type pool = {
 
 let pool () = { vars = Vars.empty ; mark = Tset.empty }
 let alloc_domain p = p.vars
-               
+
 let rec walk p f e =
   if not (Tset.mem e p.mark) &&
      not (Vars.subset (F.vars e) p.vars)
@@ -74,7 +74,7 @@ class engine =
     inherit E.engine as super
     inherit Lang.idprinting
     method infoprover w = w.altergo
-    
+
     (* --- Types --- *)
 
     method t_int = "Z"
@@ -92,7 +92,7 @@ class engine =
       fprintf fmt "@[<hov 2>%a[%a]@]" self#pp_subtau t self#pp_tau k
     method pp_datatype a fmt ts =
       Qed.Plib.pp_call_var ~f:(self#datatype a) self#pp_tau fmt ts
-      
+
     (* --- Primitives --- *)
 
     method e_true _ = "true"
@@ -110,9 +110,9 @@ class engine =
             Format.fprintf fmt "%s.0" (Z.to_string num)
           else
             Format.fprintf fmt "(%s.0/%s)" (Z.to_string num) (Z.to_string den)
-            
+
     (* --- Atomicity --- *)
-                      
+
     method callstyle = CallVar
     method is_atomic e =
       match F.repr e with
@@ -121,7 +121,7 @@ class engine =
       | Apply _ -> true
       | Aset _ | Aget _ | Fun _ -> true
       | _ -> F.is_simple e
-    
+
     (* --- Operators --- *)
 
     method op_spaced = Qed.Export.is_identifier
@@ -154,7 +154,7 @@ class engine =
         fprintf fmt "@ else %a" self#pp_atom pelse ;
         fprintf fmt "@]" ;
       end
-    
+
     (* --- Arrays --- *)
 
     method pp_array_cst fmt (_ : F.tau) v =
@@ -171,7 +171,7 @@ class engine =
 
     method pp_get_field fmt a fd =
       Format.fprintf fmt "%a.%s" self#pp_atom a (self#field fd)
-      
+
     method pp_def_fields fmt fvs =
       let base,fvs = match F.record_with fvs with
         | None -> None,fvs | Some(r,fvs) -> Some r,fvs in
@@ -207,7 +207,7 @@ class engine =
 
     method pp_apply (_:cmode) (_:term) (_:formatter) (_:term list) =
       failwith "Qed: higher-order application"
-        
+
     method pp_lambda (_:formatter) (_: (string * tau) list) =
       failwith "Qed: lambda abstraction"
 
@@ -235,5 +235,5 @@ class engine =
     (* --- Predicates --- *)
 
     method pp_pred fmt p = self#pp_prop fmt (F.e_prop p)
-    
+
   end

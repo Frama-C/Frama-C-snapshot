@@ -241,19 +241,26 @@ struct
 	  open Structural_descr
 	  let r = Recursive.create ()
 	  let structural_descr =
-	    t_sum
-	      [| [| Key.packed_descr; V.packed_descr; p_abstract |];
-		 [| p_abstract;
-		    p_abstract;
-		    recursive_pack r;
-		    recursive_pack r;
-		    p_abstract |] |]
+           if Descr.is_unmarshable Key.descr || Descr.is_unmarshable V.descr
+           then t_unknown
+           else
+	     t_sum
+	        [| [| Key.packed_descr; V.packed_descr; p_abstract |];
+		   [| p_abstract;
+		      p_abstract;
+		      recursive_pack r;
+		      recursive_pack r;
+		      p_abstract |] |]
 	  let () = Recursive.update r structural_descr
 	  let reprs = [ Empty ]
 	  let equal = ( == )
 	  let compare = compare
 	  let hash = hash_generic
-	  let rehash x = !rehash_ref x
+	  let rehash =     
+           if Descr.is_unmarshable Key.descr || Descr.is_unmarshable V.descr
+           then Datatype.undefined
+           else fun x -> !rehash_ref x
+
 	  let copy = Datatype.undefined
 	  let internal_pretty_code = Datatype.pp_fail
 	  let pretty = pretty
@@ -822,44 +829,6 @@ struct
 	  else
 	    wrap_Branch p m tree0' tree1'
 
-      let rec inter_with_shape shape map =
-	match shape, map with
-	  | Empty, _ | _, Empty -> Empty
-	  | Leaf (key1, _, _), Leaf (key2, _, _) ->
-            if Key.equal key1 key2 then map else Empty
-	  | Leaf (key, _, _), Branch _ ->
-            begin (* At most [key] will be in the result, search it in [t] *)
-              try
-                let value = find key map in
-                wrap_Leaf key value
-              with Not_found -> Empty
-            end
-          | Branch _, Leaf (key, _, _) -> (* Search key in [shape] *)
-            if mem key shape then map else Empty
-	  | Branch(p, m, s0, s1, _), Branch(q, n, t0, t1, _) ->
-	      if (p = q) && (m = n) 
-	      then
-  		(* The trees have the same prefix. Merge their sub-trees. *)
-		let u0 = inter_with_shape s0 t0
-		and u1 = inter_with_shape s1 t1 in
-                if t0 == u0 && t1 == u1 then map
-		else if u0 == Empty then u1
-                else if u1 == Empty then u0
-                else  wrap_Branch p m u0 u1
-	      else if (Big_Endian.shorter m n) && (match_prefix q p m) then
-  		(* [q] contains [p]. Merge [t] with a sub-tree of [s]. *)
-		if (q land m) = 0
-                then inter_with_shape s0 map
-                else inter_with_shape s1 map
-	      else if (Big_Endian.shorter n m) && (match_prefix p q n) then
-		(* [p] contains [q]. Merge [s] with a sub-tree of [t]. *)
-		if (p land n) = 0
-                then inter_with_shape shape t0
-                else inter_with_shape shape t1
-	      else
-		(* The prefixes disagree. *)
-                Empty
-
       let rec from_shape f = function
         | Empty -> Empty
         | Leaf (key, value, _) -> wrap_Leaf key (f key value)
@@ -1089,6 +1058,55 @@ struct
     in
     generic_merge ~cache ~symmetric ~idempotent ~increasing:false
       ~decide_both ~decide_left:decide_none ~decide_right:decide_none
+
+  (* Merge between a map and a shape. Can be an intersection (inter=true) or a
+     difference (inter=false). *)
+  let merge_with_shape ~inter =
+    (* Match a map with an empty shape. *)
+    let decide_empty_shape = if inter then fun _ -> Empty else fun t -> t in
+    let extract_leaf key map =
+      try wrap_Leaf key (find key map)
+      with Not_found -> Empty
+    in
+    (* Match a map with a leaf shape: for intersection, only keep the leaf (if
+       it belongs to the map); for a difference, remove the leaf. *)
+    let decide_leaf_shape = if inter then extract_leaf else remove in
+    let rec merge shape map =
+      match shape, map with
+      | Empty, _ -> decide_empty_shape map
+      | _, Empty -> map
+      | _, Leaf (key, _, _) -> if inter = mem key shape then map else Empty
+      | Leaf (key, _, _), _ -> decide_leaf_shape key map
+      | Branch (p, m, s0, s1, _), Branch (q, n, t0, t1, _) ->
+        let rewrap p m u0 u1 =
+          if t0 == u0 && t1 == u1 then map
+          else if u0 == Empty then u1 else if u1 == Empty then u0
+          else wrap_Branch p m u0 u1
+        in
+        if (p = q) && (m = n) then
+          (* The trees have the same prefix. Merge their sub-trees. *)
+          let u0 = merge s0 t0
+          and u1 = merge s1 t1 in
+          rewrap p m u0 u1
+        else if (Big_Endian.shorter m n) && (match_prefix q p m) then
+          (* [q] contains [p]. Merge [map] with a sub-tree of [shape]. *)
+          if (q land m) = 0
+          then merge s0 map
+          else merge s1 map
+        else if (Big_Endian.shorter n m) && (match_prefix p q n) then
+          (* [p] contains [q]. Merge [shape] with a sub-tree of [map]. The other
+             sub-tree of [map] matches an empty shape. *)
+          if (p land n) = 0
+          then rewrap q n (merge shape t0) (decide_empty_shape t1)
+          else rewrap q n (decide_empty_shape t0) (merge shape t1)
+        else
+          (* The prefixes disagree: [map] matches an empty shape. *)
+          decide_empty_shape map
+    in
+    merge
+
+  let inter_with_shape shape map = merge_with_shape ~inter:true shape map
+  let diff_with_shape shape map = merge_with_shape ~inter:false shape map
 
   let fold2_join_heterogeneous (type arg) (type result) ~cache ~empty_left ~empty_right ~both ~join ~empty =
     let cache_merge = match cache with

@@ -27,6 +27,7 @@ open Eval
 module type S = sig
   type state
   type value
+  type location
   val assign: state -> kinstr -> lval -> exp -> state or_bottom
   val assume: state -> stmt -> exp -> bool -> state or_bottom
   val call:
@@ -42,8 +43,10 @@ module type S = sig
   type call_result = {
     states: state list or_bottom;
     cacheable: Value_types.cacheable;
+    builtin: bool;
   }
-  val compute_call_ref: (kinstr -> value call -> state -> call_result) ref
+  val compute_call_ref:
+    (stmt -> (location, value) call -> state -> call_result) ref
 end
 
 (* Reference filled in by the callwise-inout callback *)
@@ -111,6 +114,7 @@ module Make
 
   type state = Domain.state
   type value = Domain.value
+  type location = Domain.location
 
   (* Transfer functions. *)
   module TF = Domain.Transfer (Eva.Valuation)
@@ -177,7 +181,7 @@ module Make
     Assign value, valuation
 
   (* Assignment by copying the value of a right lvalue. *)
-  let assign_by_copy state valuation lval =
+  let assign_by_copy state valuation lval lloc ltyp =
     (* This code about garbled mix is specific to the Cvalue domain.
        Unfortunately, the current API for abstract_domain does not permit
        distinguishing between an evaluation or a copy. *)
@@ -185,7 +189,7 @@ module Make
     let r = copy_lvalue_and_check ~valuation state lval in
     Locations.Location_Bytes.do_track_garbled_mix true;
     r >>=: fun (valuation, value) ->
-    Copy (lval, value), valuation
+    Copy ({lval; lloc; ltyp}, value), valuation
 
   (* For an initialization, use for_writing:false for the evaluation of
      the left location, as the written variable could be const.  This is only
@@ -208,9 +212,13 @@ module Make
 
   (* Emits an alarm if the left and right locations of a struct or union copy
      overlap. *)
-  let check_overlap kinstr typ (lval, loc) (right_lval, right_loc) =
-    if Cil.isStructOrUnionType typ && Location.partially_overlap loc right_loc
-    then Alarmset.(emit kinstr (singleton (Alarms.Overlap (lval, right_lval))))
+  let check_overlap typ (lval, loc) (right_lval, right_loc) =
+    if Cil.isStructOrUnionType typ
+    then
+      let truth = Location.assume_no_overlap ~partial:true loc right_loc in
+      let alarm () = Alarms.Overlap (lval, right_lval) in
+      Eva.interpret_truth ~alarm (loc, right_loc) truth
+    else `Value (loc, right_loc), Alarmset.none
 
   (* Checks the compatibility between the left and right locations of a copy. *)
   let are_compatible loc right_loc =
@@ -244,10 +252,11 @@ module Make
           (* In case of a copy, checks that the left and right locations are
              compatible and that they do not overlap. *)
           lvaluate_and_check ~for_writing:false ~valuation state right_lval
-          >>= fun (valuation, right_loc, _right_typ) ->
-          check_overlap kinstr ltyp (lval, lloc) (right_lval, right_loc);
+          >>= fun (valuation, right_loc, right_typ) ->
+          check_overlap ltyp (lval, lloc) (right_lval, right_loc)
+          >>= fun (lloc, right_loc) ->
           if are_compatible lloc right_loc
-          then assign_by_copy state valuation right_lval
+          then assign_by_copy state valuation right_lval right_loc right_typ
           else assign_by_eval state valuation expr
       in
       if is_ret then assert (Alarmset.is_empty alarms);
@@ -278,11 +287,12 @@ module Make
   type call_result = {
     states: state list or_bottom;
     cacheable: Value_types.cacheable;
+    builtin: bool;
   }
 
   (* Forward reference to [Eval_funs.compute_call] *)
   let compute_call_ref
-    : (kinstr -> value call -> Domain.state -> call_result) ref
+    : (stmt -> (location, value) call -> Domain.state -> call_result) ref
     = ref (fun _ -> assert false)
 
   (* Returns the result of a call, and a boolean that indicates whether a
@@ -298,10 +308,11 @@ module Make
       let res =
         (* Process the call according to the domain decision. *)
         match TF.start_call stmt call valuation state with
-        | Compute state ->
+        | `Value state ->
           Domain.Store.register_initial_state (Value_util.call_stack ()) state;
-          !compute_call_ref (Kstmt stmt) call state, false
-        | Result (states, cacheable) -> { states; cacheable }, true
+          !compute_call_ref stmt call state
+        | `Bottom ->
+          { states = `Bottom; cacheable = Value_types.Cacheable; builtin=false }
       in
       cleanup ();
       res
@@ -437,13 +448,15 @@ module Make
     let kf_callee = call.kf in
     let pre = state in
     (* Process the call according to the domain decision. *)
-    let call_result, builtin_used = process_call stmt call valuation state in
+    let call_result = process_call stmt call valuation state in
     call_result.cacheable,
     call_result.states >>- fun result ->
     let leaving_vars = leaving_vars kf_callee in
     (* Do not try to reduce concrete arguments if a builtin was used. *)
     let gather_reduced_arguments =
-      if builtin_used then fun _ _ _ -> `Value [] else gather_reduced_arguments
+      if call_result.builtin
+      then fun _ _ _ -> `Value []
+      else gather_reduced_arguments
     in
     (* Treat each result one by one. *)
     let process state =
@@ -488,7 +501,7 @@ module Make
     match expr.enode with
     | Lval lv ->
       lvaluate_and_check ~for_writing:false ~valuation state lv
-      >>= fun (valuation, loc, _) ->
+      >>= fun (valuation, loc, typ) ->
       if Int_Base.is_top (Location.size loc)
       then
         Value_parameters.abort ~current:true
@@ -496,7 +509,7 @@ module Make
           Printer.pp_exp expr;
       if determinate && Cil.isArithmeticOrPointerType (Cil.typeOfLval lv)
       then assign_by_eval state valuation expr
-      else assign_by_copy state valuation lv
+      else assign_by_copy state valuation lv loc typ
     | _ ->
       assign_by_eval state valuation expr
 
@@ -665,8 +678,9 @@ module Make
     let l = fst (Cil.CurrentLoc.get ()) in
     Value_parameters.feedback ~current:true "Dumping state in file '%s'%t"
       file Value_util.pp_callstack;
-    Format.fprintf fmt "DUMPING STATE at file %s line %d@."
-      (Filepath.pretty l.Lexing.pos_fname) l.Lexing.pos_lnum;
+    Format.fprintf fmt "DUMPING STATE at file %a line %d@."
+      Datatype.Filepath.pretty l.Filepath.pos_path
+      l.Filepath.pos_lnum;
     if arguments <> []
     then Format.fprintf fmt "Args: %a@." (pretty_arguments state) arguments;
     Format.fprintf fmt "@[<v>%a@]@?" print_state state;
@@ -783,13 +797,42 @@ module Make
   (*                            Unspecified Sequence                          *)
   (* ------------------------------------------------------------------------ *)
 
+  exception EBottom of Alarmset.t
+
+  let process_truth ~alarm =
+    let build_alarm status = Alarmset.singleton ~status (alarm ()) in
+    function
+    | `Unreachable           -> raise (EBottom Alarmset.none)
+    | `False                 -> raise (EBottom (build_alarm Alarmset.False))
+    | `Unknown _             -> build_alarm Alarmset.Unknown
+    | `True | `TrueReduced _ -> Alarmset.none
+
+  let check_non_overlapping state lvs1 lvs2 =
+    let eval_loc (acc, valuation) lval =
+      match fst (Eva.lvaluate ~valuation ~for_writing:false state lval) with
+      | `Bottom -> acc, valuation
+      | `Value (valuation, loc, _) -> (lval, loc) :: acc, valuation
+    in
+    let eval_list valuation lvs =
+      List.fold_left eval_loc ([], valuation) lvs
+    in
+    let list1, valuation = eval_list Eva.Valuation.empty lvs1 in
+    let list2, _ = eval_list valuation lvs2 in
+    let check acc (lval1, loc1) (lval2, loc2) =
+      let truth = Location.assume_no_overlap ~partial:false loc1 loc2 in
+      let alarm () = Alarms.Not_separated (lval1, lval2) in
+      let alarm = process_truth ~alarm truth in
+      Alarmset.combine alarm acc
+    in
+    Extlib.product_fold check Alarmset.none list1 list2
+
   (* Not currently taking advantage of calls information. But see
      plugin Undefined Order by VP. *)
   let check_unspecified_sequence stmt state seq =
-    let rec check_one_stmt ((stmt1, _, writes1, _, _) as stmt) = function
-      | [] -> `Value (), Alarmset.none
-      | (stmt2, _, _, _, _) :: seq when stmt1 == stmt2 -> check_one_stmt stmt seq
-      | (stmt2, modified2, writes2, reads2, _) :: seq  ->
+    let check_stmt_pair acc statement1 statement2 =
+      let stmt1, _, writes1, _, _ = statement1 in
+      let stmt2, modified2, writes2, reads2, _ = statement2 in
+      if stmt1 == stmt2 then acc else
         (* Values that cannot be read, as they are modified in the statement
            (but not by the whole sequence itself) *)
         let unauthorized_reads =
@@ -798,21 +841,19 @@ module Make
                 (fun y -> not (LvalStructEq.equal x y)) modified2)
             writes1
         in
-        Eva.check_non_overlapping state unauthorized_reads reads2 >>= fun () ->
-        if stmt1.sid < stmt2.sid then
-          Eva.check_non_overlapping state writes1 writes2 >>= fun () ->
-          check_one_stmt stmt seq
-        else
-          check_one_stmt stmt seq
+        let alarms1 = check_non_overlapping state unauthorized_reads reads2 in
+        let alarms =
+          if stmt1.sid >= stmt2.sid then alarms1 else
+            let alarms2 = check_non_overlapping state writes1 writes2 in
+            Alarmset.combine alarms1 alarms2
+        in
+        Alarmset.combine alarms acc
     in
-    let res, alarms =
-      List.fold_left
-        (fun acc x -> acc >>= fun () -> check_one_stmt x seq)
-        (`Value (), Alarmset.none)
-        seq
-    in
-    Alarmset.emit (Kstmt stmt) alarms;
-    res
+    try
+      let alarms = Extlib.product_fold check_stmt_pair Alarmset.none seq seq in
+      Alarmset.emit (Kstmt stmt) alarms;
+      `Value ()
+    with EBottom alarms -> Alarmset.emit (Kstmt stmt) alarms; `Bottom
 
   (* ------------------------------------------------------------------------ *)
   (*                               Enter Scope                                *)

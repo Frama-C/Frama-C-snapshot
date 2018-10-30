@@ -36,7 +36,8 @@ let () = Value_parameters.ForceValues.set_output_dependencies [Db.Value.self]
 
 let main () =
   (* Value computations *)
-  if Value_parameters.ForceValues.get () then !Db.Value.compute ()
+  if Value_parameters.ForceValues.get () then !Db.Value.compute ();
+  if Db.Value.is_computed () then Red_statuses.report ()
 
 let () = Db.Main.extend main
 
@@ -51,27 +52,27 @@ let assigns_inputs_to_zone state assigns =
   let env = Eval_terms.env_pre_f ~pre:state () in
   let treat_asgn acc (_,ins as asgn) =
     match ins with
-      | FromAny -> Zone.top
-      | From l ->
-        try
-          List.fold_left
-            (fun acc t ->
-               let z =
-                 Eval_terms.eval_tlval_as_zone ~alarm_mode:Eval_terms.Ignore
-                   ~for_writing:false env t.it_content
-               in
-               Zone.join acc z)
-            acc
-            l
-        with Eval_terms.LogicEvalError e ->
-          Value_parameters.warning ~current:true ~once:true
-            "Failed to interpret inputs in assigns clause '%a'%a"
-            Printer.pp_from asgn eval_error_reason e;
-          Zone.top
+    | FromAny -> Zone.top
+    | From l ->
+      try
+        List.fold_left
+          (fun acc t ->
+             let z =
+               Eval_terms.eval_tlval_as_zone ~alarm_mode:Eval_terms.Ignore
+                 ~for_writing:false env t.it_content
+             in
+             Zone.join acc z)
+          acc
+          l
+      with Eval_terms.LogicEvalError e ->
+        Value_parameters.warning ~current:true ~once:true
+          "Failed to interpret inputs in assigns clause '%a'%a"
+          Printer.pp_from asgn eval_error_reason e;
+        Zone.top
   in
   match assigns with
-    | WritesAny -> Zone.top
-    | Writes l  -> List.fold_left treat_asgn Zone.bottom l
+  | WritesAny -> Zone.top
+  | Writes l  -> List.fold_left treat_asgn Zone.bottom l
 
 let assigns_outputs_aux ~eval ~bot ~top ~join state ~result assigns =
   let env = Eval_terms.env_post_f state state result () in
@@ -89,8 +90,8 @@ let assigns_outputs_aux ~eval ~bot ~top ~join state ~result assigns =
         join top acc
   in
   match assigns with
-    | WritesAny -> join top bot
-    | Writes l  -> List.fold_left treat_asgn bot l
+  | WritesAny -> join top bot
+  | Writes l  -> List.fold_left treat_asgn bot l
 
 let assigns_outputs_to_zone =
   let eval env term =
@@ -135,10 +136,10 @@ let find_deps_term_no_transitivity_state state t =
    \assigns and \from clauses, that give an approximation of the result *)
 let use_spec_instead_of_definition kf =
   not (Kernel_function.is_definition kf) ||
-    Ast_info.is_frama_c_builtin (Kernel_function.get_name kf) ||
-    Builtins.find_builtin_override kf <> None ||
-    Kernel_function.Set.mem kf (Value_parameters.UsePrototype.get ()) ||
-    Value_parameters.LoadFunctionState.mem kf
+  Ast_info.is_frama_c_builtin (Kernel_function.get_name kf) ||
+  Builtins.find_builtin_override kf <> None ||
+  Kernel_function.Set.mem kf (Value_parameters.UsePrototype.get ()) ||
+  Value_parameters.LoadFunctionState.mem kf
 
 let eval_predicate ~pre ~here p =
   let open Eval_terms in
@@ -149,7 +150,7 @@ let eval_predicate ~pre ~here p =
   | Unknown -> Property_status.Dont_know
 
 let () =
-(* Pretty-printing *)
+  (* Pretty-printing *)
   Db.Value.use_spec_instead_of_definition := use_spec_instead_of_definition;
   Db.Value.assigns_outputs_to_zone := assigns_outputs_to_zone;
   Db.Value.assigns_outputs_to_locations := assigns_outputs_to_locations;
@@ -162,9 +163,9 @@ let () =
     find_deps_term_no_transitivity_state;
 
 
-(* -------------------------------------------------------------------------- *)
-(*                    Register Evaluation Functions                           *)
-(* -------------------------------------------------------------------------- *)
+  (* -------------------------------------------------------------------------- *)
+  (*                    Register Evaluation Functions                           *)
+  (* -------------------------------------------------------------------------- *)
 
 open Eval
 
@@ -281,21 +282,21 @@ module Eval = struct
     if not (Cvalue.Model.is_reachable state)
     then state, deps, Precise_locs.loc_bottom, (Cil.typeOfLval lval)
     else
-    let state = Cvalue_domain.inject state in
-    let deps = match deps with
-      | None -> None
-      | Some deps ->
+      let state = Cvalue_domain.inject state in
+      let deps = match deps with
+        | None -> None
+        | Some deps ->
           let deps' = eval_deps_addr state lval in
           Some (Locations.Zone.join deps' deps)
-    in
-    let eval, alarms =
-      Eva.lvaluate ~for_writing:false state lval
-    in
-    notify_opt with_alarms alarms;
-    match eval with
+      in
+      let eval, alarms =
+        Eva.lvaluate ~for_writing:false state lval
+      in
+      notify_opt with_alarms alarms;
+      match eval with
       | `Bottom -> Cvalue.Model.bottom, deps, Precise_locs.loc_bottom, (Cil.typeOfLval lval)
       | `Value (valuation, loc, typ) ->
-          Cvalue_domain.project (Transfer.update valuation state), deps, loc, typ
+        Cvalue_domain.project (Transfer.update valuation state), deps, loc, typ
 
   let lval_to_loc_deps_state ?with_alarms ~deps state ~reduce_valid_index lv =
     let state, deps, pl, typ =
@@ -335,12 +336,12 @@ module Eval = struct
     let deps = match funcexp.enode with
       | Lval (Var _, NoOffset) -> deps
       | Lval (Mem v, _) ->
-          begin match deps with
-            | None -> None
-            | Some deps ->
-                let deps' = eval_deps state v in
-                Some (Locations.Zone.join deps' deps)
-          end
+        begin match deps with
+          | None -> None
+          | Some deps ->
+            let deps' = eval_deps state v in
+            Some (Locations.Zone.join deps' deps)
+        end
       | _ -> assert false
     in
     let kfs, alarms = Eva.eval_function_exp funcexp state in
@@ -348,9 +349,9 @@ module Eval = struct
     let kfs = match kfs with
       | `Bottom -> Kernel_function.Hptset.empty
       | `Value kfs ->
-          List.fold_left
-            (fun acc (kf, _) -> Kernel_function.Hptset.add kf acc)
-            Kernel_function.Hptset.empty kfs
+        List.fold_left
+          (fun acc (kf, _) -> Kernel_function.Hptset.add kf acc)
+          Kernel_function.Hptset.empty kfs
     in
     kfs, deps
 
@@ -426,11 +427,11 @@ module Export (Eval : Eval) = struct
         (lval_to_loc ?with_alarms state lv)
     in
     match loc.Locations.size with
-      | Int_Base.Top -> None
-      | Int_Base.Value size ->
-        match Cvalue.Model.copy_offsetmap loc.Locations.loc size state with
-        | `Bottom -> None
-        | `Value m -> Some m
+    | Int_Base.Top -> None
+    | Int_Base.Value size ->
+      match Cvalue.Model.copy_offsetmap loc.Locations.loc size state with
+      | `Bottom -> None
+      | `Value m -> Some m
 
   let lval_to_offsetmap kinstr ?with_alarms lv =
     let state = Db.Value.noassert_get_state kinstr in
@@ -477,8 +478,8 @@ let register (module Eval: Eval) (module Export: Export) =
   Db.Value.reduce_by_cond := Eval.reduce_by_cond;
   Db.Value.eval_lval :=
     (fun ?with_alarms deps state lval ->
-      let _, deps, r, _ = Eval.eval_lval ?with_alarms deps state lval in
-      deps, r);
+       let _, deps, r, _ = Eval.eval_lval ?with_alarms deps state lval in
+       deps, r);
   Db.Value.lval_to_loc_with_deps := lval_to_loc_with_deps;
   Db.Value.lval_to_loc_with_deps_state :=
     lval_to_loc_with_deps_state ?with_alarms:None;

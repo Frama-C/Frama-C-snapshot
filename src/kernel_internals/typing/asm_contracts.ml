@@ -75,6 +75,36 @@ let find_input_lval l =
      the placement of the given expression (register, memory, ...) *)
   List.rev (List.fold_left extract_term_lval [] l)
 
+let access_ptr_elts ~loc tlv =
+  let range = Logic_const.trange ~loc (None, None) in
+  let basetype = Cil.typeOfTermLval tlv in
+  let base = Logic_const.term ~loc (TLval tlv) basetype in
+  let offset = Logic_const.term ~loc (TBinOp (PlusPI, base, range)) basetype in
+  TMem offset, TNoOffset
+
+let access_elts ~loc ?size tlv =
+  let range =
+    match size with
+    | None -> Logic_const.trange ~loc (None, None)
+    | Some l ->
+      Logic_const.trange
+        ~loc
+        (Some (Logic_const.tinteger ~loc 0),
+         Some (Logic_const.tint ~loc (Integer.pred l)))
+  in
+  Logic_const.addTermOffsetLval (TIndex(range,TNoOffset)) tlv
+
+let extract_mem_term ~loc acc tlv =
+  match Logic_utils.unroll_type (Cil.typeOfTermLval tlv) with
+  | Ctype (TPtr _ ) -> access_ptr_elts ~loc tlv :: acc
+  | Ctype (TArray(_,e,_,_)) ->
+    let size = Extlib.opt_bind (Cil.constFoldToInt ~machdep:true) e in
+    access_elts ~loc ?size tlv :: acc
+  | _ -> acc
+
+let extract_mem_terms ~loc l =
+  List.rev (List.fold_left (extract_mem_term ~loc) [] l)
+
 class visit_assembly =
 object(self)
   inherit Visitor.frama_c_inplace
@@ -86,6 +116,15 @@ object(self)
       | Asm(_, _, Some { asm_outputs; asm_inputs; asm_clobbers }, loc) ->
           let lv_out, lv_from = find_out_lval asm_outputs in
           let lv_from = lv_from @ find_input_lval asm_inputs in
+          let mem_output = extract_mem_terms ~loc lv_from in
+          let lv_out = lv_out @ mem_output in
+          let lv_from = lv_from @ mem_output in
+          let lv_from =
+            List.filter
+              (fun lv ->
+                 not (Logic_utils.isLogicArrayType (Cil.typeOfTermLval lv)))
+              lv_from
+          in
           (* the only interesting information for clobbers is the
              presence of the "memory" keyword, which indicates that
              memory may have been accessed (read or write) outside of
@@ -100,16 +139,27 @@ object(self)
             Kernel.warning
               ~once ~source
               "Clobber list contain \"memory\" argument. Assuming no \
-               side-effect beyond those mentioned in output operands."
+               side-effect beyond those mentioned in operands."
           end;
           let to_id_term lv =
             Logic_const.new_identified_term
               (Logic_const.term ~loc (TLval lv) (Cil.typeOfTermLval lv))
           in
+          let to_id_from lv =
+            let typ = Cil.typeOfTermLval lv in
+            let base_term = Logic_const.term ~loc (TLval lv) typ in
+            let term =
+              if Logic_utils.isLogicPointerType typ ||
+                 Logic_utils.isLogicArrayType typ
+              then { base_term with term_name = ["indirect"] }
+              else base_term
+            in
+            Logic_const.new_identified_term term
+          in
           let assigns () =
             Writes
               (List.map
-                 (fun x -> (to_id_term x, From (List.map to_id_term lv_from)))
+                 (fun x -> (to_id_term x, From (List.map to_id_from lv_from)))
                  lv_out)
           in
           let filter ca =

@@ -1,8 +1,8 @@
 (**************************************************************************)
 (*                                                                        *)
-(*  This file is part of Frama-C.                                         *)
+(*  This file is part of the Frama-C's E-ACSL plug-in.                    *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2018                                               *)
+(*  Copyright (C) 2012-2018                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -27,9 +27,9 @@ module Printer_extension(X:Printer.PrinterClass) = struct
 
     method! global fmt g =
       let loc, _ = Cil_datatype.Global.loc g in
-      let file = loc.Lexing.pos_fname in
-      if file = "" || List.exists
-        (fun s -> Filepath.normalize s = file)
+      let file = loc.Filepath.pos_path in
+      if file = Datatype.Filepath.dummy || List.exists
+        (fun s -> Datatype.Filepath.of_string s = file)
         (Kernel.Files.get ())
       then super#global fmt g
 

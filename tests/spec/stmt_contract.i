@@ -27,6 +27,11 @@ int main(int c) {
 
   // END BTS 1320
 
+  //@ requires before_label: \true;
+  label:
+  //@ requires after_label: \true;
+  y=8;
+
   /*@ requires x == 7;  */
   /*@ ensures x == 7; */
   return 0;

@@ -190,9 +190,9 @@ let rec equal_cond ca cb =
   | State _ , _ | _ , State _
   | Type _ , _ | _ , Type _
   | Have _ , _ | _ , Have _
-  | When _ , _ | _ , When _ 
-  | Core _ , _ | _ , Core _ 
-  | Init _ , _ | _ , Init _ 
+  | When _ , _ | _ , When _
+  | Core _ , _ | _ , Core _
+  | Init _ , _ | _ , Init _
   | Branch _ , _ | _ , Branch _
     -> false
 
@@ -956,7 +956,7 @@ let append sa sb =
 let concat slist =
   if slist = [] then empty else
     let seq_size = List.fold_left (fun n s -> n + s.seq_size) 0 slist in
-    let seq_list = List.concat (List.map (fun s -> s.seq_list) slist) in 
+    let seq_list = List.concat (List.map (fun s -> s.seq_list) slist) in
     let seq_vars = List.fold_left (fun w s -> Vars.union w s.seq_vars)
         Vars.empty slist in
     let seq_core = List.fold_left (fun w s -> Pset.union w s.seq_core)
@@ -975,17 +975,21 @@ let lemma g =
   let cc g = let hs,p = forall_intro g in sequence hs , p
   in Lang.local ~vars:(F.varsp g) cc g
 
-let introduction ((hs,g) as s) =
-  let cc s =
-    let flag = ref true in
+let introduction sequent =
+  let cc (hs,g) =
+    let flag = ref false in
     let intro p = let q = exist_intro p in if q != p then flag := true ; q in
     let hj = List.map (map_step intro) hs.seq_list in
     let hi,p = forall_intro g in
     if not !flag && hi == [] then
-      if p == g then s else hs , p
+      if p == g then None else Some (hs , p)
     else
-      sequence (hi @ hj) , p
-  in Lang.local ~vars:(vars_seq s) cc s
+      Some (sequence (hi @ hj) , p)
+  in Lang.local ~vars:(vars_seq sequent) cc sequent
+
+let introduction_eq s = match introduction s with
+  | Some s' -> s'
+  | None -> s
 
 (* -------------------------------------------------------------------------- *)
 (* --- Constant Folder                                                    --- *)
@@ -1110,14 +1114,16 @@ let rec fixpoint limit solvers sigma s0 =
 
 let letify_hsp ?(solvers=[]) hsp = fixpoint 10 solvers Sigma.empty hsp
 
-let rec simplify ?(solvers=[]) ?(intros=10) (seq,p) =
-  let hs,p = fixpoint 10 solvers Sigma.empty (seq.seq_list,p) in
+let rec simplify ?(solvers=[]) ?(intros=10) (seq,p0) =
+  let hs,p = fixpoint 10 solvers Sigma.empty (seq.seq_list,p0) in
   let sequent = sequence hs , p in
-  let introduced = introduction sequent in
-  if sequent != introduced && intros > 0 then
-    simplify ~solvers ~intros:(pred intros) introduced
-  else
-    introduced
+  match introduction sequent with
+  | Some introduced ->
+      if intros > 0 then
+        simplify ~solvers ~intros:(pred intros) introduced
+      else introduced
+  | None ->
+      sequent
 
 (* -------------------------------------------------------------------------- *)
 (* --- Pruning                                                            --- *)
@@ -1454,7 +1460,7 @@ struct
 
 (*
   let pivots w a b =
-    let rec collect xs e = 
+    let rec collect xs e =
       match F.repr e with
       | Fvar x -> x :: xs
       | Add es -> List.fold_left collect xs es
@@ -1661,12 +1667,12 @@ let step_at seq k =
 
 let in_sequence ~replace =
   let rec in_list k h w =
-    if k = 0 then 
-      h :: (if replace 
+    if k = 0 then
+      h :: (if replace
             then match w with
               | [] -> assert false
               | _::w -> w
-            else w) 
+            else w)
     else
       match w with
       | [] -> assert false

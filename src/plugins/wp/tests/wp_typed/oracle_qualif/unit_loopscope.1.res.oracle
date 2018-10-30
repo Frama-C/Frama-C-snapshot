@@ -1,4 +1,4 @@
-# frama-c -wp -wp-model 'Typed (Ref)' [...]
+# frama-c -wp -wp-model 'Typed (Ref)' -wp-timeout 90 -wp-steps 1500 [...]
 [kernel] Parsing tests/wp_typed/unit_loopscope.i (no preprocessing)
 [wp] Running WP plugin...
 [wp] Loading driver 'share/wp.driver'
@@ -16,3 +16,6 @@
 Functions           WP     Alt-Ergo        Total   Success
 f                    1     -                 2      50.0%
 -------------------------------------------------------------
+[wp] Warning: Memory model hypotheses for function 'f':
+  /*@ behavior typed_ref: requires \valid(written); */
+  void f(unsigned int *written);

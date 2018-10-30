@@ -72,7 +72,7 @@ print("")
 files_defining_main = set()
 for file in files:
    assert os.path.exists(file), "file does not exist: %s" % file
-   res = os.system("grep -Pazonq \"(\\s|\\n)*(int|void)(\\s|\\n)*main(\\s)*\([^)]*\)(\\s)*{\" %s" % file)
+   res = os.system("grep -Paonq \"(\\s|\\n)*(int|void)(\\s|\\n)*main(\\s)*\([^)]*\)(\\s)*{\" %s" % file)
    if res == 0:
       files_defining_main.add(file)
 

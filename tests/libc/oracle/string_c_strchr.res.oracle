@@ -1,208 +1,185 @@
 [kernel] Parsing tests/libc/string_c_strchr.c (with preprocessing)
-[value] Analyzing a complete application starting at main
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
-  __fc_heap_status ∈ [--..--]
-  __fc_strtok_ptr ∈ {0}
-  __fc_random_counter ∈ [--..--]
-  __fc_rand_max ∈ {32767}
-  __fc_mblen_state ∈ [--..--]
-  __fc_mbtowc_state ∈ [--..--]
-  __fc_wctomb_state ∈ [--..--]
-[value] Semantic level unrolling superposing up to 100 states
-[value] Semantic level unrolling superposing up to 200 states
-[value] tests/libc/string_c_strchr.c:59: entering loop for the first time
-[value] computing for function strchr <- main.
+[eva] Analyzing a complete application starting at main
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
+  
+[eva] Semantic level unrolling superposing up to 100 states
+[eva] Semantic level unrolling superposing up to 200 states
+[eva] computing for function strchr <- main.
   Called from tests/libc/string_c_strchr.c:62.
-[value] tests/libc/string_c_strchr.c:62: 
+[eva] tests/libc/string_c_strchr.c:62: 
   function strchr: precondition 'valid_string_s' got status valid.
-[value] share/libc/string.h:146: 
-  cannot evaluate ACSL term, unsupported ACSL construct: logic function strchr
-[value] share/libc/string.h:153: 
-  cannot evaluate ACSL term, unsupported ACSL construct: logic function strchr
-[value:alarm] share/libc/string.h:147: Warning: 
-  function strchr, behavior found: postcondition 'result_char' got status unknown. (Behavior may be inactive, no reduction performed.)
-[value:alarm] share/libc/string.h:148: Warning: 
-  function strchr, behavior found: postcondition 'result_same_base' got status invalid. (Behavior may be inactive, no reduction performed.)
-[value:alarm] share/libc/string.h:149: Warning: 
-  function strchr, behavior found: postcondition 'result_in_length' got status invalid. (Behavior may be inactive, no reduction performed.)
-[value:alarm] share/libc/string.h:150: Warning: 
-  function strchr, behavior found: postcondition 'result_valid_string' got status invalid. (Behavior may be inactive, no reduction performed.)
-[value:alarm] share/libc/string.h:151: Warning: 
-  function strchr, behavior found: postcondition 'result_first_occur' got status unknown. (Behavior may be inactive, no reduction performed.)
-[value] share/libc/string.h:154: 
-  function strchr, behavior not_found: postcondition 'result_null' got status valid. (Behavior may be inactive, no reduction performed.)
-[value] share/libc/string.h:157: 
+[eva] share/libc/string.h:168: 
+  function strchr, behavior not_found: postcondition 'result_null' got status valid.
+[eva] share/libc/string.h:171: 
   function strchr, behavior default: postcondition 'result_null_or_same_base' got status valid.
-[value] Recording results for strchr
-[value] Done for function strchr
-[value] computing for function strchr <- main.
+[eva] Recording results for strchr
+[eva] Done for function strchr
+[eva] computing for function strchr <- main.
   Called from tests/libc/string_c_strchr.c:63.
-[value] tests/libc/string_c_strchr.c:63: 
+[eva] tests/libc/string_c_strchr.c:63: 
   function strchr: precondition 'valid_string_s' got status valid.
-[value] Recording results for strchr
-[value] Done for function strchr
-[value] computing for function strchr <- main.
+[eva] Recording results for strchr
+[eva] Done for function strchr
+[eva] computing for function strchr <- main.
   Called from tests/libc/string_c_strchr.c:64.
-[value] tests/libc/string_c_strchr.c:64: 
+[eva] tests/libc/string_c_strchr.c:64: 
   function strchr: precondition 'valid_string_s' got status valid.
-[value] Recording results for strchr
-[value] Done for function strchr
-[value] computing for function strchr <- main.
+[eva] Recording results for strchr
+[eva] Done for function strchr
+[eva] computing for function strchr <- main.
   Called from tests/libc/string_c_strchr.c:65.
-[value] tests/libc/string_c_strchr.c:65: 
+[eva] tests/libc/string_c_strchr.c:65: 
   function strchr: precondition 'valid_string_s' got status valid.
-[value] Recording results for strchr
-[value] Done for function strchr
-[value] computing for function strchr <- main.
+[eva] Recording results for strchr
+[eva] Done for function strchr
+[eva] computing for function strchr <- main.
   Called from tests/libc/string_c_strchr.c:66.
-[value] tests/libc/string_c_strchr.c:66: 
+[eva] tests/libc/string_c_strchr.c:66: 
   function strchr: precondition 'valid_string_s' got status valid.
-[value] Recording results for strchr
-[value] Done for function strchr
-[value] computing for function strchr <- main.
+[eva] Recording results for strchr
+[eva] Done for function strchr
+[eva] computing for function strchr <- main.
   Called from tests/libc/string_c_strchr.c:67.
-[value] tests/libc/string_c_strchr.c:67: 
+[eva] tests/libc/string_c_strchr.c:67: 
   function strchr: precondition 'valid_string_s' got status valid.
-[value] Recording results for strchr
-[value] Done for function strchr
-[value] computing for function strchr <- main.
+[eva] Recording results for strchr
+[eva] Done for function strchr
+[eva] computing for function strchr <- main.
   Called from tests/libc/string_c_strchr.c:68.
-[value] tests/libc/string_c_strchr.c:68: 
+[eva] tests/libc/string_c_strchr.c:68: 
   function strchr: precondition 'valid_string_s' got status valid.
-[value] Recording results for strchr
-[value] Done for function strchr
-[value] computing for function strchr <- main.
+[eva] Recording results for strchr
+[eva] Done for function strchr
+[eva] computing for function strchr <- main.
   Called from tests/libc/string_c_strchr.c:70.
-[value] tests/libc/string_c_strchr.c:70: 
+[eva] tests/libc/string_c_strchr.c:70: 
   function strchr: precondition 'valid_string_s' got status valid.
-[value] share/libc/string.h:147: 
-  function strchr, behavior found: postcondition 'result_char' got status valid. (Behavior may be inactive, no reduction performed.)
-[value] share/libc/string.h:148: 
-  function strchr, behavior found: postcondition 'result_same_base' got status valid. (Behavior may be inactive, no reduction performed.)
-[value] share/libc/string.h:150: 
-  function strchr, behavior found: postcondition 'result_valid_string' got status valid. (Behavior may be inactive, no reduction performed.)
-[value:alarm] share/libc/string.h:154: Warning: 
-  function strchr, behavior not_found: postcondition 'result_null' got status invalid. (Behavior may be inactive, no reduction performed.)
-[value] Recording results for strchr
-[value] Done for function strchr
-[value] computing for function strchr <- main.
+[eva] share/libc/string.h:161: 
+  function strchr, behavior found: postcondition 'result_char' got status valid.
+[eva] share/libc/string.h:162: 
+  function strchr, behavior found: postcondition 'result_same_base' got status valid.
+[eva] share/libc/string.h:163: 
+  function strchr, behavior found: postcondition 'result_in_length' got status valid.
+[eva] share/libc/string.h:164: 
+  function strchr, behavior found: postcondition 'result_valid_string' got status valid.
+[eva:alarm] share/libc/string.h:165: Warning: 
+  function strchr, behavior found: postcondition 'result_first_occur' got status unknown.
+[eva] Recording results for strchr
+[eva] Done for function strchr
+[eva] computing for function strchr <- main.
   Called from tests/libc/string_c_strchr.c:71.
-[value] tests/libc/string_c_strchr.c:71: 
+[eva] tests/libc/string_c_strchr.c:71: 
   function strchr: precondition 'valid_string_s' got status valid.
-[value] share/libc/string.h:149: 
-  function strchr, behavior found: postcondition 'result_in_length' got status valid. (Behavior may be inactive, no reduction performed.)
-[value] Recording results for strchr
-[value] Done for function strchr
-[value] computing for function strchr <- main.
+[eva] Recording results for strchr
+[eva] Done for function strchr
+[eva] computing for function strchr <- main.
   Called from tests/libc/string_c_strchr.c:72.
-[value] tests/libc/string_c_strchr.c:72: 
+[eva] tests/libc/string_c_strchr.c:72: 
   function strchr: precondition 'valid_string_s' got status valid.
-[value:alarm] share/libc/string.h:147: Warning: 
-  function strchr, behavior found: postcondition 'result_char' got status invalid. (Behavior may be inactive, no reduction performed.)
-[value] Recording results for strchr
-[value] Done for function strchr
-[value] computing for function strchr <- main.
+[eva] Recording results for strchr
+[eva] Done for function strchr
+[eva] computing for function strchr <- main.
   Called from tests/libc/string_c_strchr.c:73.
-[value] tests/libc/string_c_strchr.c:73: 
+[eva] tests/libc/string_c_strchr.c:73: 
   function strchr: precondition 'valid_string_s' got status valid.
-[value] Recording results for strchr
-[value] Done for function strchr
-[value] computing for function strchr <- main.
+[eva] Recording results for strchr
+[eva] Done for function strchr
+[eva] computing for function strchr <- main.
   Called from tests/libc/string_c_strchr.c:74.
-[value] tests/libc/string_c_strchr.c:74: 
+[eva] tests/libc/string_c_strchr.c:74: 
   function strchr: precondition 'valid_string_s' got status valid.
-[value] Recording results for strchr
-[value] Done for function strchr
-[value] computing for function strchr <- main.
+[eva] Recording results for strchr
+[eva] Done for function strchr
+[eva] computing for function strchr <- main.
   Called from tests/libc/string_c_strchr.c:75.
-[value] tests/libc/string_c_strchr.c:75: 
+[eva] tests/libc/string_c_strchr.c:75: 
   function strchr: precondition 'valid_string_s' got status valid.
-[value] Recording results for strchr
-[value] Done for function strchr
-[value] computing for function strchr <- main.
+[eva] Recording results for strchr
+[eva] Done for function strchr
+[eva] computing for function strchr <- main.
   Called from tests/libc/string_c_strchr.c:76.
-[value] tests/libc/string_c_strchr.c:76: 
+[eva] tests/libc/string_c_strchr.c:76: 
   function strchr: precondition 'valid_string_s' got status valid.
-[value] Recording results for strchr
-[value] Done for function strchr
-[value] computing for function strchr <- main.
+[eva] Recording results for strchr
+[eva] Done for function strchr
+[eva] computing for function strchr <- main.
   Called from tests/libc/string_c_strchr.c:77.
-[value] tests/libc/string_c_strchr.c:77: 
+[eva] tests/libc/string_c_strchr.c:77: 
   function strchr: precondition 'valid_string_s' got status valid.
-[value] Recording results for strchr
-[value] Done for function strchr
-[value] computing for function strchr <- main.
+[eva] Recording results for strchr
+[eva] Done for function strchr
+[eva] computing for function strchr <- main.
   Called from tests/libc/string_c_strchr.c:78.
-[value] tests/libc/string_c_strchr.c:78: 
+[eva] tests/libc/string_c_strchr.c:78: 
   function strchr: precondition 'valid_string_s' got status valid.
-[value] Recording results for strchr
-[value] Done for function strchr
-[value] computing for function strchr <- main.
+[eva] Recording results for strchr
+[eva] Done for function strchr
+[eva] computing for function strchr <- main.
   Called from tests/libc/string_c_strchr.c:79.
-[value] tests/libc/string_c_strchr.c:79: 
+[eva] tests/libc/string_c_strchr.c:79: 
   function strchr: precondition 'valid_string_s' got status valid.
-[value] Recording results for strchr
-[value] Done for function strchr
-[value] computing for function strchr <- main.
+[eva] Recording results for strchr
+[eva] Done for function strchr
+[eva] computing for function strchr <- main.
   Called from tests/libc/string_c_strchr.c:80.
-[value] tests/libc/string_c_strchr.c:80: 
+[eva] tests/libc/string_c_strchr.c:80: 
   function strchr: precondition 'valid_string_s' got status valid.
-[value] Recording results for strchr
-[value] Done for function strchr
-[value] computing for function strchr <- main.
+[eva] Recording results for strchr
+[eva] Done for function strchr
+[eva] computing for function strchr <- main.
   Called from tests/libc/string_c_strchr.c:81.
-[value] tests/libc/string_c_strchr.c:81: 
+[eva] tests/libc/string_c_strchr.c:81: 
   function strchr: precondition 'valid_string_s' got status valid.
-[value] Recording results for strchr
-[value] Done for function strchr
-[value] computing for function strchr <- main.
+[eva] Recording results for strchr
+[eva] Done for function strchr
+[eva] computing for function strchr <- main.
   Called from tests/libc/string_c_strchr.c:82.
-[value] tests/libc/string_c_strchr.c:82: 
+[eva] tests/libc/string_c_strchr.c:82: 
   function strchr: precondition 'valid_string_s' got status valid.
-[value] Recording results for strchr
-[value] Done for function strchr
-[value] computing for function strchr <- main.
+[eva] Recording results for strchr
+[eva] Done for function strchr
+[eva] computing for function strchr <- main.
   Called from tests/libc/string_c_strchr.c:83.
-[value] tests/libc/string_c_strchr.c:83: 
+[eva] tests/libc/string_c_strchr.c:83: 
   function strchr: precondition 'valid_string_s' got status valid.
-[value] Recording results for strchr
-[value] Done for function strchr
-[value] computing for function strchr <- main.
+[eva] Recording results for strchr
+[eva] Done for function strchr
+[eva] computing for function strchr <- main.
   Called from tests/libc/string_c_strchr.c:84.
-[value] tests/libc/string_c_strchr.c:84: 
+[eva] tests/libc/string_c_strchr.c:84: 
   function strchr: precondition 'valid_string_s' got status valid.
-[value] Recording results for strchr
-[value] Done for function strchr
-[value] computing for function strchr <- main.
+[eva] Recording results for strchr
+[eva] Done for function strchr
+[eva] computing for function strchr <- main.
   Called from tests/libc/string_c_strchr.c:85.
-[value] tests/libc/string_c_strchr.c:85: 
+[eva] tests/libc/string_c_strchr.c:85: 
   function strchr: precondition 'valid_string_s' got status valid.
-[value] Recording results for strchr
-[value] Done for function strchr
-[value] computing for function strchr <- main.
+[eva] Recording results for strchr
+[eva] Done for function strchr
+[eva] computing for function strchr <- main.
   Called from tests/libc/string_c_strchr.c:86.
-[value] tests/libc/string_c_strchr.c:86: 
+[eva] tests/libc/string_c_strchr.c:86: 
   function strchr: precondition 'valid_string_s' got status valid.
-[value] Recording results for strchr
-[value] Done for function strchr
-[value] computing for function strchr <- main.
+[eva] Recording results for strchr
+[eva] Done for function strchr
+[eva] computing for function strchr <- main.
   Called from tests/libc/string_c_strchr.c:87.
-[value] tests/libc/string_c_strchr.c:87: 
+[eva] tests/libc/string_c_strchr.c:87: 
   function strchr: precondition 'valid_string_s' got status valid.
-[value] Recording results for strchr
-[value] Done for function strchr
-[value] computing for function strchr <- main.
+[eva] Recording results for strchr
+[eva] Done for function strchr
+[eva] computing for function strchr <- main.
   Called from tests/libc/string_c_strchr.c:88.
-[value] tests/libc/string_c_strchr.c:88: 
+[eva] tests/libc/string_c_strchr.c:88: 
   function strchr: precondition 'valid_string_s' got status valid.
-[value] Recording results for strchr
-[value] Done for function strchr
-[value] Recording results for main
-[value] done for function main
-[value] ====== VALUES COMPUTED ======
-[value:final-states] Values at end of function strchr:
+[eva] Recording results for strchr
+[eva] Done for function strchr
+[eva] Recording results for main
+[eva] done for function main
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function strchr:
   ch ∈ [--..--]
   i ∈ [0..255]
   __retres ∈
@@ -210,7 +187,7 @@
              "" ; "a" ; "a" ; "a" + {1} ; "abb" + {1} ; "aabb" + {2} ;
              "aaabb" + {3} ; "aaaabb" + {4} ; "aaaaabb" + {5} ;
              "aaaaaabb" + {6} ; "abc abc" + {2} }}
-[value:final-states] Values at end of function main:
+[eva:final-states] Values at end of function main:
   i ∈ {256}
   a[0] ∈ {1}
    [1] ∈ {2}

@@ -1,33 +1,33 @@
 [kernel] Parsing tests/value/absolute_pointer.i (no preprocessing)
-[value] Analyzing a complete application starting at main
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing a complete application starting at main
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   NULL[rbits 0 to 31] ∈ [--..--]
   R ∈ {0}
-[value] computing for function crash <- main.
+[eva] computing for function crash <- main.
   Called from tests/value/absolute_pointer.i:18.
-[value] computing for function f <- crash <- main.
+[eva] computing for function f <- crash <- main.
   Called from tests/value/absolute_pointer.i:12.
-[value] Recording results for f
-[value] Done for function f
-[value:alarm] tests/value/absolute_pointer.i:12: Warning: 
+[eva] Recording results for f
+[eva] Done for function f
+[eva:alarm] tests/value/absolute_pointer.i:12: Warning: 
   out of bounds write. assert \valid(tmp);
                        (tmp from f())
 [kernel] tests/value/absolute_pointer.i:12: Warning: 
   all target addresses were invalid. This path is assumed to be dead.
-[value] Recording results for crash
-[value] Done for function crash
-[value] Recording results for main
-[value] done for function main
-[value] tests/value/absolute_pointer.i:12: 
-  assertion 'Value,mem_access' got final status invalid.
-[value] ====== VALUES COMPUTED ======
-[value:final-states] Values at end of function f:
+[eva] Recording results for crash
+[eva] Done for function crash
+[eva] Recording results for main
+[eva] done for function main
+[eva] tests/value/absolute_pointer.i:12: 
+  assertion 'Eva,mem_access' got final status invalid.
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function f:
   __retres ∈ {100}
-[value:final-states] Values at end of function crash:
+[eva:final-states] Values at end of function crash:
   NON TERMINATING FUNCTION
-[value:final-states] Values at end of function main:
+[eva:final-states] Values at end of function main:
   NULL[rbits 0 to 7] ∈ {2}
       [rbits 8 to 15] ∈ [--..--]
       [rbits 16 to 23] ∈ {2}

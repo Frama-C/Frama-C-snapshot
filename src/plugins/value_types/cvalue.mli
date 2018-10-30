@@ -96,23 +96,17 @@ module V : sig
   val interp_boolean : contains_zero:bool -> contains_non_zero:bool -> t
 
 (** [cast_int_to_int ~size ~signed v] applies to the abstract value [v] the
-    conversion to the integer type described by [size] and [signed]. The results
-    are [new_value, ok]. The boolean [ok], when true, indicates that the cast
-    was the identity.
+    conversion to the integer type described by [size] and [signed].
     Offsets of bases other than NULL are not clipped. If they were clipped,
     they should be clipped at the validity of the base. The C standard does
-    not say that [p+(1ULL<<32+1)] is the same as [p+1], it says that 
+    not say that [p+(1ULL<<32+1)] is the same as [p+1], it says that
     [p+(1ULL<<32+1)] is invalid. *)
-  val cast_int_to_int: size:Int.t -> signed:bool -> t -> t * bool
+  val cast_int_to_int: size:Int.t -> signed:bool -> t -> t
 
   val reinterpret_as_float: Cil_types.fkind -> t -> t
   val reinterpret_as_int: signed:bool -> size:Integer.t -> t -> t
   val cast_float_to_float: Fval.kind -> t -> t
-  val cast_float_to_int :
-    signed:bool -> size:int -> t ->
-    alarm (** non-finite *) *
-    (alarm * alarm) (** overflow, in both directions *) *
-    t
+  val cast_float_to_int : signed:bool -> size:int -> t -> t
   val cast_float_to_int_inverse :
     single_precision:bool -> t -> t option
   val cast_int_to_float :
@@ -131,11 +125,10 @@ module V : sig
   val add_untyped_under : factor:Int_Base.t -> t -> t -> t
   (** Under-approximating variant of {!add_untyped}. Takes two
       under-approximation, and returns an under-approximation.*)
- 
-  val sub_untyped_pointwise: ?factor:Int_Base.t -> t -> t -> Ival.t * bool
+
+  val sub_untyped_pointwise: ?factor:Int_Base.t -> t -> t -> Ival.t
   (** See {!Locations.sub_pointwise}. In this module, [factor] is expressed in
-      bytes. The two pointers are supposed to be pointing to the same base;
-      the returned boolean indicates that this assumption might be incorrect. *)
+      bytes. *)
 
   val mul: t -> t -> t
   val div: t -> t -> t

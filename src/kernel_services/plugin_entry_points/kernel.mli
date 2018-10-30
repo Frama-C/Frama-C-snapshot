@@ -81,6 +81,8 @@ val dkey_parser: category
 
 val dkey_pp: category
 
+val dkey_print_attrs: category
+
 val dkey_print_bitfields: category
 
 val dkey_print_builtins: category
@@ -138,6 +140,8 @@ val wkey_cert_exp_46: warn_category
 
 val wkey_cert_msc_38: warn_category
 
+val wkey_cert_exp_10: warn_category
+
 val wkey_check_volatile: warn_category
 
 val wkey_jcdb: warn_category
@@ -149,6 +153,11 @@ val wkey_no_proto: warn_category
 val wkey_missing_spec: warn_category
 
 val wkey_decimal_float: warn_category
+
+val wkey_acsl_extension: warn_category
+
+val wkey_cmdline: warn_category
+(** Command-line related warning, e.g. for invalid options given by the user *)
 
 (* ************************************************************************* *)
 (** {2 Functors for late option registration}                                *)
@@ -372,6 +381,7 @@ module PreprocessAnnot: Parameter_sig.Bool
 
 module ContinueOnAnnotError: Parameter_sig.Bool
   (** Behavior of option "-continue-annot-error" *)
+[@@ deprecated "Use Kernel.wkey_annot_error instead"]
 
 module SimplifyCfg: Parameter_sig.Bool
   (** Behavior of option "-simplify-cfg" *)
@@ -419,9 +429,11 @@ val normalization_parameters: unit -> Typed_parameter.t list
 
 module WarnDecimalFloat: Parameter_sig.String
   (** Behavior of option "-warn-decimal-float" *)
+[@@ deprecated "Uses kernel.wkey_decimal_float instead."]
 
 module ImplicitFunctionDeclaration: Parameter_sig.String
   (** Behavior of option "-implicit-function-declaration" *)
+[@@ deprecated "Uses kernel.wkey_implicit_function_declaration instead."]
 
 module C11: Parameter_sig.Bool
   (** Behavior of option "-c11" *)
@@ -482,10 +494,6 @@ module LibEntry: sig
   val unsafe_set: t -> unit (** Not for casual users. *)
 end
 
-module ConstReadonly: Parameter_sig.Bool
-  (** Global variables with ["const"] qualifier are constant. 
-      See also [Cil.typeHasQualifier] *)
-
 module UnspecifiedAccess: Parameter_sig.Bool
   (** Behavior of option "-unspecified-access" *)
 
@@ -499,6 +507,12 @@ module SignedOverflow: Parameter_sig.Bool
 module UnsignedOverflow: Parameter_sig.Bool
   (** Behavior of option "-warn-unsigned-overflow" *)
 
+module LeftShiftNegative: Parameter_sig.Bool
+  (** Behavior of option "-warn-left-shift-negative" *)
+
+module RightShiftNegative: Parameter_sig.Bool
+  (** Behavior of option "-warn-right-shift-negative" *)
+
 module SignedDowncast: Parameter_sig.Bool
   (** Behavior of option "-warn-signed-downcast" *)
 
@@ -507,6 +521,9 @@ module UnsignedDowncast: Parameter_sig.Bool
 
 module SpecialFloat: Parameter_sig.String
   (** Behavior of option "-warn-special-float" *)
+
+module InvalidBool: Parameter_sig.Bool
+  (** Behavior of option "-warn-invalid-bool" *)
 
 module AbsoluteValidRange: Parameter_sig.String
   (** Behavior of option "-absolute-valid-range" *)

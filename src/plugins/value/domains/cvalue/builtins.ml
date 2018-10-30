@@ -100,6 +100,15 @@ let mem_builtin name =
 
 let () = Db.Value.mem_builtin := mem_builtin
 
+(* Returns the builtin with its specification, used to evaluate preconditions
+   and to transfer the states of other domains. *)
+let find_builtin_specification kf =
+  let spec = Annotations.funspec kf in
+  (* The specification can be empty if [kf] has a body but no specification,
+     in which case [Annotations.funspec] does not generate a specification.
+     TODO: check that the specification is the frama-c libc specification? *)
+  if spec.spec_behavior <> [] then Some spec else None
+
 let find_builtin_override kf =
   let name =
     try Value_parameters.BuiltinsOverrides.find kf
@@ -107,25 +116,48 @@ let find_builtin_override kf =
   in
   try
     let f, _, u = Hashtbl.find table name in
-    if u = Always || Value_parameters.BuiltinsAuto.get () then Some f
+    if u = Always || Value_parameters.BuiltinsAuto.get ()
+    then Extlib.opt_map (fun s -> name, f, s) (find_builtin_specification kf)
     else None
   with Not_found -> None
 
+let warn_builtin_override bname kf =
+  let source = fst (Kernel_function.get_location kf) in
+  if find_builtin_specification kf = None
+  then
+    Value_parameters.warning ~source ~once:true
+      ~wkey:Value_parameters.wkey_builtins_missing_spec
+      "The builtin for function %a will not be used, as its frama-c libc \
+       specification is not available."
+      Kernel_function.pretty kf
+  else
+    let internal =
+      let pos = fst (Kernel_function.get_location kf) in
+      (*TODO: treat this 'internal'*)
+      let file = pos.Filepath.pos_path in
+      Filepath.is_relative ~base_name:Config.datadir (file :> string)
+    in
+    if Kernel_function.is_definition kf && not internal
+    then
+      let fname = Kernel_function.get_name kf in
+      Value_parameters.warning ~source ~once:true
+        ~wkey:Value_parameters.wkey_builtins_override
+        "function %s: definition will be overridden by %s"
+        fname (if fname = bname then "its builtin" else "builtin " ^ bname)
+
 let warn_definitions_overridden_by_builtins () =
-  Globals.Functions.iter (fun kf ->
-      try
-        let bname = Value_parameters.BuiltinsOverrides.find kf in
-        if Kernel_function.is_definition kf &&
-           not (Cil.hasAttribute "fc_stdlib" (Kernel_function.get_vi kf).vattr)
-        then
-          let fname = Kernel_function.get_name kf in
-          let source = fst (Kernel_function.get_location kf) in
-          Value_parameters.warning ~source ~once:true
-            "function %s: definition will be overridden by %s@ \
-             (use '-no-val-warn-builtin-override' to disable this warning)"
-            fname (if fname = bname then "its builtin" else "builtin " ^ bname)
-      with Not_found -> ()
-    )
+  Value_parameters.BuiltinsOverrides.iter
+    (fun (kf, name) -> warn_builtin_override (Extlib.the name) kf);
+  let autobuiltins = Value_parameters.BuiltinsAuto.get () in
+  Hashtbl.iter
+    (fun name (_, _, u) ->
+       if autobuiltins || u = Always
+       then
+         try
+           let kf = Globals.Functions.find_by_name name in
+           warn_builtin_override name kf
+         with Not_found -> ())
+    table
 
 (* -------------------------------------------------------------------------- *)
 (* --- Returning a clobbered set                                          --- *)
@@ -144,7 +176,68 @@ let clobbered_set_from_ret state ret =
   try V.fold_topset_ok aux ret Base.SetLattice.bottom
   with Abstract_interp.Error_Top -> Base.SetLattice.top
 
+(* -------------------------------------------------------------------------- *)
+(* --- Applying a builtin                                                 --- *)
+(* -------------------------------------------------------------------------- *)
 
+type call = (Precise_locs.precise_location, Cvalue.V.t) Eval.call
+type result = Cvalue.Model.t * Locals_scoping.clobbered_set
+type builtin = Db.Value.builtin_sig
+
+open Eval
+
+let unbottomize = function
+  | `Bottom -> Cvalue.V.bottom
+  | `Value v -> v
+
+let offsetmap_of_formals state arguments rest =
+  let compute expr assigned =
+    let offsm = Cvalue_offsetmap.offsetmap_of_assignment state expr assigned in
+    let value = unbottomize (Eval.value_assigned assigned) in
+    expr, value, offsm
+  in
+  let treat_one_formal arg = compute arg.concrete arg.avalue in
+  let treat_one_rest (exp, v) = compute exp v in
+  let list = List.map treat_one_formal arguments in
+  let rest = List.map treat_one_rest rest in
+  list @ rest
+
+let compute_builtin name builtin state actuals =
+  try builtin state actuals
+  with
+  | Invalid_nb_of_args n ->
+    Value_parameters.error ~current:true
+      "Invalid number of arguments for builtin %s: %d expected, %d found"
+      name n (List.length actuals);
+    raise Db.Value.Aborted
+  | Db.Value.Outside_builtin_possibilities ->
+    Value_parameters.warning ~once:true ~current:true
+      "Call to builtin %s failed, aborting." name;
+    raise Db.Value.Aborted
+
+let apply_builtin builtin call state =
+  let name = Kernel_function.get_name call.kf in
+  let actuals = offsetmap_of_formals state call.arguments call.rest in
+  let res = compute_builtin name builtin state actuals in
+  let call_stack = Value_util.call_stack () in
+  Db.Value.Call_Type_Value_Callbacks.apply (`Builtin res, state, call_stack);
+  let clob = Locals_scoping.bottom () in
+  Locals_scoping.remember_bases_with_locals clob res.Value_types.c_clobbered;
+  let process_one_return acc (ret, post_state) =
+    if Cvalue.Model.is_reachable post_state then
+      let state =
+        match ret, call.return with
+        | Some offsm_ret, Some vi_ret ->
+          let b_ret = Base.of_varinfo vi_ret in
+          Cvalue.Model.add_base b_ret offsm_ret post_state
+        | _, _ -> post_state
+      in
+      (state, clob) :: acc
+    else
+      acc
+  in
+  let list = List.fold_left process_one_return [] res.Value_types.c_values in
+  list, res.Value_types.c_cacheable
 
 (*
 Local Variables:

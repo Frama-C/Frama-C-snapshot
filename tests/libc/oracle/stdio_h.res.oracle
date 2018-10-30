@@ -1,76 +1,93 @@
 [kernel] Parsing tests/libc/stdio_h.c (with preprocessing)
-[value] Analyzing a complete application starting at main
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
-  __fc_errno ∈ [--..--]
-  __fc_stdin ∈ {{ NULL ; &S___fc_stdin[0] }}
-  __fc_stdout ∈ {{ NULL ; &S___fc_stdout[0] }}
-  __fc_fopen[0..15] ∈ {0}
-  __fc_p_fopen ∈ {{ &__fc_fopen[0] }}
-  Frama_C_entropy_source ∈ [--..--]
+[eva] Analyzing a complete application starting at main
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   nondet ∈ [--..--]
-  S___fc_stdin[0..1] ∈ [--..--]
-  S___fc_stdout[0..1] ∈ [--..--]
-[value] computing for function fopen <- main.
+[eva] computing for function fopen <- main.
   Called from tests/libc/stdio_h.c:6.
-[value] using specification for function fopen
-[value] tests/libc/stdio_h.c:6: 
+[eva] using specification for function fopen
+[eva] tests/libc/stdio_h.c:6: 
   function fopen: precondition 'valid_filename' got status valid.
-[value] Done for function fopen
-[value] computing for function fseek <- main.
+[eva] tests/libc/stdio_h.c:6: 
+  function fopen: precondition 'valid_mode' got status valid.
+[eva] Done for function fopen
+[eva] computing for function fseek <- main.
   Called from tests/libc/stdio_h.c:8.
-[value] using specification for function fseek
-[value] tests/libc/stdio_h.c:8: 
+[eva] using specification for function fseek
+[eva] tests/libc/stdio_h.c:8: 
   function fseek: precondition 'valid_stream' got status valid.
-[value] tests/libc/stdio_h.c:8: 
+[eva] tests/libc/stdio_h.c:8: 
   function fseek: precondition 'whence_enum' got status valid.
-[value] Done for function fseek
-[value] computing for function fseek <- main.
+[eva] Done for function fseek
+[eva] computing for function fseek <- main.
   Called from tests/libc/stdio_h.c:10.
-[value:alarm] tests/libc/stdio_h.c:10: Warning: 
+[eva:alarm] tests/libc/stdio_h.c:10: Warning: 
   function fseek: precondition 'valid_stream' got status invalid.
-[value] tests/libc/stdio_h.c:10: 
+[eva] tests/libc/stdio_h.c:10: 
   function fseek: no state left, precondition 'whence_enum' got status valid.
-[value] Done for function fseek
-[value] computing for function Frama_C_interval <- main.
+[eva] Done for function fseek
+[eva] computing for function Frama_C_interval <- main.
   Called from tests/libc/stdio_h.c:16.
-[value] using specification for function Frama_C_interval
-[value] tests/libc/stdio_h.c:16: 
+[eva] using specification for function Frama_C_interval
+[eva] tests/libc/stdio_h.c:16: 
   function Frama_C_interval: precondition 'order' got status valid.
-[value] Done for function Frama_C_interval
-[value] computing for function fseek <- main.
+[eva] Done for function Frama_C_interval
+[eva] computing for function fseek <- main.
   Called from tests/libc/stdio_h.c:19.
-[value] tests/libc/stdio_h.c:19: 
+[eva] tests/libc/stdio_h.c:19: 
   function fseek: precondition 'valid_stream' got status valid.
-[value:alarm] tests/libc/stdio_h.c:19: Warning: 
+[eva:alarm] tests/libc/stdio_h.c:19: Warning: 
   function fseek: precondition 'whence_enum' got status invalid.
-[value] Done for function fseek
-[value] computing for function tmpfile <- main.
+[eva] Done for function fseek
+[eva] computing for function tmpfile <- main.
   Called from tests/libc/stdio_h.c:23.
-[value] using specification for function tmpfile
-[value] Done for function tmpfile
-[value] computing for function fseek <- main.
+[eva] using specification for function tmpfile
+[eva] Done for function tmpfile
+[eva] computing for function fseek <- main.
   Called from tests/libc/stdio_h.c:25.
-[value] tests/libc/stdio_h.c:25: 
+[eva] tests/libc/stdio_h.c:25: 
   function fseek: precondition 'valid_stream' got status valid.
-[value] tests/libc/stdio_h.c:25: 
+[eva] tests/libc/stdio_h.c:25: 
   function fseek: precondition 'whence_enum' got status valid.
-[value] Done for function fseek
-[value] computing for function fclose <- main.
+[eva] Done for function fseek
+[eva] computing for function fclose <- main.
   Called from tests/libc/stdio_h.c:26.
-[value] using specification for function fclose
-[value] tests/libc/stdio_h.c:26: 
+[eva] using specification for function fclose
+[eva] tests/libc/stdio_h.c:26: 
   function fclose: precondition 'valid_stream' got status valid.
-[value] Done for function fclose
-[value] Recording results for main
-[value] done for function main
-[value] ====== VALUES COMPUTED ======
-[value:final-states] Values at end of function main:
+[eva] Done for function fclose
+[eva] computing for function freopen <- main.
+  Called from tests/libc/stdio_h.c:28.
+[eva] using specification for function freopen
+[eva] tests/libc/stdio_h.c:28: 
+  function freopen: precondition 'valid_filename' got status valid.
+[eva] tests/libc/stdio_h.c:28: 
+  function freopen: precondition 'valid_mode' got status valid.
+[eva:alarm] tests/libc/stdio_h.c:28: Warning: 
+  function freopen: precondition 'valid_stream' got status unknown.
+[eva] Done for function freopen
+[eva] computing for function printf_va_1 <- main.
+  Called from tests/libc/stdio_h.c:30.
+[eva] using specification for function printf_va_1
+[eva] tests/libc/stdio_h.c:30: 
+  function printf_va_1: precondition got status valid.
+[eva] Done for function printf_va_1
+[eva] computing for function fclose <- main.
+  Called from tests/libc/stdio_h.c:31.
+[eva] tests/libc/stdio_h.c:31: 
+  function fclose: precondition 'valid_stream' got status valid.
+[eva] Done for function fclose
+[eva] Recording results for main
+[eva] done for function main
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function main:
   __fc_errno ∈ [--..--]
   __fc_fopen[0..15] ∈ [--..--]
   Frama_C_entropy_source ∈ [--..--]
   f ∈ {{ NULL ; &__fc_fopen + [0..120],0%8 }}
   r ∈ [--..--]
   tmp_2 ∈ {{ NULL ; &__fc_fopen + [0..120],0%8 }}
-  __retres ∈ {0; 1; 2}
+  redirected ∈ {{ NULL ; &__fc_fopen + [0..120],0%8 }}
+  __retres ∈ {0; 1; 2; 3}
+  S___fc_stdout[0..1] ∈ [--..--]

@@ -29,28 +29,28 @@ module Retres =
       let name = "Value.Library_functions.Retres"
       let size = 9
       let dependencies = [Ast.self]
-     end)
+    end)
 let () = Ast.add_monotonic_state Retres.self
 
 let () =
   State_dependency_graph.add_dependencies ~from:Retres.self [ Db.Value.self ]
 
 let get_retres_vi = Retres.memo
-  (fun kf ->
-    let vi = Kernel_function.get_vi kf in
-    let typ = Cil.getReturnType vi.vtype in
-    if Cil.isVoidType typ then
-      None
-    else
-      try
-        ignore (Cil.bitsSizeOf typ);
-        let name = Format.asprintf "\\result<%a>" Kernel_function.pretty kf in
-        Some (Cil.makeVarinfo false false name typ)
-      with Cil.SizeOfError _ ->
-        Value_parameters.abort ~current:true
-          "function %a returns a value of unknown size. Aborting"
-          Kernel_function.pretty kf
-  )
+    (fun kf ->
+       let vi = Kernel_function.get_vi kf in
+       let typ = Cil.getReturnType vi.vtype in
+       if Cil.isVoidType typ then
+         None
+       else
+         try
+           ignore (Cil.bitsSizeOf typ);
+           let name = Format.asprintf "\\result<%a>" Kernel_function.pretty kf in
+           Some (Cil.makeVarinfo false false name typ)
+         with Cil.SizeOfError _ ->
+           Value_parameters.abort ~current:true
+             "function %a returns a value of unknown size. Aborting"
+             Kernel_function.pretty kf
+    )
 
 let returned_value kf =
   let return_type = Cil.unrollType (Kernel_function.get_return_type kf) in
@@ -62,12 +62,44 @@ let returned_value kf =
   | TFloat (FDouble, _)
   | TFloat (FLongDouble, _) -> Cvalue.V.top_float
   | TBuiltin_va_list _ ->
-      Value_parameters.error ~current:true ~once:true
-        "functions returning variadic arguments must be stubbed%t"
-        Value_util.pp_callstack;
-      Cvalue.V.top_int
+    Value_parameters.error ~current:true ~once:true
+      "functions returning variadic arguments must be stubbed%t"
+      Value_util.pp_callstack;
+    Cvalue.V.top_int
   | TVoid _ -> Cvalue.V.top (* this value will never be used *)
   | TFun _ | TNamed _ | TArray _ -> assert false
+
+
+let unsupported_specifications =
+  [ "glob", "glob.c";
+    "globfree", "glob.c";
+    "getaddrinfo", "netdb.c";
+    "getline", "stdio.c";
+    "strerror", "string.c";
+    "strdup", "string.c";
+    "strndup", "string.c";
+    "getenv", "stdlib.c";
+    "putenv", "stdlib.c";
+    "setenv", "stdlib.c";
+    "unsetenv", "stdlib.c"
+  ]
+
+let unsupported_specs_tbl =
+  let tbl = Hashtbl.create 10 in
+  List.iter
+    (fun (name, file) -> Hashtbl.replace tbl name file)
+    unsupported_specifications;
+  tbl
+
+let warn_unsupported_spec name =
+  try
+    let header = Hashtbl.find unsupported_specs_tbl name in
+    Value_parameters.warning ~once:true ~current:true
+      ~wkey:Value_parameters.wkey_libc_unsupported_spec
+      "@[The specification of function '%s' is currently not supported by Eva.@ \
+       Consider adding %s@ to the analyzed source files.@]"
+      name (Config.datadir ^ "/libc/" ^ header)
+  with Not_found -> ()
 
 
 (*

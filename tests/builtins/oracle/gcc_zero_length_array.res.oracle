@@ -1,0 +1,76 @@
+[kernel] Parsing tests/builtins/gcc_zero_length_array.c (with preprocessing)
+[eva] Analyzing a complete application starting at main
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
+  
+[eva] computing for function make_fam <- main.
+  Called from tests/builtins/gcc_zero_length_array.c:24.
+[eva] tests/builtins/gcc_zero_length_array.c:15: 
+  Call to builtin Frama_C_malloc_fresh for function malloc
+[eva] tests/builtins/gcc_zero_length_array.c:15: 
+  allocating variable __malloc_make_fam_l15
+[eva] Recording results for make_fam
+[eva] Done for function make_fam
+[eva] tests/builtins/gcc_zero_length_array.c:26: Call to builtin free
+[eva] tests/builtins/gcc_zero_length_array.c:26: 
+  function free: precondition 'freeable' got status valid.
+[eva:malloc] tests/builtins/gcc_zero_length_array.c:26: 
+  strong free on bases: {__malloc_make_fam_l15}
+[eva] Recording results for main
+[eva] done for function main
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function make_fam:
+  __fc_heap_status ∈ [--..--]
+  i ∈ {11}
+  p ∈ {{ &__malloc_make_fam_l15[0] }}
+  __malloc_make_fam_l15[0].len ∈ {11}
+                       [1] ∈ {0}
+                       [2].len ∈ {1}
+                       [3].len ∈ {2}
+                       [4].len ∈ {3}
+                       [5].len ∈ {4}
+                       [6].len ∈ {5}
+                       [7].len ∈ {6}
+                       [8].len ∈ {7}
+                       [9].len ∈ {8}
+                       [10].len ∈ {9}
+                       [11].len ∈ {10}
+[eva:final-states] Values at end of function main:
+  __fc_heap_status ∈ [--..--]
+  pfam ∈ ESCAPINGADDR
+  res ∈ {10}
+[from] Computing for function make_fam
+[from] Computing for function malloc <-make_fam
+[from] Done for function malloc
+[from] Done for function make_fam
+[from] Computing for function main
+[from] Computing for function free <-main
+[from] Done for function free
+[from] Done for function main
+[from] ====== DEPENDENCIES COMPUTED ======
+  These dependencies hold at termination for the executions that terminate:
+[from] Function free:
+  __fc_heap_status FROM __fc_heap_status (and SELF)
+[from] Function malloc:
+  __fc_heap_status FROM __fc_heap_status; size (and SELF)
+  \result FROM __fc_heap_status; size
+[from] Function make_fam:
+  __fc_heap_status FROM __fc_heap_status; len (and SELF)
+  __malloc_make_fam_l15[0] FROM __fc_heap_status; len
+                       [1..11] FROM __fc_heap_status; len (and SELF)
+  \result FROM __fc_heap_status; len
+[from] Function main:
+  __fc_heap_status FROM __fc_heap_status (and SELF)
+  __malloc_make_fam_l15[0] FROM __fc_heap_status
+                       [1..11] FROM __fc_heap_status (and SELF)
+  \result FROM __fc_heap_status; __malloc_make_fam_l15[11]
+[from] ====== END OF DEPENDENCIES ======
+[inout] Out (internal) for function make_fam:
+    __fc_heap_status; i; p; __malloc_make_fam_l15[0..11]
+[inout] Inputs for function make_fam:
+    __fc_heap_status
+[inout] Out (internal) for function main:
+    __fc_heap_status; pfam; res; __malloc_make_fam_l15[0..11]
+[inout] Inputs for function main:
+    __fc_heap_status; __malloc_make_fam_l15[11]

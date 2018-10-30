@@ -1,0 +1,38 @@
+# frama-c -wp [...]
+[kernel] Parsing tests/wp_bts/issue-516.c (with preprocessing)
+[wp] Running WP plugin...
+[wp] Loading driver 'share/wp.driver'
+[wp] Warning: Missing RTE guards
+[wp] Warning: No definition for 'to_logic_list' interpreted as reads nothing
+------------------------------------------------------------
+  Function list_remove
+------------------------------------------------------------
+
+Goal Assertion (file tests/wp_bts/issue-516.c, line 21):
+Let a = Mptr_0[list_0].
+Assume {
+  (* Heap *)
+  Have: (region(item_0.base) <= 0) /\ (region(list_0.base) <= 0) /\
+      framed(Mptr_0).
+}
+Prove: (a != null) /\ (a = nth(L_to_logic_list(a, null), 0)).
+
+------------------------------------------------------------
+
+Goal Assertion 'UNROLL' (file tests/wp_bts/issue-516.c, line 23):
+Let a = Mptr_0[list_0].
+Let a_1 = Mptr_0[shiftfield_F1_list_next(a)].
+Assume {
+  (* Goal *)
+  When: (a_1 != item_0) /\ (a_1 = null).
+  (* Heap *)
+  Have: (region(item_0.base) <= 0) /\ (region(list_0.base) <= 0) /\
+      framed(Mptr_0).
+  (* Initializer *)
+  Init: a = nth(L_to_logic_list(a, a_1), 0).
+  (* Assertion *)
+  Have: a_1 != a.
+}
+Prove: L_to_logic_list(a, a) = nil.
+
+------------------------------------------------------------

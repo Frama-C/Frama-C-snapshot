@@ -1,8 +1,8 @@
 [kernel] Parsing tests/value/bitwise_pointer.i (no preprocessing)
-[value] Analyzing a complete application starting at main
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing a complete application starting at main
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   t[0] ∈ {0}
    [1] ∈ {1}
    [2] ∈ {2}
@@ -29,20 +29,20 @@
     [10..99] ∈ {0}
   p1 ∈ {0}
   x1 ∈ {0}
-[value] tests/value/bitwise_pointer.i:18: 
+[eva] tests/value/bitwise_pointer.i:18: 
   Assigning imprecise value to p.
   The imprecision originates from Arithmetic {tests/value/bitwise_pointer.i:18}
-[value:alarm] tests/value/bitwise_pointer.i:19: Warning: 
+[eva:alarm] tests/value/bitwise_pointer.i:19: Warning: 
   out of bounds write. assert \valid(p);
-[value] tests/value/bitwise_pointer.i:22: 
+[eva] tests/value/bitwise_pointer.i:22: 
   Assigning imprecise value to p1.
   The imprecision originates from Arithmetic {tests/value/bitwise_pointer.i:22}
-[value:alarm] tests/value/bitwise_pointer.i:23: Warning: 
+[eva:alarm] tests/value/bitwise_pointer.i:23: Warning: 
   out of bounds write. assert \valid(p1);
-[value] Recording results for main
-[value] done for function main
-[value] ====== VALUES COMPUTED ======
-[value:final-states] Values at end of function main:
+[eva] Recording results for main
+[eva] done for function main
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function main:
   t[0] ∈ {0; 5}
    [1] ∈ {1; 5}
    [2] ∈ {2; 5}

@@ -1,17 +1,17 @@
 [kernel] Parsing tests/value/uninit.i (no preprocessing)
-[value] Analyzing a complete application starting at main
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing a complete application starting at main
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   
-[value:alarm] tests/value/uninit.i:3: Warning: 
+[eva:alarm] tests/value/uninit.i:3: Warning: 
   accessing uninitialized left-value. assert \initialized(&i);
-[value] Recording results for main
-[value] done for function main
-[value] tests/value/uninit.i:3: 
-  assertion 'Value,initialization' got final status invalid.
-[value] ====== VALUES COMPUTED ======
-[value:final-states] Values at end of function main:
+[eva] Recording results for main
+[eva] done for function main
+[eva] tests/value/uninit.i:3: 
+  assertion 'Eva,initialization' got final status invalid.
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function main:
   NON TERMINATING FUNCTION
 [from] Computing for function main
 [from] Non-terminating function main (no dependencies)

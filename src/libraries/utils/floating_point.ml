@@ -238,6 +238,7 @@ let rec single_precision_of_string s =
   else (* decimal *)
     parse_float ~man_size:23 ~min_exp:(-126) ~max_exp:127 s
 
+(* May raise Failure("float_of_string"). *)
 let rec double_precision_of_string s = 
   if s.[0] = '-' then
     opp_parse_float (double_precision_of_string (String.sub s 1 (String.length s - 1)))
@@ -251,8 +252,30 @@ let rec double_precision_of_string s =
 let parse_kind kind string =
   match kind with
   | Cil_types.FFloat -> single_precision_of_string string
-  | Cil_types.FDouble | Cil_types.FLongDouble ->
-    double_precision_of_string string
+  | Cil_types.FDouble
+  | Cil_types.FLongDouble -> double_precision_of_string string
+
+let parse string =
+  let l = String.length string - 1 in
+  if l < 0
+  then Kernel.fatal ~current:true
+      "Parsing an empty string as a floating-point constant."
+  else
+    let last = Transitioning.Char.uppercase_ascii string.[l] in
+    let suffix, kind =
+      match last with
+      | 'F' -> true, Cil_types.FFloat
+      | 'D' -> true, Cil_types.FDouble
+      | 'L' -> true, Cil_types.FLongDouble
+      | _ -> false, Cil_types.FDouble
+    in
+    let baseint = if suffix then String.sub string 0 l else string in
+    try
+      let basefloat = parse_kind kind baseint in
+      kind, basefloat
+    with Failure _ -> (* should never happen, suffix already stripped *)
+      Kernel.fatal ~current:true
+        "Unexpected error parsing floating-point constant: %s." string
 
 let pretty_normal ~use_hex fmt f =
   let double_norm = Int64.shift_left 1L 52 in

@@ -1,8 +1,8 @@
 [kernel] Parsing tests/value/ptr_relation.i (no preprocessing)
-[value] Analyzing a complete application starting at main2
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing a complete application starting at main2
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   i ∈ {0}
   j ∈ {0}
   x ∈ {0}
@@ -16,23 +16,23 @@
   ptr ∈ {0}
   tab_ptr_fct2[0] ∈ {{ &f2 }}
               [1] ∈ {{ &g2 }}
-[value] computing for function g2 <- main2.
+[eva] computing for function g2 <- main2.
   Called from tests/value/ptr_relation.i:38.
-[value] Recording results for g2
-[value] Done for function g2
-[value] computing for function f2 <- main2.
+[eva] Recording results for g2
+[eva] Done for function g2
+[eva] computing for function f2 <- main2.
   Called from tests/value/ptr_relation.i:38.
-[value] Recording results for f2
-[value] Done for function f2
-[value] Recording results for main2
-[value] done for function main2
-[value] ====== VALUES COMPUTED ======
-[value:final-states] Values at end of function f2:
+[eva] Recording results for f2
+[eva] Done for function f2
+[eva] Recording results for main2
+[eva] done for function main2
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function f2:
   a ∈ [--..--]
   b ∈ [--..--]
-[value:final-states] Values at end of function g2:
+[eva:final-states] Values at end of function g2:
   a ∈ [--..--]
-[value:final-states] Values at end of function main2:
+[eva:final-states] Values at end of function main2:
   j ∈ {0; 1}
   a ∈ [--..--]
   b ∈ [--..--]

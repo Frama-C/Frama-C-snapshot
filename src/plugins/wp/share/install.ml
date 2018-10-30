@@ -44,9 +44,9 @@ let hardcopy inc out =
     let buffer = Bytes.create 1024 in
     let n = ref 0 in
     while (n := Pervasives.input inc buffer 0 1024 ; !n > 0) do
-      Pervasives.output out buffer 0 !n 
+      Pervasives.output out buffer 0 !n
     done ;
-    flush out ; 
+    flush out ;
   end
 
 let copy src tgt = on_inc src (fun inc -> on_out tgt (hardcopy inc))
@@ -81,9 +81,9 @@ let count = ref 0
 let summary = ref false
 
 let do_mkdir tgt =
-  if not (Sys.file_exists tgt) then 
+  if not (Sys.file_exists tgt) then
     begin
-      if not !path then 
+      if not !path then
         failwith (Printf.sprintf "Directory %S not found." tgt) ;
       if !verbose then Format.printf "[install] mkdir %S@." tgt ;
       mkdir tgt ;
@@ -107,7 +107,7 @@ let do_chmod tgt =
       Unix.chmod tgt perm ;
   end
 
-let do_install file = 
+let do_install file =
   try
     let src = Printf.sprintf "%s/%s" !input file in
     if Sys.file_exists src then
@@ -120,19 +120,19 @@ let do_install file =
     else if !warning then
       Format.printf "[install] File %S not found@." src
   with
-  | Failure msg | Sys_error msg -> 
-      Format.printf "[install] %s@." msg ; 
+  | Failure msg | Sys_error msg ->
+      Format.printf "[install] %s@." msg ;
       exit 1
   | Unix.Unix_error (e,_,_) ->
       let msg = Unix.error_message e in
-      Format.printf "[install] Error: %s@." msg ; 
+      Format.printf "[install] Error: %s@." msg ;
       exit 2
   | e ->
       let msg = Printexc.to_string e in
-      Format.printf "[install] Error: %s@." msg ; 
+      Format.printf "[install] Error: %s@." msg ;
       exit 2
 
-let () = 
+let () =
   Arg.parse [
     "-v" , Arg.Set verbose , "verbose mode" ;
     "-q" , Arg.Clear verbose , "quiet mode (default)" ;
@@ -145,12 +145,12 @@ let () =
     "-b", Arg.Set binary, "set binary mode for copying files.";
   ] do_install
     "Usage: install [options|files]\n\n\
-    Copy all files from input directory to output directory.\n\
-    Files must be given with their relative paths to input/output.\n\
-    Options and files are processed in order (each option only\n\
-    apply to subsequent files).\n"
+     Copy all files from input directory to output directory.\n\
+     Files must be given with their relative paths to input/output.\n\
+     Options and files are processed in order (each option only\n\
+     apply to subsequent files).\n"
 
-let () = 
+let () =
   if !summary then match !count with
     | 0 -> Format.printf "No file installed.@."
     | 1 -> Format.printf "One single file installed.@."

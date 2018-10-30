@@ -163,11 +163,11 @@ __BEGIN_DECLS
 /*@ axiomatic StrChr {
   @ logic 𝔹 strchr{L}(char *s, ℤ c)
   @   reads s[0..strlen(s)];
-  @ // Returns [true] iff string [s] contains character [c]
+  @ // Returns [true] iff string [s] contains [c] (interpreted as char)
   @
   @ axiom strchr_def{L}:
   @   \forall char *s; \forall ℤ c;
-  @      strchr(s,c) <==> \exists ℤ i; 0 <= i <= strlen(s) && s[i] == c;
+  @      strchr(s,c) <==> \exists ℤ i; 0 <= i <= strlen(s) && s[i] == (char)c;
   @ }
   @*/
 
@@ -239,6 +239,19 @@ __BEGIN_DECLS
   @      wcsncmp(s1,s2,n) == 0 <==>
   @        (wcslen(s1) < n && wcscmp(s1,s2) == 0
   @         || \forall ℤ i; 0 <= i < n ==> s1[i] == s2[i]);
+  @ }
+  @*/
+
+/*@ axiomatic WcsChr {
+  @ logic 𝔹 wcschr{L}(wchar_t *wcs, ℤ wc)
+  @   reads wcs[0..wcslen(wcs)];
+  @ // Returns [true] iff wide string [wcs] contains [wc]
+  @ //(interpreted as wchar_t)
+  @
+  @ axiom wcschr_def{L}:
+  @   \forall wchar_t *wcs; \forall ℤ wc;
+  @      wcschr(wcs,wc) <==> \exists ℤ i; 0 <= i <= wcslen(wcs)
+  @                                       && wcs[i] == (wchar_t)wc;
   @ }
   @*/
 

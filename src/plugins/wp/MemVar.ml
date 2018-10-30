@@ -28,7 +28,7 @@ open Cil_types
 open Cil_datatype
 open Ctypes
 
-open Separation
+open MemoryContext
 open Lang
 open Lang.F
 open Sigs
@@ -36,8 +36,8 @@ open Sigs
 module type VarUsage =
 sig
   val datatype : string
-  val param : varinfo -> Separation.param
-  val separation : unit -> Separation.clause
+  val param : varinfo -> MemoryContext.param
+  val hypotheses : unit -> MemoryContext.clause list
 end
 
 module Make(V : VarUsage)(M : Sigs.Model) =
@@ -50,7 +50,7 @@ struct
   let datatype = "MemVar." ^ V.datatype ^ M.datatype
   let configure = M.configure
 
-  let separation () = V.separation () :: M.separation ()
+  let hypotheses () = V.hypotheses () @ M.hypotheses ()
 
   (* -------------------------------------------------------------------------- *)
   (* ---  Chunk                                                             --- *)
@@ -62,7 +62,7 @@ struct
     | Mem of M.Chunk.t
 
   let is_framed_var x = not x.vglob && not x.vaddrof
-  (* Can not use VarUsage info, since (&x) can still be passed 
+  (* Can not use VarUsage info, since (&x) can still be passed
      to the function and be modified by the call (when it assigns everything). *)
 
   module VAR =
@@ -178,7 +178,7 @@ struct
       let a = ALLOC.choose s1.alloc s2.alloc in
       let m = M.Sigma.choose s1.mem s2.mem in
       { vars = s ; alloc = a ; mem = m }
-    
+
     let merge s1 s2 =
       let s,pa1,pa2 = SIGMA.merge s1.vars s2.vars in
       let a,ta1,ta2 = ALLOC.merge s1.alloc s2.alloc in
@@ -193,7 +193,7 @@ struct
       let m,qa = M.Sigma.merge_list (List.map (fun s -> s.mem) l) in
       { vars = s ; alloc = a ; mem = m } ,
       let union = List.map2 Passive.union in
-       union (union pa ta) qa
+      union (union pa ta) qa
 
     let join s1 s2 =
       Passive.union
@@ -206,21 +206,21 @@ struct
       | Var x -> SIGMA.get s.vars x
       | Alloc x -> ALLOC.get s.alloc x
       | Mem m -> M.Sigma.get s.mem m
-                   
+
     let mem s = function
       | Var x -> SIGMA.mem s.vars x
       | Alloc x -> ALLOC.mem s.alloc x
       | Mem m -> M.Sigma.mem s.mem m
-                   
+
     let value s c = e_var (get s c)
-        
+
     let iter f s =
       begin
         SIGMA.iter (fun x -> f (Var x)) s.vars ;
         ALLOC.iter (fun x -> f (Alloc x)) s.alloc ;
         M.Sigma.iter (fun m -> f (Mem m)) s.mem ;
       end
-      
+
     let iter2 f s t =
       begin
         SIGMA.iter2 (fun x a b -> f (Var x) a b) s.vars t.vars ;
@@ -251,11 +251,11 @@ struct
     let domain_mem ms =
       M.Heap.Set.fold (fun m s -> Heap.Set.add (Mem m) s) ms Heap.Set.empty
 
-    let assigned s1 s2 w =
+    let assigned ~pre ~post w =
       let w_vars , w_alloc , w_mem = domain_partition w in
-      let h_vars = SIGMA.assigned s1.vars s2.vars w_vars in
-      let h_alloc = ALLOC.assigned s1.alloc s2.alloc w_alloc in
-      let h_mem = M.Sigma.assigned s1.mem s2.mem w_mem in
+      let h_vars = SIGMA.assigned ~pre:pre.vars ~post:post.vars w_vars in
+      let h_alloc = ALLOC.assigned ~pre:pre.alloc ~post:post.alloc w_alloc in
+      let h_mem = M.Sigma.assigned ~pre:pre.mem ~post:post.mem w_mem in
       Bag.ulist [h_vars;h_alloc;h_mem]
 
     let havoc s r =
@@ -265,7 +265,7 @@ struct
         alloc = ALLOC.havoc s.alloc ralloc ;
         mem = M.Sigma.havoc s.mem rmem ;
       }
- 
+
     let havoc_chunk s = function
       | Var x -> { s with vars = SIGMA.havoc_chunk s.vars x }
       | Alloc x -> { s with alloc = ALLOC.havoc_chunk s.alloc x }
@@ -309,49 +309,49 @@ struct
   end
 
   type domain = Sigma.domain
-  
+
   let get_var s x = SIGMA.get s.vars x
   let get_term s x = e_var (get_var s x)
-  
+
   (* -------------------------------------------------------------------------- *)
   (* ---  State Pretty Printer                                              --- *)
   (* -------------------------------------------------------------------------- *)
 
   type ichunk = Iref of varinfo | Ivar of varinfo
-  
+
   type state = {
     svar : ichunk Tmap.t ;
     smem : M.state ;
   }
 
   module IChunk =
-    struct
-  
-      let compare_var x y =
-        let rank x = 
-          if x.vformal then 0 else
-          if x.vglob then 1 else
-          if x.vtemp then 3 else 2 in
-        let cmp = rank x - rank y in
-        if cmp <> 0 then cmp else Varinfo.compare x y
+  struct
 
-      type t = ichunk
-      let hash = function Iref x | Ivar x -> Varinfo.hash x
-      let compare x y =
-        match x,y with
-        | Iref x , Iref y -> Varinfo.compare x y
-        | Iref _ , _ -> (-1)
-        | _ , Iref _ -> 1
-        | Ivar x , Ivar y -> compare_var x y
-      let equal x y =
-        match x,y with
-        | Iref x , Iref y | Ivar x , Ivar y -> Varinfo.equal x y
-        | Iref _ , Ivar _ | Ivar _ , Iref _ -> false
-      
-    end
+    let compare_var x y =
+      let rank x =
+        if x.vformal then 0 else
+        if x.vglob then 1 else
+        if x.vtemp then 3 else 2 in
+      let cmp = rank x - rank y in
+      if cmp <> 0 then cmp else Varinfo.compare x y
+
+    type t = ichunk
+    let hash = function Iref x | Ivar x -> Varinfo.hash x
+    let compare x y =
+      match x,y with
+      | Iref x , Iref y -> Varinfo.compare x y
+      | Iref _ , _ -> (-1)
+      | _ , Iref _ -> 1
+      | Ivar x , Ivar y -> compare_var x y
+    let equal x y =
+      match x,y with
+      | Iref x , Iref y | Ivar x , Ivar y -> Varinfo.equal x y
+      | Iref _ , Ivar _ | Ivar _ , Iref _ -> false
+
+  end
 
   module Icmap = Qed.Mergemap.Make(IChunk)
-  
+
   let set_chunk v c m =
     let c =
       try
@@ -473,6 +473,10 @@ struct
     | Loc l -> M.occurs x l
     | Val(_,_,ofs) -> ofs_occurs x ofs
 
+  let byte_offset n = function
+    | Field fd -> F.e_add n (F.e_int (Ctypes.field_offset fd))
+    | Shift(obj,k) -> F.e_add n (F.e_fact (Ctypes.sizeof_object obj) k)
+
   (* -------------------------------------------------------------------------- *)
   (* ---  Variable and Context                                              --- *)
   (* -------------------------------------------------------------------------- *)
@@ -513,7 +517,7 @@ struct
     | CTXT -> Format.pp_print_string fmt "ptr"
     | CARR -> Format.pp_print_string fmt "arr"
     | HEAP -> Format.pp_print_string fmt "mem"
-                
+
   (* re-uses strings that are used into the description of -wp-xxx-vars *)
   let pp_var_model fmt = function
     | ByValue | ByShift | NotUsed -> Format.pp_print_string fmt "non-aliased" (* cf.  -wp-unalias-vars *)
@@ -531,13 +535,13 @@ struct
           (pp_offset ~obj) ofs
 
   let noref ~op var =
-    Warning.error 
+    Warning.error
       "forbidden %s variable '%a' considered %a.@\n\
        Use model 'Typed' instead or specify '-wp-unalias-vars %a'"
       op Varinfo.pretty var
       pp_var_model (V.param var)
       Varinfo.pretty var
-  
+
   (* -------------------------------------------------------------------------- *)
   (* ---  Basic Constructors                                                --- *)
   (* -------------------------------------------------------------------------- *)
@@ -560,10 +564,10 @@ struct
     | Shift(e,k) -> M.shift l e k
 
   let mseq_of_seq seq = { pre = seq.pre.mem ; post = seq.post.mem }
-  
+
   let mloc_of_path m x ofs =
     List.fold_left moffset (M.cvar (vbase m x)) ofs
-  
+
   let mloc_of_loc = function
     | Loc l -> l
     | Ref x -> M.cvar x
@@ -591,6 +595,11 @@ struct
     | Loc l -> Loc (M.base_addr l)
     | Ref x -> noref ~op:"base address of" x (* ??? ~suggest:ByValue *)
     | Val(m,x,_) -> Val(m,x,[])
+
+  let base_offset = function
+    | Loc l -> M.base_offset l
+    | Ref x -> noref ~op:"offset address of" x (* ??? ~suggest:ByValue *)
+    | Val(_,_,ofs) -> List.fold_left byte_offset e_zero ofs
 
   let block_length sigma obj = function
     | Loc l -> M.block_length sigma.mem obj l
@@ -691,7 +700,7 @@ struct
     | Ref x , Ref y when Varinfo.equal x y -> e_zero
     | Val(_,x,p) , Val(_,y,q) when Varinfo.equal x y ->
         e_div (e_sub (offset p) (offset q)) (e_int (Ctypes.sizeof_object obj))
-    | _ -> 
+    | _ ->
         Warning.error ~source:"Reference Variable Model"
           "Uncomparable locations %a and %a" pretty a pretty b
 
@@ -718,10 +727,10 @@ struct
 
   let is_heap_allocated = function
     | CREF | CVAL -> false | HEAP | CTXT | CARR -> true
-  
+
   let shift_mismatch l =
     Wp_parameters.fatal "Invalid shift : %a" pretty l
-  
+
   let unsized_array () = Warning.error ~severe:false
       "Validity of unsized-array not implemented yet"
 
@@ -730,7 +739,7 @@ struct
 
   let stay_outside cond a b n =
     p_lt b e_zero :: p_leq (e_int n) a :: cond
-  
+
   (* Append conditions to [cond] for [range=(elt,a,b)],
      consisting of [a..b] elements with type [elt] to fits inside the block,
      provided [a<=b]. *)
@@ -759,7 +768,7 @@ struct
             let cond = block_check fits_inside cond (obj,1) (te,k,k) in
             offset_fits cond te ofs
 
-  (* Append conditions to [cond] for [range=(elt,a,b)], starting at [offset], 
+  (* Append conditions to [cond] for [range=(elt,a,b)], starting at [offset],
      consisting of [a..b] elements with type [elt] to fits inside the block,
      of stay outside valid paths, provided [a<=b]. *)
   let rec range_check fitting cond alloc offset ((elt,a,b) as range) =
@@ -784,13 +793,13 @@ struct
   (* -------------------------------------------------------------------------- *)
   (* ---  Validity                                                          --- *)
   (* -------------------------------------------------------------------------- *)
-                
+
   let valid_offset obj ofs =
     F.p_conj (offset_fits [] obj ofs)
-      
+
   let valid_range obj ofs range =
     F.p_conj (range_check fits_inside [] (obj,1) ofs range)
-  
+
   (* varinfo *)
 
   let valid_base sigma acs mem x =
@@ -858,7 +867,7 @@ struct
 
   let invalid_range obj ofs range =
     F.p_disj (range_check stay_outside [] (obj,1) ofs range)
-  
+
   let invalid_offset_path sigma m x p =
     p_not (valid_offset_path sigma RD m x p)
 
@@ -866,7 +875,7 @@ struct
     p_imply
       (valid_base sigma RD m x)
       (invalid_range (vobject m x) p rg)
-  
+
   let invalid sigma = function
     | Rloc(obj,l) ->
         begin match l with
@@ -901,7 +910,7 @@ struct
                   Warning.error "Invalidity of infinite range @[%a.(%a..%a)@]"
                     pretty l Vset.pp_bound a Vset.pp_bound b
         end
-          
+
   (* -------------------------------------------------------------------------- *)
   (* ---  Scope                                                             --- *)
   (* -------------------------------------------------------------------------- *)
@@ -909,12 +918,12 @@ struct
   let is_mem x = match V.param x with
     | ByAddr -> true
     | _ -> false
-  
+
   let is_mvar_alloc x =
     match V.param x with
     | ByRef | InContext | InArray | NotUsed -> false
     | ByValue | ByShift | ByAddr -> true
-  
+
   let frame sigma =
     let pool = ref [] in
     SIGMA.iter
@@ -1017,7 +1026,7 @@ struct
   (* -------------------------------------------------------------------------- *)
   (* ---  Assigned                                                          --- *)
   (* -------------------------------------------------------------------------- *)
-  
+
   let assigned_loc seq obj = function
     | Ref x -> noref ~op:"assigns to" x
     | Val((CVAL|CREF),_,[]) -> [] (* full update *)
@@ -1044,7 +1053,7 @@ struct
         M.assigned (mseq_of_seq seq) obj (Sarray(l,elt,n))
     | Loc l ->
         M.assigned (mseq_of_seq seq) obj (Sarray(l,elt,n))
-  
+
   let assigned_range seq obj l elt a b =
     match l with
     | Ref x -> noref ~op:"assigns to" x
@@ -1057,7 +1066,7 @@ struct
         let p = Vset.in_range (e_var k) a b in
         let ofs = ofs_shift elt (e_var k) ofs in
         assigned_descr seq [k] m x ofs p
-  
+
   let assigned_descr seq obj xs l p =
     match l with
     | Ref x -> noref ~op:"assigns to" x
@@ -1067,17 +1076,17 @@ struct
         M.assigned (mseq_of_seq seq) obj (Sdescr(xs,mloc_of_path m x ofs,p))
     | Val((CVAL|CREF) as m,x,ofs) ->
         assigned_descr seq xs m x ofs p
-  
+
   let assigned seq obj = function
     | Sloc l -> assigned_loc seq obj l
     | Sarray(l,elt,n) -> assigned_array seq obj l elt n
     | Srange(l,elt,a,b) -> assigned_range seq obj l elt a b
     | Sdescr(xs,l,p) -> assigned_descr seq obj xs l p
-                          
+
   (* -------------------------------------------------------------------------- *)
   (* --- Segments                                                           --- *)
   (* -------------------------------------------------------------------------- *)
-  
+
   type seq =
     | Rseg of varinfo
     | Fseg of varinfo * delta list
@@ -1104,13 +1113,13 @@ struct
           Drange(u,u) :: dstartof dim elt
         else []
     | _ -> []
-           
+
   let rec doffset obj host = function
     | d::ds -> dofs d :: (doffset obj (tofs d) ds)
     | [] -> dstartof (Ctypes.get_array_dim obj) host
 
   let delta obj x ofs = doffset obj (Ctypes.object_of x.vtype) ofs
-  
+
   let rec range ofs obj a b =
     match ofs with
     | [] -> [ Drange(a,b) ]
@@ -1122,7 +1131,7 @@ struct
 
     | Rloc(_,Ref x) -> Rseg x
     | Rrange(Ref x,_,_,_) -> noref ~op:"sub-range of" x
-          
+
     | Rloc(obj,Loc l) -> Lseg (Rloc(obj,l))
     | Rloc(obj,Val((CVAL|CREF),x,ofs)) ->
         Fseg(x,delta obj x ofs)

@@ -11,24 +11,20 @@ Goal Post-condition 'memcpy' in 'memcpy_alias_vars':
 Let a = Mptr_0[global(P_src_22)].
 Let a_1 = Mptr_0[global(P_dst_23)].
 Let a_2 = shift_uint8(a_1, 0).
-Let a_3 = shift_uint8(a, 0).
+Let a_3 = havoc(Mint_undef_0, Mint_0, a_2, len_0).
+Let a_4 = shift_uint8(a, 0).
 Assume {
   Type: is_sint32(len_0) /\ is_sint32(len_1).
   (* Goal *)
   When: (0 <= i) /\ ((2 + i) <= len_0).
   (* Heap *)
   Have: framed(Mptr_0) /\ linked(Malloc_0).
-  (* Pre-condition 'write_access' *)
-  Have: valid_rw(Malloc_0, a_2, len_0).
-  (* Pre-condition 'read_access' *)
-  Have: valid_rd(Malloc_0, a_3, len_0).
-  (* Pre-condition 'unaliasing' *)
-  Have: separated(a_2, len_0, a_3, len_0).
-  (* Loop assigns ... *)
-  Have: havoc(Mint_1, Mint_0, a_2, len_0).
+  (* Pre-condition *)
+  Have: valid_rd(Malloc_0, a_4, len_0) /\ valid_rw(Malloc_0, a_2, len_0) /\
+      separated(a_2, len_0, a_4, len_0).
   (* Invariant 'cpy' *)
   Have: forall i_1 : Z. ((0 <= i_1) -> (((len_1 + i_1) < len_0) ->
-      (Mint_0[shift_uint8(a, i_1)] = Mint_0[shift_uint8(a_1, i_1)]))).
+      (a_3[shift_uint8(a, i_1)] = a_3[shift_uint8(a_1, i_1)]))).
   (* Invariant 'dst' *)
   Have: shift_uint8(a_1, len_0) = shift_uint8(v, len_1).
   (* Invariant 'src' *)
@@ -38,7 +34,7 @@ Assume {
   (* Else *)
   Have: len_1 <= 0.
 }
-Prove: Mint_0[shift_uint8(a_1, i)] = Mint_1[shift_uint8(a, i)].
+Prove: a_3[shift_uint8(a_1, i)] = Mint_0[shift_uint8(a, i)].
 
 ------------------------------------------------------------
 
@@ -46,25 +42,21 @@ Goal Post-condition 'unmodified' in 'memcpy_alias_vars':
 Let a = Mptr_0[global(P_src_22)].
 Let a_1 = Mptr_0[global(P_dst_23)].
 Let a_2 = shift_uint8(a_1, 0).
-Let a_3 = shift_uint8(a, 0).
-Let a_4 = shift_uint8(a, i).
+Let a_3 = havoc(Mint_undef_0, Mint_0, a_2, len_0).
+Let a_4 = shift_uint8(a, 0).
+Let a_5 = shift_uint8(a, i).
 Assume {
   Type: is_sint32(len_0) /\ is_sint32(len_1).
   (* Goal *)
   When: (0 <= i) /\ ((2 + i) <= len_0).
   (* Heap *)
   Have: framed(Mptr_0) /\ linked(Malloc_0).
-  (* Pre-condition 'write_access' *)
-  Have: valid_rw(Malloc_0, a_2, len_0).
-  (* Pre-condition 'read_access' *)
-  Have: valid_rd(Malloc_0, a_3, len_0).
-  (* Pre-condition 'unaliasing' *)
-  Have: separated(a_2, len_0, a_3, len_0).
-  (* Loop assigns ... *)
-  Have: havoc(Mint_1, Mint_0, a_2, len_0).
+  (* Pre-condition *)
+  Have: valid_rd(Malloc_0, a_4, len_0) /\ valid_rw(Malloc_0, a_2, len_0) /\
+      separated(a_2, len_0, a_4, len_0).
   (* Invariant 'cpy' *)
   Have: forall i_1 : Z. ((0 <= i_1) -> (((len_1 + i_1) < len_0) ->
-      (Mint_0[shift_uint8(a, i_1)] = Mint_0[shift_uint8(a_1, i_1)]))).
+      (a_3[shift_uint8(a, i_1)] = a_3[shift_uint8(a_1, i_1)]))).
   (* Invariant 'dst' *)
   Have: shift_uint8(a_1, len_0) = shift_uint8(v, len_1).
   (* Invariant 'src' *)
@@ -74,7 +66,7 @@ Assume {
   (* Else *)
   Have: len_1 <= 0.
 }
-Prove: Mint_0[a_4] = Mint_1[a_4].
+Prove: a_3[a_5] = Mint_0[a_5].
 
 ------------------------------------------------------------
 
@@ -82,25 +74,21 @@ Goal Preservation of Invariant 'cpy' (file tests/wp_usage/issue-189-bis.i, line 
 Let a = Mptr_0[global(P_src_22)].
 Let a_1 = Mptr_0[global(P_dst_23)].
 Let a_2 = shift_uint8(a_1, 0).
-Let a_3 = shift_uint8(a, 0).
-Let m = Mint_0[v <- Mint_0[v_1]].
+Let a_3 = havoc(Mint_undef_0, Mint_0, a_2, len_0).
+Let a_4 = shift_uint8(a, 0).
+Let a_5 = a_3[v <- a_3[v_1]].
 Assume {
   Type: is_sint32(len_0) /\ is_sint32(len_1) /\ is_sint32(len_1 - 1).
   (* Goal *)
   When: (0 <= i) /\ ((i + len_1) <= len_0).
   (* Heap *)
   Have: framed(Mptr_0) /\ linked(Malloc_0).
-  (* Pre-condition 'write_access' *)
-  Have: valid_rw(Malloc_0, a_2, len_0).
-  (* Pre-condition 'read_access' *)
-  Have: valid_rd(Malloc_0, a_3, len_0).
-  (* Pre-condition 'unaliasing' *)
-  Have: separated(a_2, len_0, a_3, len_0).
-  (* Loop assigns ... *)
-  Have: havoc(Mint_1, Mint_0, a_2, len_0).
+  (* Pre-condition *)
+  Have: valid_rd(Malloc_0, a_4, len_0) /\ valid_rw(Malloc_0, a_2, len_0) /\
+      separated(a_2, len_0, a_4, len_0).
   (* Invariant 'cpy' *)
   Have: forall i_1 : Z. ((0 <= i_1) -> (((len_1 + i_1) < len_0) ->
-      (Mint_0[shift_uint8(a, i_1)] = Mint_0[shift_uint8(a_1, i_1)]))).
+      (a_3[shift_uint8(a, i_1)] = a_3[shift_uint8(a_1, i_1)]))).
   (* Invariant 'dst' *)
   Have: shift_uint8(a_1, len_0) = shift_uint8(v, len_1).
   (* Invariant 'src' *)
@@ -110,7 +98,7 @@ Assume {
   (* Then *)
   Have: 0 < len_1.
 }
-Prove: m[shift_uint8(a, i)] = m[shift_uint8(a_1, i)].
+Prove: a_5[shift_uint8(a, i)] = a_5[shift_uint8(a_1, i)].
 
 ------------------------------------------------------------
 
@@ -133,22 +121,18 @@ Goal Preservation of Invariant 'len' (file tests/wp_usage/issue-189-bis.i, line 
 Let a = Mptr_0[global(P_src_22)].
 Let a_1 = Mptr_0[global(P_dst_23)].
 Let a_2 = shift_uint8(a_1, 0).
-Let a_3 = shift_uint8(a, 0).
+Let a_3 = havoc(Mint_undef_0, Mint_0, a_2, len_1).
+Let a_4 = shift_uint8(a, 0).
 Assume {
   Type: is_sint32(len_1) /\ is_sint32(len_0) /\ is_sint32(len_0 - 1).
   (* Heap *)
   Have: framed(Mptr_0) /\ linked(Malloc_0).
-  (* Pre-condition 'write_access' *)
-  Have: valid_rw(Malloc_0, a_2, len_1).
-  (* Pre-condition 'read_access' *)
-  Have: valid_rd(Malloc_0, a_3, len_1).
-  (* Pre-condition 'unaliasing' *)
-  Have: separated(a_2, len_1, a_3, len_1).
-  (* Loop assigns ... *)
-  Have: havoc(Mint_0, Mint_1, a_2, len_1).
+  (* Pre-condition *)
+  Have: valid_rd(Malloc_0, a_4, len_1) /\ valid_rw(Malloc_0, a_2, len_1) /\
+      separated(a_2, len_1, a_4, len_1).
   (* Invariant 'cpy' *)
   Have: forall i : Z. ((0 <= i) -> (((len_0 + i) < len_1) ->
-      (Mint_1[shift_uint8(a, i)] = Mint_1[shift_uint8(a_1, i)]))).
+      (a_3[shift_uint8(a, i)] = a_3[shift_uint8(a_1, i)]))).
   (* Invariant 'dst' *)
   Have: shift_uint8(a_1, len_1) = shift_uint8(v, len_0).
   (* Invariant 'src' *)
@@ -201,24 +185,20 @@ Let a_1 = Mptr_0[a].
 Let a_2 = global(P_dst_23).
 Let a_3 = Mptr_0[a_2].
 Let a_4 = shift_uint8(a_3, 0).
-Let a_5 = shift_uint8(a_1, 0).
+Let a_5 = havoc(Mint_undef_0, Mint_0, a_4, len_0).
+Let a_6 = shift_uint8(a_1, 0).
 Assume {
   Type: is_sint32(len_0) /\ is_sint32(len_1).
   (* Goal *)
   When: !invalid(Malloc_0[P_src_22 <- 1][P_dst_23 <- 1], v, 1).
   (* Heap *)
   Have: framed(Mptr_0) /\ linked(Malloc_0).
-  (* Pre-condition 'write_access' *)
-  Have: valid_rw(Malloc_0, a_4, len_0).
-  (* Pre-condition 'read_access' *)
-  Have: valid_rd(Malloc_0, a_5, len_0).
-  (* Pre-condition 'unaliasing' *)
-  Have: separated(a_4, len_0, a_5, len_0).
-  (* Loop assigns ... *)
-  Have: havoc(Mint_0, Mint_1, a_4, len_0).
+  (* Pre-condition *)
+  Have: valid_rd(Malloc_0, a_6, len_0) /\ valid_rw(Malloc_0, a_4, len_0) /\
+      separated(a_4, len_0, a_6, len_0).
   (* Invariant 'cpy' *)
   Have: forall i : Z. ((0 <= i) -> (((len_1 + i) < len_0) ->
-      (Mint_1[shift_uint8(a_1, i)] = Mint_1[shift_uint8(a_3, i)]))).
+      (a_5[shift_uint8(a_1, i)] = a_5[shift_uint8(a_3, i)]))).
   (* Invariant 'dst' *)
   Have: shift_uint8(a_3, len_0) = shift_uint8(v, len_1).
   (* Invariant 'src' *)
@@ -245,24 +225,20 @@ Goal Post-condition 'memcpy,ok' in 'memcpy_context_vars':
 Let a = Mptr_0[global(P_src_43)].
 Let a_1 = Mptr_0[global(P_dst_44)].
 Let a_2 = shift_uint8(a_1, 0).
-Let a_3 = shift_uint8(a, 0).
+Let a_3 = havoc(Mint_undef_0, Mint_0, a_2, len_0).
+Let a_4 = shift_uint8(a, 0).
 Assume {
   Type: is_sint32(len_0) /\ is_sint32(len_1).
   (* Goal *)
   When: (0 <= i) /\ ((2 + i) <= len_0).
   (* Heap *)
   Have: framed(Mptr_0) /\ linked(Malloc_0).
-  (* Pre-condition 'write_access' *)
-  Have: valid_rw(Malloc_0, a_2, len_0).
-  (* Pre-condition 'read_access' *)
-  Have: valid_rd(Malloc_0, a_3, len_0).
-  (* Pre-condition 'unaliasing' *)
-  Have: separated(a_2, len_0, a_3, len_0).
-  (* Loop assigns ... *)
-  Have: havoc(Mint_1, Mint_0, a_2, len_0).
+  (* Pre-condition *)
+  Have: valid_rd(Malloc_0, a_4, len_0) /\ valid_rw(Malloc_0, a_2, len_0) /\
+      separated(a_2, len_0, a_4, len_0).
   (* Invariant 'ok,cpy' *)
   Have: forall i_1 : Z. ((0 <= i_1) -> (((len_1 + i_1) < len_0) ->
-      (Mint_0[shift_uint8(a, i_1)] = Mint_0[shift_uint8(a_1, i_1)]))).
+      (a_3[shift_uint8(a, i_1)] = a_3[shift_uint8(a_1, i_1)]))).
   (* Invariant 'ok,dst' *)
   Have: shift_uint8(a_1, len_0) = shift_uint8(dst2_0, len_1).
   (* Invariant 'ok,src' *)
@@ -272,7 +248,7 @@ Assume {
   (* Else *)
   Have: len_1 <= 0.
 }
-Prove: Mint_0[shift_uint8(a_1, i)] = Mint_1[shift_uint8(a, i)].
+Prove: a_3[shift_uint8(a_1, i)] = Mint_0[shift_uint8(a, i)].
 
 ------------------------------------------------------------
 
@@ -280,25 +256,21 @@ Goal Post-condition 'unmodified,ok' in 'memcpy_context_vars':
 Let a = Mptr_0[global(P_src_43)].
 Let a_1 = Mptr_0[global(P_dst_44)].
 Let a_2 = shift_uint8(a_1, 0).
-Let a_3 = shift_uint8(a, 0).
-Let a_4 = shift_uint8(a, i).
+Let a_3 = havoc(Mint_undef_0, Mint_0, a_2, len_0).
+Let a_4 = shift_uint8(a, 0).
+Let a_5 = shift_uint8(a, i).
 Assume {
   Type: is_sint32(len_0) /\ is_sint32(len_1).
   (* Goal *)
   When: (0 <= i) /\ ((2 + i) <= len_0).
   (* Heap *)
   Have: framed(Mptr_0) /\ linked(Malloc_0).
-  (* Pre-condition 'write_access' *)
-  Have: valid_rw(Malloc_0, a_2, len_0).
-  (* Pre-condition 'read_access' *)
-  Have: valid_rd(Malloc_0, a_3, len_0).
-  (* Pre-condition 'unaliasing' *)
-  Have: separated(a_2, len_0, a_3, len_0).
-  (* Loop assigns ... *)
-  Have: havoc(Mint_1, Mint_0, a_2, len_0).
+  (* Pre-condition *)
+  Have: valid_rd(Malloc_0, a_4, len_0) /\ valid_rw(Malloc_0, a_2, len_0) /\
+      separated(a_2, len_0, a_4, len_0).
   (* Invariant 'ok,cpy' *)
   Have: forall i_1 : Z. ((0 <= i_1) -> (((len_1 + i_1) < len_0) ->
-      (Mint_0[shift_uint8(a, i_1)] = Mint_0[shift_uint8(a_1, i_1)]))).
+      (a_3[shift_uint8(a, i_1)] = a_3[shift_uint8(a_1, i_1)]))).
   (* Invariant 'ok,dst' *)
   Have: shift_uint8(a_1, len_0) = shift_uint8(dst2_0, len_1).
   (* Invariant 'ok,src' *)
@@ -308,7 +280,7 @@ Assume {
   (* Else *)
   Have: len_1 <= 0.
 }
-Prove: Mint_0[a_4] = Mint_1[a_4].
+Prove: a_3[a_5] = Mint_0[a_5].
 
 ------------------------------------------------------------
 
@@ -316,25 +288,21 @@ Goal Preservation of Invariant 'ok,cpy' (file tests/wp_usage/issue-189-bis.i, li
 Let a = Mptr_0[global(P_src_43)].
 Let a_1 = Mptr_0[global(P_dst_44)].
 Let a_2 = shift_uint8(a_1, 0).
-Let a_3 = shift_uint8(a, 0).
-Let m = Mint_0[dst2_0 <- Mint_0[src2_0]].
+Let a_3 = havoc(Mint_undef_0, Mint_0, a_2, len_0).
+Let a_4 = shift_uint8(a, 0).
+Let a_5 = a_3[dst2_0 <- a_3[src2_0]].
 Assume {
   Type: is_sint32(len_0) /\ is_sint32(len_1) /\ is_sint32(len_1 - 1).
   (* Goal *)
   When: (0 <= i) /\ ((i + len_1) <= len_0).
   (* Heap *)
   Have: framed(Mptr_0) /\ linked(Malloc_0).
-  (* Pre-condition 'write_access' *)
-  Have: valid_rw(Malloc_0, a_2, len_0).
-  (* Pre-condition 'read_access' *)
-  Have: valid_rd(Malloc_0, a_3, len_0).
-  (* Pre-condition 'unaliasing' *)
-  Have: separated(a_2, len_0, a_3, len_0).
-  (* Loop assigns ... *)
-  Have: havoc(Mint_1, Mint_0, a_2, len_0).
+  (* Pre-condition *)
+  Have: valid_rd(Malloc_0, a_4, len_0) /\ valid_rw(Malloc_0, a_2, len_0) /\
+      separated(a_2, len_0, a_4, len_0).
   (* Invariant 'ok,cpy' *)
   Have: forall i_1 : Z. ((0 <= i_1) -> (((len_1 + i_1) < len_0) ->
-      (Mint_0[shift_uint8(a, i_1)] = Mint_0[shift_uint8(a_1, i_1)]))).
+      (a_3[shift_uint8(a, i_1)] = a_3[shift_uint8(a_1, i_1)]))).
   (* Invariant 'ok,dst' *)
   Have: shift_uint8(a_1, len_0) = shift_uint8(dst2_0, len_1).
   (* Invariant 'ok,src' *)
@@ -344,7 +312,7 @@ Assume {
   (* Then *)
   Have: 0 < len_1.
 }
-Prove: m[shift_uint8(a, i)] = m[shift_uint8(a_1, i)].
+Prove: a_5[shift_uint8(a, i)] = a_5[shift_uint8(a_1, i)].
 
 ------------------------------------------------------------
 
@@ -367,22 +335,18 @@ Goal Preservation of Invariant 'ok,len' (file tests/wp_usage/issue-189-bis.i, li
 Let a = Mptr_0[global(P_src_43)].
 Let a_1 = Mptr_0[global(P_dst_44)].
 Let a_2 = shift_uint8(a_1, 0).
-Let a_3 = shift_uint8(a, 0).
+Let a_3 = havoc(Mint_undef_0, Mint_0, a_2, len_1).
+Let a_4 = shift_uint8(a, 0).
 Assume {
   Type: is_sint32(len_1) /\ is_sint32(len_0) /\ is_sint32(len_0 - 1).
   (* Heap *)
   Have: framed(Mptr_0) /\ linked(Malloc_0).
-  (* Pre-condition 'write_access' *)
-  Have: valid_rw(Malloc_0, a_2, len_1).
-  (* Pre-condition 'read_access' *)
-  Have: valid_rd(Malloc_0, a_3, len_1).
-  (* Pre-condition 'unaliasing' *)
-  Have: separated(a_2, len_1, a_3, len_1).
-  (* Loop assigns ... *)
-  Have: havoc(Mint_0, Mint_1, a_2, len_1).
+  (* Pre-condition *)
+  Have: valid_rd(Malloc_0, a_4, len_1) /\ valid_rw(Malloc_0, a_2, len_1) /\
+      separated(a_2, len_1, a_4, len_1).
   (* Invariant 'ok,cpy' *)
   Have: forall i : Z. ((0 <= i) -> (((len_0 + i) < len_1) ->
-      (Mint_1[shift_uint8(a, i)] = Mint_1[shift_uint8(a_1, i)]))).
+      (a_3[shift_uint8(a, i)] = a_3[shift_uint8(a_1, i)]))).
   (* Invariant 'ok,dst' *)
   Have: shift_uint8(a_1, len_1) = shift_uint8(dst2_0, len_0).
   (* Invariant 'ok,src' *)
@@ -433,24 +397,20 @@ Effect at line 60
 Let a = Mptr_0[global(P_src_43)].
 Let a_1 = Mptr_0[global(P_dst_44)].
 Let a_2 = shift_uint8(a_1, 0).
-Let a_3 = shift_uint8(a, 0).
+Let a_3 = havoc(Mint_undef_0, Mint_0, a_2, len_0).
+Let a_4 = shift_uint8(a, 0).
 Assume {
   Type: is_sint32(len_0) /\ is_sint32(len_1).
   (* Goal *)
   When: !invalid(Malloc_0[P_src_43 <- 1][P_dst_44 <- 1], tmp_0, 1).
   (* Heap *)
   Have: framed(Mptr_0) /\ linked(Malloc_0).
-  (* Pre-condition 'write_access' *)
-  Have: valid_rw(Malloc_0, a_2, len_0).
-  (* Pre-condition 'read_access' *)
-  Have: valid_rd(Malloc_0, a_3, len_0).
-  (* Pre-condition 'unaliasing' *)
-  Have: separated(a_2, len_0, a_3, len_0).
-  (* Loop assigns ... *)
-  Have: havoc(Mint_0, Mint_1, a_2, len_0).
+  (* Pre-condition *)
+  Have: valid_rd(Malloc_0, a_4, len_0) /\ valid_rw(Malloc_0, a_2, len_0) /\
+      separated(a_2, len_0, a_4, len_0).
   (* Invariant 'ok,cpy' *)
   Have: forall i : Z. ((0 <= i) -> (((len_1 + i) < len_0) ->
-      (Mint_1[shift_uint8(a, i)] = Mint_1[shift_uint8(a_1, i)]))).
+      (a_3[shift_uint8(a, i)] = a_3[shift_uint8(a_1, i)]))).
   (* Invariant 'ok,dst' *)
   Have: shift_uint8(a_1, len_0) = shift_uint8(tmp_0, len_1).
   (* Invariant 'ok,src' *)

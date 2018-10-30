@@ -1,8 +1,8 @@
 /* run.config
-   OPT: -val -val-show-progress -cpp-extra-args=-DSYNTAX_ERRORS -kernel-warn-abort=-annot-error
-   OPT: -val -val-show-progress -cpp-extra-args=-DNONCONST
-   OPT: -val -val-show-progress -slevel 1 -value-msg-key widen-hints
-   OPT: -val -val-show-progress -cpp-extra-args=-DALLGLOBAL -value-msg-key widen-hints
+   OPT: -eva -eva-show-progress -cpp-extra-args=-DSYNTAX_ERRORS -kernel-warn-key=annot-error=active
+   OPT: -eva -eva-show-progress -cpp-extra-args=-DNONCONST
+   OPT: -eva -eva-show-progress -slevel 1 -eva-msg-key widen-hints
+   OPT: -eva -eva-show-progress -cpp-extra-args=-DALLGLOBAL -eva-msg-key widen-hints
 */
 #define N 2
 

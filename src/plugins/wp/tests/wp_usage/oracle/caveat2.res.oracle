@@ -98,6 +98,11 @@ Effect at line 25
 Prove: true.
 
 ------------------------------------------------------------
-[wp] Warning: Separation hypotheses for function 'job':
-  /*@ behavior typed_caveat: requires \separated(p,b+(..)); */
+[wp] Warning: Memory model hypotheses for function 'job':
+  /*@
+     behavior typed_caveat:
+     requires \separated(p,b+(..));
+     requires \valid(p);
+     requires \valid(b+(..));
+     */
   void job(struct S *p, int n, int *b);

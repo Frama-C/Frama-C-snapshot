@@ -177,7 +177,7 @@ let status t : status =
       if Wpo.is_proved t.main then `Proved else `Main
   | Some root ->
       `Pending (pending root)
-      
+
 
 let proved n = Wpo.is_proved n.goal
 let opened n = not (Wpo.is_proved n.goal)

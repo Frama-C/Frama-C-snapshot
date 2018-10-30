@@ -1,24 +1,24 @@
 [kernel] Parsing tests/value/init_const_guard.i (no preprocessing)
-[value] Analyzing a complete application starting at f
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing a complete application starting at f
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   x ∈ {0}
   q ∈ {{ &x }}
   p ∈ {{ &x }}
   v ∈ [--..--]
-[value] tests/value/init_const_guard.i:14: 
+[eva] tests/value/init_const_guard.i:14: 
   function f: postcondition 'Const' got status valid.
-[value] tests/value/init_const_guard.i:15: 
+[eva] tests/value/init_const_guard.i:15: 
   function f: postcondition 'Pointed_Valid' got status valid.
-[value] tests/value/init_const_guard.i:16: 
+[eva] tests/value/init_const_guard.i:16: 
   function f: postcondition 'Q_ReadOnly' got status valid.
-[value] tests/value/init_const_guard.i:17: 
+[eva] tests/value/init_const_guard.i:17: 
   function f: postcondition 'Q_NotWrite' got status valid.
-[value] Recording results for f
-[value] done for function f
-[value] ====== VALUES COMPUTED ======
-[value:final-states] Values at end of function f:
+[eva] Recording results for f
+[eva] done for function f
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function f:
   __retres ∈ {0}
 [from] Computing for function f
 [from] Done for function f
@@ -38,13 +38,13 @@
 --------------------------------------------------------------------------------
 
 [  Valid  ] Post-condition 'Const'
-            by Value.
+            by Eva.
 [  Valid  ] Post-condition 'Pointed_Valid'
-            by Value.
+            by Eva.
 [  Valid  ] Post-condition 'Q_ReadOnly'
-            by Value.
+            by Eva.
 [  Valid  ] Post-condition 'Q_NotWrite'
-            by Value.
+            by Eva.
 [  Valid  ] Default behavior
             by Frama-C kernel.
 
@@ -54,16 +54,16 @@
 
 [  Dead   ] Assertion 'Read' (file tests/value/init_const_guard.i, line 32)
             Locally valid, but unreachable.
-            By Value because:
+            By Eva because:
              - Unreachable program point (file tests/value/init_const_guard.i, line 32)
 [  Dead   ] Assertion 'Guard_against_Const' (file tests/value/init_const_guard.i, line 33)
             Locally valid, but unreachable.
-            By Value because:
+            By Eva because:
              - Unreachable program point (file tests/value/init_const_guard.i, line 33)
 [Unreachable] Unreachable program point (file tests/value/init_const_guard.i, line 32)
-            by Value.
+            by Eva.
 [Unreachable] Unreachable program point (file tests/value/init_const_guard.i, line 33)
-            by Value.
+            by Eva.
 
 --------------------------------------------------------------------------------
 --- Status Report Summary
@@ -73,23 +73,23 @@
      2 Unreachable
      9 Total
 --------------------------------------------------------------------------------
-[value] Analyzing a complete application starting at g
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing a complete application starting at g
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   x ∈ {0}
   q ∈ {{ &x }}
   p ∈ {{ &x }}
   v ∈ [--..--]
-[value] tests/value/init_const_guard.i:32: assertion 'Read' got status valid.
-[value] tests/value/init_const_guard.i:33: 
+[eva] tests/value/init_const_guard.i:32: assertion 'Read' got status valid.
+[eva] tests/value/init_const_guard.i:33: 
   assertion 'Guard_against_Const' got status valid.
-[value] tests/value/init_const_guard.i:27: 
+[eva] tests/value/init_const_guard.i:27: 
   function g: postcondition 'P_not_Const' got status valid.
-[value] Recording results for g
-[value] done for function g
-[value] ====== VALUES COMPUTED ======
-[value:final-states] Values at end of function g:
+[eva] Recording results for g
+[eva] done for function g
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function g:
   x ∈ {0; 2}
   p ∈ {{ &x }}
 [from] Computing for function g
@@ -122,11 +122,11 @@
 --------------------------------------------------------------------------------
 
 [  Valid  ] Post-condition 'P_not_Const'
-            by Value.
+            by Eva.
 [  Valid  ] Assertion 'Read' (file tests/value/init_const_guard.i, line 32)
-            by Value.
+            by Eva.
 [  Valid  ] Assertion 'Guard_against_Const' (file tests/value/init_const_guard.i, line 33)
-            by Value.
+            by Eva.
 [  Valid  ] Default behavior
             by Frama-C kernel.
 
@@ -137,19 +137,19 @@
      1 Locally validated
      5 Total
 --------------------------------------------------------------------------------
-[value] Analyzing an incomplete application starting at f
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing an incomplete application starting at f
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   x ∈ [--..--]
   q ∈ {{ &x }}
   p ∈ {{ NULL ; &S_p[0] }}
   v ∈ [--..--]
   S_p[0..1] ∈ [--..--]
-[value] Recording results for f
-[value] done for function f
-[value] ====== VALUES COMPUTED ======
-[value:final-states] Values at end of function f:
+[eva] Recording results for f
+[eva] done for function f
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function f:
   __retres ∈ {0}
 [from] Computing for function f
 [from] Done for function f
@@ -169,13 +169,13 @@
 --------------------------------------------------------------------------------
 
 [  Valid  ] Post-condition 'Const'
-            by Value.
+            by Eva.
 [  Valid  ] Post-condition 'Pointed_Valid'
-            by Value.
+            by Eva.
 [  Valid  ] Post-condition 'Q_ReadOnly'
-            by Value.
+            by Eva.
 [  Valid  ] Post-condition 'Q_NotWrite'
-            by Value.
+            by Eva.
 [  Valid  ] Default behavior
             by Frama-C kernel.
 
@@ -185,19 +185,19 @@
 
 [  Dead   ] Assertion 'Read' (file tests/value/init_const_guard.i, line 32)
             Locally valid, but unreachable.
-            By Value because:
+            By Eva because:
              - Unreachable program point (file tests/value/init_const_guard.i, line 32)
 [  Dead   ] Assertion 'Guard_against_Const' (file tests/value/init_const_guard.i, line 33)
             Locally valid, but unreachable.
-            By Value because:
+            By Eva because:
              - Unreachable program point (file tests/value/init_const_guard.i, line 33)
 [ Partial ] Default behavior
             By Frama-C kernel, with pending:
              - Post-condition 'P_not_Const'
 [Unreachable] Unreachable program point (file tests/value/init_const_guard.i, line 32)
-            by Value.
+            by Eva.
 [Unreachable] Unreachable program point (file tests/value/init_const_guard.i, line 33)
-            by Value.
+            by Eva.
 
 --------------------------------------------------------------------------------
 --- Status Report Summary
@@ -208,19 +208,19 @@
      2 Unreachable
     10 Total
 --------------------------------------------------------------------------------
-[value] Analyzing an incomplete application starting at g
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing an incomplete application starting at g
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   x ∈ [--..--]
   q ∈ {{ &x }}
   p ∈ {{ NULL ; &S_p_0[0] }}
   v ∈ [--..--]
   S_p_0[0..1] ∈ [--..--]
-[value] Recording results for g
-[value] done for function g
-[value] ====== VALUES COMPUTED ======
-[value:final-states] Values at end of function g:
+[eva] Recording results for g
+[eva] done for function g
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function g:
   x ∈ [--..--]
   p ∈ {{ &x }}
 [from] Computing for function g
@@ -253,11 +253,11 @@
 --------------------------------------------------------------------------------
 
 [  Valid  ] Post-condition 'P_not_Const'
-            by Value.
+            by Eva.
 [  Valid  ] Assertion 'Read' (file tests/value/init_const_guard.i, line 32)
-            by Value.
+            by Eva.
 [  Valid  ] Assertion 'Guard_against_Const' (file tests/value/init_const_guard.i, line 33)
-            by Value.
+            by Eva.
 [  Valid  ] Default behavior
             by Frama-C kernel.
 

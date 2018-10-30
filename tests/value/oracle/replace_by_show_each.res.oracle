@@ -1,23 +1,23 @@
 [kernel] Parsing tests/value/replace_by_show_each.c (with preprocessing)
-[value] Analyzing a complete application starting at main
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing a complete application starting at main
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   x ∈ {0}
-[value] tests/value/replace_by_show_each.c:23: Frama_C_show_each_2:
-[value] tests/value/replace_by_show_each.c:25: Frama_C_show_each_1:
+[eva] tests/value/replace_by_show_each.c:23: Frama_C_show_each_2:
+[eva] tests/value/replace_by_show_each.c:25: Frama_C_show_each_1:
 [inout] Warning: no assigns clauses for function Frama_C_show_each_1.
   Results will be imprecise.
 [from] Warning: no assigns clauses for function Frama_C_show_each_1.
   Results will be imprecise.
-[value:alarm] tests/value/replace_by_show_each.c:26: Warning: 
+[eva:alarm] tests/value/replace_by_show_each.c:26: Warning: 
   signed overflow. assert j + 1 ≤ 2147483647;
-[value] Recording results for main
+[eva] Recording results for main
 [from] Computing for function main
 [from] Done for function main
-[value] done for function main
-[value] ====== VALUES COMPUTED ======
-[value:final-states] Values at end of function main:
+[eva] done for function main
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function main:
 Cannot filter: dumping raw memory (including unchanged variables)
   x ∈ {0}
   j ∈ [-2147483648..2147483646]

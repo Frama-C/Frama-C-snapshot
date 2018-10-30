@@ -1,4 +1,4 @@
-# frama-c -wp -wp-model 'Typed (Caveat)' [...]
+# frama-c -wp -wp-model 'Typed (Caveat)' -wp-timeout 90 -wp-steps 1500 [...]
 [kernel] Parsing tests/wp_usage/caveat2.i (no preprocessing)
 [wp] Running WP plugin...
 [wp] Loading driver 'share/wp.driver'
@@ -22,6 +22,11 @@
 Functions           WP     Alt-Ergo        Total   Success
 job                  6      3 (16..28)       9       100%
 -------------------------------------------------------------
-[wp] Warning: Separation hypotheses for function 'job':
-  /*@ behavior typed_caveat: requires \separated(p,b+(..)); */
+[wp] Warning: Memory model hypotheses for function 'job':
+  /*@
+     behavior typed_caveat:
+     requires \separated(p,b+(..));
+     requires \valid(p);
+     requires \valid(b+(..));
+     */
   void job(struct S *p, int n, int *b);

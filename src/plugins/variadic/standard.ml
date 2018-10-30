@@ -94,6 +94,14 @@ let does_fit exp typ =
     Cil.fitsInInt ekind i
   | _ -> false
 
+(* Variant of [pp_typ] which details the underlying type for enums *)
+let pretty_typ fmt t =
+  match Cil.unrollType t with
+  | TEnum (ei, _) ->
+    Format.fprintf fmt "%a (%a)" Printer.pp_typ t
+      Printer.pp_typ (TInt (ei.ekind, []))
+  | _ -> Printer.pp_typ fmt t
+
 (* cast the i-th argument exp to paramtyp *)
 let cast_arg i paramtyp exp =
   let argtyp = Cil.typeOf exp in
@@ -102,7 +110,7 @@ let cast_arg i paramtyp exp =
       "Incorrect type for argument %d. \
        The argument will be cast from %a to %a."
       (i + 1)
-      Printer.pp_typ argtyp Printer.pp_typ paramtyp;
+      pretty_typ argtyp pretty_typ paramtyp;
   Cil.mkCast ~force:false ~e:exp ~newt:paramtyp
 
 
@@ -203,7 +211,7 @@ let aggregator_call
 (* Overloads calls                                                          *)
 (* ************************************************************************ *)
 
-let rec check_arg_matching given expected =
+let rec check_arg_matching expected given =
   match Cil.unrollType given, Cil.unrollType expected with
   | (TInt _ | TEnum _), (TInt _ | TEnum _) -> true
   | TPtr _, _ when Cil.isVoidPtrType expected -> true

@@ -48,15 +48,15 @@ struct
     F.is_primitive e ||
     begin
       try Tmap.find e env.ground with Not_found ->
-      let r = match F.repr e with
-        | Rdef fvs -> List.for_all (fun (_,e) -> is_ground env e) fvs
-        | Fun(f,es) ->
-            begin match Fun.category f with
-              | Constructor -> List.for_all (is_ground env) es
-              | _ -> false
-            end
-        | _ -> false in
-      env.ground <- Tmap.add e r env.ground ; r
+        let r = match F.repr e with
+          | Rdef fvs -> List.for_all (fun (_,e) -> is_ground env e) fvs
+          | Fun(f,es) ->
+              begin match Fun.category f with
+                | Constructor -> List.for_all (is_ground env) es
+                | _ -> false
+              end
+          | _ -> false in
+        env.ground <- Tmap.add e r env.ground ; r
     end
 
   let merge a b =
@@ -75,19 +75,26 @@ struct
     | Model { m_category = Injection } -> 1
     | Model { m_category = Operator _ } -> 2
     | Model { m_category = Constructor } -> 3
-  
+
+  let add_reduce env a b =
+    env.domain <- Tmap.add a b env.domain
+
   let reduce env a b =
-    match F.repr a , F.repr b with
-    | Fun(f,_) , Fun(g,_) when Wp_parameters.Reduce.get () ->
-        let cmp = frank f - frank g in
-        if cmp < 0 then env.domain <- Tmap.add a b env.domain ;
-        if cmp > 0 then env.domain <- Tmap.add b a env.domain ;
-    | Fun(f,_) , _ when frank f = 0 ->
-        env.domain <- Tmap.add a b env.domain
-    | _ , Fun(f,_) when frank f = 0 ->
-        env.domain <- Tmap.add b a env.domain
-    | _ -> ()
-  
+    if F.is_subterm a b then add_reduce env b a else
+    if F.is_subterm b a then add_reduce env a b else
+      begin
+        match F.repr a , F.repr b with
+        | Fun(f,_) , Fun(g,_) when Wp_parameters.Reduce.get () ->
+            let cmp = frank f - frank g in
+            if cmp < 0 then add_reduce env a b else
+            if cmp > 0 then add_reduce env b a
+        | Fun(f,_) , _ when frank f = 0 ->
+            add_reduce env a b
+        | _ , Fun(f,_) when frank f = 0 ->
+            add_reduce env b a
+        | _ -> ()
+      end
+
   let rec walk env h =
     match F.repr h with
     | True | False -> ()
@@ -95,10 +102,10 @@ struct
     | Eq(a,b) ->
         clause env h ;
         if is_ground env b then
-          env.domain <- Tmap.add a b env.domain
+          add_reduce env a b
         else
         if is_ground env a then
-          env.domain <- Tmap.add b a env.domain
+          add_reduce env b a
         else
           reduce env a b
     | Fun(f,[x]) ->
@@ -107,7 +114,7 @@ struct
           try
             let iota = Cint.is_cint f in
             let conv = Cint.convert iota x in
-            env.domain <- Tmap.add conv x env.domain ;
+            add_reduce env conv x ;
           with Not_found -> ()
         end
     | _ ->
@@ -121,7 +128,7 @@ struct
   let e_apply env =
     let sigma = F.sigma () in
     F.e_subst ~sigma (lookup env.domain)
-      
+
   let p_apply env =
     let sigma = F.sigma () in
     F.p_subst ~sigma (lookup env.domain)
@@ -138,12 +145,12 @@ struct
   [@@@ warning "+32"]
 
   let pretty fmt env = pp_sigma fmt env.domain
-  
+
   let assume env p =
     let p = F.p_subst (lookup env.domain) p in
     walk env (F.e_prop p) ; p
 
-  let top () = { ground = Tmap.empty ; domain = Tmap.empty } 
+  let top () = { ground = Tmap.empty ; domain = Tmap.empty }
   let copy env = { domain = env.domain ; ground = env.ground }
 
   let compute seq =
@@ -193,7 +200,7 @@ struct
     match F.p_expr p with
     | And ps -> F.p_all (assume env) (List.rev ps)
     | _ -> assume env p
-  
+
 end
 
 (* -------------------------------------------------------------------------- *)
@@ -395,7 +402,7 @@ struct
     end
 
   let is_kint e = match F.repr e with Qed.Logic.Kint _ -> true | _ -> false
-  
+
   let rec add_pred sigma p = match F.repr p with
     | And ps -> List.fold_left add_pred sigma ps
     | Eq(a,b) ->

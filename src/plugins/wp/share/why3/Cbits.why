@@ -30,6 +30,45 @@ use real.Real as Real
 use real.FromInt as FromInt
 use Cint.Cint as Cint
 
+axiom lnot_bool : ((Cint.lnot 0) = ((Int.(-_) (1)))) /\ ((Cint.lnot
+  (Int.(-_) (1))) = (0))
+
+axiom land_idemp : forall x:int [Cint.land x x]. ((Cint.land x x) = (x))
+
+axiom land_0 : forall x:int [Cint.land 0 x]. ((Cint.land 0 x) = (0))
+
+axiom land_0bis : forall x:int [Cint.land x 0]. ((Cint.land x 0) = (0))
+
+axiom land_1 : forall x:int [Cint.land (Int.(-_) (1)) x]. ((Cint.land
+  (Int.(-_) (1)) x) = (x))
+
+axiom land_1bis : forall x:int [Cint.land x (Int.(-_) (1))]. ((Cint.land x
+  (Int.(-_) (1))) = (x))
+
+axiom lor_idemp : forall x:int [Cint.lor x x]. ((Cint.lor x x) = (x))
+
+axiom lor_1 : forall x:int [Cint.lor (Int.(-_) (1)) x]. ((Cint.lor
+  (Int.(-_) (1)) x) = ((Int.(-_) (1))))
+
+axiom lor_1bis : forall x:int [Cint.lor x (Int.(-_) (1))]. ((Cint.lor x
+  (Int.(-_) (1))) = ((Int.(-_) (1))))
+
+axiom lor_0 : forall x:int [Cint.lor 0 x]. ((Cint.lor 0 x) = (x))
+
+axiom lor_0bis : forall x:int [Cint.lor x 0]. ((Cint.lor x 0) = (x))
+
+axiom lxor_nilpotent : forall x:int [Cint.lxor x x]. ((Cint.lxor x x) = (0))
+
+axiom lxor_1 : forall x:int [Cint.lxor (Int.(-_) (1)) x]. ((Cint.lxor
+  (Int.(-_) (1)) x) = (Cint.lnot x))
+
+axiom lxor_1bis : forall x:int [Cint.lxor x (Int.(-_) (1))]. ((Cint.lxor x
+  (Int.(-_) (1))) = (Cint.lnot x))
+
+axiom lxor_0 : forall x:int [Cint.lxor 0 x]. ((Cint.lxor 0 x) = (x))
+
+axiom lxor_0bis : forall x:int [Cint.lxor x 0]. ((Cint.lxor x 0) = (x))
+
 axiom bit_test_def : forall x:int, k:int [Cint.bit_testb x k].
   ((Cint.bit_testb x k) = (Bool.True)) <-> Cint.bit_test x k
 

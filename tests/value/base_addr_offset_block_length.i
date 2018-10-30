@@ -1,5 +1,5 @@
 /* run.config*
-   OPT: -no-autoload-plugins -load-module inout,value -val @VALUECONFIG@ -context-width 3 -then -slevel 3
+   OPT: -no-autoload-plugins -load-module inout,eva -val @VALUECONFIG@ -context-width 3 -then -slevel 3
 */
 
 

@@ -57,13 +57,18 @@ let mk_hdr level ppf hdr_strg =
   Format.fprintf ppf "@[<v 0>%s@ %s@]" hdr_strg underline ;
 ;;
 
+module OptionKf =
+  Datatype.Option_with_collections
+    (Cil_datatype.Kf)
+    (struct let module_name = "OptionKf" end)
+
 (** Defining base metrics and operations on those *)
 module BasicMetrics = struct
 (** Record type to compute cyclomatic complexity *)
 
   type t = {
-    cfile_name : string;
-    cfunc_name : string;
+    cfile_name : Datatype.Filepath.t;
+    cfunc : OptionKf.t;
     cslocs: int;
     cifs: int;
     cloops: int;
@@ -80,8 +85,8 @@ module BasicMetrics = struct
   ;;
 
   let empty_metrics =
-    { cfile_name = "";
-      cfunc_name = "";
+    { cfile_name = Datatype.Filepath.dummy;
+      cfunc = None;
       cslocs = 0;
       cifs = 0;
       cloops = 0;
@@ -154,14 +159,20 @@ module BasicMetrics = struct
     List.map2 (fun x y -> [ x; y; ]) labels (str_values metrics)
   ;;
 
+  let pp_func_or_none =
+    Pretty_utils.pp_opt ~none:"<none>" Kernel_function.pretty
+
 (* Pretty print metrics as text eg. in stdout *)
   let pp_base_metrics fmt metrics =
     let heading =
-      if metrics.cfile_name = "" && metrics.cfunc_name = "" then
+      if metrics.cfile_name = Datatype.Filepath.dummy &&
+         metrics.cfunc = None then
       (* It is a global metrics *)
         "Global metrics"
-      else Format.sprintf "Stats for function <%s/%s>"
-        (Filepath.pretty metrics.cfile_name) metrics.cfunc_name
+      else
+        Format.asprintf "Stats for function <%a/%a>"
+          Datatype.Filepath.pretty metrics.cfile_name
+          pp_func_or_none metrics.cfunc
     in
     Format.fprintf fmt "@[<v 0>%a @ %a@]"
       (mk_hdr 1) heading
@@ -172,8 +183,7 @@ module BasicMetrics = struct
   ;;
 
 (* Dummy utility functions for pretty printing simple types *)
-  let pp_strg fmt s = Format.fprintf fmt "%s" s
-  and pp_int fmt n = Format.fprintf fmt "%d" n
+  let pp_int fmt n = Format.fprintf fmt "%d" n
   ;;
 
   type cell_type =
@@ -207,7 +217,7 @@ module BasicMetrics = struct
    @{<tr>@[<v 2>@ \
      @[<v 0>%a@ %a@ %a@ %a@ %a@ %a@ %a@ %a@ %a@ @]@]\
    @}@ @]"
-      (pp_cell Entry pp_strg) metrics.cfunc_name
+      (pp_cell Entry pp_func_or_none) metrics.cfunc
       (pp_cell_default pp_int) metrics.cifs
       (pp_cell_default pp_int) metrics.cassigns
       (pp_cell_default pp_int) metrics.cloops
@@ -310,7 +320,7 @@ let file_of_vinfodef fvinfo =
   match kf.fundec with
     | Definition (_, loc) -> loc
     | Declaration (_, _, _, loc) -> loc
-  in decl_loc1.Lexing.pos_fname
+  in decl_loc1.Filepath.pos_path
 ;;
 
 let file_of_fundef (fun_dec: Cil_types.fundec) =
@@ -324,10 +334,15 @@ let extract_fundef_name sname =
     | _spec, (the_name, _, _, _) -> the_name
 ;;
 
+let kf_of_cabs_name sname =
+  match sname with
+    | _spec, (the_name, _, _, _) -> Globals.Functions.find_by_name the_name
+
 let get_filename fdef =
   match fdef with
-    | Cabs.FUNDEF(_, _, _, (loc1, _), _loc2) ->   loc1.Lexing.pos_fname
-    | _ -> assert false
+  | Cabs.FUNDEF(_, _, _, (loc1, _), _loc2) ->
+    loc1.Filepath.pos_path
+  | _ -> assert false
 ;;
 
 let consider_function ~libc vinfo =

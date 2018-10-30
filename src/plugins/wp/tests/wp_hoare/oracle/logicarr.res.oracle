@@ -19,11 +19,7 @@ Assume {
       IsArray1_sint32(Array1_int(a_2, 10, Mint_0)) /\
       IsArray1_sint32(Array1_int(a_2, 10, m)).
   (* Pre-condition *)
-  Have: (0 <= i) /\ (i <= 9).
-  (* Pre-condition *)
-  Have: (0 <= j) /\ (j <= 9).
-  (* Pre-condition *)
-  Have: (0 <= k) /\ (k <= 9).
+  Have: (0 <= i) /\ (0 <= j) /\ (0 <= k) /\ (i <= 9) /\ (j <= 9) /\ (k <= 9).
 }
 Prove: P_p_pointer(m, Mint_0, a_2, i, j).
 
@@ -42,11 +38,7 @@ Assume {
   Type: is_sint32(i) /\ is_sint32(j) /\ is_sint32(k) /\ is_sint32(x) /\
       IsArray1_sint32(m) /\ IsArray1_sint32(m_1).
   (* Pre-condition *)
-  Have: (0 <= i) /\ (i <= 9).
-  (* Pre-condition *)
-  Have: (0 <= j) /\ (j <= 9).
-  (* Pre-condition *)
-  Have: (0 <= k) /\ (k <= 9).
+  Have: (0 <= i) /\ (0 <= j) /\ (0 <= k) /\ (i <= 9) /\ (j <= 9) /\ (k <= 9).
 }
 Prove: P_p_arrays(m, i, m_1, j).
 
@@ -64,11 +56,7 @@ Assume {
   Type: is_sint32(i) /\ is_sint32(j) /\ is_sint32(k) /\ is_sint32(x) /\
       IsArray1_sint32(Array1_int(a_2, 10, Mint_0)) /\ IsArray1_sint32(m).
   (* Pre-condition *)
-  Have: (0 <= i) /\ (i <= 9).
-  (* Pre-condition *)
-  Have: (0 <= j) /\ (j <= 9).
-  (* Pre-condition *)
-  Have: (0 <= k) /\ (k <= 9).
+  Have: (0 <= i) /\ (0 <= j) /\ (0 <= k) /\ (i <= 9) /\ (j <= 9) /\ (k <= 9).
 }
 Prove: P_p_dummy(m, j, k).
 

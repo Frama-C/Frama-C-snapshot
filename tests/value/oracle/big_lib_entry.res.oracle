@@ -1,10 +1,10 @@
 [kernel] Parsing tests/value/big_lib_entry.i (no preprocessing)
-[value] Analyzing an incomplete application starting at main
-[value] Computing initial state
-[value] tests/value/big_lib_entry.i:32: 
+[eva] Analyzing an incomplete application starting at main
+[eva] Computing initial state
+[eva] tests/value/big_lib_entry.i:32: 
   Initializing a complex array of 1000 elements. This may take some time
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   s.c1 ∈ [--..--]
    .[bits 8 to 31] ∈ UNINITIALIZED
    .tcs[0].f1 ∈ [--..--]
@@ -9110,8 +9110,8 @@
   S_0_t5[0..3] ∈ [--..--]
   S_1_t5[0..3] ∈ [--..--]
   S_2_t5[0..3] ∈ [--..--]
-[value] Recording results for main
-[value] done for function main
-[value] ====== VALUES COMPUTED ======
-[value:final-states] Values at end of function main:
+[eva] Recording results for main
+[eva] done for function main
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function main:
   

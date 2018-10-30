@@ -1,0 +1,161 @@
+[kernel] Parsing tests/builtins/free.c (with preprocessing)
+[eva] Analyzing a complete application starting at main
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
+  v ∈ [--..--]
+[eva] computing for function main1 <- main.
+  Called from tests/builtins/free.c:44.
+[eva] tests/builtins/free.c:8: 
+  Call to builtin Frama_C_malloc_fresh for function malloc
+[eva] tests/builtins/free.c:8: allocating variable __malloc_main1_l8
+[eva] tests/builtins/free.c:10: 
+  Call to builtin Frama_C_malloc_fresh for function malloc
+[eva] tests/builtins/free.c:10: allocating variable __malloc_main1_l10
+[eva] tests/builtins/free.c:13: 
+  Frama_C_dump_each:
+  # Cvalue domain:
+  __fc_heap_status ∈ [--..--]
+  __fc_random_counter ∈ [--..--]
+  __fc_rand_max ∈ {32767}
+  __fc_env[0] ∈ {{ NULL ; &S_0___fc_env[0] }}
+          [1] ∈ {{ NULL ; &S_1___fc_env[0] }}
+          [2..4095] ∈ {{ NULL ; &S_0___fc_env[0] ; &S_1___fc_env[0] }}
+  __fc_mblen_state ∈ [--..--]
+  __fc_mbtowc_state ∈ [--..--]
+  __fc_wctomb_state ∈ [--..--]
+  v ∈ [--..--]
+  p ∈ {{ &__malloc_main1_l8[0] }}
+  q ∈ {{ &__malloc_main1_l10[0] }}
+  r ∈ {{ &__malloc_main1_l8[0] ; &__malloc_main1_l10[0] }}
+  tmp_1 ∈ {{ &__malloc_main1_l8[0] ; &__malloc_main1_l10[0] }}
+  S_0___fc_env[0..1] ∈ [--..--]
+  S_1___fc_env[0..1] ∈ [--..--]
+  __malloc_main1_l8[0] ∈ UNINITIALIZED
+                   [1] ∈ {1}
+                   [2..9] ∈ UNINITIALIZED
+  __malloc_main1_l10[0..1] ∈ UNINITIALIZED
+                    [2] ∈ {2}
+                    [3..9] ∈ UNINITIALIZED
+  ==END OF DUMP==
+[eva] tests/builtins/free.c:14: Call to builtin free
+[eva] tests/builtins/free.c:14: 
+  function free: precondition 'freeable' got status valid.
+[eva:malloc] tests/builtins/free.c:14: 
+  weak free on bases: {__malloc_main1_l8, __malloc_main1_l10}
+[eva] tests/builtins/free.c:16: 
+  Call to builtin Frama_C_malloc_fresh for function malloc
+[eva] tests/builtins/free.c:16: allocating variable __malloc_main1_l16
+[eva] tests/builtins/free.c:18: Call to builtin free
+[eva] tests/builtins/free.c:18: 
+  function free: precondition 'freeable' got status valid.
+[eva:malloc] tests/builtins/free.c:18: 
+  strong free on bases: {__malloc_main1_l16}
+[eva] tests/builtins/free.c:21: Call to builtin free
+[eva] tests/builtins/free.c:21: 
+  function free: precondition 'freeable' got status valid.
+[eva:malloc] tests/builtins/free.c:21: strong free on bases: {}
+[eva] tests/builtins/free.c:23: 
+  Call to builtin Frama_C_malloc_fresh for function malloc
+[eva] tests/builtins/free.c:23: allocating variable __malloc_main1_l23
+[eva] tests/builtins/free.c:26: Call to builtin free
+[eva] tests/builtins/free.c:26: 
+  function free: precondition 'freeable' got status valid.
+[eva:malloc] tests/builtins/free.c:26: weak free on bases: {__malloc_main1_l23}
+[eva] Recording results for main1
+[eva] Done for function main1
+[eva] computing for function main2 <- main.
+  Called from tests/builtins/free.c:45.
+[eva] tests/builtins/free.c:35: 
+  Call to builtin Frama_C_malloc_fresh for function malloc
+[eva] tests/builtins/free.c:35: allocating variable __malloc_main2_l35
+[eva] tests/builtins/free.c:39: Call to builtin free
+[eva] tests/builtins/free.c:39: 
+  function free: precondition 'freeable' got status valid.
+[eva:malloc] tests/builtins/free.c:39: 
+  strong free on bases: {__malloc_main2_l35}
+[eva] Recording results for main2
+[eva] Done for function main2
+[eva] Recording results for main
+[eva] done for function main
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function main1:
+  __fc_heap_status ∈ [--..--]
+  p ∈ {{ &__malloc_main1_l8[0] }} or ESCAPINGADDR
+  q ∈ {{ &__malloc_main1_l10[0] }} or ESCAPINGADDR
+  r ∈ {{ &__malloc_main1_l8[0] ; &__malloc_main1_l10[0] }} or ESCAPINGADDR
+  u ∈ ESCAPINGADDR
+  t ∈ {0}
+  s ∈ {{ NULL ; &__malloc_main1_l23[0] }} or ESCAPINGADDR
+  __malloc_main1_l8[0] ∈ UNINITIALIZED
+                   [1] ∈ {1}
+                   [2..9] ∈ UNINITIALIZED
+  __malloc_main1_l10[0..1] ∈ UNINITIALIZED
+                    [2] ∈ {2}
+                    [3..9] ∈ UNINITIALIZED
+  __malloc_main1_l23[0..3] ∈ UNINITIALIZED
+                    [4] ∈ {4}
+                    [5..9] ∈ UNINITIALIZED
+[eva:final-states] Values at end of function main2:
+  __fc_heap_status ∈ [--..--]
+  p ∈ ESCAPINGADDR
+  i ∈ {1}
+[eva:final-states] Values at end of function main:
+  __fc_heap_status ∈ [--..--]
+  __malloc_main1_l8[0] ∈ UNINITIALIZED
+                   [1] ∈ {1}
+                   [2..9] ∈ UNINITIALIZED
+  __malloc_main1_l10[0..1] ∈ UNINITIALIZED
+                    [2] ∈ {2}
+                    [3..9] ∈ UNINITIALIZED
+  __malloc_main1_l23[0..3] ∈ UNINITIALIZED
+                    [4] ∈ {4}
+                    [5..9] ∈ UNINITIALIZED
+[from] Computing for function main1
+[from] Computing for function malloc <-main1
+[from] Done for function malloc
+[from] Computing for function free <-main1
+[from] Done for function free
+[from] Done for function main1
+[from] Computing for function main2
+[from] Done for function main2
+[from] Computing for function main
+[from] Done for function main
+[from] ====== DEPENDENCIES COMPUTED ======
+  These dependencies hold at termination for the executions that terminate:
+[from] Function free:
+  __fc_heap_status FROM __fc_heap_status (and SELF)
+[from] Function malloc:
+  __fc_heap_status FROM __fc_heap_status; size (and SELF)
+  \result FROM __fc_heap_status; size
+[from] Function main1:
+  __fc_heap_status FROM __fc_heap_status (and SELF)
+  __malloc_main1_l8[1] FROM __fc_heap_status
+  __malloc_main1_l10[2] FROM __fc_heap_status
+  __malloc_main1_l16[3] FROM __fc_heap_status
+  __malloc_main1_l23[4] FROM __fc_heap_status
+[from] Function main2:
+  __fc_heap_status FROM __fc_heap_status (and SELF)
+  __malloc_main2_l35 FROM __fc_heap_status
+[from] Function main:
+  __fc_heap_status FROM __fc_heap_status; v (and SELF)
+  __malloc_main1_l8[1] FROM __fc_heap_status; v (and SELF)
+  __malloc_main1_l10[2] FROM __fc_heap_status; v (and SELF)
+  __malloc_main1_l16[3] FROM __fc_heap_status; v (and SELF)
+  __malloc_main1_l23[4] FROM __fc_heap_status; v (and SELF)
+  __malloc_main2_l35 FROM __fc_heap_status; v (and SELF)
+[from] ====== END OF DEPENDENCIES ======
+[inout] Out (internal) for function main1:
+    __fc_heap_status; p; q; r; tmp_1; u; t; s; __malloc_main1_l8[1];
+    __malloc_main1_l10[2]; __malloc_main1_l16[3]; __malloc_main1_l23[4]
+[inout] Inputs for function main1:
+    __fc_heap_status; v
+[inout] Out (internal) for function main2:
+    __fc_heap_status; p; i; __malloc_main2_l35
+[inout] Inputs for function main2:
+    __fc_heap_status
+[inout] Out (internal) for function main:
+    __fc_heap_status; __malloc_main1_l8[1]; __malloc_main1_l10[2];
+    __malloc_main1_l16[3]; __malloc_main1_l23[4]; __malloc_main2_l35
+[inout] Inputs for function main:
+    __fc_heap_status; v

@@ -61,10 +61,16 @@ class virtual do_it_ = object(self)
       (* noassert needed for Eval.memoize. Not really satisfactory *)
     begin
       match i with
-      | Set (lv,_,_) -> self#do_assign ~for_writing:true lv
+      | Set (lv,_,_) ->
+        let for_writing = not (Cil.is_mutable_or_initialized lv) in
+        self#do_assign ~for_writing lv
       | Call (lv_opt,exp,_,_) ->
           (match lv_opt with None -> ()
-             | Some lv -> self#do_assign ~for_writing:true lv);
+             | Some lv ->
+               let for_writing =
+                 not (Cil.is_mutable_or_initialized lv)
+               in
+               self#do_assign ~for_writing lv);
           let state = Db.Value.get_state self#current_kinstr in
           if Cvalue.Model.is_top state then
             self#join Zone.top

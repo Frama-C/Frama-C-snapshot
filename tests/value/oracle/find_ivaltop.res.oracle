@@ -1,8 +1,8 @@
 [kernel] Parsing tests/value/find_ivaltop.i (no preprocessing)
-[value] Analyzing a complete application starting at main
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing a complete application starting at main
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   t[0] ∈ {1}
    [1] ∈ {2}
    [2] ∈ {3}
@@ -23,11 +23,11 @@
    [17] ∈ {8}
    [18] ∈ {9}
    [19] ∈ {0}
-[value] tests/value/find_ivaltop.i:6: entering loop for the first time
-[value] Recording results for main
-[value] done for function main
-[value] ====== VALUES COMPUTED ======
-[value:final-states] Values at end of function main:
+[eva] tests/value/find_ivaltop.i:6: starting to merge loop iterations
+[eva] Recording results for main
+[eva] done for function main
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function main:
   i ∈ {8}
   j ∈ {0; 1; 2; 3; 4; 5; 6; 7}
   X ∈ {1; 2; 3; 4; 5; 6; 7; 8}

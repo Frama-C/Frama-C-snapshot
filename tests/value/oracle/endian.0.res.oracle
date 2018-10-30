@@ -1,23 +1,23 @@
 [kernel] Parsing tests/value/endian.i (no preprocessing)
-[value] Analyzing a complete application starting at main
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing a complete application starting at main
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   v1 ∈ {0}
   UU ∈ {0}
   undet ∈ [--..--]
-[value] computing for function main0 <- main.
+[eva] computing for function main0 <- main.
   Called from tests/value/endian.i:101.
-[value] Recording results for main0
-[value] Done for function main0
-[value] computing for function interpret_bits <- main.
+[eva] Recording results for main0
+[eva] Done for function main0
+[eva] computing for function interpret_bits <- main.
   Called from tests/value/endian.i:102.
-[value] Recording results for interpret_bits
-[value] Done for function interpret_bits
-[value] Recording results for main
-[value] done for function main
-[value] ====== VALUES COMPUTED ======
-[value:final-states] Values at end of function interpret_bits:
+[eva] Recording results for interpret_bits
+[eva] Done for function interpret_bits
+[eva] Recording results for main
+[eva] done for function main
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function interpret_bits:
   x{.integer[bits 0 to 0]; .bits.bit0} ∈ {0}
    {.integer[bits 1 to 1]; .bits.bit1} ∈ {1}
    {.integer[bits 2 to 2]; .bits.bit2} ∈ {0}
@@ -29,7 +29,7 @@
   d ∈ {0; 1}
   e ∈ {251; 255}
   f ∈ [2..122],2%8
-[value:final-states] Values at end of function main0:
+[eva:final-states] Values at end of function main0:
   b0 ∈ {1}
   b1 ∈ {2}
   b2 ∈ {3}
@@ -45,7 +45,7 @@
   G{.f0; .f1[bits 0 to 15]; .f2[bits 0 to 15]; .f3[bits 0 to 15]} ∈ {65532}
    {.f0[bits 16 to 31]; .f1[bits 16 to 31]; .f2[bits 16 to 31]; .f3[bits 16 to 31]} ∈
    {0}
-[value:final-states] Values at end of function main:
+[eva:final-states] Values at end of function main:
   
 [from] Computing for function interpret_bits
 [from] Done for function interpret_bits

@@ -1,37 +1,37 @@
 [kernel] Parsing tests/slicing/merge.i (no preprocessing)
-[value] Analyzing a complete application starting at main
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing a complete application starting at main
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   G1 ∈ {0}
   G2 ∈ {0}
   G3 ∈ {0}
-[value] computing for function g <- main.
+[eva] computing for function g <- main.
   Called from tests/slicing/merge.i:26.
-[value] computing for function init <- g <- main.
+[eva] computing for function init <- g <- main.
   Called from tests/slicing/merge.i:21.
-[value] Recording results for init
-[value] Done for function init
-[value] computing for function add <- g <- main.
+[eva] Recording results for init
+[eva] Done for function init
+[eva] computing for function add <- g <- main.
   Called from tests/slicing/merge.i:22.
-[value:alarm] tests/slicing/merge.i:17: Warning: 
+[eva:alarm] tests/slicing/merge.i:17: Warning: 
   signed overflow. assert -2147483648 ≤ G1 + a1;
-[value:alarm] tests/slicing/merge.i:17: Warning: 
+[eva:alarm] tests/slicing/merge.i:17: Warning: 
   signed overflow. assert G1 + a1 ≤ 2147483647;
-[value:alarm] tests/slicing/merge.i:17: Warning: 
+[eva:alarm] tests/slicing/merge.i:17: Warning: 
   signed overflow. assert -2147483648 ≤ G2 + a2;
-[value:alarm] tests/slicing/merge.i:17: Warning: 
+[eva:alarm] tests/slicing/merge.i:17: Warning: 
   signed overflow. assert G2 + a2 ≤ 2147483647;
-[value:alarm] tests/slicing/merge.i:17: Warning: 
+[eva:alarm] tests/slicing/merge.i:17: Warning: 
   signed overflow. assert -2147483648 ≤ G3 + a3;
-[value:alarm] tests/slicing/merge.i:17: Warning: 
+[eva:alarm] tests/slicing/merge.i:17: Warning: 
   signed overflow. assert G3 + a3 ≤ 2147483647;
-[value] Recording results for add
-[value] Done for function add
-[value] Recording results for g
-[value] Done for function g
-[value] Recording results for main
-[value] done for function main
+[eva] Recording results for add
+[eva] Done for function add
+[eva] Recording results for g
+[eva] Done for function g
+[eva] Recording results for main
+[eva] done for function main
 [from] Computing for function add
 [from] Done for function add
 [from] Computing for function init

@@ -276,6 +276,10 @@ val stmtFallsThrough: Cil_types.stmt -> bool
     @since Phosphorus-20170501-beta1 exported
  *)
 
+(**/**)
+
+val fieldsToInit: Cil_types.compinfo -> string option -> Cil_types.offset list
+
 (*
 Local Variables:
 compile-command: "make -C ../../.."

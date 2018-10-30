@@ -26,20 +26,20 @@ module S : Datatype.S_with_collections
 type t = S.t
 type model = S.t
 type tuning = (unit -> unit)
-type separation = Kernel_function.t -> Separation.clause list
+type hypotheses = Kernel_function.t -> MemoryContext.clause list
 
 val repr : model
 val register :
   id:string ->
   ?descr:string ->
   ?tuning:tuning list ->
-  ?separation:separation ->
+  ?hypotheses:hypotheses ->
   unit -> model
 
 val get_id : model -> string
 val get_descr : model -> string
 val get_emitter : model -> Emitter.t
-val get_separation : model -> separation
+val get_hypotheses : model -> hypotheses
 
 val find : id:string -> model
 val iter : (model -> unit) -> unit

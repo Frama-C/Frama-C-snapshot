@@ -22,7 +22,7 @@
 
 module Flags =
   State_builder.Hashtbl
-    (Datatype.String.Hashtbl)
+    (Datatype.Filepath.Hashtbl)
     (Datatype.String)
     (struct
       let name ="JsonCompilationDatabase.Flags"
@@ -129,7 +129,7 @@ let parse_entry ?(cwd=Sys.getcwd()) (r : Yojson.Basic.json) =
   let open Yojson.Basic.Util in
   let filename = r |> member "file" |> to_string in
   let dirname  = r |> member "directory" |> to_string in
-  let fullname = Filepath.normalize ~base_name:dirname filename in
+  let path = Datatype.Filepath.of_string ~base_name:dirname filename in
 
   (* get the list of arguments, and a flag indicating if the arguments
      were given via 'command' or 'arguments'; the latter require quoting *)
@@ -209,17 +209,17 @@ let parse_entry ?(cwd=Sys.getcwd()) (r : Yojson.Basic.json) =
      others. *)
   let flags = String.concat " " (List.rev res) in
   try
-    let previous_flags = Flags.find fullname in
+    let previous_flags = Flags.find path in
     if previous_flags <> flags then
       Kernel.warning ~wkey:Kernel.wkey_jcdb
-        "@[<v>found duplicate flags for '%s'.\
+        "@[<v>found duplicate flags for '%a'.\
          @ Previous flags: %s\
-         @      New flags: %s@]" (Filepath.relativize fullname)
+         @      New flags: %s@]" Datatype.Filepath.pretty path
         previous_flags flags;
-    Flags.replace fullname flags
+    Flags.replace path flags
   with
   | Not_found ->
-    Flags.add fullname flags
+    Flags.add path flags
 
 let get_flags f =
   if Kernel.JsonCompilationDatabase.get () <> "" then begin
@@ -247,15 +247,14 @@ let get_flags f =
       end;
       Flags.mark_as_computed ()
     end;
-    let filepath = Filepath.normalize f in
     try
-      let flags = Flags.find filepath in
+      let flags = Flags.find f in
       Kernel.feedback ~dkey:Kernel.dkey_compilation_db
-        "flags found for '%s': %s" filepath flags;
+        "flags found for '%a': %s"  Datatype.Filepath.pretty f flags;
       flags
     with Not_found ->
       Kernel.feedback ~dkey:Kernel.dkey_compilation_db
-        "no flags found for '%s'" filepath;
+        "no flags found for '%a'"  Datatype.Filepath.pretty f;
       ""
   end
   else ""

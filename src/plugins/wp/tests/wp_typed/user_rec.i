@@ -1,6 +1,9 @@
+/* run.config_qualif
+   OPT: -wp-prop=-lack
+ */
 /*@ logic integer fact(integer n) = n <= 1 ? 1 : n * fact (n-1) ; */
-/*@ lemma fact_ge1: \forall integer n ; fact(n) >= 1 ; */
-/*@ lemma fact_next: \forall integer n,m ; 
+/*@ lemma fact_ge1:  lack: \forall integer n ; fact(n) >= 1 ; */
+/*@ lemma fact_next: lack: \forall integer n,m ;
     0 < n <= m ==> (n*(fact(m)/fact(n))) == (fact(m)/fact(n-1)) ; */
 
 /*@ ensures \result == fact(n) ; */

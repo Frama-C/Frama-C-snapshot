@@ -1,5 +1,5 @@
 /* run.config 
-   OPT: -rte -warn-signed-overflow -rte-precond -print
+   OPT: -rte -warn-signed-overflow -print
 */
 
 int tab [2] ;

@@ -642,6 +642,7 @@ OCAMLWIN32
 OCAMLLIB
 OCAMLBEST
 HAS_LANDMARKS
+HAS_MPFR
 HAS_APRON
 HAS_YOJSON
 DEVELOPMENT
@@ -678,7 +679,7 @@ ENABLE_E_ACSL
 LTLTOBA
 HAS_LTLTOBA
 ENABLE_AORAI
-ENABLE_VALUE_ANALYSIS
+ENABLE_EVA
 ENABLE_USERS
 ENABLE_SPARECODE
 ENABLE_SLICING
@@ -715,8 +716,13 @@ OCAMLLEX
 OCAMLDEP
 OCAMLFIND
 OCAMLOPT
-STACK_FOLD
-SPLIT_ON_CHAR
+HAS_OCAML407
+HAS_OCAML405
+HAS_OCAML404
+HAS_OCAML403
+OCAMLPATCHNB
+OCAMLMINORNB
+OCAMLMAJORNB
 OCAMLC
 MAKE
 FRAMAC_VERSION
@@ -783,7 +789,7 @@ enable_scope
 enable_slicing
 enable_sparecode
 enable_users
-enable_value_analysis
+enable_eva
 enable_external
 enable_aorai
 enable_e_acsl
@@ -1438,7 +1444,7 @@ Optional Features:
   --enable-slicing        support for slicing plugin (default: yes)
   --enable-sparecode      support for sparecode plugin (default: yes)
   --enable-users          support for users analysis (default: yes)
-  --enable-value_analysis support for value analysis (default: yes)
+  --enable-eva            support for value analysis (default: yes)
   --enable-external=plugin
                           allows to compile directly from Frama-C kernel
                           some external plug-ins.
@@ -2584,8 +2590,10 @@ FRAMAC_VERSION=`cat VERSION`
 
 new_section "configure make"
 
-# Extract the first word of "make", so it can be a program name with args.
-set dummy make; ac_word=$2
+for ac_prog in gmake make
+do
+  # Extract the first word of "$ac_prog", so it can be a program name with args.
+set dummy $ac_prog; ac_word=$2
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking for $ac_word" >&5
 $as_echo_n "checking for $ac_word... " >&6; }
 if ${ac_cv_prog_MAKE+:} false; then :
@@ -2601,7 +2609,7 @@ do
   test -z "$as_dir" && as_dir=.
     for ac_exec_ext in '' $ac_executable_extensions; do
   if as_fn_executable_p "$as_dir/$ac_word$ac_exec_ext"; then
-    ac_cv_prog_MAKE="make"
+    ac_cv_prog_MAKE="$ac_prog"
     $as_echo "$as_me:${as_lineno-$LINENO}: found $as_dir/$ac_word$ac_exec_ext" >&5
     break 2
   fi
@@ -2620,6 +2628,10 @@ else
 $as_echo "no" >&6; }
 fi
 
+
+  test -n "$MAKE" && break
+done
+test -n "$MAKE" || MAKE="make"
 
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking version of make" >&5
 $as_echo_n "checking version of make... " >&6; }
@@ -2724,20 +2736,39 @@ esac
 
 
 
-case $OCAMLVERSION in
- 4.02.*)
-  SPLIT_ON_CHAR=split_on_char;
-  STACK_FOLD=stack_fold
- ;;
- 4.03.*)
-  SPLIT_ON_CHAR=split_on_char;
-  STACK_FOLD=Stack.fold
- ;;
- *)
-  SPLIT_ON_CHAR=String.split_on_char;
-  STACK_FOLD=Stack.fold
- ;;
-esac
+
+
+
+
+
+
+OCAMLMAJORNB=$(echo $OCAMLVERSION | cut -f 1 -d .)
+OCAMLMINORNB=$(echo $OCAMLVERSION | cut -f 2 -d .)
+OCAMLPATCHNB=$(echo $OCAMLVERSION | cut -f 3 -d .)
+
+if test $OCAMLMAJORNB -gt 4; then
+  HAS_OCAML403=yes;
+  HAS_OCAML404=yes;
+  HAS_OCAML405=yes;
+  HAS_OCAML407=yes;
+else
+  HAS_OCAML403=no;
+  HAS_OCAML404=no;
+  HAS_OCAML405=no;
+  HAS_OCAML407=no;
+  if test $OCAMLMINORNB -ge 3; then
+    HAS_OCAML403=yes;
+  fi;
+  if test $OCAMLMINORNB -ge 4; then
+    HAS_OCAML404=yes;
+  fi;
+  if test $OCAMLMINORNB -ge 5; then
+    HAS_OCAML405=yes;
+  fi;
+  if test $OCAMLMINORNB -ge 7; then
+    HAS_OCAML407=yes;
+  fi;
+fi;   # MAJORNB -gt 4
 
 # Ocaml library path
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking OCaml library path" >&5
@@ -3345,6 +3376,23 @@ else
   HAS_APRON="no";
   { $as_echo "$as_me:${as_lineno-$LINENO}: result: not found. The corresponding domains won't be available in Eva" >&5
 $as_echo "not found. The corresponding domains won't be available in Eva" >&6; }
+fi;
+
+# mpfr
+#######
+
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for MPFR" >&5
+$as_echo_n "checking for MPFR... " >&6; }
+
+MPFR_PATH=$($OCAMLFIND query gmp 2>/dev/null | tr -d '\r\n')
+if test -f "$MPFR_PATH/gmp.$DYN_SUFFIX" -a -f "$MPFR_PATH/mpfr.cmx" ; then
+  HAS_MPFR="yes";
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: found" >&5
+$as_echo "found" >&6; }
+else
+  HAS_MPFR="no";
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: not found. The numerors domain won't be available in Eva" >&5
+$as_echo "not found. The numerors domain won't be available in Eva" >&6; }
 fi;
 
 # landmarks (profiling tool, for developers)
@@ -5324,8 +5372,8 @@ echo "callgraph... $ENABLE"
 
 
 
-        USE_VALUE_ANALYSIS=$USE_VALUE_ANALYSIS" "callgraph
-        USED_CALLGRAPH=$USED_CALLGRAPH" "value_analysis
+        USE_EVA=$USE_EVA" "callgraph
+        USED_CALLGRAPH=$USED_CALLGRAPH" "eva
 
 
 
@@ -5409,8 +5457,8 @@ echo "semantic_constant_folding... $ENABLE"
 
 
 
-        REQUIRE_VALUE_ANALYSIS=$REQUIRE_VALUE_ANALYSIS" "semantic_constant_folding
-        REQUIRED_SEMANTIC_CONSTANT_FOLDING=$REQUIRED_SEMANTIC_CONSTANT_FOLDING" "value_analysis
+        REQUIRE_EVA=$REQUIRE_EVA" "semantic_constant_folding
+        REQUIRED_SEMANTIC_CONSTANT_FOLDING=$REQUIRED_SEMANTIC_CONSTANT_FOLDING" "eva
 
 
 
@@ -5494,8 +5542,8 @@ echo "from_analysis... $ENABLE"
 
 
 
-        REQUIRE_VALUE_ANALYSIS=$REQUIRE_VALUE_ANALYSIS" "from_analysis
-        REQUIRED_FROM_ANALYSIS=$REQUIRED_FROM_ANALYSIS" "value_analysis
+        REQUIRE_EVA=$REQUIRE_EVA" "from_analysis
+        REQUIRED_FROM_ANALYSIS=$REQUIRED_FROM_ANALYSIS" "eva
 
 
 
@@ -5717,8 +5765,8 @@ echo "impact... $ENABLE"
 
 
 
-        REQUIRE_VALUE_ANALYSIS=$REQUIRE_VALUE_ANALYSIS" "impact
-        REQUIRED_IMPACT=$REQUIRED_IMPACT" "value_analysis
+        REQUIRE_EVA=$REQUIRE_EVA" "impact
+        REQUIRED_IMPACT=$REQUIRED_IMPACT" "eva
 
 
 
@@ -5823,8 +5871,8 @@ echo "inout... $ENABLE"
 
 
 
-        REQUIRE_VALUE_ANALYSIS=$REQUIRE_VALUE_ANALYSIS" "inout
-        REQUIRED_INOUT=$REQUIRED_INOUT" "value_analysis
+        REQUIRE_EVA=$REQUIRE_EVA" "inout
+        REQUIRED_INOUT=$REQUIRED_INOUT" "eva
 
 
 
@@ -5918,8 +5966,8 @@ echo "metrics... $ENABLE"
 
 
 
-        USE_VALUE_ANALYSIS=$USE_VALUE_ANALYSIS" "metrics
-        USED_METRICS=$USED_METRICS" "value_analysis
+        USE_EVA=$USE_EVA" "metrics
+        USED_METRICS=$USED_METRICS" "eva
 
 
 
@@ -6024,8 +6072,8 @@ echo "occurrence... $ENABLE"
 
 
 
-        REQUIRE_VALUE_ANALYSIS=$REQUIRE_VALUE_ANALYSIS" "occurrence
-        REQUIRED_OCCURRENCE=$REQUIRED_OCCURRENCE" "value_analysis
+        REQUIRE_EVA=$REQUIRE_EVA" "occurrence
+        REQUIRED_OCCURRENCE=$REQUIRED_OCCURRENCE" "eva
 
 
 
@@ -6119,8 +6167,8 @@ echo "pdg... $ENABLE"
 
 
 
-        REQUIRE_VALUE_ANALYSIS=$REQUIRE_VALUE_ANALYSIS" "pdg
-        REQUIRED_PDG=$REQUIRED_PDG" "value_analysis
+        REQUIRE_EVA=$REQUIRE_EVA" "pdg
+        REQUIRED_PDG=$REQUIRED_PDG" "eva
 
 
 
@@ -6371,8 +6419,8 @@ echo "scope... $ENABLE"
 
 
 
-        REQUIRE_VALUE_ANALYSIS=$REQUIRE_VALUE_ANALYSIS" "scope
-        REQUIRED_SCOPE=$REQUIRED_SCOPE" "value_analysis
+        REQUIRE_EVA=$REQUIRE_EVA" "scope
+        REQUIRED_SCOPE=$REQUIRED_SCOPE" "eva
 
 
 
@@ -6510,8 +6558,8 @@ echo "slicing... $ENABLE"
 
 
 
-        REQUIRE_VALUE_ANALYSIS=$REQUIRE_VALUE_ANALYSIS" "slicing
-        REQUIRED_SLICING=$REQUIRED_SLICING" "value_analysis
+        REQUIRE_EVA=$REQUIRE_EVA" "slicing
+        REQUIRED_SLICING=$REQUIRED_SLICING" "eva
 
 
 
@@ -6627,8 +6675,8 @@ echo "sparecode... $ENABLE"
 
 
 
-        REQUIRE_VALUE_ANALYSIS=$REQUIRE_VALUE_ANALYSIS" "sparecode
-        REQUIRED_SPARECODE=$REQUIRED_SPARECODE" "value_analysis
+        REQUIRE_EVA=$REQUIRE_EVA" "sparecode
+        REQUIRED_SPARECODE=$REQUIRED_SPARECODE" "eva
 
 
 
@@ -6711,8 +6759,8 @@ echo "users... $ENABLE"
 
 
 
-        REQUIRE_VALUE_ANALYSIS=$REQUIRE_VALUE_ANALYSIS" "users
-        REQUIRED_USERS=$REQUIRED_USERS" "value_analysis
+        REQUIRE_EVA=$REQUIRE_EVA" "users
+        REQUIRED_USERS=$REQUIRED_USERS" "eva
 
 
 
@@ -6763,9 +6811,9 @@ fi
 
 FORCE=no
 
-# Check whether --enable-value_analysis was given.
-if test "${enable_value_analysis+set}" = set; then :
-  enableval=$enable_value_analysis; ENABLE=$enableval;FORCE=$enableval
+# Check whether --enable-eva was given.
+if test "${enable_eva+set}" = set; then :
+  enableval=$enable_eva; ENABLE=$enableval;FORCE=$enableval
 else
   ENABLE=$default
 
@@ -6779,20 +6827,20 @@ fi
 
 
 if test "$plugin_present" = "no" -a "$FORCE" = "yes"; then
-  as_fn_error $? "value_analysis is not available" "$LINENO" 5
+  as_fn_error $? "eva is not available" "$LINENO" 5
 fi
 
-FORCE_VALUE_ANALYSIS=$FORCE
-PLUGINS_FORCE_LIST=${PLUGINS_FORCE_LIST}" "FORCE_VALUE_ANALYSIS
+FORCE_EVA=$FORCE
+PLUGINS_FORCE_LIST=${PLUGINS_FORCE_LIST}" "FORCE_EVA
 
-ENABLE_VALUE_ANALYSIS=$ENABLE
-NAME_VALUE_ANALYSIS=value_analysis
+ENABLE_EVA=$ENABLE
+NAME_EVA=eva
 if test "$default" = "no" -a "$FORCE" = "no"; then
-  INFO_VALUE_ANALYSIS=" (not available by default)"
+  INFO_EVA=" (not available by default)"
 fi
 
 
-echo "value_analysis... $ENABLE"
+echo "eva... $ENABLE"
 # kept defined for write_plugin_config. A bit ugly, but not more than
 # usual autoconf stuff.
 # m4_undefine([PLUGIN_NAME])
@@ -6806,8 +6854,8 @@ echo "value_analysis... $ENABLE"
 
 
 
-        USE_GUI=$USE_GUI" "value_analysis
-        USED_VALUE_ANALYSIS=$USED_VALUE_ANALYSIS" "gui
+        USE_GUI=$USE_GUI" "eva
+        USED_EVA=$USED_EVA" "gui
 
 
 
@@ -6817,8 +6865,8 @@ echo "value_analysis... $ENABLE"
 
 
 
-        USE_SCOPE=$USE_SCOPE" "value_analysis
-        USED_VALUE_ANALYSIS=$USED_VALUE_ANALYSIS" "scope
+        USE_SCOPE=$USE_SCOPE" "eva
+        USED_EVA=$USED_EVA" "scope
 
 
 
@@ -6828,8 +6876,8 @@ echo "value_analysis... $ENABLE"
 
 
 
-        USE_CALLGRAPH=$USE_CALLGRAPH" "value_analysis
-        USED_VALUE_ANALYSIS=$USED_VALUE_ANALYSIS" "callgraph
+        USE_CALLGRAPH=$USE_CALLGRAPH" "eva
+        USED_EVA=$USED_EVA" "callgraph
 
 
 
@@ -7081,9 +7129,9 @@ fi
 
                 ##########################################################################
 #                                                                        #
-#  This file is part of Frama-C.                                         #
+#  This file is part of the Frama-C's E-ACSL plug-in.                    #
 #                                                                        #
-#  Copyright (C) 2007-2018                                               #
+#  Copyright (C) 2012-2018                                               #
 #    CEA (Commissariat à l'énergie atomique et aux énergies              #
 #         alternatives)                                                  #
 #                                                                        #
@@ -8964,8 +9012,8 @@ echo "nonterm... $ENABLE"
 
 
 
-        REQUIRE_VALUE_ANALYSIS=$REQUIRE_VALUE_ANALYSIS" "nonterm
-        REQUIRED_NONTERM=$REQUIRED_NONTERM" "value_analysis
+        REQUIRE_EVA=$REQUIRE_EVA" "nonterm
+        REQUIRED_NONTERM=$REQUIRED_NONTERM" "eva
 
 
 
@@ -9546,8 +9594,8 @@ echo "security_slicing... $ENABLE"
 
 
 
-        REQUIRE_VALUE_ANALYSIS=$REQUIRE_VALUE_ANALYSIS" "security_slicing
-        REQUIRED_SECURITY_SLICING=$REQUIRED_SECURITY_SLICING" "value_analysis
+        REQUIRE_EVA=$REQUIRE_EVA" "security_slicing
+        REQUIRED_SECURITY_SLICING=$REQUIRED_SECURITY_SLICING" "eva
 
 
 
@@ -9951,19 +9999,30 @@ fi
 
 
 
+        REQUIRE_QED=$REQUIRE_QED" "wp
+        REQUIRED_WP=$REQUIRED_WP" "qed
+
+
+
+
+
+
+
+
+
+        REQUIRE_RTEGEN=$REQUIRE_RTEGEN" "wp
+        REQUIRED_WP=$REQUIRED_WP" "rtegen
+
+
+
+
+
+
+
+
+
         USE_GUI=$USE_GUI" "wp
         USED_WP=$USED_WP" "gui
-
-
-
-
-
-
-
-
-
-        USE_RTEGEN=$USE_RTEGEN" "wp
-        USED_WP=$USED_WP" "rtegen
 
 
 
@@ -9978,7 +10037,6 @@ fi
          if test "$ENABLE_WP" != "no"; then
             EXTERNAL_PLUGINS="${EXTERNAL_PLUGINS} src/plugins/wp";
          fi
-
 
 
 
@@ -10453,8 +10511,8 @@ $as_echo "why3 unsupported version $WHY3VERSION" >&6; }
           ;;
       esac
     else
-      { $as_echo "$as_me:${as_lineno-$LINENO}: rerun configure to make wp using why3 0.87" >&5
-$as_echo "$as_me: rerun configure to make wp using why3 0.87" >&6;}
+      { $as_echo "$as_me:${as_lineno-$LINENO}: rerun configure to make wp using why3 0.88" >&5
+$as_echo "$as_me: rerun configure to make wp using why3 0.88" >&6;}
     fi
   else
     WHY3COQC="no"
@@ -10630,6 +10688,7 @@ compute_dependency
 ############################
 
 EXTERNAL_PLUGINS="${EXTERNAL_PLUGINS} ${EXTRA_EXTERNAL_PLUGINS}"
+
 
 
 
@@ -12020,7 +12079,7 @@ fi
 
 new_section "summary: plug-ins available"
 
-for plugin in  CALLGRAPH SEMANTIC_CONSTANT_FOLDING FROM_ANALYSIS GUI IMPACT INOUT METRICS OCCURRENCE PDG POSTDOMINATORS RTEGEN SCOPE SLICING SPARECODE USERS VALUE_ANALYSIS AORAI E_ACSL LOOP_ANALYSIS NONTERM OBFUSCATOR PRINT_API QED REPORT SECURITY_SLICING STUDIA VARIADIC WP; do
+for plugin in  CALLGRAPH SEMANTIC_CONSTANT_FOLDING FROM_ANALYSIS GUI IMPACT INOUT METRICS OCCURRENCE PDG POSTDOMINATORS RTEGEN SCOPE SLICING SPARECODE USERS EVA AORAI E_ACSL LOOP_ANALYSIS NONTERM OBFUSCATOR PRINT_API QED REPORT SECURITY_SLICING STUDIA VARIADIC WP; do
   n=NAME_$plugin
   e=ENABLE_$plugin
   i=INFO_$plugin

@@ -69,7 +69,7 @@ let insert env label =
     env.labels <- Imap.add label.id label env.labels ;
     env.cfg <- label :: env.cfg ;
   end
-  
+
 let create () = {
   kid = 0 ; cfg = [] ;
   values = Tmap.empty ;
@@ -113,7 +113,7 @@ let is_copy env lbl = function
         | Lval(lv0,lbl0) -> lbl0 == lbl && Mstate.equal lv lv0
         | _ -> false
       end
-    
+
 let updates env seq vars =
   Bag.filter
     (fun upd -> not (is_copy env seq.pre upd))
@@ -134,13 +134,13 @@ let sequence_point a b =
         if not (List.memq q p.next) then p.next <- q :: p.next ;
         if not (List.memq p q.prev) then q.prev <- p :: q.prev ;
     | None , _ | _ , None -> ()
-      
+
 let rec control env prev sequence next =
   ignore (ctrl env prev (Conditions.list sequence) next)
-    
+
 and ctrl env prev steps next = match steps with
   | [] -> next
-  | s :: others -> 
+  | s :: others ->
       let open Conditions in
       match s.condition with
       | Type _ | Have _ | When _ | Core _ | Init _ ->
@@ -191,7 +191,7 @@ let register seq =
          | { condition = Either cases } -> List.iter push cases
       ) seq ;
     match pop () with Some s -> compile s | None -> ()
-  in compile seq ; 
+  in compile seq ;
   let insert = insert env in
   List.iter insert !cfg ; List.iter insert !api ;
   control env None seq None ; env
@@ -220,7 +220,7 @@ class virtual engine =
       | Sigs.Mvar x -> Format.pp_print_string fmt x.vname
       | Sigs.Mmem p -> self#pp_atom fmt p
       | Sigs.Mval lv -> self#pp_lval fmt lv
-    
+
     method pp_lval fmt = function
       | Mvar x , [] ->
           Format.pp_print_string fmt x.vname

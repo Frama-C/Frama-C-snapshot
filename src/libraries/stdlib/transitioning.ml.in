@@ -37,10 +37,25 @@ let stack_fold f x s =
   Stack.iter do_it s;
   !res
 
+let nth_opt l n =
+  try Some (List.nth l n)
+  with Failure _ when n >= 0 -> None
+(* OCaml manual states that a negative argument still raises a Failure. *)
+
+let find_opt f l = try Some (List.find f l) with Not_found -> None
+
+let assoc_opt x l = try Some (List.assoc x l) with Not_found -> None
+
+let assq_opt x l = try Some (List.assq x l) with Not_found -> None
+
 (* the implementations above are only used in case we compile against an
    old OCaml version. Avoid unused warning in other cases. *)
 let _: char -> string -> string list = split_on_char
 let _: ('a -> 'b -> 'a) -> 'a -> 'b Stack.t -> 'a = stack_fold
+let _: 'a list -> int -> 'a option = nth_opt
+let _: ('a -> bool) -> 'a list -> 'a option = find_opt
+let _: 'a -> ('a * 'b) list -> 'b option = assoc_opt
+let _: 'a -> ('a * 'b) list -> 'b option = assq_opt
 
 [@@@ warning "-3"]
 
@@ -59,6 +74,13 @@ end
 
 module Stack = struct
   let fold = @STACK_FOLD@
+end
+
+module List = struct
+  let nth_opt = @NTH_OPT@
+  let find_opt = @FIND_OPT@
+  let assoc_opt = @ASSOC_OPT@
+  let assq_opt = @ASSQ_OPT@
 end
 
 module Q = struct

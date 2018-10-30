@@ -22,9 +22,7 @@
 
 let scope = function
   | None -> "Global"
-  | Some s ->
-      Printf.sprintf "%s:%d"
-        (Filepath.pretty s.Lexing.pos_fname) s.Lexing.pos_lnum
+  | Some s -> Format.asprintf "%a" Cil_datatype.Position.pretty s
 
 type row = Log.event
 
@@ -76,7 +74,7 @@ let make ~packing ~callback =
   let _ = w#add_column_text ~title:"Plugin" [`YALIGN 0.0]
       (fun (_,{evt_plugin=m}) -> [`TEXT m])
   in
-  let _ = w#add_column_text ~title:"Message" [`YALIGN 0.0]
+  let _ = w#add_column_text ~title:"Message" [`YALIGN 0.0 ; `EDITABLE true]
       (fun (_,{evt_message=m}) -> [`TEXT m])
   in
   w#on_click (fun (_,w) c -> callback w c);

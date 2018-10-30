@@ -4,13 +4,13 @@
 [wp] Loading driver 'share/wp.driver'
 [rte] annotating function BinaryMultiplication
 [wp] Goal typed_lemma_ax1_lack : not tried
-[wp] Goal typed_lemma_ax2_ok : not tried
+[wp] Goal typed_lemma_ax2_lack : not tried
 [wp] Goal typed_lemma_sizeof_uint32_t_ok : trivial
 [wp] Goal typed_lemma_sizeof_uint64_t_ok : trivial
 [wp] Goal typed_BinaryMultiplication_post_product : not tried
 [wp] Goal typed_BinaryMultiplication_assert_a1_ok_deductible : not tried
-[wp] Goal typed_BinaryMultiplication_loop_inv_inv1_ok_preserved : not tried
-[wp] Goal typed_BinaryMultiplication_loop_inv_inv1_ok_established : not tried
+[wp] Goal typed_BinaryMultiplication_loop_inv_inv1_lack_preserved : not tried
+[wp] Goal typed_BinaryMultiplication_loop_inv_inv1_lack_established : not tried
 [wp] Goal typed_BinaryMultiplication_loop_inv_inv2_ok_deductible_preserved : not tried
 [wp] Goal typed_BinaryMultiplication_loop_inv_inv2_ok_deductible_established : not tried
 [wp] Goal typed_BinaryMultiplication_assert_rte_unsigned_overflow : not tried

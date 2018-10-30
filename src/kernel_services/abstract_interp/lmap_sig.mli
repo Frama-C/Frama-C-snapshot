@@ -76,6 +76,8 @@ type widen_hint = Base.Set.t * (Base.t -> widen_hint_base)
 
 val widen : widen_hint-> t -> t -> t
 
+(** [merge ~into t] adds all binding from [t] into [into].  *)
+val merge: into:t -> t -> t
 
 (** {2 Finding values} *)
 

@@ -1,8 +1,8 @@
 [kernel] Parsing tests/value/pointer_loop.i (no preprocessing)
-[value] Analyzing a complete application starting at main
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing a complete application starting at main
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   base0 ∈ {7}
   base1 ∈ {1}
   base2 ∈ {2}
@@ -15,11 +15,11 @@
       [1] ∈ {0}
   ACtrl[0] ∈ {{ &Ctrl[0] }}
        [1] ∈ {{ &Ctrl[1] }}
-[value] tests/value/pointer_loop.i:13: entering loop for the first time
-[value] Recording results for main
-[value] done for function main
-[value] ====== VALUES COMPUTED ======
-[value:final-states] Values at end of function main:
+[eva] tests/value/pointer_loop.i:13: starting to merge loop iterations
+[eva] Recording results for main
+[eva] done for function main
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function main:
   base1 ∈ {1; 3; 4}
   base2 ∈ {2; 3; 4}
   Ctrl_p ∈ {{ NULL ; &base1 ; &base2 }}

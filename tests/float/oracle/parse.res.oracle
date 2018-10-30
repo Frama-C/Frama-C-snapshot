@@ -3,24 +3,39 @@
   Floating-point constant 0.00000000000000000000000000000000000000001e310 is not represented exactly. Will use 0x1.83a99c3ec7eb0p893.
 [kernel:parser:decimal-float] tests/float/parse.i:30: Warning: 
   Floating-point constant 0.0000001E9999999999999999999 is not represented exactly. Will use inf.
-[value] Analyzing a complete application starting at main
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing a complete application starting at main
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   v ∈ [--..--]
-[value] tests/float/parse.i:10: Frama_C_show_each: {0}, {{ "reached" }}
-[value] tests/float/parse.i:15: Frama_C_show_each: {0}, {{ "reached" }}
-[value] tests/float/parse.i:21: Frama_C_show_each: {0}, {0}, {{ "reached" }}
-[value] tests/float/parse.i:26: 
+[eva] tests/float/parse.i:10: Frama_C_show_each: {0}, {{ "reached" }}
+[eva] tests/float/parse.i:15: Frama_C_show_each: {0}, {{ "reached" }}
+[eva] tests/float/parse.i:21: Frama_C_show_each: {0}, {0}, {{ "reached" }}
+[eva] tests/float/parse.i:26: 
   Frama_C_show_each: {0x1.83a99c3ec7eb0p893}, {{ "reached" }}
-[value:alarm] tests/float/parse.i:30: Warning: 
+[eva:alarm] tests/float/parse.i:30: Warning: 
   non-finite double value. assert \is_finite(0.0000001E9999999999999999999);
-[value] Recording results for main
-[value] done for function main
-[value] tests/float/parse.i:30: 
-  assertion 'Value,is_nan_or_infinite' got final status invalid.
-[value] ====== VALUES COMPUTED ======
-[value:final-states] Values at end of function main:
+[eva] tests/float/parse.i:36: Warning: 
+  cannot parse floating-point constant, returning imprecise result
+[eva:alarm] tests/float/parse.i:36: Warning: 
+  non-finite long double value. assert \is_finite(0x1p32767L);
+[eva:alarm] tests/float/parse.i:37: Warning: 
+  non-finite long double value. assert \is_finite(l);
+[eva:alarm] tests/float/parse.i:37: Warning: 
+  non-finite long double value. assert \is_finite(l);
+[eva:alarm] tests/float/parse.i:37: Warning: 
+  overflow in conversion from floating-point to integer.
+  assert -2147483649 < l;
+[eva:alarm] tests/float/parse.i:37: Warning: 
+  overflow in conversion from floating-point to integer. assert l < 2147483648;
+[eva] Recording results for main
+[eva] done for function main
+[eva] tests/float/parse.i:30: 
+  assertion 'Eva,is_nan_or_infinite' got final status invalid.
+[eva] tests/float/parse.i:36: 
+  assertion 'Eva,is_nan_or_infinite' got final status invalid.
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function main:
   __retres ∈ {0}
 [from] Computing for function main
 [from] Done for function main
@@ -30,6 +45,6 @@
   \result FROM \nothing
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function main:
-    d; d_0; d1; d2; d_1; d_2; __retres
+    d; d_0; d1; d2; d_1; d_2; l; long_double; __retres
 [inout] Inputs for function main:
     v

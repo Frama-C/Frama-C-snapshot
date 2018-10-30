@@ -269,9 +269,9 @@ Assume { (* Heap *) Have: region(p.base) <= 0. }
 Prove: false.
 
 ------------------------------------------------------------
-[wp] Warning: Separation hypotheses for function 'compare':
+[wp] Warning: Memory model hypotheses for function 'compare':
   /*@ behavior typed: requires \separated(&p,q); */
   void compare(int *q);
-[wp] Warning: Separation hypotheses for function 'absurd':
+[wp] Warning: Memory model hypotheses for function 'absurd':
   /*@ behavior typed: requires \separated(&p,q); */
   void absurd(int *q);

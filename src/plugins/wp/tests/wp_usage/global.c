@@ -1,7 +1,7 @@
 /* run.config
-   OPT: -wp-model raw -wp-warn-separation
-   OPT: -wp-model var -wp-warn-separation
-   OPT: -wp-model ref -wp-warn-separation
+   OPT: -wp-model raw
+   OPT: -wp-model var
+   OPT: -wp-model ref
  */
 
 /* run.config_qualif

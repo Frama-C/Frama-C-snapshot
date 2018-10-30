@@ -1,899 +1,151 @@
 [kernel] Parsing tests/libc/glob_c.c (with preprocessing)
-[value] Splitting return states on:
-  \full_split(@all)
-[value] Analyzing a complete application starting at main
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
-  __fc_heap_status ∈ [--..--]
-  __fc_random_counter ∈ [--..--]
-  __fc_rand_max ∈ {32767}
-  __fc_mblen_state ∈ [--..--]
-  __fc_mbtowc_state ∈ [--..--]
-  __fc_wctomb_state ∈ [--..--]
-  Frama_C_entropy_source ∈ [--..--]
-  __fc_errno ∈ [--..--]
-  __fc_stderr ∈ {{ NULL ; &S___fc_stderr[0] }}
-  __fc_stdin ∈ {{ NULL ; &S___fc_stdin[0] }}
-  __fc_stdout ∈ {{ NULL ; &S___fc_stdout[0] }}
-  __fc_fopen[0..15] ∈ {0}
-  __fc_p_fopen ∈ {{ &__fc_fopen[0] }}
-  __fc_strtok_ptr ∈ {0}
+[eva] Analyzing a complete application starting at main
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   v ∈ [--..--]
-  S___fc_stderr[0..1] ∈ [--..--]
-  S___fc_stdin[0..1] ∈ [--..--]
-  S___fc_stdout[0..1] ∈ [--..--]
-[value] computing for function glob <- main.
-  Called from tests/libc/glob_c.c:26.
-[value] computing for function Frama_C_interval <- glob <- main.
+[eva] computing for function glob <- main.
+  Called from tests/libc/glob_c.c:30.
+[eva] computing for function Frama_C_interval <- glob <- main.
   Called from share/libc/glob.c:32.
-[value] using specification for function Frama_C_interval
-[value] share/libc/glob.c:32: 
+[eva] using specification for function Frama_C_interval
+[eva] share/libc/glob.c:32: 
   function Frama_C_interval: precondition 'order' got status valid.
-[value] Done for function Frama_C_interval
-[value] share/libc/glob.c:66: 
+[eva] Done for function Frama_C_interval
+[eva] share/libc/glob.c:66: Call to builtin realloc
+[eva] share/libc/glob.c:66: 
   function realloc: precondition 'freeable' got status valid.
-[value] share/libc/glob.c:66: allocating variable __realloc_glob_l66
-[value:alarm] share/libc/glob.c:74: Warning: 
+[eva] share/libc/glob.c:66: allocating variable __realloc_glob_l66
+[eva] share/libc/glob.c:71: starting to merge loop iterations
+[eva] share/libc/glob.c:73: starting to merge loop iterations
+[eva:alarm] share/libc/glob.c:74: Warning: 
   out of bounds write.
   assert
   \valid(pglob->gl_pathv +
          (unsigned int)((unsigned int)(reserve_offs + prev_len) + i_1));
-[value] share/libc/glob.c:73: entering loop for the first time
-[value:alarm] share/libc/glob.c:76: Warning: 
+[eva:alarm] share/libc/glob.c:76: Warning: 
   out of bounds write.
   assert
   \valid(pglob->gl_pathv +
          (unsigned int)((unsigned int)(prev_len + reserve_offs) +
                         pglob->gl_pathc));
-[value] computing for function Frama_C_nondet <- glob <- main.
+[eva] computing for function Frama_C_nondet <- glob <- main.
   Called from share/libc/glob.c:77.
-[value] using specification for function Frama_C_nondet
-[value] Done for function Frama_C_nondet
-[value] computing for function Frama_C_nondet <- glob <- main.
-  Called from share/libc/glob.c:77.
-[value] Done for function Frama_C_nondet
-[value] computing for function Frama_C_nondet <- glob <- main.
-  Called from share/libc/glob.c:77.
-[value] Done for function Frama_C_nondet
-[value] computing for function Frama_C_nondet <- glob <- main.
-  Called from share/libc/glob.c:77.
-[value] Done for function Frama_C_nondet
-[value] computing for function Frama_C_nondet <- glob <- main.
-  Called from share/libc/glob.c:77.
-[value] Done for function Frama_C_nondet
-[value] computing for function Frama_C_nondet <- glob <- main.
-  Called from share/libc/glob.c:77.
-[value] Done for function Frama_C_nondet
-[value] computing for function Frama_C_nondet <- glob <- main.
-  Called from share/libc/glob.c:77.
-[value] Done for function Frama_C_nondet
-[value] computing for function Frama_C_nondet <- glob <- main.
-  Called from share/libc/glob.c:77.
-[value] Done for function Frama_C_nondet
-[value] computing for function Frama_C_nondet <- glob <- main.
-  Called from share/libc/glob.c:77.
-[value] Done for function Frama_C_nondet
-[value] computing for function Frama_C_nondet <- glob <- main.
-  Called from share/libc/glob.c:77.
-[value] Done for function Frama_C_nondet
-[value] computing for function Frama_C_interval <- glob <- main.
+[eva] using specification for function Frama_C_nondet
+[eva] Done for function Frama_C_nondet
+[eva] computing for function Frama_C_interval <- glob <- main.
   Called from share/libc/glob.c:82.
-[value] share/libc/glob.c:82: 
+[eva] share/libc/glob.c:82: 
   function Frama_C_interval: precondition 'order' got status valid.
-[value] Done for function Frama_C_interval
-[value] computing for function globerr0 <- glob <- main.
+[eva] Done for function Frama_C_interval
+[eva] computing for function globerr0 <- glob <- main.
   Called from share/libc/glob.c:82.
-[value] computing for function strerror <- globerr0 <- glob <- main.
-  Called from tests/libc/glob_c.c:12.
-[value] Recording results for strerror
-[value] Done for function strerror
-[value] computing for function fprintf_va_1 <- globerr0 <- glob <- main.
-  Called from tests/libc/glob_c.c:12.
-[value] using specification for function fprintf_va_1
-[value] tests/libc/glob_c.c:12: 
-  function fprintf_va_1: precondition valid_read_string(format) got status valid.
-[value] tests/libc/glob_c.c:12: 
-  function fprintf_va_1: precondition valid_read_string(param1) got status valid.
-[value] tests/libc/glob_c.c:12: 
-  function fprintf_va_1: precondition valid_read_string(param0) got status valid.
-[value] Done for function fprintf_va_1
-[value] Recording results for globerr0
-[value] Done for function globerr0
-[value] Recording results for glob
-[value] Done for function glob
-[value] computing for function globfree <- main.
-  Called from tests/libc/glob_c.c:27.
-[value] share/libc/glob.c:93: 
+[eva] Recording results for globerr0
+[eva] Done for function globerr0
+[eva] Recording results for glob
+[eva] Done for function glob
+[eva] computing for function globfree <- main.
+  Called from tests/libc/glob_c.c:31.
+[eva:alarm] share/libc/glob.c:93: Warning: 
+  accessing uninitialized left-value. assert \initialized(&pglob->gl_pathv);
+[eva] share/libc/glob.c:93: Call to builtin free
+[eva] share/libc/glob.c:93: 
   function free: precondition 'freeable' got status valid.
-[value] Recording results for globfree
-[value] Done for function globfree
-[value] computing for function globfree <- main.
-  Called from tests/libc/glob_c.c:27.
-[value] Recording results for globfree
-[value] Done for function globfree
-[value] computing for function glob <- main.
-  Called from tests/libc/glob_c.c:29.
-[value] computing for function Frama_C_interval <- glob <- main.
+[eva] Recording results for globfree
+[eva] Done for function globfree
+[eva] computing for function glob <- main.
+  Called from tests/libc/glob_c.c:33.
+[eva] computing for function Frama_C_interval <- glob <- main.
   Called from share/libc/glob.c:32.
-[value] Done for function Frama_C_interval
-[value] share/libc/glob.c:66: allocating variable __realloc_glob_l66_0
-[value] computing for function Frama_C_nondet <- glob <- main.
+[eva] Done for function Frama_C_interval
+[eva] share/libc/glob.c:66: Call to builtin realloc
+[eva] share/libc/glob.c:66: allocating variable __realloc_glob_l66_0
+[eva] computing for function Frama_C_nondet <- glob <- main.
   Called from share/libc/glob.c:77.
-[value] Done for function Frama_C_nondet
-[value] computing for function Frama_C_nondet <- glob <- main.
-  Called from share/libc/glob.c:77.
-[value] Done for function Frama_C_nondet
-[value] computing for function Frama_C_nondet <- glob <- main.
-  Called from share/libc/glob.c:77.
-[value] Done for function Frama_C_nondet
-[value] computing for function Frama_C_nondet <- glob <- main.
-  Called from share/libc/glob.c:77.
-[value] Done for function Frama_C_nondet
-[value] computing for function Frama_C_nondet <- glob <- main.
-  Called from share/libc/glob.c:77.
-[value] Done for function Frama_C_nondet
-[value] computing for function Frama_C_nondet <- glob <- main.
-  Called from share/libc/glob.c:77.
-[value] Done for function Frama_C_nondet
-[value] computing for function Frama_C_nondet <- glob <- main.
-  Called from share/libc/glob.c:77.
-[value] Done for function Frama_C_nondet
-[value] computing for function Frama_C_nondet <- glob <- main.
-  Called from share/libc/glob.c:77.
-[value] Done for function Frama_C_nondet
-[value] computing for function Frama_C_nondet <- glob <- main.
-  Called from share/libc/glob.c:77.
-[value] Done for function Frama_C_nondet
-[value] computing for function Frama_C_nondet <- glob <- main.
-  Called from share/libc/glob.c:77.
-[value] Done for function Frama_C_nondet
-[value] computing for function Frama_C_interval <- glob <- main.
+[eva] Done for function Frama_C_nondet
+[eva] computing for function Frama_C_interval <- glob <- main.
   Called from share/libc/glob.c:82.
-[value] Done for function Frama_C_interval
-[value] computing for function globerr0 <- glob <- main.
-  Called from share/libc/glob.c:82.
-[value] computing for function strerror <- globerr0 <- glob <- main.
-  Called from tests/libc/glob_c.c:12.
-[value] Recording results for strerror
-[value] Done for function strerror
-[value] computing for function fprintf_va_1 <- globerr0 <- glob <- main.
-  Called from tests/libc/glob_c.c:12.
-[value] Done for function fprintf_va_1
-[value] Recording results for globerr0
-[value] Done for function globerr0
-[value] Recording results for glob
-[value] Done for function glob
-[value] computing for function glob <- main.
-  Called from tests/libc/glob_c.c:29.
-[value] computing for function Frama_C_interval <- glob <- main.
+[eva] Done for function Frama_C_interval
+[eva] share/libc/glob.c:82: Reusing old results for call to globerr0
+[eva] Recording results for glob
+[eva] Done for function glob
+[eva] computing for function globfree <- main.
+  Called from tests/libc/glob_c.c:34.
+[eva:alarm] share/libc/glob.c:93: Warning: 
+  accessing left-value that contains escaping addresses.
+  assert ¬\dangling(&pglob->gl_pathv);
+[eva] share/libc/glob.c:93: Call to builtin free
+[eva] Recording results for globfree
+[eva] Done for function globfree
+[eva] computing for function glob <- main.
+  Called from tests/libc/glob_c.c:36.
+[eva] computing for function Frama_C_interval <- glob <- main.
   Called from share/libc/glob.c:32.
-[value] Done for function Frama_C_interval
-[value] computing for function Frama_C_nondet <- glob <- main.
-  Called from share/libc/glob.c:77.
-[value] Done for function Frama_C_nondet
-[value] computing for function Frama_C_nondet <- glob <- main.
-  Called from share/libc/glob.c:77.
-[value] Done for function Frama_C_nondet
-[value] computing for function Frama_C_nondet <- glob <- main.
-  Called from share/libc/glob.c:77.
-[value] Done for function Frama_C_nondet
-[value] computing for function Frama_C_nondet <- glob <- main.
-  Called from share/libc/glob.c:77.
-[value] Done for function Frama_C_nondet
-[value] computing for function Frama_C_nondet <- glob <- main.
-  Called from share/libc/glob.c:77.
-[value] Done for function Frama_C_nondet
-[value] computing for function Frama_C_nondet <- glob <- main.
-  Called from share/libc/glob.c:77.
-[value] Done for function Frama_C_nondet
-[value] computing for function Frama_C_nondet <- glob <- main.
-  Called from share/libc/glob.c:77.
-[value] Done for function Frama_C_nondet
-[value] computing for function Frama_C_nondet <- glob <- main.
-  Called from share/libc/glob.c:77.
-[value] Done for function Frama_C_nondet
-[value] computing for function Frama_C_nondet <- glob <- main.
-  Called from share/libc/glob.c:77.
-[value] Done for function Frama_C_nondet
-[value] computing for function Frama_C_nondet <- glob <- main.
-  Called from share/libc/glob.c:77.
-[value] Done for function Frama_C_nondet
-[value] computing for function Frama_C_interval <- glob <- main.
-  Called from share/libc/glob.c:82.
-[value] Done for function Frama_C_interval
-[value] computing for function globerr0 <- glob <- main.
-  Called from share/libc/glob.c:82.
-[value] computing for function strerror <- globerr0 <- glob <- main.
-  Called from tests/libc/glob_c.c:12.
-[value] Recording results for strerror
-[value] Done for function strerror
-[value] computing for function fprintf_va_1 <- globerr0 <- glob <- main.
-  Called from tests/libc/glob_c.c:12.
-[value] Done for function fprintf_va_1
-[value] Recording results for globerr0
-[value] Done for function globerr0
-[value] Recording results for glob
-[value] Done for function glob
-[value] computing for function glob <- main.
-  Called from tests/libc/glob_c.c:29.
-[value] computing for function Frama_C_interval <- glob <- main.
-  Called from share/libc/glob.c:32.
-[value] Done for function Frama_C_interval
-[value] computing for function Frama_C_nondet <- glob <- main.
-  Called from share/libc/glob.c:77.
-[value] Done for function Frama_C_nondet
-[value] computing for function Frama_C_nondet <- glob <- main.
-  Called from share/libc/glob.c:77.
-[value] Done for function Frama_C_nondet
-[value] computing for function Frama_C_nondet <- glob <- main.
-  Called from share/libc/glob.c:77.
-[value] Done for function Frama_C_nondet
-[value] computing for function Frama_C_nondet <- glob <- main.
-  Called from share/libc/glob.c:77.
-[value] Done for function Frama_C_nondet
-[value] computing for function Frama_C_nondet <- glob <- main.
-  Called from share/libc/glob.c:77.
-[value] Done for function Frama_C_nondet
-[value] computing for function Frama_C_nondet <- glob <- main.
-  Called from share/libc/glob.c:77.
-[value] Done for function Frama_C_nondet
-[value] computing for function Frama_C_nondet <- glob <- main.
-  Called from share/libc/glob.c:77.
-[value] Done for function Frama_C_nondet
-[value] computing for function Frama_C_nondet <- glob <- main.
-  Called from share/libc/glob.c:77.
-[value] Done for function Frama_C_nondet
-[value] computing for function Frama_C_nondet <- glob <- main.
-  Called from share/libc/glob.c:77.
-[value] Done for function Frama_C_nondet
-[value] computing for function Frama_C_nondet <- glob <- main.
-  Called from share/libc/glob.c:77.
-[value] Done for function Frama_C_nondet
-[value] computing for function Frama_C_interval <- glob <- main.
-  Called from share/libc/glob.c:82.
-[value] Done for function Frama_C_interval
-[value] computing for function globerr0 <- glob <- main.
-  Called from share/libc/glob.c:82.
-[value] computing for function strerror <- globerr0 <- glob <- main.
-  Called from tests/libc/glob_c.c:12.
-[value] Recording results for strerror
-[value] Done for function strerror
-[value] computing for function fprintf_va_1 <- globerr0 <- glob <- main.
-  Called from tests/libc/glob_c.c:12.
-[value] Done for function fprintf_va_1
-[value] Recording results for globerr0
-[value] Done for function globerr0
-[value] Recording results for glob
-[value] Done for function glob
-[value] computing for function globfree <- main.
-  Called from tests/libc/glob_c.c:30.
-[value] Recording results for globfree
-[value] Done for function globfree
-[value] computing for function globfree <- main.
-  Called from tests/libc/glob_c.c:30.
-[value] Recording results for globfree
-[value] Done for function globfree
-[value] computing for function globfree <- main.
-  Called from tests/libc/glob_c.c:30.
-[value] Recording results for globfree
-[value] Done for function globfree
-[value] computing for function glob <- main.
-  Called from tests/libc/glob_c.c:32.
-[value] computing for function Frama_C_interval <- glob <- main.
-  Called from share/libc/glob.c:32.
-[value] Done for function Frama_C_interval
-[value] share/libc/glob.c:50: 
+[eva] Done for function Frama_C_interval
+[eva] share/libc/glob.c:50: Call to builtin realloc
+[eva] share/libc/glob.c:50: 
   function realloc: precondition 'freeable' got status valid.
-[value] share/libc/glob.c:50: allocating variable __realloc_glob_l50
-[value] share/libc/glob.c:66: allocating variable __realloc_glob_l66_1
-[value] computing for function Frama_C_nondet <- glob <- main.
+[eva] share/libc/glob.c:50: allocating variable __realloc_glob_l50
+[eva] share/libc/glob.c:66: Call to builtin realloc
+[eva] share/libc/glob.c:66: allocating variable __realloc_glob_l66_1
+[eva] computing for function Frama_C_nondet <- glob <- main.
   Called from share/libc/glob.c:77.
-[value] Done for function Frama_C_nondet
-[value] computing for function Frama_C_nondet <- glob <- main.
-  Called from share/libc/glob.c:77.
-[value] Done for function Frama_C_nondet
-[value] computing for function Frama_C_nondet <- glob <- main.
-  Called from share/libc/glob.c:77.
-[value] Done for function Frama_C_nondet
-[value] computing for function Frama_C_nondet <- glob <- main.
-  Called from share/libc/glob.c:77.
-[value] Done for function Frama_C_nondet
-[value] computing for function Frama_C_nondet <- glob <- main.
-  Called from share/libc/glob.c:77.
-[value] Done for function Frama_C_nondet
-[value] computing for function Frama_C_nondet <- glob <- main.
-  Called from share/libc/glob.c:77.
-[value] Done for function Frama_C_nondet
-[value] computing for function Frama_C_nondet <- glob <- main.
-  Called from share/libc/glob.c:77.
-[value] Done for function Frama_C_nondet
-[value] computing for function Frama_C_nondet <- glob <- main.
-  Called from share/libc/glob.c:77.
-[value] Done for function Frama_C_nondet
-[value] computing for function Frama_C_nondet <- glob <- main.
-  Called from share/libc/glob.c:77.
-[value] Done for function Frama_C_nondet
-[value] computing for function Frama_C_nondet <- glob <- main.
-  Called from share/libc/glob.c:77.
-[value] Done for function Frama_C_nondet
-[value] computing for function Frama_C_interval <- glob <- main.
+[eva] Done for function Frama_C_nondet
+[eva] computing for function Frama_C_interval <- glob <- main.
   Called from share/libc/glob.c:82.
-[value] Done for function Frama_C_interval
-[value] computing for function globerr1 <- glob <- main.
+[eva] Done for function Frama_C_interval
+[eva] computing for function globerr1 <- glob <- main.
   Called from share/libc/glob.c:82.
-[value] computing for function strerror <- globerr1 <- glob <- main.
-  Called from tests/libc/glob_c.c:17.
-[value] Recording results for strerror
-[value] Done for function strerror
-[value] computing for function fprintf_va_2 <- globerr1 <- glob <- main.
-  Called from tests/libc/glob_c.c:17.
-[value] using specification for function fprintf_va_2
-[value] tests/libc/glob_c.c:17: 
-  function fprintf_va_2: precondition valid_read_string(format) got status valid.
-[value] tests/libc/glob_c.c:17: 
-  function fprintf_va_2: precondition valid_read_string(param1) got status valid.
-[value] tests/libc/glob_c.c:17: 
-  function fprintf_va_2: precondition valid_read_string(param0) got status valid.
-[value] Done for function fprintf_va_2
-[value] Recording results for globerr1
-[value] Done for function globerr1
-[value] Recording results for glob
-[value] Done for function glob
-[value] computing for function glob <- main.
-  Called from tests/libc/glob_c.c:32.
-[value] computing for function Frama_C_interval <- glob <- main.
-  Called from share/libc/glob.c:32.
-[value] Done for function Frama_C_interval
-[value] computing for function Frama_C_nondet <- glob <- main.
-  Called from share/libc/glob.c:77.
-[value] Done for function Frama_C_nondet
-[value] computing for function Frama_C_nondet <- glob <- main.
-  Called from share/libc/glob.c:77.
-[value] Done for function Frama_C_nondet
-[value] computing for function Frama_C_nondet <- glob <- main.
-  Called from share/libc/glob.c:77.
-[value] Done for function Frama_C_nondet
-[value] computing for function Frama_C_nondet <- glob <- main.
-  Called from share/libc/glob.c:77.
-[value] Done for function Frama_C_nondet
-[value] computing for function Frama_C_nondet <- glob <- main.
-  Called from share/libc/glob.c:77.
-[value] Done for function Frama_C_nondet
-[value] computing for function Frama_C_nondet <- glob <- main.
-  Called from share/libc/glob.c:77.
-[value] Done for function Frama_C_nondet
-[value] computing for function Frama_C_nondet <- glob <- main.
-  Called from share/libc/glob.c:77.
-[value] Done for function Frama_C_nondet
-[value] computing for function Frama_C_nondet <- glob <- main.
-  Called from share/libc/glob.c:77.
-[value] Done for function Frama_C_nondet
-[value] computing for function Frama_C_nondet <- glob <- main.
-  Called from share/libc/glob.c:77.
-[value] Done for function Frama_C_nondet
-[value] computing for function Frama_C_nondet <- glob <- main.
-  Called from share/libc/glob.c:77.
-[value] Done for function Frama_C_nondet
-[value] computing for function Frama_C_interval <- glob <- main.
-  Called from share/libc/glob.c:82.
-[value] Done for function Frama_C_interval
-[value] computing for function globerr1 <- glob <- main.
-  Called from share/libc/glob.c:82.
-[value] computing for function strerror <- globerr1 <- glob <- main.
-  Called from tests/libc/glob_c.c:17.
-[value] Recording results for strerror
-[value] Done for function strerror
-[value] computing for function fprintf_va_2 <- globerr1 <- glob <- main.
-  Called from tests/libc/glob_c.c:17.
-[value] Done for function fprintf_va_2
-[value] Recording results for globerr1
-[value] Done for function globerr1
-[value] Recording results for glob
-[value] Done for function glob
-[value] computing for function glob <- main.
-  Called from tests/libc/glob_c.c:32.
-[value] computing for function Frama_C_interval <- glob <- main.
-  Called from share/libc/glob.c:32.
-[value] Done for function Frama_C_interval
-[value] computing for function Frama_C_nondet <- glob <- main.
-  Called from share/libc/glob.c:77.
-[value] Done for function Frama_C_nondet
-[value] computing for function Frama_C_nondet <- glob <- main.
-  Called from share/libc/glob.c:77.
-[value] Done for function Frama_C_nondet
-[value] computing for function Frama_C_nondet <- glob <- main.
-  Called from share/libc/glob.c:77.
-[value] Done for function Frama_C_nondet
-[value] computing for function Frama_C_nondet <- glob <- main.
-  Called from share/libc/glob.c:77.
-[value] Done for function Frama_C_nondet
-[value] computing for function Frama_C_nondet <- glob <- main.
-  Called from share/libc/glob.c:77.
-[value] Done for function Frama_C_nondet
-[value] computing for function Frama_C_nondet <- glob <- main.
-  Called from share/libc/glob.c:77.
-[value] Done for function Frama_C_nondet
-[value] computing for function Frama_C_nondet <- glob <- main.
-  Called from share/libc/glob.c:77.
-[value] Done for function Frama_C_nondet
-[value] computing for function Frama_C_nondet <- glob <- main.
-  Called from share/libc/glob.c:77.
-[value] Done for function Frama_C_nondet
-[value] computing for function Frama_C_nondet <- glob <- main.
-  Called from share/libc/glob.c:77.
-[value] Done for function Frama_C_nondet
-[value] computing for function Frama_C_nondet <- glob <- main.
-  Called from share/libc/glob.c:77.
-[value] Done for function Frama_C_nondet
-[value] computing for function Frama_C_interval <- glob <- main.
-  Called from share/libc/glob.c:82.
-[value] Done for function Frama_C_interval
-[value] computing for function globerr1 <- glob <- main.
-  Called from share/libc/glob.c:82.
-[value] computing for function strerror <- globerr1 <- glob <- main.
-  Called from tests/libc/glob_c.c:17.
-[value] Recording results for strerror
-[value] Done for function strerror
-[value] computing for function fprintf_va_2 <- globerr1 <- glob <- main.
-  Called from tests/libc/glob_c.c:17.
-[value] Done for function fprintf_va_2
-[value] Recording results for globerr1
-[value] Done for function globerr1
-[value] Recording results for glob
-[value] Done for function glob
-[value] computing for function glob <- main.
-  Called from tests/libc/glob_c.c:32.
-[value] computing for function Frama_C_interval <- glob <- main.
-  Called from share/libc/glob.c:32.
-[value] Done for function Frama_C_interval
-[value] computing for function Frama_C_nondet <- glob <- main.
-  Called from share/libc/glob.c:77.
-[value] Done for function Frama_C_nondet
-[value] computing for function Frama_C_nondet <- glob <- main.
-  Called from share/libc/glob.c:77.
-[value] Done for function Frama_C_nondet
-[value] computing for function Frama_C_nondet <- glob <- main.
-  Called from share/libc/glob.c:77.
-[value] Done for function Frama_C_nondet
-[value] computing for function Frama_C_nondet <- glob <- main.
-  Called from share/libc/glob.c:77.
-[value] Done for function Frama_C_nondet
-[value] computing for function Frama_C_nondet <- glob <- main.
-  Called from share/libc/glob.c:77.
-[value] Done for function Frama_C_nondet
-[value] computing for function Frama_C_nondet <- glob <- main.
-  Called from share/libc/glob.c:77.
-[value] Done for function Frama_C_nondet
-[value] computing for function Frama_C_nondet <- glob <- main.
-  Called from share/libc/glob.c:77.
-[value] Done for function Frama_C_nondet
-[value] computing for function Frama_C_nondet <- glob <- main.
-  Called from share/libc/glob.c:77.
-[value] Done for function Frama_C_nondet
-[value] computing for function Frama_C_nondet <- glob <- main.
-  Called from share/libc/glob.c:77.
-[value] Done for function Frama_C_nondet
-[value] computing for function Frama_C_nondet <- glob <- main.
-  Called from share/libc/glob.c:77.
-[value] Done for function Frama_C_nondet
-[value] computing for function Frama_C_interval <- glob <- main.
-  Called from share/libc/glob.c:82.
-[value] Done for function Frama_C_interval
-[value] computing for function globerr1 <- glob <- main.
-  Called from share/libc/glob.c:82.
-[value] computing for function strerror <- globerr1 <- glob <- main.
-  Called from tests/libc/glob_c.c:17.
-[value] Recording results for strerror
-[value] Done for function strerror
-[value] computing for function fprintf_va_2 <- globerr1 <- glob <- main.
-  Called from tests/libc/glob_c.c:17.
-[value] Done for function fprintf_va_2
-[value] Recording results for globerr1
-[value] Done for function globerr1
-[value] Recording results for glob
-[value] Done for function glob
-[value] computing for function glob <- main.
-  Called from tests/libc/glob_c.c:32.
-[value] computing for function Frama_C_interval <- glob <- main.
-  Called from share/libc/glob.c:32.
-[value] Done for function Frama_C_interval
-[value] computing for function Frama_C_nondet <- glob <- main.
-  Called from share/libc/glob.c:77.
-[value] Done for function Frama_C_nondet
-[value] computing for function Frama_C_nondet <- glob <- main.
-  Called from share/libc/glob.c:77.
-[value] Done for function Frama_C_nondet
-[value] computing for function Frama_C_nondet <- glob <- main.
-  Called from share/libc/glob.c:77.
-[value] Done for function Frama_C_nondet
-[value] computing for function Frama_C_nondet <- glob <- main.
-  Called from share/libc/glob.c:77.
-[value] Done for function Frama_C_nondet
-[value] computing for function Frama_C_nondet <- glob <- main.
-  Called from share/libc/glob.c:77.
-[value] Done for function Frama_C_nondet
-[value] computing for function Frama_C_nondet <- glob <- main.
-  Called from share/libc/glob.c:77.
-[value] Done for function Frama_C_nondet
-[value] computing for function Frama_C_nondet <- glob <- main.
-  Called from share/libc/glob.c:77.
-[value] Done for function Frama_C_nondet
-[value] computing for function Frama_C_nondet <- glob <- main.
-  Called from share/libc/glob.c:77.
-[value] Done for function Frama_C_nondet
-[value] computing for function Frama_C_nondet <- glob <- main.
-  Called from share/libc/glob.c:77.
-[value] Done for function Frama_C_nondet
-[value] computing for function Frama_C_nondet <- glob <- main.
-  Called from share/libc/glob.c:77.
-[value] Done for function Frama_C_nondet
-[value] computing for function Frama_C_interval <- glob <- main.
-  Called from share/libc/glob.c:82.
-[value] Done for function Frama_C_interval
-[value] computing for function globerr1 <- glob <- main.
-  Called from share/libc/glob.c:82.
-[value] computing for function strerror <- globerr1 <- glob <- main.
-  Called from tests/libc/glob_c.c:17.
-[value] Recording results for strerror
-[value] Done for function strerror
-[value] computing for function fprintf_va_2 <- globerr1 <- glob <- main.
-  Called from tests/libc/glob_c.c:17.
-[value] Done for function fprintf_va_2
-[value] Recording results for globerr1
-[value] Done for function globerr1
-[value] Recording results for glob
-[value] Done for function glob
-[value] computing for function glob <- main.
-  Called from tests/libc/glob_c.c:32.
-[value] computing for function Frama_C_interval <- glob <- main.
-  Called from share/libc/glob.c:32.
-[value] Done for function Frama_C_interval
-[value] computing for function Frama_C_nondet <- glob <- main.
-  Called from share/libc/glob.c:77.
-[value] Done for function Frama_C_nondet
-[value] computing for function Frama_C_nondet <- glob <- main.
-  Called from share/libc/glob.c:77.
-[value] Done for function Frama_C_nondet
-[value] computing for function Frama_C_nondet <- glob <- main.
-  Called from share/libc/glob.c:77.
-[value] Done for function Frama_C_nondet
-[value] computing for function Frama_C_nondet <- glob <- main.
-  Called from share/libc/glob.c:77.
-[value] Done for function Frama_C_nondet
-[value] computing for function Frama_C_nondet <- glob <- main.
-  Called from share/libc/glob.c:77.
-[value] Done for function Frama_C_nondet
-[value] computing for function Frama_C_nondet <- glob <- main.
-  Called from share/libc/glob.c:77.
-[value] Done for function Frama_C_nondet
-[value] computing for function Frama_C_nondet <- glob <- main.
-  Called from share/libc/glob.c:77.
-[value] Done for function Frama_C_nondet
-[value] computing for function Frama_C_nondet <- glob <- main.
-  Called from share/libc/glob.c:77.
-[value] Done for function Frama_C_nondet
-[value] computing for function Frama_C_nondet <- glob <- main.
-  Called from share/libc/glob.c:77.
-[value] Done for function Frama_C_nondet
-[value] computing for function Frama_C_nondet <- glob <- main.
-  Called from share/libc/glob.c:77.
-[value] Done for function Frama_C_nondet
-[value] computing for function Frama_C_interval <- glob <- main.
-  Called from share/libc/glob.c:82.
-[value] Done for function Frama_C_interval
-[value] computing for function globerr1 <- glob <- main.
-  Called from share/libc/glob.c:82.
-[value] computing for function strerror <- globerr1 <- glob <- main.
-  Called from tests/libc/glob_c.c:17.
-[value] Recording results for strerror
-[value] Done for function strerror
-[value] computing for function fprintf_va_2 <- globerr1 <- glob <- main.
-  Called from tests/libc/glob_c.c:17.
-[value] Done for function fprintf_va_2
-[value] Recording results for globerr1
-[value] Done for function globerr1
-[value] Recording results for glob
-[value] Done for function glob
-[value] computing for function globfree <- main.
-  Called from tests/libc/glob_c.c:33.
-[value] Recording results for globfree
-[value] Done for function globfree
-[value] computing for function globfree <- main.
-  Called from tests/libc/glob_c.c:33.
-[value] Recording results for globfree
-[value] Done for function globfree
-[value] computing for function globfree <- main.
-  Called from tests/libc/glob_c.c:33.
-[value] Recording results for globfree
-[value] Done for function globfree
-[value] computing for function glob <- main.
-  Called from tests/libc/glob_c.c:36.
-[value] computing for function Frama_C_interval <- glob <- main.
-  Called from share/libc/glob.c:32.
-[value] Done for function Frama_C_interval
-[value] share/libc/glob.c:50: allocating variable __realloc_glob_l50_0
-[value] share/libc/glob.c:66: allocating variable __realloc_glob_l66_2
-[value] computing for function Frama_C_nondet <- glob <- main.
-  Called from share/libc/glob.c:77.
-[value] Done for function Frama_C_nondet
-[value] computing for function Frama_C_nondet <- glob <- main.
-  Called from share/libc/glob.c:77.
-[value] Done for function Frama_C_nondet
-[value] computing for function Frama_C_nondet <- glob <- main.
-  Called from share/libc/glob.c:77.
-[value] Done for function Frama_C_nondet
-[value] computing for function Frama_C_nondet <- glob <- main.
-  Called from share/libc/glob.c:77.
-[value] Done for function Frama_C_nondet
-[value] computing for function Frama_C_nondet <- glob <- main.
-  Called from share/libc/glob.c:77.
-[value] Done for function Frama_C_nondet
-[value] computing for function Frama_C_nondet <- glob <- main.
-  Called from share/libc/glob.c:77.
-[value] Done for function Frama_C_nondet
-[value] computing for function Frama_C_nondet <- glob <- main.
-  Called from share/libc/glob.c:77.
-[value] Done for function Frama_C_nondet
-[value] computing for function Frama_C_nondet <- glob <- main.
-  Called from share/libc/glob.c:77.
-[value] Done for function Frama_C_nondet
-[value] computing for function Frama_C_nondet <- glob <- main.
-  Called from share/libc/glob.c:77.
-[value] Done for function Frama_C_nondet
-[value] computing for function Frama_C_nondet <- glob <- main.
-  Called from share/libc/glob.c:77.
-[value] Done for function Frama_C_nondet
-[value] computing for function Frama_C_interval <- glob <- main.
-  Called from share/libc/glob.c:82.
-[value] Done for function Frama_C_interval
-[value] computing for function globerr1 <- glob <- main.
-  Called from share/libc/glob.c:82.
-[value] computing for function strerror <- globerr1 <- glob <- main.
-  Called from tests/libc/glob_c.c:17.
-[value] Recording results for strerror
-[value] Done for function strerror
-[value] computing for function fprintf_va_2 <- globerr1 <- glob <- main.
-  Called from tests/libc/glob_c.c:17.
-[value] Done for function fprintf_va_2
-[value] Recording results for globerr1
-[value] Done for function globerr1
-[value] Recording results for glob
-[value] Done for function glob
-[value] computing for function glob <- main.
-  Called from tests/libc/glob_c.c:36.
-[value] computing for function Frama_C_interval <- glob <- main.
-  Called from share/libc/glob.c:32.
-[value] Done for function Frama_C_interval
-[value] computing for function Frama_C_nondet <- glob <- main.
-  Called from share/libc/glob.c:77.
-[value] Done for function Frama_C_nondet
-[value] computing for function Frama_C_nondet <- glob <- main.
-  Called from share/libc/glob.c:77.
-[value] Done for function Frama_C_nondet
-[value] computing for function Frama_C_nondet <- glob <- main.
-  Called from share/libc/glob.c:77.
-[value] Done for function Frama_C_nondet
-[value] computing for function Frama_C_nondet <- glob <- main.
-  Called from share/libc/glob.c:77.
-[value] Done for function Frama_C_nondet
-[value] computing for function Frama_C_nondet <- glob <- main.
-  Called from share/libc/glob.c:77.
-[value] Done for function Frama_C_nondet
-[value] computing for function Frama_C_nondet <- glob <- main.
-  Called from share/libc/glob.c:77.
-[value] Done for function Frama_C_nondet
-[value] computing for function Frama_C_nondet <- glob <- main.
-  Called from share/libc/glob.c:77.
-[value] Done for function Frama_C_nondet
-[value] computing for function Frama_C_nondet <- glob <- main.
-  Called from share/libc/glob.c:77.
-[value] Done for function Frama_C_nondet
-[value] computing for function Frama_C_nondet <- glob <- main.
-  Called from share/libc/glob.c:77.
-[value] Done for function Frama_C_nondet
-[value] computing for function Frama_C_nondet <- glob <- main.
-  Called from share/libc/glob.c:77.
-[value] Done for function Frama_C_nondet
-[value] computing for function Frama_C_interval <- glob <- main.
-  Called from share/libc/glob.c:82.
-[value] Done for function Frama_C_interval
-[value] computing for function globerr1 <- glob <- main.
-  Called from share/libc/glob.c:82.
-[value] computing for function strerror <- globerr1 <- glob <- main.
-  Called from tests/libc/glob_c.c:17.
-[value] Recording results for strerror
-[value] Done for function strerror
-[value] computing for function fprintf_va_2 <- globerr1 <- glob <- main.
-  Called from tests/libc/glob_c.c:17.
-[value] Done for function fprintf_va_2
-[value] Recording results for globerr1
-[value] Done for function globerr1
-[value] Recording results for glob
-[value] Done for function glob
-[value] computing for function glob <- main.
-  Called from tests/libc/glob_c.c:36.
-[value] computing for function Frama_C_interval <- glob <- main.
-  Called from share/libc/glob.c:32.
-[value] Done for function Frama_C_interval
-[value] computing for function Frama_C_nondet <- glob <- main.
-  Called from share/libc/glob.c:77.
-[value] Done for function Frama_C_nondet
-[value] computing for function Frama_C_nondet <- glob <- main.
-  Called from share/libc/glob.c:77.
-[value] Done for function Frama_C_nondet
-[value] computing for function Frama_C_nondet <- glob <- main.
-  Called from share/libc/glob.c:77.
-[value] Done for function Frama_C_nondet
-[value] computing for function Frama_C_nondet <- glob <- main.
-  Called from share/libc/glob.c:77.
-[value] Done for function Frama_C_nondet
-[value] computing for function Frama_C_nondet <- glob <- main.
-  Called from share/libc/glob.c:77.
-[value] Done for function Frama_C_nondet
-[value] computing for function Frama_C_nondet <- glob <- main.
-  Called from share/libc/glob.c:77.
-[value] Done for function Frama_C_nondet
-[value] computing for function Frama_C_nondet <- glob <- main.
-  Called from share/libc/glob.c:77.
-[value] Done for function Frama_C_nondet
-[value] computing for function Frama_C_nondet <- glob <- main.
-  Called from share/libc/glob.c:77.
-[value] Done for function Frama_C_nondet
-[value] computing for function Frama_C_nondet <- glob <- main.
-  Called from share/libc/glob.c:77.
-[value] Done for function Frama_C_nondet
-[value] computing for function Frama_C_nondet <- glob <- main.
-  Called from share/libc/glob.c:77.
-[value] Done for function Frama_C_nondet
-[value] computing for function Frama_C_interval <- glob <- main.
-  Called from share/libc/glob.c:82.
-[value] Done for function Frama_C_interval
-[value] computing for function globerr1 <- glob <- main.
-  Called from share/libc/glob.c:82.
-[value] computing for function strerror <- globerr1 <- glob <- main.
-  Called from tests/libc/glob_c.c:17.
-[value] Recording results for strerror
-[value] Done for function strerror
-[value] computing for function fprintf_va_2 <- globerr1 <- glob <- main.
-  Called from tests/libc/glob_c.c:17.
-[value] Done for function fprintf_va_2
-[value] Recording results for globerr1
-[value] Done for function globerr1
-[value] Recording results for glob
-[value] Done for function glob
-[value] computing for function glob <- main.
-  Called from tests/libc/glob_c.c:36.
-[value] computing for function Frama_C_interval <- glob <- main.
-  Called from share/libc/glob.c:32.
-[value] Done for function Frama_C_interval
-[value] computing for function Frama_C_nondet <- glob <- main.
-  Called from share/libc/glob.c:77.
-[value] Done for function Frama_C_nondet
-[value] computing for function Frama_C_nondet <- glob <- main.
-  Called from share/libc/glob.c:77.
-[value] Done for function Frama_C_nondet
-[value] computing for function Frama_C_nondet <- glob <- main.
-  Called from share/libc/glob.c:77.
-[value] Done for function Frama_C_nondet
-[value] computing for function Frama_C_nondet <- glob <- main.
-  Called from share/libc/glob.c:77.
-[value] Done for function Frama_C_nondet
-[value] computing for function Frama_C_nondet <- glob <- main.
-  Called from share/libc/glob.c:77.
-[value] Done for function Frama_C_nondet
-[value] computing for function Frama_C_nondet <- glob <- main.
-  Called from share/libc/glob.c:77.
-[value] Done for function Frama_C_nondet
-[value] computing for function Frama_C_nondet <- glob <- main.
-  Called from share/libc/glob.c:77.
-[value] Done for function Frama_C_nondet
-[value] computing for function Frama_C_nondet <- glob <- main.
-  Called from share/libc/glob.c:77.
-[value] Done for function Frama_C_nondet
-[value] computing for function Frama_C_nondet <- glob <- main.
-  Called from share/libc/glob.c:77.
-[value] Done for function Frama_C_nondet
-[value] computing for function Frama_C_nondet <- glob <- main.
-  Called from share/libc/glob.c:77.
-[value] Done for function Frama_C_nondet
-[value] computing for function Frama_C_interval <- glob <- main.
-  Called from share/libc/glob.c:82.
-[value] Done for function Frama_C_interval
-[value] computing for function globerr1 <- glob <- main.
-  Called from share/libc/glob.c:82.
-[value] computing for function strerror <- globerr1 <- glob <- main.
-  Called from tests/libc/glob_c.c:17.
-[value] Recording results for strerror
-[value] Done for function strerror
-[value] computing for function fprintf_va_2 <- globerr1 <- glob <- main.
-  Called from tests/libc/glob_c.c:17.
-[value] Done for function fprintf_va_2
-[value] Recording results for globerr1
-[value] Done for function globerr1
-[value] Recording results for glob
-[value] Done for function glob
-[value] computing for function glob <- main.
-  Called from tests/libc/glob_c.c:36.
-[value] computing for function Frama_C_interval <- glob <- main.
-  Called from share/libc/glob.c:32.
-[value] Done for function Frama_C_interval
-[value] computing for function Frama_C_nondet <- glob <- main.
-  Called from share/libc/glob.c:77.
-[value] Done for function Frama_C_nondet
-[value] computing for function Frama_C_nondet <- glob <- main.
-  Called from share/libc/glob.c:77.
-[value] Done for function Frama_C_nondet
-[value] computing for function Frama_C_nondet <- glob <- main.
-  Called from share/libc/glob.c:77.
-[value] Done for function Frama_C_nondet
-[value] computing for function Frama_C_nondet <- glob <- main.
-  Called from share/libc/glob.c:77.
-[value] Done for function Frama_C_nondet
-[value] computing for function Frama_C_nondet <- glob <- main.
-  Called from share/libc/glob.c:77.
-[value] Done for function Frama_C_nondet
-[value] computing for function Frama_C_nondet <- glob <- main.
-  Called from share/libc/glob.c:77.
-[value] Done for function Frama_C_nondet
-[value] computing for function Frama_C_nondet <- glob <- main.
-  Called from share/libc/glob.c:77.
-[value] Done for function Frama_C_nondet
-[value] computing for function Frama_C_nondet <- glob <- main.
-  Called from share/libc/glob.c:77.
-[value] Done for function Frama_C_nondet
-[value] computing for function Frama_C_nondet <- glob <- main.
-  Called from share/libc/glob.c:77.
-[value] Done for function Frama_C_nondet
-[value] computing for function Frama_C_nondet <- glob <- main.
-  Called from share/libc/glob.c:77.
-[value] Done for function Frama_C_nondet
-[value] computing for function Frama_C_interval <- glob <- main.
-  Called from share/libc/glob.c:82.
-[value] Done for function Frama_C_interval
-[value] computing for function globerr1 <- glob <- main.
-  Called from share/libc/glob.c:82.
-[value] computing for function strerror <- globerr1 <- glob <- main.
-  Called from tests/libc/glob_c.c:17.
-[value] Recording results for strerror
-[value] Done for function strerror
-[value] computing for function fprintf_va_2 <- globerr1 <- glob <- main.
-  Called from tests/libc/glob_c.c:17.
-[value] Done for function fprintf_va_2
-[value] Recording results for globerr1
-[value] Done for function globerr1
-[value] Recording results for glob
-[value] Done for function glob
-[value] computing for function globfree <- main.
+[eva] Recording results for globerr1
+[eva] Done for function globerr1
+[eva] Recording results for glob
+[eva] Done for function glob
+[eva] computing for function globfree <- main.
   Called from tests/libc/glob_c.c:37.
-[value] Recording results for globfree
-[value] Done for function globfree
-[value] computing for function globfree <- main.
-  Called from tests/libc/glob_c.c:37.
-[value] Recording results for globfree
-[value] Done for function globfree
-[value] computing for function globfree <- main.
-  Called from tests/libc/glob_c.c:37.
-[value] Recording results for globfree
-[value] Done for function globfree
-[value] Recording results for main
-[value] done for function main
-[value] ====== VALUES COMPUTED ======
-[value:final-states] Values at end of function globfree:
+[eva] share/libc/glob.c:93: Call to builtin free
+[eva] Recording results for globfree
+[eva] Done for function globfree
+[eva] computing for function glob <- main.
+  Called from tests/libc/glob_c.c:40.
+[eva] computing for function Frama_C_interval <- glob <- main.
+  Called from share/libc/glob.c:32.
+[eva] Done for function Frama_C_interval
+[eva] share/libc/glob.c:50: Call to builtin realloc
+[eva] share/libc/glob.c:50: allocating variable __realloc_glob_l50_0
+[eva] share/libc/glob.c:54: starting to merge loop iterations
+[eva] share/libc/glob.c:66: Call to builtin realloc
+[eva] share/libc/glob.c:66: allocating variable __realloc_glob_l66_2
+[eva] computing for function Frama_C_nondet <- glob <- main.
+  Called from share/libc/glob.c:77.
+[eva] Done for function Frama_C_nondet
+[eva] computing for function Frama_C_interval <- glob <- main.
+  Called from share/libc/glob.c:82.
+[eva] Done for function Frama_C_interval
+[eva] share/libc/glob.c:82: Reusing old results for call to globerr1
+[eva] Recording results for glob
+[eva] Done for function glob
+[eva] computing for function globfree <- main.
+  Called from tests/libc/glob_c.c:41.
+[eva] share/libc/glob.c:93: Call to builtin free
+[eva] Recording results for globfree
+[eva] Done for function globfree
+[eva] Recording results for main
+[eva] done for function main
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function globerr0:
+  __retres ∈ {0}
+[eva:final-states] Values at end of function globerr1:
+  __retres ∈ {1}
+[eva:final-states] Values at end of function globfree:
   gl.gl_pathc ∈ [1..10]
-    .gl_pathv ∈ {0} or ESCAPINGADDR
+    .gl_pathv ∈
+    {{ NULL ; &__realloc_glob_l66[0] ; &__realloc_glob_l66_0[0] ;
+       &__realloc_glob_l50[0] ; &__realloc_glob_l66_1[0] ;
+       &__realloc_glob_l50_0[0] ; &__realloc_glob_l66_2[0] }} or ESCAPINGADDR
     .gl_offs ∈ {1}
     {.gl_flags; .gl_closedir; .gl_readdir; .gl_opendir; .gl_lstat; .gl_stat} ∈
     UNINITIALIZED
-[value:final-states] Values at end of function strerror:
-  __retres ∈ {{ "strerror message by Frama-C" }}
-[value:final-states] Values at end of function globerr0:
-  __retres ∈ {0}
-  S___fc_stderr[0..1] ∈ [--..--]
-[value:final-states] Values at end of function globerr1:
-  __retres ∈ {1}
-  S___fc_stderr[0..1] ∈ [--..--]
-[value:final-states] Values at end of function glob:
+[eva:final-states] Values at end of function glob:
   Frama_C_entropy_source ∈ [--..--]
   reserve_offs ∈ {0; 1}
   prev_len ∈ {0}
@@ -907,43 +159,52 @@
     {.gl_flags; .gl_closedir; .gl_readdir; .gl_opendir; .gl_lstat; .gl_stat} ∈
     UNINITIALIZED
   __retres ∈ {0; 1; 2; 3}
-  S___fc_stderr[0..1] ∈ [--..--]
-  __realloc_glob_l66[0] ∈ {0}
-                    [1] ∈ {{ "glob result" }}
-                    [2] ∈ {{ NULL ; "glob result" }}
-                    [3..10] ∈ {{ NULL ; "glob result" }} or UNINITIALIZED
+  __realloc_glob_l66[0] ∈ {0} or UNINITIALIZED
+                    [1] ∈ {{ "glob result" }} or UNINITIALIZED
+                    [2..10] ∈ {{ NULL ; "glob result" }} or UNINITIALIZED
                     [11] ∈ {0} or UNINITIALIZED
-  __realloc_glob_l66_0[0] ∈ {{ "glob result" }}
-                      [1] ∈ {{ NULL ; "glob result" }}
-                      [2..9] ∈ {{ NULL ; "glob result" }} or UNINITIALIZED
+  __realloc_glob_l66_0[0] ∈ {{ "glob result" }} or UNINITIALIZED
+                      [1..9] ∈ {{ NULL ; "glob result" }} or UNINITIALIZED
                       [10] ∈ {0} or UNINITIALIZED
-  __realloc_glob_l50[0] ∈ {{ "bli" }}
-                    [1] ∈ {0}
-  __realloc_glob_l66_1[0] ∈ {{ "glob result" }}
-                      [1] ∈ {{ NULL ; "glob result" }}
-                      [2..9] ∈ {{ NULL ; "glob result" }} or UNINITIALIZED
+  __realloc_glob_l50[0] ∈ {{ "bli" }} or UNINITIALIZED
+                    [1] ∈ {0} or UNINITIALIZED
+  __realloc_glob_l66_1[0] ∈ {{ "glob result" }} or UNINITIALIZED
+                      [1..9] ∈ {{ NULL ; "glob result" }} or UNINITIALIZED
                       [10] ∈ {0} or UNINITIALIZED
-  __realloc_glob_l50_0[0] ∈ {0}
-                      [1] ∈ {{ "blo" }}
-                      [2] ∈ {0}
-  __realloc_glob_l66_2[0] ∈ {0}
-                      [1] ∈ {{ "glob result" }}
-                      [2] ∈ {{ NULL ; "glob result" }}
-                      [3..10] ∈ {{ NULL ; "glob result" }} or UNINITIALIZED
+  __realloc_glob_l50_0[0] ∈ {0} or UNINITIALIZED
+                      [1] ∈ {{ "blo" }} or UNINITIALIZED
+                      [2] ∈ {0} or UNINITIALIZED
+  __realloc_glob_l66_2[0] ∈ {0} or UNINITIALIZED
+                      [1] ∈ {{ "glob result" }} or UNINITIALIZED
+                      [2..10] ∈ {{ NULL ; "glob result" }} or UNINITIALIZED
                       [11] ∈ {0} or UNINITIALIZED
-[value:final-states] Values at end of function main:
+[eva:final-states] Values at end of function main:
   Frama_C_entropy_source ∈ [--..--]
   ret ∈ {0; 1; 2}
   flags ∈ {24}
   gl.gl_pathc ∈ [0..10]
-    .gl_pathv ∈ {{ NULL ; &__realloc_glob_l50_0[0] }} or ESCAPINGADDR
+    .gl_pathv ∈
+    {{ NULL ; &__realloc_glob_l50_0[0] ; &__realloc_glob_l66_2[0] }} or ESCAPINGADDR
     .gl_offs ∈ {1}
     {.gl_flags; .gl_closedir; .gl_readdir; .gl_opendir; .gl_lstat; .gl_stat} ∈
     UNINITIALIZED
   __retres ∈ {0}
-  S___fc_stderr[0..1] ∈ [--..--]
-  __realloc_glob_l50[0] ∈ {{ "bli" }}
-                    [1] ∈ {0}
-  __realloc_glob_l50_0[0] ∈ {0}
-                      [1] ∈ {{ "blo" }}
-                      [2] ∈ {0}
+  __realloc_glob_l66[0] ∈ {0} or UNINITIALIZED
+                    [1] ∈ {{ "glob result" }} or UNINITIALIZED
+                    [2..10] ∈ {{ NULL ; "glob result" }} or UNINITIALIZED
+                    [11] ∈ {0} or UNINITIALIZED
+  __realloc_glob_l66_0[0] ∈ {{ "glob result" }} or UNINITIALIZED
+                      [1..9] ∈ {{ NULL ; "glob result" }} or UNINITIALIZED
+                      [10] ∈ {0} or UNINITIALIZED
+  __realloc_glob_l50[0] ∈ {{ "bli" }} or UNINITIALIZED
+                    [1] ∈ {0} or UNINITIALIZED
+  __realloc_glob_l66_1[0] ∈ {{ "glob result" }} or UNINITIALIZED
+                      [1..9] ∈ {{ NULL ; "glob result" }} or UNINITIALIZED
+                      [10] ∈ {0} or UNINITIALIZED
+  __realloc_glob_l50_0[0] ∈ {0} or UNINITIALIZED
+                      [1] ∈ {{ "blo" }} or UNINITIALIZED
+                      [2] ∈ {0} or UNINITIALIZED
+  __realloc_glob_l66_2[0] ∈ {0} or UNINITIALIZED
+                      [1] ∈ {{ "glob result" }} or UNINITIALIZED
+                      [2..10] ∈ {{ NULL ; "glob result" }} or UNINITIALIZED
+                      [11] ∈ {0} or UNINITIALIZED

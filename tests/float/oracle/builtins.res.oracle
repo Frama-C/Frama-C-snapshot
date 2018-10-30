@@ -2,141 +2,157 @@
 [kernel:parser:decimal-float] tests/float/builtins.c:55: Warning: 
   Floating-point constant 2.72 is not represented exactly. Will use 0x1.5c28f5c28f5c3p1.
   (warn-once: no further messages from category 'parser:decimal-float' will be emitted)
-[value] Analyzing a complete application starting at main
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
-  Frama_C_entropy_source ∈ [--..--]
-  __fc_errno ∈ [--..--]
+[eva] Analyzing a complete application starting at main
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   v ∈ [--..--]
-[value] computing for function Frama_C_float_interval <- main.
+[eva] computing for function Frama_C_float_interval <- main.
   Called from tests/float/builtins.c:12.
-[value] using specification for function Frama_C_float_interval
-[value] tests/float/builtins.c:12: 
+[eva] using specification for function Frama_C_float_interval
+[eva] tests/float/builtins.c:12: 
   function Frama_C_float_interval: precondition 'finite' got status valid.
-[value] tests/float/builtins.c:12: 
+[eva] tests/float/builtins.c:12: 
   function Frama_C_float_interval: precondition 'order' got status valid.
-[value] Done for function Frama_C_float_interval
-[value] computing for function Frama_C_double_interval <- main.
+[eva] Done for function Frama_C_float_interval
+[eva] computing for function Frama_C_double_interval <- main.
   Called from tests/float/builtins.c:13.
-[value] using specification for function Frama_C_double_interval
-[value] tests/float/builtins.c:13: 
+[eva] using specification for function Frama_C_double_interval
+[eva] tests/float/builtins.c:13: 
   function Frama_C_double_interval: precondition 'finite' got status valid.
-[value] tests/float/builtins.c:13: 
+[eva] tests/float/builtins.c:13: 
   function Frama_C_double_interval: precondition 'order' got status valid.
-[value] Done for function Frama_C_double_interval
-[value] Recording results for main
-[value] done for function main
-[value] ====== VALUES COMPUTED ======
-[value:final-states] Values at end of function main:
+[eva] Done for function Frama_C_double_interval
+[eva] Recording results for main
+[eva] done for function main
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function main:
   Frama_C_entropy_source ∈ [--..--]
   f ∈ [-1. .. 1.]
   d ∈ [-1. .. 1.]
-[value] Analyzing a complete application starting at main_log_exp
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
-  Frama_C_entropy_source ∈ [--..--]
-  __fc_errno ∈ [--..--]
+[eva] Analyzing a complete application starting at main_log_exp
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   v ∈ [--..--]
-[value] tests/float/builtins.c:51: 
+[eva] tests/float/builtins.c:51: Call to builtin log
+[eva] tests/float/builtins.c:51: 
   function log: precondition 'finite_arg' got status valid.
-[value] tests/float/builtins.c:51: 
+[eva] tests/float/builtins.c:51: 
   function log: precondition 'arg_positive' got status valid.
-[value] tests/float/builtins.c:52: 
+[eva] tests/float/builtins.c:52: Call to builtin log10
+[eva] tests/float/builtins.c:52: 
   function log10: precondition 'finite_arg' got status valid.
-[value] tests/float/builtins.c:52: 
+[eva] tests/float/builtins.c:52: 
   function log10: precondition 'arg_positive' got status valid.
-[value] tests/float/builtins.c:55: 
+[eva] tests/float/builtins.c:55: Call to builtin log
+[eva] tests/float/builtins.c:55: 
   function log: precondition 'finite_arg' got status valid.
-[value] tests/float/builtins.c:55: 
+[eva] tests/float/builtins.c:55: 
   function log: precondition 'arg_positive' got status valid.
-[value] tests/float/builtins.c:56: 
+[eva] tests/float/builtins.c:56: Call to builtin log10
+[eva] tests/float/builtins.c:56: 
   function log10: precondition 'finite_arg' got status valid.
-[value] tests/float/builtins.c:56: 
+[eva] tests/float/builtins.c:56: 
   function log10: precondition 'arg_positive' got status valid.
-[value] tests/float/builtins.c:59: 
+[eva] tests/float/builtins.c:59: Call to builtin log
+[eva] tests/float/builtins.c:59: 
   function log: precondition 'finite_arg' got status valid.
-[value] tests/float/builtins.c:59: 
+[eva] tests/float/builtins.c:59: 
   function log: precondition 'arg_positive' got status valid.
-[value] tests/float/builtins.c:60: 
+[eva] tests/float/builtins.c:60: Call to builtin log10
+[eva] tests/float/builtins.c:60: 
   function log10: precondition 'finite_arg' got status valid.
-[value] tests/float/builtins.c:60: 
+[eva] tests/float/builtins.c:60: 
   function log10: precondition 'arg_positive' got status valid.
-[value:alarm] tests/float/builtins.c:63: Warning: assertion got status unknown.
-[value] tests/float/builtins.c:64: 
+[eva:alarm] tests/float/builtins.c:63: Warning: assertion got status unknown.
+[eva] tests/float/builtins.c:64: Call to builtin log
+[eva] tests/float/builtins.c:64: 
   function log: precondition 'finite_arg' got status valid.
-[value] tests/float/builtins.c:64: 
+[eva] tests/float/builtins.c:64: 
   function log: precondition 'arg_positive' got status valid.
-[value:alarm] tests/float/builtins.c:67: Warning: assertion got status unknown.
-[value] tests/float/builtins.c:68: 
+[eva:alarm] tests/float/builtins.c:67: Warning: assertion got status unknown.
+[eva] tests/float/builtins.c:68: Call to builtin log10
+[eva] tests/float/builtins.c:68: 
   function log10: precondition 'finite_arg' got status valid.
-[value] tests/float/builtins.c:68: 
+[eva] tests/float/builtins.c:68: 
   function log10: precondition 'arg_positive' got status valid.
-[value] tests/float/builtins.c:72: 
+[eva] tests/float/builtins.c:72: Call to builtin log
+[eva] tests/float/builtins.c:72: 
   function log: precondition 'finite_arg' got status valid.
-[value:alarm] tests/float/builtins.c:72: Warning: 
+[eva:alarm] tests/float/builtins.c:72: Warning: 
   function log: precondition 'arg_positive' got status unknown.
-[value] tests/float/builtins.c:75: 
+[eva] tests/float/builtins.c:75: Call to builtin log10
+[eva] tests/float/builtins.c:75: 
   function log10: precondition 'finite_arg' got status valid.
-[value:alarm] tests/float/builtins.c:75: Warning: 
+[eva:alarm] tests/float/builtins.c:75: Warning: 
   function log10: precondition 'arg_positive' got status unknown.
-[value] tests/float/builtins.c:78: 
+[eva] tests/float/builtins.c:78: Call to builtin log
+[eva] tests/float/builtins.c:78: 
   function log: precondition 'finite_arg' got status valid.
-[value:alarm] tests/float/builtins.c:78: Warning: 
+[eva:alarm] tests/float/builtins.c:78: Warning: 
   function log: precondition 'arg_positive' got status invalid.
-[value] tests/float/builtins.c:81: 
+[eva] tests/float/builtins.c:81: Call to builtin log10
+[eva] tests/float/builtins.c:81: 
   function log10: precondition 'finite_arg' got status valid.
-[value:alarm] tests/float/builtins.c:81: Warning: 
+[eva:alarm] tests/float/builtins.c:81: Warning: 
   function log10: precondition 'arg_positive' got status invalid.
-[value] tests/float/builtins.c:85: 
+[eva] tests/float/builtins.c:85: Call to builtin exp
+[eva] tests/float/builtins.c:85: 
   function exp: precondition 'finite_arg' got status valid.
-[value] tests/float/builtins.c:85: 
+[eva] tests/float/builtins.c:85: 
   function exp: precondition 'finite_domain' got status valid.
-[value] tests/float/builtins.c:88: 
+[eva] tests/float/builtins.c:88: Call to builtin exp
+[eva] tests/float/builtins.c:88: 
   function exp: precondition 'finite_arg' got status valid.
-[value] tests/float/builtins.c:88: 
+[eva] tests/float/builtins.c:88: 
   function exp: precondition 'finite_domain' got status valid.
-[value] tests/float/builtins.c:91: 
+[eva] tests/float/builtins.c:91: Call to builtin exp
+[eva] tests/float/builtins.c:91: 
   function exp: precondition 'finite_arg' got status valid.
-[value] tests/float/builtins.c:91: 
+[eva] tests/float/builtins.c:91: 
   function exp: precondition 'finite_domain' got status valid.
-[value:alarm] tests/float/builtins.c:94: Warning: assertion got status unknown.
-[value] tests/float/builtins.c:95: 
+[eva:alarm] tests/float/builtins.c:94: Warning: assertion got status unknown.
+[eva] tests/float/builtins.c:95: Call to builtin exp
+[eva] tests/float/builtins.c:95: 
   function exp: precondition 'finite_arg' got status valid.
-[value:alarm] tests/float/builtins.c:95: Warning: 
+[eva:alarm] tests/float/builtins.c:95: Warning: 
   function exp: precondition 'finite_domain' got status unknown.
-[value] tests/float/builtins.c:98: 
+[eva] tests/float/builtins.c:98: Call to builtin exp
+[eva] tests/float/builtins.c:98: 
   function exp: precondition 'finite_arg' got status valid.
-[value:alarm] tests/float/builtins.c:98: Warning: 
+[eva:alarm] tests/float/builtins.c:98: Warning: 
   function exp: precondition 'finite_domain' got status invalid.
-[value] tests/float/builtins.c:102: 
+[eva] tests/float/builtins.c:102: Call to builtin log
+[eva] tests/float/builtins.c:102: 
   function log: precondition 'finite_arg' got status valid.
-[value] tests/float/builtins.c:102: 
+[eva] tests/float/builtins.c:102: 
   function log: precondition 'arg_positive' got status valid.
-[value] tests/float/builtins.c:103: assertion got status valid.
-[value] tests/float/builtins.c:104: 
+[eva] tests/float/builtins.c:103: assertion got status valid.
+[eva] tests/float/builtins.c:104: Call to builtin exp
+[eva] tests/float/builtins.c:104: 
   function exp: precondition 'finite_arg' got status valid.
-[value] tests/float/builtins.c:104: 
+[eva] tests/float/builtins.c:104: 
   function exp: precondition 'finite_domain' got status valid.
-[value:alarm] tests/float/builtins.c:107: Warning: 
+[eva:alarm] tests/float/builtins.c:107: Warning: 
   non-finite double value. assert \is_finite((double)((int)(&d)));
-[value:alarm] tests/float/builtins.c:107: Warning: 
+[eva] tests/float/builtins.c:107: Call to builtin log
+[eva:alarm] tests/float/builtins.c:107: Warning: 
   function log: precondition 'finite_arg' got status unknown.
-[value:alarm] tests/float/builtins.c:107: Warning: 
+[eva:alarm] tests/float/builtins.c:107: Warning: 
   function log: precondition 'arg_positive' got status unknown.
-[value] tests/float/builtins.c:107: function Frama_C_log applied to address
-[value] tests/float/builtins.c:107: 
+[eva] tests/float/builtins.c:107: function Frama_C_log applied to address
+[eva] tests/float/builtins.c:107: 
   Assigning imprecise value to l7.
   The imprecision originates from Arithmetic {tests/float/builtins.c:107}
-[value:alarm] tests/float/builtins.c:111: Warning: 
+[eva:alarm] tests/float/builtins.c:111: Warning: 
   accessing uninitialized left-value. assert \initialized(&x);
-[value] Recording results for main_log_exp
-[value] done for function main_log_exp
-[value] tests/float/builtins.c:111: 
-  assertion 'Value,initialization' got final status invalid.
-[value] ====== VALUES COMPUTED ======
-[value:final-states] Values at end of function main_log_exp:
+[eva] Recording results for main_log_exp
+[eva] done for function main_log_exp
+[eva] tests/float/builtins.c:111: 
+  assertion 'Eva,initialization' got final status invalid.
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function main_log_exp:
   l1 ∈ {0} or UNINITIALIZED
   l2 ∈ {1.00063188031} or UNINITIALIZED
   l3 ∈ {1.09861228867} or UNINITIALIZED

@@ -65,7 +65,7 @@ let computer () =
   else CfgWP.computer (cmdline ()) (Driver.load_driver ())
 
 (* ------------------------------------------------------------------------ *)
-(* ---  Separation Hypotheses                                           --- *)
+(* --- Memory Model Hypotheses                                          --- *)
 (* ------------------------------------------------------------------------ *)
 
 module Models = Model.S.Set
@@ -86,33 +86,29 @@ let wp_iter_model ?ip ?index job =
     Fmap.iter (fun kf ms -> Models.iter (fun m -> job kf m) ms) !pool
   end
 
-let wp_print_separation kf m sep fmt =
+let wp_print_memory_context kf m hyp fmt =
   begin
     let printer = new Printer.extensible_printer () in
     let pp_vdecl = printer#without_annot printer#vdecl in
     Format.fprintf fmt
       "@[<hv 0>@[<hv 3>/*@@@ behavior %s:" (Model.get_id m) ;
-    List.iter
-      (fun clause ->
-         Format.fprintf fmt "@ @[<hov 2>requires %a;@]"
-           Separation.pp_clause clause
-      ) sep ;
+    List.iter (MemoryContext.pp_clause fmt) hyp ;
     let vkf = Kernel_function.get_vi kf in
     Format.fprintf fmt "@ @]*/@]@\n@[<hov 2>%a;@]@\n"
       pp_vdecl vkf ;
   end
 
-let wp_warn_separation () =
+let wp_warn_memory_context () =
   begin
     wp_iter_model
       begin fun kf m ->
-        let sep = Separation.filter (Model.get_separation m kf) in
-        if sep <> [] then
+        let hyp = Model.get_hypotheses m kf in
+        if hyp <> [] then
           Wp_parameters.warning
             ~current:false
-            "@[<hv 0>Separation hypotheses for function '%s':@ %t@]"
+            "@[<hv 0>Memory model hypotheses for function '%s':@ %t@]"
             (Kernel_function.get_name kf)
-            (wp_print_separation kf m sep)
+            (wp_print_memory_context kf m hyp)
       end
   end
 
@@ -151,8 +147,8 @@ let do_wp_report () =
         if jfile <> "" then WpReport.export_json stats jfile ;
         List.iter (WpReport.export stats) rfiles ;
       end ;
-    if Wp_parameters.Separation.get () then
-      wp_warn_separation ()
+    if Wp_parameters.MemoryContext.get () then
+      wp_warn_memory_context ()
   end
 
 (* ------------------------------------------------------------------------ *)
@@ -262,10 +258,10 @@ let do_list_scheduled iter_on_goals =
       clear_scheduled () ;
       iter_on_goals
         (fun goal ->
-            begin
-              incr scheduled ;
-              if !spy then session := GOALS.add goal !session ;
-            end) ;
+           begin
+             incr scheduled ;
+             if !spy then session := GOALS.add goal !session ;
+           end) ;
       let n = !scheduled in
       if n > 1
       then Wp_parameters.feedback "%d goals scheduled" n
@@ -456,25 +452,25 @@ let spawn_wp_proofs_iter ~mode iter_on_goals =
             && not (Wpo.is_trivial goal)
             && (mode.auto <> [] || ProofSession.exists goal)
            then
-                 ProverScript.spawn
-                   ~failed:false
+             ProverScript.spawn
+               ~failed:false
                ~auto:mode.auto
                ~depth:mode.depth
                ~width:mode.width
                ~backtrack:mode.backtrack
                ~provers:(List.map snd mode.provers)
-                   ~start:do_wpo_start
+               ~start:do_wpo_start
                ~progress:do_progress
                ~result:do_wpo_result
                ~success:do_wpo_success
-                   goal
-               else
-                 Prover.spawn goal
+               goal
+           else
+             Prover.spawn goal
                ~delayed:false
-                   ~start:do_wpo_start
+               ~start:do_wpo_start
                ~progress:do_progress
                ~result:do_wpo_result
-                   ~success:do_wpo_success
+               ~success:do_wpo_success
                mode.provers
         ) ;
       Task.on_server_wait server do_wpo_wait ;
@@ -486,29 +482,29 @@ let get_prover_names () =
 
 let compute_provers ~mode =
   mode.provers <- List.fold_right
-    (fun pname prvs ->
-       match VCS.prover_of_name pname with
-       | None -> prvs
-       | Some VCS.Why3ide ->
-           mode.why3ide <- true; prvs
-       | Some VCS.Tactical ->
-           mode.tactical <- true ;
-           if pname = "tip" then mode.update <- true ;
-           prvs
-       | Some prover ->
-           (VCS.mode_of_prover_name pname , prover) :: prvs)
-    (get_prover_names ()) []
+      (fun pname prvs ->
+         match VCS.prover_of_name pname with
+         | None -> prvs
+         | Some VCS.Why3ide ->
+             mode.why3ide <- true; prvs
+         | Some VCS.Tactical ->
+             mode.tactical <- true ;
+             if pname = "tip" then mode.update <- true ;
+             prvs
+         | Some prover ->
+             (VCS.mode_of_prover_name pname , prover) :: prvs)
+      (get_prover_names ()) []
 
 let dump_strategies =
   let once = ref true in
   fun () ->
     if !once then
-    ( once := false ;
-      Wp_parameters.result "Registered strategies for -wp-auto:%t"
-        (fun fmt ->
-           Strategy.iter (fun h ->
-               Format.fprintf fmt "@\n  '%s': %s" h#id h#title
-             )))
+      ( once := false ;
+        Wp_parameters.result "Registered strategies for -wp-auto:%t"
+          (fun fmt ->
+             Strategy.iter (fun h ->
+                 Format.fprintf fmt "@\n  '%s': %s" h#id h#title
+               )))
 
 let default_mode () = {
   why3ide = false ; tactical = false ; update=false ; provers = [] ;
@@ -611,7 +607,7 @@ let do_wp_proofs_iter iter =
         do_update_session mode iter ;
       end
     else if not (Wp_parameters.Print.get ()) then
-      iter do_wpo_display 
+      iter do_wpo_display
   end
 
 let do_wp_proofs () = do_wp_proofs_iter (fun f -> Wpo.iter ~on_goal:f ())
@@ -635,6 +631,7 @@ let deprecated_wp_compute kf bhv ipopt =
 let deprecated_wp_compute_kf kf bhv prop =
   let model = computer () in
   do_wp_proofs_for (Generator.compute_kf model ?kf ~bhv ~prop ())
+
 
 let deprecated_wp_compute_ip ip =
   Wp_parameters.warning ~once:true "Dynamic 'wp_compute_ip' is now deprecated." ;
@@ -716,7 +713,7 @@ let deprecated name =
     "Dynamic '%s' now is deprecated. Use `Wp.VC` api instead." name
 
 let register name ty code =
-  let _ = 
+  let _ =
     Dynamic.register ~plugin:"Wp" name ty
       ~journalize:false (*LC: Because of Property is not journalizable. *)
       (fun x -> deprecated name ; code x)

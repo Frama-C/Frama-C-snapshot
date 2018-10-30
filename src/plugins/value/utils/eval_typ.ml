@@ -25,11 +25,11 @@ open Cvalue
 
 let is_bitfield typlv =
   match Cil.unrollType typlv with
-    | TInt (_, attrs) | TEnum (_, attrs) ->
-        (match Cil.findAttribute Cil.bitfield_attribute_name attrs with
-           | [AInt _] -> true
-           | _ -> false)
-    | _ -> false
+  | TInt (_, attrs) | TEnum (_, attrs) ->
+    (match Cil.findAttribute Cil.bitfield_attribute_name attrs with
+     | [AInt _] -> true
+     | _ -> false)
+  | _ -> false
 
 let bitfield_size_attributes attrs =
   match Cil.findAttribute Cil.bitfield_attribute_name attrs with
@@ -38,11 +38,11 @@ let bitfield_size_attributes attrs =
 
 let sizeof_lval_typ typlv =
   match Cil.unrollType typlv with
-    | TInt (_, attrs) | TEnum (_, attrs) as t ->
-        (match Cil.findAttribute Cil.bitfield_attribute_name attrs with
-           | [AInt i] -> Int_Base.Value i
-           | _ -> Bit_utils.sizeof t)
-    | t -> Bit_utils.sizeof t
+  | TInt (_, attrs) | TEnum (_, attrs) as t ->
+    (match Cil.findAttribute Cil.bitfield_attribute_name attrs with
+     | [AInt i] -> Int_Base.Value i
+     | _ -> Bit_utils.sizeof t)
+  | t -> Bit_utils.sizeof t
 
 let offsetmap_matches_type typ_lv o =
   let aux typ_matches = match V_Offsetmap.single_interval_value o with
@@ -79,42 +79,42 @@ let is_compatible_function ~typ_pointed ~typ_fun =
      - enums and integer types with the same signedness and size are equal *)
   let weak_compatible t1 t2 =
     Cabs2cil.areCompatibleTypes t1 t2 ||
-      match Cil.unrollType t1, Cil.unrollType t2 with
-      | TVoid _, TVoid _ -> true
-      | TPtr _, TPtr _ -> true
-      | (TInt (ik1, _) | TEnum ({ekind = ik1}, _)),
-        (TInt (ik2, _) | TEnum ({ekind = ik2}, _)) ->
-        Cil.isSigned ik1 = Cil.isSigned ik2 &&
-        Cil.bitsSizeOfInt ik1 = Cil.bitsSizeOfInt ik2
-      | TFloat (fk1, _), TFloat (fk2, _) -> fk1 = fk2
-      | TComp (ci1, _, _), TComp (ci2, _, _) ->
-        Cil_datatype.Compinfo.equal ci1 ci2
-      | _ -> false
+    match Cil.unrollType t1, Cil.unrollType t2 with
+    | TVoid _, TVoid _ -> true
+    | TPtr _, TPtr _ -> true
+    | (TInt (ik1, _) | TEnum ({ekind = ik1}, _)),
+      (TInt (ik2, _) | TEnum ({ekind = ik2}, _)) ->
+      Cil.isSigned ik1 = Cil.isSigned ik2 &&
+      Cil.bitsSizeOfInt ik1 = Cil.bitsSizeOfInt ik2
+    | TFloat (fk1, _), TFloat (fk2, _) -> fk1 = fk2
+    | TComp (ci1, _, _), TComp (ci2, _, _) ->
+      Cil_datatype.Compinfo.equal ci1 ci2
+    | _ -> false
   in
   if Cabs2cil.areCompatibleTypes typ_fun typ_pointed then Compatible
   else
     let continue = match Cil.unrollType typ_pointed, Cil.unrollType typ_fun with
       | TFun (ret1, args1, var1, _), TFun (ret2, args2, var2, _) ->
-          (* Either both functions are variadic, or none. Otherwise, it
-             will be too complicated to make the argument match *)
-          var1 = var2 &&
-          (* Both functions return something weakly compatible *)
-          weak_compatible ret1 ret2 &&
-          (* Argument lists of the same length, with compatible arguments
-             or unspecified argument lists *)
-          (match args1, args2 with
-             | None, None | None, Some _ | Some _, None -> true
-             | Some lp, Some lf ->
-               (* See corresponding function fold_left2_best_effort in
-                  Function_args *)
-               let rec comp lp lf = match lp, lf with
-                 | _, [] -> true (* accept too many arguments passed *)
-                 | [], _ :: _ -> false (* fail on too few arguments *)
-                 | (_, tp, _) :: qp, (_, tf, _) :: qf ->
-                   weak_compatible tp tf && comp qp qf
-               in
-               comp lp lf
-          )
+        (* Either both functions are variadic, or none. Otherwise, it
+           will be too complicated to make the argument match *)
+        var1 = var2 &&
+        (* Both functions return something weakly compatible *)
+        weak_compatible ret1 ret2 &&
+        (* Argument lists of the same length, with compatible arguments
+           or unspecified argument lists *)
+        (match args1, args2 with
+         | None, None | None, Some _ | Some _, None -> true
+         | Some lp, Some lf ->
+           (* See corresponding function fold_left2_best_effort in
+              Function_args *)
+           let rec comp lp lf = match lp, lf with
+             | _, [] -> true (* accept too many arguments passed *)
+             | [], _ :: _ -> false (* fail on too few arguments *)
+             | (_, tp, _) :: qp, (_, tf, _) :: qf ->
+               weak_compatible tp tf && comp qp qf
+           in
+           comp lp lf
+        )
       | _ -> false
     in
     if continue then Incompatible_but_accepted else Incompatible
@@ -143,6 +143,7 @@ let compatible_functions typ_pointer ?args kfs =
   List.fold_left check_pointer ([], false) kfs
 
 
+(* Does the expr contains a lval having a volatile part ? *)
 let rec expr_contains_volatile expr =
   let rec aux expr = match expr.enode with
     | Lval lval -> lval_contains_volatile lval
@@ -153,40 +154,25 @@ let rec expr_contains_volatile expr =
   in
   aux expr
 
-and lval_contains_volatile (lhost, offset) =
-  host_contains_volatile lhost || offset_contains_volatile offset
+(* Does the lval (or sub expr) has a volatile part ? *)
+and lval_contains_volatile lval =
+  Cil.isVolatileLval lval ||
+  expr_in_lval_contains_volatile lval
 
-and host_contains_volatile = function
-  | Var vi -> Cil.typeHasQualifier "volatile" vi.vtype
+and expr_in_lval_contains_volatile (lhost, offset) =
+  expr_in_host_contains_volatile lhost ||
+  expr_in_offset_contains_volatile offset
+
+and expr_in_host_contains_volatile = function
+  | Var _ -> false
   | Mem e ->
-    Cil.typeHasQualifier "volatile" (Cil.(typeOf_pointed (typeOf e))) ||
     expr_contains_volatile e
 
-and offset_contains_volatile = function
+and expr_in_offset_contains_volatile = function
   | NoOffset -> false
-  | Field (fi, o) -> Cil.typeHasQualifier "volatile" fi.ftype
-                     || offset_contains_volatile o
+  | Field (_, o) -> expr_in_offset_contains_volatile o
   | Index (e, o) ->
-    offset_contains_volatile o || expr_contains_volatile e
-
-let kf_assigns_only_result_or_volatile kf =
-  try
-    let spec = Annotations.funspec ~populate:false kf in
-    let ok behavior = match behavior.b_assigns with
-      | Writes l ->
-        let aux ({it_content = t}, _) =
-          Logic_utils.is_result t ||
-          (match Logic_utils.unroll_type t.term_type with
-           | Ctype typ ->
-             Cil.typeHasQualifier "volatile" typ
-           | _ -> false)
-        in
-        List.for_all aux l
-      | WritesAny -> false
-    in
-    List.for_all ok spec.spec_behavior
-  with Annotations.No_funspec _ -> false
-
+    expr_in_offset_contains_volatile o || expr_contains_volatile e
 
 (* Scalar types *)
 
@@ -233,21 +219,25 @@ type scalar_typ =
   | TSInt of integer_range
   | TSPtr of integer_range
   | TSFloat of fkind
-  | TSNotScalar
 
 let classify_as_scalar typ =
   match Cil.unrollType typ with
   | TInt (ik, attrs) | TEnum ({ekind=ik}, attrs) ->
-    TSInt (ik_attrs_range ik attrs)
+    Some (TSInt (ik_attrs_range ik attrs))
   | TPtr _ ->
-     TSPtr { i_bits = Cil.bitsSizeOfInt Cil.theMachine.Cil.upointKind;
-             i_signed = Cil.isSigned Cil.theMachine.Cil.upointKind }
-  | TFloat (fk, _) -> TSFloat fk
-  | _ -> TSNotScalar
+    let range =
+      { i_bits = Cil.bitsSizeOfInt Cil.theMachine.Cil.upointKind;
+        i_signed = Cil.isSigned Cil.theMachine.Cil.upointKind }
+    in
+    Some (TSPtr range)
+  | TFloat (fk, _) -> Some (TSFloat fk)
+  | _ -> None
 
 let need_cast t1 t2 =
   match classify_as_scalar t1, classify_as_scalar t2 with
-  | (TSInt ir1 | TSPtr ir1), (TSInt ir2 | TSPtr ir2) -> ir1 <> ir2
-  | TSFloat fk1, TSFloat fk2 -> fk1 <> fk2
-  | (TSInt _ | TSPtr _ | TSFloat _), (TSInt _ | TSPtr _ | TSFloat _) -> true
-  | _ -> false
+  | None, _ | _, None -> false
+  | Some st1, Some st2 ->
+    match st1, st2 with
+    | (TSInt ir1 | TSPtr ir1), (TSInt ir2 | TSPtr ir2) -> ir1 <> ir2
+    | TSFloat fk1, TSFloat fk2 -> fk1 <> fk2
+    | (TSInt _ | TSPtr _ | TSFloat _), (TSInt _ | TSPtr _ | TSFloat _) -> true

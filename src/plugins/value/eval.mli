@@ -69,25 +69,6 @@ val (>>=:) : 'a evaluated -> ('a -> 'b) -> 'b evaluated
     reduced value. *)
 type 'a reduced = [ `Bottom | `Unreduced | `Value of 'a ]
 
-
-(** Context for the evaluation of abstract value operators. *)
-
-(** Context for the evaluation of an unary operator: contains the involved
-    expressions needed to create the appropriate alarms. *)
-type unop_context = {
-  operand: exp;
-}
-
-(** Context for the evaluation of a binary operator: contains the expressions
-    of both operands and of the result, needed to create the appropriate
-    alarms. *)
-type binop_context = {
-  left_operand: exp;
-  right_operand: exp;
-  binary_result: exp;
-}
-
-
 (* -------------------------------------------------------------------------- *)
 (**                    {2 Cache for the evaluations }                         *)
 (* -------------------------------------------------------------------------- *)
@@ -192,6 +173,7 @@ end
 (**                       {2 Types of assignments }                           *)
 (* -------------------------------------------------------------------------- *)
 
+(** Lvalue with its location and type. *)
 type 'loc left_value = {
   lval: lval;
   lloc: 'loc;
@@ -199,16 +181,20 @@ type 'loc left_value = {
 }
 
 (** Assigned values. *)
-type 'value assigned =
+type ('loc, 'value) assigned =
   | Assign of 'value
   (** Default assignment of a value. *)
-  | Copy of lval * 'value flagged_value
-  (** Copy of the location of the lvalue [lval], that contains the value
-      [value copied]. The value is copied exactly, with possible
-      indeterminateness. *)
+  | Copy of 'loc left_value * 'value flagged_value
+  (** Copy of the location of a lvalue, that contains the given flagged value.
+      The value is copied exactly, with possible indeterminateness. *)
 
 (* Extract the assigned value from a [value assigned]. *)
-val value_assigned : 'value assigned -> 'value or_bottom
+val value_assigned : ('loc, 'value) assigned -> 'value or_bottom
+
+type logic_assign =
+  | Assigns of from
+  | Allocates of identified_term
+  | Frees of identified_term
 
 (* -------------------------------------------------------------------------- *)
 (**                       {2 Interprocedural Analysis }                       *)
@@ -216,30 +202,21 @@ val value_assigned : 'value assigned -> 'value or_bottom
 
 
 (** Argument of a function call. *)
-type 'value argument = {
+type ('loc, 'value) argument = {
   formal: varinfo;          (** The formal argument of the called function. *)
   concrete: exp;            (** The concrete argument at the call site *)
-  avalue: 'value assigned;  (** The value of the concrete argument. *)
+  avalue: ('loc, 'value) assigned;  (** The value of the concrete argument. *)
 }
 
 (** A function call. *)
-type 'value call = {
-  kf: kernel_function;                (** The called function. *)
-  arguments: 'value argument list;    (** The arguments of the call. *)
-  rest: (exp * 'value assigned) list; (** Extra-arguments. *)
-  return: varinfo option;             (** Fake varinfo to store the return value
-                                          of the call. *)
+type ('loc, 'value) call = {
+  kf: kernel_function;                        (** The called function. *)
+  arguments: ('loc, 'value) argument list;    (** The arguments of the call. *)
+  rest: (exp * ('loc, 'value) assigned) list; (** Extra-arguments. *)
+  return: varinfo option;                     (** Fake varinfo to store the
+                                                  return value of the call. *)
   recursive: bool;
 }
-
-(** Action to perform on a call site. *)
-type 'state call_action =
-  | Compute of 'state
-  (** Analyze the called function, starting with the given state at the
-      entry-point. If the summary of a previous analysis for this initialization
-      has been cached, it will be used without re-computation. *)
-  | Result  of 'state list or_bottom * Value_types.cacheable
-  (** Direct computation of the result. *)
 
 (*
 Local Variables:

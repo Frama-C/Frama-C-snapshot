@@ -38,8 +38,6 @@ type c_int =
   | UInt64
   | SInt64
 
-val c_int_all : c_int list
-
 (** Runtime floats. *)
 type c_float =
   | Float32
@@ -58,7 +56,8 @@ type arrayinfo = {
   arr_flat : arrayflat option;
 }
 
-(** Type of variable, inits, field or assignable values. *)
+(** Type of variable, inits, field or assignable values.
+    Abstract view of unrolled C types without attribute. *)
 type c_object =
   | C_int of c_int
   | C_float of c_float

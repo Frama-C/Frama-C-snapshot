@@ -201,7 +201,7 @@ module type Transfer = sig
         for the evaluation of [lval] and [expr]; it can also be used to reduce
         the state. *)
   val assign :
-    kinstr -> location left_value -> exp -> value assigned ->
+    kinstr -> location left_value -> exp -> (location, value) assigned ->
     valuation -> state -> state or_bottom
 
   (** Transfer function for an assumption.
@@ -213,18 +213,16 @@ module type Transfer = sig
         to reduce the state *)
   val assume : stmt -> exp -> bool -> valuation -> state -> state or_bottom
 
-  (** Decision on a function call:
-      [start_call stmt call valuation state] decides on the analysis of
-      a call site. It returns either an initial state for a standard dataflow
-      analysis of the called function, or a direct result for the entire call.
-      See {!Eval.call_action} for details.
+  (** [start_call stmt call valuation state] returns an initial state
+      for the analysis of a called function. In particular, this function
+      should introduce the formal parameters in the state, if necessary.
       - [stmt] is the statement of the call site;
       - [call] represents the call: the called function and the arguments;
-      - [state] is the abstract state before the call;
+      - [state] is the abstract state at the call site, before the call;
       - [valuation] is a cache for all values and locations computed during
         the evaluation of the function and its arguments. *)
   val start_call:
-    stmt -> value call -> valuation -> state -> state call_action
+    stmt -> (location, value) call -> valuation -> state -> state or_bottom
 
   (** [finalize_call stmt call ~pre ~post] computes the state after a function
       call, given the state [pre] before the call, and the state [post] at the
@@ -234,10 +232,7 @@ module type Transfer = sig
       - [pre] and [post] are the states before and at the end of the call
       respectively. *)
   val finalize_call:
-    stmt -> value call -> pre:state -> post:state -> state or_bottom
-
-  val approximate_call:
-    stmt -> value call -> state -> state list or_bottom
+    stmt -> (location, value) call -> pre:state -> post:state -> state or_bottom
 
   (** Called on the Frama_C_show_each directives. Prints the internal properties
       inferred by the domain in the [state] about the expression [exp]. Can use
@@ -263,6 +258,54 @@ type init_value = Zero | Top
 (* Kind of variable being initialized by initialize_variable_using_type. *)
 type init_kind =
     Main_Formal | Library_Global | Spec_Return of kernel_function
+
+(** MemExec is a global cache for the complete analysis of functions.
+    It avoids repeating the analysis of a function in equivalent entry states.
+    It uses an over-approximation of the locations possibly read and written
+    by a function, and compare the entry states for these locations. *)
+module type Recycle = sig
+  type t (** Type of states. *)
+
+  (** [relate kf bases state] returns the set of bases [bases] in relation with
+      [bases] in [state] — i.e. all bases other than [bases] whose value may
+      affect the properties inferred on [bases] in [state].
+      [state] is the initial state of an analysis of [kf].
+      For a non-relational domain, it is always safe to return [empty].
+      For a relational domain, it is always safe to return [top], but it
+      disables MemExec. *)
+  val relate: kernel_function -> Base.Hptset.t -> t -> Base.SetLattice.t
+
+  (** [filter kf kind bases states] reduces the state [state] to only keep
+      properties about [bases] — it is a projection on the set of [bases].
+      It allows reusing an analysis of [kf] from an initial state [pre] to a
+      final state [post].
+      If [kind] is `Pre, [state] is the initial state [pre], and [bases]
+      includes all inputs of [kf] and satisfies [relate kf bases state = bases].
+      If [kind] is `Post, [state] is the final state [post], and [bases]
+      includes all inputs and outputs of [kf].
+      Afterwards, the two resulting states [reduced_pre] and [reduced_post] are
+      used as follow: when [kf] should be analyzed with the initial state [s],
+      if [filter kf `Pre s = reduced_pre], then the analysis is skipped, and
+      [reuse kf s reduced_post] is used as its final state instead. *)
+  val filter: kernel_function -> [`Pre | `Post] -> Base.Hptset.t -> t -> t
+
+  (** [reuse kf bases current_input previous_output] merges the initial state
+      [current_input] with a final state [previous_output] from a previous
+      analysis of [kf] started with an equivalent initial state.
+      [reuse] must overwrite the properties on [bases] in [current_input] with
+      the ones in [previous_output]. Properties on other bases must be left
+      unchanged from [current_input]. *)
+  val reuse:
+    kernel_function -> Base.Hptset.t ->
+    current_input:t -> previous_output:t -> t
+
+  (** The simplest implementation of [filter] and [reuse] is:
+        let filter _ _ _ state = state
+        let reuse _ _ ~current_input:_ ~previous_output = previous_output
+      This is correct as the cache will be triggered only for an initial state
+      exactly equal to the previous initial state, in which case the previous
+      output state is indeed a correct final state on its own. *)
+end
 
 (** Signature for the abstract domains of the analysis. *)
 module type S = sig
@@ -298,7 +341,7 @@ module type S = sig
       before the assign clauses, in which the terms of the clause are evaluated.
       [loc_asgn] is the result of the evaluation of the [assigns] part of [from]
       in [pre]. *)
-  val logic_assign: from -> location -> pre:state -> state -> state
+  val logic_assign: logic_assign -> location -> pre:state -> state -> state
 
   (** Evaluates a [predicate] to a logical status in the current [state].
       The [logic_environment] contains the states at some labels and the
@@ -350,9 +393,7 @@ module type S = sig
       of the cvalue implementation of this function in the generic engine. *)
   val initialize_variable_using_type: init_kind -> varinfo -> t -> t
 
-  (** Mem exec. *)
-  val filter_by_bases: Base.Hptset.t -> t -> t
-  val reuse: current_input:t -> previous_output:t -> t
+  include Recycle with type t := t
 end
 
 

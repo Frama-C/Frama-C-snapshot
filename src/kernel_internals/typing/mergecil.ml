@@ -435,6 +435,45 @@ module LogicMerging =
       let output = Cil_datatype.Logic_info.pretty
     end)
 
+let hash_list f l =
+  let rec aux acc n = function
+    | [] -> acc
+    | x::l when n > 0 -> aux (3 * acc + f x) (n-1) l
+    | _ -> acc
+  in aux 47 3 l
+
+let hash_ext_kind = function
+  | Ext_id i -> Datatype.Int.hash i
+  | Ext_terms terms -> 29 * (hash_list Logic_utils.hash_term terms)
+  | Ext_preds preds -> 47 * (hash_list Logic_utils.hash_predicate preds)
+
+let compare_ext_kind k1 k2 =
+  match k1, k2 with
+  | Ext_id i1, Ext_id i2 -> Datatype.Int.compare i1 i2
+  | Ext_id _, _ -> 1 | _, Ext_id _ -> -1
+  | Ext_terms terms1, Ext_terms terms2 ->
+    Extlib.list_compare Logic_utils.compare_term terms1 terms2
+  | Ext_terms _, _ -> 1 | _, Ext_terms _ -> -1
+  | Ext_preds p1, Ext_preds p2 ->
+    Extlib.list_compare Logic_utils.compare_predicate p1 p2
+
+module ExtMerging =
+  Merging
+    (struct
+      type t = acsl_extension
+      let hash (_,name,_,kind) =
+        Datatype.String.hash name + 5 * hash_ext_kind kind
+      let compare (_,name1, _,kind1) (_,name2,_,kind2) =
+        let res = Datatype.String.compare name1 name2 in
+        if res <> 0 then res
+        else
+          compare_ext_kind kind1 kind2
+      let equal x y = compare x y = 0
+      let merge_synonym _ = true
+      let output fmt (_,name,_,_) =
+        Format.fprintf fmt "global ACSL extension %s" name
+    end)
+
 type volatile_kind = R | W
 
 let equal_volatile_kind v1 v2 =
@@ -605,6 +644,7 @@ let lcusEq = PlainMerging.create_eq_table 111 (* Custom *)
 
 let lvEq = VolatileMerging.create_eq_table 111
 let mfEq = ModelMerging.create_eq_table 111
+let extEq = ExtMerging.create_eq_table 111
 
 (* Sometimes we want to merge synonyms. We keep some tables indexed by names.
  * Each name is mapped to multiple entries *)
@@ -621,6 +661,7 @@ let llSyn = PlainMerging.create_syn_table 111
 let lcusSyn = PlainMerging.create_syn_table 111
 let lvSyn = VolatileMerging.create_syn_table 111
 let mfSyn = ModelMerging.create_syn_table 111
+let extSyn = ExtMerging.create_syn_table 111
 
 (** A global environment for variables. Put in here only the non-static
   * variables, indexed by their name.  *)
@@ -716,7 +757,7 @@ let currentDeclIdx = ref 0 (* The index of the definition in a file. This is
                             * maintained both in pass 1 and in pass 2. Make
                             * sure you count the same things in both passes. *)
 (* Keep here the file names *)
-let fileNames : (int, string) H.t = H.create 113
+let fileNames : (int, Datatype.Filepath.t) H.t = H.create 113
 
 
 
@@ -757,6 +798,7 @@ let init ?(all=true) () =
   PlainMerging.clear_eq llEq;
   VolatileMerging.clear_eq lvEq;
   ModelMerging.clear_eq mfEq;
+  ExtMerging.clear_eq extEq;
 
   PlainMerging.clear_syn vSyn;
   PlainMerging.clear_syn sSyn;
@@ -771,6 +813,7 @@ let init ?(all=true) () =
   PlainMerging.clear_syn llSyn;
   VolatileMerging.clear_syn lvSyn;
   ModelMerging.clear_syn mfSyn;
+  ExtMerging.clear_syn extSyn;
 
   theFile := [];
   theFileTypes := [];
@@ -817,6 +860,8 @@ let rec global_annot_without_irrelevant_attributes ga =
     Dlemma (id,ax,labs,typs,st,drop_attributes_for_merge attr,loc)
   | Dtype (lti,loc) ->
     Dtype (logic_type_info_without_irrelevant_attributes lti, loc)
+  | Dextended (ext, attr, loc) ->
+    Dextended(ext, drop_attributes_for_merge attr, loc)
   | Dfun_or_pred _ | Dtype_annot _ | Dmodel_annot _ | Dinvariant _ -> ga
 
 let rec global_annot_pass1 g = match g with
@@ -890,6 +935,11 @@ let rec global_annot_pass1 g = match g with
     ignore (PlainMerging.getNode
               llEq llSyn !currentFidx n (n,(is_ax,labs,typs,st,attr,l))
               (Some (l, !currentDeclIdx)))
+  | Dextended(ext,_,l) ->
+    CurrentLoc.set l;
+    ignore
+      (ExtMerging.getNode extEq extSyn !currentFidx
+         ext ext (Some (l,!currentDeclIdx)))
 
 (* Some enumerations have to be turned into an integer. We implement this by
  * introducing a special enumeration type which we'll recognize later to be
@@ -1620,11 +1670,12 @@ let is_ignored_vi vi = Cil_datatype.Varinfo.Set.mem vi !ignored_vi
 let oneFilePass1 (f:file) : unit =
   H.add fileNames !currentFidx f.fileName;
   Kernel.feedback ~dkey:Kernel.dkey_linker
-    "Pre-merging (%d) %s" !currentFidx f.fileName ;
+    "Pre-merging (%d) %a" !currentFidx Filepath.Normalized.pp_abs f.fileName ;
   currentDeclIdx := 0;
   if f.globinitcalled || f.globinit <> None then
     Kernel.warning ~current:true
-      "Merging file %s has global initializer" f.fileName;
+      "Merging file %a has global initializer"
+      Datatype.Filepath.pretty f.fileName;
 
   (* We scan each file and we look at all global varinfo. We see if globals
    * with the same name have been encountered before and we merge those types
@@ -2404,6 +2455,11 @@ let rec logic_annot_pass2 ~in_axiomatic g a =
               List.iter (logic_annot_pass2 ~in_axiomatic:true g) l
           | Some _ -> ()
       end
+    | Dextended(ext,_,loc) ->
+      (CurrentLoc.set loc;
+       match ExtMerging.findReplacement true extEq !currentFidx ext with
+       | None -> mergePushGlobals (visitCilGlobal renameVisitor g);
+       | Some _ -> ())
 
 let global_annot_pass2 g a = logic_annot_pass2 ~in_axiomatic:false g a
 
@@ -2573,7 +2629,8 @@ end
    * representative types or variables. We set the referenced flags once we
    * have replaced the names. *)
 let oneFilePass2 (f: file) =
-  Kernel.feedback ~level:2 "Final merging phase: %s" f.fileName;
+  Kernel.feedback ~level:2 "Final merging phase: %a"
+    Datatype.Filepath.pretty f.fileName;
   currentDeclIdx := 0; (* Even though we don't need it anymore *)
   H.clear varUsedAlready;
   H.clear originalVarNames;
@@ -3087,7 +3144,8 @@ let oneFilePass2 (f: file) =
    * is being removed was used before we saw the definition and we decided to
    * remove it *)
   if mergeInlinesRepeat && !repeatPass2 then begin
-    Kernel.feedback "Repeat final merging phase: %s" f.fileName;
+    Kernel.feedback "Repeat final merging phase: %a"
+      Datatype.Filepath.pretty f.fileName;
     (* We are going to rescan the globals we have added while processing this
      * file. *)
     let theseGlobals : global list ref = ref [] in
@@ -3358,7 +3416,7 @@ let merge (files: file list) (newname: string) : file =
         revonto (x :: acc) t
   in
   let res =
-    { fileName = newname;
+    { fileName = Datatype.Filepath.of_string newname;
       globals  = revonto (revonto [] !theFile) !theFileTypes;
       globinit = None;
       globinitcalled = false } in

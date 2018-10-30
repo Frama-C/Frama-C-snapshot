@@ -47,10 +47,10 @@ int main2 () {
    domains during a subdivided evaluation: some subdivisions are indeed
    unreachable. This tests deeply relies on the strategy chosen to subdivide. */
 void main3() {
-  int t[2] = {0, 2};
-  int i = Frama_C_interval(0, 1);
+  int t[10] = {1, 2, 3, 4, 5, 0, 6, 7, 8, 9};
+  int i = Frama_C_interval(0, 9);
   int x = i / t[i];
-  int y = i / t[i]; /* Due to the previous line, i=0 is impossible; the alarm
+  int y = i / t[i]; /* Due to the previous line, i=5 is impossible; the alarm
                        will get inconsistent statuses during the subdivision,
                        and should no longer appear for the complete evaluation
                        with the symbolic locations domain. */

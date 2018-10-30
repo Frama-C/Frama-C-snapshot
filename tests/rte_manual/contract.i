@@ -1,5 +1,5 @@
 /* run.config
-   OPT: -rte-precond -rte -then -print
+   OPT: -rte -then -print
  */
 
 /*@ ensures \result == -\at(x,Old);

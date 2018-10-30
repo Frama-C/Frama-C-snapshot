@@ -49,18 +49,19 @@ module D =
       include Datatype.Serializable_undefined
       type t = file
       let name = "File"
-      let reprs = [ NeedCPP("", "", Unknown); NoCPP ""; External("", "") ]
+      let reprs =
+        [ NeedCPP("", "", Unknown); NoCPP ""; External("", "") ]
       let structural_descr = Structural_descr.t_abstract
       let mem_project = Datatype.never_any_project
       let copy = Datatype.identity (* immutable strings *)
       let internal_pretty_code p_caller fmt t =
         let pp fmt = match t with
-          | NoCPP s -> Format.fprintf fmt "@[File.NoCPP %S@]" s
+          | NoCPP s -> Format.fprintf fmt "@[File.NoCPP %S@]" (s :> string)
           | External (f,p) ->
-            Format.fprintf fmt "@[File.External (%S,%S)@]" f p
+            Format.fprintf fmt "@[File.External (%S,%S)@]" (f :> string) p
           | NeedCPP (a,b,c) ->
               Format.fprintf
-                fmt "@[File.NeedCPP (%S,%S,%a)@]" a b pretty_cpp_opt_kind c
+                fmt "@[File.NeedCPP (%S,%S,%a)@]" (a :> string) b pretty_cpp_opt_kind c
         in
         Type.par p_caller Type.Call fmt pp
      end)
@@ -106,12 +107,13 @@ let get_preprocessor_command () =
   end
 
 let from_filename ?cpp f =
+  let path = Datatype.Filepath.of_string f in
   let cpp, is_gnu_like =
     let cmdline = Kernel.CppCommand.get() in
     if cmdline <> "" then
       cmdline, cpp_opt_kind ()
     else
-      let flags = Json_compilation_database.get_flags f in
+      let flags = Json_compilation_database.get_flags path in
       let cpp, gnu =
         match cpp with
         | None -> get_preprocessor_command ()
@@ -129,7 +131,8 @@ let from_filename ?cpp f =
       with Not_found -> (* raised by String.rindex if '.' \notin f *)
         ""
     in
-    if Hashtbl.mem check_suffixes suf then External (f, suf)
+    if Hashtbl.mem check_suffixes suf then
+      External (f, suf)
     else if cpp <> "" then begin
       if not Config.preprocessor_keep_comments then
         Kernel.warning ~once:true
@@ -381,9 +384,9 @@ let pretty_machdep ?fmt ?machdep () =
 (** {2 Initializations} *)
 (* ************************************************************************* *)
 
-let safe_remove_file f =
+let safe_remove_file (f : Datatype.Filepath.t) =
   if not (Kernel.is_debug_key_enabled Kernel.dkey_parser) then
-    Extlib.safe_remove f
+    Extlib.safe_remove (f :> string)
 
 let build_cpp_cmd cmdl supp_args in_file out_file =
   try
@@ -435,13 +438,15 @@ let build_cpp_cmd cmdl supp_args in_file out_file =
 
 let parse_cabs = function
   | NoCPP f ->
-      if not (Sys.file_exists  f) then
+      if not (Sys.file_exists f) then
         Kernel.abort "preprocessed file %S does not exist" f;
-      Kernel.feedback "Parsing %s (no preprocessing)" (Filepath.pretty f);
-      Frontc.parse f ()
+      let path = Datatype.Filepath.of_string f in
+      Kernel.feedback "Parsing %a (no preprocessing)"
+        Datatype.Filepath.pretty path;
+      Frontc.parse (Datatype.Filepath.of_string f) ()
   | NeedCPP (f, cmdl, is_gnu_like) ->
-      if not (Sys.file_exists  f) then
-        Kernel.abort "source file %S does not exist" f;
+      if not (Sys.file_exists (f :> string)) then
+        Kernel.abort "source file %S does not exist" (f :> string);
       let debug = Kernel.is_debug_key_enabled Kernel.dkey_parser in
       let add_if_gnu opt =
         match is_gnu_like with
@@ -459,7 +464,10 @@ let parse_cabs = function
               [opt]
       in
       let ppf =
-        try Extlib.temp_file_cleanup_at_exit ~debug (Filename.basename f) ".i"
+        try
+          Datatype.Filepath.of_string
+            (Extlib.temp_file_cleanup_at_exit ~debug
+               (Filename.basename (f :> string)) ".i")
         with Extlib.Temp_file_error s ->
           Kernel.abort "cannot create temporary file: %s" s
       in
@@ -524,8 +532,10 @@ let parse_cabs = function
       in
       Kernel.feedback ~dkey:Kernel.dkey_pp
         "@{<i>preprocessing@} with \"%s %s %s\"" cmdl supp_args f;
-      Kernel.feedback "Parsing %s (with preprocessing)" (Filepath.pretty f);
-      let cpp_command = build_cpp_cmd cmdl supp_args f ppf in
+      let path = Datatype.Filepath.of_string f in
+      Kernel.feedback "Parsing %a (with preprocessing)"
+        Datatype.Filepath.pretty path;
+      let cpp_command = build_cpp_cmd cmdl supp_args f (ppf :> string) in
       if Sys.command cpp_command <> 0 then begin
         safe_remove_file ppf;
         Kernel.abort "failed to run: %s@\n\
@@ -552,7 +562,8 @@ preprocessor command or use the option \"-cpp-command\"." cpp_command
           in
           let ppf' =
             try Logic_preprocess.file ".c"
-                  (build_cpp_cmd cmdl pp_annot_supp_args) ppf
+                  (build_cpp_cmd cmdl pp_annot_supp_args)
+                  (ppf : Filepath.Normalized.t :> string)
             with Sys_error _ as e ->
               safe_remove_file ppf;
               Kernel.abort "preprocessing of annotations failed (%s)"
@@ -563,17 +574,19 @@ preprocessor command or use the option \"-cpp-command\"." cpp_command
         end else ppf
       in
       let (cil,(_,defs)) = Frontc.parse ppf () in
-      cil.fileName <- f;
+      cil.fileName <- path;
       safe_remove_file ppf;
-      (cil,(f,defs))
+      (cil,(path,defs))
   | External (f,suf) ->
       if not (Sys.file_exists f) then
         Kernel.abort "file %S does not exist." f;
       try
-        Kernel.feedback "Parsing %s (external front-end)" (Filepath.pretty f);
+        let path = Datatype.Filepath.of_string f in
+        Kernel.feedback "Parsing %a (external front-end)"
+          Datatype.Filepath.pretty path;
         Hashtbl.find check_suffixes suf f
       with Not_found ->
-        Kernel.abort "could not find a suitable plugin for parsing %s." f
+        Kernel.abort "could not find a suitable plugin for parsing %S." f
 
 let to_cil_cabs f =
   try
@@ -588,7 +601,7 @@ let to_cil_cabs f =
       Kernel.abort "@[stopping on@ file %S@ that@ has@ errors.%t@]"
         (get_name f)
         (fun fmt ->
-           if Filename.check_suffix (get_name f) ".c" &&
+           if Filename.check_suffix (get_name f :> string) ".c" &&
               not (Kernel.is_debug_key_enabled Kernel.dkey_pp)
            then
              Format.fprintf fmt "@ Add@ '-kernel-msg-key pp'@ \
@@ -606,10 +619,11 @@ let () =
         Kernel.abort "preprocessing of annotations failed (%s)"
           (Printexc.to_string e)
     in
+    let path = Datatype.Filepath.of_string f in
     let (cil,(_,defs)) = Frontc.parse ppf () in
-    cil.fileName <- f;
+    cil.fileName <- path;
     safe_remove_file ppf;
-    (cil,(f,defs))
+    (cil,(path,defs))
   in
   new_file_type ".ci" handle
 
@@ -712,22 +726,41 @@ let synchronize_source_annot has_new_stmt kf =
           | Some block, Some stmt_father when block == stmt_father -> true
           | _, _ -> false
         in
+        let is_annot_next annot =
+          match annot.annot_content with
+          | AStmtSpec _ | APragma (Slice_pragma SPstmt | Impact_pragma IPstmt)
+            -> true
+          | AExtended(_,is_loop,(_,name,_,_)) ->
+            (match Logic_env.extension_category name with
+             | Some (Ext_code_annot (Ext_here | Ext_next_loop)) -> false
+             | Some (Ext_code_annot Ext_next_stmt) -> true
+             | Some (Ext_code_annot Ext_next_both) -> not is_loop
+             | Some (Ext_contract | Ext_global) | None ->
+               Kernel.(
+                 warning ~wkey:wkey_acsl_extension
+                   "%s is not a code annotation extension" name);
+               false)
+          | AAssert _ | AInvariant _ | AVariant _
+          | AAssigns _ | AAllocation _
+          | APragma (Slice_pragma (SPctrl | SPexpr _))
+          | APragma (Impact_pragma (IPexpr _))
+          | APragma (Loop_pragma _) -> false
+        in
         let synchronize_user_annot a = add_annotation kf st a in
         let synchronize_previous_user_annots () =
           if !user_annots_for_next_stmt <> [] then begin
             if is_in_same_block () then begin
               let my_annots = !user_annots_for_next_stmt in
               let post_action st =
-                let treat_annot (has_annot,st) annot =
-                  if Logic_utils.is_contract annot then begin
-                    if has_annot then begin
-                      let new_stmt =
-                        Cil.mkStmt ~valid_sid:true (Block (Cil.mkBlock [st]))
-                      in
+                let treat_annot (has_annot,st) (st_ann, annot) =
+                  if is_annot_next annot then begin
+                    if has_annot || st.labels <> [] || st_ann.labels <> []
+                    then begin
+                      st_ann.skind <- (Block (Cil.mkBlockNonScoping [st]));
                       has_new_stmt := true;
                       Annotations.add_code_annot
-                        Emitter.end_user ~kf new_stmt annot;
-                      (true, new_stmt)
+                        Emitter.end_user ~kf st_ann annot;
+                      (true, st_ann)
                     end else begin
                       add_annotation kf st annot;
                       (true,st)
@@ -760,19 +793,21 @@ let synchronize_source_annot has_new_stmt kf =
             DoChildren;
           end
         in
-        let add_user_annot_for_next_stmt annot =
+        let add_user_annot_for_next_stmt st annot =
           if !user_annots_for_next_stmt = [] then begin
             block_with_user_annots := father;
-            user_annots_for_next_stmt := [annot]
+            user_annots_for_next_stmt := [st,annot]
           end else if is_in_same_block () then
-              user_annots_for_next_stmt := annot::!user_annots_for_next_stmt
-            else begin
-              Kernel.warning ~current:true ~once:true
-                "Ignoring previous annotation relative to next statement \
-effects";
-              block_with_user_annots := father;
-              user_annots_for_next_stmt := [annot] ;
-            end
+            user_annots_for_next_stmt :=
+              (st, annot)::!user_annots_for_next_stmt
+          else begin
+            Kernel.warning ~current:true ~once:true
+              "Ignoring previous annotation relative to next statement \
+               effects";
+            block_with_user_annots := father;
+            user_annots_for_next_stmt := [st, annot] ;
+          end;
+          ChangeTo (Cil.mkStmtOneInstr (Skip Cil_datatype.Location.unknown))
         in
         assert (!block_with_user_annots = None
                || !user_annots_for_next_stmt <> []);
@@ -781,22 +816,18 @@ effects";
           (* Code annotation isn't considered as a real stmt.
              So, previous annotations should be relative to the next stmt.
              Only this [annot] may be synchronised to that stmt *)
-          (match annot.annot_content with
-            | AStmtSpec _
-            | APragma (Slice_pragma SPstmt | Impact_pragma IPstmt) ->
-              (* Annotation relative to the effect of next statement *)
-              add_user_annot_for_next_stmt annot
-            | APragma _ | AAssert _ | AAssigns _ | AAllocation _ | AExtended _
-            | AInvariant _ | AVariant _ ->
-              (* Annotation relative to the current control point *)
-              (match !user_annots_for_next_stmt with
-                | [] -> synchronize_user_annot annot
-                | _ ->
-                  (* we have an annotation relative to the next
-                     real C statement somewhere above, and we have
-                     not reached it yet. Just stack the current annotation.*)
-                  add_user_annot_for_next_stmt annot));
-          super#vstmt st
+          if is_annot_next annot then
+            (* Annotation relative to the effect of next statement *)
+            add_user_annot_for_next_stmt st annot
+          else
+            (* Annotation relative to the current control point *)
+            (match !user_annots_for_next_stmt with
+             | [] -> synchronize_user_annot annot; DoChildren
+             | _ ->
+               (* we have an annotation relative to the next
+                  real C statement somewhere above, and we have
+                  not reached it yet. Just stack the current annotation.*)
+               add_user_annot_for_next_stmt st annot)
         | Loop (annot, _, _, _, _) ->
           (* Synchronize previous annotations on that statement *)
           let res = synchronize_previous_user_annots () in
@@ -1182,7 +1213,7 @@ let extract_logic_infos g =
   let rec aux acc = function
   | Dfun_or_pred (li,_) | Dinvariant (li,_) | Dtype_annot (li,_) -> li :: acc
   | Dvolatile _ | Dtype _ | Dlemma _
-  | Dmodel_annot _ | Dcustom_annot _ -> acc
+  | Dmodel_annot _ | Dcustom_annot _ | Dextended _ -> acc
   | Daxiomatic(_,l,_,_) -> List.fold_left aux acc l
   in aux [] g
 
@@ -1615,22 +1646,23 @@ let init_from_cmdline () =
   let prj1 = Project.current () in
   if Kernel.Copy.get () then begin
     let selection =
-      State_selection.diff
-        State_selection.full
-        (State_selection.list_union
-           (List.map State_selection.with_dependencies
-              [ Cil.Builtin_functions.self;
-                Logic_env.Logic_info.self;
-                Logic_env.Logic_type_info.self;
-                Logic_env.Logic_ctor_info.self;
-                Ast.self ]))
+      State_selection.list_union
+        (List.map State_selection.with_dependencies
+           [ Cil.Builtin_functions.self;
+             Logic_env.Logic_info.self;
+             Logic_env.Logic_type_info.self;
+             Logic_env.Logic_ctor_info.self;
+             Ast.self ])
     in
-    let prj2 = Project.create_by_copy ~selection ~last:false "debug_copy_prj" in
+    Project.clear ~selection ();
+    let prj2 = Project.create_by_copy ~last:false "debug_copy_prj" in
     Project.set_current prj2;
   end;
   let files = Kernel.Files.get () in
   if files = [] && not !Config.is_gui then Kernel.warning "no input file.";
-  let files = List.map (fun s -> from_filename s) files in
+  let files =
+    List.map (fun s -> from_filename s) files
+  in
   try
     init_from_c_files files;
     if Kernel.Check.get () then begin
@@ -1699,9 +1731,10 @@ let create_rebuilt_project_from_visitor
       let name = "frama_c_project_" ^ prj_name ^ "_" in
       let ext = if preprocess then ".c" else ".i" in
       let debug = Kernel.Debug.get () > 0 in
-      Extlib.temp_file_cleanup_at_exit ~debug name ext
+      let tmp_fname = Extlib.temp_file_cleanup_at_exit ~debug name ext in
+      tmp_fname
     in
-    let cout = open_out f in
+    let cout = open_out (f :> string) in
     let fmt = Format.formatter_of_out_channel cout in
     unjournalized_pretty prj (Some fmt) ();
     let redo () =

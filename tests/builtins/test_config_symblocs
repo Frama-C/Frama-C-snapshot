@@ -1,0 +1,2 @@
+MACRO: VALUECONFIG -val-show-progress  -no-autoload-plugins -load-module from,inout,eva,scope,variadic -value-msg-key malloc -value-warn-key malloc:weak=feedback -no-val-alloc-returns-null -eva-symbolic-locations-domain
+OPT: -val @VALUECONFIG@ -journal-disable -out -input -deps

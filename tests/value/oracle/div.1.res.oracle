@@ -1,9 +1,9 @@
 [kernel] Parsing tests/value/div.i (no preprocessing)
 [rte] annotating function main
-[value] Analyzing a complete application starting at main
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing a complete application starting at main
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   X ∈ {0}
   Y ∈ {0}
   Z1 ∈ {0}
@@ -25,94 +25,94 @@
    [2] ∈ {3}
    [3..4] ∈ {0}
   p ∈ {0}
-[value] tests/value/div.i:14: entering loop for the first time
-[value:alarm] tests/value/div.i:14: Warning: 
+[eva:alarm] tests/value/div.i:14: Warning: 
   assertion 'rte,signed_overflow' got status unknown.
-[value:alarm] tests/value/div.i:14: Warning: 
+[eva:alarm] tests/value/div.i:14: Warning: 
   signed overflow. assert c + 1 ≤ 2147483647;
-[value] tests/value/div.i:16: assertion 'rte,signed_overflow' got status valid.
-[value:alarm] tests/value/div.i:17: Warning: 
+[eva] tests/value/div.i:16: assertion 'rte,signed_overflow' got status valid.
+[eva:alarm] tests/value/div.i:17: Warning: 
   assertion 'rte,signed_overflow' got status unknown.
-[value:alarm] tests/value/div.i:17: Warning: 
+[eva:alarm] tests/value/div.i:17: Warning: 
   signed overflow. assert c + 2 ≤ 2147483647;
-[value] tests/value/div.i:17: assertion 'rte,signed_overflow' got status valid.
-[value:alarm] tests/value/div.i:17: Warning: 
+[eva] tests/value/div.i:17: assertion 'rte,signed_overflow' got status valid.
+[eva] tests/value/div.i:14: starting to merge loop iterations
+[eva:alarm] tests/value/div.i:17: Warning: 
   assertion 'rte,signed_overflow' got status unknown.
-[value:alarm] tests/value/div.i:17: Warning: 
+[eva:alarm] tests/value/div.i:17: Warning: 
   signed overflow. assert -2147483648 ≤ X - 1;
-[value:alarm] tests/value/div.i:16: Warning: 
+[eva:alarm] tests/value/div.i:16: Warning: 
   assertion 'rte,signed_overflow' got status unknown.
-[value:alarm] tests/value/div.i:16: Warning: 
+[eva:alarm] tests/value/div.i:16: Warning: 
   signed overflow. assert X + 1 ≤ 2147483647;
-[value] tests/value/div.i:22: assertion 'rte,signed_overflow' got status valid.
-[value] tests/value/div.i:25: assertion 'rte,signed_overflow' got status valid.
-[value] tests/value/div.i:28: assertion 'rte,signed_overflow' got status valid.
-[value:alarm] tests/value/div.i:32: Warning: 
+[eva] tests/value/div.i:22: assertion 'rte,signed_overflow' got status valid.
+[eva] tests/value/div.i:25: assertion 'rte,signed_overflow' got status valid.
+[eva] tests/value/div.i:28: assertion 'rte,signed_overflow' got status valid.
+[eva:alarm] tests/value/div.i:32: Warning: 
   assertion 'rte,division_by_zero' got status unknown.
-[value:alarm] tests/value/div.i:32: Warning: division by zero. assert Z2 ≢ 0;
-[value:alarm] tests/value/div.i:33: Warning: 
+[eva:alarm] tests/value/div.i:32: Warning: division by zero. assert Z2 ≢ 0;
+[eva:alarm] tests/value/div.i:33: Warning: 
   assertion 'rte,division_by_zero' got status unknown.
-[value:alarm] tests/value/div.i:33: Warning: 
+[eva:alarm] tests/value/div.i:33: Warning: 
   assertion 'rte,signed_overflow' got status unknown.
-[value:alarm] tests/value/div.i:33: Warning: division by zero. assert Z2 ≢ 0;
-[value:alarm] tests/value/div.i:33: Warning: 
+[eva:alarm] tests/value/div.i:33: Warning: division by zero. assert Z2 ≢ 0;
+[eva:alarm] tests/value/div.i:33: Warning: 
   signed overflow. assert -2147483648 ≤ (int)(&Z2) / Z2;
-[value:alarm] tests/value/div.i:33: Warning: 
+[eva:alarm] tests/value/div.i:33: Warning: 
   signed overflow. assert (int)(&Z2) / Z2 ≤ 2147483647;
-[value] tests/value/div.i:33: 
+[eva] tests/value/div.i:33: 
   Assigning imprecise value to b.
   The imprecision originates from Arithmetic {tests/value/div.i:33}
-[value:alarm] tests/value/div.i:34: Warning: 
+[eva:alarm] tests/value/div.i:34: Warning: 
   assertion 'rte,division_by_zero' got status unknown.
-[value:alarm] tests/value/div.i:34: Warning: 
+[eva:alarm] tests/value/div.i:34: Warning: 
   division by zero. assert (int)(&X + 2) ≢ 0;
-[value:alarm] tests/value/div.i:34: Warning: 
+[eva:alarm] tests/value/div.i:34: Warning: 
   signed overflow. assert -2147483648 ≤ 100 / (int)(&X + 2);
-[value:alarm] tests/value/div.i:34: Warning: 
+[eva:alarm] tests/value/div.i:34: Warning: 
   signed overflow. assert 100 / (int)(&X + 2) ≤ 2147483647;
-[value] tests/value/div.i:34: 
+[eva] tests/value/div.i:34: 
   Assigning imprecise value to d2.
   The imprecision originates from Arithmetic {tests/value/div.i:34}
-[value] tests/value/div.i:35: assertion 'rte,division_by_zero' got status valid.
-[value:alarm] tests/value/div.i:35: Warning: 
+[eva] tests/value/div.i:35: assertion 'rte,division_by_zero' got status valid.
+[eva:alarm] tests/value/div.i:35: Warning: 
   signed overflow. assert -2147483648 ≤ 100 / (int)(&X + 1);
-[value:alarm] tests/value/div.i:35: Warning: 
+[eva:alarm] tests/value/div.i:35: Warning: 
   signed overflow. assert 100 / (int)(&X + 1) ≤ 2147483647;
-[value] tests/value/div.i:35: 
+[eva] tests/value/div.i:35: 
   Assigning imprecise value to d1.
   The imprecision originates from Arithmetic {tests/value/div.i:35}
-[value] tests/value/div.i:36: assertion 'rte,division_by_zero' got status valid.
-[value:alarm] tests/value/div.i:36: Warning: 
+[eva] tests/value/div.i:36: assertion 'rte,division_by_zero' got status valid.
+[eva:alarm] tests/value/div.i:36: Warning: 
   signed overflow. assert -2147483648 ≤ 100 / (int)(&X);
-[value:alarm] tests/value/div.i:36: Warning: 
+[eva:alarm] tests/value/div.i:36: Warning: 
   signed overflow. assert 100 / (int)(&X) ≤ 2147483647;
-[value] tests/value/div.i:36: 
+[eva] tests/value/div.i:36: 
   Assigning imprecise value to d0.
   The imprecision originates from Arithmetic {tests/value/div.i:36}
-[value:alarm] tests/value/div.i:37: Warning: 
+[eva:alarm] tests/value/div.i:37: Warning: 
   assertion 'rte,signed_overflow' got status unknown.
-[value:alarm] tests/value/div.i:37: Warning: 
+[eva:alarm] tests/value/div.i:37: Warning: 
   signed overflow. assert -2147483648 ≤ -((int)(&X));
-[value:alarm] tests/value/div.i:37: Warning: 
+[eva:alarm] tests/value/div.i:37: Warning: 
   signed overflow. assert -((int)(&X)) ≤ 2147483647;
-[value] tests/value/div.i:37: 
+[eva] tests/value/div.i:37: 
   Assigning imprecise value to e.
   The imprecision originates from Arithmetic {tests/value/div.i:37}
-[value] Recording results for main
-[value] done for function main
-[value] tests/value/div.i:22: 
+[eva] Recording results for main
+[eva] done for function main
+[eva] tests/value/div.i:22: 
   assertion 'rte,signed_overflow' got final status valid.
-[value] tests/value/div.i:25: 
+[eva] tests/value/div.i:25: 
   assertion 'rte,signed_overflow' got final status valid.
-[value] tests/value/div.i:28: 
+[eva] tests/value/div.i:28: 
   assertion 'rte,signed_overflow' got final status valid.
-[value] tests/value/div.i:35: 
+[eva] tests/value/div.i:35: 
   assertion 'rte,division_by_zero' got final status valid.
-[value] tests/value/div.i:36: 
+[eva] tests/value/div.i:36: 
   assertion 'rte,division_by_zero' got final status valid.
 [scope:rm_asserts] removing 1 assertion(s)
-[value] ====== VALUES COMPUTED ======
-[value:final-states] Values at end of function main:
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function main:
   X ∈ [--..--]
   Y ∈ [-126..333],9%27
   Z1 ∈ [-42..111],3%9

@@ -1,86 +1,86 @@
 [kernel] Parsing tests/value/shift_big.i (no preprocessing)
-[value] Analyzing a complete application starting at main
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing a complete application starting at main
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   nondet ∈ [--..--]
-[value] computing for function t1 <- main.
+[eva] computing for function t1 <- main.
   Called from tests/value/shift_big.i:63.
-[value:alarm] tests/value/shift_big.i:5: Warning: 
+[eva:alarm] tests/value/shift_big.i:5: Warning: 
   invalid RHS operand for shift. assert 0 ≤ j < 32;
-[value:alarm] tests/value/shift_big.i:5: Warning: 
+[eva:alarm] tests/value/shift_big.i:5: Warning: 
   signed overflow. assert 1 << j ≤ 2147483647;
-[value] Recording results for t1
-[value] Done for function t1
-[value] computing for function t2 <- main.
+[eva] Recording results for t1
+[eva] Done for function t1
+[eva] computing for function t2 <- main.
   Called from tests/value/shift_big.i:64.
-[value:alarm] tests/value/shift_big.i:15: Warning: 
+[eva:alarm] tests/value/shift_big.i:15: Warning: 
   invalid RHS operand for shift. assert 0 ≤ j < 32;
-[value:alarm] tests/value/shift_big.i:15: Warning: 
+[eva:alarm] tests/value/shift_big.i:15: Warning: 
   signed overflow. assert 1 << j ≤ 2147483647;
-[value] Recording results for t2
-[value] Done for function t2
-[value:alarm] tests/value/shift_big.i:64: Warning: 
+[eva] Recording results for t2
+[eva] Done for function t2
+[eva:alarm] tests/value/shift_big.i:64: Warning: 
   signed overflow. assert r + tmp_0 ≤ 2147483647;
                    (tmp_0 from t2())
-[value] computing for function t3 <- main.
+[eva] computing for function t3 <- main.
   Called from tests/value/shift_big.i:65.
-[value] tests/value/shift_big.i:22: entering loop for the first time
-[value] tests/value/shift_big.i:25: assertion got status valid.
-[value] Recording results for t3
-[value] Done for function t3
-[value] computing for function t4 <- main.
+[eva] tests/value/shift_big.i:22: starting to merge loop iterations
+[eva] tests/value/shift_big.i:25: assertion got status valid.
+[eva] Recording results for t3
+[eva] Done for function t3
+[eva] computing for function t4 <- main.
   Called from tests/value/shift_big.i:66.
-[value] tests/value/shift_big.i:31: assertion got status valid.
-[value] Recording results for t4
-[value] Done for function t4
-[value] computing for function t5 <- main.
+[eva] tests/value/shift_big.i:31: assertion got status valid.
+[eva] Recording results for t4
+[eva] Done for function t4
+[eva] computing for function t5 <- main.
   Called from tests/value/shift_big.i:67.
-[value] tests/value/shift_big.i:37: entering loop for the first time
-[value] tests/value/shift_big.i:40: assertion got status valid.
-[value] Recording results for t5
-[value] Done for function t5
-[value] computing for function t6 <- main.
+[eva] tests/value/shift_big.i:37: starting to merge loop iterations
+[eva] tests/value/shift_big.i:40: assertion got status valid.
+[eva] Recording results for t5
+[eva] Done for function t5
+[eva] computing for function t6 <- main.
   Called from tests/value/shift_big.i:68.
-[value] tests/value/shift_big.i:46: assertion got status valid.
-[value] Recording results for t6
-[value] Done for function t6
-[value] computing for function t7 <- main.
+[eva] tests/value/shift_big.i:46: assertion got status valid.
+[eva] Recording results for t6
+[eva] Done for function t6
+[eva] computing for function t7 <- main.
   Called from tests/value/shift_big.i:69.
-[value:alarm] tests/value/shift_big.i:52: Warning: assertion got status unknown.
-[value] Recording results for t7
-[value] Done for function t7
-[value] computing for function t8 <- main.
+[eva:alarm] tests/value/shift_big.i:52: Warning: assertion got status unknown.
+[eva] Recording results for t7
+[eva] Done for function t7
+[eva] computing for function t8 <- main.
   Called from tests/value/shift_big.i:70.
-[value] tests/value/shift_big.i:58: assertion got status valid.
-[value] Recording results for t8
-[value] Done for function t8
-[value] Recording results for main
-[value] done for function main
-[value] ====== VALUES COMPUTED ======
-[value:final-states] Values at end of function t1:
+[eva] tests/value/shift_big.i:58: assertion got status valid.
+[eva] Recording results for t8
+[eva] Done for function t8
+[eva] Recording results for main
+[eva] done for function main
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function t1:
   j ∈ [0..31]
   i ∈ [1..2147483647]
   __retres ∈ [1..2147483647]
-[value:final-states] Values at end of function t2:
+[eva:final-states] Values at end of function t2:
   j ∈ {1; 10; 31}
   i ∈ {2; 1024}
   __retres ∈ {2; 1024}
-[value:final-states] Values at end of function t3:
+[eva:final-states] Values at end of function t3:
   x ∈ [1000000000..1999999999]
   i ∈ {2000000000}
-[value:final-states] Values at end of function t4:
+[eva:final-states] Values at end of function t4:
   x ∈ {1000000000; 1000000001}
-[value:final-states] Values at end of function t5:
+[eva:final-states] Values at end of function t5:
   x ∈ [1000000000..1999999999]
   i ∈ {2000000000}
-[value:final-states] Values at end of function t6:
+[eva:final-states] Values at end of function t6:
   x ∈ {1000000000; 1000000001}
-[value:final-states] Values at end of function t7:
+[eva:final-states] Values at end of function t7:
   x ∈ {1022; 1023}
-[value:final-states] Values at end of function t8:
+[eva:final-states] Values at end of function t8:
   x ∈ {1022; 1023}
-[value:final-states] Values at end of function main:
+[eva:final-states] Values at end of function main:
   r ∈ [0..2147483647]
 [from] Computing for function t1
 [from] Done for function t1

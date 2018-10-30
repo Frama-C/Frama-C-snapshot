@@ -1,8 +1,8 @@
 [kernel] Parsing tests/value/strings.i (no preprocessing)
-[value] Analyzing a complete application starting at main1
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing a complete application starting at main1
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   s1[0] ∈ {104}
     [1] ∈ {101}
     [2..3] ∈ {108}
@@ -37,59 +37,59 @@
   s4 ∈ {{ "tutu" }}
   s7 ∈ {{ "hello\000 world" }}
   s8 ∈ {{ "hello" }}
-[value] computing for function u <- main1.
+[eva] computing for function u <- main1.
   Called from tests/value/strings.i:39.
 [kernel:annot:missing-spec] tests/value/strings.i:39: Warning: 
   Neither code nor specification for function u, generating default assigns from the prototype
-[value] using specification for function u
-[value] Done for function u
-[value:alarm] tests/value/strings.i:39: Warning: 
+[eva] using specification for function u
+[eva] Done for function u
+[eva:alarm] tests/value/strings.i:39: Warning: 
   out of bounds read. assert \valid_read(p - 4);
-[value] computing for function u <- main1.
+[eva] computing for function u <- main1.
   Called from tests/value/strings.i:42.
-[value] Done for function u
-[value:alarm] tests/value/strings.i:42: Warning: 
+[eva] Done for function u
+[eva:alarm] tests/value/strings.i:42: Warning: 
   out of bounds read. assert \valid_read(p + 12);
-[value] computing for function u <- main1.
+[eva] computing for function u <- main1.
   Called from tests/value/strings.i:44.
-[value] Done for function u
-[value] computing for function u <- main1.
+[eva] Done for function u
+[eva] computing for function u <- main1.
   Called from tests/value/strings.i:48.
-[value] Done for function u
-[value:alarm] tests/value/strings.i:48: Warning: 
+[eva] Done for function u
+[eva:alarm] tests/value/strings.i:48: Warning: 
   out of bounds read. assert \valid_read(p - 4);
-[value] computing for function u <- main1.
+[eva] computing for function u <- main1.
   Called from tests/value/strings.i:53.
-[value] Done for function u
-[value] computing for function strcpy <- main1.
+[eva] Done for function u
+[eva] computing for function strcpy <- main1.
   Called from tests/value/strings.i:53.
-[value:alarm] tests/value/strings.i:21: Warning: 
+[eva:alarm] tests/value/strings.i:21: Warning: 
   out of bounds write.
   assert \valid(tmp_unroll_46);
   (tmp_unroll_46 from ldst++)
 [kernel] tests/value/strings.i:21: Warning: 
   all target addresses were invalid. This path is assumed to be dead.
-[value] Recording results for strcpy
-[value] Done for function strcpy
-[value] computing for function strlen <- main1.
+[eva] Recording results for strcpy
+[eva] Done for function strcpy
+[eva] computing for function strlen <- main1.
   Called from tests/value/strings.i:58.
-[value] Recording results for strlen
-[value] Done for function strlen
-[value] Recording results for main1
-[value] done for function main1
-[value] tests/value/strings.i:21: 
-  assertion 'Value,mem_access' got final status invalid.
-[value] tests/value/strings.i:39: 
-  assertion 'Value,mem_access' got final status invalid.
-[value] tests/value/strings.i:42: 
-  assertion 'Value,mem_access' got final status invalid.
-[value] ====== VALUES COMPUTED ======
-[value:final-states] Values at end of function strcpy:
+[eva] Recording results for strlen
+[eva] Done for function strlen
+[eva] Recording results for main1
+[eva] done for function main1
+[eva] tests/value/strings.i:21: 
+  assertion 'Eva,mem_access' got final status invalid.
+[eva] tests/value/strings.i:39: 
+  assertion 'Eva,mem_access' got final status invalid.
+[eva] tests/value/strings.i:42: 
+  assertion 'Eva,mem_access' got final status invalid.
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function strcpy:
   NON TERMINATING FUNCTION
-[value:final-states] Values at end of function strlen:
+[eva:final-states] Values at end of function strlen:
   s ∈ {{ &s1[6] }}
   l ∈ {5}
-[value:final-states] Values at end of function main1:
+[eva:final-states] Values at end of function main1:
   s1[0] ∈ {104}
     [1] ∈ {101}
     [2] ∈ {108}

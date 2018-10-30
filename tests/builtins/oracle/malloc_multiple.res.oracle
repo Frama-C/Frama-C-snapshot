@@ -1,0 +1,206 @@
+[kernel] Parsing tests/builtins/malloc_multiple.c (with preprocessing)
+[eva] Analyzing a complete application starting at main
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
+  T[0..9] ∈ {0}
+  F[0..9] ∈ {0}
+[eva] computing for function allocate_T <- main.
+  Called from tests/builtins/malloc_multiple.c:42.
+[eva] tests/builtins/malloc_multiple.c:11: Call to builtin malloc
+[eva] tests/builtins/malloc_multiple.c:11: 
+  allocating variable __malloc_allocate_T_l11
+[eva] tests/builtins/malloc_multiple.c:14: Call to builtin malloc
+[eva] tests/builtins/malloc_multiple.c:14: 
+  allocating variable __malloc_allocate_T_l14
+[eva] tests/builtins/malloc_multiple.c:14: Call to builtin malloc
+[eva] tests/builtins/malloc_multiple.c:14: 
+  allocating variable __malloc_allocate_T_l14_0
+[eva] tests/builtins/malloc_multiple.c:14: Call to builtin malloc
+[eva] tests/builtins/malloc_multiple.c:14: 
+  allocating variable __malloc_allocate_T_l14_1
+[eva] tests/builtins/malloc_multiple.c:14: Call to builtin malloc
+[eva] tests/builtins/malloc_multiple.c:14: 
+  allocating variable __malloc_allocate_T_l14_2
+[eva] tests/builtins/malloc_multiple.c:14: Call to builtin malloc
+[eva] tests/builtins/malloc_multiple.c:14: 
+  allocating variable __malloc_allocate_T_l14_3
+[eva] tests/builtins/malloc_multiple.c:14: Call to builtin malloc
+[eva] tests/builtins/malloc_multiple.c:14: 
+  allocating variable __malloc_allocate_T_l14_4
+[eva] tests/builtins/malloc_multiple.c:14: Call to builtin malloc
+[eva:malloc:weak] tests/builtins/malloc_multiple.c:14: 
+  marking variable `__malloc_allocate_T_l14_4' as weak
+[eva] tests/builtins/malloc_multiple.c:14: Call to builtin malloc
+[eva] tests/builtins/malloc_multiple.c:14: Call to builtin malloc
+[eva] Recording results for allocate_T
+[eva] Done for function allocate_T
+[eva] computing for function allocate_T <- main.
+  Called from tests/builtins/malloc_multiple.c:43.
+[eva] tests/builtins/malloc_multiple.c:11: Call to builtin malloc
+[eva] tests/builtins/malloc_multiple.c:11: 
+  allocating variable __malloc_allocate_T_l11_0
+[eva] tests/builtins/malloc_multiple.c:14: Call to builtin malloc
+[eva] tests/builtins/malloc_multiple.c:14: 
+  allocating variable __malloc_allocate_T_l14_5
+[eva] tests/builtins/malloc_multiple.c:14: Call to builtin malloc
+[eva] tests/builtins/malloc_multiple.c:14: 
+  allocating variable __malloc_allocate_T_l14_6
+[eva] tests/builtins/malloc_multiple.c:14: Call to builtin malloc
+[eva] tests/builtins/malloc_multiple.c:14: 
+  allocating variable __malloc_allocate_T_l14_7
+[eva] tests/builtins/malloc_multiple.c:14: Call to builtin malloc
+[eva] tests/builtins/malloc_multiple.c:14: 
+  allocating variable __malloc_allocate_T_l14_8
+[eva] tests/builtins/malloc_multiple.c:14: Call to builtin malloc
+[eva] tests/builtins/malloc_multiple.c:14: 
+  allocating variable __malloc_allocate_T_l14_9
+[eva] tests/builtins/malloc_multiple.c:14: Call to builtin malloc
+[eva] tests/builtins/malloc_multiple.c:14: 
+  allocating variable __malloc_allocate_T_l14_10
+[eva] tests/builtins/malloc_multiple.c:14: Call to builtin malloc
+[eva:malloc:weak] tests/builtins/malloc_multiple.c:14: 
+  marking variable `__malloc_allocate_T_l14_10' as weak
+[eva] tests/builtins/malloc_multiple.c:14: Call to builtin malloc
+[eva] tests/builtins/malloc_multiple.c:14: Call to builtin malloc
+[eva] Recording results for allocate_T
+[eva] Done for function allocate_T
+[eva] computing for function allocate_and_free_last <- main.
+  Called from tests/builtins/malloc_multiple.c:44.
+[eva] tests/builtins/malloc_multiple.c:29: Call to builtin malloc
+[eva] tests/builtins/malloc_multiple.c:29: 
+  allocating variable __malloc_allocate_and_free_last_l29
+[eva] tests/builtins/malloc_multiple.c:31: 
+  Frama_C_show_each_F: {{ &__malloc_allocate_and_free_last_l29 }}
+[eva] tests/builtins/malloc_multiple.c:29: Call to builtin malloc
+[eva] tests/builtins/malloc_multiple.c:29: 
+  allocating variable __malloc_allocate_and_free_last_l29_0
+[eva] tests/builtins/malloc_multiple.c:31: 
+  Frama_C_show_each_F: {{ &__malloc_allocate_and_free_last_l29_0 }}
+[eva] tests/builtins/malloc_multiple.c:29: Call to builtin malloc
+[eva] tests/builtins/malloc_multiple.c:29: 
+  allocating variable __malloc_allocate_and_free_last_l29_1
+[eva] tests/builtins/malloc_multiple.c:31: 
+  Frama_C_show_each_F: {{ &__malloc_allocate_and_free_last_l29_1 }}
+[eva] tests/builtins/malloc_multiple.c:29: Call to builtin malloc
+[eva] tests/builtins/malloc_multiple.c:29: 
+  allocating variable __malloc_allocate_and_free_last_l29_2
+[eva] tests/builtins/malloc_multiple.c:31: 
+  Frama_C_show_each_F: {{ &__malloc_allocate_and_free_last_l29_2 }}
+[eva] tests/builtins/malloc_multiple.c:29: Call to builtin malloc
+[eva] tests/builtins/malloc_multiple.c:29: 
+  allocating variable __malloc_allocate_and_free_last_l29_3
+[eva] tests/builtins/malloc_multiple.c:31: 
+  Frama_C_show_each_F: {{ &__malloc_allocate_and_free_last_l29_3 }}
+[eva] tests/builtins/malloc_multiple.c:29: Call to builtin malloc
+[eva] tests/builtins/malloc_multiple.c:29: 
+  allocating variable __malloc_allocate_and_free_last_l29_4
+[eva] tests/builtins/malloc_multiple.c:31: 
+  Frama_C_show_each_F: {{ &__malloc_allocate_and_free_last_l29_4 }}
+[eva] tests/builtins/malloc_multiple.c:29: Call to builtin malloc
+[eva:malloc:weak] tests/builtins/malloc_multiple.c:29: 
+  marking variable `__malloc_allocate_and_free_last_l29_4' as weak
+[eva] tests/builtins/malloc_multiple.c:31: 
+  Frama_C_show_each_F: {{ &__malloc_w_allocate_and_free_last_l29_4 }}
+[eva] tests/builtins/malloc_multiple.c:29: Call to builtin malloc
+[eva] tests/builtins/malloc_multiple.c:31: 
+  Frama_C_show_each_F: {{ &__malloc_w_allocate_and_free_last_l29_4 }}
+[eva] tests/builtins/malloc_multiple.c:29: Call to builtin malloc
+[eva] tests/builtins/malloc_multiple.c:31: 
+  Frama_C_show_each_F: {{ &__malloc_w_allocate_and_free_last_l29_4 }}
+[eva] tests/builtins/malloc_multiple.c:29: Call to builtin malloc
+[eva] tests/builtins/malloc_multiple.c:31: 
+  Frama_C_show_each_F: {{ &__malloc_w_allocate_and_free_last_l29_4 }}
+[eva] tests/builtins/malloc_multiple.c:34: Call to builtin free
+[eva] tests/builtins/malloc_multiple.c:34: 
+  function free: precondition 'freeable' got status valid.
+[eva:malloc] tests/builtins/malloc_multiple.c:34: 
+  weak free on bases: {__malloc_w_allocate_and_free_last_l29_4}
+[eva] tests/builtins/malloc_multiple.c:35: assertion got status valid.
+[eva:alarm] tests/builtins/malloc_multiple.c:36: Warning: 
+  assertion got status unknown.
+[eva:alarm] tests/builtins/malloc_multiple.c:37: Warning: 
+  assertion got status unknown.
+[eva] Recording results for allocate_and_free_last
+[eva] Done for function allocate_and_free_last
+[eva] Recording results for main
+[eva] done for function main
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function allocate_T:
+  __fc_heap_status ∈ [--..--]
+  T[0] ∈ {{ &__malloc_allocate_T_l11 ; &__malloc_allocate_T_l11_0 }}
+   [1] ∈ {{ &__malloc_allocate_T_l14 ; &__malloc_allocate_T_l14_5 }}
+   [2] ∈ {{ &__malloc_allocate_T_l14_0 ; &__malloc_allocate_T_l14_6 }}
+   [3] ∈ {{ &__malloc_allocate_T_l14_1 ; &__malloc_allocate_T_l14_7 }}
+   [4] ∈ {{ &__malloc_allocate_T_l14_2 ; &__malloc_allocate_T_l14_8 }}
+   [5] ∈ {{ &__malloc_allocate_T_l14_3 ; &__malloc_allocate_T_l14_9 }}
+   [6..9] ∈
+   {{ &__malloc_w_allocate_T_l14_4 ; &__malloc_w_allocate_T_l14_10 }}
+  counter ∈ {10}
+  error ∈ {0}
+  __malloc_allocate_T_l11 ∈ {111}
+  __malloc_allocate_T_l14 ∈ {222}
+  __malloc_allocate_T_l14_0 ∈ {333}
+  __malloc_allocate_T_l14_1 ∈ {444}
+  __malloc_allocate_T_l14_2 ∈ {555}
+  __malloc_allocate_T_l14_3 ∈ {1}
+  __malloc_w_allocate_T_l14_4 ∈ {1} or UNINITIALIZED
+  __malloc_allocate_T_l11_0 ∈ {111}
+  __malloc_allocate_T_l14_5 ∈ {222}
+  __malloc_allocate_T_l14_6 ∈ {333}
+  __malloc_allocate_T_l14_7 ∈ {444}
+  __malloc_allocate_T_l14_8 ∈ {555}
+  __malloc_allocate_T_l14_9 ∈ {2}
+  __malloc_w_allocate_T_l14_10 ∈ {2} or UNINITIALIZED
+[eva:final-states] Values at end of function allocate_and_free_last:
+  __fc_heap_status ∈ [--..--]
+  F[0] ∈ {{ &__malloc_allocate_and_free_last_l29 }}
+   [1] ∈ {{ &__malloc_allocate_and_free_last_l29_0 }}
+   [2] ∈ {{ &__malloc_allocate_and_free_last_l29_1 }}
+   [3] ∈ {{ &__malloc_allocate_and_free_last_l29_2 }}
+   [4] ∈ {{ &__malloc_allocate_and_free_last_l29_3 }}
+   [5..9] ∈ {{ &__malloc_w_allocate_and_free_last_l29_4 }} or ESCAPINGADDR
+  __malloc_allocate_and_free_last_l29 ∈ {0}
+  __malloc_allocate_and_free_last_l29_0 ∈ {1}
+  __malloc_allocate_and_free_last_l29_1 ∈ {2}
+  __malloc_allocate_and_free_last_l29_2 ∈ {3}
+  __malloc_allocate_and_free_last_l29_3 ∈ {4}
+  __malloc_w_allocate_and_free_last_l29_4 ∈
+                                         {5; 6; 7; 8; 9} or UNINITIALIZED
+[eva:final-states] Values at end of function main:
+  __fc_heap_status ∈ [--..--]
+  T[0] ∈ {{ &__malloc_allocate_T_l11_0 }}
+   [1] ∈ {{ &__malloc_allocate_T_l14_5 }}
+   [2] ∈ {{ &__malloc_allocate_T_l14_6 }}
+   [3] ∈ {{ &__malloc_allocate_T_l14_7 }}
+   [4] ∈ {{ &__malloc_allocate_T_l14_8 }}
+   [5] ∈ {{ &__malloc_allocate_T_l14_9 }}
+   [6..9] ∈ {{ &__malloc_w_allocate_T_l14_10 }}
+  F[0] ∈ {{ &__malloc_allocate_and_free_last_l29 }}
+   [1] ∈ {{ &__malloc_allocate_and_free_last_l29_0 }}
+   [2] ∈ {{ &__malloc_allocate_and_free_last_l29_1 }}
+   [3] ∈ {{ &__malloc_allocate_and_free_last_l29_2 }}
+   [4] ∈ {{ &__malloc_allocate_and_free_last_l29_3 }}
+   [5..9] ∈ {{ &__malloc_w_allocate_and_free_last_l29_4 }} or ESCAPINGADDR
+  __retres ∈ {0}
+  __malloc_allocate_T_l11 ∈ {111}
+  __malloc_allocate_T_l14 ∈ {222}
+  __malloc_allocate_T_l14_0 ∈ {333}
+  __malloc_allocate_T_l14_1 ∈ {444}
+  __malloc_allocate_T_l14_2 ∈ {555}
+  __malloc_allocate_T_l14_3 ∈ {1}
+  __malloc_w_allocate_T_l14_4 ∈ {1} or UNINITIALIZED
+  __malloc_allocate_T_l11_0 ∈ {111}
+  __malloc_allocate_T_l14_5 ∈ {222}
+  __malloc_allocate_T_l14_6 ∈ {333}
+  __malloc_allocate_T_l14_7 ∈ {444}
+  __malloc_allocate_T_l14_8 ∈ {555}
+  __malloc_allocate_T_l14_9 ∈ {2}
+  __malloc_w_allocate_T_l14_10 ∈ {2} or UNINITIALIZED
+  __malloc_allocate_and_free_last_l29 ∈ {0}
+  __malloc_allocate_and_free_last_l29_0 ∈ {1}
+  __malloc_allocate_and_free_last_l29_1 ∈ {2}
+  __malloc_allocate_and_free_last_l29_2 ∈ {3}
+  __malloc_allocate_and_free_last_l29_3 ∈ {4}
+  __malloc_w_allocate_and_free_last_l29_4 ∈
+                                         {5; 6; 7; 8; 9} or UNINITIALIZED

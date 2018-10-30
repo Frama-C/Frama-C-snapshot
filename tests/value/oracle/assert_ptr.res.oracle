@@ -1,22 +1,21 @@
 [kernel] Parsing tests/value/assert_ptr.i (no preprocessing)
-[value] Analyzing a complete application starting at main
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing a complete application starting at main
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   ptr ∈ {0}
   q ∈ {0}
   s_q ∈ {0}
   a ∈ {0}
   r ∈ {0}
-[value] tests/value/assert_ptr.i:8: assertion got status valid.
-[value] tests/value/assert_ptr.i:9: Frama_C_show_each_ptr: {{ NULL ; &a }}
-[value:alarm] tests/value/assert_ptr.i:12: Warning: 
-  assertion got status unknown.
-[value] tests/value/assert_ptr.i:13: Frama_C_show_each_q: {{ &a }}
-[value] Recording results for main
-[value] done for function main
-[value] ====== VALUES COMPUTED ======
-[value:final-states] Values at end of function main:
+[eva] tests/value/assert_ptr.i:8: assertion got status valid.
+[eva] tests/value/assert_ptr.i:9: Frama_C_show_each_ptr: {{ NULL ; &a }}
+[eva:alarm] tests/value/assert_ptr.i:12: Warning: assertion got status unknown.
+[eva] tests/value/assert_ptr.i:13: Frama_C_show_each_q: {{ &a }}
+[eva] Recording results for main
+[eva] done for function main
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function main:
   ptr ∈ {{ NULL ; &a }}
   q ∈ {{ (int **)&s_q }}
   s_q ∈ {{ (int)&a }}

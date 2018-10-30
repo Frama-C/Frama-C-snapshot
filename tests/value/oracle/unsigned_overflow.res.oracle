@@ -1,19 +1,19 @@
 [kernel] Parsing tests/value/unsigned_overflow.c (with preprocessing)
-[value] Analyzing a complete application starting at main
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing a complete application starting at main
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   i1 ∈ [--..--]
   i2 ∈ [--..--]
-[value:alarm] tests/value/unsigned_overflow.c:4: Warning: 
+[eva:alarm] tests/value/unsigned_overflow.c:4: Warning: 
   assertion got status unknown.
-[value:alarm] tests/value/unsigned_overflow.c:5: Warning: 
+[eva:alarm] tests/value/unsigned_overflow.c:5: Warning: 
   assertion got status unknown.
-[value] tests/value/unsigned_overflow.c:10: Frama_C_show_each_dead:
-[value] Recording results for main
-[value] done for function main
-[value] ====== VALUES COMPUTED ======
-[value:final-states] Values at end of function main:
+[eva] tests/value/unsigned_overflow.c:10: Frama_C_show_each_dead:
+[eva] Recording results for main
+[eva] done for function main
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function main:
   v ∈ [--..--]
   __retres ∈ {0}
 [from] Computing for function main

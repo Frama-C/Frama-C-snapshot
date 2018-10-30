@@ -19,17 +19,7 @@ int main(void)
   int t[10];
   i = 0;
   a = 0;
-  /*@ behavior pre_f:
-        assigns t[0], i, i;
-        assigns i \from a;
-        assigns i \from \nothing;
-  */
   t[0] = f(& i,a);
-  /*@ behavior pre_g:
-        assigns t[1], i, i;
-        assigns i \from \nothing;
-        assigns i \from a;
-  */
   t[1] = g(& i,a);
   __retres = 0;
   return __retres;

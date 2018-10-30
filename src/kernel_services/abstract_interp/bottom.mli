@@ -37,6 +37,7 @@ end
 
 include module type of Type
 
+val is_bottom: 'a or_bottom -> bool
 val non_bottom: 'a or_bottom -> 'a
 
 val equal:       ('a -> 'a -> bool) -> 'a or_bottom -> 'a or_bottom -> bool
@@ -67,8 +68,10 @@ module Bound_Lattice
     the empty list is the bottom case. *)
 
 (** Conversion functions. *)
+val to_list: 'a or_bottom -> 'a list
 val bot_of_list: 'a list -> 'a list or_bottom
 val list_of_bot: 'a list or_bottom -> 'a list
+val all: 'a or_bottom list -> 'a list
 
 (** [elt >:: list] adds [elt] to the [list] if it is not bottom. *)
 val add_to_list : 'a or_bottom -> 'a list -> 'a list

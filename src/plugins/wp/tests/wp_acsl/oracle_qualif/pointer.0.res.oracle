@@ -1,4 +1,4 @@
-# frama-c -wp -wp-model 'Typed (Ref)' [...]
+# frama-c -wp -wp-model 'Typed (Ref)' -wp-timeout 90 -wp-steps 1500 [...]
 [kernel] Parsing tests/wp_acsl/pointer.i (no preprocessing)
 [wp] Running WP plugin...
 [wp] Loading driver 'share/wp.driver'
@@ -26,6 +26,6 @@ pointer             -      -                 2       0.0%
 mixed_array_pointer  -     -                 2       0.0%
 absurd              -      -                 2       0.0%
 -------------------------------------------------------------
-[wp] Warning: Separation hypotheses for function 'absurd':
+[wp] Warning: Memory model hypotheses for function 'absurd':
   /*@ behavior typed_ref: requires \separated(&p,q); */
   void absurd(int *q);

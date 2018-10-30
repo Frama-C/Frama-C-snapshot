@@ -1,0 +1,145 @@
+[kernel] Parsing tests/builtins/alloc.c (with preprocessing)
+[eva] Analyzing a complete application starting at main
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
+  p ∈ {0}
+  q ∈ {0}
+  r ∈ {0}
+  a ∈ {0}
+  b ∈ {0}
+  t ∈ {0}
+  u ∈ {0}
+  v ∈ {0}
+  ch ∈ {44}
+[eva] tests/builtins/alloc.c:16: Call to builtin Frama_C_malloc_fresh
+[eva] tests/builtins/alloc.c:16: allocating variable __malloc_main_l16
+[eva] tests/builtins/alloc.c:17: Call to builtin Frama_C_malloc_fresh
+[eva] tests/builtins/alloc.c:17: allocating variable __malloc_main_l17
+[eva:alarm] tests/builtins/alloc.c:18: Warning: 
+  out of bounds write. assert \valid(p + (int)(-1));
+[kernel] tests/builtins/alloc.c:18: Warning: 
+  all target addresses were invalid. This path is assumed to be dead.
+[eva:alarm] tests/builtins/alloc.c:19: Warning: 
+  out of bounds write. assert \valid(p + 1);
+[kernel] tests/builtins/alloc.c:19: Warning: 
+  all target addresses were invalid. This path is assumed to be dead.
+[eva:alarm] tests/builtins/alloc.c:20: Warning: 
+  out of bounds write. assert \valid(t + (int)(-1));
+[kernel] tests/builtins/alloc.c:20: Warning: 
+  all target addresses were invalid. This path is assumed to be dead.
+[eva:alarm] tests/builtins/alloc.c:21: Warning: 
+  out of bounds write. assert \valid(t + 10);
+[kernel] tests/builtins/alloc.c:21: Warning: 
+  all target addresses were invalid. This path is assumed to be dead.
+[eva] tests/builtins/alloc.c:25: Call to builtin Frama_C_malloc_fresh
+[eva] tests/builtins/alloc.c:25: allocating variable __malloc_main_l25
+[eva:alarm] tests/builtins/alloc.c:26: Warning: 
+  signed overflow. assert -2147483648 ≤ -((int)q);
+[eva:alarm] tests/builtins/alloc.c:26: Warning: 
+  signed overflow. assert -((int)q) ≤ 2147483647;
+[eva] tests/builtins/alloc.c:26: 
+  Assigning imprecise value to r.
+  The imprecision originates from Arithmetic {tests/builtins/alloc.c:26}
+[eva:alarm] tests/builtins/alloc.c:27: Warning: 
+  out of bounds write. assert \valid(r);
+[eva:alarm] tests/builtins/alloc.c:27: Warning: 
+  out of bounds read. assert \valid_read(r + 1);
+[eva] tests/builtins/alloc.c:32: Call to builtin Frama_C_malloc_fresh
+[eva] tests/builtins/alloc.c:32: allocating variable __malloc_main_l32
+[eva] tests/builtins/alloc.c:33: Call to builtin Frama_C_malloc_fresh
+[eva] tests/builtins/alloc.c:33: allocating variable __malloc_main_l33
+[eva:alarm] tests/builtins/alloc.c:34: Warning: 
+  out of bounds write. assert \valid(u);
+[eva:alarm] tests/builtins/alloc.c:35: Warning: 
+  out of bounds write. assert \valid(u);
+[eva:alarm] tests/builtins/alloc.c:36: Warning: 
+  out of bounds write. assert \valid(u + 1);
+[kernel] tests/builtins/alloc.c:36: Warning: 
+  all target addresses were invalid. This path is assumed to be dead.
+[eva:alarm] tests/builtins/alloc.c:37: Warning: 
+  out of bounds write. assert \valid(u + 1);
+[kernel] tests/builtins/alloc.c:37: Warning: 
+  all target addresses were invalid. This path is assumed to be dead.
+[eva:alarm] tests/builtins/alloc.c:40: Warning: 
+  out of bounds write. assert \valid(v + 1);
+[eva:alarm] tests/builtins/alloc.c:41: Warning: 
+  out of bounds write. assert \valid(v + 1);
+[eva:alarm] tests/builtins/alloc.c:42: Warning: 
+  out of bounds write. assert \valid(v + 2);
+[kernel] tests/builtins/alloc.c:42: Warning: 
+  all target addresses were invalid. This path is assumed to be dead.
+[eva:alarm] tests/builtins/alloc.c:43: Warning: 
+  out of bounds write. assert \valid(v + 2);
+[kernel] tests/builtins/alloc.c:43: Warning: 
+  all target addresses were invalid. This path is assumed to be dead.
+[eva] Recording results for main
+[eva] done for function main
+[eva] tests/builtins/alloc.c:18: 
+  assertion 'Eva,mem_access' got final status invalid.
+[eva] tests/builtins/alloc.c:19: 
+  assertion 'Eva,mem_access' got final status invalid.
+[eva] tests/builtins/alloc.c:20: 
+  assertion 'Eva,mem_access' got final status invalid.
+[eva] tests/builtins/alloc.c:21: 
+  assertion 'Eva,mem_access' got final status invalid.
+[eva] tests/builtins/alloc.c:36: 
+  assertion 'Eva,mem_access' got final status invalid.
+[eva] tests/builtins/alloc.c:37: 
+  assertion 'Eva,mem_access' got final status invalid.
+[eva] tests/builtins/alloc.c:42: 
+  assertion 'Eva,mem_access' got final status invalid.
+[eva] tests/builtins/alloc.c:43: 
+  assertion 'Eva,mem_access' got final status invalid.
+[scope:rm_asserts] removing 2 assertion(s)
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function main:
+  __fc_heap_status ∈ [--..--]
+  p ∈ {{ &__malloc_main_l16 }}
+  q ∈ {{ &__malloc_main_l25 }}
+  r ∈
+   {{ garbled mix of &{__malloc_main_l25}
+    (origin: Arithmetic {tests/builtins/alloc.c:26}) }}
+  a ∈ {1}
+  t ∈ {{ &__malloc_main_l17[0] }}
+  u ∈ {{ &__malloc_main_l32[0] }}
+  v ∈ {{ &__malloc_main_l33[0] }}
+  c ∈ [--..--]
+  __malloc_main_l16 ∈ {107}
+  __malloc_main_l17[0] ∈ {111}
+                   [1..8] ∈ UNINITIALIZED
+                   [9] ∈ {111}
+  __malloc_main_l25 ∈ {1}
+  __malloc_main_l32[0] ∈ {33}
+  __malloc_main_l33[0] ∈ {35}
+                   [1] ∈ {36}
+[from] Computing for function main
+[from] Computing for function Frama_C_malloc_fresh <-main
+[from] Done for function Frama_C_malloc_fresh
+[from] Done for function main
+[from] ====== DEPENDENCIES COMPUTED ======
+  These dependencies hold at termination for the executions that terminate:
+[from] Function Frama_C_malloc_fresh:
+  __fc_heap_status FROM __fc_heap_status; size (and SELF)
+  \result FROM __fc_heap_status; size
+[from] Function main:
+  __fc_heap_status FROM __fc_heap_status; d (and SELF)
+  p FROM __fc_heap_status
+  q FROM __fc_heap_status
+  r FROM __fc_heap_status
+  a FROM __fc_heap_status; c
+  t FROM __fc_heap_status
+  u FROM __fc_heap_status; d
+  v FROM __fc_heap_status; d
+  __malloc_main_l16 FROM __fc_heap_status
+  __malloc_main_l17{[0]; [9]} FROM __fc_heap_status
+  __malloc_main_l25 FROM __fc_heap_status; c
+  __malloc_main_l32[0] FROM __fc_heap_status; d
+  __malloc_main_l33[0..1] FROM __fc_heap_status; d
+[from] ====== END OF DEPENDENCIES ======
+[inout] Out (internal) for function main:
+    __fc_heap_status; p; q; r; a; t; u; v; c; tmp; tmp_0; tmp_1; tmp_2; 
+    tmp_3; tmp_4; __malloc_main_l16; __malloc_main_l17{[0]; [9]};
+    __malloc_main_l25; __malloc_main_l32[0]; __malloc_main_l33[0..1]
+[inout] Inputs for function main:
+    __fc_heap_status; p; q; r; t; u; v; ch; __malloc_main_l25

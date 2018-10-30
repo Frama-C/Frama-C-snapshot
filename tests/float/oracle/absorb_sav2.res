@@ -1,8 +1,7 @@
-[value] Analyzing a complete application starting at main
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
-  Frama_C_entropy_source ∈ [--..--]
+[eva] Analyzing a complete application starting at main
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   x ∈ {0x1.0000000000000p0}
   y ∈ {0}
   z ∈ {0}
@@ -10,17 +9,17 @@
   min_f ∈ {0}
   min_fl ∈ {0}
   den ∈ {0}
-[value] computing for function Frama_C_interval <- main.
+[eva] computing for function Frama_C_interval <- main.
   Called from tests/float/absorb.c:15.
-[value] using specification for function Frama_C_interval
-[value] tests/float/absorb.c:15: 
+[eva] using specification for function Frama_C_interval
+[eva] tests/float/absorb.c:15: 
   function Frama_C_interval: precondition 'order' got status valid.
-[value] Done for function Frama_C_interval
-[value] tests/float/absorb.c:18: entering loop for the first time
-[value] Recording results for main
-[value] done for function main
-[value] ====== VALUES COMPUTED ======
-[value:final-states] Values at end of function main:
+[eva] Done for function Frama_C_interval
+[eva] tests/float/absorb.c:18: starting to merge loop iterations
+[eva] Recording results for main
+[eva] done for function main
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function main:
   Frama_C_entropy_source ∈ [--..--]
   x ∈ {0x1.0000000000000p0}
   y ∈ {0x1.0000000000000p0}

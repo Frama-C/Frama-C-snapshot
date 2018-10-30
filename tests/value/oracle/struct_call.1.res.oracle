@@ -1,8 +1,8 @@
 [kernel] Parsing tests/value/struct_call.i (no preprocessing)
-[value] Analyzing a complete application starting at main
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing a complete application starting at main
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   G ∈ {77}
   GG ∈ {0}
   t[0..3] ∈ {0}
@@ -10,46 +10,46 @@
   C{.c1; .[bits 16 to 31]} ∈ [--..--]
    .c2 ∈ {{ NULL ; &S_c2_C[0] }}
   S_c2_C[0..1] ∈ [--..--]
-[value] computing for function main1 <- main.
+[eva] computing for function main1 <- main.
   Called from tests/value/struct_call.i:46.
-[value] computing for function g <- main1 <- main.
+[eva] computing for function g <- main1 <- main.
   Called from tests/value/struct_call.i:33.
-[value] tests/value/struct_call.i:16: Frama_C_show_each_G: {0}
-[value] Recording results for g
-[value] Done for function g
-[value] computing for function create_A <- main1 <- main.
+[eva] tests/value/struct_call.i:16: Frama_C_show_each_G: {0}
+[eva] Recording results for g
+[eva] Done for function g
+[eva] computing for function create_A <- main1 <- main.
   Called from tests/value/struct_call.i:34.
-[value] tests/value/struct_call.i:25: 
+[eva] tests/value/struct_call.i:25: 
   Frama_C_show_each_GG: .x ∈ {1}
                         .y ∈ {0}
-[value] Recording results for create_A
-[value] Done for function create_A
-[value] computing for function g <- main1 <- main.
+[eva] Recording results for create_A
+[eva] Done for function create_A
+[eva] computing for function g <- main1 <- main.
   Called from tests/value/struct_call.i:35.
-[value] tests/value/struct_call.i:16: 
+[eva] tests/value/struct_call.i:16: 
   Frama_C_show_each_G: .x ∈ {0}
                        .y ∈ {77}
-[value] Recording results for g
-[value] Done for function g
-[value] Recording results for main1
-[value] Done for function main1
-[value] computing for function h <- main.
+[eva] Recording results for g
+[eva] Done for function g
+[eva] Recording results for main1
+[eva] Done for function main1
+[eva] computing for function h <- main.
   Called from tests/value/struct_call.i:47.
-[value] tests/value/struct_call.i:42: 
+[eva] tests/value/struct_call.i:42: 
   Frama_C_show_each: [-32768..32767], {{ NULL ; &S_c2_C }}
-[value] Recording results for h
-[value] Done for function h
-[value] Recording results for main
-[value] done for function main
-[value] ====== VALUES COMPUTED ======
-[value:final-states] Values at end of function create_A:
+[eva] Recording results for h
+[eva] Done for function h
+[eva] Recording results for main
+[eva] done for function main
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function create_A:
   r.x ∈ {1}
    .y ∈ {0}
-[value:final-states] Values at end of function g:
+[eva:final-states] Values at end of function g:
   __retres ∈ {0; 77}
-[value:final-states] Values at end of function h:
+[eva:final-states] Values at end of function h:
   
-[value:final-states] Values at end of function main1:
+[eva:final-states] Values at end of function main1:
   GG ∈ {0}
   t{[0]; [1].x} ∈ {0}
    [1].y ∈ {77}
@@ -57,7 +57,7 @@
   i ∈ {1}
   init.x ∈ {1}
       .y ∈ {0}
-[value:final-states] Values at end of function main:
+[eva:final-states] Values at end of function main:
   GG ∈ {0}
   t{[0]; [1].x} ∈ {0}
    [1].y ∈ {77}

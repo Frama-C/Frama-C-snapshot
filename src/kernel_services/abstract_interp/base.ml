@@ -242,7 +242,7 @@ let validity b =
 let is_read_only base =
   match base with
   | String _ -> true
-  | Var (v,_) -> Kernel.ConstReadonly.get () && typeHasQualifier "const" v.vtype
+  | Var (v,_) -> typeHasQualifier "const" v.vtype
   | _ -> false
 
 (* Minor optimization compared to [is_weak (validity b)] *)

@@ -1,62 +1,61 @@
 [kernel] Parsing tests/journal/intra.i (no preprocessing)
 [sparecode] remove unused code...
-[value] Analyzing a complete application starting at main
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing a complete application starting at main
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   G ∈ {0}
   X10 ∈ {0}
   Y10 ∈ {0}
-[value] computing for function param <- main.
+[eva] computing for function param <- main.
   Called from tests/journal/intra.i:81.
-[value] Recording results for param
-[value] Done for function param
-[value] computing for function tmp <- main.
+[eva] Recording results for param
+[eva] Done for function param
+[eva] computing for function tmp <- main.
   Called from tests/journal/intra.i:82.
-[value] tests/journal/intra.i:20: assertion got status valid.
-[value] tests/journal/intra.i:22: assertion got status valid.
-[value] Recording results for tmp
-[value] Done for function tmp
-[value] computing for function spare_called_fct <- main.
+[eva] tests/journal/intra.i:20: assertion got status valid.
+[eva] tests/journal/intra.i:22: assertion got status valid.
+[eva] Recording results for tmp
+[eva] Done for function tmp
+[eva] computing for function spare_called_fct <- main.
   Called from tests/journal/intra.i:83.
-[value] Recording results for spare_called_fct
-[value] Done for function spare_called_fct
-[value] computing for function call_two_outputs <- main.
+[eva] Recording results for spare_called_fct
+[eva] Done for function spare_called_fct
+[eva] computing for function call_two_outputs <- main.
   Called from tests/journal/intra.i:84.
-[value] computing for function two_outputs <- call_two_outputs <- main.
+[eva] computing for function two_outputs <- call_two_outputs <- main.
   Called from tests/journal/intra.i:48.
-[value] Recording results for two_outputs
-[value] Done for function two_outputs
-[value] computing for function two_outputs <- call_two_outputs <- main.
+[eva] Recording results for two_outputs
+[eva] Done for function two_outputs
+[eva] computing for function two_outputs <- call_two_outputs <- main.
   Called from tests/journal/intra.i:52.
-[value] Recording results for two_outputs
-[value] Done for function two_outputs
-[value] Recording results for call_two_outputs
-[value] Done for function call_two_outputs
-[value] computing for function loop <- main.
+[eva] Recording results for two_outputs
+[eva] Done for function two_outputs
+[eva] Recording results for call_two_outputs
+[eva] Done for function call_two_outputs
+[eva] computing for function loop <- main.
   Called from tests/journal/intra.i:85.
-[value] tests/journal/intra.i:63: assertion got status valid.
-[value] tests/journal/intra.i:64: loop invariant got status valid.
-[value] tests/journal/intra.i:66: entering loop for the first time
-[value] Recording results for loop
-[value] Done for function loop
-[value] computing for function assign <- main.
+[eva] tests/journal/intra.i:63: assertion got status valid.
+[eva] tests/journal/intra.i:64: loop invariant got status valid.
+[eva] tests/journal/intra.i:66: starting to merge loop iterations
+[eva] Recording results for loop
+[eva] Done for function loop
+[eva] computing for function assign <- main.
   Called from tests/journal/intra.i:86.
-[value] Recording results for assign
-[value] Done for function assign
-[value] computing for function assign <- main.
+[eva] Recording results for assign
+[eva] Done for function assign
+[eva] computing for function assign <- main.
   Called from tests/journal/intra.i:87.
-[value] Recording results for assign
-[value] Done for function assign
-[value] computing for function stop <- main.
+[eva] Recording results for assign
+[eva] Done for function assign
+[eva] computing for function stop <- main.
   Called from tests/journal/intra.i:90.
 [kernel:annot:missing-spec] tests/journal/intra.i:90: Warning: 
   Neither code nor specification for function stop, generating default assigns from the prototype
-[value] using specification for function stop
-[value] Done for function stop
-[value] tests/journal/intra.i:92: entering loop for the first time
-[value] Recording results for main
-[value] done for function main
+[eva] using specification for function stop
+[eva] Done for function stop
+[eva] Recording results for main
+[eva] done for function main
 [pdg] computing for function main
 [from] Computing for function param
 [from] Done for function param

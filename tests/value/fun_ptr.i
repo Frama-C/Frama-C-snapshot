@@ -74,7 +74,7 @@ void test_too_much_benign () {
   }
 }
 
-main(){
+int main(){
   test1(!v);
   test2(!v);
   if (v) test3(!v);

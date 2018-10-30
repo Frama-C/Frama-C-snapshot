@@ -1,27 +1,27 @@
 [kernel] Parsing tests/slicing/ptr_fct.i (no preprocessing)
 [slicing] slicing requests in progress...
-[value] Analyzing a complete application starting at h
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing a complete application starting at h
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   X ∈ {0}
   ptf ∈ {0}
-[value] computing for function g <- h.
+[eva] computing for function g <- h.
   Called from tests/slicing/ptr_fct.i:23.
-[value] computing for function f2 <- g <- h.
+[eva] computing for function f2 <- g <- h.
   Called from tests/slicing/ptr_fct.i:17.
 [kernel:annot:missing-spec] tests/slicing/ptr_fct.i:17: Warning: 
   Neither code nor specification for function f2, generating default assigns from the prototype
-[value] using specification for function f2
-[value] Done for function f2
-[value] computing for function f1 <- g <- h.
+[eva] using specification for function f2
+[eva] Done for function f2
+[eva] computing for function f1 <- g <- h.
   Called from tests/slicing/ptr_fct.i:17.
-[value] Recording results for f1
-[value] Done for function f1
-[value] Recording results for g
-[value] Done for function g
-[value] Recording results for h
-[value] done for function h
+[eva] Recording results for f1
+[eva] Done for function f1
+[eva] Recording results for g
+[eva] Done for function g
+[eva] Recording results for h
+[eva] done for function h
 [slicing] initializing slicing ...
 [slicing] interpreting slicing requests from the command line...
 [pdg] computing for function h

@@ -591,7 +591,7 @@ void test_small6_bis() {
   int *p = f8_bis(&a);
 }
 
-/*@ axiomatic MyLen { logic ℤ length{L}(char *s); } */
+/*@ axiomatic MyLen { type Lstr = char *; logic ℤ length{L}(Lstr s); } */
 /*@
   assigns \result \from *s, n;
   behavior b1:
@@ -609,7 +609,7 @@ void test_promote() {
   int r = f9("a", 1);
 }
 
-/*@ axiomatic MyF { logic ℤ fl{L}(int x); } */
+/*@ axiomatic MyF { type Lint = int; logic ℤ fl{L}(Lint x); } */
 /*@
   assigns \result \from x;
   behavior b1:

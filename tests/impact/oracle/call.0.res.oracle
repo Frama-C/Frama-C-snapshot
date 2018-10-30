@@ -1,27 +1,27 @@
 [kernel] Parsing tests/impact/call.i (no preprocessing)
 [impact] beginning analysis
-[value] Analyzing a complete application starting at main
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing a complete application starting at main
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   G ∈ {0}
   X ∈ {0}
-[value] computing for function test <- main.
+[eva] computing for function test <- main.
   Called from tests/impact/call.i:24.
-[value] computing for function p1 <- test <- main.
+[eva] computing for function p1 <- test <- main.
   Called from tests/impact/call.i:16.
-[value] using specification for function p1
-[value] Done for function p1
-[value] computing for function p2 <- test <- main.
+[eva] using specification for function p1
+[eva] Done for function p1
+[eva] computing for function p2 <- test <- main.
   Called from tests/impact/call.i:16.
 [kernel:annot:missing-spec] tests/impact/call.i:16: Warning: 
   Neither code nor specification for function p2, generating default assigns from the prototype
-[value] using specification for function p2
-[value] Done for function p2
-[value] Recording results for test
-[value] Done for function test
-[value] Recording results for main
-[value] done for function main
+[eva] using specification for function p2
+[eva] Done for function p2
+[eva] Recording results for test
+[eva] Done for function test
+[eva] Recording results for main
+[eva] done for function main
 [pdg] computing for function main
 [from] Computing for function test
 [from] Computing for function p1 <-test

@@ -22,6 +22,11 @@
     
     behavior string:
       assumes "" ≢ "\"" ∧ "" ≡ "";
+    
+    behavior esc:
+      assumes
+        c ≡ ' ' ∨ c ≡ '\f' ∨ c ≡ '\n' ∨ c ≡ '\r' ∨ c ≡ '\t' ∨
+        c ≡ '\v';
  */
 void f(char c)
 {

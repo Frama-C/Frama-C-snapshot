@@ -1,4 +1,4 @@
-# frama-c -wp -wp-model 'Typed (Ref)' [...]
+# frama-c -wp -wp-model 'Typed (Ref)' -wp-timeout 90 -wp-steps 1500 [...]
 [kernel] Parsing tests/wp_bts/bts_1828.i (no preprocessing)
 [wp] Running WP plugin...
 [wp] Loading driver 'share/wp.driver'
@@ -19,6 +19,11 @@ Functions           WP     Alt-Ergo        Total   Success
 local_frame         -       1 (1..12)        1       100%
 global_frame         5     -                 5       100%
 -------------------------------------------------------------
-[wp] Warning: Separation hypotheses for function 'global_frame':
-  /*@ behavior typed_ref: requires \separated(zero,one); */
+[wp] Warning: Memory model hypotheses for function 'global_frame':
+  /*@
+     behavior typed_ref:
+     requires \separated(zero,one);
+     requires \valid(zero);
+     requires \valid(one);
+     */
   void global_frame(int *one, int arg);

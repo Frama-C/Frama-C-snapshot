@@ -30,15 +30,13 @@ end
 
 module type S = sig
   type state
-  type state_set
   type t
 
   val empty: unit -> t
 
-  val merge_set_return_new: state_set -> t -> state_set
+  val merge_set_return_new: state list -> t -> state list
   val join: t -> state or_bottom
 
-  val to_set: t -> state_set
   val to_list: t -> state list
 
   val pretty : Format.formatter -> t -> unit
@@ -46,9 +44,7 @@ end
 
 module Make
     (Domain: Domain)
-    (States : Powerset.S with type state = Domain.t)
   : S with type state = Domain.t
-       and type state_set = States.t
 
 
 (*

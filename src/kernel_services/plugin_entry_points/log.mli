@@ -32,13 +32,13 @@ type event = {
   evt_kind : kind ;
   evt_plugin : string ;
   evt_category : string option ; (** message or warning category *)
-  evt_source : Lexing.position option ;
+  evt_source : Filepath.position option ;
   evt_message : string ;
 }
 (** @since Beryllium-20090601-beta1 *)
 
 type 'a pretty_printer =
-  ?current:bool -> ?source:Lexing.position ->
+  ?current:bool -> ?source:Filepath.position ->
   ?emitwith:(event -> unit) -> ?echo:bool -> ?once:bool ->
   ?append:(Format.formatter -> unit) ->
   ('a,formatter,unit) format -> 'a
@@ -58,7 +58,7 @@ type 'a pretty_printer =
    @since Beryllium-20090601-beta1 *)
 
 type ('a,'b) pretty_aborter =
-  ?current:bool -> ?source:Lexing.position -> ?echo:bool ->
+  ?current:bool -> ?source:Filepath.position -> ?echo:bool ->
   ?append:(Format.formatter -> unit) ->
   ('a,formatter,unit,'b) format4 -> 'a
 (** @since Beryllium-20090601-beta1
@@ -141,7 +141,7 @@ module type Messages = sig
   (** @since Beryllium-20090601-beta1 *)
 
   val printf : ?level:int -> ?dkey:category -> 
-    ?current:bool -> ?source:Lexing.position ->
+    ?current:bool -> ?source:Filepath.position ->
     ?append:(Format.formatter -> unit) ->
     ?header:(Format.formatter -> unit) ->
     ('a,formatter,unit) format -> 'a
@@ -218,17 +218,25 @@ module type Messages = sig
       @since Lithium-20081201 in Extlib
       @since Beryllium-20090902 *)
 
-  val with_result  : (event -> 'b) -> ('a,'b) pretty_aborter
-  (** @since Beryllium-20090601-beta1 *)
-      
-  val with_warning : (event -> 'b) -> ('a,'b) pretty_aborter
-  (** @since Beryllium-20090601-beta1 *)
-      
-  val with_error   : (event -> 'b) -> ('a,'b) pretty_aborter
-  (** @since Beryllium-20090601-beta1 *)
-      
-  val with_failure : (event -> 'b) -> ('a,'b) pretty_aborter
-  (** @since Beryllium-20090601-beta1 *)
+  val with_result  : (event option -> 'b) -> ('a,'b) pretty_aborter
+  (** [with_result f fmt] calls [f] in the same condition as [logwith].
+      @since Beryllium-20090601-beta1
+      @modified Frama-C+dev the argument of the continuation is optionnal *)
+
+  val with_warning : (event option -> 'b) -> ('a,'b) pretty_aborter
+  (** [with_warning f fmt] calls [f] in the same condition as [logwith].
+      @since Beryllium-20090601-beta1
+      @modified Frama-C+dev the argument of the continuation is optionnal *)
+
+  val with_error   : (event option -> 'b) -> ('a,'b) pretty_aborter
+  (** [with_error f fmt] calls [f] in the same condition as [logwith].
+      @since Beryllium-20090601-beta1
+      @modified Frama-C+dev the argument of the continuation is optionnal *)
+
+  val with_failure : (event option -> 'b) -> ('a,'b) pretty_aborter
+  (** [with_failure f fmt] calls [f] in the same condition as [logwith].
+      @since Beryllium-20090601-beta1
+      @modified Frama-C+dev the argument of the continuation is optionnal *)
 
   val log : ?kind:kind -> ?verbose:int -> ?debug:int -> 'a pretty_printer
   (** Generic log routine. The default kind is [Result]. Use cases (with
@@ -241,6 +249,19 @@ module type Messages = sig
       sufficient.
       @since Beryllium-20090901
       @plugin development guide *)
+
+  val logwith : (event option -> 'b) ->
+    ?wkey:warn_category -> ?emitwith:(event -> unit) -> ?once:bool ->
+    ('a,'b) pretty_aborter
+  (** Recommanded generic log routine using [warn_category] instead of [kind].
+      [logwith continuation ?wkey fmt] similar to [warning ?wkey fmt]
+      and then calling the [continuation].
+      The optional continuation argument refers to the corresponding event.
+      [None] is used iff no message is logged.
+      In case the [wkey] is considered as a [Failure], the continution is not called.
+      This kind of message denotes a fatal error aborting Frama-C.
+      Notice that the [~emitwith] action is called iff a message is logged.
+      @since Frama-C+dev *)
 
   val register : kind -> (event -> unit) -> unit
   (** Local registry for listeners. *)
@@ -259,6 +280,11 @@ module type Messages = sig
   val pp_category: Format.formatter -> category -> unit
   (** pretty-prints a category.
       @since Chlorine-20180501
+  *)
+
+  val dkey_name: category -> string
+  (** returns the category name as a string.
+      @since Frama-C+dev
   *)
 
   val is_registered_category: string -> bool
@@ -318,6 +344,11 @@ module type Messages = sig
 
   val pp_all_warn_categories_status: unit -> unit
 
+  val wkey_name: warn_category -> string
+  (** returns the warning category name as a string.
+      @since Frama-C+dev
+  *)
+
   val get_warn_category: string -> warn_category option
 
   val get_all_warn_categories: unit -> warn_category list
@@ -329,6 +360,22 @@ module type Messages = sig
   val get_warn_status: warn_category -> warn_status
 
 end
+
+(** Split an event category into its constituants.
+    @since Frama-C+dev *)
+val evt_category : event -> string list
+
+(** Split a category specification into its constituants.
+    ["*"] is considered as empty, and [""] categories are skipped.
+    @since Frama-C+dev *)
+val split_category : string -> string list
+
+(** Sub-category checks.
+    [is_subcategory a b] checks whether [a] is a sub-category of [b].
+    Indeed, it checks whether [b] is a prefix of [a], that is,
+    that [a] equals [b] or refines [b] with (a list of) sub-category(ies).
+    @since Frama-C+dev *)
+val is_subcategory : string list -> string list -> bool
 
 (** Each plugin has its own channel to output messages.
     This functor should not be directly applied by plug-in developer.
@@ -397,10 +444,12 @@ val kernel_label_name: string
 (** the reserved label name used by the Frama-C kernel.
     @since Beryllium-20090601-beta1 *)
 
-val source : file:string -> line:int -> Lexing.position
-(** @since Chlorine-20180501 *)
+val source : file:Filepath.Normalized.t -> line:int -> Filepath.position
+(** @since Chlorine-20180501
+    @modify Frama-C+dev change type of [file]
+ *)
 
-val get_current_source : unit -> Lexing.position
+val get_current_source : unit -> Filepath.position
 
 (* -------------------------------------------------------------------------- *)
 (** {2 Terminal interface}
@@ -457,7 +506,7 @@ val print_delayed : (Format.formatter -> unit) -> unit
     @plugin development guide *)
 
 (**/**)
-val set_current_source : (unit -> Lexing.position) -> unit
+val set_current_source : (unit -> Filepath.position) -> unit
 (* Forward reference to the function returning the current location,
     used when [~current:true] is set on printers. Currently set
     in {Cil}. Not for the casual user. *)
@@ -473,6 +522,15 @@ val tty : (unit -> bool) ref
 val cmdline_error_occurred: (exn -> unit) ref
 
 val cmdline_at_error_exit: ((exn -> unit) -> unit) ref
+
+val treat_deferred_error: unit -> unit
+(* call this function when it is a good time to raise an exception following
+   a delayed error or failure. Currently done:
+   - after each command-line stage.
+   - after each analysis step (as separated by -then and its derivatives),
+   including the last one.
+*)
+
 (**/**)
 
 (*

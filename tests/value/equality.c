@@ -1,11 +1,17 @@
+/* run.config*
+   STDOPT: +"-eva-equality-domain -eva-warn-copy-indeterminate=-assign_by_copy"
+*/
+
 /* Tests for the equality domain. */
+
+#include <__fc_builtin.h>
 
 volatile int rand;
 
 /* Tests the replacement of an lvalue x by an equal term when x also appears
    in another term t equal to x. The precision gain is useless in these cases,
    but the domain nust not crash or be unsound: x cannot be replaced by t. */
-void main () {
+void replace_lvalue () {
   int x = rand;
   int y = x;
   int z = 0;
@@ -23,4 +29,21 @@ void main () {
       z = tmp;
     }
   }
+}
+
+/* Tests the equality domain on assignments by copy of indeterminate values.
+   These indeterminate values must not be reduced when using the equalities. */
+void assign_by_copy () {
+  int x;
+  if (rand)
+    x = Frama_C_interval(0, 42);
+  int y = x; // x may be not initialized but is copied, so no alarm
+  int w = y; /* the equality {y = x} could be used, but x must not be reduced
+                x and y may be not initialized. */
+  int z = x + 1; // x may still be not initialized: alarm
+}
+
+void main () {
+  replace_lvalue ();
+  assign_by_copy ();
 }

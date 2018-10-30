@@ -1,18 +1,18 @@
 [kernel] Parsing tests/value/enum.i (no preprocessing)
-[value] Analyzing a complete application starting at f
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing a complete application starting at f
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   t[0] ∈ {1}
    [1..2] ∈ {0}
   u[0] ∈ {2}
    [1..2] ∈ {0}
-[value] tests/value/enum.i:16: entering loop for the first time
-[value] tests/value/enum.i:20: assertion got status valid.
-[value] Recording results for f
-[value] done for function f
-[value] ====== VALUES COMPUTED ======
-[value:final-states] Values at end of function f:
+[eva] tests/value/enum.i:16: starting to merge loop iterations
+[eva] tests/value/enum.i:20: assertion got status valid.
+[eva] Recording results for f
+[eva] done for function f
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function f:
   t[0] ∈ {1}
    [1] ∈ {0}
    [2] ∈ {42}

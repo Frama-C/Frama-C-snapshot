@@ -1,4 +1,4 @@
-# frama-c -wp -wp-model 'Typed (Caveat)' -wp-depth 16 [...]
+# frama-c -wp -wp-model 'Typed (Caveat)' -wp-timeout 90 -wp-steps 1500 -wp-depth 16 [...]
 [kernel] Parsing tests/wp_plugin/sequence.i (no preprocessing)
 [wp] Running WP plugin...
 [wp] Loading driver 'share/wp.driver'
@@ -51,5 +51,5 @@
 Functions           WP     Alt-Ergo        Total   Success
 no_calls             5      5 (4..16)       10       100%
 sequence             8      2 (12..24)      10       100%
-loops               12      7 (80..104)     19       100%
+loops               12      7 (48..60)      19       100%
 -------------------------------------------------------------

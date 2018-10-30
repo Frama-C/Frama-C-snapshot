@@ -1,0 +1,27 @@
+[e-acsl] beginning translation.
+[e-acsl] translation done in project "e-acsl".
+[eva] Analyzing a complete application starting at main
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
+  __e_acsl_init ∈ [--..--]
+  __e_acsl_heap_allocation_size ∈ [--..--]
+  __e_acsl_math_HUGE_VAL ∈ [-1.79769313486e+308 .. 1.79769313486e+308]
+  __e_acsl_math_HUGE_VALF ∈ [-3.40282346639e+38 .. 3.40282346639e+38]
+  __e_acsl_math_INFINITY ∈ [-1.79769313486e+308 .. 1.79769313486e+308]
+[eva] using specification for function __e_acsl_memory_init
+[eva] using specification for function __gmpz_init_set_si
+[eva] using specification for function __gmpz_cmp
+[eva] using specification for function __e_acsl_assert
+[eva:alarm] tests/gmp/integer_constant.i:6: Warning: 
+  function __e_acsl_assert: precondition got status unknown.
+[eva] using specification for function __gmpz_clear
+[eva:alarm] tests/gmp/integer_constant.i:8: Warning: 
+  function __e_acsl_assert: precondition got status unknown.
+[eva] using specification for function __gmpz_init_set_ui
+[eva:alarm] tests/gmp/integer_constant.i:9: Warning: 
+  function __e_acsl_assert: precondition got status unknown.
+[eva] using specification for function __gmpz_init_set_str
+[eva:alarm] tests/gmp/integer_constant.i:11: Warning: 
+  function __e_acsl_assert: precondition got status unknown.
+[eva] done for function main

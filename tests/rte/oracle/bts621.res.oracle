@@ -17,8 +17,6 @@ float g(float *p);
 
 void f(float a)
 {
-  /*@ behavior pre_g:
-        assigns x, a; */
   /*@ ghost float x = g(& a); */
   return;
 }

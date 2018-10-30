@@ -33,11 +33,12 @@ int g() {
   return y;
 }
 
-main() {
+int main() {
   int r;
   f1();
   f2();
   r = g();
   /* Note: GCC without optimization gives X2 != y. */
   //@assert X2 != r ;
+  return 0;
 }

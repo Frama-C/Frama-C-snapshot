@@ -29,6 +29,7 @@
 __PUSH_FC_STDLIB
 #include "__fc_define_pid_t.h"
 #include "__fc_define_uid_and_gid.h"
+#include "__fc_define_pthread_types.h"
 
 __BEGIN_DECLS
 
@@ -122,6 +123,14 @@ union sigval {
 	void *sival_ptr;
 };
 
+struct sigevent {
+  int sigev_notify;
+  int sigev_signo;
+  union sigval sigev_value;
+  void (*sigev_notify_function) (union sigval);
+  pthread_attr_t *sigev_notify_attributes;
+};
+
 #ifndef __have_siginfo_t
 #define __have_siginfo_t
 typedef struct {
@@ -144,15 +153,77 @@ struct sigaction {
                int        sa_flags;
            };
 
+/*@
+  requires valid_set: \valid(set);
+  assigns *set \from \nothing;
+  assigns \result \from \nothing;
+  ensures initialization:set: \initialized(set);
+  ensures result_ok_or_error: \result == 0 || \result == -1;
+*/
 extern int sigemptyset(sigset_t *set);
+
+/*@
+  requires valid_set: \valid(set);
+  assigns *set \from \nothing;
+  assigns \result \from \nothing;
+  ensures initialization:set: \initialized(set);
+  ensures result_ok_or_error: \result == 0 || \result == -1;
+*/
 extern int sigfillset(sigset_t *set);
+
+/*@
+  requires valid_set: \valid(set);
+  requires initialization:set: \initialized(set);
+  assigns *set \from indirect:signum;
+  assigns \result \from signum;
+  ensures result_ok_or_error: \result == 0 || \result == -1;
+*/
 extern int sigaddset(sigset_t *set, int signum);
+
+/*@
+  requires valid_set: \valid(set);
+  requires initialization:set: \initialized(set);
+  assigns *set \from indirect:signum;
+  assigns \result \from signum;
+  ensures result_ok_or_error: \result == 0 || \result == -1;
+*/
 extern int sigdelset(sigset_t *set, int signum);
+
+/*@
+  requires valid_read_set: \valid_read(set);
+  requires initialization:set: \initialized(set);
+  assigns \result \from *set, signum;
+  ensures result_found_not_found_or_error: \result == 0 || \result == 1
+    || \result == -1;
+*/
 extern int sigismember(const sigset_t *set, int signum);
+
 extern int sigaction(int signum, const struct sigaction *act,
                      struct sigaction *oldact);
-extern int sigprocmask(int how, const sigset_t *set, sigset_t *oldset);
 
+
+/*@ // missing: assigns *oldset \from 'previous mask in process'
+  requires valid_set_or_null: set == \null || \valid_read(set);
+  requires valid_how: set != \null ==>
+                      how \in {SIG_BLOCK, SIG_SETMASK, SIG_UNBLOCK};
+  requires valid_oldset_or_null: oldset == \null || \valid(oldset);
+  requires separation: (set == oldset == \null) ||
+                       \separated(set, oldset);
+  assigns \result \from indirect:how, indirect:set, indirect:oldset;
+  assigns oldset == \null ? \empty : *oldset
+          \from indirect:how, indirect:oldset;
+  ensures result_ok_or_error: \result == 0 || \result == -1;
+  ensures initialization:oldset_initialized:
+    oldset != \null && \result == 0 ==> \initialized(oldset);
+*/
+extern int sigprocmask(int how, const sigset_t * restrict set,
+                       sigset_t *restrict oldset);
+
+/*@ // missing: errno may be set to EINVAL, EPERM, ESRCH
+    // missing: assigns 'other processes' \from 'other processes'
+  assigns \result \from indirect:pid, indirect: sig;
+  ensures result_ok_or_error: \result == 0 || \result == -1;
+*/
 extern int kill(pid_t pid, int sig);
 
 __END_DECLS

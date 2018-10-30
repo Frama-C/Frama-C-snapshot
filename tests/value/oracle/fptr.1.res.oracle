@@ -9,10 +9,10 @@
   int (*)(void)
   and
   short (*)()
-[value] Analyzing a complete application starting at main_uninit
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing a complete application starting at main_uninit
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   R ∈ {77}
   v ∈ [--..--]
   n ∈ {0}
@@ -22,75 +22,55 @@
   GLOBAL[0..9] ∈ {0}
   G ∈ {0}
   TA ∈ {0}
-[value] tests/value/fptr.i:66: entering loop for the first time
-[value] tests/value/fptr.i:67: Frama_C_show_each_F: {{ &h }}
-[value] computing for function f <- main_uninit.
+[eva] tests/value/fptr.i:67: Frama_C_show_each_F: {{ &h }}
+[eva] computing for function f <- main_uninit.
   Called from tests/value/fptr.i:68.
-[value] computing for function h <- f <- main_uninit.
+[eva] computing for function h <- f <- main_uninit.
   Called from tests/value/fptr.i:9.
-[value] Recording results for h
-[value] Done for function h
-[value] Recording results for f
-[value] Done for function f
-[value] tests/value/fptr.i:67: Frama_C_show_each_F: {{ &h ; &hh }}
-[value] computing for function f <- main_uninit.
+[eva] Recording results for h
+[eva] Done for function h
+[eva] Recording results for f
+[eva] Done for function f
+[eva] tests/value/fptr.i:66: starting to merge loop iterations
+[eva] tests/value/fptr.i:67: Frama_C_show_each_F: {{ &h ; &hh }}
+[eva] computing for function f <- main_uninit.
   Called from tests/value/fptr.i:68.
-[value] computing for function hh <- f <- main_uninit.
+[eva] computing for function hh <- f <- main_uninit.
   Called from tests/value/fptr.i:9.
-[value] Recording results for hh
-[value] Done for function hh
-[value] computing for function h <- f <- main_uninit.
-  Called from tests/value/fptr.i:9.
-[value] Recording results for h
-[value] Done for function h
-[value] Recording results for f
-[value] Done for function f
-[value] tests/value/fptr.i:67: 
+[eva] Recording results for hh
+[eva] Done for function hh
+[eva] tests/value/fptr.i:9: Reusing old results for call to h
+[eva] Recording results for f
+[eva] Done for function f
+[eva] tests/value/fptr.i:67: 
   Frama_C_show_each_F: {{ NULL + [0..4294967295] ; &h ; &hh }}
-[value] computing for function f <- main_uninit.
+[eva] computing for function f <- main_uninit.
   Called from tests/value/fptr.i:68.
-[value:alarm] tests/value/fptr.i:9: Warning: 
+[eva:alarm] tests/value/fptr.i:9: Warning: 
   pointer to function with incompatible type. assert \valid_function(ptr);
-[value] computing for function hh <- f <- main_uninit.
-  Called from tests/value/fptr.i:9.
-[value] Recording results for hh
-[value] Done for function hh
-[value] computing for function h <- f <- main_uninit.
-  Called from tests/value/fptr.i:9.
-[value] Recording results for h
-[value] Done for function h
-[value] Recording results for f
-[value] Done for function f
-[value] tests/value/fptr.i:67: 
+[eva] tests/value/fptr.i:9: Reusing old results for call to hh
+[eva] tests/value/fptr.i:9: Reusing old results for call to h
+[eva] Recording results for f
+[eva] Done for function f
+[eva] tests/value/fptr.i:67: 
   Frama_C_show_each_F: {{ NULL + [0..4294967295] ; &h ; &hh }}
-[value] computing for function f <- main_uninit.
-  Called from tests/value/fptr.i:68.
-[value] computing for function hh <- f <- main_uninit.
-  Called from tests/value/fptr.i:9.
-[value] Recording results for hh
-[value] Done for function hh
-[value] computing for function h <- f <- main_uninit.
-  Called from tests/value/fptr.i:9.
-[value] Recording results for h
-[value] Done for function h
-[value] Recording results for f
-[value] Done for function f
-[value] Recording results for main_uninit
-[value] done for function main_uninit
-[value] ====== VALUES COMPUTED ======
-[value:final-states] Values at end of function h:
+[eva] tests/value/fptr.i:68: Reusing old results for call to f
+[eva] Recording results for main_uninit
+[eva] done for function main_uninit
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function h:
   X ∈ {1}
   XH ∈ {1}
-[value:final-states] Values at end of function hh:
+[eva:final-states] Values at end of function hh:
   X ∈ {2}
   XHH ∈ {1}
-[value:final-states] Values at end of function f:
+[eva:final-states] Values at end of function f:
   R ∈ {1; 2}
   n ∈ {0; 1; 2}
   X ∈ {1; 2}
   XH ∈ {0; 1}
   XHH ∈ {0; 1}
-[value:final-states] Values at end of function main_uninit:
+[eva:final-states] Values at end of function main_uninit:
   NON TERMINATING FUNCTION
 [from] Computing for function h
 [from] Done for function h

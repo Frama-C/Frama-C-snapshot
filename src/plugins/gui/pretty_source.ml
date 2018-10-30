@@ -373,7 +373,9 @@ module TagPrinterClassDeferred (X: Printer.PrinterClass) = struct
       | Instr (Local_init (_, ConsInit _, _)) ->
         let extract_instance_predicate = function
           | Property.IPPropertyInstance (_kf, _stmt, pred, _prop) -> pred
-          | _ -> assert false
+          (* Other cases should not happen, unless a plugin has replaced call
+             preconditions. In this case, print nothing but do not crash. *)
+          | _ -> raise Not_found
         in
         let extract_predicate = function
           | Property.IPPredicate (_, _, _, p) -> p
@@ -398,6 +400,7 @@ module TagPrinterClassDeferred (X: Printer.PrinterClass) = struct
                the formal parameters which are not in scope at the call site. *)
             Format.fprintf fmt "@[Non transposable: %s@]"
               (Format.asprintf "@[%a@]" self#requires_aux (original_p, pred))
+          | exception Not_found -> ()
         in
         let pp_by_kf fmt (kf, ips) =
           Format.fprintf fmt "@[preconditions of %a:@]@ %a"
@@ -494,7 +497,7 @@ module TagPrinterClassDeferred (X: Printer.PrinterClass) = struct
           Format.fprintf fmt "@{<%s>%a@}"
             (self#tag_property ip)
             super#code_annotation ca;
-      | AStmtSpec (active,_) | AExtended(active,_) ->
+      | AStmtSpec (active,_) | AExtended(active,_,_) ->
           (* tags will be set in the inner nodes. *)
           active_behaviors <- active;
           super#code_annotation fmt ca;
@@ -516,12 +519,15 @@ module TagPrinterClassDeferred (X: Printer.PrinterClass) = struct
             super#global
             g
 
-    method! extended fmt (id,name, ext) =
+    method! extended fmt ext =
+      let loc =
+        match self#current_kf with
+        | None -> Property.ELGlob
+        | Some kf -> Property.e_loc_of_stmt kf self#current_kinstr
+      in
       Format.fprintf fmt "@{<%s>%a@}"
-        (self#tag_property
-           (Property.ip_of_extended
-              (Extlib.the self#current_kf) self#current_kinstr (id,name,ext)))
-        super#extended (id,name,ext);
+        (self#tag_property Property.(ip_of_extended loc ext))
+        super#extended ext;
 
     method private requires_aux fmt (ip, p) =
       Format.fprintf fmt "@{<%s>%a@}"
@@ -700,7 +706,7 @@ let localizable_from_locs state ~file ~line =
     state
     (fun _ v ->
        let loc,_ = loc_localizable v in
-       if line = loc.Lexing.pos_lnum && loc.Lexing.pos_fname = file then
+       if line = loc.Filepath.pos_lnum && loc.Filepath.pos_path = file then
          r := v::!r);
   !r
 
@@ -859,7 +865,7 @@ module LineToLocalizable =
   Datatype.Hashtbl(Datatype.Int.Hashtbl)(Datatype.Int)
     (struct let module_name = "Pretty_source.LineToLocalizable" end)
 module FileToLines =
-  Datatype.Hashtbl(Datatype.String.Hashtbl)(Datatype.String)
+  Datatype.Hashtbl(Datatype.Filepath.Hashtbl)(Datatype.Filepath)
     (struct let module_name = "Pretty_source.FilesToLine" end)
 
 module MappingLineLocalizable = struct
@@ -885,12 +891,13 @@ class pos_to_localizable =
     method add_range loc (localizable : localizable) =
       if not (Location.equal loc Location.unknown) then (
         let p1, p2 = loc in
-        if p1.Lexing.pos_fname != p2.Lexing.pos_fname then
+        if p1.Filepath.pos_path <> p2.Filepath.pos_path then
           Gui_parameters.debug ~once:true
-            "Localizable over two files: %s and %s; %a"
-            p1.Lexing.pos_fname p2.Lexing.pos_fname
+            "Localizable over two files: %a and %a; %a"
+            Datatype.Filepath.pretty p1.Filepath.pos_path
+            Datatype.Filepath.pretty p2.Filepath.pos_path
             Localizable.pretty localizable;
-        let file = p1.Lexing.pos_fname in
+        let file = p1.Filepath.pos_path in
         let hfile =
           try MappingLineLocalizable.find file
           with Not_found ->
@@ -898,7 +905,7 @@ class pos_to_localizable =
             MappingLineLocalizable.add file h;
             h
         in
-        for i = p1.Lexing.pos_lnum to p2.Lexing.pos_lnum do
+        for i = p1.Filepath.pos_lnum to p2.Filepath.pos_lnum do
           LineToLocalizable.add hfile i (loc, localizable);
         done
       );
@@ -971,8 +978,8 @@ class pos_to_localizable =
 let location_contains_col loc col =
   let (pos_start, pos_end) = loc in
   let (col_start, col_end) =
-    pos_start.Lexing.pos_cnum - pos_start.Lexing.pos_bol,
-    pos_end.Lexing.pos_cnum - pos_end.Lexing.pos_bol
+    pos_start.Filepath.pos_cnum - pos_start.Filepath.pos_bol,
+    pos_end.Filepath.pos_cnum - pos_end.Filepath.pos_bol
   in
   col_start <= col && col <= col_end
 
@@ -983,7 +990,7 @@ let location_contains_col loc col =
    Some heuristics may return an empty list, in which case a fallback is
    later used to return a better choice. *)
 let apply_location_heuristics precise_col possible_locs loc =
-  let col = loc.Lexing.pos_cnum - loc.Lexing.pos_bol in
+  let col = loc.Filepath.pos_cnum - loc.Filepath.pos_bol in
   Gui_parameters.debug ~dkey
     "apply_location_heuristics (precise_col:%b): loc: %a, col: %d@\n\
      possible_locs:@ %a"
@@ -1037,9 +1044,9 @@ let loc_to_localizable ?(precise_col=false) loc =
   );
   try
     (* Find the mapping from this file to locs-by-line *)
-    let hfile = MappingLineLocalizable.find loc.Lexing.pos_fname in
+    let hfile = MappingLineLocalizable.find loc.Filepath.pos_path in
     (* Find the localizable for this line *)
-    let all = LineToLocalizable.find_all hfile loc.Lexing.pos_lnum in
+    let all = LineToLocalizable.find_all hfile loc.Filepath.pos_lnum in
     match apply_location_heuristics precise_col all loc with
     | Some locz ->
       Gui_parameters.feedback ~dkey "loc: %a -> locz: %a"

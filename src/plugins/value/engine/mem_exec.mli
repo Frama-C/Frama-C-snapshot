@@ -25,9 +25,7 @@ open Eval
 
 module type Domain = sig
   include Datatype.S_with_collections
-
-  val filter_by_bases: Base.Hptset.t -> t -> t
-  val reuse: current_input:t -> previous_output:t -> t
+  include Abstract_domain.Recycle with type t := t
 end
 
 (** Counter that must be used each time a new call is analyzed, in order

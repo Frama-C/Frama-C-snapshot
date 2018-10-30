@@ -1,8 +1,8 @@
 [kernel] Parsing tests/value/loop2.i (no preprocessing)
-[value] Analyzing a complete application starting at main
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing a complete application starting at main
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   i ∈ {0}
   j ∈ {0}
   k ∈ {0}
@@ -11,11 +11,11 @@
   r ∈ {0}
   G[0..4] ∈ {0}
   Reg5 ∈ {0}
-[value] tests/value/loop2.i:8: entering loop for the first time
-[value] Recording results for main
-[value] done for function main
-[value] ====== VALUES COMPUTED ======
-[value:final-states] Values at end of function main:
+[eva] tests/value/loop2.i:8: starting to merge loop iterations
+[eva] Recording results for main
+[eva] done for function main
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function main:
   i ∈ {5}
   n ∈ {5}
   G[0].a ∈ {0; 55; 56; 57; 58; 59}

@@ -1,8 +1,8 @@
 [kernel] Parsing tests/value/from_pb.i (no preprocessing)
-[value] Analyzing a complete application starting at main5bis
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing a complete application starting at main5bis
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   k ∈ {0}
   i ∈ {0}
   j ∈ {0}
@@ -10,10 +10,10 @@
   c ∈ {0}
   d ∈ {0}
   T[0..9] ∈ {0}
-[value] Recording results for main5bis
-[value] done for function main5bis
-[value] ====== VALUES COMPUTED ======
-[value:final-states] Values at end of function main5bis:
+[eva] Recording results for main5bis
+[eva] done for function main5bis
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function main5bis:
   T[0..9] ∈ {0}
 [from] Computing for function main5bis
 [from] Done for function main5bis

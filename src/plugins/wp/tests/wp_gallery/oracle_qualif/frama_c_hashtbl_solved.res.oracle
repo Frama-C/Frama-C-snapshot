@@ -1,0 +1,286 @@
+# frama-c -wp -wp-timeout 90 -wp-steps 1500 [...]
+[kernel] Parsing tests/wp_gallery/frama_c_hashtbl_solved.c (with preprocessing)
+[wp] Running WP plugin...
+[wp] Loading driver 'share/wp.driver'
+[wp] Warning: Missing RTE guards
+[wp] Computing [100 goals...]
+[wp] 102 goals scheduled
+[wp] [Alt-Ergo] Goal typed_add_complete_full_nominal : Valid
+[wp] [Alt-Ergo] Goal typed_add_disjoint_full_nominal : Valid
+[wp] [Qed] Goal typed_add_assign_exit : Valid
+[wp] [Qed] Goal typed_add_assign_normal_part1 : Valid
+[wp] [Qed] Goal typed_add_assign_normal_part2 : Valid
+[wp] [Qed] Goal typed_add_assign_normal_part3 : Valid
+[wp] [Qed] Goal typed_add_assign_normal_part4 : Valid
+[wp] [Qed] Goal typed_add_assign_normal_part5 : Valid
+[wp] [Alt-Ergo] Goal typed_add_assign_normal_part6 : Valid
+[wp] [Alt-Ergo] Goal typed_add_assign_normal_part7 : Valid
+[wp] [Qed] Goal typed_add_assign_normal_part8 : Valid
+[wp] [Qed] Goal typed_add_assign_normal_part9 : Valid
+[wp] [Qed] Goal typed_add_call_hash_pre : Valid
+[wp] [Alt-Ergo] Goal typed_add_full_post : Valid
+[wp] [Qed] Goal typed_add_full_assign_exit : Valid
+[wp] [Qed] Goal typed_add_full_assign_normal_part1 : Valid
+[wp] [Qed] Goal typed_add_full_assign_normal_part2 : Valid
+[wp] [Qed] Goal typed_add_full_assign_normal_part3 : Valid
+[wp] [Qed] Goal typed_add_full_assign_normal_part4 : Valid
+[wp] [Qed] Goal typed_add_full_assign_normal_part5 : Valid
+[wp] [Alt-Ergo] Goal typed_add_full_assign_normal_part6 : Valid
+[wp] [Alt-Ergo] Goal typed_add_full_assign_normal_part7 : Valid
+[wp] [Alt-Ergo] Goal typed_add_full_assign_normal_part8 : Valid
+[wp] [Qed] Goal typed_add_full_assign_normal_part9 : Valid
+[wp] [Alt-Ergo] Goal typed_add_nominal_post : Valid
+[wp] [Alt-Ergo] Goal typed_add_nominal_post_2 : Valid
+[wp] [Alt-Ergo] Goal typed_add_nominal_post_3 : Valid
+[wp] [Alt-Ergo] Goal typed_add_nominal_post_4 : Valid
+[wp] [Alt-Ergo] Goal typed_add_nominal_post_5 : Valid
+[wp] [Qed] Goal typed_add_nominal_assign_exit : Valid
+[wp] [Qed] Goal typed_add_nominal_assign_normal_part1 : Valid
+[wp] [Qed] Goal typed_add_nominal_assign_normal_part2 : Valid
+[wp] [Qed] Goal typed_add_nominal_assign_normal_part3 : Valid
+[wp] [Qed] Goal typed_add_nominal_assign_normal_part4 : Valid
+[wp] [Qed] Goal typed_add_nominal_assign_normal_part5 : Valid
+[wp] [Alt-Ergo] Goal typed_add_nominal_assign_normal_part6 : Valid
+[wp] [Alt-Ergo] Goal typed_add_nominal_assign_normal_part7 : Valid
+[wp] [Qed] Goal typed_add_nominal_assign_normal_part8 : Valid
+[wp] [Qed] Goal typed_add_nominal_assign_normal_part9 : Valid
+[wp] [Qed] Goal typed_eq_string_complete_not_eq_eq : Valid
+[wp] [Qed] Goal typed_eq_string_disjoint_not_eq_eq : Valid
+[wp] [Alt-Ergo] Goal typed_eq_string_loop_inv_preserved : Valid
+[wp] [Qed] Goal typed_eq_string_loop_inv_established : Valid
+[wp] [Alt-Ergo] Goal typed_eq_string_loop_inv_2_preserved : Valid
+[wp] [Qed] Goal typed_eq_string_loop_inv_2_established : Valid
+[wp] [Qed] Goal typed_eq_string_loop_assign : Valid
+[wp] [Qed] Goal typed_eq_string_assign_part1 : Valid
+[wp] [Qed] Goal typed_eq_string_assign_part2 : Valid
+[wp] [Qed] Goal typed_eq_string_assign_part3 : Valid
+[wp] [Qed] Goal typed_eq_string_assign_part4 : Valid
+[wp] [Qed] Goal typed_eq_string_loop_term_decrease : Valid
+[wp] [Qed] Goal typed_eq_string_loop_term_positive : Valid
+[wp] [Alt-Ergo] Goal typed_eq_string_eq_post : Valid
+[wp] [Alt-Ergo] Goal typed_eq_string_not_eq_post : Valid
+[wp] [Alt-Ergo] Goal typed_hash_loop_inv_preserved : Valid
+[wp] [Qed] Goal typed_hash_loop_inv_established : Valid
+[wp] [Qed] Goal typed_hash_loop_assign : Valid
+[wp] [Qed] Goal typed_hash_assign_part1 : Valid
+[wp] [Qed] Goal typed_hash_assign_part2 : Valid
+[wp] [Qed] Goal typed_hash_loop_term_decrease : Valid
+[wp] [Qed] Goal typed_hash_loop_term_positive : Valid
+[wp] [Alt-Ergo] Goal typed_init_post : Valid
+[wp] [Alt-Ergo] Goal typed_init_post_2 : Valid
+[wp] [Alt-Ergo] Goal typed_init_loop_inv_preserved : Valid
+[wp] [Qed] Goal typed_init_loop_inv_established : Valid
+[wp] [Alt-Ergo] Goal typed_init_loop_inv_2_preserved : Valid
+[wp] [Qed] Goal typed_init_loop_inv_2_established : Valid
+[wp] [Qed] Goal typed_init_loop_assign_part1 : Valid
+[wp] [Qed] Goal typed_init_loop_assign_part2 : Valid
+[wp] [Qed] Goal typed_init_assign_part1 : Valid
+[wp] [Qed] Goal typed_init_assign_part2 : Valid
+[wp] [Alt-Ergo] Goal typed_init_assign_part3 : Valid
+[wp] [Qed] Goal typed_init_loop_term_decrease : Valid
+[wp] [Qed] Goal typed_init_loop_term_positive : Valid
+[wp] [Alt-Ergo] Goal typed_mem_binding_complete_not_found_found : Valid
+[wp] [Alt-Ergo] Goal typed_mem_binding_disjoint_not_found_found : Valid
+[wp] [Alt-Ergo] Goal typed_mem_binding_loop_inv_preserved : Valid
+[wp] [Alt-Ergo] Goal typed_mem_binding_loop_inv_established : Valid
+[wp] [Alt-Ergo] Goal typed_mem_binding_loop_inv_2_preserved : Valid
+[wp] [Qed] Goal typed_mem_binding_loop_inv_2_established : Valid
+[wp] [Qed] Goal typed_mem_binding_loop_assign_part1 : Valid
+[wp] [Qed] Goal typed_mem_binding_loop_assign_part2 : Valid
+[wp] [Qed] Goal typed_mem_binding_assign_exit_part1 : Valid
+[wp] [Qed] Goal typed_mem_binding_assign_exit_part2 : Valid
+[wp] [Qed] Goal typed_mem_binding_assign_exit_part3 : Valid
+[wp] [Qed] Goal typed_mem_binding_assign_exit_part4 : Valid
+[wp] [Qed] Goal typed_mem_binding_assign_normal_part1 : Valid
+[wp] [Qed] Goal typed_mem_binding_assign_normal_part2 : Valid
+[wp] [Qed] Goal typed_mem_binding_assign_normal_part3 : Valid
+[wp] [Qed] Goal typed_mem_binding_assign_normal_part4 : Valid
+[wp] [Qed] Goal typed_mem_binding_assign_normal_part5 : Valid
+[wp] [Qed] Goal typed_mem_binding_assign_normal_part6 : Valid
+[wp] [Qed] Goal typed_mem_binding_assign_normal_part7 : Valid
+[wp] [Qed] Goal typed_mem_binding_loop_term_decrease : Valid
+[wp] [Qed] Goal typed_mem_binding_loop_term_positive : Valid
+[wp] [Qed] Goal typed_mem_binding_call_hash_pre : Valid
+[wp] [Qed] Goal typed_mem_binding_call_eq_string_pre : Valid
+[wp] [Alt-Ergo] Goal typed_mem_binding_call_eq_string_pre_2 : Valid
+[wp] [Alt-Ergo] Goal typed_mem_binding_found_post : Valid
+[wp] [Alt-Ergo] Goal typed_mem_binding_not_found_post : Valid
+[wp] [Qed] Goal typed_size_post : Valid
+[wp] [Qed] Goal typed_size_assign : Valid
+[wp] Proved goals:  102 / 102
+  Qed:            69 
+  Alt-Ergo:       33
+[wp] Report 'tests/wp_gallery/frama_c_hashtbl_solved.c.0.report.json'
+-------------------------------------------------------------
+Functions           WP     Alt-Ergo        Total   Success
+eq_string           11      4 (48..60)      15       100%
+hash                 6      1 (12..24)       7       100%
+size                 2     -                 2       100%
+init                 8      5 (72..96)      13       100%
+add                 24     15 (384..432)    39       100%
+mem_binding         18      8 (192..240)    26       100%
+-------------------------------------------------------------
+[wp] Running WP plugin...
+[rte] annotating function add
+[rte] annotating function eq_string
+[rte] annotating function hash
+[rte] annotating function init
+[rte] annotating function mem_binding
+[rte] annotating function size
+[wp] 143 goals scheduled
+[wp] [Alt-Ergo] Goal typed_add_complete_full_nominal : Valid
+[wp] [Alt-Ergo] Goal typed_add_disjoint_full_nominal : Valid
+[wp] [Alt-Ergo] Goal typed_add_assert_rte_index_bound : Valid
+[wp] [Alt-Ergo] Goal typed_add_assert_rte_mem_access : Valid
+[wp] [Qed] Goal typed_add_assert_rte_index_bound_2 : Valid
+[wp] [Alt-Ergo] Goal typed_add_assert_rte_index_bound_3 : Valid
+[wp] [Qed] Goal typed_add_assert_rte_index_bound_4 : Valid
+[wp] [Qed] Goal typed_add_assert_rte_index_bound_5 : Valid
+[wp] [Alt-Ergo] Goal typed_add_assert_rte_mem_access_2 : Valid
+[wp] [Qed] Goal typed_add_assert_rte_mem_access_3 : Valid
+[wp] [Qed] Goal typed_add_assert_rte_index_bound_6 : Valid
+[wp] [Alt-Ergo] Goal typed_add_assert_rte_mem_access_4 : Valid
+[wp] [Qed] Goal typed_add_assert_rte_mem_access_5 : Valid
+[wp] [Alt-Ergo] Goal typed_add_assert_rte_signed_overflow : Valid
+[wp] [Alt-Ergo] Goal typed_add_assert_rte_mem_access_6 : Valid
+[wp] [Alt-Ergo] Goal typed_add_assert_rte_mem_access_7 : Valid
+[wp] [Alt-Ergo] Goal typed_add_assert_rte_signed_overflow_2 : Valid
+[wp] [Qed] Goal typed_add_assign_exit : Valid
+[wp] [Qed] Goal typed_add_assign_normal_part1 : Valid
+[wp] [Qed] Goal typed_add_assign_normal_part2 : Valid
+[wp] [Qed] Goal typed_add_assign_normal_part3 : Valid
+[wp] [Qed] Goal typed_add_assign_normal_part4 : Valid
+[wp] [Qed] Goal typed_add_assign_normal_part5 : Valid
+[wp] [Alt-Ergo] Goal typed_add_assign_normal_part6 : Valid
+[wp] [Alt-Ergo] Goal typed_add_assign_normal_part7 : Valid
+[wp] [Qed] Goal typed_add_assign_normal_part8 : Valid
+[wp] [Qed] Goal typed_add_assign_normal_part9 : Valid
+[wp] [Qed] Goal typed_add_call_hash_pre : Valid
+[wp] [Alt-Ergo] Goal typed_add_full_post : Valid
+[wp] [Qed] Goal typed_add_full_assign_exit : Valid
+[wp] [Qed] Goal typed_add_full_assign_normal_part1 : Valid
+[wp] [Qed] Goal typed_add_full_assign_normal_part2 : Valid
+[wp] [Qed] Goal typed_add_full_assign_normal_part3 : Valid
+[wp] [Qed] Goal typed_add_full_assign_normal_part4 : Valid
+[wp] [Qed] Goal typed_add_full_assign_normal_part5 : Valid
+[wp] [Alt-Ergo] Goal typed_add_full_assign_normal_part6 : Valid
+[wp] [Alt-Ergo] Goal typed_add_full_assign_normal_part7 : Valid
+[wp] [Alt-Ergo] Goal typed_add_full_assign_normal_part8 : Valid
+[wp] [Qed] Goal typed_add_full_assign_normal_part9 : Valid
+[wp] [Alt-Ergo] Goal typed_add_nominal_post : Valid
+[wp] [Alt-Ergo] Goal typed_add_nominal_post_2 : Valid
+[wp] [Alt-Ergo] Goal typed_add_nominal_post_3 : Valid
+[wp] [Alt-Ergo] Goal typed_add_nominal_post_4 : Valid
+[wp] [Alt-Ergo] Goal typed_add_nominal_post_5 : Valid
+[wp] [Qed] Goal typed_add_nominal_assign_exit : Valid
+[wp] [Qed] Goal typed_add_nominal_assign_normal_part1 : Valid
+[wp] [Qed] Goal typed_add_nominal_assign_normal_part2 : Valid
+[wp] [Qed] Goal typed_add_nominal_assign_normal_part3 : Valid
+[wp] [Qed] Goal typed_add_nominal_assign_normal_part4 : Valid
+[wp] [Qed] Goal typed_add_nominal_assign_normal_part5 : Valid
+[wp] [Alt-Ergo] Goal typed_add_nominal_assign_normal_part6 : Valid
+[wp] [Alt-Ergo] Goal typed_add_nominal_assign_normal_part7 : Valid
+[wp] [Qed] Goal typed_add_nominal_assign_normal_part8 : Valid
+[wp] [Qed] Goal typed_add_nominal_assign_normal_part9 : Valid
+[wp] [Qed] Goal typed_eq_string_complete_not_eq_eq : Valid
+[wp] [Qed] Goal typed_eq_string_disjoint_not_eq_eq : Valid
+[wp] [Alt-Ergo] Goal typed_eq_string_loop_inv_preserved : Valid
+[wp] [Qed] Goal typed_eq_string_loop_inv_established : Valid
+[wp] [Alt-Ergo] Goal typed_eq_string_loop_inv_2_preserved : Valid
+[wp] [Qed] Goal typed_eq_string_loop_inv_2_established : Valid
+[wp] [Alt-Ergo] Goal typed_eq_string_assert_rte_mem_access : Valid
+[wp] [Alt-Ergo] Goal typed_eq_string_assert_rte_mem_access_2 : Valid
+[wp] [Alt-Ergo] Goal typed_eq_string_assert_rte_signed_overflow : Valid
+[wp] [Qed] Goal typed_eq_string_loop_assign : Valid
+[wp] [Qed] Goal typed_eq_string_assign_part1 : Valid
+[wp] [Qed] Goal typed_eq_string_assign_part2 : Valid
+[wp] [Qed] Goal typed_eq_string_assign_part3 : Valid
+[wp] [Qed] Goal typed_eq_string_assign_part4 : Valid
+[wp] [Qed] Goal typed_eq_string_loop_term_decrease : Valid
+[wp] [Qed] Goal typed_eq_string_loop_term_positive : Valid
+[wp] [Alt-Ergo] Goal typed_eq_string_eq_post : Valid
+[wp] [Alt-Ergo] Goal typed_eq_string_not_eq_post : Valid
+[wp] [Alt-Ergo] Goal typed_hash_loop_inv_preserved : Valid
+[wp] [Qed] Goal typed_hash_loop_inv_established : Valid
+[wp] [Alt-Ergo] Goal typed_hash_assert_rte_mem_access : Valid
+[wp] [Qed] Goal typed_hash_assert_rte_mem_access_2 : Valid
+[wp] [Alt-Ergo] Goal typed_hash_assert_rte_signed_overflow : Valid
+[wp] [Qed] Goal typed_hash_loop_assign : Valid
+[wp] [Qed] Goal typed_hash_assign_part1 : Valid
+[wp] [Qed] Goal typed_hash_assign_part2 : Valid
+[wp] [Qed] Goal typed_hash_loop_term_decrease : Valid
+[wp] [Qed] Goal typed_hash_loop_term_positive : Valid
+[wp] [Alt-Ergo] Goal typed_init_post : Valid
+[wp] [Alt-Ergo] Goal typed_init_post_2 : Valid
+[wp] [Alt-Ergo] Goal typed_init_assert_rte_mem_access : Valid
+[wp] [Alt-Ergo] Goal typed_init_loop_inv_preserved : Valid
+[wp] [Qed] Goal typed_init_loop_inv_established : Valid
+[wp] [Alt-Ergo] Goal typed_init_loop_inv_2_preserved : Valid
+[wp] [Qed] Goal typed_init_loop_inv_2_established : Valid
+[wp] [Qed] Goal typed_init_assert_rte_index_bound : Valid
+[wp] [Qed] Goal typed_init_assert_rte_index_bound_2 : Valid
+[wp] [Alt-Ergo] Goal typed_init_assert_rte_mem_access_2 : Valid
+[wp] [Alt-Ergo] Goal typed_init_assert_rte_signed_overflow : Valid
+[wp] [Qed] Goal typed_init_loop_assign_part1 : Valid
+[wp] [Qed] Goal typed_init_loop_assign_part2 : Valid
+[wp] [Qed] Goal typed_init_assign_part1 : Valid
+[wp] [Qed] Goal typed_init_assign_part2 : Valid
+[wp] [Alt-Ergo] Goal typed_init_assign_part3 : Valid
+[wp] [Qed] Goal typed_init_loop_term_decrease : Valid
+[wp] [Qed] Goal typed_init_loop_term_positive : Valid
+[wp] [Alt-Ergo] Goal typed_mem_binding_complete_not_found_found : Valid
+[wp] [Alt-Ergo] Goal typed_mem_binding_disjoint_not_found_found : Valid
+[wp] [Alt-Ergo] Goal typed_mem_binding_loop_inv_preserved : Valid
+[wp] [Alt-Ergo] Goal typed_mem_binding_loop_inv_established : Valid
+[wp] [Alt-Ergo] Goal typed_mem_binding_loop_inv_2_preserved : Valid
+[wp] [Qed] Goal typed_mem_binding_loop_inv_2_established : Valid
+[wp] [Alt-Ergo] Goal typed_mem_binding_assert_rte_index_bound : Valid
+[wp] [Alt-Ergo] Goal typed_mem_binding_assert_rte_index_bound_2 : Valid
+[wp] [Alt-Ergo] Goal typed_mem_binding_assert_rte_mem_access : Valid
+[wp] [Qed] Goal typed_mem_binding_assert_rte_index_bound_3 : Valid
+[wp] [Qed] Goal typed_mem_binding_assert_rte_index_bound_4 : Valid
+[wp] [Qed] Goal typed_mem_binding_assert_rte_index_bound_5 : Valid
+[wp] [Alt-Ergo] Goal typed_mem_binding_assert_rte_index_bound_6 : Valid
+[wp] [Alt-Ergo] Goal typed_mem_binding_assert_rte_mem_access_2 : Valid
+[wp] [Qed] Goal typed_mem_binding_assert_rte_index_bound_7 : Valid
+[wp] [Qed] Goal typed_mem_binding_assert_rte_index_bound_8 : Valid
+[wp] [Qed] Goal typed_mem_binding_assert_rte_index_bound_9 : Valid
+[wp] [Qed] Goal typed_mem_binding_assert_rte_index_bound_10 : Valid
+[wp] [Alt-Ergo] Goal typed_mem_binding_assert_rte_mem_access_3 : Valid
+[wp] [Alt-Ergo] Goal typed_mem_binding_assert_rte_signed_overflow : Valid
+[wp] [Qed] Goal typed_mem_binding_loop_assign_part1 : Valid
+[wp] [Qed] Goal typed_mem_binding_loop_assign_part2 : Valid
+[wp] [Qed] Goal typed_mem_binding_assign_exit_part1 : Valid
+[wp] [Qed] Goal typed_mem_binding_assign_exit_part2 : Valid
+[wp] [Qed] Goal typed_mem_binding_assign_exit_part3 : Valid
+[wp] [Qed] Goal typed_mem_binding_assign_exit_part4 : Valid
+[wp] [Qed] Goal typed_mem_binding_assign_normal_part1 : Valid
+[wp] [Qed] Goal typed_mem_binding_assign_normal_part2 : Valid
+[wp] [Qed] Goal typed_mem_binding_assign_normal_part3 : Valid
+[wp] [Qed] Goal typed_mem_binding_assign_normal_part4 : Valid
+[wp] [Qed] Goal typed_mem_binding_assign_normal_part5 : Valid
+[wp] [Qed] Goal typed_mem_binding_assign_normal_part6 : Valid
+[wp] [Qed] Goal typed_mem_binding_assign_normal_part7 : Valid
+[wp] [Qed] Goal typed_mem_binding_loop_term_decrease : Valid
+[wp] [Qed] Goal typed_mem_binding_loop_term_positive : Valid
+[wp] [Qed] Goal typed_mem_binding_call_hash_pre : Valid
+[wp] [Qed] Goal typed_mem_binding_call_eq_string_pre : Valid
+[wp] [Alt-Ergo] Goal typed_mem_binding_call_eq_string_pre_2 : Valid
+[wp] [Alt-Ergo] Goal typed_mem_binding_found_post : Valid
+[wp] [Alt-Ergo] Goal typed_mem_binding_not_found_post : Valid
+[wp] [Qed] Goal typed_size_post : Valid
+[wp] [Alt-Ergo] Goal typed_size_assert_rte_mem_access : Valid
+[wp] [Qed] Goal typed_size_assign : Valid
+[wp] Proved goals:   74 / 143
+  Qed:            16 
+  Alt-Ergo:       58
+[wp] Report 'tests/wp_gallery/frama_c_hashtbl_solved.c.0.report.json'
+-------------------------------------------------------------
+Functions           WP     Alt-Ergo        Total   Success
+eq_string           11      7 (112..136)    18       100%
+hash                 7      3 (72..96)      10       100%
+size                 2      1 (28..40)       3       100%
+init                10      8 (176..200)    18       100%
+add                 30     24 (384..432)    54       100%
+mem_binding         25     15 (352..400)    40       100%
+-------------------------------------------------------------

@@ -1,8 +1,8 @@
 [kernel] Parsing tests/value/ineq.c (with preprocessing)
-[value] Analyzing a complete application starting at main
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing a complete application starting at main
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   G[0..9] ∈ {0}
   g ∈ {0}
   h ∈ {0}
@@ -12,16 +12,16 @@
   l ∈ {1}
   m ∈ {-1}
   n ∈ {-1}
-[value] computing for function any_int <- main.
+[eva] computing for function any_int <- main.
   Called from tests/value/ineq.c:6.
 [kernel:annot:missing-spec] tests/value/ineq.c:6: Warning: 
   Neither code nor specification for function any_int, generating default assigns from the prototype
-[value] using specification for function any_int
-[value] Done for function any_int
-[value] Recording results for main
-[value] done for function main
-[value] ====== VALUES COMPUTED ======
-[value:final-states] Values at end of function main:
+[eva] using specification for function any_int
+[eva] Done for function any_int
+[eva] Recording results for main
+[eva] done for function main
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function main:
   G[0] ∈ {0; 7}
    [1..9] ∈ {0}
   g ∈ [0..2147483647]

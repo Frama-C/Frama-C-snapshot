@@ -1,16 +1,16 @@
 [kernel] Parsing tests/slicing/if_many_values.i (no preprocessing)
 [slicing] slicing requests in progress...
-[value] Analyzing a complete application starting at main
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing a complete application starting at main
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   r ∈ {1}
-[value] Semantic level unrolling superposing up to 100 states
-[value] tests/slicing/if_many_values.i:8: entering loop for the first time
-[value:alarm] tests/slicing/if_many_values.i:11: Warning: 
+[eva] Semantic level unrolling superposing up to 100 states
+[eva] tests/slicing/if_many_values.i:8: starting to merge loop iterations
+[eva:alarm] tests/slicing/if_many_values.i:11: Warning: 
   signed overflow. assert r + 1 ≤ 2147483647;
-[value] Recording results for main
-[value] done for function main
+[eva] Recording results for main
+[eva] done for function main
 [slicing] initializing slicing ...
 [slicing] interpreting slicing requests from the command line...
 [pdg] computing for function main

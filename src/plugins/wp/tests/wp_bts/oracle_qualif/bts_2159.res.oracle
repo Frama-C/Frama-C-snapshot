@@ -1,4 +1,4 @@
-# frama-c -wp [...]
+# frama-c -wp -wp-timeout 90 -wp-steps 1500 [...]
 [kernel] Parsing tests/wp_bts/bts_2159.i (no preprocessing)
 [wp] Running WP plugin...
 [wp] Loading driver 'share/wp.driver'
@@ -11,5 +11,5 @@
 [wp] Report 'tests/wp_bts/bts_2159.i.0.report.json'
 -------------------------------------------------------------
 Functions           WP     Alt-Ergo        Total   Success
-job                 -       1 (48..60)       1       100%
+job                 -       1 (56..68)       1       100%
 -------------------------------------------------------------

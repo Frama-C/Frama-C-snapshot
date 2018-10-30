@@ -1,8 +1,8 @@
 [kernel] Parsing tests/syntax/loop-case-switch-for-unroll.c (with preprocessing)
-[value] Analyzing a complete application starting at main
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing a complete application starting at main
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   gen_nondet_vals[0] ∈ {1}
                  [1] ∈ {42}
                  [2] ∈ {5}
@@ -29,100 +29,85 @@
                  [33] ∈ {15}
                  [34..36] ∈ {0}
   gen_nondet_i ∈ {-1}
-[kernel] tests/syntax/loop-case-switch-for-unroll.c:66: Warning: 
-  Non-natural loop detected.
-[kernel] tests/syntax/loop-case-switch-for-unroll.c:72: Warning: 
-  Non-natural loop detected.
-[kernel] tests/syntax/loop-case-switch-for-unroll.c:74: Warning: 
-  Non-natural loop detected.
-[kernel] tests/syntax/loop-case-switch-for-unroll.c:76: Warning: 
-  Non-natural loop detected.
-[value] tests/syntax/loop-case-switch-for-unroll.c:53: 
+[eva] tests/syntax/loop-case-switch-for-unroll.c:53: 
   Frama_C_show_each_nondet_: {1}
-[value] tests/syntax/loop-case-switch-for-unroll.c:53: 
+[eva] tests/syntax/loop-case-switch-for-unroll.c:53: 
   Frama_C_show_each_nondet_: {42}
-[value] tests/syntax/loop-case-switch-for-unroll.c:53: 
+[eva] tests/syntax/loop-case-switch-for-unroll.c:53: 
   Frama_C_show_each_nondet_: {5}
-[value] tests/syntax/loop-case-switch-for-unroll.c:78: Frama_C_show_each_i_: {0}
-[value] tests/syntax/loop-case-switch-for-unroll.c:53: 
+[eva] tests/syntax/loop-case-switch-for-unroll.c:78: Frama_C_show_each_i_: {0}
+[eva] tests/syntax/loop-case-switch-for-unroll.c:53: 
   Frama_C_show_each_nondet_: {1}
-[value] tests/syntax/loop-case-switch-for-unroll.c:53: 
+[eva] tests/syntax/loop-case-switch-for-unroll.c:53: 
   Frama_C_show_each_nondet_: {43}
-[value] tests/syntax/loop-case-switch-for-unroll.c:53: 
+[eva] tests/syntax/loop-case-switch-for-unroll.c:53: 
   Frama_C_show_each_nondet_: {11}
-[value] tests/syntax/loop-case-switch-for-unroll.c:78: 
-  Frama_C_show_each_i_: {10}
-[value] tests/syntax/loop-case-switch-for-unroll.c:53: 
+[eva] tests/syntax/loop-case-switch-for-unroll.c:78: Frama_C_show_each_i_: {10}
+[eva] tests/syntax/loop-case-switch-for-unroll.c:53: 
   Frama_C_show_each_nondet_: {0}
-[value] tests/syntax/loop-case-switch-for-unroll.c:53: 
+[eva] tests/syntax/loop-case-switch-for-unroll.c:53: 
   Frama_C_show_each_nondet_: {1}
-[value] tests/syntax/loop-case-switch-for-unroll.c:53: 
+[eva] tests/syntax/loop-case-switch-for-unroll.c:53: 
   Frama_C_show_each_nondet_: {0}
-[value] tests/syntax/loop-case-switch-for-unroll.c:53: 
+[eva] tests/syntax/loop-case-switch-for-unroll.c:53: 
   Frama_C_show_each_nondet_: {44}
-[value] tests/syntax/loop-case-switch-for-unroll.c:53: 
+[eva] tests/syntax/loop-case-switch-for-unroll.c:53: 
   Frama_C_show_each_nondet_: {12}
-[value] tests/syntax/loop-case-switch-for-unroll.c:78: 
-  Frama_C_show_each_i_: {10}
-[value] tests/syntax/loop-case-switch-for-unroll.c:53: 
+[eva] tests/syntax/loop-case-switch-for-unroll.c:78: Frama_C_show_each_i_: {10}
+[eva] tests/syntax/loop-case-switch-for-unroll.c:53: 
   Frama_C_show_each_nondet_: {0}
-[value] tests/syntax/loop-case-switch-for-unroll.c:53: 
+[eva] tests/syntax/loop-case-switch-for-unroll.c:53: 
   Frama_C_show_each_nondet_: {0}
-[value] tests/syntax/loop-case-switch-for-unroll.c:53: 
+[eva] tests/syntax/loop-case-switch-for-unroll.c:53: 
   Frama_C_show_each_nondet_: {1}
-[value] tests/syntax/loop-case-switch-for-unroll.c:66: Frama_C_show_each_n_: {3}
-[value] tests/syntax/loop-case-switch-for-unroll.c:53: 
+[eva] tests/syntax/loop-case-switch-for-unroll.c:66: Frama_C_show_each_n_: {3}
+[eva] tests/syntax/loop-case-switch-for-unroll.c:53: 
   Frama_C_show_each_nondet_: {1}
-[value] tests/syntax/loop-case-switch-for-unroll.c:53: 
+[eva] tests/syntax/loop-case-switch-for-unroll.c:53: 
   Frama_C_show_each_nondet_: {45}
-[value] tests/syntax/loop-case-switch-for-unroll.c:53: 
+[eva] tests/syntax/loop-case-switch-for-unroll.c:53: 
   Frama_C_show_each_nondet_: {11}
-[value] tests/syntax/loop-case-switch-for-unroll.c:78: 
-  Frama_C_show_each_i_: {10}
-[value] tests/syntax/loop-case-switch-for-unroll.c:53: 
+[eva] tests/syntax/loop-case-switch-for-unroll.c:78: Frama_C_show_each_i_: {10}
+[eva] tests/syntax/loop-case-switch-for-unroll.c:53: 
   Frama_C_show_each_nondet_: {0}
-[value] tests/syntax/loop-case-switch-for-unroll.c:53: 
+[eva] tests/syntax/loop-case-switch-for-unroll.c:53: 
   Frama_C_show_each_nondet_: {0}
-[value] tests/syntax/loop-case-switch-for-unroll.c:53: 
+[eva] tests/syntax/loop-case-switch-for-unroll.c:53: 
   Frama_C_show_each_nondet_: {0}
-[value] tests/syntax/loop-case-switch-for-unroll.c:53: 
+[eva] tests/syntax/loop-case-switch-for-unroll.c:53: 
   Frama_C_show_each_nondet_: {0}
-[value] tests/syntax/loop-case-switch-for-unroll.c:53: 
+[eva] tests/syntax/loop-case-switch-for-unroll.c:53: 
   Frama_C_show_each_nondet_: {46}
-[value] tests/syntax/loop-case-switch-for-unroll.c:53: 
+[eva] tests/syntax/loop-case-switch-for-unroll.c:53: 
   Frama_C_show_each_nondet_: {13}
-[value] tests/syntax/loop-case-switch-for-unroll.c:78: 
-  Frama_C_show_each_i_: {10}
-[value] tests/syntax/loop-case-switch-for-unroll.c:53: 
+[eva] tests/syntax/loop-case-switch-for-unroll.c:78: Frama_C_show_each_i_: {10}
+[eva] tests/syntax/loop-case-switch-for-unroll.c:53: 
   Frama_C_show_each_nondet_: {0}
-[value] tests/syntax/loop-case-switch-for-unroll.c:53: 
+[eva] tests/syntax/loop-case-switch-for-unroll.c:53: 
   Frama_C_show_each_nondet_: {0}
-[value] tests/syntax/loop-case-switch-for-unroll.c:53: 
+[eva] tests/syntax/loop-case-switch-for-unroll.c:53: 
   Frama_C_show_each_nondet_: {0}
-[value] tests/syntax/loop-case-switch-for-unroll.c:53: 
+[eva] tests/syntax/loop-case-switch-for-unroll.c:53: 
   Frama_C_show_each_nondet_: {0}
-[value] tests/syntax/loop-case-switch-for-unroll.c:53: 
+[eva] tests/syntax/loop-case-switch-for-unroll.c:53: 
   Frama_C_show_each_nondet_: {47}
-[value] tests/syntax/loop-case-switch-for-unroll.c:53: 
+[eva] tests/syntax/loop-case-switch-for-unroll.c:53: 
   Frama_C_show_each_nondet_: {12}
-[value] tests/syntax/loop-case-switch-for-unroll.c:78: 
-  Frama_C_show_each_i_: {10}
-[value] tests/syntax/loop-case-switch-for-unroll.c:53: 
+[eva] tests/syntax/loop-case-switch-for-unroll.c:78: Frama_C_show_each_i_: {10}
+[eva] tests/syntax/loop-case-switch-for-unroll.c:53: 
   Frama_C_show_each_nondet_: {0}
-[value] tests/syntax/loop-case-switch-for-unroll.c:53: 
+[eva] tests/syntax/loop-case-switch-for-unroll.c:53: 
   Frama_C_show_each_nondet_: {0}
-[value] tests/syntax/loop-case-switch-for-unroll.c:53: 
+[eva] tests/syntax/loop-case-switch-for-unroll.c:53: 
   Frama_C_show_each_nondet_: {0}
-[value] tests/syntax/loop-case-switch-for-unroll.c:84: 
-  Frama_C_show_each_y_: {32}
-[value] tests/syntax/loop-case-switch-for-unroll.c:85: 
-  Frama_C_show_each_x_: {32}
-[value] done for function main
-[value] ====== VALUES COMPUTED ======
-[value:final-states] Values at end of function gen_nondet:
+[eva] tests/syntax/loop-case-switch-for-unroll.c:84: Frama_C_show_each_y_: {32}
+[eva] tests/syntax/loop-case-switch-for-unroll.c:85: Frama_C_show_each_x_: {32}
+[eva] done for function main
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function gen_nondet:
   gen_nondet_i ∈ [0..31]
   __retres ∈ [0..47]
-[value:final-states] Values at end of function main:
+[eva:final-states] Values at end of function main:
   y ∈ {32}
   x ∈ {32}
   n ∈ {0}

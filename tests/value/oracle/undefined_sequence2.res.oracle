@@ -37,75 +37,75 @@
   /* *y <- y */
   tmp_0 = 0;
   *y = tmp_0;
-[value] Analyzing a complete application starting at main
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing a complete application starting at main
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   a[0..1] ∈ {0}
   foo ∈ [--..--]
-[value] computing for function multiple_update_wrong_1 <- main.
+[eva] computing for function multiple_update_wrong_1 <- main.
   Called from tests/value/undefined_sequence2.i:56.
-[value:alarm] tests/value/undefined_sequence2.i:11: Warning: 
+[eva:alarm] tests/value/undefined_sequence2.i:11: Warning: 
   undefined multiple accesses in expression. assert \separated(x, x);
-[value] Recording results for multiple_update_wrong_1
-[value] Done for function multiple_update_wrong_1
-[value] computing for function multiple_update_wrong_2 <- main.
+[eva] Recording results for multiple_update_wrong_1
+[eva] Done for function multiple_update_wrong_1
+[eva] computing for function multiple_update_wrong_2 <- main.
   Called from tests/value/undefined_sequence2.i:58.
-[value:alarm] tests/value/undefined_sequence2.i:18: Warning: 
+[eva:alarm] tests/value/undefined_sequence2.i:18: Warning: 
   undefined multiple accesses in expression. assert \separated(&i, &i);
-[value] Recording results for multiple_update_wrong_2
-[value] Done for function multiple_update_wrong_2
-[value] computing for function multiple_update_wrong_3 <- main.
+[eva] Recording results for multiple_update_wrong_2
+[eva] Done for function multiple_update_wrong_2
+[eva] computing for function multiple_update_wrong_3 <- main.
   Called from tests/value/undefined_sequence2.i:60.
-[value:alarm] tests/value/undefined_sequence2.i:26: Warning: 
+[eva:alarm] tests/value/undefined_sequence2.i:26: Warning: 
   undefined multiple accesses in expression. assert \separated(&i, &i);
-[value] Recording results for multiple_update_wrong_3
-[value] Done for function multiple_update_wrong_3
-[value] computing for function multiple_update_unsafe <- main.
+[eva] Recording results for multiple_update_wrong_3
+[eva] Done for function multiple_update_wrong_3
+[eva] computing for function multiple_update_unsafe <- main.
   Called from tests/value/undefined_sequence2.i:62.
-[value] Recording results for multiple_update_unsafe
-[value] Done for function multiple_update_unsafe
-[value] tests/value/undefined_sequence2.i:62: Frama_C_show_each_passed4:
-[value] computing for function multiple_update_unsafe <- main.
+[eva] Recording results for multiple_update_unsafe
+[eva] Done for function multiple_update_unsafe
+[eva] tests/value/undefined_sequence2.i:62: Frama_C_show_each_passed4:
+[eva] computing for function multiple_update_unsafe <- main.
   Called from tests/value/undefined_sequence2.i:64.
-[value:alarm] tests/value/undefined_sequence2.i:34: Warning: 
+[eva:alarm] tests/value/undefined_sequence2.i:34: Warning: 
   undefined multiple accesses in expression. assert \separated(x, y);
-[value] Recording results for multiple_update_unsafe
-[value] Done for function multiple_update_unsafe
-[value] computing for function multiple_update_safe <- main.
+[eva] Recording results for multiple_update_unsafe
+[eva] Done for function multiple_update_unsafe
+[eva] computing for function multiple_update_safe <- main.
   Called from tests/value/undefined_sequence2.i:66.
-[value] Recording results for multiple_update_safe
-[value] Done for function multiple_update_safe
-[value] tests/value/undefined_sequence2.i:66: Frama_C_show_each_passed6:
-[value] computing for function multiple_update_safe <- main.
+[eva] Recording results for multiple_update_safe
+[eva] Done for function multiple_update_safe
+[eva] tests/value/undefined_sequence2.i:66: Frama_C_show_each_passed6:
+[eva] computing for function multiple_update_safe <- main.
   Called from tests/value/undefined_sequence2.i:68.
-[value] Recording results for multiple_update_safe
-[value] Done for function multiple_update_safe
-[value] tests/value/undefined_sequence2.i:68: Frama_C_show_each_passed7:
-[value] Recording results for main
-[value] done for function main
-[value] tests/value/undefined_sequence2.i:11: 
-  assertion 'Value,separation' got final status invalid.
-[value] tests/value/undefined_sequence2.i:18: 
-  assertion 'Value,separation' got final status invalid.
-[value] tests/value/undefined_sequence2.i:26: 
-  assertion 'Value,separation' got final status invalid.
-[value] ====== VALUES COMPUTED ======
-[value:final-states] Values at end of function multiple_update_safe:
+[eva] Recording results for multiple_update_safe
+[eva] Done for function multiple_update_safe
+[eva] tests/value/undefined_sequence2.i:68: Frama_C_show_each_passed7:
+[eva] Recording results for main
+[eva] done for function main
+[eva] tests/value/undefined_sequence2.i:11: 
+  assertion 'Eva,separation' got final status invalid.
+[eva] tests/value/undefined_sequence2.i:18: 
+  assertion 'Eva,separation' got final status invalid.
+[eva] tests/value/undefined_sequence2.i:26: 
+  assertion 'Eva,separation' got final status invalid.
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function multiple_update_safe:
   b ∈ {0}
   c ∈ {0}
   __retres ∈ {0}
-[value:final-states] Values at end of function multiple_update_unsafe:
+[eva:final-states] Values at end of function multiple_update_unsafe:
   b ∈ {0}
   c ∈ {0}
   __retres ∈ {0}
-[value:final-states] Values at end of function multiple_update_wrong_1:
+[eva:final-states] Values at end of function multiple_update_wrong_1:
   NON TERMINATING FUNCTION
-[value:final-states] Values at end of function multiple_update_wrong_2:
+[eva:final-states] Values at end of function multiple_update_wrong_2:
   NON TERMINATING FUNCTION
-[value:final-states] Values at end of function multiple_update_wrong_3:
+[eva:final-states] Values at end of function multiple_update_wrong_3:
   NON TERMINATING FUNCTION
-[value:final-states] Values at end of function main:
+[eva:final-states] Values at end of function main:
   b ∈ {0}
   c ∈ {0}
   __retres ∈ {0}

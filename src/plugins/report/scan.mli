@@ -27,16 +27,16 @@
 open Property_status
 
 class type inspector =
-object
+  object
 
-  method empty : unit
-  method started : unit
-  method global_section : unit
-  method function_section : Kernel_function.t -> unit
-  method property : Property.t -> Consolidation.t -> unit
-  method finished : unit
-    
-end
+    method empty : unit
+    method started : unit
+    method global_section : unit
+    method function_section : Kernel_function.t -> unit
+    method property : Property.t -> Consolidation.t -> unit
+    method finished : unit
+
+  end
 
 val dead_reasons : Consolidation.pending -> Property.Set.t
 val partial_pending : Consolidation.pending -> Property.Set.t Emitter.Usable_emitter.Map.t

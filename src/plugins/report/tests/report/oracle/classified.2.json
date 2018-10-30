@@ -1,4 +1,8 @@
 [
+  { "classid": "kernel.unclassified.warning", "action": "ERROR",
+    "title": "Unclassified Warning (Plugin 'kernel')",
+    "descr": "unbound logic variable ignored. Ignoring code annotation",
+    "file": "tests/report/classify.c", "line": 27 },
   { "classid": "wp.unclassified.warning", "action": "ERROR",
     "title": "Unclassified Warning (Plugin 'wp')",
     "descr": "Missing RTE guards" }

@@ -1,0 +1,76 @@
+[kernel] Parsing tests/builtins/str_allocated.c (with preprocessing)
+[eva] Analyzing a complete application starting at main
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
+  nondet ∈ [--..--]
+[eva] computing for function memchr_bug <- main.
+  Called from tests/builtins/str_allocated.c:19.
+[eva] tests/builtins/str_allocated.c:12: Call to builtin malloc
+[eva] tests/builtins/str_allocated.c:12: 
+  allocating variable __malloc_memchr_bug_l12
+[eva] tests/builtins/str_allocated.c:11: starting to merge loop iterations
+[eva] tests/builtins/str_allocated.c:12: Call to builtin malloc
+[eva:malloc:weak] tests/builtins/str_allocated.c:12: 
+  marking variable `__malloc_memchr_bug_l12' as weak
+[eva:malloc] tests/builtins/str_allocated.c:12: 
+  resizing variable `__malloc_w_memchr_bug_l12' (0..-1) to fit 0..-1/7
+[eva] tests/builtins/str_allocated.c:12: Call to builtin malloc
+[eva:alarm] tests/builtins/str_allocated.c:14: Warning: 
+  accessing uninitialized left-value. assert \initialized(&b);
+[eva] tests/builtins/str_allocated.c:14: Call to builtin memchr
+[eva] share/libc/string.h:69: 
+  Cannot evaluate range bound memchr_off((char *)s, c, n)
+  (unsupported ACSL construct: logic function memchr_off). Approximating
+[eva:alarm] tests/builtins/str_allocated.c:14: Warning: 
+  function memchr: precondition 'valid' got status unknown.
+[eva] share/libc/string.h:72: 
+  Cannot evaluate range bound memchr_off((char *)s, c, n)
+  (unsupported ACSL construct: logic function memchr_off). Approximating
+[eva:alarm] tests/builtins/str_allocated.c:14: Warning: 
+  function memchr: precondition 'initialization' got status unknown.
+[eva:alarm] tests/builtins/str_allocated.c:14: Warning: 
+  function memchr: precondition 'danglingness' got status unknown.
+[eva] share/libc/string.h:78: 
+  cannot evaluate ACSL term, unsupported ACSL construct: logic function memchr
+[eva] share/libc/string.h:85: 
+  cannot evaluate ACSL term, unsupported ACSL construct: logic function memchr
+[eva] Recording results for memchr_bug
+[eva] Done for function memchr_bug
+[eva] Recording results for main
+[eva] done for function main
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function memchr_bug:
+  NON TERMINATING FUNCTION
+[eva:final-states] Values at end of function main:
+  __fc_heap_status ∈ [--..--]
+  __retres ∈ {0}
+[from] Computing for function memchr_bug
+[from] Computing for function malloc <-memchr_bug
+[from] Done for function malloc
+[from] Computing for function memchr <-memchr_bug
+[from] Done for function memchr
+[from] Non-terminating function memchr_bug (no dependencies)
+[from] Done for function memchr_bug
+[from] Computing for function main
+[from] Done for function main
+[from] ====== DEPENDENCIES COMPUTED ======
+  These dependencies hold at termination for the executions that terminate:
+[from] Function malloc:
+  __fc_heap_status FROM __fc_heap_status; size (and SELF)
+  \result FROM __fc_heap_status; size
+[from] Function memchr:
+  \result FROM s; c; __malloc_w_memchr_bug_l12[0]
+[from] Function memchr_bug:
+  NON TERMINATING - NO EFFECTS
+[from] Function main:
+  \result FROM \nothing
+[from] ====== END OF DEPENDENCIES ======
+[inout] Out (internal) for function memchr_bug:
+    __fc_heap_status; b; i
+[inout] Inputs for function memchr_bug:
+    __fc_heap_status; __malloc_w_memchr_bug_l12[0]
+[inout] Out (internal) for function main:
+    __fc_heap_status; __retres
+[inout] Inputs for function main:
+    __fc_heap_status; nondet; __malloc_w_memchr_bug_l12[0]

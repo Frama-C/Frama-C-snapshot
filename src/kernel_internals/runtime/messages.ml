@@ -48,31 +48,25 @@ module Messages =
      end)
 let () = Ast.add_monotonic_state Messages.self
 
-module Nb_errors =
-  State_builder.Zero_ref
-    (struct
-       let name = "nb_errors"
-       let dependencies = [Messages.self]
-     end)
-
-let add_error m =
-  Nb_errors.set (Nb_errors.get() + 1);
+let add_message m =
   Messages.set (m :: Messages.get ());;
 
-let nb_errors() = Nb_errors.get();;
+let nb_errors () =
+  let n = ref 0 in
+  Messages.iter (fun e ->
+      match e.Log.evt_kind with
+      | Log.Error -> incr n
+      | _ -> ());
+  !n
 
-module Nb_warnings =
-  State_builder.Zero_ref
-    (struct
-       let name = "nb_warnings"
-       let dependencies = [Messages.self]
-     end)
+let nb_warnings () =
+  let n = ref 0 in
+  Messages.iter (fun e ->
+      match e.Log.evt_kind with
+      | Log.Warning -> incr n
+      | _ -> ());
+  !n
 
-let add_warning m =
-  Nb_warnings.set (Nb_warnings.get() + 1);
-  Messages.set (m :: Messages.get ());;
-
-let nb_warnings() = Nb_warnings.get();;
 let nb_messages() = nb_errors() + nb_warnings();;
 
 let self = Messages.self
@@ -81,8 +75,7 @@ let iter f = List.iter f (List.rev (Messages.get ()))
 let dump_messages () = iter Log.echo
 
 let () =
-  Log.add_listener ~kind:[ Log.Error ] add_error;
-  Log.add_listener ~kind:[ Log.Warning ] add_warning;
+  Log.add_listener ~kind:[ Log.Error; Log.Warning ] add_message;
 ;;
 
 module OnceTable = 

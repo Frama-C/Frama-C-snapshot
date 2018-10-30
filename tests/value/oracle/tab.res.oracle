@@ -1,8 +1,8 @@
 [kernel] Parsing tests/value/tab.c (with preprocessing)
-[value] Analyzing a complete application starting at main
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing a complete application starting at main
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   x ∈ {55}
   y ∈ {77}
   t[0..3] ∈ {0}
@@ -19,18 +19,18 @@
      [1][0..4] ∈ {0}
      [2][0] ∈ {1}
      {[2][1..4]; [3..4][0..4]} ∈ {0}
-[value] computing for function any_int <- main.
+[eva] computing for function any_int <- main.
   Called from tests/value/tab.c:11.
-[value] using specification for function any_int
-[value] Done for function any_int
-[value:alarm] tests/value/tab.c:12: Warning: 
+[eva] using specification for function any_int
+[eva] Done for function any_int
+[eva:alarm] tests/value/tab.c:12: Warning: 
   accessing out of bounds index. assert 0 ≤ i;
-[value:alarm] tests/value/tab.c:12: Warning: 
+[eva:alarm] tests/value/tab.c:12: Warning: 
   accessing out of bounds index. assert i < 4;
-[value] Recording results for main
-[value] done for function main
-[value] ====== VALUES COMPUTED ======
-[value:final-states] Values at end of function main:
+[eva] Recording results for main
+[eva] done for function main
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function main:
   t[0] ∈ {0; 1}
    [1] ∈ {77}
    [2..3] ∈ {0; 1}

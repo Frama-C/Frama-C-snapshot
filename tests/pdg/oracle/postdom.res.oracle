@@ -1,38 +1,26 @@
 [kernel] Parsing tests/pdg/postdom.c (with preprocessing)
-[value] Analyzing a complete application starting at main
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing a complete application starting at main
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   
-[value] tests/pdg/postdom.c:20: entering loop for the first time
-[value] computing for function __VERIFIER_assert <- main.
+[eva] computing for function __VERIFIER_assert <- main.
   Called from tests/pdg/postdom.c:23.
-[value] Recording results for __VERIFIER_assert
-[value] Done for function __VERIFIER_assert
-[value] computing for function __VERIFIER_assert <- main.
+[eva] Recording results for __VERIFIER_assert
+[eva] Done for function __VERIFIER_assert
+[eva] tests/pdg/postdom.c:20: starting to merge loop iterations
+[eva] computing for function __VERIFIER_assert <- main.
   Called from tests/pdg/postdom.c:23.
-[value] Recording results for __VERIFIER_assert
-[value] Done for function __VERIFIER_assert
-[value] computing for function __VERIFIER_assert <- main.
-  Called from tests/pdg/postdom.c:23.
-[value] Recording results for __VERIFIER_assert
-[value] Done for function __VERIFIER_assert
-[value:alarm] tests/pdg/postdom.c:21: Warning: 
+[eva] Recording results for __VERIFIER_assert
+[eva] Done for function __VERIFIER_assert
+[eva] tests/pdg/postdom.c:23: Reusing old results for call to __VERIFIER_assert
+[eva:alarm] tests/pdg/postdom.c:21: Warning: 
   signed overflow. assert sn + 2 ≤ 2147483647;
-[value] computing for function __VERIFIER_assert <- main.
-  Called from tests/pdg/postdom.c:23.
-[value] Recording results for __VERIFIER_assert
-[value] Done for function __VERIFIER_assert
-[value] computing for function __VERIFIER_assert <- main.
-  Called from tests/pdg/postdom.c:23.
-[value] Recording results for __VERIFIER_assert
-[value] Done for function __VERIFIER_assert
-[value] computing for function __VERIFIER_assert <- main.
-  Called from tests/pdg/postdom.c:23.
-[value] Recording results for __VERIFIER_assert
-[value] Done for function __VERIFIER_assert
-[value] Recording results for main
-[value] done for function main
+[eva] tests/pdg/postdom.c:23: Reusing old results for call to __VERIFIER_assert
+[eva] tests/pdg/postdom.c:23: Reusing old results for call to __VERIFIER_assert
+[eva] tests/pdg/postdom.c:23: Reusing old results for call to __VERIFIER_assert
+[eva] Recording results for main
+[eva] done for function main
 [pdg] computing for function __VERIFIER_assert
 [pdg] done for function __VERIFIER_assert
 [pdg] computing for function main

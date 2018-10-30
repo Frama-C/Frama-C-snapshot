@@ -3,6 +3,14 @@
 int f(int);
 
 void *p = (void *)(& f);
+int (*pf)(int x) = & f;
+int g(void)
+{
+  int tmp;
+  tmp = (*pf)(4);
+  return tmp;
+}
+
 int main(void)
 {
   int __retres;

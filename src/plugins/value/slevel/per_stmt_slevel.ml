@@ -54,71 +54,69 @@ let retrieve_annot lt =
   | _ -> LDefault (* be kind. Someone is bound to write a visitor that will
                      simplify our term into something unrecognizable... *)
 
-let () = Logic_typing.register_behavior_extension "slevel"
-  (fun ~typing_context:_ ~loc args ->
-    let abort () =
-      Value_parameters.abort ~source:(fst loc) "Invalid slevel directive"
-    in
-    let open Logic_ptree in
-    let p = match args with
-    | [{lexpr_node = PLvar ("default" | "merge" as s)}] ->
-      Logic_const.tstring s
-    | [{lexpr_node = PLconstant (IntConstant i)}] ->
-      begin
-        try
-          let i = int_of_string i in
-          if i < 0 then abort ();
-          Logic_const.tinteger i
-        with Failure _ -> abort ()
-      end
-    | _ -> abort ()
-    in
-    Ext_terms [p]
-)
+let () = Logic_typing.register_code_annot_next_stmt_extension "slevel"
+    (fun ~typing_context:_ ~loc args ->
+       let abort () =
+         Value_parameters.abort ~source:(fst loc) "Invalid slevel directive"
+       in
+       let open Logic_ptree in
+       let p = match args with
+         | [{lexpr_node = PLvar ("default" | "merge" as s)}] ->
+           Logic_const.tstring s
+         | [{lexpr_node = PLconstant (IntConstant i)}] ->
+           begin
+             try
+               let i = int_of_string i in
+               if i < 0 then abort ();
+               Logic_const.tinteger i
+             with Failure _ -> abort ()
+           end
+         | _ -> abort ()
+       in
+       Ext_terms [p]
+    )
 
-let () = Cil_printer.register_behavior_extension "slevel"
-  (fun _pp fmt lp ->
-    match lp with
-    | Ext_id _ | Ext_preds _ -> assert false
-    | Ext_terms lt ->
-      match retrieve_annot lt with
-      | LDefault -> Format.pp_print_string fmt "default"
-      | LMerge -> Format.pp_print_string fmt "merge"
-      | LLocal i -> Format.pp_print_int fmt i
-  )
+let () = Cil_printer.register_code_annot_extension "slevel"
+    (fun _pp fmt lp ->
+       match lp with
+       | Ext_id _ | Ext_preds _ -> assert false
+       | Ext_terms lt ->
+         match retrieve_annot lt with
+         | LDefault -> Format.pp_print_string fmt "default"
+         | LMerge -> Format.pp_print_string fmt "merge"
+         | LLocal i -> Format.pp_print_int fmt i
+    )
 
 type slevel =
-| Global of int
-| PerStmt of (stmt -> int)
+  | Global of int
+  | PerStmt of (stmt -> int)
 
 module DatatypeSlevel = Datatype.Make(struct
-  include Datatype.Undefined
-  type t = slevel
-  let reprs = [Global 0]
-  let name = "Value.Local_slevel.DatatypeSlevel"
-  let mem_project = Datatype.never_any_project
-end)
+    include Datatype.Undefined
+    type t = slevel
+    let reprs = [Global 0]
+    let name = "Value.Local_slevel.DatatypeSlevel"
+    let mem_project = Datatype.never_any_project
+  end)
 
 type merge =
-| NoMerge
-| Merge of (stmt -> bool)
+  | NoMerge
+  | Merge of (stmt -> bool)
 
 module DatatypeMerge = Datatype.Make(struct
-  include Datatype.Undefined
-  type t = merge
-  let reprs = [NoMerge]
-  let name = "Value.Local_slevel.DatatypeMerge"
-  let mem_project = Datatype.never_any_project
-end)
+    include Datatype.Undefined
+    type t = merge
+    let reprs = [NoMerge]
+    let name = "Value.Local_slevel.DatatypeMerge"
+    let mem_project = Datatype.never_any_project
+  end)
 
 let extract_slevel_directive s =
   let rec find_one l =
     match l with
     | [] -> None
-    | {annot_content =
-        AStmtSpec (_, { spec_behavior =
-                          [{b_extended = [_,"slevel", Ext_terms lp]}]})}
-      :: _ -> Some (retrieve_annot lp)
+    | {annot_content = AExtended(_,_,(_,"slevel", _, Ext_terms lp))} :: _ ->
+      Some (retrieve_annot lp)
     | _ :: q -> find_one q
   in
   find_one (Annotations.code_annot s)
@@ -178,8 +176,10 @@ let compute kf =
       Dfs.iter ~pre ~post kf;
       PerStmt
         (fun s ->
-          try Cil_datatype.Stmt.Hashtbl.find h_local s
-          with Not_found -> assert false (* all statements have been visited*)),
+           try Cil_datatype.Stmt.Hashtbl.find h_local s
+           (* All accessible statements have been visited. Returns 0 for
+              syntactically dead code. *)
+           with Not_found -> 0),
       (if Cil_datatype.Stmt.Hashtbl.length h_merge = 0
        then NoMerge
        else Merge (fun s -> Cil_datatype.Stmt.Hashtbl.mem h_merge s))
@@ -190,13 +190,13 @@ let compute kf =
 
 
 module ForKf = Kernel_function.Make_Table
-  (Datatype.Pair(DatatypeSlevel)(DatatypeMerge))
-  (struct
-    let size = 17
-    let dependencies =
-      [Ast.self; Value_parameters.SemanticUnrollingLevel.self;]
-    let name = "Value.Local_slevel.ForKf"
-   end)
+    (Datatype.Pair(DatatypeSlevel)(DatatypeMerge))
+    (struct
+      let size = 17
+      let dependencies =
+        [Ast.self; Value_parameters.SemanticUnrollingLevel.self;]
+      let name = "Value.Local_slevel.ForKf"
+    end)
 
 let memo = ForKf.memo compute
 

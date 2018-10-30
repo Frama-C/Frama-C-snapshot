@@ -1,26 +1,25 @@
 [kernel] Parsing tests/slicing/keep_annot.i (no preprocessing)
 [slicing] slicing requests in progress...
-[value] Analyzing an incomplete application starting at L
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing an incomplete application starting at L
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   
-[value:alarm] tests/slicing/keep_annot.i:40: Warning: 
+[eva:alarm] tests/slicing/keep_annot.i:40: Warning: 
   signed overflow. assert -2147483648 ≤ nn - 2;
-[value:alarm] tests/slicing/keep_annot.i:39: Warning: 
+[eva:alarm] tests/slicing/keep_annot.i:39: Warning: 
   loop invariant got status unknown.
-[value] tests/slicing/keep_annot.i:40: entering loop for the first time
-[value:alarm] tests/slicing/keep_annot.i:41: Warning: 
+[eva:alarm] tests/slicing/keep_annot.i:41: Warning: 
   out of bounds read. assert \valid_read(dabs + (int)(ii + 1));
-[value:alarm] tests/slicing/keep_annot.i:41: Warning: 
+[eva:alarm] tests/slicing/keep_annot.i:41: Warning: 
   non-finite float value.
   assert
   \is_finite((float)((double)((double)u -
                               (double)((double)*(dabs + (int)(ii + 1)) * 2.0))));
-[value:alarm] tests/slicing/keep_annot.i:42: Warning: 
+[eva:alarm] tests/slicing/keep_annot.i:42: Warning: 
   assertion got status unknown.
-[value] Recording results for L
-[value] done for function L
+[eva] Recording results for L
+[eva] done for function L
 [slicing] initializing slicing ...
 [slicing] interpreting slicing requests from the command line...
 [pdg] computing for function L

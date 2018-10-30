@@ -1,8 +1,8 @@
 [kernel] Parsing tests/value/recol.c (with preprocessing)
-[value] Analyzing a complete application starting at main
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing a complete application starting at main
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   s[0..99] ∈ {0}
   c ∈ {0}
   s_int ∈ {0}
@@ -15,12 +15,12 @@
        [4] ∈ {0}
   col_ones ∈ {0}
   col_123 ∈ {0}
-[value] tests/value/recol.c:30: Warning: 2's complement assumed for overflow
-[value] tests/value/recol.c:47: Warning: 2's complement assumed for overflow
-[value] Recording results for main
-[value] done for function main
-[value] ====== VALUES COMPUTED ======
-[value:final-states] Values at end of function main:
+[eva] tests/value/recol.c:30: Warning: 2's complement assumed for overflow
+[eva] tests/value/recol.c:47: Warning: 2's complement assumed for overflow
+[eva] Recording results for main
+[eva] done for function main
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function main:
   s[bits 0 to 15] ∈ {97}
    [bits 16 to 47] ∈ {776}
    [6] ∈ {-103}

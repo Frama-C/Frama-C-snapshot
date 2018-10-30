@@ -19,6 +19,21 @@
 #   configure	configure
 ###############################################################################
 
+##########################
+Plugin E-ACSL 18.0 (Argon)
+##########################
+
+-* E-ACSL       [2018/10/23] Fix bug #2406 about monitoring of variables
+	        with incomplete types.
+-* E-ACSL       [2018/10/04] Fix bug #2386 about incorrect typing when
+                performing pointer subtraction.
+-* E-ACSL       [2018/10/04] Support for \at on purely logic variables.
+                Fix bug #1762 about out-of-scope variables when using \old.
+-* E-ACSL       [2018/10/02] Fix bug #2305 about taking the address of a
+                bitfield.
+-  E-ACSL       [2018/09/18] Support for ranges in memory builtins
+                (\valid, \initialized, etc).
+
 ###############################
 Plugin E-ACSL Chlorine-20180501
 ###############################

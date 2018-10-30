@@ -3,10 +3,10 @@
   Floating-point constant 8.113 is not represented exactly. Will use 0x1.039db22d0e560p3.
   (warn-once: no further messages from category 'parser:decimal-float' will be emitted)
 [kernel] Parsing tests/value/CruiseControl_const.c (with preprocessing)
-[value] Analyzing an incomplete application starting at CruiseControl
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing an incomplete application starting at CruiseControl
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   ZeroSpeed ∈ {0}
   SpeedInc ∈ {2.0000000000000000}
   SpeedMax ∈ {150.0000000000000000}
@@ -15,54 +15,54 @@
   Kp ∈ {8.1129999160766601}
   Ki ∈ {1.0000000000000000*2^-1}
   RegThrottleMax ∈ {45.0000000000000000}
-[value] computing for function DetectPedalsPressed <- CruiseControl.
+[eva] computing for function DetectPedalsPressed <- CruiseControl.
   Called from tests/value/CruiseControl.c:462.
-[value] Recording results for DetectPedalsPressed
-[value] Done for function DetectPedalsPressed
-[value] computing for function DetectSpeedLimits <- CruiseControl.
+[eva] Recording results for DetectPedalsPressed
+[eva] Done for function DetectPedalsPressed
+[eva] computing for function DetectSpeedLimits <- CruiseControl.
   Called from tests/value/CruiseControl.c:473.
-[value] Recording results for DetectSpeedLimits
-[value] Done for function DetectSpeedLimits
-[value] computing for function CruiseStateMgt <- CruiseControl.
+[eva] Recording results for DetectSpeedLimits
+[eva] Done for function DetectSpeedLimits
+[eva] computing for function CruiseStateMgt <- CruiseControl.
   Called from tests/value/CruiseControl.c:486.
-[value] Recording results for CruiseStateMgt
-[value] Done for function CruiseStateMgt
-[value] computing for function CruiseSpeedMgt <- CruiseControl.
+[eva] Recording results for CruiseStateMgt
+[eva] Done for function CruiseStateMgt
+[eva] computing for function CruiseSpeedMgt <- CruiseControl.
   Called from tests/value/CruiseControl.c:508.
-[value] Recording results for CruiseSpeedMgt
-[value] Done for function CruiseSpeedMgt
-[value] computing for function ThrottleCmd <- CruiseControl.
+[eva] Recording results for CruiseSpeedMgt
+[eva] Done for function CruiseSpeedMgt
+[eva] computing for function ThrottleCmd <- CruiseControl.
   Called from tests/value/CruiseControl.c:525.
-[value] computing for function ThrottleRegulation <- ThrottleCmd <- CruiseControl.
+[eva] computing for function ThrottleRegulation <- ThrottleCmd <- CruiseControl.
   Called from tests/value/CruiseControl.c:242.
-[value:alarm] tests/value/CruiseControl.c:172: Warning: 
+[eva:alarm] tests/value/CruiseControl.c:172: Warning: 
   non-finite float value.
   assert \is_finite((float)(_C_->_L1_CruiseControl - _C_->_L2_CruiseControl));
-[value:alarm] tests/value/CruiseControl.c:175: Warning: 
+[eva:alarm] tests/value/CruiseControl.c:175: Warning: 
   non-finite float value.
   assert \is_finite((float)(_C_->_L3_CruiseControl * _C_->_L6_CruiseControl));
-[value:alarm] tests/value/CruiseControl.c:194: Warning: 
+[eva:alarm] tests/value/CruiseControl.c:194: Warning: 
   non-finite float value.
   assert
   \is_finite((float)(_C_->_L16_CruiseControl + _C_->_L18_CruiseControl));
-[value:alarm] tests/value/CruiseControl.c:199: Warning: 
+[eva:alarm] tests/value/CruiseControl.c:199: Warning: 
   non-finite float value.
   assert \is_finite((float)(_C_->ProportionnalAction + _C_->IntegralAction));
-[value] computing for function SaturateThrottle <- ThrottleRegulation <- 
+[eva] computing for function SaturateThrottle <- ThrottleRegulation <- 
                           ThrottleCmd <- CruiseControl.
   Called from tests/value/CruiseControl.c:202.
-[value:alarm] tests/value/CruiseControl.c:162: Warning: 
+[eva:alarm] tests/value/CruiseControl.c:162: Warning: 
   assertion got status unknown.
-[value] Recording results for SaturateThrottle
-[value] Done for function SaturateThrottle
-[value] Recording results for ThrottleRegulation
-[value] Done for function ThrottleRegulation
-[value] Recording results for ThrottleCmd
-[value] Done for function ThrottleCmd
-[value] Recording results for CruiseControl
-[value] done for function CruiseControl
-[value] ====== VALUES COMPUTED ======
-[value:final-states] Values at end of function CruiseSpeedMgt:
+[eva] Recording results for SaturateThrottle
+[eva] Done for function SaturateThrottle
+[eva] Recording results for ThrottleRegulation
+[eva] Done for function ThrottleRegulation
+[eva] Recording results for ThrottleCmd
+[eva] Done for function ThrottleCmd
+[eva] Recording results for CruiseControl
+[eva] done for function CruiseControl
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function CruiseSpeedMgt:
   __retres ∈ {1}
   S__C_[0]{._I0_On; ._I1_Off; ._I2_Resume; ._I3_Set; ._I4_QuickAccel; ._I5_QuickDecel} ∈
        [--..--]
@@ -288,7 +288,7 @@
        [-1.9999998807907104*2^127 .. 1.9999998807907104*2^127]
        [1]._C4_ThrottleCmd{._C0_ThrottleRegulation._C0_SaturateThrottle._L13_CruiseControl; ._M_condact_2_CruiseControl} ∈
        [--..--]
-[value:final-states] Values at end of function CruiseStateMgt:
+[eva:final-states] Values at end of function CruiseStateMgt:
   __retres ∈ {1}
   S__C_[0]{._I0_On; ._I1_Off; ._I2_Resume; ._I3_Set; ._I4_QuickAccel; ._I5_QuickDecel} ∈
        [--..--]
@@ -506,7 +506,7 @@
        [-1.9999998807907104*2^127 .. 1.9999998807907104*2^127]
        [1]._C4_ThrottleCmd{._C0_ThrottleRegulation._C0_SaturateThrottle._L13_CruiseControl; ._M_condact_2_CruiseControl} ∈
        [--..--]
-[value:final-states] Values at end of function DetectPedalsPressed:
+[eva:final-states] Values at end of function DetectPedalsPressed:
   __retres ∈ {1}
   S__C_[0]{._I0_On; ._I1_Off; ._I2_Resume; ._I3_Set; ._I4_QuickAccel; ._I5_QuickDecel} ∈
        [--..--]
@@ -694,7 +694,7 @@
        [-1.9999998807907104*2^127 .. 1.9999998807907104*2^127]
        [1]._C4_ThrottleCmd{._C0_ThrottleRegulation._C0_SaturateThrottle._L13_CruiseControl; ._M_condact_2_CruiseControl} ∈
        [--..--]
-[value:final-states] Values at end of function DetectSpeedLimits:
+[eva:final-states] Values at end of function DetectSpeedLimits:
   __retres ∈ {1}
   S__C_[0]{._I0_On; ._I1_Off; ._I2_Resume; ._I3_Set; ._I4_QuickAccel; ._I5_QuickDecel} ∈
        [--..--]
@@ -886,7 +886,7 @@
        [-1.9999998807907104*2^127 .. 1.9999998807907104*2^127]
        [1]._C4_ThrottleCmd{._C0_ThrottleRegulation._C0_SaturateThrottle._L13_CruiseControl; ._M_condact_2_CruiseControl} ∈
        [--..--]
-[value:final-states] Values at end of function SaturateThrottle:
+[eva:final-states] Values at end of function SaturateThrottle:
   __retres ∈ {1}
   S__C_[0]{._I0_On; ._I1_Off; ._I2_Resume; ._I3_Set; ._I4_QuickAccel; ._I5_QuickDecel} ∈
        [--..--]
@@ -1124,7 +1124,7 @@
        [-1.9999998807907104*2^127 .. 1.9999998807907104*2^127]
        [1]._C4_ThrottleCmd{._C0_ThrottleRegulation._C0_SaturateThrottle._L13_CruiseControl; ._M_condact_2_CruiseControl} ∈
        [--..--]
-[value:final-states] Values at end of function ThrottleRegulation:
+[eva:final-states] Values at end of function ThrottleRegulation:
   __retres ∈ {1}
   S__C_[0]{._I0_On; ._I1_Off; ._I2_Resume; ._I3_Set; ._I4_QuickAccel; ._I5_QuickDecel} ∈
        [--..--]
@@ -1362,7 +1362,7 @@
        [-1.9999998807907104*2^127 .. 1.9999998807907104*2^127]
        [1]._C4_ThrottleCmd{._C0_ThrottleRegulation._C0_SaturateThrottle._L13_CruiseControl; ._M_condact_2_CruiseControl} ∈
        [--..--]
-[value:final-states] Values at end of function ThrottleCmd:
+[eva:final-states] Values at end of function ThrottleCmd:
   __retres ∈ {1}
   S__C_[0]{._I0_On; ._I1_Off; ._I2_Resume; ._I3_Set; ._I4_QuickAccel; ._I5_QuickDecel} ∈
        [--..--]
@@ -1582,7 +1582,7 @@
        [-1.9999998807907104*2^127 .. 1.9999998807907104*2^127]
        [1]._C4_ThrottleCmd{._C0_ThrottleRegulation._C0_SaturateThrottle._L13_CruiseControl; ._M_condact_2_CruiseControl} ∈
        [--..--]
-[value:final-states] Values at end of function CruiseControl:
+[eva:final-states] Values at end of function CruiseControl:
   __retres ∈ {1}
   S__C_[0]{._I0_On; ._I1_Off; ._I2_Resume; ._I3_Set; ._I4_QuickAccel; ._I5_QuickDecel} ∈
        [--..--]

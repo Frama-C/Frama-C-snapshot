@@ -1,8 +1,8 @@
 [kernel] Parsing tests/value/cond2.i (no preprocessing)
-[value] Analyzing a complete application starting at zero_ou_un_0
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing a complete application starting at zero_ou_un_0
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   Gx ∈ [--..--]
   Gy ∈ [--..--]
   px ∈ {0}
@@ -14,16 +14,16 @@
   s ∈ {0}
   t ∈ {0}
   u ∈ {0}
-[value] tests/value/cond2.i:26: entering loop for the first time
-[value:alarm] tests/value/cond2.i:26: Warning: 
+[eva] tests/value/cond2.i:26: starting to merge loop iterations
+[eva:alarm] tests/value/cond2.i:26: Warning: 
   signed overflow. assert x + 2 ≤ 2147483647;
-[value] tests/value/cond2.i:27: entering loop for the first time
-[value:alarm] tests/value/cond2.i:27: Warning: 
+[eva] tests/value/cond2.i:27: starting to merge loop iterations
+[eva:alarm] tests/value/cond2.i:27: Warning: 
   signed overflow. assert y + 5 ≤ 2147483647;
-[value] Recording results for zero_ou_un_0
-[value] done for function zero_ou_un_0
-[value] ====== VALUES COMPUTED ======
-[value:final-states] Values at end of function zero_ou_un_0:
+[eva] Recording results for zero_ou_un_0
+[eva] done for function zero_ou_un_0
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function zero_ou_un_0:
   x ∈ {0; 2}
   y ∈ {1; 2}
   r ∈ {0; 1}

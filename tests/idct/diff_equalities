@@ -1,85 +1,136 @@
 diff tests/idct/oracle/ieee_1180_1990.res.oracle tests/idct/oracle_equalities/ieee_1180_1990.res.oracle
-251a252,253
-> [value] tests/idct/ieee_1180_1990.c:219: Warning: 
+331a332,333
+> [eva] tests/idct/ieee_1180_1990.c:219: Warning: 
 >   2's complement assumed for overflow
-255a258,259
-> [value] tests/idct/ieee_1180_1990.c:220: Warning: 
+335a338,339
+> [eva] tests/idct/ieee_1180_1990.c:220: Warning: 
 >   2's complement assumed for overflow
-260,261d263
-< [value] tests/idct/ieee_1180_1990.c:219: Warning: 
+341,342d344
+< [eva] tests/idct/ieee_1180_1990.c:219: Warning: 
 <   2's complement assumed for overflow
-285a288,289
-> [value] tests/idct/ieee_1180_1990.c:243: Warning: 
+365a368,369
+> [eva] tests/idct/ieee_1180_1990.c:243: Warning: 
 >   2's complement assumed for overflow
-289a294,295
-> [value] tests/idct/ieee_1180_1990.c:244: Warning: 
+369a374,375
+> [eva] tests/idct/ieee_1180_1990.c:244: Warning: 
 >   2's complement assumed for overflow
-294,295d299
-< [value] tests/idct/ieee_1180_1990.c:243: Warning: 
+375,376d380
+< [eva] tests/idct/ieee_1180_1990.c:243: Warning: 
 <   2's complement assumed for overflow
-315a320,323
-> [value] tests/idct/ieee_1180_1990.c:85: 
+397a402,405
+> [eva] tests/idct/ieee_1180_1990.c:85: 
 >   Reusing old results for call to IEEE_1180_1990_rand
-> [value] tests/idct/ieee_1180_1990.c:85: 
+> [eva] tests/idct/ieee_1180_1990.c:85: 
 >   Reusing old results for call to IEEE_1180_1990_rand
-330a339,340
-> [value] tests/idct/ieee_1180_1990.c:265: Warning: 
+410a419,420
+> [eva] tests/idct/ieee_1180_1990.c:265: Warning: 
 >   2's complement assumed for overflow
-334a345,346
-> [value] tests/idct/ieee_1180_1990.c:266: Warning: 
+414a425,426
+> [eva] tests/idct/ieee_1180_1990.c:266: Warning: 
 >   2's complement assumed for overflow
-339,340d350
-< [value] tests/idct/ieee_1180_1990.c:265: Warning: 
+420,421d431
+< [eva] tests/idct/ieee_1180_1990.c:265: Warning: 
 <   2's complement assumed for overflow
-357a368,369
-> [value] tests/idct/ieee_1180_1990.c:289: Warning: 
+437a448,449
+> [eva] tests/idct/ieee_1180_1990.c:289: Warning: 
 >   2's complement assumed for overflow
-361a374,375
-> [value] tests/idct/ieee_1180_1990.c:290: Warning: 
+441a454,455
+> [eva] tests/idct/ieee_1180_1990.c:290: Warning: 
 >   2's complement assumed for overflow
-366,367d379
-< [value] tests/idct/ieee_1180_1990.c:289: Warning: 
+447,448d460
+< [eva] tests/idct/ieee_1180_1990.c:289: Warning: 
 <   2's complement assumed for overflow
-387a400,403
-> [value] tests/idct/ieee_1180_1990.c:85: 
+469a482,485
+> [eva] tests/idct/ieee_1180_1990.c:85: 
 >   Reusing old results for call to IEEE_1180_1990_rand
-> [value] tests/idct/ieee_1180_1990.c:85: 
+> [eva] tests/idct/ieee_1180_1990.c:85: 
 >   Reusing old results for call to IEEE_1180_1990_rand
-402a419,420
-> [value] tests/idct/ieee_1180_1990.c:311: Warning: 
+482a499,500
+> [eva] tests/idct/ieee_1180_1990.c:311: Warning: 
 >   2's complement assumed for overflow
-406a425,426
-> [value] tests/idct/ieee_1180_1990.c:312: Warning: 
+486a505,506
+> [eva] tests/idct/ieee_1180_1990.c:312: Warning: 
 >   2's complement assumed for overflow
-411,412d430
-< [value] tests/idct/ieee_1180_1990.c:311: Warning: 
+492,493d511
+< [eva] tests/idct/ieee_1180_1990.c:311: Warning: 
 <   2's complement assumed for overflow
-429a448,449
-> [value] tests/idct/ieee_1180_1990.c:335: Warning: 
+509a528,529
+> [eva] tests/idct/ieee_1180_1990.c:335: Warning: 
 >   2's complement assumed for overflow
-433a454,455
-> [value] tests/idct/ieee_1180_1990.c:336: Warning: 
+513a534,535
+> [eva] tests/idct/ieee_1180_1990.c:336: Warning: 
 >   2's complement assumed for overflow
-438,439d459
-< [value] tests/idct/ieee_1180_1990.c:335: Warning: 
+519,520d540
+< [eva] tests/idct/ieee_1180_1990.c:335: Warning: 
 <   2's complement assumed for overflow
-457a478,481
-> [value] tests/idct/ieee_1180_1990.c:85: 
+540a561,564
+> [eva] tests/idct/ieee_1180_1990.c:85: 
 >   Reusing old results for call to IEEE_1180_1990_rand
-> [value] tests/idct/ieee_1180_1990.c:85: 
+> [eva] tests/idct/ieee_1180_1990.c:85: 
 >   Reusing old results for call to IEEE_1180_1990_rand
-493a518,521
-> [value] tests/idct/ieee_1180_1990.c:85: 
+548a573,578
+> [eva] tests/idct/ieee_1180_1990.c:100: 
+>   Call to builtin Frama_C_sqrt for function sqrt
+> [eva] tests/idct/ieee_1180_1990.c:101: 
+>   Call to builtin Frama_C_cos for function cos
+> [eva] tests/idct/ieee_1180_1990.c:100: 
+>   Call to builtin Frama_C_sqrt for function sqrt
+550a581,582
+> [eva] tests/idct/ieee_1180_1990.c:100: 
+>   Call to builtin Frama_C_sqrt for function sqrt
+552a585,590
+> [eva] tests/idct/ieee_1180_1990.c:100: 
+>   Call to builtin Frama_C_sqrt for function sqrt
+> [eva] tests/idct/ieee_1180_1990.c:101: 
+>   Call to builtin Frama_C_cos for function cos
+> [eva] tests/idct/ieee_1180_1990.c:100: 
+>   Call to builtin Frama_C_sqrt for function sqrt
+574a613,618
+> [eva] tests/idct/ieee_1180_1990.c:140: 
+>   Call to builtin Frama_C_sqrt for function sqrt
+> [eva] tests/idct/ieee_1180_1990.c:141: 
+>   Call to builtin Frama_C_cos for function cos
+> [eva] tests/idct/ieee_1180_1990.c:140: 
+>   Call to builtin Frama_C_sqrt for function sqrt
+576a621,622
+> [eva] tests/idct/ieee_1180_1990.c:140: 
+>   Call to builtin Frama_C_sqrt for function sqrt
+578a625,630
+> [eva] tests/idct/ieee_1180_1990.c:140: 
+>   Call to builtin Frama_C_sqrt for function sqrt
+> [eva] tests/idct/ieee_1180_1990.c:141: 
+>   Call to builtin Frama_C_cos for function cos
+> [eva] tests/idct/ieee_1180_1990.c:140: 
+>   Call to builtin Frama_C_sqrt for function sqrt
+620a673,676
+> [eva] tests/idct/ieee_1180_1990.c:85: 
 >   Reusing old results for call to IEEE_1180_1990_rand
-> [value] tests/idct/ieee_1180_1990.c:85: 
+> [eva] tests/idct/ieee_1180_1990.c:85: 
 >   Reusing old results for call to IEEE_1180_1990_rand
-523a552,555
-> [value] tests/idct/ieee_1180_1990.c:85: 
+650a707,710
+> [eva] tests/idct/ieee_1180_1990.c:85: 
 >   Reusing old results for call to IEEE_1180_1990_rand
-> [value] tests/idct/ieee_1180_1990.c:85: 
+> [eva] tests/idct/ieee_1180_1990.c:85: 
 >   Reusing old results for call to IEEE_1180_1990_rand
-539a572,575
-> [value] tests/idct/ieee_1180_1990.c:85: 
+680a741,744
+> [eva] tests/idct/ieee_1180_1990.c:85: 
 >   Reusing old results for call to IEEE_1180_1990_rand
-> [value] tests/idct/ieee_1180_1990.c:85: 
+> [eva] tests/idct/ieee_1180_1990.c:85: 
 >   Reusing old results for call to IEEE_1180_1990_rand
+688a753,754
+> [eva] tests/idct/ieee_1180_1990.c:100: 
+>   Call to builtin Frama_C_sqrt for function sqrt
+690a757,762
+> [eva] tests/idct/ieee_1180_1990.c:100: 
+>   Call to builtin Frama_C_sqrt for function sqrt
+> [eva] tests/idct/ieee_1180_1990.c:101: 
+>   Call to builtin Frama_C_cos for function cos
+> [eva] tests/idct/ieee_1180_1990.c:100: 
+>   Call to builtin Frama_C_sqrt for function sqrt
+692a765,770
+> [eva] tests/idct/ieee_1180_1990.c:100: 
+>   Call to builtin Frama_C_sqrt for function sqrt
+> [eva] tests/idct/ieee_1180_1990.c:101: 
+>   Call to builtin Frama_C_cos for function cos
+> [eva] tests/idct/ieee_1180_1990.c:100: 
+>   Call to builtin Frama_C_sqrt for function sqrt

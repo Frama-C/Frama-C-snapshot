@@ -1,0 +1,82 @@
+[kernel] Parsing tests/value/descending.i (no preprocessing)
+[eva] Analyzing a complete application starting at main
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
+  
+[eva] computing for function test1 <- main.
+  Called from tests/value/descending.i:33.
+[eva] computing for function f <- test1 <- main.
+  Called from tests/value/descending.i:12.
+[eva] tests/value/descending.i:4: starting to merge loop iterations
+[eva] Recording results for f
+[eva] Done for function f
+[eva:alarm] tests/value/descending.i:13: Warning: 
+  accessing out of bounds index. assert (int)(i - 1) < 10;
+[eva:alarm] tests/value/descending.i:13: Warning: 
+  accessing uninitialized left-value. assert \initialized(&A[i - 1]);
+[eva] Recording results for test1
+[eva] Done for function test1
+[eva] computing for function test2 <- main.
+  Called from tests/value/descending.i:34.
+[eva] tests/value/descending.i:22: starting to merge loop iterations
+[eva:alarm] tests/value/descending.i:28: Warning: 
+  accessing out of bounds index. assert j < 33;
+[eva] Recording results for test2
+[eva] Done for function test2
+[eva] Recording results for main
+[eva] done for function main
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function f:
+  i ∈ [10..2147483647]
+  A[0..9] ∈ {0} or UNINITIALIZED
+[eva:final-states] Values at end of function test1:
+  A[0..8] ∈ {0} or UNINITIALIZED
+   [9] ∈ {0}
+  i ∈ {10}
+  __retres ∈ {0}
+[eva:final-states] Values at end of function test2:
+  A[0..30] ∈ {0} or UNINITIALIZED
+   [31] ∈ UNINITIALIZED
+   [32] ∈ {1}
+  i ∈ {31; 32}
+  n ∈ {31}
+  j ∈ {32}
+[eva:final-states] Values at end of function main:
+  
+[from] Computing for function f
+[from] Done for function f
+[from] Computing for function test1
+[from] Done for function test1
+[from] Computing for function test2
+[from] Done for function test2
+[from] Computing for function main
+[from] Done for function main
+[from] ====== DEPENDENCIES COMPUTED ======
+  These dependencies hold at termination for the executions that terminate:
+[from] Function f:
+  A[0..9] FROM A; n (and SELF)
+  \result FROM n
+[from] Function test1:
+  \result FROM \nothing
+[from] Function test2:
+  NO EFFECTS
+[from] Function main:
+  NO EFFECTS
+[from] ====== END OF DEPENDENCIES ======
+[inout] Out (internal) for function f:
+    i; tmp; A[0..9]
+[inout] Inputs for function f:
+    \nothing
+[inout] Out (internal) for function test1:
+    A[0..9]; i; __retres
+[inout] Inputs for function test1:
+    \nothing
+[inout] Out (internal) for function test2:
+    A{[0..30]; [32]}; i; n; j
+[inout] Inputs for function test2:
+    \nothing
+[inout] Out (internal) for function main:
+    \nothing
+[inout] Inputs for function main:
+    \nothing

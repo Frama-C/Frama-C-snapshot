@@ -27,6 +27,11 @@ Goal Assertion 'PJ' (file tests/wp_typed/unit_labels.i, line 10):
 Prove: true.
 
 ------------------------------------------------------------
-[wp] Warning: Separation hypotheses for function 'duplet':
-  /*@ behavior typed_ref: requires \separated(pi,pj,a+(..)); */
+[wp] Warning: Memory model hypotheses for function 'duplet':
+  /*@
+     behavior typed_ref:
+     requires \separated(pi,pj,a+(..));
+     requires \valid(pi);
+     requires \valid(pj);
+     */
   void duplet(int *a, int *pi, int *pj);

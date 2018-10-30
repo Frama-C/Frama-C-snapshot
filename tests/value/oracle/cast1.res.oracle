@@ -1,20 +1,20 @@
 [kernel] Parsing tests/value/cast1.i (no preprocessing)
-[value] Analyzing a complete application starting at main
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing a complete application starting at main
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   si ∈ {0}
   i ∈ {0}
   S[0] ∈ {1}
    [1..4] ∈ {0}
   I[0] ∈ {1}
    [1..4] ∈ {0}
-[value] tests/value/cast1.i:7: entering loop for the first time
-[value] tests/value/cast1.i:8: entering loop for the first time
-[value] Recording results for main
-[value] done for function main
-[value] ====== VALUES COMPUTED ======
-[value:final-states] Values at end of function main:
+[eva] tests/value/cast1.i:7: starting to merge loop iterations
+[eva] tests/value/cast1.i:8: starting to merge loop iterations
+[eva] Recording results for main
+[eva] done for function main
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function main:
   si ∈ {2}
   i ∈ {2}
   S[0] ∈ {1; 2}

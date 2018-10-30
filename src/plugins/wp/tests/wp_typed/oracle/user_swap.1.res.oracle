@@ -41,6 +41,11 @@ Goal Assigns 'E' in 'swap':
 Prove: true.
 
 ------------------------------------------------------------
-[wp] Warning: Separation hypotheses for function 'swap':
-  /*@ behavior typed_ref: requires \separated(a,b); */
+[wp] Warning: Memory model hypotheses for function 'swap':
+  /*@
+     behavior typed_ref:
+     requires \separated(a,b);
+     requires \valid(a);
+     requires \valid(b);
+     */
   void swap(int *a, int *b);

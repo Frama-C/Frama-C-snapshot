@@ -1,18 +1,18 @@
 [kernel] Parsing tests/slicing/bts179.i (no preprocessing)
 [slicing] slicing requests in progress...
-[value] Analyzing a complete application starting at main
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing a complete application starting at main
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   S ∈ {0}
   X ∈ {0}
   Y ∈ {0}
-[value] computing for function g <- main.
+[eva] computing for function g <- main.
   Called from tests/slicing/bts179.i:16.
-[value] Recording results for g
-[value] Done for function g
-[value] Recording results for main
-[value] done for function main
+[eva] Recording results for g
+[eva] Done for function g
+[eva] Recording results for main
+[eva] done for function main
 [slicing] initializing slicing ...
 [slicing] interpreting slicing requests from the command line...
 [pdg] computing for function main

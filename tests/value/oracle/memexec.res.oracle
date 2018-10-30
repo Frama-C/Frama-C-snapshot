@@ -1,9 +1,9 @@
 [kernel] Parsing tests/value/memexec.c (with preprocessing)
 [rte] annotating function fbug
-[value] Analyzing a complete application starting at main
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing a complete application starting at main
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   x1 ∈ {0}
   y1 ∈ {0}
   z1 ∈ {0}
@@ -16,156 +16,155 @@
   g_f5_1 ∈ {0}
   g_f5_2 ∈ {0}
   two_fields ∈ {0}
-[value] computing for function f1 <- main.
+[eva] computing for function f1 <- main.
   Called from tests/value/memexec.c:154.
-[value] computing for function f11 <- f1 <- main.
+[eva] computing for function f11 <- f1 <- main.
   Called from tests/value/memexec.c:12.
-[value] Recording results for f11
-[value] Done for function f11
-[value] tests/value/memexec.c:13: Reusing old results for call to f11
-[value] tests/value/memexec.c:14: Reusing old results for call to f11
-[value] tests/value/memexec.c:16: Reusing old results for call to f11
-[value] tests/value/memexec.c:18: Reusing old results for call to f11
-[value] tests/value/memexec.c:20: Reusing old results for call to f11
-[value] tests/value/memexec.c:21: Reusing old results for call to f11
-[value] Recording results for f1
-[value] Done for function f1
-[value] computing for function f2 <- main.
+[eva] Recording results for f11
+[eva] Done for function f11
+[eva] tests/value/memexec.c:13: Reusing old results for call to f11
+[eva] tests/value/memexec.c:14: Reusing old results for call to f11
+[eva] tests/value/memexec.c:16: Reusing old results for call to f11
+[eva] tests/value/memexec.c:18: Reusing old results for call to f11
+[eva] tests/value/memexec.c:20: Reusing old results for call to f11
+[eva] tests/value/memexec.c:21: Reusing old results for call to f11
+[eva] Recording results for f1
+[eva] Done for function f1
+[eva] computing for function f2 <- main.
   Called from tests/value/memexec.c:155.
-[value] Recording results for f2
-[value] Done for function f2
-[value] computing for function f3 <- main.
+[eva] Recording results for f2
+[eva] Done for function f2
+[eva] computing for function f3 <- main.
   Called from tests/value/memexec.c:156.
-[value] Recording results for f3
-[value] Done for function f3
-[value] computing for function bug <- main.
+[eva] Recording results for f3
+[eva] Done for function f3
+[eva] computing for function bug <- main.
   Called from tests/value/memexec.c:157.
-[value] computing for function fbug <- bug <- main.
+[eva] computing for function fbug <- bug <- main.
   Called from tests/value/memexec.c:40.
-[value:alarm] tests/value/memexec.c:33: Warning: 
+[eva:alarm] tests/value/memexec.c:33: Warning: 
   assertion 'rte,mem_access' got status invalid (stopping propagation).
-[value] Recording results for fbug
-[value] Done for function fbug
-[value] computing for function fbug <- bug <- main.
+[eva] Recording results for fbug
+[eva] Done for function fbug
+[eva] computing for function fbug <- bug <- main.
   Called from tests/value/memexec.c:42.
-[value] tests/value/memexec.c:33: assertion 'rte,mem_access' got status valid.
-[value] Recording results for fbug
-[value] Done for function fbug
-[value] Recording results for bug
-[value] Done for function bug
-[value] tests/value/memexec.c:157: Warning: 
+[eva] tests/value/memexec.c:33: assertion 'rte,mem_access' got status valid.
+[eva] Recording results for fbug
+[eva] Done for function fbug
+[eva] Recording results for bug
+[eva] Done for function bug
+[eva:locals-escaping] tests/value/memexec.c:157: Warning: 
   locals {x} escaping the scope of bug through p
-[value] computing for function f4 <- main.
+[eva] computing for function f4 <- main.
   Called from tests/value/memexec.c:158.
-[value] computing for function f4_2 <- f4 <- main.
+[eva] computing for function f4_2 <- f4 <- main.
   Called from tests/value/memexec.c:84.
-[value] computing for function f4_11 <- f4_2 <- f4 <- main.
+[eva] computing for function f4_11 <- f4_2 <- f4 <- main.
   Called from tests/value/memexec.c:74.
-[value:alarm] tests/value/memexec.c:59: Warning: 
+[eva:alarm] tests/value/memexec.c:59: Warning: 
   accessing out of bounds index. assert ps->i < 10;
 [kernel] tests/value/memexec.c:59: Warning: 
   all target addresses were invalid. This path is assumed to be dead.
-[value] Recording results for f4_11
-[value] Done for function f4_11
-[value] computing for function f4_12 <- f4_2 <- f4 <- main.
+[eva] Recording results for f4_11
+[eva] Done for function f4_11
+[eva] computing for function f4_12 <- f4_2 <- f4 <- main.
   Called from tests/value/memexec.c:76.
-[value:alarm] tests/value/memexec.c:63: Warning: 
+[eva:alarm] tests/value/memexec.c:63: Warning: 
   accessing out of bounds index. assert i < 10;
 [kernel] tests/value/memexec.c:63: Warning: 
   all target addresses were invalid. This path is assumed to be dead.
-[value] Recording results for f4_12
-[value] Done for function f4_12
-[value] Recording results for f4_2
-[value] Done for function f4_2
-[value] computing for function f4_2 <- f4 <- main.
+[eva] Recording results for f4_12
+[eva] Done for function f4_12
+[eva] Recording results for f4_2
+[eva] Done for function f4_2
+[eva] computing for function f4_2 <- f4 <- main.
   Called from tests/value/memexec.c:87.
-[value] computing for function f4_11 <- f4_2 <- f4 <- main.
+[eva] computing for function f4_11 <- f4_2 <- f4 <- main.
   Called from tests/value/memexec.c:74.
-[value] Recording results for f4_11
-[value] Done for function f4_11
-[value] computing for function f4_12 <- f4_2 <- f4 <- main.
+[eva] Recording results for f4_11
+[eva] Done for function f4_11
+[eva] computing for function f4_12 <- f4_2 <- f4 <- main.
   Called from tests/value/memexec.c:76.
-[value] Recording results for f4_12
-[value] Done for function f4_12
-[value] Recording results for f4_2
-[value] Done for function f4_2
-[value] Recording results for f4
-[value] Done for function f4
-[value] computing for function f5 <- main.
+[eva] Recording results for f4_12
+[eva] Done for function f4_12
+[eva] Recording results for f4_2
+[eva] Done for function f4_2
+[eva] Recording results for f4
+[eva] Done for function f4
+[eva] computing for function f5 <- main.
   Called from tests/value/memexec.c:159.
-[value] computing for function f5_aux <- f5 <- main.
+[eva] computing for function f5_aux <- f5 <- main.
   Called from tests/value/memexec.c:107.
-[value:alarm] tests/value/memexec.c:94: Warning: assertion got status unknown.
-[value:alarm] tests/value/memexec.c:96: Warning: assertion got status unknown.
-[value] tests/value/memexec.c:98: entering loop for the first time
-[value] Recording results for f5_aux
-[value] Done for function f5_aux
-[value] tests/value/memexec.c:108: 
+[eva:alarm] tests/value/memexec.c:94: Warning: assertion got status unknown.
+[eva:alarm] tests/value/memexec.c:96: Warning: assertion got status unknown.
+[eva] Recording results for f5_aux
+[eva] Done for function f5_aux
+[eva] tests/value/memexec.c:108: 
   Frama_C_show_each_f5: [9..2147483647], [-2147483648..6], [-2147483648..7]
-[value] tests/value/memexec.c:113: Reusing old results for call to f5_aux
-[value] tests/value/memexec.c:114: 
+[eva] tests/value/memexec.c:113: Reusing old results for call to f5_aux
+[eva] tests/value/memexec.c:114: 
   Frama_C_show_each_f5:
   [9..2147483647], [-2147483648..2147483647], [-2147483648..7]
-[value] Recording results for f5
-[value] Done for function f5
-[value] computing for function f6 <- main.
+[eva] Recording results for f5
+[eva] Done for function f5
+[eva] computing for function f6 <- main.
   Called from tests/value/memexec.c:160.
-[value] computing for function f6_1 <- f6 <- main.
+[eva] computing for function f6_1 <- f6 <- main.
   Called from tests/value/memexec.c:123.
-[value] Recording results for f6_1
-[value] Done for function f6_1
-[value] computing for function f6_1 <- f6 <- main.
+[eva] Recording results for f6_1
+[eva] Done for function f6_1
+[eva] computing for function f6_1 <- f6 <- main.
   Called from tests/value/memexec.c:126.
-[value] Recording results for f6_1
-[value] Done for function f6_1
-[value] Recording results for f6
-[value] Done for function f6
-[value] computing for function f7 <- main.
+[eva] Recording results for f6_1
+[eva] Done for function f6_1
+[eva] Recording results for f6
+[eva] Done for function f6
+[eva] computing for function f7 <- main.
   Called from tests/value/memexec.c:161.
-[value] computing for function f7_1 <- f7 <- main.
+[eva] computing for function f7_1 <- f7 <- main.
   Called from tests/value/memexec.c:136.
-[value] Recording results for f7_1
-[value] Done for function f7_1
-[value] tests/value/memexec.c:137: Reusing old results for call to f7_1
-[value] Recording results for f7
-[value] Done for function f7
-[value] computing for function f8 <- main.
+[eva] Recording results for f7_1
+[eva] Done for function f7_1
+[eva] tests/value/memexec.c:137: Reusing old results for call to f7_1
+[eva] Recording results for f7
+[eva] Done for function f7
+[eva] computing for function f8 <- main.
   Called from tests/value/memexec.c:162.
-[value] computing for function f8_1 <- f8 <- main.
+[eva] computing for function f8_1 <- f8 <- main.
   Called from tests/value/memexec.c:147.
-[value:alarm] tests/value/memexec.c:141: Warning: 
+[eva:alarm] tests/value/memexec.c:141: Warning: 
   accessing uninitialized left-value. assert \initialized(q);
-[value] Recording results for f8_1
-[value] Done for function f8_1
-[value] computing for function f8_1 <- f8 <- main.
+[eva] Recording results for f8_1
+[eva] Done for function f8_1
+[eva] computing for function f8_1 <- f8 <- main.
   Called from tests/value/memexec.c:149.
-[value] Recording results for f8_1
-[value] Done for function f8_1
-[value] tests/value/memexec.c:150: Reusing old results for call to f8_1
-[value] Recording results for f8
-[value] Done for function f8
-[value] Recording results for main
-[value] done for function main
-[value] ====== VALUES COMPUTED ======
-[value:final-states] Values at end of function f11:
+[eva] Recording results for f8_1
+[eva] Done for function f8_1
+[eva] tests/value/memexec.c:150: Reusing old results for call to f8_1
+[eva] Recording results for f8
+[eva] Done for function f8
+[eva] Recording results for main
+[eva] done for function main
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function f11:
   x1 ∈ {1}
-[value:final-states] Values at end of function f1:
+[eva:final-states] Values at end of function f1:
   x1 ∈ {1}
-[value:final-states] Values at end of function f2:
+[eva:final-states] Values at end of function f2:
   
-[value:final-states] Values at end of function f3:
+[eva:final-states] Values at end of function f3:
   
-[value:final-states] Values at end of function f4_11:
+[eva:final-states] Values at end of function f4_11:
   t[0..5] ∈ {0}
    [6] ∈ {1}
    [7..9] ∈ {0}
-[value:final-states] Values at end of function f4_12:
+[eva:final-states] Values at end of function f4_12:
   t[0..1] ∈ {0}
    [2] ∈ {3}
    [3..4] ∈ {0}
    [5] ∈ {2}
    [6..9] ∈ {0}
-[value:final-states] Values at end of function f4_2:
+[eva:final-states] Values at end of function f4_2:
   i ∈ {5}
   t[0..1] ∈ {0}
    [2] ∈ {0; 3}
@@ -177,7 +176,7 @@
   S[0..7] ∈ {0}
    [8].i ∈ {6}
    [9] ∈ {0}
-[value:final-states] Values at end of function f4:
+[eva:final-states] Values at end of function f4:
   i ∈ {0; 5}
   t[0..1] ∈ {0}
    [2] ∈ {0; 3}
@@ -190,32 +189,32 @@
    [8].i ∈ {0; 6}
    [9] ∈ {0}
   n ∈ {6; 12}
-[value:final-states] Values at end of function f5_aux:
+[eva:final-states] Values at end of function f5_aux:
   v ∈ [--..--]
-[value:final-states] Values at end of function f5:
+[eva:final-states] Values at end of function f5:
   g_f5_1 ∈ [--..--]
   g_f5_2 ∈ [-2147483648..7]
   arg ∈ [9..2147483647]
-[value:final-states] Values at end of function f6_1:
+[eva:final-states] Values at end of function f6_1:
   two_fields.x ∈ {1}
             .y ∈ {2; 3}
-[value:final-states] Values at end of function f6:
+[eva:final-states] Values at end of function f6:
   two_fields.x ∈ {1}
             .y ∈ {3}
-[value:final-states] Values at end of function f7_1:
+[eva:final-states] Values at end of function f7_1:
   x{.x; .y} ∈ {1}
-[value:final-states] Values at end of function f7:
+[eva:final-states] Values at end of function f7:
   x{.x; .y} ∈ {1}
-[value:final-states] Values at end of function f8_1:
+[eva:final-states] Values at end of function f8_1:
   q ∈ {0}
-[value:final-states] Values at end of function f8:
+[eva:final-states] Values at end of function f8:
   x ∈ {1}
-[value:final-states] Values at end of function fbug:
+[eva:final-states] Values at end of function fbug:
   __retres ∈ {1}
-[value:final-states] Values at end of function bug:
+[eva:final-states] Values at end of function bug:
   p ∈ {{ &x }}
   x ∈ {1}
-[value:final-states] Values at end of function main:
+[eva:final-states] Values at end of function main:
   x1 ∈ {1}
   p ∈ ESCAPINGADDR
   i ∈ {0; 5}

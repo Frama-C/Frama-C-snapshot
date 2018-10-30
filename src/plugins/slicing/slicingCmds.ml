@@ -685,7 +685,8 @@ let add_persistent_cmdline () =
       end;
       add_persistent_selection !selection;
   with Logic_interp.Error(_loc,msg) ->
-    SlicingParameters.error "%s. Slicing requests from the command line are ignored." msg
+    SlicingParameters.warning ~wkey:SlicingParameters.wkey_cmdline
+      "%s. Slicing requests from the command line are ignored." msg
   end;
   SlicingParameters.feedback ~level:2
     "done (interpreting slicing requests from the command line)."

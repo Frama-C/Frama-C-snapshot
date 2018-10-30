@@ -1,21 +1,21 @@
 [kernel] Parsing tests/value/overflow.i (no preprocessing)
-[value] Analyzing a complete application starting at main
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing a complete application starting at main
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   
-[value:alarm] tests/value/overflow.i:20: Warning: 
+[eva:alarm] tests/value/overflow.i:20: Warning: 
   signed overflow. assert 60000 * y ≤ 2147483647;
-[value:alarm] tests/value/overflow.i:21: Warning: 
+[eva:alarm] tests/value/overflow.i:21: Warning: 
   signed overflow. assert (int)(y * 1000) * 1000 ≤ 2147483647;
-[value:alarm] tests/value/overflow.i:22: Warning: 
+[eva:alarm] tests/value/overflow.i:22: Warning: 
   signed overflow. assert -2147483648 ≤ (int)(-y) * 10000000;
-[value:alarm] tests/value/overflow.i:31: Warning: 
+[eva:alarm] tests/value/overflow.i:31: Warning: 
   signed overflow. assert -c ≤ 2147483647;
-[value] Recording results for main
-[value] done for function main
-[value] ====== VALUES COMPUTED ======
-[value:final-states] Values at end of function main:
+[eva] Recording results for main
+[eva] done for function main
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function main:
   i ∈ {18446744073709551615}
   j ∈ {4294967295}
   is ∈ {-1}

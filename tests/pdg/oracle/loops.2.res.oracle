@@ -1,16 +1,16 @@
 [kernel] Parsing tests/pdg/loops.c (with preprocessing)
-[value] Analyzing an incomplete application starting at infinite
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing an incomplete application starting at infinite
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   after ∈ [--..--]
-[value] tests/pdg/loops.c:65: entering loop for the first time
-[value:alarm] tests/pdg/loops.c:66: Warning: 
+[eva] tests/pdg/loops.c:65: starting to merge loop iterations
+[eva:alarm] tests/pdg/loops.c:66: Warning: 
   signed overflow. assert s + 2 ≤ 2147483647;
-[value:alarm] tests/pdg/loops.c:67: Warning: 
+[eva:alarm] tests/pdg/loops.c:67: Warning: 
   signed overflow. assert i + 1 ≤ 2147483647;
-[value] Recording results for infinite
-[value] done for function infinite
+[eva] Recording results for infinite
+[eva] done for function infinite
 [pdg] computing for function infinite
 [pdg] tests/pdg/loops.c:70: Warning: no final state. Probably unreachable...
 [pdg] done for function infinite

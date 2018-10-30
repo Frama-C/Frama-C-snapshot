@@ -16,7 +16,7 @@
 /*  GNU Lesser General Public License for more details.                   */
 /*                                                                        */
 /*  See the GNU Lesser General Public License version 2.1                 */
-/*  for more details (enclosed in the file license/LGPLv2.1).             */
+/*  for more details (enclosed in the file licenses/LGPLv2.1).            */
 /*                                                                        */
 /**************************************************************************/
 

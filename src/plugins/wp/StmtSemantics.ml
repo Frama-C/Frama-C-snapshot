@@ -80,7 +80,7 @@ struct
     let flow =
       List.fold_left (fun flow (l, n) -> LabelMap.add l n flow) env.flow lns
     in { env with flow }
-  
+
   let (@:) env lbl =
     try
       LabelMap.find lbl env.flow
@@ -103,7 +103,7 @@ struct
   (* -------------------------------------------------------------------------- *)
   (* --- Paths & Cfg Utilities                                               --- *)
   (* -------------------------------------------------------------------------- *)
-  
+
   let paths_of_cfg cfg = {
     paths_cfg = cfg;
     paths_goals = Bag.empty;
@@ -140,9 +140,9 @@ struct
     | [] -> goto (env @: Clabels.here) (env @: Clabels.next)
     | [ elt ] -> f env elt
     | stmt :: stmts ->
-      let n = Cfg.node () in
-      let paths = f (bind Clabels.next n env) stmt in
-      paths @^ (sequence f (bind Clabels.here n env) stmts)
+        let n = Cfg.node () in
+        let paths = f (bind Clabels.next n env) stmt in
+        paths @^ (sequence f (bind Clabels.here n env) stmts)
 
   let choice ?(pre=Clabels.here) ?(post=Clabels.next) f env =
     let pre_node = env @: pre in
@@ -152,11 +152,11 @@ struct
     let rec aux env ns = function
       | [] -> goto (env @: pre) (env @: post)
       | [ elt ] ->
-        let n, paths = apply f env elt in
-        paths @^ either pre_node (n :: ns)
+          let n, paths = apply f env elt in
+          paths @^ either pre_node (n :: ns)
       | elt :: elts ->
-        let n, paths = apply f env elt in
-        paths @^ (aux env (n :: ns) elts)
+          let n, paths = apply f env elt in
+          paths @^ (aux env (n :: ns) elts)
     in
     aux env []
 
@@ -169,11 +169,11 @@ struct
     let rec aux env ns = function
       | [] -> goto (env @: pre) (env @: post)
       | [ elt ] ->
-        let n, (c,paths) = apply f env elt in
-        paths @^ implies pre_node ((c,n) :: ns)
+          let n, (c,paths) = apply f env elt in
+          paths @^ implies pre_node ((c,n) :: ns)
       | elt :: elts ->
-        let n, (c,paths) = apply f env elt in
-        paths @^ (aux env ((c,n) :: ns) elts)
+          let n, (c,paths) = apply f env elt in
+          paths @^ (aux env ((c,n) :: ns) elts)
     in
     aux env []
 
@@ -277,8 +277,8 @@ struct
     frame, nsigmas, lsigmas
 
   let pred
-    : env -> Sigs.polarity -> predicate -> Interpreted_automata.guard_kind -> _
-    = fun env polarity p truth ->
+    : env -> Sigs.polarity -> predicate -> _
+    = fun env polarity p ->
       (* Format.printf "env.flow: %a@." *)
       (*   (Pretty_utils.pp_iter2 LabelMap.iter Label.pretty Cfg.Node.pp) *)
       (*   env.flow; *)
@@ -287,7 +287,6 @@ struct
         let here = LabelMap.find Clabels.here lsigmas in
         let lenv = L.mk_env ~here () in
         let pred = L.in_frame frame (L.pred polarity lenv) p in
-        let pred = if truth = Interpreted_automata.Then then pred else Lang.F.p_not pred in
         (** Remove the sigmas not used for the compilation, but here must stay *)
         let nsigmas = Cfg.Node.Map.filter (fun _ s ->
             s == here || not (Sigma.Chunk.Set.is_empty (Sigma.domain s))
@@ -296,10 +295,10 @@ struct
         (Cfg.P.create nsigmas pred)
       with Not_found -> Wp_parameters.fatal "Error during compilation"
 
-  let assert_ env p v prop_id =
-    let pos = pred env `Positive p.ip_content v in
+  let assert_ env p prop_id =
+    let pos = pred env `Positive p.ip_content in
     let env' = env @* [Clabels.here, env @: Clabels.next ] in
-    let neg = pred env' `Negative p.ip_content v in
+    let neg = pred env' `Negative p.ip_content in
     let goal = {
       goal_pred = pos;
       goal_prop = prop_id;
@@ -313,7 +312,7 @@ struct
   let assume_
     : env -> Sigs.polarity -> predicate -> paths
     = fun env polarity p ->
-    assume (pred env polarity p Interpreted_automata.Then)
+      assume (pred env polarity p)
 
   (* -------------------------------------------------------------------------- *)
   (* --- Compiler: Function Call                                            --- *)
@@ -426,7 +425,7 @@ struct
 
   and spec : env -> spec -> paths = fun env spec ->
     let pre_cond env p prop_id =
-      assert_ env p Interpreted_automata.Then prop_id
+      assert_ env p prop_id
     in
     let post_cond termination_kind env (tk, ip) =
       if tk = termination_kind then
@@ -438,7 +437,7 @@ struct
       let nassigns = Cfg.node () in
       let assume =
         let p = pred (env @* [Clabels.here, env @: Clabels.pre])
-            `Negative (Ast_info.behavior_assumes b) Interpreted_automata.Then in
+            `Negative (Ast_info.behavior_assumes b) in
         match Cfg.P.to_condition p with
         | Some (c,None) -> c
         | Some (c,Some n) when Cfg.Node.equal n (env @: Clabels.pre) -> c
@@ -456,7 +455,7 @@ struct
            (** TODO: Kglobal is it always Kglobal ? *)
            let prop_id = WpPropId.mk_pre_id env.kf Kglobal b ip in
            pre_cond env ip prop_id)
-         (env @* [Clabels.next, nrequires]) b.b_requires
+        (env @* [Clabels.next, nrequires]) b.b_requires
       @^ assigns (env @* [Clabels.here, nrequires; Clabels.next, nassigns]) b.b_assigns
       @^ either nassigns [post_normal_behavior;post_at_exit_behavior]
       @^ List.fold_left
@@ -518,39 +517,39 @@ struct
   let transition
     : env -> nodes -> Automata.t Interpreted_automata.transition -> paths
     = fun env nodes tr ->
-    let open Interpreted_automata in
-    match tr with
-    | Skip | Enter { blocals = [] } | Leave { blocals = [] } ->
-        goto (env @: Clabels.here) (env @: Clabels.next)
-    | Enter {blocals} -> scope env Sigs.Enter blocals
-    | Leave {blocals} -> scope env Sigs.Leave blocals
-    | Return (r,_) -> return env r
-    | Prop ((Assert|Invariant),p,v,l,ip) ->
-        let env = Logic_label.Map.fold
-            (fun logic_label vertex acc ->
-               let c_label = Clabels.of_logic logic_label in
-               let node = get_node nodes vertex in
-               bind c_label node acc
-            ) l env in
-        assert_ env p v (WpPropId.mk_property ip)
-    | Prop (Assume,p,v,l,_) ->
-        let env = Logic_label.Map.fold
-            (fun logic_label vertex acc ->
-               let c_label = Clabels.of_logic logic_label in
-               let node = get_node nodes vertex in
-               bind c_label node acc
-            ) l env in
-        assume (pred env `Negative p.ip_content v) @^
-        goto (env @: Clabels.here) (env @: Clabels.next)
-    | Prop (_,_,_,_,_) ->
-      not_yet "[StmtSemantics] Annots other than 'assert'"
-    | Guard (exp,b,_) ->
-        let here = Sigma.create () in
-        let cond = C.cond here exp in
-        let condition = Cfg.C.create here cond in
-        (if b = Then then guard else guard')
-          (env @: Clabels.here) condition (env @: Clabels.next)
-    | Instr (i,_) -> instr env i
+      let open Interpreted_automata in
+      match tr with
+      | Skip | Enter { blocals = [] } | Leave { blocals = [] } ->
+          goto (env @: Clabels.here) (env @: Clabels.next)
+      | Enter {blocals} -> scope env Sigs.Enter blocals
+      | Leave {blocals} -> scope env Sigs.Leave blocals
+      | Return (r,_) -> return env r
+      | Prop ({kind = Assert|Invariant} as a, _) ->
+          let env = Logic_label.Map.fold
+              (fun logic_label vertex acc ->
+                 let c_label = Clabels.of_logic logic_label in
+                 let node = get_node nodes vertex in
+                 bind c_label node acc
+              ) a.labels env in
+          assert_ env a.predicate (WpPropId.mk_property a.property)
+      | Prop ({kind = Assume} as a, _)->
+          let env = Logic_label.Map.fold
+              (fun logic_label vertex acc ->
+                 let c_label = Clabels.of_logic logic_label in
+                 let node = get_node nodes vertex in
+                 bind c_label node acc
+              ) a.labels env in
+          assume (pred env `Negative a.predicate.ip_content) @^
+          goto (env @: Clabels.here) (env @: Clabels.next)
+      | Prop _ ->
+          not_yet "[StmtSemantics] Annots other than 'assert'"
+      | Guard (exp,b,_) ->
+          let here = Sigma.create () in
+          let cond = C.cond here exp in
+          let condition = Cfg.C.create here cond in
+          (if b = Then then guard else guard')
+            (env @: Clabels.here) condition (env @: Clabels.next)
+      | Instr (i,_) -> instr env i
 
   let rec get_invariants g n (l:Automata.t Wto.partition) =
     let open Interpreted_automata in
@@ -558,7 +557,7 @@ struct
     match l, G.succ_e g n with
     | (Wto.Node a)::l,
       [(_,{edge_transition =
-             (Prop((Assert|Invariant|Assume|Check),_,_,_,_) | Skip) as t},b)]
+             (Prop({kind=Assert|Invariant|Assume|Check},_) | Skip) as t},b)]
       when Automata.equal a b ->
         let invs,l = get_invariants g b l in
         (t,a)::invs,l
@@ -567,9 +566,9 @@ struct
   let as_assumes l =
     let open Interpreted_automata in
     List.map (function
-        | (Prop(Assume,_,_,_,_),_) as t -> t
-        | (Prop((Assert|Invariant),a1,a2,a3,a4),b) -> (Prop(Assume,a1,a2,a3,a4),b)
-        | (Prop(Check,_,_,_,_),b) -> (Skip,b)
+        | (Prop({kind=Assume},_),_) as t -> t
+        | (Prop({kind=Assert|Invariant} as a,s),b) -> (Prop ({a with kind=Assume},s),b)
+        | (Prop({kind=Check},_),b) -> (Skip,b)
         | (Skip,_) as t -> t
         | _ -> assert false
       ) l
@@ -653,7 +652,7 @@ struct
     partition nodes nop wto
 
   (** connect init to here. [is_pre_main] indicate if here is the
-     pre-state of main. *)
+      pre-state of main. *)
   let init ~is_pre_main env =
     let ninit = (env @: Clabels.init) in
     let sinit = Sigma.create () in
@@ -694,8 +693,8 @@ struct
                else cfg
             ) nop
         else nop
-    in
-    cfg_init @^ effect ninit havoc nconst @^ consts @^ goto nconst (env @: Clabels.here)
+      in
+      cfg_init @^ effect ninit havoc nconst @^ consts @^ goto nconst (env @: Clabels.here)
 
   let pre_spec env spec =
     let pre_cond polarity env p =
@@ -703,7 +702,7 @@ struct
     in
     let behavior env b =
       let assume =
-        let p = pred env `Negative (Ast_info.behavior_assumes b) Interpreted_automata.Then in
+        let p = pred env `Negative (Ast_info.behavior_assumes b) in
         match Cfg.P.to_condition p with
         | Some (c,None) -> c
         | Some (c,Some n) when Cfg.Node.equal n (env @: Clabels.here) -> c
@@ -720,14 +719,13 @@ struct
   let post_normal_spec env spec =
     let post_cond termination_kind env (tk, ip) propid =
       if tk = termination_kind then
-        assert_ env ip Interpreted_automata.Then propid
+        assert_ env ip propid
       else nop
     in
     let behavior env b =
       let assume =
         let p = pred (env @* [Clabels.here, env @: Clabels.pre])
             `Negative (Ast_info.behavior_assumes b)
-            Interpreted_automata.Then
         in
         match Cfg.P.to_condition p with
         | Some (c,None) -> c

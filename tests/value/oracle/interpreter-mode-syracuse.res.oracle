@@ -1,0 +1,78 @@
+[kernel] Parsing tests/value/interpreter-mode-syracuse.i (no preprocessing)
+[eva] Analyzing a complete application starting at main
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
+  
+[eva] tests/value/interpreter-mode-syracuse.i:10: Frama_C_show_each: {1}, {127}
+[eva] tests/value/interpreter-mode-syracuse.i:18: Frama_C_show_each: {2}, {382}
+[eva] tests/value/interpreter-mode-syracuse.i:18: Frama_C_show_each: {3}, {191}
+[eva] tests/value/interpreter-mode-syracuse.i:18: Frama_C_show_each: {4}, {574}
+[eva] tests/value/interpreter-mode-syracuse.i:18: Frama_C_show_each: {5}, {287}
+[eva] tests/value/interpreter-mode-syracuse.i:18: Frama_C_show_each: {6}, {862}
+[eva] tests/value/interpreter-mode-syracuse.i:18: Frama_C_show_each: {7}, {431}
+[eva] tests/value/interpreter-mode-syracuse.i:18: Frama_C_show_each: {8}, {1294}
+[eva] tests/value/interpreter-mode-syracuse.i:18: Frama_C_show_each: {9}, {647}
+[eva] tests/value/interpreter-mode-syracuse.i:18: 
+  Frama_C_show_each: {10}, {1942}
+[eva] tests/value/interpreter-mode-syracuse.i:18: Frama_C_show_each: {11}, {971}
+[eva] tests/value/interpreter-mode-syracuse.i:18: 
+  Frama_C_show_each: {12}, {2914}
+[eva] tests/value/interpreter-mode-syracuse.i:18: 
+  Frama_C_show_each: {13}, {1457}
+[eva] tests/value/interpreter-mode-syracuse.i:18: 
+  Frama_C_show_each: {14}, {4372}
+[eva] tests/value/interpreter-mode-syracuse.i:18: 
+  Frama_C_show_each: {15}, {2186}
+[eva] tests/value/interpreter-mode-syracuse.i:18: 
+  Frama_C_show_each: {16}, {1093}
+[eva] tests/value/interpreter-mode-syracuse.i:18: 
+  Frama_C_show_each: {17}, {3280}
+[eva] tests/value/interpreter-mode-syracuse.i:18: 
+  Frama_C_show_each: {18}, {1640}
+[eva] tests/value/interpreter-mode-syracuse.i:18: Frama_C_show_each: {19}, {820}
+[eva] tests/value/interpreter-mode-syracuse.i:18: Frama_C_show_each: {20}, {410}
+[eva] tests/value/interpreter-mode-syracuse.i:18: Frama_C_show_each: {21}, {205}
+[eva] tests/value/interpreter-mode-syracuse.i:18: Frama_C_show_each: {22}, {616}
+[eva] tests/value/interpreter-mode-syracuse.i:18: Frama_C_show_each: {23}, {308}
+[eva] tests/value/interpreter-mode-syracuse.i:18: Frama_C_show_each: {24}, {154}
+[eva] tests/value/interpreter-mode-syracuse.i:18: Frama_C_show_each: {25}, {77}
+[eva] tests/value/interpreter-mode-syracuse.i:18: Frama_C_show_each: {26}, {232}
+[eva] tests/value/interpreter-mode-syracuse.i:18: Frama_C_show_each: {27}, {116}
+[eva] tests/value/interpreter-mode-syracuse.i:18: Frama_C_show_each: {28}, {58}
+[eva] tests/value/interpreter-mode-syracuse.i:18: Frama_C_show_each: {29}, {29}
+[eva] tests/value/interpreter-mode-syracuse.i:18: Frama_C_show_each: {30}, {88}
+[eva] tests/value/interpreter-mode-syracuse.i:18: Frama_C_show_each: {31}, {44}
+[eva] tests/value/interpreter-mode-syracuse.i:18: Frama_C_show_each: {32}, {22}
+[eva] tests/value/interpreter-mode-syracuse.i:18: Frama_C_show_each: {33}, {11}
+[eva] tests/value/interpreter-mode-syracuse.i:18: Frama_C_show_each: {34}, {34}
+[eva] tests/value/interpreter-mode-syracuse.i:18: Frama_C_show_each: {35}, {17}
+[eva] tests/value/interpreter-mode-syracuse.i:18: Frama_C_show_each: {36}, {52}
+[eva] tests/value/interpreter-mode-syracuse.i:18: Frama_C_show_each: {37}, {26}
+[eva] tests/value/interpreter-mode-syracuse.i:18: Frama_C_show_each: {38}, {13}
+[eva] tests/value/interpreter-mode-syracuse.i:18: Frama_C_show_each: {39}, {40}
+[eva] tests/value/interpreter-mode-syracuse.i:18: Frama_C_show_each: {40}, {20}
+[eva] tests/value/interpreter-mode-syracuse.i:18: Frama_C_show_each: {41}, {10}
+[eva] tests/value/interpreter-mode-syracuse.i:18: Frama_C_show_each: {42}, {5}
+[eva] tests/value/interpreter-mode-syracuse.i:18: Frama_C_show_each: {43}, {16}
+[eva] tests/value/interpreter-mode-syracuse.i:18: Frama_C_show_each: {44}, {8}
+[eva] tests/value/interpreter-mode-syracuse.i:18: Frama_C_show_each: {45}, {4}
+[eva] tests/value/interpreter-mode-syracuse.i:18: Frama_C_show_each: {46}, {2}
+[eva] tests/value/interpreter-mode-syracuse.i:18: Frama_C_show_each: {47}, {1}
+[eva] Recording results for main
+[eva] done for function main
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function main:
+  x ∈ {1}
+  n ∈ {47}
+[from] Computing for function main
+[from] Done for function main
+[from] ====== DEPENDENCIES COMPUTED ======
+  These dependencies hold at termination for the executions that terminate:
+[from] Function main:
+  \result FROM \nothing
+[from] ====== END OF DEPENDENCIES ======
+[inout] Out (internal) for function main:
+    x; n
+[inout] Inputs for function main:
+    \nothing

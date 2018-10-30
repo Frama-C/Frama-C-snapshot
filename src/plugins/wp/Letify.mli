@@ -28,7 +28,7 @@ open Lang.F
 
 module Ground :
 sig
-  
+
   type subst = pred -> pred
   val singleton : pred -> subst
   val compute : pred array -> subst array * subst
@@ -44,7 +44,7 @@ sig
   val forward : env -> pred -> pred
   val backward : env -> pred -> pred
   val branch : env -> pred -> pred * env * env
-  
+
 end
 
 module Sigma :

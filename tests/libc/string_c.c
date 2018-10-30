@@ -3,7 +3,7 @@
 */ // slevel is used to unroll loops
 
 #include "string.c"
-
+volatile int v;
 void test_memcpy()
 {
   char dest[6], src[6] = "hello";
@@ -16,9 +16,9 @@ void test_memcpy()
   memcpy(dest, src2, 5);
   //@assert dest[1] == '\0';
   //@assert dest[2] == 'b';
-  memcpy(dest, NULL, 0);
-  p = memcpy(NULL, NULL, 0);
-  //@assert p == \null;
+  if (v) memcpy(dest, NULL, 0);
+  if (v) p = memcpy(NULL, NULL, 0);
+
   int x = 0x12093841;
   memcpy(dest, &x, 4);
   //@assert dest[0] == 0x41;

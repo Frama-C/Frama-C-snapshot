@@ -1,20 +1,19 @@
 [kernel] Parsing tests/value/infinite.i (no preprocessing)
-[value] Analyzing a complete application starting at main
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing a complete application starting at main
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   G ∈ {0}
-[value] tests/value/infinite.i:6: entering loop for the first time
-[value] computing for function pause <- main.
+[eva] computing for function pause <- main.
   Called from tests/value/infinite.i:9.
 [kernel:annot:missing-spec] tests/value/infinite.i:9: Warning: 
   Neither code nor specification for function pause, generating default assigns from the prototype
-[value] using specification for function pause
-[value] Done for function pause
-[value] Recording results for main
-[value] done for function main
-[value] ====== VALUES COMPUTED ======
-[value:final-states] Values at end of function main:
+[eva] using specification for function pause
+[eva] Done for function pause
+[eva] Recording results for main
+[eva] done for function main
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function main:
   NON TERMINATING FUNCTION
 [from] Computing for function main
 [from] Computing for function pause <-main

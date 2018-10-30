@@ -1,18 +1,18 @@
 [kernel] Parsing tests/impact/undef_function.i (no preprocessing)
 [impact] beginning analysis
-[value] Analyzing a complete application starting at main
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing a complete application starting at main
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   y ∈ {0}
-[value] computing for function g <- main.
+[eva] computing for function g <- main.
   Called from tests/impact/undef_function.i:10.
 [kernel:annot:missing-spec] tests/impact/undef_function.i:10: Warning: 
   Neither code nor specification for function g, generating default assigns from the prototype
-[value] using specification for function g
-[value] Done for function g
-[value] Recording results for main
-[value] done for function main
+[eva] using specification for function g
+[eva] Done for function g
+[eva] Recording results for main
+[eva] done for function main
 [pdg] computing for function main
 [from] Computing for function g
 [from] Done for function g

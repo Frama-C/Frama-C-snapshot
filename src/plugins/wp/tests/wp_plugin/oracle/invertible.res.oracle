@@ -1,0 +1,69 @@
+# frama-c -wp [...]
+[kernel] Parsing tests/wp_plugin/invertible.i (no preprocessing)
+[wp] Running WP plugin...
+[wp] Loading driver 'share/wp.driver'
+[kernel] tests/wp_plugin/invertible.i:17: Warning: 
+  No code nor implicit assigns clause for function main, generating default assigns from the prototype
+------------------------------------------------------------
+  Function main
+------------------------------------------------------------
+
+Goal Pre-condition 'Invertible_11' in 'main':
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Pre-condition 'Invertible_12' in 'main':
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Pre-condition 'Invertible_13' in 'main':
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Pre-condition 'Invertible_14' in 'main':
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Pre-condition 'Invertible_21' in 'main':
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Pre-condition 'Invertible_22' in 'main':
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Pre-condition 'Invertible_23' in 'main':
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Pre-condition 'Invertible_24' in 'main':
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Pre-condition 'Invertible_31' in 'main':
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Pre-condition 'Invertible_32' in 'main':
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Pre-condition 'Invertible_33' in 'main':
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Pre-condition 'Invertible_34' in 'main':
+Prove: true.
+
+------------------------------------------------------------

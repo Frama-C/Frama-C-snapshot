@@ -1,6 +1,6 @@
 /* run.config_qualif
   OPT: -wp-prop="-qed_ko"
-  OPT: -wp-prop qed_ko -wp-timeout 2
+  OPT: -wp-prop qed_ko -wp-steps 50
 */
 
 /*@ ensures qed_ko: KO:\result < 0;

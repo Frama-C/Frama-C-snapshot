@@ -36,7 +36,7 @@ let configure () =
     Context.set Cvalues.null (p_equal e_zero) ;
   end
 
-let separation () = []
+let hypotheses () = []
 
 module Chunk =
 struct
@@ -79,6 +79,7 @@ let pointer_val () = e_zero
 let field _l _f = ()
 let shift _l _obj _k = ()
 let base_addr _l = ()
+let base_offset _l = e_zero
 let block_length _s _obj _l = e_zero
 
 let cast _ _l = ()

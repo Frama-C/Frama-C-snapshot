@@ -1,29 +1,29 @@
 [kernel] Parsing tests/slicing/unitialized.c (with preprocessing)
 [slicing] slicing requests in progress...
-[value] Analyzing a complete application starting at main
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing a complete application starting at main
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   X1 ∈ {0}
   X2 ∈ {0}
-[value] computing for function f1 <- main.
+[eva] computing for function f1 <- main.
   Called from tests/slicing/unitialized.c:38.
-[value] Recording results for f1
-[value] Done for function f1
-[value] computing for function f2 <- main.
+[eva] Recording results for f1
+[eva] Done for function f1
+[eva] computing for function f2 <- main.
   Called from tests/slicing/unitialized.c:39.
-[value] Recording results for f2
-[value] Done for function f2
-[value] computing for function g <- main.
+[eva] Recording results for f2
+[eva] Done for function f2
+[eva] computing for function g <- main.
   Called from tests/slicing/unitialized.c:40.
-[value:alarm] tests/slicing/unitialized.c:30: Warning: 
+[eva:alarm] tests/slicing/unitialized.c:30: Warning: 
   accessing uninitialized left-value. assert \initialized(&y);
-[value] Recording results for g
-[value] Done for function g
-[value] Recording results for main
-[value] done for function main
-[value] tests/slicing/unitialized.c:30: 
-  assertion 'Value,initialization' got final status invalid.
+[eva] Recording results for g
+[eva] Done for function g
+[eva] Recording results for main
+[eva] done for function main
+[eva] tests/slicing/unitialized.c:30: 
+  assertion 'Eva,initialization' got final status invalid.
 [slicing] initializing slicing ...
 [slicing] interpreting slicing requests from the command line...
 [pdg] computing for function g

@@ -1,8 +1,8 @@
 [kernel] Parsing tests/value/inout.i (no preprocessing)
-[value] Analyzing a complete application starting at inout_11_0
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing a complete application starting at inout_11_0
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   Xt ∈ {0}
   Xs ∈ {0}
   Xs_I ∈ {0}
@@ -20,14 +20,14 @@
       [6] ∈ {25}
       [7] ∈ {40}
   I5_nt ∈ {0}
-[value:alarm] tests/value/inout.i:16: Warning: 
+[eva:alarm] tests/value/inout.i:16: Warning: 
   signed overflow. assert -2147483648 ≤ i1 + i2;
-[value:alarm] tests/value/inout.i:16: Warning: 
+[eva:alarm] tests/value/inout.i:16: Warning: 
   signed overflow. assert i1 + i2 ≤ 2147483647;
-[value:alarm] tests/value/inout.i:18: Warning: 
+[eva:alarm] tests/value/inout.i:18: Warning: 
   out of bounds write. assert \valid(i);
-[value] Recording results for inout_11_0
-[value] done for function inout_11_0
+[eva] Recording results for inout_11_0
+[eva] done for function inout_11_0
 [from] Computing for function inout_11_0
 [from] Done for function inout_11_0
 [from] ====== DEPENDENCIES COMPUTED ======

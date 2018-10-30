@@ -1,23 +1,23 @@
 [kernel] Parsing tests/value/library.i (no preprocessing)
-[value] Analyzing an incomplete application starting at main
-[value] Computing initial state
-[value:initial-state] 
+[eva] Analyzing an incomplete application starting at main
+[eva] Computing initial state
+[eva:initial-state] 
   creating variable S_0_p_ss with imprecise size (type struct ss [2])
-[value] tests/value/library.i:57: Warning: 
+[eva] tests/value/library.i:57: Warning: 
   during initialization of variable 'ss', size of type 'struct ss' cannot be
   computed (abstract type 'struct ss')
-[value:initial-state] 
+[eva:initial-state] 
   creating variable S_1_p_ss with imprecise size (type struct ss [2])
-[value:initial-state] 
+[eva:initial-state] 
   creating variable S_0_0_S_q_ss with imprecise size (type struct ss [2])
-[value:initial-state] 
+[eva:initial-state] 
   creating variable S_1_0_S_q_ss with imprecise size (type struct ss [2])
-[value:initial-state] 
+[eva:initial-state] 
   creating variable S_0_1_S_q_ss with imprecise size (type struct ss [2])
-[value:initial-state] 
+[eva:initial-state] 
   creating variable S_1_1_S_q_ss with imprecise size (type struct ss [2])
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   gpi ∈ {{ NULL ; &S_gpi[0] }}
   G ∈ {{ NULL ; &S_G[0] }}
   v ∈ [--..--]
@@ -76,80 +76,80 @@
   S_1_0_S_q_ss[bits 0 to ..] ∈ [--..--] or UNINITIALIZED
   S_0_1_S_q_ss[bits 0 to ..] ∈ [--..--] or UNINITIALIZED
   S_1_1_S_q_ss[bits 0 to ..] ∈ [--..--] or UNINITIALIZED
-[value] computing for function f_int <- main.
+[eva] computing for function f_int <- main.
   Called from tests/value/library.i:30.
 [kernel:annot:missing-spec] tests/value/library.i:30: Warning: 
   Neither code nor specification for function f_int, generating default assigns from the prototype
-[value] using specification for function f_int
-[value] Done for function f_int
-[value] computing for function f_star_int <- main.
+[eva] using specification for function f_int
+[eva] Done for function f_int
+[eva] computing for function f_star_int <- main.
   Called from tests/value/library.i:31.
-[value] using specification for function f_star_int
-[value] Done for function f_star_int
-[value] tests/value/library.i:31: 
+[eva] using specification for function f_star_int
+[eva] Done for function f_star_int
+[eva] tests/value/library.i:31: 
   Assigning imprecise value to G1.
   The imprecision originates from Library function {tests/value/library.i:31}
-[value:alarm] tests/value/library.i:32: Warning: 
+[eva:alarm] tests/value/library.i:32: Warning: 
   out of bounds write. assert \valid(G1);
-[value:alarm] tests/value/library.i:33: Warning: 
+[eva:alarm] tests/value/library.i:33: Warning: 
   out of bounds read. assert \valid_read(G);
-[value:alarm] tests/value/library.i:33: Warning: 
+[eva:alarm] tests/value/library.i:33: Warning: 
   out of bounds read. assert \valid_read(*G);
-[value:alarm] tests/value/library.i:33: Warning: 
+[eva:alarm] tests/value/library.i:33: Warning: 
   out of bounds read. assert \valid_read(*(*G));
-[value:alarm] tests/value/library.i:33: Warning: 
+[eva:alarm] tests/value/library.i:33: Warning: 
   out of bounds write. assert \valid(*(*(*G)));
-[value] computing for function gen <- main.
+[eva] computing for function gen <- main.
   Called from tests/value/library.i:37.
 [kernel:annot:missing-spec] tests/value/library.i:37: Warning: 
   Neither code nor specification for function gen, generating default assigns from the prototype
-[value] using specification for function gen
-[value] Done for function gen
-[value:alarm] tests/value/library.i:38: Warning: 
+[eva] using specification for function gen
+[eva] Done for function gen
+[eva:alarm] tests/value/library.i:38: Warning: 
   pointer to function with incompatible type. assert \valid_function(f);
-[value:alarm] tests/value/library.i:39: Warning: 
+[eva:alarm] tests/value/library.i:39: Warning: 
   pointer to function with incompatible type. assert \valid_function(g);
-[value:alarm] tests/value/library.i:40: Warning: 
+[eva:alarm] tests/value/library.i:40: Warning: 
   pointer to function with incompatible type. assert \valid_function(h);
-[value] computing for function i <- main.
+[eva] computing for function i <- main.
   Called from tests/value/library.i:41.
-[value] using specification for function i
-[value] Done for function i
-[value] tests/value/library.i:41: 
+[eva] using specification for function i
+[eva] Done for function i
+[eva] tests/value/library.i:41: 
   Assigning imprecise value to pf.
   The imprecision originates from Library function {tests/value/library.i:41}
-[value:alarm] tests/value/library.i:42: Warning: 
+[eva:alarm] tests/value/library.i:42: Warning: 
   out of bounds read. assert \valid_read(pf);
-[value:alarm] tests/value/library.i:42: Warning: 
+[eva:alarm] tests/value/library.i:42: Warning: 
   non-finite float value. assert \is_finite(*pf);
-[value:alarm] tests/value/library.i:43: Warning: 
+[eva:alarm] tests/value/library.i:43: Warning: 
   out of bounds write. assert \valid(pf);
-[value:alarm] tests/value/library.i:44: Warning: 
+[eva:alarm] tests/value/library.i:44: Warning: 
   out of bounds write. assert \valid(pf);
-[value:alarm] tests/value/library.i:44: Warning: 
+[eva:alarm] tests/value/library.i:44: Warning: 
   non-finite float value. assert \is_finite(*pf);
-[value:alarm] tests/value/library.i:44: Warning: 
+[eva:alarm] tests/value/library.i:44: Warning: 
   non-finite float value. assert \is_finite((float)(*pf + *pf));
-[value] computing for function k <- main.
+[eva] computing for function k <- main.
   Called from tests/value/library.i:45.
-[value] using specification for function k
-[value] Done for function k
-[value] tests/value/library.i:45: 
+[eva] using specification for function k
+[eva] Done for function k
+[eva] tests/value/library.i:45: 
   Assigning imprecise value to pd.
   The imprecision originates from Library function {tests/value/library.i:45}
-[value:alarm] tests/value/library.i:46: Warning: 
+[eva:alarm] tests/value/library.i:46: Warning: 
   out of bounds write. assert \valid(pd);
-[value] Recording results for main
-[value] done for function main
-[value] tests/value/library.i:38: 
-  assertion 'Value,function_pointer' got final status invalid.
-[value] tests/value/library.i:39: 
-  assertion 'Value,function_pointer' got final status invalid.
-[value] tests/value/library.i:40: 
-  assertion 'Value,function_pointer' got final status invalid.
+[eva] Recording results for main
+[eva] done for function main
+[eva] tests/value/library.i:38: 
+  assertion 'Eva,function_pointer' got final status invalid.
+[eva] tests/value/library.i:39: 
+  assertion 'Eva,function_pointer' got final status invalid.
+[eva] tests/value/library.i:40: 
+  assertion 'Eva,function_pointer' got final status invalid.
 [scope:rm_asserts] removing 1 assertion(s)
-[value] ====== VALUES COMPUTED ======
-[value:final-states] Values at end of function main:
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function main:
   G0 ∈ [--..--]
   G1 ∈ {{ &S_gpi + {0; 1; 2; 3; 4} }}
   x ∈ {3}
@@ -204,22 +204,22 @@
     S_0_S_0_S_0_S_G[0]; S_gpf[0..1]; S_gpd[0..1]
 [inout] Inputs for function main:
     gpi; G; v; G1; f; gpf; gpd; S_G[0]; S_0_S_G[0]; S_0_S_0_S_G[0]; S_gpf[0..1]
-[value] Analyzing an incomplete application starting at main2
-[value] Computing initial state
-[value:initial-state] 
+[eva] Analyzing an incomplete application starting at main2
+[eva] Computing initial state
+[eva:initial-state] 
   creating variable S_0_p_ss_0 with imprecise size (type struct ss [2])
-[value:initial-state] 
+[eva:initial-state] 
   creating variable S_1_p_ss_0 with imprecise size (type struct ss [2])
-[value:initial-state] 
+[eva:initial-state] 
   creating variable S_0_0_S_q_ss_0 with imprecise size (type struct ss [2])
-[value:initial-state] 
+[eva:initial-state] 
   creating variable S_1_0_S_q_ss_0 with imprecise size (type struct ss [2])
-[value:initial-state] 
+[eva:initial-state] 
   creating variable S_0_1_S_q_ss_0 with imprecise size (type struct ss [2])
-[value:initial-state] 
+[eva:initial-state] 
   creating variable S_1_1_S_q_ss_0 with imprecise size (type struct ss [2])
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   gpi ∈ {{ NULL ; &S_gpi_0[0] }}
   G ∈ {{ NULL ; &S_G_0[0] }}
   v ∈ [--..--]
@@ -281,22 +281,22 @@
   S_1_0_S_q_ss_0[bits 0 to ..] ∈ [--..--] or UNINITIALIZED
   S_0_1_S_q_ss_0[bits 0 to ..] ∈ [--..--] or UNINITIALIZED
   S_1_1_S_q_ss_0[bits 0 to ..] ∈ [--..--] or UNINITIALIZED
-[value:alarm] tests/value/library.i:69: Warning: 
+[eva:alarm] tests/value/library.i:69: Warning: 
   assertion 'Unknown' got status unknown.
-[value] tests/value/library.i:70: assertion got status valid.
-[value] tests/value/library.i:71: assertion got status valid.
-[value:alarm] tests/value/library.i:73: Warning: 
+[eva] tests/value/library.i:70: assertion got status valid.
+[eva] tests/value/library.i:71: assertion got status valid.
+[eva:alarm] tests/value/library.i:73: Warning: 
   assertion 'Unknown' got status unknown.
-[value] tests/value/library.i:74: Frama_C_show_each_reached_1:
-[value:alarm] tests/value/library.i:77: Warning: 
+[eva] tests/value/library.i:74: Frama_C_show_each_reached_1:
+[eva:alarm] tests/value/library.i:77: Warning: 
   assertion 'Unknown' got status unknown.
-[value] tests/value/library.i:78: Frama_C_show_each_reached_2:
-[value:alarm] tests/value/library.i:81: Warning: 
+[eva] tests/value/library.i:78: Frama_C_show_each_reached_2:
+[eva:alarm] tests/value/library.i:81: Warning: 
   assertion 'Unknown_Invalid' got status invalid (stopping propagation).
-[value] Recording results for main2
-[value] done for function main2
-[value] ====== VALUES COMPUTED ======
-[value:final-states] Values at end of function main2:
+[eva] Recording results for main2
+[eva] done for function main2
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function main2:
   
 [from] Computing for function main2
 [from] Done for function main2
@@ -309,50 +309,50 @@
     \nothing
 [inout] Inputs for function main2:
     v
-[value] Analyzing an incomplete application starting at main2
-[value] Computing initial state
-[value:initial-state] 
+[eva] Analyzing an incomplete application starting at main2
+[eva] Computing initial state
+[eva:initial-state] 
   creating variable S_0_p_ss_1 with imprecise size (type struct ss [4])
-[value:initial-state] 
+[eva:initial-state] 
   creating variable S_1_p_ss_1 with imprecise size (type struct ss [4])
-[value:initial-state] 
+[eva:initial-state] 
   creating variable S_2_p_ss with imprecise size (type struct ss [4])
-[value:initial-state] 
+[eva:initial-state] 
   creating variable S_3_p_ss with imprecise size (type struct ss [4])
-[value:initial-state] 
+[eva:initial-state] 
   creating variable S_0_0_S_q_ss_1 with imprecise size (type struct ss [4])
-[value:initial-state] 
+[eva:initial-state] 
   creating variable S_1_0_S_q_ss_1 with imprecise size (type struct ss [4])
-[value:initial-state] 
+[eva:initial-state] 
   creating variable S_2_0_S_q_ss_1 with imprecise size (type struct ss [4])
-[value:initial-state] 
+[eva:initial-state] 
   creating variable S_3_0_S_q_ss_1 with imprecise size (type struct ss [4])
-[value:initial-state] 
+[eva:initial-state] 
   creating variable S_0_1_S_q_ss_1 with imprecise size (type struct ss [4])
-[value:initial-state] 
+[eva:initial-state] 
   creating variable S_1_1_S_q_ss_1 with imprecise size (type struct ss [4])
-[value:initial-state] 
+[eva:initial-state] 
   creating variable S_2_1_S_q_ss_1 with imprecise size (type struct ss [4])
-[value:initial-state] 
+[eva:initial-state] 
   creating variable S_3_1_S_q_ss_1 with imprecise size (type struct ss [4])
-[value:initial-state] 
+[eva:initial-state] 
   creating variable S_0_2_S_q_ss_1 with imprecise size (type struct ss [4])
-[value:initial-state] 
+[eva:initial-state] 
   creating variable S_1_2_S_q_ss_1 with imprecise size (type struct ss [4])
-[value:initial-state] 
+[eva:initial-state] 
   creating variable S_2_2_S_q_ss_1 with imprecise size (type struct ss [4])
-[value:initial-state] 
+[eva:initial-state] 
   creating variable S_3_2_S_q_ss_1 with imprecise size (type struct ss [4])
-[value:initial-state] 
+[eva:initial-state] 
   creating variable S_0_3_S_q_ss_1 with imprecise size (type struct ss [4])
-[value:initial-state] 
+[eva:initial-state] 
   creating variable S_1_3_S_q_ss_1 with imprecise size (type struct ss [4])
-[value:initial-state] 
+[eva:initial-state] 
   creating variable S_2_3_S_q_ss_1 with imprecise size (type struct ss [4])
-[value:initial-state] 
+[eva:initial-state] 
   creating variable S_3_3_S_q_ss_1 with imprecise size (type struct ss [4])
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   gpi ∈ {{ NULL ; &S_gpi_1[0] }}
   G ∈ {{ NULL ; &S_G_1[0] }}
   v ∈ [--..--]
@@ -579,15 +579,15 @@
   S_1_3_S_q_ss_1[bits 0 to ..] ∈ [--..--] or UNINITIALIZED
   S_2_3_S_q_ss_1[bits 0 to ..] ∈ [--..--] or UNINITIALIZED
   S_3_3_S_q_ss_1[bits 0 to ..] ∈ [--..--] or UNINITIALIZED
-[value] tests/value/library.i:74: Frama_C_show_each_reached_1:
-[value] tests/value/library.i:78: Frama_C_show_each_reached_2:
-[value:alarm] tests/value/library.i:81: Warning: 
+[eva] tests/value/library.i:74: Frama_C_show_each_reached_1:
+[eva] tests/value/library.i:78: Frama_C_show_each_reached_2:
+[eva:alarm] tests/value/library.i:81: Warning: 
   assertion 'Unknown_Invalid' got status unknown.
-[value] tests/value/library.i:82: Frama_C_show_each_reached_3:
-[value] Recording results for main2
-[value] done for function main2
-[value] ====== VALUES COMPUTED ======
-[value:final-states] Values at end of function main2:
+[eva] tests/value/library.i:82: Frama_C_show_each_reached_3:
+[eva] Recording results for main2
+[eva] done for function main2
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function main2:
   
 [from] Computing for function main2
 [from] Done for function main2

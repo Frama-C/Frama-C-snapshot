@@ -1,57 +1,53 @@
 [kernel] Parsing tests/libc/sys_time.c (with preprocessing)
-[value] Analyzing a complete application starting at main
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
-  __fc_time ∈ [--..--]
-  __fc_tz ∈ [--..--]
-  __fc_itimer_real ∈ [--..--]
-  __fc_itimer_virtual ∈ [--..--]
-  __fc_itimer_prof ∈ [--..--]
-[value] computing for function setitimer <- main.
+[eva] Analyzing a complete application starting at main
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
+  
+[eva] computing for function setitimer <- main.
   Called from tests/libc/sys_time.c:6.
-[value] using specification for function setitimer
-[value] tests/libc/sys_time.c:6: 
+[eva] using specification for function setitimer
+[eva] tests/libc/sys_time.c:6: 
   function setitimer: precondition 'valid_new_value' got status valid.
-[value] tests/libc/sys_time.c:6: 
+[eva] tests/libc/sys_time.c:6: 
   function setitimer: precondition 'old_value_null_or_valid' got status valid.
-[value] Done for function setitimer
-[value] tests/libc/sys_time.c:7: assertion got status valid.
-[value] computing for function setitimer <- main.
+[eva] Done for function setitimer
+[eva] tests/libc/sys_time.c:7: assertion got status valid.
+[eva] computing for function setitimer <- main.
   Called from tests/libc/sys_time.c:9.
-[value] tests/libc/sys_time.c:9: 
+[eva] tests/libc/sys_time.c:9: 
   function setitimer: precondition 'valid_new_value' got status valid.
-[value] tests/libc/sys_time.c:9: 
+[eva] tests/libc/sys_time.c:9: 
   function setitimer: precondition 'old_value_null_or_valid' got status valid.
-[value] Done for function setitimer
-[value] tests/libc/sys_time.c:10: assertion got status valid.
-[value] tests/libc/sys_time.c:11: assertion got status valid.
-[value] computing for function getitimer <- main.
+[eva] Done for function setitimer
+[eva] tests/libc/sys_time.c:10: assertion got status valid.
+[eva] tests/libc/sys_time.c:11: assertion got status valid.
+[eva] computing for function getitimer <- main.
   Called from tests/libc/sys_time.c:12.
-[value] using specification for function getitimer
-[value] tests/libc/sys_time.c:12: 
+[eva] using specification for function getitimer
+[eva] tests/libc/sys_time.c:12: 
   function getitimer: precondition 'valid_curr_value' got status valid.
-[value] Done for function getitimer
-[value] tests/libc/sys_time.c:13: assertion got status valid.
-[value] tests/libc/sys_time.c:14: assertion got status valid.
-[value] computing for function getitimer <- main.
+[eva] Done for function getitimer
+[eva] tests/libc/sys_time.c:13: assertion got status valid.
+[eva] tests/libc/sys_time.c:14: assertion got status valid.
+[eva] computing for function getitimer <- main.
   Called from tests/libc/sys_time.c:16.
-[value] tests/libc/sys_time.c:16: 
+[eva] tests/libc/sys_time.c:16: 
   function getitimer: precondition 'valid_curr_value' got status valid.
-[value] Done for function getitimer
-[value] tests/libc/sys_time.c:17: assertion got status valid.
-[value] computing for function setitimer <- main.
+[eva] Done for function getitimer
+[eva] tests/libc/sys_time.c:17: assertion got status valid.
+[eva] computing for function setitimer <- main.
   Called from tests/libc/sys_time.c:19.
-[value] tests/libc/sys_time.c:19: 
+[eva] tests/libc/sys_time.c:19: 
   function setitimer: precondition 'valid_new_value' got status valid.
-[value] tests/libc/sys_time.c:19: 
+[eva] tests/libc/sys_time.c:19: 
   function setitimer: precondition 'old_value_null_or_valid' got status valid.
-[value] Done for function setitimer
-[value] tests/libc/sys_time.c:20: assertion got status valid.
-[value] Recording results for main
-[value] done for function main
-[value] ====== VALUES COMPUTED ======
-[value:final-states] Values at end of function main:
+[eva] Done for function setitimer
+[eva] tests/libc/sys_time.c:20: assertion got status valid.
+[eva] Recording results for main
+[eva] done for function main
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function main:
   i1.it_interval.tv_sec ∈ {1}
     .it_interval.tv_usec ∈ {100}
     .it_value.tv_sec ∈ {2}

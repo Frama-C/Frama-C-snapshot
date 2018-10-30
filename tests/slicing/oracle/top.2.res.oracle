@@ -1,23 +1,23 @@
 [kernel] Parsing tests/slicing/top.i (no preprocessing)
 [slicing] slicing requests in progress...
-[value] Analyzing a complete application starting at main
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing a complete application starting at main
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   
-[value:alarm] tests/slicing/top.i:27: Warning: 
+[eva:alarm] tests/slicing/top.i:27: Warning: 
   out of bounds read. assert \valid_read(p_str + i);
-[value] computing for function strlen <- main.
+[eva] computing for function strlen <- main.
   Called from tests/slicing/top.i:27.
-[value] tests/slicing/top.i:21: entering loop for the first time
-[value:alarm] tests/slicing/top.i:21: Warning: 
+[eva:alarm] tests/slicing/top.i:21: Warning: 
   out of bounds read. assert \valid_read(q);
-[value:alarm] tests/slicing/top.i:21: Warning: 
+[eva] tests/slicing/top.i:21: starting to merge loop iterations
+[eva:alarm] tests/slicing/top.i:21: Warning: 
   signed overflow. assert k + 1 ≤ 2147483647;
-[value] Recording results for strlen
-[value] Done for function strlen
-[value] Recording results for main
-[value] done for function main
+[eva] Recording results for strlen
+[eva] Done for function strlen
+[eva] Recording results for main
+[eva] done for function main
 [slicing] initializing slicing ...
 [slicing] interpreting slicing requests from the command line...
 [pdg] computing for function strlen

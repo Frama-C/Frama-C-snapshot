@@ -176,11 +176,17 @@ let is_opt a = String.length a > 0 && a.[0] = '-'
 
 let rec pp_args fmt = function
   | [] -> ()
-  | a::b::w when is_opt a && not (is_opt a) ->
-      Format.fprintf fmt "@ %s %s" a b ;
+  | a::b::c::w when is_opt a && not (is_opt b) && not (is_opt c) ->
+      Format.fprintf fmt "@ @[<hov 2>%s@ %S@ %S@]" a b c ;
       pp_args fmt w
-  | a::w ->
+  | a::b::w when is_opt a && not (is_opt b) ->
+      Format.fprintf fmt "@ @[<hov 2>%s@ %S@]" a b ;
+      pp_args fmt w
+  | a::w when is_opt a ->
       Format.fprintf fmt "@ %s" a ;
+      pp_args fmt w
+  | a::w->
+      Format.fprintf fmt "@ %S" a ;
       pp_args fmt w
 
 class command name =
@@ -199,7 +205,7 @@ class command name =
     method command = cmd :: param
     method pretty fmt =
       Format.pp_print_string fmt cmd ; pp_args fmt param
-    
+
     method set_command name = cmd <- name
     method add args = param <- param @ args
 

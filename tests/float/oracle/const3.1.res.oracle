@@ -3,23 +3,23 @@
   Floating-point constant 1e-40f is not represented exactly. Will use 0x1.16c2000000000p-133.
 [kernel:parser:decimal-float] tests/float/const3.i:7: Warning: 
   Floating-point constant 1e-40 is not represented exactly. Will use 0x1.16c262777579cp-133.
-[value] Analyzing a complete application starting at main
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing a complete application starting at main
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   f1 ∈ [0x1.16c2000000000p-133 .. 0x1.16c3000000000p-133]
   d0 ∈ [0x1.16c262777579cp-133 .. 0x1.16c262777579dp-133]
-[value] tests/float/const3.i:11: 
+[eva] tests/float/const3.i:11: 
   Frama_C_dump_each:
   # Cvalue domain:
   f1 ∈ [0x1.16c2000000000p-133 .. 0x1.16c3000000000p-133]
   d0 ∈ [0x1.16c262777579cp-133 .. 0x1.16c262777579dp-133]
   __retres ∈ UNINITIALIZED
   ==END OF DUMP==
-[value] Recording results for main
-[value] done for function main
-[value] ====== VALUES COMPUTED ======
-[value:final-states] Values at end of function main:
+[eva] Recording results for main
+[eva] done for function main
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function main:
   d1 ∈ [0x1.16c2000000000p-133 .. 0x1.16c3000000000p-133]
   __retres ∈ {0}
 [from] Computing for function main

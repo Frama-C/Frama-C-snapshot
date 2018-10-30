@@ -349,6 +349,7 @@ struct
       let deps = Function_Froms.Deps.add_indirect_dep deps_right all_indirect in
       { state with deps_table =
           Function_Froms.Memory.add_binding_precise_loc
+            ~for_writing:(not init)
             ~exact state.deps_table loc deps }
 
     let transfer_call stmt dest f args _loc state =
@@ -425,7 +426,8 @@ struct
             | Some lv ->
               let return_from = froms_call.Function_Froms.deps_return in
               let deps_ret = subst_before_call return_from in
-              transfer_assign stmt ~init:false lv deps_ret state
+              let init = Cil.is_mutable_or_initialized lv in
+              transfer_assign stmt ~init lv deps_ret state
       in
       let f f acc =
         let p = do_on f in
@@ -458,7 +460,8 @@ struct
       match i with
         | Set (lv, exp, _) ->
               let comp_vars = find stmt state.deps_table exp in
-              transfer_assign stmt ~init:false lv comp_vars state
+              let init = Cil.is_mutable_or_initialized lv in
+              transfer_assign stmt ~init lv comp_vars state
         | Local_init(v, AssignInit i, _) ->
           let implicit = true in
           let rec aux lv i acc =

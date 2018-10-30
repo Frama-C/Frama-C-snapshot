@@ -1,39 +1,39 @@
 [kernel] Parsing tests/value/deps_local.i (no preprocessing)
-[value] Analyzing a complete application starting at main
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing a complete application starting at main
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   G ∈ {0}
   H ∈ {0}
-[value] computing for function f <- main.
+[eva] computing for function f <- main.
   Called from tests/value/deps_local.i:22.
-[value] computing for function h <- f <- main.
+[eva] computing for function h <- f <- main.
   Called from tests/value/deps_local.i:17.
-[value] Recording results for h
-[value] Done for function h
-[value] Recording results for f
-[value] Done for function f
-[value] computing for function g <- main.
+[eva] Recording results for h
+[eva] Done for function h
+[eva] Recording results for f
+[eva] Done for function f
+[eva] computing for function g <- main.
   Called from tests/value/deps_local.i:23.
-[value] computing for function h <- g <- main.
+[eva] computing for function h <- g <- main.
   Called from tests/value/deps_local.i:11.
-[value] Recording results for h
-[value] Done for function h
-[value] Recording results for g
-[value] Done for function g
-[value] Recording results for main
-[value] done for function main
-[value] ====== VALUES COMPUTED ======
-[value:final-states] Values at end of function h:
+[eva] Recording results for h
+[eva] Done for function h
+[eva] Recording results for g
+[eva] Done for function g
+[eva] Recording results for main
+[eva] done for function main
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function h:
   ga ∈ {0}
   fa ∈ {0}
-[value:final-states] Values at end of function f:
+[eva:final-states] Values at end of function f:
   fa ∈ {0}
   __retres ∈ {0}
-[value:final-states] Values at end of function g:
+[eva:final-states] Values at end of function g:
   ga ∈ {0}
   __retres ∈ {0}
-[value:final-states] Values at end of function main:
+[eva:final-states] Values at end of function main:
   __retres ∈ {0}
 [from] Computing for function h
 [from] Done for function h

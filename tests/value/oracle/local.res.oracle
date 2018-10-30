@@ -1,42 +1,39 @@
 [kernel] Parsing tests/value/local.i (no preprocessing)
-[value] Analyzing a complete application starting at main
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing a complete application starting at main
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   X ∈ {0}
   Y ∈ {0}
   Z ∈ {0}
   T ∈ {0}
   U ∈ {0}
   V ∈ {0}
-[value] computing for function f <- main.
+[eva] computing for function f <- main.
   Called from tests/value/local.i:33.
-[value] Recording results for f
-[value] Done for function f
-[value] tests/value/local.i:33: Warning: 
+[eva] Recording results for f
+[eva] Done for function f
+[eva:locals-escaping] tests/value/local.i:33: Warning: 
   locals {a} escaping the scope of f through X
-[value] tests/value/local.i:33: Warning: 
+[eva:locals-escaping] tests/value/local.i:33: Warning: 
   locals {b} escaping the scope of f through \result<f>
-[value] computing for function g <- main.
+[eva] computing for function g <- main.
   Called from tests/value/local.i:34.
-[value] computing for function f <- g <- main.
-  Called from tests/value/local.i:13.
-[value] Recording results for f
-[value] Done for function f
-[value] tests/value/local.i:13: Warning: 
+[eva] tests/value/local.i:13: Reusing old results for call to f
+[eva:locals-escaping] tests/value/local.i:13: Warning: 
   locals {a} escaping the scope of f through X
-[value] tests/value/local.i:13: Warning: 
+[eva:locals-escaping] tests/value/local.i:13: Warning: 
   locals {b} escaping the scope of f through \result<f>
-[value:alarm] tests/value/local.i:14: Warning: 
+[eva:alarm] tests/value/local.i:14: Warning: 
   accessing left-value that contains escaping addresses.
   assert ¬\dangling(&T);
-[value] Recording results for g
-[value] Done for function g
-[value] tests/value/local.i:34: Warning: 
+[eva] Recording results for g
+[eva] Done for function g
+[eva:locals-escaping] tests/value/local.i:34: Warning: 
   locals {d} escaping the scope of g through U
-[value] tests/value/local.i:34: Warning: 
+[eva:locals-escaping] tests/value/local.i:34: Warning: 
   locals {d} escaping the scope of g through \result<g>
-[value] tests/value/local.i:35: 
+[eva] tests/value/local.i:35: 
   Frama_C_dump_each:
   # Cvalue domain:
   X ∈ ESCAPINGADDR
@@ -47,32 +44,32 @@
   V ∈ {0}
   e ∈ UNINITIALIZED
   ==END OF DUMP==
-[value] computing for function h <- main.
+[eva] computing for function h <- main.
   Called from tests/value/local.i:36.
-[value] Recording results for h
-[value] Done for function h
-[value] computing for function i <- main.
+[eva] Recording results for h
+[eva] Done for function h
+[eva] computing for function i <- main.
   Called from tests/value/local.i:37.
-[value] Recording results for i
-[value] Done for function i
-[value] Recording results for main
-[value] done for function main
-[value] tests/value/local.i:14: 
-  assertion 'Value,dangling_pointer' got final status invalid.
-[value] ====== VALUES COMPUTED ======
-[value:final-states] Values at end of function f:
+[eva] Recording results for i
+[eva] Done for function i
+[eva] Recording results for main
+[eva] done for function main
+[eva] tests/value/local.i:14: 
+  assertion 'Eva,dangling_pointer' got final status invalid.
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function f:
   X ∈ {{ &a }}
   __retres ∈ {{ &b }}
-[value:final-states] Values at end of function g:
+[eva:final-states] Values at end of function g:
   X ∈ ESCAPINGADDR
   T ∈ ESCAPINGADDR
   U ∈ {{ &d }}
   d ∈ [--..--]
-[value:final-states] Values at end of function h:
+[eva:final-states] Values at end of function h:
   __retres ∈ {{ &e + {4} }}
-[value:final-states] Values at end of function i:
+[eva:final-states] Values at end of function i:
   x ∈ {{ &local }}
-[value:final-states] Values at end of function main:
+[eva:final-states] Values at end of function main:
   X ∈ ESCAPINGADDR
   Y ∈ ESCAPINGADDR
   Z ∈ ESCAPINGADDR

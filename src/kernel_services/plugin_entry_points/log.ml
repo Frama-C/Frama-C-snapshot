@@ -38,7 +38,7 @@ type event = {
   evt_kind : kind ;
   evt_plugin : string ;
   evt_category : string option;
-  evt_source : Lexing.position option ;
+  evt_source : Filepath.position option ;
   evt_message : string ;
 }
 
@@ -242,9 +242,10 @@ let add_source buffer = function
   | None -> ()
   | Some src ->
     begin
-      Buffer.add_string buffer (Filepath.pretty src.Lexing.pos_fname) ;
-      Buffer.add_char buffer ':' ;
-      Buffer.add_string buffer (string_of_int src.Lexing.pos_lnum) ;
+      Buffer.add_string buffer
+        (Filepath.Normalized.to_pretty_string src.Filepath.pos_path);
+      Buffer.add_string buffer ":" ;
+      Buffer.add_string buffer (string_of_int src.Filepath.pos_lnum);
       Buffer.add_string buffer ": " ;
     end
 
@@ -310,7 +311,7 @@ let do_transient terminal text p q =
 (* -------------------------------------------------------------------------- *)
 
 let source ~file ~line =
-  Lexing.{ pos_fname = file ; pos_lnum = line ; pos_bol = 0 ; pos_cnum = 0 }
+  Filepath.{ pos_path = file ; pos_lnum = line ; pos_bol = 0 ; pos_cnum = 0 }
 
 let current_loc = ref (fun () -> raise Not_found)
 
@@ -476,7 +477,7 @@ let logtransient channel text =
          raise e
     ) buffer text
 
-let logwith finally channel
+let logwithfinal finally channel
     ?(fire=true)    (* fire channel listeners *)
     ?emitwith       (* additional emitter *)
     ?(once=false)   (* log and emit only once *)
@@ -534,18 +535,88 @@ let finally_false _ = false
 let cmdline_error_occurred = Extlib.mk_fun "Log.cmdline_error_occurred"
 let cmdline_at_error_exit = Extlib.mk_fun "Log.at_error_exit"
 
+type deferred_exn =
+  | DNo_exn
+  | DWarn_as_error of event
+  | DError of event
+  | DFatal of event
+
+let deferred_exn = ref DNo_exn
+
+let unreported_error = "##unreported-error##"
+
+let unreported_event { evt_category } =
+  match evt_category with
+  | None -> false
+  | Some s -> s = unreported_error
+
+(* we keep track of at most one deferred exception, ordered by seriousness
+   (internal error > user error > warning-as-error). the rationale is that
+   an internal error might cause subsequent errors or warning, but the reverse
+   is not true: an deferred user error must not lead to an internal error.
+   Should that ever happen, at the very least the code should be modified to
+   directly [abort] instead of merely logging an [error].
+*)
+let update_deferred_exn exn =
+  match !deferred_exn, exn with
+  | DNo_exn, _ -> deferred_exn := exn
+  | DWarn_as_error _, DWarn_as_error _ -> ()
+  | DWarn_as_error _, _ -> deferred_exn := exn
+  | DError _, (DNo_exn | DWarn_as_error _ | DError _) -> ()
+  | DError _, DFatal _ -> deferred_exn := exn
+  | DFatal _, _ -> ()
+
+let warn_event_as_error event = update_deferred_exn (DWarn_as_error event)
+
+let deferred_raise ~fatal ~unreported event msg =
+  let channel = new_channel event.evt_plugin in
+  let append =
+    if unreported then None else
+      Some
+        (fun fmt ->
+           Format.fprintf fmt " See above messages for more information.@\n")
+  in
+  let exn =
+    if fatal then AbortFatal event.evt_plugin
+    else AbortError event.evt_plugin
+  in
+  let finally = finally_raise exn in
+  logwithfinal finally channel ?append ~kind:event.evt_kind msg
+
+let treat_deferred_error () =
+    match !deferred_exn with
+    | DNo_exn -> ()
+    | DWarn_as_error event ->
+      let unreported = unreported_event event in
+      let wkey =
+        match event.evt_category with
+        | None -> ""
+        | Some s when s = unreported_error -> ""
+        | Some s -> s
+      in
+      deferred_raise ~fatal:false ~unreported event
+        "warning %s treated as deferred error." wkey
+    | DError event ->
+      let unreported = unreported_event event in
+      deferred_raise ~fatal:false ~unreported event
+        "Deferred error message was emitted during execution."
+    | DFatal event ->
+      let unreported = unreported_event event in
+      deferred_raise ~fatal:true ~unreported event
+        "Deferred internal error message was emitted during execution."
+
 (* -------------------------------------------------------------------------- *)
 (* --- Messages Interface                                                 --- *)
 (* -------------------------------------------------------------------------- *)
 
 type 'a pretty_printer =
-  ?current:bool -> ?source:Lexing.position ->
+  ?current:bool -> ?source:Filepath.position ->
   ?emitwith:(event -> unit) -> ?echo:bool -> ?once:bool ->
   ?append:(Format.formatter -> unit) ->
   ('a,formatter,unit) format -> 'a
 
 type ('a,'b) pretty_aborter =
-  ?current:bool -> ?source:Lexing.position -> ?echo:bool ->
+  ?current:bool -> ?source:Filepath.position -> ?echo:bool ->
   ?append:(Format.formatter -> unit) ->
   ('a,formatter,unit,'b) format4 -> 'a
 
@@ -555,7 +626,7 @@ let log_channel channel
     ?emitwith ?echo ?once
     ?append
     text =
-  logwith finally_unit channel ?once ?echo ?emitwith ?current ?source
+  logwithfinal finally_unit channel ?once ?echo ?emitwith ?current ?source
     ~kind ?append text
 
 let echo e =
@@ -641,9 +712,23 @@ struct
     List.rev (aux [] [] l trie)
 end
 
-let split_category s =
-  let s = if s = "*" then "" else s in
-  List.filter (fun s -> s <> "") (Transitioning.String.split_on_char ':' s)
+let rec split_joker = function
+  | [] -> []
+  | ["*"] -> []
+  | ""::w -> split_joker w
+  | a::w -> a::split_joker w
+
+let split_category s = split_joker (Transitioning.String.split_on_char ':' s)
+
+let evt_category = function
+  | { evt_category = None } -> []
+  | { evt_category = Some s } -> split_category s
+
+(* a is a sub-category of b *)
+let rec is_subcategory a b = match a,b with
+  | _,[] -> true
+  | [],_ -> false
+  | a1::aw , b1::bw -> a1 = b1 && is_subcategory aw bw
 
 let merge_category l =
   match l with
@@ -697,7 +782,7 @@ sig
   val debug_atleast: int -> bool
 
   val printf : ?level:int -> ?dkey:category ->
-    ?current:bool -> ?source:Lexing.position ->
+    ?current:bool -> ?source:Filepath.position ->
     ?append:(Format.formatter -> unit) ->
     ?header:(Format.formatter -> unit) ->
     ('a,formatter,unit) format -> 'a
@@ -715,12 +800,14 @@ sig
   val not_yet_implemented : ('a,formatter,unit,'b) format4 -> 'a
   val deprecated : string -> now:string -> ('a -> 'b) -> 'a -> 'b
 
-  val with_result  : (event -> 'b) -> ('a,'b) pretty_aborter
-  val with_warning : (event -> 'b) -> ('a,'b) pretty_aborter
-  val with_error   : (event -> 'b) -> ('a,'b) pretty_aborter
-  val with_failure : (event -> 'b) -> ('a,'b) pretty_aborter
+  val with_result  : (event option -> 'b) -> ('a,'b) pretty_aborter
+  val with_warning : (event option -> 'b) -> ('a,'b) pretty_aborter
+  val with_error   : (event option -> 'b) -> ('a,'b) pretty_aborter
+  val with_failure : (event option -> 'b) -> ('a,'b) pretty_aborter
 
   val log : ?kind:kind -> ?verbose:int -> ?debug:int -> 'a pretty_printer
+  val logwith : (event option -> 'b) ->
+    ?wkey: warn_category -> ?emitwith:(event -> unit) -> ?once:bool -> ('a,'b) pretty_aborter
 
   val register : kind -> (event -> unit) -> unit (** Very local listener. *)
   val register_tag_handlers : (string -> string) * (string -> string) -> unit
@@ -728,6 +815,8 @@ sig
   val register_category: string -> category
 
   val pp_category: Format.formatter -> category -> unit
+
+  val dkey_name: category -> string
 
   val is_registered_category: string -> bool
 
@@ -749,6 +838,8 @@ sig
   val pp_warn_category: Format.formatter -> warn_category -> unit
 
   val pp_all_warn_categories_status: unit -> unit
+
+  val wkey_name: warn_category -> string
 
   val get_warn_category: string -> warn_category option
 
@@ -798,6 +889,10 @@ struct
 
   let not_registered s =
     failwith (s ^ " is not a registered category for " ^ label)
+
+  let dkey_name s = s
+
+  let wkey_name s = s
 
   let add_debug_keys s =
     try
@@ -912,7 +1007,7 @@ struct
       ?emitwith ?echo ?once
       ?append text =
     if to_be_log verbose debug then
-      logwith finally_unit channel ?once ?echo ?emitwith ?current ?source
+      logwithfinal finally_unit channel ?once ?echo ?emitwith ?current ?source
         ~kind
         ?append text
     else Pretty_utils.nullprintf text
@@ -921,7 +1016,7 @@ struct
       ?(level=1) ?dkey ?current ?source
       ?emitwith ?echo ?once ?append text =
     if verbose_atleast level && has_debug_key dkey then
-      logwith finally_unit channel ?once ?echo ?emitwith ?current ?source
+      logwithfinal finally_unit channel ?once ?echo ?emitwith ?current ?source
         ~kind:Result ?category:dkey ?append text
     else Pretty_utils.nullprintf text
 
@@ -942,7 +1037,7 @@ struct
       else `Silent
     in match mode with
     | `Message ->
-      logwith finally_unit channel ?once ?echo ?emitwith ?current ?source
+      logwithfinal finally_unit channel ?once ?echo ?emitwith ?current ?source
         ~kind:Feedback ?category:dkey ?append text
     | `Transient -> logtransient channel text
     | `Silent -> Pretty_utils.nullprintf text
@@ -958,44 +1053,49 @@ struct
       ?level ?dkey ?current ?source
       ?emitwith ?echo ?once ?append text =
     if should_output_debug level dkey then
-      logwith finally_unit channel ?once ?echo ?emitwith ?current ?source
+      logwithfinal finally_unit channel ?once ?echo ?emitwith ?current ?source
         ~kind:Debug ?category:dkey ?append text
     else
       Pretty_utils.nullprintf text
 
-  exception Warn_as_error
+  let force_error = function
+    | None ->
+      { evt_kind = Failure;
+        evt_plugin = channel.plugin;
+        evt_category = Some unreported_error;
+        evt_message = "Silent error";
+        evt_source = None
+      }
+    | Some evt -> evt
 
-  let warn_event_as_error event =
-    let wkey = match event.evt_category with None -> "" | Some s -> s in
-    !cmdline_error_occurred Warn_as_error;
-    !cmdline_at_error_exit
-      (function
-        | Warn_as_error ->
-          feedback "warning %s treated as error:@\n%s" wkey event.evt_message
-        (* only emit a message if the exit status is caused by ourselves. *)
-        | _ -> ())
-        
+  let finally_user_error evt =
+    let evt = force_error evt in update_deferred_exn (DError evt)
+
+  let finally_internal_error evt =
+    let evt = force_error evt in update_deferred_exn (DFatal evt)
+
   let error
       ?current ?source
       ?emitwith ?echo ?once ?append text =
-    logwith finally_unit channel ?once ?echo ?emitwith ?current ?source
+    logwithfinal
+      finally_user_error channel ?once ?echo ?emitwith ?current ?source
       ~kind:Error ?append text
 
   let abort ?current ?source ?echo ?append text =
-    logwith (finally_raise (AbortError P.channel))
+    logwithfinal (finally_raise (AbortError P.channel))
       channel ?echo ?current ?source
       ~kind:Error ?append text
 
   let failure
       ?current ?source
       ?emitwith ?echo ?once ?append text =
-    logwith finally_unit channel ?once ?echo ?emitwith ?current ?source
-      ~kind:Failure ?append text
+    logwithfinal finally_internal_error channel
+      ?once ?echo ?emitwith ?current ?source ~kind:Failure ?append text
 
   let fatal
       ?current ?source
       ?echo ?append text =
-    logwith (finally_raise (AbortFatal P.channel)) channel
+    logwithfinal (finally_raise (AbortFatal P.channel)) channel
       ?echo ?current ?source
       ~kind:Failure ?append text
 
@@ -1005,13 +1105,14 @@ struct
     if assertion then
       Format.kfprintf (fun _ -> true) Pretty_utils.null text
     else
-      logwith finally_false channel ?echo ?current ?source
+      logwithfinal finally_false channel ?echo ?current ?source
         ~kind:Failure ?append text
 
-  let warning
-      ?(wkey="")
+  let logwith
+      finally
+      ?(wkey="") ?emitwith ?once
       ?current ?source
-      ?emitwith ?echo ?once ?append text =
+      ?echo ?append text =
     let status = get_warn_status wkey in
     if status <> Winactive then
       begin
@@ -1055,29 +1156,33 @@ struct
             | Some app ->
               Some (fun fmt -> app fmt; append_once_suffix fmt)
         in
-        logwith finally_unit channel ?once ?echo ?emitwith ?current ?source
+        logwithfinal finally channel ?once ?echo ?emitwith ?current ?source
           ~kind ?category ?append text
       end
-    else Pretty_utils.nullprintf text
+    else Pretty_utils.with_null (fun () -> finally None) text
 
-  let do_finally kf = function None -> assert false | Some evt -> kf evt
-  
-  let with_result kf ?current ?source ?echo ?append text =
-    logwith (do_finally kf) channel
+  let warning
+      ?wkey ?current ?source
+      ?emitwith ?echo ?once ?append text =
+    logwith finally_unit
+      ?wkey ?current ?source ?emitwith ?echo ?once ?append text
+
+  let with_result finally ?current ?source ?echo ?append text =
+    logwithfinal finally channel
       ~kind:Result ?current ?source ?echo ?append text
-    
-  let with_warning kf ?current ?source ?echo ?append text =
-    logwith (do_finally kf) channel
+
+  let with_warning finally ?current ?source ?echo ?append text =
+    logwithfinal finally channel
       ~kind:Warning ?current ?source ?echo ?append text
-    
-  let with_error kf ?current ?source ?echo ?append text =
-    logwith (do_finally kf) channel
+
+  let with_error finally ?current ?source ?echo ?append text =
+    logwithfinal finally channel
       ~kind:Error ?current ?source ?echo ?append text
-    
-  let with_failure kf ?current ?source ?echo ?append text =
-    logwith (do_finally kf) channel
+
+  let with_failure finally ?current ?source ?echo ?append text =
+    logwithfinal finally channel
       ~kind:Failure ?current ?source ?echo ?append text
-  
+
   let register kd f =
     let em = channel.emitters.(nth_kind kd) in
     em.listeners <- em.listeners @ [f]
@@ -1118,7 +1223,7 @@ struct
       begin
         (* Header is a regular message *)
         let header = match header with None -> noprint | Some h -> h in
-        logwith finally_unit channel ~kind:Result ~fire:false ?current ?source
+        logwithfinal finally_unit channel ~kind:Result ~fire:false ?current ?source
           ?category:dkey "%t" header ;
         let bol = ref true in
         let stdout = { stdout with output = spynewline bol stdout.output } in

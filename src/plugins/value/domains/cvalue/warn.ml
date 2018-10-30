@@ -27,20 +27,11 @@ let warn_locals_escape is_block fundec k locals =
   let pretty_base = Base.pretty in
   let pretty_block fmt = Pretty_utils.pp_cond is_block fmt "a block of " in
   let sv = fundec.svar in
-  match locals with
-  | Base.SetLattice.Top ->
-      Value_util.warning_once_current
-        "locals escaping the scope of %t%a through %a"
-        pretty_block
-        Printer.pp_varinfo sv
-        pretty_base k
-  | Base.SetLattice.Set _ ->
-      Value_util.warning_once_current
-        "locals %a escaping the scope of %t%a through %a"
-        Base.SetLattice.pretty locals
-        pretty_block
-        Printer.pp_varinfo sv
-        pretty_base k
+  Value_parameters.warning
+    ~wkey:Value_parameters.wkey_locals_escaping
+    ~current:true ~once:true
+    "locals %a escaping the scope of %t%a through %a"
+    Base.Hptset.pretty locals pretty_block Printer.pp_varinfo sv pretty_base k
 
 let warn_imprecise_lval_read lv loc contents =
   if Value_parameters.verbose_atleast 1 then

@@ -1,0 +1,525 @@
+[kernel] Parsing tests/builtins/realloc_multiple.c (with preprocessing)
+[eva] Analyzing a complete application starting at main
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
+  
+[eva] computing for function main1 <- main.
+  Called from tests/builtins/realloc_multiple.c:75.
+[eva] tests/builtins/realloc_multiple.c:9: 
+  Call to builtin Frama_C_malloc_fresh for function malloc
+[eva] tests/builtins/realloc_multiple.c:9: allocating variable __malloc_main1_l9
+[eva:alarm] tests/builtins/realloc_multiple.c:10: Warning: 
+  out of bounds write. assert \valid(q + i);
+[kernel] tests/builtins/realloc_multiple.c:10: Warning: 
+  all target addresses were invalid. This path is assumed to be dead.
+[eva] tests/builtins/realloc_multiple.c:12: 
+  Call to builtin Frama_C_malloc_fresh for function malloc
+[eva] tests/builtins/realloc_multiple.c:12: 
+  allocating variable __malloc_main1_l12
+[eva:alarm] tests/builtins/realloc_multiple.c:13: Warning: 
+  out of bounds write. assert \valid(r + i_0);
+[kernel] tests/builtins/realloc_multiple.c:13: Warning: 
+  all target addresses were invalid. This path is assumed to be dead.
+[eva] computing for function Frama_C_interval <- main1 <- main.
+  Called from tests/builtins/realloc_multiple.c:16.
+[eva] using specification for function Frama_C_interval
+[eva] tests/builtins/realloc_multiple.c:16: 
+  function Frama_C_interval: precondition 'order' got status valid.
+[eva] Done for function Frama_C_interval
+[eva] tests/builtins/realloc_multiple.c:21: 
+  Frama_C_dump_each:
+  # Cvalue domain:
+  __fc_heap_status ∈ [--..--]
+  __fc_random_counter ∈ [--..--]
+  __fc_rand_max ∈ {32767}
+  __fc_env[0] ∈ {{ NULL ; &S_0___fc_env[0] }}
+          [1] ∈ {{ NULL ; &S_1___fc_env[0] }}
+          [2..4095] ∈ {{ NULL ; &S_0___fc_env[0] ; &S_1___fc_env[0] }}
+  __fc_mblen_state ∈ [--..--]
+  __fc_mbtowc_state ∈ [--..--]
+  __fc_wctomb_state ∈ [--..--]
+  Frama_C_entropy_source ∈ [--..--]
+  q ∈ {{ &__malloc_main1_l9[0] }}
+  r ∈ {{ &__malloc_main1_l12[0] }}
+  p ∈ {{ &__malloc_main1_l9[0] ; &__malloc_main1_l12[0] }}
+  x ∈ {0; 1}
+  v ∈ {1}
+  S_0___fc_env[0..1] ∈ [--..--]
+  S_1___fc_env[0..1] ∈ [--..--]
+  __malloc_main1_l9[0..4] ∈ {5}
+  __malloc_main1_l12[0..5] ∈ {6}
+  ==END OF DUMP==
+[eva] tests/builtins/realloc_multiple.c:23: 
+  Call to builtin Frama_C_realloc_multiple for function realloc
+[eva] tests/builtins/realloc_multiple.c:23: 
+  function realloc: precondition 'freeable' got status valid.
+[eva:malloc] bases_to_realloc: {__malloc_main1_l12}
+[eva] tests/builtins/realloc_multiple.c:23: 
+  allocating variable __realloc_main1_l23
+[eva:malloc] bases_to_realloc: {__malloc_main1_l9}
+[eva] tests/builtins/realloc_multiple.c:23: 
+  allocating variable __realloc_main1_l23_0
+[eva:malloc] tests/builtins/realloc_multiple.c:23: 
+  weak free on bases: {__malloc_main1_l9, __malloc_main1_l12}
+[eva] tests/builtins/realloc_multiple.c:25: 
+  Frama_C_dump_each:
+  # Cvalue domain:
+  __fc_heap_status ∈ [--..--]
+  __fc_random_counter ∈ [--..--]
+  __fc_rand_max ∈ {32767}
+  __fc_env[0] ∈ {{ NULL ; &S_0___fc_env[0] }}
+          [1] ∈ {{ NULL ; &S_1___fc_env[0] }}
+          [2..4095] ∈ {{ NULL ; &S_0___fc_env[0] ; &S_1___fc_env[0] }}
+  __fc_mblen_state ∈ [--..--]
+  __fc_mbtowc_state ∈ [--..--]
+  __fc_wctomb_state ∈ [--..--]
+  Frama_C_entropy_source ∈ [--..--]
+  q ∈ {{ &__malloc_main1_l9[0] }}
+  r ∈ {{ &__malloc_main1_l12[0] }}
+  p ∈ {{ &__malloc_main1_l9[0] ; &__malloc_main1_l12[0] }}
+  x ∈ {0; 1}
+  s ∈ {0}
+  v ∈ {1}
+  S_0___fc_env[0..1] ∈ [--..--]
+  S_1___fc_env[0..1] ∈ [--..--]
+  __malloc_main1_l9[0..4] ∈ {5}
+  __malloc_main1_l12[0..5] ∈ {6}
+  ==END OF DUMP==
+[eva] tests/builtins/realloc_multiple.c:25: 
+  Frama_C_dump_each:
+  # Cvalue domain:
+  __fc_heap_status ∈ [--..--]
+  __fc_random_counter ∈ [--..--]
+  __fc_rand_max ∈ {32767}
+  __fc_env[0] ∈ {{ NULL ; &S_0___fc_env[0] }}
+          [1] ∈ {{ NULL ; &S_1___fc_env[0] }}
+          [2..4095] ∈ {{ NULL ; &S_0___fc_env[0] ; &S_1___fc_env[0] }}
+  __fc_mblen_state ∈ [--..--]
+  __fc_mbtowc_state ∈ [--..--]
+  __fc_wctomb_state ∈ [--..--]
+  Frama_C_entropy_source ∈ [--..--]
+  q ∈ {{ &__malloc_main1_l9[0] }} or ESCAPINGADDR
+  r ∈ {{ &__malloc_main1_l12[0] }} or ESCAPINGADDR
+  p ∈ {{ &__malloc_main1_l9[0] ; &__malloc_main1_l12[0] }} or ESCAPINGADDR
+  x ∈ {0; 1}
+  s ∈ {{ &__realloc_main1_l23[0] ; &__realloc_main1_l23_0[0] }}
+  v ∈ {1}
+  S_0___fc_env[0..1] ∈ [--..--]
+  S_1___fc_env[0..1] ∈ [--..--]
+  __malloc_main1_l9[0..4] ∈ {5}
+  __malloc_main1_l12[0..5] ∈ {6}
+  __realloc_main1_l23[0..5] ∈ {6}
+                     [6] ∈ UNINITIALIZED
+  __realloc_main1_l23_0[0..4] ∈ {5}
+                       [5..6] ∈ UNINITIALIZED
+  ==END OF DUMP==
+[eva] tests/builtins/realloc_multiple.c:26: Call to builtin free
+[eva] tests/builtins/realloc_multiple.c:26: 
+  function free: precondition 'freeable' got status valid.
+[eva:malloc] tests/builtins/realloc_multiple.c:26: strong free on bases: {}
+[eva] tests/builtins/realloc_multiple.c:26: Call to builtin free
+[eva:malloc] tests/builtins/realloc_multiple.c:26: 
+  weak free on bases: {__realloc_main1_l23, __realloc_main1_l23_0}
+[eva] Recording results for main1
+[eva] Done for function main1
+[eva] computing for function main2 <- main.
+  Called from tests/builtins/realloc_multiple.c:76.
+[eva] tests/builtins/realloc_multiple.c:30: 
+  Call to builtin Frama_C_malloc_fresh for function malloc
+[eva] tests/builtins/realloc_multiple.c:30: 
+  allocating variable __malloc_main2_l30
+[eva:alarm] tests/builtins/realloc_multiple.c:31: Warning: 
+  out of bounds write. assert \valid(q + i);
+[kernel] tests/builtins/realloc_multiple.c:31: Warning: 
+  all target addresses were invalid. This path is assumed to be dead.
+[eva] tests/builtins/realloc_multiple.c:33: 
+  Call to builtin Frama_C_malloc_fresh for function malloc
+[eva] tests/builtins/realloc_multiple.c:33: 
+  allocating variable __malloc_main2_l33
+[eva:alarm] tests/builtins/realloc_multiple.c:34: Warning: 
+  out of bounds write. assert \valid(r + i_0);
+[kernel] tests/builtins/realloc_multiple.c:34: Warning: 
+  all target addresses were invalid. This path is assumed to be dead.
+[eva] computing for function Frama_C_interval <- main2 <- main.
+  Called from tests/builtins/realloc_multiple.c:37.
+[eva] tests/builtins/realloc_multiple.c:37: 
+  function Frama_C_interval: precondition 'order' got status valid.
+[eva] Done for function Frama_C_interval
+[eva] tests/builtins/realloc_multiple.c:43: 
+  Frama_C_dump_each:
+  # Cvalue domain:
+  __fc_heap_status ∈ [--..--]
+  __fc_random_counter ∈ [--..--]
+  __fc_rand_max ∈ {32767}
+  __fc_env[0] ∈ {{ NULL ; &S_0___fc_env[0] }}
+          [1] ∈ {{ NULL ; &S_1___fc_env[0] }}
+          [2..4095] ∈ {{ NULL ; &S_0___fc_env[0] ; &S_1___fc_env[0] }}
+  __fc_mblen_state ∈ [--..--]
+  __fc_mbtowc_state ∈ [--..--]
+  __fc_wctomb_state ∈ [--..--]
+  Frama_C_entropy_source ∈ [--..--]
+  q ∈ {{ &__malloc_main2_l30[0] }}
+  r ∈ {{ &__malloc_main2_l33[0] }}
+  p ∈ {{ NULL ; &__malloc_main2_l30[0] ; &__malloc_main2_l33[0] }}
+  x ∈ {0; 1; 2}
+  v ∈ {2}
+  S_0___fc_env[0..1] ∈ [--..--]
+  S_1___fc_env[0..1] ∈ [--..--]
+  __malloc_main2_l30[0..4] ∈ {7}
+  __malloc_main2_l33[0..5] ∈ {8}
+  ==END OF DUMP==
+[eva] tests/builtins/realloc_multiple.c:45: 
+  Call to builtin Frama_C_realloc_multiple for function realloc
+[eva] tests/builtins/realloc_multiple.c:45: 
+  function realloc: precondition 'freeable' got status valid.
+[eva:malloc] bases_to_realloc: {__malloc_main2_l33}
+[eva] tests/builtins/realloc_multiple.c:45: 
+  allocating variable __realloc_main2_l45
+[eva:malloc] bases_to_realloc: {__malloc_main2_l30}
+[eva] tests/builtins/realloc_multiple.c:45: 
+  allocating variable __realloc_main2_l45_0
+[eva:malloc] bases_to_realloc: {}
+[eva] tests/builtins/realloc_multiple.c:45: 
+  allocating variable __realloc_main2_l45_1
+[eva:malloc] tests/builtins/realloc_multiple.c:45: 
+  weak free on bases: {__malloc_main2_l30, __malloc_main2_l33}
+[eva] tests/builtins/realloc_multiple.c:47: 
+  Frama_C_dump_each:
+  # Cvalue domain:
+  __fc_heap_status ∈ [--..--]
+  __fc_random_counter ∈ [--..--]
+  __fc_rand_max ∈ {32767}
+  __fc_env[0] ∈ {{ NULL ; &S_0___fc_env[0] }}
+          [1] ∈ {{ NULL ; &S_1___fc_env[0] }}
+          [2..4095] ∈ {{ NULL ; &S_0___fc_env[0] ; &S_1___fc_env[0] }}
+  __fc_mblen_state ∈ [--..--]
+  __fc_mbtowc_state ∈ [--..--]
+  __fc_wctomb_state ∈ [--..--]
+  Frama_C_entropy_source ∈ [--..--]
+  q ∈ {{ &__malloc_main2_l30[0] }}
+  r ∈ {{ &__malloc_main2_l33[0] }}
+  p ∈ {{ NULL ; &__malloc_main2_l30[0] ; &__malloc_main2_l33[0] }}
+  x ∈ {0; 1; 2}
+  s ∈ {0}
+  v ∈ {2}
+  S_0___fc_env[0..1] ∈ [--..--]
+  S_1___fc_env[0..1] ∈ [--..--]
+  __malloc_main2_l30[0..4] ∈ {7}
+  __malloc_main2_l33[0..5] ∈ {8}
+  ==END OF DUMP==
+[eva] tests/builtins/realloc_multiple.c:47: 
+  Frama_C_dump_each:
+  # Cvalue domain:
+  __fc_heap_status ∈ [--..--]
+  __fc_random_counter ∈ [--..--]
+  __fc_rand_max ∈ {32767}
+  __fc_env[0] ∈ {{ NULL ; &S_0___fc_env[0] }}
+          [1] ∈ {{ NULL ; &S_1___fc_env[0] }}
+          [2..4095] ∈ {{ NULL ; &S_0___fc_env[0] ; &S_1___fc_env[0] }}
+  __fc_mblen_state ∈ [--..--]
+  __fc_mbtowc_state ∈ [--..--]
+  __fc_wctomb_state ∈ [--..--]
+  Frama_C_entropy_source ∈ [--..--]
+  q ∈ {{ &__malloc_main2_l30[0] }} or ESCAPINGADDR
+  r ∈ {{ &__malloc_main2_l33[0] }} or ESCAPINGADDR
+  p ∈
+   {{ NULL ; &__malloc_main2_l30[0] ; &__malloc_main2_l33[0] }} or ESCAPINGADDR
+  x ∈ {0; 1; 2}
+  s ∈
+   {{ &__realloc_main2_l45[0] ; &__realloc_main2_l45_0[0] ;
+      &__realloc_main2_l45_1[0] }}
+  v ∈ {2}
+  S_0___fc_env[0..1] ∈ [--..--]
+  S_1___fc_env[0..1] ∈ [--..--]
+  __malloc_main2_l30[0..4] ∈ {7}
+  __malloc_main2_l33[0..5] ∈ {8}
+  __realloc_main2_l45[0..5] ∈ {8}
+                     [6] ∈ UNINITIALIZED
+  __realloc_main2_l45_0[0..4] ∈ {7}
+                       [5..6] ∈ UNINITIALIZED
+  __realloc_main2_l45_1[0..6] ∈ UNINITIALIZED
+  ==END OF DUMP==
+[eva] tests/builtins/realloc_multiple.c:48: Call to builtin free
+[eva] tests/builtins/realloc_multiple.c:48: 
+  function free: precondition 'freeable' got status valid.
+[eva:malloc] tests/builtins/realloc_multiple.c:48: strong free on bases: {}
+[eva] tests/builtins/realloc_multiple.c:48: Call to builtin free
+[eva:malloc] tests/builtins/realloc_multiple.c:48: 
+  weak free on bases: {__realloc_main2_l45, __realloc_main2_l45_0,
+                       __realloc_main2_l45_1}
+[eva] Recording results for main2
+[eva] Done for function main2
+[eva] computing for function main3 <- main.
+  Called from tests/builtins/realloc_multiple.c:77.
+[eva] tests/builtins/realloc_multiple.c:52: 
+  Call to builtin Frama_C_malloc_fresh for function malloc
+[eva] tests/builtins/realloc_multiple.c:52: 
+  allocating variable __malloc_main3_l52
+[eva] tests/builtins/realloc_multiple.c:53: 
+  Call to builtin Frama_C_malloc_fresh for function malloc
+[eva] tests/builtins/realloc_multiple.c:53: 
+  allocating variable __malloc_main3_l53
+[eva] tests/builtins/realloc_multiple.c:53: 
+  Call to builtin Frama_C_malloc_fresh for function malloc
+[eva] tests/builtins/realloc_multiple.c:53: 
+  allocating variable __malloc_main3_l53_0
+[eva:alarm] tests/builtins/realloc_multiple.c:57: Warning: 
+  out of bounds write. assert \valid(p);
+[kernel] tests/builtins/realloc_multiple.c:57: Warning: 
+  all target addresses were invalid. This path is assumed to be dead.
+[eva:alarm] tests/builtins/realloc_multiple.c:58: Warning: 
+  out of bounds write. assert \valid(q);
+[kernel] tests/builtins/realloc_multiple.c:58: Warning: 
+  all target addresses were invalid. This path is assumed to be dead.
+[eva] computing for function Frama_C_interval <- main3 <- main.
+  Called from tests/builtins/realloc_multiple.c:59.
+[eva] tests/builtins/realloc_multiple.c:59: 
+  function Frama_C_interval: precondition 'order' got status valid.
+[eva] Done for function Frama_C_interval
+[eva] tests/builtins/realloc_multiple.c:64: 
+  Frama_C_dump_each:
+  # Cvalue domain:
+  __fc_heap_status ∈ [--..--]
+  __fc_random_counter ∈ [--..--]
+  __fc_rand_max ∈ {32767}
+  __fc_env[0] ∈ {{ NULL ; &S_0___fc_env[0] }}
+          [1] ∈ {{ NULL ; &S_1___fc_env[0] }}
+          [2..4095] ∈ {{ NULL ; &S_0___fc_env[0] ; &S_1___fc_env[0] }}
+  __fc_mblen_state ∈ [--..--]
+  __fc_mbtowc_state ∈ [--..--]
+  __fc_wctomb_state ∈ [--..--]
+  Frama_C_entropy_source ∈ [--..--]
+  p ∈ {{ &__malloc_main3_l52 }}
+  q ∈ {{ &__malloc_main3_l53_0 }}
+  r ∈ {{ NULL ; &__malloc_main3_l52 ; &__malloc_main3_l53_0 }}
+  s ∈ UNINITIALIZED
+  x ∈ UNINITIALIZED
+  y ∈ UNINITIALIZED
+  c ∈ {0; 1; 2}
+  v ∈ {3}
+  S_0___fc_env[0..1] ∈ [--..--]
+  S_1___fc_env[0..1] ∈ [--..--]
+  __malloc_main3_l52 ∈ {{ &x }}
+  __malloc_main3_l53_0 ∈ {{ &y }}
+  ==END OF DUMP==
+[eva] tests/builtins/realloc_multiple.c:65: 
+  Call to builtin Frama_C_realloc_multiple for function realloc
+[eva] tests/builtins/realloc_multiple.c:65: 
+  function realloc: precondition 'freeable' got status valid.
+[eva:malloc] bases_to_realloc: {__malloc_main3_l53_0}
+[eva] tests/builtins/realloc_multiple.c:65: 
+  allocating variable __realloc_main3_l65
+[eva:malloc] bases_to_realloc: {__malloc_main3_l52}
+[eva] tests/builtins/realloc_multiple.c:65: 
+  allocating variable __realloc_main3_l65_0
+[eva:malloc] bases_to_realloc: {}
+[eva] tests/builtins/realloc_multiple.c:65: 
+  allocating variable __realloc_main3_l65_1
+[eva:malloc] tests/builtins/realloc_multiple.c:65: 
+  weak free on bases: {__malloc_main3_l52, __malloc_main3_l53_0}
+[eva:alarm] tests/builtins/realloc_multiple.c:66: Warning: 
+  out of bounds read. assert \valid_read(s);
+[kernel] tests/builtins/realloc_multiple.c:66: Warning: 
+  all target addresses were invalid. This path is assumed to be dead.
+[eva:alarm] tests/builtins/realloc_multiple.c:66: Warning: 
+  accessing uninitialized left-value. assert \initialized(s);
+[eva] tests/builtins/realloc_multiple.c:67: 
+  Frama_C_dump_each:
+  # Cvalue domain:
+  __fc_heap_status ∈ [--..--]
+  __fc_random_counter ∈ [--..--]
+  __fc_rand_max ∈ {32767}
+  __fc_env[0] ∈ {{ NULL ; &S_0___fc_env[0] }}
+          [1] ∈ {{ NULL ; &S_1___fc_env[0] }}
+          [2..4095] ∈ {{ NULL ; &S_0___fc_env[0] ; &S_1___fc_env[0] }}
+  __fc_mblen_state ∈ [--..--]
+  __fc_mbtowc_state ∈ [--..--]
+  __fc_wctomb_state ∈ [--..--]
+  Frama_C_entropy_source ∈ [--..--]
+  p ∈ {{ &__malloc_main3_l52 }} or ESCAPINGADDR
+  q ∈ {{ &__malloc_main3_l53_0 }} or ESCAPINGADDR
+  r ∈
+   {{ NULL ; &__malloc_main3_l52 ; &__malloc_main3_l53_0 }} or ESCAPINGADDR
+  s ∈ {{ &__realloc_main3_l65[0] ; &__realloc_main3_l65_0[0] }}
+  x ∈ {17} or UNINITIALIZED
+  y ∈ {17} or UNINITIALIZED
+  c ∈ {0; 1; 2}
+  v ∈ {3}
+  S_0___fc_env[0..1] ∈ [--..--]
+  S_1___fc_env[0..1] ∈ [--..--]
+  __malloc_main3_l52 ∈ {{ &x }}
+  __malloc_main3_l53_0 ∈ {{ &y }}
+  __realloc_main3_l65[0] ∈ {{ &y }}
+                     [1] ∈ UNINITIALIZED
+  __realloc_main3_l65_0[0] ∈ {{ &x }}
+                       [1] ∈ UNINITIALIZED
+  __realloc_main3_l65_1[0..1] ∈ UNINITIALIZED
+  ==END OF DUMP==
+[eva:locals-escaping] tests/builtins/realloc_multiple.c:67: Warning: 
+  locals {x} escaping the scope of a block of main3 through __malloc_main3_l52
+[eva:locals-escaping] tests/builtins/realloc_multiple.c:67: Warning: 
+  locals {y} escaping the scope of a block of main3 through __malloc_main3_l53_0
+[eva:locals-escaping] tests/builtins/realloc_multiple.c:67: Warning: 
+  locals {y} escaping the scope of a block of main3 through __realloc_main3_l65
+[eva:locals-escaping] tests/builtins/realloc_multiple.c:67: Warning: 
+  locals {x} escaping the scope of a block of main3 through __realloc_main3_l65_0
+[eva] tests/builtins/realloc_multiple.c:69: 
+  Frama_C_dump_each:
+  # Cvalue domain:
+  __fc_heap_status ∈ [--..--]
+  __fc_random_counter ∈ [--..--]
+  __fc_rand_max ∈ {32767}
+  __fc_env[0] ∈ {{ NULL ; &S_0___fc_env[0] }}
+          [1] ∈ {{ NULL ; &S_1___fc_env[0] }}
+          [2..4095] ∈ {{ NULL ; &S_0___fc_env[0] ; &S_1___fc_env[0] }}
+  __fc_mblen_state ∈ [--..--]
+  __fc_mbtowc_state ∈ [--..--]
+  __fc_wctomb_state ∈ [--..--]
+  Frama_C_entropy_source ∈ [--..--]
+  p ∈ {{ &__malloc_main3_l52 }} or ESCAPINGADDR
+  q ∈ {{ &__malloc_main3_l53_0 }} or ESCAPINGADDR
+  r ∈
+   {{ NULL ; &__malloc_main3_l52 ; &__malloc_main3_l53_0 }} or ESCAPINGADDR
+  s ∈ {{ &__realloc_main3_l65[0] ; &__realloc_main3_l65_0[0] }}
+  v ∈ {3}
+  S_0___fc_env[0..1] ∈ [--..--]
+  S_1___fc_env[0..1] ∈ [--..--]
+  __malloc_main3_l52 ∈ ESCAPINGADDR
+  __malloc_main3_l53_0 ∈ ESCAPINGADDR
+  __realloc_main3_l65[0] ∈ ESCAPINGADDR
+                     [1] ∈ UNINITIALIZED
+  __realloc_main3_l65_0[0] ∈ ESCAPINGADDR
+                       [1] ∈ UNINITIALIZED
+  __realloc_main3_l65_1[0..1] ∈ UNINITIALIZED
+  ==END OF DUMP==
+[eva:alarm] tests/builtins/realloc_multiple.c:70: Warning: 
+  accessing left-value that contains escaping addresses.
+  assert ¬\dangling(&q);
+[eva] tests/builtins/realloc_multiple.c:70: Call to builtin free
+[eva] tests/builtins/realloc_multiple.c:70: 
+  function free: precondition 'freeable' got status valid.
+[eva:malloc] tests/builtins/realloc_multiple.c:70: 
+  strong free on bases: {__malloc_main3_l53_0}
+[eva] Recording results for main3
+[eva] Done for function main3
+[eva] Recording results for main
+[eva] done for function main
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function main1:
+  __fc_heap_status ∈ [--..--]
+  Frama_C_entropy_source ∈ [--..--]
+  q ∈ {{ &__malloc_main1_l9[0] }} or ESCAPINGADDR
+  r ∈ {{ &__malloc_main1_l12[0] }} or ESCAPINGADDR
+  p ∈ {{ &__malloc_main1_l9[0] ; &__malloc_main1_l12[0] }} or ESCAPINGADDR
+  x ∈ {0; 1}
+  s ∈
+   {{ NULL ; &__realloc_main1_l23[0] ; &__realloc_main1_l23_0[0] }} or ESCAPINGADDR
+  __malloc_main1_l9[0..4] ∈ {5}
+  __malloc_main1_l12[0..5] ∈ {6}
+[eva:final-states] Values at end of function main2:
+  __fc_heap_status ∈ [--..--]
+  Frama_C_entropy_source ∈ [--..--]
+  q ∈ {{ &__malloc_main2_l30[0] }} or ESCAPINGADDR
+  r ∈ {{ &__malloc_main2_l33[0] }} or ESCAPINGADDR
+  p ∈
+   {{ NULL ; &__malloc_main2_l30[0] ; &__malloc_main2_l33[0] }} or ESCAPINGADDR
+  x ∈ {0; 1; 2}
+  s ∈
+   {{ NULL ; &__realloc_main2_l45[0] ; &__realloc_main2_l45_0[0] ;
+      &__realloc_main2_l45_1[0] }} or ESCAPINGADDR
+  __malloc_main2_l30[0..4] ∈ {7}
+  __malloc_main2_l33[0..5] ∈ {8}
+[eva:final-states] Values at end of function main3:
+  __fc_heap_status ∈ [--..--]
+  Frama_C_entropy_source ∈ [--..--]
+  p ∈ {{ &__malloc_main3_l52 }} or ESCAPINGADDR
+  q ∈ ESCAPINGADDR
+  r ∈ {{ NULL ; &__malloc_main3_l52 }} or ESCAPINGADDR
+  s ∈ {{ &__realloc_main3_l65[0] ; &__realloc_main3_l65_0[0] }}
+  __malloc_main3_l52 ∈ ESCAPINGADDR
+[eva:final-states] Values at end of function main:
+  __fc_heap_status ∈ [--..--]
+  Frama_C_entropy_source ∈ [--..--]
+  __malloc_main1_l9[0..4] ∈ {5}
+  __malloc_main1_l12[0..5] ∈ {6}
+  __malloc_main2_l30[0..4] ∈ {7}
+  __malloc_main2_l33[0..5] ∈ {8}
+  __malloc_main3_l52 ∈ ESCAPINGADDR
+[from] Computing for function main1
+[from] Computing for function malloc <-main1
+[from] Done for function malloc
+[from] Computing for function Frama_C_interval <-main1
+[from] Done for function Frama_C_interval
+[from] Computing for function realloc <-main1
+[from] Done for function realloc
+[from] Computing for function free <-main1
+[from] Done for function free
+[from] Done for function main1
+[from] Computing for function main2
+[from] Done for function main2
+[from] Computing for function main3
+[from] Done for function main3
+[from] Computing for function main
+[from] Done for function main
+[from] ====== DEPENDENCIES COMPUTED ======
+  These dependencies hold at termination for the executions that terminate:
+[from] Function Frama_C_interval:
+  Frama_C_entropy_source FROM Frama_C_entropy_source (and SELF)
+  \result FROM Frama_C_entropy_source; min; max
+[from] Function free:
+  __fc_heap_status FROM __fc_heap_status (and SELF)
+[from] Function malloc:
+  __fc_heap_status FROM __fc_heap_status; size (and SELF)
+  \result FROM __fc_heap_status; size
+[from] Function realloc:
+  __fc_heap_status FROM __fc_heap_status (and SELF)
+  \result FROM __fc_heap_status; ptr; size
+[from] Function main1:
+  __fc_heap_status FROM __fc_heap_status (and SELF)
+  Frama_C_entropy_source FROM Frama_C_entropy_source (and SELF)
+  __malloc_main1_l9[0..4] FROM __fc_heap_status (and SELF)
+  __malloc_main1_l12[0..5] FROM __fc_heap_status (and SELF)
+[from] Function main2:
+  __fc_heap_status FROM __fc_heap_status (and SELF)
+  Frama_C_entropy_source FROM Frama_C_entropy_source (and SELF)
+  __malloc_main2_l30[0..4] FROM __fc_heap_status (and SELF)
+  __malloc_main2_l33[0..5] FROM __fc_heap_status (and SELF)
+[from] Function main3:
+  __fc_heap_status FROM __fc_heap_status (and SELF)
+  Frama_C_entropy_source FROM Frama_C_entropy_source (and SELF)
+  __malloc_main3_l52 FROM __fc_heap_status
+  __malloc_main3_l53_0 FROM __fc_heap_status
+[from] Function main:
+  __fc_heap_status FROM __fc_heap_status; v (and SELF)
+  Frama_C_entropy_source FROM Frama_C_entropy_source; v (and SELF)
+  __malloc_main1_l9[0..4] FROM __fc_heap_status; v (and SELF)
+  __malloc_main1_l12[0..5] FROM __fc_heap_status; v (and SELF)
+  __malloc_main2_l30[0..4] FROM __fc_heap_status; v (and SELF)
+  __malloc_main2_l33[0..5] FROM __fc_heap_status; v (and SELF)
+  __malloc_main3_l52 FROM __fc_heap_status; v (and SELF)
+  __malloc_main3_l53_0 FROM __fc_heap_status; v (and SELF)
+[from] ====== END OF DEPENDENCIES ======
+[inout] Out (internal) for function main1:
+    __fc_heap_status; Frama_C_entropy_source; q; i; r; i_0; p; x; s;
+    __malloc_main1_l9[0..4]; __malloc_main1_l12[0..5]
+[inout] Inputs for function main1:
+    __fc_heap_status; Frama_C_entropy_source
+[inout] Out (internal) for function main2:
+    __fc_heap_status; Frama_C_entropy_source; q; i; r; i_0; p; x; s;
+    __malloc_main2_l30[0..4]; __malloc_main2_l33[0..5]
+[inout] Inputs for function main2:
+    __fc_heap_status; Frama_C_entropy_source
+[inout] Out (internal) for function main3:
+    __fc_heap_status; Frama_C_entropy_source; p; q; r; s; x; y; c;
+    __malloc_main3_l52; __malloc_main3_l53_0
+[inout] Inputs for function main3:
+    __fc_heap_status; Frama_C_entropy_source; __realloc_main3_l65[0];
+    __realloc_main3_l65_0[0]; __realloc_main3_l65_1[0]
+[inout] Out (internal) for function main:
+    __fc_heap_status; Frama_C_entropy_source; __malloc_main1_l9[0..4];
+    __malloc_main1_l12[0..5]; __malloc_main2_l30[0..4];
+    __malloc_main2_l33[0..5]; __malloc_main3_l52; __malloc_main3_l53_0
+[inout] Inputs for function main:
+    __fc_heap_status; Frama_C_entropy_source; __realloc_main3_l65[0];
+    __realloc_main3_l65_0[0]; __realloc_main3_l65_1[0]

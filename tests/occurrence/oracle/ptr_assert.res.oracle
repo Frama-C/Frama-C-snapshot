@@ -1,15 +1,15 @@
 [kernel] Parsing tests/occurrence/ptr_assert.i (no preprocessing)
 [occurrence] beginning analysis
-[value] Analyzing a complete application starting at main
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing a complete application starting at main
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   x ∈ {0}
   y ∈ {0}
-[value] tests/occurrence/ptr_assert.i:11: assertion got status valid.
-[value] tests/occurrence/ptr_assert.i:16: assertion got status valid.
-[value] Recording results for main
-[value] done for function main
+[eva] tests/occurrence/ptr_assert.i:11: assertion got status valid.
+[eva] tests/occurrence/ptr_assert.i:16: assertion got status valid.
+[eva] Recording results for main
+[eva] done for function main
 [occurrence] analysis done
 [occurrence] variable x (global):
     sid 1: x

@@ -1,8 +1,8 @@
 [kernel] Parsing tests/value/from_call.i (no preprocessing)
-[value] Analyzing a complete application starting at main
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing a complete application starting at main
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   a ∈ {0}
   b ∈ {0}
   c ∈ {0}
@@ -38,191 +38,171 @@
     [1] ∈ {0}
   Ap ∈ {{ &At[0] }}
   f_previous ∈ {{ &a }}
-[value] computing for function f <- main.
+[eva] computing for function f <- main.
   Called from tests/value/from_call.i:81.
-[value] computing for function h <- f <- main.
+[eva] computing for function h <- f <- main.
   Called from tests/value/from_call.i:20.
 [kernel:annot:missing-spec] tests/value/from_call.i:20: Warning: 
   Neither code nor specification for function h, generating default assigns from the prototype
-[value] using specification for function h
-[value] Done for function h
-[value] computing for function g <- f <- main.
+[eva] using specification for function h
+[eva] Done for function h
+[eva] computing for function g <- f <- main.
   Called from tests/value/from_call.i:20.
-[value] Recording results for g
+[eva] Recording results for g
 [from] Computing for function g
 [from] Done for function g
-[value] Done for function g
-[value] Recording results for f
+[eva] Done for function g
+[eva] Recording results for f
 [from] Computing for function f
 [from] Done for function f
-[value] Done for function f
-[value] computing for function f <- main.
+[eva] Done for function f
+[eva] computing for function f <- main.
   Called from tests/value/from_call.i:82.
-[value] computing for function h <- f <- main.
+[eva] computing for function h <- f <- main.
   Called from tests/value/from_call.i:20.
-[value] Done for function h
-[value] computing for function g <- f <- main.
-  Called from tests/value/from_call.i:20.
-[value] Recording results for g
-[from] Computing for function g
-[from] Done for function g
-[value] Done for function g
-[value] Recording results for f
+[eva] Done for function h
+[eva] tests/value/from_call.i:20: Reusing old results for call to g
+[eva] Recording results for f
 [from] Computing for function f
 [from] Done for function f
-[value] Done for function f
-[value] computing for function f <- main.
+[eva] Done for function f
+[eva] computing for function f <- main.
   Called from tests/value/from_call.i:82.
-[value] computing for function h <- f <- main.
+[eva] computing for function h <- f <- main.
   Called from tests/value/from_call.i:20.
-[value] Done for function h
-[value] computing for function g <- f <- main.
-  Called from tests/value/from_call.i:20.
-[value] Recording results for g
-[from] Computing for function g
-[from] Done for function g
-[value] Done for function g
-[value] Recording results for f
+[eva] Done for function h
+[eva] tests/value/from_call.i:20: Reusing old results for call to g
+[eva] Recording results for f
 [from] Computing for function f
 [from] Done for function f
-[value] Done for function f
-[value:alarm] tests/value/from_call.i:82: Warning: 
+[eva] Done for function f
+[eva:alarm] tests/value/from_call.i:82: Warning: 
   signed overflow.
   assert -2147483648 ≤ tmp + tmp_0;
   (tmp from f(& c), tmp_0 from f(& d))
-[value:alarm] tests/value/from_call.i:82: Warning: 
+[eva:alarm] tests/value/from_call.i:82: Warning: 
   signed overflow.
   assert tmp + tmp_0 ≤ 2147483647;
   (tmp from f(& c), tmp_0 from f(& d))
-[value] computing for function dispatcher <- main.
+[eva] computing for function dispatcher <- main.
   Called from tests/value/from_call.i:83.
-[value] Recording results for dispatcher
+[eva] Recording results for dispatcher
 [from] Computing for function dispatcher
 [from] Done for function dispatcher
-[value] Done for function dispatcher
-[value] computing for function dispatcher <- main.
+[eva] Done for function dispatcher
+[eva] computing for function dispatcher <- main.
   Called from tests/value/from_call.i:84.
-[value] Recording results for dispatcher
+[eva] Recording results for dispatcher
 [from] Computing for function dispatcher
 [from] Done for function dispatcher
-[value] Done for function dispatcher
-[value] computing for function dispatcher <- main.
+[eva] Done for function dispatcher
+[eva] computing for function dispatcher <- main.
   Called from tests/value/from_call.i:85.
-[value] Recording results for dispatcher
+[eva] Recording results for dispatcher
 [from] Computing for function dispatcher
 [from] Done for function dispatcher
-[value] Done for function dispatcher
-[value] computing for function call_dispatcher2_1 <- main.
+[eva] Done for function dispatcher
+[eva] computing for function call_dispatcher2_1 <- main.
   Called from tests/value/from_call.i:86.
-[value] computing for function dispatcher2 <- call_dispatcher2_1 <- main.
+[eva] computing for function dispatcher2 <- call_dispatcher2_1 <- main.
   Called from tests/value/from_call.i:49.
-[value] computing for function return_A1 <- dispatcher2 <- call_dispatcher2_1 <- main.
+[eva] computing for function return_A1 <- dispatcher2 <- call_dispatcher2_1 <- main.
   Called from tests/value/from_call.i:44.
-[value] Recording results for return_A1
+[eva] Recording results for return_A1
 [from] Computing for function return_A1
 [from] Done for function return_A1
-[value] Done for function return_A1
-[value] Recording results for dispatcher2
+[eva] Done for function return_A1
+[eva] Recording results for dispatcher2
 [from] Computing for function dispatcher2
 [from] Done for function dispatcher2
-[value] Done for function dispatcher2
-[value] Recording results for call_dispatcher2_1
+[eva] Done for function dispatcher2
+[eva] Recording results for call_dispatcher2_1
 [from] Computing for function call_dispatcher2_1
 [from] Done for function call_dispatcher2_1
-[value] Done for function call_dispatcher2_1
-[value] computing for function call_dispatcher2_0 <- main.
+[eva] Done for function call_dispatcher2_1
+[eva] computing for function call_dispatcher2_0 <- main.
   Called from tests/value/from_call.i:87.
-[value] computing for function dispatcher2 <- call_dispatcher2_0 <- main.
+[eva] computing for function dispatcher2 <- call_dispatcher2_0 <- main.
   Called from tests/value/from_call.i:54.
-[value] computing for function return_A2 <- dispatcher2 <- call_dispatcher2_0 <- main.
+[eva] computing for function return_A2 <- dispatcher2 <- call_dispatcher2_0 <- main.
   Called from tests/value/from_call.i:44.
-[value] Recording results for return_A2
+[eva] Recording results for return_A2
 [from] Computing for function return_A2
 [from] Done for function return_A2
-[value] Done for function return_A2
-[value] Recording results for dispatcher2
+[eva] Done for function return_A2
+[eva] Recording results for dispatcher2
 [from] Computing for function dispatcher2
 [from] Done for function dispatcher2
-[value] Done for function dispatcher2
-[value] Recording results for call_dispatcher2_0
+[eva] Done for function dispatcher2
+[eva] Recording results for call_dispatcher2_0
 [from] Computing for function call_dispatcher2_0
 [from] Done for function call_dispatcher2_0
-[value] Done for function call_dispatcher2_0
-[value] computing for function call_dispatcher2 <- main.
+[eva] Done for function call_dispatcher2_0
+[eva] computing for function call_dispatcher2 <- main.
   Called from tests/value/from_call.i:88.
-[value] computing for function dispatcher2 <- call_dispatcher2 <- main.
+[eva] computing for function dispatcher2 <- call_dispatcher2 <- main.
   Called from tests/value/from_call.i:59.
-[value] computing for function return_A1 <- dispatcher2 <- call_dispatcher2 <- main.
-  Called from tests/value/from_call.i:44.
-[value] Recording results for return_A1
-[from] Computing for function return_A1
-[from] Done for function return_A1
-[value] Done for function return_A1
-[value] computing for function return_A2 <- dispatcher2 <- call_dispatcher2 <- main.
-  Called from tests/value/from_call.i:44.
-[value] Recording results for return_A2
-[from] Computing for function return_A2
-[from] Done for function return_A2
-[value] Done for function return_A2
-[value] Recording results for dispatcher2
+[eva] tests/value/from_call.i:44: Reusing old results for call to return_A1
+[eva] tests/value/from_call.i:44: Reusing old results for call to return_A2
+[eva] Recording results for dispatcher2
 [from] Computing for function dispatcher2
 [from] Done for function dispatcher2
-[value] Done for function dispatcher2
-[value] Recording results for call_dispatcher2
+[eva] Done for function dispatcher2
+[eva] Recording results for call_dispatcher2
 [from] Computing for function call_dispatcher2
 [from] Done for function call_dispatcher2
-[value] Done for function call_dispatcher2
-[value] computing for function access_tab <- main.
+[eva] Done for function call_dispatcher2
+[eva] computing for function access_tab <- main.
   Called from tests/value/from_call.i:92.
-[value] Recording results for access_tab
+[eva] Recording results for access_tab
 [from] Computing for function access_tab
 [from] Done for function access_tab
-[value] Done for function access_tab
-[value] computing for function access_tab <- main.
+[eva] Done for function access_tab
+[eva] computing for function access_tab <- main.
   Called from tests/value/from_call.i:93.
-[value] Recording results for access_tab
+[eva] Recording results for access_tab
 [from] Computing for function access_tab
 [from] Done for function access_tab
-[value] Done for function access_tab
-[value] computing for function access_tab <- main.
+[eva] Done for function access_tab
+[eva] computing for function access_tab <- main.
   Called from tests/value/from_call.i:94.
-[value] Recording results for access_tab
+[eva] Recording results for access_tab
 [from] Computing for function access_tab
 [from] Done for function access_tab
-[value] Done for function access_tab
-[value] computing for function unavailable_f <- main.
+[eva] Done for function access_tab
+[eva] computing for function unavailable_f <- main.
   Called from tests/value/from_call.i:96.
-[value] using specification for function unavailable_f
-[value] Done for function unavailable_f
-[value] Recording results for main
+[eva] using specification for function unavailable_f
+[eva] Done for function unavailable_f
+[eva] Recording results for main
 [from] Computing for function main
 [from] Done for function main
-[value] done for function main
-[value] ====== VALUES COMPUTED ======
-[value:final-states] Values at end of function access_tab:
+[eva] done for function main
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function access_tab:
   __retres ∈ {0}
-[value:final-states] Values at end of function dispatcher:
+[eva:final-states] Values at end of function dispatcher:
   
-[value:final-states] Values at end of function g:
+[eva:final-states] Values at end of function g:
   __retres ∈ [--..--]
-[value:final-states] Values at end of function f:
+[eva:final-states] Values at end of function f:
   b ∈ {0}
   c ∈ {0}
   d ∈ {0}
   f_previous ∈ {{ &b ; &c ; &d }}
-[value:final-states] Values at end of function return_A1:
+[eva:final-states] Values at end of function return_A1:
   
-[value:final-states] Values at end of function return_A2:
+[eva:final-states] Values at end of function return_A2:
   
-[value:final-states] Values at end of function dispatcher2:
+[eva:final-states] Values at end of function dispatcher2:
   
-[value:final-states] Values at end of function call_dispatcher2:
+[eva:final-states] Values at end of function call_dispatcher2:
   
-[value:final-states] Values at end of function call_dispatcher2_0:
+[eva:final-states] Values at end of function call_dispatcher2_0:
   
-[value:final-states] Values at end of function call_dispatcher2_1:
+[eva:final-states] Values at end of function call_dispatcher2_1:
   
-[value:final-states] Values at end of function main:
+[eva:final-states] Values at end of function main:
   b ∈ {0}
   c ∈ {0}
   d ∈ {0}

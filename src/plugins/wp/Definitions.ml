@@ -42,7 +42,7 @@ let rec rev_iter f = function
 type cluster = {
   c_id : string ;
   c_title : string ;
-  c_position : Lexing.position option ;
+  c_position : Filepath.position option ;
   mutable c_age : int ;
   mutable c_records : compinfo list ;
   mutable c_types : logic_type_info list ;
@@ -289,7 +289,7 @@ class virtual visitor main =
     method private vtau_of_ltype lt =
       let tau = Lang.tau_of_ltype lt in
       self#vtau tau ; tau
-      
+
     method vtype t =
       if not (DT.mem t types) then
         begin

@@ -1,6 +1,6 @@
 /* run.config
 OPT: -cpp-extra-args="-I @PTEST_DIR@" @PTEST_DIR@/@PTEST_NAME@_2.c @PTEST_DIR@/@PTEST_NAME@_3.c -print
-OPT: -cpp-extra-args="-I @PTEST_DIR@" @PTEST_DIR@/@PTEST_NAME@_2.c @PTEST_DIR@/@PTEST_NAME@_3.c -print -kernel-warn-key="-linker:drop-conflicting-unused"
+OPT: -cpp-extra-args="-I @PTEST_DIR@" @PTEST_DIR@/@PTEST_NAME@_2.c @PTEST_DIR@/@PTEST_NAME@_3.c -print -kernel-warn-key="linker:drop-conflicting-unused=inactive"
 */
 
 #include "merge_union.h"

@@ -1,0 +1,101 @@
+[kernel] Parsing tests/builtins/strnlen.c (with preprocessing)
+[eva] Analyzing a complete application starting at main
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
+  t1[0] ∈ {97}
+    [1] ∈ {98}
+    [2] ∈ {99}
+    [3] ∈ {100}
+    [4] ∈ {101}
+  t2[0] ∈ {97}
+    [1] ∈ {98}
+    [2] ∈ {99}
+    [3] ∈ {100}
+    [4] ∈ {101}
+    [5] ∈ {0}
+[eva] tests/builtins/strnlen.c:9: Call to builtin strnlen
+[eva] tests/builtins/strnlen.c:9: 
+  function strnlen: precondition 'valid_string_s' got status valid.
+[eva] tests/builtins/strnlen.c:10: Call to builtin strnlen
+[eva] tests/builtins/strnlen.c:10: 
+  function strnlen: precondition 'valid_string_s' got status valid.
+[eva] tests/builtins/strnlen.c:11: Call to builtin strnlen
+[eva:alarm] tests/builtins/strnlen.c:11: Warning: 
+  function strnlen: precondition 'valid_string_s' got status invalid.
+[eva] tests/builtins/strnlen.c:13: Call to builtin strnlen
+[eva] tests/builtins/strnlen.c:13: 
+  function strnlen: precondition 'valid_string_s' got status valid.
+[eva] tests/builtins/strnlen.c:14: Call to builtin strnlen
+[eva] tests/builtins/strnlen.c:14: 
+  function strnlen: precondition 'valid_string_s' got status valid.
+[eva] tests/builtins/strnlen.c:15: Call to builtin strnlen
+[eva] tests/builtins/strnlen.c:15: 
+  function strnlen: precondition 'valid_string_s' got status valid.
+[eva] tests/builtins/strnlen.c:17: 
+  Frama_C_dump_each:
+  # Cvalue domain:
+  __fc_heap_status ∈ [--..--]
+  __fc_random_counter ∈ [--..--]
+  __fc_rand_max ∈ {32767}
+  __fc_env[0] ∈ {{ NULL ; &S_0___fc_env[0] }}
+          [1] ∈ {{ NULL ; &S_1___fc_env[0] }}
+          [2..4095] ∈ {{ NULL ; &S_0___fc_env[0] ; &S_1___fc_env[0] }}
+  __fc_mblen_state ∈ [--..--]
+  __fc_mbtowc_state ∈ [--..--]
+  __fc_wctomb_state ∈ [--..--]
+  __fc_strtok_ptr ∈ {0}
+  __fc_strerror[0..63] ∈ [--..--]
+  __fc_p_strerror ∈ {{ &__fc_strerror[0] }}
+  t1[0] ∈ {97}
+    [1] ∈ {98}
+    [2] ∈ {99}
+    [3] ∈ {100}
+    [4] ∈ {101}
+  t2[0] ∈ {97}
+    [1] ∈ {98}
+    [2] ∈ {99}
+    [3] ∈ {100}
+    [4] ∈ {101}
+    [5] ∈ {0}
+  c ∈ [-2147483648..2147483646]
+  r1a ∈ {3}
+  r1b ∈ {5}
+  r1c ∈ UNINITIALIZED
+  r2a ∈ {3}
+  r2b ∈ {5}
+  r2c ∈ {5}
+  tmp ∈ {3}
+  tmp_0 ∈ {5}
+  tmp_2 ∈ {3}
+  tmp_3 ∈ {5}
+  tmp_4 ∈ {5}
+  __retres ∈ UNINITIALIZED
+  S_0___fc_env[0..1] ∈ [--..--]
+  S_1___fc_env[0..1] ∈ [--..--]
+  ==END OF DUMP==
+[eva] Recording results for main
+[eva] done for function main
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function main:
+  r1a ∈ {3}
+  r1b ∈ {5}
+  r2a ∈ {3}
+  r2b ∈ {5}
+  r2c ∈ {5}
+  __retres ∈ {0}
+[from] Computing for function main
+[from] Computing for function strnlen <-main
+[from] Done for function strnlen
+[from] Done for function main
+[from] ====== DEPENDENCIES COMPUTED ======
+  These dependencies hold at termination for the executions that terminate:
+[from] Function strnlen:
+  \result FROM n; t1[0..4]; t2[0..5]
+[from] Function main:
+  \result FROM \nothing
+[from] ====== END OF DEPENDENCIES ======
+[inout] Out (internal) for function main:
+    r1a; r1b; r2a; r2b; r2c; tmp; tmp_0; tmp_1; tmp_2; tmp_3; tmp_4; __retres
+[inout] Inputs for function main:
+    t1[0..4]; t2[0..5]

@@ -367,14 +367,14 @@ module Memory = struct
       match m with
       | Top -> Deps.top
       | Bottom -> Deps.bottom
-      | Map m -> f z m
+      | Map m -> try f z m with Abstract_interp.Error_Top -> Deps.top
 
   let find z m =
     Deps.to_zone (find_precise z m)
 
-  let add_binding_precise_loc ~exact m loc v =
+  let add_binding_precise_loc ~exact ~for_writing m loc v =
     let aux_one_loc loc m =
-      let loc = Locations.valid_part ~for_writing:true loc in
+      let loc = Locations.valid_part ~for_writing loc in
       add_binding_loc ~exact m loc (DepsOrUnassigned.AssignedFrom v)
     in
     Precise_locs.fold aux_one_loc loc m

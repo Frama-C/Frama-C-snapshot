@@ -1,19 +1,19 @@
 [kernel] Parsing tests/impact/variadic.i (no preprocessing)
 [impact] beginning analysis
-[value] Analyzing a complete application starting at main
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing a complete application starting at main
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   y ∈ {0}
   z ∈ {0}
-[value] computing for function f <- main.
+[eva] computing for function f <- main.
   Called from tests/impact/variadic.i:12.
 [kernel:annot:missing-spec] tests/impact/variadic.i:12: Warning: 
   Neither code nor specification for function f, generating default assigns from the prototype
-[value] using specification for function f
-[value] Done for function f
-[value] Recording results for main
-[value] done for function main
+[eva] using specification for function f
+[eva] Done for function f
+[eva] Recording results for main
+[eva] done for function main
 [pdg] computing for function main
 [from] Computing for function f
 [from] Done for function f
@@ -24,22 +24,22 @@
     tests/impact/variadic.i:12 (sid 50): f(i,(void * const *)(__va_args));
 [impact] analysis done
 [impact] beginning analysis
-[value] Analyzing a complete application starting at main1
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing a complete application starting at main1
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   y ∈ {0}
   z ∈ {0}
-[value] computing for function g1 <- main1.
+[eva] computing for function g1 <- main1.
   Called from tests/impact/variadic.i:29.
-[value] Recording results for g1
-[value] Done for function g1
-[value] computing for function g1 <- main1.
+[eva] Recording results for g1
+[eva] Done for function g1
+[eva] computing for function g1 <- main1.
   Called from tests/impact/variadic.i:30.
-[value] Recording results for g1
-[value] Done for function g1
-[value] Recording results for main1
-[value] done for function main1
+[eva] Recording results for g1
+[eva] Done for function g1
+[eva] Recording results for main1
+[eva] done for function main1
 [pdg] computing for function main1
 [from] Computing for function g1
 [from] Done for function g1
@@ -57,21 +57,21 @@
     tests/impact/variadic.i:30 (sid 58): g1(1,(void * const *)(__va_args_8));
 [impact] analysis done
 [impact] beginning analysis
-[value] Analyzing a complete application starting at main2
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing a complete application starting at main2
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   y ∈ {0}
   z ∈ {0}
-[value] computing for function g2 <- main2.
+[eva] computing for function g2 <- main2.
   Called from tests/impact/variadic.i:37.
-[value] using specification for function g2
-[value] Done for function g2
-[value] computing for function g2 <- main2.
+[eva] using specification for function g2
+[eva] Done for function g2
+[eva] computing for function g2 <- main2.
   Called from tests/impact/variadic.i:38.
-[value] Done for function g2
-[value] Recording results for main2
-[value] done for function main2
+[eva] Done for function g2
+[eva] Recording results for main2
+[eva] done for function main2
 [pdg] computing for function main2
 [from] Computing for function g2
 [from] Done for function g2
@@ -86,38 +86,38 @@
     tests/impact/variadic.i:37 (sid 63): g2(1,(void * const *)(__va_args));
 [impact] analysis done
 [impact] beginning analysis
-[value] Analyzing a complete application starting at main3
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing a complete application starting at main3
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   y ∈ {0}
   z ∈ {0}
-[value] computing for function aux3 <- main3.
+[eva] computing for function aux3 <- main3.
   Called from tests/impact/variadic.i:57.
-[value] computing for function g1 <- aux3 <- main3.
+[eva] computing for function g1 <- aux3 <- main3.
   Called from tests/impact/variadic.i:51.
-[value] Recording results for g1
-[value] Done for function g1
-[value] computing for function g1 <- aux3 <- main3.
+[eva] Recording results for g1
+[eva] Done for function g1
+[eva] computing for function g1 <- aux3 <- main3.
   Called from tests/impact/variadic.i:52.
-[value] Recording results for g1
-[value] Done for function g1
-[value] Recording results for aux3
-[value] Done for function aux3
-[value] computing for function aux3 <- main3.
+[eva] Recording results for g1
+[eva] Done for function g1
+[eva] Recording results for aux3
+[eva] Done for function aux3
+[eva] computing for function aux3 <- main3.
   Called from tests/impact/variadic.i:58.
-[value] computing for function g1 <- aux3 <- main3.
+[eva] computing for function g1 <- aux3 <- main3.
   Called from tests/impact/variadic.i:51.
-[value] Recording results for g1
-[value] Done for function g1
-[value] computing for function g1 <- aux3 <- main3.
+[eva] Recording results for g1
+[eva] Done for function g1
+[eva] computing for function g1 <- aux3 <- main3.
   Called from tests/impact/variadic.i:52.
-[value] Recording results for g1
-[value] Done for function g1
-[value] Recording results for aux3
-[value] Done for function aux3
-[value] Recording results for main3
-[value] done for function main3
+[eva] Recording results for g1
+[eva] Done for function g1
+[eva] Recording results for aux3
+[eva] Done for function aux3
+[eva] Recording results for main3
+[eva] done for function main3
 [pdg] computing for function aux3
 [from] Computing for function g1
 [from] Done for function g1
@@ -139,30 +139,27 @@
     tests/impact/variadic.i:58 (sid 78): aux3(2,(void * const *)(__va_args_6));
 [impact] analysis done
 [impact] beginning analysis
-[value] Analyzing a complete application starting at main4
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing a complete application starting at main4
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   y ∈ {0}
   z ∈ {0}
-[value] computing for function aux4bis <- main4.
+[eva] computing for function aux4bis <- main4.
   Called from tests/impact/variadic.i:73.
-[value] computing for function aux4 <- aux4bis <- main4.
+[eva] computing for function aux4 <- aux4bis <- main4.
   Called from tests/impact/variadic.i:68.
-[value] Recording results for aux4
-[value] Done for function aux4
-[value] Recording results for aux4bis
-[value] Done for function aux4bis
-[value] computing for function aux4bis <- main4.
+[eva] Recording results for aux4
+[eva] Done for function aux4
+[eva] Recording results for aux4bis
+[eva] Done for function aux4bis
+[eva] computing for function aux4bis <- main4.
   Called from tests/impact/variadic.i:74.
-[value] computing for function aux4 <- aux4bis <- main4.
-  Called from tests/impact/variadic.i:68.
-[value] Recording results for aux4
-[value] Done for function aux4
-[value] Recording results for aux4bis
-[value] Done for function aux4bis
-[value] Recording results for main4
-[value] done for function main4
+[eva] tests/impact/variadic.i:68: Reusing old results for call to aux4
+[eva] Recording results for aux4bis
+[eva] Done for function aux4bis
+[eva] Recording results for main4
+[eva] done for function main4
 [pdg] computing for function aux4
 [pdg] done for function aux4
 [pdg] computing for function aux4bis

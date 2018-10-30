@@ -47,7 +47,7 @@
 
 val newline: unit -> unit  (** Call this function to announce a new line *)
 
-val currentLoc: unit -> Lexing.position * Lexing.position
+val currentLoc: unit -> Cil_datatype.Location.t
 
 (** This function is used especially when the preprocessor has
     generated linemarkers in the output that let us know the current
@@ -55,16 +55,7 @@ val currentLoc: unit -> Lexing.position * Lexing.position
     -fworking-directory for GNU CPP). *)
 val setCurrentWorkingDirectory: string -> unit
 
-(** If normalize is false, [setCurrentFile ~normalize:false path]
-    accepts [path] as the current file "as is". Else (the default), if
-    [path] is relative, make it relative to the current working
-    directory if it has been set; then in any case attempts to shorten
-    the path to the current file using [Filepath.normalize]. 
-
-    This function should not be called with a string argument which
-    has been already normalized (because normalization can make [path]
-    relative to a different path). *)
-val setCurrentFile: ?normalize:bool -> string -> unit
+val setCurrentFile: string -> unit
 val setCurrentLine: int -> unit
 
 (** Call this function to start parsing. *)
@@ -80,14 +71,14 @@ val finishParsing: unit -> unit (** Call this function to finish parsing and
     [pos.pos_lnum] are considered part of the error.
  *)
 val pp_context_from_file:
-  ?ctx:int -> ?start_line:int -> Format.formatter -> Lexing.position -> unit
+  ?ctx:int -> ?start_line:int -> Format.formatter -> Filepath.position -> unit
 
 (** Parse errors are usually fatal, but their reporting is sometimes
     delayed until the end of the current parsing phase. Functions that
     intend to ultimately fail should call {!clear_errors} when they
     start, and check {!had_errors} when they end. *)
 val parse_error:
-  ?source:Lexing.position -> ('a, Format.formatter, unit, 'b) format4 -> 'a
+  ?source:Filepath.position -> ('a, Format.formatter, unit, 'b) format4 -> 'a
 
 val had_errors : unit -> bool
 (** Has an error been raised since the last call to {!clear_errors}? *)

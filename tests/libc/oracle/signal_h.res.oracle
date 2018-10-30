@@ -1,0 +1,110 @@
+[kernel] Parsing tests/libc/signal_h.c (with preprocessing)
+[eva] Analyzing a complete application starting at main
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
+  nondet ∈ [--..--]
+[eva] computing for function sigemptyset <- main.
+  Called from tests/libc/signal_h.c:10.
+[eva] using specification for function sigemptyset
+[eva] tests/libc/signal_h.c:10: 
+  function sigemptyset: precondition 'valid_set' got status valid.
+[eva] Done for function sigemptyset
+[eva] computing for function sigaddset <- main.
+  Called from tests/libc/signal_h.c:11.
+[eva] using specification for function sigaddset
+[eva] tests/libc/signal_h.c:11: 
+  function sigaddset: precondition 'valid_set' got status valid.
+[eva] tests/libc/signal_h.c:11: 
+  function sigaddset: precondition 'initialization,set' got status valid.
+[eva] Done for function sigaddset
+[eva] computing for function sigdelset <- main.
+  Called from tests/libc/signal_h.c:14.
+[eva] using specification for function sigdelset
+[eva] tests/libc/signal_h.c:14: 
+  function sigdelset: precondition 'valid_set' got status valid.
+[eva] tests/libc/signal_h.c:14: 
+  function sigdelset: precondition 'initialization,set' got status valid.
+[eva] Done for function sigdelset
+[eva] computing for function sigismember <- main.
+  Called from tests/libc/signal_h.c:17.
+[eva] using specification for function sigismember
+[eva] tests/libc/signal_h.c:17: 
+  function sigismember: precondition 'valid_read_set' got status valid.
+[eva] tests/libc/signal_h.c:17: 
+  function sigismember: precondition 'initialization,set' got status valid.
+[eva] Done for function sigismember
+[eva] computing for function sigfillset <- main.
+  Called from tests/libc/signal_h.c:18.
+[eva] using specification for function sigfillset
+[eva] tests/libc/signal_h.c:18: 
+  function sigfillset: precondition 'valid_set' got status valid.
+[eva] Done for function sigfillset
+[eva] computing for function sigismember <- main.
+  Called from tests/libc/signal_h.c:19.
+[eva] tests/libc/signal_h.c:19: 
+  function sigismember: precondition 'valid_read_set' got status valid.
+[eva] tests/libc/signal_h.c:19: 
+  function sigismember: precondition 'initialization,set' got status valid.
+[eva] Done for function sigismember
+[eva] computing for function sigaddset <- main.
+  Called from tests/libc/signal_h.c:22.
+[eva] tests/libc/signal_h.c:22: 
+  function sigaddset: precondition 'valid_set' got status valid.
+[eva:alarm] tests/libc/signal_h.c:22: Warning: 
+  function sigaddset: precondition 'initialization,set' got status invalid.
+[eva] Done for function sigaddset
+[eva] computing for function sigprocmask <- main.
+  Called from tests/libc/signal_h.c:29.
+[eva] using specification for function sigprocmask
+[eva] tests/libc/signal_h.c:29: 
+  function sigprocmask: precondition 'valid_set_or_null' got status valid.
+[eva] tests/libc/signal_h.c:29: 
+  function sigprocmask: precondition 'valid_how' got status valid.
+[eva] tests/libc/signal_h.c:29: 
+  function sigprocmask: precondition 'valid_oldset_or_null' got status valid.
+[eva] tests/libc/signal_h.c:29: 
+  function sigprocmask: precondition 'separation' got status valid.
+[eva] Done for function sigprocmask
+[eva] computing for function sigaddset <- main.
+  Called from tests/libc/signal_h.c:32.
+[eva] tests/libc/signal_h.c:32: 
+  function sigaddset: precondition 'valid_set' got status valid.
+[eva] tests/libc/signal_h.c:32: 
+  function sigaddset: precondition 'initialization,set' got status valid.
+[eva] Done for function sigaddset
+[eva] computing for function sigprocmask <- main.
+  Called from tests/libc/signal_h.c:35.
+[eva] tests/libc/signal_h.c:35: 
+  function sigprocmask: precondition 'valid_set_or_null' got status valid.
+[eva] tests/libc/signal_h.c:35: 
+  function sigprocmask: precondition 'valid_how' got status valid.
+[eva] tests/libc/signal_h.c:35: 
+  function sigprocmask: precondition 'valid_oldset_or_null' got status valid.
+[eva] tests/libc/signal_h.c:35: 
+  function sigprocmask: precondition 'separation' got status valid.
+[eva] Done for function sigprocmask
+[eva] computing for function sigprocmask <- main.
+  Called from tests/libc/signal_h.c:38.
+[eva] tests/libc/signal_h.c:38: 
+  function sigprocmask: precondition 'valid_set_or_null' got status valid.
+[eva] tests/libc/signal_h.c:38: 
+  function sigprocmask: precondition 'valid_how' got status valid.
+[eva] tests/libc/signal_h.c:38: 
+  function sigprocmask: precondition 'valid_oldset_or_null' got status valid.
+[eva] tests/libc/signal_h.c:38: 
+  function sigprocmask: precondition 'separation' got status valid.
+[eva] Done for function sigprocmask
+[eva] computing for function kill <- main.
+  Called from tests/libc/signal_h.c:42.
+[eva] using specification for function kill
+[eva] Done for function kill
+[eva] Recording results for main
+[eva] done for function main
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function main:
+  s ∈ [--..--]
+  uninit ∈ UNINITIALIZED
+  old ∈ [--..--] or UNINITIALIZED
+  kill_res ∈ {-1; 0}
+  __retres ∈ {-1; 0; 1; 2; 3}

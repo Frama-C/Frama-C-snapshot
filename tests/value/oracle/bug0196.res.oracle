@@ -1,28 +1,28 @@
 [kernel] Parsing tests/value/bug0196.c (with preprocessing)
-[value] Analyzing a complete application starting at main
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing a complete application starting at main
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   
-[value] computing for function fact <- main.
+[eva] computing for function fact <- main.
   Called from tests/value/bug0196.c:16.
-[value] tests/value/bug0196.c:7: entering loop for the first time
-[value] tests/value/bug0196.c:8: assertion got status valid.
-[value] tests/value/bug0196.c:11: 
+[eva] tests/value/bug0196.c:8: assertion got status valid.
+[eva] tests/value/bug0196.c:11: 
   cannot evaluate ACSL term, \at() on a C label is unsupported
-[value:alarm] tests/value/bug0196.c:11: Warning: assertion got status unknown.
-[value:alarm] tests/value/bug0196.c:10: Warning: 
+[eva:alarm] tests/value/bug0196.c:11: Warning: assertion got status unknown.
+[eva] tests/value/bug0196.c:7: starting to merge loop iterations
+[eva:alarm] tests/value/bug0196.c:10: Warning: 
   signed overflow. assert r * tmp ≤ 2147483647;
                    (tmp from n--)
-[value] Recording results for fact
-[value] Done for function fact
-[value] Recording results for main
-[value] done for function main
-[value] ====== VALUES COMPUTED ======
-[value:final-states] Values at end of function fact:
+[eva] Recording results for fact
+[eva] Done for function fact
+[eva] Recording results for main
+[eva] done for function main
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function fact:
   n ∈ {0}
   r ∈ [1..2147483647]
-[value:final-states] Values at end of function main:
+[eva:final-states] Values at end of function main:
   
 [from] Computing for function fact
 [from] Done for function fact
@@ -51,10 +51,12 @@ int fact(int n)
     int tmp;
     /*@ assert n > 0; */ ;
     before:
-    tmp = n;
-    n --;
-    /*@ assert Value: signed_overflow: r * tmp ≤ 2147483647; */
-    r *= tmp;
+    { /* sequence */
+      tmp = n;
+      n --;
+      /*@ assert Eva: signed_overflow: r * tmp ≤ 2147483647; */
+      r *= tmp;
+    }
     /*@ assert r ≡ \at(r * n,before); */ ;
   }
   while_0_break: ;

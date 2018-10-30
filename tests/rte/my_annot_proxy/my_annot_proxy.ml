@@ -18,7 +18,6 @@ let main () =
   Dynamic.Parameter.Bool.set "-rte-pointer-call" true;
   Dynamic.Parameter.Bool.set "-rte-float-to-int" true;
   Dynamic.Parameter.Bool.set "-rte-div" true;
-  Dynamic.Parameter.Bool.set "-rte-precond" true;
   Kernel.SignedDowncast.on ();
   Kernel.SignedOverflow.on ();
   if not(Ast.is_computed ()) then Ast.compute () ;

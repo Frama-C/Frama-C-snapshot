@@ -173,6 +173,16 @@ module Make
     | None -> fun _ -> Cvalue.Model.top
     | Some get -> fun state -> get state
 
+  let get_cval =
+    match Abstract.Val.get Main_values.cvalue_key with
+    | None -> fun _ -> assert false
+    | Some get -> fun value -> get value
+
+  let get_ploc =
+    match Abstract.Loc.get Main_locations.ploc_key with
+    | None -> fun _ -> assert false
+    | Some get -> fun location -> get location
+
   (* Compute a call to [kf] in the state [state]. The evaluation will
      be done either using the body of [kf] or its specification, depending
      on whether the body exists and on option [-val-use-spec]. [call_kinstr]
@@ -206,7 +216,14 @@ module Make
       | `Spec spec ->
         Db.Value.Call_Type_Value_Callbacks.apply
           (`Spec spec, cvalue_state, call_stack);
-        Spec.compute_using_specification call_kinstr call spec state,
+        if Value_parameters.InterpreterMode.get ()
+        then Value_parameters.abort "Library function call. Stopping.";
+        Value_parameters.feedback ~once:true
+          "@[using specification for function %a@]" Kernel_function.pretty kf;
+        let vi = Kernel_function.get_vi kf in
+        if Cil.hasAttribute "fc_stdlib" vi.vattr then
+          Library_functions.warn_unsupported_spec vi.vorig_name;
+        Spec.compute_using_specification ~warn:true call_kinstr call spec state,
         Value_types.Cacheable
       | `Def _fundec ->
         Db.Value.Call_Type_Value_Callbacks.apply (`Def, cvalue_state, call_stack);
@@ -215,15 +232,15 @@ module Make
     if pp then
       Value_parameters.feedback
         "Done for function %a" Kernel_function.pretty kf;
-    Transfer.{ states = resulting_states; cacheable }
+    Transfer.{ states = resulting_states; cacheable; builtin=false }
 
 
   (* Mem Exec *)
 
   module MemExec = Mem_exec.Make (Abstract.Val) (Domain)
 
-  let compute_call call_kinstr call init_state =
-    let default () = compute_using_spec_or_body call_kinstr call init_state in
+  let compute_and_cache_call stmt call init_state =
+    let default () = compute_using_spec_or_body (Kstmt stmt) call init_state in
     if Value_parameters.MemExecAll.get () then
       let args =
         List.map (fun {avalue} -> Eval.value_assigned avalue) call.arguments
@@ -251,7 +268,7 @@ module Make
         then begin
           let ab = Logic.create init_state call.kf in
           ignore (Logic.check_fct_preconditions
-                    call_kinstr call.kf ab init_state);
+                    (Kstmt stmt) call.kf ab init_state);
         end;
         if Value_parameters.ValShowProgress.get () then begin
           Value_parameters.feedback ~current:true
@@ -263,9 +280,71 @@ module Make
         Db.Value.Record_Value_Callbacks_New.apply
           (stack_with_call, Value_types.Reuse i);
         (* call can be cached since it was cached once *)
-        Transfer.{states; cacheable = Value_types.Cacheable}
+        Transfer.{states; cacheable = Value_types.Cacheable; builtin=false}
     else
       default ()
+
+  let get_cvalue_call call =
+    let lift_left left = { left with lloc = get_ploc left.lloc } in
+    let lift_flagged_value value = { value with v = value.v >>-: get_cval } in
+    let lift_assigned = function
+      | Assign value -> Assign (get_cval value)
+      | Copy (lval, value) -> Copy (lift_left lval, lift_flagged_value value)
+    in
+    let lift_argument arg = { arg with avalue = lift_assigned arg.avalue } in
+    let arguments = List.map lift_argument call.arguments in
+    let rest = List.map (fun (e, assgn) -> e, lift_assigned assgn) call.rest in
+    { call with arguments; rest }
+
+  let join_states = function
+    | [] -> `Bottom
+    | [state] -> `Value state
+    | s :: l  -> `Value (List.fold_left Domain.join s l)
+
+  let compute_call_or_builtin stmt call state =
+    match Builtins.find_builtin_override call.kf with
+    | None -> compute_and_cache_call stmt call state
+    | Some (name, builtin, spec) ->
+      Value_results.mark_kf_as_called call.kf;
+      let kinstr = Kstmt stmt in
+      let kf_name = Kernel_function.get_name call.kf in
+      if Value_parameters.ValShowProgress.get ()
+      then
+        Value_parameters.feedback ~current:true "Call to builtin %s%s"
+          name (if kf_name = name then "" else " for function " ^ kf_name);
+      (* Do not track garbled mixes created when interpreting the specification,
+         as the result of the cvalue builtin will overwrite them. *)
+      Locations.Location_Bytes.do_track_garbled_mix false;
+      let states =
+        Spec.compute_using_specification ~warn:false kinstr call spec state
+      in
+      Locations.Location_Bytes.do_track_garbled_mix true;
+      let final_state = states >>- join_states in
+      let cvalue_state = get_cvalue state in
+      match final_state with
+      | `Bottom ->
+        let cs = Value_util.call_stack () in
+        Db.Value.Call_Type_Value_Callbacks.apply (`Spec spec, cvalue_state, cs);
+        let cacheable = Value_types.Cacheable in
+        Transfer.{states; cacheable; builtin=true}
+      | `Value final_state ->
+        let cvalue_call = get_cvalue_call call in
+        let cvalue_states, cacheable =
+          Builtins.apply_builtin builtin cvalue_call cvalue_state
+        in
+        let insert (cvalue_state, clobbered_set) =
+          Domain.set Locals_scoping.key clobbered_set
+            (Domain.set Cvalue_domain.key cvalue_state final_state)
+        in
+        let states = Bottom.bot_of_list (List.map insert cvalue_states) in
+        Transfer.{states; cacheable; builtin=true}
+
+  let compute_call =
+    if Domain.mem Cvalue_domain.key
+    && Abstract.Val.mem Main_values.cvalue_key
+    && Abstract.Loc.mem Main_locations.ploc_key
+    then compute_call_or_builtin
+    else compute_and_cache_call
 
   let () = Transfer.compute_call_ref := compute_call
 
@@ -276,7 +355,6 @@ module Make
 
   let compute kf init_state =
     try
-      Value_results.mark_kf_as_called kf;
       Value_util.push_call_stack kf Kglobal;
       store_initial_state kf init_state;
       let call =
@@ -312,7 +390,7 @@ module Make
     in
     match initial_state with
     | `Bottom ->
-      Value_parameters.result "Value analysis not started because globals \
+      Value_parameters.result "Eva not started because globals \
                                initialization is not computable.";
       Eval_annots.mark_invalid_initializers ()
     | `Value init_state ->

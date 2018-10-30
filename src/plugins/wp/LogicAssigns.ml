@@ -50,11 +50,11 @@ struct
   (* -------------------------------------------------------------------------- *)
 
   let rec assigned_seq hs s = function
-    | [] -> Bag.concat (M.Sigma.assigned s.pre s.post D.empty) hs
+    | [] -> Bag.concat (M.Sigma.assigned ~pre:s.pre ~post:s.post D.empty) hs
 
     | [obj,sloc] ->
         let hs_sloc = Bag.list (M.assigned s obj sloc) in
-        let hs_sdom = M.Sigma.assigned s.pre s.post (dsloc obj sloc) in
+        let hs_sdom = M.Sigma.assigned ~pre:s.pre ~post:s.post (dsloc obj sloc) in
         Bag.concat (Bag.concat hs_sloc hs_sdom) hs
 
     | (obj,sloc)::tail ->

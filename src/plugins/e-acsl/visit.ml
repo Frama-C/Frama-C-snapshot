@@ -1,8 +1,8 @@
 (**************************************************************************)
 (*                                                                        *)
-(*  This file is part of Frama-C.                                         *)
+(*  This file is part of the Frama-C's E-ACSL plug-in.                    *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2018                                               *)
+(*  Copyright (C) 2012-2018                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -211,7 +211,7 @@ class e_acsl_visitor prj generate = object (self)
               let return =
                 Cil.mkStmt ~valid_sid:true (Return(None, Location.unknown)) in
               (* Generate init statements for temporal analysis *)
-              let tinit_stmts = Varinfo.Hashtbl.fold
+              let tinit_stmts = Varinfo.Hashtbl.fold_sorted
                 (fun vi (off, init) acc ->
                   match init with
                   | Some init ->
@@ -393,7 +393,8 @@ you must call function `%s' and `__e_acsl_memory_clean by yourself.@]"
       (* Make a unique mapping for each global variable omitting initializers.
        Initializers (used to capture literal strings) are added to
        [global_vars] via the [vinit] visitor method (see comments below). *)
-      Varinfo.Hashtbl.replace global_vars vi (NoOffset, None)
+        Varinfo.Hashtbl.replace global_vars
+          (Cil.get_original_varinfo self#behavior vi) (NoOffset, None)
     | _ -> ());
     if generate then Cil.DoChildrenPost(fun g -> List.iter do_it g; g)
     else Cil.DoChildren
@@ -455,6 +456,17 @@ you must call function `%s' and `__e_acsl_memory_clean by yourself.@]"
     f.slocals <- locals;
     f.sbody.blocals <- blocks
 
+  (* Memory management for \at on purely logic variables:
+    Put [malloc] stmts at proper locations *)
+  method private insert_malloc_and_free_stmts kf f =
+    let malloc_stmts = At_with_lscope.Malloc.find_all kf in
+    let fstmts = malloc_stmts @ f.sbody.bstmts in
+    f.sbody.bstmts <- fstmts;
+    (* Now that [malloc] stmts for [kf] have been inserted,
+      there is no more need to keep the corresponding entries in the
+      table managing them. *)
+    At_with_lscope.Malloc.remove_all kf
+
   method !vfunc f =
     if generate then begin
       Exit_points.generate f;
@@ -466,6 +478,7 @@ you must call function `%s' and `__e_acsl_memory_clean by yourself.@]"
         (fun f ->
           Exit_points.clear ();
           self#add_generated_variables_in_function f;
+          self#insert_malloc_and_free_stmts kf f;
           Options.feedback ~dkey ~level:2 "function %a done."
             Kernel_function.pretty kf;
           f)
@@ -623,6 +636,9 @@ you must call function `%s' and `__e_acsl_memory_clean by yourself.@]"
       in
       (* handle loop invariants *)
       let new_stmt, env, must_mv = Loops.preserve_invariant prj env kf stmt in
+      let orig = Cil.get_original_stmt self#behavior stmt in
+      Cil.set_orig_stmt self#behavior new_stmt orig;
+      Cil.set_stmt self#behavior orig new_stmt;
       let new_stmt, env =
         (* Remove local variables which scopes ended via goto/break/continue. *)
         let del_vars = Exit_points.delete_vars stmt in
@@ -678,10 +694,12 @@ you must call function `%s' and `__e_acsl_memory_clean by yourself.@]"
                 b.bstmts <- List.rev l @ delete_stmts
             end;
             let new_stmt = Misc.mk_block prj stmt b in
-            (* move the labels of the return to the new block in order to
-               evaluate the postcondition when jumping to them. *)
-            E_acsl_label.move
-              (self :> Visitor.generic_frama_c_visitor) stmt new_stmt;
+            if not (Cil_datatype.Stmt.equal stmt new_stmt) then begin
+              (* move the labels of the return to the new block in order to
+                 evaluate the postcondition when jumping to them. *)
+              E_acsl_label.move
+                (self :> Visitor.generic_frama_c_visitor) stmt new_stmt
+            end;
             new_stmt, env
           else
             stmt, env
@@ -706,10 +724,17 @@ you must call function `%s' and `__e_acsl_memory_clean by yourself.@]"
                 Env.Before
             in
             let post_block =
-              if post_block.blocals = [] then Cil.transient_block post_block
+              if post_block.blocals = [] && new_stmt.labels = []
+              then Cil.transient_block post_block
               else post_block
             in
-            Misc.mk_block prj new_stmt post_block, env
+            let res = Misc.mk_block prj new_stmt post_block in
+            if not (Cil_datatype.Stmt.equal new_stmt res) then
+              E_acsl_label.move (self :> Visitor.generic_frama_c_visitor)
+                new_stmt res;
+            Cil.set_stmt self#behavior orig res;
+            Cil.set_orig_stmt self#behavior res orig;
+            res, env
           end else
             stmt, env
       in
@@ -730,15 +755,18 @@ you must call function `%s' and `__e_acsl_memory_clean by yourself.@]"
       in
       let must_model = Mmodel_analysis.must_model_lval ~stmt ~kf lv in
       if not (may_safely_ignore lv) && must_model then
-        let before = Cil.memo_stmt self#behavior stmt in
-        let new_stmt = Project.on prj (Misc.mk_initialize ~loc) lv in
-        let new_stmt = Cil.memo_stmt self#behavior new_stmt in
+        let before = Cil.mkStmt stmt.skind in
+        let new_stmt =
+          (* Bitfields are not yet supported ==> no initializer.
+             A not_yet will be raised in [Translate]. *)
+          if Cil.isBitfield lv then Project.on prj Cil.mkEmptyStmt ()
+          else Project.on prj (Misc.mk_initialize ~loc) lv
+        in
         let env = Env.add_stmt ~post ~before env new_stmt in
         let env = match vi with
           | None -> env
           | Some vi ->
             let new_stmt = Project.on prj Misc.mk_store_stmt vi in
-            let new_stmt = Cil.memo_stmt self#behavior new_stmt in
             Env.add_stmt ~post ~before env new_stmt
         in
         env
@@ -818,10 +846,12 @@ you must call function `%s' and `__e_acsl_memory_clean by yourself.@]"
 
   method !vblock blk =
     let handle_memory new_blk =
-      match new_blk.blocals with
-      | [] -> new_blk
-      | _ :: _ ->
-        let kf = Extlib.the self#current_kf in
+      let kf = Extlib.the self#current_kf in
+      let free_stmts = At_with_lscope.Free.find_all kf in
+      match new_blk.blocals, free_stmts with
+      | [], [] ->
+        new_blk
+      | [], _ :: _ | _ :: _, [] | _ :: _, _ :: _ ->
         let add_locals stmts =
           List.fold_left
             (fun acc vi ->
@@ -838,10 +868,14 @@ you must call function `%s' and `__e_acsl_memory_clean by yourself.@]"
                preceded by clean if any *)
             let init, tl =
               if self#is_main kf && Mmodel_analysis.use_model () then
-                [ potential_clean; ret ], tl
+                free_stmts @ [ potential_clean; ret ], tl
               else
-                [ ret ], l
+                free_stmts @ [ ret ], l
             in
+            (* Now that [free] stmts for [kf] have been inserted,
+              there is no more need to keep the corresponding entries in the
+              table managing them. *)
+            At_with_lscope.Free.remove_all kf;
             blk.bstmts <-
               List.fold_left (fun acc v -> v :: acc) (add_locals init) tl
           | { skind = Block b } :: _ ->
@@ -878,27 +912,6 @@ you must call function `%s' and `__e_acsl_memory_clean by yourself.@]"
           e)
     end else
       Cil.SkipChildren
-
-  method !vterm _ =
-    Cil.DoChildrenPost
-      (fun t ->
-        (match t.term_node with
-        | Tat(_, StmtLabel s_ref) ->
-          (* the label may have been moved,
-             so move the corresponding reference *)
-          s_ref := E_acsl_label.new_labeled_stmt !s_ref
-        | _ -> ());
-        t)
-
-  method !vpredicate_node _ =
-    Cil.DoChildrenPost
-      (function
-      | Pat(_, StmtLabel s_ref) as p ->
-          (* the label may have been moved,
-             so move the corresponding reference *)
-        s_ref := E_acsl_label.new_labeled_stmt !s_ref;
-        p
-      | p -> p);
 
   initializer
     Misc.reset ();

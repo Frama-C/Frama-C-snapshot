@@ -25,6 +25,10 @@
 #include "__fc_builtin.h"
 #include "ctype.h"
 #include "string.h"
+#include "limits.h"
+#include "errno.h"
+__PUSH_FC_STDLIB
+
 int abs (int i)
 {
   if (i < 0)
@@ -69,3 +73,118 @@ void *calloc(size_t nmemb, size_t size)
   if (p) memset(p, 0, l);
   return p;
 }
+
+char *__fc_env[ARG_MAX] __attribute__((FRAMA_C_MODEL));
+// To provide for some non-determinism, __fc_initenv initializes the
+// environment with an arbitrary string
+#define __FC_INITENV_LEN 64
+static char __fc_env_strings[__FC_INITENV_LEN];
+
+static void __fc_initenv() {
+  static char init;
+  if (!init) {
+    // -1 to ensure null-termination
+    Frama_C_make_unknown(__fc_env_strings, __FC_INITENV_LEN-1);
+    for (int i = 0; i < ARG_MAX; i++) {
+      __fc_env[i] = __fc_env_strings + Frama_C_interval(0,__FC_INITENV_LEN-1);
+    }
+    init = 1;
+  }
+}
+
+// all *env functions below follow this pattern:
+// - check input argument(s);
+// - initialize the environment, if not done already
+// - perform the actual function
+
+char *getenv(const char *name)
+{
+  //@ assert !strchr(name, '=');
+
+  __fc_initenv();
+  if (Frama_C_nondet(0, 1)) {
+    return __fc_env[Frama_C_interval(0, ARG_MAX-1)];
+  } else {
+    return 0;
+  }
+}
+
+int putenv(char *string)
+{
+  char *separator = strchr(string, '=');
+  //@ assert string_contains_separator: separator != \null;
+  //@ assert name_is_not_empty: separator != string;
+
+  __fc_initenv();
+
+  // possible cases:
+  // 1. key in string not found in env:
+  //    a. no more memory ==> ENOMEM
+  //    b. available memory ==> modify env to point to string
+  // 2. key in string found in env ==> modify an existing entry
+  if (Frama_C_nondet(0, 1)) {
+    if (Frama_C_nondet(0, 1)) {
+      //TODO: errno = ENOMEM;
+      return Frama_C_interval(INT_MIN, INT_MAX); // return a non-zero value
+    }
+    __fc_env[Frama_C_interval(0, ARG_MAX-1)] = string;
+  }
+  return 0;
+}
+
+int setenv(const char *name, const char *value, int overwrite)
+{
+  if (strchr(name, '=')) {
+    //TODO: errno = EINVAL;
+    return -1;
+  }
+  size_t namelen = strlen(name);
+  if (namelen == 0) {
+    //TODO: errno = EINVAL;
+    return -1;
+  }
+
+  __fc_initenv();
+
+  // possible cases:
+  // 1. found 'name' and will overwrite, or did not find, but no more memory
+  // 2. found 'name' but will not overwrite
+  // 3. did not find name and has available memory
+  if (Frama_C_nondet(0, 1)) {
+    //TODO: errno = ENOMEM;
+    return -1;
+  } else {
+    if (Frama_C_nondet(0, 1)) {
+      Frama_C_make_unknown(__fc_env_strings, __FC_INITENV_LEN-1);
+    }
+    __fc_env[Frama_C_interval(0,ARG_MAX-1)] = __fc_env_strings + Frama_C_interval(0,__FC_INITENV_LEN-1);
+    return 0;
+  }
+}
+
+int unsetenv(const char *name)
+{
+  if (strchr(name, '=')) {
+    //TODO: errno = EINVAL;
+    return -1;
+  }
+  size_t namelen = strlen(name);
+  if (namelen == 0) {
+    //TODO: errno = EINVAL;
+    return -1;
+  }
+
+  __fc_initenv();
+
+  if (Frama_C_nondet(0, 1)) {
+    __fc_env[Frama_C_interval(0,ARG_MAX-1)] = 0;
+  }
+  return 0;
+}
+
+#ifndef __FRAMAC__
+// declar __fc_strerror to ensure GCC can compile this file (for debugging and tests)
+char __fc_strerror[64];
+#endif
+
+__POP_FC_STDLIB

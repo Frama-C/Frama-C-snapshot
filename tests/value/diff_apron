@@ -19,18 +19,55 @@ diff tests/value/oracle/alias.6.res.oracle tests/value/oracle_apron/alias.6.res.
 ---
 >   t ∈ {5}
 diff tests/value/oracle/array_degenerating_loop.res.oracle tests/value/oracle_apron/array_degenerating_loop.res.oracle
-12,13d11
-< [value:alarm] tests/value/array_degenerating_loop.i:9: Warning: 
+11,12d10
+< [eva:alarm] tests/value/array_degenerating_loop.i:9: Warning: 
 <   signed overflow. assert G + t[i] ≤ 2147483647;
-15c13
+14c12
 <   Frama_C_show_each: [55..2147483647], [-2147483648..99]
 ---
 >   Frama_C_show_each: [55..155], [-2147483648..99]
+diff tests/value/oracle/backward_add_ptr.res.oracle tests/value/oracle_apron/backward_add_ptr.res.oracle
+71c71,74
+< [eva] tests/value/backward_add_ptr.c:91: Reusing old results for call to gm
+---
+> [eva] computing for function gm <- main3 <- main.
+>   Called from tests/value/backward_add_ptr.c:91.
+> [eva] Recording results for gm
+> [eva] Done for function gm
+93c96,99
+< [eva] tests/value/backward_add_ptr.c:110: Reusing old results for call to gm
+---
+> [eva] computing for function gm <- main3 <- main.
+>   Called from tests/value/backward_add_ptr.c:110.
+> [eva] Recording results for gm
+> [eva] Done for function gm
+107c113,116
+< [eva] tests/value/backward_add_ptr.c:125: Reusing old results for call to gm
+---
+> [eva] computing for function gm <- main3 <- main.
+>   Called from tests/value/backward_add_ptr.c:125.
+> [eva] Recording results for gm
+> [eva] Done for function gm
+160c169,172
+< [eva] tests/value/backward_add_ptr.c:160: Reusing old results for call to gm
+---
+> [eva] computing for function gm <- main4 <- main.
+>   Called from tests/value/backward_add_ptr.c:160.
+> [eva] Recording results for gm
+> [eva] Done for function gm
 diff tests/value/oracle/call_simple.res.oracle tests/value/oracle_apron/call_simple.res.oracle
 28c28
 <   c ∈ [--..--]
 ---
 >   c ∈ [-2147483648..2147483646]
+diff tests/value/oracle/deps_compose.res.oracle tests/value/oracle_apron/deps_compose.res.oracle
+24c24,27
+< [eva] tests/value/deps_compose.i:26: Reusing old results for call to f
+---
+> [eva] computing for function f <- main.
+>   Called from tests/value/deps_compose.i:26.
+> [eva] Recording results for f
+> [eva] Done for function f
 diff tests/value/oracle/divneg.res.oracle tests/value/oracle_apron/divneg.res.oracle
 57c57
 <   vic ∈ {4294967295}
@@ -62,105 +99,269 @@ diff tests/value/oracle/find_ivaltop.res.oracle tests/value/oracle_apron/find_iv
 ---
 >     t[7]
 diff tests/value/oracle/for_loops.1.res.oracle tests/value/oracle_apron/for_loops.1.res.oracle
-40,42c40
-< [value:alarm] tests/value/for_loops.c:16: Warning: 
+39,41c39
+< [eva:alarm] tests/value/for_loops.c:16: Warning: 
 <   signed overflow. assert w + 1 ≤ 2147483647;
-< [value] tests/value/for_loops.c:17: Frama_C_show_each_F: [0..2147483647]
+< [eva] tests/value/for_loops.c:17: Frama_C_show_each_F: [0..2147483647]
 ---
-> [value] tests/value/for_loops.c:17: Frama_C_show_each_F: [0..100]
-48c46
+> [eva] tests/value/for_loops.c:17: Frama_C_show_each_F: [0..100]
+47c45
 <   j ∈ [0..2147483647]
 ---
 >   j ∈ [0..100]
 diff tests/value/oracle/for_loops.2.res.oracle tests/value/oracle_apron/for_loops.2.res.oracle
-38,40c38
-< [value:alarm] tests/value/for_loops.c:42: Warning: 
+37,39c37
+< [eva:alarm] tests/value/for_loops.c:42: Warning: 
 <   signed overflow. assert w + T[j] ≤ 2147483647;
-< [value] tests/value/for_loops.c:43: Frama_C_show_each: [0..2147483647]
+< [eva] tests/value/for_loops.c:43: Frama_C_show_each: [0..2147483647]
 ---
-> [value] tests/value/for_loops.c:43: Frama_C_show_each: [0..1000]
+> [eva] tests/value/for_loops.c:43: Frama_C_show_each: [0..1000]
+diff tests/value/oracle/fptr.0.res.oracle tests/value/oracle_apron/fptr.0.res.oracle
+57c57,60
+< [eva] tests/value/fptr.i:9: Reusing old results for call to h
+---
+> [eva] computing for function h <- f <- main.
+>   Called from tests/value/fptr.i:9.
+> [eva] Recording results for h
+> [eva] Done for function h
+66,67c69,76
+< [eva] tests/value/fptr.i:9: Reusing old results for call to hh
+< [eva] tests/value/fptr.i:9: Reusing old results for call to h
+---
+> [eva] computing for function hh <- f <- main.
+>   Called from tests/value/fptr.i:9.
+> [eva] Recording results for hh
+> [eva] Done for function hh
+> [eva] computing for function h <- f <- main.
+>   Called from tests/value/fptr.i:9.
+> [eva] Recording results for h
+> [eva] Done for function h
+72c81,92
+< [eva] tests/value/fptr.i:52: Reusing old results for call to f
+---
+> [eva] computing for function f <- main.
+>   Called from tests/value/fptr.i:52.
+> [eva] computing for function hh <- f <- main.
+>   Called from tests/value/fptr.i:9.
+> [eva] Recording results for hh
+> [eva] Done for function hh
+> [eva] computing for function h <- f <- main.
+>   Called from tests/value/fptr.i:9.
+> [eva] Recording results for h
+> [eva] Done for function h
+> [eva] Recording results for f
+> [eva] Done for function f
+diff tests/value/oracle/fptr.1.res.oracle tests/value/oracle_apron/fptr.1.res.oracle
+42c42,45
+< [eva] tests/value/fptr.i:9: Reusing old results for call to h
+---
+> [eva] computing for function h <- f <- main_uninit.
+>   Called from tests/value/fptr.i:9.
+> [eva] Recording results for h
+> [eva] Done for function h
+51,52c54,61
+< [eva] tests/value/fptr.i:9: Reusing old results for call to hh
+< [eva] tests/value/fptr.i:9: Reusing old results for call to h
+---
+> [eva] computing for function hh <- f <- main_uninit.
+>   Called from tests/value/fptr.i:9.
+> [eva] Recording results for hh
+> [eva] Done for function hh
+> [eva] computing for function h <- f <- main_uninit.
+>   Called from tests/value/fptr.i:9.
+> [eva] Recording results for h
+> [eva] Done for function h
+57c66,77
+< [eva] tests/value/fptr.i:68: Reusing old results for call to f
+---
+> [eva] computing for function f <- main_uninit.
+>   Called from tests/value/fptr.i:68.
+> [eva] computing for function hh <- f <- main_uninit.
+>   Called from tests/value/fptr.i:9.
+> [eva] Recording results for hh
+> [eva] Done for function hh
+> [eva] computing for function h <- f <- main_uninit.
+>   Called from tests/value/fptr.i:9.
+> [eva] Recording results for h
+> [eva] Done for function h
+> [eva] Recording results for f
+> [eva] Done for function f
+diff tests/value/oracle/from_call.0.res.oracle tests/value/oracle_apron/from_call.0.res.oracle
+64c64,69
+< [eva] tests/value/from_call.i:20: Reusing old results for call to g
+---
+> [eva] computing for function g <- f <- main.
+>   Called from tests/value/from_call.i:20.
+> [eva] Recording results for g
+> [from] Computing for function g
+> [from] Done for function g
+> [eva] Done for function g
+74c79,84
+< [eva] tests/value/from_call.i:20: Reusing old results for call to g
+---
+> [eva] computing for function g <- f <- main.
+>   Called from tests/value/from_call.i:20.
+> [eva] Recording results for g
+> [from] Computing for function g
+> [from] Done for function g
+> [eva] Done for function g
+145,146c155,166
+< [eva] tests/value/from_call.i:44: Reusing old results for call to return_A1
+< [eva] tests/value/from_call.i:44: Reusing old results for call to return_A2
+---
+> [eva] computing for function return_A1 <- dispatcher2 <- call_dispatcher2 <- main.
+>   Called from tests/value/from_call.i:44.
+> [eva] Recording results for return_A1
+> [from] Computing for function return_A1
+> [from] Done for function return_A1
+> [eva] Done for function return_A1
+> [eva] computing for function return_A2 <- dispatcher2 <- call_dispatcher2 <- main.
+>   Called from tests/value/from_call.i:44.
+> [eva] Recording results for return_A2
+> [from] Computing for function return_A2
+> [from] Done for function return_A2
+> [eva] Done for function return_A2
+diff tests/value/oracle/from_call.1.res.oracle tests/value/oracle_apron/from_call.1.res.oracle
+60c60,63
+< [eva] tests/value/from_call.i:20: Reusing old results for call to g
+---
+> [eva] computing for function g <- f <- main.
+>   Called from tests/value/from_call.i:20.
+> [eva] Recording results for g
+> [eva] Done for function g
+68c71,74
+< [eva] tests/value/from_call.i:20: Reusing old results for call to g
+---
+> [eva] computing for function g <- f <- main.
+>   Called from tests/value/from_call.i:20.
+> [eva] Recording results for g
+> [eva] Done for function g
+119,120c125,132
+< [eva] tests/value/from_call.i:44: Reusing old results for call to return_A1
+< [eva] tests/value/from_call.i:44: Reusing old results for call to return_A2
+---
+> [eva] computing for function return_A1 <- dispatcher2 <- call_dispatcher2 <- main.
+>   Called from tests/value/from_call.i:44.
+> [eva] Recording results for return_A1
+> [eva] Done for function return_A1
+> [eva] computing for function return_A2 <- dispatcher2 <- call_dispatcher2 <- main.
+>   Called from tests/value/from_call.i:44.
+> [eva] Recording results for return_A2
+> [eva] Done for function return_A2
+diff tests/value/oracle/fun_ptr.0.res.oracle tests/value/oracle_apron/fun_ptr.0.res.oracle
+39c39,42
+< [eva] tests/value/fun_ptr.i:33: Reusing old results for call to f
+---
+> [eva] computing for function f <- test2 <- main.
+>   Called from tests/value/fun_ptr.i:33.
+> [eva] Recording results for f
+> [eva] Done for function f
+diff tests/value/oracle/fun_ptr.1.res.oracle tests/value/oracle_apron/fun_ptr.1.res.oracle
+39c39,42
+< [eva] tests/value/fun_ptr.i:33: Reusing old results for call to f
+---
+> [eva] computing for function f <- test2 <- main.
+>   Called from tests/value/fun_ptr.i:33.
+> [eva] Recording results for f
+> [eva] Done for function f
 diff tests/value/oracle/gauges.res.oracle tests/value/oracle_apron/gauges.res.oracle
-32,33d31
-< [value:alarm] tests/value/gauges.i:24: Warning: 
+32,35d31
+< [eva] tests/value/gauges.c:19: Frama_C_show_each_0: {{ "in" }}
+< [eva] tests/value/gauges.c:21: Frama_C_show_each_1: {{ "in" }}
+< [eva:alarm] tests/value/gauges.c:26: Warning: 
 <   signed overflow. assert l + 1 ≤ 2147483647;
-58,59d55
-< [value:alarm] tests/value/gauges.i:46: Warning: 
+60,63d55
+< [eva] tests/value/gauges.c:41: Frama_C_show_each_0: {{ "in" }}
+< [eva] tests/value/gauges.c:43: Frama_C_show_each_1: {{ "in" }}
+< [eva:alarm] tests/value/gauges.c:48: Warning: 
 <   signed overflow. assert l + 1 ≤ 2147483647;
-101a98,99
-> [value] tests/value/gauges.i:81: Frama_C_show_each: {{ "outer" }}
-> [value] tests/value/gauges.i:78: Frama_C_show_each: {{ "inner" }}
-111c109
-< [value] tests/value/gauges.i:84: Frama_C_show_each: [0..2147483647]
+104a97,99
+> [eva] tests/value/gauges.c:83: Frama_C_show_each: {{ "outer" }}
+> [eva] tests/value/gauges.c:78: starting to merge loop iterations
+> [eva] tests/value/gauges.c:80: Frama_C_show_each: {{ "inner" }}
+110,114d104
+< [eva] tests/value/gauges.c:78: starting to merge loop iterations
+< [eva] tests/value/gauges.c:80: Frama_C_show_each: {{ "inner" }}
+< [eva] tests/value/gauges.c:83: Frama_C_show_each: {{ "outer" }}
+< [eva] tests/value/gauges.c:80: Frama_C_show_each: {{ "inner" }}
+< [eva] tests/value/gauges.c:83: Frama_C_show_each: {{ "outer" }}
+117c107
+< [eva] tests/value/gauges.c:86: Frama_C_show_each: [0..2147483647]
 ---
-> [value] tests/value/gauges.i:84: Frama_C_show_each: [15..2147483647]
-125,126d122
-< [value:alarm] tests/value/gauges.i:97: Warning: 
+> [eva] tests/value/gauges.c:86: Frama_C_show_each: [15..2147483647]
+131,132d120
+< [eva:alarm] tests/value/gauges.c:99: Warning: 
 <   signed overflow. assert c + 1 ≤ 2147483647;
-175,176d170
-< [value:alarm] tests/value/gauges.i:138: Warning: 
+179,180d166
+< [eva:alarm] tests/value/gauges.c:140: Warning: 
 <   signed overflow. assert j + 1 ≤ 2147483647;
-287,288d280
-< [value:alarm] tests/value/gauges.i:218: Warning: 
+291,292d276
+< [eva:alarm] tests/value/gauges.c:220: Warning: 
 <   signed overflow. assert -2147483648 ≤ n - 1;
-303,304d294
-< [value:alarm] tests/value/gauges.i:238: Warning: 
+307,308d290
+< [eva:alarm] tests/value/gauges.c:240: Warning: 
 <   signed overflow. assert j + 1 ≤ 2147483647;
-306c296
+310c292
 <   Frama_C_show_each: {45; 46; 47; 48; 49; 50; 51}, [0..2147483647]
 ---
 >   Frama_C_show_each: {45; 46; 47; 48; 49; 50; 51}, [0..46]
-312,313d301
-< [value:alarm] tests/value/gauges.i:249: Warning: 
+316,317d297
+< [eva:alarm] tests/value/gauges.c:251: Warning: 
 <   signed overflow. assert j + 1 ≤ 2147483647;
-315c303
+319c299
 <   Frama_C_show_each: {48; 49; 50; 51; 52; 53; 54}, [0..2147483647]
 ---
 >   Frama_C_show_each: {48; 49; 50; 51; 52; 53; 54}, [0..49]
-321,322d308
-< [value:alarm] tests/value/gauges.i:261: Warning: 
+325,326d304
+< [eva:alarm] tests/value/gauges.c:263: Warning: 
 <   signed overflow. assert j + 1 ≤ 2147483647;
-324c310
+328c306
 <   Frama_C_show_each: {-59; -58; -57; -56; -55; -54; -53}, [0..2147483647]
 ---
 >   Frama_C_show_each: {-59; -58; -57; -56; -55; -54; -53}, [0..65]
-330,331d315
-< [value:alarm] tests/value/gauges.i:272: Warning: 
+334,335d311
+< [eva:alarm] tests/value/gauges.c:274: Warning: 
 <   signed overflow. assert j + 1 ≤ 2147483647;
-333c317
+337c313
 <   Frama_C_show_each: {-64; -63; -62; -61; -60; -59; -58}, [0..2147483647]
 ---
 >   Frama_C_show_each: {-64; -63; -62; -61; -60; -59; -58}, [0..70]
-341,342d324
-< [value:alarm] tests/value/gauges.i:291: Warning: 
+345,346d320
+< [eva:alarm] tests/value/gauges.c:293: Warning: 
 <   signed overflow. assert j + 1 ≤ 2147483647;
-344c326
+348c322
 <   Frama_C_show_each: {-593; -592; -591; -590; -589; -588}, [0..2147483647]
 ---
 >   Frama_C_show_each: {-593; -592; -591; -590; -589; -588}, [0..598]
-638c620
+716c690
 <   l ∈ [4..2147483647]
 ---
 >   l ∈ [4..101]
-643c625
+721c695
 <   l ∈ [4..2147483647]
 ---
 >   l ∈ [4..101]
-694c676
+772c746
 <   n ∈ [-2147483648..99]
 ---
 >   n ∈ [-2147483547..99]
-697c679
+775c749
 <   i ∈ [0..2147483647]
 ---
 >   i ∈ [10..2147483647]
-733c715
+811c785
 <   i ∈ [0..2147483647]
 ---
 >   i ∈ [0..21]
 diff tests/value/oracle/ghost.res.oracle tests/value/oracle_apron/ghost.res.oracle
 10,11d9
-< [value:alarm] tests/value/ghost.i:17: Warning: 
+< [eva:alarm] tests/value/ghost.i:17: Warning: 
 <   signed overflow. assert G + 1 ≤ 2147483647;
+diff tests/value/oracle/hierarchical_convergence.res.oracle tests/value/oracle_apron/hierarchical_convergence.res.oracle
+40c40
+<   j ∈ [0..2147483647]
+---
+>   j ∈ [0..99]
 diff tests/value/oracle/initialized_copy.1.res.oracle tests/value/oracle_apron/initialized_copy.1.res.oracle
 24,27c24
 <   c_0[bits 0 to 7] ∈ {1} or UNINITIALIZED
@@ -176,88 +377,163 @@ diff tests/value/oracle/initialized_copy.1.res.oracle tests/value/oracle_apron/i
 <      [bits 24 to 31] ∈ {4}
 ---
 >   a_2 ∈ {67305985} or UNINITIALIZED
+diff tests/value/oracle/invalid_loc_return.res.oracle tests/value/oracle_apron/invalid_loc_return.res.oracle
+70c70,73
+< [eva] tests/value/invalid_loc_return.i:17: Reusing old results for call to foo
+---
+> [eva] computing for function foo <- main <- main2.
+>   Called from tests/value/invalid_loc_return.i:17.
+> [eva] Recording results for foo
+> [eva] Done for function foo
+diff tests/value/oracle/local.res.oracle tests/value/oracle_apron/local.res.oracle
+22c22,25
+< [eva] tests/value/local.i:13: Reusing old results for call to f
+---
+> [eva] computing for function f <- g <- main.
+>   Called from tests/value/local.i:13.
+> [eva] Recording results for f
+> [eva] Done for function f
 diff tests/value/oracle/local_slevel.res.oracle tests/value/oracle_apron/local_slevel.res.oracle
 13,15c13,15
-< [value] tests/value/local_slevel.i:17: Frama_C_show_each: {1}, {1}, {0; 1}
-< [value] tests/value/local_slevel.i:17: Frama_C_show_each: {-1}, {0}, {0; 1}
-< [value] tests/value/local_slevel.i:17: Frama_C_show_each: {1}, {1}, {0; 1; 2}
+< [eva] tests/value/local_slevel.i:18: Frama_C_show_each: {1}, {1}, {0; 1}
+< [eva] tests/value/local_slevel.i:18: Frama_C_show_each: {-1}, {0}, {0; 1}
+< [eva] tests/value/local_slevel.i:18: Frama_C_show_each: {1}, {1}, {0; 1; 2}
 ---
-> [value] tests/value/local_slevel.i:17: Frama_C_show_each: {1}, {1}, {1}
-> [value] tests/value/local_slevel.i:17: Frama_C_show_each: {-1}, {0}, {0}
-> [value] tests/value/local_slevel.i:17: Frama_C_show_each: {1}, {1}, {1}
-19c19
+> [eva] tests/value/local_slevel.i:18: Frama_C_show_each: {1}, {1}, {1}
+> [eva] tests/value/local_slevel.i:18: Frama_C_show_each: {-1}, {0}, {0}
+> [eva] tests/value/local_slevel.i:18: Frama_C_show_each: {1}, {1}, {1}
+18c18
 <   Frama_C_show_each: {1}, [1..79],1%2, {0; 1; 2; 3}
 ---
 >   Frama_C_show_each: {1}, [1..79],1%2, {1; 2; 3}
-23c23
+22c22
 <   Frama_C_show_each: {1}, [1..79],1%2, {0; 1; 2; 3; 4}
 ---
 >   Frama_C_show_each: {1}, [1..79],1%2, {1; 2; 3; 4}
-27,35c27
+26,34c26
 <   Frama_C_show_each: {1}, [1..79],1%2, [0..2147483647]
-< [value] tests/value/local_slevel.i:17: 
+< [eva] tests/value/local_slevel.i:18: 
 <   Frama_C_show_each: {-1}, [0..78],0%2, [0..2147483647]
-< [value] tests/value/local_slevel.i:17: 
+< [eva] tests/value/local_slevel.i:18: 
 <   Frama_C_show_each: {1}, [1..79],1%2, [0..2147483648]
-< [value] tests/value/local_slevel.i:17: 
+< [eva] tests/value/local_slevel.i:18: 
 <   Frama_C_show_each: {-1}, [0..78],0%2, [0..2147483648]
-< [value] tests/value/local_slevel.i:17: 
+< [eva] tests/value/local_slevel.i:18: 
 <   Frama_C_show_each: {1}, [1..79],1%2, [0..4294967295]
 ---
 >   Frama_C_show_each: {1}, [1..79],1%2, [1..79]
-37c29
+36c28
 <   Frama_C_show_each: {-1}, [0..78],0%2, [0..4294967295]
 ---
 >   Frama_C_show_each: {-1}, [0..78],0%2, [0..78]
-151c143
+150c142
 <   r ∈ [--..--]
 ---
 >   r ∈ [0..2147483647]
-392,394c384,386
-< [value] tests/value/local_slevel.i:17: Frama_C_show_each: {1}, {1}, {0; 1}
-< [value] tests/value/local_slevel.i:17: Frama_C_show_each: {-1}, {0}, {0; 1}
-< [value] tests/value/local_slevel.i:17: Frama_C_show_each: {1}, {1}, {0; 1; 2}
+391,393c383,385
+< [eva] tests/value/local_slevel.i:18: Frama_C_show_each: {1}, {1}, {0; 1}
+< [eva] tests/value/local_slevel.i:18: Frama_C_show_each: {-1}, {0}, {0; 1}
+< [eva] tests/value/local_slevel.i:18: Frama_C_show_each: {1}, {1}, {0; 1; 2}
 ---
-> [value] tests/value/local_slevel.i:17: Frama_C_show_each: {1}, {1}, {1}
-> [value] tests/value/local_slevel.i:17: Frama_C_show_each: {-1}, {0}, {0}
-> [value] tests/value/local_slevel.i:17: Frama_C_show_each: {1}, {1}, {1}
-398c390
+> [eva] tests/value/local_slevel.i:18: Frama_C_show_each: {1}, {1}, {1}
+> [eva] tests/value/local_slevel.i:18: Frama_C_show_each: {-1}, {0}, {0}
+> [eva] tests/value/local_slevel.i:18: Frama_C_show_each: {1}, {1}, {1}
+396c388
 <   Frama_C_show_each: {1}, [1..79],1%2, {0; 1; 2; 3}
 ---
 >   Frama_C_show_each: {1}, [1..79],1%2, {1; 2; 3}
-402c394
+400c392
 <   Frama_C_show_each: {1}, [1..79],1%2, {0; 1; 2; 3; 4}
 ---
 >   Frama_C_show_each: {1}, [1..79],1%2, {1; 2; 3; 4}
-406,414c398
+404,412c396
 <   Frama_C_show_each: {1}, [1..79],1%2, [0..2147483647]
-< [value] tests/value/local_slevel.i:17: 
+< [eva] tests/value/local_slevel.i:18: 
 <   Frama_C_show_each: {-1}, [0..78],0%2, [0..2147483647]
-< [value] tests/value/local_slevel.i:17: 
+< [eva] tests/value/local_slevel.i:18: 
 <   Frama_C_show_each: {1}, [1..79],1%2, [0..2147483648]
-< [value] tests/value/local_slevel.i:17: 
+< [eva] tests/value/local_slevel.i:18: 
 <   Frama_C_show_each: {-1}, [0..78],0%2, [0..2147483648]
-< [value] tests/value/local_slevel.i:17: 
+< [eva] tests/value/local_slevel.i:18: 
 <   Frama_C_show_each: {1}, [1..79],1%2, [0..4294967295]
 ---
 >   Frama_C_show_each: {1}, [1..79],1%2, [1..79]
-416c400
+414c398
 <   Frama_C_show_each: {-1}, [0..78],0%2, [0..4294967295]
 ---
 >   Frama_C_show_each: {-1}, [0..78],0%2, [0..78]
-530c514
+528c512
 <   r ∈ [--..--]
 ---
 >   r ∈ [0..2147483647]
+diff tests/value/oracle/logicdeps.res.oracle tests/value/oracle_apron/logicdeps.res.oracle
+31c31,39
+< [eva] tests/value/logicdeps.i:25: Reusing old results for call to g
+---
+> [eva] computing for function g <- main.
+>   Called from tests/value/logicdeps.i:25.
+> [eva] computing for function f <- g <- main.
+>   Called from tests/value/logicdeps.i:13.
+> [eva] Done for function f
+> [eva] Recording results for g
+> [from] Computing for function g
+> [from] Done for function g
+> [eva] Done for function g
+51c59,67
+< [eva] tests/value/logicdeps.i:32: Reusing old results for call to g
+---
+> [eva] computing for function g <- main.
+>   Called from tests/value/logicdeps.i:32.
+> [eva] computing for function f <- g <- main.
+>   Called from tests/value/logicdeps.i:13.
+> [eva] Done for function f
+> [eva] Recording results for g
+> [from] Computing for function g
+> [from] Done for function g
+> [eva] Done for function g
+diff tests/value/oracle/long.res.oracle tests/value/oracle_apron/long.res.oracle
+15,17c15,26
+< [eva] tests/value/long.i:12: Reusing old results for call to f
+< [eva] tests/value/long.i:12: Reusing old results for call to f
+< [eva] tests/value/long.i:12: Reusing old results for call to f
+---
+> [eva] computing for function f <- main.
+>   Called from tests/value/long.i:12.
+> [eva] Recording results for f
+> [eva] Done for function f
+> [eva] computing for function f <- main.
+>   Called from tests/value/long.i:12.
+> [eva] Recording results for f
+> [eva] Done for function f
+> [eva] computing for function f <- main.
+>   Called from tests/value/long.i:12.
+> [eva] Recording results for f
+> [eva] Done for function f
+diff tests/value/oracle/long_const.0.res.oracle tests/value/oracle_apron/long_const.0.res.oracle
+19c19,22
+< [eva] tests/value/long_const.i:25: Reusing old results for call to LL_ABS
+---
+> [eva] computing for function LL_ABS <- div64 <- main.
+>   Called from tests/value/long_const.i:25.
+> [eva] Recording results for LL_ABS
+> [eva] Done for function LL_ABS
+diff tests/value/oracle/long_const.1.res.oracle tests/value/oracle_apron/long_const.1.res.oracle
+19c19,22
+< [eva] tests/value/long_const.i:25: Reusing old results for call to LL_ABS
+---
+> [eva] computing for function LL_ABS <- div64 <- main.
+>   Called from tests/value/long_const.i:25.
+> [eva] Recording results for LL_ABS
+> [eva] Done for function LL_ABS
 diff tests/value/oracle/loop_wvar.1.res.oracle tests/value/oracle_apron/loop_wvar.1.res.oracle
 12,13d11
-< [value:alarm] tests/value/loop_wvar.i:57: Warning: 
+< [eva:alarm] tests/value/loop_wvar.i:57: Warning: 
 <   signed overflow. assert next + 1 ≤ 2147483647;
 27,28c25
-< [value] tests/value/loop_wvar.i:71: Frama_C_show_each: [0..9], [0..17], [0..11]
-< [value] tests/value/loop_wvar.i:71: Frama_C_show_each: [0..9], [0..18], [0..12]
+< [eva] tests/value/loop_wvar.i:71: Frama_C_show_each: [0..9], [0..17], [0..11]
+< [eva] tests/value/loop_wvar.i:71: Frama_C_show_each: [0..9], [0..18], [0..12]
 ---
-> [value] tests/value/loop_wvar.i:71: Frama_C_show_each: [0..9], [0..9], [0..9]
+> [eva] tests/value/loop_wvar.i:71: Frama_C_show_each: [0..9], [0..9], [0..9]
 37,38c34,35
 <   j ∈ [0..18]
 <   k ∈ [0..12]
@@ -269,100 +545,142 @@ diff tests/value/oracle/loop_wvar.1.res.oracle tests/value/oracle_apron/loop_wva
 ---
 >   next ∈ [0..25]
 diff tests/value/oracle/loopinv.res.oracle tests/value/oracle_apron/loopinv.res.oracle
-62,64c62
-< [value:alarm] tests/value/loopinv.c:45: Warning: 
+51,53c51
+< [eva:alarm] tests/value/loopinv.c:45: Warning: 
 <   signed overflow. assert j + 1 ≤ 2147483647;
-< [value] tests/value/loopinv.c:46: Frama_C_show_each: [0..99], [0..2147483647]
+< [eva] tests/value/loopinv.c:46: Frama_C_show_each: [0..99], [0..2147483647]
 ---
-> [value] tests/value/loopinv.c:46: Frama_C_show_each: [0..99], [0..100]
-145,146d142
-< [    -    ] Assertion 'Value,signed_overflow' (file tests/value/loopinv.c, line 45)
-<             tried with Value.
-159,160c155,156
+> [eva] tests/value/loopinv.c:46: Frama_C_show_each: [0..99], [0..100]
+134,135d131
+< [    -    ] Assertion 'Eva,signed_overflow' (file tests/value/loopinv.c, line 45)
+<             tried with Eva.
+148,149c144,145
 <      4 To be validated
 <     13 Total
 ---
 >      3 To be validated
 >     12 Total
 diff tests/value/oracle/memexec.res.oracle tests/value/oracle_apron/memexec.res.oracle
-25c25,28
-< [value] tests/value/memexec.c:13: Reusing old results for call to f11
+25,30c25,48
+< [eva] tests/value/memexec.c:13: Reusing old results for call to f11
+< [eva] tests/value/memexec.c:14: Reusing old results for call to f11
+< [eva] tests/value/memexec.c:16: Reusing old results for call to f11
+< [eva] tests/value/memexec.c:18: Reusing old results for call to f11
+< [eva] tests/value/memexec.c:20: Reusing old results for call to f11
+< [eva] tests/value/memexec.c:21: Reusing old results for call to f11
 ---
-> [value] computing for function f11 <- f1 <- main.
+> [eva] computing for function f11 <- f1 <- main.
 >   Called from tests/value/memexec.c:13.
-> [value] Recording results for f11
-> [value] Done for function f11
-27c30,33
-< [value] tests/value/memexec.c:16: Reusing old results for call to f11
----
-> [value] computing for function f11 <- f1 <- main.
+> [eva] Recording results for f11
+> [eva] Done for function f11
+> [eva] computing for function f11 <- f1 <- main.
+>   Called from tests/value/memexec.c:14.
+> [eva] Recording results for f11
+> [eva] Done for function f11
+> [eva] computing for function f11 <- f1 <- main.
 >   Called from tests/value/memexec.c:16.
-> [value] Recording results for f11
-> [value] Done for function f11
-29c35,38
-< [value] tests/value/memexec.c:20: Reusing old results for call to f11
----
-> [value] computing for function f11 <- f1 <- main.
+> [eva] Recording results for f11
+> [eva] Done for function f11
+> [eva] computing for function f11 <- f1 <- main.
+>   Called from tests/value/memexec.c:18.
+> [eva] Recording results for f11
+> [eva] Done for function f11
+> [eva] computing for function f11 <- f1 <- main.
 >   Called from tests/value/memexec.c:20.
-> [value] Recording results for f11
-> [value] Done for function f11
+> [eva] Recording results for f11
+> [eva] Done for function f11
+> [eva] computing for function f11 <- f1 <- main.
+>   Called from tests/value/memexec.c:21.
+> [eva] Recording results for f11
+> [eva] Done for function f11
+104c122,125
+< [eva] tests/value/memexec.c:113: Reusing old results for call to f5_aux
+---
+> [eva] computing for function f5_aux <- f5 <- main.
+>   Called from tests/value/memexec.c:113.
+> [eva] Recording results for f5_aux
+> [eva] Done for function f5_aux
+106,107c127
+<   Frama_C_show_each_f5:
+<   [9..2147483647], [-2147483648..2147483647], [-2147483648..7]
+---
+>   Frama_C_show_each_f5: [9..2147483647], [-2147483648..6], [-2147483648..7]
+128c148,151
+< [eva] tests/value/memexec.c:137: Reusing old results for call to f7_1
+---
+> [eva] computing for function f7_1 <- f7 <- main.
+>   Called from tests/value/memexec.c:137.
+> [eva] Recording results for f7_1
+> [eva] Done for function f7_1
+143c166,169
+< [eva] tests/value/memexec.c:150: Reusing old results for call to f8_1
+---
+> [eva] computing for function f8_1 <- f8 <- main.
+>   Called from tests/value/memexec.c:150.
+> [eva] Recording results for f8_1
+> [eva] Done for function f8_1
+195c221
+<   g_f5_1 ∈ [--..--]
+---
+>   g_f5_1 ∈ [-2147483648..6]
+231c257
+<   g_f5_1 ∈ [--..--]
+---
+>   g_f5_1 ∈ [-2147483648..6]
 diff tests/value/oracle/modulo.res.oracle tests/value/oracle_apron/modulo.res.oracle
-41a42,66
-> [value] tests/value/modulo.i:41: 
->   Frama_C_show_each_1: [-10..-1], [-9..-1], [-8..0]
-> [value] tests/value/modulo.i:41: Frama_C_show_each_1: [-10..-1], [1..9], [-8..0]
-> [value] tests/value/modulo.i:41: Frama_C_show_each_1: [1..10], [-9..-1], [0..8]
-> [value] tests/value/modulo.i:41: Frama_C_show_each_1: [1..10], [1..9], [0..8]
-> [value] tests/value/modulo.i:41: 
+40a41,64
+> [eva] tests/value/modulo.i:41: Frama_C_show_each_1: [1..10], [1..9], [0..8]
+> [eva] tests/value/modulo.i:41: Frama_C_show_each_1: [1..10], [-9..-1], [0..8]
+> [eva] tests/value/modulo.i:41: Frama_C_show_each_1: [-10..-1], [1..9], [-8..0]
+> [eva] tests/value/modulo.i:41: Frama_C_show_each_1: [-10..-1], [-9..-1], [-8..0]
+> [eva] tests/value/modulo.i:41: 
 >   Frama_C_show_each_1:
 >   [1..9], {1; 2; 3; 4; 5; 6; 7; 8}, {0; 1; 2; 3; 4; 5; 6; 7}
-> [value] tests/value/modulo.i:41: 
+> [eva] tests/value/modulo.i:41: 
 >   Frama_C_show_each_1:
 >   [-9..-1], {1; 2; 3; 4; 5; 6; 7; 8}, {-7; -6; -5; -4; -3; -2; -1; 0}
-> [value] tests/value/modulo.i:41: 
+> [eva] tests/value/modulo.i:41: 
 >   Frama_C_show_each_1:
 >   [1..9], {-8; -7; -6; -5; -4; -3; -2; -1}, {0; 1; 2; 3; 4; 5; 6; 7}
-> [value] tests/value/modulo.i:41: 
+> [eva] tests/value/modulo.i:41: 
 >   Frama_C_show_each_1:
 >   [-9..-1], {-8; -7; -6; -5; -4; -3; -2; -1}, {-7; -6; -5; -4; -3; -2; -1; 0}
-> [value] tests/value/modulo.i:41: 
+> [eva] tests/value/modulo.i:41: 
+>   Frama_C_show_each_1:
+>   {1; 2; 3; 4; 5; 6; 7; 8}, {-7; -6; -5; -4; -3; -2; -1}, {0; 1; 2; 3; 4; 5; 6}
+> [eva] tests/value/modulo.i:41: 
 >   Frama_C_show_each_1:
 >   {-8; -7; -6; -5; -4; -3; -2; -1},
 >   {1; 2; 3; 4; 5; 6; 7},
 >   {-6; -5; -4; -3; -2; -1; 0}
-> [value] tests/value/modulo.i:41: 
->   Frama_C_show_each_1:
->   {1; 2; 3; 4; 5; 6; 7; 8}, {-7; -6; -5; -4; -3; -2; -1}, {0; 1; 2; 3; 4; 5; 6}
-52a78,102
-> [value] tests/value/modulo.i:53: Frama_C_show_each_2: [-10..-1], [1..9], [-8..0]
-> [value] tests/value/modulo.i:53: 
->   Frama_C_show_each_2: [-10..-1], [-9..-1], [-8..0]
-> [value] tests/value/modulo.i:53: Frama_C_show_each_2: [1..10], [1..9], [0..8]
-> [value] tests/value/modulo.i:53: Frama_C_show_each_2: [1..10], [-9..-1], [0..8]
-> [value] tests/value/modulo.i:53: 
->   Frama_C_show_each_2:
->   [-9..-1], {1; 2; 3; 4; 5; 6; 7; 8}, {-7; -6; -5; -4; -3; -2; -1; 0}
-> [value] tests/value/modulo.i:53: 
+50a75,98
+> [eva] tests/value/modulo.i:53: Frama_C_show_each_2: [1..10], [1..9], [0..8]
+> [eva] tests/value/modulo.i:53: Frama_C_show_each_2: [1..10], [-9..-1], [0..8]
+> [eva] tests/value/modulo.i:53: Frama_C_show_each_2: [-10..-1], [1..9], [-8..0]
+> [eva] tests/value/modulo.i:53: Frama_C_show_each_2: [-10..-1], [-9..-1], [-8..0]
+> [eva] tests/value/modulo.i:53: 
 >   Frama_C_show_each_2:
 >   [1..9], {1; 2; 3; 4; 5; 6; 7; 8}, {0; 1; 2; 3; 4; 5; 6; 7}
-> [value] tests/value/modulo.i:53: 
+> [eva] tests/value/modulo.i:53: 
 >   Frama_C_show_each_2:
->   [-9..-1], {-8; -7; -6; -5; -4; -3; -2; -1}, {-7; -6; -5; -4; -3; -2; -1; 0}
-> [value] tests/value/modulo.i:53: 
+>   [-9..-1], {1; 2; 3; 4; 5; 6; 7; 8}, {-7; -6; -5; -4; -3; -2; -1; 0}
+> [eva] tests/value/modulo.i:53: 
 >   Frama_C_show_each_2:
 >   [1..9], {-8; -7; -6; -5; -4; -3; -2; -1}, {0; 1; 2; 3; 4; 5; 6; 7}
-> [value] tests/value/modulo.i:53: 
+> [eva] tests/value/modulo.i:53: 
+>   Frama_C_show_each_2:
+>   [-9..-1], {-8; -7; -6; -5; -4; -3; -2; -1}, {-7; -6; -5; -4; -3; -2; -1; 0}
+> [eva] tests/value/modulo.i:53: 
+>   Frama_C_show_each_2:
+>   {1; 2; 3; 4; 5; 6; 7; 8}, {-7; -6; -5; -4; -3; -2; -1}, {0; 1; 2; 3; 4; 5; 6}
+> [eva] tests/value/modulo.i:53: 
 >   Frama_C_show_each_2:
 >   {-8; -7; -6; -5; -4; -3; -2; -1},
 >   {1; 2; 3; 4; 5; 6; 7},
 >   {-6; -5; -4; -3; -2; -1; 0}
-> [value] tests/value/modulo.i:53: 
->   Frama_C_show_each_2:
->   {1; 2; 3; 4; 5; 6; 7; 8}, {-7; -6; -5; -4; -3; -2; -1}, {0; 1; 2; 3; 4; 5; 6}
-62a113,115
-> [value] tests/value/modulo.i:64: 
->   Frama_C_show_each_3: [-10..10], [-9..9], [-8..8]
-> [value] tests/value/modulo.i:64: Frama_C_show_each_3: [-9..9], [-8..8], [-7..7]
+60a109,110
+> [eva] tests/value/modulo.i:64: Frama_C_show_each_3: [-10..10], [-9..9], [-8..8]
+> [eva] tests/value/modulo.i:64: Frama_C_show_each_3: [-9..9], [-8..8], [-7..7]
 diff tests/value/oracle/offsetmap.0.res.oracle tests/value/oracle_apron/offsetmap.0.res.oracle
 62,63c62
 <   a[bits 0 to 7] ∈ {1; 6}
@@ -407,6 +725,116 @@ diff tests/value/oracle/offsetmap.1.res.oracle tests/value/oracle_apron/offsetma
 >   a ∈ {1; 6}
 >   b ∈ {0; 1}
 >   a7 ∈ {1}
+diff tests/value/oracle/precise_locations.res.oracle tests/value/oracle_apron/precise_locations.res.oracle
+32,35c32,47
+< [eva] tests/value/precise_locations.i:39: Reusing old results for call to ct
+< [eva] tests/value/precise_locations.i:39: Reusing old results for call to ct
+< [eva] tests/value/precise_locations.i:39: Reusing old results for call to ct
+< [eva] tests/value/precise_locations.i:39: Reusing old results for call to ct
+---
+> [eva] computing for function ct <- main.
+>   Called from tests/value/precise_locations.i:39.
+> [eva] Recording results for ct
+> [eva] Done for function ct
+> [eva] computing for function ct <- main.
+>   Called from tests/value/precise_locations.i:39.
+> [eva] Recording results for ct
+> [eva] Done for function ct
+> [eva] computing for function ct <- main.
+>   Called from tests/value/precise_locations.i:39.
+> [eva] Recording results for ct
+> [eva] Done for function ct
+> [eva] computing for function ct <- main.
+>   Called from tests/value/precise_locations.i:39.
+> [eva] Recording results for ct
+> [eva] Done for function ct
+37,40c49,64
+< [eva] tests/value/precise_locations.i:39: Reusing old results for call to ct
+< [eva] tests/value/precise_locations.i:39: Reusing old results for call to ct
+< [eva] tests/value/precise_locations.i:39: Reusing old results for call to ct
+< [eva] tests/value/precise_locations.i:39: Reusing old results for call to ct
+---
+> [eva] computing for function ct <- main.
+>   Called from tests/value/precise_locations.i:39.
+> [eva] Recording results for ct
+> [eva] Done for function ct
+> [eva] computing for function ct <- main.
+>   Called from tests/value/precise_locations.i:39.
+> [eva] Recording results for ct
+> [eva] Done for function ct
+> [eva] computing for function ct <- main.
+>   Called from tests/value/precise_locations.i:39.
+> [eva] Recording results for ct
+> [eva] Done for function ct
+> [eva] computing for function ct <- main.
+>   Called from tests/value/precise_locations.i:39.
+> [eva] Recording results for ct
+> [eva] Done for function ct
+193,198d216
+< [eva] Done for function f
+< [eva] computing for function g <- main.
+<   Called from tests/value/precise_locations.i:49.
+< [eva] Done for function g
+< [eva] computing for function f <- main.
+<   Called from tests/value/precise_locations.i:48.
+518,525c536,567
+< [eva] tests/value/precise_locations.i:39: Reusing old results for call to ct
+< [eva] tests/value/precise_locations.i:39: Reusing old results for call to ct
+< [eva] tests/value/precise_locations.i:39: Reusing old results for call to ct
+< [eva] tests/value/precise_locations.i:39: Reusing old results for call to ct
+< [eva] tests/value/precise_locations.i:39: Reusing old results for call to ct
+< [eva] tests/value/precise_locations.i:39: Reusing old results for call to ct
+< [eva] tests/value/precise_locations.i:39: Reusing old results for call to ct
+< [eva] tests/value/precise_locations.i:39: Reusing old results for call to ct
+---
+> [eva] computing for function ct <- main.
+>   Called from tests/value/precise_locations.i:39.
+> [eva] Recording results for ct
+> [eva] Done for function ct
+> [eva] computing for function ct <- main.
+>   Called from tests/value/precise_locations.i:39.
+> [eva] Recording results for ct
+> [eva] Done for function ct
+> [eva] computing for function ct <- main.
+>   Called from tests/value/precise_locations.i:39.
+> [eva] Recording results for ct
+> [eva] Done for function ct
+> [eva] computing for function ct <- main.
+>   Called from tests/value/precise_locations.i:39.
+> [eva] Recording results for ct
+> [eva] Done for function ct
+> [eva] computing for function ct <- main.
+>   Called from tests/value/precise_locations.i:39.
+> [eva] Recording results for ct
+> [eva] Done for function ct
+> [eva] computing for function ct <- main.
+>   Called from tests/value/precise_locations.i:39.
+> [eva] Recording results for ct
+> [eva] Done for function ct
+> [eva] computing for function ct <- main.
+>   Called from tests/value/precise_locations.i:39.
+> [eva] Recording results for ct
+> [eva] Done for function ct
+> [eva] computing for function ct <- main.
+>   Called from tests/value/precise_locations.i:39.
+> [eva] Recording results for ct
+> [eva] Done for function ct
+736,741d777
+< [eva] computing for function f <- main.
+<   Called from tests/value/precise_locations.i:48.
+< [eva] Done for function f
+< [eva] computing for function g <- main.
+<   Called from tests/value/precise_locations.i:49.
+< [eva] Done for function g
+diff tests/value/oracle/precond.res.oracle tests/value/oracle_apron/precond.res.oracle
+49a50,51
+> [eva] computing for function f <- main.
+>   Called from tests/value/precond.c:39.
+53c55,56
+< [eva] tests/value/precond.c:39: Reusing old results for call to f
+---
+> [eva] Recording results for f
+> [eva] Done for function f
 diff tests/value/oracle/ptr_relation.1.res.oracle tests/value/oracle_apron/ptr_relation.1.res.oracle
 24c24
 <   j ∈ {-1; 0; 1}
@@ -424,9 +852,9 @@ diff tests/value/oracle/reevaluate_alarms.res.oracle tests/value/oracle_apron/re
 >   S ∈ [4..2147483647]
 diff tests/value/oracle/relation_reduction.res.oracle tests/value/oracle_apron/relation_reduction.res.oracle
 24,27d23
-< [value:alarm] tests/value/relation_reduction.i:20: Warning: 
+< [eva:alarm] tests/value/relation_reduction.i:20: Warning: 
 <   accessing out of bounds index. assert 0 ≤ y;
-< [value:alarm] tests/value/relation_reduction.i:20: Warning: 
+< [eva:alarm] tests/value/relation_reduction.i:20: Warning: 
 <   accessing out of bounds index. assert y < 9;
 34,37c30,33
 <   R1 ∈ [-2147483648..2147483637]
@@ -481,27 +909,43 @@ diff tests/value/oracle/relations2.res.oracle tests/value/oracle_apron/relations
 ---
 >   len ∈ [0..1023]
 36,37c36
-< [value] tests/value/relations2.i:17: 
+< [eva] tests/value/relations2.i:17: 
 <   Frama_C_show_each_end: [0..4294967295], [0..64]
 ---
-> [value] tests/value/relations2.i:17: Frama_C_show_each_end: [0..1023], [0..64]
-70,72d68
-< [value:alarm] tests/value/relations2.i:34: Warning: 
+> [eva] tests/value/relations2.i:17: Frama_C_show_each_end: [0..1023], [0..64]
+69,71d67
+< [eva:alarm] tests/value/relations2.i:34: Warning: 
 <   accessing out of bounds index.
 <   assert (unsigned int)(i - (unsigned int)(t + 1)) < 514;
 124,125d119
-< [value:alarm] tests/value/relations2.i:35: Warning: 
+< [eva:alarm] tests/value/relations2.i:35: Warning: 
 <   signed overflow. assert s + b3 ≤ 2147483647;
 140c134
 <   len ∈ [--..--]
 ---
 >   len ∈ [0..1023]
+diff tests/value/oracle/return.res.oracle tests/value/oracle_apron/return.res.oracle
+12c12,15
+< [eva] tests/value/return.i:19: Reusing old results for call to f
+---
+> [eva] computing for function f <- main.
+>   Called from tests/value/return.i:19.
+> [eva] Recording results for f
+> [eva] Done for function f
+diff tests/value/oracle/static.res.oracle tests/value/oracle_apron/static.res.oracle
+22c22,25
+< [eva] tests/value/static.i:20: Reusing old results for call to f
+---
+> [eva] computing for function f <- main.
+>   Called from tests/value/static.i:20.
+> [eva] Recording results for f
+> [eva] Done for function f
 diff tests/value/oracle/struct2.res.oracle tests/value/oracle_apron/struct2.res.oracle
 81,84d80
 <   accessing out of bounds index. assert 0 ≤ (int)(i + j);
-< [value:alarm] tests/value/struct2.i:185: Warning: 
+< [eva:alarm] tests/value/struct2.i:185: Warning: 
 <   accessing out of bounds index. assert (int)(i + j) < 2;
-< [value:alarm] tests/value/struct2.i:185: Warning: 
+< [eva:alarm] tests/value/struct2.i:185: Warning: 
 106d101
 < [scope:rm_asserts] removing 2 assertion(s)
 diff tests/value/oracle/test.0.res.oracle tests/value/oracle_apron/test.0.res.oracle
@@ -509,48 +953,64 @@ diff tests/value/oracle/test.0.res.oracle tests/value/oracle_apron/test.0.res.or
 <   j ∈ [-1073741822..1]
 ---
 >   j ∈ {-1; 0; 1}
+diff tests/value/oracle/undefined_sequence.1.res.oracle tests/value/oracle_apron/undefined_sequence.1.res.oracle
+33c33,36
+< [eva] tests/value/undefined_sequence.i:54: Reusing old results for call to g
+---
+> [eva] computing for function g <- main.
+>   Called from tests/value/undefined_sequence.i:54.
+> [eva] Recording results for g
+> [eva] Done for function g
 diff tests/value/oracle/unroll.res.oracle tests/value/oracle_apron/unroll.res.oracle
 13,14d12
-< [value:alarm] tests/value/unroll.i:34: Warning: 
+< [eva:alarm] tests/value/unroll.i:34: Warning: 
 <   signed overflow. assert -2147483648 ≤ j - 1;
-28c26
+26c24
 <   j ∈ [-2147483648..-123]
 ---
 >   j ∈ {-238}
 diff tests/value/oracle/unroll_simple.res.oracle tests/value/oracle_apron/unroll_simple.res.oracle
 8,9d7
-< [value:alarm] tests/value/unroll_simple.i:11: Warning: 
+< [eva:alarm] tests/value/unroll_simple.i:11: Warning: 
 <   signed overflow. assert -2147483648 ≤ j - 1;
-22c20
+21c19
 <   j ∈ [-2147483648..-126]
 ---
 >   j ∈ {-250}
 diff tests/value/oracle/widen_non_constant.res.oracle tests/value/oracle_apron/widen_non_constant.res.oracle
-30c30
+25c25
+<   Frama_C_show_each_in: {0; 1; 2}, [1..23]
+---
+>   Frama_C_show_each_in: [0..22], [1..23]
+27,28d26
+< [eva] tests/value/widen_non_constant.i:13: 
 <   Frama_C_show_each_in: [0..23], [1..23]
+44c42
+<   Frama_C_show_each_in: {0; 1; 2}, [1..23]
 ---
 >   Frama_C_show_each_in: [0..22], [1..23]
-48c48
+46,47d43
+< [eva] tests/value/widen_non_constant.i:29: 
 <   Frama_C_show_each_in: [0..25], [1..23]
+63c59
+<   Frama_C_show_each_in: {0; 1; 2}, [1..23]
 ---
 >   Frama_C_show_each_in: [0..22], [1..23]
-67,71c67
+65,70d60
+< [eva] tests/value/widen_non_constant.i:48: 
 <   Frama_C_show_each_in: [0..2147483647], [1..23]
-< [value:alarm] tests/value/widen_non_constant.i:49: Warning: 
+< [eva:alarm] tests/value/widen_non_constant.i:49: Warning: 
 <   out of bounds read. assert \valid_read(p + j);
-< [value:alarm] tests/value/widen_non_constant.i:45: Warning: 
+< [eva:alarm] tests/value/widen_non_constant.i:45: Warning: 
 <   signed overflow. assert j + 1 ≤ 2147483647;
----
->   Frama_C_show_each_in: [0..22], [1..23]
-93c89
+91c81
 <   j ∈ {23; 24; 25; 26}
 ---
 >   j ∈ {23; 24; 25}
 diff tests/value/oracle/widen_on_non_monotonic.res.oracle tests/value/oracle_apron/widen_on_non_monotonic.res.oracle
-26a27,28
-> [value] tests/value/widen_on_non_monotonic.i:21: 
->   entering loop for the first time
+22a23
+> [eva] tests/value/widen_on_non_monotonic.i:26: starting to merge loop iterations
 diff tests/value/oracle/with_comment.res.oracle tests/value/oracle_apron/with_comment.res.oracle
 9,10d8
-< [value:alarm] tests/value/with_comment.i:21: Warning: 
+< [eva:alarm] tests/value/with_comment.i:21: Warning: 
 <   signed overflow. assert G + 1 ≤ 2147483647;

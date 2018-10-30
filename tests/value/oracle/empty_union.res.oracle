@@ -1,59 +1,57 @@
 [kernel] Parsing tests/value/empty_union.c (with preprocessing)
-[value] Analyzing a complete application starting at main
-[value] Computing initial state
-[value] tests/value/empty_union.c:59: Warning: 
+[eva] Analyzing a complete application starting at main
+[eva] Computing initial state
+[eva] tests/value/empty_union.c:59: Warning: 
   during initialization of variable 'f1', size of type 'int []' cannot be
   computed (Size of array without number of elements.)
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
-  __fc_heap_status ∈ [--..--]
-  __fc_strtok_ptr ∈ {0}
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   nondet ∈ [--..--]
   array_of_comp[0]{.a; .e{}; .b} ∈ {17}
   f1[bits 0 to ..] ∈ {0} or UNINITIALIZED
   f2.data[0] ∈ {1}
     .data[1..2] ∈ {0}
-[value] tests/value/empty_union.c:67: assertion got status valid.
-[value] tests/value/empty_union.c:68: assertion got status valid.
-[value] tests/value/empty_union.c:70: Frama_C_show_each_global_empty: ∅
-[value] tests/value/empty_union.c:71: Frama_C_show_each_e1: ∅
-[value] tests/value/empty_union.c:72: 
+[eva] tests/value/empty_union.c:67: assertion got status valid.
+[eva] tests/value/empty_union.c:68: assertion got status valid.
+[eva] tests/value/empty_union.c:70: Frama_C_show_each_global_empty: ∅
+[eva] tests/value/empty_union.c:71: Frama_C_show_each_e1: ∅
+[eva] tests/value/empty_union.c:72: Call to builtin memcpy
+[eva] tests/value/empty_union.c:72: 
   function memcpy: precondition 'valid_dest' got status valid.
-[value] tests/value/empty_union.c:72: 
+[eva] tests/value/empty_union.c:72: 
   function memcpy: precondition 'valid_src' got status valid.
-[value] tests/value/empty_union.c:72: 
+[eva] tests/value/empty_union.c:72: 
   function memcpy: precondition 'separation' got status valid.
-[value] tests/value/empty_union.c:72: 
-  Call to builtin memcpy(({{ (void *)&e2 }},{{ (void const *)&e1 }},{0}))
-[value] tests/value/empty_union.c:77: 
+[eva] share/libc/string.h:98: 
+  cannot evaluate ACSL term, unsupported ACSL construct: logic function memcmp
+[eva] tests/value/empty_union.c:77: Call to builtin memcpy
+[eva] tests/value/empty_union.c:77: 
   function memcpy: precondition 'valid_dest' got status valid.
-[value] tests/value/empty_union.c:77: 
+[eva] tests/value/empty_union.c:77: 
   function memcpy: precondition 'valid_src' got status valid.
-[value] tests/value/empty_union.c:77: 
+[eva] tests/value/empty_union.c:77: 
   function memcpy: precondition 'separation' got status valid.
-[value] tests/value/empty_union.c:77: 
-  Call to builtin memcpy(({{ (void *)&c2 }},{{ (void const *)&c1 }},{4}))
-[value] tests/value/empty_union.c:78: Frama_C_show_each_c2: {77}
-[value] tests/value/empty_union.c:79: Frama_C_show_each_c2_e: ∅
-[value] computing for function f <- main.
+[eva] tests/value/empty_union.c:78: Frama_C_show_each_c2: {77}
+[eva] tests/value/empty_union.c:79: Frama_C_show_each_c2_e: ∅
+[eva] computing for function f <- main.
   Called from tests/value/empty_union.c:80.
-[value] Recording results for f
-[value] Done for function f
-[value] computing for function copy_empty <- main.
+[eva] Recording results for f
+[eva] Done for function f
+[eva] computing for function copy_empty <- main.
   Called from tests/value/empty_union.c:81.
-[value] tests/value/empty_union.c:37: 
+[eva] tests/value/empty_union.c:37: 
   function copy_empty: postcondition got status valid.
-[value] Recording results for copy_empty
-[value] Done for function copy_empty
-[value] tests/value/empty_union.c:83: Frama_C_show_each_res: {74}
-[value] Recording results for main
-[value] done for function main
-[value] ====== VALUES COMPUTED ======
-[value:final-states] Values at end of function copy_empty:
+[eva] Recording results for copy_empty
+[eva] Done for function copy_empty
+[eva] tests/value/empty_union.c:83: Frama_C_show_each_res: {74}
+[eva] Recording results for main
+[eva] done for function main
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function copy_empty:
   
-[value:final-states] Values at end of function f:
+[eva:final-states] Values at end of function f:
   res{.a; .e{}; .b} ∈ {74}
-[value:final-states] Values at end of function main:
+[eva:final-states] Values at end of function main:
   c1{.a; .e{}; .b} ∈ {77}
   c2{.a; .e{}; .b} ∈ {77}
   res{.a; .e{}; .b} ∈ {74}

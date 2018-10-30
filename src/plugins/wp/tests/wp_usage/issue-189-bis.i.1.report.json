@@ -1,15 +1,15 @@
-{ "wp:global": { "alt-ergo": { "total": 4, "valid": 4, "rank": 17 },
-                 "qed": { "total": 6, "valid": 6 },
-                 "wp:main": { "total": 10, "valid": 10, "rank": 17 } },
+{ "wp:global": { "alt-ergo": { "total": 3, "valid": 3, "rank": 20 },
+                 "qed": { "total": 7, "valid": 7 },
+                 "wp:main": { "total": 10, "valid": 10, "rank": 20 } },
   "wp:functions": { "memcpy_context_vars": { "memcpy_context_vars_loop_inv_ok_cpy": 
                                                { "alt-ergo": { "total": 1,
                                                                "valid": 1,
-                                                               "rank": 17 },
+                                                               "rank": 20 },
                                                  "qed": { "total": 1,
                                                           "valid": 1 },
                                                  "wp:main": { "total": 2,
                                                               "valid": 2,
-                                                              "rank": 17 } },
+                                                              "rank": 20 } },
                                              "memcpy_context_vars_loop_inv_ok_dst": 
                                                { "qed": { "total": 2,
                                                           "valid": 2 },
@@ -30,12 +30,10 @@
                                                               "valid": 2,
                                                               "rank": 5 } },
                                              "memcpy_context_vars_post_unmodified_ok": 
-                                               { "alt-ergo": { "total": 1,
-                                                               "valid": 1,
-                                                               "rank": 5 },
+                                               { "qed": { "total": 1,
+                                                          "valid": 1 },
                                                  "wp:main": { "total": 1,
-                                                              "valid": 1,
-                                                              "rank": 5 } },
+                                                              "valid": 1 } },
                                              "memcpy_context_vars_post_memcpy_ok": 
                                                { "alt-ergo": { "total": 1,
                                                                "valid": 1,
@@ -44,12 +42,12 @@
                                                               "valid": 1,
                                                               "rank": 5 } },
                                              "wp:section": { "alt-ergo": 
-                                                               { "total": 4,
-                                                                 "valid": 4,
-                                                                 "rank": 17 },
-                                                             "qed": { "total": 6,
-                                                                    "valid": 6 },
+                                                               { "total": 3,
+                                                                 "valid": 3,
+                                                                 "rank": 20 },
+                                                             "qed": { "total": 7,
+                                                                    "valid": 7 },
                                                              "wp:main": 
                                                                { "total": 10,
                                                                  "valid": 10,
-                                                                 "rank": 17 } } } } }
+                                                                 "rank": 20 } } } } }

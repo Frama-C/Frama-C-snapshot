@@ -2,7 +2,7 @@
 [kernel] tests/syntax/fam.i:10: User Error: 
   static initialization of flexible array members is an unsupported GNU extension
 [kernel] tests/syntax/fam.i:22: User Error: 
-  field b is declared with incomplete type char []
+  field `b' is declared with incomplete type char []
 [kernel] tests/syntax/fam.i:22: User Error: 
   static initialization of flexible array members is an unsupported GNU extension
 [kernel] tests/syntax/fam.i:43: User Error: 

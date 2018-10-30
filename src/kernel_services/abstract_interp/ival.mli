@@ -66,7 +66,7 @@ include Lattice_type.Full_AI_Lattice_with_cardinality
   and type widen_hint = size_widen_hint * generic_widen_hint
 
 val is_bottom : t -> bool
-val partially_overlaps : size:Integer.t -> t -> t -> bool
+val overlaps: partial:bool -> size:Integer.t -> t -> t -> bool
 
 val add_int : t -> t -> t
 (** Addition of two integer (ie. not [Float]) ivals. *)
@@ -294,8 +294,9 @@ val cast_int_to_int : size:Integer.t -> signed:bool -> t -> t
 
 val cast_int_to_float : Fval.kind -> t -> t
 
-val cast_float_to_int :
-    signed:bool -> size:int -> t -> (** NaN *) alarm * (** Overflow, in each direction *) (alarm * alarm) * t
+val cast_float_to_int : signed:bool -> size:int -> t -> t
+(** Casts the given float into an integer. NaN and out-of-bounds values are
+    ignored. *)
 
 val cast_float_to_float : Fval.kind -> t -> t
 (** Cast the given float to the given size. *)

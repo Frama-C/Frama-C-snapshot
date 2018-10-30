@@ -1,8 +1,8 @@
 [kernel] Parsing tests/value/inversion2.i (no preprocessing)
-[value] Analyzing a complete application starting at main
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing a complete application starting at main
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   T[0] ∈ {3}
    [1] ∈ {1}
    [2] ∈ {2}
@@ -13,14 +13,14 @@
     [2][0..1] ∈ {2}
     [2][2..4] ∈ {0}
   G ∈ {99}
-[value] tests/value/inversion2.i:10: entering loop for the first time
-[value] tests/value/inversion2.i:11: entering loop for the first time
-[value:alarm] tests/value/inversion2.i:12: Warning: 
+[eva] tests/value/inversion2.i:11: starting to merge loop iterations
+[eva] tests/value/inversion2.i:10: starting to merge loop iterations
+[eva:alarm] tests/value/inversion2.i:12: Warning: 
   division by zero. assert TT[i][j] ≢ 0;
-[value] Recording results for main
-[value] done for function main
-[value] ====== VALUES COMPUTED ======
-[value:final-states] Values at end of function main:
+[eva] Recording results for main
+[eva] done for function main
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function main:
   G ∈ [5..99],1%2
   i ∈ {3}
   j ∈ {1; 2; 3; 4; 77}
@@ -35,10 +35,10 @@
     G; i; j
 [inout] Inputs for function main:
     T[0..2]; TT{[0][0..2]; [1][0..2]; [2][0..2]}
-[value] Analyzing a complete application starting at main
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing a complete application starting at main
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   T[0] ∈ {3}
    [1] ∈ {1}
    [2] ∈ {2}
@@ -49,12 +49,12 @@
     [2][0..1] ∈ {2}
     [2][2..4] ∈ {0}
   G ∈ {99}
-[value:alarm] tests/value/inversion2.i:12: Warning: 
+[eva:alarm] tests/value/inversion2.i:12: Warning: 
   division by zero. assert TT[i][j] ≢ 0;
-[value] Recording results for main
-[value] done for function main
-[value] ====== VALUES COMPUTED ======
-[value:final-states] Values at end of function main:
+[eva] Recording results for main
+[eva] done for function main
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function main:
   G ∈ {5; 7; 15; 99}
   i ∈ {3}
   j ∈ {1; 2; 3; 77}

@@ -2,87 +2,77 @@
 [kernel:typing:implicit-function-declaration] tests/slicing/select_return_bis.i:36: Warning: 
   Calling undeclared function f. Old style K&R code?
 [slicing] slicing requests in progress...
-[value] Analyzing an incomplete application starting at g
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing an incomplete application starting at g
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   G ∈ [--..--]
   H ∈ [--..--]
   I ∈ [--..--]
-[value] computing for function k <- g.
+[eva] computing for function k <- g.
   Called from tests/slicing/select_return_bis.i:35.
-[value] computing for function get <- k <- g.
+[eva] computing for function get <- k <- g.
   Called from tests/slicing/select_return_bis.i:28.
 [kernel:annot:missing-spec] tests/slicing/select_return_bis.i:28: Warning: 
   Neither code nor specification for function get, generating default assigns from the prototype
-[value] using specification for function get
-[value] Done for function get
-[value] computing for function k_bis <- k <- g.
+[eva] using specification for function get
+[eva] Done for function get
+[eva] computing for function k_bis <- k <- g.
   Called from tests/slicing/select_return_bis.i:30.
-[value] computing for function send_bis <- k_bis <- k <- g.
+[eva] computing for function send_bis <- k_bis <- k <- g.
   Called from tests/slicing/select_return_bis.i:24.
 [kernel:annot:missing-spec] tests/slicing/select_return_bis.i:24: Warning: 
   Neither code nor specification for function send_bis, generating default assigns from the prototype
-[value] using specification for function send_bis
-[value] Done for function send_bis
-[value] Recording results for k_bis
-[value] Done for function k_bis
-[value] Recording results for k
-[value] Done for function k
-[value] computing for function f <- g.
+[eva] using specification for function send_bis
+[eva] Done for function send_bis
+[eva] Recording results for k_bis
+[eva] Done for function k_bis
+[eva] Recording results for k
+[eva] Done for function k
+[eva] computing for function f <- g.
   Called from tests/slicing/select_return_bis.i:36.
-[value] computing for function k <- f <- g.
+[eva] computing for function k <- f <- g.
   Called from tests/slicing/select_return_bis.i:40.
-[value] computing for function get <- k <- f <- g.
+[eva] computing for function get <- k <- f <- g.
   Called from tests/slicing/select_return_bis.i:28.
-[value] Done for function get
-[value] computing for function k_bis <- k <- f <- g.
+[eva] Done for function get
+[eva] computing for function k_bis <- k <- f <- g.
   Called from tests/slicing/select_return_bis.i:30.
-[value] computing for function send_bis <- k_bis <- k <- f <- g.
+[eva] computing for function send_bis <- k_bis <- k <- f <- g.
   Called from tests/slicing/select_return_bis.i:24.
-[value] Done for function send_bis
-[value] Recording results for k_bis
-[value] Done for function k_bis
-[value] Recording results for k
-[value] Done for function k
-[value] computing for function k <- f <- g.
+[eva] Done for function send_bis
+[eva] Recording results for k_bis
+[eva] Done for function k_bis
+[eva] Recording results for k
+[eva] Done for function k
+[eva] computing for function k <- f <- g.
   Called from tests/slicing/select_return_bis.i:41.
-[value] computing for function get <- k <- f <- g.
+[eva] computing for function get <- k <- f <- g.
   Called from tests/slicing/select_return_bis.i:28.
-[value] Done for function get
-[value] computing for function k_bis <- k <- f <- g.
-  Called from tests/slicing/select_return_bis.i:30.
-[value] computing for function send_bis <- k_bis <- k <- f <- g.
-  Called from tests/slicing/select_return_bis.i:24.
-[value] Done for function send_bis
-[value] Recording results for k_bis
-[value] Done for function k_bis
-[value] Recording results for k
-[value] Done for function k
-[value] computing for function k <- f <- g.
+[eva] Done for function get
+[eva] tests/slicing/select_return_bis.i:30: 
+  Reusing old results for call to k_bis
+[eva] Recording results for k
+[eva] Done for function k
+[eva] computing for function k <- f <- g.
   Called from tests/slicing/select_return_bis.i:42.
-[value] computing for function get <- k <- f <- g.
+[eva] computing for function get <- k <- f <- g.
   Called from tests/slicing/select_return_bis.i:28.
-[value] Done for function get
-[value] computing for function k_bis <- k <- f <- g.
-  Called from tests/slicing/select_return_bis.i:30.
-[value] computing for function send_bis <- k_bis <- k <- f <- g.
-  Called from tests/slicing/select_return_bis.i:24.
-[value] Done for function send_bis
-[value] Recording results for k_bis
-[value] Done for function k_bis
-[value] Recording results for k
-[value] Done for function k
-[value] computing for function send <- f <- g.
+[eva] Done for function get
+[eva] tests/slicing/select_return_bis.i:30: 
+  Reusing old results for call to k_bis
+[eva] Recording results for k
+[eva] Done for function k
+[eva] computing for function send <- f <- g.
   Called from tests/slicing/select_return_bis.i:44.
 [kernel:annot:missing-spec] tests/slicing/select_return_bis.i:44: Warning: 
   Neither code nor specification for function send, generating default assigns from the prototype
-[value] using specification for function send
-[value] Done for function send
-[value] Recording results for f
-[value] Done for function f
-[value] Recording results for g
-[value] done for function g
+[eva] using specification for function send
+[eva] Done for function send
+[eva] Recording results for f
+[eva] Done for function f
+[eva] Recording results for g
+[eva] done for function g
 [slicing] initializing slicing ...
 [slicing] interpreting slicing requests from the command line...
 [pdg] computing for function f

@@ -1,6 +1,7 @@
-opam-version: "1.2"
+opam-version: "2.0"
 name: "frama-c"
-version: "20180502"
+synopsis: "Platform dedicated to the analysis of source code written in C"
+version: "18.0"
 maintainer: "francois.bobot@cea.fr"
 authors: [
   "Michele Alberti"
@@ -19,6 +20,7 @@ authors: [
   "Zaynah Dargaye"
   "Jean-Christophe Filliâtre"
   "Philippe Herrmann"
+  "Maxime Jacquemin"
   "Florent Kirchner"
   "Tristan Le Gall"
   "Jean-Christophe Léchenet"
@@ -41,8 +43,8 @@ authors: [
 ]
 homepage: "http://frama-c.com/"
 license: "GNU Lesser General Public License version 2.1"
-dev-repo: "https://github.com/Frama-C/Frama-C-snapshot.git"
-doc: ["http://frama-c.com/download/user-manual-Chlorine-20180501.pdf"]
+dev-repo: "git+https://github.com/Frama-C/Frama-C-snapshot.git#latest"
+doc: "http://frama-c.com/download/user-manual-Chlorine-20180501.pdf"
 bug-reports: "https://bts.frama-c.com/"
 tags: [
   "deductive"
@@ -61,65 +63,48 @@ tags: [
 ]
 
 build: [
-  ["sh" "-eux" "./run_autoconf_if_needed.sh"] # when used in pinned mode,
-                                              # the configure *cannot* yet be
-                                              # generated
+  ["autoconf"] {pinned}
   ["./configure" "--prefix" prefix
                  "--disable-gui" { !conf-gtksourceview:installed |
                                    !conf-gnomecanvas:installed }
                  "--mandir=%{man}%"
-]
+  ]
   [make "-j%{jobs}%"]
+  [make "-C" "doc" "download"] {with-doc}
 ]
 
 install: [
   [make "install"]
+  [make "-C" "doc" "install"] {with-doc}
 ]
 
-remove: [
-  ["sh" "-eux" "./run_autoconf_if_needed.sh"] # when used in pinned mode,
-                                              # the configure *cannot* yet be
-                                              # generated
-  ["./configure" "--prefix" prefix
-                 "--disable-gui" { !conf-gtksourceview:installed |
-                                   !conf-gnomecanvas:installed }
-]
-  [make "uninstall"]
-  ["rm" "-rf" doc]
-]
-
-build-doc: [
-   [make "-C" "doc" "download"]
-   [make "-C" "doc" "install"]
+run-test: [
+  [make "-j%{jobs}%" "PTESTS_OPTS=-error-code" "tests"]
 ]
 
 depends: [
+  "ocaml" { >= "4.02.3" }
   "ocamlgraph" { >= "1.8.8" & < "1.9~" }
   "ocamlfind" # needed beyond build stage, used by -load-module
   "zarith"
-  "conf-autoconf"
+  "conf-autoconf" { build }
   "lablgtk" { >= "2.18.2" } #for ocaml >= 4.02.1
   "conf-gtksourceview"
   "conf-gnomecanvas"
   "alt-ergo"
+  "conf-graphviz" { post }
 ]
 
 depopts: [
+  "yojson" { build }
   "coq" { build }
   "why3" { build }
-  "altgr-ergo" { build }
-  "yojson" { build }
-]
-
-messages: [
-  "Why3 can be used by the WP plug-in for running additional automatic solvers" { !why3:installed }
-  "Coq can be used with the WP plug-in for proving interactively proof obligations" { !coq:installed }
-  "Alt-Ergo Graphical Interface can be used by the WP plug-in" { !altgr-ergo:installed }
-  "Yojson enables kernel option -json-compilation-database" { !yojson:installed }
+  "mlgmpidl" { build }
+  "apron" { build }
 ]
 
 conflicts: [
-  "why3-base" { < "0.88" } #for WP plug-in
+  "why3-base" { < "0.88" | >= "1.0.0" } #for WP plug-in
   "coq"      { < "8.4.6" } #for WP plug-in
   "lablgtk" { < "2.18.2" } #for ocaml >= 4.02.1
   "frama-c-e-acsl" #avoid mixing old releases of E-ACSL, it is already
@@ -128,4 +113,17 @@ conflicts: [
                    #'frama-c' package exists
 ]
 
-available: [ ocaml-version >= "4.02.3" ]
+messages: [
+  "Yojson enables kernel option -json-compilation-database"
+    {!yojson:installed}
+  "Why3 can be used by the WP plug-in for running additional automatic solvers"
+    {!why3:installed}
+  "Coq can be used with the WP plug-in for proving interactively proof obligations"
+    {!coq:installed}
+  "Alt-Ergo Graphical Interface can be used by the WP plug-in"
+    {!altgr-ergo:installed & alt-ergo <= "1.30"}
+  "Note: the package altgr-ergo could prevent the installation of newer versions of Alt-Ergo"
+    {!altgr-ergo:installed & alt-ergo <= "1.30" & ocaml >= "4.04.0"}
+  "Note: the installed package altgr-ergo could prevent the installation of newer versions of Alt-Ergo"
+    {altgr-ergo:installed & ocaml >= "4.04.0"}
+]

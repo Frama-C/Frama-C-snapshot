@@ -1,27 +1,26 @@
 [kernel] Parsing tests/scope/scope.c (with preprocessing)
-[value] Analyzing a complete application starting at f
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
-  Frama_C_entropy_source ∈ [--..--]
+[eva] Analyzing a complete application starting at f
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   S1 ∈ {0}
   S2 ∈ {0}
   T[0..99] ∈ {0}
-[value] computing for function Frama_C_interval <- f.
+[eva] computing for function Frama_C_interval <- f.
   Called from tests/scope/scope.c:26.
-[value] using specification for function Frama_C_interval
-[value] tests/scope/scope.c:26: 
+[eva] using specification for function Frama_C_interval
+[eva] tests/scope/scope.c:26: 
   function Frama_C_interval: precondition 'order' got status valid.
-[value] Done for function Frama_C_interval
-[value] computing for function Frama_C_interval <- f.
+[eva] Done for function Frama_C_interval
+[eva] computing for function Frama_C_interval <- f.
   Called from tests/scope/scope.c:32.
-[value] tests/scope/scope.c:32: 
+[eva] tests/scope/scope.c:32: 
   function Frama_C_interval: precondition 'order' got status valid.
-[value] Done for function Frama_C_interval
-[value] Recording results for f
-[value] done for function f
-[value] ====== VALUES COMPUTED ======
-[value:final-states] Values at end of function f:
+[eva] Done for function Frama_C_interval
+[eva] Recording results for f
+[eva] done for function f
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function f:
   Frama_C_entropy_source ∈ [--..--]
   T[0..4] ∈ {0}
    [5..9] ∈ {0; 1}

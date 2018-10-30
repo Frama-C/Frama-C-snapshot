@@ -40,7 +40,7 @@ class type pattern =
   object
     method get_after : ?offset:int -> int -> string
     (** [get_after ~offset:p k] returns the end of the message
-        	starting [p] characters after the end of group [k]. *)
+                starting [p] characters after the end of group [k]. *)
     method get_string : int -> string
     method get_int : int -> int
     method get_float : int -> float
@@ -89,5 +89,5 @@ val spawn :
   ('a * bool Task.task) list -> unit
 (** Spawn all the tasks over the server and retain the first 'validated' one.
     The callback [monitor] is called with [Some] at first success, and [None]
-    if none succeed. 
+    if none succeed.
     An option [pool] task can be passed to register the associated threads. *)

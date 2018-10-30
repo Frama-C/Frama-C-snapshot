@@ -185,6 +185,37 @@ let subsets k l =
       | [] -> assert false
   in aux k l (List.length l)
 
+
+let list_first_n n l =
+  let rec aux acc n = function
+    | h :: t when n > 0 -> aux (h :: acc) (n-1) t
+    | _ -> acc
+  in
+  List.rev (aux [] n l)
+
+let rec list_remove_first_n n = function
+  | _h :: t when n > 0 -> list_remove_first_n (n-1) t
+  | l -> l
+
+let list_slice ?(first = 0) ?last l =
+  let len = lazy (List.length l) in
+  let normalize i =
+    (* normalize negative values *)
+    if i >= 0
+    then i
+    else
+      let n = Lazy.force len in
+      if i + n >= 0 then i + n else 0
+  in
+  (* Remove first elements *)
+  let first = normalize first in
+  let l = list_remove_first_n first l in
+  (* Remove last elements *)
+  match last with
+  | None -> l
+  | Some n -> list_first_n (normalize n - first) l
+
+
 (* ************************************************************************* *)
 (** {2 Arrays} *)
 (* ************************************************************************* *)
@@ -384,10 +415,6 @@ let temp_dir_cleanup_at_exit ?(debug=false) base =
 
 (* replace "noalloc" with [@@noalloc] for OCaml version >= 4.03.0 *)
 [@@@ warning "-3"]
-external terminate_process: int -> unit = "terminate_process" "noalloc"
-    [@@deprecated "Use Unix.kill instead"]
-  (* In ../utils/c_binding.c ; can be replaced by Unix.kill in OCaml >= 4.02 *)
-
 external usleep: int -> unit = "ml_usleep" "noalloc"
   (* In ../utils/c_bindings.c ; man usleep for details. *)
 
@@ -434,6 +461,23 @@ let make_unique_name mem ?(sep=" ") ?(start=2) from =
     if mem fullname then build base (succ id) else id,fullname
   in
   if mem from then build from start else (0,from)
+
+let strip_underscore s =
+  let l = String.length s in
+  let rec start i =
+    if i >= l then l-1
+    else if s.[i] = '_' then start (i + 1) else i
+  in
+  let st = start 0 in
+  if st = l - 1 then ""
+  else begin
+    let rec finish i =
+      (* We know that we will stop at >= st >= 0 *)
+      if s.[i] = '_' then finish (i - 1) else i
+    in
+    let fin = finish (l - 1) in
+    String.sub s st (fin - st + 1)
+  end
 
 let html_escape s =
   let buf = Buffer.create (String.length s) in

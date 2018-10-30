@@ -1,259 +1,304 @@
 [kernel] Parsing tests/libc/string_h.c (with preprocessing)
-[value] Analyzing a complete application starting at main
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
-  __fc_heap_status ∈ [--..--]
-  __fc_strtok_ptr ∈ {0}
+[eva] Analyzing a complete application starting at main
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   nondet ∈ [--..--]
-[value] computing for function test_strcmp <- main.
-  Called from tests/libc/string_h.c:98.
-[value] computing for function strcmp <- test_strcmp <- main.
+[eva] computing for function test_strcmp <- main.
+  Called from tests/libc/string_h.c:112.
+[eva] computing for function strcmp <- test_strcmp <- main.
   Called from tests/libc/string_h.c:5.
-[value] using specification for function strcmp
-[value] tests/libc/string_h.c:5: 
+[eva] using specification for function strcmp
+[eva] tests/libc/string_h.c:5: 
   function strcmp: precondition 'valid_string_s1' got status valid.
-[value] tests/libc/string_h.c:5: 
+[eva] tests/libc/string_h.c:5: 
   function strcmp: precondition 'valid_string_s2' got status valid.
-[value] share/libc/string.h:126: 
+[eva] share/libc/string.h:140: 
   cannot evaluate ACSL term, unsupported ACSL construct: logic function strcmp
-[value] Done for function strcmp
-[value:alarm] tests/libc/string_h.c:6: Warning: assertion got status unknown.
-[value] Recording results for test_strcmp
-[value] Done for function test_strcmp
-[value] computing for function test_strcat <- main.
-  Called from tests/libc/string_h.c:99.
-[value] computing for function strcat <- test_strcat <- main.
+[eva] Done for function strcmp
+[eva:alarm] tests/libc/string_h.c:6: Warning: assertion got status unknown.
+[eva] Recording results for test_strcmp
+[eva] Done for function test_strcmp
+[eva] computing for function test_strcat <- main.
+  Called from tests/libc/string_h.c:113.
+[eva] computing for function strcat <- test_strcat <- main.
   Called from tests/libc/string_h.c:13.
-[value] using specification for function strcat
-[value] tests/libc/string_h.c:13: 
+[eva] using specification for function strcat
+[eva] tests/libc/string_h.c:13: 
   function strcat: precondition 'valid_string_src' got status valid.
-[value] tests/libc/string_h.c:13: 
+[eva] tests/libc/string_h.c:13: 
   function strcat: precondition 'valid_string_dest' got status valid.
-[value] tests/libc/string_h.c:13: 
+[eva] tests/libc/string_h.c:13: 
   function strcat: precondition 'room_string' got status valid.
-[value] Done for function strcat
-[value] computing for function strcat <- test_strcat <- main.
+[eva] Done for function strcat
+[eva] computing for function strcat <- test_strcat <- main.
   Called from tests/libc/string_h.c:16.
-[value] tests/libc/string_h.c:16: 
+[eva] tests/libc/string_h.c:16: 
   function strcat: precondition 'valid_string_src' got status valid.
-[value] tests/libc/string_h.c:16: 
+[eva] tests/libc/string_h.c:16: 
   function strcat: precondition 'valid_string_dest' got status valid.
-[value] tests/libc/string_h.c:16: 
+[eva] tests/libc/string_h.c:16: 
   function strcat: precondition 'room_string' got status valid.
-[value] Done for function strcat
-[value] Recording results for test_strcat
-[value] Done for function test_strcat
-[value] computing for function test_strstr <- main.
-  Called from tests/libc/string_h.c:100.
-[value] computing for function strstr <- test_strstr <- main.
+[eva] Done for function strcat
+[eva] Recording results for test_strcat
+[eva] Done for function test_strcat
+[eva] computing for function test_strstr <- main.
+  Called from tests/libc/string_h.c:114.
+[eva] computing for function strstr <- test_strstr <- main.
   Called from tests/libc/string_h.c:24.
-[value] using specification for function strstr
-[value] tests/libc/string_h.c:24: 
+[eva] using specification for function strstr
+[eva] tests/libc/string_h.c:24: 
   function strstr: precondition 'valid_string_haystack' got status valid.
-[value] tests/libc/string_h.c:24: 
+[eva] tests/libc/string_h.c:24: 
   function strstr: precondition 'valid_string_needle' got status valid.
-[value] share/libc/string.h:207: 
+[eva] share/libc/string.h:221: 
   cannot evaluate ACSL term, unsupported ACSL construct: logic function memcmp
-[value] Done for function strstr
-[value:alarm] tests/libc/string_h.c:25: Warning: assertion got status unknown.
-[value] Recording results for test_strstr
-[value] Done for function test_strstr
-[value] computing for function test_strncat <- main.
-  Called from tests/libc/string_h.c:101.
-[value] Semantic level unrolling superposing up to 100 states
-[value] tests/libc/string_h.c:34: entering loop for the first time
-[value] computing for function strncat <- test_strncat <- main.
+[eva] Done for function strstr
+[eva:alarm] tests/libc/string_h.c:25: Warning: assertion got status unknown.
+[eva] Recording results for test_strstr
+[eva] Done for function test_strstr
+[eva] computing for function test_strncat <- main.
+  Called from tests/libc/string_h.c:115.
+[eva] Semantic level unrolling superposing up to 100 states
+[eva] computing for function strncat <- test_strncat <- main.
   Called from tests/libc/string_h.c:36.
-[value] using specification for function strncat
-[value] tests/libc/string_h.c:36: 
+[eva] using specification for function strncat
+[eva] tests/libc/string_h.c:36: 
   function strncat: precondition 'valid_nstring_src' got status valid.
-[value] tests/libc/string_h.c:36: 
+[eva] tests/libc/string_h.c:36: 
   function strncat: precondition 'valid_string_dest' got status valid.
-[value] tests/libc/string_h.c:36: 
+[eva] tests/libc/string_h.c:36: 
   function strncat, behavior complete: precondition 'room_string' got status valid.
-[value] Done for function strncat
-[value] Recording results for test_strncat
-[value] Done for function test_strncat
-[value] computing for function crashes_gcc <- main.
-  Called from tests/libc/string_h.c:102.
-[value] tests/libc/string_h.c:50: entering loop for the first time
-[value] computing for function strcpy <- crashes_gcc <- main.
+[eva] Done for function strncat
+[eva] Recording results for test_strncat
+[eva] Done for function test_strncat
+[eva] computing for function crashes_gcc <- main.
+  Called from tests/libc/string_h.c:116.
+[eva] computing for function strcpy <- crashes_gcc <- main.
   Called from tests/libc/string_h.c:53.
-[value] using specification for function strcpy
-[value] tests/libc/string_h.c:53: 
+[eva] using specification for function strcpy
+[eva] tests/libc/string_h.c:53: 
   function strcpy: precondition 'valid_string_src' got status valid.
-[value] tests/libc/string_h.c:53: 
+[eva] tests/libc/string_h.c:53: 
   function strcpy: precondition 'room_string' got status valid.
-[value:alarm] tests/libc/string_h.c:53: Warning: 
+[eva:alarm] tests/libc/string_h.c:53: Warning: 
   function strcpy: precondition 'separation' got status invalid.
-[value] Done for function strcpy
-[value] Recording results for crashes_gcc
-[value] Done for function crashes_gcc
-[value] computing for function test_strtok <- main.
-  Called from tests/libc/string_h.c:103.
-[value] computing for function strtok <- test_strtok <- main.
+[eva] Done for function strcpy
+[eva] Recording results for crashes_gcc
+[eva] Done for function crashes_gcc
+[eva] computing for function test_strtok <- main.
+  Called from tests/libc/string_h.c:117.
+[eva] computing for function strtok <- test_strtok <- main.
   Called from tests/libc/string_h.c:58.
-[value] using specification for function strtok
-[value] tests/libc/string_h.c:58: 
-  function strtok: precondition 'valid_string_s' got status valid.
-[value] tests/libc/string_h.c:58: 
+[eva] using specification for function strtok
+[eva] tests/libc/string_h.c:58: 
   function strtok: precondition 'valid_string_delim' got status valid.
-[value:alarm] tests/libc/string_h.c:58: Warning: 
+[eva:alarm] tests/libc/string_h.c:58: Warning: 
   function strtok, behavior resume_str: precondition 'not_first_call' got status invalid.
-[value] Done for function strtok
-[value] computing for function strtok <- test_strtok <- main.
+[eva] Done for function strtok
+[eva] computing for function strtok <- test_strtok <- main.
   Called from tests/libc/string_h.c:62.
-[value] tests/libc/string_h.c:62: 
-  function strtok: precondition 'valid_string_s' got status valid.
-[value] tests/libc/string_h.c:62: 
+[eva] tests/libc/string_h.c:62: 
   function strtok: precondition 'valid_string_delim' got status valid.
-[value] Done for function strtok
-[value:alarm] tests/libc/string_h.c:63: Warning: assertion got status unknown.
-[value] computing for function strtok <- test_strtok <- main.
+[eva] tests/libc/string_h.c:62: 
+  function strtok, behavior new_str: precondition 'valid_string_s_or_delim_not_found' got status valid.
+[eva] Done for function strtok
+[eva:alarm] tests/libc/string_h.c:63: Warning: assertion got status unknown.
+[eva] computing for function strtok <- test_strtok <- main.
   Called from tests/libc/string_h.c:64.
-[value] tests/libc/string_h.c:64: 
-  function strtok: precondition 'valid_string_s' got status valid.
-[value] tests/libc/string_h.c:64: 
+[eva] tests/libc/string_h.c:64: 
   function strtok: precondition 'valid_string_delim' got status valid.
-[value] tests/libc/string_h.c:64: 
+[eva] tests/libc/string_h.c:64: 
   function strtok, behavior resume_str: precondition 'not_first_call' got status valid.
-[value] Done for function strtok
-[value:alarm] tests/libc/string_h.c:65: Warning: assertion got status unknown.
-[value] computing for function strtok <- test_strtok <- main.
+[eva] Done for function strtok
+[eva:alarm] tests/libc/string_h.c:65: Warning: assertion got status unknown.
+[eva] computing for function strtok <- test_strtok <- main.
   Called from tests/libc/string_h.c:67.
-[value] tests/libc/string_h.c:67: 
-  function strtok: precondition 'valid_string_s' got status valid.
-[value] tests/libc/string_h.c:67: 
+[eva] tests/libc/string_h.c:67: 
   function strtok: precondition 'valid_string_delim' got status valid.
-[value] Done for function strtok
-[value:alarm] tests/libc/string_h.c:68: Warning: assertion got status unknown.
-[value] computing for function strtok <- test_strtok <- main.
+[eva] tests/libc/string_h.c:67: 
+  function strtok, behavior new_str: precondition 'valid_string_s_or_delim_not_found' got status valid.
+[eva] Done for function strtok
+[eva:alarm] tests/libc/string_h.c:68: Warning: assertion got status unknown.
+[eva] computing for function strtok <- test_strtok <- main.
   Called from tests/libc/string_h.c:69.
-[value] tests/libc/string_h.c:69: 
-  function strtok: precondition 'valid_string_s' got status valid.
-[value] tests/libc/string_h.c:69: 
+[eva] tests/libc/string_h.c:69: 
   function strtok: precondition 'valid_string_delim' got status valid.
-[value] tests/libc/string_h.c:69: 
+[eva] tests/libc/string_h.c:69: 
   function strtok, behavior resume_str: precondition 'not_first_call' got status valid.
-[value] Done for function strtok
-[value:alarm] tests/libc/string_h.c:70: Warning: assertion got status unknown.
-[value] Recording results for test_strtok
-[value] Done for function test_strtok
-[value] tests/libc/string_h.c:103: Warning: 
-  locals {buf2} escaping the scope of test_strtok through __fc_strtok_ptr
-[value] computing for function test_strtok_r <- main.
-  Called from tests/libc/string_h.c:104.
-[value] computing for function strtok_r <- test_strtok_r <- main.
+[eva] Done for function strtok
+[eva:alarm] tests/libc/string_h.c:70: Warning: assertion got status unknown.
+[eva] computing for function strtok <- test_strtok <- main.
+  Called from tests/libc/string_h.c:72.
+[eva] tests/libc/string_h.c:72: 
+  function strtok: precondition 'valid_string_delim' got status valid.
+[eva] tests/libc/string_h.c:72: 
+  function strtok, behavior new_str: precondition 'valid_string_s_or_delim_not_found' got status valid.
+[eva] tests/libc/string_h.c:72: Warning: 
+  Completely invalid destination for assigns clause *(s + (0 ..)). Ignoring.
+[eva] Done for function strtok
+[eva:alarm] tests/libc/string_h.c:73: Warning: assertion got status unknown.
+[eva] computing for function strtok <- test_strtok <- main.
   Called from tests/libc/string_h.c:75.
-[value] using specification for function strtok_r
-[value] tests/libc/string_h.c:75: 
-  function strtok_r: precondition 'valid_string_s' got status valid.
-[value] tests/libc/string_h.c:75: 
-  function strtok_r: precondition 'valid_string_delim' got status valid.
-[value:alarm] tests/libc/string_h.c:75: Warning: 
-  function strtok_r: precondition 'valid_saveptr' got status invalid.
-[value] Done for function strtok_r
-[value] computing for function strtok_r <- test_strtok_r <- main.
-  Called from tests/libc/string_h.c:80.
-[value] tests/libc/string_h.c:80: 
-  function strtok_r: precondition 'valid_string_s' got status valid.
-[value] tests/libc/string_h.c:80: 
-  function strtok_r: precondition 'valid_string_delim' got status valid.
-[value] tests/libc/string_h.c:80: 
-  function strtok_r: precondition 'valid_saveptr' got status valid.
-[value] Done for function strtok_r
-[value] computing for function strtok_r <- test_strtok_r <- main.
+[eva] tests/libc/string_h.c:75: 
+  function strtok: precondition 'valid_string_delim' got status valid.
+[eva:alarm] tests/libc/string_h.c:75: Warning: 
+  function strtok, behavior new_str: precondition 'valid_string_s_or_delim_not_found' got status unknown.
+[eva] tests/libc/string_h.c:75: Warning: 
+  Completely invalid destination for assigns clause *(s + (0 ..)). Ignoring.
+[eva] Done for function strtok
+[eva:alarm] tests/libc/string_h.c:76: Warning: 
+  assertion 'unreachable_if_precise' got status invalid (stopping propagation).
+[eva] Recording results for test_strtok
+[eva] Done for function test_strtok
+[eva] computing for function test_strtok_r <- main.
+  Called from tests/libc/string_h.c:118.
+[eva] computing for function strtok_r <- test_strtok_r <- main.
   Called from tests/libc/string_h.c:82.
-[value:alarm] tests/libc/string_h.c:82: Warning: 
-  function strtok_r: precondition 'valid_string_s' got status unknown.
-[value] tests/libc/string_h.c:82: 
+[eva] using specification for function strtok_r
+[eva] tests/libc/string_h.c:82: 
   function strtok_r: precondition 'valid_string_delim' got status valid.
-[value:alarm] tests/libc/string_h.c:82: Warning: 
+[eva:alarm] tests/libc/string_h.c:82: Warning: 
   function strtok_r: precondition 'valid_saveptr' got status invalid.
-[value] Done for function strtok_r
-[value:alarm] tests/libc/string_h.c:85: Warning: assertion got status unknown.
-[value] computing for function strtok_r <- test_strtok_r <- main.
-  Called from tests/libc/string_h.c:86.
-[value] tests/libc/string_h.c:86: 
-  function strtok_r: precondition 'valid_string_s' got status valid.
-[value] tests/libc/string_h.c:86: 
+[eva] Done for function strtok_r
+[eva] computing for function strtok_r <- test_strtok_r <- main.
+  Called from tests/libc/string_h.c:87.
+[eva] tests/libc/string_h.c:87: 
   function strtok_r: precondition 'valid_string_delim' got status valid.
-[value] tests/libc/string_h.c:86: 
+[eva] tests/libc/string_h.c:87: 
   function strtok_r: precondition 'valid_saveptr' got status valid.
-[value] tests/libc/string_h.c:86: 
+[eva] tests/libc/string_h.c:87: 
+  function strtok_r, behavior new_str: precondition 'valid_string_s_or_delim_not_found' got status valid.
+[eva] Done for function strtok_r
+[eva] computing for function strtok_r <- test_strtok_r <- main.
+  Called from tests/libc/string_h.c:89.
+[eva] tests/libc/string_h.c:89: 
+  function strtok_r: precondition 'valid_string_delim' got status valid.
+[eva:alarm] tests/libc/string_h.c:89: Warning: 
+  function strtok_r: precondition 'valid_saveptr' got status invalid.
+[eva] Done for function strtok_r
+[eva:alarm] tests/libc/string_h.c:92: Warning: assertion got status unknown.
+[eva] computing for function strtok_r <- test_strtok_r <- main.
+  Called from tests/libc/string_h.c:93.
+[eva] tests/libc/string_h.c:93: 
+  function strtok_r: precondition 'valid_string_delim' got status valid.
+[eva] tests/libc/string_h.c:93: 
+  function strtok_r: precondition 'valid_saveptr' got status valid.
+[eva] tests/libc/string_h.c:93: 
   function strtok_r, behavior resume_str: precondition 'not_first_call' got status valid.
-[value] tests/libc/string_h.c:86: 
+[eva] tests/libc/string_h.c:93: 
   function strtok_r, behavior resume_str: precondition 'initialization,saveptr' got status valid.
-[value] Done for function strtok_r
-[value] tests/libc/string_h.c:87: 
-  Frama_C_show_each_saveptr: {{ &buf + [0..--] }}
-[value:alarm] tests/libc/string_h.c:88: Warning: assertion got status unknown.
-[value] computing for function strtok_r <- test_strtok_r <- main.
-  Called from tests/libc/string_h.c:90.
-[value] tests/libc/string_h.c:90: 
-  function strtok_r: precondition 'valid_string_s' got status valid.
-[value] tests/libc/string_h.c:90: 
+[eva] Done for function strtok_r
+[eva] tests/libc/string_h.c:94: Frama_C_show_each_saveptr: {{ &buf + [0..--] }}
+[eva:alarm] tests/libc/string_h.c:95: Warning: assertion got status unknown.
+[eva] computing for function strtok_r <- test_strtok_r <- main.
+  Called from tests/libc/string_h.c:97.
+[eva] tests/libc/string_h.c:97: 
   function strtok_r: precondition 'valid_string_delim' got status valid.
-[value] tests/libc/string_h.c:90: 
+[eva] tests/libc/string_h.c:97: 
   function strtok_r: precondition 'valid_saveptr' got status valid.
-[value] Done for function strtok_r
-[value:alarm] tests/libc/string_h.c:91: Warning: assertion got status unknown.
-[value] computing for function strtok_r <- test_strtok_r <- main.
-  Called from tests/libc/string_h.c:92.
-[value] tests/libc/string_h.c:92: 
-  function strtok_r: precondition 'valid_string_s' got status valid.
-[value] tests/libc/string_h.c:92: 
+[eva] tests/libc/string_h.c:97: 
+  function strtok_r, behavior new_str: precondition 'valid_string_s_or_delim_not_found' got status valid.
+[eva] Done for function strtok_r
+[eva:alarm] tests/libc/string_h.c:98: Warning: assertion got status unknown.
+[eva] computing for function strtok_r <- test_strtok_r <- main.
+  Called from tests/libc/string_h.c:99.
+[eva] tests/libc/string_h.c:99: 
   function strtok_r: precondition 'valid_string_delim' got status valid.
-[value] tests/libc/string_h.c:92: 
+[eva] tests/libc/string_h.c:99: 
   function strtok_r: precondition 'valid_saveptr' got status valid.
-[value] tests/libc/string_h.c:92: 
+[eva] tests/libc/string_h.c:99: 
   function strtok_r, behavior resume_str: precondition 'not_first_call' got status valid.
-[value] tests/libc/string_h.c:92: 
+[eva] tests/libc/string_h.c:99: 
   function strtok_r, behavior resume_str: precondition 'initialization,saveptr' got status valid.
-[value] Done for function strtok_r
-[value:alarm] tests/libc/string_h.c:93: Warning: assertion got status unknown.
-[value] Recording results for test_strtok_r
-[value] Done for function test_strtok_r
-[value] Recording results for main
-[value] done for function main
-[value] ====== VALUES COMPUTED ======
-[value:final-states] Values at end of function crashes_gcc:
+[eva] Done for function strtok_r
+[eva:alarm] tests/libc/string_h.c:100: Warning: assertion got status unknown.
+[eva] computing for function strtok_r <- test_strtok_r <- main.
+  Called from tests/libc/string_h.c:102.
+[eva] tests/libc/string_h.c:102: 
+  function strtok_r: precondition 'valid_string_delim' got status valid.
+[eva] tests/libc/string_h.c:102: 
+  function strtok_r: precondition 'valid_saveptr' got status valid.
+[eva] tests/libc/string_h.c:102: 
+  function strtok_r, behavior new_str: precondition 'valid_string_s_or_delim_not_found' got status valid.
+[eva] tests/libc/string_h.c:102: Warning: 
+  Completely invalid destination for assigns clause *(s + (0 ..)). Ignoring.
+[eva] Done for function strtok_r
+[eva:alarm] tests/libc/string_h.c:103: Warning: assertion got status unknown.
+[eva] computing for function strtok_r <- test_strtok_r <- main.
+  Called from tests/libc/string_h.c:105.
+[eva] tests/libc/string_h.c:105: 
+  function strtok_r: precondition 'valid_string_delim' got status valid.
+[eva] tests/libc/string_h.c:105: 
+  function strtok_r: precondition 'valid_saveptr' got status valid.
+[eva:alarm] tests/libc/string_h.c:105: Warning: 
+  function strtok_r, behavior new_str: precondition 'valid_string_s_or_delim_not_found' got status unknown.
+[eva] tests/libc/string_h.c:105: Warning: 
+  Completely invalid destination for assigns clause *(s + (0 ..)). Ignoring.
+[eva] Done for function strtok_r
+[eva:alarm] tests/libc/string_h.c:106: Warning: 
+  assertion 'unreachable_if_precise' got status invalid (stopping propagation).
+[eva] Recording results for test_strtok_r
+[eva] Done for function test_strtok_r
+[eva] computing for function strdup <- main.
+  Called from tests/libc/string_h.c:119.
+[eva] using specification for function strdup
+[eva:libc:unsupported-spec] tests/libc/string_h.c:119: Warning: 
+  The specification of function 'strdup' is currently not supported by Eva.
+  Consider adding ./share/libc/string.c to the analyzed source files.
+[eva] tests/libc/string_h.c:119: Warning: ignoring unsupported \allocates clause
+[eva] Done for function strdup
+[eva] computing for function strndup <- main.
+  Called from tests/libc/string_h.c:120.
+[eva] using specification for function strndup
+[eva:libc:unsupported-spec] tests/libc/string_h.c:120: Warning: 
+  The specification of function 'strndup' is currently not supported by Eva.
+  Consider adding ./share/libc/string.c to the analyzed source files.
+[eva] tests/libc/string_h.c:120: Warning: ignoring unsupported \allocates clause
+[eva] Done for function strndup
+[eva] Recording results for main
+[eva] done for function main
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function crashes_gcc:
   NON TERMINATING FUNCTION
-[value:final-states] Values at end of function test_strcat:
+[eva:final-states] Values at end of function test_strcat:
   string[0..4] ∈ [--..--]
         [5] ∈ {0}
         [6..9] ∈ UNINITIALIZED
   string2[0] ∈ [--..--]
          [1..5] ∈ [--..--] or UNINITIALIZED
          [6..9] ∈ UNINITIALIZED
-[value:final-states] Values at end of function test_strcmp:
+[eva:final-states] Values at end of function test_strcmp:
   res ∈ {0}
-[value:final-states] Values at end of function test_strncat:
+[eva:final-states] Values at end of function test_strncat:
   data[0] ∈ [--..--]
       [1..99] ∈ [--..--] or UNINITIALIZED
   source[0..98] ∈ {90}
         [99] ∈ {0}
-[value:final-states] Values at end of function test_strstr:
+[eva:final-states] Values at end of function test_strstr:
   s ∈ {{ "aba" ; "bab" }}
   needle ∈ {{ "a" ; "b" }}
   res ∈ {{ "aba" + {0; 1; 2; 3} ; "bab" + {0; 1; 2; 3} }}
-[value:final-states] Values at end of function test_strtok:
-  __fc_strtok_ptr ∈ {{ &buf2 + [0..--] }}
+[eva:final-states] Values at end of function test_strtok:
+  __fc_strtok_ptr ∈ {{ "constant!" + [0..--] }}
   buf[0..1] ∈ [--..--]
   a ∈ {{ NULL ; &buf{[0], [1]} }}
   b ∈ {{ NULL ; &buf{[0], [1]} }}
   buf2[0..3] ∈ [--..--]
   p ∈ {{ NULL ; &buf2{[0], [1], [2], [3]} }}
   q ∈ {{ NULL ; &buf2 + [0..--] }}
-[value:final-states] Values at end of function test_strtok_r:
-  saveptr ∈ {{ &buf2 + [0..--] }}
+  r ∈ {0}
+[eva:final-states] Values at end of function test_strtok_r:
+  saveptr ∈ {{ "constant!" + [0..--] }}
   buf[0..1] ∈ [--..--]
   a ∈ {{ NULL ; &buf{[0], [1]} }}
   b ∈ {{ NULL ; &buf{[0], [1]} }}
   buf2[0..3] ∈ [--..--]
   p ∈ {{ NULL ; &buf2{[0], [1], [2], [3]} }}
   q ∈ {{ NULL ; &buf2 + [0..--] }}
-[value:final-states] Values at end of function main:
-  __fc_strtok_ptr ∈ ESCAPINGADDR
+  r ∈ {0}
+[eva:final-states] Values at end of function main:
+  __fc_strtok_ptr ∈ {{ "constant!" + [0..--] }}
+  a ∈ [--..--]
+  b ∈ [--..--]
   __retres ∈ {0}

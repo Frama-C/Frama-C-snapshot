@@ -48,7 +48,7 @@
 ** Types
 *)
 
-type cabsloc = Lexing.position * Lexing.position
+type cabsloc = Filepath.position * Filepath.position
 
 type typeSpecifier = (* Merge all specifiers into one type *)
     Tvoid                             (* Type specifier ISO 6.7.2 *)
@@ -174,9 +174,9 @@ and definition =
      (** Logical declaration (axiom, logic, etc.)*)
  | CUSTOM of Logic_ptree.custom_tree * string * cabsloc
 
-(** the string is a file name, and then the list of toplevel forms.
+(** the file name, and then the list of toplevel forms.
     @plugin development guide *)
-and file = string * (bool * definition) list
+and file = Datatype.Filepath.t * (bool * definition) list
 
 
 (*

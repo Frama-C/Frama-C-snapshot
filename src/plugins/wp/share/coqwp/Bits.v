@@ -1339,7 +1339,9 @@ Proof.
     apply ZxHpos_incr_for_positive.
     unfold x. omega. unfold d. omega.
 Qed.
-  								
-(** ** Main tactics.*)
-Ltac Zbit_ext k := apply Zbit_ext; extensionality k.		  
 
+(** ** Main tactics.*)
+Ltac Zbit_ext k := apply Zbit_ext; extensionality k.
+
+Ltac auto_bits := autorewrite with bits ; auto with zarith.
+Hint Rewrite Zbit_of_zero Zbit_of_mone : bits.

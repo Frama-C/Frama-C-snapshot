@@ -1,8 +1,8 @@
 [kernel] Parsing tests/value/threat_redundant.c (with preprocessing)
-[value] Analyzing a complete application starting at main
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing a complete application starting at main
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   s1[0] ∈ {97}
     [1] ∈ {98}
     [2] ∈ {97}
@@ -14,19 +14,19 @@
     [8] ∈ {97}
     [9] ∈ {98}
   x ∈ {0}
-[value] computing for function strchr <- main.
+[eva] computing for function strchr <- main.
   Called from tests/value/threat_redundant.c:19.
-[value] tests/value/threat_redundant.c:8: entering loop for the first time
-[value:alarm] tests/value/threat_redundant.c:8: Warning: 
+[eva] tests/value/threat_redundant.c:8: starting to merge loop iterations
+[eva:alarm] tests/value/threat_redundant.c:8: Warning: 
   out of bounds read. assert \valid_read(s);
-[value] Recording results for strchr
-[value] Done for function strchr
-[value] Recording results for main
-[value] done for function main
-[value] ====== VALUES COMPUTED ======
-[value:final-states] Values at end of function strchr:
+[eva] Recording results for strchr
+[eva] Done for function strchr
+[eva] Recording results for main
+[eva] done for function main
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function strchr:
   NON TERMINATING FUNCTION
-[value:final-states] Values at end of function main:
+[eva:final-states] Values at end of function main:
   NON TERMINATING FUNCTION
 [from] Computing for function strchr
 [from] Non-terminating function strchr (no dependencies)

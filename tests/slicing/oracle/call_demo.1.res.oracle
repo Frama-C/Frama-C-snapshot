@@ -1,45 +1,45 @@
 [kernel] Parsing tests/slicing/call_demo.i (no preprocessing)
 [slicing] slicing requests in progress...
-[value] Analyzing a complete application starting at main
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing a complete application starting at main
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   
-[value] tests/slicing/call_demo.i:22: entering loop for the first time
-[value] computing for function oper <- main.
+[eva] computing for function oper <- main.
   Called from tests/slicing/call_demo.i:23.
-[value] Recording results for oper
-[value] Done for function oper
-[value] computing for function oper <- main.
+[eva] Recording results for oper
+[eva] Done for function oper
+[eva] tests/slicing/call_demo.i:22: starting to merge loop iterations
+[eva] computing for function oper <- main.
   Called from tests/slicing/call_demo.i:23.
-[value] Recording results for oper
-[value] Done for function oper
-[value] computing for function oper <- main.
+[eva] Recording results for oper
+[eva] Done for function oper
+[eva] computing for function oper <- main.
   Called from tests/slicing/call_demo.i:23.
-[value] Recording results for oper
-[value] Done for function oper
-[value] computing for function oper <- main.
+[eva] Recording results for oper
+[eva] Done for function oper
+[eva] computing for function oper <- main.
   Called from tests/slicing/call_demo.i:23.
-[value:alarm] tests/slicing/call_demo.i:13: Warning: 
+[eva:alarm] tests/slicing/call_demo.i:13: Warning: 
   signed overflow. assert *s + i ≤ 2147483647;
-[value:alarm] tests/slicing/call_demo.i:14: Warning: 
+[eva:alarm] tests/slicing/call_demo.i:14: Warning: 
   signed overflow. assert *p * i ≤ 2147483647;
-[value] Recording results for oper
-[value] Done for function oper
-[value] computing for function oper <- main.
+[eva] Recording results for oper
+[eva] Done for function oper
+[eva] computing for function oper <- main.
   Called from tests/slicing/call_demo.i:23.
-[value] Recording results for oper
-[value] Done for function oper
-[value] computing for function call1 <- main.
+[eva] Recording results for oper
+[eva] Done for function oper
+[eva] computing for function call1 <- main.
   Called from tests/slicing/call_demo.i:25.
-[value] using specification for function call1
-[value] Done for function call1
-[value] computing for function call2 <- main.
+[eva] using specification for function call1
+[eva] Done for function call1
+[eva] computing for function call2 <- main.
   Called from tests/slicing/call_demo.i:26.
-[value] using specification for function call2
-[value] Done for function call2
-[value] Recording results for main
-[value] done for function main
+[eva] using specification for function call2
+[eva] Done for function call2
+[eva] Recording results for main
+[eva] done for function main
 [slicing] initializing slicing ...
 [slicing] interpreting slicing requests from the command line...
 [pdg] computing for function main

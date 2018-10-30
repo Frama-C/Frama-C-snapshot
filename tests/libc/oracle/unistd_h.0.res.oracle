@@ -1,0 +1,91 @@
+[kernel] Parsing tests/libc/unistd_h.c (with preprocessing)
+[kernel:typing:implicit-function-declaration] tests/libc/unistd_h.c:12: Warning: 
+  Calling undeclared function usleep. Old style K&R code?
+[eva] Analyzing a complete application starting at main
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
+  nondet ∈ [--..--]
+[eva] computing for function usleep <- main.
+  Called from tests/libc/unistd_h.c:12.
+[kernel:annot:missing-spec] tests/libc/unistd_h.c:12: Warning: 
+  Neither code nor specification for function usleep, generating default assigns from the prototype
+[eva] using specification for function usleep
+[eva] Done for function usleep
+[eva] computing for function usleep <- main.
+  Called from tests/libc/unistd_h.c:13.
+[eva] Done for function usleep
+[eva] computing for function gethostname <- main.
+  Called from tests/libc/unistd_h.c:15.
+[eva] using specification for function gethostname
+[eva] tests/libc/unistd_h.c:15: 
+  function gethostname: precondition 'name_has_room' got status valid.
+[eva] Done for function gethostname
+[eva] computing for function execv <- main.
+  Called from tests/libc/unistd_h.c:17.
+[eva] using specification for function execv
+[eva] tests/libc/unistd_h.c:17: 
+  function execv: precondition 'valid_string_path' got status valid.
+[eva] tests/libc/unistd_h.c:17: 
+  function execv: precondition 'valid_string_argv0' got status valid.
+[eva] Done for function execv
+[eva] computing for function access <- main.
+  Called from tests/libc/unistd_h.c:19.
+[eva] using specification for function access
+[eva] tests/libc/unistd_h.c:19: 
+  function access: precondition 'valid_string_path' got status valid.
+[eva] tests/libc/unistd_h.c:19: 
+  function access: precondition 'valid_amode' got status valid.
+[eva] Done for function access
+[eva] tests/libc/unistd_h.c:20: assertion got status valid.
+[eva] computing for function dup <- main.
+  Called from tests/libc/unistd_h.c:22.
+[eva] using specification for function dup
+[eva] tests/libc/unistd_h.c:22: 
+  function dup: precondition 'valid_fildes' got status valid.
+[eva] Done for function dup
+[eva] tests/libc/unistd_h.c:23: assertion got status valid.
+[eva] computing for function dup2 <- main.
+  Called from tests/libc/unistd_h.c:26.
+[eva] using specification for function dup2
+[eva] tests/libc/unistd_h.c:26: 
+  function dup2: precondition 'valid_fildes' got status valid.
+[eva] tests/libc/unistd_h.c:26: 
+  function dup2: precondition 'valid_fildes2' got status valid.
+[eva] Done for function dup2
+[eva] computing for function dup2 <- main.
+  Called from tests/libc/unistd_h.c:28.
+[eva] tests/libc/unistd_h.c:28: 
+  function dup2: precondition 'valid_fildes' got status valid.
+[eva:alarm] tests/libc/unistd_h.c:28: Warning: 
+  function dup2: precondition 'valid_fildes2' got status invalid.
+[eva] Done for function dup2
+[eva] computing for function fork <- main.
+  Called from tests/libc/unistd_h.c:32.
+[eva] using specification for function fork
+[eva] Done for function fork
+[eva] tests/libc/unistd_h.c:33: assertion got status valid.
+[eva] computing for function setsid <- main.
+  Called from tests/libc/unistd_h.c:35.
+[eva] using specification for function setsid
+[eva] Done for function setsid
+[eva] computing for function sync <- main.
+  Called from tests/libc/unistd_h.c:37.
+[eva] using specification for function sync
+[eva] Done for function sync
+[eva] computing for function sysconf <- main.
+  Called from tests/libc/unistd_h.c:39.
+[eva] using specification for function sysconf
+[eva] Done for function sysconf
+[eva] Recording results for main
+[eva] done for function main
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function main:
+  __fc_fds[0..1023] ∈ [--..--]
+  r ∈ [-1..2147483647]
+  hostname[0..255] ∈ [--..--] or UNINITIALIZED
+  fd ∈ [-1..1023]
+  fd2 ∈ [-1..1023]
+  pid ∈ [-1..2147483647]
+  l ∈ [--..--]
+  __retres ∈ {0; 1}

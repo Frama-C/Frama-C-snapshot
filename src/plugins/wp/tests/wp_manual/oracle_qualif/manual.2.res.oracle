@@ -1,4 +1,4 @@
-# frama-c -wp -wp-rte [...]
+# frama-c -wp -wp-rte -wp-timeout 90 -wp-steps 1500 [...]
 [rte] annotating function swap
 -------------------------------------------------------------
 Functions           WP     Alt-Ergo        Total   Success

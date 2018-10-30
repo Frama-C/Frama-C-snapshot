@@ -44,8 +44,6 @@ let status db kf =
       "Missing RTE plug-in: can not generate conditions" ;
     false
 
-let is_precond_generated = status Db.RteGen.get_precond_status
-
 let always _ = true
 
 let configure ~update ~generate kf cint rte =

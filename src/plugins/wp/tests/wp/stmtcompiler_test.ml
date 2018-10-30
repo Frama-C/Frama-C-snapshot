@@ -79,8 +79,8 @@ let run () =
     (* Format.printf "Nodes of %a: " Lang.F.pp_pred (Cfg.P.get pred); *)
     let map n _domain =
       (* Format.printf "%a " Cfg.Node.pp n; *)
-        try Cfg.Node.Map.find n nsigmas with Not_found ->
-      (* Format.printf "unknown node %a@." Cfg.Node.pp n; *) assert false in
+      try Cfg.Node.Map.find n nsigmas with Not_found ->
+        (* Format.printf "unknown node %a@." Cfg.Node.pp n; *) assert false in
     let pred = Cfg.P.relocate
         (Cfg.Node.Map.map map (Cfg.P.reads pred)) pred in
     (* Format.printf "@."; *)
@@ -126,9 +126,9 @@ let run () =
         Cil_datatype.Location.compare
           (Kernel_function.get_location kf1)
           (Kernel_function.get_location kf2)
-        (* String.compare *)
-        (*   (Kernel_function.get_name kf1) *)
-        (*   (Kernel_function.get_name kf2) *)
+          (* String.compare *)
+          (*   (Kernel_function.get_name kf1) *)
+          (*   (Kernel_function.get_name kf2) *)
       )
       (Globals.Functions.fold (fun kf acc -> kf::acc) []) in
 

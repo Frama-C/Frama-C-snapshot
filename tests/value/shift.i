@@ -1,6 +1,6 @@
 /* run.config*
-   STDOPT: #"-val -warn-unsigned-overflow"
-   STDOPT: #"-no-val-left-shift-negative-alarms"
+   STDOPT: #"-eva -warn-unsigned-overflow"
+   STDOPT: #"-no-warn-left-shift-negative"
 */
 
 int a,b,d,e,f,g,h;

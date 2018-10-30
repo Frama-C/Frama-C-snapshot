@@ -460,14 +460,14 @@ module Make
   let _constraint_to_typ env state vars =
     let aux (var_apron, vi) =
       match Eval_typ.classify_as_scalar vi.vtype with
-      | Eval_typ.TSInt range ->
+      | Some (Eval_typ.TSInt range) ->
         let inf, sup, _size = bounds_of_typ range in
         let inf = Scalar.of_mpqf (Mpqf.of_mpz inf)
         and sup = Scalar.of_mpqf (Mpqf.of_mpz sup) in
         let interval = Interval.of_scalar inf sup in
         let e = Texpr1.Var var_apron in
         constraint_reduction env e interval
-      | _ -> assert false (* variable has been translated, and have int type *) 
+      | _ -> assert false (* variable has been translated, and have int type *)
     in
     let constraints = List.map aux vars in
     meet_with_constraints env state constraints
@@ -687,27 +687,10 @@ module Make
         Abstract1.assign_texpr_array man state vars_array texprs_array None
       in
       if Abstract1.is_bottom man state
-      then Result (`Bottom, Value_types.Cacheable)
-      else Compute state
+      then `Bottom
+      else `Value state
 
     let finalize_call _stmt _call ~pre:_ ~post = `Value post
-
-    let approximate_call _stmt call state =
-      let name = Kernel_function.get_name call.kf in
-      let state =
-        if Ast_info.is_frama_c_builtin name ||
-           (name <> "free" && Eval_typ.kf_assigns_only_result_or_volatile call.kf)
-        then state
-        else make_top (Abstract1.env state)
-      in
-      (* We need to introduce the variable used to model the return code
-         (even though we do not constrain it), because it will be remove later
-         by the generic part of the evaluator. *)
-      let state = match call.return with
-        | Some vi_ret -> enter_scope [vi_ret] state
-        | None -> state
-      in
-      `Value [state]
 
     let show_expr _valuation _state _fmt _expr = ()
   end
@@ -737,8 +720,9 @@ module Make
     with
     | Out_of_Scope _ -> state
 
-  let filter_by_bases _ state = state
-  let reuse ~current_input:_ ~previous_output = previous_output
+  let relate _ _ _ = Base.SetLattice.top
+  let filter _ _ _ state = state
+  let reuse _ _ ~current_input:_ ~previous_output = previous_output
 
   let storage = Value_parameters.ApronStorage.get
 

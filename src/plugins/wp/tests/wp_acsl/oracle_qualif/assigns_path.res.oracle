@@ -1,4 +1,4 @@
-# frama-c -wp [...]
+# frama-c -wp -wp-timeout 90 -wp-steps 1500 [...]
 [kernel] Parsing tests/wp_acsl/assigns_path.i (no preprocessing)
 [wp] Running WP plugin...
 [wp] Loading driver 'share/wp.driver'
@@ -21,6 +21,6 @@
 Functions           WP     Alt-Ergo        Total   Success
 job                  6      3 (16..28)       9       100%
 -------------------------------------------------------------
-[wp] Warning: Separation hypotheses for function 'job':
+[wp] Warning: Memory model hypotheses for function 'job':
   /*@ behavior typed: requires \separated(&p,b+(..)); */
   void job(int n, int *b);

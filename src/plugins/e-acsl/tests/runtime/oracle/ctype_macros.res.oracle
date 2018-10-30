@@ -1,0 +1,23 @@
+[e-acsl] beginning translation.
+[e-acsl] Warning: annotating undefined function `isupper':
+  the generated program may miss memory instrumentation
+  if there are memory-related annotations.
+[e-acsl] tests/runtime/ctype_macros.c:39: Warning: 
+  E-ACSL construct `disjoint behaviors' is not yet supported.
+  Ignoring annotation.
+[e-acsl] FRAMAC_SHARE/libc/ctype.h:174: Warning: 
+  E-ACSL construct `assigns clause in behavior' is not yet supported.
+  Ignoring annotation.
+[e-acsl] translation done in project "e-acsl".
+[eva:alarm] tests/runtime/ctype_macros.c:37: Warning: 
+  function __gen_e_acsl_isupper: precondition 'c_uchar_or_eof' got status unknown.
+[eva:alarm] FRAMAC_SHARE/libc/ctype.h:174: Warning: 
+  function __e_acsl_assert: precondition got status unknown.
+[eva:alarm] FRAMAC_SHARE/libc/ctype.h:178: Warning: 
+  function __e_acsl_assert: precondition got status unknown.
+[eva:alarm] FRAMAC_SHARE/libc/ctype.h:181: Warning: 
+  function __e_acsl_assert: precondition got status unknown.
+[eva:alarm] FRAMAC_SHARE/libc/ctype.h:178: Warning: 
+  function __gen_e_acsl_isupper, behavior definitely_match: postcondition 'nonzero_result' got status unknown. (Behavior may be inactive, no reduction performed.)
+[eva:alarm] FRAMAC_SHARE/libc/ctype.h:181: Warning: 
+  function __gen_e_acsl_isupper, behavior definitely_not_match: postcondition 'zero_result' got status unknown. (Behavior may be inactive, no reduction performed.)

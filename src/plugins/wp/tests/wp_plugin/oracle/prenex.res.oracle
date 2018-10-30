@@ -24,6 +24,7 @@ Assume {
   If i_1 < n
   Then {
     Let x = Mint_0[shift_sint32(p, i)].
+    Have: (ta_j_0=false).
     (* Invariant 'PJ' *)
     Have: forall i_2 : Z. ((0 <= i_2) -> ((i_2 < j) ->
         (x < Mint_0[shift_sint32(q, i_2)]))).

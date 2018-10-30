@@ -94,6 +94,8 @@ let dkey_print_logic_coercions = register_category "printer:logic-coercions"
 
 let dkey_print_logic_types = register_category "printer:logic-types"
 
+let dkey_print_attrs = register_category "printer:attrs"
+
 let dkey_print_sid = register_category "printer:sid"
 
 let dkey_print_unspecified = register_category "printer:unspecified"
@@ -145,6 +147,9 @@ let wkey_cert_exp_46 = register_warn_category "CERT:EXP:46"
 let wkey_cert_msc_38 = register_warn_category "CERT:MSC:38"
 let () = set_warn_status wkey_cert_msc_38 Log.Werror
 
+let wkey_cert_exp_10 = register_warn_category "CERT:EXP:10"
+let () = set_warn_status wkey_cert_exp_10 Log.Winactive
+
 let wkey_check_volatile = register_warn_category "check:volatile"
 
 let wkey_jcdb = register_warn_category "pp:compilation-db"
@@ -158,6 +163,10 @@ let wkey_missing_spec = register_warn_category "annot:missing-spec"
 
 let wkey_decimal_float = register_warn_category "parser:decimal-float"
 let () = set_warn_status wkey_decimal_float Log.Wonce
+
+let wkey_acsl_extension = register_warn_category "acsl-extension"
+
+let wkey_cmdline = register_warn_category "cmdline"
 
 (* ************************************************************************* *)
 (** {2 Specialised functors for building kernel parameters} *)
@@ -920,7 +929,7 @@ module ContinueOnAnnotError =
           let module_name = "ContinueOnAnnotError"
           let option_name = "-continue-annot-error"
           let help =
-            "[DEPRECATED: Use -kernel-warn-error=-annot-error instead] \
+            "[DEPRECATED: Use -kernel-warn-key annot-error instead] \
              When an annotation fails to type-check, emit a warning \
              and discard the annotation instead of generating an error \
              (errors in C are still fatal)"
@@ -930,7 +939,7 @@ let () =
     (fun _ f ->
        warning ~once:true
          "-continue-annot-error is deprecated. \
-          Use -kernel-warn-error=-annot-error (or similar option) instead";
+          Use -kernel-warn-key annot-error (or similar option) instead";
        set_warn_status wkey_annot_error (if f then Log.Wactive else Log.Wabort))
 
 let () = Parameter_customize.set_group parsing
@@ -949,7 +958,7 @@ module ImplicitFunctionDeclaration =
     let arg_name = "action"
     let help =
       "[DEPRECATED: Use \
-       -kernel-warn-error typing:implicit-function-declaration instead] \
+       -kernel-warn-key typing:implicit-function-declaration=error instead] \
        Warn or abort when a function is called before it has been declared \
                 (non-C99 compliant); action must be ignore, warn, or error"
     let default = "warn"
@@ -1279,16 +1288,6 @@ module LibEntry =
      end)
 
 let () = Parameter_customize.set_group analysis_options
-let () = Parameter_customize.set_negative_option_name "-const-writable"
-module ConstReadonly =
-  True
-    (struct
-       let module_name = "ConstReadonly"
-       let option_name = "-const-readonly"
-       let help = "variables with the 'const' qualifier must be actually constant"
-     end)
-
-let () = Parameter_customize.set_group analysis_options
 module UnspecifiedAccess =
   False(struct
          let module_name = "UnspecifiedAccess"
@@ -1342,7 +1341,29 @@ module UnsignedOverflow =
       let module_name = "UnsignedOverflow"
       let option_name = "-warn-unsigned-overflow"
       let help = "generate alarms for unsigned operations that overflow"
-     end)
+    end)
+
+(* Left shifts on negative integers are undefined behaviors. *)
+let () = Parameter_customize.set_group analysis_options
+let () = Parameter_customize.do_not_reset_on_copy ()
+module LeftShiftNegative =
+  True
+    (struct
+      let module_name = "LeftShiftNegative"
+      let option_name = "-warn-left-shift-negative"
+      let help = "generate alarms for signed left shifts on negative values."
+    end)
+
+(* Right shift on negative integers are implementation-defined behaviors. *)
+let () = Parameter_customize.set_group analysis_options
+let () = Parameter_customize.do_not_reset_on_copy ()
+module RightShiftNegative =
+  False
+    (struct
+      let module_name = "RightShiftNegative"
+      let option_name = "-warn-right-shift-negative"
+      let help = "generate alarms for signed right shifts on negative values."
+    end)
 
 (* Signed downcast are implementation-defined behaviors. *)
 let () = Parameter_customize.set_group analysis_options
@@ -1385,6 +1406,17 @@ module SpecialFloat =
                   infinite floats or NaN (by default), only on NaN or never."
     end)
 let () = SpecialFloat.set_possible_values ["none"; "nan"; "non-finite"]
+
+let () = Parameter_customize.set_group analysis_options
+let () = Parameter_customize.do_not_reset_on_copy ()
+module InvalidBool =
+  True
+    (struct
+      let module_name = "InvalidBool"
+      let option_name = "-warn-invalid-bool"
+      let help = "generate alarms when trap representations are read from \
+                  _Bool lvalues."
+    end)
 
 
 (* ************************************************************************* *)

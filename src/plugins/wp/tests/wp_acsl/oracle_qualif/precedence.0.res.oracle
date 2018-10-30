@@ -1,4 +1,4 @@
-# frama-c -wp [...]
+# frama-c -wp -wp-timeout 90 -wp-steps 1500 [...]
 [kernel] Parsing tests/wp_acsl/precedence.i (no preprocessing)
 [kernel:annot-error] tests/wp_acsl/precedence.i:90: Warning: 
   unexpected token ';'

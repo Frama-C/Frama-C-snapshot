@@ -75,6 +75,25 @@ separately. If you do so, please consider providing the system name and list of
 packages (e.g. via a [Github issue](https://github.com/Frama-C/Frama-C-snapshot/issues/new))
 so that we can add it to the Frama-C `depext` package.
 
+### Known working configuration
+
+The following set of packages is known to be a working configuration for
+Frama-C 18 (Argon):
+
+- OCaml 4.05.0
+- alt-ergo.1.30 or, under a non-commercial license, alt-ergo.2.0.0 (pin recommended)
+- apron.20160125 (optional)
+- coq.8.7.2 (optional; pin recommended)
+- lablgtk.2.18.5
+- mlgmpidl.1.2.7 (optional)
+- ocamlgraph.1.8.8
+- why3.0.88.3
+- yojson.1.4.1 (optional)
+- zarith.1.7
+
+Note: *pin recommended* indicates packages likely to become incompatible in
+      future releases; `opam pin` is recommended to prevent them from breaking.
+
 ### Installing Custom Versions of Frama-C via opam
 
 If you have a **non-standard** version of Frama-C available
@@ -151,7 +170,7 @@ We recommend to rely on it for the installation of Frama-C.
 
     ```shell
     brew install graphviz
-    opam install altgr-ergo why3
+    opam install why3
     ```
 
 4. Install *optional* dependencies for Frama-C/WP:

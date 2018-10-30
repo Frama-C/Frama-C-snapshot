@@ -1,33 +1,33 @@
 [kernel] Parsing tests/value/jacques.i (no preprocessing)
-[value] Analyzing a complete application starting at main
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing a complete application starting at main
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   t[0..3] ∈ {0}
   p ∈ {0}
   q ∈ {0}
   A ∈ {0}
   B ∈ {0}
   C ∈ {0}
-[value] tests/value/jacques.i:21: Frama_C_show_each_f: {{ NULL ; &S_pp }}
-[value:alarm] tests/value/jacques.i:23: Warning: assertion got status unknown.
-[value] tests/value/jacques.i:25: Frama_C_show_each_f: {{ &S_pp }}
-[value] tests/value/jacques.i:29: assertion got status valid.
-[value] computing for function f <- main.
+[eva] tests/value/jacques.i:21: Frama_C_show_each_f: {{ NULL ; &S_pp }}
+[eva:alarm] tests/value/jacques.i:23: Warning: assertion got status unknown.
+[eva] tests/value/jacques.i:25: Frama_C_show_each_f: {{ &S_pp }}
+[eva] tests/value/jacques.i:29: assertion got status valid.
+[eva] computing for function f <- main.
   Called from tests/value/jacques.i:36.
-[value] Recording results for f
-[value] Done for function f
-[value] computing for function f <- main.
+[eva] Recording results for f
+[eva] Done for function f
+[eva] computing for function f <- main.
   Called from tests/value/jacques.i:40.
-[value] Recording results for f
-[value] Done for function f
-[value] Recording results for main
-[value] done for function main
-[value] ====== VALUES COMPUTED ======
-[value:final-states] Values at end of function f:
+[eva] Recording results for f
+[eva] Done for function f
+[eva] Recording results for main
+[eva] done for function main
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function f:
   A ∈ {4; 5}
   B ∈ {5}
-[value:final-states] Values at end of function main:
+[eva:final-states] Values at end of function main:
   p ∈ {{ &A }}
   q ∈ {{ &A }}
   A ∈ {5}

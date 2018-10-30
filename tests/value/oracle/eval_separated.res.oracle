@@ -1,59 +1,59 @@
 [kernel] Parsing tests/value/eval_separated.c (with preprocessing)
-[value] Analyzing a complete application starting at main
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing a complete application starting at main
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   x ∈ {0}
   y ∈ {0}
   t1[0..5] ∈ {0}
   t2[0..5] ∈ {0}
-[value] tests/value/eval_separated.c:5: assertion got status valid.
-[value] tests/value/eval_separated.c:6: assertion got status valid.
-[value] tests/value/eval_separated.c:8: assertion got status valid.
-[value] tests/value/eval_separated.c:9: assertion got status valid.
-[value:alarm] tests/value/eval_separated.c:11: Warning: 
+[eva] tests/value/eval_separated.c:5: assertion got status valid.
+[eva] tests/value/eval_separated.c:6: assertion got status valid.
+[eva] tests/value/eval_separated.c:8: assertion got status valid.
+[eva] tests/value/eval_separated.c:9: assertion got status valid.
+[eva:alarm] tests/value/eval_separated.c:11: Warning: 
   signed overflow. assert -2147483648 ≤ (int)(&q) + (int)(&q);
-[value:alarm] tests/value/eval_separated.c:11: Warning: 
+[eva:alarm] tests/value/eval_separated.c:11: Warning: 
   signed overflow. assert (int)(&q) + (int)(&q) ≤ 2147483647;
-[value] tests/value/eval_separated.c:11: 
+[eva] tests/value/eval_separated.c:11: 
   Assigning imprecise value to q.
   The imprecision originates from Arithmetic {tests/value/eval_separated.c:11}
-[value:alarm] tests/value/eval_separated.c:12: Warning: 
+[eva:alarm] tests/value/eval_separated.c:12: Warning: 
   signed overflow. assert -2147483648 ≤ (int)(&r) + (int)(&r);
-[value:alarm] tests/value/eval_separated.c:12: Warning: 
+[eva:alarm] tests/value/eval_separated.c:12: Warning: 
   signed overflow. assert (int)(&r) + (int)(&r) ≤ 2147483647;
-[value] tests/value/eval_separated.c:12: 
+[eva] tests/value/eval_separated.c:12: 
   Assigning imprecise value to r.
   The imprecision originates from Arithmetic {tests/value/eval_separated.c:12}
-[value:alarm] tests/value/eval_separated.c:13: Warning: 
+[eva:alarm] tests/value/eval_separated.c:13: Warning: 
   assertion got status unknown.
-[value:alarm] tests/value/eval_separated.c:14: Warning: 
+[eva:alarm] tests/value/eval_separated.c:14: Warning: 
   assertion got status unknown.
-[value:alarm] tests/value/eval_separated.c:15: Warning: 
+[eva:alarm] tests/value/eval_separated.c:15: Warning: 
   assertion got status unknown.
-[value] tests/value/eval_separated.c:17: assertion got status valid.
-[value] tests/value/eval_separated.c:18: assertion got status valid.
-[value] tests/value/eval_separated.c:20: assertion got status valid.
-[value] tests/value/eval_separated.c:21: assertion got status valid.
-[value] tests/value/eval_separated.c:23: assertion got status valid.
-[value] tests/value/eval_separated.c:24: assertion got status valid.
-[value] tests/value/eval_separated.c:26: assertion got status valid.
-[value] tests/value/eval_separated.c:27: assertion got status valid.
-[value] tests/value/eval_separated.c:28: assertion got status valid.
-[value] tests/value/eval_separated.c:30: assertion got status valid.
-[value] tests/value/eval_separated.c:31: assertion got status valid.
-[value] tests/value/eval_separated.c:33: assertion got status valid.
-[value] tests/value/eval_separated.c:36: assertion got status valid.
-[value] tests/value/eval_separated.c:38: assertion got status valid.
-[value] tests/value/eval_separated.c:41: assertion got status valid.
-[value:alarm] tests/value/eval_separated.c:43: Warning: 
+[eva] tests/value/eval_separated.c:17: assertion got status valid.
+[eva] tests/value/eval_separated.c:18: assertion got status valid.
+[eva] tests/value/eval_separated.c:20: assertion got status valid.
+[eva] tests/value/eval_separated.c:21: assertion got status valid.
+[eva] tests/value/eval_separated.c:23: assertion got status valid.
+[eva] tests/value/eval_separated.c:24: assertion got status valid.
+[eva] tests/value/eval_separated.c:26: assertion got status valid.
+[eva] tests/value/eval_separated.c:27: assertion got status valid.
+[eva] tests/value/eval_separated.c:28: assertion got status valid.
+[eva] tests/value/eval_separated.c:30: assertion got status valid.
+[eva] tests/value/eval_separated.c:31: assertion got status valid.
+[eva] tests/value/eval_separated.c:33: assertion got status valid.
+[eva] tests/value/eval_separated.c:36: assertion got status valid.
+[eva] tests/value/eval_separated.c:38: assertion got status valid.
+[eva] tests/value/eval_separated.c:41: assertion got status valid.
+[eva:alarm] tests/value/eval_separated.c:43: Warning: 
   assertion got status unknown.
-[value:alarm] tests/value/eval_separated.c:45: Warning: 
+[eva:alarm] tests/value/eval_separated.c:45: Warning: 
   assertion got status unknown.
-[value] Recording results for main
-[value] done for function main
-[value] ====== VALUES COMPUTED ======
-[value:final-states] Values at end of function main:
+[eva] Recording results for main
+[eva] done for function main
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function main:
   p ∈ {{ &t1 + [-8589934592..8589934588],0%4 }}
   q ∈
    {{ garbled mix of &{q}

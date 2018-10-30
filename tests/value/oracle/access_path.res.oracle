@@ -1,19 +1,19 @@
 [kernel] Parsing tests/value/access_path.i (no preprocessing)
-[value] Analyzing a complete application starting at main
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing a complete application starting at main
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   
-[value:alarm] tests/value/access_path.i:2: Warning: 
+[eva:alarm] tests/value/access_path.i:2: Warning: 
   out of bounds read. assert \valid_read(p);
-[value:alarm] tests/value/access_path.i:2: Warning: 
+[eva:alarm] tests/value/access_path.i:2: Warning: 
   out of bounds write. assert \valid(*p);
-[value:alarm] tests/value/access_path.i:2: Warning: 
+[eva:alarm] tests/value/access_path.i:2: Warning: 
   signed overflow. assert *(*p) + 1 ≤ 2147483647;
-[value] Recording results for main
-[value] done for function main
-[value] ====== VALUES COMPUTED ======
-[value:final-states] Values at end of function main:
+[eva] Recording results for main
+[eva] done for function main
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function main:
   __retres ∈ {0}
   S_0_S_p[0] ∈ [-2147483647..2147483647]
          [1] ∈ [--..--]

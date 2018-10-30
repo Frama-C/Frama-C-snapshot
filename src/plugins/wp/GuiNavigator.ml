@@ -425,7 +425,7 @@ let make (main : main_window_extension_points) =
       `ToProve , "Not Proved (yet)" ;
       `Scripts , "All Scripts" ;
       `All , "All Goals" ;
-    ] () in 
+    ] () in
     let prev = new Widget.button ~icon:`GO_BACK ~tooltip:"Previous goal" () in
     let next = new Widget.button ~icon:`GO_FORWARD ~tooltip:"Next goal" () in
     let index = new Widget.button ~icon:`INDEX ~tooltip:"List of goals" () in

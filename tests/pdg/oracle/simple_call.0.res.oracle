@@ -1,20 +1,20 @@
 [kernel] Parsing tests/pdg/simple_call.c (with preprocessing)
-[value] Analyzing a complete application starting at main
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing a complete application starting at main
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   G ∈ [--..--]
   G1 ∈ [--..--]
   G2 ∈ [--..--]
   S ∈ [--..--]
-[value] computing for function call <- main.
+[eva] computing for function call <- main.
   Called from tests/pdg/simple_call.c:58.
-[value:alarm] tests/pdg/simple_call.c:45: Warning: 
+[eva:alarm] tests/pdg/simple_call.c:45: Warning: 
   signed overflow. assert G + y ≤ 2147483647;
-[value] Recording results for call
-[value] Done for function call
-[value] Recording results for main
-[value] done for function main
+[eva] Recording results for call
+[eva] Done for function call
+[eva] Recording results for main
+[eva] done for function main
 [pdg] computing for function main
 [from] Computing for function call
 [from] Done for function call

@@ -27,6 +27,7 @@
 #include "stddef.h"
 #include "errno.h"
 #include "__fc_builtin.h"
+__PUSH_FC_STDLIB
 
 /* dummy implementation of getaddrinfo. Returns at most one addrinfo.
  */
@@ -74,3 +75,5 @@ int getaddrinfo(
     }
   }
 }
+
+__POP_FC_STDLIB

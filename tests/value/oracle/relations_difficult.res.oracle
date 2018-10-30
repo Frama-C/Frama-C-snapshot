@@ -1,8 +1,8 @@
 [kernel] Parsing tests/value/relations_difficult.i (no preprocessing)
-[value] Analyzing a complete application starting at main
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing a complete application starting at main
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   x ∈ {0}
   y ∈ {0}
   p ∈ {0}
@@ -10,10 +10,10 @@
   B ∈ {0}
   C ∈ {0}
   Z ∈ {0}
-[value] Recording results for main
-[value] done for function main
-[value] ====== VALUES COMPUTED ======
-[value:final-states] Values at end of function main:
+[eva] Recording results for main
+[eva] done for function main
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function main:
   x ∈ {4}
   y ∈ {1; 2}
   p ∈ {{ &x ; &y }}

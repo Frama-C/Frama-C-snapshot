@@ -1,5 +1,5 @@
 /* run.config_qualif
-   OPT: -wp -wp-par 1 -wp-timeout 2
+   OPT: -wp -wp-par 1 -wp-steps 50
 */
 
 void f (void) 

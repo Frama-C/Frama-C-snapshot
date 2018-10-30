@@ -1,20 +1,20 @@
 [kernel] Parsing tests/value/abs_addr.i (no preprocessing)
-[value] Analyzing a complete application starting at main
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing a complete application starting at main
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   NULL[rbits 1048576 to 2097151] ∈ [--..--]
   AutoTest[0..999] ∈ {0}
-[value] computing for function TstRomUcmm <- main.
+[eva] computing for function TstRomUcmm <- main.
   Called from tests/value/abs_addr.i:46.
-[value] tests/value/abs_addr.i:18: entering loop for the first time
-[value] tests/value/abs_addr.i:32: entering loop for the first time
-[value] Recording results for TstRomUcmm
-[value] Done for function TstRomUcmm
-[value] Recording results for main
-[value] done for function main
-[value] ====== VALUES COMPUTED ======
-[value:final-states] Values at end of function TstRomUcmm:
+[eva] tests/value/abs_addr.i:18: starting to merge loop iterations
+[eva] tests/value/abs_addr.i:32: starting to merge loop iterations
+[eva] Recording results for TstRomUcmm
+[eva] Done for function TstRomUcmm
+[eva] Recording results for main
+[eva] done for function main
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function TstRomUcmm:
   AutoTest[0..72] ∈ {0}
           [73] ∈ {0; 1}
           [74..999] ∈ {0}
@@ -22,7 +22,7 @@
   chkrom ∈ [--..--]
   ptrom ∈ {262142}
   __retres ∈ {0; 1}
-[value:final-states] Values at end of function main:
+[eva:final-states] Values at end of function main:
   AutoTest[0..72] ∈ {0}
           [73] ∈ {0; 1}
           [74..999] ∈ {0}

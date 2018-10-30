@@ -1,17 +1,17 @@
 [kernel] Parsing tests/value/with_comment.i (no preprocessing)
-[value] Analyzing a complete application starting at main2
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing a complete application starting at main2
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   HHH ∈ {0}
   G ∈ {0}
-[value] tests/value/with_comment.i:20: entering loop for the first time
-[value:alarm] tests/value/with_comment.i:21: Warning: 
+[eva] tests/value/with_comment.i:20: starting to merge loop iterations
+[eva:alarm] tests/value/with_comment.i:21: Warning: 
   signed overflow. assert G + 1 ≤ 2147483647;
-[value] Recording results for main2
-[value] done for function main2
-[value] ====== VALUES COMPUTED ======
-[value:final-states] Values at end of function main2:
+[eva] Recording results for main2
+[eva] done for function main2
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function main2:
   i ∈ {11}
   G ∈ [0..2147483647]
 [from] Computing for function main2

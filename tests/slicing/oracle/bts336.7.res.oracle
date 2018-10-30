@@ -1,26 +1,26 @@
 [kernel] Parsing tests/slicing/bts336.i (no preprocessing)
-[value] Analyzing a complete application starting at main5
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing a complete application starting at main5
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   T[0..9] ∈ {0}
   x5 ∈ {0}
-[value] computing for function f5 <- main5.
+[eva] computing for function f5 <- main5.
   Called from tests/slicing/bts336.i:98.
-[value] Recording results for f5
+[eva] Recording results for f5
 [from] Computing for function f5
 [from] Done for function f5
-[value] Done for function f5
-[value] computing for function f5 <- main5.
+[eva] Done for function f5
+[eva] computing for function f5 <- main5.
   Called from tests/slicing/bts336.i:99.
-[value] Recording results for f5
+[eva] Recording results for f5
 [from] Computing for function f5
 [from] Done for function f5
-[value] Done for function f5
-[value] Recording results for main5
+[eva] Done for function f5
+[eva] Recording results for main5
 [from] Computing for function main5
 [from] Done for function main5
-[value] done for function main5
+[eva] done for function main5
 [from] ====== DISPLAYING CALLWISE DEPENDENCIES ======
 [from] call to f5 at tests/slicing/bts336.i:98 (by main5):
   x5 FROM q; b1
@@ -49,27 +49,27 @@
 [slicing] applying 0 actions...
 [sparecode] remove unused global declarations from project 'Slicing export tmp'
 [sparecode] removed unused global declarations in new project 'Slicing export'
-[value] Analyzing a complete application starting at main5
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing a complete application starting at main5
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   
-[value] computing for function f5_slice_1 <- main5.
+[eva] computing for function f5_slice_1 <- main5.
   Called from tests/slicing/bts336.i:98.
-[value] Recording results for f5_slice_1
+[eva] Recording results for f5_slice_1
 [from] Computing for function f5_slice_1
 [from] Done for function f5_slice_1
-[value] Done for function f5_slice_1
-[value] computing for function f5_slice_1 <- main5.
+[eva] Done for function f5_slice_1
+[eva] computing for function f5_slice_1 <- main5.
   Called from tests/slicing/bts336.i:99.
-[value] Recording results for f5_slice_1
+[eva] Recording results for f5_slice_1
 [from] Computing for function f5_slice_1
 [from] Done for function f5_slice_1
-[value] Done for function f5_slice_1
-[value] Recording results for main5
+[eva] Done for function f5_slice_1
+[eva] Recording results for main5
 [from] Computing for function main5
 [from] Done for function main5
-[value] done for function main5
+[eva] done for function main5
 [from] ====== DISPLAYING CALLWISE DEPENDENCIES ======
 [from] call to f5_slice_1 at tests/slicing/bts336.i:98 (by main5):
   a1 FROM p; a1

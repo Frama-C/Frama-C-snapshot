@@ -1,8 +1,8 @@
 (**************************************************************************)
 (*                                                                        *)
-(*  This file is part of Frama-C.                                         *)
+(*  This file is part of the Frama-C's E-ACSL plug-in.                    *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2018                                               *)
+(*  Copyright (C) 2012-2018                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -35,10 +35,10 @@ let library_files () =
       "e_acsl.h" ]
 
 let normalized_library_files =
-  lazy (List.map Filepath.normalize (library_files ()))
+  lazy (List.map Datatype.Filepath.of_string (library_files ()))
 
 let is_library_loc (loc, _) =
-  List.mem loc.Lexing.pos_fname (Lazy.force normalized_library_files)
+  List.mem loc.Filepath.pos_path (Lazy.force normalized_library_files)
 
 let library_functions = Datatype.String.Hashtbl.create 17
 let register_library_function vi =
@@ -111,7 +111,7 @@ let mk_e_acsl_guard ?(reverse=false) kind kf e p =
     Kernel.Unicode.without_unicode
       (Format.asprintf "%a@?" Printer.pp_predicate) p
   in
-  let line = (fst loc).Lexing.pos_lnum in
+  let line = (fst loc).Filepath.pos_lnum in
   let e =
     if reverse then e else Cil.new_exp ~loc:e.eloc (UnOp(LNot, e, Cil.intType))
   in
@@ -250,6 +250,67 @@ let term_of_li li =  match li.l_body with
 | LBterm t -> t
 | LBnone | LBreads _ | LBpred _ | LBinductive _ ->
   Options.fatal "li.l_body does not match LBterm(t) in Misc.term_of_li"
+
+let is_set_of_ptr_or_array lty =
+  if Logic_const.is_set_type lty then
+    let lty = Logic_const.type_of_element lty in
+    Logic_utils.isLogicPointerType lty || Logic_utils.isLogicArrayType lty
+  else
+    false
+
+exception Range_found_exception
+let is_range_free t =
+  try
+    let has_range_visitor = object inherit Visitor.frama_c_inplace
+      method !vterm t = match t.term_node with
+      | Trange _ -> raise Range_found_exception
+      | _ -> Cil.DoChildren
+    end
+    in
+    ignore (Visitor.visitFramacTerm has_range_visitor t);
+    true
+  with Range_found_exception ->
+    false
+
+let is_bitfield_pointers lty =
+  let is_bitfield_pointer = function
+    | Ctype typ ->
+      begin match Cil.unrollType typ with
+        | TPtr(typ, _) ->
+          let attrs = Cil.typeAttrs typ in
+          Cil.hasAttribute Cil.bitfield_attribute_name attrs
+        | _ ->
+          false
+      end
+    | Ltype _ | Lvar _ | Linteger | Lreal | Larrow _ ->
+      false
+  in
+  if Logic_const.is_set_type lty then
+    is_bitfield_pointer (Logic_const.type_of_element lty)
+  else
+    is_bitfield_pointer lty
+
+exception Lv_from_vi_found
+let term_has_lv_from_vi t =
+  try
+    let o = object inherit Visitor.frama_c_inplace
+      method !vlogic_var_use lv = match lv.lv_origin with
+      | None -> Cil.DoChildren
+      | Some _ -> raise Lv_from_vi_found
+    end
+    in
+    ignore (Visitor.visitFramacTerm o t);
+    false
+  with Lv_from_vi_found ->
+    true
+
+type pred_or_term = PoT_pred of predicate | PoT_term of term
+
+let mk_ptr_sizeof typ loc =
+  match Cil.unrollType typ with
+  | TPtr (t', _) -> Cil.new_exp ~loc (SizeOf t')
+  | _ -> assert false
+
 (*
 Local Variables:
 compile-command: "make"

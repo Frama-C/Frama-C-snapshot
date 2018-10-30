@@ -49,8 +49,8 @@ let tests () =
 let main _ =
   Format.printf "=== Tests for Scope.Defs@.";
   Ast.compute ();
-  Dynamic.Parameter.Bool.set "-val-show-progress" false ;
-  Dynamic.Parameter.Int.set "-value-verbose" 0 ;
+  Dynamic.Parameter.Bool.set "-eva-show-progress" false ;
+  Dynamic.Parameter.Int.set "-eva-verbose" 0 ;
   Dynamic.Parameter.Int.set "-from-verbose" 0 ;
   Dynamic.Parameter.Int.set "-pdg-verbose" 0 ;
 

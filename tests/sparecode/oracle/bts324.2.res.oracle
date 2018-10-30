@@ -1,31 +1,31 @@
 [kernel] Parsing tests/sparecode/bts324.i (no preprocessing)
 [sparecode] remove unused code...
 [sparecode] selecting function main_ter outputs and entry point
-[value] Analyzing a complete application starting at main_ter
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing a complete application starting at main_ter
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   i0 ∈ {0}
   o0 ∈ {0}
   is_ko ∈ {-1}
-[value] computing for function init <- main_ter.
+[eva] computing for function init <- main_ter.
   Called from tests/sparecode/bts324.i:35.
-[value] using specification for function init
-[value] tests/sparecode/bts324.i:14: Warning: 
+[eva] using specification for function init
+[eva] tests/sparecode/bts324.i:14: Warning: 
   no \from part for clause 'assigns *p_res;'
-[value] Done for function init
-[value] tests/sparecode/bts324.i:37: entering loop for the first time
-[value] computing for function loop_body <- main_ter.
+[eva] Done for function init
+[eva] computing for function loop_body <- main_ter.
   Called from tests/sparecode/bts324.i:39.
-[value] using specification for function loop_body
-[value] tests/sparecode/bts324.i:11: Warning: 
+[eva] using specification for function loop_body
+[eva] tests/sparecode/bts324.i:11: Warning: 
   no \from part for clause 'assigns i0, o0;'
-[value] Done for function loop_body
-[value] computing for function loop_body <- main_ter.
+[eva] Done for function loop_body
+[eva] tests/sparecode/bts324.i:37: starting to merge loop iterations
+[eva] computing for function loop_body <- main_ter.
   Called from tests/sparecode/bts324.i:39.
-[value] Done for function loop_body
-[value] Recording results for main_ter
-[value] done for function main_ter
+[eva] Done for function loop_body
+[eva] Recording results for main_ter
+[eva] done for function main_ter
 [pdg] computing for function main_ter
 [from] Computing for function init
 [from] Done for function init

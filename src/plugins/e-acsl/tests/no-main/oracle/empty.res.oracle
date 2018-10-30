@@ -1,0 +1,9 @@
+[kernel] Parsing FRAMAC_SHARE/e-acsl/e_acsl_gmp_api.h (with preprocessing)
+[kernel] Parsing FRAMAC_SHARE/e-acsl/e_acsl.h (with preprocessing)
+[kernel] Parsing tests/no-main/empty.i (no preprocessing)
+[e-acsl] beginning translation.
+[e-acsl] Warning: cannot find entry point `main'.
+  Please use option `-main' for specifying a valid entry point.
+  The generated program may miss memory instrumentation
+  if there are memory-related annotations.
+[e-acsl] translation done in project "e-acsl".

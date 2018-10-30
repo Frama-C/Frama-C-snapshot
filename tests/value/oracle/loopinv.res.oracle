@@ -1,99 +1,88 @@
 [kernel] Parsing tests/value/loopinv.c (with preprocessing)
-[value] Analyzing a complete application starting at main
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing a complete application starting at main
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   
-[value] computing for function main1 <- main.
+[eva] computing for function main1 <- main.
   Called from tests/value/loopinv.c:63.
-[value] computing for function init <- main1 <- main.
+[eva] computing for function init <- main1 <- main.
   Called from tests/value/loopinv.c:22.
-[value] tests/value/loopinv.c:22: 
+[eva] tests/value/loopinv.c:22: 
   function init: precondition 'valid' got status valid.
-[value] tests/value/loopinv.c:22: 
+[eva] tests/value/loopinv.c:22: 
   function init: precondition 'c' got status valid.
-[value] tests/value/loopinv.c:9: loop invariant got status valid.
-[value] tests/value/loopinv.c:10: entering loop for the first time
-[value] Recording results for init
-[value] Done for function init
-[value] computing for function init <- main1 <- main.
+[eva] tests/value/loopinv.c:9: loop invariant got status valid.
+[eva] tests/value/loopinv.c:10: starting to merge loop iterations
+[eva] Recording results for init
+[eva] Done for function init
+[eva] computing for function init <- main1 <- main.
   Called from tests/value/loopinv.c:25.
-[value] tests/value/loopinv.c:25: 
+[eva] tests/value/loopinv.c:25: 
   function init: precondition 'valid' got status valid.
-[value] tests/value/loopinv.c:25: 
+[eva] tests/value/loopinv.c:25: 
   function init: precondition 'c' got status valid.
-[value] Recording results for init
-[value] Done for function init
-[value] Recording results for main1
-[value] Done for function main1
-[value] computing for function main2 <- main.
+[eva] Recording results for init
+[eva] Done for function init
+[eva] Recording results for main1
+[eva] Done for function main1
+[eva] computing for function main2 <- main.
   Called from tests/value/loopinv.c:64.
-[value] tests/value/loopinv.c:32: loop invariant got status valid.
-[value] tests/value/loopinv.c:33: loop invariant got status valid.
-[value:alarm] tests/value/loopinv.c:32: Warning: 
+[eva] tests/value/loopinv.c:32: loop invariant got status valid.
+[eva] tests/value/loopinv.c:33: loop invariant got status valid.
+[eva:alarm] tests/value/loopinv.c:32: Warning: 
   loop invariant got status invalid (stopping propagation).
-[value] tests/value/loopinv.c:33: 
-  no state left, loop invariant got status valid.
-[value] Recording results for main2
-[value] Done for function main2
-[value] computing for function main3 <- main.
+[eva] tests/value/loopinv.c:33: no state left, loop invariant got status valid.
+[eva] Recording results for main2
+[eva] Done for function main2
+[eva] computing for function main3 <- main.
   Called from tests/value/loopinv.c:65.
-[value] tests/value/loopinv.c:42: loop invariant got status valid.
-[value] tests/value/loopinv.c:43: entering loop for the first time
-[value] tests/value/loopinv.c:46: Frama_C_show_each: {0}, {0}
-[value] tests/value/loopinv.c:46: Frama_C_show_each: {0; 1}, {0; 1}
-[value:alarm] tests/value/loopinv.c:42: Warning: 
+[eva] tests/value/loopinv.c:42: loop invariant got status valid.
+[eva] tests/value/loopinv.c:46: Frama_C_show_each: {0}, {0}
+[eva] tests/value/loopinv.c:43: starting to merge loop iterations
+[eva] tests/value/loopinv.c:46: Frama_C_show_each: {0; 1}, {0; 1}
+[eva:alarm] tests/value/loopinv.c:42: Warning: 
   loop invariant got status unknown.
-[value] tests/value/loopinv.c:46: Frama_C_show_each: {0; 1; 2}, {0; 1; 2}
-[value] tests/value/loopinv.c:46: 
+[eva] tests/value/loopinv.c:46: Frama_C_show_each: {0; 1; 2}, {0; 1; 2}
+[eva] tests/value/loopinv.c:46: 
   Frama_C_show_each: {0; 1; 2; 3; 4; 5}, {0; 1; 2; 3}
-[value] tests/value/loopinv.c:46: 
+[eva] tests/value/loopinv.c:46: 
   Frama_C_show_each: {0; 1; 2; 3; 4; 5; 6}, {0; 1; 2; 3; 4}
-[value] tests/value/loopinv.c:46: Frama_C_show_each: [0..9], {0; 1; 2; 3; 4; 5}
-[value] tests/value/loopinv.c:46: 
-  Frama_C_show_each: [0..10], {0; 1; 2; 3; 4; 5; 6}
-[value] tests/value/loopinv.c:46: 
-  Frama_C_show_each: [0..13], {0; 1; 2; 3; 4; 5; 6; 7}
-[value] tests/value/loopinv.c:46: Frama_C_show_each: [0..14], [0..8]
-[value] tests/value/loopinv.c:46: Frama_C_show_each: [0..17], [0..9]
-[value] tests/value/loopinv.c:46: Frama_C_show_each: [0..18], [0..10]
-[value] tests/value/loopinv.c:46: Frama_C_show_each: [0..21], [0..11]
-[value] tests/value/loopinv.c:46: Frama_C_show_each: [0..23], [0..12]
-[value:alarm] tests/value/loopinv.c:45: Warning: 
+[eva:alarm] tests/value/loopinv.c:45: Warning: 
   signed overflow. assert j + 1 ≤ 2147483647;
-[value] tests/value/loopinv.c:46: Frama_C_show_each: [0..99], [0..2147483647]
-[value] Recording results for main3
-[value] Done for function main3
-[value] computing for function main4 <- main.
+[eva] tests/value/loopinv.c:46: Frama_C_show_each: [0..99], [0..2147483647]
+[eva] Recording results for main3
+[eva] Done for function main3
+[eva] computing for function main4 <- main.
   Called from tests/value/loopinv.c:66.
-[value] tests/value/loopinv.c:58: loop invariant got status valid.
-[value] tests/value/loopinv.c:59: entering loop for the first time
-[value:alarm] tests/value/loopinv.c:58: Warning: 
+[eva] tests/value/loopinv.c:58: loop invariant got status valid.
+[eva] tests/value/loopinv.c:59: starting to merge loop iterations
+[eva:alarm] tests/value/loopinv.c:58: Warning: 
   loop invariant got status unknown.
-[value] Recording results for main4
-[value] Done for function main4
-[value] Recording results for main
-[value] done for function main
-[value] ====== VALUES COMPUTED ======
-[value:final-states] Values at end of function init:
+[eva] Recording results for main4
+[eva] Done for function main4
+[eva] Recording results for main
+[eva] done for function main
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function init:
   p ∈ {{ &t1 + [4..284],0%4 ; &t2 + [4..40],0%4 }}
   t1[0] ∈ UNINITIALIZED
     [1..71] ∈ {1} or UNINITIALIZED
   t2[0] ∈ UNINITIALIZED
     [1..10] ∈ {1} or UNINITIALIZED
-[value:final-states] Values at end of function main1:
+[eva:final-states] Values at end of function main1:
   t1[0] ∈ UNINITIALIZED
     [1..71] ∈ {1} or UNINITIALIZED
   t2[0] ∈ UNINITIALIZED
     [1..10] ∈ {1} or UNINITIALIZED
-[value:final-states] Values at end of function main2:
+[eva:final-states] Values at end of function main2:
   NON TERMINATING FUNCTION
-[value:final-states] Values at end of function main3:
+[eva:final-states] Values at end of function main3:
   j ∈ [0..2147483647]
-[value:final-states] Values at end of function main4:
+[eva:final-states] Values at end of function main4:
   a ∈ {9}
   x ∈ {9}
-[value:final-states] Values at end of function main:
+[eva:final-states] Values at end of function main:
   
 [report] Computing properties status...
 
@@ -106,7 +95,7 @@
 [  Valid  ] Pre-condition 'c'
             by Call Preconditions.
 [  Valid  ] Invariant (file tests/value/loopinv.c, line 9)
-            by Value.
+            by Eva.
 [  Valid  ] Default behavior
             by Frama-C kernel.
 
@@ -116,41 +105,41 @@
 
 [  Valid  ] Instance of 'Pre-condition 'valid'' at call 'init' (file tests/value/loopinv.c, line 22)
 
-            by Value.
+            by Eva.
 [  Valid  ] Instance of 'Pre-condition 'c'' at call 'init' (file tests/value/loopinv.c, line 22)
 
-            by Value.
+            by Eva.
 [  Valid  ] Instance of 'Pre-condition 'valid'' at call 'init' (file tests/value/loopinv.c, line 25)
 
-            by Value.
+            by Eva.
 [  Valid  ] Instance of 'Pre-condition 'c'' at call 'init' (file tests/value/loopinv.c, line 25)
 
-            by Value.
+            by Eva.
 
 --------------------------------------------------------------------------------
 --- Properties of Function 'main2'
 --------------------------------------------------------------------------------
 
 [    -    ] Invariant (file tests/value/loopinv.c, line 32)
-            tried with Value.
+            tried with Eva.
 [  Valid  ] Invariant (file tests/value/loopinv.c, line 33)
-            by Value.
+            by Eva.
 
 --------------------------------------------------------------------------------
 --- Properties of Function 'main3'
 --------------------------------------------------------------------------------
 
 [    -    ] Invariant (file tests/value/loopinv.c, line 42)
-            tried with Value.
-[    -    ] Assertion 'Value,signed_overflow' (file tests/value/loopinv.c, line 45)
-            tried with Value.
+            tried with Eva.
+[    -    ] Assertion 'Eva,signed_overflow' (file tests/value/loopinv.c, line 45)
+            tried with Eva.
 
 --------------------------------------------------------------------------------
 --- Properties of Function 'main4'
 --------------------------------------------------------------------------------
 
 [    -    ] Invariant (file tests/value/loopinv.c, line 58)
-            tried with Value.
+            tried with Eva.
 
 --------------------------------------------------------------------------------
 --- Status Report Summary

@@ -652,8 +652,6 @@ module Callwise = struct
                 compute_call_from_value_states kf (Lazy.force states)
               with Kernel_function.No_Definition -> top
             in
-            Db.Operational_inputs.Record_Inout_Callbacks.apply
-              (call_stack, inout);
             (match value_res with
                | Value_types.NormalStore (_, memexec_counter) ->
                    MemExec.replace memexec_counter inout
@@ -663,6 +661,8 @@ module Callwise = struct
         | Value_types.Reuse counter ->
             MemExec.find counter
       in
+      Db.Operational_inputs.Record_Inout_Callbacks.apply
+        (call_stack, inout);
       end_record call_stack inout
 
 

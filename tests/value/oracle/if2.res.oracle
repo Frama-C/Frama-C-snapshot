@@ -1,18 +1,18 @@
 [kernel] Parsing tests/value/if2.i (no preprocessing)
-[value] Analyzing a complete application starting at main
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing a complete application starting at main
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   G2 ∈ {0}
   G3 ∈ {75}
   G4 ∈ {0}
   R ∈ {0}
   v ∈ [--..--]
   G1 ∈ {0}
-[value] Recording results for main
-[value] done for function main
-[value] ====== VALUES COMPUTED ======
-[value:final-states] Values at end of function main:
+[eva] Recording results for main
+[eva] done for function main
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function main:
   G3 ∈ {0}
   R ∈ {4; 10; 11}
   b ∈ {1}

@@ -1,67 +1,67 @@
 [kernel] Parsing tests/value/semaphore.i (no preprocessing)
-[value] Analyzing a complete application starting at g
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing a complete application starting at g
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   Sa ∈ {0}
   Sb ∈ {0}
-[value] tests/value/semaphore.i:28: entering loop for the first time
-[value] tests/value/semaphore.i:29: entering loop for the first time
-[value] computing for function V <- g.
+[eva] computing for function V <- g.
   Called from tests/value/semaphore.i:31.
 [kernel:annot:missing-spec] tests/value/semaphore.i:31: Warning: 
   Neither code nor specification for function V, generating default assigns from the prototype
-[value] using specification for function V
-[value] Done for function V
-[value] computing for function V <- g.
+[eva] using specification for function V
+[eva] Done for function V
+[eva] tests/value/semaphore.i:29: starting to merge loop iterations
+[eva] computing for function V <- g.
   Called from tests/value/semaphore.i:31.
-[value] Done for function V
-[value] computing for function V <- g.
+[eva] Done for function V
+[eva] computing for function V <- g.
   Called from tests/value/semaphore.i:31.
-[value] Done for function V
-[value] computing for function V <- g.
+[eva] Done for function V
+[eva] computing for function V <- g.
   Called from tests/value/semaphore.i:31.
-[value] Done for function V
-[value] computing for function P <- g.
+[eva] Done for function V
+[eva] tests/value/semaphore.i:28: starting to merge loop iterations
+[eva] computing for function P <- g.
   Called from tests/value/semaphore.i:34.
 [kernel:annot:missing-spec] tests/value/semaphore.i:34: Warning: 
   Neither code nor specification for function P, generating default assigns from the prototype
-[value] using specification for function P
-[value] Done for function P
-[value] computing for function P <- g.
+[eva] using specification for function P
+[eva] Done for function P
+[eva] computing for function P <- g.
   Called from tests/value/semaphore.i:35.
-[value] Done for function P
-[value] computing for function V <- g.
+[eva] Done for function P
+[eva] computing for function V <- g.
   Called from tests/value/semaphore.i:37.
-[value] Done for function V
-[value] computing for function V <- g.
+[eva] Done for function V
+[eva] computing for function V <- g.
   Called from tests/value/semaphore.i:38.
-[value] Done for function V
-[value] computing for function f <- g.
+[eva] Done for function V
+[eva] computing for function f <- g.
   Called from tests/value/semaphore.i:40.
-[value] computing for function P <- f <- g.
+[eva] computing for function P <- f <- g.
   Called from tests/value/semaphore.i:14.
-[value] Done for function P
-[value] computing for function P <- f <- g.
+[eva] Done for function P
+[eva] computing for function P <- f <- g.
   Called from tests/value/semaphore.i:16.
-[value] Done for function P
-[value] computing for function P <- f <- g.
+[eva] Done for function P
+[eva] computing for function P <- f <- g.
   Called from tests/value/semaphore.i:17.
-[value] Done for function P
-[value] computing for function V <- f <- g.
+[eva] Done for function P
+[eva] computing for function V <- f <- g.
   Called from tests/value/semaphore.i:19.
-[value] Done for function V
-[value] computing for function V <- f <- g.
+[eva] Done for function V
+[eva] computing for function V <- f <- g.
   Called from tests/value/semaphore.i:20.
-[value] Done for function V
-[value] Recording results for f
-[value] Done for function f
-[value] Recording results for g
-[value] done for function g
-[value] ====== VALUES COMPUTED ======
-[value:final-states] Values at end of function f:
+[eva] Done for function V
+[eva] Recording results for f
+[eva] Done for function f
+[eva] Recording results for g
+[eva] done for function g
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function f:
   c ∈ {12}
-[value:final-states] Values at end of function g:
+[eva:final-states] Values at end of function g:
   c ∈ {-26; -1}
 [from] Computing for function f
 [from] Computing for function P <-f

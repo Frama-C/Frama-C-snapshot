@@ -17,7 +17,7 @@ axiomatic Array_unsigned {
   
   lemma check_modified:
     ∀ unsigned int tab[10], ℤ idx, unsigned int v;
-      check((unsigned int [10])modified(tab, idx, v), idx, v);
+      check(modified(tab, idx, v), idx, v);
   
   }
  */

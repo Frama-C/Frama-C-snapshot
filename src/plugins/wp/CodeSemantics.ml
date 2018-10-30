@@ -79,7 +79,7 @@ struct
           c.cfields
     | C_array a ->
         (*TODO[LC] make zero-initializers model-dependent.
-          	   For instance, a[N][M] becomes a[N*M] in MemTyped, 
+                   For instance, a[N][M] becomes a[N*M] in MemTyped,
                    but not in MemVar *)
         let x = Lang.freshvar ~basename:"k" Logic.Int in
         let k = e_var x in
@@ -233,7 +233,7 @@ struct
 
     | C_int ir , C_float fr ->
         Val(Cint.of_real ir (Cfloat.real_of_float fr (cval ve)))
-          
+
     | C_float fr , C_int _ ->
         Val(Cfloat.float_of_real fr (Cmath.real_of_int (cval ve)))
 
@@ -340,7 +340,7 @@ struct
         if is_ptr t
         then M.loc_neq (cloc v1) (cloc v2)
         else p_neq (cval v1) (cval v2)
-  
+
   let equal_typ t v1 v2 = eq_t Cil.isPointerType t v1 v2
   let equal_obj obj v1 v2 = eq_t Ctypes.is_pointer obj v1 v2
   let not_equal_typ t v1 v2 = neq_t Cil.isPointerType t v1 v2
@@ -421,8 +421,8 @@ struct
            | None -> is_zero sigma obj l
         ) () in
     match outcome with
-      | Warning.Failed warn -> warn , F.p_true
-      | Warning.Result(warn , hyp) -> warn , hyp
+    | Warning.Failed warn -> warn , F.p_true
+    | Warning.Result(warn , hyp) -> warn , hyp
 
   let init_range ~sigma lv typ a b value =
     let obj = Ctypes.object_of typ in
@@ -434,8 +434,8 @@ struct
            is_exp_range sigma l obj (e_bigint a) (e_bigint b) e
         ) () in
     match outcome with
-      | Warning.Failed warn -> warn , F.p_true
-      | Warning.Result(warn , hyp) -> warn , hyp
+    | Warning.Failed warn -> warn , F.p_true
+    | Warning.Result(warn , hyp) -> warn , hyp
 
 
   type warned_hyp = Warning.Set.t * Lang.F.pred
@@ -455,7 +455,7 @@ struct
           | TArray (ty,Some {enode = (Const CInt64 (size,_,_))},_,_)
             when Integer.lt (Integer.of_int len) size  ->
               init_range ~sigma lv ty (Integer.of_int len) size None :: acc
-                
+
           | TComp (cp,_,_) when len < (List.length cp.cfields) ->
 
               List.fold_left
@@ -467,13 +467,13 @@ struct
                        initl
                    then acc
                    else
-                     let init = 
+                     let init =
                        init_value ~sigma
                          (Cil.addOffsetLval (Field(f, NoOffset)) lv)
                          f.ftype None in
                      init :: acc)
                 acc (List.rev cp.cfields)
-                
+
           | _ -> acc
         in
         match ct with

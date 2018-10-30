@@ -114,7 +114,7 @@ class type virtual ['z,'adt,'field,'logic,'tau,'var,'term,'env] engine =
     method set_env : 'env -> unit (** Set environment. *)
     method lookup : 'term -> scope (** Term scope in the current environment. *)
     method scope : 'env -> (unit -> unit) -> unit
-    (** Calls the continuation in the provided environment. 
+    (** Calls the continuation in the provided environment.
         Previous environment is restored after return. *)
 
     method local : (unit -> unit) -> unit
@@ -158,7 +158,7 @@ class type virtual ['z,'adt,'field,'logic,'tau,'var,'term,'env] engine =
     method mode : mode
     method with_mode : mode -> (mode -> unit) -> unit
     (** Calls the continuation with given mode for sub-terms.
-        	The englobing mode is passed to continuation and then restored. *)
+                The englobing mode is passed to continuation and then restored. *)
 
     method op_scope : amode -> string option
     (** Optional scoping post-fix operator when entering arithmetic mode. *)
@@ -261,16 +261,16 @@ class type virtual ['z,'adt,'field,'logic,'tau,'var,'term,'env] engine =
 
     method is_atomic : 'term -> bool
     (** Sub-terms that require parentheses.
-        	Shared sub-terms are detected on behalf of this method. *)
+                Shared sub-terms are detected on behalf of this method. *)
 
     method pp_flow : 'term printer
-    (** Printer with shared sub-terms printed with their name and 
+    (** Printer with shared sub-terms printed with their name and
         without parentheses. *)
 
     method pp_atom : 'term printer
-    (** Printer with shared sub-terms printed with their name and 
+    (** Printer with shared sub-terms printed with their name and
         within parentheses for non-atomic expressions. Additional
-        scope terminates the expression when required (typically 
+        scope terminates the expression when required (typically
         for Coq). *)
 
     method pp_repr : 'term printer
@@ -293,7 +293,7 @@ class type virtual ['z,'adt,'field,'logic,'tau,'var,'term,'env] engine =
 
     method pp_sort : 'term printer
     (** Prints in {i term}, {i arithmetic} or {i prop} mode with
-        respect to the sort of term. Boolean expression that also have a 
+        respect to the sort of term. Boolean expression that also have a
         property form are printed in [Mprop] mode. *)
 
   end

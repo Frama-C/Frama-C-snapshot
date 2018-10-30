@@ -62,12 +62,12 @@ let main _ =
     let new_cil_file = Ast.get () in
     Cil.visitCilFile infos new_cil_file (* the cil file after slicing *);;
   *)
-  Dynamic.Parameter.Bool.set "-val-show-progress" true;
+  Dynamic.Parameter.Bool.set "-eva-show-progress" true;
   !Db.Value.compute ();
   let all = Cil_datatype.Fundec.Set.empty in
-  let proj3 = !Db.Constant_Propagation.get all ~cast_intro:true in
+  let proj3 = Constant_Propagation.Api.get all ~cast_intro:true in
   Project.set_current proj3;
-  Dynamic.Parameter.Bool.set "-val-show-progress" true;
+  Dynamic.Parameter.Bool.set "-eva-show-progress" true;
   Format.printf "After Constant propagation :@.";
   File.pretty_ast ~prj:proj3 ();
 

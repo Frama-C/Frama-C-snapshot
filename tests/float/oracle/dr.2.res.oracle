@@ -2,10 +2,10 @@
 [kernel:parser:decimal-float] tests/float/dr.i:7: Warning: 
   Floating-point constant 100e30f is not represented exactly. Will use 0x1.3b8b5c0000000p106.
   (warn-once: no further messages from category 'parser:decimal-float' will be emitted)
-[value] Analyzing a complete application starting at main
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing a complete application starting at main
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   big ∈ [9.99999936467e+31 .. 1.00000003318e+32]
   big2 ∈ [1.00125992731e+32 .. 1.00126002403e+32]
   ne1 ∈ [-0.10000000149 .. -0.0999999940395]
@@ -22,11 +22,11 @@
   d2 ∈ [1.01161128283 .. 1.01161128283]
   e1 ∈ {0}
   e2 ∈ {0}
-[value] tests/float/dr.i:26: Frama_C_show_each: {0; 1}, {0; 1}
-[value] Recording results for main
-[value] done for function main
-[value] ====== VALUES COMPUTED ======
-[value:final-states] Values at end of function main:
+[eva] tests/float/dr.i:26: Frama_C_show_each: {0; 1}, {0; 1}
+[eva] Recording results for main
+[eva] done for function main
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function main:
   e1 ∈ {0; 1}
   e2 ∈ {0; 1}
   __retres ∈ {0}

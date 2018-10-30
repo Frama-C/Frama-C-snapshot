@@ -1,8 +1,8 @@
 [kernel] Parsing tests/constant_propagation/introduction_of_non_explicit_cast.c (with preprocessing)
-[value] Analyzing a complete application starting at main
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing a complete application starting at main
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   x ∈ {0}
   y ∈ {0}
   z ∈ {0}
@@ -10,71 +10,71 @@
   s1 ∈ {0}
   s2 ∈ {0}
   ull ∈ {0}
-[value] computing for function test_ull <- main.
+[eva] computing for function test_ull <- main.
   Called from tests/constant_propagation/introduction_of_non_explicit_cast.c:68.
-[value] Recording results for test_ull
-[value] Done for function test_ull
-[value] computing for function test_struct <- main.
+[eva] Recording results for test_ull
+[eva] Done for function test_ull
+[eva] computing for function test_struct <- main.
   Called from tests/constant_propagation/introduction_of_non_explicit_cast.c:69.
-[value] Recording results for test_struct
-[value] Done for function test_struct
-[value] computing for function test_struct_ptr <- main.
+[eva] Recording results for test_struct
+[eva] Done for function test_struct
+[eva] computing for function test_struct_ptr <- main.
   Called from tests/constant_propagation/introduction_of_non_explicit_cast.c:70.
-[value] Recording results for test_struct_ptr
-[value] Done for function test_struct_ptr
-[value] computing for function test_tab <- main.
+[eva] Recording results for test_struct_ptr
+[eva] Done for function test_struct_ptr
+[eva] computing for function test_tab <- main.
   Called from tests/constant_propagation/introduction_of_non_explicit_cast.c:71.
-[value] Recording results for test_tab
-[value] Done for function test_tab
-[value] computing for function init <- main.
+[eva] Recording results for test_tab
+[eva] Done for function test_tab
+[eva] computing for function init <- main.
   Called from tests/constant_propagation/introduction_of_non_explicit_cast.c:73.
-[value] computing for function add3 <- init <- main.
+[eva] computing for function add3 <- init <- main.
   Called from tests/constant_propagation/introduction_of_non_explicit_cast.c:57.
-[value] Recording results for add3
-[value] Done for function add3
-[value] Recording results for init
-[value] Done for function init
-[value] computing for function add3 <- main.
+[eva] Recording results for add3
+[eva] Done for function add3
+[eva] Recording results for init
+[eva] Done for function init
+[eva] computing for function add3 <- main.
   Called from tests/constant_propagation/introduction_of_non_explicit_cast.c:74.
-[value] Recording results for add3
-[value] Done for function add3
-[value] computing for function test_ptr <- main.
+[eva] Recording results for add3
+[eva] Done for function add3
+[eva] computing for function test_ptr <- main.
   Called from tests/constant_propagation/introduction_of_non_explicit_cast.c:76.
-[value] Recording results for test_ptr
-[value] Done for function test_ptr
-[value] tests/constant_propagation/introduction_of_non_explicit_cast.c:77: 
+[eva] Recording results for test_ptr
+[eva] Done for function test_ptr
+[eva] tests/constant_propagation/introduction_of_non_explicit_cast.c:77: 
   assertion got status valid.
-[value:alarm] tests/constant_propagation/introduction_of_non_explicit_cast.c:80: Warning: 
+[eva:alarm] tests/constant_propagation/introduction_of_non_explicit_cast.c:80: Warning: 
   assertion got status unknown.
-[value] tests/constant_propagation/introduction_of_non_explicit_cast.c:81: 
+[eva] tests/constant_propagation/introduction_of_non_explicit_cast.c:81: 
   assertion got status valid.
-[value] Recording results for main
-[value] done for function main
-[value] ====== VALUES COMPUTED ======
-[value:final-states] Values at end of function add3:
+[eva] Recording results for main
+[eva] done for function main
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function add3:
   __retres ∈ [--..--]
-[value:final-states] Values at end of function init:
+[eva:final-states] Values at end of function init:
   x ∈ {5}
   y ∈ {7}
   z ∈ {12}
   zero ∈ {0}
   sept ∈ {7}
   z1 ∈ {12}
-[value:final-states] Values at end of function test_ptr:
+[eva:final-states] Values at end of function test_ptr:
   x ∈ {7}
   p ∈ {{ &x }}
   s ∈ {{ &x + {1} }}
   decal ∈ {1}
   __retres ∈ {{ &x }}
-[value:final-states] Values at end of function test_struct:
+[eva:final-states] Values at end of function test_struct:
   s1{.a; .b} ∈ {1}
   s2{.a; .b} ∈ {1}
   s.a ∈ {1}
    .b ∈ {0}
-[value:final-states] Values at end of function test_struct_ptr:
+[eva:final-states] Values at end of function test_struct_ptr:
   q ∈ {{ &s1.b }}
   __retres ∈ {{ &s1.a }}
-[value:final-states] Values at end of function test_tab:
+[eva:final-states] Values at end of function test_tab:
   TAB[0..3] ∈ {0}
      [4][bits 0 to 15]# ∈ {13} repeated %8 
      [4][bits 16 to 31]# ∈ {13}%32, bits 16 to 31 
@@ -86,9 +86,9 @@
   r ∈ {{ &TAB[4] }}
   q ∈ {{ (char *)&TAB[4] }}
   decal ∈ {4}
-[value:final-states] Values at end of function test_ull:
+[eva:final-states] Values at end of function test_ull:
   ull ∈ {18446744073709551615}
-[value:final-states] Values at end of function main:
+[eva:final-states] Values at end of function main:
   x ∈ {7}
   y ∈ {7}
   z ∈ [--..--]

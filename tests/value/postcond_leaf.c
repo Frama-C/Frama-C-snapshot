@@ -1,5 +1,5 @@
 /* run.config* 
-OPT: -no-autoload-plugins @VALUECONFIG@ -load-module value,inout,report -no-val-show-progress -val -val-use-spec g1,g2,g3 -then -report
+OPT: -no-autoload-plugins @VALUECONFIG@ -load-module eva,inout,report -no-val-show-progress -val -val-use-spec g1,g2,g3 -then -report
 */
 
 /* Test what is printed when Value evaluates a post-condition:
@@ -21,54 +21,85 @@ extern int i;
 //@ ensures 0 == 1;
 void f1(void);
 
-/*@ behavior b:
+/*@
+  assigns i \from i;
+  behavior b:
       assumes i == 1;
       ensures 0 == 1;
     complete behaviors b; */
 void f2(void);
 
-/*@ ensures i == 4; */
+/*@
+ assigns i \from i;
+ ensures i == 4;
+*/
 void f3(void);
 
-/*@ ensures \false; */
+/*@
+  assigns \nothing;
+  ensures \false;
+*/
 void f4(void);
 
-/*@ ensures 0 == 1; */
+/*@
+  assigns i \from \nothing;
+  ensures 0 == 1;
+*/
 void g1() {
 }
 
-/*@ behavior b:
+/*@
+  assigns i \from i;
+  behavior b:
       assumes i == 1;
       ensures 0 == 1;
     complete behaviors b; */
 void g2() {
 }
 
-/*@ ensures i == 4; */
+/*@
+  assigns \nothing;
+  ensures i == 4;
+*/
 void g3() {
 }
 
-/*@ ensures 0 == 1; */
+/*@
+  assigns \nothing;
+  ensures 0 == 1;
+*/
 void h1() {
 }
 
-/*@ behavior b:
+/*@
+  assigns \nothing;
+  behavior b:
       assumes i == 1;
       ensures 0 == 1;
     complete behaviors b; */
 void h2() {
 }
 
-/*@ ensures i == 4; */
+/*@
+  assigns \nothing;
+  ensures i == 4;
+*/
 void h3() {
 }
 
-/*@ ensures \false; */
+/*@
+  assigns \nothing;
+  ensures \false;
+*/
 void h4() {
 }
 
 
-//@ ensures \result == p;
+/*@
+  assigns *p \from i;
+  assigns \result \from p;
+  ensures \result == p;
+*/
 int* k(int *p);
 
 

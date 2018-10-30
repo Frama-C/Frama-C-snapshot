@@ -1,75 +1,72 @@
 [kernel] Parsing tests/value/precond.c (with preprocessing)
-[value] Analyzing an incomplete application starting at main
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing an incomplete application starting at main
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   x ∈ [--..--]
   pf2 ∈ {{ &f2 }}
-[value] computing for function f <- main.
+[eva] computing for function f <- main.
   Called from tests/value/precond.c:31.
-[value] tests/value/precond.c:31: 
+[eva] tests/value/precond.c:31: 
   function f: precondition 'i_plus_one' got status valid.
-[value] tests/value/precond.c:31: function f: precondition 'i' got status valid.
-[value] Recording results for f
-[value] Done for function f
-[value] computing for function f <- main.
+[eva] tests/value/precond.c:31: function f: precondition 'i' got status valid.
+[eva] Recording results for f
+[eva] Done for function f
+[eva] computing for function f <- main.
   Called from tests/value/precond.c:32.
-[value] tests/value/precond.c:32: 
+[eva] tests/value/precond.c:32: 
   function f: precondition 'i_plus_one' got status valid.
-[value] tests/value/precond.c:32: function f: precondition 'i' got status valid.
-[value] Recording results for f
-[value] Done for function f
-[value] computing for function g <- main.
+[eva] tests/value/precond.c:32: function f: precondition 'i' got status valid.
+[eva] Recording results for f
+[eva] Done for function f
+[eva] computing for function g <- main.
   Called from tests/value/precond.c:34.
 [kernel] tests/value/precond.c:34: Warning: 
   No code nor implicit assigns clause for function g, generating default assigns from the prototype
-[value] using specification for function g
-[value:alarm] tests/value/precond.c:34: Warning: 
+[eva] using specification for function g
+[eva:alarm] tests/value/precond.c:34: Warning: 
   function g: precondition got status unknown.
-[value] Done for function g
-[value] computing for function aux <- main.
+[eva] Done for function g
+[eva] computing for function aux <- main.
   Called from tests/value/precond.c:36.
-[value] computing for function f2 <- aux <- main.
+[eva] computing for function f2 <- aux <- main.
   Called from tests/value/precond.c:21.
 [kernel] tests/value/precond.c:21: Warning: 
   No code nor implicit assigns clause for function f2, generating default assigns from the prototype
-[value] using specification for function f2
-[value] tests/value/precond.c:21: function f2: precondition got status valid.
-[value] Done for function f2
-[value] Recording results for aux
-[value] Done for function aux
-[value] computing for function aux <- main.
+[eva] using specification for function f2
+[eva] tests/value/precond.c:21: function f2: precondition got status valid.
+[eva] Done for function f2
+[eva] Recording results for aux
+[eva] Done for function aux
+[eva] computing for function aux <- main.
   Called from tests/value/precond.c:37.
-[value] computing for function f2 <- aux <- main.
+[eva] computing for function f2 <- aux <- main.
   Called from tests/value/precond.c:21.
-[value:alarm] tests/value/precond.c:21: Warning: 
+[eva:alarm] tests/value/precond.c:21: Warning: 
   function f2: precondition got status unknown.
-[value] Done for function f2
-[value] Recording results for aux
-[value] Done for function aux
-[value] computing for function f <- main.
-  Called from tests/value/precond.c:39.
-[value] tests/value/precond.c:39: 
+[eva] Done for function f2
+[eva] Recording results for aux
+[eva] Done for function aux
+[eva] tests/value/precond.c:39: 
   function f: precondition 'i_plus_one' got status valid.
-[value] tests/value/precond.c:39: function f: precondition 'i' got status valid.
-[value] Recording results for f
-[value] Done for function f
-[value] computing for function f <- main.
+[eva] tests/value/precond.c:39: function f: precondition 'i' got status valid.
+[eva] tests/value/precond.c:39: Reusing old results for call to f
+[eva] computing for function f <- main.
   Called from tests/value/precond.c:40.
-[value] tests/value/precond.c:40: 
+[eva] tests/value/precond.c:40: 
   function f: precondition 'i_plus_one' got status valid.
-[value:alarm] tests/value/precond.c:40: Warning: 
+[eva:alarm] tests/value/precond.c:40: Warning: 
   function f: precondition 'i' got status invalid.
-[value] Recording results for f
-[value] Done for function f
-[value] Recording results for main
-[value] done for function main
-[value] ====== VALUES COMPUTED ======
-[value:final-states] Values at end of function f:
+[eva] Recording results for f
+[eva] Done for function f
+[eva] Recording results for main
+[eva] done for function main
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function f:
   x ∈ {0; 1}
-[value:final-states] Values at end of function aux:
+[eva:final-states] Values at end of function aux:
   
-[value:final-states] Values at end of function main:
+[eva:final-states] Values at end of function main:
   NON TERMINATING FUNCTION
 [report] Computing properties status...
 
@@ -106,7 +103,7 @@
 [    -    ] Instance of 'Pre-condition (file tests/value/precond.c, line 15)' at instruction (file tests/value/precond.c, line 21)
 
             status of 'requires i ≥ 0' of f2 at stmt 4
-            tried with Value.
+            tried with Eva.
 
 --------------------------------------------------------------------------------
 --- Properties of Function 'g'
@@ -129,39 +126,39 @@
 [  Valid  ] Instance of 'Pre-condition 'i_plus_one'' at call 'f' (file tests/value/precond.c, line 31)
 
             status of 'requires i_plus_one: i + 1 ≥ 0' of f at stmt 10
-            by Value.
+            by Eva.
 [  Valid  ] Instance of 'Pre-condition 'i'' at call 'f' (file tests/value/precond.c, line 31)
 
             status of 'requires i: i ≥ 0' of f at stmt 10
-            by Value.
+            by Eva.
 [  Valid  ] Instance of 'Pre-condition 'i_plus_one'' at call 'f' (file tests/value/precond.c, line 32)
 
             status of 'requires i_plus_one: i + 1 ≥ 0' of f at stmt 13
-            by Value.
+            by Eva.
 [  Valid  ] Instance of 'Pre-condition 'i'' at call 'f' (file tests/value/precond.c, line 32)
 
             status of 'requires i: i ≥ 0' of f at stmt 13
-            by Value.
+            by Eva.
 [    -    ] Instance of 'Pre-condition (file tests/value/precond.c, line 24)' at call 'g' (file tests/value/precond.c, line 34)
 
             status of 'requires x ≤ 8' of g at stmt 16
-            tried with Value.
+            tried with Eva.
 [  Valid  ] Instance of 'Pre-condition 'i_plus_one'' at instruction (file tests/value/precond.c, line 39)
 
             status of 'requires i_plus_one: i + 1 ≥ 0' of f at stmt 19
-            by Value.
+            by Eva.
 [  Valid  ] Instance of 'Pre-condition 'i'' at instruction (file tests/value/precond.c, line 39)
 
             status of 'requires i: i ≥ 0' of f at stmt 19
-            by Value.
+            by Eva.
 [  Valid  ] Instance of 'Pre-condition 'i_plus_one'' at instruction (file tests/value/precond.c, line 40)
 
             status of 'requires i_plus_one: i + 1 ≥ 0' of f at stmt 20
-            by Value.
+            by Eva.
 [  Alarm  ] Instance of 'Pre-condition 'i'' at instruction (file tests/value/precond.c, line 40)
 
             status of 'requires i: i ≥ 0' of f at stmt 20
-            By Value, with pending:
+            By Eva, with pending:
              - Unreachable instruction (file tests/value/precond.c, line 40)
 
 --------------------------------------------------------------------------------

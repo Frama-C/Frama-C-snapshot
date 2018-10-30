@@ -1,0 +1,313 @@
+[kernel] Parsing tests/libc/stdlib_c_env.c (with preprocessing)
+[eva] Analyzing a complete application starting at main
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
+  
+[eva] computing for function putenv <- main.
+  Called from tests/libc/stdlib_c_env.c:8.
+[eva] share/libc/stdlib.c:114: Call to builtin strchr
+[eva] share/libc/stdlib.c:114: 
+  function strchr: precondition 'valid_string_s' got status valid.
+[eva] share/libc/stdlib.c:115: 
+  assertion 'string_contains_separator' got status valid.
+[eva] share/libc/stdlib.c:116: assertion 'name_is_not_empty' got status valid.
+[eva] computing for function __fc_initenv <- putenv <- main.
+  Called from share/libc/stdlib.c:118.
+[eva] computing for function Frama_C_make_unknown <- __fc_initenv <- putenv <- main.
+  Called from share/libc/stdlib.c:87.
+[eva] using specification for function Frama_C_make_unknown
+[eva] share/libc/stdlib.c:87: 
+  function Frama_C_make_unknown: precondition 'valid_p' got status valid.
+[eva] Done for function Frama_C_make_unknown
+[eva] computing for function Frama_C_interval <- __fc_initenv <- putenv <- main.
+  Called from share/libc/stdlib.c:89.
+[eva] using specification for function Frama_C_interval
+[eva] share/libc/stdlib.c:89: 
+  function Frama_C_interval: precondition 'order' got status valid.
+[eva] Done for function Frama_C_interval
+[eva] share/libc/stdlib.c:88: starting to merge loop iterations
+[eva] computing for function Frama_C_interval <- __fc_initenv <- putenv <- main.
+  Called from share/libc/stdlib.c:89.
+[eva] Done for function Frama_C_interval
+[eva] computing for function Frama_C_interval <- __fc_initenv <- putenv <- main.
+  Called from share/libc/stdlib.c:89.
+[eva] Done for function Frama_C_interval
+[eva] computing for function Frama_C_interval <- __fc_initenv <- putenv <- main.
+  Called from share/libc/stdlib.c:89.
+[eva] Done for function Frama_C_interval
+[eva] computing for function Frama_C_interval <- __fc_initenv <- putenv <- main.
+  Called from share/libc/stdlib.c:89.
+[eva] Done for function Frama_C_interval
+[eva] Recording results for __fc_initenv
+[eva] Done for function __fc_initenv
+[eva] computing for function Frama_C_nondet <- putenv <- main.
+  Called from share/libc/stdlib.c:125.
+[eva] using specification for function Frama_C_nondet
+[eva] Done for function Frama_C_nondet
+[eva] computing for function Frama_C_nondet <- putenv <- main.
+  Called from share/libc/stdlib.c:126.
+[eva] Done for function Frama_C_nondet
+[eva] computing for function Frama_C_interval <- putenv <- main.
+  Called from share/libc/stdlib.c:128.
+[eva] share/libc/stdlib.c:128: 
+  function Frama_C_interval: precondition 'order' got status valid.
+[eva] Done for function Frama_C_interval
+[eva] computing for function Frama_C_interval <- putenv <- main.
+  Called from share/libc/stdlib.c:130.
+[eva] share/libc/stdlib.c:130: 
+  function Frama_C_interval: precondition 'order' got status valid.
+[eva] Done for function Frama_C_interval
+[eva] Recording results for putenv
+[eva] Done for function putenv
+[eva] computing for function putenv <- main.
+  Called from tests/libc/stdlib_c_env.c:10.
+[eva] share/libc/stdlib.c:114: Call to builtin strchr
+[eva] computing for function __fc_initenv <- putenv <- main.
+  Called from share/libc/stdlib.c:118.
+[eva] Recording results for __fc_initenv
+[eva] Done for function __fc_initenv
+[eva] computing for function Frama_C_nondet <- putenv <- main.
+  Called from share/libc/stdlib.c:125.
+[eva] Done for function Frama_C_nondet
+[eva] computing for function Frama_C_nondet <- putenv <- main.
+  Called from share/libc/stdlib.c:126.
+[eva] Done for function Frama_C_nondet
+[eva] computing for function Frama_C_interval <- putenv <- main.
+  Called from share/libc/stdlib.c:128.
+[eva] Done for function Frama_C_interval
+[eva] computing for function Frama_C_interval <- putenv <- main.
+  Called from share/libc/stdlib.c:130.
+[eva] Done for function Frama_C_interval
+[eva] Recording results for putenv
+[eva] Done for function putenv
+[eva] computing for function getenv <- main.
+  Called from tests/libc/stdlib_c_env.c:11.
+[eva] share/libc/stdlib.c:102: assertion got status valid.
+[eva] share/libc/stdlib.c:104: Reusing old results for call to __fc_initenv
+[eva] computing for function Frama_C_nondet <- getenv <- main.
+  Called from share/libc/stdlib.c:105.
+[eva] Done for function Frama_C_nondet
+[eva] computing for function Frama_C_interval <- getenv <- main.
+  Called from share/libc/stdlib.c:106.
+[eva] share/libc/stdlib.c:106: 
+  function Frama_C_interval: precondition 'order' got status valid.
+[eva] Done for function Frama_C_interval
+[eva] Recording results for getenv
+[eva] Done for function getenv
+[eva] tests/libc/stdlib_c_env.c:13: assertion got status valid.
+[eva] computing for function strcpy <- main.
+  Called from tests/libc/stdlib_c_env.c:15.
+[eva] using specification for function strcpy
+[eva] tests/libc/stdlib_c_env.c:15: 
+  function strcpy: precondition 'valid_string_src' got status valid.
+[eva] tests/libc/stdlib_c_env.c:15: 
+  function strcpy: precondition 'room_string' got status valid.
+[eva] tests/libc/stdlib_c_env.c:15: 
+  function strcpy: precondition 'separation' got status valid.
+[eva] share/libc/string.h:353: 
+  cannot evaluate ACSL term, unsupported ACSL construct: logic function strcmp
+[eva] Done for function strcpy
+[eva] computing for function getenv <- main.
+  Called from tests/libc/stdlib_c_env.c:16.
+[eva] share/libc/stdlib.c:104: Reusing old results for call to __fc_initenv
+[eva] computing for function Frama_C_nondet <- getenv <- main.
+  Called from share/libc/stdlib.c:105.
+[eva] Done for function Frama_C_nondet
+[eva] computing for function Frama_C_interval <- getenv <- main.
+  Called from share/libc/stdlib.c:106.
+[eva] Done for function Frama_C_interval
+[eva] Recording results for getenv
+[eva] Done for function getenv
+[eva] computing for function setenv <- main.
+  Called from tests/libc/stdlib_c_env.c:17.
+[eva] share/libc/stdlib.c:137: Call to builtin strchr
+[eva] share/libc/stdlib.c:137: 
+  function strchr: precondition 'valid_string_s' got status valid.
+[eva] share/libc/stdlib.c:141: Call to builtin strlen
+[eva] share/libc/stdlib.c:141: 
+  function strlen: precondition 'valid_string_s' got status valid.
+[eva] share/libc/stdlib.c:147: Reusing old results for call to __fc_initenv
+[eva] computing for function Frama_C_nondet <- setenv <- main.
+  Called from share/libc/stdlib.c:153.
+[eva] Done for function Frama_C_nondet
+[eva] computing for function Frama_C_nondet <- setenv <- main.
+  Called from share/libc/stdlib.c:157.
+[eva] Done for function Frama_C_nondet
+[eva] computing for function Frama_C_make_unknown <- setenv <- main.
+  Called from share/libc/stdlib.c:158.
+[eva] share/libc/stdlib.c:158: 
+  function Frama_C_make_unknown: precondition 'valid_p' got status valid.
+[eva] Done for function Frama_C_make_unknown
+[eva] computing for function Frama_C_interval <- setenv <- main.
+  Called from share/libc/stdlib.c:160.
+[eva] share/libc/stdlib.c:160: 
+  function Frama_C_interval: precondition 'order' got status valid.
+[eva] Done for function Frama_C_interval
+[eva] computing for function Frama_C_interval <- setenv <- main.
+  Called from share/libc/stdlib.c:160.
+[eva] share/libc/stdlib.c:160: 
+  function Frama_C_interval: precondition 'order' got status valid.
+[eva] Done for function Frama_C_interval
+[eva] Recording results for setenv
+[eva] Done for function setenv
+[eva] computing for function setenv <- main.
+  Called from tests/libc/stdlib_c_env.c:18.
+[eva] share/libc/stdlib.c:137: Call to builtin strchr
+[eva:alarm] share/libc/stdlib.c:137: Warning: 
+  function strchr: precondition 'valid_string_s' got status unknown.
+[eva] share/libc/stdlib.c:141: Call to builtin strlen
+[eva:alarm] share/libc/stdlib.c:141: Warning: 
+  function strlen: precondition 'valid_string_s' got status unknown.
+[eva] share/libc/stdlib.c:147: Reusing old results for call to __fc_initenv
+[eva] computing for function Frama_C_nondet <- setenv <- main.
+  Called from share/libc/stdlib.c:153.
+[eva] Done for function Frama_C_nondet
+[eva] computing for function Frama_C_nondet <- setenv <- main.
+  Called from share/libc/stdlib.c:157.
+[eva] Done for function Frama_C_nondet
+[eva] computing for function Frama_C_make_unknown <- setenv <- main.
+  Called from share/libc/stdlib.c:158.
+[eva] Done for function Frama_C_make_unknown
+[eva] computing for function Frama_C_interval <- setenv <- main.
+  Called from share/libc/stdlib.c:160.
+[eva] Done for function Frama_C_interval
+[eva] computing for function Frama_C_interval <- setenv <- main.
+  Called from share/libc/stdlib.c:160.
+[eva] Done for function Frama_C_interval
+[eva] Recording results for setenv
+[eva] Done for function setenv
+[eva] computing for function setenv <- main.
+  Called from tests/libc/stdlib_c_env.c:19.
+[eva] share/libc/stdlib.c:137: Call to builtin strchr
+[eva] share/libc/stdlib.c:141: Call to builtin strlen
+[eva] share/libc/stdlib.c:147: Reusing old results for call to __fc_initenv
+[eva] computing for function Frama_C_nondet <- setenv <- main.
+  Called from share/libc/stdlib.c:153.
+[eva] Done for function Frama_C_nondet
+[eva] computing for function Frama_C_nondet <- setenv <- main.
+  Called from share/libc/stdlib.c:157.
+[eva] Done for function Frama_C_nondet
+[eva] computing for function Frama_C_make_unknown <- setenv <- main.
+  Called from share/libc/stdlib.c:158.
+[eva] Done for function Frama_C_make_unknown
+[eva] computing for function Frama_C_interval <- setenv <- main.
+  Called from share/libc/stdlib.c:160.
+[eva] Done for function Frama_C_interval
+[eva] computing for function Frama_C_interval <- setenv <- main.
+  Called from share/libc/stdlib.c:160.
+[eva] Done for function Frama_C_interval
+[eva] Recording results for setenv
+[eva] Done for function setenv
+[eva] computing for function unsetenv <- main.
+  Called from tests/libc/stdlib_c_env.c:20.
+[eva] share/libc/stdlib.c:167: Call to builtin strchr
+[eva] share/libc/stdlib.c:167: 
+  function strchr: precondition 'valid_string_s' got status valid.
+[eva] share/libc/stdlib.c:171: Call to builtin strlen
+[eva] share/libc/stdlib.c:171: 
+  function strlen: precondition 'valid_string_s' got status valid.
+[eva] share/libc/stdlib.c:177: Reusing old results for call to __fc_initenv
+[eva] computing for function Frama_C_nondet <- unsetenv <- main.
+  Called from share/libc/stdlib.c:179.
+[eva] Done for function Frama_C_nondet
+[eva] computing for function Frama_C_interval <- unsetenv <- main.
+  Called from share/libc/stdlib.c:180.
+[eva] share/libc/stdlib.c:180: 
+  function Frama_C_interval: precondition 'order' got status valid.
+[eva] Done for function Frama_C_interval
+[eva] Recording results for unsetenv
+[eva] Done for function unsetenv
+[eva] tests/libc/stdlib_c_env.c:21: assertion got status valid.
+[eva] computing for function unsetenv <- main.
+  Called from tests/libc/stdlib_c_env.c:22.
+[eva] share/libc/stdlib.c:167: Call to builtin strchr
+[eva] Recording results for unsetenv
+[eva] Done for function unsetenv
+[eva] tests/libc/stdlib_c_env.c:23: assertion got status valid.
+[eva] computing for function unsetenv <- main.
+  Called from tests/libc/stdlib_c_env.c:24.
+[eva] share/libc/stdlib.c:167: Call to builtin strchr
+[eva:alarm] share/libc/stdlib.c:167: Warning: 
+  function strchr: precondition 'valid_string_s' got status unknown.
+[eva] share/libc/stdlib.c:171: Call to builtin strlen
+[eva:alarm] share/libc/stdlib.c:171: Warning: 
+  function strlen: precondition 'valid_string_s' got status unknown.
+[eva] share/libc/stdlib.c:177: Reusing old results for call to __fc_initenv
+[eva] computing for function Frama_C_nondet <- unsetenv <- main.
+  Called from share/libc/stdlib.c:179.
+[eva] Done for function Frama_C_nondet
+[eva] computing for function Frama_C_interval <- unsetenv <- main.
+  Called from share/libc/stdlib.c:180.
+[eva] Done for function Frama_C_interval
+[eva] Recording results for unsetenv
+[eva] Done for function unsetenv
+[eva] computing for function getenv <- main.
+  Called from tests/libc/stdlib_c_env.c:25.
+[eva:alarm] share/libc/stdlib.c:102: Warning: assertion got status unknown.
+[eva] share/libc/stdlib.c:104: Reusing old results for call to __fc_initenv
+[eva] computing for function Frama_C_nondet <- getenv <- main.
+  Called from share/libc/stdlib.c:105.
+[eva] Done for function Frama_C_nondet
+[eva] computing for function Frama_C_interval <- getenv <- main.
+  Called from share/libc/stdlib.c:106.
+[eva] Done for function Frama_C_interval
+[eva] Recording results for getenv
+[eva] Done for function getenv
+[eva] Recording results for main
+[eva] done for function main
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function __fc_initenv:
+  __fc_env[0..4095] ∈ {{ NULL ; &__fc_env_strings + [0..63] ; "BLA=1" }}
+  Frama_C_entropy_source ∈ [--..--]
+  __fc_env_strings[0..62] ∈ [--..--]
+                  [63] ∈ {0}
+  __fc_initenv_init ∈ {1}
+[eva:final-states] Values at end of function getenv:
+  Frama_C_entropy_source ∈ [--..--]
+  __retres ∈ {{ NULL ; &s[0] ; &__fc_env_strings + [0..63] ; "BLA=1" }}
+[eva:final-states] Values at end of function putenv:
+  __fc_env[0..4095] ∈
+          {{ NULL ; &s[0] ; &__fc_env_strings + [0..63] ; "BLA=1" }}
+  Frama_C_entropy_source ∈ [--..--]
+  separator ∈ {{ &s[4] ; "BLA=1" + {3} }}
+  __fc_env_strings[0..62] ∈ [--..--]
+                  [63] ∈ {0}
+  __fc_initenv_init ∈ {1}
+  __retres ∈ [--..--]
+[eva:final-states] Values at end of function setenv:
+  __fc_env[0..4095] ∈
+          {{ NULL ; &s[0] ; &__fc_env_strings + [0..63] ; "BLA=1" }}
+  Frama_C_entropy_source ∈ [--..--]
+  namelen ∈ [0..63]
+  __fc_env_strings[0..62] ∈ [--..--]
+                  [63] ∈ {0}
+  __retres ∈ {-1; 0}
+[eva:final-states] Values at end of function unsetenv:
+  __fc_env[0..4095] ∈
+          {{ NULL ; &s[0] ; &__fc_env_strings + [0..63] ; "BLA=1" }}
+  Frama_C_entropy_source ∈ [--..--]
+  namelen ∈ [0..63]
+  __retres ∈ {-1; 0}
+[eva:final-states] Values at end of function main:
+  __fc_env[0..4095] ∈
+          {{ NULL ; &s[0] ; &__fc_env_strings + [0..63] ; "BLA=1" }}
+  Frama_C_entropy_source ∈ [--..--]
+  env0 ∈ {{ "BLA=1" }}
+  i1 ∈ [--..--]
+  s[0..7] ∈ [--..--]
+   [8..9] ∈ {0}
+  i2 ∈ [--..--]
+  r1 ∈ {{ NULL ; &s[0] ; &__fc_env_strings + [0..63] ; "BLA=1" }}
+  r2 ∈ {{ NULL ; &s[0] ; &__fc_env_strings + [0..63] ; "BLA=1" }}
+  i3 ∈ {-1; 0}
+  i4 ∈ {-1; 0}
+  i5 ∈ {-1; 0}
+  i6 ∈ {0}
+  i7 ∈ {-1}
+  i8 ∈ {-1; 0}
+  r3 ∈ {{ NULL ; &s[0] ; &__fc_env_strings + [0..63] ; "BLA=1" }}
+  __fc_env_strings[0..62] ∈ [--..--]
+                  [63] ∈ {0}
+  __fc_initenv_init ∈ {1}
+  __retres ∈ {0}

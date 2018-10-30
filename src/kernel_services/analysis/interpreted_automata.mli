@@ -57,19 +57,27 @@ type assert_kind =
   | Check
   | Assume
 
+(** Maps binding the labels from an annotation to the vertices they refer to in
+    the graph. *)
 type 'vertex labels = 'vertex Cil_datatype.Logic_label.Map.t
 
+type 'vertex annotation = {
+  kind: assert_kind;
+  predicate: identified_predicate;
+  labels: 'vertex labels;
+  property: Property.t;
+}
+
 (** Each transition can either be a skip (do nothing), a return, a guard
-    represented by a Cil expression, a Cil instruction or entering/leaving
-    a block.
+    represented by a Cil expression, a Cil instruction, an ACSL annotation
+    or entering/leaving a block.
     The edge is annotated with the statement from which the transition has been
     generated. This is currently used to choose alarms locations. *)
-
 type 'vertex transition =
   | Skip
   | Return of exp option * stmt
   | Guard of exp * guard_kind * stmt
-  | Prop of assert_kind * identified_predicate * guard_kind * 'vertex labels * Property.t
+  | Prop of 'vertex annotation * stmt
   | Instr of instr * stmt
   | Enter of block
   | Leave of block

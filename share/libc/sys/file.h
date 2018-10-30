@@ -39,6 +39,11 @@ __PUSH_FC_STDLIB
 
 #define LOCK_NB 4
 
+/*@ // missing: may assign errno to EBADF, EINTR, EINVAL, ENOLCK, EWOULDBLOCK
+    // missing: assigns \result, 'filesystem' \from 'filesystem'
+  assigns \result \from indirect:fd, indirect:operation;
+  ensures result_ok_or_error: \result == 0 || \result == -1;
+*/
 extern int flock(int fd, int operation);
 
 __POP_FC_STDLIB

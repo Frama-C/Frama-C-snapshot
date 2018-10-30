@@ -1,8 +1,8 @@
 [kernel] Parsing tests/value/label.i (no preprocessing)
-[value] Analyzing a complete application starting at main
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing a complete application starting at main
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   a ∈ {0}
   b ∈ {0}
   d ∈ {0}
@@ -10,26 +10,26 @@
   i ∈ {0}
   p ∈ {0}
   q ∈ {0}
-[value] tests/value/label.i:18: 
+[eva] tests/value/label.i:18: 
   Assigning imprecise value to *((char *)(& p) + i)
   (pointing to p with offsets {0}).
   The imprecision originates from Misaligned {tests/value/label.i:18}
-[value] tests/value/label.i:18: 
+[eva] tests/value/label.i:18: 
   Assigning imprecise value to *((char *)(& p) + i)
   (pointing to p with offsets {0; 8}).
   The imprecision originates from Misaligned {tests/value/label.i:18}
-[value] tests/value/label.i:18: 
+[eva] tests/value/label.i:18: 
   Assigning imprecise value to *((char *)(& p) + i)
   (pointing to p with offsets {0; 8; 16}).
   The imprecision originates from Misaligned {tests/value/label.i:18}
-[value] tests/value/label.i:18: 
+[eva] tests/value/label.i:18: 
   Assigning imprecise value to *((char *)(& p) + i)
   (pointing to p with offsets {0; 8; 16; 24}).
   The imprecision originates from Misaligned {tests/value/label.i:18}
-[value] Recording results for main
-[value] done for function main
-[value] ====== VALUES COMPUTED ======
-[value:final-states] Values at end of function main:
+[eva] Recording results for main
+[eva] done for function main
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function main:
   a ∈ {{ &d + {4} }}
   b ∈ {1; 2}
   i ∈ {4}

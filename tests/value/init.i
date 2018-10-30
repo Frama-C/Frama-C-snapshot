@@ -1,6 +1,6 @@
 /* run.config*
-STDOPT: #"-initialized-padding-globals"
-STDOPT: #"-uninitialized-padding-globals"
+STDOPT: #"-eva-initialization-padding-globals yes"
+STDOPT: #"-eva-initialization-padding-globals no"
 */
 
 const char S[5] = "12345";

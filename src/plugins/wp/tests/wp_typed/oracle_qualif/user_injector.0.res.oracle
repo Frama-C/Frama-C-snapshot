@@ -1,4 +1,4 @@
-# frama-c -wp [...]
+# frama-c -wp -wp-timeout 90 -wp-steps 1500 [...]
 [kernel] Parsing tests/wp_typed/user_injector.i (no preprocessing)
 [wp] Running WP plugin...
 [wp] Loading driver 'share/wp.driver'
@@ -31,7 +31,7 @@
 Functions           WP     Alt-Ergo        Total   Success
 job                 20     -                20       100%
 -------------------------------------------------------------
-[wp] Warning: Separation hypotheses for function 'job':
+[wp] Warning: Memory model hypotheses for function 'job':
   /*@
      behavior typed:
      requires \separated(\union(&seq,&service_cpt,service_id+(..),

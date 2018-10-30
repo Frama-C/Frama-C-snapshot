@@ -38,6 +38,7 @@ let show main_ui =
     "Zaynah Dargaye";
     "Jean-Christophe Filliâtre";
     "Philippe Herrmann";
+    "Maxime Jacquemin";
     "Florent Kirchner";
     "Tristan Le Gall";
     "Jean-Christophe Léchenet";
@@ -83,7 +84,7 @@ let show main_ui =
       ~license
       ~website:"http://frama-c.com"
       ~website_label:"Questions and support"
-      ~version:Config.version
+      ~version:Config.version_and_codename
       ~comments:"Frama-C is a suite of tools dedicated to the analysis of the \
                  source code of software written in C."
       ()

@@ -1,8 +1,8 @@
 [kernel] Parsing tests/value/init.i (no preprocessing)
-[value] Analyzing a complete application starting at main
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing a complete application starting at main
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   S[0] ∈ {49}
    [1] ∈ {50}
    [2] ∈ {51}
@@ -34,10 +34,10 @@
    [1] ∈ {4}
   x ∈ {8}
   y ∈ {40}
-[value] Recording results for main
-[value] done for function main
-[value] ====== VALUES COMPUTED ======
-[value:final-states] Values at end of function main:
+[eva] Recording results for main
+[eva] done for function main
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function main:
   __retres ∈ {8}
 [from] Computing for function main
 [from] Done for function main

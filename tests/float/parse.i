@@ -29,5 +29,11 @@ int main() {
   if (v) {
     double d = 0.0000001E9999999999999999999;
     Frama_C_show_each("unreached");
-  } 
+  }
+
+  // Shows several issues with long double in Eva, but should at least not crash.
+  if (v) {
+    long double l = 0x1p32767L;
+    int long_double = (int)l;
+  }
 }

@@ -29,6 +29,7 @@ module type S = sig
 
   type state
   type value
+  type location
 
   val assign: state -> kinstr -> lval -> exp -> state or_bottom
 
@@ -53,9 +54,11 @@ module type S = sig
   type call_result = {
     states: state list or_bottom;
     cacheable: Value_types.cacheable;
+    builtin: bool;
   }
 
-  val compute_call_ref: (kinstr -> value call -> state -> call_result) ref
+  val compute_call_ref:
+    (stmt -> (location, value) call -> state -> call_result) ref
 end
 
 module Make
@@ -69,7 +72,7 @@ module Make
                         and type origin = Domain.origin)
   : S with type state = Domain.state
        and type value = Domain.value
-
+       and type location = Domain.location
 
 (*
 Local Variables:

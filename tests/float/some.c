@@ -6,7 +6,7 @@
 FLOAT t[N] = { 1. } ;
 FLOAT y = 0.5;
 
-main(){ 
+int main(){
   int i;
   for (i=1 ; i<N; i++)
     {

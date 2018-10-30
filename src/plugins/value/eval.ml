@@ -60,25 +60,6 @@ let (>>=.) (t, a) f = match t with
 (* Backward evaluation. *)
 type 'a reduced = [ `Bottom | `Unreduced | `Value of 'a ]
 
-
-(* Context for the evaluation of abstract value operators. *)
-
-(** Context for the evaluation of an unary operator: contains the involved
-    expressions needed to create the appropriate alarms. *)
-type unop_context = {
-  operand: exp;
-}
-
-(** Context for the evaluation of a binary operator: contains the expressions
-    of both operands and of the result, needed to create the appropriate
-    alarms. *)
-type binop_context = {
-  left_operand: exp;
-  right_operand: exp;
-  binary_result: exp;
-}
-
-
 (* -------------------------------------------------------------------------- *)
 (**                     {2 Cache for the evaluations }                        *)
 (* -------------------------------------------------------------------------- *)
@@ -172,9 +153,9 @@ let compute_englobing_subexpr ~subexpr ~expr =
         | CastE (_, e)
         | Info (e, _) -> compute e
         | BinOp (_, e1, e2, _) ->
-           merge (compute e1) (compute e2)
+          merge (compute e1) (compute e2)
         | Lval (host, offset) ->
-           merge (compute_host host) (compute_offset offset)
+          merge (compute_host host) (compute_offset offset)
         | _ -> None
       in
       Extlib.opt_map (fun l -> expr :: l) sublist
@@ -231,38 +212,36 @@ type 'loc left_value = {
 }
 
 (* Assigned values. *)
-type 'value assigned =
+type ('loc, 'value) assigned =
   | Assign of 'value
-  | Copy of lval * 'value flagged_value
+  | Copy of 'loc left_value * 'value flagged_value
 
 let value_assigned = function
   | Assign v -> `Value v
   | Copy (_, copied) -> copied.v
 
+type logic_assign =
+  | Assigns of from
+  | Allocates of identified_term
+  | Frees of identified_term
 
 (* -------------------------------------------------------------------------- *)
 (**                       {2 Interprocedural Analysis }                       *)
 (* -------------------------------------------------------------------------- *)
 
-type 'value argument = {
+type ('loc, 'value) argument = {
   formal: varinfo;
   concrete: exp;
-  avalue: 'value assigned;
+  avalue: ('loc, 'value) assigned;
 }
 
-type 'value call = {
+type ('loc, 'value) call = {
   kf: kernel_function;
-  arguments: 'value argument list;
-  rest: (exp * 'value assigned) list;
+  arguments: ('loc, 'value) argument list;
+  rest: (exp * ('loc, 'value) assigned) list;
   return: varinfo option;
   recursive: bool;
 }
-
-
-(* Action to perform on a call site. *)
-type 'state call_action =
-  | Compute of 'state
-  | Result  of 'state list or_bottom * Value_types.cacheable
 
 (*
 Local Variables:

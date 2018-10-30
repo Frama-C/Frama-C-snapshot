@@ -40,8 +40,6 @@ Assume {
   Have: linked(Malloc_0) /\ sconst(Mchar_0).
   (* Then *)
   Have: i <= 99.
-  (* Call Effects *)
-  Have: havoc(Mchar_0, Mchar_1, shift_sint8(w_1, 0), 4).
 }
 Prove: global(G_dest_41) = w.
 
@@ -67,8 +65,6 @@ Assume {
   Have: linked(Malloc_0) /\ sconst(Mchar_0).
   (* Then *)
   Have: i <= 99.
-  (* Call Effects *)
-  Have: havoc(Mchar_0, Mchar_1, a, 4).
 }
 Prove: included(a, 4, global(G_dest_41), 1).
 

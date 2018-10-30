@@ -25,6 +25,13 @@ typedef struct {
   unsigned j;
 } s2;
 
+typedef struct {
+   union {
+      int a;
+      long b;
+   };
+} s3;
+
 s1 g1 = {
   .f1 = 1,
   .f3 = 3
@@ -45,6 +52,19 @@ s2 g3 = {
   4
 };
 
+s2 g4 = { { { .f1 = 0 } } };
+s2 g5 = { 1, 2, 3, 4, 5 };
+s2 g6 = { { 1, 2, 3, 4}, 5 };
+
+/* According to the braces, the 5 correspond to i instead of j, which cause the
+   5 to be ignored (too many elements in union) while j has no special value
+   (initialized to 0) */
+s2 g7 = { { { {1}, 2, 3, 4}, 5} };
+
+s3 g8 = { { .a = 0 } };
+
 int main() {
   return g2.f5;
 }
+
+

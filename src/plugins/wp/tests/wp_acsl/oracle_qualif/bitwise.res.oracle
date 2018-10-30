@@ -1,9 +1,9 @@
-# frama-c -wp [...]
+# frama-c -wp -wp-timeout 90 -wp-steps 1500 [...]
 [kernel] Parsing tests/wp_acsl/bitwise.i (no preprocessing)
 [wp] Running WP plugin...
 [wp] Loading driver 'share/wp.driver'
 [wp] Warning: Missing RTE guards
-[wp] 23 goals scheduled
+[wp] 29 goals scheduled
 [wp] [Qed] Goal typed_band_post : Valid
 [wp] [Qed] Goal typed_band_post_band0 : Valid
 [wp] [Qed] Goal typed_band_bit0_post_band1 : Valid
@@ -12,23 +12,30 @@
 [wp] [Qed] Goal typed_band_bit2_post_band4 : Valid
 [wp] [Qed] Goal typed_band_bit3_post_band5 : Valid
 [wp] [Qed] Goal typed_band_bit4_post_band6 : Valid
+[wp] [Alt-Ergo] Goal typed_band_bool_false_post : Unknown
+[wp] [Qed] Goal typed_band_bool_true_post : Valid
 [wp] [Qed] Goal typed_bnot_post : Valid
 [wp] [Qed] Goal typed_bor_post : Valid
 [wp] [Qed] Goal typed_bor_post_bor0 : Valid
 [wp] [Qed] Goal typed_bor_bit1_post_bor1 : Valid
 [wp] [Qed] Goal typed_bor_bit2_post_bor2 : Valid
 [wp] [Qed] Goal typed_bor_bit3_post_bor3 : Valid
+[wp] [Alt-Ergo] Goal typed_bor_bool_false_post : Unknown
+[wp] [Alt-Ergo] Goal typed_bor_bool_true_post : Valid
 [wp] [Qed] Goal typed_bxor_post : Valid
 [wp] [Qed] Goal typed_bxor_bit1_post : Valid
 [wp] [Qed] Goal typed_bxor_bit2_post : Valid
+[wp] [Alt-Ergo] Goal typed_bxor_bool_false_post : Unknown
+[wp] [Qed] Goal typed_bxor_bool_true_post : Valid
 [wp] [Qed] Goal typed_lshift_post : Valid
 [wp] [Qed] Goal typed_lshift_shift1_post_lsl1 : Valid
 [wp] [Qed] Goal typed_lshift_shift1_post_lsl2 : Valid
 [wp] [Qed] Goal typed_lshift_shift2_post_lsl3 : Valid
 [wp] [Qed] Goal typed_rshift_post : Valid
 [wp] [Qed] Goal typed_rshift_shift1_post_lsr1 : Valid
-[wp] Proved goals:   23 / 23
-  Qed:            23
+[wp] Proved goals:   26 / 29
+  Qed:            25 
+  Alt-Ergo:        1  (unknown: 3)
 [wp] Report 'tests/wp_acsl/bitwise.i.0.report.json'
 -------------------------------------------------------------
 Functions           WP     Alt-Ergo        Total   Success
@@ -38,4 +45,7 @@ bxor                 3     -                 3       100%
 bnot                 1     -                 1       100%
 lshift               4     -                 4       100%
 rshift               2     -                 2       100%
+bor_bool            -       1 (4..16)        2      50.0%
+band_bool            1     -                 2      50.0%
+bxor_bool            1     -                 2      50.0%
 -------------------------------------------------------------

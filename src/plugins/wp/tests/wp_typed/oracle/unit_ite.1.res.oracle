@@ -11,3 +11,6 @@ Goal Post-condition (file tests/wp_typed/unit_ite.i, line 2) in 'check':
 Prove: true.
 
 ------------------------------------------------------------
+[wp] Warning: Memory model hypotheses for function 'check':
+  /*@ behavior typed_ref: requires \valid(p); */
+  void check(int x, int *p);

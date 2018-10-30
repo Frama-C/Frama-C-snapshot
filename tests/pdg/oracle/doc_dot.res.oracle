@@ -1,17 +1,17 @@
 [kernel] Parsing tests/pdg/doc_dot.c (with preprocessing)
-[value] Analyzing an incomplete application starting at g
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing an incomplete application starting at g
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   G1 ∈ [--..--]
   G2 ∈ [--..--]
   T[0..9] ∈ [--..--]
-[value] computing for function f <- g.
+[eva] computing for function f <- g.
   Called from tests/pdg/doc_dot.c:14.
-[value] Recording results for f
-[value] Done for function f
-[value] Recording results for g
-[value] done for function g
+[eva] Recording results for f
+[eva] Done for function f
+[eva] Recording results for g
+[eva] done for function g
 [pdg] computing for function g
 [from] Computing for function f
 [from] Done for function f

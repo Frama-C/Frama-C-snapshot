@@ -1,23 +1,23 @@
 [kernel] Parsing tests/misc/bts1347.i (no preprocessing)
-[value] Analyzing an incomplete application starting at f
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing an incomplete application starting at f
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   
-[value:alarm] tests/misc/bts1347.i:5: Warning: 
+[eva:alarm] tests/misc/bts1347.i:5: Warning: 
   out of bounds read. assert \valid_read(x);
-[value] Recording results for f
-[value] done for function f
-[value] Analyzing an incomplete application starting at g
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Recording results for f
+[eva] done for function f
+[eva] Analyzing an incomplete application starting at g
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   
-[value:alarm] tests/misc/bts1347.i:6: Warning: 
+[eva:alarm] tests/misc/bts1347.i:6: Warning: 
   out of bounds read. assert \valid_read(tmp);
                       (tmp from x++)
-[value] Recording results for g
-[value] done for function g
+[eva] Recording results for g
+[eva] done for function g
 [report] Computing properties status...
 
 --------------------------------------------------------------------------------
@@ -26,20 +26,20 @@
 
 [  Dead   ] Assertion 'emitter' (file tests/misc/bts1347.i, line 5)
             Locally valid, but unreachable.
-            By Value because:
+            By Eva because:
              - Unreachable return (file tests/misc/bts1347.i, line 5)
 [Unreachable] Unreachable return (file tests/misc/bts1347.i, line 5)
-            by Value.
+            by Eva.
 
 --------------------------------------------------------------------------------
 --- Properties of Function 'g'
 --------------------------------------------------------------------------------
 
-[    -    ] Assertion 'Value,mem_access' (file tests/misc/bts1347.i, line 6)
-            tried with Value.
+[    -    ] Assertion 'Eva,mem_access' (file tests/misc/bts1347.i, line 6)
+            tried with Eva.
 [ Partial ] Assertion 'emitter' (file tests/misc/bts1347.i, line 6)
             By emitter, with pending:
-             - Assertion 'Value,mem_access' (file tests/misc/bts1347.i, line 6)
+             - Assertion 'Eva,mem_access' (file tests/misc/bts1347.i, line 6)
 
 --------------------------------------------------------------------------------
 --- Status Report Summary
@@ -50,24 +50,24 @@
      1 Unreachable
      4 Total
 --------------------------------------------------------------------------------
-[value] Analyzing an incomplete application starting at f
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing an incomplete application starting at f
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   
-[value:alarm] tests/misc/bts1347.i:5: Warning: 
+[eva:alarm] tests/misc/bts1347.i:5: Warning: 
   out of bounds read. assert \valid_read(x);
-[value] tests/misc/bts1347.i:5: assertion 'emitter' got status valid.
-[value] Recording results for f
-[value] done for function f
-[value] Analyzing an incomplete application starting at g
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] tests/misc/bts1347.i:5: assertion 'emitter' got status valid.
+[eva] Recording results for f
+[eva] done for function f
+[eva] Analyzing an incomplete application starting at g
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   
-[value:alarm] tests/misc/bts1347.i:6: Warning: 
+[eva:alarm] tests/misc/bts1347.i:6: Warning: 
   out of bounds read. assert \valid_read(tmp);
                       (tmp from x++)
-[value] tests/misc/bts1347.i:6: assertion 'emitter' got status valid.
-[value] Recording results for g
-[value] done for function g
+[eva] tests/misc/bts1347.i:6: assertion 'emitter' got status valid.
+[eva] Recording results for g
+[eva] done for function g

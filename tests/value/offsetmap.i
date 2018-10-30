@@ -1,7 +1,7 @@
 /* run.config*
    GCC:
    STDOPT: #""
-   STDOPT: #"-val-warn-copy-indeterminate=-f,-g"
+   STDOPT: #"-eva-warn-copy-indeterminate=-f,-g"
 */
 
 int TT[10]={1,2,3};

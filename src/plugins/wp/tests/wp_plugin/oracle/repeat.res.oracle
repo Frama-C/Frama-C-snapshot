@@ -19,9 +19,7 @@ Let a = L_sequence(calls_1).
 Assume {
   Type: is_sint32(i) /\ is_sint32(n) /\ is_sint32(1 + i).
   (* Pre-condition *)
-  Have: 0 <= n.
-  (* Pre-condition *)
-  Have: L_sequence(calls_0) = nil.
+  Have: (L_sequence(calls_0) = nil) /\ (0 <= n).
   (* Invariant *)
   Have: ([ 1, 2 ] *^ i) = a.
   (* Invariant *)
@@ -50,9 +48,7 @@ Let x = 1 + i.
 Assume {
   Type: is_sint32(i) /\ is_sint32(n) /\ is_sint32(x).
   (* Pre-condition *)
-  Have: 0 <= n.
-  (* Pre-condition *)
-  Have: L_sequence(calls_1) = nil.
+  Have: (L_sequence(calls_1) = nil) /\ (0 <= n).
   (* Invariant *)
   Have: (a_2 *^ i) = a.
   (* Invariant *)
@@ -123,9 +119,7 @@ Let a_2 = a_1 ^ [ 1, 2 ].
 Assume {
   Type: is_sint32(i) /\ is_sint32(n).
   (* Pre-condition *)
-  Have: 0 <= n.
-  (* Pre-condition *)
-  Have: L_sequence(calls_0) = nil.
+  Have: (L_sequence(calls_0) = nil) /\ (0 <= n).
   (* Call 'f' *)
   Have: L_sequence(calls_1) = [ 1 ].
   (* Invariant *)
@@ -146,9 +140,7 @@ Let a = ([ 1, 2 ] *^ i).
 Assume {
   Type: is_sint32(i) /\ is_sint32(n) /\ is_sint32(1 + i).
   (* Pre-condition *)
-  Have: 0 <= n.
-  (* Pre-condition *)
-  Have: L_sequence(calls_0) = nil.
+  Have: (L_sequence(calls_0) = nil) /\ (0 <= n).
   (* Call 'f' *)
   Have: L_sequence(calls_1) = [ 1 ].
   (* Invariant *)
@@ -179,9 +171,7 @@ Let x = 1 + i.
 Assume {
   Type: is_sint32(i) /\ is_sint32(n) /\ is_sint32(x).
   (* Pre-condition *)
-  Have: 0 <= n.
-  (* Pre-condition *)
-  Have: L_sequence(calls_0) = nil.
+  Have: (L_sequence(calls_0) = nil) /\ (0 <= n).
   (* Call 'f' *)
   Have: L_sequence(calls_1) = [ 1 ].
   (* Invariant *)

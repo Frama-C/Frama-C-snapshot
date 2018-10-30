@@ -1,9 +1,9 @@
 [kernel] Parsing tests/sparecode/glob_decls.i (no preprocessing)
 [slicing] slicing requests in progress...
-[value] Analyzing an incomplete application starting at main
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing an incomplete application starting at main
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   G1 ∈ [--..--]
   G2 ∈ [--..--]
   PG1 ∈ {{ NULL ; &S_PG1[0] }}
@@ -20,22 +20,22 @@
   S_PG1[0..1] ∈ [--..--]
   S_GPs[0..1] ∈ [--..--]
   S_PX[0..1] ∈ [--..--]
-[value:alarm] tests/sparecode/glob_decls.i:42: Warning: 
+[eva:alarm] tests/sparecode/glob_decls.i:42: Warning: 
   function main: precondition got status unknown.
-[value:alarm] tests/sparecode/glob_decls.i:46: Warning: 
+[eva:alarm] tests/sparecode/glob_decls.i:46: Warning: 
   signed overflow. assert y + Y ≤ 2147483647;
-[value:alarm] tests/sparecode/glob_decls.i:47: Warning: 
+[eva:alarm] tests/sparecode/glob_decls.i:47: Warning: 
   out of bounds read. assert \valid_read(PX);
-[value:alarm] tests/sparecode/glob_decls.i:47: Warning: 
+[eva:alarm] tests/sparecode/glob_decls.i:47: Warning: 
   signed overflow. assert -2147483648 ≤ y + *PX;
-[value:alarm] tests/sparecode/glob_decls.i:47: Warning: 
+[eva:alarm] tests/sparecode/glob_decls.i:47: Warning: 
   signed overflow. assert y + *PX ≤ 2147483647;
-[value:alarm] tests/sparecode/glob_decls.i:48: Warning: 
+[eva:alarm] tests/sparecode/glob_decls.i:48: Warning: 
   assertion got status unknown.
-[value:alarm] tests/sparecode/glob_decls.i:49: Warning: 
+[eva:alarm] tests/sparecode/glob_decls.i:49: Warning: 
   signed overflow. assert X + x ≤ 2147483647;
-[value] Recording results for main
-[value] done for function main
+[eva] Recording results for main
+[eva] done for function main
 [slicing] initializing slicing ...
 [slicing] interpreting slicing requests from the command line...
 [pdg] computing for function main

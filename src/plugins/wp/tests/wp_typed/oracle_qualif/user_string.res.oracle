@@ -1,4 +1,4 @@
-# frama-c -wp [...]
+# frama-c -wp -wp-timeout 90 -wp-steps 1500 [...]
 [kernel] Parsing tests/wp_typed/user_string.i (no preprocessing)
 [wp] Running WP plugin...
 [wp] Loading driver 'share/wp.driver'
@@ -23,5 +23,5 @@
 [wp] Report 'tests/wp_typed/user_string.i.0.report.json'
 -------------------------------------------------------------
 Functions           WP     Alt-Ergo        Total   Success
-strlen               8      5 (168..192)    13       100%
+strlen               8      5 (192..240)    13       100%
 -------------------------------------------------------------

@@ -21,6 +21,7 @@
 /**************************************************************************/
 
 #include "inttypes.h"
+__PUSH_FC_STDLIB
 
 intmax_t imaxabs(intmax_t c) {
   if (c>0) return c; 
@@ -34,3 +35,4 @@ imaxdiv_t imaxdiv(intmax_t numer, intmax_t denom){
   return r;
 };
 
+__POP_FC_STDLIB

@@ -50,18 +50,18 @@ let wrap_long_long i = Some (offsetmap_of_v ~typ:Cil.longLongType i)
 let v_uninit_of_offsetmap ~typ offsm =
   let size = Eval_typ.sizeof_lval_typ typ in
   match size with
-    | Int_Base.Top -> V_Offsetmap.find_imprecise_everywhere offsm
-    | Int_Base.Value size ->
-      let validity = Base.validity_from_size size in
-      let offsets = Ival.zero in
-      let _alarm, r =
-        V_Offsetmap.find ~validity ~conflate_bottom:false ~offsets ~size offsm
-      in
-      r
+  | Int_Base.Top -> V_Offsetmap.find_imprecise_everywhere offsm
+  | Int_Base.Value size ->
+    let validity = Base.validity_from_size size in
+    let offsets = Ival.zero in
+    let _alarm, r =
+      V_Offsetmap.find ~validity ~conflate_bottom:false ~offsets ~size offsm
+    in
+    r
 
 let backward_comp_int_left positive comp l r =
   if (Value_parameters.UndefinedPointerComparisonPropagateAll.get())
-    && not (Cvalue_forward.are_comparable comp l r)
+  && not (Cvalue_forward.are_comparable comp l r)
   then l
   else
     let binop = if positive then comp else Comp.inv comp in
@@ -72,7 +72,7 @@ let backward_comp_float_left fkind positive comp l r =
     if positive
     then V.backward_comp_float_left_true
     else V.backward_comp_float_left_false in
-   back comp fkind l r
+  back comp fkind l r
 
 let backward_comp_left_from_type t =
   match Cil.unrollType t with
@@ -110,9 +110,9 @@ let reduce_by_initialized_defined f loc state =
            - or we do not lose information on misaligned or partial values:
            the result is a singleton *)
         if V_Or_Uninitialized.(cardinal_zero_or_one v' || is_isotropic v') ||
-	  ((Int.equal offl il || Int.equal (Int.pos_rem ll modu) abs_shift) &&
-           (Int.equal offh ih || Int.equal
-                                   (Int.pos_rem (Int.succ lh) modu) abs_shift))
+           ((Int.equal offl il || Int.equal (Int.pos_rem ll modu) abs_shift) &&
+            (Int.equal offh ih ||
+             Int.equal (Int.pos_rem (Int.succ lh) modu) abs_shift))
         then
           let diff = Rel.sub_abs il offl in
           let shift_il = Rel.pos_rem (Rel.sub shift diff) modu in
@@ -120,18 +120,18 @@ let reduce_by_initialized_defined f loc state =
         else acc
       end
       else acc
-     in
-     let noffsm =
-       V_Offsetmap.fold_between ~entire:true (ll, lh) aux offsm offsm
-     in
-     Model.add_base base noffsm state
-   with
-     | Reduce_to_bottom -> Model.bottom
-     | Unchanged -> state
-     | Abstract_interp.Error_Top (* from Int_Base.project *)
-     | Not_found (* from find_lonely_key *)
-     | Ival.Not_Singleton_Int (* from Ival.project_int *) ->
-         state
+    in
+    let noffsm =
+      V_Offsetmap.fold_between ~entire:true (ll, lh) aux offsm offsm
+    in
+    Model.add_base base noffsm state
+  with
+  | Reduce_to_bottom -> Model.bottom
+  | Unchanged -> state
+  | Abstract_interp.Error_Top (* from Int_Base.project *)
+  | Not_found (* from find_lonely_key *)
+  | Ival.Not_Singleton_Int (* from Ival.project_int *) ->
+    state
 
 let reduce_by_valid_loc ~positive ~for_writing loc typ state =
   try
@@ -146,8 +146,8 @@ let reduce_by_valid_loc ~positive ~for_writing loc typ state =
     let reduced_value =
       Locations.loc_to_loc_without_size
         (if positive
-          then Locations.valid_part ~for_writing value_as_loc
-          else Locations.invalid_part value_as_loc )
+         then Locations.valid_part ~for_writing value_as_loc
+         else Locations.invalid_part value_as_loc )
     in
     if V.equal value reduced_value
     then state
@@ -166,11 +166,11 @@ let make_loc_contiguous loc =
     in
     match offset, loc.Locations.size with
     | Ival.Top (Some min, Some max, _rem, modu), Int_Base.Value size
-         when Int.equal modu size ->
-       let size' = Int.add (Int.sub max min) modu in
-       let i = Ival.inject_singleton min in
-       let loc_bits = Locations.Location_Bits.inject base i in
-       Locations.make_loc loc_bits (Int_Base.inject size')
+      when Int.equal modu size ->
+      let size' = Int.add (Int.sub max min) modu in
+      let i = Ival.inject_singleton min in
+      let loc_bits = Locations.Location_Bits.inject base i in
+      Locations.make_loc loc_bits (Int_Base.inject size')
     | _ -> loc
   with Not_found -> loc
 
@@ -212,6 +212,58 @@ let pretty_offsetmap typ fmt offsm =
       pretty_stitched_offsetmap fmt typ offsm
   end;
   Format.fprintf fmt "@]"
+
+(* ------------------------- Under-approximation ---------------------------- *)
+
+let add_if_singleton value acc =
+  if Cvalue.V_Or_Uninitialized.cardinal_zero_or_one value
+  then Cvalue.V_Or_Uninitialized.link value acc
+  else acc
+
+let find_offsm_under validity ival size offsm acc =
+  let _alarm, offsets = Tr_offset.trim_by_validity ival size validity in
+  match offsets with
+  | Tr_offset.Invalid | Tr_offset.Overlap _ -> acc
+  | Tr_offset.Set list ->
+    let find acc offset =
+      let offsets = Ival.inject_singleton offset in
+      let _, value = Cvalue.V_Offsetmap.find ~validity ~offsets ~size offsm in
+      add_if_singleton value acc
+    in
+    List.fold_left find acc list
+  | Tr_offset.Interval (min, max, modu) ->
+    let process (start, _stop) (v, v_size, v_offset) acc =
+      if Rel.(equal v_offset zero) && Int.equal v_size size
+         && Int.equal (Int.pos_rem (Int.sub start min) modu) Int.zero
+      then add_if_singleton v acc
+      else acc
+    in
+    Cvalue.V_Offsetmap.fold_between ~entire:true (min, max) process offsm acc
+
+exception CannotComputeUnder
+
+let find_lmap_under state location =
+  match location.Locations.size with
+  | Int_Base.Top -> raise CannotComputeUnder
+  | Int_Base.Value size ->
+    match location.Locations.loc with
+    | Locations.Location_Bits.Top _ -> raise CannotComputeUnder
+    | Locations.Location_Bits.Map map ->
+      let process base offset acc =
+        let offsm = Cvalue.Model.find_base_or_default base state in
+        match offsm with
+        | `Bottom -> acc
+        | `Top -> raise CannotComputeUnder
+        | `Value offsm ->
+          let validity = Base.validity base in
+          find_offsm_under validity offset size offsm acc
+      in
+      let acc = Cvalue.V_Or_Uninitialized.bottom in
+      Locations.Location_Bits.M.fold process map acc
+
+let find_under_approximation state location =
+  try Some (find_lmap_under state location)
+  with CannotComputeUnder -> None
 
 (*
 Local Variables:

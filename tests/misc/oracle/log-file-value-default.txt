@@ -1,2 +1,2 @@
-tests/misc/log-file.i:14:[value] warning: no 'assigns \result \from ...' clause specified for function g
-[value] ====== VALUES COMPUTED ======
+tests/misc/log-file.i:14:[eva] warning: no 'assigns \result \from ...' clause specified for function g
+[eva] ====== VALUES COMPUTED ======

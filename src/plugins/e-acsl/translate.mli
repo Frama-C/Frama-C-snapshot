@@ -1,8 +1,8 @@
 (**************************************************************************)
 (*                                                                        *)
-(*  This file is part of Frama-C.                                         *)
+(*  This file is part of the Frama-C's E-ACSL plug-in.                    *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2018                                               *)
+(*  Copyright (C) 2012-2018                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -32,14 +32,14 @@ val translate_pre_code_annotation:
   kernel_function -> Env.t -> code_annotation -> Env.t
 val translate_post_code_annotation:
   kernel_function -> Env.t -> code_annotation -> Env.t
-val translate_named_predicate: 
+val translate_named_predicate:
   kernel_function -> Env.t -> predicate -> Env.t
 
 val translate_rte_annots:
-  (Format.formatter -> 'a -> unit) -> 
+  (Format.formatter -> 'a -> unit) ->
   'a ->
-  kernel_function -> 
-  Env.t -> 
+  kernel_function ->
+  Env.t ->
   code_annotation list ->
   Env.t
 

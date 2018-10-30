@@ -36,10 +36,10 @@ __PUSH_FC_STDLIB
 // required by ISO C (and not necessarily respected by the glibc).
 // Note that POSIX does not specify that all symbols in <stdint.h> can be
 // made visible in wchar.h, but in practice this should be fine.
-#include <stdint.h>
+#include "stdint.h"
 
 // ISO C requires the tag 'struct tm' (as declared in <time.h>) to be declared.
-#include <time.h>
+#include "time.h"
 
 __BEGIN_DECLS
 

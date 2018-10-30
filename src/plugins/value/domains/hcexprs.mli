@@ -65,6 +65,7 @@ end
 
 (** Hashconsed sets of symbolic expressions. *)
 module HCESet: Hptset.S with type elt = HCE.t
+                         and type 'a shape = 'a Hptmap.Shape(HCE).t
 
 (* Sets of lvalues that appear in an expression. The [addr] field gathers the
    lvalues [lv] appearing as addresses &lv, while the [read] field gathers the
@@ -89,40 +90,25 @@ val syntactic_lvalues: Cil_types.exp -> lvalues
 (** Maps from symbolic expressions to their memory dependencies, expressed as a
     {!Locations.Zone.t}. *)
 module HCEToZone: sig
-  include Datatype.S_with_collections
+  include Hptmap_sig.S with type key = HCE.t
+                        and type v = Locations.Zone.t
+                        and type 'a shape = 'a Hptmap.Shape(HCE).t
 
-  val empty: t
-
-  val add: HCE.t -> Locations.Zone.t -> t -> t
-  val remove: HCE.t -> t -> t
-
+  val is_included: t -> t -> bool
   val union: t -> t -> t
   val inter: t -> t -> t
-  val is_included: t -> t -> bool
-
-  val find: HCE.t -> t -> Locations.Zone.t
-  (** @raise Not_found if the symbolic expression is not in the map. *)
-
-  val find_default: HCE.t -> t -> Locations.Zone.t
-  (** returns the empty set when the key is not bound *)
-
+  val merge: into:t -> t -> t
 end
 
 
 (** Maps froms {!Base.t} to set of {!HCE.t}. *)
 module BaseToHCESet: sig
-  include Datatype.S_with_collections
-
-  val empty: t
-
-  val add: Base.t -> HCESet.t -> t -> t
-  val remove: Base.t -> t -> t
+  include Hptmap_sig.S with type key = Base.t
+                        and type v = HCESet.t
+                        and type 'a shape = 'a Hptmap.Shape(Base.Base).t
 
   val union: t -> t -> t
   val inter: t -> t -> t
-
-  val find: Base.t -> t -> HCESet.t
-  (** @raise Not_found if the base is not in the map. *)
 
   val find_default: Base.t -> t -> HCESet.t
   (** returns the empty set when the key is not bound *)

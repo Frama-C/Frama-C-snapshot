@@ -31,7 +31,7 @@ let code_annotation_text ca =
   match ca.annot_content with
   | AAssert _ ->  "assertion"
   | AInvariant _ ->  "loop invariant"
-  | APragma _  | AVariant _ | AAssigns _ | AAllocation _ | AStmtSpec _ 
+  | APragma _  | AVariant _ | AAssigns _ | AAllocation _ | AStmtSpec _
   | AExtended _  ->
     assert false (* currently not treated by Value *)
 
@@ -118,17 +118,17 @@ let mark_rte () =
   let b_unsigned_downcast = Kernel.UnsignedDowncast.get () in
   Globals.Functions.iter
     (fun kf ->
-      if !Db.Value.is_called kf then (
-        mem kf true;
-        arith kf true;
-        pointer_call kf true;
-        if b_signed_ovf then signed_ovf kf true;
-        if b_unsigned_ovf then unsigned_ovf kf true;
-        if b_signed_downcast then signed_downcast kf true;
-        if b_unsigned_downcast then unsigned_downcast kf true;
-        float_to_int kf true;
-        finite_float kf true;
-      )
+       if !Db.Value.is_called kf then (
+         mem kf true;
+         arith kf true;
+         pointer_call kf true;
+         if b_signed_ovf then signed_ovf kf true;
+         if b_unsigned_ovf then unsigned_ovf kf true;
+         if b_signed_downcast then signed_downcast kf true;
+         if b_unsigned_downcast then unsigned_downcast kf true;
+         float_to_int kf true;
+         finite_float kf true;
+       )
     )
 
 let c_labels kf cs =
@@ -224,9 +224,9 @@ let mark_green_and_red () =
         begin
           match eval_by_callstack kf stmt p with
           | Eval_terms.False -> emit `False
-          | Eval_terms.True -> (* should not happen for an alarm that has been
-              emitted during this Value analysis. However, this is perfectly
-              possible for an 'old' alarm. *)
+          | Eval_terms.True ->
+            (* Should not happen for an alarm that has been emitted during this
+               analysis. However, this is possible for an 'old' alarm. *)
             emit `True
           | Eval_terms.Unknown -> ()
         end
@@ -252,16 +252,16 @@ let mark_invalid_initializers () =
         let bot = Cvalue.Model.bottom in
         let env = Eval_terms.env_annot ~pre:bot ~here:bot () in
         begin match Eval_terms.eval_predicate env p with
-        | True | Unknown -> ()
-        | False ->
-          let status = Property_status.False_and_reachable in
-          let distinct = false (* see comment in mark_green_and_red above *) in
-          Red_statuses.add_red_property Kglobal ip;
-          Property_status.emit ~distinct Value_util.emitter ~hyps:[] ip status;
+          | True | Unknown -> ()
+          | False ->
+            let status = Property_status.False_and_reachable in
+            let distinct = false (* see comment in mark_green_and_red above *) in
+            Red_statuses.add_red_property Kglobal ip;
+            Property_status.emit ~distinct Value_util.emitter ~hyps:[] ip status;
         end
       | _ -> ()
-    in
-    Annotations.iter_code_annot do_code_annot first_stmt
+  in
+  Annotations.iter_code_annot do_code_annot first_stmt
 
 (*
 Local Variables:

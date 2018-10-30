@@ -100,10 +100,6 @@ cell *top_set(top *ptop, int v)
 {
   cell *tmp;
   /*@ assert rte: mem_access: \valid_read(&ptop->next); */
-  /*@ behavior pre_set:
-        requires \valid((ptop->next)->next);
-        requires \valid(ptop->next);
-  */
   tmp = set(ptop->next,v);
   return tmp;
 }
@@ -113,10 +109,6 @@ int top_next(top tIn)
 {
   int tmp;
   /*@ assert rte: mem_access: \valid_read(tIn.next); */
-  /*@ behavior pre_next_val:
-        requires \valid((tIn.next)->next);
-        requires global > 0;
-  */
   tmp = next_val(*(tIn.next));
   return tmp;
 }
@@ -129,8 +121,6 @@ cell *tabtop_set(top **tab_top, int i, int v)
 {
   cell *tmp;
   /*@ assert rte: mem_access: \valid_read(tab_top + i); */
-  /*@ behavior pre_top_set:
-        requires \valid((*(tab_top + i))->next); */
   tmp = top_set(*(tab_top + i),v);
   return tmp;
 }
@@ -152,173 +142,64 @@ int main(void)
   other ot = {.c = c};
   int k = 1;
   int l = 1;
-  /*@ behavior pre_f:
-        requires 2 > 0;
-        requires (int)(2 + 3) ≢ 0; */
   int z = f(2,3,(float)1.0);
   /*@ assert rte: signed_overflow: -2147483648 ≤ b - a; */
   /*@ assert rte: signed_overflow: b - a ≤ 2147483647; */
-  /*@ behavior pre_f_2:
-        requires (int)(b - a) > 0;
-        requires (int)((int)(b - a) + a) ≢ 0;
-  */
   int y = f(b - a,a,(float)2.0);
   int tab[4] = {1, 2, 3, 4};
   /*@ assert rte: signed_overflow: -2147483648 ≤ a + b; */
   /*@ assert rte: signed_overflow: a + b ≤ 2147483647; */
-  /*@ behavior pre_f_3:
-        requires y > 0;
-        requires (int)(y + (int)(a + b)) ≢ 0;
-  */
   z = f(y,a + b,(float)(- 0.0));
-  /*@ behavior pre_g:
-        requires is_valid_int_range(&z, 1); */
   w = g(& z,1);
-  /*@ behavior pre_g_2:
-        requires is_valid_int_range(&tab[1], 2); */
   w = g(& tab[1],2);
-  /*@ behavior pre_g_3:
-        requires is_valid_int_range(&tab[k], l); */
   w = g(& tab[k],l);
   r = tab;
   rr = & r;
-  /*@ behavior pre_g_4:
-        requires is_valid_int_range(r + 2, 0); */
   w = g(r + 2,0);
-  /*@ behavior pre_h:
-        requires \valid(((int *)tab + 1) + 3); */
   w = h(tab);
-  /*@ behavior pre_h_2:
-        requires \valid((r + 1) + 3); */
   w = h(r);
   /*@ assert rte: mem_access: \valid_read(rr); */
-  /*@ behavior pre_h_3:
-        requires \valid((*rr + 1) + 3); */
   w = h(*rr);
   pc = & c;
   c.next = & c;
-  /*@ behavior pre_set:
-        requires \valid(pc->next);
-        requires \valid(pc); */
   set(pc,15);
-  /*@ behavior pre_set_2:
-        requires \valid(c.next);
-        requires \valid(&c); */
   set(& c,10);
-  /*@ behavior pre_set_3:
-        requires \valid(c.next);
-        requires \valid(&c); */
   set(& c,20);
   V = (void *)(& c);
-  /*@ behavior pre_set_4:
-        requires \valid(((cell *)V)->next);
-        requires \valid((cell *)V);
-  */
   set((cell *)V,20);
-  /*@ behavior pre_next_val:
-        requires \valid(c.next);
-        requires global > 0; */
   next_val(c);
   /*@ assert rte: mem_access: \valid_read(pc); */
-  /*@ behavior pre_next_val_2:
-        requires \valid(pc->next);
-        requires global > 0;
-  */
   next_val(*pc);
   /*@ assert rte: mem_access: \valid_read((cell *)V); */
-  /*@ behavior pre_next_val_3:
-        requires \valid(((cell *)V)->next);
-        requires global > 0;
-  */
   next_val(*((cell *)V));
   T.pred = & c;
   T.next = & c;
   tabT[0] = T;
   tabT[1] = T;
-  /*@ behavior pre_set_5:
-        requires \valid((T.pred)->next);
-        requires \valid(T.pred);
-  */
   set(T.pred,10);
-  /*@ behavior pre_set_6:
-        requires \valid((tabT[1].next)->next);
-        requires \valid(tabT[1].next);
-  */
   set(tabT[1].next,20);
   /*@ assert rte: mem_access: \valid_read(T.next); */
-  /*@ behavior pre_next_val_4:
-        requires \valid((T.next)->next);
-        requires global > 0;
-  */
   next_val(*(T.next));
   /*@ assert rte: mem_access: \valid_read(tabT[0].pred); */
-  /*@ behavior pre_next_val_5:
-        requires \valid((tabT[0].pred)->next);
-        requires global > 0;
-  */
   next_val(*(tabT[0].pred));
   /*@ assert rte: mem_access: \valid_read(&(ptabT[2])->pred); */
-  /*@ behavior pre_set_7:
-        requires \valid(((ptabT[2])->pred)->next);
-        requires \valid((ptabT[2])->pred);
-  */
   set((ptabT[2])->pred,15);
-  /*@ behavior pre_set_8:
-        requires \valid((tabT[1].pred)->next);
-        requires \valid(tabT[1].pred);
-  */
   set(tabT[1].pred,10);
   /*@ assert rte: mem_access: \valid_read(&(ptabT[1])->next); */
   /*@ assert rte: mem_access: \valid_read((ptabT[1])->next); */
-  /*@ behavior pre_next_val_6:
-        requires \valid(((ptabT[1])->next)->next);
-        requires global > 0;
-  */
   next_val(*((ptabT[1])->next));
-  /*@ behavior pre_top_set:
-        requires \valid(T.next); */
   top_set(& T,3);
-  /*@ behavior pre_top_set_2:
-        requires \valid(tabT[1].next); */
   top_set(& tabT[1],2);
-  /*@ behavior pre_top_set_3:
-        requires \valid((ptabT[1])->next); */
   top_set(ptabT[1],4);
-  /*@ behavior pre_top_set_4:
-        requires \valid(((top *)c.next)->next); */
   top_set((top *)c.next,5);
-  /*@ behavior pre_top_next:
-        requires \valid(T.next); */
   top_next(T);
   /*@ assert rte: mem_access: \valid_read(ptabT[0]); */
-  /*@ behavior pre_top_next_2:
-        requires \valid((ptabT[0])->next); */
   top_next(*(ptabT[0]));
-  /*@ behavior pre_tabtop_set:
-        requires \valid((top **)ptabT);
-        requires \valid(&ptabT);
-        requires \valid((*((top **)ptabT + 2))->next);
-  */
   tabtop_set(ptabT,2,10);
   pptop = ptabT;
-  /*@ behavior pre_tabtop_set_2:
-        requires \valid(pptop);
-        requires \valid(&pptop);
-        requires \valid((*(pptop + 2))->next);
-  */
   tabtop_set(pptop,2,15);
-  /*@ behavior pre_tabtop_set_3:
-        requires \valid((top **)ptabT);
-        requires \valid(&ptabT);
-        requires \valid((*((top **)ptabT + 1))->next);
-  */
   tabtop_set(ptabT,1,20);
   /*@ assert rte: mem_access: \valid_read(&pc->next); */
-  /*@ behavior pre_tabtop_set_4:
-        requires \valid((top **)pc->next);
-        requires \valid((top ***)(&pc->next));
-        requires \valid((*((top **)pc->next + 1))->next);
-  */
   tabtop_set((top **)pc->next,1,10);
   return z;
 }

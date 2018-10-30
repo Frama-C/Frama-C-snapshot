@@ -1,8 +1,8 @@
 [kernel] Parsing tests/value/postcondition.i (no preprocessing)
-[value] Analyzing a complete application starting at main
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing a complete application starting at main
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   G ∈ {0}
   A ∈ {0}
   B ∈ {0}
@@ -13,163 +13,163 @@
   X ∈ {0}
   p ∈ {0}
   TAB[0..9] ∈ {0}
-[value] computing for function get_index <- main.
+[eva] computing for function get_index <- main.
   Called from tests/value/postcondition.i:84.
-[value] tests/value/postcondition.i:84: 
+[eva] tests/value/postcondition.i:84: 
   function get_index: precondition got status valid.
-[value] tests/value/postcondition.i:17: Frama_C_show_each_cmd: {1}
-[value] tests/value/postcondition.i:18: entering loop for the first time
-[value] computing for function u <- get_index <- main.
+[eva] tests/value/postcondition.i:17: Frama_C_show_each_cmd: {1}
+[eva] computing for function u <- get_index <- main.
   Called from tests/value/postcondition.i:20.
 [kernel] tests/value/postcondition.i:20: Warning: 
   No code nor implicit assigns clause for function u, generating default assigns from the prototype
-[value] using specification for function u
-[value] Done for function u
-[value] computing for function u <- get_index <- main.
+[eva] using specification for function u
+[eva] Done for function u
+[eva] tests/value/postcondition.i:18: starting to merge loop iterations
+[eva] computing for function u <- get_index <- main.
   Called from tests/value/postcondition.i:20.
-[value] Done for function u
-[value] computing for function u <- get_index <- main.
+[eva] Done for function u
+[eva] computing for function u <- get_index <- main.
   Called from tests/value/postcondition.i:20.
-[value] Done for function u
-[value] computing for function u <- get_index <- main.
+[eva] Done for function u
+[eva] computing for function u <- get_index <- main.
   Called from tests/value/postcondition.i:20.
-[value] Done for function u
-[value:alarm] tests/value/postcondition.i:12: Warning: 
-  function get_index: postcondition got status unknown.
-[value] tests/value/postcondition.i:12: 
+[eva] Done for function u
+[eva] tests/value/postcondition.i:12: 
   function get_index: postcondition got status valid.
-[value] Recording results for get_index
-[value] Done for function get_index
-[value] computing for function u <- main.
+[eva:alarm] tests/value/postcondition.i:12: Warning: 
+  function get_index: postcondition got status unknown.
+[eva] Recording results for get_index
+[eva] Done for function get_index
+[eva] computing for function u <- main.
   Called from tests/value/postcondition.i:85.
-[value] Done for function u
-[value] computing for function bound <- main.
+[eva] Done for function u
+[eva] computing for function bound <- main.
   Called from tests/value/postcondition.i:86.
-[value:alarm] tests/value/postcondition.i:26: Warning: 
+[eva:alarm] tests/value/postcondition.i:26: Warning: 
   function bound: postcondition got status unknown.
-[value] Recording results for bound
-[value] Done for function bound
-[value] computing for function u <- main.
+[eva] Recording results for bound
+[eva] Done for function bound
+[eva] computing for function u <- main.
   Called from tests/value/postcondition.i:87.
-[value] Done for function u
-[value] computing for function get_index <- main.
+[eva] Done for function u
+[eva] computing for function get_index <- main.
   Called from tests/value/postcondition.i:87.
-[value:alarm] tests/value/postcondition.i:87: Warning: 
+[eva:alarm] tests/value/postcondition.i:87: Warning: 
   function get_index: precondition got status unknown.
-[value] tests/value/postcondition.i:17: Frama_C_show_each_cmd: {4}
-[value] computing for function u <- get_index <- main.
+[eva] tests/value/postcondition.i:17: Frama_C_show_each_cmd: {4}
+[eva] computing for function u <- get_index <- main.
   Called from tests/value/postcondition.i:20.
-[value] Done for function u
-[value] computing for function u <- get_index <- main.
+[eva] Done for function u
+[eva] computing for function u <- get_index <- main.
   Called from tests/value/postcondition.i:20.
-[value] Done for function u
-[value] computing for function u <- get_index <- main.
+[eva] Done for function u
+[eva] computing for function u <- get_index <- main.
   Called from tests/value/postcondition.i:20.
-[value] Done for function u
-[value] computing for function u <- get_index <- main.
+[eva] Done for function u
+[eva] computing for function u <- get_index <- main.
   Called from tests/value/postcondition.i:20.
-[value] Done for function u
-[value:alarm] tests/value/postcondition.i:12: Warning: 
+[eva] Done for function u
+[eva:alarm] tests/value/postcondition.i:12: Warning: 
   function get_index: postcondition got status invalid.
-[value] Recording results for get_index
-[value] Done for function get_index
-[value] computing for function u <- main.
+[eva] Recording results for get_index
+[eva] Done for function get_index
+[eva] computing for function u <- main.
   Called from tests/value/postcondition.i:88.
-[value] Done for function u
-[value] computing for function cap <- main.
+[eva] Done for function u
+[eva] computing for function cap <- main.
   Called from tests/value/postcondition.i:89.
 [kernel] tests/value/postcondition.i:89: Warning: 
   No code nor implicit assigns clause for function cap, generating default assigns from the prototype
-[value] using specification for function cap
-[value] Done for function cap
-[value] computing for function u <- main.
+[eva] using specification for function cap
+[eva] Done for function cap
+[eva] computing for function u <- main.
   Called from tests/value/postcondition.i:90.
-[value] Done for function u
-[value] computing for function t0 <- main.
+[eva] Done for function u
+[eva] computing for function t0 <- main.
   Called from tests/value/postcondition.i:90.
-[value] tests/value/postcondition.i:33: 
+[eva] tests/value/postcondition.i:33: 
   function t0: postcondition got status valid.
-[value] Recording results for t0
-[value] Done for function t0
-[value] computing for function u <- main.
+[eva] Recording results for t0
+[eva] Done for function t0
+[eva] computing for function u <- main.
   Called from tests/value/postcondition.i:91.
-[value] Done for function u
-[value] computing for function t1 <- main.
+[eva] Done for function u
+[eva] computing for function t1 <- main.
   Called from tests/value/postcondition.i:91.
-[value:alarm] tests/value/postcondition.i:38: Warning: 
+[eva:alarm] tests/value/postcondition.i:38: Warning: 
   function t1: postcondition got status invalid.
-[value] Recording results for t1
-[value] Done for function t1
-[value] computing for function u <- main.
+[eva] Recording results for t1
+[eva] Done for function t1
+[eva] computing for function u <- main.
   Called from tests/value/postcondition.i:92.
-[value] Done for function u
-[value] computing for function t2 <- main.
+[eva] Done for function u
+[eva] computing for function t2 <- main.
   Called from tests/value/postcondition.i:92.
-[value] tests/value/postcondition.i:45: 
+[eva] tests/value/postcondition.i:45: 
   function t2: postcondition got status valid.
-[value] Recording results for t2
-[value] Done for function t2
-[value] computing for function u <- main.
+[eva] Recording results for t2
+[eva] Done for function t2
+[eva] computing for function u <- main.
   Called from tests/value/postcondition.i:93.
-[value] Done for function u
-[value] computing for function t3 <- main.
+[eva] Done for function u
+[eva] computing for function t3 <- main.
   Called from tests/value/postcondition.i:93.
-[value] tests/value/postcondition.i:60: 
+[eva] tests/value/postcondition.i:60: 
   function t3: postcondition got status valid.
-[value] Recording results for t3
-[value] Done for function t3
-[value] computing for function t4 <- main.
+[eva] Recording results for t3
+[eva] Done for function t3
+[eva] computing for function t4 <- main.
   Called from tests/value/postcondition.i:94.
-[value] tests/value/postcondition.i:65: 
+[eva] tests/value/postcondition.i:65: 
   function t4: postcondition got status valid.
-[value] Recording results for t4
-[value] Done for function t4
-[value] computing for function u <- main.
+[eva] Recording results for t4
+[eva] Done for function t4
+[eva] computing for function u <- main.
   Called from tests/value/postcondition.i:95.
-[value] Done for function u
-[value] computing for function t5 <- main.
+[eva] Done for function u
+[eva] computing for function t5 <- main.
   Called from tests/value/postcondition.i:95.
-[value] tests/value/postcondition.i:71: 
+[eva] tests/value/postcondition.i:71: 
   function t5: postcondition got status valid.
-[value] tests/value/postcondition.i:72: 
+[eva] tests/value/postcondition.i:72: 
   function t5: postcondition got status valid.
-[value] Recording results for t5
-[value] Done for function t5
-[value] computing for function f <- main.
+[eva] Recording results for t5
+[eva] Done for function t5
+[eva] computing for function f <- main.
   Called from tests/value/postcondition.i:96.
-[value] tests/value/postcondition.i:78: 
+[eva] tests/value/postcondition.i:78: 
   function f: postcondition got status valid.
-[value:alarm] tests/value/postcondition.i:79: Warning: 
+[eva:alarm] tests/value/postcondition.i:79: Warning: 
   function f: postcondition got status invalid.
-[value] Recording results for f
-[value] Done for function f
-[value] Recording results for main
-[value] done for function main
-[value] ====== VALUES COMPUTED ======
-[value:final-states] Values at end of function bound:
+[eva] Recording results for f
+[eva] Done for function f
+[eva] Recording results for main
+[eva] done for function main
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function bound:
   cmd ∈ {2}
   __retres ∈ {0}
-[value:final-states] Values at end of function f:
+[eva:final-states] Values at end of function f:
   __retres ∈ {0}
-[value:final-states] Values at end of function t0:
+[eva:final-states] Values at end of function t0:
   G ∈ {6}
-[value:final-states] Values at end of function t1:
+[eva:final-states] Values at end of function t1:
   G ∈ {6}
-[value:final-states] Values at end of function t2:
+[eva:final-states] Values at end of function t2:
   G ∈ {6}
   p ∈ {{ &G }}
-[value:final-states] Values at end of function t3:
+[eva:final-states] Values at end of function t3:
   TAB[0].a ∈ {12}
      {[0]{.b; .c}; [1..9]} ∈ {0}
-[value:final-states] Values at end of function t4:
+[eva:final-states] Values at end of function t4:
   x ∈ {4}
   y ∈ {3}
-[value:final-states] Values at end of function t5:
+[eva:final-states] Values at end of function t5:
   x ∈ {9}
-[value:final-states] Values at end of function get_index:
+[eva:final-states] Values at end of function get_index:
   ret ∈ [0..2147483647]
   __retres ∈ [0..2147483647]
-[value:final-states] Values at end of function main:
+[eva:final-states] Values at end of function main:
   G ∈ {0; 6}
   B ∈ {0}
   C ∈ [0..299]

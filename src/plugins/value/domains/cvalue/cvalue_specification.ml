@@ -137,7 +137,9 @@ let check_fct_assigns kf ab ~pre_state found_froms =
          let status_txt, vstatus, status =
            if not (Zone.is_included outputs assigns_union)
            then (
-             Value_parameters.debug "found_assigns %a stated_assigns %a"
+             Value_parameters.debug
+               "@[Cannot prove assigns clause@]@ \
+                @[<2>found assigns:  %a@]@ @[<2>stated assigns: %a@]"
                Zone.pretty outputs Zone.pretty assigns_union;
              "unknown", Unknown, Property_status.Dont_know)
            else "valid", True, Property_status.True

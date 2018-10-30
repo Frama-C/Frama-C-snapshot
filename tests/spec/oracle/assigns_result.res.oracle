@@ -1,25 +1,25 @@
 [kernel] Parsing tests/spec/assigns_result.i (no preprocessing)
-[value] Analyzing a complete application starting at main
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing a complete application starting at main
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   X ∈ {0}
   Y ∈ {0}
-[value] computing for function f <- main.
+[eva] computing for function f <- main.
   Called from tests/spec/assigns_result.i:16.
-[value] using specification for function f
-[value] Done for function f
-[value] computing for function g <- main.
+[eva] using specification for function f
+[eva] Done for function f
+[eva] computing for function g <- main.
   Called from tests/spec/assigns_result.i:16.
 [inout] tests/spec/assigns_result.i:16: Warning: 
   failed to interpret assigns clause '\exit_status'
-[value] using specification for function g
-[value] tests/spec/assigns_result.i:16: Warning: 
-  cannot interpret assigns \exit_status (unsupported logic var \exit_status);
-  effects will be ignored
-[value] Done for function g
-[value] Recording results for main
-[value] done for function main
+[eva] using specification for function g
+[eva] tests/spec/assigns_result.i:16: Warning: 
+  cannot interpret assigns clause \exit_status
+  (unsupported logic var \exit_status); effects will be ignored
+[eva] Done for function g
+[eva] Recording results for main
+[eva] done for function main
 [from] Computing for function main
 [from] Computing for function f <-main
 [from] Done for function f

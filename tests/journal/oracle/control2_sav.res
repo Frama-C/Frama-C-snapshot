@@ -1,40 +1,40 @@
 [kernel] Parsing tests/journal/control2.c (with preprocessing)
-[value] Analyzing a complete application starting at f
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing a complete application starting at f
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   x ∈ {0}
   y ∈ {0}
   c ∈ {0}
   d ∈ {0}
-[value] tests/journal/control2.c:12: entering loop for the first time
-[value:alarm] tests/journal/control2.c:15: Warning: 
+[eva] tests/journal/control2.c:12: starting to merge loop iterations
+[eva:alarm] tests/journal/control2.c:15: Warning: 
   signed overflow. assert x + 1 ≤ 2147483647;
-[value] done for function f
-[value] ====== VALUES COMPUTED ======
-[value:final-states] Values at end of function f:
+[eva] done for function f
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function f:
   x ∈ [0..2147483647]
   i ∈ {4}
 [from] Computing for function f
 [from] Done for function f
 [kernel] Warning: ignoring source files specified on the command line while loading a global initial context.
-[value] Analyzing an incomplete application starting at f
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing an incomplete application starting at f
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   x ∈ [--..--]
   y ∈ [--..--]
   c ∈ [--..--]
   d ∈ [--..--]
-[value:alarm] tests/journal/control2.c:13: Warning: 
+[eva:alarm] tests/journal/control2.c:13: Warning: 
   signed overflow. assert y + 1 ≤ 2147483647;
-[value:alarm] tests/journal/control2.c:13: Warning: 
+[eva:alarm] tests/journal/control2.c:13: Warning: 
   signed overflow. assert x + 1 ≤ 2147483647;
-[value:alarm] tests/journal/control2.c:15: Warning: 
+[eva:alarm] tests/journal/control2.c:15: Warning: 
   signed overflow. assert x + 1 ≤ 2147483647;
-[value] done for function f
-[value] ====== VALUES COMPUTED ======
-[value:final-states] Values at end of function f:
+[eva] done for function f
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function f:
   x ∈ [--..--]
   y ∈ [--..--]
   i ∈ {4}

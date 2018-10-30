@@ -67,24 +67,52 @@ Goal Post-condition (file tests/wp_plugin/sep.i, line 48) in 'f8_pq_a':
 Prove: true.
 
 ------------------------------------------------------------
-[wp] Warning: Separation hypotheses for function 'f2_p_a':
-  /*@ behavior typed_caveat: requires \separated(p,&a); */
+[wp] Warning: Memory model hypotheses for function 'f2_p_a':
+  /*@ behavior typed_caveat: requires \separated(p,&a); requires \valid(p); */
   void f2_p_a(int *p);
-[wp] Warning: Separation hypotheses for function 'f3_p_ab':
-  /*@ behavior typed_caveat: requires \separated(p,\union(&a,&b)); */
+[wp] Warning: Memory model hypotheses for function 'f3_p_ab':
+  /*@
+     behavior typed_caveat:
+     requires \separated(p,\union(&a,&b));
+     requires \valid(p);
+     */
   void f3_p_ab(int *p);
-[wp] Warning: Separation hypotheses for function 'f4_pq_ab':
-  /*@ behavior typed_caveat: requires \separated(p,q,\union(&a,&b)); */
+[wp] Warning: Memory model hypotheses for function 'f4_pq_ab':
+  /*@
+     behavior typed_caveat:
+     requires \separated(p,q,\union(&a,&b));
+     requires \valid(p);
+     requires \valid(q);
+     */
   void f4_pq_ab(int *p, int *q);
-[wp] Warning: Separation hypotheses for function 'f5_pq':
-  /*@ behavior typed_caveat: requires \separated(p,q); */
+[wp] Warning: Memory model hypotheses for function 'f5_pq':
+  /*@
+     behavior typed_caveat:
+     requires \separated(p,q);
+     requires \valid(p);
+     requires \valid(q);
+     */
   void f5_pq(int *p, int *q);
-[wp] Warning: Separation hypotheses for function 'f6_Pa':
-  /*@ behavior typed_caveat: requires \separated(p+(..),&a); */
+[wp] Warning: Memory model hypotheses for function 'f6_Pa':
+  /*@
+     behavior typed_caveat:
+     requires \separated(p+(..),&a);
+     requires \valid(p+(..));
+     */
   void f6_Pa(int *p, int k);
-[wp] Warning: Separation hypotheses for function 'f7_pq_ad':
-  /*@ behavior typed_caveat: requires \separated(p,q,\union(&a,&d)); */
+[wp] Warning: Memory model hypotheses for function 'f7_pq_ad':
+  /*@
+     behavior typed_caveat:
+     requires \separated(p,q,\union(&a,&d));
+     requires \valid(p);
+     requires \valid(q);
+     */
   void f7_pq_ad(int *p, int *q);
-[wp] Warning: Separation hypotheses for function 'f8_pq_a':
-  /*@ behavior typed_caveat: requires \separated(p,q,&a); */
+[wp] Warning: Memory model hypotheses for function 'f8_pq_a':
+  /*@
+     behavior typed_caveat:
+     requires \separated(p,q,&a);
+     requires \valid(p);
+     requires \valid(q);
+     */
   void f8_pq_a(int *p, int *q);

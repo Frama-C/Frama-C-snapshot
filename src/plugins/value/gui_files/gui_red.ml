@@ -153,7 +153,7 @@ let build_list () =
     w#reload ;
   in
   let r = {widget=w; append; clear} in
-(** End of generic code *)
+  (** End of generic code *)
   let props = [`YALIGN 0.0] in
   let _ = w#add_column_text ~title:"Function" props
       (function (_, {function_name}) -> [`TEXT function_name])

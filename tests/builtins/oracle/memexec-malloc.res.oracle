@@ -1,0 +1,117 @@
+[kernel] Parsing tests/builtins/memexec-malloc.c (with preprocessing)
+[kernel:typing:implicit-function-declaration] tests/builtins/memexec-malloc.c:15: Warning: 
+  Calling undeclared function Frama_C_malloc_by_stack. Old style K&R code?
+[kernel:annot:missing-spec] tests/builtins/memexec-malloc.c:22: Warning: 
+  Neither code nor specification for function Frama_C_malloc_by_stack, generating default assigns from the prototype
+[eva] Analyzing a complete application starting at main
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
+  t[0..1999] ∈ {0}
+[eva] computing for function f <- main.
+  Called from tests/builtins/memexec-malloc.c:23.
+[eva] tests/builtins/memexec-malloc.c:10: starting to merge loop iterations
+[eva] Recording results for f
+[eva] Done for function f
+[eva] computing for function f <- main.
+  Called from tests/builtins/memexec-malloc.c:24.
+[eva] Recording results for f
+[eva] Done for function f
+[eva] tests/builtins/memexec-malloc.c:25: Reusing old results for call to f
+[eva] tests/builtins/memexec-malloc.c:26: Frama_C_show_each: [0..1999]
+[eva] tests/builtins/memexec-malloc.c:27: Frama_C_show_each: [0..1999]
+[eva] tests/builtins/memexec-malloc.c:28: Frama_C_show_each: [0..1999]
+[eva] tests/builtins/memexec-malloc.c:29: Reusing old results for call to f
+[eva] computing for function alloc <- main.
+  Called from tests/builtins/memexec-malloc.c:31.
+[eva] tests/builtins/memexec-malloc.c:15: 
+  Call to builtin Frama_C_malloc_by_stack
+[eva] tests/builtins/memexec-malloc.c:15: allocating variable __malloc_main_l31
+[eva] Recording results for alloc
+[eva] Done for function alloc
+[eva] computing for function alloc <- main.
+  Called from tests/builtins/memexec-malloc.c:32.
+[eva] tests/builtins/memexec-malloc.c:15: 
+  Call to builtin Frama_C_malloc_by_stack
+[eva] tests/builtins/memexec-malloc.c:15: allocating variable __malloc_main_l32
+[eva] Recording results for alloc
+[eva] Done for function alloc
+[eva] computing for function k <- main.
+  Called from tests/builtins/memexec-malloc.c:34.
+[eva] computing for function alloc <- k <- main.
+  Called from tests/builtins/memexec-malloc.c:19.
+[eva] tests/builtins/memexec-malloc.c:15: 
+  Call to builtin Frama_C_malloc_by_stack
+[eva] tests/builtins/memexec-malloc.c:15: allocating variable __malloc_k_l19
+[eva] Recording results for alloc
+[eva] Done for function alloc
+[eva] Recording results for k
+[eva] Done for function k
+[eva] computing for function k <- main.
+  Called from tests/builtins/memexec-malloc.c:35.
+[eva] computing for function alloc <- k <- main.
+  Called from tests/builtins/memexec-malloc.c:19.
+[eva] tests/builtins/memexec-malloc.c:15: 
+  Call to builtin Frama_C_malloc_by_stack
+[eva] tests/builtins/memexec-malloc.c:15: allocating variable __malloc_k_l19_0
+[eva] Recording results for alloc
+[eva] Done for function alloc
+[eva] Recording results for k
+[eva] Done for function k
+[eva] Recording results for main
+[eva] done for function main
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function alloc:
+  __retres ∈
+          {{ &__malloc_main_l31 ; &__malloc_main_l32 ; &__malloc_k_l19 ;
+             &__malloc_k_l19_0 }}
+[eva:final-states] Values at end of function f:
+  t[0..1999] ∈ [0..1999]
+  i ∈ {2000}
+[eva:final-states] Values at end of function k:
+  
+[eva:final-states] Values at end of function main:
+  t[0..1999] ∈ [0..1999]
+  p1 ∈ {{ &__malloc_main_l31 }}
+  p2 ∈ {{ &__malloc_main_l32 }}
+  p3 ∈ {{ &__malloc_k_l19 }}
+  p4 ∈ {{ &__malloc_k_l19_0 }}
+[from] Computing for function alloc
+[from] Computing for function Frama_C_malloc_by_stack <-alloc
+[from] Done for function Frama_C_malloc_by_stack
+[from] Done for function alloc
+[from] Computing for function f
+[from] Done for function f
+[from] Computing for function k
+[from] Done for function k
+[from] Computing for function main
+[from] Done for function main
+[from] ====== DEPENDENCIES COMPUTED ======
+  These dependencies hold at termination for the executions that terminate:
+[from] Function Frama_C_malloc_by_stack:
+  \result FROM x_0
+[from] Function alloc:
+  \result FROM \nothing
+[from] Function f:
+  t[0..1999] FROM \nothing (and SELF)
+[from] Function k:
+  \result FROM \nothing
+[from] Function main:
+  t[0..1999] FROM \nothing (and SELF)
+[from] ====== END OF DEPENDENCIES ======
+[inout] Out (internal) for function alloc:
+    tmp; __retres
+[inout] Inputs for function alloc:
+    \nothing
+[inout] Out (internal) for function f:
+    t[0..1999]; i
+[inout] Inputs for function f:
+    \nothing
+[inout] Out (internal) for function k:
+    tmp
+[inout] Inputs for function k:
+    \nothing
+[inout] Out (internal) for function main:
+    t[0..1999]; p1; p2; p3; p4
+[inout] Inputs for function main:
+    t[1..2]

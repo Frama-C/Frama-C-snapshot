@@ -149,9 +149,10 @@ let pp_stmt kloc fmt stmt =
     | TryFinally(_,_,loc) | TryExcept(_,_,_,loc) | TryCatch(_,_,loc)-> 
       Format.fprintf fmt "try-catch%a" (pp_kloc kloc) loc
 
+let pp_stmt_loc kloc fmt s = Format.fprintf fmt " at %a" (pp_stmt kloc) s
+
 let pp_kinstr kloc fmt = function
-  | Kglobal -> ()
-  | Kstmt s -> Format.fprintf fmt " at %a" (pp_stmt kloc) s
+  | Kglobal -> () | Kstmt s -> pp_stmt_loc kloc fmt s
 
 let pp_predicate fmt = function
   | PKRequires bhv -> 
@@ -171,23 +172,41 @@ let pp_predicate fmt = function
   | PKTerminates ->
       Format.fprintf fmt "Termination-condition"
 
+let pp_kf_context kfopt fmt kf =
+  match kfopt with
+  | `Always ->
+    Format.fprintf fmt " in '%s'" (Kernel_function.get_name kf)
+  | `Never -> ()
+  | `Context kf0 ->
+    if not (Kernel_function.equal kf0 kf) then
+      Format.fprintf fmt " of '%s'" (Kernel_function.get_name kf)
+
 let pp_context kfopt fmt = function
   | None -> ()
-  | Some kf ->
-      match kfopt with
-	| `Always ->
-	    Format.fprintf fmt " in '%s'" (Kernel_function.get_name kf)
-	| `Never -> ()
-	| `Context kf0 -> 
-	    if not (Kernel_function.equal kf0 kf) then 
-	      Format.fprintf fmt " of '%s'" (Kernel_function.get_name kf)
+  | Some kf -> pp_kf_context kfopt fmt kf
+
+let pp_extended_loc kfopt kiopt kloc fmt (loc,le) =
+  let open Property in
+  match le with
+  | ELContract kf -> pp_kf_context kfopt fmt kf
+  | ELStmt (kf, s) ->
+    pp_kf_context kfopt fmt kf; pp_opt kiopt (pp_stmt_loc kloc) fmt s
+  | ELGlob -> pp_kloc kloc fmt loc
+
+let pp_other_loc kfopt kiopt kloc fmt le =
+  let open Property in
+  match le with
+  | OLContract kf -> pp_kf_context kfopt fmt kf
+  | OLStmt (kf, s) ->
+    pp_kf_context kfopt fmt kf; pp_opt kiopt (pp_stmt_loc kloc) fmt s
+  | OLGlob loc -> pp_kloc kloc fmt loc
 
 let pp_active fmt active =
   Pretty_utils.pp_list
     ~pre:" under active behaviors" ~sep:"," Format.pp_print_string fmt
     (Datatype.String.Set.elements active)
 
-let pp_acsl_extension fmt (_,s,_) =
+let pp_acsl_extension fmt (_,s,_,_) =
   Format.fprintf fmt "%s"  s
 
 let rec pp_prop kfopt kiopt kloc fmt = function
@@ -196,8 +215,8 @@ let rec pp_prop kfopt kiopt kloc fmt = function
   | IPTypeInvariant (s,_,_,_) -> Format.fprintf fmt "Type invariant '%s'" s
   | IPGlobalInvariant (s,_,_) -> Format.fprintf fmt "Global invariant '%s'" s
   | IPAxiomatic (s,_) -> Format.fprintf fmt "Axiomatic '%s'" s
-  | IPOther(s,kf,ki) -> Format.fprintf fmt "%s%a%a" s 
-    (pp_context kfopt) kf (pp_opt kiopt (pp_kinstr kloc)) ki
+  | IPOther(s,le) ->
+    Format.fprintf fmt "%s%a" s (pp_other_loc kfopt kiopt kloc) le
   | IPPredicate(kind,kf,Kglobal,idpred) ->
     Format.fprintf fmt "%a%a%a" 
       pp_predicate kind 
@@ -208,11 +227,10 @@ let rec pp_prop kfopt kiopt kloc fmt = function
       pp_predicate kind 
       (pp_idpred kloc) idpred 
       (pp_kinstr kloc) ki
-  | IPExtended(kf,ki,pred) ->
-    Format.fprintf fmt "%a%a%a"
+  | IPExtended(le,(_,_,loc,_ as pred)) ->
+    Format.fprintf fmt "%a%a"
       pp_acsl_extension pred
-      (pp_kinstr kloc) ki
-      (pp_context kfopt) (Some kf)
+      (pp_extended_loc kfopt kiopt kloc) (loc,le)
   | IPBehavior(_,ki, active, bhv) ->
     if Cil.is_default_behavior bhv then
       Format.fprintf fmt "Default behavior%a%a"
@@ -316,6 +334,63 @@ let pp_property = pp_prop `Always true true
 let pp_localized ~kf ~ki ~kloc = pp_prop kf ki kloc
 let pp_local = pp_prop `Never false false
 
+let to_string pp elt =
+  let b = Buffer.create 20 in
+  let fmt = Format.formatter_of_buffer b in
+  Format.pp_set_margin fmt 1000000;
+  pp fmt elt;
+  Format.pp_print_flush fmt ();
+  Buffer.contents b
+
+let code_annot_kind_and_node code_annot = match code_annot.annot_content with
+    | AAssert (_, {pred_content; pred_name}) ->
+        let kind = match Alarms.find code_annot with
+        | Some alarm -> Alarms.get_name alarm
+        | None ->
+          if List.exists ((=) "missing_return") pred_name
+          then "missing_return"
+          else "user assertion"
+        in
+        Some (kind, to_string Printer.pp_predicate_node pred_content)
+    | AInvariant (_, _, {pred_content}) ->
+      Some ("loop invariant", to_string Printer.pp_predicate_node pred_content)
+    | _ -> None
+
+let property_kind_and_node property =
+  let default kind = Some (kind, to_string Property.pretty property) in
+  let open Property in
+  match property with
+  | IPCodeAnnot (_kf, _stmt, code_annot) -> code_annot_kind_and_node code_annot
+  | IPPredicate (kind, _kf, _, p) ->
+    let kind = match kind with
+      | PKRequires _ -> "precondition"
+      | PKAssumes _  -> "behavior assumption"
+      | PKEnsures _  -> "postcondition"
+      | PKTerminates -> "termination clause"
+    in
+    Some (kind, to_string Printer.pp_identified_predicate p)
+  | IPPropertyInstance (_, _, _, IPPredicate (PKRequires _, kf', Kglobal, p)) ->
+    let kind = "precondition of " ^ Kernel_function.get_name kf' in
+    Some (kind, to_string Printer.pp_identified_predicate p)
+  | IPAssigns _  -> default "assigns clause"
+  | IPFrom _     -> default "from clause"
+  | IPComplete _ -> default "complete behaviors"
+  | IPDisjoint _ -> default "disjoint behaviors"
+  | _ -> None
+
+let status_feedback status =
+  let open Property_status.Feedback in
+  match status with
+  | Never_tried       -> "Ignored"
+  | Considered_valid  -> "Considered valid"
+  | Valid             -> "Valid"
+  | Valid_under_hyp   -> "Partially proven"
+  | Unknown           -> "Unknown"
+  | Invalid           -> "Invalid"
+  | Invalid_under_hyp -> "Invalid or unreachable"
+  | Inconsistent      -> "Inconsistent"
+  | Invalid_but_dead | Valid_but_dead | Unknown_but_dead -> "Dead"
+
 (* -------------------------------------------------------------------------- *)
 (* --- Property Comparison                                                --- *)
 (* -------------------------------------------------------------------------- *)
@@ -388,24 +463,28 @@ let loop_order = function
 let rec ip_order = function
   | IPAxiomatic(a,_) -> [I 0;S a]
   | IPAxiom(a,_,_,_,_) | IPLemma(a,_,_,_,_) -> [I 1;S a]
-  | IPOther(s,None,ki) -> [I 3;K ki;S s]
-  | IPOther(s,Some kf,ki) -> [I 4;F kf;K ki;S s]
-  | IPBehavior(kf,ki,a,bhv) -> [I 5;F kf;K ki;B bhv; A a]
-  | IPComplete(kf,ki,a,bs) -> [I 6;F kf;K ki; A a] @ for_order 0 bs
-  | IPDisjoint(kf,ki,a, bs) -> [I 7;F kf;K ki; A a] @ for_order 0 bs
-  | IPPredicate(kind,kf,ki,_) -> [I 8;F kf;K ki] @ kind_order kind
-  | IPCodeAnnot(kf,st,a) -> [I 9;F kf;K(Kstmt st)] @ annot_order a
-  | IPAllocation(kf,ki,ib,_) -> [I 10;F kf;K ki] @ loop_order ib
-  | IPAssigns(kf,ki,ib,_) -> [I 11;F kf;K ki] @ loop_order ib
-  | IPFrom (kf,ki,ib,_) -> [I 12;F kf;K ki] @ loop_order ib
-  | IPDecrease(kf,ki,None,_) -> [I 13;F kf;K ki]
-  | IPDecrease(kf,ki,Some a,_) -> [I 14;F kf;K ki] @ annot_order a
-  | IPReachable(None,_,_) -> [I 15]
-  | IPReachable(Some kf,ki,_) -> [I 16;F kf;K ki]
-  | IPPropertyInstance (kf, s, _, ip) -> [I 17; F kf; K (Kstmt s)] @ ip_order ip
-  | IPTypeInvariant(a,_,_,_) -> [I 18; S a]
-  | IPGlobalInvariant(a,_,_) -> [I 19; S a]
-  | IPExtended(kf,ki,_) -> [I 20;F kf;K ki]
+  | IPOther(s,OLContract kf) -> [I 3;F kf;S s]
+  | IPOther(s,OLStmt (kf, stmt)) -> [I 4;F kf;K (Kstmt stmt);S s]
+  | IPOther (s, OLGlob _) -> [I 5; S s]
+  | IPBehavior(kf,ki,a,bhv) -> [I 6;F kf;K ki;B bhv; A a]
+  | IPComplete(kf,ki,a,bs) -> [I 7;F kf;K ki; A a] @ for_order 0 bs
+  | IPDisjoint(kf,ki,a, bs) -> [I 8;F kf;K ki; A a] @ for_order 0 bs
+  | IPPredicate(kind,kf,ki,_) -> [I 9;F kf;K ki] @ kind_order kind
+  | IPCodeAnnot(kf,st,a) -> [I 10;F kf;K(Kstmt st)] @ annot_order a
+  | IPAllocation(kf,ki,ib,_) -> [I 11;F kf;K ki] @ loop_order ib
+  | IPAssigns(kf,ki,ib,_) -> [I 12;F kf;K ki] @ loop_order ib
+  | IPFrom (kf,ki,ib,_) -> [I 13;F kf;K ki] @ loop_order ib
+  | IPDecrease(kf,ki,None,_) -> [I 14;F kf;K ki]
+  | IPDecrease(kf,ki,Some a,_) -> [I 15;F kf;K ki] @ annot_order a
+  | IPReachable(None,_,_) -> [I 16]
+  | IPReachable(Some kf,ki,_) -> [I 17;F kf;K ki]
+  | IPPropertyInstance (kf, s, _, ip) -> [I 18; F kf; K (Kstmt s)] @ ip_order ip
+  | IPTypeInvariant(a,_,_,_) -> [I 19; S a]
+  | IPGlobalInvariant(a,_,_) -> [I 20; S a]
+  | IPExtended(ELContract kf,(_,n,_,_)) -> [I 21;F kf; S n]
+  | IPExtended(ELStmt (kf, stmt), (_, n, _,_)) ->
+    [ I 22; F kf; K (Kstmt stmt); S n]
+  | IPExtended(ELGlob, (_, n, _,_)) -> [ I 23; S n]
 
 let pp_compare p q = cmp (ip_order p) (ip_order q)
 

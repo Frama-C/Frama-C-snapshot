@@ -1,10 +1,10 @@
 /* run.config*
-   OPT: -no-autoload-plugins -load-module value -val @VALUECONFIG@ -print -journal-disable -no-results
+   OPT: -no-autoload-plugins -load-module eva -val @VALUECONFIG@ -print -journal-disable -no-results
 */
 int *p;
 int t[90];
 
-main(){
+int main(){
   p = (int*) (((unsigned long)t + 7) & ~7UL);
   /*@ assert p == (int*)t || p == (int*)((char*)t+1) || 
     p == (int*)((char*)t+2) || p == (int*)((char*)t+3) ||
@@ -12,4 +12,5 @@ main(){
     p == (int*)((char*)t+6) || p == (int*)((char*)t+7) 
 ; */
   Frama_C_show_each(p);
+  return 0;
 }

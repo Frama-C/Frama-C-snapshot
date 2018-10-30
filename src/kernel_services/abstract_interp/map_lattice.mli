@@ -65,8 +65,13 @@ module type Map_Lattice_with_cardinality = sig
   type key
   type v
 
-  (** If [t] is a singleton map binding [k] to [v], and if
-      [cardinal_zero_or_one v] holds, returns the pair (k,v).
+  (** If [t] is a singleton map binding [k] to [v] and [t] is not a summary key,
+      then returns the pair (k,v).
+      @raise Not_found otherwise. *)
+  val find_lonely_key: t -> key * v
+
+  (** If [t] is a singleton map binding [k] to [v], if [t] is not a summary key,
+      and if [cardinal_zero_or_one v] holds, returns the pair (k,v).
       @raise Not_found otherwise. *)
   val find_lonely_binding: t -> key * v
 end
@@ -162,7 +167,12 @@ module Make_Map_Lattice
                          and type key = Key.t
                          and type v = Value.t
 
+    (** Adds cardinality functions for maps, according to a notion of
+        cardinality on the values. It also requires a function [is_summary] on
+        keys, indicating whether a key represents a summary of possibly multiple
+        keys; a binding to such a key has never a cardinality of one. *)
     module With_Cardinality
+        (K: sig val is_summary: Key.t -> bool end)
         (Value :
            Lattice_type.Full_AI_Lattice_with_cardinality with type t := Value.t)
       : Map_Lattice_with_cardinality with type t := t

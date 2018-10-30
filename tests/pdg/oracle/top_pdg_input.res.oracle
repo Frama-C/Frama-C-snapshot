@@ -1,48 +1,48 @@
 [kernel] Parsing tests/pdg/top_pdg_input.c (with preprocessing)
-[value] Analyzing a complete application starting at main
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing a complete application starting at main
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   nondet ∈ [--..--]
   tab[0] ∈ {0}
      [1] ∈ {7}
   S ∈ {0}
   G ∈ {0}
-[value] computing for function f1 <- main.
+[eva] computing for function f1 <- main.
   Called from tests/pdg/top_pdg_input.c:38.
-[value] computing for function no_results <- f1 <- main.
+[eva] computing for function no_results <- f1 <- main.
   Called from tests/pdg/top_pdg_input.c:13.
-[value] Recording results for no_results
-[value] Done for function no_results
-[value] Recording results for f1
-[value] Done for function f1
-[value] computing for function f2 <- main.
+[eva] Recording results for no_results
+[eva] Done for function no_results
+[eva] Recording results for f1
+[eva] Done for function f1
+[eva] computing for function f2 <- main.
   Called from tests/pdg/top_pdg_input.c:39.
-[value] computing for function no_results <- f2 <- main.
+[eva] computing for function no_results <- f2 <- main.
   Called from tests/pdg/top_pdg_input.c:20.
-[value] Recording results for no_results
-[value] Done for function no_results
-[value] Recording results for f2
-[value] Done for function f2
-[value:alarm] tests/pdg/top_pdg_input.c:40: Warning: 
+[eva] Recording results for no_results
+[eva] Done for function no_results
+[eva] Recording results for f2
+[eva] Done for function f2
+[eva:alarm] tests/pdg/top_pdg_input.c:40: Warning: 
   out of bounds read. assert \valid_read(p_str + i);
-[value:alarm] tests/pdg/top_pdg_input.c:40: Warning: 
+[eva:alarm] tests/pdg/top_pdg_input.c:40: Warning: 
   out of bounds read. assert \valid_read(p_str + 0);
-[value] computing for function strlen <- main.
+[eva] computing for function strlen <- main.
   Called from tests/pdg/top_pdg_input.c:40.
-[value] tests/pdg/top_pdg_input.c:31: entering loop for the first time
-[value:alarm] tests/pdg/top_pdg_input.c:31: Warning: 
+[eva:alarm] tests/pdg/top_pdg_input.c:31: Warning: 
   out of bounds read. assert \valid_read(q);
-[value:alarm] tests/pdg/top_pdg_input.c:31: Warning: 
+[eva] tests/pdg/top_pdg_input.c:31: starting to merge loop iterations
+[eva:alarm] tests/pdg/top_pdg_input.c:31: Warning: 
   signed overflow. assert k + 1 ≤ 2147483647;
-[value] Recording results for strlen
-[value] Done for function strlen
-[value] Recording results for main
-[value] done for function main
-[value] tests/pdg/top_pdg_input.c:40: 
-  assertion 'Value,mem_access' got final status invalid.
-[value] ====== VALUES COMPUTED ======
-[value:final-states] Values at end of function f1:
+[eva] Recording results for strlen
+[eva] Done for function strlen
+[eva] Recording results for main
+[eva] done for function main
+[eva] tests/pdg/top_pdg_input.c:40: 
+  assertion 'Eva,mem_access' got final status invalid.
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function f1:
 Cannot filter: dumping raw memory (including unchanged variables)
   nondet ∈ [--..--]
   tab[0] ∈ {0}
@@ -61,7 +61,7 @@ Cannot filter: dumping raw memory (including unchanged variables)
          [1] ∈ {{ NULL ; &S_1_S_p_str[0] }}
   S_0_S_p_str[0..1] ∈ [--..--]
   S_1_S_p_str[0..1] ∈ [--..--]
-[value:final-states] Values at end of function f2:
+[eva:final-states] Values at end of function f2:
 Cannot filter: dumping raw memory (including unchanged variables)
   nondet ∈ [--..--]
   tab[0] ∈ {0}
@@ -83,10 +83,10 @@ Cannot filter: dumping raw memory (including unchanged variables)
          [1] ∈ {{ NULL ; &S_1_S_p_str[0] }}
   S_0_S_p_str[0..1] ∈ [--..--]
   S_1_S_p_str[0..1] ∈ [--..--]
-[value:final-states] Values at end of function strlen:
+[eva:final-states] Values at end of function strlen:
   q ∈ {{ &S_0_S_p_str{[0], [1]} }}
   k ∈ [0..2147483647]
-[value:final-states] Values at end of function main:
+[eva:final-states] Values at end of function main:
 Cannot filter: dumping raw memory (including unchanged variables)
   nondet ∈ [--..--]
   tab[0] ∈ {0}
@@ -231,27 +231,27 @@ Cannot filter: dumping raw memory (including unchanged variables)
  {n33}: In(S_0_S_p_str[0..1])
 [pdg] PDG for main
  Top PDG
-[value] Analyzing a complete application starting at main_asm
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing a complete application starting at main_asm
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   nondet ∈ [--..--]
   tab[0] ∈ {0}
      [1] ∈ {7}
   S ∈ {0}
   G ∈ {0}
-[value] computing for function fun_asm <- main_asm.
+[eva] computing for function fun_asm <- main_asm.
   Called from tests/pdg/top_pdg_input.c:51.
-[value] tests/pdg/top_pdg_input.c:45: Warning: 
+[eva] tests/pdg/top_pdg_input.c:45: Warning: 
   assuming assembly code has no effects in function fun_asm
-[value] Recording results for fun_asm
-[value] Done for function fun_asm
-[value] Recording results for main_asm
-[value] done for function main_asm
-[value] ====== VALUES COMPUTED ======
-[value:final-states] Values at end of function fun_asm:
+[eva] Recording results for fun_asm
+[eva] Done for function fun_asm
+[eva] Recording results for main_asm
+[eva] done for function main_asm
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function fun_asm:
   __retres ∈ {4}
-[value:final-states] Values at end of function main_asm:
+[eva:final-states] Values at end of function main_asm:
   j ∈ {3}
 [from] Computing for function fun_asm
 [from] Done for function fun_asm

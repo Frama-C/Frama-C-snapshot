@@ -111,3 +111,84 @@ let get_all () =
       map acc
   in
   RedStatusesTable.fold gather []
+
+(* Information to print on the csv file for each property with a red status. *)
+type information = {
+  loc: location; (* Source-code location of the property. *)
+  kf: kernel_function; (* Function including the property. *)
+  alarm: bool;  (* Is the property an Eva alarm or another logic property? *)
+  kind: string; (* Name of the property. *)
+  text: string; (* Node of the property. *)
+  status: Property_status.Feedback.t; (* Final status of the property. *)
+  contexts: int; (* Number of contexts in which the property had a red status. *)
+}
+
+let kinstr_to_stmt = function
+  | Kglobal ->
+    let kf = fst (Globals.entry_point ()) in
+    kf, Kernel_function.find_first_stmt kf
+  | Kstmt stmt -> Kernel_function.find_englobing_kf stmt, stmt
+
+let kf_of_property ip =
+  match Property.get_kf ip with
+  | Some kf -> kf
+  | None -> fst (Globals.entry_point ())
+
+let loc_of_property kf ip =
+  let loc = Property.location ip in
+  if Cil_datatype.Location.(equal loc unknown)
+  then Kernel_function.get_location kf
+  else loc
+
+(* For properties that we want to skip *)
+exception Skip
+
+let compute_information (kinstr, alarm_or_prop, contexts) =
+  let kf, property, alarm =
+    match alarm_or_prop with
+    | Alarm alarm ->
+      let kf, stmt = kinstr_to_stmt kinstr in
+      let code_annot, _ = Alarms.to_annot kinstr alarm in
+      let property = Property.ip_of_code_annot_single kf stmt code_annot in
+      kf, property, true
+    | Prop ip -> kf_of_property ip, ip, false
+  in
+  let kind, text = match Description.property_kind_and_node property with
+    | None -> raise Skip
+    | Some (kind, text) -> kind, text
+  in
+  let loc = loc_of_property kf property in
+  let status = Property_status.Feedback.get property in
+  { loc; kf; alarm; kind; text; status; contexts }
+
+let print_information fmt { loc; kf; alarm; kind; text; status; contexts } =
+  let pos = fst loc in
+  let file =
+    Filepath.Normalized.to_pretty_string pos.Filepath.pos_path
+  in
+  let dir = Filepath.relativize (Filename.dirname file) in
+  let file = Filename.basename file in
+  let lnum = pos.Filepath.pos_lnum in
+  let kf = Kernel_function.get_name kf in
+  let alarm = if alarm then "Alarm" else "Property" in
+  let status = Description.status_feedback status in
+  Format.fprintf fmt "@[<h>%s\t%s\t%d\t%s\t%s\t%s\t%i\t%s\t%s@]@,"
+    dir file lnum kf alarm kind contexts status text
+
+let output file =
+  Value_parameters.feedback "Listing red statuses in file %s" file;
+  let channel = open_out file in
+  let fmt = Format.formatter_of_out_channel channel in
+  Format.pp_set_margin fmt 1000000;
+  Format.fprintf fmt "@[<v>";
+  Format.fprintf fmt
+    "@[directory\tfile\tline\tfunction\tkind\tname\t#contexts\tstatus\tproperty@]@,";
+  let list = get_all () in
+  let compute e acc = try compute_information e :: acc with Skip -> acc in
+  let infos = List.fold_right compute list [] in
+  List.iter (print_information fmt) infos;
+  Format.fprintf fmt "@]%!"
+
+let report () =
+  let file = Value_parameters.ReportRedStatuses.get () in
+  if file <> "" then output file

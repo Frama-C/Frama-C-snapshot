@@ -1,54 +1,43 @@
 [kernel] Parsing tests/slicing/bts709.c (with preprocessing)
 [slicing] slicing requests in progress...
-[value] Analyzing a complete application starting at main
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing a complete application starting at main
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   inp1 IN {0}
   var1 IN {0}
   var2 IN {0}
-[value] tests/slicing/bts709.c:46: entering loop for the first time
-[value] computing for function inputsOf_testcase_func <- main.
+[eva] computing for function inputsOf_testcase_func <- main.
   Called from tests/slicing/bts709.c:47.
-[value] computing for function nondet_int <- inputsOf_testcase_func <- main.
+[eva] computing for function nondet_int <- inputsOf_testcase_func <- main.
   Called from tests/slicing/bts709.c:55.
 [kernel:annot:missing-spec] tests/slicing/bts709.c:55: Warning: 
   Neither code nor specification for function nondet_int, generating default assigns from the prototype
-[value] using specification for function nondet_int
-[value] Done for function nondet_int
-[value] computing for function nondet_int <- inputsOf_testcase_func <- main.
+[eva] using specification for function nondet_int
+[eva] Done for function nondet_int
+[eva] computing for function nondet_int <- inputsOf_testcase_func <- main.
   Called from tests/slicing/bts709.c:56.
-[value] Done for function nondet_int
-[value] computing for function nondet_int <- inputsOf_testcase_func <- main.
+[eva] Done for function nondet_int
+[eva] computing for function nondet_int <- inputsOf_testcase_func <- main.
   Called from tests/slicing/bts709.c:57.
-[value] Done for function nondet_int
-[value] Recording results for inputsOf_testcase_func
-[value] Done for function inputsOf_testcase_func
-[value] computing for function func <- main.
+[eva] Done for function nondet_int
+[eva] Recording results for inputsOf_testcase_func
+[eva] Done for function inputsOf_testcase_func
+[eva] computing for function func <- main.
   Called from tests/slicing/bts709.c:48.
-[value] computing for function __FC_assert <- func <- main.
+[eva] computing for function __FC_assert <- func <- main.
   Called from tests/slicing/bts709.c:38.
-[value] using specification for function __FC_assert
-[value:alarm] tests/slicing/bts709.c:38: Warning: 
+[eva] using specification for function __FC_assert
+[eva:alarm] tests/slicing/bts709.c:38: Warning: 
   function __FC_assert: precondition 'nonnull_c' got status unknown.
-[value] Done for function __FC_assert
-[value] Recording results for func
-[value] Done for function func
-[value] computing for function inputsOf_testcase_func <- main.
-  Called from tests/slicing/bts709.c:47.
-[value] computing for function nondet_int <- inputsOf_testcase_func <- main.
-  Called from tests/slicing/bts709.c:55.
-[value] Done for function nondet_int
-[value] computing for function nondet_int <- inputsOf_testcase_func <- main.
-  Called from tests/slicing/bts709.c:56.
-[value] Done for function nondet_int
-[value] computing for function nondet_int <- inputsOf_testcase_func <- main.
-  Called from tests/slicing/bts709.c:57.
-[value] Done for function nondet_int
-[value] Recording results for inputsOf_testcase_func
-[value] Done for function inputsOf_testcase_func
-[value] Recording results for main
-[value] done for function main
+[eva] Done for function __FC_assert
+[eva] Recording results for func
+[eva] Done for function func
+[eva] tests/slicing/bts709.c:46: starting to merge loop iterations
+[eva] tests/slicing/bts709.c:47: 
+  Reusing old results for call to inputsOf_testcase_func
+[eva] Recording results for main
+[eva] done for function main
 [slicing] initializing slicing ...
 [slicing] interpreting slicing requests from the command line...
 [pdg] computing for function func

@@ -1,30 +1,30 @@
 [kernel] Parsing tests/value/dangling.i (no preprocessing)
-[value] Analyzing a complete application starting at main
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing a complete application starting at main
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   v ∈ [--..--]
-[value] tests/value/dangling.i:9: Warning: 
+[eva:locals-escaping] tests/value/dangling.i:9: Warning: 
   locals {v_0} escaping the scope of a block of main through x
-[value:alarm] tests/value/dangling.i:15: Warning: assertion got status unknown.
-[value] tests/value/dangling.i:16: assertion got status valid.
-[value:alarm] tests/value/dangling.i:19: Warning: 
+[eva:alarm] tests/value/dangling.i:15: Warning: assertion got status unknown.
+[eva] tests/value/dangling.i:16: assertion got status valid.
+[eva:alarm] tests/value/dangling.i:19: Warning: 
   accessing left-value that contains escaping addresses.
   assert ¬\dangling(&x);
-[value:alarm] tests/value/dangling.i:23: Warning: assertion got status unknown.
-[value:alarm] tests/value/dangling.i:24: Warning: 
+[eva:alarm] tests/value/dangling.i:23: Warning: assertion got status unknown.
+[eva:alarm] tests/value/dangling.i:24: Warning: 
   accessing left-value that contains escaping addresses.
   assert ¬\dangling(&x);
-[value] tests/value/dangling.i:31: Warning: 
+[eva:locals-escaping] tests/value/dangling.i:31: Warning: 
   locals {z} escaping the scope of a block of main through p
-[value] tests/value/dangling.i:33: assertion got status valid.
-[value] Recording results for main
-[value] done for function main
-[value] tests/value/dangling.i:24: 
-  assertion 'Value,dangling_pointer' got final status invalid.
+[eva] tests/value/dangling.i:33: assertion got status valid.
+[eva] Recording results for main
+[eva] done for function main
+[eva] tests/value/dangling.i:24: 
+  assertion 'Eva,dangling_pointer' got final status invalid.
 [scope:rm_asserts] removing 1 assertion(s)
-[value] ====== VALUES COMPUTED ======
-[value:final-states] Values at end of function main:
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function main:
   x ∈ {{ &y }} or ESCAPINGADDR
   y ∈ {1}
   p[0] ∈ ESCAPINGADDR

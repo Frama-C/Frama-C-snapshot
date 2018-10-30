@@ -61,10 +61,11 @@ type alarm =
   | Is_nan of exp * fkind
   | Function_pointer of exp * exp list option
   | Uninitialized_union of lval list
+  | Invalid_bool of lval
 
 (* If you add one constructor to this type, make sure to add a dummy value
    in the 'reprs' value below, and increase 'nb_alarms' *)
-let nb_alarm_constructors = 16
+let nb_alarm_constructors = 17
 
 module D =
   Datatype.Make_with_collections
@@ -92,6 +93,7 @@ module D =
           Is_nan (e, FFloat);
           Function_pointer (e, None);
           Uninitialized_union [ lv ];
+          Invalid_bool lv;
         ]
 
       let nb = function
@@ -111,6 +113,7 @@ module D =
         | Dangling _ -> 13
         | Function_pointer _ -> 14
         | Uninitialized_union _ -> 15
+        | Invalid_bool _ -> 16
 
       let () = (* Lightweight checks *)
         for i = 0 to nb_alarm_constructors - 1 do
@@ -180,12 +183,13 @@ module D =
             let n = Exp.compare e1 e2 in
             if n <> 0 then n
             else Extlib.opt_compare (Extlib.list_compare Exp.compare) l1 l2
+          | Invalid_bool lv1, Invalid_bool lv2 -> Lval.compare lv1 lv2
           | _, (Division_by_zero _ | Memory_access _ |
                 Index_out_of_bound _ | Invalid_shift _ | Pointer_comparison _ |
                 Overflow _ | Not_separated _ | Overlap _ | Uninitialized _ |
                 Dangling _ | Is_nan_or_infinite _ | Is_nan _ | Float_to_int _ |
                 Differing_blocks _ | Function_pointer _ |
-                Uninitialized_union _ )
+                Uninitialized_union _  | Invalid_bool _)
             ->
             let n = nb a1 - nb a2 in
             assert (n <> 0);
@@ -224,6 +228,7 @@ module D =
         | Function_pointer (e, _) -> Hashtbl.hash (nb a, Exp.hash e)
         | Uninitialized_union llv ->
           Hashtbl.hash (nb a, List.map Lval.hash llv)
+        | Invalid_bool lv -> Hashtbl.hash (nb a, Lval.hash lv)
 
       let structural_descr = Structural_descr.t_abstract
       let rehash = Datatype.identity
@@ -290,6 +295,8 @@ module D =
           Format.fprintf fmt "Uninitialized_union(@[[%a]@])" 
             (Format.pp_print_list ~pp_sep:(fun fmt () -> Format.fprintf fmt "; ") Lval.pretty) 
             llv
+        | Invalid_bool lv ->
+          Format.fprintf fmt "Invalid_bool(@[%a@])" Lval.pretty lv
 
       let internal_pretty_code = Datatype.undefined
       let copy = Datatype.undefined
@@ -397,6 +404,7 @@ let get_name = function
   | Float_to_int _ -> "float_to_int"
   | Function_pointer _ -> "function_pointer"
   | Uninitialized_union _ -> "initialization_of_union"
+  | Invalid_bool _ -> "bool_value"
 
 let get_short_name = function
   | Overflow _ -> "overflow"
@@ -419,6 +427,7 @@ let get_description = function
   | Float_to_int _ -> "Overflow in float to int conversion"
   | Function_pointer _ -> "Pointer to a function with non-compatible type"
   | Uninitialized_union _ -> "Uninitialized memory read of union"
+  | Invalid_bool _ -> "Trap representation of a _Bool lvalue"
 
 
 (* Given a "topmost" location and another one supposed to be more precise,
@@ -626,6 +635,12 @@ let create_predicate ?(loc=Location.unknown) alarm =
       (make_lval_predicate (List.hd llv))
       (List.tl llv)
 
+  | Invalid_bool lv ->
+    let e = Cil.new_exp ~loc (Lval lv) in
+    let t = Logic_utils.expr_to_term ~cast:false e in
+    let zero = Logic_const.prel ~loc (Req, t, Cil.lzero ()) in
+    let one = Logic_const.prel ~loc (Req, t, Cil.lone ()) in
+    Logic_const.por ~loc (zero, one)
   in
   let p = aux alarm in
   assert (p.pred_name = []);

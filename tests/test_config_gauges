@@ -1,2 +1,2 @@
-MACRO: VALUECONFIG -val-show-progress -no-autoload-plugins -load-module from,inout,value,scope,variadic -eva-gauges-domain
+MACRO: VALUECONFIG -val-show-progress -no-autoload-plugins -load-module from,inout,eva,scope,variadic -eva-gauges-domain
 OPT: -val @VALUECONFIG@ -journal-disable -out -input -deps

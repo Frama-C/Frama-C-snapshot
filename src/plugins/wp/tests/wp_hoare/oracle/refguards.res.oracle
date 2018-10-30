@@ -69,12 +69,27 @@ Assume { (* Heap *) Have: (region(c.base) <= 0) /\ (region(d.base) <= 0). }
 Prove: d != c.
 
 ------------------------------------------------------------
-[wp] Warning: Separation hypotheses for function 'f':
-  /*@ behavior typed_ref: requires \separated(c,d,\union(a+(..),b+(..))); */
+[wp] Warning: Memory model hypotheses for function 'f':
+  /*@
+     behavior typed_ref:
+     requires \separated(c,d,\union(a+(..),b+(..)));
+     requires \valid(c);
+     requires \valid(d);
+     */
   void f(int *a, int *b, int *c, int *d, int k);
-[wp] Warning: Separation hypotheses for function 'h':
-  /*@ behavior typed_ref: requires \separated(c,d); */
+[wp] Warning: Memory model hypotheses for function 'h':
+  /*@
+     behavior typed_ref:
+     requires \separated(c,d);
+     requires \valid(c);
+     requires \valid(d);
+     */
   void h(int *c, int *d, int k);
-[wp] Warning: Separation hypotheses for function 's':
-  /*@ behavior typed_ref: requires \separated(c,d); */
+[wp] Warning: Memory model hypotheses for function 's':
+  /*@
+     behavior typed_ref:
+     requires \separated(c,d);
+     requires \valid(c);
+     requires \valid(d);
+     */
   void s(int **c, int **d, int k);

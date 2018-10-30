@@ -1,44 +1,44 @@
 [kernel] Parsing tests/value/loop_wvar.i (no preprocessing)
 [kernel:annot-error] tests/value/loop_wvar.i:38: Warning: 
   invalid pragma '12'. Ignoring loop annotation
-[value] Analyzing a complete application starting at main3
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing a complete application starting at main3
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   
-[value] computing for function main_unhelpful <- main3.
+[eva] computing for function main_unhelpful <- main3.
   Called from tests/value/loop_wvar.i:84.
-[value] tests/value/loop_wvar.i:52: entering loop for the first time
-[value:alarm] tests/value/loop_wvar.i:57: Warning: 
+[eva] tests/value/loop_wvar.i:52: starting to merge loop iterations
+[eva:alarm] tests/value/loop_wvar.i:57: Warning: 
   signed overflow. assert next + 1 ≤ 2147483647;
-[value] Recording results for main_unhelpful
-[value] Done for function main_unhelpful
-[value] computing for function main_multiple_hints <- main3.
+[eva] Recording results for main_unhelpful
+[eva] Done for function main_unhelpful
+[eva] computing for function main_multiple_hints <- main3.
   Called from tests/value/loop_wvar.i:85.
-[value] tests/value/loop_wvar.i:69: entering loop for the first time
-[value] tests/value/loop_wvar.i:71: Frama_C_show_each: {0}, {0}, {0}
-[value] tests/value/loop_wvar.i:71: Frama_C_show_each: {0; 1}, {0; 1}, {0; 1}
-[value] tests/value/loop_wvar.i:71: 
+[eva] tests/value/loop_wvar.i:71: Frama_C_show_each: {0}, {0}, {0}
+[eva] tests/value/loop_wvar.i:69: starting to merge loop iterations
+[eva] tests/value/loop_wvar.i:71: Frama_C_show_each: {0; 1}, {0; 1}, {0; 1}
+[eva] tests/value/loop_wvar.i:71: 
   Frama_C_show_each: {0; 1; 2}, {0; 1; 2}, {0; 1; 2}
-[value] tests/value/loop_wvar.i:71: 
+[eva] tests/value/loop_wvar.i:71: 
   Frama_C_show_each: [0..9], {0; 1; 2; 3}, {0; 1; 2; 3}
-[value] tests/value/loop_wvar.i:71: 
+[eva] tests/value/loop_wvar.i:71: 
   Frama_C_show_each: [0..9], {0; 1; 2; 3; 4}, {0; 1; 2; 3; 4}
-[value] tests/value/loop_wvar.i:71: Frama_C_show_each: [0..9], [0..17], [0..11]
-[value] tests/value/loop_wvar.i:71: Frama_C_show_each: [0..9], [0..18], [0..12]
-[value] Recording results for main_multiple_hints
-[value] Done for function main_multiple_hints
-[value] Recording results for main3
-[value] done for function main3
-[value] ====== VALUES COMPUTED ======
-[value:final-states] Values at end of function main_multiple_hints:
+[eva] tests/value/loop_wvar.i:71: Frama_C_show_each: [0..9], [0..17], [0..11]
+[eva] tests/value/loop_wvar.i:71: Frama_C_show_each: [0..9], [0..18], [0..12]
+[eva] Recording results for main_multiple_hints
+[eva] Done for function main_multiple_hints
+[eva] Recording results for main3
+[eva] done for function main3
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function main_multiple_hints:
   maxj ∈ {17}
   maxk ∈ {11}
   j ∈ [0..18]
   k ∈ [0..12]
-[value:final-states] Values at end of function main_unhelpful:
+[eva:final-states] Values at end of function main_unhelpful:
   max ∈ {25}
   next ∈ [0..2147483647]
   i ∈ {30}
-[value:final-states] Values at end of function main3:
+[eva:final-states] Values at end of function main3:
   

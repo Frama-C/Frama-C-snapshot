@@ -31,7 +31,7 @@ val chr : Lexing.lexbuf -> string
 val is_acsl_keyword : string -> bool
 
 
-type 'a parse = Lexing.position * string -> (Lexing.position * 'a) option
+type 'a parse = Filepath.position * string -> (Filepath.position * 'a) option
 (** Generic type for parsing functions built on tip of the lexer. Given
     such a function [f], [f (pos, s)] parses [s], assuming that it starts at
     position [pos]. If parsing is successful, it returns the final position,
@@ -47,4 +47,4 @@ val ext_spec : Lexing.lexbuf -> Logic_ptree.ext_spec
 (** ACSL extension for parsing external spec file.
     Here, the tokens "/*" and "*/" are accepted by the lexer
     as unnested C comments into the external ACSL specifications.
-    @modified Sulfur-20171101 to accept /* */ as C comments. *)
+    @modify Sulfur-20171101 to accept /* */ as C comments. *)

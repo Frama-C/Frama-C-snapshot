@@ -259,20 +259,10 @@ module Internal
       let effects = Transfer.effects_assume to_z e in
       `Value (Transfer.catenate state effects)
 
-    let start_call _stmt _call _valuation _state =
-      Eval.Compute LatticeInout.empty
+    let start_call _stmt _call _valuation _state = `Value LatticeInout.empty
 
     let finalize_call _stmt _call ~pre ~post =
       `Value (Transfer.catenate pre post)
-
-    let approximate_call _stmt call state =
-      let state =
-        if Ast_info.is_frama_c_builtin name ||
-           Eval_typ.kf_assigns_only_result_or_volatile call.Eval.kf
-        then state
-        else LatticeInout.top
-      in
-      `Value [state]
 
     let update _valuation state = state
 
@@ -280,8 +270,9 @@ module Internal
   end
 
   (* Memexec *)
-  let filter_by_bases _bases state = state
-  let reuse ~current_input:state ~previous_output:_ = state
+  let relate _kf _bases _state = Base.SetLattice.empty
+  let filter _kf _kind _bases state = state
+  let reuse _kf _bases ~current_input:_ ~previous_output = previous_output
 
   (* Initial state. Initializers are singletons, so we store nothing. *)
   let empty () = LatticeInout.empty

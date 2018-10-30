@@ -23,6 +23,10 @@
 open Cil_types
 open Eval
 
+(* Eva ignores predicates with a "no_eva" tag. *)
+let ignore_predicate named_pred =
+  List.exists (fun tag -> tag = "no_eva") named_pred.Cil_types.pred_name
+
 (* -------------------------- Message emission ------------------------------ *)
 
 (* The function that puts statuses on pre- and post-conditions is essentially
@@ -32,9 +36,15 @@ open Eval
 type postcondition_kf_kind =
   | PostLeaf (* The function has no body in the AST *)
   | PostBody (* The function has a body, which is used for the evaluation *)
+  | PostBuiltin (* A cvalue builtin is used for the function. *)
   | PostUseSpec (* The function has a body, but its specification is used
                    instead *)
-and p_kind = Precondition | Postcondition of postcondition_kf_kind | Assumes
+
+type p_kind = Precondition | Postcondition of postcondition_kf_kind | Assumes
+
+let emit_postcond_status = function
+  | PostLeaf | PostBuiltin -> false
+  | PostBody | PostUseSpec -> true
 
 let pp_p_kind fmt = function
   | Precondition    -> Format.pp_print_string fmt "precondition"
@@ -42,13 +52,13 @@ let pp_p_kind fmt = function
   | Assumes -> Format.pp_print_string fmt "assumes"
 
 let post_kind kf =
-  if !Db.Value.use_spec_instead_of_definition kf then
-    if Kernel_function.is_definition kf then
-      PostUseSpec
-    else
-      PostLeaf
-  else
-    PostBody
+  if Builtins.find_builtin_override kf <> None
+  then PostBuiltin
+  else if !Db.Value.use_spec_instead_of_definition kf then
+    if Kernel_function.is_definition kf
+    then PostUseSpec
+    else PostLeaf
+  else PostBody
 
 let conv_status = function
   | Alarmset.False -> Property_status.False_if_reachable;
@@ -115,11 +125,11 @@ let emit_message_and_status kind kf behavior ~active ~empty property named_pred 
       (if active then (fun _ -> ()) else behavior_inactive)
       Value_util.pp_callstack;
     emit_status property (conv_status status);
-  | Postcondition (PostLeaf | PostUseSpec as postk) ->
-    (* Only emit a status if the function has a body. Otherwise, we would
+  | Postcondition postk ->
+    (* Do not emit a status for leaf functions or builtins. Otherwise, we would
        overwrite the "considered valid" status of the kernel. *)
-    if postk = PostUseSpec then
-      emit_status property (conv_status status)
+    if emit_postcond_status postk
+    then emit_status property (conv_status status)
   | Assumes ->
     (* No statuses are emitted for 'assumes' clauses, and for the moment we
        do not emit text either *) ()
@@ -213,7 +223,7 @@ let process_inactive_behavior kf call_ki behavior =
   List.iter (fun (tk, _ as post) ->
       if tk = Normal then begin
         emitted := true;
-        if post_kind kf <> PostLeaf then
+        if emit_postcond_status (post_kind kf) then
           let ip = Property.ip_of_ensures kf Kglobal behavior post in
           emit_status ip Property_status.True;
       end
@@ -240,7 +250,7 @@ let process_inactive_postconds kf inactive_bhvs =
        List.iter (fun (tk, _ as post) ->
            if tk = Normal then begin
              emitted := true;
-             if post_kind kf <> PostLeaf then
+             if emit_postcond_status (post_kind kf) then
                let ip = Property.ip_of_ensures kf Kglobal b post in
                emit_status ip Property_status.True;
            end
@@ -444,7 +454,9 @@ module Make
     let aux_pred states pred =
       let pr = Logic_const.pred_of_id_pred pred in
       let ip = build_prop pred in
-      if States.is_empty states then begin
+      if ignore_predicate pr then
+        states
+      else if States.is_empty states then begin
         emit ~empty:true ip pr Alarmset.True;
         states
       end
@@ -570,7 +582,7 @@ module Make
     match ca.annot_content with
     | AAssert _ ->  "assertion"
     | AInvariant _ ->  "loop invariant"
-    | APragma _  | AVariant _ | AAssigns _ | AAllocation _ | AStmtSpec _ 
+    | APragma _  | AVariant _ | AAssigns _ | AAllocation _ | AStmtSpec _
     | AExtended _ ->
       assert false (* currently not treated by Value *)
 
@@ -656,7 +668,9 @@ module Make
         States.reorder reduced_states
     in
     let aux code_annot behav p =
-      if States.is_empty states then (
+      if ignore_predicate p then
+        states
+      else if States.is_empty states then (
         if record then begin
           let text = code_annotation_text code_annot in
           List.iter (fun p -> emit_status p Property_status.True) ips;

@@ -1,8 +1,8 @@
 [kernel] Parsing tests/value/addition.i (no preprocessing)
-[value] Analyzing a complete application starting at main
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing a complete application starting at main
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   NULL[rbits 360 to 391] ∈ [--..--]
   t[0..9] ∈ {0}
   x ∈ {0}
@@ -52,68 +52,69 @@
   tt[0..4] ∈ {0}
   ttt[0..4][0..5] ∈ {0}
   square ∈ {0}
-[value:alarm] tests/value/addition.i:34: Warning: 
+[eva:alarm] tests/value/addition.i:34: Warning: 
   signed overflow. assert -2147483648 ≤ &p2 - &p3;
-[value:alarm] tests/value/addition.i:34: Warning: 
+[eva:alarm] tests/value/addition.i:34: Warning: 
   signed overflow. assert &p2 - &p3 ≤ 2147483647;
-[value] tests/value/addition.i:34: 
+[eva] tests/value/addition.i:34: 
   Assigning imprecise value to p1.
   The imprecision originates from Arithmetic {tests/value/addition.i:34}
-[value] tests/value/addition.i:36: 
+[eva] tests/value/addition.i:36: 
   Assigning imprecise value to p2.
   The imprecision originates from Arithmetic {tests/value/addition.i:36}
-[value] tests/value/addition.i:38: 
+[eva] tests/value/addition.i:38: 
   Assigning imprecise value to p3.
   The imprecision originates from Arithmetic {tests/value/addition.i:38}
-[value] tests/value/addition.i:40: 
+[eva] tests/value/addition.i:40: 
   Assigning imprecise value to p4.
   The imprecision originates from Arithmetic {tests/value/addition.i:40}
-[value] tests/value/addition.i:42: 
+[eva] tests/value/addition.i:42: 
   Assigning imprecise value to p5.
   The imprecision originates from Arithmetic {tests/value/addition.i:42}
-[value] tests/value/addition.i:44: 
+[eva] tests/value/addition.i:44: 
   Assigning imprecise value to p6.
   The imprecision originates from Arithmetic {tests/value/addition.i:44}
-[value] tests/value/addition.i:46: 
+[eva] tests/value/addition.i:46: 
   Assigning imprecise value to p7.
   The imprecision originates from Arithmetic {tests/value/addition.i:46}
-[value:alarm] tests/value/addition.i:48: Warning: 
+[eva:alarm] tests/value/addition.i:48: Warning: 
   pointer comparison.
   assert \pointer_comparable((void *)(&p1 + 1), (void *)(&p2));
-[value:alarm] tests/value/addition.i:50: Warning: 
+[eva:alarm] tests/value/addition.i:50: Warning: 
   signed overflow. assert -2147483648 ≤ (int)(&p1) / 2;
-[value:alarm] tests/value/addition.i:50: Warning: 
+[eva:alarm] tests/value/addition.i:50: Warning: 
   signed overflow. assert (int)(&p1) / 2 ≤ 2147483647;
-[value] tests/value/addition.i:50: 
+[eva] tests/value/addition.i:50: 
   Assigning imprecise value to p9.
   The imprecision originates from Arithmetic {tests/value/addition.i:50}
-[value] tests/value/addition.i:52: 
+[eva] tests/value/addition.i:52: 
   Assigning imprecise value to p10.
   The imprecision originates from Arithmetic {tests/value/addition.i:52}
-[value] tests/value/addition.i:56: 
+[eva] tests/value/addition.i:56: 
   Assigning imprecise value to p12.
   The imprecision originates from Arithmetic {tests/value/addition.i:56}
-[value:alarm] tests/value/addition.i:59: Warning: 
+[eva:alarm] tests/value/addition.i:59: Warning: 
   signed overflow. assert -2147483648 ≤ (int)*((char *)(&q1)) + 2;
-[value:alarm] tests/value/addition.i:59: Warning: 
+[eva:alarm] tests/value/addition.i:59: Warning: 
   signed overflow. assert (int)*((char *)(&q1)) + 2 ≤ 2147483647;
-[value] tests/value/addition.i:59: 
+[eva] tests/value/addition.i:59: 
   Assigning imprecise value to p13.
   The imprecision originates from Misaligned {tests/value/addition.i:59}
-[value:alarm] tests/value/addition.i:61: Warning: 
+[eva:alarm] tests/value/addition.i:61: Warning: 
   signed overflow. assert -2147483648 ≤ (int)*((char *)(&q1)) + 2;
-[value:alarm] tests/value/addition.i:61: Warning: 
+[eva:alarm] tests/value/addition.i:61: Warning: 
   signed overflow. assert (int)*((char *)(&q1)) + 2 ≤ 2147483647;
-[value] tests/value/addition.i:61: 
+[eva] tests/value/addition.i:61: 
   Assigning imprecise value to p14.
   The imprecision originates from Misaligned {tests/value/addition.i:61}
-[value:alarm] tests/value/addition.i:66: Warning: 
+[eva:alarm] tests/value/addition.i:66: Warning: 
   out of bounds read. assert \valid_read(*((int **)45));
-[value] tests/value/addition.i:87: Frama_C_show_each_1: [-10..15]
-[value] tests/value/addition.i:88: assertion got status valid.
-[value] Recording results for main
-[value] done for function main
-[value] Warning: Garbled mix generated during analysis:
+[eva] tests/value/addition.i:87: Frama_C_show_each_1: [-10..15]
+[eva] tests/value/addition.i:88: assertion got status valid.
+[eva] Recording results for main
+[eva] done for function main
+[eva:garbled-mix] Warning: 
+  Garbled mix generated during analysis:
   {{ garbled mix of &{p3} (origin: Arithmetic {tests/value/addition.i:34}) }}
   {{ garbled mix of &{p2} (origin: Arithmetic {tests/value/addition.i:34}) }}
   {{ garbled mix of &{p1} (origin: Arithmetic {tests/value/addition.i:36}) }}
@@ -130,8 +131,8 @@
   {{ garbled mix of &{p1} (origin: Misaligned {tests/value/addition.i:59}) }}
   {{ garbled mix of &{p1} (origin: Misaligned {tests/value/addition.i:61}) }}
 [scope:rm_asserts] removing 2 assertion(s)
-[value] ====== VALUES COMPUTED ======
-[value:final-states] Values at end of function main:
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function main:
   t[0] ∈ {0}
    [1] ∈ {45}
    [2] ∈ {3}
@@ -265,10 +266,10 @@
 [inout] Inputs for function main:
     NULL[45..48]; t{{[0][bits 16 to 31]; [1][bits 0 to 15]}; [2]}; z; p17;
     q1[bits 0 to 7]; ll1; ll2; tt[0].b
-[value] Analyzing a complete application starting at main
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing a complete application starting at main
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   NULL[rbits 360 to 399] ∈ [--..--]
   t[0..9] ∈ {0}
   x ∈ {0}
@@ -318,31 +319,32 @@
   tt[0..4] ∈ {0}
   ttt[0..4][0..5] ∈ {0}
   square ∈ {0}
-[value:alarm] tests/value/addition.i:34: Warning: 
+[eva:alarm] tests/value/addition.i:34: Warning: 
   signed overflow. assert -2147483648 ≤ &p2 - &p3;
-[value:alarm] tests/value/addition.i:34: Warning: 
+[eva:alarm] tests/value/addition.i:34: Warning: 
   signed overflow. assert &p2 - &p3 ≤ 2147483647;
-[value:alarm] tests/value/addition.i:48: Warning: 
+[eva:alarm] tests/value/addition.i:48: Warning: 
   pointer comparison.
   assert \pointer_comparable((void *)(&p1 + 1), (void *)(&p2));
-[value:alarm] tests/value/addition.i:50: Warning: 
+[eva:alarm] tests/value/addition.i:50: Warning: 
   signed overflow. assert -2147483648 ≤ (int)(&p1) / 2;
-[value:alarm] tests/value/addition.i:50: Warning: 
+[eva:alarm] tests/value/addition.i:50: Warning: 
   signed overflow. assert (int)(&p1) / 2 ≤ 2147483647;
-[value:alarm] tests/value/addition.i:59: Warning: 
+[eva:alarm] tests/value/addition.i:59: Warning: 
   signed overflow. assert -2147483648 ≤ (int)*((char *)(&q1)) + 2;
-[value:alarm] tests/value/addition.i:59: Warning: 
+[eva:alarm] tests/value/addition.i:59: Warning: 
   signed overflow. assert (int)*((char *)(&q1)) + 2 ≤ 2147483647;
-[value:alarm] tests/value/addition.i:61: Warning: 
+[eva:alarm] tests/value/addition.i:61: Warning: 
   signed overflow. assert -2147483648 ≤ (int)*((char *)(&q1)) + 2;
-[value:alarm] tests/value/addition.i:61: Warning: 
+[eva:alarm] tests/value/addition.i:61: Warning: 
   signed overflow. assert (int)*((char *)(&q1)) + 2 ≤ 2147483647;
-[value:alarm] tests/value/addition.i:66: Warning: 
+[eva:alarm] tests/value/addition.i:66: Warning: 
   out of bounds read. assert \valid_read(*((int **)45));
-[value] tests/value/addition.i:87: Frama_C_show_each_1: [-10..15]
-[value] Recording results for main
-[value] done for function main
-[value] Warning: Garbled mix generated during analysis:
+[eva] tests/value/addition.i:87: Frama_C_show_each_1: [-10..15]
+[eva] Recording results for main
+[eva] done for function main
+[eva:garbled-mix] Warning: 
+  Garbled mix generated during analysis:
   {{ garbled mix of &{p3} (origin: Arithmetic {tests/value/addition.i:34}) }}
   {{ garbled mix of &{p2} (origin: Arithmetic {tests/value/addition.i:34}) }}
   {{ garbled mix of &{p1} (origin: Arithmetic {tests/value/addition.i:36}) }}
@@ -359,8 +361,8 @@
   {{ garbled mix of &{p1} (origin: Misaligned {tests/value/addition.i:59}) }}
   {{ garbled mix of &{p1} (origin: Misaligned {tests/value/addition.i:61}) }}
 [scope:rm_asserts] removing 2 assertion(s)
-[value] ====== VALUES COMPUTED ======
-[value:final-states] Values at end of function main:
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function main:
   t[0] ∈ {0}
    [1][bits 0 to 23] ∈ {0; 45; 46}
    [1][bits 24 to 31] ∈ [--..--]

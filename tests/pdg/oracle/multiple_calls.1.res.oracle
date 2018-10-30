@@ -1,22 +1,22 @@
 [kernel] Parsing tests/pdg/multiple_calls.c (with preprocessing)
-[value] Analyzing a complete application starting at appel_ptr_fct_bis
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing a complete application starting at appel_ptr_fct_bis
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   G1 ∈ [--..--]
   G2 ∈ [--..--]
   G3 ∈ [--..--]
   G4 ∈ [--..--]
-[value] computing for function fct2 <- appel_ptr_fct_bis.
+[eva] computing for function fct2 <- appel_ptr_fct_bis.
   Called from tests/pdg/multiple_calls.c:28.
-[value] Recording results for fct2
-[value] Done for function fct2
-[value] computing for function fct1 <- appel_ptr_fct_bis.
+[eva] Recording results for fct2
+[eva] Done for function fct2
+[eva] computing for function fct1 <- appel_ptr_fct_bis.
   Called from tests/pdg/multiple_calls.c:28.
-[value] Recording results for fct1
-[value] Done for function fct1
-[value] Recording results for appel_ptr_fct_bis
-[value] done for function appel_ptr_fct_bis
+[eva] Recording results for fct1
+[eva] Done for function fct1
+[eva] Recording results for appel_ptr_fct_bis
+[eva] done for function appel_ptr_fct_bis
 [from] Computing for function fct1
 [from] Done for function fct1
 [from] Computing for function fct2

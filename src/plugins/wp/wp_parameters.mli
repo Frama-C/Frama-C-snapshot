@@ -53,10 +53,12 @@ module InHeap : Parameter_sig.String_set
 module InCtxt : Parameter_sig.String_set
 module ExternArrays: Parameter_sig.Bool
 module ExtEqual : Parameter_sig.Bool
-module Overflows : Parameter_sig.Bool
 module Literals : Parameter_sig.Bool
 module Volatile : Parameter_sig.Bool
-module BoolRange : Parameter_sig.Bool
+(* module Overflows : Parameter_sig.Bool *)
+(* use get_overflows() below *)
+(* module BoolRange : Parameter_sig.Bool *)
+(* use get_bool_range() below *)
 
 (** {2 Computation Strategies} *)
 
@@ -86,6 +88,7 @@ module SimplifyLandMask : Parameter_sig.Bool
 module SimplifyForall : Parameter_sig.Bool
 module SimplifyType : Parameter_sig.Bool
 module CalleePreCond : Parameter_sig.Bool
+module PrecondWeakening : Parameter_sig.Bool
 
 (** {2 Prover Interface} *)
 
@@ -130,8 +133,9 @@ module Print: Parameter_sig.Bool
 module Report: Parameter_sig.String_list
 module ReportJson: Parameter_sig.String
 module ReportName: Parameter_sig.String
-module Separation: Parameter_sig.Bool
+module MemoryContext: Parameter_sig.Bool
 module Check: Parameter_sig.Bool
+module Assert_check_only: Parameter_sig.Bool
 
 (** {2 Environment Variables} *)
 
@@ -141,8 +145,10 @@ val get_session : unit -> string
 val get_session_dir : string -> string
 val get_output : unit -> string
 val get_output_dir : string -> string
-val get_includes: unit -> string list
-val make_output_dir: string -> unit
+val get_includes : unit -> string list
+val make_output_dir : string -> unit
+val get_bool_range : unit -> bool
+val get_overflows : unit -> bool
 
 (** {2 Debugging Categories} *)
 val has_print_generated: unit -> bool

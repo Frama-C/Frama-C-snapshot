@@ -1,8 +1,8 @@
 [kernel] Parsing tests/value/alias.i (no preprocessing)
-[value] Analyzing a complete application starting at main3
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing a complete application starting at main3
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   A ∈ {0}
   B ∈ {0}
   C ∈ {0}
@@ -56,24 +56,24 @@
   U ∈ {0}
   char1 ∈ {0}
   ll1 ∈ {0}
-[value:alarm] tests/value/alias.i:97: Warning: 
+[eva:alarm] tests/value/alias.i:97: Warning: 
   signed overflow. assert c + 1 ≤ 2147483647;
-[value:alarm] tests/value/alias.i:105: Warning: 
+[eva:alarm] tests/value/alias.i:105: Warning: 
   signed overflow. assert c + 1 ≤ 2147483647;
-[value:alarm] tests/value/alias.i:105: Warning: 
+[eva:alarm] tests/value/alias.i:105: Warning: 
   signed overflow. assert c + 2 ≤ 2147483647;
-[value:alarm] tests/value/alias.i:107: Warning: 
+[eva:alarm] tests/value/alias.i:107: Warning: 
   signed overflow. assert c + 10 ≤ 2147483647;
-[value:alarm] tests/value/alias.i:107: Warning: 
+[eva:alarm] tests/value/alias.i:107: Warning: 
   signed overflow. assert c + 11 ≤ 2147483647;
-[value:alarm] tests/value/alias.i:108: Warning: 
+[eva:alarm] tests/value/alias.i:108: Warning: 
   signed overflow. assert c + 3 ≤ 2147483647;
-[value:alarm] tests/value/alias.i:108: Warning: 
+[eva:alarm] tests/value/alias.i:108: Warning: 
   signed overflow. assert c + 4 ≤ 2147483647;
-[value] Recording results for main3
-[value] done for function main3
-[value] ====== VALUES COMPUTED ======
-[value:final-states] Values at end of function main3:
+[eva] Recording results for main3
+[eva] done for function main3
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function main3:
   p2[0] ∈ {0; 96; 97; 98}
     [1..2] ∈ {0; 96; 97; 98; 99}
     [3] ∈ {0}

@@ -30,27 +30,11 @@ int main(void)
   int x;
   int y;
   int z;
-  /*@ behavior pre_f:
-        assigns x;
-        assigns x \from {*((char *)(&x)), y}; */
   f(& x,& y);
-  /*@ behavior pre_ff:
-        assigns x;
-        assigns x \from \union(x, {z, y}); */
   ff(& x,& y,& z);
-  /*@ behavior pre_g:
-        assigns {x, y}; */
   g(& x,& y);
-  /*@ behavior pre_h:
-        assigns x;
-        assigns x \from \inter(*((char *)(&x)), y);
-  */
   h(& x,& y);
-  /*@ behavior pre_gg:
-        assigns \at(x,Post), \old(x), x; */
   gg(& x);
-  /*@ behavior pre_hh:
-        assigns {X, Y}; */
   hh();
   __retres = 0;
   return __retres;

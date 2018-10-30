@@ -97,15 +97,15 @@ let rec scan m f e =
     begin
       m := F.Tset.add e !m ;
       if is_shift e then f e else
-        if F.lc_closed e then
-          F.lc_iter (scan m f) e
+      if F.lc_closed e then
+        F.lc_iter (scan m f) e
     end
 
 class autoshift =
   object
-    
+
     method id = "wp:bitshift"
-    method title = "Auto Bit-Shift" 
+    method title = "Auto Bit-Shift"
     method descr = "Apply Bit-Shift in Goal"
 
     method search push (seq : Conditions.sequent) =
@@ -115,7 +115,7 @@ class autoshift =
         push (strategy ~priority:0.5 selection)
       in
       scan (ref F.Tset.empty) apply (F.e_prop goal)
-      
+
   end
 
 let () = Strategy.register (new autoshift)

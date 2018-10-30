@@ -163,23 +163,23 @@
   adding aligned(2) attribute to comp '__anonstruct_test7_2_14' due to packing pragma
 [kernel:typing:pragma] tests/misc/pragma-pack.c:252: 
   packing pragma: popped alignment 16
-[value] Analyzing a complete application starting at main
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing a complete application starting at main
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   
-[value] computing for function tests1 <- main.
+[eva] computing for function tests1 <- main.
   Called from tests/misc/pragma-pack.c:38.
-[value] Recording results for tests1
-[value] Done for function tests1
-[value] computing for function tests2 <- main.
+[eva] Recording results for tests1
+[eva] Done for function tests1
+[eva] computing for function tests2 <- main.
   Called from tests/misc/pragma-pack.c:38.
-[value] Recording results for tests2
-[value] Done for function tests2
-[value] Recording results for main
-[value] done for function main
-[value] ====== VALUES COMPUTED ======
-[value:final-states] Values at end of function tests1:
+[eva] Recording results for tests2
+[eva] Done for function tests2
+[eva] Recording results for main
+[eva] done for function main
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function tests1:
   S_i ∈ {0}
   S_j ∈ {16}
   S_sizeof ∈ {32}
@@ -228,7 +228,7 @@
   PACK2_ATTR_i ∈ {0}
   PACK2_ATTR_j ∈ {1}
   PACK2_ATTR_sizeof ∈ {18}
-[value:final-states] Values at end of function tests2:
+[eva:final-states] Values at end of function tests2:
   test1_i ∈ {0}
   test1_j ∈ {2}
   test1_k ∈ {4}
@@ -314,7 +314,7 @@
   test8_k ∈ {16}
   test8_l ∈ {18}
   test8_sizeof ∈ {32}
-[value:final-states] Values at end of function main:
+[eva:final-states] Values at end of function main:
   __retres ∈ {0}
 [from] Computing for function tests1
 [from] Done for function tests1

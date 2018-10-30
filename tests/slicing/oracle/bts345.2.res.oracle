@@ -1,33 +1,33 @@
 [kernel] Parsing tests/slicing/bts345.i (no preprocessing)
 [slicing] slicing requests in progress...
-[value] Analyzing a complete application starting at call_top
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing a complete application starting at call_top
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   
-[value:alarm] tests/slicing/bts345.i:27: Warning: 
+[eva:alarm] tests/slicing/bts345.i:27: Warning: 
   signed overflow. assert y + 1 ≤ 2147483647;
-[value] computing for function top <- call_top.
+[eva] computing for function top <- call_top.
   Called from tests/slicing/bts345.i:28.
-[value:alarm] tests/slicing/bts345.i:21: Warning: 
+[eva:alarm] tests/slicing/bts345.i:21: Warning: 
   signed overflow. assert x + 1 ≤ 2147483647;
-[value] computing for function called_by_top <- top <- call_top.
+[eva] computing for function called_by_top <- top <- call_top.
   Called from tests/slicing/bts345.i:22.
-[value:alarm] tests/slicing/bts345.i:15: Warning: 
+[eva:alarm] tests/slicing/bts345.i:15: Warning: 
   signed overflow. assert x + 1 ≤ 2147483647;
-[value] computing for function called_indirectly_by_top <- called_by_top <- top <- 
+[eva] computing for function called_indirectly_by_top <- called_by_top <- top <- 
                           call_top.
   Called from tests/slicing/bts345.i:16.
-[value:alarm] tests/slicing/bts345.i:10: Warning: 
+[eva:alarm] tests/slicing/bts345.i:10: Warning: 
   signed overflow. assert x + 1 ≤ 2147483647;
-[value] Recording results for called_indirectly_by_top
-[value] Done for function called_indirectly_by_top
-[value] Recording results for called_by_top
-[value] Done for function called_by_top
-[value] Recording results for top
-[value] Done for function top
-[value] Recording results for call_top
-[value] done for function call_top
+[eva] Recording results for called_indirectly_by_top
+[eva] Done for function called_indirectly_by_top
+[eva] Recording results for called_by_top
+[eva] Done for function called_by_top
+[eva] Recording results for top
+[eva] Done for function top
+[eva] Recording results for call_top
+[eva] done for function call_top
 [slicing] initializing slicing ...
 [slicing] interpreting slicing requests from the command line...
 [pdg] computing for function top

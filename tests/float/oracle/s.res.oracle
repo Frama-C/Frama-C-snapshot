@@ -2,10 +2,10 @@
 [kernel:parser:decimal-float] tests/float/s.i:18: Warning: 
   Floating-point constant 1.882f is not represented exactly. Will use 0x1.e1cac00000000p0.
   (warn-once: no further messages from category 'parser:decimal-float' will be emitted)
-[value] Analyzing a complete application starting at main
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing a complete application starting at main
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   G3 ∈ {42}
   G5[0..63] ∈ {0}
   G6 ∈ {42}
@@ -242,51 +242,51 @@
   G17 ∈ {0}
   G18 ∈ {0}
   G19 ∈ {0}
-[value] computing for function F4 <- main.
+[eva] computing for function F4 <- main.
   Called from tests/float/s.i:260.
-[value] computing for function F1 <- F4 <- main.
+[eva] computing for function F1 <- F4 <- main.
   Called from tests/float/s.i:230.
 [kernel:annot:missing-spec] tests/float/s.i:230: Warning: 
   Neither code nor specification for function F1, generating default assigns from the prototype
-[value] using specification for function F1
-[value] Done for function F1
-[value:alarm] tests/float/s.i:231: Warning: 
+[eva] using specification for function F1
+[eva] Done for function F1
+[eva:alarm] tests/float/s.i:231: Warning: 
   accessing out of bounds index. assert 0 ≤ V4;
-[value:alarm] tests/float/s.i:231: Warning: 
+[eva:alarm] tests/float/s.i:231: Warning: 
   accessing out of bounds index. assert V4 < 64;
-[value] computing for function F2 <- F4 <- main.
+[eva] computing for function F2 <- F4 <- main.
   Called from tests/float/s.i:233.
 [kernel:annot:missing-spec] tests/float/s.i:233: Warning: 
   Neither code nor specification for function F2, generating default assigns from the prototype
-[value] using specification for function F2
-[value] Done for function F2
-[value:alarm] tests/float/s.i:238: Warning: 
+[eva] using specification for function F2
+[eva] Done for function F2
+[eva:alarm] tests/float/s.i:238: Warning: 
   accessing out of bounds index. assert 0 ≤ V5;
-[value:alarm] tests/float/s.i:238: Warning: 
+[eva:alarm] tests/float/s.i:238: Warning: 
   accessing out of bounds index. assert V5 < 64;
-[value] computing for function F2 <- F4 <- main.
+[eva] computing for function F2 <- F4 <- main.
   Called from tests/float/s.i:241.
-[value] Done for function F2
-[value:alarm] tests/float/s.i:242: Warning: 
+[eva] Done for function F2
+[eva:alarm] tests/float/s.i:242: Warning: 
   accessing out of bounds index. assert 0 ≤ V6;
-[value:alarm] tests/float/s.i:242: Warning: 
+[eva:alarm] tests/float/s.i:242: Warning: 
   accessing out of bounds index. assert V6 < 64;
-[value] computing for function F3 <- F4 <- main.
+[eva] computing for function F3 <- F4 <- main.
   Called from tests/float/s.i:244.
 [kernel:annot:missing-spec] tests/float/s.i:244: Warning: 
   Neither code nor specification for function F3, generating default assigns from the prototype
-[value] using specification for function F3
-[value] Done for function F3
-[value:alarm] tests/float/s.i:245: Warning: 
+[eva] using specification for function F3
+[eva] Done for function F3
+[eva:alarm] tests/float/s.i:245: Warning: 
   accessing out of bounds index. assert 0 ≤ V7;
-[value:alarm] tests/float/s.i:245: Warning: 
+[eva:alarm] tests/float/s.i:245: Warning: 
   accessing out of bounds index. assert V7 < 32;
-[value] Recording results for F4
-[value] Done for function F4
-[value] Recording results for main
-[value] done for function main
-[value] ====== VALUES COMPUTED ======
-[value:final-states] Values at end of function F4:
+[eva] Recording results for F4
+[eva] Done for function F4
+[eva] Recording results for main
+[eva] done for function main
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function F4:
   V1 ∈ {0}
   V2 ∈ [-0x1.a4cfc20000000p-3 .. 0x1.fcb5d00000000p0]
   V3 ∈ [-0x1.fec1fc0000000p-1 .. -0x1.f3f3f40000000p-1]
@@ -300,7 +300,7 @@
   G17 ∈ [0x1.6c16c20000000p-5 .. 0x1.5555560000000p-1]
   G18 ∈ [0x1.f9f9fa0000000p-1 .. 0x1.ff60fe0000000p-1]
   G19 ∈ [0x1.176b480000000p-13 .. 0x1.859f320000000p-6]
-[value:final-states] Values at end of function main:
+[eva:final-states] Values at end of function main:
   V8 ∈ {0}
   G14 ∈ [0x1.3e68360000000p-10 .. 0x1.8618580000000p-7]
   G15 ∈ [-0x1.a5529a0000000p-3 .. 0x1.fd53fe0000000p0]

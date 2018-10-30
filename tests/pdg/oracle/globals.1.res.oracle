@@ -1,17 +1,17 @@
 [kernel] Parsing tests/pdg/globals.c (with preprocessing)
-[value] Analyzing a complete application starting at h
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing a complete application starting at h
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   X ∈ {3}
   S ∈ [--..--]
   P ∈ {{ &X }}
-[value:alarm] tests/pdg/globals.c:28: Warning: 
+[eva:alarm] tests/pdg/globals.c:28: Warning: 
   signed overflow. assert s2.a2 + s2.b2 ≤ 2147483647;
-[value] Recording results for h
-[value] done for function h
-[value] ====== VALUES COMPUTED ======
-[value:final-states] Values at end of function h:
+[eva] Recording results for h
+[eva] done for function h
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function h:
   s2.a2 ∈ [-2147483648..2147483644]
     .b2 ∈ {3}
     .s2 ∈ UNINITIALIZED

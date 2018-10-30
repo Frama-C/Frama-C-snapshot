@@ -58,7 +58,7 @@ let run ~includes ~files ~session =
 module Files = Set.Make(String)
 module Goals = Map.Make(ProverWhy3.Goal)
 module Xml = Why3_xml
-  
+
 type env = {
   mutable files : Files.t ;
   mutable includes : Files.t ;

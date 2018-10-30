@@ -23,9 +23,7 @@
 
 module type Domain = sig
   include Datatype.S_with_collections
-
-  val filter_by_bases: Base.Hptset.t -> t -> t
-  val reuse: current_input:t -> previous_output:t -> t
+  include Abstract_domain.Recycle with type t := t
 end
 
 
@@ -61,12 +59,12 @@ module Make
 
   incr counter;
 
-  module CallOutput =
-    Datatype.List (Domain)
+  module CallOutput = Datatype.List (Domain)
 
   module StoredResult =
-    Datatype.Pair
-      (CallOutput)
+    Datatype.Triple
+      (Base.Hptset)  (* Set of bases possibly read or written by the call. *)
+      (CallOutput)   (* The resulting states of the call. *)
       (Datatype.Int) (* Call number, for plugins *)
 
   (* Map from input states to outputs (summary and state). *)
@@ -131,6 +129,27 @@ module Make
       | Locations.Zone.Map m -> f bases (Locations.Zone.shape m)
       | Locations.Zone.Top _ -> bases (* Never happens anyway *)
 
+  (* Extends the input [bases] of a function [kf] by adding all bases related to
+     these inputs in state [state]. We perform a fixpoint over [Domain.relate]
+     to compute the transitive closure of the relations in [state] on [bases].
+     Indeed, if a domain D1 relates x and y, and a domain D2 relates y and z,
+     then x and z are also related.
+     All bases related to the input [bases] should be taken into account when
+     applying the memexec cache, as their values may impact the analysis of [kf]
+     starting from state [state].
+     As a full fixpoint computation could be costly, we stop after [count] calls
+     to [Domain.relate] and we disable memexec if a fixpoint is not reached. *)
+  let rec expand_inputs_with_relations count kf bases state =
+    let related_bases = Domain.relate kf bases state in
+    match related_bases with
+    | Base.SetLattice.Top -> related_bases
+    | Base.SetLattice.Set new_bases ->
+      let expanded_bases = Base.Hptset.union new_bases bases in
+      if Base.Hptset.equal expanded_bases bases
+      then Base.SetLattice.inject expanded_bases
+      else if count <= 0 then Base.SetLattice.top
+      else expand_inputs_with_relations (count - 1) kf new_bases state
+
   let store_computed_call kf input_state args
       (call_result: Domain.t list Bottom.or_bottom) =
     match Transfer_stmt.current_kf_inout () with
@@ -157,7 +176,14 @@ module Make
           else
             Base.Hptset.union input_bases output_bases
         in
-        let state_input = Domain.filter_by_bases input_bases input_state in
+        let input_bases =
+          expand_inputs_with_relations 2 kf input_bases input_state
+        in
+        let input_bases = match input_bases with
+          | Base.SetLattice.Top -> raise TooImprecise
+          | Base.SetLattice.Set bases -> bases
+        in
+        let state_input = Domain.filter kf `Pre input_bases input_state in
         (* Outputs bases, that is bases that are copy-pasted, also include
            input bases. Indeed, those may get reduced during the call. *)
         let all_output_bases =
@@ -172,7 +198,7 @@ module Make
         let all_output_bases =
           Extlib.opt_fold Base.Hptset.add return_base all_output_bases
         in
-        let clear state = Domain.filter_by_bases all_output_bases state in
+        let clear state = Domain.filter kf `Post all_output_bases state in
         let call_result = match call_result with
           | `Bottom -> []
           | `Value list -> list
@@ -201,7 +227,7 @@ module Make
             h
         in
         Domain.Hashtbl.add hkb state_input
-          (outputs, call_number);
+          (all_output_bases, outputs, call_number);
       with
       | TooImprecise
       | Kernel_function.No_Statement
@@ -212,16 +238,17 @@ module Make
 
   (** Find a previous execution in [map_inputs] that matches [st].
       raise [Result_found] when this execution exists, or do nothing. *)
-  let find_match_in_previous (map_inputs: InputBasesToCallEffect.t) state =
+  let find_match_in_previous kf (map_inputs: InputBasesToCallEffect.t) state =
     let aux_previous_call binputs hstates =
       (* restrict [state] to the inputs of this call *)
-      let st_filtered = Domain.filter_by_bases binputs state in
+      let st_filtered = Domain.filter kf `Pre binputs state in
       try
-        let outputs, i = Domain.Hashtbl.find hstates st_filtered in
+        let bases, outputs, i = Domain.Hashtbl.find hstates st_filtered in
         (* We have found a previous execution, in which the outputs are
            [outputs]. Copy them in [state] and return this result. *)
         let process output =
-          Domain.reuse ~current_input:state ~previous_output:output in
+          Domain.reuse kf bases ~current_input:state ~previous_output:output
+        in
         let outputs = List.map process outputs in
         raise (Result_found (outputs, i))
       with Not_found -> ()
@@ -233,7 +260,7 @@ module Make
       let previous_kf = PreviousCalls.find kf in
       let args = List.map (function `Bottom -> None | `Value v -> Some v) args in
       let previous = ActualArgs.Map.find args previous_kf in
-      find_match_in_previous previous state;
+      find_match_in_previous kf previous state;
       None
     with
     | Not_found -> None

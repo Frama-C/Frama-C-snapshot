@@ -1,5 +1,5 @@
 /* run.config
-   OPT: -rte -warn-signed-overflow -rte-precond -print -journal-disable
+   OPT: -rte -warn-signed-overflow -print -journal-disable
 */
 
 /*@ assigns \nothing;

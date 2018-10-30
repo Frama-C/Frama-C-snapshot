@@ -31,13 +31,15 @@ module Mem_access: S
 module Pointer_call: S
 module Div_mod: S
 module Shift: S
+module Left_shift_negative: S
+module Right_shift_negative: S
 module Signed_overflow: S
 module Signed_downcast: S
 module Unsigned_overflow: S
 module Unsigned_downcast: S
 module Float_to_int: S
 module Finite_float: S
-module Called_precond: S
+module Bool_value: S
 
 val emitter: Emitter.t
 

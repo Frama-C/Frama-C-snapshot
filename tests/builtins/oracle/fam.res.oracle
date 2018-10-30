@@ -1,0 +1,45 @@
+[kernel] Parsing tests/builtins/fam.c (with preprocessing)
+[eva] Analyzing a complete application starting at main
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
+  
+[eva] tests/builtins/fam.c:15: Frama_C_show_each: {{ &buf + {11} }}
+[eva] tests/builtins/fam.c:16: Call to builtin memcpy
+[eva] tests/builtins/fam.c:16: 
+  function memcpy: precondition 'valid_dest' got status valid.
+[eva] tests/builtins/fam.c:16: 
+  function memcpy: precondition 'valid_src' got status valid.
+[eva] tests/builtins/fam.c:16: 
+  function memcpy: precondition 'separation' got status valid.
+[eva] share/libc/string.h:98: 
+  cannot evaluate ACSL term, unsupported ACSL construct: logic function memcmp
+[eva] Recording results for main
+[eva] done for function main
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function main:
+  buf[0] ∈ {42}
+     [1..9] ∈ UNINITIALIZED
+     [10] ∈ {5}
+     [11] ∈ {15}
+     [12] ∈ {20}
+     [13..99] ∈ UNINITIALIZED
+  value[0] ∈ {15}
+       [1] ∈ {20}
+  option ∈ {{ (TcpOption *)&buf[10] }}
+[from] Computing for function main
+[from] Computing for function memcpy <-main
+[from] Done for function memcpy
+[from] Done for function main
+[from] ====== DEPENDENCIES COMPUTED ======
+  These dependencies hold at termination for the executions that terminate:
+[from] Function memcpy:
+  buf[11..12] FROM value[0..1]
+  \result FROM dest
+[from] Function main:
+  NO EFFECTS
+[from] ====== END OF DEPENDENCIES ======
+[inout] Out (internal) for function main:
+    buf{[0]; [10..12]}; value[0..1]; option
+[inout] Inputs for function main:
+    \nothing

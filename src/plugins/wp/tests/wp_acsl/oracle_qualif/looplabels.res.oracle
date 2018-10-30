@@ -1,10 +1,10 @@
-# frama-c -wp [...]
+# frama-c -wp -wp-timeout 90 -wp-steps 1500 [...]
 [kernel] Parsing tests/wp_acsl/looplabels.i (no preprocessing)
 [wp] Running WP plugin...
 [wp] Loading driver 'share/wp.driver'
 [wp] Warning: Missing RTE guards
 [wp] 8 goals scheduled
-[wp] [Qed] Goal typed_copy_post : Valid
+[wp] [Alt-Ergo] Goal typed_copy_post : Valid
 [wp] [Alt-Ergo] Goal typed_copy_loop_inv_preserved : Valid
 [wp] [Qed] Goal typed_copy_loop_inv_established : Valid
 [wp] [Alt-Ergo] Goal typed_copy_loop_inv_2_preserved : Valid
@@ -13,10 +13,10 @@
 [wp] [Alt-Ergo] Goal typed_copy_loop_assign_part2 : Valid
 [wp] [Qed] Goal typed_copy_assign : Valid
 [wp] Proved goals:    8 / 8
-  Qed:             4 
-  Alt-Ergo:        4
+  Qed:             3 
+  Alt-Ergo:        5
 [wp] Report 'tests/wp_acsl/looplabels.i.0.report.json'
 -------------------------------------------------------------
 Functions           WP     Alt-Ergo        Total   Success
-copy                 4      4 (736..832)     8       100%
+copy                 3      5 (256..304)     8       100%
 -------------------------------------------------------------

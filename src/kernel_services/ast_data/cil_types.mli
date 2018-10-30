@@ -70,7 +70,7 @@
     type {!Cil_types.location}) 
     @plugin development guide *)
 type file = { 
-  mutable fileName: string;   (** The complete file name *)
+  mutable fileName: Filepath.Normalized.t;   (** The complete file name *)
   
   mutable globals: global list; 
   (** List of globals as they will appear in the printed file *)
@@ -1291,7 +1291,7 @@ and extended_asm =
   }
 
 (** Describes a location in a source file *)
-and location = Lexing.position * Lexing.position
+and location = Filepath.position * Filepath.position
 
 (** {1 Abstract syntax trees for annotations} *)
 
@@ -1354,7 +1354,7 @@ and logic_builtin_label =
 (** Logic terms. *)
 and term = {
   term_node : term_node; (** kind of term. *)
-  term_loc : Lexing.position * Lexing.position;
+  term_loc : Filepath.position * Filepath.position;
   (** position in the source file. *)
   term_type : logic_type; (** type of the term. *)
   term_name: string list; 
@@ -1644,15 +1644,23 @@ and spec = {
 (** Extension to standard ACSL clause with an unique identifier.
     Use {!Logic_const.new_acsl_extension} to create new acsl extension with
     a fresh id.
-    Each extension is associated with a keyword. An extension
-    can be registered through the following functions:
-    - {!Logic_typing.register_behavior_extension} for parsing and type-checking
-    - {!Cil_printer.register_behavior_extension} for pretty-printing an
+    Each extension is associated with a keyword, and can be either a global
+    annotation, the clause of a function contract, a code annotation,
+    or a loop annotation.
+    An extension can be registered through the following functions:
+    - [Logic_typing.register_xxx_extension] for parsing and type-checking
+    - [Cil_printer.register_xxx_extension] for pretty-printing an
       extended clause
-    - {!Cil.register_behavior_extension} for visiting an extended clause
+    - [Cil.register_xxx_extension] for visiting an extended clause
+    where xxx can be either [global], [behavior], [code_annot] or
+    [loop annot] depending on the level at which the extension should be seen.
+
+    It is _not_ possible to register the same keyword for annotations at two
+    different levels (e.g. [global] and [behavior]), as this would make the
+    grammar ambiguous.
 
     @plugin development guide *)
-and acsl_extension = int * string * acsl_extension_kind
+and acsl_extension = int * string * location * acsl_extension_kind
 
 (** @plugin development guide *)
 and acsl_extension_kind =
@@ -1660,6 +1668,21 @@ and acsl_extension_kind =
   | Ext_terms of term list
   | Ext_preds of predicate list
     (** a list of predicates, the most common case of for extensions *)
+
+(** Where are we expected to find corresponding extension keyword.
+    @plugin development guide
+    @since Frama-C+dev
+*)
+and ext_category =
+  | Ext_contract
+  | Ext_global
+  | Ext_code_annot of ext_code_annot_context
+
+and ext_code_annot_context =
+  | Ext_here (** at current program point. *)
+  | Ext_next_stmt (** covers next statement. *)
+  | Ext_next_loop (** covers next loop. *)
+  | Ext_next_both (** can be found both as normal code annot or loop annot. *)
 
 (** Behavior of a function or statement. This type shares the name of its
     constructors with {!Logic_ptree.behavior}.
@@ -1739,8 +1762,9 @@ and code_annotation_node =
       @since Oxygen-20120901 when [b_allocation] has been added.  *)
 
   | APragma of pragma (** pragma. *)
-  | AExtended of string list * acsl_extension
-    (** extension in a loop annotation.
+  | AExtended of string list * bool * acsl_extension
+    (** extension in a code or loop annotation.
+        Boolean flag is true for loop extensions and false for code extensions
         @since Silicon-20161101 *)
 
 (** function contract. *)
@@ -1777,8 +1801,10 @@ and global_annotation =
   | Dtype_annot of logic_info * location
   (** type invariant. The predicate has exactly one argument. *)
   | Dmodel_annot of model_info * location
-  (** Model field for a type t, seen as a logic function with one 
+  (** Model field for a type t, seen as a logic function with one
       argument of type t *)
+  | Dextended of acsl_extension * attributes * location
+      (** Extended global clause. *)
   | Dcustom_annot of custom_tree * string * attributes * location
       (*Custom declaration*)
 
@@ -1827,7 +1853,7 @@ type localisation =
 *)
 type syntactic_scope =
   | Program (** Only non-static global symbols. *)
-  | Translation_unit of string
+  | Translation_unit of Filepath.Normalized.t
     (** Any global visible within the given C source file. *)
   | Block_scope of stmt
       (** same as above + all locals of the blocks to which the given statement

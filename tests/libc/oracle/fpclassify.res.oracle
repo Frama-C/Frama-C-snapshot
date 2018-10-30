@@ -1,0 +1,106 @@
+[kernel] Parsing tests/libc/fpclassify.c (with preprocessing)
+[kernel:parser:decimal-float] tests/libc/fpclassify.c:13: Warning: 
+  Floating-point constant 0.1 is not represented exactly. Will use 0x1.999999999999ap-4.
+  (warn-once: no further messages from category 'parser:decimal-float' will be emitted)
+[eva] Analyzing a complete application starting at main
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
+  v ∈ [--..--]
+[eva] computing for function __fc_fpclassify <- main.
+  Called from tests/libc/fpclassify.c:14.
+[eva] using specification for function __fc_fpclassify
+[eva] Done for function __fc_fpclassify
+[eva] tests/libc/fpclassify.c:15: assertion got status valid.
+[eva] computing for function __fc_fpclassify <- main.
+  Called from tests/libc/fpclassify.c:16.
+[eva] Done for function __fc_fpclassify
+[eva] tests/libc/fpclassify.c:17: assertion got status valid.
+[eva] computing for function __fc_fpclassify <- main.
+  Called from tests/libc/fpclassify.c:18.
+[eva] Done for function __fc_fpclassify
+[eva] tests/libc/fpclassify.c:19: assertion got status valid.
+[eva] computing for function __fc_fpclassify <- main.
+  Called from tests/libc/fpclassify.c:20.
+[eva] Done for function __fc_fpclassify
+[eva] tests/libc/fpclassify.c:21: assertion got status valid.
+[eva] computing for function __fc_fpclassify <- main.
+  Called from tests/libc/fpclassify.c:24.
+[eva] Done for function __fc_fpclassify
+[eva] tests/libc/fpclassify.c:25: assertion got status valid.
+[eva] computing for function __fc_fpclassify <- main.
+  Called from tests/libc/fpclassify.c:26.
+[eva] Done for function __fc_fpclassify
+[eva] tests/libc/fpclassify.c:27: assertion got status valid.
+[eva] computing for function __fc_fpclassify <- main.
+  Called from tests/libc/fpclassify.c:29.
+[eva] Done for function __fc_fpclassify
+[eva] tests/libc/fpclassify.c:30: assertion got status valid.
+[eva] computing for function __fc_fpclassify <- main.
+  Called from tests/libc/fpclassify.c:31.
+[eva] Done for function __fc_fpclassify
+[eva] tests/libc/fpclassify.c:32: assertion got status valid.
+[eva] computing for function __fc_fpclassify <- main.
+  Called from tests/libc/fpclassify.c:33.
+[eva] Done for function __fc_fpclassify
+[eva] tests/libc/fpclassify.c:34: assertion got status valid.
+[eva] computing for function __fc_fpclassify <- main.
+  Called from tests/libc/fpclassify.c:35.
+[eva] Done for function __fc_fpclassify
+[eva] tests/libc/fpclassify.c:36: assertion got status valid.
+[eva] computing for function __fc_fpclassify <- main.
+  Called from tests/libc/fpclassify.c:39.
+[eva] Done for function __fc_fpclassify
+[eva] tests/libc/fpclassify.c:40: assertion got status valid.
+[eva] computing for function __fc_fpclassify <- main.
+  Called from tests/libc/fpclassify.c:41.
+[eva] Done for function __fc_fpclassify
+[eva] tests/libc/fpclassify.c:42: assertion got status valid.
+[eva] computing for function __fc_fpclassify <- main.
+  Called from tests/libc/fpclassify.c:44.
+[eva] Done for function __fc_fpclassify
+[eva] tests/libc/fpclassify.c:45: assertion got status valid.
+[eva] computing for function __fc_fpclassify <- main.
+  Called from tests/libc/fpclassify.c:46.
+[eva] Done for function __fc_fpclassify
+[eva] tests/libc/fpclassify.c:47: assertion got status valid.
+[eva] computing for function __fc_fpclassifyf <- main.
+  Called from tests/libc/fpclassify.c:49.
+[eva] using specification for function __fc_fpclassifyf
+[eva] Done for function __fc_fpclassifyf
+[eva] tests/libc/fpclassify.c:50: assertion got status valid.
+[eva] computing for function __fc_fpclassifyf <- main.
+  Called from tests/libc/fpclassify.c:51.
+[eva] Done for function __fc_fpclassifyf
+[eva] tests/libc/fpclassify.c:52: assertion got status valid.
+[eva] computing for function __fc_fpclassifyf <- main.
+  Called from tests/libc/fpclassify.c:54.
+[eva] Done for function __fc_fpclassifyf
+[eva] tests/libc/fpclassify.c:55: assertion got status valid.
+[eva] computing for function __fc_fpclassifyf <- main.
+  Called from tests/libc/fpclassify.c:56.
+[eva] Done for function __fc_fpclassifyf
+[eva] tests/libc/fpclassify.c:57: assertion got status valid.
+[eva] computing for function __fc_fpclassifyf <- main.
+  Called from tests/libc/fpclassify.c:58.
+[eva] Done for function __fc_fpclassifyf
+[eva] tests/libc/fpclassify.c:59: assertion got status valid.
+[eva] computing for function __fc_fpclassify <- main.
+  Called from tests/libc/fpclassify.c:62.
+[eva] Done for function __fc_fpclassify
+[eva] tests/libc/fpclassify.c:63: assertion got status valid.
+[eva] computing for function __fc_fpclassifyf <- main.
+  Called from tests/libc/fpclassify.c:66.
+[eva] Done for function __fc_fpclassifyf
+[eva] tests/libc/fpclassify.c:67: assertion got status valid.
+[eva] Recording results for main
+[eva] done for function main
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function main:
+  d ∈ [-1e-309 .. 0.]
+  f ∈ [9.99999993382e+36 .. inf]
+  classd ∈ {2; 3}
+  classf ∈ {1; 4}
+  is_nan ∈ {1}
+  is_inf ∈ {1}
+  is_normal ∈ {0}

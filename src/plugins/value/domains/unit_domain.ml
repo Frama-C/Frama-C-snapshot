@@ -20,8 +20,6 @@
 (*                                                                        *)
 (**************************************************************************)
 
-open Eval
-
 let log_key = Value_parameters.register_category "unit-domain"
 
 module Static = struct
@@ -71,9 +69,8 @@ module Make
     let update _ _ = ()
     let assign _ _ _ _ _ _ = `Value ()
     let assume _ _ _ _ _ = `Value ()
-    let start_call _ _ _ _ = Compute ()
+    let start_call _ _ _ _ = `Value ()
     let finalize_call _ _ ~pre:_ ~post:_ = `Value ()
-    let approximate_call _ _ _ = `Value [ () ]
     let show_expr _ _ _ _ = ()
   end
 
@@ -93,8 +90,9 @@ module Make
   let initialize_variable _ _ ~initialized:_ _ _ = ()
   let initialize_variable_using_type _ _ _  = ()
 
-  let filter_by_bases _ _ = ()
-  let reuse ~current_input:_ ~previous_output:_ = ()
+  let relate _ _ () = Base.SetLattice.empty
+  let filter _ _ _ () = ()
+  let reuse _ _ ~current_input:() ~previous_output:() = ()
 
   let post_analysis _ = ()
 end

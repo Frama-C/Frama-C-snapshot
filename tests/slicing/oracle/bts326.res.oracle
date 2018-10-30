@@ -1,32 +1,32 @@
 [kernel] Parsing tests/slicing/bts326.i (no preprocessing)
-[value] Analyzing a complete application starting at main
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing a complete application starting at main
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   t[0..1] ∈ {0}
   r ∈ {0}
-[value] computing for function g <- main.
+[eva] computing for function g <- main.
   Called from tests/slicing/bts326.i:17.
-[value] computing for function f <- g <- main.
+[eva] computing for function f <- g <- main.
   Called from tests/slicing/bts326.i:12.
-[value] Recording results for f
+[eva] Recording results for f
 [from] Computing for function f
 [from] Done for function f
-[value] Done for function f
-[value] computing for function f <- g <- main.
+[eva] Done for function f
+[eva] computing for function f <- g <- main.
   Called from tests/slicing/bts326.i:13.
-[value] Recording results for f
+[eva] Recording results for f
 [from] Computing for function f
 [from] Done for function f
-[value] Done for function f
-[value] Recording results for g
+[eva] Done for function f
+[eva] Recording results for g
 [from] Computing for function g
 [from] Done for function g
-[value] Done for function g
-[value] Recording results for main
+[eva] Done for function g
+[eva] Recording results for main
 [from] Computing for function main
 [from] Done for function main
-[value] done for function main
+[eva] done for function main
 [from] ====== DISPLAYING CALLWISE DEPENDENCIES ======
 [from] call to f at tests/slicing/bts326.i:12 (by g):
   t[0] FROM i

@@ -1,8 +1,8 @@
 [kernel] Parsing tests/value/strings.i (no preprocessing)
-[value] Analyzing a complete application starting at main7
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing a complete application starting at main7
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   s1[0] ∈ {104}
     [1] ∈ {101}
     [2..3] ∈ {108}
@@ -37,17 +37,17 @@
   s4 ∈ {{ "tutu" }}
   s7 ∈ {{ "hello\000 world" }}
   s8 ∈ {{ "hello" }}
-[value:alarm] tests/value/strings.i:101: Warning: 
+[eva:alarm] tests/value/strings.i:101: Warning: 
   out of bounds write. assert \valid(tmp);
                        (tmp from f?s5 + 2:& c)
-[value:alarm] tests/value/strings.i:103: Warning: 
+[eva:alarm] tests/value/strings.i:103: Warning: 
   out of bounds write. assert \valid(s5);
-[value:alarm] tests/value/strings.i:105: Warning: 
+[eva:alarm] tests/value/strings.i:105: Warning: 
   out of bounds write. assert \valid(s6);
-[value] Recording results for main7
-[value] done for function main7
-[value] ====== VALUES COMPUTED ======
-[value:final-states] Values at end of function main7:
+[eva] Recording results for main7
+[eva] done for function main7
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function main7:
   s5 ∈ {{ &c }}
   s6 ∈ {{ &c }}
   R ∈ {84}

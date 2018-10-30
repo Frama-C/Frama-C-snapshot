@@ -64,6 +64,12 @@ module type S_no_log = sig
     (** The group containing options -*-debug and -*-verbose.
         @since Boron-20100401 *)
 
+  val add_plugin_output_aliases: string list -> unit
+  (** Adds aliases to the options -plugin-help, -plugin-verbose, -plugin-log,
+      -plugin-msg-key, and -plugin-warn-key.
+      [add_plugin_output_aliases [alias]] adds the aliases -alias-help,
+      -alias-verbose, etc.
+      @since Frama-C+dev *)
 end
 
 (** Provided plug-general services for plug-ins.

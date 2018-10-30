@@ -1,0 +1,153 @@
+[kernel:typing:implicit-function-declaration] tests/format/fprintf.c:15: Warning: 
+  Calling undeclared function fork. Old style K&R code?
+[kernel:typing:incompatible-types-call] tests/format/fprintf.c:22: Warning: 
+  expected 'FILE *' but got argument of type 'int *': & argc
+[e-acsl] beginning translation.
+[e-acsl] Warning: annotating undefined function `exit':
+  the generated program may miss memory instrumentation
+  if there are memory-related annotations.
+[e-acsl] Warning: annotating undefined function `tmpfile':
+  the generated program may miss memory instrumentation
+  if there are memory-related annotations.
+[e-acsl] Warning: annotating undefined function `fclose':
+  the generated program may miss memory instrumentation
+  if there are memory-related annotations.
+[e-acsl] Warning: annotating undefined function `waitpid':
+  the generated program may miss memory instrumentation
+  if there are memory-related annotations.
+[e-acsl] FRAMAC_SHARE/libc/sys/wait.h:92: Warning: 
+  E-ACSL construct `assigns clause in behavior' is not yet supported.
+  Ignoring annotation.
+[e-acsl] FRAMAC_SHARE/libc/sys/wait.h:86: Warning: 
+  E-ACSL construct `assigns clause in behavior' is not yet supported.
+  Ignoring annotation.
+[e-acsl] FRAMAC_SHARE/libc/stdio.h:94: Warning: 
+  E-ACSL construct `assigns clause in behavior' is not yet supported.
+  Ignoring annotation.
+[e-acsl] FRAMAC_SHARE/libc/stdio.h:96: Warning: 
+  E-ACSL construct `assigns clause in behavior' is not yet supported.
+  Ignoring annotation.
+[e-acsl] FRAMAC_SHARE/libc/stdio.h:82: Warning: 
+  E-ACSL construct `logic function application' is not yet supported.
+  Ignoring annotation.
+[e-acsl] FRAMAC_SHARE/libc/stdio.h:82: Warning: 
+  E-ACSL construct `assigns clause in behavior' is not yet supported.
+  Ignoring annotation.
+[e-acsl] translation done in project "e-acsl".
+[eva] Analyzing a complete application starting at main
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
+  __e_acsl_init ∈ [--..--]
+  __e_acsl_heap_allocation_size ∈ [--..--]
+  __e_acsl_math_HUGE_VAL ∈ [-1.79769313486e+308 .. 1.79769313486e+308]
+  __e_acsl_math_HUGE_VALF ∈ [-3.40282346639e+38 .. 3.40282346639e+38]
+  __e_acsl_math_INFINITY ∈ [-1.79769313486e+308 .. 1.79769313486e+308]
+  testno ∈ {0}
+  __gen_e_acsl_literal_string ∈ {0}
+  __gen_e_acsl_literal_string_2 ∈ {0}
+  __gen_e_acsl_literal_string_3 ∈ {0}
+  __gen_e_acsl_literal_string_4 ∈ {0}
+  __gen_e_acsl_literal_string_5 ∈ {0}
+  __gen_e_acsl_literal_string_6 ∈ {0}
+  __gen_e_acsl_literal_string_7 ∈ {0}
+  __gen_e_acsl_literal_string_8 ∈ {0}
+  __gen_e_acsl_literal_string_9 ∈ {0}
+  __gen_e_acsl_literal_string_10 ∈ {0}
+  __gen_e_acsl_literal_string_11 ∈ {0}
+  __gen_e_acsl_literal_string_12 ∈ {0}
+  __gen_e_acsl_literal_string_13 ∈ {0}
+  __gen_e_acsl_literal_string_14 ∈ {0}
+  __gen_e_acsl_literal_string_15 ∈ {0}
+  __gen_e_acsl_literal_string_16 ∈ {0}
+  __gen_e_acsl_literal_string_17 ∈ {0}
+  __gen_e_acsl_literal_string_18 ∈ {0}
+  __gen_e_acsl_literal_string_19 ∈ {0}
+  __gen_e_acsl_literal_string_20 ∈ {0}
+  __gen_e_acsl_literal_string_21 ∈ {0}
+  __gen_e_acsl_literal_string_22 ∈ {0}
+  __gen_e_acsl_literal_string_23 ∈ {0}
+  __gen_e_acsl_literal_string_24 ∈ {0}
+  __gen_e_acsl_literal_string_25 ∈ {0}
+  __gen_e_acsl_literal_string_26 ∈ {0}
+  __gen_e_acsl_literal_string_27 ∈ {0}
+  __gen_e_acsl_literal_string_28 ∈ {0}
+  __gen_e_acsl_literal_string_29 ∈ {0}
+  __gen_e_acsl_literal_string_30 ∈ {0}
+  __gen_e_acsl_literal_string_31 ∈ {0}
+[eva] using specification for function __e_acsl_memory_init
+[eva] using specification for function __e_acsl_store_block
+[eva] using specification for function __e_acsl_full_init
+[eva] using specification for function __e_acsl_mark_readonly
+[eva] using specification for function fork
+[eva] using specification for function __e_acsl_builtin_fprintf
+[eva] using specification for function exit
+[eva] using specification for function __e_acsl_valid
+[eva] using specification for function __e_acsl_assert
+[eva] using specification for function waitpid
+[eva] using specification for function __e_acsl_initialized
+[eva:alarm] FRAMAC_SHARE/libc/sys/wait.h:86: Warning: 
+  function __e_acsl_assert: precondition got status unknown.
+[eva] using specification for function __e_acsl_delete_block
+[eva:alarm] FRAMAC_SHARE/libc/sys/wait.h:86: Warning: 
+  function __gen_e_acsl_waitpid: postcondition 'initialization,stat_loc_init_on_success' got status unknown.
+[eva:alarm] tests/format/fprintf.c:15: Warning: 
+  accessing uninitialized left-value. assert \initialized(&process_status);
+[eva] using specification for function __e_acsl_builtin_printf
+[eva] tests/format/fprintf.c:16: Warning: 
+  Completely invalid destination for assigns clause *stream. Ignoring.
+[eva:alarm] tests/format/fprintf.c:16: Warning: 
+  accessing uninitialized left-value. assert \initialized(&process_status_0);
+[eva] using specification for function tmpfile
+[eva:alarm] tests/format/fprintf.c:19: Warning: 
+  accessing uninitialized left-value. assert \initialized(&process_status_1);
+[eva:alarm] FRAMAC_SHARE/libc/stdio.h:94: Warning: 
+  function __e_acsl_assert: precondition got status unknown.
+[eva] using specification for function fclose
+[eva:alarm] tests/format/fprintf.c:21: Warning: 
+  accessing uninitialized left-value. assert \initialized(&process_status_2);
+[eva] tests/format/fprintf.c:22: Warning: 
+  Completely invalid destination for assigns clause *stream. Ignoring.
+[eva:alarm] tests/format/fprintf.c:22: Warning: 
+  accessing uninitialized left-value. assert \initialized(&process_status_3);
+[eva] using specification for function __e_acsl_builtin_dprintf
+[eva:alarm] tests/format/fprintf.c:27: Warning: 
+  accessing uninitialized left-value. assert \initialized(&process_status_4);
+[eva:alarm] tests/format/fprintf.c:28: Warning: 
+  accessing uninitialized left-value. assert \initialized(&process_status_5);
+[eva] using specification for function __e_acsl_builtin_sprintf
+[eva:alarm] tests/format/fprintf.c:34: Warning: 
+  accessing uninitialized left-value. assert \initialized(&process_status_6);
+[eva:alarm] tests/format/fprintf.c:35: Warning: 
+  accessing uninitialized left-value. assert \initialized(&process_status_7);
+[eva:alarm] tests/format/fprintf.c:36: Warning: 
+  accessing uninitialized left-value. assert \initialized(&process_status_8);
+[eva] tests/format/fprintf.c:37: Warning: 
+  Completely invalid destination for assigns clause *(str + (0 ..)). Ignoring.
+[eva:alarm] tests/format/fprintf.c:37: Warning: 
+  accessing uninitialized left-value. assert \initialized(&process_status_9);
+[eva] tests/format/fprintf.c:38: Warning: 
+  Completely invalid destination for assigns clause *(str + (0 ..)). Ignoring.
+[eva:alarm] tests/format/fprintf.c:38: Warning: 
+  accessing uninitialized left-value. assert \initialized(&process_status_10);
+[eva] using specification for function __e_acsl_builtin_snprintf
+[eva:alarm] tests/format/fprintf.c:41: Warning: 
+  accessing uninitialized left-value. assert \initialized(&process_status_11);
+[eva:alarm] tests/format/fprintf.c:42: Warning: 
+  accessing uninitialized left-value. assert \initialized(&process_status_12);
+[eva] tests/format/fprintf.c:43: Warning: 
+  Completely invalid destination for assigns clause *(str + (0 ..)). Ignoring.
+[eva:alarm] tests/format/fprintf.c:43: Warning: 
+  accessing uninitialized left-value. assert \initialized(&process_status_13);
+[eva:alarm] tests/format/fprintf.c:44: Warning: 
+  accessing uninitialized left-value. assert \initialized(&process_status_14);
+[eva] tests/format/fprintf.c:45: Warning: 
+  Completely invalid destination for assigns clause *(str + (0 ..)). Ignoring.
+[eva:alarm] tests/format/fprintf.c:45: Warning: 
+  accessing uninitialized left-value. assert \initialized(&process_status_15);
+[eva] tests/format/fprintf.c:46: Warning: 
+  Completely invalid destination for assigns clause *(str + (0 ..)). Ignoring.
+[eva:alarm] tests/format/fprintf.c:46: Warning: 
+  accessing uninitialized left-value. assert \initialized(&process_status_16);
+[eva] using specification for function __e_acsl_memory_clean
+[eva] done for function main

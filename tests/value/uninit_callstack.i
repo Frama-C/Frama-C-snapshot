@@ -1,5 +1,5 @@
 /* run.config*
-   OPT: -no-autoload-plugins -load-module value -val @VALUECONFIG@ -no-val-show-progress -val-print-callstacks -journal-disable -no-results
+   OPT: -no-autoload-plugins -load-module eva -val @VALUECONFIG@ -no-val-show-progress -val-print-callstacks -journal-disable -no-results
 */
 int *p, x;
 

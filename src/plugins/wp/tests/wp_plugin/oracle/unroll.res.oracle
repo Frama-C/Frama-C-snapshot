@@ -19,7 +19,7 @@ Let a = shift_uint32(t, 0).
 Assume {
   (* Heap *)
   Have: (region(t.base) <= 0) /\ linked(Malloc_0).
-  (* Pre-condition 'access' *)
+  (* Pre-condition *)
   Have: valid_rw(Malloc_0, a, 16).
 }
 Prove: P_zeroed(Mint_0[a <- 0][shift_uint32(t, 1) <- 0][shift_uint32(t, 2)

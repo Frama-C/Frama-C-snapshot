@@ -1,8 +1,8 @@
 [kernel] Parsing tests/value/from_res_2.i (no preprocessing)
-[value] Analyzing a complete application starting at main
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing a complete application starting at main
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   G ∈ {0}
   A ∈ {0}
   B ∈ {0}
@@ -13,34 +13,34 @@
   y1 ∈ {0}
   y2 ∈ {0}
   y3 ∈ {0}
-[value] computing for function f <- main.
+[eva] computing for function f <- main.
   Called from tests/value/from_res_2.i:26.
-[value] Recording results for f
-[value] Done for function f
-[value] computing for function g1 <- main.
+[eva] Recording results for f
+[eva] Done for function f
+[eva] computing for function g1 <- main.
   Called from tests/value/from_res_2.i:30.
-[value] Recording results for g1
-[value] Done for function g1
-[value] computing for function g2 <- main.
+[eva] Recording results for g1
+[eva] Done for function g1
+[eva] computing for function g2 <- main.
   Called from tests/value/from_res_2.i:34.
-[value] Recording results for g2
-[value] Done for function g2
-[value] computing for function g3 <- main.
+[eva] Recording results for g2
+[eva] Done for function g2
+[eva] computing for function g3 <- main.
   Called from tests/value/from_res_2.i:38.
-[value] Recording results for g3
-[value] Done for function g3
-[value] Recording results for main
-[value] done for function main
-[value] ====== VALUES COMPUTED ======
-[value:final-states] Values at end of function f:
+[eva] Recording results for g3
+[eva] Done for function g3
+[eva] Recording results for main
+[eva] done for function main
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function f:
   __retres ∈ {3}
-[value:final-states] Values at end of function g1:
+[eva:final-states] Values at end of function g1:
   
-[value:final-states] Values at end of function g2:
+[eva:final-states] Values at end of function g2:
   
-[value:final-states] Values at end of function g3:
+[eva:final-states] Values at end of function g3:
   
-[value:final-states] Values at end of function main:
+[eva:final-states] Values at end of function main:
   G ∈ {3}
   x1 ∈ {0}
   x2 ∈ {0}

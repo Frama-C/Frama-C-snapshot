@@ -29,7 +29,7 @@ volatile int i;
    the dependencies of the sizeof() construct present in the alarms. Since
    those have an array type, Value was unhappy. */
 void main2() {
-  struct s *p = &s1 + (int)&s1;
+  struct s *p = (&s1 + (int)&s1) - (int)&s1; // creates a garbled mix
   p->t[sizeof(s1.t)-i] = 1;
   p->t[sizeof(s1.t)-i] = 2; 
 }

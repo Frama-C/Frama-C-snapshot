@@ -3,7 +3,7 @@
 */
 
 /* run.config_qualif
-   OPT: -wp-prover coq -wp-script tests/wp_plugin/inductive.script
+   OPT: -wp-prover coq -wp-script tests/wp_plugin/inductive.script -wp-timeout 240
 */
 
 typedef struct _list { int element; struct _list* next; } list;

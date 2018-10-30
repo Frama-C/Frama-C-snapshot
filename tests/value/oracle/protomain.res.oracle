@@ -1,11 +1,11 @@
 [kernel] Parsing tests/value/protomain.i (no preprocessing)
-[value] Analyzing a complete application starting at main
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing a complete application starting at main
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   
 [kernel:annot:missing-spec] :0: Warning: 
   Neither code nor specification for function main, generating default assigns from the prototype
-[value] using specification for function main
-[value] done for function main
-[value] ====== VALUES COMPUTED ======
+[eva] using specification for function main
+[eva] done for function main
+[eva] ====== VALUES COMPUTED ======

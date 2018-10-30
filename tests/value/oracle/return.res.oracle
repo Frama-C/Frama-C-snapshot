@@ -1,24 +1,21 @@
 [kernel] Parsing tests/value/return.i (no preprocessing)
-[value] Analyzing a complete application starting at main
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing a complete application starting at main
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   G ∈ {0}
   H ∈ {0}
-[value] computing for function f <- main.
+[eva] computing for function f <- main.
   Called from tests/value/return.i:18.
-[value] Recording results for f
-[value] Done for function f
-[value] computing for function f <- main.
-  Called from tests/value/return.i:19.
-[value] Recording results for f
-[value] Done for function f
-[value] Recording results for main
-[value] done for function main
-[value] ====== VALUES COMPUTED ======
-[value:final-states] Values at end of function f:
+[eva] Recording results for f
+[eva] Done for function f
+[eva] tests/value/return.i:19: Reusing old results for call to f
+[eva] Recording results for main
+[eva] done for function main
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function f:
   __retres ∈ {0}
-[value:final-states] Values at end of function main:
+[eva:final-states] Values at end of function main:
   G ∈ {0}
   H ∈ {0}
 [from] Computing for function f

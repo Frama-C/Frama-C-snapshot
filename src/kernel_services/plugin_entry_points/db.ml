@@ -1005,11 +1005,9 @@ module RteGen = struct
   let compute = mk_fun "RteGen.compute"
   let annotate_kf = mk_fun "RteGen.annotate_kf"
   let self = ref State.dummy
-  let do_precond = mk_fun "RteGen.do_precond"
   let do_all_rte = mk_fun "RteGen.do_all_rte"
   let do_rte = mk_fun "RteGen.do_rte"
   let get_all_status = mk_fun "RteGen.get_all_status"
-  let get_precond_status = mk_fun "RteGen.get_precond_status"
   let get_signedOv_status = mk_fun "RteGen.get_signedOv_status"
   let get_divMod_status = mk_fun "RteGen.get_divMod_status"
   let get_initialized_status = mk_fun "RteGen.get_initialized_status"
@@ -1020,11 +1018,6 @@ module RteGen = struct
   let get_unsignedDownCast_status = mk_fun "RteGen.get_unsignedDownCast_status"
   let get_float_to_int_status = mk_fun "RteGen.get_float_to_int_status"
   let get_finite_float_status = mk_fun "RteGen.get_finite_float_status"
-end
-
-module Constant_Propagation = struct
-  let get = mk_fun "Constant_Propagation.get"
-  let compute = mk_fun "Constant_Propagation.compute"
 end
 
 module PostdominatorsTypes = struct

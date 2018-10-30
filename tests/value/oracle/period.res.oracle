@@ -1,8 +1,8 @@
 [kernel] Parsing tests/value/period.c (with preprocessing)
-[value] Analyzing a complete application starting at main
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing a complete application starting at main
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   g[0..9] ∈ {0}
   Frama_C_periodic_t_320[0] ∈ {1}
                         [1..59] ∈ {0}
@@ -30,7 +30,7 @@
   Ft ∈ {0}
   Gt ∈ {12}
   Ht ∈ {0}
-[value] tests/value/period.c:49: 
+[eva] tests/value/period.c:49: 
   Frama_C_dump_each:
   # Cvalue domain:
   g[0..9] ∈ {0}
@@ -78,20 +78,20 @@
   Gt ∈ {12}
   Ht ∈ {1}
   ==END OF DUMP==
-[value] tests/value/period.c:51: 
+[eva] tests/value/period.c:51: 
   Assigning imprecise value to p.
   The imprecision originates from Arithmetic {tests/value/period.c:51}
-[value:alarm] tests/value/period.c:52: Warning: 
+[eva:alarm] tests/value/period.c:52: Warning: 
   out of bounds write. assert \valid(p);
-[value] tests/value/period.c:53: 
+[eva] tests/value/period.c:53: 
   Assigning imprecise value to p.
   The imprecision originates from Arithmetic {tests/value/period.c:53}
-[value:alarm] tests/value/period.c:54: Warning: 
+[eva:alarm] tests/value/period.c:54: Warning: 
   out of bounds read. assert \valid_read(p);
-[value] Recording results for main
-[value] done for function main
-[value] ====== VALUES COMPUTED ======
-[value:final-states] Values at end of function main:
+[eva] Recording results for main
+[eva] done for function main
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function main:
   g[0..9] ∈
    {{ garbled mix of &{vg} (origin: Misaligned {tests/value/period.c:55}) }}
   Frama_C_periodic_t_320[0] ∈ {1}

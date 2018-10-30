@@ -38,4 +38,5 @@
 
 *)
 
-val file: string -> (string -> string -> string) -> string -> string
+val file: string -> (string -> string -> string) -> string ->
+  Datatype.Filepath.t

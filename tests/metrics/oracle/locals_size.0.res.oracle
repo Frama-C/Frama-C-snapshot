@@ -7,3 +7,5 @@
 [metrics] level1	12	16	17	21
 [metrics] User Error: in function main, cannot compute sizeof i (type incomplete)
 [metrics] main	12	28	29	37
+[metrics] User Error: Deferred error message was emitted during execution. See above messages for more information.
+[kernel] Plug-in metrics aborted: invalid user input.

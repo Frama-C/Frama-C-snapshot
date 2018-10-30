@@ -1,5 +1,5 @@
 /* run.config
-   STDOPT: #"-slevel 2"
+   STDOPT: #"-slevel 4"
 */
 #include <stdio.h>
 #include <ctype.h>

@@ -27,7 +27,7 @@ __PUSH_FC_STDLIB
 __BEGIN_DECLS
 #include "../__fc_machdep.h"
 
-#include "errno.h"
+#include "../errno.h"
 
 // Note: most constants used here are based on Linux, independently of the
 // chosen machdep. If using other OSs (e.g. MacOS), consider redefining them.

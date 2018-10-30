@@ -4,7 +4,7 @@ int labels(void)
 {
   int x = 0;
   L1: /*@ assert \at(x,L1) ≡ \at(x,L1); */ ;
-      return x;
+  return x;
 }
 
 

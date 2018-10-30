@@ -27,6 +27,8 @@ type clobbered_set = {
   mutable clob: Base.SetLattice.t
 }
 
+let key = Structure.Key_Domain.create_key "clobbered_set"
+
 let structural_descr =
   let open Structural_descr in
   t_record [| Base.SetLattice.packed_descr |]
@@ -47,7 +49,7 @@ let offsetmap_contains_local offm =
     Cvalue.V_Offsetmap.iter_on_values
       (fun v ->
          if Cvalue.V.contains_addresses_of_any_locals
-           (Cvalue.V_Or_Uninitialized.get_v v)
+             (Cvalue.V_Or_Uninitialized.get_v v)
          then raise Exit
       ) offm;
     false
@@ -96,11 +98,11 @@ let make_escaping ~exact ~escaping ~on_escaping ~within state =
   try (* Iterate on all the bases that might contain a variable to clean *)
     Base.SetLattice.fold aux' within (aux' Base.null state)
   with Abstract_interp.Error_Top ->
-    (* [bases] is too imprecise. Iterate on the entire memory state instead,
-       which is much slower *)
-    match state with
-    | Cvalue.Model.Top | Cvalue.Model.Bottom -> state
-    | Cvalue.Model.Map m -> Cvalue.Model.fold aux m state
+  (* [bases] is too imprecise. Iterate on the entire memory state instead,
+     which is much slower *)
+  match state with
+  | Cvalue.Model.Top | Cvalue.Model.Bottom -> state
+  | Cvalue.Model.Map m -> Cvalue.Model.fold aux m state
 
 let make_escaping_fundec fundec clob vars state =
   let filter acc v =
@@ -119,9 +121,10 @@ let make_escaping_fundec fundec clob vars state =
     in
     let escaping = vars in
     let on_escaping ~b ~itv:_ ~v =
-      let bases_v = Cvalue.(V.get_bases v) in
-      let escaping = Base.SetLattice.inject escaping in
-      let bases = Base.SetLattice.meet escaping bases_v in
+      let bases = match Cvalue.V.get_bases v with
+        | Base.SetLattice.Top -> escaping
+        | Base.SetLattice.Set bases -> Base.Hptset.inter bases escaping
+      in
       Warn.warn_locals_escape is_inner_block fundec b bases
     in
     make_escaping ~exact:true ~escaping ~on_escaping ~within:clob.clob state

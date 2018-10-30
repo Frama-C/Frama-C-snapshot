@@ -170,8 +170,10 @@ int decode_int(char *s)
     }
   }
   __retres = value;
-  return_label: decode_int_post_func(__retres);
-  return __retres;
+  return_label: {
+                  decode_int_post_func(__retres);
+                  return __retres;
+                }
 }
 
 /*@ ensures aorai_CurOpStatus ≡ aorai_Called;
@@ -402,8 +404,10 @@ int main(int argc, char **argv)
   }
   factorial(value);
   __retres = 0;
-  return_label: main_post_func(__retres);
-  return __retres;
+  return_label: {
+                  main_post_func(__retres);
+                  return __retres;
+                }
 }
 
 

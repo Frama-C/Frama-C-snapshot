@@ -1,40 +1,37 @@
 [kernel] Parsing tests/pdg/simple_call.c (with preprocessing)
-[value] Analyzing a complete application starting at call_in_loop
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing a complete application starting at call_in_loop
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   G ∈ [--..--]
   G1 ∈ [--..--]
   G2 ∈ [--..--]
   S ∈ [--..--]
-[value] tests/pdg/simple_call.c:51: entering loop for the first time
-[value] computing for function call <- call_in_loop.
+[eva] computing for function call <- call_in_loop.
   Called from tests/pdg/simple_call.c:52.
-[value:alarm] tests/pdg/simple_call.c:45: Warning: 
+[eva:alarm] tests/pdg/simple_call.c:45: Warning: 
   signed overflow. assert G + y ≤ 2147483647;
-[value] Recording results for call
-[value] Done for function call
-[value] computing for function call <- call_in_loop.
+[eva] Recording results for call
+[eva] Done for function call
+[eva] tests/pdg/simple_call.c:51: starting to merge loop iterations
+[eva] computing for function call <- call_in_loop.
   Called from tests/pdg/simple_call.c:52.
-[value] Recording results for call
-[value] Done for function call
-[value] computing for function call <- call_in_loop.
+[eva] Recording results for call
+[eva] Done for function call
+[eva] computing for function call <- call_in_loop.
   Called from tests/pdg/simple_call.c:52.
-[value] Recording results for call
-[value] Done for function call
-[value] computing for function call <- call_in_loop.
+[eva] Recording results for call
+[eva] Done for function call
+[eva] computing for function call <- call_in_loop.
   Called from tests/pdg/simple_call.c:52.
-[value] Recording results for call
-[value] Done for function call
-[value:alarm] tests/pdg/simple_call.c:52: Warning: 
+[eva] Recording results for call
+[eva] Done for function call
+[eva:alarm] tests/pdg/simple_call.c:52: Warning: 
   signed overflow. assert a + tmp ≤ 2147483647;
                    (tmp from call(i, c))
-[value] computing for function call <- call_in_loop.
-  Called from tests/pdg/simple_call.c:52.
-[value] Recording results for call
-[value] Done for function call
-[value] Recording results for call_in_loop
-[value] done for function call_in_loop
+[eva] tests/pdg/simple_call.c:52: Reusing old results for call to call
+[eva] Recording results for call_in_loop
+[eva] done for function call_in_loop
 [pdg] computing for function call_in_loop
 [from] Computing for function call
 [from] Done for function call

@@ -1,20 +1,20 @@
 [kernel] Parsing tests/value/plevel.i (no preprocessing)
-[value] Analyzing a complete application starting at main
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing a complete application starting at main
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   t[0..0xFFFE] ∈ {0}
   i ∈ [--..--]
-[value:alarm] tests/value/plevel.i:11: Warning: assertion got status unknown.
-[value:alarm] tests/value/plevel.i:13: Warning: assertion got status unknown.
+[eva:alarm] tests/value/plevel.i:11: Warning: assertion got status unknown.
+[eva:alarm] tests/value/plevel.i:13: Warning: assertion got status unknown.
 [kernel] tests/value/plevel.i:21: 
   more than 40(65) locations to update in array. Approximating.
-[value] Recording results for main
+[eva] Recording results for main
 [kernel] tests/value/plevel.i:21: 
   more than 40(65) elements to enumerate. Approximating.
-[value] done for function main
-[value] ====== VALUES COMPUTED ======
-[value:final-states] Values at end of function main:
+[eva] done for function main
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function main:
   t[0..0xFF] ∈ {0}
    [0x100..0x120] ∈ {0; 1}
    [0x121..0x1FF] ∈ {0}

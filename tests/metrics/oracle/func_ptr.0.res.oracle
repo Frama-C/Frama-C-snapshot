@@ -39,15 +39,15 @@
   Functions syntactically unreachable from main: 2
   ------------------------------------------------
   <tests/metrics/func_ptr.c>: baz; foobar;
-[value] Analyzing a complete application starting at main
-[value] Computing initial state
-[value] Initial state computed
-[value:initial-state] Values of globals at initialization
+[eva] Analyzing a complete application starting at main
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
   bar ∈ {0}
   bar_extern ∈ {0}
-[value] done for function main
-[metrics] Value coverage statistics
-  =========================
+[eva] done for function main
+[metrics] Eva coverage statistics
+  =======================
   Syntactically reachable functions = 3 (out of 5)
   Semantically reached functions = 1
   Coverage estimation = 33.3% 
@@ -58,7 +58,7 @@
   ------------------------------------
   Function main calls exit (at tests/metrics/func_ptr.c:28)
   Function main references foo (at tests/metrics/func_ptr.c:29)
-[metrics] Statements analyzed by Value
-  ----------------------------
+[metrics] Statements analyzed by Eva
+  --------------------------
   13 stmts in analyzed functions, 6 stmts analyzed (46.2%)
   main: 6 stmts out of 13 (46.2%)

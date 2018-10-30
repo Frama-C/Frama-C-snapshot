@@ -1,0 +1,268 @@
+[kernel] Parsing tests/builtins/precise_memset.c (with preprocessing)
+[eva] Analyzing a complete application starting at main
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
+  v ∈ [--..--]
+  x ∈ {0}
+  t[0..49] ∈ {0}
+  u[0..11] ∈ {0}
+  f ∈ {0}
+  fnan ∈ {0}
+  d ∈ {0}
+  dnan ∈ {0}
+  w1[0..3] ∈ {0}
+  w2[0..3] ∈ {0}
+  bitf ∈ {0}
+  tone[0] ∈ {0}
+  vs ∈ {0}
+  vv ∈ {0}
+  t_b[0..1023] ∈ {0}
+  t_s[0..1023] ∈ {0}
+[eva] tests/builtins/precise_memset.c:72: Call to builtin memset
+[eva] tests/builtins/precise_memset.c:72: 
+  function memset: precondition 'valid_s' got status valid.
+[eva] share/libc/string.h:118: 
+  cannot evaluate ACSL term, unsupported ACSL construct: logic function memset
+[eva] tests/builtins/precise_memset.c:73: Call to builtin memset
+[eva] tests/builtins/precise_memset.c:73: 
+  function memset: precondition 'valid_s' got status valid.
+[eva] tests/builtins/precise_memset.c:74: Call to builtin memset
+[eva] tests/builtins/precise_memset.c:74: 
+  function memset: precondition 'valid_s' got status valid.
+[eva] tests/builtins/precise_memset.c:75: Call to builtin memset
+[eva] tests/builtins/precise_memset.c:75: 
+  function memset: precondition 'valid_s' got status valid.
+[eva] tests/builtins/precise_memset.c:76: Call to builtin memset
+[eva] tests/builtins/precise_memset.c:76: 
+  function memset: precondition 'valid_s' got status valid.
+[eva] tests/builtins/precise_memset.c:77: Call to builtin memset
+[eva] tests/builtins/precise_memset.c:77: 
+  function memset: precondition 'valid_s' got status valid.
+[eva] tests/builtins/precise_memset.c:78: Call to builtin memset
+[eva] tests/builtins/precise_memset.c:78: 
+  function memset: precondition 'valid_s' got status valid.
+[eva] tests/builtins/precise_memset.c:79: Call to builtin memset
+[eva] tests/builtins/precise_memset.c:79: 
+  function memset: precondition 'valid_s' got status valid.
+[eva] tests/builtins/precise_memset.c:80: Call to builtin memset
+[eva] tests/builtins/precise_memset.c:80: 
+  function memset: precondition 'valid_s' got status valid.
+[eva] tests/builtins/precise_memset.c:81: Call to builtin memset
+[eva] tests/builtins/precise_memset.c:81: 
+  function memset: precondition 'valid_s' got status valid.
+[eva:alarm] tests/builtins/precise_memset.c:84: Warning: 
+  assertion got status unknown.
+[eva] tests/builtins/precise_memset.c:85: Call to builtin memset
+[eva] tests/builtins/precise_memset.c:85: 
+  function memset: precondition 'valid_s' got status valid.
+[eva] tests/builtins/precise_memset.c:87: Call to builtin memset
+[eva] tests/builtins/precise_memset.c:87: 
+  function memset: precondition 'valid_s' got status valid.
+[eva] tests/builtins/precise_memset.c:88: Call to builtin memset
+[eva] tests/builtins/precise_memset.c:88: 
+  function memset: precondition 'valid_s' got status valid.
+[eva] tests/builtins/precise_memset.c:89: Call to builtin memset
+[eva] tests/builtins/precise_memset.c:89: 
+  function memset: precondition 'valid_s' got status valid.
+[eva] tests/builtins/precise_memset.c:90: Call to builtin memset
+[eva] tests/builtins/precise_memset.c:90: 
+  function memset: precondition 'valid_s' got status valid.
+[eva] tests/builtins/precise_memset.c:91: Call to builtin memset
+[eva] tests/builtins/precise_memset.c:91: 
+  function memset: precondition 'valid_s' got status valid.
+[eva] tests/builtins/precise_memset.c:92: Call to builtin memset
+[eva] tests/builtins/precise_memset.c:92: 
+  function memset: precondition 'valid_s' got status valid.
+[eva] Recording results for main
+[from] Computing for function main
+[from] Done for function main
+[eva] done for function main
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function main:
+  x ∈ {33686018}
+  t[0..14] ∈ {771}
+   [15..34] ∈ {1799}
+   [35..49] ∈ {771}
+  u[0..11] ∈ {-1701143910}
+  f ∈ {9.55146781436e-38}
+  fnan ∈ {4294967295}
+  d ∈ {5.37794075127e-299}
+  dnan ∈ {18446744073709551615}
+  w1[0].s ∈ {514}
+    [0].[bits 16 to 31]# ∈ {2} repeated %8 
+    [0].i ∈ {33686018}
+    [0]{.c; .[bits 72 to 95]#} ∈ {2} repeated %8 
+    [1].s ∈ {514}
+    [1].[bits 16 to 31]# ∈ {2} repeated %8 
+    [1].i ∈ {33686018}
+    [1]{.c; .[bits 72 to 95]#} ∈ {2} repeated %8 
+    [2].s ∈ {514}
+    [2].[bits 16 to 31]# ∈ {2} repeated %8 
+    [2].i ∈ {33686018}
+    [2]{.c; .[bits 72 to 95]#} ∈ {2} repeated %8 
+    [3].s ∈ {514}
+    [3].[bits 16 to 31]# ∈ {2} repeated %8 
+    [3].i ∈ {33686018}
+    [3]{.c; .[bits 72 to 95]#} ∈ {2} repeated %8 
+  w2[0].s ∈ {257; 514; 771; 1028; 1285; 1542; 1799; 2056}
+    [0].[bits 16 to 31]# ∈ {1; 2; 3; 4; 5; 6; 7; 8} repeated %8 
+    [0].i ∈
+    {16843009; 33686018; 50529027; 67372036; 84215045; 101058054; 117901063;
+     134744072}
+    [0]{.c; .[bits 72 to 95]#} ∈ {1; 2; 3; 4; 5; 6; 7; 8} repeated %8 
+    [1].s ∈ {257; 514; 771; 1028; 1285; 1542; 1799; 2056}
+    [1].[bits 16 to 31]# ∈ {1; 2; 3; 4; 5; 6; 7; 8} repeated %8 
+    [1].i ∈
+    {16843009; 33686018; 50529027; 67372036; 84215045; 101058054; 117901063;
+     134744072}
+    [1]{.c; .[bits 72 to 95]#} ∈ {1; 2; 3; 4; 5; 6; 7; 8} repeated %8 
+    [2].s ∈ {257; 514; 771; 1028; 1285; 1542; 1799; 2056}
+    [2].[bits 16 to 31]# ∈ {1; 2; 3; 4; 5; 6; 7; 8} repeated %8 
+    [2].i ∈
+    {16843009; 33686018; 50529027; 67372036; 84215045; 101058054; 117901063;
+     134744072}
+    [2]{.c; .[bits 72 to 95]#} ∈ {1; 2; 3; 4; 5; 6; 7; 8} repeated %8 
+    [3].s ∈ {257; 514; 771; 1028; 1285; 1542; 1799; 2056}
+    [3].[bits 16 to 31]# ∈ {1; 2; 3; 4; 5; 6; 7; 8} repeated %8 
+    [3].i ∈
+    {16843009; 33686018; 50529027; 67372036; 84215045; 101058054; 117901063;
+     134744072}
+    [3]{.c; .[bits 72 to 95]#} ∈ {1; 2; 3; 4; 5; 6; 7; 8} repeated %8 
+  bitf.i1 ∈ {-2}
+      .i2 ∈ {7}
+      {.i3; .[bits 6 to 7]#} ∈ {126} repeated %8, bits 6 to 15 
+      .i4 ∈ {126}
+      .i5 ∈ {252}
+      {.i6; .[bits 31 to 31]#} ∈ {126} repeated %8, bits 7 to 15 
+      .i7 ∈ {0}
+      .i8 ∈ {1}
+      {.i9; .i10} ∈ {-1}
+      {.i11; .i12} ∈ {1}
+      .i13 ∈ {-1}
+      .i14 ∈ {0}
+      .[bits 48 to 63]# ∈ {126} repeated %8 
+  tone[0] ∈ {101058054}
+  vs.c1 ∈ {1028}
+    .[bits 16 to 31] ∈ {0}
+    .t[0..9] ∈ {33686018}
+    {.c2; .[bits 360 to 383]} ∈ {0}
+  vv.c3.s ∈ {1542}
+    {.c3{.i; .c; .[bits 16 to 31]; .[bits 72 to 95]}; .c4} ∈ {0}
+  t_b[0..1023] ∈ {5}
+  t_s[0..1023] ∈ {4883}
+  n ∈ {1; 2; 3; 4; 5; 6; 7; 8}
+[from] Computing for function main
+[from] Computing for function memset <-main
+[from] Done for function memset
+[from] Done for function main
+[from] ====== DEPENDENCIES COMPUTED ======
+  These dependencies hold at termination for the executions that terminate:
+[from] Function memset:
+  x FROM c (and SELF)
+  t[0..49] FROM c (and SELF)
+  u[0..11] FROM c (and SELF)
+  f FROM c (and SELF)
+  fnan FROM c (and SELF)
+  d FROM c (and SELF)
+  dnan FROM c (and SELF)
+  w1[0..3] FROM c (and SELF)
+  w2[0..3] FROM c (and SELF)
+  bitf FROM c (and SELF)
+  tone[0] FROM c (and SELF)
+  vs FROM c (and SELF)
+  vv FROM c (and SELF)
+  t_b[0..1023] FROM c (and SELF)
+  t_s[0..1023] FROM c (and SELF)
+  \result FROM s
+[from] Function main:
+  x FROM v (and SELF)
+  t[0..49] FROM v (and SELF)
+  u[0..11] FROM v (and SELF)
+  f FROM v (and SELF)
+  fnan FROM v (and SELF)
+  d FROM v (and SELF)
+  dnan FROM v (and SELF)
+  w1[0..3] FROM v (and SELF)
+  w2[0..3] FROM v (and SELF)
+  bitf FROM v (and SELF)
+  tone[0] FROM v (and SELF)
+  vs FROM v (and SELF)
+  vv FROM v (and SELF)
+  t_b[0..1023] FROM v (and SELF)
+  t_s[0..1023] FROM v (and SELF)
+[from] ====== END OF DEPENDENCIES ======
+[from] ====== DISPLAYING CALLWISE DEPENDENCIES ======
+[from] call to memset at tests/builtins/precise_memset.c:72 (by main):
+  x FROM c
+  \result FROM s
+[from] call to memset at tests/builtins/precise_memset.c:73 (by main):
+  t[0..49] FROM c
+  \result FROM s
+[from] call to memset at tests/builtins/precise_memset.c:74 (by main):
+  u[0..11] FROM c
+  \result FROM s
+[from] call to memset at tests/builtins/precise_memset.c:75 (by main):
+  f FROM c
+  \result FROM s
+[from] call to memset at tests/builtins/precise_memset.c:76 (by main):
+  fnan FROM c
+  \result FROM s
+[from] call to memset at tests/builtins/precise_memset.c:77 (by main):
+  d FROM c
+  \result FROM s
+[from] call to memset at tests/builtins/precise_memset.c:78 (by main):
+  dnan FROM c
+  \result FROM s
+[from] call to memset at tests/builtins/precise_memset.c:79 (by main):
+  w1[0..3] FROM c
+  \result FROM s
+[from] call to memset at tests/builtins/precise_memset.c:80 (by main):
+  bitf FROM c
+  \result FROM s
+[from] call to memset at tests/builtins/precise_memset.c:81 (by main):
+  tone[0] FROM c
+  \result FROM s
+[from] call to memset at tests/builtins/precise_memset.c:85 (by main):
+  w2[0..3] FROM c
+  \result FROM s
+[from] call to memset at tests/builtins/precise_memset.c:87 (by main):
+  vs.c1 FROM c
+  \result FROM s
+[from] call to memset at tests/builtins/precise_memset.c:88 (by main):
+  vs.t[0..9] FROM c
+  \result FROM s
+[from] call to memset at tests/builtins/precise_memset.c:89 (by main):
+  vv.c3.s FROM c
+  \result FROM s
+[from] call to memset at tests/builtins/precise_memset.c:90 (by main):
+  t[15..34] FROM c
+  \result FROM s
+[from] call to memset at tests/builtins/precise_memset.c:91 (by main):
+  t_b[0..1023] FROM c
+  \result FROM s
+[from] call to memset at tests/builtins/precise_memset.c:92 (by main):
+  t_s[0..1023] FROM c
+  \result FROM s
+[from] entry point:
+  x FROM \nothing
+  t[0..49] FROM \nothing
+  u[0..11] FROM \nothing
+  f FROM \nothing
+  fnan FROM \nothing
+  d FROM \nothing
+  dnan FROM \nothing
+  w1[0..3] FROM \nothing
+  w2[0..3] FROM v
+  bitf FROM \nothing
+  tone[0] FROM \nothing
+  vs{.c1; .t[0..9]} FROM \nothing
+  vv.c3.s FROM \nothing
+  t_b[0..1023] FROM \nothing
+  t_s[0..1023] FROM \nothing
+[from] ====== END OF CALLWISE DEPENDENCIES ======
+[inout] Out (internal) for function main:
+    x; t[0..49]; u[0..11]; f; fnan; d; dnan; w1[0..3]; w2[0..3]; bitf; 
+    tone[0]; vs{.c1; .t[0..9]}; vv.c3.s; t_b[0..1023]; t_s[0..1023]; n
+[inout] Inputs for function main:
+    v

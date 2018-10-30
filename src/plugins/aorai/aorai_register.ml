@@ -74,7 +74,9 @@ let convert_ltl_exprs t =
 let syntax_error loc msg =
   Aorai_option.abort
     "File %S, line %d, characters %d-%d:@\nSyntax error: %s"
-    (Filepath.pretty (fst loc).Lexing.pos_fname) (fst loc).Lexing.pos_lnum
+    (Filepath.Normalized.to_pretty_string
+       (Datatype.Filepath.of_string (fst loc).Lexing.pos_fname))
+    (fst loc).Lexing.pos_lnum
     ((fst loc).Lexing.pos_cnum - (fst loc).Lexing.pos_bol)
     ((snd loc).Lexing.pos_cnum - (fst loc).Lexing.pos_bol)
     msg

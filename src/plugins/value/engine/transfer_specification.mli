@@ -37,6 +37,8 @@ module Make
     val treat_statement_assigns: assigns -> Domain.t -> Domain.t
 
     val compute_using_specification:
-      kinstr -> Value.t call -> spec -> Domain.t -> Domain.t list or_bottom
+      warn:bool ->
+      kinstr -> (Location.location, Value.t) call -> spec ->
+      Domain.t -> Domain.t list or_bottom
 
   end
