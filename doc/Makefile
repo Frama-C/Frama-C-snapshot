@@ -55,7 +55,7 @@ MANUALS=acsl
 #MANUALS that depend on the frama-c version
 VERSIONED_MANUALS=acsl-implementation aorai-manual rte-manual	\
 		  wp-manual metrics-manual user-manual		\
-		  plugin-development-guide value-analysis
+		  plugin-development-guide eva-manual
 
 FILES= $(addprefix manuals/, \
 	 $(addsuffix -$(VERSION).pdf, $(VERSIONED_MANUALS)) \

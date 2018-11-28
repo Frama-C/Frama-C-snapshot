@@ -593,12 +593,12 @@ let smp_eq_with_lor a b =
     (* 0==(a1|a2) <=> (0==a1 && 0==a2) *)
     F.e_and (List.map (e_eq b) es)
 
-let smp_eq_with_lxor a b = (* b1==(a2^e) <==> ~(b1^a2)==e *)
+let smp_eq_with_lxor a b = (* b1==(a2^e) <==> (b1^a2)==e *)
   let b1 = match_integer b in
   let es = match_fun f_lxor a in
-  try (* b1==(a2^e) <==> ~(b1^a2)==e *)
+  try (* b1==(a2^e) <==> (b1^a2)==e *)
     let a2,es = match_integer_extraction es in
-    let k1 = Integer.lognot (Integer.logxor b1 a2) in
+    let k1 = Integer.logxor b1 a2 in
     e_eq (e_zint k1) (e_fun f_lxor es)
   with Not_found when b == e_zero  ->
     (* 0==(a1^a2) <=> (a1==a2) *)

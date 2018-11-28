@@ -30,6 +30,7 @@
 import sys
 import os
 import json
+import re
 
 arg = ""
 if len(sys.argv) < 2:
@@ -70,11 +71,14 @@ print("SRCS=\\\n" + " \\\n".join(sorted(files)) + " \\")
 print("")
 
 files_defining_main = set()
+re_main = re.compile("(int|void)\s+main\s*\([^)]*\)\s*\{")
 for file in files:
    assert os.path.exists(file), "file does not exist: %s" % file
-   res = os.system("grep -Paonq \"(\\s|\\n)*(int|void)(\\s|\\n)*main(\\s)*\([^)]*\)(\\s)*{\" %s" % file)
-   if res == 0:
-      files_defining_main.add(file)
+   with open(file, 'r') as content_file:
+      content = content_file.read()
+      res = re.search(re_main, content)
+      if res is not None:
+         files_defining_main.add(file)
 
 if files_defining_main != []:
    print("")

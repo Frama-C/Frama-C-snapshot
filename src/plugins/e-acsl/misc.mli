@@ -124,6 +124,9 @@ val mk_ptr_sizeof: typ -> location -> exp
 (* [mk_ptr_sizeof ptr_typ loc] takes the pointer typ [ptr_typ] that points
    to a [typ] typ and returns [sizeof(typ)]. *)
 
+val finite_min_and_max: Ival.t -> Integer.t * Integer.t
+(* [finite_min_and_max i] takes the finite ival [i] and returns its bounds *)
+
 (*
 Local Variables:
 compile-command: "make"

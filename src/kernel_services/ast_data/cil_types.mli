@@ -1671,7 +1671,7 @@ and acsl_extension_kind =
 
 (** Where are we expected to find corresponding extension keyword.
     @plugin development guide
-    @since Frama-C+dev
+    @since 18.0-Argon
 *)
 and ext_category =
   | Ext_contract

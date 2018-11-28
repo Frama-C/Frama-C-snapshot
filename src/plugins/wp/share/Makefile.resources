@@ -27,17 +27,18 @@
 # See also COQ_LIBS_CEA
 
 ## Used in share/why3
-WHY3_LIBS_CEA:=	\
- Cbits.why 	\
- Cint.why 	\
- Cfloat.why 	\
- Cmath.why 	\
- Square.why     \
+WHY3_LIBS_CEA:= \
+ ArcTrigo.why   \
+ Cbits.why      \
+ Cfloat.why     \
+ Cint.why       \
+ Cmath.why      \
  ExpLog.why     \
- Memory.why 	\
- Qed.why 	\
- Vset.why	\
- Vlist.why
+ Memory.why     \
+ Qed.why        \
+ Square.why     \
+ Vlist.why      \
+ Vset.why
 
 # --------------------------------------------------------------------------
 # ---  Coq Libraries

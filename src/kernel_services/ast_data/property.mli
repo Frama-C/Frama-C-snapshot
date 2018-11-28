@@ -164,15 +164,15 @@ val pretty_predicate_kind: Format.formatter -> predicate_kind -> unit
 
 val pretty_debug: Format.formatter -> identified_property -> unit
 (** Internal use only.
-    @since Frama-C+dev *)
+    @since 18.0-Argon *)
 
 (** create a Loc_contract or Loc_stmt depending on the kinstr.
-    @since Frama-C+dev
+    @since 18.0-Argon
 *)
 val e_loc_of_stmt: kernel_function -> kinstr -> extended_loc
 
 (** create a Loc_contract or Loc_stmt depending on the kinstr.
-    @since Frama-C+dev
+    @since 18.0-Argon
 *)
 val o_loc_of_stmt: kernel_function -> kinstr -> other_loc
 
@@ -184,7 +184,7 @@ val o_loc_of_stmt: kernel_function -> kinstr -> other_loc
 val ip_other: string -> other_loc -> identified_property
 (** Create a non-standard property.
     @since Nitrogen-20111001
-    @modify Frama-C+dev Refine localisation argument
+    @modify 18.0-Argon Refine localisation argument
  *)
 
 val ip_reachable_stmt: kernel_function -> stmt -> identified_property
@@ -223,7 +223,7 @@ val ip_of_ensures:
 
 (** Extended property.
     @since Chlorine-20180501
-    @modify Frama-C+dev refine localisation argument
+    @modify 18.0-Argon refine localisation argument
 *)
 val ip_of_extended: extended_loc -> acsl_extension -> identified_property
 

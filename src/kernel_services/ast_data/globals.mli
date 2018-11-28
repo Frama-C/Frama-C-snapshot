@@ -75,7 +75,7 @@ module Vars: sig
   val remove: varinfo -> unit
   (** Removes the given varinfo, which must have already been removed from the
       AST. Warning: this is very dangerous.
-      @since Frama-C+dev
+      @since 18.0-Argon
   *)
 
   val add_decl: varinfo -> unit
@@ -131,7 +131,7 @@ module Functions: sig
   val remove: varinfo -> unit
   (** Removes the given varinfo, which must have already been removed from the
       AST. Warning: this is very dangerous.
-      @since Frama-C+dev
+      @since 18.0-Argon
   *)
 
   val replace_by_declaration: funspec -> varinfo -> location -> unit
@@ -164,7 +164,7 @@ module FileIndex : sig
   [@@deprecated "Use FileIndex.get_symbols instead."]
     (** [find path] returns all global C symbols associated with [path],
         plus [path] itself. The returned [global] list is reversed.
-        @deprecated Frama-C+dev use [get_symbols] instead. *)
+        @deprecated 18.0-Argon use [get_symbols] instead. *)
 
   val get_files: unit -> Datatype.Filepath.t list
     (** Get the files list containing all [global] C symbols. *)

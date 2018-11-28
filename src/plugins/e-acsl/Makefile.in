@@ -264,7 +264,7 @@ EACSL_TEST_FILES = \
 # Test files without header management 
 EACSL_DISTRIB_TESTS = \
   $(foreach dir, $(addprefix tests/,$(PLUGIN_TESTS_DIRS)), \
-      $(dir)/*.[ic] \
+      $(dir)/*.[ich] \
       $(dir)/test_config \
       $(dir)/oracle/*.c \
       $(dir)/oracle/*.oracle \

@@ -161,7 +161,7 @@ val get_locals : t -> varinfo list
 
 val get_statics : t -> varinfo list
 (** Returns the list of static variables declared inside the function.
-    @since Frama-C+dev *)
+    @since 18.0-Argon *)
 
 exception No_Definition
 val get_definition : t -> fundec

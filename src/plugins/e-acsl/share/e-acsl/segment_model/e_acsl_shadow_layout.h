@@ -72,8 +72,12 @@ char *strerror(int errnum);
 /*! \brief Size of a program's heap */
 #define PGM_HEAP_SIZE (E_ACSL_HEAP_SIZE * MB)
 
-/*! \brief Size of a program's Thread-local storage (TLS) */
-#define PGM_TLS_SIZE (16 * MB)
+/*! \brief Size of a program's Thread-local storage (TLS).
+  Standard streams stdin, stdout and stderr are put here.
+  Some libraries such as libxml use it quite a lot:
+  it may occur that the given size is not enough,
+  in which case it MUST be increased. */
+#define PGM_TLS_SIZE (32 * MB)
 
 /*! \brief Mspace padding used by shadow segments. This is to make sure that
  * some allocation which exceeds the size of an initial memspace does not
@@ -350,18 +354,9 @@ static void set_shadow_segment(memory_segment *seg, memory_segment *parent,
 
 /*! \brief Initialize memory layout, i.e., determine bounds of program segments,
  * allocate shadow memory spaces and compute offsets. This function populates
- * global struct ::memory_layout holding that information with data. */
-static void init_shadow_layout(int *argc_ref, char ***argv_ref) {
-  memory_partition *pheap = &mem_layout.heap;
-  set_application_segment(&pheap->application, get_heap_start(),
-    get_heap_size(), "heap", mem_spaces.heap_mspace);
-  set_shadow_segment(&pheap->primary, &pheap->application, 1, "heap_primary");
-  set_shadow_segment(&pheap->secondary, &pheap->application, 8, "heap_secondary");
-#ifdef E_ACSL_TEMPORAL
-  set_shadow_segment(&pheap->temporal_primary, &pheap->application, 1, "temporal_heap_primary");
-  set_shadow_segment(&pheap->temporal_secondary, &pheap->application, 1, "temporal_heap_secondary");
-#endif
-
+ * global struct ::memory_layout holding that information with data.
+   Case of the stack. */
+static void init_shadow_layout_stack(int *argc_ref, char ***argv_ref) {
   memory_partition *pstack = &mem_layout.stack;
   set_application_segment(&pstack->application, get_stack_start(argc_ref, argv_ref),
     get_stack_size(), "stack", NULL);
@@ -370,6 +365,24 @@ static void init_shadow_layout(int *argc_ref, char ***argv_ref) {
 #ifdef E_ACSL_TEMPORAL
   set_shadow_segment(&pstack->temporal_primary, &pstack->application, 1, "temporal_stack_primary");
   set_shadow_segment(&pstack->temporal_secondary, &pstack->application, 1, "temporal_stack_secondary");
+#endif
+
+  mem_layout.is_initialized = 1;
+}
+
+/*! \brief Initialize memory layout, i.e., determine bounds of program segments,
+ * allocate shadow memory spaces and compute offsets. This function populates
+ * global struct ::memory_layout holding that information with data.
+   Case of the heap, globals and tls. */
+static void init_shadow_layout_heap_global_tls() {
+  memory_partition *pheap = &mem_layout.heap;
+  set_application_segment(&pheap->application, get_heap_start(),
+    get_heap_size(), "heap", mem_spaces.heap_mspace);
+  set_shadow_segment(&pheap->primary, &pheap->application, 1, "heap_primary");
+  set_shadow_segment(&pheap->secondary, &pheap->application, 8, "heap_secondary");
+#ifdef E_ACSL_TEMPORAL
+  set_shadow_segment(&pheap->temporal_primary, &pheap->application, 1, "temporal_heap_primary");
+  set_shadow_segment(&pheap->temporal_secondary, &pheap->application, 1, "temporal_heap_secondary");
 #endif
 
   memory_partition *pglobal = &mem_layout.global;

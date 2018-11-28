@@ -483,7 +483,7 @@ let pop_and_get ?(split=false) env stmt ~global_clear where =
     else
       b
   in
-  (* remove superflous brackets inside the generated block *)
+  (* remove superfluous brackets inside the generated block *)
   let final_blk = Cil.flatten_transient_sub_blocks final_blk in
   (* remove the non-scoping mark of the outermost block *)
   let final_blk = Cil.block_of_transient final_blk in

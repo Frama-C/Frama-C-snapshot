@@ -42,7 +42,7 @@ int bor(int a,int b, int c) { return a | b | c ; }
 /*@ ensures \result == (int) (a ^ b);
   @ behavior bit1:
   @   assumes a == -1 && 0xFF==(0xF0^b);
-  @   ensures \result != ~0xF;
+  @   ensures \result == ~0x0F;
   @ behavior bit2:
   @   assumes a == b;
   @   ensures \result == 0;

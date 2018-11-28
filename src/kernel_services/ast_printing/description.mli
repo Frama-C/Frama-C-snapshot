@@ -53,11 +53,11 @@ val pp_property : Format.formatter -> Property.t -> unit
 val property_kind_and_node: Property.t -> (string * string) option
 (** Returns separately the kind and the node of a property. Returns None for
     unsupported property kinds. Used to output properties in csv files.
-    @since Frama-C+dev *)
+    @since 18.0-Argon *)
 
 val status_feedback: Property_status.Feedback.t -> string
 (** User-friendly description of property statuses.
-    @since Frama-C+dev *)
+    @since 18.0-Argon *)
 
 type kf = [ `Always | `Never | `Context of kernel_function ]
 

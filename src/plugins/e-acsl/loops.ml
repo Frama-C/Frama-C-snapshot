@@ -31,6 +31,10 @@ let translate_named_predicate_ref
   : (kernel_function -> Env.t -> predicate -> Env.t) ref
   = Extlib.mk_fun "translate_named_predicate_ref"
 
+let named_predicate_ref
+  : (kernel_function -> Env.t -> predicate -> exp * Env.t) ref
+  = Extlib.mk_fun "named_predicate_ref"
+
 let term_to_exp_ref
   : (kernel_function -> Env.t -> term -> exp * Env.t) ref
   = Extlib.mk_fun "term_to_exp_ref"
@@ -98,12 +102,74 @@ let preserve_invariant prj env kf stmt = match stmt.skind with
 (**************************** Nested loops ********************************)
 (**************************************************************************)
 
+(* It could happen that the bounds provided for a quantifier [lv] are bigger
+  than its type. [bounds_for_small_type] handles such cases
+  and provides smaller bounds whenever possible.
+  Let B be the inferred interval and R the range of [lv.typ]
+  - Case 1: B \subseteq R
+    Example: [\forall unsigned char c; 4 <= c <= 100 ==> 0 <= c <= 255]
+    Return: B
+  - Case 2: B \not\subseteq R and the bounds of B are inferred exactly
+    Example: [\forall unsigned char c; 4 <= c <= 300 ==> 0 <= c <= 255]
+    Return: B \intersect R
+  - Case 3: B \not\subseteq R and the bounds of B are NOT inferred exactly
+    Example: [\let m = n > 0 ? 4 : 341; \forall char u; 1 < u < m ==> u > 0]
+    Return: R with a guard guaranteeing that [lv] does not overflow *)
+let bounds_for_small_type ~loc (t1, lv, t2) =
+  match lv.lv_type with
+  | Linteger ->
+    t1, t2, None
+  | Ctype ty ->
+    let i1 = Interval.infer t1 in
+    let i2 = Interval.infer t2 in
+    let i =
+      (* Ival.join would NOT be correct here:
+         Eg: (Ival.join [-3..-3] [300..300]) gives {-3, 300}
+             but NOT [-3..300] *)
+      Ival.inject_range (Ival.min_int i1) (Ival.max_int i2)
+    in
+    let ity = Interval.interv_of_typ ty in
+    if Ival.is_included i ity then
+      (* case 1 *)
+      t1, t2, None
+    else if Ival.is_singleton_int i1 && Ival.is_singleton_int i2 then begin
+      (* case 2 *)
+      let i = Ival.meet i ity in
+      (* now we potentially have a better interval for [lv]
+         ==> update the binding *)
+      Interval.Env.replace lv i;
+      (* the smaller bounds *)
+      let min, max = Misc.finite_min_and_max i in
+      let t1 = Logic_const.tint ~loc min in
+      let t2 = Logic_const.tint ~loc max in
+      let ctx = Typing.integer_ty_of_typ ty in
+      (* we are assured that we will not have a GMP,
+        once again because we intersected with [ity] *)
+      Typing.type_term ~use_gmp_opt:false ~ctx t1;
+      Typing.type_term ~use_gmp_opt:false ~ctx t2;
+      t1, t2, None
+    end else
+      (* case 3 *)
+      let min, max = Misc.finite_min_and_max ity in
+      let guard_lower = Logic_const.tint ~loc min in
+      let guard_upper = Logic_const.tint ~loc max in
+      let lv_term = Logic_const.tvar ~loc lv in
+      let guard_lower = Logic_const.prel ~loc (Rle, guard_lower, lv_term) in
+      let guard_upper = Logic_const.prel ~loc (Rle, lv_term, guard_upper) in
+      let guard = Logic_const.pand ~loc (guard_lower, guard_upper) in
+      t1, t2, Some guard
+  | Ltype _ | Lvar _ | Lreal | Larrow _ ->
+    Options.abort "quantification over non-integer type is not part of E-ACSL"
+
 let rec mk_nested_loops ~loc mk_innermost_block kf env lscope_vars =
   let term_to_exp = !term_to_exp_ref in
   match lscope_vars with
   | [] ->
     mk_innermost_block env
   | Lscope.Lvs_quantif(t1, rel1, logic_x, rel2, t2) :: lscope_vars' ->
+    let t1, t2, guard_for_small_type_opt =
+      bounds_for_small_type ~loc (t1, logic_x, t2)
+    in
     let ctx =
       let ty1 = Typing.get_integer_ty t1 in
       let ty2 = Typing.get_integer_ty t2 in
@@ -198,8 +264,6 @@ let rec mk_nested_loops ~loc mk_innermost_block kf env lscope_vars =
     let guard = block_to_stmt guard_blk in
     (* increment the loop counter [x++];
        previous typing ensures that [x++] fits type [ty] *)
-    (* TODO: should check that it does not overflow in the case of the type
-       of the loop variable is __declared__ too small. *)
     let tlv_one = t_plus_one ~ty:ctx_one tlv in
     let incr, env = term_to_exp kf (Env.push env) tlv_one in
     let next_blk, env = Env.pop_and_get
@@ -208,20 +272,32 @@ let rec mk_nested_loops ~loc mk_innermost_block kf env lscope_vars =
       ~global_clear:false
       Env.Middle
     in
-    (* remove logic binding now that the block is constructed *)
-    let env = Env.Logic_binding.remove env logic_x in
     (* generate the whole loop *)
-    let start = block_to_stmt init_blk in
     let next = block_to_stmt next_blk in
+    let stmts, env = match guard_for_small_type_opt with
+      | None ->
+        guard :: body @ [ next ], env
+      | Some p ->
+        let e, env = !named_predicate_ref kf (Env.push env) p in
+        let stmt, env =
+          Misc.mk_e_acsl_guard ~reverse:true Misc.RTE kf e p, env
+        in
+        let b, env = Env.pop_and_get env stmt ~global_clear:false Env.After in
+        let guard_for_small_type = Cil.mkStmt ~valid_sid:true (Block b) in
+        guard_for_small_type :: guard :: body @ [ next ], env
+    in
+    let start = block_to_stmt init_blk in
     let stmt = mkStmt
       ~valid_sid:true
       (Loop(
         [],
-        mkBlock (guard :: body @ [ next ]),
+        mkBlock stmts,
         loc,
         None,
         Some break_stmt))
     in
+    (* remove logic binding before returning *)
+    let env = Env.Logic_binding.remove env logic_x in
     [ start ;  stmt ], env
   | Lscope.Lvs_let(lv, t) :: lscope_vars' ->
     let ty = Typing.get_typ t in

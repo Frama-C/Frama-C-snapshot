@@ -61,6 +61,7 @@ module Env = struct
   let clear () = Logic_var.Hashtbl.clear tbl
   let add = Logic_var.Hashtbl.add tbl
   let remove = Logic_var.Hashtbl.remove tbl
+  let replace = Logic_var.Hashtbl.replace tbl
   let find = Logic_var.Hashtbl.find tbl
 end
 

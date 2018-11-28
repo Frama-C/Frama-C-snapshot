@@ -45,7 +45,7 @@ let term_to_exp_ref
     [\forall integer q1; n-1 <= q1 <= n+2 ==>
       \forall integer q2; 0 <= q2 <= 1 ==>
         \valid(&t[q1][1][q2])]
-  However, the substition can be unsound,
+  However, the substitution can be unsound,
   in which case [Range_elimination_exception] must be raised.
   Example:
     [\valid(&t[(0..2)==(0..2) ? 0 : 1])] is equivalent to [\valid(&t[0])]
@@ -134,7 +134,7 @@ let call ~loc kf name ctx env t =
 (********************** \initialized, \valid, \valid_read ********************)
 (*****************************************************************************)
 
-(* Take the term [size] thas has been typed into GMP
+(* Take the term [size] that has been typed into GMP
    and return an expression of type [size_t].
    The case where [!(0 <= size < SIZE_MAX)] is an UB ==> guard against it. *)
 let gmp_to_sizet ~loc kf env size p =
@@ -256,7 +256,7 @@ let call_memory_block ~loc kf name ctx env ptr r p =
        The generated code is a SET OF calls to the corresponding E-ACSL builtin
     C: Any other use of ranges/No range
        Call [call_default] which performs the translation for
-       range free terms, and raises Not_yet if it ever encouters a range.
+       range free terms, and raises Not_yet if it ever encounters a range.
   Example for case:
     A: [\valid(&t[3..5])]
        Contiguous locations -> a single call to [__e_acsl_valid]

@@ -470,7 +470,7 @@ val isCompleteType: ?allowZeroSizeArrays:bool -> typ -> bool
     array member. When in gcc mode, a zero-sized array is identified with a
     FAM for this purpose.
 
-    @since Frama-C+dev
+    @since 18.0-Argon
 *)
 val has_flexible_array_member: typ -> bool
 
@@ -542,27 +542,27 @@ val isIntegralOrPointerType: typ -> bool
 
 (** True if the argument is an integral type (i.e. integer or enum), either
     C or mathematical one.
-    @modify Frama-C+dev expands the logic type definition if necessary. *)
+    @modify 18.0-Argon expands the logic type definition if necessary. *)
 val isLogicIntegralType: logic_type -> bool
 
 (** True if the argument is a boolean type, either integral C type or
     mathematical boolean one.
-    @modify Frama-C+dev expands the logic type definition if necessary. *)
+    @modify 18.0-Argon expands the logic type definition if necessary. *)
 val isLogicBooleanType: logic_type -> bool
 
 (** True if the argument is a floating point type. *)
 val isFloatingType: typ -> bool
 
 (** True if the argument is a floating point type.
-    @modify Frama-C+dev expands the logic type definition if necessary. *)
+    @modify 18.0-Argon expands the logic type definition if necessary. *)
 val isLogicFloatType: logic_type -> bool
 
 (** True if the argument is a C floating point type or logic 'real' type.
-    @modify Frama-C+dev expands the logic type definition if necessary. *)
+    @modify 18.0-Argon expands the logic type definition if necessary. *)
 val isLogicRealOrFloatType: logic_type -> bool
 
 (** True if the argument is the logic 'real' type.
-    @modify Frama-C+dev expands the logic type definition if necessary. *)
+    @modify 18.0-Argon expands the logic type definition if necessary. *)
 val isLogicRealType: logic_type -> bool
 
 (** True if the argument is an arithmetic type (i.e. integer, enum or
@@ -575,7 +575,7 @@ val isArithmeticOrPointerType: typ -> bool
 
 (** True if the argument is a logic arithmetic type (i.e. integer, enum or
     floating point, either C or mathematical one.
-    @modify Frama-C+dev expands the logic type definition if necessary. *)
+    @modify 18.0-Argon expands the logic type definition if necessary. *)
 val isLogicArithmeticType: logic_type -> bool
 
 (** True if the argument is a function type *)
@@ -583,23 +583,23 @@ val isFunctionType: typ -> bool
 
 (** True if the argument is the logic function type.
     Expands the logic type definition if necessary.
-    @since Frama-C+dev *)
+    @since 18.0-Argon *)
 val isLogicFunctionType: logic_type -> bool
 
 (** True if the argument is a pointer type. *)
 val isPointerType: typ -> bool
 
 (** True if the argument is a function pointer type.
-    @since Frama-C+dev *)
+    @since 18.0-Argon *)
 val isFunPtrType: typ -> bool
 
 (** True if the argument is the logic function pointer type.
     Expands the logic type definition if necessary.
-    @since Frama-C+dev *)
+    @since 18.0-Argon *)
 val isLogicFunPtrType: logic_type -> bool
 
 (** True if the argument is the type for reified C types.
-    @modify Frama-C+dev expands the logic type definition if necessary. *)
+    @modify 18.0-Argon expands the logic type definition if necessary. *)
 val isTypeTagType: logic_type -> bool
 
 (** True if the argument denotes the type of ... in a variadic function.
@@ -1184,7 +1184,7 @@ val dropAttributes: string list -> attributes -> attributes
 (** a field struct marked with this attribute is known to be mutable, i.e.
     it can be modified even on a const object.
 
-    @since Frama-C+dev
+    @since 18.0-Argon
 *)
 val frama_c_mutable: string
 
@@ -1192,7 +1192,7 @@ val frama_c_mutable: string
     object being initialized by the current function, which can thus assign
     any sub-object regardless of const status.
 
-    @since Frama-C+dev
+    @since 18.0-Argon
  *)
 val frama_c_init_obj: string
 

@@ -64,6 +64,7 @@ o!  Constant Propagation [2018/09/12] Removing Db API for Constant Propagation
               integer types when an alarm is emitted.
 -   Metrics   [2018/09/06] Add option -metrics-used-files, to help identify
               unnecessary files given in the command line
+-   RTE       [2018/09/05] Remove option -rte-precond.
 -   Eva       [2018/08/31] Supports the ACSL functions \min and \max.
 -   Eva       [2018/08/30] Fixes the alarms on subtractions and comparisons of
               pointers on weak bases (created by allocations in loops).

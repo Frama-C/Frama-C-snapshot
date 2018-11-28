@@ -50,7 +50,7 @@ open Cil_types
 (** {2 Datatypes} *)
 (******************************************************************************)
 
-(** Possible types infered by the system. *)
+(** Possible types inferred by the system. *)
 type integer_ty = private
   | Gmp
   | C_type of ikind
@@ -105,15 +105,15 @@ val clear: unit -> unit
     predicate. *)
 
 val get_integer_ty: term -> integer_ty
-(** @return the infered type for the given term. *)
+(** @return the inferred type for the given term. *)
 
 val get_integer_op: term -> integer_ty
-(** @return the infered type for the top operation of the given term.
+(** @return the inferred type for the top operation of the given term.
     It is meaningless to call this function over a non-arithmetical/logical
     operator. *)
 
 val get_integer_op_of_predicate: predicate -> integer_ty
-(** @return the infered type for the top operation of the given predicate. *)
+(** @return the inferred type for the top operation of the given predicate. *)
 
 val get_typ: term -> typ
 (** Get the type which the given term must be generated to. *)

@@ -126,6 +126,10 @@ PLUGIN_TESTS_DIRS:= \
   wp_store wp_hoare wp_typed wp_usage \
   wp_gallery wp_manual wp_tip
 
+ifeq ($(FRAMAC_INTERNAL),yes)
+Wp_DEFAULT_TESTS: create_share_link
+endif
+
 # --------------------------------------------------------------------------
 # --- Dynamic Plugin                                                     ---
 # --------------------------------------------------------------------------

@@ -108,10 +108,6 @@ MERLIN_PACKAGES:=
 # Additional global variables #
 ###############################
 
-# put here any config option for the binary distribution outside of
-# plugins
-CONFIG_DISTRIB_BIN:=
-
 # Directories containing some source code
 SRC_DIRS= ptests $(PLUGIN_LIB_DIR) $(FRAMAC_SRC_DIRS)
 
@@ -256,10 +252,13 @@ DISTRIB_FILES:=\
       VERSION VERSION_CODENAME $(wildcard licenses/*)                   \
       $(LIBC_FILES)							\
       share/analysis-scripts/cmd-dep.sh                                 \
+      share/analysis-scripts/concat-csv.sh                              \
+      $(wildcard share/analysis-scripts/examples/*)                     \
       share/analysis-scripts/flamegraph.pl                              \
       share/analysis-scripts/frama-c.mk                                 \
       share/analysis-scripts/list_files.py                              \
       share/analysis-scripts/parse-coverage.sh                          \
+      share/analysis-scripts/summary.sh                                 \
       share/analysis-scripts/README.md                                  \
       share/analysis-scripts/template.mk                                \
       $(wildcard share/emacs/*.el) share/autocomplete_frama-c           \
@@ -1804,13 +1803,18 @@ install:: install-lib
 	  $(FRAMAC_DATADIR)
 	$(MKDIR) $(FRAMAC_DATADIR)/analysis-scripts
 	$(CP) share/analysis-scripts/cmd-dep.sh \
+	  share/analysis-scripts/concat-csv.sh \
 	  share/analysis-scripts/flamegraph.pl \
 	  share/analysis-scripts/frama-c.mk \
 	  share/analysis-scripts/parse-coverage.sh \
 	  share/analysis-scripts/README.md \
 	  share/analysis-scripts/list_files.py \
+	  share/analysis-scripts/summary.sh \
 	  share/analysis-scripts/template.mk \
 	  $(FRAMAC_DATADIR)/analysis-scripts
+	$(MKDIR) $(FRAMAC_DATADIR)/analysis-scripts/examples
+	$(CP) share/analysis-scripts/examples/* \
+	  $(FRAMAC_DATADIR)/analysis-scripts/examples
 	$(MKDIR) $(FRAMAC_DATADIR)/emacs
 	$(CP) $(wildcard share/emacs/*.el) $(FRAMAC_DATADIR)/emacs
 	$(CP) share/frama-c.rc $(ICONS) $(FRAMAC_DATADIR)
@@ -1996,7 +2000,8 @@ check-headers: $(HDRCK)
 		echo "Checking that distributed files do not use iso-8859..."; \
 		file --mime-encoding -f file_list_to_check.tmp | \
 			grep "iso-8859" \
-			| $(SED) "s/^/error: invalid encoding in /;{q1}"; \
+			| $(SED) "s/^/error: invalid encoding in /" \
+			| ( ! grep "error: invalid encoding" ); \
 	else echo "command 'file' not found, skipping encoding checks"; \
 	fi
 	$(HDRCK) \
@@ -2214,7 +2219,7 @@ GENERATED+=ptests/ptests_config.ml tests/ptests_config
 # Source distribution #
 #######################
 
-.PHONY: src-distrib bin-distrib
+.PHONY: src-distrib
 
 STANDALONE_PLUGINS_FILES = \
 	$(addprefix src/dummy/hello_world/,hello_world.ml Makefile) \
@@ -2332,13 +2337,6 @@ doc-companions:
 clean-distrib: dist-clean
 	$(PRINT_RM) distrib
 	$(RM) -r $(DISTRIB_DIR) $(DISTRIB).tar.gz
-
-bin-distrib: depend configure Makefile
-	$(PRINT_MAKING) bin-distrib
-	$(RM) -r $(VERSION)
-	./configure $(CONFIG_DISTRIB_BIN)
-	$(QUIET_MAKE) DESTDIR=$(FRAMAC_SRC)/$(VERSION) install
-	$(CP) README $(VERSION)
 
 create_lib_to_install_list = $(addprefix $(FRAMAC_LIB)/,$(call map,notdir,$(1)))
 

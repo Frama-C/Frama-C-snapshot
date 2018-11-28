@@ -43,7 +43,6 @@ PLUGIN_CMO := options extends va_build environment \
               register
 PLUGIN_DISTRIBUTED := $(PLUGIN_ENABLE)
 PLUGIN_DISTRIB_EXTERNAL:= Makefile.in configure.ac configure
-#PLUGIN_DISTRIB_BIN := no
 #PLUGIN_NO_DEFAULT_TEST := no
 PLUGIN_TESTS_DIRS := declared defined known erroneous
 

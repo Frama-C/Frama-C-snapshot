@@ -6,8 +6,8 @@
    CMD: @frama-c@ -no-autoload-plugins -load-module wp -wp -wp-par 1 -wp-share ./share -wp-msg-key shell,no-time-info,no-step-info -wp-out @PTEST_FILE@.@PTEST_NUMBER@.out @PTEST_FILE@
    OPT: -wp-prover alt-ergo      -wp-report=tests/qualif.report      -wp-prop=-ko  -wp-timeout 100 -wp-steps 1500
    OPT: -wp-prover why3:alt-ergo -wp-report=tests/qualif-why3.report -wp-prop=-ko  -wp-timeout 100 -wp-steps 1500
-   OPT: -wp-prover alt-ergo      -wp-report=tests/qualif.report      -wp-prop=ko   -wp-timeout 20 -wp-steps 50
-   OPT: -wp-prover why3:alt-ergo -wp-report=tests/qualif-why3.report -wp-prop=ko   -wp-timeout 20 -wp-steps 50
+   OPT: -wp-prover alt-ergo      -wp-report=tests/qualif.report      -wp-prop=ko   -wp-timeout 1 -wp-steps 50
+   OPT: -wp-prover why3:alt-ergo -wp-report=tests/qualif-why3.report -wp-prop=ko   -wp-timeout 1
 */
 
 // --------------------------------------------------------------------------

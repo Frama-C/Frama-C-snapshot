@@ -198,18 +198,18 @@ val pseparated: ?loc:location -> term list -> predicate
 (* ************************************************************************** *)
 
 (** instantiate type variables in a logic type.
-    @since Frama-C+dev moved from Logic_utils *)
+    @since 18.0-Argon moved from Logic_utils *)
 val instantiate :
   (string * logic_type) list ->
   logic_type -> logic_type
 
 (** @return [true] if the logic type definition can be expanded.
-    @since Frama-C+dev *)
+    @since 18.0-Argon *)
 val is_unrollable_ltdef : logic_type_info -> bool
 
 (** expands logic type definitions only.
     To expands both logic part and C part, uses [Logic_utils.unroll_type].
-    @since Frama-C+dev *)
+    @since 18.0-Argon *)
 val unroll_ltdef : logic_type -> logic_type
 
 (** [isLogicType test typ] is [false] for pure logic types and the result
@@ -218,7 +218,7 @@ val isLogicCType : (typ -> bool) -> logic_type -> bool
 
 (** returns [true] if the type is a list<t>.
     @since Aluminium-20160501
-    @modify Frama-C+dev expands the logic type definition if necessary. *)
+    @modify 18.0-Argon expands the logic type definition if necessary. *)
 val is_list_type: logic_type -> bool
 
 (** [make_type_list_of t] returns the type list<[t]>.
@@ -228,52 +228,52 @@ val make_type_list_of: logic_type -> logic_type
 (** returns the type of elements of a list type.
     @raise Failure if the input type is not a list type.
     @since Aluminium-20160501
-    @modify Frama-C+dev expands the logic type definition if necessary. *)
+    @modify 18.0-Argon expands the logic type definition if necessary. *)
 val type_of_list_elem: logic_type -> logic_type
 
 (** returns [true] if the type is a set<t>.
     @since Neon-20140301
-    @modify Frama-C+dev expands the logic type definition if necessary. *)
+    @modify 18.0-Argon expands the logic type definition if necessary. *)
 val is_set_type: logic_type -> bool
 
 (** [set_conversion ty1 ty2] returns a set type as soon as [ty1] and/or [ty2]
     is a set. Elements have type [ty1], or the type of the elements of [ty1] if
     it is itself a set-type ({i.e.} we do not build set of sets that way).
-    @modify Frama-C+dev expands the logic type definitions if necessary. *)
+    @modify 18.0-Argon expands the logic type definitions if necessary. *)
 val set_conversion: logic_type -> logic_type -> logic_type
 
 (** converts a type into the corresponding set type if needed. Does nothing
     if the argument is already a set type.
-    @modify Frama-C+dev expands the logic type definition if necessary. *)
+    @modify 18.0-Argon expands the logic type definition if necessary. *)
 val make_set_type: logic_type -> logic_type
 
 (** returns the type of elements of a set type.
     @raise Failure if the input type is not a set type.
-    @modify Frama-C+dev expands the logic type definition if necessary. *)
+    @modify 18.0-Argon expands the logic type definition if necessary. *)
 val type_of_element: logic_type -> logic_type
 
 (** [plain_or_set f t] applies [f] to [t] or to the type of elements of [t]
     if it is a set type.
-    @modify Frama-C+dev expands the logic type definition if necessary. *)
+    @modify 18.0-Argon expands the logic type definition if necessary. *)
 val plain_or_set: (logic_type -> 'a) -> logic_type -> 'a
 
 (** [transform_element f t] is the same as
     [set_conversion (plain_or_set f t) t]
     @since Nitrogen-20111001
-    @modify Frama-C+dev expands the logic type definition if necessary.
+    @modify 18.0-Argon expands the logic type definition if necessary.
 *)
 val transform_element: (logic_type -> logic_type) -> logic_type -> logic_type
 
 (** [true] if the argument is not a set type.
-    @modify Frama-C+dev expands the logic type definition if necessary. *)
+    @modify 18.0-Argon expands the logic type definition if necessary. *)
 val is_plain_type: logic_type -> bool
 
 (** @return true if the argument is the boolean type.
-    @modify Frama-C+dev expands the logic type definition if necessary. *)
+    @modify 18.0-Argon expands the logic type definition if necessary. *)
 val is_boolean_type: logic_type -> bool
 
 (** @since Sodium-20150201
-    @modify Frama-C+dev expands the logic type definition if necessary. *)
+    @modify 18.0-Argon expands the logic type definition if necessary. *)
 val boolean_type: logic_type
 
 (* ************************************************************************** *)

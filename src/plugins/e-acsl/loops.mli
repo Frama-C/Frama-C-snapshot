@@ -37,7 +37,7 @@ val mv_invariants: Env.t -> old:stmt -> stmt -> unit
 val preserve_invariant:
   Project.t -> Env.t -> Kernel_function.t -> stmt -> stmt * Env.t * bool
 (** modify the given stmt loop to insert the code which preserves its loop
-    invarariants. Also return the modify environment and a boolean which
+    invariants. Also return the modify environment and a boolean which
     indicates whether the annotations corresponding to the loop invariant must
     be moved from the new statement to the old one. *)
 
@@ -61,6 +61,9 @@ val mk_nested_loops:
 
 val translate_named_predicate_ref:
   (kernel_function -> Env.t -> predicate -> Env.t) ref
+
+val named_predicate_ref:
+  (kernel_function -> Env.t -> predicate -> exp * Env.t) ref
 
 val term_to_exp_ref:
   (kernel_function -> Env.t -> term -> exp * Env.t) ref

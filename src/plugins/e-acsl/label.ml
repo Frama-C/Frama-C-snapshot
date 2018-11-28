@@ -58,7 +58,7 @@ let move (vis:Visitor.generic_frama_c_visitor) ~old new_stmt =
           s_ref := new_stmt;
         Cil.SkipChildren
       | _ -> Cil.DoChildren
-      (* improve efficiency: skip childrens which cannot contain any label *)
+      (* improve efficiency: skip children which cannot contain any label *)
       method !vinst _ = Cil.SkipChildren
       method !vexpr _ = Cil.SkipChildren
       method !vlval _ = Cil.SkipChildren

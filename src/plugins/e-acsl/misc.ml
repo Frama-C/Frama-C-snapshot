@@ -56,7 +56,7 @@ let get_lib_fun_vi fname =
     with Not_found ->
       try Builtins.find fname
       with Not_found ->
-        (* could not happen in normal mode, but coud be raised when E-ACSL is
+        (* could not happen in normal mode, but could be raised when E-ACSL is
            used as a library *)
         raise (Unregistered_library_function fname)
 
@@ -310,6 +310,10 @@ let mk_ptr_sizeof typ loc =
   match Cil.unrollType typ with
   | TPtr (t', _) -> Cil.new_exp ~loc (SizeOf t')
   | _ -> assert false
+
+let finite_min_and_max i = match Ival.min_and_max i with
+  | Some min, Some max -> min, max
+  | None, _ | _, None -> assert false
 
 (*
 Local Variables:

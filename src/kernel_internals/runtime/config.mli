@@ -28,11 +28,11 @@ val version: string
 
 val codename: string
 (** Frama-C version codename.
-    @since Frama-C+dev *)
+    @since 18.0-Argon *)
 
 val version_and_codename: string
 (** Frama-C version and codename.
-    @since Frama-C+dev *)
+    @since 18.0-Argon *)
 
 val is_gui: bool ref
   (** Is the Frama-C GUI running?

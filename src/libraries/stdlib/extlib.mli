@@ -141,7 +141,7 @@ val find_opt : ('a -> 'b option) -> 'a list -> 'b
       is no such value the list l.
 
       @since Nitrogen-20111001
-      @deprecated Frama-C+dev use [Transitioning.List.find_opt] instead *)
+      @deprecated 18.0-Argon use [Transitioning.List.find_opt] instead *)
 
 val iteri: (int -> 'a -> unit) -> 'a list -> unit
   (** Same as iter, but the function to be applied take also as argument the
@@ -178,7 +178,7 @@ val list_slice: ?first:int -> ?last:int -> 'a list -> 'a list
     Negative indices are allowed, and count from the end of the list.
     [list_slice] never raises exceptions: out-of-bounds arguments are clipped,
     and inverted ranges result in empty lists.
-    @since Frama-C+dev *)
+    @since 18.0-Argon *)
 
 (* ************************************************************************* *)
 (** {2 Arrays} *)
@@ -307,7 +307,7 @@ val strip_underscore: string -> string
 (** remove underscores at the beginning and end of a string. If a string
     is composed solely of underscores, return the empty string
 
-    @since Frama-C+dev
+    @since 18.0-Argon
   *)
 
 val html_escape: string -> string

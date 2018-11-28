@@ -177,7 +177,7 @@ val register_behavior_extension:
 
     @plugin development guide
 
-    @since Frama-C+dev
+    @since 18.0-Argon
 *)
 val register_global_extension:
   string ->
@@ -189,7 +189,7 @@ val register_global_extension:
 
     @plugin development guide
 
-    @since Frama-C+dev
+    @since 18.0-Argon
 *)
 val register_code_annot_extension:
   string ->
@@ -201,7 +201,7 @@ val register_code_annot_extension:
 
     @plugin development guide
 
-    @since Frama-C+dev
+    @since 18.0-Argon
 *)
 val register_code_annot_next_stmt_extension:
   string ->
@@ -212,7 +212,7 @@ val register_code_annot_next_stmt_extension:
 
     @plugin development guide
 
-    @since Frama-C+dev
+    @since 18.0-Argon
 *)
 val register_code_annot_next_loop_extension:
   string ->
@@ -224,7 +224,7 @@ val register_code_annot_next_loop_extension:
 
     @plugin development guide
 
-    @since Frama-C+dev
+    @since 18.0-Argon
 *)
 val register_code_annot_next_both_extension:
   string ->

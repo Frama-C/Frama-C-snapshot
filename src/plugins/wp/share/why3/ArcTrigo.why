@@ -1,9 +1,9 @@
 (**************************************************************************)
 (*                                                                        *)
-(*  This file is part of the Frama-C's E-ACSL plug-in.                    *)
+(*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2012-2018                                               *)
-(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2018                                               *)
+(*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -20,25 +20,22 @@
 (*                                                                        *)
 (**************************************************************************)
 
-(** Transformations to detect temporal memory errors (e.g., dereference of
-    stale pointers). *)
+theory ArcTrigo
+use real.Real as Real
+use real.Abs as Abs
+use real.Square as Square
+use real.Trigonometry as Trigonometry
 
-val enable: bool -> unit
-(** Enable/disable temporal transformations *)
+function atan (x:real) : real = Trigonometry.atan x
 
-val is_enabled: unit -> bool
-(** Return a boolean value indicating whether temporal analysis is enabled *)
+function asin real : real
 
-val handle_function_parameters: Cil_types.kernel_function -> Env.t -> Env.t
-(** [handle_function_parameters kf env] updates the local environment [env],
-    according to the parameters of [kf], with statements allowing to track
-    referent numbers across function calls. *)
+function acos real : real
 
-val handle_stmt: Cil_types.stmt -> Env.t -> Env.t
-(** Update local environment ([Env.t]) with statements tracking temporal
-    properties of memory blocks *)
+axiom Sin_asin : forall x:real. (Real.(<=) ((Real.(-_) (1.0))) (x)) /\
+  (Real.(<=) (x) (1.0)) -> ((Trigonometry.sin (asin x)) = (x))
 
-val generate_global_init: Cil_types.varinfo -> Cil_types.offset ->
-  Cil_types.init -> Env.t -> Cil_types.stmt option
-  (** Generate [Some s], where [s] is a statement tracking global initializer
-      or [None] if there is no need to track it *)
+axiom Cos_acos : forall x:real. (Real.(<=) ((Real.(-_) (1.0))) (x)) /\
+  (Real.(<=) (x) (1.0)) -> ((Trigonometry.cos (acos x)) = (x))
+
+end

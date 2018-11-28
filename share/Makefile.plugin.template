@@ -128,8 +128,6 @@ PLUGIN_INTERNAL_TEST?= # Set it to a non-empty value if the tests of the plugin
 # ------------
 PLUGIN_DISTRIBUTED?= # should the plugin be included in the distribution
                      # (yes/no)
-PLUGIN_DISTRIB_BIN?= # should the plugin be included in binary distributions
-                     # (defaults to ${PLUGIN_DISTRIBUTED})
 PLUGIN_DISTRIB_EXTERNAL?= # list of files that should be distributed within the
                           # source distribution for this plug-in. They will be
                           # put at their proper place in the frama-c-$(VERSION)
@@ -295,20 +293,8 @@ PLUGIN_DIST_TESTS_LIST += \
 endif
 endif #PLUGIN_DISTRIBUTED
 endif #PLUGIN_ENABLE
-ifndef ($(PLUGIN_DISTRIB_BIN))
-PLUGIN_DISTRIB_BIN:=$(PLUGIN_DISTRIBUTED)
-endif
 
 PLUGIN_OPT:=`echo "@PLUGIN_NAME@" | tr 'A-Z' 'a-z' `
-
-ifneq ("$(PLUGIN_DISTRIB_BIN)","no")
-CONFIG_DISTRIB_BIN += "--enable-$(PLUGIN_OPT)"
-ifeq ("$(PLUGIN_HAS_EXT_DOC)","yes")
-PLUGIN_BIN_DOC_LIST+=doc/plugins/$(PLUGIN_BASE).pdf
-endif
-else
-CONFIG_DISTRIB_BIN += "--disable-$(PLUGIN_OPT)"
-endif
 
 # Export some variables which can be safely used outside/inside Makefile.plugin
 # even if the plug-in is not enabled
@@ -359,11 +345,6 @@ TARGET_TOP_CMA:=
 endif
 
 TARGET_TOP_CMX:= $(TARGET_TOP_CMO:.cmo=.cmx)
-ifdef PLUGIN_EXTRA_OPT
-TARGET_TOP_CMXA:= $(TARGET_TOP_CMO:.cmo=.cmxa)
-else
-TARGET_TOP_CMXA:=
-endif
 
 TARGET_TOP_CMXS:= $(TARGET_TOP_CMX:.cmx=.cmxs)
 
@@ -374,7 +355,6 @@ TARGET_GUI_CMO:= $(PLUGIN_LIB_DIR)/gui/@PLUGIN_NAME@.cmo
 TARGET_GUI_CMI:= $(TARGET_GUI_CMO:.cmo=.cmi)
 TARGET_GUI_CMX:= $(TARGET_GUI_CMO:.cmo=.cmx)
 TARGET_GUI_CMA:= $(TARGET_GUI_CMO:.cmo=.cma)
-TARGET_GUI_CMXA:= $(TARGET_GUI_CMX:.cmx=.cmxa)
 TARGET_GUI_CMXS:= $(TARGET_GUI_CMO:.cmo=.cmxs)
 else
 TARGET_GUI_MLI:=
@@ -382,7 +362,6 @@ TARGET_GUI_CMO:=
 TARGET_GUI_CMI:=
 TARGET_GUI_CMX:=
 TARGET_GUI_CMA:=
-TARGET_GUI_CMXA:=
 endif
 
 # Meta-variables for the targets:
@@ -393,14 +372,12 @@ endif
 @PLUGIN_NAME@_TARGET_TOP_CMO:=$(TARGET_TOP_CMO)
 @PLUGIN_NAME@_TARGET_TOP_CMA:=$(TARGET_TOP_CMA)
 @PLUGIN_NAME@_TARGET_TOP_CMX:=$(TARGET_TOP_CMX)
-@PLUGIN_NAME@_TARGET_TOP_CMXA:=$(TARGET_TOP_CMXA)
 @PLUGIN_NAME@_TARGET_TOP_CMXS:=$(TARGET_TOP_CMXS)
 @PLUGIN_NAME@_TARGET_GUI_MLI:=$(TARGET_GUI_MLI)
 @PLUGIN_NAME@_TARGET_GUI_CMI:=$(TARGET_GUI_CMI)
 @PLUGIN_NAME@_TARGET_GUI_CMO:=$(TARGET_GUI_CMO)
 @PLUGIN_NAME@_TARGET_GUI_CMA:=$(TARGET_GUI_CMA)
 @PLUGIN_NAME@_TARGET_GUI_CMX:=$(TARGET_GUI_CMX)
-@PLUGIN_NAME@_TARGET_GUI_CMXA:=$(TARGET_GUI_CMXA)
 @PLUGIN_NAME@_TARGET_GUI_CMXS:=$(TARGET_GUI_CMXS)
 
 # Some meta-variables for compilation flags
@@ -506,11 +483,7 @@ META.$(PLUGIN_PKG).BYTE :=@PLUGIN_NAME@.cma
 else
 META.$(PLUGIN_PKG).BYTE :=@PLUGIN_NAME@.cmo
 endif
-ifdef PLUGIN_EXTRA_OPT
-META.$(PLUGIN_PKG).NATIVE :=@PLUGIN_NAME@.cmxa
-else
 META.$(PLUGIN_PKG).NATIVE :=@PLUGIN_NAME@.cmx
-endif
 META.$(PLUGIN_PKG).PLUGIN :=@PLUGIN_NAME@.cmxs
 
 ifeq ($(FRAMAC_INTERNAL),yes)
@@ -630,13 +603,6 @@ $(TARGET_TOP_CMA): $(PLUGIN_EXTRA_BYTE) $(TARGET_TOP_CMO)
 	  -a $(@PLUGIN_NAME@_EXTRA_BYTE) $(@:.cma=.cmo)
 endif
 
-ifdef PLUGIN_EXTRA_OPT
-$(TARGET_TOP_CMXA): $(PLUGIN_EXTRA_OPT) $(TARGET_TOP_CMX)
-	$(PRINT_PACKING) $@
-	$(OCAMLOPT) -o $(call winpath,$@) -a $(@PLUGIN_NAME@_EXTRA_OPT) \
-	  $(@:.cmxa=.cmx)
-endif
-
 ifeq ($(HAS_GUI),yes)
 # packing gui files
 ###################
@@ -688,12 +654,6 @@ $(TARGET_GUI_CMA): $(PLUGIN_EXTRA_BYTE) $(TARGET_GUI_CMO)
 	  -a $(@PLUGIN_NAME@_EXTRA_BYTE) $(@:.cma=.cmo)
 endif
 
-ifdef PLUGIN_EXTRA_OPT
-$(TARGET_GUI_CMXA): $(PLUGIN_EXTRA_OPT) $(TARGET_GUI_CMX)
-	$(PRINT_PACKING) $@
-	$(OCAMLOPT) -o $(call winpath,$@) -a $(@PLUGIN_NAME@_EXTRA_OPT) \
-	  $(@:.cmxa=.cmx)
-endif
 else
 # No specific gui items
 TARGET_GUI_MLI:=
@@ -1018,9 +978,6 @@ PLUGIN_DYN_DEP_GUI_CMX_LIST += $(PLUGIN_GUI_CMX)
 PLUGIN_DYN_CMX_LIST	+= $(TARGET_TOP_CMXS) $(TARGET_TOP_CMX)
       # If P1 depends on P2, then dynamically link P1.cmxs requires to have 
       # compiled P1's sources wrt the P2's .cmx.
-ifdef PLUGIN_EXTRA_OPT
-PLUGIN_DYN_CMX_LIST	+= $(TARGET_TOP_CMXA)
-endif #EXTRA_OPT
 ifeq ($(HAS_GUI),yes)
 PLUGIN_DYN_GUI_CMX_LIST += $(TARGET_GUI_CMXS)
 endif # HAS_GUI
@@ -1073,7 +1030,6 @@ PLUGIN_TESTS_DIRS:=
 PLUGIN_DEPENDS:=
 PLUGIN_DEPENDENCIES:=
 PLUGIN_DISTRIBUTED:=
-PLUGIN_DISTRIB_BIN:=
 PLUGIN_DISTRIB_EXTERNAL:=
 PLUGIN_DISTRIB_TESTS:=
 PLUGIN_HAS_EXT_DOC:=

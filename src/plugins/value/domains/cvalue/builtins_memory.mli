@@ -20,8 +20,6 @@
 (*                                                                        *)
 (**************************************************************************)
 
-(** Non-free Value builtins. Contact CEA LIST for licensing *)
-
 (** Nothing is exported, all the builtins are registered through
     {Builtins.register_builtin} *)
 

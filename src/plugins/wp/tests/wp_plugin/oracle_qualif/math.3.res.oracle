@@ -1,4 +1,4 @@
-# frama-c -wp -wp-timeout 20 -wp-steps 50 [...]
+# frama-c -wp [...]
 [kernel] Parsing tests/wp_plugin/math.i (no preprocessing)
 [wp] Running WP plugin...
 [wp] Loading driver 'share/wp.driver'

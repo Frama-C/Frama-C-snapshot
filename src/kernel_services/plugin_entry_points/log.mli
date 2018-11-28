@@ -221,22 +221,22 @@ module type Messages = sig
   val with_result  : (event option -> 'b) -> ('a,'b) pretty_aborter
   (** [with_result f fmt] calls [f] in the same condition as [logwith].
       @since Beryllium-20090601-beta1
-      @modified Frama-C+dev the argument of the continuation is optionnal *)
+      @modified 18.0-Argon the argument of the continuation is optionnal *)
 
   val with_warning : (event option -> 'b) -> ('a,'b) pretty_aborter
   (** [with_warning f fmt] calls [f] in the same condition as [logwith].
       @since Beryllium-20090601-beta1
-      @modified Frama-C+dev the argument of the continuation is optionnal *)
+      @modified 18.0-Argon the argument of the continuation is optionnal *)
 
   val with_error   : (event option -> 'b) -> ('a,'b) pretty_aborter
   (** [with_error f fmt] calls [f] in the same condition as [logwith].
       @since Beryllium-20090601-beta1
-      @modified Frama-C+dev the argument of the continuation is optionnal *)
+      @modified 18.0-Argon the argument of the continuation is optionnal *)
 
   val with_failure : (event option -> 'b) -> ('a,'b) pretty_aborter
   (** [with_failure f fmt] calls [f] in the same condition as [logwith].
       @since Beryllium-20090601-beta1
-      @modified Frama-C+dev the argument of the continuation is optionnal *)
+      @modified 18.0-Argon the argument of the continuation is optionnal *)
 
   val log : ?kind:kind -> ?verbose:int -> ?debug:int -> 'a pretty_printer
   (** Generic log routine. The default kind is [Result]. Use cases (with
@@ -261,7 +261,7 @@ module type Messages = sig
       In case the [wkey] is considered as a [Failure], the continution is not called.
       This kind of message denotes a fatal error aborting Frama-C.
       Notice that the [~emitwith] action is called iff a message is logged.
-      @since Frama-C+dev *)
+      @since 18.0-Argon *)
 
   val register : kind -> (event -> unit) -> unit
   (** Local registry for listeners. *)
@@ -284,7 +284,7 @@ module type Messages = sig
 
   val dkey_name: category -> string
   (** returns the category name as a string.
-      @since Frama-C+dev
+      @since 18.0-Argon
   *)
 
   val is_registered_category: string -> bool
@@ -346,7 +346,7 @@ module type Messages = sig
 
   val wkey_name: warn_category -> string
   (** returns the warning category name as a string.
-      @since Frama-C+dev
+      @since 18.0-Argon
   *)
 
   val get_warn_category: string -> warn_category option
@@ -362,19 +362,19 @@ module type Messages = sig
 end
 
 (** Split an event category into its constituants.
-    @since Frama-C+dev *)
+    @since 18.0-Argon *)
 val evt_category : event -> string list
 
 (** Split a category specification into its constituants.
     ["*"] is considered as empty, and [""] categories are skipped.
-    @since Frama-C+dev *)
+    @since 18.0-Argon *)
 val split_category : string -> string list
 
 (** Sub-category checks.
     [is_subcategory a b] checks whether [a] is a sub-category of [b].
     Indeed, it checks whether [b] is a prefix of [a], that is,
     that [a] equals [b] or refines [b] with (a list of) sub-category(ies).
-    @since Frama-C+dev *)
+    @since 18.0-Argon *)
 val is_subcategory : string list -> string list -> bool
 
 (** Each plugin has its own channel to output messages.
@@ -446,7 +446,7 @@ val kernel_label_name: string
 
 val source : file:Filepath.Normalized.t -> line:int -> Filepath.position
 (** @since Chlorine-20180501
-    @modify Frama-C+dev change type of [file]
+    @modify 18.0-Argon change type of [file]
  *)
 
 val get_current_source : unit -> Filepath.position

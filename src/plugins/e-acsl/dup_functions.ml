@@ -121,7 +121,7 @@ let dup_fundec loc spec bhv kf vi new_vi =
   let mk_formal vi =
     let name =
       if vi.vname = "" then
-        (* unamed formal parameter: must generate a fresh name since a fundec
+        (* unnamed formal parameter: must generate a fresh name since a fundec
            cannot have unnamed formals (see bts #2303). *)
         Env.Varname.get ~scope:Env.Function
           (Functions.RTL.mk_gen_name "unamed_formal")
@@ -219,7 +219,7 @@ class dup_functions_visitor prj = object (self)
   val mutable before_memory_model = Before_gmp
   val mutable new_definitions: global list = []
   (* new definitions of the annotated functions which will contain the
-     translation of the E-ACSL constract *)
+     translation of the E-ACSL contract *)
 
   method private before_memory_model = match before_memory_model with
   | Before_gmp | Gmp | After_gmp -> true

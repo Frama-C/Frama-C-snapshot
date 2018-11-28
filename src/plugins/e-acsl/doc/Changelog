@@ -23,8 +23,13 @@
 Plugin E-ACSL 18.0 (Argon)
 ##########################
 
+-* E-ACSL       [2018/11/13] Fix typing bug in quantifications when the
+	        guards of the quantifier variable cannot be represented into
+	        its type.
+-* runtime      [2018/11/13] Fix bug #!2405 about memory initialization
+                in presence of GCC constructors.
 -* E-ACSL       [2018/10/23] Fix bug #2406 about monitoring of variables
-	        with incomplete types.
+                with incomplete types.
 -* E-ACSL       [2018/10/04] Fix bug #2386 about incorrect typing when
                 performing pointer subtraction.
 -* E-ACSL       [2018/10/04] Support for \at on purely logic variables.

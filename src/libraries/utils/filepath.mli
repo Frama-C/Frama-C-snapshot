@@ -63,7 +63,7 @@ val is_relative: ?base_name:string -> string -> bool
     in the filesystem.
 
     @since Neon-20140301
-    @deprecated since Frama-C+dev
+    @deprecated since 18.0-Argon
 *)
 val pretty: string -> string
 [@@deprecated "Use Filepath.Normalized.to_pretty_string instead."]
@@ -76,7 +76,7 @@ val add_symbolic_dir: string -> string -> unit
 
 (** The [Normalized] module is simply a wrapper that ensures that paths are
     always normalized. Used by [Datatype.Filepath].
-    @since Frama-C+dev *)
+    @since 18.0-Argon *)
 module Normalized: sig
 
   (** The normalized (absolute) path. *)
@@ -123,7 +123,7 @@ module Normalized: sig
 end
 
 (** Describes a position in a source file.
-    @since Frama-C+dev
+    @since 18.0-Argon
 *)
 type position =
   {
@@ -134,7 +134,7 @@ type position =
   }
 
 (** Pretty-prints a position, in the format file:line.
-    @since Frama-C+dev
+    @since 18.0-Argon
 *)
 val pp_pos : Format.formatter -> position -> unit
 

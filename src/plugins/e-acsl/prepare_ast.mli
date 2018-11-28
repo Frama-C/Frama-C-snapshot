@@ -22,7 +22,7 @@
 
 (** Prepare AST for E-ACSL generation.
 
-    So for this mudule performs two tasks:
+    So for this module performs two tasks:
     - move declarations of variables declared in the bodies of switch
     statements to upper scopes;
     - store what is necessary to translate in [Keep_status]. *)

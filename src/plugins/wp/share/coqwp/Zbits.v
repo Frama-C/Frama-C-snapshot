@@ -2025,6 +2025,12 @@ Proof.
   intuition.
 Qed.
 
+Lemma lxor_discrimination_inv: forall x y z:Z,
+  x = lxor y z -> lxor x y = z.
+Proof.
+  linear3.
+Qed.
+
 Lemma land_system: forall x1 x2 y1 y2 z:Z,
   (x1 = land z y1 /\ x2 = land z y2) <-> lor x1 x2 = land z (lor (land (lnot x1) (land (lnot x2) (lor y1 y2))) 
                                                        (lor (land x1 (land y1 (lnot (lxor x2 y2))))
