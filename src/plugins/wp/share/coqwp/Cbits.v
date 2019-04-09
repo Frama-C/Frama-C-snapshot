@@ -167,7 +167,7 @@ Proof.
 Qed.
 
 Require Import Qedlib.
-Open Local Scope Z_scope.
+Local Open Scope Z_scope.
 
 (** * Bit extraction *)
 (** Tacticals *)
