@@ -46,7 +46,7 @@ Require Import Qedlib.
 Require Import Bits.
 Require Import Psatz.
 
-Open Local Scope Z_scope.
+Local Open Scope Z_scope.
 
 Local Ltac omegaContradiction := cut False; [contradiction|omega].
 
