@@ -64,7 +64,7 @@ if test "$ENABLE_WP" != "no"; then
     if test "$COQC" = "yes" ; then
       COQVERSION=`coqc -v | sed -n -e 's|.*version* *\([[^ ]]*\) .*$|\1|p' `
       case $COQVERSION in
-        8.5*|8.6*|8.7*|trunk)
+        8.5*|8.6*|8.7*|8.9*|trunk)
           AC_MSG_RESULT(coqc version $COQVERSION found)
           ;;
         *) 
