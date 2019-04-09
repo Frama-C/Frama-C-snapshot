@@ -20,8 +20,9 @@
 /*                                                                        */
 /**************************************************************************/
 
-library qed:
+library qed: 
 coq.file += "coqwp/BuiltIn.v";
+coq.file += "coqwp:bool/Bool.v";
 coq.file += "coqwp:int/Int.v";
 coq.file += "coqwp:int/Abs.v";
 coq.file += "coqwp:int/ComputerDivision.v";
@@ -46,7 +47,7 @@ coq.file += "coqwp:map/Const.v";
 why3.import += "map.Const";
 altergo.file += "ergo/map.Const.mlw";
 
-library bool:
+library bool: qed
 coq.file += "coqwp:bool/Bool.v";
 altergo.file += "ergo/bool.Bool.mlw";
 
@@ -72,14 +73,16 @@ logic real "\\min"(real,real) =
       commutative:associative:idempotent:
       {coq="Rmin";altergo="min_real";why3="Rg.min"};
 
-library cint:
+library zbitscoq: qed
+coq.file += "coqwp/Bits.v";
+coq.file += "coqwp/Zbits.v";
+
+library cint: zbitscoq
 coq.file += "coqwp/Cint.v";
 why3.file += "why3/Cint.why";
 altergo.file += "ergo/Cint.mlw";
 
 library cbits: cint
-coq.file += "coqwp/Bits.v";
-coq.file += "coqwp/Zbits.v";
 coq.file += "coqwp/Cbits.v";
 altergo.file += "ergo/Cbits.mlw";
 why3.file += "why3/Cbits.why";
