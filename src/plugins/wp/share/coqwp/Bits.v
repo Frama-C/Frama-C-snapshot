@@ -587,7 +587,7 @@ Qed.
 (** {@integer:} *)
 (** * Bits of Integers *)
 
-Open Local Scope Z_scope.
+Local Open Scope Z_scope.
 
 (** The bits representation of an integer consists of a bit function,
     packed with its trailing property. 
