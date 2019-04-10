@@ -48,7 +48,6 @@ why3.import += "map.Const";
 altergo.file += "ergo/map.Const.mlw";
 
 library bool:
-coq.file += "coqwp:bool/Bool.v";
 altergo.file += "ergo/bool.Bool.mlw";
 
 library minmax_int:
