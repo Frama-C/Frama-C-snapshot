@@ -34,7 +34,6 @@ coq.file += "coqwp/Qedlib.v";
 coq.file += "coqwp/Qed.v";
 why3.import += "int.Abs:IAbs";
 why3.file += "why3/Qed.why";
-altergo.file += "ergo/bool.Bool.mlw";
 altergo.file += "ergo/int.Int.mlw";
 altergo.file += "ergo/int.Abs.mlw";
 altergo.file += "ergo/int.ComputerDivision.mlw";
@@ -47,6 +46,10 @@ library const:
 coq.file += "coqwp:map/Const.v";
 why3.import += "map.Const";
 altergo.file += "ergo/map.Const.mlw";
+
+library bool:
+coq.file += "coqwp:bool/Bool.v";
+altergo.file += "ergo/bool.Bool.mlw";
 
 library minmax_int:
 coq.file += "coqwp:int/MinMax.v";
