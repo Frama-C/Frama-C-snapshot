@@ -5,52 +5,53 @@
 [wp] Warning: Missing RTE guards
 [wp] Computing [100 goals...]
 [wp] 119 goals scheduled
-[wp] [Alt-Ergo] Goal typed_f_post_p0 : Valid
-[wp] [Alt-Ergo] Goal typed_f_post_p1 : Valid
-[wp] [Alt-Ergo] Goal typed_f_post_p2 : Valid
-[wp] [Alt-Ergo] Goal typed_f_post_p3 : Valid
-[wp] [Qed] Goal typed_f_post_p4 : Valid
-[wp] [Alt-Ergo] Goal typed_f_post_p5 : Valid
-[wp] [Qed] Goal typed_f_post_p6 : Valid
-[wp] [Alt-Ergo] Goal typed_f_post_p7 : Valid
-[wp] [Alt-Ergo] Goal typed_f_post_p8 : Valid
-[wp] [Qed] Goal typed_f_post_p9 : Valid
-[wp] [Qed] Goal typed_f_post_i0 : Valid
-[wp] [Alt-Ergo] Goal typed_f_post_i1 : Valid
-[wp] [Alt-Ergo] Goal typed_f_post_i2 : Valid
-[wp] [Alt-Ergo] Goal typed_f_post_i3 : Valid
-[wp] [Qed] Goal typed_f_post_i4 : Valid
-[wp] [Qed] Goal typed_f_post_i5 : Valid
-[wp] [Alt-Ergo] Goal typed_f_post_i6 : Valid
-[wp] [Alt-Ergo] Goal typed_f_post_i7 : Valid
-[wp] [Alt-Ergo] Goal typed_f_post_i8 : Valid
-[wp] [Alt-Ergo] Goal typed_f_post_i9 : Valid
-[wp] [Alt-Ergo] Goal typed_f_post_a0 : Valid
-[wp] [Alt-Ergo] Goal typed_f_post_a1 : Valid
-[wp] [Alt-Ergo] Goal typed_f_post_a2 : Valid
-[wp] [Alt-Ergo] Goal typed_f_post_a3 : Valid
-[wp] [Alt-Ergo] Goal typed_f_post_a4 : Valid
-[wp] [Alt-Ergo] Goal typed_f_post_a5 : Valid
-[wp] [Alt-Ergo] Goal typed_f_post_a6 : Valid
-[wp] [Alt-Ergo] Goal typed_f_post_a7 : Valid
-[wp] [Alt-Ergo] Goal typed_f_post_a8 : Valid
-[wp] [Alt-Ergo] Goal typed_f_post_a9 : Valid
-[wp] [Alt-Ergo] Goal typed_f_post_o0 : Valid
-[wp] [Alt-Ergo] Goal typed_f_post_o1 : Valid
-[wp] [Alt-Ergo] Goal typed_f_post_o2 : Valid
-[wp] [Qed] Goal typed_f_post_o3 : Valid
-[wp] [Qed] Goal typed_f_post_o4 : Valid
-[wp] [Alt-Ergo] Goal typed_f_post_o5 : Valid
-[wp] [Alt-Ergo] Goal typed_f_post_o6 : Valid
-[wp] [Alt-Ergo] Goal typed_f_post_o7 : Valid
-[wp] [Alt-Ergo] Goal typed_f_post_o8 : Valid
-[wp] [Alt-Ergo] Goal typed_f_post_o9 : Valid
-[wp] [Alt-Ergo] Goal typed_f_post_f0 : Valid
-[wp] [Alt-Ergo] Goal typed_f_post_f1 : Valid
+[wp] [Alt-Ergo] Goal typed_f_ensures_p0 : Valid
+[wp] [Alt-Ergo] Goal typed_f_ensures_p1 : Valid
+[wp] [Alt-Ergo] Goal typed_f_ensures_p2 : Valid
+[wp] [Alt-Ergo] Goal typed_f_ensures_p3 : Valid
+[wp] [Qed] Goal typed_f_ensures_p4 : Valid
+[wp] [Alt-Ergo] Goal typed_f_ensures_p5 : Valid
+[wp] [Qed] Goal typed_f_ensures_p6 : Valid
+[wp] [Alt-Ergo] Goal typed_f_ensures_p7 : Valid
+[wp] [Alt-Ergo] Goal typed_f_ensures_p8 : Valid
+[wp] [Qed] Goal typed_f_ensures_p9 : Valid
+[wp] [Qed] Goal typed_f_ensures_i0 : Valid
+[wp] [Alt-Ergo] Goal typed_f_ensures_i1 : Valid
+[wp] [Alt-Ergo] Goal typed_f_ensures_i2 : Valid
+[wp] [Alt-Ergo] Goal typed_f_ensures_i3 : Valid
+[wp] [Qed] Goal typed_f_ensures_i4 : Valid
+[wp] [Qed] Goal typed_f_ensures_i5 : Valid
+[wp] [Alt-Ergo] Goal typed_f_ensures_i6 : Valid
+[wp] [Alt-Ergo] Goal typed_f_ensures_i7 : Valid
+[wp] [Alt-Ergo] Goal typed_f_ensures_i8 : Valid
+[wp] [Alt-Ergo] Goal typed_f_ensures_i9 : Valid
+[wp] [Alt-Ergo] Goal typed_f_ensures_a0 : Valid
+[wp] [Alt-Ergo] Goal typed_f_ensures_a1 : Valid
+[wp] [Alt-Ergo] Goal typed_f_ensures_a2 : Valid
+[wp] [Alt-Ergo] Goal typed_f_ensures_a3 : Valid
+[wp] [Alt-Ergo] Goal typed_f_ensures_a4 : Valid
+[wp] [Alt-Ergo] Goal typed_f_ensures_a5 : Valid
+[wp] [Alt-Ergo] Goal typed_f_ensures_a6 : Valid
+[wp] [Alt-Ergo] Goal typed_f_ensures_a7 : Valid
+[wp] [Alt-Ergo] Goal typed_f_ensures_a8 : Valid
+[wp] [Alt-Ergo] Goal typed_f_ensures_a9 : Valid
+[wp] [Alt-Ergo] Goal typed_f_ensures_o0 : Valid
+[wp] [Alt-Ergo] Goal typed_f_ensures_o1 : Valid
+[wp] [Alt-Ergo] Goal typed_f_ensures_o2 : Valid
+[wp] [Qed] Goal typed_f_ensures_o3 : Valid
+[wp] [Qed] Goal typed_f_ensures_o4 : Valid
+[wp] [Alt-Ergo] Goal typed_f_ensures_o5 : Valid
+[wp] [Alt-Ergo] Goal typed_f_ensures_o6 : Valid
+[wp] [Alt-Ergo] Goal typed_f_ensures_o7 : Valid
+[wp] [Alt-Ergo] Goal typed_f_ensures_o8 : Valid
+[wp] [Alt-Ergo] Goal typed_f_ensures_o9 : Valid
+[wp] [Alt-Ergo] Goal typed_f_ensures_f0 : Valid
+[wp] [Alt-Ergo] Goal typed_f_ensures_f1 : Valid
 [wp] Proved goals:  119 / 119
   Qed:             8 
   Alt-Ergo:      111
-[wp] Report 'tests/wp_acsl/e_imply.i.0.report.json'
+[wp] Report in:  'tests/wp_acsl/oracle_qualif/e_imply.0.report.json'
+[wp] Report out: 'tests/wp_acsl/result_qualif/e_imply.0.report.json'
 -------------------------------------------------------------
 Axiomatics          WP     Alt-Ergo        Total   Success
 Lemma               -      77 (8..20)       77       100%

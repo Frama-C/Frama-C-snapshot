@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2018                                               *)
+(*  Copyright (C) 2007-2019                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -93,21 +93,6 @@ module type S = sig
   val assume:
     ?valuation:Valuation.t ->
     state -> exp -> value -> Valuation.t or_bottom
-
-  (* Sorts a list of states by the evaluation of an expression, according to
-     a list of expected integer values.
-     [split_by_evaluation expr expected_values states] returns two list
-     (matched, tail) such as:
-     - for each element (i, states, mess) of the first list [matched],
-       i was in the list of integer [expected_values], [states] is the list of
-       input states where [expr] evaluates to exactly [i], and [mess] is true
-       if there was some other input state on which [expr] evaluates to a value
-       including [i] (but not equal to [i]).
-     - tail are the states on which [expr] does not evaluate to none of the
-       [expected_values]. *)
-  val split_by_evaluation:
-    exp -> Integer.t list -> state list ->
-    (Integer.t * state list * bool) list * state list
 
   val eval_function_exp:
     exp -> ?args:exp list -> state ->

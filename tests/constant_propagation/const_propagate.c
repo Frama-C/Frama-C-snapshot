@@ -1,6 +1,6 @@
 /* run.config
-   OPT: -val -val-show-progress -deps -out -input -scf -val-show-progress -journal-disable
-   OPT: -scf -val-show-progress -cast-from-constant -semantic-const-fold add3 -main init -journal-disable
+   OPT: -eva @EVA_OPTIONS@ -deps -out -input -scf -journal-disable
+   OPT: -scf @EVA_OPTIONS@ -cast-from-constant -semantic-const-fold add3 -main init -journal-disable
 */
 int x,y,z;
 int TAB[10];

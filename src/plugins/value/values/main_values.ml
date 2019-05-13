@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2018                                               *)
+(*  Copyright (C) 2007-2019                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -164,7 +164,7 @@ module Interval = struct
   let zero = None
   let one = None
   let top_int = None
-  let inject_int _typ _i = None
+  let inject_int _typ i = Some (Ival.inject_singleton i)
 
   let assume_non_zero v = `Unknown v
   let assume_bounded _ _ v = `Unknown v

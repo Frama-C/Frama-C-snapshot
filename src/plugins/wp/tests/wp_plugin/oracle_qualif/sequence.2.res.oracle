@@ -5,5 +5,6 @@
 [wp] Warning: Missing RTE guards
 [wp] 0 goal scheduled
 [wp] Proved goals:    0 / 0
-[wp] Report 'tests/wp_plugin/sequence.i.2.report.json'
+[wp] Report in:  'tests/wp_plugin/oracle_qualif/sequence.2.report.json'
+[wp] Report out: 'tests/wp_plugin/result_qualif/sequence.2.report.json'
 -------------------------------------------------------------

@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2018                                               *)
+(*  Copyright (C) 2007-2019                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -53,7 +53,6 @@ type bindings = (F.var * selection) list
 type env = {
   binder : L.binder ;
   feedback : Tactical.feedback ;
-  pool : Lang.F.pool ;
   mutable index : int ;
 }
 
@@ -134,8 +133,10 @@ let filter x e =
   try F.Tau.equal (F.tau_of_var x) (F.typeof e)
   with Not_found -> true (* allowed to not restrict usage *)
 
-let fieldname k x =
-  Pretty_utils.sfprintf "%s (%a)" (descr k) F.Tau.pretty (F.tau_of_var x)
+let fieldname ~range k x =
+  Pretty_utils.sfprintf "%s (%a)%t"
+    (descr k) F.Tau.pretty (F.tau_of_var x)
+    (fun fmt -> if range then Format.pp_print_string fmt "(accept range)")
 
 class instance =
   object(self)
@@ -151,14 +152,13 @@ class instance =
           let bindings,property = self#wrap env p fields in
           bindings, F.e_imply hs property
       | L.Bind(q,tau,phi) , fd :: fields when q = env.binder ->
-          let x = F.fresh env.pool tau in
-          let v = self#get_field fd in
           env.index <- succ env.index ;
+          let x = F.fresh env.feedback#pool tau in
+          let v = self#get_field fd in
+          let range = match tau with L.Int -> true | _ -> false in
+          let tooltip = fieldname ~range env.index x in
           env.feedback#update_field
-            ~tooltip:(fieldname env.index x)
-            ~enabled:true
-            ~range:(match tau with L.Int -> true | _ -> false)
-            ~filter:(filter x) fd ;
+            ~tooltip ~range ~enabled:true ~filter:(filter x) fd ;
           let lemma = F.QED.lc_open x phi in
           let bindings,property = self#wrap env lemma fields in
           (x,v) :: bindings , property
@@ -170,9 +170,7 @@ class instance =
       let binder = match side with None -> L.Exists | Some _ -> L.Forall in
       let lemma = F.e_prop p in
       if has_binder binder lemma then
-        let vars = F.vars lemma in
-        let pool = Lang.new_pool ~vars () in
-        let env = { index = 0 ; feedback ; binder ; pool } in
+        let env = { index = 0 ; feedback ; binder } in
         let bindings,phi = self#wrap env lemma fields in
         if List.exists (fun (_,v) -> not (Tactical.is_empty v)) bindings
         then

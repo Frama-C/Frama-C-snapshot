@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2018                                               *)
+(*  Copyright (C) 2007-2019                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -108,7 +108,7 @@ let rec lookup push clause ~nbits ~priority p =
 class autobitwise =
   object(self)
 
-    method private nbits = Ctypes.i_bits (Ctypes.c_ptr ())
+    method private nbits = Ctypes.range (Ctypes.c_ptr ())
 
     method id = "wp:bitwised"
     method title =

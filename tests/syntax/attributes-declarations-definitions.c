@@ -41,3 +41,13 @@ iptr h(volatile iptr ip2) {
 }
 
 iptr volatile h(const iptr ip3);
+
+void test(void) {
+  int a, __attribute__((unused)) b;
+}
+
+int __attribute__((o)) one_letter_attribute;
+
+int __attribute__((_n)) one_letter_attribute_with_underscore;
+
+int __attribute__((e_)) one_letter_attribute_with_underscore_after;

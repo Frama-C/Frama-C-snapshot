@@ -1,7 +1,7 @@
 /* run.config
-   OPT: -journal-disable -load-script tests/scope/bts971.ml -then -main main2
+   EXECNOW: make -s @PTEST_DIR@/@PTEST_NAME@.cmxs
+   OPT: -journal-disable -load-module @PTEST_DIR@/@PTEST_NAME@.cmxs -then -main main2
 */
-
 /* bug 971: */
 volatile foo;
 int v;

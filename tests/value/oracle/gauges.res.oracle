@@ -31,6 +31,10 @@
 [eva] tests/value/gauges.c:21: Frama_C_show_each_1: {{ "in" }}
 [eva] tests/value/gauges.c:19: Frama_C_show_each_0: {{ "in" }}
 [eva] tests/value/gauges.c:21: Frama_C_show_each_1: {{ "in" }}
+[eva] tests/value/gauges.c:19: Frama_C_show_each_0: {{ "in" }}
+[eva] tests/value/gauges.c:21: Frama_C_show_each_1: {{ "in" }}
+[eva] tests/value/gauges.c:19: Frama_C_show_each_0: {{ "in" }}
+[eva] tests/value/gauges.c:21: Frama_C_show_each_1: {{ "in" }}
 [eva:alarm] tests/value/gauges.c:26: Warning: 
   signed overflow. assert l + 1 ≤ 2147483647;
 [eva] Recording results for main0
@@ -53,6 +57,10 @@
 [eva:alarm] tests/value/gauges.c:45: Warning: 
   signed overflow. assert -2147483648 ≤ j - 4;
 [eva] tests/value/gauges.c:38: starting to merge loop iterations
+[eva] tests/value/gauges.c:41: Frama_C_show_each_0: {{ "in" }}
+[eva] tests/value/gauges.c:43: Frama_C_show_each_1: {{ "in" }}
+[eva] tests/value/gauges.c:41: Frama_C_show_each_0: {{ "in" }}
+[eva] tests/value/gauges.c:43: Frama_C_show_each_1: {{ "in" }}
 [eva] tests/value/gauges.c:41: Frama_C_show_each_0: {{ "in" }}
 [eva] tests/value/gauges.c:43: Frama_C_show_each_1: {{ "in" }}
 [eva] tests/value/gauges.c:41: Frama_C_show_each_0: {{ "in" }}
@@ -356,6 +364,9 @@
   __fc_heap_status ∈ [--..--]
   __fc_random_counter ∈ [--..--]
   __fc_rand_max ∈ {32767}
+  __fc_random48_init ∈ {0}
+  __fc_random48_counter[0..2] ∈ [--..--]
+  __fc_p_random48_counter ∈ {{ &__fc_random48_counter[0] }}
   __fc_env[0] ∈ {{ NULL ; &S_0___fc_env[0] }}
           [1] ∈ {{ NULL ; &S_1___fc_env[0] }}
           [2..4095] ∈ {{ NULL ; &S_0___fc_env[0] ; &S_1___fc_env[0] }}
@@ -413,6 +424,9 @@
   __fc_heap_status ∈ [--..--]
   __fc_random_counter ∈ [--..--]
   __fc_rand_max ∈ {32767}
+  __fc_random48_init ∈ {0}
+  __fc_random48_counter[0..2] ∈ [--..--]
+  __fc_p_random48_counter ∈ {{ &__fc_random48_counter[0] }}
   __fc_env[0] ∈ {{ NULL ; &S_0___fc_env[0] }}
           [1] ∈ {{ NULL ; &S_1___fc_env[0] }}
           [2..4095] ∈ {{ NULL ; &S_0___fc_env[0] ; &S_1___fc_env[0] }}
@@ -469,6 +483,9 @@
   __fc_heap_status ∈ [--..--]
   __fc_random_counter ∈ [--..--]
   __fc_rand_max ∈ {32767}
+  __fc_random48_init ∈ {0}
+  __fc_random48_counter[0..2] ∈ [--..--]
+  __fc_p_random48_counter ∈ {{ &__fc_random48_counter[0] }}
   __fc_env[0] ∈ {{ NULL ; &S_0___fc_env[0] }}
           [1] ∈ {{ NULL ; &S_1___fc_env[0] }}
           [2..4095] ∈ {{ NULL ; &S_0___fc_env[0] ; &S_1___fc_env[0] }}
@@ -525,6 +542,9 @@
   __fc_heap_status ∈ [--..--]
   __fc_random_counter ∈ [--..--]
   __fc_rand_max ∈ {32767}
+  __fc_random48_init ∈ {0}
+  __fc_random48_counter[0..2] ∈ [--..--]
+  __fc_p_random48_counter ∈ {{ &__fc_random48_counter[0] }}
   __fc_env[0] ∈ {{ NULL ; &S_0___fc_env[0] }}
           [1] ∈ {{ NULL ; &S_1___fc_env[0] }}
           [2..4095] ∈ {{ NULL ; &S_0___fc_env[0] ; &S_1___fc_env[0] }}
@@ -587,6 +607,9 @@
   __fc_heap_status ∈ [--..--]
   __fc_random_counter ∈ [--..--]
   __fc_rand_max ∈ {32767}
+  __fc_random48_init ∈ {0}
+  __fc_random48_counter[0..2] ∈ [--..--]
+  __fc_p_random48_counter ∈ {{ &__fc_random48_counter[0] }}
   __fc_env[0] ∈ {{ NULL ; &S_0___fc_env[0] }}
           [1] ∈ {{ NULL ; &S_1___fc_env[0] }}
           [2..4095] ∈ {{ NULL ; &S_0___fc_env[0] ; &S_1___fc_env[0] }}
@@ -645,6 +668,9 @@
   __fc_heap_status ∈ [--..--]
   __fc_random_counter ∈ [--..--]
   __fc_rand_max ∈ {32767}
+  __fc_random48_init ∈ {0}
+  __fc_random48_counter[0..2] ∈ [--..--]
+  __fc_p_random48_counter ∈ {{ &__fc_random48_counter[0] }}
   __fc_env[0] ∈ {{ NULL ; &S_0___fc_env[0] }}
           [1] ∈ {{ NULL ; &S_1___fc_env[0] }}
           [2..4095] ∈ {{ NULL ; &S_0___fc_env[0] ; &S_1___fc_env[0] }}
@@ -1137,7 +1163,7 @@
 [inout] Out (internal) for function main8:
     \nothing
 [inout] Inputs for function main8:
-    \nothing
+    v
 [inout] Out (internal) for function main9:
     x[0..9]; y[0..9]; p; q; z; i; r
 [inout] Inputs for function main9:

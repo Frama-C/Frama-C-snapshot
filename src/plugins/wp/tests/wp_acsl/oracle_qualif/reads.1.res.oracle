@@ -4,12 +4,13 @@
 [wp] Loading driver 'share/wp.driver'
 [wp] Warning: Missing RTE guards
 [wp] 3 goals scheduled
-[wp] [Alt-Ergo] Goal typed_modifies_x_post_qed_ko_G_KO : Unknown
-[wp] [Alt-Ergo] Goal typed_modifies_x_post_qed_ko_H_KO : Unknown
-[wp] [Alt-Ergo] Goal typed_modifies_y_post_qed_ko_H_KO : Unknown
+[wp] [Alt-Ergo] Goal typed_modifies_x_ensures_qed_ko_G_KO : Unsuccess
+[wp] [Alt-Ergo] Goal typed_modifies_x_ensures_qed_ko_H_KO : Unsuccess
+[wp] [Alt-Ergo] Goal typed_modifies_y_ensures_qed_ko_H_KO : Unsuccess
 [wp] Proved goals:    0 / 3
-  Alt-Ergo:        0  (unknown: 3)
-[wp] Report 'tests/wp_acsl/reads.i.1.report.json'
+  Alt-Ergo:        0  (unsuccess: 3)
+[wp] Report in:  'tests/wp_acsl/oracle_qualif/reads.1.report.json'
+[wp] Report out: 'tests/wp_acsl/result_qualif/reads.1.report.json'
 -------------------------------------------------------------
 Functions           WP     Alt-Ergo        Total   Success
 modifies_y          -      -                 1       0.0%

@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2018                                               *)
+(*  Copyright (C) 2007-2019                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -31,7 +31,7 @@ val get : Wpo.t -> [ `Script | `Proof | `Saved | `None ]
 val proof : main:Wpo.t -> tree
 val reset : tree -> unit
 val remove : Wpo.t -> unit
-val validate : ?unknown:bool -> tree -> unit
+val validate : ?incomplete:bool -> tree -> unit
 
 (** Leaves are numbered from 0 to n-1 *)
 
@@ -40,6 +40,7 @@ type state = [ `Opened | `Proved | `Pending of int | `Script of int ]
 type current = [ `Main | `Internal of node | `Leaf of int * node ]
 type position = [ `Main | `Node of node | `Leaf of int ]
 
+val pool : tree -> Lang.F.pool
 val saved : tree -> bool
 val set_saved : tree -> bool -> unit
 
@@ -70,7 +71,7 @@ type fork
 val anchor : tree -> ?node:node -> unit -> node
 val fork : tree -> anchor:node -> ProofScript.jtactic -> Tactical.process -> fork
 val iter : (Wpo.t -> unit) -> fork -> unit
-val commit : resolve:bool -> fork -> node * (string * node) list
+val commit : fork -> node * (string * node) list
 val pretty : Format.formatter -> fork -> unit
 
 val script : tree -> ProofScript.jscript

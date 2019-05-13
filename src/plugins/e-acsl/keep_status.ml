@@ -131,6 +131,7 @@ let must_translate kf kind =
        duplicate by [Dup_function] but they are still associated to the original
        function here *)
     let name = Functions.RTL.get_original_name kf in
+    try
     let info =
       try Datatype.String.Hashtbl.find keep_status name
       with Not_found ->
@@ -148,3 +149,4 @@ let must_translate kf kind =
         pretty_kind kind
         pretty_kind kind';
     keep
+    with Not_found -> true

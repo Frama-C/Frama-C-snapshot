@@ -1,5 +1,5 @@
 /* run.config*
-   STDOPT: +" -val-interpreter-mode"
+   STDOPT: +" -eva-interpreter-mode"
 */
 
 int main()

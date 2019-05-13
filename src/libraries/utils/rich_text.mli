@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2018                                               *)
+(*  Copyright (C) 2007-2019                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -31,14 +31,14 @@ val char_at : message -> int -> char
 val string : message -> string
 val substring : message -> int -> int -> string
 
-val tags_at : message -> int -> (Format.tag * int * int) list
+val tags_at : message -> int -> (Transitioning.Format.stag * int * int) list
 (** Returns the list of tags at the given position.
     Inner tags come first, outer tags last. *)
 
 val visit :
   ?output:(string -> int -> int -> unit) ->
-  ?open_tag:(Format.tag -> int -> int -> unit) ->
-  ?close_tag:(Format.tag -> int -> int -> unit) ->
+  ?open_tag:(Transitioning.Format.stag -> int -> int -> unit) ->
+  ?close_tag:(Transitioning.Format.stag -> int -> int -> unit) ->
   message -> unit
 (** Visit the message, with depth-first recursion on tags.
     All methods are called with text or tag, position and length. *)
@@ -47,8 +47,8 @@ val pretty : ?vbox:int -> Format.formatter -> message -> unit
 (** Pretty-print the message onto the given formatter, with the tags.
     The original message has been {i already} laidout with respect to
     horizontal and vertical boxes, and this layout will be output as-it-is
-    into the formatter. 
-    
+    into the formatter.
+
     Here, you have two different strategies to render the message properly.
     If [~vbox] is specified, a vertical box is opened around the message,
     and newlines are emitted with a ["@\n"] and the given indentation.
@@ -61,16 +61,16 @@ val pretty : ?vbox:int -> Format.formatter -> message -> unit
 (* -------------------------------------------------------------------------- *)
 
 (** Buffer for creating messages.
-    
+
     The buffer grows on demand, but is protected against huge mesages.
     Maximal size is around 2 billions ASCII characters, which sould be enough
     to store more than 25kloc source text. *)
 type buffer
 
-(** Create a buffer. 
+(** Create a buffer.
 
-    The right-margin is set to [~margin] and 
-    maximum indentation to [~indent]. 
+    The right-margin is set to [~margin] and
+    maximum indentation to [~indent].
     Default values are those of [Format.make_formatter], which are
     [~indent:68] and [~margin:78] in OCaml 4.05.
 *)

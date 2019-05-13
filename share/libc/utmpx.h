@@ -2,7 +2,7 @@
 /*                                                                        */
 /*  This file is part of Frama-C.                                         */
 /*                                                                        */
-/*  Copyright (C) 2007-2018                                               */
+/*  Copyright (C) 2007-2019                                               */
 /*    CEA (Commissariat à l'énergie atomique et aux énergies              */
 /*         alternatives)                                                  */
 /*                                                                        */
@@ -26,7 +26,7 @@
 __PUSH_FC_STDLIB
 
 #include "__fc_define_pid_t.h"
-#include <sys/time.h>
+#include "sys/time.h"
 
 __BEGIN_DECLS
 

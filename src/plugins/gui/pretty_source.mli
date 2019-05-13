@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2018                                               *)
+(*  Copyright (C) 2007-2019                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -25,9 +25,9 @@
 
 open Cil_types
 
-(** The kind of object that can be selected in the source viewer. *)
-type localizable =
+type localizable = Printer_tag.localizable =
   | PStmt of (kernel_function * stmt)
+  | PStmtStart of (kernel_function * stmt)
   | PLval of (kernel_function option * kinstr * lval)
   | PExp of (kernel_function option * kinstr * exp)
   | PTermLval of (kernel_function option * kinstr * Property.t * term_lval)
@@ -40,8 +40,6 @@ type localizable =
   | PGlobal of global (** all globals but variable declarations and function
                           definitions. *)
   | PIP of Property.t
-
-module Localizable: Datatype.S with type t = localizable
 
 module Locs: sig
   type state
@@ -59,7 +57,7 @@ val are_preconds_unfolded: stmt -> bool
 
 val display_source :
   global list ->
-  GSourceView2.source_buffer ->
+  GSourceView.source_buffer ->
   host:Gtk_helper.host ->
   highlighter:(localizable -> start:int -> stop:int -> unit) ->
   selector:(button:int -> localizable -> unit) ->
@@ -78,7 +76,6 @@ val stmt_start: Locs.state -> stmt -> int
 val locate_localizable : Locs.state -> localizable -> (int*int) option
 (** @return Some (start,stop) in offset from start of buffer if the
     given localizable has been displayed according to [Locs.locs]. *)
-
 
 val kf_of_localizable : localizable -> kernel_function option
 val ki_of_localizable : localizable -> kinstr

@@ -2,7 +2,7 @@
 #                                                                        #
 #  This file is part of Frama-C.                                         #
 #                                                                        #
-#  Copyright (C) 2007-2018                                               #
+#  Copyright (C) 2007-2019                                               #
 #    CEA (Commissariat à l'énergie atomique et aux énergies              #
 #         alternatives)                                                  #
 #                                                                        #
@@ -186,16 +186,17 @@ SHELL        := /bin/bash
 	    $(EVA) \
 	      -load $(PARSE_RESULT)/framac.sav -save $@/framac.sav \
 	      -eva-flamegraph $@/flamegraph.txt \
-	      -report-csv $@/alarms.csv -report-no-proven \
 	      -kernel-log w:$@/warnings.log \
 	      -from-log w:$@/warnings.log \
 	      -inout-log w:$@/warnings.log \
-	      -report-log w:$@/warnings.log \
 	      -scope-log w:$@/warnings.log \
 	      -eva-log w:$@/warnings.log \
-	      -metrics-log a:$@/metrics.log \
+	      -then \
+	      -report-csv $@/alarms.csv -report-no-proven \
+	      -report-log w:$@/warnings.log \
 	      -metrics-eva-cover \
-	      -then -nonterm -nonterm-log a:$@/nonterm.log \
+	      -metrics-log a:$@/metrics.log \
+	      -nonterm -nonterm-log a:$@/nonterm.log \
 	    || ($(RM) $@/stats.txt && false) # Prevents having error code reporting in stats.txt
 	} 2>&1 |
 	  $(SED_UNBUFFERED) '/\[eva\] Values at end of function/,999999d' |
@@ -205,7 +206,8 @@ SHELL        := /bin/bash
 	  printf 'timestamp=%q\n' "$(HR_TIMESTAMP)";
 	  printf 'warnings=%s\n' "`cat $@/warnings.log | grep ':\[\(eva\|kernel\|from\)\]' | wc -l`";
 	  printf 'alarms=%s\n' "`expr $$(cat $@/alarms.csv | wc -l) - 1`";
-	  printf 'cmd_args=%q\n' "$(subst ",\",$(wordlist 2,999,$(EVA)))"
+	  printf 'cmd_args=%q\n' "$(subst ",\",$(wordlist 2,999,$(EVA)))";
+	  printf 'benchmark_tag=%s' "$(BENCHMARK)"
 	} >> $@/stats.txt
 	if [ ! -z $${FLAMEGRAPH+x} ]; then
 	  NOGUI=1 $(FRAMAC_SCRIPT) flamegraph $@/flamegraph.txt $@/

@@ -2,7 +2,7 @@
 /*                                                                        */
 /*  This file is part of Frama-C.                                         */
 /*                                                                        */
-/*  Copyright (C) 2007-2018                                               */
+/*  Copyright (C) 2007-2019                                               */
 /*    CEA (Commissariat à l'énergie atomique et aux énergies              */
 /*         alternatives)                                                  */
 /*                                                                        */
@@ -20,6 +20,7 @@
 /*                                                                        */
 /**************************************************************************/
 
+#include "__fc_builtin.h"
 #include "string.h"
 #include "stdint.h" // for uintptr_t
 #include "stdlib.h" // for malloc()
@@ -59,7 +60,14 @@ void* memcpy(void* restrict dest, const void* restrict src, size_t n)
   complete behaviors;
   disjoint behaviors;
 */
-static int memoverlap(char const *p, char const *q, size_t n);
+static int memoverlap(char const *p, char const *q, size_t n) {
+  uintptr_t
+    p1 = (uintptr_t)p, p2 = (uintptr_t)(p+n),
+    q1 = (uintptr_t)q, q2 = (uintptr_t)(q+n);
+  if (p1 <= q1 && p2 > q1) return -1;
+  else if (q1 <= p1 && q2 > p1) return 1;
+  else return 0;
+}
 
 void* memmove(void* dest, const void* src, size_t n)
 {
@@ -263,9 +271,19 @@ char *strstr(const char *haystack, const char *needle)
   return NULL;
 }
 
+char __fc_strerror[64];
+static int __fc_strerror_init;
+
 char *strerror(int errnum)
 {
-  return "strerror message by Frama-C";
+#ifdef __FRAMAC__
+  if (!__fc_strerror_init) {
+    Frama_C_make_unknown(__fc_strerror, 63);
+    __fc_strerror[63] = 0;
+    __fc_strerror_init = 1;
+  }
+#endif
+  return __fc_strerror;
 }
 
 /* Warning: read considerations about malloc() in Frama-C */
@@ -297,6 +315,21 @@ char *strndup(const char *s, size_t n)
   memcpy(p, s, l);
   p[l] = 0;
   return p;
+}
+
+char __fc_strsignal[64];
+static int __fc_strsignal_init;
+
+char *strsignal(int signum)
+{
+#ifdef __FRAMAC__
+  if (!__fc_strsignal_init) {
+    Frama_C_make_unknown(__fc_strsignal, 63);
+    __fc_strsignal[63] = 0;
+    __fc_strsignal_init = 1;
+  }
+#endif
+  return __fc_strsignal;
 }
 
 __POP_FC_STDLIB

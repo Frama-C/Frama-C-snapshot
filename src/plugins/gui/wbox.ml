@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2018                                               *)
+(*  Copyright (C) 2007-2019                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -78,7 +78,7 @@ let vgroup (ws : widget list) =
   let box = GPack.vbox ~show:true ~homogeneous:true () in
   List.iter (fun w -> box#pack ~expand:false w#coerce) ws ;
   new Wutil.gobj_widget box
-    
+
 let (<|>) xs ys = if ys = [] then xs else (xs @ (ToEnd::ys))
 
 let toolbar xs ys = hbox (xs <|> ys)
@@ -96,3 +96,38 @@ let panel ?top ?left ?right ?bottom center =
   | Some t , None -> vbox [ h t ; hv middle ]
   | None , Some t -> vbox [ hv middle ; w t ]
   | Some a , Some b -> vbox [ h a ; hv middle ; h b ]
+
+class type splitter =
+  object
+    inherit Wutil.widget
+    method get : float
+    method set : float -> unit
+    method connect : (float -> unit) -> unit
+  end
+
+let split ~dir w1 w2 =
+  let pane = GPack.paned dir () in
+  pane#add1 w1#coerce ;
+  pane#add2 w2#coerce ;
+  let splitter =
+    object
+      inherit (Wutil.gobj_widget pane)
+      method get = Wutil.get_pane_ratio pane
+      method set = Wutil.set_pane_ratio pane
+      method connect f =
+        let callback _ = f (Wutil.get_pane_ratio pane) ; false in
+        ignore (pane#event#connect#button_release ~callback)
+    end
+  in (splitter :> splitter)
+
+let scroll ?(hpolicy=`AUTOMATIC) ?(vpolicy=`AUTOMATIC) w =
+  (* Explicit conversion needed for lablgtk3, as policy_type has been extended
+     with another constructor but we still export the lablgtk2 type. *)
+  let vpolicy = (vpolicy :> Gtk.Tags.policy_type) in
+  let hpolicy = (hpolicy :> Gtk.Tags.policy_type) in
+  let scrolled = GBin.scrolled_window ~vpolicy ~hpolicy () in
+  scrolled#add_with_viewport w#coerce ;
+  new Wutil.gobj_widget scrolled
+
+let hscroll w = scroll ~vpolicy:`NEVER w
+let vscroll w = scroll ~hpolicy:`NEVER w

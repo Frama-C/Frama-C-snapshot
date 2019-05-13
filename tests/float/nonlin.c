@@ -1,8 +1,8 @@
 /* run.config*
-   OPT: -value-msg-key nonlin -slevel 30 -val @VALUECONFIG@ -cpp-extra-args="-DFLOAT=double" -float-hex -journal-disable -val-subdivide-non-linear 0
-   OPT: -value-msg-key nonlin -slevel 30 -val @VALUECONFIG@ -cpp-extra-args="-DFLOAT=double" -float-hex -journal-disable -val-subdivide-non-linear 10
-   OPT: -value-msg-key nonlin -slevel 30 -val @VALUECONFIG@ -cpp-extra-args="-DFLOAT=float" -float-hex -journal-disable -val-subdivide-non-linear 0
-   OPT: -value-msg-key nonlin -slevel 30 -val @VALUECONFIG@ -cpp-extra-args="-DFLOAT=float" -float-hex -journal-disable -val-subdivide-non-linear 10
+   OPT: -eva-msg-key nonlin -slevel 30 -eva @EVA_CONFIG@ -cpp-extra-args="-DFLOAT=double" -float-hex -journal-disable -eva-subdivide-non-linear 0
+   OPT: -eva-msg-key nonlin -slevel 30 -eva @EVA_CONFIG@ -cpp-extra-args="-DFLOAT=double" -float-hex -journal-disable -eva-subdivide-non-linear 10
+   OPT: -eva-msg-key nonlin -slevel 30 -eva @EVA_CONFIG@ -cpp-extra-args="-DFLOAT=float" -float-hex -journal-disable -eva-subdivide-non-linear 0
+   OPT: -eva-msg-key nonlin -slevel 30 -eva @EVA_CONFIG@ -cpp-extra-args="-DFLOAT=float" -float-hex -journal-disable -eva-subdivide-non-linear 10
 */
 
 #include "__fc_builtin.h"

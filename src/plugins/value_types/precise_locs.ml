@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2018                                               *)
+(*  Copyright (C) 2007-2019                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -305,8 +305,8 @@ let fold f pl acc =
       in
       fold_offset aux_po po acc
 
-let enumerate_valid_bits ~for_writing loc =
-  let aux loc z = Zone.join z (enumerate_valid_bits ~for_writing loc) in
+let enumerate_valid_bits access loc =
+  let aux loc z = Zone.join z (enumerate_valid_bits access loc) in
   fold aux loc Zone.bottom
 
 
@@ -323,7 +323,8 @@ let valid_cardinal_zero_or_one ~for_writing pl =
         try
           ignore
             (fold (fun loc found_one ->
-              let valid = Locations.valid_part ~for_writing loc in
+              let access = if for_writing then Write else Read in
+              let valid = Locations.valid_part access loc in
               if Locations.is_bottom_loc loc then found_one
               else
                 if Locations.cardinal_zero_or_one valid then
@@ -355,50 +356,20 @@ let rec reduce_offset_by_range range offset = match offset with
     let offset = reduce_offset_by_range range offset in
     if offset = POBottom then offset else POShift (shift, offset, card)
 
-(* Maintain synchronized with Locations.reduce_offset_by_validity *)
-let reduce_offset_by_validity ~for_writing ~bitfield base offset size =
-  if for_writing && Base.is_read_only base then
-    POBottom
-  else
-    match Base.validity base, size with
-    | Base.Empty, _ ->
-      if Int_Base.(compare size zero) > 0
-      then POBottom
-      else reduce_offset_by_range Ival.zero offset
-    | Base.Invalid, _ -> POBottom
-    | _, Int_Base.Top -> offset
-    | (Base.Known (minv, maxv) | Base.Unknown (minv,_,maxv)),
-      Int_Base.Value size ->
-      (* The maximum offset is maxv - (size - 1), except if size = 0,
-         in which case the maximum offset is exactly maxv. *)
-      let pred_size = Int.max Int.zero (Int.pred size) in
-      let maxv = Int.sub maxv pred_size in
-      let range =
-        if bitfield
-        then Ival.inject_range (Some minv) (Some maxv)
-        else Ival.inject_interval (Some minv) (Some maxv) Int.zero Int.eight
-      in
-      reduce_offset_by_range range offset
-    | Base.Variable variable_v, Int_Base.Value size ->
-      let pred_size = Int.max Int.zero (Int.pred size) in
-      let maxv = Int.sub variable_v.Base.max_alloc pred_size in
-      let range =
-        if bitfield
-        then Ival.inject_range (Some Int.zero) (Some maxv)
-        else Ival.inject_interval (Some Int.zero) (Some maxv) Int.zero Int.eight
-      in
-      reduce_offset_by_range range offset
+let reduce_offset_by_validity ~bitfield access size base offset =
+  let access = Locations.base_access ~size access in
+  let range = Base.valid_offset ~bitfield access base in
+  if Ival.is_bottom range then POBottom else reduce_offset_by_range range offset
 
-
-let reduce_by_valid_part ~for_writing ~bitfield precise_loc size =
+let reduce_by_valid_part access ~bitfield precise_loc size =
   match precise_loc with
   | PLBottom -> precise_loc
   | PLLoc loc ->
     let loc = Locations.make_loc loc size in
-    PLLoc Locations.((valid_part ~for_writing ~bitfield loc).Locations.loc)
+    PLLoc Locations.((valid_part access ~bitfield loc).Locations.loc)
   | PLVarOffset (base, offset) ->
     begin
-      match reduce_offset_by_validity ~for_writing ~bitfield base offset size with
+      match reduce_offset_by_validity ~bitfield access size base offset with
       | POBottom -> PLBottom
       | offset -> PLVarOffset (base, offset)
     end
@@ -407,8 +378,8 @@ let reduce_by_valid_part ~for_writing ~bitfield precise_loc size =
        simultaneously [loc] and [offset]. We do nothing for the time being. *)
     precise_loc
 
-let valid_part ~for_writing ~bitfield {loc; size} =
-  { loc = reduce_by_valid_part ~for_writing ~bitfield loc size;
+let valid_part access ~bitfield {loc; size} =
+  { loc = reduce_by_valid_part ~bitfield access loc size;
     size = size }
 
 (*

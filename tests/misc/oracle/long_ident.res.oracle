@@ -18,6 +18,10 @@
 #define f1 q
 #define f2 X_9999999999999999999999999999999999999999999999999999_0
 #define f3 p
+// formal variable in fun types
+#define ft1 q
+#define ft2 X_9999999999999999999999999999999999999999999999999999_0
+#define ft3 p
 /*********************************** */
 /* end of dictionary for obfuscation */
 /*********************************** */

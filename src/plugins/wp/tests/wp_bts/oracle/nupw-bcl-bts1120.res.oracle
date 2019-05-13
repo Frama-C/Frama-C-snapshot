@@ -6,12 +6,12 @@
   [cfg] Forget exits clause of node <blkIn-stmt:26>
 [wp] tests/wp_bts/nupw-bcl-bts1120.i:54: Warning: 
   [cfg] Forget exits clause of node <blkIn-stmt:26>
-[wp] [CFG] Goal unreachable_smt_with_contract_stmt_assign : Valid (Unreachable)
-[wp] [CFG] Goal unreachable_smt_with_contract_stmt_exit_ok : Valid (Unreachable)
-[wp] [CFG] Goal unreachable_smt_with_contract_stmt_post_ok : Valid (Unreachable)
-[wp] [CFG] Goal unreachable_smt_with_contract_stmt_pre_ok : Valid (Unreachable)
+[wp] [CFG] Goal unreachable_smt_with_contract_assigns : Valid (Unreachable)
+[wp] [CFG] Goal unreachable_smt_with_contract_exits_ok : Valid (Unreachable)
+[wp] [CFG] Goal unreachable_smt_with_contract_ensures_ok : Valid (Unreachable)
+[wp] [CFG] Goal unreachable_smt_with_contract_requires_ok : Valid (Unreachable)
 [wp] [CFG] Goal unreachable_smt_with_contract_assert_ok : Valid (Unreachable)
-[wp] [CFG] Goal unreachable_smt_with_contract_call_f_with_precond_pre_ok : Valid (Unreachable)
+[wp] [CFG] Goal unreachable_smt_with_contract_call_f_with_precond_requires_ok : Valid (Unreachable)
 [wp] Warning: Missing RTE guards
 ------------------------------------------------------------
   Function cfg_domination_problem

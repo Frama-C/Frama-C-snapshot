@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2018                                               *)
+(*  Copyright (C) 2007-2019                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -206,7 +206,7 @@ let variant_predicate stmt v =
   Logic_const.pand ~loc (pred1, pred2)
 
 let supported_annotation annot = match annot.annot_content with
-  | AAssert ([], _)
+  | AAssert ([], _, _)
   | AInvariant ([], _, _)
   | AVariant (_, None) -> true
   | _ -> false (* TODO *)
@@ -216,7 +216,8 @@ let code_annot = Annotations.code_annot ~filter:supported_annotation
 let make_annotation kf stmt annot labels =
   let kind, pred =
     match annot.annot_content with
-    | AAssert ([], pred) -> Assert, pred
+    | AAssert ([], Cil_types.Assert, pred) -> Assert, pred
+    | AAssert ([], Cil_types.Check, pred) -> Check, pred
     | AInvariant ([], _, pred) -> Invariant, pred
     | AVariant (v, None) -> Assert, variant_predicate stmt v
     | _ -> assert false

@@ -17,10 +17,10 @@ Assume {
   (* Heap *)
   Have: linked(Malloc_0).
   (* Initializer *)
-  Init: Mint_0[global(L_i_23)] = 0.
+  Init: Mint_0[global(L_i_25)] = 0.
   If v <= 3
   Then { (* Else *) Have: Mint_0[f] = 0. Have: shift_sint32(a, v) = f. }
-  Else { Have: global(L_i_23) = f. }
+  Else { Have: global(L_i_25) = f. }
 }
 Prove: a_1 = f.
 
@@ -37,10 +37,10 @@ Assume {
   (* Heap *)
   Have: linked(Malloc_0).
   (* Initializer *)
-  Init: Mint_0[global(L_i_23)] = 0.
+  Init: Mint_0[global(L_i_25)] = 0.
   If v <= 3
   Then { (* Else *) Have: Mint_0[f] = 0. Have: shift_sint32(a, v) = f. }
-  Else { Have: global(L_i_23) = f. }
+  Else { Have: global(L_i_25) = f. }
 }
 Prove: a_1 = f.
 
@@ -64,11 +64,11 @@ Assume {
   (* Heap *)
   Have: linked(Malloc_0).
   (* Initializer *)
-  Init: Mint_0[global(L_i_28)] = 0.
+  Init: Mint_0[global(L_i_30)] = 0.
   If v <= 3
   Then { (* Else *) Have: Mint_0[f2_0] = 0. Have: shift_sint32(a, v) = f2_0.
   }
-  Else { Have: global(L_i_28) = f2_0. }
+  Else { Have: global(L_i_30) = f2_0. }
 }
 Prove: a_1 = f2_0.
 
@@ -85,11 +85,11 @@ Assume {
   (* Heap *)
   Have: linked(Malloc_0).
   (* Initializer *)
-  Init: Mint_0[global(L_i_28)] = 0.
+  Init: Mint_0[global(L_i_30)] = 0.
   If v <= 3
   Then { (* Else *) Have: Mint_0[f2_0] = 0. Have: shift_sint32(a, v) = f2_0.
   }
-  Else { Have: global(L_i_28) = f2_0. }
+  Else { Have: global(L_i_30) = f2_0. }
 }
 Prove: a_1 = f2_0.
 
@@ -113,10 +113,10 @@ Assume {
   (* Heap *)
   Have: linked(Malloc_0).
   (* Initializer *)
-  Init: Mint_0[global(L_i_33)] = 0.
+  Init: Mint_0[global(L_i_35)] = 0.
   If v <= 3
   Then { (* Else *) Have: Mint_0[g] = 0. Have: shift_sint32(a, v) = g. }
-  Else { Have: global(L_i_33) = g. }
+  Else { Have: global(L_i_35) = g. }
 }
 Prove: a_1 = g.
 
@@ -133,10 +133,10 @@ Assume {
   (* Heap *)
   Have: linked(Malloc_0).
   (* Initializer *)
-  Init: Mint_0[global(L_i_33)] = 0.
+  Init: Mint_0[global(L_i_35)] = 0.
   If v <= 3
   Then { (* Else *) Have: Mint_0[g] = 0. Have: shift_sint32(a, v) = g. }
-  Else { Have: global(L_i_33) = g. }
+  Else { Have: global(L_i_35) = g. }
 }
 Prove: a_1 = g.
 

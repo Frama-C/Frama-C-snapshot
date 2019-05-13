@@ -7,7 +7,7 @@
   Function job
 ------------------------------------------------------------
 
-Goal Assertion (file tests/wp_plugin/combined.c, line 26):
+Goal Assertion (file tests/wp_plugin/combined.c, line 27):
 Assume {
   Type: is_sint32(A).
   (* Heap *)
@@ -17,7 +17,7 @@ Prove: (50 <= A) /\ (A <= 100).
 
 ------------------------------------------------------------
 
-Goal Preservation of Invariant (file tests/wp_plugin/combined.c, line 28):
+Goal Preservation of Invariant (file tests/wp_plugin/combined.c, line 29):
 Assume {
   Type: is_sint32(A) /\ is_sint32(i) /\ is_sint32(v) /\ is_sint32(1 + i).
   (* Heap *)
@@ -39,12 +39,12 @@ Prove: (-1) <= i.
 
 ------------------------------------------------------------
 
-Goal Establishment of Invariant (file tests/wp_plugin/combined.c, line 28):
+Goal Establishment of Invariant (file tests/wp_plugin/combined.c, line 29):
 Prove: true.
 
 ------------------------------------------------------------
 
-Goal Preservation of Invariant (file tests/wp_plugin/combined.c, line 29):
+Goal Preservation of Invariant (file tests/wp_plugin/combined.c, line 30):
 Let a = havoc(Mint_undef_0, Mint_0, shift_sint32(t, 0), 50).
 Assume {
   Type: is_sint32(A) /\ is_sint32(i) /\ is_sint32(v) /\ is_sint32(1 + i).
@@ -68,12 +68,12 @@ Prove: P_P(a[shift_sint32(t, i) <- v][shift_sint32(t, i_1)]).
 
 ------------------------------------------------------------
 
-Goal Establishment of Invariant (file tests/wp_plugin/combined.c, line 29):
+Goal Establishment of Invariant (file tests/wp_plugin/combined.c, line 30):
 Prove: true.
 
 ------------------------------------------------------------
 
-Goal Preservation of Invariant (file tests/wp_plugin/combined.c, line 34):
+Goal Preservation of Invariant (file tests/wp_plugin/combined.c, line 35):
 Let x = 1 + j.
 Assume {
   Type: is_sint32(A) /\ is_sint32(i) /\ is_sint32(j) /\ is_sint32(x).
@@ -98,12 +98,12 @@ Prove: A <= x.
 
 ------------------------------------------------------------
 
-Goal Establishment of Invariant (file tests/wp_plugin/combined.c, line 34):
+Goal Establishment of Invariant (file tests/wp_plugin/combined.c, line 35):
 Prove: true.
 
 ------------------------------------------------------------
 
-Goal Assertion (file tests/wp_plugin/combined.c, line 39):
+Goal Assertion (file tests/wp_plugin/combined.c, line 40):
 Let a = havoc(Mint_undef_1, Mint_0, shift_sint32(t, 0), 50).
 Assume {
   Type: is_sint32(A) /\ is_sint32(i_1) /\ is_sint32(j).
@@ -130,36 +130,36 @@ Prove: P_P(havoc(Mint_undef_0, a, shift_sint32(t, A), 100 - A)
 
 ------------------------------------------------------------
 
-Goal Loop assigns (file tests/wp_plugin/combined.c, line 30) (1/3):
+Goal Loop assigns (file tests/wp_plugin/combined.c, line 31) (1/3):
 Prove: true.
 
 ------------------------------------------------------------
 
-Goal Loop assigns (file tests/wp_plugin/combined.c, line 30) (2/3):
-Effect at line 32
+Goal Loop assigns (file tests/wp_plugin/combined.c, line 31) (2/3):
+Effect at line 33
 Prove: true.
 
 ------------------------------------------------------------
 
-Goal Loop assigns (file tests/wp_plugin/combined.c, line 30) (3/3):
-Call Result at line 32
+Goal Loop assigns (file tests/wp_plugin/combined.c, line 31) (3/3):
+Call Result at line 33
 Prove: true.
 
 ------------------------------------------------------------
 
-Goal Loop assigns (file tests/wp_plugin/combined.c, line 35) (1/3):
+Goal Loop assigns (file tests/wp_plugin/combined.c, line 36) (1/3):
 Prove: true.
 
 ------------------------------------------------------------
 
-Goal Loop assigns (file tests/wp_plugin/combined.c, line 35) (2/3):
-Effect at line 37
+Goal Loop assigns (file tests/wp_plugin/combined.c, line 36) (2/3):
+Effect at line 38
 Prove: true.
 
 ------------------------------------------------------------
 
-Goal Loop assigns (file tests/wp_plugin/combined.c, line 35) (3/3):
-Call Result at line 37
+Goal Loop assigns (file tests/wp_plugin/combined.c, line 36) (3/3):
+Call Result at line 38
 Let a = shift_sint32(t, j).
 Assume {
   Type: is_sint32(A) /\ is_sint32(i) /\ is_sint32(j).

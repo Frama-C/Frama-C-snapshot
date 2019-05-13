@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2018                                               *)
+(*  Copyright (C) 2007-2019                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -83,11 +83,17 @@ end
 module type S = sig
   module Val : Value
   module Loc : Abstract_location.External with type value = Val.t
-                                           and type location = Precise_locs.precise_location
   module Dom : Abstract_domain.External with type value = Val.t
                                          and type location = Loc.location
 end
 
+module type Eva = sig
+  include S
+  module Eval: Evaluation.S with type state = Dom.t
+                             and type value = Val.t
+                             and type loc = Loc.location
+                             and type origin = Dom.origin
+end
 
 (* -------------------------------------------------------------------------- *)
 (*                           Value Abstraction                                *)
@@ -569,29 +575,7 @@ let make config =
 (*                       Default and Legacy Abstractions                      *)
 (* -------------------------------------------------------------------------- *)
 
-
-module Legacy = struct
-
-  module Val = struct
-    include Main_values.CVal
-    include Structure.Open (Structure.Key_Value) (Main_values.CVal)
-    let reduce t = t
-  end
-
-  module Loc = struct
-    include Main_locations.PLoc
-    include Structure.Open
-        (Structure.Key_Location)
-        (struct include Main_locations.PLoc type t = location end)
-  end
-
-  module Dom = struct
-    include Cvalue_domain.State
-    include Structure.Open (Structure.Key_Domain) (Cvalue_domain.State)
-  end
-
-end
-
+module Legacy =  (val make legacy_config)
 module Default = (val make default_config)
 
 

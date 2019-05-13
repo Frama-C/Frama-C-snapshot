@@ -1,5 +1,5 @@
 /* run.config*
-   STDOPT: +"-slevel 30 -val-slevel-merge-after-loop @all -val-malloc-functions malloc -memexec-all"
+   STDOPT: +"-slevel 30 -eva-slevel-merge-after-loop @all -eva-malloc-functions malloc -eva-memexec"
 */
 
 //@ assigns \result \from \nothing;

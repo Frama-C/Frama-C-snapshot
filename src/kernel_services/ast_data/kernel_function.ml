@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2018                                               *)
+(*  Copyright (C) 2007-2019                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -210,6 +210,94 @@ let () = Globals.find_enclosing_block:= find_enclosing_block
 let find_all_enclosing_blocks s =
    let table = compute () in
   let (_,_,b) = Datatype.Int.Hashtbl.find table s.sid in b
+
+let find_stmt_in_block b s =
+  let has_stmt l =
+    List.exists (fun (s',_,_,_,_) -> Cil_datatype.Stmt.equal s s') l
+  in
+  let rec aux = function
+    | [] ->
+      Kernel.fatal "statement %a is not inside block@\n%a"
+        Cil_printer.pp_stmt s Cil_printer.pp_block b
+    | s' :: _ when Cil_datatype.Stmt.equal s s' -> s'
+    | { skind = UnspecifiedSequence l } as s':: _ when has_stmt l -> s'
+    | _ :: l -> aux l
+  in aux b.bstmts
+
+let find_stmt_of_block outer inner =
+  let rec is_stmt_of_block s =
+    match s.skind with
+    | Block b -> b == inner
+    | If (_,b1,b2,_) -> b1 == inner || b2 == inner
+    | Switch (_,b,_,_) -> b == inner
+    | Loop (_,b,_,_,_) -> b == inner
+    | UnspecifiedSequence l -> is_stmt_of_unspecified l
+    | TryCatch (b, l, _) ->
+      b == inner || List.exists (fun (_,b) -> b == inner) l
+    | TryFinally (b1,b2,_) -> b1 == inner || b2 == inner
+    | TryExcept (b1,_,b2,_) -> b1 == inner || b2 == inner
+    | _ -> false
+  and is_stmt_of_unspecified l =
+    List.exists (fun (s,_,_,_,_) -> is_stmt_of_block s) l
+  in
+  try
+    List.find is_stmt_of_block outer.bstmts
+  with Not_found ->
+    Kernel.fatal "inner block@\n%a@\nis not a direct child of outer block@\n%a"
+      Cil_printer.pp_block inner Cil_printer.pp_block outer
+
+let find_enclosing_stmt_in_block b s =
+  let blocks = find_all_enclosing_blocks s in
+  let rec aux prev l =
+    match l, prev with
+    | [], _ ->
+      Kernel.fatal "statement %a is not part of block@\n%a"
+        Cil_printer.pp_stmt s Cil_printer.pp_block b
+    | b' :: _, None when b' == b -> find_stmt_in_block b s
+    | b' :: _, Some prev when b' == b -> find_stmt_of_block b prev
+    | b' :: l, _ -> aux (Some b') l
+  in
+  aux None blocks
+
+let is_between b s1 s2 s3 =
+  let s1 = find_enclosing_stmt_in_block b s1 in
+  let s2 = find_enclosing_stmt_in_block b s2 in
+  let s3 = find_enclosing_stmt_in_block b s3 in
+  let rec aux has_s1 l =
+    match l with
+    | [] ->
+      Kernel.fatal
+        "Unexpected end of block while looking for %a"
+        Cil_printer.pp_stmt s3
+    | s :: l when Cil_datatype.Stmt.equal s s1 -> aux true l
+    | s :: _ when Cil_datatype.Stmt.equal s s2 -> has_s1
+    | s :: _ when Cil_datatype.Stmt.equal s s3 -> false
+    | _ :: l -> aux has_s1 l
+  in
+  aux false b.bstmts
+
+let common_block s1 s2 =
+  let kf1 = find_englobing_kf s1 in
+  let kf2 = find_englobing_kf s2 in
+  if not (equal kf1 kf2) then
+    Kernel.fatal
+      "cannot find a common block for statements occurring \
+       in two distinct functions";
+  let b1 = find_all_enclosing_blocks s1 in
+  let b2 = find_all_enclosing_blocks s2 in
+  let rec aux last l1 l2 =
+    match l1,l2 with
+    | [], _ | _, [] -> last
+    | b1 :: l1, b2 :: l2 when b1 == b2 -> aux b1 l1 l2
+    | _ :: _, _ :: _ -> last
+  in
+  match List.rev b1, List.rev b2 with
+  | [], _ | _, [] ->
+    Kernel.fatal "Statement not contained in any block"
+  | b1 :: l1, b2 :: l2 when b1 == b2 -> aux b1 l1 l2
+  | _ :: _, _ :: _ ->
+    Kernel.fatal
+      "Statements do not share their function body as outermost common block"
 
 let () = Globals.find_all_enclosing_blocks := find_all_enclosing_blocks
 
@@ -424,6 +512,12 @@ let find_syntactic_callsites kf =
   let table = KfCallers.memo compute_callsites in
   try CallSites.find table kf
   with Not_found -> []
+
+let var_is_in_scope stmt vi =
+  let blocks = find_all_enclosing_blocks stmt in
+  List.exists
+    (fun b -> List.exists (Cil_datatype.Varinfo.equal vi) b.blocals)
+    blocks
 
 (* ************************************************************************* *)
 (** {2 Checkers} *)

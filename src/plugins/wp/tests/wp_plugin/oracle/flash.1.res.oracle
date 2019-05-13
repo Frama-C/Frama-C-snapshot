@@ -16,9 +16,9 @@ Prove: true.
 
 Goal Post-condition 'A_reads' in 'job':
 Let x = 1 + OBSERVER_time_0.
-Let a = global(G_a_60).
+Let a = global(G_a_62).
 Let a_1 = C_RdAt_int(a).
-Let a_2 = global(G_b_61).
+Let a_2 = global(G_b_63).
 Let a_3 = C_RdAt_int(a_2).
 Let a_4 = C_WrAt_int(a_2).
 Let a_5 = ((const(0))[(a) <- (const(0))[a]+1]).
@@ -59,9 +59,9 @@ Prove: (a_7)[a] = 2.
 
 Goal Post-condition 'B_reads' in 'job':
 Let x = 1 + OBSERVER_time_0.
-Let a = global(G_a_60).
+Let a = global(G_a_62).
 Let a_1 = C_RdAt_int(a).
-Let a_2 = global(G_b_61).
+Let a_2 = global(G_b_63).
 Let a_3 = C_RdAt_int(a_2).
 Let a_4 = C_WrAt_int(a_2).
 Let a_5 = ((const(0))[(a) <- (const(0))[a]+1]).
@@ -102,9 +102,9 @@ Prove: (a_7)[a_2] = 1.
 
 Goal Post-condition 'B_writes' in 'job':
 Let x = 1 + OBSERVER_time_0.
-Let a = global(G_a_60).
+Let a = global(G_a_62).
 Let a_1 = C_RdAt_int(a).
-Let a_2 = global(G_b_61).
+Let a_2 = global(G_b_63).
 Let a_3 = C_RdAt_int(a_2).
 Let a_4 = C_WrAt_int(a_2).
 Let a_5 = ((const(0))[(a) <- (const(0))[a]+1]).
@@ -145,9 +145,9 @@ Prove: (a_7)[a_2] = 1.
 
 Goal Post-condition 'ReadValues' in 'job':
 Let x = 1 + OBSERVER_time_0.
-Let a = global(G_a_60).
+Let a = global(G_a_62).
 Let a_1 = C_RdAt_int(a).
-Let a_2 = global(G_b_61).
+Let a_2 = global(G_b_63).
 Let a_3 = C_RdAt_int(a_2).
 Let a_4 = C_WrAt_int(a_2).
 Let a_5 = ((const(0))[(a) <- (const(0))[a]+1]).
@@ -188,9 +188,9 @@ Prove: (x_6 + L_RD_value(a_2, (a_5)[a_2]) + L_RD_value(a, (a_6)[a]))
 
 Goal Post-condition 'WriteValues' in 'job':
 Let x = 1 + OBSERVER_time_0.
-Let a = global(G_a_60).
+Let a = global(G_a_62).
 Let a_1 = C_RdAt_int(a).
-Let a_2 = global(G_b_61).
+Let a_2 = global(G_b_63).
 Let a_3 = C_RdAt_int(a_2).
 Let a_4 = C_WrAt_int(a_2).
 Let a_5 = ((const(0))[(a) <- (const(0))[a]+1]).

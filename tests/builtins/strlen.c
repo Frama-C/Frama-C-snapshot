@@ -219,7 +219,7 @@ void escaping() {
   char s[4];
   {
     int x;
-    *((int *)s) = &x;
+    *((int *)s) = (int) &x;
   }
   if (nondet) s[0] = 0;
   int z1 = strlen(s); // alarm

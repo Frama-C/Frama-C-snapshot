@@ -4,19 +4,20 @@
 [wp] Loading driver 'share/wp.driver'
 [wp] Warning: Missing RTE guards
 [wp] 6 goals scheduled
-[wp] [Qed] Goal typed_ref_global_frame_post_sep_iff_ref : Valid
-[wp] [Qed] Goal typed_ref_global_frame_post_one_iff_ref : Valid
-[wp] [Qed] Goal typed_ref_global_frame_post_zero_always : Valid
+[wp] [Qed] Goal typed_ref_global_frame_ensures_sep_iff_ref : Valid
+[wp] [Qed] Goal typed_ref_global_frame_ensures_one_iff_ref : Valid
+[wp] [Qed] Goal typed_ref_global_frame_ensures_zero_always : Valid
 [wp] [Qed] Goal typed_ref_global_frame_assert_ok : Valid
 [wp] [Qed] Goal typed_ref_global_frame_assert_ok_2 : Valid
 [wp] [Alt-Ergo] Goal typed_ref_local_frame_assert_ok : Valid
 [wp] Proved goals:    6 / 6
   Qed:             5 
   Alt-Ergo:        1
-[wp] Report 'tests/wp_bts/bts_1828.i.1.report.json'
+[wp] Report in:  'tests/wp_bts/oracle_qualif/bts_1828.1.report.json'
+[wp] Report out: 'tests/wp_bts/result_qualif/bts_1828.1.report.json'
 -------------------------------------------------------------
 Functions           WP     Alt-Ergo        Total   Success
-local_frame         -       1 (1..12)        1       100%
+local_frame         -       1 (4..16)        1       100%
 global_frame         5     -                 5       100%
 -------------------------------------------------------------
 [wp] Warning: Memory model hypotheses for function 'global_frame':

@@ -40,46 +40,47 @@
 [wp] Loading driver 'share/wp.driver'
 [wp] Warning: Missing RTE guards
 [wp] 37 goals scheduled
-[wp] [Alt-Ergo] Goal typed_bitwise_post_ko_l_precedence_xor_and : Unknown
-[wp] [Alt-Ergo] Goal typed_bitwise_post_ko_r_precedence_xor_and : Unknown
-[wp] [Alt-Ergo] Goal typed_bitwise_post_ko_l_precedence_or_xor : Unknown
-[wp] [Alt-Ergo] Goal typed_bitwise_post_ko_r_precedence_or_xor : Unknown
-[wp] [Alt-Ergo] Goal typed_bitwise_post_ko_l_precedence_implies_or : Unknown
-[wp] [Alt-Ergo] Goal typed_bitwise_post_ko_l_assoc_implies : Unknown
-[wp] [Alt-Ergo] Goal typed_bitwise_post_ko_r_precedence_equiv_implies : Unknown
-[wp] [Alt-Ergo] Goal typed_bitwise_post_ko_l_precedence_equiv_implies : Unknown
-[wp] [Alt-Ergo] Goal typed_comparison_post_ko_r_precedence_and_eq : Unknown
-[wp] [Alt-Ergo] Goal typed_comparison_post_ko_l_precedence_and_eq : Unknown
-[wp] [Alt-Ergo] Goal typed_comparison_post_ko_l_nonassoc_eq : Unknown
-[wp] [Alt-Ergo] Goal typed_comparison_post_ko_r_nonassoc_eq : Unknown
-[wp] [Alt-Ergo] Goal typed_comparison_post_ko_r_precedence_and_neq : Unknown
-[wp] [Alt-Ergo] Goal typed_comparison_post_ko_l_precedence_and_neq : Unknown
-[wp] [Alt-Ergo] Goal typed_predicate_post_ko_l_precedence_xor_and : Unknown
-[wp] [Alt-Ergo] Goal typed_predicate_post_ko_r_precedence_xor_and : Unknown
-[wp] [Alt-Ergo] Goal typed_predicate_post_ko_l_precedence_or_xor : Unknown
-[wp] [Alt-Ergo] Goal typed_predicate_post_ko_r_precedence_or_xor : Unknown
-[wp] [Alt-Ergo] Goal typed_predicate_post_ko_l_precedence_implies_or : Unknown
-[wp] [Alt-Ergo] Goal typed_predicate_post_ko_l_assoc_implies : Unknown
-[wp] [Alt-Ergo] Goal typed_predicate_post_ko_r_precedence_equiv_implies : Unknown
-[wp] [Alt-Ergo] Goal typed_predicate_post_ko_l_precedence_equiv_implies : Unknown
-[wp] [Alt-Ergo] Goal typed_predicate_post_ko_r_precedence_ite_equiv : Unknown
-[wp] [Alt-Ergo] Goal typed_predicate_post_ko_l_precedence_ite_equiv : Unknown
-[wp] [Alt-Ergo] Goal typed_predicate_post_ko_l_assoc_ite : Unknown
-[wp] [Alt-Ergo] Goal typed_predicate_post_ko_r_precedence_forall_ite : Unknown
-[wp] [Alt-Ergo] Goal typed_predicate_post_ko_m_precedence_forall_ite : Unknown
-[wp] [Alt-Ergo] Goal typed_predicate_post_ko_l_precedence_forall_ite : Unknown
-[wp] [Alt-Ergo] Goal typed_predicate_post_ko_r_assoc_forall : Unknown
-[wp] [Alt-Ergo] Goal typed_predicate_post_ko_r_precedence_exists_ite : Unknown
-[wp] [Alt-Ergo] Goal typed_predicate_post_ko_m_precedence_exists_ite : Unknown
-[wp] [Alt-Ergo] Goal typed_predicate_post_ko_l_precedence_exists_ite : Unknown
-[wp] [Alt-Ergo] Goal typed_predicate_post_ko_r_assoc_exist : Unknown
-[wp] [Alt-Ergo] Goal typed_predicate_post_ko_r_precedence_let_ite : Unknown
-[wp] [Alt-Ergo] Goal typed_predicate_post_ko_m_precedence_let_ite : Unknown
-[wp] [Alt-Ergo] Goal typed_predicate_post_ko_l_precedence_let_ite : Unknown
-[wp] [Alt-Ergo] Goal typed_predicate_post_ko_l_assoc_naming : Unknown
+[wp] [Alt-Ergo] Goal typed_bitwise_ensures_ko_l_precedence_xor_and : Unsuccess
+[wp] [Alt-Ergo] Goal typed_bitwise_ensures_ko_r_precedence_xor_and : Unsuccess
+[wp] [Alt-Ergo] Goal typed_bitwise_ensures_ko_l_precedence_or_xor : Unsuccess
+[wp] [Alt-Ergo] Goal typed_bitwise_ensures_ko_r_precedence_or_xor : Unsuccess
+[wp] [Alt-Ergo] Goal typed_bitwise_ensures_ko_l_precedence_implies_or : Unsuccess
+[wp] [Alt-Ergo] Goal typed_bitwise_ensures_ko_l_assoc_implies : Unsuccess
+[wp] [Alt-Ergo] Goal typed_bitwise_ensures_ko_r_precedence_equiv_implies : Unsuccess
+[wp] [Alt-Ergo] Goal typed_bitwise_ensures_ko_l_precedence_equiv_implies : Unsuccess
+[wp] [Alt-Ergo] Goal typed_comparison_ensures_ko_r_precedence_and_eq : Unsuccess
+[wp] [Alt-Ergo] Goal typed_comparison_ensures_ko_l_precedence_and_eq : Unsuccess
+[wp] [Alt-Ergo] Goal typed_comparison_ensures_ko_l_nonassoc_eq : Unsuccess
+[wp] [Alt-Ergo] Goal typed_comparison_ensures_ko_r_nonassoc_eq : Unsuccess
+[wp] [Alt-Ergo] Goal typed_comparison_ensures_ko_r_precedence_and_neq : Unsuccess
+[wp] [Alt-Ergo] Goal typed_comparison_ensures_ko_l_precedence_and_neq : Unsuccess
+[wp] [Alt-Ergo] Goal typed_predicate_ensures_ko_l_precedence_xor_and : Unsuccess
+[wp] [Alt-Ergo] Goal typed_predicate_ensures_ko_r_precedence_xor_and : Unsuccess
+[wp] [Alt-Ergo] Goal typed_predicate_ensures_ko_l_precedence_or_xor : Unsuccess
+[wp] [Alt-Ergo] Goal typed_predicate_ensures_ko_r_precedence_or_xor : Unsuccess
+[wp] [Alt-Ergo] Goal typed_predicate_ensures_ko_l_precedence_implies_or : Unsuccess
+[wp] [Alt-Ergo] Goal typed_predicate_ensures_ko_l_assoc_implies : Unsuccess
+[wp] [Alt-Ergo] Goal typed_predicate_ensures_ko_r_precedence_equiv_implies : Unsuccess
+[wp] [Alt-Ergo] Goal typed_predicate_ensures_ko_l_precedence_equiv_implies : Unsuccess
+[wp] [Alt-Ergo] Goal typed_predicate_ensures_ko_r_precedence_ite_equiv : Unsuccess
+[wp] [Alt-Ergo] Goal typed_predicate_ensures_ko_l_precedence_ite_equiv : Unsuccess
+[wp] [Alt-Ergo] Goal typed_predicate_ensures_ko_l_assoc_ite : Unsuccess
+[wp] [Alt-Ergo] Goal typed_predicate_ensures_ko_r_precedence_forall_ite : Unsuccess
+[wp] [Alt-Ergo] Goal typed_predicate_ensures_ko_m_precedence_forall_ite : Unsuccess
+[wp] [Alt-Ergo] Goal typed_predicate_ensures_ko_l_precedence_forall_ite : Unsuccess
+[wp] [Alt-Ergo] Goal typed_predicate_ensures_ko_r_assoc_forall : Unsuccess
+[wp] [Alt-Ergo] Goal typed_predicate_ensures_ko_r_precedence_exists_ite : Unsuccess
+[wp] [Alt-Ergo] Goal typed_predicate_ensures_ko_m_precedence_exists_ite : Unsuccess
+[wp] [Alt-Ergo] Goal typed_predicate_ensures_ko_l_precedence_exists_ite : Unsuccess
+[wp] [Alt-Ergo] Goal typed_predicate_ensures_ko_r_assoc_exist : Unsuccess
+[wp] [Alt-Ergo] Goal typed_predicate_ensures_ko_r_precedence_let_ite : Unsuccess
+[wp] [Alt-Ergo] Goal typed_predicate_ensures_ko_m_precedence_let_ite : Unsuccess
+[wp] [Alt-Ergo] Goal typed_predicate_ensures_ko_l_precedence_let_ite : Unsuccess
+[wp] [Alt-Ergo] Goal typed_predicate_ensures_ko_l_assoc_naming : Unsuccess
 [wp] Proved goals:    0 / 37
-  Alt-Ergo:        0  (unknown: 37)
-[wp] Report 'tests/wp_acsl/precedence.i.1.report.json'
+  Alt-Ergo:        0  (unsuccess: 37)
+[wp] Report in:  'tests/wp_acsl/oracle_qualif/precedence.1.report.json'
+[wp] Report out: 'tests/wp_acsl/result_qualif/precedence.1.report.json'
 -------------------------------------------------------------
 Functions           WP     Alt-Ergo        Total   Success
 predicate           -      -                23       0.0%

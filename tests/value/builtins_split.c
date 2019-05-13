@@ -1,5 +1,5 @@
 /* run.config*
-   STDOPT: +"-val-show-progress -slevel 100"
+   STDOPT: +"-eva-show-progress -slevel 100"
 */
 
 int *p;

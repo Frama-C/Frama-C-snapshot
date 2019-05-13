@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2018                                               *)
+(*  Copyright (C) 2007-2019                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -211,12 +211,12 @@ let rec compare cmp s t =
     | Empty , _ -> (-1)
     | _ , Empty -> 1
     | Lf(i,x) , Lf(j,y) ->
-        let ck = Pervasives.compare i j in
+        let ck = Transitioning.Stdlib.compare i j in
         if ck = 0 then cmp x y else ck
     | Lf _ , _ -> (-1)
     | _ , Lf _ -> 1
     | Br(p,s0,s1) , Br(q,t0,t1) ->
-        let cp = Pervasives.compare p q in
+        let cp = Transitioning.Stdlib.compare p q in
         if cp <> 0 then cp else
           let c0 = compare cmp s0 t0 in
           if c0 <> 0 then c0 else

@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2018                                               *)
+(*  Copyright (C) 2007-2019                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -1776,7 +1776,7 @@ module Bool =
       let name = "bool"
       let reprs = [ true ]
       let copy = identity
-      let compare : bool -> bool -> int = Pervasives.compare
+      let compare : bool -> bool -> int = Transitioning.Stdlib.compare
       let equal : bool -> bool -> bool = (=)
       let pretty fmt b = Format.fprintf fmt "%B" b
       let varname _ = "b"
@@ -1790,12 +1790,12 @@ module Int = struct
       let name = "int"
       let reprs = [ 2 ]
       let copy = identity
-      let compare : int -> int -> int = Pervasives.compare
+      let compare : int -> int -> int = Transitioning.Stdlib.compare
       let equal : int -> int -> bool = (=)
       let pretty fmt n = Format.fprintf fmt "%d" n
       let varname _ = "n"
      end)
-  let compare : int -> int -> int = Pervasives.compare
+  let compare : int -> int -> int = Transitioning.Stdlib.compare
 end
 let int = Int.ty
 
@@ -1848,7 +1848,7 @@ module Float =
       let name = "float"
       let reprs = [ 0.1 ]
       let copy = identity
-      let compare : float -> float -> int = Pervasives.compare
+      let compare : float -> float -> int = Transitioning.Stdlib.compare
       let equal : float -> float -> bool = (=)
       let pretty fmt f = Format.fprintf fmt "%f" f
       let varname _ = "f"

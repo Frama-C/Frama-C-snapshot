@@ -26,6 +26,13 @@ val has_fundef: exp -> bool
 (** @return [true] if a function whose name is given via [exp] is defined and
     [false] otherwise *)
 
+val check: kernel_function -> bool
+(** @return [true] iff code must be generated for annotations of the given
+    function. *)
+
+val instrument: kernel_function -> bool
+(** @return [true] iff the given function must be instrumented. *)
+
 (* ************************************************************************** *)
 (** {2 RTL} Operations on function belonging to the runtime library of E-ACSL *)
 (* ************************************************************************** *)

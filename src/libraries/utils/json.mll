@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2018                                               *)
+(*  Copyright (C) 2007-2019                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -26,18 +26,18 @@
 
 {
 
-type t =
-  | Null
-  | True | False
-  | String of string
-  | Number of string
-  | Int of int
-  | Float of float
-  | Array of t list
-  | Assoc of (string * t) list
+type json =
+       [ `Assoc of (string * json) list
+       | `Bool of bool
+       | `Float of float
+       | `Int of int
+       | `List of json list
+       | `Null
+       | `String of string ]
 
+type t = json
 let equal = (=)
-let compare = Pervasives.compare
+let compare = Transitioning.Stdlib.compare
 
 type token = EOF | TRUE | FALSE | NULL | KEY of char
            | STR of string | INT of string | DEC of string
@@ -88,15 +88,15 @@ let skip input =
 *)
 let rec parse_value input =
   match input.token with
-  | EOF -> Null
-  | TRUE -> skip input ; True
-  | FALSE -> skip input ; False
-  | NULL -> skip input ; Null
-  | STR a -> skip input ; String a
-  | INT a -> skip input ; (try Int(int_of_string a) with _ -> Number a)
-  | DEC a -> skip input ; (try Float(float_of_string a) with _ -> Number a)
-  | KEY '[' -> skip input ; Array (parse_array [] input)
-  | KEY '{' -> skip input ; Assoc (parse_object [] input)
+  | EOF -> `Null
+  | TRUE -> skip input ; `Bool true
+  | FALSE -> skip input ; `Bool false
+  | NULL -> skip input ; `Null
+  | STR a -> skip input ; `String a
+  | INT a -> skip input ; (try `Int(int_of_string a) with _ -> `String a)
+  | DEC a -> skip input ; (try `Float(float_of_string a) with _ -> `String a)
+  | KEY '[' -> skip input ; `List (parse_array [] input)
+  | KEY '{' -> skip input ; `Assoc (parse_object [] input)
   | _ -> failwith "unexpected token"
 
 and parse_array es input =
@@ -163,20 +163,18 @@ let load_file file =
 
 let rec pp fmt v = let open Format in
   match v with
-  | Null -> pp_print_string fmt "null"
-  | True -> pp_print_string fmt "true"
-  | False -> pp_print_string fmt "false"
-  | String s -> fprintf fmt "%S" s
-  | Number s -> pp_print_string fmt s
-  | Int a -> pp_print_int fmt a
-  | Float f -> pp_print_float fmt f
-  | Array [] -> pp_print_string fmt "[]"
-  | Array (e::es) ->
+  | `Null -> pp_print_string fmt "null"
+  | `Bool b -> pp_print_bool fmt b
+  | `String s -> fprintf fmt "%S" s
+  | `Int a -> pp_print_int fmt a
+  | `Float f -> pp_print_float fmt f
+  | `List [] -> pp_print_string fmt "[]"
+  | `List (e::es) ->
       Format.fprintf fmt "@[<hov 2>[ %a" pp e ;
       List.iter (fun e -> Format.fprintf fmt ",@ %a" pp e) es ;
       Format.fprintf fmt " ]@]"
-  | Assoc [] -> pp_print_string fmt "{}"
-  | Assoc (e::es) ->
+  | `Assoc [] -> pp_print_string fmt "{}"
+  | `Assoc (e::es) ->
       Format.fprintf fmt "@[<hov 2>{ %a" pp_entry e ;
       List.iter (fun e -> Format.fprintf fmt ",@ %a" pp_entry e) es ;
       Format.fprintf fmt " }@]"
@@ -188,20 +186,19 @@ let dump_string f s =
   f quote ; f (String.escaped s) ; f quote
 
 let rec dump f = function
-  | Null -> f "null"
-  | True -> f "true"
-  | False -> f "false"
-  | String s -> dump_string f s
-  | Number s -> f s
-  | Int a -> f (string_of_int a)
-  | Float x -> f (string_of_float x)
-  | Array [] -> f "[]"
-  | Array (e::es) ->
+  | `Null -> f "null"
+  | `Bool true -> f "true"
+  | `Bool false -> f "false"
+  | `String s -> dump_string f s
+  | `Int a -> f (string_of_int a)
+  | `Float x -> f (string_of_float x)
+  | `List [] -> f "[]"
+  | `List (e::es) ->
       f "[" ; dump f e ;
       List.iter (fun e -> f "," ; dump f e) es ;
       f "]"
-  | Assoc [] -> f "{}"
-  | Assoc (e::es) ->
+  | `Assoc [] -> f "{}"
+  | `Assoc (e::es) ->
       f "{" ;
       dump_entry f e ;
       List.iter (fun e -> f "," ; dump_entry f e) es ;
@@ -244,57 +241,59 @@ let save_file ?(pretty=true) file v =
 let invalid name = raise (Invalid_argument ("Json." ^ name))
 
 let bool = function
-  | True -> true
-  | False -> false
+  | `Bool b -> b
   | _ -> invalid "bool"
 
 let int = function
-  | Null -> 0
-  | Int n -> n
-  | Float f -> (try int_of_float f with _ -> invalid "int")
-  | Number s | String s -> (try int_of_string s with _ -> invalid "int")
+  | `Null -> 0
+  | `Int n -> n
+  | `Float f -> (try int_of_float f with _ -> invalid "int")
   | _ -> invalid "int"
 
 let float = function
-  | Null -> 0.0
-  | Float f -> f
-  | Int n -> (try float_of_int n with _ -> invalid "float")
-  | Number s | String s -> (try float_of_string s with _ -> invalid "float")
+  | `Null -> 0.0
+  | `Float f -> f
+  | `Int n -> (try float_of_int n with _ -> invalid "float")
   | _ -> invalid "float"
 
 let string = function
-  | Null -> ""
-  | Int n -> string_of_int n
-  | Float f -> string_of_float f
-  | Number s | String s -> s
+  | `Null -> ""
+  | `Int n -> string_of_int n
+  | `Float f -> string_of_float f
+  | `String s -> s
   | _ -> invalid "string"
 
 let list = function
-  | Null -> []
-  | Array es -> es
+  | `Null -> []
+  | `List es -> es
   | _ -> invalid "list"
 
 let array = function
-  | Null -> [| |]
-  | Array es -> Array.of_list es
+  | `Null -> [| |]
+  | `List es -> Array.of_list es
   | _ -> invalid "array"
 
+let assoc = function
+  | `Null -> []
+  | `Assoc fs -> fs
+  | _ -> invalid "assoc"
+
 let field f = function
-  | Null -> raise Not_found
-  | Assoc fs -> List.assoc f fs
+  | `Null -> raise Not_found
+  | `Assoc fs -> List.assoc f fs
   | _ -> invalid "field"
 
 let fold f v w = match v with
-  | Null -> w
-  | Assoc fs -> List.fold_left (fun w (e,v) -> f e v w) w fs
+  | `Null -> w
+  | `Assoc fs -> List.fold_left (fun w (e,v) -> f e v w) w fs
   | _ -> invalid "fold"
 
-let of_bool b = if b then True else False
-let of_int k = Int k
-let of_string s = String s
-let of_float f = Float f
-let of_list xs = Array xs
-let of_array xs = Array (Array.to_list xs)
-let of_fields m = Assoc m
+let of_bool b = `Bool b
+let of_int k = `Int k
+let of_string s = `String s
+let of_float f = `Float f
+let of_list xs = `List xs
+let of_array xs = `List (Array.to_list xs)
+let of_fields m = `Assoc m
 
 }

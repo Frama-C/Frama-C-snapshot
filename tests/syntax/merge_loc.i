@@ -20,4 +20,4 @@ extern int baz;
 
 extern int baz;
 
-int z = &baz;
+int z = (int) &baz;

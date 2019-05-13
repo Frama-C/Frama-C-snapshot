@@ -2,6 +2,7 @@
 [kernel] Parsing tests/wp_acsl/unit_bool.i (no preprocessing)
 [wp] Running WP plugin...
 [wp] Loading driver 'share/wp.driver'
+[wp] Warning: Missing RTE guards
 ------------------------------------------------------------
   Axiomatic 'Foo'
 ------------------------------------------------------------
@@ -9,5 +10,78 @@
 Lemma f_1:
 Assume: 'f_def'
 Prove: (L_f 1)
+
+------------------------------------------------------------
+------------------------------------------------------------
+  Function boolean_casts
+------------------------------------------------------------
+
+Goal Check 'C0' (file tests/wp_acsl/unit_bool.i, line 12):
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Check 'C1' (file tests/wp_acsl/unit_bool.i, line 13):
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Check 'c0' (file tests/wp_acsl/unit_bool.i, line 14):
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Check 'c1' (file tests/wp_acsl/unit_bool.i, line 15):
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Check 'c2' (file tests/wp_acsl/unit_bool.i, line 16):
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Check 'X0' (file tests/wp_acsl/unit_bool.i, line 18):
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Check 'X1' (file tests/wp_acsl/unit_bool.i, line 19):
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Check 'x0' (file tests/wp_acsl/unit_bool.i, line 20):
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Check 'x1' (file tests/wp_acsl/unit_bool.i, line 21):
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Check 'x2' (file tests/wp_acsl/unit_bool.i, line 22):
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Check 'B0' (file tests/wp_acsl/unit_bool.i, line 24):
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Check 'B1' (file tests/wp_acsl/unit_bool.i, line 25):
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Check 'b0' (file tests/wp_acsl/unit_bool.i, line 26):
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Check 'b1' (file tests/wp_acsl/unit_bool.i, line 27):
+Prove: true.
 
 ------------------------------------------------------------

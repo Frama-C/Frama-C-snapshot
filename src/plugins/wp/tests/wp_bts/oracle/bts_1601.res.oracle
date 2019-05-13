@@ -8,7 +8,14 @@
 ------------------------------------------------------------
 
 Goal Assertion (file tests/wp_bts/bts_1601.c, line 72):
-Prove: true.
+Assume {
+  Type: is_uint32(tenumRMode_0).
+  (* Residual *)
+  When: ne_f32(fRrValue_0, to_f32(.0)).
+  (* Goal *)
+  When: of_f32(fRrValue_0) = .0.
+}
+Prove: tenumRMode_0 = 1.
 
 ------------------------------------------------------------
 

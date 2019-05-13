@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2018                                               *)
+(*  Copyright (C) 2007-2019                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -47,7 +47,7 @@ let equation = function
 let rec constant = function
   | CInt64(z,_,_) -> e_bigint z
   | CChr c -> e_int64 (Ctypes.char c)
-  | CReal(f,_,_) -> Cfloat.code_lit f
+  | CReal(f,fk,s) -> Cfloat.code_lit (Ctypes.c_float fk) f s
   | CEnum e -> constant_exp e.eival
   | CStr _ | CWStr _ -> Warning.error "String constants not yet implemented"
 
@@ -193,7 +193,7 @@ module TYPE = STRUCTURAL
       let prefix = "Is"
       let natural = false
       let is_int = Cint.range
-      let is_float = Cfloat.range
+      let is_float _ _ = p_true
       let is_pointer _ = p_true
     end)
 

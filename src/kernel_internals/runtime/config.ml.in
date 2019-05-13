@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2018                                               *)
+(*  Copyright (C) 2007-2019                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -26,34 +26,51 @@ let version = "@VERSION@"
 let codename = "@VERSION_CODENAME@"
 let version_and_codename = version ^ " (" ^ codename ^ ")"
 
+let major_version = @MAJOR_VERSION@
+
+let minor_version = @MINOR_VERSION@
+
 let is_gui = ref false
 
 let ocamlc = "@OCAMLC@"
 let ocamlopt = "@OCAMLOPT@"
 let ocaml_wflags = "@WARNINGS@"
 
+let getenv_list name =
+  let path = Sys.getenv name in
+  Str.split (Str.regexp ":") path
+
+let add_symbolic_dir_list name = function
+  | [d] -> Filepath.add_symbolic_dir name d
+  | ds ->
+      List.iteri
+        (fun i d ->
+           let path = Printf.sprintf "%s#%d" name (succ i) in
+           Filepath.add_symbolic_dir path d)
+        ds
+
+
 let datadir = try Sys.getenv "FRAMAC_SHARE" with Not_found -> "@FRAMAC_DATADIR@"
+let framac_libc = datadir ^ "/libc"
+let extra_datadir = try getenv_list "FRAMAC_EXTRA_SHARE" with Not_found -> []
+let () = add_symbolic_dir_list "FRAMAC_EXTRA_SHARE" extra_datadir
+(** After so that it has the priority for pretty printing *)
 let () = Filepath.add_symbolic_dir "FRAMAC_SHARE" datadir
+
+let datadirs = datadir::extra_datadir
+
 let libdir = try Sys.getenv "FRAMAC_LIB" with Not_found -> "@FRAMAC_LIBDIR@"
 let () = Filepath.add_symbolic_dir "FRAMAC_LIB" libdir
 let plugin_dir =
   try
-    let path = Sys.getenv "FRAMAC_PLUGIN" in
-    Str.split (Str.regexp ":") path
+    getenv_list "FRAMAC_PLUGIN"
   with Not_found ->
     try [ Sys.getenv "FRAMAC_LIB" ^ "/plugins" ]
     with Not_found -> [ "@FRAMAC_PLUGINDIR@" ]
 
 let plugin_path = String.concat ":" plugin_dir
 
-let () = match plugin_dir with
-  | [d] -> Filepath.add_symbolic_dir "FRAMAC_PLUGIN" d
-  | ds ->
-      Array.iteri
-        (fun i d ->
-           let path = Printf.sprintf "FRAMAC_PLUGIN#%d" (succ i) in
-           Filepath.add_symbolic_dir path d)
-        (Array.of_list ds)
+let () = add_symbolic_dir_list "FRAMAC_PLUGIN" plugin_dir
 
 let default_cpp = "@FRAMAC_DEFAULT_CPP@"
 
@@ -79,7 +96,5 @@ let preprocessor_keep_comments =
 
 let compilation_unit_names = [@COMPILATION_UNITS@]
 let library_names = [@LIBRARY_NAMES@]
-
-let has_yojson = @HAS_YOJSON@
 
 let dot = @OPTDOT@

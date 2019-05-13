@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2018                                               *)
+(*  Copyright (C) 2007-2019                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -66,7 +66,7 @@ module Make
                                              and type loc = location)
   = struct
 
-    let update _ _ = ()
+    let update _ _ = `Value ()
     let assign _ _ _ _ _ _ = `Value ()
     let assume _ _ _ _ _ = `Value ()
     let start_call _ _ _ _ = `Value ()

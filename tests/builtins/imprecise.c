@@ -19,7 +19,7 @@ void write_garbled() { // Write through a garbled mix
   int *p = (&j + (int) &k) - (int) &k; // creates a garbled mix
   *p = 1;
   Frama_C_dump_each();
-  *p = p;
+  *p = (int) p;
 }
 
 volatile int v, addr;
@@ -50,7 +50,7 @@ void abstract_structs() {
 //  v2 = v1;
   memset(&v3, -5, sizeof(v3)); // Also illegal, rejected by gcc
   int *p2 = ((int*)&v2)+1;
-  *p2 = &addr;
+  *p2 = (int) &addr;
 //  *t[5] = v2; // assigning incomplete type
   char *p4 = ((char*)&v5) + (short)v;
   *p4 = 18;
@@ -63,7 +63,7 @@ void abstract_structs() {
 void cast_address() {
   int x;
   int *p = &x;
-  char c1 = p;
+  char c1 = (char) p;
   char c2 = *((char*)&p);
   char c3 = *((char*)&p)+0;
 }

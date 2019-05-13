@@ -13,4 +13,8 @@ void main() {
   int r4 = strncasecmp(s1, s, 3);
   if (nondet) strncasecmp(s1, s, 4);
   int r5 = strncasecmp(s1, s2, 0);
+
+  char s4[10];
+  bzero(s4, 10);
+  //@ assert s4[9] == s4[8] == 0;
 }

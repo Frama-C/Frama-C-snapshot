@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2018                                               *)
+(*  Copyright (C) 2007-2019                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -34,6 +34,14 @@ val version_and_codename: string
 (** Frama-C version and codename.
     @since 18.0-Argon *)
 
+val major_version: int
+(** Frama-C major version number.
+    @since Frama-C+dev *)
+
+val minor_version: int
+(** Frama-C minor version number.
+    @since Frama-C+dev *)
+
 val is_gui: bool ref
   (** Is the Frama-C GUI running?
       @since Beryllium-20090601-beta1 *)
@@ -51,7 +59,17 @@ val ocaml_wflags: string
       @since Chlorine-20180501 *)
 
 val datadir: string
-  (** Directory where architecture independent files are. *)
+  (** Directory where architecture independent files are.
+      Main directory, use {!datadirs} for the others *)
+
+val datadirs: string list
+  (** Directories where architecture independent files are in order of
+      priority.
+      @since Frama-C-trunk*)
+
+val framac_libc: string
+  (** Directory where Frama-C libc headers are.
+      @since Frama-C-trunk*)
 
 val libdir: string
   (** Directory where the Frama-C kernel library is.
@@ -111,11 +129,6 @@ val dot: string option
 (** Dot command name.
     @return [None] if `dot' is not installed.
     @since Carbon-20101201 *)
-
-val has_yojson: bool
-(** [true] if Frama-C has been compiled with yojson support.
-    @since Chlorine-20180501
-*)
 
 (*
   Local Variables:

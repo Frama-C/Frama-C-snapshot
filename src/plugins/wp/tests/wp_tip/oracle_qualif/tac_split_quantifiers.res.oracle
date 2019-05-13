@@ -4,13 +4,14 @@
 [wp] Loading driver 'share/wp.driver'
 [wp] Warning: Missing RTE guards
 [wp] 5 goals scheduled
-[wp] [Tactical] Goal typed_split_post_Goal_Exist_Or : Unknown
-[wp] [Tactical] Goal typed_split_post_Goal_Exist_And : Unknown
-[wp] [Tactical] Goal typed_split_post_Goal_Exist_And_bis : Unknown
-[wp] [Tactical] Goal typed_split_post_Hyp_Forall_And : Unknown
-[wp] [Tactical] Goal typed_split_post_Hyp_Forall_Or_bis : Unknown
+[wp] [Tactical] Goal typed_split_ensures_Goal_Exist_Or : Unsuccess
+[wp] [Tactical] Goal typed_split_ensures_Goal_Exist_And : Unsuccess
+[wp] [Tactical] Goal typed_split_ensures_Goal_Exist_And_bis : Unsuccess
+[wp] [Tactical] Goal typed_split_ensures_Hyp_Forall_And : Unsuccess
+[wp] [Tactical] Goal typed_split_ensures_Hyp_Forall_Or_bis : Unsuccess
 [wp] Proved goals:    0 / 5
-[wp] Report 'tests/wp_tip/tac_split_quantifiers.i.0.report.json'
+[wp] Report in:  'tests/wp_tip/oracle_qualif/tac_split_quantifiers.0.report.json'
+[wp] Report out: 'tests/wp_tip/result_qualif/tac_split_quantifiers.0.report.json'
 -------------------------------------------------------------
 Functions           WP     Alt-Ergo        Total   Success
 split               -      -                 5       0.0%

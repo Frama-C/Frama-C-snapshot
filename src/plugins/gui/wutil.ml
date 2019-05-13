@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2018                                               *)
+(*  Copyright (C) 2007-2019                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -26,36 +26,21 @@
 
 let on x f = match x with None -> () | Some x -> f x
 let fire fs x = List.iter (fun f -> f x) fs
-
-type ('a,'b) cell = Value of 'b | Fun of ('a -> 'b)
-let get p x =
-  match !p with
-  | Value y -> y
-  | Fun f -> let y = f x in p := Value y ; y
-let once f = get (ref (Fun f))
+let once = Wutil_once.once
 
 (* -------------------------------------------------------------------------- *)
 (* ---  Pango Properties                                                  --- *)
 (* -------------------------------------------------------------------------- *)
 
-let small_font =
-  once (fun f ->
-      let f = Pango.Font.copy f in
-      let s = Pango.Font.get_size f in
-      Pango.Font.set_size f (s-2) ; f)
-
-let bold_font =
-  once (fun f ->
-      let f = Pango.Font.copy f in
-      Pango.Font.set_weight f `BOLD ; f)
-
-let modify_font phi widget =
-  widget#misc#modify_font (phi widget#misc#pango_context#font_description)
+include Gtk_compat.Pango
 
 let set_font w name = w#misc#modify_font_by_name name
 let set_monospace w = set_font w "monospace"
-let set_small_font w = modify_font small_font w
-let set_bold_font w = modify_font bold_font w
+
+(* -------------------------------------------------------------------------- *)
+(* --- Misc                                                               --- *)
+(* -------------------------------------------------------------------------- *)
+
 let set_tooltip w m = on m w#misc#set_tooltip_text
 let set_enabled (w : #GObj.widget) = w#misc#set_sensitive
 let set_visible (w : #GObj.widget) e =
@@ -95,6 +80,23 @@ let later f =
   let for_idle () = f () ; false in
   let prio = Glib.int_of_priority `LOW in
   ignore (Glib.Idle.add ~prio for_idle)
+
+(* -------------------------------------------------------------------------- *)
+(* ---  Ratio                                                             --- *)
+(* -------------------------------------------------------------------------- *)
+
+let get_pane_ratio (paned:GPack.paned) =
+  let paned_min_pos = paned#min_position in
+  let paned_max_pos = paned#max_position in
+  let length = paned_max_pos - paned_min_pos in
+  if length = 0 then 0.5
+  else (float_of_int paned#position)/.(float_of_int length)
+
+let set_pane_ratio (paned:GPack.paned) ratio =
+  let paned_min_pos = paned#min_position in
+  let offset =
+    int_of_float (float (paned#max_position - paned_min_pos) *. ratio)
+  in paned#set_position (paned_min_pos + offset)
 
 (* -------------------------------------------------------------------------- *)
 (* ---  Widget & Signals                                                  --- *)

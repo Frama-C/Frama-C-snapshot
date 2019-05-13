@@ -63,3 +63,61 @@ Call Effect at line 30
 Prove: true.
 
 ------------------------------------------------------------
+------------------------------------------------------------
+  Function USE_ASSIGN_UNFOLD_KO
+------------------------------------------------------------
+
+Goal Post-condition (file tests/wp_plugin/unfold_assigns.i, line 48) in 'USE_ASSIGN_UNFOLD_KO':
+Let a = Load_S1_S(q, Mint_0).
+Let a_1 = Load_S1_S(q, havoc(Mint_undef_0, Mint_0, p, 2)).
+Assume {
+  Type: IsS1_S(a) /\ IsS1_S(a_1).
+  (* Goal *)
+  When: separated(p, 2, q, 2).
+  (* Heap *)
+  Have: (region(p.base) <= 0) /\ (region(q.base) <= 0) /\ linked(Malloc_0).
+}
+Prove: EqS1_S(a_1, a).
+
+------------------------------------------------------------
+
+Goal Assigns (file tests/wp_plugin/unfold_assigns.i, line 49) in 'USE_ASSIGN_UNFOLD_KO':
+Call Effect at line 53
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Assigns (file tests/wp_plugin/unfold_assigns.i, line 49) in 'USE_ASSIGN_UNFOLD_KO':
+Call Effect at line 53
+Prove: true.
+
+------------------------------------------------------------
+------------------------------------------------------------
+  Function USE_ASSIGN_UNFOLD_OK
+------------------------------------------------------------
+
+Goal Post-condition (file tests/wp_plugin/unfold_assigns.i, line 39) in 'USE_ASSIGN_UNFOLD_OK':
+Let a = Load_S1_S(q, Mint_0).
+Let a_1 = Load_S1_S(q, havoc(Mint_undef_0, Mint_0, p, 2)).
+Assume {
+  Type: IsS1_S(a) /\ IsS1_S(a_1).
+  (* Goal *)
+  When: separated(p, 2, q, 2).
+  (* Heap *)
+  Have: (region(p.base) <= 0) /\ (region(q.base) <= 0) /\ linked(Malloc_0).
+}
+Prove: EqS1_S(a_1, a).
+
+------------------------------------------------------------
+
+Goal Assigns (file tests/wp_plugin/unfold_assigns.i, line 40) in 'USE_ASSIGN_UNFOLD_OK':
+Call Effect at line 44
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Assigns (file tests/wp_plugin/unfold_assigns.i, line 40) in 'USE_ASSIGN_UNFOLD_OK':
+Call Effect at line 44
+Prove: true.
+
+------------------------------------------------------------

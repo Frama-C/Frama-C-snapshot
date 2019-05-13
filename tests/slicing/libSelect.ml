@@ -77,7 +77,7 @@ let get_zones str_data (kinst, kf) =
   let lval_term = !Db.Properties.Interp.term_lval kf str_data in
   let lval = !Db.Properties.Interp.term_lval_to_lval ~result:None lval_term in
   let loc = !Db.Value.lval_to_loc (Cil_types.Kstmt kinst) lval in
-  Locations.enumerate_valid_bits ~for_writing:false loc
+  Locations.(enumerate_valid_bits Read loc)
 ;;
 
 let select_data_before_stmt str_data kinst kf =
@@ -91,11 +91,7 @@ let select_retres kf =
   let ki = Kernel_function.find_return kf in
     try
       let loc = Db.Value.find_return_loc kf in
-      let zone =
-	Locations.enumerate_valid_bits
-	  ~for_writing:false
-	  loc
-      in
+      let zone = Locations.(enumerate_valid_bits Read loc) in
       let mark = Slicing.Api.Mark.make ~data:true ~addr:false ~ctrl:false in
       let before = false in
         Slicing.Api.Select.select_stmt_zone_internal kf ki before zone mark

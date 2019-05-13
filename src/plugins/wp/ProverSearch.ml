@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2018                                               *)
+(*  Copyright (C) 2007-2019                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -40,7 +40,9 @@ let configure (console : #Tactical.feedback) strategy =
   | _ -> None
 
 let fork tree anchor strategy =
-  let console = new ProofScript.console ~title:strategy.tactical#title in
+  let console = new ProofScript.console
+    ~pool:(ProofEngine.pool tree)
+    ~title:strategy.tactical#title in
   try
     let model = ProofEngine.node_model anchor in
     match Model.with_model model (configure console) strategy with

@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2018                                               *)
+(*  Copyright (C) 2007-2019                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -211,8 +211,9 @@ Definition array (A : Type) := farray Z A.
 Hypothesis extensionality: forall (A B : Type) (f g : A -> B),
   (forall x, f x = g x) -> f = g.
 
+
 Definition select {A B : Type}
-  (m : farray A B) (k : A) : B := @Map.get A (whytype1 m) B (whytype2 m) m k.
+  (m : farray A B) (k : A) : B := (access m k).
 
 Lemma farray_eq : forall A B (m1 m2 : farray A B),
    whytype1 m1 = whytype1 m2 -> whytype2 m1 = whytype2 m2 ->
@@ -221,15 +222,14 @@ Proof.
   intros A B m1 m2.
   destruct m1. destruct m2. simpl.
   intros H1 H2; rewrite H1; rewrite H2 ; clear H1 H2.
-  destruct access0. destruct access1. compute.
   intro K.
-  rewrite (extensionality b b0 K).
+  rewrite (extensionality access0 access1 K).
   reflexivity.
 Qed.
 
 Definition update {A B : Type}
   (m : farray A B) (k : A) (v : B) : (farray A B) :=
-  {| whytype1 := whytype1 m; whytype2 := whytype2 m; access := @Map.set A (whytype1 m) B (whytype2 m) m k v|}.
+  {| whytype1 := whytype1 m; whytype2 := whytype2 m; access := @Map.set A (whytype1 m) B (whytype2 m) (access m) k v|}.
 
 Notation " a .[ k ] " := (select a k) (at level 60).
 Notation " a .[ k <- v ] " := (update a k v) (at level 60).
@@ -239,7 +239,7 @@ Lemma access_update :
   m.[k <- v].[k] = v.
 Proof.
   intros.
-  apply Map.Select_eq.
+  apply Map.set_def.
   reflexivity.
 Qed.
 
@@ -248,8 +248,8 @@ Lemma access_update_neq :
   i <> j -> m.[ i <- v ].[j] = m.[j].
 Proof.
   intros.
-  apply Map.Select_neq.
-  assumption.
+  apply Map.set_def.
+  auto.
 Qed.
 
 (** ** Division on Z *)

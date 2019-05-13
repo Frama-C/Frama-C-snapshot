@@ -1,5 +1,5 @@
 /* run.config*
-   OPT: -val @VALUECONFIG@ -journal-disable -val-builtins-auto -calldeps
+   OPT: -eva @EVA_CONFIG@ -journal-disable -eva-builtins-auto -calldeps
 */
 
 // This test verifies that writing in a memory location that may be const

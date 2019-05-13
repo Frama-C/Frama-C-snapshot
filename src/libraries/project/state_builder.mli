@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2018                                               *)
+(*  Copyright (C) 2007-2019                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -484,7 +484,15 @@ module type Hashcons = sig
 end
 
 (** Hashconsed version of an arbitrary datatype *)
-module Hashcons (Data: Datatype.S)(Info: Info) : Hashcons with type elt = Data.t
+module Hashcons
+    (Data: Datatype.S)
+    (Info: sig
+       include Info
+       val initial_values: Data.t list
+       (** List of values created at compile-time, that must be shared between
+           all instances of Frama-C. *)
+     end)
+  : Hashcons with type elt = Data.t
 
 
 (* ************************************************************************* *)

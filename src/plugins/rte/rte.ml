@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2018                                               *)
+(*  Copyright (C) 2007-2019                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -24,9 +24,7 @@ open Cil_types
 
 type 'a alarm_gen =
   remove_trivial:bool ->
-  on_alarm:(?status:Property_status.emitted_status ->
-            Alarms.alarm ->
-            unit) ->
+  on_alarm:(invalid:bool -> Alarms.alarm -> unit) ->
   'a -> unit
 
 type bound_kind = Alarms.bound_kind = Lower_bound | Upper_bound
@@ -45,7 +43,7 @@ let valid_index ~remove_trivial ~on_alarm e size =
     in
     (* Do not create upper-bound check on GNU zero-length arrays *)
     if not (bk == Upper_bound && Cil.isZero size) then begin
-      on_alarm ?status:None (Alarms.Index_out_of_bound(e, b))
+      on_alarm ~invalid:false (Alarms.Index_out_of_bound(e, b))
     end
   in
   if remove_trivial then begin
@@ -54,7 +52,7 @@ let valid_index ~remove_trivial ~on_alarm e size =
     let v_e = get_expr_val e in
     let v_size = get_expr_val size in
     let neg_ok =
-      Extlib.may_map ~dft:false (Integer.le Integer.zero) v_e 
+      Extlib.may_map ~dft:false (Integer.le Integer.zero) v_e
       || Cil.isUnsignedInteger (Cil.typeOf e)
     in
     if not neg_ok then alarm Lower_bound;
@@ -76,11 +74,11 @@ let valid_index ~remove_trivial ~on_alarm e size =
 let lval_assertion ~read_only ~remove_trivial ~on_alarm lv =
   (* For accesses to known arrays we generate an assertions that constrains
      the index. This is simpler than the [\valid] assertion *)
-  let rec check_array_access default off typ in_struct = 
+  let rec check_array_access default off typ in_struct =
     match off with
-    | NoOffset -> 
-      if default then 
-        on_alarm ?status:None (Alarms.Memory_access(lv, read_only))
+    | NoOffset ->
+      if default then
+        on_alarm ~invalid:false (Alarms.Memory_access(lv, read_only))
     | Field (fi, off) ->
       (* Mark that we went through a struct field, then recurse *)
       check_array_access default off fi.ftype true
@@ -108,10 +106,10 @@ let lval_assertion ~read_only ~remove_trivial ~on_alarm lv =
 
 (* assertion for lvalue initialization *)
 let lval_initialized_assertion ~remove_trivial:_ ~on_alarm lv =
-  let rec check_array_initialized default off typ in_struct l = 
+  let rec check_array_initialized default off typ in_struct l =
     match off with
-    | NoOffset -> 
-      begin 
+    | NoOffset ->
+      begin
         match typ with
         | TComp({cstruct = false; cfields} ,_,_) ->
           (match cfields with
@@ -123,11 +121,11 @@ let lval_initialized_assertion ~remove_trivial:_ ~on_alarm lv =
                  (fun fi -> Cil.addOffsetLval (Field (fi, NoOffset)) lv)
                  cfields
              in
-             if default then 
-               on_alarm ?status:None (Alarms.Uninitialized_union llv))
-        | _ ->    
-          if default then 
-            on_alarm ?status:None (Alarms.Uninitialized lv)
+             if default then
+               on_alarm ~invalid:false (Alarms.Uninitialized_union llv))
+        | _ ->
+          if default then
+            on_alarm ~invalid:false (Alarms.Uninitialized lv)
       end
     | Field (fi, off) ->
       (* Mark that we went through a struct field, then recurse *)
@@ -158,17 +156,17 @@ let uminus_assertion ~remove_trivial ~on_alarm exp =
   let min_ty = Cil.min_signed_number size in
   (* alarm is bound <= exp, hence bound must be MIN_INT+1 *)
   let bound = Integer.add Integer.one min_ty in
-  let alarm ?status () =
+  let alarm ?(invalid=false) () =
     let a = Alarms.Overflow(Alarms.Signed, exp, bound, Lower_bound) in
-    on_alarm ?status a
+    on_alarm ~invalid a
   in
   if remove_trivial then begin
     match get_expr_val exp with
     | None -> alarm ()
-    | Some a64 -> 
+    | Some a64 ->
       (* constant operand *)
       if Integer.equal a64 min_ty then
-        alarm ~status:Property_status.False_if_reachable ()
+        alarm ~invalid:true ()
   end
   else alarm ()
 
@@ -179,17 +177,17 @@ let mult_sub_add_assertion ~signed ~remove_trivial ~on_alarm (exp,op,lexp,rexp) 
      is strictly more than [max_ty] or strictly less than [min_ty] *)
   let t = Cil.unrollType (Cil.typeOf exp) in
   let size = Cil.bitsSizeOf t in
-  let min_ty, max_ty = 
+  let min_ty, max_ty =
     if signed then Cil.min_signed_number size, Cil.max_signed_number size
-    else Integer.zero, Cil.max_unsigned_number size 
+    else Integer.zero, Cil.max_unsigned_number size
   in
-  let alarm ?status bk =
+  let alarm ?(invalid=false) bk =
     let bound = match bk with
       | Upper_bound -> max_ty
       | Lower_bound -> min_ty
     in
     let signed = if signed then Alarms.Signed else Alarms.Unsigned in
-    on_alarm ?status (Alarms.Overflow (signed, exp, bound, bk));
+    on_alarm ~invalid (Alarms.Overflow (signed, exp, bound, bk));
   in
   let alarms () =
     alarm Lower_bound;
@@ -199,7 +197,7 @@ let mult_sub_add_assertion ~signed ~remove_trivial ~on_alarm (exp,op,lexp,rexp) 
     match get_expr_val lexp, get_expr_val rexp, op with
     | Some l, Some r, _ -> (* both operands are constant *)
       let warn r =
-        let warn bk = alarm ~status:Property_status.False_if_reachable bk in
+        let warn bk = alarm ~invalid:true bk in
         if Integer.gt r max_ty then warn Upper_bound
         else if Integer.lt r min_ty then warn Lower_bound
       in
@@ -228,7 +226,7 @@ let mult_sub_add_assertion ~signed ~remove_trivial ~on_alarm (exp,op,lexp,rexp) 
         (* Only negative overflows are possible, since r is positive. (TODO:
            nothing can happen on [max_int]. *)
         alarm Lower_bound
-      end 
+      end
 
     | Some v, None, Mult | None, Some v, Mult
       when Integer.is_zero v || Integer.is_one v -> ()
@@ -240,8 +238,8 @@ let mult_sub_add_assertion ~signed ~remove_trivial ~on_alarm (exp,op,lexp,rexp) 
 (* assertions for division and modulo (divisor is 0) *)
 let divmod_assertion ~remove_trivial ~on_alarm divisor =
   (* division or modulo: overflow occurs when divisor is equal to zero *)
-  let alarm ?status () =
-    on_alarm ?status (Alarms.Division_by_zero divisor);
+  let alarm ?(invalid=false) () =
+    on_alarm ~invalid (Alarms.Division_by_zero divisor);
   in
   if remove_trivial then begin
     match get_expr_val divisor with
@@ -250,7 +248,7 @@ let divmod_assertion ~remove_trivial ~on_alarm divisor =
     | Some v64 ->
       if Integer.equal v64 Integer.zero then
         (* divide by 0 *)
-        alarm ~status:Property_status.False_if_reachable ()
+        alarm ~invalid:true ()
         (* else divide by constant which is not 0: nothing to assert *)
   end
   else alarm ()
@@ -270,9 +268,9 @@ let signed_div_assertion ~remove_trivial ~on_alarm (exp, lexp, rexp) =
   (* check dividend_expr / divisor_expr : if constants ... *)
   (* compute smallest representable "size bits" (signed) integer *)
   let max_ty = Cil.max_signed_number size in
-  let alarm ?status () =
+  let alarm ?(invalid=false) () =
     let a = Alarms.Overflow(Alarms.Signed, exp, max_ty, Alarms.Upper_bound) in
-    on_alarm ?status a;
+    on_alarm ~invalid a;
   in
   if remove_trivial then begin
     let min = Cil.min_signed_number size in
@@ -285,8 +283,8 @@ let signed_div_assertion ~remove_trivial ~on_alarm (exp, lexp, rexp) =
       ()
     | Some _, Some _ ->
       (* invalid constant division *)
-      alarm ~status:Property_status.False_if_reachable ()
-    | None, Some _ | Some _, None | None, None -> 
+      alarm ~invalid:true ()
+    | None, Some _ | Some _, None | None, None ->
       (* at least one is not constant: cannot conclude *)
       alarm ()
   end
@@ -294,9 +292,9 @@ let signed_div_assertion ~remove_trivial ~on_alarm (exp, lexp, rexp) =
 
 (* Assertions for the left and right operands of left and right shift. *)
 let shift_assertion ~remove_trivial ~on_alarm (exp, upper_bound) =
-  let alarm ?status () =
+  let alarm ?(invalid=false) () =
     let a = Alarms.Invalid_shift(exp, upper_bound) in
-    on_alarm ?status a;
+    on_alarm ~invalid a ;
   in
   if remove_trivial then begin
     match get_expr_val exp with
@@ -310,7 +308,7 @@ let shift_assertion ~remove_trivial ~on_alarm (exp, upper_bound) =
         | Some u -> Integer.lt c64 (Integer.of_int u)
       in
       if not (Integer.ge c64 Integer.zero && upper_bound_ok) then
-        alarm ~status:Property_status.False_if_reachable ()
+        alarm ~invalid:true ()
   end
   else alarm ()
 
@@ -340,22 +338,22 @@ let shift_overflow_assertion ~signed ~remove_trivial ~on_alarm (exp, op, lexp, r
       then Cil.max_signed_number size
       else Cil.max_unsigned_number size
     in
-    let overflow_alarm ?status () =
+    let overflow_alarm ?(invalid=false) () =
       let signed = if signed then Alarms.Signed else Alarms.Unsigned in
       let a = Alarms.Overflow (signed, exp, maxValResult, Alarms.Upper_bound) in
-      on_alarm ?status a;
+      on_alarm ~invalid a;
     in
     if remove_trivial then begin
       match get_expr_val lexp, get_expr_val rexp with
-      | None,_ | _, None -> 
+      | None,_ | _, None ->
         overflow_alarm ()
       | Some lval64, Some rval64 ->
         (* both operands are constant: check result is representable in
            result type *)
-        if Integer.ge rval64 Integer.zero 
+        if Integer.ge rval64 Integer.zero
         && Integer.gt (Integer.shift_left lval64 rval64) maxValResult
         then
-          overflow_alarm ~status:Property_status.False_if_reachable ()
+          overflow_alarm ~invalid:true ()
     end
     else overflow_alarm ()
 
@@ -375,16 +373,16 @@ let unsigned_downcast_assertion ~remove_trivial ~on_alarm (ty, exp) =
           ok is same bit size ;
           if target is <, requires <= max target *)
        let max_ty = Cil.max_unsigned_number szTo in
-       let alarm ?status bk =
+       let alarm ?(invalid=false) bk =
          let b = match bk with
            | Lower_bound -> Integer.zero
            | Upper_bound -> max_ty
          in
          let a = Alarms.Overflow (Alarms.Unsigned_downcast, exp, b, bk) in
-         on_alarm ?status a;
+         on_alarm ~invalid a;
        in
        let alarms () =
-         if Cil.isSigned kind then begin (* signed to unsigned *) 
+         if Cil.isSigned kind then begin (* signed to unsigned *)
            alarm Upper_bound;
            alarm Lower_bound;
          end else (* unsigned to unsigned; cannot overflow in the negative *)
@@ -395,11 +393,9 @@ let unsigned_downcast_assertion ~remove_trivial ~on_alarm (ty, exp) =
          | None -> alarms ()
          | Some a64 ->
            if Integer.lt a64 Integer.zero then
-             alarm ~status:Property_status.False_if_reachable
-               Lower_bound
+             alarm ~invalid:true Lower_bound
            else if Integer.gt a64 max_ty then
-             alarm ~status:Property_status.False_if_reachable
-               Upper_bound
+             alarm ~invalid:true Upper_bound
        end
        else alarms ())
   | _ -> ()
@@ -416,13 +412,13 @@ let signed_downcast_assertion ~remove_trivial ~on_alarm (ty, exp) =
        (* downcast: the expression result should fit on szTo bits *)
        let min_ty = Cil.min_signed_number szTo in
        let max_ty = Cil.max_signed_number szTo in
-       let alarm ?status bk =
+       let alarm ?(invalid=false) bk =
          let b = match bk with
            | Lower_bound -> min_ty
            | Upper_bound -> max_ty
          in
          let a = Alarms.Overflow (Alarms.Signed_downcast, exp, b, bk) in
-         on_alarm ?status a;
+         on_alarm ~invalid a;
        in
        let alarms () =
          if Cil.isSigned kind then begin
@@ -437,9 +433,9 @@ let signed_downcast_assertion ~remove_trivial ~on_alarm (ty, exp) =
          | None -> alarms ()
          | Some a64 ->
            (if Integer.lt a64 min_ty then
-              alarm ~status:Property_status.False_if_reachable Lower_bound
+              alarm ~invalid:true Lower_bound
             else if Integer.gt a64 max_ty then
-              alarm ~status:Property_status.False_if_reachable Upper_bound)
+              alarm ~invalid:true Upper_bound)
        end
        else alarms ())
   | _ -> ()
@@ -456,12 +452,12 @@ let float_to_int_assertion ~remove_trivial ~on_alarm (ty, exp) =
       else
         Integer.zero, Cil.max_unsigned_number szTo
     in
-    let alarm ?status bk =
+    let alarm ?(invalid=false) bk =
       let b = match bk with
         | Lower_bound -> min_ty
         | Upper_bound -> max_ty
       in
-      on_alarm ?status (Alarms.Float_to_int (exp, b, bk))
+      on_alarm ~invalid (Alarms.Float_to_int (exp, b, bk))
     in
     let f = match exp.enode with
       | Const (CReal (f, _, _)) -> Some f
@@ -474,9 +470,9 @@ let float_to_int_assertion ~remove_trivial ~on_alarm (ty, exp) =
          try
            let fint = Floating_point.truncate_to_integer f in
            if Integer.lt fint min_ty then
-             alarm ~status:Property_status.False_if_reachable Lower_bound
+             alarm ~invalid:true Lower_bound
            else if Integer.gt fint max_ty then
-             alarm ~status:Property_status.False_if_reachable Upper_bound
+             alarm ~invalid:true Upper_bound
          with Floating_point.Float_Non_representable_as_Int64 sign ->
          match sign with
          | Floating_point.Neg -> alarm Lower_bound
@@ -490,19 +486,25 @@ let float_to_int_assertion ~remove_trivial ~on_alarm (ty, exp) =
 
 (* assertion for checking only finite float are used *)
 let finite_float_assertion ~remove_trivial:_ ~on_alarm (fkind, exp) =
-  let status = None in
+  let invalid = false in
   match Kernel.SpecialFloat.get () with
   | "none"       -> ()
-  | "nan"        -> on_alarm ?status (Alarms.Is_nan (exp, fkind))
-  | "non-finite" -> on_alarm ?status (Alarms.Is_nan_or_infinite (exp, fkind))
+  | "nan"        -> on_alarm ~invalid (Alarms.Is_nan (exp, fkind))
+  | "non-finite" -> on_alarm ~invalid (Alarms.Is_nan_or_infinite (exp, fkind))
   | _            -> assert false
 
 (* assertion for a pointer call [( *e )(args)]. *)
 let pointer_call ~remove_trivial:_ ~on_alarm (e, args) =
-  on_alarm ?status:None (Alarms.Function_pointer (e, Some args))
+  on_alarm ~invalid:false (Alarms.Function_pointer (e, Some args))
 
-let bool_value ~remove_trivial:_ ~on_alarm lv =
-  on_alarm ?status:None (Alarms.Invalid_bool lv)
+let bool_value ~remove_trivial ~on_alarm lv =
+  match remove_trivial, lv with
+  | true, (Var vi, NoOffset)
+    when (* consider as trivial accesses to ...  *)
+      (not vi.vglob) && (* local variable or formal parameter when ... *)
+      (not vi.vaddrof)  (* their address is not taken *)
+    -> ()
+  | _ -> on_alarm ~invalid:false (Alarms.Invalid_bool lv)
 
 (*
 Local Variables:

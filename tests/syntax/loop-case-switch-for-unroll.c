@@ -1,7 +1,7 @@
 /* run.config
-   STDOPT: +"-slevel 100 -val"
-   STDOPT: +"-ulevel 1 -slevel 100 -val"
-   STDOPT: +"-ulevel 2 -slevel 100 -val"
+   STDOPT: +"-slevel 100 -eva"
+   STDOPT: +"-ulevel 1 -slevel 100 -eva"
+   STDOPT: +"-ulevel 2 -slevel 100 -eva"
    COMMENT: compile and run with GCC, save output to a file, and compare it to
    the result of Frama-C piped to:
      "| grep Frama_C_show_each | sed 's/^.*Frama_C_show_each_//'"

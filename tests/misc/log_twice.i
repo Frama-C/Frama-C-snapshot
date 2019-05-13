@@ -1,5 +1,6 @@
 /* run.config
-   OPT: -load-script tests/misc/log_twice -val-show-progress
+   EXECNOW: make -s @PTEST_DIR@/@PTEST_NAME@.cmxs
+   OPT: @EVA_CONFIG@ -load-module @PTEST_DIR@/@PTEST_NAME@
 */
 
 int* f() {

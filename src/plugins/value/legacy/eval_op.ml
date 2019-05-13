@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2018                                               *)
+(*  Copyright (C) 2007-2019                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -54,10 +54,7 @@ let v_uninit_of_offsetmap ~typ offsm =
   | Int_Base.Value size ->
     let validity = Base.validity_from_size size in
     let offsets = Ival.zero in
-    let _alarm, r =
-      V_Offsetmap.find ~validity ~conflate_bottom:false ~offsets ~size offsm
-    in
-    r
+    V_Offsetmap.find ~validity ~conflate_bottom:false ~offsets ~size offsm
 
 let backward_comp_int_left positive comp l r =
   if (Value_parameters.UndefinedPointerComparisonPropagateAll.get())
@@ -102,7 +99,7 @@ let reduce_by_initialized_defined f loc state =
       if v' != v then begin
         if V_Or_Uninitialized.is_bottom v' then raise Reduce_to_bottom;
         let il = Int.max offl ll and ih = Int.min offh lh in
-        let abs_shift = Integer.pos_rem (Rel.add_abs offl shift) modu in
+        let abs_shift = Integer.e_rem (Rel.add_abs offl shift) modu in
         (* il and ih are the bounds of the interval to reduce.
            We change the initialized flags in the following cases:
            - either we overwrite entire values, or the partly overwritten
@@ -110,12 +107,12 @@ let reduce_by_initialized_defined f loc state =
            - or we do not lose information on misaligned or partial values:
            the result is a singleton *)
         if V_Or_Uninitialized.(cardinal_zero_or_one v' || is_isotropic v') ||
-           ((Int.equal offl il || Int.equal (Int.pos_rem ll modu) abs_shift) &&
+           ((Int.equal offl il || Int.equal (Int.e_rem ll modu) abs_shift) &&
             (Int.equal offh ih ||
-             Int.equal (Int.pos_rem (Int.succ lh) modu) abs_shift))
+             Int.equal (Int.e_rem (Int.succ lh) modu) abs_shift))
         then
           let diff = Rel.sub_abs il offl in
-          let shift_il = Rel.pos_rem (Rel.sub shift diff) modu in
+          let shift_il = Rel.e_rem (Rel.sub shift diff) modu in
           V_Offsetmap.add (il, ih) (v', modu, shift_il) acc
         else acc
       end
@@ -133,7 +130,7 @@ let reduce_by_initialized_defined f loc state =
   | Ival.Not_Singleton_Int (* from Ival.project_int *) ->
     state
 
-let reduce_by_valid_loc ~positive ~for_writing loc typ state =
+let reduce_by_valid_loc ~positive access loc typ state =
   try
     let value = Cvalue.Model.find state loc in
     if Cvalue.V.is_imprecise value then
@@ -146,7 +143,7 @@ let reduce_by_valid_loc ~positive ~for_writing loc typ state =
     let reduced_value =
       Locations.loc_to_loc_without_size
         (if positive
-         then Locations.valid_part ~for_writing value_as_loc
+         then Locations.valid_part access value_as_loc
          else Locations.invalid_part value_as_loc )
     in
     if V.equal value reduced_value
@@ -179,7 +176,7 @@ let apply_on_all_locs f loc state =
   | Int_Base.Top -> state
   | Int_Base.Value _ as size ->
     try
-      let loc = Locations.valid_part ~for_writing:false loc in
+      let loc = Locations.valid_part Locations.Read loc in
       let loc = loc.Locations.loc in
       let plevel = Value_parameters.ArrayPrecisionLevel.get() in
       ignore (Locations.Location_Bits.cardinal_less_than loc plevel);
@@ -221,20 +218,20 @@ let add_if_singleton value acc =
   else acc
 
 let find_offsm_under validity ival size offsm acc =
-  let _alarm, offsets = Tr_offset.trim_by_validity ival size validity in
+  let offsets = Tr_offset.trim_by_validity ival size validity in
   match offsets with
   | Tr_offset.Invalid | Tr_offset.Overlap _ -> acc
   | Tr_offset.Set list ->
     let find acc offset =
       let offsets = Ival.inject_singleton offset in
-      let _, value = Cvalue.V_Offsetmap.find ~validity ~offsets ~size offsm in
+      let value = Cvalue.V_Offsetmap.find ~validity ~offsets ~size offsm in
       add_if_singleton value acc
     in
     List.fold_left find acc list
   | Tr_offset.Interval (min, max, modu) ->
     let process (start, _stop) (v, v_size, v_offset) acc =
       if Rel.(equal v_offset zero) && Int.equal v_size size
-         && Int.equal (Int.pos_rem (Int.sub start min) modu) Int.zero
+         && Int.equal (Int.e_rem (Int.sub start min) modu) Int.zero
       then add_if_singleton v acc
       else acc
     in

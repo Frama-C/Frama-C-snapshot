@@ -18,7 +18,7 @@
   the generated program may miss memory instrumentation
   if there are memory-related annotations.
 [e-acsl] FRAMAC_SHARE/libc/string.h:327: Warning: 
-  E-ACSL construct `logic function application' is not yet supported.
+  E-ACSL construct `logic functions with labels' is not yet supported.
   Ignoring annotation.
 [e-acsl] FRAMAC_SHARE/libc/string.h:328: Warning: 
   E-ACSL construct `logic function returning an integer' is not yet supported.
@@ -29,31 +29,36 @@
   E-ACSL construct `assigns clause in behavior' is not yet supported.
   Ignoring annotation.
 [e-acsl] FRAMAC_SHARE/libc/string.h:333: Warning: 
-  E-ACSL construct `logic function returning an integer' is not yet supported.
+  E-ACSL construct `logic functions performing read accesses'
+  is not yet supported.
   Ignoring annotation.
 [e-acsl] FRAMAC_SHARE/libc/string.h:143: Warning: 
-  E-ACSL construct `logic function application' is not yet supported.
+  E-ACSL construct `logic functions with labels' is not yet supported.
   Ignoring annotation.
 [e-acsl] FRAMAC_SHARE/libc/string.h:157: Warning: 
   E-ACSL construct `assigns clause in behavior' is not yet supported.
   Ignoring annotation.
 [e-acsl] FRAMAC_SHARE/libc/string.h:146: Warning: 
-  E-ACSL construct `user-defined logic type' is not yet supported.
+  E-ACSL construct `logic functions performing read accesses'
+  is not yet supported.
   Ignoring annotation.
 [e-acsl] FRAMAC_SHARE/libc/string.h:146: Warning: 
-  E-ACSL construct `user-defined logic type' is not yet supported.
+  E-ACSL construct `logic functions performing read accesses'
+  is not yet supported.
   Ignoring annotation.
 [e-acsl] FRAMAC_SHARE/libc/string.h:153: Warning: 
-  E-ACSL construct `user-defined logic type' is not yet supported.
+  E-ACSL construct `logic functions performing read accesses'
+  is not yet supported.
   Ignoring annotation.
 [e-acsl] FRAMAC_SHARE/libc/string.h:111: Warning: 
-  E-ACSL construct `logic function application' is not yet supported.
+  E-ACSL construct `logic functions with labels' is not yet supported.
   Ignoring annotation.
 [e-acsl] FRAMAC_SHARE/libc/string.h:111: Warning: 
   E-ACSL construct `assigns clause in behavior' is not yet supported.
   Ignoring annotation.
 [e-acsl] FRAMAC_SHARE/libc/string.h:113: Warning: 
-  E-ACSL construct `logic function returning an integer' is not yet supported.
+  E-ACSL construct `logic functions performing read accesses'
+  is not yet supported.
   Ignoring annotation.
 [e-acsl] FRAMAC_SHARE/libc/string.h:113: Warning: 
   E-ACSL construct `assigns clause in behavior' is not yet supported.

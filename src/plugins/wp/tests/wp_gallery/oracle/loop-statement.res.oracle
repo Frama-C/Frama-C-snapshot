@@ -4,17 +4,17 @@
 [wp] Loading driver 'share/wp.driver'
 [wp] Warning: Missing RTE guards
 [wp] Goal typed_lemma_Lb : not tried
-[wp] Goal typed_loop_statement_post_Scond : not tried
-[wp] Goal typed_loop_statement_post_Sloop : not tried
-[wp] Goal typed_loop_statement_loop_inv_Iloop_preserved : not tried
-[wp] Goal typed_loop_statement_loop_inv_Iloop_established : not tried
-[wp] Goal typed_loop_statement_loop_assign_part1 : trivial
-[wp] Goal typed_loop_statement_loop_assign_part2 : not tried
-[wp] Goal typed_loop_statement_assign_exit_part1 : trivial
-[wp] Goal typed_loop_statement_assign_exit_part2 : not tried
-[wp] Goal typed_loop_statement_assign_normal_part1 : trivial
-[wp] Goal typed_loop_statement_assign_normal_part2 : not tried
-[wp] Goal typed_loop_statement_stmt_pre_Rinv : not tried
-[wp] Goal typed_loop_statement_stmt_pre_Scond : not tried
-[wp] Goal typed_loop_statement_stmt_post_Sbody : not tried
-[wp] Goal typed_loop_statement_stmt_assign : trivial
+[wp] Goal typed_loop_statement_ensures_Scond : not tried
+[wp] Goal typed_loop_statement_ensures_Sloop : not tried
+[wp] Goal typed_loop_statement_loop_invariant_Iloop_preserved : not tried
+[wp] Goal typed_loop_statement_loop_invariant_Iloop_established : not tried
+[wp] Goal typed_loop_statement_loop_assigns_part1 : trivial
+[wp] Goal typed_loop_statement_loop_assigns_part2 : not tried
+[wp] Goal typed_loop_statement_assigns_2_exit_part1 : trivial
+[wp] Goal typed_loop_statement_assigns_2_exit_part2 : not tried
+[wp] Goal typed_loop_statement_assigns_2_normal_part1 : trivial
+[wp] Goal typed_loop_statement_assigns_2_normal_part2 : not tried
+[wp] Goal typed_loop_statement_requires_Rinv : not tried
+[wp] Goal typed_loop_statement_requires_Scond : not tried
+[wp] Goal typed_loop_statement_ensures_Sbody : not tried
+[wp] Goal typed_loop_statement_assigns : trivial

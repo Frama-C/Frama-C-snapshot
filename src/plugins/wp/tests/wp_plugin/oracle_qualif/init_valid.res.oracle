@@ -7,11 +7,12 @@
 [wp] [Qed] Goal typed_validA_assert_OK : Valid
 [wp] [Qed] Goal typed_validA_assert_OK_2 : Valid
 [wp] [Qed] Goal typed_validB_assert_OK : Valid
-[wp] [Alt-Ergo] Goal typed_validB_assert_KO : Unknown
+[wp] [Alt-Ergo] Goal typed_validB_assert_KO : Unsuccess
 [wp] Proved goals:    3 / 4
   Qed:             3 
-  Alt-Ergo:        0  (unknown: 1)
-[wp] Report 'tests/wp_plugin/init_valid.i.0.report.json'
+  Alt-Ergo:        0  (unsuccess: 1)
+[wp] Report in:  'tests/wp_plugin/oracle_qualif/init_valid.0.report.json'
+[wp] Report out: 'tests/wp_plugin/result_qualif/init_valid.0.report.json'
 -------------------------------------------------------------
 Functions           WP     Alt-Ergo        Total   Success
 validA               2     -                 2       100%

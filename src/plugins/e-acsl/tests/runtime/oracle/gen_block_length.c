@@ -9,12 +9,16 @@ int *PA;
 struct Zero ZERO;
 void __e_acsl_globals_init(void)
 {
-  __e_acsl_store_block((void *)(& ZERO),(size_t)0);
-  __e_acsl_full_init((void *)(& ZERO));
-  __e_acsl_store_block((void *)(& PA),(size_t)8);
-  __e_acsl_full_init((void *)(& PA));
-  __e_acsl_store_block((void *)(A),(size_t)16);
-  __e_acsl_full_init((void *)(& A));
+  static char __e_acsl_already_run = 0;
+  if (! __e_acsl_already_run) {
+    __e_acsl_already_run = 1;
+    __e_acsl_store_block((void *)(& ZERO),(size_t)0);
+    __e_acsl_full_init((void *)(& ZERO));
+    __e_acsl_store_block((void *)(& PA),(size_t)8);
+    __e_acsl_full_init((void *)(& PA));
+    __e_acsl_store_block((void *)(A),(size_t)16);
+    __e_acsl_full_init((void *)(& A));
+  }
   return;
 }
 

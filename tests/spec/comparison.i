@@ -1,5 +1,6 @@
 /* run.config
-   OPT: -load-script tests/spec/comparison.ml
+   EXECNOW: make -s @PTEST_DIR@/@PTEST_NAME@.cmxs
+   OPT: -no-autoload-plugins -load-module @PTEST_DIR@/@PTEST_NAME@.cmxs
 */
 
 /*@ predicate foo(boolean a, boolean b) = a == b; */

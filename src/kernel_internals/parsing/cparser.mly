@@ -736,10 +736,7 @@ string_constant:
    back to a string for easy viewing. */
     string_list                         { intlist_to_string (fst $1), snd $1 }
 ;
-one_string_constant:
-/* Don't concat multiple strings.  For asm templates. */
-    CST_STRING                          { intlist_to_string (fst $1) }
-;
+
 string_list:
     one_string                          { fst $1, snd $1 }
 |   string_list one_string              { merge_string $1 $2 }
@@ -1038,9 +1035,22 @@ declaration:                                /* ISO 6.7.*/
 
 init_declarator_list:                       /* ISO 6.7 */
     init_declarator                              { [$1] }
-|   init_declarator COMMA init_declarator_list   { $1 :: $3 }
+|   init_declarator COMMA init_declarator_attr_list   { $1 :: $3 }
 
 ;
+
+init_declarator_attr_list:
+  init_declarator_attr { [ $1 ] }
+| init_declarator_attr COMMA init_declarator_attr_list { $1 :: $3 }
+;
+
+init_declarator_attr:
+  attribute_nocv_list init_declarator {
+    let ((name, decl, attrs, loc), init) = $2 in
+    ((name, PARENTYPE ($1,decl,[]), attrs, loc), init)
+  }
+;
+
 init_declarator:                             /* ISO 6.7 */
     declarator                          { ($1, NO_INIT) }
 |   declarator EQ init_expression
@@ -1674,8 +1684,8 @@ asmattr:
 |    CONST asmattr                      { ("const", []) :: $2 }
 ;
 asmtemplate:
-    one_string_constant                          { [$1] }
-|   one_string_constant asmtemplate              { $1 :: $2 }
+    one_string                         { [intlist_to_string (fst $1)] }
+|   one_string asmtemplate             { intlist_to_string (fst $1) :: $2 }
 ;
 asmoutputs:
   /* empty */           { None }
@@ -1711,8 +1721,8 @@ asmclobber:
 | COLON asmcloberlst_ne asmlabels       { $2,$3 }
 ;
 asmcloberlst_ne:
-   one_string_constant                  { [$1] }
-|  one_string_constant COMMA asmcloberlst_ne     { $1 :: $3 }
+   string_constant                  { [fst $1] }
+|  string_constant COMMA asmcloberlst_ne     { fst $1 :: $3 }
 ;
 asmlabels:
 | /* empty */                          { [] }

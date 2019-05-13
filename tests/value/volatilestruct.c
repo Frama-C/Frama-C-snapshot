@@ -1,5 +1,5 @@
 /* run.config*
-   STDOPT: +"-then -no-warn-signed-overflow -no-val-warn-pointer-subtraction"
+   STDOPT: +"-then -no-warn-signed-overflow -eva-no-warn-pointer-subtraction"
 */
 
 struct ss {
@@ -28,7 +28,7 @@ void main() {
   char *q1 = p->f4.f1;
   int *q2 = p->f4.f2;
   int i = p->f5;
-  int j = p->f4.f2;
+  int j = (int) p->f4.f2;
 
   int r = (&x - p->f4.f1)+1;
   int s = (&y - p->f4.f2)+3;

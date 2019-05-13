@@ -1,5 +1,5 @@
 /* run.config*
-   STDOPT: +"-value-verbose 2"
+   STDOPT: +"-eva-verbose 2"
 */
 
 /*@

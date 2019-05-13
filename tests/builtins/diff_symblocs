@@ -1,40 +1,40 @@
 diff tests/builtins/oracle/Longinit_sequencer.res.oracle tests/builtins/oracle_symblocs/Longinit_sequencer.res.oracle
-320c320
+327c327
 <   tests/builtins/result/Longinit_sequencer.sav
 ---
 >   tests/builtins/result_symblocs/Longinit_sequencer.sav
-556c556
+568c568
 <   tests/builtins/result/Longinit_sequencer.sav
 ---
 >   tests/builtins/result_symblocs/Longinit_sequencer.sav
 diff tests/builtins/oracle/alloc_weak.res.oracle tests/builtins/oracle_symblocs/alloc_weak.res.oracle
-34,35d33
+36,37d35
 < [eva:alarm] tests/builtins/alloc_weak.c:30: Warning: 
 <   accessing uninitialized left-value. assert \initialized(p);
-898c896
+908c906
 <   r ∈ [--..--]
 ---
 >   r ∈ {42}
 diff tests/builtins/oracle/imprecise.res.oracle tests/builtins/oracle_symblocs/imprecise.res.oracle
-216a217,218
+224a225,226
 > [kernel] tests/builtins/imprecise.c:111: 
 >   more than 200(300) elements to enumerate. Approximating.
-225a228,229
+233a236,237
 > [kernel] tests/builtins/imprecise.c:114: 
 >   more than 200(300) elements to enumerate. Approximating.
-229,232d232
+237,240d240
 < [kernel] tests/builtins/imprecise.c:111: 
 <   more than 200(300) elements to enumerate. Approximating.
 < [kernel] tests/builtins/imprecise.c:114: 
 <   more than 200(300) elements to enumerate. Approximating.
 diff tests/builtins/oracle/linked_list.1.res.oracle tests/builtins/oracle_symblocs/linked_list.1.res.oracle
-470a471,472
+506a507,508
 > [kernel] tests/builtins/linked_list.c:43: 
 >   more than 100(128) elements to enumerate. Approximating.
-472a475,476
+508a511,512
 > [kernel] tests/builtins/linked_list.c:44: 
 >   more than 100(128) elements to enumerate. Approximating.
-558,561d561
+600,603d603
 < [kernel] tests/builtins/linked_list.c:43: 
 <   more than 100(128) elements to enumerate. Approximating.
 < [kernel] tests/builtins/linked_list.c:44: 

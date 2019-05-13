@@ -17,4 +17,5 @@ OPT: -load-module tests/misc/Debug_category.cmxs -test-warn-key a=err-once
 OPT: -load-module tests/misc/Debug_category.cmxs -test-warn-key test-vis-err
 OPT: -load-module tests/misc/Debug_category.cmxs -test-warn-key test-inv-err
 OPT: -load-module tests/misc/Debug_category.cmxs -test-warn-key test-failure
+FILTER: sed 's|Your Frama-C version is.*|Your Frama-C version is VERSION|'
 */

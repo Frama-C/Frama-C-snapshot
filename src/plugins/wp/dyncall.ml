@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2018                                               *)
+(*  Copyright (C) 2007-2019                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -67,7 +67,7 @@ let get_calls ecmd bhvs : (string * Kernel_function.t list) list =
        let fs = ref [] in
        List.iter
          (function
-           | _,cmd, _, Ext_terms ts when cmd = ecmd ->
+           | _,cmd, _, _, Ext_terms ts when cmd = ecmd ->
                fs := !fs @ List.map get_call ts
            | _ -> ())
          bhv.Cil_types.b_extended ;
@@ -86,7 +86,7 @@ let pp_calls fmt calls =
 
 module PInfo = struct let module_name = "Dyncall.Point" end
 module Point = Datatype.Pair_with_collections(Datatype.String)(Stmt)(PInfo)
-module Calls = Datatype.List(Kernel_function)
+module Calls = Datatype.Pair(Property)(Datatype.List(Kernel_function))
 module CInfo =
 struct
   let name = "Dyncall.CallPoints"
@@ -95,16 +95,25 @@ struct
 end
 module CallPoints = State_builder.Hashtbl(Point.Hashtbl)(Calls)(CInfo)
 
-let property ~kf ?bhv ~stmt ~calls =
-  let fact = match bhv with
-    | None -> Format.asprintf "@[<hov 2>calls%a@]" pp_calls calls
-    | Some b -> Format.asprintf "@[<hov 2>for %s calls%a@]" b pp_calls calls
+let property ~kf ~bhv ~stmt calls =
+  let fact =
+    if bhv = Cil.default_behavior_name then
+      Format.asprintf "@[<hov 2>call point%a@]"
+        pp_calls calls
+    else
+      Format.asprintf "@[<hov 2>call point%a for %s@]"
+        pp_calls calls bhv
   in
   Property.(ip_other fact (OLStmt (kf,stmt)))
 
 (* -------------------------------------------------------------------------- *)
 (* --- Detection                                                          --- *)
 (* -------------------------------------------------------------------------- *)
+
+let emitter = Emitter.create "Wp.Dyncall"
+    [ Emitter.Property_status ]
+    ~correctness:[]
+    ~tuning:[ Wp_parameters.DynCall.parameter ]
 
 class dyncall =
   object(self)
@@ -116,6 +125,9 @@ class dyncall =
 
     method count = count
 
+    method private kf =
+      match self#current_kf with None -> assert false | Some kf -> kf
+
     method private stmt =
       match self#current_stmt with None -> assert false | Some stmt -> stmt
 
@@ -125,7 +137,8 @@ class dyncall =
 
     method! vcode_annot ca =
       match ca.annot_content with
-      | Cil_types.AExtended (bhvs,_,(_, "calls", _,Ext_terms calls)) ->
+      | Cil_types.AExtended
+          (bhvs,_,((_,"calls",_,_,Ext_terms calls) as extended)) ->
           if calls <> [] && (scope <> [] || not (Stack.is_empty block_calls))
           then begin
             let bhvs =
@@ -133,27 +146,38 @@ class dyncall =
               | [] -> [ Cil.default_behavior_name ]
               | bhvs -> bhvs
             in
-            let add_calls_info stmt =
+            let debug_calls bhv stmt kfs =
+              if Wp_parameters.has_dkey dkey_calls then
+                let source = snd (Stmt.loc stmt) in
+                if Cil.default_behavior_name = bhv then
+                  Wp_parameters.result ~source
+                    "@[<hov 2>Calls%a@]" pp_calls kfs
+                else
+                  Wp_parameters.result ~source
+                    "@[<hov 2>Calls (for %s)%a@]" bhv pp_calls kfs
+            in
+            let pool = ref [] in (* collect emitted properties *)
+            let add_calls_info kf stmt =
               count <- succ count ;
               List.iter
                 (fun bhv ->
                    let kfs = List.map get_call calls in
-                   begin
-                     if Wp_parameters.has_dkey dkey_calls then
-                       let source = snd (Stmt.loc stmt) in
-                       if Cil.default_behavior_name = bhv then
-                         Wp_parameters.result ~source
-                           "@[<hov 2>Calls%a@]" pp_calls kfs
-                       else
-                         Wp_parameters.result ~source
-                           "@[<hov 2>Calls (for %s)%a@]" bhv pp_calls kfs
-                   end;
-                   CallPoints.add (bhv,stmt) kfs)
+                   debug_calls bhv stmt kfs ;
+                   let prop = property ~kf ~bhv ~stmt kfs in
+                   pool := prop :: !pool ;
+                   CallPoints.add (bhv,stmt) (prop,kfs))
                 bhvs
             in
-            if scope <> [] then List.iter add_calls_info scope
-            else
-              List.iter add_calls_info (Stack.top block_calls)
+            let kf = self#kf in
+            List.iter
+              (add_calls_info kf)
+              (if scope <> [] then scope else Stack.top block_calls) ;
+            if !pool <> [] then
+              begin
+                let eloc = Property.ELStmt(kf,self#stmt) in
+                let annot = Property.ip_of_extended eloc extended in
+                Property_status.logical_consequence emitter annot !pool ;
+              end
           end;
           SkipChildren
       | _ -> SkipChildren
@@ -192,39 +216,52 @@ class dyncall =
 
   end
 
-let once = ref false
-
-let compute () =
-  if not !once && Wp_parameters.DynCall.get () then
-    begin
-      once := true ;
-      Wp_parameters.feedback "Computing dynamic calls." ;
-      let d = new dyncall in
-      Visitor .visitFramacFile (d :> Visitor.frama_c_visitor) (Ast.get()) ;
-      let n = d#count in
-      if n > 0 then
-        Wp_parameters.feedback "Dynamic call(s): %d." n
-      else
-        Wp_parameters.feedback "No dynamic call."
-    end
+let compute =
+  let compute () =
+    if Wp_parameters.DynCall.get () then
+      begin
+        Wp_parameters.feedback ~dkey:dkey_calls "Computing dynamic calls." ;
+        let d = new dyncall in
+        Visitor .visitFramacFile (d :> Visitor.frama_c_visitor) (Ast.get()) ;
+        let n = d#count in
+        if n > 0 then
+          Wp_parameters.feedback ~dkey:dkey_calls "Dynamic call(s): %d." n
+        else
+          Wp_parameters.feedback ~dkey:dkey_calls "No dynamic call."
+      end
+  in fst (State_builder.apply_once "Wp.Dyncall.compute"
+            [Ast.self ;
+             Wp_parameters.DynCall.self] compute)
 
 (* -------------------------------------------------------------------------- *)
 (* --- Registry                                                           --- *)
 (* -------------------------------------------------------------------------- *)
 
-let get ?(bhv=Cil.default_behavior_name) stmt =
+let get ?bhv stmt =
   compute () ;
-  try CallPoints.find (bhv,stmt)
-  with Not_found -> []
+  let get bhv =
+    try Some (CallPoints.find (bhv,stmt))
+    with Not_found -> None
+  in
+  match bhv with
+  | None -> get Cil.default_behavior_name
+  | Some bhv ->
+      (match get bhv with
+       | None -> get Cil.default_behavior_name
+       | result -> result)
 
 (* -------------------------------------------------------------------------- *)
 (* --- Registry                                                           --- *)
 (* -------------------------------------------------------------------------- *)
 
-let register () =
-  if Wp_parameters.DynCall.get () then begin
-    Logic_typing.register_code_annot_next_stmt_extension "calls" typecheck;
-    Logic_typing.register_behavior_extension "instanceof" typecheck ;
-  end
+let register =
+  let once = ref false in
+  fun () ->
+    if (not !once) &&
+       Wp_parameters.DynCall.get () then begin
+      once := true;
+      Logic_typing.register_code_annot_next_stmt_extension "calls" true typecheck;
+      Logic_typing.register_behavior_extension "instanceof" true typecheck ;
+    end
 
 let () = Cmdline.run_after_configuring_stage register

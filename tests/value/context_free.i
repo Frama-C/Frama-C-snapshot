@@ -1,6 +1,6 @@
 /* run.config*
    GCC:
-   OPT: -no-autoload-plugins -load-module inout,eva -val @VALUECONFIG@ -lib-entry -main f -absolute-valid-range 0x200-0x199 -value-msg-key initial-state -journal-disable
+   OPT: -no-autoload-plugins -load-module inout,eva -eva @EVA_CONFIG@ -lib-entry -main f -absolute-valid-range 0x200-0x199 -eva-msg-key initial-state -journal-disable
 */
 
 
@@ -58,7 +58,7 @@ void f(int x, float y, int **p, int (*g)(char const*), void *vv, void **vvv, int
   char* pvoid = svoid.p;
   *pvoid = 1;
   pvoid = qvoid;
-  *pvoid = &pvoid;
+  *pvoid = (char) &pvoid;
   if (vol) { g("toto"); }
 
 }

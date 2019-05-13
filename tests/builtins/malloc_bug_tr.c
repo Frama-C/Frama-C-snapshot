@@ -1,5 +1,5 @@
 /* run.config*
-   OPT: -val @VALUECONFIG@
+   OPT: -eva @EVA_CONFIG@
 */
 
 #include <stdlib.h>

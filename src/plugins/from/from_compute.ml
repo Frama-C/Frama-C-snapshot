@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2018                                               *)
+(*  Copyright (C) 2007-2019                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -100,7 +100,7 @@ let compute_using_prototype_for_state state kf assigns =
               let acc = Function_Froms.Memory.add_binding_loc ~exact:false
                 acc output_loc_over input_deps in
 	      let output_loc_under_zone = Locations.enumerate_valid_bits_under
-		~for_writing:true output_loc_under in
+		Write output_loc_under in
 	      (* Now, perform a strong update on the zones that are guaranteed
                  to be assigned (under-approximation) AND that do not depend
                  on themselves.
@@ -347,10 +347,10 @@ struct
       let deps_of_deps = Function_Froms.Memory.find state.deps_table deps in
       let all_indirect = Zone.join state.additional_deps deps_of_deps in
       let deps = Function_Froms.Deps.add_indirect_dep deps_right all_indirect in
+      let access = if init then Read else Write in
       { state with deps_table =
           Function_Froms.Memory.add_binding_precise_loc
-            ~for_writing:(not init)
-            ~exact state.deps_table loc deps }
+            ~exact access state.deps_table loc deps }
 
     let transfer_call stmt dest f args _loc state =
       !Db.progress ();
@@ -463,7 +463,6 @@ struct
               let init = Cil.is_mutable_or_initialized lv in
               transfer_assign stmt ~init lv comp_vars state
         | Local_init(v, AssignInit i, _) ->
-          let implicit = true in
           let rec aux lv i acc =
             let doinit o i _ state = aux (Cil.addOffsetLval o lv) i state in
             match i with
@@ -471,7 +470,21 @@ struct
               let comp_vars = find stmt acc.deps_table e in
               transfer_assign stmt ~init:true lv comp_vars acc
             | CompoundInit (ct, initl) ->
-              Cil.foldLeftCompound ~implicit ~doinit ~ct ~initl ~acc
+              (* To avoid a performance issue, do not fold implicit initializers
+                 of scalar or large arrays. We still use implicit initializers
+                 for small struct arrays, as this may be more precise in case of
+                 padding bits. The 100 limit is arbitrary. *)
+              let implicit =
+                not (Cil.isArrayType ct &&
+                     (Cil.isArithmeticOrPointerType (Cil.typeOf_array_elem ct)
+                      || Ast_info.array_size ct > (Integer.of_int 100)))
+              in
+              let r = Cil.foldLeftCompound ~implicit ~doinit ~ct ~initl ~acc in
+              if implicit then r else
+                (* If implicit zero-initializers have been skipped, also mark
+                   the entire array as initialized from no dependency (nothing
+                   is read by the implicit zero-initializers). *)
+                transfer_assign stmt ~init:true lv Function_Froms.Deps.bottom r
           in
           aux (Cil.var v) i state
         | Call (lvaloption,funcexp,argl,loc) ->

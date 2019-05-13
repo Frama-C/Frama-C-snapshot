@@ -1,9 +1,9 @@
 /* run.config*
   GCC:
-  STDOPT: #"-main main1 -no-val-builtins-auto"
-  STDOPT: #"-main main6 -no-val-builtins-auto"
-  STDOPT: #"-main main7 -no-val-builtins-auto"
-  STDOPT: #"-main main8 -slevel-function strcmp:50 -no-val-builtins-auto"
+  STDOPT: #"-main main1 -eva-no-builtins-auto"
+  STDOPT: #"-main main6 -eva-no-builtins-auto"
+  STDOPT: #"-main main7 -eva-no-builtins-auto"
+  STDOPT: #"-main main8 -slevel-function strcmp:50 -eva-no-builtins-auto"
 */
 char s1[]="hello\000 world";
 char s2[]="hello";

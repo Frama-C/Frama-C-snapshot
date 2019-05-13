@@ -1,5 +1,5 @@
 /* run.config*
-   STDOPT: #"-val-subdivide-non-linear 10"
+   STDOPT: #"-eva-subdivide-non-linear 10"
 */
 
 /* This file gathers some examples where a product of states may have no

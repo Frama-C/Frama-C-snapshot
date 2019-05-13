@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2018                                               *)
+(*  Copyright (C) 2007-2019                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -27,6 +27,7 @@
 let dkey_no_time_info = Wp_parameters.register_category "no-time-info"
 let dkey_no_step_info = Wp_parameters.register_category "no-step-info"
 let dkey_no_goals_info = Wp_parameters.register_category "no-goals-info"
+let dkey_success_only = Wp_parameters.register_category "success-only"
 
 type prover =
   | Why3 of string (* Prover via WHY *)
@@ -70,8 +71,11 @@ let name_of_prover = function
   | Tactical -> "script"
 
 let title_of_prover = function
-  | Why3ide -> "Why3"
-  | Why3 s -> s
+  | Why3 "cvc4" -> "CVC4"
+  | Why3 "z3" -> "Z3"
+  | Why3 ("alt-ergo" | "altergo") -> "Alt-Ergo (why3)"
+  | Why3 s -> Printf.sprintf "Why3 (%s)" s
+  | Why3ide -> "Why3 (ide)"
   | AltErgo -> "Alt-Ergo"
   | Coq -> "Coq"
   | Qed -> "Qed"
@@ -103,13 +107,6 @@ let filename_for_prover = function
   | Coq -> "Coq"
   | Qed -> "Qed"
   | Tactical -> "Tactical"
-
-let language_of_name = function
-  | "" | "none" -> None
-  | "alt-ergo" | "altgr-ergo" -> Some L_altergo
-  | "coq" | "coqide"-> Some L_coq
-  | "why" -> Some L_why3
-  | s -> Wp_parameters.abort "Language '%s' unknown" s
 
 let language_of_prover = function
   | Why3 _ -> L_why3
@@ -174,6 +171,37 @@ let pp_mode fmt m = Format.pp_print_string fmt (title_of_mode m)
 module P = struct type t = prover let compare = cmp_prover end
 module Pset = Set.Make(P)
 module Pmap = Map.Make(P)
+
+(* -------------------------------------------------------------------------- *)
+(* --- Why3 Provers                                                       --- *)
+(* -------------------------------------------------------------------------- *)
+
+type dp = {
+  dp_name : string ;
+  dp_version : string ;
+  dp_altern : string ;
+  dp_shortcuts : string list ;
+}
+
+let pp_altern fmt a = if a<>"" then Format.fprintf fmt " (%s)" a
+
+let pp_shortcut fmt = function
+  | ("alt-ergo" | "coq" | "tip" | "script") as p ->
+      Format.fprintf fmt "why3:%s" p
+  | p -> Format.pp_print_string fmt p
+
+let pp_shortcuts =
+  Pretty_utils.pp_list ~pre:"[" ~sep:"," ~suf:"]" ~empty:"(disabled)"
+    pp_shortcut
+
+let pretty fmt dp =
+  Format.fprintf fmt "%s %s%a"
+    dp.dp_name dp.dp_version
+    pp_altern dp.dp_altern
+
+let prover_of_dp = function
+  | { dp_shortcuts = key::_ } -> Why3 key
+  | _ -> Why3 "none"
 
 (* -------------------------------------------------------------------------- *)
 (* --- Config                                                             --- *)
@@ -339,8 +367,12 @@ let pp_res ~extended fmt r =
   | NoResult -> Format.pp_print_string fmt (if extended then "No Result" else "-")
   | Invalid -> Format.pp_print_string fmt "Invalid"
   | Computing _ -> Format.pp_print_string fmt "Computing"
-  | Valid -> Format.fprintf fmt "Valid%a" (pp_perf ~extended) r
   | Checked -> Format.fprintf fmt "Typechecked"
+  | Valid when Wp_parameters.has_dkey dkey_success_only ->
+      Format.pp_print_string fmt "Valid"
+  | (Timeout|Stepout|Unknown) when Wp_parameters.has_dkey dkey_success_only ->
+      Format.pp_print_string fmt "Unsuccess"
+  | Valid -> Format.fprintf fmt "Valid%a" (pp_perf ~extended) r
   | Unknown -> Format.fprintf fmt "Unknown%a" (pp_perf ~extended) r
   | Timeout -> Format.fprintf fmt "Timeout%a" (pp_perf ~extended) r
   | Stepout -> Format.fprintf fmt "Step limit%a" (pp_perf ~extended) r
@@ -361,8 +393,37 @@ let compare p q =
   in
   let r = rank q.verdict - rank p.verdict in
   if r <> 0 then r else
-    let s = Pervasives.compare p.prover_steps q.prover_steps in
+    let s = Transitioning.Stdlib.compare p.prover_steps q.prover_steps in
     if s <> 0 then s else
-      let t = Pervasives.compare p.prover_time q.prover_time in
+      let t = Transitioning.Stdlib.compare p.prover_time q.prover_time in
       if t <> 0 then t else
-        Pervasives.compare p.solver_time q.solver_time
+        Transitioning.Stdlib.compare p.solver_time q.solver_time
+
+let combine v1 v2 =
+  match v1 , v2 with
+  | Valid , Valid -> Valid
+  | Failed , _ | _ , Failed -> Failed
+  | Invalid , _ | _ , Invalid -> Invalid
+  | Timeout , _ | _ , Timeout -> Timeout
+  | Stepout , _ | _ , Stepout -> Stepout
+  | _ -> Unknown
+
+let merge r1 r2 =
+  let err = if r1.prover_errmsg <> "" then r1 else r2 in
+  {
+    verdict = combine r1.verdict r2.verdict ;
+    solver_time = max r1.solver_time r2.solver_time ;
+    prover_time = max r1.prover_time r2.prover_time ;
+    prover_steps = max r1.prover_steps r2.prover_steps ;
+    prover_depth = max r1.prover_depth r2.prover_depth ;
+    prover_errpos = err.prover_errpos ;
+    prover_errmsg = err.prover_errmsg ;
+  }
+
+let choose r1 r2 =
+  match is_valid r1 , is_valid r2 with
+  | true , false -> r1
+  | false , true -> r2
+  | _ -> if compare r1 r2 <= 0 then r1 else r2
+
+let best = List.fold_left choose no_result

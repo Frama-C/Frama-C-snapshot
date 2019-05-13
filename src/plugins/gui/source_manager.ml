@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2018                                               *)
+(*  Copyright (C) 2007-2019                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -25,7 +25,7 @@ type tab = {
   tab_file : Datatype.Filepath.t ;
   tab_page : int ;
   tab_select : line:int -> unit ;
-  tab_source_view : GSourceView2.source_view;
+  tab_source_view : GSourceView.source_view;
 }
 
 type t = {

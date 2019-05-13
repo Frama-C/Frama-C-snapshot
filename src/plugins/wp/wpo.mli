@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2018                                               *)
+(*  Copyright (C) 2007-2019                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -116,6 +116,7 @@ type formula =
 
 type po = t and t = {
     po_gid   : string ;  (** goal identifier *)
+    po_leg   : string ; (** legacy goal identifier *)
     po_sid   : string ;  (** goal short identifier (without model) *)
     po_name  : string ;  (** goal informal name *)
     po_idx   : index ;   (** goal index *)
@@ -156,7 +157,8 @@ val on_remove : (t -> unit) -> unit
 val add : t -> unit
 val age : t -> int (* generation *)
 
-val resolve : t -> bool (** tries simplification *)
+val reduce : t -> bool (** tries simplification *)
+val resolve : t -> bool (** tries simplification and set result if valid *)
 val set_result : t -> prover -> result -> unit
 val clear_results : t -> unit
 

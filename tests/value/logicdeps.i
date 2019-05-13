@@ -1,5 +1,5 @@
 /* run.config*
-   STDOPT: +"-memexec-all -calldeps -no-deps -no-input -no-out -then -inout"
+   STDOPT: +"-eva-memexec -calldeps -no-deps -no-input -no-out -then -inout"
 */
 
 int t[50];

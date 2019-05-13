@@ -15,8 +15,10 @@
        [4] ∈ {0}
   col_ones ∈ {0}
   col_123 ∈ {0}
-[eva] tests/value/recol.c:30: Warning: 2's complement assumed for overflow
-[eva] tests/value/recol.c:47: Warning: 2's complement assumed for overflow
+[eva:signed-overflow] tests/value/recol.c:30: Warning: 
+  2's complement assumed for overflow
+[eva:signed-overflow] tests/value/recol.c:47: Warning: 
+  2's complement assumed for overflow
 [eva] Recording results for main
 [eva] done for function main
 [eva] ====== VALUES COMPUTED ======

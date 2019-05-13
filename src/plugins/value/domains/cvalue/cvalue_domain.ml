@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2018                                               *)
+(*  Copyright (C) 2007-2019                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -227,7 +227,7 @@ module State = struct
 
     module T = Cvalue_transfer.Transfer (Valuation)
 
-    let update valuation (s, clob) = T.update valuation s, clob
+    let update valuation (s, clob) = T.update valuation s >>-: fun s -> s, clob
 
     let assign stmt lv expr assigned valuation (s, clob) =
       T.assign stmt lv expr assigned valuation s >>-: fun s ->

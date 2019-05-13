@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2018                                               *)
+(*  Copyright (C) 2007-2019                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -20,11 +20,18 @@
 (*                                                                        *)
 (**************************************************************************)
 
-(** Build a full pretty-printer from a pretty-printing class. 
+(** Build a dynamic printer that bind all pretty-printers to the
+    object obtained by (P()) *)
+
+module Make_pp
+    (P: sig val printer: unit -> Printer_api.extensible_printer_type end):
+  Printer_api.S_pp
+
+(** Build a full pretty-printer from a pretty-printing class.
     @since Fluorine-20130401 *)
 
 module Make
-  (P: sig class printer: unit -> Printer_api.extensible_printer_type end):
+    (P: sig class printer: unit -> Printer_api.extensible_printer_type end):
   Printer_api.S
 
 (*

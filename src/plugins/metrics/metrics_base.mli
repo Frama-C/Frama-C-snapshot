@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2018                                               *)
+(*  Copyright (C) 2007-2019                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -21,7 +21,7 @@
 (**************************************************************************)
 
 (** Tag functions handling html tags for Format *)
-val html_tag_functions : Format.formatter_tag_functions;;
+val html_stag_functions : Transitioning.Format.formatter_stag_functions;;
 
 (** mk_hdr [level] [ppf] [hdr_strg] produces a title from [hdr_strg] with an
     underline of the same length.

@@ -4,7 +4,8 @@
 [eva] Initial state computed
 [eva:initial-state] Values of globals at initialization
   i ∈ [--..--]
-[kernel] tests/value/postcond_leaf.c:108: Warning: 
+  j ∈ [--..--]
+[kernel] tests/value/postcond_leaf.c:109: Warning: 
   No code nor implicit assigns clause for function f1, generating default assigns from the prototype
 [eva] using specification for function f1
 [eva] tests/value/postcond_leaf.c:21: Warning: 

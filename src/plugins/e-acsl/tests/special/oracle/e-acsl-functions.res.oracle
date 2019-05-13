@@ -1,0 +1,4 @@
+[e-acsl] beginning translation.
+[e-acsl] translation done in project "e-acsl".
+[eva:alarm] tests/special/e-acsl-functions.c:29: Warning: 
+  function g: precondition *p ≡ 1 got status invalid.

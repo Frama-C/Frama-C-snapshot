@@ -1,5 +1,5 @@
 /* run.config*
-  STDOPT: +"-no-val-alloc-returns-null"
+  STDOPT: +"-eva-no-alloc-returns-null"
 */
 
 #include <stdlib.h>

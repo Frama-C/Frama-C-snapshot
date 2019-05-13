@@ -1,7 +1,7 @@
 /*run.config
- OPT: -main main_init -sparecode-analysis -val-show-progress -sparecode-no-annot  -journal-disable
- OPT: -main main_init -val-show-progress -slice-pragma loop_body -journal-disable -then-on 'Slicing export' -print
- OPT: -main main_init -val-show-progress -slice-pragma loop_body -calldeps -journal-disable -then-on 'Slicing export' -print
+ STDOPT: +"-sparecode-debug 0 -main main_init -sparecode-analysis -sparecode-no-annot "
+ STDOPT: +"-sparecode-debug 0 -main main_init -slice-pragma loop_body -then-on 'Slicing export' -print"
+ STDOPT: +"-sparecode-debug 0 -main main_init -slice-pragma loop_body -calldeps -then-on 'Slicing export' -print"
  */
 int kf ;
 int k[2] ;

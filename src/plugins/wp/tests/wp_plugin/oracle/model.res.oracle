@@ -7,13 +7,13 @@
 [wp] Warning: Missing RTE guards
 [wp] 1 goal scheduled
 ---------------------------------------------
---- File 'typed/f_post.ergo' 
+--- File 'typed/f_ensures.ergo' 
 ---------------------------------------------
 (* ---------------------------------------------------------- *)
 (* --- Post-condition (file tests/wp_plugin/model.i, line 13) in 'f' --- *)
 (* ---------------------------------------------------------- *)
 
-goal f_post:
+goal f_ensures:
   forall i : int.
   forall t : (addr,int) farray.
   forall a : addr.
@@ -59,13 +59,13 @@ Prove: P_P(x).
 [wp] Running WP plugin...
 [wp] 2 goals scheduled
 ---------------------------------------------
---- File 'typed_ref/f_post.ergo' 
+--- File 'typed_ref/f_ensures.ergo' 
 ---------------------------------------------
 (* ---------------------------------------------------------- *)
 (* --- Post-condition (file tests/wp_plugin/model.i, line 13) in 'f' --- *)
 (* ---------------------------------------------------------- *)
 
-goal f_post:
+goal f_ensures:
   forall i : int.
   forall t : (addr,int) farray.
   forall a : addr.
@@ -94,13 +94,13 @@ function shift_sint32(p:addr, k:int) : addr = shift(p, k)
 logic P_P : int -> prop
 
 ---------------------------------------------
---- File 'typed/f_post.ergo' 
+--- File 'typed/f_ensures.ergo' 
 ---------------------------------------------
 (* ---------------------------------------------------------- *)
 (* --- Post-condition (file tests/wp_plugin/model.i, line 13) in 'f' --- *)
 (* ---------------------------------------------------------- *)
 
-goal f_post:
+goal f_ensures:
   forall i : int.
   forall t : (addr,int) farray.
   forall a : addr.

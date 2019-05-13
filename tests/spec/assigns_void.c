@@ -1,6 +1,6 @@
 /* run.config
  OPT: -print -journal-disable -kernel-warn-key=annot-error=active
- OPT: -val -val-show-progress -main g -print -no-annot -journal-disable
+ OPT: -eva @EVA_CONFIG@ -main g -print -no-annot -journal-disable
  */
 //@ assigns *x;
 void f(void *x);

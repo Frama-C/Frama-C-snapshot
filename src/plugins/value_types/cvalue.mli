@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2018                                               *)
+(*  Copyright (C) 2007-2019                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -46,12 +46,12 @@ module V : sig
        of all of them. Use some shortcuts *)
     with type M.t = Location_Bytes.M.t
     and type t = Location_Bytes.t
-    and type generic_widen_hint = Location_Bytes.generic_widen_hint
+    and type numerical_widen_hint = Location_Bytes.numerical_widen_hint
     and type size_widen_hint = Location_Bytes.size_widen_hint
 
   include module type of Offsetmap_lattice_with_isotropy
       with type t := t
-      and type generic_widen_hint := generic_widen_hint
+      and type numerical_widen_hint := numerical_widen_hint
       and type size_widen_hint := size_widen_hint
       and type widen_hint := widen_hint
 
@@ -135,11 +135,11 @@ module V : sig
   val c_rem: t -> t -> t
   val shift_right: t -> t -> t
   val shift_left: t -> t -> t
-  val bitwise_and: signed:bool -> size:int -> t -> t -> t
+  val bitwise_and: t -> t -> t
   val bitwise_xor: t -> t -> t
   val bitwise_or : t -> t -> t
-  val bitwise_not: t -> t
-  val bitwise_not_size: signed:bool -> size:int -> t -> t
+  val bitwise_signed_not: t -> t
+  val bitwise_not: size:int -> signed:bool -> t -> t
 
   (** [all_values ~size v] returns true iff v contains all integer values
       representable in [size] bits. *)
@@ -175,7 +175,7 @@ module V_Or_Uninitialized : sig
   include module type of Offsetmap_lattice_with_isotropy
     with type t := t
     and  type size_widen_hint = Location_Bytes.size_widen_hint
-    and  type generic_widen_hint = Location_Bytes.generic_widen_hint
+    and  type numerical_widen_hint = Location_Bytes.numerical_widen_hint
     and  type widen_hint = Locations.Location_Bytes.widen_hint
   include Lattice_type.With_Under_Approximation with type t:= t
   include Lattice_type.With_Narrow with type t := t
@@ -237,7 +237,7 @@ module V_Or_Uninitialized : sig
 module V_Offsetmap: sig
   include module type of Offsetmap_sig
   with type v = V_Or_Uninitialized.t
-  and type widen_hint = V_Or_Uninitialized.generic_widen_hint
+  and type widen_hint = V_Or_Uninitialized.numerical_widen_hint
 
   val narrow: t -> t -> t Bottom.Type.or_bottom
   val narrow_reinterpret: t -> t -> t Bottom.Type.or_bottom
@@ -257,7 +257,7 @@ module Model: sig
   include module type of Lmap_sig
     with type v = V_Or_Uninitialized.t
     and type offsetmap = V_Offsetmap.t
-    and type widen_hint_base = V_Or_Uninitialized.generic_widen_hint
+    and type widen_hint_base = V_Or_Uninitialized.numerical_widen_hint
 
   include Lattice_type.With_Narrow with type t := t
 

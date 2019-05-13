@@ -38,10 +38,6 @@ diff tests/value/oracle/for_loops.2.res.oracle tests/value/oracle_gauges/for_loo
 < [eva] tests/value/for_loops.c:43: Frama_C_show_each: [0..2147483647]
 ---
 > [eva] tests/value/for_loops.c:43: Frama_C_show_each: [0..1000]
-diff tests/value/oracle/for_loops.3.res.oracle tests/value/oracle_gauges/for_loops.3.res.oracle
-11a12,13
->   Frama_C_show_each_F: {0; 1; 2}, [0..2147483647]
-> [eva] tests/value/for_loops.c:55: 
 diff tests/value/oracle/from_termin.res.oracle tests/value/oracle_gauges/from_termin.res.oracle
 9a10
 > [eva] tests/value/from_termin.i:8: starting to merge loop iterations
@@ -49,41 +45,41 @@ diff tests/value/oracle/gauges.res.oracle tests/value/oracle_gauges/gauges.res.o
 25,26d24
 < [eva:alarm] tests/value/gauges.c:23: Warning: 
 <   signed overflow. assert -2147483648 ≤ j - 4;
-34,35d31
+38,39d35
 < [eva:alarm] tests/value/gauges.c:26: Warning: 
 <   signed overflow. assert l + 1 ≤ 2147483647;
-53,54d48
+57,58d52
 < [eva:alarm] tests/value/gauges.c:45: Warning: 
 <   signed overflow. assert -2147483648 ≤ j - 4;
-57a52,53
+61a56,57
 > [eva:alarm] tests/value/gauges.c:45: Warning: 
 >   signed overflow. assert -2147483648 ≤ j - 4;
-62,63d57
+70,71d65
 < [eva:alarm] tests/value/gauges.c:48: Warning: 
 <   signed overflow. assert l + 1 ≤ 2147483647;
-75,76d68
+83,84d76
 < [eva:alarm] tests/value/gauges.c:58: Warning: 
 <   accessing out of bounds index. assert j < 38;
-89,93d80
+97,101d88
 < [eva:alarm] tests/value/gauges.c:71: Warning: 
 <   out of bounds write. assert \valid(tmp);
 <                        (tmp from p++)
 < [eva] tests/value/gauges.c:72: Frama_C_show_each:
 < [eva] tests/value/gauges.c:72: Frama_C_show_each:
-105,106d91
+113,114d99
 < [eva:alarm] tests/value/gauges.c:81: Warning: 
 <   signed overflow. assert k + 1 ≤ 2147483647;
-108,109d92
+116,117d100
 < [eva:alarm] tests/value/gauges.c:84: Warning: 
 <   signed overflow. assert k + 1 ≤ 2147483647;
-117c100
+125c108
 < [eva] tests/value/gauges.c:86: Frama_C_show_each: [0..2147483647]
 ---
 > [eva] tests/value/gauges.c:86: Frama_C_show_each: {390}
-131,132d113
+139,140d121
 < [eva:alarm] tests/value/gauges.c:99: Warning: 
 <   signed overflow. assert c + 1 ≤ 2147483647;
-170,173c151,154
+178,181c159,162
 < [eva] tests/value/gauges.c:129: Frama_C_show_each: {{ &y + [4..36],0%4 }}
 < [eva] tests/value/gauges.c:129: Frama_C_show_each: {{ &y + [4..40],0%4 }}
 < [eva:alarm] tests/value/gauges.c:130: Warning: 
@@ -93,99 +89,120 @@ diff tests/value/oracle/gauges.res.oracle tests/value/oracle_gauges/gauges.res.o
 >   Frama_C_show_each: {{ &y + {4; 8; 12; 16; 20; 24} }}
 > [eva] tests/value/gauges.c:129: 
 >   Frama_C_show_each: {{ &y + {4; 8; 12; 16; 20; 24} }}
-179,180d159
+187,188d167
 < [eva:alarm] tests/value/gauges.c:140: Warning: 
 <   signed overflow. assert j + 1 ≤ 2147483647;
-198,200d176
+206,208d184
 < [eva:alarm] tests/value/gauges.c:158: Warning: 
 <   out of bounds write. assert \valid(tmp);
 <                        (tmp from p--)
-247,250d222
+227,231c203,205
+< [eva] tests/value/gauges.c:172: Frama_C_show_each: [2147483646..4294967294]
+< [eva] tests/value/gauges.c:172: Frama_C_show_each: [1..4294967294]
+< [eva] tests/value/gauges.c:172: Frama_C_show_each: [1..4294967294]
+< [eva] tests/value/gauges.c:172: Frama_C_show_each: [1..4294967294]
+< [eva] tests/value/gauges.c:172: Frama_C_show_each: [1..4294967294]
+---
+> [eva] tests/value/gauges.c:172: Frama_C_show_each: [2147483647..4294967294]
+> [eva] tests/value/gauges.c:172: Frama_C_show_each: [2147483647..4294967294]
+> [eva] tests/value/gauges.c:172: Frama_C_show_each: [2147483647..4294967294]
+235c209,210
+< [eva] tests/value/gauges.c:172: Frama_C_show_each: [1..4294967294]
+---
+> [eva] tests/value/gauges.c:172: Frama_C_show_each: [2147483647..4294967294]
+> [eva] tests/value/gauges.c:172: Frama_C_show_each: [2147483647..4294967294]
+255,258d229
 < [eva:alarm] tests/value/gauges.c:192: Warning: 
 <   out of bounds write. assert \valid(p);
 < [eva:alarm] tests/value/gauges.c:193: Warning: 
 <   out of bounds write. assert \valid(q);
-258,263d229
+266,271d236
 < [eva:alarm] tests/value/gauges.c:202: Warning: 
 <   out of bounds read. assert \valid_read(tmp);
 <                       (tmp from A++)
 < [eva:alarm] tests/value/gauges.c:202: Warning: 
 <   out of bounds read. assert \valid_read(tmp_0);
 <                       (tmp_0 from B++)
-307,310c273
+299,300d263
+< [eva:alarm] tests/value/gauges.c:220: Warning: 
+<   signed overflow. assert -2147483648 ≤ n - 1;
+315,318c278
 < [eva:alarm] tests/value/gauges.c:240: Warning: 
 <   signed overflow. assert j + 1 ≤ 2147483647;
 < [eva] tests/value/gauges.c:242: 
 <   Frama_C_show_each: {45; 46; 47; 48; 49; 50; 51}, [0..2147483647]
 ---
 > [eva] tests/value/gauges.c:242: Frama_C_show_each: {47; 48}, {6}
-316,317d278
+324,325d283
 < [eva:alarm] tests/value/gauges.c:251: Warning: 
 <   signed overflow. assert j + 1 ≤ 2147483647;
-319c280
+327c285
 <   Frama_C_show_each: {48; 49; 50; 51; 52; 53; 54}, [0..2147483647]
 ---
 >   Frama_C_show_each: {48; 49; 50; 51; 52; 53; 54}, {6; 7}
-325,328c286
+333,336c291
 < [eva:alarm] tests/value/gauges.c:263: Warning: 
 <   signed overflow. assert j + 1 ≤ 2147483647;
 < [eva] tests/value/gauges.c:265: 
 <   Frama_C_show_each: {-59; -58; -57; -56; -55; -54; -53}, [0..2147483647]
 ---
 > [eva] tests/value/gauges.c:265: Frama_C_show_each: {-58; -57}, {9}
-334,335d291
+342,343d296
 < [eva:alarm] tests/value/gauges.c:274: Warning: 
 <   signed overflow. assert j + 1 ≤ 2147483647;
-337c293
+345c298
 <   Frama_C_show_each: {-64; -63; -62; -61; -60; -59; -58}, [0..2147483647]
 ---
 >   Frama_C_show_each: {-64; -63; -62; -61; -60; -59; -58}, {9; 10}
-345,346d300
+353,354d305
 < [eva:alarm] tests/value/gauges.c:293: Warning: 
 <   signed overflow. assert j + 1 ≤ 2147483647;
-348c302
+356c307
 <   Frama_C_show_each: {-593; -592; -591; -590; -589; -588}, [0..2147483647]
 ---
 >   Frama_C_show_each: {-593; -592; -591; -590; -589; -588}, [99..119]
-407a362,365
+418a370,373
 >   # Gauges domain:
 >   V: [{[ p -> {{ &x }}
 >          i -> {1} ]}]
->   s395: λ(0)
-464a423,426
+>   s398: λ(0)
+478a434,437
 >   # Gauges domain:
 >   V: [{[ i -> {1} ]}]
->   s395: λ([0 .. 1])
+>   s398: λ([0 .. 1])
 >         {[ i -> {1} ]}
-520a483,486
+537a497,500
 >   # Gauges domain:
 >   V: [{[ i -> {1} ]}]
->   s395: λ([0 .. 2])
+>   s398: λ([0 .. 2])
 >         {[ i -> {1} ]}
-576a543,546
+596a560,563
 >   # Gauges domain:
 >   V: [{[ i -> {1} ]}]
->   s395: λ([0 .. 10])
+>   s398: λ([0 .. 10])
 >         {[ i -> {1} ]}
-638a609,613
+661a629,633
 >   # Gauges domain:
 >   V: [{[ p -> {{ &a }}
 >          i -> {2} ]}]
->   s409: λ(0)
->   s408: λ(0)
-696a672,676
+>   s412: λ(0)
+>   s411: λ(0)
+722a695,699
 >   # Gauges domain:
 >   V: [{[ i -> {2} ]}]
->   s409: λ(0)
->   s408: λ([0 .. 1])
+>   s412: λ(0)
+>   s411: λ([0 .. 1])
 >         {[ i -> {0} ]}
-698a679,800
+724a702,829
 > [eva] tests/value/gauges.c:325: 
 >   Frama_C_dump_each:
 >   # Cvalue domain:
 >   __fc_heap_status ∈ [--..--]
 >   __fc_random_counter ∈ [--..--]
 >   __fc_rand_max ∈ {32767}
+>   __fc_random48_init ∈ {0}
+>   __fc_random48_counter[0..2] ∈ [--..--]
+>   __fc_p_random48_counter ∈ {{ &__fc_random48_counter[0] }}
 >   __fc_env[0] ∈ {{ NULL ; &S_0___fc_env[0] }}
 >           [1] ∈ {{ NULL ; &S_1___fc_env[0] }}
 >           [2..4095] ∈ {{ NULL ; &S_0___fc_env[0] ; &S_1___fc_env[0] }}
@@ -237,8 +254,8 @@ diff tests/value/oracle/gauges.res.oracle tests/value/oracle_gauges/gauges.res.o
 >   S_1___fc_env[0..1] ∈ [--..--]
 >   # Gauges domain:
 >   V: [{[ i -> {2} ]}]
->   s409: λ(0)
->   s408: λ([0 .. 2])
+>   s412: λ(0)
+>   s411: λ([0 .. 2])
 >         {[ i -> {0} ]}
 >   ==END OF DUMP==
 > [eva] tests/value/gauges.c:325: 
@@ -247,6 +264,9 @@ diff tests/value/oracle/gauges.res.oracle tests/value/oracle_gauges/gauges.res.o
 >   __fc_heap_status ∈ [--..--]
 >   __fc_random_counter ∈ [--..--]
 >   __fc_rand_max ∈ {32767}
+>   __fc_random48_init ∈ {0}
+>   __fc_random48_counter[0..2] ∈ [--..--]
+>   __fc_p_random48_counter ∈ {{ &__fc_random48_counter[0] }}
 >   __fc_env[0] ∈ {{ NULL ; &S_0___fc_env[0] }}
 >           [1] ∈ {{ NULL ; &S_1___fc_env[0] }}
 >           [2..4095] ∈ {{ NULL ; &S_0___fc_env[0] ; &S_1___fc_env[0] }}
@@ -298,65 +318,75 @@ diff tests/value/oracle/gauges.res.oracle tests/value/oracle_gauges/gauges.res.o
 >   S_1___fc_env[0..1] ∈ [--..--]
 >   # Gauges domain:
 >   V: [{[ i -> {2} ]}]
->   s409: λ(0)
->   s408: λ([0 .. +oo])
+>   s412: λ(0)
+>   s411: λ([0 .. +oo])
 >         {[ i -> {0} ]}
 >   ==END OF DUMP==
-706a809,810
+732a838,839
 > [eva] tests/value/gauges.c:343: Call to builtin malloc
 > [eva] tests/value/gauges.c:343: Call to builtin malloc
-716c820
-<   l ∈ [4..2147483647]
----
->   l ∈ [4..53]
-721c825
-<   l ∈ [4..2147483647]
----
->   l ∈ [4..53]
-759,760c863,864
+785,786c892,893
 <   A ∈ {{ &A + [0..--],0%4 }}
 <   B ∈ {{ &B + [0..--],0%4 }}
 ---
 >   A ∈ {{ &A + [0..36],0%4 }}
 >   B ∈ {{ &B + [0..36],0%4 }}
-778c882
+798c905
+<   n ∈ [-2147483648..99]
+---
+>   n ∈ [-2147483547..99]
+804c911
 <   i ∈ {45; 46; 47; 48; 49; 50; 51}
 ---
 >   i ∈ {45; 46; 47; 48}
-784c888
+810c917
 <   i ∈ {-59; -58; -57; -56; -55; -54; -53}
 ---
 >   i ∈ {-58; -57; -56; -55; -54; -53}
-804c908
+830c937
 <   p ∈ {{ &u + [0..--],0%4 }}
 ---
 >   p ∈ {{ &u + [0..400],0%4 }}
-806c910
+832c939
 <   k ∈ [0..2147483647]
 ---
 >   k ∈ [0..390]
-811c915
+837c944
 <   i ∈ [0..2147483647]
 ---
 >   i ∈ [0..21]
-822,823c926,928
+848,849c955,957
 <    [1..9] ∈ {4; 5; 6; 7; 8; 9} or UNINITIALIZED
 <   p ∈ {{ &y + [4..40],0%4 }}
 ---
 >    [1..6] ∈ {4; 5; 6; 7; 8; 9} or UNINITIALIZED
 >    [7..9] ∈ UNINITIALIZED
 >   p ∈ {{ &y[7] }}
-834c939
+860c968
 <   p ∈ {{ &T + [--..396],0%4 }}
 ---
 >   p ∈ {{ &T + [-4..396],0%4 }}
-969,970c1074,1075
+865,869c973
+<   n ∈ {0}
+<   arr[0] ∈ {0}
+<      [1] ∈ {-1}
+<      [2..65535] ∈ [--..--] or UNINITIALIZED
+<   p ∈ {{ &arr + [12..--],0%4 }}
+---
+>   NON TERMINATING FUNCTION
+972a1077
+> [from] Non-terminating function main8_aux (no dependencies)
+995,996c1100,1101
 <   p FROM p; A; B; n; p; A[0..9]; B[0..9] (and SELF)
 <   \result FROM p; A; B; n; p; A[0..9]; B[0..9]
 ---
 >   p FROM p; A; B; n; p; A[0..8]; B[0..8] (and SELF)
 >   \result FROM p; A; B; n; p; A[0..8]; B[0..8]
-1048c1153
+1040c1145
+<   NO EFFECTS
+---
+>   NON TERMINATING - NO EFFECTS
+1074c1179
 <     p; A[0..9]; B[0..9]
 ---
 >     p; A[0..8]; B[0..8]
@@ -417,11 +447,11 @@ diff tests/value/oracle/local_slevel.res.oracle tests/value/oracle_gauges/local_
 <   Frama_C_show_each: {-1}, [0..78],0%2, [0..4294967295]
 ---
 >   Frama_C_show_each: {-1}, [0..78],0%2, [0..78]
-150c142
+152c144
 <   r ∈ [--..--]
 ---
 >   r ∈ [0..2147483647]
-391,393c383,385
+393,395c385,387
 < [eva] tests/value/local_slevel.i:18: Frama_C_show_each: {1}, {1}, {0; 1}
 < [eva] tests/value/local_slevel.i:18: Frama_C_show_each: {-1}, {0}, {0; 1}
 < [eva] tests/value/local_slevel.i:18: Frama_C_show_each: {1}, {1}, {0; 1; 2}
@@ -429,15 +459,15 @@ diff tests/value/oracle/local_slevel.res.oracle tests/value/oracle_gauges/local_
 > [eva] tests/value/local_slevel.i:18: Frama_C_show_each: {1}, {1}, {1}
 > [eva] tests/value/local_slevel.i:18: Frama_C_show_each: {-1}, {0}, {0}
 > [eva] tests/value/local_slevel.i:18: Frama_C_show_each: {1}, {1}, {1}
-396c388
+398c390
 <   Frama_C_show_each: {1}, [1..79],1%2, {0; 1; 2; 3}
 ---
 >   Frama_C_show_each: {1}, [1..79],1%2, {1; 2; 3}
-400c392
+402c394
 <   Frama_C_show_each: {1}, [1..79],1%2, {0; 1; 2; 3; 4}
 ---
 >   Frama_C_show_each: {1}, [1..79],1%2, {1; 2; 3; 4}
-404,412c396
+406,414c398
 <   Frama_C_show_each: {1}, [1..79],1%2, [0..2147483647]
 < [eva] tests/value/local_slevel.i:18: 
 <   Frama_C_show_each: {-1}, [0..78],0%2, [0..2147483647]
@@ -449,11 +479,11 @@ diff tests/value/oracle/local_slevel.res.oracle tests/value/oracle_gauges/local_
 <   Frama_C_show_each: {1}, [1..79],1%2, [0..4294967295]
 ---
 >   Frama_C_show_each: {1}, [1..79],1%2, [1..79]
-414c398
+416c400
 <   Frama_C_show_each: {-1}, [0..78],0%2, [0..4294967295]
 ---
 >   Frama_C_show_each: {-1}, [0..78],0%2, [0..78]
-528c512
+532c516
 <   r ∈ [--..--]
 ---
 >   r ∈ [0..2147483647]
@@ -472,15 +502,24 @@ diff tests/value/oracle/loop_wvar.1.res.oracle tests/value/oracle_gauges/loop_wv
 ---
 >   j ∈ [0..17]
 >   k ∈ [0..11]
+diff tests/value/oracle/loopfun.1.res.oracle tests/value/oracle_gauges/loopfun.1.res.oracle
+9a10,12
+> [eva] tests/value/loopfun.i:23: starting to merge loop iterations
+> [eva:loop-unroll] tests/value/loopfun.i:25: loop not completely unrolled
+> [eva] tests/value/loopfun.i:25: starting to merge loop iterations
+11a15
+> [eva] tests/value/loopfun.i:26: starting to merge loop iterations
+13a18
+> [eva] tests/value/loopfun.i:27: starting to merge loop iterations
 diff tests/value/oracle/memexec.res.oracle tests/value/oracle_gauges/memexec.res.oracle
 99a100
 > [eva] tests/value/memexec.c:98: starting to merge loop iterations
 diff tests/value/oracle/modulo.res.oracle tests/value/oracle_gauges/modulo.res.oracle
 40a41,123
-> [eva] tests/value/modulo.i:41: Frama_C_show_each_1: [1..10], [1..9], [0..8]
-> [eva] tests/value/modulo.i:41: Frama_C_show_each_1: [1..10], [-9..-1], [0..8]
-> [eva] tests/value/modulo.i:41: Frama_C_show_each_1: [-10..-1], [1..9], [-8..0]
 > [eva] tests/value/modulo.i:41: Frama_C_show_each_1: [-10..-1], [-9..-1], [-8..0]
+> [eva] tests/value/modulo.i:41: Frama_C_show_each_1: [-10..-1], [1..9], [-8..0]
+> [eva] tests/value/modulo.i:41: Frama_C_show_each_1: [1..10], [-9..-1], [0..8]
+> [eva] tests/value/modulo.i:41: Frama_C_show_each_1: [1..10], [1..9], [0..8]
 > [eva] tests/value/modulo.i:41: 
 >   Frama_C_show_each_1:
 >   [1..9], {1; 2; 3; 4; 5; 6; 7; 8}, {0; 1; 2; 3; 4; 5; 6; 7}
@@ -495,10 +534,9 @@ diff tests/value/oracle/modulo.res.oracle tests/value/oracle_gauges/modulo.res.o
 >   [-9..-1], {-8; -7; -6; -5; -4; -3; -2; -1}, {-7; -6; -5; -4; -3; -2; -1; 0}
 > [eva] tests/value/modulo.i:41: 
 >   Frama_C_show_each_1:
->   {1; 2; 3; 4; 5; 6; 7; 8}, {1; 2; 3; 4; 5; 6; 7}, {0; 1; 2; 3; 4; 5; 6}
-> [eva] tests/value/modulo.i:41: 
->   Frama_C_show_each_1:
->   {1; 2; 3; 4; 5; 6; 7; 8}, {-7; -6; -5; -4; -3; -2; -1}, {0; 1; 2; 3; 4; 5; 6}
+>   {-8; -7; -6; -5; -4; -3; -2; -1},
+>   {-7; -6; -5; -4; -3; -2; -1},
+>   {-6; -5; -4; -3; -2; -1; 0}
 > [eva] tests/value/modulo.i:41: 
 >   Frama_C_show_each_1:
 >   {-8; -7; -6; -5; -4; -3; -2; -1},
@@ -506,9 +544,10 @@ diff tests/value/oracle/modulo.res.oracle tests/value/oracle_gauges/modulo.res.o
 >   {-6; -5; -4; -3; -2; -1; 0}
 > [eva] tests/value/modulo.i:41: 
 >   Frama_C_show_each_1:
->   {-8; -7; -6; -5; -4; -3; -2; -1},
->   {-7; -6; -5; -4; -3; -2; -1},
->   {-6; -5; -4; -3; -2; -1; 0}
+>   {1; 2; 3; 4; 5; 6; 7; 8}, {-7; -6; -5; -4; -3; -2; -1}, {0; 1; 2; 3; 4; 5; 6}
+> [eva] tests/value/modulo.i:41: 
+>   Frama_C_show_each_1:
+>   {1; 2; 3; 4; 5; 6; 7; 8}, {1; 2; 3; 4; 5; 6; 7}, {0; 1; 2; 3; 4; 5; 6}
 > [eva] tests/value/modulo.i:41: 
 >   Frama_C_show_each_1:
 >   {1; 2; 3; 4; 5; 6; 7}, {1; 2; 3; 4; 5; 6}, {0; 1; 2; 3; 4; 5}
@@ -524,16 +563,16 @@ diff tests/value/oracle/modulo.res.oracle tests/value/oracle_gauges/modulo.res.o
 >   {-6; -5; -4; -3; -2; -1},
 >   {-5; -4; -3; -2; -1; 0}
 > [eva] tests/value/modulo.i:41: 
->   Frama_C_show_each_1: {1; 2; 3; 4; 5; 6}, {1; 2; 3; 4; 5}, {0; 1; 2; 3; 4}
-> [eva] tests/value/modulo.i:41: 
 >   Frama_C_show_each_1:
->   {1; 2; 3; 4; 5; 6}, {-5; -4; -3; -2; -1}, {0; 1; 2; 3; 4}
+>   {-6; -5; -4; -3; -2; -1}, {-5; -4; -3; -2; -1}, {-4; -3; -2; -1; 0}
 > [eva] tests/value/modulo.i:41: 
 >   Frama_C_show_each_1:
 >   {-6; -5; -4; -3; -2; -1}, {1; 2; 3; 4; 5}, {-4; -3; -2; -1; 0}
 > [eva] tests/value/modulo.i:41: 
 >   Frama_C_show_each_1:
->   {-6; -5; -4; -3; -2; -1}, {-5; -4; -3; -2; -1}, {-4; -3; -2; -1; 0}
+>   {1; 2; 3; 4; 5; 6}, {-5; -4; -3; -2; -1}, {0; 1; 2; 3; 4}
+> [eva] tests/value/modulo.i:41: 
+>   Frama_C_show_each_1: {1; 2; 3; 4; 5; 6}, {1; 2; 3; 4; 5}, {0; 1; 2; 3; 4}
 > [eva] tests/value/modulo.i:41: 
 >   Frama_C_show_each_1: {1; 2; 3; 4; 5}, {1; 2; 3; 4}, {0; 1; 2; 3}
 > [eva] tests/value/modulo.i:41: 
@@ -543,46 +582,40 @@ diff tests/value/oracle/modulo.res.oracle tests/value/oracle_gauges/modulo.res.o
 > [eva] tests/value/modulo.i:41: 
 >   Frama_C_show_each_1: {-5; -4; -3; -2; -1}, {-4; -3; -2; -1}, {-3; -2; -1; 0}
 > [eva] tests/value/modulo.i:41: 
->   Frama_C_show_each_1: {1; 2; 3; 4}, {1; 2; 3}, {0; 1; 2}
-> [eva] tests/value/modulo.i:41: 
->   Frama_C_show_each_1: {1; 2; 3; 4}, {-3; -2; -1}, {0; 1; 2}
+>   Frama_C_show_each_1: {-4; -3; -2; -1}, {-3; -2; -1}, {-2; -1; 0}
 > [eva] tests/value/modulo.i:41: 
 >   Frama_C_show_each_1: {-4; -3; -2; -1}, {1; 2; 3}, {-2; -1; 0}
 > [eva] tests/value/modulo.i:41: 
->   Frama_C_show_each_1: {-4; -3; -2; -1}, {-3; -2; -1}, {-2; -1; 0}
+>   Frama_C_show_each_1: {1; 2; 3; 4}, {-3; -2; -1}, {0; 1; 2}
+> [eva] tests/value/modulo.i:41: 
+>   Frama_C_show_each_1: {1; 2; 3; 4}, {1; 2; 3}, {0; 1; 2}
 > [eva] tests/value/modulo.i:41: Frama_C_show_each_1: {1; 2; 3}, {1; 2}, {0; 1}
 > [eva] tests/value/modulo.i:41: 
 >   Frama_C_show_each_1: {-3; -2; -1}, {1; 2}, {-1; 0}
 > [eva] tests/value/modulo.i:41: Frama_C_show_each_1: {1; 2; 3}, {-2; -1}, {0; 1}
 > [eva] tests/value/modulo.i:41: 
 >   Frama_C_show_each_1: {-3; -2; -1}, {-2; -1}, {-1; 0}
-> [eva] tests/value/modulo.i:41: Frama_C_show_each_1: {1; 2}, {1}, {0}
-> [eva] tests/value/modulo.i:41: Frama_C_show_each_1: {1; 2}, {-1}, {0}
-> [eva] tests/value/modulo.i:41: Frama_C_show_each_1: {-2; -1}, {1}, {0}
 > [eva] tests/value/modulo.i:41: Frama_C_show_each_1: {-2; -1}, {-1}, {0}
+> [eva] tests/value/modulo.i:41: Frama_C_show_each_1: {-2; -1}, {1}, {0}
+> [eva] tests/value/modulo.i:41: Frama_C_show_each_1: {1; 2}, {-1}, {0}
+> [eva] tests/value/modulo.i:41: Frama_C_show_each_1: {1; 2}, {1}, {0}
 50a134,216
-> [eva] tests/value/modulo.i:53: Frama_C_show_each_2: [1..10], [1..9], [0..8]
-> [eva] tests/value/modulo.i:53: Frama_C_show_each_2: [1..10], [-9..-1], [0..8]
 > [eva] tests/value/modulo.i:53: Frama_C_show_each_2: [-10..-1], [1..9], [-8..0]
 > [eva] tests/value/modulo.i:53: Frama_C_show_each_2: [-10..-1], [-9..-1], [-8..0]
-> [eva] tests/value/modulo.i:53: 
->   Frama_C_show_each_2:
->   [1..9], {1; 2; 3; 4; 5; 6; 7; 8}, {0; 1; 2; 3; 4; 5; 6; 7}
+> [eva] tests/value/modulo.i:53: Frama_C_show_each_2: [1..10], [1..9], [0..8]
+> [eva] tests/value/modulo.i:53: Frama_C_show_each_2: [1..10], [-9..-1], [0..8]
 > [eva] tests/value/modulo.i:53: 
 >   Frama_C_show_each_2:
 >   [-9..-1], {1; 2; 3; 4; 5; 6; 7; 8}, {-7; -6; -5; -4; -3; -2; -1; 0}
 > [eva] tests/value/modulo.i:53: 
 >   Frama_C_show_each_2:
->   [1..9], {-8; -7; -6; -5; -4; -3; -2; -1}, {0; 1; 2; 3; 4; 5; 6; 7}
+>   [1..9], {1; 2; 3; 4; 5; 6; 7; 8}, {0; 1; 2; 3; 4; 5; 6; 7}
 > [eva] tests/value/modulo.i:53: 
 >   Frama_C_show_each_2:
 >   [-9..-1], {-8; -7; -6; -5; -4; -3; -2; -1}, {-7; -6; -5; -4; -3; -2; -1; 0}
 > [eva] tests/value/modulo.i:53: 
 >   Frama_C_show_each_2:
->   {1; 2; 3; 4; 5; 6; 7; 8}, {1; 2; 3; 4; 5; 6; 7}, {0; 1; 2; 3; 4; 5; 6}
-> [eva] tests/value/modulo.i:53: 
->   Frama_C_show_each_2:
->   {1; 2; 3; 4; 5; 6; 7; 8}, {-7; -6; -5; -4; -3; -2; -1}, {0; 1; 2; 3; 4; 5; 6}
+>   [1..9], {-8; -7; -6; -5; -4; -3; -2; -1}, {0; 1; 2; 3; 4; 5; 6; 7}
 > [eva] tests/value/modulo.i:53: 
 >   Frama_C_show_each_2:
 >   {-8; -7; -6; -5; -4; -3; -2; -1},
@@ -595,23 +628,24 @@ diff tests/value/oracle/modulo.res.oracle tests/value/oracle_gauges/modulo.res.o
 >   {-6; -5; -4; -3; -2; -1; 0}
 > [eva] tests/value/modulo.i:53: 
 >   Frama_C_show_each_2:
->   {1; 2; 3; 4; 5; 6; 7}, {1; 2; 3; 4; 5; 6}, {0; 1; 2; 3; 4; 5}
+>   {1; 2; 3; 4; 5; 6; 7; 8}, {1; 2; 3; 4; 5; 6; 7}, {0; 1; 2; 3; 4; 5; 6}
+> [eva] tests/value/modulo.i:53: 
+>   Frama_C_show_each_2:
+>   {1; 2; 3; 4; 5; 6; 7; 8}, {-7; -6; -5; -4; -3; -2; -1}, {0; 1; 2; 3; 4; 5; 6}
 > [eva] tests/value/modulo.i:53: 
 >   Frama_C_show_each_2:
 >   {-7; -6; -5; -4; -3; -2; -1}, {1; 2; 3; 4; 5; 6}, {-5; -4; -3; -2; -1; 0}
 > [eva] tests/value/modulo.i:53: 
 >   Frama_C_show_each_2:
->   {1; 2; 3; 4; 5; 6; 7}, {-6; -5; -4; -3; -2; -1}, {0; 1; 2; 3; 4; 5}
+>   {1; 2; 3; 4; 5; 6; 7}, {1; 2; 3; 4; 5; 6}, {0; 1; 2; 3; 4; 5}
 > [eva] tests/value/modulo.i:53: 
 >   Frama_C_show_each_2:
 >   {-7; -6; -5; -4; -3; -2; -1},
 >   {-6; -5; -4; -3; -2; -1},
 >   {-5; -4; -3; -2; -1; 0}
 > [eva] tests/value/modulo.i:53: 
->   Frama_C_show_each_2: {1; 2; 3; 4; 5; 6}, {1; 2; 3; 4; 5}, {0; 1; 2; 3; 4}
-> [eva] tests/value/modulo.i:53: 
 >   Frama_C_show_each_2:
->   {1; 2; 3; 4; 5; 6}, {-5; -4; -3; -2; -1}, {0; 1; 2; 3; 4}
+>   {1; 2; 3; 4; 5; 6; 7}, {-6; -5; -4; -3; -2; -1}, {0; 1; 2; 3; 4; 5}
 > [eva] tests/value/modulo.i:53: 
 >   Frama_C_show_each_2:
 >   {-6; -5; -4; -3; -2; -1}, {1; 2; 3; 4; 5}, {-4; -3; -2; -1; 0}
@@ -619,31 +653,36 @@ diff tests/value/oracle/modulo.res.oracle tests/value/oracle_gauges/modulo.res.o
 >   Frama_C_show_each_2:
 >   {-6; -5; -4; -3; -2; -1}, {-5; -4; -3; -2; -1}, {-4; -3; -2; -1; 0}
 > [eva] tests/value/modulo.i:53: 
->   Frama_C_show_each_2: {1; 2; 3; 4; 5}, {1; 2; 3; 4}, {0; 1; 2; 3}
+>   Frama_C_show_each_2: {1; 2; 3; 4; 5; 6}, {1; 2; 3; 4; 5}, {0; 1; 2; 3; 4}
+> [eva] tests/value/modulo.i:53: 
+>   Frama_C_show_each_2:
+>   {1; 2; 3; 4; 5; 6}, {-5; -4; -3; -2; -1}, {0; 1; 2; 3; 4}
 > [eva] tests/value/modulo.i:53: 
 >   Frama_C_show_each_2: {-5; -4; -3; -2; -1}, {1; 2; 3; 4}, {-3; -2; -1; 0}
 > [eva] tests/value/modulo.i:53: 
->   Frama_C_show_each_2: {1; 2; 3; 4; 5}, {-4; -3; -2; -1}, {0; 1; 2; 3}
+>   Frama_C_show_each_2: {1; 2; 3; 4; 5}, {1; 2; 3; 4}, {0; 1; 2; 3}
 > [eva] tests/value/modulo.i:53: 
 >   Frama_C_show_each_2: {-5; -4; -3; -2; -1}, {-4; -3; -2; -1}, {-3; -2; -1; 0}
+> [eva] tests/value/modulo.i:53: 
+>   Frama_C_show_each_2: {1; 2; 3; 4; 5}, {-4; -3; -2; -1}, {0; 1; 2; 3}
+> [eva] tests/value/modulo.i:53: 
+>   Frama_C_show_each_2: {-4; -3; -2; -1}, {1; 2; 3}, {-2; -1; 0}
+> [eva] tests/value/modulo.i:53: 
+>   Frama_C_show_each_2: {-4; -3; -2; -1}, {-3; -2; -1}, {-2; -1; 0}
 > [eva] tests/value/modulo.i:53: 
 >   Frama_C_show_each_2: {1; 2; 3; 4}, {1; 2; 3}, {0; 1; 2}
 > [eva] tests/value/modulo.i:53: 
 >   Frama_C_show_each_2: {1; 2; 3; 4}, {-3; -2; -1}, {0; 1; 2}
 > [eva] tests/value/modulo.i:53: 
->   Frama_C_show_each_2: {-4; -3; -2; -1}, {1; 2; 3}, {-2; -1; 0}
-> [eva] tests/value/modulo.i:53: 
->   Frama_C_show_each_2: {-4; -3; -2; -1}, {-3; -2; -1}, {-2; -1; 0}
+>   Frama_C_show_each_2: {-3; -2; -1}, {1; 2}, {-1; 0}
 > [eva] tests/value/modulo.i:53: Frama_C_show_each_2: {1; 2; 3}, {1; 2}, {0; 1}
 > [eva] tests/value/modulo.i:53: 
->   Frama_C_show_each_2: {-3; -2; -1}, {1; 2}, {-1; 0}
-> [eva] tests/value/modulo.i:53: Frama_C_show_each_2: {1; 2; 3}, {-2; -1}, {0; 1}
-> [eva] tests/value/modulo.i:53: 
 >   Frama_C_show_each_2: {-3; -2; -1}, {-2; -1}, {-1; 0}
-> [eva] tests/value/modulo.i:53: Frama_C_show_each_2: {1; 2}, {1}, {0}
-> [eva] tests/value/modulo.i:53: Frama_C_show_each_2: {1; 2}, {-1}, {0}
+> [eva] tests/value/modulo.i:53: Frama_C_show_each_2: {1; 2; 3}, {-2; -1}, {0; 1}
 > [eva] tests/value/modulo.i:53: Frama_C_show_each_2: {-2; -1}, {1}, {0}
 > [eva] tests/value/modulo.i:53: Frama_C_show_each_2: {-2; -1}, {-1}, {0}
+> [eva] tests/value/modulo.i:53: Frama_C_show_each_2: {1; 2}, {1}, {0}
+> [eva] tests/value/modulo.i:53: Frama_C_show_each_2: {1; 2}, {-1}, {0}
 60a227,240
 > [eva] tests/value/modulo.i:64: Frama_C_show_each_3: [-10..10], [-9..9], [-8..8]
 > [eva] tests/value/modulo.i:64: Frama_C_show_each_3: [-9..9], [-8..8], [-7..7]
@@ -850,11 +889,6 @@ diff tests/value/oracle/noreturn.res.oracle tests/value/oracle_gauges/noreturn.r
 > [eva] tests/value/noreturn.i:7: starting to merge loop iterations
 36a40
 > [eva] tests/value/noreturn.i:13: starting to merge loop iterations
-diff tests/value/oracle/precise_locations.res.oracle tests/value/oracle_gauges/precise_locations.res.oracle
-40a41
-> [eva] tests/value/precise_locations.i:39: Reusing old results for call to ct
-517a519
-> [eva] tests/value/precise_locations.i:39: Reusing old results for call to ct
 diff tests/value/oracle/reduce_formals.res.oracle tests/value/oracle_gauges/reduce_formals.res.oracle
 10a11
 > [eva] tests/value/reduce_formals.i:5: starting to merge loop iterations
@@ -866,6 +900,10 @@ diff tests/value/oracle/reevaluate_alarms.res.oracle tests/value/oracle_gauges/r
 < [eva:alarm] tests/value/reevaluate_alarms.i:14: Warning: 
 <   out of bounds write. assert \valid(tmp);
 <                        (tmp from p++)
+59c56
+<   p ∈ {{ &T + [0..--],0%4 }}
+---
+>   p ∈ {{ &T{[0], [1], [2], [3], [4], [5]} }}
 124,125d120
 < [    -    ] Assertion 'Eva,mem_access' (file tests/value/reevaluate_alarms.i, line 14)
 <             tried with Eva.
@@ -901,26 +939,28 @@ diff tests/value/oracle/semaphore.res.oracle tests/value/oracle_gauges/semaphore
 diff tests/value/oracle/symbolic_locs.res.oracle tests/value/oracle_gauges/symbolic_locs.res.oracle
 133a134
 > [eva] tests/value/symbolic_locs.i:93: starting to merge loop iterations
-diff tests/value/oracle/test.0.res.oracle tests/value/oracle_gauges/test.0.res.oracle
-18a19,20
-> [eva:alarm] tests/value/test.i:10: Warning: 
->   signed overflow. assert i + 1 ≤ 2147483647;
 diff tests/value/oracle/undefined_sequence.0.res.oracle tests/value/oracle_gauges/undefined_sequence.0.res.oracle
 97a98
 > [eva] tests/value/undefined_sequence.i:43: starting to merge loop iterations
 101a103
 > [eva] tests/value/undefined_sequence.i:49: starting to merge loop iterations
 diff tests/value/oracle/unroll.res.oracle tests/value/oracle_gauges/unroll.res.oracle
-16a17
+13,14d12
+< [eva:alarm] tests/value/unroll.i:34: Warning: 
+<   signed overflow. assert -2147483648 ≤ j - 1;
+16a15
 > [eva] tests/value/unroll.i:39: starting to merge loop iterations
-26c27
+26c25
 <   j ∈ [-2147483648..-123]
 ---
 >   j ∈ {-238}
 diff tests/value/oracle/unroll_simple.res.oracle tests/value/oracle_gauges/unroll_simple.res.oracle
-11a12
+8,9d7
+< [eva:alarm] tests/value/unroll_simple.i:11: Warning: 
+<   signed overflow. assert -2147483648 ≤ j - 1;
+11a10
 > [eva] tests/value/unroll_simple.i:16: starting to merge loop iterations
-21c22
+21c20
 <   j ∈ [-2147483648..-126]
 ---
 >   j ∈ {-250}
@@ -952,33 +992,12 @@ diff tests/value/oracle/va_list2.1.res.oracle tests/value/oracle_gauges/va_list2
 > [eva] computing for function __builtin_va_arg <- main.
 >   Called from tests/value/va_list2.c:20.
 > [eva] Done for function __builtin_va_arg
-diff tests/value/oracle/widen_non_constant.res.oracle tests/value/oracle_gauges/widen_non_constant.res.oracle
-28c28
-<   Frama_C_show_each_in: [0..23], [1..23]
----
->   Frama_C_show_each_in: [0..22], [1..23]
-47c47
-<   Frama_C_show_each_in: [0..25], [1..23]
----
->   Frama_C_show_each_in: [0..22], [1..23]
-66,70c66
-<   Frama_C_show_each_in: [0..2147483647], [1..23]
-< [eva:alarm] tests/value/widen_non_constant.i:49: Warning: 
-<   out of bounds read. assert \valid_read(p + j);
-< [eva:alarm] tests/value/widen_non_constant.i:45: Warning: 
-<   signed overflow. assert j + 1 ≤ 2147483647;
----
->   Frama_C_show_each_in: [0..22], [1..23]
-88c84
-<   j ∈ {23; 24}
----
->   j ∈ {23}
-91c87
-<   j ∈ {23; 24; 25; 26}
----
->   j ∈ {23; 24; 25}
 diff tests/value/oracle/widen_on_non_monotonic.res.oracle tests/value/oracle_gauges/widen_on_non_monotonic.res.oracle
-24a25,27
-> [eva] tests/value/widen_on_non_monotonic.i:26: starting to merge loop iterations
+25a26,27
 > [eva] tests/value/widen_on_non_monotonic.i:21: starting to merge loop iterations
 > [eva] tests/value/widen_on_non_monotonic.i:18: starting to merge loop iterations
+diff tests/value/oracle/widen_overflow.res.oracle tests/value/oracle_gauges/widen_overflow.res.oracle
+31a32,34
+> [eva] computing for function u <- main.
+>   Called from tests/value/widen_overflow.i:9.
+> [eva] Done for function u

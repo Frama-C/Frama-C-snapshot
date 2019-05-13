@@ -4,8 +4,10 @@
 [eva] Initial state computed
 [eva:initial-state] Values of globals at initialization
   
-[eva] Semantic level unrolling superposing up to 100 states
-[eva] Semantic level unrolling superposing up to 200 states
+[eva] tests/libc/string_c_strchr.c:57: 
+  Trace partitioning superposing up to 100 states
+[eva] tests/libc/string_c_strchr.c:59: 
+  Trace partitioning superposing up to 200 states
 [eva] computing for function strchr <- main.
   Called from tests/libc/string_c_strchr.c:62.
 [eva] tests/libc/string_c_strchr.c:62: 
@@ -44,6 +46,7 @@
   Called from tests/libc/string_c_strchr.c:67.
 [eva] tests/libc/string_c_strchr.c:67: 
   function strchr: precondition 'valid_string_s' got status valid.
+[eva] share/libc/string.c:229: Trace partitioning superposing up to 100 states
 [eva] Recording results for strchr
 [eva] Done for function strchr
 [eva] computing for function strchr <- main.
@@ -168,6 +171,7 @@
   Called from tests/libc/string_c_strchr.c:87.
 [eva] tests/libc/string_c_strchr.c:87: 
   function strchr: precondition 'valid_string_s' got status valid.
+[eva] share/libc/string.c:229: Trace partitioning superposing up to 200 states
 [eva] Recording results for strchr
 [eva] Done for function strchr
 [eva] computing for function strchr <- main.

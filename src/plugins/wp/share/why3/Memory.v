@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2018                                               *)
+(*  Copyright (C) 2007-2019                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -143,7 +143,7 @@ Definition separated (p:addr) (a:Z) (q:addr) (b:Z): Prop := (a <= 0%Z)%Z \/
 (* Why3 assumption *)
 Definition eqmem {a:Type} {a_WT:WhyType a} (m1:(map.Map.map addr a))
   (m2:(map.Map.map addr a)) (p:addr) (a1:Z): Prop := forall (q:addr),
-  (included q 1%Z p a1) -> ((map.Map.get m1 q) = (map.Map.get m2 q)).
+  (included q 1%Z p a1) -> ((m1 q) = (m2 q)).
 
 (* Why3 goal *)
 Definition havoc: forall {a:Type} {a_WT:WhyType a}, (map.Map.map addr a) ->
@@ -160,16 +160,16 @@ Definition fhavoc {A : Type}
 (* Why3 assumption *)
 Definition valid_rw (m:(map.Map.map Z Z)) (p:addr) (n:Z): Prop :=
   (0%Z < n)%Z -> ((0%Z < (base p))%Z /\ ((0%Z <= (offset p))%Z /\
-  (((offset p) + n)%Z <= (map.Map.get m (base p)))%Z)).
+  (((offset p) + n)%Z <= (m (base p)))%Z)).
 
 (* Why3 assumption *)
 Definition valid_rd (m:(map.Map.map Z Z)) (p:addr) (n:Z): Prop :=
   (0%Z < n)%Z -> ((~ (0%Z = (base p))) /\ ((0%Z <= (offset p))%Z /\
-  (((offset p) + n)%Z <= (map.Map.get m (base p)))%Z)).
+  (((offset p) + n)%Z <= (m (base p)))%Z)).
 
 (* Why3 assumption *)
 Definition invalid (m:(map.Map.map Z Z)) (p:addr) (n:Z): Prop :=
-  (0%Z < n)%Z -> (((map.Map.get m (base p)) <= (offset p))%Z \/
+  (0%Z < n)%Z -> (((m (base p)) <= (offset p))%Z \/
   (((offset p) + n)%Z <= 0%Z)%Z).
 
 (* Why3 goal *)
@@ -184,7 +184,7 @@ Qed.
 (* Why3 goal *)
 Lemma valid_string : forall (m:(map.Map.map Z Z)), forall (p:addr),
   ((base p) < 0%Z)%Z -> (((0%Z <= (offset p))%Z /\
-  ((offset p) < (map.Map.get m (base p)))%Z) -> ((valid_rd m p 1%Z) /\
+  ((offset p) < (m (base p)))%Z) -> ((valid_rd m p 1%Z) /\
   ~ (valid_rw m p 1%Z))).
 Proof.
   intros m p.
@@ -251,7 +251,7 @@ Admitted.
 
 (* Why3 assumption *)
 Definition framed (m:(map.Map.map addr addr)): Prop := forall (p:addr),
-  ((region (base (map.Map.get m p))) <= 0%Z)%Z.
+  ((region (base (m p))) <= 0%Z)%Z.
 
 (* Why3 goal *)
 Lemma separated_included : forall (p:addr) (q:addr), forall (a:Z) (b:Z),
@@ -318,9 +318,9 @@ Admitted.
 (* Why3 goal *)
 Lemma havoc_access : forall {a:Type} {a_WT:WhyType a},
   forall (m0:(map.Map.map addr a)) (m1:(map.Map.map addr a)), forall (q:addr)
-  (p:addr), forall (a1:Z), ((separated q 1%Z p a1) -> ((map.Map.get (havoc m0
-  m1 p a1) q) = (map.Map.get m1 q))) /\ ((~ (separated q 1%Z p a1)) ->
-  ((map.Map.get (havoc m0 m1 p a1) q) = (map.Map.get m0 q))).
+  (p:addr), forall (a1:Z), ((separated q 1%Z p a1) -> (((havoc m0
+  m1 p a1) q) = (m1 q))) /\ ((~ (separated q 1%Z p a1)) ->
+  (((havoc m0 m1 p a1) q) = (m0 q))).
 Proof.
   intros a a_WT m0 m1 q p a1.
 Admitted.

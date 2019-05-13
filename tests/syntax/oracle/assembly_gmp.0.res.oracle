@@ -140,6 +140,11 @@ void f(void)
         \from (indirect: pulValue), *(pulValue + (..));
   */
   __asm__ ("movq $36, (%0)" :  : "r" (pulValue));
+  int a = 2;
+  int b = 3;
+  /*@ assigns a;
+      assigns a \from b; */
+  __asm__ ("mov %1, %0" : "=r" (a) : "r" (b) : "%eax");
   return;
 }
 

@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2018                                               *)
+(*  Copyright (C) 2007-2019                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -23,9 +23,9 @@
 
 (* Build a read only text view for C source code. *)
 
-let set_language_to_C (buffer:GSourceView2.source_buffer)  =
+let set_language_to_C (buffer:GSourceView.source_buffer)  =
   let original_source_language_manager =
-    GSourceView2.source_language_manager ~default:true
+    GSourceView.source_language_manager ~default:true
   in
   let original_lang =
     original_source_language_manager#guess_language
@@ -44,7 +44,7 @@ let make ?name ~packing () =
          Utf8_logic.forall Utf8_logic.exists Utf8_logic.eq Utf8_logic.neq) ;
   *)
   let original_source_window =
-    GSourceView2.source_view
+    GSourceView.source_view
       ~show_line_numbers:true
       ~editable:false
       ~packing
@@ -69,6 +69,6 @@ let make ?name ~packing () =
 
 
 let buffer () =
-  let original_source_buffer = GSourceView2.source_buffer ()  in
+  let original_source_buffer = GSourceView.source_buffer ()  in
   set_language_to_C original_source_buffer;
   original_source_buffer

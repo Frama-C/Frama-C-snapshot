@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2018                                               *)
+(*  Copyright (C) 2007-2019                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -181,9 +181,8 @@ class propagate project fnames ~cast_intro = object(self)
                   in
                   array, Int_Base.project size
                 in
-                array,
-                (Integer.pos_div offset sizeof_pointed),
-                (Integer.pos_rem offset sizeof_pointed)
+                let div,rem = Integer.e_div_rem offset sizeof_pointed in
+                array,div,rem
               in
               let expr' =
                 if array then

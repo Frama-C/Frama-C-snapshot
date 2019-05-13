@@ -1,5 +1,6 @@
 /* run.config
-   OPT: -load-script tests/spec/bts0655.ml
+   EXECNOW: make -s @PTEST_DIR@/@PTEST_NAME@.cmxs
+   OPT: -no-autoload-plugins -load-module @PTEST_DIR@/@PTEST_NAME@.cmxs
 */
 /*@
   @ ensures \result == \max( a, b );

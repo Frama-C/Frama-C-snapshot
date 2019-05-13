@@ -193,50 +193,59 @@ static void argv_alloca(int *argc_ref,  char *** argv_ref) {
 /* Program initialization {{{ */
 extern int main(void);
 
-int MSPACES_INIT = 0;
-
 void mspaces_init() {
-  if(MSPACES_INIT) return;
-  describe_run();
-  make_memory_spaces(64*MB, get_heap_size());
-  /* Allocate and log shadow memory layout of the execution.
-    Case of the heap, globals and tls. */
-  init_shadow_layout_heap_global_tls();
-  MSPACES_INIT = 1;
+  /* [already_run] avoids reentrancy issue (see Gitlab issue #83),
+     e.g. in presence of a GCC's constructors that invokes malloc possibly
+     several times before calling main. */
+  static char already_run = 0;
+  if (! already_run) {
+    describe_run();
+    make_memory_spaces(64*MB, get_heap_size());
+    /* Allocate and log shadow memory layout of the execution.
+       Case of the heap, globals and tls. */
+    init_shadow_layout_heap_global_tls();
+    already_run = 1;
+  }
 }
 
 void memory_init(int *argc_ref, char *** argv_ref, size_t ptr_size) {
-  mspaces_init(argc_ref, argv_ref);
-  /** Verify that the given size of a pointer matches the one in the present
-   * architecture. This is a guard against Frama-C instrumentations using
-   * architectures different to the given one. */
-  arch_assert(ptr_size);
-  /* Initialize report file with debug logs (only in debug mode). */
-  initialize_report_file(argc_ref, argv_ref);
-  /* Lift stack limit to account for extra stack memory overhead.  */
-  increase_stack_limit(get_stack_size()*2);
-  /* Allocate and log shadow memory layout of the execution. Case of stack. */
-  init_shadow_layout_stack(argc_ref, argv_ref);
-  //DEBUG_PRINT_LAYOUT;
-  /* Make sure the layout holds */
-  DVALIDATE_SHADOW_LAYOUT;
-  /* Track program arguments. */
-  if (argc_ref && argv_ref)
-    argv_alloca(argc_ref, argv_ref);
-  /* Track main function */
-  shadow_alloca(&main, sizeof(&main));
-  initialize_static_region((uintptr_t)&main, sizeof(&main));
-  /* Tracking safe locations */
-  collect_safe_locations();
-  int i;
-  for (i = 0; i < safe_location_counter; i++) {
-    void *addr = (void*)safe_locations[i].address;
-    uintptr_t len = safe_locations[i].length;
-    shadow_alloca(addr, len);
-    if (safe_locations[i].is_initialized)
-      initialize(addr, len);
+  /* [already_run] avoids reentrancy issue (see Gitlab issue #83),
+     e.g. in presence of a recursive call to 'main' */
+  static char already_run = 0;
+  if (! already_run) {
+    mspaces_init();
+    /* Verify that the given size of a pointer matches the one in the present
+       architecture. This is a guard against Frama-C instrumentations using
+       architectures different to the given one. */
+    arch_assert(ptr_size);
+    /* Initialize report file with debug logs (only in debug mode). */
+    initialize_report_file(argc_ref, argv_ref);
+    /* Lift stack limit to account for extra stack memory overhead.  */
+    increase_stack_limit(get_stack_size()*2);
+    /* Allocate and log shadow memory layout of the execution. Case of stack. */
+    init_shadow_layout_stack(argc_ref, argv_ref);
+    //DEBUG_PRINT_LAYOUT;
+    /* Make sure the layout holds */
+    DVALIDATE_SHADOW_LAYOUT;
+    /* Track program arguments. */
+    if (argc_ref && argv_ref)
+      argv_alloca(argc_ref, argv_ref);
+    /* Track main function */
+    shadow_alloca(&main, sizeof(&main));
+    initialize_static_region((uintptr_t)&main, sizeof(&main));
+    /* Tracking safe locations */
+    collect_safe_locations();
+    int i;
+    for (i = 0; i < safe_location_counter; i++) {
+      void *addr = (void*)safe_locations[i].address;
+      uintptr_t len = safe_locations[i].length;
+      shadow_alloca(addr, len);
+      if (safe_locations[i].is_initialized)
+        initialize(addr, len);
+    }
+    init_infinity_values();
+    already_run = 1;
   }
-  init_infinity_values();
 }
 
 void memory_clean(void) {

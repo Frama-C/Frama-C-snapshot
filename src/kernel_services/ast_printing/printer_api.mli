@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2018                                               *)
+(*  Copyright (C) 2007-2019                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -67,7 +67,7 @@ class type extensible_printer_type = object
 
   method private current_function: varinfo option
   (** @return the [varinfo] corresponding to the function being printed *)
-    
+
   method private current_behavior: funbehavior option
   (** @return the [funbehavior] being pretty-printed. *)
 
@@ -107,7 +107,7 @@ class type extensible_printer_type = object
       print sequences of instructions separated by comma *)
 
   method private set_instr_terminator: string -> unit
-    
+
   method private opt_funspec: Format.formatter -> funspec -> unit
 
   (* ******************************************************************* *)
@@ -149,9 +149,9 @@ class type extensible_printer_type = object
   method ikind: Format.formatter -> ikind -> unit
   method fkind: Format.formatter -> fkind -> unit
 
-  method typ: 
+  method typ:
     ?fundecl:varinfo ->
-      (Format.formatter -> unit) option -> Format.formatter -> typ -> unit
+    (Format.formatter -> unit) option -> Format.formatter -> typ -> unit
   (** Use of some type in some declaration.  [fundecl] is the name of the
       function which is declared with the corresponding type.  The second
       argument is used to print the declared element, or is None if we are just
@@ -164,7 +164,7 @@ class type extensible_printer_type = object
   method attribute: Format.formatter -> attribute -> bool
   (** Attribute. Also return an indication whether this attribute must be
       printed inside the __attribute__ list or not. *)
-    
+
   method attributes:  Format.formatter -> attributes -> unit
   (** Attribute lists *)
 
@@ -172,9 +172,9 @@ class type extensible_printer_type = object
   method compinfo:  Format.formatter -> compinfo -> unit
   method initinfo: Format.formatter -> initinfo -> unit
   method fundec: Format.formatter -> fundec -> unit
-                                                           
 
-  method line_directive: 
+
+  method line_directive:
     ?forcefile:bool ->  Format.formatter -> location -> unit
   (** Print a line-number. This is assumed to come always on an empty line. If
       the forcefile argument is present and is true then the file name will be
@@ -190,7 +190,7 @@ class type extensible_printer_type = object
       last {!Cil_types.stmt} argument. The initial {!Cil_types.stmt} argument
       records the statement which follows the one being printed. *)
 
-  method stmtkind: stmt ->  Format.formatter -> stmtkind -> unit
+  method stmtkind: attributes -> stmt ->  Format.formatter -> stmtkind -> unit
   (** Print a statement kind. The code to be printed is given in the
       {!Cil_types.stmtkind} argument.  The initial {!Cil_types.stmt} argument
       records the statement which follows the one being printed;
@@ -228,8 +228,8 @@ class type extensible_printer_type = object
 
   method logic_constant: Format.formatter -> logic_constant -> unit
   method logic_type:
-    (Format.formatter -> unit) option -> Format.formatter -> logic_type 
-      -> unit
+    (Format.formatter -> unit) option -> Format.formatter -> logic_type
+    -> unit
   method logic_type_def: Format.formatter -> logic_type_def -> unit
   method model_info: Format.formatter -> model_info -> unit
   method term_binop: Format.formatter -> binop -> unit
@@ -251,7 +251,7 @@ class type extensible_printer_type = object
   method quantifiers: Format.formatter -> quantifiers -> unit
   method predicate_node: Format.formatter -> predicate_node -> unit
   method predicate: Format.formatter -> predicate -> unit
-  method identified_predicate: 
+  method identified_predicate:
     Format.formatter -> identified_predicate -> unit
   method behavior: Format.formatter -> funbehavior -> unit
   method requires: Format.formatter -> identified_predicate -> unit
@@ -259,7 +259,7 @@ class type extensible_printer_type = object
   method disjoint_behaviors: Format.formatter -> string list -> unit
   method terminates: Format.formatter -> identified_predicate -> unit
 
-  method post_cond: 
+  method post_cond:
     Format.formatter -> (termination_kind * identified_predicate) -> unit
   (** pretty prints a post condition according to the exit kind it represents
       @modify Boron-20100401 replaces [pEnsures] *)
@@ -309,8 +309,8 @@ class type extensible_printer_type = object
   method without_annot:
     'a.
     (Format.formatter -> 'a -> unit) ->
-    Format.formatter -> 
-    'a -> 
+    Format.formatter ->
+    'a ->
     unit
   (** [self#without_annot printer fmt x] pretty prints [x] by using [printer],
       without pretty-printing its function contracts and code annotations. *)
@@ -318,11 +318,11 @@ class type extensible_printer_type = object
   method force_brace:
     'a.
     (Format.formatter -> 'a -> unit) ->
-    Format.formatter -> 
-    'a -> 
+    Format.formatter ->
+    'a ->
     unit
-(** [self#force_brace printer fmt x] pretty prints [x] by using [printer],
-    but add some extra braces '\{' and '\}' which are hidden by default. *)
+    (** [self#force_brace printer fmt x] pretty prints [x] by using [printer],
+        but add some extra braces '\{' and '\}' which are hidden by default. *)
 
 end
 
@@ -342,31 +342,31 @@ type line_directive_style =
   | Line_preprocessor_output (** Use # nnn directives (in gcc mode) *)
 
 type state =
-    { (** How to print line directives *)
-      mutable line_directive_style: line_directive_style option;
-      (** Whether we print something that will only be used as input to Cil's
-	  parser. In that case we are a bit more liberal in what we print. *)
-      mutable print_cil_input: bool;
-      (** Whether to print the CIL as they are, without trying to be smart and
-	  print nicer code. Normally this is false, in which case the pretty
-	  printer will turn the while(1) loops of CIL into nicer loops, will not
-	  print empty "else" blocks, etc. These is one case however in which if
-	  you turn this on you will get code that does not compile: if you use
-	  varargs the __builtin_va_arg function will be printed in its internal
-	  form. *)
-      mutable print_cil_as_is: bool;
-      (** The length used when wrapping output lines. Setting this variable to
-	  a large integer will prevent wrapping and make #line directives more
-	  accurate. *)
-      mutable line_length: int;
-      (** Emit warnings when truncating integer constants (default true) *)
-      mutable warn_truncate: bool }
+  { (** How to print line directives *)
+    mutable line_directive_style: line_directive_style option;
+    (** Whether we print something that will only be used as input to Cil's
+        parser. In that case we are a bit more liberal in what we print. *)
+    mutable print_cil_input: bool;
+    (** Whether to print the CIL as they are, without trying to be smart and
+        print nicer code. Normally this is false, in which case the pretty
+        printer will turn the while(1) loops of CIL into nicer loops, will not
+        print empty "else" blocks, etc. These is one case however in which if
+        you turn this on you will get code that does not compile: if you use
+        varargs the __builtin_va_arg function will be printed in its internal
+        form. *)
+    mutable print_cil_as_is: bool;
+    (** The length used when wrapping output lines. Setting this variable to
+        a large integer will prevent wrapping and make #line directives more
+        accurate. *)
+    mutable line_length: int;
+    (** Emit warnings when truncating integer constants (default true) *)
+    mutable warn_truncate: bool }
 
 (* ********************************************************************* *)
 (** {2 Functions for pretty printing} *)
 (* ********************************************************************* *)
 
-module type S = sig
+module type S_pp = sig
 
   val pp_varname: Format.formatter -> string -> unit
 
@@ -417,7 +417,7 @@ module type S = sig
   (** @since Oxygen-20120901 *)
 
   val pp_term_lval: Format.formatter -> term_lval -> unit
-  val pp_term_lhost: Format.formatter -> term_lhost -> unit                  
+  val pp_term_lhost: Format.formatter -> term_lhost -> unit
   val pp_logic_var: Format.formatter -> logic_var -> unit
   val pp_logic_type: Format.formatter -> logic_type -> unit
   val pp_identified_term:  Format.formatter -> identified_term -> unit
@@ -449,7 +449,7 @@ module type S = sig
   val pp_loop_allocation: Format.formatter -> allocation -> unit
   (** @since Oxygen-20120901 *)
 
-  val pp_post_cond: 
+  val pp_post_cond:
     Format.formatter -> (termination_kind * identified_predicate) -> unit
 
   (* ********************************************************************* *)
@@ -463,19 +463,25 @@ module type S = sig
 
   val without_annot:
     (Format.formatter -> 'a -> unit) ->
-    Format.formatter -> 
-    'a -> 
+    Format.formatter ->
+    'a ->
     unit
   (** [without_annot printer fmt x] pretty prints [x] by using [printer],
       without pretty-printing its function contracts and code annotations. *)
 
   val force_brace:
     (Format.formatter -> 'a -> unit) ->
-    Format.formatter -> 
-    'a -> 
+    Format.formatter ->
+    'a ->
     unit
-  (** [self#force_brace printer fmt x] pretty prints [x] by using [printer],
-      but add some extra braces '\{' and '\}' which are hidden by default. *)
+    (** [self#force_brace printer fmt x] pretty prints [x] by using [printer],
+        but add some extra braces '\{' and '\}' which are hidden by default. *)
+
+end
+
+module type S = sig
+
+  include S_pp
 
   (* ********************************************************************* *)
   (** {3 Extensible printer} *)
@@ -501,17 +507,17 @@ module type S = sig
 
       This is how this function should be used:
 
-{[
-module PrinterClassDeferred (X: Printer.PrinterClass) = struct
- class printer : Printer.extensible_printer = object(self)
-   inherit X.printer as super
-   (* Override the standard methods *)
- end
-end
-let () = Printer.update_printer
-   (module PrinterClassDeferred: Printer.PrinterExtension)
-]}
-*)
+      {[
+        module PrinterClassDeferred (X: Printer.PrinterClass) = struct
+          class printer : Printer.extensible_printer = object(self)
+            inherit X.printer as super
+            (* Override the standard methods *)
+          end
+        end
+        let () = Printer.update_printer
+            (module PrinterClassDeferred: Printer.PrinterExtension)
+      ]}
+  *)
 
   val current_printer: unit -> (module PrinterClass)
   (** Returns the current pretty-printer, with all the extensions added

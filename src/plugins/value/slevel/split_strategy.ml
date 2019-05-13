@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2018                                               *)
+(*  Copyright (C) 2007-2019                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -80,7 +80,7 @@ let of_string s =
     let r = Str.regexp ":" in
     let conv s =
       try Integer.of_string s
-      with Failure _ -> raise (ParseFailure s)
+      with Invalid_argument _ -> raise (ParseFailure s)
     in SplitEqList (List.map conv (Str.split r s))
 
 let to_string = function

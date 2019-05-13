@@ -9,8 +9,8 @@ int p[10][10][10]={0};
 long *q;
 
 void main(int c) {
-  i = &p[11];
-  i = &p[10];
+  i = (long) &p[11];
+  i = (long) &p[10];
 
   if (c)
     // This branch is assumed to be dead since "i" is an invalid pointer.
@@ -21,8 +21,8 @@ void main(int c) {
 }
 
 void main1(int c) {
-  i = &p[1];
-  i = &p[0];
+  i = (long) &p[1];
+  i = (long) &p[0];
 
   if (c) *((int*)i) = a;
 

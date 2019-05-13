@@ -8,19 +8,17 @@
 
 Lemma InfN_not_finite:
 Assume: 'InfP_not_finite' 'NaN_not_finite'
-Prove: (is_float64 x_0)
-       -> ((not (\is_finite x_0)) \/ (not (\is_minus_infinity x_0)))
+Prove: (not (is_finite_f64 x_0)) \/ (not (is_negative_infinite_f64 x_0))
 
 ------------------------------------------------------------
 
 Lemma InfP_not_finite:
 Assume: 'NaN_not_finite'
-Prove: (is_float64 x_0)
-       -> ((not (\is_finite x_0)) \/ (not (\is_plus_infinity x_0)))
+Prove: (not (is_finite_f64 x_0)) \/ (not (is_positive_infinite_f64 x_0))
 
 ------------------------------------------------------------
 
 Lemma NaN_not_finite:
-Prove: (is_float64 x_0) -> ((not (\is_finite x_0)) \/ (not (\is_NaN x_0)))
+Prove: (not (is_finite_f64 x_0)) \/ (not (is_NaN_f64 x_0))
 
 ------------------------------------------------------------

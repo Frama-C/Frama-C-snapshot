@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2018                                               *)
+(*  Copyright (C) 2007-2019                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -28,7 +28,7 @@ module Dictionary =
       let name = "Obfuscator.Dictionary"
       let size = 97
       let dependencies = [ Ast.self ]
-     end)
+    end)
 
 module Literal_strings =
   State_builder.Hashtbl
@@ -38,14 +38,14 @@ module Literal_strings =
       let name = "Obfuscator.Literal_strings"
       let size = 17
       let dependencies = [ Dictionary.self ]
-     end)
+    end)
 
 let fresh kind name =
   let h = Dictionary.memo (fun _ -> Datatype.String.Hashtbl.create 17) kind in
   let idx = Datatype.String.Hashtbl.length h + 1 in
   let fresh = Obfuscator_kind.prefix kind ^ string_of_int idx in
   Datatype.String.Hashtbl.add h fresh name;
-  if kind = Obfuscator_kind.Literal_string && not (Literal_strings.mem name) 
+  if kind = Obfuscator_kind.Literal_string && not (Literal_strings.mem name)
   then Literal_strings.add name fresh;
   fresh
 
@@ -56,8 +56,8 @@ let iter_sorted_kind f k h =
     let f = f k in
     Datatype.String.Hashtbl.iter_sorted f h
 
-let iter_sorted f = 
-  let cmp k1 k2 = 
+let iter_sorted f =
+  let cmp k1 k2 =
     Datatype.String.compare
       (Obfuscator_kind.prefix k1)
       (Obfuscator_kind.prefix k2)
@@ -67,7 +67,7 @@ let iter_sorted f =
 let pretty_entry fmt k =
   Format.fprintf fmt "// %as@\n" Obfuscator_kind.pretty k;
   let quote = k = Obfuscator_kind.Literal_string in
-  fun new_ old -> 
+  fun new_ old ->
     if quote then Format.fprintf fmt "#define %s %S@\n" new_ old
     else Format.fprintf fmt "#define %s %s@\n" new_ old
 
@@ -75,18 +75,18 @@ let pretty_kind fmt k =
   try
     let h = Dictionary.find k in
     iter_sorted_kind (pretty_entry fmt) k h
-  with Not_found -> 
+  with Not_found ->
     ()
 
 let pretty fmt =
-    Format.fprintf fmt "\
+  Format.fprintf fmt "\
 /* *********************************** */@\n\
 /* start of dictionary for obfuscation */@\n\
 /* *********************************** */@\n";
   iter_sorted
-    (fun k -> 
-      if k = Obfuscator_kind.Literal_string then fun _ _ -> ()
-      else pretty_entry fmt k);
+    (fun k ->
+       if k = Obfuscator_kind.Literal_string then fun _ _ -> ()
+       else pretty_entry fmt k);
   Format.fprintf fmt "\
 /*********************************** */@\n\
 /* end of dictionary for obfuscation */@\n\

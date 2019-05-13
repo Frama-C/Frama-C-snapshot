@@ -1,0 +1,29 @@
+[kernel] Parsing tests/value/loopfun.i (no preprocessing)
+[eva] Analyzing a complete application starting at main2
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
+  v ∈ [--..--]
+  a ∈ {7}
+[eva:missing-loop-unroll] tests/value/loopfun.i:23: 
+  while loop without unroll annotation
+[eva:missing-loop-unroll:for] tests/value/loopfun.i:26: Warning: 
+  for loop without unroll annotation
+[eva:missing-loop-unroll] tests/value/loopfun.i:27: 
+  dowhile loop without unroll annotation
+[eva] Recording results for main2
+[eva] done for function main2
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function main2:
+  
+[from] Computing for function main2
+[from] Done for function main2
+[from] ====== DEPENDENCIES COMPUTED ======
+  These dependencies hold at termination for the executions that terminate:
+[from] Function main2:
+  NO EFFECTS
+[from] ====== END OF DEPENDENCIES ======
+[inout] Out (internal) for function main2:
+    \nothing
+[inout] Inputs for function main2:
+    v

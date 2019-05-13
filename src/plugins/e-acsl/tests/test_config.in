@@ -1,3 +1,4 @@
+MACRO: EVA_OPTIONS -eva-no-print -eva-msg-key=-summary -eva-no-results -eva-no-alloc-returns-null
 CMD: @frama-c@ -e-acsl-share ./share/e-acsl
 OPT: -e-acsl-check -e-acsl-verbose 0
 FILTER:@SEDCMD@ -e "s|[a-zA-Z/\\]\+frama_c_project_e-acsl_[a-z0-9]*|PROJECT_FILE|" -e "s|$FRAMAC_SHARE|FRAMAC_SHARE|g" -e "s|../../share|FRAMAC_SHARE|g" -e "s|./share/e-acsl|FRAMAC_SHARE/e-acsl|g" -e "s|share/e-acsl|FRAMAC_SHARE/e-acsl|g"

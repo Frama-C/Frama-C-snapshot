@@ -27,40 +27,39 @@
 [eva:alarm] tests/gmp/quantif.i:11: Warning: assertion got status unknown.
 [eva:alarm] tests/gmp/quantif.i:11: Warning: 
   function __e_acsl_assert: precondition got status unknown.
-[eva:alarm] tests/gmp/quantif.i:12: Warning: assertion got status unknown.
-[eva:alarm] tests/gmp/quantif.i:12: Warning: 
+[eva:alarm] tests/gmp/quantif.i:15: Warning: assertion got status unknown.
+[eva:alarm] tests/gmp/quantif.i:15: Warning: 
   function __e_acsl_assert: precondition got status unknown.
-[eva:alarm] tests/gmp/quantif.i:16: Warning: assertion got status unknown.
-[eva:alarm] tests/gmp/quantif.i:16: Warning: 
+[eva:alarm] tests/gmp/quantif.i:20: Warning: assertion got status unknown.
+[eva:alarm] tests/gmp/quantif.i:20: Warning: 
   function __e_acsl_assert: precondition got status unknown.
-[eva:alarm] tests/gmp/quantif.i:21: Warning: assertion got status unknown.
-[eva:alarm] tests/gmp/quantif.i:21: Warning: 
-  function __e_acsl_assert: precondition got status unknown.
-[eva:alarm] tests/gmp/quantif.i:25: Warning: assertion got status unknown.
-[eva:alarm] tests/gmp/quantif.i:26: Warning: 
+[eva:alarm] tests/gmp/quantif.i:24: Warning: assertion got status unknown.
+[eva:alarm] tests/gmp/quantif.i:25: Warning: 
   function __e_acsl_assert: precondition got status unknown.
 [eva] using specification for function __gmpz_tdiv_r
-[eva:alarm] tests/gmp/quantif.i:26: Warning: 
+[eva:alarm] tests/gmp/quantif.i:25: Warning: 
   function __e_acsl_assert: precondition got status unknown.
 [eva] using specification for function __gmpz_tdiv_q
 [eva] using specification for function __gmpz_mul
-[eva:alarm] tests/gmp/quantif.i:25: Warning: 
+[eva:alarm] tests/gmp/quantif.i:24: Warning: 
   function __e_acsl_assert: precondition got status unknown.
 [eva] using specification for function __e_acsl_store_block
-[eva:alarm] tests/gmp/quantif.i:31: Warning: assertion got status unknown.
+[eva:alarm] tests/gmp/quantif.i:30: Warning: assertion got status unknown.
 [eva] using specification for function __gmpz_get_si
 [eva] using specification for function __e_acsl_valid
+[eva:alarm] tests/gmp/quantif.i:30: Warning: 
+  function __e_acsl_assert: precondition got status unknown.
 [eva:alarm] tests/gmp/quantif.i:31: Warning: 
   function __e_acsl_assert: precondition got status unknown.
+[eva:alarm] tests/gmp/quantif.i:32: Warning: assertion got status unknown.
+[eva] using specification for function __gmpz_init_set_ui
 [eva:alarm] tests/gmp/quantif.i:32: Warning: 
   function __e_acsl_assert: precondition got status unknown.
 [eva:alarm] tests/gmp/quantif.i:33: Warning: assertion got status unknown.
-[eva] using specification for function __gmpz_init_set_ui
 [eva:alarm] tests/gmp/quantif.i:33: Warning: 
   function __e_acsl_assert: precondition got status unknown.
-[eva:alarm] tests/gmp/quantif.i:34: Warning: assertion got status unknown.
-[eva:alarm] tests/gmp/quantif.i:34: Warning: 
-  function __e_acsl_assert: precondition got status unknown.
 [eva] using specification for function __e_acsl_delete_block
+[eva:alarm] tests/gmp/quantif.i:37: Warning: assertion got status unknown.
+[eva:alarm] tests/gmp/quantif.i:40: Warning: assertion got status unknown.
 [eva] using specification for function __e_acsl_memory_clean
 [eva] done for function main

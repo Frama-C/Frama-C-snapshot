@@ -39,7 +39,7 @@ Prove: true.
 ------------------------------------------------------------
 
 Goal Post-condition (file tests/wp_hoare/logicref_simple.i, line 19) in 'fsimple_array':
-Let a = global(G_t_31).
+Let a = global(G_t_33).
 Let x = Mint_0[shift_sint32(a, 3)].
 Assume {
   Type: is_sint32(x) /\ is_sint32(1 + x).

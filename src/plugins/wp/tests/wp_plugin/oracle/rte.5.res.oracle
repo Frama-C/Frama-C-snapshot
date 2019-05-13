@@ -5,13 +5,16 @@
 [wp:rte] function job: missing rte for memory access
 [wp:rte] function job: missing rte for division by zero
 [wp:rte] function job: missing rte for signed overflow
+[wp:rte] function job: missing rte for invalid bool value
 [wp] Warning: Missing RTE guards
 [wp:rte] function job2: missing rte for memory access
 [wp:rte] function job2: missing rte for division by zero
 [wp:rte] function job2: missing rte for signed overflow
+[wp:rte] function job2: missing rte for invalid bool value
 [wp:rte] function job3: missing rte for memory access
 [wp:rte] function job3: missing rte for division by zero
 [wp:rte] function job3: missing rte for signed overflow
-[wp] Goal typed_nat_job_post : not tried
-[wp] Goal typed_nat_job2_post : not tried
-[wp] Goal typed_nat_job3_post : not tried
+[wp:rte] function job3: missing rte for invalid bool value
+[wp] Goal typed_nat_job_ensures : not tried
+[wp] Goal typed_nat_job2_ensures : not tried
+[wp] Goal typed_nat_job3_ensures : not tried

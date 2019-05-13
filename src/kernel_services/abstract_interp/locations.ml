@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2018                                               *)
+(*  Copyright (C) 2007-2019                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -405,8 +405,8 @@ module Location_Bytes = struct
        m1 m2
 
   type size_widen_hint = Ival.size_widen_hint
-  type generic_widen_hint = Base.t -> Ival.generic_widen_hint
-  type widen_hint = size_widen_hint * generic_widen_hint
+  type numerical_widen_hint = Base.t -> Ival.numerical_widen_hint
+  type widen_hint = size_widen_hint * numerical_widen_hint
 
   let widen (size, wh) =
     let widen_map =
@@ -522,40 +522,21 @@ type location =
     { loc : Location_Bits.t;
       size : Int_Base.t }
 
-exception Found_two
+type access = Read | Write | No_access
 
-(* Reduce [offsets] so that reading [size] from [offsets] fits within
-   the validity of [base]. If [aligned] is set to true, make the offset
-   congruent to 0 modulo 8.
-   Maintain synchronized with Precise_locs.reduce_offset_by_validity. *)
-let reduce_offset_by_validity ~for_writing ?(bitfield=true) base offsets size =
-  if for_writing && Base.is_read_only base then
-    Ival.bottom
-  else
-    match Base.validity base, size with
-      | Base.Empty, _ ->
-        if Int_Base.(compare size zero) > 0 then Ival.bottom else Ival.zero
-      | Base.Invalid, _ -> Ival.bottom
-      | _, Int_Base.Top -> offsets
-      | (Base.Known (minv,maxv) | Base.Unknown (minv,_,maxv)),
-        Int_Base.Value size ->
-          (* The maximum offset is maxv - (size - 1), except if size = 0,
-             in which case the maximum offset is exactly maxv. *)
-          let pred_size = Int.max Int.zero (Int.pred size) in
-          let maxv = Int.sub maxv pred_size in
-          let range =
-            if bitfield
-            then Ival.inject_range (Some minv) (Some maxv)
-            else Ival.inject_interval (Some minv) (Some maxv) Int.zero Int.eight
-          in
-          Ival.narrow range offsets
-      | Base.Variable variable_v, Int_Base.Value size ->
-          let pred_size = Int.max Int.zero (Int.pred size) in
-          let maxv = Int.sub variable_v.Base.max_alloc pred_size in
-          let range =
-            Ival.inject_range (Some Int.zero) (Some maxv)
-          in
-          Ival.narrow range offsets
+let project_size = function
+  | Int_Base.Value size -> size
+  | Int_Base.Top -> Int.zero
+
+(* Conversion into Base.access. A location valid for an access of unknown size
+   must be at least valid for an empty access, so accesses of unknown sizes are
+   converted into empty accesses. *)
+let base_access ~size = function
+  | No_access -> Base.No_access
+  | Read -> Base.Read (project_size size)
+  | Write -> Base.Write (project_size size)
+
+exception Found_two
 
 let valid_cardinal_zero_or_one ~for_writing {loc=loc;size=size} =
   Location_Bits.equal Location_Bits.bottom loc ||
@@ -566,16 +547,18 @@ let valid_cardinal_zero_or_one ~for_writing {loc=loc;size=size} =
         already := true
     in
     try
-    match loc with
-      | Location_Bits.Top _ -> false
-      | Location_Bits.Map m ->
-        if Int_Base.is_top size then false
-        else begin
+    match loc, size with
+      | Location_Bits.Top _, _ -> false
+      | _, Int_Base.Top -> false
+      | Location_Bits.Map m, Int_Base.Value size ->
           Location_Bits.M.iter
             (fun base offsets ->
                if Base.is_weak base then raise Found_two;
+               let access =
+                 if for_writing then Base.Write size else Base.Read size
+               in
                let valid_offsets =
-                 reduce_offset_by_validity ~for_writing base offsets size
+                 Ival.narrow offsets (Base.valid_offset access base)
                in
                if Ival.cardinal_zero_or_one valid_offsets
                then begin
@@ -585,7 +568,6 @@ let valid_cardinal_zero_or_one ~for_writing {loc=loc;size=size} =
                else raise Found_two
             ) m;
           true
-        end
     with
       | Abstract_interp.Error_Top | Found_two -> false
 
@@ -605,14 +587,13 @@ let loc_size { size = size } = size
 
 let make_loc loc_bits size = { loc = loc_bits; size = size }
 
-let is_valid ~for_writing {loc; size} =
-  match size with
-  | Int_Base.Top -> false
-  | Int_Base.Value size ->
-    let is_valid_offset b o = Base.is_valid_offset ~for_writing size b o in
-    match loc with
-    | Location_Bits.Top _ -> false
-    | Location_Bits.Map m -> Location_Bits.M.for_all is_valid_offset m
+let is_valid access {loc; size} =
+  not (Int_Base.is_top size) &&
+  let access = base_access ~size access in
+  let is_valid_offset = Base.is_valid_offset access in
+  match loc with
+  | Location_Bits.Top _ -> false
+  | Location_Bits.Map m -> Location_Bits.M.for_all is_valid_offset m
 
 
 let filter_base f loc =
@@ -696,9 +677,10 @@ let pretty_english ~prefix fmt { loc = m ; size = size } =
         print_binding fmt off
 
 (* Case [Top (Top, _)] must be handled by caller. *)
-let enumerate_valid_bits_under_over under_over ~for_writing {loc; size} =
+let enumerate_valid_bits_under_over under_over access {loc; size} =
+  let access = base_access ~size access in
   let compute_offset base offs acc =
-    let valid_offset = reduce_offset_by_validity ~for_writing base offs size in
+    let valid_offset = Ival.narrow offs (Base.valid_offset access base) in
     if Ival.is_bottom valid_offset then
       acc
     else
@@ -716,36 +698,37 @@ let interval_from_ival_under base offset size =
   | Base.Variable { Base.weak = true } -> Int_Intervals.bottom
   | _ -> Int_Intervals.from_ival_size_under offset size
 
-let enumerate_valid_bits ~for_writing loc =
+let enumerate_valid_bits access loc =
   match loc.loc with
   | Location_Bits.Top (Base.SetLattice.Top, _) -> Zone.top
   | _ ->
-    enumerate_valid_bits_under_over interval_from_ival_over ~for_writing loc
+    enumerate_valid_bits_under_over interval_from_ival_over access loc
 ;;
 
-let enumerate_valid_bits_under ~for_writing loc = 
+let enumerate_valid_bits_under access loc = 
   match loc.size with
   | Int_Base.Top -> Zone.bottom
   | Int_Base.Value _ ->
     match loc.loc with
     | Location_Bits.Top _ -> Zone.bottom
     | Location_Bits.Map _ ->
-      enumerate_valid_bits_under_over interval_from_ival_under ~for_writing loc
+      enumerate_valid_bits_under_over interval_from_ival_under access loc
 ;;
 
 (** [valid_part l] is an over-approximation of the valid part
     of the location [l]. *)
-let valid_part ~for_writing ?(bitfield=true) {loc = loc; size = size } =
+let valid_part access ?(bitfield=true) {loc = loc; size = size } =
+  let access = base_access ~size access in
   let compute_loc base offs acc =
     let valid_offset =
-      reduce_offset_by_validity ~for_writing ~bitfield base offs size
+      Ival.narrow offs (Base.valid_offset access ~bitfield base)
     in
     if Ival.is_bottom valid_offset then
       acc
     else
       Location_Bits.M.add base valid_offset acc
   in
-  let locbits = 
+  let locbits =
     match loc with
       | Location_Bits.Top (Base.SetLattice.Top, _) -> loc
       | Location_Bits.Top (Base.SetLattice.Set _, _) ->

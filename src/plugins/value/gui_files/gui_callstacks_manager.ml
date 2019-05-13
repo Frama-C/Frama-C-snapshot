@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2018                                               *)
+(*  Copyright (C) 2007-2019                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -261,7 +261,7 @@ module Make (Input: Input) = struct
   module Data = Indexer.Make(
     struct
       type t = int * value row
-      let compare (x,_) (y,_) = Pervasives.compare x y
+      let compare (x,_) (y,_) = Transitioning.Stdlib.compare x y
     end)
 
   (* This function creates a single GTree that displays per-callstack
@@ -326,7 +326,6 @@ module Make (Input: Input) = struct
              list_mem equal_column_type col_type model.hidden_columns
           then
             let show = GMenu.check_menu_item ~label:txt () in
-            show#set_show_toggle true;
             show#set_active column#visible;
             (* Hide this column. Keep it alive for filters and co. *)
             let callback_show_hide () =
@@ -354,8 +353,7 @@ module Make (Input: Input) = struct
       let _lbl = GMisc.label ~text ~packing:h#pack () in
       let icon = GMisc.image ~xpad:10 ~stock:`COLOR_PICKER ~packing:h#pack () in
       icon#misc#hide ();
-      let tooltip_before = GData.tooltips () in
-      tooltip_before#set_tip ~text:tooltip h#coerce;
+      Gtk_helper.do_tooltip ~tooltip h;
       (* set_widget forces Gtk to create a header button for the view_column. *)
       col#set_widget (Some h#coerce);
       icon

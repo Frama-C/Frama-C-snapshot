@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2018                                               *)
+(*  Copyright (C) 2007-2019                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -41,6 +41,11 @@ val pretty : Format.formatter -> t -> unit
 val num_hints:
   Cil_types.stmt option -> Base.t option -> Ival.Widen_Hints.t -> t
 
+(** Define floating hints for one or all variables ([None]),
+    for a certain stmt or for all statements ([None]).  *)
+val float_hints:
+  Cil_types.stmt option -> Base.t option -> Fc_float.Widen_Hints.t -> t
+
 (** Define a set of bases to widen in priority for a given statement. *)
 val var_hints : Cil_types.stmt -> Base.Set.t -> t
 
@@ -48,7 +53,7 @@ val var_hints : Cil_types.stmt -> Base.Set.t -> t
     {!Cvalue.Model.widen}. *)
 val hints_from_keys :
   Cil_types.stmt -> t ->
-  Base.Set.t * (Base.t -> Locations.Location_Bytes.generic_widen_hint)
+  Base.Set.t * (Base.t -> Locations.Location_Bytes.numerical_widen_hint)
 
 (*
 Local Variables:

@@ -2,6 +2,8 @@
 #include "stdio.h"
 #include "stdlib.h"
 #include "string.h"
+extern int __e_acsl_sound_verdict;
+
 /*@ requires \valid(&argc);
     requires \valid(&argv); */
 int main(int argc, char **argv);

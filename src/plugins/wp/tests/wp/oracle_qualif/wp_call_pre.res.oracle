@@ -8,20 +8,21 @@
   No code nor implicit assigns clause for function f, generating default assigns from the prototype
 [wp] Warning: Missing RTE guards
 [wp] 10 goals scheduled
-[wp] [Qed] Goal typed_call_g_call_g_pre_qed_ok_Rga : Valid
-[wp] [Qed] Goal typed_call_g_call_g_pre_Rgb : Valid
-[wp] [Qed] Goal typed_call_main_post_qed_ok : Valid
-[wp] [Qed] Goal typed_call_main_call_main_pre_qed_ok_Rmain : Valid
-[wp] [Qed] Goal typed_double_call_call_f_pre_qed_ok_Rf : Valid
-[wp] [Alt-Ergo] Goal typed_double_call_call_f_pre_qed_ok_Rf_2 : Valid
-[wp] [Qed] Goal typed_main_pre_qed_ok_Rmain : Valid
-[wp] [Qed] Goal typed_main_post_qed_ok_Emain : Valid
-[wp] [Qed] Goal typed_main_call_f_pre_qed_ok_Rf : Valid
-[wp] [Qed] Goal typed_stmt_pre_stmt_pre_qed_ok_Rstmt : Valid
+[wp] [Qed] Goal typed_call_g_call_g_requires_qed_ok_Rga : Valid
+[wp] [Qed] Goal typed_call_g_call_g_requires_Rgb : Valid
+[wp] [Qed] Goal typed_call_main_ensures_qed_ok : Valid
+[wp] [Qed] Goal typed_call_main_call_main_requires_qed_ok_Rmain : Valid
+[wp] [Qed] Goal typed_double_call_call_f_requires_qed_ok_Rf : Valid
+[wp] [Alt-Ergo] Goal typed_double_call_call_f_requires_qed_ok_Rf : Valid
+[wp] [Qed] Goal typed_main_requires_qed_ok_Rmain : Valid
+[wp] [Qed] Goal typed_main_ensures_qed_ok_Emain : Valid
+[wp] [Qed] Goal typed_main_call_f_requires_qed_ok_Rf : Valid
+[wp] [Qed] Goal typed_stmt_pre_requires_qed_ok_Rstmt : Valid
 [wp] Proved goals:   10 / 10
   Qed:             9 
   Alt-Ergo:        1
-[wp] Report 'tests/wp/wp_call_pre.c.0.report.json'
+[wp] Report in:  'tests/wp/oracle_qualif/wp_call_pre.0.report.json'
+[wp] Report out: 'tests/wp/result_qualif/wp_call_pre.0.report.json'
 -------------------------------------------------------------
 Functions           WP     Alt-Ergo        Total   Success
 double_call          1      1 (4..16)        2       100%

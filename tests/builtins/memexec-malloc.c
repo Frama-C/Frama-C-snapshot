@@ -1,5 +1,5 @@
 /* run.config*
-   STDOPT: #"-val-malloc-functions alloc,Frama_C_malloc_by_stack -val-mlevel 0"
+   STDOPT: #"-eva-malloc-functions alloc,Frama_C_malloc_by_stack -eva-mlevel 0"
 */
 
 #define N 2000

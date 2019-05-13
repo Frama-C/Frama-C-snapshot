@@ -18,6 +18,7 @@
   __e_acsl_math_HUGE_VAL ∈ [-1.79769313486e+308 .. 1.79769313486e+308]
   __e_acsl_math_HUGE_VALF ∈ [-3.40282346639e+38 .. 3.40282346639e+38]
   __e_acsl_math_INFINITY ∈ [-1.79769313486e+308 .. 1.79769313486e+308]
+  __e_acsl_sound_verdict ∈ [--..--]
 [eva] using specification for function __e_acsl_memory_init
 [eva] tests/gmp/at_on-purely-logic-variables.c:57: 
   allocating variable __malloc_main_l57
@@ -39,13 +40,6 @@
   starting to merge loop iterations
 [eva] tests/gmp/at_on-purely-logic-variables.c:57: 
   starting to merge loop iterations
-[eva:alarm] tests/gmp/at_on-purely-logic-variables.c:57: Warning: 
-  out of bounds write.
-  assert
-  \valid(__gen_e_acsl_at_7 +
-         (int)((int)((int)(__gen_e_acsl_u_6 - 10) * 300) +
-               (int)((int)((int)((int)(__gen_e_acsl_v_6 - -10) - 1) * 100) +
-                     (int)((int)(__gen_e_acsl_w_2 - 100) - 1))));
 [eva] tests/gmp/at_on-purely-logic-variables.c:45: 
   starting to merge loop iterations
 [eva] tests/gmp/at_on-purely-logic-variables.c:34: 

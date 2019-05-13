@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2018                                               *)
+(*  Copyright (C) 2007-2019                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -284,7 +284,7 @@ let dump_acsl_stats fmt =
     
 
 let dump_acsl_stats_html fmt =
-  Format.pp_set_formatter_tag_functions fmt Metrics_base.html_tag_functions;
+  Transitioning.Format.pp_set_formatter_stag_functions fmt Metrics_base.html_stag_functions;
   Format.fprintf fmt
     "@[<v 0> <!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.01//EN\"\
           \"http://www.w3.org/TR/html4/strict.dtd\">@ \

@@ -5,13 +5,13 @@
 [wp] Warning: Missing RTE guards
 [wp] 2 goals scheduled
 ---------------------------------------------
---- File 'typed/myMain_stmt_assign.ergo' 
+--- File 'typed/myMain_assigns.ergo' 
 ---------------------------------------------
 (* ---------------------------------------------------------- *)
 (* --- Assigns 'KO' at call 'myRead' (file tests/wp_bts/bts_2110.i, line 36) --- *)
 (* ---------------------------------------------------------- *)
 
-goal myMain_stmt_assign:
+goal myMain_assigns:
   forall i : int.
   forall t : int farray.
   forall t_1 : (addr,int) farray.
@@ -82,13 +82,13 @@ predicate IsS2_A(S:S2_A) = is_sint32(S.F2_A_dummy)
 predicate EqS2_A(S:S2_A, S_1:S2_A) = (S_1.F2_A_dummy) = (S.F2_A_dummy)
 
 ---------------------------------------------
---- File 'typed/myMain_post_KO.ergo' 
+--- File 'typed/myMain_ensures_KO.ergo' 
 ---------------------------------------------
 (* ---------------------------------------------------------- *)
 (* --- Post-condition 'KO' in 'myMain'                    --- *)
 (* ---------------------------------------------------------- *)
 
-goal myMain_post_KO:
+goal myMain_ensures_KO:
   forall t_1,t : (addr,int) farray.
   forall a_1,a : addr.
   let a_2 = Load_S2_A(a_1, t_1) : S2_A in

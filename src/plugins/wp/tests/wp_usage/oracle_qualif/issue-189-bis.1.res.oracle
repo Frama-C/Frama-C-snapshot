@@ -4,23 +4,24 @@
 [wp] Loading driver 'share/wp.driver'
 [wp] Warning: Missing RTE guards
 [wp] 10 goals scheduled
-[wp] [Alt-Ergo] Goal typed_memcpy_context_vars_post_memcpy_ok : Valid
-[wp] [Qed] Goal typed_memcpy_context_vars_post_unmodified_ok : Valid
-[wp] [Alt-Ergo] Goal typed_memcpy_context_vars_loop_inv_ok_cpy_preserved : Valid
-[wp] [Qed] Goal typed_memcpy_context_vars_loop_inv_ok_cpy_established : Valid
-[wp] [Qed] Goal typed_memcpy_context_vars_loop_inv_ok_dst_preserved : Valid
-[wp] [Qed] Goal typed_memcpy_context_vars_loop_inv_ok_dst_established : Valid
-[wp] [Alt-Ergo] Goal typed_memcpy_context_vars_loop_inv_ok_len_preserved : Valid
-[wp] [Qed] Goal typed_memcpy_context_vars_loop_inv_ok_len_established : Valid
-[wp] [Qed] Goal typed_memcpy_context_vars_loop_inv_ok_src_preserved : Valid
-[wp] [Qed] Goal typed_memcpy_context_vars_loop_inv_ok_src_established : Valid
+[wp] [Alt-Ergo] Goal typed_memcpy_context_vars_ensures_memcpy_ok : Valid
+[wp] [Qed] Goal typed_memcpy_context_vars_ensures_unmodified_ok : Valid
+[wp] [Alt-Ergo] Goal typed_memcpy_context_vars_loop_invariant_ok_cpy_preserved : Valid
+[wp] [Qed] Goal typed_memcpy_context_vars_loop_invariant_ok_cpy_established : Valid
+[wp] [Qed] Goal typed_memcpy_context_vars_loop_invariant_ok_dst_preserved : Valid
+[wp] [Qed] Goal typed_memcpy_context_vars_loop_invariant_ok_dst_established : Valid
+[wp] [Alt-Ergo] Goal typed_memcpy_context_vars_loop_invariant_ok_len_preserved : Valid
+[wp] [Qed] Goal typed_memcpy_context_vars_loop_invariant_ok_len_established : Valid
+[wp] [Qed] Goal typed_memcpy_context_vars_loop_invariant_ok_src_preserved : Valid
+[wp] [Qed] Goal typed_memcpy_context_vars_loop_invariant_ok_src_established : Valid
 [wp] Proved goals:   10 / 10
   Qed:             7 
   Alt-Ergo:        3
-[wp] Report 'tests/wp_usage/issue-189-bis.i.1.report.json'
+[wp] Report in:  'tests/wp_usage/oracle_qualif/issue-189-bis.1.report.json'
+[wp] Report out: 'tests/wp_usage/result_qualif/issue-189-bis.1.report.json'
 -------------------------------------------------------------
 Functions           WP     Alt-Ergo        Total   Success
-memcpy_context_vars   7     3 (88..112)     10       100%
+memcpy_context_vars   7     3 (96..120)     10       100%
 -------------------------------------------------------------
 [wp] Warning: Memory model hypotheses for function 'memcpy_context_vars':
   /*@

@@ -4,18 +4,20 @@
 [wp] Loading driver 'share/wp.driver'
 [wp] Warning: Missing RTE guards
 [wp] 8 goals scheduled
-[wp] [Qed] Goal typed_foo_assert : Valid
+[wp] [Alt-Ergo] Goal typed_foo_assert : Valid
 [wp] [Qed] Goal typed_foo_assert_2 : Valid
 [wp] [Qed] Goal typed_foo_assert_3 : Valid
 [wp] [Qed] Goal typed_foo_assert_4 : Valid
 [wp] [Qed] Goal typed_foo_assert_5 : Valid
 [wp] [Qed] Goal typed_foo_assert_6 : Valid
 [wp] [Qed] Goal typed_foo_assert_7 : Valid
-[wp] [Qed] Goal typed_foo_basic_post : Valid
+[wp] [Qed] Goal typed_foo_basic_ensures : Valid
 [wp] Proved goals:    8 / 8
-  Qed:             8
-[wp] Report 'tests/wp_bts/bts_1601.c.0.report.json'
+  Qed:             7 
+  Alt-Ergo:        1
+[wp] Report in:  'tests/wp_bts/oracle_qualif/bts_1601.0.report.json'
+[wp] Report out: 'tests/wp_bts/result_qualif/bts_1601.0.report.json'
 -------------------------------------------------------------
 Functions           WP     Alt-Ergo        Total   Success
-foo                  8     -                 8       100%
+foo                  7      1 (16..28)       8       100%
 -------------------------------------------------------------

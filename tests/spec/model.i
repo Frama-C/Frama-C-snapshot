@@ -1,8 +1,8 @@
 /* run.config
-STDOPT: +"-load-script tests/spec/model.ml"
+EXECNOW: make -s @PTEST_DIR@/@PTEST_NAME@.cmxs
+STDOPT: +"-no-autoload-plugins -load-module @PTEST_DIR@/@PTEST_NAME@.cmxs"
 */
 struct S { int x; int y; };
-
 typedef struct S T;
 
 /*@ model struct S { integer z }; */

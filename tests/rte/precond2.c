@@ -1,5 +1,6 @@
 /* run.config
-   OPT: -warn-special-float none -load-script tests/rte/compute_annot/compute_annot.ml -journal-disable
+   EXECNOW: make -s @PTEST_DIR@/compute_annot/compute_annot.cmxs
+   OPT: -warn-special-float none -load-module @PTEST_DIR@/compute_annot/compute_annot -journal-disable
 */
 
 int global = 15;

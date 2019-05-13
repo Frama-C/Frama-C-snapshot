@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2018                                               *)
+(*  Copyright (C) 2007-2019                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -167,8 +167,8 @@ let frama_c_memcpy state actuals =
               ~from:offsetmap ~dst_loc:dst_bits ~size:size_min ~exact:true state
           in
           let (deps_table, sure_zone) =
-            let zone_dst = enumerate_valid_bits ~for_writing:true  loc_dst in
-            let zone_src = enumerate_valid_bits ~for_writing:false loc_src in
+            let zone_dst = enumerate_valid_bits Locations.Write  loc_dst in
+            let zone_src = enumerate_valid_bits Locations.Read loc_src in
             let deps =
               Function_Froms.(Deps.add_data_dep Deps.bottom zone_src)
             in
@@ -211,8 +211,8 @@ let frama_c_memcpy state actuals =
       let loc_dst = make_loc (Location_Bits.shift range dst) size_char in
       let c_from =
         let open Function_Froms in
-        let zone_src = enumerate_valid_bits ~for_writing:false loc_src in
-        let zone_dst = enumerate_valid_bits ~for_writing:true  loc_dst in
+        let zone_src = enumerate_valid_bits Locations.Read loc_src in
+        let zone_dst = enumerate_valid_bits Locations.Write  loc_dst in
         let deps = Deps.add_data_dep Deps.bottom zone_src in
         let deps_table =
           Memory.add_binding ~exact:false precise_deps_table zone_dst deps
@@ -345,7 +345,7 @@ let frama_c_memset_imprecise state dst v size =
       let loc = loc_bytes_to_loc_bits loc in
       let loc = make_loc loc (Int_Base.inject size_char) in
       let state = Cvalue.Model.add_binding ~exact:false state loc v in
-      (state,enumerate_valid_bits ~for_writing:true loc)
+      (state,enumerate_valid_bits Locations.Write loc)
     else (state,Zone.bottom)
   in
   (* Write "sure" bytes in an exact way: they exist only if there is only
@@ -367,7 +367,7 @@ let frama_c_memset_imprecise state dst v size =
             ~from ~dst_loc:left' ~size:sure ~exact:true new_state
         in
         let sure_loc = make_loc left' (Int_Base.inject sure) in
-        let sure_zone = enumerate_valid_bits ~for_writing:true sure_loc in
+        let sure_zone = enumerate_valid_bits Locations.Write sure_loc in
         (state,sure_zone)
       else
         (new_state,Zone.bottom)
@@ -444,8 +444,8 @@ let memset_typ_offsm_int full_typ i =
         (* Read [full_offsm] between [offset] and [offset+size-1], and return
            the value stored there. *)
         let find size =
-          snd (V_Offsetmap.find ~validity
-                 ~offsets:(Ival.inject_singleton offset) ~size full_offsm)
+          V_Offsetmap.find ~validity
+            ~offsets:(Ival.inject_singleton offset) ~size full_offsm
         in
         (* Update [full_offsm] between [offset] and [offset+size-1], and store
            exactly [v] there *)
@@ -490,7 +490,7 @@ let memset_typ_offsm_int full_typ i =
               if Integer.(gt nb one) then begin
                 (* Copy the result *)
                 let src = Ival.inject_singleton offset in
-                let _alarm_access, copy =
+                let copy =
                   V_Offsetmap.copy_slice
                     ~validity ~offsets:src ~size:sizeelt offsm'
                 in
@@ -505,7 +505,7 @@ let memset_typ_offsm_int full_typ i =
                 match copy with
                 | `Bottom -> assert false (* the copy is within bounds *)
                 | `Value copy ->
-                  let _alarm_access, r =
+                  let r =
                     V_Offsetmap.paste_slice ~validity
                       ~exact:true ~from:copy ~size:sizeelt ~offsets:dst offsm'
                   in
@@ -591,8 +591,7 @@ let frama_c_memset_precise state dst v (exp_size, size) =
       let open Function_Froms in
       let size_bits = Integer.mul size (Bit_utils.sizeofchar ())in
       let dst_location = Locations.make_loc dst_loc (Int_Base.Value size_bits) in
-      let dst_zone = Locations.enumerate_valid_bits
-          ~for_writing:true dst_location in
+      let dst_zone = Locations.(enumerate_valid_bits Write dst_location) in
       let deps_table =
         Function_Froms.Memory.add_binding ~exact:true
           Function_Froms.Memory.empty dst_zone input in

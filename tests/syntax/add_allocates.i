@@ -1,5 +1,6 @@
 /* run.config
-   OPT: -load-script tests/syntax/add_allocates.ml -print
+   EXECNOW: make -s @PTEST_DIR@/@PTEST_NAME@.cmxs
+   OPT: -no-autoload-plugins -load-module @PTEST_DIR@/@PTEST_NAME@.cmxs -print
 */
 
 

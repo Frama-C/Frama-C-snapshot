@@ -31,6 +31,8 @@ val set_t: typeinfo -> unit
 
 val t: unit -> typ 
   (** type "mpz_t" *)
+val t_ptr: unit -> typ
+  (** type "_mpz_struct *" *)
   
 val is_now_referenced: unit -> unit 
   (** Should be called once one variable of type "mpz_t" exists *)

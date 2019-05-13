@@ -1,5 +1,5 @@
 /* run.config*
-   STDOPT: +"-then -wlevel 4"
+   STDOPT: +"-then -eva-widening-delay 4 -eva-widening-period 3"
 */
 
 int T[3] = {3,1,2};

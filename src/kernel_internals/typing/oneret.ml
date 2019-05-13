@@ -315,7 +315,7 @@ let oneret ?(callback: callback option) (f: fundec) : unit =
           match !returns_assert with
           | { pred_content = Ptrue } -> [s; sg]
           | p ->
-            let a = Logic_const.new_code_annotation (AAssert ([],p)) in
+            let a = Logic_const.new_code_annotation (AAssert ([],Assert,p)) in
             let sta = mkStmt (Instr (Code_annot (a,loc))) in
             if callback<>None then
               ( let gclause = sta , a in

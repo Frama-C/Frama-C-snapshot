@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2018                                               *)
+(*  Copyright (C) 2007-2019                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -186,7 +186,7 @@ module type Transfer = sig
 
   (** [update valuation t] updates the state [t] by the values of expressions
       and the locations of lvalues stored in [valuation]. *)
-  val update : valuation -> state -> state
+  val update : valuation -> state -> state or_bottom
 
   (** [assign kinstr lv expr v valuation state] is the transfer function for the
       assignment [lv = expr] for [state]. It must return the state where the

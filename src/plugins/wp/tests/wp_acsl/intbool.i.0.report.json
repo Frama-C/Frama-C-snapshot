@@ -1,9 +1,0 @@
-{ "wp:global": { "qed": { "total": 1, "valid": 1 },
-                 "wp:main": { "total": 1, "valid": 1 } },
-  "wp:functions": { "bug": { "bug_post": { "qed": { "total": 1, "valid": 1 },
-                                           "wp:main": { "total": 1,
-                                                        "valid": 1 } },
-                             "wp:section": { "qed": { "total": 1,
-                                                      "valid": 1 },
-                                             "wp:main": { "total": 1,
-                                                          "valid": 1 } } } } }

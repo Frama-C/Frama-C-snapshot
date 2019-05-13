@@ -65,7 +65,7 @@ void main5_wrap_signed() {
 }
 
 
-/* Tests for the relaxed downcast semantics -val-warn-signed-converted-downcast */
+/* Tests for the relaxed downcast semantics -eva-warn-signed-converted-downcast */
 void main6_val_warn_converted_signed() {
   if (v) {
     short s = 65300u; // warning (overflow)
@@ -88,9 +88,9 @@ void main6_val_warn_converted_signed() {
   }
   if (v) {
     int *p = &v;
-    int x = p; // No warning as an address fits in an integer.
-    short y = p; // Warnings, as an address may not fit in short.
-    unsigned short z = p; // No warninng on unsigned casts.
+    int x = (int) p; // No warning as an address fits in an integer.
+    short y = (short) p; // Warnings, as an address may not fit in short.
+    unsigned short z = (unsigned short) p; // No warninng on unsigned casts.
   }
 }
 
@@ -104,7 +104,7 @@ struct bitf {
   signed int i2: 6;
 };
 
-/* Tests for the relaxed downcast semantics -val-warn-signed-converted-downcast with bitfields */
+/* Tests for the relaxed downcast semantics -eva-warn-signed-converted-downcast with bitfields */
 void main8_bitfields() {
   struct bitf S;
   signed char c;

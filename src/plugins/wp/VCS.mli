@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2018                                               *)
+(*  Copyright (C) 2007-2019                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -44,15 +44,10 @@ type language =
   | L_coq
   | L_altergo
 
-(* -------------------------------------------------------------------------- *)
-(* --- Prover Names                                                       --- *)
-(* -------------------------------------------------------------------------- *)
-
 module Pset : Set.S with type elt = prover
 module Pmap : Map.S with type key = prover
 
 val language_of_prover : prover -> language
-val language_of_name : string -> language option
 val name_of_prover : prover -> string
 val title_of_prover : prover -> string
 val filename_for_prover : prover -> string
@@ -67,9 +62,29 @@ val pp_mode : Format.formatter -> mode -> unit
 
 val cmp_prover : prover -> prover -> int
 
+(* -------------------------------------------------------------------------- *)
+(** {2 Why3 Provers} *)
+(* -------------------------------------------------------------------------- *)
+
+type dp = {
+  dp_name : string ;
+  dp_version : string ;
+  dp_altern : string ;
+  dp_shortcuts : string list ;
+}
+
+val prover_of_dp : dp -> prover
+
+(** Without shortcuts *)
+val pretty : Format.formatter -> dp -> unit
+val pp_shortcut : Format.formatter -> string -> unit
+val pp_shortcuts : Format.formatter -> string list -> unit
+
+(* -------------------------------------------------------------------------- *)
 (** {2 Config}
     [None] means current WP option default.
     [Some 0] means prover default. *)
+(* -------------------------------------------------------------------------- *)
 
 type config = {
   valid : bool ;
@@ -131,7 +146,11 @@ val pp_result : Format.formatter -> result -> unit
 val pp_result_perf : Format.formatter -> result -> unit
 
 val compare : result -> result -> int (* best is minimal *)
+val merge : result -> result -> result
+val choose : result -> result -> result
+val best : result list -> result
 
 val dkey_no_time_info: Wp_parameters.category
 val dkey_no_step_info: Wp_parameters.category
 val dkey_no_goals_info: Wp_parameters.category
+val dkey_success_only: Wp_parameters.category

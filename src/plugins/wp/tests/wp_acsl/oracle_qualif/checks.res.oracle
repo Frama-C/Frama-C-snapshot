@@ -1,0 +1,50 @@
+# frama-c -wp -wp-timeout 90 -wp-steps 5 [...]
+[kernel] Parsing tests/wp_acsl/checks.i (no preprocessing)
+[wp] Running WP plugin...
+[wp] Loading driver 'share/wp.driver'
+[wp] Warning: Missing RTE guards
+[wp] 4 goals scheduled
+[wp] [Alt-Ergo] Goal typed_main_check_c1 : Unsuccess
+[wp] [Alt-Ergo] Goal typed_main_assert_a1 : Unsuccess
+[wp] [Qed] Goal typed_main_check_c2 : Valid
+[wp] [Qed] Goal typed_main_assert_a2 : Valid
+[wp] Proved goals:    2 / 4
+  Qed:             2 
+  Alt-Ergo:        0  (unsuccess: 2)
+[wp] Report in:  'tests/wp_acsl/oracle_qualif/checks.0.report.json'
+[wp] Report out: 'tests/wp_acsl/result_qualif/checks.0.report.json'
+-------------------------------------------------------------
+Functions           WP     Alt-Ergo        Total   Success
+main                 2     -                 4      50.0%
+-------------------------------------------------------------
+[report] Computing properties status...
+--------------------------------------------------------------------------------
+--- Global Properties
+--------------------------------------------------------------------------------
+
+[  Valid  ] Axiomatic 'A'
+            by Frama-C kernel.
+
+--------------------------------------------------------------------------------
+--- Properties of Function 'main'
+--------------------------------------------------------------------------------
+
+[    -    ] Check 'c1' (file tests/wp_acsl/checks.i, line 14)
+            tried with Wp.typed.
+[    -    ] Assertion 'a1' (file tests/wp_acsl/checks.i, line 15)
+            tried with Wp.typed.
+[ Partial ] Check 'c2' (file tests/wp_acsl/checks.i, line 16)
+            By Wp.typed, with pending:
+             - Assertion 'a1' (file tests/wp_acsl/checks.i, line 15)
+[ Partial ] Assertion 'a2' (file tests/wp_acsl/checks.i, line 17)
+            By Wp.typed, with pending:
+             - Assertion 'a1' (file tests/wp_acsl/checks.i, line 15)
+
+--------------------------------------------------------------------------------
+--- Status Report Summary
+--------------------------------------------------------------------------------
+     1 Completely validated
+     2 Locally validated
+     2 To be validated
+     5 Total
+--------------------------------------------------------------------------------

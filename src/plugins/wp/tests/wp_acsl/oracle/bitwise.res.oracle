@@ -76,7 +76,7 @@ Prove: land(65535, a) != 21845.
 
 Goal Post-condition for 'false' (file tests/wp_acsl/bitwise.i, line 91) in 'band_bool':
 Assume {
-  Type: is_uint8(a) /\ is_uint8(b).
+  Type: is_bool(a) /\ is_bool(b).
   (* Pre-condition for 'false' *)
   Have: (a != 1) \/ (b != 1).
 }
@@ -142,7 +142,7 @@ Prove: true.
 
 Goal Post-condition for 'false' (file tests/wp_acsl/bitwise.i, line 81) in 'bor_bool':
 Assume {
-  Type: is_uint8(a) /\ is_uint8(b).
+  Type: is_bool(a) /\ is_bool(b).
   (* Pre-condition for 'false' *)
   Have: (a != 1) /\ (b != 1).
 }
@@ -155,7 +155,7 @@ Prove: (a = 0) /\ (b = 0).
 
 Goal Post-condition for 'true' (file tests/wp_acsl/bitwise.i, line 78) in 'bor_bool':
 Assume {
-  Type: is_uint8(a) /\ is_uint8(b).
+  Type: is_bool(a) /\ is_bool(b).
   (* Pre-condition for 'true' *)
   Have: (a = 1) \/ (b = 1).
 }
@@ -202,7 +202,7 @@ Prove: lnot(x) = b.
 
 Goal Post-condition for 'false' (file tests/wp_acsl/bitwise.i, line 100) in 'bxor_bool':
 Assume {
-  Type: is_uint8(a) /\ is_uint8(b).
+  Type: is_bool(a) /\ is_bool(b).
   (* Pre-condition for 'false' *)
   Have: ((a != 0) \/ (b != 1)) /\ ((a != 1) \/ (b != 0)).
 }
@@ -215,7 +215,7 @@ Prove: b = a.
 
 Goal Post-condition for 'true' (file tests/wp_acsl/bitwise.i, line 97) in 'bxor_bool':
 Assume {
-  Type: is_uint8(a) /\ is_uint8(b).
+  Type: is_bool(a) /\ is_bool(b).
   (* Pre-condition for 'true' *)
   Have: ((a = 0) /\ (b = 1)) \/ ((a = 1) /\ (b = 0)).
 }

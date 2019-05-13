@@ -1,5 +1,5 @@
 /* run.config
-   STDOPT: #"-no-val-builtins-auto -slevel 1000 -no-val-skip-stdlib-specs"
+   STDOPT: #"-eva-no-builtins-auto -slevel 1000 -eva-no-skip-stdlib-specs"
 */ // slevel is used to unroll loops
 
 #include "string.c"

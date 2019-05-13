@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2018                                               *)
+(*  Copyright (C) 2007-2019                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -30,7 +30,7 @@ open Cil_datatype
 module WpLog = Wp_parameters
 
 type c_int =
-  | Bool
+  | CBool
   | UInt8
   | SInt8
   | UInt16
@@ -43,19 +43,19 @@ type c_int =
 let compare_c_int : c_int -> c_int -> _ = Extlib.compare_basic
 
 let signed  = function
-  | Bool -> false
+  | CBool -> false
   | UInt8 | UInt16 | UInt32 | UInt64 -> false
   | SInt8 | SInt16 | SInt32 | SInt64 -> true
 
-let i_bits = function
-  | Bool -> 1
+let range = function
+  | CBool -> 1
   | UInt8  | SInt8  -> 8
   | UInt16 | SInt16 -> 16
   | UInt32 | SInt32 -> 32
   | UInt64 | SInt64 -> 64
 
-let i_bytes = function
-  | Bool -> 1
+let sizeof_i = function
+  | CBool -> 1
   | UInt8  | SInt8  -> 1
   | UInt16 | SInt16 -> 2
   | UInt32 | SInt32 -> 4
@@ -73,12 +73,12 @@ let is_char = function
   | SInt8 -> not Cil.theMachine.Cil.theMachine.char_is_unsigned
   | UInt16 | SInt16
   | UInt32 | SInt32
-  | UInt64 | SInt64 | Bool -> false
+  | UInt64 | SInt64 | CBool -> false
 
 let c_int ikind =
   let mach = Cil.theMachine.Cil.theMachine in
   match ikind with
-  | IBool -> if Wp_parameters.get_bool_range () then Bool else UInt8
+  | IBool -> CBool
   | IChar -> if mach.char_is_unsigned then UInt8 else SInt8
   | ISChar -> SInt8
   | IUChar -> UInt8
@@ -97,8 +97,8 @@ let c_ptr () =
   make_c_int false Cil.theMachine.Cil.theMachine.sizeof_ptr
 
 let sub_c_int t1 t2 =
-  if (signed t1 = signed t2) then i_bits t1 <= i_bits t2
-  else (not(signed t1) && (i_bits t1 < i_bits t2))
+  if (signed t1 = signed t2) then range t1 <= range t2
+  else (not(signed t1) && (range t1 < range t2))
 
 type c_float =
   | Float32
@@ -106,7 +106,7 @@ type c_float =
 
 let compare_c_float : c_float -> c_float -> _ = Extlib.compare_basic
 
-let f_bytes = function
+let sizeof_f = function
   | Float32 -> 4
   | Float64 -> 8
 
@@ -126,7 +126,7 @@ let c_float fkind =
   | FDouble -> make_c_float mach.sizeof_double
   | FLongDouble -> make_c_float mach.sizeof_longdouble
 
-let equal_float f1 f2 = f_bits f1 = f_bits f2
+let equal_float f1 f2 = (f1 = f2)
 
 (* Array objects, with both the head view and the flatten view. *)
 
@@ -163,7 +163,7 @@ let idx = function
   | SInt32 -> 5
   | UInt64 -> 6
   | SInt64 -> 7
-  | Bool -> 8
+  | CBool -> 8
 
 let i_memo f =
   let m = Array.make 9 None in
@@ -186,7 +186,7 @@ let f_memo f =
     | None -> let r = f z in m.(k) <- Some r ; r
 
 let i_iter f =
-  List.iter f [Bool;UInt8;SInt8;UInt16;SInt16;UInt32;SInt32;UInt64;SInt64]
+  List.iter f [CBool;UInt8;SInt8;UInt16;SInt16;UInt32;SInt32;UInt64;SInt64]
 
 let f_iter f =
   List.iter f [Float32;Float64]
@@ -195,23 +195,23 @@ let f_iter f =
 (* --- Bounds                                                             --- *)
 (* -------------------------------------------------------------------------- *)
 
-let i_bounds i =
-  if signed i then
-    let m = Integer.two_power_of_int (i_bits i - 1) in
-    Integer.neg m , Integer.pred m
-  else
-    let m = Integer.two_power_of_int (i_bits i) in
-    Integer.zero , Integer.pred m
-
-let bounds i = i_memo i_bounds i
+let bounds =
+  let i_bounds i =
+    if signed i then
+      let m = Integer.two_power_of_int (range i - 1) in
+      Integer.neg m , Integer.pred m
+    else
+      let m = Integer.two_power_of_int (range i) in
+      Integer.zero , Integer.pred m
+  in i_memo i_bounds
 
 (* -------------------------------------------------------------------------- *)
 (* --- Pretty Printers                                                    --- *)
 (* -------------------------------------------------------------------------- *)
 
 let pp_int fmt i =
-  if i = Bool then Format.pp_print_string fmt "bool"
-  else Format.fprintf fmt "%cint%d" (if signed i then 's' else 'u') (i_bits i)
+  if i = CBool then Format.pp_print_string fmt "bool"
+  else Format.fprintf fmt "%cint%d" (if signed i then 's' else 'u') (range i)
 
 let pp_float fmt f = Format.fprintf fmt "float%d" (f_bits f)
 
@@ -317,7 +317,7 @@ module AinfoComparable = struct
     let c = !cmp obj_a obj_b in
     if c <> 0 then c
     else match a.arr_flat , b.arr_flat with
-      | Some a , Some b -> Pervasives.compare a.arr_size b.arr_size
+      | Some a , Some b -> Transitioning.Stdlib.compare a.arr_size b.arr_size
       | None , Some _ -> (-1)
       | Some _ , None -> 1
       | None , None -> 0
@@ -445,9 +445,9 @@ let sizeof_defined = function
   | _ -> true
 
 let sizeof_object = function
-  | C_int i -> i_bytes i
-  | C_float f -> f_bytes f
-  | C_pointer _ty -> i_bytes (c_ptr())
+  | C_int i -> sizeof_i i
+  | C_float f -> sizeof_f f
+  | C_pointer _ty -> sizeof_i (c_ptr())
   | C_comp cinfo ->
       let ctype = TComp(cinfo,Cil.empty_size_cache(),[]) in
       (Cil.bitsSizeOf ctype / 8)
@@ -464,9 +464,12 @@ let sizeof_object = function
             WpLog.fatal ~current:true "Sizeof unknown-size array"
 
 let field_offset fd =
-  let ctype = TComp(fd.fcomp,Cil.empty_size_cache(),[]) in
-  let offset = Field(fd,NoOffset) in
-  fst (Cil.bitsOffset ctype offset) / 8
+  if fd.fcomp.cstruct then (* C struct *)
+    let ctype = TComp(fd.fcomp,Cil.empty_size_cache(),[]) in
+    let offset = Field(fd,NoOffset) in
+    fst (Cil.bitsOffset ctype offset) / 8
+  else (* CIL invariant: all C union fields start at offset 0 *)
+    0
 
 (* Conforms to C-ISO 6.3.1.8        *)
 (* If same sign => greater rank.    *)
@@ -487,7 +490,7 @@ let field_offset fd =
 (* with greater rank, whatever      *)
 (* their sign.                      *)
 
-let i_convert t1 t2 = if i_bits t1 < i_bits t2 then t2 else t1
+let i_convert t1 t2 = if range t1 < range t2 then t2 else t1
 let f_convert t1 t2 = if f_bits t1 < f_bits t2 then t2 else t1
 
 let promote a1 a2 =
@@ -574,7 +577,7 @@ and compare_array_ptr_conflated a b =
   let c = compare_ptr_conflated obj_a obj_b in
   if c <> 0 then c
   else match a.arr_flat , b.arr_flat with
-    | Some a , Some b -> Pervasives.compare a.arr_size b.arr_size
+    | Some a , Some b -> Transitioning.Stdlib.compare a.arr_size b.arr_size
     | None , Some _ -> (-1)
     | Some _ , None -> 1
     | None , None -> 0

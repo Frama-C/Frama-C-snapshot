@@ -1,7 +1,7 @@
 /* run.config
-   EXECNOW: BIN bool.sav LOG bool_sav.res LOG bool_sav.err ./bin/toplevel.opt -save ./tests/saveload/result/bool.sav -val -val-show-progress ./tests/saveload/bool.c > tests/saveload/result/bool_sav.res 2> tests/saveload/result/bool_sav.err
-   OPT: -load ./tests/saveload/result/bool.sav -out -input -deps
-   OPT: -load ./tests/saveload/result/bool.sav -val
+   EXECNOW: BIN bool.sav LOG bool_sav.res LOG bool_sav.err ./bin/toplevel.opt -save ./tests/saveload/result/bool.sav -eva -eva-show-progress ./tests/saveload/bool.c > tests/saveload/result/bool_sav.res 2> tests/saveload/result/bool_sav.err
+   STDOPT: +"-load ./tests/saveload/result/bool.sav -out -input -deps"
+   STDOPT: +"-load ./tests/saveload/result/bool.sav -eva"
  */
 
 #include "stdbool.h"

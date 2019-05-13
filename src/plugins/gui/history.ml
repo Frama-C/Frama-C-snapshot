@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2018                                               *)
+(*  Copyright (C) 2007-2019                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -37,7 +37,7 @@ module HistoryElt = struct
         let equal e1 e2 = match e1, e2 with
           | Global g1, Global g2 -> Cil_datatype.Global.equal g1 g2
           | Localizable l1, Localizable l2 ->
-              Pretty_source.Localizable.equal l1 l2
+              Printer_tag.Localizable.equal l1 l2
           | (Global _ | Localizable _), __ -> false
       end)
   (* Identify two elements that belong to the same function *)
@@ -254,9 +254,9 @@ let translate_history_elt old_helt =
   match old_helt with
   | Global old_g -> global_Global old_g
   | Localizable (PGlobal old_g) -> global_Global old_g
-  | Localizable(PVDecl(Some kf,_,_)) ->
-      global_Global (kf_to_global kf)
-  | Localizable ( PStmt(kf,_) | PLval(Some kf,_,_) | PExp(Some kf,_,_)
+  | Localizable(PVDecl(Some kf,_,_)) -> global_Global (kf_to_global kf)
+  | Localizable ( PStmt(kf,_) | PStmtStart(kf,_) |
+                  PLval(Some kf,_,_) | PExp(Some kf,_,_)
                 | PTermLval(Some kf,_,_,_) as loc) ->
       begin match global (kf_to_global kf) with
         | None ->

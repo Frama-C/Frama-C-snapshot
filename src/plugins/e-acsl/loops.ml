@@ -297,7 +297,7 @@ let rec mk_nested_loops ~loc mk_innermost_block kf env lscope_vars =
         Some break_stmt))
     in
     (* remove logic binding before returning *)
-    let env = Env.Logic_binding.remove env logic_x in
+    Env.Logic_binding.remove env logic_x;
     [ start ;  stmt ], env
   | Lscope.Lvs_let(lv, t) :: lscope_vars' ->
     let ty = Typing.get_typ t in
@@ -308,7 +308,7 @@ let rec mk_nested_loops ~loc mk_innermost_block kf env lscope_vars =
       mk_nested_loops ~loc mk_innermost_block kf env lscope_vars'
     in
     (* remove logic binding now that the block is constructed *)
-    let env = Env.Logic_binding.remove env lv in
+    Env.Logic_binding.remove env lv;
     (* return *)
     let_stmt :: stmts, env
   | Lscope.Lvs_formal _ :: _ ->

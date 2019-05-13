@@ -5,7 +5,7 @@
 ;  Copyright (C) 2008-2011                                               ;
 ;    Pierre Roux                                                         ;
 ;                                                                        ;
-;  Copyright (C) 2009-2018                                               ;
+;  Copyright (C) 2009-2019                                               ;
 ;    CEA LIST                                                            ;
 ;                                                                        ;
 ;  you can redistribute it and/or modify it under the terms of the GNU   ;

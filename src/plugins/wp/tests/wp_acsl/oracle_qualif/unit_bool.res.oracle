@@ -2,13 +2,32 @@
 [kernel] Parsing tests/wp_acsl/unit_bool.i (no preprocessing)
 [wp] Running WP plugin...
 [wp] Loading driver 'share/wp.driver'
-[wp] 1 goal scheduled
+[wp] Warning: Missing RTE guards
+[wp] 15 goals scheduled
 [wp] [Alt-Ergo] Goal typed_lemma_f_1 : Valid
-[wp] Proved goals:    1 / 1
-  Qed:             0 
+[wp] [Qed] Goal typed_boolean_casts_check_C0 : Valid
+[wp] [Qed] Goal typed_boolean_casts_check_C1 : Valid
+[wp] [Qed] Goal typed_boolean_casts_check_c0 : Valid
+[wp] [Qed] Goal typed_boolean_casts_check_c1 : Valid
+[wp] [Qed] Goal typed_boolean_casts_check_c2 : Valid
+[wp] [Qed] Goal typed_boolean_casts_check_X0 : Valid
+[wp] [Qed] Goal typed_boolean_casts_check_X1 : Valid
+[wp] [Qed] Goal typed_boolean_casts_check_x0 : Valid
+[wp] [Qed] Goal typed_boolean_casts_check_x1 : Valid
+[wp] [Qed] Goal typed_boolean_casts_check_x2 : Valid
+[wp] [Qed] Goal typed_boolean_casts_check_B0 : Valid
+[wp] [Qed] Goal typed_boolean_casts_check_B1 : Valid
+[wp] [Qed] Goal typed_boolean_casts_check_b0 : Valid
+[wp] [Qed] Goal typed_boolean_casts_check_b1 : Valid
+[wp] Proved goals:   15 / 15
+  Qed:            14 
   Alt-Ergo:        1
-[wp] Report 'tests/wp_acsl/unit_bool.i.0.report.json'
+[wp] Report in:  'tests/wp_acsl/oracle_qualif/unit_bool.0.report.json'
+[wp] Report out: 'tests/wp_acsl/result_qualif/unit_bool.0.report.json'
 -------------------------------------------------------------
 Axiomatics          WP     Alt-Ergo        Total   Success
 Axiomatic Foo       -       1 (1..12)        1       100%
+-------------------------------------------------------------
+Functions           WP     Alt-Ergo        Total   Success
+boolean_casts       14     -                14       100%
 -------------------------------------------------------------

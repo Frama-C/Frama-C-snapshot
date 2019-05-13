@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2018                                               *)
+(*  Copyright (C) 2007-2019                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -24,21 +24,17 @@ open Cil_types
 open Eval
 
 module Make
-    (Value: Abstract_value.External)
-    (Location: Abstract_location.External)
-    (Domain: Abstract_domain.External with type value = Value.t
-                                       and type location = Location.location)
-    (States: Powerset.S with type state = Domain.t)
-    (Logic : Transfer_logic.S with type state = Domain.t
+    (Abstract: Abstractions.S)
+    (States: Powerset.S with type state = Abstract.Dom.t)
+    (Logic : Transfer_logic.S with type state = Abstract.Dom.t
                                and type states = States.t)
   : sig
 
-
-    val treat_statement_assigns: assigns -> Domain.t -> Domain.t
+    val treat_statement_assigns: assigns -> Abstract.Dom.t -> Abstract.Dom.t
 
     val compute_using_specification:
       warn:bool ->
-      kinstr -> (Location.location, Value.t) call -> spec ->
-      Domain.t -> Domain.t list or_bottom
+      kinstr -> (Abstract.Loc.location, Abstract.Val.t) call -> spec ->
+      Abstract.Dom.t -> Abstract.Dom.t list or_bottom
 
   end

@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2018                                               *)
+(*  Copyright (C) 2007-2019                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -117,7 +117,7 @@ Proof.
 intros x. unfold to_bool. induction (Z.eqb_spec x 0%Z) ; intuition.
 Qed.
 
-Open Local Scope Z_scope.
+Local Open Scope Z_scope.
 
 Definition to_range a b z := a + (z-a) mod (b-a).
 
@@ -328,7 +328,6 @@ Proof. to_range.
 Qed.
 
 (** * C-Integer Conversions are identity when in-range *)
-Open Local Scope Z_scope.
 
 Remark mod_kn_mod_n:  forall (k:Z) (n:Z) (x:Z), k>0 -> n>0 -> (x mod (k*n)) mod n = x mod n.
 Proof.

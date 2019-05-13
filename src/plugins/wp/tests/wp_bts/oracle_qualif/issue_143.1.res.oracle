@@ -5,18 +5,19 @@
 [wp] 2 goals scheduled
 [wp] [Coq] Goal typed_lemma_ok_because_inconsistent : Default tactic
 [wp] [Failed] Goal typed_lemma_ok_because_inconsistent
-  alt-ergo: Failed Command './tests/inexistant-prover' not found
+  Alt-Ergo (why3): Failed Command './tests/inexistant-prover' not found
        Coq: Failed Command './tests/inexistant-prover' not found
   Alt-Ergo: Failed Command './tests/inexistant-prover' not found
 [wp] [Failed] Goal typed_lemma_ok_because_consistent
-  alt-ergo: Failed Command './tests/inexistant-prover' not found
+  Alt-Ergo (why3): Failed Command './tests/inexistant-prover' not found
        Coq: Failed Command './tests/inexistant-prover' not found
   Alt-Ergo: Failed Command './tests/inexistant-prover' not found
 [wp] Proved goals:    0 / 2
-  Alt-Ergo:        0  (failed: 2)
-  Coq:             0  (failed: 2)
-  alt-ergo:        0  (failed: 2)
-[wp] Report 'tests/wp_bts/issue_143.i.1.report.json'
+  Alt-Ergo:           0  (failed: 2)
+  Coq:                0  (failed: 2)
+  Alt-Ergo (why3):    0  (failed: 2)
+[wp] Report in:  'tests/wp_bts/oracle_qualif/issue_143.1.report.json'
+[wp] Report out: 'tests/wp_bts/result_qualif/issue_143.1.report.json'
 -------------------------------------------------------------
 Axiomatics          WP     Alt-Ergo        Total   Success
 Axiomatic A         -      -                 1       0.0%

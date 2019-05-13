@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2018                                               *)
+(*  Copyright (C) 2007-2019                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -177,7 +177,7 @@ module Transfer = struct
     let inputs_lv = Value_util.indirect_zone_of_lval to_z lv.Eval.lval in
     let inputs = Zone.join inputs_e inputs_lv in
     let outputs =
-      Precise_locs.enumerate_valid_bits ~for_writing:true lv.Eval.lloc
+      Precise_locs.enumerate_valid_bits Locations.Write lv.Eval.lloc
     in
     let exact_outputs = Precise_locs.cardinal_zero_or_one lv.Eval.lloc in
     {
@@ -264,7 +264,7 @@ module Internal
     let finalize_call _stmt _call ~pre ~post =
       `Value (Transfer.catenate pre post)
 
-    let update _valuation state = state
+    let update _valuation state = `Value state
 
     let show_expr _valuation _state _fmt _expr = ()
   end

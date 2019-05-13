@@ -1,5 +1,6 @@
 /* run.config
-   OPT: -load-script tests/misc/callsite.ml
+   EXECNOW: make -s @PTEST_DIR@/@PTEST_NAME@.cmxs
+   OPT: -no-autoload-plugins -load-module @PTEST_DIR@/@PTEST_NAME@.cmxs
  */
 // Don't use -debug 1 option in the test command.
 

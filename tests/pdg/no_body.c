@@ -1,9 +1,9 @@
 /* run.config
 *    GCC:
-*    OPT: -val-show-progress -fct-pdg main -inout -journal-disable  -pdg-print -pdg-verbose 2
+*    STDOPT: +"-fct-pdg main -inout "
 */
 /*
- * ledit bin/toplevel.top  tests/slicing/no_body.c -val-show-progress -fct-pdg main
+ * ledit bin/toplevel.top  tests/slicing/no_body.c -fct-pdg main
  * #use "tests/slicing/select.ml";;
  * test "loop" (select_data "G");;
 */

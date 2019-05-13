@@ -166,7 +166,7 @@
   p10 ∈
      {{ garbled mix of &{p1}
       (origin: Arithmetic {tests/value/addition.i:52}) }}
-  p11 ∈ [-2147483648..0]
+  p11 ∈ [-2147483648..0],0%4
   p12 ∈
      {{ garbled mix of &{p1; p2}
       (origin: Arithmetic {tests/value/addition.i:56}) }}
@@ -397,7 +397,7 @@
   p10 ∈
      {{ garbled mix of &{p1}
       (origin: Arithmetic {tests/value/addition.i:52}) }}
-  p11 ∈ [-2147483648..0]
+  p11 ∈ [-2147483648..0],0%4
   p12 ∈
      {{ garbled mix of &{p1; p2}
       (origin: Arithmetic {tests/value/addition.i:56}) }}

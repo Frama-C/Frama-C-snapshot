@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2018                                               *)
+(*  Copyright (C) 2007-2019                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -322,7 +322,8 @@ let copy_block kf switch_label_action break_continue_must_change bl =
         succs = []; 
         preds = []; 
         skind = stmt.skind; 
-        ghost = stmt.ghost}
+        ghost = stmt.ghost;
+        sattr = []}
     in
     let labelled_stmt_tbl =
       if stmt.labels = [] then

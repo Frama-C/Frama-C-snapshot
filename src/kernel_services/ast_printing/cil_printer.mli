@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2018                                               *)
+(*  Copyright (C) 2007-2019                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -41,7 +41,7 @@ val register_behavior_extension:
    Cil_types.acsl_extension_kind -> unit) -> unit
 (** Register a pretty-printer used for behavior extension.
     @plugin development guide
- *)
+*)
 
 val register_global_extension:
   string ->
@@ -49,7 +49,7 @@ val register_global_extension:
    Cil_types.acsl_extension_kind -> unit) -> unit
 (** Register a pretty-printer used for behavior extension.
     @plugin development guide
- *)
+*)
 
 val register_code_annot_extension:
   string ->
@@ -57,7 +57,7 @@ val register_code_annot_extension:
    Cil_types.acsl_extension_kind -> unit) -> unit
 (** Register a pretty-printer used for behavior extension.
     @plugin development guide
- *)
+*)
 
 val register_loop_annot_extension:
   string ->
@@ -65,7 +65,7 @@ val register_loop_annot_extension:
    Cil_types.acsl_extension_kind -> unit) -> unit
 (** Register a pretty-printer used for behavior extension.
     @plugin development guide
- *)
+*)
 
 val state: Printer_api.state
 

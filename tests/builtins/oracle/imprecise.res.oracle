@@ -39,6 +39,8 @@
 [eva] computing for function f <- invalid_assigns_imprecise <- main.
   Called from tests/builtins/imprecise.c:11.
 [eva] using specification for function f
+[eva] tests/builtins/imprecise.c:11: Warning: 
+  Completely invalid destination for assigns clause *p. Ignoring.
 [eva] Done for function f
 [eva] Recording results for invalid_assigns_imprecise
 [from] Computing for function invalid_assigns_imprecise
@@ -59,6 +61,8 @@
   __fc_strtok_ptr ∈ {0}
   __fc_strerror[0..63] ∈ [--..--]
   __fc_p_strerror ∈ {{ &__fc_strerror[0] }}
+  __fc_strsignal[0..63] ∈ [--..--]
+  __fc_p_strsignal ∈ {{ &__fc_strsignal[0] }}
   i ∈ {1}
   j ∈ {1; 2}
   k[0..4] ∈ [--..--]
@@ -143,6 +147,8 @@
   __fc_strtok_ptr ∈ {0}
   __fc_strerror[0..63] ∈ [--..--]
   __fc_p_strerror ∈ {{ &__fc_strerror[0] }}
+  __fc_strsignal[0..63] ∈ [--..--]
+  __fc_p_strsignal ∈ {{ &__fc_strsignal[0] }}
   v ∈ [--..--]
   addr ∈ [--..--]
   v1.[bits 0 to 7] ∈ {1}
@@ -179,6 +185,8 @@
   __fc_strtok_ptr ∈ {0}
   __fc_strerror[0..63] ∈ [--..--]
   __fc_p_strerror ∈ {{ &__fc_strerror[0] }}
+  __fc_strsignal[0..63] ∈ [--..--]
+  __fc_p_strsignal ∈ {{ &__fc_strsignal[0] }}
   v ∈ [--..--]
   addr ∈ [--..--]
   v1.[bits 0 to 7] ∈ {1}
@@ -279,7 +287,6 @@
   NULL[rbits 800 to 1607] ∈ [--..--] or ESCAPINGADDR
   p_gm_null ∈ [100..197]
 [eva:final-states] Values at end of function invalid_assigns_imprecise:
-  NULL[rbits 800 to 1607] ∈ [--..--]
   p ∈ {0}
 [eva:final-states] Values at end of function many_writes:
   t_packed1{[0..298]{.i1; .i2#; .[bits 48 to 63]#}; [299].i1} ∈
@@ -484,7 +491,7 @@
   Sure outputs:
     p_gm_null
 [inout] Out (internal) for function invalid_assigns_imprecise:
-    NULL[..]; p
+    p
 [inout] Inputs for function invalid_assigns_imprecise:
     \nothing
 [inout] InOut (internal) for function invalid_assigns_imprecise:
@@ -562,7 +569,7 @@
   Sure outputs:
     i; j; k[0..4]; p
 [inout] Out (internal) for function main:
-    NULL[..]; v1.[bits 0 to 7]; v2.[bits 32 to 63]; v3.[bits 0 to ..];
+    NULL[100..200]; v1.[bits 0 to 7]; v2.[bits 32 to 63]; v3.[bits 0 to ..];
     v5.[bits 0 to ..]; p_gm_null
 [inout] Inputs for function main:
     NULL[100..200]; v; v1.[bits 0 to 7]; p_gm_null
@@ -624,6 +631,8 @@
   __fc_strtok_ptr ∈ {{ NULL ; &S___fc_strtok_ptr[0] }}
   __fc_strerror[0..63] ∈ [--..--]
   __fc_p_strerror ∈ {{ &__fc_strerror[0] }}
+  __fc_strsignal[0..63] ∈ [--..--]
+  __fc_p_strsignal ∈ {{ &__fc_strsignal[0] }}
   i ∈ {1}
   j ∈ {1; 2}
   k[0..4] ∈ [--..--]
@@ -702,6 +711,8 @@
   __fc_strtok_ptr ∈ {{ NULL ; &S___fc_strtok_ptr[0] }}
   __fc_strerror[0..63] ∈ [--..--]
   __fc_p_strerror ∈ {{ &__fc_strerror[0] }}
+  __fc_strsignal[0..63] ∈ [--..--]
+  __fc_p_strsignal ∈ {{ &__fc_strsignal[0] }}
   v ∈ [--..--]
   addr ∈ [--..--]
   v1.[bits 0 to 7] ∈ {1}
@@ -741,6 +752,8 @@
   __fc_strtok_ptr ∈ {{ NULL ; &S___fc_strtok_ptr[0] }}
   __fc_strerror[0..63] ∈ [--..--]
   __fc_p_strerror ∈ {{ &__fc_strerror[0] }}
+  __fc_strsignal[0..63] ∈ [--..--]
+  __fc_p_strsignal ∈ {{ &__fc_strsignal[0] }}
   v ∈ [--..--]
   addr ∈ [--..--]
   v1.[bits 0 to 7] ∈ {1}
@@ -824,7 +837,6 @@
   NULL[rbits 800 to 1607] ∈ [--..--] or ESCAPINGADDR
   p_gm_null ∈ [100..197]
 [eva:final-states] Values at end of function invalid_assigns_imprecise:
-  NULL[rbits 800 to 1607] ∈ [--..--]
   p ∈ {0}
 [eva:final-states] Values at end of function many_writes:
   t_packed1{[0..298]{.i1; .i2#; .[bits 48 to 63]#}; [299].i1} ∈
@@ -1023,7 +1035,7 @@
   Sure outputs:
     p_gm_null
 [inout] Out (internal) for function invalid_assigns_imprecise:
-    NULL[..]; p
+    p
 [inout] Inputs for function invalid_assigns_imprecise:
     \nothing
 [inout] InOut (internal) for function invalid_assigns_imprecise:
@@ -1101,7 +1113,7 @@
   Sure outputs:
     i; j; k[0..4]; p
 [inout] Out (internal) for function main:
-    NULL[..]; v1.[bits 0 to 7]; v2.[bits 32 to 63]; v3.[bits 0 to ..];
+    NULL[100..200]; v1.[bits 0 to 7]; v2.[bits 32 to 63]; v3.[bits 0 to ..];
     v5.[bits 0 to ..]; p_gm_null
 [inout] Inputs for function main:
     NULL[100..200]; v; v1.[bits 0 to 7]; p_gm_null

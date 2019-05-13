@@ -11,48 +11,29 @@
 [eva] tests/value/narrow_behaviors.i:56: 
   Frama_C_dump_each:
   # Cvalue domain:
-  nondet ∈ {0}
-  p{.x; .y} ∈ {1}
-  __retres ∈ UNINITIALIZED
-  ==END OF DUMP==
-[eva] tests/value/narrow_behaviors.i:56: 
-  Frama_C_dump_each:
-  # Cvalue domain:
   nondet ∈ [--..--]
   p.x ∈ {2}
    .y ∈ {1; 2}
   __retres ∈ UNINITIALIZED
   ==END OF DUMP==
+[eva] tests/value/narrow_behaviors.i:56: 
+  Frama_C_dump_each:
+  # Cvalue domain:
+  nondet ∈ {0}
+  p{.x; .y} ∈ {1}
+  __retres ∈ UNINITIALIZED
+  ==END OF DUMP==
 [eva] computing for function f2 <- main.
   Called from tests/value/narrow_behaviors.i:57.
 [eva] using specification for function f2
+[eva] Done for function f2
+[eva] computing for function f2 <- main.
+  Called from tests/value/narrow_behaviors.i:57.
 [eva] tests/value/narrow_behaviors.i:57: 
   function f2, behavior b: assumes got status invalid; behavior not evaluated.
 [eva] tests/value/narrow_behaviors.i:57: 
   function f2, behavior c: assumes got status invalid; behavior not evaluated.
 [eva] Done for function f2
-[eva] computing for function f2 <- main.
-  Called from tests/value/narrow_behaviors.i:57.
-[eva] Done for function f2
-[eva] tests/value/narrow_behaviors.i:57: 
-  Frama_C_dump_each:
-  # Cvalue domain:
-  nondet ∈ {0}
-  p{.x; .y} ∈ {1}
-  q.x ∈ {1; 2}
-   .y ∈ {1}
-  __retres ∈ UNINITIALIZED
-  ==END OF DUMP==
-[eva] tests/value/narrow_behaviors.i:57: 
-  Frama_C_dump_each:
-  # Cvalue domain:
-  nondet ∈ {0}
-  p.x ∈ {2}
-   .y ∈ {1; 2}
-  q.x ∈ {1; 2}
-   .y ∈ {1}
-  __retres ∈ UNINITIALIZED
-  ==END OF DUMP==
 [eva] tests/value/narrow_behaviors.i:57: 
   Frama_C_dump_each:
   # Cvalue domain:
@@ -61,6 +42,25 @@
    .y ∈ {1; 2}
   q.x ∈ {2}
    .y ∈ {1; 2}
+  __retres ∈ UNINITIALIZED
+  ==END OF DUMP==
+[eva] tests/value/narrow_behaviors.i:57: 
+  Frama_C_dump_each:
+  # Cvalue domain:
+  nondet ∈ {0}
+  p.x ∈ {2}
+   .y ∈ {1; 2}
+  q.x ∈ {1; 2}
+   .y ∈ {1}
+  __retres ∈ UNINITIALIZED
+  ==END OF DUMP==
+[eva] tests/value/narrow_behaviors.i:57: 
+  Frama_C_dump_each:
+  # Cvalue domain:
+  nondet ∈ {0}
+  p{.x; .y} ∈ {1}
+  q.x ∈ {1; 2}
+   .y ∈ {1}
   __retres ∈ UNINITIALIZED
   ==END OF DUMP==
 [eva:alarm] tests/value/narrow_behaviors.i:61: Warning: 

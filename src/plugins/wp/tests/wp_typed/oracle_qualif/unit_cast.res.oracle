@@ -10,8 +10,9 @@
 [wp] Proved goals:    1 / 1
   Qed:             0 
   Alt-Ergo:        1
-[wp] Report 'tests/wp_typed/unit_cast.i.0.report.json'
+[wp] Report in:  'tests/wp_typed/oracle_qualif/unit_cast.0.report.json'
+[wp] Report out: 'tests/wp_typed/result_qualif/unit_cast.0.report.json'
 -------------------------------------------------------------
 Functions           WP     Alt-Ergo        Total   Success
-f                   -       1 (12..24)       1       100%
+f                   -       1 (16..28)       1       100%
 -------------------------------------------------------------

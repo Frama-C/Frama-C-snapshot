@@ -7,7 +7,8 @@
 [wp] [Qed] Goal typed_call_assert : Valid
 [wp] Proved goals:    1 / 1
   Qed:             1
-[wp] Report 'tests/wp_bts/bts_2040.i.0.report.json'
+[wp] Report in:  'tests/wp_bts/oracle_qualif/bts_2040.0.report.json'
+[wp] Report out: 'tests/wp_bts/result_qualif/bts_2040.0.report.json'
 -------------------------------------------------------------
 Functions           WP     Alt-Ergo        Total   Success
 call                 1     -                 1       100%

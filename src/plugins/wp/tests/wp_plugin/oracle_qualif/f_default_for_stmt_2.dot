@@ -42,13 +42,13 @@ digraph f {
  N132 -> N131 ;
   N133 [ label="Label wp:sid8 (Stmt s8)" ] ;
  N133 -> N132 ;
-  N134 [ color=green , label="Assume f_stmt_post" ] ;
+  N134 [ color=green , label="Assume f_ensures_3" ] ;
  N134 -> N133 ;
-  N135 [ color=red , label="Assigns f_stmt_assign" ] ;
+  N135 [ color=red , label="Assigns f_assigns" ] ;
   N136 [ label="" , shape=circle ] ;
  N136 -> N135 ;
  N136 -> N134 ;
-  N137 [ color=red , label="Prove f_stmt_post" ] ;
+  N137 [ color=red , label="Prove f_ensures_3" ] ;
   N137 -> N136 [ style=dotted ] ;
   N138 [ label="" , shape=circle ] ;
  N138 -> N137 ;

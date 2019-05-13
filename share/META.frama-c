@@ -1,0 +1,16 @@
+description="frama-c"
+version=""
+requires=""
+
+package "kernel" (
+  description="The kernel library of frama-c"
+  version=""
+  requires="@REQUIRES"
+  archive(byte) = "frama-c.cma"
+  plugin(byte) = "frama-c.cma"
+  archive(native) = "frama-c.cmxa"
+  plugin(native) = "frama-c.cmxs"
+  directory=""
+)
+
+directory=""

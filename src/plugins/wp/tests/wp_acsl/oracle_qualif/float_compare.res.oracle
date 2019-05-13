@@ -1,0 +1,18 @@
+# frama-c -wp -wp-timeout 90 -wp-steps 1500 [...]
+[kernel] Parsing tests/wp_acsl/float_compare.i (no preprocessing)
+[wp] Running WP plugin...
+[wp] Loading driver 'share/wp.driver'
+[wp] 4 goals scheduled
+[wp] [Alt-Ergo] Goal typed_lemma_test_double_compare : Valid
+[wp] [Alt-Ergo] Goal typed_lemma_test_double_compare_greater : Valid
+[wp] [Alt-Ergo] Goal typed_lemma_test_float_compare : Valid
+[wp] [Alt-Ergo] Goal typed_lemma_test_float_compare_greater : Valid
+[wp] Proved goals:    4 / 4
+  Qed:             0 
+  Alt-Ergo:        4
+[wp] Report in:  'tests/wp_acsl/oracle_qualif/float_compare.0.report.json'
+[wp] Report out: 'tests/wp_acsl/result_qualif/float_compare.0.report.json'
+-------------------------------------------------------------
+Axiomatics          WP     Alt-Ergo        Total   Success
+Lemma               -       4 (28..40)       4       100%
+-------------------------------------------------------------

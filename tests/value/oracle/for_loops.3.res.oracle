@@ -9,6 +9,8 @@
 [eva] tests/value/for_loops.c:52: starting to merge loop iterations
 [eva] tests/value/for_loops.c:55: Frama_C_show_each_F: {0; 1}, [0..2147483647]
 [eva] tests/value/for_loops.c:55: 
+  Frama_C_show_each_F: {0; 1; 2}, [0..2147483647]
+[eva] tests/value/for_loops.c:55: 
   Frama_C_show_each_F: {0; 1; 2; 3; 4; 5}, [0..2147483647]
 [eva] Recording results for main_4
 [eva] done for function main_4

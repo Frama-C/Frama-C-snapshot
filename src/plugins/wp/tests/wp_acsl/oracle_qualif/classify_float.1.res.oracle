@@ -7,9 +7,10 @@
 [wp] [alt-ergo] Goal typed_lemma_InfP_not_finite : Valid
 [wp] [alt-ergo] Goal typed_lemma_NaN_not_finite : Valid
 [wp] Proved goals:    3 / 3
-  Qed:             0 
-  alt-ergo:        3
-[wp] Report 'tests/wp_acsl/classify_float.c.1.report.json'
+  Qed:                0 
+  Alt-Ergo (why3):    3
+[wp] Report in:  'tests/wp_acsl/oracle_qualif/classify_float.1.report.json'
+[wp] Report out: 'tests/wp_acsl/result_qualif/classify_float.1.report.json'
 -------------------------------------------------------------
 Axiomatics          WP     Alt-Ergo        Total   Success
 Lemma               -      -                 3       100%

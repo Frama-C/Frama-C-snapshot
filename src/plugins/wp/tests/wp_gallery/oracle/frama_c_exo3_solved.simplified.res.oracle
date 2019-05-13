@@ -5,36 +5,36 @@
 [rte] annotating function pair
 [wp] Goal typed_pair_complete_has_pair_no_pair : trivial
 [wp] Goal typed_pair_disjoint_has_pair_no_pair : trivial
-[wp] Goal typed_pair_loop_inv_preserved : not tried
-[wp] Goal typed_pair_loop_inv_established : not tried
-[wp] Goal typed_pair_loop_inv_2_preserved : not tried
-[wp] Goal typed_pair_loop_inv_2_established : not tried
+[wp] Goal typed_pair_loop_invariant_preserved : not tried
+[wp] Goal typed_pair_loop_invariant_established : not tried
+[wp] Goal typed_pair_loop_invariant_2_preserved : not tried
+[wp] Goal typed_pair_loop_invariant_2_established : not tried
 [wp] Goal typed_pair_assert_rte_index_bound : not tried
 [wp] Goal typed_pair_assert_rte_index_bound_2 : not tried
 [wp] Goal typed_pair_assert_rte_signed_overflow : not tried
-[wp] Goal typed_pair_loop_inv_3_preserved : not tried
-[wp] Goal typed_pair_loop_inv_3_established : not tried
-[wp] Goal typed_pair_loop_inv_4_preserved : not tried
-[wp] Goal typed_pair_loop_inv_4_established : not tried
-[wp] Goal typed_pair_loop_inv_5_preserved : not tried
-[wp] Goal typed_pair_loop_inv_5_established : not tried
-[wp] Goal typed_pair_loop_inv_6_preserved : not tried
-[wp] Goal typed_pair_loop_inv_6_established : not tried
+[wp] Goal typed_pair_loop_invariant_3_preserved : not tried
+[wp] Goal typed_pair_loop_invariant_3_established : not tried
+[wp] Goal typed_pair_loop_invariant_4_preserved : not tried
+[wp] Goal typed_pair_loop_invariant_4_established : not tried
+[wp] Goal typed_pair_loop_invariant_5_preserved : not tried
+[wp] Goal typed_pair_loop_invariant_5_established : not tried
+[wp] Goal typed_pair_loop_invariant_6_preserved : not tried
+[wp] Goal typed_pair_loop_invariant_6_established : not tried
 [wp] Goal typed_pair_assert_rte_mem_access : not tried
 [wp] Goal typed_pair_assert_rte_index_bound_3 : not tried
 [wp] Goal typed_pair_assert_rte_index_bound_4 : not tried
 [wp] Goal typed_pair_assert_rte_index_bound_5 : not tried
 [wp] Goal typed_pair_assert_rte_index_bound_6 : not tried
 [wp] Goal typed_pair_assert_rte_signed_overflow_2 : not tried
-[wp] Goal typed_pair_loop_assign : trivial
-[wp] Goal typed_pair_loop_assign_2 : trivial
-[wp] Goal typed_pair_assign_part1 : not tried
-[wp] Goal typed_pair_assign_part2 : not tried
-[wp] Goal typed_pair_assign_part3 : not tried
-[wp] Goal typed_pair_assign_part4 : not tried
-[wp] Goal typed_pair_loop_term_decrease : not tried
-[wp] Goal typed_pair_loop_term_positive : not tried
-[wp] Goal typed_pair_loop_term_2_decrease : not tried
-[wp] Goal typed_pair_loop_term_2_positive : not tried
-[wp] Goal typed_pair_has_pair_post : not tried
-[wp] Goal typed_pair_no_pair_post : not tried
+[wp] Goal typed_pair_loop_assigns : trivial
+[wp] Goal typed_pair_loop_assigns_2 : trivial
+[wp] Goal typed_pair_assigns_part1 : not tried
+[wp] Goal typed_pair_assigns_part2 : not tried
+[wp] Goal typed_pair_assigns_part3 : not tried
+[wp] Goal typed_pair_assigns_part4 : not tried
+[wp] Goal typed_pair_loop_variant_decrease : not tried
+[wp] Goal typed_pair_loop_variant_positive : not tried
+[wp] Goal typed_pair_loop_variant_2_decrease : not tried
+[wp] Goal typed_pair_loop_variant_2_positive : not tried
+[wp] Goal typed_pair_has_pair_ensures : not tried
+[wp] Goal typed_pair_no_pair_ensures : not tried

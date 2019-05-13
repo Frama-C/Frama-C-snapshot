@@ -46,28 +46,34 @@ let c_int = C_type IInt
 let ikind ik = C_type ik
 let other = Other
 
-include Datatype.Make
-(struct
-  type t = integer_ty
-  let name = "E_ACSL.New_typing.t"
-  let reprs = [ Gmp; c_int ]
-  include Datatype.Undefined
+module D =
+  Datatype.Make_with_collections
+    (struct
+      type t = integer_ty
+      let name = "E_ACSL.New_typing.t"
+      let reprs = [ Gmp; c_int ]
+      include Datatype.Undefined
 
-  let compare ty1 ty2 = match ty1, ty2 with
-    | C_type i1, C_type i2 ->
-      if i1 = i2 then 0
-      else if Cil.intTypeIncluded i1 i2 then -1 else 1
-    | (Other | C_type _), Gmp | Other, C_type _ -> -1
-    | Gmp, (C_type _ | Other) | C_type _, Other -> 1
-    | Gmp, Gmp | Other, Other -> 0
+      let compare ty1 ty2 = match ty1, ty2 with
+        | C_type i1, C_type i2 ->
+          if i1 = i2 then 0
+          else if Cil.intTypeIncluded i1 i2 then -1 else 1
+        | (Other | C_type _), Gmp | Other, C_type _ -> -1
+        | Gmp, (C_type _ | Other) | C_type _, Other -> 1
+        | Gmp, Gmp | Other, Other -> 0
 
-  let equal = Datatype.from_compare
+      let equal = Datatype.from_compare
 
-  let pretty fmt = function
-    | Gmp -> Format.pp_print_string fmt "GMP"
-    | C_type k -> Printer.pp_ikind fmt k
-    | Other -> Format.pp_print_string fmt "OTHER"
- end)
+      let hash = function
+        | Gmp -> 787
+        | Other -> 1011
+        | C_type ik -> Hashtbl.hash ik
+
+      let pretty fmt = function
+        | Gmp -> Format.pp_print_string fmt "GMP"
+        | C_type k -> Printer.pp_ikind fmt k
+        | Other -> Format.pp_print_string fmt "OTHER"
+    end)
 
 (******************************************************************************)
 (** Basic operations *)
@@ -94,14 +100,20 @@ let typ_of_integer_ty = function
   | C_type ik -> TInt(ik, [])
   | Other -> raise Not_an_integer
 
+let typ_of_lty = function
+  | Ctype cty -> cty
+  | Linteger -> Gmpz.t ()
+  | Lreal -> Error.not_yet "real numbers"
+  | Ltype _ | Lvar _ | Larrow _ -> Options.fatal "unexpected logic type"
+
 (******************************************************************************)
 (** Memoization *)
 (******************************************************************************)
 
 type computed_info =
-    { ty: t;  (* type required for the term *)
-      op: t; (* type required for the operation *)
-      cast: t option; (* if not [None], type of the context which the term
+    { ty: D.t;  (* type required for the term *)
+      op: D.t; (* type required for the operation *)
+      cast: D.t option; (* if not [None], type of the context which the term
                          must be casted to. If [None], no cast needed. *)
     }
 
@@ -171,41 +183,27 @@ let integer_ty_of_typ ty = ty_of_logic_ty (Ctype ty)
    interval. It is the \theta operator of the JFLA's paper. *)
 let ty_of_interv ?ctx i =
   try
-    let itv_kind =
-      if Ival.is_bottom i then IInt
-      else match Ival.min_and_max i with
-        | Some l, Some u ->
-          let is_pos = Integer.ge l Integer.zero in
-          let lkind = Cil.intKindForValue l is_pos in
-          let ukind = Cil.intKindForValue u is_pos in
-          (* kind corresponding to the interval *)
-          if Cil.intTypeIncluded lkind ukind then ukind else lkind
-        | None, None -> raise Cil.Not_representable (* GMP *)
-        | None, Some _ | Some _, None ->
-          Kernel.fatal ~current:true "ival: %a" Ival.pretty i
-    in
-    (* convert the kind to [IInt] whenever smaller. *)
-    let kind = if Cil.intTypeIncluded itv_kind IInt then IInt else itv_kind in
+    let kind = Interval.ikind_of_interv i in
     (* ctx type whenever possible to prevent superfluous casts in the generated
        code *)
     (match ctx with
      | None | Some (Gmp | Other) -> C_type kind
      | Some (C_type ik as ctx) ->
-       if Cil.intTypeIncluded itv_kind ik then ctx else C_type kind)
+       if Cil.intTypeIncluded kind ik then ctx else C_type kind)
   with Cil.Not_representable ->
     Gmp
 
 (* compute a new {!computed_info} by coercing the given type [ty] to the given
    context [ctx]. [op] is the type for the operator. *)
 let coerce ~arith_operand ~ctx ~op ty =
-  if compare ty ctx = 1 then begin
+  if D.compare ty ctx = 1 then
     (* type larger than the expected context,
        so we must introduce an explicit cast *)
     { ty; op; cast = Some ctx }
-  end else
+  else
     (* only add an explicit cast if the context is [Gmp] and [ty] is not;
        or if the term corresponding to [ty] is an operand of an arithmetic
-       operation which must be explicitely coerced in order to force the
+       operation which must be explicitly coerced in order to force the
        operation to be of the expected type. *)
     if (ctx = Gmp && ty <> Gmp) || arith_operand
     then { ty; op; cast = Some ctx }
@@ -340,7 +338,7 @@ let rec type_term ~use_gmp_opt ?(arith_operand=false) ?ctx t =
         with Interval.Not_an_integer ->
           dup Other (* real *)
       in
-      (* it is enough to explicitely coerce when required one operand to [ctx]
+      (* it is enough to explicitly coerce when required one operand to [ctx]
          (through [arith_operand]) in order to force the type of the operation.
          Heuristic: coerce the operand which is not a lval in order to lower
          the number of explicit casts *)
@@ -356,7 +354,7 @@ let rec type_term ~use_gmp_opt ?(arith_operand=false) ?ctx t =
       dup ctx_res
 
     | TBinOp ((Lt | Gt | Le | Ge | Eq | Ne), t1, t2) ->
-      assert (match ctx with None -> true | Some c -> compare c c_int >= 0);
+      assert (match ctx with None -> true | Some c -> D.compare c c_int >= 0);
       let ctx =
         try
           let i1 = Interval.infer t1 in
@@ -462,14 +460,55 @@ let rec type_term ~use_gmp_opt ?(arith_operand=false) ?ctx t =
       dup Other
 
     | Tapp(li, _, args) ->
-      let typ_arg lvi arg =
-        let ctx = ty_of_logic_ty lvi.lv_type in
-        ignore (type_term ~use_gmp_opt:false ~ctx arg)
-      in
-      List.iter2 typ_arg li.l_profile args;
-      (* [li.l_type is [None] for predicate only: not possible here.
-         Thus using [Extlib.the] is fine *)
-      dup (ty_of_logic_ty (Extlib.the li.l_type))
+      if Builtins.mem li.l_var_info.lv_name then
+        let typ_arg lvi arg =
+          (* a built-in is a C function, so the context is necessarily a C
+             type. *)
+          let ctx = ty_of_logic_ty lvi.lv_type in
+          ignore (type_term ~use_gmp_opt:false ~ctx arg)
+        in
+        List.iter2 typ_arg li.l_profile args;
+        (* [li.l_type is [None] for predicate only: not possible here.
+           Thus using [Extlib.the] is fine *)
+        dup (ty_of_logic_ty (Extlib.the li.l_type))
+      else begin
+        (* TODO: what if the type of the parameter is smaller than the infered
+           type of the argument? For now, it is silently ignored (both
+           statically and at runtime)... *)
+        List.iter (fun arg -> ignore (type_term ~use_gmp_opt:true arg)) args;
+        (* TODO: recursive call in arguments of function call *)
+        match li.l_body with
+        | LBpred _ ->
+          (* possible to have an [LBpred] here because we transformed
+             [Papp] into [Tapp] *)
+          dup c_int
+        | LBterm _ ->
+          begin match li.l_type with
+          | None ->
+            assert false
+          | Some lty ->
+            match lty with
+            | Linteger ->
+              let i = Interval.infer t in
+              if Options.Gmp_only.get () then dup Gmp else dup (ty_of_interv i)
+            | Ctype TInt(ik, _ ) ->
+              dup (C_type ik)
+            | Ctype TFloat _ -> (* TODO: handle in MR !226 *)
+              dup Other
+            | Lreal ->
+              Error.not_yet "real numbers"
+            | Ctype _ ->
+              dup Other
+            | Ltype _ | Lvar _ | Larrow _ ->
+              Options.fatal "unexpected type"
+          end
+        | LBnone ->
+          Error.not_yet "logic functions with no definition nor reads clause"
+        | LBreads _ ->
+          Error.not_yet "logic functions performing read accesses"
+        | LBinductive _ ->
+          Error.not_yet "logic functions inductively defined"
+      end
 
     | Tunion _ -> Error.not_yet "tset union"
     | Tinter _ -> Error.not_yet "tset intersection"
@@ -528,7 +567,18 @@ let rec type_predicate p =
   (* this pattern matching also follows the formal rules of the JFLA's paper *)
   let op = match p.pred_content with
     | Pfalse | Ptrue -> c_int
-    | Papp _ -> Error.not_yet "logic function application"
+    | Papp(li, _, _) ->
+      begin match li.l_body with
+      | LBpred _ ->
+        (* No need to type subpredicates
+           since Papp will be transformed into Tapp in Translate:
+           a retyping is done there *)
+        c_int
+      | LBnone -> (* Eg: \is_finite *)
+        Error.not_yet "logic functions with no definition nor reads clause"
+      | LBreads _ | LBterm _ | LBinductive _ ->
+        Options.fatal "unexpected logic definition"
+      end
     | Pseparated _ -> Error.not_yet "\\separated"
     | Pdangling _ -> Error.not_yet "\\dangling"
     | Prel(_, t1, t2) ->
@@ -637,7 +687,7 @@ let rec type_predicate p =
 
 let type_term ~use_gmp_opt ?ctx t =
   Options.feedback ~dkey ~level:4 "typing term '%a' in ctx '%a'."
-    Printer.pp_term t (Pretty_utils.pp_opt pretty) ctx;
+    Printer.pp_term t (Pretty_utils.pp_opt D.pretty) ctx;
   ignore (type_term ~use_gmp_opt ?ctx t)
 
 let type_named_predicate ?(must_clear=true) p =
@@ -693,6 +743,8 @@ let get_cast_of_predicate p =
   with Not_an_integer -> assert false
 
 let clear = Memo.clear
+
+module Datatype = D
 
 (*
 Local Variables:

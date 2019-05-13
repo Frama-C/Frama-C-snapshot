@@ -7,8 +7,9 @@
 [wp] Proved goals:    1 / 1
   Qed:             0 
   Script:          1
-[wp] Report 'tests/wp_plugin/unsigned.i.0.report.json'
+[wp] Report in:  'tests/wp_plugin/oracle_qualif/unsigned.0.report.json'
+[wp] Report out: 'tests/wp_plugin/result_qualif/unsigned.0.report.json'
 -------------------------------------------------------------
 Axiomatics          WP     Alt-Ergo        Total   Success
-Lemma               -      -                 1       100%
+Lemma               -      -  (4..16)        1       100%
 -------------------------------------------------------------

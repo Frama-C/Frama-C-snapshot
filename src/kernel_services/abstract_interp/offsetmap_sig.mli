@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2018                                               *)
+(*  Copyright (C) 2007-2019                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -29,7 +29,6 @@ open Abstract_interp
 
 type v (** Type of the values stored in the offsetmap *)
 type widen_hint
-type alarm = bool (** [true] indicates that an alarm may have occurred *)
 include Datatype.S (** Datatype for the offsetmaps *)
 
 
@@ -182,10 +181,9 @@ val find :
   validity:Base.validity ->
   ?conflate_bottom:bool ->
   offsets:Ival.t -> size:Integer.t ->
-  t -> bool * v
+  t -> v
 (** Find the value bound to a set of intervals, expressed as an ival, in the
-    given rangemap. The returned boolean (alarm) indicates that at least one
-    of the offsets does not comply with [validity]. *)
+    given rangemap. *)
 
 val find_imprecise: validity:Base.validity-> t -> v
 (** [find_imprecise ~validity m] returns an imprecise join of the values bound
@@ -197,9 +195,9 @@ val find_imprecise_everywhere: t -> v
 val copy_slice:
   validity:Base.validity ->
   offsets:Ival.t -> size:Integer.t ->
-  t -> alarm * t Bottom.or_bottom
+  t -> t Bottom.or_bottom
 (** [copy_slice ~validity ~offsets ~size m] copies and merges the slices of
-    [m] starting at offsets [offsets] and of  size [size]. Offsets invalid
+    [m] starting at offsets [offsets] and of size [size]. Offsets invalid
     according to [validity] are removed. [size] must be strictly greater
     than zero. *)
 
@@ -221,15 +219,14 @@ val update :
   offsets:Ival.t ->
   size:Int.t ->
   v ->
-  t -> alarm * t Bottom.or_bottom
+  t -> t Bottom.or_bottom
 (** [update ?origin ~validity ~exact ~offsets ~size v m] writes [v],
     of size [size], each [offsets] in [m]; [m] must be of the size implied by
     [validity]. [~exact=true] results in a strong update, while
     [~exact=false] performs a weak update. If [offsets] contains too many
     offsets, or if [offsets] and [size] are not compatible, [offsets] and/or
     [v] are over-approximated. In this case, [origin] is used as the source of
-    the resulting imprecision. Returns [`Bottom] when all offsets are invalid.
-    The boolean returned indicates a potential alarm. *)
+    the resulting imprecision. Returns [`Bottom] when all offsets are invalid. *)
 
 val update_under :
   validity:Base.validity ->
@@ -237,7 +234,7 @@ val update_under :
   offsets:Ival.t ->
   size:Int.t ->
   v ->
-  t -> alarm * t Bottom.or_bottom
+  t -> t Bottom.or_bottom
 (** Same as {!update}, except that no over-approximation on the set
     of offsets or on the value written occurs. In case of imprecision,
     [m] is not updated. *)
@@ -258,7 +255,7 @@ val paste_slice:
   from:t ->
   size:Int.t ->
   offsets:Ival.t ->
-  t -> alarm * t Bottom.or_bottom
+  t -> t Bottom.or_bottom
 
 
 (** {2 Shape} *)

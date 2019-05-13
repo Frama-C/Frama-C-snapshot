@@ -38,6 +38,9 @@
   __fc_heap_status ∈ [--..--]
   __fc_random_counter ∈ [--..--]
   __fc_rand_max ∈ {32767}
+  __fc_random48_init ∈ {0}
+  __fc_random48_counter[0..2] ∈ [--..--]
+  __fc_p_random48_counter ∈ {{ &__fc_random48_counter[0] }}
   __fc_env[0] ∈ {{ NULL ; &S_0___fc_env[0] }}
           [1] ∈ {{ NULL ; &S_1___fc_env[0] }}
           [2..4095] ∈ {{ NULL ; &S_0___fc_env[0] ; &S_1___fc_env[0] }}
@@ -47,6 +50,8 @@
   __fc_strtok_ptr ∈ {0}
   __fc_strerror[0..63] ∈ [--..--]
   __fc_p_strerror ∈ {{ &__fc_strerror[0] }}
+  __fc_strsignal[0..63] ∈ [--..--]
+  __fc_p_strsignal ∈ {{ &__fc_strsignal[0] }}
   t1[0] ∈ {97}
     [1] ∈ {98}
     [2] ∈ {99}
@@ -58,7 +63,7 @@
     [3] ∈ {100}
     [4] ∈ {101}
     [5] ∈ {0}
-  c ∈ [-2147483648..2147483646]
+  c ∈ [-2147483648..2147483646],0%2
   r1a ∈ {3}
   r1b ∈ {5}
   r1c ∈ UNINITIALIZED

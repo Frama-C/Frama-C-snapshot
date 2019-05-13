@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2018                                               *)
+(*  Copyright (C) 2007-2019                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -24,7 +24,7 @@ open Lang
 
 module PartitionsQQ : sig
   val destructs_qq :
-    Lang.F.pred ->
+    Lang.F.pool ->
     Qed.Logic.binder -> tau:Lang.F.QED.tau -> phi:Lang.F.QED.bind ->
     Lang.F.Vars.t * Lang.F.QED.term
 
@@ -35,12 +35,7 @@ end
   let dkey = Wp_parameters.register_category "tac_split_quantifiers" (* debugging key *)
   let debug fmt = Wp_parameters.debug ~dkey fmt
 
-  let destructs_qq p qq ~tau ~phi =
-    let pool =
-      let quant = F.e_prop p in
-      let vars = Lang.F.vars quant in
-      Lang.new_pool ~vars ()
-    in
+  let destructs_qq pool qq ~tau ~phi =
     let rec destructs_qq vars ~tau ~phi =
       let open Qed.Logic in
       let x = F.fresh pool tau in
@@ -217,7 +212,7 @@ class split =
             let open Qed.Logic in
             match Lang.F.e_expr p with
             | Bind (Exists,tau,phi) -> begin
-                let vars,q = PartitionsQQ.destructs_qq p Exists ~tau ~phi in
+                let vars,q = PartitionsQQ.destructs_qq feedback#pool Exists ~tau ~phi in
                 match Lang.F.repr q with
                 | If (c,p,q) ->
                     if F.Vars.is_empty (F.Vars.inter (F.vars c) vars) then
@@ -326,7 +321,7 @@ class split =
                   let open Qed.Logic in
                   match F.e_expr p with
                   | Bind (Forall,tau,phi) -> begin
-                      let vars,q = PartitionsQQ.destructs_qq p Forall ~tau ~phi in
+                      let vars,q = PartitionsQQ.destructs_qq feedback#pool Forall ~tau ~phi in
                       match Lang.F.repr q with
                       | If (c,p,q) ->
                           if F.Vars.is_empty (F.Vars.inter (F.vars c) vars) then

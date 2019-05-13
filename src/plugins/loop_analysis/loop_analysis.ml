@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2018                                               *)
+(*  Copyright (C) 2007-2019                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -439,7 +439,7 @@ module Store(* (B:sig *)
               may be missed;
            2. in '<=' and '>=' loops, to adjust for the last iteration *)
         let divident = Integer.sub bound offset in
-        let remainder = Integer.rem divident increment in
+        let remainder = Integer.e_rem divident increment in
         (* check if induction variable may miss termination condition *)
         if binop = Cil_types.Ne && not Integer.(equal remainder zero) then
           Options.warning ~current:true
@@ -462,7 +462,7 @@ module Store(* (B:sig *)
                 success := true;
                 add_loop_bound stmt adjusted_value
               end
-          with Failure _ -> (* overflow in Integer.to_int *)
+          with Z.Overflow -> (* overflow in Integer.to_int *)
             ()
       (* TODO: check if this is useful and does not cause false alarms
          else

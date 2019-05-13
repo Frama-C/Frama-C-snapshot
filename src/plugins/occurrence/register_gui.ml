@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2018                                               *)
+(*  Copyright (C) 2007-2019                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -71,7 +71,7 @@ let filter_accesses l =
         let f = consider_access () in
         List.filter (fun access -> f (Register.classify_accesses access)) l
 
-let _ =
+let _ignore =
   Dynamic.register
     ~plugin:"Occurrence"
     ~journalize:false
@@ -79,7 +79,7 @@ let _ =
     (Datatype.func Datatype.bool Datatype.unit)
     Enabled.set
 
-let _ =
+let _ignore =
   Dynamic.register
     ~plugin:"Occurrence"
     ~journalize:false
@@ -134,7 +134,7 @@ let occurrence_highlighter buffer loc ~start ~stop =
             if List.exists same_tlval result then highlight ()
         | PVDecl(_, _,vi') when Varinfo.equal vi vi' ->
             highlight ()
-        | PExp _ | PVDecl _ | PStmt _ | PGlobal _ | PIP _ -> ()
+        | PExp _ | PVDecl _ | PStmt _ | PStmtStart _ | PGlobal _ | PIP _ -> ()
 
 module FollowFocus =
   State_builder.Ref

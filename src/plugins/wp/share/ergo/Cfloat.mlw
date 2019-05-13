@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2018                                               *)
+(*  Copyright (C) 2007-2019                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -23,17 +23,32 @@
 (* this is the prelude for Alt-Ergo, version >= 0.95.2 *)
 (** The theory BuiltIn_ must be appended to this file*)
 (** The theory Bool_ must be appended to this file*)
+(** The theory bool_Bool_ must be appended to this file*)
+(** The theory int_Int_ must be appended to this file*)
 (** The theory real_Real_ must be appended to this file*)
 (** The theory real_RealInfix_ must be appended to this file*)
 (** The theory real_Abs_ must be appended to this file*)
+(** The theory real_FromInt_ must be appended to this file*)
 (** The theory real_Square_ must be appended to this file*)
-logic to_float32 : real -> real
+type f32
 
-logic to_float64 : real -> real
+type f64
 
-predicate is_float32(x: real) = (to_float32(x) = x)
+logic to_f32 : real -> f32
 
-predicate is_float64(x: real) = (to_float64(x) = x)
+logic of_f32 : f32 -> real
+
+logic to_f64 : real -> f64
+
+logic of_f64 : f64 -> real
+
+axiom to_f32_zero : (of_f32(to_f32(0.0)) = 0.0)
+
+axiom to_f32_one : (of_f32(to_f32(1.0)) = 1.0)
+
+axiom to_f64_zero : (of_f64(to_f64(0.0)) = 0.0)
+
+axiom to_f64_one : (of_f64(to_f64(1.0)) = 1.0)
 
 type rounding_mode = Up | Down | ToZero | NearestTiesToAway
   | NearestTiesToEven
@@ -60,102 +75,286 @@ axiom match_rounding_mode_NearestTiesToEven :
   (forall z:'a. forall z1:'a. forall z2:'a. forall z3:'a. forall z4:'a.
   (match_rounding_mode(NearestTiesToEven, z, z1, z2, z3, z4) = z4))
 
-logic round_double : rounding_mode, real -> real
+logic round_float : rounding_mode, real -> f32
 
-logic round_float : rounding_mode, real -> real
+logic round_double : rounding_mode, real -> f64
 
 axiom float_32 :
   (forall x:real [round_float(NearestTiesToEven, x)].
-  (to_float32(x) = round_float(NearestTiesToEven, x)))
+  (to_f32(x) = round_float(NearestTiesToEven, x)))
 
 axiom float_64 :
   (forall x:real [round_double(NearestTiesToEven, x)].
-  (to_float64(x) = round_double(NearestTiesToEven, x)))
+  (to_f64(x) = round_double(NearestTiesToEven, x)))
 
-type float_kind = Real | Float32 | Float64 | NaN | Inf_pos | Inf_neg
+type float_kind = Finite | NaN | Inf_pos | Inf_neg
 
-logic match_float_kind : float_kind, 'a, 'a, 'a, 'a, 'a, 'a -> 'a
+logic match_float_kind : float_kind, 'a, 'a, 'a, 'a -> 'a
 
-axiom match_float_kind_Real :
-  (forall z:'a. forall z1:'a. forall z2:'a. forall z3:'a. forall z4:'a.
-  forall z5:'a. (match_float_kind(Real, z, z1, z2, z3, z4, z5) = z))
-
-axiom match_float_kind_Float32 :
-  (forall z:'a. forall z1:'a. forall z2:'a. forall z3:'a. forall z4:'a.
-  forall z5:'a. (match_float_kind(Float32, z, z1, z2, z3, z4, z5) = z1))
-
-axiom match_float_kind_Float64 :
-  (forall z:'a. forall z1:'a. forall z2:'a. forall z3:'a. forall z4:'a.
-  forall z5:'a. (match_float_kind(Float64, z, z1, z2, z3, z4, z5) = z2))
+axiom match_float_kind_Finite :
+  (forall z:'a. forall z1:'a. forall z2:'a. forall z3:'a.
+  (match_float_kind(Finite, z, z1, z2, z3) = z))
 
 axiom match_float_kind_NaN :
-  (forall z:'a. forall z1:'a. forall z2:'a. forall z3:'a. forall z4:'a.
-  forall z5:'a. (match_float_kind(NaN, z, z1, z2, z3, z4, z5) = z3))
+  (forall z:'a. forall z1:'a. forall z2:'a. forall z3:'a.
+  (match_float_kind(NaN, z, z1, z2, z3) = z1))
 
 axiom match_float_kind_Inf_pos :
-  (forall z:'a. forall z1:'a. forall z2:'a. forall z3:'a. forall z4:'a.
-  forall z5:'a. (match_float_kind(Inf_pos, z, z1, z2, z3, z4, z5) = z4))
+  (forall z:'a. forall z1:'a. forall z2:'a. forall z3:'a.
+  (match_float_kind(Inf_pos, z, z1, z2, z3) = z2))
 
 axiom match_float_kind_Inf_neg :
-  (forall z:'a. forall z1:'a. forall z2:'a. forall z3:'a. forall z4:'a.
-  forall z5:'a. (match_float_kind(Inf_neg, z, z1, z2, z3, z4, z5) = z5))
+  (forall z:'a. forall z1:'a. forall z2:'a. forall z3:'a.
+  (match_float_kind(Inf_neg, z, z1, z2, z3) = z3))
 
-logic classify_float : real -> float_kind
+logic classify_f32 : f32 -> float_kind
 
-predicate is_finite32(x: real) = (classify_float(x) = Float32)
+logic classify_f64 : f64 -> float_kind
 
-predicate is_finite64(x: real) = ((classify_float(x) = Float32) or
-  (classify_float(x) = Float64))
+predicate is_finite_f32(f: f32) = (classify_f32(f) = Finite)
 
-predicate is_NaN(x: real) = (classify_float(x) = NaN)
+predicate is_finite_f64(d: f64) = (classify_f64(d) = Finite)
 
-predicate is_infinite(x: real) = ((classify_float(x) = Inf_pos) or
-  (classify_float(x) = Inf_neg))
+predicate is_NaN_f32(f: f32) = (classify_f32(f) = NaN)
 
-predicate is_positive_infinite(x: real) = (classify_float(x) = Inf_pos)
+predicate is_NaN_f64(d: f64) = (classify_f64(d) = NaN)
 
-predicate is_negative_infinite(x: real) = (classify_float(x) = Inf_neg)
+predicate is_infinite_f32(f: f32) = ((classify_f32(f) = Inf_pos) or
+  (classify_f32(f) = Inf_neg))
+
+predicate is_infinite_f64(d: f64) = ((classify_f64(d) = Inf_pos) or
+  (classify_f64(d) = Inf_neg))
+
+predicate is_positive_infinite_f32(f: f32) = (classify_f32(f) = Inf_pos)
+
+predicate is_positive_infinite_f64(d: f64) = (classify_f64(d) = Inf_pos)
+
+predicate is_negative_infinite_f32(f: f32) = (classify_f32(f) = Inf_neg)
+
+predicate is_negative_infinite_f64(d: f64) = (classify_f64(d) = Inf_neg)
 
 axiom is_finite_to_float_32 :
-  (forall x:real [is_finite32(to_float32(x))]. is_finite32(to_float32(x)))
+  (forall x:real [is_finite_f32(to_f32(x))]. is_finite_f32(to_f32(x)))
 
 axiom is_finite_to_float_64 :
-  (forall x:real [is_finite64(to_float64(x))]. is_finite64(to_float64(x)))
+  (forall x:real [is_finite_f64(to_f64(x))]. is_finite_f64(to_f64(x)))
 
-function add_float32(x: real, y: real) : real = to_float32((x + y))
+axiom to_float_is_finite_32 :
+  (forall f:f32 [to_f32(of_f32(f))| is_finite_f32(f)]. (is_finite_f32(f) ->
+  (to_f32(of_f32(f)) = f)))
 
-function add_float64(x: real, y: real) : real = to_float64((x + y))
+axiom to_float_is_finite_64 :
+  (forall d:f64 [to_f64(of_f64(d))| is_finite_f64(d)]. (is_finite_f64(d) ->
+  (to_f64(of_f64(d)) = d)))
 
-function mul_float32(x: real, y: real) : real = to_float32((x * y))
+predicate finite(x: real) = (is_finite_f32(to_f32(x)) and
+  is_finite_f64(to_f64(x)))
 
-function mul_float64(x: real, y: real) : real = to_float64((x * y))
+axiom finite_small_f32 :
+  (forall x:real.
+  ((((-179769313486231570814527423731704356798070567525844996598917476803157260780028538760589558632766878171540458953514382464234321326889464182768467546703537516986049910576551282076245490090389328944075868508455133942304583236903222948165808559332123348274797826204144723168738177180919299881250404026184124858368.0) <= x) and
+  (x <= 340282346600000016151267322115014000640.0)) ->
+  is_finite_f32(to_f32(x))))
 
-function div_float32(x: real, y: real) : real = to_float32((x / y))
+axiom finite_small_f64 :
+  (forall x:real.
+  ((((-179769313486231570814527423731704356798070567525844996598917476803157260780028538760589558632766878171540458953514382464234321326889464182768467546703537516986049910576551282076245490090389328944075868508455133942304583236903222948165808559332123348274797826204144723168738177180919299881250404026184124858368.0) <= x) and
+  (x <= 179769313486231570814527423731704356798070567525844996598917476803157260780028538760589558632766878171540458953514382464234321326889464182768467546703537516986049910576551282076245490090389328944075868508455133942304583236903222948165808559332123348274797826204144723168738177180919299881250404026184124858368.0)) ->
+  is_finite_f64(to_f64(x))))
 
-function div_float64(x: real, y: real) : real = to_float64((x / y))
+axiom finite_range_f32 :
+  (forall f:f32. (is_finite_f32(f) ->
+  ((-340282346600000016151267322115014000640.0) <= of_f32(f))))
 
-function sqrt_float32(x: real) : real = to_float32(sqrt(x))
+axiom finite_range_f321 :
+  (forall f:f32. (is_finite_f32(f) ->
+  (of_f32(f) <= 340282346600000016151267322115014000640.0)))
 
-function sqrt_float64(x: real) : real = to_float64(sqrt(x))
+axiom finite_range_f322 :
+  (forall f:f32.
+  ((((-340282346600000016151267322115014000640.0) <= of_f32(f)) and
+  (of_f32(f) <= 340282346600000016151267322115014000640.0)) ->
+  is_finite_f32(f)))
 
-logic model : real -> real
+axiom finite_range_f64 :
+  (forall d:f64. (is_finite_f64(d) ->
+  ((-179769313486231570814527423731704356798070567525844996598917476803157260780028538760589558632766878171540458953514382464234321326889464182768467546703537516986049910576551282076245490090389328944075868508455133942304583236903222948165808559332123348274797826204144723168738177180919299881250404026184124858368.0) <= of_f64(d))))
 
-function delta(x: real) : real = abs_real((x - model(x)))
+axiom finite_range_f641 :
+  (forall d:f64. (is_finite_f64(d) ->
+  (of_f64(d) <= 179769313486231570814527423731704356798070567525844996598917476803157260780028538760589558632766878171540458953514382464234321326889464182768467546703537516986049910576551282076245490090389328944075868508455133942304583236903222948165808559332123348274797826204144723168738177180919299881250404026184124858368.0)))
 
-function error(x: real) : real = (delta(x) / abs_real(model(x)))
+axiom finite_range_f642 :
+  (forall d:f64.
+  ((((-179769313486231570814527423731704356798070567525844996598917476803157260780028538760589558632766878171540458953514382464234321326889464182768467546703537516986049910576551282076245490090389328944075868508455133942304583236903222948165808559332123348274797826204144723168738177180919299881250404026184124858368.0) <= of_f64(d)) and
+  (of_f64(d) <= 179769313486231570814527423731704356798070567525844996598917476803157260780028538760589558632766878171540458953514382464234321326889464182768467546703537516986049910576551282076245490090389328944075868508455133942304583236903222948165808559332123348274797826204144723168738177180919299881250404026184124858368.0)) ->
+  is_finite_f64(d)))
 
-axiom model_float_32 : (forall x:real. (model(to_float32(x)) = model(x)))
+logic eq_f32b : f32, f32 -> bool
 
-axiom model_float_64 : (forall x:real. (model(to_float64(x)) = model(x)))
+logic eq_f64b : f64, f64 -> bool
 
-axiom model_add :
-  (forall x:real. forall y:real. (model((x + y)) = (model(x) + model(y))))
+predicate eq_f32(x: f32, y: f32) = (eq_f32b(x, y) = true)
 
-axiom model_mul :
-  (forall x:real. forall y:real. (model((x * y)) = (model(x) * model(y))))
+predicate eq_f64(x: f64, y: f64) = (eq_f64b(x, y) = true)
 
-axiom model_div :
-  (forall x:real. forall y:real. (model((x / y)) = (model(x) / model(y))))
+axiom eq_finite_f32 :
+  (forall x:f32. forall y:f32 [eq_f32(x, y)]. (is_finite_f32(x) ->
+  (is_finite_f32(y) -> (eq_f32(x, y) -> (of_f32(x) = of_f32(y))))))
 
-axiom model_sqrt : (forall x:real. (model(sqrt(x)) = sqrt(model(x))))
+axiom eq_finite_f321 :
+  (forall x:f32. forall y:f32 [eq_f32(x, y)]. (is_finite_f32(x) ->
+  (is_finite_f32(y) -> ((of_f32(x) = of_f32(y)) -> eq_f32(x, y)))))
+
+axiom eq_finite_f64 :
+  (forall x:f64. forall y:f64 [eq_f64(x, y)]. (is_finite_f64(x) ->
+  (is_finite_f64(y) -> (eq_f64(x, y) -> (of_f64(x) = of_f64(y))))))
+
+axiom eq_finite_f641 :
+  (forall x:f64. forall y:f64 [eq_f64(x, y)]. (is_finite_f64(x) ->
+  (is_finite_f64(y) -> ((of_f64(x) = of_f64(y)) -> eq_f64(x, y)))))
+
+logic ne_f32b : f32, f32 -> bool
+
+logic ne_f64b : f64, f64 -> bool
+
+predicate ne_f32(x: f32, y: f32) = (ne_f32b(x, y) = true)
+
+predicate ne_f64(x: f64, y: f64) = (ne_f64b(x, y) = true)
+
+axiom ne_finite_f32 :
+  (forall x:f32. forall y:f32 [ne_f32(x, y)]. (is_finite_f32(x) ->
+  (is_finite_f32(y) -> (ne_f32(x, y) -> (not (of_f32(x) = of_f32(y)))))))
+
+axiom ne_finite_f321 :
+  (forall x:f32. forall y:f32 [ne_f32(x, y)]. (is_finite_f32(x) ->
+  (is_finite_f32(y) -> ((not (of_f32(x) = of_f32(y))) -> ne_f32(x, y)))))
+
+axiom ne_finite_f64 :
+  (forall x:f64. forall y:f64 [ne_f64(x, y)]. (is_finite_f64(x) ->
+  (is_finite_f64(y) -> (ne_f64(x, y) -> (not (of_f64(x) = of_f64(y)))))))
+
+axiom ne_finite_f641 :
+  (forall x:f64. forall y:f64 [ne_f64(x, y)]. (is_finite_f64(x) ->
+  (is_finite_f64(y) -> ((not (of_f64(x) = of_f64(y))) -> ne_f64(x, y)))))
+
+logic le_f32b : f32, f32 -> bool
+
+logic le_f64b : f64, f64 -> bool
+
+predicate le_f32(x: f32, y: f32) = (le_f32b(x, y) = true)
+
+predicate le_f64(x: f64, y: f64) = (le_f64b(x, y) = true)
+
+axiom le_finite_f32 :
+  (forall x:f32. forall y:f32 [le_f32(x, y)]. (is_finite_f32(x) ->
+  (is_finite_f32(y) -> (le_f32(x, y) -> (of_f32(x) <= of_f32(y))))))
+
+axiom le_finite_f321 :
+  (forall x:f32. forall y:f32 [le_f32(x, y)]. (is_finite_f32(x) ->
+  (is_finite_f32(y) -> ((of_f32(x) <= of_f32(y)) -> le_f32(x, y)))))
+
+axiom le_finite_f64 :
+  (forall x:f64. forall y:f64 [le_f64(x, y)]. (is_finite_f64(x) ->
+  (is_finite_f64(y) -> (le_f64(x, y) -> (of_f64(x) <= of_f64(y))))))
+
+axiom le_finite_f641 :
+  (forall x:f64. forall y:f64 [le_f64(x, y)]. (is_finite_f64(x) ->
+  (is_finite_f64(y) -> ((of_f64(x) <= of_f64(y)) -> le_f64(x, y)))))
+
+logic lt_f32b : f32, f32 -> bool
+
+logic lt_f64b : f64, f64 -> bool
+
+predicate lt_f32(x: f32, y: f32) = (lt_f32b(x, y) = true)
+
+predicate lt_f64(x: f64, y: f64) = (lt_f64b(x, y) = true)
+
+axiom lt_finite_f32 :
+  (forall x:f32. forall y:f32 [lt_f32(x, y)]. (is_finite_f32(x) ->
+  (is_finite_f32(y) -> (lt_f32(x, y) -> (of_f32(x) <  of_f32(y))))))
+
+axiom lt_finite_f321 :
+  (forall x:f32. forall y:f32 [lt_f32(x, y)]. (is_finite_f32(x) ->
+  (is_finite_f32(y) -> ((of_f32(x) <  of_f32(y)) -> lt_f32(x, y)))))
+
+axiom lt_finite_f64 :
+  (forall x:f64. forall y:f64 [lt_f64(x, y)]. (is_finite_f64(x) ->
+  (is_finite_f64(y) -> (lt_f64(x, y) -> (of_f64(x) <  of_f64(y))))))
+
+axiom lt_finite_f641 :
+  (forall x:f64. forall y:f64 [lt_f64(x, y)]. (is_finite_f64(x) ->
+  (is_finite_f64(y) -> ((of_f64(x) <  of_f64(y)) -> lt_f64(x, y)))))
+
+logic neg_f32 : f32 -> f32
+
+logic neg_f64 : f64 -> f64
+
+axiom neg_finite_f32 :
+  (forall x:f32 [neg_f32(x)]. (is_finite_f32(x) ->
+  (of_f32(neg_f32(x)) = (-of_f32(x)))))
+
+axiom neg_finite_f64 :
+  (forall x:f64 [neg_f64(x)]. (is_finite_f64(x) ->
+  (of_f64(neg_f64(x)) = (-of_f64(x)))))
+
+logic add_f32 : f32, f32 -> f32
+
+logic add_f64 : f64, f64 -> f64
+
+axiom add_finite_f32 :
+  (forall x:f32. forall y:f32 [add_f32(x, y)]. (is_finite_f32(x) ->
+  (is_finite_f32(y) -> (add_f32(x, y) = to_f32((of_f32(x) + of_f32(y)))))))
+
+axiom add_finite_f64 :
+  (forall x:f64. forall y:f64 [add_f64(x, y)]. (is_finite_f64(x) ->
+  (is_finite_f64(y) -> (add_f64(x, y) = to_f64((of_f64(x) + of_f64(y)))))))
+
+logic mul_f32 : f32, f32 -> f32
+
+logic mul_f64 : f64, f64 -> f64
+
+axiom mul_finite_f32 :
+  (forall x:f32. forall y:f32 [mul_f32(x, y)]. (is_finite_f32(x) ->
+  (is_finite_f32(y) -> (mul_f32(x, y) = to_f32((of_f32(x) * of_f32(y)))))))
+
+axiom mul_finite_f64 :
+  (forall x:f64. forall y:f64 [mul_f64(x, y)]. (is_finite_f64(x) ->
+  (is_finite_f64(y) -> (mul_f64(x, y) = to_f64((of_f64(x) * of_f64(y)))))))
+
+logic div_f32 : f32, f32 -> f32
+
+logic div_f64 : f64, f64 -> f64
+
+axiom div_finite_f32 :
+  (forall x:f32. forall y:f32 [div_f32(x, y)]. (is_finite_f32(x) ->
+  (is_finite_f32(y) -> (div_f32(x, y) = to_f32((of_f32(x) / of_f32(y)))))))
+
+axiom div_finite_f64 :
+  (forall x:f64. forall y:f64 [div_f64(x, y)]. (is_finite_f64(x) ->
+  (is_finite_f64(y) -> (div_f64(x, y) = to_f64((of_f64(x) / of_f64(y)))))))
+
+logic sqrt_f32 : f32 -> f32
+
+logic sqrt_f64 : f64 -> f64
+
+axiom sqrt_finite_f32 :
+  (forall x:f32 [sqrt_f32(x)]. (is_finite_f32(x) ->
+  (sqrt_f32(x) = to_f32(sqrt(of_f32(x))))))
+
+axiom sqrt_finite_f64 :
+  (forall x:f64 [sqrt_f64(x)]. (is_finite_f64(x) ->
+  (sqrt_f64(x) = to_f64(sqrt(of_f64(x))))))
+
+logic model_f32 : f32 -> real
+
+function delta_f32(f: f32) : real = abs_real((of_f32(f) - model_f32(f)))
+
+function error_f32(f: f32) : real = (delta_f32(f) / abs_real(model_f32(f)))
+
+logic model_f64 : f64 -> real
+
+function delta_f64(f: f64) : real = abs_real((of_f64(f) - model_f64(f)))
+
+function error_f64(f: f64) : real = (delta_f64(f) / abs_real(model_f64(f)))
 

@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2018                                               *)
+(*  Copyright (C) 2007-2019                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -112,6 +112,7 @@ module Refreshers: sig
   val assigns: check
   val from: check
   val user_assertions: check
+  val user_checks: check
   val rte: check
   val invariant: check
   val variant: check
@@ -239,6 +240,8 @@ struct
       ~hint:"Show functional dependencies in function assigns"
   let user_assertions =
     add ~name:"User assertions" ~hint:"Show user assertions" ()
+  let user_checks =
+    add ~name:"User checks" ~hint:"Show user checks" ()
   (* Function called when RTEs are enabled or disabled. *)
   let set_rte = ref (fun _b -> ())
   let rte = add ~set:(fun b -> !set_rte b) ~name:"RTEs"
@@ -360,6 +363,7 @@ struct
     assigns.add hb;
     from.add hb;
     user_assertions.add hb;
+    user_checks.add hb;
     rte.add hb;
     invariant.add hb;
     variant.add hb;
@@ -630,15 +634,20 @@ let make_panel (main_ui:main_window_extension_points) =
     | Property.IPLemma _ -> lemmas.get ()
     | Property.IPComplete _ -> complete_disjoint.get ()
     | Property.IPDisjoint _ -> complete_disjoint.get ()
-    | Property.IPCodeAnnot(_,_,({annot_content = AAssert _} as ca)) ->
-      (match Alarms.find ca with
-       | None -> user_assertions.get ()
-       | Some a -> rte.get () && active_alarm a)
+    | Property.IPCodeAnnot(_,_,({annot_content = AAssert (_, kind, _)} as ca)) ->
+      begin
+        match Alarms.find ca with
+        | Some a -> rte.get () && active_alarm a
+        | None ->
+          match kind with
+          | Assert -> user_assertions.get ()
+          | Check -> user_checks.get ()
+      end
     | Property.IPCodeAnnot(_,_,{annot_content = AInvariant _}) ->
         invariant.get ()
     | Property.IPCodeAnnot(_,_,{annot_content = APragma p}) ->
         Logic_utils.is_property_pragma p (* currently always false. *)
-    | Property.IPCodeAnnot(_, _, _) -> assert false
+    | Property.IPCodeAnnot(_, _, _) -> false (* status of inner nodes *)
     | Property.IPAllocation (_,Kglobal,_,_) -> allocations.get ()
     | Property.IPAllocation (_,Kstmt _,Property.Id_loop _,_) ->
         allocations.get ()
@@ -752,13 +761,10 @@ let make_panel (main_ui:main_window_extension_points) =
    Aka. "bullets" in left margin *)
 let highlighter (buffer:reactive_buffer) localizable ~start ~stop =
   match localizable with
-  | Pretty_source.PIP (Property.IPPredicate (Property.PKAssumes _,_,_,_)) ->
-      (* Assumes clause do not get a bullet: there is nothing
-         to prove about them.*)
-      ()
   | Pretty_source.PIP ppt ->
-      Design.Feedback.mark
-        buffer#buffer ~offset:start (Property_status.Feedback.get ppt)
+      if Property.has_status ppt then
+        Design.Feedback.mark
+          buffer#buffer ~offset:start (Property_status.Feedback.get ppt)
   | Pretty_source.PStmt(_,({ skind=Instr(Call _| Local_init (_, ConsInit _, _)) } as stmt)) ->
       let kfs = Statuses_by_call.all_functions_with_preconditions stmt in
       (* We separate the consolidated statuses of the preconditions inside
@@ -813,7 +819,7 @@ let highlighter (buffer:reactive_buffer) localizable ~start ~stop =
         in
         Design.Feedback.mark buffer#buffer ~call_site:stmt ~offset validity
 
-  | Pretty_source.PStmt _
+  | Pretty_source.PStmt _ | Pretty_source.PStmtStart _
   | Pretty_source.PGlobal _| Pretty_source.PVDecl _
   | Pretty_source.PTermLval _| Pretty_source.PLval _
   | Pretty_source.PExp _ -> ()

@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2018                                               *)
+(*  Copyright (C) 2007-2019                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -64,7 +64,7 @@ Defined.
 Definition concat: forall {a:Type} {a_WT:WhyType a}, (list a) -> (list a) ->
   (list a).
   intros a a_WT.
-  Open Local Scope list_scope.
+  Local Open Scope list_scope.
   exact(fun u v => u ++ v).
 Defined.
 

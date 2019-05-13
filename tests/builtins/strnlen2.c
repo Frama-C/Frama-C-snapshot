@@ -193,7 +193,7 @@ void escaping() {
   CHAR_ARRAY(s,4);
   {
     int x;
-    *((int *)s) = &x;
+    *((int *)s) = (int) &x;
   }
   IF_NONDET(s[0], 0);
   RES z1 = strnlen(s, 4); // alarm

@@ -1,7 +1,7 @@
 /* run.config
    EXECNOW: make -s @PTEST_DIR@/@PTEST_NAME@.cmxs
-   STDOPT: +"-load-module @PTEST_DIR@/@PTEST_NAME@.cmxs"
-   STDOPT: +"-load-module @PTEST_DIR@/@PTEST_NAME@.cmxs" +"-machdep x86_64"
+   STDOPT: +"-no-autoload-plugins -load-module @PTEST_DIR@/@PTEST_NAME@.cmxs"
+   STDOPT: +"-no-autoload-plugins -load-module @PTEST_DIR@/@PTEST_NAME@.cmxs" +"-machdep x86_64"
 */
 #include "stddef.h"
 int f(int b)

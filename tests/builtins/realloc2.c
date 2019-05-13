@@ -1,5 +1,5 @@
 /* run.config*
-   STDOPT: #"-val-builtin realloc:Frama_C_realloc -val-mlevel 0 -inout-callwise -inout-no-print "
+   STDOPT: #"-eva-builtin realloc:Frama_C_realloc -eva-mlevel 0 -inout-callwise -inout-no-print "
 */
 #include <stdlib.h>
 

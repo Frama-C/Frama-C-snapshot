@@ -1,5 +1,5 @@
 /* run.config*
-   OPT: -no-val-builtins-auto -val-show-progress share/libc/string.c -val -slevel 6 -metrics-eva-cover -then -metrics-libc
+   OPT: -eva-no-builtins-auto @EVA_OPTIONS@ share/libc/string.c -eva -slevel 6 -metrics-eva-cover -then -metrics-libc
 */
 
 #include "string.h"

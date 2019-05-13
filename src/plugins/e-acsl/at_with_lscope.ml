@@ -237,46 +237,47 @@ let to_exp ~loc kf env pot label =
     end
   in
   let ty_ptr = TPtr(ty, []) in
-  let vi_at, e_at, env = Env.new_var
-    ~loc
-    ~name:"at"
-    ~scope:Env.Function
-    env
-    None
-    ty_ptr
-    (fun vi e ->
-      (* Handle [malloc] and [free] stmts *)
-      let lty_sizeof = Ctype Cil.(theMachine.typeOfSizeOf) in
-      let t_sizeof = Logic_const.term ~loc (TSizeOf ty) lty_sizeof in
-      let t_size = size_from_sizes_and_shifts ~loc sizes_and_shifts in
-      let t_size =
-        Logic_const.term ~loc (TBinOp(Mult, t_sizeof, t_size)) lty_sizeof
-      in
-      Typing.type_term ~use_gmp_opt:false t_size;
-      let malloc_stmt = match Typing.get_integer_ty t_size with
-      | Typing.C_type IInt ->
-        let e_size, _ = term_to_exp kf env t_size in
-        let e_size = Cil.constFold false e_size in
-        let malloc_stmt =
-          Misc.mk_call ~loc ~result:(Cil.var vi) "malloc" [e_size]
-        in
-        malloc_stmt
-      | Typing.C_type _ | Typing.Gmp ->
-        Error.not_yet
-          "\\at on purely logic variables that needs to allocate \
-            too much memory (bigger than int_max bytes)"
-      | Typing.Other ->
-        Options.fatal
-          "quantification over non-integer type is not part of E-ACSL"
-      in
-      let free_stmt = Misc.mk_call ~loc "free" [e] in
-      (* The list of stmts returned by the current closure are inserted
-        LOCALLY to the block where the new var is FIRST used, whatever scope
-        is indicated to [Env.new_var].
-        Thus we need to add [malloc] and [free] through dedicated functions. *)
-      Malloc.add kf malloc_stmt;
-      Free.add kf free_stmt;
-      [])
+  let vi_at, e_at, env =
+    Env.new_var
+      ~loc
+      ~name:"at"
+      ~scope:Env.Function
+      env
+      None
+      ty_ptr
+      (fun vi e ->
+         (* Handle [malloc] and [free] stmts *)
+         let lty_sizeof = Ctype Cil.(theMachine.typeOfSizeOf) in
+         let t_sizeof = Logic_const.term ~loc (TSizeOf ty) lty_sizeof in
+         let t_size = size_from_sizes_and_shifts ~loc sizes_and_shifts in
+         let t_size =
+           Logic_const.term ~loc (TBinOp(Mult, t_sizeof, t_size)) lty_sizeof
+         in
+         Typing.type_term ~use_gmp_opt:false t_size;
+         let malloc_stmt = match Typing.get_integer_ty t_size with
+           | Typing.C_type IInt ->
+             let e_size, _ = term_to_exp kf env t_size in
+             let e_size = Cil.constFold false e_size in
+             let malloc_stmt =
+               Misc.mk_call ~loc ~result:(Cil.var vi) "malloc" [e_size]
+             in
+             malloc_stmt
+           | Typing.C_type _ | Typing.Gmp ->
+             Error.not_yet
+               "\\at on purely logic variables that needs to allocate \
+                too much memory (bigger than int_max bytes)"
+           | Typing.Other ->
+             Options.fatal
+               "quantification over non-integer type is not part of E-ACSL"
+         in
+         let free_stmt = Misc.mk_call ~loc "free" [e] in
+         (* The list of stmts returned by the current closure are inserted
+            LOCALLY to the block where the new var is FIRST used, whatever scope
+            is indicated to [Env.new_var]. Thus we need to add [malloc] and
+            [free] through dedicated functions. *)
+         Malloc.add kf malloc_stmt;
+         Free.add kf free_stmt;
+         [])
   in
   (* Index *)
   let t_index = index_from_sizes_and_shifts ~loc sizes_and_shifts in

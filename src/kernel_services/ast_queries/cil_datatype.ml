@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2018                                               *)
+(*  Copyright (C) 2007-2019                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -271,7 +271,8 @@ module Stmt_Id = struct
 	    sid = -1;
 	    succs = [];
 	    preds = [];
-	    ghost  = false } ]
+	    ghost  = false;
+	    sattr = [] } ]
       let compare t1 t2 = Datatype.Int.compare t1.sid t2.sid
       let hash t1 = t1.sid
       let equal t1 t2 = t1.sid = t2.sid
@@ -1442,18 +1443,29 @@ end
 
 (* @return [true] is the given logic real represents an exact float *)
 let is_exact_float r =
-  Pervasives.classify_float r.r_upper = FP_normal &&
+  classify_float r.r_upper = FP_normal &&
   Datatype.Float.equal r.r_upper r.r_lower
+
+[@@@ warning "-3"]
+(* [float_compare_total] is used to ensure -0.0 and 0.0 are distinct *)
+external float_compare_total : float -> float -> int = "float_compare_total" "noalloc"
+[@@@ warning "+3"]
+
+let compare_logic_real r1 r2 =
+  let c = float_compare_total r1.r_lower r2.r_lower in
+  if c <> 0 then c else
+    let c = float_compare_total r1.r_nearest r2.r_nearest in
+    if c <> 0 then c else
+      let c = float_compare_total r1.r_upper r2.r_upper in
+      if c <> 0 then c else
+        String.compare r1.r_literal r2.r_literal
 
 let compare_logic_constant c1 c2 = match c1,c2 with
   | Integer (i1,_), Integer(i2,_) -> Integer.compare i1 i2
   | LStr s1, LStr s2 -> Datatype.String.compare s1 s2
   | LWStr s1, LWStr s2 -> compare_list Datatype.Int64.compare s1 s2
   | LChr c1, LChr c2 -> Datatype.Char.compare c1 c2
-  | LReal r1, LReal r2 ->
-    if is_exact_float r1 && is_exact_float r2
-    then Datatype.Float.compare r1.r_lower r2.r_lower
-    else Datatype.String.compare r1.r_literal r2.r_literal
+  | LReal r1, LReal r2 -> compare_logic_real r1 r2
   | LEnum e1, LEnum e2 -> Enumitem.compare e1 e2
   | Integer _,(LStr _|LWStr _ |LChr _|LReal _|LEnum _) -> 1
   | LStr _ ,(LWStr _ |LChr _|LReal _|LEnum _) -> 1
@@ -1583,7 +1595,7 @@ and compare_toffset off1 off2 =
 and compare_logic_label l1 l2 = match l1, l2 with
   | StmtLabel s1 , StmtLabel s2 -> Stmt.compare !s1 !s2
   | FormalLabel s1, FormalLabel s2 -> String.compare s1 s2
-  | BuiltinLabel l1, BuiltinLabel l2 -> Pervasives.compare l1 l2
+  | BuiltinLabel l1, BuiltinLabel l2 -> Transitioning.Stdlib.compare l1 l2
   | (StmtLabel _ | FormalLabel _), (FormalLabel _ | BuiltinLabel _) -> -1
   | (BuiltinLabel _ | FormalLabel _), (StmtLabel _ | FormalLabel _) -> 1
 
@@ -1881,6 +1893,27 @@ module Logic_label = struct
     end)
 end
 
+module Logic_real = struct
+  let pretty_ref = ref (fun _ _ -> assert false)
+  include Make_with_collections
+            (struct
+              type t = logic_real
+              let name = "Logic_real"
+              let reprs =
+                [{ r_literal = ""; r_nearest = 0.0; r_lower = 0.0; r_upper = 0.0; }]
+              let compare = compare_logic_real
+              let hash r =
+                let fhash = Datatype.Float.hash in
+                fhash r.r_lower + 3 * fhash r.r_nearest + 7 * fhash r.r_upper +
+                  11 * Datatype.String.hash r.r_literal
+              let equal r1 r2 = compare r1 r2 = 0
+              let copy = Datatype.undefined
+              let internal_pretty_code = Datatype.undefined
+              let pretty fmt t = !pretty_ref fmt t
+              let varname _ = "logic_real"
+            end)
+end
+
 module Global_annotation = struct
   let pretty_ref = ref (fun _ -> assert false)
   include Make_with_collections
@@ -1931,7 +1964,7 @@ module Global_annotation = struct
             if res = 0 then Attributes.compare attr1 attr2 else res
           | Dcustom_annot _, _ -> -1
           | _, Dcustom_annot _ -> 1
-          | Dextended ((id1,_,_,_),_,_), Dextended((id2,_,_,_),_,_) ->
+          | Dextended ((id1,_,_,_,_),_,_), Dextended((id2,_,_,_,_),_,_) ->
             Datatype.Int.compare id1 id2
 
       let equal = Datatype.from_compare
@@ -1951,7 +1984,7 @@ module Global_annotation = struct
         | Dtype_annot(l,_) -> 17 * Logic_info.hash l
         | Dmodel_annot(l,_) -> 19 * Model_info.hash l
         | Dcustom_annot(_,n,_,_) -> 23 * Datatype.String.hash n
-        | Dextended ((id,_,_,_),_,_) -> 29 * Datatype.Int.hash id
+        | Dextended ((id,_,_,_,_),_,_) -> 29 * Datatype.Int.hash id
 
       let copy = Datatype.undefined
      end)
@@ -2177,7 +2210,7 @@ module Code_annotation = struct
      end)
 
   let loc ca = match ca.annot_content with
-    | AAssert(_,{pred_loc=loc})
+    | AAssert(_,_,{pred_loc=loc})
     | AInvariant(_,_,{pred_loc=loc})
     | AVariant({term_loc=loc},_) -> Some loc
     | AAssigns _ | AAllocation _ | APragma _ | AExtended _

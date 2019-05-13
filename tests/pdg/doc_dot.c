@@ -1,5 +1,5 @@
 /* run.config
- OPT: -lib-entry -main g -val-show-progress -fct-pdg g -pdg-dot tests/pdg/doc -journal-disable -pdg-print -pdg-verbose 2
+ STDOPT: +"-lib-entry -main g -fct-pdg g -pdg-dot tests/pdg/doc"
 */
 /* To build the svg file:
  * dot -Tsvg tests/pdg/doc.g.dot > tests/pdg/doc.g.svg

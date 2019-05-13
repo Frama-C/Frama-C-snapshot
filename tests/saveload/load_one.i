@@ -1,7 +1,7 @@
 /* run.config
-   OPT: -load-script tests/saveload/load_one.ml -val-show-progress
+   EXECNOW: make -s @PTEST_DIR@/@PTEST_NAME@.cmxs
+   STDOPT: +"-load-module @PTEST_DIR@/@PTEST_NAME@.cmxs"
 */
-
 int G;
 
 int f (int x, int y) {

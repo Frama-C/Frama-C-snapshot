@@ -14,3 +14,7 @@ int main () {
   q = p;
   q(3);
 }
+
+typedef int (*Function_ptr)();
+char *f_va(int a, ...) { return a; }
+Function_ptr fp_table[1] = {(Function_ptr) f_va}; // warning, but no error

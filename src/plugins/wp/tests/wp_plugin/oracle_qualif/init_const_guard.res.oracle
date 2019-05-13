@@ -4,19 +4,20 @@
 [wp] Loading driver 'share/wp.driver'
 [wp] Warning: Missing RTE guards
 [wp] 7 goals scheduled
-[wp] [Qed] Goal typed_f_post_Const : Valid
-[wp] [Alt-Ergo] Goal typed_f_post_Pointed_Valid : Valid
-[wp] [Qed] Goal typed_f_post_Q_ReadOnly : Valid
-[wp] [Qed] Goal typed_f_post_Q_NotWrite : Valid
-[wp] [Qed] Goal typed_g_post_P_not_Const : Valid
+[wp] [Qed] Goal typed_f_ensures_Const : Valid
+[wp] [Alt-Ergo] Goal typed_f_ensures_Pointed_Valid : Valid
+[wp] [Qed] Goal typed_f_ensures_Q_ReadOnly : Valid
+[wp] [Qed] Goal typed_f_ensures_Q_NotWrite : Valid
+[wp] [Qed] Goal typed_g_ensures_P_not_Const : Valid
 [wp] [Alt-Ergo] Goal typed_g_assert_Read : Valid
-[wp] [Alt-Ergo] Goal typed_g_assert_Guard_against_Const : Unknown
+[wp] [Alt-Ergo] Goal typed_g_assert_Guard_against_Const : Unsuccess
 [wp] Proved goals:    6 / 7
   Qed:             4 
-  Alt-Ergo:        2  (unknown: 1)
-[wp] Report 'tests/wp_plugin/init_const_guard.i.0.report.json'
+  Alt-Ergo:        2  (unsuccess: 1)
+[wp] Report in:  'tests/wp_plugin/oracle_qualif/init_const_guard.0.report.json'
+[wp] Report out: 'tests/wp_plugin/result_qualif/init_const_guard.0.report.json'
 -------------------------------------------------------------
 Functions           WP     Alt-Ergo        Total   Success
 f                    3      1 (16..28)       4       100%
-g                    1      1 (16..28)       3      66.7%
+g                    1      1 (20..32)       3      66.7%
 -------------------------------------------------------------

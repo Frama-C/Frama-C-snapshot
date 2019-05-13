@@ -1,0 +1,13 @@
+{ "wp:global": { "script": { "total": 1, "valid": 1, "rank": 2 },
+                 "wp:main": { "total": 1, "valid": 1, "rank": 2 } },
+  "wp:axiomatics": { "": { "lemma_U32": { "script": { "total": 1, "valid": 1,
+                                                      "rank": 2 },
+                                          "wp:main": { "total": 1,
+                                                       "valid": 1,
+                                                       "rank": 2 } },
+                           "wp:section": { "script": { "total": 1,
+                                                       "valid": 1,
+                                                       "rank": 2 },
+                                           "wp:main": { "total": 1,
+                                                        "valid": 1,
+                                                        "rank": 2 } } } } }

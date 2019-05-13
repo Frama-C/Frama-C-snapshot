@@ -10,7 +10,8 @@
   Command './tests/inexistant-prover' not found
 [wp] Proved goals:    0 / 2
   Coq:             0  (failed: 2)
-[wp] Report 'tests/wp_bts/issue_143.i.3.report.json'
+[wp] Report in:  'tests/wp_bts/oracle_qualif/issue_143.3.report.json'
+[wp] Report out: 'tests/wp_bts/result_qualif/issue_143.3.report.json'
 -------------------------------------------------------------
 Axiomatics          WP     Alt-Ergo        Total   Success
 Axiomatic A         -      -                 1       0.0%

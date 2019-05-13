@@ -1,5 +1,6 @@
 /* run.config
-   OPT: -load-script tests/misc/bts0489.ml
+   EXECNOW: make -s @PTEST_DIR@/@PTEST_NAME@.cmxs
+   OPT: -no-autoload-plugins -load-module @PTEST_DIR@/@PTEST_NAME@.cmxs
 */
 
 typedef unsigned char uint8_t;

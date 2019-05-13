@@ -6,13 +6,14 @@
 [wp] 4 goals scheduled
 [wp] [Alt-Ergo] Goal typed_foo_assert_qed_ok_S : Valid
 [wp] [Alt-Ergo] Goal typed_foo_assert_qed_ok_A : Valid
-[wp] [Alt-Ergo] Goal typed_foo_assert_qed_ok_B : Unknown
-[wp] [Qed] Goal typed_foo_call_fconcat_pre_qed_ok : Valid
+[wp] [Alt-Ergo] Goal typed_foo_assert_qed_ok_B : Unsuccess
+[wp] [Qed] Goal typed_foo_call_fconcat_requires_qed_ok : Valid
 [wp] Proved goals:    3 / 4
   Qed:             1 
-  Alt-Ergo:        2  (unknown: 1)
-[wp] Report 'tests/wp_plugin/trig.i.0.report.json'
+  Alt-Ergo:        2  (unsuccess: 1)
+[wp] Report in:  'tests/wp_plugin/oracle_qualif/trig.0.report.json'
+[wp] Report out: 'tests/wp_plugin/result_qualif/trig.0.report.json'
 -------------------------------------------------------------
 Functions           WP     Alt-Ergo        Total   Success
-foo                  1      2 (44..56)       4      75.0%
+foo                  1      2 (48..60)       4      75.0%
 -------------------------------------------------------------

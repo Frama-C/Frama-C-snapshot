@@ -2,7 +2,7 @@
 /*                                                                        */
 /*  This file is part of Frama-C.                                         */
 /*                                                                        */
-/*  Copyright (C) 2007-2018                                               */
+/*  Copyright (C) 2007-2019                                               */
 /*    CEA (Commissariat à l'énergie atomique et aux énergies              */
 /*         alternatives)                                                  */
 /*                                                                        */
@@ -30,7 +30,7 @@ __BEGIN_DECLS
 
 /* Define bits representing the exception.  We use the bit positions
    of the appropriate bits in the FPU control word.  */
-enum
+enum __fc_fe_error
   {
     FE_INVALID = 0x01,
 #define FE_INVALID	FE_INVALID
@@ -52,7 +52,7 @@ enum
    corresponds to the layout of the block written by the `fstenv'
    instruction and has additional fields for the contents of the MXCSR
    register as written by the `stmxcsr' instruction.  */
-typedef struct
+typedef struct __fc_fenv_t
   {
     unsigned short int __control_word;
     unsigned short int __unused1;
@@ -97,11 +97,11 @@ extern int feholdexcept( fenv_t *envp );
  *  exceptions: If envp contains a raised exception flag and at the same time
  *  unmasks that exception type, then this will cause an interrupt.
  */
-extern void fesetenv( const fenv_t *envp );
+extern int fesetenv( const fenv_t *envp );
 
 /** Clears the supported floating-point exceptions represented by argument. 
  */
-extern void feclearexcept( int excepts );
+extern int feclearexcept( int excepts );
 
 __END_DECLS
 

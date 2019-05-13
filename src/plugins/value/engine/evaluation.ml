@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2018                                               *)
+(*  Copyright (C) 2007-2019                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -208,9 +208,6 @@ module type S = sig
     ?valuation:Valuation.t -> state -> exp -> bool -> Valuation.t evaluated
   val assume:
     ?valuation:Valuation.t -> state -> exp -> value -> Valuation.t or_bottom
-  val split_by_evaluation:
-    exp -> Integer.t list -> state list ->
-    (Integer.t * state list * bool) list * state list
   val eval_function_exp:
     exp -> ?args:exp list -> state -> (Kernel_function.t * Valuation.t) list evaluated
   val interpret_truth:
@@ -455,7 +452,8 @@ module Make
     else
       let v = Value.rewrap_integer range value in
       if range.Eval_typ.i_signed && not (Value.equal value v)
-      then Value_util.warning_once_current "2's complement assumed for overflow";
+      then Value_parameters.warning ~wkey:Value_parameters.wkey_signed_overflow
+          ~current:true ~once:true "2's complement assumed for overflow";
       return v
 
   let restrict_float ?(reduce=false) ~assume_finite expr fkind value =
@@ -1586,42 +1584,6 @@ module Make
           Bottom.bot_of_list list, alarms
       end
     | _ -> assert false
-
-  let split_by_evaluation = match Value.get Main_values.cvalue_key with
-    | None -> fun _ _ states -> [], states
-    | Some get -> fun expr expected_values states ->
-      let typ = Cil.typeOf expr in
-      let eval acc state =
-        match fst (evaluate state expr) with
-        | `Bottom -> acc
-        | `Value (_cache, value) ->
-          let zero_or_one = Cvalue.V.cardinal_zero_or_one (get value) in
-          (state, value, zero_or_one) :: acc
-      in
-      let eval_states = List.fold_left eval [] states in
-      let match_expected_value expected_value states =
-        let process_one_state (eq, mess, neq) (s, v, zero_or_one as current) =
-          if Value.is_included expected_value v then
-            (* The integer on which we split is part of the result *)
-            if zero_or_one then
-              (s :: eq, mess, neq) (* Clean split *)
-            else
-              (eq, true, current :: neq) (* v is not exact: mess, i.e. no split *)
-          else
-            (eq, mess, current :: neq) (* Integer not in the result at all *)
-        in
-        List.fold_left process_one_state ([], false, []) states
-      in
-      let process_one_value (acc, states) i =
-        let value = Value.reduce (Value.inject_int typ i) in
-        let eq, mess, neq = match_expected_value value states in
-        (i, eq, mess) :: acc, neq
-      in
-      let matched, tail =
-        List.fold_left process_one_value ([], eval_states) expected_values
-      in
-      matched, List.map (fun (s, _, _) -> s) tail
-
 end
 
 

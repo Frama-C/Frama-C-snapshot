@@ -51,7 +51,7 @@ val printCounters : bool ref
 val printComments : bool ref
 
 val get_operator : Cabs.expression -> (string * int)
-  
+
 val print_specifiers : Format.formatter -> Cabs.specifier -> unit
 val print_type_spec : Format.formatter -> Cabs.typeSpecifier -> unit
 val print_struct_name_attr :

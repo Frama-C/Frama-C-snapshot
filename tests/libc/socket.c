@@ -1,6 +1,6 @@
 /* run.config
-   STDOPT: +"-value-verbose 2 -no-val-builtins-auto"
-   STDOPT: +"-value-verbose 2 -machdep x86_64 -no-val-builtins-auto"
+   STDOPT: +"-eva-verbose 2 -eva-no-builtins-auto"
+   STDOPT: +"-eva-verbose 2 -machdep x86_64 -eva-no-builtins-auto"
 */
 #include <sys/types.h>
 #include <sys/socket.h>

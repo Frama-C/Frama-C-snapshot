@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2018                                               *)
+(*  Copyright (C) 2007-2019                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -166,7 +166,7 @@ struct
       let oc = open_out normalized_filename in
       let fmt = Format.formatter_of_out_channel oc in
       Hashtbl.add file_formatters normalized_filename fmt;
-      Extlib.safe_at_exit (fun () -> Pervasives.close_out oc);
+      Extlib.safe_at_exit (fun () -> close_out oc);
       fmt
 end
 
@@ -277,10 +277,10 @@ struct
 
   include Parameter_builder.Make
       (struct
-	let shortname = P.shortname
-	module L = L
-	let messages_group = messages
-	let parameters = plugin.p_parameters
+        let shortname = P.shortname
+        module L = L
+        let messages_group = messages
+        let parameters = plugin.p_parameters
        end)
 
   let prefix =
@@ -297,7 +297,7 @@ struct
   module Make_specific_dir
     (O: Parameter_sig.Input_with_arg)
     (D: sig 
-      val dir: unit -> string 
+      val dirs: unit -> string list
       val visible_ref: bool 
       val force_dir: bool 
     end)
@@ -325,44 +325,54 @@ struct
 
     let mk_dir d =
       try
-	Unix.mkdir d 0o755;
-	L.warning "creating %s directory `%s'" O.option_name d;
-	d
+        Extlib.mkdir ~parents:true d 0o755;
+        L.warning "creating %s directory `%s'" O.option_name d;
+        d
       with Unix.Unix_error _ -> 
-	L.warning "cannot create %s directory `%s'" O.option_name d;
-	raise No_dir
+        L.warning "cannot create %s directory `%s'" O.option_name d;
+        raise No_dir
 
-    let get_and_check_dir ?(error=true) d =
-      (* DO NOT Filepath.normalize the argument, since it can transform an
-         absolute path into a relative one, leading to issues if a chdir occurs
-         at some point. *)
-      if (try Sys.is_directory d with Sys_error _ -> false) then d
-      else
-	if error then 
-	  L.abort "no %s directory `%s' for plug-in `%s'" 
-	    O.option_name
-	    d 
-	    P.name 
-        else begin
-	  if force_dir then begin
-	    (* create the parent, if it does not exist *)
-	    let p = Filename.dirname d in
-	    if not (try Sys.is_directory p with Sys_error _ -> false) then
-	      ignore (mk_dir p);
-	    mk_dir d
-	  end else
-	    raise No_dir
-	end
+    let rec get_and_check_dirs error = function
+      | [] ->
+        raise No_dir
+      | d::l ->
+        if (try Sys.is_directory d with Sys_error _ -> false) then d
+        else
+          get_and_check_dirs error l
+
+    let get_and_check_dirs ?(error=true) = function
+      | [] ->
+        if error then
+          L.abort "no %s directories to look into" O.option_name
+        else
+          raise No_dir
+      | (first::_) as l ->
+        try
+          get_and_check_dirs error l
+        with
+        | No_dir when error ->
+          L.abort "no %s directory for plug-in `%s' among %a" 
+            O.option_name
+            P.name 
+            Pretty_utils.(pp_list ~sep:",@ " Format.pp_print_string) l
+        | No_dir when force_dir ->
+          (* create the parent, if it does not exist *)
+          let p = Filename.dirname first in
+          if not (try Sys.is_directory p with Sys_error _ -> false) then
+            ignore (mk_dir p);
+          mk_dir first
 
     let dir ?error () =
       (* get the specified dir if any *)
       let d = if is_visible then Dir_name.get () else empty_string in
       if d = empty_string then
-	(* no specified dir: look for the default one. *)
-        if is_kernel then get_and_check_dir ?error (D.dir ())
-        else get_and_check_dir ?error (D.dir () ^ "/" ^ plugin_subpath)
+        (* no specified dir: look for the default one. *)
+        if is_kernel then get_and_check_dirs ?error (D.dirs ())
+        else
+          let dirs = List.map (fun x -> x ^ "/" ^ plugin_subpath) (D.dirs ()) in
+          get_and_check_dirs ?error dirs
       else
-        get_and_check_dir ?error d
+        get_and_check_dirs ?error [d]
 
     let file ?error f = dir ?error () ^ "/" ^ f
 
@@ -371,32 +381,32 @@ struct
   module Share = 
     Make_specific_dir
       (struct
-	let option_name = "share"
-	let arg_name = "dir"
-	let help = "set the plug-in share directory to <dir> \
+        let option_name = "share"
+        let arg_name = "dir"
+        let help = "set the plug-in share directory to <dir> \
 (may be used if the plug-in is not installed at the same place as Frama-C)"
        end)
       (struct 
-	let dir () = Config.datadir 
-	let visible_ref = !share_visible_ref 
-	let force_dir = false
+        let dirs () = Config.datadirs
+        let visible_ref = !share_visible_ref 
+        let force_dir = false
        end)
 
   module Session = 
     Make_specific_dir
       (struct
-	let option_name = "session"
-	let arg_name = "dir"
-	let help = "set the plug-in session directory to <dir>"
+        let option_name = "session"
+        let arg_name = "dir"
+        let help = "set the plug-in session directory to <dir>"
        end)
       (struct 
-	let dir () =
-	  if !session_is_set_ref () then !session_ref ()
-	  else
-	    try Sys.getenv "FRAMAC_SESSION"
-	    with Not_found -> "./.frama-c"
-	let visible_ref = !session_visible_ref
-	let force_dir = true
+        let dirs () = [
+          if !session_is_set_ref () then !session_ref ()
+          else
+            try Sys.getenv "FRAMAC_SESSION"
+            with Not_found -> "./.frama-c"]
+        let visible_ref = !session_visible_ref
+        let force_dir = true
        end)
   let () = 
     if is_kernel () then Journal.get_session_file := Session.file ~error:false
@@ -404,29 +414,30 @@ struct
   module Config = 
     Make_specific_dir
       (struct
-	let option_name = "config"
-	let arg_name = "dir"
-	let help = "set the plug-in config directory to <dir> \
+        let option_name = "config"
+        let arg_name = "dir"
+        let help = "set the plug-in config directory to <dir> \
 (may be used on systems with no default user directory)"
        end)
       (struct 
-	let dir () =
-	  let d, vis =
-	    if !config_is_set_ref () then !config_ref (), false
-	    else
-	      try Sys.getenv "FRAMAC_CONFIG", false
-	      with Not_found ->
-		try Sys.getenv "USERPROFILE", false (* Win32 *) 
-		with Not_found ->
-		  (* Unix like *) 
-		  try Sys.getenv "XDG_CONFIG_HOME", true
-		  with Not_found -> 
-		    try Sys.getenv "HOME" ^ "/.config", true
-		    with Not_found -> ".", false
-	  in
-	  d ^ if vis then "/frama-c" else "/.frama-c"
-	let visible_ref = !config_visible_ref
-	let force_dir = true
+        let dirs () = [
+          let d, vis =
+            if !config_is_set_ref () then !config_ref (), false
+            else
+              try Sys.getenv "FRAMAC_CONFIG", false
+              with Not_found ->
+                try Sys.getenv "USERPROFILE", false (* Win32 *) 
+                with Not_found ->
+                  (* Unix like *) 
+                  try Sys.getenv "XDG_CONFIG_HOME", true
+                  with Not_found -> 
+                    try Sys.getenv "HOME" ^ "/.config", true
+                    with Not_found -> ".", false
+          in
+          d ^ if vis then "/frama-c" else "/.frama-c"
+        ]
+        let visible_ref = !config_visible_ref
+        let force_dir = true
        end)
 
   let help = add_group "Getting Information"
@@ -588,10 +599,10 @@ struct
       (* line order below matters *)
       set_range ~min:0 ~max:max_int;
       if is_kernel () then begin
-	Cmdline.kernel_verbose_atleast_ref := (fun n -> get () >= n);
-	match !Cmdline.Kernel_verbose_level.value_if_set with
-	| None -> ()
-	| Some n -> set n
+        Cmdline.kernel_verbose_atleast_ref := (fun n -> get () >= n);
+        match !Cmdline.Kernel_verbose_level.value_if_set with
+        | None -> ()
+        | Some n -> set n
       end
   end
 
@@ -614,15 +625,15 @@ struct
       set_range ~min:0 ~max:max_int;
       add_set_hook
         (fun old n ->
-	  (* the level of verbose is at least the level of debug *)
-	  if n > Verbose.get () then Verbose.set n;
-          if n = 0 then Pervasives.decr positive_debug_ref
-          else if old = 0 then Pervasives.incr positive_debug_ref);
+          (* the level of verbose is at least the level of debug *)
+          if n > Verbose.get () then Verbose.set n;
+          if n = 0 then decr positive_debug_ref
+          else if old = 0 then Transitioning.Stdlib.incr positive_debug_ref);
       if is_kernel () then begin
-	Cmdline.kernel_debug_atleast_ref := (fun n -> get () >= n);
-	match !Cmdline.Kernel_debug_level.value_if_set with
-	| None -> ()
-	| Some n -> set n
+        Cmdline.kernel_debug_atleast_ref := (fun n -> get () >= n);
+        match !Cmdline.Kernel_debug_level.value_if_set with
+        | None -> ()
+        | Some n -> set n
       end
   end
 
@@ -723,7 +734,7 @@ struct
       let arg_name="k1[=s1][,...,kn[=sn]]"
       let help =
         "set warning status for category <k1> to <s1>,...,<kn> to <sn>. Use "
-        ^ debug_category_optname
+        ^ warn_category_optname
         ^ " help to get a list of available categories, and * to enable \
            all categories. Possible statuses are inactive, feedback-once, \
            once, active, error-once, error, and abort. Defaults to active"

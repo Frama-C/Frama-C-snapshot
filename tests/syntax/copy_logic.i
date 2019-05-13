@@ -1,5 +1,5 @@
 /* run.config
-   STDOPT: +"-copy" +"-val"
+   STDOPT: +"-copy" +"-eva"
  */
 
 /*@ predicate p(int x); */

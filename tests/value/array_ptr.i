@@ -11,6 +11,6 @@ int f(param_check **x) {
 param_check l={1};
 
 int main() {
-  int g = &l;
+  int g = (int) &l;
   f((param_check **)&g);
 }

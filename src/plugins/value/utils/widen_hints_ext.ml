@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2018                                               *)
+(*  Copyright (C) 2007-2019                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -137,7 +137,7 @@ let widen_hint_terms_of_terms terms =
   with
     Invalid_hint -> None
 
-let () = Logic_typing.register_code_annot_next_both_extension "widen_hints"
+let () = Logic_typing.register_code_annot_next_both_extension "widen_hints" false
     (fun ~typing_context ~loc args ->
        let var_term, hint_terms =
          terms_of_parsed_widen_hints typing_context loc args
@@ -167,7 +167,7 @@ let get_widen_hints_annots stmt =
     (fun _emitter annot acc ->
        match annot with
        | {annot_content =
-            AExtended (_, _,(_,"widen_hints", _, Ext_terms terms))} ->
+            AExtended (_, _,(_,"widen_hints", _, _,Ext_terms terms))} ->
          (* loop widen_hints *)
          acc @ [terms]
        | _ -> acc

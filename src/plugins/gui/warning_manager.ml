@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2018                                               *)
+(*  Copyright (C) 2007-2019                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -34,7 +34,7 @@ type t =
 module Data = Indexer.Make(
   struct
     type t = int*row
-    let compare (x,_) (y,_) = Pervasives.compare x y
+    let compare (x,_) (y,_) = Transitioning.Stdlib.compare x y
   end)
 
 let make ~packing ~callback =

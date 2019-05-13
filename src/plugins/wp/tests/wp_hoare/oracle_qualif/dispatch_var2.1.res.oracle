@@ -4,43 +4,44 @@
 [wp] Loading driver 'share/wp.driver'
 [wp] Warning: Missing RTE guards
 [wp] 34 goals scheduled
-[wp] [Qed] Goal typed_ref_call_global_post : Valid
-[wp] [Qed] Goal typed_ref_call_global_assign_exit : Valid
-[wp] [Qed] Goal typed_ref_call_global_assign_normal_part1 : Valid
-[wp] [Qed] Goal typed_ref_call_global_assign_normal_part2 : Valid
-[wp] [Qed] Goal typed_ref_call_global_call_reset_pre : Valid
-[wp] [Qed] Goal typed_ref_call_global_call_load_pre : Valid
-[wp] [Qed] Goal typed_ref_call_local_post : Valid
-[wp] [Qed] Goal typed_ref_call_local_assign_exit_part1 : Valid
-[wp] [Qed] Goal typed_ref_call_local_assign_exit_part2 : Valid
-[wp] [Qed] Goal typed_ref_call_local_assign_normal_part1 : Valid
-[wp] [Qed] Goal typed_ref_call_local_assign_normal_part2 : Valid
-[wp] [Qed] Goal typed_ref_call_local_assign_normal_part3 : Valid
-[wp] [Qed] Goal typed_ref_call_local_call_reset_pre : Valid
-[wp] [Qed] Goal typed_ref_call_local_call_load_pre : Valid
-[wp] [Qed] Goal typed_ref_call_param_post : Valid
-[wp] [Qed] Goal typed_ref_call_param_assign_exit_part1 : Valid
-[wp] [Qed] Goal typed_ref_call_param_assign_exit_part2 : Valid
-[wp] [Qed] Goal typed_ref_call_param_assign_normal_part1 : Valid
-[wp] [Qed] Goal typed_ref_call_param_assign_normal_part2 : Valid
-[wp] [Qed] Goal typed_ref_call_param_assign_normal_part3 : Valid
-[wp] [Qed] Goal typed_ref_call_param_call_reset_pre : Valid
-[wp] [Qed] Goal typed_ref_call_param_call_load_pre : Valid
-[wp] [Qed] Goal typed_ref_call_param_ref_post : Valid
-[wp] [Qed] Goal typed_ref_call_param_ref_assign_exit : Valid
-[wp] [Qed] Goal typed_ref_call_param_ref_assign_normal_part1 : Valid
-[wp] [Qed] Goal typed_ref_call_param_ref_assign_normal_part2 : Valid
-[wp] [Qed] Goal typed_ref_call_param_ref_call_reset_pre : Valid
-[wp] [Qed] Goal typed_ref_call_param_ref_call_load_pre : Valid
-[wp] [Qed] Goal typed_ref_incr_post : Valid
-[wp] [Qed] Goal typed_ref_incr_assign : Valid
-[wp] [Qed] Goal typed_ref_load_post : Valid
-[wp] [Qed] Goal typed_ref_load_assign : Valid
-[wp] [Qed] Goal typed_ref_reset_post : Valid
-[wp] [Qed] Goal typed_ref_reset_assign : Valid
+[wp] [Qed] Goal typed_ref_call_global_ensures : Valid
+[wp] [Qed] Goal typed_ref_call_global_assigns_exit : Valid
+[wp] [Qed] Goal typed_ref_call_global_assigns_normal_part1 : Valid
+[wp] [Qed] Goal typed_ref_call_global_assigns_normal_part2 : Valid
+[wp] [Qed] Goal typed_ref_call_global_call_reset_requires : Valid
+[wp] [Qed] Goal typed_ref_call_global_call_load_requires : Valid
+[wp] [Qed] Goal typed_ref_call_local_ensures : Valid
+[wp] [Qed] Goal typed_ref_call_local_assigns_exit_part1 : Valid
+[wp] [Qed] Goal typed_ref_call_local_assigns_exit_part2 : Valid
+[wp] [Qed] Goal typed_ref_call_local_assigns_normal_part1 : Valid
+[wp] [Qed] Goal typed_ref_call_local_assigns_normal_part2 : Valid
+[wp] [Qed] Goal typed_ref_call_local_assigns_normal_part3 : Valid
+[wp] [Qed] Goal typed_ref_call_local_call_reset_requires : Valid
+[wp] [Qed] Goal typed_ref_call_local_call_load_requires : Valid
+[wp] [Qed] Goal typed_ref_call_param_ensures : Valid
+[wp] [Qed] Goal typed_ref_call_param_assigns_exit_part1 : Valid
+[wp] [Qed] Goal typed_ref_call_param_assigns_exit_part2 : Valid
+[wp] [Qed] Goal typed_ref_call_param_assigns_normal_part1 : Valid
+[wp] [Qed] Goal typed_ref_call_param_assigns_normal_part2 : Valid
+[wp] [Qed] Goal typed_ref_call_param_assigns_normal_part3 : Valid
+[wp] [Qed] Goal typed_ref_call_param_call_reset_requires : Valid
+[wp] [Qed] Goal typed_ref_call_param_call_load_requires : Valid
+[wp] [Qed] Goal typed_ref_call_param_ref_ensures : Valid
+[wp] [Qed] Goal typed_ref_call_param_ref_assigns_exit : Valid
+[wp] [Qed] Goal typed_ref_call_param_ref_assigns_normal_part1 : Valid
+[wp] [Qed] Goal typed_ref_call_param_ref_assigns_normal_part2 : Valid
+[wp] [Qed] Goal typed_ref_call_param_ref_call_reset_requires : Valid
+[wp] [Qed] Goal typed_ref_call_param_ref_call_load_requires : Valid
+[wp] [Qed] Goal typed_ref_incr_ensures : Valid
+[wp] [Qed] Goal typed_ref_incr_assigns : Valid
+[wp] [Qed] Goal typed_ref_load_ensures : Valid
+[wp] [Qed] Goal typed_ref_load_assigns : Valid
+[wp] [Qed] Goal typed_ref_reset_ensures : Valid
+[wp] [Qed] Goal typed_ref_reset_assigns : Valid
 [wp] Proved goals:   34 / 34
   Qed:            34
-[wp] Report 'tests/wp_hoare/dispatch_var2.i.1.report.json'
+[wp] Report in:  'tests/wp_hoare/oracle_qualif/dispatch_var2.1.report.json'
+[wp] Report out: 'tests/wp_hoare/result_qualif/dispatch_var2.1.report.json'
 -------------------------------------------------------------
 Functions           WP     Alt-Ergo        Total   Success
 reset                2     -                 2       100%

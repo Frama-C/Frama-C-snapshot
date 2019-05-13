@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2018                                               *)
+(*  Copyright (C) 2007-2019                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -149,7 +149,7 @@ let read_char kind offset cvalue acc =
 let rec search_each_index kind ~validity ~index ~max offsetmap acc =
   let offsets = Ival.inject_singleton index in
   let size = kind.size in
-  let _, cvalue = Cvalue.V_Offsetmap.find ~validity ~offsets ~size offsetmap in
+  let cvalue = Cvalue.V_Offsetmap.find ~validity ~offsets ~size offsetmap in
   let acc = read_char kind offsets cvalue acc in
   let index = Integer.add index size in
   if acc.stop || Integer.gt index max
@@ -170,7 +170,7 @@ let search_range kind ~min ~max (v, v_size, _v_shift) acc =
     read_char kind offset v acc
   else
     (* The value [v] contains [nb_chars] characters: need [nb_chars] reads. *)
-    let nb_chars = Integer.div v_size kind.size in
+    let nb_chars = Integer.e_div v_size kind.size in
     (* Reads the [count]-nth character in [v]. *)
     let rec do_one_char count ~max res =
       let start = Integer.mul kind.size count in
@@ -222,9 +222,9 @@ let fold_offsm kind ~validity ~start ~max offsetmap acc =
            overlaps between two ranges of the offsetmap.
          - and either the value is isotropic, or the reads are aligned with the
            repeated values. *)
-      if Integer.is_zero (Integer.pos_rem (Integer.succ max) modu) &&
+      if Integer.is_zero (Integer.e_rem (Integer.succ max) modu) &&
          (Cvalue.V_Or_Uninitialized.is_isotropic v ||
-          Integer.(equal index v_start && is_zero (pos_rem v_size kind.size)))
+          Integer.(equal index v_start && is_zero (e_rem v_size kind.size)))
       then search_range kind ~min:index ~max (v, v_size, v_shift) acc
       else search_each_index kind ~validity ~index ~max offsetmap acc
   in
@@ -344,10 +344,10 @@ let search_char kind ~length state str =
 let reduce_by_validity ~size cvalue =
   let loc_bits = Locations.loc_bytes_to_loc_bits cvalue in
   let loc = Locations.make_loc loc_bits (Int_Base.inject size) in
-  if Locations.is_valid ~for_writing:false loc
+  if Locations.(is_valid Read loc)
   then loc.Locations.loc, true
   else
-    let valid_loc = Locations.valid_part ~for_writing:false ~bitfield:true loc in
+    let valid_loc = Locations.(valid_part Read ~bitfield:true loc) in
     valid_loc.Locations.loc, false
 
 type char = Char | Wide

@@ -1,5 +1,5 @@
 /* run.config
-OPT: -semantic-const-folding -val-show-progress
+   STDOPT:
 */
 
 enum E { A, B, C, D };

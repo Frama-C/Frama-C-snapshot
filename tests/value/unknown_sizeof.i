@@ -1,6 +1,6 @@
 /* run.config*
-   OPT: -no-autoload-plugins -load-module eva -val @VALUECONFIG@ -main main1
-   OPT: -no-autoload-plugins -load-module eva -val @VALUECONFIG@ -main main2
+   OPT: -no-autoload-plugins -load-module eva -eva @EVA_CONFIG@ -main main1
+   OPT: -no-autoload-plugins -load-module eva -eva @EVA_CONFIG@ -main main2
 */
 
 struct s;

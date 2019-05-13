@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2018                                               *)
+(*  Copyright (C) 2007-2019                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -23,4 +23,4 @@
 (** [get_flags f] returns the preprocessing flags associated to file [f]
     in the JSON compilation database (when enabled), or the empty string
     otherwise. If not empty, the flags always start with a space. *)
-val get_flags : Datatype.Filepath.t -> string
+val get_flags : Datatype.Filepath.t -> string list

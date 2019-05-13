@@ -3,7 +3,7 @@
 #                                                                        #
 #  This file is part of Frama-C.                                         #
 #                                                                        #
-#  Copyright (C) 2007-2018                                               #
+#  Copyright (C) 2007-2019                                               #
 #    CEA (Commissariat à l'énergie atomique et aux énergies              #
 #         alternatives)                                                  #
 #                                                                        #
@@ -33,7 +33,7 @@ if [ $# -lt 1 ]; then
    echo ""
    echo "  - make-template [dir]"
    echo "      Interactively prepares a template for running analysis scripts,"
-   echo "      writing it to [dir/GNUmakefile]. [dir] is [.] if ommitted."
+   echo "      writing it to [dir/GNUmakefile]. [dir] is [.] if omitted."
    echo ""
    echo "  - make-path"
    echo "      [for Frama-C developers and advanced users without Frama-C in the path]"
@@ -49,6 +49,31 @@ if [ $# -lt 1 ]; then
    echo "      Generates flamegraph.svg and flamegraph.html in [dir]"
    echo "      (or in the FRAMAC_SESSION directory by default)."
    echo "      Also opens it in a browser, unless variable NOGUI is set."
+   echo ""
+   echo "  - find-fun <function-name> [dirs]"
+   echo "      Lists files in [dirs] declaring or defining <function-name>"
+   echo "      (defaults to PWD + /usr/include)."
+   echo "      Heuristics-based: neither correct nor complete."
+   echo ""
+   echo "  - summary [options]"
+   echo "      Monitors and summarizes multiple analyses dispatched by a Makefile"
+   echo "      in the current PWD."
+   echo "      Use $0 summary --help for more informations."
+   echo ""
+   echo "  - configure <machdep>"
+   echo "      Runs an existing configure script to only consider files"
+   echo "      in Frama-C's libc; this will hopefully disable non-essential"
+   echo "      and non-POSIX external libraries."
+   echo "      <machdep> is necessary to define a required preprocessor symbol"
+   echo "      (run 'frama-c -machdep' help to get the list of machdeps)."
+   echo ""
+   echo "  - make-wrapper <target> <args>"
+   echo "      Runs 'make <target> <args>', parsing the output to suggest"
+   echo "      useful commands in case of failure."
+   echo ""
+   echo "  - normalize-jcdb [path/to/compile_commands.json]"
+   echo "      Applies some transformations to an existing compile_commands.json"
+   echo "      (such as relativizing paths) to improve portability"
    exit
 fi
 
@@ -95,6 +120,7 @@ make_template() {
         dir="."
     fi
     path="$dir/GNUmakefile"
+    path_tmp="${path}.tmp"
     check_path_exists "$path"
     read -p "Main target name: " main
     if [[ ! ( "$main" =~ ^[a-zA-Z_0-9]+$ ) ]]; then
@@ -105,9 +131,41 @@ make_template() {
     if [ "$sources" = "" ]; then
         sources="*.c"
     fi
-    sed "s/^MAIN_TARGET :=/MAIN_TARGET := ${main}/" "${FRAMAC_SHARE}/analysis-scripts/template.mk" > "${path}.tmp"
-    sed "s|\$(MAIN_TARGET).parse:|\$(MAIN_TARGET).parse: $sources|" "${path}.tmp" | sed "/# Remove these lines after defining the main target/{N;N;N;N;d;}" > "$path"
-    rm "${path}.tmp"
+
+    add_main_stub=0
+    read -p "Add stub for function main (only needed if it uses command-line arguments)? [y/N] " yn
+    case $yn in
+        [Yy])
+            add_main_stub=1
+            sources="fc_stubs.c $sources"
+            ;;
+        *)
+            ;;
+    esac
+
+    sed "s/^MAIN_TARGET :=/MAIN_TARGET := ${main}/" "${FRAMAC_SHARE}/analysis-scripts/template.mk" > "$path"
+    sed "s|\$(MAIN_TARGET).parse:|\$(MAIN_TARGET).parse: $sources|" "$path" | sed "/# Remove these lines after defining the main target/{N;N;N;N;d;}" > "$path_tmp"; mv "$path_tmp" "$path"
+    if [ -e "compile_commands.json" ]; then
+        read -p "compile_commands.json exists, add option -json-compilation-database? [Y/n] " yn
+        case $yn in
+            [Nn])
+                echo "Option not added; you can later add it to FCFLAGS."
+                ;;
+            *)
+                # the command below inserts a line after matching a given
+                # pattern; compatible with macOS sed
+                sed -e '/^FCFLAGS[[:space:]]\++=/a\
+\ \ -json-compilation-database .\\' "$path" > "$path_tmp"; mv "$path_tmp" "$path"
+                ;;
+        esac
+    fi
+    if [ $add_main_stub -eq 1 ]; then
+        check_path_exists "fc_stubs.c"
+        cp "${FRAMAC_SHARE}/analysis-scripts/fc_stubs.c" "./"
+        echo "Created stub for main function: fc_stubs.c"
+        sed -e '/^FCFLAGS[[:space:]]\++=/a\
+\ \ -main eva_main \\' "$path" > "$path_tmp"; mv "$path_tmp" "$path"
+    fi
     echo "Template created: $path"
 }
 
@@ -175,6 +233,48 @@ EOF
     fi
 }
 
+configure_for_frama_c() {
+    if [ "$#" -eq 0 ]; then
+        echo "error: 'configure' command requires a machdep";
+        exit 1
+    fi
+    MACHDEP="$(echo $1 | tr a-z A-Z)"
+    shift
+    CPP="gcc -E -nostdinc -fno-builtin -I${FRAMAC_SHARE}/libc -D__FC_MACHDEP_${MACHDEP}" ./configure "$@"
+}
+
+normalize_jcdb() {
+    path=""
+    if [ "$#" -eq 0 ]; then
+        path="./compile_commands.json"
+    else
+        path="$1"
+    fi
+    if [ ! -e "$path" ]; then
+        echo "error: cannot find file: $path";
+        exit 1
+    fi
+    sed "s|$PWD/||g" "$path" > "${path}.tmp"
+    cmp -s "$path" "${path}.tmp"
+    if [ $? -eq 0 ]; then
+        echo "No changes to be applied to $path"
+        rm "${path}.tmp"
+    else
+        echo "Differences to be applied to $path:"
+        diff -u0 "$path" "${path}.tmp"
+        read -p "Normalize $path? [y/N] " yn
+        case $yn in
+            [Yy])
+                mv "${path}.tmp" "$path"
+                echo "Normalization applied to $path"
+            ;;
+            *)
+                echo "Exiting without overwriting."
+                exit 0;;
+        esac
+    fi
+}
+
 case "$command" in
     "make-template")
         shift;
@@ -188,9 +288,29 @@ case "$command" in
         shift;
         ${FRAMAC_SHARE}/analysis-scripts/list_files.py "$@";
         ;;
+    "find-fun")
+        shift;
+        ${FRAMAC_SHARE}/analysis-scripts/find_fun.py "$@";
+        ;;
     "flamegraph")
         shift;
         flamegraph "$@";
+        ;;
+    "summary")
+        shift;
+        ${FRAMAC_SHARE}/analysis-scripts/summary.py "$@";
+        ;;
+    "configure")
+        shift;
+        configure_for_frama_c "$@";
+        ;;
+    "make-wrapper")
+        shift;
+        ${FRAMAC_SHARE}/analysis-scripts/make_wrapper.py "$0" "$@";
+        ;;
+    "normalize-jcdb")
+        shift;
+        normalize_jcdb "$@";
         ;;
     *)
         echo "error: unrecognized command: $command"

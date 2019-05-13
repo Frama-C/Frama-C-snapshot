@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2018                                               *)
+(*  Copyright (C) 2007-2019                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -523,6 +523,7 @@ open Wpo
 type coq_wpo = {
   cw_pid : WpPropId.prop_id ;
   cw_gid : string ;
+  cw_leg : string ;
   cw_goal : string ; (* filename for goal without proof *)
   cw_script : string ; (* filename for goal with proof script *)
   cw_headers : string list ; (* filename for libraries *)
@@ -559,14 +560,14 @@ let rec try_hints w = function
       if succeed then
         let required,hints = WpPropId.prop_id_keys w.cw_pid in
         let keys = List.merge String.compare required hints in
-        Proof.add_script w.cw_gid keys script closing ;
+        Proof.add_script_for ~gid:w.cw_gid keys script closing ;
         Task.return true
       else
         try_hints w hints
 
 let try_prove w =
   begin
-    match Proof.script_for ~pid:w.cw_pid ~gid:w.cw_gid with
+    match Proof.script_for ~pid:w.cw_pid ~gid:w.cw_gid ~legacy:w.cw_leg with
     | Some (script,closing) ->
         Wp_parameters.feedback ~ontty "[Coq] Goal %s : Saved script" w.cw_gid ;
         try_script w script closing
@@ -579,7 +580,8 @@ let try_prove w =
     try_hints w (Proof.hints_for ~pid:w.cw_pid)
 
 let try_coqide w =
-  let script,closing = Proof.script_for_ide ~pid:w.cw_pid ~gid:w.cw_gid in
+  let script,closing =
+    Proof.script_for_ide ~pid:w.cw_pid ~gid:w.cw_gid ~legacy:w.cw_leg in
   make_script w script closing ;
   (new runcoq w.cw_includes w.cw_script)#coqide >>= fun st ->
   if st = 0 then
@@ -588,16 +590,16 @@ let try_coqide w =
         Wp_parameters.feedback "[Coq] No proof found" ;
         Task.return false
     | Some(script,closing) ->
-        if Proof.is_empty script then
+        if Proof.is_empty_script script then
           begin
-            Proof.delete_script w.cw_gid ;
+            Proof.delete_script_for ~gid:w.cw_gid ;
             Task.canceled () ;
           end
         else
           begin
             let req,hs = WpPropId.prop_id_keys w.cw_pid in
             let hints = List.merge String.compare req hs in
-            Proof.add_script w.cw_gid hints script closing ;
+            Proof.add_script_for ~gid:w.cw_gid hints script closing ;
             Wp_parameters.feedback ~ontty "[Coq] Goal %s : Script" w.cw_gid ;
             try_script w script closing
           end
@@ -651,6 +653,7 @@ let prove_session ~mode w =
 let prove_prop wpo ~mode ~axioms ~prop =
   let pid = wpo.po_pid in
   let gid = wpo.po_gid in
+  let leg = wpo.po_leg in
   let model = wpo.po_model in
   let script = DISK.file_goal ~pid ~model ~prover:Coq in
   let includes , headers , goal =
@@ -659,6 +662,7 @@ let prove_prop wpo ~mode ~axioms ~prop =
   prove_session ~mode {
     cw_pid = pid ;
     cw_gid = gid ;
+    cw_leg = leg ;
     cw_goal = goal ;
     cw_script = script ;
     cw_headers = headers ;

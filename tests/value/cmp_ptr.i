@@ -1,6 +1,6 @@
 /* run.config*
-   STDOPT: #"-main main -value-msg-key pointer-comparison"
-   STDOPT: #"-undefined-pointer-comparison-propagate-all -value-msg-key pointer-comparison"
+   STDOPT: #"-main main -eva-msg-key pointer-comparison"
+   STDOPT: #"-undefined-pointer-comparison-propagate-all -eva-msg-key pointer-comparison"
 */
 
 int *p,T[10]={0,1,2,3,4,5,6,7,8,9};
@@ -20,7 +20,7 @@ int main (int u) {
   
   if (p >= &(T[5])) {*p=88;*q=77;}
   x = !(&y+2);
-  *(int*)&ff = &y + 2;
+  *(int*)&ff = (int) (&y + 2);
   y = !ff;
 
   

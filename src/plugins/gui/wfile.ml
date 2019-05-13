@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2018                                               *)
+(*  Copyright (C) 2007-2019                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -77,7 +77,8 @@ class button ?kind ?title ?select ?tooltip ?parent () =
   let fld = GMisc.label ~text:"(none)" ~xalign:0.0
       ~packing:(box#pack ~expand:true) () in
   let _ = GMisc.separator `VERTICAL
-      ~packing:(box#pack ~expand:false ~padding:2) ~show:true () in
+      ~packing:(box#pack ~expand:false ~padding:2) ~show:true ()
+  in
   let _ = GMisc.image  ~packing:(box#pack ~expand:false) ~stock:`OPEN () in
   let button = GButton.button () in
   let dialog = new dialog ?kind ?title ?select ?parent () in

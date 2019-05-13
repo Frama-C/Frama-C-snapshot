@@ -1,9 +1,9 @@
 /* run.config
-   OPT: -val -val-show-progress -print -journal-disable -scope-verbose 1 -remove-redundant-alarms -context-width 3
+   OPT: -eva @EVA_CONFIG@ -print -journal-disable -scope-verbose 1 -remove-redundant-alarms -context-width 3
 */
 /* 
    echo '!Db.Scope.check_asserts();;' \
-   | bin/toplevel.top -val tests/scope/bts383.c 
+   | bin/toplevel.top -eva tests/scope/bts383.c 
 */
 int v;
 void if1 (int * p) {

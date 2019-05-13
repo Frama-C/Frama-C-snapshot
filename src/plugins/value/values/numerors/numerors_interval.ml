@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2018                                               *)
+(*  Copyright (C) 2007-2019                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -171,7 +171,7 @@ let compare a b = (a, b) >>+ fun _ ->
   match a, b with
   | NaN _, NaN _ -> 0 | NaN _, _ ->  1 | _, NaN _ -> -1
   | I (x, y, n), I (x', y', n') ->
-    let c = Pervasives.compare n n' in
+    let c = Transitioning.Stdlib.compare n n' in
     if c = 0 then
       let c = F.compare x x' in
       if c = 0 then F.compare y y'

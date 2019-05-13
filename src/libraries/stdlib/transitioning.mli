@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2018                                               *)
+(*  Copyright (C) 2007-2019                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -63,6 +63,39 @@ module List: sig
   val find_opt: ('a -> bool) -> 'a list -> 'a option (** 4.05 *)
   val assoc_opt: 'a -> ('a * 'b) list -> 'b option (** 4.05 *)
   val assq_opt: 'a -> ('a * 'b) list -> 'b option (** 4.05 *)
+end
+
+(** 4.08 *)
+module Stdlib: sig
+  val compare: 'a -> 'a -> int
+  val succ: int -> int
+  val incr: int ref -> unit
+  val min: 'a -> 'a -> 'a
+  val max: 'a -> 'a -> 'a
+end
+
+(** 4.08 *)
+module Dynlink: sig
+  val init: unit -> unit
+end
+
+(** 4.08 *)
+module Format: sig
+  type stag
+  val string_of_stag: stag -> string
+  val stag_of_string: string -> stag
+  type formatter_stag_functions = {
+    mark_open_stag : stag -> string;
+    mark_close_stag : stag -> string;
+    print_open_stag : stag -> unit;
+    print_close_stag : stag -> unit;
+  }
+  val pp_set_formatter_stag_functions:
+    Format.formatter -> formatter_stag_functions -> unit
+  val pp_get_formatter_stag_functions:
+    Format.formatter -> unit -> formatter_stag_functions
+  val pp_open_stag : Format.formatter -> stag -> unit
+  val pp_close_stag : Format.formatter -> unit -> unit
 end
 
 (** {1 Zarith} *)

@@ -4,48 +4,49 @@
 [wp] Loading driver 'share/wp.driver'
 [wp] Warning: Missing RTE guards
 [wp] 32 goals scheduled
-[wp] [Qed] Goal typed_caller_post_K : Valid
-[wp] [Alt-Ergo] Goal typed_caller_post_P1 : Valid
-[wp] [Alt-Ergo] Goal typed_caller_post_P2 : Valid
-[wp] [Alt-Ergo] Goal typed_caller_call_job_pre : Valid
-[wp] [Alt-Ergo] Goal typed_caller_call_job_pre_2 : Valid
-[wp] [Qed] Goal typed_caller2_post_K : Valid
-[wp] [Alt-Ergo] Goal typed_caller2_post_Q1 : Valid
-[wp] [Alt-Ergo] Goal typed_caller2_post_Q2 : Valid
-[wp] [Alt-Ergo] Goal typed_caller2_post_R : Valid
-[wp] [Alt-Ergo] Goal typed_caller2_call_job2_pre : Valid
-[wp] [Alt-Ergo] Goal typed_caller2_call_job2_pre_2 : Valid
-[wp] [Qed] Goal typed_caller3_post_K : Valid
-[wp] [Alt-Ergo] Goal typed_caller3_post_Q1 : Valid
-[wp] [Alt-Ergo] Goal typed_caller3_post_Q2 : Valid
-[wp] [Alt-Ergo] Goal typed_caller3_post_R : Valid
-[wp] [Alt-Ergo] Goal typed_caller3_call_job3_pre : Valid
-[wp] [Alt-Ergo] Goal typed_caller3_call_job3_pre_2 : Valid
-[wp] [Qed] Goal typed_job_post_K : Valid
-[wp] [Qed] Goal typed_job_post_P : Valid
-[wp] [Qed] Goal typed_job_assign_part1 : Valid
-[wp] [Qed] Goal typed_job_assign_part2 : Valid
-[wp] [Qed] Goal typed_job_assign_part3 : Valid
-[wp] [Qed] Goal typed_job2_post_K : Valid
-[wp] [Qed] Goal typed_job2_post_Q : Valid
-[wp] [Qed] Goal typed_job2_assign_part1 : Valid
-[wp] [Qed] Goal typed_job2_assign_part2 : Valid
-[wp] [Qed] Goal typed_job2_assign_part3 : Valid
-[wp] [Qed] Goal typed_job3_post_K : Valid
-[wp] [Alt-Ergo] Goal typed_job3_post_Q : Valid
-[wp] [Qed] Goal typed_job3_assign_part1 : Valid
-[wp] [Qed] Goal typed_job3_assign_part2 : Valid
-[wp] [Qed] Goal typed_job3_assign_part3 : Valid
+[wp] [Qed] Goal typed_caller_ensures_K : Valid
+[wp] [Alt-Ergo] Goal typed_caller_ensures_P1 : Valid
+[wp] [Alt-Ergo] Goal typed_caller_ensures_P2 : Valid
+[wp] [Alt-Ergo] Goal typed_caller_call_job_requires : Valid
+[wp] [Alt-Ergo] Goal typed_caller_call_job_requires : Valid
+[wp] [Qed] Goal typed_caller2_ensures_K : Valid
+[wp] [Alt-Ergo] Goal typed_caller2_ensures_Q1 : Valid
+[wp] [Alt-Ergo] Goal typed_caller2_ensures_Q2 : Valid
+[wp] [Alt-Ergo] Goal typed_caller2_ensures_R : Valid
+[wp] [Alt-Ergo] Goal typed_caller2_call_job2_requires : Valid
+[wp] [Alt-Ergo] Goal typed_caller2_call_job2_requires : Valid
+[wp] [Qed] Goal typed_caller3_ensures_K : Valid
+[wp] [Alt-Ergo] Goal typed_caller3_ensures_Q1 : Valid
+[wp] [Alt-Ergo] Goal typed_caller3_ensures_Q2 : Valid
+[wp] [Alt-Ergo] Goal typed_caller3_ensures_R : Valid
+[wp] [Alt-Ergo] Goal typed_caller3_call_job3_requires : Valid
+[wp] [Alt-Ergo] Goal typed_caller3_call_job3_requires : Valid
+[wp] [Qed] Goal typed_job_ensures_K : Valid
+[wp] [Qed] Goal typed_job_ensures_P : Valid
+[wp] [Qed] Goal typed_job_assigns_part1 : Valid
+[wp] [Qed] Goal typed_job_assigns_part2 : Valid
+[wp] [Qed] Goal typed_job_assigns_part3 : Valid
+[wp] [Qed] Goal typed_job2_ensures_K : Valid
+[wp] [Qed] Goal typed_job2_ensures_Q : Valid
+[wp] [Qed] Goal typed_job2_assigns_part1 : Valid
+[wp] [Qed] Goal typed_job2_assigns_part2 : Valid
+[wp] [Qed] Goal typed_job2_assigns_part3 : Valid
+[wp] [Qed] Goal typed_job3_ensures_K : Valid
+[wp] [Alt-Ergo] Goal typed_job3_ensures_Q : Valid
+[wp] [Qed] Goal typed_job3_assigns_part1 : Valid
+[wp] [Qed] Goal typed_job3_assigns_part2 : Valid
+[wp] [Qed] Goal typed_job3_assigns_part3 : Valid
 [wp] Proved goals:   32 / 32
   Qed:            17 
   Alt-Ergo:       15
-[wp] Report 'tests/wp_typed/user_collect.i.0.report.json'
+[wp] Report in:  'tests/wp_typed/oracle_qualif/user_collect.0.report.json'
+[wp] Report out: 'tests/wp_typed/result_qualif/user_collect.0.report.json'
 -------------------------------------------------------------
 Functions           WP     Alt-Ergo        Total   Success
 job                  5     -                 5       100%
 job2                 5     -                 5       100%
 job3                 4      1 (16..28)       5       100%
 caller               1      4 (32..44)       5       100%
-caller2              1      5 (44..56)       6       100%
-caller3              1      5 (44..56)       6       100%
+caller2              1      5 (48..60)       6       100%
+caller3              1      5 (48..60)       6       100%
 -------------------------------------------------------------

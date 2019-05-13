@@ -4,19 +4,20 @@
 [wp] Loading driver 'share/wp.driver'
 [wp] Warning: Missing RTE guards
 [wp] 10 goals scheduled
-[wp] [Qed] Goal typed_f_post_Pt : Valid
-[wp] [Qed] Goal typed_f_post_Psiz1 : Valid
-[wp] [Qed] Goal typed_f_post_Pmat1 : Valid
-[wp] [Qed] Goal typed_f_post_Psiz2 : Valid
-[wp] [Qed] Goal typed_f_post_Pmat2 : Valid
-[wp] [Qed] Goal typed_f_post_Ps : Valid
-[wp] [Qed] Goal typed_f_post_Pts : Valid
-[wp] [Qed] Goal typed_f_post_Pt1 : Valid
-[wp] [Qed] Goal typed_f_post_Pmat12 : Valid
-[wp] [Qed] Goal typed_f_post_Pts1 : Valid
+[wp] [Qed] Goal typed_f_ensures_Pt : Valid
+[wp] [Qed] Goal typed_f_ensures_Psiz1 : Valid
+[wp] [Qed] Goal typed_f_ensures_Pmat1 : Valid
+[wp] [Qed] Goal typed_f_ensures_Psiz2 : Valid
+[wp] [Qed] Goal typed_f_ensures_Pmat2 : Valid
+[wp] [Qed] Goal typed_f_ensures_Ps : Valid
+[wp] [Qed] Goal typed_f_ensures_Pts : Valid
+[wp] [Qed] Goal typed_f_ensures_Pt1 : Valid
+[wp] [Qed] Goal typed_f_ensures_Pmat12 : Valid
+[wp] [Qed] Goal typed_f_ensures_Pts1 : Valid
 [wp] Proved goals:   10 / 10
   Qed:            10
-[wp] Report 'tests/wp_acsl/block_length.i.0.report.json'
+[wp] Report in:  'tests/wp_acsl/oracle_qualif/block_length.0.report.json'
+[wp] Report out: 'tests/wp_acsl/result_qualif/block_length.0.report.json'
 -------------------------------------------------------------
 Functions           WP     Alt-Ergo        Total   Success
 f                   10     -                10       100%

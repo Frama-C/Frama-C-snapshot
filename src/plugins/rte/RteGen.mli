@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2018                                               *)
+(*  Copyright (C) 2007-2019                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -20,4 +20,40 @@
 (*                                                                        *)
 (**************************************************************************)
 
-(** No function is directly exported: they are registered in {!Db.Value}. *)
+(** Consult internal plug-in documentation for more details *)
+
+(** Flags for filtering Alarms *)
+module Flags : module type of Flags
+
+(** RTE Generator Status & Emitters *)
+module Generator : module type of Generator
+
+(** Visitors to iterate over Alarms and/or generate Code-Annotations *)
+module Visit : sig
+  open Cil_types
+
+  val annotate: ?flags:Flags.t -> kernel_function -> unit
+
+  val get_annotations_kf:
+    ?flags:Flags.t -> kernel_function -> code_annotation list
+
+  val get_annotations_stmt:
+    ?flags:Flags.t -> kernel_function -> stmt -> code_annotation list
+
+  val get_annotations_exp:
+    ?flags:Flags.t -> kernel_function -> stmt -> exp -> code_annotation list
+
+  val get_annotations_lval:
+    ?flags:Flags.t -> kernel_function -> stmt -> lval -> code_annotation list
+
+  type on_alarm = kernel_function -> stmt -> invalid:bool -> Alarms.alarm -> unit
+  type 'a iterator = ?flags:Flags.t -> on_alarm ->
+    Kernel_function.t -> Cil_types.stmt -> 'a -> unit
+  val iter_lval : lval iterator
+  val iter_exp : exp iterator
+  val iter_instr : instr iterator
+  val iter_stmt : stmt iterator
+  val register :
+    Emitter.t -> kernel_function -> stmt -> invalid:bool -> Alarms.alarm ->
+    code_annotation * bool
+end

@@ -16,33 +16,32 @@
 [eva:alarm] tests/gmp/quantif.i:10: Warning: assertion got status unknown.
 [eva] tests/gmp/quantif.i:10: starting to merge loop iterations
 [eva:alarm] tests/gmp/quantif.i:11: Warning: assertion got status unknown.
-[eva:alarm] tests/gmp/quantif.i:12: Warning: assertion got status unknown.
-[eva] tests/gmp/quantif.i:12: starting to merge loop iterations
-[eva:alarm] tests/gmp/quantif.i:16: Warning: assertion got status unknown.
-[eva] tests/gmp/quantif.i:16: starting to merge loop iterations
-[eva:alarm] tests/gmp/quantif.i:16: Warning: 
+[eva] tests/gmp/quantif.i:11: starting to merge loop iterations
+[eva:alarm] tests/gmp/quantif.i:15: Warning: assertion got status unknown.
+[eva] tests/gmp/quantif.i:15: starting to merge loop iterations
+[eva:alarm] tests/gmp/quantif.i:15: Warning: 
   function __e_acsl_assert: precondition got status unknown.
-[eva:alarm] tests/gmp/quantif.i:21: Warning: assertion got status unknown.
-[eva] tests/gmp/quantif.i:21: starting to merge loop iterations
-[eva:alarm] tests/gmp/quantif.i:25: Warning: assertion got status unknown.
+[eva:alarm] tests/gmp/quantif.i:20: Warning: assertion got status unknown.
+[eva] tests/gmp/quantif.i:20: starting to merge loop iterations
+[eva:alarm] tests/gmp/quantif.i:24: Warning: assertion got status unknown.
+[eva] tests/gmp/quantif.i:24: starting to merge loop iterations
 [eva] tests/gmp/quantif.i:25: starting to merge loop iterations
-[eva] tests/gmp/quantif.i:26: starting to merge loop iterations
-[eva:alarm] tests/gmp/quantif.i:25: Warning: 
+[eva:alarm] tests/gmp/quantif.i:24: Warning: 
   function __e_acsl_assert: precondition got status unknown.
 [eva] using specification for function __e_acsl_store_block
-[eva:alarm] tests/gmp/quantif.i:31: Warning: assertion got status unknown.
+[eva:alarm] tests/gmp/quantif.i:30: Warning: assertion got status unknown.
 [eva] using specification for function __e_acsl_valid
+[eva] tests/gmp/quantif.i:30: starting to merge loop iterations
+[eva:alarm] tests/gmp/quantif.i:30: Warning: 
+  function __e_acsl_assert: precondition got status unknown.
 [eva] tests/gmp/quantif.i:31: starting to merge loop iterations
 [eva:alarm] tests/gmp/quantif.i:31: Warning: 
   function __e_acsl_assert: precondition got status unknown.
+[eva:alarm] tests/gmp/quantif.i:32: Warning: assertion got status unknown.
 [eva] tests/gmp/quantif.i:32: starting to merge loop iterations
 [eva:alarm] tests/gmp/quantif.i:32: Warning: 
   function __e_acsl_assert: precondition got status unknown.
 [eva:alarm] tests/gmp/quantif.i:33: Warning: assertion got status unknown.
-[eva] tests/gmp/quantif.i:33: starting to merge loop iterations
-[eva:alarm] tests/gmp/quantif.i:33: Warning: 
-  function __e_acsl_assert: precondition got status unknown.
-[eva:alarm] tests/gmp/quantif.i:34: Warning: assertion got status unknown.
 [eva] using specification for function __gmpz_init
 [eva] using specification for function __gmpz_init_set_si
 [eva] using specification for function __gmpz_set
@@ -51,8 +50,10 @@
 [eva] using specification for function __gmpz_cmp
 [eva] using specification for function __gmpz_get_si
 [eva] using specification for function __gmpz_add
-[eva:alarm] tests/gmp/quantif.i:34: Warning: 
+[eva:alarm] tests/gmp/quantif.i:33: Warning: 
   function __e_acsl_assert: precondition got status unknown.
 [eva] using specification for function __e_acsl_delete_block
+[eva:alarm] tests/gmp/quantif.i:37: Warning: assertion got status unknown.
+[eva:alarm] tests/gmp/quantif.i:40: Warning: assertion got status unknown.
 [eva] using specification for function __e_acsl_memory_clean
 [eva] done for function main

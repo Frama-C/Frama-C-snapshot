@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2018                                               *)
+(*  Copyright (C) 2007-2019                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -32,7 +32,7 @@ module CardinalEstimate = struct
 
   let zero = None
   let one = Some 0.0
-  let of_integer x = Some(Pervasives.log10 (Integer.to_float x))
+  let of_integer x = Some(log10 (Integer.to_float x))
   let infinite = Some(infinity)
   let mul a b = match (a,b) with
     | None, _ | _, None -> None
@@ -103,7 +103,7 @@ module V = struct
       then Ival.contains_zero offset
       else
         let bits_offset = Ival.scale (Bit_utils.sizeofchar()) offset in
-        not (Base.is_valid_offset ~for_writing:false Int.zero base bits_offset)
+        not Base.(is_valid_offset No_access base bits_offset)
     in
     Location_Bytes.exists offset_contains_zero loc
 
@@ -586,27 +586,27 @@ module V = struct
     else
       import_function ~topify:Origin.K_Arith Ival.bitwise_or v1 v2
 
-  let bitwise_and ~signed ~size v1 v2 =
+  let bitwise_and v1 v2 =
     if equal v1 v2 && cardinal_zero_or_one v1 then v1
     else
-      let f i1 i2 = Ival.bitwise_and ~size ~signed i1 i2 in
+      let f i1 i2 = Ival.bitwise_and i1 i2 in
       import_function ~topify:Origin.K_Arith f v1 v2
 
   let shift_right e1 e2 =
     arithmetic_function Ival.shift_right e1 e2
 
-  let bitwise_not v =
+  let bitwise_signed_not v =
     try
       let i = project_ival v in
-      inject_ival (Ival.bitwise_not i)
+      inject_ival (Ival.bitwise_signed_not i)
     with Not_based_on_null -> topify_arith_origin v
 
-  let bitwise_not_size ~signed ~size v =
+  let bitwise_not ~size ~signed v =
     try
       let i = project_ival v in
-      inject_ival (Ival.bitwise_not_size ~size ~signed i)
+      inject_ival (Ival.bitwise_not ~size ~signed i)
     with Not_based_on_null -> topify_arith_origin v
-  
+
   let extract_bits ~topify ~start ~stop ~size v =
     try
       let i = project_ival_bottom v in
@@ -635,7 +635,7 @@ module V = struct
       if Integer.is_zero factor
       then v
       else topify_with_origin_kind topify v
-    | Integer.Too_big -> top_int
+    | Z.Overflow -> top_int
 
   let restrict_topint_to_size value size =
     if is_topint value
@@ -744,7 +744,7 @@ module V_Or_Uninitialized = struct
 (* let (==>) = (fun x y -> (not x) || y) *)
 
   type size_widen_hint = V.size_widen_hint
-  type generic_widen_hint = V.generic_widen_hint
+  type numerical_widen_hint = V.numerical_widen_hint
   type widen_hint = V.widen_hint
   let widen wh t1 t2 =
     create (get_flags t2) (V.widen wh (get_v t1) (get_v t2))
@@ -979,7 +979,7 @@ module V_Offsetmap = struct
         if Integer.is_zero cardinal then Integer.one else cardinal
       in
       let cardinalf = CardinalEstimate.of_integer cardinal in
-      let repeat = Integer.(div (length start stop) size) in
+      let repeat = Integer.(e_div (length start stop) size) in
       (* If a value is "cut", we still count it as if it were whole. *)
       let repeat = Integer.(max repeat one) in
       let cardinalf_repeated = CardinalEstimate.power cardinalf repeat in

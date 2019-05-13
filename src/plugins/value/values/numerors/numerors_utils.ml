@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2018                                               *)
+(*  Copyright (C) 2007-2019                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -59,7 +59,7 @@ module Precisions = struct
     | Simple      -> -149    | Double  -> -1074
     | Long_Double -> -16494  | Real    -> Pervasives.min_int
 
-  let compare a b = Pervasives.compare (get a) (get b)
+  let compare a b = Transitioning.Stdlib.compare (get a) (get b)
   let eq a b = compare a b =  0
 
   let max a b = if compare a b <= 0 then b else a

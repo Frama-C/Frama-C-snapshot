@@ -1,6 +1,6 @@
 /* run.config*
-   STDOPT: +"-slevel 10 -val-builtin malloc:Frama_C_malloc_fresh,realloc:Frama_C_realloc_multiple -val-malloc-functions malloc,realloc"
-   STDOPT: +"-slevel 10 -val-builtin malloc:Frama_C_malloc_fresh,realloc:Frama_C_realloc_multiple -val-malloc-functions malloc,realloc -val-alloc-returns-null"
+   STDOPT: +"-slevel 10 -eva-builtin malloc:Frama_C_malloc_fresh,realloc:Frama_C_realloc_multiple -eva-malloc-functions malloc,realloc"
+   STDOPT: +"-slevel 10 -eva-builtin malloc:Frama_C_malloc_fresh,realloc:Frama_C_realloc_multiple -eva-malloc-functions malloc,realloc -eva-alloc-returns-null"
 */
 #include <stdlib.h>
 #include "__fc_builtin.h"

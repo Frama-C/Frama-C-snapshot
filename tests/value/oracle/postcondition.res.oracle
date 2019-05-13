@@ -34,10 +34,10 @@
 [eva] computing for function u <- get_index <- main.
   Called from tests/value/postcondition.i:20.
 [eva] Done for function u
-[eva] tests/value/postcondition.i:12: 
-  function get_index: postcondition got status valid.
 [eva:alarm] tests/value/postcondition.i:12: Warning: 
   function get_index: postcondition got status unknown.
+[eva] tests/value/postcondition.i:12: 
+  function get_index: postcondition got status valid.
 [eva] Recording results for get_index
 [eva] Done for function get_index
 [eva] computing for function u <- main.

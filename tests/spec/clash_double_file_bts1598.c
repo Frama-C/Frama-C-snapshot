@@ -28,6 +28,5 @@ OPT: @PTEST_FILE@ -cpp-extra-args " -Ishare/libc -nostdinc" -print -then -ocode 
 #include "string.h"
 //#include "tgmath.h"
 #include "time.h"
-#include "uchar.h"
 #include "wchar.h"
 #include "wctype.h"

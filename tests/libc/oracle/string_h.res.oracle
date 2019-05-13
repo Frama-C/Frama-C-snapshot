@@ -59,7 +59,7 @@
 [eva] Done for function test_strstr
 [eva] computing for function test_strncat <- main.
   Called from tests/libc/string_h.c:115.
-[eva] Semantic level unrolling superposing up to 100 states
+[eva] tests/libc/string_h.c:34: Trace partitioning superposing up to 100 states
 [eva] computing for function strncat <- test_strncat <- main.
   Called from tests/libc/string_h.c:36.
 [eva] using specification for function strncat
@@ -256,6 +256,40 @@
   Consider adding ./share/libc/string.c to the analyzed source files.
 [eva] tests/libc/string_h.c:120: Warning: ignoring unsupported \allocates clause
 [eva] Done for function strndup
+[eva] computing for function strlcpy <- main.
+  Called from tests/libc/string_h.c:123.
+[eva] using specification for function strlcpy
+[eva] tests/libc/string_h.c:123: 
+  function strlcpy: precondition 'valid_string_src' got status valid.
+[eva] tests/libc/string_h.c:123: 
+  function strlcpy: precondition 'room_nstring' got status valid.
+[eva] tests/libc/string_h.c:123: 
+  function strlcpy: precondition 'separation' got status valid.
+[eva] Done for function strlcpy
+[eva] computing for function strlcpy <- main.
+  Called from tests/libc/string_h.c:124.
+[eva] tests/libc/string_h.c:124: 
+  function strlcpy: precondition 'valid_string_src' got status valid.
+[eva] tests/libc/string_h.c:124: 
+  function strlcpy: precondition 'room_nstring' got status valid.
+[eva] tests/libc/string_h.c:124: 
+  function strlcpy: precondition 'separation' got status valid.
+[eva] Done for function strlcpy
+[eva] computing for function strlcat <- main.
+  Called from tests/libc/string_h.c:125.
+[eva] using specification for function strlcat
+[eva:alarm] tests/libc/string_h.c:125: Warning: 
+  function strlcat: precondition 'valid_string_src' got status unknown.
+[eva:alarm] tests/libc/string_h.c:125: Warning: 
+  function strlcat: precondition 'valid_string_dest' got status unknown.
+[eva] tests/libc/string_h.c:125: 
+  function strlcat: precondition 'room_nstring' got status valid.
+[eva] Done for function strlcat
+[eva] computing for function strsignal <- main.
+  Called from tests/libc/string_h.c:126.
+[eva] using specification for function strsignal
+[eva] Done for function strsignal
+[eva] tests/libc/string_h.c:127: assertion got status valid.
 [eva] Recording results for main
 [eva] done for function main
 [eva] ====== VALUES COMPUTED ======
@@ -301,4 +335,11 @@
   __fc_strtok_ptr ∈ {{ "constant!" + [0..--] }}
   a ∈ [--..--]
   b ∈ [--..--]
+  buf[0..15] ∈ [--..--]
+  buf2[0..5] ∈ [--..--]
+      [6..31] ∈ [--..--] or UNINITIALIZED
+  r1 ∈ {18}
+  r2 ∈ {5}
+  r3 ∈ [--..--]
+  strsig ∈ {{ &__fc_strsignal[0] }}
   __retres ∈ {0}

@@ -1,0 +1,8 @@
+%init : Init;
+%deterministic;
+%accept: Init;
+
+Init  :
+  { main() } -> Init
+| other -> Init
+;

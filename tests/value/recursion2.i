@@ -1,5 +1,5 @@
 /*run.config*
-  OPT: -no-autoload-plugins -load-module from,inout,eva -val @VALUECONFIG@ -journal-disable -then -input -out -inout
+  OPT: -no-autoload-plugins -load-module from,inout,eva -eva @EVA_CONFIG@ -journal-disable -then -input -out -inout
  */
 int x, y;
 

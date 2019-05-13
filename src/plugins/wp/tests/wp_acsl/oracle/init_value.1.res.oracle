@@ -1,17 +1,155 @@
-# frama-c -wp [...]
+# frama-c -wp -wp-no-let [...]
 [kernel] Parsing tests/wp_acsl/init_value.i (no preprocessing)
 [wp] Running WP plugin...
 [wp] Loading driver 'share/wp.driver'
 [wp] Warning: Missing RTE guards
 ------------------------------------------------------------
+  Function fa1
+------------------------------------------------------------
+
+Goal Post-condition 'qed_ok' in 'fa1':
+Let x = ta1_0[0].
+Let x_1 = ta1_0[1].
+Let x_2 = ta1_0[3].
+Assume {
+  Type: is_sint32(x) /\ is_sint32(x_1) /\ is_sint32(x_2) /\
+      is_sint32(ta1_0[4]).
+}
+Prove: (x_1 = x) /\ (x_2 = x_1).
+
+------------------------------------------------------------
+
+Goal Post-condition 'qed_ko' in 'fa1':
+Let x = ta1_0[4].
+Assume {
+  Type: is_sint32(ta1_0[0]) /\ is_sint32(ta1_0[1]) /\ is_sint32(ta1_0[3]) /\
+      is_sint32(x).
+}
+Prove: x = 0.
+
+------------------------------------------------------------
+
+Goal Post-condition 'qed_ko' in 'fa1':
+Let x = ta1_0[3].
+Assume {
+  Type: is_sint32(ta1_0[0]) /\ is_sint32(ta1_0[1]) /\ is_sint32(x) /\
+      is_sint32(ta1_0[4]).
+}
+Prove: x = 1.
+
+------------------------------------------------------------
+------------------------------------------------------------
+  Function fa2
+------------------------------------------------------------
+
+Goal Post-condition 'qed_ok' in 'fa2':
+Let x = ta2_0[0].
+Let x_1 = ta2_0[1].
+Let x_2 = ta2_0[4].
+Assume { Type: is_sint32(x) /\ is_sint32(x_1) /\ is_sint32(x_2). }
+Prove: (x_1 = x) /\ (x_2 = x_1).
+
+------------------------------------------------------------
+
+Goal Post-condition 'qed_ko' in 'fa2':
+Let x = ta2_0[4].
+Assume { Type: is_sint32(ta2_0[0]) /\ is_sint32(ta2_0[1]) /\ is_sint32(x). }
+Prove: x = 1.
+
+------------------------------------------------------------
+
+Goal Post-condition 'qed_ko' in 'fa2':
+Let x = ta2_0[1].
+Assume { Type: is_sint32(ta2_0[0]) /\ is_sint32(x) /\ is_sint32(ta2_0[4]). }
+Prove: x = 1.
+
+------------------------------------------------------------
+------------------------------------------------------------
+  Function fa3
+------------------------------------------------------------
+
+Goal Post-condition 'qed_ok' in 'fa3':
+Let x = ta1_0[2].
+Let x_1 = ta1_0[4].
+Let x_2 = ta3_0[0].
+Let x_3 = ta3_0[2].
+Assume {
+  Type: is_sint32(x) /\ is_sint32(x_1) /\ is_sint32(x_2) /\ is_sint32(x_3).
+}
+Prove: (x_1 = x) /\ (x_3 = x_2).
+
+------------------------------------------------------------
+
+Goal Post-condition 'qed_ko' in 'fa3':
+Let x = ta3_0[0]. Assume { Type: is_sint32(x) /\ is_sint32(ta3_0[2]). }
+Prove: x = 1.
+
+------------------------------------------------------------
+
+Goal Post-condition 'qed_ko' in 'fa3':
+Let x = ta3_0[2]. Assume { Type: is_sint32(ta3_0[0]) /\ is_sint32(x). }
+Prove: x = 1.
+
+------------------------------------------------------------
+
+Goal Post-condition 'qed_ko' in 'fa3':
+Let x = ta2_0[4]. Assume { Type: is_sint32(x). }
+Prove: x = 1.
+
+------------------------------------------------------------
+------------------------------------------------------------
+  Function fs1
+------------------------------------------------------------
+
+Goal Post-condition 'qed_ok' in 'fs1':
+Let a = ts1_0[0].
+Let a_1 = ts1_0[1].
+Let a_2 = ts1_0[3].
+Let a_3 = ts1_0[2].
+Let x = a_3.F5_a.
+Let x_1 = a_3.F5_b.
+Assume {
+  Type: IsS5(a) /\ IsS5(a_1) /\ IsS5(a_2) /\ is_sint32(a.F5_a) /\
+      is_sint32(x) /\ is_sint32(x_1) /\ is_sint32(a_3.F5_c).
+}
+Prove: (x_1 = x) /\ EqS5(a, a_1) /\ EqS5(a_1, a_2).
+
+------------------------------------------------------------
+
+Goal Post-condition 'qed_ko' in 'fs1':
+Let a = ts1_0[0].
+Let a_1 = ts1_0[2].
+Let x = a_1.F5_c.
+Assume {
+  Type: IsS5(a) /\ IsS5(ts1_0[1]) /\ IsS5(ts1_0[3]) /\ is_sint32(a.F5_a) /\
+      is_sint32(a_1.F5_a) /\ is_sint32(a_1.F5_b) /\ is_sint32(x).
+}
+Prove: x = 1.
+
+------------------------------------------------------------
+
+Goal Post-condition 'qed_ko' in 'fs1':
+Let a = ts1_0[0].
+Let x = a.F5_a.
+Let a_1 = ts1_0[2].
+Assume {
+  Type: IsS5(a) /\ IsS5(ts1_0[1]) /\ IsS5(ts1_0[3]) /\ is_sint32(x) /\
+      is_sint32(a_1.F5_a) /\ is_sint32(a_1.F5_b) /\ is_sint32(a_1.F5_c).
+}
+Prove: x = 1.
+
+------------------------------------------------------------
+------------------------------------------------------------
   Function main_ko
 ------------------------------------------------------------
 
 Goal Pre-condition 'qed_ko,Sc_eq_ko' in 'main_ko':
+Let x = sc2_0.F3_Sc_c.
 Let a = sc2_0.F3_Sc_b.
 Let a_1 = sc3_0.F3_Sc_b.
+Let a_2 = a_1[2].
 Assume {
-  Type: IsS3_Sc(sc2_0) /\ IsS3_Sc(sc3_0).
+  Type: IsS3_Sc(sc2_0) /\ IsS3_Sc(sc3_0) /\ is_sint32(x) /\ is_sint32(a_2).
   (* Initializer *)
   Init: (sc3_0.F3_Sc_a) = 1.
   (* Initializer *)
@@ -19,7 +157,7 @@ Assume {
   (* Initializer *)
   Init: a_1[1] = 3.
   (* Initializer *)
-  Init: a_1[2] = 4.
+  Init: a_2 = 4.
   (* Initializer *)
   Init: (sc3_0.F3_Sc_c) = 0.
   (* Initializer *)
@@ -31,29 +169,80 @@ Assume {
   (* Initializer *)
   Init: forall i : Z. ((2 <= i) -> ((i <= 2) -> (a[i] = 0))).
   (* Initializer *)
-  Init: (sc2_0.F3_Sc_c) = 4.
+  Init: x = 4.
 }
 Prove: EqS3_Sc(sc2_0, sc3_0).
 
 ------------------------------------------------------------
 
 Goal Pre-condition 'qed_ko,Sc_t' in 'main_ko':
-Prove: false.
+Let a = sc3_0.F3_Sc_b.
+Let a_1 = a[2].
+Assume {
+  Type: IsS3_Sc(sc3_0) /\ is_sint32(a_1).
+  (* Initializer *)
+  Init: (sc3_0.F3_Sc_a) = 1.
+  (* Initializer *)
+  Init: a[0] = 2.
+  (* Initializer *)
+  Init: a[1] = 3.
+  (* Initializer *)
+  Init: a_1 = 4.
+  (* Initializer *)
+  Init: (sc3_0.F3_Sc_c) = 0.
+}
+Prove: a_1 = 3.
 
 ------------------------------------------------------------
 
 Goal Pre-condition 'qed_ko,Sc_c_2' in 'main_ko':
-Prove: false.
+Let x = sc2_0.F3_Sc_c.
+Let a = sc2_0.F3_Sc_b.
+Assume {
+  Type: IsS3_Sc(sc2_0) /\ is_sint32(x).
+  (* Initializer *)
+  Init: (sc2_0.F3_Sc_a) = 1.
+  (* Initializer *)
+  Init: a[0] = 2.
+  (* Initializer *)
+  Init: a[1] = 3.
+  (* Initializer *)
+  Init: forall i : Z. ((2 <= i) -> ((i <= 2) -> (a[i] = 0))).
+  (* Initializer *)
+  Init: x = 4.
+}
+Prove: x = 2.
 
 ------------------------------------------------------------
 
 Goal Pre-condition 'qed_ko,Tab_no_init' in 'main_ko':
-Prove: false.
+Let x = tab_0[5].
+Assume {
+  Type: is_uint8(x).
+  (* Initializer *)
+  Init: forall i : Z. ((0 <= i) -> ((i <= 31) -> (tab_0[i] = 0))).
+}
+Prove: x = 1.
 
 ------------------------------------------------------------
 
 Goal Pre-condition 'qed_ko,With_Array_Struct_3' in 'main_ko':
-Prove: false.
+Let a = st_0.F2_St_tab.
+Let a_1 = a[3].
+Assume {
+  Type: is_sint32(a_1).
+  (* Initializer *)
+  Init: a[0] = 1.
+  (* Initializer *)
+  Init: a[1] = 2.
+  (* Initializer *)
+  Init: a[2] = 3.
+  (* Initializer *)
+  Init: a_1 = 4.
+  (* Initializer *)
+  Init: forall i : Z. ((4 <= i) -> ((i <= 9) -> (a[i] = 0))).
+}
+Prove: a_1 = 3.
 
 ------------------------------------------------------------
 
@@ -67,5 +256,44 @@ Assume {
   Init: forall i : Z. ((0 < i) -> ((i <= 1) -> (t[i] = 0))).
 }
 Prove: x = 1.
+
+------------------------------------------------------------
+
+Goal Pre-condition 'qed_ko,T1_6' in 'main_ko':
+Let x = t1_0[6].
+Assume {
+  Type: is_sint32(x).
+  (* Initializer *)
+  Init: forall i : Z. ((0 <= i) -> ((i <= 3) -> (t1_0[i] = 1))).
+  (* Initializer *)
+  Init: forall i : Z. ((5 <= i) -> ((i <= 6) -> (t1_0[i] = 2))).
+  (* Initializer *)
+  Init: forall i : Z. ((4 <= i) -> ((i <= 4) -> (t1_0[i] = 0))).
+  (* Initializer *)
+  Init: forall i : Z. ((7 <= i) -> ((i <= 9) -> (t1_0[i] = 0))).
+}
+Prove: x = 0.
+
+------------------------------------------------------------
+
+Goal Pre-condition 'qed_ko,indirect_init_union_b' in 'main_ko':
+Let x = u.F4_U_b.
+Assume {
+  Type: is_sint64(x) /\ is_sint16((u.F4_U_t)[0]).
+  (* Initializer *)
+  Init: (u.F4_U_a) = (-1).
+}
+Prove: x = 0.
+
+------------------------------------------------------------
+
+Goal Pre-condition 'qed_ko,indirect_init_union_t' in 'main_ko':
+Let a = (u.F4_U_t)[0].
+Assume {
+  Type: is_sint64(u.F4_U_b) /\ is_sint16(a).
+  (* Initializer *)
+  Init: (u.F4_U_a) = (-1).
+}
+Prove: a = 0.
 
 ------------------------------------------------------------

@@ -2,7 +2,7 @@
 /*                                                                        */
 /*  This file is part of Frama-C.                                         */
 /*                                                                        */
-/*  Copyright (C) 2007-2018                                               */
+/*  Copyright (C) 2007-2019                                               */
 /*    CEA (Commissariat à l'énergie atomique et aux énergies              */
 /*         alternatives)                                                  */
 /*                                                                        */
@@ -24,8 +24,10 @@
 #define __FC_DEFINE_FD_SET_T
 #include "features.h"
 __PUSH_FC_STDLIB
+#define FD_SETSIZE 1024
+#define NFDBITS (8 * sizeof(long))
 __BEGIN_DECLS
-typedef struct {char __fc_fd_set;} fd_set;
+typedef struct __fc_fd_set { long __fc_fd_set[FD_SETSIZE / NFDBITS]; } fd_set;
 
 /*@
   requires valid_fdset: \valid(fdset);
@@ -62,6 +64,5 @@ extern void FD_ZERO(fd_set *fdset);
 #define FD_ZERO FD_ZERO
 
 __END_DECLS
-#define FD_SETSIZE 1024
 __POP_FC_STDLIB
 #endif

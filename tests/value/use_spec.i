@@ -1,6 +1,6 @@
 /* run.config*
- OPT: -no-autoload-plugins -load-module from,inout,eva -val-use-spec f,h -val @VALUECONFIG@ -inout -calldeps
- OPT: -no-autoload-plugins -load-module from,inout,eva -val-use-spec f,h -val @VALUECONFIG@ -inout -calldeps -show-indirect-deps
+ OPT: -no-autoload-plugins -load-module from,inout,eva -eva-use-spec f,h -eva @EVA_CONFIG@ -inout -calldeps
+ OPT: -no-autoload-plugins -load-module from,inout,eva -eva-use-spec f,h -eva @EVA_CONFIG@ -inout -calldeps -show-indirect-deps
 */
 
 

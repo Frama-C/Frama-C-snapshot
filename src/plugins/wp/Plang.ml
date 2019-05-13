@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2018                                               *)
+(*  Copyright (C) 2007-2019                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -67,6 +67,7 @@ module E = Qed.Export.Make(Lang.F.QED)
 module Env = E.Env
 
 type scope = Qed.Engine.scope
+type iformat = [ `Dec | `Hex | `Bin ]
 let sanitizer = Qed.Export.sanitize ~to_lowercase:false
 
 class engine =
@@ -74,6 +75,10 @@ class engine =
     inherit E.engine as super
     inherit Lang.idprinting
     method infoprover w = w.altergo
+
+    val mutable iformat : iformat = `Dec
+    method get_iformat = iformat
+    method set_iformat (f : iformat) = iformat <- f
 
     (* --- Types --- *)
 
@@ -97,7 +102,20 @@ class engine =
 
     method e_true _ = "true"
     method e_false _ = "false"
-    method pp_int _ = Integer.pretty ~hexa:false
+
+    method pp_int _ fmt z =
+      try
+        let n = Integer.to_int z in
+        if -256 <= n && n <= 256 then
+          Format.pp_print_int fmt n
+        else
+          raise Z.Overflow
+      with Z.Overflow ->
+      match iformat with
+      | `Dec -> Integer.pretty ~hexa:false fmt z
+      | `Hex -> Integer.pp_hex ~sep:"," fmt z
+      | `Bin -> Integer.pp_bin ~sep:"," fmt z
+
     method pp_real fmt q =
       match Q.classify q with
       | Q.ZERO -> Format.pp_print_string fmt ".0"

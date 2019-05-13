@@ -7,5 +7,5 @@ int TAB[10];
 
 void main() {
   int i;
-  i = &TAB[*T];
+  i = (int) &TAB[*T];
 }

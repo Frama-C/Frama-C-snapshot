@@ -2,7 +2,7 @@
 /*                                                                        */
 /*  This file is part of Frama-C.                                         */
 /*                                                                        */
-/*  Copyright (C) 2007-2018                                               */
+/*  Copyright (C) 2007-2019                                               */
 /*    CEA (Commissariat à l'énergie atomique et aux énergies              */
 /*         alternatives)                                                  */
 /*                                                                        */
@@ -182,9 +182,23 @@ int unsetenv(const char *name)
   return 0;
 }
 
-#ifndef __FRAMAC__
-// declar __fc_strerror to ensure GCC can compile this file (for debugging and tests)
-char __fc_strerror[64];
-#endif
+
+unsigned short __fc_random48_counter[3];
+
+
+// Note: this implementation does not check the alignment, since it cannot
+//       currently be specified in the memory model of most plug-ins
+int posix_memalign(void **memptr, size_t alignment, size_t size) {
+  // By default, specifications in the libc are ignored for defined functions,
+  // and since we do not actually use alignment, we need to check its validity.
+  // The assertion below is the requires in the specification.
+  /*@ assert alignment_is_a_suitable_power_of_two:
+      alignment >= sizeof(void*) &&
+      ((size_t)alignment & ((size_t)alignment - 1)) == 0;
+  */
+  *memptr = malloc(size);
+  if (!*memptr) return ENOMEM;
+  return 0;
+}
 
 __POP_FC_STDLIB

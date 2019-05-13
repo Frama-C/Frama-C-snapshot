@@ -253,7 +253,7 @@ Assume {
   When: (0 <= i) /\ (i <= 499).
   (* Initializer *)
   Init: forall i_1 : Z. ((0 <= i_1) -> ((i_1 <= 499) ->
-      (p[i_1] = global(G_p0_26)))).
+      (p[i_1] = global(G_p0_28)))).
   (* Heap *)
   Have: linked(Malloc_0).
 }

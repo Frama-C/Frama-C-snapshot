@@ -1,5 +1,5 @@
 /* run.config*
-  STDOPT: +"-machdep gcc_x86_32 -val-builtin malloc:Frama_C_malloc_fresh -slevel 11"
+  STDOPT: +"-machdep gcc_x86_32 -eva-builtin malloc:Frama_C_malloc_fresh -slevel 11"
  */
 #include <stdlib.h>
 

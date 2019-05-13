@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2018                                               *)
+(*  Copyright (C) 2007-2019                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -488,7 +488,7 @@ let add_proven_annot (ca, stmt_ca) (ca_because, stmt_because) acc =
 let check_stmt_annots (ca, stmt_ca) stmt acc =
   let check _ annot acc =
     match ca.annot_content, annot.annot_content with
-    | AAssert (_, p'), AAssert (_, p) ->
+    | AAssert (_, Assert, p'), AAssert (_, _, p) ->
         if Logic_utils.is_same_predicate_node p.pred_content p'.pred_content then
           let acc, added = add_proven_annot (annot, stmt) (ca, stmt_ca) acc in
           if added then
@@ -574,7 +574,7 @@ class check_annot_visitor = object(self)
       Cil.get_original_stmt self#behavior (Extlib.the self#current_stmt)
     in
     begin match annot.annot_content with
-      | AAssert (_, _) ->
+      | AAssert _ ->
         R.debug ~level:2 "[check] annot %d at stmt %d in %a : %a@."
           annot.annot_id stmt.sid Kernel_function.pretty kf
           Printer.pp_code_annotation annot;

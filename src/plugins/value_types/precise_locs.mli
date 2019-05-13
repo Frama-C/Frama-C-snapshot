@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2018                                               *)
+(*  Copyright (C) 2007-2019                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -88,7 +88,7 @@ val fold:
   (Locations.location -> 'a -> 'a) -> precise_location -> 'a -> 'a
 
 val enumerate_valid_bits:
-  for_writing:bool -> precise_location -> Locations.Zone.t
+  Locations.access -> precise_location -> Locations.Zone.t
 
 val valid_cardinal_zero_or_one: for_writing:bool -> precise_location -> bool
 (** Is the restriction of the given location to its valid part precise enough
@@ -101,9 +101,9 @@ val cardinal_zero_or_one: precise_location -> bool
 val pretty_loc: precise_location Pretty_utils.formatter
 
 val valid_part:
-  for_writing:bool -> bitfield:bool -> precise_location -> precise_location
-(** Overapproximation of the valid part of the given location for a read or write
-    operation, according to the [for_writing] boolean.
+  Locations.access -> bitfield:bool -> precise_location -> precise_location
+(** Overapproximation of the valid part of the given location (without any
+    access, or for a read or write access).
     [bitfield] indicates whether the location may be the one of a bitfield, and
     is true by default. If it is set to false, the location is assumed to be
     byte aligned, and its offset (expressed in bits) is reduced to be congruent

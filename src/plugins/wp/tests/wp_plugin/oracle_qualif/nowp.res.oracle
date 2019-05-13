@@ -1,0 +1,10 @@
+# frama-c -wp -wp-timeout 90 -wp-steps 1500 [...]
+[kernel] Parsing tests/wp_plugin/nowp.c (with preprocessing)
+[wp] Running WP plugin...
+[wp] Loading driver 'share/wp.driver'
+[wp] Warning: Missing RTE guards
+[wp] 0 goal scheduled
+[wp] Proved goals:    0 / 0
+[wp] Report in:  'tests/wp_plugin/oracle_qualif/nowp.0.report.json'
+[wp] Report out: 'tests/wp_plugin/result_qualif/nowp.0.report.json'
+-------------------------------------------------------------

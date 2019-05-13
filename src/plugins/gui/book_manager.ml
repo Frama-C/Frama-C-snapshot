@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2018                                               *)
+(*  Copyright (C) 2007-2019                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -24,7 +24,7 @@ let dkey = Gui_parameters.register_category "book_manager"
 
 module Q = Qstack.Make
     (struct
-      type t = GSourceView2.source_view
+      type t = GSourceView.source_view
       let equal x y = x == y
     end)
 
@@ -112,7 +112,7 @@ let delete_all_views (t:t) =
   Q.iter (fun _ -> t.notebook#remove_page 0) t.views;
   Q.clear t.views
 
-let append_view (t:t) (v:GSourceView2.source_view) =
+let append_view (t:t) (v:GSourceView.source_view) =
   let nb =  t.notebook in
   let next =  Q.length t.views in
   let text = Printf.sprintf "Page %d" next in

@@ -1,11 +1,15 @@
 [kernel] Parsing tests/misc/pragma-pack.c (with preprocessing)
 [kernel:typing:pragma] Pushing fc_stdlib stdint.h
+[kernel:typing:pragma] Pushing fc_stdlib __fc_gcc_builtins.h
+[kernel:typing:pragma] Popping fc_stdlib __fc_gcc_builtins.h
 [kernel:typing:pragma] Pushing fc_stdlib __fc_define_intptr_t.h
 [kernel:typing:pragma] Popping fc_stdlib __fc_define_intptr_t.h
 [kernel:typing:pragma] Popping fc_stdlib stdint.h
 [kernel:typing:pragma] Pushing fc_stdlib stddef.h
 [kernel:typing:pragma] Pushing fc_stdlib __fc_define_size_t.h
 [kernel:typing:pragma] Popping fc_stdlib __fc_define_size_t.h
+[kernel:typing:pragma] Pushing fc_stdlib __fc_define_ssize_t.h
+[kernel:typing:pragma] Popping fc_stdlib __fc_define_ssize_t.h
 [kernel:typing:pragma] Pushing fc_stdlib __fc_define_wchar_t.h
 [kernel:typing:pragma] Popping fc_stdlib __fc_define_wchar_t.h
 [kernel:typing:pragma] Popping fc_stdlib stddef.h

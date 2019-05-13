@@ -4,10 +4,11 @@
 [wp] Loading driver 'share/wp.driver'
 [wp] Warning: Missing RTE guards
 [wp] 1 goal scheduled
-[wp] [Alt-Ergo] Goal typed_cast_sgn_usgn_post_qed_ko_KO : Unknown
+[wp] [Alt-Ergo] Goal typed_cast_sgn_usgn_ensures_qed_ko_KO : Unsuccess
 [wp] Proved goals:    0 / 1
-  Alt-Ergo:        0  (unknown: 1)
-[wp] Report 'tests/wp_acsl/arith.i.1.report.json'
+  Alt-Ergo:        0  (unsuccess: 1)
+[wp] Report in:  'tests/wp_acsl/oracle_qualif/arith.1.report.json'
+[wp] Report out: 'tests/wp_acsl/result_qualif/arith.1.report.json'
 -------------------------------------------------------------
 Functions           WP     Alt-Ergo        Total   Success
 cast_sgn_usgn       -      -                 1       0.0%

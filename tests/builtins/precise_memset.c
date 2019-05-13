@@ -1,5 +1,5 @@
 /* run.config*
-   STDOPT: #" -val -calldeps "
+   STDOPT: #" -eva -calldeps "
  */
 
 #include "string.h"

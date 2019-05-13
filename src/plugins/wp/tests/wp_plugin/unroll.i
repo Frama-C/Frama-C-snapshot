@@ -1,5 +1,5 @@
 /* run.config
-   OPT: -ulevel=1 -wp -wp-prop=@ensures -wp-prover script -session tests/wp_plugin/unroll
+   OPT: -ulevel=1 -wp -wp-prop=@ensures -wp-prover script -session tests/wp_plugin/unroll -wp-msg-key no-time-info,no-step-info
 */
 
 /* run.config_qualif

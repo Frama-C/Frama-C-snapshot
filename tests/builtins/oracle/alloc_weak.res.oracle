@@ -1,4 +1,6 @@
 [kernel] Parsing tests/builtins/alloc_weak.c (with preprocessing)
+[kernel:typing:int-conversion] tests/builtins/alloc_weak.c:37: Warning: 
+  Conversion from a pointer to an integer without an explicit cast
 [eva] Analyzing a complete application starting at main
 [eva] Computing initial state
 [eva] Initial state computed
@@ -39,14 +41,22 @@
   Called from tests/builtins/alloc_weak.c:73.
 [eva] tests/builtins/alloc_weak.c:37: Call to builtin malloc
 [eva] tests/builtins/alloc_weak.c:37: allocating variable __malloc_main2_l37
-[eva] Semantic level unrolling superposing up to 100 states
-[eva] Semantic level unrolling superposing up to 200 states
-[eva] Semantic level unrolling superposing up to 300 states
-[eva] Semantic level unrolling superposing up to 400 states
-[eva] Semantic level unrolling superposing up to 500 states
-[eva] Semantic level unrolling superposing up to 600 states
-[eva] Semantic level unrolling superposing up to 700 states
-[eva] Semantic level unrolling superposing up to 800 states
+[eva] tests/builtins/alloc_weak.c:40: 
+  Trace partitioning superposing up to 100 states
+[eva] tests/builtins/alloc_weak.c:40: 
+  Trace partitioning superposing up to 200 states
+[eva] tests/builtins/alloc_weak.c:40: 
+  Trace partitioning superposing up to 300 states
+[eva] tests/builtins/alloc_weak.c:40: 
+  Trace partitioning superposing up to 400 states
+[eva] tests/builtins/alloc_weak.c:40: 
+  Trace partitioning superposing up to 500 states
+[eva] tests/builtins/alloc_weak.c:40: 
+  Trace partitioning superposing up to 600 states
+[eva] tests/builtins/alloc_weak.c:40: 
+  Trace partitioning superposing up to 700 states
+[eva] tests/builtins/alloc_weak.c:40: 
+  Trace partitioning superposing up to 800 states
 [eva] Recording results for main2
 [eva] Done for function main2
 [eva] computing for function main3 <- main.

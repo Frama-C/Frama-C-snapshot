@@ -1,17 +1,83 @@
 # frama-c -wp [...]
 [kernel] Parsing tests/wp_plugin/dynamic.i (no preprocessing)
 [wp] Running WP plugin...
-[wp] Computing dynamic calls.
-[wp] Dynamic call(s): 3.
+[wp:calls] Computing dynamic calls.
+[wp] tests/wp_plugin/dynamic.i:30: Calls f1 f2
+[wp] tests/wp_plugin/dynamic.i:44: Calls g
+[wp] tests/wp_plugin/dynamic.i:65: Calls h1 h2
+[wp] tests/wp_plugin/dynamic.i:78: Calls (for bhv1) h1 h2 h0
+[wp] tests/wp_plugin/dynamic.i:78: Calls (for bhv0) h1 h2 h0
+[wp] tests/wp_plugin/dynamic.i:87: Calls h1
+[wp] tests/wp_plugin/dynamic.i:100: Calls unreachable_g
+[wp:calls] Dynamic call(s): 6.
 [wp] Loading driver 'share/wp.driver'
+[wp] tests/wp_plugin/dynamic.i:78: Warning: Missing 'calls' for default behavior
 [wp] Warning: Missing RTE guards
+------------------------------------------------------------
+  Function behavior with behavior bhv1
+------------------------------------------------------------
+
+Goal Call point h1 h2 in 'behavior' at instruction (file tests/wp_plugin/dynamic.i, line 65):
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Post-condition for 'bhv1' (file tests/wp_plugin/dynamic.i, line 62) in 'behavior' (1/2):
+Tags: Call h1.
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Post-condition for 'bhv1' (file tests/wp_plugin/dynamic.i, line 62) in 'behavior' (2/2):
+Tags: Call h2.
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Assigns for 'bhv1' (file tests/wp_plugin/dynamic.i, line 61) in 'behavior' (1/2):
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Assigns for 'bhv1' (file tests/wp_plugin/dynamic.i, line 61) in 'behavior' (2/2):
+Call Effect at line 65
+Tags: Call h2.
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Assigns for 'bhv1' (file tests/wp_plugin/dynamic.i, line 61) in 'behavior' (1/4):
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Assigns for 'bhv1' (file tests/wp_plugin/dynamic.i, line 61) in 'behavior' (2/4):
+Call Effect at line 65
+Tags: Call h2.
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Assigns for 'bhv1' (file tests/wp_plugin/dynamic.i, line 61) in 'behavior' (3/4):
+Call Result at line 65
+Tags: Call h1.
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Assigns for 'bhv1' (file tests/wp_plugin/dynamic.i, line 61) in 'behavior' (4/4):
+Call Result at line 65
+Tags: Call h2.
+Prove: true.
+
+------------------------------------------------------------
 ------------------------------------------------------------
   Function call
 ------------------------------------------------------------
 
-Goal calls f1 f2 in 'call' at instruction (file tests/wp_plugin/dynamic.i, line 30):
+Goal Call point f1 f2 in 'call' at instruction (file tests/wp_plugin/dynamic.i, line 30):
 Let a = Mptr_0[shiftfield_F1_S_f(closure_0)].
-Let a_1 = global(G_f2_26).
+Let a_1 = global(G_f2_28).
 Let a_2 = global(G_f1_20).
 Let x = Mint_0[shiftfield_F1_S_param(closure_0)].
 Assume {
@@ -48,6 +114,7 @@ Assume {
   (* Pre-condition *)
   Have: abs_int(x) <= 5.
   (* Instance of 'f1' *)
+  (* Call point f1 f2 *)
   Have: Mptr_0[shiftfield_F1_S_f(closure_0)] = global(G_f1_20).
 }
 Prove: ((-10) <= x) /\ (x <= 10).
@@ -57,7 +124,7 @@ Prove: ((-10) <= x) /\ (x <= 10).
   Function guarded_call
 ------------------------------------------------------------
 
-Goal calls g in 'guarded_call' at instruction (file tests/wp_plugin/dynamic.i, line 44):
+Goal Call point g in 'guarded_call' at instruction (file tests/wp_plugin/dynamic.i, line 44):
 Prove: true.
 
 ------------------------------------------------------------
@@ -70,7 +137,7 @@ Assume {
   (* Heap *)
   Have: (region(p.base) <= 0) /\ framed(Mptr_0).
   (* Else *)
-  Have: G_g_44 = 0.
+  Have: G_g_46 = 0.
 }
 Prove: X = 1.
 
@@ -93,31 +160,228 @@ Prove: true.
 
 ------------------------------------------------------------
 ------------------------------------------------------------
+  Function missing_context
+------------------------------------------------------------
+
+Goal Call point h1 in 'missing_context' at instruction (file tests/wp_plugin/dynamic.i, line 87):
+Assume { (* Heap *) Have: region(p.base) <= 0. }
+Prove: global(G_h1_59) = p.
+
+------------------------------------------------------------
+
+Goal Post-condition (file tests/wp_plugin/dynamic.i, line 82) in 'missing_context':
+Tags: Call h1.
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Assigns (file tests/wp_plugin/dynamic.i, line 83) in 'missing_context':
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Assigns (file tests/wp_plugin/dynamic.i, line 83) in 'missing_context' (1/2):
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Assigns (file tests/wp_plugin/dynamic.i, line 83) in 'missing_context' (2/2):
+Call Result at line 87
+Tags: Call h1.
+Prove: true.
+
+------------------------------------------------------------
+------------------------------------------------------------
   Function no_call
 ------------------------------------------------------------
 
-Goal calls unreachable_g in 'no_call' at instruction (file tests/wp_plugin/dynamic.i, line 57):
+Goal Call point unreachable_g in 'no_call' at instruction (file tests/wp_plugin/dynamic.i, line 100):
 Prove: true.
 
 ------------------------------------------------------------
 
-Goal Post-condition (file tests/wp_plugin/dynamic.i, line 51) in 'no_call' (1/2):
+Goal Post-condition (file tests/wp_plugin/dynamic.i, line 94) in 'no_call' (1/2):
 Prove: true.
 
 ------------------------------------------------------------
 
-Goal Post-condition (file tests/wp_plugin/dynamic.i, line 51) in 'no_call' (2/2):
+Goal Post-condition (file tests/wp_plugin/dynamic.i, line 94) in 'no_call' (2/2):
 Tags: Call unreachable_g.
 Prove: true.
 
 ------------------------------------------------------------
 
-Goal Instance of 'Pre-condition (file tests/wp_plugin/dynamic.i, line 48) in 'unreachable_g'' in 'no_call' at instruction (file tests/wp_plugin/dynamic.i, line 57)
+Goal Instance of 'Pre-condition (file tests/wp_plugin/dynamic.i, line 91) in 'unreachable_g'' in 'no_call' at instruction (file tests/wp_plugin/dynamic.i, line 100)
 :
 Tags: Call unreachable_g.
+Prove: true.
+
+------------------------------------------------------------
+------------------------------------------------------------
+  Function some_behaviors with behavior bhv0
+------------------------------------------------------------
+
+Goal Call point h1 h2 h0 for bhv0 in 'some_behaviors' at instruction (file tests/wp_plugin/dynamic.i, line 78):
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Post-condition for 'bhv0' (file tests/wp_plugin/dynamic.i, line 75) in 'some_behaviors' (1/3):
+Tags: Call h0.
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Post-condition for 'bhv0' (file tests/wp_plugin/dynamic.i, line 75) in 'some_behaviors' (2/3):
+Tags: Call h2.
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Post-condition for 'bhv0' (file tests/wp_plugin/dynamic.i, line 75) in 'some_behaviors' (3/3):
+Tags: Call h1.
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Assigns for 'bhv0' nothing in 'some_behaviors' (1/3):
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Assigns for 'bhv0' nothing in 'some_behaviors' (2/3):
+Call Effect at line 78
+Tags: Call h2.
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Assigns for 'bhv0' nothing in 'some_behaviors' (3/3):
+Call Effect at line 78
+Tags: Call h1.
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Assigns for 'bhv0' nothing in 'some_behaviors' (1/6):
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Assigns for 'bhv0' nothing in 'some_behaviors' (2/6):
+Call Effect at line 78
+Tags: Call h2.
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Assigns for 'bhv0' nothing in 'some_behaviors' (3/6):
+Call Effect at line 78
+Tags: Call h1.
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Assigns for 'bhv0' nothing in 'some_behaviors' (4/6):
+Call Result at line 78
+Tags: Call h0.
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Assigns for 'bhv0' nothing in 'some_behaviors' (5/6):
+Call Result at line 78
+Tags: Call h2.
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Assigns for 'bhv0' nothing in 'some_behaviors' (6/6):
+Call Result at line 78
+Tags: Call h1.
+Prove: true.
+
+------------------------------------------------------------
+------------------------------------------------------------
+  Function some_behaviors with behavior bhv1
+------------------------------------------------------------
+
+Goal Call point h1 h2 h0 for bhv1 in 'some_behaviors' at instruction (file tests/wp_plugin/dynamic.i, line 78):
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Post-condition for 'bhv1' (file tests/wp_plugin/dynamic.i, line 71) in 'some_behaviors' (1/3):
+Tags: Call h0.
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Post-condition for 'bhv1' (file tests/wp_plugin/dynamic.i, line 71) in 'some_behaviors' (2/3):
+Tags: Call h2.
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Post-condition for 'bhv1' (file tests/wp_plugin/dynamic.i, line 71) in 'some_behaviors' (3/3):
+Tags: Call h1.
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Assigns for 'bhv1' (file tests/wp_plugin/dynamic.i, line 70) in 'some_behaviors' (1/2):
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Assigns for 'bhv1' (file tests/wp_plugin/dynamic.i, line 70) in 'some_behaviors' (2/2):
+Call Effect at line 78
+Tags: Call h2.
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Assigns for 'bhv1' (file tests/wp_plugin/dynamic.i, line 70) in 'some_behaviors' (1/5):
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Assigns for 'bhv1' (file tests/wp_plugin/dynamic.i, line 70) in 'some_behaviors' (2/5):
+Call Effect at line 78
+Tags: Call h2.
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Assigns for 'bhv1' (file tests/wp_plugin/dynamic.i, line 70) in 'some_behaviors' (3/5):
+Call Result at line 78
+Tags: Call h0.
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Assigns for 'bhv1' (file tests/wp_plugin/dynamic.i, line 70) in 'some_behaviors' (4/5):
+Call Result at line 78
+Tags: Call h2.
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Assigns for 'bhv1' (file tests/wp_plugin/dynamic.i, line 70) in 'some_behaviors' (5/5):
+Call Result at line 78
+Tags: Call h1.
 Prove: true.
 
 ------------------------------------------------------------
 [wp] Warning: Memory model hypotheses for function 'guarded_call':
   /*@ behavior typed: requires \separated(&X,p); */
   void guarded_call(struct S *p);
+[wp] Warning: Memory model hypotheses for function 'behavior':
+  /*@ behavior typed: requires \separated(&X1,p); */
+  int behavior(int (*p)(void));
+[wp] Warning: Memory model hypotheses for function 'some_behaviors':
+  /*@ behavior typed: requires \separated(&X1,p); */
+  int some_behaviors(int (*p)(void));
+[wp] Warning: Memory model hypotheses for function 'missing_context':
+  /*@ behavior typed: requires \separated(&X1,p); */
+  int missing_context(int (*p)(void));

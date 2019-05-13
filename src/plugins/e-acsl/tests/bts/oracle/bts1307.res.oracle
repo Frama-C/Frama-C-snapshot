@@ -4,23 +4,29 @@
 [e-acsl] beginning translation.
 [e-acsl] tests/bts/bts1307.i:23: Warning: approximating a real number by a float
 [e-acsl] tests/bts/bts1307.i:23: Warning: 
-  E-ACSL construct `logic function application' is not yet supported.
+  E-ACSL construct `logic functions with no definition nor reads clause'
+  is not yet supported.
   Ignoring annotation.
 [e-acsl] tests/bts/bts1307.i:23: Warning: approximating a real number by a float
 [e-acsl] tests/bts/bts1307.i:23: Warning: 
-  E-ACSL construct `logic function application' is not yet supported.
+  E-ACSL construct `logic functions with no definition nor reads clause'
+  is not yet supported.
   Ignoring annotation.
 [e-acsl] tests/bts/bts1307.i:11: Warning: approximating a real number by a float
 [e-acsl] tests/bts/bts1307.i:11: Warning: 
-  E-ACSL construct `logic function application' is not yet supported.
+  E-ACSL construct `logic functions with no definition nor reads clause'
+  is not yet supported.
   Ignoring annotation.
 [e-acsl] tests/bts/bts1307.i:11: Warning: 
-  E-ACSL construct `logic function application' is not yet supported.
+  E-ACSL construct `logic functions with no definition nor reads clause'
+  is not yet supported.
   Ignoring annotation.
 [e-acsl] tests/bts/bts1307.i:11: Warning: 
-  E-ACSL construct `logic function application' is not yet supported.
+  E-ACSL construct `logic functions with no definition nor reads clause'
+  is not yet supported.
   Ignoring annotation.
 [e-acsl] tests/bts/bts1307.i:11: Warning: 
-  E-ACSL construct `logic function application' is not yet supported.
+  E-ACSL construct `logic functions with no definition nor reads clause'
+  is not yet supported.
   Ignoring annotation.
 [e-acsl] translation done in project "e-acsl".

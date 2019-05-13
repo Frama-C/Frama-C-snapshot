@@ -2,7 +2,7 @@
 #                                                                        #
 #  This file is part of WP plug-in of Frama-C.                           #
 #                                                                        #
-#  Copyright (C) 2007-2018                                               #
+#  Copyright (C) 2007-2019                                               #
 #    CEA (Commissariat a l'energie atomique et aux energies              #
 #         alternatives)                                                  #
 #                                                                        #
@@ -34,13 +34,15 @@ ifneq ("$(FRAMAC_INTERNAL)","yes")
 include $(FRAMAC_SHARE)/Makefile.config
 endif
 
-# Coq Resources Installation
+# Why3 API Available
+WHY3API=@WHY3API@
 
+# Coq Resources Installation
 include $(PLUGIN_DIR)/share/Makefile.resources
 
 # Extension of the GUI for wp is compilable
 # only if gnomecanvas is available
-ifeq ($(HAS_GNOMECANVAS),yes)
+#ifeq ($(HAS_GNOMECANVAS),yes)
 PLUGIN_GUI_CMO:= \
 	GuiConfig \
 	GuiList \
@@ -53,7 +55,7 @@ PLUGIN_GUI_CMO:= \
 	GuiSource \
 	GuiPanel \
 	GuiNavigator
-endif
+#endif
 
 PLUGIN_ENABLE:=@ENABLE_WP@
 PLUGIN_NAME:=Wp
@@ -87,7 +89,8 @@ PLUGIN_CMO:= \
 	TacCongruence TacOverflow Auto \
 	ProofSession ProofScript ProofEngine \
 	why3_xml \
-	ProverTask ProverErgo ProverCoq ProverWhy3 ProverWhy3ide \
+	ProverTask ProverErgo ProverCoq \
+	ProverDetect ProverWhy3 ProverWhy3ide \
 	driver prover ProverSearch ProverScript \
 	Generator Factory \
 	calculus cfgDump cfgWP \
@@ -100,7 +103,13 @@ PLUGIN_GENERATED:= \
    $(PLUGIN_DIR)/rformat.ml \
    $(PLUGIN_DIR)/driver.ml \
    $(PLUGIN_DIR)/why3_xml.ml \
+   $(PLUGIN_DIR)/ProverDetect.ml \
    $(PLUGIN_DIR)/Wp.mli
+
+ifeq ($(WHY3API),yes)
+PLUGIN_REQUIRES:= why3
+endif
+
 PLUGIN_DEPENDENCIES:= rtegen qed
 PLUGIN_UNDOC+=
 PLUGIN_INTRO:=$(PLUGIN_DIR)/intro_wp.txt
@@ -108,6 +117,8 @@ PLUGIN_DISTRIBUTED:=$(PLUGIN_ENABLE)
 PLUGIN_DISTRIB_EXTERNAL:= \
 	Changelog \
 	Makefile.in \
+	ProverDetect.Why3.ml \
+	ProverDetect.None.ml \
         MakeAPI \
 	configure.ac \
 	configure \
@@ -281,6 +292,23 @@ wp-coq-uninstall:
 	@rm -f $(FRAMAC_DATADIR)/wp/coqwp/*.vo
 	@rm -f $(FRAMAC_DATADIR)/wp/coqwp/*/*.vo
 
+# --------------------------------------------------------------------------
+# --- Provers Detection
+# --------------------------------------------------------------------------
+
+$(Wp_DIR)/ProverDetect.ml: config.status $(Wp_DIR)/Makefile.in
+
+ifeq ($(WHY3API),yes)
+$(Wp_DIR)/ProverDetect.ml: $(Wp_DIR)/ProverDetect.Why3.ml
+	$(PRINT_MAKING) "$@ (why3)"
+	@cp -f $< $@
+	$(CHMOD_RO) $@
+else
+$(Wp_DIR)/ProverDetect.ml: $(Wp_DIR)/ProverDetect.None.ml
+	$(PRINT_MAKING) "$@ (none)"
+	@cp -f $< $@
+	$(CHMOD_RO) $@
+endif
 
 # --------------------------------------------------------------------------
 # --- Why3 configuration
@@ -302,7 +330,6 @@ $(Wp_DIR)/share/why3/why3.conf:
 	@printf "[editor_modifiers proofgeneral-coq]\n" >> $@
 	@printf "option=\"--eval \\\\\"(setq coq-load-path (cons '(\\\\\\\\\\\\\"$(FRAMAC_DATADIR)/wp/why3\\\\\\\\\\\\\" \\\\\\\\\\\\\"\\\\\\\\\\\\\") coq-load-path))\\\\\"\"\n"  >> $@
 	@chmod u-w $@
-
 
 # --------------------------------------------------------------------------
 # --- Installation                                                       ---

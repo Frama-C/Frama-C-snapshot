@@ -1,6 +1,6 @@
 /* run.config*
-   STDOPT: +"-slevel 1 -val-mlevel 0"
-   STDOPT: +"-slevel 999 -val-builtin malloc:Frama_C_malloc_fresh,__fc_vla_alloc:Frama_C_malloc_fresh,__fc_vla_free:Frama_C_vla_free"
+   STDOPT: +"-slevel 1 -eva-mlevel 0"
+   STDOPT: +"-slevel 999 -eva-builtin malloc:Frama_C_malloc_fresh,__fc_vla_alloc:Frama_C_malloc_fresh,__fc_vla_free:Frama_C_vla_free"
 */
 #define assert_bottom(exp) if (nondet) {exp; Frama_C_show_each_unreachable();}
 

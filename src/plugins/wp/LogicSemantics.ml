@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2018                                               *)
+(*  Copyright (C) 2007-2019                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -510,8 +510,10 @@ struct
         L.map (Cint.convert i) (C.logic env t)
     | C_int i , L_pointer _ ->
         L.map_l2t (M.int_of_loc i) (C.logic env t)
-    | C_int i , (L_cfloat _ | L_real) ->
+    | C_int i , L_real ->
         L.map (Cint.of_real i) (C.logic env t)
+    | C_int i , L_cfloat f ->
+        L.map (fun v -> Cint.of_real i (Cfloat.real_of_float f v)) (C.logic env t)
     | C_int _, L_array _ ->
         Warning.error "@[Logic cast to sized integer (%a) from (%a) not implemented yet@]"
           Printer.pp_typ dst_ctype Printer.pp_logic_type t.term_type
@@ -541,6 +543,10 @@ struct
            to a deref of a cast to a pointer `*(T( * )[])(p)` *)
         let cast = cast_ptr dst_ctype t0 in
         L.load (C.current env) (Ctypes.object_of dst_ctype) cast
+    | C_array dst_arr_info, L_array src_arr_info
+      when Ctypes.AinfoComparable.equal dst_arr_info src_arr_info ->
+        (* cast from/to the same type *)
+        C.logic env t
     | C_array {arr_flat=Some _}, (L_integer|L_cint _|L_bool|L_real|L_cfloat _|L_array _) ->
         Warning.error "@[Logic cast to sized array (%a) from (%a) not implemented yet@]"
           Printer.pp_typ dst_ctype Printer.pp_logic_type t.term_type
@@ -577,7 +583,13 @@ struct
     | L_cint _ ->
         L.map Cint.to_integer (C.logic env t)
     | L_integer -> C.logic env t
-    | L_cfloat _|L_bool|L_pointer _|L_array _ ->
+    | L_cfloat f ->
+        L.map
+          (fun x -> Cmath.int_of_real (Cfloat.real_of_float f x))
+          (C.logic env t)
+    | L_bool ->
+        L.map Cmath.bool_of_int (C.logic env t)
+    | L_pointer _|L_array _ ->
         Warning.error "@[Logic cast from (%a) to (%a) not implemented yet@]"
           Printer.pp_logic_type src_ltype Printer.pp_logic_type Linteger
 
@@ -585,7 +597,9 @@ struct
     let src_ltype = Logic_utils.unroll_type ~unroll_typedef:false t.term_type in
     match cvsort_of_ltype src_ltype with
     | L_bool -> C.logic env t
-    | L_integer | L_cint _ | L_real | L_cfloat _ | L_pointer _ | L_array _ ->
+    | L_integer | L_cint _ ->
+        L.map Cmath.int_of_bool (C.logic env t)
+    | L_real | L_cfloat _ | L_pointer _ | L_array _ ->
         Warning.error "@[Logic cast from (%a) to (%a) not implemented yet@]"
           Printer.pp_logic_type src_ltype Printer.pp_logic_type Logic_const.boolean_type
 

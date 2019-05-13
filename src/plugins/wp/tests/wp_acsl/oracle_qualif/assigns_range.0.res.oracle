@@ -4,31 +4,32 @@
 [wp] Loading driver 'share/wp.driver'
 [wp] Warning: Missing RTE guards
 [wp] 17 goals scheduled
-[wp] [Qed] Goal typed_call_assigns_all_assign_exit_part1 : Valid
-[wp] [Qed] Goal typed_call_assigns_all_assign_exit_part2 : Valid
-[wp] [Qed] Goal typed_call_assigns_all_assign_exit_part3 : Valid
-[wp] [Qed] Goal typed_call_assigns_all_assign_exit_part4 : Valid
-[wp] [Qed] Goal typed_call_assigns_all_assign_exit_part5 : Valid
-[wp] [Qed] Goal typed_call_assigns_all_assign_normal_part1 : Valid
-[wp] [Qed] Goal typed_call_assigns_all_assign_normal_part2 : Valid
-[wp] [Qed] Goal typed_call_assigns_all_assign_normal_part3 : Valid
-[wp] [Qed] Goal typed_call_assigns_all_assign_normal_part4 : Valid
-[wp] [Qed] Goal typed_call_assigns_all_assign_normal_part5 : Valid
-[wp] [Alt-Ergo] Goal typed_call_assigns_all_call_assigns_t1_an_element_pre : Valid
-[wp] [Qed] Goal typed_call_assigns_all_call_assigns_t2_bound_pre : Valid
-[wp] [Qed] Goal typed_call_assigns_all_call_assigns_t3_inf_bound_pre : Valid
-[wp] [Alt-Ergo] Goal typed_call_assigns_all_call_assigns_t4_sup_bound_pre : Valid
-[wp] [Alt-Ergo] Goal typed_call_assigns_t1_call_assigns_t1_an_element_pre : Valid
-[wp] [Alt-Ergo] Goal typed_call_assigns_t2_call_assigns_t2_bound_pre : Valid
-[wp] [Alt-Ergo] Goal typed_call_assigns_t4_call_assigns_t4_sup_bound_pre : Valid
+[wp] [Qed] Goal typed_call_assigns_all_assigns_exit_part1 : Valid
+[wp] [Qed] Goal typed_call_assigns_all_assigns_exit_part2 : Valid
+[wp] [Qed] Goal typed_call_assigns_all_assigns_exit_part3 : Valid
+[wp] [Qed] Goal typed_call_assigns_all_assigns_exit_part4 : Valid
+[wp] [Qed] Goal typed_call_assigns_all_assigns_exit_part5 : Valid
+[wp] [Qed] Goal typed_call_assigns_all_assigns_normal_part1 : Valid
+[wp] [Qed] Goal typed_call_assigns_all_assigns_normal_part2 : Valid
+[wp] [Qed] Goal typed_call_assigns_all_assigns_normal_part3 : Valid
+[wp] [Qed] Goal typed_call_assigns_all_assigns_normal_part4 : Valid
+[wp] [Qed] Goal typed_call_assigns_all_assigns_normal_part5 : Valid
+[wp] [Alt-Ergo] Goal typed_call_assigns_all_call_assigns_t1_an_element_requires : Valid
+[wp] [Qed] Goal typed_call_assigns_all_call_assigns_t2_bound_requires : Valid
+[wp] [Qed] Goal typed_call_assigns_all_call_assigns_t3_inf_bound_requires : Valid
+[wp] [Alt-Ergo] Goal typed_call_assigns_all_call_assigns_t4_sup_bound_requires : Valid
+[wp] [Alt-Ergo] Goal typed_call_assigns_t1_call_assigns_t1_an_element_requires : Valid
+[wp] [Alt-Ergo] Goal typed_call_assigns_t2_call_assigns_t2_bound_requires : Valid
+[wp] [Alt-Ergo] Goal typed_call_assigns_t4_call_assigns_t4_sup_bound_requires : Valid
 [wp] Proved goals:   17 / 17
   Qed:            12 
   Alt-Ergo:        5
-[wp] Report 'tests/wp_acsl/assigns_range.i.0.report.json'
+[wp] Report in:  'tests/wp_acsl/oracle_qualif/assigns_range.0.report.json'
+[wp] Report out: 'tests/wp_acsl/result_qualif/assigns_range.0.report.json'
 -------------------------------------------------------------
 Functions           WP     Alt-Ergo        Total   Success
-call_assigns_all    12      2 (4..16)       14       100%
-call_assigns_t1     -       1 (1..12)        1       100%
-call_assigns_t2     -       1 (1..12)        1       100%
+call_assigns_all    12      2 (8..20)       14       100%
+call_assigns_t1     -       1 (4..16)        1       100%
+call_assigns_t2     -       1 (4..16)        1       100%
 call_assigns_t4     -       1 (4..16)        1       100%
 -------------------------------------------------------------

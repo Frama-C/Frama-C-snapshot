@@ -2,7 +2,7 @@
 /*                                                                        */
 /*  This file is part of Frama-C.                                         */
 /*                                                                        */
-/*  Copyright (C) 2007-2018                                               */
+/*  Copyright (C) 2007-2019                                               */
 /*    CEA (Commissariat à l'énergie atomique et aux énergies              */
 /*         alternatives)                                                  */
 /*                                                                        */
@@ -43,7 +43,7 @@ __PUSH_FC_STDLIB
 
 __BEGIN_DECLS
 
-typedef struct {
+typedef struct __fc_glob_t {
   __SIZE_T gl_pathc;		/* Count of paths matched by the pattern.  */
   char **gl_pathv;		/* List of matched pathnames.  */
   __SIZE_T gl_offs;		/* Slots to reserve in `gl_pathv'.  */

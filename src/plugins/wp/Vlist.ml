@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2018                                               *)
+(*  Copyright (C) 2007-2019                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -160,7 +160,7 @@ and get_nth_list k = function
 let rewrite_nth s k =
   match F.repr k with
   | L.Kint z ->
-      let k = try Integer.to_int z with _ -> raise Not_found in
+      let k = try Integer.to_int z with Z.Overflow -> raise Not_found in
       if 0 <= k then get_nth k s else raise Not_found
   | _ -> raise Not_found
 

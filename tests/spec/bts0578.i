@@ -1,5 +1,6 @@
 /* run.config
-   OPT: -print -load-script ./tests/spec/bts0578.ml
+   EXECNOW: make -s @PTEST_DIR@/@PTEST_NAME@.cmxs
+   OPT: -print -load-module ./@PTEST_DIR@/@PTEST_NAME@
 */
 
 /*@ behavior foo: ensures \true; */

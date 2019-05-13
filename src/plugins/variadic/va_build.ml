@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2018                                               *)
+(*  Copyright (C) 2007-2019                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -28,7 +28,7 @@ open Cil
 
 let function_declaration ?vattr ~loc name typ mk_spec =
   (* Build the varinfo *)
-  let vi = makeGlobalVar name typ in
+  let vi = makeGlobalVar ~referenced:true name typ in
   Extlib.may (fun extra_vattr -> vi.vattr <- vi.vattr @ extra_vattr) vattr;
   vi.vdecl <- loc;
   (* Build the formals *)

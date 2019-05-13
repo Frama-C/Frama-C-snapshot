@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2018                                               *)
+(*  Copyright (C) 2007-2019                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -42,7 +42,7 @@ type 'a entry = int * int * 'a
 module Wmap = Map.Make
     (struct
       type t = int
-      let compare (a:t) (b:t) = Pervasives.compare a b
+      let compare (a:t) (b:t) = Transitioning.Stdlib.compare a b
     end)
 
 module Rmap = Map.Make

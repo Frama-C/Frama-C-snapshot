@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2018                                               *)
+(*  Copyright (C) 2007-2019                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -253,11 +253,10 @@ let show ?height ?width ~(host:basic_main) () =
       ~title:"Launching analysis"
       ~modal:true
       ~position:`CENTER_ON_PARENT
-      ~allow_shrink:true
+      ~resizable:true
       ?width
       ?height
       ~parent:host#main_window
-      ~allow_grow:true
       ()
   in
   ignore (dialog#misc#connect#size_allocate

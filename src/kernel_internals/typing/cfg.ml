@@ -474,7 +474,9 @@ let xform_switch_block ?(keepSwitch=false) b =
                       xform_switch_stmt
                       rest break_dest cont_dest label_index 0
                 | p ->
-                  let a = Logic_const.new_code_annotation (AAssert ([],p)) in
+                  let a =
+                    Logic_const.new_code_annotation (AAssert ([], Assert, p))
+                  in
                   let assertion = mkStmt (Instr(Code_annot(a,l))) in
                   popn popstack;
                   assertion:: s ::
@@ -495,7 +497,9 @@ let xform_switch_block ?(keepSwitch=false) b =
                       xform_switch_stmt
                       rest break_dest cont_dest label_index 0
                 | p ->
-                  let a = Logic_const.new_code_annotation (AAssert([],p)) in
+                  let a =
+                    Logic_const.new_code_annotation (AAssert ([], Assert, p))
+                  in
                   let assertion = mkStmt (Instr(Code_annot(a,l))) in
                   popn popstack;
                   assertion :: s ::

@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2018                                               *)
+(*  Copyright (C) 2007-2019                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -94,7 +94,11 @@ end
 module HCE = struct
   module S =
     State_builder.Hashcons(E)
-      (struct let dependencies = [Ast.self] let name = "" end)
+      (struct
+        let dependencies = [Ast.self]
+        let name = ""
+        let initial_values = []
+      end)
 
   include S
 

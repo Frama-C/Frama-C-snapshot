@@ -1,5 +1,5 @@
 /* run.config*
-   STDOPT: #" -val-builtin malloc:Frama_C_malloc_fresh"
+   STDOPT: #" -eva-builtin malloc:Frama_C_malloc_fresh"
 */
 #include "stdlib.h" 
 volatile v;

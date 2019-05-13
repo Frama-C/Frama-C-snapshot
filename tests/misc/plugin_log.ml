@@ -12,7 +12,9 @@ let main () =
   debug ~level:0 ~dkey "debug (level 0) with dkey";
   debug ~level:0 "debug (level 0)";
   warning "warning";
+  (* temporarily disabled to avoid leaking version number in test oracle
   error "error";
-  failure "failure"
+  failure "failure";*)
+  ()
 
 let () = Db.Main.extend main

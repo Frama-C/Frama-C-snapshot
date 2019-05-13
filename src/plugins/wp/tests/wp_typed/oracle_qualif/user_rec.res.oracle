@@ -4,28 +4,29 @@
 [wp] Loading driver 'share/wp.driver'
 [wp] Warning: Missing RTE guards
 [wp] 18 goals scheduled
-[wp] [Alt-Ergo] Goal typed_F1_post : Valid
-[wp] [Alt-Ergo] Goal typed_F1_loop_inv_preserved : Valid
-[wp] [Alt-Ergo] Goal typed_F1_loop_inv_established : Valid
-[wp] [Alt-Ergo] Goal typed_F1_loop_inv_2_preserved : Valid
-[wp] [Alt-Ergo] Goal typed_F1_loop_inv_2_established : Valid
-[wp] [Qed] Goal typed_F1_loop_assign : Valid
-[wp] [Alt-Ergo] Goal typed_F2_post : Valid
-[wp] [Alt-Ergo] Goal typed_F2_loop_inv_PART_preserved : Valid
-[wp] [Alt-Ergo] Goal typed_F2_loop_inv_PART_established : Valid
-[wp] [Alt-Ergo] Goal typed_F2_loop_inv_RANGE_preserved : Valid
-[wp] [Alt-Ergo] Goal typed_F2_loop_inv_RANGE_established : Valid
-[wp] [Qed] Goal typed_F2_loop_assign : Valid
-[wp] [Alt-Ergo] Goal typed_F4_post : Valid
-[wp] [Alt-Ergo] Goal typed_F4_loop_inv_NEVER_preserved : Valid
-[wp] [Alt-Ergo] Goal typed_F4_loop_inv_NEVER_established : Valid
-[wp] [Alt-Ergo] Goal typed_F4_loop_inv_RANGE_preserved : Valid
-[wp] [Alt-Ergo] Goal typed_F4_loop_inv_RANGE_established : Valid
-[wp] [Qed] Goal typed_F4_loop_assign : Valid
+[wp] [Alt-Ergo] Goal typed_F1_ensures : Valid
+[wp] [Alt-Ergo] Goal typed_F1_loop_invariant_preserved : Valid
+[wp] [Alt-Ergo] Goal typed_F1_loop_invariant_established : Valid
+[wp] [Alt-Ergo] Goal typed_F1_loop_invariant_2_preserved : Valid
+[wp] [Alt-Ergo] Goal typed_F1_loop_invariant_2_established : Valid
+[wp] [Qed] Goal typed_F1_loop_assigns : Valid
+[wp] [Alt-Ergo] Goal typed_F2_ensures : Valid
+[wp] [Alt-Ergo] Goal typed_F2_loop_invariant_PART_preserved : Valid
+[wp] [Alt-Ergo] Goal typed_F2_loop_invariant_PART_established : Valid
+[wp] [Alt-Ergo] Goal typed_F2_loop_invariant_RANGE_preserved : Valid
+[wp] [Alt-Ergo] Goal typed_F2_loop_invariant_RANGE_established : Valid
+[wp] [Qed] Goal typed_F2_loop_assigns : Valid
+[wp] [Alt-Ergo] Goal typed_F4_ensures : Valid
+[wp] [Alt-Ergo] Goal typed_F4_loop_invariant_NEVER_preserved : Valid
+[wp] [Alt-Ergo] Goal typed_F4_loop_invariant_NEVER_established : Valid
+[wp] [Alt-Ergo] Goal typed_F4_loop_invariant_RANGE_preserved : Valid
+[wp] [Alt-Ergo] Goal typed_F4_loop_invariant_RANGE_established : Valid
+[wp] [Qed] Goal typed_F4_loop_assigns : Valid
 [wp] Proved goals:   18 / 18
   Qed:             3 
   Alt-Ergo:       15
-[wp] Report 'tests/wp_typed/user_rec.i.0.report.json'
+[wp] Report in:  'tests/wp_typed/oracle_qualif/user_rec.0.report.json'
+[wp] Report out: 'tests/wp_typed/result_qualif/user_rec.0.report.json'
 -------------------------------------------------------------
 Functions           WP     Alt-Ergo        Total   Success
 F1                   1      5 (24..36)       6       100%

@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2018                                               *)
+(*  Copyright (C) 2007-2019                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -27,7 +27,7 @@
 type tag = {
   p : int ; (* first position *)
   q : int ; (* last position (excluded) *)
-  tag : Format.tag ;
+  tag : Transitioning.Format.stag ;
   children : tag list ;
 }
 
@@ -50,8 +50,8 @@ let tags_at (_,tags) k = lookup [] k tags
 type env = {
   text : string ;
   output : (string -> int -> int -> unit) option ;
-  open_tag : (Format.tag -> int -> int -> unit) option ;
-  close_tag : (Format.tag -> int -> int -> unit) option ;
+  open_tag : (Transitioning.Format.stag -> int -> int -> unit) option ;
+  close_tag : (Transitioning.Format.stag -> int -> int -> unit) option ;
 }
 
 let signal f tag p q =
@@ -86,8 +86,8 @@ let rec output_vbox fmt text k n =
       end
 
 let output_fmt fmt text k n = Format.pp_print_string fmt (String.sub text k n)
-let open_tag fmt tag _k _n = Format.pp_open_tag fmt tag
-let close_tag fmt _tag _k _n = Format.pp_close_tag fmt ()
+let open_tag fmt tag _k _n = Transitioning.Format.pp_open_stag fmt tag
+let close_tag fmt _tag _k _n = Transitioning.Format.pp_close_stag fmt ()
 
 let pretty ?vbox fmt message =
   let open_tag = open_tag fmt in
@@ -162,7 +162,7 @@ let truncate_text buffer size =
 
 (* All text added shall go through this function *)
 let append buffer s k n =
-  FCBuffer.add_substring buffer.content s k n ; 
+  FCBuffer.add_substring buffer.content s k n ;
   if FCBuffer.length buffer.content > tgr_buffer then
     truncate_text buffer max_buffer
 
@@ -209,12 +209,12 @@ let create ?indent ?margin () =
       Format.pp_set_max_indent fmt (max 0 (min k (m-10)))
   end ;
   let open Format in
-  pp_set_formatter_tag_functions fmt {
-      print_open_tag = push_tag buffer ;
-      print_close_tag = pop_tag buffer ;
-      mark_open_tag = no_mark ;
-      mark_close_tag = no_mark ;
-    } ;
+  Transitioning.Format.pp_set_formatter_stag_functions fmt {
+    Transitioning.Format.print_open_stag = push_tag buffer ;
+    print_close_stag = pop_tag buffer ;
+    mark_open_stag = no_mark ;
+    mark_close_stag = no_mark ;
+  } ;
   pp_set_print_tags fmt true ;
   pp_set_mark_tags fmt false ;
   buffer
@@ -244,4 +244,3 @@ let bprintf buffer text = Format.fprintf buffer.formatter text
 let kprintf kjob buffer text = Format.kfprintf kjob buffer.formatter text
 
 (* -------------------------------------------------------------------------- *)
-

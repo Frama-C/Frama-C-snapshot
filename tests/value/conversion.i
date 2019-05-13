@@ -2,7 +2,7 @@
    STDOPT: +"-eva-warn-copy-indeterminate=-@all -then -eva-warn-copy-indeterminate=@all"
 */
 
-// Comments are given for cases where -val-warn-copy-indeterminate is not set
+// Comments are given for cases where -eva-warn-copy-indeterminate is not set
 
 volatile v;
 

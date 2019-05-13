@@ -1,5 +1,5 @@
 /* run.config*
-   STDOPT: #"-no-val-builtins-auto"
+   STDOPT: #"-eva-no-builtins-auto"
 */
 #define malloc(n) Frama_C_malloc_fresh(n)
 #include "share/libc/stdlib.c"

@@ -32,7 +32,7 @@ int localref(int *p)
 //@ensures KO: \result == r ;
 int alias(int r)
 {
-  int p = &r ;
+  int p = (int) &r ;
   f();
   return r ;
 }

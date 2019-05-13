@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2018                                               *)
+(*  Copyright (C) 2007-2019                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -344,7 +344,7 @@ let () =
     ((Arg.align
         (List.sort
         (fun (optname1, _, _) (optname2, _, _) ->
-          Pervasives.compare optname1 optname2
+          compare optname1 optname2
         ) argspec)
      ) @ ["", Arg.Unit (fun () -> ()), example_msg;])
     make_test_suite umsg
@@ -493,7 +493,7 @@ end = struct
 
 end
 
-let macro_regex = Str.regexp "\\([^@]*\\)@\\([^@]+\\)@\\(.*\\)"
+let macro_regex = Str.regexp "\\([^@]*\\)@\\([^@]*\\)@\\(.*\\)"
 
 type execnow =
     {
@@ -585,15 +585,19 @@ let replace_macros macros s =
       let rest = Str.matched_group 3 s in
       let new_n = Str.group_end 1 in
       let n, new_s =
-        try
-          if !verbosity >= 2 then lock_printf "macro is %s\n%!" macro;
-          let replacement =  StringMap.find macro macros in
-          if !verbosity >= 1 then
-            lock_printf "replacement for %s is %s\n%!" macro replacement;
-          new_n,
-          String.sub s 0 n ^ start ^ replacement ^ rest
-        with
+        if macro = "" then begin
+          new_n + 1, String.sub s 0 new_n ^ "@" ^ rest
+        end else begin
+          try
+            if !verbosity >= 2 then lock_printf "macro is %s\n%!" macro;
+            let replacement =  StringMap.find macro macros in
+            if !verbosity >= 1 then
+              lock_printf "replacement for %s is %s\n%!" macro replacement;
+            new_n,
+            String.sub s 0 n ^ start ^ replacement ^ rest
+          with
           | Not_found -> Str.group_end 2 + 1, s
+        end
       in
        if !verbosity >= 2 then lock_printf "new string is %s\n%!" new_s;
       let new_acc = ptest_file_matched, new_s in
@@ -707,11 +711,12 @@ let config_options =
     (fun _ s current ->
        let new_top =
          List.map
-           (fun (cmd,opts, log) -> cmd, make_custom_opts opts s, current.dc_default_log)
+           (fun (cmd,opts, log) -> cmd, make_custom_opts opts s, log)
            !current_default_cmds
        in
        { current with dc_toplevels = new_top @ current.dc_toplevels;
-                      dc_default_log = !current_default_log });
+                      dc_default_log = !current_default_log @
+                                       current.dc_default_log });
 
     "FILEREG",
     (fun _ s current -> { current with dc_test_regexp = s });
@@ -1102,7 +1107,7 @@ module Make_Report(M:sig type t end)=struct
     (struct
       type t = toplevel_command
       let project cmd = (cmd.directory,cmd.file,cmd.n)
-      let compare c1 c2 = Pervasives.compare (project c1) (project c2)
+      let compare c1 c2 = compare (project c1) (project c2)
       let equal c1 c2 =  (project c1)=(project c2)
       let hash c = Hashtbl.hash (project c)
      end)

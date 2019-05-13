@@ -1,68 +1,7 @@
 diff tests/idct/oracle/ieee_1180_1990.res.oracle tests/idct/oracle_gauges/ieee_1180_1990.res.oracle
-51a52,55
-> [eva] tests/idct/idct.c:90: Call to builtin Frama_C_sqrt for function sqrt
-> [eva] tests/idct/idct.c:91: Call to builtin Frama_C_cos for function cos
-> [eva] tests/idct/idct.c:90: Call to builtin Frama_C_sqrt for function sqrt
-> [eva] tests/idct/idct.c:91: Call to builtin Frama_C_cos for function cos
-150a155,158
-> [eva] tests/idct/ieee_1180_1990.c:85: 
->   Reusing old results for call to IEEE_1180_1990_rand
-> [eva] tests/idct/ieee_1180_1990.c:85: 
->   Reusing old results for call to IEEE_1180_1990_rand
-198a207,214
+579a580,581
 > [eva] tests/idct/ieee_1180_1990.c:100: 
 >   Call to builtin Frama_C_sqrt for function sqrt
-> [eva] tests/idct/ieee_1180_1990.c:101: 
->   Call to builtin Frama_C_cos for function cos
-> [eva] tests/idct/ieee_1180_1990.c:100: 
->   Call to builtin Frama_C_sqrt for function sqrt
-> [eva] tests/idct/ieee_1180_1990.c:101: 
->   Call to builtin Frama_C_cos for function cos
-280a297,304
+605a608,609
 > [eva] tests/idct/ieee_1180_1990.c:140: 
 >   Call to builtin Frama_C_sqrt for function sqrt
-> [eva] tests/idct/ieee_1180_1990.c:141: 
->   Call to builtin Frama_C_cos for function cos
-> [eva] tests/idct/ieee_1180_1990.c:140: 
->   Call to builtin Frama_C_sqrt for function sqrt
-> [eva] tests/idct/ieee_1180_1990.c:141: 
->   Call to builtin Frama_C_cos for function cos
-548a573,574
-> [eva] tests/idct/ieee_1180_1990.c:100: 
->   Call to builtin Frama_C_sqrt for function sqrt
-574a601,602
-> [eva] tests/idct/ieee_1180_1990.c:140: 
->   Call to builtin Frama_C_sqrt for function sqrt
-688a717,718
-> [eva] tests/idct/ieee_1180_1990.c:100: 
->   Call to builtin Frama_C_sqrt for function sqrt
-891a922,950
-> [eva] tests/idct/ieee_1180_1990.c:236: 
->   Reusing old results for call to IEEE_1180_1990_dctf
-> [eva] tests/idct/ieee_1180_1990.c:237: 
->   Reusing old results for call to IEEE_1180_1990_idctf
-> [eva] tests/idct/ieee_1180_1990.c:238: Reusing old results for call to idct
-> [eva] tests/idct/ieee_1180_1990.c:257: 
->   Reusing old results for call to IEEE_1180_1990_mkbk
-> [eva] tests/idct/ieee_1180_1990.c:258: 
->   Reusing old results for call to IEEE_1180_1990_dctf
-> [eva] tests/idct/ieee_1180_1990.c:259: 
->   Reusing old results for call to IEEE_1180_1990_idctf
-> [eva] tests/idct/ieee_1180_1990.c:260: Reusing old results for call to idct
-> [eva] tests/idct/ieee_1180_1990.c:282: 
->   Reusing old results for call to IEEE_1180_1990_dctf
-> [eva] tests/idct/ieee_1180_1990.c:283: 
->   Reusing old results for call to IEEE_1180_1990_idctf
-> [eva] tests/idct/ieee_1180_1990.c:284: Reusing old results for call to idct
-> [eva] tests/idct/ieee_1180_1990.c:303: 
->   Reusing old results for call to IEEE_1180_1990_mkbk
-> [eva] tests/idct/ieee_1180_1990.c:304: 
->   Reusing old results for call to IEEE_1180_1990_dctf
-> [eva] tests/idct/ieee_1180_1990.c:305: 
->   Reusing old results for call to IEEE_1180_1990_idctf
-> [eva] tests/idct/ieee_1180_1990.c:306: Reusing old results for call to idct
-> [eva] tests/idct/ieee_1180_1990.c:328: 
->   Reusing old results for call to IEEE_1180_1990_dctf
-> [eva] tests/idct/ieee_1180_1990.c:329: 
->   Reusing old results for call to IEEE_1180_1990_idctf
-> [eva] tests/idct/ieee_1180_1990.c:330: Reusing old results for call to idct

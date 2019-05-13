@@ -1,0 +1,3 @@
+logic const : 'b -> ('a,'b) farray
+axiom const_access : forall k:'a,v:'b. const(v)[k] = v
+

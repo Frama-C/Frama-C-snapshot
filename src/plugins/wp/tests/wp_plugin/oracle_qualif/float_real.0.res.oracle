@@ -1,0 +1,19 @@
+# frama-c -wp -wp-model 'Typed (Real)' -wp-timeout 90 -wp-steps 1500 [...]
+[kernel] Parsing tests/wp_plugin/float_real.i (no preprocessing)
+[kernel:parser:decimal-float] tests/wp_plugin/float_real.i:19: Warning: 
+  Floating-point constant 1e-5 is not represented exactly. Will use 0x1.4f8b588e368f1p-17.
+  (warn-once: no further messages from category 'parser:decimal-float' will be emitted)
+[wp] Running WP plugin...
+[wp] Loading driver 'share/wp.driver'
+[wp] Warning: Missing RTE guards
+[wp] 1 goal scheduled
+[wp] [Alt-Ergo] Goal typed_real_dequal_ensures : Valid
+[wp] Proved goals:    1 / 1
+  Qed:             0 
+  Alt-Ergo:        1
+[wp] Report in:  'tests/wp_plugin/oracle_qualif/float_real.0.report.json'
+[wp] Report out: 'tests/wp_plugin/result_qualif/float_real.0.report.json'
+-------------------------------------------------------------
+Functions           WP     Alt-Ergo        Total   Success
+dequal              -       1 (12..24)       1       100%
+-------------------------------------------------------------

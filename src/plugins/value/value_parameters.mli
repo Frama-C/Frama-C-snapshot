@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2018                                               *)
+(*  Copyright (C) 2007-2019                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -72,6 +72,11 @@ module WarnCopyIndeterminate: Parameter_sig.Kernel_function_set
 
 module IgnoreRecursiveCalls: Parameter_sig.Bool
 
+module DescendingIteration: Parameter_sig.String
+module HierarchicalConvergence: Parameter_sig.Bool
+module WideningDelay: Parameter_sig.Int
+module WideningPeriod: Parameter_sig.Int
+
 module SemanticUnrollingLevel: Parameter_sig.Int
 module SlevelFunction:
   Parameter_sig.Map with type key = Cil_types.kernel_function
@@ -80,11 +85,11 @@ module SlevelFunction:
 module SlevelMergeAfterLoop: Parameter_sig.Kernel_function_set
 
 module MinLoopUnroll : Parameter_sig.Int
+module DefaultLoopUnroll : Parameter_sig.Int
+module HistoryPartitioning : Parameter_sig.Int
+module ValuePartitioning : Parameter_sig.String_set
+module SplitLimit : Parameter_sig.Int
 
-module DescendingIteration: Parameter_sig.String
-module HierarchicalConvergence: Parameter_sig.Bool
-module WideningDelay: Parameter_sig.Int
-module WideningPeriod: Parameter_sig.Int
 module ArrayPrecisionLevel: Parameter_sig.Int
 
 module AllocatedContextValid: Parameter_sig.Bool
@@ -149,6 +154,13 @@ module MallocFunctions: Parameter_sig.String_set
 module AllocReturnsNull: Parameter_sig.Bool
 module MallocLevel: Parameter_sig.Int
 
+(** Meta-option *)
+module Precision: Parameter_sig.Int
+
+(* Automatically sets some parameters according to the meta-option
+   -eva-precision. *)
+val configure_precision: unit -> unit
+
 
 val parameters_correctness: Typed_parameter.t list
 val parameters_tuning: Typed_parameter.t list
@@ -159,6 +171,7 @@ val parameters_abstractions: Typed_parameter.t list
     -value-msg-key="-initial_state,-final_state" *)
 val dkey_initial_state : category
 val dkey_final_states : category
+val dkey_summary : category
 
 (** Warning category used when emitting an alarm in "warning" mode. *)
 val wkey_alarm: warn_category
@@ -180,7 +193,16 @@ val wkey_builtins_override: warn_category
 val wkey_libc_unsupported_spec : warn_category
 
 (** Warning category used for "loop not completely unrolled" *)
-val wkey_loop_unrolling : warn_category
+val wkey_loop_unroll : warn_category
+
+(** Warning category used to identify loops without unroll annotations *)
+val wkey_missing_loop_unroll : warn_category
+
+(** Warning category used to identify for loops without unroll annotations *)
+val wkey_missing_loop_unroll_for : warn_category
+
+(** Warning category for signed overflows *)
+val wkey_signed_overflow : warn_category
 
 (** Debug category used to print information about invalid pointer comparisons*)
 val dkey_pointer_comparison: category

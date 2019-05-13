@@ -13,34 +13,35 @@
 [wp] [Qed] Goal typed_behavior2_assert : Valid
 [wp] [Qed] Goal typed_behavior3_assert : Valid
 [wp] [Qed] Goal typed_behavior4_assert : Valid
-[wp] [Alt-Ergo] Goal typed_behavior5_assert_bad : Unknown
+[wp] [Alt-Ergo] Goal typed_behavior5_assert_bad : Unsuccess
 [wp] [Qed] Goal typed_compare_assert : Valid
 [wp] [Qed] Goal typed_empty_assert : Valid
 [wp] [Alt-Ergo] Goal typed_if_assert_assert : Valid
-[wp] [Alt-Ergo] Goal typed_if_assert_assert_2 : Unknown
+[wp] [Alt-Ergo] Goal typed_if_assert_assert_2 : Unsuccess
 [wp] [Qed] Goal typed_if_assert_assert_3 : Valid
-[wp] [Alt-Ergo] Goal typed_if_assert_assert_missing_return : Unknown
+[wp] [Alt-Ergo] Goal typed_if_assert_assert_missing_return : Unsuccess
 [wp] [Qed] Goal typed_main_assert : Valid
 [wp] [Qed] Goal typed_main_assigns_global_assert : Valid
 [wp] [Qed] Goal typed_main_assigns_global_assert_2 : Valid
-[wp] [Alt-Ergo] Goal typed_main_assigns_global_assert_bad : Unknown
+[wp] [Alt-Ergo] Goal typed_main_assigns_global_assert_bad : Unsuccess
 [wp] [Qed] Goal typed_main_ensures_result_assert : Valid
-[wp] [Alt-Ergo] Goal typed_not_main_assert_bad : Unknown
+[wp] [Alt-Ergo] Goal typed_not_main_assert_bad : Unsuccess
 [wp] [Qed] Goal typed_one_assign_assert : Valid
 [wp] [Qed] Goal typed_one_if_assert : Valid
 [wp] [Qed] Goal typed_some_seq_assert : Valid
 [wp] [Qed] Goal typed_some_seq_assert_2 : Valid
-[wp] [Qed] Goal typed_zloop_post : Valid
-[wp] [Alt-Ergo] Goal typed_zloop_loop_inv_preserved : Unknown
-[wp] [Qed] Goal typed_zloop_loop_inv_established : Valid
+[wp] [Qed] Goal typed_zloop_ensures : Valid
+[wp] [Alt-Ergo] Goal typed_zloop_loop_invariant_preserved : Unsuccess
+[wp] [Qed] Goal typed_zloop_loop_invariant_established : Valid
 [wp] [Qed] Goal typed_zloop_assert : Valid
 [wp] [Qed] Goal typed_zloop_assert_2 : Valid
-[wp] [Alt-Ergo] Goal typed_zloop_assert_3 : Unknown
-[wp] [Alt-Ergo] Goal typed_zloop_assert_bad : Unknown
+[wp] [Alt-Ergo] Goal typed_zloop_assert_3 : Unsuccess
+[wp] [Alt-Ergo] Goal typed_zloop_assert_bad : Unsuccess
 [wp] Proved goals:   19 / 27
   Qed:            18 
-  Alt-Ergo:        1  (unknown: 8)
-[wp] Report 'tests/wp/stmtcompiler_test.i.0.report.json'
+  Alt-Ergo:        1  (unsuccess: 8)
+[wp] Report in:  'tests/wp/oracle_qualif/stmtcompiler_test.0.report.json'
+[wp] Report out: 'tests/wp/result_qualif/stmtcompiler_test.0.report.json'
 -------------------------------------------------------------
 Functions           WP     Alt-Ergo        Total   Success
 empty                1     -                 1       100%
@@ -56,6 +57,6 @@ behavior2            1     -                 1       100%
 behavior3            1     -                 1       100%
 behavior4            1     -                 1       100%
 behavior5           -      -                 1       0.0%
-if_assert            1      1 (1..12)        4      50.0%
+if_assert            1      1 (4..16)        4      50.0%
 compare              1     -                 1       100%
 -------------------------------------------------------------

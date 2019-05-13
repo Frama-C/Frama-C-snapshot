@@ -55,6 +55,13 @@
 [eva] tests/libc/strings_h.c:15: 
   function strncasecmp: precondition 'valid_string_s2' got status valid.
 [eva] Done for function strncasecmp
+[eva] computing for function bzero <- main.
+  Called from tests/libc/strings_h.c:18.
+[eva] using specification for function bzero
+[eva] tests/libc/strings_h.c:18: 
+  function bzero: precondition 'valid_memory_area' got status valid.
+[eva] Done for function bzero
+[eva] tests/libc/strings_h.c:19: assertion got status valid.
 [eva] Recording results for main
 [eva] done for function main
 [eva] ====== VALUES COMPUTED ======
@@ -70,3 +77,4 @@
   r3 ∈ [--..--]
   r4 ∈ [--..--]
   r5 ∈ [--..--]
+  s4[0..9] ∈ {0}

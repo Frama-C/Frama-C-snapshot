@@ -19,13 +19,35 @@
 #   configure	configure
 ###############################################################################
 
+##############################
+Plugin E-ACSL 19.0 (Potassium)
+##############################
+
+-  E-ACSL       [2019/04/29] Support for logic functions and predicates
+	        without labels.
+-  runtime      [2019/02/26] The behavior of __e_acsl_assert now depends on the
+	        runtime value of the global variable __e_acsl_sound_verdict:
+	        if 0, it means that its verdict is possibly incorrect.
+-  E-ACSL       [2019/02/26] New option -e-acsl-instrument to instrument
+	        only a specified set of functions. It may lead to incorrect
+	        verdicts.
+-  E-ACSL       [2019/02/19] New option -e-acsl-functions to monitor only
+	        annotations in a white list of functions.
+-* runtime      [2019/02/04] Fix initialization of the E-ACSL runtime in
+	        presence of multiple calls to its initializer (for
+	        instance, if the main is a recursive function).
+-* runtime      [2019/01/02] Fix overlap of TLS with other memory
+                segments for large memory spaces.
+-  E-ACSL       [2018/11/15] Predicates with empty quantifications
+                directly generate \true or \false instead of nested loops.
+
 ##########################
 Plugin E-ACSL 18.0 (Argon)
 ##########################
 
 -* E-ACSL       [2018/11/13] Fix typing bug in quantifications when the
-	        guards of the quantifier variable cannot be represented into
-	        its type.
+                guards of the quantifier variable cannot be represented into
+                its type.
 -* runtime      [2018/11/13] Fix bug #!2405 about memory initialization
                 in presence of GCC constructors.
 -* E-ACSL       [2018/10/23] Fix bug #2406 about monitoring of variables

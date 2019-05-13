@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2018                                               *)
+(*  Copyright (C) 2007-2019                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -27,10 +27,9 @@ open Strategy
 
 module Havoc :
 sig
-  val field : selection field
   val tactical : tactical
   val strategy :
-    ?priority:float -> havoc:selection -> addr:selection -> strategy
+    ?priority:float -> havoc:selection -> strategy
 end
 
 module Separated :

@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2018                                               *)
+(*  Copyright (C) 2007-2019                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -193,7 +193,7 @@ module Make (X: Analysis.S) = struct
     if Cvalue.Model.is_reachable state then
       if Int_Base.(equal loc.Locations.size zero) then GO_Empty, true
       else
-        let loc' = Locations.valid_part ~for_writing:false loc in
+        let loc' = Locations.(valid_part Read loc) in
         if Locations.is_bottom_loc loc' then
           GO_InvalidLoc, false
         else
@@ -202,7 +202,7 @@ module Make (X: Analysis.S) = struct
             match Cvalue.Model.copy_offsetmap loc'.Locations.loc size state with
             | `Bottom -> GO_Bottom, false
             | `Value offsm ->
-              let ok = Locations.is_valid ~for_writing:false loc in
+              let ok = Locations.(is_valid Read loc) in
               GO_Offsetmap offsm, ok
           with Abstract_interp.Error_Top -> GO_Top, false
     else (* Bottom state *)
@@ -261,7 +261,7 @@ module Make (X: Analysis.S) = struct
       | `Bottom -> Locations.Zone.bottom, false, false
       | `Value loc ->
         let ploc = get_precise_loc loc in
-        let z = Precise_locs.enumerate_valid_bits ~for_writing:false ploc in
+        let z = Precise_locs.enumerate_valid_bits Locations.Read ploc in
         z, false, false
     in
     {eval_and_warn=lv_to_zone;
@@ -439,8 +439,7 @@ module Make (X: Analysis.S) = struct
     let tlv_to_zone env tlv =
       let alarms = ref false in
       let alarm_mode = Eval_terms.Track alarms in
-      let for_writing = false in
-      let z = Eval_terms.eval_tlval_as_zone ~for_writing env ~alarm_mode tlv in
+      let z = Eval_terms.eval_tlval_as_zone Locations.Read env ~alarm_mode tlv in
       z, not !alarms, false
     in
     {eval_and_warn=tlv_to_zone;

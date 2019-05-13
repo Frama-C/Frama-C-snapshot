@@ -212,3 +212,35 @@ module Libc = struct
     Cil.mkString ~loc param_str
 
 end
+
+let check kf =
+  (* [kf] is monitored iff all functions must be monitored or [kf] belongs to
+     the white list *)
+  Options.Functions.is_empty ()
+  || Options.Functions.mem kf
+  ||
+    (* also check if [kf] is a duplicate of a monitored function *)
+    let s = RTL.get_original_name kf in
+    try
+      let gen_kf = Globals.Functions.find_by_name s in
+      Options.Functions.mem gen_kf
+    with Not_found ->
+      false
+
+let instrument kf =
+  (* [kf] is monitored iff all functions must be monitored or [kf] belongs to
+     the white list *)
+  Options.Instrument.is_empty ()
+  ||
+  (Options.Instrument.mem kf
+   &&
+   (not (RTL.is_generated_kf kf)
+    ||
+    (* all duplicates belong to [Options.Instrument]. For them, look for
+       their original version. *)
+    let s = RTL.get_original_name kf in
+    try
+      let gen_kf = Globals.Functions.find_by_name s in
+      Options.Instrument.mem gen_kf
+    with Not_found ->
+      false))

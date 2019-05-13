@@ -1,6 +1,6 @@
 /* run.config
-   STDOPT: #"-metrics-no-libc -metrics-value-cover"
-   STDOPT: #"-metrics-libc -metrics-value-cover"
+   STDOPT: #"-metrics-no-libc -metrics-eva-cover"
+   STDOPT: #"-metrics-libc -metrics-eva-cover"
 */
 #include <ctype.h>
 #include <stdio.h> // defines external variables

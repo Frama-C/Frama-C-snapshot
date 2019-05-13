@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2018                                               *)
+(*  Copyright (C) 2007-2019                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -58,12 +58,12 @@ module Widen_Hints : sig
 end
 
 type size_widen_hint = Integer.t
-type generic_widen_hint = Widen_Hints.t
+type numerical_widen_hint = Widen_Hints.t * Fc_float.Widen_Hints.t
 
 include Datatype.S_with_collections with type t := t
 include Lattice_type.Full_AI_Lattice_with_cardinality
   with type t := t
-  and type widen_hint = size_widen_hint * generic_widen_hint
+  and type widen_hint = size_widen_hint * numerical_widen_hint
 
 val is_bottom : t -> bool
 val overlaps: partial:bool -> size:Integer.t -> t -> t -> bool
@@ -91,6 +91,9 @@ val min_max_r_mod :
 
 val min_and_max :
   t -> Integer.t option * Integer.t option
+(** Returns the minimal and maximal integers represented by an ival.
+    [None] means the argument is unbounded.
+    @raise Abstract_interp.Error_Bottom if the argument is bottom. *)
 
 val min_and_max_float : t -> (Fval.F.t * Fval.F.t) option * bool
 (** returns the bounds of the float interval, (or None if the argument is
@@ -98,14 +101,15 @@ val min_and_max_float : t -> (Fval.F.t * Fval.F.t) option * bool
     may be NaN. *)
 
 
-val bitwise_and : size:int -> signed:bool -> t -> t -> t
+val bitwise_and : t -> t -> t
 val bitwise_or : t -> t -> t
 val bitwise_xor : t -> t -> t
-val bitwise_not: t -> t
+val bitwise_signed_not: t -> t
+(* For the two following functions, the argument is assumed to fit within the
+   given size. *)
+val bitwise_unsigned_not: size:int -> t -> t
+val bitwise_not: size:int -> signed:bool -> t -> t
 
-val bitwise_not_size: size:int -> signed:bool -> t -> t
-(** bitwise negation on a finite integer type. The argument is assumed to
-    fit within the type. *)
 
 val zero : t
 (** The lattice element that contains only the integer 0. *)
@@ -233,25 +237,25 @@ val scale : Integer.t -> t -> t
 
 val scale_div : pos:bool -> Integer.t -> t -> t
 (** [scale_div ~pos:false f v] is an over-approximation of the set of
-    elements [x / f] for [x] in [v].
+    elements [x c_div f] for [x] in [v].
 
     [scale_div ~pos:true f v] is an over-approximation of the set of
-    elements [x pos_div f] for [x] in [v]. *)
+    elements [x e_div f] for [x] in [v]. *)
 
 val scale_div_under : pos:bool -> Integer.t -> t -> t
 (** [scale_div_under ~pos:false f v] is an under-approximation of the
-    set of elements [x / f] for [x] in [v].
+    set of elements [x c_div f] for [x] in [v].
 
     [scale_div_under ~pos:true f v] is an under-approximation of the
-    set of elements [x pos_div f] for [x] in [v]. *)
+    set of elements [x e_div f] for [x] in [v]. *)
 
 val div : t -> t -> t (** Integer division *)
 val scale_rem : pos:bool -> Integer.t -> t -> t
 (** [scale_rem ~pos:false f v] is an over-approximation of the set of
-    elements [x mod f] for [x] in [v].
+    elements [x c_rem f] for [x] in [v].
 
     [scale_rem ~pos:true f v] is an over-approximation of the set of
-    elements [x pos_rem f] for [x] in [v]. *)
+    elements [x e_rem f] for [x] in [v]. *)
 
 val c_rem : t -> t -> t
 val mul : t -> t -> t

@@ -1,6 +1,6 @@
 /* run.config
-   EXECNOW: LOG callbacks_initial.res LOG callbacks_initial.err BIN callbacks.sav ./bin/toplevel.opt tests/saveload/callbacks.i -out -calldeps -val-show-progress -main main1 -save ./tests/saveload/result/callbacks.sav > ./tests/saveload/result/callbacks_initial.res 2> ./tests/saveload/result/callbacks_initial.err
-   OPT: -load ./tests/saveload/result/callbacks.sav -main main2 -then -main main3
+   EXECNOW: LOG callbacks_initial.res LOG callbacks_initial.err BIN callbacks.sav ./bin/toplevel.opt tests/saveload/callbacks.i -out -calldeps -eva-show-progress -main main1 -save ./tests/saveload/result/callbacks.sav > ./tests/saveload/result/callbacks_initial.res 2> ./tests/saveload/result/callbacks_initial.err
+   STDOPT: +"-load ./tests/saveload/result/callbacks.sav -main main2 -then -main main3"
 */
 
 /* This tests whether the callbacks for callwise inout and from survive after

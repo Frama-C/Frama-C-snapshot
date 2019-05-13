@@ -4,13 +4,14 @@
 [wp] Loading driver 'share/wp.driver'
 [wp] Warning: Missing RTE guards
 [wp] 4 goals scheduled
-[wp] [Alt-Ergo] Goal typed_f_ko_post_qed_ko : Unknown
-[wp] [Alt-Ergo] Goal typed_f_ko_1_post_qed_ko : Unknown
-[wp] [Alt-Ergo] Goal typed_f_ko_1_post_qed_ko_2 : Unknown
-[wp] [Alt-Ergo] Goal typed_f_ko_1_post_qed_ko_3 : Unknown
+[wp] [Alt-Ergo] Goal typed_f_ko_ensures_qed_ko : Unsuccess
+[wp] [Alt-Ergo] Goal typed_f_ko_1_ensures_qed_ko : Unsuccess
+[wp] [Alt-Ergo] Goal typed_f_ko_1_ensures_qed_ko_2 : Unsuccess
+[wp] [Alt-Ergo] Goal typed_f_ko_1_ensures_qed_ko_3 : Unsuccess
 [wp] Proved goals:    0 / 4
-  Alt-Ergo:        0  (unknown: 4)
-[wp] Report 'tests/wp_plugin/injector.c.1.report.json'
+  Alt-Ergo:        0  (unsuccess: 4)
+[wp] Report in:  'tests/wp_plugin/oracle_qualif/injector.1.report.json'
+[wp] Report out: 'tests/wp_plugin/result_qualif/injector.1.report.json'
 -------------------------------------------------------------
 Functions           WP     Alt-Ergo        Total   Success
 f                   -      -                 4       0.0%

@@ -41,7 +41,6 @@ Hint job,property,qed_ok.
 Proof.
   intros.
   Require Import Fourier.
-  unfold r_1.
   fourier.
 Qed.
 

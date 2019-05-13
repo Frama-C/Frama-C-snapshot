@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2018                                               *)
+(*  Copyright (C) 2007-2019                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -153,7 +153,7 @@ let match_positive_or_null e =
   if not (is_positive_or_null e) then raise Not_found;
   e
 
-let match_power2, match_power2_minus1 =
+let match_power2, _match_power2_minus1 =
   let highest_bit_number =
     let hsb p = if p land 2 = 0 then 0 else 1
     in let hsb p = let n = p lsr 2 in if n = 0 then hsb p else 2 + hsb n
@@ -238,13 +238,14 @@ let match_power2_extraction = match_list_extraction match_power2
 (* -------------------------------------------------------------------------- *)
 
 (* rule A: to_a(to_b x) = to_b x when domain(b) is all included in domain(a) *)
-(* rule B: to_a(to_b x) = to_a x when size(b) is a multiple of size(a) *)
+(* rule B: to_a(to_b x) = to_a x when range(b) is a multiple of range(a)
+                          AND a is not bool *)
 
-(* to_iota(e) where e = to_iota'(e') *)
-let simplify_f_to_conv f iota e conv e' =
+(* to_iota(e) where e = to_iota'(e'), only ranges for iota *)
+let simplify_range_comp f iota e conv e' =
   let iota' = to_cint conv in
-  let size' = Ctypes.i_bits iota' in
-  let size = Ctypes.i_bits iota in
+  let size' = Ctypes.range iota' in
+  let size = Ctypes.range iota in
   if size <= size'
   then e_fun f [e']
   (* rule B:
@@ -258,21 +259,6 @@ let simplify_f_to_conv f iota e conv e' =
      signed iota -> iota' can have any sign *)
   else raise Not_found
 
-let simplify_f_to_land f iota e es' =
-  let size', es' = match_list_head match_power2_minus1 es' in
-  (* land (2**(size')-1) _ is equivalent to a conversion
-     to an unsigned integer of size' bits.
-     So, the end of this function is similar to [simplify_conv] *)
-  let size = Ctypes.i_bits iota in
-  match is_leq (e_int size) size' with
-  | Logic.Yes ->
-      let e' = match es' with
-        | [] -> assert false
-        | [_] -> es' | _ -> [e_fun f_land es']
-      in e_fun f e'
-  | Logic.No -> e
-  | Logic.Maybe -> raise Not_found
-
 let simplify_f_to_bounds iota e =
   (* min(ctypes)<=y<=max(ctypes) ==> to_ctypes(y)=y *)
   let lower,upper = Ctypes.bounds iota in
@@ -284,40 +270,50 @@ let simplify_f_to_bounds iota e =
 let f_to_int = Ctypes.i_memo (fun iota -> make_fun_int "to" iota)
 
 let configure_to_int iota =
-  let f = f_to_int iota in
-  let simplify  = function
-    | [e] ->
-        begin
-          match F.repr e with
-          | Logic.Kint value ->
-              let size = Integer.of_int (Ctypes.i_bits iota) in
-              let signed = Ctypes.signed iota in
-              F.e_zint (Integer.cast ~size ~signed ~value)
-          | Logic.Fun( fland , es ) when Fun.equal fland f_land ->
-              (try simplify_f_to_land f iota e es
-               with Not_found -> simplify_f_to_bounds iota e)
-          | Logic.Fun( flor , es ) when (Fun.equal flor f_lor)
-                                     && not (Ctypes.signed iota) ->
-              (* to_uintN(a|b) == (to_uintN(a) | to_uintN(b)) *)
-              e_fun f_lor (List.map (fun e' -> e_fun f [e']) es)
-          | Logic.Fun( flnot , [ e ] ) when (Fun.equal flnot f_lnot)
-                                         && not (Ctypes.signed iota) ->
-              begin
-                match F.repr e with
-                | Logic.Fun( f' , w ) when f' == f ->
-                    e_fun f [ e_fun f_lnot w ]
-                | _ -> raise Not_found
-              end
-          | Logic.Fun( conv , [e'] ) -> (* unary op *)
-              (try simplify_f_to_conv f iota e conv e'
-               with Not_found -> simplify_f_to_bounds iota e)
-          | _ -> simplify_f_to_bounds iota e
-        end
-    | _ -> raise Not_found
-  in
-  F.set_builtin f simplify ;
 
-  let simplify_leq x y =
+  let simplify_range f iota e =
+    begin
+      try match F.repr e with
+        | Logic.Kint value ->
+            let size = Integer.of_int (Ctypes.range iota) in
+            let signed = Ctypes.signed iota in
+            F.e_zint (Integer.cast ~size ~signed ~value)
+        | Logic.Fun( fland , es )
+          when Fun.equal fland f_land &&
+               not (Ctypes.signed iota) &&
+               List.exists is_positive_or_null es ->
+            (* to_uintN(a) == a & (2^N-1) when a >= 0 *)
+            let m = F.e_zint (snd (Ctypes.bounds iota)) in
+            F.e_fun f_land (m :: es)
+        | Logic.Fun( flor , es ) when (Fun.equal flor f_lor)
+                                   && not (Ctypes.signed iota) ->
+            (* to_uintN(a|b) == (to_uintN(a) | to_uintN(b)) *)
+            F.e_fun f_lor (List.map (fun e' -> e_fun f [e']) es)
+        | Logic.Fun( flnot , [ e ] ) when (Fun.equal flnot f_lnot)
+                                       && not (Ctypes.signed iota) ->
+            begin
+              match F.repr e with
+              | Logic.Fun( f' , w ) when f' == f ->
+                  e_fun f [ e_fun f_lnot w ]
+              | _ -> raise Not_found
+            end
+        | Logic.Fun( conv , [e'] ) -> (* unary op *)
+            simplify_range_comp f iota e conv e'
+        | _ -> raise Not_found
+      with Not_found ->
+        simplify_f_to_bounds iota e
+    end
+  in
+  let simplify_conv f iota e =
+    if iota = Ctypes.CBool then
+      match F.is_equal e F.e_zero with
+      | Yes -> F.e_zero
+      | No -> F.e_one
+      | Maybe -> raise Not_found
+    else
+      simplify_range f iota e
+  in
+  let simplify_leq f iota x y =
     let lower,upper = Ctypes.bounds iota in
     match F.repr y with
     | Logic.Fun( conv , [_] )
@@ -336,7 +332,9 @@ let configure_to_int iota =
           | _ -> raise Not_found
         end
   in
-  F.set_builtin_leq f simplify_leq ;
+  let f = f_to_int iota in
+  F.set_builtin_1 f (simplify_conv f iota) ;
+  F.set_builtin_leq f (simplify_leq f iota) ;
   to_cint_map := FunMap.add f iota !to_cint_map
 
 
@@ -497,14 +495,14 @@ let smp_bitk_positive = function
             F.e_not (bitk_positive k a)
         | Logic.Fun( conv , [a] ) (* when is_to_c_int conv *) ->
             let iota = to_cint conv in
-            let size = Ctypes.i_bits iota in
+            let range = Ctypes.range iota in
             let signed = Ctypes.signed iota in
             if signed then (* beware of sign-bit *)
-              begin match is_leq k (e_int (size-2)) with
+              begin match is_leq k (e_int (range-2)) with
                 | Logic.Yes -> bitk_positive k a
                 | Logic.No | Logic.Maybe -> raise Not_found
               end
-            else begin match is_leq (e_int size) k with
+            else begin match is_leq (e_int range) k with
               | Logic.Yes -> e_false
               | Logic.No -> bitk_positive k a
               | Logic.Maybe -> raise Not_found
@@ -621,7 +619,7 @@ let smp_eq_with_lnot a b = (* b1==~e <==> ~b1==e *)
 
 let two_power_k_minus1 k =
   try Integer.pred (Integer.two_power k)
-  with Integer.Too_big -> raise Not_found
+  with Z.Overflow -> raise Not_found
 
 let smp_eq_with_lsl_cst a0 b0 =
   let b1 = match_integer b0 in
@@ -817,6 +815,7 @@ let c_int_bounds_ival f  =
 
 let max_reduce_quantifiers = 1000
 
+(** We know that t is a predicate which is the opened body of a forall *)
 let reduce_bound v dom t : term =
   let module Exc = struct
     exception True
@@ -833,8 +832,9 @@ let reduce_bound v dom t : term =
         Ival.fold_int red dom (); raise Exc.True
       with Exc.Unknown i -> i in
     let max_bound = try
-        Ival.fold_int(*_decrease*) red dom (); raise Exc.True
+        Ival.fold_int_decrease red dom (); raise Exc.True
       with Exc.Unknown i -> i in
+    (** we try to reduce the bounds of the domains, when trivially false *)
     let dom_red = Ival.inject_range (Some min_bound) (Some max_bound) in
     if not (Ival.equal dom_red dom) && Ival.is_included dom_red dom
     then t
@@ -931,6 +931,8 @@ let is_cint_simplifier = object (self)
           domain <- Tmap.add tvar !var_domain domain;
           let t = walk ~is_goal t in
           domain <- Tmap.remove tvar domain;
+          (** Bonus: Add additionnal hypothesis in forall when we could deduce
+              better constraint on the variable *)
           let t = if quant = Forall &&
                      is_goal &&
                      Ival.cardinal_is_less_than !var_domain max_reduce_quantifiers
@@ -938,6 +940,7 @@ let is_cint_simplifier = object (self)
             else t in
           e_bind quant var t
       | Fun(g,[a]) ->
+          (** Here we simplifies the cints which are redoundant *)
           begin try
               let ubound = c_int_bounds_ival (is_cint g) in
               let dom = (Tmap.find a domain) in

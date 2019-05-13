@@ -105,7 +105,7 @@
   function strcpy: precondition 'room_string' got status valid.
 [eva] tests/libc/stdlib_c_env.c:15: 
   function strcpy: precondition 'separation' got status valid.
-[eva] share/libc/string.h:353: 
+[eva] share/libc/string.h:351: 
   cannot evaluate ACSL term, unsupported ACSL construct: logic function strcmp
 [eva] Done for function strcpy
 [eva] computing for function getenv <- main.

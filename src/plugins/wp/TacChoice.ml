@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2018                                               *)
+(*  Copyright (C) 2007-2019                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -64,13 +64,13 @@ class absurd =
       | Clause(Step s) ->
           begin
             match s.condition with
-            | Have p | When p | Core p ->
+            | Have p | When p | Core p | Init p | Type p ->
                 let absurd seq =
                   let emp = Conditions.(step (Have F.p_true)) in
                   let seq = Conditions.replace ~at:s.id emp seq in
                   [ "Absurd" , (fst seq , F.p_not p) ]
                 in Applicable absurd
-            | Init _ | Type _ | Branch _ | Either _ | State _ ->
+            | Branch _ | Either _ | State _ ->
                 Not_applicable
           end
   end
@@ -90,7 +90,7 @@ class contrapose =
       | Clause(Step s) ->
           begin
             match s.condition with
-            | Have p | When p | Core p ->
+            | Have p | When p | Core p | Init p | Type p ->
                 let contrapose (hs,goal) =
                   let descr = "Contrapose" in
                   let goal = F.p_not goal in
@@ -98,7 +98,7 @@ class contrapose =
                   let hs = Conditions.replace ~at:s.id goal (hs , F.p_false) in
                   [ "Contrapose" , (fst hs , F.p_not p) ]
                 in Applicable contrapose
-            | Init _ | Type _ | Branch _ | Either _ | State _ ->
+            | Branch _ | Either _ | State _ ->
                 Not_applicable
           end
 

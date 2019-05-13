@@ -1,6 +1,6 @@
 /* run.config*
    GCC:
-   STDOPT: +"-value-msg-key initial-state -val-initialization-padding-globals no -lib-entry -main main -context-depth 3 -then -main main2 -then -context-width 4"
+   STDOPT: +"-eva-msg-key initial-state -eva-initialization-padding-globals no -lib-entry -main main -context-depth 3 -then -main main2 -then -context-width 4"
 */
 int f_int(int x);
 

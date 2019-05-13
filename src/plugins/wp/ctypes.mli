@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2018                                               *)
+(*  Copyright (C) 2007-2019                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -28,7 +28,7 @@ open Cil_types
 
 (** Runtime integers. *)
 type c_int =
-  | Bool
+  | CBool
   | UInt8
   | SInt8
   | UInt16
@@ -97,9 +97,8 @@ val char : char -> int64
 val constant : exp -> int64
 val get_int : exp -> int64 option
 
-val i_bits : c_int -> int (** size in bits *)
-val i_bytes : c_int -> int (** size in bytes *)
 val signed : c_int -> bool  (** [true] if signed *)
+val range : c_int -> int (** range in 2^n *)
 val bounds: c_int -> Integer.t * Integer.t (** domain, bounds included *)
 
 (** All sizes are in bits *)

@@ -4,33 +4,34 @@
 [wp] Loading driver 'share/wp.driver'
 [wp] Warning: Missing RTE guards
 [wp] 23 goals scheduled
-[wp] [Qed] Goal typed_ref_call_f2_post : Valid
-[wp] [Qed] Goal typed_ref_call_f2_assign_exit_part1 : Valid
-[wp] [Qed] Goal typed_ref_call_f2_assign_exit_part2 : Valid
-[wp] [Alt-Ergo] Goal typed_ref_call_f2_assign_exit_part3 : Unknown
-[wp] [Qed] Goal typed_ref_call_f2_assign_normal_part1 : Valid
-[wp] [Qed] Goal typed_ref_call_f2_assign_normal_part2 : Valid
-[wp] [Alt-Ergo] Goal typed_ref_call_f2_assign_normal_part3 : Unknown
-[wp] [Qed] Goal typed_ref_call_f2_assign_normal_part4 : Valid
-[wp] [Qed] Goal typed_ref_call_f2_call_f2_pre : Valid
-[wp] [Qed] Goal typed_ref_call_global_post : Valid
-[wp] [Qed] Goal typed_ref_call_global_assign_exit : Valid
-[wp] [Qed] Goal typed_ref_call_global_assign_normal_part1 : Valid
-[wp] [Qed] Goal typed_ref_call_global_assign_normal_part2 : Valid
-[wp] [Qed] Goal typed_ref_call_global_call_f_pre : Valid
-[wp] [Qed] Goal typed_ref_g_post : Valid
-[wp] [Qed] Goal typed_ref_g_assign_exit_part1 : Valid
-[wp] [Qed] Goal typed_ref_g_assign_exit_part2 : Valid
-[wp] [Qed] Goal typed_ref_g_assign_normal_part1 : Valid
-[wp] [Qed] Goal typed_ref_g_assign_normal_part2 : Valid
-[wp] [Qed] Goal typed_ref_g_assign_normal_part3 : Valid
-[wp] [Qed] Goal typed_ref_g_call_f_pre : Valid
-[wp] [Qed] Goal typed_ref_write_post : Valid
-[wp] [Qed] Goal typed_ref_write_assign : Valid
+[wp] [Qed] Goal typed_ref_call_f2_ensures : Valid
+[wp] [Qed] Goal typed_ref_call_f2_assigns_exit_part1 : Valid
+[wp] [Qed] Goal typed_ref_call_f2_assigns_exit_part2 : Valid
+[wp] [Alt-Ergo] Goal typed_ref_call_f2_assigns_exit_part3 : Unsuccess
+[wp] [Qed] Goal typed_ref_call_f2_assigns_normal_part1 : Valid
+[wp] [Qed] Goal typed_ref_call_f2_assigns_normal_part2 : Valid
+[wp] [Alt-Ergo] Goal typed_ref_call_f2_assigns_normal_part3 : Unsuccess
+[wp] [Qed] Goal typed_ref_call_f2_assigns_normal_part4 : Valid
+[wp] [Qed] Goal typed_ref_call_f2_call_f2_requires : Valid
+[wp] [Qed] Goal typed_ref_call_global_ensures : Valid
+[wp] [Qed] Goal typed_ref_call_global_assigns_exit : Valid
+[wp] [Qed] Goal typed_ref_call_global_assigns_normal_part1 : Valid
+[wp] [Qed] Goal typed_ref_call_global_assigns_normal_part2 : Valid
+[wp] [Qed] Goal typed_ref_call_global_call_f_requires : Valid
+[wp] [Qed] Goal typed_ref_g_ensures : Valid
+[wp] [Qed] Goal typed_ref_g_assigns_exit_part1 : Valid
+[wp] [Qed] Goal typed_ref_g_assigns_exit_part2 : Valid
+[wp] [Qed] Goal typed_ref_g_assigns_normal_part1 : Valid
+[wp] [Qed] Goal typed_ref_g_assigns_normal_part2 : Valid
+[wp] [Qed] Goal typed_ref_g_assigns_normal_part3 : Valid
+[wp] [Qed] Goal typed_ref_g_call_f_requires : Valid
+[wp] [Qed] Goal typed_ref_write_ensures : Valid
+[wp] [Qed] Goal typed_ref_write_assigns : Valid
 [wp] Proved goals:   21 / 23
   Qed:            21 
-  Alt-Ergo:        0  (unknown: 2)
-[wp] Report 'tests/wp_hoare/reference.i.0.report.json'
+  Alt-Ergo:        0  (unsuccess: 2)
+[wp] Report in:  'tests/wp_hoare/oracle_qualif/reference.0.report.json'
+[wp] Report out: 'tests/wp_hoare/result_qualif/reference.0.report.json'
 -------------------------------------------------------------
 Functions           WP     Alt-Ergo        Total   Success
 g                    7     -                 7       100%

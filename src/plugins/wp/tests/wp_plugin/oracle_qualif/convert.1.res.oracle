@@ -6,8 +6,8 @@
 [wp] [alt-ergo] Goal typed_lemma_ceil : Valid
 [wp] [alt-ergo] Goal typed_lemma_floor : Valid
 [wp] Proved goals:    2 / 2
-  Qed:             0 
-  alt-ergo:        2
+  Qed:                0 
+  Alt-Ergo (why3):    2
 ----------------------------------------------------------
 Axiomatics          WP Alt-Ergo(Why3) Total  Success
 Lemma               -       2          2       100%

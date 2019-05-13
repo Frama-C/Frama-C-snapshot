@@ -6,34 +6,35 @@
 [wp] 26 goals scheduled
 [wp] [Qed] Goal typed_pair_complete_has_pair_no_pair : Valid
 [wp] [Qed] Goal typed_pair_disjoint_has_pair_no_pair : Valid
-[wp] [Alt-Ergo] Goal typed_pair_loop_inv_preserved : Valid
-[wp] [Qed] Goal typed_pair_loop_inv_established : Valid
-[wp] [Alt-Ergo] Goal typed_pair_loop_inv_2_preserved : Valid
-[wp] [Qed] Goal typed_pair_loop_inv_2_established : Valid
-[wp] [Alt-Ergo] Goal typed_pair_loop_inv_3_preserved : Valid
-[wp] [Qed] Goal typed_pair_loop_inv_3_established : Valid
-[wp] [Alt-Ergo] Goal typed_pair_loop_inv_4_preserved : Valid
-[wp] [Alt-Ergo] Goal typed_pair_loop_inv_4_established : Valid
-[wp] [Alt-Ergo] Goal typed_pair_loop_inv_5_preserved : Valid
-[wp] [Qed] Goal typed_pair_loop_inv_5_established : Valid
-[wp] [Alt-Ergo] Goal typed_pair_loop_inv_6_preserved : Valid
-[wp] [Alt-Ergo] Goal typed_pair_loop_inv_6_established : Valid
-[wp] [Qed] Goal typed_pair_loop_assign : Valid
-[wp] [Qed] Goal typed_pair_loop_assign_2 : Valid
-[wp] [Qed] Goal typed_pair_assign_part1 : Valid
-[wp] [Qed] Goal typed_pair_assign_part2 : Valid
-[wp] [Qed] Goal typed_pair_assign_part3 : Valid
-[wp] [Qed] Goal typed_pair_assign_part4 : Valid
-[wp] [Qed] Goal typed_pair_loop_term_decrease : Valid
-[wp] [Qed] Goal typed_pair_loop_term_positive : Valid
-[wp] [Qed] Goal typed_pair_loop_term_2_decrease : Valid
-[wp] [Qed] Goal typed_pair_loop_term_2_positive : Valid
-[wp] [Alt-Ergo] Goal typed_pair_has_pair_post : Valid
-[wp] [Alt-Ergo] Goal typed_pair_no_pair_post : Valid
+[wp] [Alt-Ergo] Goal typed_pair_loop_invariant_preserved : Valid
+[wp] [Qed] Goal typed_pair_loop_invariant_established : Valid
+[wp] [Alt-Ergo] Goal typed_pair_loop_invariant_2_preserved : Valid
+[wp] [Qed] Goal typed_pair_loop_invariant_2_established : Valid
+[wp] [Alt-Ergo] Goal typed_pair_loop_invariant_3_preserved : Valid
+[wp] [Qed] Goal typed_pair_loop_invariant_3_established : Valid
+[wp] [Alt-Ergo] Goal typed_pair_loop_invariant_4_preserved : Valid
+[wp] [Alt-Ergo] Goal typed_pair_loop_invariant_4_established : Valid
+[wp] [Alt-Ergo] Goal typed_pair_loop_invariant_5_preserved : Valid
+[wp] [Qed] Goal typed_pair_loop_invariant_5_established : Valid
+[wp] [Alt-Ergo] Goal typed_pair_loop_invariant_6_preserved : Valid
+[wp] [Alt-Ergo] Goal typed_pair_loop_invariant_6_established : Valid
+[wp] [Qed] Goal typed_pair_loop_assigns : Valid
+[wp] [Qed] Goal typed_pair_loop_assigns_2 : Valid
+[wp] [Qed] Goal typed_pair_assigns_part1 : Valid
+[wp] [Qed] Goal typed_pair_assigns_part2 : Valid
+[wp] [Qed] Goal typed_pair_assigns_part3 : Valid
+[wp] [Qed] Goal typed_pair_assigns_part4 : Valid
+[wp] [Qed] Goal typed_pair_loop_variant_decrease : Valid
+[wp] [Qed] Goal typed_pair_loop_variant_positive : Valid
+[wp] [Qed] Goal typed_pair_loop_variant_2_decrease : Valid
+[wp] [Qed] Goal typed_pair_loop_variant_2_positive : Valid
+[wp] [Alt-Ergo] Goal typed_pair_has_pair_ensures : Valid
+[wp] [Alt-Ergo] Goal typed_pair_no_pair_ensures : Valid
 [wp] Proved goals:   26 / 26
   Qed:            16 
   Alt-Ergo:       10
-[wp] Report 'tests/wp_gallery/frama_c_exo3_solved.simplified.c.0.report.json'
+[wp] Report in:  'tests/wp_gallery/oracle_qualif/frama_c_exo3_solved.simplified.0.report.json'
+[wp] Report out: 'tests/wp_gallery/result_qualif/frama_c_exo3_solved.simplified.0.report.json'
 -------------------------------------------------------------
 Functions           WP     Alt-Ergo        Total   Success
 pair                16     10 (104..128)    26       100%
@@ -43,43 +44,44 @@ pair                16     10 (104..128)    26       100%
 [wp] 35 goals scheduled
 [wp] [Qed] Goal typed_pair_complete_has_pair_no_pair : Valid
 [wp] [Qed] Goal typed_pair_disjoint_has_pair_no_pair : Valid
-[wp] [Alt-Ergo] Goal typed_pair_loop_inv_preserved : Valid
-[wp] [Qed] Goal typed_pair_loop_inv_established : Valid
-[wp] [Alt-Ergo] Goal typed_pair_loop_inv_2_preserved : Valid
-[wp] [Qed] Goal typed_pair_loop_inv_2_established : Valid
+[wp] [Alt-Ergo] Goal typed_pair_loop_invariant_preserved : Valid
+[wp] [Qed] Goal typed_pair_loop_invariant_established : Valid
+[wp] [Alt-Ergo] Goal typed_pair_loop_invariant_2_preserved : Valid
+[wp] [Qed] Goal typed_pair_loop_invariant_2_established : Valid
 [wp] [Qed] Goal typed_pair_assert_rte_index_bound : Valid
 [wp] [Qed] Goal typed_pair_assert_rte_index_bound_2 : Valid
 [wp] [Alt-Ergo] Goal typed_pair_assert_rte_signed_overflow : Valid
-[wp] [Alt-Ergo] Goal typed_pair_loop_inv_3_preserved : Valid
-[wp] [Qed] Goal typed_pair_loop_inv_3_established : Valid
-[wp] [Alt-Ergo] Goal typed_pair_loop_inv_4_preserved : Valid
-[wp] [Alt-Ergo] Goal typed_pair_loop_inv_4_established : Valid
-[wp] [Alt-Ergo] Goal typed_pair_loop_inv_5_preserved : Valid
-[wp] [Qed] Goal typed_pair_loop_inv_5_established : Valid
-[wp] [Alt-Ergo] Goal typed_pair_loop_inv_6_preserved : Valid
-[wp] [Alt-Ergo] Goal typed_pair_loop_inv_6_established : Valid
+[wp] [Alt-Ergo] Goal typed_pair_loop_invariant_3_preserved : Valid
+[wp] [Qed] Goal typed_pair_loop_invariant_3_established : Valid
+[wp] [Alt-Ergo] Goal typed_pair_loop_invariant_4_preserved : Valid
+[wp] [Alt-Ergo] Goal typed_pair_loop_invariant_4_established : Valid
+[wp] [Alt-Ergo] Goal typed_pair_loop_invariant_5_preserved : Valid
+[wp] [Qed] Goal typed_pair_loop_invariant_5_established : Valid
+[wp] [Alt-Ergo] Goal typed_pair_loop_invariant_6_preserved : Valid
+[wp] [Alt-Ergo] Goal typed_pair_loop_invariant_6_established : Valid
 [wp] [Alt-Ergo] Goal typed_pair_assert_rte_mem_access : Valid
 [wp] [Alt-Ergo] Goal typed_pair_assert_rte_index_bound_3 : Valid
 [wp] [Alt-Ergo] Goal typed_pair_assert_rte_index_bound_4 : Valid
 [wp] [Qed] Goal typed_pair_assert_rte_index_bound_5 : Valid
 [wp] [Qed] Goal typed_pair_assert_rte_index_bound_6 : Valid
 [wp] [Alt-Ergo] Goal typed_pair_assert_rte_signed_overflow_2 : Valid
-[wp] [Qed] Goal typed_pair_loop_assign : Valid
-[wp] [Qed] Goal typed_pair_loop_assign_2 : Valid
-[wp] [Qed] Goal typed_pair_assign_part1 : Valid
-[wp] [Qed] Goal typed_pair_assign_part2 : Valid
-[wp] [Qed] Goal typed_pair_assign_part3 : Valid
-[wp] [Qed] Goal typed_pair_assign_part4 : Valid
-[wp] [Qed] Goal typed_pair_loop_term_decrease : Valid
-[wp] [Qed] Goal typed_pair_loop_term_positive : Valid
-[wp] [Qed] Goal typed_pair_loop_term_2_decrease : Valid
-[wp] [Qed] Goal typed_pair_loop_term_2_positive : Valid
-[wp] [Alt-Ergo] Goal typed_pair_has_pair_post : Valid
-[wp] [Alt-Ergo] Goal typed_pair_no_pair_post : Valid
+[wp] [Qed] Goal typed_pair_loop_assigns : Valid
+[wp] [Qed] Goal typed_pair_loop_assigns_2 : Valid
+[wp] [Qed] Goal typed_pair_assigns_part1 : Valid
+[wp] [Qed] Goal typed_pair_assigns_part2 : Valid
+[wp] [Qed] Goal typed_pair_assigns_part3 : Valid
+[wp] [Qed] Goal typed_pair_assigns_part4 : Valid
+[wp] [Qed] Goal typed_pair_loop_variant_decrease : Valid
+[wp] [Qed] Goal typed_pair_loop_variant_positive : Valid
+[wp] [Qed] Goal typed_pair_loop_variant_2_decrease : Valid
+[wp] [Qed] Goal typed_pair_loop_variant_2_positive : Valid
+[wp] [Alt-Ergo] Goal typed_pair_has_pair_ensures : Valid
+[wp] [Alt-Ergo] Goal typed_pair_no_pair_ensures : Valid
 [wp] Proved goals:   19 / 35
   Qed:             4 
   Alt-Ergo:       15
-[wp] Report 'tests/wp_gallery/frama_c_exo3_solved.simplified.c.0.report.json'
+[wp] Report in:  'tests/wp_gallery/oracle_qualif/frama_c_exo3_solved.simplified.0.report.json'
+[wp] Report out: 'tests/wp_gallery/result_qualif/frama_c_exo3_solved.simplified.0.report.json'
 -------------------------------------------------------------
 Functions           WP     Alt-Ergo        Total   Success
 pair                20     15 (104..128)    35       100%

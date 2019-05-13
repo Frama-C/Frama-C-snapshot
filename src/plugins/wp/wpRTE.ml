@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2018                                               *)
+(*  Copyright (C) 2007-2019                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -24,9 +24,9 @@ let dkey = Wp_parameters.register_category "rte"
 
 type t = {
   name : string ;
-  kernel : (unit -> bool) ;
-  rtegen : string ;
   cint : bool ;
+  kernel : (unit -> bool) ;
+  option : string ;
   status : (unit -> Db.RteGen.status_accessor) ref ;
 }
 
@@ -52,14 +52,14 @@ let configure ~update ~generate kf cint rte =
       (* need RTE guard, but kernel option is set *)
       if not (status rte.status kf) then
         begin
-          if option rte.rtegen then
+          if option rte.option then
             let msg = if generate then "generate" else "missing" in
             Wp_parameters.debug ~dkey "function %a: %s rte for %s"
               Kernel_function.pretty kf msg rte.name ;
           else
             Wp_parameters.warning ~once:true ~current:false
               "-wp-rte can annotate %s because %s is not set"
-              rte.name rte.rtegen ;
+              rte.name rte.option ;
           update := true ;
         end
     end
@@ -73,23 +73,27 @@ let configure ~update ~generate kf cint rte =
 let generator =
   [
     { name = "memory access" ;
-      kernel = always ; rtegen = "-rte-mem" ; cint = false ;
+      kernel = always ; option = "-rte-mem" ; cint = false ;
       status = Db.RteGen.get_memAccess_status } ;
     { name = "division by zero" ;
-      kernel = always ; rtegen = "-rte-div" ; cint = false ;
+      kernel = always ; option = "-rte-div" ; cint = false ;
       status = Db.RteGen.get_divMod_status } ;
     { name = "signed overflow" ; cint = true ;
-      kernel = Kernel.SignedOverflow.get ; rtegen = "" ;
+      kernel = Kernel.SignedOverflow.get ; option = "" ;
       status = Db.RteGen.get_signedOv_status } ;
     { name = "unsigned overflow" ; cint = true ;
-      kernel = Kernel.UnsignedOverflow.get ; rtegen = "" ;
+      kernel = Kernel.UnsignedOverflow.get ; option = "" ;
       status = Db.RteGen.get_unsignedOv_status } ;
-    { name = "signed downcast" ; cint = true ; rtegen = "" ;
+    { name = "signed downcast" ; cint = true ; option = "" ;
       kernel = Kernel.SignedDowncast.get ;
       status = Db.RteGen.get_signed_downCast_status } ;
-    { name = "unsigned downcast" ; cint = true ; rtegen = "" ;
+    { name = "unsigned downcast" ; cint = true ; option = "" ;
       kernel = Kernel.UnsignedDowncast.get ;
       status = Db.RteGen.get_unsignedDownCast_status } ;
+    { name = "invalid bool value" ; cint = false ;
+      option = "-warn-invalid-bool" ;
+      kernel = Kernel.InvalidBool.get ;
+      status = Db.RteGen.get_bool_value_status } ;
   ]
 
 let generate kf model =

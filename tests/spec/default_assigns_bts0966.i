@@ -1,5 +1,5 @@
 /* run.config
-   OPT: -val -print
+   OPT: -eva -print
  */
 
 int auto_states[4] ; //   = { 1 , 0 , 0, 0 };

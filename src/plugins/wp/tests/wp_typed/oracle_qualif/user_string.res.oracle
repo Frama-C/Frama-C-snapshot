@@ -4,24 +4,25 @@
 [wp] Loading driver 'share/wp.driver'
 [wp] Warning: Missing RTE guards
 [wp] 13 goals scheduled
-[wp] [Qed] Goal typed_strlen_post : Valid
-[wp] [Qed] Goal typed_strlen_loop_inv_BASE_preserved : Valid
-[wp] [Qed] Goal typed_strlen_loop_inv_BASE_established : Valid
-[wp] [Alt-Ergo] Goal typed_strlen_loop_inv_RANGE_preserved : Valid
-[wp] [Alt-Ergo] Goal typed_strlen_loop_inv_RANGE_established : Valid
-[wp] [Alt-Ergo] Goal typed_strlen_loop_inv_ZERO_preserved : Valid
-[wp] [Qed] Goal typed_strlen_loop_inv_ZERO_established : Valid
+[wp] [Qed] Goal typed_strlen_ensures : Valid
+[wp] [Qed] Goal typed_strlen_loop_invariant_BASE_preserved : Valid
+[wp] [Qed] Goal typed_strlen_loop_invariant_BASE_established : Valid
+[wp] [Alt-Ergo] Goal typed_strlen_loop_invariant_RANGE_preserved : Valid
+[wp] [Alt-Ergo] Goal typed_strlen_loop_invariant_RANGE_established : Valid
+[wp] [Alt-Ergo] Goal typed_strlen_loop_invariant_ZERO_preserved : Valid
+[wp] [Qed] Goal typed_strlen_loop_invariant_ZERO_established : Valid
 [wp] [Alt-Ergo] Goal typed_strlen_assert_END : Valid
-[wp] [Qed] Goal typed_strlen_loop_assign : Valid
-[wp] [Qed] Goal typed_strlen_assign_part1 : Valid
-[wp] [Qed] Goal typed_strlen_assign_part2 : Valid
-[wp] [Qed] Goal typed_strlen_loop_term_decrease : Valid
-[wp] [Alt-Ergo] Goal typed_strlen_loop_term_positive : Valid
+[wp] [Qed] Goal typed_strlen_loop_assigns : Valid
+[wp] [Qed] Goal typed_strlen_assigns_part1 : Valid
+[wp] [Qed] Goal typed_strlen_assigns_part2 : Valid
+[wp] [Qed] Goal typed_strlen_loop_variant_decrease : Valid
+[wp] [Alt-Ergo] Goal typed_strlen_loop_variant_positive : Valid
 [wp] Proved goals:   13 / 13
   Qed:             8 
   Alt-Ergo:        5
-[wp] Report 'tests/wp_typed/user_string.i.0.report.json'
+[wp] Report in:  'tests/wp_typed/oracle_qualif/user_string.0.report.json'
+[wp] Report out: 'tests/wp_typed/result_qualif/user_string.0.report.json'
 -------------------------------------------------------------
 Functions           WP     Alt-Ergo        Total   Success
-strlen               8      5 (192..240)    13       100%
+strlen               8      5 (208..256)    13       100%
 -------------------------------------------------------------

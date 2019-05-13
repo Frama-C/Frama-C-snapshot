@@ -537,6 +537,16 @@ val isCharArrayType: typ -> bool
 (** True if the argument is an integral type (i.e. integer or enum) *)
 val isIntegralType: typ -> bool
 
+(** True if the argument is [_Bool]
+    @since Frama-C+dev
+*)
+val isBoolType: typ -> bool
+
+(** True if the argument is [_Bool] or [boolean].
+    @since Frama-C+dev
+ *)
+val isLogicPureBooleanType: logic_type -> bool
+
 (** True if the argument is an integral or pointer type. *)
 val isIntegralOrPointerType: typ -> bool
 
@@ -672,10 +682,13 @@ val splitFunctionTypeVI:
   [vtemp] field in type {!Cil_types.varinfo}.
   The [source] argument defaults to [true], and corresponds to the field
   [vsource] .
+  The [referenced] argument defaults to [false], and corresponds to the field
+  [vreferenced] .
   The first unnamed argument specifies whether the varinfo is for a global and
   the second is for formals. *)
 val makeVarinfo:
-  ?source:bool -> ?temp:bool -> bool -> bool -> string -> typ -> varinfo
+  ?source:bool -> ?temp:bool -> ?referenced:bool -> bool -> bool -> string ->
+  typ -> varinfo
 
 (** Make a formal variable for a function declaration. Insert it in both the
     sformals and the type of the function. You can optionally specify where to
@@ -696,7 +709,7 @@ val makeFormalVar: fundec -> ?where:string -> string -> typ -> varinfo
     @modify Chlorine-20180501 the name of the variable is guaranteed to be fresh.
 *)
 val makeLocalVar:
-  fundec -> ?scope:block -> ?temp:bool -> ?insert:bool
+  fundec -> ?scope:block -> ?temp:bool -> ?referenced:bool -> ?insert:bool
   -> string -> typ -> varinfo
 
 (** if needed, rename the given varinfo so that its [vname] does not
@@ -720,7 +733,8 @@ val makeTempVar: fundec -> ?insert:bool -> ?name:string -> ?descr:string ->
 
 (** Make a global variable. Your responsibility to make sure that the name
     is unique. [source] defaults to [true]. [temp] defaults to [false].*)
-val makeGlobalVar: ?source:bool -> ?temp:bool -> string -> typ -> varinfo
+val makeGlobalVar: ?source:bool -> ?temp:bool -> ?referenced:bool -> string ->
+  typ -> varinfo
 
 (** Make a shallow copy of a [varinfo] and assign a new identifier.
     If the original varinfo has an associated logic var, it is copied too and
@@ -837,6 +851,13 @@ val isLogicZero: term -> bool
 
 (** True if the given term is [\null] or a constant null pointer*)
 val isLogicNull: term -> bool
+
+(** [no_op_coerce typ term] is [true] iff converting [term] to [typ] does
+    not modify its value.
+
+    @since Frama-C+dev
+*)
+val no_op_coerce: logic_type -> term -> bool
 
 (** gives the value of a wide char literal. *)
 val reduce_multichar: Cil_types.typ -> int64 list -> int64
@@ -1025,7 +1046,8 @@ val appears_in_expr: varinfo -> exp -> bool
     if [valid_sid] is false (the default),
     or to a valid sid if [valid_sid] is true,
     and [labels], [succs] and [preds] to the empty list *)
-val mkStmt: ?ghost:bool -> ?valid_sid:bool -> stmtkind -> stmt
+val mkStmt: ?ghost:bool -> ?valid_sid:bool -> ?sattr:attributes -> stmtkind ->
+  stmt
 
 (* make the [new_stmtkind] changing the CFG relatively to [ref_stmt] *)
 val mkStmtCfg: before:bool -> new_stmtkind:stmtkind -> ref_stmt:stmt -> stmt
@@ -1048,7 +1070,8 @@ val mkStmtCfgBlock: stmt list -> stmt
 (** Construct a statement consisting of just one instruction
     See {!Cil.mkStmt} for the signification of the optional args.
  *)
-val mkStmtOneInstr: ?ghost:bool -> ?valid_sid:bool -> instr -> stmt
+val mkStmtOneInstr: ?ghost:bool -> ?valid_sid:bool -> ?sattr:attributes ->
+  instr -> stmt
 
 (** Try to compress statements so as to get maximal basic blocks.
  * use this instead of List.@ because you get fewer basic blocks *)
@@ -1057,7 +1080,8 @@ val mkStmtOneInstr: ?ghost:bool -> ?valid_sid:bool -> instr -> stmt
 (** Returns an empty statement (of kind [Instr]). See [mkStmt] for [ghost] and
     [valid_sid] arguments.
     @modify Neon-20130301 adds the [valid_sid] optional argument. *)
-val mkEmptyStmt: ?ghost:bool -> ?valid_sid:bool -> ?loc:location -> unit -> stmt
+val mkEmptyStmt: ?ghost:bool -> ?valid_sid:bool -> ?sattr:attributes ->
+  ?loc:location -> unit -> stmt
 
 (** A instr to serve as a placeholder *)
 val dummyInstr: instr
@@ -1089,8 +1113,10 @@ val mkPureExpr:
   ?ghost:bool -> ?valid_sid:bool -> fundec:fundec ->
   ?loc:location -> exp -> stmt
 
-(** Make a while loop. Can contain Break or Continue *)
-val mkWhile: guard:exp -> body:stmt list -> stmt list
+(** Make a loop. Can contain Break or Continue.
+    The kind of loop (While, For, DoWhile) is given by [sattr];
+    it is a While loop if unspecified. *)
+val mkLoop: ?sattr:attributes -> guard:exp -> body:stmt list -> stmt list
 
 (** Make a for loop for(i=start; i<past; i += incr) \{ ... \}. The body
     can contain Break but not Continue. Can be used with i a pointer
@@ -2040,12 +2066,15 @@ val visitCilBlock: cilVisitor -> block -> block
     might prevent it (e.g. if the preceding statement is a statement contract
     or a slicing/pragma annotation, or if there are labels involved). Use
     that whenever you're creating a block in order to hold multiple statements
-    as a result of visiting a single statement.
+    as a result of visiting a single statement. If the block contains local
+    variables, it will not be marked as transient, since removing it will
+    change the scope of those variables.
 
     @raise Fatal error if the given block attempts to declare local variables
-    (in which case it can't be marked as transient anyways).
+    and contain definitions of local variables that are not part of the block.
 
     @since Phosphorus-20170501-beta1
+    @modify Frama-C+dev: do not raise fatal as soon as the block has locals
 *)
 val transient_block: block -> block
 

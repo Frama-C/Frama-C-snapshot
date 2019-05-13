@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2018                                               *)
+(*  Copyright (C) 2007-2019                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -133,21 +133,21 @@ class visitor fmt c =
     method add_import ?was thy =
       self#lines ;
       match was with
-      | None     -> Format.fprintf fmt "use import %s@\n" thy
-      | Some was -> Format.fprintf fmt "use import %s as %s@\n" thy was
+      | None     -> Format.fprintf fmt "use %s@\n" thy
+      | Some was -> Format.fprintf fmt "use %s as %s@\n" thy was
 
     method add_import2 file thy =
       self#lines ;
-      Format.fprintf fmt "use import %s.%s@\n" file thy
+      Format.fprintf fmt "use %s.%s@\n" file thy
 
     method add_import3 file thy name =
       self#lines ;
-      Format.fprintf fmt "use import %s.%s as %s@\n" file thy name
+      Format.fprintf fmt "use %s.%s as %s@\n" file thy name
 
     method on_cluster c =
       self#lines ;
       let name = (cluster_id c) in
-      Format.fprintf fmt "use import %s.%s@\n"
+      Format.fprintf fmt "use %s.%s@\n"
         name (Transitioning.String.capitalize_ascii name) ;
       deps <- (D_cluster c) :: deps
 
@@ -314,7 +314,7 @@ type goal =
 module Goal =
 struct
   type t = goal
-  let compare = Pervasives.compare
+  let compare = Transitioning.Stdlib.compare
   let pretty fmt g =
     Format.fprintf fmt "[%s]%s.%s" g.file g.theory g.goal
 end
@@ -348,7 +348,7 @@ let assemble_goal ~id ~title ~theory ?axioms prop fmt =
     engine#set_goal true ;
     engine#global
       begin fun () ->
-        v#printf "@[<hv 2>goal %s \"expl:%s\":@ %a@]@\n@\n"
+        v#printf "@[<hv 2>goal %s[@expl:%s]:@ %a@]@\n@\n"
           why3_goal_name
           title
           engine#pp_prop (F.e_prop prop) ;
@@ -469,11 +469,11 @@ let assemble_goal wpo =
 
 open ProverTask
 
-let p_goal = p_until_space ^ " " ^ p_until_space ^ " " ^ p_until_space ^ " : "
+let p_goal = ".* [a-zA-Z0-9_]+: "
 let p_valid = p_goal ^ "Valid (" ^ p_float ^ "s\\(,[^)]*\\)?)"
 let p_limit = p_goal ^ "Timeout"
 let p_error = "File " ^ p_string ^ ", line " ^ p_int ^ ", characters "
-              ^ p_int ^ "-" ^ p_int ^ ":\n\\(warning:\\)?"
+              ^ p_int ^ "-" ^ p_int ^ ":\nsyntax error"
 
 let re_valid = Str.regexp p_valid
 let re_limit = Str.regexp p_limit
@@ -515,17 +515,13 @@ class why3 ~timeout ~prover ~pid ~file ~includes ~logout ~logerr =
     method private time t = time <- t
 
     method private error (a : pattern) =
-      try
-        let _warning = a#get_string 5 in
-        ()
-      with Not_found ->
-        let lpos = ProverTask.location (a#get_string 1) (a#get_int 2) in
-        error <- Error_Generated ( lpos , a#get_after ~offset:1 4 )
+      let lpos = ProverTask.location (a#get_string 1) (a#get_int 2) in
+      error <- Error_Generated ( lpos , "why3 " ^ a#get_after ~offset:1 4 )
 
     method private valid (a : pattern) =
       begin
         valid <- true ;
-        time <- a#get_float 4 ;
+        time <- a#get_float 1 ;
       end
 
     method private limit (_a : pattern) =
@@ -541,10 +537,10 @@ class why3 ~timeout ~prover ~pid ~file ~includes ~logout ~logerr =
         match error with
         | Error_Generated(pos,message) ->
             let source = Cil_datatype.Position.of_lexing_pos pos in
-            Wp_parameters.error ~source "Why3 error:@\n%s" message ;
+            Wp_parameters.error ~source "%s" message ;
             VCS.failed ~pos message
         | Error_No ->
-            if r = 0 then
+            if r = 0 || r = 1 then
               let verdict =
                 if valid then VCS.Valid else
                 if limit then VCS.Timeout else
@@ -616,74 +612,4 @@ let prove_prop ~timeout ~prover ~wpo =
 let prove ?timeout ~prover wpo =
   Task.todo (fun () -> prove_prop ~timeout ~wpo ~prover)
 
-(* -------------------------------------------------------------------------- *)
-(* --- Why3-Config                                                        --- *)
-(* -------------------------------------------------------------------------- *)
-
-type dp = {
-  dp_name : string ;
-  dp_version : string ;
-  dp_prover : string ;
-}
-
-let prover dp = Why3 dp.dp_prover
-
-let find name dps =
-  try List.find (fun d -> d.dp_prover = name) dps
-  with Not_found ->
-    let name = Transitioning.String.lowercase_ascii name in
-    try
-      List.find
-        (fun d -> Transitioning.String.lowercase_ascii d.dp_name = name) dps
-    with Not_found ->
-      { dp_prover = name ; dp_name = name ; dp_version = "default" }
-
-let parse spec =
-  try
-    let k = String.index spec ':' in
-    let dp_name = String.sub spec 0 k in
-    let dp_version = String.sub spec (succ k) (String.length spec - k - 1)
-                     |> String.map (fun c -> if c =':' then ' ' else c) in
-    { dp_prover = spec ; dp_name ; dp_version }
-  with Not_found ->
-    { dp_prover = spec ; dp_name = spec ; dp_version = "default" }
-
-let pe_prover = Str.regexp "\\([^ ]+\\) (\\([^)]+\\))"
-
-class why3detect job =
-  object(why)
-
-    inherit ProverTask.command "why3"
-
-    val mutable dps = []
-
-    method result st =
-      job (if st = 0 then Some (List.rev dps) else None)
-
-    method prover p =
-      begin
-        let dp_name = p#get_string 1 in
-        let dp_version = p#get_string 2 in
-        Wp_parameters.debug ~level:1
-          "Prover %S, version %s detected." dp_name dp_version ;
-        let dp_prover = Printf.sprintf "%s:%s" dp_name dp_version
-                        |> String.map
-                          (fun c -> if c = ' ' || c = ',' then ':' else c) in
-        dps <- { dp_name ; dp_version ; dp_prover } :: dps
-      end
-
-    method detect : unit task =
-      begin
-        why#add [ "--list-provers" ] ;
-        why#validate_pattern ~repeat:true ~logs:`OUT pe_prover why#prover ;
-        why#run ~echo:true () >>= Task.call why#result
-      end
-
-  end
-
-let detect_why3 job =
-  let task = (new why3detect job)#detect in
-  Task.run (Task.thread task)
-
-let detect_provers job =
-  detect_why3 (function None -> job [] | Some dps -> job dps)
+(* ------------------------------------------------------------------------- *)

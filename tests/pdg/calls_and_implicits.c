@@ -1,6 +1,6 @@
 /* run.config
  *    GCC:
- *    OPT: -val-show-progress -fct-pdg main -inout -journal-disable -pdg-print -pdg-verbose 2
+ *    STDOPT: +"-fct-pdg main -inout"
  *
  */
 

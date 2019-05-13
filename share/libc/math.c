@@ -2,7 +2,7 @@
 /*                                                                        */
 /*  This file is part of Frama-C.                                         */
 /*                                                                        */
-/*  Copyright (C) 2007-2018                                               */
+/*  Copyright (C) 2007-2019                                               */
 /*    CEA (Commissariat à l'énergie atomique et aux énergies              */
 /*         alternatives)                                                  */
 /*                                                                        */
@@ -44,7 +44,7 @@ float fabsf(float x)
 
 int __finitef(float f)
 {
-  union { float f ; unsigned short w[2] ; } u ;
+  union __fc_u_finitef { float f ; unsigned short w[2] ; } u ;
   unsigned short usExp ;
 
   u.f = f ;            /* Initilize for word access */
@@ -57,7 +57,7 @@ int __finitef(float f)
 
 int __finite(double d)
 {
-  union { double d ; unsigned short w[4] ; } u ;
+  union __fc_u_finite { double d ; unsigned short w[4] ; } u ;
   unsigned short usExp ;
 
   u.d = d ;            /* Initilize for word access */

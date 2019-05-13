@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2018                                               *)
+(*  Copyright (C) 2007-2019                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -75,7 +75,7 @@ class printerClass optional_ff = object(self)
             str_m
             super#vdecl var
 
-  method! stmtkind next fmt kind =
+  method! stmtkind sattr next fmt kind =
     let stmt_info fmt stmt = match opt_ff with
       | None -> Format.fprintf fmt "@[/* %d */@]" stmt.Cil_types.sid
       | Some ff ->
@@ -94,7 +94,7 @@ class printerClass optional_ff = object(self)
     try
       Format.fprintf fmt "@[<v>%a@ %a@]"
         stmt_info s
-        (fun fmt -> super#stmtkind next fmt) kind
+        (fun fmt -> super#stmtkind sattr next fmt) kind
     with Not_found -> 
       (* some sub statements may be visible *)
       let sub_stmts = find_sub_stmts s in

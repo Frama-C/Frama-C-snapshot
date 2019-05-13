@@ -77,5 +77,49 @@ int main() {
     char *v = getenv("MUTABLE");
     if (v[8] != 'n') return 1; // possible only if imprecise
   }*/
+
+  char tempFilename[] = "blaXXXXXX";
+  int r = mkstemp(tempFilename);
+
+  if (nondet) {
+    // should fail: seed not initialized
+    drand48();
+  }
+  if (nondet) {
+    // should fail: seed not initialized
+    lrand48();
+  }
+  if (nondet) {
+    // should fail: seed not initialized
+    mrand48();
+  }
+  unsigned short xsubi[3];
+  if (nondet) {
+    // should fail: xsubi
+    erand48(xsubi);
+  }
+  xsubi[0] = 42;
+  xsubi[1] = 42;
+  xsubi[2] = 42;
+  d = erand48(xsubi);
+  //@ assert 0.0 <= d < 1.0;
+  l = jrand48(xsubi);
+  //@ assert -2147483648 <= l < 2147483648;
+  l = nrand48(xsubi);
+  //@ assert 0 <= l < 2147483648;
+
+  srand48(42);
+  unsigned short seed48v[3] = {0, 4, 2};
+  unsigned short *res = seed48(seed48v);
+  unsigned short param[7] = {0, 4, 2, 0, 4, 2, 0};
+  lcong48(param);
+
+  d = drand48();
+  //@ assert 0.0 <= d < 1.0;
+  l = mrand48();
+  //@ assert -2147483648 <= l < 2147483648;
+  l = lrand48();
+  //@ assert 0 <= l < 2147483648;
+
   return 0;
 }

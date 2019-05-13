@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2018                                               *)
+(*  Copyright (C) 2007-2019                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -30,7 +30,7 @@ open Cil_types
     @since Beryllium-20090901 *)
 class type reactive_buffer = object
   inherit Gtk_helper.error_manager
-  method buffer : GSourceView2.source_buffer
+  method buffer : GSourceView.source_buffer
   method locs : Pretty_source.Locs.state
   method rehighlight : unit
   method redisplay : unit
@@ -122,7 +122,7 @@ class type main_window_extension_points = object
 
   (** {4 Source viewers}  *)
 
-  method source_viewer : GSourceView2.source_view
+  method source_viewer : GSourceView.source_view
   (** The [GText.view] showing the AST. *)
 
   method source_viewer_scroll : GBin.scrolled_window
@@ -172,7 +172,7 @@ class type main_window_extension_points = object
       top of the other.
 
       @modify Aluminium-20160501: receives a {!reactive_buffer} instead
-      of a {!GSourceView2.source_buffer} *)
+      of a {!GSourceView.source_buffer} *)
 
   method register_panel :
     (main_window_extension_points->(string*GObj.widget*(unit-> unit) option))
@@ -263,14 +263,14 @@ val reactive_buffer : main_window_extension_points ->
 module Feedback :
 sig
 
-  val declare_markers: GSourceView2.source_view -> unit
+  val declare_markers: GSourceView.source_view -> unit
   (** Declares the icons used for the property status bullets, as marks in
       the left-margin of the source buffer.
       These icons depend on the GUI theme, and must be reset when the
       theme is changed.
       @since Chlorine-20180501 *)
 
-  val mark : GSourceView2.source_buffer
+  val mark : GSourceView.source_buffer
     -> ?call_site:stmt
     -> offset:int
     -> Property_status.Feedback.t -> unit

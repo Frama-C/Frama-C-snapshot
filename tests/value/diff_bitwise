@@ -9,35 +9,28 @@ diff tests/value/oracle/addition.res.oracle tests/value/oracle_bitwise/addition.
 >   {{ garbled mix of &{p1} (origin: Misaligned {tests/value/addition.i:52}) }}
 130a130
 >   {{ garbled mix of &{p2} (origin: Misaligned {tests/value/addition.i:56}) }}
-166,169c166,167
+166,168c166
 <   p10 ∈
 <      {{ garbled mix of &{p1}
 <       (origin: Arithmetic {tests/value/addition.i:52}) }}
-<   p11 ∈ [-2147483648..0]
 ---
 >   p10 ∈ {{ garbled mix of &{p1} }}
->   p11 ∈ [-2147483648..0],0%4
 358a357
 >   {{ garbled mix of &{p1} (origin: Misaligned {tests/value/addition.i:52}) }}
-397,400c396,397
+397,399c396
 <   p10 ∈
 <      {{ garbled mix of &{p1}
 <       (origin: Arithmetic {tests/value/addition.i:52}) }}
-<   p11 ∈ [-2147483648..0]
 ---
 >   p10 ∈ {{ garbled mix of &{p1} }}
->   p11 ∈ [-2147483648..0],0%4
-diff tests/value/oracle/bitwise_or.res.oracle tests/value/oracle_bitwise/bitwise_or.res.oracle
-57c57
-<   uand4 ∈ [8..24]
+diff tests/value/oracle/bitwise.res.oracle tests/value/oracle_bitwise/bitwise.res.oracle
+79c79,82
+< [eva] tests/value/bitwise.i:144: Frama_C_show_each_dead: {0}
 ---
->   uand4 ∈ {8; 16; 24}
-63,64c63,64
-<   v1 ∈ [0..0x1FFFE],0%2
-<   v2 ∈ [0..0x3FFFF]
----
->   v1 ∈ [0..0x1FFFC],0%4
->   v2 ∈ [0..0x3FFFE],0%2
+> [eva] tests/value/bitwise.i:142: 
+>   The evaluation of the expression x & 2
+>   led to bottom without alarms:
+>   at this point the product of states has no possible concretization.
 diff tests/value/oracle/bitwise_pointer.res.oracle tests/value/oracle_bitwise/bitwise_pointer.res.oracle
 32,34c32
 < [eva] tests/value/bitwise_pointer.i:18: 
@@ -51,15 +44,6 @@ diff tests/value/oracle/bitwise_pointer.res.oracle tests/value/oracle_bitwise/bi
 <   The imprecision originates from Arithmetic {tests/value/bitwise_pointer.i:22}
 ---
 > [eva] tests/value/bitwise_pointer.i:22: Assigning imprecise value to p1.
-diff tests/value/oracle/cast.res.oracle tests/value/oracle_bitwise/cast.res.oracle
-71c71
-<   G ∈ [0..12]
----
->   G ∈ [2..12]
-89c89
-<   G ∈ [0..12]
----
->   G ∈ [2..12]
 diff tests/value/oracle/logic_ptr_cast.res.oracle tests/value/oracle_bitwise/logic_ptr_cast.res.oracle
 8,10c8
 < [eva] tests/value/logic_ptr_cast.i:8: 

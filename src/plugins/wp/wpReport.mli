@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2018                                               *)
+(*  Copyright (C) 2007-2019                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -47,4 +47,4 @@ type fcstat
 val fcstat : unit -> fcstat
 
 val export : fcstat -> string -> unit
-val export_json : fcstat -> string -> unit
+val export_json : fcstat -> ?jinput:string -> joutput:string -> unit -> unit

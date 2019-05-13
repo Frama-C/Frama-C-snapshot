@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2018                                               *)
+(*  Copyright (C) 2007-2019                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -27,14 +27,43 @@ open Cil_datatype
 exception Error of Cil_types.location * string
 exception Unbound of string
 
-let find_var kf x =
+let find_var kf kinstr ?label ~var =
   let vi =
-    try Globals.Vars.find_from_astinfo x (VLocal kf)
+    try
+      let vi = Globals.Vars.find_from_astinfo var (VLocal kf) in
+      (match kinstr with
+        | Kglobal -> vi (* don't refine search: the Kglobal here
+                           does not indicate the function contract, but merely
+                           the fact that we do not have any information about
+                           the targeted program point. Hence, no scope check
+                           can be performed or we might reject many legitimate
+                           terms and predicates.
+                        *)
+        | Kstmt stmt ->
+          let scope =
+            match label with
+            | None | Some "Here" | Some "Post" | Some "Old" -> stmt
+            | Some "Pre" -> raise Not_found (* no local variable in scope. *)
+            | Some "Init" -> raise Not_found (* no local variable in scope. *)
+            | Some "LoopEntry" | Some "LoopCurrent" ->
+              if not (Kernel_function.stmt_in_loop kf stmt) then
+                Kernel.fatal
+                  "Use of LoopEntry or LoopCurrent outside of a loop";
+              Kernel_function.find_enclosing_loop kf stmt
+            | Some l ->
+              (try let s = Kernel_function.find_label kf l in !s
+               with Not_found ->
+                 Kernel.fatal
+                  "Use of label %s that does not exist in function %a"
+                  l Kernel_function.pretty kf)
+          in
+         if Kernel_function.var_is_in_scope scope vi then vi
+         else raise Not_found)
     with Not_found ->
       try
-        Globals.Vars.find_from_astinfo x (VFormal kf)
+        Globals.Vars.find_from_astinfo var (VFormal kf)
       with Not_found ->
-        Globals.Vars.find_from_astinfo x VGlobal
+        Globals.Vars.find_from_astinfo var VGlobal
   in
   cvar_to_lvar vi
 
@@ -46,18 +75,21 @@ let find_var kf x =
 module DefaultLT (X:
 sig
   val kf: Kernel_function.t
-  val in_loop: bool (* Only useful for code annotations *)
+  val kinstr: Cil_types.kinstr
 end) =
   Logic_typing.Make
     (struct
       let anonCompFieldName = Cabs2cil.anonCompFieldName
       let conditionalConversion = Cabs2cil.logicConditionalConversion
 
-      let is_loop () = X.in_loop
+      let is_loop () =
+        match X.kinstr with
+          | Kglobal -> false
+          | Kstmt s -> Kernel_function.stmt_in_loop X.kf s
 
       let find_macro _ = raise Not_found
 
-      let find_var x = find_var X.kf x
+      let find_var ?label ~var = find_var X.kf X.kinstr ?label ~var
 
       let find_enum_tag x =
         try
@@ -118,7 +150,7 @@ let code_annot kf stmt s =
   sync_typedefs ();
   let module LT = DefaultLT(struct
     let kf = kf
-    let in_loop = Kernel_function.stmt_in_loop kf stmt
+    let kinstr = Kstmt stmt
   end) in
   let loc = Stmt.loc stmt in
   let pa =
@@ -141,7 +173,7 @@ let term kf ?(loc=Location.unknown) ?(env=default_term_env ()) s =
   sync_typedefs ();
   let module LT = DefaultLT(struct
     let kf = kf
-    let in_loop = false (* unused *)
+    let kinstr = Kglobal
   end) in
   let pa_expr = Extlib.opt_map snd (Logic_lexer.lexpr (fst loc, s)) in
   let parse pa_expr = LT.term env pa_expr in
@@ -156,7 +188,7 @@ let predicate kf ?(loc=Location.unknown) ?(env=default_term_env ()) s =
   sync_typedefs ();
   let module LT = DefaultLT(struct
     let kf = kf
-    let in_loop = false (* unused *)
+    let kinstr = Kglobal
   end) in
   let pa_expr = Extlib.opt_map snd (Logic_lexer.lexpr (fst loc, s)) in
   let parse pa_expr = LT.predicate env pa_expr in
@@ -915,7 +947,7 @@ to function contracts."
         (* to preserve the effect of the statement *)
         pragmas :=
           { !pragmas with stmt = Stmt.Set.add ki !pragmas.stmt}
-      | AAssert (_behav,pred) ->
+      | AAssert (_behav,_,pred) ->
         (* to preserve the interpretation of the assertion *)
         get_zone_from_pred ki pred;
       | AInvariant (_behav,true,pred) -> (* loop invariant *)

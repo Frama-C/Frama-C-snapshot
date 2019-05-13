@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2018                                               *)
+(*  Copyright (C) 2007-2019                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -109,6 +109,8 @@ val dkey_prop_status_reg: category
 
 val dkey_rmtmps: category
 
+val dkey_referenced: category
+
 val dkey_task: category
 
 val dkey_typing_global: category
@@ -128,6 +130,8 @@ val dkey_visitor: category
 val wkey_annot_error: warn_category
 (** error in annotation. If only a warning, annotation will just be ignored. *)
 
+val wkey_acsl_float_compare: warn_category
+
 val wkey_drop_unused: warn_category
 
 val wkey_implicit_conv_void_ptr: warn_category
@@ -135,6 +139,8 @@ val wkey_implicit_conv_void_ptr: warn_category
 val wkey_incompatible_types_call: warn_category
 
 val wkey_incompatible_pointer_types: warn_category
+
+val wkey_int_conversion: warn_category
 
 val wkey_cert_exp_46: warn_category
 
@@ -438,7 +444,7 @@ module ImplicitFunctionDeclaration: Parameter_sig.String
 module C11: Parameter_sig.Bool
   (** Behavior of option "-c11" *)
 
-module JsonCompilationDatabase: State_builder.Ref with type data = string
+module JsonCompilationDatabase: Parameter_sig.String
   (** Behavior of option "-json-compilation-database" *)
 
 (* ************************************************************************* *)

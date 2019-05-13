@@ -1,5 +1,6 @@
 /* run.config
-OPT: -load-script tests/rte/my_annot_proxy/my_annot_proxy.ml
+EXECNOW: make -s @PTEST_DIR@/my_annot_proxy/my_annot_proxy.cmxs
+OPT: -load-module @PTEST_DIR@/my_annot_proxy/my_annot_proxy
 */
 
 

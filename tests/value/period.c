@@ -52,5 +52,5 @@ void main()
   *p = 1;
   p = (&g + (int)&g) - (int)&g; // creates a garbled mix
   int vg = *p;
-  *p = &vg;
+  *p = (int) &vg;
 }

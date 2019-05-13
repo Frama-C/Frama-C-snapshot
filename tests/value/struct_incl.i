@@ -25,9 +25,9 @@ struct st1 s8,s7;
 long x,y,z,t; volatile int v;
 
 void main () {
-  x = &s1.d[9];
-  y = &s1.d[10];
-  z = &s1.b;
+  x = (long) &s1.d[9];
+  y = (long) &s1.d[10];
+  z = (long) &s1.b;
 
 
   

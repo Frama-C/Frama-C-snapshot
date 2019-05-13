@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2018                                               *)
+(*  Copyright (C) 2007-2019                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -33,8 +33,6 @@ module type S = sig
   val call:
     stmt -> lval option -> exp -> exp list -> state ->
     state list or_bottom * Value_types.cacheable
-  val split_final_states:
-    kernel_function -> exp -> Integer.t list -> state list -> state list list
   val check_unspecified_sequence:
     stmt ->
     state -> (stmt * lval list * lval list * lval list * stmt ref list) list ->
@@ -101,23 +99,19 @@ module DumpFileCounters =
       let name = "Transfer_stmt.DumpFileCounters"
     end)
 
-module Make
-    (Value: Abstract_value.External)
-    (Location: Abstract_location.External)
-    (Domain: Abstract_domain.External with type value = Value.t
-                                       and type location = Location.location)
-    (Eva: Evaluation.S with type state = Domain.state
-                        and type value = Domain.value
-                        and type loc = Domain.location
-                        and type origin = Domain.origin)
-= struct
+module Make (Abstract: Abstractions.Eva) = struct
 
-  type state = Domain.state
-  type value = Domain.value
-  type location = Domain.location
+  module Value = Abstract.Val
+  module Location = Abstract.Loc
+  module Domain = Abstract.Dom
+  module Eval = Abstract.Eval
+
+  type state = Domain.t
+  type value = Value.t
+  type location = Location.location
 
   (* Transfer functions. *)
-  module TF = Domain.Transfer (Eva.Valuation)
+  module TF = Domain.Transfer (Eval.Valuation)
 
   (* When using a product of domains, a product of states may have no
      concretization (if the domains have inferred incompatible properties)
@@ -157,17 +151,17 @@ module Make
      if they lead to bottom without alarms. *)
 
   let evaluate_and_check ?valuation state expr =
-    let res = Eva.evaluate ?valuation state expr in
+    let res = Eval.evaluate ?valuation state expr in
     report_unreachability state res "the expression %a" Printer.pp_exp expr;
     res
 
   let lvaluate_and_check ~for_writing ?valuation state lval =
-    let res = Eva.lvaluate ~for_writing ?valuation state lval in
+    let res = Eval.lvaluate ~for_writing ?valuation state lval in
     report_unreachability state res "the lvalue %a" Printer.pp_lval lval;
     res
 
   let copy_lvalue_and_check ?valuation state lval =
-    let res = Eva.copy_lvalue ?valuation state lval in
+    let res = Eval.copy_lvalue ?valuation state lval in
     report_unreachability state res "the copy of %a" Printer.pp_lval lval;
     res
 
@@ -217,7 +211,7 @@ module Make
     then
       let truth = Location.assume_no_overlap ~partial:true loc right_loc in
       let alarm () = Alarms.Overlap (lval, right_lval) in
-      Eva.interpret_truth ~alarm (loc, right_loc) truth
+      Eval.interpret_truth ~alarm (loc, right_loc) truth
     else `Value (loc, right_loc), Alarmset.none
 
   (* Checks the compatibility between the left and right locations of a copy. *)
@@ -273,7 +267,7 @@ module Make
 
   (* Assumption. *)
   let assume state stmt expr positive =
-    let eval, alarms = Eva.reduce state expr positive in
+    let eval, alarms = Eval.reduce state expr positive in
     (* TODO: check not comparable. *)
     Alarmset.emit (Kstmt stmt) alarms;
     eval >>- fun valuation ->
@@ -345,7 +339,7 @@ module Make
         | None -> default valuation expr
         | Some inout ->
           let find_loc lval =
-            match Eva.Valuation.find_loc valuation lval with
+            match Eval.Valuation.find_loc valuation lval with
             | `Top -> Precise_locs.loc_top
             | `Value record -> get record.loc
           in
@@ -378,7 +372,7 @@ module Make
      reduced, and their new (more precise) value.  *)
   let gather_reduced_arguments call valuation state =
     let safe_arguments = filter_safe_arguments valuation call in
-    let empty = Eva.Valuation.empty in
+    let empty = Eval.Valuation.empty in
     let reduce_one_argument acc argument =
       acc >>- fun acc ->
       let pre_value = match argument.avalue with
@@ -393,7 +387,7 @@ module Make
          If the call has copied the argument, it may be uninitialized. Thus,
          we also avoid the backward propagation if the formal is uninitialized
          here. This should not happen in the Assign case above. *)
-      fst (Eva.copy_lvalue ~valuation:empty state lval)
+      fst (Eval.copy_lvalue ~valuation:empty state lval)
       >>- fun (_valuation, post_value) ->
       if
         Bottom.is_included Value.is_included pre_value post_value.v
@@ -407,12 +401,12 @@ module Make
      This function reduces the [state] by assuming [expr = value] for each pair
      (expr, value) of [reductions]. *)
   let reduce_arguments reductions state =
-    let valuation = `Value Eva.Valuation.empty in
+    let valuation = `Value Eval.Valuation.empty in
     let reduce_one_argument valuation (argument, post_value) =
       valuation >>- fun valuation ->
-      Eva.assume ~valuation state argument.concrete post_value
+      Eval.assume ~valuation state argument.concrete post_value
     in
-    List.fold_left reduce_one_argument valuation reductions >>-: fun valuation ->
+    List.fold_left reduce_one_argument valuation reductions >>- fun valuation ->
     TF.update valuation state
 
   (* -------------------- Treat the results of a call ----------------------- *)
@@ -602,7 +596,7 @@ module Make
   let domain_show_each name arguments state =
     let pretty fmt expr =
       let pp fmt  =
-        match fst (Eva.evaluate state expr) with
+        match fst (Eval.evaluate state expr) with
         | `Bottom -> Format.fprintf fmt "%s" (Unicode.bottom_string ())
         | `Value (valuation, _value) -> show_expr valuation state fmt expr
       in
@@ -625,7 +619,7 @@ module Make
           begin
             try
               let offsm =
-                fst (Eva.lvaluate ~for_writing:false state lval)
+                fst (Eval.lvaluate ~for_writing:false state lval)
                 >>- fun (_, loc, _) ->
                 let ploc = get_ploc loc
                 and cvalue_state = get_cvalue state in
@@ -644,7 +638,7 @@ module Make
     | None -> fun fmt _ _ -> Format.fprintf fmt "%s" (Unicode.top_string ())
     | Some get_cval ->
       fun fmt expr state ->
-        let value = fst (Eva.evaluate state expr) >>-: snd >>-: get_cval in
+        let value = fst (Eval.evaluate state expr) >>-: snd >>-: get_cval in
         (Bottom.pretty Cvalue.V.pretty) fmt value
 
   let pretty_arguments state arguments =
@@ -734,7 +728,7 @@ module Make
     let cacheable = ref Value_types.Cacheable in
     let eval =
       (* Resolve [funcexp] into the called kernel functions. *)
-      let functions, alarms = Eva.eval_function_exp funcexp ~args state in
+      let functions, alarms = Eval.eval_function_exp funcexp ~args state in
       Alarmset.emit ki_call alarms;
       functions >>- fun functions ->
       let current_kf = Value_util.current_kf () in
@@ -768,31 +762,6 @@ module Make
     in
     eval, !cacheable
 
-
-  (* ------------------------------------------------------------------------ *)
-  (*                            Function Return                               *)
-  (* ------------------------------------------------------------------------ *)
-
-  let split_final_states kf return_expr expected_values states =
-    let varinfo = match return_expr.enode with
-      | Lval (Var varinfo, NoOffset) -> varinfo
-      | _                            -> assert false (* Cil invariant *)
-    in
-    if Cil.isIntegralOrPointerType varinfo.vtype
-    then
-      let matched, tail =
-        Eva.split_by_evaluation return_expr expected_values states
-      in
-      let process (i, states, mess) =
-        if mess then
-          Value_parameters.result ~once:true ~current:true
-            "%a: cannot properly split on \\result == %a"
-            Kernel_function.pretty kf Abstract_interp.Int.pretty i;
-        states
-      in
-      tail :: List.map process matched
-    else [states]
-
   (* ------------------------------------------------------------------------ *)
   (*                            Unspecified Sequence                          *)
   (* ------------------------------------------------------------------------ *)
@@ -809,14 +778,14 @@ module Make
 
   let check_non_overlapping state lvs1 lvs2 =
     let eval_loc (acc, valuation) lval =
-      match fst (Eva.lvaluate ~valuation ~for_writing:false state lval) with
+      match fst (Eval.lvaluate ~valuation ~for_writing:false state lval) with
       | `Bottom -> acc, valuation
       | `Value (valuation, loc, _) -> (lval, loc) :: acc, valuation
     in
     let eval_list valuation lvs =
       List.fold_left eval_loc ([], valuation) lvs
     in
-    let list1, valuation = eval_list Eva.Valuation.empty lvs1 in
+    let list1, valuation = eval_list Eval.Valuation.empty lvs1 in
     let list2, _ = eval_list valuation lvs2 in
     let check acc (lval1, loc1) (lval2, loc2) =
       let truth = Location.assume_no_overlap ~partial:false loc1 loc2 in
@@ -875,7 +844,6 @@ module Make
       Domain.initialize_variable lval location ~initialized init_value state
     in
     List.fold_left initialize_volatile state vars
-
 end
 
 

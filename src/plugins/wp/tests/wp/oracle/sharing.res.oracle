@@ -5,12 +5,12 @@
 [wp] Warning: Missing RTE guards
 [wp] 1 goal scheduled
 [wp:print-generated] 
-  "WPOUT/typed/f_post.ergo"
+  "WPOUT/typed/f_ensures.ergo"
   (* ---------------------------------------------------------- *)
   (* --- Post-condition (file tests/wp/sharing.c, line 8) in 'f' --- *)
   (* ---------------------------------------------------------- *)
   
-  goal f_post:
+  goal f_ensures:
     forall i_1,i : int.
     forall t : int farray.
     forall t_1 : (addr,int) farray.

@@ -1,5 +1,5 @@
 /* run.config
-   OPT: -sparecode-debug 1 -sparecode-analysis -val-show-progress -lib-entry -main Se -journal-disable
+   STDOPT: +"-sparecode-analysis -lib-entry -main Se"
 */
 int glob;
 

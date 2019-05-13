@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2018                                               *)
+(*  Copyright (C) 2007-2019                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -217,7 +217,7 @@ class ['a] dialog ~title ~window ?(resize=false) () =
   let shell = GWindow.window
       ~title ~kind:`TOPLEVEL ~modal:true
       ~show:false ~decorated:true ~position:`CENTER_ON_PARENT
-      ~allow_grow:resize ()
+      ~resizable:resize ()
   in
 
   let hclip = GBin.alignment ~packing:shell#add () in

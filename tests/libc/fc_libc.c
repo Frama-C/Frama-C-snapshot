@@ -1,7 +1,10 @@
 /* run.config*
-   OPT: -load-script tests/libc/check_libc_naming_conventions.ml -print -cpp-extra-args='-nostdinc -Ishare/libc' -metrics -metrics-libc -load-script tests/libc/check_const.ml -load-module metrics -val @VALUECONFIG@ -then -lib-entry -no-print -metrics-no-libc
+   EXECNOW: make -s @PTEST_DIR@/check_libc_naming_conventions.cmxs
+   EXECNOW: make -s @PTEST_DIR@/check_const.cmxs
+   EXECNOW: make -s @PTEST_DIR@/check_parsing_individual_headers.cmxs
+   OPT: -load-module @PTEST_DIR@/check_libc_naming_conventions -print -cpp-extra-args='-nostdinc -Ishare/libc' -metrics -metrics-libc -load-module @PTEST_DIR@/check_const -load-module metrics -eva @EVA_CONFIG@ -then -lib-entry -no-print -metrics-no-libc
    OPT: -print -print-libc
-   OPT: -load-script tests/libc/check_parsing_individual_headers.ml
+   OPT: -load-module @PTEST_DIR@/check_parsing_individual_headers
    CMD: ./tests/libc/check_full_libc.sh
    OPT:
 **/
@@ -13,9 +16,9 @@
 // functions.
 #define _XOPEN_SOURCE 600
 #define _POSIX_C_SOURCE 200112L
+#define _GNU_SOURCE 1
 
-
-#include "share/libc/fc_runtime.c"
+#include "share/libc/__fc_runtime.c"
 
 #include "alloca.h"
 #include "arpa/inet.h"
@@ -63,9 +66,10 @@
 #include "__fc_define_useconds_t.h"
 #include "__fc_define_wchar_t.h"
 #include "__fc_define_wint_t.h"
+#include "__fc_gcc_builtins.h"
 #include "__fc_inet.h"
 #include "__fc_machdep.h"
-//#include "__fc_machdep_linux_gcc_shared.h"
+//#include "__fc_machdep_linux_shared.h"
 #include "fcntl.h"
 #include "__fc_select.h"
 #include "__fc_string_axiomatic.h"
@@ -81,13 +85,7 @@
 #include "inttypes.h"
 #include "iso646.h"
 #include "libgen.h"
-#include "libintl.h"
 #include "limits.h"
-#include "linux/fs.h"
-#include "linux/if_addr.h"
-#include "linux/if_netlink.h"
-#include "linux/netlink.h"
-#include "linux/rtnetlink.h"
 #include "locale.h"
 #include "malloc.h"
 #include "math.h"
@@ -95,9 +93,6 @@
 #include "netdb.h"
 #include "net/if.h"
 #include "netinet/in.h"
-#include "netinet/in_systm.h"
-#include "netinet/ip.h"
-#include "netinet/ip_icmp.h"
 #include "netinet/tcp.h"
 #include "nl_types.h"
 #include "poll.h"
@@ -123,7 +118,6 @@
 #include "sys/ipc.h"
 #include "syslog.h"
 #include "sys/mman.h"
-#include "sys/param.h"
 #include "sys/random.h"
 #include "sys/resource.h"
 #include "sys/select.h"
@@ -131,7 +125,6 @@
 #include "sys/signal.h"
 #include "sys/socket.h"
 #include "sys/stat.h"
-#include "sys/sysctl.h"
 #include "sys/time.h"
 #include "sys/times.h"
 #include "sys/timex.h"
@@ -143,7 +136,6 @@
 #include "termios.h"
 #include "tgmath.h"
 #include "time.h"
-#include "uchar.h"
 #include "unistd.h"
 #include "utime.h"
 #include "utmpx.h"

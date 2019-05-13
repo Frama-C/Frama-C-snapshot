@@ -1,0 +1,35 @@
+# frama-c -wp [...]
+[kernel] Parsing tests/wp_acsl/float_compare.i (no preprocessing)
+[wp] Running WP plugin...
+[wp] Loading driver 'share/wp.driver'
+------------------------------------------------------------
+  Global
+------------------------------------------------------------
+
+Lemma test_double_compare:
+Assume: 'test_float_compare'
+Prove: (is_finite_f64 x_0) -> (is_finite_f64 y_0) -> (le_f64 x_0 y_0)
+       -> ((eq_f64 x_0 y_0) \/ (lt_f64 x_0 y_0))
+
+------------------------------------------------------------
+
+Lemma test_double_compare_greater:
+Assume: 'test_float_compare_greater' 'test_double_compare'
+  'test_float_compare'
+Prove: (is_finite_f64 x_0) -> (is_finite_f64 y_0) -> (le_f64 y_0 x_0)
+       -> ((eq_f64 x_0 y_0) \/ (lt_f64 y_0 x_0))
+
+------------------------------------------------------------
+
+Lemma test_float_compare:
+Prove: (is_finite_f32 x_0) -> (is_finite_f32 y_0) -> (le_f32 x_0 y_0)
+       -> ((eq_f32 x_0 y_0) \/ (lt_f32 x_0 y_0))
+
+------------------------------------------------------------
+
+Lemma test_float_compare_greater:
+Assume: 'test_double_compare' 'test_float_compare'
+Prove: (is_finite_f32 x_0) -> (is_finite_f32 y_0) -> (le_f32 y_0 x_0)
+       -> ((eq_f32 x_0 y_0) \/ (lt_f32 y_0 x_0))
+
+------------------------------------------------------------

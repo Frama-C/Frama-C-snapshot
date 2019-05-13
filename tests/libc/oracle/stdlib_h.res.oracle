@@ -232,16 +232,100 @@
   function bsearch: precondition 'valid_function_compar' got status valid.
 [eva] Done for function bsearch
 [eva:alarm] tests/libc/stdlib_h.c:68: Warning: assertion got status unknown.
+[eva] computing for function mkstemp <- main.
+  Called from tests/libc/stdlib_h.c:82.
+[eva] using specification for function mkstemp
+[eva] tests/libc/stdlib_h.c:82: 
+  function mkstemp: precondition 'valid_template' got status valid.
+[eva] Done for function mkstemp
+[eva] computing for function drand48 <- main.
+  Called from tests/libc/stdlib_h.c:86.
+[eva] using specification for function drand48
+[eva:alarm] tests/libc/stdlib_h.c:86: Warning: 
+  function drand48: precondition 'random48_initialized' got status invalid.
+[eva] Done for function drand48
+[eva] computing for function lrand48 <- main.
+  Called from tests/libc/stdlib_h.c:90.
+[eva] using specification for function lrand48
+[eva:alarm] tests/libc/stdlib_h.c:90: Warning: 
+  function lrand48: precondition 'random48_initialized' got status invalid.
+[eva] Done for function lrand48
+[eva] computing for function mrand48 <- main.
+  Called from tests/libc/stdlib_h.c:94.
+[eva] using specification for function mrand48
+[eva:alarm] tests/libc/stdlib_h.c:94: Warning: 
+  function mrand48: precondition 'random48_initialized' got status invalid.
+[eva] Done for function mrand48
+[eva] computing for function erand48 <- main.
+  Called from tests/libc/stdlib_h.c:99.
+[eva] using specification for function erand48
+[eva:alarm] tests/libc/stdlib_h.c:99: Warning: 
+  function erand48: precondition 'initialization,initialized_xsubi' got status invalid.
+[eva] Done for function erand48
+[eva] computing for function erand48 <- main.
+  Called from tests/libc/stdlib_h.c:104.
+[eva] tests/libc/stdlib_h.c:104: 
+  function erand48: precondition 'initialization,initialized_xsubi' got status valid.
+[eva] Done for function erand48
+[eva] tests/libc/stdlib_h.c:105: assertion got status valid.
+[eva] computing for function jrand48 <- main.
+  Called from tests/libc/stdlib_h.c:106.
+[eva] using specification for function jrand48
+[eva] tests/libc/stdlib_h.c:106: 
+  function jrand48: precondition 'initialization,initialized_xsubi' got status valid.
+[eva] Done for function jrand48
+[eva] tests/libc/stdlib_h.c:107: assertion got status valid.
+[eva] computing for function nrand48 <- main.
+  Called from tests/libc/stdlib_h.c:108.
+[eva] using specification for function nrand48
+[eva] tests/libc/stdlib_h.c:108: 
+  function nrand48: precondition 'initialization,initialized_xsubi' got status valid.
+[eva] Done for function nrand48
+[eva] tests/libc/stdlib_h.c:109: assertion got status valid.
+[eva] computing for function srand48 <- main.
+  Called from tests/libc/stdlib_h.c:111.
+[eva] using specification for function srand48
+[eva] Done for function srand48
+[eva] computing for function seed48 <- main.
+  Called from tests/libc/stdlib_h.c:113.
+[eva] using specification for function seed48
+[eva] tests/libc/stdlib_h.c:113: 
+  function seed48: precondition 'initialization,initialized_seed16v' got status valid.
+[eva] Done for function seed48
+[eva] computing for function lcong48 <- main.
+  Called from tests/libc/stdlib_h.c:115.
+[eva] using specification for function lcong48
+[eva] Done for function lcong48
+[eva] computing for function drand48 <- main.
+  Called from tests/libc/stdlib_h.c:117.
+[eva] tests/libc/stdlib_h.c:117: 
+  function drand48: precondition 'random48_initialized' got status valid.
+[eva] Done for function drand48
+[eva] tests/libc/stdlib_h.c:118: assertion got status valid.
+[eva] computing for function mrand48 <- main.
+  Called from tests/libc/stdlib_h.c:119.
+[eva] tests/libc/stdlib_h.c:119: 
+  function mrand48: precondition 'random48_initialized' got status valid.
+[eva] Done for function mrand48
+[eva] tests/libc/stdlib_h.c:120: assertion got status valid.
+[eva] computing for function lrand48 <- main.
+  Called from tests/libc/stdlib_h.c:121.
+[eva] tests/libc/stdlib_h.c:121: 
+  function lrand48: precondition 'random48_initialized' got status valid.
+[eva] Done for function lrand48
+[eva] tests/libc/stdlib_h.c:122: assertion got status valid.
 [eva] Recording results for main
 [eva] done for function main
 [eva] ====== VALUES COMPUTED ======
 [eva:final-states] Values at end of function main:
+  __fc_random48_init ∈ {1}
+  __fc_random48_counter[0..2] ∈ [--..--]
   base ∈ {0; 2; 36}
   sl ∈ {{ "12 34 -56" }}
   s ∈ {{ " 3.14 0x1.2p2" }}
   pl ∈ {{ "12 34 -56" + [0..--] }}
   q ∈ {{ " 3.14 0x1.2p2" + [0..--] }}
-  l ∈ [--..--]
+  l ∈ [0..2147483647]
   pll ∈ {{ "12 34 -56" + [0..--] }}
   ll ∈ [--..--]
   pul ∈ {{ "12 34 -56" + [0..--] }}
@@ -250,7 +334,7 @@
   ull ∈ [--..--]
   sd ∈ {{ " 3.14 0x1.2p2" }}
   pd ∈ {{ " 3.14 0x1.2p2" + [0..--] }}
-  d ∈ [-inf .. inf] ∪ {NaN}
+  d ∈ [-0. .. 1.]
   pld ∈ {{ " 3.14 0x1.2p2" + [0..--] }}
   ld ∈ [-inf .. inf] ∪ {NaN}
   pf ∈ {{ " 3.14 0x1.2p2" + [0..--] }}
@@ -261,4 +345,18 @@
     [3] ∈ {20}
   key ∈ {-1}
   p ∈ {{ &ai[1] }}
+  tempFilename[0..9] ∈ [--..--]
+  r ∈ [-1..19]
+  xsubi[0..2] ∈ {42}
+  seed48v[0] ∈ {0}
+         [1] ∈ {4}
+         [2] ∈ {2}
+  res ∈ {{ &__fc_random48_counter[0] }}
+  param[0] ∈ {0}
+       [1] ∈ {4}
+       [2] ∈ {2}
+       [3] ∈ {0}
+       [4] ∈ {4}
+       [5] ∈ {2}
+       [6] ∈ {0}
   __retres ∈ {0}

@@ -1,10 +1,10 @@
 /*run.config
-  STDOPT:
-  STDOPT: #"-variadic-no-translation"
+  STDOPT: #"-slevel 12" #"-val-split-return auto"
+  STDOPT: #"-variadic-no-translation" #"-slevel 12" #"-val-split-return auto"
 */
-#include <unistd.h>
-
+#define _GNU_SOURCE
 #define _XOPEN_SOURCE 600
+#include <unistd.h>
 
 volatile int nondet;
 
@@ -38,5 +38,49 @@ int main() {
 
   long l = sysconf(ARG_MAX);
 
+  char cwd[64];
+  char *res_getcwd = getcwd(cwd, 64);
+  if (res_getcwd) {
+    //@ assert res_getcwd == cwd;
+    //@ assert valid_read_string((char*)cwd); // currently imprecise
+  }
+
+  long pconf = pathconf("/tmp/conf.cfg", _PC_NAME_MAX);
+
+  uid_t ruid, euid, suid;
+  r = getresuid(&ruid, &euid, &suid);
+  if (!r) {
+    r = setresuid(ruid, euid, suid);
+    //@ assert r == 0 || r == -1;
+  }
+  gid_t rgid, egid, sgid;
+  r = getresgid(&rgid, &egid, &sgid);
+  if (!r) {
+    r = setresgid(rgid, egid, sgid);
+    //@ assert r == 0 || r == -1;
+  }
+  pid_t p = getpid();
+  p = getppid();
+  p = getsid(0);
+  ruid = getuid();
+  rgid = getgid();
+  euid = geteuid();
+  egid = getegid();
+  r = setegid(egid);
+  r = seteuid(euid);
+  r = setgid(rgid);
+  r = setuid(ruid);
+  r = setregid(rgid, egid);
+  r = setreuid(ruid, euid);
+  r = setpgid(p, getpgid(0));
+  r = getpgrp();
+
+  r = unlink("/tmp/test_unlink");
+
+  r = isatty(1);
+  //@ assert r == 0 || r == 1;
+  char *tty = ttyname(1);
+
+  r = chown("/tmp/a.txt", 01000, 01000);
   return 0;
 }

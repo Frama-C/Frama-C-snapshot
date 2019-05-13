@@ -222,8 +222,8 @@ Prove: true.
 ------------------------------------------------------------
 
 Goal Post-condition 'memcpy,ok' in 'memcpy_context_vars':
-Let a = Mptr_0[global(P_src_43)].
-Let a_1 = Mptr_0[global(P_dst_44)].
+Let a = Mptr_0[global(P_src_45)].
+Let a_1 = Mptr_0[global(P_dst_46)].
 Let a_2 = shift_uint8(a_1, 0).
 Let a_3 = havoc(Mint_undef_0, Mint_0, a_2, len_0).
 Let a_4 = shift_uint8(a, 0).
@@ -253,8 +253,8 @@ Prove: a_3[shift_uint8(a_1, i)] = Mint_0[shift_uint8(a, i)].
 ------------------------------------------------------------
 
 Goal Post-condition 'unmodified,ok' in 'memcpy_context_vars':
-Let a = Mptr_0[global(P_src_43)].
-Let a_1 = Mptr_0[global(P_dst_44)].
+Let a = Mptr_0[global(P_src_45)].
+Let a_1 = Mptr_0[global(P_dst_46)].
 Let a_2 = shift_uint8(a_1, 0).
 Let a_3 = havoc(Mint_undef_0, Mint_0, a_2, len_0).
 Let a_4 = shift_uint8(a, 0).
@@ -285,8 +285,8 @@ Prove: a_3[a_5] = Mint_0[a_5].
 ------------------------------------------------------------
 
 Goal Preservation of Invariant 'ok,cpy' (file tests/wp_usage/issue-189-bis.i, line 55):
-Let a = Mptr_0[global(P_src_43)].
-Let a_1 = Mptr_0[global(P_dst_44)].
+Let a = Mptr_0[global(P_src_45)].
+Let a_1 = Mptr_0[global(P_dst_46)].
 Let a_2 = shift_uint8(a_1, 0).
 Let a_3 = havoc(Mint_undef_0, Mint_0, a_2, len_0).
 Let a_4 = shift_uint8(a, 0).
@@ -332,8 +332,8 @@ Prove: true.
 ------------------------------------------------------------
 
 Goal Preservation of Invariant 'ok,len' (file tests/wp_usage/issue-189-bis.i, line 51):
-Let a = Mptr_0[global(P_src_43)].
-Let a_1 = Mptr_0[global(P_dst_44)].
+Let a = Mptr_0[global(P_src_45)].
+Let a_1 = Mptr_0[global(P_dst_46)].
 Let a_2 = shift_uint8(a_1, 0).
 Let a_3 = havoc(Mint_undef_0, Mint_0, a_2, len_1).
 Let a_4 = shift_uint8(a, 0).
@@ -394,15 +394,15 @@ Prove: true.
 
 Goal Loop assigns (file tests/wp_usage/issue-189-bis.i, line 54) (4/4):
 Effect at line 60
-Let a = Mptr_0[global(P_src_43)].
-Let a_1 = Mptr_0[global(P_dst_44)].
+Let a = Mptr_0[global(P_src_45)].
+Let a_1 = Mptr_0[global(P_dst_46)].
 Let a_2 = shift_uint8(a_1, 0).
 Let a_3 = havoc(Mint_undef_0, Mint_0, a_2, len_0).
 Let a_4 = shift_uint8(a, 0).
 Assume {
   Type: is_sint32(len_0) /\ is_sint32(len_1).
   (* Goal *)
-  When: !invalid(Malloc_0[P_src_43 <- 1][P_dst_44 <- 1], tmp_0, 1).
+  When: !invalid(Malloc_0[P_src_45 <- 1][P_dst_46 <- 1], tmp_0, 1).
   (* Heap *)
   Have: framed(Mptr_0) /\ linked(Malloc_0).
   (* Pre-condition *)

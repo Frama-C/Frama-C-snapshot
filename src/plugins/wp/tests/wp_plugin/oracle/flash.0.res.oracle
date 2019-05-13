@@ -14,9 +14,9 @@ Prove: true.
 
 Goal Post-condition 'A_reads' in 'job':
 Let x = 1 + OBSERVER_time_0.
-Let a = global(G_a_60).
+Let a = global(G_a_62).
 Let a_1 = C_RdAt_int(a).
-Let a_2 = global(G_b_61).
+Let a_2 = global(G_b_63).
 Let a_3 = C_RdAt_int(a_2).
 Let a_4 = C_WrAt_int(a_2).
 Let a_5 = L_RD_update(L_INDEX_init, a).
@@ -58,9 +58,9 @@ Prove: L_RD_access(a_7, a) = 2.
 
 Goal Post-condition 'B_reads' in 'job':
 Let x = 1 + OBSERVER_time_0.
-Let a = global(G_a_60).
+Let a = global(G_a_62).
 Let a_1 = C_RdAt_int(a).
-Let a_2 = global(G_b_61).
+Let a_2 = global(G_b_63).
 Let a_3 = C_RdAt_int(a_2).
 Let a_4 = C_WrAt_int(a_2).
 Let a_5 = L_RD_update(L_INDEX_init, a).
@@ -102,9 +102,9 @@ Prove: L_RD_access(a_7, a_2) = 1.
 
 Goal Post-condition 'B_writes' in 'job':
 Let x = 1 + OBSERVER_time_0.
-Let a = global(G_a_60).
+Let a = global(G_a_62).
 Let a_1 = C_RdAt_int(a).
-Let a_2 = global(G_b_61).
+Let a_2 = global(G_b_63).
 Let a_3 = C_RdAt_int(a_2).
 Let a_4 = C_WrAt_int(a_2).
 Let a_5 = L_RD_update(L_INDEX_init, a).
@@ -146,9 +146,9 @@ Prove: L_WR_access(a_7, a_2) = 1.
 
 Goal Post-condition 'ReadValues' in 'job':
 Let x = 1 + OBSERVER_time_0.
-Let a = global(G_a_60).
+Let a = global(G_a_62).
 Let a_1 = C_RdAt_int(a).
-Let a_2 = global(G_b_61).
+Let a_2 = global(G_b_63).
 Let a_3 = C_RdAt_int(a_2).
 Let a_4 = C_WrAt_int(a_2).
 Let a_5 = L_RD_update(L_INDEX_init, a).
@@ -191,9 +191,9 @@ Prove: (x_6 + L_RD_value(a_2, L_RD_access(a_5, a_2))
 
 Goal Post-condition 'WriteValues' in 'job':
 Let x = 1 + OBSERVER_time_0.
-Let a = global(G_a_60).
+Let a = global(G_a_62).
 Let a_1 = C_RdAt_int(a).
-Let a_2 = global(G_b_61).
+Let a_2 = global(G_b_63).
 Let a_3 = C_RdAt_int(a_2).
 Let a_4 = C_WrAt_int(a_2).
 Let a_5 = L_RD_update(L_INDEX_init, a).

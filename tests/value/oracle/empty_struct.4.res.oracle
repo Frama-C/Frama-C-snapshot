@@ -6,8 +6,12 @@
   NULL[rbits 0 to 15] ∈ [--..--]
   s2 ∈ {0}
   pgs ∈ {{ &gs }}
+[eva:alarm] tests/value/empty_struct.c:70: Warning: 
+  out of bounds read. assert \valid_read(ptr_ret);
 [eva] Recording results for main2
 [eva] done for function main2
+[eva] tests/value/empty_struct.c:70: 
+  assertion 'Eva,mem_access' got final status invalid.
 [eva] ====== VALUES COMPUTED ======
 [eva:final-states] Values at end of function main2:
   ptr_ret ∈ {2}

@@ -23,10 +23,14 @@ void g(int *C, int *D)
 
 void __e_acsl_globals_init(void)
 {
-  __e_acsl_store_block((void *)(& B),(size_t)8);
-  __e_acsl_full_init((void *)(& B));
-  __e_acsl_store_block((void *)(& A),(size_t)8);
-  __e_acsl_full_init((void *)(& A));
+  static char __e_acsl_already_run = 0;
+  if (! __e_acsl_already_run) {
+    __e_acsl_already_run = 1;
+    __e_acsl_store_block((void *)(& B),(size_t)8);
+    __e_acsl_full_init((void *)(& B));
+    __e_acsl_store_block((void *)(& A),(size_t)8);
+    __e_acsl_full_init((void *)(& A));
+  }
   return;
 }
 

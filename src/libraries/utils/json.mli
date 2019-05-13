@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2018                                               *)
+(*  Copyright (C) 2007-2019                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -20,27 +20,30 @@
 (*                                                                        *)
 (**************************************************************************)
 
-(** Json Library 
+(** Json Library
 
     Remarks:
-     - UTF-8 escaping is not supported;
-     - Parsers are less {i strict} than Json format;
-     - Printers are supposed to {i strictly} conforms to Json format;
-     - [Number] can be used to encode non OCaml-primitive numbers,
+    - UTF-8 escaping is not supported;
+    - Parsers are less {i strict} than Json format;
+    - Printers are supposed to {i strictly} conforms to Json format;
+    - [Number] can be used to encode non OCaml-primitive numbers,
        for instance Zarith.
 *)
 
-(** Json Objects *)
-type t =
-  | Null
-  | True | False
-  | String of string
-  | Number of string
-  | Int of int
-  | Float of float
-  | Array of t list
-  | Assoc of (string * t) list
+(** Json Objects
 
+    Same type than [Yojson.Basic.json]
+*)
+type json =
+  [ `Assoc of (string * json) list
+  | `Bool of bool
+  | `Float of float
+  | `Int of int
+  | `List of json list
+  | `Null
+  | `String of string ]
+
+type t = json
 val equal : t -> t -> bool (** Pervasives *)
 val compare : t -> t -> int (** Pervasives *)
 val pp : Format.formatter -> t -> unit
@@ -79,11 +82,11 @@ val save_file : ?pretty:bool -> string -> t -> unit
     format. *)
 
 val bool : t -> bool
-(** Extract [True] and [False] only. 
+(** Extract [True] and [False] only.
     @raise Invalid_argument when the conversion fails. *)
 
 val int : t -> int
-(** Convert [Null], [Int], [Float], [Number] and [String] to an [int]. 
+(** Convert [Null], [Int], [Float], [Number] and [String] to an [int].
     Floats are truncated with [int_of_float] and [Null] to 0.
     @raise Invalid_argument when the conversion fails. *)
 
@@ -97,19 +100,24 @@ val float : t -> float
     @raise Invalid_argument when the conversion fails. *)
 
 val array : t -> t array
-(** Extract the array of an [Array] object. 
+(** Extract the array of an [Array] object.
     [Null] is considered an empty array.
     @raise Invalid_argument if the object is not an array. *)
 
 val list : t -> t list
-(** Extract the list of an [Array] object. 
+(** Extract the list of an [Array] object.
     [Null] is considered an empty list.
     @raise Invalid_argument if the object is not a list. *)
-    
+
+val assoc : t -> (string * t) list
+(** Extract the list of an [Assoc] object.
+    [Null] is considered an empty assoc.
+    @raise Invalid_argument if the object is not a list. *)
+
 val fold : (string -> t -> 'a -> 'a) -> t -> 'a -> 'a
-(** Fold over all fields of the object. 
+(** Fold over all fields of the object.
     [Null] is considered an empty object.
-    Typical usage is [fold M.add t M.empty] where [M=Map.Make(String)]. 
+    Typical usage is [fold M.add t M.empty] where [M=Map.Make(String)].
     @raise Invalid_argument if the object is not an [Assoc] or [Null] object. *)
 
 val field : string -> t -> t

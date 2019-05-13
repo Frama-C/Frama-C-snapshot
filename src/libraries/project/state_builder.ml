@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2018                                               *)
+(*  Copyright (C) 2007-2019                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -1022,7 +1022,10 @@ module type Hashcons = sig
 end
 
 
-module Hashcons (Data: Datatype.S)(Info: Info) = struct
+module Hashcons
+    (Data: Datatype.S)
+    (Info: sig include Info val initial_values: Data.t list end)
+= struct
 
   type elt = Data.t
 
@@ -1053,13 +1056,24 @@ module Hashcons (Data: Datatype.S)(Info: Info) = struct
 
   include D
 
+  let counter = ref 0
+
+  (* Only used for the initial values, that must be all different. *)
+  let unsafe_hashcons key =
+    let r = { key; id = !counter } in
+    incr counter;
+    r
+
   module HashConsTbl =
     Hashconsing_tbl
       (struct
         include D
         let hash_internal a =  Data.hash a.key
         let equal_internal a b = Data.equal a.key b.key
-        let initial_values = [] (* TODO? *)
+        let initial_values =
+          (* Ensures that the initial values are all different. *)
+          let uniq_values = List.sort_uniq Data.compare Info.initial_values in
+          List.map unsafe_hashcons uniq_values
       end)
       (struct
         let name = "Hashconstable(" ^ Data.name ^ "," ^ Info.name ^ ")"
@@ -1069,15 +1083,12 @@ module Hashcons (Data: Datatype.S)(Info: Info) = struct
 
   let self = HashConsTbl.self
 
-  let counter = ref 0
-
   let hashcons key =
-    let id = !counter in
-    let hashed_atom = { key; id } in
+    let hashed_atom = { key; id = !counter } in
     let hashconsed_atom = HashConsTbl.merge hashed_atom in
     if hashconsed_atom.id = !counter then
       (* Fresh new atom. this counter id is used. *)
-      counter := succ !counter;
+      incr counter;
     hashconsed_atom
 
   let () = rehash_ref := fun x -> hashcons x.key

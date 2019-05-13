@@ -6,12 +6,13 @@
 [wp] tests/wp_typed/unit_loopscope.i:14: Warning: 
   Missing assigns clause (assigns 'everything' instead)
 [wp] 2 goals scheduled
-[wp] [Qed] Goal typed_f_loop_inv_preserved : Valid
-[wp] [Alt-Ergo] Goal typed_f_loop_inv_established : Unknown
+[wp] [Qed] Goal typed_f_loop_invariant_preserved : Valid
+[wp] [Alt-Ergo] Goal typed_f_loop_invariant_established : Unsuccess
 [wp] Proved goals:    1 / 2
   Qed:             1 
-  Alt-Ergo:        0  (unknown: 1)
-[wp] Report 'tests/wp_typed/unit_loopscope.i.0.report.json'
+  Alt-Ergo:        0  (unsuccess: 1)
+[wp] Report in:  'tests/wp_typed/oracle_qualif/unit_loopscope.0.report.json'
+[wp] Report out: 'tests/wp_typed/result_qualif/unit_loopscope.0.report.json'
 -------------------------------------------------------------
 Functions           WP     Alt-Ergo        Total   Success
 f                    1     -                 2      50.0%

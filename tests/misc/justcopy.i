@@ -1,3 +1,4 @@
 /* run.config
- OPT: -load-script tests/misc/justcopy.ml
+ EXECNOW: make -s @PTEST_DIR@/@PTEST_NAME@.cmxs
+ OPT: -no-autoload-plugins -load-module @PTEST_DIR@/@PTEST_NAME@.cmxs
 */

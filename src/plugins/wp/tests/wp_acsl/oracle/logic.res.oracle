@@ -1,17 +1,11 @@
-# frama-c -wp -wp-model 'Typed (Cast)' [...]
+# frama-c -wp [...]
 [kernel] Parsing tests/wp_acsl/logic.i (no preprocessing)
 [wp] Running WP plugin...
 [wp] Loading driver 'share/wp.driver'
 [wp] Warning: Missing RTE guards
-[wp] tests/wp_acsl/logic.i:16: Warning: 
-  Cast with incompatible pointers types (source: __anonstruct_Point_1*)
-     (target: __anonstruct_Point_1[3]*)
 [wp] tests/wp_acsl/logic.i:65: Warning: 
   Cast with incompatible pointers types (source: __anonstruct_Buint_4*)
      (target: uint32*)
-[wp] tests/wp_acsl/logic.i:48: Warning: 
-  Cast with incompatible pointers types (source: __anonstruct_Point_1*)
-     (target: __anonstruct_Point_1[3]*)
 [wp] tests/wp_acsl/logic.i:49: Warning: 
   Logic cast from struct (Tint2) not implemented yet
 [wp] tests/wp_acsl/logic.i:50: Warning: 
@@ -45,28 +39,16 @@
 ------------------------------------------------------------
 
 Goal Post-condition (file tests/wp_acsl/logic.i, line 21) in 'h':
-tests/wp_acsl/logic.i:16: warning from Typed Model:
- - Warning: Keep pointer value
-   Reason: Cast with incompatible pointers types (source: __anonstruct_Point_1*)
-   (target: __anonstruct_Point_1[3]*)
 Prove: true.
 
 ------------------------------------------------------------
 
 Goal Assigns nothing in 'h':
-tests/wp_acsl/logic.i:16: warning from Typed Model:
- - Warning: Keep pointer value
-   Reason: Cast with incompatible pointers types (source: __anonstruct_Point_1*)
-   (target: __anonstruct_Point_1[3]*)
 Prove: true.
 
 ------------------------------------------------------------
 
 Goal Assigns nothing in 'h':
-tests/wp_acsl/logic.i:16: warning from Typed Model:
- - Warning: Keep pointer value
-   Reason: Cast with incompatible pointers types (source: __anonstruct_Point_1*)
-   (target: __anonstruct_Point_1[3]*)
 Prove: true.
 
 ------------------------------------------------------------
@@ -80,23 +62,22 @@ Prove: true.
 ------------------------------------------------------------
 
 Goal Pre-condition 'qed_ok' in 'main':
-Let a = global(G_tr_31).
+Let a = global(G_tr_33).
 Let a_1 = shift___anonstruct_Point_1(a, 2).
 Let a_2 = shift___anonstruct_Point_1(a, 1).
 Let a_3 = shift___anonstruct_Point_1(a, 0).
-Let a_4 = global(G_buint_37).
-Let a_5 = shiftfield_F4_bytes(a_4).
+Let a_4 = shiftfield_F4_bytes(global(G_buint_39)).
 Let m = Array1_S1(a_3, 3, Mint_0).
 Assume {
-  Type: is_uint32(Mint_0[a_4]) /\ IsArray1S1(m).
+  Type: IsArray1S1(m).
   (* Initializer *)
-  Init: Mint_0[shift_uint8(a_5, 0)] = 1.
+  Init: Mint_0[shift_uint8(a_4, 0)] = 1.
   (* Initializer *)
-  Init: Mint_0[shift_uint8(a_5, 1)] = 2.
+  Init: Mint_0[shift_uint8(a_4, 1)] = 2.
   (* Initializer *)
-  Init: Mint_0[shift_uint8(a_5, 2)] = 4.
+  Init: Mint_0[shift_uint8(a_4, 2)] = 4.
   (* Initializer *)
-  Init: Mint_0[shift_uint8(a_5, 3)] = 8.
+  Init: Mint_0[shift_uint8(a_4, 3)] = 8.
   (* Initializer *)
   Init: Mint_0[shiftfield_F1_x(a_3)] = 10.
   (* Initializer *)
@@ -110,30 +91,29 @@ Assume {
   (* Initializer *)
   Init: Mint_0[shiftfield_F1_y(a_1)] = 31.
   (* Heap *)
-  Have: region(G_tr_31) <= 0.
+  Have: region(G_tr_33) <= 0.
 }
 Prove: P_P(m).
 
 ------------------------------------------------------------
 
 Goal Pre-condition 'qed_ok' in 'main':
-Let a = global(G_tr_31).
+Let a = global(G_tr_33).
 Let a_1 = shift___anonstruct_Point_1(a, 2).
 Let a_2 = shift___anonstruct_Point_1(a, 1).
 Let a_3 = shift___anonstruct_Point_1(a, 0).
-Let a_4 = global(G_buint_37).
-Let a_5 = shiftfield_F4_bytes(a_4).
+Let a_4 = shiftfield_F4_bytes(global(G_buint_39)).
 Let m = Array1_S1(a_3, 3, Mint_0).
 Assume {
-  Type: is_uint32(Mint_0[a_4]) /\ IsArray1S1(m).
+  Type: IsArray1S1(m).
   (* Initializer *)
-  Init: Mint_0[shift_uint8(a_5, 0)] = 1.
+  Init: Mint_0[shift_uint8(a_4, 0)] = 1.
   (* Initializer *)
-  Init: Mint_0[shift_uint8(a_5, 1)] = 2.
+  Init: Mint_0[shift_uint8(a_4, 1)] = 2.
   (* Initializer *)
-  Init: Mint_0[shift_uint8(a_5, 2)] = 4.
+  Init: Mint_0[shift_uint8(a_4, 2)] = 4.
   (* Initializer *)
-  Init: Mint_0[shift_uint8(a_5, 3)] = 8.
+  Init: Mint_0[shift_uint8(a_4, 3)] = 8.
   (* Initializer *)
   Init: Mint_0[shiftfield_F1_x(a_3)] = 10.
   (* Initializer *)
@@ -147,34 +127,29 @@ Assume {
   (* Initializer *)
   Init: Mint_0[shiftfield_F1_y(a_1)] = 31.
   (* Heap *)
-  Have: region(G_tr_31) <= 0.
+  Have: region(G_tr_33) <= 0.
 }
 Prove: P_P(m).
 
 ------------------------------------------------------------
 
 Goal Pre-condition 'qed_ok' in 'main':
-tests/wp_acsl/logic.i:48: warning from Typed Model:
- - Warning: Keep pointer value
-   Reason: Cast with incompatible pointers types (source: __anonstruct_Point_1*)
-   (target: __anonstruct_Point_1[3]*)
-Let a = global(G_tr_31).
+Let a = global(G_tr_33).
 Let a_1 = shift___anonstruct_Point_1(a, 2).
 Let a_2 = shift___anonstruct_Point_1(a, 1).
 Let a_3 = shift___anonstruct_Point_1(a, 0).
-Let a_4 = global(G_buint_37).
-Let a_5 = shiftfield_F4_bytes(a_4).
+Let a_4 = shiftfield_F4_bytes(global(G_buint_39)).
 Let m = Array1_S1(a_3, 3, Mint_0).
 Assume {
-  Type: is_uint32(Mint_0[a_4]) /\ IsArray1S1(m).
+  Type: IsArray1S1(m).
   (* Initializer *)
-  Init: Mint_0[shift_uint8(a_5, 0)] = 1.
+  Init: Mint_0[shift_uint8(a_4, 0)] = 1.
   (* Initializer *)
-  Init: Mint_0[shift_uint8(a_5, 1)] = 2.
+  Init: Mint_0[shift_uint8(a_4, 1)] = 2.
   (* Initializer *)
-  Init: Mint_0[shift_uint8(a_5, 2)] = 4.
+  Init: Mint_0[shift_uint8(a_4, 2)] = 4.
   (* Initializer *)
-  Init: Mint_0[shift_uint8(a_5, 3)] = 8.
+  Init: Mint_0[shift_uint8(a_4, 3)] = 8.
   (* Initializer *)
   Init: Mint_0[shiftfield_F1_x(a_3)] = 10.
   (* Initializer *)
@@ -188,7 +163,7 @@ Assume {
   (* Initializer *)
   Init: Mint_0[shiftfield_F1_y(a_1)] = 31.
   (* Heap *)
-  Have: region(G_tr_31) <= 0.
+  Have: region(G_tr_33) <= 0.
 }
 Prove: P_P(m).
 
@@ -198,7 +173,7 @@ Goal Pre-condition 'qed_ok' in 'main':
 tests/wp_acsl/logic.i:49: warning from wp:
  - Warning: Hide sub-term definition
    Reason: Logic cast from struct (Tint2) not implemented yet
-Assume { (* Heap *) Have: region(G_tr_31) <= 0. }
+Assume { (* Heap *) Have: region(G_tr_33) <= 0. }
 Prove: (w.F1_y) = 11.
 
 ------------------------------------------------------------
@@ -207,7 +182,7 @@ Goal Pre-condition 'qed_ok' in 'main':
 tests/wp_acsl/logic.i:50: warning from wp:
  - Warning: Hide sub-term definition
    Reason: Logic cast from struct (Point) not implemented yet
-Assume { (* Heap *) Have: region(G_tr_31) <= 0. }
+Assume { (* Heap *) Have: region(G_tr_33) <= 0. }
 Prove: (w.F3_tab)[1] = 11.
 
 ------------------------------------------------------------
@@ -216,7 +191,7 @@ Goal Pre-condition 'qed_ok' in 'main':
 tests/wp_acsl/logic.i:51: warning from wp:
  - Warning: Hide sub-term definition
    Reason: Logic cast to struct (Point) from (int [2]) not implemented yet
-Assume { (* Heap *) Have: region(G_tr_31) <= 0. }
+Assume { (* Heap *) Have: region(G_tr_33) <= 0. }
 Prove: (w.F1_y) = 11.
 
 ------------------------------------------------------------
@@ -225,7 +200,7 @@ Goal Pre-condition 'qed_ok' in 'main':
 tests/wp_acsl/logic.i:52: warning from wp:
  - Warning: Hide sub-term definition
    Reason: Logic cast from struct (Point) not implemented yet
-Assume { (* Heap *) Have: region(G_tr_31) <= 0. }
+Assume { (* Heap *) Have: region(G_tr_33) <= 0. }
 Prove: w[1] = 11.
 
 ------------------------------------------------------------
@@ -234,7 +209,7 @@ Goal Pre-condition 'qed_ok' in 'main':
 tests/wp_acsl/logic.i:53: warning from wp:
  - Warning: Hide sub-term definition
    Reason: Logic cast from struct (Tint2) not implemented yet
-Assume { (* Heap *) Have: region(G_tr_31) <= 0. }
+Assume { (* Heap *) Have: region(G_tr_33) <= 0. }
 Prove: w[1] = 11.
 
 ------------------------------------------------------------
@@ -243,7 +218,7 @@ Goal Pre-condition 'qed_ok' in 'main':
 tests/wp_acsl/logic.i:54: warning from wp:
  - Warning: Hide sub-term definition
    Reason: Logic cast from struct (Buint) not implemented yet
-Assume { (* Heap *) Have: region(G_tr_31) <= 0. }
+Assume { (* Heap *) Have: region(G_tr_33) <= 0. }
 Prove: w = 134480385.
 
 ------------------------------------------------------------
@@ -252,15 +227,15 @@ Goal Pre-condition 'qed_ok' in 'main':
 tests/wp_acsl/logic.i:55: warning from wp:
  - Warning: Hide sub-term definition
    Reason: Logic cast to struct (Buint) from (unsigned int) not implemented yet
-Let a = global(G_tr_31).
+Let a = global(G_tr_33).
 Let a_1 = shift___anonstruct_Point_1(a, 2).
 Let a_2 = shift___anonstruct_Point_1(a, 1).
 Let a_3 = shift___anonstruct_Point_1(a, 0).
-Let a_4 = global(G_buint_37).
+Let a_4 = global(G_buint_39).
 Let a_5 = shiftfield_F4_bytes(a_4).
 Let a_6 = Load_S4(a_4, Mint_0).
 Assume {
-  Type: is_uint32(Mint_0[a_4]) /\ IsS4(a_6).
+  Type: IsS4(a_6).
   (* Initializer *)
   Init: Mint_0[shift_uint8(a_5, 0)] = 1.
   (* Initializer *)
@@ -282,7 +257,7 @@ Assume {
   (* Initializer *)
   Init: Mint_0[shiftfield_F1_y(a_1)] = 31.
   (* Heap *)
-  Have: region(G_tr_31) <= 0.
+  Have: region(G_tr_33) <= 0.
 }
 Prove: EqS4(a_6, w).
 
@@ -292,7 +267,7 @@ Goal Pre-condition 'qed_ok' in 'main':
 tests/wp_acsl/logic.i:56: warning from wp:
  - Warning: Hide sub-term definition
    Reason: Logic cast from struct (Tint6) not implemented yet
-Assume { (* Heap *) Have: region(G_tr_31) <= 0. }
+Assume { (* Heap *) Have: region(G_tr_33) <= 0. }
 Prove: (w[1].F1_y) = 21.
 
 ------------------------------------------------------------
@@ -301,7 +276,7 @@ Goal Pre-condition 'qed_ok' in 'main':
 tests/wp_acsl/logic.i:57: warning from wp:
  - Warning: Hide sub-term definition
    Reason: Logic cast to sized array (Triangle) from (int [6]) not implemented yet
-Assume { (* Heap *) Have: region(G_tr_31) <= 0. }
+Assume { (* Heap *) Have: region(G_tr_33) <= 0. }
 Prove: (w[1].F1_y) = 21.
 
 ------------------------------------------------------------
@@ -310,7 +285,7 @@ Goal Pre-condition 'qed_ok' in 'main':
 tests/wp_acsl/logic.i:58: warning from wp:
  - Warning: Hide sub-term definition
    Reason: Logic cast from struct (Tint6) not implemented yet
-Assume { (* Heap *) Have: region(G_tr_31) <= 0. }
+Assume { (* Heap *) Have: region(G_tr_33) <= 0. }
 Prove: w[4] = 30.
 
 ------------------------------------------------------------
@@ -319,7 +294,7 @@ Goal Pre-condition 'qed_ok' in 'main':
 tests/wp_acsl/logic.i:59: warning from wp:
  - Warning: Hide sub-term definition
    Reason: Logic cast from struct (Tint6) not implemented yet
-Assume { (* Heap *) Have: region(G_tr_31) <= 0. }
+Assume { (* Heap *) Have: region(G_tr_33) <= 0. }
 Prove: w[1] = 11.
 
 ------------------------------------------------------------
@@ -328,7 +303,7 @@ Goal Pre-condition 'qed_ok' in 'main':
 tests/wp_acsl/logic.i:60: warning from wp:
  - Warning: Hide sub-term definition
    Reason: Logic cast to sized array (int [2]) from (int [6]) not implemented yet
-Assume { (* Heap *) Have: region(G_tr_31) <= 0. }
+Assume { (* Heap *) Have: region(G_tr_33) <= 0. }
 Prove: w[1] = 11.
 
 ------------------------------------------------------------
@@ -337,7 +312,7 @@ Goal Pre-condition 'qed_ok' in 'main':
 tests/wp_acsl/logic.i:61: warning from wp:
  - Warning: Hide sub-term definition
    Reason: Logic cast from struct (Tint6) not implemented yet
-Assume { (* Heap *) Have: region(G_tr_31) <= 0. }
+Assume { (* Heap *) Have: region(G_tr_33) <= 0. }
 Prove: (w.F3_tab)[1] = 11.
 
 ------------------------------------------------------------
@@ -346,7 +321,7 @@ Goal Pre-condition 'qed_ok' in 'main':
 tests/wp_acsl/logic.i:62: warning from wp:
  - Warning: Hide sub-term definition
    Reason: Logic cast to struct (Tint2) from (int [6]) not implemented yet
-Assume { (* Heap *) Have: region(G_tr_31) <= 0. }
+Assume { (* Heap *) Have: region(G_tr_33) <= 0. }
 Prove: (w.F3_tab)[1] = 11.
 
 ------------------------------------------------------------

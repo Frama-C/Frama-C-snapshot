@@ -1,5 +1,5 @@
 /* run.config*
-   OPT: -no-autoload-plugins -load-module inout,eva -eva @VALUECONFIG@ -warn-signed-overflow
+   OPT: -no-autoload-plugins -load-module inout,eva -eva @EVA_CONFIG@ -warn-signed-overflow
 */
 
 #include <limits.h>

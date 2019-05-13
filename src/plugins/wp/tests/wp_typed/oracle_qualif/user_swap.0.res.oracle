@@ -5,18 +5,19 @@
 [wp] Warning: Missing RTE guards
 [wp] 7 goals scheduled
 [wp] [Qed] Goal typed_main_assert : Valid
-[wp] [Qed] Goal typed_main_call_swap_pre : Valid
-[wp] [Qed] Goal typed_main_call_swap_pre_2 : Valid
-[wp] [Alt-Ergo] Goal typed_swap_post_A : Valid
-[wp] [Qed] Goal typed_swap_post_B : Valid
-[wp] [Qed] Goal typed_swap_assign_part1 : Valid
-[wp] [Qed] Goal typed_swap_assign_part2 : Valid
+[wp] [Qed] Goal typed_main_call_swap_requires : Valid
+[wp] [Qed] Goal typed_main_call_swap_requires_2 : Valid
+[wp] [Alt-Ergo] Goal typed_swap_ensures_A : Valid
+[wp] [Qed] Goal typed_swap_ensures_B : Valid
+[wp] [Qed] Goal typed_swap_assigns_part1 : Valid
+[wp] [Qed] Goal typed_swap_assigns_part2 : Valid
 [wp] Proved goals:    7 / 7
   Qed:             6 
   Alt-Ergo:        1
-[wp] Report 'tests/wp_typed/user_swap.i.0.report.json'
+[wp] Report in:  'tests/wp_typed/oracle_qualif/user_swap.0.report.json'
+[wp] Report out: 'tests/wp_typed/result_qualif/user_swap.0.report.json'
 -------------------------------------------------------------
 Functions           WP     Alt-Ergo        Total   Success
-swap                 3      1 (12..24)       4       100%
+swap                 3      1 (16..28)       4       100%
 main                 3     -                 3       100%
 -------------------------------------------------------------

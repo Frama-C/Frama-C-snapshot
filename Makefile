@@ -2,7 +2,7 @@
 #                                                                        #
 #  This file is part of Frama-C.                                         #
 #                                                                        #
-#  Copyright (C) 2007-2018                                               #
+#  Copyright (C) 2007-2019                                               #
 #    CEA (Commissariat à l'énergie atomique et aux énergies              #
 #         alternatives)                                                  #
 #                                                                        #
@@ -188,7 +188,7 @@ THEME_ICONS_FLAT:= \
   $(addprefix share/theme/flat/,$(THEME_ICON_NAMES))
 
 ROOT_LIBC_DIR:= share/libc
-LIBC_SUBDIRS:= sys netinet linux net arpa
+LIBC_SUBDIRS:= sys netinet net arpa
 LIBC_DIR:= $(ROOT_LIBC_DIR) $(addprefix $(ROOT_LIBC_DIR)/,$(LIBC_SUBDIRS))
 LIBC_FILES:= \
 	$(wildcard share/*.h share/*.c) \
@@ -251,15 +251,23 @@ DISTRIB_FILES:=\
       Changelog config.h.in						\
       VERSION VERSION_CODENAME $(wildcard licenses/*)                   \
       $(LIBC_FILES)							\
+      share/analysis-scripts/benchmark_database.py                      \
       share/analysis-scripts/cmd-dep.sh                                 \
       share/analysis-scripts/concat-csv.sh                              \
+      share/analysis-scripts/clone.sh                                   \
       $(wildcard share/analysis-scripts/examples/*)                     \
+      share/analysis-scripts/fc_stubs.c                                 \
+      share/analysis-scripts/find_fun.py                                \
       share/analysis-scripts/flamegraph.pl                              \
       share/analysis-scripts/frama-c.mk                                 \
+      share/analysis-scripts/frama_c_results.py                         \
+      share/analysis-scripts/git_utils.py                               \
       share/analysis-scripts/list_files.py                              \
+      share/analysis-scripts/make_wrapper.py                            \
       share/analysis-scripts/parse-coverage.sh                          \
-      share/analysis-scripts/summary.sh                                 \
       share/analysis-scripts/README.md                                  \
+      share/analysis-scripts/results_display.py                         \
+      share/analysis-scripts/summary.py                                 \
       share/analysis-scripts/template.mk                                \
       $(wildcard share/emacs/*.el) share/autocomplete_frama-c           \
       share/_frama-c                                                    \
@@ -269,6 +277,7 @@ DISTRIB_FILES:=\
       share/Makefile.plugin.template share/Makefile.dynamic		\
       share/Makefile.dynamic_config.external				\
       share/Makefile.dynamic_config.internal				\
+      share/META.frama-c                                                \
       $(filter-out src/kernel_internals/runtime/config.ml,              \
 	  $(wildcard src/kernel_internals/runtime/*.ml*))               \
       $(wildcard src/kernel_services/abstract_interp/*.ml*)             \
@@ -373,7 +382,7 @@ ifeq ("$(DEVELOPMENT)","yes")
 all:: share/.gitignore
 endif
 
-clean::
+clean_share_link:
 	if test -f share/.gitignore; then \
 	  for link in $$(cat share/.gitignore); do \
 	    if test -L share$$link; then \
@@ -384,6 +393,8 @@ clean::
 	  done; \
 	  rm share/.gitignore; \
 	fi
+
+clean:: clean_share_link
 
 ##############
 # Ocamlgraph #
@@ -427,6 +438,7 @@ LIB_CMO =\
 	src/libraries/datatype/type \
 	src/libraries/datatype/descr \
 	src/libraries/utils/filepath \
+	src/libraries/utils/sanitizer \
 	src/libraries/utils/pretty_utils \
 	src/libraries/utils/hook \
 	src/libraries/utils/bag \
@@ -572,6 +584,7 @@ KERNEL_CMO=\
 	src/kernel_services/abstract_interp/lmap_bitwise.cmo            \
 	src/kernel_services/visitors/visitor.cmo                        \
 	src/kernel_services/ast_data/statuses_by_call.cmo               \
+	src/kernel_services/ast_printing/printer_tag.cmo                \
 	$(PLUGIN_TYPES_CMO_LIST)                                        \
 	src/kernel_services/plugin_entry_points/db.cmo                  \
 	src/libraries/utils/command.cmo                                 \
@@ -633,20 +646,6 @@ GENERATED += $(addprefix src/kernel_internals/parsing/,\
 		logic_parser.mli logic_preprocess.ml)
 
 
-ifeq ($(HAS_YOJSON),yes)
-src/kernel_services/ast_queries/json_compilation_database.ml: \
-	src/kernel_services/ast_queries/json_compilation_database.ok.ml share/Makefile.config
-	$(CP_IF_DIFF) $< $@
-	$(CHMOD_RO) $@
-else
-src/kernel_services/ast_queries/json_compilation_database.ml: \
-	src/kernel_services/ast_queries/json_compilation_database.ko.ml share/Makefile.config
-	$(CP_IF_DIFF) $< $@
-	$(CHMOD_RO) $@
-endif
-GENERATED += src/kernel_services/ast_queries/json_compilation_database.ml
-
-
 .PHONY: check-logic-parser-wildcard
 check-logic-parser-wildcard:
 	cd src/kernel_internals/parsing && ocaml check_logic_parser.ml
@@ -679,8 +678,60 @@ STARTUP_CMX=$(STARTUP_CMO:.cmo=.cmx)
 WTOOLKIT= \
 	wutil widget wbox wfile wpane wpalette wtext wtable
 
+ifeq ("$(LABLGTK_VERSION)","3")
+
+src/plugins/gui/GSourceView.ml: src/plugins/gui/GSourceView3.ml.in
+	$(CP) $< $@
+	$(CHMOD_RO) $@
+
+src/plugins/gui/GSourceView.mli: src/plugins/gui/GSourceView3.mli.in
+	$(CP) $< $@
+	$(CHMOD_RO) $@
+
+else
+src/plugins/gui/GSourceView.ml: src/plugins/gui/GSourceView2.ml.in
+	$(CP) $< $@
+	$(CHMOD_RO) $@
+
+src/plugins/gui/GSourceView.mli: src/plugins/gui/GSourceView2.mli.in
+	$(CP) $< $@
+	$(CHMOD_RO) $@
+
+endif
+
+SOURCEVIEWCOMPAT:=GSourceView
+GENERATED+=src/plugins/gui/GSourceView.ml src/plugins/gui/GSourceView.mli
+
+DGRAPHCOMPAT:=
+ifeq ($(HAS_GNOMECANVAS),no)
+DGRAPHCOMPAT:=dgraph
+src/plugins/gui/dgraph.ml: src/plugins/gui/dgraph.ml.in
+	$(CP) $< $@
+	$(CHMOD_RO) $@
+src/plugins/gui/dgraph.mli: src/plugins/gui/dgraph.mli.in
+	$(CP) $< $@
+	$(CHMOD_RO) $@
+
+GENERATED+=src/plugins/gui/dgraph.ml src/plugins/gui/dgraph.mli
+endif
+
+ifeq ($(LABLGTK),lablgtk3)
+src/plugins/gui/gtk_compat.ml: src/plugins/gui/gtk_compat.3.ml
+	$(CP) $< $@
+	$(CHMOD_RO) $@
+else
+src/plugins/gui/gtk_compat.ml: src/plugins/gui/gtk_compat.2.ml
+	$(CP) $< $@
+	$(CHMOD_RO) $@
+endif
+GENERATED+=src/plugins/gui/gtk_compat.ml
+
 SINGLE_GUI_CMO:= \
+	wutil_once \
+	gtk_compat \
 	$(WTOOLKIT) \
+	$(SOURCEVIEWCOMPAT) \
+	$(DGRAPHCOMPAT) \
 	gui_parameters \
 	gtk_helper gtk_form \
 	source_viewer pretty_source source_manager book_manager \
@@ -733,7 +784,12 @@ PLUGIN_NAME:=Callgraph
 PLUGIN_DISTRIBUTED:=yes
 PLUGIN_DIR:=src/plugins/callgraph
 PLUGIN_CMO:= options journalize subgraph cg services uses register
+#GTK3: no DGraph available.
+ifeq ($(HAS_GNOMECANVAS),yes)
 PLUGIN_GUI_CMO:=cg_viewer
+else
+PLUGIN_GUI_CMO:=
+endif
 PLUGIN_CMI:= callgraph_api
 PLUGIN_INTERNAL_TEST:=yes
 PLUGIN_TESTS_DIRS:=callgraph
@@ -807,7 +863,7 @@ PLUGIN_DISTRIB_EXTERNAL+= \
 PLUGIN_CMO:= slevel/split_strategy value_parameters \
 	utils/value_perf utils/value_util utils/red_statuses \
 	utils/mark_noresults \
-	utils/widen_hints_ext utils/widen utils/unroll_annots \
+	utils/widen_hints_ext utils/widen utils/partitioning_annots \
 	engine/split_return \
 	slevel/per_stmt_slevel \
 	utils/library_functions \
@@ -845,15 +901,14 @@ PLUGIN_CMO:= slevel/split_strategy value_parameters \
 	domains/cvalue/cvalue_transfer domains/cvalue/cvalue_init \
 	domains/cvalue/cvalue_specification \
 	domains/cvalue/cvalue_domain \
-	engine/subdivided_evaluation engine/evaluation \
+	engine/subdivided_evaluation engine/evaluation engine/abstractions \
 	engine/recursion engine/transfer_stmt engine/transfer_specification \
-	engine/partitioning engine/mem_exec \
-	engine/legacy_partitioning engine/basic_partitioning \
-	engine/loop_partitioning engine/partitioned_dataflow \
-	engine/initialization engine/abstractions \
+	engine/partitioning_index engine/mem_exec \
+	engine/partition engine/partitioning_parameters engine/trace_partitioning \
+	engine/iterator \
+	engine/initialization \
 	engine/compute_functions engine/analysis register
 PLUGIN_CMI:= values/abstract_value values/abstract_location \
-	engine/state_partitioning \
 	domains/abstract_domain domains/simpler_domains
 PLUGIN_DEPENDENCIES:=Callgraph LoopAnalysis RteGen
 
@@ -864,6 +919,7 @@ PLUGIN_GUI_CMO:=$(VALUE_GUI_AUX) gui_files/gui_callstacks_manager \
 		gui_files/gui_red gui_files/register_gui
 
 PLUGIN_INTERNAL_TEST:= yes
+PLUGIN_TESTS_LIB=tests/float/fval_test.ml
 PLUGIN_DISTRIBUTED:=yes
 VALUE_TYPES:=$(addprefix src/plugins/value_types/,\
 		cilE cvalue precise_locs value_types widen_type)
@@ -894,10 +950,15 @@ $(eval $(call include_generic_plugin_Makefile,$(PLUGIN_NAME)))
 PLUGIN_ENABLE:=$(ENABLE_RTEGEN)
 PLUGIN_NAME:=RteGen
 PLUGIN_DIR:=src/plugins/rte
-PLUGIN_CMO:= options generator rte visit register
+PLUGIN_CMO:= options generator rte flags visit register
 PLUGIN_DISTRIBUTED:=yes
 PLUGIN_INTERNAL_TEST:=yes
 PLUGIN_TESTS_DIRS:=rte rte_manual
+PLUGIN_TESTS_LIB:=\
+  tests/rte/my_annotation/my_annotation.ml \
+  tests/rte/rte_api/rte_get_annot.ml \
+  tests/rte/compute_annot/compute_annot.ml \
+  tests/rte/my_annot_proxy/my_annot_proxy.ml
 $(eval $(call include_generic_plugin_Makefile,$(PLUGIN_NAME)))
 
 #################
@@ -942,6 +1003,7 @@ $(eval $(call include_generic_plugin_Makefile,$(PLUGIN_NAME)))
 PLUGIN_ENABLE:=$(ENABLE_CONSTANT_PROPAGATION)
 PLUGIN_NAME:=Constant_Propagation
 PLUGIN_DIR:=src/plugins/constant_propagation
+PLUGIN_TESTS_LIB:=tests/constant_propagation/introduction_of_non_explicit_cast.ml
 PLUGIN_CMO:= propagationParameters \
 	api
 PLUGIN_DISTRIBUTED:=yes
@@ -1005,6 +1067,9 @@ $(eval $(call include_generic_plugin_Makefile,$(PLUGIN_NAME)))
 PLUGIN_ENABLE:=$(ENABLE_PDG)
 PLUGIN_NAME:=Pdg
 PLUGIN_DIR:=src/plugins/pdg
+PLUGIN_TESTS_LIB:=tests/pdg/dyn_dpds.ml \
+                  tests/pdg/sets.ml
+PLUGIN_TESTS_DIRS:=pdg
 PLUGIN_CMO:= pdg_parameters \
 	    ctrlDpds \
 	    pdg_state \
@@ -1033,6 +1098,8 @@ $(eval $(call include_generic_plugin_Makefile,$(PLUGIN_NAME)))
 PLUGIN_ENABLE:=$(ENABLE_SCOPE)
 PLUGIN_NAME:=Scope
 PLUGIN_DIR:=src/plugins/scope
+PLUGIN_TESTS_LIB:=tests/scope/bts971.ml \
+                  tests/scope/zones.ml
 PLUGIN_CMO:= datascope zones defs
 PLUGIN_GUI_CMO:=dpds_gui
 PLUGIN_DEPENDENCIES:=Eva Inout
@@ -1164,6 +1231,16 @@ bin/toplevel.opt$(EXE): $(ALL_BATCH_CMX) $(GEN_OPT_LIBS) \
 	$(PRINT_LINKING) $@
 	$(OCAMLOPT) $(OLINKFLAGS) -o $@ $(OPT_LIBS) $(ALL_BATCH_CMX)
 
+LIB_KERNEL_CMO= $(filter-out src/kernel_internals/runtime/gui_init.cmo, $(CMO))
+LIB_KERNEL_CMX= $(filter-out src/kernel_internals/runtime/gui_init.cmx, $(CMX))
+
+lib/fc/frama-c.cma: $(LIB_KERNEL_CMO) $(GEN_OPT_LIBS) $(LIB_KERNEL_CMX) lib/fc/META.frama-c
+	$(PRINT_LINKING) $@ and lib/fc/frama-c.cmxa
+	$(MKDIR) $(FRAMAC_LIB)
+	$(OCAMLMKLIB) -o lib/fc/frama-c $(OPT_LIBS) $(LIB_KERNEL_CMO) $(LIB_KERNEL_CMX)
+
+lib/fc/frama-c.cmxa: lib/fc/frama-c.cma
+
 ####################
 # (Ocaml) Toplevel #
 ####################
@@ -1211,12 +1288,20 @@ gui: gui-$(OCAMLBEST)
 ALL_GUI_CMO= $(ALL_CMO) $(GRAPH_GUICMO) $(GUICMO)
 ALL_GUI_CMX= $(patsubst %.cma,%.cmxa,$(ALL_GUI_CMO:.cmo=.cmx))
 
+ifeq ($(LABLGTK_VERSION),3)
+ifeq ($(NATIVE_THREADS),yes)
+THREAD=-thread
+else
+THREAD=-vmthread
+endif
+endif
+
 bin/viewer.byte$(EXE): BYTE_LIBS+= $(GRAPH_GUICMO)
 bin/viewer.byte$(EXE): $(filter-out $(GRAPH_GUICMO),$(ALL_GUI_CMO)) \
 			$(GEN_BYTE_LIBS) \
 			$(PLUGIN_DYN_CMO_LIST) $(PLUGIN_DYN_GUI_CMO_LIST)
 	$(PRINT_LINKING) $@
-	$(OCAMLC) $(BLINKFLAGS) -o $@ $(BYTE_LIBS) \
+	$(OCAMLC) $(BLINKFLAGS) $(THREAD) -o $@ $(BYTE_LIBS) \
 	  $(CMO) \
 	  $(filter-out \
 	    $(patsubst $(PLUGIN_GUI_LIB_DIR)/%,$(PLUGIN_LIB_DIR)/%,\
@@ -1230,7 +1315,7 @@ bin/viewer.opt$(EXE): $(filter-out $(GRAPH_GUICMX),$(ALL_GUI_CMX)) \
 			$(PLUGIN_DYN_CMX_LIST) $(PLUGIN_DYN_GUI_CMX_LIST) \
 			$(PLUGIN_CMX_LIST) $(PLUGIN_GUI_CMX_LIST)
 	$(PRINT_LINKING) $@
-	$(OCAMLOPT) $(OLINKFLAGS) -o $@ $(OPT_LIBS) \
+	$(OCAMLOPT) $(OLINKFLAGS) $(THREAD) -o $@ $(OPT_LIBS) \
 	  $(CMX) \
 	  $(filter-out \
 	    $(patsubst $(PLUGIN_GUI_LIB_DIR)/%,$(PLUGIN_LIB_DIR)/%,\
@@ -1331,17 +1416,18 @@ acsl_tests: byte
 	$(PRINT_EXEC) acsl_tests
 	find doc/speclang -name \*.c -exec ./bin/toplevel.byte$(EXE) {} \; > /dev/null
 
-LONELY_TESTS_ML_FILES=$(wildcard $(TEST_DIRS_AS_PLUGIN:%=tests/%/*.ml))
-LONELY_TESTS_BYTE_FILES=$(LONELY_TESTS_ML_FILES:%.ml=%.cmo)
-LONELY_TESTS_OPT_FILES=$(LONELY_TESTS_ML_FILES:%.ml=%.cmx)
-LONELY_TESTS_DYN_FILES=$(LONELY_TESTS_ML_FILES:%.ml=%.cmxs)
-$(LONELY_TESTS_BYTE_FILES): BFLAGS+=$(TEST_DIRS_AS_PLUGIN:%=-I tests/%)
-$(LONELY_TESTS_OPT_FILES): OFLAGS+=$(TEST_DIRS_AS_PLUGIN:%=-I tests/%)
-$(LONELY_TESTS_DYN_FILES): OFLAGS+=$(TEST_DIRS_AS_PLUGIN:%=-I tests/%)
-.PRECIOUS: $(LONELY_TESTS_OPT_FILES) \
-           $(LONELY_TESTS_DYN_FILES) \
-           $(LONELY_TESTS_BYTE_FILES) \
-           $(LONELY_TESTS_BYTE_FILES:%.cmo=%.cmi)
+LONELY_TESTS_ML_FILES:=\
+  $(shell find $(TEST_DIRS_AS_PLUGIN:%=tests/%) -name '*.ml')
+$(foreach file,$(LONELY_TESTS_ML_FILES),\
+  $(eval $(file:%.ml=%.cmo): BFLAGS+=-I $(dir $(file))))
+$(foreach file,$(LONELY_TESTS_ML_FILES),\
+  $(eval $(file:%.ml=%.cmx): OFLAGS+=-I $(dir $(file))))
+$(foreach file,$(LONELY_TESTS_ML_FILES),\
+  $(eval $(file:%.ml=%.cmxs): OFLAGS+=-I $(dir $(file))))
+.PRECIOUS: $(LONELY_TESTS_ML_FILES:%.ml=%.cmx) \
+           $(LONELY_TESTS_ML_FILES:%.ml=%.cmxs) \
+           $(LONELY_TESTS_ML_FILES:%.ml=%.cmo) \
+           $(LONELY_TESTS_ML_FILES:%.ml=%.cmi)
 
 bin/ocamldep_transitive_closure: devel_tools/ocamldep_transitive_closure.ml
 	$(OCAMLOPT) -package ocamlgraph -package str -linkpkg -o $@ $<
@@ -1670,12 +1756,24 @@ indent: $(INDENT_TARGET)
 
 lint: $(LINT_TARGET)
 
+check-ocp-indent-version:
+	if command -v ocp-indent >/dev/null; then \
+		$(eval ocp_version_major := $(shell ocp-indent --version | $(SED) -E "s/^([0-9]+)\.[0-9]+\..*/\1/")) \
+		$(eval ocp_version_minor := $(shell ocp-indent --version | $(SED) -E "s/^[0-9]+\.([0-9]+)\..*/\1/")) \
+		if [ "$(ocp_version_major)" -gt 1 -o "$(ocp_version_minor)" -gt 7 ]; then \
+			echo "error: ocp-indent <1.7.0 required for linting (got $(ocp_version_major).$(ocp_version_minor))"; \
+			exit 1; \
+		fi; \
+	else \
+		exit 1; \
+	fi;
+
 fix-syntax: $(FIX_SYNTAX_TARGET)
 
-$(INDENT_TARGET): %.indent: %
+$(INDENT_TARGET): %.indent: % check-ocp-indent-version
 	ocp-indent -i $<
 
-$(LINT_TARGET): %.lint: %
+$(LINT_TARGET): %.lint: % check-ocp-indent-version
 	# See SO 1825552 on mixing grep and \t (and cry)
 	# For OK_NL, we have three cases:
 	# - for empty files, the computation boils down to 0 - 0 == 0
@@ -1769,6 +1867,7 @@ install-lib: clean-install
 	$(PRINT_INSTALL) kernel API
 	$(MKDIR) $(FRAMAC_LIBDIR)
 	$(CP) $(LIB_BYTE_TO_INSTALL) $(LIB_OPT_TO_INSTALL) $(FRAMAC_LIBDIR)
+	$(CP) $(addprefix lib/fc/,dllframa-c.so libframa-c.a frama-c.cma frama-c.a frama-c.cmxa META.frama-c)  $(FRAMAC_LIBDIR)
 
 install-doc-code:
 	$(PRINT_INSTALL) API documentation
@@ -1791,7 +1890,6 @@ install:: install-lib
 	$(MKDIR) $(FRAMAC_DATADIR)/theme/flat
 	$(MKDIR) $(FRAMAC_DATADIR)/libc/sys
 	$(MKDIR) $(FRAMAC_DATADIR)/libc/netinet
-	$(MKDIR) $(FRAMAC_DATADIR)/libc/linux
 	$(MKDIR) $(FRAMAC_DATADIR)/libc/net
 	$(MKDIR) $(FRAMAC_DATADIR)/libc/arpa
 	$(PRINT_INSTALL) shared files
@@ -1802,14 +1900,22 @@ install:: install-lib
 	  share/configure.ac share/autocomplete_frama-c share/_frama-c \
 	  $(FRAMAC_DATADIR)
 	$(MKDIR) $(FRAMAC_DATADIR)/analysis-scripts
-	$(CP) share/analysis-scripts/cmd-dep.sh \
+	$(CP) share/analysis-scripts/benchmark_database.py \
+	  share/analysis-scripts/cmd-dep.sh \
 	  share/analysis-scripts/concat-csv.sh \
+	  share/analysis-scripts/clone.sh \
+	  share/analysis-scripts/fc_stubs.c \
+	  share/analysis-scripts/find_fun.py \
 	  share/analysis-scripts/flamegraph.pl \
 	  share/analysis-scripts/frama-c.mk \
+	  share/analysis-scripts/frama_c_results.py \
+	  share/analysis-scripts/git_utils.py \
+	  share/analysis-scripts/list_files.py \
+	  share/analysis-scripts/make_wrapper.py \
 	  share/analysis-scripts/parse-coverage.sh \
 	  share/analysis-scripts/README.md \
-	  share/analysis-scripts/list_files.py \
-	  share/analysis-scripts/summary.sh \
+	  share/analysis-scripts/results_display.py \
+	  share/analysis-scripts/summary.py \
 	  share/analysis-scripts/template.mk \
 	  $(FRAMAC_DATADIR)/analysis-scripts
 	$(MKDIR) $(FRAMAC_DATADIR)/analysis-scripts/examples
@@ -1833,7 +1939,6 @@ install:: install-lib
 	$(CP) share/libc/arpa/*.[ch] $(FRAMAC_DATADIR)/libc/arpa
 	$(CP) share/libc/net/*.[ch] $(FRAMAC_DATADIR)/libc/net
 	$(CP) share/libc/netinet/*.[ch] $(FRAMAC_DATADIR)/libc/netinet
-	$(CP) share/libc/linux/*.[ch] $(FRAMAC_DATADIR)/libc/linux
 	$(PRINT_INSTALL) binaries
 	$(CP) bin/toplevel.$(OCAMLBEST) $(BINDIR)/frama-c$(EXE)
 	$(CP) bin/toplevel.byte$(EXE) $(BINDIR)/frama-c.byte$(EXE)
@@ -1863,15 +1968,19 @@ install:: install-lib
 	if [ -d "$(FRAMAC_PLUGIN)" ]; then \
 	  $(CP)  $(PLUGIN_DYN_CMI_LIST) $(PLUGIN_META_LIST) \
 		 $(FRAMAC_PLUGINDIR); \
-	  $(CP)  $(PLUGIN_DYN_CMO_LIST) $(PLUGIN_DYN_CMX_LIST) \
-		 $(FRAMAC_PLUGINDIR)/top; \
+	  $(CP)  $(PLUGIN_DYN_CMO_LIST) $(FRAMAC_PLUGINDIR)/top; \
+	  if [ "$(OCAMLBEST)" = "opt" ]; then \
+	    $(CP) $(PLUGIN_DYN_CMX_LIST) $(FRAMAC_PLUGINDIR)/top; \
+	  fi; \
 	fi
 	$(PRINT_INSTALL) gui plug-ins
 	if [ -d "$(FRAMAC_PLUGIN_GUI)" -a "$(PLUGIN_DYN_GUI_EXISTS)" = "yes" ]; \
 	then \
 	  $(CP) $(patsubst %.cma,%.cmi,$(PLUGIN_DYN_GUI_CMO_LIST:.cmo=.cmi)) \
-		$(PLUGIN_DYN_GUI_CMO_LIST) $(PLUGIN_DYN_GUI_CMX_LIST) \
-		$(FRAMAC_PLUGINDIR)/gui; \
+		$(PLUGIN_DYN_GUI_CMO_LIST) $(FRAMAC_PLUGINDIR)/gui; \
+	  if [ "$(OCAMLBEST)" = "opt" ]; then \
+	    $(CP) $(PLUGIN_DYN_GUI_CMX_LIST) $(FRAMAC_PLUGINDIR)/gui; \
+	  fi; \
 	fi
 	$(PRINT_INSTALL) man pages
 	$(CP) man/frama-c.1 $(MANDIR)/man1/frama-c.1
@@ -2196,21 +2305,21 @@ PTESTS_SRC=ptests/ptests_config.ml ptests/ptests.ml
 PTESTS_CONFIG:= $(shell if test -d tests; then echo tests/ptests_config; fi)
 
 ifeq ($(NATIVE_THREADS),yes)
-THREAD=-thread
+PTEST_THREAD=-thread
 ptests: bin/ptests.$(PTESTSBEST)$(EXE) $(PTESTS_CONFIG)
 else
-THREAD=-vmthread
+PTEST_THREAD=-vmthread
 ptests: bin/ptests.byte$(EXE) $(PTESTS_CONFIG)
 endif
 
 bin/ptests.byte$(EXE): $(PTESTS_SRC)
 	$(PRINT_LINKING) $@
-	$(OCAMLC) -I ptests -dtypes $(THREAD) -g -o $@ \
+	$(OCAMLC) -I ptests -dtypes $(PTEST_THREAD) -g -o $@ \
 	    unix.cma threads.cma str.cma dynlink.cma $^
 
 bin/ptests.opt$(EXE): $(PTESTS_SRC)
 	$(PRINT_LINKING) $@
-	$(OCAMLOPT) -I ptests -dtypes $(THREAD) -o $@ \
+	$(OCAMLOPT) -I ptests -dtypes $(PTEST_THREAD) -o $@ \
 	    unix.cmxa threads.cmxa str.cmxa dynlink.cmxa $^
 
 GENERATED+=ptests/ptests_config.ml tests/ptests_config
@@ -2340,15 +2449,15 @@ clean-distrib: dist-clean
 
 create_lib_to_install_list = $(addprefix $(FRAMAC_LIB)/,$(call map,notdir,$(1)))
 
-byte:: bin/toplevel.byte$(EXE) share/Makefile.dynamic_config \
+byte:: bin/toplevel.byte$(EXE) lib/fc/frama-c.cma share/Makefile.dynamic_config \
 	$(call create_lib_to_install_list,$(LIB_BYTE_TO_INSTALL)) \
-      $(PLUGIN_META_LIST)
+      $(PLUGIN_META_LIST) lib/fc/META.frama-c
 
-opt:: bin/toplevel.opt$(EXE) share/Makefile.dynamic_config \
+opt:: bin/toplevel.opt$(EXE) lib/fc/frama-c.cmxa share/Makefile.dynamic_config \
 	$(call create_lib_to_install_list,$(LIB_OPT_TO_INSTALL)) \
 	$(filter %.o %.cmi,\
 	   $(call create_lib_to_install_list,$(LIB_BYTE_TO_INSTALL))) \
-      $(PLUGIN_META_LIST)
+      $(PLUGIN_META_LIST) lib/fc/META.frama-c
 
 top: bin/toplevel.top$(EXE) \
 	$(call create_lib_to_install_list,$(LIB_BYTE_TO_INSTALL)) \

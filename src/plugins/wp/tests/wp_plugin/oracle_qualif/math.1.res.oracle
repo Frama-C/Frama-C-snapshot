@@ -23,20 +23,20 @@
 [wp] [alt-ergo] Goal typed_lemma_sqrt_mono : Valid
 [wp] [alt-ergo] Goal typed_lemma_sqrt_pos : Valid
 [wp] [alt-ergo] Goal typed_lemma_tanh_opp : Valid
-[wp] [alt-ergo] Goal typed_ok_post_sin_asin : Valid
-[wp] [alt-ergo] Goal typed_ok_post_sin_asin_in_range : Valid
-[wp] [alt-ergo] Goal typed_ok_post_cos_acos : Valid
-[wp] [alt-ergo] Goal typed_ok_post_cos_acos_in_range : Valid
-[wp] [Qed] Goal typed_ok_post_tan_atan : Valid
-[wp] [alt-ergo] Goal typed_ok_post_log_pow : Valid
-[wp] [Qed] Goal typed_ok_post_log_exp : Valid
-[wp] [alt-ergo] Goal typed_ok_post_exp_log : Valid
-[wp] [alt-ergo] Goal typed_ok_post_min_plus_distrib : Valid
-[wp] [alt-ergo] Goal typed_ok_post_sqrt_pos : Valid
-[wp] [alt-ergo] Goal typed_ok_post_sqrt_pos0 : Valid
+[wp] [alt-ergo] Goal typed_ok_ensures_sin_asin : Valid
+[wp] [alt-ergo] Goal typed_ok_ensures_sin_asin_in_range : Valid
+[wp] [alt-ergo] Goal typed_ok_ensures_cos_acos : Valid
+[wp] [alt-ergo] Goal typed_ok_ensures_cos_acos_in_range : Valid
+[wp] [Qed] Goal typed_ok_ensures_tan_atan : Valid
+[wp] [alt-ergo] Goal typed_ok_ensures_log_pow : Valid
+[wp] [Qed] Goal typed_ok_ensures_log_exp : Valid
+[wp] [alt-ergo] Goal typed_ok_ensures_exp_log : Valid
+[wp] [alt-ergo] Goal typed_ok_ensures_min_plus_distrib : Valid
+[wp] [alt-ergo] Goal typed_ok_ensures_sqrt_pos : Valid
+[wp] [alt-ergo] Goal typed_ok_ensures_sqrt_pos0 : Valid
 [wp] Proved goals:   30 / 30
-  Qed:             5 
-  alt-ergo:       25
+  Qed:                5 
+  Alt-Ergo (why3):   25
 ----------------------------------------------------------
 Axiomatics          WP Alt-Ergo(Why3) Total  Success
 Lemma                3     16         19       100%

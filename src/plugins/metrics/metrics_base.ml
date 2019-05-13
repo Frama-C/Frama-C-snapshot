@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2018                                               *)
+(*  Copyright (C) 2007-2019                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -24,22 +24,22 @@ open Cil_types (* vname, vaddrof *)
 ;;
 
 (* Formatting html with Format.formatters *)
-let html_tag_functions =
-  let mark_open_tag t = Format.sprintf "<%s>" t
-  and mark_close_tag t =
+let html_stag_functions =
+  let mark_open_stag t =
+    let t = Transitioning.Format.string_of_stag t in
+    Format.sprintf "<%s>" t
+  and mark_close_stag t =
+    let t = Transitioning.Format.string_of_stag t in
     try
       let index = String.index t ' ' in
       Format.sprintf "</%s>" (String.sub t 0 index)
     with
       | Not_found -> Format.sprintf "</%s>" t
-  and print_open_tag _ = ()
-  and print_close_tag _ = ()
+  and print_open_stag _ = ()
+  and print_close_stag _ = ()
   in
-  { Format.mark_open_tag = mark_open_tag;
-    Format.mark_close_tag = mark_close_tag;
-    Format.print_open_tag = print_open_tag;
-    Format.print_close_tag = print_close_tag;
-  }
+  { Transitioning.Format.mark_open_stag; mark_close_stag;
+    print_open_stag; print_close_stag; }
 ;;
 
 (* Utility function to have underlines the same length as the title.
@@ -265,7 +265,7 @@ let get_file_type filename =
 
 module VarinfoByName = struct
   type t = Cil_types.varinfo
-  let compare v1 v2 = Pervasives.compare v1.vname v2.vname
+  let compare v1 v2 = Transitioning.Stdlib.compare v1.vname v2.vname
 end
 
 (** Map and sets of varinfos sorted by name (and not by ids) *)

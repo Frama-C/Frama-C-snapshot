@@ -1,9 +1,9 @@
 /* run.config*
- STDOPT: #"-no-val-builtins-auto -val-alloc-returns-null"
- STDOPT: #"-no-val-builtins-auto -val-alloc-returns-null -val-builtin calloc:Frama_C_calloc_fresh"
- STDOPT: #"-no-val-builtins-auto -val-alloc-returns-null -val-builtin calloc:Frama_C_calloc_by_stack"
- STDOPT: #"-no-val-builtins-auto -no-val-alloc-returns-null -val-builtin calloc:Frama_C_calloc_fresh"
- STDOPT: #"-no-val-builtins-auto -no-val-alloc-returns-null -val-builtin calloc:Frama_C_calloc_by_stack"
+ STDOPT: #"-eva-no-builtins-auto -eva-alloc-returns-null"
+ STDOPT: #"-eva-no-builtins-auto -eva-alloc-returns-null -eva-builtin calloc:Frama_C_calloc_fresh"
+ STDOPT: #"-eva-no-builtins-auto -eva-alloc-returns-null -eva-builtin calloc:Frama_C_calloc_by_stack"
+ STDOPT: #"-eva-no-builtins-auto -eva-no-alloc-returns-null -eva-builtin calloc:Frama_C_calloc_fresh"
+ STDOPT: #"-eva-no-builtins-auto -eva-no-alloc-returns-null -eva-builtin calloc:Frama_C_calloc_by_stack"
  */
 
 #include <stdlib.h>

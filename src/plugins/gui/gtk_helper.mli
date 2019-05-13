@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2018                                               *)
+(*  Copyright (C) 2007-2019                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -95,7 +95,7 @@ module Configuration: sig
 
   val set_int: string -> int -> unit
   (** Sets a ConfigInt *)
-  
+
   val find_bool : ?default:bool -> string -> bool
   (** Same as {find_int}. *)
 
@@ -127,13 +127,13 @@ module Configuration: sig
   (** Helpers to connect widgets to configuration values.
       The configuration value is first pushed to the widget
       using method [#set], or the [~default] value is used instead.
-      
+
       Then, a callback is registered
       into the widget via [#connect] such that subsequent
-      values from user's action are saved back into the 
+      values from user's action are saved back into the
       configuration file. *)
 
-  (** Abstract interface to the connected widget. 
+  (** Abstract interface to the connected widget.
       This API is consistent with the [Widget] ones. *)
   class type ['a] selector =
     object
@@ -142,15 +142,16 @@ module Configuration: sig
       method connect : ('a -> unit) -> unit
       (** Register a callback invoked by the widget each time the value is edited. *)
     end
-    
+
   val config_int : key:string -> default:int -> int #selector -> unit
   val config_bool : key:string -> default:bool -> bool #selector -> unit
   val config_string : key:string -> default:string -> string #selector -> unit
+  val config_float : key:string -> default:float -> float #selector -> unit
   val config_values : key:string -> default:'a ->
     values:('a * string) list -> 'a #selector -> unit
-  (** The [values] field is used as a dictionary of available values. 
+  (** The [values] field is used as a dictionary of available values.
       They are compared with [Pervasives.(=)]. *)
-  
+
 end
 
 (* ************************************************************************** *)
@@ -162,11 +163,11 @@ val make_tag :
     create_tag : ?name:string -> GText.tag_property list -> GText.tag ; .. >
   -> name:string -> GText.tag_property list -> GText.tag
 
-val apply_tag : GSourceView2.source_buffer -> GText.tag -> int -> int -> unit
-val remove_tag : GSourceView2.source_buffer -> GText.tag -> int -> int -> unit
-val cleanup_tag : GSourceView2.source_buffer -> GText.tag -> unit
+val apply_tag : GSourceView.source_buffer -> GText.tag -> int -> int -> unit
+val remove_tag : GSourceView.source_buffer -> GText.tag -> int -> int -> unit
+val cleanup_tag : GSourceView.source_buffer -> GText.tag -> unit
 
-val cleanup_all_tags : GSourceView2.source_buffer -> unit
+val cleanup_all_tags : GSourceView.source_buffer -> unit
 
 (* ************************************************************************** *)
 (** {2 Channels} *)
@@ -321,6 +322,15 @@ val source_files_chooser:
   (string list -> unit) ->
   unit
 
+(** Launches a standard gtk file chooser window and returns the name
+    of the selected file. Replaces GToolbox.select_file that has not been
+    ported to lablgtk3.
+
+    @since Frama-C+dev
+*)
+val select_file:
+  ?title:string -> ?dir:(string ref)-> ?filename:string -> unit -> string option
+
 (* ************************************************************************** *)
 (** {2 Miscellaneous} *)
 (* ************************************************************************** *)
@@ -431,6 +441,16 @@ val graph_window_through_dot:
   title:string ->
   (Format.formatter -> unit) ->
   unit
+
+(** calls the packing function to append a new menu item
+    with an icon and a label.
+    replaces GMenu.image_menu_item that has been deprecated in GTK3
+*)
+val image_menu_item:
+  image:GObj.widget ->
+  text: string ->
+  packing: (GMenu.menu_item -> unit) ->
+  GMenu.menu_item
 
 (*
 Local Variables:

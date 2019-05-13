@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2018                                               *)
+(*  Copyright (C) 2007-2019                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -60,7 +60,7 @@ val apply_on_all_locs:
 
 val reduce_by_valid_loc:
   positive:bool ->
-  for_writing:bool ->
+  Locations.access ->
   Locations.location -> typ -> Model.t -> Model.t
 (* [reduce_by_valid_loc positive ~for_writing loc typ state] reduces
    [state] so that [loc] contains a pointer [p] such that [(typ* )p] is

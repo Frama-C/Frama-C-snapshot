@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2018                                               *)
+(*  Copyright (C) 2007-2019                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -162,12 +162,7 @@ class vis flag = object(self)
     Cil.DoChildrenPost post
 
   method! vstmt_aux s =
-    let inspect_closed_blocks b =
-      (* blocks are sorted from innermost to outermost. The fold_left
-         will give us the list in appropriate order for add_destructors
-         which expects variable from oldest to newest.
-      *)
-      let vars = List.fold_left (fun acc b -> b.blocals @ acc) [] b in
+    let insert_destructors vars =
       let has_destructors, stmts = add_destructors vars in
       if has_destructors then begin
         flag:=true;
@@ -183,6 +178,29 @@ class vis flag = object(self)
         Stack.push curr_block blocks;
       end;
       Cil.SkipChildren
+    in
+    let vars_from_blocks blocks =
+      List.fold_left (fun acc b -> b.blocals @ acc) [] blocks
+    in
+    let vars_from_edge s succ =
+      let closed_blocks = Kernel_function.blocks_closed_by_edge s succ in
+      (* blocks are sorted from innermost to outermost. The fold_left
+         will give us the list in appropriate order for add_destructors
+         which expects variable from oldest to newest.
+      *)
+      let current_block = Kernel_function.common_block s succ in
+      let vars = vars_from_blocks closed_blocks in
+      (* for the common block, we have to check whether we are backjumping
+         over some definitions in the middle of the block, that is
+         definitions that dominate s but not its successor.
+      *)
+      let is_backjump_var v =
+        v.vdefined &&
+        let def = Cil.find_def_stmt current_block v in
+        Dominators.dominates def s && not (Dominators.dominates def succ)
+      in
+      let current_vars = List.filter is_backjump_var current_block.blocals in
+      current_vars @ vars
     in
     let abort_if_non_trivial_type kind v =
       if Cil.hasAttribute Cabs2cil.frama_c_destructor v.vattr then
@@ -208,10 +226,17 @@ class vis flag = object(self)
     let inspect_local_vars kind b s lv =
       List.iter (check_def_domination kind b s) lv
     in
+    let inspect_var_current_block kind b s succ v =
+      if v.vdefined then begin
+        let def = Cil.find_def_stmt b v in
+        if Kernel_function.is_between b s def succ then
+          (* we are forward-jumping over def *)
+          abort_if_non_trivial_type kind v
+      end else abort_if_non_trivial_type kind v
+    in
     let treat_jump_close s =
       match s.succs with
-      | [ succ ] ->
-        inspect_closed_blocks (Kernel_function.blocks_closed_by_edge s succ)
+      | [ succ ] -> insert_destructors (vars_from_edge s succ)
       | _ ->
         Kernel.fatal ~current:true
           "%a in function %a is expected to have a single successor"
@@ -219,8 +244,13 @@ class vis flag = object(self)
           Kernel_function.pretty (Extlib.the self#current_kf)
     in
     let treat_succ_open kind s succ =
+      (* The jump must not bypass a vla initialization in the opened blocks. *)
       let blocks = Kernel_function.blocks_opened_by_edge s succ in
-      List.iter (fun b -> inspect_local_vars kind b succ b.blocals) blocks
+      let current_block = Kernel_function.common_block s succ in
+      List.iter (fun b -> inspect_local_vars kind b succ b.blocals) blocks;
+      List.iter
+        (inspect_var_current_block kind current_block s succ)
+        current_block.blocals
     in
     let treat_jump_open k s = List.iter (treat_succ_open k s) s.succs in
     match s.skind with
@@ -239,7 +269,8 @@ class vis flag = object(self)
     | Switch _ -> treat_jump_open "switch" s; Cil.DoChildren
     (* jump outside of the function: all currently opened blocks are closed. *)
     | Return _ | Throw _ ->
-      inspect_closed_blocks (Kernel_function.find_all_enclosing_blocks s)
+      insert_destructors
+        (vars_from_blocks (Kernel_function.find_all_enclosing_blocks s))
     (* no jump yet, visit children *)
     | _ -> Cil.DoChildren
 

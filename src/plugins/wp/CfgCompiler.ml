@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2018                                               *)
+(*  Copyright (C) 2007-2019                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -440,7 +440,7 @@ struct
         let pp fmt = function | Node i -> Node.pp fmt i | Assume (i,_) -> Format.fprintf fmt "ass%i" i
                               | Check (i,_) -> Format.fprintf fmt "chk%i" i
         let equal x y = (tag x) = (tag y)
-        let compare x y = Pervasives.compare (tag x) (tag y)
+        let compare x y = Transitioning.Stdlib.compare (tag x) (tag y)
         let hash x = tag x
       end in
       let module G = Graph.Imperative.Digraph.ConcreteBidirectionalLabeled (V)(E) in

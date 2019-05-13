@@ -2,7 +2,7 @@
 /*                                                                        */
 /*  This file is part of Frama-C.                                         */
 /*                                                                        */
-/*  Copyright (C) 2007-2018                                               */
+/*  Copyright (C) 2007-2019                                               */
 /*    CEA (Commissariat à l'énergie atomique et aux énergies              */
 /*         alternatives)                                                  */
 /*                                                                        */
@@ -44,9 +44,7 @@ typedef void (*__fc_sighandler_t) (int);
 #define sighandler_t __fc_sighandler_t
 
 /* for BSD 4.4 */
-#ifdef __USE_MISC
 typedef __fc_sighandler_t sig_t;
-#endif
 
 #define SIG_DFL ((__fc_sighandler_t)0)     /* default signal handling */
 #define SIG_IGN ((__fc_sighandler_t)1)     /* ignore signal */
@@ -96,7 +94,8 @@ typedef __fc_sighandler_t sig_t;
 #define SIGSYS		31
 #define	SIGUNUSED	31
 
-
+#define SIGRTMIN 32
+#define SIGRTMAX 64
 
 #define SA_NOCLDSTOP	0x00000001
 #define SA_NOCLDWAIT	0x00000002
@@ -133,7 +132,7 @@ struct sigevent {
 
 #ifndef __have_siginfo_t
 #define __have_siginfo_t
-typedef struct {
+typedef struct __fc_siginfo_t {
 	int si_signo;
 	int si_code;
 	union sigval si_value;
@@ -198,9 +197,25 @@ extern int sigdelset(sigset_t *set, int signum);
 */
 extern int sigismember(const sigset_t *set, int signum);
 
-extern int sigaction(int signum, const struct sigaction *act,
-                     struct sigaction *oldact);
+extern struct sigaction __fc_sigaction[SIGRTMAX+1];
+struct sigaction *__fc_p_sigaction = __fc_sigaction;
 
+/*@ // missing: errno may be set to EINVAL when trying to set some signals
+  requires valid_signal: 0 <= signum <= SIGRTMAX;
+  requires valid_oldact_or_null: oldact == \null || \valid(oldact);
+  requires valid_read_act_or_null: act == \null || \valid_read(act);
+  requires separation:separated_acts: \separated(act, oldact);
+  assigns oldact == \null ? \empty : *oldact \from __fc_p_sigaction;
+  assigns act == \null ? \empty : __fc_p_sigaction[signum] \from *act;
+  assigns \result \from indirect:signum, indirect:act, indirect:*act,
+                        indirect:oldact, indirect:*oldact;
+  ensures act_changed: act == \null || \subset(__fc_p_sigaction[signum], *act);
+  ensures oldact_assigned: oldact == \null ||
+                           \subset({*oldact}, __fc_p_sigaction[signum]);
+  ensures result_ok_or_error: \result == 0 || \result == -1;
+ */
+extern int sigaction(int signum, const struct sigaction *restrict act,
+                     struct sigaction *restrict oldact);
 
 /*@ // missing: assigns *oldset \from 'previous mask in process'
   requires valid_set_or_null: set == \null || \valid_read(set);
@@ -225,6 +240,13 @@ extern int sigprocmask(int how, const sigset_t * restrict set,
   ensures result_ok_or_error: \result == 0 || \result == -1;
 */
 extern int kill(pid_t pid, int sig);
+
+/*@ // missing: errno may be set to EINVAL, EPERM, ESRCH
+    // missing: assigns 'other processes' \from 'other processes'
+  assigns \result \from indirect:pgrp, indirect: sig;
+  ensures result_ok_or_error: \result == 0 || \result == -1;
+*/
+extern int killpg(pid_t pgrp, int sig);
 
 __END_DECLS
 

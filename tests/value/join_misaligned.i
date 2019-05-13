@@ -20,7 +20,7 @@ void main(int c)
       ((char*)u)[6]='c';
       *((short*)((char*)v+6))=0x44444444;
       *((short*)((char*)w+6))=57;
-      *((int*)((char*)y+6))=&t;
+      *((int*)((char*)y+6))= (int) &t;
       *((short*)(&z[3])) = 0x1111;
       *((short*) &a) = 0xFFFF;
       *((short*) &a+1) = 0xFFFF;
@@ -34,7 +34,7 @@ void main(int c)
       x[0]=1;
       x[1]=0;
       x[2]=1;
-      *((int*)((char*)y+7))=&u;
+      *((int*)((char*)y+7))= (int) &u;
       a = va;
       a <<= 12;
       a--;

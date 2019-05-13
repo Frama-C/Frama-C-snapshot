@@ -4,17 +4,18 @@
 [wp] Loading driver 'share/wp.driver'
 [wp] Warning: Missing RTE guards
 [wp] 8 goals scheduled
-[wp] [Qed] Goal typed_f_post_var_divded : Valid
-[wp] [Qed] Goal typed_f_post_var_inline : Valid
-[wp] [Qed] Goal typed_f_post_var_unit0 : Valid
-[wp] [Qed] Goal typed_f_post_var_unit1 : Valid
-[wp] [Qed] Goal typed_f_post_var_unit2 : Valid
-[wp] [Qed] Goal typed_f_post_var_unit3 : Valid
-[wp] [Qed] Goal typed_f_post_var_unit4 : Valid
-[wp] [Qed] Goal typed_f_assign : Valid
+[wp] [Qed] Goal typed_f_ensures_var_divded : Valid
+[wp] [Qed] Goal typed_f_ensures_var_inline : Valid
+[wp] [Qed] Goal typed_f_ensures_var_unit0 : Valid
+[wp] [Qed] Goal typed_f_ensures_var_unit1 : Valid
+[wp] [Qed] Goal typed_f_ensures_var_unit2 : Valid
+[wp] [Qed] Goal typed_f_ensures_var_unit3 : Valid
+[wp] [Qed] Goal typed_f_ensures_var_unit4 : Valid
+[wp] [Qed] Goal typed_f_assigns : Valid
 [wp] Proved goals:    8 / 8
   Qed:             8
-[wp] Report 'tests/wp_bts/ergo_typecheck.i.0.report.json'
+[wp] Report in:  'tests/wp_bts/oracle_qualif/ergo_typecheck.0.report.json'
+[wp] Report out: 'tests/wp_bts/result_qualif/ergo_typecheck.0.report.json'
 -------------------------------------------------------------
 Functions           WP     Alt-Ergo        Total   Success
 f                    8     -                 8       100%

@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2018                                               *)
+(*  Copyright (C) 2007-2019                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -21,19 +21,19 @@
 (**************************************************************************)
 
 include Plugin.Register
-  (struct
-     let name = "obfuscator"
-     let shortname = "obfuscator"
-     let help = "obfuscator for confidential code"
-   end)
+    (struct
+      let name = "obfuscator"
+      let shortname = "obfuscator"
+      let help = "obfuscator for confidential code"
+    end)
 
 module Run =
   False
     (struct
-       let option_name = "-obfuscate"
-       let help = "print an obfuscated version of the input files and exit.\n\
-Disable any other Frama-C analysis."
-     end)
+      let option_name = "-obfuscate"
+      let help = "print an obfuscated version of the input files and exit.\n\
+                  Disable any other Frama-C analysis."
+    end)
 
 module Dictionary =
   Empty_string
@@ -41,7 +41,7 @@ module Dictionary =
       let option_name = "-obfuscator-dictionary"
       let arg_name = "f"
       let help = "generate the dictionary into file <f> (on stdout by default)"
-     end)
+    end)
 
 module Literal_string =
   Empty_string
@@ -49,8 +49,8 @@ module Literal_string =
       let option_name = "-obfuscator-string-dictionary"
       let arg_name = "f"
       let help = "generate the dictionary of literal strings into file <f> \
-(in the same place than the code by default)"
-     end)
+                  (in the same place than the code by default)"
+    end)
 
 let states = [ Run.self; Dictionary.self; Literal_string.self ]
 

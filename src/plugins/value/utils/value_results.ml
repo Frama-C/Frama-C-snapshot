@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2018                                               *)
+(*  Copyright (C) 2007-2019                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -355,6 +355,236 @@ let merge r1 r2 =
   { main; before_states; after_states; kf_initial_states; kf_is_called;
     initial_state; initial_args; alarms; statuses; kf_callers }
 
+(* ---------------------- Printing an analysis summary ---------------------- *)
+
+open Cil_types
+
+let plural count = if count = 1 then "" else "s"
+
+let consider_function vi =
+  not (Cil.is_builtin vi
+       || Cil.is_special_builtin vi.vname
+       || Cil.hasAttribute "fc_stdlib" vi.vattr
+       || Cil.hasAttribute "fc_stdlib_generated" vi.vattr)
+
+let print_coverage fmt =
+  let ignored, analyzed = ref 0, ref 0
+  and dead, reachable = ref 0, ref 0 in
+  let is_reachable = Db.Value.is_reachable_stmt in
+  let do_stmt stmt = incr (if is_reachable stmt then reachable else dead) in
+  let visit fundec =
+    if consider_function fundec.svar then
+      if is_called (Globals.Functions.get fundec.svar)
+      then (incr analyzed; List.iter do_stmt fundec.sallstmts)
+      else incr ignored
+  in
+  Globals.Functions.iter_on_fundecs visit;
+  let all = !dead + !analyzed in
+  if all = 0
+  then Format.fprintf fmt "No function to be analyzed.@;"
+  else
+    Format.fprintf fmt
+      "%i function%s analyzed (out of %i): %i%% coverage.@;"
+      !analyzed (plural !analyzed) all (!analyzed * 100 / all);
+  let total = !dead + !reachable in
+  if !analyzed > 0 && total > 0 then
+    Format.fprintf fmt
+      "In %s, %i statements reached (out of %i): %i%% coverage.@;"
+      (if !analyzed > 1 then "these functions" else "this function")
+      !reachable total (!reachable * 100 / total)
+
+let print_warning fmt =
+  let eva_warnings, eva_errors = ref 0, ref 0
+  and kernel_warnings, kernel_errors = ref 0, ref 0 in
+  let report_event event =
+    let open Log in
+    match event.evt_kind, event.evt_plugin with
+    | Warning, "eva" when event.evt_category <> Some "alarm" -> incr eva_warnings
+    | Warning, name when name = Log.kernel_label_name -> incr kernel_warnings
+    | Error, "eva" when event.evt_category <> Some "alarm" -> incr eva_errors
+    | Error, name when name = Log.kernel_label_name -> incr kernel_errors
+    | _ -> ()
+  in
+  Messages.iter report_event;
+  let total = !eva_errors + !eva_warnings + !kernel_errors + !kernel_warnings in
+  if total = 0
+  then Format.fprintf fmt "No errors or warnings raised during the analysis.@;"
+  else
+    let print str errors warnings =
+      Format.fprintf fmt "  by %-19s  %3i error%s  %3i warning%s@;"
+        (str ^ ":") errors (plural errors) warnings (plural warnings)
+    in
+    Format.fprintf fmt
+      "Some errors and warnings have been raised during the analysis:@;";
+    print "the Eva analyzer" !eva_errors !eva_warnings;
+    print "the Frama-C kernel" !kernel_errors !kernel_warnings
+
+type alarms =
+  { division_by_zero: int ref;
+    memory_access: int ref;
+    index_out_of_bound: int ref;
+    overflow: int ref;
+    invalid_shift: int ref;
+    uninitialized: int ref;
+    dangling: int ref;
+    nan_or_infinite: int ref;
+    float_to_int: int ref;
+    others: int ref; }
+
+type statuses = { valid: int ref; unknown: int ref; invalid: int ref; }
+
+type report =
+  { alarms: statuses * alarms;
+    assertions: statuses;
+    preconds: statuses; }
+
+let empty_report () =
+  let empty () = { valid = ref 0; unknown = ref 0; invalid = ref 0 } in
+  let empty_alarms =
+    { division_by_zero = ref 0;
+      memory_access = ref 0;
+      index_out_of_bound = ref 0;
+      overflow = ref 0;
+      invalid_shift = ref 0;
+      uninitialized = ref 0;
+      dangling = ref 0;
+      nan_or_infinite = ref 0;
+      float_to_int = ref 0;
+      others = ref 0; }
+  in
+  { alarms = empty (), empty_alarms;
+    assertions = empty ();
+    preconds = empty (); }
+
+let report_alarm report alarm =
+  let open Alarms in
+  let counter = match alarm with
+    | Division_by_zero _   -> report.division_by_zero
+    | Memory_access _      -> report.memory_access
+    | Index_out_of_bound _ -> report.index_out_of_bound
+    | Invalid_shift _      -> report.invalid_shift
+    | Overflow _           -> report.overflow
+    | Uninitialized _      -> report.uninitialized
+    | Dangling _           -> report.dangling
+    | Is_nan_or_infinite _
+    | Is_nan _             -> report.nan_or_infinite
+    | Float_to_int _       -> report.float_to_int
+    | _                    -> report.others
+  in
+  incr counter
+
+let eva_emitter = Value_util.emitter
+
+let get_status ip =
+  let aux_status emitter status acc =
+    let emitter = Emitter.Usable_emitter.get emitter.Property_status.emitter in
+    if Emitter.equal eva_emitter emitter
+    then Some status
+    else acc
+  in
+  Property_status.fold_on_statuses aux_status ip None
+
+let report_status acc = function
+  | None -> ()
+  | Some status -> match status with
+    | Property_status.Dont_know           -> incr acc.unknown
+    | Property_status.True                -> incr acc.valid
+    | Property_status.False_if_reachable
+    | Property_status.False_and_reachable -> incr acc.invalid
+
+let make_report ()  =
+  let report = empty_report () in
+  let report_property ip =
+    match ip with
+    | Property.IPCodeAnnot (_kf, _stmt, code_annot) ->
+      begin
+        let status = get_status ip in
+        match Alarms.find code_annot with
+        | None -> report_status report.assertions status
+        | Some alarm ->
+          let acc_status, acc_alarms = report.alarms in
+          report_status acc_status status;
+          report_alarm acc_alarms alarm
+      end
+    | Property.IPPropertyInstance _ ->
+      let status = get_status ip in
+      report_status report.preconds status
+    | _ -> ()
+  in
+  Property_status.iter report_property;
+  report
+
+let print_alarms_kind fmt kind =
+  let print count str plural str' =
+    if !count > 0 then
+      Format.fprintf fmt "  %4i %s%s%s@;"
+        !count str (if !count > 1 then plural else "") str'
+  in
+  print kind.division_by_zero "division" "s" " by zero";
+  print kind.memory_access "invalid memory access" "es" "";
+  print kind.index_out_of_bound "access" "es" " out of bounds index";
+  print kind.overflow "integer overflow" "s" "";
+  print kind.invalid_shift "invalid shift" "s" "";
+  print kind.uninitialized "access" "es" " to uninitialized left-values";
+  print kind.dangling "escaping address" "es" "";
+  print kind.nan_or_infinite "nan or infinite floating-point value" "s" "";
+  print kind.float_to_int "illegal conversion" "s" " from floating-point to integer";
+  print kind.others "other" "s" ""
+
+let print_alarms fmt report =
+  let alarms, kind = report.alarms in
+  let total = !(alarms.unknown) + !(alarms.invalid) in
+  Format.fprintf fmt "%i alarm%s generated by the analysis" total (plural total);
+  if total = !(kind.others)
+  then Format.fprintf fmt ".@;"
+  else Format.fprintf fmt ":@;%a" print_alarms_kind kind;
+  let invalid = !(alarms.invalid) in
+  if invalid > 0 then
+    Format.fprintf fmt "%i of them %s sure alarm%s (invalid status).@;"
+      invalid (if invalid = 1 then "is a" else "are") (plural invalid)
+
+let print_properties fmt report =
+  let { assertions; preconds } = report in
+  let total acc = !(acc.valid) + !(acc.unknown) + !(acc.invalid) in
+  let total_assertions = total assertions
+  and total_preconds = total preconds in
+  let total = total_assertions + total_preconds in
+  if total = 0
+  then
+    Format.fprintf fmt
+      "No logical properties have been reached by the analysis.@;"
+  else
+    let print_line header status total =
+      Format.fprintf fmt
+        "  %-14s %4d valid  %4d unknown  %4d invalid   %4d total@;"
+        header !(status.valid) !(status.unknown) !(status.invalid) total;
+    in
+    Format.fprintf fmt
+      "Evaluation of the logical properties reached by the analysis:@;";
+    print_line "Assertions" assertions total_assertions;
+    print_line "Preconditions" preconds total_preconds;
+    let proven = !(assertions.valid) + !(preconds.valid) in
+    let proven = proven * 100 / total in
+    Format.fprintf fmt
+      "%i%% of the logical properties reached have been proven.@;" proven
+
+let print_summary fmt =
+  let bar = String.make 76 '-' in
+  let report = make_report () in
+  Format.fprintf fmt "%s@;" bar;
+  print_coverage fmt;
+  Format.fprintf fmt "%s@;" bar;
+  print_warning fmt;
+  Format.fprintf fmt "%s@;" bar;
+  print_alarms fmt report;
+  Format.fprintf fmt "%s@;" bar;
+  print_properties fmt report;
+  Format.fprintf fmt "%s" bar
+
+let print_summary () =
+  let dkey = Value_parameters.dkey_summary in
+  let header fmt = Format.fprintf fmt " ====== ANALYSIS SUMMARY ======" in
+  Value_parameters.printf ~header ~dkey ~level:1 "  @[<v>%t@]" print_summary
 
 (*
 Local Variables:

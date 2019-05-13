@@ -1,5 +1,5 @@
 /* run.config
-   STDOPT: #"-cpp-extra-args=-includeshare/libc/string.c -slevel-function strstr:30 -no-val-skip-stdlib-specs"
+   STDOPT: #"-cpp-extra-args=-includeshare/libc/string.c -slevel-function strstr:30 -eva-no-skip-stdlib-specs"
  */
 /* This file has been adapted from libc-test, which is licensed under the
    following standard MIT license:

@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2018                                               *)
+(*  Copyright (C) 2007-2019                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -48,7 +48,7 @@ module Status = struct
         let reprs = [ True; False; False; Unknown ]
         let mem_project = Datatype.never_any_project
         let pretty = pretty_status
-        let compare (s1:t) (s2:t) = Pervasives.compare s1 s2
+        let compare (s1:t) (s2:t) = Transitioning.Stdlib.compare s1 s2
         let equal (s1:t) (s2:t) = s1 = s2
         let hash (s:t) = Hashtbl.hash s
       end)
@@ -216,7 +216,7 @@ let local_printer: Printer.extensible_printer =
     method! code_annotation fmt ca =
       temporaries <- Cil_datatype.Varinfo.Set.empty;
       match ca.annot_content with
-      | AAssert(_, p) ->
+      | AAssert (_, _, p) ->
         (* ignore the ACSL name *)
         Format.fprintf fmt "@[<v>@[assert@ %a;@]" self#predicate_node p.pred_content;
         (* print temporary variables information *)

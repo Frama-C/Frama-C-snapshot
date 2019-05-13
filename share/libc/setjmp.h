@@ -2,7 +2,7 @@
 /*                                                                        */
 /*  This file is part of Frama-C.                                         */
 /*                                                                        */
-/*  Copyright (C) 2007-2018                                               */
+/*  Copyright (C) 2007-2019                                               */
 /*    CEA (Commissariat à l'énergie atomique et aux énergies              */
 /*         alternatives)                                                  */
 /*                                                                        */
@@ -41,7 +41,7 @@ extern int setjmp(jmp_buf env);
 extern void longjmp(jmp_buf env, int val);
 
 #include "__fc_define_sigset_t.h"
-typedef struct {jmp_buf buf; sigset_t sigs;} sigjmp_buf;
+typedef struct __fc_sigjmp_buf {jmp_buf buf; sigset_t sigs;} sigjmp_buf;
 
 
 extern int sigsetjmp(sigjmp_buf env, int savesigs);

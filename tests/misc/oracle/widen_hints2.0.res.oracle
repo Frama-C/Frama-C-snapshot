@@ -62,26 +62,25 @@
   Called from tests/misc/widen_hints2.c:86.
 [eva] tests/misc/widen_hints2.c:34: starting to merge loop iterations
 [eva] tests/misc/widen_hints2.c:35: starting to merge loop iterations
-[eva:alarm] tests/misc/widen_hints2.c:36: Warning: 
-  accessing out of bounds index. assert kk < 100;
 [eva] Recording results for g
 [eva] Done for function g
 [eva] Recording results for main
 [eva] done for function main
 [eva] ====== VALUES COMPUTED ======
 [eva:final-states] Values at end of function f:
-  tf[0..87] ∈ {1} or UNINITIALIZED
-    [88..99] ∈ UNINITIALIZED
+  tf[0..85] ∈ {1} or UNINITIALIZED
+    [86..99] ∈ UNINITIALIZED
   m ∈ {10}
   n ∈ {43}
 [eva:final-states] Values at end of function g:
-  tg[0..99] ∈ {1} or UNINITIALIZED
+  tg[0..85] ∈ {1} or UNINITIALIZED
+    [86..99] ∈ UNINITIALIZED
   m ∈ {10}
   n ∈ {43}
 [eva:final-states] Values at end of function main:
-  t[0..87] ∈ {0; 1}
-   [88..99] ∈ {0}
-  glob ∈ [87..2147483647]
+  t[0..85] ∈ {0; 1}
+   [86..99] ∈ {0}
+  glob ∈ {87; 88}
   m ∈ {10}
   n ∈ {43}
   __retres ∈ {0}
@@ -98,19 +97,19 @@
 [from] Function g:
   NO EFFECTS
 [from] Function main:
-  t[0..87] FROM \nothing (and SELF)
+  t[0..85] FROM \nothing (and SELF)
   glob FROM \nothing
   \result FROM \nothing
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function f:
-    tf[0..87]; m; n; a; b
+    tf[0..85]; m; n; a; b
 [inout] Inputs for function f:
     \nothing
 [inout] Out (internal) for function g:
-    tg[0..99]; m; n; ll; kk
+    tg[0..85]; m; n; ll; kk
 [inout] Inputs for function g:
     \nothing
 [inout] Out (internal) for function main:
-    t[0..87]; glob; m; n; a; b; c; d; c_0; d_0; j; __retres
+    t[0..85]; glob; m; n; a; b; c; d; c_0; d_0; j; __retres
 [inout] Inputs for function main:
     glob

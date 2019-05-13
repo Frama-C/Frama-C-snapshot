@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2018                                               *)
+(*  Copyright (C) 2007-2019                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -61,6 +61,7 @@ module F : sig
 end
 
 include Float_interval_sig.S with type float := F.t
+                              and type widen_hints := Fc_float.widen_hints
 
 val round_to_single_precision_float : t -> t
 

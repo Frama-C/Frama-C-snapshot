@@ -43,5 +43,5 @@ void main () {
 
   s2 = s1; // Creates a garbled mix internally; make sure not to log it
 
-  s2.a = s2.c + (int) s2.c; // creates a garbled mix in the struct
+  s2.a = (int) (s2.c + (int) s2.c); // creates a garbled mix in the struct
 }

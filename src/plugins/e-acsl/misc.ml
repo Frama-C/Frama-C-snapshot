@@ -56,7 +56,7 @@ let get_lib_fun_vi fname =
     with Not_found ->
       try Builtins.find fname
       with Not_found ->
-        (* could not happen in normal mode, but could be raised when E-ACSL is
+        (* should not happen in normal mode, but could be raised when E-ACSL is
            used as a library *)
         raise (Unregistered_library_function fname)
 
@@ -211,7 +211,7 @@ let term_addr_of ~loc tlv ty =
 let reorder_ast () =
   let ast = Ast.get() in
   let is_from_library = function
-    | GType(ti, _) when ti.tname = "size_t"
+    | GType(ti, _) when ti.tname = "size_t" || ti.tname = "FILE"
       || RTL.is_rtl_name ti.tname -> true
     | GCompTag (ci, _) when RTL.is_rtl_name ci.cname -> true
     | GFunDecl(_, _, loc) | GVarDecl(_, loc) when is_library_loc loc -> true

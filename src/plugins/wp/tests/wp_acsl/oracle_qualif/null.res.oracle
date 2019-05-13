@@ -6,11 +6,12 @@
 [wp] 3 goals scheduled
 [wp] [Alt-Ergo] Goal typed_lemma_valid_non_null : Valid
 [wp] [Alt-Ergo] Goal typed_lemma_valid_read_non_null : Valid
-[wp] [Qed] Goal typed_null_is_zero_post : Valid
+[wp] [Qed] Goal typed_null_is_zero_ensures : Valid
 [wp] Proved goals:    3 / 3
   Qed:             1 
   Alt-Ergo:        2
-[wp] Report 'tests/wp_acsl/null.c.0.report.json'
+[wp] Report in:  'tests/wp_acsl/oracle_qualif/null.0.report.json'
+[wp] Report out: 'tests/wp_acsl/result_qualif/null.0.report.json'
 -------------------------------------------------------------
 Axiomatics          WP     Alt-Ergo        Total   Success
 Lemma               -       2 (1..12)        2       100%

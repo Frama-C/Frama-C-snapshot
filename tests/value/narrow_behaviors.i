@@ -1,5 +1,5 @@
 /* run.config*
-   STDOPT: +"-slevel 10 -value-verbose 2"
+   STDOPT: +"-slevel 10 -eva-verbose 2"
 */
 
 extern int nondet;

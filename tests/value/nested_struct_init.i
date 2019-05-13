@@ -1,5 +1,5 @@
 /* run.config*
-   OPT: -no-autoload-plugins -load-module inout,eva -val @VALUECONFIG@ -then -val-initialization-padding-globals no -then -val-initialization-padding-globals maybe -then -lib-entry -then -val-initialization-padding-globals no -then -val-initialization-padding-globals yes
+   OPT: -no-autoload-plugins -load-module inout,eva -eva @EVA_CONFIG@ -then -eva-initialization-padding-globals no -then -eva-initialization-padding-globals maybe -then -lib-entry -then -eva-initialization-padding-globals no -then -eva-initialization-padding-globals yes
 */
 
 typedef signed char int8_t;

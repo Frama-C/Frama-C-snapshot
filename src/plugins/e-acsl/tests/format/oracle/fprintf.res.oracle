@@ -28,7 +28,8 @@
   E-ACSL construct `assigns clause in behavior' is not yet supported.
   Ignoring annotation.
 [e-acsl] FRAMAC_SHARE/libc/stdio.h:82: Warning: 
-  E-ACSL construct `logic function application' is not yet supported.
+  E-ACSL construct `logic functions with no definition nor reads clause'
+  is not yet supported.
   Ignoring annotation.
 [e-acsl] FRAMAC_SHARE/libc/stdio.h:82: Warning: 
   E-ACSL construct `assigns clause in behavior' is not yet supported.
@@ -44,6 +45,7 @@
   __e_acsl_math_HUGE_VALF ∈ [-3.40282346639e+38 .. 3.40282346639e+38]
   __e_acsl_math_INFINITY ∈ [-1.79769313486e+308 .. 1.79769313486e+308]
   testno ∈ {0}
+  __e_acsl_sound_verdict ∈ [--..--]
   __gen_e_acsl_literal_string ∈ {0}
   __gen_e_acsl_literal_string_2 ∈ {0}
   __gen_e_acsl_literal_string_3 ∈ {0}

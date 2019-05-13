@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2018                                               *)
+(*  Copyright (C) 2007-2019                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -34,7 +34,7 @@ let use_external_viewer = false
 
 class type reactive_buffer = object
   inherit error_manager
-  method buffer : GSourceView2.source_buffer
+  method buffer : GSourceView.source_buffer
   method locs : Pretty_source.Locs.state
   method rehighlight: unit
   method redisplay: unit
@@ -61,7 +61,7 @@ class type main_window_extension_points = object
   (** Pretty print a message in the [annot_window]. *)
 
   method launcher : unit -> unit
-  method source_viewer : GSourceView2.source_view
+  method source_viewer : GSourceView.source_view
   method source_viewer_scroll : GBin.scrolled_window
   method display_globals : global list -> unit
   method register_source_selector :
@@ -271,8 +271,9 @@ let filetree_selector
   end
 
 let pretty_predicate_status fmt p =
-  let s = Property_status.get p in
-  Format.fprintf fmt "Status: %a@." Property_status.pretty s
+  if Property.has_status p then
+    let s = Property_status.get p in
+    Format.fprintf fmt "Status: %a@." Property_status.pretty s
 
 (* This is called when a localizable is selected in the pretty-printed source
    buffer *)
@@ -419,6 +420,7 @@ let to_do_on_select
   in
   if button = 1 then begin
     match selected with
+    | PStmtStart _ -> ()
     | PStmt (kf, stmt) ->
         current_statement_msg (Some kf) (Kstmt stmt);
         print_code_annotations main_ui kf stmt;
@@ -445,7 +447,7 @@ let to_do_on_select
         main_ui#pretty_information "This is a requires clause.@.%a@."
           pretty_predicate_status ip;
         main_ui#view_original (Property.location ip)
-    | PIP (Property.IPExtended(_,(_,name,_,_)) as ip) ->
+    | PIP (Property.IPExtended(_,(_,name,_,_,_)) as ip) ->
         main_ui#pretty_information "This clause is a %s extension.@.%a@."
           name
           pretty_predicate_status ip;
@@ -657,20 +659,19 @@ struct
   let fold_category = "fold"
   let unfold_category = "unfold"
 
-  let declare_markers (source:GSourceView2.source_view) =
-    source#set_mark_category_pixbuf
-      ~category:fold_category (Some Gtk_helper.Icon.(get Fold));
-    source#set_mark_category_pixbuf
-      ~category:unfold_category (Some Gtk_helper.Icon.(get Unfold));
-    (* Sets a high prioriy so that the icon for folding and unfolding are
-       printed on top of the status bullets. *)
-    source#set_mark_category_priority ~category:fold_category 2;
-    source#set_mark_category_priority ~category:unfold_category 2;
+(*GTK3 does not exist anymore in gsourceview3. *)
+  let declare_markers (source:GSourceView.source_view) =
+    GSourceView.make_marker_attributes
+      ~source ~category:fold_category ~priority:2
+      ~pixbuf:(Gtk_helper.Icon.(get Fold)) ();
+    GSourceView.make_marker_attributes
+      ~source ~category:unfold_category ~priority:2
+      ~pixbuf:(Gtk_helper.Icon.(get Unfold)) ();
     List.iter
       (fun v ->
-         source#set_mark_category_pixbuf
-           ~category:(category v)
-           (Some (Gtk_helper.Icon.get (Gtk_helper.Icon.Feedback v))))
+         GSourceView.make_marker_attributes
+           ~source ~category:(category v) ~priority:1
+           ~pixbuf:(Gtk_helper.Icon.get (Gtk_helper.Icon.Feedback v)) ())
       [ F.Never_tried;
         F.Considered_valid;
         F.Valid;
@@ -695,19 +696,20 @@ struct
     Hashtbl.clear tooltip_marks;
     Hashtbl.clear call_sites
 
-  let mark (source:GSourceView2.source_buffer) ?call_site ~offset validity =
+  let mark (source:GSourceView.source_buffer) ?call_site ~offset validity =
     let iter = source#get_iter_at_char offset in
+    let mark = iter#set_line_offset 0 in
     let category = category validity in
-    source#remove_source_marks iter iter () ;
-    ignore (source#create_source_mark ~category iter) ;
+    source#remove_source_marks mark mark () ;
+    ignore (source#create_source_mark ~category mark) ;
     Hashtbl.replace tooltip_marks iter#line (long_category validity);
     match call_site with
     | None -> ()
     | Some stmt ->
       Hashtbl.replace call_sites iter#line stmt;
       if Pretty_source.are_preconds_unfolded stmt
-      then ignore (source#create_source_mark ~category:fold_category iter)
-      else ignore (source#create_source_mark ~category:unfold_category iter)
+      then ignore (source#create_source_mark ~category:fold_category mark)
+      else ignore (source#create_source_mark ~category:unfold_category mark)
 
 end
 
@@ -840,18 +842,16 @@ class main_window () : main_window_extension_points =
       width, if final_h then height else new_height
   in
   let main_window =
-    GWindow.window
+    Gtk_compat.window
       ?icon:framac_icon
       ~title:"Frama-C"
-      ~width
-      ~height
       ~position:`CENTER
-      ~allow_shrink:true
-      ~allow_grow:true
+      ~resizable:true
       ~show:false
       ()
   in
   let () = main_window#set_default_size ~width ~height in
+  let () = main_window#set_geometry_hints ~min_size:(1,1) main_window#coerce in
   let watch_cursor = Gdk.Cursor.create `WATCH in
   let arrow_cursor = Gdk.Cursor.create `ARROW in
 
@@ -865,9 +865,7 @@ class main_window () : main_window_extension_points =
   in
   (* status bar (at bottom) *)
   (* toplevel_vbox->bottom_hbox-> *statusbar *)
-  let statusbar =
-    GMisc.statusbar ~has_resize_grip:false ~packing:bottom_hbox#add ()
-  in
+  let statusbar = GMisc.statusbar ~packing:bottom_hbox#add () in
   let status_context = statusbar#new_context "messages" in
 
   (* progress bar (at bottom) *)
@@ -1178,7 +1176,7 @@ class main_window () : main_window_extension_points =
          varinfo or a global for [loc], then scroll to [loc]. *)
     method scroll loc =
       Gui_parameters.debug ~dkey:dkey_scroll
-        "main_ui: scroll: localizable %a" Pretty_source.Localizable.pretty loc;
+        "main_ui: scroll: localizable %a" Printer_tag.Localizable.pretty loc;
       (* Used to avoid having two different history events, one created
          by [select_global], the other by [scroll] *)
       let history = History.on_current_history () in
@@ -1187,6 +1185,10 @@ class main_window () : main_window_extension_points =
       let show o =
         history (fun () -> History.push (History.Localizable loc));
         let iter = self#source_viewer#buffer#get_iter (`OFFSET o) in
+        Gui_parameters.debug
+          ~dkey:dkey_scroll "scrolling in current view at iter %d,%d"
+          iter#line iter#line_offset
+        ;
         ignore (self#source_viewer#backward_display_line_start iter);
         self#source_viewer#buffer#place_cursor iter;
         ignore (self#source_viewer#scroll_to_mark
@@ -1336,12 +1338,15 @@ class main_window () : main_window_extension_points =
     method private statusbar = statusbar
 
     method lower_notebook = lower_notebook
-    method reset () =
+    method private reset_no_extensions () =
       Gui_parameters.debug ~dkey "Redisplaying gui";
       Globals_GUI.clear ();
       current_buffer_state <- original_reactive_buffer;
       self#file_tree#reset ();
-      (self#menu_manager ())#refresh ();
+      (self#menu_manager ())#refresh ()
+
+    method reset () =
+      self#reset_no_extensions ();
       reset_extensions self#toplevel;
       if History.is_empty () then (
         self#default_screen ())
@@ -1367,7 +1372,7 @@ class main_window () : main_window_extension_points =
        to be found (e.g. Ctrl+F). Otherwise, uses the last searched
        text (e.g. F3). *)
     method private focused_find_text use_dialog =
-      let find_text_in_viewer ~where (viewer : [`GTextViewer of GText.view |`GSourceViewer of GSourceView2.source_view]) text =
+      let find_text_in_viewer ~where (viewer : [`GTextViewer of GText.view |`GSourceViewer of GSourceView.source_view]) text =
         let buffer, scroll_to_iter =
           match viewer with
           | `GTextViewer v -> v#buffer,v#scroll_to_iter
@@ -1497,11 +1502,22 @@ class main_window () : main_window_extension_points =
               let abs_x = int_of_float (GdkEvent.Button.x_root ev) in
               (* This function returns the absolute position of the top window,
                  or the relative position of an intern widget. *)
+              let rec get_rel_from_main acc win =
+                let x = fst (Gdk.Window.get_position win) in
+                let acc = acc + x in
+                let win = Gdk.Window.get_parent win in
+                if Gobject.get_oid win =
+                   Gobject.get_oid main_window#misc#window
+                then acc
+                else get_rel_from_main acc win
+              in
               let get_x obj = fst (Gdk.Window.get_position obj#misc#window) in
               (* Absolute position of the main window on the screen. *)
               let window_abs_x = get_x main_window in
               (* Relative position of the source_viewer in the main windows. *)
-              let viewer_rel_x = get_x source_viewer in
+              let viewer_rel_x =
+                get_rel_from_main 0 source_viewer#misc#window
+              in
               (* Width of the bullet column in the source viewer. *)
               if abs_x - (window_abs_x + viewer_rel_x) < 20 then
                 begin
@@ -1513,15 +1529,76 @@ class main_window () : main_window_extension_points =
                   let line = iterpos#line in
                   try
                     let stmt = Hashtbl.find Feedback.call_sites line in
-                    let kf = Kernel_function.find_englobing_kf stmt in
                     Pretty_source.fold_preconds_at_callsite stmt;
-                    self#reactive_buffer#redisplay;
-                    self#scroll (PStmt (kf, stmt))
-                  with Not_found -> ()
+                    self#reset_no_extensions ();
+                    (* give some time for the sourceview to recompute
+                       its height, otherwise scrolling is broken. *)
+                    let has_stabilized = ref false in
+                    (* According to the blog post here
+                       https://picheta.me/articles/2013/08/gtk-plus--a-method-to-guarantee-scrolling.html
+                       the best way to check whether we have correctly scrolled
+                       is to retrieve the rectangle corresponding to the mark,
+                       the rectangle effectively displayed, and see whether
+                       the former is included in the latter.
+                    *)
+                    let check () =
+                      (* not entirely accurate because of
+                         the (un)fold action, but should do the trick.
+                         We will do the real scroll after stabilization
+                         anyway.
+                      *)
+                      let iter =
+                        source_viewer#buffer#get_iter (`LINE line)
+                      in
+                      let my_rect = source_viewer#get_iter_location iter in
+                      let visible_rect = source_viewer#visible_rect in
+                      (* in Gdk, x,y represents the top left corner of the
+                         rectangle. We just check whether the beginning of the
+                         selection is visible (we only have one line of text
+                         anyway). *)
+                      let res =
+                        Gdk.Rectangle.(
+                          y my_rect >= y visible_rect &&
+                          y my_rect <= y visible_rect + height visible_rect
+                        )
+                      in
+                      Gdk.Rectangle.(Gui_parameters.debug ~dkey:dkey_scroll
+                        "my  rect is %d (+%d) %d (+%d)@\n\
+                         vis rect is  %d (+%d) %d (+%d)@\n\
+                         my rect is visible: %B@."
+                        (x my_rect) (width my_rect) (y my_rect) (height my_rect)
+                        (x visible_rect) (width visible_rect) (y visible_rect)
+                        (height visible_rect) res);
+                      has_stabilized := res;
+                      (* when added as an idle procedure below, check will
+                         be removed whenever it returns false. *)
+                      not res
+                    in
+                    (* in case we were lucky and have stabilized directly. *)
+                    ignore (check());
+                    let proc = Glib.Idle.add check in
+                    (* in case we are unlucky, stop waiting after
+                       0.5 second and hope for the best. *)
+                    let alarm =
+                      Glib.Timeout.add
+                        ~ms:500
+                        ~callback:
+                          (fun () ->
+                             has_stabilized := true;
+                             Glib.Idle.remove proc;
+                             false)
+                    in
+                    while (not !has_stabilized) do
+                      (* do one main loop step so that buffer gets
+                         a chance to recompute its height. *)
+                      ignore (Glib.Main.iteration false)
+                    done;
+                    Glib.Timeout.remove alarm;
+                    self#view_stmt stmt;
+                 with Not_found -> ()
                 end;
               false)
       in
-
       let extra_accel_group = GtkData.AccelGroup.create () in
       GtkData.AccelGroup.connect extra_accel_group
         ~key:GdkKeysyms._F

@@ -99,12 +99,189 @@
   Called from tests/libc/signal_h.c:42.
 [eva] using specification for function kill
 [eva] Done for function kill
+[eva] computing for function sigaction <- main.
+  Called from tests/libc/signal_h.c:45.
+[eva] using specification for function sigaction
+[eva] tests/libc/signal_h.c:45: 
+  function sigaction: precondition 'valid_signal' got status valid.
+[eva] tests/libc/signal_h.c:45: 
+  function sigaction: precondition 'valid_oldact_or_null' got status valid.
+[eva] tests/libc/signal_h.c:45: 
+  function sigaction: precondition 'valid_read_act_or_null' got status valid.
+[eva] tests/libc/signal_h.c:45: 
+  function sigaction: precondition 'separation,separated_acts' got status valid.
+[eva] Done for function sigaction
+[eva] computing for function sigaction <- main.
+  Called from tests/libc/signal_h.c:45.
+[eva] Done for function sigaction
+[eva] computing for function sigaction <- main.
+  Called from tests/libc/signal_h.c:48.
+[eva] tests/libc/signal_h.c:48: 
+  function sigaction: precondition 'valid_signal' got status valid.
+[eva] tests/libc/signal_h.c:48: 
+  function sigaction: precondition 'valid_oldact_or_null' got status valid.
+[eva] tests/libc/signal_h.c:48: 
+  function sigaction: precondition 'valid_read_act_or_null' got status valid.
+[eva] tests/libc/signal_h.c:48: 
+  function sigaction: precondition 'separation,separated_acts' got status valid.
+[eva] share/libc/signal.h:212: 
+  cannot evaluate ACSL term, unsupported ACSL construct: logic coercion struct sigaction -> set<struct sigaction>
+[eva] Done for function sigaction
+[eva] computing for function sigaction <- main.
+  Called from tests/libc/signal_h.c:51.
+[eva] tests/libc/signal_h.c:51: 
+  function sigaction: precondition 'valid_signal' got status valid.
+[eva] tests/libc/signal_h.c:51: 
+  function sigaction: precondition 'valid_oldact_or_null' got status valid.
+[eva] tests/libc/signal_h.c:51: 
+  function sigaction: precondition 'valid_read_act_or_null' got status valid.
+[eva] tests/libc/signal_h.c:51: 
+  function sigaction: precondition 'separation,separated_acts' got status valid.
+[eva] Done for function sigaction
 [eva] Recording results for main
 [eva] done for function main
 [eva] ====== VALUES COMPUTED ======
 [eva:final-states] Values at end of function main:
+  __fc_sigaction[0]{.sa_handler; .sa_sigaction} ∈ {0}
+                [0]{.sa_mask; .sa_flags} ∈ [--..--]
+                [1]{.sa_handler; .sa_sigaction} ∈ {0}
+                [1]{.sa_mask; .sa_flags} ∈ [--..--]
+                [2]{.sa_handler; .sa_sigaction} ∈ {0}
+                [2]{.sa_mask; .sa_flags} ∈ [--..--]
+                [3]{.sa_handler; .sa_sigaction} ∈ {0}
+                [3]{.sa_mask; .sa_flags} ∈ [--..--]
+                [4]{.sa_handler; .sa_sigaction} ∈ {0}
+                [4]{.sa_mask; .sa_flags} ∈ [--..--]
+                [5]{.sa_handler; .sa_sigaction} ∈ {0}
+                [5]{.sa_mask; .sa_flags} ∈ [--..--]
+                [6]{.sa_handler; .sa_sigaction} ∈ {0}
+                [6]{.sa_mask; .sa_flags} ∈ [--..--]
+                [7]{.sa_handler; .sa_sigaction} ∈ {0}
+                [7]{.sa_mask; .sa_flags} ∈ [--..--]
+                [8]{.sa_handler; .sa_sigaction} ∈ {0}
+                [8]{.sa_mask; .sa_flags} ∈ [--..--]
+                [9]{.sa_handler; .sa_sigaction} ∈ {0}
+                [9]{.sa_mask; .sa_flags} ∈ [--..--]
+                [10] ∈
+                {{ garbled mix of &{__fc_sigaction}
+                 (origin: Library function) }}
+                [11]{.sa_handler; .sa_sigaction} ∈ {0}
+                [11]{.sa_mask; .sa_flags} ∈ [--..--]
+                [12]{.sa_handler; .sa_sigaction} ∈ {0}
+                [12]{.sa_mask; .sa_flags} ∈ [--..--]
+                [13]{.sa_handler; .sa_sigaction} ∈ {0}
+                [13]{.sa_mask; .sa_flags} ∈ [--..--]
+                [14]{.sa_handler; .sa_sigaction} ∈ {0}
+                [14]{.sa_mask; .sa_flags} ∈ [--..--]
+                [15]{.sa_handler; .sa_sigaction} ∈ {0}
+                [15]{.sa_mask; .sa_flags} ∈ [--..--]
+                [16]{.sa_handler; .sa_sigaction} ∈ {0}
+                [16]{.sa_mask; .sa_flags} ∈ [--..--]
+                [17]{.sa_handler; .sa_sigaction} ∈ {0}
+                [17]{.sa_mask; .sa_flags} ∈ [--..--]
+                [18] ∈
+                {{ garbled mix of &{__fc_sigaction}
+                 (origin: Library function) }}
+                [19]{.sa_handler; .sa_sigaction} ∈ {0}
+                [19]{.sa_mask; .sa_flags} ∈ [--..--]
+                [20]{.sa_handler; .sa_sigaction} ∈ {0}
+                [20]{.sa_mask; .sa_flags} ∈ [--..--]
+                [21]{.sa_handler; .sa_sigaction} ∈ {0}
+                [21]{.sa_mask; .sa_flags} ∈ [--..--]
+                [22]{.sa_handler; .sa_sigaction} ∈ {0}
+                [22]{.sa_mask; .sa_flags} ∈ [--..--]
+                [23]{.sa_handler; .sa_sigaction} ∈ {0}
+                [23]{.sa_mask; .sa_flags} ∈ [--..--]
+                [24]{.sa_handler; .sa_sigaction} ∈ {0}
+                [24]{.sa_mask; .sa_flags} ∈ [--..--]
+                [25]{.sa_handler; .sa_sigaction} ∈ {0}
+                [25]{.sa_mask; .sa_flags} ∈ [--..--]
+                [26]{.sa_handler; .sa_sigaction} ∈ {0}
+                [26]{.sa_mask; .sa_flags} ∈ [--..--]
+                [27]{.sa_handler; .sa_sigaction} ∈ {0}
+                [27]{.sa_mask; .sa_flags} ∈ [--..--]
+                [28]{.sa_handler; .sa_sigaction} ∈ {0}
+                [28]{.sa_mask; .sa_flags} ∈ [--..--]
+                [29]{.sa_handler; .sa_sigaction} ∈ {0}
+                [29]{.sa_mask; .sa_flags} ∈ [--..--]
+                [30]{.sa_handler; .sa_sigaction} ∈ {0}
+                [30]{.sa_mask; .sa_flags} ∈ [--..--]
+                [31]{.sa_handler; .sa_sigaction} ∈ {0}
+                [31]{.sa_mask; .sa_flags} ∈ [--..--]
+                [32]{.sa_handler; .sa_sigaction} ∈ {0}
+                [32]{.sa_mask; .sa_flags} ∈ [--..--]
+                [33]{.sa_handler; .sa_sigaction} ∈ {0}
+                [33]{.sa_mask; .sa_flags} ∈ [--..--]
+                [34]{.sa_handler; .sa_sigaction} ∈ {0}
+                [34]{.sa_mask; .sa_flags} ∈ [--..--]
+                [35]{.sa_handler; .sa_sigaction} ∈ {0}
+                [35]{.sa_mask; .sa_flags} ∈ [--..--]
+                [36]{.sa_handler; .sa_sigaction} ∈ {0}
+                [36]{.sa_mask; .sa_flags} ∈ [--..--]
+                [37]{.sa_handler; .sa_sigaction} ∈ {0}
+                [37]{.sa_mask; .sa_flags} ∈ [--..--]
+                [38]{.sa_handler; .sa_sigaction} ∈ {0}
+                [38]{.sa_mask; .sa_flags} ∈ [--..--]
+                [39]{.sa_handler; .sa_sigaction} ∈ {0}
+                [39]{.sa_mask; .sa_flags} ∈ [--..--]
+                [40]{.sa_handler; .sa_sigaction} ∈ {0}
+                [40]{.sa_mask; .sa_flags} ∈ [--..--]
+                [41]{.sa_handler; .sa_sigaction} ∈ {0}
+                [41]{.sa_mask; .sa_flags} ∈ [--..--]
+                [42]{.sa_handler; .sa_sigaction} ∈ {0}
+                [42]{.sa_mask; .sa_flags} ∈ [--..--]
+                [43]{.sa_handler; .sa_sigaction} ∈ {0}
+                [43]{.sa_mask; .sa_flags} ∈ [--..--]
+                [44]{.sa_handler; .sa_sigaction} ∈ {0}
+                [44]{.sa_mask; .sa_flags} ∈ [--..--]
+                [45]{.sa_handler; .sa_sigaction} ∈ {0}
+                [45]{.sa_mask; .sa_flags} ∈ [--..--]
+                [46]{.sa_handler; .sa_sigaction} ∈ {0}
+                [46]{.sa_mask; .sa_flags} ∈ [--..--]
+                [47]{.sa_handler; .sa_sigaction} ∈ {0}
+                [47]{.sa_mask; .sa_flags} ∈ [--..--]
+                [48]{.sa_handler; .sa_sigaction} ∈ {0}
+                [48]{.sa_mask; .sa_flags} ∈ [--..--]
+                [49]{.sa_handler; .sa_sigaction} ∈ {0}
+                [49]{.sa_mask; .sa_flags} ∈ [--..--]
+                [50]{.sa_handler; .sa_sigaction} ∈ {0}
+                [50]{.sa_mask; .sa_flags} ∈ [--..--]
+                [51]{.sa_handler; .sa_sigaction} ∈ {0}
+                [51]{.sa_mask; .sa_flags} ∈ [--..--]
+                [52]{.sa_handler; .sa_sigaction} ∈ {0}
+                [52]{.sa_mask; .sa_flags} ∈ [--..--]
+                [53]{.sa_handler; .sa_sigaction} ∈ {0}
+                [53]{.sa_mask; .sa_flags} ∈ [--..--]
+                [54]{.sa_handler; .sa_sigaction} ∈ {0}
+                [54]{.sa_mask; .sa_flags} ∈ [--..--]
+                [55]{.sa_handler; .sa_sigaction} ∈ {0}
+                [55]{.sa_mask; .sa_flags} ∈ [--..--]
+                [56]{.sa_handler; .sa_sigaction} ∈ {0}
+                [56]{.sa_mask; .sa_flags} ∈ [--..--]
+                [57]{.sa_handler; .sa_sigaction} ∈ {0}
+                [57]{.sa_mask; .sa_flags} ∈ [--..--]
+                [58]{.sa_handler; .sa_sigaction} ∈ {0}
+                [58]{.sa_mask; .sa_flags} ∈ [--..--]
+                [59]{.sa_handler; .sa_sigaction} ∈ {0}
+                [59]{.sa_mask; .sa_flags} ∈ [--..--]
+                [60]{.sa_handler; .sa_sigaction} ∈ {0}
+                [60]{.sa_mask; .sa_flags} ∈ [--..--]
+                [61]{.sa_handler; .sa_sigaction} ∈ {0}
+                [61]{.sa_mask; .sa_flags} ∈ [--..--]
+                [62]{.sa_handler; .sa_sigaction} ∈ {0}
+                [62]{.sa_mask; .sa_flags} ∈ [--..--]
+                [63]{.sa_handler; .sa_sigaction} ∈ {0}
+                [63]{.sa_mask; .sa_flags} ∈ [--..--]
+                [64]{.sa_handler; .sa_sigaction} ∈ {0}
+                [64]{.sa_mask; .sa_flags} ∈ [--..--]
   s ∈ [--..--]
   uninit ∈ UNINITIALIZED
   old ∈ [--..--] or UNINITIALIZED
   kill_res ∈ {-1; 0}
+  sa1 ∈
+     {{ garbled mix of &{__fc_sigaction}
+      (origin: Library function) }} or UNINITIALIZED
+  sa2 ∈
+     {{ garbled mix of &{__fc_sigaction}
+      (origin: Library function {tests/libc/signal_h.c:48}) }} or UNINITIALIZED
   __retres ∈ {-1; 0; 1; 2; 3}

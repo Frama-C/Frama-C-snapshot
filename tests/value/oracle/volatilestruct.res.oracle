@@ -53,9 +53,9 @@
   s2 ∈ {0}
   x ∈ {0}
   y ∈ {0}
-[eva] tests/value/volatilestruct.c:33: Warning: 
+[eva:signed-overflow] tests/value/volatilestruct.c:33: Warning: 
   2's complement assumed for overflow
-[eva] tests/value/volatilestruct.c:34: Warning: 
+[eva:signed-overflow] tests/value/volatilestruct.c:34: Warning: 
   2's complement assumed for overflow
 [eva] Recording results for main
 [eva] done for function main

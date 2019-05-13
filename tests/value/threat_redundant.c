@@ -1,5 +1,5 @@
 /*run.config*
-  STDOPT: +"-no-val-builtins-auto"
+  STDOPT: +"-eva-no-builtins-auto"
 */
 
 #define NULL ((void*)0)

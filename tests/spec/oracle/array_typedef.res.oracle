@@ -73,9 +73,9 @@ typedef struct __anonstruct_msg_1 msg;
 /*@ assigns \empty; */
 void send_addr(int const * /*[4]*/ addr);
 
-void send_msg(msg const *msg_0)
+void send_msg(msg const *msg)
 {
-  send_addr(msg_0->src);
+  send_addr(msg->src);
   return;
 }
 
@@ -89,13 +89,13 @@ void host_address(int * /*[4]*/ ip)
   return;
 }
 
-void create_msg(msg *msg_0)
+void create_msg(msg *msg)
 {
-  host_address(msg_0->src);
-  host_address(msg_0->dst);
-  /*@ assert msg_0->dst[0] ≡ 192; */ ;
-  /*@ assert msg_0->src[0] ≡ 192; */ ;
-  /*@ assert msg_0->dst[sizeof(ip_address) / sizeof(int) - 1] ≡ 101; */ ;
+  host_address(msg->src);
+  host_address(msg->dst);
+  /*@ assert msg->dst[0] ≡ 192; */ ;
+  /*@ assert msg->src[0] ≡ 192; */ ;
+  /*@ assert msg->dst[sizeof(ip_address) / sizeof(int) - 1] ≡ 101; */ ;
   return;
 }
 

@@ -26,8 +26,8 @@ Prove: Mint_0[shift_sint32(a, i)] = 0.
 ------------------------------------------------------------
 
 Goal Assertion (file tests/wp_typed/array_initialized.c, line 185):
-Let a = global(K_h1_22).
-Let a_1 = global(K_h2_23).
+Let a = global(K_h1_24).
+Let a_1 = global(K_h2_25).
 Assume {
   (* Goal *)
   When: (0 <= i) /\ (i <= 499).
@@ -254,13 +254,13 @@ Prove: true.
 ------------------------------------------------------------
 
 Goal Assertion (file tests/wp_typed/array_initialized.c, line 283):
-Let a = global(K_p_30).
+Let a = global(K_p_32).
 Assume {
   (* Goal *)
   When: (0 <= i) /\ (i <= 499).
   (* Initializer *)
   Init: forall i_1 : Z. ((0 <= i_1) -> ((i_1 <= 499) ->
-      (Mptr_0[shift_PTR(a, i_1)] = global(G_p0_29)))).
+      (Mptr_0[shift_PTR(a, i_1)] = global(G_p0_31)))).
   (* Heap *)
   Have: framed(Mptr_0) /\ linked(Malloc_0).
 }

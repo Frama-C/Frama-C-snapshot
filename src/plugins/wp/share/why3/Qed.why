@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2018                                               *)
+(*  Copyright (C) 2007-2019                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -61,12 +61,12 @@ axiom rleq1 : forall x:real, y:real. ((rleq x y) = (Bool.True)) <->
 
 function real_of_int (x:int) : real = FromInt.from_int x
 
-axiom c_euclidian : forall n:int, d:int [ComputerDivision.div n d,
+lemma c_euclidian : forall n:int, d:int [ComputerDivision.div n d,
   ComputerDivision.mod n d]. not ((d) = (0)) ->
   ((n) = ((Int.(+) ((Int.(*) (ComputerDivision.div n
   d) (d))) (ComputerDivision.mod n d))))
 
-axiom cdiv_cases : forall n:int, d:int [ComputerDivision.div n d].
+lemma cdiv_cases : forall n:int, d:int [ComputerDivision.div n d].
   ((Int.(>=) (n) (0)) -> (Int.(>) (d) (0)) -> ((ComputerDivision.div n
   d) = ((ComputerDivision.div n d)))) /\ ((Int.(<=) (n) (0)) ->
   (Int.(>) (d) (0)) -> ((ComputerDivision.div n
@@ -76,7 +76,7 @@ axiom cdiv_cases : forall n:int, d:int [ComputerDivision.div n d].
   ((Int.(<=) (n) (0)) -> (Int.(<) (d) (0)) -> ((ComputerDivision.div n
   d) = ((ComputerDivision.div (Int.(-_) (n)) (Int.(-_) (d))))))
 
-axiom cmod_cases : forall n:int, d:int [ComputerDivision.mod n d].
+lemma cmod_cases : forall n:int, d:int [ComputerDivision.mod n d].
   ((Int.(>=) (n) (0)) -> (Int.(>) (d) (0)) -> ((ComputerDivision.mod n
   d) = ((ComputerDivision.mod n d)))) /\ ((Int.(<=) (n) (0)) ->
   (Int.(>) (d) (0)) -> ((ComputerDivision.mod n
@@ -86,7 +86,7 @@ axiom cmod_cases : forall n:int, d:int [ComputerDivision.mod n d].
   (Int.(<) (d) (0)) -> ((ComputerDivision.mod n
   d) = ((Int.(-_) ((ComputerDivision.mod (Int.(-_) (n)) (Int.(-_) (d))))))))
 
-axiom cmod_remainder : forall n:int, d:int [ComputerDivision.mod n d].
+lemma cmod_remainder : forall n:int, d:int [ComputerDivision.mod n d].
   ((Int.(>=) (n) (0)) -> (Int.(>) (d) (0)) ->
   (Int.(<=) (0) (ComputerDivision.mod n d)) /\ (Int.(<) (ComputerDivision.mod
   n d) (d))) /\ ((Int.(<=) (n) (0)) -> (Int.(>) (d) (0)) ->
@@ -98,10 +98,10 @@ axiom cmod_remainder : forall n:int, d:int [ComputerDivision.mod n d].
   (Int.(<) (d) (ComputerDivision.mod n d)) /\ (Int.(<=) (ComputerDivision.mod
   n d) (0)))
 
-axiom cdiv_neutral : forall a:int [ComputerDivision.div a 1].
+lemma cdiv_neutral : forall a:int [ComputerDivision.div a 1].
   ((ComputerDivision.div a 1) = (a))
 
-axiom cdiv_inv : forall a:int [ComputerDivision.div a a]. not ((a) = (0)) ->
+lemma cdiv_inv : forall a:int [ComputerDivision.div a a]. not ((a) = (0)) ->
   ((ComputerDivision.div a a) = (1))
 
 end

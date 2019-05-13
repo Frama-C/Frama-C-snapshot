@@ -2,7 +2,7 @@
 /*                                                                        */
 /*  This file is part of Frama-C.                                         */
 /*                                                                        */
-/*  Copyright (C) 2007-2018                                               */
+/*  Copyright (C) 2007-2019                                               */
 /*    CEA (Commissariat à l'énergie atomique et aux énergies              */
 /*         alternatives)                                                  */
 /*                                                                        */
@@ -33,6 +33,6 @@ imaxdiv_t imaxdiv(intmax_t numer, intmax_t denom){
   r.quot=numer/denom;
   r.rem=numer%denom;
   return r;
-};
+}
 
 __POP_FC_STDLIB

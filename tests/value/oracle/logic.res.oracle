@@ -14,7 +14,7 @@
   arr_ptr[0..2] ∈ {0}
   arr_ptr_arr[0..5] ∈ {0}
 [eva] computing for function eq_tsets <- main.
-  Called from tests/value/logic.c:292.
+  Called from tests/value/logic.c:312.
 [eva] tests/value/logic.c:103: 
   cannot evaluate ACSL term, unsupported ACSL construct: == operation on non-supported type set<_#8>
 [eva:alarm] tests/value/logic.c:103: Warning: assertion got status unknown.
@@ -56,20 +56,20 @@
 [eva] Recording results for eq_tsets
 [eva] Done for function eq_tsets
 [eva] computing for function eq_char <- main.
-  Called from tests/value/logic.c:293.
+  Called from tests/value/logic.c:313.
 [eva] tests/value/logic.c:149: Frama_C_show_each: {-126}
 [eva] tests/value/logic.c:150: assertion got status valid.
 [eva] tests/value/logic.c:151: assertion got status valid.
 [eva] Recording results for eq_char
 [eva] Done for function eq_char
 [eva] computing for function casts <- main.
-  Called from tests/value/logic.c:294.
+  Called from tests/value/logic.c:314.
 [eva] tests/value/logic.c:155: assertion got status valid.
 [eva] tests/value/logic.c:156: assertion got status valid.
 [eva] Recording results for casts
 [eva] Done for function casts
 [eva] computing for function empty_tset <- main.
-  Called from tests/value/logic.c:295.
+  Called from tests/value/logic.c:315.
 [eva] computing for function f_empty_tset <- empty_tset <- main.
   Called from tests/value/logic.c:166.
 [eva] using specification for function f_empty_tset
@@ -82,7 +82,7 @@
 [eva] Recording results for empty_tset
 [eva] Done for function empty_tset
 [eva] computing for function reduce_by_equal <- main.
-  Called from tests/value/logic.c:296.
+  Called from tests/value/logic.c:316.
 [eva:alarm] tests/value/logic.c:172: Warning: 
   accessing out of bounds index. assert 0 ≤ v;
 [eva:alarm] tests/value/logic.c:172: Warning: 
@@ -92,7 +92,7 @@
 [eva] Recording results for reduce_by_equal
 [eva] Done for function reduce_by_equal
 [eva] computing for function alarms <- main.
-  Called from tests/value/logic.c:297.
+  Called from tests/value/logic.c:317.
 [eva:alarm] tests/value/logic.c:182: Warning: 
   assertion 'ASSUME' got status unknown.
 [eva:alarm] tests/value/logic.c:184: Warning: 
@@ -124,7 +124,7 @@
 [eva] Recording results for alarms
 [eva] Done for function alarms
 [eva] computing for function cond_in_lval <- main.
-  Called from tests/value/logic.c:298.
+  Called from tests/value/logic.c:318.
 [eva] computing for function select_like <- cond_in_lval <- main.
   Called from tests/value/logic.c:228.
 [eva] using specification for function select_like
@@ -152,7 +152,7 @@
 [eva] Recording results for cond_in_lval
 [eva] Done for function cond_in_lval
 [eva] computing for function pred <- main.
-  Called from tests/value/logic.c:299.
+  Called from tests/value/logic.c:319.
 [eva] tests/value/logic.c:90: assertion got status valid.
 [eva] tests/value/logic.c:91: assertion got status valid.
 [eva] tests/value/logic.c:31: 
@@ -201,7 +201,7 @@
 [eva] Recording results for pred
 [eva] Done for function pred
 [eva] computing for function float_sign <- main.
-  Called from tests/value/logic.c:300.
+  Called from tests/value/logic.c:320.
 [eva] tests/value/logic.c:251: assertion got status valid.
 [eva] tests/value/logic.c:252: assertion got status valid.
 [eva] tests/value/logic.c:253: assertion got status valid.
@@ -210,7 +210,7 @@
 [eva] Recording results for float_sign
 [eva] Done for function float_sign
 [eva] computing for function min_max <- main.
-  Called from tests/value/logic.c:301.
+  Called from tests/value/logic.c:321.
 [eva] computing for function Frama_C_interval <- min_max <- main.
   Called from tests/value/logic.c:274.
 [eva] using specification for function Frama_C_interval
@@ -235,16 +235,31 @@
 [eva] Recording results for min_max
 [eva] Done for function min_max
 [eva] computing for function assign_tsets <- main.
-  Called from tests/value/logic.c:302.
+  Called from tests/value/logic.c:322.
 [eva] computing for function assign_tsets_aux <- assign_tsets <- main.
   Called from tests/value/logic.c:269.
 [eva] using specification for function assign_tsets_aux
 [eva] Done for function assign_tsets_aux
 [eva] Recording results for assign_tsets
 [eva] Done for function assign_tsets
+[eva] computing for function check_and_assert <- main.
+  Called from tests/value/logic.c:323.
+[eva:alarm] tests/value/logic.c:295: Warning: assertion got status unknown.
+[eva] tests/value/logic.c:296: Frama_C_show_each_42: {42}
+[eva] tests/value/logic.c:297: check got status valid.
+[eva:alarm] tests/value/logic.c:299: Warning: check got status unknown.
+[eva] tests/value/logic.c:300: 
+  Frama_C_show_each_imprecise: [-2147483648..2147483647]
+[eva:alarm] tests/value/logic.c:301: Warning: assertion got status unknown.
+[eva:alarm] tests/value/logic.c:303: Warning: 
+  assertion got status invalid (stopping propagation).
+[eva:alarm] tests/value/logic.c:306: Warning: check got status invalid.
+[eva] tests/value/logic.c:307: Frama_C_show_each_reachable: {42}
+[eva] Recording results for check_and_assert
+[eva] Done for function check_and_assert
 [eva] Recording results for main
 [eva] done for function main
-[scope:rm_asserts] removing 4 assertion(s)
+[scope:rm_asserts] removing 5 assertion(s)
 [eva] ====== VALUES COMPUTED ======
 [eva:final-states] Values at end of function alarms:
   x_0 ∈ {1}
@@ -258,6 +273,8 @@
              [4..5] ∈ [--..--]
 [eva:final-states] Values at end of function casts:
   
+[eva:final-states] Values at end of function check_and_assert:
+  x_0 ∈ {42}
 [eva:final-states] Values at end of function eq_char:
   c ∈ {-126}
 [eva:final-states] Values at end of function eq_tsets:
@@ -330,6 +347,8 @@
 [from] Done for function assign_tsets
 [from] Computing for function casts
 [from] Done for function casts
+[from] Computing for function check_and_assert
+[from] Done for function check_and_assert
 [from] Computing for function eq_char
 [from] Done for function eq_char
 [from] Computing for function eq_tsets
@@ -375,6 +394,8 @@
   arr_ptr[0..2] FROM \nothing
   arr_ptr_arr{[1]; [4..5]} FROM \nothing
 [from] Function casts:
+  NO EFFECTS
+[from] Function check_and_assert:
   NO EFFECTS
 [from] Function eq_char:
   NO EFFECTS
@@ -426,6 +447,10 @@
     \nothing
 [inout] Inputs for function casts:
     \nothing
+[inout] Out (internal) for function check_and_assert:
+    x_0
+[inout] Inputs for function check_and_assert:
+    v
 [inout] Out (internal) for function eq_char:
     c
 [inout] Inputs for function eq_char:

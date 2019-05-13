@@ -2,7 +2,7 @@
 /*                                                                        */
 /*  This file is part of Frama-C.                                         */
 /*                                                                        */
-/*  Copyright (C) 2007-2018                                               */
+/*  Copyright (C) 2007-2019                                               */
 /*    CEA (Commissariat à l'énergie atomique et aux énergies              */
 /*         alternatives)                                                  */
 /*                                                                        */
@@ -29,7 +29,9 @@ extern void Frama_C_show_each_warning();
 
 void __FC_assert(int c,const char* file,int line,const char*expr) {
   if (!c) {
+#ifdef __FRAMAC__
     Frama_C_show_each_warning("Assertion may fail",file,line,expr);
+#endif
     Frama_C_abort ();
   }
 }

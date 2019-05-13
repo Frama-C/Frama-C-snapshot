@@ -6,19 +6,20 @@
 [wp] tests/wp_acsl/pointer.i:50: Warning: Uncomparable locations p_0 and mem:t
 [wp] tests/wp_acsl/pointer.i:49: Warning: Uncomparable locations p_0 and mem:t
 [wp] 9 goals scheduled
-[wp] [Alt-Ergo] Goal typed_ref_absurd_post_qed_ko_Base_oracle_ko : Unknown
-[wp] [Alt-Ergo] Goal typed_ref_absurd_post_qed_ko_Comp_oracle_ko : Unknown
-[wp] [Qed] Goal typed_ref_array_post_Lt : Valid
-[wp] [Qed] Goal typed_ref_array_post_Le : Valid
-[wp] [Qed] Goal typed_ref_array_post_Eq : Valid
-[wp] [Alt-Ergo] Goal typed_ref_mixed_array_pointer_post_qed_ko_Le_oracle_ko : Unknown (Stronger)
-[wp] [Alt-Ergo] Goal typed_ref_mixed_array_pointer_post_qed_ko_Lt_oracle_ko : Unknown (Stronger)
-[wp] [Alt-Ergo] Goal typed_ref_pointer_post_qed_ko_Le_oracle_ko : Unknown
-[wp] [Alt-Ergo] Goal typed_ref_pointer_post_qed_ko_Eq_oracle_ko : Unknown
+[wp] [Alt-Ergo] Goal typed_ref_absurd_ensures_qed_ko_Base_oracle_ko : Unsuccess
+[wp] [Alt-Ergo] Goal typed_ref_absurd_ensures_qed_ko_Comp_oracle_ko : Unsuccess
+[wp] [Qed] Goal typed_ref_array_ensures_Lt : Valid
+[wp] [Qed] Goal typed_ref_array_ensures_Le : Valid
+[wp] [Qed] Goal typed_ref_array_ensures_Eq : Valid
+[wp] [Alt-Ergo] Goal typed_ref_mixed_array_pointer_ensures_qed_ko_Le_oracle_ko : Unsuccess (Stronger)
+[wp] [Alt-Ergo] Goal typed_ref_mixed_array_pointer_ensures_qed_ko_Lt_oracle_ko : Unsuccess (Stronger)
+[wp] [Alt-Ergo] Goal typed_ref_pointer_ensures_qed_ko_Le_oracle_ko : Unsuccess
+[wp] [Alt-Ergo] Goal typed_ref_pointer_ensures_qed_ko_Eq_oracle_ko : Unsuccess
 [wp] Proved goals:    3 / 9
   Qed:             3 
-  Alt-Ergo:        0  (unknown: 6)
-[wp] Report 'tests/wp_acsl/pointer.i.0.report.json'
+  Alt-Ergo:        0  (unsuccess: 6)
+[wp] Report in:  'tests/wp_acsl/oracle_qualif/pointer.0.report.json'
+[wp] Report out: 'tests/wp_acsl/result_qualif/pointer.0.report.json'
 -------------------------------------------------------------
 Functions           WP     Alt-Ergo        Total   Success
 array                3     -                 3       100%

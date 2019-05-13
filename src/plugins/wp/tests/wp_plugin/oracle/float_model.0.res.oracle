@@ -1,0 +1,58 @@
+# frama-c -wp -wp-model 'Typed (Real)' [...]
+[kernel] Parsing tests/wp_plugin/float_model.i (no preprocessing)
+[kernel] tests/wp_plugin/float_model.i:10: Warning: 
+  parsing obsolete ACSL construct 'logic declaration'. 'an axiomatic block' should be used instead.
+[kernel:parser:decimal-float] tests/wp_plugin/float_model.i:28: Warning: 
+  Floating-point constant 2.1 is not represented exactly. Will use 0x1.0cccccccccccdp1.
+  (warn-once: no further messages from category 'parser:decimal-float' will be emitted)
+[wp] Running WP plugin...
+[wp] Loading driver 'share/wp.driver'
+[wp] Warning: Missing RTE guards
+------------------------------------------------------------
+  Function job
+------------------------------------------------------------
+
+Goal Post-condition 'ACSL_R' in 'job':
+Prove: P_P((21.0/10)).
+
+------------------------------------------------------------
+
+Goal Post-condition 'ACSL_F' in 'job':
+Prove: P_P((21.0/10)).
+
+------------------------------------------------------------
+
+Goal Post-condition 'ACSL_FR' in 'job':
+Prove: P_P((21.0/10)).
+
+------------------------------------------------------------
+
+Goal Post-condition 'ACSL_DR' in 'job':
+Prove: P_P((21.0/10)).
+
+------------------------------------------------------------
+
+Goal Post-condition 'ACSL_DF' in 'job':
+Prove: P_P((21.0/10)).
+
+------------------------------------------------------------
+
+Goal Post-condition 'C_FD' in 'job':
+Prove: P_P((21.0/10)).
+
+------------------------------------------------------------
+
+Goal Post-condition 'C_FF' in 'job':
+Prove: P_P((21.0/10)).
+
+------------------------------------------------------------
+
+Goal Post-condition 'C_DD' in 'job':
+Prove: P_P((21.0/10)).
+
+------------------------------------------------------------
+
+Goal Post-condition 'C_DF' in 'job':
+Prove: P_P((21.0/10)).
+
+------------------------------------------------------------

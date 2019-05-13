@@ -1,0 +1,10 @@
+{ "wp:global": { "coq": { "total": 1, "valid": 1 },
+                 "wp:main": { "total": 1, "valid": 1 } },
+  "wp:functions": { "abs": { "abs_ensures": { "coq": { "total": 1,
+                                                       "valid": 1 },
+                                              "wp:main": { "total": 1,
+                                                           "valid": 1 } },
+                             "wp:section": { "coq": { "total": 1,
+                                                      "valid": 1 },
+                                             "wp:main": { "total": 1,
+                                                          "valid": 1 } } } } }

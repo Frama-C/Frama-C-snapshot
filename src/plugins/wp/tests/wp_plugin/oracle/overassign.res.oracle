@@ -39,15 +39,15 @@ Prove: true.
 
 Goal Assigns nothing in 'f3_ok':
 Call Effect at line 20
-Assume { (* Heap *) Have: (region(G_A_28) <= 0) /\ linked(Malloc_0). }
-Prove: invalid(Malloc_0, shift_sint32(global(G_A_28), 20), 10).
+Assume { (* Heap *) Have: (region(G_A_30) <= 0) /\ linked(Malloc_0). }
+Prove: invalid(Malloc_0, shift_sint32(global(G_A_30), 20), 10).
 
 ------------------------------------------------------------
 
 Goal Assigns nothing in 'f3_ok':
 Call Effect at line 20
-Assume { (* Heap *) Have: (region(G_A_28) <= 0) /\ linked(Malloc_0). }
-Prove: invalid(Malloc_0, shift_sint32(global(G_A_28), 20), 10).
+Assume { (* Heap *) Have: (region(G_A_30) <= 0) /\ linked(Malloc_0). }
+Prove: invalid(Malloc_0, shift_sint32(global(G_A_30), 20), 10).
 
 ------------------------------------------------------------
 ------------------------------------------------------------
@@ -56,15 +56,15 @@ Prove: invalid(Malloc_0, shift_sint32(global(G_A_28), 20), 10).
 
 Goal Assigns nothing in 'f4_ok':
 Call Effect at line 23
-Assume { (* Heap *) Have: (region(G_A_28) <= 0) /\ linked(Malloc_0). }
-Prove: invalid(Malloc_0, shift_sint32(global(G_A_28), -10), 10).
+Assume { (* Heap *) Have: (region(G_A_30) <= 0) /\ linked(Malloc_0). }
+Prove: invalid(Malloc_0, shift_sint32(global(G_A_30), -10), 10).
 
 ------------------------------------------------------------
 
 Goal Assigns nothing in 'f4_ok':
 Call Effect at line 23
-Assume { (* Heap *) Have: (region(G_A_28) <= 0) /\ linked(Malloc_0). }
-Prove: invalid(Malloc_0, shift_sint32(global(G_A_28), -10), 10).
+Assume { (* Heap *) Have: (region(G_A_30) <= 0) /\ linked(Malloc_0). }
+Prove: invalid(Malloc_0, shift_sint32(global(G_A_30), -10), 10).
 
 ------------------------------------------------------------
 ------------------------------------------------------------
@@ -73,15 +73,15 @@ Prove: invalid(Malloc_0, shift_sint32(global(G_A_28), -10), 10).
 
 Goal Assigns nothing in 'f5_ko':
 Call Effect at line 26
-Assume { (* Heap *) Have: (region(G_A_28) <= 0) /\ linked(Malloc_0). }
-Prove: invalid(Malloc_0, shift_sint32(global(G_A_28), 15), 10).
+Assume { (* Heap *) Have: (region(G_A_30) <= 0) /\ linked(Malloc_0). }
+Prove: invalid(Malloc_0, shift_sint32(global(G_A_30), 15), 10).
 
 ------------------------------------------------------------
 
 Goal Assigns nothing in 'f5_ko':
 Call Effect at line 26
-Assume { (* Heap *) Have: (region(G_A_28) <= 0) /\ linked(Malloc_0). }
-Prove: invalid(Malloc_0, shift_sint32(global(G_A_28), 15), 10).
+Assume { (* Heap *) Have: (region(G_A_30) <= 0) /\ linked(Malloc_0). }
+Prove: invalid(Malloc_0, shift_sint32(global(G_A_30), 15), 10).
 
 ------------------------------------------------------------
 ------------------------------------------------------------
@@ -90,14 +90,14 @@ Prove: invalid(Malloc_0, shift_sint32(global(G_A_28), 15), 10).
 
 Goal Assigns nothing in 'f6_ko':
 Call Effect at line 29
-Assume { (* Heap *) Have: (region(G_A_28) <= 0) /\ linked(Malloc_0). }
-Prove: invalid(Malloc_0, shift_sint32(global(G_A_28), -5), 10).
+Assume { (* Heap *) Have: (region(G_A_30) <= 0) /\ linked(Malloc_0). }
+Prove: invalid(Malloc_0, shift_sint32(global(G_A_30), -5), 10).
 
 ------------------------------------------------------------
 
 Goal Assigns nothing in 'f6_ko':
 Call Effect at line 29
-Assume { (* Heap *) Have: (region(G_A_28) <= 0) /\ linked(Malloc_0). }
-Prove: invalid(Malloc_0, shift_sint32(global(G_A_28), -5), 10).
+Assume { (* Heap *) Have: (region(G_A_30) <= 0) /\ linked(Malloc_0). }
+Prove: invalid(Malloc_0, shift_sint32(global(G_A_30), -5), 10).
 
 ------------------------------------------------------------

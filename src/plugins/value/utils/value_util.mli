@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2018                                               *)
+(*  Copyright (C) 2007-2019                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -115,7 +115,7 @@ val height_lval: lval -> int
 
 val skip_specifications: kernel_function -> bool
 (** Should we skip the specifications of this function, according to
-    [-val-skip-stdlib-specs] *)
+    [-eva-skip-stdlib-specs] *)
 
 (*
 Local Variables:

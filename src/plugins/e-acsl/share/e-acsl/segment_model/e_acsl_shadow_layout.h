@@ -77,7 +77,9 @@ char *strerror(int errnum);
   Some libraries such as libxml use it quite a lot:
   it may occur that the given size is not enough,
   in which case it MUST be increased. */
-#define PGM_TLS_SIZE (32 * MB)
+#ifndef PGM_TLS_SIZE
+#define PGM_TLS_SIZE (64 * MB)
+#endif
 
 /*! \brief Mspace padding used by shadow segments. This is to make sure that
  * some allocation which exceeds the size of an initial memspace does not
@@ -97,7 +99,7 @@ char *strerror(int errnum);
  * thread-local variables, while .tbss holds uninitialized ones.
  *
  * Start and end addresses of TLS are obtained by taking addresses of
- * initialized and initialized variables in TLS (::id_tdata and ::id_tss)
+ * initialized and uninitialized variables in TLS (::id_tdata and ::id_tss)
  * and adding fixed amount of shadow space around them. Visually it looks
  * as follows:
  *
@@ -106,6 +108,9 @@ char *strerror(int errnum);
  *   ...
  *   id_tbss address
  *   start TLS address (&id_bss - TLS_SHADOW_SIZE/2)
+ *
+ * HOWEVER problems can occur if PGM_TLS_SIZE is too big:
+ * see get_tls_start for details.
  */
 
 /*! \brief Return byte-size of the TLS segment */
@@ -115,14 +120,6 @@ static size_t get_tls_size() {
 
 static __thread int id_tdata = 1;
 static __thread int id_tbss;
-
-/*! \brief Return start address of a program's TLS */
-static uintptr_t get_tls_start() {
-  size_t tls_size = get_tls_size();
-  uintptr_t data = (uintptr_t)&id_tdata,
-            bss = (uintptr_t)&id_tbss;
-  return ((data > bss ? bss  : data) - tls_size/2);
-}
 
 /* }}} */
 
@@ -360,6 +357,7 @@ static void init_shadow_layout_stack(int *argc_ref, char ***argv_ref) {
   memory_partition *pstack = &mem_layout.stack;
   set_application_segment(&pstack->application, get_stack_start(argc_ref, argv_ref),
     get_stack_size(), "stack", NULL);
+  /* Changes of the ratio in the following will require changes in get_tls_start */
   set_shadow_segment(&pstack->primary, &pstack->application, 1, "stack_primary");
   set_shadow_segment(&pstack->secondary, &pstack->application, 1, "stack_secondary");
 #ifdef E_ACSL_TEMPORAL
@@ -368,6 +366,41 @@ static void init_shadow_layout_stack(int *argc_ref, char ***argv_ref) {
 #endif
 
   mem_layout.is_initialized = 1;
+}
+
+/*! \brief Return start address of a program's TLS */
+static uintptr_t get_tls_start() {
+  size_t tls_size = get_tls_size();
+  uintptr_t data = (uintptr_t)&id_tdata,
+            bss = (uintptr_t)&id_tbss;
+  /* It could happen that the shadow allocated before bss is too big.
+    Indeed allocating PGM_TLS_SIZE/2 could cause an overlap with the other
+    shadow segments AND heap.application (in case the latter is too big too).
+    In such cases, take the smallest available address (the max used +1). */
+  uintptr_t tls_start_half = (data > bss ? bss : data) - tls_size/2;
+  memory_partition pheap = mem_layout.heap,
+                   pglobal = mem_layout.global;
+  uintptr_t max_shadow = pheap.primary.end;
+  max_shadow = pheap.secondary.end > max_shadow ?
+    pheap.secondary.end : max_shadow;
+  max_shadow = pglobal.primary.end > max_shadow ?
+    pglobal.primary.end : max_shadow;
+  max_shadow = pglobal.secondary.end > max_shadow ?
+    pglobal.secondary.end : max_shadow;
+  max_shadow = pheap.application.end > max_shadow ?
+    pheap.application.end : max_shadow;
+  /* Shadow stacks are not yet allocated at his point since
+     init_shadow_layout_stack is called after
+     init_shadow_layout_heap_global_tls (for reasons related to memory
+     initialization in presence of things like GCC constructors).
+     We must leave sufficient space for them. */
+  max_shadow = max_shadow +
+    2*get_stack_size() + /* One for primary, one for secondary.
+                            If ratio is changed in init_shadow_layout_stack
+                            then update required here.
+                            TODO: if stack too big ==> problem */
+    1;
+  return tls_start_half > max_shadow ? tls_start_half : max_shadow;
 }
 
 /*! \brief Initialize memory layout, i.e., determine bounds of program segments,

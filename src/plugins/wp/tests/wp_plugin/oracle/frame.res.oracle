@@ -8,7 +8,7 @@
 ------------------------------------------------------------
 
 Goal Post-condition 'KO' in 'alias':
-Let a = global(P_r_37).
+Let a = global(P_r_39).
 Let x = Mint_1[a].
 Let x_1 = Mint_0[a].
 Assume {

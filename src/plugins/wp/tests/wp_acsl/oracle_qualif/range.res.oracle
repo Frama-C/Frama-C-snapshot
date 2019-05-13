@@ -4,13 +4,14 @@
 [wp] Loading driver 'share/wp.driver'
 [wp] Warning: Missing RTE guards
 [wp] 4 goals scheduled
-[wp] [Qed] Goal typed_test_post_P1_ok : Valid
-[wp] [Qed] Goal typed_test_post_P2_ok : Valid
-[wp] [Qed] Goal typed_test_call_val_assigns_p_pre_HP_ok : Valid
-[wp] [Qed] Goal typed_test_call_val_assigns_q_pre_HQ_ok : Valid
+[wp] [Qed] Goal typed_test_ensures_P1_ok : Valid
+[wp] [Qed] Goal typed_test_ensures_P2_ok : Valid
+[wp] [Qed] Goal typed_test_call_val_assigns_p_requires_HP_ok : Valid
+[wp] [Qed] Goal typed_test_call_val_assigns_q_requires_HQ_ok : Valid
 [wp] Proved goals:    4 / 4
   Qed:             4
-[wp] Report 'tests/wp_acsl/range.i.0.report.json'
+[wp] Report in:  'tests/wp_acsl/oracle_qualif/range.0.report.json'
+[wp] Report out: 'tests/wp_acsl/result_qualif/range.0.report.json'
 -------------------------------------------------------------
 Functions           WP     Alt-Ergo        Total   Success
 test                 4     -                 4       100%

@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2018                                               *)
+(*  Copyright (C) 2007-2019                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -36,9 +36,13 @@ val alloc_xs : pool -> (var -> unit) -> Vars.t -> unit
 val alloc_domain : pool -> Vars.t
 val sanitizer : string -> string
 
+type iformat = [ `Hex | `Dec | `Bin ]
+
 class engine :
   object
     inherit [Z.t,ADT.t,Field.t,Fun.t,tau,var,term,Env.t] Qed.Engine.engine
+    method get_iformat : iformat
+    method set_iformat : iformat -> unit
     method marks : Env.t * Lang.F.marks
     method pp_pred : Format.formatter -> pred -> unit
     method lookup : term -> scope

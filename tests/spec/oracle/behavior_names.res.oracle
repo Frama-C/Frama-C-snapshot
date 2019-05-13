@@ -78,7 +78,7 @@ void j(void)
     behavior while:
       ensures while: \true;
     
-    behavior normal:
+    behavior ensures:
       ensures ensures: \true;
     
     behavior logic:

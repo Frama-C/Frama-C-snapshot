@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2018                                               *)
+(*  Copyright (C) 2007-2019                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -52,7 +52,7 @@ module K2V = struct
     let cache = Hptmap_sig.NoCache in
     let symmetric = false in
     let idempotent = true in
-    let wh = Integer.zero, fun _b -> Ival.Widen_Hints.empty in
+    let wh = Integer.zero, (fun _b -> Ival.Widen_Hints.empty, Fc_float.Widen_Hints.empty) in
     let decide _ v1 v2 = Some (V.widen wh v1 v2) in
     M.inter ~cache ~symmetric ~idempotent ~decide
 
@@ -368,7 +368,7 @@ module Memory = struct
     List.fold_left aux_vi state l
 
   let kill loc state =
-    let z = Locations.enumerate_valid_bits ~for_writing:false loc in
+    let z = Locations.(enumerate_valid_bits Read loc) in
     fold_overwritten remove_key state z state
 
   (* Add the the mapping [lv --> v] to [state] when possible.
@@ -378,8 +378,7 @@ module Memory = struct
       state
     else
       let k = K.HCE.of_lval lv in
-      let for_writing = false in
-      let z_lv = Precise_locs.enumerate_valid_bits ~for_writing (get_z lv) in
+      let z_lv = Precise_locs.enumerate_valid_bits Locations.Read (get_z lv) in
       let z_lv_indirect = Value_util.indirect_zone_of_lval get_z lv in
       if Locations.Zone.intersects z_lv z_lv_indirect then
         (* The location of [lv] intersects with the zones needed to compute
@@ -541,7 +540,7 @@ module Internal : Domain_builder.InputDomain
             state
         | _ -> state
       in
-      Valuation.fold aux valuation state
+      `Value (Valuation.fold aux valuation state)
 
     let store_value valuation lv loc state v =
       let loc = Precise_locs.imprecise_location loc in
@@ -569,14 +568,14 @@ module Internal : Domain_builder.InputDomain
 
     (* perform [lv = e] in [state] *)
     let assign _kinstr lv _e v valuation state =
-      let state = update valuation state in
+      update valuation state >>- fun state ->
       match v with
       | Copy (_, vc) -> store_copy valuation lv lv.lloc state vc
       | Assign v -> store_value valuation lv.lval lv.lloc state v
 
-    let assume _stmt _exp _pos valuation state = `Value (update valuation state)
+    let assume _stmt _exp _pos valuation state = update valuation state
 
-    let start_call _stmt _call valuation state = `Value (update valuation state)
+    let start_call _stmt _call valuation state = update valuation state
 
     let finalize_call _stmt _call ~pre:_ ~post = `Value post
 

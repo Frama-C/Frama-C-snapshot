@@ -1,6 +1,6 @@
 /* run.config
- OPT: -val-show-progress -val-use-spec f -slice-return main -journal-disable -then-on 'Slicing export' -set-project-as-default -print  -then -print -ocode @PTEST_DIR@/result/ocode_@PTEST_NUMBER@_@PTEST_NAME@.i -then @PTEST_DIR@/result/ocode_@PTEST_NUMBER@_@PTEST_NAME@.i  
- OPT: -val-show-progress -main main2 -slicing-level 3 -slice-undef-functions -val-use-spec h -slice-return main2 -journal-disable -slicing-keep-annotations -then-on 'Slicing export' -set-project-as-default -print  -val -val-show-progress -val-use-spec='-@all'
+ STDOPT: +" -eva-use-spec f -slice-return main -journal-disable -then-on 'Slicing export' -set-project-as-default -print  -then -print -ocode @PTEST_DIR@/result/ocode_@PTEST_NUMBER@_@PTEST_NAME@.i -then @PTEST_DIR@/result/ocode_@PTEST_NUMBER@_@PTEST_NAME@.i"
+ STDOPT: +"-main main2 -slicing-level 3 -slice-undef-functions -eva-use-spec h -slice-return main2 -journal-disable -slicing-keep-annotations -then-on 'Slicing export' -set-project-as-default -print  -eva @EVA_OPTIONS@ -eva-use-spec='-@all'"
 
 
 
@@ -18,7 +18,7 @@ int f() {
   g();
 }
 
-/* When -val-use-spec f is used, the body of f must not be kept (as it
+/* When -eva-use-spec f is used, the body of f must not be kept (as it
    references the body of g, which is not kept since the body of f is not
    analyzed. */
 int main() {
@@ -32,7 +32,7 @@ void h(int a, int b) {
   G2 = b;
 }
 
-/* Check that function specialization works well with -val-use-spec. The result
+/* Check that function specialization works well with -eva-use-spec. The result
    of -slicing-keep-annotations is a bit surprising, but in fact quite  good. */
 int main2(int v1, int v2, int v3, int v4) {
   h(v1, v2);

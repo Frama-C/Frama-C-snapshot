@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2018                                               *)
+(*  Copyright (C) 2007-2019                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -112,7 +112,7 @@ module Specific(KF:sig val kf: Kernel_function.t end) = struct
                 Integer.power_int_positive_int in_loop_i (max_iteration + 1)
             in
             let slevel_inside_loop =
-              Integer.div (Integer.pred s) (Integer.pred in_loop)
+              Integer.e_div (Integer.pred s) (Integer.pred in_loop)
             in
             let result = Integer.mul entry slevel_inside_loop in
             (* Kernel.feedback "s %a slevel_inside_loop %a result %a" *)
@@ -123,9 +123,9 @@ module Specific(KF:sig val kf: Kernel_function.t end) = struct
             then Some result
             else raise Exit
         with
-        | Invalid_argument _ (* Possible exponent too big *)
-        | Failure _          (* Integer too big *)
-        | Exit  ->          (* Above MaxIterations. *)
+        | Invalid_argument _ (* Possible negative exponent *)
+        | Z.Overflow         (* Integer too big *)
+        | Exit  ->           (* Above MaxIterations. *)
           update_max_slevel_encountered
             (Some (Integer.mul entry (Integer.mul in_loop
                                         (Integer.of_int max_iteration))));
@@ -197,8 +197,7 @@ module SpecificNoBranches(KF:sig val kf: Kernel_function.t end) = struct
             Some Integer.(pred (mul (succ (of_int in_loop_i))
                                   (of_int max_iteration)))
         with
-        | Invalid_argument _ (* Possible exponent too big *)
-        | Failure _          (* Integer too big *)
+        | Z.Overflow         (* Integer too big *)
           -> update_max_slevel_encountered
                (Some (Integer.mul entry (Integer.mul in_loop
                                            (Integer.of_int max_iteration))));

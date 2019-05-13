@@ -1,5 +1,5 @@
 /* run.config
-   STDOPT: #"-value-msg-key widen-hints"
+   STDOPT: #"-eva-msg-key widen-hints"
    OPT: -print
  */
 

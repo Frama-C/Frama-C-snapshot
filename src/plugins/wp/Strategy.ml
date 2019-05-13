@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2018                                               *)
+(*  Copyright (C) 2007-2019                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -106,7 +106,7 @@ type strategy = {
   arguments : argument list ;
 } and t = strategy
 
-let highest a b = Pervasives.compare b.priority a.priority
+let highest a b = Transitioning.Stdlib.compare b.priority a.priority
 
 class pool =
   object

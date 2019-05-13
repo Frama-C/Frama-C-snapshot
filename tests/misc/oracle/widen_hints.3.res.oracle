@@ -74,23 +74,23 @@
 [eva:final-states] Values at end of function f:
   m ∈ {10}
   n ∈ {43}
-  t[0..87] ∈ {1} or UNINITIALIZED
-   [88..99] ∈ UNINITIALIZED
+  t[0..85] ∈ {1} or UNINITIALIZED
+   [86..99] ∈ UNINITIALIZED
   __retres ∈ {0}
 [eva:final-states] Values at end of function using_dynamic_global:
   b ∈ [0..88]
 [eva:final-states] Values at end of function main:
   m ∈ {10}
   n ∈ {43}
-  ss.i ∈ {87; 88}
+  ss.i ∈ {87}
     .d ∈ UNINITIALIZED
-  ip ∈ {87; 88}
+  ip ∈ {87}
   p ∈ {{ &ip }}
-  ip2 ∈ {87; 88}
+  ip2 ∈ {87}
   p2 ∈ {{ &ip2 }}
   pp ∈ {{ &p2 }}
   iarray[0] ∈ {0}
-        [1].i ∈ {87; 88}
+        [1].i ∈ {87}
   piarray[0] ∈ {{ &iarray[0] }}
          [1] ∈ {{ &iarray[1] }}
   outer_i ∈ {87}

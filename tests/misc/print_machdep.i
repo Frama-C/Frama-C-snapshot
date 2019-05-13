@@ -1,4 +1,3 @@
 /* run.config
-   CMD: @frama-c@ -no-autoload-plugins
-   OPT: -print-machdep
+   OPT: -no-autoload-plugins -print-machdep
 */

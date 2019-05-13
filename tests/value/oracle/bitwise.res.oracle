@@ -4,126 +4,241 @@
 [eva] Initial state computed
 [eva:initial-state] Values of globals at initialization
   v ∈ [--..--]
-[eva] computing for function main_and_or_rel <- main.
-  Called from tests/value/bitwise.i:64.
-[eva:alarm] tests/value/bitwise.i:13: Warning: assertion got status unknown.
-[eva] Recording results for main_and_or_rel
-[eva] Done for function main_and_or_rel
-[eva] computing for function main_bitwise <- main.
-  Called from tests/value/bitwise.i:65.
-[eva] Recording results for main_bitwise
-[eva] Done for function main_bitwise
-[eva] computing for function main_bug1 <- main.
-  Called from tests/value/bitwise.i:66.
-[eva] Recording results for main_bug1
-[eva] Done for function main_bug1
-[eva] computing for function main_bug2 <- main.
-  Called from tests/value/bitwise.i:67.
-[eva] tests/value/bitwise.i:40: Frama_C_show_each_then:
-[eva] tests/value/bitwise.i:40: Frama_C_show_each_else:
-[eva] Recording results for main_bug2
-[eva] Done for function main_bug2
-[eva] computing for function main_bug3 <- main.
-  Called from tests/value/bitwise.i:68.
-[eva] tests/value/bitwise.i:47: 
-  Frama_C_dump_each:
-  # Cvalue domain:
-  v ∈ [--..--]
-  l_1180 ∈ {69166447}
-  foo ∈ {4225800849}
-  ==END OF DUMP==
-[eva] Recording results for main_bug3
-[eva] Done for function main_bug3
-[eva] computing for function main_bug4 <- main.
-  Called from tests/value/bitwise.i:69.
-[eva] tests/value/bitwise.i:57: Frama_C_show_each_then:
-[eva] tests/value/bitwise.i:59: Frama_C_show_each_else:
-[eva] Recording results for main_bug4
-[eva] Done for function main_bug4
+  input[0..2] ∈ [--..--]
+  s ∈ [--..--]
+[eva] computing for function test1 <- main.
+  Called from tests/value/bitwise.i:149.
+[eva] computing for function Frama_C_interval <- test1 <- main.
+  Called from tests/value/bitwise.i:23.
+[eva] using specification for function Frama_C_interval
+[eva] Done for function Frama_C_interval
+[eva] computing for function Frama_C_interval <- test1 <- main.
+  Called from tests/value/bitwise.i:24.
+[eva] Done for function Frama_C_interval
+[eva] computing for function Frama_C_interval <- test1 <- main.
+  Called from tests/value/bitwise.i:25.
+[eva] Done for function Frama_C_interval
+[eva] Recording results for test1
+[eva] Done for function test1
+[eva] computing for function test2 <- main.
+  Called from tests/value/bitwise.i:150.
+[eva] computing for function Frama_C_interval <- test2 <- main.
+  Called from tests/value/bitwise.i:50.
+[eva] Done for function Frama_C_interval
+[eva] Recording results for test2
+[eva] Done for function test2
+[eva] computing for function test3 <- main.
+  Called from tests/value/bitwise.i:151.
+[eva] Recording results for test3
+[eva] Done for function test3
+[eva] computing for function test4 <- main.
+  Called from tests/value/bitwise.i:152.
+[eva] tests/value/bitwise.i:62: assertion got status valid.
+[eva] tests/value/bitwise.i:64: 
+  Frama_C_show_each_1: [0x80000000..0xFFFFFFFF], {0x80000000}
+[eva] tests/value/bitwise.i:64: Frama_C_show_each_1: [0..0x7FFFFFFF], {0}
+[eva] tests/value/bitwise.i:66: 
+  Frama_C_show_each_2: [0..0x7FFFFFFF], {0}, {0x80000000}
+[eva] tests/value/bitwise.i:66: Frama_C_show_each_2: [0..0x7FFFFFFF], {0}, {0}
+[eva] tests/value/bitwise.i:72: Frama_C_show_each_false: [0..0x7FFFFFFF]
+[eva] tests/value/bitwise.i:72: Frama_C_show_each_false: [0..0x7FFFFFFF]
+[eva] Recording results for test4
+[eva] Done for function test4
+[eva] computing for function and_or_rel <- main.
+  Called from tests/value/bitwise.i:153.
+[eva:alarm] tests/value/bitwise.i:87: Warning: assertion got status unknown.
+[eva] Recording results for and_or_rel
+[eva] Done for function and_or_rel
+[eva] computing for function double_neg <- main.
+  Called from tests/value/bitwise.i:154.
+[eva] Recording results for double_neg
+[eva] Done for function double_neg
+[eva] computing for function bug1 <- main.
+  Called from tests/value/bitwise.i:155.
+[eva] Recording results for bug1
+[eva] Done for function bug1
+[eva] computing for function bug2 <- main.
+  Called from tests/value/bitwise.i:156.
+[eva] tests/value/bitwise.i:114: Frama_C_show_each_then:
+[eva] tests/value/bitwise.i:114: Frama_C_show_each_else:
+[eva] Recording results for bug2
+[eva] Done for function bug2
+[eva] computing for function bug3 <- main.
+  Called from tests/value/bitwise.i:157.
+[eva] tests/value/bitwise.i:121: Frama_C_show_each: {0x41F656F}, {0xFBE09A91}
+[eva] Recording results for bug3
+[eva] Done for function bug3
+[eva] computing for function bug4 <- main.
+  Called from tests/value/bitwise.i:158.
+[eva] tests/value/bitwise.i:131: Frama_C_show_each_then:
+[eva] tests/value/bitwise.i:133: Frama_C_show_each_else:
+[eva] Recording results for bug4
+[eva] Done for function bug4
+[eva] computing for function bug5 <- main.
+  Called from tests/value/bitwise.i:159.
+[eva] tests/value/bitwise.i:144: Frama_C_show_each_dead: {0}
+[eva] Recording results for bug5
+[eva] Done for function bug5
 [eva] Recording results for main
 [eva] done for function main
 [eva] ====== VALUES COMPUTED ======
-[eva:final-states] Values at end of function main_and_or_rel:
+[eva:final-states] Values at end of function and_or_rel:
   x ∈ [20..40]
   r1 ∈ [17..63] or UNINITIALIZED
   r2 ∈ [20..40] or UNINITIALIZED
   r3 ∈ [24..37] or UNINITIALIZED
-[eva:final-states] Values at end of function main_bitwise:
-  i ∈ {5}
-  j ∈ {4294967290}
-  k ∈ {-6}
-[eva:final-states] Values at end of function main_bug1:
+[eva:final-states] Values at end of function bug1:
   msb ∈ {6}
   lsb ∈ {3}
   par ∈ {5}
   p1 ∈ {5}
   p2 ∈ {0}
-[eva:final-states] Values at end of function main_bug2:
+[eva:final-states] Values at end of function bug2:
   t ∈ {1; 2}
-[eva:final-states] Values at end of function main_bug3:
-  l_1180 ∈ {69166447}
-  foo ∈ {4225800849}
-[eva:final-states] Values at end of function main_bug4:
+[eva:final-states] Values at end of function bug3:
+  l_1180 ∈ {0x41F656F}
+  foo ∈ {0xFBE09A91}
+[eva:final-states] Values at end of function bug4:
   g_2 ∈ {-1; 0}
-  tmp_0 ∈ {-5496}
+  tmp_0 ∈ {-0x1578}
+[eva:final-states] Values at end of function bug5:
+  x ∈ [-0x7FFFFFFE..0x7FFFFFFF]
+[eva:final-states] Values at end of function double_neg:
+  i ∈ {5}
+  j ∈ {0xFFFFFFFA}
+  k ∈ {-6}
+[eva:final-states] Values at end of function test1:
+  or1 ∈ [-3..31]
+  or2 ∈ [13..31]
+  or3 ∈ [-3..31]
+  and1 ∈ [0..17]
+  and2 ∈ [0..17]
+  and3 ∈ [0..27]
+  xor1 ∈ [0..31]
+  xor2 ∈ [-20..31]
+  uand4 ∈ {8; 16; 24}
+  a ∈ [3..17]
+  b ∈ [-3..17]
+  c ∈ [13..27]
+  i1 ∈ [0..0x1FFFE],0%2
+  i2 ∈ [0..0x3FFFC],0%4
+  v1 ∈ [0..0x1FFFC],0%4
+  v2 ∈ [0..0x3FFFE],0%2
+  mask07 ∈ {5}
+  mask0f ∈ {13}
+  mask1f ∈ {13; 29}
+[eva:final-states] Values at end of function test2:
+  x ∈ {56; 64; 72; 80; 88; 96; 104}
+[eva:final-states] Values at end of function test3:
+  x ∈ [-256..255]
+  y ∈ [-256..255]
+[eva:final-states] Values at end of function test4:
+  something ∈ [0..0x7FFFFFFF]
+  topBitOnly ∈ {0; 0x80000000}
+  __retres ∈ {1}
 [eva:final-states] Values at end of function main:
   
-[from] Computing for function main_and_or_rel
-[from] Done for function main_and_or_rel
-[from] Computing for function main_bitwise
-[from] Done for function main_bitwise
-[from] Computing for function main_bug1
-[from] Done for function main_bug1
-[from] Computing for function main_bug2
-[from] Done for function main_bug2
-[from] Computing for function main_bug3
-[from] Done for function main_bug3
-[from] Computing for function main_bug4
-[from] Done for function main_bug4
+[from] Computing for function and_or_rel
+[from] Done for function and_or_rel
+[from] Computing for function bug1
+[from] Done for function bug1
+[from] Computing for function bug2
+[from] Done for function bug2
+[from] Computing for function bug3
+[from] Done for function bug3
+[from] Computing for function bug4
+[from] Done for function bug4
+[from] Computing for function bug5
+[from] Done for function bug5
+[from] Computing for function double_neg
+[from] Done for function double_neg
+[from] Computing for function test1
+[from] Computing for function Frama_C_interval <-test1
+[from] Done for function Frama_C_interval
+[from] Done for function test1
+[from] Computing for function test2
+[from] Done for function test2
+[from] Computing for function test3
+[from] Done for function test3
+[from] Computing for function test4
+[from] Done for function test4
 [from] Computing for function main
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
   These dependencies hold at termination for the executions that terminate:
-[from] Function main_and_or_rel:
+[from] Function Frama_C_interval:
+  \result FROM min; max
+[from] Function and_or_rel:
   NO EFFECTS
-[from] Function main_bitwise:
+[from] Function bug1:
   NO EFFECTS
-[from] Function main_bug1:
+[from] Function bug2:
   NO EFFECTS
-[from] Function main_bug2:
+[from] Function bug3:
   NO EFFECTS
-[from] Function main_bug3:
+[from] Function bug4:
   NO EFFECTS
-[from] Function main_bug4:
+[from] Function bug5:
   NO EFFECTS
+[from] Function double_neg:
+  NO EFFECTS
+[from] Function test1:
+  NO EFFECTS
+[from] Function test2:
+  NO EFFECTS
+[from] Function test3:
+  NO EFFECTS
+[from] Function test4:
+  \result FROM v
 [from] Function main:
   NO EFFECTS
 [from] ====== END OF DEPENDENCIES ======
-[inout] Out (internal) for function main_and_or_rel:
+[inout] Out (internal) for function and_or_rel:
     x; r1; r2; r3
-[inout] Inputs for function main_and_or_rel:
+[inout] Inputs for function and_or_rel:
     v
-[inout] Out (internal) for function main_bitwise:
-    i; j; k
-[inout] Inputs for function main_bitwise:
-    \nothing
-[inout] Out (internal) for function main_bug1:
+[inout] Out (internal) for function bug1:
     msb; lsb; par; p1; p2
-[inout] Inputs for function main_bug1:
+[inout] Inputs for function bug1:
     \nothing
-[inout] Out (internal) for function main_bug2:
+[inout] Out (internal) for function bug2:
     t; tmp
-[inout] Inputs for function main_bug2:
+[inout] Inputs for function bug2:
     v
-[inout] Out (internal) for function main_bug3:
+[inout] Out (internal) for function bug3:
     l_1180; foo
-[inout] Inputs for function main_bug3:
+[inout] Inputs for function bug3:
     \nothing
-[inout] Out (internal) for function main_bug4:
+[inout] Out (internal) for function bug4:
     g_2; tmp; tmp_0
-[inout] Inputs for function main_bug4:
+[inout] Inputs for function bug4:
+    v
+[inout] Out (internal) for function bug5:
+    x
+[inout] Inputs for function bug5:
+    v
+[inout] Out (internal) for function double_neg:
+    i; j; k
+[inout] Inputs for function double_neg:
+    \nothing
+[inout] Out (internal) for function test1:
+    or1; or2; or3; and1; and2; and3; xor1; xor2; uand4; a; b; c; i1; i2; 
+    v1; v2; mask07; mask0f; mask1f
+[inout] Inputs for function test1:
+    s
+[inout] Out (internal) for function test2:
+    x; tmp
+[inout] Inputs for function test2:
+    \nothing
+[inout] Out (internal) for function test3:
+    x; tmp; y; tmp_0
+[inout] Inputs for function test3:
+    input[0..2]
+[inout] Out (internal) for function test4:
+    something; topBitOnly; __retres
+[inout] Inputs for function test4:
     v
 [inout] Out (internal) for function main:
     \nothing
 [inout] Inputs for function main:
-    v
+    v; input[0..2]; s

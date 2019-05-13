@@ -1,7 +1,7 @@
 /* run.config*
    GCC:
-   STDOPT: #"-no-val-builtins-auto"
-   STDOPT: #"-no-val-builtins-auto -absolute-valid-range 0x100-0x200 -main main_abs"
+   STDOPT: #"-eva-no-builtins-auto"
+   STDOPT: #"-eva-no-builtins-auto -absolute-valid-range 0x100-0x200 -main main_abs"
 */
 
 #define malloc(n) Frama_C_malloc_fresh(n)
@@ -51,7 +51,7 @@ void main_abs(int c)
   r = - (int) q;
 
   *(int*)0x104=0;
-  *r = r;
+  *r = (int) r;
 
   (*q)++;
   a = *q; /* it is incorrect to find 1 here */

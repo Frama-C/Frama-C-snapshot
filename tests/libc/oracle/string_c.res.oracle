@@ -90,8 +90,10 @@
 [eva] tests/libc/string_c.c:42: 
   function memmove: precondition 'valid_src' got status valid.
 [eva] computing for function memoverlap <- memmove <- test_memmove <- main.
-  Called from share/libc/string.c:69.
-[eva] using specification for function memoverlap
+  Called from share/libc/string.c:77.
+[eva] share/libc/string.c:59: 
+  function memoverlap, behavior not_separated_gt: postcondition 'result_p_after_q' got status valid.
+[eva] Recording results for memoverlap
 [eva] Done for function memoverlap
 [eva] share/libc/string.h:108: 
   cannot evaluate ACSL term, unsupported ACSL construct: logic function memcmp
@@ -110,7 +112,10 @@
 [eva] tests/libc/string_c.c:49: 
   function memmove: precondition 'valid_src' got status valid.
 [eva] computing for function memoverlap <- memmove <- test_memmove <- main.
-  Called from share/libc/string.c:69.
+  Called from share/libc/string.c:77.
+[eva] share/libc/string.c:55: 
+  function memoverlap, behavior not_separated_lt: postcondition 'result_p_before_q' got status valid.
+[eva] Recording results for memoverlap
 [eva] Done for function memoverlap
 [eva] Recording results for memmove
 [eva] Done for function memmove
@@ -122,7 +127,8 @@
 [eva] tests/libc/string_c.c:52: 
   function memmove: precondition 'valid_src' got status valid.
 [eva] computing for function memoverlap <- memmove <- test_memmove <- main.
-  Called from share/libc/string.c:69.
+  Called from share/libc/string.c:77.
+[eva] Recording results for memoverlap
 [eva] Done for function memoverlap
 [eva] Recording results for memmove
 [eva] Done for function memmove
@@ -134,7 +140,10 @@
 [eva] tests/libc/string_c.c:56: 
   function memmove: precondition 'valid_src' got status valid.
 [eva] computing for function memoverlap <- memmove <- test_memmove <- main.
-  Called from share/libc/string.c:69.
+  Called from share/libc/string.c:77.
+[eva] share/libc/string.c:51: 
+  function memoverlap, behavior separated: postcondition 'result_no_overlap' got status valid.
+[eva] Recording results for memoverlap
 [eva] Done for function memoverlap
 [eva] Recording results for memmove
 [eva] Done for function memmove
@@ -480,18 +489,18 @@
 [eva] tests/libc/string_c.c:124: 
   function strcat: precondition 'room_string' got status valid.
 [eva] computing for function strlen <- strcat <- test_strcat <- main.
-  Called from share/libc/string.c:174.
-[eva] share/libc/string.c:174: 
+  Called from share/libc/string.c:182.
+[eva] share/libc/string.c:182: 
   function strlen: precondition 'valid_string_s' got status valid.
 [eva] Recording results for strlen
 [eva] Done for function strlen
-[eva] share/libc/string.h:399: 
+[eva] share/libc/string.h:405: 
   function strcat: postcondition 'sum_of_lengths' got status valid.
-[eva] share/libc/string.h:402: 
+[eva] share/libc/string.h:408: 
   function strcat: postcondition 'initialization,dest' got status valid.
-[eva] share/libc/string.h:403: 
+[eva] share/libc/string.h:409: 
   function strcat: postcondition 'dest_null_terminated' got status valid.
-[eva] share/libc/string.h:404: 
+[eva] share/libc/string.h:410: 
   function strcat: postcondition 'result_ptr' got status valid.
 [eva] Recording results for strcat
 [eva] Done for function strcat
@@ -506,7 +515,7 @@
 [eva] tests/libc/string_c.c:132: 
   function strcat: precondition 'room_string' got status valid.
 [eva] computing for function strlen <- strcat <- test_strcat <- main.
-  Called from share/libc/string.c:174.
+  Called from share/libc/string.c:182.
 [eva] Recording results for strlen
 [eva] Done for function strlen
 [eva] Recording results for strcat
@@ -521,7 +530,7 @@
 [eva] tests/libc/string_c.c:134: 
   function strcat: precondition 'room_string' got status valid.
 [eva] computing for function strlen <- strcat <- test_strcat <- main.
-  Called from share/libc/string.c:174.
+  Called from share/libc/string.c:182.
 [eva] Recording results for strlen
 [eva] Done for function strlen
 [eva] Recording results for strcat
@@ -534,7 +543,7 @@
   function strcat: precondition 'valid_string_dest' got status valid.
 [eva] tests/libc/string_c.c:135: 
   function strcat: precondition 'room_string' got status valid.
-[eva] share/libc/string.c:174: Reusing old results for call to strlen
+[eva] share/libc/string.c:182: Reusing old results for call to strlen
 [eva] Recording results for strcat
 [eva] Done for function strcat
 [eva] tests/libc/string_c.c:136: assertion got status valid.
@@ -550,11 +559,11 @@
   function strcpy: precondition 'room_string' got status valid.
 [eva] tests/libc/string_c.c:142: 
   function strcpy: precondition 'separation' got status valid.
-[eva] share/libc/string.h:353: 
+[eva] share/libc/string.h:351: 
   cannot evaluate ACSL term, unsupported ACSL construct: logic function strcmp
-[eva:alarm] share/libc/string.h:353: Warning: 
+[eva:alarm] share/libc/string.h:351: Warning: 
   function strcpy: postcondition 'equal_contents' got status unknown.
-[eva] share/libc/string.h:354: 
+[eva] share/libc/string.h:352: 
   function strcpy: postcondition 'result_ptr' got status valid.
 [eva] Recording results for strcpy
 [eva] Done for function strcpy
@@ -594,13 +603,13 @@
   function strncpy: precondition 'room_nstring' got status valid.
 [eva] tests/libc/string_c.c:154: 
   function strncpy: precondition 'separation' got status valid.
-[eva] share/libc/string.h:365: 
+[eva] share/libc/string.h:363: 
   function strncpy: postcondition 'result_ptr' got status valid.
-[eva] share/libc/string.h:366: 
+[eva] share/libc/string.h:364: 
   function strncpy: postcondition 'initialization' got status valid.
-[eva] share/libc/string.h:369: 
+[eva] share/libc/string.h:367: 
   cannot evaluate ACSL term, unsupported ACSL construct: logic function strcmp
-[eva:alarm] share/libc/string.h:369: Warning: 
+[eva:alarm] share/libc/string.h:367: Warning: 
   function strncpy, behavior complete: postcondition 'equal_after_copy' got status unknown.
 [eva] Recording results for strncpy
 [eva] Done for function strncpy
@@ -614,9 +623,9 @@
   function strncpy: precondition 'room_nstring' got status valid.
 [eva] tests/libc/string_c.c:157: 
   function strncpy: precondition 'separation' got status valid.
-[eva] share/libc/string.h:372: 
+[eva] share/libc/string.h:370: 
   cannot evaluate ACSL term, unsupported ACSL construct: logic function memcmp
-[eva:alarm] share/libc/string.h:372: Warning: 
+[eva:alarm] share/libc/string.h:370: Warning: 
   function strncpy, behavior partial: postcondition 'equal_prefix' got status unknown.
 [eva] Recording results for strncpy
 [eva] Done for function strncpy
@@ -698,8 +707,8 @@
 [eva] tests/libc/string_c.c:214: 
   function strrchr: precondition 'valid_string_s' got status valid.
 [eva] computing for function strlen <- strrchr <- test_strrchr <- main.
-  Called from share/libc/string.c:229.
-[eva] share/libc/string.c:229: 
+  Called from share/libc/string.c:237.
+[eva] share/libc/string.c:237: 
   function strlen: precondition 'valid_string_s' got status valid.
 [eva] Recording results for strlen
 [eva] Done for function strlen
@@ -718,7 +727,7 @@
   Called from tests/libc/string_c.c:216.
 [eva] tests/libc/string_c.c:216: 
   function strrchr: precondition 'valid_string_s' got status valid.
-[eva] share/libc/string.c:229: Reusing old results for call to strlen
+[eva] share/libc/string.c:237: Reusing old results for call to strlen
 [eva] share/libc/string.h:184: 
   function strrchr, behavior not_found: postcondition 'result_null' got status valid.
 [eva] Recording results for strrchr
@@ -728,7 +737,7 @@
   Called from tests/libc/string_c.c:218.
 [eva] tests/libc/string_c.c:218: 
   function strrchr: precondition 'valid_string_s' got status valid.
-[eva] share/libc/string.c:229: Reusing old results for call to strlen
+[eva] share/libc/string.c:237: Reusing old results for call to strlen
 [eva] Recording results for strrchr
 [eva] Done for function strrchr
 [eva] tests/libc/string_c.c:219: assertion got status valid.
@@ -736,7 +745,7 @@
   Called from tests/libc/string_c.c:220.
 [eva] tests/libc/string_c.c:220: 
   function strrchr: precondition 'valid_string_s' got status valid.
-[eva] share/libc/string.c:229: Reusing old results for call to strlen
+[eva] share/libc/string.c:237: Reusing old results for call to strlen
 [eva] Recording results for strrchr
 [eva] Done for function strrchr
 [eva] tests/libc/string_c.c:221: assertion got status valid.
@@ -964,6 +973,12 @@
       [3] ∈ {0; 18; 108}
       [4] ∈ {0; 111}
       [5] ∈ {0}
+[eva:final-states] Values at end of function memoverlap:
+  p1 ∈ {{ (unsigned int)&buf{[0], [2], [3]} }}
+  p2 ∈ {{ (unsigned int)&buf{[4], [6]} }}
+  q1 ∈ {{ (unsigned int)&buf{[0], [2]} }}
+  q2 ∈ {{ (unsigned int)&buf{[3], [4], [6]} }}
+  __retres ∈ {-1; 0; 1}
 [eva:final-states] Values at end of function memmove:
   s ∈ {{ &buf{[0], [2]} }}
   d ∈ {{ &buf{[0], [2], [3]} }}

@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2018                                               *)
+(*  Copyright (C) 2007-2019                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -40,12 +40,6 @@ type 'a field =
   ?tooltip:string -> packing:(GObj.widget -> unit) ->
   (unit -> 'a) -> ('a -> unit) -> demon -> unit
 
-let mk_tooltip ?tooltip obj = match tooltip with
-  | None -> ()
-  | Some text ->
-      let tooltip = GData.tooltips () in
-      tooltip#set_tip ~text obj#coerce
-
 (* ------------------------------------------------------------------------ *)
 (* --- Check Button                                                     --- *)
 (* ------------------------------------------------------------------------ *)
@@ -54,7 +48,7 @@ let check ?label ?tooltip ~packing get set demon =
   let button =
     GButton.check_button ?label ~packing ~active:(get ()) ()
   in
-  mk_tooltip ?tooltip button ;
+  Gtk_helper.do_tooltip ?tooltip button ;
   ignore (button#connect#toggled ~callback:(fun () -> set button#active));
   register demon (fun () -> button#set_active (get()))
 
@@ -88,7 +82,7 @@ let menu entries ?width ?tooltip ~packing get set demon =
     with Not_found -> ()
   in
   ignore (combo_box#connect#changed callback) ;
-  mk_tooltip ?tooltip combo_box ;
+  Gtk_helper.do_tooltip ?tooltip combo_box ;
   register demon update
 
 (* ------------------------------------------------------------------------ *)
@@ -105,7 +99,7 @@ let spinner ?(lower=0) ?(upper=max_int) ?width ?tooltip ~packing get set demon =
     if a<>b then set a in
   let update () = spin#adjustment#set_value (float (get ())) in
   ignore (spin#connect#value_changed ~callback) ;
-  mk_tooltip ?tooltip spin ;
+  Gtk_helper.do_tooltip ?tooltip spin ;
   register demon update
 
 (* ------------------------------------------------------------------------ *)
@@ -137,5 +131,5 @@ let label ~text ~packing () =
 
 let button ~label ?tooltip ~callback ~packing () =
   let b = GButton.button ~label ~packing () in
-  mk_tooltip ?tooltip b ;
+  Gtk_helper.do_tooltip ?tooltip b ;
   ignore (b#connect#clicked ~callback)

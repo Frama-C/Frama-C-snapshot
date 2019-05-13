@@ -1,5 +1,5 @@
 /* run.config*
-   STDOPT: +"-then -inout -load-module report -report -then -plevel 250"
+   STDOPT: +"-eva-widening-period 3 -then -inout -load-module report -report -then -plevel 250"
 */
 
 struct s {

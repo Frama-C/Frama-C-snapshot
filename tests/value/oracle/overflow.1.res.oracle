@@ -4,10 +4,14 @@
 [eva] Initial state computed
 [eva:initial-state] Values of globals at initialization
   
-[eva] tests/value/overflow.i:20: Warning: 2's complement assumed for overflow
-[eva] tests/value/overflow.i:21: Warning: 2's complement assumed for overflow
-[eva] tests/value/overflow.i:22: Warning: 2's complement assumed for overflow
-[eva] tests/value/overflow.i:31: Warning: 2's complement assumed for overflow
+[eva:signed-overflow] tests/value/overflow.i:20: Warning: 
+  2's complement assumed for overflow
+[eva:signed-overflow] tests/value/overflow.i:21: Warning: 
+  2's complement assumed for overflow
+[eva:signed-overflow] tests/value/overflow.i:22: Warning: 
+  2's complement assumed for overflow
+[eva:signed-overflow] tests/value/overflow.i:31: Warning: 
+  2's complement assumed for overflow
 [eva] Recording results for main
 [eva] done for function main
 [eva] ====== VALUES COMPUTED ======

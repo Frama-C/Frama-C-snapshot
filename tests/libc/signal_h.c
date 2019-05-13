@@ -41,5 +41,16 @@ int main() {
 
   int kill_res = kill(42, SIGTERM);
 
+  struct sigaction sa1, sa2;
+  if (sigaction(SIGCHLD, 0, &sa1)) {
+    return -1;
+  }
+  if (sigaction(SIGCONT, &sa1, &sa2)) {
+    return -1;
+  }
+  if (sigaction(SIGUSR1, &sa2, 0)) {
+    return -1;
+  }
+
   return 0;
 }

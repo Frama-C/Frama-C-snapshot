@@ -40,62 +40,63 @@
 [wp] Loading driver 'share/wp.driver'
 [wp] Warning: Missing RTE guards
 [wp] 52 goals scheduled
-[wp] [Qed] Goal typed_bitwise_post_r_precedence_and_xor : Valid
-[wp] [Qed] Goal typed_bitwise_post_l_precedence_and_xor : Valid
-[wp] [Qed] Goal typed_bitwise_post_r_precedence_xor_or : Valid
-[wp] [Qed] Goal typed_bitwise_post_l_precedence_xor_or : Valid
-[wp] [Qed] Goal typed_bitwise_post_r_precedence_or_implies : Valid
-[wp] [Qed] Goal typed_bitwise_post_l_precedence_or_implies : Valid
-[wp] [Qed] Goal typed_bitwise_post_ok_r_precedence_implies_or : Valid
-[wp] [Qed] Goal typed_bitwise_post_ok_since : Valid
-[wp] [Qed] Goal typed_bitwise_post_r_assoc_implies : Valid
-[wp] [Qed] Goal typed_bitwise_post_r_precedence_implies_equiv : Valid
-[wp] [Qed] Goal typed_bitwise_post_l_precedence_implies_equiv : Valid
-[wp] [Qed] Goal typed_comparison_post_chainable_lt_lt : Valid
-[wp] [Qed] Goal typed_comparison_post_chainable_le_le : Valid
-[wp] [Qed] Goal typed_comparison_post_chainable_gt_gt : Valid
-[wp] [Qed] Goal typed_comparison_post_chainable_ge_ge : Valid
-[wp] [Qed] Goal typed_comparison_post_chainable_eq_eq : Valid
-[wp] [Qed] Goal typed_comparison_post_r_precedence_eq_and : Valid
-[wp] [Qed] Goal typed_comparison_post_l_precedence_eq_and : Valid
-[wp] [Qed] Goal typed_comparison_post_r_precedence_neq_and : Valid
-[wp] [Qed] Goal typed_comparison_post_l_precedence_neq_and : Valid
-[wp] [Qed] Goal typed_predicate_post_r_precedence_and_xor : Valid
-[wp] [Qed] Goal typed_predicate_post_l_precedence_and_xor : Valid
-[wp] [Qed] Goal typed_predicate_post_r_precedence_xor_or : Valid
-[wp] [Qed] Goal typed_predicate_post_l_precedence_xor_or : Valid
-[wp] [Qed] Goal typed_predicate_post_r_precedence_or_implies : Valid
-[wp] [Qed] Goal typed_predicate_post_l_precedence_or_implies : Valid
-[wp] [Alt-Ergo] Goal typed_predicate_post_ok_r_precedence_implies_or : Valid
-[wp] [Qed] Goal typed_predicate_post_ok_since : Valid
-[wp] [Qed] Goal typed_predicate_post_r_assoc_implies : Valid
-[wp] [Qed] Goal typed_predicate_post_r_precedence_implies_equiv : Valid
-[wp] [Qed] Goal typed_predicate_post_l_precedence_implies_equiv : Valid
-[wp] [Qed] Goal typed_predicate_post_r_precedence_equiv_ite : Valid
-[wp] [Qed] Goal typed_predicate_post_m_precedence_equiv_ite : Valid
-[wp] [Qed] Goal typed_predicate_post_l_precedence_equiv_ite : Valid
-[wp] [Qed] Goal typed_predicate_post_r_assoc_ite : Valid
-[wp] [Qed] Goal typed_predicate_post_r_precedence_ite_forall : Valid
-[wp] [Qed] Goal typed_predicate_post_m_precedence_ite_forall : Valid
-[wp] [Qed] Goal typed_predicate_post_l_precedence_ite_forall : Valid
-[wp] [Qed] Goal typed_predicate_post_r_assoc_forall : Valid
-[wp] [Qed] Goal typed_predicate_post_r_precedence_ite_exists : Valid
-[wp] [Qed] Goal typed_predicate_post_m_precedence_ite_exists : Valid
-[wp] [Qed] Goal typed_predicate_post_l_precedence_ite_exists : Valid
-[wp] [Qed] Goal typed_predicate_post_r_assoc_exist : Valid
-[wp] [Qed] Goal typed_predicate_post_r_precedence_ite_let : Valid
-[wp] [Qed] Goal typed_predicate_post_m_precedence_ite_let : Valid
-[wp] [Qed] Goal typed_predicate_post_l_precedence_ite_let : Valid
-[wp] [Qed] Goal typed_predicate_post_r_assoc_let : Valid
-[wp] [Qed] Goal typed_predicate_post_scope_let : Valid
-[wp] [Qed] Goal typed_predicate_post_scope_let_2 : Valid
-[wp] [Qed] Goal typed_predicate_post_r_precedence_ite_naming : Valid
-[wp] [Qed] Goal typed_predicate_bitwise_post_r_precedence_equiv_Pand : Valid
-[wp] [Qed] Goal typed_predicate_bitwise_post_l_precedence_equiv_Pand : Valid
+[wp] [Qed] Goal typed_bitwise_ensures_r_precedence_and_xor : Valid
+[wp] [Qed] Goal typed_bitwise_ensures_l_precedence_and_xor : Valid
+[wp] [Qed] Goal typed_bitwise_ensures_r_precedence_xor_or : Valid
+[wp] [Qed] Goal typed_bitwise_ensures_l_precedence_xor_or : Valid
+[wp] [Qed] Goal typed_bitwise_ensures_r_precedence_or_implies : Valid
+[wp] [Qed] Goal typed_bitwise_ensures_l_precedence_or_implies : Valid
+[wp] [Qed] Goal typed_bitwise_ensures_ok_r_precedence_implies_or : Valid
+[wp] [Qed] Goal typed_bitwise_ensures_ok_since : Valid
+[wp] [Qed] Goal typed_bitwise_ensures_r_assoc_implies : Valid
+[wp] [Qed] Goal typed_bitwise_ensures_r_precedence_implies_equiv : Valid
+[wp] [Qed] Goal typed_bitwise_ensures_l_precedence_implies_equiv : Valid
+[wp] [Qed] Goal typed_comparison_ensures_chainable_lt_lt : Valid
+[wp] [Qed] Goal typed_comparison_ensures_chainable_le_le : Valid
+[wp] [Qed] Goal typed_comparison_ensures_chainable_gt_gt : Valid
+[wp] [Qed] Goal typed_comparison_ensures_chainable_ge_ge : Valid
+[wp] [Qed] Goal typed_comparison_ensures_chainable_eq_eq : Valid
+[wp] [Qed] Goal typed_comparison_ensures_r_precedence_eq_and : Valid
+[wp] [Qed] Goal typed_comparison_ensures_l_precedence_eq_and : Valid
+[wp] [Qed] Goal typed_comparison_ensures_r_precedence_neq_and : Valid
+[wp] [Qed] Goal typed_comparison_ensures_l_precedence_neq_and : Valid
+[wp] [Qed] Goal typed_predicate_ensures_r_precedence_and_xor : Valid
+[wp] [Qed] Goal typed_predicate_ensures_l_precedence_and_xor : Valid
+[wp] [Qed] Goal typed_predicate_ensures_r_precedence_xor_or : Valid
+[wp] [Qed] Goal typed_predicate_ensures_l_precedence_xor_or : Valid
+[wp] [Qed] Goal typed_predicate_ensures_r_precedence_or_implies : Valid
+[wp] [Qed] Goal typed_predicate_ensures_l_precedence_or_implies : Valid
+[wp] [Alt-Ergo] Goal typed_predicate_ensures_ok_r_precedence_implies_or : Valid
+[wp] [Qed] Goal typed_predicate_ensures_ok_since : Valid
+[wp] [Qed] Goal typed_predicate_ensures_r_assoc_implies : Valid
+[wp] [Qed] Goal typed_predicate_ensures_r_precedence_implies_equiv : Valid
+[wp] [Qed] Goal typed_predicate_ensures_l_precedence_implies_equiv : Valid
+[wp] [Qed] Goal typed_predicate_ensures_r_precedence_equiv_ite : Valid
+[wp] [Qed] Goal typed_predicate_ensures_m_precedence_equiv_ite : Valid
+[wp] [Qed] Goal typed_predicate_ensures_l_precedence_equiv_ite : Valid
+[wp] [Qed] Goal typed_predicate_ensures_r_assoc_ite : Valid
+[wp] [Qed] Goal typed_predicate_ensures_r_precedence_ite_forall : Valid
+[wp] [Qed] Goal typed_predicate_ensures_m_precedence_ite_forall : Valid
+[wp] [Qed] Goal typed_predicate_ensures_l_precedence_ite_forall : Valid
+[wp] [Qed] Goal typed_predicate_ensures_r_assoc_forall : Valid
+[wp] [Qed] Goal typed_predicate_ensures_r_precedence_ite_exists : Valid
+[wp] [Qed] Goal typed_predicate_ensures_m_precedence_ite_exists : Valid
+[wp] [Qed] Goal typed_predicate_ensures_l_precedence_ite_exists : Valid
+[wp] [Qed] Goal typed_predicate_ensures_r_assoc_exist : Valid
+[wp] [Qed] Goal typed_predicate_ensures_r_precedence_ite_let : Valid
+[wp] [Qed] Goal typed_predicate_ensures_m_precedence_ite_let : Valid
+[wp] [Qed] Goal typed_predicate_ensures_l_precedence_ite_let : Valid
+[wp] [Qed] Goal typed_predicate_ensures_r_assoc_let : Valid
+[wp] [Qed] Goal typed_predicate_ensures_scope_let : Valid
+[wp] [Qed] Goal typed_predicate_ensures_scope_let_2 : Valid
+[wp] [Qed] Goal typed_predicate_ensures_r_precedence_ite_naming : Valid
+[wp] [Qed] Goal typed_predicate_bitwise_ensures_r_precedence_equiv_Pand : Valid
+[wp] [Qed] Goal typed_predicate_bitwise_ensures_l_precedence_equiv_Pand : Valid
 [wp] Proved goals:   52 / 52
   Qed:            51 
   Alt-Ergo:        1
-[wp] Report 'tests/wp_acsl/precedence.i.0.report.json'
+[wp] Report in:  'tests/wp_acsl/oracle_qualif/precedence.0.report.json'
+[wp] Report out: 'tests/wp_acsl/result_qualif/precedence.0.report.json'
 -------------------------------------------------------------
 Functions           WP     Alt-Ergo        Total   Success
 predicate           29      1 (4..16)       30       100%

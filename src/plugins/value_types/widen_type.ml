@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2018                                               *)
+(*  Copyright (C) 2007-2019                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -23,25 +23,36 @@
 open Cil_datatype
 
 module Num_hints_stmt = Stmt.Map.Make(Ival.Widen_Hints)
+module Float_hints_stmt = Stmt.Map.Make(Fc_float.Widen_Hints)
 module Num_hints_bases = Base.Map.Make(Ival.Widen_Hints)
+module Float_hints_bases = Base.Map.Make(Fc_float.Widen_Hints)
 module Num_hints_bases_stmt = Stmt.Map.Make(Num_hints_bases)
+module Float_hints_bases_stmt = Stmt.Map.Make(Float_hints_bases)
 module Priority_bases_stmt = Stmt.Map.Make(Base.Set)
 
 type widen_hints = {
   priority_bases: Base.Set.t Stmt.Map.t;
   default_hints: Ival.Widen_Hints.t;
+  default_float_hints: Fc_float.Widen_Hints.t;
   default_hints_by_stmt: Ival.Widen_Hints.t Stmt.Map.t;
+  default_float_hints_by_stmt: Fc_float.Widen_Hints.t Stmt.Map.t;
   hints_by_addr: Ival.Widen_Hints.t Base.Map.t;
+  float_hints_by_addr: Fc_float.Widen_Hints.t Base.Map.t;
   hints_by_addr_by_stmt: Ival.Widen_Hints.t Base.Map.t Stmt.Map.t;
+  float_hints_by_addr_by_stmt: Fc_float.Widen_Hints.t Base.Map.t Stmt.Map.t;
 }
 
 (* an [empty] set of hints *)
 let empty = {
   priority_bases = Stmt.Map.empty;
   default_hints = Ival.Widen_Hints.empty;
+  default_float_hints = Fc_float.Widen_Hints.empty;
   default_hints_by_stmt = Stmt.Map.empty;
+  default_float_hints_by_stmt = Stmt.Map.empty;
   hints_by_addr = Base.Map.empty;
+  float_hints_by_addr = Base.Map.empty;
   hints_by_addr_by_stmt = Stmt.Map.empty;
+  float_hints_by_addr_by_stmt = Stmt.Map.empty;
 }
 
 include Datatype.Make(struct
@@ -52,18 +63,27 @@ include Datatype.Make(struct
     Structural_descr.t_tuple
       [| Priority_bases_stmt.packed_descr;
          Ival.Widen_Hints.packed_descr;
+         Fc_float.Widen_Hints.packed_descr;
          Num_hints_stmt.packed_descr;
+         Float_hints_stmt.packed_descr;
          Num_hints_bases.packed_descr;
-         Num_hints_bases_stmt.packed_descr |]
+         Float_hints_bases.packed_descr;
+         Num_hints_bases_stmt.packed_descr;
+         Float_hints_bases_stmt.packed_descr |]
   let reprs =
-    List.map
-      (fun wh ->
-        { priority_bases = Stmt.Map.empty;
-          default_hints = wh;
-          default_hints_by_stmt = Stmt.Map.empty;
-          hints_by_addr = Base.Map.empty;
-          hints_by_addr_by_stmt = Stmt.Map.empty})
-      Ival.Widen_Hints.reprs
+    Extlib.product
+      (fun wh fh ->
+         { priority_bases = Stmt.Map.empty;
+           default_hints = wh;
+           default_float_hints = fh;
+           default_hints_by_stmt = Stmt.Map.empty;
+           default_float_hints_by_stmt = Stmt.Map.empty;
+           hints_by_addr = Base.Map.empty;
+           float_hints_by_addr = Base.Map.empty;
+           float_hints_by_addr_by_stmt = Stmt.Map.empty;
+           hints_by_addr_by_stmt = Stmt.Map.empty
+         })
+      Ival.Widen_Hints.reprs Fc_float.Widen_Hints.reprs
   let mem_project = Datatype.never_any_project
   end)
 
@@ -79,17 +99,30 @@ let join wh1 wh2 =
         wh1.priority_bases wh2.priority_bases;
     default_hints =
       Ival.Widen_Hints.union wh1.default_hints wh2.default_hints;
+    default_float_hints =
+      Fc_float.Widen_Hints.union wh1.default_float_hints wh2.default_float_hints;
     default_hints_by_stmt =
       Stmt.Map.merge (fun _key -> map_merge Ival.Widen_Hints.union)
         wh1.default_hints_by_stmt wh2.default_hints_by_stmt;
+    default_float_hints_by_stmt =
+      Stmt.Map.merge (fun _key -> map_merge Fc_float.Widen_Hints.union)
+        wh1.default_float_hints_by_stmt wh2.default_float_hints_by_stmt;
     hints_by_addr =
       Base.Map.merge (fun _key -> map_merge Ival.Widen_Hints.union)
         wh1.hints_by_addr wh2.hints_by_addr;
+    float_hints_by_addr =
+      Base.Map.merge (fun _key -> map_merge Fc_float.Widen_Hints.union)
+        wh1.float_hints_by_addr wh2.float_hints_by_addr;
     hints_by_addr_by_stmt =
       Stmt.Map.merge (fun _key ->
           map_merge (Base.Map.merge
                        (fun _key -> map_merge Ival.Widen_Hints.union)))
         wh1.hints_by_addr_by_stmt wh2.hints_by_addr_by_stmt;
+    float_hints_by_addr_by_stmt =
+      Stmt.Map.merge (fun _key ->
+          map_merge (Base.Map.merge
+                       (fun _key -> map_merge Fc_float.Widen_Hints.union)))
+        wh1.float_hints_by_addr_by_stmt wh2.float_hints_by_addr_by_stmt;
   }
 
 let pretty fmt wh =
@@ -110,19 +143,32 @@ let pretty fmt wh =
   Format.fprintf fmt
     "@[priority bases: %a@\n\
      default_hints: %a@\n\
+     default_float_hints: %a@\n\
      default_hints_by_stmt: %a@\n\
+     default_float_hints_by_stmt: %a@\n\
      hints_by_addr: %a@\n\
-     hints_by_addr_by_stmt: %a@]"
+     float_hints_by_addr: %a@\n\
+     hints_by_addr_by_stmt: %a@\n\
+     float_hints_by_addr_by_stmt: %a@]"
     (pp_bindings pp_stmt Base.Set.pretty) (Stmt.Map.bindings wh.priority_bases)
     Ival.Widen_Hints.pretty wh.default_hints
+    Fc_float.Widen_Hints.pretty wh.default_float_hints
     (Pretty_utils.pp_list ~sep:",@ "
        (Pretty_utils.pp_pair ~sep:" -> " pp_stmt Ival.Widen_Hints.pretty))
     (Stmt.Map.bindings wh.default_hints_by_stmt)
     (Pretty_utils.pp_list ~sep:",@ "
+       (Pretty_utils.pp_pair ~sep:" -> " pp_stmt Fc_float.Widen_Hints.pretty))
+    (Stmt.Map.bindings wh.default_float_hints_by_stmt)
+    (Pretty_utils.pp_list ~sep:",@ "
        (Pretty_utils.pp_pair ~sep:" -> " Base.pretty Ival.Widen_Hints.pretty))
     (Base.Map.bindings wh.hints_by_addr)
+    (Pretty_utils.pp_list ~sep:",@ "
+       (Pretty_utils.pp_pair ~sep:" -> " Base.pretty Fc_float.Widen_Hints.pretty))
+    (Base.Map.bindings wh.float_hints_by_addr)
     (pp_bindings pp_stmt (pp_base_map Ival.Widen_Hints.pretty))
     (Stmt.Map.bindings wh.hints_by_addr_by_stmt)
+    (pp_bindings pp_stmt (pp_base_map Fc_float.Widen_Hints.pretty))
+    (Stmt.Map.bindings wh.float_hints_by_addr_by_stmt)
 
 let hints_for_base default_hints hints_by_base b =
   let widen_hints_null =
@@ -141,13 +187,13 @@ let hints_for_base default_hints hints_by_base b =
           (* Try the frontier of the block: further accesses are invalid
              anyway. This also works great for constant strings (this computes
              the offset of the null terminator). *)
-          let bound = Integer.(pred (div (succ m) eight)) in
+          let bound = Integer.(pred (e_div (succ m) eight)) in
           Ival.Widen_Hints.add bound widen_zero
         | Base.Empty | Base.Invalid -> widen_zero
   )
 
 let hints_from_keys stmt h =
-  let hints_by_base =
+  let int_hints_by_base =
     try
       let at_stmt = Stmt.Map.find stmt h.hints_by_addr_by_stmt in
       Base.Map.merge (fun _b os1 os2 ->
@@ -158,17 +204,40 @@ let hints_from_keys stmt h =
         ) at_stmt h.hints_by_addr
     with Not_found -> h.hints_by_addr
   in
+  let float_hints_by_base =
+    try
+      let at_stmt = Stmt.Map.find stmt h.float_hints_by_addr_by_stmt in
+      Base.Map.merge (fun _b os1 os2 ->
+          match os1, os2 with
+          | Some s1, Some s2 -> Some (Fc_float.Widen_Hints.union s1 s2)
+          | Some s, None | None, Some s -> Some s
+          | None, None -> None
+        ) at_stmt h.float_hints_by_addr
+    with Not_found -> h.float_hints_by_addr
+  in
   let prio =
     try Stmt.Map.find stmt h.priority_bases
     with Not_found -> Base.Set.empty
   in
-  let default =
+  let int_default =
     try
       let at_stmt = Stmt.Map.find stmt h.default_hints_by_stmt in
       Ival.Widen_Hints.union h.default_hints at_stmt
     with Not_found -> h.default_hints
   in
-  prio, (fun b -> hints_for_base default hints_by_base b)
+  let float_default =
+    try
+      let at_stmt = Stmt.Map.find stmt h.default_float_hints_by_stmt in
+      Fc_float.Widen_Hints.union h.default_float_hints at_stmt
+    with Not_found -> h.default_float_hints
+  in
+  let float_hints_for_base b =
+    try Fc_float.Widen_Hints.union (Base.Map.find b float_hints_by_base) float_default
+    with Not_found -> float_default
+  in
+  prio, (fun b b' ->
+      hints_for_base int_default int_hints_by_base b b',
+      float_hints_for_base b)
 
 let var_hints stmt prio_bases =
   { empty with priority_bases = Stmt.Map.singleton stmt prio_bases }
@@ -185,10 +254,23 @@ let num_hints stmto baseo hints =
   | None, None -> (* Hints for all bases and all statements *)
     { empty with default_hints = hints }
 
+let float_hints stmto baseo hints =
+  match stmto, baseo with
+  | None, Some b -> (* Hints for a base at all statements *)
+    { empty with float_hints_by_addr = Base.Map.singleton b hints }
+  | Some stmt, Some b -> (* Hints for a base at a statement *)
+    { empty with float_hints_by_addr_by_stmt = Stmt.Map.singleton stmt
+                     (Base.Map.singleton b hints) }
+  | Some stmt, None -> (* Hints for all bases and a given statement *)
+    { empty with default_float_hints_by_stmt = Stmt.Map.singleton stmt hints }
+  | None, None -> (* Hints for all bases and all statements *)
+    { empty with default_float_hints = hints }
+
 (* default set of hints. Depends on the machdep *)
 let default () =
-  let default = Ival.Widen_Hints.default_widen_hints in
-  num_hints None None default
+  let int_default = Ival.Widen_Hints.default_widen_hints in
+  let float_default = Fc_float.Widen_Hints.default_widen_hints in
+  join (num_hints None None int_default) (float_hints None None float_default)
 
 (*
 Local Variables:

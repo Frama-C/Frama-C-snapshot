@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2018                                               *)
+(*  Copyright (C) 2007-2019                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -52,12 +52,12 @@ val label : ?fill:bool -> ?style:style -> ?align:align -> ?padding:int -> string
 
     Default: [~fill:false ~style:`Label ~align:`Left ~padding:0] *)
 
-(** [hbox] and [vbox] can be used to created nested boxes. 
-    Typically, local scope opening can be used, typically: 
+(** [hbox] and [vbox] can be used to created nested boxes.
+    Typically, local scope opening can be used, typically:
     [Wbox.(hbox [ w A ; w B ; w C ])],
-    where [A], [B] and [C] are widgets, or boxes. 
+    where [A], [B] and [C] are widgets, or boxes.
 
-    Notice that nested boxes can {i generally} be packed using default 
+    Notice that nested boxes can {i generally} be packed using default
     [W] mode, even if they contains horizontal or vertical widgets. *)
 
 val hbox : box list -> widget (** Pack a list of boxes horizontally. *)
@@ -69,16 +69,39 @@ val hgroup : widget list -> widget
 (** Pack a list of widgets vertically, with all widgets stuck to the same width *)
 val vgroup : widget list -> widget
 
-(** The first list is packed to the left side of the toolbar. 
+(** The first list is packed to the left side of the toolbar.
     The second list is packed to the right side of the toolbar. *)
 val toolbar : box list -> box list -> widget
 
-(** The first list is packed to the top of the sidebar. 
+(** The first list is packed to the top of the sidebar.
     The second list is packed to the bottom of the sidebar. *)
 val sidebar : box list -> box list -> widget
 
 (** Helper to create a full featured window:
-    [~top] is layout as a toolbar, [left] and [right] as sidebars, and [bottom] as a status bar. 
+    [~top] is layout as a toolbar, [left] and [right] as sidebars, and [bottom] as a status bar.
     The main (non-optional) widget is centered with full expansion in both directions. *)
 val panel : ?top:widget -> ?left:widget -> ?right:widget -> ?bottom:widget -> #widget -> widget
 
+class type splitter =
+  object
+    inherit Wutil.widget
+    method get : float
+    method set : float -> unit
+    method connect : (float -> unit) -> unit
+  end
+
+val split :
+  dir:[`HORIZONTAL|`VERTICAL] ->
+  widget -> widget -> splitter
+
+(** default policy is AUTOMATIC *)
+val scroll:
+  ?hpolicy:[`AUTOMATIC|`ALWAYS|`NEVER] ->
+  ?vpolicy:[`AUTOMATIC|`ALWAYS|`NEVER] ->
+  widget -> widget
+
+(** Same as [scroll ~vpolicy:`NEVER] *)
+val hscroll : widget -> widget
+
+(** Same as [scroll ~volicy:`NEVER] *)
+val vscroll : widget -> widget

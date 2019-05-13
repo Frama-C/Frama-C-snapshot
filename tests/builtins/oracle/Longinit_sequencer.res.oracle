@@ -79,6 +79,8 @@
 [eva] tests/builtins/long_init.c:77: Call to builtin free
 [eva] tests/builtins/long_init.c:77: 
   function free: precondition 'freeable' got status valid.
+[eva:malloc] tests/builtins/long_init.c:77: 
+  strong free on bases: {__malloc_init_inner_l75}
 [eva] Recording results for init_inner
 [eva] Done for function init_inner
 [eva:locals-escaping] tests/builtins/long_init.c:85: Warning: 
@@ -95,6 +97,9 @@
   __fc_heap_status ∈ [--..--]
   __fc_random_counter ∈ [--..--]
   __fc_rand_max ∈ {32767}
+  __fc_random48_init ∈ {0}
+  __fc_random48_counter[0..2] ∈ [--..--]
+  __fc_p_random48_counter ∈ {{ &__fc_random48_counter[0] }}
   __fc_env[0] ∈ {{ NULL ; &S_0___fc_env[0] }}
           [1] ∈ {{ NULL ; &S_1___fc_env[0] }}
           [2..4095] ∈ {{ NULL ; &S_0___fc_env[0] ; &S_1___fc_env[0] }}
@@ -158,6 +163,8 @@
 [eva] tests/builtins/long_init.c:103: Call to builtin free
 [eva] tests/builtins/long_init.c:103: 
   function free: precondition 'freeable' got status valid.
+[eva:malloc] tests/builtins/long_init.c:103: 
+  strong free on bases: {__malloc_init_inner_l73}
 [eva] tests/builtins/long_init.c:104: 
   Call to builtin Frama_C_malloc_fresh for function malloc
 [eva] tests/builtins/long_init.c:104: allocating variable __malloc_main_l104
@@ -331,6 +338,9 @@ Values at end of function main:
   __fc_heap_status ∈ [--..--]
   __fc_random_counter ∈ [--..--]
   __fc_rand_max ∈ {32767}
+  __fc_random48_init ∈ {0}
+  __fc_random48_counter[0..2] ∈ [--..--]
+  __fc_p_random48_counter ∈ {{ &__fc_random48_counter[0] }}
   __fc_env[0] ∈ {{ NULL ; &S_0___fc_env[0] }}
           [1] ∈ {{ NULL ; &S_1___fc_env[0] }}
           [2..4095] ∈ {{ NULL ; &S_0___fc_env[0] ; &S_1___fc_env[0] }}
@@ -429,6 +439,8 @@ Values at end of function main:
 [eva] tests/builtins/long_init2.c:103: Call to builtin free
 [eva] tests/builtins/long_init2.c:103: 
   function free: precondition 'freeable' got status valid.
+[eva:malloc] tests/builtins/long_init2.c:103: 
+  strong free on bases: {__malloc_init_inner_l73}
 [eva] tests/builtins/long_init2.c:104: 
   Call to builtin Frama_C_malloc_fresh for function malloc
 [eva] tests/builtins/long_init2.c:104: allocating variable __malloc_main_l104
@@ -562,6 +574,9 @@ Values at end of function main:
   __fc_heap_status ∈ [--..--]
   __fc_random_counter ∈ [--..--]
   __fc_rand_max ∈ {32767}
+  __fc_random48_init ∈ {0}
+  __fc_random48_counter[0..2] ∈ [--..--]
+  __fc_p_random48_counter ∈ {{ &__fc_random48_counter[0] }}
   __fc_env[0] ∈ {{ NULL ; &S_0___fc_env[0] }}
           [1] ∈ {{ NULL ; &S_1___fc_env[0] }}
           [2..4095] ∈ {{ NULL ; &S_0___fc_env[0] ; &S_1___fc_env[0] }}
@@ -661,6 +676,8 @@ Values at end of function main:
 [eva] tests/builtins/long_init3.c:103: Call to builtin free
 [eva] tests/builtins/long_init3.c:103: 
   function free: precondition 'freeable' got status valid.
+[eva:malloc] tests/builtins/long_init3.c:103: 
+  strong free on bases: {__malloc_init_inner_l73}
 [eva] tests/builtins/long_init3.c:104: 
   Call to builtin Frama_C_malloc_fresh for function malloc
 [eva] tests/builtins/long_init3.c:104: allocating variable __malloc_main_l104

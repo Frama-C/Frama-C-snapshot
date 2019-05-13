@@ -1,0 +1,205 @@
+[kernel] Parsing tests/misc/widen_hints_float.c (with preprocessing)
+[kernel:parser:decimal-float] tests/misc/widen_hints_float.c:42: Warning: 
+  Floating-point constant 0.01 is not represented exactly. Will use 0x1.47ae147ae147bp-7.
+  (warn-once: no further messages from category 'parser:decimal-float' will be emitted)
+[eva] Analyzing a complete application starting at main
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
+  
+[eva] computing for function parabola <- main.
+  Called from tests/misc/widen_hints_float.c:70.
+[eva] computing for function Frama_C_double_interval <- parabola <- main.
+  Called from tests/misc/widen_hints_float.c:17.
+[eva] using specification for function Frama_C_double_interval
+[eva] tests/misc/widen_hints_float.c:17: 
+  function Frama_C_double_interval: precondition 'finite' got status valid.
+[eva] tests/misc/widen_hints_float.c:17: 
+  function Frama_C_double_interval: precondition 'order' got status valid.
+[eva] Done for function Frama_C_double_interval
+[eva] tests/misc/widen_hints_float.c:20: starting to merge loop iterations
+[eva] computing for function Frama_C_double_interval <- parabola <- main.
+  Called from tests/misc/widen_hints_float.c:24.
+[eva] tests/misc/widen_hints_float.c:24: 
+  function Frama_C_double_interval: precondition 'finite' got status valid.
+[eva] tests/misc/widen_hints_float.c:24: 
+  function Frama_C_double_interval: precondition 'order' got status valid.
+[eva] Done for function Frama_C_double_interval
+[eva] tests/misc/widen_hints_float.c:27: starting to merge loop iterations
+[eva] computing for function Frama_C_double_interval <- parabola <- main.
+  Called from tests/misc/widen_hints_float.c:31.
+[eva] tests/misc/widen_hints_float.c:31: 
+  function Frama_C_double_interval: precondition 'finite' got status valid.
+[eva] tests/misc/widen_hints_float.c:31: 
+  function Frama_C_double_interval: precondition 'order' got status valid.
+[eva] Done for function Frama_C_double_interval
+[eva] tests/misc/widen_hints_float.c:33: starting to merge loop iterations
+[eva:alarm] tests/misc/widen_hints_float.c:34: Warning: 
+  non-finite double value.
+  assert
+  \is_finite((double)((double)(f3 - (double)64) * (double)(f3 - (double)64)));
+[eva] Recording results for parabola
+[eva] Done for function parabola
+[eva] computing for function trigo <- main.
+  Called from tests/misc/widen_hints_float.c:71.
+[eva] computing for function Frama_C_double_interval <- trigo <- main.
+  Called from tests/misc/widen_hints_float.c:42.
+[eva] tests/misc/widen_hints_float.c:42: 
+  function Frama_C_double_interval: precondition 'finite' got status valid.
+[eva] tests/misc/widen_hints_float.c:42: 
+  function Frama_C_double_interval: precondition 'order' got status valid.
+[eva] Done for function Frama_C_double_interval
+[eva] tests/misc/widen_hints_float.c:42: Call to builtin sin
+[eva] tests/misc/widen_hints_float.c:42: 
+  function sin: precondition 'finite_arg' got status valid.
+[eva] tests/misc/widen_hints_float.c:41: starting to merge loop iterations
+[eva] computing for function Frama_C_double_interval <- trigo <- main.
+  Called from tests/misc/widen_hints_float.c:42.
+[eva] Done for function Frama_C_double_interval
+[eva] tests/misc/widen_hints_float.c:42: Call to builtin sin
+[eva] computing for function Frama_C_double_interval <- trigo <- main.
+  Called from tests/misc/widen_hints_float.c:42.
+[eva] Done for function Frama_C_double_interval
+[eva] tests/misc/widen_hints_float.c:42: Call to builtin sin
+[eva] computing for function Frama_C_double_interval <- trigo <- main.
+  Called from tests/misc/widen_hints_float.c:42.
+[eva] Done for function Frama_C_double_interval
+[eva] tests/misc/widen_hints_float.c:42: Call to builtin sin
+[eva] computing for function Frama_C_double_interval <- trigo <- main.
+  Called from tests/misc/widen_hints_float.c:42.
+[eva] Done for function Frama_C_double_interval
+[eva] tests/misc/widen_hints_float.c:42: Call to builtin sin
+[eva] computing for function Frama_C_double_interval <- trigo <- main.
+  Called from tests/misc/widen_hints_float.c:42.
+[eva] Done for function Frama_C_double_interval
+[eva] tests/misc/widen_hints_float.c:42: Call to builtin sin
+[eva] Recording results for trigo
+[eva] Done for function trigo
+[eva] computing for function first_order_filter <- main.
+  Called from tests/misc/widen_hints_float.c:72.
+[eva] computing for function Frama_C_double_interval <- first_order_filter <- main.
+  Called from tests/misc/widen_hints_float.c:49.
+[eva] tests/misc/widen_hints_float.c:49: 
+  function Frama_C_double_interval: precondition 'finite' got status valid.
+[eva] tests/misc/widen_hints_float.c:49: 
+  function Frama_C_double_interval: precondition 'order' got status valid.
+[eva] Done for function Frama_C_double_interval
+[eva] tests/misc/widen_hints_float.c:48: starting to merge loop iterations
+[eva] computing for function Frama_C_double_interval <- first_order_filter <- main.
+  Called from tests/misc/widen_hints_float.c:49.
+[eva] Done for function Frama_C_double_interval
+[eva] computing for function Frama_C_double_interval <- first_order_filter <- main.
+  Called from tests/misc/widen_hints_float.c:49.
+[eva] Done for function Frama_C_double_interval
+[eva] computing for function Frama_C_double_interval <- first_order_filter <- main.
+  Called from tests/misc/widen_hints_float.c:49.
+[eva] Done for function Frama_C_double_interval
+[eva] computing for function Frama_C_double_interval <- first_order_filter <- main.
+  Called from tests/misc/widen_hints_float.c:49.
+[eva] Done for function Frama_C_double_interval
+[eva] computing for function Frama_C_double_interval <- first_order_filter <- main.
+  Called from tests/misc/widen_hints_float.c:49.
+[eva] Done for function Frama_C_double_interval
+[eva] computing for function Frama_C_double_interval <- first_order_filter <- main.
+  Called from tests/misc/widen_hints_float.c:54.
+[eva] tests/misc/widen_hints_float.c:54: 
+  function Frama_C_double_interval: precondition 'finite' got status valid.
+[eva] tests/misc/widen_hints_float.c:54: 
+  function Frama_C_double_interval: precondition 'order' got status valid.
+[eva] Done for function Frama_C_double_interval
+[eva] tests/misc/widen_hints_float.c:53: starting to merge loop iterations
+[eva] computing for function Frama_C_double_interval <- first_order_filter <- main.
+  Called from tests/misc/widen_hints_float.c:54.
+[eva] Done for function Frama_C_double_interval
+[eva] computing for function Frama_C_double_interval <- first_order_filter <- main.
+  Called from tests/misc/widen_hints_float.c:54.
+[eva] Done for function Frama_C_double_interval
+[eva] computing for function Frama_C_double_interval <- first_order_filter <- main.
+  Called from tests/misc/widen_hints_float.c:54.
+[eva] Done for function Frama_C_double_interval
+[eva] computing for function Frama_C_double_interval <- first_order_filter <- main.
+  Called from tests/misc/widen_hints_float.c:54.
+[eva] Done for function Frama_C_double_interval
+[eva] computing for function Frama_C_double_interval <- first_order_filter <- main.
+  Called from tests/misc/widen_hints_float.c:54.
+[eva] Done for function Frama_C_double_interval
+[eva] Recording results for first_order_filter
+[eva] Done for function first_order_filter
+[eva] computing for function newton_sqrt <- main.
+  Called from tests/misc/widen_hints_float.c:73.
+[eva] tests/misc/widen_hints_float.c:59: starting to merge loop iterations
+[eva] tests/misc/widen_hints_float.c:64: starting to merge loop iterations
+[eva] Recording results for newton_sqrt
+[eva] Done for function newton_sqrt
+[eva] Recording results for main
+[eva] done for function main
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function first_order_filter:
+  Frama_C_entropy_source ∈ [--..--]
+  f1 ∈ [-10. .. 10.]
+  f2 ∈ [-5. .. 5.]
+[eva:final-states] Values at end of function newton_sqrt:
+  f1 ∈ [1. .. 2.]
+  f2 ∈ [1.4 .. 2.]
+[eva:final-states] Values at end of function parabola:
+  Frama_C_entropy_source ∈ [--..--]
+  f1 ∈ [-0. .. 71.]
+  f2 ∈ [-80. .. 0.]
+  f3 ∈ [-1.79769313486e+308 .. 1.79769313486e+308]
+[eva:final-states] Values at end of function trigo:
+  Frama_C_entropy_source ∈ [--..--]
+  f1 ∈ [-1. .. 1.]
+[eva:final-states] Values at end of function main:
+  Frama_C_entropy_source ∈ [--..--]
+[from] Computing for function first_order_filter
+[from] Computing for function Frama_C_double_interval <-first_order_filter
+[from] Done for function Frama_C_double_interval
+[from] Done for function first_order_filter
+[from] Computing for function newton_sqrt
+[from] Done for function newton_sqrt
+[from] Computing for function parabola
+[from] Done for function parabola
+[from] Computing for function trigo
+[from] Computing for function sin <-trigo
+[from] Done for function sin
+[from] Done for function trigo
+[from] Computing for function main
+[from] Done for function main
+[from] ====== DEPENDENCIES COMPUTED ======
+  These dependencies hold at termination for the executions that terminate:
+[from] Function Frama_C_double_interval:
+  Frama_C_entropy_source FROM Frama_C_entropy_source (and SELF)
+  \result FROM Frama_C_entropy_source; min; max
+[from] Function first_order_filter:
+  Frama_C_entropy_source FROM Frama_C_entropy_source (and SELF)
+[from] Function newton_sqrt:
+  NO EFFECTS
+[from] Function parabola:
+  Frama_C_entropy_source FROM Frama_C_entropy_source (and SELF)
+[from] Function sin:
+  \result FROM x
+[from] Function trigo:
+  Frama_C_entropy_source FROM Frama_C_entropy_source (and SELF)
+[from] Function main:
+  Frama_C_entropy_source FROM Frama_C_entropy_source (and SELF)
+[from] ====== END OF DEPENDENCIES ======
+[inout] Out (internal) for function first_order_filter:
+    Frama_C_entropy_source; f1; i; tmp; f2; i_0; tmp_0
+[inout] Inputs for function first_order_filter:
+    Frama_C_entropy_source
+[inout] Out (internal) for function newton_sqrt:
+    f1; i; f2; i_0
+[inout] Inputs for function newton_sqrt:
+    \nothing
+[inout] Out (internal) for function parabola:
+    Frama_C_entropy_source; f1; i; f2; i_0; f3; i_1
+[inout] Inputs for function parabola:
+    Frama_C_entropy_source
+[inout] Out (internal) for function trigo:
+    Frama_C_entropy_source; f1; i; tmp
+[inout] Inputs for function trigo:
+    Frama_C_entropy_source
+[inout] Out (internal) for function main:
+    Frama_C_entropy_source
+[inout] Inputs for function main:
+    Frama_C_entropy_source

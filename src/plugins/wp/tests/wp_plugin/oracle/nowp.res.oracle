@@ -1,0 +1,6 @@
+# frama-c -wp [...]
+[kernel] Parsing tests/wp_plugin/nowp.c (with preprocessing)
+[wp] Running WP plugin...
+[wp] Loading driver 'share/wp.driver'
+[wp] Warning: Missing RTE guards
+[wp] No proof obligations

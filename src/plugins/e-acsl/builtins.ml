@@ -39,7 +39,7 @@ let update s vi =
   with Not_found ->
     ()
 
-(* add [vi] in the built-in table if it is an E-ACSL built-in which is not
+(* add [vi] in the built-in table if it is an E-ACSL built-in that is not
    [already] registered. *)
 let add_builtin vi already =
   if not already then

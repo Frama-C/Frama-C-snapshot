@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2018                                               *)
+(*  Copyright (C) 2007-2019                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -40,6 +40,7 @@ and script =
 
 type tree = {
   main : Wpo.t ; (* Main goal to be proved. *)
+  mutable pool : Lang.F.pool option ; (* Global pool variable *)
   mutable saved : bool ; (* Saved on Disk. *)
   mutable gid : int ; (* WPO goal numbering *)
   mutable head : node option ; (* the current node *)
@@ -51,12 +52,15 @@ module PROOFS = Model.StaticGenerator(Wpo.S)
       type key = Wpo.S.t
       type data = tree
       let name = "Wp.ProofEngine.Proofs"
-      let compile main = {
-        main ; gid = 0 ;
-        head = None ;
-        root = None ;
-        saved = false ;
-      }
+      let compile main =
+        ignore (Wpo.resolve main) ;
+        {
+          main ; gid = 0 ;
+          pool = None ;
+          head = None ;
+          root = None ;
+          saved = false ;
+        }
     end)
 
 let () = Wpo.on_remove PROOFS.remove
@@ -69,8 +73,17 @@ let get wpo =
     | Some { script = Tactic _ } -> if proof.saved then `Saved else `Proof
   with Not_found ->
     if ProofSession.exists wpo then `Script else `None
+
 let iter_all f ns = List.iter (fun (_,n) -> f n) ns
 let map_all f ns = List.map (fun (k,n) -> k,f n) ns
+
+let pool tree =
+  match tree.pool with
+  | Some pool -> pool
+  | None ->
+      let _,sequent = Wpo.compute tree.main in
+      let pool = Lang.new_pool ~vars:(Conditions.vars_seq sequent) () in
+      tree.pool <- Some pool ; pool
 
 (* -------------------------------------------------------------------------- *)
 (* --- Constructors                                                       --- *)
@@ -105,7 +118,7 @@ let saved t = t.saved
 let set_saved t s = t.saved <- s
 
 (* -------------------------------------------------------------------------- *)
-(* --- Indexing                                                           --- *)
+(* --- Walking                                                            --- *)
 (* -------------------------------------------------------------------------- *)
 
 let rec walk f node =
@@ -113,6 +126,26 @@ let rec walk f node =
     match node.script with
     | Tactic (_,children) -> iter_all (walk f) children
     | Opened | Script _ -> f node
+
+let rec witer f node =
+  let proved = Wpo.is_proved node.goal in
+  if proved then f ~proved node else
+    match node.script with
+    | Tactic (_,children) -> iter_all (witer f) children
+    | Opened | Script _ -> f ~proved node
+
+let iteri f tree =
+  match tree.root with
+  | None -> ()
+  | Some r ->
+      let k = ref 0 in
+      walk (fun node -> f !k node ; incr k) r
+
+(* -------------------------------------------------------------------------- *)
+(* --- Consolidating                                                      --- *)
+(* -------------------------------------------------------------------------- *)
+
+let proved n = Wpo.is_proved n.goal
 
 let pending n =
   let k = ref 0 in
@@ -122,22 +155,26 @@ let has_pending n =
   try walk (fun _ -> raise Exit) n ; false
   with Exit -> true
 
-let iteri f tree =
-  match tree.root with
-  | None -> ()
-  | Some r ->
-      let k = ref 0 in
-      walk (fun node -> f !k node ; incr k) r
+let consolidate root =
+  let result = ref VCS.valid in
+  witer
+    (fun ~proved:_ node ->
+       let rs = List.map snd (Wpo.get_results node.goal) in
+       result := VCS.merge !result (VCS.best rs) ;
+    ) root ;
+  !result
 
-let validate ?(unknown=false) tree =
+let validate ?(incomplete=false) tree =
   match tree.root with
   | None -> ()
-  | Some r ->
+  | Some root ->
       if not (Wpo.is_proved tree.main) then
-        if not (has_pending r) then
+        if incomplete then
+          let result = consolidate root in
+          Wpo.set_result tree.main VCS.Tactical result
+        else
+        if not (has_pending root) then
           Wpo.set_result tree.main VCS.Tactical VCS.valid
-        else if unknown then
-          Wpo.set_result tree.main VCS.Tactical VCS.unknown
 
 (* -------------------------------------------------------------------------- *)
 (* --- Accessors                                                          --- *)
@@ -179,7 +216,6 @@ let status t : status =
       `Pending (pending root)
 
 
-let proved n = Wpo.is_proved n.goal
 let opened n = not (Wpo.is_proved n.goal)
 
 let state n =
@@ -277,6 +313,7 @@ let mk_goal t ~title ~part ~axioms sequent =
   let sid = Printf.sprintf "%s-%d" t.main.Wpo.po_sid id in
   Wpo.({
       po_gid = gid ;
+      po_leg = "" ; (* no use for legacy name *)
       po_sid = sid ;
       po_name = Printf.sprintf "%s (%s)" title part ;
       po_idx = t.main.po_idx ;
@@ -353,14 +390,11 @@ let anchor tree ?node () =
           | Some n -> n
           | None -> mk_root tree
 
-let commit ~resolve fork =
-  let resolved (_,wp) =
-    Wpo.is_proved wp || ( resolve && Wpo.resolve wp ) in
-  let resolved , residual = List.partition resolved fork.Fork.goals in
-  iter_all Wpo.remove resolved ;
+let commit fork =
+  List.iter (fun (_,wp) -> ignore (Wpo.resolve wp)) fork.Fork.goals ;
   let tree = fork.Fork.tree in
   let anchor = fork.Fork.anchor in
-  let children = map_all (mk_tree_node ~tree ~anchor) residual in
+  let children = map_all (mk_tree_node ~tree ~anchor) fork.Fork.goals in
   tree.saved <- false ;
   anchor.script <- Tactic( fork.Fork.tactic , children ) ;
   anchor , children

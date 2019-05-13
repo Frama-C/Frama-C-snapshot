@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2018                                               *)
+(*  Copyright (C) 2007-2019                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -93,6 +93,7 @@ let generate_call ?model stmt =
 
 let prove = Prover.prove
 let spawn = Prover.spawn ~delayed:true
+
 let server = ProverTask.server
 let command vcs = Register.do_wp_proofs_iter (fun f -> Bag.iter f vcs)
 

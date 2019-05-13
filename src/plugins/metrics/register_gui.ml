@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2018                                               *)
+(*  Copyright (C) 2007-2019                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -347,10 +347,11 @@ module ValueCoverageGUI = struct
              ~markup:(Format.sprintf "%s%% functions reached"
                         (Metrics_base.float_to_string pcent))
              ~justify:`LEFT ~packing:box#pack ());
-    let _ = Gtk_helper.on_bool box "Highlight results" (fun () -> !highlight)
-      (fun b -> highlight := b; main_ui#rehighlight ()) 
+    let _ignore = Gtk_helper.on_bool box "Highlight results"
+        (fun () -> !highlight)
+        (fun b -> highlight := b; main_ui#rehighlight ())
     in
-    let _ = Gtk_helper.on_bool box "Show columns"
+    let _ignore = Gtk_helper.on_bool box "Show columns"
         ~tooltip:"Shows the columns related to dead code in the filetree."
         (fun () -> !filetree_enabled)
         (fun b -> filetree_enabled := b; !update_filetree `Visibility)

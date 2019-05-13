@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2018                                               *)
+(*  Copyright (C) 2007-2019                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -37,15 +37,15 @@ class descriptive_printer = object (self)
     match vi.vdescr with
     | Some vd ->
       if vi.vdescrpure || not useTemps then
-	Format.fprintf fmt "%s" vd
+        Format.fprintf fmt "%s" vd
       else begin
-	try
-	  let _, name, _ = List.find (fun (vi', _, _) -> vi == vi') temps in
-	  Format.fprintf fmt "%s" name
-	with Not_found ->
-	  let name = "tmp" ^ string_of_int (List.length temps) in
-	  temps <- (vi, name, vi.vdescr) :: temps;
-	  Format.fprintf fmt "%s" name
+        try
+          let _, name, _ = List.find (fun (vi', _, _) -> vi == vi') temps in
+          Format.fprintf fmt "%s" name
+        with Not_found ->
+          let name = "tmp" ^ string_of_int (List.length temps) in
+          temps <- (vi, name, vi.vdescr) :: temps;
+          Format.fprintf fmt "%s" name
       end
     | None ->
       super#varinfo fmt vi
@@ -55,13 +55,13 @@ class descriptive_printer = object (self)
      but we shouldn't substitute there since "foo(a,b) = foo(a,b)"
      would make no sense to the user.)  *)
   method! exp fmt e = match e.enode with
-  | Lval (Var vi, o)
-  | StartOf (Var vi, o) ->
-    Format.fprintf fmt "%a%a" self#pVarDescriptive vi self#offset o
-  | AddrOf (Var vi, o) ->
-    (* No parens needed, since offsets have higher precedence than & *)
-    Format.fprintf fmt "& %a%a" self#pVarDescriptive vi self#offset o
-  | _ -> super#exp fmt e
+    | Lval (Var vi, o)
+    | StartOf (Var vi, o) ->
+      Format.fprintf fmt "%a%a" self#pVarDescriptive vi self#offset o
+    | AddrOf (Var vi, o) ->
+      (* No parens needed, since offsets have higher precedence than & *)
+      Format.fprintf fmt "& %a%a" self#pVarDescriptive vi self#offset o
+    | _ -> super#exp fmt e
 
 end
 

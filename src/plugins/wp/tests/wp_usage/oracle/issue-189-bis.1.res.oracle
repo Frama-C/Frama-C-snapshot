@@ -5,8 +5,8 @@
 [wp] Warning: Missing RTE guards
 
 Goal Post-condition 'memcpy,ok' in 'memcpy_context_vars':
-Let a = global(G_src_43).
-Let a_1 = global(G_dst_44).
+Let a = global(G_src_45).
+Let a_1 = global(G_dst_46).
 Let a_2 = havoc(Mint_undef_0, Mint_0, shift_uint8(a_1, 0), len_0).
 Assume {
   Type: is_sint32(len_0) /\ is_sint32(len_1).
@@ -38,8 +38,8 @@ Prove: true.
 ------------------------------------------------------------
 
 Goal Preservation of Invariant 'ok,cpy' (file tests/wp_usage/issue-189-bis.i, line 55):
-Let a = global(G_src_43).
-Let a_1 = global(G_dst_44).
+Let a = global(G_src_45).
+Let a_1 = global(G_dst_46).
 Let a_2 = havoc(Mint_undef_0, Mint_0, shift_uint8(a_1, 0), len_0).
 Let a_3 = a_2[dst2_0 <- a_2[src2_0]].
 Assume {
@@ -82,8 +82,8 @@ Prove: true.
 ------------------------------------------------------------
 
 Goal Preservation of Invariant 'ok,len' (file tests/wp_usage/issue-189-bis.i, line 51):
-Let a = global(G_src_43).
-Let a_1 = global(G_dst_44).
+Let a = global(G_src_45).
+Let a_1 = global(G_dst_46).
 Assume {
   Type: is_sint32(len_1) /\ is_sint32(len_0) /\ is_sint32(len_0 - 1).
   (* Heap *)
@@ -141,8 +141,8 @@ Prove: true.
 
 Goal Loop assigns (file tests/wp_usage/issue-189-bis.i, line 54) (4/4):
 Effect at line 60
-Let a = global(G_src_43).
-Let a_1 = global(G_dst_44).
+Let a = global(G_src_45).
+Let a_1 = global(G_dst_46).
 Let a_2 = shift_uint8(a_1, 0).
 Assume {
   Type: is_sint32(len_0) /\ is_sint32(len_1).

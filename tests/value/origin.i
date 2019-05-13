@@ -1,7 +1,7 @@
 /* run.config*
    GCC:
-   OPT: -no-autoload-plugins -load-module from,inout,eva @VALUECONFIG@ -eva -eva-warn-copy-indeterminate=-origin_misalign_2,-main -main main -journal-disable -then -out -deps
-   OPT: -no-autoload-plugins -load-module from,inout,eva @VALUECONFIG@ -eva -eva-warn-copy-indeterminate=-origin_misalign_2,-origin -main origin -journal-disable -then -out -deps
+   OPT: -no-autoload-plugins -load-module from,inout,eva @EVA_CONFIG@ -eva -eva-warn-copy-indeterminate=-origin_misalign_2,-main -main main -journal-disable -then -out -deps
+   OPT: -no-autoload-plugins -load-module from,inout,eva @EVA_CONFIG@ -eva -eva-warn-copy-indeterminate=-origin_misalign_2,-origin -main origin -journal-disable -then -out -deps
 
 */
 char f(void);
@@ -18,7 +18,7 @@ void origin_arithmetic_1(void) {
 void origin_arithmetic_2(int c1) {
   pa2 = (int*)(-(int)ta2);
   qa2 = c1 ? pa2 : (int*)(-(int)tta2);
-  *qa2 = &aa2;
+  *qa2 = (int) &aa2;
 }
 /************/
 void origin_arithmetic_3(void) {

@@ -4,12 +4,13 @@
 [wp] Loading driver 'share/wp.driver'
 [wp] Warning: Missing RTE guards
 [wp] 1 goal scheduled
-[wp] [Alt-Ergo] Goal typed_f_post : Valid
+[wp] [Alt-Ergo] Goal typed_f_ensures : Valid
 [wp] Proved goals:    1 / 1
   Qed:             0 
   Alt-Ergo:        1
-[wp] Report 'tests/wp_typed/struct_array_type.i.0.report.json'
+[wp] Report in:  'tests/wp_typed/oracle_qualif/struct_array_type.0.report.json'
+[wp] Report out: 'tests/wp_typed/result_qualif/struct_array_type.0.report.json'
 -------------------------------------------------------------
 Functions           WP     Alt-Ergo        Total   Success
-f                   -       1 (8..20)        1       100%
+f                   -       1 (12..24)       1       100%
 -------------------------------------------------------------

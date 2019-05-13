@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2018                                               *)
+(*  Copyright (C) 2007-2019                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -118,6 +118,9 @@ module Internal  : Domain_builder.InputDomain
 
   type origin = unit (* ???? *)
 
+  let kill loc state =
+    Memory.add_binding ~exact:true state loc V_Or_Uninitialized.top
+
   module Transfer (Valuation:
                      Abstract_domain.Valuation with type value = value
                                                 and type origin = origin
@@ -129,10 +132,7 @@ module Internal  : Domain_builder.InputDomain
        and type valuation := Valuation.t
   = struct
 
-    let update _valuation st = st (* TODO? *)
-
-    let kill loc state =
-      Memory.add_binding ~exact:true state loc V_Or_Uninitialized.top
+    let update _valuation st = `Value st (* TODO? *)
 
     let store loc state v =
       let state' =
@@ -171,7 +171,7 @@ module Internal  : Domain_builder.InputDomain
 
     let finalize_call _stmt _call ~pre:_ ~post = `Value post
 
-    let start_call _stmt _call valuation state = `Value (update valuation state)
+    let start_call _stmt _call valuation state = update valuation state
 
     let show_expr _valuation _state _fmt _expr = ()
   end
@@ -230,7 +230,10 @@ module Internal  : Domain_builder.InputDomain
   let initialize_variable _ _ ~initialized:_ _ state = state
 
   (* Logic *)
-  let logic_assign _assign _location ~pre:_ _state = top
+  let logic_assign _assign location ~pre:_ state =
+    let loc = Precise_locs.imprecise_location location in
+    kill loc state
+
   let evaluate_predicate _ _ _ = Alarmset.Unknown
   let reduce_by_predicate _ state _ _ = `Value state
 

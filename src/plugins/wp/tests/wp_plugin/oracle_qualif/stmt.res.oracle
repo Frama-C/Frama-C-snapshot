@@ -2,30 +2,31 @@
 [kernel] Parsing tests/wp_plugin/stmt.c (with preprocessing)
 [wp] Running WP plugin...
 [wp] Loading driver 'share/wp.driver'
-[wp] [CFG] Goal f_stmt_exit : Valid (Unreachable)
-[wp] [CFG] Goal g_stmt_exit : Valid (Unreachable)
-[wp] [CFG] Goal g_stmt_assign : Valid (Unreachable)
-[wp] [CFG] Goal g_stmt_post : Valid (Unreachable)
-[wp] [CFG] Goal g_stmt_exit : Valid (Unreachable)
-[wp] [CFG] Goal h_stmt_exit : Valid (Unreachable)
-[wp] [CFG] Goal h_stmt_assign : Valid (Unreachable)
-[wp] [CFG] Goal h_stmt_post : Valid (Unreachable)
-[wp] [CFG] Goal h_stmt_exit : Valid (Unreachable)
+[wp] [CFG] Goal f_exits : Valid (Unreachable)
+[wp] [CFG] Goal g_exits : Valid (Unreachable)
+[wp] [CFG] Goal g_assigns : Valid (Unreachable)
+[wp] [CFG] Goal g_ensures : Valid (Unreachable)
+[wp] [CFG] Goal g_exits : Valid (Unreachable)
+[wp] [CFG] Goal h_exits : Valid (Unreachable)
+[wp] [CFG] Goal h_assigns : Valid (Unreachable)
+[wp] [CFG] Goal h_ensures : Valid (Unreachable)
+[wp] [CFG] Goal h_exits : Valid (Unreachable)
 [wp] Warning: Missing RTE guards
 [wp] 10 goals scheduled
-[wp] [Qed] Goal typed_f_post : Valid
-[wp] [Qed] Goal typed_f_post_2 : Valid
+[wp] [Qed] Goal typed_f_ensures_2 : Valid
+[wp] [Qed] Goal typed_f_ensures_3 : Valid
 [wp] [Qed] Goal typed_f_assert : Valid
-[wp] [Qed] Goal typed_f_stmt_post : Valid
-[wp] [Qed] Goal typed_f_stmt_assign : Valid
-[wp] [Qed] Goal typed_g_post : Valid
+[wp] [Qed] Goal typed_f_ensures : Valid
+[wp] [Qed] Goal typed_f_assigns : Valid
+[wp] [Qed] Goal typed_g_ensures_2 : Valid
 [wp] [Qed] Goal typed_g_assert : Valid
-[wp] [Qed] Goal typed_h_post : Valid
+[wp] [Qed] Goal typed_h_ensures_2 : Valid
 [wp] [Qed] Goal typed_h_assert : Valid
 [wp] [Qed] Goal typed_h_assert_2 : Valid
 [wp] Proved goals:   10 / 10
   Qed:            10
-[wp] Report 'tests/wp_plugin/stmt.c.0.report.json'
+[wp] Report in:  'tests/wp_plugin/oracle_qualif/stmt.0.report.json'
+[wp] Report out: 'tests/wp_plugin/result_qualif/stmt.0.report.json'
 -------------------------------------------------------------
 Functions           WP     Alt-Ergo        Total   Success
 f                    5     -                 5       100%

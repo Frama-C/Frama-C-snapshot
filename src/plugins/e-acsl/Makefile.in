@@ -79,6 +79,7 @@ PLUGIN_CMO:= local_config \
 	quantif \
 	at_with_lscope \
 	mmodel_translate \
+	logic_functions \
 	translate \
 	temporal \
 	prepare_ast \
@@ -133,6 +134,16 @@ $(EACSL_PLUGIN_DIR)/local_config.ml: $(EACSL_PLUGIN_DIR)/Makefile.in $(VERSION_F
 
 ifeq (@MAY_RUN_TESTS@,yes)
 
+-include in_frama_ci
+
+ifeq ($(IN_FRAMA_CI),yes)
+
+PLUGIN_TESTS_DIRS := \
+	gmp \
+	no-main
+
+else
+
 PLUGIN_TESTS_DIRS := \
 	format \
 	reject \
@@ -141,11 +152,15 @@ PLUGIN_TESTS_DIRS := \
 	gmp \
 	no-main \
 	full-mmodel \
-	temporal
+	temporal \
+	special
 
-# the following test suite is deactivated for the time being:
-# uncompatible with OCI
-#	builtin
+# [JS 2019/02/26] deactivate tests 'builtin' as long as setjmp/longjmp is not
+# supported.
+#	builtin \
+
+
+endif
 
 PLUGIN_TESTS_LIB := $(EACSL_PLUGIN_DIR)/tests/print.ml
 E_ACSL_TESTS: $(EACSL_PLUGIN_DIR)/tests/test_config

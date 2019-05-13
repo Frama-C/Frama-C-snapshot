@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2018                                               *)
+(*  Copyright (C) 2007-2019                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -244,6 +244,7 @@ class text ?(autoscroll=false) ?(width=80) ?(indent=60) () =
         end
 
     method private open_tag name =
+      let name = Transitioning.Format.string_of_stag name in
       self#flush () ; style <- self#tag name :: style ; ""
 
     method private close_tag _name =
@@ -254,13 +255,14 @@ class text ?(autoscroll=false) ?(width=80) ?(indent=60) () =
       | (TAG _ | PLAIN) :: sty -> style <- sty ; ""
 
     method fmt = match fmtref with Some fmt -> fmt | None ->
+      let open Transitioning.Format in
       let output_string s a b = if b > 0 then Buffer.add_substring text s a b in
       let fmt = Format.make_formatter output_string self#flush in
-      let tagger = Format.pp_get_formatter_tag_functions fmt () in
-      Format.pp_set_formatter_tag_functions fmt
+      let tagger = pp_get_formatter_stag_functions fmt () in
+      pp_set_formatter_stag_functions fmt
         { tagger with
-          Format.mark_open_tag = self#open_tag ;
-          Format.mark_close_tag = self#close_tag ;
+          mark_open_stag = self#open_tag;
+          mark_close_stag = self#close_tag ;
         } ;
       Format.pp_set_print_tags fmt false ;
       Format.pp_set_mark_tags fmt true ;
@@ -306,9 +308,10 @@ class text ?(autoscroll=false) ?(width=80) ?(indent=60) () =
       begin
         let sid = hid <- succ hid ; Printf.sprintf ">%X" hid in
         Hashtbl.add marks sid (fun p q -> Hashtbl.remove marks sid ; f p q) ;
-        Format.pp_open_tag fmt sid ;
+        Transitioning.Format.pp_open_stag fmt
+          (Transitioning.Format.stag_of_string sid) ;
         let () = pp fmt in
-        Format.pp_close_tag fmt () ;
+        Transitioning.Format.pp_close_stag fmt () ;
       end
 
     (* -------------------------------------------------------------------------- *)

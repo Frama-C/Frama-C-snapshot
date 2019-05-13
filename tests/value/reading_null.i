@@ -51,6 +51,6 @@ void main1(int c){
 
   int X1;
   int* X2;
-  X1 = X2;
+  X1 = (int) X2;
 
 }

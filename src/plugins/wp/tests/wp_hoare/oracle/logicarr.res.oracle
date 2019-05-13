@@ -8,7 +8,7 @@
 ------------------------------------------------------------
 
 Goal Post-condition 'PTR' in 'job':
-Let a = global(G_arr_31).
+Let a = global(G_arr_33).
 Let a_1 = shift_sint32(a, i).
 Let x = Mint_0[a_1].
 Let a_2 = shift_sint32(a, 0).
@@ -26,7 +26,7 @@ Prove: P_p_pointer(m, Mint_0, a_2, i, j).
 ------------------------------------------------------------
 
 Goal Post-condition 'ARR' in 'job':
-Let a = global(G_arr_31).
+Let a = global(G_arr_33).
 Let a_1 = shift_sint32(a, i).
 Let x = Mint_0[a_1].
 Let a_2 = shift_sint32(a, 0).
@@ -45,7 +45,7 @@ Prove: P_p_arrays(m, i, m_1, j).
 ------------------------------------------------------------
 
 Goal Post-condition 'DUM' in 'job':
-Let a = global(G_arr_31).
+Let a = global(G_arr_33).
 Let a_1 = shift_sint32(a, i).
 Let x = Mint_0[a_1].
 Let a_2 = shift_sint32(a, 0).

@@ -53,7 +53,7 @@ let run () =
         effect = None;
       } in
     let po = Wpo.{
-        po_gid = ""; po_sid = ""; po_name = "";
+        po_gid = ""; po_sid = ""; po_name = ""; po_leg = "";
         po_idx = Function(kf, None); po_model = model;
         po_pid = prop_id;
         po_formula = Wpo.GoalAnnot vc_annot;
@@ -111,7 +111,8 @@ let run () =
     Model.on_scope (Some kf) (fun () ->
         let paths,start = Compiler.compute_kf kf in
         let cfg, goals = paths.Compiler.paths_cfg, paths.Compiler.paths_goals in
-        let cout = open_out (Format.sprintf "/tmp/cfg_pre_%s.dot" (Kernel_function.get_name kf)) in
+        let fname = Filename.temp_file "cfg_pre_" (Kernel_function.get_name kf) in
+        let cout = open_out fname in
         Compiler.Cfg.output_dot cout ~checks:(Bag.map (fun g -> g.Compiler.goal_pred) goals) cfg;
         close_out cout;
         Format.printf "new way@.";

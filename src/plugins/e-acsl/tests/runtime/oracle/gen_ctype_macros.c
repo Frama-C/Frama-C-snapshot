@@ -2,6 +2,8 @@
 #include "ctype.h"
 #include "stdio.h"
 #include "stdlib.h"
+extern int __e_acsl_sound_verdict;
+
 int main(int argc, char const **argv)
 {
   int __retres;

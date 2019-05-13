@@ -102,14 +102,29 @@
 [eva] computing for function clock_nanosleep <- main.
   Called from tests/libc/time_h.c:36.
 [eva] Done for function clock_nanosleep
+[eva] computing for function ctime <- main.
+  Called from tests/libc/time_h.c:43.
+[eva] using specification for function ctime
+[eva] tests/libc/time_h.c:43: 
+  function ctime: precondition 'valid_timer' got status valid.
+[eva] tests/libc/time_h.c:43: 
+  function ctime: precondition 'initialization,init_timer' got status valid.
+[eva] Done for function ctime
+[eva] computing for function ctime <- main.
+  Called from tests/libc/time_h.c:43.
+[eva] Done for function ctime
+[eva:alarm] tests/libc/time_h.c:44: Warning: assertion got status unknown.
 [eva] Recording results for main
 [eva] done for function main
 [eva] ====== VALUES COMPUTED ======
 [eva:final-states] Values at end of function main:
+  __fc_ctime[0..25] ∈ [--..--]
   req.tv_sec ∈ [--..--]
      .tv_nsec ∈ [0..999999999]
   rem ∈ [--..--] or UNINITIALIZED
   r ∈ {-1; 0; 4; 22}
   creq.tv_sec ∈ [--..--] or UNINITIALIZED
       .tv_nsec ∈ [0..999999999] or UNINITIALIZED
+  tt ∈ {42}
+  time_str ∈ {{ &__fc_ctime[0] }}
   __retres ∈ {0; 1; 2}

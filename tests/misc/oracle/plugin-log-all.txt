@@ -6,15 +6,3 @@
 [kernel:foo-category] debug (level 0) with dkey
 [kernel] debug (level 0)
 [kernel] warning: warning
-[kernel] user error: error
-[kernel] failure: failure
-[kernel] failure: Deferred internal error message was emitted during execution. See above messages for more information.
-[kernel] Current source was: tests/misc/log-file.i:16
-The full backtrace is:
-
-Frama-C aborted: internal error.
-Please report as 'crash' at http://bts.frama-c.com/.
-Your Frama-C version is 18.0 (Argon).
-Note that a version and a backtrace alone often do not contain enough
-information to understand the bug. Guidelines for reporting bugs are at:
-http://bts.frama-c.com/dokuwiki/doku.php?id=mantis:frama-c:bug_reporting_guidelines

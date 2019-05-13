@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2018                                               *)
+(*  Copyright (C) 2007-2019                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -22,209 +22,222 @@
 
 type t = Z.t
 
-exception Too_big
-
 let equal = Z.equal
 
 let compare = Z.compare
 
-
 let two_power_of_int k =
   Z.shift_left Z.one k
 
-let two_power y =
-  try
-    let k = Z.to_int y in
-    if k > 1024 then
-      (* avoid memory explosion *)
-      raise Too_big
-    else
-      two_power_of_int k
-  with Z.Overflow -> raise Too_big
+let two_power n =
+  let k = Z.to_int n in
+  if k > 1024 then
+    raise Z.Overflow
+  else
+    two_power_of_int k
+
+let power_int_positive_int = Big_int_Z.power_int_positive_int
 
 let popcount = Z.popcount
 
-  let zero = Z.zero
-  let one = Z.one
-  let minus_one = Z.minus_one
-  let two = Z.of_int 2
-  let four = Z.of_int 4
-  let eight = Z.of_int 8
-  let sixteen = Z.of_int 16
-  let thirtytwo = Z.of_int 32
-  let onethousand = Z.of_int 1000
-  let billion_one = Z.of_int 1_000_000_001
-  let two_power_32 = two_power_of_int 32
-  let two_power_60 = two_power_of_int 60
-  let two_power_64 = two_power_of_int 64
+let zero = Z.zero
+let one = Z.one
+let minus_one = Z.minus_one
+let two = Z.of_int 2
+let four = Z.of_int 4
+let eight = Z.of_int 8
+let sixteen = Z.of_int 16
+let thirtytwo = Z.of_int 32
+let onethousand = Z.of_int 1000
+let billion_one = Z.of_int 1_000_000_001
+let two_power_32 = two_power_of_int 32
+let two_power_60 = two_power_of_int 60
+let two_power_64 = two_power_of_int 64
 
-  let is_zero v = Z.equal v Z.zero
+let is_zero v = Z.equal v Z.zero
 
-  let add = Z.add
-  let sub = Z.sub
-  let succ = Z.succ
-  let pred = Z.pred
-  let neg = Z.neg
+let add = Z.add
+let sub = Z.sub
+let succ = Z.succ
+let pred = Z.pred
+let neg = Z.neg
 
-  let rem = Z.erem
-  let div = Z.ediv
-  let mul = Z.mul
+let mul = Z.mul
 
-  let abs = Z.abs
+let e_div = Z.ediv
+let e_rem = Z.erem
+let e_div_rem = Z.ediv_rem
 
-  let hash = Z.hash
+let c_div = Z.div
+let c_rem = Z.rem
+let c_div_rem = Z.div_rem
 
-  let shift_left x y = Z.shift_left x (Z.to_int y)
-  let shift_right x y = Z.shift_right x (Z.to_int y)
-  let shift_right_logical x y = (* no meaning for negative value of x *)
-    if (Z.lt x Z.zero)      
-    then failwith "log_shift_right_big_int"
-    else Z.shift_right x (Z.to_int y)
+let abs = Z.abs
 
-  let logand = Z.logand
-  let lognot = Z.lognot
-  let logor = Z.logor
-  let logxor = Z.logxor
+let hash = Z.hash
 
-  let le a b = Z.compare a b <= 0
-  let ge a b = Z.compare a b >= 0
-  let lt a b = Z.compare a b < 0
-  let gt a b = Z.compare a b > 0
+let shift_left x y = Z.shift_left x (Z.to_int y)
+let shift_right x y = Z.shift_right x (Z.to_int y)
+let shift_right_logical x y = (* no meaning for negative value of x *)
+  if (Z.lt x Z.zero)
+  then raise (Invalid_argument "Integer.shift_right_logical")
+  else Z.shift_right x (Z.to_int y)
 
+let logand = Z.logand
+let lognot = Z.lognot
+let logor = Z.logor
+let logxor = Z.logxor
 
-  let of_int = Z.of_int
+let le a b = Z.compare a b <= 0
+let ge a b = Z.compare a b >= 0
+let lt a b = Z.compare a b < 0
+let gt a b = Z.compare a b > 0
 
-  let of_int64 = Z.of_int64
-  let of_int32 = Z.of_int32
+let of_int = Z.of_int
+let of_int64 = Z.of_int64
+let of_int32 = Z.of_int32
 
-  (* Return the same exceptions as [Big_int] *)
-  let to_int = Big_int_Z.int_of_big_int
-  let to_int64 = Big_int_Z.int64_of_big_int
-  let to_int32 = Big_int_Z.int32_of_big_int
+let to_int = Z.to_int
+let to_int64 = Z.to_int64
+let to_int32 = Z.to_int32
 
-  let of_string s =
-    try Z.of_string s
-    with Invalid_argument _ ->
-    (* We intentionally do NOT specify a string in the .mli, as Big_int
-       raises multiple [Failure _] exceptions *)
-      failwith "Integer.of_string"
+let of_string = Z.of_string
+let to_string = Z.to_string
 
-
-  let max_int64 = of_int64 Int64.max_int
-  let min_int64 = of_int64 Int64.min_int
+let of_float = Z.of_float
+let to_float = Z.to_float
+let max_int64 = of_int64 Int64.max_int
+let min_int64 = of_int64 Int64.min_int
 
 
-  let to_string = Z.to_string
-  let to_float = Z.to_float
-  let of_float z =
-    try Z.of_float z
-    with Z.Overflow -> raise Too_big
+let bdigits = [|
+  "0000" ; (* 0 *)
+  "0001" ; (* 1 *)
+  "0010" ; (* 2 *)
+  "0011" ; (* 3 *)
+  "0100" ; (* 4 *)
+  "0101" ; (* 5 *)
+  "0110" ; (* 6 *)
+  "0111" ; (* 7 *)
+  "1000" ; (* 8 *)
+  "1001" ; (* 9 *)
+  "1010" ; (* 10 *)
+  "1011" ; (* 11 *)
+  "1100" ; (* 12 *)
+  "1101" ; (* 13 *)
+  "1110" ; (* 14 *)
+  "1111" ; (* 15 *)
+|]
 
-  let pretty ?(hexa=false) fmt v =
-    let rec aux v =
-      if gt v two_power_60 then
-        let quo, rem = Z.ediv_rem v two_power_60 in
-        aux quo;
-        Format.fprintf fmt "%015LX" (to_int64 rem)
-      else
-        Format.fprintf fmt "%LX" (to_int64 v)
-    in
-    if hexa then
-      if equal v zero then Format.pp_print_string fmt "0"
-      else if gt v zero then (Format.pp_print_string fmt "0x"; aux v)
-      else (Format.pp_print_string fmt "-0x"; aux (Z.neg v))
-      else
-        Format.pp_print_string fmt (to_string v)
+let pp_bin_pos fmt r = Format.pp_print_string fmt bdigits.(r)
+let pp_bin_neg fmt r = Format.pp_print_string fmt bdigits.(15-r)
 
-  let is_one v = equal one v
-  let pos_div  = div
+let pp_hex_pos fmt r = Format.fprintf fmt "%04X" r
+let pp_hex_neg fmt r = Format.fprintf fmt "%04X" (0xFFFF-r)
 
-  let pos_rem = rem
-  let native_div = div
-  let divexact = Z.divexact
-  let div_rem = Z.div_rem
+let bmask_bin = Z.of_int 0xF     (* 4 bits mask *)
+let bmask_hex = Z.of_int 0xFFFF (* 64 bits mask *)
 
-  let _c_div u v =
-    let bad_div = div u v in
-    if (lt u zero) && not (is_zero (rem u v))
-    then
-      if lt v zero
-      then pred bad_div
-      else succ bad_div
-    else bad_div
+type digits = {
+  nbits : int ; (* max number of bits *)
+  bsize : int ; (* bits in each bloc *)
+  bmask : Z.t ; (* block mask, must be (1 << bsize) - 1 *)
+  sep : string ;
+  pp : Format.formatter -> int -> unit ; (* print one block *)
+}
 
-  let _c_div u v =
-    let res = _c_div u v in
-    let res2 = Z.div u v in
-    if not (equal res res2) then
-      failwith (Printf.sprintf "division of %a %a c_div %a div %a" 
-        Z.sprint u
-        Z.sprint v
-        Z.sprint res
-        Z.sprint res2)
-    else res2
+let rec pp_digits d fmt n v =
+  if gt v zero || n < d.nbits then
+    begin
+      let r = Z.to_int (Z.logand v d.bmask) in
+      let k = d.bsize in
+      pp_digits d fmt (n + k) (Z.shift_right_trunc v k) ;
+      if gt v d.bmask || (n + k) < d.nbits
+      then Format.pp_print_string fmt d.sep ;
+      d.pp fmt r ;
+    end
 
-  let c_div = Z.div
+let pp_bin ?(nbits=1) ?(sep="") fmt v =
+  let nbits = if nbits <= 0 then 1 else nbits in
+  if le zero v then
+    ( Format.pp_print_string fmt "0b" ;
+      pp_digits { nbits ; sep ; bsize=4 ;
+                  bmask = bmask_bin ; pp = pp_bin_pos } fmt 0 v )
+  else
+    ( Format.pp_print_string fmt "1b" ;
+      pp_digits { nbits ; sep ; bsize=4 ;
+                  bmask = bmask_bin ; pp = pp_bin_neg } fmt 0 (Z.lognot v) )
 
-  let _c_rem u v =
-    sub u (mul v (c_div u v))
+let pp_hex ?(nbits=1) ?(sep="") fmt v =
+  let nbits = if nbits <= 0 then 1 else nbits in
+  if le zero v then
+    ( Format.pp_print_string fmt "0x" ;
+      pp_digits { nbits ; sep ; bsize=16 ;
+                  bmask = bmask_hex ; pp = pp_hex_pos } fmt 0 v )
 
-  let _c_rem u v =
-    let res = _c_rem u v in
-    let res2 = Z.rem u v in
-    if not (equal res res2) then
-      failwith (Printf.sprintf "division of %a %a c_rem %a rem %a"
-        Z.sprint u
-        Z.sprint v
-        Z.sprint res
-        Z.sprint res2)
-    else res2
-
-  let c_rem = Z.rem
-
-  let cast ~size ~signed ~value =
-    if (not signed) 
-    then 
-      let factor = two_power size in logand value (pred factor)
+  else
+    ( Format.pp_print_string fmt "1x" ;
+      pp_digits { nbits ; sep ; bsize=16 ;
+                  bmask = bmask_hex ; pp = pp_hex_neg } fmt 0 (Z.lognot v) )
+let pretty ?(hexa=false) fmt v =
+  let rec aux v =
+    if gt v two_power_60 then
+      let quo, rem = Z.ediv_rem v two_power_60 in
+      aux quo;
+      Format.fprintf fmt "%015LX" (to_int64 rem)
     else
-      let mask = two_power (sub size one) in
-      let p_mask = pred mask in
-      if equal (logand mask value) zero
-      then logand value p_mask
-      else
-	logor (lognot p_mask) value
+      Format.fprintf fmt "%LX" (to_int64 v)
+  in
+  if hexa then
+    if equal v zero then Format.pp_print_string fmt "0"
+    else if gt v zero then (Format.pp_print_string fmt "0x"; aux v)
+    else (Format.pp_print_string fmt "-0x"; aux (Z.neg v))
+  else
+    Format.pp_print_string fmt (to_string v)
 
-  let length u v = succ (sub v u)
+let is_one v = equal one v
 
-  let extract_bits ~start ~stop v =
-    assert (ge start zero && ge stop start);
-    (*Format.printf "%a[%a..%a]@\n" pretty v pretty start pretty stop;*)
-    let r = Z.extract v (to_int start) (to_int (length start stop)) in
-      (*Format.printf "%a[%a..%a]=%a@\n" pretty v pretty start pretty stop pretty r;*)
-      r
+let cast ~size ~signed ~value =
+  if (not signed)
+  then
+    let factor = two_power size in logand value (pred factor)
+  else
+    let mask = two_power (sub size one) in
+    let p_mask = pred mask in
+    if equal (logand mask value) zero
+    then logand value p_mask
+    else
+      logor (lognot p_mask) value
 
-  let is_even v = is_zero (logand one v)
+let length u v = succ (sub v u)
 
-  let pgcd u v =
-    if is_zero v then abs u (* Zarith raises an exception on zero arguments *)
-    else if is_zero u then abs v
-    else Z.gcd u v
+let extract_bits ~start ~stop v =
+  assert (ge start zero && ge stop start);
+  (*Format.printf "%a[%a..%a]@\n" pretty v pretty start pretty stop;*)
+  let r = Z.extract v (to_int start) (to_int (length start stop)) in
+  (*Format.printf "%a[%a..%a]=%a@\n" pretty v pretty start pretty stop pretty r;*)
+  r
 
-  let ppcm u v =
-    if u = zero || v = zero
-    then zero
-    else Z.lcm u v
+let is_even v = is_zero (logand one v)
 
-  let min = Z.min
-  let max = Z.max
+let pgcd u v =
+  if is_zero v then abs u (* Zarith raises an exception on zero arguments *)
+  else if is_zero u then abs v
+  else Z.gcd u v
 
-  let round_down_to_zero v modu =
-    mul (pos_div v modu) modu
+let ppcm u v =
+  if u = zero || v = zero
+  then zero
+  else Z.lcm u v
 
-  let round_up_to_r ~min:m ~r ~modu =
-    add (add (round_down_to_zero (pred (sub m r)) modu) r) modu
+let min = Z.min
+let max = Z.max
 
-  let round_down_to_r ~max:m ~r ~modu =
-    add (round_down_to_zero (sub m r) modu) r
+let round_down_to_zero v modu =
+  mul (e_div v modu) modu
 
-  let power_int_positive_int = Big_int_Z.power_int_positive_int
+let round_up_to_r ~min:m ~r ~modu =
+  add (add (round_down_to_zero (pred (sub m r)) modu) r) modu
+
+let round_down_to_r ~max:m ~r ~modu =
+  add (round_down_to_zero (sub m r) modu) r

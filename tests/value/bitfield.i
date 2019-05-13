@@ -120,14 +120,14 @@ void main_old (){
 
   h.a = VV;
 
-  v.c = &v;
-  v.d = &v + 1;
+  v.c = (int) &v;
+  v.d = (int) (&v + 1);
   v.d = v.d + 1;
   v.a = 4;
   v.b = 7;
   f(v.b);
   h.b = foo + foo + h.a + h.b;
-  h.c = &v +1;
+  h.c = (int) (&v +1);
 
   k8.b = 8;
   kr8.b = return_8();

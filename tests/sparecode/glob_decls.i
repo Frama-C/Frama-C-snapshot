@@ -1,7 +1,7 @@
 /* run.config
- OPT: -lib-entry -journal-disable -sparecode-debug 1 -sparecode-analysis -val-show-progress 
- OPT: -lib-entry -slice-pragma main -slice-return main -val-show-progress -journal-disable -then-on 'Slicing export' -print
- OPT: -journal-disable -sparecode-debug 1 -sparecode-rm-unused-globals
+ STDOPT: +"-lib-entry -sparecode-analysis "
+ STDOPT: +"-lib-entry -slice-pragma main -slice-return main -then-on 'Slicing export' -print"
+ STDOPT: +"-sparecode-rm-unused-globals"
 */
 
 // can be removed

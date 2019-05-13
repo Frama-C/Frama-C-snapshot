@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2018                                               *)
+(*  Copyright (C) 2007-2019                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -390,7 +390,7 @@ module Int = struct
   let fold f ~inf ~sup ~step acc =
 (*    Format.printf "Int.fold: inf:%a sup:%a step:%a@\n"
        pretty inf pretty sup pretty step; *)
-    let nb_loop = div (sub sup inf) step in
+    let nb_loop = e_div (sub sup inf) step in
     let rec fold_incr ~counter ~inf acc =
       if equal counter onethousand then
         Lattice_messages.emit_costly msg_emitter
@@ -432,7 +432,7 @@ module Bool = struct
   type t = Top | True | False | Bottom
   let hash (b : t) = Hashtbl.hash b
   let equal (b1 : t) (b2 : t) = b1 = b2
-  let compare (b1 : t) (b2 : t) = Pervasives.compare b1 b2
+  let compare (b1 : t) (b2 : t) = Transitioning.Stdlib.compare b1 b2
   let pretty fmt = function
     | Top -> Format.fprintf fmt "Top"
     | True -> Format.fprintf fmt "True"

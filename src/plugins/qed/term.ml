@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2018                                               *)
+(*  Copyright (C) 2007-2019                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -379,7 +379,7 @@ struct
       | Constructor -> 1
       | Operator _ -> 0
 
-    let cmp_size a b = Pervasives.compare a.size b.size
+    let cmp_size a b = Transitioning.Stdlib.compare a.size b.size
     let rank_bind = function Forall -> 0 | Exists -> 1 | Lambda -> 2
     let cmp_bind p q = rank_bind p - rank_bind q
     let cmp_field phi (f,x) (g,y) =
@@ -1221,7 +1221,7 @@ struct
     | _ -> (k,t) :: acc
 
   (* sorts monoms by terms *)
-  let compare_monoms (_,t1) (_,t2) = Pervasives.compare t1.id t2.id
+  let compare_monoms (_,t1) (_,t2) = Transitioning.Stdlib.compare t1.id t2.id
 
   (* factorized monoms *)
   let fold_monom ts k t =
@@ -1950,10 +1950,11 @@ struct
   let rec lc_open m k v e =
     if not (Bvars.contains k e.bind) then e else
       match e.repr with
-      | Bvar _ -> v
+      | Bvar _ -> v (* e.bind is a singleton that can only contains k *)
       | _ ->
-          try cache_find m e
-          with Not_found -> cache_bind m e (rebuild (lc_open m k v) e)
+          if is_simple e then e else
+            try cache_find m e
+            with Not_found -> cache_bind m e (rebuild (lc_open m k v) e)
 
   let lc_open_term t e =
     let k = Bvars.order e.bind in
@@ -2540,7 +2541,8 @@ struct
     | (Bool|Prop) , (Bool|Prop) -> Prop
     | Int , Int -> Int
     | (Int|Real) , (Int|Real) -> Real
-    | _ -> raise Not_found
+    | _ ->
+        if Tau.equal a b then a else raise Not_found
 
   let rec merge_list t f = function
     | [] -> t

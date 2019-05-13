@@ -20,6 +20,7 @@
   Called from tests/value/widen_on_non_monotonic.i:71.
 [eva] tests/value/widen_on_non_monotonic.i:25: starting to merge loop iterations
 [eva] tests/value/widen_on_non_monotonic.i:23: starting to merge loop iterations
+[eva] tests/value/widen_on_non_monotonic.i:26: starting to merge loop iterations
 [eva:alarm] tests/value/widen_on_non_monotonic.i:27: Warning: 
   signed overflow. assert -2147483648 ≤ b - 1;
 [eva] Recording results for main1

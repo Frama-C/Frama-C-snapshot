@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2018                                               *)
+(*  Copyright (C) 2007-2019                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -211,7 +211,7 @@ struct
         begin match F.repr k with
           | Kint z ->
               let d =
-                try Dindex(Integer.to_int z) with Integer.Too_big -> Darray in
+                try Dindex(Integer.to_int z) with Z.Overflow -> Darray in
               X( x , ds @ [ d ] )
           | _ ->
               let ds = ds @ [ Darray ] in

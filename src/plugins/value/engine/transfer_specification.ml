@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2018                                               *)
+(*  Copyright (C) 2007-2019                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -133,7 +133,7 @@ let reduce_to_valid_location out loc =
       None
     end
   else
-    let valid = Locations.valid_part ~for_writing:true loc in
+    let valid = Locations.(valid_part Write loc) in
     if Locations.is_bottom_loc valid then
       begin
         if is_assigns out && not (Locations.is_bottom_loc loc) then
@@ -165,14 +165,14 @@ let precise_loc_of_assign env assign_or_allocation =
 
 
 module Make
-    (Value: Abstract_value.External)
-    (Location: Abstract_location.External)
-    (Domain: Abstract_domain.External with type value = Value.t
-                                       and type location = Location.location)
-    (States: Powerset.S with type state = Domain.t)
-    (Logic : Transfer_logic.S with type state = Domain.t
+    (Abstract: Abstractions.S)
+    (States: Powerset.S with type state = Abstract.Dom.t)
+    (Logic : Transfer_logic.S with type state = Abstract.Dom.t
                                and type states = States.t)
 = struct
+
+  module Domain = Abstract.Dom
+  module Location = Abstract.Loc
 
   (* Most transfer functions about logic return a set of states instead of a
      single state, and States.empty instead of bottom. We thus use this monad

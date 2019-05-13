@@ -8,7 +8,6 @@ int main(void) {
 
   /*@ assert \forall integer x; 0 <= x <= 1 ==> x == 0 || x == 1; */
   /*@ assert \forall integer x; 0 < x <= 1 ==> x == 1; */
-  /*@ assert \forall integer x; 0 < x < 1 ==> \false; */
   /*@ assert \forall integer x; 0 <= x < 1 ==> x == 0; */
 
   /* // multiple universal quantifications */
@@ -33,6 +32,13 @@ int main(void) {
     /*@ assert \forall integer i; 0 <= i < len ==> \valid(buf+i); */
     /*@ assert \forall integer i; 0 <= i <= len ==> \valid(buf+i); */
   }
+
+  // Empty quantifications
+  /*@ assert \forall integer x; 0 < x < 1 ==> \false; */
+  /*@ assert ! \exists char c; 10 <= c < 10 && c == 10; */ ;
+  /*@ assert
+        \let u = 5;
+        \forall integer x,y; 0 <= x < 2 && 4 < y < u ==> \false; */ ;
 
   return 0;
 }

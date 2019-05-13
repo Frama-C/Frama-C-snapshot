@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2018                                               *)
+(*  Copyright (C) 2007-2019                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -139,13 +139,22 @@ let do_wp_print_for goals =
 
 let do_wp_report () =
   begin
-    let rfiles = Wp_parameters.Report.get () in
-    if rfiles <> [] then
+    let reports = Wp_parameters.Report.get () in
+    let jreport = Wp_parameters.ReportJson.get () in
+    if reports <> [] || jreport <> "" then
       begin
         let stats = WpReport.fcstat () in
-        let jfile = Wp_parameters.ReportJson.get () in
-        if jfile <> "" then WpReport.export_json stats jfile ;
-        List.iter (WpReport.export stats) rfiles ;
+        begin
+          match Transitioning.String.split_on_char ':' jreport with
+          | [] | [""] -> ()
+          | [joutput] ->
+              WpReport.export_json stats ~joutput () ;
+          | [jinput;joutput] ->
+              WpReport.export_json stats ~jinput ~joutput () ;
+          | _ ->
+              Wp_parameters.error "Invalid format for option -wp-report-json"
+        end ;
+        List.iter (WpReport.export stats) reports ;
       end ;
     if Wp_parameters.MemoryContext.get () then
       wp_warn_memory_context ()
@@ -167,10 +176,6 @@ let pp_warnings fmt wpo =
       | false , 1 -> Format.fprintf fmt " (Stronger)"
       | false , _ -> Format.fprintf fmt " (Stronger, %d warnings)" n
     end
-
-let auto_check = function
-  | { Wpo.po_formula = Wpo.GoalCheck _ } -> true
-  | _ -> false
 
 let launch task =
   let server = ProverTask.server () in
@@ -359,43 +364,66 @@ let do_wpo_success goal s =
                   end
           end
     | Some prover ->
-        if not (auto_check goal) then
+        if not (Wpo.is_check goal) then
           Wp_parameters.feedback ~ontty:`Silent
             "[%a] Goal %s : Valid" VCS.pp_prover prover (Wpo.get_gid goal)
+
+let do_report_time fmt s =
+  begin
+    if s.n_time > 0 &&
+       s.u_time > Rformat.epsilon &&
+       not (Wp_parameters.has_dkey VCS.dkey_no_time_info) &&
+       not (Wp_parameters.has_dkey VCS.dkey_success_only)
+    then
+      let mean = s.a_time /. float s.n_time in
+      let epsilon = 0.05 *. mean in
+      let delta = s.u_time -. s.d_time in
+      if delta < epsilon then
+        Format.fprintf fmt " (%a)" Rformat.pp_time mean
+      else
+        let middle = (s.u_time +. s.d_time) *. 0.5 in
+        if abs_float (middle -. mean) < epsilon then
+          Format.fprintf fmt " (%a-%a)"
+            Rformat.pp_time s.d_time
+            Rformat.pp_time s.u_time
+        else
+          Format.fprintf fmt " (%a-%a-%a)"
+            Rformat.pp_time s.d_time
+            Rformat.pp_time mean
+            Rformat.pp_time s.u_time
+  end
+
+let do_report_steps fmt s =
+  begin
+    if s.steps > 0 &&
+       not (Wp_parameters.has_dkey VCS.dkey_no_step_info) &&
+       not (Wp_parameters.has_dkey VCS.dkey_success_only)
+    then
+      Format.fprintf fmt " (%d)" s.steps ;
+  end
+
+let do_report_stopped fmt s =
+  if Wp_parameters.has_dkey VCS.dkey_success_only then
+    begin
+      let n = s.interrupted + s.unknown in
+      if n > 0 then
+        Format.fprintf fmt " (unsuccess: %d)" n ;
+    end
+  else
+    begin
+      if s.interrupted > 0 then
+        Format.fprintf fmt " (interrupted: %d)" s.interrupted ;
+      if s.unknown > 0 then
+        Format.fprintf fmt " (unknown: %d)" s.unknown ;
+    end
 
 let do_report_prover_stats pp_prover fmt (p,s) =
   begin
     let name = VCS.title_of_prover p in
     Format.fprintf fmt "%a %4d " pp_prover name s.proved ;
-    begin
-      if s.n_time > 0 &&
-         s.u_time > Rformat.epsilon &&
-         not (Wp_parameters.has_dkey VCS.dkey_no_time_info)
-      then
-        let mean = s.a_time /. float s.n_time in
-        let epsilon = 0.05 *. mean in
-        let delta = s.u_time -. s.d_time in
-        if delta < epsilon then
-          Format.fprintf fmt " (%a)" Rformat.pp_time mean
-        else
-          let middle = (s.u_time +. s.d_time) *. 0.5 in
-          if abs_float (middle -. mean) < epsilon then
-            Format.fprintf fmt " (%a-%a)"
-              Rformat.pp_time s.d_time
-              Rformat.pp_time s.u_time
-          else
-            Format.fprintf fmt " (%a-%a-%a)"
-              Rformat.pp_time s.d_time
-              Rformat.pp_time mean
-              Rformat.pp_time s.u_time
-    end ;
-    if s.steps > 0  &&
-       not (Wp_parameters.has_dkey VCS.dkey_no_step_info) then
-      Format.fprintf fmt " (%d)" s.steps ;
-    if s.interrupted > 0 then
-      Format.fprintf fmt " (interrupted: %d)" s.interrupted ;
-    if s.unknown > 0 then
-      Format.fprintf fmt " (unknown: %d)" s.unknown ;
+    do_report_time fmt s ;
+    do_report_steps fmt s ;
+    do_report_stopped fmt s ;
     if s.failed > 0 then
       Format.fprintf fmt " (failed: %d)" s.failed ;
     Format.fprintf fmt "@\n" ;
@@ -713,7 +741,7 @@ let deprecated name =
     "Dynamic '%s' now is deprecated. Use `Wp.VC` api instead." name
 
 let register name ty code =
-  let _ =
+  let _ignore =
     Dynamic.register ~plugin:"Wp" name ty
       ~journalize:false (*LC: Because of Property is not journalizable. *)
       (fun x -> deprecated name ; code x)
@@ -815,17 +843,19 @@ let () = Cmdline.run_after_setting_files
 
 let do_prover_detect () =
   if not !Config.is_gui && Wp_parameters.Detect.get () then
-    ProverWhy3.detect_why3
-      begin function
-        | None -> Wp_parameters.error ~current:false "Why3 not found"
-        | Some dps ->
-            List.iter
-              (fun dp ->
-                 let open ProverWhy3 in
-                 Wp_parameters.result "Prover %10s %-10s [%s]"
-                   dp.dp_name dp.dp_version dp.dp_prover
-              ) dps
-      end
+    begin
+      let open ProverDetect in
+      let dps = detect () in
+      let pp_provers fmt dps =
+        List.iter (fun dp ->
+            Format.fprintf fmt "@\n - %a %a"
+              VCS.pretty dp VCS.pp_shortcuts dp.VCS.dp_shortcuts
+          ) dps in
+      if dps = [] then
+        Wp_parameters.result "No Why3 provers detected."
+      else
+        Wp_parameters.result "Why3 provers detected:%a" pp_provers dps
+    end
 
 (* ------------------------------------------------------------------------ *)
 (* ---  Main Entry Point                                                --- *)

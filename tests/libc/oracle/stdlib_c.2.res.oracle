@@ -94,6 +94,34 @@
 [eva] Done for function memset
 [eva] Recording results for calloc
 [eva] Done for function calloc
+[eva] computing for function posix_memalign <- main.
+  Called from tests/libc/stdlib_c.c:37.
+[eva] share/libc/stdlib.c:196: 
+  assertion 'alignment_is_a_suitable_power_of_two' got status valid.
+[eva] share/libc/stdlib.c:199: Call to builtin Frama_C_malloc_by_stack
+[eva] share/libc/stdlib.c:199: allocating variable __malloc_posix_memalign_l199
+[eva] Recording results for posix_memalign
+[eva] Done for function posix_memalign
+[eva] computing for function free <- main.
+  Called from tests/libc/stdlib_c.c:38.
+[eva] using specification for function free
+[eva] tests/libc/stdlib_c.c:38: Warning: ignoring unsupported \allocates clause
+[eva] tests/libc/stdlib_c.c:38: 
+  function free: precondition 'freeable' got status valid.
+[eva] Done for function free
+[eva] computing for function posix_memalign <- main.
+  Called from tests/libc/stdlib_c.c:39.
+[eva] share/libc/stdlib.c:199: Call to builtin Frama_C_malloc_by_stack
+[eva] share/libc/stdlib.c:199: 
+  allocating variable __malloc_posix_memalign_l199_0
+[eva] Recording results for posix_memalign
+[eva] Done for function posix_memalign
+[eva] computing for function free <- main.
+  Called from tests/libc/stdlib_c.c:40.
+[eva] tests/libc/stdlib_c.c:40: Warning: ignoring unsupported \allocates clause
+[eva] tests/libc/stdlib_c.c:40: 
+  function free: precondition 'freeable' got status valid.
+[eva] Done for function free
 [eva] Recording results for main
 [eva] done for function main
 [eva] ====== VALUES COMPUTED ======
@@ -110,6 +138,11 @@
   __malloc_calloc_l72[0..3] ∈ [--..--] or UNINITIALIZED
   __malloc_calloc_l72_0[0..4294967291] ∈ [--..--] or UNINITIALIZED
   __malloc_w_calloc_l72_1[0..4294967291] ∈ [--..--] or UNINITIALIZED
+[eva:final-states] Values at end of function posix_memalign:
+  __fc_heap_status ∈ [--..--]
+  p_al0 ∈ {{ NULL ; &__malloc_posix_memalign_l199[0] }}
+  p_al1 ∈ {{ NULL ; &__malloc_posix_memalign_l199_0[0] }} or UNINITIALIZED
+  __retres ∈ {0; 12}
 [eva:final-states] Values at end of function main:
   __fc_heap_status ∈ [--..--]
   Frama_C_entropy_source ∈ [--..--]
@@ -118,6 +151,10 @@
   q ∈ {{ NULL ; (int *)&__malloc_calloc_l72_0 }}
   r ∈ {0}
   s ∈ {{ NULL ; (int *)&__malloc_w_calloc_l72_1 }} or UNINITIALIZED
+  p_al0 ∈ {{ NULL ; &__malloc_posix_memalign_l199[0] }}
+  p_al1 ∈ {{ NULL ; &__malloc_posix_memalign_l199_0[0] }}
+  p_memal_res ∈ {0; 12}
+  p_memal_res2 ∈ {0; 12}
   __retres ∈ {0}
   __malloc_calloc_l72[0..3] ∈ [--..--] or UNINITIALIZED
   __malloc_calloc_l72_0[0..4294967291] ∈ [--..--] or UNINITIALIZED

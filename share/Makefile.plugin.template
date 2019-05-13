@@ -2,7 +2,7 @@
 #                                                                        #
 #  This file is part of Frama-C.                                         #
 #                                                                        #
-#  Copyright (C) 2007-2018                                               #
+#  Copyright (C) 2007-2019                                               #
 #    CEA (Commissariat à l'énergie atomique et aux énergies              #
 #         alternatives)                                                  #
 #                                                                        #
@@ -183,17 +183,25 @@ PLUGIN_RESET?=yes # Set it to no in order to NOT reset plug-in variable.
 #
 ###############################################################################
 
+
+DEPEND_PKG  := $(addprefix frama-c-, $(shell echo $(PLUGIN_DEPENDENCIES) | tr '[:upper:]' '[:lower:]'))
+
 # Where the other plug-ins to load are already installed
 ifeq ($(FRAMAC_INTERNAL),yes)
 INSTALLED_PLUGIN_DIR:=$(FRAMAC_ROOT_SRCDIR)/lib/plugins
 # Also inform the main Makefile that there's another plug-in to be
 # considered
 PLUGIN_LIST+=$(PLUGIN_DIR)/@PLUGIN_NAME@
+PLUGIN_PACKAGES:=$(PLUGIN_REQUIRES)
+
 else
 
 INSTALLED_PLUGIN_DIR:=$(PLUGIN_INSTALL_DIR)
+PLUGIN_PACKAGES:=$(PLUGIN_REQUIRES) $(DEPEND_PKG)
 
 endif
+
+PLUGIN_REQUIRES += $(DEPEND_PKG)
 
 # The plugin types .cm* files
 PLUGIN_TYPES_CMO:=$(addsuffix .cmo,$(PLUGIN_TYPES_CMO))
@@ -212,6 +220,8 @@ PLUGIN_BASE:=$(strip $(if $(notdir $(PLUGIN_DIR)),$(notdir $(PLUGIN_DIR)),\
 $(notdir $(patsubst %/,%,$(PLUGIN_DIR)))))
 
 PLUGIN_DEPENDS:=$(PLUGIN_DEPENDS) $(PLUGIN_DEPENDENCIES)
+
+
 
 ################
 # ml sources   #
@@ -268,6 +278,12 @@ endif
 
 ifneq ($(PLUGIN_DISTRIBUTED),no)
 PLUGIN_DISTRIBUTED_LIST += $(PLUGIN_SRC)
+ifeq ($(ENABLE_GUI),no)
+# Also include GUI files to be distributed, even if not currently used
+PLUGIN_DISTRIBUTED_LIST += \
+  $(patsubst %,$(PLUGIN_DIR)/%.ml*,$(PLUGIN_GUI_CMO)) \
+  $(patsubst %,$(PLUGIN_DIR)/%.mli,$(PLUGIN_GUI_CMI))
+endif
 
 # VP: this needs to be adapted for external plugins.
 ifeq ($(PLUGIN_HAS_EXT_DOC),yes)
@@ -383,6 +399,8 @@ endif
 # Some meta-variables for compilation flags
 NAME_BFLAGS :=@PLUGIN_NAME@_BFLAGS
 NAME_OFLAGS :=@PLUGIN_NAME@_OFLAGS
+NAME_TEST_BFLAGS :=@PLUGIN_NAME@_TEST_BFLAGS
+NAME_TEST_OFLAGS :=@PLUGIN_NAME@_TEST_OFLAGS
 TARGET_OFLAGS :=@PLUGIN_NAME@_TARGET_OFLAGS
 TARGET_BFLAGS :=@PLUGIN_NAME@_TARGET_BFLAGS
 ifeq ($(HAS_GUI),yes)
@@ -418,12 +436,16 @@ endif
 PLUGIN_EXTRA_DIRS_INC:=$(patsubst %,-I $(PLUGIN_DIR)/% ,$(PLUGIN_EXTRA_DIRS))
 
 # Set the compilation flags for the plugin
-INCLUDE_FLAGS:=-I $(PLUGIN_DIR) -I $(INSTALLED_PLUGIN_DIR) \
-			$(PLUGIN_EXTRA_DIRS_INC) \
-			$(addprefix -package ,$(PLUGIN_REQUIRES) $(LIBRARY_NAMES))
-
+INCLUDE_EXT_FLAGS:=-I $(INSTALLED_PLUGIN_DIR) \
+  $(addprefix -package ,$(PLUGIN_PACKAGES) $(LIBRARY_NAMES))
+INCLUDE_FLAGS:=-I $(PLUGIN_DIR) $(PLUGIN_EXTRA_DIRS_INC) $(INCLUDE_EXT_FLAGS)
 $(NAME_BFLAGS):=$(BFLAGS) $(INCLUDE_FLAGS) $(PLUGIN_BFLAGS)
 $(NAME_OFLAGS):=$(OFLAGS) $(INCLUDE_FLAGS) $(PLUGIN_OFLAGS)
+# DO NOT include the plugin's own directory as search path for compiling
+# ml test scripts: they will be loaded in a separate phase, and will only see
+# the plugin through its static API
+$(NAME_TEST_BFLAGS):= $(BFLAGS) $(INCLUDE_EXT_FLAGS) $(PLUGIN_BFLAGS)
+$(NAME_TEST_OFLAGS):= $(OFLAGS) $(INCLUDE_EXT_FLAGS) $(PLUGIN_OFLAGS)
 
 $(TARGET_BFLAGS):= $(PLUGIN_LINK_BFLAGS)
 $(TARGET_OFLAGS):= $(PLUGIN_LINK_OFLAGS)
@@ -453,9 +475,8 @@ endif
 
 # META file
 PLUGIN_PKG  :=$(shell echo frama-c-@PLUGIN_NAME@ | tr '[:upper:]' '[:lower:]')
-DEPEND_PKG  :=$(shell echo $(PLUGIN_DEPENDENCIES) | tr '[:upper:]' '[:lower:]')
-PLUGIN_REQUIRES += $(addprefix frama-c-,$(DEPEND_PKG))
 TARGET_META :=$(PLUGIN_LIB_DIR)/META.$(PLUGIN_PKG)
+PLUGIN_GENERATED+= $(TARGET_META)
 
 ifneq ($(PLUGIN_HAS_META),yes)
 # generated META
@@ -504,7 +525,7 @@ $(TARGET_META):
 	$(RM) $@
 	$(ECHO) "description = \"$($(notdir $@).DESCRIPTION)\"" >> $@
 	$(ECHO) "version = \"$($(notdir $@).VERSION)\""         >> $@
-	$(ECHO) "requires = \"$($(notdir $@).REQUIRES)\""       >> $@
+	$(ECHO) "requires = \"frama-c.kernel $($(notdir $@).REQUIRES)\""       >> $@
 	$(ECHO) "archive(byte) = \"top/$($(notdir $@).BYTE)\""      >> $@
 	$(ECHO) "archive(native) = \"top/$($(notdir $@).NATIVE)\""  >> $@
 	$(ECHO) "plugin(native) = \"top/$($(notdir $@).PLUGIN)\""  >> $@
@@ -848,9 +869,9 @@ endif
 @PLUGIN_NAME@_TESTS_LIB_OPT_DYN:=$(PLUGIN_TESTS_LIB:%.ml=%.cmxs)
 @PLUGIN_NAME@_TESTS_LIB_BYTE:=$(PLUGIN_TESTS_LIB:%.ml=%.cmo)
 
-$(@PLUGIN_NAME@_TESTS_LIB_OPT): OFLAGS:=$($(NAME_OFLAGS)) $(@PLUGIN_NAME@_TESTS_LIB_DIR_INCLUDE)
-$(@PLUGIN_NAME@_TESTS_LIB_OPT_DYN): OFLAGS:=$($(NAME_OFLAGS)) $(@PLUGIN_NAME@_TESTS_LIB_DIR_INCLUDE)
-$(@PLUGIN_NAME@_TESTS_LIB_BYTE): BFLAGS:=$($(NAME_BFLAGS)) $(@PLUGIN_NAME@_TESTS_LIB_DIR_INCLUDE)
+$(@PLUGIN_NAME@_TESTS_LIB_OPT): OFLAGS:=$($(NAME_TEST_OFLAGS)) $(@PLUGIN_NAME@_TESTS_LIB_DIR_INCLUDE)
+$(@PLUGIN_NAME@_TESTS_LIB_OPT_DYN): OFLAGS:=$($(NAME_TEST_OFLAGS)) $(@PLUGIN_NAME@_TESTS_LIB_DIR_INCLUDE)
+$(@PLUGIN_NAME@_TESTS_LIB_BYTE): BFLAGS:=$($(NAME_TEST_BFLAGS)) $(@PLUGIN_NAME@_TESTS_LIB_DIR_INCLUDE)
 
 # [JS 2009/03/18] both .PRECIOUS are required in order to prevent 'make'
 # deletion of intermediate generated files. Such a deletion forces 'make' to
@@ -975,7 +996,7 @@ endif #EXTRA_BYTE
 endif #HAS_GUI
 
 PLUGIN_DYN_DEP_GUI_CMX_LIST += $(PLUGIN_GUI_CMX)
-PLUGIN_DYN_CMX_LIST	+= $(TARGET_TOP_CMXS) $(TARGET_TOP_CMX)
+PLUGIN_DYN_CMX_LIST	+= $(TARGET_TOP_CMXS) $(TARGET_TOP_CMX) $(TARGET_TOP_O)
       # If P1 depends on P2, then dynamically link P1.cmxs requires to have 
       # compiled P1's sources wrt the P2's .cmx.
 ifeq ($(HAS_GUI),yes)

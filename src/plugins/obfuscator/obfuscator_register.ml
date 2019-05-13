@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2018                                               *)
+(*  Copyright (C) 2007-2019                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -27,7 +27,7 @@ let disable_other_analyzers () =
         (Parameter_state.get_selection ())
         (State_selection.Static.union
            (State_selection.of_list
-	      (Kernel.CodeOutput.self :: Options.states))
+              (Kernel.CodeOutput.self :: Options.states))
            (* The command-line options that govern the creation of the AST
               must be preserved *)
            (State_selection.Static.with_codependencies Ast.self))
@@ -44,14 +44,14 @@ let force_run () =
     else begin
       let file = Options.Dictionary.get () in
       try
-	let cout = open_out file in
-	let fmt = Format.formatter_of_out_channel cout in
-	Dictionary.pretty fmt
+        let cout = open_out file in
+        let fmt = Format.formatter_of_out_channel cout in
+        Dictionary.pretty fmt
       with Sys_error _ as exn ->
-	Options.error
-	  "@[cannot generate the dictionary into file `%s':@ %s@]" 
-	  file
-	  (Printexc.to_string exn)
+        Options.error
+          "@[cannot generate the dictionary into file `%s':@ %s@]"
+          file
+          (Printexc.to_string exn)
     end;
     File.pretty_ast ();
     Printer.set_printer old_printer

@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2018                                               *)
+(*  Copyright (C) 2007-2019                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -46,6 +46,7 @@ let show main_ui =
     "David Maison";
     "Claude Marché";
     "André Maroneze";
+    "Thibault Martin";
     "Melody Méaulle";
     "Benjamin Monate";
     "Yannick Moy";
@@ -54,6 +55,7 @@ let show main_ui =
     "Guillaume Petiot";
     "Virgile Prevosto";
     "Armand Puccetti";
+    "Virgile Robles";
     "Muriel Roger";
     "Julien Signoles";
     "Kostyantyn Vorobyov";

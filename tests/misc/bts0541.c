@@ -1,5 +1,5 @@
 /* run.config
-   OPT: -pp-annot -cpp-extra-args="-I./share/libc" -pp-annot -val -val-show-progress
+   OPT: -pp-annot -cpp-extra-args="-I./share/libc" -pp-annot -eva @EVA_CONFIG@
 */
 
 #include <stdbool.h>

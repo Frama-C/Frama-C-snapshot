@@ -1,5 +1,6 @@
 /* run.config
-   OPT: -load-script tests/misc/Visitor_creates_func_bts_1349.ml -then-on test -print
+   EXECNOW: make -s @PTEST_DIR@/@PTEST_NAME@.cmxs
+   OPT: -load-script @PTEST_DIR@/@PTEST_NAME@ -then-on test -print
 */
 
 int a = 10;

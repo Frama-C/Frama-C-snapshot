@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2018                                               *)
+(*  Copyright (C) 2007-2019                                               *)
 (*    CEA   (Commissariat à l'énergie atomique et aux énergies            *)
 (*           alternatives)                                                *)
 (*    INRIA (Institut National de Recherche en Informatique et en         *)
@@ -94,6 +94,7 @@
         "breaks", BREAKS, false;
 	"case", CASE, true;
         "char", CHAR, true;
+        "check", CHECK, false;
         "complete", COMPLETE, false;
         "const", CONST, true;
         "continues", CONTINUES, false;
@@ -127,7 +128,8 @@
         "module", MODULE, false;(* ACSL extension for external spec file *)
         "pragma", PRAGMA, false;
         "predicate", PREDICATE, false;
-        "reads", READS, false;
+        "reads", READS, true; (* treated specifically in the parser to
+                                 avoid issue in volatile clause. *)
         "requires", REQUIRES, false;
         "returns", RETURNS, false;
         "short", SHORT, true;
@@ -142,7 +144,8 @@
         "variant", VARIANT, false;
         "void", VOID, true;
         "volatile", VOLATILE, true;
-        "writes", WRITES, false;
+        "writes", WRITES, true; (* treated specifically in the parser to
+                                   avoid issue in volatile clause. *)
       ];
     List.iter (fun (x, y) -> Hashtbl.add type_kw x y)
       ["integer", INTEGER; "real", REAL; "boolean", BOOLEAN; ];

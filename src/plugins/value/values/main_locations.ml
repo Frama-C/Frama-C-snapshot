@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2018                                               *)
+(*  Copyright (C) 2007-2019                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -138,13 +138,14 @@ module PLoc = struct
 
   let eval_varinfo varinfo = make (Locations.loc_of_varinfo varinfo)
 
-  let is_valid ~for_writing loc =
-    Locations.is_valid ~for_writing (Precise_locs.imprecise_location loc)
+  let is_valid access loc =
+    Locations.is_valid access (Precise_locs.imprecise_location loc)
 
   let assume_valid_location ~for_writing ~bitfield loc =
-    if not (is_valid ~for_writing loc)
+    let access = Locations.(if for_writing then Write else Read) in
+    if not (is_valid access loc)
     then
-      let loc = Precise_locs.valid_part ~for_writing ~bitfield loc in
+      let loc = Precise_locs.valid_part access ~bitfield loc in
       if Precise_locs.is_bottom_loc loc then `False else `Unknown loc
     else `True
 

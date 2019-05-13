@@ -2,7 +2,7 @@
 /*                                                                        */
 /*  This file is part of Frama-C.                                         */
 /*                                                                        */
-/*  Copyright (C) 2007-2018                                               */
+/*  Copyright (C) 2007-2019                                               */
 /*    CEA (Commissariat à l'énergie atomique et aux énergies              */
 /*         alternatives)                                                  */
 /*                                                                        */
@@ -43,7 +43,7 @@ typedef struct re_pattern_buffer regex_t;
 #define REG_NOTEOL 2
 
 /* Error codes */
-typedef enum
+typedef enum __fc_reg_errcode_t
 {
   REG_NOERROR = 0,
   REG_NOMATCH,	  
@@ -66,7 +66,7 @@ typedef enum
 
 typedef int regoff_t;
 
-typedef struct
+typedef struct __fc_regmatch_t
 {
   regoff_t rm_so;
   regoff_t rm_eo;

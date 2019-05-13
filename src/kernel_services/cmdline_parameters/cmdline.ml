@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2018                                               *)
+(*  Copyright (C) 2007-2019                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -230,8 +230,8 @@ let catch_toplevel_run ~f ~at_normal_exit ~on_error =
     (* write again on stdout *)
     Log.set_output
       ~isatty:(Unix.isatty Unix.stdout)
-      (Pervasives.output_substring stdout)
-      (fun () -> Pervasives.flush stdout);
+      (output_substring stdout)
+      (fun () -> flush stdout);
     cleanup ();
   with
   | Exit ->

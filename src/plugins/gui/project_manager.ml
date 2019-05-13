@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2018                                               *)
+(*  Copyright (C) 2007-2019                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -218,10 +218,9 @@ and mk_project_entry window menu ?group p =
   let box = GPack.hbox ~packing:p_item#add () in
   ignore (GMisc.label ~text:pname ~packing:box#pack ());
   let buttons_box = GPack.hbox ~packing:(box#pack ~from:`END) () in
-  let tooltips = GData.tooltips () in
   let add_action stock text callback =
     let item = GButton.button ~packing:buttons_box#pack () in
-    tooltips#set_tip item#coerce ~text;
+    Gtk_helper.do_tooltip ~tooltip:text item;
     item#set_relief `NONE;
     let image = GMisc.image ~stock () in
     item#set_image image#coerce;

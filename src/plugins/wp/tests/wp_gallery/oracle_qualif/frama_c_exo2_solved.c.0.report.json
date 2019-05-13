@@ -1,0 +1,108 @@
+{ "wp:global": { "alt-ergo": { "total": 14, "valid": 14, "rank": 38 },
+                 "qed": { "total": 9, "valid": 9 },
+                 "wp:main": { "total": 23, "valid": 23, "rank": 38 } },
+  "wp:functions": { "max_subarray": { "max_subarray_assert_rte_mem_access": 
+                                        { "alt-ergo": { "total": 1,
+                                                        "valid": 1,
+                                                        "rank": 26 },
+                                          "wp:main": { "total": 1,
+                                                       "valid": 1,
+                                                       "rank": 26 } },
+                                      "max_subarray_loop_invariant_8": 
+                                        { "alt-ergo": { "total": 2,
+                                                        "valid": 2,
+                                                        "rank": 38 },
+                                          "wp:main": { "total": 2,
+                                                       "valid": 2,
+                                                       "rank": 38 } },
+                                      "max_subarray_loop_invariant_7": 
+                                        { "alt-ergo": { "total": 2,
+                                                        "valid": 2,
+                                                        "rank": 27 },
+                                          "wp:main": { "total": 2,
+                                                       "valid": 2,
+                                                       "rank": 27 } },
+                                      "max_subarray_loop_invariant_6": 
+                                        { "alt-ergo": { "total": 2,
+                                                        "valid": 2,
+                                                        "rank": 14 },
+                                          "wp:main": { "total": 2,
+                                                       "valid": 2,
+                                                       "rank": 14 } },
+                                      "max_subarray_loop_invariant_5": 
+                                        { "alt-ergo": { "total": 2,
+                                                        "valid": 2,
+                                                        "rank": 14 },
+                                          "wp:main": { "total": 2,
+                                                       "valid": 2,
+                                                       "rank": 14 } },
+                                      "max_subarray_loop_invariant_4": 
+                                        { "qed": { "total": 2, "valid": 2 },
+                                          "wp:main": { "total": 2,
+                                                       "valid": 2 } },
+                                      "max_subarray_loop_invariant_3": 
+                                        { "alt-ergo": { "total": 1,
+                                                        "valid": 1,
+                                                        "rank": 12 },
+                                          "qed": { "total": 1, "valid": 1 },
+                                          "wp:main": { "total": 2,
+                                                       "valid": 2,
+                                                       "rank": 12 } },
+                                      "max_subarray_loop_invariant_2": 
+                                        { "alt-ergo": { "total": 1,
+                                                        "valid": 1,
+                                                        "rank": 15 },
+                                          "qed": { "total": 1, "valid": 1 },
+                                          "wp:main": { "total": 2,
+                                                       "valid": 2,
+                                                       "rank": 15 } },
+                                      "max_subarray_loop_invariant": 
+                                        { "alt-ergo": { "total": 1,
+                                                        "valid": 1,
+                                                        "rank": 9 },
+                                          "qed": { "total": 1, "valid": 1 },
+                                          "wp:main": { "total": 2,
+                                                       "valid": 2,
+                                                       "rank": 9 } },
+                                      "max_subarray_loop_variant": { "qed": 
+                                                                    { "total": 2,
+                                                                    "valid": 2 },
+                                                                    "wp:main": 
+                                                                    { "total": 2,
+                                                                    "valid": 2 } },
+                                      "max_subarray_assigns": { "qed": 
+                                                                  { "total": 1,
+                                                                    "valid": 1 },
+                                                                "wp:main": 
+                                                                  { "total": 1,
+                                                                    "valid": 1 } },
+                                      "max_subarray_loop_assigns": { "qed": 
+                                                                    { "total": 1,
+                                                                    "valid": 1 },
+                                                                    "wp:main": 
+                                                                    { "total": 1,
+                                                                    "valid": 1 } },
+                                      "max_subarray_ensures_2": { "alt-ergo": 
+                                                                    { "total": 1,
+                                                                    "valid": 1,
+                                                                    "rank": 20 },
+                                                                  "wp:main": 
+                                                                    { "total": 1,
+                                                                    "valid": 1,
+                                                                    "rank": 20 } },
+                                      "max_subarray_ensures": { "alt-ergo": 
+                                                                  { "total": 1,
+                                                                    "valid": 1,
+                                                                    "rank": 9 },
+                                                                "wp:main": 
+                                                                  { "total": 1,
+                                                                    "valid": 1,
+                                                                    "rank": 9 } },
+                                      "wp:section": { "alt-ergo": { "total": 14,
+                                                                    "valid": 14,
+                                                                    "rank": 38 },
+                                                      "qed": { "total": 9,
+                                                               "valid": 9 },
+                                                      "wp:main": { "total": 23,
+                                                                   "valid": 23,
+                                                                   "rank": 38 } } } } }

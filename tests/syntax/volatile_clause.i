@@ -59,3 +59,22 @@ int  wr_ci400 (const int volatile *p, const int v) ;
 //@ volatile ci200 writes wr_ci200;
 //@ volatile ci300 writes wr_ci300;
 //@ volatile ci400 writes wr_ci400;
+
+typedef enum { e=-1} Enum;
+volatile Enum e3;
+Enum  wr_e3 (Enum volatile *p, const Enum v) ;
+
+//@ volatile e3 writes wr_e3;
+
+Enum fe(Enum a);
+void ge(void) {
+  e3 = fe(e3);
+}
+
+typedef const Enum CEnum ;
+volatile CEnum ce1, ce2, ce3, ce4;
+
+CEnum wr_ce1 (CEnum volatile *p, const Enum v) ;
+CEnum wr_ce2 (const Enum volatile *p, const Enum v) ;
+Enum  wr_ce3 (CEnum volatile *p, const Enum v) ;
+Enum  wr_ce4 (const Enum volatile *p, const Enum v) ;

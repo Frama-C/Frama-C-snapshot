@@ -5,22 +5,23 @@
 [rte] annotating function foo_correct
 [rte] annotating function foo_wrong
 [wp] 10 goals scheduled
-[wp] [Qed] Goal typed_foo_correct_post : Valid
+[wp] [Qed] Goal typed_foo_correct_ensures : Valid
 [wp] [Alt-Ergo] Goal typed_foo_correct_assert_rte_mem_access : Valid
 [wp] [Qed] Goal typed_foo_correct_assert_rte_mem_access_2 : Valid
 [wp] [Qed] Goal typed_foo_correct_assert_rte_mem_access_3 : Valid
-[wp] [Qed] Goal typed_foo_correct_assign : Valid
-[wp] [Qed] Goal typed_foo_wrong_post : Valid
+[wp] [Qed] Goal typed_foo_correct_assigns : Valid
+[wp] [Qed] Goal typed_foo_wrong_ensures : Valid
 [wp] [Qed] Goal typed_foo_wrong_assert_rte_mem_access : Valid
 [wp] [Qed] Goal typed_foo_wrong_assert_rte_mem_access_2 : Valid
-[wp] [Alt-Ergo] Goal typed_foo_wrong_assert_rte_mem_access_3 : Unknown
-[wp] [Qed] Goal typed_foo_wrong_assign : Valid
+[wp] [Alt-Ergo] Goal typed_foo_wrong_assert_rte_mem_access_3 : Unsuccess
+[wp] [Qed] Goal typed_foo_wrong_assigns : Valid
 [wp] Proved goals:    9 / 10
   Qed:             8 
-  Alt-Ergo:        1  (unknown: 1)
-[wp] Report 'tests/wp_bts/bts_1360.i.0.report.json'
+  Alt-Ergo:        1  (unsuccess: 1)
+[wp] Report in:  'tests/wp_bts/oracle_qualif/bts_1360.0.report.json'
+[wp] Report out: 'tests/wp_bts/result_qualif/bts_1360.0.report.json'
 -------------------------------------------------------------
 Functions           WP     Alt-Ergo        Total   Success
 foo_wrong            4     -                 5      80.0%
-foo_correct          4      1 (12..24)       5       100%
+foo_correct          4      1 (16..28)       5       100%
 -------------------------------------------------------------

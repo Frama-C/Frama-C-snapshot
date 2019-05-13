@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2018                                               *)
+(*  Copyright (C) 2007-2019                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -47,7 +47,7 @@ module Emitted_status =
 	  | True -> "VALID"
 	  | False_if_reachable | False_and_reachable -> "**NOT** VALID"
 	  | Dont_know -> "unknown")
-      let compare (s1:t) s2 = Pervasives.compare s1 s2
+      let compare (s1:t) s2 = Transitioning.Stdlib.compare s1 s2
       let equal (s1:t) s2 = s1 = s2
       let hash (s:t) = Caml_hashtbl.hash s
      end)

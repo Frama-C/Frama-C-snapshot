@@ -1,0 +1,38 @@
+[kernel] Parsing tests/value/partitioning-annots.c (with preprocessing)
+[eva] Analyzing a complete application starting at test_history
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
+  k ∈ {0}
+[eva] computing for function Frama_C_interval <- test_history.
+  Called from tests/value/partitioning-annots.c:125.
+[eva] using specification for function Frama_C_interval
+[eva] tests/value/partitioning-annots.c:125: 
+  function Frama_C_interval: precondition 'order' got status valid.
+[eva] Done for function Frama_C_interval
+[eva] tests/value/partitioning-annots.c:131: Frama_C_show_each: {0}, {0}
+[eva] tests/value/partitioning-annots.c:131: Frama_C_show_each: {1}, {1}
+[eva] Recording results for test_history
+[eva] done for function test_history
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function test_history:
+  Frama_C_entropy_source ∈ [--..--]
+  i ∈ {0; 1}
+  j ∈ {0; 1}
+  k_0 ∈ {1}
+[from] Computing for function test_history
+[from] Computing for function Frama_C_interval <-test_history
+[from] Done for function Frama_C_interval
+[from] Done for function test_history
+[from] ====== DEPENDENCIES COMPUTED ======
+  These dependencies hold at termination for the executions that terminate:
+[from] Function Frama_C_interval:
+  Frama_C_entropy_source FROM Frama_C_entropy_source (and SELF)
+  \result FROM Frama_C_entropy_source; min; max
+[from] Function test_history:
+  Frama_C_entropy_source FROM Frama_C_entropy_source (and SELF)
+[from] ====== END OF DEPENDENCIES ======
+[inout] Out (internal) for function test_history:
+    Frama_C_entropy_source; i; j; k_0
+[inout] Inputs for function test_history:
+    Frama_C_entropy_source

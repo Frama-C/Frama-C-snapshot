@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2018                                               *)
+(*  Copyright (C) 2007-2019                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -119,7 +119,7 @@ let from_filename ?cpp f =
         | None -> get_preprocessor_command ()
         | Some cpp -> cpp, cpp_opt_kind ()
       in
-      (if flags = "" then cpp else cpp ^ " " ^ flags), gnu
+      (if flags = [] then cpp else cpp ^ " " ^ String.concat " " flags), gnu
   in
   if Filename.check_suffix f ".i" then begin
     NoCPP f
@@ -284,7 +284,7 @@ module DatatypeMachdep = Datatype.Make_with_collections(struct
   let reprs = [Machdeps.x86_32]
   let name = "File.Machdep"
   type t = Cil_types.mach
-  let compare : t -> t -> int = Pervasives.compare
+  let compare : t -> t -> int = Transitioning.Stdlib.compare
   let equal : t -> t -> bool = (=)
   let hash : t -> int = Hashtbl.hash
   let copy = Datatype.identity
@@ -311,9 +311,12 @@ let existing_machdep_macro () =
   with Not_found -> false
 
 let machdep_macro = function
-  | "x86_16" | "gcc_x86_16" -> "__FC_MACHDEP_X86_16"
-  | "x86_32" | "gcc_x86_32" -> "__FC_MACHDEP_X86_32"
-  | "x86_64" | "gcc_x86_64" -> "__FC_MACHDEP_X86_64"
+  | "x86_16"                -> "__FC_MACHDEP_X86_16"
+  | "gcc_x86_16"            -> "__FC_MACHDEP_GCC_X86_16"
+  | "x86_32"                -> "__FC_MACHDEP_X86_32"
+  | "gcc_x86_32"            -> "__FC_MACHDEP_GCC_X86_32"
+  | "x86_64"                -> "__FC_MACHDEP_X86_64"
+  | "gcc_x86_64"            -> "__FC_MACHDEP_GCC_X86_64"
   | "ppc_32"                -> "__FC_MACHDEP_PPC_32"
   | "msvc_x86_64"           -> "__FC_MACHDEP_MSVC_X86_64"
   | s ->
@@ -474,7 +477,7 @@ let parse_cabs = function
       (* Hypothesis: the preprocessor is POSIX compliant,
          hence understands -I and -D. *)
       let include_args =
-        if Kernel.FramaCStdLib.get () then [Config.datadir ^ "/libc"]
+        if Kernel.FramaCStdLib.get () then [Config.framac_libc]
         else []
       in
       let define_args =
@@ -634,7 +637,7 @@ let () =
     keep_unused_specified_function). This function is meant to be passed to
     {!Rmtmps.removeUnusedTemps}. *)
 let keep_entry_point ?(specs=Kernel.Keep_unused_specified_functions.get ()) g =
-  Rmtmps.isDefaultRoot g ||
+  Rmtmps.isExportedRoot g ||
     match g with
     | GFun({svar = v; sspec = spec},_)
     | GFunDecl(spec,v,_) ->
@@ -730,7 +733,7 @@ let synchronize_source_annot has_new_stmt kf =
           match annot.annot_content with
           | AStmtSpec _ | APragma (Slice_pragma SPstmt | Impact_pragma IPstmt)
             -> true
-          | AExtended(_,is_loop,(_,name,_,_)) ->
+          | AExtended(_,is_loop,(_,name,_,_,_)) ->
             (match Logic_env.extension_category name with
              | Some (Ext_code_annot (Ext_here | Ext_next_loop)) -> false
              | Some (Ext_code_annot Ext_next_stmt) -> true
@@ -915,7 +918,7 @@ let cleanup file =
     method! vstmt_aux st =
       self#remove_lexical_annotations st;
       let loc = Stmt.loc st in
-      if Annotations.has_code_annot st || st.labels <> [] then
+      if Annotations.has_code_annot st || st.labels <> [] || st.sattr <> [] then
         keep_stmt <- Stmt.Set.add st keep_stmt;
       match st.skind with
       | Block b ->
@@ -1597,7 +1600,7 @@ let init_project_from_visitor ?(reorder=false) prj
   then
     Kernel.fatal
       "Visitor does not copy or does not operate on correct project.";
-  Project.on prj (fun () -> Cil.initCIL (fun () -> ()) (get_machdep ())) ();
+  Project.on prj init_cil ();
   let old_ast = Ast.get () in
   let ast = visitFramacFileCopy vis old_ast in
   let finalize ast =
@@ -1634,7 +1637,6 @@ let create_project_from_visitor ?reorder ?(last=true) prj_name visitor =
   Project.copy
     ~selection:(Parameter_state.get_reset_selection ()) ~src:temp prj;
   Project.remove ~project:temp ();
-  Project.on prj init_cil ();
   prepare_from_visitor ?reorder prj visitor;
   prj
 

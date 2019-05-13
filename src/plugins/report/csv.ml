@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2018                                               *)
+(*  Copyright (C) 2007-2019                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -66,7 +66,7 @@ let lines () =
      emitted on statements copied through loop unrolling. This is the desired
      semantics for now. However, since we compare entire locations, textually
      identical lines that refer to different expressions are kept separate *)
-  Extlib.sort_unique Pervasives.compare l
+  Extlib.sort_unique Transitioning.Stdlib.compare l
 
 let output file =
   let ch = open_out file in

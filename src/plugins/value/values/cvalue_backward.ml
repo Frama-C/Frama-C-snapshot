@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2018                                               *)
+(*  Copyright (C) 2007-2019                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -200,7 +200,6 @@ let _backward_mult typ v1 v2 res_value =
 let backward_band ~v1 ~v2 ~res typ =
   let size = Cil.bitsSizeOf typ in
   let signed = Bit_utils.is_signed_int_enum_pointer typ in
-  let bitwise_and = V.bitwise_and ~size ~signed in
   (* Reduction of a when a & b = res. *)
   let backward_band_aux a b =
     (* For each bit, if a & _ = 1 then a = 1. [a1] is [a] with all such bits at 1
@@ -210,21 +209,18 @@ let backward_band ~v1 ~v2 ~res typ =
        (for the others, not (xor res b) = 1 and this bitwise_and has no effect
        on a). *)
     let a2 =
-      bitwise_and a (V.bitwise_not_size ~size ~signed (V.bitwise_xor res b))
+      V.bitwise_and a (V.bitwise_not ~size ~signed (V.bitwise_xor res b))
     in
     V.narrow a1 a2
   in
   backward_band_aux v1 v2, backward_band_aux v2 v1
 
-let backward_bor ~v1 ~v2 ~res typ =
-  let size = Cil.bitsSizeOf typ in
-  let signed = Bit_utils.is_signed_int_enum_pointer typ in
-  let bitwise_and = V.bitwise_and ~size ~signed in
+let backward_bor ~v1 ~v2 ~res =
   (* Reduction of a when a | b = res. *)
   let backward_bor_aux a b =
     (* For each bit, if a | _ = 0 then a = 0. [a1] is [a] with all such bits at 0
        (for the others, res = 1 and this bitwise_and has no effect on a). *)
-    let a1 = bitwise_and res a in
+    let a1 = V.bitwise_and res a in
     (* For each bit, if a | 0 = 1 then a = 1. [a2] is [a] with all such bits at 1
        (for the others, xor res b = 0 and this bitwise_or has no effect on a). *)
     let a2 = V.bitwise_or (V.bitwise_xor res b) a in
@@ -305,7 +301,7 @@ let backward_binop ~typ_res ~res_value ~typ_e1 v1 binop v2 =
 
   | BAnd, TInt _ -> Some (backward_band ~v1 ~v2 ~res:res_value typ)
 
-  | BOr, TInt _ -> Some (backward_bor ~v1 ~v2 ~res:res_value typ)
+  | BOr, TInt _ -> Some (backward_bor ~v1 ~v2 ~res:res_value)
 
   | _, _ -> None
 
@@ -317,7 +313,8 @@ let backward_unop ~typ_arg op ~arg:_ ~res =
     try
       let v = V.project_ival res in
       if Cil.isIntegralType typ_arg then
-        Some (V.inject_ival (Ival.neg_int v))
+        let v = V.inject_ival (Ival.neg_int v) in
+        Some (Cvalue_forward.reinterpret typ_arg v)
       else begin
         assert (Cil.isFloatingType typ_arg);
         let f = Ival.project_float v in

@@ -9,8 +9,8 @@ int main(void)
 {
   int __retres;
   digit x = 4;
-  int digit_0 = 3;
-  __retres = (x + digit_0) + A;
+  int digit = 3;
+  __retres = (x + digit) + A;
   return __retres;
 }
 

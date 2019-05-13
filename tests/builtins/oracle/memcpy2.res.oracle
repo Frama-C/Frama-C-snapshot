@@ -27,6 +27,8 @@
   __fc_strtok_ptr ∈ {0}
   __fc_strerror[0..63] ∈ [--..--]
   __fc_p_strerror ∈ {{ &__fc_strerror[0] }}
+  __fc_strsignal[0..63] ∈ [--..--]
+  __fc_p_strsignal ∈ {{ &__fc_strsignal[0] }}
   c ∈ [--..--]
   v ∈ {{ NULL ; &S_v[0] }}
   t[0..510] ∈ {0} or UNINITIALIZED

@@ -4,21 +4,22 @@
 [wp] Loading driver 'share/wp.driver'
 [wp] Warning: Missing RTE guards
 [wp] 7 goals scheduled
-[wp] [Alt-Ergo] Goal typed_f_post_qed_ok : Valid
-[wp] [Alt-Ergo] Goal typed_g_post_qed_ok : Valid
-[wp] [Qed] Goal typed_modifies_x_post_qed_ok_F_OK : Valid
-[wp] [Alt-Ergo] Goal typed_modifies_x_post_qed_ok_W_OK_todo : Unknown
-[wp] [Qed] Goal typed_modifies_y_post_qed_ok_F_OK : Valid
-[wp] [Qed] Goal typed_modifies_y_post_qed_ok_G_OK : Valid
-[wp] [Alt-Ergo] Goal typed_modifies_y_post_qed_ok_W_OK_todo : Unknown
+[wp] [Alt-Ergo] Goal typed_f_ensures_qed_ok : Valid
+[wp] [Alt-Ergo] Goal typed_g_ensures_qed_ok : Valid
+[wp] [Qed] Goal typed_modifies_x_ensures_qed_ok_F_OK : Valid
+[wp] [Alt-Ergo] Goal typed_modifies_x_ensures_qed_ok_W_OK_todo : Unsuccess
+[wp] [Qed] Goal typed_modifies_y_ensures_qed_ok_F_OK : Valid
+[wp] [Qed] Goal typed_modifies_y_ensures_qed_ok_G_OK : Valid
+[wp] [Alt-Ergo] Goal typed_modifies_y_ensures_qed_ok_W_OK_todo : Unsuccess
 [wp] Proved goals:    5 / 7
   Qed:             3 
-  Alt-Ergo:        2  (unknown: 2)
-[wp] Report 'tests/wp_acsl/reads.i.0.report.json'
+  Alt-Ergo:        2  (unsuccess: 2)
+[wp] Report in:  'tests/wp_acsl/oracle_qualif/reads.0.report.json'
+[wp] Report out: 'tests/wp_acsl/result_qualif/reads.0.report.json'
 -------------------------------------------------------------
 Functions           WP     Alt-Ergo        Total   Success
-f                   -       1 (8..20)        1       100%
-g                   -       1 (16..28)       1       100%
+f                   -       1 (12..24)       1       100%
+g                   -       1 (20..32)       1       100%
 modifies_y           2     -                 3      66.7%
 modifies_x           1     -                 2      50.0%
 -------------------------------------------------------------

@@ -52,6 +52,11 @@
 
 exception Not_an_integer
 
+val ikind_of_interv: Ival.t -> Cil_types.ikind
+(** @return the smallest ikind that contains the given interval.
+    @raise Cil.Not_representable if the given interval does not fit into any C
+    integral type. *)
+
 val interv_of_typ: Cil_types.typ -> Ival.t
 (** @return the smallest interval which contains the given C type.
     @raise Not_an_integer if the given type is not an integral type. *)

@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2018                                               *)
+(*  Copyright (C) 2007-2019                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -26,3 +26,4 @@
     Supports NaN and infinite values. *)
 module Make (Float: Float_sig.S) :
   Float_interval_sig.S with type float := Float.t
+                        and type widen_hints := Float.widen_hints

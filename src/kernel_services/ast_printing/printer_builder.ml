@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2018                                               *)
+(*  Copyright (C) 2007-2019                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -20,54 +20,15 @@
 (*                                                                        *)
 (**************************************************************************)
 
-module Make
-  (P: sig class printer: unit -> Printer_api.extensible_printer_type end) = 
+module Make_pp
+    (P: sig val printer : unit -> Printer_api.extensible_printer_type end) =
 struct
 
-  module type PrinterClass = sig
-    class printer : Printer_api.extensible_printer_type
-  end
-
-  let printer_class_ref =
-    ref (module struct class printer = P.printer () end: PrinterClass)
-
-  let printer_ref = ref None
-
-  module type PrinterExtension = functor (X: PrinterClass) -> PrinterClass
-
-  let set_printer p =
-    printer_class_ref := p;
-    printer_ref := None
-
-  let update_printer x =
-    let module X = (val x: PrinterExtension) in
-    let module Cur = (val !printer_class_ref: PrinterClass) in
-    let module Updated = X(Cur) in
-    set_printer (module Updated: PrinterClass)
-
-  let printer () : Printer_api.extensible_printer_type =
-    match !printer_ref with
-    | None ->
-      let module Printer = (val !printer_class_ref: PrinterClass) in
-      let p = new Printer.printer in
-      printer_ref := Some p;
-      p#reset ();
-      p
-    | Some p ->
-      p#reset ();
-      p
-
-  let current_printer () = !printer_class_ref
-
-  class extensible_printer = P.printer
+  let printer = P.printer
 
   let without_annot f fmt x = (printer ())#without_annot f fmt x
   let force_brace f fmt x = (printer ())#force_brace f fmt x
-
-  let pp_varname fmt x = (printer())#varname fmt x
-
-  (* eta-expansion required for applying side-effect of [printer ()] at the
-     right time *)
+  let pp_varname fmt x = (printer ())#varname fmt x
   let pp_location fmt x = (printer ())#location fmt x
   let pp_constant fmt x = (printer ())#constant fmt x
   let pp_ikind fmt x = (printer ())#ikind fmt x
@@ -113,7 +74,7 @@ struct
   let pp_variant fmt x = (printer ())#variant fmt x
   let pp_from fmt x = (printer ())#from "assigns" fmt x
   let pp_full_assigns fmt x = (printer ())#assigns fmt x
-  let pp_assigns = pp_full_assigns "assigns"
+  let pp_assigns fmt x = pp_full_assigns "assigns" fmt x
   let pp_allocation fmt x = (printer ())#allocation ~isloop:false fmt x
   let pp_loop_from fmt x = (printer ())#from "loop assigns" fmt x
   let pp_loop_assigns fmt x = (printer ())#assigns "loop assigns" fmt x
@@ -129,6 +90,53 @@ struct
   let pp_logic_constant fmt x = (printer ())#logic_constant fmt x
   let pp_term_lhost fmt x = (printer ())#term_lhost fmt x
   let pp_fundec fmt x = (printer ())#fundec fmt x
+
+end
+
+
+module Make
+    (P: sig class printer: unit -> Printer_api.extensible_printer_type end) =
+struct
+
+  module type PrinterClass = sig
+    class printer : Printer_api.extensible_printer_type
+  end
+
+  let printer_class_ref =
+    ref (module struct class printer = P.printer () end: PrinterClass)
+
+  let printer_ref = ref None
+
+  module type PrinterExtension = functor (X: PrinterClass) -> PrinterClass
+
+  let set_printer p =
+    printer_class_ref := p;
+    printer_ref := None
+
+  let update_printer x =
+    let module X = (val x: PrinterExtension) in
+    let module Cur = (val !printer_class_ref: PrinterClass) in
+    let module Updated = X(Cur) in
+    set_printer (module Updated: PrinterClass)
+
+  let printer () : Printer_api.extensible_printer_type =
+    match !printer_ref with
+    | None ->
+      let module Printer = (val !printer_class_ref: PrinterClass) in
+      let p = new Printer.printer in
+      printer_ref := Some p;
+      p#reset ();
+      p
+    | Some p ->
+      p#reset ();
+      p
+
+  let current_printer () = !printer_class_ref
+
+  class extensible_printer = P.printer
+
+  include Make_pp(struct let printer = printer end)
+
 end
 
 (*

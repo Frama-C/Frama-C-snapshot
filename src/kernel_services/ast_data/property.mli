@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2018                                               *)
+(*  Copyright (C) 2007-2019                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -93,7 +93,7 @@ type identified_predicate =
 type program_point = Before | After
 
 type identified_reachable = kernel_function option * kinstr * program_point
-(** [None, Kglobal] --> global property 
+(** [None, Kglobal] --> global property
     [None, Some ki] --> impossible
     [Some kf, Kglobal] --> property of a function without code
     [Some kf, Kstmt stmt] --> reachability of the given stmt (and the attached
@@ -113,7 +113,7 @@ type identified_extended = extended_loc * Cil_types.acsl_extension
 
 and identified_axiomatic = string * identified_property list
 
-and identified_lemma = 
+and identified_lemma =
     string * logic_label list * string list * predicate * location
 
 and identified_axiom = identified_lemma
@@ -156,7 +156,7 @@ val short_pretty: Format.formatter -> t -> unit
     corresponding identified predicate when available)
     reverting back to the full ACSL formula if it can't find one.
     The name is not meant to uniquely identify the property.
-    @since Neon-20140301 
+    @since Neon-20140301
  *)
 
 (** @since Oxygen-20120901 *)
@@ -245,7 +245,7 @@ val ip_of_allocation:
     @modify Aluminium-20160501 added active argument
 *)
 val ip_allocation_of_behavior:
-  kernel_function -> kinstr -> active:string list -> 
+  kernel_function -> kinstr -> active:string list ->
   funbehavior -> identified_property option
 
 (** Builds the corresponding IPAssigns.
@@ -403,13 +403,13 @@ val ip_property_instance:
   identified_property -> identified_property
 
 (** Builds an IPAxiom.
-    @since Carbon-20110201 
+    @since Carbon-20110201
     @modify Oxygen-20120901 takes an identified_axiom instead of a string
 *)
 val ip_axiom: identified_axiom -> identified_property
 
 (** Build an IPLemma.
-    @since Nitrogen-20111001 
+    @since Nitrogen-20111001
     @modify Oxygen-20120901 takes an identified_lemma instead of a string
 *)
 val ip_lemma: identified_lemma -> identified_property
@@ -437,13 +437,18 @@ val ip_of_code_annot_single:
 val ip_of_global_annotation: global_annotation -> identified_property list
 (** @since Nitrogen-20111001 *)
 
-val ip_of_global_annotation_single: 
+val ip_of_global_annotation_single:
   global_annotation -> identified_property option
 (** @since Nitrogen-20111001 *)
 
 (**************************************************************************)
 (** {2 getters} *)
 (**************************************************************************)
+
+val has_status: identified_property -> bool
+(** Does the property has a logical status (which may be Never_tried)?
+    False for pragma, assumes clauses and some ACSL extensions.
+    @since Frama-C+dev *)
 
 val get_kinstr: identified_property -> kinstr
 val get_kf: identified_property -> kernel_function option
@@ -461,23 +466,32 @@ val source: identified_property -> Filepath.position option
 (** {2 names} *)
 (**************************************************************************)
 
+
+(** @since Frama-C+dev deprecated old naming scheme,
+    to be removed in future versions. *)
+module LegacyNames :
+sig
+  val self: State.t
+  val get_prop_basename: identified_property -> string
+  val get_prop_name_id: identified_property -> string
+end
+
 (** @since Oxygen-20120901 *)
-module Names: sig
+module Names :
+sig
 
   val self: State.t
 
   val get_prop_name_id: identified_property -> string
-    (** returns a unique name identifying the property.
-	This name is built from the basename of the property. *)
-    
-  val get_prop_basename: identified_property -> string
-    (** returns the basename of the property. *)
-    
-  val reserve_name_id: string -> string
-(** returns the name that should be returned by the function
-    [get_prop_name_id] if the given property has [name] as basename. That name
-    is reserved so that [get_prop_name_id prop] can never return an identical
-    name. *)
+  (** returns a unique name identifying the property.
+      This name is built from the basename of the property.
+      @modify Frama-C+dev new naming scheme, Cf. LegacyNames
+  *)
+
+  val get_prop_basename: ?truncate:int -> identified_property -> string
+  (** returns the basename of the property.
+      @modify Frama-C+dev additional truncation parameter
+  *)
 
 end
 

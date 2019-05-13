@@ -29,8 +29,8 @@
 [eva] tests/value/builtins_split.c:23: Frama_C_show_each_split: {{ &x ; &y }}
 [eva] tests/value/builtins_split.c:25: 
   Call to builtin Frama_C_builtin_split_pointer
-[eva] tests/value/builtins_split.c:26: Frama_C_show_each_split_pointer: {{ &x }}
 [eva] tests/value/builtins_split.c:26: Frama_C_show_each_split_pointer: {{ &y }}
+[eva] tests/value/builtins_split.c:26: Frama_C_show_each_split_pointer: {{ &x }}
 [eva] Recording results for test1
 [eva] Done for function test1
 [eva] computing for function test2 <- main.
@@ -62,38 +62,10 @@
 [eva:alarm] tests/value/builtins_split.c:96: Warning: 
   out of bounds read. assert \valid_read(&(ps->p)->p);
 [eva] tests/value/builtins_split.c:96: Call to builtin Frama_C_builtin_split_all
-[eva] tests/value/builtins_split.c:96: Call to builtin Frama_C_builtin_split_all
-[eva] tests/value/builtins_split.c:96: Call to builtin Frama_C_builtin_split_all
-[eva] tests/value/builtins_split.c:96: Call to builtin Frama_C_builtin_split_all
-[eva] tests/value/builtins_split.c:96: Call to builtin Frama_C_builtin_split_all
 [eva] tests/value/builtins_split.c:99: 
   Frama_C_show_each_s_3: {{ &s5 + {4} }}, {{ &s3 + {4} }}, {{ &s1 }}, {1}
 [eva:alarm] tests/value/builtins_split.c:104: Warning: 
   out of bounds read. assert \valid_read(&(ps->p)->p);
-[eva] tests/value/builtins_split.c:104: 
-  Call to builtin Frama_C_builtin_split_all
-[eva] tests/value/builtins_split.c:104: 
-  Call to builtin Frama_C_builtin_split_all
-[eva] tests/value/builtins_split.c:104: 
-  Call to builtin Frama_C_builtin_split_all
-[eva] tests/value/builtins_split.c:104: 
-  Call to builtin Frama_C_builtin_split_all
-[eva] tests/value/builtins_split.c:104: 
-  Call to builtin Frama_C_builtin_split_all
-[eva] tests/value/builtins_split.c:104: 
-  Call to builtin Frama_C_builtin_split_all
-[eva] tests/value/builtins_split.c:104: 
-  Call to builtin Frama_C_builtin_split_all
-[eva] tests/value/builtins_split.c:104: 
-  Call to builtin Frama_C_builtin_split_all
-[eva] tests/value/builtins_split.c:104: 
-  Call to builtin Frama_C_builtin_split_all
-[eva] tests/value/builtins_split.c:104: 
-  Call to builtin Frama_C_builtin_split_all
-[eva] tests/value/builtins_split.c:104: 
-  Call to builtin Frama_C_builtin_split_all
-[eva] tests/value/builtins_split.c:104: 
-  Call to builtin Frama_C_builtin_split_all
 [eva] tests/value/builtins_split.c:104: 
   Call to builtin Frama_C_builtin_split_all
 [eva:alarm] tests/value/builtins_split.c:106: Warning: 
@@ -107,51 +79,22 @@
   Call to builtin Frama_C_builtin_split_all
 [eva] tests/value/builtins_split.c:112: 
   Location ((ps->p)->p)->v points to too many values ([--..--]). Cannot split.
-[eva] tests/value/builtins_split.c:112: 
-  Call to builtin Frama_C_builtin_split_all
-[eva] tests/value/builtins_split.c:112: 
-  Call to builtin Frama_C_builtin_split_all
-[eva] tests/value/builtins_split.c:112: 
-  Call to builtin Frama_C_builtin_split_all
-[eva] tests/value/builtins_split.c:112: 
-  Call to builtin Frama_C_builtin_split_all
-[eva] tests/value/builtins_split.c:112: 
-  Call to builtin Frama_C_builtin_split_all
-[eva] tests/value/builtins_split.c:112: 
-  Call to builtin Frama_C_builtin_split_all
-[eva] tests/value/builtins_split.c:112: 
-  Call to builtin Frama_C_builtin_split_all
-[eva] tests/value/builtins_split.c:112: 
-  Call to builtin Frama_C_builtin_split_all
-[eva] tests/value/builtins_split.c:112: 
-  Call to builtin Frama_C_builtin_split_all
-[eva] tests/value/builtins_split.c:112: 
-  Call to builtin Frama_C_builtin_split_all
-[eva] tests/value/builtins_split.c:112: 
-  Call to builtin Frama_C_builtin_split_all
-[eva] tests/value/builtins_split.c:112: 
-  Call to builtin Frama_C_builtin_split_all
-[eva] tests/value/builtins_split.c:114: 
-  Frama_C_show_each_s_5:
-  {{ &s6 + {4} }}, {{ &s4 + {4} }}, {{ &s2 }}, [-2147483648..2147483647]
-[eva] tests/value/builtins_split.c:114: 
-  Frama_C_show_each_s_5: {{ &s6 + {4} }}, {{ &s4 + {4} }}, {{ &s0 }}, {0}
-[eva] tests/value/builtins_split.c:114: 
-  Frama_C_show_each_s_5: {{ &s5 + {4} }}, {{ &s3 + {4} }}, {{ &s1 }}, {-1}
-[eva] tests/value/builtins_split.c:114: 
-  Frama_C_show_each_s_5: {{ &s5 + {4} }}, {{ &s3 + {4} }}, {{ &s0 }}, {0}
-[eva] tests/value/builtins_split.c:114: 
-  Frama_C_show_each_s_5:
-  {{ &s5 + {4} }}, {{ &s4 + {4} }}, {{ &s2 }}, [-2147483648..2147483647]
 [eva] tests/value/builtins_split.c:114: 
   Frama_C_show_each_s_5: {{ &s5 + {4} }}, {{ &s4 + {4} }}, {{ &s0 }}, {0}
 [eva] tests/value/builtins_split.c:114: 
   Frama_C_show_each_s_5:
-  {{ &s6 + {4} }}, {{ &s4 + {4} }}, {{ &s2 }}, [-2147483648..2147483647]
+  {{ &s5 + {4} }}, {{ &s4 + {4} }}, {{ &s2 }}, [-2147483648..2147483647]
+[eva] tests/value/builtins_split.c:114: 
+  Frama_C_show_each_s_5: {{ &s5 + {4} }}, {{ &s3 + {4} }}, {{ &s0 }}, {0}
+[eva] tests/value/builtins_split.c:114: 
+  Frama_C_show_each_s_5: {{ &s5 + {4} }}, {{ &s3 + {4} }}, {{ &s1 }}, {1}
+[eva] tests/value/builtins_split.c:114: 
+  Frama_C_show_each_s_5: {{ &s5 + {4} }}, {{ &s3 + {4} }}, {{ &s1 }}, {-1}
 [eva] tests/value/builtins_split.c:114: 
   Frama_C_show_each_s_5: {{ &s6 + {4} }}, {{ &s4 + {4} }}, {{ &s0 }}, {0}
 [eva] tests/value/builtins_split.c:114: 
-  Frama_C_show_each_s_5: {{ &s5 + {4} }}, {{ &s3 + {4} }}, {{ &s1 }}, {1}
+  Frama_C_show_each_s_5:
+  {{ &s6 + {4} }}, {{ &s4 + {4} }}, {{ &s2 }}, [-2147483648..2147483647]
 [eva] Recording results for test3
 [eva] Done for function test3
 [eva] computing for function test4 <- main.
@@ -166,35 +109,35 @@
   Location x_0 points to too many values ([-3..25]). Cannot split.
 [eva] tests/value/builtins_split.c:125: Frama_C_show_each_test4_1: [-3..25]
 [eva] tests/value/builtins_split.c:127: Call to builtin Frama_C_builtin_split
-[eva] tests/value/builtins_split.c:128: Frama_C_show_each_test4_2: {-3}
-[eva] tests/value/builtins_split.c:128: Frama_C_show_each_test4_2: {-2}
-[eva] tests/value/builtins_split.c:128: Frama_C_show_each_test4_2: {-1}
-[eva] tests/value/builtins_split.c:128: Frama_C_show_each_test4_2: {0}
-[eva] tests/value/builtins_split.c:128: Frama_C_show_each_test4_2: {1}
-[eva] tests/value/builtins_split.c:128: Frama_C_show_each_test4_2: {2}
-[eva] tests/value/builtins_split.c:128: Frama_C_show_each_test4_2: {3}
-[eva] tests/value/builtins_split.c:128: Frama_C_show_each_test4_2: {4}
-[eva] tests/value/builtins_split.c:128: Frama_C_show_each_test4_2: {5}
-[eva] tests/value/builtins_split.c:128: Frama_C_show_each_test4_2: {6}
-[eva] tests/value/builtins_split.c:128: Frama_C_show_each_test4_2: {7}
-[eva] tests/value/builtins_split.c:128: Frama_C_show_each_test4_2: {8}
-[eva] tests/value/builtins_split.c:128: Frama_C_show_each_test4_2: {9}
-[eva] tests/value/builtins_split.c:128: Frama_C_show_each_test4_2: {10}
-[eva] tests/value/builtins_split.c:128: Frama_C_show_each_test4_2: {11}
-[eva] tests/value/builtins_split.c:128: Frama_C_show_each_test4_2: {12}
-[eva] tests/value/builtins_split.c:128: Frama_C_show_each_test4_2: {13}
-[eva] tests/value/builtins_split.c:128: Frama_C_show_each_test4_2: {14}
-[eva] tests/value/builtins_split.c:128: Frama_C_show_each_test4_2: {15}
-[eva] tests/value/builtins_split.c:128: Frama_C_show_each_test4_2: {16}
-[eva] tests/value/builtins_split.c:128: Frama_C_show_each_test4_2: {17}
-[eva] tests/value/builtins_split.c:128: Frama_C_show_each_test4_2: {18}
-[eva] tests/value/builtins_split.c:128: Frama_C_show_each_test4_2: {19}
-[eva] tests/value/builtins_split.c:128: Frama_C_show_each_test4_2: {20}
-[eva] tests/value/builtins_split.c:128: Frama_C_show_each_test4_2: {21}
-[eva] tests/value/builtins_split.c:128: Frama_C_show_each_test4_2: {22}
-[eva] tests/value/builtins_split.c:128: Frama_C_show_each_test4_2: {23}
-[eva] tests/value/builtins_split.c:128: Frama_C_show_each_test4_2: {24}
 [eva] tests/value/builtins_split.c:128: Frama_C_show_each_test4_2: {25}
+[eva] tests/value/builtins_split.c:128: Frama_C_show_each_test4_2: {24}
+[eva] tests/value/builtins_split.c:128: Frama_C_show_each_test4_2: {23}
+[eva] tests/value/builtins_split.c:128: Frama_C_show_each_test4_2: {22}
+[eva] tests/value/builtins_split.c:128: Frama_C_show_each_test4_2: {21}
+[eva] tests/value/builtins_split.c:128: Frama_C_show_each_test4_2: {20}
+[eva] tests/value/builtins_split.c:128: Frama_C_show_each_test4_2: {19}
+[eva] tests/value/builtins_split.c:128: Frama_C_show_each_test4_2: {18}
+[eva] tests/value/builtins_split.c:128: Frama_C_show_each_test4_2: {17}
+[eva] tests/value/builtins_split.c:128: Frama_C_show_each_test4_2: {16}
+[eva] tests/value/builtins_split.c:128: Frama_C_show_each_test4_2: {15}
+[eva] tests/value/builtins_split.c:128: Frama_C_show_each_test4_2: {14}
+[eva] tests/value/builtins_split.c:128: Frama_C_show_each_test4_2: {13}
+[eva] tests/value/builtins_split.c:128: Frama_C_show_each_test4_2: {12}
+[eva] tests/value/builtins_split.c:128: Frama_C_show_each_test4_2: {11}
+[eva] tests/value/builtins_split.c:128: Frama_C_show_each_test4_2: {10}
+[eva] tests/value/builtins_split.c:128: Frama_C_show_each_test4_2: {9}
+[eva] tests/value/builtins_split.c:128: Frama_C_show_each_test4_2: {8}
+[eva] tests/value/builtins_split.c:128: Frama_C_show_each_test4_2: {7}
+[eva] tests/value/builtins_split.c:128: Frama_C_show_each_test4_2: {6}
+[eva] tests/value/builtins_split.c:128: Frama_C_show_each_test4_2: {5}
+[eva] tests/value/builtins_split.c:128: Frama_C_show_each_test4_2: {4}
+[eva] tests/value/builtins_split.c:128: Frama_C_show_each_test4_2: {3}
+[eva] tests/value/builtins_split.c:128: Frama_C_show_each_test4_2: {2}
+[eva] tests/value/builtins_split.c:128: Frama_C_show_each_test4_2: {1}
+[eva] tests/value/builtins_split.c:128: Frama_C_show_each_test4_2: {0}
+[eva] tests/value/builtins_split.c:128: Frama_C_show_each_test4_2: {-1}
+[eva] tests/value/builtins_split.c:128: Frama_C_show_each_test4_2: {-2}
+[eva] tests/value/builtins_split.c:128: Frama_C_show_each_test4_2: {-3}
 [eva] Recording results for test4
 [eva] Done for function test4
 [eva] computing for function test5 <- main.
@@ -212,22 +155,22 @@
 [eva] tests/value/builtins_split.c:145: Call to builtin Frama_C_builtin_split
 [eva] tests/value/builtins_split.c:146: 
   Frama_C_domain_show_each_test6:
-  z : # Cvalue domain: {0} or UNINITIALIZED
-[eva] tests/value/builtins_split.c:146: 
-  Frama_C_domain_show_each_test6:
-  z : # Cvalue domain: {1} or UNINITIALIZED
-[eva] tests/value/builtins_split.c:146: 
-  Frama_C_domain_show_each_test6:
-  z : # Cvalue domain: {2} or UNINITIALIZED
-[eva] tests/value/builtins_split.c:146: 
-  Frama_C_domain_show_each_test6:
-  z : # Cvalue domain: {3} or UNINITIALIZED
+  z : # Cvalue domain: {5} or UNINITIALIZED
 [eva] tests/value/builtins_split.c:146: 
   Frama_C_domain_show_each_test6:
   z : # Cvalue domain: {4} or UNINITIALIZED
 [eva] tests/value/builtins_split.c:146: 
   Frama_C_domain_show_each_test6:
-  z : # Cvalue domain: {5} or UNINITIALIZED
+  z : # Cvalue domain: {3} or UNINITIALIZED
+[eva] tests/value/builtins_split.c:146: 
+  Frama_C_domain_show_each_test6:
+  z : # Cvalue domain: {2} or UNINITIALIZED
+[eva] tests/value/builtins_split.c:146: 
+  Frama_C_domain_show_each_test6:
+  z : # Cvalue domain: {1} or UNINITIALIZED
+[eva] tests/value/builtins_split.c:146: 
+  Frama_C_domain_show_each_test6:
+  z : # Cvalue domain: {0} or UNINITIALIZED
 [eva] Recording results for test6
 [eva] Done for function test6
 [eva] Recording results for main

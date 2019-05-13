@@ -10,7 +10,7 @@ struct S {
 /*@ lemma good: ∀ short x; sizeof(x) ≤ sizeof(int);
  */
 /*@ ensures \result ≡ sizeof(struct S volatile); */
-int f(int a_0)
+int f(int a)
 {
   int __retres;
   __retres = (int)sizeof(struct S volatile);

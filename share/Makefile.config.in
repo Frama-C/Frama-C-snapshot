@@ -2,7 +2,7 @@
 #                                                                        #
 #  This file is part of Frama-C.                                         #
 #                                                                        #
-#  Copyright (C) 2007-2018                                               #
+#  Copyright (C) 2007-2019                                               #
 #    CEA (Commissariat à l'énergie atomique et aux énergies              #
 #         alternatives)                                                  #
 #                                                                        #
@@ -38,10 +38,10 @@ prefix		?=@prefix@
 exec_prefix	?=@exec_prefix@
 datarootdir     ?=@datarootdir@
 datadir         ?=@datadir@
-BINDIR		?="$(DESTDIR)@bindir@"
-LIBDIR		?="$(DESTDIR)@libdir@"
-DATADIR		?="$(DESTDIR)@datarootdir@"
-MANDIR		?="$(DESTDIR)@mandir@"
+BINDIR		?=$(DESTDIR)@bindir@
+LIBDIR		?=$(DESTDIR)@libdir@
+DATADIR		?=$(DESTDIR)@datarootdir@
+MANDIR		?=$(DESTDIR)@mandir@
 
 FRAMAC_LIBDIR	?=$(LIBDIR)/frama-c
 FRAMAC_PLUGINDIR ?=$(FRAMAC_LIBDIR)/plugins
@@ -65,6 +65,8 @@ OCAMLDEP	?=@OCAMLDEP@ -slash
 OCAMLLEX	?=@OCAMLLEX@
 OCAMLYACC	?=@OCAMLYACC@
 OCAMLMKTOP	?=@OCAMLMKTOP@
+OCAMLMKLIB	?=@OCAMLFIND@ ocamlmklib
+OCAMLFIND	?=@OCAMLFIND@
 OCAMLDOC	?=@OCAMLDOC@
 OCAMLCP		?=@OCAMLCP@
 
@@ -87,7 +89,9 @@ HAS_OCAML403    ?=@HAS_OCAML403@
 HAS_OCAML404    ?=@HAS_OCAML404@
 HAS_OCAML405    ?=@HAS_OCAML405@
 HAS_OCAML407    ?=@HAS_OCAML407@
+HAS_OCAML408    ?=@HAS_OCAML408@
 
+PLATFORM	?=@PLATFORM@
 NATIVE_THREADS	?=@HAS_NATIVE_THREADS@
 OCAMLWIN32	?=@OCAMLWIN32@
 PTESTSBEST      ?=@PTESTSBEST@
@@ -102,15 +106,20 @@ DEVELOPMENT	?=@DEVELOPMENT@
 HAS_LABLGTK	?=@HAS_LABLGTK@
 HAS_LABLGTK_CUSTOM_MODEL ?=@HAS_LABLGTK@
 LABLGTK_PATH ?=@LABLGTK_PATH@
-
+LABLGTK ?= lablgtk@LABLGTK_VERSION@
 # lablgtksourceview
 HAS_GTKSOURCEVIEW ?=@HAS_GTKSOURCEVIEW@
 
+LABLGTK_VERSION ?=@LABLGTK_VERSION@
+ifeq ("$(LABLGTK_VERSION)","3")
+  GTKSOURCEVIEW:=lablgtk3-sourceview3
+else
+  GTKSOURCEVIEW:=\
+    $(patsubst lablgtk%,$(LABLGTK).%,$(basename $(notdir @GTKSOURCEVIEW@)))
+endif
+
 # lablgnomecanvas
 HAS_GNOMECANVAS	?=@HAS_GNOMECANVAS@
-
-# yojson
-HAS_YOJSON	?=@HAS_YOJSON@
 
 # apron
 HAS_APRON	?=@HAS_APRON@
@@ -149,9 +158,7 @@ THREAD_IS_KEYWORD ?=@THREAD_IS_KEYWORD@
 TEST_DIRS_AS_PLUGIN:=\
   dynamic dynamic_plugin journal saveload spec misc syntax cil \
   pretty_printing builtins libc value fc_script
-ifeq ("$(HAS_YOJSON)","yes")
 TEST_DIRS_AS_PLUGIN+=jcdb
-endif
 PLUGIN_TESTS_LIST+=$(TEST_DIRS_AS_PLUGIN)
 
 ##########################
@@ -179,18 +186,17 @@ ENABLE_USERS	                  ?=@ENABLE_USERS@
 ENABLE_EVA                      ?=@ENABLE_EVA@
 
 #bytes is part of the stdlib, but is used as a transitional package.
-LIBRARY_NAMES := findlib ocamlgraph unix str dynlink bytes zarith
+LIBRARY_NAMES := findlib ocamlgraph unix str dynlink bytes zarith yojson
 
 ifeq ($(HAS_LANDMARKS),yes)
 LIBRARY_NAMES += landmarks landmarks.ppx
 endif
 
-ifeq ($(HAS_YOJSON),yes)
-LIBRARY_NAMES += yojson
-endif
-
 ifneq ($(ENABLE_GUI),no)
-LIBRARY_NAMES_GUI = lablgtk2 lablgtk2.gnomecanvas lablgtk2.sourceview2
+  LIBRARY_NAMES_GUI = $(LABLGTK) $(GTKSOURCEVIEW)
+  ifeq ($(HAS_GNOMECANVAS),yes)
+    LIBRARY_NAMES_GUI+=lablgtk2.gnomecanvas
+  endif
 else
 LIBRARY_NAMES_GUI =
 endif

@@ -550,8 +550,8 @@ void main_old(void)
   else Frama_C_show_each(3);
   VV = (unsigned int)h.a;
   h.a = (unsigned int __attribute__((__FRAMA_C_BITFIELD_SIZE__(2))))VV;
-  v.c = (int __attribute__((__FRAMA_C_BITFIELD_SIZE__(22))))(& v);
-  v.d = (int __attribute__((__FRAMA_C_BITFIELD_SIZE__(32))))(& v + 1);
+  v.c = (int __attribute__((__FRAMA_C_BITFIELD_SIZE__(22))))((int)(& v));
+  v.d = (int __attribute__((__FRAMA_C_BITFIELD_SIZE__(32))))((int)(& v + 1));
   /*@ assert Eva: signed_overflow: -2147483648 ≤ (int)v.d + 1; */
   /*@ assert Eva: signed_overflow: (int)v.d + 1 ≤ 2147483647; */
   v.d = (int __attribute__((__FRAMA_C_BITFIELD_SIZE__(32))))((int)v.d + 1);
@@ -561,7 +561,7 @@ void main_old(void)
   /*@ assert Eva: signed_overflow: -2147483648 ≤ foo + foo; */
   /*@ assert Eva: signed_overflow: foo + foo ≤ 2147483647; */
   h.b = (int __attribute__((__FRAMA_C_BITFIELD_SIZE__(4))))(((foo + foo) + (int)h.a) + (int)h.b);
-  h.c = (int __attribute__((__FRAMA_C_BITFIELD_SIZE__(22))))(& v + 1);
+  h.c = (int __attribute__((__FRAMA_C_BITFIELD_SIZE__(22))))((int)(& v + 1));
   k8.b = (int __attribute__((__FRAMA_C_BITFIELD_SIZE__(4))))8;
   tmp = return_8();
   kr8.b = (int __attribute__((__FRAMA_C_BITFIELD_SIZE__(4))))tmp;

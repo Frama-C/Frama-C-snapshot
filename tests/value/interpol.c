@@ -1,6 +1,6 @@
 /* run.config*
    GCC:
-   STDOPT: #"-val-subdivide-non-linear 15"
+   STDOPT: #"-eva-subdivide-non-linear 15"
 */
 
 int t[8] = {1, 2, 4, 8, 16, 32, 64, 128};

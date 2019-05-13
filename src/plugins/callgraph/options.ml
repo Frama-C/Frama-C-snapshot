@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2018                                               *)
+(*  Copyright (C) 2007-2019                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -76,8 +76,7 @@ module Function_pointers =
       let option_name = "-cg-function-pointers"
       let help = "when Eva has not been computed, safely over-approximate \
                   callees in presence of function pointers; \
-                  always done when Eva has been previously computed. \
-                  WARNING: this option is unsound"
+                  always done when Eva has been previously computed."
     end)
 
 module Uncalled =

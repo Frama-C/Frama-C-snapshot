@@ -1,6 +1,6 @@
 /* run.config
 EXECNOW: make -s @PTEST_DIR@/@PTEST_NAME@.cmxs
-OPT: -load-module @PTEST_DIR@/@PTEST_NAME@.cmxs -then -report -then -print
+OPT: -no-autoload-plugins -load-module report,@PTEST_DIR@/@PTEST_NAME@.cmxs -then -report -then -print
 */
 
 /*@ assigns *x; */

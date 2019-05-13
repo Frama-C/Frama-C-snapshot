@@ -1,5 +1,5 @@
 /* run.config
-   OPT: -val -val-show-progress -scf -val-show-progress -journal-disable
+   STDOPT: +"-eva"
 */
 
 void *p;

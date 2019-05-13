@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2018                                               *)
+(*  Copyright (C) 2007-2019                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -48,7 +48,7 @@ struct
           match w1.severe , w2.severe with
           | true , false -> (-1)
           | false , true -> 1
-          | _ -> Pervasives.compare w1 w2
+          | _ -> Transitioning.Stdlib.compare w1 w2
 
 end
 

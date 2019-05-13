@@ -1,6 +1,6 @@
 /* run.config*
-   OPT: -no-autoload-plugins -load-module from,inout,users,eva -calldeps -val @VALUECONFIG@ -journal-disable -users -then -input
-   OPT: -no-autoload-plugins -load-module from,eva @VALUECONFIG@ -deps -show-indirect-deps -journal-disable
+   OPT: -no-autoload-plugins -load-module from,inout,users,eva -calldeps -eva @EVA_CONFIG@ -journal-disable -users -then -input
+   OPT: -no-autoload-plugins -load-module from,eva @EVA_CONFIG@ -deps -show-indirect-deps -journal-disable
 */
 int a,b,c,d;
 int x,y,z,t;
@@ -67,8 +67,8 @@ int access_tab(int ind)
 }
 
 int AA,AR,AS;
-int At[2]={&AA};
-int Ar[2]={&AA};
+int At[2]={(int)&AA};
+int Ar[2]={(int)&AA};
 int *Ap=At;
 
 /*@ assigns AR \from Ap[..] ;

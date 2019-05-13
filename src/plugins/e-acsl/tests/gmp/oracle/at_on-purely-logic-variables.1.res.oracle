@@ -66,6 +66,7 @@
   __e_acsl_math_HUGE_VAL ∈ [-1.79769313486e+308 .. 1.79769313486e+308]
   __e_acsl_math_HUGE_VALF ∈ [-3.40282346639e+38 .. 3.40282346639e+38]
   __e_acsl_math_INFINITY ∈ [-1.79769313486e+308 .. 1.79769313486e+308]
+  __e_acsl_sound_verdict ∈ [--..--]
 [eva] using specification for function __e_acsl_memory_init
 [eva] using specification for function __e_acsl_store_block
 [eva] using specification for function __e_acsl_full_init

@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2018                                               *)
+(*  Copyright (C) 2007-2019                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -24,21 +24,25 @@
 (* ---  WP Provers Configuration Panel                                  --- *)
 (* ------------------------------------------------------------------------ *)
 
-open ProverWhy3
+open VCS
 
-class provers : string -> [dp list] Widget.selector
+class available : unit ->
+  object
+    method detect : unit
+    method get : dp list
+  end
+
+class enabled : string -> [string list] Widget.selector
 
 class dp_chooser :
   main:Design.main_window_extension_points ->
-  available:provers ->
-  enabled:provers ->
+  available:available ->
+  enabled:enabled ->
   object
     method run : unit -> unit (** Edit enabled provers *)
   end
 
-class dp_button :
-  available:provers ->
-  enabled:provers ->
+class dp_button : available:available ->
   object
     inherit Widget.widget
     method update : unit -> unit

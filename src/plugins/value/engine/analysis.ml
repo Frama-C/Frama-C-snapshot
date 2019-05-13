@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2018                                               *)
+(*  Copyright (C) 2007-2019                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -59,11 +59,13 @@ end
 
 module Make (Abstract: Abstractions.S) = struct
 
+  module Abstract = struct
+    include Abstract
+    module Eval = Evaluation.Make (Abstract.Val) (Abstract.Loc) (Abstract.Dom)
+  end
+
   include Abstract
-
-  module Eval = Evaluation.Make (Abstract.Val) (Abstract.Loc) (Abstract.Dom)
-
-  include Compute_functions.Make (Abstract) (Eval)
+  include Compute_functions.Make (Abstract)
 
   let get_stmt_state stmt =
     let fundec = Kernel_function.(get_definition (find_englobing_kf stmt)) in
@@ -157,6 +159,7 @@ let reset_analyzer () =
 (* Builds the analyzer if needed, and run the analysis. *)
 let force_compute () =
   Ast.compute ();
+  Value_parameters.configure_precision ();
   let kf, lib_entry = Globals.entry_point () in
   reset_analyzer ();
   let module Analyzer = (val snd !ref_analyzer) in

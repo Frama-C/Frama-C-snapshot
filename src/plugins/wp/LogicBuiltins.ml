@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2018                                               *)
+(*  Copyright (C) 2007-2019                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -43,7 +43,7 @@ type kind =
   | F of Ctypes.c_float
   | A (* abstract data *)
 
-(* [LC] kinds can be compared by Pervasives.compare *)
+(* [LC] kinds can be compared by Stdlib.compare *)
 
 let okind = function
   | C_int i -> I i
@@ -157,14 +157,14 @@ let iter_table f =
   Hashtbl.iter
     (fun a sigs -> List.iter (fun (ks,lnk) -> items := (a,ks,lnk)::!items) sigs)
     (cdriver ()).hlogic ;
-  List.iter f (List.sort Pervasives.compare !items)
+  List.iter f (List.sort Transitioning.Stdlib.compare !items)
 
 let iter_libs f =
   let items = ref [] in
   Hashtbl.iter
     (fun a libs -> items := (a,libs) :: !items)
     (cdriver ()).hdeps ;
-  List.iter f (List.sort Pervasives.compare !items)
+  List.iter f (List.sort Transitioning.Stdlib.compare !items)
 
 let dump () =
   Log.print_on_output
@@ -214,7 +214,7 @@ let add_logic ~source result name kinds ~library ?category ~link () =
 
 let add_predicate ~source name kinds ~library ~link () =
   let params = List.map skind kinds in
-  let lfun = Lang.extern_fp ~library ~params ~link name in
+  let lfun = Lang.extern_fp ~library ~params ~link link.altergo in
   register ~source name kinds (LFUN lfun)
 
 let add_ctor ~source name kinds ~library ~link () =

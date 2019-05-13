@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2018                                               *)
+(*  Copyright (C) 2007-2019                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -65,6 +65,7 @@ struct
   (* -------------------------------------------------------------------------- *)
   (* --- Env Utilities                                                      --- *)
   (* -------------------------------------------------------------------------- *)
+
 
   let result env = env.result
 
@@ -498,7 +499,7 @@ struct
     | NoneInfo, NoneInfo -> 0
     | NoneInfo, _ -> -1
     | _ , NoneInfo -> 1
-    | LoopHead i, LoopHead j -> Pervasives.compare j i
+    | LoopHead i, LoopHead j -> Transitioning.Stdlib.compare j i
 
   module Automata = Interpreted_automata.UnrollUnnatural.Version
   type nodes = {
@@ -575,6 +576,8 @@ struct
 
   let automaton : env -> Interpreted_automata.automaton -> paths = fun env a ->
     let open Interpreted_automata in
+    let binder = M.configure_ia a in
+    let bind = binder.bind in
     let wto = WTO.partition ~pref ~init:a.entry_point ~succs:(G.succ a.graph) in
     let index = Compute.build_wto_index_table wto in
 
@@ -620,26 +623,30 @@ struct
           do_list ~fresh_nodes paths nodes n2 l
     in
     let rec component nodes paths = function
-      | Wto.Node v -> do_node nodes v paths
-      | Wto.Component (v,l) ->
-          assert (not (Automata.Map.mem v nodes.local));
-          let invariants,l = get_invariants g v l in
-          let n = get_node {nodes with local = Automata.Map.empty} v in
-          (* initialization *)
-          let n,paths = do_list ~fresh_nodes:true paths nodes n invariants in
-          (* preservation *)
-          let n_loop = Cfg.node () in
-          let _,paths = do_list ~fresh_nodes:true paths nodes n_loop invariants in
-          (* arbitrary number of loop *)
-          let n_havoc = Cfg.node () in
-          let havoc = Cfg.havoc n ~effects:{pre=n_havoc;post=n_loop} n_havoc in
-          let paths = (havoc |> paths_of_cfg) @^ paths in
-          (* body *)
-          let invariants_as_assumes = as_assumes invariants in
-          let _,paths =
-            do_list ~fresh_nodes:false paths (add_local nodes v n_havoc)
-              n_havoc invariants_as_assumes in
-          partition (add_local nodes v n_loop) paths l
+      | Wto.Node ((n, _) as v) -> bind n (do_node nodes v) paths
+      | Wto.Component ((n, _) as v, l) ->
+          let do_component (v, l) =
+            assert (not (Automata.Map.mem v nodes.local));
+            let invariants,l = get_invariants g v l in
+            let n = get_node {nodes with local = Automata.Map.empty} v in
+            (* initialization *)
+            let n,paths = do_list ~fresh_nodes:true paths nodes n invariants in
+            (* preservation *)
+            let n_loop = Cfg.node () in
+            let _,paths = do_list ~fresh_nodes:true paths nodes n_loop invariants in
+            (* arbitrary number of loop *)
+            let n_havoc = Cfg.node () in
+            let havoc = Cfg.havoc n ~effects:{pre=n_havoc;post=n_loop} n_havoc in
+            let paths = (havoc |> paths_of_cfg) @^ paths in
+            (* body *)
+            let invariants_as_assumes = as_assumes invariants in
+            let _,paths =
+              do_list ~fresh_nodes:false paths (add_local nodes v n_havoc)
+                n_havoc invariants_as_assumes in
+            partition (add_local nodes v n_loop) paths l
+          in
+          bind n do_component (v, l)
+
     and partition nodes paths l =
       List.fold_left (component nodes) paths l
     in
@@ -744,21 +751,34 @@ struct
 
 
   let compute_kf kf =
-    let autom = Interpreted_automata.Compute.get_automaton ~annotations:true kf in
+    let open Interpreted_automata in
+    let autom = Compute.get_automaton ~annotations:true kf in
     (* let cout = open_out (Format.sprintf "/tmp/cfg_automata_%s.dot" (Kernel_function.get_name kf)) in
      * Interpreted_automata.Compute.output_to_dot cout autom;
      * close_out cout; *)
-    let nprepre = Cfg.node () in
-    let npre = Cfg.node () in
-    let npost = Cfg.node () in
-    let npostpost = Cfg.node () in
-    let env = empty_env kf  in
-    let env = env @* [Clabels.pre,npre;Clabels.post,npost] in
+    let binder = M.configure_ia autom in
+    let bind = binder.bind in
+    let spec = Annotations.funspec kf in
+    (* start and end nodes of pre(resp. post)-conditions. *)
+    let pres = { pre = Cfg.node (); post = Cfg.node () } in
+    let posts = { pre = Cfg.node (); post = Cfg.node () } in
+    let env = empty_env kf @* [Clabels.pre,pres.post;Clabels.post,posts.pre] in
+    (* initialization *)
     let init = init ~is_pre_main:(WpStrategy.is_main_init kf)
-        (env @* [Clabels.here,nprepre]) in
-    let kf_spec = Annotations.funspec kf in
-    let pre = pre_spec (env @* [Clabels.here,nprepre;Clabels.next,npre]) kf_spec in
-    let paths = automaton (env @* [Clabels.here,npre;Clabels.next,npost]) autom in
-    let post = post_normal_spec (env @* [Clabels.here,npost;Clabels.next,npostpost]) kf_spec in
-    init @^ pre @^ paths @^ post, env @: Clabels.init
+        (env @* [Clabels.here,pres.pre]) in
+    (* pre-condition *)
+    let pre =
+      bind autom.entry_point @@
+      pre_spec (env @* [Clabels.here,pres.pre;Clabels.next,pres.post])
+    in
+    (* code *)
+    let paths =
+      automaton (env @* [Clabels.here,pres.post;Clabels.next,posts.pre]) autom
+    in
+    (* post-condition *)
+    let post =
+      bind autom.return_point @@
+      post_normal_spec (env @* [Clabels.here,posts.pre;Clabels.next,posts.post])
+    in
+    init @^ pre spec @^ paths @^ post spec, env @: Clabels.init
 end

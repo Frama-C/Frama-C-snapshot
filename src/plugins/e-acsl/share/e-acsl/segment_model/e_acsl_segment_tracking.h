@@ -894,14 +894,16 @@ extern int MSPACES_INIT;
  *    behaviour is as if the size were some non-zero value, except that the
  *    returned pointer shall not be used to access an object." */
 void* malloc(size_t size) {
-  if(! MSPACES_INIT) {
-    mspaces_init();
-    MSPACES_INIT = 1;
-  }
+
   size_t alloc_size = ALLOC_SIZE(size);
 
   /* Return NULL if the size is too large to be aligned */
-  char* res = alloc_size ? (char*)public_malloc(alloc_size) : NULL;
+  char* res;
+  if (alloc_size) {
+    mspaces_init();
+    res = (char*)public_malloc(alloc_size);
+  } else
+    res = NULL;
 
   if (res) {
     /* Make sure there is sufficient room in shadow */
@@ -923,8 +925,12 @@ void* calloc(size_t nmemb, size_t size) {
 
   /* Since aligned size is required by the model do the allocation through
    * `malloc` and nullify the memory space by hand */
-  char* res =
-    size ? (char*)public_malloc(alloc_size) : NULL;
+  char* res;
+  if (size) {
+    mspaces_init();
+    res = (char*)public_malloc(alloc_size);
+  } else
+    res = NULL;
 
   if (res) {
     /* Make sure there is sufficient room in shadow */

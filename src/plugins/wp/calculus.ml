@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2018                                               *)
+(*  Copyright (C) 2007-2019                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -438,7 +438,7 @@ module Cfg (W : Mcfg.S) = struct
     then W.call_goal_precond wenv stmt kf args ~pre:(pre_goals) obj
     else obj
 
-  let wp_calls ((caller_kf, cfg, strategy, _, wenv)) res v stmt
+  let wp_calls ((_, cfg, strategy, _, wenv)) res v stmt
       lval call args p_post p_exit
     =
     debug "[wp_calls] %a@." Cil2cfg.pp_call_type call;
@@ -451,18 +451,16 @@ module Cfg (W : Mcfg.S) = struct
         wp_call_kf wenv cenv stmt lval kf args precond ~p_post ~p_exit
     | Cil2cfg.Dynamic fct ->
         let bhv = WpStrategy.behavior_name_of_strategy strategy in
-        let calls = Dyncall.get ?bhv stmt in
-        if calls = [] then
-          wp_call_any wenv cenv ~p_post ~p_exit
-        else
-          let precond = R.is_pass1 res in
-          let call kf =
-            let wp = wp_call_kf wenv cenv stmt lval
-                kf args precond ~p_post ~p_exit in
-            kf , wp in
-          let prop = Dyncall.property ~kf:caller_kf ?bhv ~stmt ~calls in
-          let pid = WpPropId.mk_property prop in
-          W.call_dynamic wenv stmt pid fct (List.map call calls)
+        match Dyncall.get ?bhv stmt with
+        | None -> wp_call_any wenv cenv ~p_post ~p_exit
+        | Some (prop,calls) ->
+            let precond = R.is_pass1 res in
+            let do_call kf =
+              let wp = wp_call_kf wenv cenv stmt lval
+                  kf args precond ~p_post ~p_exit in
+              kf , wp in
+            let pid = WpPropId.mk_property prop in
+            W.call_dynamic wenv stmt pid fct (List.map do_call calls)
 
   let wp_stmt wenv s obj = match s.skind with
     | Return (r, _) -> W.return wenv s r obj

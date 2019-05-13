@@ -1,5 +1,6 @@
 /* run.config
-OPT: -load-script tests/rte/my_annotation/my_annotation.ml
+EXECNOW: make -s @PTEST_DIR@/my_annotation/my_annotation.cmxs
+OPT: -load-module @PTEST_DIR@/my_annotation/my_annotation
 */
 
 

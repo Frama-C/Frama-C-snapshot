@@ -1,6 +1,6 @@
 /*  run.config
- OPT: -no-warn-signed-overflow -sparecode -eva-show-progress
- OPT: -warn-signed-overflow -sparecode -eva-show-progress
+ STDOPT: +"-sparecode-debug 0 -no-warn-signed-overflow -sparecode"
+ STDOPT: +"-sparecode-debug 0 -warn-signed-overflow -sparecode"
 */
 
 /* The purpose of these tests is to check if the conditions are removed

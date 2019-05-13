@@ -1,0 +1,96 @@
+[kernel] Parsing tests/libc/more_gcc_builtins.c (with preprocessing)
+[eva] Analyzing a complete application starting at main
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
+  
+[eva] computing for function __builtin_sadd_overflow <- main.
+  Called from tests/libc/more_gcc_builtins.c:10.
+[eva] using specification for function __builtin_sadd_overflow
+[eva] tests/libc/more_gcc_builtins.c:10: 
+  function __builtin_sadd_overflow: precondition 'valid_res' got status valid.
+[eva] Done for function __builtin_sadd_overflow
+[eva] tests/libc/more_gcc_builtins.c:11: assertion got status valid.
+[eva] tests/libc/more_gcc_builtins.c:12: assertion got status valid.
+[eva] computing for function __builtin_sadd_overflow <- main.
+  Called from tests/libc/more_gcc_builtins.c:13.
+[eva] tests/libc/more_gcc_builtins.c:13: 
+  function __builtin_sadd_overflow: precondition 'valid_res' got status valid.
+[eva] Done for function __builtin_sadd_overflow
+[eva] tests/libc/more_gcc_builtins.c:14: assertion got status valid.
+[eva] tests/libc/more_gcc_builtins.c:15: assertion got status valid.
+[eva] computing for function __builtin_saddl_overflow <- main.
+  Called from tests/libc/more_gcc_builtins.c:17.
+[eva] using specification for function __builtin_saddl_overflow
+[eva] tests/libc/more_gcc_builtins.c:17: 
+  function __builtin_saddl_overflow: precondition 'valid_res' got status valid.
+[eva] Done for function __builtin_saddl_overflow
+[eva] tests/libc/more_gcc_builtins.c:18: assertion got status valid.
+[eva] tests/libc/more_gcc_builtins.c:19: assertion got status valid.
+[eva] computing for function __builtin_saddl_overflow <- main.
+  Called from tests/libc/more_gcc_builtins.c:20.
+[eva] tests/libc/more_gcc_builtins.c:20: 
+  function __builtin_saddl_overflow: precondition 'valid_res' got status valid.
+[eva] Done for function __builtin_saddl_overflow
+[eva] tests/libc/more_gcc_builtins.c:21: assertion got status valid.
+[eva] tests/libc/more_gcc_builtins.c:22: assertion got status valid.
+[eva] computing for function __builtin_saddll_overflow <- main.
+  Called from tests/libc/more_gcc_builtins.c:24.
+[eva] using specification for function __builtin_saddll_overflow
+[eva] tests/libc/more_gcc_builtins.c:24: 
+  function __builtin_saddll_overflow: precondition 'valid_res' got status valid.
+[eva] Done for function __builtin_saddll_overflow
+[eva] tests/libc/more_gcc_builtins.c:25: assertion got status valid.
+[eva] tests/libc/more_gcc_builtins.c:26: assertion got status valid.
+[eva] computing for function __builtin_uadd_overflow <- main.
+  Called from tests/libc/more_gcc_builtins.c:28.
+[eva] using specification for function __builtin_uadd_overflow
+[eva] tests/libc/more_gcc_builtins.c:28: 
+  function __builtin_uadd_overflow: precondition 'valid_res' got status valid.
+[eva] Done for function __builtin_uadd_overflow
+[eva] tests/libc/more_gcc_builtins.c:29: assertion got status valid.
+[eva] tests/libc/more_gcc_builtins.c:30: assertion got status valid.
+[eva] computing for function __builtin_uaddl_overflow <- main.
+  Called from tests/libc/more_gcc_builtins.c:32.
+[eva] using specification for function __builtin_uaddl_overflow
+[eva] tests/libc/more_gcc_builtins.c:32: 
+  function __builtin_uaddl_overflow: precondition 'valid_res' got status valid.
+[eva] Done for function __builtin_uaddl_overflow
+[eva] tests/libc/more_gcc_builtins.c:33: assertion got status valid.
+[eva] tests/libc/more_gcc_builtins.c:34: assertion got status valid.
+[eva] computing for function __builtin_uaddll_overflow <- main.
+  Called from tests/libc/more_gcc_builtins.c:36.
+[eva] using specification for function __builtin_uaddll_overflow
+[eva] tests/libc/more_gcc_builtins.c:36: 
+  function __builtin_uaddll_overflow: precondition 'valid_res' got status valid.
+[eva] Done for function __builtin_uaddll_overflow
+[eva] tests/libc/more_gcc_builtins.c:37: assertion got status valid.
+[eva] tests/libc/more_gcc_builtins.c:38: assertion got status valid.
+[eva] computing for function __builtin_usubll_overflow <- main.
+  Called from tests/libc/more_gcc_builtins.c:39.
+[eva] using specification for function __builtin_usubll_overflow
+[eva] tests/libc/more_gcc_builtins.c:39: 
+  function __builtin_usubll_overflow: precondition 'valid_res' got status valid.
+[eva] Done for function __builtin_usubll_overflow
+[eva] tests/libc/more_gcc_builtins.c:40: assertion got status valid.
+[eva] tests/libc/more_gcc_builtins.c:41: assertion got status valid.
+[eva] computing for function __builtin_smulll_overflow <- main.
+  Called from tests/libc/more_gcc_builtins.c:42.
+[eva] using specification for function __builtin_smulll_overflow
+[eva] tests/libc/more_gcc_builtins.c:42: 
+  function __builtin_smulll_overflow: precondition 'valid_res' got status valid.
+[eva] Done for function __builtin_smulll_overflow
+[eva] tests/libc/more_gcc_builtins.c:43: assertion got status valid.
+[eva] tests/libc/more_gcc_builtins.c:44: assertion got status valid.
+[eva] Recording results for main
+[eva] done for function main
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function main:
+  res ∈ {-2147483607}
+  r ∈ {1}
+  lres ∈ {2147483647}
+  llres ∈ {-9223372036854775808}
+  ures ∈ {8}
+  ulres ∈ {8}
+  ullres ∈ {18446744073709551612}
+  __retres ∈ {0}

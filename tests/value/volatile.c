@@ -1,5 +1,5 @@
 /* run.config*
-   STDOPT: +"-no-deps -no-input -no-out -val-initialization-padding-globals maybe -c11"
+   STDOPT: +"-no-deps -no-input -no-out -eva-initialization-padding-globals maybe -c11"
 */
 
 int volatile G = 1;
@@ -80,7 +80,7 @@ int * volatile main2() {
   int * volatile p1, * volatile p2, * volatile p3;
   p1 = G ? 0 : &X;
   p2 = &X;
-  k = G ? 0 : &X;
+  k = G ? 0 : (int) &X;
   p3 = k;
   return k;
 }

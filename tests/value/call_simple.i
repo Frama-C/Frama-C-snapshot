@@ -4,7 +4,7 @@ void f(int* a,int b,int c) {
   int *i=a;
   *i = 0;
   a = 0;
-  X = a+b+c;
+  X = (int) (a+b+c);
 }
 
 int main (int ll) {

@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2018                                               *)
+(*  Copyright (C) 2007-2019                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -29,7 +29,8 @@ let has_requires spec =
 
 let code_annotation_text ca =
   match ca.annot_content with
-  | AAssert _ ->  "assertion"
+  | AAssert (_, Assert, _) ->  "assertion"
+  | AAssert (_, Check, _) -> "check"
   | AInvariant _ ->  "loop invariant"
   | APragma _  | AVariant _ | AAssigns _ | AAllocation _ | AStmtSpec _
   | AExtended _  ->
@@ -202,7 +203,7 @@ let mark_green_and_red () =
        currently skipped during evaluation. *)
     if contains_c_at ca || (Alarms.find ca <> None) then
       match ca.annot_content with
-      | AAssert (_, p) | AInvariant (_, true, p) ->
+      | AAssert (_, _, p) | AInvariant (_, true, p) ->
         let loc = code_annotation_loc ca stmt in
         Cil.CurrentLoc.set loc;
         let kf = Kernel_function.find_englobing_kf stmt in
@@ -245,7 +246,7 @@ let mark_invalid_initializers () =
     | None -> ()
     | Some _ ->
       match ca.annot_content with
-      | AAssert (_, p) ->
+      | AAssert (_, _, p) ->
         let ip = Property.ip_of_code_annot_single kf first_stmt ca in
         (* Evaluate in a fully empty state. Only predicates that do not
            depend on the memory will result in 'False' *)

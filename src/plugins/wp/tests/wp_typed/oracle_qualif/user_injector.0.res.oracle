@@ -4,29 +4,30 @@
 [wp] Loading driver 'share/wp.driver'
 [wp] Warning: Missing RTE guards
 [wp] 20 goals scheduled
-[wp] [Qed] Goal typed_job_post_SEQ : Valid
-[wp] [Qed] Goal typed_job_post_ID1 : Valid
-[wp] [Qed] Goal typed_job_post_ID2 : Valid
-[wp] [Qed] Goal typed_job_post_R1 : Valid
-[wp] [Qed] Goal typed_job_post_R2 : Valid
-[wp] [Qed] Goal typed_job_post_R0 : Valid
-[wp] [Qed] Goal typed_job_post_E1 : Valid
-[wp] [Qed] Goal typed_job_post_E2 : Valid
-[wp] [Qed] Goal typed_job_assign_exit_part1 : Valid
-[wp] [Qed] Goal typed_job_assign_exit_part2 : Valid
-[wp] [Qed] Goal typed_job_assign_exit_part3 : Valid
-[wp] [Qed] Goal typed_job_assign_normal_part1 : Valid
-[wp] [Qed] Goal typed_job_assign_normal_part2 : Valid
-[wp] [Qed] Goal typed_job_assign_normal_part3 : Valid
-[wp] [Qed] Goal typed_job_assign_normal_part4 : Valid
-[wp] [Qed] Goal typed_job_assign_normal_part5 : Valid
-[wp] [Qed] Goal typed_job_assign_normal_part6 : Valid
-[wp] [Qed] Goal typed_job_assign_normal_part7 : Valid
-[wp] [Qed] Goal typed_job_assign_normal_part8 : Valid
-[wp] [Qed] Goal typed_job_assign_normal_part9 : Valid
+[wp] [Qed] Goal typed_job_ensures_SEQ : Valid
+[wp] [Qed] Goal typed_job_ensures_ID1 : Valid
+[wp] [Qed] Goal typed_job_ensures_ID2 : Valid
+[wp] [Qed] Goal typed_job_ensures_R1 : Valid
+[wp] [Qed] Goal typed_job_ensures_R2 : Valid
+[wp] [Qed] Goal typed_job_ensures_R0 : Valid
+[wp] [Qed] Goal typed_job_ensures_E1 : Valid
+[wp] [Qed] Goal typed_job_ensures_E2 : Valid
+[wp] [Qed] Goal typed_job_assigns_exit_part1 : Valid
+[wp] [Qed] Goal typed_job_assigns_exit_part2 : Valid
+[wp] [Qed] Goal typed_job_assigns_exit_part3 : Valid
+[wp] [Qed] Goal typed_job_assigns_normal_part1 : Valid
+[wp] [Qed] Goal typed_job_assigns_normal_part2 : Valid
+[wp] [Qed] Goal typed_job_assigns_normal_part3 : Valid
+[wp] [Qed] Goal typed_job_assigns_normal_part4 : Valid
+[wp] [Qed] Goal typed_job_assigns_normal_part5 : Valid
+[wp] [Qed] Goal typed_job_assigns_normal_part6 : Valid
+[wp] [Qed] Goal typed_job_assigns_normal_part7 : Valid
+[wp] [Qed] Goal typed_job_assigns_normal_part8 : Valid
+[wp] [Qed] Goal typed_job_assigns_normal_part9 : Valid
 [wp] Proved goals:   20 / 20
   Qed:            20
-[wp] Report 'tests/wp_typed/user_injector.i.0.report.json'
+[wp] Report in:  'tests/wp_typed/oracle_qualif/user_injector.0.report.json'
+[wp] Report out: 'tests/wp_typed/result_qualif/user_injector.0.report.json'
 -------------------------------------------------------------
 Functions           WP     Alt-Ergo        Total   Success
 job                 20     -                20       100%

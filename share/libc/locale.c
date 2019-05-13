@@ -2,7 +2,7 @@
 /*                                                                        */
 /*  This file is part of Frama-C.                                         */
 /*                                                                        */
-/*  Copyright (C) 2007-2018                                               */
+/*  Copyright (C) 2007-2019                                               */
 /*    CEA (Commissariat à l'énergie atomique et aux énergies              */
 /*         alternatives)                                                  */
 /*                                                                        */
@@ -27,7 +27,7 @@ struct lconv __C_locale = {".","","","","","","","","","",CHAR_MAX,CHAR_MAX,CHAR
 
 struct lconv *__frama_c_locale=&__C_locale;
 
-char*__frama_c_locale_names[1]={"C"};
+char*__frama_c_locale_names[512]={"C"};
 char *setlocale(int category, const char *locale) {
   if (*locale == 'C') 
     { __frama_c_locale = &__C_locale;

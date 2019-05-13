@@ -641,12 +641,13 @@ OCAML_ANNOT_OPTION
 OCAMLWIN32
 OCAMLLIB
 OCAMLBEST
+LABLGTK_VERSION
 HAS_LANDMARKS
 HAS_MPFR
 HAS_APRON
-HAS_YOJSON
 DEVELOPMENT
 VERBOSEMAKE
+PLATFORM
 DOT
 HAS_DOT
 HAS_LABLGTK
@@ -655,6 +656,7 @@ HAS_GNOMECANVAS
 GNOMECANVAS
 HAS_GTKSOURCEVIEW
 GTKSOURCEVIEW
+WHY3API
 WHY3COQC
 COQC
 ENABLE_WP
@@ -716,6 +718,7 @@ OCAMLLEX
 OCAMLDEP
 OCAMLFIND
 OCAMLOPT
+HAS_OCAML408
 HAS_OCAML407
 HAS_OCAML405
 HAS_OCAML404
@@ -805,6 +808,7 @@ enable_variadic
 enable_wp
 enable_wp_coq
 enable_wp_why3
+enable_lablgtk3
 '
       ac_precious_vars='build_alias
 host_alias
@@ -1463,6 +1467,9 @@ Optional Features:
   --enable-wp             WP plug-in (default: yes)
   --enable-wp-coq         Wp precompiled Coq libraries (default: yes)
   --enable-wp-why3        Wp precompiled Why3-Coq libraries (default: yes)
+  --disable-lablgtk3      in case lablgtk2 and lablgtk3 are available, the
+                          default is to compile against lablgtk3. Use this
+                          option to force compiling against lablgtk2
 
 Optional Packages:
   --with-PACKAGE[=ARG]    use PACKAGE [ARG=yes]
@@ -2253,7 +2260,7 @@ ac_compiler_gnu=$ac_cv_c_compiler_gnu
 #                                                                        #
 #  This file is part of Frama-C.                                         #
 #                                                                        #
-#  Copyright (C) 2007-2018                                               #
+#  Copyright (C) 2007-2019                                               #
 #    CEA (Commissariat à l'énergie atomique et aux énergies              #
 #         alternatives)                                                  #
 #                                                                        #
@@ -2742,6 +2749,7 @@ esac
 
 
 
+
 OCAMLMAJORNB=$(echo $OCAMLVERSION | cut -f 1 -d .)
 OCAMLMINORNB=$(echo $OCAMLVERSION | cut -f 2 -d .)
 OCAMLPATCHNB=$(echo $OCAMLVERSION | cut -f 3 -d .)
@@ -2751,11 +2759,13 @@ if test $OCAMLMAJORNB -gt 4; then
   HAS_OCAML404=yes;
   HAS_OCAML405=yes;
   HAS_OCAML407=yes;
+  HAS_OCAML408=yes;
 else
   HAS_OCAML403=no;
   HAS_OCAML404=no;
   HAS_OCAML405=no;
   HAS_OCAML407=no;
+  HAS_OCAML408=no;
   if test $OCAMLMINORNB -ge 3; then
     HAS_OCAML403=yes;
   fi;
@@ -2767,6 +2777,9 @@ else
   fi;
   if test $OCAMLMINORNB -ge 7; then
     HAS_OCAML407=yes;
+  fi;
+  if test $OCAMLMINORNB -ge 8; then
+    HAS_OCAML408=yes;
   fi;
 fi;   # MAJORNB -gt 4
 
@@ -3209,6 +3222,18 @@ else
 $as_echo "found" >&6; }
 fi
 
+# yojson
+########
+
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for Yojson" >&5
+$as_echo_n "checking for Yojson... " >&6; }
+
+YOJSON=$($OCAMLFIND query yojson -format %v)
+if test -z "$YOJSON" ; then
+  as_fn_error $? "Cannot find yojson via ocamlfind \
+(requires yojson 1.4.1 or higher)." "$LINENO" 5
+fi
+
 #################################################
 # Check for other (optional) tools/libraries    #
 #################################################
@@ -3343,24 +3368,6 @@ fi
 
 
 
-# yojson
-########
-
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for Yojson" >&5
-$as_echo_n "checking for Yojson... " >&6; }
-
-YOJSON_PATH=$($OCAMLFIND query yojson 2>/dev/null | tr -d '\r\n')
-if test -f "$YOJSON_PATH/yojson.$OBJ_SUFFIX"; then
-  HAS_YOJSON="yes";
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: found" >&5
-$as_echo "found" >&6; }
-else
-  HAS_YOJSON="no";
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: yojson not found. Kernel option -json-compilation-database won't be available." >&5
-$as_echo "yojson not found. Kernel option -json-compilation-database won't be available." >&6; }
-fi;
-
-
 # apron
 ########
 
@@ -3411,7 +3418,7 @@ if test "$ENABLE_LANDMARKS" = yes ; then
 $as_echo_n "checking for Landmarks... " >&6; }
   LANDMARKS_PATH=$($OCAMLFIND query landmarks 2>/dev/null | tr -d '\r\n')
   LANDMARKS_PPX_PATH=$($OCAMLFIND query landmarks.ppx 2>/dev/null | tr -d '\r\n')
-  if test -f "$LANDMARKS_PATH/landmarks.$DYN_SUFFIX" -a -f "$LANDMARKS_PPX_PATH/ppx_landmarks"; then
+  if test -f "$LANDMARKS_PATH/landmark.$DYN_SUFFIX" -a -f "$LANDMARKS_PPX_PATH/ppx_landmarks.$DYN_SUFFIX"; then
     HAS_LANDMARKS="yes";
     { $as_echo "$as_me:${as_lineno-$LINENO}: result: found" >&5
 $as_echo "found" >&6; }
@@ -3481,6 +3488,7 @@ $as_echo "no" >&6; }
 fi
 
 
+  PLATFORM=Win32
   OCAMLWIN32=yes
   EXE=.exe
   # OCaml on Win32 does not support vmthreads, use native ones.
@@ -3490,10 +3498,18 @@ else
   if test "$OCAML_OS_TYPE" = "Cygwin"; then
     { $as_echo "$as_me:${as_lineno-$LINENO}: result: Cygwin" >&5
 $as_echo "Cygwin" >&6; }
+    PLATFORM=Cygwin
     EXE=.exe
   else
-    { $as_echo "$as_me:${as_lineno-$LINENO}: result: Unix" >&5
+    if test $(uname -s) = "Darwin"; then
+      { $as_echo "$as_me:${as_lineno-$LINENO}: result: MacOS" >&5
+$as_echo "MacOS" >&6; }
+      PLATFORM=MacOS
+    else
+      { $as_echo "$as_me:${as_lineno-$LINENO}: result: Unix" >&5
 $as_echo "Unix" >&6; }
+      PLATFORM=Unix
+    fi
     EXE=
   fi
 
@@ -5641,7 +5657,7 @@ echo "gui... $ENABLE"
 
 
 
-        REQUIRE_GNOMECANVAS=$REQUIRE_GNOMECANVAS" "gui
+        USE_GNOMECANVAS=$USE_GNOMECANVAS" "gui
 
 
 
@@ -5966,8 +5982,8 @@ echo "metrics... $ENABLE"
 
 
 
-        USE_EVA=$USE_EVA" "metrics
-        USED_METRICS=$USED_METRICS" "eva
+        REQUIRE_EVA=$REQUIRE_EVA" "metrics
+        REQUIRED_METRICS=$REQUIRED_METRICS" "eva
 
 
 
@@ -6930,7 +6946,7 @@ fi
 #                                                                        #
 #  This file is part of Aorai plug-in of Frama-C.                        #
 #                                                                        #
-#  Copyright (C) 2007-2018                                               #
+#  Copyright (C) 2007-2019                                               #
 #    CEA (Commissariat à l'énergie atomique et aux énergies              #
 #         alternatives)                                                  #
 #    INRIA (Institut National de Recherche en Informatique et en         #
@@ -8774,7 +8790,7 @@ fi
 #                                                                        #
 #  This file is part of Frama-C.                                         #
 #                                                                        #
-#  Copyright (C) 2007-2018                                               #
+#  Copyright (C) 2007-2019                                               #
 #    CEA (Commissariat à l'énergie atomique et aux énergies              #
 #         alternatives)                                                  #
 #                                                                        #
@@ -8908,7 +8924,7 @@ echo "loop_analysis... $ENABLE"
 #                                                                        #
 #  This file is part of Frama-C.                                         #
 #                                                                        #
-#  Copyright (C) 2007-2018                                               #
+#  Copyright (C) 2007-2019                                               #
 #    CEA (Commissariat à l'énergie atomique et aux énergies              #
 #         alternatives)                                                  #
 #                                                                        #
@@ -9053,7 +9069,7 @@ echo "nonterm... $ENABLE"
 #                                                                        #
 #  This file is part of Frama-C.                                         #
 #                                                                        #
-#  Copyright (C) 2007-2018                                               #
+#  Copyright (C) 2007-2019                                               #
 #    CEA (Commissariat à l'énergie atomique et aux énergies              #
 #         alternatives)                                                  #
 #                                                                        #
@@ -9348,7 +9364,7 @@ echo "qed... $ENABLE"
 #                                                                        #
 #  This file is part of Frama-C.                                         #
 #                                                                        #
-#  Copyright (C) 2007-2018                                               #
+#  Copyright (C) 2007-2019                                               #
 #    CEA (Commissariat à l'énergie atomique et aux énergies              #
 #         alternatives)                                                  #
 #                                                                        #
@@ -9483,7 +9499,7 @@ echo "report... $ENABLE"
 #                                                                        #
 #  This file is part of Frama-C.                                         #
 #                                                                        #
-#  Copyright (C) 2007-2018                                               #
+#  Copyright (C) 2007-2019                                               #
 #    CEA (Commissariat à l'énergie atomique et aux énergies              #
 #         alternatives)                                                  #
 #                                                                        #
@@ -9648,28 +9664,62 @@ echo "security_slicing... $ENABLE"
 
 
 
+                ##########################################################################
+#                                                                        #
+#  This file is part of Frama-C.                                         #
+#                                                                        #
+#  Copyright (C) 2007-2019                                               #
+#    CEA (Commissariat à l'énergie atomique et aux énergies              #
+#         alternatives)                                                  #
+#                                                                        #
+#  you can redistribute it and/or modify it under the terms of the GNU   #
+#  Lesser General Public License as published by the Free Software       #
+#  Foundation, version 2.1.                                              #
+#                                                                        #
+#  It is distributed in the hope that it will be useful,                 #
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of        #
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         #
+#  GNU Lesser General Public License for more details.                   #
+#                                                                        #
+#  See the GNU Lesser General Public License version 2.1                 #
+#  for more details (enclosed in the file licenses/LGPLv2.1).            #
+#                                                                        #
+##########################################################################
+
+########################################
+# Studia as a standard Frama-C plug-in #
+########################################
 
 
 
 
 
 
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for src/plugins/studia" >&5
-$as_echo_n "checking for src/plugins/studia... " >&6; }
-if ${ac_cv_file_src_plugins_studia+:} false; then :
+
+
+
+
+
+
+
+
+
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for src/plugins/studia/Makefile.in" >&5
+$as_echo_n "checking for src/plugins/studia/Makefile.in... " >&6; }
+if ${ac_cv_file_src_plugins_studia_Makefile_in+:} false; then :
   $as_echo_n "(cached) " >&6
 else
   test "$cross_compiling" = yes &&
   as_fn_error $? "cannot check for file existence when cross compiling" "$LINENO" 5
-if test -r "src/plugins/studia"; then
-  ac_cv_file_src_plugins_studia=yes
+if test -r "src/plugins/studia/Makefile.in"; then
+  ac_cv_file_src_plugins_studia_Makefile_in=yes
 else
-  ac_cv_file_src_plugins_studia=no
+  ac_cv_file_src_plugins_studia_Makefile_in=no
 fi
 fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_file_src_plugins_studia" >&5
-$as_echo "$ac_cv_file_src_plugins_studia" >&6; }
-if test "x$ac_cv_file_src_plugins_studia" = xyes; then :
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_file_src_plugins_studia_Makefile_in" >&5
+$as_echo "$ac_cv_file_src_plugins_studia_Makefile_in" >&6; }
+if test "x$ac_cv_file_src_plugins_studia_Makefile_in" = xyes; then :
   default=yes;plugin_present=yes
 else
   plugin_present=no;default=no
@@ -9717,9 +9767,37 @@ echo "studia... $ENABLE"
 
 
 
-                      if test "$ENABLE_STUDIA" != "no"; then
-                         EXTERNAL_PLUGINS="$EXTERNAL_PLUGINS src/plugins/studia";
-                      fi
+
+
+
+
+
+        REQUIRE_EVA=$REQUIRE_EVA" "studia
+        REQUIRED_STUDIA=$REQUIRED_STUDIA" "eva
+
+
+
+
+
+
+#######################
+# Generating Makefile #
+#######################
+
+
+
+
+        ac_config_files="$ac_config_files src/plugins/studia/Makefile"
+
+
+
+         if test "$ENABLE_STUDIA" != "no"; then
+            EXTERNAL_PLUGINS="${EXTERNAL_PLUGINS} src/plugins/studia";
+         fi
+
+
+
+
 
 
 
@@ -9748,7 +9826,7 @@ echo "studia... $ENABLE"
 #                                                                        #
 #  This file is part of Frama-C.                                         #
 #                                                                        #
-#  Copyright (C) 2007-2018                                               #
+#  Copyright (C) 2007-2019                                               #
 #    CEA (Commissariat à l'énergie atomique et aux énergies              #
 #         alternatives)                                                  #
 #                                                                        #
@@ -9881,7 +9959,7 @@ echo "variadic... $ENABLE"
 #                                                                        #
 #  This file is part of WP plug-in of Frama-C.                           #
 #                                                                        #
-#  Copyright (C) 2007-2018                                               #
+#  Copyright (C) 2007-2019                                               #
 #    CEA (Commissariat a l'energie atomique et aux energies              #
 #         alternatives)                                                  #
 #                                                                        #
@@ -10054,18 +10132,49 @@ new_section "configure tools and libraries used by some plug-ins"
 # lablgtk2
 ##########
 
+
+
+# Check whether --enable-lablgtk3 was given.
+if test "${enable_lablgtk3+set}" = set; then :
+  enableval=$enable_lablgtk3; ENABLE_LABLGTK3=$enableval
+else
+  ENABLE_LABLGTK3=yes
+fi
+
+
 REQUIRE_LABLGTK="$REQUIRE_LABLGTK$REQUIRE_GNOMECANVAS"
 USE_LABLGTK="$USE_LABLGTK$USE_GNOMECANVAS"
 
+LABLGTK_PATH=""
+SOURCEVIEW_PATH=""
+
+if test "$PLATFORM" != "MacOS"; then
+if test "$ENABLE_LABLGTK3" = "yes"; then
+  LABLGTK_PATH=`ocamlfind query lablgtk3 | tr -d '\\r\\n'`;
+fi
+if test "$LABLGTK_PATH" != ""; then
+  SOURCEVIEW_PATH=`ocamlfind query lablgtk3-sourceview3 | tr -d '\\r\\n'`;
+fi
+fi
+
+if test "$SOURCEVIEW_PATH" = ""; then
+  LABLGTK_VERSION=2
   LABLGTK_PATH=`ocamlfind query lablgtk2 | tr -d '\\r\\n'`
-  if test "$LABLGTK_PATH" = "" -o "$LABLGTK_PATH" -ef "$OCAMLLIB/lablgtk2" ; then
-     echo "Ocamlfind -> using +lablgtk2.($LABLGTK_PATH,$OCAMLLIB/lablgtk2)"
-     LABLGTK_PATH=+lablgtk2
-     LABLGTKPATH_FOR_CONFIGURE=$OCAMLLIB/lablgtk2
+  if test "$LABLGTK_PATH" = "" -o \
+          "$LABLGTK_PATH" -ef "$OCAMLLIB/lablgtk2" ; then
+       echo "Ocamlfind -> using +lablgtk2.($LABLGTK_PATH,$OCAMLLIB/lablgtk2)"
+       LABLGTK_PATH=+lablgtk2
+       LABLGTKPATH_FOR_CONFIGURE=$OCAMLLIB/lablgtk2
   else
-     echo "Ocamlfind -> using $LABLGTK_PATH"
-     LABLGTKPATH_FOR_CONFIGURE=$LABLGTK_PATH
-  fi
+       echo "Ocamlfind -> using $LABLGTK_PATH"
+       LABLGTKPATH_FOR_CONFIGURE=$LABLGTK_PATH
+  fi;
+  SOURCEVIEW_PATH=$LABLGTK_PATH;
+else
+  LABLGTK_VERSION=3
+  echo "ocamlfind -> using $LABLGTK_PATH"
+  LABLGTKPATH_FOR_CONFIGURE=$LABLGTK_PATH;
+fi
 
 
 # No need to check the same thing multiple times.
@@ -10083,15 +10192,15 @@ USE_LABLGTK="$USE_LABLGTK$USE_GNOMECANVAS"
 # Should be rewritten
     HAS_GTKSOURCEVIEW=no
     if test "$HAS_GTKSOURCEVIEW" != "yes"; then
-          as_ac_File=`$as_echo "ac_cv_file_$LABLGTKPATH_FOR_CONFIGURE/lablgtksourceview2.$LIB_SUFFIX" | $as_tr_sh`
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for $LABLGTKPATH_FOR_CONFIGURE/lablgtksourceview2.$LIB_SUFFIX" >&5
-$as_echo_n "checking for $LABLGTKPATH_FOR_CONFIGURE/lablgtksourceview2.$LIB_SUFFIX... " >&6; }
+          as_ac_File=`$as_echo "ac_cv_file_$SOURCEVIEW_PATH/lablgtksourceview2.$LIB_SUFFIX" | $as_tr_sh`
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for $SOURCEVIEW_PATH/lablgtksourceview2.$LIB_SUFFIX" >&5
+$as_echo_n "checking for $SOURCEVIEW_PATH/lablgtksourceview2.$LIB_SUFFIX... " >&6; }
 if eval \${$as_ac_File+:} false; then :
   $as_echo_n "(cached) " >&6
 else
   test "$cross_compiling" = yes &&
-  as_fn_error $? "cannot check for $LABLGTKPATH_FOR_CONFIGURE/lablgtksourceview2.$LIB_SUFFIX existence when cross compiling" "$LINENO" 5
-if test -r "$LABLGTKPATH_FOR_CONFIGURE/lablgtksourceview2.$LIB_SUFFIX"; then
+  as_fn_error $? "cannot check for $SOURCEVIEW_PATH/lablgtksourceview2.$LIB_SUFFIX existence when cross compiling" "$LINENO" 5
+if test -r "$SOURCEVIEW_PATH/lablgtksourceview2.$LIB_SUFFIX"; then
   eval "$as_ac_File=yes"
 else
   eval "$as_ac_File=no"
@@ -10106,7 +10215,34 @@ else
   HAS_GTKSOURCEVIEW=no
 fi
 
-          if test "$HAS_GTKSOURCEVIEW" = "yes"; then SELECTED_GTKSOURCEVIEW=$LABLGTKPATH_FOR_CONFIGURE/lablgtksourceview2.$LIB_SUFFIX
+          if test "$HAS_GTKSOURCEVIEW" = "yes"; then SELECTED_GTKSOURCEVIEW=$SOURCEVIEW_PATH/lablgtksourceview2.$LIB_SUFFIX
+          fi
+       fi
+       if test "$HAS_GTKSOURCEVIEW" != "yes"; then
+          as_ac_File=`$as_echo "ac_cv_file_$SOURCEVIEW_PATH/lablgtk3_sourceview3.$LIB_SUFFIX" | $as_tr_sh`
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for $SOURCEVIEW_PATH/lablgtk3_sourceview3.$LIB_SUFFIX" >&5
+$as_echo_n "checking for $SOURCEVIEW_PATH/lablgtk3_sourceview3.$LIB_SUFFIX... " >&6; }
+if eval \${$as_ac_File+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  test "$cross_compiling" = yes &&
+  as_fn_error $? "cannot check for $SOURCEVIEW_PATH/lablgtk3_sourceview3.$LIB_SUFFIX existence when cross compiling" "$LINENO" 5
+if test -r "$SOURCEVIEW_PATH/lablgtk3_sourceview3.$LIB_SUFFIX"; then
+  eval "$as_ac_File=yes"
+else
+  eval "$as_ac_File=no"
+fi
+fi
+eval ac_res=\$$as_ac_File
+	       { $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_res" >&5
+$as_echo "$ac_res" >&6; }
+if eval test \"x\$"$as_ac_File"\" = x"yes"; then :
+  HAS_GTKSOURCEVIEW=yes
+else
+  HAS_GTKSOURCEVIEW=no
+fi
+
+          if test "$HAS_GTKSOURCEVIEW" = "yes"; then SELECTED_GTKSOURCEVIEW=$SOURCEVIEW_PATH/lablgtk3_sourceview3.$LIB_SUFFIX
           fi
        fi
 
@@ -10223,6 +10359,33 @@ else
 fi
 
           if test "$HAS_LABLGTK" = "yes"; then SELECTED_LABLGTK=$LABLGTKPATH_FOR_CONFIGURE/lablgtk.$LIB_SUFFIX
+          fi
+       fi
+       if test "$HAS_LABLGTK" != "yes"; then
+          as_ac_File=`$as_echo "ac_cv_file_$LABLGTKPATH_FOR_CONFIGURE/lablgtk3.$LIB_SUFFIX" | $as_tr_sh`
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for $LABLGTKPATH_FOR_CONFIGURE/lablgtk3.$LIB_SUFFIX" >&5
+$as_echo_n "checking for $LABLGTKPATH_FOR_CONFIGURE/lablgtk3.$LIB_SUFFIX... " >&6; }
+if eval \${$as_ac_File+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  test "$cross_compiling" = yes &&
+  as_fn_error $? "cannot check for $LABLGTKPATH_FOR_CONFIGURE/lablgtk3.$LIB_SUFFIX existence when cross compiling" "$LINENO" 5
+if test -r "$LABLGTKPATH_FOR_CONFIGURE/lablgtk3.$LIB_SUFFIX"; then
+  eval "$as_ac_File=yes"
+else
+  eval "$as_ac_File=no"
+fi
+fi
+eval ac_res=\$$as_ac_File
+	       { $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_res" >&5
+$as_echo "$ac_res" >&6; }
+if eval test \"x\$"$as_ac_File"\" = x"yes"; then :
+  HAS_LABLGTK=yes
+else
+  HAS_LABLGTK=no
+fi
+
+          if test "$HAS_LABLGTK" = "yes"; then SELECTED_LABLGTK=$LABLGTKPATH_FOR_CONFIGURE/lablgtk3.$LIB_SUFFIX
           fi
        fi
 
@@ -10429,7 +10592,7 @@ fi
     if test "$COQC" = "yes" ; then
       COQVERSION=`coqc -v | sed -n -e 's|.*version* *\([^ ]*\) .*$|\1|p' `
       case $COQVERSION in
-        8.5*|8.6*|8.7*|trunk)
+        8.7*|8.8*|8.9*|trunk)
           { $as_echo "$as_me:${as_lineno-$LINENO}: result: coqc version $COQVERSION found" >&5
 $as_echo "coqc version $COQVERSION found" >&6; }
           ;;
@@ -10440,8 +10603,8 @@ $as_echo "unsupported coqc version $COQVERSION" >&6; }
           ;;
       esac
     else
-      { $as_echo "$as_me:${as_lineno-$LINENO}: rerun configure to make wp using coq 8.5+" >&5
-$as_echo "$as_me: rerun configure to make wp using coq 8.5+" >&6;}
+      { $as_echo "$as_me:${as_lineno-$LINENO}: rerun configure to make wp using coq 8.7.2 or higher" >&5
+$as_echo "$as_me: rerun configure to make wp using coq 8.7.2 or higher" >&6;}
     fi
   else
     COQC="no"
@@ -10491,7 +10654,7 @@ fi
     if test "$WHY3COQC" = "yes" ; then
       WHY3VERSION=`why3 --version | sed -n -e 's|.*version *\([^ ]*\)$|\1|p' `
       case $WHY3VERSION in
-        0.88*)
+        1.*)
           { $as_echo "$as_me:${as_lineno-$LINENO}: result: why3 version $WHY3VERSION found" >&5
 $as_echo "why3 version $WHY3VERSION found" >&6; }
 	  WHY3LIB=`why3 --print-libdir`
@@ -10511,12 +10674,28 @@ $as_echo "why3 unsupported version $WHY3VERSION" >&6; }
           ;;
       esac
     else
-      { $as_echo "$as_me:${as_lineno-$LINENO}: rerun configure to make wp using why3 0.88" >&5
-$as_echo "$as_me: rerun configure to make wp using why3 0.88" >&6;}
+      { $as_echo "$as_me:${as_lineno-$LINENO}: rerun configure to make wp using why3 (1.0.0+)" >&5
+$as_echo "$as_me: rerun configure to make wp using why3 (1.0.0+)" >&6;}
     fi
   else
     WHY3COQC="no"
   fi
+
+
+  ## Configuring for WHY3-API
+  WHY3API_VERSION=$($OCAMLFIND query why3 -format %v)
+  case $WHY3API_VERSION in
+    1.*)
+        { $as_echo "$as_me:${as_lineno-$LINENO}: result: why3 api $WHY3API_VERSION found" >&5
+$as_echo "why3 api $WHY3API_VERSION found" >&6; }
+        WHY3API="yes"
+        ;;
+    *)
+        { $as_echo "$as_me:${as_lineno-$LINENO}: result: why3 api not found (no why3 prover detection)" >&5
+$as_echo "why3 api not found (no why3 prover detection)" >&6; }
+        WHY3API="no"
+        ;;
+  esac
 
 
 fi
@@ -10530,9 +10709,10 @@ fi
 
     if test -n "$REQUIRE_GTKSOURCEVIEW" -o -n "$USE_GTKSOURCEVIEW" -o "$no" = "yes"; then
       if test "$HAS_GTKSOURCEVIEW" = "no"; then
-        { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: lablgtksourceview2.$LIB_SUFFIX not found" >&5
-$as_echo "$as_me: WARNING: lablgtksourceview2.$LIB_SUFFIX not found" >&2;}
-        reason="$LABLGTKPATH_FOR_CONFIGURE/lablgtksourceview2.$LIB_SUFFIX missing"
+        { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: lablgtksourceview not found" >&5
+$as_echo "$as_me: WARNING: lablgtksourceview not found" >&2;}
+        reason="$SOURCEVIEW_PATH/lablgtksourceview2.$LIB_SUFFIX,
+                   $SOURCEVIEW_PATH/lablgtk3_sourceview3.$LIB_SUFFIX missing"
 
         for p in $REQUIRE_GTKSOURCEVIEW; do
 	  up=`upper "$p"`
@@ -10543,7 +10723,8 @@ $as_echo "$as_me: WARNING: lablgtksourceview2.$LIB_SUFFIX not found" >&2;}
 	    if eval test "\$$fp" = "yes"; then
 	      as_fn_error $? "$p requested but $reason." "$LINENO" 5
 	    fi
-	    eval $ep="no\ \(see\ warning\ about\ $LABLGTKPATH_FOR_CONFIGURE/lablgtksourceview2.$LIB_SUFFIX\)"
+	    eval $ep="no\ \(see\ warning\ about\ $SOURCEVIEW_PATH/lablgtksourceview2.$LIB_SUFFIX,
+                   $SOURCEVIEW_PATH/lablgtk3_sourceview3.$LIB_SUFFIX\)"
             { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: $p disabled because $reason." >&5
 $as_echo "$as_me: WARNING: $p disabled because $reason." >&2;}
 	    eval INFO_$up=\", $reason\"
@@ -10554,7 +10735,8 @@ $as_echo "$as_me: WARNING: $p disabled because $reason." >&2;}
           ep=ENABLE_$up
           eval eep="\$$ep"
 	  if test "`echo $eep | sed -e 's/ .*//' `" != "no"; then
-	    eval $ep="partial\ \(see\ warning\ about\ $LABLGTKPATH_FOR_CONFIGURE/lablgtksourceview2.$LIB_SUFFIX\)"
+	    eval $ep="partial\ \(see\ warning\ about\ $SOURCEVIEW_PATH/lablgtksourceview2.$LIB_SUFFIX,
+                   $SOURCEVIEW_PATH/lablgtk3_sourceview3.$LIB_SUFFIX\)"
             { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: $p partially enabled because $reason." >&5
 $as_echo "$as_me: WARNING: $p partially enabled because $reason." >&2;}
 	    eval INFO_$up=\", $reason\"
@@ -10602,7 +10784,8 @@ $as_echo "$as_me: WARNING: $p partially enabled because $reason." >&2;}
       if test "$HAS_LABLGTK" = "no"; then
         { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: $LABLGTKPATH_FOR_CONFIGURE/lablgtk.$LIB_SUFFIX not found." >&5
 $as_echo "$as_me: WARNING: $LABLGTKPATH_FOR_CONFIGURE/lablgtk.$LIB_SUFFIX not found." >&2;}
-        reason="$LABLGTKPATH_FOR_CONFIGURE/lablgtk.$LIB_SUFFIX missing"
+        reason="$LABLGTKPATH_FOR_CONFIGURE/lablgtk.$LIB_SUFFIX,
+                   $LABLGTKPATH_FOR_CONFIGURE/lablgtk3.$LIB_SUFFIX missing"
 
         for p in $REQUIRE_LABLGTK; do
 	  up=`upper "$p"`
@@ -10613,7 +10796,8 @@ $as_echo "$as_me: WARNING: $LABLGTKPATH_FOR_CONFIGURE/lablgtk.$LIB_SUFFIX not fo
 	    if eval test "\$$fp" = "yes"; then
 	      as_fn_error $? "$p requested but $reason." "$LINENO" 5
 	    fi
-	    eval $ep="no\ \(see\ warning\ about\ $LABLGTKPATH_FOR_CONFIGURE/lablgtk.$LIB_SUFFIX\)"
+	    eval $ep="no\ \(see\ warning\ about\ $LABLGTKPATH_FOR_CONFIGURE/lablgtk.$LIB_SUFFIX,
+                   $LABLGTKPATH_FOR_CONFIGURE/lablgtk3.$LIB_SUFFIX\)"
             { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: $p disabled because $reason." >&5
 $as_echo "$as_me: WARNING: $p disabled because $reason." >&2;}
 	    eval INFO_$up=\", $reason\"
@@ -10624,7 +10808,8 @@ $as_echo "$as_me: WARNING: $p disabled because $reason." >&2;}
           ep=ENABLE_$up
           eval eep="\$$ep"
 	  if test "`echo $eep | sed -e 's/ .*//' `" != "no"; then
-	    eval $ep="partial\ \(see\ warning\ about\ $LABLGTKPATH_FOR_CONFIGURE/lablgtk.$LIB_SUFFIX\)"
+	    eval $ep="partial\ \(see\ warning\ about\ $LABLGTKPATH_FOR_CONFIGURE/lablgtk.$LIB_SUFFIX,
+                   $LABLGTKPATH_FOR_CONFIGURE/lablgtk3.$LIB_SUFFIX\)"
             { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: $p partially enabled because $reason." >&5
 $as_echo "$as_me: WARNING: $p partially enabled because $reason." >&2;}
 	    eval INFO_$up=\", $reason\"
@@ -10688,6 +10873,7 @@ compute_dependency
 ############################
 
 EXTERNAL_PLUGINS="${EXTERNAL_PLUGINS} ${EXTRA_EXTERNAL_PLUGINS}"
+
 
 
 
@@ -11470,6 +11656,7 @@ do
     "src/plugins/obfuscator/Makefile") CONFIG_FILES="$CONFIG_FILES src/plugins/obfuscator/Makefile" ;;
     "src/plugins/report/Makefile") CONFIG_FILES="$CONFIG_FILES src/plugins/report/Makefile" ;;
     "src/plugins/security_slicing/Makefile") CONFIG_FILES="$CONFIG_FILES src/plugins/security_slicing/Makefile" ;;
+    "src/plugins/studia/Makefile") CONFIG_FILES="$CONFIG_FILES src/plugins/studia/Makefile" ;;
     "src/plugins/variadic/Makefile") CONFIG_FILES="$CONFIG_FILES src/plugins/variadic/Makefile" ;;
     "src/plugins/wp/Makefile") CONFIG_FILES="$CONFIG_FILES src/plugins/wp/Makefile" ;;
     "share/Makefile.config") CONFIG_FILES="$CONFIG_FILES share/Makefile.config" ;;
@@ -12031,6 +12218,7 @@ $as_echo "$as_me: executing $ac_file commands" >&6;}
     "src/plugins/obfuscator/Makefile":F) chmod -w src/plugins/obfuscator/Makefile ;;
     "src/plugins/report/Makefile":F) chmod -w src/plugins/report/Makefile ;;
     "src/plugins/security_slicing/Makefile":F) chmod -w src/plugins/security_slicing/Makefile ;;
+    "src/plugins/studia/Makefile":F) chmod -w src/plugins/studia/Makefile ;;
     "src/plugins/variadic/Makefile":F) chmod -w src/plugins/variadic/Makefile ;;
     "src/plugins/wp/Makefile":F) chmod -w src/plugins/wp/Makefile ;;
     "share/Makefile.config":F) chmod a-w share/Makefile.config ;;

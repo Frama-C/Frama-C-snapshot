@@ -1,0 +1,76 @@
+[kernel] Parsing tests/value/partitioning-annots.c (with preprocessing)
+[eva] Analyzing a complete application starting at test_split
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
+  k ∈ {0}
+[eva] computing for function Frama_C_interval <- test_split.
+  Called from tests/value/partitioning-annots.c:69.
+[eva] using specification for function Frama_C_interval
+[eva] tests/value/partitioning-annots.c:69: 
+  function Frama_C_interval: precondition 'order' got status valid.
+[eva] Done for function Frama_C_interval
+[eva] computing for function Frama_C_interval <- test_split.
+  Called from tests/value/partitioning-annots.c:70.
+[eva] tests/value/partitioning-annots.c:70: 
+  function Frama_C_interval: precondition 'order' got status valid.
+[eva] Done for function Frama_C_interval
+[eva] tests/value/partitioning-annots.c:76: 
+  Frama_C_show_each_before_first_split: {0; 1}, {0; 1; 2}, {0}
+[eva] tests/value/partitioning-annots.c:79: 
+  Frama_C_show_each_before_second_split: {1}, {0; 1; 2}, {1}
+[eva] tests/value/partitioning-annots.c:79: 
+  Frama_C_show_each_before_second_split: {0}, {0; 1; 2}, {0}
+[eva] tests/value/partitioning-annots.c:81: 
+  Frama_C_show_each_before_first_merge: {1}, {2}, {1}
+[eva] tests/value/partitioning-annots.c:81: 
+  Frama_C_show_each_before_first_merge: {1}, {1}, {1}
+[eva] tests/value/partitioning-annots.c:81: 
+  Frama_C_show_each_before_first_merge: {1}, {0}, {1}
+[eva] tests/value/partitioning-annots.c:81: 
+  Frama_C_show_each_before_first_merge: {0}, {2}, {0}
+[eva] tests/value/partitioning-annots.c:81: 
+  Frama_C_show_each_before_first_merge: {0}, {1}, {0}
+[eva] tests/value/partitioning-annots.c:81: 
+  Frama_C_show_each_before_first_merge: {0}, {0}, {0}
+[eva] tests/value/partitioning-annots.c:83: 
+  Frama_C_show_each_before_second_merge: {1}, {2}, {1}
+[eva] tests/value/partitioning-annots.c:83: 
+  Frama_C_show_each_before_second_merge: {0}, {2}, {0}
+[eva] tests/value/partitioning-annots.c:83: 
+  Frama_C_show_each_before_second_merge: {1}, {1}, {1}
+[eva] tests/value/partitioning-annots.c:83: 
+  Frama_C_show_each_before_second_merge: {0}, {1}, {0}
+[eva] tests/value/partitioning-annots.c:83: 
+  Frama_C_show_each_before_second_merge: {1}, {0}, {1}
+[eva] tests/value/partitioning-annots.c:83: 
+  Frama_C_show_each_before_second_merge: {0}, {0}, {0}
+[eva] tests/value/partitioning-annots.c:85: 
+  Frama_C_show_each_end: {1}, {0; 1; 2}, {1}
+[eva] tests/value/partitioning-annots.c:85: 
+  Frama_C_show_each_end: {0}, {0; 1; 2}, {0}
+[eva] Recording results for test_split
+[eva] done for function test_split
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function test_split:
+  Frama_C_entropy_source ∈ [--..--]
+  k ∈ {0; 1}
+  i ∈ {0; 1}
+  j ∈ {0; 1; 2}
+[from] Computing for function test_split
+[from] Computing for function Frama_C_interval <-test_split
+[from] Done for function Frama_C_interval
+[from] Done for function test_split
+[from] ====== DEPENDENCIES COMPUTED ======
+  These dependencies hold at termination for the executions that terminate:
+[from] Function Frama_C_interval:
+  Frama_C_entropy_source FROM Frama_C_entropy_source (and SELF)
+  \result FROM Frama_C_entropy_source; min; max
+[from] Function test_split:
+  Frama_C_entropy_source FROM Frama_C_entropy_source (and SELF)
+  k FROM Frama_C_entropy_source
+[from] ====== END OF DEPENDENCIES ======
+[inout] Out (internal) for function test_split:
+    Frama_C_entropy_source; k; i; j
+[inout] Inputs for function test_split:
+    Frama_C_entropy_source; k

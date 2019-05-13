@@ -4,11 +4,12 @@
 [wp] Loading driver 'share/wp.driver'
 [wp] Warning: Missing RTE guards
 [wp] 2 goals scheduled
-[wp] [Alt-Ergo] Goal typed_f_post_d7_div_0_x_ko : Unknown
-[wp] [Alt-Ergo] Goal typed_f_post_m7_mod_0_x_ko : Unknown
+[wp] [Alt-Ergo] Goal typed_f_ensures_d7_div_0_x_ko : Unsuccess
+[wp] [Alt-Ergo] Goal typed_f_ensures_m7_mod_0_x_ko : Unsuccess
 [wp] Proved goals:    0 / 2
-  Alt-Ergo:        0  (unknown: 2)
-[wp] Report 'tests/wp_acsl/div_mod.i.2.report.json'
+  Alt-Ergo:        0  (unsuccess: 2)
+[wp] Report in:  'tests/wp_acsl/oracle_qualif/div_mod.2.report.json'
+[wp] Report out: 'tests/wp_acsl/result_qualif/div_mod.2.report.json'
 -------------------------------------------------------------
 Functions           WP     Alt-Ergo        Total   Success
 f                   -      -                 2       0.0%

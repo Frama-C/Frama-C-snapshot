@@ -25,7 +25,7 @@
   Frama_C_show_each_in: {0; 1; 2}, [1..23]
 [eva] tests/value/widen_non_constant.i:11: Frama_C_show_each_out: [0..22]
 [eva] tests/value/widen_non_constant.i:13: 
-  Frama_C_show_each_in: [0..23], [1..23]
+  Frama_C_show_each_in: [0..22], [1..23]
 [eva] Recording results for main1
 [eva] Done for function main1
 [eva] computing for function main2 <- main.
@@ -44,7 +44,7 @@
   Frama_C_show_each_in: {0; 1; 2}, [1..23]
 [eva] tests/value/widen_non_constant.i:27: Frama_C_show_each_out: [0..22]
 [eva] tests/value/widen_non_constant.i:29: 
-  Frama_C_show_each_in: [0..25], [1..23]
+  Frama_C_show_each_in: [0..22], [1..23]
 [eva] Recording results for main2
 [eva] Done for function main2
 [eva] computing for function main3 <- main.
@@ -63,11 +63,7 @@
   Frama_C_show_each_in: {0; 1; 2}, [1..23]
 [eva] tests/value/widen_non_constant.i:46: Frama_C_show_each_out: [0..22]
 [eva] tests/value/widen_non_constant.i:48: 
-  Frama_C_show_each_in: [0..2147483647], [1..23]
-[eva:alarm] tests/value/widen_non_constant.i:49: Warning: 
-  out of bounds read. assert \valid_read(p + j);
-[eva:alarm] tests/value/widen_non_constant.i:45: Warning: 
-  signed overflow. assert j + 1 ≤ 2147483647;
+  Frama_C_show_each_in: [0..22], [1..23]
 [eva] Recording results for main3
 [eva] Done for function main3
 [eva] computing for function main4 <- main.
@@ -85,10 +81,10 @@
 [eva] ====== VALUES COMPUTED ======
 [eva:final-states] Values at end of function main1:
   i ∈ {24} or UNINITIALIZED
-  j ∈ {23; 24}
+  j ∈ {23}
 [eva:final-states] Values at end of function main2:
   i ∈ {24; 25} or UNINITIALIZED
-  j ∈ {23; 24; 25; 26}
+  j ∈ {23; 24; 25}
 [eva:final-states] Values at end of function main3:
   i ∈ [24..2147483647] or UNINITIALIZED
   j ∈ [23..2147483647]
@@ -139,7 +135,7 @@
 [inout] Out (internal) for function main2:
     i; j
 [inout] Inputs for function main2:
-    N; B[0..25]
+    N; B[0..23]
 [inout] Out (internal) for function main3:
     i; j; p
 [inout] Inputs for function main3:
@@ -151,4 +147,4 @@
 [inout] Out (internal) for function main:
     t[0..19]; u[0..39]
 [inout] Inputs for function main:
-    N; A[0..23]; B[0..25]; C[0..23]
+    N; A[0..23]; B[0..23]; C[0..23]

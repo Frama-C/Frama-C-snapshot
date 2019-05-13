@@ -2,7 +2,7 @@
 /*                                                                        */
 /*  This file is part of Frama-C.                                         */
 /*                                                                        */
-/*  Copyright (C) 2007-2018                                               */
+/*  Copyright (C) 2007-2019                                               */
 /*    CEA (Commissariat à l'énergie atomique et aux énergies              */
 /*         alternatives)                                                  */
 /*                                                                        */
@@ -20,8 +20,8 @@
 /*                                                                        */
 /**************************************************************************/
 
-#include <glob.h>
-#include <stdlib.h>
+#include "glob.h"
+#include "stdlib.h"
 #include "__fc_builtin.h"
 __PUSH_FC_STDLIB
 
@@ -41,7 +41,7 @@ int glob(const char *pattern, int flags,
     while (pglob->gl_pathv[reserve_offs+prev_len]) prev_len++;
 
   // path points to pglob->gl_pathv if GLOB_APPEND, or NULL otherwise
-  char **path = flags & GLOB_APPEND ? &pglob->gl_pathv : NULL;
+  char **path = flags & GLOB_APPEND ? pglob->gl_pathv : NULL;
   if (pglob->gl_pathc == 0) { // no results found
     if (flags & GLOB_NOCHECK) {
       // allocate 1 slot per reserved offset, + previous length,
@@ -52,7 +52,7 @@ int glob(const char *pattern, int flags,
       if (!pglob->gl_pathv) return GLOB_NOSPACE;
       // 0-init reserved offsets
       for (size_t i = 0; i < reserve_offs; i++) pglob->gl_pathv[i] = 0;
-      pglob->gl_pathv[reserve_offs + prev_len] = pattern;
+      pglob->gl_pathv[reserve_offs + prev_len] = (char*)pattern;
       pglob->gl_pathv[reserve_offs + prev_len + 1] = 0; // terminator
       return 0;
     } else {

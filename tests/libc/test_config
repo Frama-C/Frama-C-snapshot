@@ -1,1 +1,1 @@
-OPT: -val -val-show-progress -cpp-extra-args='-nostdinc -Ishare/libc'
+OPT: -eva @EVA_CONFIG@ -cpp-extra-args='-nostdinc -Ishare/libc'

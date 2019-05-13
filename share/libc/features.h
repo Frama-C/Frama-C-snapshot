@@ -2,7 +2,7 @@
 /*                                                                        */
 /*  This file is part of Frama-C.                                         */
 /*                                                                        */
-/*  Copyright (C) 2007-2018                                               */
+/*  Copyright (C) 2007-2019                                               */
 /*    CEA (Commissariat à l'énergie atomique et aux énergies              */
 /*         alternatives)                                                  */
 /*                                                                        */
@@ -34,12 +34,27 @@
 #define __POP_FC_STDLIB
 #endif
 
-#ifdef	__cplusplus
-# define __BEGIN_DECLS	extern "C" {
-# define __END_DECLS	}
+#ifdef __clang__
+# define __CLANG_IGNORE_ATTRS_PUSH__ \
+_Pragma("clang diagnostic push") \
+_Pragma("clang diagnostic ignored \"-Wunknown-attributes\"")
+# define __CLANG_IGNORE_ATTRS_POP__ \
+_Pragma("clang diagnostic pop")
 #else
-# define __BEGIN_DECLS
-# define __END_DECLS
+# define __CLANG_IGNORE_ATTRS_PUSH__
+# define __CLANG_IGNORE_ATTRS_POP__
+#endif
+
+#ifdef	__cplusplus
+# define __BEGIN_DECLS \
+extern "C" { \
+  __CLANG_IGNORE_ATTRS_PUSH__
+# define __END_DECLS \
+__CLANG_IGNORE_ATTRS_POP__ \
+}
+#else
+# define __BEGIN_DECLS __CLANG_IGNORE_ATTRS_PUSH__
+# define __END_DECLS __CLANG_IGNORE_ATTRS_POP__
 #endif
 
 #undef __LEAF
@@ -107,21 +122,8 @@
 # define __wur /* Ignore */
 #endif
 
-#ifndef __STDC_VERSION__
-#define restrict
-#else
-#define __restrict__
-#define __restrict
-# if __STDC_VERSION__ >= 199901L && defined (FRAMA_C_C99)
-#define restrict restrict
-#define __restrict__ restrict
-#define __restrict restrict
-#  else
-#define restrict
-#define __restrict__
-#define __restrict
-# endif
-#endif
+#define restrict __restrict
+#define __restrict__ __restrict
 
 #define __USE_ISOC99	1
 

@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2018                                               *)
+(*  Copyright (C) 2007-2019                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -87,7 +87,7 @@ module Rel : sig
   val add_abs : Int.t -> t -> Int.t
   val add : t -> t -> t
   val sub_abs : Int.t -> Int.t -> t
-  val pos_rem: t -> Int.t -> t
+  val e_rem: t -> Int.t -> t
 
   val check: rem:t -> modu:Int.t -> bool
 end

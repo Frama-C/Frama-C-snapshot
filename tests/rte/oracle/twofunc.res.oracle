@@ -130,7 +130,7 @@ int main(void)
 [kernel] ================================
 [kernel] printing status
 [kernel] kf = f
-[kernel] - bool_value = false
+[kernel] - bool_value = true
 [kernel] - finite_float = true
 [kernel] - float_to_int = true
 [kernel] - unsigned_downcast = false
@@ -145,7 +145,7 @@ int main(void)
 [kernel] - mem_access = true
 [kernel] - initialized = false
 [kernel] kf = main
-[kernel] - bool_value = false
+[kernel] - bool_value = true
 [kernel] - finite_float = true
 [kernel] - float_to_int = true
 [kernel] - unsigned_downcast = false
@@ -222,7 +222,7 @@ int main(void)
 [kernel] ================================
 [kernel] printing status
 [kernel] kf = f
-[kernel] - bool_value = false
+[kernel] - bool_value = true
 [kernel] - finite_float = true
 [kernel] - float_to_int = true
 [kernel] - unsigned_downcast = false
@@ -237,7 +237,7 @@ int main(void)
 [kernel] - mem_access = true
 [kernel] - initialized = false
 [kernel] kf = main
-[kernel] - bool_value = false
+[kernel] - bool_value = true
 [kernel] - finite_float = true
 [kernel] - float_to_int = true
 [kernel] - unsigned_downcast = false

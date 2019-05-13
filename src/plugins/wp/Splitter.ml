@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2018                                               *)
+(*  Copyright (C) 2007-2019                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -68,7 +68,7 @@ let compare p q =
     | _ , ELSE _ -> 1
     | CASE(s1,k1) , CASE(s2,k2) ->
         let c = Stmt.compare s1 s2 in
-        if c = 0 then Pervasives.compare k1 k2 else c
+        if c = 0 then Transitioning.Stdlib.compare k1 k2 else c
     | CASE _ , _ -> (-1)
     | _ , CASE _ -> 1
     | DEFAULT s , DEFAULT t -> Stmt.compare s t
@@ -80,7 +80,7 @@ let compare p q =
     | CALL _ , _ -> (-1)
     | _ , CALL _ -> 1
     | ASSERT(ip1,k1,_) , ASSERT(ip2,k2,_) ->
-        let c = Pervasives.compare ip1.ip_id ip2.ip_id in
+        let c = Transitioning.Stdlib.compare ip1.ip_id ip2.ip_id in
         if c = 0 then k1 - k2 else c
 
 (* -------------------------------------------------------------------------- *)

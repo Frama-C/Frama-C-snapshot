@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2018                                               *)
+(*  Copyright (C) 2007-2019                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -192,7 +192,7 @@ let compare_kind k1 k2 = match k1, k2 with
         if cmp <> 0 then cmp
         else
           Property.compare p1 p2
-  | _,_ -> Pervasives.compare (kind_order k1) (kind_order k2)
+  | _,_ -> Transitioning.Stdlib.compare (kind_order k1) (kind_order k2)
 
 let compare_prop_id pid1 pid2 =
   (* This order of comparison groups together prop_pids with same properties *)
@@ -204,7 +204,7 @@ let compare_prop_id pid1 pid2 =
     let cmp = compare_kind pid2.p_kind pid1.p_kind in
     if cmp <> 0 then cmp
     else
-      Pervasives.compare pid1.p_part pid2.p_part
+      Transitioning.Stdlib.compare pid1.p_part pid2.p_part
 
 module PropId =
   Datatype.Make_with_collections(
@@ -228,10 +228,15 @@ module PropId =
     let varname = Datatype.undefined
   end)
 
-module Names:
+(* -------------------------------------------------------------------------- *)
+(* --- Lagacy Naming                                                      --- *)
+(* -------------------------------------------------------------------------- *)
+
+module LegacyNames :
 sig
   val get_prop_id_name: prop_id -> string
 end = struct
+
   module NamesTbl = State_builder.Hashtbl(Datatype.String.Hashtbl)(Datatype.Int)
       (struct
         let name = "WpPropertyNames"
@@ -253,7 +258,7 @@ end = struct
         let size = 97
       end)
 
-  let base_id_prop_txt = Property.Names.get_prop_name_id
+  let base_id_prop_txt = Property.LegacyNames.get_prop_name_id
 
   let basename_of_prop_id p =
     match p.p_kind , p.p_prop with
@@ -317,6 +322,90 @@ end = struct
 
 end
 
+(* -------------------------------------------------------------------------- *)
+(* --- Naming Properties                                                  --- *)
+(* -------------------------------------------------------------------------- *)
+
+module Names:
+sig
+  val get_prop_id_name: prop_id -> string
+end =
+struct
+
+  module NamesTbl = State_builder.Hashtbl(Datatype.String.Hashtbl)(Datatype.Int)
+      (struct
+        let name = "Wp.WpPropId.Names.NamesTbl"
+        let dependencies = [ ]
+        let size = 97
+      end)
+
+  module IndexTbl =
+    State_builder.Hashtbl(Property.Hashtbl)(Datatype.String)
+      (struct
+        let name = "Wp.WpPropId.Names.IndexTbl"
+        let dependencies =
+          [ Ast.self;
+            NamesTbl.self;
+            Globals.Functions.self;
+            Annotations.code_annot_state;
+            Annotations.funspec_state;
+            Annotations.global_state ]
+        let size = 97
+      end)
+
+  let compute_ip ip =
+    let truncate = max 20 (Wp_parameters.TruncPropIdFileName.get ()) in
+    let basename = Property.Names.get_prop_basename ~truncate ip in
+    try
+      let speed_up_start = NamesTbl.find basename in
+      let n,unique_name = Extlib.make_unique_name
+          NamesTbl.mem ~sep:"_" ~start:speed_up_start basename
+      in NamesTbl.replace basename (succ n) ;
+      unique_name
+    with Not_found -> (* first time that basename is reserved *)
+      NamesTbl.add basename 2 ; basename
+
+  let get_ip ip =
+    try IndexTbl.find ip
+    with Not_found -> (* first time we are asking for a name for that [ip] *)
+      let unique_name = compute_ip ip in
+      IndexTbl.add ip unique_name ;
+      unique_name
+
+  let get_prop_id_base p =
+    match p.p_kind , p.p_prop with
+    | (PKTactic | PKCheck | PKProp | PKPropLoop) , p -> get_ip p
+    | PKEstablished , p -> get_ip p ^ "_established"
+    | PKPreserved , p -> get_ip p ^ "_preserved"
+    | PKVarDecr , p -> get_ip p ^ "_decrease"
+    | PKVarPos , p -> get_ip p ^ "_positive"
+    | PKAFctOut , p -> get_ip p ^ "_normal"
+    | PKAFctExit , p -> get_ip p ^ "_exit"
+    | PKPre(_kf,stmt,pre) , _ ->
+        let kf_name_of_stmt =
+          Kernel_function.get_name
+            (Kernel_function.find_englobing_kf stmt)
+        in Printf.sprintf "%s_call_%s" kf_name_of_stmt (get_ip pre)
+
+  let get_prop_id_name p =
+    let basename = get_prop_id_base p in
+    match p.p_part with
+    | None -> basename
+    | Some(k,n) ->
+        if n < 10 then Printf.sprintf "%s_part%d" basename (succ k) else
+        if n < 100 then Printf.sprintf "%s_part%02d" basename (succ k) else
+        if n < 1000 then Printf.sprintf "%s_part%03d" basename (succ k) else
+          Printf.sprintf "%s_part%06d" basename (succ k)
+
+end
+
+(* -------------------------------------------------------------------------- *)
+(* --- Naming Accessors                                                   --- *)
+(* -------------------------------------------------------------------------- *)
+
+let get_legacy = LegacyNames.get_prop_id_name
+(** Legacy property PO name *)
+
 let get_propid = Names.get_prop_id_name
 (** Name related to a property PO *)
 
@@ -331,41 +420,35 @@ let ident_names names =
                       | _ as n -> '\"' <> (String.get n 0) ) names
 
 let code_annot_names ca = match ca.annot_content with
-  | AAssert (_, named_pred)  -> "@assert"::(ident_names named_pred.pred_name)
+  | AAssert (_, Check, named_pred)  -> "@check"::(ident_names named_pred.pred_name)
+  | AAssert (_, Assert, named_pred)  -> "@assert"::(ident_names named_pred.pred_name)
   | AInvariant (_,_,named_pred) -> "@invariant"::(ident_names named_pred.pred_name)
   | AVariant (term, _) -> "@variant"::(ident_names term.term_name)
+  | AExtended(_,_,(_,name,_,_,_)) -> [Printf.sprintf "@%s" name]
   | _ -> [] (* TODO : add some more names ? *)
 
 (** This is used to give the name of the property that the user can give
  * to select it from the command line (-wp-prop option) *)
 let user_prop_names p = match p with
   | Property.IPPredicate (kind,_,_,idp) ->
-      let kind_name =
-        Format.asprintf  "%c%a" '@' Property.pretty_predicate_kind kind
-      in
-      kind_name::idp.ip_content.pred_name
-  | Property.IPExtended(_,(_,name,_,_)) ->
-      let kind_name = Format.asprintf "%s_extension" name in [kind_name]
+      Format.asprintf  "@@%a" Property.pretty_predicate_kind kind ::
+      idp.ip_content.pred_name
+  | Property.IPExtended(_,(_,name,_,_,_)) -> [ Printf.sprintf "@%s" name ]
   | Property.IPCodeAnnot (_,_, ca) -> code_annot_names ca
   | Property.IPComplete (_, _,_,lb) ->
       let kind_name = "@complete_behaviors" in
-      let name =
-        Format.asprintf  "complete_behaviors%a" pp_names lb
+      let name = Format.asprintf "complete_behaviors%a" pp_names lb
       in kind_name::[name]
   | Property.IPDisjoint (_, _,_, lb) ->
       let kind_name = "@disjoint_behaviors" in
-      let name = Format.asprintf  "disjoint_behaviors%a" pp_names lb
+      let name = Format.asprintf "disjoint_behaviors%a" pp_names lb
       in kind_name::[name]
   | Property.IPAssigns (_, _, _, l) ->
-      let kind_name = "@assigns" in
       List.fold_left
-        (fun acc (t,_) -> (ident_names t.it_content.term_name) @ acc) [kind_name] l
-  | Property.IPDecrease (_,_, Some ca,_) ->
-      let kind_name = "@decreases"
-      in kind_name::code_annot_names ca
-  | Property.IPDecrease _ ->
-      let kind_name = "@decreases"
-      in kind_name::[] (*TODO: add more names ? *)
+        (fun acc (t,_) -> (ident_names t.it_content.term_name) @ acc)
+        ["@assigns"] l
+  | Property.IPDecrease (_,_, Some ca,_) -> "@decreases"::code_annot_names ca
+  | Property.IPDecrease _ -> [ "@decreases" ]
   | Property.IPLemma (a,_,_,l,_) ->
       let names = "@lemma"::a::(ident_names l.pred_name)
       in begin
@@ -506,7 +589,7 @@ let assigns_hints hs froms =
   List.iter (fun ({it_content=t},_) -> term_hints hs t) froms
 
 let annot_hints hs = function
-  | AAssert(bs,ipred) | AInvariant(bs,_,ipred) ->
+  | AAssert(bs,_,ipred) | AInvariant(bs,_,ipred) ->
       List.iter (add_hint hs) (ident_names ipred.pred_name) ;
       List.iter (add_hint hs) bs
   | AAssigns(bs,Writes froms) ->
@@ -523,7 +606,7 @@ let property_hints hs = function
       List.iter (add_required hs) ps
   | Property.IPPredicate(_,_,_,ipred) ->
       List.iter (add_hint hs) ipred.ip_content.pred_name
-  | Property.IPExtended(_,(_,name,_,_)) -> List.iter (add_hint hs) [name]
+  | Property.IPExtended(_,(_,name,_,_,_)) -> List.iter (add_hint hs) [name]
   | Property.IPCodeAnnot(_,_,ca) -> annot_hints hs ca.annot_content
   | Property.IPAssigns(_,_,_,froms) -> assigns_hints hs froms
   | Property.IPAllocation _ (* TODO *)
@@ -611,29 +694,38 @@ let is_loop_preservation p =
       end
   | _ -> None
 
-let select_by_name asked_names pid =
+let user_prop_pid pid =
   let p_prop = match pid.p_kind with
     | PKPre (_,_,p_prop) -> p_prop
-    | _ -> property_of_id pid
-  in
-  let names = user_prop_names p_prop in
-  let is_minus s = try s.[0] = '-' with _ -> false in
-  let is_plus s = try s.[0] = '+' with _ -> false in
-  let remove_first s = String.sub s 1 ((String.length s) -1) in
-  let eval acc asked =
-    let is_minus,a = match acc with
-      | None -> if is_minus asked then true,true else false,false
-      | Some a -> (is_minus asked),a
-    in let eval () =
-         let asked = if is_minus || (is_plus asked) then remove_first asked else asked
-         in List.mem asked names
-    in Some (if is_minus
-             then a && (not (eval ()))
-             else a || (eval ()))
-  in
-  match List.fold_left eval None asked_names with
-  | Some false -> false
-  | _ -> true
+    | _ -> property_of_id pid in
+  user_prop_names p_prop
+
+let select_default pid =
+  let names = user_prop_pid pid in
+  not (List.mem "no_wp" names)
+
+let select_by_name asked_names pid =
+  let names = user_prop_pid pid in
+  if List.mem "no_wp" names then false
+  else
+    let is_minus s = try s.[0] = '-' with _ -> false in
+    let is_plus s = try s.[0] = '+' with _ -> false in
+    let remove_first s = String.sub s 1 ((String.length s) -1) in
+    let eval acc asked =
+      let is_minus,a = match acc with
+        | None -> if is_minus asked then true,true else false,false
+        | Some a -> (is_minus asked),a
+      in let eval () =
+           let asked = if is_minus || (is_plus asked)
+             then remove_first asked else asked
+           in List.mem asked names
+      in Some (if is_minus
+               then a && (not (eval ()))
+               else a || (eval ()))
+    in
+    match List.fold_left eval None asked_names with
+    | Some false -> false
+    | _ -> true
 
 let select_call_pre s_call asked_pre pid =
   match pid.p_kind with

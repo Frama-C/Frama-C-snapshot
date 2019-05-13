@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2018                                               *)
+(*  Copyright (C) 2007-2019                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -177,14 +177,25 @@ val max_valid_absolute_address: unit -> Int.t
 
 val bits_sizeof : t -> Int_Base.t
 
-val offset_is_in_validity : Int.t -> validity -> Ival.t -> bool
-(** [is_offset_in_validity size validity ival] checks that [ival] is a valid
-    offset for an access of size [size] according to [validity]. *)
+(** Access kind: read/write of k bits, or no access.
+    Without any access, an offset must point into or just beyond the base ("one
+    past the last element of the array object", non-array object being viewed as
+    array of one element). *)
+type access = Read of Int.t | Write of Int.t | No_access
 
-val is_valid_offset : for_writing:bool -> Int.t -> t -> Ival.t -> bool
-(** [is_valid_offset ~for_writing size b offset] checks that [offset]
-    (expressed in bits) plus [size] bits is valid in [b]. *)
+val is_valid_offset : access -> t -> Ival.t -> bool
+(** [is_valid_offset access b offset] holds iff the ival [offset] (expressed in
+    bits) is completely valid for the [access] of base [b] (it only represents
+    valid offsets for such an access). Returns false if [offset] may be invalid
+    for such an access. *)
 
+val valid_offset: ?bitfield:bool -> access -> t -> Ival.t
+(** Computes all offsets that may be valid for an [access] of base [t].
+    For bases with variable or unknown validity, the result may not satisfy
+    [is_valid_offset], as some offsets may be valid or invalid.
+    [bitfield] is true by default: the computed offset may be offsets of
+    bitfields. If it is set to false, the computed offsets are byte aligned
+    (they are all congruent to 0 modulo 8). *)
 
 (** {2 Misc} *)
 

@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2018                                               *)
+(*  Copyright (C) 2007-2019                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -1018,6 +1018,7 @@ module RteGen = struct
   let get_unsignedDownCast_status = mk_fun "RteGen.get_unsignedDownCast_status"
   let get_float_to_int_status = mk_fun "RteGen.get_float_to_int_status"
   let get_finite_float_status = mk_fun "RteGen.get_finite_float_status"
+  let get_bool_value_status = mk_fun "RteGen.get_bool_value_status"
 end
 
 module PostdominatorsTypes = struct

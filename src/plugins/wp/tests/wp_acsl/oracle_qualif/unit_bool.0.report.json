@@ -1,0 +1,103 @@
+{ "wp:global": { "alt-ergo": { "total": 1, "valid": 1, "rank": 1 },
+                 "qed": { "total": 14, "valid": 14 },
+                 "wp:main": { "total": 15, "valid": 15, "rank": 1 } },
+  "wp:axiomatics": { "Foo": { "lemma_f_1": { "alt-ergo": { "total": 1,
+                                                           "valid": 1,
+                                                           "rank": 1 },
+                                             "wp:main": { "total": 1,
+                                                          "valid": 1,
+                                                          "rank": 1 } },
+                              "wp:section": { "alt-ergo": { "total": 1,
+                                                            "valid": 1,
+                                                            "rank": 1 },
+                                              "wp:main": { "total": 1,
+                                                           "valid": 1,
+                                                           "rank": 1 } } } },
+  "wp:functions": { "boolean_casts": { "boolean_casts_check_b1": { "qed": 
+                                                                    { "total": 1,
+                                                                    "valid": 1 },
+                                                                   "wp:main": 
+                                                                    { "total": 1,
+                                                                    "valid": 1 } },
+                                       "boolean_casts_check_b0": { "qed": 
+                                                                    { "total": 1,
+                                                                    "valid": 1 },
+                                                                   "wp:main": 
+                                                                    { "total": 1,
+                                                                    "valid": 1 } },
+                                       "boolean_casts_check_B1": { "qed": 
+                                                                    { "total": 1,
+                                                                    "valid": 1 },
+                                                                   "wp:main": 
+                                                                    { "total": 1,
+                                                                    "valid": 1 } },
+                                       "boolean_casts_check_B0": { "qed": 
+                                                                    { "total": 1,
+                                                                    "valid": 1 },
+                                                                   "wp:main": 
+                                                                    { "total": 1,
+                                                                    "valid": 1 } },
+                                       "boolean_casts_check_x2": { "qed": 
+                                                                    { "total": 1,
+                                                                    "valid": 1 },
+                                                                   "wp:main": 
+                                                                    { "total": 1,
+                                                                    "valid": 1 } },
+                                       "boolean_casts_check_x1": { "qed": 
+                                                                    { "total": 1,
+                                                                    "valid": 1 },
+                                                                   "wp:main": 
+                                                                    { "total": 1,
+                                                                    "valid": 1 } },
+                                       "boolean_casts_check_x0": { "qed": 
+                                                                    { "total": 1,
+                                                                    "valid": 1 },
+                                                                   "wp:main": 
+                                                                    { "total": 1,
+                                                                    "valid": 1 } },
+                                       "boolean_casts_check_X1": { "qed": 
+                                                                    { "total": 1,
+                                                                    "valid": 1 },
+                                                                   "wp:main": 
+                                                                    { "total": 1,
+                                                                    "valid": 1 } },
+                                       "boolean_casts_check_X0": { "qed": 
+                                                                    { "total": 1,
+                                                                    "valid": 1 },
+                                                                   "wp:main": 
+                                                                    { "total": 1,
+                                                                    "valid": 1 } },
+                                       "boolean_casts_check_c2": { "qed": 
+                                                                    { "total": 1,
+                                                                    "valid": 1 },
+                                                                   "wp:main": 
+                                                                    { "total": 1,
+                                                                    "valid": 1 } },
+                                       "boolean_casts_check_c1": { "qed": 
+                                                                    { "total": 1,
+                                                                    "valid": 1 },
+                                                                   "wp:main": 
+                                                                    { "total": 1,
+                                                                    "valid": 1 } },
+                                       "boolean_casts_check_c0": { "qed": 
+                                                                    { "total": 1,
+                                                                    "valid": 1 },
+                                                                   "wp:main": 
+                                                                    { "total": 1,
+                                                                    "valid": 1 } },
+                                       "boolean_casts_check_C1": { "qed": 
+                                                                    { "total": 1,
+                                                                    "valid": 1 },
+                                                                   "wp:main": 
+                                                                    { "total": 1,
+                                                                    "valid": 1 } },
+                                       "boolean_casts_check_C0": { "qed": 
+                                                                    { "total": 1,
+                                                                    "valid": 1 },
+                                                                   "wp:main": 
+                                                                    { "total": 1,
+                                                                    "valid": 1 } },
+                                       "wp:section": { "qed": { "total": 14,
+                                                                "valid": 14 },
+                                                       "wp:main": { "total": 14,
+                                                                    "valid": 14 } } } } }

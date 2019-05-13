@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2018                                               *)
+(*  Copyright (C) 2007-2019                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -49,9 +49,7 @@ let graph_window main_window title mk_view =
   let height = int_of_float (float main_window#default_height *. 3. /. 4.) in
   let width = int_of_float (float main_window#default_width *. 3. /. 4.) in
   let window =
-    GWindow.window
-      ~width ~height ~title ~allow_shrink:true ~allow_grow:true
-      ~position:`CENTER ()
+    GWindow.window ~width ~height ~title ~resizable:true ~position:`CENTER ()
   in
   let view = mk_view ~packing:window#add () in
   window#show ();

@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2018                                               *)
+(*  Copyright (C) 2007-2019                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -227,12 +227,12 @@ let value_uninit_pretty cas prampamp lv s fmt = function
 let offsetmap_pretty cas name print_ampamp fmt offsm =
   let pretty_binding (bk,ek) (v, modu, offset) =
     let iso = V_Or_Uninitialized.is_isotropic v in
-    if Integer.is_zero (Integer.rem bk Integer.eight)
+    if Integer.is_zero (Integer.e_rem bk Integer.eight)
     && (Rel.is_zero offset)
-    && (iso || (Integer.is_zero (Integer.rem modu Integer.eight)))
+    && (iso || (Integer.is_zero (Integer.e_rem modu Integer.eight)))
     then
       let ek = Integer.succ ek in
-      if Integer.is_zero (Integer.rem ek Integer.eight)
+      if Integer.is_zero (Integer.e_rem ek Integer.eight)
       then
         let step = if iso then 1 else (Integer.to_int modu) / 8 in
         let start = ref ((Integer.to_int bk) / 8) in
@@ -280,7 +280,7 @@ let state_pretty cas fmt m =
               begin
                 try offsetmap_pretty cas name print_ampamp fmt offs
                 with
-                | Failure _
+                | Z.Overflow
                 | Too_large_to_enumerate ->
                   Value_parameters.warning "base %s too large, \
                                             will not print it" name
@@ -302,10 +302,10 @@ let print_declarations_for_malloc_bases fmt =
       let dim =
         match validity with
         | Base.Known (l,u) when (Int.is_zero l)->
-          Int.div (Int.succ u) Int.eight
+          Int.e_div (Int.succ u) Int.eight
         | Base.Variable { Base.min_alloc; max_alloc } when
             Int.(ge min_alloc zero && equal min_alloc max_alloc) ->
-          Int.div (Int.succ min_alloc) Int.eight
+          Int.e_div (Int.succ min_alloc) Int.eight
         | _ -> Kernel.abort ~current:true "got unexpected validity: %a"
                  Base.pretty_validity validity
       in

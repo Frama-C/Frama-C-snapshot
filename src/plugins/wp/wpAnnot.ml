@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2018                                               *)
+(*  Copyright (C) 2007-2019                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -219,6 +219,10 @@ let name_of_asked_bhv = function
   | FunBhv None -> Cil.default_behavior_name
   | StmtBhv (_, _, _, bhv) -> bhv.b_name
 
+let asked_bhv = function
+  | FunBhv None -> None
+  | FunBhv (Some bhv) | StmtBhv (_,_,_,bhv) -> Some bhv.b_name
+
 (* This is to code what properties the user asked for in a given behavior. *)
 type asked_prop =
   | AllProps
@@ -325,10 +329,10 @@ let filter_configstatus config pid =
 
 let filter_asked config pid =
   match config.asked_prop with
-  | AllProps -> true
   | IdProp idp -> Property.equal (WpPropId.property_of_id pid) idp
   | CallPre (s_call, asked_pre) -> WpPropId.select_call_pre s_call asked_pre pid
   | NamedProp names -> WpPropId.select_by_name names pid
+  | AllProps -> WpPropId.select_default pid
 
 let rec filter config pid = function
   | [] -> None
@@ -765,20 +769,20 @@ let get_call_annots config v s fct =
   | Cil2cfg.Static kf -> add_call_annots config s kf l_post empty
 
   | Cil2cfg.Dynamic _ ->
-      let calls = Dyncall.get ~bhv:(name_of_asked_bhv config.cur_bhv) s in
-      if calls=[] then
-        begin
+      let bhv = asked_bhv config.cur_bhv in
+      match Dyncall.get ?bhv s with
+      | None | Some(_,[]) ->
           Wp_parameters.warning ~once:true ~source:(fst (Stmt.loc s))
-            "Ignored function pointer (see -wp-dynamic)" ;
+            "Missing 'calls' for %s"
+            (match bhv with
+             | None -> "default behavior"
+             | Some b -> b) ;
           let annots = WpStrategy.add_call_assigns_any WpStrategy.empty_acc s in
           WpStrategy.empty_acc, (annots , annots)
-        end
-      else
-        begin
+      | Some(_,calls) ->
           List.fold_left
             (fun acc kf -> add_call_annots config s kf l_post acc)
             empty calls
-        end
 
 (*----------------------------------------------------------------------------*)
 let add_variant_annot config s ca var_exp loop_entry loop_back =
@@ -898,24 +902,25 @@ let get_stmt_annots config v s =
               Printer.pp_code_annotation a;
             acc
           end
-    | AAssert (b_list,p) ->
+    | AAssert (b_list, kind, p) ->
         let kf = config.kf in
         let acc = match is_annot_for_config config v s b_list with
           | TBRno -> acc
           | TBRhyp ->
-              let b_acc =
-                WpStrategy.add_prop_assert b_acc WpStrategy.Ahyp kf s a p
-              in (b_acc, (a_acc, e_acc))
+              if kind = Check then acc
+              else
+                let b_acc =
+                  WpStrategy.add_prop_assert b_acc WpStrategy.Ahyp kf s a p
+                in (b_acc, (a_acc, e_acc))
           | TBRok | TBRpart ->
               let id = WpPropId.mk_assert_id config.kf s a in
-              let kind =
-                if Wp_parameters.Assert_check_only.get () then
-                  WpStrategy.Agoal
-                else
-                  WpStrategy.Aboth (goal_to_select config id)
-              in
-              let b_acc = WpStrategy.add_prop_assert b_acc kind kf s a p in
-              (b_acc, (a_acc, e_acc))
+              let check = kind = Check
+              and goal = goal_to_select config id in
+              if check && not goal then acc
+              else
+                let kind = WpStrategy.(if check then Agoal else Aboth goal) in
+                let b_acc = WpStrategy.add_prop_assert b_acc kind kf s a p in
+                (b_acc, (a_acc, e_acc))
         in acc
     | AAllocation (_b_list, _frees_allocates) ->
         (* [PB] TODO *) acc
@@ -1381,7 +1386,7 @@ let get_id_prop_strategies ~model ?(assigns=WithAssigns) p =
   match p with
   | Property.IPCodeAnnot (kf,_,ca) ->
       let bhvs = match ca.annot_content with
-        | AAssert (l, _) | AInvariant (l, _, _) | AAssigns (l, _) -> l
+        | AAssert (l, _, _) | AInvariant (l, _, _) | AAssigns (l, _) -> l
         | _ -> []
       in get_strategies assigns kf model bhvs None (IdProp p)
   | Property.IPAssigns (kf, _, Property.Id_loop _, _)

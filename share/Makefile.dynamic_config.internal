@@ -2,7 +2,7 @@
 #                                                                        #
 #  This file is part of Frama-C.                                         #
 #                                                                        #
-#  Copyright (C) 2007-2018                                               #
+#  Copyright (C) 2007-2019                                               #
 #    CEA (Commissariat à l'énergie atomique et aux énergies              #
 #         alternatives)                                                  #
 #                                                                        #
@@ -35,6 +35,9 @@ export DOC_DIR=$(FRAMAC_ROOT_SRCDIR)/doc/code
 export PLUGIN_LIB_DIR=$(FRAMAC_ROOT_SRCDIR)/lib/plugins
 
 export FRAMAC_COMPILED_PLUGINDIR=$(FRAMAC_ROOT_SRCDIR)/lib/plugins
+
+export OCAMLPATH:=$(FRAMAC_LIB):$(PLUGIN_LIB_DIR)$(if $(OCAMLPATH),:,)$(OCAMLPATH)
+export OCAMLFIND_IGNORE_DUPS_IN:=$(FRAMAC_LIB):$(PLUGIN_LIB_DIR)$(if $(OCAMLFIND_IGNORE_DUPS_IN),:,)$(OCAMLFIND_IGNORE_DUPS_IN)
 
 ##########################################################################
 # Local Variables:

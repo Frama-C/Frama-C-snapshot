@@ -4,11 +4,12 @@
 [wp] Loading driver 'share/wp.driver'
 [wp] Warning: Missing RTE guards
 [wp] 2 goals scheduled
-[wp] [Alt-Ergo] Goal typed_f_post_qed_ko_P_oracle_ko : Step limit
-[wp] [Alt-Ergo] Goal typed_f_post_qed_ko_Q_oracle_ko : Step limit
+[wp] [Alt-Ergo] Goal typed_f_ensures_qed_ko_P_oracle_ko : Unsuccess
+[wp] [Alt-Ergo] Goal typed_f_ensures_qed_ko_Q_oracle_ko : Unsuccess
 [wp] Proved goals:    0 / 2
-  Alt-Ergo:        0  (interrupted: 2)
-[wp] Report 'tests/wp_store/nonaliasing.i.1.report.json'
+  Alt-Ergo:        0  (unsuccess: 2)
+[wp] Report in:  'tests/wp_store/oracle_qualif/nonaliasing.1.report.json'
+[wp] Report out: 'tests/wp_store/result_qualif/nonaliasing.1.report.json'
 -------------------------------------------------------------
 Functions           WP     Alt-Ergo        Total   Success
 f                   -      -                 2       0.0%

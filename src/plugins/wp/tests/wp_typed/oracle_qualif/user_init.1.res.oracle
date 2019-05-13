@@ -1,0 +1,49 @@
+# frama-c -wp -wp-timeout 90 -wp-steps 1500 [...]
+[kernel] Parsing tests/wp_typed/user_init.i (no preprocessing)
+[wp] Running WP plugin...
+[wp] Loading driver 'share/wp.driver'
+[wp] [CFG] Goal init_exits : Valid (Unreachable)
+[wp] [CFG] Goal init_t1_exits : Valid (Unreachable)
+[wp] [CFG] Goal init_t2_v1_exits : Valid (Unreachable)
+[wp] [CFG] Goal init_t2_v2_exits : Valid (Unreachable)
+[wp] [CFG] Goal init_t2_v3_exits : Valid (Unreachable)
+[wp] Warning: Missing RTE guards
+[wp] 23 goals scheduled
+[wp] [Qed] Goal typed_init_t2_bis_v2_loop_assigns_part1 : Valid
+[wp] Warning: creating session directory `tests/wp_typed/result_qualif/user_init-session-1'
+[wp] Warning: creating session directory `tests/wp_typed/result_qualif/user_init-session-1/wp'
+[wp] [Tactical] Goal typed_init_t2_bis_v2_loop_assigns_part2 : Valid
+[wp] [Tactical] Goal typed_init_t2_bis_v2_loop_assigns_part3 : Valid
+[wp] [Tactical] Goal typed_init_t2_bis_v2_assigns_exit_part1 : Valid
+[wp] [Tactical] Goal typed_init_t2_bis_v2_assigns_exit_part2 : Valid
+[wp] [Qed] Goal typed_init_t2_bis_v2_assigns_exit_part3 : Valid
+[wp] [Tactical] Goal typed_init_t2_bis_v2_assigns_normal_part1 : Valid
+[wp] [Tactical] Goal typed_init_t2_bis_v2_assigns_normal_part2 : Valid
+[wp] [Qed] Goal typed_init_t2_v2_loop_assigns_part1 : Valid
+[wp] [Tactical] Goal typed_init_t2_v2_loop_assigns_part2 : Valid
+[wp] [Tactical] Goal typed_init_t2_v2_loop_assigns_part3 : Valid
+[wp] [Qed] Goal typed_init_t2_v2_loop_assigns_2_part1 : Valid
+[wp] [Tactical] Goal typed_init_t2_v2_loop_assigns_2_part2 : Valid
+[wp] [Tactical] Goal typed_init_t2_v2_loop_assigns_2_part3 : Valid
+[wp] [Tactical] Goal typed_init_t2_v2_assigns_part1 : Valid
+[wp] [Tactical] Goal typed_init_t2_v2_assigns_part2 : Valid
+[wp] [Qed] Goal typed_init_t2_v3_loop_assigns_part1 : Valid
+[wp] [Tactical] Goal typed_init_t2_v3_loop_assigns_part2 : Valid
+[wp] [Tactical] Goal typed_init_t2_v3_loop_assigns_part3 : Valid
+[wp] [Qed] Goal typed_init_t2_v3_loop_assigns_2_part1 : Valid
+[wp] [Tactical] Goal typed_init_t2_v3_loop_assigns_2_part2 : Valid
+[wp] [Tactical] Goal typed_init_t2_v3_assigns_part1 : Valid
+[wp] [Tactical] Goal typed_init_t2_v3_assigns_part2 : Valid
+[wp] Proved goals:   23 / 23
+  Qed:            11 
+  Alt-Ergo:        0  (unsuccess: 12)
+  Script:         12
+[wp] Updated session with 12 new valid scripts.
+[wp] Report in:  'tests/wp_typed/oracle_qualif/user_init.1.report.json'
+[wp] Report out: 'tests/wp_typed/result_qualif/user_init.1.report.json'
+-------------------------------------------------------------
+Functions           WP     Alt-Ergo        Total   Success
+init_t2_v2           3     -  (16..28)       8       100%
+init_t2_v3           4     -  (20..32)       7       100%
+init_t2_bis_v2       4     -  (28..40)       8       100%
+-------------------------------------------------------------

@@ -6,57 +6,58 @@
 [wp] tests/wp_plugin/repeat.c:47: Warning: 
   Missing assigns clause (assigns 'everything' instead)
 [wp] 47 goals scheduled
-[wp] [Qed] Goal typed_induction_post : Valid
-[wp] [Alt-Ergo] Goal typed_induction_loop_inv_preserved : Valid
-[wp] [Qed] Goal typed_induction_loop_inv_established : Valid
-[wp] [Alt-Ergo] Goal typed_induction_loop_inv_2_preserved : Valid
-[wp] [Qed] Goal typed_induction_loop_inv_2_established : Valid
-[wp] [Qed] Goal typed_induction_loop_assign : Valid
-[wp] [Qed] Goal typed_induction_assign_exit_part1 : Valid
-[wp] [Qed] Goal typed_induction_assign_exit_part2 : Valid
-[wp] [Qed] Goal typed_induction_assign_normal : Valid
-[wp] [Qed] Goal typed_master_post : Valid
-[wp] [Qed] Goal typed_master_assign_exit : Valid
-[wp] [Qed] Goal typed_master_assign_normal : Valid
-[wp] [Alt-Ergo] Goal typed_shifted_post : Valid
-[wp] [Alt-Ergo] Goal typed_shifted_loop_inv_preserved : Valid
-[wp] [Qed] Goal typed_shifted_loop_inv_established : Valid
-[wp] [Alt-Ergo] Goal typed_shifted_loop_inv_2_preserved : Valid
-[wp] [Qed] Goal typed_shifted_loop_inv_2_established : Valid
-[wp] [Qed] Goal typed_shifted_loop_assign : Valid
-[wp] [Qed] Goal typed_shifted_assign_exit_part1 : Valid
-[wp] [Qed] Goal typed_shifted_assign_exit_part2 : Valid
-[wp] [Qed] Goal typed_shifted_assign_normal_part1 : Valid
-[wp] [Qed] Goal typed_shifted_assign_normal_part2 : Valid
-[wp] [Qed] Goal typed_unroll_post : Valid
-[wp] [Qed] Goal typed_unroll_loop_inv_preserved : Valid
-[wp] [Qed] Goal typed_unroll_loop_inv_established : Valid
-[wp] [Qed] Goal typed_unroll_assign_exit_part01 : Valid
-[wp] [Qed] Goal typed_unroll_assign_exit_part02 : Valid
-[wp] [Qed] Goal typed_unroll_assign_exit_part03 : Valid
-[wp] [Qed] Goal typed_unroll_assign_exit_part04 : Valid
-[wp] [Qed] Goal typed_unroll_assign_exit_part05 : Valid
-[wp] [Qed] Goal typed_unroll_assign_exit_part06 : Valid
-[wp] [Qed] Goal typed_unroll_assign_exit_part07 : Valid
-[wp] [Qed] Goal typed_unroll_assign_exit_part08 : Valid
-[wp] [Qed] Goal typed_unroll_assign_exit_part09 : Valid
-[wp] [Qed] Goal typed_unroll_assign_exit_part10 : Valid
-[wp] [Qed] Goal typed_unroll_assign_exit_part11 : Valid
-[wp] [Qed] Goal typed_unroll_assign_normal_part01 : Valid
-[wp] [Qed] Goal typed_unroll_assign_normal_part02 : Valid
-[wp] [Qed] Goal typed_unroll_assign_normal_part03 : Valid
-[wp] [Qed] Goal typed_unroll_assign_normal_part04 : Valid
-[wp] [Qed] Goal typed_unroll_assign_normal_part05 : Valid
-[wp] [Qed] Goal typed_unroll_assign_normal_part06 : Valid
-[wp] [Qed] Goal typed_unroll_assign_normal_part07 : Valid
-[wp] [Qed] Goal typed_unroll_assign_normal_part08 : Valid
-[wp] [Qed] Goal typed_unroll_assign_normal_part09 : Valid
-[wp] [Qed] Goal typed_unroll_assign_normal_part10 : Valid
-[wp] [Qed] Goal typed_unroll_assign_normal_part11 : Valid
+[wp] [Qed] Goal typed_induction_ensures : Valid
+[wp] [Alt-Ergo] Goal typed_induction_loop_invariant_preserved : Valid
+[wp] [Qed] Goal typed_induction_loop_invariant_established : Valid
+[wp] [Alt-Ergo] Goal typed_induction_loop_invariant_2_preserved : Valid
+[wp] [Qed] Goal typed_induction_loop_invariant_2_established : Valid
+[wp] [Qed] Goal typed_induction_loop_assigns : Valid
+[wp] [Qed] Goal typed_induction_assigns_exit_part1 : Valid
+[wp] [Qed] Goal typed_induction_assigns_exit_part2 : Valid
+[wp] [Qed] Goal typed_induction_assigns_normal : Valid
+[wp] [Qed] Goal typed_master_ensures : Valid
+[wp] [Qed] Goal typed_master_assigns_exit : Valid
+[wp] [Qed] Goal typed_master_assigns_normal : Valid
+[wp] [Alt-Ergo] Goal typed_shifted_ensures : Valid
+[wp] [Alt-Ergo] Goal typed_shifted_loop_invariant_preserved : Valid
+[wp] [Qed] Goal typed_shifted_loop_invariant_established : Valid
+[wp] [Alt-Ergo] Goal typed_shifted_loop_invariant_2_preserved : Valid
+[wp] [Qed] Goal typed_shifted_loop_invariant_2_established : Valid
+[wp] [Qed] Goal typed_shifted_loop_assigns : Valid
+[wp] [Qed] Goal typed_shifted_assigns_exit_part1 : Valid
+[wp] [Qed] Goal typed_shifted_assigns_exit_part2 : Valid
+[wp] [Qed] Goal typed_shifted_assigns_normal_part1 : Valid
+[wp] [Qed] Goal typed_shifted_assigns_normal_part2 : Valid
+[wp] [Qed] Goal typed_unroll_ensures : Valid
+[wp] [Qed] Goal typed_unroll_loop_invariant_preserved : Valid
+[wp] [Qed] Goal typed_unroll_loop_invariant_established : Valid
+[wp] [Qed] Goal typed_unroll_assigns_exit_part01 : Valid
+[wp] [Qed] Goal typed_unroll_assigns_exit_part02 : Valid
+[wp] [Qed] Goal typed_unroll_assigns_exit_part03 : Valid
+[wp] [Qed] Goal typed_unroll_assigns_exit_part04 : Valid
+[wp] [Qed] Goal typed_unroll_assigns_exit_part05 : Valid
+[wp] [Qed] Goal typed_unroll_assigns_exit_part06 : Valid
+[wp] [Qed] Goal typed_unroll_assigns_exit_part07 : Valid
+[wp] [Qed] Goal typed_unroll_assigns_exit_part08 : Valid
+[wp] [Qed] Goal typed_unroll_assigns_exit_part09 : Valid
+[wp] [Qed] Goal typed_unroll_assigns_exit_part10 : Valid
+[wp] [Qed] Goal typed_unroll_assigns_exit_part11 : Valid
+[wp] [Qed] Goal typed_unroll_assigns_normal_part01 : Valid
+[wp] [Qed] Goal typed_unroll_assigns_normal_part02 : Valid
+[wp] [Qed] Goal typed_unroll_assigns_normal_part03 : Valid
+[wp] [Qed] Goal typed_unroll_assigns_normal_part04 : Valid
+[wp] [Qed] Goal typed_unroll_assigns_normal_part05 : Valid
+[wp] [Qed] Goal typed_unroll_assigns_normal_part06 : Valid
+[wp] [Qed] Goal typed_unroll_assigns_normal_part07 : Valid
+[wp] [Qed] Goal typed_unroll_assigns_normal_part08 : Valid
+[wp] [Qed] Goal typed_unroll_assigns_normal_part09 : Valid
+[wp] [Qed] Goal typed_unroll_assigns_normal_part10 : Valid
+[wp] [Qed] Goal typed_unroll_assigns_normal_part11 : Valid
 [wp] Proved goals:   47 / 47
   Qed:            42 
   Alt-Ergo:        5
-[wp] Report 'tests/wp_plugin/repeat.c.0.report.json'
+[wp] Report in:  'tests/wp_plugin/oracle_qualif/repeat.0.report.json'
+[wp] Report out: 'tests/wp_plugin/result_qualif/repeat.0.report.json'
 -------------------------------------------------------------
 Functions           WP     Alt-Ergo        Total   Success
 master               3     -                 3       100%

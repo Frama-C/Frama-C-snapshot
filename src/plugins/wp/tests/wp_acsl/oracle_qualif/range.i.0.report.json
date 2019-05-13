@@ -1,0 +1,26 @@
+{ "wp:global": { "qed": { "total": 4, "valid": 4 },
+                 "wp:main": { "total": 4, "valid": 4 } },
+  "wp:functions": { "test": { "val_assigns_q_requires_HQ_ok": { "qed": 
+                                                                  { "total": 1,
+                                                                    "valid": 1 },
+                                                                "wp:main": 
+                                                                  { "total": 1,
+                                                                    "valid": 1 } },
+                              "val_assigns_p_requires_HP_ok": { "qed": 
+                                                                  { "total": 1,
+                                                                    "valid": 1 },
+                                                                "wp:main": 
+                                                                  { "total": 1,
+                                                                    "valid": 1 } },
+                              "test_ensures_P2_ok": { "qed": { "total": 1,
+                                                               "valid": 1 },
+                                                      "wp:main": { "total": 1,
+                                                                   "valid": 1 } },
+                              "test_ensures_P1_ok": { "qed": { "total": 1,
+                                                               "valid": 1 },
+                                                      "wp:main": { "total": 1,
+                                                                   "valid": 1 } },
+                              "wp:section": { "qed": { "total": 4,
+                                                       "valid": 4 },
+                                              "wp:main": { "total": 4,
+                                                           "valid": 4 } } } } }

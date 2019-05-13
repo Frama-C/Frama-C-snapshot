@@ -1,5 +1,5 @@
 /*run.config
-  STDOPT: #"-val-split-return auto -slevel 2"
+  STDOPT: #"-eva-split-return auto -slevel 2"
 */
 // Extract based on Linux Programmer's Manual, GETADDRINFO(3) man page
 #include <sys/types.h>
@@ -68,5 +68,10 @@ int main() {
 
   freeaddrinfo(result);           /* No longer needed */
 
+  struct hostent *h = gethostbyname("localhost");
+  if (h) {
+    char *addrs = h->h_addr;
+    int l = h->h_length;
+  }
   return 0;
 }

@@ -57,7 +57,7 @@ The recommended usage for simple files is one of the following lines:
     frama-c-gui file.c
 
 Where `-<plugin>` is one of the several Frama-C plug-ins,
-e.g. `-val`, or `-wp`, or `-metrics`, etc.
+e.g. `-eva`, or `-wp`, or `-metrics`, etc.
 Plug-ins can also be run directly from the GUI.
 
 To list all plug-ins, run:

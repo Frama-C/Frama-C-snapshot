@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2018                                               *)
+(*  Copyright (C) 2007-2019                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -46,7 +46,7 @@ let dynlib_init () =
   if not !dynlib_init then
     begin
       dynlib_init := true ;
-      Dynlink.init () ;
+      Transitioning.Dynlink.init () ;
       Dynlink.allow_unsafe_modules true ;
     end
 
@@ -125,7 +125,7 @@ let is_object base =
 
 let packages = Hashtbl.create 64
 
-let () = List.iter (fun p -> Hashtbl.add packages p ()) Config.library_names
+let () = List.iter (fun p -> Hashtbl.add packages p ()) ("frama-c.kernel"::Config.library_names)
 
 let missing pkg = not (Hashtbl.mem packages pkg)
 
@@ -281,8 +281,9 @@ let set_module_load_path path =
   Klog.debug ~dkey "plugin_dir: %s" (String.concat ":" Config.plugin_dir);
   load_path :=
     List.fold_right (add_dir ~user:true) path
-      (List.fold_right (add_dir ~user:false) Config.plugin_dir []);
-  let findlib_path = String.concat ":" !load_path in
+      (List.fold_right (add_dir ~user:false) (Config.libdir::Config.plugin_dir) []);
+  let env_ocamlpath = try Str.split (Str.regexp ":") (Sys.getenv "OCAMLPATH") with Not_found -> [] in
+  let findlib_path = String.concat ":" (!load_path@env_ocamlpath) in
   Klog.debug ~dkey "setting findlib path to %s" findlib_path;
   Findlib.init ~env_ocamlpath:findlib_path ()
 

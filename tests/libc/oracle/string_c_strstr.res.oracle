@@ -68,7 +68,7 @@
   function strstr: precondition 'valid_string_haystack' got status valid.
 [eva] tests/libc/string_c_strstr.c:59: 
   function strstr: precondition 'valid_string_needle' got status valid.
-[eva] share/libc/string.c:258: starting to merge loop iterations
+[eva] share/libc/string.c:266: starting to merge loop iterations
 [eva] Recording results for strstr
 [eva] Done for function strstr
 [eva] computing for function strstr <- main.

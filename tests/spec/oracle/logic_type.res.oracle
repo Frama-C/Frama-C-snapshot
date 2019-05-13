@@ -51,4 +51,15 @@ void h(void)
   return;
 }
 
+/*@ logic t t_from_t(t x) = x;
+ */
+/*@ logic _Bool _Bool_from_boolean(𝔹 b) = (_Bool)b;
+ */
+/*@ logic 𝔹 boolean_from_integer(ℤ b) = b ≢ 0;
+ */
+/*@ logic 𝔹 boolean_from_int(int b) = b ≢ 0;
+ */
+/*@ logic 𝔹 boolean_from_Bool(_Bool b) = b ≢ 0;
+
+*/
 

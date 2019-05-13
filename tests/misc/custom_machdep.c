@@ -1,5 +1,6 @@
 /* run.config*
-OPT: -cpp-extra-args="-I@PTEST_DIR@/@PTEST_NAME@ -D__FC_MACHDEP_CUSTOM" -load-script @PTEST_DIR@/@PTEST_NAME@/@PTEST_NAME@.ml -machdep custom -print -then -print
+EXECNOW: make -s @PTEST_DIR@/@PTEST_NAME@/@PTEST_NAME@.cmxs
+OPT: -cpp-extra-args="-I@PTEST_DIR@/@PTEST_NAME@ -D__FC_MACHDEP_CUSTOM" -load-module @PTEST_DIR@/@PTEST_NAME@/@PTEST_NAME@ -machdep custom -print -then -print
 COMMENT: we need a -then to test double registering of a machdep
 */
 

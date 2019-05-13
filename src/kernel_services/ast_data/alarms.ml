@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2018                                               *)
+(*  Copyright (C) 2007-2019                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -129,7 +129,7 @@ module D =
           let n = Exp.compare e1 e2 in
           if n = 0 then Extlib.compare_basic fk1 fk2 else n
         | Memory_access(lv1, access_kind1), Memory_access(lv2, access_kind2) ->
-          let n = Pervasives.compare access_kind1 access_kind2 in
+          let n = Transitioning.Stdlib.compare access_kind1 access_kind2 in
           if n = 0 then Lval.compare lv1 lv2 else n
         | Index_out_of_bound(e11, e12), Index_out_of_bound(e21, e22) ->
           let n = Exp.compare e11 e21 in
@@ -141,11 +141,11 @@ module D =
           let n = Extlib.opt_compare Exp.compare e11 e21 in
           if n = 0 then Exp.compare e12 e22 else n
         | Overflow(s1, e1, n1, b1), Overflow(s2, e2, n2, b2) ->
-          let n = Pervasives.compare s1 s2 in
+          let n = Transitioning.Stdlib.compare s1 s2 in
           if n = 0 then
             let n = Exp.compare e1 e2 in
             if n = 0 then
-              let n = Pervasives.compare b1 b2 in
+              let n = Transitioning.Stdlib.compare b1 b2 in
               if n = 0 then Integer.compare n1 n2 else n
             else
               n
@@ -154,7 +154,7 @@ module D =
         | Float_to_int(e1, n1, b1), Float_to_int(e2, n2, b2) ->
           let n = Exp.compare e1 e2 in
           if n = 0 then
-            let n = Pervasives.compare b1 b2 in
+            let n = Transitioning.Stdlib.compare b1 b2 in
             if n = 0 then Integer.compare n1 n2 else n
           else
             n
@@ -669,7 +669,7 @@ let to_annot_aux kinstr ?(loc=Kinstr.loc kinstr) alarm =
 (*  Kernel.debug "registering alarm %a" D.pretty alarm;*)
   let add alarm =
     let pred = create_predicate ~loc alarm in
-    Logic_const.new_code_annotation (AAssert([], pred))
+    Logic_const.new_code_annotation (AAssert([], Assert, pred))
   in
   try
     let by_emitter = State.find kinstr in

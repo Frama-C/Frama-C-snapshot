@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2018                                               *)
+(*  Copyright (C) 2007-2019                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -24,9 +24,7 @@ open Cil_types
 
 type 'a alarm_gen =
   remove_trivial:bool ->
-  on_alarm:(?status:Property_status.emitted_status ->
-            Alarms.alarm ->
-            unit) ->
+  on_alarm:(invalid:bool -> Alarms.alarm -> unit) ->
   'a -> unit
 (** ['a alarm_gen] is an abstraction over the process of generating a certain
     kind of RTEs over something of type ['a].

@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2018                                               *)
+(*  Copyright (C) 2007-2019                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -48,7 +48,7 @@ let rec pp_print_string_fill out s =
       Format.fprintf out "%s@ %a" s1 pp_print_string_fill s2
   end else Format.pp_print_string out s
 
-type sformat = (unit,Format.formatter,unit) Pervasives.format
+type sformat = (unit,Format.formatter,unit) format
 type 'a formatter = Format.formatter -> 'a -> unit
 type ('a,'b) formatter2 = Format.formatter -> 'a -> 'b -> unit
 
@@ -184,7 +184,7 @@ type marger = int ref
 let marger () = ref 0
 let add_margin marger ?(margin=0) ?(min=0) ?(max=80) text =
   let size = String.length text + margin in
-  let n = Pervasives.min max (Pervasives.max min size) in
+  let n = Transitioning.Stdlib.min max (Transitioning.Stdlib.max min size) in
   if n > !marger then marger := n
 
 type align = [ `Center | `Left | `Right ]

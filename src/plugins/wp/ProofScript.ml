@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2018                                               *)
+(*  Copyright (C) 2007-2019                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -91,7 +91,7 @@ let pattern p =
 let occur p t =
   Footprint.locate ~inside:(Lang.F.e_prop p) ~select:t
 
-let j_select s = "select" , Json.String s
+let j_select s = "select" , `String s
 let j_goal = j_select "clause-goal"
 let j_step = j_select "clause-step"
 let j_ingoal = j_select "inside-goal"
@@ -99,51 +99,51 @@ let j_instep = j_select "inside-step"
 let j_compose = j_select "compose"
 let j_kint = j_select "kint"
 let j_range = j_select "range"
-let j_id a = "id" , Json.String a
-let j_at s = "at" , Json.Int s.id
-let j_int z = "val" , Json.String (Integer.to_string z)
-let j_min a = "min" , Json.Int a
-let j_max b = "max" , Json.Int b
-let j_kind s = "kind" , Json.String (s_kind s)
-let j_pattern p = "pattern" , Json.String p
+let j_id a = "id" , `String a
+let j_at s = "at" , `Int s.id
+let j_int z = "val" , `String (Integer.to_string z)
+let j_min a = "min" , `Int a
+let j_max b = "max" , `Int b
+let j_kind s = "kind" , `String (s_kind s)
+let j_pattern p = "pattern" , `String p
 let j_ppattern p = j_pattern (pattern p)
-let j_occur k = "occur" , Json.Int k
+let j_occur k = "occur" , `Int k
 let j_pred p =
   let tgt = Pretty_utils.to_string Lang.F.pp_pred p in
-  "target" , Json.String tgt
+  "target" , `String tgt
 let j_term e =
   let tgt = Pretty_utils.to_string Lang.F.pp_term e in
-  "target" , Json.String tgt
+  "target" , `String tgt
 
 let rec json_of_selection = function
 
-  | Empty -> Json.Null
+  | Empty -> `Null
   | Compose code -> json_of_compose code
 
   | Clause (Goal p) ->
-      Json.(Assoc[ j_goal ; j_pred p ; j_ppattern p ])
+      `Assoc[ j_goal ; j_pred p ; j_ppattern p ]
 
   | Clause (Step s) ->
       let p = Conditions.head s in
-      Json.(Assoc[ j_step ; j_at s ; j_kind s ; j_pred p ; j_ppattern p ])
+      `Assoc[ j_step ; j_at s ; j_kind s ; j_pred p ; j_ppattern p ]
 
   | Inside(Goal p,e) ->
       let n,m = occur p e in
-      Json.(Assoc [ j_ingoal ; j_occur n ; j_term e ; j_pattern m ])
+      `Assoc [ j_ingoal ; j_occur n ; j_term e ; j_pattern m ]
 
   | Inside(Step s,e) ->
       let n,m = occur (Conditions.head s) e in
-      Json.(Assoc [ j_instep ; j_at s ; j_kind s ; j_occur n ;
-                    j_term e ; j_pattern m ])
+      `Assoc [ j_instep ; j_at s ; j_kind s ; j_occur n ;
+               j_term e ; j_pattern m ]
 
 and j_args = function
   | [] -> []
-  | es -> ["args" , Json.Array (List.map json_of_selection es)]
+  | es -> ["args" , `List (List.map json_of_selection es)]
 
 and json_of_compose = function
-  | Cint a -> Json.(Assoc [j_kint ; j_int a])
-  | Range(a,b) -> Json.(Assoc [j_range ; j_min a ; j_max b])
-  | Code(_,id,es) -> Json.(Assoc (j_compose :: j_id id :: j_args es))
+  | Cint a -> `Assoc [j_kint ; j_int a]
+  | Range(a,b) -> `Assoc [j_range ; j_min a ; j_max b]
+  | Code(_,id,es) -> `Assoc (j_compose :: j_id id :: j_args es)
 
 (* -------------------------------------------------------------------------- *)
 (* --- Json to Selection                                                  --- *)
@@ -193,12 +193,12 @@ let rec selection_of_json ((hs,g) as s : sequent) js =
 let selection_target js = js >? "target" |> Json.string
 
 let json_of_named = function
-  | None -> Json.Null
+  | None -> `Null
   | Some a ->
-      Json.Assoc Tactical.[
-          "id" , Json.String a.vid ;
-          "title" , Json.String a.title ;
-          "descr" , Json.String a.descr ;
+      `Assoc Tactical.[
+          "id" , `String a.vid ;
+          "title" , `String a.title ;
+          "descr" , `String a.descr ;
         ]
 
 let named_of_json find js =
@@ -219,7 +219,7 @@ let json_of_param (tac : tactical) = function
   | Spinner(fd,_) -> ident fd , Json.of_int (tac#get_field fd)
   | Composer(fd,_) -> ident fd , json_of_selection (tac#get_field fd)
   | Selector(fd,options,equal) ->
-      ident fd , Json.String
+      ident fd , `String
         begin
           try
             let a = tac#get_field fd in
@@ -260,7 +260,7 @@ let param_of_json (tac : tactical) seq js = function
         end
 
 let json_of_parameters (tac : tactical) =
-  Json.Assoc (List.map (json_of_param tac) tac#params)
+  `Assoc (List.map (json_of_param tac) tac#params)
 
 let parameters_of_json (tac : tactical) sequent js =
   List.iter (param_of_json tac sequent js) tac#params
@@ -285,27 +285,28 @@ let jtactic ~title (tac : tactical) (sel : selection) =
   }
 
 let json_of_tactic t js =
-  Json.(Assoc [
-      "header" , Json.String t.header ;
-      "tactic" , Json.String t.tactic ;
-      "params" , t.params ;
-      "select" , t.select ;
-      "children" , Json.Assoc js ;
-    ])
+  `Assoc [
+    "header" , `String t.header ;
+    "tactic" , `String t.tactic ;
+    "params" , t.params ;
+    "select" , t.select ;
+    "children" , `Assoc js ;
+  ]
 
 let children_of_json = function
-  | Json.Array js ->
+  | `List js ->
       Wp_parameters.warning ~current:false ~once:true
         "Deprecated script(s) found ; consider using prover 'tip'" ;
       List.map (fun j -> "",j) js
-  | Json.Assoc fs -> fs
+  | `Assoc fs -> fs
   | _ -> []
+
 let tactic_of_json js =
   try
     let header = js >? "header" |> Json.string in
     let tactic = js >? "tactic" |> Json.string in
-    let params = try js >? "params" with Not_found -> Json.Null in
-    let select = try js >? "select" with Not_found -> Json.Null in
+    let params = try js >? "params" with Not_found -> `Null in
+    let select = try js >? "select" with Not_found -> `Null in
     let children = try js >? "children" |> children_of_json with Not_found -> [] in
     Some( { header ; tactic ; params ; select } , children )
   with _ -> None
@@ -315,31 +316,31 @@ let tactic_of_json js =
 (* -------------------------------------------------------------------------- *)
 
 let json_of_verdict = function
-  | VCS.NoResult | VCS.Checked | VCS.Computing _ -> Json.String "none"
-  | VCS.Valid -> Json.String "valid"
-  | VCS.Unknown -> Json.String "unknown"
-  | VCS.Timeout -> Json.String "timeout"
-  | VCS.Stepout -> Json.String "stepout"
-  | VCS.Invalid -> Json.String "invalid"
-  | VCS.Failed -> Json.String "failed"
+  | VCS.NoResult | VCS.Checked | VCS.Computing _ -> `String "none"
+  | VCS.Valid -> `String "valid"
+  | VCS.Unknown -> `String "unknown"
+  | VCS.Timeout -> `String "timeout"
+  | VCS.Stepout -> `String "stepout"
+  | VCS.Invalid -> `String "invalid"
+  | VCS.Failed -> `String "failed"
 
 let verdict_of_json = function
-  | Json.String "valid" -> VCS.Valid
-  | Json.String "unknown" -> VCS.Unknown
-  | Json.String "timeout" -> VCS.Timeout
-  | Json.String "stepout" -> VCS.Stepout
-  | Json.String "invalid" -> VCS.Invalid
-  | Json.String "failed" -> VCS.Failed
+  | `String "valid" -> VCS.Valid
+  | `String "unknown" -> VCS.Unknown
+  | `String "timeout" -> VCS.Timeout
+  | `String "stepout" -> VCS.Stepout
+  | `String "invalid" -> VCS.Invalid
+  | `String "failed" -> VCS.Failed
   | _ -> VCS.NoResult
 
 let json_of_result (p : VCS.prover) (r : VCS.result) =
   let open VCS in
-  let name = "prover" , Json.String (VCS.name_of_prover p) in
+  let name = "prover" , `String (VCS.name_of_prover p) in
   let verdict = "verdict" , json_of_verdict r.verdict in
-  let time = if r.prover_time > 0.0 then [ "time" , Json.Float r.prover_time ] else [] in
-  let steps = if r.prover_steps > 0 then [ "steps" , Json.Int r.prover_steps ] else [] in
-  let depth = if r.prover_depth > 0 then [ "depth" , Json.Int r.prover_depth ] else [] in
-  Json.Assoc (name :: verdict :: (time @ steps @ depth))
+  let time = if r.prover_time > 0.0 then [ "time" , `Float r.prover_time ] else [] in
+  let steps = if r.prover_steps > 0 then [ "steps" , `Int r.prover_steps ] else [] in
+  let depth = if r.prover_depth > 0 then [ "depth" , `Int r.prover_depth ] else [] in
+  `Assoc (name :: verdict :: (time @ steps @ depth))
 
 let prover_of_json js =
   try VCS.prover_of_name (js >? "prover" |> Json.string)
@@ -382,15 +383,15 @@ let rec subgoals n = function
   | (_,a)::s -> subgoals (n + status a) s
 
 let a_prover p r = Prover(p,r)
-let a_tactic tac children = Tactic(subgoals 0 children,tac,children)
+let a_tactic tac children  = Tactic(subgoals 0 children,tac,children)
 
 (* -------------------------------------------------------------------------- *)
 (* --- Codecs                                                             --- *)
 (* -------------------------------------------------------------------------- *)
 
 let rec decode = function
-  | Json.Null -> []
-  | Json.Array alts -> List.map alternative alts
+  | `Null -> []
+  | `List alts -> List.map alternative alts
   | js -> [Error("Invalid Script",js)]
 
 and subscript (key,js) = key , decode js
@@ -404,7 +405,7 @@ and alternative js =
           a_tactic tactic (List.map subscript children)
       | None -> Error("Invalid Tactic",js)
 
-let rec encode script = Json.Array (alternatives script)
+let rec encode script = `List (alternatives script)
 
 and subgoal (k,alt) = k , encode alt
 
@@ -428,11 +429,12 @@ let configure jtactic sequent =
 (* --- Console                                                            --- *)
 (* -------------------------------------------------------------------------- *)
 
-class console ~title =
+class console ~pool ~title =
   object
 
     val mutable the_title = title
 
+    method pool : Lang.F.pool = pool
     method interactive = false
     method get_title = the_title
     method set_title : 'a. 'a formatter =

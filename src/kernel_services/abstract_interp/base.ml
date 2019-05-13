@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2018                                               *)
+(*  Copyright (C) 2007-2019                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -205,7 +205,8 @@ let () =
               (mul_CHAR_BIT (Int.of_string min));
             MaxValidAbsoluteAddress.set
               ((Int.pred (mul_CHAR_BIT (Int.succ (Int.of_string max))))))
-       with End_of_file | Scanf.Scan_failure _ | Failure _ as e ->
+       with End_of_file | Scanf.Scan_failure _ | Failure _
+          | Invalid_argument _ as e ->
          Kernel.abort "Invalid -absolute-valid-range integer-integer: each integer may be in decimal, hexadecimal (0x, 0X), octal (0o) or binary (0b) notation and has to hold in 64 bits. A correct example is -absolute-valid-range 1-0xFFFFFF0.@\nError was %S@."
            (Printexc.to_string e))
 
@@ -250,32 +251,83 @@ let is_weak = function
   | Allocated (_, _, Variable { weak }) -> weak
   | _ -> false
 
-let offset_is_in_validity size validity ival =
-  Ival.is_bottom ival ||
-  (* Special case. We stretch the truth and say that the address of the
-     base itself is valid for a size of 0. A size of 0 appears for:
-     - empty structs
-     - memory operations on a 0 size (e.g. memcpy (_, _ 0))
-     - internally, to emulate the semantics of "past-one" pointers (in
-       Cvalue_forward.are_comparable). *)
-  Int.(equal zero size) && Ival.(equal ival zero) ||
+(* Does a C type end by an empty struct? *)
+let rec final_empty_struct = function
+  | TArray (typ, _, _, _) -> final_empty_struct typ
+  | TComp (compinfo, _, _) ->
+    begin
+      match compinfo.cfields with
+      | [] -> true
+      | l ->
+        let last_field = List.(hd (rev l)) in
+        try Cil.bitsSizeOf last_field.ftype = 0
+        with Cil.SizeOfError _ -> false
+    end
+  | TNamed (typeinfo, _) -> final_empty_struct typeinfo.ttype
+  | TVoid _ | TInt _ | TFloat _ | TPtr _ | TEnum _
+  | TFun _ | TBuiltin_va_list _ -> false
+
+(* Does a base end by an empty struct? *)
+let final_empty_struct = function
+  | Var (vi, _) | Allocated (vi, _, _) -> final_empty_struct vi.vtype
+  | _ -> false
+
+type access = Read of Integer.t | Write of Integer.t | No_access
+let for_writing = function Write _ -> true | Read _ | No_access -> false
+
+let is_empty = function
+  | Read size | Write size -> Int.(equal zero size)
+  | No_access -> true
+
+(* Computes the last valid offset for an access of the base [base] with [max]
+   valid bits: [max - size + 1] for an access of size [size]. *)
+let last_valid_offset base max = function
+  | Read size | Write size ->
+    if Int.is_zero size
+    (* For an access of size 0, [max] is the last valid offset, unless the base
+       ends by an empty struct, in which case [max+1] is also a valid offset. *)
+    then if final_empty_struct base then Int.succ max else max
+    else Int.sub max (Int.pred size)
+  | No_access -> Int.succ max (* A pointer can point just beyond its object. *)
+
+let offset_for_validity ~bitfield access base =
+  match validity base with
+  | Empty -> if is_empty access then Ival.zero else Ival.bottom
+  | Invalid -> if access = No_access then Ival.zero else Ival.bottom
+  | Known (min, max) | Unknown (min, _, max) ->
+    let max = last_valid_offset base max access in
+    if bitfield
+    then Ival.inject_range (Some min) (Some max)
+    else Ival.inject_interval (Some min) (Some max) Int.zero Int.eight
+  | Variable variable_v ->
+    let maxv = last_valid_offset base variable_v.max_alloc access in
+    Ival.inject_range (Some Int.zero) (Some maxv)
+
+let valid_offset ?(bitfield=true) access base =
+  if for_writing access && is_read_only base
+  then Ival.bottom
+  else offset_for_validity ~bitfield access base
+
+let offset_is_in_validity access base ival =
   let is_valid_for_bounds min_bound max_bound =
     match Ival.min_and_max ival with
     | Some min, Some max ->
-      Int.ge min min_bound && Int.le (Int.add max (Int.pred size)) max_bound
+      Int.ge min min_bound &&
+      Int.le max (last_valid_offset base max_bound access)
     | _, _ -> false
   in
-  match validity with
-  | Empty | Invalid -> false
+  match validity base with
+  | Empty -> is_empty access && Ival.(equal zero ival)
+  | Invalid -> access = No_access && Ival.(equal zero ival)
   | Known (min, max)
   | Unknown (min, Some max, _) -> is_valid_for_bounds min max
-  | Unknown (_, None, _) -> false (* all accesses are possibly invalid *)
+  | Unknown (_, None, _) -> false (* All accesses are possibly invalid. *)
   | Variable v -> is_valid_for_bounds Int.zero v.min_alloc
 
-let is_valid_offset ~for_writing size base offset =
-  Ival.is_bottom offset ||
-  not (for_writing && (is_read_only base)) &&
-  offset_is_in_validity size (validity base) offset
+let is_valid_offset access base offset =
+  Ival.is_bottom offset
+  || not (for_writing access && (is_read_only base))
+     && offset_is_in_validity access base offset
 
 let is_function base =
   match base with
@@ -291,9 +343,9 @@ let is_aligned_by b alignment =
   else
     match b with
     | Var (v,_) | Allocated(v,_,_) ->
-        Int.is_zero (Int.rem (Int.of_int (Cil.bytesAlignOf v.vtype)) alignment)
+        Int.is_zero (Int.e_rem (Int.of_int (Cil.bytesAlignOf v.vtype)) alignment)
     | CLogic_Var (_, ty, _) ->
-      Int.is_zero (Int.rem (Int.of_int (Cil.bytesAlignOf ty)) alignment)
+      Int.is_zero (Int.e_rem (Int.of_int (Cil.bytesAlignOf ty)) alignment)
     | Null -> true
     | String _ -> Int.is_one alignment
 

@@ -13,7 +13,6 @@ int main(int argc, char const **argv)
   int res2 =
     posix_memalign((void **)memptr,(unsigned long)256,(unsigned long)15);
   /*@ assert Eva: initialization: \initialized(memptr); */
-  /*@ assert Eva: mem_access: \valid_read(memptr); */
   char *p = *memptr;
   __e_acsl_store_block((void *)(& p),(size_t)8);
   __e_acsl_full_init((void *)(& p));

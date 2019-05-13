@@ -5,12 +5,13 @@
 [wp] Warning: Missing RTE guards
 [wp] 3 goals scheduled
 [wp] [Qed] Goal typed_main_assert_OK : Valid
-[wp] [Alt-Ergo] Goal typed_main_assert_KO : Unknown
-[wp] [Alt-Ergo] Goal typed_main_stmt_assign : Unknown
+[wp] [Alt-Ergo] Goal typed_main_assert_KO : Unsuccess
+[wp] [Alt-Ergo] Goal typed_main_assigns : Unsuccess
 [wp] Proved goals:    1 / 3
   Qed:             1 
-  Alt-Ergo:        0  (unknown: 2)
-[wp] Report 'tests/wp_plugin/asm.i.0.report.json'
+  Alt-Ergo:        0  (unsuccess: 2)
+[wp] Report in:  'tests/wp_plugin/oracle_qualif/asm.0.report.json'
+[wp] Report out: 'tests/wp_plugin/result_qualif/asm.0.report.json'
 -------------------------------------------------------------
 Functions           WP     Alt-Ergo        Total   Success
 main                 1     -                 3      33.3%

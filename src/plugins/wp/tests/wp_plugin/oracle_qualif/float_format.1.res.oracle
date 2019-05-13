@@ -7,10 +7,11 @@
 [wp] Loading driver 'share/wp.driver'
 [wp] Warning: Missing RTE guards
 [wp] 1 goal scheduled
-[wp] [Alt-Ergo] Goal typed_output_post_KO : Unknown
+[wp] [Alt-Ergo] Goal typed_output_ensures_KO : Unsuccess
 [wp] Proved goals:    0 / 1
-  Alt-Ergo:        0  (unknown: 1)
-[wp] Report 'tests/wp_plugin/float_format.i.1.report.json'
+  Alt-Ergo:        0  (unsuccess: 1)
+[wp] Report in:  'tests/wp_plugin/oracle_qualif/float_format.1.report.json'
+[wp] Report out: 'tests/wp_plugin/result_qualif/float_format.1.report.json'
 -------------------------------------------------------------
 Functions           WP     Alt-Ergo        Total   Success
 output              -      -                 1       0.0%

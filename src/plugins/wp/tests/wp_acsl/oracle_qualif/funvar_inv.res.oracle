@@ -4,12 +4,13 @@
 [wp] Loading driver 'share/wp.driver'
 [wp] Warning: Missing RTE guards
 [wp] 3 goals scheduled
-[wp] [Qed] Goal typed_ref_f_loop_assign : Valid
-[wp] [Qed] Goal typed_ref_f2_loop_assign : Valid
-[wp] [Qed] Goal typed_ref_g_loop_assign : Valid
+[wp] [Qed] Goal typed_ref_f_loop_assigns : Valid
+[wp] [Qed] Goal typed_ref_f2_loop_assigns : Valid
+[wp] [Qed] Goal typed_ref_g_loop_assigns : Valid
 [wp] Proved goals:    3 / 3
   Qed:             3
-[wp] Report 'tests/wp_acsl/funvar_inv.i.0.report.json'
+[wp] Report in:  'tests/wp_acsl/oracle_qualif/funvar_inv.0.report.json'
+[wp] Report out: 'tests/wp_acsl/result_qualif/funvar_inv.0.report.json'
 -------------------------------------------------------------
 Functions           WP     Alt-Ergo        Total   Success
 f                    1     -                 1       100%

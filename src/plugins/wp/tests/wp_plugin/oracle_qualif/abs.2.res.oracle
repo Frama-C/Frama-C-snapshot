@@ -4,11 +4,12 @@
 [wp] Loading driver 'share/wp.driver'
 [wp] Warning: Missing RTE guards
 [wp] 1 goal scheduled
-[wp] [alt-ergo] Goal typed_abs_abs_post : Valid
+[wp] [alt-ergo] Goal typed_abs_abs_ensures : Valid
 [wp] Proved goals:    1 / 1
-  Qed:             0 
-  alt-ergo:        1
-[wp] Report 'tests/wp_plugin/abs.i.2.report.json'
+  Qed:                0 
+  Alt-Ergo (why3):    1
+[wp] Report in:  'tests/wp_plugin/oracle_qualif/abs.2.report.json'
+[wp] Report out: 'tests/wp_plugin/result_qualif/abs.2.report.json'
 -------------------------------------------------------------
 Functions           WP     Alt-Ergo        Total   Success
 abs                 -      -                 1       100%

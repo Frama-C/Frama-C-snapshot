@@ -1,12 +1,12 @@
 /* run.config
-   EXECNOW: make -s tests/slicing/horwitz.cmxs
-   CMD: @frama-c@ -load-module tests/slicing/libSelect.cmxs -load-module tests/slicing/horwitz.cmxs
-   OPT: -val-show-progress -deps -slicing-level 0 -journal-disable
+   EXECNOW: make -s @PTEST_DIR@/@PTEST_NAME@.cmxs
+   CMD: @frama-c@ -load-module tests/slicing/libSelect.cmxs -load-module @PTEST_DIR@/@PTEST_NAME@.cmxs
+   OPT: @EVA_OPTIONS@ -deps -slicing-level 0 -journal-disable
 */
 
-/* bin/toplevel.opt -deps -val tests/slicing/horwitz.c */
-/* bin/toplevel.opt -deps -pdg-debug -pdg tests/slicing/horwitz.c */
-/* cf aussi tests/slicing/horwitz.ml */
+/* bin/toplevel.opt -deps -eva @PTEST_DIR@/@PTEST_NAME@.c */
+/* bin/toplevel.opt -deps -pdg-debug -pdg @PTEST_DIR@/@PTEST_NAME@.c */
+/* cf aussi @PTEST_DIR@/@PTEST_NAME@.ml */
 
 int add (int a, int b) {
   return a+b;

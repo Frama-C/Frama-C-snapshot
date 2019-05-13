@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2018                                               *)
+(*  Copyright (C) 2007-2019                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -102,10 +102,7 @@ let make_float ~num ~den ~exp ~man_size ~min_exp ~max_exp =
 *)
   if exp > max_exp - man_size then inf ~man_size ~max_exp
   else
-    let man = Integer.native_div num den in
-    let rem =    
-      Integer.sub num (Integer.mul den man)
-    in
+    let man,rem = Integer.e_div_rem num den in
     let rem2 = (* twice the remainder *)
       Integer.shift_left rem Integer.one
     in

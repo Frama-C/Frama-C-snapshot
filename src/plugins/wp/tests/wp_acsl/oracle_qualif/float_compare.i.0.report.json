@@ -1,0 +1,39 @@
+{ "wp:global": { "alt-ergo": { "total": 4, "valid": 4, "rank": 8 },
+                 "wp:main": { "total": 4, "valid": 4, "rank": 8 } },
+  "wp:axiomatics": { "": { "lemma_test_float_compare_greater": { "alt-ergo": 
+                                                                   { "total": 1,
+                                                                    "valid": 1,
+                                                                    "rank": 8 },
+                                                                 "wp:main": 
+                                                                   { "total": 1,
+                                                                    "valid": 1,
+                                                                    "rank": 8 } },
+                           "lemma_test_float_compare": { "alt-ergo": 
+                                                           { "total": 1,
+                                                             "valid": 1,
+                                                             "rank": 8 },
+                                                         "wp:main": { "total": 1,
+                                                                    "valid": 1,
+                                                                    "rank": 8 } },
+                           "lemma_test_double_compare_greater": { "alt-ergo": 
+                                                                    { "total": 1,
+                                                                    "valid": 1,
+                                                                    "rank": 8 },
+                                                                  "wp:main": 
+                                                                    { "total": 1,
+                                                                    "valid": 1,
+                                                                    "rank": 8 } },
+                           "lemma_test_double_compare": { "alt-ergo": 
+                                                            { "total": 1,
+                                                              "valid": 1,
+                                                              "rank": 8 },
+                                                          "wp:main": 
+                                                            { "total": 1,
+                                                              "valid": 1,
+                                                              "rank": 8 } },
+                           "wp:section": { "alt-ergo": { "total": 4,
+                                                         "valid": 4,
+                                                         "rank": 8 },
+                                           "wp:main": { "total": 4,
+                                                        "valid": 4,
+                                                        "rank": 8 } } } } }

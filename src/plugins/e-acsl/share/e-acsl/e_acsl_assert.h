@@ -37,6 +37,7 @@
 #include "e_acsl_trace.h"
 
 #define runtime_assert export_alias(assert)
+#define runtime_sound_verdict export_alias(sound_verdict)
 
 /*! \brief Drop-in replacement for abort function */
 #define runtime_abort() exec_abort(__LINE__, __FILE__)
@@ -58,15 +59,20 @@ static void exec_abort(int line, const char *file) {
   trace();
 #endif
 #endif
-  kill(getpid(), SIGABRT);
+ raise(SIGABRT);
 }
 
 /*! \brief Print a message to stderr and abort the execution */
 static void vabort(char *fmt, ...) {
   va_list va;
+  sigset_t defer_abrt;
+  sigemptyset(&defer_abrt);
+  sigaddset(&defer_abrt,SIGABRT);
+  sigprocmask(SIG_BLOCK,&defer_abrt,NULL);
   va_start(va,fmt);
   _format(NULL,_charc_stderr,fmt,va);
   va_end(va);
+  sigprocmask(SIG_UNBLOCK,&defer_abrt,NULL);
   runtime_abort();
 }
 
@@ -91,20 +97,32 @@ static void vassert_fail(int expr, int line, char *file, char *fmt,  ...) {
 # define E_ACSL_ASSERT_NO_FAIL_DESC "abort"
 #endif
 
+/*! E-ACSL instrumentation automatically sets this global to 0 if its verdict
+    becomes unsound.
+    TODO: may only happen for annotations containing memory-related properties.
+    For arithmetic properties, the verdict is always sound (?). */
+int runtime_sound_verdict = 1;
+
 #ifndef E_ACSL_EXTERNAL_ASSERT
 /*! \brief Default implementation of E-ACSL runtime assertions */
 void runtime_assert(int predicate, char *kind, char *fct, char *pred_txt, int line) {
-  if (!predicate) {
-      STDERR("%s failed at line %d in function %s.\n"
-        "The failing predicate is:\n%s.\n", kind, line, fct, pred_txt);
+  if (runtime_sound_verdict) {
+    if (! predicate) {
+      STDERR("%s failed at line %d (function %s).\n"
+             "The failing predicate is:\n%s.\n", kind, line, fct, pred_txt);
 #ifndef E_ACSL_NO_ASSERT_FAIL /* Do fail on assertions */
 #ifdef E_ACSL_FAIL_EXITCODE /* Fail by exit with a given code */
-    exit(E_ACSL_FAIL_EXITCODE);
+      exit(E_ACSL_FAIL_EXITCODE);
 #else
-    runtime_abort(); /* Raise abort signal */
+      runtime_abort(); /* Raise abort signal */
 #endif
 #endif
-  }
+    }
+  } else
+    STDERR("warning: no sound verdict (guess: %s) at line %d "
+           "(function %s).\nThe considered predicate is:\n%s.\n",
+           predicate ? "ok" : "FAIL",
+           line, fct, pred_txt);
 }
 #endif
 

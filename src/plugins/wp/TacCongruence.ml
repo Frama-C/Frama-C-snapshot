@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2018                                               *)
+(*  Copyright (C) 2007-2019                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -133,8 +133,8 @@ let rec compare cmp a b =
       not Integer.(equal p zero) &&
       not Integer.(equal q zero) ->
       let g = Integer.pgcd (Integer.abs p) (Integer.abs q) in
-      let ka = Integer.div p g in
-      let kb = Integer.div q g in
+      let ka = Integer.e_div p g in
+      let kb = Integer.e_div q g in
       compare_div cmp (F.e_times ka a) (F.e_times kb b) (F.e_zint g)
 
   | QDIV(a,u) , QDIV(b,v) -> compare_ratio cmp a u b v
@@ -164,8 +164,8 @@ let rec equal eq a b =
       not Integer.(equal p zero) &&
       not Integer.(equal q zero) ->
       let g = Integer.pgcd (Integer.abs p) (Integer.abs q) in
-      let ka = Integer.div p g in
-      let kb = Integer.div q g in
+      let ka = Integer.e_div p g in
+      let kb = Integer.e_div q g in
       compare_div EQ (F.e_times ka a) (F.e_times kb b) (F.e_zint g)
 
   | QDIV(a,u) , QDIV(b,v) -> eq_ratio eq a u b v

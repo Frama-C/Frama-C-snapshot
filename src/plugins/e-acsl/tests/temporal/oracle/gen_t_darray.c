@@ -49,10 +49,14 @@ double Vertices[3][4];
 double Vertices2[3][4] = {};
 void __e_acsl_globals_init(void)
 {
-  __e_acsl_store_block((void *)(Vertices2),(size_t)96);
-  __e_acsl_full_init((void *)(& Vertices2));
-  __e_acsl_store_block((void *)(Vertices),(size_t)96);
-  __e_acsl_full_init((void *)(& Vertices));
+  static char __e_acsl_already_run = 0;
+  if (! __e_acsl_already_run) {
+    __e_acsl_already_run = 1;
+    __e_acsl_store_block((void *)(Vertices2),(size_t)96);
+    __e_acsl_full_init((void *)(& Vertices2));
+    __e_acsl_store_block((void *)(Vertices),(size_t)96);
+    __e_acsl_full_init((void *)(& Vertices));
+  }
   return;
 }
 

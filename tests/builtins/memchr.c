@@ -261,7 +261,7 @@ void memchr_escaping() {
   CHAR_ARRAY(s,4);
   {
     int x;
-    *((int *)s) = &x;
+    *((int *)s) = (int) &x;
   }
   IF_NONDET(s[0], 0);
   MEMCHR(RES, z1, s, 0, c, 4); // alarm

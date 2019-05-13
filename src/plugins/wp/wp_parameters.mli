@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2018                                               *)
+(*  Copyright (C) 2007-2019                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -135,7 +135,6 @@ module ReportJson: Parameter_sig.String
 module ReportName: Parameter_sig.String
 module MemoryContext: Parameter_sig.Bool
 module Check: Parameter_sig.Bool
-module Assert_check_only: Parameter_sig.Bool
 
 (** {2 Environment Variables} *)
 
@@ -147,7 +146,6 @@ val get_output : unit -> string
 val get_output_dir : string -> string
 val get_includes : unit -> string list
 val make_output_dir : string -> unit
-val get_bool_range : unit -> bool
 val get_overflows : unit -> bool
 
 (** {2 Debugging Categories} *)

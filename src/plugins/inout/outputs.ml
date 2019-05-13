@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2018                                               *)
+(*  Copyright (C) 2007-2019                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -89,10 +89,19 @@ class virtual do_it_ = object(self)
         let rec aux lv = function
           | SingleInit _ -> self#do_assign ~for_writing:false lv
           | CompoundInit (ct, initl) ->
-            let implicit = true in
-            let doinit o i _ () = aux (Cil.addOffsetLval o lv) i in
-            Cil.foldLeftCompound ~implicit ~doinit ~ct ~initl ~acc:()
-        in aux (Cil.var v) i
+            (* Avoid folding the implicit zero-initializers of large arrays. *)
+            if Cumulative_analysis.fold_implicit_initializer ct
+            then
+              let implicit = true in
+              let doinit o i _ () = aux (Cil.addOffsetLval o lv) i in
+              Cil.foldLeftCompound ~implicit ~doinit ~ct ~initl ~acc:()
+            else
+              (* For arrays of scalar elements, all the zone covered by the
+                 array is written. For arrays of structs containing padding
+                 bits, this is a sound over-approximation. *)
+              self#do_assign ~for_writing:false lv
+        in
+        aux (Cil.var v) i
       | Local_init (v, ConsInit(f, _, _),_) ->
         let state = Db.Value.get_state self#current_kinstr in
         if Cvalue.Model.is_top state then self#join Zone.top

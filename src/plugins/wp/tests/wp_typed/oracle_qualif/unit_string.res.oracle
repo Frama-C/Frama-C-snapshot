@@ -13,8 +13,9 @@
 [wp] Proved goals:    6 / 6
   Qed:             0 
   Alt-Ergo:        6
-[wp] Report 'tests/wp_typed/unit_string.i.0.report.json'
+[wp] Report in:  'tests/wp_typed/oracle_qualif/unit_string.0.report.json'
+[wp] Report out: 'tests/wp_typed/result_qualif/unit_string.0.report.json'
 -------------------------------------------------------------
 Functions           WP     Alt-Ergo        Total   Success
-f                   -       6 (120..144)     6       100%
+f                   -       6 (128..152)     6       100%
 -------------------------------------------------------------

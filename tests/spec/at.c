@@ -22,6 +22,35 @@ int f(int y) {
   return x;
 }
 
+void test () {
+  int x = 0;
+  L1: {
+  int x = 1;
+  L2:
+  // assert below speaks about two distinct x.
+  /*@ assert \at(&x, L1) != \at(&x,L2); */
+  x = 2;
+  }
+}
+
+void ko (int z) {
+  L: {
+    int y = 0;
+    // assert below should not typecheck: y is not in scope at L (nor at Pre)
+    //@ assert KO: \at(y,L) == 0;
+    //@ assert KO: \at(y,Pre) == 0;
+    //@ assert KO: \at(z,Init) == 0; // at Init, only globals are in scope
+    //@ assert OK: \at (x,Init) == 0;
+    //@ assert OK: \at(z,Pre) == 0;
+  }
+  while (x>0) {
+    int i = 1;
+    x--;
+    //@ assert KO: \at(i,LoopCurrent) == 1;
+    //@ assert OK: \at(z,LoopCurrent) == \at(z,Pre);
+  }
+}
+
 /*
 Local Variables:
 compile-command: "PPCHOME=../.. LC_ALL=C make at"

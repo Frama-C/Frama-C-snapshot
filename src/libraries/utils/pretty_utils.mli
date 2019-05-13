@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2018                                               *)
+(*  Copyright (C) 2007-2019                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -70,7 +70,7 @@ val escape_underscores : string -> string
 (** {2 pretty printers for standard types} *)
 (* ********************************************************************** *)
 
-type sformat = (unit,Format.formatter,unit) Pervasives.format
+type sformat = (unit,Format.formatter,unit) format
 type 'a formatter = Format.formatter -> 'a -> unit
 type ('a,'b) formatter2 = Format.formatter -> 'a -> 'b -> unit
 

@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2018                                               *)
+(*  Copyright (C) 2007-2019                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -35,6 +35,8 @@ let configure () =
     Context.set Lang.pointer (fun _typ -> Logic.Int) ;
     Context.set Cvalues.null (p_equal e_zero) ;
   end
+let no_binder = { bind = fun _ f v -> f v }
+let configure_ia _ = no_binder
 
 let hypotheses () = []
 

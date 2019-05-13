@@ -34,7 +34,7 @@ Prove: true.
 
 ------------------------------------------------------------
 
-Goal Preservation of Invariant 'no_eva' (file FRAMAC_SHARE/libc/string.c, line 32):
+Goal Preservation of Invariant 'no_eva' (file FRAMAC_SHARE/libc/string.c, line 33):
 Let a = shift_sint8(dest_0, 0).
 Let a_1 = havoc(Mchar_undef_0, Mchar_0, a, n).
 Assume {
@@ -58,7 +58,7 @@ Prove: to_uint32(1 + i) <= n.
 
 ------------------------------------------------------------
 
-Goal Establishment of Invariant 'no_eva' (file FRAMAC_SHARE/libc/string.c, line 32):
+Goal Establishment of Invariant 'no_eva' (file FRAMAC_SHARE/libc/string.c, line 33):
 Assume {
   Type: is_uint32(n).
   (* Heap *)
@@ -73,7 +73,7 @@ Prove: 0 <= n.
 
 ------------------------------------------------------------
 
-Goal Preservation of Invariant 'no_eva' (file FRAMAC_SHARE/libc/string.c, line 33):
+Goal Preservation of Invariant 'no_eva' (file FRAMAC_SHARE/libc/string.c, line 34):
 Let a = shift_sint8(dest_0, 0).
 Let a_1 = havoc(Mchar_undef_0, Mchar_0, a, n).
 Let a_2 = a_1[shift_sint8(dest_0, i) <- a_1[shift_sint8(src_0, i)]].
@@ -100,24 +100,24 @@ Prove: a_2[shift_sint8(src_0, i_1)] = a_2[shift_sint8(dest_0, i_1)].
 
 ------------------------------------------------------------
 
-Goal Establishment of Invariant 'no_eva' (file FRAMAC_SHARE/libc/string.c, line 33):
+Goal Establishment of Invariant 'no_eva' (file FRAMAC_SHARE/libc/string.c, line 34):
 Prove: true.
 
 ------------------------------------------------------------
 
-Goal Loop assigns (file FRAMAC_SHARE/libc/string.c, line 34) (1/3):
+Goal Loop assigns (file FRAMAC_SHARE/libc/string.c, line 35) (1/3):
 Prove: true.
 
 ------------------------------------------------------------
 
-Goal Loop assigns (file FRAMAC_SHARE/libc/string.c, line 34) (2/3):
-Effect at line 37
-Prove: true.
-
-------------------------------------------------------------
-
-Goal Loop assigns (file FRAMAC_SHARE/libc/string.c, line 34) (3/3):
+Goal Loop assigns (file FRAMAC_SHARE/libc/string.c, line 35) (2/3):
 Effect at line 38
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Loop assigns (file FRAMAC_SHARE/libc/string.c, line 35) (3/3):
+Effect at line 39
 Let a = shift_sint8(dest_0, 0).
 Let a_1 = havoc(Mchar_undef_0, Mchar_0, a, n).
 Let a_2 = shift_sint8(dest_0, i).
@@ -145,12 +145,12 @@ Prove: included(a_2, 1, a, n).
 ------------------------------------------------------------
 
 Goal Assigns (file FRAMAC_SHARE/libc/string.h, line 96) in 'memcpy':
-Effect at line 37
+Effect at line 38
 Prove: true.
 
 ------------------------------------------------------------
 
-Goal Decreasing of Loop variant at loop (file FRAMAC_SHARE/libc/string.c, line 37):
+Goal Decreasing of Loop variant at loop (file FRAMAC_SHARE/libc/string.c, line 38):
 Let a = shift_sint8(dest_0, 0).
 Let a_1 = havoc(Mchar_undef_0, Mchar_0, a, n).
 Assume {
@@ -174,7 +174,7 @@ Prove: i < to_uint32(1 + i).
 
 ------------------------------------------------------------
 
-Goal Positivity of Loop variant at loop (file FRAMAC_SHARE/libc/string.c, line 37):
+Goal Positivity of Loop variant at loop (file FRAMAC_SHARE/libc/string.c, line 38):
 Prove: true.
 
 ------------------------------------------------------------
@@ -248,7 +248,7 @@ Prove: true.
 
 ------------------------------------------------------------
 
-Goal Preservation of Invariant 'no_eva' (file FRAMAC_SHARE/libc/string.c, line 71):
+Goal Preservation of Invariant 'no_eva' (file FRAMAC_SHARE/libc/string.c, line 79):
 Let a = shift_sint8(dest_0, 0).
 Let a_1 = havoc(Mchar_undef_0, Mchar_0, a, n).
 Let a_2 = shift_sint8(src_0, 0).
@@ -285,7 +285,7 @@ Prove: to_uint32(1 + i) <= n.
 
 ------------------------------------------------------------
 
-Goal Establishment of Invariant 'no_eva' (file FRAMAC_SHARE/libc/string.c, line 71):
+Goal Establishment of Invariant 'no_eva' (file FRAMAC_SHARE/libc/string.c, line 79):
 Let a = shift_sint8(d, 0).
 Let a_1 = shift_sint8(s, 0).
 Assume {
@@ -311,7 +311,7 @@ Prove: 0 <= n.
 
 ------------------------------------------------------------
 
-Goal Preservation of Invariant 'no_eva' (file FRAMAC_SHARE/libc/string.c, line 72):
+Goal Preservation of Invariant 'no_eva' (file FRAMAC_SHARE/libc/string.c, line 80):
 Let a = shift_sint8(d, 0).
 Let a_1 = havoc(Mchar_undef_0, Mchar_0, a, n).
 Let a_2 = shift_sint8(s, 0).
@@ -351,12 +351,12 @@ Prove: a_1[shift_sint8(d, i) <- a_1[shift_sint8(s, i)]][shift_sint8(d, i_1)] =
 
 ------------------------------------------------------------
 
-Goal Establishment of Invariant 'no_eva' (file FRAMAC_SHARE/libc/string.c, line 72):
+Goal Establishment of Invariant 'no_eva' (file FRAMAC_SHARE/libc/string.c, line 80):
 Prove: true.
 
 ------------------------------------------------------------
 
-Goal Preservation of Invariant 'no_eva' (file FRAMAC_SHARE/libc/string.c, line 73):
+Goal Preservation of Invariant 'no_eva' (file FRAMAC_SHARE/libc/string.c, line 81):
 Let a = shift_sint8(d, 0).
 Let a_1 = havoc(Mchar_undef_0, Mchar_0, a, n).
 Let a_2 = shift_sint8(s, 0).
@@ -396,12 +396,12 @@ Prove: a_1[shift_sint8(d, i) <- a_1[shift_sint8(s, i)]][a_3] = Mchar_0[a_3].
 
 ------------------------------------------------------------
 
-Goal Establishment of Invariant 'no_eva' (file FRAMAC_SHARE/libc/string.c, line 73):
+Goal Establishment of Invariant 'no_eva' (file FRAMAC_SHARE/libc/string.c, line 81):
 Prove: true.
 
 ------------------------------------------------------------
 
-Goal Preservation of Invariant 'no_eva' (file FRAMAC_SHARE/libc/string.c, line 83):
+Goal Preservation of Invariant 'no_eva' (file FRAMAC_SHARE/libc/string.c, line 91):
 Let a = shift_sint8(dest_0, 0).
 Let a_1 = havoc(Mchar_undef_0, Mchar_0, a, n).
 Let a_2 = shift_sint8(src_0, 0).
@@ -438,7 +438,7 @@ Prove: to_uint32(i - 1) < n.
 
 ------------------------------------------------------------
 
-Goal Establishment of Invariant 'no_eva' (file FRAMAC_SHARE/libc/string.c, line 83):
+Goal Establishment of Invariant 'no_eva' (file FRAMAC_SHARE/libc/string.c, line 91):
 Let a = shift_sint8(d, 0).
 Let a_1 = shift_sint8(s, 0).
 Assume {
@@ -464,7 +464,7 @@ Prove: to_uint32(n - 1) < n.
 
 ------------------------------------------------------------
 
-Goal Preservation of Invariant 'no_eva' (file FRAMAC_SHARE/libc/string.c, line 84):
+Goal Preservation of Invariant 'no_eva' (file FRAMAC_SHARE/libc/string.c, line 92):
 Let a = shift_sint8(d, 0).
 Let a_1 = havoc(Mchar_undef_0, Mchar_0, a, n).
 Let a_2 = shift_sint8(s, 0).
@@ -504,7 +504,7 @@ Prove: a_1[shift_sint8(d, i) <- a_1[shift_sint8(s, i)]][shift_sint8(d, i_1)] =
 
 ------------------------------------------------------------
 
-Goal Establishment of Invariant 'no_eva' (file FRAMAC_SHARE/libc/string.c, line 84):
+Goal Establishment of Invariant 'no_eva' (file FRAMAC_SHARE/libc/string.c, line 92):
 Let a = shift_sint8(dest_0, 0).
 Let a_1 = shift_sint8(src_0, 0).
 Assume {
@@ -532,7 +532,7 @@ Prove: Mchar_0[shift_sint8(src_0, i)] = Mchar_0[shift_sint8(dest_0, i)].
 
 ------------------------------------------------------------
 
-Goal Preservation of Invariant 'no_eva' (file FRAMAC_SHARE/libc/string.c, line 85):
+Goal Preservation of Invariant 'no_eva' (file FRAMAC_SHARE/libc/string.c, line 93):
 Let a = shift_sint8(d, 0).
 Let a_1 = havoc(Mchar_undef_0, Mchar_0, a, n).
 Let a_2 = shift_sint8(s, 0).
@@ -572,24 +572,24 @@ Prove: a_1[shift_sint8(d, i) <- a_1[shift_sint8(s, i)]][a_3] = Mchar_0[a_3].
 
 ------------------------------------------------------------
 
-Goal Establishment of Invariant 'no_eva' (file FRAMAC_SHARE/libc/string.c, line 85):
+Goal Establishment of Invariant 'no_eva' (file FRAMAC_SHARE/libc/string.c, line 93):
 Prove: true.
 
 ------------------------------------------------------------
 
-Goal Loop assigns (file FRAMAC_SHARE/libc/string.c, line 74) (1/3):
+Goal Loop assigns (file FRAMAC_SHARE/libc/string.c, line 82) (1/3):
 Prove: true.
 
 ------------------------------------------------------------
 
-Goal Loop assigns (file FRAMAC_SHARE/libc/string.c, line 74) (2/3):
-Effect at line 77
+Goal Loop assigns (file FRAMAC_SHARE/libc/string.c, line 82) (2/3):
+Effect at line 85
 Prove: true.
 
 ------------------------------------------------------------
 
-Goal Loop assigns (file FRAMAC_SHARE/libc/string.c, line 74) (3/3):
-Effect at line 78
+Goal Loop assigns (file FRAMAC_SHARE/libc/string.c, line 82) (3/3):
+Effect at line 86
 Let a = shift_sint8(d, 0).
 Let a_1 = havoc(Mchar_undef_0, Mchar_0, a, n).
 Let a_2 = shift_sint8(src_0, 0).
@@ -629,19 +629,19 @@ Prove: included(a_3, 1, a, n).
 
 ------------------------------------------------------------
 
-Goal Loop assigns (file FRAMAC_SHARE/libc/string.c, line 86) (1/3):
+Goal Loop assigns (file FRAMAC_SHARE/libc/string.c, line 94) (1/3):
 Prove: true.
 
 ------------------------------------------------------------
 
-Goal Loop assigns (file FRAMAC_SHARE/libc/string.c, line 86) (2/3):
-Effect at line 89
+Goal Loop assigns (file FRAMAC_SHARE/libc/string.c, line 94) (2/3):
+Effect at line 97
 Prove: true.
 
 ------------------------------------------------------------
 
-Goal Loop assigns (file FRAMAC_SHARE/libc/string.c, line 86) (3/3):
-Effect at line 90
+Goal Loop assigns (file FRAMAC_SHARE/libc/string.c, line 94) (3/3):
+Effect at line 98
 Let a = shift_sint8(d, 0).
 Let a_1 = havoc(Mchar_undef_0, Mchar_0, a, n).
 Let a_2 = shift_sint8(src_0, 0).
@@ -692,31 +692,31 @@ Prove: true.
 ------------------------------------------------------------
 
 Goal Assigns (file FRAMAC_SHARE/libc/string.h, line 106) in 'memmove' (2/7):
-Effect at line 66
+Effect at line 74
 Prove: true.
 
 ------------------------------------------------------------
 
 Goal Assigns (file FRAMAC_SHARE/libc/string.h, line 106) in 'memmove' (3/7):
-Call Result at line 69
+Call Result at line 77
 Prove: true.
 
 ------------------------------------------------------------
 
 Goal Assigns (file FRAMAC_SHARE/libc/string.h, line 106) in 'memmove' (4/7):
-Effect at line 77
+Effect at line 85
 Prove: true.
 
 ------------------------------------------------------------
 
 Goal Assigns (file FRAMAC_SHARE/libc/string.h, line 106) in 'memmove' (5/7):
-Effect at line 89
+Effect at line 97
 Prove: true.
 
 ------------------------------------------------------------
 
 Goal Assigns (file FRAMAC_SHARE/libc/string.h, line 106) in 'memmove' (6/7):
-Effect at line 91
+Effect at line 99
 Let a = shift_sint8(d, 0).
 Let a_1 = havoc(Mchar_undef_0, Mchar_0, a, n).
 Let a_2 = shift_sint8(src_0, 0).
@@ -756,12 +756,12 @@ Prove: 0 < n.
 ------------------------------------------------------------
 
 Goal Assigns (file FRAMAC_SHARE/libc/string.h, line 106) in 'memmove' (7/7):
-Effect at line 93
+Effect at line 101
 Prove: true.
 
 ------------------------------------------------------------
 
-Goal Decreasing of Loop variant at loop (file FRAMAC_SHARE/libc/string.c, line 77):
+Goal Decreasing of Loop variant at loop (file FRAMAC_SHARE/libc/string.c, line 85):
 Let a = shift_sint8(dest_0, 0).
 Let a_1 = havoc(Mchar_undef_0, Mchar_0, a, n).
 Let a_2 = shift_sint8(src_0, 0).
@@ -798,12 +798,12 @@ Prove: i < to_uint32(1 + i).
 
 ------------------------------------------------------------
 
-Goal Positivity of Loop variant at loop (file FRAMAC_SHARE/libc/string.c, line 77):
+Goal Positivity of Loop variant at loop (file FRAMAC_SHARE/libc/string.c, line 85):
 Prove: true.
 
 ------------------------------------------------------------
 
-Goal Decreasing of Loop variant at loop (file FRAMAC_SHARE/libc/string.c, line 89):
+Goal Decreasing of Loop variant at loop (file FRAMAC_SHARE/libc/string.c, line 97):
 Let a = shift_sint8(dest_0, 0).
 Let a_1 = havoc(Mchar_undef_0, Mchar_0, a, n).
 Let a_2 = shift_sint8(src_0, 0).
@@ -840,7 +840,7 @@ Prove: to_uint32(i - 1) < i.
 
 ------------------------------------------------------------
 
-Goal Positivity of Loop variant at loop (file FRAMAC_SHARE/libc/string.c, line 89):
+Goal Positivity of Loop variant at loop (file FRAMAC_SHARE/libc/string.c, line 97):
 Prove: true.
 
 ------------------------------------------------------------

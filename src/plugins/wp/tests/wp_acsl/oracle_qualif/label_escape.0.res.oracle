@@ -7,7 +7,8 @@
 [wp] [Qed] Goal typed_g_assert_qed_ok_ok : Valid
 [wp] Proved goals:    1 / 1
   Qed:             1
-[wp] Report 'tests/wp_acsl/label_escape.i.0.report.json'
+[wp] Report in:  'tests/wp_acsl/oracle_qualif/label_escape.0.report.json'
+[wp] Report out: 'tests/wp_acsl/result_qualif/label_escape.0.report.json'
 -------------------------------------------------------------
 Functions           WP     Alt-Ergo        Total   Success
 g                    1     -                 1       100%

@@ -2,7 +2,7 @@
 #                                                                        #
 #  This file is part of Frama-C.                                         #
 #                                                                        #
-#  Copyright (C) 2007-2018                                               #
+#  Copyright (C) 2007-2019                                               #
 #    CEA (Commissariat à l'énergie atomique et aux énergies              #
 #         alternatives)                                                  #
 #                                                                        #
@@ -29,12 +29,15 @@ export FRAMAC_INCLUDES=-I "$(FRAMAC_LIBDIR)"
 
 export PTESTS=$(BINDIR)/ptests.$(PTESTSBEST)$(EXE)
 
-export FRAMAC_LIB="$(FRAMAC_LIBDIR)"
+export FRAMAC_LIB=$(FRAMAC_LIBDIR)
 export DOC_DIR=$(FRAMAC_SHARE)/doc/code
 
 export PLUGIN_LIB_DIR=$(PLUGIN_DIR)
 
 export FRAMAC_COMPILED_PLUGINDIR=$(FRAMAC_LIBDIR)/plugins
+
+export OCAMLPATH:=$(FRAMAC_LIB):$(FRAMAC_PLUGINDIR)$(if $(OCAMLPATH),:,)$(OCAMLPATH)
+export OCAMLFIND_IGNORE_DUPS_IN:=$(FRAMAC_LIB):$(FRAMAC_PLUGINDIR)$(if $(OCAMLFIND_IGNORE_DUPS_IN),:,)$(OCAMLFIND_IGNORE_DUPS_IN)
 
 # fake target corresponding to the clean-install of Frama-C's Makefile
 .PHONY: clean-install

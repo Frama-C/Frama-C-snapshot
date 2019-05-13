@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2018                                               *)
+(*  Copyright (C) 2007-2019                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -105,6 +105,17 @@ let selected = function
   | Inside(_,t) -> t
   | Clause c -> e_prop (head c)
   | Compose code -> composed code
+
+let get_int_z z =
+  try Some (Integer.to_int z) with Z.Overflow -> None
+
+let get_int = function
+  | Empty -> None
+  | Compose(Cint a) -> get_int_z a
+  | s ->
+      match Lang.F.repr (selected s) with
+      | Qed.Logic.Kint z -> get_int_z z
+      | _ -> None
 
 let subclause clause p =
   match clause with
@@ -305,6 +316,7 @@ type 'a formatter = ('a,Format.formatter,unit) format -> 'a
 
 class type feedback =
   object
+    method pool : pool
     method interactive : bool
     method get_title : string
     method has_error : bool

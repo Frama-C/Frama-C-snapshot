@@ -23,9 +23,9 @@
 open Cil_types
 open Cil_datatype
 
-module Build_env(X: sig type t val name: string end): sig
+module Build_env(X: sig type t end): sig
   val add: stmt -> X.t -> unit
-  val get: stmt -> X.t
+  val find: stmt -> X.t (* may raise [Not_found] *)
   val get_all: stmt -> X.t list
   val is_empty: unit -> bool
   val clear: unit -> unit
@@ -34,12 +34,8 @@ end = struct
   let tbl = Stmt.Hashtbl.create 17
   let add = Stmt.Hashtbl.add tbl
 
-  let get stmt =
-    try Stmt.Hashtbl.find tbl stmt
-    with Not_found ->
-      Options.fatal "unknown stmt %a in %s" Printer.pp_stmt stmt X.name
-
-  let get_all = Stmt.Hashtbl.find_all tbl
+  let find stmt = Stmt.Hashtbl.find tbl stmt
+  let get_all stmt = try Stmt.Hashtbl.find_all tbl stmt with Not_found -> []
   let is_empty () = Stmt.Hashtbl.length tbl = 0
   let clear () = Stmt.Hashtbl.clear tbl
 
@@ -52,8 +48,7 @@ end
    scope variables given by set L', then the goto exists the scopes of
    variables given via set G' \ L'. Consequently, if those variables are
    tracked, they need to be removed from tracking. *)
-module SLocals =
-  Build_env(struct type t = Varinfo.Set.t let name = "SLocals" end)
+module SLocals = Build_env(struct type t = Varinfo.Set.t end)
 
 (* Statement to statement mapping indicating source/destination of a jump.
    For instance, break statements are mapped to switches or loops they jump
@@ -61,12 +56,10 @@ module SLocals =
    such information does not really be computed for gotos (since they already
    capture references to labelled statements they jumps to). Nevertheless it is
    done for consistency, so all required information is stored uniformly. *)
-module Exits =
-  Build_env(struct type t = stmt let name = "Exits" end)
+module Exits = Build_env(struct type t = stmt end)
 
 (* Map labelled statements back to gotos which lead to them *)
-module LJumps =
-  Build_env(struct type t = stmt let name = "LJumps" end)
+module LJumps = Build_env(struct type t = stmt end)
 
 let clear () =
   SLocals.clear ();
@@ -79,7 +72,8 @@ let is_empty () =
 let delete_vars stmt =
   match stmt.skind with
   | Goto _ | Break _ | Continue _ ->
-    Varinfo.Set.diff (SLocals.get stmt) (SLocals.get (Exits.get stmt))
+    (try Varinfo.Set.diff (SLocals.find stmt) (SLocals.find (Exits.find stmt))
+     with Not_found -> Varinfo.Set.empty)
   | _ ->
     Varinfo.Set.empty
 
@@ -87,9 +81,12 @@ let store_vars stmt =
   let gotos = LJumps.get_all stmt in
   List.fold_left
     (fun acc goto ->
-      Varinfo.Set.union
-        acc
-        (Varinfo.Set.diff (SLocals.get stmt) (SLocals.get goto)))
+       try
+         Varinfo.Set.union
+           acc
+           (Varinfo.Set.diff (SLocals.find stmt) (SLocals.find goto))
+       with Not_found ->
+         assert false)
     Varinfo.Set.empty
     gotos
 

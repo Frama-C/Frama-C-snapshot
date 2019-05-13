@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2018                                               *)
+(*  Copyright (C) 2007-2019                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -88,7 +88,7 @@ module Call_info = struct
 
   (* Sorts call_infos by decreasing execution time.  *)
   let cmp current_time ci1 ci2 =
-    - (Pervasives.compare (total_duration current_time ci1) (total_duration current_time ci2))
+    - (Transitioning.Stdlib.compare (total_duration current_time ci1) (total_duration current_time ci2))
   ;;
 
   (* From an iteration, filter and sort by call_info, and returns the

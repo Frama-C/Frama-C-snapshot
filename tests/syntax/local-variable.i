@@ -4,3 +4,9 @@ int main(){
   }
   ; // < NOP inserted
 }
+
+void f() {
+  if (0) {
+    int b;
+  }
+}

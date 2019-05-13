@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2018                                               *)
+(*  Copyright (C) 2007-2019                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -135,7 +135,7 @@ class slocVisitor ~libc : sloc_visitor = object(self)
         Format.fprintf fmt "%a" self#pp_file_metrics filename) metrics_map
 
   method print_stats fmt =
-    Format.pp_set_formatter_tag_functions fmt Metrics_base.html_tag_functions;
+    Transitioning.Format.pp_set_formatter_stag_functions fmt Metrics_base.html_stag_functions;
     Format.pp_set_tags fmt true;
     let pr_hdr fmt hdr_name =
       Format.fprintf fmt "@{<th>%s@}" hdr_name in
@@ -323,7 +323,7 @@ class slocVisitor ~libc : sloc_visitor = object(self)
             | Dtype_annot (ta, _) -> ta.l_var_info.lv_name
             | Dmodel_annot (mi, _) -> mi.mi_name
             | Dcustom_annot (_c, _n, _, _) -> " (Custom) "
-            | Dextended ((_, n, _, _), _, _) -> " (Extension " ^ n ^ ")"
+            | Dextended ((_, n, _, _, _), _, _) -> " (Extension " ^ n ^ ")"
         end
 
   method private images (globs:global list) =
@@ -547,7 +547,7 @@ let pretty_used_files used_files =
 
 let dump_html fmt cil_visitor =
   (* Activate tagging for html *)
-  Format.pp_set_formatter_tag_functions fmt html_tag_functions;
+  Transitioning.Format.pp_set_formatter_stag_functions fmt html_stag_functions;
   Format.pp_set_tags fmt true;
 
   let pr_row s fmt n =

@@ -115,7 +115,7 @@ let dup_funspec tbl bhv spec =
   end in
   Cil.visitCilFunspec o spec
 
-let dup_fundec loc spec bhv kf vi new_vi =
+let dup_fundec loc spec bhv sound_verdict_vi kf vi new_vi =
   new_vi.vdefined <- true;
   let formals = Kernel_function.get_formals kf in
   let mk_formal vi =
@@ -123,7 +123,8 @@ let dup_fundec loc spec bhv kf vi new_vi =
       if vi.vname = "" then
         (* unnamed formal parameter: must generate a fresh name since a fundec
            cannot have unnamed formals (see bts #2303). *)
-        Env.Varname.get ~scope:Env.Function
+        Env.Varname.get
+          ~scope:Env.Function
           (Functions.RTL.mk_gen_name "unamed_formal")
       else
         vi.vname
@@ -134,19 +135,30 @@ let dup_fundec loc spec bhv kf vi new_vi =
   let res =
     let ty = Kernel_function.get_return_type kf in
     if Cil.isVoidType ty then None
-    else Some (Cil.makeVarinfo false false "__retres" ty)
+    else Some (Cil.makeVarinfo false false ~referenced:true "__retres" ty)
   in
   let return =
     Cil.mkStmt ~valid_sid:true
       (Return(Extlib.opt_map (Cil.evar ~loc) res, loc))
   in
-  let stmts = 
-    [ Cil.mkStmtOneInstr ~valid_sid:true
-	(Call(Extlib.opt_map Cil.var res,
-	      Cil.evar ~loc vi, 
-	      List.map (Cil.evar ~loc) new_formals, 
-	      loc)); 
-      return ]
+  let stmts =
+    let l =
+      [ Cil.mkStmtOneInstr ~valid_sid:true
+          (Call(Extlib.opt_map Cil.var res,
+                Cil.evar ~loc vi,
+                List.map (Cil.evar ~loc) new_formals,
+                loc));
+        return ]
+    in
+    if Functions.instrument kf then
+      l
+    else
+      (* set the 'unsound_verdict' variable to 'false' whenever required *)
+      let unsound =
+        Cil.mkStmtOneInstr ~valid_sid:true
+          (Set((Var sound_verdict_vi, NoOffset), Cil.zero ~loc, loc))
+      in
+      unsound :: l
   in
   let locals = match res with None -> [] | Some r -> [ r ] in
   let body = Cil.mkBlock stmts in
@@ -163,10 +175,10 @@ let dup_fundec loc spec bhv kf vi new_vi =
     sallstmts = [];
     sspec = new_spec }
 
-let dup_global loc actions spec bhv kf vi new_vi =
+let dup_global loc actions spec bhv sound_verdict_vi kf vi new_vi =
   let name = vi.vname in
   Options.feedback ~dkey ~level:2 "entering in function %s" name;
-  let fundec = dup_fundec loc spec bhv kf vi new_vi  in
+  let fundec = dup_fundec loc spec bhv sound_verdict_vi kf vi new_vi  in
   let fct = Definition(fundec, loc) in
   let new_spec = fundec.sspec in
   let new_kf = { fundec = fct; spec = new_spec } in
@@ -221,6 +233,13 @@ class dup_functions_visitor prj = object (self)
   (* new definitions of the annotated functions which will contain the
      translation of the E-ACSL contract *)
 
+  val mutable sound_verdict_vi =
+    let name = Functions.RTL.mk_api_name "sound_verdict" in
+    let vi = Project.on prj (Cil.makeGlobalVar name) Cil.intType in
+    vi.vstorage <- Extern;
+    vi.vreferenced <- true;
+    vi
+
   method private before_memory_model = match before_memory_model with
   | Before_gmp | Gmp | After_gmp -> true
   | Memory_model | Code -> false
@@ -231,8 +250,13 @@ class dup_functions_visitor prj = object (self)
     | _ :: _ ->
       (* add the generated definitions of libc at the end of [l]. This way,
          we are sure that they have access to all of it (in particular, the
-         memory model and GMP) *)
-      let res = l @ new_definitions in
+         memory model, GMP and the soundness variable).
+
+         Also add the [__e_acsl_sound_verdict] variable at the beginning *)
+      let res =
+        GVarDecl(sound_verdict_vi, Cil_datatype.Location.unknown)
+        :: l
+        @ new_definitions in
       new_definitions <- [];
       res
 
@@ -261,15 +285,28 @@ class dup_functions_visitor prj = object (self)
     | _ -> false
 
   method !vglob_aux = function
-  | GVarDecl(vi, loc) | GFunDecl(_, vi, loc) | GFun({ svar = vi }, loc)
-      when self#is_unvariadic_function vi
-	&& not (Misc.is_library_loc loc) 
-	&& not (Cil.is_builtin vi)
-	&& not (Cil_datatype.Varinfo.Hashtbl.mem fct_tbl vi)
-	&& not (Cil.is_empty_funspec
-		  (Annotations.funspec ~populate:false
-		     (Extlib.the self#current_kf)))
-	-> 
+  | GFunDecl(_, vi, loc) | GFun({ svar = vi }, loc)
+      when (* duplicate a function iff: *)
+        not (Cil_datatype.Varinfo.Hashtbl.mem fct_tbl vi)
+         (* it is not already duplicated *)
+        && self#is_unvariadic_function vi (* it is not a variadic function *)
+         && not (Misc.is_library_loc loc) (* it is not in the E-ACSL's RTL *)
+         && not (Cil.is_builtin vi) (* it is not a Frama-C built-in *)
+         &&
+         (let kf =
+            try Globals.Functions.get vi with Not_found -> assert false
+          in
+          not (Functions.instrument kf)
+         (* either explicitely listed as to be not instrumented *)
+         ||
+         (* or: *)
+          (not (Cil.is_empty_funspec
+                    (Annotations.funspec ~populate:false
+                       (Extlib.the self#current_kf)))
+          (* it has a function contract *)
+          && Functions.check kf
+          (* its annotations must be monitored *)))
+         ->
     self#next ();
     let name = Functions.RTL.mk_gen_name vi.vname in
     let new_vi = 
@@ -280,42 +317,43 @@ class dup_functions_visitor prj = object (self)
       (fun l -> match l with
       | [ GVarDecl(vi, _) | GFunDecl(_, vi, _) | GFun({ svar = vi }, _) as g ]
         ->
-	(match g with
-        | GFunDecl _ ->
-	  if not (Kernel_function.is_definition (Extlib.the self#current_kf))
-            && vi.vname <> "malloc" && vi.vname <> "free" 
-          then
-	    Options.warning "@[annotating undefined function `%a':@ \
+        (match g with
+         | GFunDecl _ ->
+           if not (Kernel_function.is_definition (Extlib.the self#current_kf))
+           && vi.vname <> "malloc" && vi.vname <> "free"
+           then
+             Options.warning "@[annotating undefined function `%a':@ \
 the generated program may miss memory instrumentation@ \
 if there are memory-related annotations.@]"
-	    Printer.pp_varinfo vi
-	| GFun _ -> ()
-	| _ -> assert false);
-	let tmp = vi.vname in
-	if tmp = Kernel.MainFunction.get () then begin
-	  (* the new function becomes the new main: simply swap the name of both
-	     functions *)
-	  vi.vname <- new_vi.vname;
-	  new_vi.vname <- tmp
-	end;
-	let kf = 
-	  try 
-	    Globals.Functions.get (Cil.get_original_varinfo self#behavior vi)
-	  with Not_found -> 
-	    Options.fatal
-	      "unknown function `%s' while trying to duplicate it" 
-	      vi.vname
-	in
-	let spec = Annotations.funspec ~populate:false kf in
-	let vi_bhv = Cil.get_varinfo self#behavior vi in
+               Printer.pp_varinfo vi
+         | GFun _ -> ()
+         | _ -> assert false);
+        let tmp = vi.vname in
+        if tmp = Kernel.MainFunction.get () then begin
+          (* the new function becomes the new main: simply swap the name of both
+             functions *)
+          vi.vname <- new_vi.vname;
+          new_vi.vname <- tmp
+        end;
+        let kf =
+          try
+            Globals.Functions.get (Cil.get_original_varinfo self#behavior vi)
+          with Not_found ->
+            Options.fatal
+              "unknown function `%s' while trying to duplicate it"
+              vi.vname
+        in
+        let spec = Annotations.funspec ~populate:false kf in
+        let vi_bhv = Cil.get_varinfo self#behavior vi in
         let new_g, new_decl =
           dup_global
-               loc
-               self#get_filling_actions
-               spec
-               self#behavior
-               kf
-               vi_bhv
+            loc
+            self#get_filling_actions
+            spec
+            self#behavior
+            sound_verdict_vi
+            kf
+            vi_bhv
             new_vi
         in
         (* postpone the introduction of the new function definition to the
@@ -326,7 +364,7 @@ if there are memory-related annotations.@]"
         [ new_decl; g ]
       | _ -> assert false)
   | GVarDecl(_, loc) | GFunDecl(_, _, loc) | GFun(_, loc)
-      when Misc.is_library_loc loc ->
+    when Misc.is_library_loc loc ->
     (match before_memory_model with
     | Before_gmp -> before_memory_model <- Gmp
     | Gmp | Memory_model -> ()

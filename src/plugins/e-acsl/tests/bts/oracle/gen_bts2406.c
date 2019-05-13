@@ -5,8 +5,12 @@ char const tab[];
 char t[10];
 void __e_acsl_globals_init(void)
 {
-  __e_acsl_store_block((void *)(t),(size_t)10);
-  __e_acsl_full_init((void *)(& t));
+  static char __e_acsl_already_run = 0;
+  if (! __e_acsl_already_run) {
+    __e_acsl_already_run = 1;
+    __e_acsl_store_block((void *)(t),(size_t)10);
+    __e_acsl_full_init((void *)(& t));
+  }
   return;
 }
 

@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2018                                               *)
+(*  Copyright (C) 2007-2019                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -40,13 +40,37 @@ module Make (Domain: InputDomain) = struct
   let dependencies = [ Db.Value.self ]
   let size = 16
 
-  module Storage =
-    State_builder.Ref (Datatype.Bool)
+  module type Ref = sig
+    val get : unit -> bool
+    val set : bool -> unit
+  end
+
+  (* Boolean reference saved on the disk. *)
+  module Bool_Ref_State =
+    State_builder.Ref
+      (Datatype.Bool)
       (struct
         let dependencies = dependencies
         let name = name ^ ".Storage"
         let default () = false
       end)
+
+  (* Boolean reference. Not saved on the disk. *)
+  module Bool_Ref = struct
+    let x = ref false
+    let set y = x := y
+    let get () = !x
+  end
+
+  (* A boolean reference indicating whether the states of the domain have been
+     saved. False by default, it becomes true when the engine calls
+     [register_global_state] at the start of the analysis.
+     If the domain is unmarshallable, its states cannot be saved on the
+     disk, and this boolean should not be saved either. *)
+  module Storage =
+    (val (if Descr.is_unmarshable Domain.descr
+          then (module Bool_Ref)
+          else (module Bool_Ref_State)) : Ref)
 
   module Global_State =
     State_builder.Option_ref (Domain)

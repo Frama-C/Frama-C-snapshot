@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2018                                               *)
+(*  Copyright (C) 2007-2019                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -103,7 +103,7 @@ module Memory : sig
   val add_binding: exact:bool -> t -> Locations.Zone.t -> Deps.t -> t
   val add_binding_loc: exact:bool -> t -> Locations.location -> Deps.t -> t
   val add_binding_precise_loc:
-    exact:bool -> for_writing:bool -> t ->
+    exact:bool -> Locations.access -> t ->
     Precise_locs.precise_location -> Deps.t -> t
   val bind_var: Cil_types.varinfo -> Deps.t -> t -> t
   val unbind_var: Cil_types.varinfo -> t -> t

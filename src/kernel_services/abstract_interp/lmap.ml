@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2018                                               *)
+(*  Copyright (C) 2007-2019                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -38,7 +38,7 @@ module Make_LOffset
      end)
     (Offsetmap: module type of Offsetmap_sig
      with type v = V.t
-      and type widen_hint = V.generic_widen_hint)
+      and type widen_hint = V.numerical_widen_hint)
     (Default_offsetmap: sig
        val name: string
        val default_offsetmap : Base.t -> Offsetmap.t Bottom.or_bottom
@@ -50,7 +50,7 @@ struct
   type v = V.t
   type offsetmap = Offsetmap.t
 
-  type widen_hint_base = V.generic_widen_hint
+  type widen_hint_base = V.numerical_widen_hint
 
   open Default_offsetmap
 
@@ -183,10 +183,7 @@ struct
               Offsetmap.update_imprecise_everywhere ~validity orig v offm
             | Int_Base.Value size ->
               assert (Int.ge size Int.zero);
-              let _, r =
-                Offsetmap.update ?origin ~validity ~exact ~offsets ~size v offm
-              in
-              r
+              Offsetmap.update ?origin ~validity ~exact ~offsets ~size v offm
           in
           match offm' with
           | `Bottom -> ()
@@ -230,7 +227,7 @@ struct
               match find_or_default base mem with
               | `Bottom -> acc_v
               | `Value offsetmap ->
-                let _alarm_o, new_v =
+                let new_v =
                   Offsetmap.find
                     ~conflate_bottom ~validity ~offsets ~size offsetmap
                 in
@@ -435,7 +432,7 @@ struct
         (Hptmap_sig.PersistentCache name) UniversalPredicate
         ~decide_fast ~decide_fst ~decide_snd ~decide_both
 
-    type widen_hint = Base.Set.t * (Base.t -> V.generic_widen_hint)
+    type widen_hint = Base.Set.t * (Base.t -> V.numerical_widen_hint)
 
     (* Precondition : m1 <= m2 *)
     let widen (wh_key_set, wh_hints: widen_hint) m1 m2 =
@@ -475,7 +472,7 @@ struct
         match offsetmap_dst with
         | `Bottom -> acc
         | `Value offsetmap_dst ->
-          let _this_alarm, new_offsetmap =
+          let new_offsetmap =
             Offsetmap.paste_slice ~validity ~exact
               ~from ~size ~offsets:i_dst offsetmap_dst
           in
@@ -512,9 +509,8 @@ struct
         match find_or_default k_src m with
         | `Bottom -> acc
         | `Value offsetmap_src ->
-          let _alarm_copy, copy =
-            Offsetmap.copy_slice ~validity
-              ~offsets:i_src ~size offsetmap_src
+          let copy =
+            Offsetmap.copy_slice ~validity~offsets:i_src ~size offsetmap_src
           in
           Bottom.join Offsetmap.join acc copy
       in

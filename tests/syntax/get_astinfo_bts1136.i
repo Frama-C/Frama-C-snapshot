@@ -1,5 +1,6 @@
 /* run.config
-OPT: -load-script tests/syntax/get_astinfo_bts1136.ml
+EXECNOW: make -s @PTEST_DIR@/@PTEST_NAME@.cmxs
+OPT: -no-autoload-plugins -load-module @PTEST_DIR@/@PTEST_NAME@.cmxs
 */
 int f (int x) { return x; }
 int g (int x) { return x; }

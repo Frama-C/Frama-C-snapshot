@@ -1,9 +1,9 @@
 /* run.config
-   OPT: -wp-model Typed+cast
-*//* run.config_qualif
-   OPT: -wp -wp-model Typed+cast -wp-steps 50
+   OPT: -wp-model Typed
 */
-
+/* run.config_qualif
+   OPT: -wp -wp-model Typed -wp-steps 50
+*/
 // Test logic types defined from C types
 //--------------------------------------
 typedef struct { int x ; int y ; } Point ;

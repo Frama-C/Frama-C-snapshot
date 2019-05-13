@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2018                                               *)
+(*  Copyright (C) 2007-2019                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -274,7 +274,7 @@ module COMPILERS = FCMap.Make
     (struct
       type t = setup * driver
       let compare (s,d) (s',d') =
-        let cmp = Pervasives.compare s s' in
+        let cmp = Transitioning.Stdlib.compare s s' in
         if cmp <> 0 then cmp else LogicBuiltins.compare d d'
     end)
 

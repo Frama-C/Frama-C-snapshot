@@ -1,13 +1,13 @@
 [kernel] Parsing tests/syntax/get_astinfo_bts1136.i (no preprocessing)
-found variable vid:22 formal in f
-found variable vid:25 formal in g
-found variable vid:28 formal in h
-found variable vid:30 formal in i
-found variable vid:32 formal in j
-found variable vid:34 formal in k
-[do_v] vid:28 formal in h
-[do_v] vid:25 formal in g
-[do_v] vid:22 formal in f
-[do_v] vid:34 local in k
-[do_v] vid:32 local in j
-[do_v] vid:30 local in i
+found variable vid:20 formal in f
+found variable vid:23 formal in g
+found variable vid:26 formal in h
+found variable vid:28 formal in i
+found variable vid:30 formal in j
+found variable vid:32 formal in k
+[do_v] vid:26 formal in h
+[do_v] vid:23 formal in g
+[do_v] vid:20 formal in f
+[do_v] vid:32 local in k
+[do_v] vid:30 local in j
+[do_v] vid:28 local in i

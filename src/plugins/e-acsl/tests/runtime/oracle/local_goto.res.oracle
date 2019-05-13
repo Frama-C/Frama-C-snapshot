@@ -9,19 +9,19 @@
   the generated program may miss memory instrumentation
   if there are memory-related annotations.
 [e-acsl] tests/runtime/local_goto.c:37: Warning: 
-  E-ACSL construct `logic function application' is not yet supported.
+  E-ACSL construct `logic functions with labels' is not yet supported.
   Ignoring annotation.
 [e-acsl] tests/runtime/local_goto.c:37: Warning: 
   E-ACSL construct `assigns clause in behavior' is not yet supported.
   Ignoring annotation.
 [e-acsl] tests/runtime/local_goto.c:28: Warning: 
-  E-ACSL construct `logic function application' is not yet supported.
+  E-ACSL construct `logic functions with labels' is not yet supported.
   Ignoring annotation.
 [e-acsl] tests/runtime/local_goto.c:28: Warning: 
   E-ACSL construct `assigns clause in behavior' is not yet supported.
   Ignoring annotation.
 [e-acsl] tests/runtime/local_goto.c:16: Warning: 
-  E-ACSL construct `logic function application' is not yet supported.
+  E-ACSL construct `logic functions with labels' is not yet supported.
   Ignoring annotation.
 [e-acsl] tests/runtime/local_goto.c:16: Warning: 
   E-ACSL construct `assigns clause in behavior' is not yet supported.

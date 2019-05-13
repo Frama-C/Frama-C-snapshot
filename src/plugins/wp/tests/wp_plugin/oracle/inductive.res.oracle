@@ -12,6 +12,7 @@
   Require Import ZArith.
   Require Import Reals.
   Require Import BuiltIn.
+  Require Import HighOrd.
   Require Import int.Int.
   Require Import int.Abs.
   Require Import int.ComputerDivision.
@@ -19,6 +20,7 @@
   Require Import real.RealInfix.
   Require Import real.FromInt.
   Require Import map.Map.
+  Require Import bool.Bool.
   Require Import Qedlib.
   Require Import Qed.
   Require Import Memory.
@@ -34,6 +36,7 @@
   Require Import ZArith.
   Require Import Reals.
   Require Import BuiltIn.
+  Require Import HighOrd.
   Require Import int.Int.
   Require Import int.Abs.
   Require Import int.ComputerDivision.
@@ -41,6 +44,7 @@
   Require Import real.RealInfix.
   Require Import real.FromInt.
   Require Import map.Map.
+  Require Import bool.Bool.
   Require Import Qedlib.
   Require Import Qed.
   
@@ -80,6 +84,7 @@
   Require Import ZArith.
   Require Import Reals.
   Require Import BuiltIn.
+  Require Import HighOrd.
   Require Import int.Int.
   Require Import int.Abs.
   Require Import int.ComputerDivision.
@@ -87,6 +92,7 @@
   Require Import real.RealInfix.
   Require Import real.FromInt.
   Require Import map.Map.
+  Require Import bool.Bool.
   Require Import Qedlib.
   Require Import Qed.
   

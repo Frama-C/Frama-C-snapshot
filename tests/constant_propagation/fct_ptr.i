@@ -1,5 +1,5 @@
 /* run.config
-OPT: -scf -val-show-progress -then-on propagated
+   STDOPT: +"-then-on propagated"
 */
 
 void (*pf)(void);

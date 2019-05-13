@@ -1,6 +1,6 @@
 /* run.config
-EXECNOW: make @PTEST_DIR@/@PTEST_NAME@.cmxs
-OPT: -load-module @PTEST_DIR@/@PTEST_NAME@ -copy -kernel-warn-key=annot-error=active
+EXECNOW: make -s @PTEST_DIR@/@PTEST_NAME@.cmxs
+OPT: -no-autoload-plugins -load-module @PTEST_DIR@/@PTEST_NAME@.cmxs -copy -kernel-warn-key=annot-error=active
 */
 
 /*@ foo x == 0;
@@ -43,9 +43,9 @@ int k(int z) {
 /*@ global_foo \forall integer x; x < x + 1
 ; */
 
-
+//@ behavior ca_foo: ensures ca_foo: \true;
 void loop (void) {
-  //@ ca_foo \true;
+  //@ for ca_foo: ca_foo \true;
   //@ ns_foo \true;
   //@ baz \true;
   /*@ loop invariant \true; */

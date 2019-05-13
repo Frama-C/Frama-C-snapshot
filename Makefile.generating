@@ -2,7 +2,7 @@
 #                                                                        #
 #  This file is part of Frama-C.                                         #
 #                                                                        #
-#  Copyright (C) 2007-2018                                               #
+#  Copyright (C) 2007-2019                                               #
 #    CEA (Commissariat à l'énergie atomique et aux énergies              #
 #         alternatives)                                                  #
 #                                                                        #
@@ -41,6 +41,8 @@ tests/ptests_config: Makefile.generating share/Makefile.config
 	$(CHMOD_RO) $@
 
 ALL_LIBRARY_NAMES=$(shell ocamlfind query -r -p-format $(LIBRARY_NAMES) $(LIBRARY_NAMES_GUI))
+MAJOR_VERSION=$(shell $(SED) -E 's/^([0-9]+)\..*/\1/' VERSION)
+MINOR_VERSION=$(shell $(SED) -E 's/^[0-9]+\.([0-9]+).*/\1/' VERSION)
 
 $(CONFIG_FILE): $(CONFIG_FILE).in VERSION VERSION_CODENAME share/Makefile.config Makefile.generating configure.in
 	$(SED) \
@@ -62,8 +64,9 @@ $(CONFIG_FILE): $(CONFIG_FILE).in VERSION VERSION_CODENAME share/Makefile.config
           -e "s|@COMPILATION_UNITS@|$(COMPILATION_UNITS)|" \
           -e "s|@LIBRARY_NAMES@|$(foreach p,$(ALL_LIBRARY_NAMES),\"$p\";)|" \
 	  -e "s|@OPTDOT@|$(OPTDOT)|" \
-          -e "s|@HAS_YOJSON@|$(if $(filter yes,$(HAS_YOJSON)),true,false)|" \
           -e "s|@EXE@|$(EXE)|" \
+          -e "s|@MAJOR_VERSION@|$(MAJOR_VERSION)|" \
+          -e "s|@MINOR_VERSION@|$(MINOR_VERSION)|" \
           $< > $@.tmp
 	@touch -r $@.tmp $<
 	$(CP_IF_DIFF) $@.tmp $@
@@ -147,6 +150,20 @@ else
   ASSQ_OPT=assq_opt
 endif
 
+ifeq ($(HAS_OCAML408),yes)
+  DYNLINK_INIT=fun () -> ()
+  FORMAT_STAG=stag
+  FORMAT_STRING_OF_STAG=match s with\n\
+      | Format.String_tag str -> str\n\
+      | _ -> raise (Invalid_argument "unsupported tag extension")
+  FORMAT_STAG_OF_STRING=Format.String_tag s
+else
+  DYNLINK_INIT=Dynlink.init
+  FORMAT_STAG=tag
+  FORMAT_STRING_OF_STAG=s
+  FORMAT_STAG_OF_STRING=s
+endif
+
 src/libraries/stdlib/transitioning.ml: \
   src/libraries/stdlib/transitioning.ml.in \
   Makefile.generating share/Makefile.config
@@ -159,6 +176,10 @@ src/libraries/stdlib/transitioning.ml: \
          -e 's/@FIND_OPT@/$(FIND_OPT)/g' \
          -e 's/@ASSOC_OPT@/$(ASSOC_OPT)/g' \
          -e 's/@ASSQ_OPT@/$(ASSQ_OPT)/g' \
+         -e 's/@DYNLINK_INIT@/$(DYNLINK_INIT)/g' \
+         -e 's/@FORMAT_STAG@/$(FORMAT_STAG)/g' \
+         -e 's/@FORMAT_STRING_OF_STAG@/$(FORMAT_STRING_OF_STAG)/g' \
+         -e 's/@FORMAT_STAG_OF_STRING@/$(FORMAT_STAG_OF_STRING)/g' \
         $< > $@
 	$(CHMOD_RO) $@
 
@@ -204,6 +225,12 @@ endif
 ifeq ("$(DEVELOPMENT)","yes")
 all:: .merlin
 endif
+
+lib/fc/META.frama-c: share/META.frama-c share/Makefile.config Makefile.generating
+	$(MKDIR) lib/fc/
+	$(SED) "s/@REQUIRES/$(LIBRARY_NAMES)/" $< > $@
+
+GENERATED += lib/fc/META.frama-c
 
 
 # Local Variables:

@@ -1,14 +1,14 @@
 diff tests/builtins/oracle/Longinit_sequencer.res.oracle tests/builtins/oracle_gauges/Longinit_sequencer.res.oracle
-320c320
+327c327
 <   tests/builtins/result/Longinit_sequencer.sav
 ---
 >   tests/builtins/result_gauges/Longinit_sequencer.sav
-556c556
+568c568
 <   tests/builtins/result/Longinit_sequencer.sav
 ---
 >   tests/builtins/result_gauges/Longinit_sequencer.sav
 diff tests/builtins/oracle/linked_list.0.res.oracle tests/builtins/oracle_gauges/linked_list.0.res.oracle
-1052a1053,1058
+1094a1095,1100
 > [eva] computing for function printf_va_1 <- main.
 >   Called from tests/builtins/linked_list.c:51.
 > [eva] Done for function printf_va_1
@@ -16,7 +16,7 @@ diff tests/builtins/oracle/linked_list.0.res.oracle tests/builtins/oracle_gauges
 >   Called from tests/builtins/linked_list.c:51.
 > [eva] Done for function printf_va_1
 diff tests/builtins/oracle/linked_list.1.res.oracle tests/builtins/oracle_gauges/linked_list.1.res.oracle
-556a557,562
+598a599,604
 > [eva] computing for function printf_va_1 <- main.
 >   Called from tests/builtins/linked_list.c:51.
 > [eva] Done for function printf_va_1
@@ -36,13 +36,13 @@ diff tests/builtins/oracle/malloc-size-zero.1.res.oracle tests/builtins/oracle_g
 > [eva] Recording results for my_calloc
 > [eva] Done for function my_calloc
 diff tests/builtins/oracle/memcpy.res.oracle tests/builtins/oracle_gauges/memcpy.res.oracle
-167a168,169
+168a169,170
 > [eva] tests/builtins/memcpy.c:96: Call to builtin memcpy
 > [eva] tests/builtins/memcpy.c:96: Call to builtin memcpy
-446a449
+449a452
 > [eva] tests/builtins/memcpy.c:230: starting to merge loop iterations
 diff tests/builtins/oracle/realloc.res.oracle tests/builtins/oracle_gauges/realloc.res.oracle
-644a645,957
+689a690,1038
 > [eva] tests/builtins/realloc.c:152: Call to builtin realloc
 > [eva:malloc] bases_to_realloc: {__realloc_w_main10_l152}
 > [eva:malloc] tests/builtins/realloc.c:152: 
@@ -54,6 +54,9 @@ diff tests/builtins/oracle/realloc.res.oracle tests/builtins/oracle_gauges/reall
 >   __fc_heap_status ∈ [--..--]
 >   __fc_random_counter ∈ [--..--]
 >   __fc_rand_max ∈ {32767}
+>   __fc_random48_init ∈ {0}
+>   __fc_random48_counter[0..2] ∈ [--..--]
+>   __fc_p_random48_counter ∈ {{ &__fc_random48_counter[0] }}
 >   __fc_env[0] ∈ {{ NULL ; &S_0___fc_env[0] }}
 >           [1] ∈ {{ NULL ; &S_1___fc_env[0] }}
 >           [2..4095] ∈ {{ NULL ; &S_0___fc_env[0] ; &S_1___fc_env[0] }}
@@ -80,6 +83,9 @@ diff tests/builtins/oracle/realloc.res.oracle tests/builtins/oracle_gauges/reall
 >   __fc_heap_status ∈ [--..--]
 >   __fc_random_counter ∈ [--..--]
 >   __fc_rand_max ∈ {32767}
+>   __fc_random48_init ∈ {0}
+>   __fc_random48_counter[0..2] ∈ [--..--]
+>   __fc_p_random48_counter ∈ {{ &__fc_random48_counter[0] }}
 >   __fc_env[0] ∈ {{ NULL ; &S_0___fc_env[0] }}
 >           [1] ∈ {{ NULL ; &S_1___fc_env[0] }}
 >           [2..4095] ∈ {{ NULL ; &S_0___fc_env[0] ; &S_1___fc_env[0] }}
@@ -106,6 +112,9 @@ diff tests/builtins/oracle/realloc.res.oracle tests/builtins/oracle_gauges/reall
 >   __fc_heap_status ∈ [--..--]
 >   __fc_random_counter ∈ [--..--]
 >   __fc_rand_max ∈ {32767}
+>   __fc_random48_init ∈ {0}
+>   __fc_random48_counter[0..2] ∈ [--..--]
+>   __fc_p_random48_counter ∈ {{ &__fc_random48_counter[0] }}
 >   __fc_env[0] ∈ {{ NULL ; &S_0___fc_env[0] }}
 >           [1] ∈ {{ NULL ; &S_1___fc_env[0] }}
 >           [2..4095] ∈ {{ NULL ; &S_0___fc_env[0] ; &S_1___fc_env[0] }}
@@ -132,6 +141,9 @@ diff tests/builtins/oracle/realloc.res.oracle tests/builtins/oracle_gauges/reall
 >   __fc_heap_status ∈ [--..--]
 >   __fc_random_counter ∈ [--..--]
 >   __fc_rand_max ∈ {32767}
+>   __fc_random48_init ∈ {0}
+>   __fc_random48_counter[0..2] ∈ [--..--]
+>   __fc_p_random48_counter ∈ {{ &__fc_random48_counter[0] }}
 >   __fc_env[0] ∈ {{ NULL ; &S_0___fc_env[0] }}
 >           [1] ∈ {{ NULL ; &S_1___fc_env[0] }}
 >           [2..4095] ∈ {{ NULL ; &S_0___fc_env[0] ; &S_1___fc_env[0] }}
@@ -158,6 +170,9 @@ diff tests/builtins/oracle/realloc.res.oracle tests/builtins/oracle_gauges/reall
 >   __fc_heap_status ∈ [--..--]
 >   __fc_random_counter ∈ [--..--]
 >   __fc_rand_max ∈ {32767}
+>   __fc_random48_init ∈ {0}
+>   __fc_random48_counter[0..2] ∈ [--..--]
+>   __fc_p_random48_counter ∈ {{ &__fc_random48_counter[0] }}
 >   __fc_env[0] ∈ {{ NULL ; &S_0___fc_env[0] }}
 >           [1] ∈ {{ NULL ; &S_1___fc_env[0] }}
 >           [2..4095] ∈ {{ NULL ; &S_0___fc_env[0] ; &S_1___fc_env[0] }}
@@ -184,6 +199,9 @@ diff tests/builtins/oracle/realloc.res.oracle tests/builtins/oracle_gauges/reall
 >   __fc_heap_status ∈ [--..--]
 >   __fc_random_counter ∈ [--..--]
 >   __fc_rand_max ∈ {32767}
+>   __fc_random48_init ∈ {0}
+>   __fc_random48_counter[0..2] ∈ [--..--]
+>   __fc_p_random48_counter ∈ {{ &__fc_random48_counter[0] }}
 >   __fc_env[0] ∈ {{ NULL ; &S_0___fc_env[0] }}
 >           [1] ∈ {{ NULL ; &S_1___fc_env[0] }}
 >           [2..4095] ∈ {{ NULL ; &S_0___fc_env[0] ; &S_1___fc_env[0] }}
@@ -210,6 +228,9 @@ diff tests/builtins/oracle/realloc.res.oracle tests/builtins/oracle_gauges/reall
 >   __fc_heap_status ∈ [--..--]
 >   __fc_random_counter ∈ [--..--]
 >   __fc_rand_max ∈ {32767}
+>   __fc_random48_init ∈ {0}
+>   __fc_random48_counter[0..2] ∈ [--..--]
+>   __fc_p_random48_counter ∈ {{ &__fc_random48_counter[0] }}
 >   __fc_env[0] ∈ {{ NULL ; &S_0___fc_env[0] }}
 >           [1] ∈ {{ NULL ; &S_1___fc_env[0] }}
 >           [2..4095] ∈ {{ NULL ; &S_0___fc_env[0] ; &S_1___fc_env[0] }}
@@ -236,6 +257,9 @@ diff tests/builtins/oracle/realloc.res.oracle tests/builtins/oracle_gauges/reall
 >   __fc_heap_status ∈ [--..--]
 >   __fc_random_counter ∈ [--..--]
 >   __fc_rand_max ∈ {32767}
+>   __fc_random48_init ∈ {0}
+>   __fc_random48_counter[0..2] ∈ [--..--]
+>   __fc_p_random48_counter ∈ {{ &__fc_random48_counter[0] }}
 >   __fc_env[0] ∈ {{ NULL ; &S_0___fc_env[0] }}
 >           [1] ∈ {{ NULL ; &S_1___fc_env[0] }}
 >           [2..4095] ∈ {{ NULL ; &S_0___fc_env[0] ; &S_1___fc_env[0] }}
@@ -262,6 +286,9 @@ diff tests/builtins/oracle/realloc.res.oracle tests/builtins/oracle_gauges/reall
 >   __fc_heap_status ∈ [--..--]
 >   __fc_random_counter ∈ [--..--]
 >   __fc_rand_max ∈ {32767}
+>   __fc_random48_init ∈ {0}
+>   __fc_random48_counter[0..2] ∈ [--..--]
+>   __fc_p_random48_counter ∈ {{ &__fc_random48_counter[0] }}
 >   __fc_env[0] ∈ {{ NULL ; &S_0___fc_env[0] }}
 >           [1] ∈ {{ NULL ; &S_1___fc_env[0] }}
 >           [2..4095] ∈ {{ NULL ; &S_0___fc_env[0] ; &S_1___fc_env[0] }}
@@ -289,6 +316,9 @@ diff tests/builtins/oracle/realloc.res.oracle tests/builtins/oracle_gauges/reall
 >   __fc_heap_status ∈ [--..--]
 >   __fc_random_counter ∈ [--..--]
 >   __fc_rand_max ∈ {32767}
+>   __fc_random48_init ∈ {0}
+>   __fc_random48_counter[0..2] ∈ [--..--]
+>   __fc_p_random48_counter ∈ {{ &__fc_random48_counter[0] }}
 >   __fc_env[0] ∈ {{ NULL ; &S_0___fc_env[0] }}
 >           [1] ∈ {{ NULL ; &S_1___fc_env[0] }}
 >           [2..4095] ∈ {{ NULL ; &S_0___fc_env[0] ; &S_1___fc_env[0] }}
@@ -315,6 +345,9 @@ diff tests/builtins/oracle/realloc.res.oracle tests/builtins/oracle_gauges/reall
 >   __fc_heap_status ∈ [--..--]
 >   __fc_random_counter ∈ [--..--]
 >   __fc_rand_max ∈ {32767}
+>   __fc_random48_init ∈ {0}
+>   __fc_random48_counter[0..2] ∈ [--..--]
+>   __fc_p_random48_counter ∈ {{ &__fc_random48_counter[0] }}
 >   __fc_env[0] ∈ {{ NULL ; &S_0___fc_env[0] }}
 >           [1] ∈ {{ NULL ; &S_1___fc_env[0] }}
 >           [2..4095] ∈ {{ NULL ; &S_0___fc_env[0] ; &S_1___fc_env[0] }}
@@ -341,6 +374,9 @@ diff tests/builtins/oracle/realloc.res.oracle tests/builtins/oracle_gauges/reall
 >   __fc_heap_status ∈ [--..--]
 >   __fc_random_counter ∈ [--..--]
 >   __fc_rand_max ∈ {32767}
+>   __fc_random48_init ∈ {0}
+>   __fc_random48_counter[0..2] ∈ [--..--]
+>   __fc_p_random48_counter ∈ {{ &__fc_random48_counter[0] }}
 >   __fc_env[0] ∈ {{ NULL ; &S_0___fc_env[0] }}
 >           [1] ∈ {{ NULL ; &S_1___fc_env[0] }}
 >           [2..4095] ∈ {{ NULL ; &S_0___fc_env[0] ; &S_1___fc_env[0] }}

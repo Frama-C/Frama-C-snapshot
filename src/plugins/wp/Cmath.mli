@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2018                                               *)
+(*  Copyright (C) 2007-2019                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -27,6 +27,9 @@
 open Lang
 open Lang.F
 
+val int_of_bool : unop
+val bool_of_int : unop
+
 val int_of_real : term -> term
 val real_of_int : term -> term
 
@@ -34,3 +37,5 @@ val f_real_of_int : lfun
 val f_iabs : lfun
 val f_rabs : lfun
 val f_sqrt : lfun
+
+(* -------------------------------------------------------------------------- *)

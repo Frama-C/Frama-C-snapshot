@@ -3,7 +3,8 @@
 */
 
 /* run.config_qualif
-   OPT: -wp-par 1 -load-script tests/wp_plugin/combined.ml
+   EXECNOW: @PTEST_DIR@/@PTEST_NAME@.cmxs
+   OPT: -wp-par 1 -load-module @PTEST_DIR@/@PTEST_NAME@
 */
 
 /* ZD : this should not be here such as it cannot be tested by all frama-c

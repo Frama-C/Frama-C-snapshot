@@ -6,13 +6,14 @@
 [wp] tests/wp_plugin/loopentry.i:12: Warning: 
   Missing assigns clause (assigns 'everything' instead)
 [wp] 4 goals scheduled
-[wp] [Qed] Goal typed_f_loop_inv_preserved : Valid
-[wp] [Qed] Goal typed_f_loop_inv_established : Valid
-[wp] [Qed] Goal typed_f_loop_inv_2_preserved : Valid
-[wp] [Qed] Goal typed_f_loop_inv_2_established : Valid
+[wp] [Qed] Goal typed_f_loop_invariant_preserved : Valid
+[wp] [Qed] Goal typed_f_loop_invariant_established : Valid
+[wp] [Qed] Goal typed_f_loop_invariant_2_preserved : Valid
+[wp] [Qed] Goal typed_f_loop_invariant_2_established : Valid
 [wp] Proved goals:    4 / 4
   Qed:             4
-[wp] Report 'tests/wp_plugin/loopentry.i.0.report.json'
+[wp] Report in:  'tests/wp_plugin/oracle_qualif/loopentry.0.report.json'
+[wp] Report out: 'tests/wp_plugin/result_qualif/loopentry.0.report.json'
 -------------------------------------------------------------
 Functions           WP     Alt-Ergo        Total   Success
 f                    4     -                 4       100%

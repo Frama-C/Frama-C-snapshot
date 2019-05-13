@@ -16,5 +16,9 @@
           "-UTOUNDEF"
       ],
       "file": "jcdb.c"
+    },
+    { "directory": "tests/jcdb",
+      "command": "/usr/bin/cc -DONION_VERSION=\\\"0.1.tr\\\" -Ibla -o jcdb2.o -c jcdb2.c jcdb.c",
+      "file": "jcdb2.c"
     }
 ]

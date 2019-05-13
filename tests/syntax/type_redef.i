@@ -61,7 +61,7 @@ typedef int magic;
 void i() {
   typedef void (*magic)(void); //valid
   { typedef struct {int obj;} magic; } //valid
-  magic m = g; //valid (test scoping of local typedef)
+  magic m = (magic) g; //valid (test scoping of local typedef)
 }
 magic m = 2; //valid (test scoping of local typedef)
 

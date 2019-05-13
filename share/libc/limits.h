@@ -2,7 +2,7 @@
 /*                                                                        */
 /*  This file is part of Frama-C.                                         */
 /*                                                                        */
-/*  Copyright (C) 2007-2018                                               */
+/*  Copyright (C) 2007-2019                                               */
 /*    CEA (Commissariat à l'énergie atomique et aux énergies              */
 /*         alternatives)                                                  */
 /*                                                                        */
@@ -84,6 +84,9 @@
    as returned from the gethostname() function.
    Note: Mac OS does not define this constant. */
 #define HOST_NAME_MAX __FC_HOST_NAME_MAX
+
+/* Maximum length of a terminal device name. */
+#define TTY_NAME_MAX __FC_TTY_NAME_MAX
 
 /* Maximum length of argument to the exec functions including environment data.
    Minimum Acceptable Value: {_POSIX_ARG_MAX} (4096 in POSIX.1-2008)

@@ -1,5 +1,5 @@
 /* run.config*
-   OPT: -no-autoload-plugins -load-module inout,eva -val @VALUECONFIG@ -cpp-extra-args="-DPTEST" -journal-disable
+   OPT: -no-autoload-plugins -load-module inout,eva -eva @EVA_CONFIG@ -cpp-extra-args="-DPTEST" -journal-disable
 */
 
 

@@ -2,7 +2,7 @@ digraph g {
   rankdir = TB ;
   node [ style = filled, shape = box ] ;
   N000 [ color = red, shape = circle, label = "*" ] ;
-  N049 [ color=red , label="Prove g_post" ] ;
+  N049 [ color=red , label="Prove g_ensures_2" ] ;
   N049 -> N000 [ style=dotted ] ;
   N050 [ color=lightblue , label="F-out { a b }" ] ;
  N050 -> N049 ;

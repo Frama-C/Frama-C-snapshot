@@ -6,18 +6,19 @@
 [wp] Loading driver 'share/wp.driver'
 [rte] annotating function swap
 [wp] 8 goals scheduled
-[wp] [Alt-Ergo] Goal typed_swap_post_A : Valid
-[wp] [Qed] Goal typed_swap_post_B : Valid
+[wp] [Alt-Ergo] Goal typed_swap_ensures_A : Valid
+[wp] [Qed] Goal typed_swap_ensures_B : Valid
 [wp] [Alt-Ergo] Goal typed_swap_assert_rte_mem_access : Valid
 [wp] [Qed] Goal typed_swap_assert_rte_mem_access_2 : Valid
 [wp] [Alt-Ergo] Goal typed_swap_assert_rte_mem_access_3 : Valid
 [wp] [Qed] Goal typed_swap_assert_rte_mem_access_4 : Valid
-[wp] [Qed] Goal typed_swap_assign_part1 : Valid
-[wp] [Qed] Goal typed_swap_assign_part2 : Valid
+[wp] [Qed] Goal typed_swap_assigns_part1 : Valid
+[wp] [Qed] Goal typed_swap_assigns_part2 : Valid
 [wp] Proved goals:    8 / 8
   Qed:             5 
   Alt-Ergo:        3
-[wp] Report 'tests/wp_manual/manual.i.1.report.json'
+[wp] Report in:  'tests/wp_manual/oracle_qualif/manual.1.report.json'
+[wp] Report out: 'tests/wp_manual/result_qualif/manual.1.report.json'
 -------------------------------------------------------------
 Functions           WP     Alt-Ergo        Total   Success
 swap                 5      3 (16..28)       8       100%

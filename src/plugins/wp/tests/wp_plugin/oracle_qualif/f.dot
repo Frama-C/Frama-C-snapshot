@@ -2,9 +2,9 @@ digraph f {
   rankdir = TB ;
   node [ style = filled, shape = box ] ;
   N000 [ color = red, shape = circle, label = "*" ] ;
-  N074 [ color=red , label="Prove f_post" ] ;
+  N074 [ color=red , label="Prove f_ensures" ] ;
   N074 -> N000 [ style=dotted ] ;
-  N075 [ color=red , label="Prove f_post_2" ] ;
+  N075 [ color=red , label="Prove f_ensures_2" ] ;
   N075 -> N074 [ style=dotted ] ;
   N076 [ label="" , shape=circle ] ;
  N076 -> N075 ;
@@ -54,9 +54,9 @@ digraph f {
  N097 -> N096 ;
   N098 [ label="Label wp:sid8 (Stmt s8)" ] ;
  N098 -> N097 ;
-  N099 [ color=green , label="Assume f_stmt_post" ] ;
+  N099 [ color=green , label="Assume f_ensures_3" ] ;
  N099 -> N098 ;
-  N100 [ color=orange , label="Havoc f_stmt_assign:
+  N100 [ color=orange , label="Havoc f_assigns:
 assigns __retres;" ] ;
  N100 -> N099 ;
   N101 [ color=lightblue , label="B-in { }" ] ;

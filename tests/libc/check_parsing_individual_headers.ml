@@ -11,7 +11,7 @@ let blacklist () =
   let libc = (Filename.concat (Sys.getenv "FRAMAC_SHARE") "libc") in
   List.map (fun f ->
       Datatype.Filepath.of_string (Filename.concat libc f))
-    ["tgmath.h"; "complex.h"; "__fc_machdep_linux_gcc_shared.h"]
+    ["tgmath.h"; "complex.h"; "__fc_machdep_linux_shared.h"]
 
 (* only goes down one level, which is enough for the libc *)
 let collect_headers libc_dir =

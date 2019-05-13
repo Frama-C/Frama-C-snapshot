@@ -1,4 +1,6 @@
 [kernel] Parsing tests/value/pointer_int_cast.i (no preprocessing)
+[kernel:typing:int-conversion] tests/value/pointer_int_cast.i:9: Warning: 
+  Conversion from a pointer to an integer without an explicit cast
 [eva] Analyzing a complete application starting at g
 [eva] Computing initial state
 [eva] Initial state computed

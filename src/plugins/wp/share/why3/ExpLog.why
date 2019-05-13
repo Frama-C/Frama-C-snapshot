@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2018                                               *)
+(*  Copyright (C) 2007-2019                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -24,6 +24,6 @@ theory ExpLog
 use real.Real as Real
 use real.ExpLog as ExpLog
 
-axiom exp_pos : forall x:real. (Real.(>) (ExpLog.exp x) (0.))
+lemma exp_pos : forall x:real. (Real.(>) (ExpLog.exp x) (0.))
 
 end

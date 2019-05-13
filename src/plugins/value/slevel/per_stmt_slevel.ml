@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2018                                               *)
+(*  Copyright (C) 2007-2019                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -21,6 +21,7 @@
 (**************************************************************************)
 
 open Cil_types
+open Partitioning_annots
 
 module G = struct
   type t = kernel_function
@@ -38,54 +39,6 @@ end
 
 module Dfs = Graph.Traverse.Dfs(G)
 
-
-(* We use the following encoding to store the directives in the AST: *)
-type local_slevel =
-  | LMerge (* encoded as '"merge"' *)
-  | LDefault (* encoded as '"default"' *)
-  | LLocal of int (* encoded as 'Const i' *)
-
-let retrieve_annot lt =
-  match lt with
-  | [{term_node = TConst (Integer (i, _))}] ->
-    LLocal (Integer.to_int i)
-  | [{term_node = TConst (LStr "default")}] -> LDefault
-  | [{term_node = TConst (LStr "merge")}] -> LMerge
-  | _ -> LDefault (* be kind. Someone is bound to write a visitor that will
-                     simplify our term into something unrecognizable... *)
-
-let () = Logic_typing.register_code_annot_next_stmt_extension "slevel"
-    (fun ~typing_context:_ ~loc args ->
-       let abort () =
-         Value_parameters.abort ~source:(fst loc) "Invalid slevel directive"
-       in
-       let open Logic_ptree in
-       let p = match args with
-         | [{lexpr_node = PLvar ("default" | "merge" as s)}] ->
-           Logic_const.tstring s
-         | [{lexpr_node = PLconstant (IntConstant i)}] ->
-           begin
-             try
-               let i = int_of_string i in
-               if i < 0 then abort ();
-               Logic_const.tinteger i
-             with Failure _ -> abort ()
-           end
-         | _ -> abort ()
-       in
-       Ext_terms [p]
-    )
-
-let () = Cil_printer.register_code_annot_extension "slevel"
-    (fun _pp fmt lp ->
-       match lp with
-       | Ext_id _ | Ext_preds _ -> assert false
-       | Ext_terms lt ->
-         match retrieve_annot lt with
-         | LDefault -> Format.pp_print_string fmt "default"
-         | LMerge -> Format.pp_print_string fmt "merge"
-         | LLocal i -> Format.pp_print_int fmt i
-    )
 
 type slevel =
   | Global of int
@@ -111,19 +64,9 @@ module DatatypeMerge = Datatype.Make(struct
     let mem_project = Datatype.never_any_project
   end)
 
-let extract_slevel_directive s =
-  let rec find_one l =
-    match l with
-    | [] -> None
-    | {annot_content = AExtended(_,_,(_,"slevel", _, Ext_terms lp))} :: _ ->
-      Some (retrieve_annot lp)
-    | _ :: q -> find_one q
-  in
-  find_one (Annotations.code_annot s)
-
 let kf_contains_slevel_directive kf =
   List.exists
-    (fun stmt -> extract_slevel_directive stmt <> None)
+    (fun stmt -> get_slevel_annot stmt <> None)
     (Kernel_function.get_definition kf).sallstmts
 
 let compute kf =
@@ -139,15 +82,15 @@ let compute kf =
     (* Before visiting the successors of the statement: push or pop according
        to directive *)
     let pre s =
-      match extract_slevel_directive s with
-      | None | Some LMerge as d ->
+      match get_slevel_annot s with
+      | None | Some SlevelMerge as d ->
         Cil_datatype.Stmt.Hashtbl.add h_local s (Stack.top local_slevel);
         if d <> None then Cil_datatype.Stmt.Hashtbl.add h_merge s ();
-      | Some (LLocal i) ->
+      | Some (SlevelLocal i) ->
         if debug then Format.printf "Vising split %d, pushing %d@." s.sid i;
         Cil_datatype.Stmt.Hashtbl.add h_local s i;
         Stack.push i local_slevel;
-      | Some LDefault ->
+      | Some SlevelDefault ->
         let top = Stack.pop local_slevel in
         if debug then
           Format.printf "Visiting merge %d, poping (prev %d)@." s.sid top;
@@ -157,12 +100,12 @@ let compute kf =
     (* after the visit of a statement and its successors. Do the converse
        operation of pre *)
     and post s =
-      match extract_slevel_directive s with
-      | None | Some LMerge -> ()
-      | Some (LLocal _) ->
+      match get_slevel_annot s with
+      | None | Some SlevelMerge -> ()
+      | Some (SlevelLocal _) ->
         if debug then Format.printf "Leaving split %d, poping@." s.sid;
         ignore (Stack.pop local_slevel);
-      | Some LDefault ->
+      | Some SlevelDefault ->
         (* slevel on nodes above s *)
         let above = Cil_datatype.Stmt.Hashtbl.find h_local s in
         (* slevel on s and on the nodes below *)

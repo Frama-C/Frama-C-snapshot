@@ -2,7 +2,7 @@
 /*                                                                        */
 /*  This file is part of Frama-C.                                         */
 /*                                                                        */
-/*  Copyright (C) 2007-2018                                               */
+/*  Copyright (C) 2007-2019                                               */
 /*    CEA (Commissariat à l'énergie atomique et aux énergies              */
 /*         alternatives)                                                  */
 /*                                                                        */
@@ -23,9 +23,12 @@
 #ifndef __FC_MACHDEP
 #define __FC_MACHDEP
 
-#ifdef __FC_MACHDEP_X86_32
+#if defined(__FC_MACHDEP_X86_32) || defined(__FC_MACHDEP_GCC_X86_32)
 #define __FC_FORCE_INCLUDE_MACHDEP__
-#include "__fc_machdep_linux_gcc_shared.h"
+#include "__fc_machdep_linux_shared.h"
+#ifdef __FC_MACHDEP_GCC_X86_32
+#include "__fc_gcc_builtins.h"
+#endif
 #undef __FC_FORCE_INCLUDE_MACHDEP__
 #define  __FC_BYTE_ORDER __LITTLE_ENDIAN
 /* Required */
@@ -105,11 +108,14 @@
 #define __FC_WINT_MIN 0
 #define __FC_WINT_MAX __FC_UINT_MAX
 
-// End of X86_32
+// End of X86_32 || GCC_X86_32
 #else
-#ifdef __FC_MACHDEP_X86_64
+#if defined(__FC_MACHDEP_X86_64) || defined(__FC_MACHDEP_GCC_X86_64)
 #define __FC_FORCE_INCLUDE_MACHDEP__
-#include "__fc_machdep_linux_gcc_shared.h"
+#include "__fc_machdep_linux_shared.h"
+#ifdef __FC_MACHDEP_GCC_X86_64
+#include "__fc_gcc_builtins.h"
+#endif
 #undef __FC_FORCE_INCLUDE_MACHDEP__
 #define  __FC_BYTE_ORDER __LITTLE_ENDIAN
 /* Required */
@@ -198,11 +204,14 @@
 #define __FC_WINT_MIN 0
 #define __FC_WINT_MAX __FC_UINT_MAX
 
-// End of X86_64
+// End of X86_64 || GCC_X86_64
 #else
-#ifdef __FC_MACHDEP_X86_16
+#if defined(__FC_MACHDEP_X86_16) || defined(__FC_MACHDEP_GCC_X86_16)
 #define __FC_FORCE_INCLUDE_MACHDEP__
-#include "__fc_machdep_linux_gcc_shared.h"
+#include "__fc_machdep_linux_shared.h"
+#ifdef __FC_MACHDEP_GCC_X86_16
+#include "__fc_gcc_builtins.h"
+#endif
 #undef __FC_FORCE_INCLUDE_MACHDEP__
 #define  __FC_BYTE_ORDER __LITTLE_ENDIAN
 /* Required */
@@ -294,11 +303,11 @@
 #define __FC_WINT_MIN 0
 #define __FC_WINT_MAX __FC_ULONG_MAX
 
-// End of X86_16
+// End of X86_16 || GCC_X86_16
 #else
 #ifdef __FC_MACHDEP_PPC_32
 #define __FC_FORCE_INCLUDE_MACHDEP__
-#include "__fc_machdep_linux_gcc_shared.h"
+#include "__fc_machdep_linux_shared.h"
 #undef __FC_FORCE_INCLUDE_MACHDEP__
 #define  __FC_BYTE_ORDER __BIG_ENDIAN
 /* Required */
@@ -438,6 +447,7 @@
 /* Note: MSVC does not define this constant, but because it is used in an ACSL
    specification, it is safer to define it anyway. */
 #define __FC_HOST_NAME_MAX 255
+#define __FC_TTY_NAME_MAX 32
 
 /* Optional */
 #define __INT8_T signed char
@@ -607,7 +617,8 @@
 // End of MSVC_X86_64
 #else
 #error Must define __FC_MACHDEP_<M>, where <M> is one of the            \
-  following: X86_32, X86_64, X86_16, PPC_32, MSVC_X86_64.               \
+  following: X86_32, X86_64, X86_16, GCC_X86_32, GCC_X86_64,            \
+  GCC_X86_16, PPC_32, MSVC_X86_64.                                      \
   If you are using a custom machdep, you must include your machdep      \
   header file defining __FC_MACHDEP to avoid inclusion of this file.
 #endif

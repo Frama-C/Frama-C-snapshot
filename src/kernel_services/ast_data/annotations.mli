@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2018                                               *)
+(*  Copyright (C) 2007-2019                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -279,6 +279,12 @@ val add_assert:
   Emitter.t -> ?kf:kernel_function -> stmt -> predicate -> unit
 (** Add an assertion attached to the given statement. If [kf] is
     provided, the function runs faster. 
+    @plugin development guide *)
+
+val add_check:
+  Emitter.t -> ?kf:kernel_function -> stmt -> predicate -> unit
+(** Add a checking assertion attached to the given statement. If [kf] is
+    provided, the function runs faster.
     @plugin development guide *)
 
 val add_global: Emitter.t -> global_annotation -> unit

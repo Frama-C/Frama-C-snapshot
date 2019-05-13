@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2018                                               *)
+(*  Copyright (C) 2007-2019                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -20,13 +20,10 @@
 (*                                                                        *)
 (**************************************************************************)
 
-(** Extension of [Big_int] compatible with [Zarith]. 
+(** Extension of [Big_int] compatible with [Zarith].
     @since Nitrogen-20111001 *)
 
 type t = Z.t
-
-exception Too_big (** Produced by values whose physical representation is too
-                      costly (e.g. in terms of memory usage). *)
 
 val equal : t -> t -> bool
 val compare : t -> t -> int
@@ -41,8 +38,14 @@ val sub : t -> t -> t
 val mul : t -> t -> t
 
 val shift_left : t -> t -> t
+(** @raise Invalid_argument if second argument (count) is negative *)
+
 val shift_right : t -> t -> t
+(** @raise Invalid_argument if second argument (count) is negative *)
+
 val shift_right_logical : t -> t -> t
+(** @raise Invalid_argument if any argument is negative *)
+
 val logand : t -> t -> t
 val logor : t -> t -> t
 val logxor : t -> t -> t
@@ -51,36 +54,41 @@ val lognot : t -> t
 val min : t -> t -> t
 val max : t -> t -> t
 
-val native_div : t -> t -> t
-val div : t -> t -> t
-(** Euclidean division (that returns a positive rem) *)
-val pos_div : t -> t -> t
-(** Euclidean division. Equivalent to C division if both operands are positive.
+val e_div : t -> t -> t
+(** Euclidean division (that returns a positive rem).
+    Implemented by [Z.ediv]
+
+    Equivalent to C division if both operands are positive.
     Equivalent to a floored division if b > 0 (rounds downwards),
     otherwise rounds upwards.
-    Note: it is possible that pos_div (-a) b <> pos_div a (-b). *)
-val divexact: t -> t -> t
-(** Faster, but produces correct results only when b evenly divides a. *)
-val c_div : t -> t -> t
-(** Truncated division towards 0 (like in C99) *)
+    Note: it is possible that e_div (-a) b <> e_div a (-b).
+*)
 
-val rem : t -> t -> t
-(** Remainder of the Euclidean division (always positive) *)
+val e_rem : t -> t -> t
+(** Remainder of the Euclidean division (always positive).
+    Implemented by [Z.erem] *)
+
+val e_div_rem: t -> t -> (t * t)
+(** [e_div_rem a b] returns [(e_div a b, e_rem a b)].
+    Implemented by [Z.ediv_rem] *)
+
+val c_div : t -> t -> t
+(** Truncated division towards 0 (like in C99).
+    Implemented by [Z.div] *)
+
 val c_rem : t -> t -> t
-(** Remainder of the truncated division towards 0 (like in C99) *)
-val div_rem: t -> t -> (t * t)
-(** [div_rem a b] returns [(pos_div a b, pos_rem a b)] *)
-val pos_rem : t -> t -> t
-(** Remainder of the Euclidean division (always positive) *)
+(** Remainder of the truncated division towards 0 (like in C99).
+    Implemented by [Z.rem] *)
+
+val c_div_rem : t -> t -> t * t
+(** [c_div_rem a b] returns [(c_div a b, c_rem a b)].
+    Implemented by [Z.div_rem] *)
 
 val pgcd : t -> t -> t
 (** [pgcd v 0 == pgcd 0 v == abs v]. Result is always positive *)
 
 val ppcm : t -> t -> t
 (** [ppcm v 0 == ppcm 0 v == 0]. Result is always positive *)
-
-val power_int_positive_int: int -> int -> t
-(** Exponentiation *)
 
 val cast: size:t -> signed:bool -> value:t -> t
 
@@ -113,16 +121,13 @@ val length : t -> t -> t (** b - a + 1 *)
 val of_int : int -> t
 val of_int64 : Int64.t -> t
 val of_int32 : Int32.t -> t
-val to_int64 : t -> int64
-val to_int32 : t -> int32
 
-val to_int : t -> int
-(** @raise Failure if the argument does not fit in an OCaml int *)
+val to_int : t -> int (** @raise Z.Overflow if too big *)
+val to_int64 : t -> int64 (** @raise Z.Overflow if too big *)
+val to_int32 : t -> int32 (** @raise Z.Overflow if too big *)
 
 val to_float : t -> float
 val of_float : float -> t
-(** Converts from a floating-point value. The value is truncated.
-    Raises [Overflow] on infinity and NaN arguments. *)
 
 val round_up_to_r : min:t -> r:t -> modu:t -> t
 (** [round_up_to_r m r modu] is the smallest number [n] such that
@@ -133,25 +138,42 @@ val round_down_to_r : max:t -> r:t -> modu:t -> t
     [n]<=[m] and [n] = [r] modulo [modu] *)
 
 val two_power : t -> t
-(** [two_power x] computes 2^x. Can raise [Too_big]. *)
+(** Computes [2^n]
+    @raise Z.Overflow for exponents greater than 1024 *)
+
 val two_power_of_int : int -> t
-(** Similar to [two_power x], but x is an OCaml int. *)
+(** Computes [2^n] *)
+
+val power_int_positive_int: int -> int -> t
+(** Exponentiation *)
 
 val extract_bits : start:t -> stop:t -> t -> t
-
+val popcount: t -> int
 val hash : t -> int
 
-val of_string : string -> t
-(** @raise Failure _ when the string cannot be parsed. *)
-
 val to_string : t -> string
-
-val popcount: t -> int
+val of_string : string -> t
+(** @raise Invalid_argument when the string cannot be parsed. *)
 
 val pretty : ?hexa:bool -> t Pretty_utils.formatter
 
+val pp_bin : ?nbits:int -> ?sep:string -> t Pretty_utils.formatter
+(** Print binary format. Digits are output by blocs of 4 bits
+    separated by [~sep] with at least [~nbits] total bits. If [nbits] is
+    non positive, it will be ignored.
 
+    Positive values are prefixed with ["0b"] and negative values
+    are printed as their 2-complement ([lnot]) with prefix ["1b"]. *)
+
+val pp_hex : ?nbits:int -> ?sep:string -> t Pretty_utils.formatter
+(** Print hexadecimal format. Digits are output by blocs of 16 bits
+    (4 hex digits) separated by [~sep] with at least [~nbits] total bits.
+    If [nbits] is non positive, it will be ignored.
+
+    Positive values are preffixed with ["0x"] and negative values
+    are printed as their 2-complement ([lnot]) with prefix ["1x"]. *)
 (*
+
 Local Variables:
 compile-command: "make -C ../../.."
 End:

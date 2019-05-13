@@ -12,11 +12,11 @@
   __retres ∈ [-2147483647..2147483647]
 [wp] Running WP plugin...
 [wp] Loading driver 'share/wp.driver'
-[wp] 1 goal scheduled
-[wp] [Alt-Ergo] Goal typed_main_assert_Eva_signed_overflow : Unknown
-[wp] Proved goals:    0 / 1
-  Alt-Ergo:        0  (unknown: 1)
-[wp] Running WP plugin...
 [wp] Warning: Missing RTE guards
+[wp] 1 goal scheduled
+[wp] [Alt-Ergo] Goal typed_main_assert_Eva_signed_overflow : Unsuccess
+[wp] Proved goals:    0 / 1
+  Alt-Ergo:        0  (unsuccess: 1)
+[wp] Running WP plugin...
 [wp] 0 goal scheduled
 [wp] Proved goals:    0 / 0

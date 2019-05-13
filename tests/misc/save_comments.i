@@ -1,7 +1,7 @@
 /* run.config
-   OPT: -load-script tests/misc/save_comments.ml -keep-comments
+   EXECNOW: make -s @PTEST_DIR@/@PTEST_NAME@.cmxs
+   OPT: -load-module @PTEST_DIR@/@PTEST_NAME@.cmxs -keep-comments
 */
-
 
 int f() {
   int x = 0;

@@ -13,6 +13,78 @@
 # '#?nnn'  : OLD-BTS entry #nnn                                               #
 ###############################################################################
 
+##################################
+Open Source Release <next-release>
+##################################
+
+####################################
+Open Source Release 19.0 (Potassium)
+####################################
+
+-   Eva       [2019/04/19] The new annotation /*@ split exp; */ enumerates the
+              possible values of an expression and continues the analysis
+              for each of these value separately, until a /*@ merge exp; */
+              is encountered. It is also possible to maintain this partitioning
+              at all times with the option -eva-partition-value exp.
+-   Eva       [2019/04/19] New option -eva-partition-history N to delay the join
+              of abstract states for up to N merging points, thus keeping these
+              states separate longer. Useful when a reasoning depends on the
+              path taken to reach a control point, but can increase the analysis
+              time exponentially in N.
+-   Eva       [2019/04/19] Loop unroll annotations now accept non-constant but
+              bounded expressions as the maximum number of unrollings to perform.
+-*  Kernel    [2019/04/09] Avoid crashing on one-letter attributes. Fixes #2432
+-*  Obfuscator [2019/04/09] Also obfuscate formals in function pointer types.
+              Fixes #2433.
+-   Eva       [2019/04/05] Prints an analysis summary at the end, outlining the
+              analysis coverage and the number of errors, warnings and emitted
+              alarms. It can be disabled with the option -eva-msg-key=-summary
+-   Eva       [2019/04/03] New option -eva-precision to globally configure the
+              analysis from 0 (fast but imprecise) to 11 (accurate but slow).
+              A precision of 5 is often a reasonable trade-off. This meta-option
+              automatically sets up other options that can also be overriden.
+-   Inout     [2019/04/01] Fix performance issue when initializing large arrays.
+-   ACSL      [2019/03/08] Add check annotation, similar to assert except that
+              it does not introduce additional hypotheses on the program state
+-*  Makefile  [2019/03/07] Do not attempt to install .cmx on bytecode-only
+              architectures. Patch by M. Dogguy backported from Debian package
+-   Libc      [2019/03/05] Better specs and removal of half-implemented ifdef
+              that tried to take various POSIX versions into account
+-*  Kernel    [2019/03/05] Better detection of invalid goto in presence of VLA
+              (fixes #@499)
+-   GUI       [2019/03/04] Compatibility with lablgtk3 and improved handling of
+              some widgets
+-   ACSL      [2019/03/01] Clarifies which C variables are in scope under a
+              \at(·,L) (#@575)
+-   Libc      [2019/02/26] Ask clang not to warn about unknown FRAMA_C_MODEL
+              attribute when pre-processing frama-c's libc
+-*  Obfuscator [2019/02/26] Obfuscate logic types and logic constructors.
+-*  Inout     [2019/02/21] Fixes operational input on const local initialization
+o   RTE       [2019/02/21] RTE has a static API
+o   Kernel    [2019/02/18] When registering extended ACSL annotations, one
+              must now indicate whether they should have a status.
+o   Kernel    [2019/02/05] Integer API moving closer to Zarith
+-   Eva       [2019/01/19] New warning category for detecting loops without
+              'unroll' directive
+-   Eva       [2019/01/31] Ignore annotations with "no_eva" tag
+-*  ACSL      [2019/01/19] Accept C identifiers that happen to be ACSL keywords
+              in volatile and reads clauses
+-   Eva       [2019/01/10] Improved precision on nested loops (by postponing
+              the widening on inner loops according to -eva-widening-period).
+-*  Aorai     [2019/01/04] Fixes #@586: avoid removing the initial state
+              of the automaton
+-   Kernel    [2019/01/03] Add attributes for loop statements to allow
+              distinguishing between for, while and dowhile loops.
+-!  Kernel    [2019/01/03] Add statement attributes (sattr) to the AST. They
+              are not printed by default, use -kernel-msg-key printer:attrs
+-!  Kernel    [2019/01/03] Improved precision of integer abstract bitwise
+              operators.
+-*  Eva       [2018/12/17] Fixes -eva-split-return on uninitialized or escaping
+              function returns when -eva-warn-copy-indeterminate is disabled.
+o   Kernel    [2018/12/11] New functions for retrieving major and minor version
+-*  Kernel    [2018/12/04] Fixes AST integrity check wrt volatile accesses
+-*  Kernel    [2018/11/21] Fixes #@553 - pretty-printing of basic asm template
+
 ################################
 Open Source Release 18.0 (Argon)
 ################################

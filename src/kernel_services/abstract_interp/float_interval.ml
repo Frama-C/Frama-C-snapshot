@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2018                                               *)
+(*  Copyright (C) 2007-2019                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -171,7 +171,7 @@ module Make (F: Float_sig.S) = struct
   let compare x y =
     match x, y with
     | FRange.Itv (b1, e1, n1), FRange.Itv (b2, e2, n2) ->
-      let c = Pervasives.compare n1 n2 in
+      let c = Transitioning.Stdlib.compare n1 n2 in
       if c <> 0 then c else
         let r = F.compare b1 b2 in
         if r <> 0 then r else F.compare e1 e2
@@ -314,14 +314,12 @@ module Make (F: Float_sig.S) = struct
     | (FRange.NaN, FRange.Itv (b1, e1, _)) -> FRange.inject ~nan:true b1 e1
     | FRange.NaN, FRange.NaN -> FRange.nan
 
-  let widen_down f = F.neg (F.widen_up (F.neg f))
-
-  let widen f1 f2 =
+  let widen wh prec f1 f2 =
     assert (is_included f1 f2);
     match f1, f2 with
     | FRange.Itv (b1, e1, _), FRange.Itv (b2, e2, nan) ->
-      let b = if Cmp.equal b2 b1 then b2 else widen_down b2 in
-      let e = if Cmp.equal e2 e1 then e2 else F.widen_up e2 in
+      let b = if Cmp.equal b2 b1 then b2 else F.widen_down wh prec b2 in
+      let e = if Cmp.equal e2 e1 then e2 else F.widen_up wh prec e2 in
       (** widen_up and down produce double only if the input is a double *)
       FRange.inject ~nan b e
     | FRange.NaN, f2 -> f2

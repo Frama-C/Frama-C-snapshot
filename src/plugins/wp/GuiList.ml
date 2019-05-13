@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2018                                               *)
+(*  Copyright (C) 2007-2019                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -72,7 +72,7 @@ let render_prover_result p =
         end
     | { verdict=r } , _ -> icon_of_verdict r
 
-class pane (enabled:GuiConfig.provers) =
+class pane (enabled:GuiConfig.enabled) =
   let model = new model in
   let list = new Wtable.list ~headers:true ~rules:true model#coerce in
   object(self)
@@ -111,31 +111,26 @@ class pane (enabled:GuiConfig.provers) =
     method private create_prover p =
       begin
         let title = VCS.title_of_prover p in
-        let column = list#add_column_pixbuf ~title [] (render_prover_result p) in
-        if p <> VCS.Qed then provers <- (p,column) :: provers
+        let column = list#add_column_pixbuf ~title [] (render_prover_result p)
+        in if p <> VCS.Qed then provers <- (p,column) :: provers
       end
 
     method private configure dps =
-      let open ProverWhy3 in
       begin
-        let rec wanted p = function
-          | [] -> false
-          | dp :: dps -> dp.dp_prover = p || dp.dp_name = p || wanted p dps
-        in
         (* Removing Useless Columns *)
         List.iter
           (fun (vcs,column) ->
              match vcs with
-             | VCS.Why3 p when not (wanted p dps) ->
+             | VCS.Why3 p when not (List.mem p dps) ->
                  ignore (list#view#remove_column column)
              | _ -> ()
           ) provers ;
         (* Installing Missing Columns *)
         List.iter
           (fun dp ->
-             let p = VCS.Why3 dp.dp_prover in
-             match self#column_of_prover p with
-             | None -> self#create_prover p
+             let prv = VCS.Why3 dp in
+             match self#column_of_prover prv with
+             | None -> self#create_prover prv
              | Some _ -> ()
           ) dps ;
       end

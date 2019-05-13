@@ -1,5 +1,5 @@
 /* run.config
-  STDOPT: #" -load-module pdg -calldeps -val-show-progress -pdg -pdg-print"
+  STDOPT: #"-eva -pdg -out -input -deps -calldeps -pdg"
 */
 
 struct T1 {

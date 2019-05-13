@@ -1,0 +1,51 @@
+[kernel] Parsing tests/value/backward_arith.i (no preprocessing)
+[eva] Analyzing a complete application starting at main
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
+  nondet ∈ [--..--]
+[eva] computing for function unsigned_neg <- main.
+  Called from tests/value/backward_arith.i:31.
+[eva] tests/value/backward_arith.i:12: Frama_C_show_each_ten: {10}
+[eva] tests/value/backward_arith.i:14: 
+  Frama_C_show_each_not_ten: [0..4294967295]
+[eva] tests/value/backward_arith.i:16: 
+  Frama_C_show_each_greater_than_ten_or_zero: [0..4294967295]
+[eva] tests/value/backward_arith.i:18: 
+  Frama_C_show_each_smaller_than_ten_but_zero: [1..10]
+[eva] tests/value/backward_arith.i:20: Frama_C_show_each_minus_ten: {4294967286}
+[eva] tests/value/backward_arith.i:22: 
+  Frama_C_show_each_not_minus_ten: [0..4294967295]
+[eva] tests/value/backward_arith.i:24: 
+  Frama_C_show_each_greater_than_minus_ten_or_zero: [0..4294967295]
+[eva] tests/value/backward_arith.i:26: 
+  Frama_C_show_each_smaller_than_minus_ten_but_zero: [1..4294967286]
+[eva] Recording results for unsigned_neg
+[eva] Done for function unsigned_neg
+[eva] Recording results for main
+[eva] done for function main
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function unsigned_neg:
+  x ∈ [--..--]
+  minus_ten ∈ {4294967286}
+[eva:final-states] Values at end of function main:
+  __retres ∈ {0}
+[from] Computing for function unsigned_neg
+[from] Done for function unsigned_neg
+[from] Computing for function main
+[from] Done for function main
+[from] ====== DEPENDENCIES COMPUTED ======
+  These dependencies hold at termination for the executions that terminate:
+[from] Function unsigned_neg:
+  NO EFFECTS
+[from] Function main:
+  \result FROM \nothing
+[from] ====== END OF DEPENDENCIES ======
+[inout] Out (internal) for function unsigned_neg:
+    x; minus_ten
+[inout] Inputs for function unsigned_neg:
+    nondet
+[inout] Out (internal) for function main:
+    __retres
+[inout] Inputs for function main:
+    nondet

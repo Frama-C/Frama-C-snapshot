@@ -37,7 +37,7 @@ void by_value_in_code(int x) {
 }
 
 void by_reference_in_code(int *p, int **qq) {
-  *p=(int *) 0;
+  *p=0;
   **qq=*p1;
 
 }

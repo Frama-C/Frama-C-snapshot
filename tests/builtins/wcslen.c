@@ -219,7 +219,7 @@ void escaping() {
   wchar_t s[4];
   {
     int x;
-    *((int *)s) = &x; *((int *)&s[1]) = &x; *((int *)&s[2]) = &x; *((int *)&s[3]) = &x;
+    *((int *)s) = (int)&x; *((int *)&s[1]) = (int)&x; *((int *)&s[2]) = (int)&x; *((int *)&s[3]) = (int)&x;
   }
   if (nondet) s[0] = 0;
   int z1 = wcslen(s); // alarm

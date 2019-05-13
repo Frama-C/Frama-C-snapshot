@@ -39,6 +39,7 @@
 /************************************************************************/
 
 /* Assert */
+#define sound_verdict         export_alias(sound_verdict)
 #define assert                export_alias(assert)
 
 /* Tracking */

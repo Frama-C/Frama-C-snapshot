@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2018                                               *)
+(*  Copyright (C) 2007-2019                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -31,6 +31,10 @@ open Cil_types
     all its statements), and mostly non-contextual (all the informations
     can be gathered using a Cil visitor).
 *)
+
+(** Should implicit zero-initializers for [typ] be folded? False for big arrays
+    to avoid a performance issue. *)
+val fold_implicit_initializer: typ -> bool
 
 
 val specialize_state_on_call: ?stmt:stmt -> kernel_function -> Db.Value.state

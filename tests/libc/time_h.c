@@ -38,5 +38,9 @@ int main() {
       return 1;
     }
   }
+
+  time_t tt = 42;
+  char *time_str = ctime(&tt);
+  //@ assert valid_string(time_str);
   return 0;
 }

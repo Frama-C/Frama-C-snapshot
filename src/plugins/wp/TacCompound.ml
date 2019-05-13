@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2018                                               *)
+(*  Copyright (C) 2007-2019                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -116,8 +116,7 @@ let field a b f =
   Pretty_utils.sfprintf "Field %a" Lang.Field.pretty f ,
   F.p_equal (F.e_getfield a f) (F.e_getfield b f)
 
-let index vars tau =
-  let pool = Lang.new_pool ~vars () in
+let index ~pool tau =
   let x = F.fresh pool tau in
   [x] , F.e_var x
 
@@ -126,14 +125,14 @@ let neq i j p = F.p_imply (F.p_neq i j) p
 let get1 a k v = F.p_equal (F.e_get a k) v
 let get2 a b k = F.p_equal (F.e_get a k) (F.e_get b k)
 
-let clause ~(vars : F.Vars.t) = function
+let clause ~pool = function
   | Record(a,b,fs) -> List.map (field a b) fs
   | Array1((a,i,u),b,t) ->
-      let ks,k = index vars t in
+      let ks,k = index ~pool t in
       [ "Updated" , get1 b i u ;
         "Others" , F.p_forall ks (neq i k (get2 a b k)) ]
   | Array2((a,i,u),(b,j,v),t) ->
-      let ks,k = index vars t in
+      let ks,k = index ~pool t in
       [ "Updated (both)" , eq i j (F.p_equal u v) ;
         "Updated (left)" , neq i j (get1 a j v) ;
         "Updated (right)" , neq i j (get1 b i u) ;
@@ -153,47 +152,47 @@ let kind = function Record _ -> "compound" | Array1 _ | Array2 _ -> "array"
 let equality eq = if eq then "equality" else "dis-equality"
 
 let process_expand (feedback : Tactical.feedback) ?at e =
-  let vars = F.vars e in
+  let pool = feedback#pool in
   let eq,cmp = get_compound_equality e in
   feedback#set_title "Compound (%s)" (name eq) ;
   feedback#set_descr "Expand %s %s" (kind cmp) (equality eq) ;
-  let e' = (if eq then conj else disj) (clause ~vars cmp) in
+  let e' = (if eq then conj else disj) (clause ~pool cmp) in
   let cases = [feedback#get_title,F.p_true,e,F.e_prop e'] in
   Tactical.rewrite ?at cases
 
 let process_have (feedback : Tactical.feedback) s =
+  let pool = feedback#pool in
   let e = F.e_prop (Conditions.have s) in
-  let vars = F.vars e in
   let eq,cmp = get_compound_equality e in
   if eq then
     begin
       feedback#set_title "Compound (eq)" ;
       feedback#set_descr "Expand %s equality" (kind cmp) ;
-      let cases = ["Compound (eq)",When (conj (clause ~vars cmp))] in
+      let cases = ["Compound (eq)",When (conj (clause ~pool cmp))] in
       Tactical.replace ~at:s.id cases
     end
   else
     begin
       feedback#set_title "Compound (split)" ;
       feedback#set_descr "Split %s dis-equality" (kind cmp) ;
-      let cases = List.map negative (clause ~vars cmp) in
+      let cases = List.map negative (clause ~pool cmp) in
       Tactical.replace ~at:s.id cases
     end
 
 let process_goal (feedback : Tactical.feedback) p =
+  let pool = feedback#pool in
   let eq,cmp = get_compound_equality (F.e_prop p) in
-  let vars = F.varsp p in
   if eq then
     begin
       feedback#set_title "Compound (split)" ;
       feedback#set_descr "Split %s equality" (kind cmp) ;
-      Tactical.split (clause ~vars cmp) ;
+      Tactical.split (clause ~pool cmp) ;
     end
   else
     begin
       feedback#set_title "Compound (neq)" ;
       feedback#set_descr "Expand compound dis-equality" ;
-      let cases = ["Compound (neq)",disj (clause ~vars cmp)] in
+      let cases = ["Compound (neq)",disj (clause ~pool cmp)] in
       Tactical.split cases
     end
 

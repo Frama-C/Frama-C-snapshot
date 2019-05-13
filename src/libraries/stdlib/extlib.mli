@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2018                                               *)
+(*  Copyright (C) 2007-2019                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -330,6 +330,17 @@ val try_finally: finally:(unit -> unit) -> ('a -> 'b) -> 'a -> 'b
 (* ************************************************************************* *)
 (** System commands *)
 (* ************************************************************************* *)
+
+val mkdir : ?parents:bool -> string -> Unix.file_perm -> unit
+  (** [mkdir ?parents name perm] creates directory [name] with permission
+      [perm]. If [parents] is true, recursively create parent directories
+      if needed. [parents] defaults to false.
+      Note that this function may create some of the parent directories
+      and then fail to create the children, e.g. if [perm] does not allow
+      user execution of the created directory. This will leave the filesystem
+      in a modified state before raising an exception.
+      @raise Unix.Unix_error if cannot create [name] or its parents.
+      @since Frama-C+dev  *)
 
 val safe_at_exit : (unit -> unit) -> unit
   (** Register function to call with [Pervasives.at_exit], but only

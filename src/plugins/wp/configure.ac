@@ -2,7 +2,7 @@
 #                                                                        #
 #  This file is part of WP plug-in of Frama-C.                           #
 #                                                                        #
-#  Copyright (C) 2007-2018                                               #
+#  Copyright (C) 2007-2019                                               #
 #    CEA (Commissariat a l'energie atomique et aux energies              #
 #         alternatives)                                                  #
 #                                                                        #
@@ -64,16 +64,16 @@ if test "$ENABLE_WP" != "no"; then
     if test "$COQC" = "yes" ; then
       COQVERSION=`coqc -v | sed -n -e 's|.*version* *\([[^ ]]*\) .*$|\1|p' `
       case $COQVERSION in
-        8.5*|8.6*|8.7*|trunk)
+        8.7*|8.8*|8.9*|trunk)
           AC_MSG_RESULT(coqc version $COQVERSION found)
           ;;
-        *) 
+        *)
           AC_MSG_RESULT(unsupported coqc version $COQVERSION)
           COQC="no"
           ;;
       esac
     else
-      AC_MSG_NOTICE(rerun configure to make wp using coq 8.5+)
+      AC_MSG_NOTICE(rerun configure to make wp using coq 8.7.2 or higher)
     fi
   else
     COQC="no"
@@ -86,7 +86,7 @@ if test "$ENABLE_WP" != "no"; then
     if test "$WHY3COQC" = "yes" ; then
       WHY3VERSION=`why3 --version | sed -n -e 's|.*version *\([[^ ]]*\)$|\1|p' `
       case $WHY3VERSION in
-        0.88*)
+        1.*)
           AC_MSG_RESULT(why3 version $WHY3VERSION found)
 	  WHY3LIB=`why3 --print-libdir`
 	  if test -f $WHY3LIB/coq/BuiltIn.vo ; then
@@ -102,12 +102,26 @@ if test "$ENABLE_WP" != "no"; then
           ;;
       esac
     else
-      AC_MSG_NOTICE(rerun configure to make wp using why3 0.88)
+      AC_MSG_NOTICE(rerun configure to make wp using why3 (1.0.0+))
     fi
   else
     WHY3COQC="no"
   fi
   AC_SUBST(WHY3COQC)
+
+  ## Configuring for WHY3-API
+  WHY3API_VERSION=$($OCAMLFIND query why3 -format %v)
+  case $WHY3API_VERSION in
+    1.*)
+        AC_MSG_RESULT(why3 api $WHY3API_VERSION found)
+        WHY3API="yes"
+        ;;
+    *)
+        AC_MSG_RESULT(why3 api not found (no why3 prover detection))
+        WHY3API="no"
+        ;;
+  esac
+  AC_SUBST(WHY3API)
 
 fi
 

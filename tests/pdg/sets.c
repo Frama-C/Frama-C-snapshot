@@ -1,7 +1,7 @@
 /* run.config
-   OPT: -val-show-progress -load-script tests/pdg/sets.ml -lib-entry -main f -pdg -inout -journal-disable  -pdg-print -pdg-verbose 2
+   EXECNOW: make -s @PTEST_DIR@/@PTEST_NAME@.cmxs
+   STDOPT: +"-load-module @PTEST_DIR@/@PTEST_NAME@ -lib-entry -main f -pdg -inout "
 */
-
 
 
 int b, c, x, y, z, t;

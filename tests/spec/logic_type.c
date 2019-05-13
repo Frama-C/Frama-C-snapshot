@@ -26,3 +26,11 @@ Point tab[3];
 void h(void) {
   f(tab) ;
 }
+
+//@ logic t t_from_t(t x) = (t) x;
+
+//@ logic _Bool _Bool_from_boolean(boolean b) = (_Bool) b;
+
+//@ logic boolean boolean_from_integer(integer b) = (boolean) b;
+//@ logic boolean boolean_from_int(int b) = (boolean) b;
+//@ logic boolean boolean_from_Bool(_Bool b) = (boolean) b;

@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2018                                               *)
+(*  Copyright (C) 2007-2019                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -520,7 +520,7 @@ let get_metrics cabs_visitor =
   and distinct_operands, total_operands = compute_operands operand_tbl in
   let program_length = total_operands +. total_operators in
   let vocabulary_size = distinct_operands +. distinct_operators in
-  let log2 x = (Pervasives.log x) /. (Pervasives.log 2.0) in
+  let log2 x = (log x) /. (log 2.0) in
   let program_volume = program_length *. (log2 vocabulary_size) in
   let difficulty_level =
     (distinct_operators /. 2.) *. (total_operands /. distinct_operands) in

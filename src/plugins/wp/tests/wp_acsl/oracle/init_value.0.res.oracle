@@ -1,47 +1,386 @@
-# frama-c -wp [...]
+# frama-c -wp -wp-no-let [...]
 [kernel] Parsing tests/wp_acsl/init_value.i (no preprocessing)
 [wp] Running WP plugin...
 [wp] Loading driver 'share/wp.driver'
 [wp] Warning: Missing RTE guards
 ------------------------------------------------------------
-  Function main
+  Function fa1
 ------------------------------------------------------------
 
-Goal Pre-condition 'qed_ok,Struct_Simple_a' in 'main':
-Prove: true.
-
-------------------------------------------------------------
-
-Goal Pre-condition 'qed_ok,Struct_Simple_b' in 'main':
-Prove: true.
-
-------------------------------------------------------------
-
-Goal Pre-condition 'qed_ok,Simple_Array_0' in 'main':
-Prove: true.
-
-------------------------------------------------------------
-
-Goal Pre-condition 'qed_ok,Simple_Array_1' in 'main':
-Let x = t[1].
+Goal Post-condition 'qed_ok' in 'fa1':
+Let x = ta1_0[4].
+Let x_1 = ta1_0[0].
+Let x_2 = ta1_0[1].
+Let x_3 = ta1_0[3].
 Assume {
-  Type: is_sint32(x).
+  Type: is_sint32(x_1) /\ is_sint32(x_2) /\ is_sint32(x_3) /\ is_sint32(x).
   (* Initializer *)
-  Init: t[0] = 1.
+  Init: forall i : Z. ((0 <= i) -> ((i <= 1) -> (ta1_0[i] = 0))).
   (* Initializer *)
-  Init: forall i : Z. ((0 < i) -> ((i <= 1) -> (t[i] = 0))).
+  Init: ta1_0[2] = 1.
+  (* Initializer *)
+  Init: x = 1.
+  (* Initializer *)
+  Init: forall i : Z. ((3 <= i) -> ((i <= 3) -> (ta1_0[i] = 0))).
+}
+Prove: (x_2 = x_1) /\ (x_3 = x_2).
+
+------------------------------------------------------------
+
+Goal Post-condition 'qed_ko' in 'fa1':
+Let x = ta1_0[4].
+Assume {
+  Type: is_sint32(ta1_0[0]) /\ is_sint32(ta1_0[1]) /\ is_sint32(ta1_0[3]) /\
+      is_sint32(x).
+  (* Initializer *)
+  Init: forall i : Z. ((0 <= i) -> ((i <= 1) -> (ta1_0[i] = 0))).
+  (* Initializer *)
+  Init: ta1_0[2] = 1.
+  (* Initializer *)
+  Init: x = 1.
+  (* Initializer *)
+  Init: forall i : Z. ((3 <= i) -> ((i <= 3) -> (ta1_0[i] = 0))).
 }
 Prove: x = 0.
 
 ------------------------------------------------------------
 
+Goal Post-condition 'qed_ko' in 'fa1':
+Let x = ta1_0[4].
+Let x_1 = ta1_0[3].
+Assume {
+  Type: is_sint32(ta1_0[0]) /\ is_sint32(ta1_0[1]) /\ is_sint32(x_1) /\
+      is_sint32(x).
+  (* Initializer *)
+  Init: forall i : Z. ((0 <= i) -> ((i <= 1) -> (ta1_0[i] = 0))).
+  (* Initializer *)
+  Init: ta1_0[2] = 1.
+  (* Initializer *)
+  Init: x = 1.
+  (* Initializer *)
+  Init: forall i : Z. ((3 <= i) -> ((i <= 3) -> (ta1_0[i] = 0))).
+}
+Prove: x_1 = 1.
+
+------------------------------------------------------------
+------------------------------------------------------------
+  Function fa2
+------------------------------------------------------------
+
+Goal Post-condition 'qed_ok' in 'fa2':
+Let x = ta2_0[0].
+Let x_1 = ta2_0[1].
+Let x_2 = ta2_0[4].
+Assume {
+  Type: is_sint32(x) /\ is_sint32(x_1) /\ is_sint32(x_2).
+  (* Initializer *)
+  Init: forall i : Z. ((0 <= i) -> ((i <= 1) -> (ta2_0[i] = 0))).
+  (* Initializer *)
+  Init: forall i : Z. ((2 <= i) -> ((i <= 3) -> (ta2_0[i] = 1))).
+  (* Initializer *)
+  Init: forall i : Z. ((4 <= i) -> ((i <= 4) -> (ta2_0[i] = 0))).
+}
+Prove: (x_1 = x) /\ (x_2 = x_1).
+
+------------------------------------------------------------
+
+Goal Post-condition 'qed_ko' in 'fa2':
+Let x = ta2_0[4].
+Assume {
+  Type: is_sint32(ta2_0[0]) /\ is_sint32(ta2_0[1]) /\ is_sint32(x).
+  (* Initializer *)
+  Init: forall i : Z. ((0 <= i) -> ((i <= 1) -> (ta2_0[i] = 0))).
+  (* Initializer *)
+  Init: forall i : Z. ((2 <= i) -> ((i <= 3) -> (ta2_0[i] = 1))).
+  (* Initializer *)
+  Init: forall i : Z. ((4 <= i) -> ((i <= 4) -> (ta2_0[i] = 0))).
+}
+Prove: x = 1.
+
+------------------------------------------------------------
+
+Goal Post-condition 'qed_ko' in 'fa2':
+Let x = ta2_0[1].
+Assume {
+  Type: is_sint32(ta2_0[0]) /\ is_sint32(x) /\ is_sint32(ta2_0[4]).
+  (* Initializer *)
+  Init: forall i : Z. ((0 <= i) -> ((i <= 1) -> (ta2_0[i] = 0))).
+  (* Initializer *)
+  Init: forall i : Z. ((2 <= i) -> ((i <= 3) -> (ta2_0[i] = 1))).
+  (* Initializer *)
+  Init: forall i : Z. ((4 <= i) -> ((i <= 4) -> (ta2_0[i] = 0))).
+}
+Prove: x = 1.
+
+------------------------------------------------------------
+------------------------------------------------------------
+  Function fa3
+------------------------------------------------------------
+
+Goal Post-condition 'qed_ok' in 'fa3':
+Let x = ta1_0[4].
+Let x_1 = ta1_0[2].
+Let x_2 = ta3_0[0].
+Let x_3 = ta3_0[2].
+Assume {
+  Type: is_sint32(x_1) /\ is_sint32(x) /\ is_sint32(x_2) /\ is_sint32(x_3).
+  (* Initializer *)
+  Init: forall i : Z. ((i <= 0) -> ((0 <= i) -> (ta3_0[i] = 0))).
+  (* Initializer *)
+  Init: ta3_0[1] = 1.
+  (* Initializer *)
+  Init: ta3_0[3] = 1.
+  (* Initializer *)
+  Init: forall i : Z. ((2 <= i) -> ((i <= 2) -> (ta3_0[i] = 0))).
+  (* Initializer *)
+  Init: forall i : Z. ((4 <= i) -> ((i <= 4) -> (ta3_0[i] = 0))).
+  (* Initializer *)
+  Init: forall i : Z. ((0 <= i) -> ((i <= 1) -> (ta1_0[i] = 0))).
+  (* Initializer *)
+  Init: x_1 = 1.
+  (* Initializer *)
+  Init: x = 1.
+  (* Initializer *)
+  Init: forall i : Z. ((3 <= i) -> ((i <= 3) -> (ta1_0[i] = 0))).
+}
+Prove: (x = x_1) /\ (x_3 = x_2).
+
+------------------------------------------------------------
+
+Goal Post-condition 'qed_ko' in 'fa3':
+Let x = ta3_0[0].
+Assume {
+  Type: is_sint32(x) /\ is_sint32(ta3_0[2]).
+  (* Initializer *)
+  Init: forall i : Z. ((i <= 0) -> ((0 <= i) -> (ta3_0[i] = 0))).
+  (* Initializer *)
+  Init: ta3_0[1] = 1.
+  (* Initializer *)
+  Init: ta3_0[3] = 1.
+  (* Initializer *)
+  Init: forall i : Z. ((2 <= i) -> ((i <= 2) -> (ta3_0[i] = 0))).
+  (* Initializer *)
+  Init: forall i : Z. ((4 <= i) -> ((i <= 4) -> (ta3_0[i] = 0))).
+}
+Prove: x = 1.
+
+------------------------------------------------------------
+
+Goal Post-condition 'qed_ko' in 'fa3':
+Let x = ta3_0[2].
+Assume {
+  Type: is_sint32(ta3_0[0]) /\ is_sint32(x).
+  (* Initializer *)
+  Init: forall i : Z. ((i <= 0) -> ((0 <= i) -> (ta3_0[i] = 0))).
+  (* Initializer *)
+  Init: ta3_0[1] = 1.
+  (* Initializer *)
+  Init: ta3_0[3] = 1.
+  (* Initializer *)
+  Init: forall i : Z. ((2 <= i) -> ((i <= 2) -> (ta3_0[i] = 0))).
+  (* Initializer *)
+  Init: forall i : Z. ((4 <= i) -> ((i <= 4) -> (ta3_0[i] = 0))).
+}
+Prove: x = 1.
+
+------------------------------------------------------------
+
+Goal Post-condition 'qed_ko' in 'fa3':
+Let x = ta2_0[4].
+Assume {
+  Type: is_sint32(x).
+  (* Initializer *)
+  Init: forall i : Z. ((0 <= i) -> ((i <= 1) -> (ta2_0[i] = 0))).
+  (* Initializer *)
+  Init: forall i : Z. ((2 <= i) -> ((i <= 3) -> (ta2_0[i] = 1))).
+  (* Initializer *)
+  Init: forall i : Z. ((4 <= i) -> ((i <= 4) -> (ta2_0[i] = 0))).
+}
+Prove: x = 1.
+
+------------------------------------------------------------
+------------------------------------------------------------
+  Function fs1
+------------------------------------------------------------
+
+Goal Post-condition 'qed_ok' in 'fs1':
+Let a = ts1_0[2].
+Let x = a.F5_c.
+Let x_1 = a.F5_b.
+Let x_2 = a.F5_a.
+Let a_1 = ts1_0[0].
+Let a_2 = ts1_0[1].
+Let a_3 = ts1_0[3].
+Assume {
+  Type: IsS5(a_1) /\ IsS5(a_2) /\ IsS5(a_3) /\ is_sint32(a_1.F5_a) /\
+      is_sint32(x_2) /\ is_sint32(x_1) /\ is_sint32(x).
+  (* Initializer *)
+  Init: forall i : Z. let a_4 = ts1_0[i] in ((0 <= i) -> ((i <= 1) ->
+      (((a_4.F5_a) = 0) /\ ((a_4.F5_b) = 0) /\ ((a_4.F5_c) = 0)))).
+  (* Initializer *)
+  Init: x_2 = 1.
+  (* Initializer *)
+  Init: x_1 = 1.
+  (* Initializer *)
+  Init: x = 0.
+  (* Initializer *)
+  Init: forall i : Z. let a_4 = ts1_0[i] in ((3 <= i) -> ((i <= 3) ->
+      (((a_4.F5_a) = 0) /\ ((a_4.F5_b) = 0) /\ ((a_4.F5_c) = 0)))).
+}
+Prove: (x_1 = x_2) /\ EqS5(a_1, a_2) /\ EqS5(a_2, a_3).
+
+------------------------------------------------------------
+
+Goal Post-condition 'qed_ko' in 'fs1':
+Let a = ts1_0[2].
+Let x = a.F5_c.
+Let x_1 = a.F5_b.
+Let x_2 = a.F5_a.
+Let a_1 = ts1_0[0].
+Assume {
+  Type: IsS5(a_1) /\ IsS5(ts1_0[1]) /\ IsS5(ts1_0[3]) /\
+      is_sint32(a_1.F5_a) /\ is_sint32(x_2) /\ is_sint32(x_1) /\
+      is_sint32(x).
+  (* Initializer *)
+  Init: forall i : Z. let a_2 = ts1_0[i] in ((0 <= i) -> ((i <= 1) ->
+      (((a_2.F5_a) = 0) /\ ((a_2.F5_b) = 0) /\ ((a_2.F5_c) = 0)))).
+  (* Initializer *)
+  Init: x_2 = 1.
+  (* Initializer *)
+  Init: x_1 = 1.
+  (* Initializer *)
+  Init: x = 0.
+  (* Initializer *)
+  Init: forall i : Z. let a_2 = ts1_0[i] in ((3 <= i) -> ((i <= 3) ->
+      (((a_2.F5_a) = 0) /\ ((a_2.F5_b) = 0) /\ ((a_2.F5_c) = 0)))).
+}
+Prove: x = 1.
+
+------------------------------------------------------------
+
+Goal Post-condition 'qed_ko' in 'fs1':
+Let a = ts1_0[2].
+Let x = a.F5_c.
+Let x_1 = a.F5_b.
+Let x_2 = a.F5_a.
+Let a_1 = ts1_0[0].
+Let x_3 = a_1.F5_a.
+Assume {
+  Type: IsS5(a_1) /\ IsS5(ts1_0[1]) /\ IsS5(ts1_0[3]) /\ is_sint32(x_3) /\
+      is_sint32(x_2) /\ is_sint32(x_1) /\ is_sint32(x).
+  (* Initializer *)
+  Init: forall i : Z. let a_2 = ts1_0[i] in ((0 <= i) -> ((i <= 1) ->
+      (((a_2.F5_a) = 0) /\ ((a_2.F5_b) = 0) /\ ((a_2.F5_c) = 0)))).
+  (* Initializer *)
+  Init: x_2 = 1.
+  (* Initializer *)
+  Init: x_1 = 1.
+  (* Initializer *)
+  Init: x = 0.
+  (* Initializer *)
+  Init: forall i : Z. let a_2 = ts1_0[i] in ((3 <= i) -> ((i <= 3) ->
+      (((a_2.F5_a) = 0) /\ ((a_2.F5_b) = 0) /\ ((a_2.F5_c) = 0)))).
+}
+Prove: x_3 = 1.
+
+------------------------------------------------------------
+------------------------------------------------------------
+  Function main
+------------------------------------------------------------
+
+Goal Pre-condition 'qed_ok,Struct_Simple_a' in 'main':
+Let x = s.F1_S_b.
+Let x_1 = s.F1_S_a.
+Assume {
+  Type: is_sint32(x_1) /\ is_sint32(x).
+  (* Initializer *)
+  Init: x_1 = 2.
+  (* Initializer *)
+  Init: x = 0.
+}
+Prove: x_1 = 2.
+
+------------------------------------------------------------
+
+Goal Pre-condition 'qed_ok,Struct_Simple_b' in 'main':
+Let x = s.F1_S_b.
+Let x_1 = s.F1_S_a.
+Assume {
+  Type: is_sint32(x_1) /\ is_sint32(x).
+  (* Initializer *)
+  Init: x_1 = 2.
+  (* Initializer *)
+  Init: x = 0.
+}
+Prove: x = 0.
+
+------------------------------------------------------------
+
+Goal Pre-condition 'qed_ok,Simple_Array_0' in 'main':
+Let x = t[0].
+Assume {
+  Type: is_sint32(x) /\ is_sint32(t[1]).
+  (* Initializer *)
+  Init: x = 1.
+  (* Initializer *)
+  Init: forall i : Z. ((0 < i) -> ((i <= 1) -> (t[i] = 0))).
+}
+Prove: x = 1.
+
+------------------------------------------------------------
+
+Goal Pre-condition 'qed_ok,Simple_Array_1' in 'main':
+Let x = t[0].
+Let x_1 = t[1].
+Assume {
+  Type: is_sint32(x) /\ is_sint32(x_1).
+  (* Initializer *)
+  Init: x = 1.
+  (* Initializer *)
+  Init: forall i : Z. ((0 < i) -> ((i <= 1) -> (t[i] = 0))).
+}
+Prove: x_1 = 0.
+
+------------------------------------------------------------
+
 Goal Pre-condition 'qed_ok,With_Array_Struct_5' in 'main':
-Prove: true.
+Let a = st_0.F2_St_tab.
+Let a_1 = a[3].
+Let a_2 = a[5].
+Assume {
+  Type: is_sint32(a_1) /\ is_sint32(a_2).
+  (* Initializer *)
+  Init: a[0] = 1.
+  (* Initializer *)
+  Init: a[1] = 2.
+  (* Initializer *)
+  Init: a[2] = 3.
+  (* Initializer *)
+  Init: a_1 = 4.
+  (* Initializer *)
+  Init: forall i : Z. ((4 <= i) -> ((i <= 9) -> (a[i] = 0))).
+}
+Prove: a_2 = 0.
 
 ------------------------------------------------------------
 
 Goal Pre-condition 'qed_ok,With_Array_Struct_3' in 'main':
-Prove: true.
+Let a = st_0.F2_St_tab.
+Let a_1 = a[3].
+Assume {
+  Type: is_sint32(a_1) /\ is_sint32(a[5]).
+  (* Initializer *)
+  Init: a[0] = 1.
+  (* Initializer *)
+  Init: a[1] = 2.
+  (* Initializer *)
+  Init: a[2] = 3.
+  (* Initializer *)
+  Init: a_1 = 4.
+  (* Initializer *)
+  Init: forall i : Z. ((4 <= i) -> ((i <= 9) -> (a[i] = 0))).
+}
+Prove: a_1 = 4.
 
 ------------------------------------------------------------
 
@@ -76,27 +415,96 @@ Prove: EqS3_Sc(sc1_0, sc0_0).
 ------------------------------------------------------------
 
 Goal Pre-condition 'qed_ok,Sc_t' in 'main':
-Prove: true.
+Let x = sc2_0.F3_Sc_c.
+Let a = sc2_0.F3_Sc_b.
+Let a_1 = a[2].
+Assume {
+  Type: is_sint32(x) /\ is_sint32(a_1).
+  (* Initializer *)
+  Init: (sc2_0.F3_Sc_a) = 1.
+  (* Initializer *)
+  Init: a[0] = 2.
+  (* Initializer *)
+  Init: a[1] = 3.
+  (* Initializer *)
+  Init: forall i : Z. ((2 <= i) -> ((i <= 2) -> (a[i] = 0))).
+  (* Initializer *)
+  Init: x = 4.
+}
+Prove: a_1 = 0.
 
 ------------------------------------------------------------
 
 Goal Pre-condition 'qed_ok,Sc_t' in 'main':
-Prove: true.
+Let x = sc3_0.F3_Sc_c.
+Let a = sc3_0.F3_Sc_b.
+Let a_1 = a[2].
+Assume {
+  Type: is_sint32(x) /\ is_sint32(a_1).
+  (* Initializer *)
+  Init: (sc3_0.F3_Sc_a) = 1.
+  (* Initializer *)
+  Init: a[0] = 2.
+  (* Initializer *)
+  Init: a[1] = 3.
+  (* Initializer *)
+  Init: a_1 = 4.
+  (* Initializer *)
+  Init: x = 0.
+}
+Prove: a_1 = 4.
 
 ------------------------------------------------------------
 
 Goal Pre-condition 'qed_ok,Sc_c_2' in 'main':
-Prove: true.
+Let x = sc2_0.F3_Sc_c.
+Let a = sc2_0.F3_Sc_b.
+Assume {
+  Type: is_sint32(x) /\ is_sint32(a[2]).
+  (* Initializer *)
+  Init: (sc2_0.F3_Sc_a) = 1.
+  (* Initializer *)
+  Init: a[0] = 2.
+  (* Initializer *)
+  Init: a[1] = 3.
+  (* Initializer *)
+  Init: forall i : Z. ((2 <= i) -> ((i <= 2) -> (a[i] = 0))).
+  (* Initializer *)
+  Init: x = 4.
+}
+Prove: x = 4.
 
 ------------------------------------------------------------
 
 Goal Pre-condition 'qed_ok,Sc_c_3' in 'main':
-Prove: true.
+Let x = sc3_0.F3_Sc_c.
+Let a = sc3_0.F3_Sc_b.
+Let a_1 = a[2].
+Assume {
+  Type: is_sint32(x) /\ is_sint32(a_1).
+  (* Initializer *)
+  Init: (sc3_0.F3_Sc_a) = 1.
+  (* Initializer *)
+  Init: a[0] = 2.
+  (* Initializer *)
+  Init: a[1] = 3.
+  (* Initializer *)
+  Init: a_1 = 4.
+  (* Initializer *)
+  Init: x = 0.
+}
+Prove: x = 0.
 
 ------------------------------------------------------------
 
 Goal Pre-condition 'qed_ok,Tab_no_init' in 'main':
-Prove: true.
+Let x = tab_0[5].
+Assume {
+  Type: is_uint8(x).
+  (* Initializer *)
+  Init: forall i : Z. ((0 <= i) -> ((i <= 31) -> (tab_0[i] = 0))).
+}
+Prove: x = 0.
 
 ------------------------------------------------------------
 
@@ -109,5 +517,119 @@ Assume {
   Init: forall i_1 : Z. ((0 <= i_1) -> ((i_1 <= 31) -> (tab_0[i_1] = 0))).
 }
 Prove: tab_0[i] <= 255.
+
+------------------------------------------------------------
+
+Goal Pre-condition 'qed_ok' in 'main':
+Let a = sq0_0.F3_Sc_b.
+Let a_1 = a[1].
+Assume {
+  Type: is_sint32(a_1) /\ is_sint32(a[2]).
+  (* Initializer *)
+  Init: (sq0_0.F3_Sc_a) = 2.
+  (* Initializer *)
+  Init: forall i : Z. ((0 <= i) -> ((i <= 1) -> (a[i] = 2))).
+  (* Initializer *)
+  Init: forall i : Z. ((2 <= i) -> ((i <= 2) -> (a[i] = 0))).
+  (* Initializer *)
+  Init: (sq0_0.F3_Sc_c) = 2.
+}
+Prove: a_1 = 2.
+
+------------------------------------------------------------
+
+Goal Pre-condition 'qed_ok' in 'main':
+Let a = sq0_0.F3_Sc_b.
+Let a_1 = a[2].
+Assume {
+  Type: is_sint32(a[1]) /\ is_sint32(a_1).
+  (* Initializer *)
+  Init: (sq0_0.F3_Sc_a) = 2.
+  (* Initializer *)
+  Init: forall i : Z. ((0 <= i) -> ((i <= 1) -> (a[i] = 2))).
+  (* Initializer *)
+  Init: forall i : Z. ((2 <= i) -> ((i <= 2) -> (a[i] = 0))).
+  (* Initializer *)
+  Init: (sq0_0.F3_Sc_c) = 2.
+}
+Prove: a_1 = 0.
+
+------------------------------------------------------------
+
+Goal Pre-condition 'qed_ok' in 'main':
+Assume {
+  Type: is_sint32(t1_0[4]).
+  (* Goal *)
+  When: (0 <= i) /\ (i <= 3).
+  (* Initializer *)
+  Init: forall i_1 : Z. ((0 <= i_1) -> ((i_1 <= 3) -> (t1_0[i_1] = 1))).
+  (* Initializer *)
+  Init: forall i_1 : Z. ((5 <= i_1) -> ((i_1 <= 6) -> (t1_0[i_1] = 2))).
+  (* Initializer *)
+  Init: forall i_1 : Z. ((4 <= i_1) -> ((i_1 <= 4) -> (t1_0[i_1] = 0))).
+  (* Initializer *)
+  Init: forall i_1 : Z. ((7 <= i_1) -> ((i_1 <= 9) -> (t1_0[i_1] = 0))).
+}
+Prove: t1_0[i] = 1.
+
+------------------------------------------------------------
+
+Goal Pre-condition 'qed_ok,todo' in 'main':
+Let x = t1_0[4].
+Assume {
+  Type: is_sint32(x).
+  (* Initializer *)
+  Init: forall i : Z. ((0 <= i) -> ((i <= 3) -> (t1_0[i] = 1))).
+  (* Initializer *)
+  Init: forall i : Z. ((5 <= i) -> ((i <= 6) -> (t1_0[i] = 2))).
+  (* Initializer *)
+  Init: forall i : Z. ((4 <= i) -> ((i <= 4) -> (t1_0[i] = 0))).
+  (* Initializer *)
+  Init: forall i : Z. ((7 <= i) -> ((i <= 9) -> (t1_0[i] = 0))).
+}
+Prove: x = 0.
+
+------------------------------------------------------------
+
+Goal Pre-condition 'qed_ok' in 'main':
+Assume {
+  Type: is_sint32(t1_0[4]).
+  (* Goal *)
+  When: (6 <= i) /\ (i <= 6).
+  (* Initializer *)
+  Init: forall i_1 : Z. ((0 <= i_1) -> ((i_1 <= 3) -> (t1_0[i_1] = 1))).
+  (* Initializer *)
+  Init: forall i_1 : Z. ((5 <= i_1) -> ((i_1 <= 6) -> (t1_0[i_1] = 2))).
+  (* Initializer *)
+  Init: forall i_1 : Z. ((4 <= i_1) -> ((i_1 <= 4) -> (t1_0[i_1] = 0))).
+  (* Initializer *)
+  Init: forall i_1 : Z. ((7 <= i_1) -> ((i_1 <= 9) -> (t1_0[i_1] = 0))).
+}
+Prove: t1_0[i] = 2.
+
+------------------------------------------------------------
+
+Goal Pre-condition 'qed_ok' in 'main':
+Assume {
+  Type: is_sint32(t1_0[4]).
+  (* Goal *)
+  When: (7 <= i) /\ (i <= 9).
+  (* Initializer *)
+  Init: forall i_1 : Z. ((0 <= i_1) -> ((i_1 <= 3) -> (t1_0[i_1] = 1))).
+  (* Initializer *)
+  Init: forall i_1 : Z. ((5 <= i_1) -> ((i_1 <= 6) -> (t1_0[i_1] = 2))).
+  (* Initializer *)
+  Init: forall i_1 : Z. ((4 <= i_1) -> ((i_1 <= 4) -> (t1_0[i_1] = 0))).
+  (* Initializer *)
+  Init: forall i_1 : Z. ((7 <= i_1) -> ((i_1 <= 9) -> (t1_0[i_1] = 0))).
+}
+Prove: t1_0[i] = 0.
+
+------------------------------------------------------------
+
+Goal Pre-condition 'qed_ok,direct_init_union' in 'main':
+Let x = u.F4_U_a.
+Assume { Type: is_sint16(x). (* Initializer *) Init: x = (-1). }
+Prove: x = (-1).
 
 ------------------------------------------------------------

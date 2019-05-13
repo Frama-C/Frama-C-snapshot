@@ -30,14 +30,24 @@ void f(void)
 
 void __e_acsl_globals_init(void)
 {
-  __e_acsl_store_block((void *)(& f),(size_t)1);
-  __e_acsl_full_init((void *)(& f));
-  __e_acsl_store_block((void *)(& __fc_p_fopen),(size_t)8);
-  __e_acsl_full_init((void *)(& __fc_p_fopen));
-  __e_acsl_store_block((void *)(__fc_fopen),(size_t)128);
-  __e_acsl_full_init((void *)(& __fc_fopen));
-  __e_acsl_store_block((void *)(& __fc_rand_max),(size_t)8);
-  __e_acsl_full_init((void *)(& __fc_rand_max));
+  static char __e_acsl_already_run = 0;
+  if (! __e_acsl_already_run) {
+    __e_acsl_already_run = 1;
+    __e_acsl_store_block((void *)(& f),(size_t)1);
+    __e_acsl_full_init((void *)(& f));
+    __e_acsl_store_block((void *)(& __fc_p_fopen),(size_t)8);
+    __e_acsl_full_init((void *)(& __fc_p_fopen));
+    __e_acsl_store_block((void *)(__fc_fopen),(size_t)128);
+    __e_acsl_full_init((void *)(& __fc_fopen));
+    __e_acsl_store_block((void *)(& __fc_p_random48_counter),(size_t)8);
+    __e_acsl_full_init((void *)(& __fc_p_random48_counter));
+    __e_acsl_store_block((void *)(random48_counter),(size_t)6);
+    __e_acsl_full_init((void *)(& random48_counter));
+    __e_acsl_store_block((void *)(& __fc_random48_init),(size_t)4);
+    __e_acsl_full_init((void *)(& __fc_random48_init));
+    __e_acsl_store_block((void *)(& __fc_rand_max),(size_t)8);
+    __e_acsl_full_init((void *)(& __fc_rand_max));
+  }
   return;
 }
 
@@ -59,6 +69,9 @@ int main(void)
   __e_acsl_delete_block((void *)(& f));
   __e_acsl_delete_block((void *)(& __fc_p_fopen));
   __e_acsl_delete_block((void *)(__fc_fopen));
+  __e_acsl_delete_block((void *)(& __fc_p_random48_counter));
+  __e_acsl_delete_block((void *)(random48_counter));
+  __e_acsl_delete_block((void *)(& __fc_random48_init));
   __e_acsl_delete_block((void *)(& __fc_rand_max));
   __e_acsl_delete_block((void *)(& x));
   __e_acsl_delete_block((void *)(& __retres));

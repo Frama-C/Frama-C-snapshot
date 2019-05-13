@@ -1,6 +1,6 @@
 /* run.config*
    STDOPT: +"-kernel-msg-key prop-status,-prop-status:register"
-   STDOPT: +"-kernel-msg-key prop-status,-prop-status:register -val-use-spec f"
+   STDOPT: +"-kernel-msg-key prop-status,-prop-status:register -eva-use-spec f"
 */
 
 struct s { int t; };

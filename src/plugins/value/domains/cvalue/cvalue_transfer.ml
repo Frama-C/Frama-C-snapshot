@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2018                                               *)
+(*  Copyright (C) 2007-2019                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -90,11 +90,7 @@ module Transfer
         else t
       | _ -> t
     in
-    let s = Valuation.fold process valuation t in
-    s
-
-  let assume _stmt _expr _positive valuation state = `Value (update valuation state)
-
+    Valuation.fold process valuation t
 
   (* ---------------------------------------------------------------------- *)
   (*                              Assignments                               *)
@@ -246,4 +242,10 @@ module Transfer
       let typ = Cil.typeOf expr in
       Eval_op.pretty_offsetmap typ fmt offsm
     | _ -> Format.fprintf fmt "%s" (Unicode.top_string ())
+
+
+  (* ----------------- Export assumption functions -------------------------- *)
+
+  let update valuation state = `Value (update valuation state)
+  let assume _stmt _expr _positive = update
 end

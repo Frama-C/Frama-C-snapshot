@@ -4,16 +4,17 @@
 [wp] Loading driver 'share/wp.driver'
 [wp] Warning: Missing RTE guards
 [wp] 6 goals scheduled
-[wp] [Alt-Ergo] Goal typed_alias_post_KO : Unknown
-[wp] [Alt-Ergo] Goal typed_global_post_KO : Unknown
-[wp] [Qed] Goal typed_local_post_FRAMED : Valid
-[wp] [Alt-Ergo] Goal typed_local_post_KO : Unknown
-[wp] [Alt-Ergo] Goal typed_localref_post_KO : Unknown
+[wp] [Alt-Ergo] Goal typed_alias_ensures_KO : Unsuccess
+[wp] [Alt-Ergo] Goal typed_global_ensures_KO : Unsuccess
+[wp] [Qed] Goal typed_local_ensures_FRAMED : Valid
+[wp] [Alt-Ergo] Goal typed_local_ensures_KO : Unsuccess
+[wp] [Alt-Ergo] Goal typed_localref_ensures_KO : Unsuccess
 [wp] [Qed] Goal typed_localref_assert_FRAMED : Valid
 [wp] Proved goals:    2 / 6
   Qed:             2 
-  Alt-Ergo:        0  (unknown: 4)
-[wp] Report 'tests/wp_plugin/frame.i.0.report.json'
+  Alt-Ergo:        0  (unsuccess: 4)
+[wp] Report in:  'tests/wp_plugin/oracle_qualif/frame.0.report.json'
+[wp] Report out: 'tests/wp_plugin/result_qualif/frame.0.report.json'
 -------------------------------------------------------------
 Functions           WP     Alt-Ergo        Total   Success
 local                1     -                 2      50.0%

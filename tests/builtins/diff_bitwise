@@ -1,9 +1,307 @@
 diff tests/builtins/oracle/Longinit_sequencer.res.oracle tests/builtins/oracle_bitwise/Longinit_sequencer.res.oracle
-320c320
+327c327
 <   tests/builtins/result/Longinit_sequencer.sav
 ---
 >   tests/builtins/result_bitwise/Longinit_sequencer.sav
-556c556
+568c568
 <   tests/builtins/result/Longinit_sequencer.sav
 ---
 >   tests/builtins/result_bitwise/Longinit_sequencer.sav
+diff tests/builtins/oracle/allocated.0.res.oracle tests/builtins/oracle_bitwise/allocated.0.res.oracle
+260a261,263
+> [eva] tests/builtins/allocated.c:127: Call to builtin __fc_vla_alloc
+> [eva:malloc] tests/builtins/allocated.c:127: 
+>   resizing variable `__malloc_main_l127' (0..31/319) to fit 0..63/319
+diff tests/builtins/oracle/allocated.1.res.oracle tests/builtins/oracle_bitwise/allocated.1.res.oracle
+191a192,194
+> [eva] tests/builtins/allocated.c:82: 
+>   Call to builtin Frama_C_malloc_fresh for function malloc
+> [eva] tests/builtins/allocated.c:82: allocating variable __malloc_main_l82_7
+208a212,214
+>   strong free on bases: {__malloc_main_l82_7}
+> [eva] tests/builtins/allocated.c:87: Call to builtin free
+> [eva:malloc] tests/builtins/allocated.c:87: 
+223a230,232
+>   strong free on bases: {__malloc_main_l82_7}
+> [eva] tests/builtins/allocated.c:87: Call to builtin free
+> [eva:malloc] tests/builtins/allocated.c:87: 
+238a248,250
+>   strong free on bases: {__malloc_main_l82_7}
+> [eva] tests/builtins/allocated.c:87: Call to builtin free
+> [eva:malloc] tests/builtins/allocated.c:87: 
+252,254c264,266
+< [eva] tests/builtins/allocated.c:82: 
+<   Call to builtin Frama_C_malloc_fresh for function malloc
+< [eva] tests/builtins/allocated.c:82: allocating variable __malloc_main_l82_7
+---
+> [eva] tests/builtins/allocated.c:87: Call to builtin free
+> [eva:malloc] tests/builtins/allocated.c:87: 
+>   strong free on bases: {__malloc_main_l82_7}
+323a336,356
+> [eva] tests/builtins/allocated.c:82: 
+>   Call to builtin Frama_C_malloc_fresh for function malloc
+> [eva] tests/builtins/allocated.c:82: allocating variable __malloc_main_l82_31
+> [eva] tests/builtins/allocated.c:82: 
+>   Call to builtin Frama_C_malloc_fresh for function malloc
+> [eva] tests/builtins/allocated.c:82: allocating variable __malloc_main_l82_32
+> [eva] tests/builtins/allocated.c:82: 
+>   Call to builtin Frama_C_malloc_fresh for function malloc
+> [eva] tests/builtins/allocated.c:82: allocating variable __malloc_main_l82_33
+> [eva] tests/builtins/allocated.c:82: 
+>   Call to builtin Frama_C_malloc_fresh for function malloc
+> [eva] tests/builtins/allocated.c:82: allocating variable __malloc_main_l82_34
+> [eva] tests/builtins/allocated.c:82: 
+>   Call to builtin Frama_C_malloc_fresh for function malloc
+> [eva] tests/builtins/allocated.c:82: allocating variable __malloc_main_l82_35
+> [eva] tests/builtins/allocated.c:82: 
+>   Call to builtin Frama_C_malloc_fresh for function malloc
+> [eva] tests/builtins/allocated.c:82: allocating variable __malloc_main_l82_36
+> [eva] tests/builtins/allocated.c:82: 
+>   Call to builtin Frama_C_malloc_fresh for function malloc
+> [eva] tests/builtins/allocated.c:82: allocating variable __malloc_main_l82_37
+329,330d361
+<   Trace partitioning superposing up to 300 states
+< [eva] tests/builtins/allocated.c:84: 
+333a365,385
+>   strong free on bases: {__malloc_main_l82_37}
+> [eva] tests/builtins/allocated.c:87: Call to builtin free
+> [eva:malloc] tests/builtins/allocated.c:87: 
+>   strong free on bases: {__malloc_main_l82_36}
+> [eva] tests/builtins/allocated.c:87: Call to builtin free
+> [eva:malloc] tests/builtins/allocated.c:87: 
+>   strong free on bases: {__malloc_main_l82_35}
+> [eva] tests/builtins/allocated.c:87: Call to builtin free
+> [eva:malloc] tests/builtins/allocated.c:87: 
+>   strong free on bases: {__malloc_main_l82_34}
+> [eva] tests/builtins/allocated.c:87: Call to builtin free
+> [eva:malloc] tests/builtins/allocated.c:87: 
+>   strong free on bases: {__malloc_main_l82_33}
+> [eva] tests/builtins/allocated.c:87: Call to builtin free
+> [eva:malloc] tests/builtins/allocated.c:87: 
+>   strong free on bases: {__malloc_main_l82_32}
+> [eva] tests/builtins/allocated.c:87: Call to builtin free
+> [eva:malloc] tests/builtins/allocated.c:87: 
+>   strong free on bases: {__malloc_main_l82_31}
+> [eva] tests/builtins/allocated.c:87: Call to builtin free
+> [eva:malloc] tests/builtins/allocated.c:87: 
+403c455,473
+<   strong free on bases: {__malloc_main_l82_7}
+---
+>   strong free on bases: {__malloc_main_l82_37}
+> [eva] tests/builtins/allocated.c:87: Call to builtin free
+> [eva:malloc] tests/builtins/allocated.c:87: 
+>   strong free on bases: {__malloc_main_l82_36}
+> [eva] tests/builtins/allocated.c:87: Call to builtin free
+> [eva:malloc] tests/builtins/allocated.c:87: 
+>   strong free on bases: {__malloc_main_l82_35}
+> [eva] tests/builtins/allocated.c:87: Call to builtin free
+> [eva:malloc] tests/builtins/allocated.c:87: 
+>   strong free on bases: {__malloc_main_l82_34}
+> [eva] tests/builtins/allocated.c:87: Call to builtin free
+> [eva:malloc] tests/builtins/allocated.c:87: 
+>   strong free on bases: {__malloc_main_l82_33}
+> [eva] tests/builtins/allocated.c:87: Call to builtin free
+> [eva:malloc] tests/builtins/allocated.c:87: 
+>   strong free on bases: {__malloc_main_l82_32}
+> [eva] tests/builtins/allocated.c:87: Call to builtin free
+> [eva:malloc] tests/builtins/allocated.c:87: 
+>   strong free on bases: {__malloc_main_l82_31}
+475c545,563
+<   strong free on bases: {__malloc_main_l82_7}
+---
+>   strong free on bases: {__malloc_main_l82_37}
+> [eva] tests/builtins/allocated.c:87: Call to builtin free
+> [eva:malloc] tests/builtins/allocated.c:87: 
+>   strong free on bases: {__malloc_main_l82_36}
+> [eva] tests/builtins/allocated.c:87: Call to builtin free
+> [eva:malloc] tests/builtins/allocated.c:87: 
+>   strong free on bases: {__malloc_main_l82_35}
+> [eva] tests/builtins/allocated.c:87: Call to builtin free
+> [eva:malloc] tests/builtins/allocated.c:87: 
+>   strong free on bases: {__malloc_main_l82_34}
+> [eva] tests/builtins/allocated.c:87: Call to builtin free
+> [eva:malloc] tests/builtins/allocated.c:87: 
+>   strong free on bases: {__malloc_main_l82_33}
+> [eva] tests/builtins/allocated.c:87: Call to builtin free
+> [eva:malloc] tests/builtins/allocated.c:87: 
+>   strong free on bases: {__malloc_main_l82_32}
+> [eva] tests/builtins/allocated.c:87: Call to builtin free
+> [eva:malloc] tests/builtins/allocated.c:87: 
+>   strong free on bases: {__malloc_main_l82_31}
+547c635,653
+<   strong free on bases: {__malloc_main_l82_7}
+---
+>   strong free on bases: {__malloc_main_l82_37}
+> [eva] tests/builtins/allocated.c:87: Call to builtin free
+> [eva:malloc] tests/builtins/allocated.c:87: 
+>   strong free on bases: {__malloc_main_l82_36}
+> [eva] tests/builtins/allocated.c:87: Call to builtin free
+> [eva:malloc] tests/builtins/allocated.c:87: 
+>   strong free on bases: {__malloc_main_l82_35}
+> [eva] tests/builtins/allocated.c:87: Call to builtin free
+> [eva:malloc] tests/builtins/allocated.c:87: 
+>   strong free on bases: {__malloc_main_l82_34}
+> [eva] tests/builtins/allocated.c:87: Call to builtin free
+> [eva:malloc] tests/builtins/allocated.c:87: 
+>   strong free on bases: {__malloc_main_l82_33}
+> [eva] tests/builtins/allocated.c:87: Call to builtin free
+> [eva:malloc] tests/builtins/allocated.c:87: 
+>   strong free on bases: {__malloc_main_l82_32}
+> [eva] tests/builtins/allocated.c:87: Call to builtin free
+> [eva:malloc] tests/builtins/allocated.c:87: 
+>   strong free on bases: {__malloc_main_l82_31}
+619c725,743
+<   strong free on bases: {__malloc_main_l82_7}
+---
+>   strong free on bases: {__malloc_main_l82_37}
+> [eva] tests/builtins/allocated.c:87: Call to builtin free
+> [eva:malloc] tests/builtins/allocated.c:87: 
+>   strong free on bases: {__malloc_main_l82_36}
+> [eva] tests/builtins/allocated.c:87: Call to builtin free
+> [eva:malloc] tests/builtins/allocated.c:87: 
+>   strong free on bases: {__malloc_main_l82_35}
+> [eva] tests/builtins/allocated.c:87: Call to builtin free
+> [eva:malloc] tests/builtins/allocated.c:87: 
+>   strong free on bases: {__malloc_main_l82_34}
+> [eva] tests/builtins/allocated.c:87: Call to builtin free
+> [eva:malloc] tests/builtins/allocated.c:87: 
+>   strong free on bases: {__malloc_main_l82_33}
+> [eva] tests/builtins/allocated.c:87: Call to builtin free
+> [eva:malloc] tests/builtins/allocated.c:87: 
+>   strong free on bases: {__malloc_main_l82_32}
+> [eva] tests/builtins/allocated.c:87: Call to builtin free
+> [eva:malloc] tests/builtins/allocated.c:87: 
+>   strong free on bases: {__malloc_main_l82_31}
+691c815,833
+<   strong free on bases: {__malloc_main_l82_7}
+---
+>   strong free on bases: {__malloc_main_l82_37}
+> [eva] tests/builtins/allocated.c:87: Call to builtin free
+> [eva:malloc] tests/builtins/allocated.c:87: 
+>   strong free on bases: {__malloc_main_l82_36}
+> [eva] tests/builtins/allocated.c:87: Call to builtin free
+> [eva:malloc] tests/builtins/allocated.c:87: 
+>   strong free on bases: {__malloc_main_l82_35}
+> [eva] tests/builtins/allocated.c:87: Call to builtin free
+> [eva:malloc] tests/builtins/allocated.c:87: 
+>   strong free on bases: {__malloc_main_l82_34}
+> [eva] tests/builtins/allocated.c:87: Call to builtin free
+> [eva:malloc] tests/builtins/allocated.c:87: 
+>   strong free on bases: {__malloc_main_l82_33}
+> [eva] tests/builtins/allocated.c:87: Call to builtin free
+> [eva:malloc] tests/builtins/allocated.c:87: 
+>   strong free on bases: {__malloc_main_l82_32}
+> [eva] tests/builtins/allocated.c:87: Call to builtin free
+> [eva:malloc] tests/builtins/allocated.c:87: 
+>   strong free on bases: {__malloc_main_l82_31}
+763c905,923
+<   strong free on bases: {__malloc_main_l82_7}
+---
+>   strong free on bases: {__malloc_main_l82_37}
+> [eva] tests/builtins/allocated.c:87: Call to builtin free
+> [eva:malloc] tests/builtins/allocated.c:87: 
+>   strong free on bases: {__malloc_main_l82_36}
+> [eva] tests/builtins/allocated.c:87: Call to builtin free
+> [eva:malloc] tests/builtins/allocated.c:87: 
+>   strong free on bases: {__malloc_main_l82_35}
+> [eva] tests/builtins/allocated.c:87: Call to builtin free
+> [eva:malloc] tests/builtins/allocated.c:87: 
+>   strong free on bases: {__malloc_main_l82_34}
+> [eva] tests/builtins/allocated.c:87: Call to builtin free
+> [eva:malloc] tests/builtins/allocated.c:87: 
+>   strong free on bases: {__malloc_main_l82_33}
+> [eva] tests/builtins/allocated.c:87: Call to builtin free
+> [eva:malloc] tests/builtins/allocated.c:87: 
+>   strong free on bases: {__malloc_main_l82_32}
+> [eva] tests/builtins/allocated.c:87: Call to builtin free
+> [eva:malloc] tests/builtins/allocated.c:87: 
+>   strong free on bases: {__malloc_main_l82_31}
+835c995,1013
+<   strong free on bases: {__malloc_main_l82_7}
+---
+>   strong free on bases: {__malloc_main_l82_37}
+> [eva] tests/builtins/allocated.c:87: Call to builtin free
+> [eva:malloc] tests/builtins/allocated.c:87: 
+>   strong free on bases: {__malloc_main_l82_36}
+> [eva] tests/builtins/allocated.c:87: Call to builtin free
+> [eva:malloc] tests/builtins/allocated.c:87: 
+>   strong free on bases: {__malloc_main_l82_35}
+> [eva] tests/builtins/allocated.c:87: Call to builtin free
+> [eva:malloc] tests/builtins/allocated.c:87: 
+>   strong free on bases: {__malloc_main_l82_34}
+> [eva] tests/builtins/allocated.c:87: Call to builtin free
+> [eva:malloc] tests/builtins/allocated.c:87: 
+>   strong free on bases: {__malloc_main_l82_33}
+> [eva] tests/builtins/allocated.c:87: Call to builtin free
+> [eva:malloc] tests/builtins/allocated.c:87: 
+>   strong free on bases: {__malloc_main_l82_32}
+> [eva] tests/builtins/allocated.c:87: Call to builtin free
+> [eva:malloc] tests/builtins/allocated.c:87: 
+>   strong free on bases: {__malloc_main_l82_31}
+905,907c1083,1084
+< [eva] tests/builtins/allocated.c:87: Call to builtin free
+< [eva:malloc] tests/builtins/allocated.c:87: 
+<   strong free on bases: {__malloc_main_l82_7}
+---
+> [eva] tests/builtins/allocated.c:81: 
+>   Trace partitioning superposing up to 500 states
+1069,1071c1246,1247
+<   __malloc_main_l82_7[0] ∈ {21} or UNINITIALIZED
+<                      [1] ∈ {24} or UNINITIALIZED
+<                      [2] ∈ {27} or UNINITIALIZED
+---
+>   __malloc_main_l82_7[0] ∈ {14} or UNINITIALIZED
+>                      [1] ∈ {17} or UNINITIALIZED
+1140a1317,1337
+>   __malloc_main_l82_31[0] ∈ {21} or UNINITIALIZED
+>                       [1] ∈ {24} or UNINITIALIZED
+>                       [2] ∈ {27} or UNINITIALIZED
+>   __malloc_main_l82_32[0] ∈ {21} or UNINITIALIZED
+>                       [1] ∈ {24} or UNINITIALIZED
+>                       [2] ∈ {27} or UNINITIALIZED
+>   __malloc_main_l82_33[0] ∈ {21} or UNINITIALIZED
+>                       [1] ∈ {24} or UNINITIALIZED
+>                       [2] ∈ {27} or UNINITIALIZED
+>   __malloc_main_l82_34[0] ∈ {21} or UNINITIALIZED
+>                       [1] ∈ {24} or UNINITIALIZED
+>                       [2] ∈ {27} or UNINITIALIZED
+>   __malloc_main_l82_35[0] ∈ {21} or UNINITIALIZED
+>                       [1] ∈ {24} or UNINITIALIZED
+>                       [2] ∈ {27} or UNINITIALIZED
+>   __malloc_main_l82_36[0] ∈ {21} or UNINITIALIZED
+>                       [1] ∈ {24} or UNINITIALIZED
+>                       [2] ∈ {27} or UNINITIALIZED
+>   __malloc_main_l82_37[0] ∈ {21} or UNINITIALIZED
+>                       [1] ∈ {24} or UNINITIALIZED
+>                       [2] ∈ {27} or UNINITIALIZED
+1184c1381
+<   __malloc_main_l82_7[0..2] FROM __fc_heap_status; nondet (and SELF)
+---
+>   __malloc_main_l82_7[0..1] FROM __fc_heap_status; nondet (and SELF)
+1207a1405,1411
+>   __malloc_main_l82_31[0..2] FROM __fc_heap_status; nondet (and SELF)
+>   __malloc_main_l82_32[0..2] FROM __fc_heap_status; nondet (and SELF)
+>   __malloc_main_l82_33[0..2] FROM __fc_heap_status; nondet (and SELF)
+>   __malloc_main_l82_34[0..2] FROM __fc_heap_status; nondet (and SELF)
+>   __malloc_main_l82_35[0..2] FROM __fc_heap_status; nondet (and SELF)
+>   __malloc_main_l82_36[0..2] FROM __fc_heap_status; nondet (and SELF)
+>   __malloc_main_l82_37[0..2] FROM __fc_heap_status; nondet (and SELF)
+1231c1435
+<     __malloc_main_l82_6[0..1]; __malloc_main_l82_7[0..2];
+---
+>     __malloc_main_l82_6[0..1]; __malloc_main_l82_7[0..1];
+1243,1244c1447,1452
+<     __malloc_main_l82_30[0..2]; __malloc_main_l97[0]; __malloc_main_l114[0..3];
+<     __malloc_main_l127; __malloc_main_l127_0[0..1]; __malloc_main_l127_1[0..2];
+---
+>     __malloc_main_l82_30[0..2]; __malloc_main_l82_31[0..2];
+>     __malloc_main_l82_32[0..2]; __malloc_main_l82_33[0..2];
+>     __malloc_main_l82_34[0..2]; __malloc_main_l82_35[0..2];
+>     __malloc_main_l82_36[0..2]; __malloc_main_l82_37[0..2];
+>     __malloc_main_l97[0]; __malloc_main_l114[0..3]; __malloc_main_l127;
+>     __malloc_main_l127_0[0..1]; __malloc_main_l127_1[0..2];
+diff tests/builtins/oracle/malloc-optimistic.res.oracle tests/builtins/oracle_bitwise/malloc-optimistic.res.oracle
+1945a1946,1948
+> [eva] tests/builtins/malloc-optimistic.c:90: Call to builtin malloc
+> [eva:malloc] tests/builtins/malloc-optimistic.c:90: 
+>   resizing variable `__malloc_main7_l90' (0..31/3231) to fit 0..511/3231

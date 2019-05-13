@@ -8,16 +8,16 @@
 ------------------------------------------------------------
 
 Goal Assertion 'qed_ok' (file tests/wp_bts/bts_1174.i, line 11):
-Let r = mul_float64(x, 2.0).
+Let r = of_f64(x).
 Assume {
-  Type: is_sint32(a) /\ is_float64(x) /\ is_float64(r).
+  Type: is_sint32(a).
   (* Goal *)
-  When: .0 <= x.
+  When: .0 <= r.
   (* Pre-condition *)
-  Have: (x <= 10.0) /\ (-10.0 <= x).
+  Have: (r <= 10.0) /\ (-10.0 <= r).
   (* Then *)
   Have: a != 0.
 }
-Prove: .0 <= r.
+Prove: .0 <= of_f64(mul_f64(x, to_f64(2.0))).
 
 ------------------------------------------------------------

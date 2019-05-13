@@ -35,15 +35,15 @@ int main(int u2, int u3, int u4)
 
   p2 = ~((int)&p1);
 
-  p3 = &(t[(char)(&p1)]);
+  p3 = (int) &(t[(char)(&p1)]);
 
-  p4 = &(tt[(char)(&p1)].a);
+  p4 = (int) &(tt[(char)(&p1)].a);
 
-  p5 = &(ttt[(char)(&p1)][(char)&p2]);
+  p5 = (int) &(ttt[(char)(&p1)][(char)&p2]);
 
-  p6 = &(ttt[(char)(&p1)][u2]);
+  p6 = (int) &(ttt[(char)(&p1)][u2]);
 
-  p7 = &(ttt[u2][(char)(&p2)]);
+  p7 = (int) &(ttt[u2][(char)(&p2)]);
 
   p8 = (&p1 + 1) < &p2;
 

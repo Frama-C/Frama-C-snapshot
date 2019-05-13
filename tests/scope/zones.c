@@ -1,10 +1,10 @@
 /* run.config
-   OPT: -load-script tests/scope/zones.ml -val -val-show-progress -journal-disable
+#   EXECNOW: make -s @PTEST_DIR@/@PTEST_NAME@.cmxs
+   OPT: -load-module @PTEST_DIR@/@PTEST_NAME@ -eva @EVA_OPTIONS@ -journal-disable
 */
 
 
-
-/* bin/viewer.opt -val tests/scope/zones.c */
+/* bin/viewer.opt -eva @PTEST_DIR@/@PTEST_NAME@.c */
 
 int T [10];
 struct Tstr { int a; int b; } S;

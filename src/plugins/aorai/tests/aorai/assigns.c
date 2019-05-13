@@ -1,7 +1,8 @@
 /* run.config*
+   EXECNOW: make -s @PTEST_DIR@/name_projects.cmxs
    OPT: -aorai-automata tests/aorai/assigns.ya  -aorai-test 1 -load-module tests/aorai/Aorai_test.cmxs -aorai-test-number @PTEST_NUMBER@ @PROVE_OPTIONS@
    OPT: -aorai-automata tests/aorai/assigns_det.ya -aorai-test 1 -load-module tests/aorai/Aorai_test.cmxs -aorai-test-number @PTEST_NUMBER@ @PROVE_OPTIONS@
-   OPT: -aorai-automata tests/aorai/assigns.ya -load-script tests/aorai/name_projects.ml -aorai-test 1 -then -print
+   OPT: -aorai-automata tests/aorai/assigns.ya -load-module @PTEST_DIR@/name_projects -aorai-test 1 -then -print
 */
 
 int X;

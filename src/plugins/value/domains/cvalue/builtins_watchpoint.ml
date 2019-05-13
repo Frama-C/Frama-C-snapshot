@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2018                                               *)
+(*  Copyright (C) 2007-2019                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -89,7 +89,7 @@ let make_watch_cardinal target_value =
     let target_value = Cvalue.V.project_ival target_value in
     Cardinal (Integer.to_int (Ival.project_int target_value))
   with V.Not_based_on_null | Ival.Not_Singleton_Int
-     | Failure _ (* from Integer.to_int *) ->
+     | Z.Overflow (* from Integer.to_int *) ->
     raise Db.Value.Outside_builtin_possibilities
 
 let () =

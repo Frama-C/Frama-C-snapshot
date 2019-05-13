@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2018                                               *)
+(*  Copyright (C) 2007-2019                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -615,7 +615,7 @@ class check ?(is_normalized=true) what : Visitor.frama_c_visitor =
       in
       let my_labels =
         match ca.annot_content with
-        | AExtended (_, is_loop, (_, name, _, _)) ->
+        | AExtended (_, is_loop, (_, name, _, _, _)) ->
           (match Logic_env.extension_category name, is_loop with
            | Some (Ext_code_annot (Ext_next_stmt | Ext_next_both)), false ->
              Logic_const.post_label :: my_labels
@@ -648,7 +648,7 @@ class check ?(is_normalized=true) what : Visitor.frama_c_visitor =
          names of statement contracts. *)
       if is_normalized then begin
         match ca.annot_content with
-        | AAssert(bhvs,_) | AStmtSpec(bhvs,_) | AInvariant (bhvs,_,_)
+        | AAssert(bhvs,_,_) | AStmtSpec(bhvs,_) | AInvariant (bhvs,_,_)
         | AAssigns(bhvs,_) | AAllocation(bhvs,_) | AExtended (bhvs,_,_) ->
           List.iter
             (fun b ->
@@ -1253,6 +1253,7 @@ class check ?(is_normalized=true) what : Visitor.frama_c_visitor =
            | None -> ()
            | Some lv ->
              let tlv = Cil.typeOfLval lv in
+             let tlv = Cil.type_remove_qualifier_attributes tlv in
              if not (Cabs2cil.allow_return_collapse ~tlv ~tf:treturn) then
                check_abort "in call %a, cannot implicitly cast from \
                             function return type %a to type of %a (%a)"

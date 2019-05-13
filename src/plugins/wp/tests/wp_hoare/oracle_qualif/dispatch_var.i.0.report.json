@@ -1,0 +1,208 @@
+{ "wp:global": { "qed": { "total": 78, "valid": 78 },
+                 "wp:main": { "total": 78, "valid": 78 } },
+  "wp:functions": { "call_ref_ctr": { "call_ref_ctr_assigns": { "qed": 
+                                                                  { "total": 3,
+                                                                    "valid": 3 },
+                                                                "wp:main": 
+                                                                  { "total": 3,
+                                                                    "valid": 3 } },
+                                      "call_ref_ctr_ensures_Ref_r1": 
+                                        { "qed": { "total": 1, "valid": 1 },
+                                          "wp:main": { "total": 1,
+                                                       "valid": 1 } },
+                                      "wp:section": { "qed": { "total": 4,
+                                                               "valid": 4 },
+                                                      "wp:main": { "total": 4,
+                                                                   "valid": 4 } } },
+                    "call_ref_ctr2": { "call_ref_ctr2_assigns": { "qed": 
+                                                                    { "total": 7,
+                                                                    "valid": 7 },
+                                                                  "wp:main": 
+                                                                    { "total": 7,
+                                                                    "valid": 7 } },
+                                       "call_ref_ctr2_ensures_Mem_n1": 
+                                         { "qed": { "total": 1, "valid": 1 },
+                                           "wp:main": { "total": 1,
+                                                        "valid": 1 } },
+                                       "wp:section": { "qed": { "total": 8,
+                                                                "valid": 8 },
+                                                       "wp:main": { "total": 8,
+                                                                    "valid": 8 } } },
+                    "ref_bd": { "ref_bd_assigns": { "qed": { "total": 1,
+                                                             "valid": 1 },
+                                                    "wp:main": { "total": 1,
+                                                                 "valid": 1 } },
+                                "ref_bd_ensures": { "qed": { "total": 1,
+                                                             "valid": 1 },
+                                                    "wp:main": { "total": 1,
+                                                                 "valid": 1 } },
+                                "wp:section": { "qed": { "total": 2,
+                                                         "valid": 2 },
+                                                "wp:main": { "total": 2,
+                                                             "valid": 2 } } },
+                    "call_ref_bd": { "call_ref_bd_assigns": { "qed": 
+                                                                { "total": 3,
+                                                                  "valid": 3 },
+                                                              "wp:main": 
+                                                                { "total": 3,
+                                                                  "valid": 3 } },
+                                     "call_ref_bd_ensures_Ref_r2": { "qed": 
+                                                                    { "total": 1,
+                                                                    "valid": 1 },
+                                                                    "wp:main": 
+                                                                    { "total": 1,
+                                                                    "valid": 1 } },
+                                     "wp:section": { "qed": { "total": 4,
+                                                              "valid": 4 },
+                                                     "wp:main": { "total": 4,
+                                                                  "valid": 4 } } },
+                    "call_ref_bd2": { "call_ref_bd2_assigns": { "qed": 
+                                                                  { "total": 7,
+                                                                    "valid": 7 },
+                                                                "wp:main": 
+                                                                  { "total": 7,
+                                                                    "valid": 7 } },
+                                      "call_ref_bd2_ensures_Mem_n2": 
+                                        { "qed": { "total": 1, "valid": 1 },
+                                          "wp:main": { "total": 1,
+                                                       "valid": 1 } },
+                                      "wp:section": { "qed": { "total": 8,
+                                                               "valid": 8 },
+                                                      "wp:main": { "total": 8,
+                                                                   "valid": 8 } } },
+                    "call_ref_valid": { "ref_valid_requires_2": { "qed": 
+                                                                    { "total": 1,
+                                                                    "valid": 1 },
+                                                                  "wp:main": 
+                                                                    { "total": 1,
+                                                                    "valid": 1 } },
+                                        "ref_valid_requires": { "qed": 
+                                                                  { "total": 1,
+                                                                    "valid": 1 },
+                                                                "wp:main": 
+                                                                  { "total": 1,
+                                                                    "valid": 1 } },
+                                        "call_ref_valid_assigns": { "qed": 
+                                                                    { "total": 8,
+                                                                    "valid": 8 },
+                                                                    "wp:main": 
+                                                                    { "total": 8,
+                                                                    "valid": 8 } },
+                                        "call_ref_valid_ensures_R7_N4": 
+                                          { "qed": { "total": 1, "valid": 1 },
+                                            "wp:main": { "total": 1,
+                                                         "valid": 1 } },
+                                        "wp:section": { "qed": { "total": 11,
+                                                                 "valid": 11 },
+                                                        "wp:main": { "total": 11,
+                                                                    "valid": 11 } } },
+                    "no_ref_bd": { "no_ref_bd_assigns": { "qed": { "total": 2,
+                                                                   "valid": 2 },
+                                                          "wp:main": 
+                                                            { "total": 2,
+                                                              "valid": 2 } },
+                                   "no_ref_bd_ensures": { "qed": { "total": 1,
+                                                                   "valid": 1 },
+                                                          "wp:main": 
+                                                            { "total": 1,
+                                                              "valid": 1 } },
+                                   "wp:section": { "qed": { "total": 3,
+                                                            "valid": 3 },
+                                                   "wp:main": { "total": 3,
+                                                                "valid": 3 } } },
+                    "call_no_ref_bd": { "call_no_ref_bd_assigns": { "qed": 
+                                                                    { "total": 8,
+                                                                    "valid": 8 },
+                                                                    "wp:main": 
+                                                                    { "total": 8,
+                                                                    "valid": 8 } },
+                                        "call_no_ref_bd_ensures_Mem_n5_nr6": 
+                                          { "qed": { "total": 1, "valid": 1 },
+                                            "wp:main": { "total": 1,
+                                                         "valid": 1 } },
+                                        "wp:section": { "qed": { "total": 9,
+                                                                 "valid": 9 },
+                                                        "wp:main": { "total": 9,
+                                                                    "valid": 9 } } },
+                    "call_ref_ctr_nr": { "ref_ctr_nr_requires": { "qed": 
+                                                                    { "total": 1,
+                                                                    "valid": 1 },
+                                                                  "wp:main": 
+                                                                    { "total": 1,
+                                                                    "valid": 1 } },
+                                         "call_ref_ctr_nr_assigns": { "qed": 
+                                                                    { "total": 7,
+                                                                    "valid": 7 },
+                                                                    "wp:main": 
+                                                                    { "total": 7,
+                                                                    "valid": 7 } },
+                                         "call_ref_ctr_nr_ensures_R_R_R_2": 
+                                           { "qed": { "total": 1,
+                                                      "valid": 1 },
+                                             "wp:main": { "total": 1,
+                                                          "valid": 1 } },
+                                         "call_ref_ctr_nr_ensures_R_R_R": 
+                                           { "qed": { "total": 1,
+                                                      "valid": 1 },
+                                             "wp:main": { "total": 1,
+                                                          "valid": 1 } },
+                                         "wp:section": { "qed": { "total": 10,
+                                                                  "valid": 10 },
+                                                         "wp:main": { "total": 10,
+                                                                    "valid": 10 } } },
+                    "call_ref_ctr_nstars": { "call_ref_ctr_nstars_assigns": 
+                                               { "qed": { "total": 5,
+                                                          "valid": 5 },
+                                                 "wp:main": { "total": 5,
+                                                              "valid": 5 } },
+                                             "call_ref_ctr_nstars_ensures": 
+                                               { "qed": { "total": 1,
+                                                          "valid": 1 },
+                                                 "wp:main": { "total": 1,
+                                                              "valid": 1 } },
+                                             "wp:section": { "qed": { "total": 6,
+                                                                    "valid": 6 },
+                                                             "wp:main": 
+                                                               { "total": 6,
+                                                                 "valid": 6 } } },
+                    "call_two_ref": { "call_two_ref_assigns": { "qed": 
+                                                                  { "total": 6,
+                                                                    "valid": 6 },
+                                                                "wp:main": 
+                                                                  { "total": 6,
+                                                                    "valid": 6 } },
+                                      "call_two_ref_ensures": { "qed": 
+                                                                  { "total": 1,
+                                                                    "valid": 1 },
+                                                                "wp:main": 
+                                                                  { "total": 1,
+                                                                    "valid": 1 } },
+                                      "wp:section": { "qed": { "total": 7,
+                                                               "valid": 7 },
+                                                      "wp:main": { "total": 7,
+                                                                   "valid": 7 } } },
+                    "g": { "g_assigns": { "qed": { "total": 3, "valid": 3 },
+                                          "wp:main": { "total": 3,
+                                                       "valid": 3 } },
+                           "g_ensures": { "qed": { "total": 1, "valid": 1 },
+                                          "wp:main": { "total": 1,
+                                                       "valid": 1 } },
+                           "wp:section": { "qed": { "total": 4, "valid": 4 },
+                                           "wp:main": { "total": 4,
+                                                        "valid": 4 } } },
+                    "array_in_struct_param": { "array_in_struct_param_assigns": 
+                                                 { "qed": { "total": 1,
+                                                            "valid": 1 },
+                                                   "wp:main": { "total": 1,
+                                                                "valid": 1 } },
+                                               "array_in_struct_param_ensures_Pload2": 
+                                                 { "qed": { "total": 1,
+                                                            "valid": 1 },
+                                                   "wp:main": { "total": 1,
+                                                                "valid": 1 } },
+                                               "wp:section": { "qed": 
+                                                                 { "total": 2,
+                                                                   "valid": 2 },
+                                                               "wp:main": 
+                                                                 { "total": 2,
+                                                                   "valid": 2 } } } } }

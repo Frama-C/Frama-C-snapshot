@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2018                                               *)
+(*  Copyright (C) 2007-2019                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -29,6 +29,14 @@ type round = Up | Down | Near | Zero
     - the 'single', 'double' and 'long double' C types;
     - the ACSL 'real' type.  *)
 type prec = Single | Double | Long_Double | Real
+
+
+module type Widen_Hints = sig
+  include FCSet.S with type elt = Cil_datatype.Logic_real.t
+  include Datatype.S with type t:=t
+
+  val default_widen_hints: t
+end
 
 module type S = sig
   type t
@@ -80,9 +88,14 @@ module type S = sig
       behavior as [next_float]. *)
   val prev_float: prec -> t -> t
 
+  module Widen_Hints : Widen_Hints
+  type widen_hints = Widen_Hints.t
+
   (** [widen_up f] returns a value strictly larger than [f], such that
-      successive applications of [widen_up] converge rapidly to infinity. *)
-  val widen_up: t -> t
+      successive applications of [widen_up] converge rapidly to infinity.
+      The first arguments give the set of steps that could be used. *)
+  val widen_up  : widen_hints -> prec -> t -> t
+  val widen_down: widen_hints -> prec -> t -> t
 
   (** Floating-point operations. *)
 

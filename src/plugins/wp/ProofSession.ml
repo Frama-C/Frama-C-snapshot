@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2018                                               *)
+(*  Copyright (C) 2007-2019                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -22,39 +22,79 @@
 
 open Wpo
 
-let files = Hashtbl.create 32
+type status =
+  | NoScript
+  | Script of string
+  | Deprecated of string
 
-let filename wpo =
+let files : (string,status) Hashtbl.t = Hashtbl.create 32
+
+let filename ?(legacy=false) wpo =
   let m = Model.get_id wpo.po_model in
   let d = Wp_parameters.get_session_dir m in
-  Printf.sprintf "%s/%s.json" d wpo.po_gid
+  Printf.sprintf "%s/%s.json" d (if legacy then wpo.po_leg else wpo.po_gid)
 
 let pretty fmt wpo = Format.pp_print_string fmt (filename wpo)
 
-let exists wpo =
+let status wpo =
   let f = filename wpo in
   try Hashtbl.find files f
   with Not_found ->
-    let e = Sys.file_exists f in
-    Hashtbl.add files f e ; e
+    let status =
+      if Sys.file_exists f then Script f else
+        let f' = filename ~legacy:true wpo in
+        if Sys.file_exists f' then
+          ( Wp_parameters.warning ~current:false
+              "Deprecated script for '%s'" wpo.po_sid ;
+            Deprecated f' )
+        else NoScript in
+    Hashtbl.add files f status ; status
+
+let exists wpo =
+  match status wpo with NoScript -> false | Script _ | Deprecated _ -> true
 
 let load wpo =
-  let f = filename wpo in
-  if Sys.file_exists f then Json.load_file f else Json.Null
-
-let save wpo js =
-  let f = filename wpo in
-  let empty =
-    match js with
-    | Json.Null | Json.Array [] | Json.Assoc [] -> true
-    | _ -> false
-  in
-  ( if empty
-    then Extlib.safe_remove f
-    else Json.save_file f js ) ;
-  Hashtbl.replace files f (not empty)
+  match status wpo with
+  | NoScript -> `Null
+  | Script f | Deprecated f ->
+      if Sys.file_exists f then Json.load_file f else `Null
 
 let remove wpo =
-  let f = filename wpo in
-  Extlib.safe_remove f ;
-  Hashtbl.replace files f false
+  match status wpo with
+  | NoScript -> ()
+  | Script f ->
+      begin
+        Extlib.safe_remove f ;
+        Hashtbl.replace files f NoScript ;
+      end
+  | Deprecated f0 ->
+      begin
+        Wp_parameters.feedback
+          "Removed deprecated script for '%s'" wpo.po_sid ;
+        Extlib.safe_remove f0 ;
+        Hashtbl.replace files (filename wpo) NoScript ;
+      end
+
+let save wpo js =
+  let empty =
+    match js with
+    | `Null | `List [] | `Assoc [] -> true
+    | _ -> false in
+  if empty then remove wpo else
+    match status wpo with
+    | Script f -> Json.save_file f js
+    | NoScript ->
+        begin
+          let f = filename wpo in
+          Json.save_file f js ;
+          Hashtbl.replace files f (Script f) ;
+        end
+    | Deprecated f0 ->
+        begin
+          Wp_parameters.feedback
+            "Upgraded script for '%s'" wpo.po_sid ;
+          Extlib.safe_remove f0 ;
+          let f = filename wpo in
+          Json.save_file f js ;
+          Hashtbl.replace files f (Script f) ;
+        end

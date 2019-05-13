@@ -1,7 +1,7 @@
 /* run.config*
-   OPT: -eva @VALUECONFIG@ -warn-special-float non-finite
-   OPT: -eva @VALUECONFIG@ -warn-special-float nan
-   OPT: -eva @VALUECONFIG@ -warn-special-float none
+   OPT: -eva @EVA_CONFIG@ -warn-special-float non-finite
+   OPT: -eva @EVA_CONFIG@ -warn-special-float nan
+   OPT: -eva @EVA_CONFIG@ -warn-special-float none
 */
 
 union { long long l ; float f ; double d ; } u1, u2;

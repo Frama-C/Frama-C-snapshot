@@ -3,37 +3,37 @@
 [wp] Running WP plugin...
 [wp] Loading driver 'share/wp.driver'
 [rte] annotating function equal_elements
-[wp] Goal typed_ref_equal_elements_post_v1_good : not tried
-[wp] Goal typed_ref_equal_elements_post_v2_good : not tried
-[wp] Goal typed_ref_equal_elements_post_v1_v2_diff : not tried
+[wp] Goal typed_ref_equal_elements_ensures_v1_good : not tried
+[wp] Goal typed_ref_equal_elements_ensures_v2_good : not tried
+[wp] Goal typed_ref_equal_elements_ensures_v1_v2_diff : not tried
 [wp] Goal typed_ref_equal_elements_assert_rte_mem_access : trivial
 [wp] Goal typed_ref_equal_elements_assert_rte_mem_access_2 : trivial
-[wp] Goal typed_ref_equal_elements_loop_inv_preserved : not tried
-[wp] Goal typed_ref_equal_elements_loop_inv_established : not tried
-[wp] Goal typed_ref_equal_elements_loop_inv_set_at_0_preserved : not tried
-[wp] Goal typed_ref_equal_elements_loop_inv_set_at_0_established : not tried
+[wp] Goal typed_ref_equal_elements_loop_invariant_preserved : not tried
+[wp] Goal typed_ref_equal_elements_loop_invariant_established : not tried
+[wp] Goal typed_ref_equal_elements_loop_invariant_set_at_0_preserved : not tried
+[wp] Goal typed_ref_equal_elements_loop_invariant_set_at_0_established : not tried
 [wp] Goal typed_ref_equal_elements_assert_rte_index_bound : not tried
 [wp] Goal typed_ref_equal_elements_assert_rte_index_bound_2 : not tried
 [wp] Goal typed_ref_equal_elements_assert_set_at_1 : not tried
 [wp] Goal typed_ref_equal_elements_assert_rte_signed_overflow : not tried
-[wp] Goal typed_ref_equal_elements_loop_inv_bound_preserved : not tried
-[wp] Goal typed_ref_equal_elements_loop_inv_bound_established : not tried
-[wp] Goal typed_ref_equal_elements_loop_inv_seen_sound1_preserved : not tried
-[wp] Goal typed_ref_equal_elements_loop_inv_seen_sound1_established : not tried
-[wp] Goal typed_ref_equal_elements_loop_inv_seen_sound2_preserved : not tried
-[wp] Goal typed_ref_equal_elements_loop_inv_seen_sound2_established : not tried
-[wp] Goal typed_ref_equal_elements_loop_inv_v1_first_preserved : not tried
-[wp] Goal typed_ref_equal_elements_loop_inv_v1_first_established : not tried
-[wp] Goal typed_ref_equal_elements_loop_inv_v1_sound1_preserved : not tried
-[wp] Goal typed_ref_equal_elements_loop_inv_v1_sound1_established : not tried
-[wp] Goal typed_ref_equal_elements_loop_inv_v1_sound2_preserved : not tried
-[wp] Goal typed_ref_equal_elements_loop_inv_v1_sound2_established : not tried
-[wp] Goal typed_ref_equal_elements_loop_inv_v1_v2_diff_preserved : not tried
-[wp] Goal typed_ref_equal_elements_loop_inv_v1_v2_diff_established : not tried
-[wp] Goal typed_ref_equal_elements_loop_inv_v2_sound1_preserved : not tried
-[wp] Goal typed_ref_equal_elements_loop_inv_v2_sound1_established : not tried
-[wp] Goal typed_ref_equal_elements_loop_inv_v2_sound2_preserved : not tried
-[wp] Goal typed_ref_equal_elements_loop_inv_v2_sound2_established : not tried
+[wp] Goal typed_ref_equal_elements_loop_invariant_bound_preserved : not tried
+[wp] Goal typed_ref_equal_elements_loop_invariant_bound_established : not tried
+[wp] Goal typed_ref_equal_elements_loop_invariant_seen_sound1_preserved : not tried
+[wp] Goal typed_ref_equal_elements_loop_invariant_seen_sound1_established : not tried
+[wp] Goal typed_ref_equal_elements_loop_invariant_seen_sound2_preserved : not tried
+[wp] Goal typed_ref_equal_elements_loop_invariant_seen_sound2_established : not tried
+[wp] Goal typed_ref_equal_elements_loop_invariant_v1_first_preserved : not tried
+[wp] Goal typed_ref_equal_elements_loop_invariant_v1_first_established : not tried
+[wp] Goal typed_ref_equal_elements_loop_invariant_v1_sound1_preserved : not tried
+[wp] Goal typed_ref_equal_elements_loop_invariant_v1_sound1_established : not tried
+[wp] Goal typed_ref_equal_elements_loop_invariant_v1_sound2_preserved : not tried
+[wp] Goal typed_ref_equal_elements_loop_invariant_v1_sound2_established : not tried
+[wp] Goal typed_ref_equal_elements_loop_invariant_v1_v2_diff_preserved : not tried
+[wp] Goal typed_ref_equal_elements_loop_invariant_v1_v2_diff_established : not tried
+[wp] Goal typed_ref_equal_elements_loop_invariant_v2_sound1_preserved : not tried
+[wp] Goal typed_ref_equal_elements_loop_invariant_v2_sound1_established : not tried
+[wp] Goal typed_ref_equal_elements_loop_invariant_v2_sound2_preserved : not tried
+[wp] Goal typed_ref_equal_elements_loop_invariant_v2_sound2_established : not tried
 [wp] Goal typed_ref_equal_elements_assert_rte_mem_access_3 : not tried
 [wp] Goal typed_ref_equal_elements_assert_rte_index_bound_3 : not tried
 [wp] Goal typed_ref_equal_elements_assert_rte_index_bound_4 : not tried
@@ -45,15 +45,15 @@
 [wp] Goal typed_ref_equal_elements_assert_rte_index_bound_5 : not tried
 [wp] Goal typed_ref_equal_elements_assert_rte_index_bound_6 : not tried
 [wp] Goal typed_ref_equal_elements_assert_rte_signed_overflow_2 : not tried
-[wp] Goal typed_ref_equal_elements_loop_assign : trivial
-[wp] Goal typed_ref_equal_elements_loop_assign_2 : trivial
-[wp] Goal typed_ref_equal_elements_assign_part1 : trivial
-[wp] Goal typed_ref_equal_elements_assign_part2 : not tried
-[wp] Goal typed_ref_equal_elements_assign_part3 : not tried
-[wp] Goal typed_ref_equal_elements_loop_term_decrease : not tried
-[wp] Goal typed_ref_equal_elements_loop_term_positive : not tried
-[wp] Goal typed_ref_equal_elements_loop_term_2_decrease : not tried
-[wp] Goal typed_ref_equal_elements_loop_term_2_positive : not tried
+[wp] Goal typed_ref_equal_elements_loop_assigns : trivial
+[wp] Goal typed_ref_equal_elements_loop_assigns_2 : trivial
+[wp] Goal typed_ref_equal_elements_assigns_part1 : trivial
+[wp] Goal typed_ref_equal_elements_assigns_part2 : not tried
+[wp] Goal typed_ref_equal_elements_assigns_part3 : not tried
+[wp] Goal typed_ref_equal_elements_loop_variant_decrease : not tried
+[wp] Goal typed_ref_equal_elements_loop_variant_positive : not tried
+[wp] Goal typed_ref_equal_elements_loop_variant_2_decrease : not tried
+[wp] Goal typed_ref_equal_elements_loop_variant_2_positive : not tried
 [wp] Warning: Memory model hypotheses for function 'equal_elements':
   /*@
      behavior typed_ref:

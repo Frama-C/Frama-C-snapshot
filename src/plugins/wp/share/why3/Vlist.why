@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2018                                               *)
+(*  Copyright (C) 2007-2019                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -67,8 +67,8 @@ axiom nth_repeat : forall n:int, k:int, w:list 'a [nth (repeat w n) k].
   (Int.(<) (0) (length w)) -> ((nth (repeat w n) k) = (nth w
   (ComputerDivision.mod k (length w))))
 
-predicate vlist_eq (u:list 'a) (v:list 'a) = ("asym_split" ((length
-  u) = (length v))) && (forall i:int. (Int.(<=) (0) (i)) /\
+predicate vlist_eq (u:list 'a) (v:list 'a) = ((length
+  u) = (length v)) && (forall i:int. (Int.(<=) (0) (i)) /\
   (Int.(<) (i) (length u)) -> ((nth u i) = (nth v i)))
 
 axiom extensionality : forall u:list 'a, v:list 'a. vlist_eq u v ->
@@ -98,8 +98,8 @@ axiom rw_repeat_plus_box_unfold : forall w:list 'a, a:int, b:int [repeat_box
   ((repeat_box w (Int.(+) (a) (b))) = (concat (repeat w a) (repeat w b)))
 
 axiom rw_repeat_plus_one_box_unfold : forall w:list 'a, n:int [repeat_box w
-  n]. (Int.(<) (0) (n)) -> ("asym_split" ((repeat_box w n) = (concat (repeat
-  w (Int.(-) (n) (1))) w))) && ((repeat_box w (Int.(+) (n) (1))) = (concat
+  n]. (Int.(<) (0) (n)) -> ((repeat_box w n) = (concat (repeat
+  w (Int.(-) (n) (1))) w)) && ((repeat_box w (Int.(+) (n) (1))) = (concat
   (repeat w n) w))
 
 end

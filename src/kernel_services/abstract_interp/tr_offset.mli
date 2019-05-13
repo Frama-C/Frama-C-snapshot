@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2018                                               *)
+(*  Copyright (C) 2007-2019                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -40,16 +40,11 @@ val pretty: t Pretty_utils.formatter
 (** [trim_by_validity ?origin offsets size validity] reduces [offsets] so that
     all accesses to [offsets+(0..size-1)] are valid according to [validity].
     For a size of 0, consider the offsets up to the validity past-one valid.
-    The returned boolean indicates that at least one of the offsets does not
-    comply with [validity]. If the valid offsets cannot be represented
-    precisely, the [Overlap] constructor is returned. When specified,
-    the [origin] argument is used as the source of this imprecision . *)
+    If the valid offsets cannot be represented precisely, the [Overlap]
+    constructor is returned. When specified, the [origin] argument is used as
+    the source of this imprecision . *)
 val trim_by_validity :
-  ?origin:Origin.t ->
-  Ival.t ->
-  Integer.t ->
-  Base.validity ->
-  bool (** alarm *) * t
+  ?origin:Origin.t -> Ival.t -> Integer.t -> Base.validity -> t
 
 (** This is a more complete specification of this function, for a single offset
     [o]. We want to write [size>0 bits], on a base possibly valid between

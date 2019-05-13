@@ -1,6 +1,6 @@
 /* run.config*
-   OPT: -no-autoload-plugins -load-module eva,inout -simplify-cfg -keep-switch -val @VALUECONFIG@ -journal-disable
-   OPT: -no-autoload-plugins -load-module eva,inout -simplify-cfg -val @VALUECONFIG@ -journal-disable
+   OPT: -no-autoload-plugins -load-module eva,inout -simplify-cfg -keep-switch -eva @EVA_CONFIG@ -journal-disable
+   OPT: -no-autoload-plugins -load-module eva,inout -simplify-cfg -eva @EVA_CONFIG@ -journal-disable
 */
 
 int main(int x, int y) {

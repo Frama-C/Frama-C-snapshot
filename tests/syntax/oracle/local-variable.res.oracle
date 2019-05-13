@@ -11,4 +11,9 @@ int main(void)
   return __retres;
 }
 
+void f(void)
+{
+  return;
+}
+
 

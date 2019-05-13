@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2018                                               *)
+(*  Copyright (C) 2007-2019                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -165,7 +165,10 @@ class menu_manager ?packing ~host:(_:Gtk_helper.host) =
            By default, add all the others just before this very first group. *)
         ref (match pos, first_tool_separator with
             | None, None -> 0
-            | None, Some sep -> max 0 (toolbar#get_item_index sep)
+            | None, Some sep ->
+              max
+                0
+                (Gtk_compat.get_toolbar_index toolbar (sep:>GButton.tool_item))
             | Some p, _ -> p)
       in
       let toolbar_packing w =
@@ -213,7 +216,7 @@ class menu_manager ?packing ~host:(_:Gtk_helper.host) =
                 (fun () -> b#set_active (active ())) :: set_active_states;
               BToggle b
         in
-        (bt_type_as_skel b)#set_tooltip (GData.tooltips ()) tooltip "";
+        (bt_type_as_skel b)#misc#set_tooltip_text tooltip;
         toolbar_buttons <- (b, sensitive) :: toolbar_buttons;
         b
       in
@@ -249,12 +252,10 @@ class menu_manager ?packing ~host:(_:Gtk_helper.host) =
               ignore (mi#connect#activate callback);
               MStandard mi
           | Some stock, Unit_callback callback ->
-              let image = GMisc.image ~stock () in
-              let mi =
-                (GMenu.image_menu_item
-                   ~image ~packing:!!menubar_packing ~label ()
-                 :> GMenu.menu_item)
-              in
+              let image = (GMisc.image ~stock ~xalign:0. () :> GObj.widget) in
+              let text = label in
+              let packing = !!menubar_packing in
+              let mi = Gtk_helper.image_menu_item ~image ~text ~packing in
               ignore (mi#connect#activate callback);
               MStandard mi
           | _, Bool_callback (callback, active) ->

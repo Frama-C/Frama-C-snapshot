@@ -68,7 +68,7 @@
   i_0 ∈ [--..--]
   __retres ∈ [-536870912..536870911]
 [eva:final-states] Values at end of function main1:
-  G ∈ [0..12]
+  G ∈ [2..12]
   H ∈ [-536870912..536870911]
   K ∈ [-10..20]
   L ∈ [-4000..2],0%2
@@ -86,7 +86,7 @@
   G_0 ∈ {-126; -125; -124; -123; -122; -121} or UNINITIALIZED
   S___fc_stdout[0..1] ∈ [--..--]
 [eva:final-states] Values at end of function main:
-  G ∈ [0..12]
+  G ∈ [2..12]
   H ∈ [-536870912..536870911]
   K ∈ [-10..20]
   L ∈ [-4000..2],0%2

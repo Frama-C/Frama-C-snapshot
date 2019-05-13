@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2018                                               *)
+(*  Copyright (C) 2007-2019                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -26,6 +26,8 @@ module type S = sig
   val accessor: Db.RteGen.status_accessor
 end
 
+(* No module for Trivial: dependency added for generators below *)
+
 module Initialized: S
 module Mem_access: S
 module Pointer_call: S
@@ -41,9 +43,15 @@ module Float_to_int: S
 module Finite_float: S
 module Bool_value: S
 
+val all_statuses: Db.RteGen.status_accessor list
+
+(** The Emitter for Annotations registered by RTE *)
 val emitter: Emitter.t
 
-val all_statuses: Db.RteGen.status_accessor list
+open Cil_types
+
+(** Returns all annotations actually {i registered} by RTE so far *)
+val get_registered_annotations: stmt -> code_annotation list
 
 (*
   Local Variables:

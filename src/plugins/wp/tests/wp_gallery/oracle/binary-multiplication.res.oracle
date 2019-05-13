@@ -6,19 +6,21 @@
 [wp] Goal typed_lemma_ax1_lack : not tried
 [wp] Goal typed_lemma_ax2_lack : not tried
 [wp] Goal typed_lemma_ax3_lack : not tried
-[wp] Goal typed_lemma_ax4_lack : not tried
+[wp] Goal typed_lemma_ax4_ok : not tried
 [wp] Goal typed_lemma_ax5_ok : not tried
-[wp] Goal typed_lemma_ax6_ok : not tried
-[wp] Goal typed_lemma_sizeof_uint32_t_ok : trivial
-[wp] Goal typed_lemma_sizeof_uint64_t_ok : trivial
-[wp] Goal typed_BinaryMultiplication_post_product : not tried
+[wp] Goal typed_lemma_ax7_ok : not tried
+[wp] Goal typed_lemma_sizeof_ok_ok : trivial
+[wp] Goal typed_BinaryMultiplication_ensures_product : not tried
 [wp] Goal typed_BinaryMultiplication_assert_a1_ok_deductible : not tried
-[wp] Goal typed_BinaryMultiplication_loop_inv_inv1_lack_preserved : not tried
-[wp] Goal typed_BinaryMultiplication_loop_inv_inv1_lack_established : not tried
-[wp] Goal typed_BinaryMultiplication_loop_inv_inv2_lack_preserved : not tried
-[wp] Goal typed_BinaryMultiplication_loop_inv_inv2_lack_established : not tried
+[wp] Goal typed_BinaryMultiplication_loop_invariant_inv1_ok_preserved : not tried
+[wp] Goal typed_BinaryMultiplication_loop_invariant_inv1_ok_established : not tried
+[wp] Goal typed_BinaryMultiplication_loop_invariant_inv2_ok_preserved : not tried
+[wp] Goal typed_BinaryMultiplication_loop_invariant_inv2_ok_established : not tried
 [wp] Goal typed_BinaryMultiplication_assert_a2_ok : not tried
 [wp] Goal typed_BinaryMultiplication_assert_a3_ok : not tried
-[wp] Goal typed_BinaryMultiplication_loop_assign : trivial
-[wp] Goal typed_BinaryMultiplication_loop_term_decrease : not tried
-[wp] Goal typed_BinaryMultiplication_loop_term_positive : not tried
+[wp] Goal typed_BinaryMultiplication_assert_a4_ok : not tried
+[wp] Goal typed_BinaryMultiplication_assert_a5_ok : not tried
+[wp] Goal typed_BinaryMultiplication_assert_a6_lack_ok_z3 : not tried
+[wp] Goal typed_BinaryMultiplication_loop_assigns : trivial
+[wp] Goal typed_BinaryMultiplication_loop_variant_decrease : not tried
+[wp] Goal typed_BinaryMultiplication_loop_variant_positive : not tried

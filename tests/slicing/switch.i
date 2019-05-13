@@ -1,7 +1,7 @@
 /*  run.config
-   EXECNOW: make -s tests/slicing/switch.cmxs
-   CMD: @frama-c@ -load-module tests/slicing/libSelect.cmxs -load-module tests/slicing/switch.cmxs
-   OPT: -val-show-progress -deps -journal-disable
+   EXECNOW: make -s @PTEST_DIR@/@PTEST_NAME@.cmxs
+   CMD: @frama-c@ -load-module tests/slicing/libSelect.cmxs -load-module @PTEST_DIR@/@PTEST_NAME@.cmxs
+   OPT: @EVA_OPTIONS@ -deps -journal-disable
 */
 int main (char choix) {
   int x = 0, y = 0, z = 0;

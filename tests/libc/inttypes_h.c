@@ -1,12 +1,12 @@
 /* run.config
-OPT: -kernel-msg-key pp -machdep x86_16 -print
-OPT: -kernel-msg-key pp -machdep x86_32 -print
-OPT: -kernel-msg-key pp -machdep x86_64 -print
-OPT: -kernel-msg-key pp -machdep gcc_x86_16 -print
-OPT: -kernel-msg-key pp -machdep gcc_x86_32 -print
-OPT: -kernel-msg-key pp -machdep gcc_x86_64 -print
-OPT: -kernel-msg-key pp -machdep ppc_32 -print
-OPT: -kernel-msg-key pp -machdep msvc_x86_64 -print
+OPT: -machdep x86_16 -print
+OPT: -machdep x86_32 -print
+OPT: -machdep x86_64 -print
+OPT: -machdep gcc_x86_16 -print
+OPT: -machdep gcc_x86_32 -print
+OPT: -machdep gcc_x86_64 -print
+OPT: -machdep ppc_32 -print
+OPT: -machdep msvc_x86_64 -print
 */
 
 #include <inttypes.h>

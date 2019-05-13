@@ -448,36 +448,60 @@ and context_insensitive_term_to_exp kf env t =
   | TStartOf lv ->
     let lv, env, _ = tlval_to_lval kf env lv in
     Cil.mkAddrOrStartOf ~loc lv, env, false, "startof"
-  | Tapp(li, [], args) when Builtins.mem li.l_var_info.lv_name ->
-    (* E-ACSL built-in function call *)
+  | Tapp(li, [], targs) ->
     let fname = li.l_var_info.lv_name in
-    let args, env = (* args computed in the reverse order *)
-      try
-        List.fold_left
-          (fun (l, env) a ->
-            let e, env = term_to_exp kf env a in
-            e :: l, env)
-          ([], env)
-          args
-      with Invalid_argument _ ->
-        Options.fatal "[Tapp] unexpected number of arguments when calling %s"
-          fname
-    in
     (* build the varinfo (as an expression) which stores the result of the
        function call. *)
     let _, e, env =
-      Env.new_var
-        ~loc
-        ~name:(fname ^ "_app")
-        env
-        (Some t)
-        (Misc.cty (Extlib.the li.l_type))
-        (fun vi _ ->
-          [ Misc.mk_call ~loc ~result:(Cil.var vi) fname (List.rev args) ])
+      if Builtins.mem li.l_var_info.lv_name then
+        (* E-ACSL built-in function call *)
+        let args, env =
+          try
+            List.fold_right
+              (fun targ (l, env) ->
+                 let e, env = term_to_exp kf env targ in
+                 e :: l, env)
+              targs
+              ([], env)
+          with Invalid_argument _ ->
+            Options.fatal
+              "[Tapp] unexpected number of arguments when calling %s"
+              fname
+        in
+        Env.new_var
+          ~loc
+          ~name:(fname ^ "_app")
+          env
+          (Some t)
+          (Misc.cty (Extlib.the li.l_type))
+          (fun vi _ ->
+             [ Misc.mk_call ~loc ~result:(Cil.var vi) fname args ])
+      else
+        (* build the arguments and compute the integer_ty of the parameters *)
+        let params_ty, args, env =
+          List.fold_right
+            (fun targ (params_ty, args, env) ->
+               let e, env = term_to_exp kf env targ in
+               let param_ty = Typing.get_integer_ty targ in
+               let e, env =
+                 try
+                   let ty = Typing.typ_of_integer_ty param_ty in
+                   add_cast loc env (Some ty) false (Some targ) e
+                 with Typing.Not_an_integer ->
+                   e, env
+               in
+               param_ty :: params_ty, e :: args, env)
+            targs
+            ([], [], env)
+        in
+        let gen_fname =
+          Env.Varname.get ~scope:Env.Global (Functions.RTL.mk_gen_name fname)
+        in
+        Logic_functions.tapp_to_exp ~loc gen_fname env t li params_ty args
     in
     e, env, false, "app"
-  | Tapp _ ->
-    not_yet env "applying logic function"
+  | Tapp(_, _ :: _, _) ->
+    not_yet env "logic functions with labels"
   | Tlambda _ -> not_yet env "functional"
   | TDataCons _ -> not_yet env "constructor"
   | Tif(t1, t2, t3) ->
@@ -648,7 +672,20 @@ and named_predicate_content_to_exp ?name kf env p =
   match p.pred_content with
   | Pfalse -> Cil.zero ~loc, env
   | Ptrue -> Cil.one ~loc, env
-  | Papp _ -> not_yet env "logic function application"
+  | Papp(li, labels, args) ->
+    (* Simply use the implementation of Tapp(li, labels, args).
+      To achieve this, we create a clone of [li] for which the type is
+      transformed from [None] (type of predicates) to
+      [Some int] (type as a term). *)
+    let prj = Project.current () in
+    let o = object inherit Visitor.frama_c_copy prj end in
+    let li = Visitor.visitFramacLogicInfo o li in
+    let lty = Ctype Cil.intType in
+    li.l_type <- Some lty;
+    let tapp = Logic_const.term ~loc (Tapp(li, labels, args)) lty in
+    Typing.type_term ~use_gmp_opt:false ~ctx:Typing.c_int tapp;
+    let e, env = term_to_exp kf env tapp in
+    e, env
   | Pseparated _ -> not_yet env "\\separated"
   | Pdangling _ -> not_yet env "\\dangling"
   | Pvalid_function _ -> not_yet env "\\valid_function"
@@ -798,7 +835,7 @@ and translate_rte_annots:
     let env =
       List.fold_left
         (fun env a -> match a.annot_content with
-        | AAssert(_, p) ->
+        | AAssert(_, _, p) ->
 	  handle_error
 	    (fun env ->
 	      Options.feedback ~dkey ~level:4 "prevent RTE from %a" pp elt;
@@ -845,7 +882,9 @@ let () =
   At_with_lscope.term_to_exp_ref := term_to_exp;
   At_with_lscope.predicate_to_exp_ref := named_predicate_to_exp;
   Mmodel_translate.term_to_exp_ref := term_to_exp;
-  Mmodel_translate.predicate_to_exp_ref := named_predicate_to_exp
+  Mmodel_translate.predicate_to_exp_ref := named_predicate_to_exp;
+  Logic_functions.term_to_exp_ref := term_to_exp;
+  Logic_functions.named_predicate_to_exp_ref := named_predicate_to_exp
 
 (* This function is used by Guillaume.
    However, it is correct to use it only in specific contexts. *)
@@ -1018,7 +1057,7 @@ let translate_post_spec kf env spec =
 
 let translate_pre_code_annotation kf env annot =
   let convert env = match annot.annot_content with
-    | AAssert(l, p) ->
+    | AAssert(l, _, p) ->
       if Keep_status.must_translate kf Keep_status.K_Assert then
 	let env = Env.set_annotation_kind env Misc.Assertion in
 	if l <> [] then

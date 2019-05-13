@@ -31,7 +31,7 @@ double analyze(int *a, unsigned long *b, double *c) {
   return res;
 }
 
-char garbled_mix = "abc";
+char garbled_mix = (char) "abc";
 char *s = "abc";
 int another_global = 42;
 //int yet_another_global = 43; // from init_global3.c
@@ -71,7 +71,7 @@ void init_inner(int n, char const *tea) {
   pr2 = &r2;
   pr_escaping = &r2;
   alloc1 = malloc(sizeof(int*));
-  *alloc1 = alloc1;
+  *alloc1 = (int) alloc1;
   alloc2 = malloc(2*sizeof(int));
   *alloc2 = 37;
   free(alloc2);

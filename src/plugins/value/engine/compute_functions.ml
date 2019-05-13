@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2018                                               *)
+(*  Copyright (C) 2007-2019                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -124,7 +124,7 @@ let () =
   let handler (_signal: int) =
     !prev Sys.sigusr1; (* Call previous signal handler *)
     Value_parameters.warning "Stopping analysis at user request@.";
-    Partitioned_dataflow.signal_abort ()
+    Iterator.signal_abort ()
   in
   try
     match Sys.signal Sys.sigusr1 (Sys.Signal_handle handler) with
@@ -132,44 +132,24 @@ let () =
     | Sys.Signal_handle f -> prev := f
   with Invalid_argument _ -> () (* Ignore: SIGURSR1 is not available on Windows,
                                    and possibly on other platforms. *)
-module Make
-    (Abstract: Abstractions.S)
-    (Eva: Evaluation.S with type value = Abstract.Val.t
-                        and type origin = Abstract.Dom.origin
-                        and type loc = Abstract.Loc.location
-                        and type state = Abstract.Dom.t)
-= struct
 
-  module Domain = struct
-    include Abstract.Dom
-    let enter_scope kf vars state = match vars with
-      | [] -> state
-      | _ ->  enter_scope kf vars state
-    let leave_scope kf vars state = match vars with
-      | [] -> state
-      | _ ->  leave_scope kf vars state
-  end
-  module PowersetDomain = Powerset.Make (Domain)
+module Make (Abstract: Abstractions.Eva) = struct
 
-  module Transfer =
-    Transfer_stmt.Make (Abstract.Val) (Abstract.Loc) (Domain) (Eva)
+  module PowersetDomain = Powerset.Make (Abstract.Dom)
 
-  module Logic = Transfer_logic.Make (Domain) (PowersetDomain)
-
-  module Spec =
-    Transfer_specification.Make
-      (Abstract.Val) (Abstract.Loc) (Domain) (PowersetDomain) (Logic)
-
-  module Init = Initialization.Make (Abstract.Dom) (Eva) (Transfer)
+  module Transfer = Transfer_stmt.Make (Abstract)
+  module Logic = Transfer_logic.Make (Abstract.Dom) (PowersetDomain)
+  module Spec = Transfer_specification.Make (Abstract) (PowersetDomain) (Logic)
+  module Init = Initialization.Make (Abstract.Dom) (Abstract.Eval) (Transfer)
 
   module Computer =
-    Partitioned_dataflow.Computer
-      (Domain) (PowersetDomain) (Transfer) (Init) (Logic) (Spec)
+    Iterator.Computer
+      (Abstract) (PowersetDomain) (Transfer) (Init) (Logic) (Spec)
 
   let initial_state = Init.initial_state
 
   let get_cvalue =
-    match Domain.get Cvalue_domain.key with
+    match Abstract.Dom.get Cvalue_domain.key with
     | None -> fun _ -> Cvalue.Model.top
     | Some get -> fun state -> get state
 
@@ -237,7 +217,7 @@ module Make
 
   (* Mem Exec *)
 
-  module MemExec = Mem_exec.Make (Abstract.Val) (Domain)
+  module MemExec = Mem_exec.Make (Abstract.Val) (Abstract.Dom)
 
   let compute_and_cache_call stmt call init_state =
     let default () = compute_using_spec_or_body (Kstmt stmt) call init_state in
@@ -299,7 +279,7 @@ module Make
   let join_states = function
     | [] -> `Bottom
     | [state] -> `Value state
-    | s :: l  -> `Value (List.fold_left Domain.join s l)
+    | s :: l  -> `Value (List.fold_left Abstract.Dom.join s l)
 
   let compute_call_or_builtin stmt call state =
     match Builtins.find_builtin_override call.kf with
@@ -333,14 +313,14 @@ module Make
           Builtins.apply_builtin builtin cvalue_call cvalue_state
         in
         let insert (cvalue_state, clobbered_set) =
-          Domain.set Locals_scoping.key clobbered_set
-            (Domain.set Cvalue_domain.key cvalue_state final_state)
+          Abstract.Dom.set Locals_scoping.key clobbered_set
+            (Abstract.Dom.set Cvalue_domain.key cvalue_state final_state)
         in
         let states = Bottom.bot_of_list (List.map insert cvalue_states) in
         Transfer.{states; cacheable; builtin=true}
 
   let compute_call =
-    if Domain.mem Cvalue_domain.key
+    if Abstract.Dom.mem Cvalue_domain.key
     && Abstract.Val.mem Main_values.cvalue_key
     && Abstract.Loc.mem Main_locations.ploc_key
     then compute_call_or_builtin
@@ -349,7 +329,7 @@ module Make
   let () = Transfer.compute_call_ref := compute_call
 
   let store_initial_state kf init_state =
-    Domain.Store.register_initial_state (Value_util.call_stack ()) init_state;
+    Abstract.Dom.Store.register_initial_state (Value_util.call_stack ()) init_state;
     let cvalue_state = get_cvalue init_state in
     Db.Value.Call_Value_Callbacks.apply (cvalue_state, [kf, Kglobal])
 
@@ -366,7 +346,8 @@ module Make
       Value_util.pop_call_stack ();
       Value_parameters.feedback "done for function %a" Kernel_function.pretty kf;
       post_analysis ();
-      Domain.post_analysis final_state;
+      Abstract.Dom.post_analysis final_state;
+      Value_results.print_summary ();
     with
     | Db.Value.Aborted ->
       post_analysis_cleanup ~aborted:true;
@@ -398,7 +379,7 @@ module Make
 
   let compute_from_init_state kf init_state =
     pre_analysis ();
-    Domain.Store.register_global_state (`Value init_state);
+    Abstract.Dom.Store.register_global_state (`Value init_state);
     compute kf init_state
 end
 

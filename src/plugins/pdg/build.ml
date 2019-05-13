@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2018                                               *)
+(*  Copyright (C) 2007-2019                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -471,10 +471,7 @@ let is_variadic kf =
     let key_return = Key.stmt_key ret_stmt in
     let return_node = add_elem pdg key_return in
     let retres_loc = Db.Value.find_return_loc pdg.fct in
-    let retres =
-      Locations.enumerate_valid_bits ~for_writing:false
-        retres_loc
-    in
+    let retres = Locations.(enumerate_valid_bits Read retres_loc) in
     add_dpds pdg return_node  Dpd.Data state retres_loc_dpds;
     add_decl_dpds pdg return_node Dpd.Data retres_decls;
     let new_state = Pdg_state.add_loc_node state true retres return_node in

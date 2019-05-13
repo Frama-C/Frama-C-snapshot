@@ -2,7 +2,7 @@
 /*                                                                        */
 /*  This file is part of Frama-C.                                         */
 /*                                                                        */
-/*  Copyright (C) 2007-2018                                               */
+/*  Copyright (C) 2007-2019                                               */
 /*    CEA (Commissariat à l'énergie atomique et aux énergies              */
 /*         alternatives)                                                  */
 /*                                                                        */
@@ -246,7 +246,7 @@ __PUSH_FC_STDLIB
 
 __BEGIN_DECLS
 
-typedef struct
+typedef struct __fc_imaxdiv_t
   {
     intmax_t quot;		/* Quotient.  */
     intmax_t rem;		/* Remainder.  */

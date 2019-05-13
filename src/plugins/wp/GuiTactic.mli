@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2018                                               *)
+(*  Copyright (C) 2007-2019                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -64,6 +64,7 @@ class tactic : Tactical.t -> (Format.formatter -> Tactical.selection -> unit) ->
       process:(tactical -> selection -> process -> unit) ->
       browser:(browser -> unit) ->
       composer:(composer -> unit) ->
+      tree:ProofEngine.tree ->
       selection -> unit
   end
 

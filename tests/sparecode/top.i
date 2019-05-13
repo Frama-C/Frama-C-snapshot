@@ -1,7 +1,7 @@
 /* run.config
-   OPT: -sparecode-debug 1 -sparecode-analysis -val-show-progress -journal-disable -main main_top
-   OPT: -sparecode-debug 1 -sparecode-analysis -val-show-progress -journal-disable -main main_call_top
-   OPT: -sparecode-debug 1 -sparecode-analysis -val-show-progress -journal-disable -main main_top_not_used
+   STDOPT: +"-sparecode-analysis -main main_top"
+   STDOPT: +"-sparecode-analysis -main main_call_top"
+   STDOPT: +"-sparecode-analysis -main main_top_not_used"
 */
 
 void print (int x);

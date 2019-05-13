@@ -1,5 +1,6 @@
 /* run.config
-  OPT: -load-script tests/misc/bug_0209.ml
+  EXECNOW: make -s @PTEST_DIR@/@PTEST_NAME@.cmxs
+  OPT: -no-autoload-plugins -load-module @PTEST_DIR@/@PTEST_NAME@.cmxs
 */
 
 // Everything is done by the script

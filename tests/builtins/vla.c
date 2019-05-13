@@ -1,5 +1,5 @@
 /* run.config*
-   STDOPT: #"-slevel 10 -val-builtins-auto"
+   STDOPT: #"-slevel 10 -eva-builtins-auto"
 */
 
 void f(int i) {

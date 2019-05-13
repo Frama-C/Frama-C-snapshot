@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2018                                               *)
+(*  Copyright (C) 2007-2019                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -44,8 +44,8 @@ let basic_copy ?(start=Int.zero) ~size o =
   let validity = enough_validity ~start ~size in
   let offsets = Ival.inject_singleton start in
   match V_Offsetmap.copy_slice ~validity ~offsets ~size o with
-  | _, `Bottom -> assert false
-  | _, `Value r -> r
+  | `Bottom -> assert false
+  | `Value r -> r
 
 (* paste [src] of size [size_src] starting at [start] in [r]. If [r] has size
    [size_r], [size+start <= size_r] must hold. *)
@@ -56,14 +56,14 @@ let basic_paste ?(start=Int.zero) ~src ~size_src dst =
   let offsets = Ival.inject_singleton start in
   let from = src in
   match V_Offsetmap.paste_slice ~validity ~exact ~from ~size ~offsets dst with
-  | _, `Bottom -> assert false
-  | _, `Value r -> r
+  | `Bottom -> assert false
+  | `Value r -> r
 
 (* Reads [size] bits starting at [start] in [o], as a single value *)
 let basic_find ?(start=Int.zero) ~size o =
   let validity = enough_validity ~start ~size in
   let offsets = Ival.inject_singleton start in
-  let _, v = V_Offsetmap.find ~validity ~offsets ~size o in
+  let v = V_Offsetmap.find ~validity ~offsets ~size o in
   V_Or_Uninitialized.map (fun v -> V.reinterpret_as_int ~signed:false ~size v) v
 
 (* Paste [v] of size [size] at position [start] in [o] *)
@@ -72,8 +72,8 @@ let basic_add ?(start=Int.zero) ~size v o =
   let offsets = Ival.inject_singleton start in
   let v = V_Or_Uninitialized.initialized v in
   match V_Offsetmap.update ~validity ~exact:true ~offsets ~size v o with
-  | _, `Value m -> m
-  | _ -> assert false
+  | `Value m -> m
+  | `Bottom -> assert false
 
 let inject ~size v =
   V_Offsetmap.create ~size ~size_v:size (V_Or_Uninitialized.initialized v)
@@ -244,8 +244,7 @@ let aux_and (b, e) (vv1: offsm_range) (vv2: offsm_range) =
       of inverse sign. extract_bits generate always positive integers, which
       is good. The good solution would be have V.bitwise_and to accept both
       signs simultaneously. *)
-    let f = V.bitwise_and ~signed:false  ~size:(Integer.to_int size) in
-    lift f size vv1 vv2
+    lift V.bitwise_and size vv1 vv2
 
 (* O is neutral for xor, and  v ^ v = 0 *)
 let aux_xor (b, e) (vv1: offsm_range) (vv2: offsm_range) =
@@ -346,7 +345,7 @@ let cast ~old_size ~new_size ~signed o =
 
 let bnot o =
   let aux itv (v, s, rel) o =
-    let v' = V_Or_Uninitialized.map V.bitwise_not v in
+    let v' = V_Or_Uninitialized.map V.bitwise_signed_not v in
     V_Offsetmap.add ~exact:true itv (v', s, rel) o
   in
   V_Offsetmap.fold aux o o
@@ -500,22 +499,23 @@ module CvalueOffsm : Abstract_value.Internal with type t = V.t * offsm_or_top
     else p
 
   (* Refine the value component according to the contents of the offsetmap *)
-  let strengthen_v typ (v, o as p : t) : t =
+  let strengthen_v typ (v, o as p : t) : t or_bottom =
     match o with
-    | Top -> p
+    | Top -> `Value p
     | O o' ->
       let size = size typ in
       (* TODO: this should be done by the transfer function itself... *)
       let v = Cvalue_forward.reinterpret typ v in
       let v_o = V_Or_Uninitialized.get_v (basic_find ~size o') in
       let v_o = Cvalue_forward.reinterpret typ v_o in
-      (V.narrow v v_o, o)
+      let v = V.narrow v v_o in
+      if V.is_bottom v then `Bottom else `Value (v, o)
 
   let forward_unop typ op p =
     match op with
     | BNot ->
       let p' = strengthen_offsm typ p in
-      forward_unop typ op p' >>-: fun p'' ->
+      forward_unop typ op p' >>- fun p'' ->
       strengthen_v typ p''
     | _ -> forward_unop typ op p
 
@@ -524,7 +524,7 @@ module CvalueOffsm : Abstract_value.Internal with type t = V.t * offsm_or_top
     | BAnd | BOr | BXor ->
       let l = strengthen_offsm typ l in
       let r = strengthen_offsm typ r in
-      forward_binop typ op l r >>-: fun p ->
+      forward_binop typ op l r >>- fun p ->
       strengthen_v typ p
     | Shiftlt | Shiftrt ->
       let (v_r, _) = r in

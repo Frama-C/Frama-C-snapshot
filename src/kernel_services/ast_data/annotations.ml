@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2018                                               *)
+(*  Copyright (C) 2007-2019                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -1072,8 +1072,8 @@ let add_code_annot emitter ?kf stmt ca =
   let kf = find_englobing_kf ?kf stmt in
   let convert a =
     match a.annot_content with
-    | AAssert(l, p) ->
-      let a = { a with annot_content=AAssert(l,extend_name emitter p) } in
+    | AAssert(l, kind, p) ->
+      let a = { a with annot_content=AAssert(l,kind,extend_name emitter p) } in
       a, Property.ip_of_code_annot kf stmt a
     | AInvariant(l, b, p) ->
       let a={a with annot_content=AInvariant(l,b,extend_name emitter p)} in
@@ -1270,7 +1270,11 @@ let add_code_annot emitter ?kf stmt ca =
     Code_annots.add stmt tbl
 
 let add_assert e ?kf stmt a =
-  let a = Logic_const.new_code_annotation (AAssert ([],a)) in
+  let a = Logic_const.new_code_annotation (AAssert ([],Assert,a)) in
+  add_code_annot e ?kf stmt a
+
+let add_check e ?kf stmt a =
+  let a = Logic_const.new_code_annotation (AAssert ([],Check,a)) in
   add_code_annot e ?kf stmt a
 
 (** {3 Adding globals} *)

@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2018                                               *)
+(*  Copyright (C) 2007-2019                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -54,8 +54,12 @@ val is_assigns : prop_id -> bool
 val is_requires : Property.t -> bool
 val is_loop_preservation : prop_id -> stmt option
 
+(** test if the prop_id does not have a [no_wp:] in its name(s). *)
+val select_default : prop_id -> bool
+
 (** test if the prop_id has to be selected for the asked name.
- * Also returns a debug message to explain then answer. *)
+    Also returns a debug message to explain then answer. Includes
+    a test for [no_wp:]. *)
 val select_by_name : string list -> prop_id -> bool
 
 (** test if the prop_id has to be selected when we want to select the call
@@ -68,6 +72,7 @@ val select_call_pre : stmt -> Property.t option -> prop_id -> bool
 val prop_id_keys : prop_id -> string list * string list (* required , hints *)
 
 val get_propid : prop_id -> string (** Unique identifier of [prop_id] *)
+val get_legacy : prop_id -> string (** Unique legacy identifier of [prop_id] *)
 val pp_propid : Format.formatter -> prop_id -> unit (** Print unique id of [prop_id] *)
 
 type prop_kind =

@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2018                                               *)
+(*  Copyright (C) 2007-2019                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -380,6 +380,7 @@ type formula =
 
 type po = t and t = {
     po_gid   : string ;  (* goal identifier *)
+    po_leg   : string ;  (* legacy goal identifier *)
     po_sid   : string ;  (* goal short identifier (without model) *)
     po_name  : string ;  (* goal informal name *)
     po_idx   : index ;   (* goal index *)
@@ -453,8 +454,9 @@ module S =
         [{
           po_idx = Function(List.hd Kernel_function.reprs,Some "default") ;
           po_pid = List.hd WpPropId.PropId.reprs;
-          po_sid = "xxx";
-          po_gid = "xxx";
+          po_sid = "";
+          po_gid = "";
+          po_leg = "";
           po_model = Model.repr ;
           po_name = "dummy";
           po_formula = GoalAnnot VC_Annot.repr ;
@@ -803,11 +805,19 @@ let is_trivial g =
   | GoalAnnot vc -> VC_Annot.is_trivial vc
   | GoalCheck _ -> false
 
-let resolve g =
+
+let reduce g =
   match g.po_formula with
-  | GoalAnnot vc -> Model.with_model g.po_model VC_Annot.resolve vc
-  | GoalLemma vc -> Model.with_model g.po_model VC_Lemma.is_trivial vc
   | GoalCheck _ -> false
+  | GoalLemma vc -> Model.with_model g.po_model VC_Lemma.is_trivial vc
+  | GoalAnnot vc -> Model.with_model g.po_model VC_Annot.resolve vc
+
+let resolve g =
+  let valid = reduce g in
+  if valid then
+    ( let solver = qed_time g in
+      set_result g VCS.Qed (VCS.result ~solver VCS.Valid) ) ;
+  valid
 
 let compute g =
   match g.po_formula with
@@ -955,7 +965,7 @@ let get_logfile w prover result =
   let model = get_model w in
   DISK.cache_log ~pid:w.po_pid ~model ~prover ~result
 
-let _ =
+let _ignore =
   Dynamic.register ~plugin:"Wp" "Wpo.file_for_log_proof" ~journalize:false
     (Datatype.func2
        WpoType.ty ProverType.ty

@@ -4,27 +4,28 @@
 [wp] Loading driver 'share/wp.driver'
 [wp] Warning: Missing RTE guards
 [wp] 18 goals scheduled
-[wp] [Qed] Goal typed_f_post_qed_ok_E0 : Valid
-[wp] [Qed] Goal typed_f_post_qed_ok_E1 : Valid
-[wp] [Qed] Goal typed_f_post_qed_ok_E2 : Valid
-[wp] [Qed] Goal typed_f_post_qed_ok_E3 : Valid
-[wp] [Qed] Goal typed_f_post_qed_ok_E4 : Valid
-[wp] [Qed] Goal typed_f_post_qed_ok_E5 : Valid
-[wp] [Qed] Goal typed_f_post_qed_ok_E6 : Valid
-[wp] [Qed] Goal typed_f_post_qed_ok_E7 : Valid
-[wp] [Qed] Goal typed_f_post_qed_ok_E8 : Valid
-[wp] [Qed] Goal typed_f_post_qed_ok_E9 : Valid
-[wp] [Qed] Goal typed_f_post_qed_ok_E10 : Valid
-[wp] [Qed] Goal typed_f_post_qed_ok_E11 : Valid
-[wp] [Qed] Goal typed_g_post_qed_ok_P3 : Valid
-[wp] [Qed] Goal typed_g_post_qed_ok_P4 : Valid
-[wp] [Qed] Goal typed_g_post_qed_ok_P5 : Valid
-[wp] [Qed] Goal typed_g_assign : Valid
-[wp] [Qed] Goal typed_id_post_qed_ok_P1 : Valid
-[wp] [Qed] Goal typed_id_post_qed_ok_P2 : Valid
+[wp] [Qed] Goal typed_f_ensures_qed_ok_E0 : Valid
+[wp] [Qed] Goal typed_f_ensures_qed_ok_E1 : Valid
+[wp] [Qed] Goal typed_f_ensures_qed_ok_E2 : Valid
+[wp] [Qed] Goal typed_f_ensures_qed_ok_E3 : Valid
+[wp] [Qed] Goal typed_f_ensures_qed_ok_E4 : Valid
+[wp] [Qed] Goal typed_f_ensures_qed_ok_E5 : Valid
+[wp] [Qed] Goal typed_f_ensures_qed_ok_E6 : Valid
+[wp] [Qed] Goal typed_f_ensures_qed_ok_E7 : Valid
+[wp] [Qed] Goal typed_f_ensures_qed_ok_E8 : Valid
+[wp] [Qed] Goal typed_f_ensures_qed_ok_E9 : Valid
+[wp] [Qed] Goal typed_f_ensures_qed_ok_E10 : Valid
+[wp] [Qed] Goal typed_f_ensures_qed_ok_E11 : Valid
+[wp] [Qed] Goal typed_g_ensures_qed_ok_P3 : Valid
+[wp] [Qed] Goal typed_g_ensures_qed_ok_P4 : Valid
+[wp] [Qed] Goal typed_g_ensures_qed_ok_P5 : Valid
+[wp] [Qed] Goal typed_g_assigns : Valid
+[wp] [Qed] Goal typed_id_ensures_qed_ok_P1 : Valid
+[wp] [Qed] Goal typed_id_ensures_qed_ok_P2 : Valid
 [wp] Proved goals:   18 / 18
   Qed:            18
-[wp] Report 'tests/wp_plugin/struct.i.0.report.json'
+[wp] Report in:  'tests/wp_plugin/oracle_qualif/struct.0.report.json'
+[wp] Report out: 'tests/wp_plugin/result_qualif/struct.0.report.json'
 -------------------------------------------------------------
 Functions           WP     Alt-Ergo        Total   Success
 id                   2     -                 2       100%

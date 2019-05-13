@@ -1,0 +1,33 @@
+{ "wp:global": { "qed": { "total": 8, "valid": 8 },
+                 "wp:main": { "total": 8, "valid": 8 } },
+  "wp:functions": { "g": { "g_assigns": { "qed": { "total": 4, "valid": 4 },
+                                          "wp:main": { "total": 4,
+                                                       "valid": 4 } },
+                           "g_loop_assigns": { "qed": { "total": 1,
+                                                        "valid": 1 },
+                                               "wp:main": { "total": 1,
+                                                            "valid": 1 } },
+                           "g_exits_ok": { "qed": { "total": 1, "valid": 1 },
+                                           "wp:main": { "total": 1,
+                                                        "valid": 1 } },
+                           "wp:section": { "qed": { "total": 6, "valid": 6 },
+                                           "wp:main": { "total": 6,
+                                                        "valid": 6 } } },
+                    "unreachable_smt_with_contract": { "f_with_precond_requires_ok": 
+                                                         { "qed": { "total": 1,
+                                                                    "valid": 1 },
+                                                           "wp:main": 
+                                                             { "total": 1,
+                                                               "valid": 1 } },
+                                                       "unreachable_smt_with_contract_ensures_ok": 
+                                                         { "qed": { "total": 1,
+                                                                    "valid": 1 },
+                                                           "wp:main": 
+                                                             { "total": 1,
+                                                               "valid": 1 } },
+                                                       "wp:section": 
+                                                         { "qed": { "total": 2,
+                                                                    "valid": 2 },
+                                                           "wp:main": 
+                                                             { "total": 2,
+                                                               "valid": 2 } } } } }

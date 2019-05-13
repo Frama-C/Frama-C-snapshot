@@ -1,6 +1,6 @@
 /* run.config
    GCC:
-   OPT: -val-show-progress -pdg -journal-disable  -pdg-print -pdg-verbose 2
+   STDOPT: +"-pdg "
 */
 /* test conçu initialement comme test pour le slicing */
 int Unknown;

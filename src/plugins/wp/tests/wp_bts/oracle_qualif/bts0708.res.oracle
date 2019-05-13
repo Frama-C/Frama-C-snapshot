@@ -4,23 +4,25 @@
 [wp] Loading driver 'share/wp.driver'
 [wp] Warning: Missing RTE guards
 [wp] 1 goal scheduled
-[wp] [Alt-Ergo] Goal typed_f_post_A : Valid
+[wp] [Alt-Ergo] Goal typed_f_ensures_A : Valid
 [wp] Proved goals:    1 / 1
   Qed:             0 
   Alt-Ergo:        1
-[wp] Report 'tests/wp_bts/bts0708.i.0.report.json'
+[wp] Report in:  'tests/wp_bts/oracle_qualif/bts0708.0.report.json'
+[wp] Report out: 'tests/wp_bts/result_qualif/bts0708.0.report.json'
 -------------------------------------------------------------
 Functions           WP     Alt-Ergo        Total   Success
 f                   -       1 (4..16)        1       100%
 -------------------------------------------------------------
 [wp] Running WP plugin...
 [wp] 2 goals scheduled
-[wp] [Alt-Ergo] Goal typed_f_post_A : Valid
-[wp] [Alt-Ergo] Goal typed_f_post_B : Valid
+[wp] [Alt-Ergo] Goal typed_f_ensures_A : Valid
+[wp] [Alt-Ergo] Goal typed_f_ensures_B : Valid
 [wp] Proved goals:    2 / 2
   Qed:             0 
   Alt-Ergo:        2
-[wp] Report 'tests/wp_bts/bts0708.i.0.report.json'
+[wp] Report in:  'tests/wp_bts/oracle_qualif/bts0708.0.report.json'
+[wp] Report out: 'tests/wp_bts/result_qualif/bts0708.0.report.json'
 -------------------------------------------------------------
 Functions           WP     Alt-Ergo        Total   Success
 f                   -       2 (4..16)        2       100%

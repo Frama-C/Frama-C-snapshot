@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2018                                               *)
+(*  Copyright (C) 2007-2019                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -325,7 +325,7 @@ module MYTREE = struct
     | Dtype_annot (li, _) -> Some (global_name li.l_var_info.lv_name)
     | Dmodel_annot (mf, _) -> Some (global_name mf.mi_name)
     | Dcustom_annot _ -> Some "custom clause"
-    | Dextended ((_,name,_,_),_,_) -> Some ("ACSL extension " ^ name)
+    | Dextended ((_,name,_,_,_),_,_) -> Some ("ACSL extension " ^ name)
 
   let make_list_globals hide sort_order globs =
     (* Association list binding names to globals. *)
@@ -630,7 +630,7 @@ let make (tree_view:GTree.view) =
       let column = GTree.view_column ~renderer:(renderer,[]) () in
       ignore (tree_view#append_column column);
       let label = GMisc.label ~text:title () in
-      (GData.tooltips ())#set_tip ~text:tooltip label#coerce;
+      Gtk_helper.do_tooltip ~tooltip label;
       column#set_widget (Some label#coerce);
       column#set_alignment 0.5;
       column#set_reorderable true;

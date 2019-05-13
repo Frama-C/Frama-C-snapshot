@@ -159,6 +159,8 @@
   Called from tests/value/initialized.c:98.
 [eva] tests/value/initialized.c:11: starting to merge loop iterations
 [eva:alarm] tests/value/initialized.c:8: Warning: 
+  function f: postcondition got status invalid.
+[eva:alarm] tests/value/initialized.c:8: Warning: 
   function f: postcondition got status unknown.
 [eva] Recording results for f
 [eva] Done for function f

@@ -2,7 +2,7 @@
 /*                                                                        */
 /*  This file is part of Frama-C.                                         */
 /*                                                                        */
-/*  Copyright (C) 2007-2018                                               */
+/*  Copyright (C) 2007-2019                                               */
 /*    CEA (Commissariat à l'énergie atomique et aux énergies              */
 /*         alternatives)                                                  */
 /*                                                                        */
@@ -103,7 +103,7 @@ struct in6_pktinfo
 
 
 /* Standard well-defined IP protocols.  */
-enum
+enum __fc_ipproto
   {
     IPPROTO_IP = 0,        /* Dummy protocol for TCP.  */
 #define IPPROTO_IP IPPROTO_IP

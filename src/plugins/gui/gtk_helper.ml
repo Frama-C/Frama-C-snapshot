@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2018                                               *)
+(*  Copyright (C) 2007-2019                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -120,6 +120,11 @@ module Configuration = struct
     let init = find_bool ~default key in
     widget#set init ;
     widget#connect (set_bool key)
+
+  let config_float ~key ~default widget =
+    let init = find_float ~default key in
+    widget#set init ;
+    widget#connect (set_float key)
 
   let config_values ~key ~default ~values widget =
     begin
@@ -359,16 +364,14 @@ type 'a chooser =
 
 let do_tooltip ?tooltip obj = match tooltip with
   | None -> ()
-  | Some text ->
-      let tooltip = GData.tooltips () in
-      tooltip#set_tip ~text obj#coerce
+  | Some text -> obj#coerce#misc#set_tooltip_text text
 
 let on_bool ?tooltip ?use_markup (container:GPack.box) label get set =
   let result = ref (get ()) in
   let container = GPack.hbox ~packing:container#pack () in
   do_tooltip ?tooltip container;
   let button =
-    GButton.check_button ~packing:container#pack ~active:!result () 
+    GButton.check_button ~packing:container#pack ~active:!result ()
   in
   ignore (mk_label ?use_markup container ~xalign:0. label);
   ignore (button#connect#toggled ~callback:(fun () -> set button#active));
@@ -430,7 +433,7 @@ let on_string ?tooltip ?use_markup ?(validator=(fun _ -> true)) ?width
   ignore (entry#event#connect#focus_out ~callback);
   ignore (entry#connect#activate ~callback:(fun () -> ignore (callback ())));
   ignore (mk_label ?use_markup ~xalign:0. container label);
-  (fun () -> 
+  (fun () ->
      if not (Gobject.Property.get entry#as_widget GtkBase.Widget.P.has_focus)
      then entry#set_text (get ()))
 
@@ -442,7 +445,7 @@ let on_string_set ?tooltip ?use_markup ?width (container:GPack.box) label get se
   ignore (entry#event#connect#focus_out ~callback);
   ignore (entry#connect#activate ~callback:(fun () -> ignore (callback ())));
   ignore (mk_label ?use_markup ~xalign:0. container (label ^ " (list)"));
-  (fun () -> 
+  (fun () ->
      if not (Gobject.Property.get entry#as_widget GtkBase.Widget.P.has_focus)
      then entry#set_text (get()))
 
@@ -499,20 +502,10 @@ let on_combo
 (* ------------------------------------------------------------------------ *)
 
 let save_paned_ratio key (paned:GPack.paned) =
-  let paned_min_pos = paned#min_position in
-  let paned_max_pos = paned#max_position in
-  let length = paned_max_pos - paned_min_pos in
-  let ratio = if length = 0 then 0.5
-    else (float_of_int paned#position)/.(float_of_int length)
-  in
+  let ratio = Wutil.get_pane_ratio paned in
   Configuration.set key (Configuration.ConfFloat ratio)
 
-let place_paned (paned:GPack.paned) factor =
-  let paned_min_pos = paned#min_position in
-  let offset =
-    int_of_float (float (paned#max_position - paned_min_pos)*.factor)
-  in
-  paned#set_position (paned_min_pos + offset)
+let place_paned = Wutil.set_pane_ratio
 
 let old_gtk_compat f x = try f x with Not_found -> ()
 
@@ -550,10 +543,13 @@ let trace_event (w:GObj.event_ops) =
     | `DROP_FINISHED -> "drop-finish"
     | `CLIENT_EVENT -> "client-event"
     | `VISIBILITY_NOTIFY -> "visibility-notify"
-    | `NO_EXPOSE-> "no-expose"
+    (*GTK3 Event does not exist anymore *)
+    (*    | `NO_EXPOSE-> "no-expose" *)
     | `SCROLL -> "scroll"
     | `WINDOW_STATE -> "window-state"
     | `SETTING -> "setting"
+    (*GTK3: leave room for more events. *)
+    | _ -> "unknown-gtk3-event"
   in
   ignore (w#connect#any
             ~callback:(fun e ->
@@ -722,7 +718,7 @@ class type host = object
   method private set_reset: (unit -> unit) -> unit
 end
 
-class error_manager ?reset (o_parent:GWindow.window_skel) : host = 
+class error_manager ?reset (o_parent:GWindow.window_skel) : host =
   object (self: #host)
 
     val mutable f_reset = match reset with
@@ -868,11 +864,11 @@ let open_in_external_viewer ?(line=1) (file : Datatype.Filepath.t) =
     ignore (Sys.command cmd)
 
 exception Too_many_events
-let refresh_gui () = 
+let refresh_gui () =
   let counter = ref 0 in
-  try 
-    while Glib.Main.iteration false do 
-      if !counter >= 10 then raise Too_many_events 
+  try
+    while Glib.Main.iteration false do
+      if !counter >= 10 then raise Too_many_events
       else incr counter
     done
   with Too_many_events -> ()
@@ -915,7 +911,7 @@ let source_files_chooser (main_ui: source_files_chooser_host) defaults f =
       ~packing:(hbox#pack ~expand:true ~fill:true)
       ()
   in
-  Configuration.use_string "last_opened_dir" 
+  Configuration.use_string "last_opened_dir"
     (fun s -> ignore (filechooser#set_current_folder s));
   filechooser#set_select_multiple true;
   filechooser#add_filter (accepted_source_files ());
@@ -959,6 +955,45 @@ let source_files_chooser (main_ui: source_files_chooser_host) defaults f =
   dialog#show ();
   ()
 
+let default_dir = ref ""
+
+let select_file ?title ?(dir=default_dir) ?(filename="") () =
+  let filename =
+    if Filename.is_relative filename then
+      if !dir <> "" then !dir ^ "/" ^ filename
+      else ""
+    else begin
+      dir:= Filename.dirname filename;
+      filename
+    end
+  in
+  let dialog: GWindow.Buttons.file_selection GWindow.file_chooser_dialog =
+    GWindow.file_chooser_dialog
+      ~action:`OPEN
+      ?title
+      ~modal:true
+      ()
+  in
+  ignore (dialog#set_filename filename);
+  let result = ref None in
+  let action r =
+    (match r with
+     | `OK ->
+       let file = dialog#filename in
+       (match file with
+        | None -> ()
+        | Some file ->
+          dir := Filename.dirname file;
+          result := Some file)
+     | _ -> ());
+    dialog#destroy ()
+  in
+  dialog#add_select_button "Open" `OK;
+  dialog#add_button "Cancel" `CANCEL;
+  dialog#show ();
+  action (dialog#run ());
+  !result
+
 let spawn_command ?(timeout=0) ?stdout ?stderr s args f =
   let check_result = Command.command_async s ?stdout ?stderr args in
   let has_timeout = timeout > 0 in
@@ -984,8 +1019,8 @@ let graph_window ~parent ~title make_view =
   let width = int_of_float (float parent#default_width *. 3. /. 4.) in
   let graph_window =
     GWindow.window
-      ~width ~height ~title ~allow_shrink:true ~allow_grow:true
-      ~position:`CENTER () in
+      ~width ~height ~title ~resizable:true ~position:`CENTER ()
+  in
   let view = make_view ~packing:graph_window#add () in
   graph_window#show();
   view#adapt_zoom();
@@ -1003,8 +1038,8 @@ let graph_window_through_dot ~parent ~title dot_formatter =
     let fmt = Format.formatter_of_out_channel (open_out temp_file) in
     dot_formatter fmt;
     Format.pp_print_flush fmt ();
-    let view = 
-      snd 
+    let view =
+      snd
         (Dgraph.DGraphContainer.Dot.from_dot_with_commands ~packing temp_file)
     in
     view
@@ -1016,6 +1051,16 @@ let graph_window_through_dot ~parent ~title dot_formatter =
       "@[cannot display dot graph:@ %s@]"
       (Printexc.to_string exn)
 ;;
+
+let image_menu_item ~(image:GObj.widget) ~text ~packing =
+  let mi = GMenu.menu_item () in
+  let box =
+    GPack.hbox ~spacing:2 ~border_width:0 ~packing:mi#add ()
+  in
+  box#add image;
+  box#add (GMisc.label ~justify:`LEFT ~xalign:0. ~xpad:0 ~text ())#coerce;
+  packing mi;
+  mi
 
 (*
 Local Variables:

@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2018                                               *)
+(*  Copyright (C) 2007-2019                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -587,7 +587,7 @@ Qed.
 (** {@integer:} *)
 (** * Bits of Integers *)
 
-Open Local Scope Z_scope.
+Local Open Scope Z_scope.
 
 (** The bits representation of an integer consists of a bit function,
     packed with its trailing property. 

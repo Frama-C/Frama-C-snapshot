@@ -3,12 +3,16 @@
 #include "stdlib.h"
 void __e_acsl_globals_init(void)
 {
-  __e_acsl_store_block((void *)(& stdout),(size_t)8);
-  __e_acsl_full_init((void *)(& stdout));
-  __e_acsl_store_block((void *)(& stdin),(size_t)8);
-  __e_acsl_full_init((void *)(& stdin));
-  __e_acsl_store_block((void *)(& stderr),(size_t)8);
-  __e_acsl_full_init((void *)(& stderr));
+  static char __e_acsl_already_run = 0;
+  if (! __e_acsl_already_run) {
+    __e_acsl_already_run = 1;
+    __e_acsl_store_block((void *)(& stdout),(size_t)8);
+    __e_acsl_full_init((void *)(& stdout));
+    __e_acsl_store_block((void *)(& stdin),(size_t)8);
+    __e_acsl_full_init((void *)(& stdin));
+    __e_acsl_store_block((void *)(& stderr),(size_t)8);
+    __e_acsl_full_init((void *)(& stderr));
+  }
   return;
 }
 

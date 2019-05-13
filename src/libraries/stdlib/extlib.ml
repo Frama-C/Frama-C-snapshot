@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2018                                               *)
+(*  Copyright (C) 2007-2019                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -341,11 +341,23 @@ let try_finally ~finally f x =
 
   The alternative, such as registering an daemon that raises an exception,
   hence interrupting the process, might not work: child processes still need to
-  run some daemons, such as [Pervasives.flush_all] which is registered by default. *)
+  run some daemons, such as [flush_all] which is registered by default. *)
+
+let rec mkdir ?(parents=false) name perm =
+  try Unix.mkdir name perm
+  with
+  | Unix.Unix_error (Unix.ENOENT,_,_) when parents ->
+    let parent_name = Filename.dirname name in
+    if name <> parent_name then
+      begin
+        mkdir ~parents parent_name perm;
+        Unix.mkdir name perm
+      end
+  | e -> raise e
 
 let pid = Unix.getpid ()
 let safe_at_exit f =
-  Pervasives.at_exit
+  at_exit
     begin fun () ->
       let child = Unix.getpid () in
       if child = pid then f ()
@@ -465,11 +477,11 @@ let make_unique_name mem ?(sep=" ") ?(start=2) from =
 let strip_underscore s =
   let l = String.length s in
   let rec start i =
-    if i >= l then l-1
+    if i >= l then l
     else if s.[i] = '_' then start (i + 1) else i
   in
   let st = start 0 in
-  if st = l - 1 then ""
+  if st = l then ""
   else begin
     let rec finish i =
       (* We know that we will stop at >= st >= 0 *)

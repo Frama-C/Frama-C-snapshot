@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2018                                               *)
+(*  Copyright (C) 2007-2019                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -161,8 +161,9 @@ module Make
     module Right_Transfer = Right.Transfer (Right_Valuation)
 
     let update valuation (left, right) =
-      Left_Transfer.update valuation left,
-      Right_Transfer.update valuation right
+      Left_Transfer.update valuation left >>- fun left ->
+      Right_Transfer.update valuation right >>-: fun right ->
+      left, right
 
     let assign stmt lv expr value valuation (left, right) =
       Left_Transfer.assign stmt lv expr value valuation left >>- fun left ->

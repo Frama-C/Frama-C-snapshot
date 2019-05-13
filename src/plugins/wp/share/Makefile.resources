@@ -2,7 +2,7 @@
 #                                                                        #
 #  This file is part of WP plug-in of Frama-C.                           #
 #                                                                        #
-#  Copyright (C) 2007-2018                                               #
+#  Copyright (C) 2007-2019                                               #
 #    CEA (Commissariat a l'energie atomique et aux energies              #
 #         alternatives)                                                  #
 #                                                                        #
@@ -64,11 +64,14 @@ COQ_LIBS_CEA:=	\
 ## Used in share/coqwp only
 COQ_LIBS_INRIA:=\
  BuiltIn.v 	\
+ HighOrd.v 	\
  bool/Bool.v 	\
  int/Abs.v 	\
  int/ComputerDivision.v	\
+ int/Exponentiation.v	\
  int/Int.v 	\
  int/MinMax.v 	\
+ int/Power.v 	\
  map/Map.v 	\
  map/Const.v 	\
  real/Abs.v 	\

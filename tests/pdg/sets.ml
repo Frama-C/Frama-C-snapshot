@@ -30,11 +30,7 @@ let main _ =
       v
   in
 
-  let y_zone = 
-    Locations.enumerate_valid_bits
-      ~for_writing:false 
-      (Locations.loc_of_varinfo y) 
-  in
+  let y_zone = Locations.(enumerate_valid_bits Read (loc_of_varinfo y)) in
   let y_at_11_nodes, undef = (* y=5 *)
     !Pdg.find_location_nodes_at_stmt
       pdg (fst (Kernel_function.find_from_sid 11)) ~before:false y_zone

@@ -1,1 +1,2 @@
 EXECNOW: make -s tests/slicing/libSelect.cmxs tests/slicing/libAnim.cmxs
+OPT: @EVA_OPTIONS@

@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2018                                               *)
+(*  Copyright (C) 2007-2019                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -57,6 +57,15 @@ let _: ('a -> bool) -> 'a list -> 'a option = find_opt
 let _: 'a -> ('a * 'b) list -> 'b option = assoc_opt
 let _: 'a -> ('a * 'b) list -> 'b option = assq_opt
 
+module Stdlib = struct
+  (* Pervasives/Stdlib functions *)
+  let compare = compare
+  let succ = succ
+  let incr = incr
+  let min = min
+  let max = max
+end
+
 [@@@ warning "-3"]
 
 module String = struct
@@ -81,6 +90,46 @@ module List = struct
   let find_opt = @FIND_OPT@
   let assoc_opt = @ASSOC_OPT@
   let assq_opt = @ASSQ_OPT@
+end
+
+module Dynlink = struct
+  let init = @DYNLINK_INIT@
+end
+
+module Format = struct
+  type stag = Format.@FORMAT_STAG@
+  let string_of_stag s = @FORMAT_STRING_OF_STAG@
+  let stag_of_string s = @FORMAT_STAG_OF_STRING@
+  type formatter_stag_functions = {
+    mark_open_stag : stag -> string;
+    mark_close_stag : stag -> string;
+    print_open_stag : stag -> unit;
+    print_close_stag : stag -> unit;
+  }
+  let pp_set_formatter_stag_functions fmt set_formatter_stag_functions =
+    Format.pp_set_formatter_@FORMAT_STAG@_functions fmt
+      {
+        Format.mark_open_@FORMAT_STAG@ =
+          set_formatter_stag_functions.mark_open_stag;
+        Format.mark_close_@FORMAT_STAG@ =
+          set_formatter_stag_functions.mark_close_stag;
+        Format.print_open_@FORMAT_STAG@ =
+          set_formatter_stag_functions.print_open_stag;
+        Format.print_close_@FORMAT_STAG@ =
+          set_formatter_stag_functions.print_close_stag;
+      }
+  let pp_get_formatter_stag_functions fmt () =
+    let st = Format.pp_get_formatter_@FORMAT_STAG@_functions fmt () in
+    {
+      mark_open_stag = st.Format.mark_open_@FORMAT_STAG@;
+      mark_close_stag = st.Format.mark_close_@FORMAT_STAG@;
+      print_open_stag = st.Format.print_open_@FORMAT_STAG@;
+      print_close_stag = st.Format.print_close_@FORMAT_STAG@;
+    }
+  let pp_open_stag fmt s =
+    Format.pp_open_@FORMAT_STAG@ fmt s
+  let pp_close_stag fmt () =
+    Format.pp_close_@FORMAT_STAG@ fmt ()
 end
 
 module Q = struct

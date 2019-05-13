@@ -1,5 +1,6 @@
 /* run.config
-   OPT: -load-script tests/syntax/typedef_multi.ml tests/syntax/typedef_multi_2.c
+   EXECNOW: make -s @PTEST_DIR@/typedef_multi.cmxs
+   OPT: -load-module @PTEST_DIR@/typedef_multi tests/syntax/typedef_multi_2.c
 */
 
 #include "tests/syntax/typedef_multi.h"

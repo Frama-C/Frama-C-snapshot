@@ -7,7 +7,8 @@
 [wp] Proved goals:    1 / 1
   Qed:             0 
   Alt-Ergo:        1
-[wp] Report 'tests/wp_plugin/ground_real.i.0.report.json'
+[wp] Report in:  'tests/wp_plugin/oracle_qualif/ground_real.0.report.json'
+[wp] Report out: 'tests/wp_plugin/result_qualif/ground_real.0.report.json'
 -------------------------------------------------------------
 Axiomatics          WP     Alt-Ergo        Total   Success
 Lemma               -       1 (1..8)         1       100%

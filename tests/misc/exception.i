@@ -1,7 +1,7 @@
 /* run.config
    EXECNOW: make -s @PTEST_DIR@/@PTEST_NAME@.cmxs
-   OPT: -load-module @PTEST_DIR@/@PTEST_NAME@ -print
-   OPT: -load-module @PTEST_DIR@/@PTEST_NAME@ -remove-exn -print
+   OPT: -no-autoload-plugins -load-module @PTEST_DIR@/@PTEST_NAME@.cmxs -print
+   OPT: -no-autoload-plugins -load-module @PTEST_DIR@/@PTEST_NAME@.cmxs -remove-exn -print
  */
 struct my_exn { int e; };
 

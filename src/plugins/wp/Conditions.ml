@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2018                                               *)
+(*  Copyright (C) 2007-2019                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -270,7 +270,7 @@ struct
             | _ -> 2
           in
           let r = rank s1.condition - rank s2.condition in
-          if r = 0 then Pervasives.compare k2 k1 else r
+          if r = 0 then Transitioning.Stdlib.compare k2 k1 else r
       end)
 
   type t = Vars.t * SEQ.t
@@ -844,23 +844,6 @@ and letify_case sigma ~target ~export seq =
 (* -------------------------------------------------------------------------- *)
 (* --- External Simplifier                                                --- *)
 (* -------------------------------------------------------------------------- *)
-
-exception Contradiction
-
-class type simplifier =
-  object
-    method name : string
-    method copy : simplifier
-    method assume : F.pred -> unit
-    method target : F.pred -> unit
-    method fixpoint : unit
-    method infer : F.pred list
-
-    method simplify_exp : F.term -> F.term
-    method simplify_hyp : F.pred -> F.pred
-    method simplify_branch : F.pred -> F.pred
-    method simplify_goal : F.pred -> F.pred
-  end
 
 let simplify_exp solvers e =
   List.fold_left (fun e s -> s#simplify_exp e) e solvers

@@ -54,7 +54,7 @@ Prove: true.
 ------------------------------------------------------------
 
 Goal Post-condition 'KO' in 'observer':
-Let a = global(G_a_41).
+Let a = global(G_a_43).
 Let x = Mint_0[shiftfield_F1_S_f(a)].
 Let x_1 = Mint_0[shiftfield_F1_S_g(a)].
 Let x_2 = 1 + x.

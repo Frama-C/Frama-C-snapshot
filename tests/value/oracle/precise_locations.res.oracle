@@ -38,6 +38,8 @@
 [eva] tests/value/precise_locations.i:39: Reusing old results for call to ct
 [eva] tests/value/precise_locations.i:39: Reusing old results for call to ct
 [eva] tests/value/precise_locations.i:39: Reusing old results for call to ct
+[eva] tests/value/precise_locations.i:39: Reusing old results for call to ct
+[eva] tests/value/precise_locations.i:39: Reusing old results for call to ct
 [eva] tests/value/precise_locations.i:42: 
   Frama_C_dump_each:
   # Cvalue domain:
@@ -515,6 +517,8 @@
   Called from tests/value/precise_locations.i:39.
 [eva] Recording results for ct
 [eva] Done for function ct
+[eva] tests/value/precise_locations.i:39: Reusing old results for call to ct
+[eva] tests/value/precise_locations.i:39: Reusing old results for call to ct
 [eva] tests/value/precise_locations.i:39: Reusing old results for call to ct
 [eva] tests/value/precise_locations.i:39: Reusing old results for call to ct
 [eva] tests/value/precise_locations.i:39: Reusing old results for call to ct

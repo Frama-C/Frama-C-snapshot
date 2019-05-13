@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2018                                               *)
+(*  Copyright (C) 2007-2019                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -61,9 +61,19 @@ end
 module type S = sig
   module Val : Value
   module Loc : Abstract_location.External with type value = Val.t
-                                           and type location = Precise_locs.precise_location
   module Dom : Abstract_domain.External with type value = Val.t
                                          and type location = Loc.location
+end
+
+(** Module gathering:
+    - the analysis abstractions: value, location and state abstractions;
+    - the evaluation functions for these abstractions. *)
+module type Eva = sig
+  include S
+  module Eval: Evaluation.S with type state = Dom.t
+                             and type value = Val.t
+                             and type loc = Loc.location
+                             and type origin = Dom.origin
 end
 
 (** Type of abstractions that use the builtin types for values and locations *)

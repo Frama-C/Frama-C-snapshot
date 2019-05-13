@@ -1,0 +1,67 @@
+[kernel] Parsing tests/value/partitioning-annots.c (with preprocessing)
+[eva] Analyzing a complete application starting at test_loop_split
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
+  k ∈ {0}
+[eva] computing for function Frama_C_interval <- test_loop_split.
+  Called from tests/value/partitioning-annots.c:103.
+[eva] using specification for function Frama_C_interval
+[eva] tests/value/partitioning-annots.c:103: 
+  function Frama_C_interval: precondition 'order' got status valid.
+[eva] Done for function Frama_C_interval
+[eva] computing for function Frama_C_interval <- test_loop_split.
+  Called from tests/value/partitioning-annots.c:103.
+[eva] Done for function Frama_C_interval
+[eva] tests/value/partitioning-annots.c:101: starting to merge loop iterations
+[eva] computing for function Frama_C_interval <- test_loop_split.
+  Called from tests/value/partitioning-annots.c:103.
+[eva] Done for function Frama_C_interval
+[eva] computing for function Frama_C_interval <- test_loop_split.
+  Called from tests/value/partitioning-annots.c:103.
+[eva] Done for function Frama_C_interval
+[eva] computing for function Frama_C_interval <- test_loop_split.
+  Called from tests/value/partitioning-annots.c:103.
+[eva] Done for function Frama_C_interval
+[eva] computing for function Frama_C_interval <- test_loop_split.
+  Called from tests/value/partitioning-annots.c:103.
+[eva] Done for function Frama_C_interval
+[eva:alarm] tests/value/partitioning-annots.c:110: Warning: 
+  accessing uninitialized left-value. assert \initialized(&A[i]);
+[eva] tests/value/partitioning-annots.c:115: Frama_C_show_each: {9}, {42}
+[eva] tests/value/partitioning-annots.c:115: Frama_C_show_each: {8}, {42}
+[eva] tests/value/partitioning-annots.c:115: Frama_C_show_each: {7}, {42}
+[eva] tests/value/partitioning-annots.c:115: Frama_C_show_each: {6}, {42}
+[eva] tests/value/partitioning-annots.c:115: Frama_C_show_each: {5}, {42}
+[eva] tests/value/partitioning-annots.c:115: Frama_C_show_each: {4}, {42}
+[eva] tests/value/partitioning-annots.c:115: Frama_C_show_each: {3}, {42}
+[eva] tests/value/partitioning-annots.c:115: Frama_C_show_each: {2}, {42}
+[eva] tests/value/partitioning-annots.c:115: Frama_C_show_each: {1}, {42}
+[eva] tests/value/partitioning-annots.c:115: Frama_C_show_each: {0}, {42}
+[eva] tests/value/partitioning-annots.c:116: assertion got status valid.
+[eva] tests/value/partitioning-annots.c:119: 
+  Frama_C_show_each: {{ "Value 42 not found" }}
+[eva] Recording results for test_loop_split
+[eva] done for function test_loop_split
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function test_loop_split:
+  Frama_C_entropy_source ∈ [--..--]
+  A[0] ∈ [0..100]
+   [1..9] ∈ [0..100] or UNINITIALIZED
+  i ∈ [0..10]
+[from] Computing for function test_loop_split
+[from] Computing for function Frama_C_interval <-test_loop_split
+[from] Done for function Frama_C_interval
+[from] Done for function test_loop_split
+[from] ====== DEPENDENCIES COMPUTED ======
+  These dependencies hold at termination for the executions that terminate:
+[from] Function Frama_C_interval:
+  Frama_C_entropy_source FROM Frama_C_entropy_source (and SELF)
+  \result FROM Frama_C_entropy_source; min; max
+[from] Function test_loop_split:
+  Frama_C_entropy_source FROM Frama_C_entropy_source (and SELF)
+[from] ====== END OF DEPENDENCIES ======
+[inout] Out (internal) for function test_loop_split:
+    Frama_C_entropy_source; A[0..9]; i
+[inout] Inputs for function test_loop_split:
+    Frama_C_entropy_source

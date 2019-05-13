@@ -4,22 +4,23 @@
 [wp] Loading driver 'share/wp.driver'
 [wp] Warning: Missing RTE guards
 [wp] 12 goals scheduled
-[wp] [Qed] Goal typed_f1_ok_assign_exit : Valid
-[wp] [Qed] Goal typed_f1_ok_assign_normal : Valid
-[wp] [Qed] Goal typed_f2_ok_assign_exit : Valid
-[wp] [Qed] Goal typed_f2_ok_assign_normal : Valid
-[wp] [Qed] Goal typed_f3_ok_assign_exit : Valid
-[wp] [Qed] Goal typed_f3_ok_assign_normal : Valid
-[wp] [Qed] Goal typed_f4_ok_assign_exit : Valid
-[wp] [Qed] Goal typed_f4_ok_assign_normal : Valid
-[wp] [Alt-Ergo] Goal typed_f5_ko_assign_exit : Unknown
-[wp] [Alt-Ergo] Goal typed_f5_ko_assign_normal : Unknown
-[wp] [Alt-Ergo] Goal typed_f6_ko_assign_exit : Unknown
-[wp] [Alt-Ergo] Goal typed_f6_ko_assign_normal : Unknown
+[wp] [Qed] Goal typed_f1_ok_assigns_exit : Valid
+[wp] [Qed] Goal typed_f1_ok_assigns_normal : Valid
+[wp] [Qed] Goal typed_f2_ok_assigns_exit : Valid
+[wp] [Qed] Goal typed_f2_ok_assigns_normal : Valid
+[wp] [Qed] Goal typed_f3_ok_assigns_exit : Valid
+[wp] [Qed] Goal typed_f3_ok_assigns_normal : Valid
+[wp] [Qed] Goal typed_f4_ok_assigns_exit : Valid
+[wp] [Qed] Goal typed_f4_ok_assigns_normal : Valid
+[wp] [Alt-Ergo] Goal typed_f5_ko_assigns_exit : Unsuccess
+[wp] [Alt-Ergo] Goal typed_f5_ko_assigns_normal : Unsuccess
+[wp] [Alt-Ergo] Goal typed_f6_ko_assigns_exit : Unsuccess
+[wp] [Alt-Ergo] Goal typed_f6_ko_assigns_normal : Unsuccess
 [wp] Proved goals:    8 / 12
   Qed:             8 
-  Alt-Ergo:        0  (unknown: 4)
-[wp] Report 'tests/wp_plugin/overarray.i.0.report.json'
+  Alt-Ergo:        0  (unsuccess: 4)
+[wp] Report in:  'tests/wp_plugin/oracle_qualif/overarray.0.report.json'
+[wp] Report out: 'tests/wp_plugin/result_qualif/overarray.0.report.json'
 -------------------------------------------------------------
 Functions           WP     Alt-Ergo        Total   Success
 f1_ok                2     -                 2       100%

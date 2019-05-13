@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2018                                               *)
+(*  Copyright (C) 2007-2019                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -177,7 +177,7 @@ let rec compare_tau cfield cadt t1 t2 =
   | Prop , Prop -> 0
   | Prop , _ -> (-1)
   | _ , Prop -> 1
-  | Tvar k , Tvar k' -> Pervasives.compare k k'
+  | Tvar k , Tvar k' -> Transitioning.Stdlib.compare k k'
   | Tvar _ , _ -> (-1)
   | _ , Tvar _ -> 1
   | Array(ta,tb) , Array(ta',tb') ->

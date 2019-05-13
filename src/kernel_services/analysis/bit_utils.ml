@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2018                                               *)
+(*  Copyright (C) 2007-2019                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -191,7 +191,7 @@ let rec pretty_bits_internal env bfinfo typ ~align ~start ~stop =
   let raw_bits c start stop =
     let cond =
       env.use_align
-      && ((not (Integer.equal (Integer.pos_rem start env.rh_size) align))
+      && ((not (Integer.equal (Integer.e_rem start env.rh_size) align))
           || (not (Integer.equal req_size env.rh_size)))
     in
     Format.fprintf env.fmt "[%s%t]%s"
@@ -272,7 +272,7 @@ let rec pretty_bits_internal env bfinfo typ ~align ~start ~stop =
                    | Some i -> Bitfield (Integer.to_int64 (Integer.of_int i))
                  in
                  let new_align =
-                   Integer.pos_rem (Integer.sub align start_o) env.rh_size
+                   Integer.e_rem (Integer.sub align start_o) env.rh_size
                  in
                  let name = Format.asprintf "%a" Printer.pp_field field in
                  NamedField( name ,
@@ -348,13 +348,11 @@ let rec pretty_bits_internal env bfinfo typ ~align ~start ~stop =
           if Integer.is_zero size then
             raw_bits 'z' start stop
           else
-          let start_case = Integer.pos_div start size in
-          let stop_case =  Integer.pos_div stop size in
-          let rem_start_size = Integer.pos_rem start size in
-          let rem_stop_size = Integer.pos_rem stop size in
+          let start_case,rem_start_size = Integer.e_div_rem start size in
+          let stop_case,rem_stop_size =  Integer.e_div_rem stop size in
           if Integer.equal start_case stop_case then (** part of one element *)
             let new_align =
-              Integer.pos_rem
+              Integer.e_rem
                 (Integer.sub align (Integer.mul start_case size))
                 env.rh_size
             in
@@ -363,8 +361,8 @@ let rec pretty_bits_internal env bfinfo typ ~align ~start ~stop =
               ~align:new_align
               ~start:rem_start_size
               ~stop:rem_stop_size
-          else if Integer.equal (Integer.rem start env.rh_size) align
-              && (Integer.is_zero (Integer.rem size env.rh_size))
+          else if Integer.equal (Integer.e_rem start env.rh_size) align
+              && (Integer.is_zero (Integer.e_rem size env.rh_size))
           then
                 let pred_size = Integer.pred size in
                 let start_full_case =
@@ -427,7 +425,7 @@ let pretty_bits typ ~use_align ~align ~rh_size ~start ~stop fmt =
      Cil easily gives offset information in terms of offset since the start,
      but not easily the offset between two fields (with padding) *)
   let align =
-    Integer.pos_rem (Abstract_interp.Rel.add_abs start align) rh_size
+    Integer.e_rem (Abstract_interp.Rel.add_abs start align) rh_size
   in
   assert (Integer.le Integer.zero align
           && Integer.lt align rh_size);
@@ -533,9 +531,9 @@ let rec find_offset typ ~offset om =
           Index (minus_one_expr, NoOffset), typ
         end
       else
-        let start = Integer.pos_div offset size_elt in
+        let start = Integer.e_div offset size_elt in
         let exp_start = Cil.kinteger64 ~loc start in
-        let rem = Integer.pos_rem offset size_elt in
+        let rem = Integer.e_rem offset size_elt in
         if offset_match_cell om size_elt then
           (* [size] covers at most one cell; we continue in the relevant one *)
           let off, typ = find_offset typ_elt rem om in
@@ -545,10 +543,10 @@ let rec find_offset typ ~offset om =
           | MatchFirst | MatchType _ -> raise NoMatchingOffset
           | MatchSize size ->
             if Integer.is_zero rem
-            && Integer.is_zero (Integer.rem size size_elt)
+            && Integer.is_zero (Integer.e_rem size size_elt)
             then
               (* We cover more than one cell, but we are aligned. *)
-              let nb = Integer.div size size_elt in
+              let nb = Integer.e_div size size_elt in
               let exp_nb = Cil.kinteger64 ~loc nb in
               let typ =
                 TArray (typ_elt, Some exp_nb, Cil.empty_size_cache (),[])

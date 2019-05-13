@@ -1,7 +1,7 @@
 /* run.config
-   OPT: -typecheck -load-script tests/misc/bts0452.ml
+   EXECNOW: make -s @PTEST_DIR@/@PTEST_NAME@.cmxs
+   OPT: -typecheck -no-autoload-plugins -load-module @PTEST_DIR@/@PTEST_NAME@.cmxs
 */
-
 /* must emit falls-through warning. */
 int f (int foo, char** args) {
   switch(foo) {

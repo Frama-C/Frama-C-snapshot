@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2018                                               *)
+(*  Copyright (C) 2007-2019                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -46,7 +46,7 @@ Require Import Qedlib.
 Require Import Bits.
 Require Import Psatz.
 
-Open Local Scope Z_scope.
+Local Open Scope Z_scope.
 
 Local Ltac omegaContradiction := cut False; [contradiction|omega].
 

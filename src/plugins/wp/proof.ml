@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2018                                               *)
+(*  Copyright (C) 2007-2019                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -31,14 +31,6 @@ let needback   = ref false (* file script need backup before modification *)
 let needsave   = ref false (* file script need to be saved *)
 let needwarn   = ref false (* user should be prompted for chosen scriptfile *)
 
-let clear () =
-  begin
-    Hashtbl.clear scriptbase ;
-    scriptfile := None ;
-    needback := false ;
-    needsave := false ;
-  end
-
 let sanitize hint =
   try
     let n = String.length hint in
@@ -54,8 +46,8 @@ let register_script goal hints proof closing =
   let hints = List.sort String.compare (List.filter sanitize hints) in
   Hashtbl.replace scriptbase goal (hints,proof,closing)
 
-let delete_script goal =
-  Hashtbl.remove scriptbase goal
+let delete_script_for ~gid =
+  Hashtbl.remove scriptbase gid
 
 (* -------------------------------------------------------------------------- *)
 (* --- Proof Scripts Parsers                                              --- *)
@@ -63,7 +55,7 @@ let delete_script goal =
 
 open Script
 
-let is_empty script =
+let is_empty_script script =
   try
     for i=0 to String.length script - 1 do
       match script.[i] with '\n' | ' ' | '\t' -> () | _ -> raise Exit
@@ -213,18 +205,27 @@ let loadscripts () =
         end
     end
 
-let find_script_for_goal goal =
+let find_script_for_goal ~gid ~legacy =
   loadscripts () ;
   try
-    let _,proof,qed = Hashtbl.find scriptbase goal in
+    let _,proof,qed = Hashtbl.find scriptbase gid in
     Some(proof,qed)
-  with Not_found -> None
+  with Not_found ->
+  try
+    let (_,proof,qed) as entry = Hashtbl.find scriptbase legacy in
+    Wp_parameters.feedback "Upgrading Coq script for '%s'" gid ;
+    Hashtbl.add scriptbase gid entry ;
+    Hashtbl.remove scriptbase legacy ;
+    needsave := true ;
+    Some(proof,qed)
+  with Not_found ->
+    None
 
 let update_hints_for_goal goal hints =
   try
     let old_hints,script,qed = Hashtbl.find scriptbase goal in
     let new_hints = List.sort String.compare hints in
-    if Pervasives.compare new_hints old_hints <> 0 then
+    if Transitioning.Stdlib.compare new_hints old_hints <> 0 then
       begin
         Hashtbl.replace scriptbase goal (new_hints,script,qed) ;
         needsave := true ;
@@ -268,21 +269,20 @@ let find_script_with_hints required hints =
         scriptbase []
     end
 
-let add_script goal hints proof =
-  needsave := true ; register_script goal hints proof
+let add_script_for ~gid hints proof =
+  needsave := true ; register_script gid hints proof
 
 (* -------------------------------------------------------------------------- *)
 (* --- Prover API                                                         --- *)
 (* -------------------------------------------------------------------------- *)
 
-let script_for ~pid ~gid =
-  match find_script_for_goal gid with
-  | None -> None
-  | (Some _) as script ->
+let script_for ~pid ~gid ~legacy =
+  let found = find_script_for_goal ~gid ~legacy in
+  ( if found <> None then
       let required,hints = WpPropId.prop_id_keys pid in
       let all = List.merge String.compare required hints in
-      update_hints_for_goal gid all ;
-      script
+      update_hints_for_goal gid all ) ;
+  found
 
 let rec head n = function [] -> []
                         | x::xs -> if n > 0 then x :: head (pred n) xs else []
@@ -301,8 +301,8 @@ let hints_for ~pid =
     else default
   else default
 
-let script_for_ide ~pid ~gid =
-  match find_script_for_goal gid with
+let script_for_ide ~pid ~gid ~legacy =
+  match find_script_for_goal ~gid ~legacy with
   | Some script -> script
   | None ->
       let required,hints = WpPropId.prop_id_keys pid in

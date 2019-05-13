@@ -28,13 +28,34 @@ let t_torig_ref =
       tname = "";
       ttype = TVoid [];
       treferenced = false }
+let t_struct_torig_ref =
+  ref
+    { torig_name = "";
+      tname = "";
+      ttype = TVoid [];
+      treferenced = false }
 
 let set_t ty = t_torig_ref := ty
+let set_t_struct ty = t_struct_torig_ref := ty
 
 let is_now_referenced () = !t_torig_ref.treferenced <- true
 
 let t () = TNamed(!t_torig_ref, [])
-let is_t ty = Cil_datatype.Typ.equal ty (t ())
+let t_ptr () = TNamed(
+  {
+    torig_name = "";
+    tname = "__e_acsl_mpz_struct *";
+    ttype = TArray(
+      TNamed(!t_struct_torig_ref, []),
+      Some (Cil.one ~loc:Cil_datatype.Location.unknown),
+      {scache = Not_Computed},
+      []);
+    treferenced = true;
+  },
+[])
+
+let is_t ty =
+  Cil_datatype.Typ.equal ty (t ()) || Cil_datatype.Typ.equal ty (t_ptr ())
 
 let apply_on_var ~loc funname e = Misc.mk_call ~loc ("__gmpz_" ^ funname) [ e ]
 let init ~loc e = apply_on_var "init" ~loc e
@@ -105,6 +126,9 @@ let init_t () =
     method !vglob = function
     | GType({ torig_name = s } as info, _) when s = "__e_acsl_mpz_t" ->
       set_t info;
+      Cil.SkipChildren
+    | GType({ torig_name = s } as info, _) when s = "__e_acsl_mpz_struct" ->
+      set_t_struct info;
       Cil.SkipChildren
     | _ -> 
       Cil.SkipChildren

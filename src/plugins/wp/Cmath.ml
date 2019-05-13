@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2018                                               *)
+(*  Copyright (C) 2007-2019                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -89,6 +89,9 @@ let builtin_truncate f e =
 
 let int_of_real x = e_fun f_truncate [x]
 let real_of_int x = e_fun f_real_of_int [x]
+
+let int_of_bool a = e_neq a F.e_zero (* if a != 0 then true else false *)
+let bool_of_int a = e_if a F.e_one F.e_zero (* if a then 1 else 0 *)
 
 (* -------------------------------------------------------------------------- *)
 (* --- Sign                                                               --- *)

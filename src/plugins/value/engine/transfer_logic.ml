@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2018                                               *)
+(*  Copyright (C) 2007-2019                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -580,7 +580,8 @@ module Make
 
   let code_annotation_text ca =
     match ca.annot_content with
-    | AAssert _ ->  "assertion"
+    | AAssert (_, Assert, _) ->  "assertion"
+    | AAssert (_, Check, _) -> "check"
     | AInvariant _ ->  "loop invariant"
     | APragma _  | AVariant _ | AAssigns _ | AAllocation _ | AStmtSpec _
     | AExtended _ ->
@@ -599,7 +600,7 @@ module Make
   let interp_annot ~limit ~record kf ab stmt code_annot ~initial_state states =
     let ips = Property.ip_of_code_annot kf stmt code_annot in
     let source, _ = code_annotation_loc code_annot stmt in
-    let aux_interp code_annot behav p =
+    let aux_interp ~reduce code_annot behav p =
       let text = code_annotation_text code_annot in
       let in_behavior =
         match behav with
@@ -628,7 +629,7 @@ module Make
               "valid"
             | Alarmset.False, `True ->
               change_status Property_status.False_if_reachable;
-              "invalid (stopping propagation)"
+              "invalid" ^ (if reduce then " (stopping propagation)" else "")
             | Alarmset.False, `Unknown ->
               change_status Property_status.False_if_reachable;
               "invalid"
@@ -636,38 +637,41 @@ module Make
           msg_status status ~once:true ~source
             "%s%a got status %s." text Description.pp_named p message
         in
+        let reduce_state here res accstateset =
+          match res, in_behavior with
+          | _, `Unknown ->
+            (* Cannot conclude because behavior might be inactive *)
+            States.add here accstateset
+
+          | Alarmset.False, `True -> (* Dead/invalid branch *)
+            accstateset
+
+          | (Alarmset.Unknown | Alarmset.True), `True ->
+            let env = here_env ~pre:initial_state ~here in
+            (* Reduce by p if it is a disjunction, or if it did not
+               evaluate to True *)
+            let reduce = res = Alarmset.Unknown in
+            let reduced_states =
+              split_disjunction_and_reduce ~reduce ~limit env here p
+            in
+            fst (States.merge reduced_states ~into:accstateset)
+        in
         let reduced_states =
           States.fold
             (fun (here: Domain.t) accstateset ->
                let env = here_env ~pre:initial_state ~here in
                let res = Domain.evaluate_predicate env here p in
-               (* if record [holds], emit statuses in the Kernel,
-                  and print a message *)
+               (* if [record] holds, emit kernel status and print a message *)
                if record then emit res;
-               match res, in_behavior with
-               | _, `Unknown ->
-                 (* Cannot conclude because behavior might be inactive *)
-                 States.add here accstateset
-
-               | Alarmset.False, `True -> (* Dead/invalid branch *)
-                 accstateset
-
-               | (Alarmset.Unknown | Alarmset.True), `True ->
-                 let env = here_env ~pre:initial_state ~here in
-                 (* Reduce by p if it is a disjunction, or if it did not
-                    evaluate to True *)
-                 let reduce = res = Alarmset.Unknown in
-                 let reduced_states =
-                   split_disjunction_and_reduce ~reduce ~limit env here p
-                 in
-                 fst (States.merge reduced_states ~into:accstateset)
-            ) states States.empty
+               (* if [reduce] holds, reduce the state. *)
+               if reduce then reduce_state here res accstateset else accstateset)
+            states States.empty
         in
         (* States resulting from disjunctions are reversed compared to the
            'nice' ordering *)
-        States.reorder reduced_states
+        if reduce then States.reorder reduced_states else states
     in
-    let aux code_annot behav p =
+    let aux code_annot ~reduce behav p =
       if ignore_predicate p then
         states
       else if States.is_empty states then (
@@ -680,11 +684,12 @@ module Make
         end;
         states
       ) else
-        aux_interp code_annot behav p
+        aux_interp ~reduce code_annot behav p
     in
     match code_annot.annot_content with
-    | AAssert (behav,p)
-    | AInvariant (behav, true, p) -> aux code_annot behav p
+    | AAssert (behav, Check, p) -> aux ~reduce:false code_annot behav p
+    | AAssert (behav, Assert, p)
+    | AInvariant (behav, true, p) -> aux ~reduce:true code_annot behav p
     | APragma _
     | AInvariant (_, false, _)
     | AVariant _ | AAssigns _ | AAllocation _ | AExtended _

@@ -288,6 +288,26 @@ void min_max () {
   //@ assert d == \min(a, b);
 }
 
+/* Tests assert and check assertions. */
+void check_and_assert () {
+  int x;
+  x = v;
+  /*@ assert x == 42; */
+  Frama_C_show_each_42(x);
+  /*@ check x == 42; */
+  x = v;
+  /*@ check x == 42; */
+  Frama_C_show_each_imprecise(x);
+  /*@ assert x == 42; */
+  if (v) {
+    /*@ assert x == 0; */
+    Frama_C_show_each_unreachable(x); /* The assert led to bottom. */
+  } else {
+    /*@ check x == 0; */
+    Frama_C_show_each_reachable(x); /* A check should never lead to bottom.  */
+  }
+}
+
 void main () {
   eq_tsets();
   eq_char();
@@ -300,4 +320,5 @@ void main () {
   float_sign();
   min_max();
   assign_tsets();
+  check_and_assert ();
 }

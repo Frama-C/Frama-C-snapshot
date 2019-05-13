@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2018                                               *)
+(*  Copyright (C) 2007-2019                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -25,7 +25,7 @@ use int.Int as Int
 use int.Abs as Abs
 use real.Real as Real
 
-axiom abs_def : forall x:int [Abs.abs x].
+lemma abs_def : forall x:int [Abs.abs x].
   if (Int.(>=) (x) (0)) then ((Abs.abs x) = (x)) else ((Abs.abs
   x) = ((Int.(-_) (x))))
 

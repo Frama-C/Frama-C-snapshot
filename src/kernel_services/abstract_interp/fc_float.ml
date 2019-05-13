@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2018                                               *)
+(*  Copyright (C) 2007-2019                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -61,6 +61,7 @@ let cmp_ieee = (compare: float -> float -> int)
 (* replace "noalloc" with [@@noalloc] for OCaml version >= 4.03.0 *)
 [@@@ warning "-3"]
 external compare : float -> float -> int = "float_compare_total" "noalloc"
+let total_compare = compare
 [@@@ warning "+3"]
 
 let of_float round prec f = round >>% fun () -> round_to_precision prec f
@@ -109,24 +110,85 @@ let prev_float prec f =
     then Down >>% fun () -> Floating_point.round_to_single_precision_float f
     else f
 
-let m_pi = 3.1415929794311523 (* single-precision *)
-let m_pi_2 = 1.5707964897155761 (* single-precision *)
-let max_single_precision_float = Floating_point.max_single_precision_float
-
 let le f1 f2 = compare f1 f2 <= 0
 
-let widen_up f =
-  if le f (-0.) then -0.
-  else if le f 0. then 0.
-  else if le f 1. then 1.
-  else if le f m_pi_2 then m_pi_2
-  else if le f m_pi then m_pi
-  else if le f 10. then 10.
-  else if le f 1e10 then 1e10
-  else if le f max_single_precision_float then max_single_precision_float
-  else if le f 1e80 then 1e80
-  else if le f max_float then max_float
-  else infinity
+
+(* --------------------------------------------------------------------------
+                                 Widen hints
+   -------------------------------------------------------------------------- *)
+
+module Widen_Hints = struct
+
+  include Cil_datatype.Logic_real.Set
+
+  let pretty fmt s =
+    if not (is_empty s) then
+      Pretty_utils.pp_iter
+        ~pre:"@[<hov 1>{"
+        ~suf:"}@]"
+        ~sep:";@ "
+        iter
+        (fun fmt r -> Format.pp_print_string fmt r.Cil_types.r_literal) fmt s
+
+  let logic_real_of_float f =
+    { Cil_types.r_literal = Format.asprintf "%10.7g" f;
+      r_nearest = f;
+      r_lower = f;
+      r_upper = f; }
+
+  let of_float_list l =
+    match l with
+    | [] -> empty
+    | [e] -> singleton (logic_real_of_float e)
+    | e :: q ->
+      List.fold_left
+        (fun acc x -> add (logic_real_of_float x) acc)
+        (singleton (logic_real_of_float e)) q
+
+  let default_widen_hints =
+    let l = [0.0;1.0;10.0;1e10;Floating_point.max_single_precision_float;1e80] in
+    union (of_float_list l) (of_float_list (List.map (fun x -> -. x) l))
+
+  exception Found of float
+
+  let nearest_float_ge f s =
+    try
+      iter (fun e ->
+          if total_compare e.Cil_types.r_upper f >= 0
+          then raise (Found e.Cil_types.r_upper))
+        s;
+      raise Not_found
+    with Found r -> r
+
+  let nearest_float_le f s =
+    try
+      let els_desc = List.rev (elements s) in
+      List.iter (fun e ->
+          if total_compare e.Cil_types.r_lower f <= 0
+          then raise (Found e.Cil_types.r_lower))
+        els_desc;
+      raise Not_found
+    with Found r -> r
+
+end
+
+type widen_hints = Widen_Hints.t
+
+let widen_up wh prec f =
+  let r = try Widen_Hints.nearest_float_ge f wh
+    with Not_found ->
+      if le f max_float then max_float
+      else infinity
+  in
+  round_to_precision Up prec r
+
+let widen_down wh prec f =
+  let r = try Widen_Hints.nearest_float_le f wh
+    with Not_found ->
+      if le (-. max_float) f then (-. max_float)
+      else neg_infinity
+  in
+  round_to_precision Down prec r
 
 let neg = (~-.)
 let abs = abs_float

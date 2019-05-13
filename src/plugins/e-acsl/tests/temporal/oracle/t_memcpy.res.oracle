@@ -8,7 +8,7 @@
 [e-acsl] FRAMAC_SHARE/libc/string.h:92: Warning: 
   E-ACSL construct `\separated' is not yet supported. Ignoring annotation.
 [e-acsl] FRAMAC_SHARE/libc/string.h:115: Warning: 
-  E-ACSL construct `logic function application' is not yet supported.
+  E-ACSL construct `logic functions with labels' is not yet supported.
   Ignoring annotation.
 [e-acsl] FRAMAC_SHARE/libc/string.h:115: Warning: 
   E-ACSL construct `assigns clause in behavior' is not yet supported.
@@ -17,10 +17,10 @@
   E-ACSL construct `user-defined logic type' is not yet supported.
   Ignoring annotation.
 [e-acsl] FRAMAC_SHARE/libc/string.h:92: Warning: 
-  E-ACSL construct `logic function application' is not yet supported.
+  E-ACSL construct `logic functions with labels' is not yet supported.
   Ignoring annotation.
 [e-acsl] FRAMAC_SHARE/libc/string.h:93: Warning: 
-  E-ACSL construct `logic function application' is not yet supported.
+  E-ACSL construct `logic functions with labels' is not yet supported.
   Ignoring annotation.
 [e-acsl] FRAMAC_SHARE/libc/string.h:95: Warning: 
   E-ACSL construct `\separated' is not yet supported. Ignoring annotation.
@@ -28,6 +28,7 @@
   E-ACSL construct `assigns clause in behavior' is not yet supported.
   Ignoring annotation.
 [e-acsl] FRAMAC_SHARE/libc/string.h:98: Warning: 
-  E-ACSL construct `logic function returning an integer' is not yet supported.
+  E-ACSL construct `logic functions performing read accesses'
+  is not yet supported.
   Ignoring annotation.
 [e-acsl] translation done in project "e-acsl".

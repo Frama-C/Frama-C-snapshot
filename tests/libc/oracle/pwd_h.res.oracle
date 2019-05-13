@@ -1,0 +1,35 @@
+[kernel] Parsing tests/libc/pwd_h.c (with preprocessing)
+[eva] Analyzing a complete application starting at main
+[eva] Computing initial state
+[eva] Initial state computed
+[eva:initial-state] Values of globals at initialization
+  uid ∈ [--..--]
+[eva] computing for function getpwuid <- main.
+  Called from tests/libc/pwd_h.c:10.
+[eva] using specification for function getpwuid
+[eva] Done for function getpwuid
+[eva:alarm] tests/libc/pwd_h.c:13: Warning: assertion got status unknown.
+[eva:alarm] tests/libc/pwd_h.c:14: Warning: assertion got status unknown.
+[eva:alarm] tests/libc/pwd_h.c:15: Warning: assertion got status unknown.
+[eva:alarm] tests/libc/pwd_h.c:16: Warning: assertion got status unknown.
+[eva] computing for function getpwnam <- main.
+  Called from tests/libc/pwd_h.c:18.
+[eva] using specification for function getpwnam
+[eva] tests/libc/pwd_h.c:18: 
+  function getpwnam: precondition 'valid_name' got status valid.
+[eva] Done for function getpwnam
+[eva:alarm] tests/libc/pwd_h.c:21: Warning: assertion got status unknown.
+[eva:alarm] tests/libc/pwd_h.c:22: Warning: assertion got status unknown.
+[eva:alarm] tests/libc/pwd_h.c:23: Warning: assertion got status unknown.
+[eva:alarm] tests/libc/pwd_h.c:24: Warning: assertion got status unknown.
+[eva] Recording results for main
+[eva] done for function main
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function main:
+  __fc_pwd.pw_name ∈ {{ NULL + [--..--] ; &__fc_getpwuid_pw_name[0] }}
+          .pw_passwd ∈ {{ NULL + [--..--] ; &__fc_getpwuid_pw_passwd[0] }}
+          {.pw_uid; .pw_gid; .pw_gecos} ∈ [--..--]
+          .pw_dir ∈ {{ NULL + [--..--] ; &__fc_getpwuid_pw_dir[0] }}
+          .pw_shell ∈ {{ NULL + [--..--] ; &__fc_getpwuid_pw_shell[0] }}
+  pw ∈ {{ NULL ; &__fc_pwd }}
+  __retres ∈ {0}

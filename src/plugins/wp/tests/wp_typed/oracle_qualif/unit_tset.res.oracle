@@ -4,11 +4,12 @@
 [wp] Loading driver 'share/wp.driver'
 [wp] Warning: Missing RTE guards
 [wp] 2 goals scheduled
-[wp] [Qed] Goal typed_complex_call_job_pre : Valid
-[wp] [Qed] Goal typed_complex_stmt_assign : Valid
+[wp] [Qed] Goal typed_complex_call_job_requires : Valid
+[wp] [Qed] Goal typed_complex_assigns : Valid
 [wp] Proved goals:    2 / 2
   Qed:             2
-[wp] Report 'tests/wp_typed/unit_tset.i.0.report.json'
+[wp] Report in:  'tests/wp_typed/oracle_qualif/unit_tset.0.report.json'
+[wp] Report out: 'tests/wp_typed/result_qualif/unit_tset.0.report.json'
 -------------------------------------------------------------
 Functions           WP     Alt-Ergo        Total   Success
 complex              2     -                 2       100%

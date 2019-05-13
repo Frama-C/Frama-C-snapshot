@@ -2,6 +2,8 @@
 #include "stdio.h"
 #include "stdlib.h"
 #include "string.h"
+extern int __e_acsl_sound_verdict;
+
 int main(void)
 {
   int __retres;

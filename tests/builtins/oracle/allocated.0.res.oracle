@@ -233,34 +233,31 @@
 [eva] tests/builtins/allocated.c:127: Call to builtin __fc_vla_alloc
 [eva:malloc] tests/builtins/allocated.c:127: 
   resizing variable `__malloc_main_l127' (0..31/95) to fit 0..63/127
-[eva] tests/builtins/allocated.c:131: Frama_C_show_each: {0; 1; 2; 3}
+[eva] tests/builtins/allocated.c:131: Frama_C_show_each: [0..2147483647]
 [eva] tests/builtins/allocated.c:127: Call to builtin __fc_vla_free
 [eva:malloc] tests/builtins/allocated.c:127: 
   strong free on bases: {__malloc_main_l127}
 [eva] tests/builtins/allocated.c:127: Call to builtin __fc_vla_alloc
 [eva:malloc] tests/builtins/allocated.c:127: 
   resizing variable `__malloc_main_l127' (0..31/127) to fit 0..63/159
-[eva] tests/builtins/allocated.c:131: Frama_C_show_each: {0; 1; 2; 3; 4}
+[eva] tests/builtins/allocated.c:131: Frama_C_show_each: [0..2147483647]
 [eva] tests/builtins/allocated.c:127: Call to builtin __fc_vla_free
 [eva:malloc] tests/builtins/allocated.c:127: 
   strong free on bases: {__malloc_main_l127}
 [eva] tests/builtins/allocated.c:127: Call to builtin __fc_vla_alloc
 [eva:malloc] tests/builtins/allocated.c:127: 
   resizing variable `__malloc_main_l127' (0..31/159) to fit 0..63/191
-[eva] tests/builtins/allocated.c:131: Frama_C_show_each: {0; 1; 2; 3; 4; 5}
+[eva] tests/builtins/allocated.c:131: Frama_C_show_each: [0..2147483647]
 [eva] tests/builtins/allocated.c:127: Call to builtin __fc_vla_free
 [eva:malloc] tests/builtins/allocated.c:127: 
   strong free on bases: {__malloc_main_l127}
 [eva] tests/builtins/allocated.c:127: Call to builtin __fc_vla_alloc
 [eva:malloc] tests/builtins/allocated.c:127: 
   resizing variable `__malloc_main_l127' (0..31/191) to fit 0..63/319
-[eva] tests/builtins/allocated.c:131: Frama_C_show_each: [0..9]
+[eva] tests/builtins/allocated.c:131: Frama_C_show_each: [0..2147483647]
 [eva] tests/builtins/allocated.c:127: Call to builtin __fc_vla_free
 [eva:malloc] tests/builtins/allocated.c:127: 
   strong free on bases: {__malloc_main_l127}
-[eva] tests/builtins/allocated.c:127: Call to builtin __fc_vla_alloc
-[eva:malloc] tests/builtins/allocated.c:127: 
-  resizing variable `__malloc_main_l127' (0..31/319) to fit 0..63/319
 [eva] Recording results for main
 [eva] done for function main
 [eva] tests/builtins/allocated.c:27: 

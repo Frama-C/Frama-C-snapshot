@@ -1,5 +1,5 @@
 (* when using toplevel.top :
-bin/topleval.top -val tests/scope/zones.c
+bin/topleval.top -eva tests/scope/zones.c
 #directory "cil/src";;
 *)
 

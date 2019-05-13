@@ -2,7 +2,7 @@
 /*                                                                        */
 /*  This file is part of Frama-C.                                         */
 /*                                                                        */
-/*  Copyright (C) 2007-2018                                               */
+/*  Copyright (C) 2007-2019                                               */
 /*    CEA   (Commissariat à l'énergie atomique et aux énergies            */
 /*           alternatives)                                                */
 /*    INRIA (Institut National de Recherche en Informatique et en         */
@@ -247,7 +247,7 @@
 %token ALLOCATION STATIC REGISTER AUTOMATIC DYNAMIC UNALLOCATED
 %token ALLOCABLE FREEABLE FRESH
 %token DOLLAR QUESTION MINUS PLUS STAR AMP SLASH PERCENT LSQUARE RSQUARE EOF
-%token GLOBAL INVARIANT VARIANT DECREASES FOR LABEL ASSERT SEMICOLON NULL EMPTY
+%token GLOBAL INVARIANT VARIANT DECREASES FOR LABEL ASSERT CHECK SEMICOLON NULL EMPTY
 %token REQUIRES ENSURES ALLOCATES FREES ASSIGNS LOOP NOTHING SLICE IMPACT PRAGMA FROM
 %token <string> EXT_CODE_ANNOT EXT_GLOBAL EXT_CONTRACT
 %token EXITS BREAKS CONTINUES RETURNS
@@ -879,6 +879,10 @@ full_zones:
 | enter_kw_c_mode zones exit_kw_c_mode  { $2 }
 ;
 
+full_ne_zones:
+| enter_kw_c_mode ne_zones exit_kw_c_mode { $2 }
+;
+
 full_ne_lexpr_list:
 enter_kw_c_mode ne_lexpr_list exit_kw_c_mode { $2 }
 ;
@@ -917,12 +921,12 @@ ext_global_clause:
 | INCLUDE string SEMICOLON { let b,s = $2 in Ext_include(b,s, loc()) }
 ;
 
-ext_global_specs_opt: 
+ext_global_specs_opt:
  | /* empty */       { [] }
  | ext_global_specs  { $1 }
 ;
 
-ext_global_specs: 
+ext_global_specs:
 | ext_global_spec                  { [$1] }
 | ext_global_spec ext_global_specs { $1::$2 }
 ;
@@ -930,8 +934,8 @@ ext_global_specs:
 ext_global_spec:
 | ext_module_markup ext_global_clauses_opt ext_module_specs
     { (Some $1),$2,$3 }
-| ext_module_markup
-    { (Some $1),[],[] }
+| ext_module_markup ext_global_clauses_opt
+    { (Some $1),$2,[] }
 ;
 
 ext_module_specs_opt:
@@ -1106,7 +1110,9 @@ clause_kw:
 /* often, we'll be in c_kw_mode, where these keywords are 
    recognized as identifiers... */
 | IDENTIFIER { $1 }
+| EXT_CONTRACT { $1 }
 | EOF { "end of annotation" }
+;
 
 requires:
 | /* epsilon */ { [] }
@@ -1266,41 +1272,31 @@ custom_tree:
 ;
 
 custom_tree_list:
-| custom_tree   { [$1] } 
-| custom_tree COMMA custom_tree_list  { $1::$3 } 
+| custom_tree   { [$1] }
+| custom_tree COMMA custom_tree_list  { $1::$3 }
+;
 
 annotation:
 | loop_annotations
       { let (b,v,p) = $1 in
-	(* TODO: do better, do not lose the structure ! *)
-	let l = b@v@p in
+        (* TODO: do better, do not lose the structure ! *)
+        let l = b@v@p in
         Aloop_annot (loc (), l) }
-| FOR ne_behavior_name_list COLON contract
-      { let s, pos = $4 in Acode_annot (pos, AStmtSpec ($2,s)) }
-| code_annotation { Acode_annot (loc(),$1) }
-| code_annotation beg_code_annotation
+| FOR ne_behavior_name_list COLON contract_or_code_annotation
+      { $4 $2 }
+| pragma_or_code_annotation { Acode_annot (loc(),$1) }
+| pragma_or_code_annotation beg_pragma_or_code_annotation
       { raise
           (Not_well_formed (loc(),
                             "Only one code annotation is allowed per comment"))
       }
-| EXT_CODE_ANNOT grammar_extension SEMICOLON
-  {
-    let open Cil_types in
-    let ext = $1 in
-    match Logic_env.extension_category ext with
-    | Some (Ext_code_annot (Ext_here | Ext_next_stmt | Ext_next_both)) ->
-      Acode_annot (loc(), Logic_ptree.AExtended([],false,(ext,$2)))
-    | Some (Ext_code_annot Ext_next_loop) ->
-      raise
-        (Not_well_formed
-          (lexeme_loc 1,
-             ext ^ " is not a loop annotation extension. It can't be used as \
-                     plain code annotation extension"))
-    | Some (Ext_contract | Ext_global) | None ->
-      Kernel.fatal ~source:(lexeme_start 1)
-        "%s is not a code annotation extension. Parser got wrong lexeme" ext
-  }
 | full_identifier_or_typename { Aattribute_annot (loc (), $1) }
+;
+
+contract_or_code_annotation:
+| contract
+      { fun bhvs -> let s, pos = $1 in Acode_annot (pos, AStmtSpec (bhvs,s)) }
+| code_annotation { fun bhvs -> Acode_annot (loc(), ($1 bhvs)) }
 ;
 
 /*** loop annotations ***/
@@ -1429,23 +1425,45 @@ loop_pragma:
 
 /*** code annotations ***/
 
-beg_code_annotation:
+beg_pragma_or_code_annotation:
 | IMPACT {}
 | SLICE {}
 | FOR {}
 | ASSERT {}
+| CHECK {}
 | INVARIANT {}
+| EXT_CODE_ANNOT {}
+;
+
+pragma_or_code_annotation:
+| slice_pragma     { APragma (Slice_pragma $1) }
+| impact_pragma    { APragma (Impact_pragma $1) }
+| code_annotation  { $1 []  }
 ;
 
 code_annotation:
-| slice_pragma     { APragma (Slice_pragma $1) }
-| impact_pragma    { APragma (Impact_pragma $1) }
-| FOR ne_behavior_name_list COLON ASSERT full_lexpr SEMICOLON
-      { AAssert ($2,$5) }
-| FOR ne_behavior_name_list COLON INVARIANT full_lexpr SEMICOLON
-      { AInvariant ($2,false,$5) }
-| ASSERT full_lexpr SEMICOLON    { AAssert ([],$2) }
-| INVARIANT full_lexpr SEMICOLON { AInvariant ([],false,$2) }
+| ASSERT full_lexpr SEMICOLON
+      { fun bhvs -> AAssert (bhvs,Assert,$2) }
+| CHECK full_lexpr SEMICOLON
+      { fun bhvs -> AAssert (bhvs,Check,$2) }
+| INVARIANT full_lexpr SEMICOLON { fun bhvs -> AInvariant (bhvs,false,$2) }
+| EXT_CODE_ANNOT grammar_extension SEMICOLON
+  { fun bhvs ->
+    let open Cil_types in
+    let ext = $1 in
+    match Logic_env.extension_category ext with
+    | Some (Ext_code_annot (Ext_here | Ext_next_stmt | Ext_next_both)) ->
+      Logic_ptree.AExtended(bhvs,false,(ext,$2))
+    | Some (Ext_code_annot Ext_next_loop) ->
+      raise
+        (Not_well_formed
+          (lexeme_loc 1,
+             ext ^ " is not a loop annotation extension. It can't be used as \
+                     plain code annotation extension"))
+    | Some (Ext_contract | Ext_global) | None ->
+      Kernel.fatal ~source:(lexeme_start 1)
+        "%s is not a code annotation extension. Parser got wrong lexeme" ext
+  }
 ;
 
 slice_pragma:
@@ -1476,7 +1494,7 @@ decl_list:
 decl:
 | GLOBAL INVARIANT any_identifier COLON full_lexpr SEMICOLON
     { LDinvariant ($3, $5) }
-| VOLATILE ne_zones volatile_opt SEMICOLON { LDvolatile ($2, $3) }
+| VOLATILE full_ne_zones volatile_opt SEMICOLON { LDvolatile ($2, $3) }
 | type_annot {LDtype_annot $1}
 | model_annot {LDmodel_annot $1}
 | logic_def  { $1 }
@@ -1652,7 +1670,7 @@ logic_decl_loc:
 
 reads_clause:
 | /* epsilon */ { None }
-| READS zones { Some $2 }
+| READS full_zones { Some $2 }
 ;
 
 typedef:
@@ -1747,13 +1765,23 @@ any_identifier_non_logic:
 | identifier_or_typename { $1 }
 | non_logic_keyword { $1 }
 
-identifier_or_typename:
+identifier_or_typename: /* allowed as C field names */
+| TYPENAME { $1 } /* followed by the same list than 'identifier' */
 | IDENTIFIER { $1 }
-| TYPENAME { $1 }
+/* token list used inside ascl clauses: */
+| BEHAVIORS  { "behaviors" }
+| LABEL      { "label" }
+| READS      { "reads" }
+| WRITES     { "writes" }
 ;
 
-identifier:
+identifier: /* part included into 'identifier_or_typename', but duplicated to avoid parsing conflicts */
 | IDENTIFIER { $1 }
+/* token list used inside ascl clauses: */
+| BEHAVIORS  { "behaviors" }
+| LABEL      { "label" }
+| READS      { "reads" }
+| WRITES     { "writes" }
 ;
 
 bounded_var:
@@ -1766,35 +1794,35 @@ bounded_var:
 ;
 
 c_keyword:
-| CASE { "case" }
-| CHAR { "char" }
-| BOOLEAN { "boolean" }
-| BOOL { "_Bool" }
-| CONST { "const" }
-| DOUBLE { "double" }
-| ELSE { "else" }
-| ENUM { "enum" }
-| FLOAT { "float" }
-| IF { "if" }
-| INT { "int" }
-| LONG { "long" }
-| SHORT { "short" }
-| SIGNED { "signed" }
-| SIZEOF { "sizeof" }
-| STATIC { "static" }
-| STRUCT { "struct" }
-| UNION { "union" }
+| CHAR     { "char" }
+| BOOLEAN  { "boolean" }
+| BOOL     { "_Bool" }
+| CONST    { "const" }
+| DOUBLE   { "double" }
+| ENUM     { "enum" }
+| ELSE     { "else" }
+| FLOAT    { "float" }
+| IF       { "if" }
+| INT      { "int" }
+| LONG     { "long" }
+| SHORT    { "short" }
+| SIGNED   { "signed" }
+| SIZEOF   { "sizeof" }
+| STATIC   { "static" }
+| STRUCT   { "struct" }
+| UNION    { "union" }
 | UNSIGNED { "unsigned" }
-| VOID { "void" }
+| VOID     { "void" }
 ;
 
 acsl_c_keyword:
-| FOR { "for" }
+| CASE     { "case" }
+| FOR      { "for" }
 | VOLATILE { "volatile" }
 ;
 
 post_cond:
-| ENSURES { Normal, "normal" }
+| ENSURES { Normal, "ensures" }
 | EXITS   { Exits, "exits" }
 | BREAKS  { Breaks, "breaks" }
 | CONTINUES { Continues, "continues" }
@@ -1816,8 +1844,11 @@ is_acsl_spec:
 ;
 
 is_acsl_decl_or_code_annot:
-| ASSERT    { "assert" }
+| EXT_CODE_ANNOT { $1 }
+| EXT_GLOBAL     { $1 }
 | ASSUMES   { "assumes" }
+| ASSERT    { "assert" }
+| CHECK     { "check" }
 | GLOBAL    { "global" }
 | IMPACT    { "impact" }
 | INDUCTIVE { "inductive" }
@@ -1825,7 +1856,7 @@ is_acsl_decl_or_code_annot:
 | LEMMA     { "lemma" }
 | LOOP      { "loop" }
 | PRAGMA    { "pragma" }
-| PREDICATE { "predicate" } 
+| PREDICATE { "predicate" }
 | SLICE     { "slice" }
 | TYPE      { "type" }
 | MODEL     { "model" }
@@ -1835,12 +1866,8 @@ is_acsl_decl_or_code_annot:
 ;
 
 is_acsl_other:
-| BEHAVIORS { "behaviors" }
-| INTEGER { "integer" }
-| LABEL { "label" }
-| READS { "reads" }
-| REAL { "real" }
-| WRITES { "writes" }
+| INTEGER  { "integer" (* token that cannot be used in C fields *) }
+| REAL     { "real" (* token that cannot be used in C fields *) }
 ;
 
 is_ext_spec:
@@ -1853,8 +1880,9 @@ is_ext_spec:
 ;
 
 keyword:
-| LOGIC     { "logic" }
+| LOGIC   { "logic" }
 | non_logic_keyword { $1 }
+;
 
 non_logic_keyword:
 | c_keyword      { $1 }
@@ -1863,7 +1891,7 @@ non_logic_keyword:
 | is_acsl_spec   { $1 }
 | is_acsl_decl_or_code_annot { $1 }
 | is_acsl_other  { $1 }
-| CUSTOM { "custom" }
+| CUSTOM { "custom" (* token that cannot be used in C fields *) } 
 ;
 
 bs_keyword:
@@ -1963,8 +1991,6 @@ wildcard:
 | STRING_LITERAL { () }
 | TILDE { () }
 | IN { () }
-| EXT_GLOBAL { () }
-| EXT_CODE_ANNOT { () }
 ;
 
 any:

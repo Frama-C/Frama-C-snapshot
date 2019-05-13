@@ -2,7 +2,7 @@
 /*                                                                        */
 /*  This file is part of Frama-C.                                         */
 /*                                                                        */
-/*  Copyright (C) 2007-2018                                               */
+/*  Copyright (C) 2007-2019                                               */
 /*    CEA (Commissariat à l'énergie atomique et aux énergies              */
 /*         alternatives)                                                  */
 /*                                                                        */
@@ -29,22 +29,22 @@ __BEGIN_DECLS
 // stronger typing constraints
 
 #ifndef __have_pthread_attr_t
-typedef struct { int _fc; } pthread_attr_t;
+typedef struct __fc_pthread_attr_t { int _fc; } pthread_attr_t;
 #define __have_pthread_attr_t
 #endif
 
-typedef struct { int _fc; } pthread_barrier_t;
-typedef struct { int _fc; } pthread_barrierattr_t;
-typedef struct { int _fc; } pthread_cond_t;
-typedef struct { int _fc; } pthread_condattr_t;
-typedef struct { int _fc; } pthread_key_t;
-typedef struct { int _fc; } pthread_mutex_t;
-typedef struct { int _fc; } pthread_mutexattr_t;
-typedef struct { int _fc; } pthread_once_t;
-typedef struct { int _fc; } pthread_rwlock_t;
-typedef struct { int _fc; } pthread_rwlockattr_t;
-typedef struct { int _fc; } pthread_spinlock_t;
-typedef struct { int _fc; } pthread_t;
+typedef struct __fc_pthread_barrier_t { int _fc; } pthread_barrier_t;
+typedef struct __fc_pthread_barrierattr_t { int _fc; } pthread_barrierattr_t;
+typedef struct __fc_pthread_cond_t { int _fc; } pthread_cond_t;
+typedef struct __fc_pthread_condattr_t { int _fc; } pthread_condattr_t;
+typedef struct __fc_pthread_key_t { int _fc; } pthread_key_t;
+typedef struct __fc_pthread_mutex_t { int _fc; } pthread_mutex_t;
+typedef struct __fc_pthread_mutexattr_t { int _fc; } pthread_mutexattr_t;
+typedef struct __fc_pthread_once_t { int _fc; } pthread_once_t;
+typedef struct __fc_pthread_rwlock_t { int _fc; } pthread_rwlock_t;
+typedef struct __fc_pthread_rwlockattr_t { int _fc; } pthread_rwlockattr_t;
+typedef struct __fc_pthread_spinlock_t { int _fc; } pthread_spinlock_t;
+typedef struct __fc_pthread_t { int _fc; } pthread_t;
 __END_DECLS
 __POP_FC_STDLIB
 #endif

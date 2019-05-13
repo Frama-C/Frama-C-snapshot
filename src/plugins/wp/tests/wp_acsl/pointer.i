@@ -83,4 +83,4 @@ void absurd (int * q) { return; }
     ensures qed_ok: NotNull: p != \null ==> \result != 0 ;
     ensures qed_ok: IsNull:  p == \null ==> \result == 0 ;
 */
-int null (int *p) { return p; }
+int null (int *p) { return (int) p; }

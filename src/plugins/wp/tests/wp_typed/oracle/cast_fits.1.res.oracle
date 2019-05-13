@@ -1,0 +1,150 @@
+# frama-c -wp -wp-model 'Typed (Ref)' [...]
+[kernel] Parsing tests/wp_typed/cast_fits.i (no preprocessing)
+[wp] Running WP plugin...
+[wp] Loading driver 'share/wp.driver'
+[wp] Warning: Missing RTE guards
+[wp] tests/wp_typed/cast_fits.i:13: Warning: 
+  Cast with incompatible pointers types (source: __anonstruct_L2_2*)
+     (target: sint32*)
+[wp] tests/wp_typed/cast_fits.i:54: Warning: 
+  Cast with incompatible pointers types (source: __anonunion_L8_8*)
+     (target: sint32*)
+[wp] tests/wp_typed/cast_fits.i:60: Warning: 
+  Cast with incompatible pointers types (source: sint32*)
+     (target: __anonunion_L8_8*)
+------------------------------------------------------------
+  Function fits1
+------------------------------------------------------------
+
+Goal Post-condition (file tests/wp_typed/cast_fits.i, line 3) in 'fits1':
+Let x = Mint_0[p].
+Let x_1 = Mint_0[shiftfield_F1_i1(p)].
+Assume {
+  Type: is_sint32(x) /\ is_sint32(x_1).
+  (* Heap *)
+  Have: region(p.base) <= 0.
+}
+Prove: x_1 = x.
+
+------------------------------------------------------------
+------------------------------------------------------------
+  Function fits2
+------------------------------------------------------------
+
+Goal Post-condition (file tests/wp_typed/cast_fits.i, line 19) in 'fits2':
+Let x = Mint_0[shiftfield_F2_i2(p)].
+Let x_1 = Mint_0[shiftfield_F1_i1(shiftfield_F3_ic3(p))].
+Assume {
+  Type: is_sint32(x) /\ is_sint32(x_1).
+  (* Heap *)
+  Have: region(p.base) <= 0.
+}
+Prove: x_1 = x.
+
+------------------------------------------------------------
+------------------------------------------------------------
+  Function fits3
+------------------------------------------------------------
+
+Goal Post-condition (file tests/wp_typed/cast_fits.i, line 27) in 'fits3':
+Let x = Mint_0[shiftfield_F2_i2(p)].
+Let x_1 = Mint_0
+            [shiftfield_F1_i1(shift___anonstruct_L1_1(shiftfield_F4_ic4(p),
+                                0))].
+Assume {
+  Type: is_sint32(x) /\ is_sint32(x_1).
+  (* Heap *)
+  Have: region(p.base) <= 0.
+}
+Prove: x_1 = x.
+
+------------------------------------------------------------
+------------------------------------------------------------
+  Function fits4
+------------------------------------------------------------
+
+Goal Post-condition (file tests/wp_typed/cast_fits.i, line 37) in 'fits4':
+Let x = Mchar_0[shiftfield_F6_c6(p)].
+Let x_1 = Mchar_0
+            [shiftfield_F3_c3(shift___anonstruct_L3_3(shiftfield_F5_ci5(p),
+                                1))].
+Assume {
+  Type: is_sint8(x) /\ is_sint32(x) /\ is_sint8(x_1).
+  (* Heap *)
+  Have: (region(p.base) <= 0) /\ sconst(Mchar_0).
+}
+Prove: x_1 = x.
+
+------------------------------------------------------------
+------------------------------------------------------------
+  Function fits5
+------------------------------------------------------------
+
+Goal Post-condition (file tests/wp_typed/cast_fits.i, line 45) in 'fits5':
+Let x = Mint_0[p].
+Let x_1 = Mint_0[shiftfield_F7_u7(p)].
+Assume {
+  Type: is_sint32(x) /\ is_sint32(x_1).
+  (* Heap *)
+  Have: region(p.base) <= 0.
+}
+Prove: x_1 = x.
+
+------------------------------------------------------------
+------------------------------------------------------------
+  Function mismatch1
+------------------------------------------------------------
+
+Goal Post-condition (file tests/wp_typed/cast_fits.i, line 11) in 'mismatch1':
+tests/wp_typed/cast_fits.i:13: warning from Typed Model:
+ - Warning: Hide sub-term definition
+   Reason: Cast with incompatible pointers types (source: __anonstruct_L2_2*)
+   (target: sint32*)
+Let x = Mint_0[q].
+Let x_1 = Mchar_0[shiftfield_F2_c2(p)].
+Assume {
+  Type: is_sint32(x) /\ is_sint8(x_1).
+  (* Heap *)
+  Have: (region(p.base) <= 0) /\ sconst(Mchar_0).
+}
+Prove: x_1 = x.
+
+------------------------------------------------------------
+------------------------------------------------------------
+  Function mismatch2
+------------------------------------------------------------
+
+Goal Post-condition (file tests/wp_typed/cast_fits.i, line 52) in 'mismatch2':
+tests/wp_typed/cast_fits.i:54: warning from Typed Model:
+ - Warning: Hide sub-term definition
+   Reason: Cast with incompatible pointers types (source: __anonunion_L8_8*)
+   (target: sint32*)
+Let x = Mint_0[q].
+Let x_1 = Mint_0[shiftfield_F8_i8(p)].
+Assume {
+  Type: is_sint32(x) /\ is_sint32(x_1).
+  (* Heap *)
+  Have: region(p.base) <= 0.
+}
+Prove: x_1 = x.
+
+------------------------------------------------------------
+------------------------------------------------------------
+  Function mismatch3
+------------------------------------------------------------
+
+Goal Post-condition (file tests/wp_typed/cast_fits.i, line 58) in 'mismatch3':
+tests/wp_typed/cast_fits.i:60: warning from Typed Model:
+ - Warning: Hide sub-term definition
+   Reason: Cast with incompatible pointers types (source: sint32*)
+   (target: __anonunion_L8_8*)
+Let x = Mint_0[p].
+Let x_1 = Mint_0[shiftfield_F8_i8(q)].
+Assume {
+  Type: is_sint32(x) /\ is_sint32(x_1).
+  (* Heap *)
+  Have: region(p.base) <= 0.
+}
+Prove: x_1 = x.
+
+------------------------------------------------------------

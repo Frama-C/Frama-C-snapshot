@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2018                                               *)
+(*  Copyright (C) 2007-2019                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -23,7 +23,7 @@
 open Tactical
 open Conditions
 
-class console : title:string -> Tactical.feedback
+class console : pool:Lang.F.pool -> title:string -> Tactical.feedback
 
 type jscript = alternative list
 and alternative = private

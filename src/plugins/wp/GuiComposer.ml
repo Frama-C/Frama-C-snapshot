@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2018                                               *)
+(*  Copyright (C) 2007-2019                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -69,7 +69,7 @@ class composer (focused : GuiSequent.focused) =
       match args with
       | a::b::_ when cc#ranged ->
           begin
-            match self#get_int a, self#get_int b with
+            match Tactical.get_int a, Tactical.get_int b with
             | Some a,Some b when a <= b ->
                 let callback () =
                   cc#set_value (Tactical.range a b) ;
@@ -88,11 +88,6 @@ class composer (focused : GuiSequent.focused) =
           ignore focused#unselect ;
           update () in
         focused#button ~title:"Stack" ~callback fmt
-
-    method private get_int = function
-      | Tactical.Compose(Tactical.Cint z) ->
-          (try Some (Integer.to_int z) with _ -> None)
-      | _ -> None
 
     method private op1 title job args fmt = match args with
       | a::w ->

@@ -1,7 +1,7 @@
 /* run.config
-   OPT: -sparecode-analysis -val-show-progress -sparecode-debug 1 -journal-disable
-   OPT: -sparecode-analysis -val-show-progress -sparecode-debug 1 -main main_bis -journal-disable
-   OPT: -sparecode-analysis -val-show-progress -sparecode-debug 1 -sparecode-no-annot -journal-disable
+   STDOPT: +"-sparecode-analysis"
+   STDOPT: +"-sparecode-analysis -main main_bis"
+   STDOPT: +"-sparecode-analysis -sparecode-no-annot"
 */
 
 int ki[2], k ;

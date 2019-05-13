@@ -24,6 +24,11 @@ module E_acsl_label = Label
 open Cil_types
 open Cil_datatype
 
+type localized_scope =
+  | LGlobal
+  | LFunction of kernel_function
+  | LLocal_block of kernel_function
+
 type scope =
   | Global
   | Function
@@ -55,7 +60,7 @@ type t =
       lscope: Lscope.t;
       lscope_reset: bool;
       annotation_kind: Misc.annotation_kind;
-      new_global_vars: (varinfo * scope) list;
+      new_global_vars: (varinfo * localized_scope) list;
       (* generated variables. The scope indicates the level where the variable
          should be added. *)
       global_mpz_tbl: mpz_tbl;
@@ -93,7 +98,7 @@ end = struct
 
 end
 
-let empty_block = 
+let empty_block =
   { new_block_vars = [];
     new_stmts = [];
     pre_stmts = [];
@@ -104,19 +109,19 @@ let empty_mpz_tbl =
   { new_exps = Term.Map.empty;
     clear_stmts = [] }
 
-let empty_local_env = 
-  { block_info = empty_block; 
+let empty_local_env =
+  { block_info = empty_block;
     mpz_tbl = empty_mpz_tbl;
     rte = true }
 
-let dummy = 
+let dummy =
   { visitor = new Visitor.generic_frama_c_visitor (Cil.inplace_visit ());
     lscope = Lscope.empty;
     lscope_reset = true;
     annotation_kind = Misc.Assertion;
     new_global_vars = [];
-    global_mpz_tbl = empty_mpz_tbl; 
-    env_stack = []; 
+    global_mpz_tbl = empty_mpz_tbl;
+    env_stack = [];
     var_mapping = Logic_var.Map.empty;
     loop_invariants = [];
     cpt = 0; }
@@ -127,25 +132,38 @@ let empty v =
     lscope_reset = true;
     annotation_kind = Misc.Assertion;
     new_global_vars = [];
-    global_mpz_tbl = empty_mpz_tbl; 
-    env_stack = []; 
+    global_mpz_tbl = empty_mpz_tbl;
+    env_stack = [];
     var_mapping = Logic_var.Map.empty;
     loop_invariants = [];
     cpt = 0 }
 
-
-let top env =
-  match env.env_stack with [] -> assert false | hd :: tl -> hd, tl
+let top env = match env.env_stack with
+  | [] -> Options.fatal "Empty environment. That is unexpected."
+  | hd :: tl -> hd, tl
 
 let has_no_new_stmt env =
   let local, _ = top env in
   local.block_info = empty_block
 
+let current_kf env =
+  let v = env.visitor in
+  match v#current_kf with
+  | None -> None
+  | Some kf -> Some (Cil.get_kernel_function v#behavior kf)
+
+let set_current_kf env kf =
+  let v = env.visitor in
+  v#set_current_kf kf
+
+let get_visitor env = env.visitor
+let get_behavior env = env.visitor#behavior
+
 (* ************************************************************************** *)
 (** {2 Loop invariants} *)
 (* ************************************************************************** *)
 
-let push_loop env = 
+let push_loop env =
   { env with loop_invariants = [] :: env.loop_invariants }
 
 let add_loop_invariant env inv = match env.loop_invariants with
@@ -184,10 +202,16 @@ let do_new_var ~loc ?(scope=Local_block) ?(name="") env t ty mk_stmts =
       ~source:true
       false (* is a global? *)
       false (* is a formal? *)
+      ~referenced:true
       (Varname.get ~scope (Functions.RTL.mk_gen_name name))
       ty
   in
   v.vreferenced <- true;
+  let lscope = match scope with
+    | Global -> LGlobal
+    | Function -> LFunction (Extlib.the (current_kf env))
+    | Local_block -> LLocal_block (Extlib.the (current_kf env))
+  in
 (*  Options.feedback "new variable %a (global? %b)" Varinfo.pretty v global;*)
   let e = Cil.evar v in
   let stmts = mk_stmts v e in
@@ -221,7 +245,7 @@ let do_new_var ~loc ?(scope=Local_block) ?(name="") env t ty mk_stmts =
       (* also memoize the new variable, but must never be used *)
       { env with
 	cpt = n;
-        new_global_vars = (v, scope) :: env.new_global_vars;
+        new_global_vars = (v, lscope) :: env.new_global_vars;
 	global_mpz_tbl = extend_tbl env.global_mpz_tbl;
 	env_stack = local_env :: tl_env }
     | Local_block ->
@@ -233,9 +257,9 @@ let do_new_var ~loc ?(scope=Local_block) ?(name="") env t ty mk_stmts =
       { env with 
 	cpt = n; 
 	env_stack = local_env :: tl_env;
-        new_global_vars = (v, scope) :: env.new_global_vars }
+        new_global_vars = (v, lscope) :: env.new_global_vars }
   end else
-    let new_global_vars = (v, scope) :: env.new_global_vars in
+    let new_global_vars = (v, lscope) :: env.new_global_vars in
     let local_env = 
       { local_env with 
 	block_info = new_block; 
@@ -261,10 +285,8 @@ let new_var ~loc ?(scope=Local_block) ?name env t ty mk_stmts =
       do_new_var ~loc ~scope ?name env t ty mk_stmts
   in
   match scope with
-  | Global | Function ->
-    memo env.global_mpz_tbl
-  | Local_block ->
-    memo local_env.mpz_tbl
+  | Global | Function -> memo env.global_mpz_tbl
+  | Local_block -> memo local_env.mpz_tbl
 
 let new_var_and_mpz_init ~loc ?scope ?name env t mk_stmts =
   new_var
@@ -278,19 +300,29 @@ let new_var_and_mpz_init ~loc ?scope ?name env t mk_stmts =
 
 module Logic_binding = struct
 
+  let add_binding env logic_v vi =
+    try
+      let varinfos = Logic_var.Map.find logic_v env.var_mapping in
+      Stack.push vi varinfos;
+      env
+    with Not_found | Stack.Empty ->
+      let varinfos = Stack.create () in
+      Stack.push vi varinfos;
+      let var_mapping = Logic_var.Map.add logic_v varinfos env.var_mapping in
+      { env with var_mapping = var_mapping }
+
   let add ?ty env logic_v =
     let ty = match ty with
       | Some ty -> ty
       | None -> match logic_v.lv_type with
-	| Ctype ty -> ty
-	| Linteger -> Gmpz.t ()
-	| Ltype _ as ty when Logic_const.is_boolean_type ty -> Cil.charType
-	| Ltype _ | Lvar _ | Lreal | Larrow _ as lty ->
-	  let msg =
-	    Format.asprintf
-	      "logic variable of type %a" Logic_type.pretty lty
-	  in
-	  Error.not_yet msg
+        | Ctype ty -> ty
+        | Linteger -> Gmpz.t ()
+        | Ltype _ as ty when Logic_const.is_boolean_type ty -> Cil.charType
+        | Ltype _ | Lvar _ | Lreal | Larrow _ as lty ->
+          let msg =
+            Format.asprintf "logic variable of type %a" Logic_type.pretty lty
+          in
+          Error.not_yet msg
     in
     let v, e, env = new_var
       ~loc:Location.unknown
@@ -300,18 +332,7 @@ module Logic_binding = struct
       ty
       (fun _ _ -> [])
     in
-    let env =
-      try
-        let varinfos = Logic_var.Map.find logic_v env.var_mapping in
-        Stack.push v varinfos;
-        env
-      with Not_found ->
-        let varinfos = Stack.create () in
-        Stack.push v varinfos;
-        let var_mapping = Logic_var.Map.add logic_v varinfos env.var_mapping in
-        { env with var_mapping = var_mapping }
-    in
-    v, e, env
+    v, e, add_binding env logic_v v
 
   let get env logic_v =
     try
@@ -323,21 +344,11 @@ module Logic_binding = struct
   let remove env logic_v =
     try
       let varinfos = Logic_var.Map.find logic_v env.var_mapping in
-      ignore (Stack.pop varinfos);
-      env
+      ignore (Stack.pop varinfos)
     with Not_found | Stack.Empty ->
       assert false
 
 end
-
-let current_kf env = 
-  let v = env.visitor in
-  match v#current_kf with
-  | None -> None
-  | Some kf -> Some (Cil.get_kernel_function v#behavior kf)
-
-let get_visitor env = env.visitor
-let get_behavior env = env.visitor#behavior
 
 module Logic_scope = struct
   let get env = env.lscope
@@ -507,7 +518,9 @@ module Context = struct
 	{ env with new_global_vars = 
 	    List.filter
               (fun (v, scope) ->
-                (scope = Global || scope = Function)
+                (match scope with
+                | LGlobal | LFunction _ -> true
+                | LLocal_block _ -> false)
                 && List.for_all (fun (v', _) -> v != v') vars)
 	      !ctx 
 	      @ vars }

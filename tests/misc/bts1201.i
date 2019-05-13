@@ -1,8 +1,8 @@
 /* run.config
-   OPT: -value-verbose 2 -load-script tests/misc/bts1201.ml -print
+   EXECNOW: make -s @PTEST_DIR@/@PTEST_NAME@.cmxs
+   OPT: -eva-verbose 2 -load-module @PTEST_DIR@/@PTEST_NAME@.cmxs -print
 */
-void main() {
-  //@ assert \true;
+void main() { //@ assert \true;
 }
 
 void main2() {
