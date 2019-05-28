@@ -21,6 +21,7 @@ Open Source Release <next-release>
 Open Source Release 19.0 (Potassium)
 ####################################
 
+-*  RTE       [2019/05/24] fixes a crash when visiting variable declarations
 -   Eva       [2019/04/19] The new annotation /*@ split exp; */ enumerates the
               possible values of an expression and continues the analysis
               for each of these value separately, until a /*@ merge exp; */

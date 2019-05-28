@@ -20,6 +20,8 @@ ts s;
 unsigned int c[10];
 void main(int i, int j, unsigned int k)
 {
+  int x;
+  int t_0[(unsigned int)100 / sizeof(x)];
   t[0] = 0;
   u[1] = 0;
   v[2][3] = 0;

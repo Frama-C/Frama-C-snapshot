@@ -523,6 +523,7 @@ endif # FRAMAC_INTERNAL
 $(TARGET_META):
 	$(PRINT_MAKING) $(notdir $@)
 	$(RM) $@
+	$(MKDIR) $(dir $@)
 	$(ECHO) "description = \"$($(notdir $@).DESCRIPTION)\"" >> $@
 	$(ECHO) "version = \"$($(notdir $@).VERSION)\""         >> $@
 	$(ECHO) "requires = \"frama-c.kernel $($(notdir $@).REQUIRES)\""       >> $@

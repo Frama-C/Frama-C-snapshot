@@ -521,19 +521,15 @@ struct
 
   let unfold = ref (fun (_ : stmt) -> false)
 
-  let printer =
-    let pref : Printer.extensible_printer option ref = ref None in
-    fun () ->
-      match !pref with Some pp -> pp | None ->
-        let pp = Printer.current_printer () in
-        let module PP = (val pp: Printer.PrinterClass) in
-        let module TAG = struct
-          let create = T.create
-          let unfold s = !unfold s
-        end in
-        let module TagPrinterClass = BUILD(TAG)(PP) in
-        let printer = new TagPrinterClass.printer in
-        pref := Some printer ; printer
+  let printer () =
+    let pp = Printer.current_printer () in
+    let module PP = (val pp: Printer.PrinterClass) in
+    let module TAG = struct
+      let create = T.create
+      let unfold s = !unfold s
+    end in
+    let module TagPrinterClass = BUILD(TAG)(PP) in
+    new TagPrinterClass.printer
 
   let with_unfold_precond unfolder f fmt x =
     let stack = !unfold in

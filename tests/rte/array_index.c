@@ -44,4 +44,7 @@ void main(int i, int j, unsigned int k) {
   s.t[k] = 0;
   s.s.u[k] = 0;
   s.v[k].t[c[k]] = 0;
+
+  int x;
+  int t[100 / sizeof(x)];
 }

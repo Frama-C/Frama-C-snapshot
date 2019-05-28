@@ -317,8 +317,9 @@ endif
 byte:: $(Wp_DIR)/share/why3/why3.conf
 opt:: $(Wp_DIR)/share/why3/why3.conf
 
-$(Wp_DIR)/share/why3/why3.conf:
-	@echo Generation of the extra-config for why3
+$(Wp_DIR)/share/why3/why3.conf: config.status $(Wp_DIR)/Makefile.in
+	$(PRINT_MAKING) "extra-config for why3"
+	$(RM) $@
 	@printf "[prover_modifiers]\n" >> $@
 	@printf "name=\"Coq\"\n" >> $@
 	@printf "option=\"-Q $(FRAMAC_DATADIR)/wp/why3 ''\"\n" >> $@
@@ -329,7 +330,7 @@ $(Wp_DIR)/share/why3/why3.conf:
 	@printf "\n"  >> $@
 	@printf "[editor_modifiers proofgeneral-coq]\n" >> $@
 	@printf "option=\"--eval \\\\\"(setq coq-load-path (cons '(\\\\\\\\\\\\\"$(FRAMAC_DATADIR)/wp/why3\\\\\\\\\\\\\" \\\\\\\\\\\\\"\\\\\\\\\\\\\") coq-load-path))\\\\\"\"\n"  >> $@
-	@chmod u-w $@
+	$(CHMOD_RO) $@
 
 # --------------------------------------------------------------------------
 # --- Installation                                                       ---

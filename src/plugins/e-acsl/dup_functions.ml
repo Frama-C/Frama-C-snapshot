@@ -227,6 +227,18 @@ type position = Before_gmp | Gmp | After_gmp | Memory_model | Code
 class dup_functions_visitor prj = object (self)
   inherit Visitor.frama_c_copy prj
 
+  val unduplicable_functions =
+    let white_list =
+      [ "__builtin_va_arg";
+        "__builtin_va_end";
+        "__builtin_va_start";
+        "__builtin_va_copy" ]
+    in
+    List.fold_left
+      (fun acc s -> Datatype.String.Set.add s acc)
+      Datatype.String.Set.empty
+      white_list
+
   val fct_tbl = Cil_datatype.Varinfo.Hashtbl.create 7
   val mutable before_memory_model = Before_gmp
   val mutable new_definitions: global list = []
@@ -288,25 +300,27 @@ class dup_functions_visitor prj = object (self)
   | GFunDecl(_, vi, loc) | GFun({ svar = vi }, loc)
       when (* duplicate a function iff: *)
         not (Cil_datatype.Varinfo.Hashtbl.mem fct_tbl vi)
-         (* it is not already duplicated *)
+        (* it is not already duplicated *)
+        && not (Datatype.String.Set.mem vi.vname unduplicable_functions)
+        (* it is duplicable *)
         && self#is_unvariadic_function vi (* it is not a variadic function *)
-         && not (Misc.is_library_loc loc) (* it is not in the E-ACSL's RTL *)
-         && not (Cil.is_builtin vi) (* it is not a Frama-C built-in *)
-         &&
-         (let kf =
-            try Globals.Functions.get vi with Not_found -> assert false
-          in
-          not (Functions.instrument kf)
+        && not (Misc.is_library_loc loc) (* it is not in the E-ACSL's RTL *)
+        && not (Cil.is_builtin vi) (* it is not a Frama-C built-in *)
+        &&
+        (let kf =
+           try Globals.Functions.get vi with Not_found -> assert false
+         in
+         not (Functions.instrument kf)
          (* either explicitely listed as to be not instrumented *)
          ||
          (* or: *)
-          (not (Cil.is_empty_funspec
-                    (Annotations.funspec ~populate:false
-                       (Extlib.the self#current_kf)))
+         (not (Cil.is_empty_funspec
+                 (Annotations.funspec ~populate:false
+                    (Extlib.the self#current_kf)))
           (* it has a function contract *)
           && Functions.check kf
           (* its annotations must be monitored *)))
-         ->
+      ->
     self#next ();
     let name = Functions.RTL.mk_gen_name vi.vname in
     let new_vi = 

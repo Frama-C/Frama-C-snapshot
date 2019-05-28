@@ -323,6 +323,13 @@ end
 (* --- Assembling Goal                                                    --- *)
 (* -------------------------------------------------------------------------- *)
 
+let sanitize_expl fmt title =
+  for i = 0 to String.length title - 1 do
+    match title.[i] with
+    | '\n' | '\t' -> Format.pp_print_char fmt ' '
+    | c -> Format.pp_print_char fmt c
+  done
+
 let assemble_goal ~id ~title ~theory ?axioms prop fmt =
   (** Also create the directory *)
   let goal = cluster ~id ~title () in
@@ -348,9 +355,9 @@ let assemble_goal ~id ~title ~theory ?axioms prop fmt =
     engine#set_goal true ;
     engine#global
       begin fun () ->
-        v#printf "@[<hv 2>goal %s[@expl:%s]:@ %a@]@\n@\n"
+        v#printf "@[<hv 2>goal %s[@expl:%a]:@ %a@]@\n@\n"
           why3_goal_name
-          title
+          sanitize_expl title
           engine#pp_prop (F.e_prop prop) ;
       end ;
     engine#set_goal false ;

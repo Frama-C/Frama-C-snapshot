@@ -1,8 +1,10 @@
 /* run.config
-   COMMENT: test option -e-acsl-instrument
+   COMMENT: test option -e-acsl-instrument; cannot run Eva on this example
    LOG: gen_@PTEST_NAME@.c
-   OPT: -machdep gcc_x86_64 -e-acsl-instrument="@@all,-uninstrument1,-uninstrument2" -e-acsl -then-last -load-script tests/print.cmxs -print -ocode tests/special/result/gen_@PTEST_NAME@.c -kernel-verbose 0 -eva-verbose 0 -eva
+   OPT: -variadic-no-translation -machdep gcc_x86_64 -e-acsl-instrument="@@all,-uninstrument1,-uninstrument2" -e-acsl -then-last -load-script tests/print.cmxs -print -ocode tests/special/result/gen_@PTEST_NAME@.c -kernel-verbose 0
 */
+
+#include <stdarg.h>
 
 int uninstrument1(int *p) {
   *p = 0;
@@ -12,7 +14,7 @@ int uninstrument1(int *p) {
 /*@ requires \valid(p); */
 int uninstrument2(int *p) {
   { int *q = p;
-    *p = 0; 
+    *p = 0;
     goto L;
   }
  L:
@@ -27,11 +29,21 @@ int instrument1(int *p) {
 /*@ requires \valid(p); */
 int instrument2(int *p) {
   { int *q = p;
-    *p = 0; 
+    *p = 0;
     goto L;
   }
  L:
   return 0;
+}
+
+/* test combination of -e-acsl-instrument and -variadic-no-translation;
+   see gitlab's issue #88 */
+int vol(int n, ...) {
+  va_list vl;
+  va_start(vl, n);
+  int r = va_arg(vl, int);
+  va_end(vl);
+  return 1;
 }
 
 int main(void) {
@@ -43,4 +55,5 @@ int main(void) {
   uninstrument2(&x);
   /*@ assert \initialized(&x); */
   /*@ assert \initialized(&y); */
+  return vol(6, 1);
 }
