@@ -326,7 +326,7 @@ val source_files_chooser:
     of the selected file. Replaces GToolbox.select_file that has not been
     ported to lablgtk3.
 
-    @since Frama-C+dev
+    @since 19.0-Potassium
 *)
 val select_file:
   ?title:string -> ?dir:(string ref)-> ?filename:string -> unit -> string option

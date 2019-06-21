@@ -392,7 +392,7 @@ let assemble_wpo wpo =
         end
     | Wpo.Function (kf,_behv) ->
         let model = Model.get_model () in
-        let file = Wpo.DISK.file_kf ~kf ~model ~prover:VCS.Why3ide in
+        let file = Wpo.DISK.file_kf ~kf ~model ~prover:(VCS.Why3 "") in
         let age = try FunFile.find kf with Not_found -> -1 in
         begin if age < Wpo.age wpo then
             let age_max = ref (-1) in

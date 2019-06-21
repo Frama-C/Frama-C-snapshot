@@ -23,10 +23,11 @@
 let compare_prj (_p1, n1) (_p2, n2) =
   String.compare n1 n2
 
-let projects_list () =
+let projects_list ?(filter=fun _ -> true) () =
   let projects =
     Project.fold_on_projects
-      (fun acc p -> (p, Project.get_unique_name p) :: acc)
+      (fun acc p ->
+         if filter p then ((p, Project.get_unique_name p) :: acc) else acc)
       []
   in
   List.sort compare_prj projects
@@ -37,8 +38,8 @@ let projects_list () =
 module PrjRadiosSet =
   FCSet.Make
     (struct
-      type t = (Project.t * string) * GMenu.radio_menu_item
-      let compare (p1, _) (p2, _) = compare_prj p1 p2
+      type t = (Project.t * string) * GButton.radio_button * GMenu.menu_item
+      let compare (p1, _, _) (p2, _, _) = compare_prj p1 p2
     end)
 
 let project_radios : PrjRadiosSet.t ref = ref PrjRadiosSet.empty
@@ -138,32 +139,19 @@ let load_project (host_window: Design.main_window_extension_points) =
        | `DELETE_EVENT | `CANCEL -> ());
   dialog#destroy ()
 
-let rename_project (main_ui: Design.main_window_extension_points) project =
-  let old = Project.get_unique_name project in
-  let s =
-    Gtk_helper.input_string
-      ~parent:main_ui#main_window
-      ~title:"Renaming project"
-      (Format.sprintf "New name for project %S:" old)
-  in
-  match s with
-  | None -> ()
-  | Some s ->
-      try
-        ignore (Project.from_unique_name s);
-        main_ui#error "Project of name %S already exists" s
-      with Project.Unknown_project ->
-        Project.set_name project s
+let mk_project_markup p =
+  let name = Project.get_unique_name p in
+  if Project.is_current p then "<b>" ^ name ^ "</b>" else name
 
-let reset (menu: GMenu.menu) =
+let reset ?filter (menu: GMenu.menu) =
   (* Do not reset all if there is no change. *)
-  let pl = projects_list () in
+  let pl = projects_list ?filter () in
   let same_projects =
     (* use that project_radios and pl are sorted in the same way *)
     try
       let rest =
         PrjRadiosSet.fold
-          (fun (p1, _) acc ->
+          (fun (p1, _, _) acc ->
              match acc with
              | [] -> raise Exit
              | p2 :: acc ->
@@ -178,71 +166,101 @@ let reset (menu: GMenu.menu) =
   if same_projects then begin
     (* update the item status according to the current project anyway *)
     PrjRadiosSet.iter
-      (fun ((p, _), r) -> r#set_active (Project.is_current p))
+      (fun ((p, _), r, i) ->
+         r#set_active (Project.is_current p);
+         let widgets = i#children in
+         match widgets with
+         | [ w ] ->
+           (try
+              let label = GMisc.label_cast w in
+              label#set_label (mk_project_markup p);
+              label#set_use_markup true
+            with Gobject.Cannot_cast (t1,t2) ->
+              Gui_parameters.warning
+                "Child of project menu item of kind %s while %s was expected"
+                t1 t2)
+         | [] -> Gui_parameters.warning "Project menu item without child"
+         | _ -> Gui_parameters.warning "Project menu item with %d child"
+                  (List.length widgets)
+      )
       !project_radios;
     false
   end else begin
-    PrjRadiosSet.iter
-      (fun (_, r) -> menu#remove (r :> GMenu.menu_item))
-      !project_radios;
+    PrjRadiosSet.iter (fun (_, _, i) -> menu#remove i) !project_radios;
     project_radios := PrjRadiosSet.empty;
     true
   end
 
-let rec duplicate_project window menu project =
-  let new_p =
-    Project.create_by_copy ~last:false ~src:project (Project.get_name project)
+let duplicate_project project =
+  ignore
+    (Project.create_by_copy ~last:false ~src:project (Project.get_name project))
+
+let rec rename_project
+    (main_ui: Design.main_window_extension_points) menu project
+  =
+  let old = Project.get_unique_name project in
+  let s =
+    Gtk_helper.input_string
+      ~parent:main_ui#main_window
+      ~title:"Renaming project"
+      (Format.sprintf "New name for project %S:" old)
   in
-  try
-    (* update the menu *)
-    let group =
-      let _, i = PrjRadiosSet.choose !project_radios in
-      i#group
-    in
-    ignore (mk_project_entry window menu ~group new_p)
-  with Not_found ->
-    (* menu not built (action called from the toolbar) *)
-    ()
+  (match s with
+   | None -> ()
+   | Some s ->
+     try
+       ignore (Project.from_unique_name s);
+       main_ui#error "Project of name %S already exists" s
+     with Project.Unknown_project ->
+       Project.set_name project s);
+  recompute main_ui menu
 
 and mk_project_entry window menu ?group p =
-  let p_item = GMenu.radio_menu_item
+  let pname = Project.get_unique_name p in
+  let markup = mk_project_markup p in
+  let item = GMenu.menu_item ~packing:menu#append () in
+  let _label = GMisc.label ~markup ~xalign:0. ~packing:item#add () in
+  let submenu = GMenu.menu ~packing:item#set_submenu () in
+  let current = GMenu.menu_item ~packing:submenu#append () in
+  let p_item = GButton.radio_button
       ?group
       ~active:(Project.is_current p)
-      ~packing:menu#append
+      ~packing:current#add
+      ~label:"Set current"
       ()
   in
-  let callback () = if p_item#active then Project.set_current p in
-  let pname = Project.get_unique_name p in
-  ignore (p_item#connect#toggled ~callback);
-  project_radios := PrjRadiosSet.add ((p, pname), p_item) !project_radios;
-  let box = GPack.hbox ~packing:p_item#add () in
-  ignore (GMisc.label ~text:pname ~packing:box#pack ());
-  let buttons_box = GPack.hbox ~packing:(box#pack ~from:`END) () in
+  let callback () = Project.set_current p in
+  ignore (current#connect#activate ~callback);
+  project_radios := PrjRadiosSet.add ((p, pname), p_item, item) !project_radios;
   let add_action stock text callback =
-    let item = GButton.button ~packing:buttons_box#pack () in
-    Gtk_helper.do_tooltip ~tooltip:text item;
-    item#set_relief `NONE;
-    let image = GMisc.image ~stock () in
-    item#set_image image#coerce;
-    image#set_icon_size `MENU;
-    ignore (item#connect#clicked ~callback)
+    let image = GMisc.image ~xalign:0. ~stock () in
+    let image = image#coerce in
+    let item =
+      Gtk_helper.image_menu_item ~image ~text ~packing:submenu#append
+    in
+    ignore (item#connect#activate ~callback)
   in
   add_action `COPY "Duplicate project"
-    (fun () -> duplicate_project window menu p);
+    (fun () -> duplicate_project p);
   add_action `DELETE "Delete project" (fun () -> delete_project p);
   add_action `SAVE "Save project" (fun () -> save_project window p);
   add_action `SAVE_AS "Save project as" (fun () -> save_project_as window p);
-  add_action `SELECT_FONT "Rename project" (fun () -> rename_project window p);
+  add_action
+    `SELECT_FONT "Rename project" (fun () -> rename_project window menu p);
   p_item
 
-let make_project_entries window menu =
-  match projects_list () with
+and make_project_entries ?filter window menu =
+  match projects_list ?filter () with
   | [] -> assert false
   | (pa, _name) :: tl ->
       let mk = mk_project_entry window menu in
       let pa_item = mk pa in
       let group = pa_item#group in
       List.iter (fun (pa, _) -> ignore (mk ~group pa)) tl
+
+and recompute ?filter window menu =
+  let is_reset = reset ?filter menu in
+  if is_reset then make_project_entries ?filter window menu
 
 open Menu_manager
 
@@ -251,7 +269,7 @@ let () =
   Design.register_extension
     (fun window ->
        let menu_manager = window#menu_manager () in
-       let item, menu = menu_manager#add_menu "_Project" in
+       let _item, menu = menu_manager#add_menu "_Project" in
        let constant_items =
          menu_manager#add_entries
            menu
@@ -262,23 +280,30 @@ let () =
                (Unit_callback (fun () -> load_project window));
              menubar ~icon:`COPY "Duplicate current project"
                (Unit_callback
-                  (fun () -> duplicate_project window menu(Project.current())));
+                  (fun () -> duplicate_project (Project.current())));
              menubar ~icon:`DELETE "Delete current project"
                (Unit_callback (fun () -> delete_project (Project.current ())));
              menubar ~icon:`SELECT_FONT "Rename current project"
                (Unit_callback
-                  (fun () -> rename_project window (Project.current ())));
+                  (fun () -> rename_project window menu (Project.current ())));
            ]
        in
        let new_item = constant_items.(0) in
        new_item#add_accelerator `CONTROL 'n';
        constant_items.(3)#add_accelerator `CONTROL 'd';
        ignore (GMenu.separator_item ~packing:menu#append ());
-       let callback () =
-         let is_reset = reset menu in
-         if is_reset then make_project_entries window menu
+       let callback_prj _p = recompute window menu in
+       let callback_rm_prj p =
+         let filter p' = not (Project.equal p p') in
+         recompute ~filter window menu
        in
-       ignore (item#connect#activate ~callback))
+       let hook () = recompute window menu in
+       Project.register_create_hook callback_prj;
+       Project.register_after_set_current_hook ~user_only:true callback_prj;
+       Project.register_before_remove_hook callback_rm_prj;
+       Project.register_after_load_hook hook;
+       Project.register_after_global_load_hook hook;
+       recompute window menu)
 
 (*
 Local Variables:

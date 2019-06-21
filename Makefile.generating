@@ -153,8 +153,8 @@ endif
 ifeq ($(HAS_OCAML408),yes)
   DYNLINK_INIT=fun () -> ()
   FORMAT_STAG=stag
-  FORMAT_STRING_OF_STAG=match s with\n\
-      | Format.String_tag str -> str\n\
+  FORMAT_STRING_OF_STAG=match s with \
+        Format.String_tag str -> str \
       | _ -> raise (Invalid_argument "unsupported tag extension")
   FORMAT_STAG_OF_STRING=Format.String_tag s
 else

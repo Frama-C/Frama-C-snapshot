@@ -513,8 +513,10 @@ let compute_provers ~mode =
       (fun pname prvs ->
          match VCS.prover_of_name pname with
          | None -> prvs
+         (*
          | Some VCS.Why3ide ->
              mode.why3ide <- true; prvs
+         *)
          | Some VCS.Tactical ->
              mode.tactical <- true ;
              if pname = "tip" then mode.update <- true ;
@@ -626,8 +628,10 @@ let do_wp_proofs_iter iter =
   let spawned = mode.why3ide || mode.tactical || mode.provers <> [] in
   begin
     if spawned then do_list_scheduled iter ;
+    (*
     if mode.why3ide then
       launch (ProverWhy3ide.prove ~callback:do_why3_result ~iter) ;
+    *)
     spawn_wp_proofs_iter ~mode iter ;
     if spawned then
       begin

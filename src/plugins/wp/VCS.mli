@@ -28,7 +28,6 @@
 
 type prover =
   | Why3 of string (* Prover via WHY *)
-  | Why3ide
   | AltErgo       (* Alt-Ergo *)
   | Coq           (* Coq and Coqide *)
   | Qed           (* Qed Solver *)

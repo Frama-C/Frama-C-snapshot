@@ -5,7 +5,7 @@
 [wp] Warning: Missing RTE guards
 [wp] 13 goals scheduled
 [wp] [Qed] Goal typed_f_call_g_requires : Valid
-[wp] [Qed] Goal typed_f_call_g_requires : Valid
+[wp] [Qed] Goal typed_f_call_g_2_requires : Valid
 [wp] [Qed] Goal typed_f_FST_FAIL_ensures_qed_ok : Valid
 [wp] [Qed] Goal typed_f_FST_FAIL_ensures_qed_ok_2 : Valid
 [wp] [Qed] Goal typed_f_FST_FAIL_ensures_qed_ok_3 : Valid

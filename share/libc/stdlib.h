@@ -686,14 +686,14 @@ extern int posix_memalign(void **memptr, size_t alignment, size_t size);
 
 /*@
   // missing: requires 'last 6 characters of template must be XXXXXX'
-  // missing: assigns \result, template[0..] \from 'filesystem', 'RNG';
-  requires valid_template: valid_string(template);
-  assigns template[0..] \from \nothing;
+  // missing: assigns \result, templat[0..] \from 'filesystem', 'RNG';
+  requires valid_template: valid_string(templat);
+  assigns templat[0..] \from \nothing;
   assigns \result \from \nothing;
   ensures result_error_or_valid_fd: \result == -1 ||
                                     0 <= \result < __FC_FOPEN_MAX;
  */
-extern int mkstemp(char *template);
+extern int mkstemp(char *templat);
 
 __END_DECLS
 

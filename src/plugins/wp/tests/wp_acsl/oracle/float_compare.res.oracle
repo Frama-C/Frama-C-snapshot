@@ -2,8 +2,24 @@
 [kernel] Parsing tests/wp_acsl/float_compare.i (no preprocessing)
 [wp] Running WP plugin...
 [wp] Loading driver 'share/wp.driver'
+[wp] Warning: Missing RTE guards
 ------------------------------------------------------------
   Global
+------------------------------------------------------------
+
+Lemma finite_32_64:
+Assume: 'test_double_compare_greater' 'test_float_compare_greater'
+  'test_double_compare' 'test_float_compare'
+Prove: (is_finite_f32 x_0) -> (is_finite_f64 (to_f64 (of_f32 x_0)))
+
+------------------------------------------------------------
+
+Lemma finite_32_64_real:
+Assume: 'finite_32_64' 'test_double_compare_greater'
+  'test_float_compare_greater' 'test_double_compare' 'test_float_compare'
+Prove: let r_0 = (of_f32 x_0) in
+       (is_finite_f32 x_0) -> ((of_f64 (to_f64 r_0))=r_0)
+
 ------------------------------------------------------------
 
 Lemma test_double_compare:
@@ -31,5 +47,130 @@ Lemma test_float_compare_greater:
 Assume: 'test_double_compare' 'test_float_compare'
 Prove: (is_finite_f32 x_0) -> (is_finite_f32 y_0) -> (le_f32 y_0 x_0)
        -> ((eq_f32 x_0 y_0) \/ (lt_f32 y_0 x_0))
+
+------------------------------------------------------------
+------------------------------------------------------------
+  Function cmp_dd
+------------------------------------------------------------
+
+Goal Post-condition 'DEF' in 'cmp_dd':
+Assume { (* Pre-condition *) Have: is_finite_f64(a) /\ is_finite_f64(b). }
+Prove: (if lt_f64b(a, b) then 1 else 0)
+         = (if (of_f64(a) < of_f64(b)) then 1 else 0).
+
+------------------------------------------------------------
+
+Goal Post-condition 'REL1' in 'cmp_dd':
+Assume { (* Pre-condition *) Have: is_finite_f64(a) /\ is_finite_f64(b). }
+Prove: lt_f64(a, b) <-> (of_f64(a) < of_f64(b)).
+
+------------------------------------------------------------
+
+Goal Post-condition 'REL2' in 'cmp_dd':
+Assume { (* Pre-condition *) Have: is_finite_f64(a) /\ is_finite_f64(b). }
+Prove: lt_f64(a, b) <-> (of_f64(a) < of_f64(b)).
+
+------------------------------------------------------------
+------------------------------------------------------------
+  Function cmp_fd
+------------------------------------------------------------
+
+Goal Post-condition 'DEF' in 'cmp_fd':
+Let r = of_f32(a).
+Let a_1 = to_f64(r).
+Assume {
+  (* Pre-condition *)
+  Have: is_finite_f32(a) /\ is_finite_f64(b).
+  (* Assertion *)
+  Have: is_finite_f64(a_1).
+  (* Assertion *)
+  Have: of_f64(a_1) = r.
+}
+Prove: (if lt_f64b(a_1, b) then 1 else 0)
+         = (if (r < of_f64(b)) then 1 else 0).
+
+------------------------------------------------------------
+
+Goal Post-condition 'REL1' in 'cmp_fd':
+Let r = of_f32(a).
+Let a_1 = to_f64(r).
+Assume {
+  (* Pre-condition *)
+  Have: is_finite_f32(a) /\ is_finite_f64(b).
+  (* Assertion *)
+  Have: is_finite_f64(a_1).
+  (* Assertion *)
+  Have: of_f64(a_1) = r.
+}
+Prove: lt_f64(a_1, b) <-> (r < of_f64(b)).
+
+------------------------------------------------------------
+
+Goal Post-condition 'REL2' in 'cmp_fd':
+Let r = of_f32(a).
+Let a_1 = to_f64(r).
+Assume {
+  (* Pre-condition *)
+  Have: is_finite_f32(a) /\ is_finite_f64(b).
+  (* Assertion *)
+  Have: is_finite_f64(a_1).
+  (* Assertion *)
+  Have: of_f64(a_1) = r.
+}
+Prove: lt_f64(a_1, b) <-> (r < of_f64(b)).
+
+------------------------------------------------------------
+
+Goal Assertion (file tests/wp_acsl/float_compare.i, line 62):
+Assume { (* Pre-condition *) Have: is_finite_f32(a) /\ is_finite_f64(b). }
+Prove: is_finite_f64(to_f64(of_f32(a))).
+
+------------------------------------------------------------
+
+Goal Assertion (file tests/wp_acsl/float_compare.i, line 63):
+Let r = of_f32(a).
+Let a_1 = to_f64(r).
+Assume {
+  (* Pre-condition *)
+  Have: is_finite_f32(a) /\ is_finite_f64(b).
+  (* Assertion *)
+  Have: is_finite_f64(a_1).
+}
+Prove: of_f64(a_1) = r.
+
+------------------------------------------------------------
+------------------------------------------------------------
+  Function cmp_ff
+------------------------------------------------------------
+
+Goal Post-condition 'DEF' in 'cmp_ff':
+Assume { (* Pre-condition *) Have: is_finite_f32(a) /\ is_finite_f32(b). }
+Prove: (if lt_f32b(a, b) then 1 else 0)
+         = (if (of_f32(a) < of_f32(b)) then 1 else 0).
+
+------------------------------------------------------------
+
+Goal Post-condition 'REL1' in 'cmp_ff':
+Assume { (* Pre-condition *) Have: is_finite_f32(a) /\ is_finite_f32(b). }
+Prove: lt_f32(a, b) <-> (of_f32(a) < of_f32(b)).
+
+------------------------------------------------------------
+
+Goal Post-condition 'REL2' in 'cmp_ff':
+Assume { (* Pre-condition *) Have: is_finite_f32(a) /\ is_finite_f32(b). }
+Prove: lt_f32(a, b) <-> (of_f32(a) < of_f32(b)).
+
+------------------------------------------------------------
+------------------------------------------------------------
+  Function cmp_fnan
+------------------------------------------------------------
+
+Goal Post-condition 'POS' in 'cmp_fnan':
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Post-condition 'NEG' in 'cmp_fnan':
+Prove: true.
 
 ------------------------------------------------------------

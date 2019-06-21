@@ -36,11 +36,11 @@ val version_and_codename: string
 
 val major_version: int
 (** Frama-C major version number.
-    @since Frama-C+dev *)
+    @since 19.0-Potassium *)
 
 val minor_version: int
 (** Frama-C minor version number.
-    @since Frama-C+dev *)
+    @since 19.0-Potassium *)
 
 val is_gui: bool ref
   (** Is the Frama-C GUI running?

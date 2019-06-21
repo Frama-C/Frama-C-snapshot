@@ -176,7 +176,7 @@ type typing_context = {
 
     @since Carbon-20101201
     @modify Silicon-20161101 change type of the function
-    @modify Frama-C+dev add [status] argument
+    @modify 19.0-Potassium add [status] argument
 *)
 val register_behavior_extension:
   string -> bool ->
@@ -295,7 +295,7 @@ sig
      @param explicit true if the cast is present in original source.
             defaults to false
      @since Nitrogen-20111001
-     @modify Frama-C+dev introduces explicit param
+     @modify 19.0-Potassium introduces explicit param
   *)
   val mk_cast:
     ?explicit:bool -> Cil_types.term -> Cil_types.logic_type -> Cil_types.term

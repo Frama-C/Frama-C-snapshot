@@ -2146,14 +2146,14 @@ extern size_t wcstombs(char * __restrict s, wchar_t const * __restrict pwcs,
 
 int posix_memalign(void **memptr, size_t alignment, size_t size);
 
-/*@ requires valid_template: valid_string(template);
+/*@ requires valid_template: valid_string(templat);
     ensures
       result_error_or_valid_fd: \result ≡ -1 ∨ (0 ≤ \result < 16);
-    assigns *(template + (0 ..)), \result;
-    assigns *(template + (0 ..)) \from \nothing;
+    assigns *(templat + (0 ..)), \result;
+    assigns *(templat + (0 ..)) \from \nothing;
     assigns \result \from \nothing;
  */
-extern int mkstemp(char *template);
+extern int mkstemp(char *templat);
 
 int glob(char const *pattern, int flags,
          int (*errfunc)(char const *epath, int eerrno), glob_t *pglob)

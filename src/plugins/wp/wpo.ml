@@ -109,7 +109,6 @@ struct
       | Qed -> "qed"
       | AltErgo -> "mlw"
       | Why3 _ -> "why"
-      | Why3ide -> "why"
       | Coq -> "v"
       | Tactical -> "tac"
     in
@@ -121,7 +120,6 @@ struct
       | Qed -> "qed"
       | AltErgo -> "mlw"
       | Why3 _ -> "why"
-      | Why3ide -> "why"
       | Coq -> "v"
       | Tactical -> "tac"
     in
@@ -539,7 +537,7 @@ struct
     match r.verdict with VCS.Computing _ -> false | _ -> true
 
   let class_of_prover = function
-    | Qed | Tactical | AltErgo | Coq | Why3ide -> None
+    | Qed | Tactical | AltErgo | Coq -> None
     | Why3 dp ->
         let cp =
           try String.sub dp 0 (String.index dp ':')

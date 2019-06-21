@@ -113,7 +113,7 @@ val common_block: stmt -> stmt -> block
     both [s1] and [s2], provided the statements belong to the same function.
     raises a fatal error if this is not the case.
 
-    @since Frama-C+dev
+    @since 19.0-Potassium
 *)
 
 val stmt_in_loop: t -> stmt -> bool
@@ -141,7 +141,7 @@ val var_is_in_scope: stmt -> varinfo -> bool
       that on the contrary to {!Globals.Syntactic_search.find_in_scope}, the
       variable is searched according to its [vid], not its [vorig_name].
 
-      @since Frama-C+dev *)
+      @since 19.0-Potassium *)
 
 val find_enclosing_stmt_in_block: block -> stmt -> stmt
   (** [find_enclosing_stmt_in_block b s] returns the statements [s']
@@ -149,7 +149,7 @@ val find_enclosing_stmt_in_block: block -> stmt -> stmt
       an inner block (recursively) containing [s].
 
       @raise AbortFatal if [b] is not equal to [find_enclosing_block s]
-      @since Frama-C+dev
+      @since 19.0-Potassium
   *)
 
 val is_between: block -> stmt -> stmt -> stmt -> bool
@@ -160,7 +160,7 @@ val is_between: block -> stmt -> stmt -> stmt -> bool
 
     @raise AbortFatal if pre-conditions are not met.
 
-    @since Frama-C+dev
+    @since 19.0-Potassium
 *)
 
 

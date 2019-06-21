@@ -181,7 +181,7 @@ class dp_button ~(available:available) =
     | [] -> ERGO
     | spec::others ->
         match VCS.prover_of_name spec with
-        | None | Some (Why3ide|Qed) -> NONE
+        | None | Some Qed -> NONE
         | Some (AltErgo|Tactical) -> ERGO
         | Some Coq -> COQ
         | Some (Why3 s) ->

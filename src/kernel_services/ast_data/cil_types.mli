@@ -1066,7 +1066,7 @@ and stmt = {
 
   mutable sattr : attributes
   (** Statement attributes.
-      @since Frama-C+dev *)
+      @since 19.0-Potassium *)
 }
 
 (** Labels *)

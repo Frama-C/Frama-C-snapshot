@@ -26,7 +26,7 @@ let ko_status = `Share "theme/default/unknown.png"
 let wg_status = `Share "theme/default/invalid.png"
 
 let filter = function
-  | VCS.Qed | VCS.Tactical | VCS.Why3ide | VCS.Coq -> false
+  | VCS.Qed | VCS.Tactical | VCS.Coq -> false
   | VCS.Why3 _ | VCS.AltErgo -> true
 
 (* -------------------------------------------------------------------------- *)

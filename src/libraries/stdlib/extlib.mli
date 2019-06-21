@@ -340,7 +340,7 @@ val mkdir : ?parents:bool -> string -> Unix.file_perm -> unit
       user execution of the created directory. This will leave the filesystem
       in a modified state before raising an exception.
       @raise Unix.Unix_error if cannot create [name] or its parents.
-      @since Frama-C+dev  *)
+      @since 19.0-Potassium  *)
 
 val safe_at_exit : (unit -> unit) -> unit
   (** Register function to call with [Pervasives.at_exit], but only

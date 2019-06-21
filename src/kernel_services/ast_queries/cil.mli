@@ -538,12 +538,12 @@ val isCharArrayType: typ -> bool
 val isIntegralType: typ -> bool
 
 (** True if the argument is [_Bool]
-    @since Frama-C+dev
+    @since 19.0-Potassium
 *)
 val isBoolType: typ -> bool
 
 (** True if the argument is [_Bool] or [boolean].
-    @since Frama-C+dev
+    @since 19.0-Potassium
  *)
 val isLogicPureBooleanType: logic_type -> bool
 
@@ -855,7 +855,7 @@ val isLogicNull: term -> bool
 (** [no_op_coerce typ term] is [true] iff converting [term] to [typ] does
     not modify its value.
 
-    @since Frama-C+dev
+    @since 19.0-Potassium
 *)
 val no_op_coerce: logic_type -> term -> bool
 
@@ -2074,7 +2074,7 @@ val visitCilBlock: cilVisitor -> block -> block
     and contain definitions of local variables that are not part of the block.
 
     @since Phosphorus-20170501-beta1
-    @modify Frama-C+dev: do not raise fatal as soon as the block has locals
+    @modify 19.0-Potassium: do not raise fatal as soon as the block has locals
 *)
 val transient_block: block -> block
 

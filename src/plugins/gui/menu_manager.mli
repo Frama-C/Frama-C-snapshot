@@ -54,8 +54,8 @@ type entry = private {
 
 (** {2 Smart constructors for menu entries.}
 
-    If not supplied, the [active] parameter is the function that always returns
-    [true].
+    If not supplied, the [sensitive] parameter is the function that always
+    returns [true].
     @since Nitrogen-20111001 *)
 
 val toolbar:

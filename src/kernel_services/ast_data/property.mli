@@ -448,7 +448,7 @@ val ip_of_global_annotation_single:
 val has_status: identified_property -> bool
 (** Does the property has a logical status (which may be Never_tried)?
     False for pragma, assumes clauses and some ACSL extensions.
-    @since Frama-C+dev *)
+    @since 19.0-Potassium *)
 
 val get_kinstr: identified_property -> kinstr
 val get_kf: identified_property -> kernel_function option
@@ -467,7 +467,7 @@ val source: identified_property -> Filepath.position option
 (**************************************************************************)
 
 
-(** @since Frama-C+dev deprecated old naming scheme,
+(** @since 19.0-Potassium deprecated old naming scheme,
     to be removed in future versions. *)
 module LegacyNames :
 sig
@@ -485,12 +485,12 @@ sig
   val get_prop_name_id: identified_property -> string
   (** returns a unique name identifying the property.
       This name is built from the basename of the property.
-      @modify Frama-C+dev new naming scheme, Cf. LegacyNames
+      @modify 19.0-Potassium new naming scheme, Cf. LegacyNames
   *)
 
   val get_prop_basename: ?truncate:int -> identified_property -> string
   (** returns the basename of the property.
-      @modify Frama-C+dev additional truncation parameter
+      @modify 19.0-Potassium additional truncation parameter
   *)
 
 end

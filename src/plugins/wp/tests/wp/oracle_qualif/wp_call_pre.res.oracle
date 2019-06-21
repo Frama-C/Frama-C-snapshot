@@ -13,7 +13,7 @@
 [wp] [Qed] Goal typed_call_main_ensures_qed_ok : Valid
 [wp] [Qed] Goal typed_call_main_call_main_requires_qed_ok_Rmain : Valid
 [wp] [Qed] Goal typed_double_call_call_f_requires_qed_ok_Rf : Valid
-[wp] [Alt-Ergo] Goal typed_double_call_call_f_requires_qed_ok_Rf : Valid
+[wp] [Alt-Ergo] Goal typed_double_call_call_f_2_requires_qed_ok_Rf : Valid
 [wp] [Qed] Goal typed_main_requires_qed_ok_Rmain : Valid
 [wp] [Qed] Goal typed_main_ensures_qed_ok_Emain : Valid
 [wp] [Qed] Goal typed_main_call_f_requires_qed_ok_Rf : Valid

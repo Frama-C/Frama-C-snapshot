@@ -252,9 +252,9 @@ let register_builtin_comparison suffix ft =
     add_builtin ("\\ge_" ^ suffix) signature ge ;
     Context.register
       begin fun () ->
-        let compute phi x y = e_fun phi [y;x] in
-        Lang.F.set_builtin_2 gt (compute (flt_lt ft)) ;
-        Lang.F.set_builtin_2 ge (compute (flt_le ft)) ;
+        let converse phi x y = e_fun phi [y;x] in
+        Lang.F.set_builtin_2 gt (converse (flt_lt ft)) ;
+        Lang.F.set_builtin_2 ge (converse (flt_le ft)) ;
       end
   end
 

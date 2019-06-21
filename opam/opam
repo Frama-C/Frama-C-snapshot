@@ -1,7 +1,7 @@
 opam-version: "2.0"
 name: "frama-c"
 synopsis: "Platform dedicated to the analysis of source code written in C"
-version: "19.0.beta2"
+version: "19.0"
 maintainer: "francois.bobot@cea.fr"
 authors: [
   "Michele Alberti"
@@ -94,17 +94,20 @@ depends: [
   ( ( "lablgtk" { >= "2.18.2" } & "conf-gnomecanvas" )
   | ( "lablgtk3" { >= "3.0.beta4" & os!="macos" } & "lablgtk3-sourceview3" ))
   "conf-gtksourceview"
-  ( "alt-ergo-free" | "alt-ergo" )
+  ( "alt-ergo-free" | "alt-ergo" { <= "2.2.0" } )
   "conf-graphviz" { post }
   "yojson"
 ]
 
 depopts: [
-  "coq" { build }
-  "why3" { build }
-  "why3-coq" { build }
-  "mlgmpidl" { build }
-  "apron" { build }
+  # cannot use {build}: Frama-C must be recompiled when Coq and libraries changes.
+  # Coq: because .vo would would not be loadable by another version of Coq
+  # libraries: because we use dynamic linking
+  "coq"
+  "why3"
+  "why3-coq"
+  "mlgmpidl"
+  "apron"
 ]
 
 conflicts: [

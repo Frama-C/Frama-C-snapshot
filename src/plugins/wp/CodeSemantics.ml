@@ -188,13 +188,18 @@ struct
     | C_int i -> Val (iop i (val_of_exp env e1) (val_of_exp env e2))
     | _ -> assert false
 
-  let bool_of_comp env iop lop e1 e2 =
+  let bool_of_comp env iop lop fop e1 e2 =
     let t1 = Cil.typeOf e1 in
     let t2 = Cil.typeOf e2 in
     if Cil.isPointerType t1 && Cil.isPointerType t2 then
       Cvalues.is_true (lop (loc_of_exp env e1) (loc_of_exp env e2))
-    else
-      iop (val_of_exp env e1) (val_of_exp env e2)
+    else match Cil.unrollType t1 with
+      | TFloat(f,_) ->
+          let p = fop (Ctypes.c_float f)
+              (val_of_exp env e1) (val_of_exp env e2) in
+          e_if (F.e_prop p) e_one e_zero
+      | _ ->
+          iop (val_of_exp env e1) (val_of_exp env e2)
 
   let bool_of_exp env e =
     match Ctypes.object_of (Cil.typeOf e) with
@@ -214,12 +219,12 @@ struct
     | BAnd    -> arith_int env tr Cint.band e1 e2
     | BOr     -> arith_int env tr Cint.bor  e1 e2
     | BXor    -> arith_int env tr Cint.bxor e1 e2
-    | Eq      -> Val (bool_of_comp env Cvalues.bool_eq  M.loc_eq  e1 e2)
-    | Ne      -> Val (bool_of_comp env Cvalues.bool_neq M.loc_neq e1 e2)
-    | Lt      -> Val (bool_of_comp env Cvalues.bool_lt  M.loc_lt  e1 e2)
-    | Gt      -> Val (bool_of_comp env Cvalues.bool_lt  M.loc_lt  e2 e1)
-    | Le      -> Val (bool_of_comp env Cvalues.bool_leq M.loc_leq e1 e2)
-    | Ge      -> Val (bool_of_comp env Cvalues.bool_leq M.loc_leq e2 e1)
+    | Eq      -> Val (bool_of_comp env Cvalues.bool_eq  M.loc_eq  Cfloat.feq e1 e2)
+    | Ne      -> Val (bool_of_comp env Cvalues.bool_neq M.loc_neq Cfloat.fneq e1 e2)
+    | Lt      -> Val (bool_of_comp env Cvalues.bool_lt  M.loc_lt  Cfloat.flt e1 e2)
+    | Gt      -> Val (bool_of_comp env Cvalues.bool_lt  M.loc_lt  Cfloat.flt e2 e1)
+    | Le      -> Val (bool_of_comp env Cvalues.bool_leq M.loc_leq Cfloat.fle e1 e2)
+    | Ge      -> Val (bool_of_comp env Cvalues.bool_leq M.loc_leq Cfloat.fle e2 e1)
     | LAnd    -> Val (Cvalues.bool_and (bool_of_exp env e1) (bool_of_exp env e2))
     | LOr     -> Val (Cvalues.bool_or  (bool_of_exp env e1) (bool_of_exp env e2))
     | PlusPI | IndexPI ->

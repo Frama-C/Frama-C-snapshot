@@ -295,6 +295,7 @@ struct
     | EQ_set
     | EQ_loc
     | EQ_plain
+    | EQ_float of c_float
     | EQ_array of Matrix.matrix
     | EQ_comp of compinfo
     | EQ_incomparable
@@ -306,7 +307,8 @@ struct
     | Ctype t ->
         match Ctypes.object_of t with
         | C_pointer _ -> EQ_loc
-        | C_int _ | C_float _ -> EQ_plain
+        | C_int _ -> EQ_plain
+        | C_float f -> EQ_float f
         | C_comp c -> EQ_comp c
         | C_array a -> EQ_array (Matrix.of_array a)
 
@@ -323,6 +325,7 @@ struct
           | None -> EQ_incomparable
         else EQ_incomparable
     | EQ_plain , EQ_plain -> EQ_plain
+    | EQ_float f1 , EQ_float f2 when f1 = f2 -> EQ_float f1
     | _ -> EQ_incomparable
 
   let use_equal = function
@@ -357,6 +360,9 @@ struct
         then p_equal va vb
         else Cvalues.equal_array m va vb
 
+    | EQ_float f ->
+        Cfloat.feq f (val_of_term env a) (val_of_term env b)
+
     | EQ_plain ->
         p_equal (val_of_term env a) (val_of_term env b)
 
@@ -370,11 +376,21 @@ struct
   let term_diff polarity env a b =
     p_not (term_equal (Cvalues.negate polarity) env a b)
 
-  let compare_term env vrel lrel a b =
+
+  let float_of_logic_type lt =
+    match Logic_utils.unroll_type lt with
+    | Ctype ty ->
+        (match Cil.unrollType ty with
+         | TFloat(f,_) -> Some (Ctypes.c_float f)
+         | _ -> None)
+    | _ -> None
+
+  let compare_term env vrel lrel frel a b =
     if Logic_typing.is_pointer_type a.term_type then
       lrel (loc_of_term env a) (loc_of_term env b)
-    else
-      vrel (val_of_term env a) (val_of_term env b)
+    else match float_of_logic_type a.term_type with
+      | Some f -> frel f (val_of_term env a) (val_of_term env b)
+      | None -> vrel (val_of_term env a) (val_of_term env b)
 
   (* -------------------------------------------------------------------------- *)
   (* --- Term Comparison                                                    --- *)
@@ -386,8 +402,8 @@ struct
   let exp_diff env a b =
     Vexp(e_prop (term_diff `NoPolarity env a b))
 
-  let exp_compare env vrel lrel a b =
-    Vexp(e_prop (compare_term env vrel lrel a b))
+  let exp_compare env vrel lrel frel a b =
+    Vexp(e_prop (compare_term env vrel lrel frel a b))
 
   (* -------------------------------------------------------------------------- *)
   (* --- Binary Operators                                                   --- *)
@@ -443,10 +459,10 @@ struct
     | BOr -> L.apply Cint.l_or (C.logic env a) (C.logic env b)
     | LAnd -> Vexp(e_and (List.map (val_of_term env) (fold_assoc LAnd [] [a;b])))
     | LOr  -> Vexp(e_or  (List.map (val_of_term env) (fold_assoc LOr  [] [a;b])))
-    | Lt -> exp_compare env p_lt M.loc_lt a b
-    | Gt -> exp_compare env p_lt M.loc_lt b a
-    | Le -> exp_compare env p_leq M.loc_leq a b
-    | Ge -> exp_compare env p_leq M.loc_leq b a
+    | Lt -> exp_compare env p_lt M.loc_lt Cfloat.flt a b
+    | Gt -> exp_compare env p_lt M.loc_lt Cfloat.flt b a
+    | Le -> exp_compare env p_leq M.loc_leq Cfloat.fle a b
+    | Ge -> exp_compare env p_leq M.loc_leq Cfloat.fle b a
     | Eq -> exp_equal env a b
     | Ne -> exp_diff env a b
 
@@ -779,10 +795,10 @@ struct
 
   let relation polarity env rel a b =
     match rel with
-    | Rlt -> compare_term env p_lt M.loc_lt a b
-    | Rgt -> compare_term env p_lt M.loc_lt b a
-    | Rle -> compare_term env p_leq M.loc_leq a b
-    | Rge -> compare_term env p_leq M.loc_leq b a
+    | Rlt -> compare_term env p_lt M.loc_lt Cfloat.flt a b
+    | Rgt -> compare_term env p_lt M.loc_lt Cfloat.flt b a
+    | Rle -> compare_term env p_leq M.loc_leq Cfloat.fle a b
+    | Rge -> compare_term env p_leq M.loc_leq Cfloat.fle b a
     | Req -> term_equal polarity env a b
     | Rneq -> term_diff polarity env a b
 

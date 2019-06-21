@@ -65,7 +65,7 @@
 [wp] [Qed] Goal typed_ref_call_ref_valid_assigns_normal_part4 : Valid
 [wp] [Qed] Goal typed_ref_call_ref_valid_assigns_normal_part5 : Valid
 [wp] [Qed] Goal typed_ref_call_ref_valid_call_ref_valid_requires : Valid
-[wp] [Qed] Goal typed_ref_call_ref_valid_call_ref_valid_requires : Valid
+[wp] [Qed] Goal typed_ref_call_ref_valid_call_ref_valid_2_requires : Valid
 [wp] [Qed] Goal typed_ref_call_two_ref_ensures : Valid
 [wp] [Qed] Goal typed_ref_call_two_ref_assigns_exit_part1 : Valid
 [wp] [Qed] Goal typed_ref_call_two_ref_assigns_exit_part2 : Valid

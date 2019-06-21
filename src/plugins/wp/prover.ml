@@ -36,7 +36,6 @@ let dispatch ?(config=VCS.default) mode prover wpo =
     | Coq -> ProverCoq.prove mode wpo
     | Why3 prover -> ProverWhy3.prove ?timeout:config.timeout ~prover wpo
     | Qed | Tactical -> Task.return VCS.no_result
-    | _ -> Task.failed "Prover '%a' not available" VCS.pp_prover prover
   end
 
 let started ?start wpo =

@@ -147,7 +147,7 @@ class pane (enabled:GuiConfig.enabled) =
         ignore (list#add_column_text ~title:"Model" [] render) ;
         List.iter
           self#create_prover
-          [ VCS.Qed ; VCS.Tactical ; VCS.AltErgo ; VCS.Coq ; VCS.Why3ide ] ;
+          [ VCS.Qed ; VCS.Tactical ; VCS.AltErgo ; VCS.Coq ] ;
         ignore (list#add_column_empty) ;
         list#set_selection_mode `MULTIPLE ;
         enabled#connect self#configure ;
