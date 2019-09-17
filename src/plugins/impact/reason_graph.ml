@@ -27,13 +27,13 @@ module NodeSet = PdgTypes.NodeSet
     by the effect of [n'], and the impact is of type reason]. *)
 type reason_type =
   | Intraprocedural of PdgTypes.Dpd.t
-      (** The effect of [n'] in [f] impact [n], which is also in [f]. *)
+  (** The effect of [n'] in [f] impact [n], which is also in [f]. *)
 
   | InterproceduralDownward (** the effect of [n'] in [f] has an effect on a
-      callee [f'] of [f], in which [n] is located. *)
+                                callee [f'] of [f], in which [n] is located. *)
 
   | InterproceduralUpward  (** the effect of [n'] in [f] has an effect on a
-      caller [f'] of [f] (once the call to [f] has ended), [n] being in [f']. *)
+                               caller [f'] of [f] (once the call to [f] has ended), [n] being in [f']. *)
 
 module ReasonType = Datatype.Make(
   struct
@@ -75,11 +75,11 @@ let empty = {
 }
 
 module DatatypeReason = Datatype.Make(struct
-  include Datatype.Serializable_undefined
-  type t = reason
-  let name = "Impact.Reason_graph.reason"
-  let reprs = [empty]
-end)
+    include Datatype.Serializable_undefined
+    type t = reason
+    let name = "Impact.Reason_graph.reason"
+    let reprs = [empty]
+  end)
 
 
 module type AdditionalInfo = sig
@@ -111,13 +111,13 @@ module Printer (X: AdditionalInfo) = struct
      of the nodes belong to X.in_kf *)
   let keep_edge (n1, n2, _) =
     match X.in_kf with
-      | None -> true
-      | Some kf ->
-        let in_kf n =
-          try Kernel_function.equal kf (node_kf n)
-          with Not_found -> false
-        in
-        in_kf n1 || in_kf n2
+    | None -> true
+    | Some kf ->
+      let in_kf n =
+        try Kernel_function.equal kf (node_kf n)
+        with Not_found -> false
+      in
+      in_kf n1 || in_kf n2
 
   let iter_vertex f graph =
     (* Construct a set, then iter on it. Otherwise, nodes will be seen more
@@ -125,9 +125,9 @@ module Printer (X: AdditionalInfo) = struct
     let all =
       Reason.Set.fold
         (fun (src, dst, _ as e) acc ->
-          if keep_edge e then
-            NodeSet.add src (NodeSet.add dst acc)
-          else acc
+           if keep_edge e then
+             NodeSet.add src (NodeSet.add dst acc)
+           else acc
         ) graph NodeSet.empty
     in
     NodeSet.iter f all
@@ -151,7 +151,7 @@ module Printer (X: AdditionalInfo) = struct
       if Pdg_aux.NS.mem v X.initial_nodes then
         [`Shape `Diamond; `Color 0x9090FF]
       else []
-    in 
+    in
     shape @ [`Label txt]
 
   let edge_attributes (_, _, reason) =
@@ -162,9 +162,9 @@ module Printer (X: AdditionalInfo) = struct
     in
     let attribs = [`Color color] in
     match reason with
-      | Intraprocedural dpd ->
-          `Label (Pretty_utils.to_string PdgTypes.Dpd.pretty dpd)  :: attribs
-      | _ -> attribs
+    | Intraprocedural dpd ->
+      `Label (Pretty_utils.to_string PdgTypes.Dpd.pretty dpd)  :: attribs
+    | _ -> attribs
 
 
   let get_subgraph n =
@@ -177,10 +177,17 @@ module Printer (X: AdditionalInfo) = struct
       } in
       Some attrs
     with Not_found -> None
-        
 end
 
 module Dot (X: AdditionalInfo)= Graph.Graphviz.Dot(Printer(X))
+
+let to_dot_formatter ?in_kf reason fmt =
+  let module Dot = Dot(struct
+      let nodes_origin = reason.nodes_origin
+      let initial_nodes = reason.initial_nodes
+      let in_kf = in_kf
+    end) in
+  Kernel.Unicode.without_unicode (Dot.fprint_graph fmt) reason.reason_graph
 
 (* May raise [Sys_error] *)
 let to_dot_file ~temp ?in_kf reason =
@@ -196,12 +203,8 @@ let to_dot_file ~temp ?in_kf reason =
       Options.abort "cannot create temporary file: %s" s
   in
   let cout = open_out dot_file in
-  let module Dot = Dot(struct
-    let nodes_origin = reason.nodes_origin
-    let initial_nodes = reason.initial_nodes
-    let in_kf = in_kf
-  end) in
-  Kernel.Unicode.without_unicode (Dot.output_graph cout) reason.reason_graph;
+  let fmt = Format.formatter_of_out_channel cout in
+  to_dot_formatter ?in_kf reason fmt;
   close_out cout;
   dot_file
 
@@ -213,8 +216,6 @@ let print_dot_graph reason =
     Options.error "Could not generate impact graph: %s"
       (Printexc.to_string exn)
 
-
-
 (* Very basic textual debugging function *)
 let print_reason reason =
   let pp_node = !Db.Pdg.pretty_node false in
@@ -222,10 +223,10 @@ let print_reason reason =
     Format.fprintf fmt "@[<v 2>%a -> %a (%s)@]"
       pp_node nsrc pp_node ndst
       (match reason with
-         | Intraprocedural dpd ->
-             Format.asprintf "intra %a" PdgTypes.Dpd.pretty dpd
-         | InterproceduralDownward -> "downward"
-         | InterproceduralUpward -> "upward"
+       | Intraprocedural dpd ->
+         Format.asprintf "intra %a" PdgTypes.Dpd.pretty dpd
+       | InterproceduralDownward -> "downward"
+       | InterproceduralUpward -> "upward"
       )
   in
   Options.result "Impact graph:@.%a"

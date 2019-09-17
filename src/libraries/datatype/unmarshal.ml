@@ -472,12 +472,24 @@ let input_val ch t =
           let clos = intern_rec [] t in
           return stk (Obj.add_offset (Obj.repr clos) ofs)
 
-      | 0x12 (* CODE_CUSTOM *) ->
+      | 0x12 | 0x19 (* CODE_CUSTOM (deprecated) or CODE_CUSTOM_FIXED *) ->
           let id = read_customident ch in
           let v = read_custom ch id in
           let dest = !ctr in
           ctr := dest + 1;
           return_block stk t v dest
+
+      | 0x18 (* CODE_CUSTOM_LEN *) ->
+        let id = read_customident ch in
+        (* Note: CODE_CUSTOM_FIXED and CODE_CUSTOM_LEN has the length of the
+           payload statically computable, but contrary to the C code,
+           we don't check that the size matches. *)
+        let _sz_32 = read32u ch in
+        let _sz_64 = read64u ch in
+        let v = read_custom ch id in
+        let dest = !ctr in
+        ctr := dest + 1;
+        return_block stk t v dest
 
       | _ when code >= 0x80 (* PREFIX_SMALL_BLOCK *) ->
           let tag = code land 0xF in

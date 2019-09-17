@@ -426,22 +426,6 @@ val input_string :
     parent: GWindow.window -> title:string ->
     ?ok:string -> ?cancel:string -> ?text:string -> string -> string option
 
-(** Create a new window displaying a graph.
-    @plugin development guide *)
-val graph_window:
-  parent: GWindow.window ->
-  title:string ->
-  (packing:(GObj.widget -> unit) -> unit ->
-   <adapt_zoom: unit -> unit; ..>) ->
-  unit
-
-(** Create a new window displaying a graph, by printing dot commands. *)
-val graph_window_through_dot:
-  parent: GWindow.window ->
-  title:string ->
-  (Format.formatter -> unit) ->
-  unit
-
 (** calls the packing function to append a new menu item
     with an icon and a label.
     replaces GMenu.image_menu_item that has been deprecated in GTK3
