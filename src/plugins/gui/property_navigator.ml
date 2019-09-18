@@ -554,7 +554,8 @@ let make_panel (main_ui:main_window_extension_points) =
            | Some { MODEL.finfo = { ip = ip } } ->
                let format_graph ppf =
                  Consolidation_graph.dump (Consolidation_graph.get ip) ppf in
-               Gtk_helper.graph_window_through_dot main_ui#main_window "Dependencies" format_graph
+               Dgraph_helper.graph_window_through_dot
+                 main_ui#main_window "Dependencies" format_graph
            | None -> ()));
   view#selection#set_select_function
     (fun path currently_selected ->

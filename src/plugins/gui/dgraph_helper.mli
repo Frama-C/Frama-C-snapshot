@@ -20,19 +20,18 @@
 (*                                                                        *)
 (**************************************************************************)
 
-(* dgraph module that always generates an error: Dgraph is not available
-   with gtk3
-*)
+(** Create a new window displaying a graph.
+    @plugin development guide *)
+val graph_window:
+  parent: GWindow.window ->
+  title:string ->
+  (packing:(GObj.widget -> unit) -> unit ->
+   <adapt_zoom: unit -> unit; ..>) ->
+  unit
 
-module DGraphModel = struct
-  exception DotError of string
-end
-
-module DGraphContainer = struct
-  type status = Global | Tree | Both
-
-  module Dot = struct
-    let from_dot_with_commands ?packing:_ ?status:_ _ =
-      raise (DGraphModel.DotError "DGraph is unsupported in GTK3")
-  end
-end
+(** Create a new window displaying a graph, by printing dot commands. *)
+val graph_window_through_dot:
+  parent: GWindow.window ->
+  title:string ->
+  (Format.formatter -> unit) ->
+  unit

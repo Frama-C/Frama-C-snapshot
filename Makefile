@@ -30,7 +30,8 @@ include share/Makefile.dynamic_config.internal
 
 #Check share/Makefile.config available
 ifndef FRAMAC_ROOT_SRCDIR
-$(error "You should run ./configure first (or autoconf if there is no configure)")
+$(error \
+  "You should run ./configure first (or autoconf if there is no configure)")
 endif
 
 ###################
@@ -99,7 +100,8 @@ DEFAULT_HEADER_DIRS := headers
 DEFAULT_HEADER_EXCEPTIONS := configure
 # default value used for CEA_PROPRIETARY_FILES and PLUGIN_CEA_PROPRIETARY_FILES
 DEFAULT_CEA_PROPRIETARY_FILES := tests/non-free/%
-# default value used for CEA_PROPRIETARY_HEADERS and PLUGIN_CEA_PROPRIETARY_HEADERS
+# default value used for CEA_PROPRIETARY_HEADERS
+# and PLUGIN_CEA_PROPRIETARY_HEADERS
 DEFAULT_CEA_PROPRIETARY_HEADERS := CEA_PROPRIETARY
 
 MERLIN_PACKAGES:=
@@ -231,7 +233,7 @@ clean-check-libc:
 # itself, rather than copied: otherwise, it could include references to
 # non-distributed plug-ins.
 DISTRIB_FILES:=\
-      $(wildcard bin/migration_scripts/*2*.sh) bin/local_export.sh                        \
+      $(wildcard bin/migration_scripts/*2*.sh) bin/local_export.sh      \
       bin/frama-c bin/frama-c.byte bin/frama-c-gui bin/frama-c-gui.byte \
       bin/frama-c-config bin/frama-c-script                             \
       share/frama-c.WIN32.rc share/frama-c.Unix.rc                      \
@@ -306,7 +308,11 @@ DISTRIB_FILES:=\
 
 # Test files to be included in the distribution (without header checking).
 # Plug-ins should use PLUGIN_DISTRIB_TESTS to export their test files. 
-DISTRIB_TESTS=$(shell git ls-files tests src/plugins/aorai/tests src/plugins/report/tests src/plugins/wp/tests)
+DISTRIB_TESTS=$(shell git ls-files \
+                  tests \
+                  src/plugins/aorai/tests \
+                  src/plugins/report/tests \
+                  src/plugins/wp/tests)
 
 
 # files that are needed to compile API documentation of external plugins
@@ -349,7 +355,8 @@ rebuild: config.status
 		 $(MAKE) depend $(FRAMAC_PARALLEL) && \
 		 $(MAKE) all $(FRAMAC_PARALLEL))
 
-sinclude .Makefile.user # Should defines FRAMAC_PARALLEL, FRAMAC_USER_FLAGS, FRAMAC_USER_MERLIN_FLAGS
+sinclude .Makefile.user
+# Should define FRAMAC_PARALLEL, FRAMAC_USER_FLAGS, FRAMAC_USER_MERLIN_FLAGS
 
 #Create link in share for local execution if
 .PHONY:create_share_link
@@ -700,20 +707,8 @@ src/plugins/gui/GSourceView.mli: src/plugins/gui/GSourceView2.mli.in
 endif
 
 SOURCEVIEWCOMPAT:=GSourceView
-GENERATED+=src/plugins/gui/GSourceView.ml src/plugins/gui/GSourceView.mli
-
-DGRAPHCOMPAT:=
-ifeq ($(HAS_GNOMECANVAS),no)
-DGRAPHCOMPAT:=dgraph
-src/plugins/gui/dgraph.ml: src/plugins/gui/dgraph.ml.in
-	$(CP) $< $@
-	$(CHMOD_RO) $@
-src/plugins/gui/dgraph.mli: src/plugins/gui/dgraph.mli.in
-	$(CP) $< $@
-	$(CHMOD_RO) $@
-
-GENERATED+=src/plugins/gui/dgraph.ml src/plugins/gui/dgraph.mli
-endif
+GENERATED+=src/plugins/gui/GSourceView.ml src/plugins/gui/GSourceView.mli \
+           src/plugins/gui/dgraph_helper.ml src/plugins/gui/gtk_compat.ml
 
 ifeq ($(LABLGTK),lablgtk3)
 src/plugins/gui/gtk_compat.ml: src/plugins/gui/gtk_compat.3.ml
@@ -726,14 +721,27 @@ src/plugins/gui/gtk_compat.ml: src/plugins/gui/gtk_compat.2.ml
 endif
 GENERATED+=src/plugins/gui/gtk_compat.ml
 
+ifeq ($(HAS_DGRAPH),yes)
+  DGRAPHFILES:=debug_manager
+  src/plugins/gui/dgraph_helper.ml: src/plugins/gui/dgraph_helper.yes.ml
+	$(CP) $< $@
+	$(CHMOD_RO) $@
+else
+  DGRAPHFILES:=
+  src/plugins/gui/dgraph_helper.ml: src/plugins/gui/dgraph_helper.no.ml
+	$(CP) $< $@
+	$(CHMOD_RO) $@
+endif
+
 SINGLE_GUI_CMO:= \
 	wutil_once \
 	gtk_compat \
 	$(WTOOLKIT) \
 	$(SOURCEVIEWCOMPAT) \
-	$(DGRAPHCOMPAT) \
 	gui_parameters \
-	gtk_helper gtk_form \
+	gtk_helper \
+        dgraph_helper \
+        gtk_form \
 	source_viewer pretty_source source_manager book_manager \
 	warning_manager \
 	filetree \
@@ -742,9 +750,10 @@ SINGLE_GUI_CMO:= \
 	history \
 	gui_printers \
 	design \
-	analyses_manager file_manager project_manager debug_manager \
+	analyses_manager file_manager project_manager \
 	help_manager \
-	property_navigator
+        $(DGRAPHFILES) \
+        property_navigator \
 
 SINGLE_GUI_CMO:= $(patsubst %,src/plugins/gui/%.cmo,$(SINGLE_GUI_CMO))
 
@@ -784,11 +793,11 @@ PLUGIN_NAME:=Callgraph
 PLUGIN_DISTRIBUTED:=yes
 PLUGIN_DIR:=src/plugins/callgraph
 PLUGIN_CMO:= options journalize subgraph cg services uses register
-#GTK3: no DGraph available.
-ifeq ($(HAS_GNOMECANVAS),yes)
+ifeq ($(HAS_DGRAPH),yes)
 PLUGIN_GUI_CMO:=cg_viewer
 else
 PLUGIN_GUI_CMO:=
+PLUGIN_DISTRIB_EXTERNAL:=cg_viewer.ml
 endif
 PLUGIN_CMI:= callgraph_api
 PLUGIN_INTERNAL_TEST:=yes
@@ -1054,7 +1063,6 @@ PLUGIN_DIR:=src/plugins/impact
 PLUGIN_CMO:= options pdg_aux reason_graph compute_impact register
 PLUGIN_GUI_CMO:= register_gui
 PLUGIN_DISTRIBUTED:=yes
-# PLUGIN_UNDOC:=impact_gui.ml
 PLUGIN_INTERNAL_TEST:=yes
 PLUGIN_DEPENDENCIES:=Inout Eva Pdg Slicing
 
